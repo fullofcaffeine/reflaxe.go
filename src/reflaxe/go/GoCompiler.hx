@@ -2288,21 +2288,34 @@ class GoCompiler {
     var leftLowered = lowerExpr(left);
     var rightLowered = lowerExpr(right);
     var stringMode = leftLowered.isStringLike || rightLowered.isStringLike || isStringType(left.t) || isStringType(right.t);
+    var typedStringOps = compilationContext.profile != GoProfile.Portable && isStringType(left.t) && isStringType(right.t);
 
     return switch (op) {
       case OpAdd if (stringMode):
         {
-          expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringConcatAny"), [leftLowered.expr, rightLowered.expr]),
+          expr: GoExpr.GoCall(
+            GoExpr.GoIdent(typedStringOps ? "hxrt.StringConcatStringPtr" : "hxrt.StringConcatAny"),
+            [leftLowered.expr, rightLowered.expr]
+          ),
           isStringLike: true
         };
       case OpEq if (stringMode):
         {
-          expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringEqualAny"), [leftLowered.expr, rightLowered.expr]),
+          expr: GoExpr.GoCall(
+            GoExpr.GoIdent(typedStringOps ? "hxrt.StringEqualStringPtr" : "hxrt.StringEqualAny"),
+            [leftLowered.expr, rightLowered.expr]
+          ),
           isStringLike: false
         };
       case OpNotEq if (stringMode):
         {
-          expr: GoExpr.GoUnary("!", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringEqualAny"), [leftLowered.expr, rightLowered.expr])),
+          expr: GoExpr.GoUnary(
+            "!",
+            GoExpr.GoCall(
+              GoExpr.GoIdent(typedStringOps ? "hxrt.StringEqualStringPtr" : "hxrt.StringEqualAny"),
+              [leftLowered.expr, rightLowered.expr]
+            )
+          ),
           isStringLike: false
         };
       case OpUShr:
@@ -2329,7 +2342,11 @@ class GoCompiler {
 
   function lowerAssignOpExpr(op:Binop, leftExpr:GoExpr, rightExpr:GoExpr, leftType:Type, rightType:Type):GoExpr {
     if (op == OpAdd && (isStringType(leftType) || isStringType(rightType))) {
-      return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringConcatAny"), [leftExpr, rightExpr]);
+      var typedStringOps = compilationContext.profile != GoProfile.Portable && isStringType(leftType) && isStringType(rightType);
+      return GoExpr.GoCall(
+        GoExpr.GoIdent(typedStringOps ? "hxrt.StringConcatStringPtr" : "hxrt.StringConcatAny"),
+        [leftExpr, rightExpr]
+      );
     }
     if (op == OpUShr) {
       return GoExpr.GoCall(

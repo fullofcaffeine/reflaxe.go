@@ -46,6 +46,21 @@ func StringEqualAny(left any, right any) bool {
 	return *l == *r
 }
 
+func stringValueOrNullToken(value *string) string {
+	if value == nil {
+		return "null"
+	}
+	return *value
+}
+
+func StringConcatStringPtr(left *string, right *string) *string {
+	return StringFromLiteral(stringValueOrNullToken(left) + stringValueOrNullToken(right))
+}
+
+func StringEqualStringPtr(left *string, right *string) bool {
+	return stringValueOrNullToken(left) == stringValueOrNullToken(right)
+}
+
 func Println(value any) {
 	fmt.Println(*StdString(value))
 }

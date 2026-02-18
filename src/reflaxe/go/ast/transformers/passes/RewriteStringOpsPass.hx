@@ -135,7 +135,31 @@ class RewriteStringOpsPass implements IGoASTPass {
         } else {
           expr;
         }
+      case GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringConcatStringPtr"), args):
+        if (args.length == 2) {
+          var left = staticStringValue(args[0]);
+          var right = staticStringValue(args[1]);
+          if (left != null && right != null) {
+            GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral(left + right)]);
+          } else {
+            expr;
+          }
+        } else {
+          expr;
+        }
       case GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringEqualAny"), args):
+        if (args.length == 2) {
+          var left = staticStringValue(args[0]);
+          var right = staticStringValue(args[1]);
+          if (left != null && right != null) {
+            GoExpr.GoBoolLiteral(left == right);
+          } else {
+            expr;
+          }
+        } else {
+          expr;
+        }
+      case GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringEqualStringPtr"), args):
         if (args.length == 2) {
           var left = staticStringValue(args[0]);
           var right = staticStringValue(args[1]);
@@ -152,6 +176,18 @@ class RewriteStringOpsPass implements IGoASTPass {
           case GoExpr.GoBoolLiteral(value):
             GoExpr.GoBoolLiteral(!value);
           case GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringEqualAny"), args):
+            if (args.length == 2) {
+              var left = staticStringValue(args[0]);
+              var right = staticStringValue(args[1]);
+              if (left != null && right != null) {
+                GoExpr.GoBoolLiteral(left != right);
+              } else {
+                expr;
+              }
+            } else {
+              expr;
+            }
+          case GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringEqualStringPtr"), args):
             if (args.length == 2) {
               var left = staticStringValue(args[0]);
               var right = staticStringValue(args[1]);
