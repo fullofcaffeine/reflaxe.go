@@ -39,7 +39,7 @@ func (self *go___Chan) recv() any {
 	if self.readIndex >= len(self.queue) {
 		return nil
 	}
-	value := self.queue[self.readIndex]
+	var value any = self.queue[self.readIndex]
 	_ = value
 	self.readIndex = (self.readIndex + 1)
 	return value

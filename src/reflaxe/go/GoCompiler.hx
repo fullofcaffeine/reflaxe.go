@@ -61,6 +61,8 @@ class GoCompiler {
   final functionVarNameScopes:Array<Map<Int, String>>;
   final functionVarNameCountScopes:Array<Map<String, Int>>;
   final functionReturnTypeScopes:Array<Type>;
+  var projectClasses:Array<ClassType>;
+  var projectEnums:Array<EnumType>;
   var tempVarCounter:Int;
   #end
 
@@ -74,6 +76,8 @@ class GoCompiler {
     functionVarNameScopes = [];
     functionVarNameCountScopes = [];
     functionReturnTypeScopes = [];
+    projectClasses = [];
+    projectEnums = [];
     tempVarCounter = 0;
     #end
   }
@@ -88,6 +92,8 @@ class GoCompiler {
   }
 
   function compileResolvedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
+    projectClasses = classes.copy();
+    projectEnums = enums.copy();
     buildStaticFunctionInfoTable(classes);
     var decls = lowerEnums(enums).concat(lowerClasses(classes)).concat(lowerStdlibShimDecls());
     var imports = [compilationContext.runtimeImportPath];
@@ -1290,7 +1296,7 @@ class GoCompiler {
           loweredValue = upcastIfNeeded(loweredValue, value.t, variable.t);
         }
         var goType = typeToGoType(variable.t);
-        var useShort = loweredValue != null && !isNilExpr(loweredValue);
+        var useShort = loweredValue != null && !isNilExpr(loweredValue) && goType != "any";
         var decl = GoStmt.GoVarDecl(variableName, goType, loweredValue, useShort);
         var consume = GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(variableName));
 
@@ -2353,6 +2359,9 @@ class GoCompiler {
       if (isArrayType(valueTypedExpr.t)) {
         return GoExpr.GoBinary("!=", valueExpr, GoExpr.GoNil);
       }
+      if (isAnyLikeType(valueTypedExpr.t)) {
+        return stdIsOfTypeTypeSwitch(valueExpr, stdIsOfTypeArrayTypeNames());
+      }
       return GoExpr.GoBoolLiteral(false);
     }
 
@@ -2410,11 +2419,7 @@ class GoCompiler {
       return GoExpr.GoBoolLiteral(false);
     }
 
-    var checkTypes = ["*" + classTypeName(targetClass)];
-    if (collectDispatchMethods(targetClass).length > 0) {
-      checkTypes.push(interfaceSymbol(targetClass));
-    }
-    return stdIsOfTypeTypeSwitch(valueExpr, checkTypes);
+    return stdIsOfTypeTypeSwitch(valueExpr, stdIsOfTypeClassTypeNames(targetClass));
   }
 
   function stdIsOfTypeEnumExpr(valueExpr:GoExpr, valueType:Type, targetEnum:EnumType):GoExpr {
@@ -2464,6 +2469,83 @@ class GoCompiler {
       ),
       [GoExpr.GoCall(GoExpr.GoIdent("any"), [valueExpr])]
     );
+  }
+
+  function stdIsOfTypeClassTypeNames(targetClass:ClassType):Array<String> {
+    var seen = new Map<String, Bool>();
+    var out = new Array<String>();
+    for (candidate in projectClasses) {
+      if (!hasInstanceLayout(candidate)) {
+        continue;
+      }
+      if (inheritancePath(candidate, targetClass) != null) {
+        var typeName = "*" + classTypeName(candidate);
+        if (!seen.exists(typeName)) {
+          seen.set(typeName, true);
+          out.push(typeName);
+        }
+      }
+    }
+
+    var targetTypeName = "*" + classTypeName(targetClass);
+    if (hasInstanceLayout(targetClass) && !seen.exists(targetTypeName)) {
+      out.push(targetTypeName);
+    }
+    out.sort(function(a, b) return Reflect.compare(a, b));
+    return out;
+  }
+
+  function stdIsOfTypeArrayTypeNames():Array<String> {
+    var seen = new Map<String, Bool>();
+    var out = new Array<String>();
+    var seed = ["[]any", "[]int", "[]float64", "[]bool", "[]*string"];
+    for (typeName in seed) {
+      if (!seen.exists(typeName)) {
+        seen.set(typeName, true);
+        out.push(typeName);
+      }
+    }
+
+    for (classType in projectClasses) {
+      if (!hasInstanceLayout(classType)) {
+        continue;
+      }
+      var classArray = "[]*" + classTypeName(classType);
+      if (!seen.exists(classArray)) {
+        seen.set(classArray, true);
+        out.push(classArray);
+      }
+    }
+
+    for (enumType in projectEnums) {
+      var enumArray = "[]*" + enumTypeName(enumType);
+      if (!seen.exists(enumArray)) {
+        seen.set(enumArray, true);
+        out.push(enumArray);
+      }
+    }
+
+    out.sort(function(a, b) return Reflect.compare(a, b));
+    return out;
+  }
+
+  function hasInstanceLayout(classType:ClassType):Bool {
+    if (projectSuperClass(classType) != null) {
+      return true;
+    }
+
+    for (field in classType.fields.get()) {
+      switch (field.kind) {
+        case FVar(_, _):
+          return true;
+        case FMethod(_):
+          if (field.name != "new") {
+            return true;
+          }
+      }
+    }
+
+    return classType.constructor != null;
   }
 
   function isStaticCall(callee:TypedExpr, className:String, classPack:Array<String>, fieldName:String):Bool {

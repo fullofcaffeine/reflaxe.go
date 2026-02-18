@@ -3,7 +3,7 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	parsed := New_haxe__format__JsonParser(hxrt.StringFromLiteral("[1,true,\"x\"]")).doParse()
+	var parsed any = New_haxe__format__JsonParser(hxrt.StringFromLiteral("[1,true,\"x\"]")).doParse()
 	_ = parsed
 	hxrt.Println(hxrt.JsonStringify(parsed))
 }
