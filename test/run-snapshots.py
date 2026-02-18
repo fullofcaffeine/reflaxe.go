@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import dataclasses
 import hashlib
 import json
@@ -52,7 +53,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--category", default="", help="Comma-separated category filter")
     parser.add_argument("--case", action="append", default=[], help="Run specific case (category/name)")
     parser.add_argument("--pattern", default="", help="Regex filter over case ids")
-    parser.add_argument("--jobs", type=int, default=1, help="Parallel jobs (currently executed sequentially)")
+    parser.add_argument("--jobs", type=int, default=1, help="Parallel jobs")
     parser.add_argument("--timeout", type=int, default=120, help="Timeout per command in seconds")
     update_group = parser.add_mutually_exclusive_group()
     update_group.add_argument("--update", action="store_true", help="Replace intended/ outputs from out/")
@@ -474,6 +475,8 @@ def write_state(results: list[CaseResult]) -> None:
 
 def main() -> int:
     args = parse_args()
+    if args.jobs < 1:
+        raise SystemExit("--jobs must be >= 1")
 
     all_cases = discover_cases()
     if args.list:
@@ -486,18 +489,34 @@ def main() -> int:
         print("No snapshot cases selected")
         return 0
 
-    if args.jobs != 1:
-        print("Note: --jobs is accepted but current implementation runs sequentially for determinism")
-
     results: list[CaseResult] = []
-    for case in selected:
-        print(f"==> {case.case_id}")
-        result = run_case(case, args)
-        results.append(result)
-        status = "PASS" if result.ok else "FAIL"
-        print(f"[{status}] {case.case_id} ({result.stage}, {result.duration_s:.2f}s)")
-        if result.message and (not result.ok or result.stage == "bless"):
-            print(result.message)
+    if args.jobs == 1:
+        for case in selected:
+            print(f"==> {case.case_id}")
+            result = run_case(case, args)
+            results.append(result)
+            status = "PASS" if result.ok else "FAIL"
+            print(f"[{status}] {case.case_id} ({result.stage}, {result.duration_s:.2f}s)")
+            if result.message and (not result.ok or result.stage == "bless"):
+                print(result.message)
+    else:
+        print(f"Running {len(selected)} case(s) with {args.jobs} workers")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
+            future_by_id: dict[str, concurrent.futures.Future[CaseResult]] = {}
+            for case in selected:
+                future_by_id[case.case_id] = executor.submit(run_case, case, args)
+
+            for case in selected:
+                print(f"==> {case.case_id}")
+                try:
+                    result = future_by_id[case.case_id].result()
+                except Exception as exc:
+                    result = CaseResult(case.case_id, False, 0.0, "internal", f"worker crashed: {exc}")
+                results.append(result)
+                status = "PASS" if result.ok else "FAIL"
+                print(f"[{status}] {case.case_id} ({result.stage}, {result.duration_s:.2f}s)")
+                if result.message and (not result.ok or result.stage == "bless"):
+                    print(result.message)
 
     for result in results:
         maybe_cleanup_artifacts(next(c for c in selected if c.case_id == result.case_id), result.ok)

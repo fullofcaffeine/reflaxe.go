@@ -36,6 +36,12 @@ python3 test/run-snapshots.py --list
 python3 test/run-snapshots.py --case core/hello_trace
 ```
 
+## Run with parallel workers
+
+```bash
+python3 test/run-snapshots.py --jobs 4
+```
+
 ## Update intended outputs
 
 ```bash
