@@ -10,7 +10,7 @@ func main() {
 	} else {
 		hxrt.Println(hxrt.StringFromLiteral("lte"))
 	}
-	if (value == 3) && true {
+	if value == 3 {
 		hxrt.Println(hxrt.StringFromLiteral("yes"))
 	} else {
 		hxrt.Println(hxrt.StringFromLiteral("no"))

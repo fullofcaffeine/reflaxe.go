@@ -10,16 +10,20 @@ func main() {
 func sum(values []int) int {
 	total := 0
 	_ = total
-	hx_tmp_args := values
-	hx_tmp_current := 0
-	for hx_tmp_current < len(hx_tmp_args) {
-		self := hx_tmp_args
-		_ = self
-		hx_post_1 := hx_tmp_current
-		hx_tmp_current = (hx_tmp_current + 1)
+	var _g_current int
+	_ = _g_current
+	var _g_args []int
+	_ = _g_args
+	_g_current = 0
+	_g_args = values
+	for _g_current < len(_g_args) {
+		this1 := _g_args
+		_ = this1
+		hx_post_1 := _g_current
+		_g_current = (_g_current + 1)
 		index := hx_post_1
 		_ = index
-		value := self[index]
+		value := this1[index]
 		_ = value
 		total = (total + value)
 	}

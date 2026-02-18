@@ -10,11 +10,21 @@ class ProfileResolver {
   public static inline final IDIOMATIC_DEFINE = "reflaxe_go_idiomatic";
   public static inline final GOPHER_DEFINE = "reflaxe_go_gopher";
   public static inline final METAL_DEFINE = "reflaxe_go_metal";
+  public static inline final DEPRECATED_IDIOMATIC = "idiomatic";
 
   #if macro
   public static function resolve():GoProfile {
     var raw = Context.definedValue(DEFINE_NAME);
     var selected = new Array<{source:String, profile:GoProfile}>();
+    var wantsIdiomaticAlias = Context.defined(IDIOMATIC_DEFINE);
+
+    if (raw != null && raw == "") {
+      Context.fatalError('`-D ' + DEFINE_NAME + '` requires a value: portable|gopher|metal', Context.currentPos());
+    }
+
+    if (wantsIdiomaticAlias) {
+      Context.fatalError('`-D ' + IDIOMATIC_DEFINE + '` has been removed. Use `-D ' + DEFINE_NAME + '=gopher`.', Context.currentPos());
+    }
 
     if (raw != null && raw != "") {
       selected.push({
@@ -25,9 +35,6 @@ class ProfileResolver {
 
     if (Context.defined(PORTABLE_DEFINE)) {
       selected.push({source: "-D " + PORTABLE_DEFINE, profile: GoProfile.Portable});
-    }
-    if (Context.defined(IDIOMATIC_DEFINE)) {
-      selected.push({source: "-D " + IDIOMATIC_DEFINE, profile: GoProfile.Idiomatic});
     }
     if (Context.defined(GOPHER_DEFINE)) {
       selected.push({source: "-D " + GOPHER_DEFINE, profile: GoProfile.Gopher});
@@ -55,11 +62,13 @@ class ProfileResolver {
   static function parseProfile(raw:String):GoProfile {
     return switch (raw) {
       case "portable": GoProfile.Portable;
-      case "idiomatic": GoProfile.Idiomatic;
       case "gopher": GoProfile.Gopher;
       case "metal": GoProfile.Metal;
+      case DEPRECATED_IDIOMATIC:
+        Context.fatalError('`-D ' + DEFINE_NAME + '=' + DEPRECATED_IDIOMATIC + '` has been removed. Use `-D ' + DEFINE_NAME + '=gopher`.', Context.currentPos());
+        GoProfile.Portable;
       case _:
-        Context.fatalError('Invalid profile "' + raw + '" for -D ' + DEFINE_NAME + ' (expected portable|idiomatic|gopher|metal)', Context.currentPos());
+        Context.fatalError('Invalid profile "' + raw + '" for -D ' + DEFINE_NAME + ' (expected portable|gopher|metal)', Context.currentPos());
         GoProfile.Portable;
     }
   }

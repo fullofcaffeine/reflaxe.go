@@ -5,7 +5,7 @@ import "snapshot/hxrt"
 func main() {
 	bytes := haxe__io__Bytes_ofString(hxrt.StringFromLiteral("abc"))
 	_ = bytes
-	bytes.b[1] = (122 & 255)
+	bytes.b[1] = 122
 	hxrt.Println(bytes.toString())
 	hxrt.Println(bytes.length)
 	buffer := New_haxe__io__BytesBuffer()
@@ -18,13 +18,13 @@ func main() {
 	_ = b1
 	b2 := src.b
 	_ = b2
-	hx_tmp := 0
-	_ = hx_tmp
-	hx_tmp_1 := src.length
-	_ = hx_tmp_1
-	for hx_tmp < hx_tmp_1 {
-		hx_post_1 := hx_tmp
-		hx_tmp = (hx_tmp + 1)
+	_g := 0
+	_ = _g
+	_g1 := src.length
+	_ = _g1
+	for _g < _g1 {
+		hx_post_1 := _g
+		_g = (_g + 1)
 		i := hx_post_1
 		_ = i
 		buffer.b = append(buffer.b, b2[i])

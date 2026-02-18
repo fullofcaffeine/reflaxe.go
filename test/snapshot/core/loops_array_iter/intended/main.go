@@ -7,12 +7,12 @@ func main() {
 	_ = values
 	sum := 0
 	_ = sum
-	hx_tmp := 0
-	_ = hx_tmp
-	for hx_tmp < len(values) {
-		value := values[hx_tmp]
+	_g := 0
+	_ = _g
+	for _g < len(values) {
+		value := values[_g]
 		_ = value
-		hx_tmp = (hx_tmp + 1)
+		_g = (_g + 1)
 		sum = (sum + value)
 	}
 	hxrt.Println(sum)

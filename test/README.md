@@ -102,6 +102,20 @@ python3 test/run-upstream-stdlib-sweep.py --module haxe.Json
 
 Snapshots compile with `-D reflaxe_go_strict_examples` so app/test code cannot rely on raw `__go__` escape hatches.
 
+## Profile contract checks
+
+Negative snapshot cases validate profile policy:
+
+- conflicts (`portable` + `metal`) fail
+- invalid profile values fail
+- removed `idiomatic` value and alias fail fast
+
+Supported profile selector values are:
+
+- `portable`
+- `gopher`
+- `metal`
+
 ## Troubleshooting
 
 - Use `KEEP_ARTIFACTS=1` to keep generated `out/` folders on failures.
