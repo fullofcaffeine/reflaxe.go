@@ -68,11 +68,12 @@ class GoCompiler {
   #if macro
   public function compileModule(types:Array<ModuleType>):Array<GoGeneratedFile> {
     var classes = collectProjectClasses(types);
+    var enums = collectProjectEnums(types);
     buildStaticFunctionInfoTable(classes);
     var mainFile:GoFile = {
       packageName: "main",
       imports: ["snapshot/hxrt"],
-      decls: lowerClasses(classes)
+      decls: lowerEnums(enums).concat(lowerClasses(classes))
     };
 
     return [{
@@ -110,6 +111,23 @@ class GoCompiler {
     return classes;
   }
 
+  function collectProjectEnums(types:Array<ModuleType>):Array<EnumType> {
+    var enums = new Array<EnumType>();
+    for (moduleType in types) {
+      switch (moduleType) {
+        case TEnumDecl(enumRef):
+          var enumType = enumRef.get();
+          if (isProjectEnum(enumType)) {
+            enums.push(enumType);
+          }
+        case _:
+      }
+    }
+
+    enums.sort(function(a, b) return Reflect.compare(fullEnumName(a), fullEnumName(b)));
+    return enums;
+  }
+
   function isProjectClass(classType:ClassType):Bool {
     if (classType.isExtern || classType.isInterface) {
       return false;
@@ -134,8 +152,36 @@ class GoCompiler {
     return true;
   }
 
+  function isProjectEnum(enumType:EnumType):Bool {
+    if (enumType.isExtern) {
+      return false;
+    }
+
+    var moduleName = enumType.module;
+    if (StringTools.startsWith(moduleName, "haxe.")
+      || StringTools.startsWith(moduleName, "sys.")
+      || StringTools.startsWith(moduleName, "StdTypes")
+      || StringTools.startsWith(moduleName, "reflaxe.go")) {
+      return false;
+    }
+
+    var file = Std.string(PositionTools.toLocation(enumType.pos).file);
+    if (file == null) {
+      return false;
+    }
+    if (StringTools.contains(file, "/std/") || StringTools.contains(file, "/vendor/")) {
+      return false;
+    }
+
+    return true;
+  }
+
   function fullClassName(classType:ClassType):String {
     return classType.pack.length == 0 ? classType.name : classType.pack.join(".") + "." + classType.name;
+  }
+
+  function fullEnumName(enumType:EnumType):String {
+    return enumType.pack.length == 0 ? enumType.name : enumType.pack.join(".") + "." + enumType.name;
   }
 
   function projectSuperClass(classType:ClassType):Null<ClassType> {
@@ -160,6 +206,67 @@ class GoCompiler {
         }
       }
     }
+  }
+
+  function lowerEnums(enums:Array<EnumType>):Array<GoDecl> {
+    var decls = new Array<GoDecl>();
+    for (enumType in enums) {
+      var enumName = enumTypeName(enumType);
+      decls.push(GoDecl.GoStructDecl(enumName, [
+        {name: "tag", typeName: "int"},
+        {name: "params", typeName: "[]any"}
+      ]));
+
+      var constructors = [for (field in enumType.constructs) field];
+      constructors.sort(function(a, b) return a.index - b.index);
+
+      for (constructor in constructors) {
+        var symbol = enumConstructorSymbol(enumType, constructor.name);
+        var ctorArgs = enumConstructorArgs(constructor.type);
+        if (ctorArgs.length == 0) {
+          decls.push(GoDecl.GoGlobalVarDecl(
+            symbol,
+            "*" + enumName,
+            GoExpr.GoRaw("&" + enumName + "{tag: " + constructor.index + "}")
+          ));
+        } else {
+          var params = new Array<GoParam>();
+          var payloadExprs = new Array<GoExpr>();
+          for (index in 0...ctorArgs.length) {
+            var arg = ctorArgs[index];
+            var argName = normalizeIdent(arg.name == "" ? ("arg" + index) : arg.name);
+            params.push({
+              name: argName,
+              typeName: scalarGoType(arg.t)
+            });
+            payloadExprs.push(GoExpr.GoIdent(argName));
+          }
+
+          decls.push(GoDecl.GoFuncDecl(
+            symbol,
+            null,
+            params,
+            ["*" + enumName],
+            [
+              GoStmt.GoVarDecl("value", null, GoExpr.GoRaw("&" + enumName + "{tag: " + constructor.index + "}"), true),
+              GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("value"), "params"), GoExpr.GoArrayLiteral("any", payloadExprs)),
+              GoStmt.GoReturn(GoExpr.GoIdent("value"))
+            ]
+          ));
+        }
+      }
+    }
+    return decls;
+  }
+
+  function enumConstructorArgs(type:Type):Array<{name:String, opt:Bool, t:Type}> {
+    var followed = Context.follow(type);
+    return switch (followed) {
+      case TFun(args, _):
+        args;
+      case _:
+        [];
+    };
   }
 
   function lowerClasses(classes:Array<ClassType>):Array<GoDecl> {
@@ -949,9 +1056,9 @@ class GoCompiler {
           expr: GoExpr.GoSelector(loweredTarget, normalizeIdent(resolved.name)),
           isStringLike: isStringType(resolved.type)
         };
-      case FEnum(_, field):
+      case FEnum(enumRef, field):
         {
-          expr: GoExpr.GoIdent(normalizeIdent(field.name)),
+          expr: GoExpr.GoIdent(enumConstructorSymbol(enumRef.get(), field.name)),
           isStringLike: false
         };
     };
@@ -1208,6 +1315,8 @@ class GoCompiler {
         } else {
           "*" + classTypeName(classType);
         }
+      case TEnum(enumRef, _):
+        "*" + enumTypeName(enumRef.get());
       case TAbstract(abstractRef, _):
         var abstractType = abstractRef.get();
         if (abstractType.pack.length == 0 && abstractType.name == "Int") {
@@ -1292,6 +1401,8 @@ class GoCompiler {
         } else {
           "*" + classTypeName(classType);
         }
+      case TEnum(enumRef, _):
+        "*" + enumTypeName(enumRef.get());
       case TAbstract(abstractRef, _):
         var abstractType = abstractRef.get();
         if (abstractType.pack.length == 0 && abstractType.name == "Int") {
@@ -1400,8 +1511,16 @@ class GoCompiler {
     return GoNaming.typeSymbol(classType.pack, classType.name);
   }
 
+  function enumTypeName(enumType:EnumType):String {
+    return GoNaming.typeSymbol(enumType.pack, enumType.name);
+  }
+
   function constructorSymbol(classType:ClassType):String {
     return GoNaming.constructorSymbol(classType.pack, classType.name);
+  }
+
+  function enumConstructorSymbol(enumType:EnumType, fieldName:String):String {
+    return enumTypeName(enumType) + "_" + normalizeIdent(fieldName);
   }
 
   function staticSymbol(classType:ClassType, fieldName:String):String {
