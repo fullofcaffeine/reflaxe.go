@@ -52,3 +52,4 @@ Compatibility note:
 - `docs/defines-reference.md`
 - `docs/profile-admission-criteria.md`
 - `docs/compiler-target-template.md`
+- `docs/snapshot-policy.md`

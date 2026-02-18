@@ -116,6 +116,14 @@ Supported profile selector values are:
 - `gopher`
 - `metal`
 
+## Snapshot shape policy
+
+Snapshots are canonicalized against the **post-Reflaxe optimized AST** output, not the raw pre-optimization typed tree.
+
+- Behavioral correctness is guarded by `go test` and optional `expected.stdout` runtime checks.
+- Code-shape stability is guarded by snapshot diffs.
+- Optimization-shape sentinel: `core/optimized_ast_policy` (constant folding + boolean simplification).
+
 ## Troubleshooting
 
 - Use `KEEP_ARTIFACTS=1` to keep generated `out/` folders on failures.
