@@ -16,6 +16,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--changed", action="store_true", help="Run only snapshot cases touched by git diff")
     parser.add_argument("--pattern", default="", help="Regex filter over snapshot case ids")
     parser.add_argument("--timeout", type=int, default=120, help="Timeout per command in seconds")
+    parser.add_argument(
+        "--snapshot-lock-timeout",
+        type=int,
+        default=30,
+        help="Seconds to wait for snapshot harness lock (passed to run-snapshots.py --lock-timeout)",
+    )
     parser.add_argument("--skip-stdlib-sweep", action="store_true", help="Skip upstream stdlib sweep stage")
     parser.add_argument("--force-stdlib-sweep", action="store_true", help="Run stdlib sweep even for chunked/filtered runs")
     parser.add_argument("--stdlib-compile-only", action="store_true", help="Run stdlib sweep without go test stage")
@@ -29,7 +35,14 @@ def run(cmd: list[str]) -> int:
 
 
 def build_snapshot_command(args: argparse.Namespace) -> list[str]:
-    cmd = ["python3", "test/run-snapshots.py", "--timeout", str(args.timeout)]
+    cmd = [
+        "python3",
+        "test/run-snapshots.py",
+        "--timeout",
+        str(args.timeout),
+        "--lock-timeout",
+        str(args.snapshot_lock_timeout),
+    ]
     if args.chunk:
         cmd.extend(["--chunk", args.chunk])
     if args.failed:

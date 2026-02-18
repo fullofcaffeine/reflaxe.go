@@ -18,6 +18,12 @@ Run one CI shard (skip stdlib sweep by default for chunked runs):
 python3 test/run-ci.py --chunk 0/4
 ```
 
+Tune snapshot lock wait in CI wrapper:
+
+```bash
+python3 test/run-ci.py --snapshot-lock-timeout 0
+```
+
 Force stdlib sweep on a shard:
 
 ```bash
