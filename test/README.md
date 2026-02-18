@@ -6,6 +6,24 @@
 python3 test/run-snapshots.py
 ```
 
+## CI entrypoint
+
+```bash
+python3 test/run-ci.py
+```
+
+Run one CI shard (skip stdlib sweep by default for chunked runs):
+
+```bash
+python3 test/run-ci.py --chunk 0/4
+```
+
+Force stdlib sweep on a shard:
+
+```bash
+python3 test/run-ci.py --chunk 0/4 --force-stdlib-sweep
+```
+
 ## List snapshots
 
 ```bash
@@ -54,6 +72,12 @@ Strict mode exits non-zero when any module fails:
 
 ```bash
 python3 test/run-upstream-stdlib-sweep.py --strict
+```
+
+Strict mode + generated Go build checks:
+
+```bash
+python3 test/run-upstream-stdlib-sweep.py --strict --go-test
 ```
 
 Run one module:

@@ -6,12 +6,16 @@
   "scripts": {
     "postinstall": "lix download",
     "test": "python3 test/run-snapshots.py",
+    "test:ci": "python3 test/run-ci.py",
     "test:list": "python3 test/run-snapshots.py --list",
+    "test:negative": "python3 test/run-snapshots.py --category negative",
+    "test:go-native": "python3 test/run-snapshots.py --category go_native",
     "test:failed": "python3 test/run-snapshots.py --failed",
     "test:changed": "python3 test/run-snapshots.py --changed",
     "test:update": "python3 test/run-snapshots.py --update",
     "test:stdlib-sweep": "python3 test/run-upstream-stdlib-sweep.py",
-    "test:stdlib-sweep:strict": "python3 test/run-upstream-stdlib-sweep.py --strict"
+    "test:stdlib-sweep:strict": "python3 test/run-upstream-stdlib-sweep.py --strict",
+    "test:stdlib-sweep:go-test": "python3 test/run-upstream-stdlib-sweep.py --strict --go-test"
   },
   "devDependencies": {
     "lix": "^15.0.0"
