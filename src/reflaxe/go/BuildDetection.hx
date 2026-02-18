@@ -1,0 +1,179 @@
+package reflaxe.go;
+
+#if macro
+import haxe.io.Path;
+import haxe.macro.Compiler;
+import haxe.macro.Context;
+import sys.FileSystem;
+import sys.io.File;
+#end
+
+class BuildDetection {
+  #if macro
+  public static function isGoBuild():Bool {
+    return isTargetBuild("go_output", "go");
+  }
+
+  public static function isTargetBuild(outputDefine:String, targetName:String):Bool {
+    var outputValue = Context.definedValue(outputDefine);
+    if (outputValue != null && outputValue != "") {
+      return true;
+    }
+    if (Context.defined(outputDefine) || Context.defined(targetName)) {
+      return true;
+    }
+
+    var configuredTargetName = Context.definedValue("target.name");
+    if (configuredTargetName == targetName) {
+      return true;
+    }
+
+    var config = Compiler.getConfiguration();
+    if (config != null) {
+      switch (config.platform) {
+        #if (haxe >= version("5.0.0"))
+        case CustomTarget(name) if (name == targetName):
+          return true;
+        #end
+        case _:
+      }
+    }
+
+    return hasDefineInCompilerArgs(outputDefine);
+  }
+
+  static function hasDefineInCompilerArgs(defineName:String):Bool {
+    var config = Compiler.getConfiguration();
+    if (config == null || config.args == null) {
+      return false;
+    }
+
+    var args = config.args;
+    if (argsContainDefine(args, defineName)) {
+      return true;
+    }
+
+    var seen = new Map<String, Bool>();
+    var cwd = normalizeDir(Sys.getCwd());
+    for (arg in args) {
+      if (StringTools.endsWith(arg, ".hxml")) {
+        if (hxmlContainsDefine(resolveIncludePath(cwd, arg), defineName, seen)) {
+          return true;
+        }
+        continue;
+      }
+      if (StringTools.startsWith(arg, "@")) {
+        var includePath = arg.substr(1);
+        if (hxmlContainsDefine(resolveIncludePath(cwd, includePath), defineName, seen)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  static function argsContainDefine(args:Array<String>, defineName:String):Bool {
+    var i = 0;
+    while (i < args.length) {
+      var arg = args[i];
+      if (arg == "-D" || arg == "--define") {
+        if (i + 1 < args.length) {
+          var defineArg = args[i + 1];
+          if (defineArg == defineName || StringTools.startsWith(defineArg, defineName + "=")) {
+            return true;
+          }
+        }
+        i += 2;
+        continue;
+      }
+
+      if (StringTools.startsWith(arg, "-D" + defineName)) {
+        return true;
+      }
+
+      i += 1;
+    }
+
+    return false;
+  }
+
+  static function hxmlContainsDefine(hxmlPath:String, defineName:String, seen:Map<String, Bool>):Bool {
+    var normalizedPath = Path.normalize(hxmlPath);
+    if (seen.exists(normalizedPath)) {
+      return false;
+    }
+    seen.set(normalizedPath, true);
+
+    if (!FileSystem.exists(normalizedPath)) {
+      return false;
+    }
+
+    var tokens = parseHxmlTokens(normalizedPath);
+    if (argsContainDefine(tokens, defineName)) {
+      return true;
+    }
+
+    var parentDir = normalizeDir(Path.directory(normalizedPath));
+    for (token in tokens) {
+      if (!StringTools.startsWith(token, "@")) {
+        continue;
+      }
+      var nestedPath = resolveIncludePath(parentDir, token.substr(1));
+      if (hxmlContainsDefine(nestedPath, defineName, seen)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  static function parseHxmlTokens(hxmlPath:String):Array<String> {
+    var content = File.getContent(hxmlPath);
+    var tokens = new Array<String>();
+    for (line in content.split("\n")) {
+      var raw = StringTools.trim(line);
+      if (raw.length == 0 || StringTools.startsWith(raw, "#")) {
+        continue;
+      }
+
+      var commentIndex = raw.indexOf("#");
+      if (commentIndex >= 0) {
+        raw = StringTools.trim(raw.substr(0, commentIndex));
+      }
+      if (raw.length == 0) {
+        continue;
+      }
+
+      for (token in raw.split(" ")) {
+        var trimmed = StringTools.trim(token);
+        if (trimmed.length > 0) {
+          tokens.push(trimmed);
+        }
+      }
+    }
+    return tokens;
+  }
+
+  static function resolveIncludePath(baseDir:String, includePath:String):String {
+    if (includePath == null || includePath == "") {
+      return includePath;
+    }
+    if (Path.isAbsolute(includePath)) {
+      return Path.normalize(includePath);
+    }
+    return Path.normalize(Path.join([baseDir, includePath]));
+  }
+
+  static function normalizeDir(path:String):String {
+    if (path == null || path == "") {
+      return "";
+    }
+    return Path.normalize(path);
+  }
+  #else
+  public static function isGoBuild():Bool {
+    return false;
+  }
+  #end
+}

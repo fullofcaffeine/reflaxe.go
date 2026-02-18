@@ -13,7 +13,7 @@ class CompilerInit {
   static var initialized = false;
 
   public static function Start():Void {
-    if (!isGoBuild()) {
+    if (!BuildDetection.isGoBuild()) {
       return;
     }
 
@@ -40,30 +40,6 @@ class CompilerInit {
       ignoreBodilessFunctions: false,
       ignoreExterns: true
     });
-  }
-
-  static function isGoBuild():Bool {
-    var goOutput = Context.definedValue("go_output");
-    if (goOutput != null && goOutput != "") {
-      return true;
-    }
-
-    if (Context.defined("go")) {
-      return true;
-    }
-
-    var args = Sys.args();
-    for (i in 0...args.length) {
-      var arg = args[i];
-      if (arg == "-D" && i + 1 < args.length && StringTools.startsWith(args[i + 1], "go_output")) {
-        return true;
-      }
-      if (StringTools.startsWith(arg, "-Dgo_output")) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   #else
