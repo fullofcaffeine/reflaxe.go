@@ -44,11 +44,15 @@ func render(res *Res) *string {
 	switch res.tag {
 	case 0:
 		hx_tmp := res.params[0].(int)
+		_ = hx_tmp
 		v := hx_tmp
+		_ = v
 		hx_switch_1 = hxrt.StdString(v)
 	case 1:
-		hx_tmp := res.params[0].(*string)
-		e := hx_tmp
+		hx_tmp_1 := res.params[0].(*string)
+		_ = hx_tmp_1
+		e := hx_tmp_1
+		_ = e
 		hx_switch_1 = e
 	}
 	return hx_switch_1
@@ -61,7 +65,9 @@ func unwrapOr(value *Maybe, fallback int) int {
 		hx_switch_2 = fallback
 	case 1:
 		hx_tmp := value.params[0].(int)
+		_ = hx_tmp
 		v := hx_tmp
+		_ = v
 		hx_switch_2 = v
 	}
 	return hx_switch_2

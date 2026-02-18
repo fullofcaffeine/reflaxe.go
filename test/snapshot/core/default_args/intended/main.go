@@ -10,6 +10,7 @@ func main() {
 	local := func(v int) int {
 		return (v + 1)
 	}
+	_ = local
 	hxrt.Println(add(1, 2))
 	hxrt.Println(add(5, 2))
 	hxrt.Println(add(5, 6))

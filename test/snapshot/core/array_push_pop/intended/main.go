@@ -4,6 +4,7 @@ import "snapshot/hxrt"
 
 func main() {
 	values := []int{}
+	_ = values
 	values = append(values, 4)
 	values = append(values, 9)
 	if len(values) > 0 {

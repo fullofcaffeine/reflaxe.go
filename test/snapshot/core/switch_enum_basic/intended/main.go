@@ -13,6 +13,7 @@ var Flag_On *Flag = &Flag{tag: 1}
 
 func main() {
 	current := Flag_On
+	_ = current
 	switch current.tag {
 	case 0:
 		hxrt.Println(0)

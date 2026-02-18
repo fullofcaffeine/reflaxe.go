@@ -25,6 +25,7 @@ func (self *Counter) inc(step int) int {
 
 func main() {
 	counter := New_Counter(5)
+	_ = counter
 	hxrt.Println(counter.value)
 	hxrt.Println(counter.__hx_this.inc(2))
 	hxrt.Println(counter.value)

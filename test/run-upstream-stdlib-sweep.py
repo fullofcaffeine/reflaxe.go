@@ -117,7 +117,9 @@ def write_case(case_dir: Path, module: str) -> None:
         f"import {module};\n\n"
         "class Main {\n"
         f"  static var __probe:{probe_type} = null;\n\n"
-        "  static function main() {}\n"
+        "  static function main() {\n"
+        "    Sys.println(__probe);\n"
+        "  }\n"
         "}\n"
     )
     compile_hxml = (

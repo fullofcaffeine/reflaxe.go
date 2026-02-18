@@ -4,6 +4,7 @@ import "snapshot/hxrt"
 
 func main() {
 	value := 3
+	_ = value
 	if value > 2 {
 		hxrt.Println(hxrt.StringFromLiteral("gt"))
 	} else {

@@ -54,6 +54,7 @@ func (self *Child) callSuperWho() int {
 
 func main() {
 	child := New_Child()
+	_ = child
 	hxrt.Println(child.__hx_this.callWho())
 	hxrt.Println(child.__hx_this.callSuperWho())
 }

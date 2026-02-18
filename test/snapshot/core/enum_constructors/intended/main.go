@@ -24,7 +24,9 @@ func isSome(value *Color) int {
 
 func main() {
 	red := Color_Red
+	_ = red
 	rgb := Color_RGB(1, 2, 3)
+	_ = rgb
 	hxrt.Println(isSome(red))
 	hxrt.Println(isSome(rgb))
 }

@@ -55,6 +55,9 @@ class GoCompiler {
   final staticFunctionInfos:Map<String, FunctionInfo>;
   final localFunctionScopes:Array<Map<String, FunctionInfo>>;
   final localRestIteratorScopes:Array<Array<String>>;
+  final requiredStdlibShimGroups:Map<String, Bool>;
+  final functionVarNameScopes:Array<Map<Int, String>>;
+  final functionVarNameCountScopes:Array<Map<String, Int>>;
   var tempVarCounter:Int;
   #end
 
@@ -63,6 +66,9 @@ class GoCompiler {
     staticFunctionInfos = new Map<String, FunctionInfo>();
     localFunctionScopes = [];
     localRestIteratorScopes = [];
+    requiredStdlibShimGroups = new Map<String, Bool>();
+    functionVarNameScopes = [];
+    functionVarNameCountScopes = [];
     tempVarCounter = 0;
     #end
   }
@@ -72,10 +78,11 @@ class GoCompiler {
     var classes = collectProjectClasses(types);
     var enums = collectProjectEnums(types);
     buildStaticFunctionInfoTable(classes);
+    var decls = lowerEnums(enums).concat(lowerClasses(classes)).concat(lowerStdlibShimDecls());
     var mainFile:GoFile = {
       packageName: "main",
       imports: ["snapshot/hxrt"],
-      decls: lowerEnums(enums).concat(lowerClasses(classes))
+      decls: decls
     };
 
     return [{
@@ -279,6 +286,237 @@ class GoCompiler {
     return decls;
   }
 
+  function lowerStdlibShimDecls():Array<GoDecl> {
+    var decls = new Array<GoDecl>();
+    if (requiredStdlibShimGroups.exists("json")) {
+      decls = decls.concat(lowerJsonStdlibShimDecls());
+    }
+    if (requiredStdlibShimGroups.exists("io")) {
+      decls = decls.concat(lowerIoStdlibShimDecls());
+    }
+    return decls;
+  }
+
+  function lowerJsonStdlibShimDecls():Array<GoDecl> {
+    return [
+      GoDecl.GoStructDecl("haxe__Json", []),
+      GoDecl.GoStructDecl("haxe__format__JsonParser", [
+        {name: "source", typeName: "*string"}
+      ]),
+      GoDecl.GoFuncDecl(
+        "New_haxe__format__JsonParser",
+        null,
+        [{name: "source", typeName: "*string"}],
+        ["*haxe__format__JsonParser"],
+        [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__format__JsonParser{source: source}"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "doParse",
+        {name: "self", typeName: "*haxe__format__JsonParser"},
+        [],
+        ["any"],
+        [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonParse"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "source")]))]
+      ),
+      GoDecl.GoFuncDecl(
+        "haxe__format__JsonPrinter_print",
+        null,
+        [
+          {name: "value", typeName: "any"},
+          {name: "rest", typeName: "...any"}
+        ],
+        ["*string"],
+        [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonStringify"), [GoExpr.GoIdent("value")]))]
+      ),
+      GoDecl.GoFuncDecl(
+        "haxe__Json_parse",
+        null,
+        [{name: "source", typeName: "*string"}],
+        ["any"],
+        [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonParse"), [GoExpr.GoIdent("source")]))]
+      ),
+      GoDecl.GoFuncDecl(
+        "haxe__Json_stringify",
+        null,
+        [
+          {name: "value", typeName: "any"},
+          {name: "rest", typeName: "...any"}
+        ],
+        ["*string"],
+        [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonStringify"), [GoExpr.GoIdent("value")]))]
+      )
+    ];
+  }
+
+  function lowerIoStdlibShimDecls():Array<GoDecl> {
+    return [
+      GoDecl.GoStructDecl("haxe__io__Encoding", []),
+      GoDecl.GoStructDecl("haxe__io__Input", []),
+      GoDecl.GoStructDecl("haxe__io__Output", []),
+      GoDecl.GoStructDecl("haxe__io__Bytes", [
+        {name: "b", typeName: "[]int"},
+        {name: "length", typeName: "int"}
+      ]),
+      GoDecl.GoStructDecl("haxe__io__BytesBuffer", [
+        {name: "b", typeName: "[]int"}
+      ]),
+      GoDecl.GoFuncDecl(
+        "New_haxe__io__Input",
+        null,
+        [],
+        ["*haxe__io__Input"],
+        [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Input{}"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "New_haxe__io__Output",
+        null,
+        [],
+        ["*haxe__io__Output"],
+        [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Output{}"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "New_haxe__io__Bytes",
+        null,
+        [
+          {name: "length", typeName: "int"},
+          {name: "b", typeName: "[]int"}
+        ],
+        ["*haxe__io__Bytes"],
+        [
+          GoStmt.GoIf(
+            GoExpr.GoBinary("==", GoExpr.GoIdent("b"), GoExpr.GoNil),
+            [GoStmt.GoAssign(GoExpr.GoIdent("b"), GoExpr.GoRaw("make([]int, length)"))],
+            null
+          ),
+          GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: b, length: len(b)}"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "haxe__io__Bytes_alloc",
+        null,
+        [{name: "length", typeName: "int"}],
+        ["*haxe__io__Bytes"],
+        [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: make([]int, length), length: length}"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "haxe__io__Bytes_ofString",
+        null,
+        [
+          {name: "value", typeName: "*string"},
+          {name: "encoding", typeName: "...*haxe__io__Encoding"}
+        ],
+        ["*haxe__io__Bytes"],
+        [
+          GoStmt.GoVarDecl("raw", null, GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesFromString"), [GoExpr.GoIdent("value")]), true),
+          GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: raw, length: len(raw)}"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "toString",
+        {name: "self", typeName: "*haxe__io__Bytes"},
+        [],
+        ["*string"],
+        [
+          GoStmt.GoIf(
+            GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil),
+            [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))],
+            null
+          ),
+          GoStmt.GoReturn(GoExpr.GoCall(
+            GoExpr.GoIdent("hxrt.BytesToString"),
+            [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b")]
+          ))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "get",
+        {name: "self", typeName: "*haxe__io__Bytes"},
+        [{name: "pos", typeName: "int"}],
+        ["int"],
+        [GoStmt.GoReturn(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoIdent("pos")))]
+      ),
+      GoDecl.GoFuncDecl(
+        "set",
+        {name: "self", typeName: "*haxe__io__Bytes"},
+        [
+          {name: "pos", typeName: "int"},
+          {name: "value", typeName: "int"}
+        ],
+        [],
+        [GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoIdent("pos")), GoExpr.GoIdent("value"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "New_haxe__io__BytesBuffer",
+        null,
+        [],
+        ["*haxe__io__BytesBuffer"],
+        [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__BytesBuffer{b: []int{}}"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "addByte",
+        {name: "self", typeName: "*haxe__io__BytesBuffer"},
+        [{name: "value", typeName: "int"}],
+        [],
+        [GoStmt.GoAssign(
+          GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"),
+          GoExpr.GoCall(GoExpr.GoIdent("append"), [
+            GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"),
+            GoExpr.GoIdent("value")
+          ])
+        )]
+      ),
+      GoDecl.GoFuncDecl(
+        "add",
+        {name: "self", typeName: "*haxe__io__BytesBuffer"},
+        [{name: "src", typeName: "*haxe__io__Bytes"}],
+        [],
+        [
+          GoStmt.GoIf(
+            GoExpr.GoBinary("==", GoExpr.GoIdent("src"), GoExpr.GoNil),
+            [GoStmt.GoReturn(null)],
+            null
+          ),
+          GoStmt.GoAssign(
+            GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"),
+            GoExpr.GoRaw("append(self.b, src.b...)")
+          )
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "addString",
+        {name: "self", typeName: "*haxe__io__BytesBuffer"},
+        [
+          {name: "value", typeName: "*string"},
+          {name: "encoding", typeName: "...*haxe__io__Encoding"}
+        ],
+        [],
+        [GoStmt.GoExprStmt(GoExpr.GoCall(
+          GoExpr.GoSelector(GoExpr.GoIdent("self"), "add"),
+          [GoExpr.GoCall(GoExpr.GoIdent("haxe__io__Bytes_ofString"), [GoExpr.GoIdent("value")])]
+        ))]
+      ),
+      GoDecl.GoFuncDecl(
+        "getBytes",
+        {name: "self", typeName: "*haxe__io__BytesBuffer"},
+        [],
+        ["*haxe__io__Bytes"],
+        [
+          GoStmt.GoVarDecl("copied", null, GoExpr.GoCall(
+            GoExpr.GoIdent("hxrt.BytesClone"),
+            [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b")]
+          ), true),
+          GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: copied, length: len(copied)}"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "get_length",
+        {name: "self", typeName: "*haxe__io__BytesBuffer"},
+        [],
+        ["int"],
+        [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b")]))]
+      )
+    ];
+  }
+
   function lowerClassDecls(classType:ClassType):Array<GoDecl> {
     var decls = new Array<GoDecl>();
     var typeName = classTypeName(classType);
@@ -369,13 +607,16 @@ class GoCompiler {
   }
 
   function lowerFunctionDecl(name:String, func:TFunc, receiver:Null<GoParam>):GoDecl {
+    pushFunctionVarNameScope();
     var params = lowerFunctionParams(func);
     var results = lowerFunctionResults(func.t);
     var body = lowerFunctionBody(func.expr);
+    popFunctionVarNameScope();
     return GoDecl.GoFuncDecl(name, receiver, params, results, body);
   }
 
   function lowerConstructorDecl(classType:ClassType, ctorFunc:Null<TFunc>, superClass:Null<ClassType>):GoDecl {
+    pushFunctionVarNameScope();
     var typeName = classTypeName(classType);
     var params = ctorFunc == null ? [] : lowerFunctionParams(ctorFunc);
     var body = new Array<GoStmt>();
@@ -404,6 +645,7 @@ class GoCompiler {
     body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_this"), GoExpr.GoIdent("self")));
     body = body.concat(loweredCtorBody.body);
     body.push(GoStmt.GoReturn(GoExpr.GoIdent("self")));
+    popFunctionVarNameScope();
     return GoDecl.GoFuncDecl(constructorSymbol(classType), null, params, ["*" + typeName], body);
   }
 
@@ -528,7 +770,7 @@ class GoCompiler {
     var params = new Array<GoParam>();
     for (arg in func.args) {
       params.push({
-        name: normalizeIdent(arg.v.name),
+        name: localVarName(arg.v),
         typeName: scalarGoType(arg.v.t)
       });
     }
@@ -559,7 +801,7 @@ class GoCompiler {
       case TCast(inner, _):
         lowerToStatements(inner);
       case TVar(variable, value):
-        var variableName = normalizeIdent(variable.name);
+        var variableName = localVarName(variable);
         var restIteratorCtorArg = restIteratorCtorArg(value);
         if (restIteratorCtorArg != null) {
           registerRestIterator(variableName);
@@ -580,12 +822,14 @@ class GoCompiler {
         var goType = typeToGoType(variable.t);
         var useShort = loweredValue != null && !isNilExpr(loweredValue);
         var decl = GoStmt.GoVarDecl(variableName, goType, loweredValue, useShort);
+        var consume = GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(variableName));
 
         if (prefix.length > 0) {
           prefix.push(decl);
+          prefix.push(consume);
           prefix;
         } else {
-          [decl];
+          [decl, consume];
         }
       case TBinop(op, left, right):
         switch (op) {
@@ -733,7 +977,7 @@ class GoCompiler {
 
     for (index in 0...catches.length) {
       var catchEntry = catches[index];
-      var catchVarName = normalizeIdent(catchEntry.v.name);
+      var catchVarName = localVarName(catchEntry.v);
       var catchType = typeToGoType(catchEntry.v.t);
       var catchExprBody = lowerToStatements(catchEntry.expr);
       var haxeExceptionCatch = isHaxeExceptionType(catchEntry.v.t);
@@ -802,6 +1046,58 @@ class GoCompiler {
     }
   }
 
+  function pushFunctionVarNameScope():Void {
+    functionVarNameScopes.push(new Map<Int, String>());
+    functionVarNameCountScopes.push(new Map<String, Int>());
+  }
+
+  function popFunctionVarNameScope():Void {
+    if (functionVarNameScopes.length > 0) {
+      functionVarNameScopes.pop();
+    }
+    if (functionVarNameCountScopes.length > 0) {
+      functionVarNameCountScopes.pop();
+    }
+  }
+
+  function currentFunctionVarNameScope():Null<Map<Int, String>> {
+    if (functionVarNameScopes.length == 0) {
+      return null;
+    }
+    return functionVarNameScopes[functionVarNameScopes.length - 1];
+  }
+
+  function currentFunctionVarNameCountScope():Null<Map<String, Int>> {
+    if (functionVarNameCountScopes.length == 0) {
+      return null;
+    }
+    return functionVarNameCountScopes[functionVarNameCountScopes.length - 1];
+  }
+
+  function localVarName(variable:TVar):String {
+    var index = functionVarNameScopes.length - 1;
+    while (index >= 0) {
+      var scope = functionVarNameScopes[index];
+      if (scope.exists(variable.id)) {
+        return scope.get(variable.id);
+      }
+      index--;
+    }
+
+    var base = normalizeIdent(variable.name);
+    var currentScope = currentFunctionVarNameScope();
+    var countScope = currentFunctionVarNameCountScope();
+    if (currentScope == null || countScope == null) {
+      return base;
+    }
+
+    var next = countScope.exists(base) ? countScope.get(base) : 0;
+    countScope.set(base, next + 1);
+    var assigned = next == 0 ? base : base + "_" + next;
+    currentScope.set(variable.id, assigned);
+    return assigned;
+  }
+
   function registerLocalFunction(name:String, func:TFunc):Void {
     var scope = currentLocalScope();
     if (scope == null) {
@@ -863,7 +1159,7 @@ class GoCompiler {
       case TField(_, FStatic(classRef, field)):
         staticFunctionInfos.get(staticSymbol(classRef.get(), field.get().name));
       case TLocal(variable):
-        lookupLocalFunction(normalizeIdent(variable.name));
+        lookupLocalFunction(localVarName(variable));
       case _:
         null;
     };
@@ -884,7 +1180,7 @@ class GoCompiler {
   function resolveRestIteratorTargetName(target:TypedExpr):Null<String> {
     return switch (target.expr) {
       case TLocal(variable):
-        var name = normalizeIdent(variable.name);
+        var name = localVarName(variable);
         isRegisteredRestIterator(name) ? name : null;
       case TConst(TThis):
         resolveImplicitRestIteratorTarget();
@@ -916,7 +1212,9 @@ class GoCompiler {
   function lowerLValue(expr:TypedExpr):GoExpr {
     return switch (expr.expr) {
       case TLocal(variable):
-        GoExpr.GoIdent(normalizeIdent(variable.name));
+        GoExpr.GoIdent(localVarName(variable));
+      case TArray(target, index):
+        GoExpr.GoIndex(lowerExpr(target).expr, lowerExpr(index).expr);
       case TField(target, access):
         lowerField(target, access).expr;
       case TParenthesis(inner):
@@ -976,17 +1274,22 @@ class GoCompiler {
           isStringLike: false
         };
       case TFunction(func):
+        pushFunctionVarNameScope();
+        var loweredParams = lowerFunctionParams(func);
+        var loweredResults = lowerFunctionResults(func.t);
+        var loweredBody = lowerFunctionBody(func.expr);
+        popFunctionVarNameScope();
         {
           expr: GoExpr.GoFuncLiteral(
-            lowerFunctionParams(func),
-            lowerFunctionResults(func.t),
-            lowerFunctionBody(func.expr)
+            loweredParams,
+            loweredResults,
+            loweredBody
           ),
           isStringLike: false
         };
       case TLocal(variable):
         {
-          expr: GoExpr.GoIdent(normalizeIdent(variable.name)),
+          expr: GoExpr.GoIdent(localVarName(variable)),
           isStringLike: isStringType(variable.t)
         };
       case TParenthesis(inner):
@@ -1221,6 +1524,30 @@ class GoCompiler {
   }
 
   function lowerCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):LoweredExpr {
+    if (isStaticCall(callee, "Json", ["haxe"], "parse")) {
+      var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+      return {
+        expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonParse"), [arg]),
+        isStringLike: false
+      };
+    }
+
+    if (isStaticCall(callee, "Json", ["haxe"], "stringify")) {
+      var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+      return {
+        expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonStringify"), [arg]),
+        isStringLike: true
+      };
+    }
+
+    if (isStaticCall(callee, "JsonPrinter", ["haxe", "format"], "print")) {
+      var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+      return {
+        expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonStringify"), [arg]),
+        isStringLike: true
+      };
+    }
+
     if (isStaticCall(callee, "Sys", [], "println")) {
       var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
       return {
@@ -1739,7 +2066,29 @@ class GoCompiler {
     };
   }
 
+  function requireStdlibShimGroup(group:String):Void {
+    requiredStdlibShimGroups.set(group, true);
+  }
+
+  function noteStdlibClass(classType:ClassType):Void {
+    var pack = classType.pack.join(".");
+    if (pack == "haxe.io") {
+      switch (classType.name) {
+        case "Bytes", "BytesBuffer", "Input", "Output", "Encoding":
+          requireStdlibShimGroup("io");
+        case _:
+      }
+      return;
+    }
+
+    if ((pack == "haxe" && classType.name == "Json")
+      || (pack == "haxe.format" && (classType.name == "JsonParser" || classType.name == "JsonPrinter"))) {
+      requireStdlibShimGroup("json");
+    }
+  }
+
   function classTypeName(classType:ClassType):String {
+    noteStdlibClass(classType);
     return GoNaming.typeSymbol(classType.pack, classType.name);
   }
 
@@ -1748,6 +2097,7 @@ class GoCompiler {
   }
 
   function constructorSymbol(classType:ClassType):String {
+    noteStdlibClass(classType);
     return GoNaming.constructorSymbol(classType.pack, classType.name);
   }
 
@@ -1756,6 +2106,7 @@ class GoCompiler {
   }
 
   function staticSymbol(classType:ClassType, fieldName:String):String {
+    noteStdlibClass(classType);
     return GoNaming.staticSymbol(classType.pack, classType.name, fieldName, fullClassName(classType) == "Main");
   }
 

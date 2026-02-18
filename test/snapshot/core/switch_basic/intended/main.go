@@ -4,6 +4,7 @@ import "snapshot/hxrt"
 
 func main() {
 	v := 1
+	_ = v
 	switch v {
 	case 0:
 		hxrt.Println(0)

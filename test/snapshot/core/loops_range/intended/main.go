@@ -4,6 +4,7 @@ import "snapshot/hxrt"
 
 func main() {
 	sum := 0
+	_ = sum
 	sum = (sum + 0)
 	sum = (sum + 1)
 	sum = (sum + 2)

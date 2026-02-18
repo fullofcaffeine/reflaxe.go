@@ -9,7 +9,9 @@ func main() {
 
 func sum(values []int) int {
 	total := 0
+	_ = total
 	i := 0
+	_ = i
 	for i < len(values) {
 		total = (total + values[i])
 		i = (i + 1)
