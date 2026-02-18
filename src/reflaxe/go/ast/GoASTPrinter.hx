@@ -146,6 +146,27 @@ class GoASTPrinter {
         printExpr(target) + "[" + startCode + ":" + endCode + "]";
       case GoArrayLiteral(elementType, elements):
         "[]" + elementType + "{" + [for (element in elements) printExpr(element)].join(", ") + "}";
+      case GoFuncLiteral(params, results, body):
+        var out = new StringBuf();
+        out.add("func(");
+        out.add(printParams(params));
+        out.add(")");
+        if (results.length == 1) {
+          out.add(" ");
+          out.add(results[0]);
+        } else if (results.length > 1) {
+          out.add(" (");
+          out.add(results.join(", "));
+          out.add(")");
+        }
+        out.add(" {\n");
+        for (stmt in body) {
+          out.add("\t");
+          out.add(printStmt(stmt));
+          out.add("\n");
+        }
+        out.add("}");
+        out.toString();
       case GoRaw(code): code;
       case GoUnary(op, inner): op + printExpr(inner);
       case GoBinary(op, left, right): "(" + printExpr(left) + " " + op + " " + printExpr(right) + ")";

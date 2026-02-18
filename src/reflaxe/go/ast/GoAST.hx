@@ -36,6 +36,7 @@ enum GoExpr {
   GoIndex(target:GoExpr, index:GoExpr);
   GoSlice(target:GoExpr, start:Null<GoExpr>, end:Null<GoExpr>);
   GoArrayLiteral(elementType:String, elements:Array<GoExpr>);
+  GoFuncLiteral(params:Array<GoParam>, results:Array<String>, body:Array<GoStmt>);
   GoRaw(code:String);
   GoUnary(op:String, expr:GoExpr);
   GoBinary(op:String, left:GoExpr, right:GoExpr);
