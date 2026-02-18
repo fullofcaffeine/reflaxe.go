@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import contextlib
 import dataclasses
 import hashlib
 import json
@@ -16,11 +17,17 @@ import sys
 import time
 from typing import Iterable
 
+try:
+    import fcntl  # type: ignore[attr-defined]
+except ImportError:
+    fcntl = None
+
 ROOT = Path(__file__).resolve().parent.parent
 SNAPSHOT_ROOT = ROOT / "test" / "snapshot"
 CACHE_ROOT = ROOT / "test" / ".test-cache"
 LAST_FAILED = CACHE_ROOT / "last_failed.txt"
 LAST_RUN = CACHE_ROOT / "last_run.json"
+RUN_LOCK = CACHE_ROOT / "run-snapshots.lock"
 EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json"}
 EXCLUDE_DIRS = {".cache"}
 
@@ -62,7 +69,68 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--failed", action="store_true", help="Re-run only previously failing cases")
     parser.add_argument("--changed", action="store_true", help="Run cases touched by git diff")
     parser.add_argument("--chunk", default="", help="Deterministic shard in i/n form (e.g. 0/4)")
+    parser.add_argument("--lock-timeout", type=int, default=30, help="Seconds to wait for harness lock (0 = fail fast)")
     return parser.parse_args()
+
+
+@contextlib.contextmanager
+def acquire_run_lock(timeout_s: int):
+    CACHE_ROOT.mkdir(parents=True, exist_ok=True)
+    if fcntl is not None:
+        lock_file = RUN_LOCK.open("a+", encoding="utf-8")
+        start = time.monotonic()
+        while True:
+            try:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if timeout_s <= 0 or (time.monotonic() - start) >= timeout_s:
+                    lock_file.close()
+                    raise SystemExit(
+                        f"Another snapshot run is active (lock: {RUN_LOCK}). "
+                        "Wait and retry, or set --lock-timeout to a larger value."
+                    )
+                time.sleep(0.2)
+
+        try:
+            lock_file.seek(0)
+            lock_file.truncate(0)
+            lock_file.write(f"pid={os.getpid()}\n")
+            lock_file.flush()
+            yield
+        finally:
+            try:
+                lock_file.seek(0)
+                lock_file.truncate(0)
+                lock_file.flush()
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+                lock_file.close()
+        return
+
+    # Fallback path (platforms without fcntl).
+    start = time.monotonic()
+    while True:
+        try:
+            fd = os.open(str(RUN_LOCK), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            break
+        except FileExistsError:
+            if timeout_s <= 0 or (time.monotonic() - start) >= timeout_s:
+                raise SystemExit(
+                    f"Another snapshot run is active (lock: {RUN_LOCK}). "
+                    "Wait and retry, or set --lock-timeout to a larger value."
+                )
+            time.sleep(0.2)
+
+    try:
+        os.write(fd, f"pid={os.getpid()}\n".encode("utf-8"))
+        yield
+    finally:
+        os.close(fd)
+        try:
+            RUN_LOCK.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def discover_cases() -> list[SnapshotCase]:
@@ -188,7 +256,7 @@ def validate_expected_error(case: SnapshotCase, output: str) -> tuple[bool, str]
 def clean_out_dir(case: SnapshotCase) -> None:
     out_dir = case.case_path / "out"
     if out_dir.exists():
-        shutil.rmtree(out_dir)
+        shutil.rmtree(out_dir, ignore_errors=True)
 
 
 def all_files(root: Path) -> list[Path]:
@@ -361,7 +429,7 @@ def maybe_cleanup_artifacts(case: SnapshotCase, success: bool) -> None:
     if success:
         out_dir = case.case_path / "out"
         if out_dir.exists():
-            shutil.rmtree(out_dir)
+            shutil.rmtree(out_dir, ignore_errors=True)
 
 
 def run_case(case: SnapshotCase, args: argparse.Namespace) -> CaseResult:
@@ -490,33 +558,34 @@ def main() -> int:
         return 0
 
     results: list[CaseResult] = []
-    if args.jobs == 1:
-        for case in selected:
-            print(f"==> {case.case_id}")
-            result = run_case(case, args)
-            results.append(result)
-            status = "PASS" if result.ok else "FAIL"
-            print(f"[{status}] {case.case_id} ({result.stage}, {result.duration_s:.2f}s)")
-            if result.message and (not result.ok or result.stage == "bless"):
-                print(result.message)
-    else:
-        print(f"Running {len(selected)} case(s) with {args.jobs} workers")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
-            future_by_id: dict[str, concurrent.futures.Future[CaseResult]] = {}
-            for case in selected:
-                future_by_id[case.case_id] = executor.submit(run_case, case, args)
-
+    with acquire_run_lock(args.lock_timeout):
+        if args.jobs == 1:
             for case in selected:
                 print(f"==> {case.case_id}")
-                try:
-                    result = future_by_id[case.case_id].result()
-                except Exception as exc:
-                    result = CaseResult(case.case_id, False, 0.0, "internal", f"worker crashed: {exc}")
+                result = run_case(case, args)
                 results.append(result)
                 status = "PASS" if result.ok else "FAIL"
                 print(f"[{status}] {case.case_id} ({result.stage}, {result.duration_s:.2f}s)")
                 if result.message and (not result.ok or result.stage == "bless"):
                     print(result.message)
+        else:
+            print(f"Running {len(selected)} case(s) with {args.jobs} workers")
+            with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
+                future_by_id: dict[str, concurrent.futures.Future[CaseResult]] = {}
+                for case in selected:
+                    future_by_id[case.case_id] = executor.submit(run_case, case, args)
+
+                for case in selected:
+                    print(f"==> {case.case_id}")
+                    try:
+                        result = future_by_id[case.case_id].result()
+                    except Exception as exc:
+                        result = CaseResult(case.case_id, False, 0.0, "internal", f"worker crashed: {exc}")
+                    results.append(result)
+                    status = "PASS" if result.ok else "FAIL"
+                    print(f"[{status}] {case.case_id} ({result.stage}, {result.duration_s:.2f}s)")
+                    if result.message and (not result.ok or result.stage == "bless"):
+                        print(result.message)
 
     for result in results:
         maybe_cleanup_artifacts(next(c for c in selected if c.case_id == result.case_id), result.ok)
