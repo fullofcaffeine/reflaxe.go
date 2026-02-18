@@ -16,7 +16,7 @@ This backend prioritizes portable Haxe semantics first, with an opt-in Go-first 
 Use `-D reflaxe_go_profile=portable|gopher|metal`.
 
 - `portable` (default): Haxe-first portability and predictable semantics.
-- `gopher`: Go-first authoring/output style without changing core semantic guarantees.
+- `gopher`: Go-first authoring/output style without changing core semantic guarantees (includes safe literal string-op folding).
 - `metal` (experimental): gopher+typed low-level interop lane and strict app boundary defaults.
 
 `idiomatic` has been removed and now fails fast.

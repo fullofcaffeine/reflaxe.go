@@ -11,7 +11,7 @@ This target supports three profiles:
 | Profile | Best for | Behavior contract |
 | --- | --- | --- |
 | `portable` (default) | Haxe-first and cross-target code | Stable Haxe-oriented semantics, portability-first output |
-| `gopher` | Go-aware teams wanting cleaner Go-first output style | Go-first API/lowering preferences without forcing semantic drift |
+| `gopher` | Go-aware teams wanting cleaner Go-first output style | Go-first API/lowering preferences without forcing semantic drift (includes safe compile-time folding for literal string helper ops) |
 | `metal` (experimental) | Teams needing typed low-level interop lane | `gopher` + strict default app-boundary policy + typed framework interop façade |
 
 ## What changed
