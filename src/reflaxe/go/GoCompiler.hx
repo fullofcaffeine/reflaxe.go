@@ -1745,7 +1745,29 @@ class GoCompiler {
         lowerBinop(op, left, right, expr.t);
       case TUnop(op, postFix, value):
         if (postFix) {
-          unsupportedExpr(expr, "Postfix unary operations are not supported yet");
+          return switch (op) {
+            case OpIncrement, OpDecrement:
+              var target = lowerLValue(value);
+              var temp = freshTempName("hx_post");
+              var opSymbol = op == OpIncrement ? "+" : "-";
+              {
+                expr: GoExpr.GoCall(
+                  GoExpr.GoFuncLiteral(
+                    [],
+                    [typeToGoType(value.t)],
+                    [
+                      GoStmt.GoVarDecl(temp, null, target, true),
+                      GoStmt.GoAssign(target, GoExpr.GoBinary(opSymbol, target, GoExpr.GoIntLiteral(1))),
+                      GoStmt.GoReturn(GoExpr.GoIdent(temp))
+                    ]
+                  ),
+                  []
+                ),
+                isStringLike: isStringType(expr.t)
+              };
+            case _:
+              unsupportedExpr(expr, "Unsupported postfix unary operator");
+          };
         }
         {
           expr: GoExpr.GoUnary(unopSymbol(op), lowerExpr(value).expr),
