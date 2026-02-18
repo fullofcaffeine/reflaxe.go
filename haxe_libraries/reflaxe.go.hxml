@@ -1,0 +1,3 @@
+-cp ../../../../src
+--macro reflaxe.go.CompilerBootstrap.Start()
+--macro reflaxe.go.CompilerInit.Start()

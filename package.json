@@ -1,0 +1,15 @@
+{
+  "name": "reflaxe.go",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Reflaxe-based Go target for Haxe",
+  "scripts": {
+    "postinstall": "lix download",
+    "test": "python3 test/run-snapshots.py",
+    "test:list": "python3 test/run-snapshots.py --list",
+    "test:update": "python3 test/run-snapshots.py --update"
+  },
+  "devDependencies": {
+    "lix": "^15.0.0"
+  }
+}

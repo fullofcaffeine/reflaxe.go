@@ -1,0 +1,26 @@
+{
+  "name": "reflaxe.go",
+  "url": "https://github.com/fullofcaffeine/haxe.go",
+  "license": "MIT",
+  "tags": [
+    "haxe",
+    "reflaxe",
+    "go",
+    "backend"
+  ],
+  "description": "Reflaxe-based Go target",
+  "version": "0.0.1",
+  "releasenote": "Initial Milestone 0 scaffold",
+  "contributors": [
+    "fullofcaffeine"
+  ],
+  "classPath": "src",
+  "dependencies": {},
+  "reflaxe": {
+    "name": "Go",
+    "abbv": "go",
+    "stdPaths": [
+      "std"
+    ]
+  }
+}
