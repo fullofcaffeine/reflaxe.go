@@ -57,14 +57,14 @@ class BuildDetection {
     var cwd = normalizeDir(Sys.getCwd());
     for (arg in args) {
       if (StringTools.endsWith(arg, ".hxml")) {
-        if (hxmlContainsDefine(resolveIncludePath(cwd, arg), defineName, seen)) {
+        if (hxmlContainsDefineAny(resolveIncludeCandidates(cwd, cwd, arg), defineName, seen)) {
           return true;
         }
         continue;
       }
       if (StringTools.startsWith(arg, "@")) {
         var includePath = arg.substr(1);
-        if (hxmlContainsDefine(resolveIncludePath(cwd, includePath), defineName, seen)) {
+        if (hxmlContainsDefineAny(resolveIncludeCandidates(cwd, cwd, includePath), defineName, seen)) {
           return true;
         }
       }
@@ -98,6 +98,15 @@ class BuildDetection {
     return false;
   }
 
+  static function hxmlContainsDefineAny(paths:Array<String>, defineName:String, seen:Map<String, Bool>):Bool {
+    for (path in paths) {
+      if (hxmlContainsDefine(path, defineName, seen)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   static function hxmlContainsDefine(hxmlPath:String, defineName:String, seen:Map<String, Bool>):Bool {
     var normalizedPath = Path.normalize(hxmlPath);
     if (seen.exists(normalizedPath)) {
@@ -116,11 +125,12 @@ class BuildDetection {
 
     var parentDir = normalizeDir(Path.directory(normalizedPath));
     for (token in tokens) {
-      if (!StringTools.startsWith(token, "@")) {
+      var nestedInclude = nestedIncludePath(token);
+      if (nestedInclude == null) {
         continue;
       }
-      var nestedPath = resolveIncludePath(parentDir, token.substr(1));
-      if (hxmlContainsDefine(nestedPath, defineName, seen)) {
+      var nestedCandidates = resolveIncludeCandidates(parentDir, normalizeDir(Sys.getCwd()), nestedInclude);
+      if (hxmlContainsDefineAny(nestedCandidates, defineName, seen)) {
         return true;
       }
     }
@@ -155,14 +165,33 @@ class BuildDetection {
     return tokens;
   }
 
-  static function resolveIncludePath(baseDir:String, includePath:String):String {
+  static function resolveIncludeCandidates(baseDir:String, rootDir:String, includePath:String):Array<String> {
     if (includePath == null || includePath == "") {
-      return includePath;
+      return [];
     }
     if (Path.isAbsolute(includePath)) {
-      return Path.normalize(includePath);
+      return [Path.normalize(includePath)];
     }
-    return Path.normalize(Path.join([baseDir, includePath]));
+    var first = Path.normalize(Path.join([baseDir, includePath]));
+    var second = Path.normalize(Path.join([rootDir, includePath]));
+    if (first == second) {
+      return [first];
+    }
+    return [first, second];
+  }
+
+  static function nestedIncludePath(token:String):Null<String> {
+    if (token == null || token == "") {
+      return null;
+    }
+    if (StringTools.startsWith(token, "@")) {
+      var nested = token.substr(1);
+      return nested == "" ? null : nested;
+    }
+    if (StringTools.endsWith(token, ".hxml")) {
+      return token;
+    }
+    return null;
   }
 
   static function normalizeDir(path:String):String {
