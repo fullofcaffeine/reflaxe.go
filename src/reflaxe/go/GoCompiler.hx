@@ -2304,6 +2304,18 @@ class GoCompiler {
     if (op == OpAdd && (isStringType(leftType) || isStringType(rightType))) {
       return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringConcatAny"), [leftExpr, rightExpr]);
     }
+    if (op == OpUShr) {
+      return GoExpr.GoCall(
+        GoExpr.GoIdent("int"),
+        [
+          GoExpr.GoBinary(
+            ">>",
+            GoExpr.GoCall(GoExpr.GoIdent("uint32"), [leftExpr]),
+            GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr])
+          )
+        ]
+      );
+    }
     return GoExpr.GoBinary(binopSymbol(op), leftExpr, rightExpr);
   }
 
