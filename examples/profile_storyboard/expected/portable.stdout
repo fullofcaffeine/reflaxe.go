@@ -1,0 +1,5 @@
+profile=portable
+baseline=cards=3,points=13,open=3
+view=#1:Ship profile docs:p3:docs|profiles;#2:Backfill regression snapshots:p5:tests;#3:Wire release artifacts:p5:ci|release
+extra=interop_lane=off
+velocity_hint=off

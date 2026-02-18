@@ -1,0 +1,5 @@
+profile=metal
+baseline=cards=3,points=13,open=3
+view=#1:[Ship profile docs]:p3:metal-docs|metal-profiles;#2:[Backfill regression snapshots]:p5:metal-tests;#3:[Wire release artifacts]:p5:metal-ci|metal-release
+extra=interop_lane=typed+strict,high_value=2
+velocity_hint=on

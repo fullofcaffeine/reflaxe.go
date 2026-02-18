@@ -27,3 +27,11 @@ This target supports three profiles:
 - `metal` enables strict mode by default for app-side raw injection.
 
 Framework-owned typed facades are allowed in `metal` strict mode; raw app-side injection remains disallowed.
+
+## Example references
+
+- Cross-profile micro app: `examples/profile_storyboard`
+- Cross-profile complex app: `examples/tui_todo`
+- Coverage + artifact matrix: `docs/examples-matrix.md`
+
+Both examples intentionally keep a shared baseline scenario and only allow additive profile capabilities (for example gopher batch helpers, metal diagnostics).

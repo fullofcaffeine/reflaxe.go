@@ -30,6 +30,12 @@ Force stdlib sweep on a shard:
 python3 test/run-ci.py --chunk 0/4 --force-stdlib-sweep
 ```
 
+Force examples stage on a focused run:
+
+```bash
+python3 test/run-ci.py --changed --force-examples
+```
+
 ## List snapshots
 
 ```bash
@@ -102,6 +108,32 @@ Run one module:
 
 ```bash
 python3 test/run-upstream-stdlib-sweep.py --module haxe.Json
+```
+
+## Examples matrix
+
+Run all example/profile cases:
+
+```bash
+python3 test/run-examples.py
+```
+
+Run only changed examples:
+
+```bash
+python3 test/run-examples.py --changed
+```
+
+Refresh committed generated example outputs:
+
+```bash
+python3 test/run-examples.py --bless-generated
+```
+
+Validate generated trees only (after compiling examples):
+
+```bash
+python3 scripts/examples/sync-generated.py
 ```
 
 ## Strict examples mode

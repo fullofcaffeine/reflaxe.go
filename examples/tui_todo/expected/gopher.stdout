@@ -1,0 +1,15 @@
+profile=gopher
+baseline=open=1,done=1,total=2
+baseline_view:
+== TODO ==
+[ ] #1 p2 Write profile docs tags:go-docs
+[x] #2 p1 Backfill regression snapshots tags:go-tests
+summary open=1,done=1,total=2
+final_view:
+== TODO ==
+[ ] #1 p2 Write profile docs tags:go-docs
+[x] #2 p1 Backfill regression snapshots tags:go-tests
+[ ] #3 p3 Ship generated-go sync tags:-
+[ ] #4 p3 Add binary matrix tags:-
+summary open=3,done=1,total=4
+extras=batch_add=2,diag=off

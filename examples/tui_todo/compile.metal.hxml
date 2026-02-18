@@ -1,0 +1,11 @@
+-cp .
+-cp ../../src
+-cp ../../vendor/reflaxe/src
+--macro reflaxe.go.CompilerBootstrap.Start()
+--macro reflaxe.go.CompilerInit.Start()
+-D go_output=out_metal
+-D go_module=examples_tui_todo_metal
+-D reflaxe_go_profile=metal
+-D example_profile_metal
+-D reflaxe_go_strict_examples
+-main Main

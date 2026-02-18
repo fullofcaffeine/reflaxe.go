@@ -24,6 +24,12 @@ python3 test/run-snapshots.py
 python3 test/run-ci.py
 ```
 
+4. Run examples matrix:
+
+```bash
+python3 test/run-examples.py
+```
+
 ## Profile selection
 
 Set via:
@@ -49,6 +55,7 @@ Compatibility note:
 ## Related docs
 
 - `docs/profiles.md`
+- `docs/examples-matrix.md`
 - `docs/defines-reference.md`
 - `docs/profile-admission-criteria.md`
 - `docs/compiler-target-template.md`

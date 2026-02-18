@@ -9,6 +9,7 @@ This backend prioritizes portable Haxe semantics first, with an opt-in Go-first 
 - Onboarding: `docs/start-here.md`
 - Profiles: `docs/profiles.md`
 - Defines reference: `docs/defines-reference.md`
+- Examples matrix: `docs/examples-matrix.md`
 - Future target template: `docs/compiler-target-template.md`
 
 ## Profiles
@@ -25,11 +26,20 @@ Use `-D reflaxe_go_profile=portable|gopher|metal`.
 
 - Run snapshots: `python3 test/run-snapshots.py`
 - Run CI surface: `python3 test/run-ci.py`
+- Run examples profile matrix: `python3 test/run-examples.py`
 - Re-run previous failures: `python3 test/run-snapshots.py --failed`
 - Bless changed snapshot files only: `python3 test/run-snapshots.py --bless`
+- Bless generated example Go trees: `python3 test/run-examples.py --bless-generated`
 
 ## Strictness
 
 - `-D reflaxe_go_strict_examples`: repo examples/snapshots may not use raw `__go__`.
 - `-D reflaxe_go_strict`: user project strict app-boundary policy.
 - `metal` enables strict mode defaults for app-side injections.
+
+## Examples
+
+- `examples/profile_storyboard`: compact profile-adapter reference.
+- `examples/tui_todo`: complex app reference (single Haxe codebase -> `portable|gopher|metal`).
+
+See `docs/examples-matrix.md` for commands, output layout, and artifact matrix.

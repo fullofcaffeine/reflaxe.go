@@ -1,0 +1,11 @@
+-cp .
+-cp ../../src
+-cp ../../vendor/reflaxe/src
+--macro reflaxe.go.CompilerBootstrap.Start()
+--macro reflaxe.go.CompilerInit.Start()
+-D go_output=out_gopher
+-D go_module=examples_profile_storyboard_gopher
+-D reflaxe_go_profile=gopher
+-D example_profile_gopher
+-D reflaxe_go_strict_examples
+-main Main

@@ -1,0 +1,5 @@
+profile=gopher
+baseline=cards=3,points=13,open=3
+view=#1:Ship profile docs [go]:p3:go-docs|go-profiles;#2:Backfill regression snapshots [go]:p5:go-tests;#3:Wire release artifacts [go]:p5:go-ci|go-release
+extra=interop_lane=typed,total_points=13
+velocity_hint=on

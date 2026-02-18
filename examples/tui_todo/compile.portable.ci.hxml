@@ -1,0 +1,12 @@
+-cp .
+-cp ../../src
+-cp ../../vendor/reflaxe/src
+--macro reflaxe.go.CompilerBootstrap.Start()
+--macro reflaxe.go.CompilerInit.Start()
+-D go_output=out_portable_ci
+-D go_module=examples_tui_todo_portable_ci
+-D reflaxe_go_profile=portable
+-D example_profile_portable
+-D reflaxe_go_strict_examples
+-D example_ci
+-main Main

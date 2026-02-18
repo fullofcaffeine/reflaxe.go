@@ -25,6 +25,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-stdlib-sweep", action="store_true", help="Skip upstream stdlib sweep stage")
     parser.add_argument("--force-stdlib-sweep", action="store_true", help="Run stdlib sweep even for chunked/filtered runs")
     parser.add_argument("--stdlib-compile-only", action="store_true", help="Run stdlib sweep without go test stage")
+    parser.add_argument("--skip-examples", action="store_true", help="Skip examples stage")
+    parser.add_argument("--force-examples", action="store_true", help="Run examples even for chunked/filtered runs")
+    parser.add_argument("--examples-compile-only", action="store_true", help="Run examples compile/go-test checks without go run stdout checks")
     return parser.parse_args()
 
 
@@ -72,6 +75,30 @@ def build_stdlib_command(args: argparse.Namespace) -> list[str]:
     return cmd
 
 
+def should_run_examples(args: argparse.Namespace) -> bool:
+    if args.skip_examples:
+        return False
+    if args.force_examples:
+        return True
+
+    # Keep examples on full runs by default.
+    return not (args.chunk or args.failed or args.changed or args.pattern)
+
+
+def build_examples_command(args: argparse.Namespace) -> list[str]:
+    cmd = [
+        "python3",
+        "test/run-examples.py",
+        "--timeout",
+        str(args.timeout),
+    ]
+    if args.examples_compile_only:
+        cmd.append("--compile-only")
+    if args.changed:
+        cmd.append("--changed")
+    return cmd
+
+
 def main() -> int:
     args = parse_args()
 
@@ -80,12 +107,20 @@ def main() -> int:
     if snapshot_code != 0:
         return snapshot_code
 
-    if not should_run_stdlib_sweep(args):
+    if should_run_stdlib_sweep(args):
+        print("==> Upstream stdlib sweep stage")
+        stdlib_code = run(build_stdlib_command(args))
+        if stdlib_code != 0:
+            return stdlib_code
+    else:
         print("==> Skipping stdlib sweep stage")
+
+    if not should_run_examples(args):
+        print("==> Skipping examples stage")
         return 0
 
-    print("==> Upstream stdlib sweep stage")
-    return run(build_stdlib_command(args))
+    print("==> Examples stage")
+    return run(build_examples_command(args))
 
 
 if __name__ == "__main__":
