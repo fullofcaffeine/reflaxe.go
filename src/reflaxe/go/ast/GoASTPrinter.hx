@@ -3,6 +3,7 @@ package reflaxe.go.ast;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoFile;
+import reflaxe.go.ast.GoAST.GoInterfaceMethod;
 import reflaxe.go.ast.GoAST.GoParam;
 import reflaxe.go.ast.GoAST.GoStmt;
 
@@ -41,6 +42,18 @@ class GoASTPrinter {
 
   static function printDecl(decl:GoDecl):String {
     return switch (decl) {
+      case GoInterfaceDecl(name, methods):
+        var out = new StringBuf();
+        out.add("type ");
+        out.add(name);
+        out.add(" interface {\n");
+        for (method in methods) {
+          out.add("\t");
+          out.add(printInterfaceMethod(method));
+          out.add("\n");
+        }
+        out.add("}\n");
+        out.toString();
       case GoStructDecl(name, fields):
         var out = new StringBuf();
         out.add("type ");
@@ -48,8 +61,10 @@ class GoASTPrinter {
         out.add(" struct {\n");
         for (field in fields) {
           out.add("\t");
-          out.add(field.name);
-          out.add(" ");
+          if (field.name != "") {
+            out.add(field.name);
+            out.add(" ");
+          }
           out.add(field.typeName);
           out.add("\n");
         }
@@ -102,6 +117,23 @@ class GoASTPrinter {
       rendered.push(param.name + " " + param.typeName);
     }
     return rendered.join(", ");
+  }
+
+  static function printInterfaceMethod(method:GoInterfaceMethod):String {
+    var out = new StringBuf();
+    out.add(method.name);
+    out.add("(");
+    out.add(printParams(method.params));
+    out.add(")");
+    if (method.results.length == 1) {
+      out.add(" ");
+      out.add(method.results[0]);
+    } else if (method.results.length > 1) {
+      out.add(" (");
+      out.add(method.results.join(", "));
+      out.add(")");
+    }
+    return out.toString();
   }
 
   static function printStmt(stmt:GoStmt):String {

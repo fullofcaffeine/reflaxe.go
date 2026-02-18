@@ -2,12 +2,18 @@ package main
 
 import "snapshot/hxrt"
 
+type I_Counter interface {
+	inc(step int) int
+}
+
 type Counter struct {
-	value int
+	__hx_this I_Counter
+	value     int
 }
 
 func New_Counter(start int) *Counter {
 	self := &Counter{}
+	self.__hx_this = self
 	self.value = start
 	return self
 }

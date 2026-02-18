@@ -9,6 +9,7 @@ import haxe.macro.Type;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoFile;
+import reflaxe.go.ast.GoAST.GoInterfaceMethod;
 import reflaxe.go.ast.GoAST.GoParam;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoASTPrinter;
@@ -132,6 +133,18 @@ class GoCompiler {
     return classType.pack.length == 0 ? classType.name : classType.pack.join(".") + "." + classType.name;
   }
 
+  function projectSuperClass(classType:ClassType):Null<ClassType> {
+    if (classType.superClass == null) {
+      return null;
+    }
+    var superType = classType.superClass.t.get();
+    return isProjectClass(superType) ? superType : null;
+  }
+
+  function interfaceSymbol(classType:ClassType):String {
+    return "I_" + classTypeName(classType);
+  }
+
   function buildStaticFunctionInfoTable(classes:Array<ClassType>):Void {
     for (classType in classes) {
       var fields = classType.statics.get();
@@ -155,13 +168,14 @@ class GoCompiler {
   function lowerClassDecls(classType:ClassType):Array<GoDecl> {
     var decls = new Array<GoDecl>();
     var typeName = classTypeName(classType);
+    var superClass = projectSuperClass(classType);
 
-    var instanceFields = new Array<GoParam>();
+    var instanceDataFields = new Array<GoParam>();
     var instanceMethods = new Array<{name:String, func:TFunc}>();
     for (field in classType.fields.get()) {
       switch (field.kind) {
         case FVar(_, _):
-          instanceFields.push({
+          instanceDataFields.push({
             name: normalizeIdent(field.name),
             typeName: scalarGoType(field.type)
           });
@@ -181,9 +195,32 @@ class GoCompiler {
       ctorFunc = unwrapFunction(ctorRef.get().expr());
     }
 
-    if (instanceFields.length > 0 || instanceMethods.length > 0 || ctorFunc != null) {
+    var hasInstanceLayout = superClass != null || instanceDataFields.length > 0 || instanceMethods.length > 0 || ctorFunc != null;
+    if (hasInstanceLayout) {
+      var instanceFields = new Array<GoParam>();
+      if (superClass != null) {
+        instanceFields.push({
+          name: "",
+          typeName: "*" + classTypeName(superClass)
+        });
+      }
+      instanceFields.push({
+        name: "__hx_this",
+        typeName: interfaceSymbol(classType)
+      });
+      instanceFields = instanceFields.concat(instanceDataFields);
+
+      var interfaceMethods = new Array<GoInterfaceMethod>();
+      for (method in instanceMethods) {
+        interfaceMethods.push({
+          name: normalizeIdent(method.name),
+          params: lowerFunctionParams(method.func),
+          results: lowerFunctionResults(method.func.t)
+        });
+      }
+      decls.push(GoDecl.GoInterfaceDecl(interfaceSymbol(classType), interfaceMethods));
       decls.push(GoDecl.GoStructDecl(typeName, instanceFields));
-      decls.push(lowerConstructorDecl(classType, ctorFunc));
+      decls.push(lowerConstructorDecl(classType, ctorFunc, superClass));
     }
 
     for (method in instanceMethods) {
@@ -223,11 +260,23 @@ class GoCompiler {
     return GoDecl.GoFuncDecl(name, receiver, params, results, body);
   }
 
-  function lowerConstructorDecl(classType:ClassType, ctorFunc:Null<TFunc>):GoDecl {
+  function lowerConstructorDecl(classType:ClassType, ctorFunc:Null<TFunc>, superClass:Null<ClassType>):GoDecl {
     var typeName = classTypeName(classType);
     var params = ctorFunc == null ? [] : lowerFunctionParams(ctorFunc);
     var body = new Array<GoStmt>();
     body.push(GoStmt.GoVarDecl("self", null, GoExpr.GoRaw("&" + typeName + "{}"), true));
+    if (superClass != null) {
+      var superTypeName = classTypeName(superClass);
+      body.push(GoStmt.GoAssign(
+        GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName),
+        GoExpr.GoRaw("&" + superTypeName + "{}")
+      ));
+      body.push(GoStmt.GoAssign(
+        GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName), "__hx_this"),
+        GoExpr.GoIdent("self")
+      ));
+    }
+    body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_this"), GoExpr.GoIdent("self")));
     if (ctorFunc != null) {
       body = body.concat(lowerFunctionBody(ctorFunc.expr));
     }
@@ -356,6 +405,9 @@ class GoCompiler {
       case TReturn(value):
         [GoStmt.GoReturn(value == null ? null : lowerExpr(value).expr)];
       case TCall(callee, args):
+        if (isSuperCtorCall(callee)) {
+          [];
+        } else {
         var arrayCall = asArrayMethodCall(callee);
         if (arrayCall != null && arrayCall.methodName == "push") {
           var targetExpr = lowerLValue(arrayCall.target);
@@ -373,6 +425,7 @@ class GoCompiler {
           ];
         } else {
           [GoStmt.GoExprStmt(lowerCall(callee, args, expr.t).expr)];
+        }
         }
       case _:
         [GoStmt.GoExprStmt(lowerExpr(expr).expr)];
@@ -823,6 +876,21 @@ class GoCompiler {
       case TField(_, FStatic(classRef, field)):
         var classType = classRef.get();
         classType.name == className && classType.pack.join(".") == classPack.join(".") && field.get().name == fieldName;
+      case _:
+        false;
+    };
+  }
+
+  function isSuperCtorCall(callee:TypedExpr):Bool {
+    return switch (callee.expr) {
+      case TConst(TSuper):
+        true;
+      case TMeta(_, inner):
+        isSuperCtorCall(inner);
+      case TParenthesis(inner):
+        isSuperCtorCall(inner);
+      case TCast(inner, _):
+        isSuperCtorCall(inner);
       case _:
         false;
     };

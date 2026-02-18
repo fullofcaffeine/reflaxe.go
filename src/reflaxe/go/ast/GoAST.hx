@@ -11,7 +11,14 @@ typedef GoParam = {
   final typeName:String;
 }
 
+typedef GoInterfaceMethod = {
+  final name:String;
+  final params:Array<GoParam>;
+  final results:Array<String>;
+}
+
 enum GoDecl {
+  GoInterfaceDecl(name:String, methods:Array<GoInterfaceMethod>);
   GoStructDecl(name:String, fields:Array<GoParam>);
   GoGlobalVarDecl(name:String, typeName:String, value:Null<GoExpr>);
   GoFuncDecl(name:String, receiver:Null<GoParam>, params:Array<GoParam>, results:Array<String>, body:Array<GoStmt>);
