@@ -4,7 +4,7 @@ package reflaxe.go;
 import haxe.io.Path;
 import haxe.macro.Context;
 import haxe.macro.Type;
-import reflaxe.BaseCompiler;
+import reflaxe.GenericCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
@@ -13,7 +13,7 @@ import reflaxe.output.StringOrBytes;
 import sys.FileSystem;
 import sys.io.File;
 
-class GoReflaxeCompiler extends BaseCompiler {
+class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dynamic> {
   var allModules:Array<ModuleType> = [];
   var modulesByName:Map<String, Array<ModuleType>> = [];
   var selectedModuleNames:Map<String, Bool> = [];
@@ -72,17 +72,19 @@ class GoReflaxeCompiler extends BaseCompiler {
     return empty.iterator();
   }
 
-  public function compileClass(classType:ClassType, varFields:Array<ClassVarData>, funcFields:Array<ClassFuncData>):Void {
+  public function compileClassImpl(classType:ClassType, varFields:Array<ClassVarData>, funcFields:Array<ClassFuncData>):Null<Bool> {
     markModuleSelected(classType.module);
+    return null;
   }
 
-  public function compileEnum(enumType:EnumType, options:Array<EnumOptionData>):Void {
+  public function compileEnumImpl(enumType:EnumType, options:Array<EnumOptionData>):Null<Bool> {
     markModuleSelected(enumType.module);
+    return null;
   }
 
-  public function compileTypedef(classType:DefType):Void {}
-
-  public function compileAbstract(classType:AbstractType):Void {}
+  public function compileExpressionImpl(expr:TypedExpr, topLevel:Bool):Null<Dynamic> {
+    return null;
+  }
 
   function collectSelectedModules():Array<ModuleType> {
     var selected = new Array<ModuleType>();
