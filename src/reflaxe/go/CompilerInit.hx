@@ -14,7 +14,7 @@ class CompilerInit {
     }
     initialized = true;
 
-    Context.onAfterTyping(function(_) {
+    Context.onAfterTyping(function(types) {
       if (!isGoBuild()) {
         return;
       }
@@ -22,7 +22,7 @@ class CompilerInit {
       var outputDir = resolveOutputDir();
       var _ = ProfileResolver.resolve();
       var compiler = new GoCompiler();
-      var files = compiler.compileModule();
+      var files = compiler.compileModule(types);
 
       GoOutputIterator.writeFiles(outputDir, files);
       GoOutputIterator.writeGoMod(outputDir, "snapshot");

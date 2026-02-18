@@ -41,9 +41,36 @@ class GoASTPrinter {
 
   static function printDecl(decl:GoDecl):String {
     return switch (decl) {
-      case GoFuncDecl(name, params, results, body):
+      case GoStructDecl(name, fields):
+        var out = new StringBuf();
+        out.add("type ");
+        out.add(name);
+        out.add(" struct {\n");
+        for (field in fields) {
+          out.add("\t");
+          out.add(field.name);
+          out.add(" ");
+          out.add(field.typeName);
+          out.add("\n");
+        }
+        out.add("}\n");
+        out.toString();
+      case GoGlobalVarDecl(name, typeName, value):
+        if (value == null) {
+          "var " + name + " " + typeName + "\n";
+        } else {
+          "var " + name + " " + typeName + " = " + printExpr(value) + "\n";
+        }
+      case GoFuncDecl(name, receiver, params, results, body):
         var out = new StringBuf();
         out.add("func ");
+        if (receiver != null) {
+          out.add("(");
+          out.add(receiver.name);
+          out.add(" ");
+          out.add(receiver.typeName);
+          out.add(") ");
+        }
         out.add(name);
         out.add("(");
         out.add(printParams(params));

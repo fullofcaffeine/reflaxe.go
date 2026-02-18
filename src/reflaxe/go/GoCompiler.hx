@@ -4,6 +4,7 @@ package reflaxe.go;
 import haxe.macro.Context;
 import haxe.macro.Expr.Binop;
 import haxe.macro.Expr.Unop;
+import haxe.macro.PositionTools;
 import haxe.macro.Type;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
@@ -11,6 +12,7 @@ import reflaxe.go.ast.GoAST.GoFile;
 import reflaxe.go.ast.GoAST.GoParam;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoASTPrinter;
+import reflaxe.go.naming.GoNaming;
 #end
 
 typedef GoGeneratedFile = {
@@ -48,12 +50,13 @@ class GoCompiler {
   }
 
   #if macro
-  public function compileModule():Array<GoGeneratedFile> {
-    var mainClass = findMainClass();
+  public function compileModule(types:Array<ModuleType>):Array<GoGeneratedFile> {
+    var classes = collectProjectClasses(types);
+    buildStaticFunctionInfoTable(classes);
     var mainFile:GoFile = {
       packageName: "main",
       imports: ["snapshot/hxrt"],
-      decls: lowerStaticDecls(mainClass)
+      decls: lowerClasses(classes)
     };
 
     return [{
@@ -62,52 +65,175 @@ class GoCompiler {
     }];
   }
 
-  function findMainClass():ClassType {
-    var mainType = Context.getType("Main");
-    return switch (Context.follow(mainType)) {
-      case TInst(classRef, _):
-        classRef.get();
-      case _:
-        Context.fatalError("Main must be a class type", Context.currentPos());
+  function collectProjectClasses(types:Array<ModuleType>):Array<ClassType> {
+    var classes = new Array<ClassType>();
+    for (moduleType in types) {
+      switch (moduleType) {
+        case TClassDecl(classRef):
+          var classType = classRef.get();
+          if (isProjectClass(classType)) {
+            classes.push(classType);
+          }
+        case _:
+      }
+    }
+
+    classes.sort(function(a, b) return Reflect.compare(fullClassName(a), fullClassName(b)));
+
+    var hasMain = false;
+    for (classType in classes) {
+      if (fullClassName(classType) == "Main") {
+        hasMain = true;
+        break;
+      }
+    }
+    if (!hasMain) {
+      Context.fatalError("Main class was not found among project modules", Context.currentPos());
+    }
+
+    return classes;
+  }
+
+  function isProjectClass(classType:ClassType):Bool {
+    if (classType.isExtern || classType.isInterface) {
+      return false;
+    }
+
+    var moduleName = classType.module;
+    if (StringTools.startsWith(moduleName, "haxe.")
+      || StringTools.startsWith(moduleName, "sys.")
+      || StringTools.startsWith(moduleName, "StdTypes")
+      || StringTools.startsWith(moduleName, "reflaxe.go")) {
+      return false;
+    }
+
+    var file = Std.string(PositionTools.toLocation(classType.pos).file);
+    if (file == null) {
+      return false;
+    }
+    if (StringTools.contains(file, "/std/") || StringTools.contains(file, "/vendor/")) {
+      return false;
+    }
+
+    return true;
+  }
+
+  function fullClassName(classType:ClassType):String {
+    return classType.pack.length == 0 ? classType.name : classType.pack.join(".") + "." + classType.name;
+  }
+
+  function buildStaticFunctionInfoTable(classes:Array<ClassType>):Void {
+    for (classType in classes) {
+      var fields = classType.statics.get();
+      for (field in fields) {
+        var func = unwrapFunction(field.expr());
+        if (func != null) {
+          staticFunctionInfos.set(staticSymbol(classType, field.name), buildFunctionInfo(func));
+        }
+      }
     }
   }
 
-  function lowerStaticDecls(classType:ClassType):Array<GoDecl> {
-    var fields = classType.statics.get().copy();
-    fields.sort(function(a, b) return Reflect.compare(a.name, b.name));
-
-    for (field in fields) {
-      var func = unwrapFunction(field.expr());
-      if (func != null) {
-        staticFunctionInfos.set(normalizeIdent(field.name), buildFunctionInfo(func));
-      }
-    }
-
+  function lowerClasses(classes:Array<ClassType>):Array<GoDecl> {
     var decls = new Array<GoDecl>();
-    var hasMain = false;
-    for (field in fields) {
-      var func = unwrapFunction(field.expr());
-      if (func == null) {
-        continue;
-      }
-      var name = normalizeIdent(field.name);
-      if (name == "main") {
-        hasMain = true;
-      }
-      decls.push(lowerFunctionDecl(name, func));
-    }
-
-    if (!hasMain) {
-      Context.fatalError("Main.main was not found", Context.currentPos());
+    for (classType in classes) {
+      decls = decls.concat(lowerClassDecls(classType));
     }
     return decls;
   }
 
-  function lowerFunctionDecl(name:String, func:TFunc):GoDecl {
+  function lowerClassDecls(classType:ClassType):Array<GoDecl> {
+    var decls = new Array<GoDecl>();
+    var typeName = classTypeName(classType);
+
+    var instanceFields = new Array<GoParam>();
+    var instanceMethods = new Array<{name:String, func:TFunc}>();
+    for (field in classType.fields.get()) {
+      switch (field.kind) {
+        case FVar(_, _):
+          instanceFields.push({
+            name: normalizeIdent(field.name),
+            typeName: scalarGoType(field.type)
+          });
+        case FMethod(_):
+          if (field.name != "new") {
+            var methodFunc = unwrapFunction(field.expr());
+            if (methodFunc != null) {
+              instanceMethods.push({name: field.name, func: methodFunc});
+            }
+          }
+      }
+    }
+
+    var ctorRef = classType.constructor;
+    var ctorFunc:Null<TFunc> = null;
+    if (ctorRef != null) {
+      ctorFunc = unwrapFunction(ctorRef.get().expr());
+    }
+
+    if (instanceFields.length > 0 || instanceMethods.length > 0 || ctorFunc != null) {
+      decls.push(GoDecl.GoStructDecl(typeName, instanceFields));
+      decls.push(lowerConstructorDecl(classType, ctorFunc));
+    }
+
+    for (method in instanceMethods) {
+      decls.push(lowerInstanceMethodDecl(classType, method.name, method.func));
+    }
+
+    var staticFields = classType.statics.get().copy();
+    staticFields.sort(function(a, b) return Reflect.compare(a.name, b.name));
+    for (field in staticFields) {
+      var symbol = staticSymbol(classType, field.name);
+      switch (field.kind) {
+        case FVar(_, _):
+          if (field.name == "__init__") {
+            continue;
+          }
+          var valueExpr = field.expr();
+          decls.push(GoDecl.GoGlobalVarDecl(
+            symbol,
+            scalarGoType(field.type),
+            valueExpr == null ? null : lowerExpr(valueExpr).expr
+          ));
+        case FMethod(_):
+          var func = unwrapFunction(field.expr());
+          if (func != null) {
+            decls.push(lowerFunctionDecl(symbol, func, null));
+          }
+      }
+    }
+
+    return decls;
+  }
+
+  function lowerFunctionDecl(name:String, func:TFunc, receiver:Null<GoParam>):GoDecl {
     var params = lowerFunctionParams(func);
     var results = lowerFunctionResults(func.t);
     var body = lowerFunctionBody(func.expr);
-    return GoDecl.GoFuncDecl(name, params, results, body);
+    return GoDecl.GoFuncDecl(name, receiver, params, results, body);
+  }
+
+  function lowerConstructorDecl(classType:ClassType, ctorFunc:Null<TFunc>):GoDecl {
+    var typeName = classTypeName(classType);
+    var params = ctorFunc == null ? [] : lowerFunctionParams(ctorFunc);
+    var body = new Array<GoStmt>();
+    body.push(GoStmt.GoVarDecl("self", null, GoExpr.GoRaw("&" + typeName + "{}"), true));
+    if (ctorFunc != null) {
+      body = body.concat(lowerFunctionBody(ctorFunc.expr));
+    }
+    body.push(GoStmt.GoReturn(GoExpr.GoIdent("self")));
+    return GoDecl.GoFuncDecl(constructorSymbol(classType), null, params, ["*" + typeName], body);
+  }
+
+  function lowerInstanceMethodDecl(classType:ClassType, fieldName:String, func:TFunc):GoDecl {
+    return lowerFunctionDecl(
+      normalizeIdent(fieldName),
+      func,
+      {
+        name: "self",
+        typeName: "*" + classTypeName(classType)
+      }
+    );
   }
 
   function unwrapFunction(expr:Null<TypedExpr>):Null<TFunc> {
@@ -270,8 +396,8 @@ class GoCompiler {
 
   function resolveFunctionInfo(callee:TypedExpr):Null<FunctionInfo> {
     return switch (callee.expr) {
-      case TField(_, FStatic(_, field)):
-        staticFunctionInfos.get(normalizeIdent(field.get().name));
+      case TField(_, FStatic(classRef, field)):
+        staticFunctionInfos.get(staticSymbol(classRef.get(), field.get().name));
       case TLocal(variable):
         lookupLocalFunction(normalizeIdent(variable.name));
       case _:
@@ -330,6 +456,14 @@ class GoCompiler {
           expr: GoExpr.GoIndex(lowerExpr(target).expr, lowerExpr(index).expr),
           isStringLike: isStringType(expr.t)
         };
+      case TNew(classRef, _, args):
+        {
+          expr: GoExpr.GoCall(
+            GoExpr.GoIdent(constructorSymbol(classRef.get())),
+            [for (arg in args) lowerExpr(arg).expr]
+          ),
+          isStringLike: false
+        };
       case TFunction(func):
         {
           expr: GoExpr.GoFuncLiteral(
@@ -384,18 +518,22 @@ class GoCompiler {
         };
       case TBool(value):
         {expr: GoExpr.GoBoolLiteral(value), isStringLike: false};
+      case TThis:
+        {expr: GoExpr.GoIdent("self"), isStringLike: false};
+      case TSuper:
+        {expr: GoExpr.GoIdent("self"), isStringLike: false};
       case _:
-        Context.fatalError("Unsupported constant", Context.currentPos());
+        Context.fatalError("Unsupported constant: " + Std.string(constant), Context.currentPos());
         {expr: GoExpr.GoNil, isStringLike: false};
     };
   }
 
   function lowerField(target:TypedExpr, access:FieldAccess):LoweredExpr {
     return switch (access) {
-      case FStatic(_, field):
+      case FStatic(classRef, field):
         var resolved = field.get();
         {
-          expr: GoExpr.GoIdent(normalizeIdent(resolved.name)),
+          expr: GoExpr.GoIdent(staticSymbol(classRef.get(), resolved.name)),
           isStringLike: isStringType(resolved.type)
         };
       case FInstance(_, _, field):
@@ -583,7 +721,7 @@ class GoCompiler {
         } else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
           "[]" + scalarGoType(params[0]);
         } else {
-          "any";
+          "*" + classTypeName(classType);
         }
       case TAbstract(abstractRef, _):
         var abstractType = abstractRef.get();
@@ -667,7 +805,7 @@ class GoCompiler {
         } else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
           "[]" + scalarGoType(params[0]);
         } else {
-          "any";
+          "*" + classTypeName(classType);
         }
       case TAbstract(abstractRef, _):
         var abstractType = abstractRef.get();
@@ -742,47 +880,20 @@ class GoCompiler {
     };
   }
 
+  function classTypeName(classType:ClassType):String {
+    return GoNaming.typeSymbol(classType.pack, classType.name);
+  }
+
+  function constructorSymbol(classType:ClassType):String {
+    return GoNaming.constructorSymbol(classType.pack, classType.name);
+  }
+
+  function staticSymbol(classType:ClassType, fieldName:String):String {
+    return GoNaming.staticSymbol(classType.pack, classType.name, fieldName, fullClassName(classType) == "Main");
+  }
+
   function normalizeIdent(name:String):String {
-    var sanitized = new StringBuf();
-    for (index in 0...name.length) {
-      var ch = name.charCodeAt(index);
-      var isLower = ch >= "a".code && ch <= "z".code;
-      var isUpper = ch >= "A".code && ch <= "Z".code;
-      var isDigit = ch >= "0".code && ch <= "9".code;
-      if (isLower || isUpper || isDigit || ch == "_".code) {
-        sanitized.addChar(ch);
-      } else {
-        sanitized.add("_");
-      }
-    }
-
-    var normalized = sanitized.toString();
-    if (normalized == "") {
-      normalized = "hx_tmp";
-    }
-    var hasNonUnderscore = false;
-    for (index in 0...normalized.length) {
-      if (normalized.charCodeAt(index) != "_".code) {
-        hasNonUnderscore = true;
-        break;
-      }
-    }
-    if (!hasNonUnderscore) {
-      normalized = "hx_tmp";
-    }
-
-    var first = normalized.charCodeAt(0);
-    var startsWithDigit = first >= "0".code && first <= "9".code;
-    if (startsWithDigit) {
-      normalized = "hx_" + normalized;
-    }
-
-    return switch (normalized) {
-      case "func", "type", "var", "map", "range", "package", "return", "if", "else", "for", "go", "defer", "select", "chan", "switch", "fallthrough", "default", "case":
-        normalized + "_";
-      case _:
-        normalized;
-    };
+    return GoNaming.normalizeIdent(name);
   }
 
   function asArrayMethodCall(callee:TypedExpr):Null<ArrayMethodCall> {

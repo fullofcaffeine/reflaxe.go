@@ -12,7 +12,9 @@ typedef GoParam = {
 }
 
 enum GoDecl {
-  GoFuncDecl(name:String, params:Array<GoParam>, results:Array<String>, body:Array<GoStmt>);
+  GoStructDecl(name:String, fields:Array<GoParam>);
+  GoGlobalVarDecl(name:String, typeName:String, value:Null<GoExpr>);
+  GoFuncDecl(name:String, receiver:Null<GoParam>, params:Array<GoParam>, results:Array<String>, body:Array<GoStmt>);
 }
 
 enum GoStmt {
