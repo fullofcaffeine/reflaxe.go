@@ -13,6 +13,7 @@ import reflaxe.go.ast.GoAST.GoInterfaceMethod;
 import reflaxe.go.ast.GoAST.GoParam;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
+import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
 import reflaxe.go.ast.GoASTPrinter;
 import reflaxe.go.naming.GoNaming;
 #end
@@ -623,6 +624,10 @@ class GoCompiler {
         }
       case TSwitch(value, cases, defaultExpr):
         [lowerSwitchStmt(value, cases, defaultExpr)];
+      case TThrow(value):
+        [GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [lowerExpr(value).expr]))];
+      case TTry(tryExpr, catches):
+        [lowerTryCatchStmt(tryExpr, catches)];
       case TReturn(value):
         if (value == null) {
           [GoStmt.GoReturn(null)];
@@ -713,6 +718,59 @@ class GoCompiler {
       expr: GoExpr.GoIdent(temp),
       isStringLike: isStringType(resultType)
     };
+  }
+
+  function lowerTryCatchStmt(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>):GoStmt {
+    if (catches.length == 0) {
+      var tryBody = lowerToStatements(tryExpr);
+      return GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], tryBody), []));
+    }
+
+    var caughtName = freshTempName("hx_caught");
+    var typeBindingName = freshTempName("hx_typed");
+    var typedCases = new Array<GoTypeSwitchCase>();
+    var dynamicBody:Null<Array<GoStmt>> = null;
+
+    for (index in 0...catches.length) {
+      var catchEntry = catches[index];
+      var catchVarName = normalizeIdent(catchEntry.v.name);
+      var catchType = typeToGoType(catchEntry.v.t);
+      var catchExprBody = lowerToStatements(catchEntry.expr);
+      var dynamicCatch = isDynamicCatchType(catchEntry.v.t) || catchType == "any";
+
+      if (dynamicCatch) {
+        if (index != catches.length - 1) {
+          Context.fatalError("Dynamic catch must be the final catch clause", catchEntry.expr.pos);
+        }
+        dynamicBody = [
+          GoStmt.GoVarDecl(catchVarName, "any", GoExpr.GoIdent(caughtName), true),
+          GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(catchVarName))
+        ].concat(catchExprBody);
+      } else {
+        typedCases.push({
+          typeName: catchType,
+          body: [
+            GoStmt.GoVarDecl(catchVarName, catchType, GoExpr.GoIdent(typeBindingName), true),
+            GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(catchVarName))
+          ].concat(catchExprBody)
+        });
+      }
+    }
+
+    if (dynamicBody == null) {
+      dynamicBody = [GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent(caughtName)]))];
+    }
+
+    var catchBody:Array<GoStmt> = if (typedCases.length == 0) {
+      dynamicBody;
+    } else {
+      [GoStmt.GoTypeSwitch(GoExpr.GoIdent(caughtName), typeBindingName, typedCases, dynamicBody)];
+    };
+
+    return GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.TryCatch"), [
+      GoExpr.GoFuncLiteral([], [], lowerToStatements(tryExpr)),
+      GoExpr.GoFuncLiteral([{name: caughtName, typeName: "any"}], [], catchBody)
+    ]));
   }
 
   function lowerBlock(exprs:Array<TypedExpr>):Array<GoStmt> {
@@ -1587,6 +1645,19 @@ class GoCompiler {
       case TAbstract(abstractRef, _):
         var abstractType = abstractRef.get();
         abstractType.pack.length == 0 && abstractType.name == "Void";
+      case _:
+        false;
+    };
+  }
+
+  function isDynamicCatchType(type:Type):Bool {
+    var followed = Context.follow(type);
+    return switch (followed) {
+      case TDynamic(_):
+        true;
+      case TAbstract(abstractRef, _):
+        var abstractType = abstractRef.get();
+        abstractType.pack.length == 0 && abstractType.name == "Dynamic";
       case _:
         false;
     };

@@ -7,6 +7,7 @@ import reflaxe.go.ast.GoAST.GoInterfaceMethod;
 import reflaxe.go.ast.GoAST.GoParam;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
+import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
 
 class GoASTPrinter {
   public static function printFile(file:GoFile):String {
@@ -206,6 +207,28 @@ class GoASTPrinter {
         }
         out.add("}");
         out.toString();
+      case GoTypeSwitch(value, bindingName, cases, defaultBody):
+        var out = new StringBuf();
+        out.add("switch ");
+        out.add(bindingName);
+        out.add(" := ");
+        out.add(printExpr(value));
+        out.add(".(type) {\n");
+        for (caseEntry in cases) {
+          out.add("\t");
+          out.add(printTypeSwitchCase(caseEntry));
+          out.add("\n");
+        }
+        if (defaultBody != null) {
+          out.add("\tdefault:\n");
+          for (stmt in defaultBody) {
+            out.add("\t\t");
+            out.add(printStmt(stmt));
+            out.add("\n");
+          }
+        }
+        out.add("}");
+        out.toString();
       case GoReturn(expr): expr == null ? "return" : "return " + printExpr(expr);
     }
   }
@@ -214,6 +237,19 @@ class GoASTPrinter {
     var out = new StringBuf();
     out.add("case ");
     out.add([for (value in caseEntry.values) printExpr(value)].join(", "));
+    out.add(":\n");
+    for (stmt in caseEntry.body) {
+      out.add("\t\t");
+      out.add(printStmt(stmt));
+      out.add("\n");
+    }
+    return StringTools.rtrim(out.toString());
+  }
+
+  static function printTypeSwitchCase(caseEntry:GoTypeSwitchCase):String {
+    var out = new StringBuf();
+    out.add("case ");
+    out.add(caseEntry.typeName);
     out.add(":\n");
     for (stmt in caseEntry.body) {
       out.add("\t\t");
