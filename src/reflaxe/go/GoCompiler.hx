@@ -2266,6 +2266,20 @@ class GoCompiler {
           expr: GoExpr.GoUnary("!", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringEqualAny"), [leftLowered.expr, rightLowered.expr])),
           isStringLike: false
         };
+      case OpUShr:
+        {
+          expr: GoExpr.GoCall(
+            GoExpr.GoIdent("int"),
+            [
+              GoExpr.GoBinary(
+                ">>",
+                GoExpr.GoCall(GoExpr.GoIdent("uint32"), [leftLowered.expr]),
+                GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightLowered.expr])
+              )
+            ]
+          ),
+          isStringLike: false
+        };
       case _:
         {
           expr: GoExpr.GoBinary(binopSymbol(op), leftLowered.expr, rightLowered.expr),
