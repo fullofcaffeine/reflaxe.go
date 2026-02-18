@@ -78,8 +78,14 @@ class GoCompiler {
 
   #if macro
   public function compileModule(types:Array<ModuleType>):Array<GoGeneratedFile> {
-    var classes = collectProjectClasses(types);
-    var enums = collectProjectEnums(types);
+    return compileResolvedTypes(collectProjectClasses(types), collectProjectEnums(types));
+  }
+
+  public function compileSelectedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
+    return compileResolvedTypes(normalizeProjectClasses(classes), normalizeProjectEnums(enums));
+  }
+
+  function compileResolvedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
     buildStaticFunctionInfoTable(classes);
     var decls = lowerEnums(enums).concat(lowerClasses(classes)).concat(lowerStdlibShimDecls());
     var imports = ["snapshot/hxrt"];
@@ -102,49 +108,70 @@ class GoCompiler {
   }
 
   function collectProjectClasses(types:Array<ModuleType>):Array<ClassType> {
-    var classes = new Array<ClassType>();
+    var collected = new Array<ClassType>();
     for (moduleType in types) {
       switch (moduleType) {
         case TClassDecl(classRef):
-          var classType = classRef.get();
-          if (isProjectClass(classType)) {
-            classes.push(classType);
-          }
+          collected.push(classRef.get());
         case _:
       }
     }
+    return normalizeProjectClasses(collected);
+  }
 
-    classes.sort(function(a, b) return Reflect.compare(fullClassName(a), fullClassName(b)));
-
-    var hasMain = false;
+  function normalizeProjectClasses(classes:Array<ClassType>):Array<ClassType> {
+    var dedup = new Map<String, ClassType>();
     for (classType in classes) {
-      if (fullClassName(classType) == "Main") {
-        hasMain = true;
-        break;
+      if (!isProjectClass(classType)) {
+        continue;
+      }
+      var className = fullClassName(classType);
+      if (!dedup.exists(className)) {
+        dedup.set(className, classType);
       }
     }
-    if (!hasMain) {
-      Context.fatalError("Main class was not found among project modules", Context.currentPos());
-    }
 
-    return classes;
+    var normalized = [for (classType in dedup) classType];
+    normalized.sort(function(a, b) return Reflect.compare(fullClassName(a), fullClassName(b)));
+    ensureMainClass(normalized);
+    return normalized;
+  }
+
+  function ensureMainClass(classes:Array<ClassType>):Void {
+    for (classType in classes) {
+      if (fullClassName(classType) == "Main") {
+        return;
+      }
+    }
+    Context.fatalError("Main class was not found among project modules", Context.currentPos());
   }
 
   function collectProjectEnums(types:Array<ModuleType>):Array<EnumType> {
-    var enums = new Array<EnumType>();
+    var collected = new Array<EnumType>();
     for (moduleType in types) {
       switch (moduleType) {
         case TEnumDecl(enumRef):
-          var enumType = enumRef.get();
-          if (isProjectEnum(enumType)) {
-            enums.push(enumType);
-          }
+          collected.push(enumRef.get());
         case _:
       }
     }
+    return normalizeProjectEnums(collected);
+  }
 
-    enums.sort(function(a, b) return Reflect.compare(fullEnumName(a), fullEnumName(b)));
-    return enums;
+  function normalizeProjectEnums(enums:Array<EnumType>):Array<EnumType> {
+    var dedup = new Map<String, EnumType>();
+    for (enumType in enums) {
+      if (!isProjectEnum(enumType)) {
+        continue;
+      }
+      var enumName = fullEnumName(enumType);
+      if (!dedup.exists(enumName)) {
+        dedup.set(enumName, enumType);
+      }
+    }
+    var normalized = [for (enumType in dedup) enumType];
+    normalized.sort(function(a, b) return Reflect.compare(fullEnumName(a), fullEnumName(b)));
+    return normalized;
   }
 
   function isProjectClass(classType:ClassType):Bool {

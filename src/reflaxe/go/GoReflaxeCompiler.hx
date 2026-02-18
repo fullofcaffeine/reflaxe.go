@@ -15,8 +15,8 @@ import sys.io.File;
 
 class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dynamic> {
   var allModules:Array<ModuleType> = [];
-  var modulesByName:Map<String, Array<ModuleType>> = [];
-  var selectedModuleNames:Map<String, Bool> = [];
+  var selectedClasses:Array<ClassType> = [];
+  var selectedEnums:Array<EnumType> = [];
   var generatedFiles:Array<GoCompiler.GoGeneratedFile> = [];
   var profile:GoProfile = GoProfile.Portable;
 
@@ -26,31 +26,23 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 
   override public function filterTypes(moduleTypes:Array<ModuleType>):Array<ModuleType> {
     allModules = moduleTypes.copy();
-    modulesByName = [];
-    for (moduleType in moduleTypes) {
-      var moduleName = moduleNameOf(moduleType);
-      if (moduleName != null && moduleName != "") {
-        var list = modulesByName.get(moduleName);
-        if (list == null) {
-          list = [];
-          modulesByName.set(moduleName, list);
-        }
-        list.push(moduleType);
-      }
-    }
     return moduleTypes;
   }
 
   override public function onCompileStart():Void {
     profile = ProfileResolver.resolve();
-    selectedModuleNames = [];
+    selectedClasses = [];
+    selectedEnums = [];
     generatedFiles = [];
   }
 
   override public function onCompileEnd():Void {
-    var selectedModules = collectSelectedModules();
     var compiler = new GoCompiler(new CompilationContext(profile));
-    generatedFiles = compiler.compileModule(selectedModules);
+    if (selectedClasses.length == 0 && selectedEnums.length == 0) {
+      generatedFiles = compiler.compileModule(allModules);
+    } else {
+      generatedFiles = compiler.compileSelectedTypes(selectedClasses, selectedEnums);
+    }
   }
 
   override public function generateFilesManually():Void {
@@ -73,53 +65,17 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
   }
 
   public function compileClassImpl(classType:ClassType, varFields:Array<ClassVarData>, funcFields:Array<ClassFuncData>):Null<Bool> {
-    markModuleSelected(classType.module);
+    selectedClasses.push(classType);
     return null;
   }
 
   public function compileEnumImpl(enumType:EnumType, options:Array<EnumOptionData>):Null<Bool> {
-    markModuleSelected(enumType.module);
+    selectedEnums.push(enumType);
     return null;
   }
 
   public function compileExpressionImpl(expr:TypedExpr, topLevel:Bool):Null<Dynamic> {
     return null;
-  }
-
-  function collectSelectedModules():Array<ModuleType> {
-    var selected = new Array<ModuleType>();
-    var names = [for (name in selectedModuleNames.keys()) name];
-    names.sort(function(a, b) return Reflect.compare(a, b));
-    for (name in names) {
-      var moduleTypeList = modulesByName.get(name);
-      if (moduleTypeList != null) {
-        for (moduleType in moduleTypeList) {
-          selected.push(moduleType);
-        }
-      }
-    }
-    if (selected.length > 0) {
-      return selected;
-    }
-    return allModules;
-  }
-
-  function markModuleSelected(moduleName:String):Void {
-    if (moduleName == null || moduleName == "") {
-      return;
-    }
-    if (modulesByName.exists(moduleName)) {
-      selectedModuleNames.set(moduleName, true);
-    }
-  }
-
-  function moduleNameOf(moduleType:ModuleType):String {
-    return switch (moduleType) {
-      case TClassDecl(classRef): classRef.get().module;
-      case TEnumDecl(enumRef): enumRef.get().module;
-      case TTypeDecl(defRef): defRef.get().module;
-      case TAbstract(abstractRef): abstractRef.get().module;
-    };
   }
 
   function resolveGoModuleName():String {
