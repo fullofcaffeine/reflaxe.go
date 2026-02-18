@@ -26,6 +26,12 @@ private typedef LoweredExpr = {
   final isStringLike:Bool;
 }
 
+private typedef LoweredExprWithPrefix = {
+  final prefix:Array<GoStmt>;
+  final expr:GoExpr;
+  final isStringLike:Bool;
+}
+
 private typedef ArrayMethodCall = {
   final target:TypedExpr;
   final methodName:String;
@@ -40,12 +46,16 @@ class GoCompiler {
   #if macro
   final staticFunctionInfos:Map<String, FunctionInfo>;
   final localFunctionScopes:Array<Map<String, FunctionInfo>>;
+  final localRestIteratorScopes:Array<Array<String>>;
+  var tempVarCounter:Int;
   #end
 
   public function new() {
     #if macro
     staticFunctionInfos = new Map<String, FunctionInfo>();
     localFunctionScopes = [];
+    localRestIteratorScopes = [];
+    tempVarCounter = 0;
     #end
   }
 
@@ -290,14 +300,31 @@ class GoCompiler {
       case TCast(inner, _):
         lowerToStatements(inner);
       case TVar(variable, value):
+        var variableName = normalizeIdent(variable.name);
+        var restIteratorCtorArg = restIteratorCtorArg(value);
+        if (restIteratorCtorArg != null) {
+          registerRestIterator(variableName);
+          return lowerRestIteratorCtor(variableName, restIteratorCtorArg);
+        }
+
         var functionValue = unwrapFunction(value);
         if (functionValue != null) {
-          registerLocalFunction(normalizeIdent(variable.name), functionValue);
+          registerLocalFunction(variableName, functionValue);
         }
-        var loweredValue = value == null ? null : lowerExpr(value).expr;
+
+        var lowered = value == null ? null : lowerExprWithPrefix(value);
+        var prefix = lowered == null ? [] : lowered.prefix;
+        var loweredValue = lowered == null ? null : lowered.expr;
         var goType = typeToGoType(variable.t);
         var useShort = loweredValue != null && !isNilExpr(loweredValue);
-        [GoStmt.GoVarDecl(normalizeIdent(variable.name), goType, loweredValue, useShort)];
+        var decl = GoStmt.GoVarDecl(variableName, goType, loweredValue, useShort);
+
+        if (prefix.length > 0) {
+          prefix.push(decl);
+          prefix;
+        } else {
+          [decl];
+        }
       case TBinop(op, left, right):
         switch (op) {
           case OpAssign:
@@ -371,11 +398,15 @@ class GoCompiler {
 
   function pushLocalScope():Void {
     localFunctionScopes.push(new Map<String, FunctionInfo>());
+    localRestIteratorScopes.push([]);
   }
 
   function popLocalScope():Void {
     if (localFunctionScopes.length > 0) {
       localFunctionScopes.pop();
+    }
+    if (localRestIteratorScopes.length > 0) {
+      localRestIteratorScopes.pop();
     }
   }
 
@@ -392,6 +423,47 @@ class GoCompiler {
       return null;
     }
     return localFunctionScopes[localFunctionScopes.length - 1];
+  }
+
+  function registerRestIterator(name:String):Void {
+    var scope = currentRestIteratorScope();
+    if (scope == null) {
+      return;
+    }
+    scope.push(name);
+  }
+
+  function currentRestIteratorScope():Null<Array<String>> {
+    if (localRestIteratorScopes.length == 0) {
+      return null;
+    }
+    return localRestIteratorScopes[localRestIteratorScopes.length - 1];
+  }
+
+  function isRegisteredRestIterator(name:String):Bool {
+    var index = localRestIteratorScopes.length - 1;
+    while (index >= 0) {
+      var scope = localRestIteratorScopes[index];
+      for (registered in scope) {
+        if (registered == name) {
+          return true;
+        }
+      }
+      index--;
+    }
+    return false;
+  }
+
+  function resolveImplicitRestIteratorTarget():Null<String> {
+    var index = localRestIteratorScopes.length - 1;
+    while (index >= 0) {
+      var scope = localRestIteratorScopes[index];
+      if (scope.length > 0) {
+        return scope[scope.length - 1];
+      }
+      index--;
+    }
+    return null;
   }
 
   function resolveFunctionInfo(callee:TypedExpr):Null<FunctionInfo> {
@@ -415,6 +487,38 @@ class GoCompiler {
       index--;
     }
     return null;
+  }
+
+  function resolveRestIteratorTargetName(target:TypedExpr):Null<String> {
+    return switch (target.expr) {
+      case TLocal(variable):
+        var name = normalizeIdent(variable.name);
+        isRegisteredRestIterator(name) ? name : null;
+      case TConst(TThis):
+        resolveImplicitRestIteratorTarget();
+      case TMeta(_, inner):
+        resolveRestIteratorTargetName(inner);
+      case TParenthesis(inner):
+        resolveRestIteratorTargetName(inner);
+      case TCast(inner, _):
+        resolveRestIteratorTargetName(inner);
+      case _:
+        null;
+    };
+  }
+
+  function restIteratorFieldName(targetName:Null<String>, fieldName:String):Null<String> {
+    if (targetName == null) {
+      return null;
+    }
+    return switch (fieldName) {
+      case "args":
+        targetName + "_args";
+      case "current":
+        targetName + "_current";
+      case _:
+        null;
+    };
   }
 
   function lowerLValue(expr:TypedExpr):GoExpr {
@@ -503,6 +607,79 @@ class GoCompiler {
     };
   }
 
+  function lowerExprWithPrefix(expr:TypedExpr):LoweredExprWithPrefix {
+    return switch (expr.expr) {
+      case TBlock(exprs):
+        if (exprs.length == 0) {
+          {prefix: [], expr: GoExpr.GoNil, isStringLike: false};
+        } else {
+          var prefix = new Array<GoStmt>();
+          for (index in 0...exprs.length - 1) {
+            prefix = prefix.concat(lowerToStatements(exprs[index]));
+          }
+          var tail = lowerExprWithPrefix(exprs[exprs.length - 1]);
+          prefix = prefix.concat(tail.prefix);
+          {
+            prefix: prefix,
+            expr: tail.expr,
+            isStringLike: tail.isStringLike
+          };
+        }
+      case TArray(target, index):
+        var loweredTarget = lowerExprWithPrefix(target);
+        var loweredIndex = lowerExprWithPrefix(index);
+        {
+          prefix: loweredTarget.prefix.concat(loweredIndex.prefix),
+          expr: GoExpr.GoIndex(loweredTarget.expr, loweredIndex.expr),
+          isStringLike: isStringType(expr.t)
+        };
+      case TUnop(op, postFix, value):
+        if (postFix) {
+          switch (op) {
+            case OpIncrement, OpDecrement:
+              var target = lowerLValue(value);
+              var temp = freshTempName("hx_post");
+              var opSymbol = op == OpIncrement ? "+" : "-";
+              {
+                prefix: [
+                  GoStmt.GoVarDecl(temp, null, target, true),
+                  GoStmt.GoAssign(target, GoExpr.GoBinary(opSymbol, target, GoExpr.GoIntLiteral(1)))
+                ],
+                expr: GoExpr.GoIdent(temp),
+                isStringLike: false
+              };
+            case _:
+              Context.fatalError("Unsupported postfix unary operator :: " + Std.string(expr.expr), expr.pos);
+              {
+                prefix: [],
+                expr: GoExpr.GoNil,
+                isStringLike: false
+              };
+          }
+        } else {
+          var lowered = lowerExpr(expr);
+          {
+            prefix: [],
+            expr: lowered.expr,
+            isStringLike: lowered.isStringLike
+          };
+        }
+      case TMeta(_, inner):
+        lowerExprWithPrefix(inner);
+      case TParenthesis(inner):
+        lowerExprWithPrefix(inner);
+      case TCast(inner, _):
+        lowerExprWithPrefix(inner);
+      case _:
+        var lowered = lowerExpr(expr);
+        {
+          prefix: [],
+          expr: lowered.expr,
+          isStringLike: lowered.isStringLike
+        };
+    };
+  }
+
   function lowerConst(constant:TConstant):LoweredExpr {
     return switch (constant) {
       case TNull:
@@ -538,6 +715,14 @@ class GoCompiler {
         };
       case FInstance(_, _, field):
         var resolved = field.get();
+        var restTargetName = resolveRestIteratorTargetName(target);
+        var restFieldName = restIteratorFieldName(restTargetName, resolved.name);
+        if (restFieldName != null) {
+          return {
+            expr: GoExpr.GoIdent(restFieldName),
+            isStringLike: isStringType(resolved.type)
+          };
+        }
         var loweredTarget = lowerExpr(target).expr;
         if (resolved.name == "length" && isArrayType(target.t)) {
           {
@@ -552,6 +737,14 @@ class GoCompiler {
         }
       case FAnon(field):
         var resolved = field.get();
+        var restTargetName = resolveRestIteratorTargetName(target);
+        var restFieldName = restIteratorFieldName(restTargetName, resolved.name);
+        if (restFieldName != null) {
+          return {
+            expr: GoExpr.GoIdent(restFieldName),
+            isStringLike: isStringType(resolved.type)
+          };
+        }
         var loweredTarget = lowerExpr(target).expr;
         if (resolved.name == "length" && isArrayType(target.t)) {
           {
@@ -847,6 +1040,37 @@ class GoCompiler {
     };
   }
 
+  function restIteratorCtorArg(expr:Null<TypedExpr>):Null<TypedExpr> {
+    if (expr == null) {
+      return null;
+    }
+
+    return switch (expr.expr) {
+      case TNew(classRef, _, args):
+        var classType = classRef.get();
+        if (classType.pack.join(".") == "haxe.iterators" && classType.name == "RestIterator" && args.length == 1) {
+          args[0];
+        } else {
+          null;
+        }
+      case TMeta(_, inner):
+        restIteratorCtorArg(inner);
+      case TParenthesis(inner):
+        restIteratorCtorArg(inner);
+      case TCast(inner, _):
+        restIteratorCtorArg(inner);
+      case _:
+        null;
+    };
+  }
+
+  function lowerRestIteratorCtor(variableName:String, argsExpr:TypedExpr):Array<GoStmt> {
+    return [
+      GoStmt.GoVarDecl(variableName + "_args", typeToGoType(argsExpr.t), lowerExpr(argsExpr).expr, true),
+      GoStmt.GoVarDecl(variableName + "_current", "int", GoExpr.GoIntLiteral(0), true)
+    ];
+  }
+
   function lowerRestPackBlock(exprs:Array<TypedExpr>):Null<GoExpr> {
     for (expr in exprs) {
       switch (expr.expr) {
@@ -894,6 +1118,11 @@ class GoCompiler {
 
   function normalizeIdent(name:String):String {
     return GoNaming.normalizeIdent(name);
+  }
+
+  function freshTempName(prefix:String):String {
+    tempVarCounter++;
+    return prefix + "_" + tempVarCounter;
   }
 
   function asArrayMethodCall(callee:TypedExpr):Null<ArrayMethodCall> {
