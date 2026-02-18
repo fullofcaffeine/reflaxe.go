@@ -60,6 +60,7 @@ class GoCompiler {
   final requiredStdlibShimGroups:Map<String, Bool>;
   final functionVarNameScopes:Array<Map<Int, String>>;
   final functionVarNameCountScopes:Array<Map<String, Int>>;
+  final functionReturnTypeScopes:Array<Type>;
   var tempVarCounter:Int;
   #end
 
@@ -72,6 +73,7 @@ class GoCompiler {
     requiredStdlibShimGroups = new Map<String, Bool>();
     functionVarNameScopes = [];
     functionVarNameCountScopes = [];
+    functionReturnTypeScopes = [];
     tempVarCounter = 0;
     #end
   }
@@ -1076,7 +1078,9 @@ class GoCompiler {
     pushFunctionVarNameScope();
     var params = lowerFunctionParams(func);
     var results = lowerFunctionResults(func.t);
+    pushFunctionReturnType(func.t);
     var body = lowerFunctionBody(func.expr);
+    popFunctionReturnType();
     popFunctionVarNameScope();
     return GoDecl.GoFuncDecl(name, receiver, params, results, body);
   }
@@ -1370,7 +1374,12 @@ class GoCompiler {
           [GoStmt.GoReturn(null)];
         } else {
           var loweredReturn = lowerExprWithPrefix(value);
-          var returnStmt = GoStmt.GoReturn(loweredReturn.expr);
+          var returnExpr = loweredReturn.expr;
+          var expectedReturnType = currentFunctionReturnType();
+          if (expectedReturnType != null) {
+            returnExpr = upcastIfNeeded(returnExpr, value.t, expectedReturnType);
+          }
+          var returnStmt = GoStmt.GoReturn(returnExpr);
           if (loweredReturn.prefix.length > 0) {
             loweredReturn.prefix.concat([returnStmt]);
           } else {
@@ -1551,6 +1560,23 @@ class GoCompiler {
     if (functionVarNameCountScopes.length > 0) {
       functionVarNameCountScopes.pop();
     }
+  }
+
+  function pushFunctionReturnType(returnType:Type):Void {
+    functionReturnTypeScopes.push(returnType);
+  }
+
+  function popFunctionReturnType():Void {
+    if (functionReturnTypeScopes.length > 0) {
+      functionReturnTypeScopes.pop();
+    }
+  }
+
+  function currentFunctionReturnType():Null<Type> {
+    if (functionReturnTypeScopes.length == 0) {
+      return null;
+    }
+    return functionReturnTypeScopes[functionReturnTypeScopes.length - 1];
   }
 
   function currentFunctionVarNameScope():Null<Map<Int, String>> {
@@ -1770,7 +1796,9 @@ class GoCompiler {
         pushFunctionVarNameScope();
         var loweredParams = lowerFunctionParams(func);
         var loweredResults = lowerFunctionResults(func.t);
+        pushFunctionReturnType(func.t);
         var loweredBody = lowerFunctionBody(func.expr);
+        popFunctionReturnType();
         popFunctionVarNameScope();
         {
           expr: GoExpr.GoFuncLiteral(
