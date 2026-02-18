@@ -2295,6 +2295,8 @@ class GoCompiler {
 
     var followed = Context.follow(type);
     return switch (followed) {
+      case TFun(args, returnType):
+        goFunctionType(args, returnType);
       case TInst(classRef, params):
         var classType = classRef.get();
         if (isTypeParameterClass(classType)) {
@@ -2385,6 +2387,8 @@ class GoCompiler {
 
     var followed = Context.follow(type);
     return switch (followed) {
+      case TFun(args, returnType):
+        goFunctionType(args, returnType);
       case TInst(classRef, params):
         var classType = classRef.get();
         if (isTypeParameterClass(classType)) {
@@ -2416,6 +2420,14 @@ class GoCompiler {
       case _:
         "any";
     };
+  }
+
+  function goFunctionType(args:Array<{name:String, opt:Bool, t:Type}>, returnType:Type):String {
+    var params = [for (arg in args) scalarGoType(arg.t)].join(", ");
+    if (isVoidType(returnType)) {
+      return "func(" + params + ")";
+    }
+    return "func(" + params + ") " + scalarGoType(returnType);
   }
 
   function restElementType(type:Type):Null<Type> {

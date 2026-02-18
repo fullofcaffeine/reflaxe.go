@@ -20,4 +20,8 @@ class Go {
   public static function newMap<K, V>():Map<K, V> {
     return new Map<K, V>();
   }
+
+  public static function spawn(fn:Void->Void):Void {
+    fn();
+  }
 }
