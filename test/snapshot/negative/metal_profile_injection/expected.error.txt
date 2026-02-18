@@ -1,0 +1,1 @@
+StrictModeEnforcer: __go__ is not allowed in strict mode

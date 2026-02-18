@@ -2,6 +2,8 @@ package reflaxe.go;
 
 #if macro
 import haxe.macro.Context;
+import reflaxe.go.macros.BoundaryEnforcer;
+import reflaxe.go.macros.StrictModeEnforcer;
 #end
 
 class CompilerInit {
@@ -13,6 +15,16 @@ class CompilerInit {
       return;
     }
     initialized = true;
+
+    if (isGoBuild()) {
+      var profile = ProfileResolver.resolve();
+      if (Context.defined("reflaxe_go_strict_examples")) {
+        BoundaryEnforcer.init();
+      }
+      if (Context.defined("reflaxe_go_strict") || profile == GoProfile.Metal) {
+        StrictModeEnforcer.init();
+      }
+    }
 
     Context.onAfterTyping(function(types) {
       if (!isGoBuild()) {
