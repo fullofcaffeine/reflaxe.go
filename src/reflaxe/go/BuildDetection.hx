@@ -155,14 +155,51 @@ class BuildDetection {
         continue;
       }
 
-      for (token in raw.split(" ")) {
-        var trimmed = StringTools.trim(token);
-        if (trimmed.length > 0) {
-          tokens.push(trimmed);
+      for (token in tokenizeLine(raw)) {
+        if (token.length > 0) {
+          tokens.push(token);
         }
       }
     }
     return tokens;
+  }
+
+  static function tokenizeLine(line:String):Array<String> {
+    var tokens = new Array<String>();
+    var token = "";
+    var inQuotes = false;
+
+    var i = 0;
+    while (i < line.length) {
+      var ch = line.charAt(i);
+
+      if (ch == "\"") {
+        inQuotes = !inQuotes;
+        i += 1;
+        continue;
+      }
+
+      if (!inQuotes && isWhitespaceChar(ch)) {
+        if (token.length > 0) {
+          tokens.push(token);
+          token = "";
+        }
+        i += 1;
+        continue;
+      }
+
+      token += ch;
+      i += 1;
+    }
+
+    if (token.length > 0) {
+      tokens.push(token);
+    }
+    return tokens;
+  }
+
+  static function isWhitespaceChar(ch:String):Bool {
+    return ch == " " || ch == "\t" || ch == "\r";
   }
 
   static function resolveIncludeCandidates(baseDir:String, rootDir:String, includePath:String):Array<String> {

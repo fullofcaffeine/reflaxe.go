@@ -1,0 +1,8 @@
+-cp .
+-lib reflaxe.go
+-D reflaxe_go_strict_examples
+-D reflaxe.dont_output_metadata_id
+-D no-traces
+-D no_traces
+-main Main
+build/main.hxml
