@@ -38,7 +38,7 @@ type Child struct {
 
 func New_Child() *Child {
 	self := &Child{}
-	self.Base = &Base{}
+	self.Base = New_Base()
 	self.Base.__hx_this = self
 	self.__hx_this = self
 	return self

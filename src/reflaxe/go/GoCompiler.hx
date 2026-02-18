@@ -41,6 +41,11 @@ private typedef ArrayMethodCall = {
 private typedef FunctionInfo = {
   final defaults:Array<Null<TypedExpr>>;
 }
+
+private typedef ConstructorBodyLowering = {
+  final superArgs:Null<Array<TypedExpr>>;
+  final body:Array<GoStmt>;
+}
 #end
 
 class GoCompiler {
@@ -266,11 +271,21 @@ class GoCompiler {
     var params = ctorFunc == null ? [] : lowerFunctionParams(ctorFunc);
     var body = new Array<GoStmt>();
     body.push(GoStmt.GoVarDecl("self", null, GoExpr.GoRaw("&" + typeName + "{}"), true));
+
+    var loweredCtorBody:ConstructorBodyLowering = {
+      superArgs: null,
+      body: []
+    };
+    if (ctorFunc != null) {
+      loweredCtorBody = lowerConstructorBody(ctorFunc.expr);
+    }
+
     if (superClass != null) {
       var superTypeName = classTypeName(superClass);
+      var superCtorArgs = loweredCtorBody.superArgs == null ? [] : [for (arg in loweredCtorBody.superArgs) lowerExpr(arg).expr];
       body.push(GoStmt.GoAssign(
         GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName),
-        GoExpr.GoRaw("&" + superTypeName + "{}")
+        GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(superClass)), superCtorArgs)
       ));
       body.push(GoStmt.GoAssign(
         GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName), "__hx_this"),
@@ -278,9 +293,7 @@ class GoCompiler {
       ));
     }
     body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_this"), GoExpr.GoIdent("self")));
-    if (ctorFunc != null) {
-      body = body.concat(lowerFunctionBody(ctorFunc.expr));
-    }
+    body = body.concat(loweredCtorBody.body);
     body.push(GoStmt.GoReturn(GoExpr.GoIdent("self")));
     return GoDecl.GoFuncDecl(constructorSymbol(classType), null, params, ["*" + typeName], body);
   }
@@ -294,6 +307,51 @@ class GoCompiler {
         typeName: "*" + classTypeName(classType)
       }
     );
+  }
+
+  function lowerConstructorBody(expr:TypedExpr):ConstructorBodyLowering {
+    pushLocalScope();
+    var bodyExprs:Array<TypedExpr> = switch (expr.expr) {
+      case TBlock(exprs): exprs;
+      case _:
+        [expr];
+    };
+
+    var startIndex = 0;
+    var superArgs:Null<Array<TypedExpr>> = null;
+    if (bodyExprs.length > 0) {
+      var extracted = extractSuperCtorArgs(bodyExprs[0]);
+      if (extracted != null) {
+        superArgs = extracted;
+        startIndex = 1;
+      }
+    }
+
+    var out = new Array<GoStmt>();
+    for (index in startIndex...bodyExprs.length) {
+      out = out.concat(lowerToStatements(bodyExprs[index]));
+    }
+    popLocalScope();
+
+    return {
+      superArgs: superArgs,
+      body: out
+    };
+  }
+
+  function extractSuperCtorArgs(expr:TypedExpr):Null<Array<TypedExpr>> {
+    return switch (expr.expr) {
+      case TCall(callee, args):
+        isSuperCtorCall(callee) ? args : null;
+      case TMeta(_, inner):
+        extractSuperCtorArgs(inner);
+      case TParenthesis(inner):
+        extractSuperCtorArgs(inner);
+      case TCast(inner, _):
+        extractSuperCtorArgs(inner);
+      case _:
+        null;
+    };
   }
 
   function collectDispatchMethods(classType:ClassType):Array<{name:String, func:TFunc}> {
@@ -407,6 +465,9 @@ class GoCompiler {
         var lowered = value == null ? null : lowerExprWithPrefix(value);
         var prefix = lowered == null ? [] : lowered.prefix;
         var loweredValue = lowered == null ? null : lowered.expr;
+        if (value != null && loweredValue != null) {
+          loweredValue = upcastIfNeeded(loweredValue, value.t, variable.t);
+        }
         var goType = typeToGoType(variable.t);
         var useShort = loweredValue != null && !isNilExpr(loweredValue);
         var decl = GoStmt.GoVarDecl(variableName, goType, loweredValue, useShort);
@@ -420,7 +481,9 @@ class GoCompiler {
       case TBinop(op, left, right):
         switch (op) {
           case OpAssign:
-            [GoStmt.GoAssign(lowerLValue(left), lowerExpr(right).expr)];
+            var loweredRight = lowerExpr(right).expr;
+            loweredRight = upcastIfNeeded(loweredRight, right.t, left.t);
+            [GoStmt.GoAssign(lowerLValue(left), loweredRight)];
           case _:
             [GoStmt.GoExprStmt(lowerExpr(expr).expr)];
         }
@@ -911,7 +974,16 @@ class GoCompiler {
       };
     }
 
-    var loweredArgs = [for (arg in args) lowerExpr(arg).expr];
+    var loweredArgs = new Array<GoExpr>();
+    for (index in 0...args.length) {
+      var arg = args[index];
+      var loweredArg = lowerExpr(arg).expr;
+      var paramType = callParamType(callee.t, index);
+      if (paramType != null) {
+        loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType);
+      }
+      loweredArgs.push(loweredArg);
+    }
     var functionInfo = resolveFunctionInfo(callee);
     if (functionInfo != null && loweredArgs.length < functionInfo.defaults.length) {
       for (i in loweredArgs.length...functionInfo.defaults.length) {
@@ -988,6 +1060,16 @@ class GoCompiler {
     return field.name != "new";
   }
 
+  function callParamType(calleeType:Type, index:Int):Null<Type> {
+    var followed = Context.follow(calleeType);
+    return switch (followed) {
+      case TFun(args, _):
+        index >= 0 && index < args.length ? args[index].t : null;
+      case _:
+        null;
+    };
+  }
+
   function lowerBinop(op:Binop, left:TypedExpr, right:TypedExpr, resultType:Type):LoweredExpr {
     var leftLowered = lowerExpr(left);
     var rightLowered = lowerExpr(right);
@@ -1057,6 +1139,56 @@ class GoCompiler {
       case _:
         Context.fatalError("Unsupported unary operator", Context.currentPos());
     };
+  }
+
+  function classFromType(type:Type):Null<ClassType> {
+    var followed = Context.follow(type);
+    return switch (followed) {
+      case TInst(classRef, _):
+        classRef.get();
+      case _:
+        null;
+    };
+  }
+
+  function inheritancePath(fromClass:ClassType, toClass:ClassType):Null<Array<ClassType>> {
+    if (fullClassName(fromClass) == fullClassName(toClass)) {
+      return [];
+    }
+
+    var path = new Array<ClassType>();
+    var current = fromClass;
+    while (true) {
+      var parent = projectSuperClass(current);
+      if (parent == null) {
+        return null;
+      }
+      path.push(parent);
+      if (fullClassName(parent) == fullClassName(toClass)) {
+        return path;
+      }
+      current = parent;
+    }
+    return null;
+  }
+
+  function upcastIfNeeded(expr:GoExpr, fromType:Type, toType:Type):GoExpr {
+    var fromClass = classFromType(fromType);
+    var toClass = classFromType(toType);
+    if (fromClass == null || toClass == null) {
+      return expr;
+    }
+
+    var path = inheritancePath(fromClass, toClass);
+    if (path == null || path.length == 0) {
+      return expr;
+    }
+
+    var out = expr;
+    for (classType in path) {
+      out = GoExpr.GoSelector(out, classTypeName(classType));
+    }
+    return out;
   }
 
   function typeToGoType(type:Type):String {
