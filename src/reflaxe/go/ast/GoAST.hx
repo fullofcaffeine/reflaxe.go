@@ -43,6 +43,8 @@ enum GoStmt {
   GoIf(cond:GoExpr, thenBody:Array<GoStmt>, elseBody:Null<Array<GoStmt>>);
   GoSwitch(value:GoExpr, cases:Array<GoSwitchCase>, defaultBody:Null<Array<GoStmt>>);
   GoTypeSwitch(value:GoExpr, bindingName:String, cases:Array<GoTypeSwitchCase>, defaultBody:Null<Array<GoStmt>>);
+  GoBreak;
+  GoContinue;
   GoReturn(expr:Null<GoExpr>);
 }
 

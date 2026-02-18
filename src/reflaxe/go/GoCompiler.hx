@@ -1305,6 +1305,10 @@ class GoCompiler {
         ];
       case TWhile(condition, body, _):
         [GoStmt.GoWhile(lowerExpr(condition).expr, lowerToStatements(body))];
+      case TBreak:
+        [GoStmt.GoBreak];
+      case TContinue:
+        [GoStmt.GoContinue];
       case TUnop(op, _, value):
         switch (op) {
           case OpIncrement:

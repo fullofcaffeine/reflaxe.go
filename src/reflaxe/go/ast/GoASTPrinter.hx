@@ -229,6 +229,10 @@ class GoASTPrinter {
         }
         out.add("}");
         out.toString();
+      case GoBreak:
+        "break";
+      case GoContinue:
+        "continue";
       case GoReturn(expr): expr == null ? "return" : "return " + printExpr(expr);
     }
   }
