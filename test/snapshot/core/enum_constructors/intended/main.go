@@ -10,9 +10,9 @@ type Color struct {
 var Color_Red *Color = &Color{tag: 0}
 
 func Color_RGB(r int, g int, b int) *Color {
-	value := &Color{tag: 1}
-	value.params = []any{r, g, b}
-	return value
+	enumValue := &Color{tag: 1}
+	enumValue.params = []any{r, g, b}
+	return enumValue
 }
 
 func isSome(value *Color) int {

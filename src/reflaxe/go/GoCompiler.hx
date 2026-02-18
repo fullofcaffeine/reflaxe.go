@@ -12,6 +12,7 @@ import reflaxe.go.ast.GoAST.GoFile;
 import reflaxe.go.ast.GoAST.GoInterfaceMethod;
 import reflaxe.go.ast.GoAST.GoParam;
 import reflaxe.go.ast.GoAST.GoStmt;
+import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoASTPrinter;
 import reflaxe.go.naming.GoNaming;
 #end
@@ -248,9 +249,9 @@ class GoCompiler {
             params,
             ["*" + enumName],
             [
-              GoStmt.GoVarDecl("value", null, GoExpr.GoRaw("&" + enumName + "{tag: " + constructor.index + "}"), true),
-              GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("value"), "params"), GoExpr.GoArrayLiteral("any", payloadExprs)),
-              GoStmt.GoReturn(GoExpr.GoIdent("value"))
+              GoStmt.GoVarDecl("enumValue", null, GoExpr.GoRaw("&" + enumName + "{tag: " + constructor.index + "}"), true),
+              GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("enumValue"), "params"), GoExpr.GoArrayLiteral("any", payloadExprs)),
+              GoStmt.GoReturn(GoExpr.GoIdent("enumValue"))
             ]
           ));
         }
@@ -588,9 +589,14 @@ class GoCompiler {
       case TBinop(op, left, right):
         switch (op) {
           case OpAssign:
-            var loweredRight = lowerExpr(right).expr;
-            loweredRight = upcastIfNeeded(loweredRight, right.t, left.t);
-            [GoStmt.GoAssign(lowerLValue(left), loweredRight)];
+            var loweredRight = lowerExprWithPrefix(right);
+            var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t);
+            var assignStmt = GoStmt.GoAssign(lowerLValue(left), rightExpr);
+            if (loweredRight.prefix.length > 0) {
+              loweredRight.prefix.concat([assignStmt]);
+            } else {
+              [assignStmt];
+            }
           case _:
             [GoStmt.GoExprStmt(lowerExpr(expr).expr)];
         }
@@ -615,8 +621,20 @@ class GoCompiler {
           case _:
             [GoStmt.GoExprStmt(lowerExpr(expr).expr)];
         }
+      case TSwitch(value, cases, defaultExpr):
+        [lowerSwitchStmt(value, cases, defaultExpr)];
       case TReturn(value):
-        [GoStmt.GoReturn(value == null ? null : lowerExpr(value).expr)];
+        if (value == null) {
+          [GoStmt.GoReturn(null)];
+        } else {
+          var loweredReturn = lowerExprWithPrefix(value);
+          var returnStmt = GoStmt.GoReturn(loweredReturn.expr);
+          if (loweredReturn.prefix.length > 0) {
+            loweredReturn.prefix.concat([returnStmt]);
+          } else {
+            [returnStmt];
+          }
+        }
       case TCall(callee, args):
         if (isSuperCtorCall(callee)) {
           [];
@@ -650,6 +668,51 @@ class GoCompiler {
     var out = lowerToStatements(expr);
     popLocalScope();
     return out;
+  }
+
+  function lowerSwitchStmt(value:TypedExpr, cases:Array<{values:Array<TypedExpr>, expr:TypedExpr}>, defaultExpr:Null<TypedExpr>):GoStmt {
+    var loweredCases = new Array<GoSwitchCase>();
+    for (caseEntry in cases) {
+      loweredCases.push({
+        values: [for (caseValue in caseEntry.values) lowerExpr(caseValue).expr],
+        body: lowerToStatements(caseEntry.expr)
+      });
+    }
+
+    return GoStmt.GoSwitch(
+      lowerExpr(value).expr,
+      loweredCases,
+      defaultExpr == null ? null : lowerToStatements(defaultExpr)
+    );
+  }
+
+  function lowerSwitchExpr(value:TypedExpr, cases:Array<{values:Array<TypedExpr>, expr:TypedExpr}>, defaultExpr:Null<TypedExpr>, resultType:Type):LoweredExprWithPrefix {
+    var temp = freshTempName("hx_switch");
+    var loweredCases = new Array<GoSwitchCase>();
+
+    for (caseEntry in cases) {
+      var loweredCase = lowerExprWithPrefix(caseEntry.expr);
+      var caseBody = loweredCase.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredCase.expr)]);
+      loweredCases.push({
+        values: [for (caseValue in caseEntry.values) lowerExpr(caseValue).expr],
+        body: caseBody
+      });
+    }
+
+    var defaultBody:Null<Array<GoStmt>> = null;
+    if (defaultExpr != null) {
+      var loweredDefault = lowerExprWithPrefix(defaultExpr);
+      defaultBody = loweredDefault.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredDefault.expr)]);
+    }
+
+    return {
+      prefix: [
+        GoStmt.GoVarDecl(temp, typeToGoType(resultType), null, false),
+        GoStmt.GoSwitch(lowerExpr(value).expr, loweredCases, defaultBody)
+      ],
+      expr: GoExpr.GoIdent(temp),
+      isStringLike: isStringType(resultType)
+    };
   }
 
   function lowerBlock(exprs:Array<TypedExpr>):Array<GoStmt> {
@@ -826,6 +889,21 @@ class GoCompiler {
           expr: GoExpr.GoIndex(lowerExpr(target).expr, lowerExpr(index).expr),
           isStringLike: isStringType(expr.t)
         };
+      case TEnumIndex(inner):
+        {
+          expr: GoExpr.GoSelector(lowerExpr(inner).expr, "tag"),
+          isStringLike: false
+        };
+      case TEnumParameter(target, _, index):
+        var payload = GoExpr.GoIndex(
+          GoExpr.GoSelector(lowerExpr(target).expr, "params"),
+          GoExpr.GoIntLiteral(index)
+        );
+        var payloadType = scalarGoType(expr.t);
+        {
+          expr: payloadType == "any" ? payload : GoExpr.GoTypeAssert(payload, payloadType),
+          isStringLike: isStringType(expr.t)
+        };
       case TNew(classRef, _, args):
         {
           expr: GoExpr.GoCall(
@@ -891,6 +969,8 @@ class GoCompiler {
             isStringLike: tail.isStringLike
           };
         }
+      case TSwitch(value, cases, defaultExpr):
+        lowerSwitchExpr(value, cases, defaultExpr, expr.t);
       case TArray(target, index):
         var loweredTarget = lowerExprWithPrefix(target);
         var loweredIndex = lowerExprWithPrefix(index);
@@ -1078,6 +1158,14 @@ class GoCompiler {
       return {
         expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.Println"), [arg]),
         isStringLike: false
+      };
+    }
+
+    if (isStaticCall(callee, "Std", [], "string")) {
+      var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+      return {
+        expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [arg]),
+        isStringLike: true
       };
     }
 
@@ -1308,7 +1396,9 @@ class GoCompiler {
     return switch (followed) {
       case TInst(classRef, params):
         var classType = classRef.get();
-        if (classType.pack.length == 0 && classType.name == "String") {
+        if (isTypeParameterClass(classType)) {
+          "any";
+        } else if (classType.pack.length == 0 && classType.name == "String") {
           "*string";
         } else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
           "[]" + scalarGoType(params[0]);
@@ -1394,7 +1484,9 @@ class GoCompiler {
     return switch (followed) {
       case TInst(classRef, params):
         var classType = classRef.get();
-        if (classType.pack.length == 0 && classType.name == "String") {
+        if (isTypeParameterClass(classType)) {
+          "any";
+        } else if (classType.pack.length == 0 && classType.name == "String") {
           "*string";
         } else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
           "[]" + scalarGoType(params[0]);
@@ -1495,6 +1587,15 @@ class GoCompiler {
       case TAbstract(abstractRef, _):
         var abstractType = abstractRef.get();
         abstractType.pack.length == 0 && abstractType.name == "Void";
+      case _:
+        false;
+    };
+  }
+
+  function isTypeParameterClass(classType:ClassType):Bool {
+    return switch (classType.kind) {
+      case KTypeParameter(_):
+        true;
       case _:
         false;
     };

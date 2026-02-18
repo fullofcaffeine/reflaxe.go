@@ -17,6 +17,11 @@ typedef GoInterfaceMethod = {
   final results:Array<String>;
 }
 
+typedef GoSwitchCase = {
+  final values:Array<GoExpr>;
+  final body:Array<GoStmt>;
+}
+
 enum GoDecl {
   GoInterfaceDecl(name:String, methods:Array<GoInterfaceMethod>);
   GoStructDecl(name:String, fields:Array<GoParam>);
@@ -31,6 +36,7 @@ enum GoStmt {
   GoRaw(code:String);
   GoWhile(cond:GoExpr, body:Array<GoStmt>);
   GoIf(cond:GoExpr, thenBody:Array<GoStmt>, elseBody:Null<Array<GoStmt>>);
+  GoSwitch(value:GoExpr, cases:Array<GoSwitchCase>, defaultBody:Null<Array<GoStmt>>);
   GoReturn(expr:Null<GoExpr>);
 }
 
@@ -47,6 +53,7 @@ enum GoExpr {
   GoArrayLiteral(elementType:String, elements:Array<GoExpr>);
   GoFuncLiteral(params:Array<GoParam>, results:Array<String>, body:Array<GoStmt>);
   GoRaw(code:String);
+  GoTypeAssert(expr:GoExpr, typeName:String);
   GoUnary(op:String, expr:GoExpr);
   GoBinary(op:String, left:GoExpr, right:GoExpr);
   GoCall(callee:GoExpr, args:Array<GoExpr>);

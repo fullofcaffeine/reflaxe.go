@@ -6,6 +6,7 @@ import reflaxe.go.ast.GoAST.GoFile;
 import reflaxe.go.ast.GoAST.GoInterfaceMethod;
 import reflaxe.go.ast.GoAST.GoParam;
 import reflaxe.go.ast.GoAST.GoStmt;
+import reflaxe.go.ast.GoAST.GoSwitchCase;
 
 class GoASTPrinter {
   public static function printFile(file:GoFile):String {
@@ -185,8 +186,41 @@ class GoASTPrinter {
           out.add("}");
         }
         out.toString();
+      case GoSwitch(value, cases, defaultBody):
+        var out = new StringBuf();
+        out.add("switch ");
+        out.add(printExpr(value));
+        out.add(" {\n");
+        for (caseEntry in cases) {
+          out.add("\t");
+          out.add(printSwitchCase(caseEntry));
+          out.add("\n");
+        }
+        if (defaultBody != null) {
+          out.add("\tdefault:\n");
+          for (stmt in defaultBody) {
+            out.add("\t\t");
+            out.add(printStmt(stmt));
+            out.add("\n");
+          }
+        }
+        out.add("}");
+        out.toString();
       case GoReturn(expr): expr == null ? "return" : "return " + printExpr(expr);
     }
+  }
+
+  static function printSwitchCase(caseEntry:GoSwitchCase):String {
+    var out = new StringBuf();
+    out.add("case ");
+    out.add([for (value in caseEntry.values) printExpr(value)].join(", "));
+    out.add(":\n");
+    for (stmt in caseEntry.body) {
+      out.add("\t\t");
+      out.add(printStmt(stmt));
+      out.add("\n");
+    }
+    return StringTools.rtrim(out.toString());
   }
 
   static function printExpr(expr:GoExpr):String {
@@ -227,6 +261,8 @@ class GoASTPrinter {
         out.add("}");
         out.toString();
       case GoRaw(code): code;
+      case GoTypeAssert(inner, typeName):
+        printExpr(inner) + ".(" + typeName + ")";
       case GoUnary(op, inner): op + printExpr(inner);
       case GoBinary(op, left, right): "(" + printExpr(left) + " " + op + " " + printExpr(right) + ")";
       case GoCall(callee, args):
