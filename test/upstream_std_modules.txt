@@ -1,0 +1,16 @@
+# Curated upstream stdlib modules for early parity-gaps sweep.
+# One module per line. Lines starting with # are ignored.
+
+haxe.Json
+haxe.io.Bytes
+haxe.io.BytesBuffer
+haxe.io.Input
+haxe.io.Output
+haxe.ds.IntMap
+haxe.ds.StringMap
+haxe.ds.ObjectMap
+haxe.ds.EnumValueMap
+haxe.ds.List
+Sys
+sys.io.File
+sys.io.Process

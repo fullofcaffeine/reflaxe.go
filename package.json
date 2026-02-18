@@ -7,7 +7,9 @@
     "postinstall": "lix download",
     "test": "python3 test/run-snapshots.py",
     "test:list": "python3 test/run-snapshots.py --list",
-    "test:update": "python3 test/run-snapshots.py --update"
+    "test:update": "python3 test/run-snapshots.py --update",
+    "test:stdlib-sweep": "python3 test/run-upstream-stdlib-sweep.py",
+    "test:stdlib-sweep:strict": "python3 test/run-upstream-stdlib-sweep.py --strict"
   },
   "devDependencies": {
     "lix": "^15.0.0"

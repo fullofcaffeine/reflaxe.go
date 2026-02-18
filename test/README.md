@@ -24,6 +24,26 @@ python3 test/run-snapshots.py --case core/hello_trace
 python3 test/run-snapshots.py --update
 ```
 
+## Upstream stdlib sweep
+
+Run curated upstream stdlib module compile checks:
+
+```bash
+python3 test/run-upstream-stdlib-sweep.py
+```
+
+Strict mode exits non-zero when any module fails:
+
+```bash
+python3 test/run-upstream-stdlib-sweep.py --strict
+```
+
+Run one module:
+
+```bash
+python3 test/run-upstream-stdlib-sweep.py --module haxe.Json
+```
+
 ## Strict examples mode
 
 Snapshots compile with `-D reflaxe_go_strict_examples` so app/test code cannot rely on raw `__go__` escape hatches.
