@@ -15,6 +15,7 @@ import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
 import reflaxe.go.ast.GoASTPrinter;
+import reflaxe.go.ast.GoASTTransformer;
 import reflaxe.go.naming.GoNaming;
 #end
 
@@ -52,6 +53,7 @@ private typedef ConstructorBodyLowering = {
 
 class GoCompiler {
   #if macro
+  final compilationContext:CompilationContext;
   final staticFunctionInfos:Map<String, FunctionInfo>;
   final localFunctionScopes:Array<Map<String, FunctionInfo>>;
   final localRestIteratorScopes:Array<Array<String>>;
@@ -61,8 +63,9 @@ class GoCompiler {
   var tempVarCounter:Int;
   #end
 
-  public function new() {
+  public function new(?compilationContext:CompilationContext) {
     #if macro
+    this.compilationContext = compilationContext == null ? new CompilationContext(GoProfile.Portable) : compilationContext;
     staticFunctionInfos = new Map<String, FunctionInfo>();
     localFunctionScopes = [];
     localRestIteratorScopes = [];
@@ -90,10 +93,11 @@ class GoCompiler {
       imports: imports,
       decls: decls
     };
+    var transformedFile = GoASTTransformer.transform(mainFile, compilationContext);
 
     return [{
       relativePath: "main.go",
-      contents: GoASTPrinter.printFile(mainFile)
+      contents: GoASTPrinter.printFile(transformedFile)
     }];
   }
 

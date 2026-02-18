@@ -32,8 +32,8 @@ class CompilerInit {
       }
 
       var outputDir = resolveOutputDir();
-      var _ = ProfileResolver.resolve();
-      var compiler = new GoCompiler();
+      var profile = ProfileResolver.resolve();
+      var compiler = new GoCompiler(new CompilationContext(profile));
       var files = compiler.compileModule(types);
 
       GoOutputIterator.writeFiles(outputDir, files);

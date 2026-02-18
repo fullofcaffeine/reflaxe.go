@@ -1,0 +1,5 @@
+-cp .
+-lib reflaxe.go
+-D go_output=out
+-D reflaxe_go_test_registry_case=cycle
+-main Main
