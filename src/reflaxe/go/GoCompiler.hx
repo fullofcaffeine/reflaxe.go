@@ -1281,6 +1281,17 @@ class GoCompiler {
             } else {
               [assignStmt];
             }
+          case OpAssignOp(assignOp):
+            var loweredRight = lowerExprWithPrefix(right);
+            var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t);
+            var targetExpr = lowerLValue(left);
+            var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t);
+            var assignStmt = GoStmt.GoAssign(targetExpr, assignExpr);
+            if (loweredRight.prefix.length > 0) {
+              loweredRight.prefix.concat([assignStmt]);
+            } else {
+              [assignStmt];
+            }
           case _:
             [GoStmt.GoExprStmt(lowerExpr(expr).expr)];
         }
@@ -1742,7 +1753,29 @@ class GoCompiler {
       case TCall(callee, args):
         lowerCall(callee, args, expr.t);
       case TBinop(op, left, right):
-        lowerBinop(op, left, right, expr.t);
+        switch (op) {
+          case OpAssignOp(assignOp):
+            var targetExpr = lowerLValue(left);
+            var loweredRight = lowerExprWithPrefix(right);
+            var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t);
+            var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t);
+            {
+              expr: GoExpr.GoCall(
+                GoExpr.GoFuncLiteral(
+                  [],
+                  [typeToGoType(left.t)],
+                  loweredRight.prefix.concat([
+                    GoStmt.GoAssign(targetExpr, assignExpr),
+                    GoStmt.GoReturn(targetExpr)
+                  ])
+                ),
+                []
+              ),
+              isStringLike: isStringType(left.t)
+            };
+          case _:
+            lowerBinop(op, left, right, expr.t);
+        }
       case TUnop(op, postFix, value):
         if (postFix) {
           return switch (op) {
@@ -2235,6 +2268,13 @@ class GoCompiler {
           isStringLike: isStringType(resultType)
         };
     };
+  }
+
+  function lowerAssignOpExpr(op:Binop, leftExpr:GoExpr, rightExpr:GoExpr, leftType:Type, rightType:Type):GoExpr {
+    if (op == OpAdd && (isStringType(leftType) || isStringType(rightType))) {
+      return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringConcatAny"), [leftExpr, rightExpr]);
+    }
+    return GoExpr.GoBinary(binopSymbol(op), leftExpr, rightExpr);
   }
 
   function binopSymbol(op:Binop):String {
