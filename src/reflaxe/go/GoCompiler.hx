@@ -1303,8 +1303,20 @@ class GoCompiler {
             elseBranch == null ? null : lowerToStatements(elseBranch)
           )
         ];
-      case TWhile(condition, body, _):
-        [GoStmt.GoWhile(lowerExpr(condition).expr, lowerToStatements(body))];
+      case TWhile(condition, body, normalWhile):
+        if (normalWhile) {
+          [GoStmt.GoWhile(lowerExpr(condition).expr, lowerToStatements(body))];
+        } else {
+          var firstPassVar = freshTempName("hx_do_first");
+          var loweredCondition = lowerExpr(condition).expr;
+          var loopCondition = GoExpr.GoBinary("||", GoExpr.GoIdent(firstPassVar), loweredCondition);
+          var loopBody = [GoStmt.GoAssign(GoExpr.GoIdent(firstPassVar), GoExpr.GoBoolLiteral(false))]
+            .concat(lowerToStatements(body));
+          [
+            GoStmt.GoVarDecl(firstPassVar, null, GoExpr.GoBoolLiteral(true), true),
+            GoStmt.GoWhile(loopCondition, loopBody)
+          ];
+        }
       case TBreak:
         [GoStmt.GoBreak];
       case TContinue:
