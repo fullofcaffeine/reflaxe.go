@@ -114,11 +114,11 @@ class RewriteVirtualCallsPass implements IGoASTPass {
     leafReceivers:Map<String, Bool>,
     leafReturnCallTargets:Map<String, Bool>
   ):Array<GoStmt> {
-    var out = new Array<GoStmt>();
+    var rewritten = new Array<GoStmt>();
     for (stmt in stmts) {
-      out.push(rewriteStmt(stmt, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
+      rewritten.push(rewriteStmt(stmt, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
     }
-    return out;
+    return pruneRedundantBlankAssigns(rewritten);
   }
 
   function rewriteStmt(
@@ -406,5 +406,253 @@ class RewriteVirtualCallsPass implements IGoASTPass {
     for (name in names) {
       source.remove(name);
     }
+  }
+
+  function pruneRedundantBlankAssigns(stmts:Array<GoStmt>):Array<GoStmt> {
+    if (stmts.length < 2) {
+      return stmts;
+    }
+
+    var out = new Array<GoStmt>();
+    var i = 0;
+    while (i < stmts.length) {
+      var current = stmts[i];
+      var blankTarget = blankAssignedIdent(current);
+      if (blankTarget != null && i + 1 < stmts.length) {
+        var next = stmts[i + 1];
+        if (!stmtDeclaresIdent(next, blankTarget) && stmtUsesIdent(next, blankTarget)) {
+          i += 1;
+          continue;
+        }
+      }
+
+      out.push(current);
+      i += 1;
+    }
+
+    return out;
+  }
+
+  function blankAssignedIdent(stmt:GoStmt):Null<String> {
+    return switch (stmt) {
+      case GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(name)):
+        name;
+      case _:
+        null;
+    };
+  }
+
+  function stmtDeclaresIdent(stmt:GoStmt, ident:String):Bool {
+    return switch (stmt) {
+      case GoStmt.GoVarDecl(name, _, value, _):
+        if (name == ident) {
+          true;
+        } else {
+          value != null && exprDeclaresIdent(value, ident);
+        }
+      case GoStmt.GoAssign(left, right):
+        exprDeclaresIdent(left, ident) || exprDeclaresIdent(right, ident);
+      case GoStmt.GoExprStmt(expr):
+        exprDeclaresIdent(expr, ident);
+      case GoStmt.GoWhile(_, body):
+        stmtListDeclaresIdent(body, ident);
+      case GoStmt.GoIf(_, thenBody, elseBody):
+        stmtListDeclaresIdent(thenBody, ident) || (elseBody != null && stmtListDeclaresIdent(elseBody, ident));
+      case GoStmt.GoSwitch(_, cases, defaultBody):
+        var found = false;
+        for (entry in cases) {
+          if (stmtListDeclaresIdent(entry.body, ident)) {
+            found = true;
+            break;
+          }
+        }
+        found || (defaultBody != null && stmtListDeclaresIdent(defaultBody, ident));
+      case GoStmt.GoTypeSwitch(_, _, cases, defaultBody):
+        var found = false;
+        for (entry in cases) {
+          if (stmtListDeclaresIdent(entry.body, ident)) {
+            found = true;
+            break;
+          }
+        }
+        found || (defaultBody != null && stmtListDeclaresIdent(defaultBody, ident));
+      case GoStmt.GoReturn(expr):
+        expr != null && exprDeclaresIdent(expr, ident);
+      case _:
+        false;
+    };
+  }
+
+  function stmtListDeclaresIdent(stmts:Array<GoStmt>, ident:String):Bool {
+    for (stmt in stmts) {
+      if (stmtDeclaresIdent(stmt, ident)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function exprDeclaresIdent(expr:GoExpr, ident:String):Bool {
+    return switch (expr) {
+      case GoExpr.GoFuncLiteral(params, _, body):
+        var shadows = false;
+        for (param in params) {
+          if (param.name == ident) {
+            shadows = true;
+            break;
+          }
+        }
+        shadows || stmtListDeclaresIdent(body, ident);
+      case GoExpr.GoSelector(target, _):
+        exprDeclaresIdent(target, ident);
+      case GoExpr.GoIndex(target, index):
+        exprDeclaresIdent(target, ident) || exprDeclaresIdent(index, ident);
+      case GoExpr.GoSlice(target, start, end):
+        exprDeclaresIdent(target, ident)
+        || (start != null && exprDeclaresIdent(start, ident))
+        || (end != null && exprDeclaresIdent(end, ident));
+      case GoExpr.GoArrayLiteral(_, elements):
+        var found = false;
+        for (element in elements) {
+          if (exprDeclaresIdent(element, ident)) {
+            found = true;
+            break;
+          }
+        }
+        found;
+      case GoExpr.GoTypeAssert(inner, _):
+        exprDeclaresIdent(inner, ident);
+      case GoExpr.GoUnary(_, inner):
+        exprDeclaresIdent(inner, ident);
+      case GoExpr.GoBinary(_, left, right):
+        exprDeclaresIdent(left, ident) || exprDeclaresIdent(right, ident);
+      case GoExpr.GoCall(callee, args):
+        if (exprDeclaresIdent(callee, ident)) {
+          true;
+        } else {
+          var found = false;
+          for (arg in args) {
+            if (exprDeclaresIdent(arg, ident)) {
+              found = true;
+              break;
+            }
+          }
+          found;
+        }
+      case _:
+        false;
+    };
+  }
+
+  function stmtUsesIdent(stmt:GoStmt, ident:String):Bool {
+    return switch (stmt) {
+      case GoStmt.GoVarDecl(_, _, value, _):
+        value != null && exprUsesIdent(value, ident);
+      case GoStmt.GoAssign(left, right):
+        exprUsesIdent(left, ident) || exprUsesIdent(right, ident);
+      case GoStmt.GoExprStmt(expr):
+        exprUsesIdent(expr, ident);
+      case GoStmt.GoWhile(cond, body):
+        exprUsesIdent(cond, ident) || stmtListUsesIdent(body, ident);
+      case GoStmt.GoIf(cond, thenBody, elseBody):
+        exprUsesIdent(cond, ident)
+        || stmtListUsesIdent(thenBody, ident)
+        || (elseBody != null && stmtListUsesIdent(elseBody, ident));
+      case GoStmt.GoSwitch(value, cases, defaultBody):
+        var found = exprUsesIdent(value, ident);
+        if (!found) {
+          for (entry in cases) {
+            for (caseValue in entry.values) {
+              if (exprUsesIdent(caseValue, ident)) {
+                found = true;
+                break;
+              }
+            }
+            if (found || stmtListUsesIdent(entry.body, ident)) {
+              found = true;
+              break;
+            }
+          }
+        }
+        found || (defaultBody != null && stmtListUsesIdent(defaultBody, ident));
+      case GoStmt.GoTypeSwitch(value, _, cases, defaultBody):
+        var found = exprUsesIdent(value, ident);
+        if (!found) {
+          for (entry in cases) {
+            if (stmtListUsesIdent(entry.body, ident)) {
+              found = true;
+              break;
+            }
+          }
+        }
+        found || (defaultBody != null && stmtListUsesIdent(defaultBody, ident));
+      case GoStmt.GoReturn(expr):
+        expr != null && exprUsesIdent(expr, ident);
+      case _:
+        false;
+    };
+  }
+
+  function stmtListUsesIdent(stmts:Array<GoStmt>, ident:String):Bool {
+    for (stmt in stmts) {
+      if (stmtUsesIdent(stmt, ident)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function exprUsesIdent(expr:GoExpr, ident:String):Bool {
+    return switch (expr) {
+      case GoExpr.GoIdent(name):
+        name == ident;
+      case GoExpr.GoSelector(target, _):
+        exprUsesIdent(target, ident);
+      case GoExpr.GoIndex(target, index):
+        exprUsesIdent(target, ident) || exprUsesIdent(index, ident);
+      case GoExpr.GoSlice(target, start, end):
+        exprUsesIdent(target, ident)
+        || (start != null && exprUsesIdent(start, ident))
+        || (end != null && exprUsesIdent(end, ident));
+      case GoExpr.GoArrayLiteral(_, elements):
+        var found = false;
+        for (element in elements) {
+          if (exprUsesIdent(element, ident)) {
+            found = true;
+            break;
+          }
+        }
+        found;
+      case GoExpr.GoFuncLiteral(params, _, body):
+        var shadows = false;
+        for (param in params) {
+          if (param.name == ident) {
+            shadows = true;
+            break;
+          }
+        }
+        shadows ? false : stmtListUsesIdent(body, ident);
+      case GoExpr.GoTypeAssert(inner, _):
+        exprUsesIdent(inner, ident);
+      case GoExpr.GoUnary(_, inner):
+        exprUsesIdent(inner, ident);
+      case GoExpr.GoBinary(_, left, right):
+        exprUsesIdent(left, ident) || exprUsesIdent(right, ident);
+      case GoExpr.GoCall(callee, args):
+        if (exprUsesIdent(callee, ident)) {
+          true;
+        } else {
+          var found = false;
+          for (arg in args) {
+            if (exprUsesIdent(arg, ident)) {
+              found = true;
+              break;
+            }
+          }
+          found;
+        }
+      case _:
+        false;
+    };
   }
 }

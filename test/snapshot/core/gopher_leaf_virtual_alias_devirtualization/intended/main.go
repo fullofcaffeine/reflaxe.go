@@ -27,8 +27,6 @@ func (self *Leaf) pong() int {
 
 func main() {
 	leaf := New_Leaf()
-	_ = leaf
 	copy := leaf
-	_ = copy
 	hxrt.Println(copy.ping())
 }

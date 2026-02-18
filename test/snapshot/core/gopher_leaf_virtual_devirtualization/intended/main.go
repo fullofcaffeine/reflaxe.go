@@ -27,6 +27,5 @@ func (self *Leaf) pong() int {
 
 func main() {
 	leaf := New_Leaf()
-	_ = leaf
 	hxrt.Println(leaf.ping())
 }
