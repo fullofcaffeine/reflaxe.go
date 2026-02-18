@@ -24,6 +24,24 @@ python3 test/run-snapshots.py --case core/hello_trace
 python3 test/run-snapshots.py --update
 ```
 
+## Re-run previous failures
+
+```bash
+python3 test/run-snapshots.py --failed
+```
+
+## Run only changed snapshot cases
+
+```bash
+python3 test/run-snapshots.py --changed
+```
+
+## Run a deterministic CI shard
+
+```bash
+python3 test/run-snapshots.py --chunk 0/4
+```
+
 ## Upstream stdlib sweep
 
 Run curated upstream stdlib module compile checks:
@@ -52,3 +70,4 @@ Snapshots compile with `-D reflaxe_go_strict_examples` so app/test code cannot r
 
 - Use `KEEP_ARTIFACTS=1` to keep generated `out/` folders on failures.
 - Use `--failed` to rerun only the previous failing set.
+- Use `--changed` to focus only on touched snapshot cases.

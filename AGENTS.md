@@ -38,3 +38,29 @@ bd sync               # Sync with git
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
 
+## Compiler Guardrails
+
+- Prefer the AST-first pipeline: builder/lowering -> transform passes -> printer/output.
+- Keep `Dynamic` usage minimal and localized. If unavoidable, contain it behind runtime/shim boundaries.
+- Never emit absolute machine-local paths in generated output or snapshots.
+- When fixing a bug, always add or update a regression test in `test/snapshot`.
+
+## Snapshot Workflow
+
+- Run all snapshots:
+  ```bash
+  npm test
+  ```
+- Update intended outputs intentionally:
+  ```bash
+  python3 test/run-snapshots.py --update
+  ```
+- Run upstream stdlib sweep:
+  ```bash
+  python3 test/run-upstream-stdlib-sweep.py --strict --go-test
+  ```
+
+## Injection Policy
+
+- App/test/example code must not use raw `__go__` escapes.
+- `__go__` usage is reserved for controlled target layers (e.g. std/runtime shims), not business logic.
