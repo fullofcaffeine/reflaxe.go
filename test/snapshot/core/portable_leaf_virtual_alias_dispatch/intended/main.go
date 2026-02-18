@@ -1,0 +1,34 @@
+package main
+
+import "snapshot/hxrt"
+
+type I_Leaf interface {
+	ping() int
+	pong() int
+}
+
+type Leaf struct {
+	__hx_this I_Leaf
+}
+
+func New_Leaf() *Leaf {
+	self := &Leaf{}
+	self.__hx_this = self
+	return self
+}
+
+func (self *Leaf) ping() int {
+	return self.__hx_this.pong()
+}
+
+func (self *Leaf) pong() int {
+	return 11
+}
+
+func main() {
+	leaf := New_Leaf()
+	_ = leaf
+	copy := leaf
+	_ = copy
+	hxrt.Println(copy.__hx_this.ping())
+}

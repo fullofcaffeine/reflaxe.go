@@ -107,7 +107,7 @@ class RewriteVirtualCallsPass implements IGoASTPass {
     return switch (stmt) {
       case GoStmt.GoVarDecl(name, typeName, value, useShort):
         var rewrittenValue = value == null ? null : rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars);
-        if (rewrittenValue != null && isLeafConstructorCall(rewrittenValue, leafReceivers)) {
+        if (rewrittenValue != null && isLeafCandidateValue(rewrittenValue, leafReceivers, localLeafVars)) {
           localLeafVars.set(name, true);
         } else {
           localLeafVars.remove(name);
@@ -118,7 +118,7 @@ class RewriteVirtualCallsPass implements IGoASTPass {
         var rewrittenRight = rewriteExpr(right, receiverName, canDevirtualizeSelf, localLeafVars);
         switch (rewrittenLeft) {
           case GoExpr.GoIdent(name):
-            if (isLeafConstructorCall(rewrittenRight, leafReceivers)) {
+            if (isLeafCandidateValue(rewrittenRight, leafReceivers, localLeafVars)) {
               localLeafVars.set(name, true);
             } else {
               localLeafVars.remove(name);
@@ -268,6 +268,22 @@ class RewriteVirtualCallsPass implements IGoASTPass {
       case GoExpr.GoCall(GoExpr.GoIdent(callee), _) if (StringTools.startsWith(callee, "New_")):
         var typeName = callee.substr("New_".length);
         leafReceivers.exists("*" + typeName);
+      case _:
+        false;
+    };
+  }
+
+  function isLeafCandidateValue(
+    expr:GoExpr,
+    leafReceivers:Map<String, Bool>,
+    localLeafVars:Map<String, Bool>
+  ):Bool {
+    if (isLeafConstructorCall(expr, leafReceivers)) {
+      return true;
+    }
+    return switch (expr) {
+      case GoExpr.GoIdent(name):
+        localLeafVars.exists(name);
       case _:
         false;
     };
