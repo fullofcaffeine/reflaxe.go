@@ -79,9 +79,15 @@ class GoCompiler {
     var enums = collectProjectEnums(types);
     buildStaticFunctionInfoTable(classes);
     var decls = lowerEnums(enums).concat(lowerClasses(classes)).concat(lowerStdlibShimDecls());
+    var imports = ["snapshot/hxrt"];
+    if (requiredStdlibShimGroups.exists("sys")) {
+      imports.push("bufio");
+      imports.push("os");
+      imports.push("os/exec");
+    }
     var mainFile:GoFile = {
       packageName: "main",
-      imports: ["snapshot/hxrt"],
+      imports: imports,
       decls: decls
     };
 
@@ -293,6 +299,12 @@ class GoCompiler {
     }
     if (requiredStdlibShimGroups.exists("io")) {
       decls = decls.concat(lowerIoStdlibShimDecls());
+    }
+    if (requiredStdlibShimGroups.exists("ds")) {
+      decls = decls.concat(lowerDsStdlibShimDecls());
+    }
+    if (requiredStdlibShimGroups.exists("sys")) {
+      decls = decls.concat(lowerSysStdlibShimDecls());
     }
     return decls;
   }
@@ -513,6 +525,429 @@ class GoCompiler {
         [],
         ["int"],
         [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b")]))]
+      )
+    ];
+  }
+
+  function lowerDsStdlibShimDecls():Array<GoDecl> {
+    return [
+      GoDecl.GoStructDecl("haxe__ds__IntMap", [
+        {name: "h", typeName: "map[int]any"}
+      ]),
+      GoDecl.GoStructDecl("haxe__ds__StringMap", [
+        {name: "h", typeName: "map[string]any"}
+      ]),
+      GoDecl.GoStructDecl("haxe__ds__ObjectMap", [
+        {name: "h", typeName: "map[any]any"}
+      ]),
+      GoDecl.GoStructDecl("haxe__ds__EnumValueMap", [
+        {name: "h", typeName: "map[any]any"}
+      ]),
+      GoDecl.GoStructDecl("haxe__ds__List", [
+        {name: "items", typeName: "[]any"},
+        {name: "length", typeName: "int"}
+      ]),
+      GoDecl.GoFuncDecl(
+        "New_haxe__ds__IntMap",
+        null,
+        [],
+        ["*haxe__ds__IntMap"],
+        [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__IntMap{h: map[int]any{}}"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "set",
+        {name: "self", typeName: "*haxe__ds__IntMap"},
+        [
+          {name: "key", typeName: "int"},
+          {name: "value", typeName: "any"}
+        ],
+        [],
+        [GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("key")), GoExpr.GoIdent("value"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "get",
+        {name: "self", typeName: "*haxe__ds__IntMap"},
+        [{name: "key", typeName: "int"}],
+        ["any"],
+        [
+          GoStmt.GoVarDecl("value", null, GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("key")), true),
+          GoStmt.GoReturn(GoExpr.GoIdent("value"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "exists",
+        {name: "self", typeName: "*haxe__ds__IntMap"},
+        [{name: "key", typeName: "int"}],
+        ["bool"],
+        [
+          GoStmt.GoRaw("_, ok := self.h[key]"),
+          GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "remove",
+        {name: "self", typeName: "*haxe__ds__IntMap"},
+        [{name: "key", typeName: "int"}],
+        ["bool"],
+        [
+          GoStmt.GoRaw("_, ok := self.h[key]"),
+          GoStmt.GoRaw("delete(self.h, key)"),
+          GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "New_haxe__ds__StringMap",
+        null,
+        [],
+        ["*haxe__ds__StringMap"],
+        [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__StringMap{h: map[string]any{}}"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "set",
+        {name: "self", typeName: "*haxe__ds__StringMap"},
+        [
+          {name: "key", typeName: "*string"},
+          {name: "value", typeName: "any"}
+        ],
+        [],
+        [GoStmt.GoAssign(GoExpr.GoRaw("self.h[*hxrt.StdString(key)]"), GoExpr.GoIdent("value"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "get",
+        {name: "self", typeName: "*haxe__ds__StringMap"},
+        [{name: "key", typeName: "*string"}],
+        ["any"],
+        [
+          GoStmt.GoRaw("value := self.h[*hxrt.StdString(key)]"),
+          GoStmt.GoReturn(GoExpr.GoIdent("value"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "exists",
+        {name: "self", typeName: "*haxe__ds__StringMap"},
+        [{name: "key", typeName: "*string"}],
+        ["bool"],
+        [
+          GoStmt.GoRaw("_, ok := self.h[*hxrt.StdString(key)]"),
+          GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "remove",
+        {name: "self", typeName: "*haxe__ds__StringMap"},
+        [{name: "key", typeName: "*string"}],
+        ["bool"],
+        [
+          GoStmt.GoRaw("_, ok := self.h[*hxrt.StdString(key)]"),
+          GoStmt.GoRaw("delete(self.h, *hxrt.StdString(key))"),
+          GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "New_haxe__ds__ObjectMap",
+        null,
+        [],
+        ["*haxe__ds__ObjectMap"],
+        [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__ObjectMap{h: map[any]any{}}"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "set",
+        {name: "self", typeName: "*haxe__ds__ObjectMap"},
+        [
+          {name: "key", typeName: "any"},
+          {name: "value", typeName: "any"}
+        ],
+        [],
+        [GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("key")), GoExpr.GoIdent("value"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "get",
+        {name: "self", typeName: "*haxe__ds__ObjectMap"},
+        [{name: "key", typeName: "any"}],
+        ["any"],
+        [GoStmt.GoReturn(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("key")))]
+      ),
+      GoDecl.GoFuncDecl(
+        "exists",
+        {name: "self", typeName: "*haxe__ds__ObjectMap"},
+        [{name: "key", typeName: "any"}],
+        ["bool"],
+        [
+          GoStmt.GoRaw("_, ok := self.h[key]"),
+          GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "remove",
+        {name: "self", typeName: "*haxe__ds__ObjectMap"},
+        [{name: "key", typeName: "any"}],
+        ["bool"],
+        [
+          GoStmt.GoRaw("_, ok := self.h[key]"),
+          GoStmt.GoRaw("delete(self.h, key)"),
+          GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "New_haxe__ds__EnumValueMap",
+        null,
+        [],
+        ["*haxe__ds__EnumValueMap"],
+        [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__EnumValueMap{h: map[any]any{}}"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "set",
+        {name: "self", typeName: "*haxe__ds__EnumValueMap"},
+        [
+          {name: "key", typeName: "any"},
+          {name: "value", typeName: "any"}
+        ],
+        [],
+        [GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("key")), GoExpr.GoIdent("value"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "get",
+        {name: "self", typeName: "*haxe__ds__EnumValueMap"},
+        [{name: "key", typeName: "any"}],
+        ["any"],
+        [GoStmt.GoReturn(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("key")))]
+      ),
+      GoDecl.GoFuncDecl(
+        "exists",
+        {name: "self", typeName: "*haxe__ds__EnumValueMap"},
+        [{name: "key", typeName: "any"}],
+        ["bool"],
+        [
+          GoStmt.GoRaw("_, ok := self.h[key]"),
+          GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "remove",
+        {name: "self", typeName: "*haxe__ds__EnumValueMap"},
+        [{name: "key", typeName: "any"}],
+        ["bool"],
+        [
+          GoStmt.GoRaw("_, ok := self.h[key]"),
+          GoStmt.GoRaw("delete(self.h, key)"),
+          GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "New_haxe__ds__List",
+        null,
+        [],
+        ["*haxe__ds__List"],
+        [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__List{items: []any{}, length: 0}"))]
+      ),
+      GoDecl.GoFuncDecl(
+        "add",
+        {name: "self", typeName: "*haxe__ds__List"},
+        [{name: "item", typeName: "any"}],
+        [],
+        [
+          GoStmt.GoAssign(
+            GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"),
+            GoExpr.GoCall(GoExpr.GoIdent("append"), [
+              GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"),
+              GoExpr.GoIdent("item")
+            ])
+          ),
+          GoStmt.GoAssign(
+            GoExpr.GoSelector(GoExpr.GoIdent("self"), "length"),
+            GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items")])
+          )
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "push",
+        {name: "self", typeName: "*haxe__ds__List"},
+        [{name: "item", typeName: "any"}],
+        [],
+        [GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "add"), [GoExpr.GoIdent("item")]))]
+      ),
+      GoDecl.GoFuncDecl(
+        "pop",
+        {name: "self", typeName: "*haxe__ds__List"},
+        [],
+        ["any"],
+        [
+          GoStmt.GoIf(
+            GoExpr.GoBinary("==", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items")]), GoExpr.GoIntLiteral(0)),
+            [GoStmt.GoReturn(GoExpr.GoNil)],
+            null
+          ),
+          GoStmt.GoVarDecl("head", null, GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"), GoExpr.GoIntLiteral(0)), true),
+          GoStmt.GoAssign(
+            GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"),
+            GoExpr.GoSlice(GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"), GoExpr.GoIntLiteral(1), null)
+          ),
+          GoStmt.GoAssign(
+            GoExpr.GoSelector(GoExpr.GoIdent("self"), "length"),
+            GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items")])
+          ),
+          GoStmt.GoReturn(GoExpr.GoIdent("head"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "first",
+        {name: "self", typeName: "*haxe__ds__List"},
+        [],
+        ["any"],
+        [
+          GoStmt.GoIf(
+            GoExpr.GoBinary("==", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items")]), GoExpr.GoIntLiteral(0)),
+            [GoStmt.GoReturn(GoExpr.GoNil)],
+            null
+          ),
+          GoStmt.GoReturn(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"), GoExpr.GoIntLiteral(0)))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "last",
+        {name: "self", typeName: "*haxe__ds__List"},
+        [],
+        ["any"],
+        [
+          GoStmt.GoVarDecl("size", null, GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items")]), true),
+          GoStmt.GoIf(
+            GoExpr.GoBinary("==", GoExpr.GoIdent("size"), GoExpr.GoIntLiteral(0)),
+            [GoStmt.GoReturn(GoExpr.GoNil)],
+            null
+          ),
+          GoStmt.GoReturn(GoExpr.GoIndex(
+            GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"),
+            GoExpr.GoBinary("-", GoExpr.GoIdent("size"), GoExpr.GoIntLiteral(1))
+          ))
+        ]
+      )
+    ];
+  }
+
+  function lowerSysStdlibShimDecls():Array<GoDecl> {
+    return [
+      GoDecl.GoStructDecl("Sys", []),
+      GoDecl.GoStructDecl("sys__io__File", []),
+      GoDecl.GoStructDecl("sys__io__ProcessOutput", [
+        {name: "scanner", typeName: "*bufio.Scanner"}
+      ]),
+      GoDecl.GoStructDecl("sys__io__Process", [
+        {name: "cmd", typeName: "*exec.Cmd"},
+        {name: "stdout", typeName: "*sys__io__ProcessOutput"}
+      ]),
+      GoDecl.GoFuncDecl(
+        "Sys_getCwd",
+        null,
+        [],
+        ["*string"],
+        [
+          GoStmt.GoRaw("cwd, err := os.Getwd()"),
+          GoStmt.GoIf(
+            GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil),
+            [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))],
+            null
+          ),
+          GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("cwd")]))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "Sys_args",
+        null,
+        [],
+        ["[]*string"],
+        [
+          GoStmt.GoRaw("args := os.Args"),
+          GoStmt.GoIf(
+            GoExpr.GoBinary("<=", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent("args")]), GoExpr.GoIntLiteral(1)),
+            [GoStmt.GoReturn(GoExpr.GoRaw("[]*string{}"))],
+            null
+          ),
+          GoStmt.GoRaw("out := make([]*string, 0, len(args)-1)"),
+          GoStmt.GoRaw("for _, arg := range args[1:] {"),
+          GoStmt.GoRaw("\tout = append(out, hxrt.StringFromLiteral(arg))"),
+          GoStmt.GoRaw("}"),
+          GoStmt.GoReturn(GoExpr.GoIdent("out"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "sys__io__File_saveContent",
+        null,
+        [
+          {name: "path", typeName: "*string"},
+          {name: "content", typeName: "*string"}
+        ],
+        [],
+        [GoStmt.GoAssign(
+          GoExpr.GoIdent("_"),
+          GoExpr.GoRaw("os.WriteFile(*hxrt.StdString(path), []byte(*hxrt.StdString(content)), 0o644)")
+        )]
+      ),
+      GoDecl.GoFuncDecl(
+        "sys__io__File_getContent",
+        null,
+        [{name: "path", typeName: "*string"}],
+        ["*string"],
+        [
+          GoStmt.GoRaw("raw, err := os.ReadFile(*hxrt.StdString(path))"),
+          GoStmt.GoIf(
+            GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil),
+            [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))],
+            null
+          ),
+          GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("string(raw)")]))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "New_sys__io__Process",
+        null,
+        [
+          {name: "command", typeName: "*string"},
+          {name: "args", typeName: "[]*string"}
+        ],
+        ["*sys__io__Process"],
+        [
+          GoStmt.GoRaw("cmd := exec.Command(*hxrt.StdString(command), hxrt.StringSlice(args)...)"),
+          GoStmt.GoRaw("stdoutPipe, _ := cmd.StdoutPipe()"),
+          GoStmt.GoRaw("_ = cmd.Start()"),
+          GoStmt.GoRaw("scanner := bufio.NewScanner(stdoutPipe)"),
+          GoStmt.GoReturn(GoExpr.GoRaw("&sys__io__Process{cmd: cmd, stdout: &sys__io__ProcessOutput{scanner: scanner}}"))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "readLine",
+        {name: "self", typeName: "*sys__io__ProcessOutput"},
+        [],
+        ["*string"],
+        [
+          GoStmt.GoIf(
+            GoExpr.GoRaw("self == nil || self.scanner == nil"),
+            [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))],
+            null
+          ),
+          GoStmt.GoIf(
+            GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "scanner"), "Scan"), []),
+            [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "scanner"), "Text"), [])]))],
+            null
+          ),
+          GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
+        ]
+      ),
+      GoDecl.GoFuncDecl(
+        "close",
+        {name: "self", typeName: "*sys__io__Process"},
+        [],
+        [],
+        [
+          GoStmt.GoIf(
+            GoExpr.GoRaw("self == nil || self.cmd == nil"),
+            [GoStmt.GoReturn(null)],
+            null
+          ),
+          GoStmt.GoRaw("if self.cmd.Process != nil {"),
+          GoStmt.GoRaw("\t_ = self.cmd.Process.Kill()"),
+          GoStmt.GoRaw("}"),
+          GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "cmd"), "Wait"), []))
+        ]
       )
     ];
   }
@@ -1617,8 +2052,16 @@ class GoCompiler {
       }
     }
 
+    var callExpr:GoExpr = GoExpr.GoCall(lowerExpr(callee).expr, loweredArgs);
+    if (shouldAssertGenericCallResult(callee, returnType)) {
+      var expectedType = typeToGoType(returnType);
+      if (expectedType != "any") {
+        callExpr = GoExpr.GoTypeAssert(callExpr, expectedType);
+      }
+    }
+
     return {
-      expr: GoExpr.GoCall(lowerExpr(callee).expr, loweredArgs),
+      expr: callExpr,
       isStringLike: isStringType(returnType)
     };
   }
@@ -1628,6 +2071,33 @@ class GoCompiler {
       case TField(_, FStatic(classRef, field)):
         var classType = classRef.get();
         classType.name == className && classType.pack.join(".") == classPack.join(".") && field.get().name == fieldName;
+      case _:
+        false;
+    };
+  }
+
+  function shouldAssertGenericCallResult(callee:TypedExpr, returnType:Type):Bool {
+    if (typeToGoType(returnType) == "any") {
+      return false;
+    }
+
+    return switch (callee.expr) {
+      case TField(_, FInstance(classRef, _, field)):
+        var classType = classRef.get();
+        var pack = classType.pack.join(".");
+        var fieldName = field.get().name;
+        if (pack == "haxe.ds") {
+          if ((classType.name == "IntMap" || classType.name == "StringMap" || classType.name == "ObjectMap" || classType.name == "EnumValueMap")
+            && fieldName == "get") {
+            true;
+          } else if (classType.name == "List" && (fieldName == "pop" || fieldName == "first" || fieldName == "last")) {
+            true;
+          } else {
+            false;
+          }
+        } else {
+          false;
+        }
       case _:
         false;
     };
@@ -2078,6 +2548,21 @@ class GoCompiler {
           requireStdlibShimGroup("io");
         case _:
       }
+      return;
+    }
+
+    if (pack == "haxe.ds") {
+      switch (classType.name) {
+        case "IntMap", "StringMap", "ObjectMap", "EnumValueMap", "List":
+          requireStdlibShimGroup("ds");
+        case _:
+      }
+      return;
+    }
+
+    if ((pack == "" && classType.name == "Sys")
+      || (pack == "sys.io" && (classType.name == "File" || classType.name == "Process"))) {
+      requireStdlibShimGroup("sys");
       return;
     }
 

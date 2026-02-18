@@ -26,6 +26,14 @@ func StdString(value any) *string {
 	}
 }
 
+func StringSlice(values []*string) []string {
+	out := make([]string, len(values))
+	for i := 0; i < len(values); i++ {
+		out[i] = *StdString(values[i])
+	}
+	return out
+}
+
 func StringConcatAny(left any, right any) *string {
 	l := StdString(left)
 	r := StdString(right)
