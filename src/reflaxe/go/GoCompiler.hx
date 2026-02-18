@@ -183,7 +183,7 @@ class GoCompiler {
   }
 
   function isProjectClass(classType:ClassType):Bool {
-    if (classType.isExtern || classType.isInterface) {
+    if (classType.isExtern) {
       return false;
     }
 
@@ -992,6 +992,10 @@ class GoCompiler {
   }
 
   function lowerClassDecls(classType:ClassType):Array<GoDecl> {
+    if (classType.isInterface) {
+      return lowerInterfaceDecls(classType);
+    }
+
     var decls = new Array<GoDecl>();
     var typeName = classTypeName(classType);
     var superClass = projectSuperClass(classType);
@@ -1078,6 +1082,70 @@ class GoCompiler {
     }
 
     return decls;
+  }
+
+  function lowerInterfaceDecls(classType:ClassType):Array<GoDecl> {
+    var methods = new Array<GoInterfaceMethod>();
+    var seen = new Map<String, Bool>();
+    for (field in classType.fields.get()) {
+      switch (field.kind) {
+        case FMethod(_):
+          if (field.name == "new") {
+            continue;
+          }
+          var method = lowerInterfaceMethod(field);
+          if (method != null && !seen.exists(method.name)) {
+            seen.set(method.name, true);
+            methods.push(method);
+          }
+        case _:
+      }
+    }
+    return [GoDecl.GoInterfaceDecl(classTypeName(classType), methods)];
+  }
+
+  function lowerInterfaceMethod(field:ClassField):Null<GoInterfaceMethod> {
+    var followed = Context.follow(field.type);
+    return switch (followed) {
+      case TFun(args, returnType):
+        {
+          name: normalizeIdent(field.name),
+          params: lowerTypedFunArgs(args),
+          results: lowerFunctionResults(returnType)
+        };
+      case _:
+        var methodFunc = unwrapFunction(field.expr());
+        if (methodFunc == null) {
+          null;
+        } else {
+          {
+            name: normalizeIdent(field.name),
+            params: lowerFunctionParams(methodFunc),
+            results: lowerFunctionResults(methodFunc.t)
+          };
+        }
+    };
+  }
+
+  function lowerTypedFunArgs(args:Array<{name:String, opt:Bool, t:Type}>):Array<GoParam> {
+    var out = new Array<GoParam>();
+    var used = new Map<String, Int>();
+    for (index in 0...args.length) {
+      var arg = args[index];
+      var rawName = arg.name;
+      if (rawName == null || rawName == "") {
+        rawName = "arg" + index;
+      }
+      var baseName = normalizeIdent(rawName);
+      var count = used.exists(baseName) ? used.get(baseName) : 0;
+      used.set(baseName, count + 1);
+      var finalName = count == 0 ? baseName : baseName + "_" + count;
+      out.push({
+        name: finalName,
+        typeName: scalarGoType(arg.t)
+      });
+    }
+    return out;
   }
 
   function lowerFunctionDecl(name:String, func:TFunc, receiver:Null<GoParam>):GoDecl {
@@ -1296,7 +1364,7 @@ class GoCompiler {
           loweredValue = upcastIfNeeded(loweredValue, value.t, variable.t);
         }
         var goType = typeToGoType(variable.t);
-        var useShort = loweredValue != null && !isNilExpr(loweredValue) && goType != "any";
+        var useShort = loweredValue != null && !isNilExpr(loweredValue) && goType != "any" && !isInterfaceType(variable.t);
         var decl = GoStmt.GoVarDecl(variableName, goType, loweredValue, useShort);
         var consume = GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(variableName));
 
@@ -2029,6 +2097,13 @@ class GoCompiler {
           };
         }
 
+        if (classType.isInterface) {
+          return {
+            expr: GoExpr.GoSelector(loweredTarget, normalizeIdent(resolved.name)),
+            isStringLike: isStringType(resolved.type)
+          };
+        }
+
         if (isHaxeExceptionType(target.t) && resolved.name == "message") {
           return {
             expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [loweredTarget]),
@@ -2530,6 +2605,10 @@ class GoCompiler {
   }
 
   function hasInstanceLayout(classType:ClassType):Bool {
+    if (classType.isInterface) {
+      return false;
+    }
+
     if (projectSuperClass(classType) != null) {
       return true;
     }
@@ -2831,6 +2910,8 @@ class GoCompiler {
           "any";
         } else if (isHaxeExceptionClass(classType)) {
           "*hxrt.ExceptionValue";
+        } else if (classType.isInterface) {
+          classTypeName(classType);
         } else if (classType.pack.length == 0 && classType.name == "String") {
           "*string";
         } else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
@@ -2867,6 +2948,16 @@ class GoCompiler {
       case TAbstract(abstractRef, _):
         var abstractType = abstractRef.get();
         abstractType.pack.length == 0 && abstractType.name == "String";
+      case _:
+        false;
+    };
+  }
+
+  function isInterfaceType(type:Type):Bool {
+    var followed = Context.follow(type);
+    return switch (followed) {
+      case TInst(classRef, _):
+        classRef.get().isInterface;
       case _:
         false;
     };
@@ -2979,6 +3070,8 @@ class GoCompiler {
           "any";
         } else if (isHaxeExceptionClass(classType)) {
           "*hxrt.ExceptionValue";
+        } else if (classType.isInterface) {
+          classTypeName(classType);
         } else if (classType.pack.length == 0 && classType.name == "String") {
           "*string";
         } else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
