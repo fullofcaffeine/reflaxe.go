@@ -3,7 +3,8 @@ package main
 import "snapshot/hxrt"
 
 type I_Base interface {
-	ping() int
+	who() int
+	callWho() int
 }
 
 type Base struct {
@@ -16,12 +17,18 @@ func New_Base() *Base {
 	return self
 }
 
-func (self *Base) ping() int {
+func (self *Base) who() int {
 	return 1
 }
 
+func (self *Base) callWho() int {
+	return self.__hx_this.who()
+}
+
 type I_Child interface {
-	ping() int
+	who() int
+	callWho() int
+	callSuperWho() int
 }
 
 type Child struct {
@@ -37,11 +44,16 @@ func New_Child() *Child {
 	return self
 }
 
-func (self *Child) ping() int {
+func (self *Child) who() int {
 	return 2
+}
+
+func (self *Child) callSuperWho() int {
+	return self.Base.who()
 }
 
 func main() {
 	child := New_Child()
-	hxrt.Println(child.__hx_this.ping())
+	hxrt.Println(child.__hx_this.callWho())
+	hxrt.Println(child.__hx_this.callSuperWho())
 }

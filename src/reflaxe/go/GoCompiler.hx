@@ -210,10 +210,11 @@ class GoCompiler {
       });
       instanceFields = instanceFields.concat(instanceDataFields);
 
+      var dispatchMethods = collectDispatchMethods(classType);
       var interfaceMethods = new Array<GoInterfaceMethod>();
-      for (method in instanceMethods) {
+      for (method in dispatchMethods) {
         interfaceMethods.push({
-          name: normalizeIdent(method.name),
+          name: method.name,
           params: lowerFunctionParams(method.func),
           results: lowerFunctionResults(method.func.t)
         });
@@ -293,6 +294,48 @@ class GoCompiler {
         typeName: "*" + classTypeName(classType)
       }
     );
+  }
+
+  function collectDispatchMethods(classType:ClassType):Array<{name:String, func:TFunc}> {
+    var orderedNames = new Array<String>();
+    var methods = new Map<String, TFunc>();
+
+    function collect(current:ClassType):Void {
+      var superClass = projectSuperClass(current);
+      if (superClass != null) {
+        collect(superClass);
+      }
+
+      for (field in current.fields.get()) {
+        switch (field.kind) {
+          case FMethod(_):
+            if (field.name == "new") {
+              continue;
+            }
+            var methodFunc = unwrapFunction(field.expr());
+            if (methodFunc == null) {
+              continue;
+            }
+            var methodName = normalizeIdent(field.name);
+            if (!methods.exists(methodName)) {
+              orderedNames.push(methodName);
+            }
+            methods.set(methodName, methodFunc);
+          case _:
+        }
+      }
+    }
+
+    collect(classType);
+
+    var out = new Array<{name:String, func:TFunc}>();
+    for (name in orderedNames) {
+      out.push({
+        name: name,
+        func: methods.get(name)
+      });
+    }
+    return out;
   }
 
   function unwrapFunction(expr:Null<TypedExpr>):Null<TFunc> {
@@ -766,8 +809,18 @@ class GoCompiler {
           expr: GoExpr.GoIdent(staticSymbol(classRef.get(), resolved.name)),
           isStringLike: isStringType(resolved.type)
         };
-      case FInstance(_, _, field):
+      case FInstance(classRef, _, field):
         var resolved = field.get();
+        var classType = classRef.get();
+
+        if (isSuperTarget(target) && isMethodField(resolved)) {
+          var baseSelector = GoExpr.GoSelector(GoExpr.GoIdent("self"), classTypeName(classType));
+          return {
+            expr: GoExpr.GoSelector(baseSelector, normalizeIdent(resolved.name)),
+            isStringLike: isStringType(resolved.type)
+          };
+        }
+
         var restTargetName = resolveRestIteratorTargetName(target);
         var restFieldName = restIteratorFieldName(restTargetName, resolved.name);
         if (restFieldName != null) {
@@ -781,6 +834,11 @@ class GoCompiler {
           {
             expr: GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]),
             isStringLike: false
+          };
+        } else if (shouldUseVirtualDispatch(classType, resolved)) {
+          {
+            expr: GoExpr.GoSelector(GoExpr.GoSelector(loweredTarget, "__hx_this"), normalizeIdent(resolved.name)),
+            isStringLike: isStringType(resolved.type)
           };
         } else {
           {
@@ -894,6 +952,40 @@ class GoCompiler {
       case _:
         false;
     };
+  }
+
+  function isSuperTarget(target:TypedExpr):Bool {
+    return switch (target.expr) {
+      case TConst(TSuper):
+        true;
+      case TMeta(_, inner):
+        isSuperTarget(inner);
+      case TParenthesis(inner):
+        isSuperTarget(inner);
+      case TCast(inner, _):
+        isSuperTarget(inner);
+      case _:
+        false;
+    };
+  }
+
+  function isMethodField(field:ClassField):Bool {
+    return switch (field.kind) {
+      case FMethod(_):
+        true;
+      case _:
+        false;
+    };
+  }
+
+  function shouldUseVirtualDispatch(classType:ClassType, field:ClassField):Bool {
+    if (!isProjectClass(classType)) {
+      return false;
+    }
+    if (!isMethodField(field)) {
+      return false;
+    }
+    return field.name != "new";
   }
 
   function lowerBinop(op:Binop, left:TypedExpr, right:TypedExpr, resultType:Type):LoweredExpr {
