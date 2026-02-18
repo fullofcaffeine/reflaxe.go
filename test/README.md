@@ -42,6 +42,12 @@ python3 test/run-snapshots.py --case core/hello_trace
 python3 test/run-snapshots.py --update
 ```
 
+## Bless only changed intended files
+
+```bash
+python3 test/run-snapshots.py --bless
+```
+
 ## Re-run previous failures
 
 ```bash
@@ -95,3 +101,4 @@ Snapshots compile with `-D reflaxe_go_strict_examples` so app/test code cannot r
 - Use `KEEP_ARTIFACTS=1` to keep generated `out/` folders on failures.
 - Use `--failed` to rerun only the previous failing set.
 - Use `--changed` to focus only on touched snapshot cases.
+- Use `--bless` to update only changed files and print a gofmt/naming/runtime checklist.

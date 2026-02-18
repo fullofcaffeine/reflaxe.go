@@ -40,6 +40,12 @@ class CaseResult:
     message: str
 
 
+@dataclasses.dataclass(frozen=True)
+class TreeDelta:
+    rel_path: Path
+    kind: str  # added | removed | modified
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run reflaxe.go snapshot tests")
     parser.add_argument("--list", action="store_true", help="List discovered cases")
@@ -48,7 +54,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pattern", default="", help="Regex filter over case ids")
     parser.add_argument("--jobs", type=int, default=1, help="Parallel jobs (currently executed sequentially)")
     parser.add_argument("--timeout", type=int, default=120, help="Timeout per command in seconds")
-    parser.add_argument("--update", action="store_true", help="Update intended outputs from out/")
+    update_group = parser.add_mutually_exclusive_group()
+    update_group.add_argument("--update", action="store_true", help="Replace intended/ outputs from out/")
+    update_group.add_argument("--bless", action="store_true", help="Update only changed files in intended/")
     parser.add_argument("--runtime", action="store_true", help="Run runtime smoke when expected.stdout exists")
     parser.add_argument("--failed", action="store_true", help="Re-run only previously failing cases")
     parser.add_argument("--changed", action="store_true", help="Run cases touched by git diff")
@@ -200,32 +208,43 @@ def all_files(root: Path) -> list[Path]:
     return files
 
 
-def diff_trees(left: Path, right: Path) -> tuple[bool, str]:
+def collect_tree_deltas(left: Path, right: Path) -> list[TreeDelta]:
     left_files = {p.relative_to(left): p for p in all_files(left)}
     right_files = {p.relative_to(right): p for p in all_files(right)}
     rels = sorted(set(left_files) | set(right_files))
 
-    lines: list[str] = []
-    ok = True
+    deltas: list[TreeDelta] = []
     for rel in rels:
         l = left_files.get(rel)
         r = right_files.get(rel)
         if l is None:
-            ok = False
-            lines.append(f"Only in {right}: {rel.as_posix()}")
+            deltas.append(TreeDelta(rel, "added"))
             continue
         if r is None:
-            ok = False
-            lines.append(f"Only in {left}: {rel.as_posix()}")
+            deltas.append(TreeDelta(rel, "removed"))
             continue
 
         ltxt = l.read_text(encoding="utf-8", errors="replace")
         rtxt = r.read_text(encoding="utf-8", errors="replace")
         if ltxt != rtxt:
-            ok = False
-            lines.append(f"Diff: {rel.as_posix()}")
+            deltas.append(TreeDelta(rel, "modified"))
+    return deltas
 
-    return ok, "\n".join(lines)
+
+def diff_trees(left: Path, right: Path) -> tuple[bool, str]:
+    deltas = collect_tree_deltas(left, right)
+    if not deltas:
+        return True, ""
+
+    lines: list[str] = []
+    for delta in deltas:
+        if delta.kind == "added":
+            lines.append(f"Only in {right}: {delta.rel_path.as_posix()}")
+        elif delta.kind == "removed":
+            lines.append(f"Only in {left}: {delta.rel_path.as_posix()}")
+        else:
+            lines.append(f"Diff: {delta.rel_path.as_posix()}")
+    return False, "\n".join(lines)
 
 
 def update_intended(case: SnapshotCase) -> None:
@@ -243,6 +262,95 @@ def update_intended(case: SnapshotCase) -> None:
         target = intended / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
+
+
+def read_text_or_none(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def collapse_whitespace(text: str) -> str:
+    return "".join(text.split())
+
+
+def infer_bless_causes(rel_path: Path, old_text: str | None, new_text: str | None) -> tuple[bool, bool, bool]:
+    runtime_change = bool(rel_path.parts) and rel_path.parts[0] == "hxrt"
+    combined = f"{old_text or ''}\n{new_text or ''}"
+    if not runtime_change and ("/hxrt" in combined or '"hxrt"' in combined or "hxrt." in combined):
+        runtime_change = True
+
+    gofmt_change = False
+    if old_text is not None and new_text is not None and old_text != new_text:
+        gofmt_change = collapse_whitespace(old_text) == collapse_whitespace(new_text)
+
+    naming_change = False
+    if old_text is not None and new_text is not None and old_text != new_text:
+        old_tokens = set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", old_text))
+        new_tokens = set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", new_text))
+        changed_tokens = (old_tokens - new_tokens) | (new_tokens - old_tokens)
+        naming_change = any(
+            token.startswith(("Haxe_", "__hx_", "Go_", "Std_", "Main_"))
+            for token in changed_tokens
+        )
+
+    return gofmt_change, naming_change, runtime_change
+
+
+def format_bless_checklist(rel_path: Path, old_text: str | None, new_text: str | None) -> str:
+    gofmt_change, naming_change, runtime_change = infer_bless_causes(rel_path, old_text, new_text)
+    return (
+        f"[gofmt={'x' if gofmt_change else ' '}] "
+        f"[naming={'x' if naming_change else ' '}] "
+        f"[runtime={'x' if runtime_change else ' '}]"
+    )
+
+
+def prune_empty_dirs(start: Path, stop_at: Path) -> None:
+    cur = start
+    while cur != stop_at and cur.exists():
+        try:
+            cur.rmdir()
+        except OSError:
+            return
+        cur = cur.parent
+
+
+def bless_intended(case: SnapshotCase, deltas: list[TreeDelta]) -> str:
+    out_dir = case.case_path / "out"
+    intended = case.case_path / "intended"
+    intended.mkdir(parents=True, exist_ok=True)
+
+    lines: list[str] = []
+    max_lines = 20
+
+    for idx, delta in enumerate(deltas):
+        rel = delta.rel_path
+        source = out_dir / rel
+        target = intended / rel
+        before = read_text_or_none(target)
+        after = read_text_or_none(source) if delta.kind != "removed" else None
+
+        if delta.kind in {"added", "modified"}:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+        else:
+            if target.exists():
+                target.unlink()
+                prune_empty_dirs(target.parent, intended)
+
+        if idx < max_lines:
+            checklist = format_bless_checklist(rel, before, after)
+            lines.append(f"{delta.kind:8s} {rel.as_posix()} {checklist}")
+
+    extra = len(deltas) - max_lines
+    if extra > 0:
+        lines.append(f"... and {extra} more changed file(s)")
+
+    headline = f"blessed {len(deltas)} changed file(s)"
+    if not lines:
+        return headline
+    return f"{headline}\n" + "\n".join(lines)
 
 
 def maybe_cleanup_artifacts(case: SnapshotCase, success: bool) -> None:
@@ -301,6 +409,16 @@ def run_case(case: SnapshotCase, args: argparse.Namespace) -> CaseResult:
         intended = case.case_path / "intended"
         if args.update:
             update_intended(case)
+        elif args.bless:
+            deltas = collect_tree_deltas(intended, out_dir)
+            if deltas:
+                bless_message = bless_intended(case, deltas)
+                ok, diff = diff_trees(intended, out_dir)
+                if not ok:
+                    duration = time.monotonic() - started
+                    return CaseResult(case.case_id, False, duration, "bless", f"bless verification failed\n{diff}")
+                duration = time.monotonic() - started
+                return CaseResult(case.case_id, True, duration, "bless", bless_message)
         elif intended.exists():
             ok, diff = diff_trees(intended, out_dir)
             if not ok:
@@ -378,7 +496,7 @@ def main() -> int:
         results.append(result)
         status = "PASS" if result.ok else "FAIL"
         print(f"[{status}] {case.case_id} ({result.stage}, {result.duration_s:.2f}s)")
-        if not result.ok and result.message:
+        if result.message and (not result.ok or result.stage == "bless"):
             print(result.message)
 
     for result in results:
