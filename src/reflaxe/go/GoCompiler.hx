@@ -1769,9 +1769,29 @@ class GoCompiler {
               unsupportedExpr(expr, "Unsupported postfix unary operator");
           };
         }
-        {
-          expr: GoExpr.GoUnary(unopSymbol(op), lowerExpr(value).expr),
-          isStringLike: isStringType(expr.t)
+        return switch (op) {
+          case OpIncrement, OpDecrement:
+            var target = lowerLValue(value);
+            var opSymbol = op == OpIncrement ? "+" : "-";
+            {
+              expr: GoExpr.GoCall(
+                GoExpr.GoFuncLiteral(
+                  [],
+                  [typeToGoType(value.t)],
+                  [
+                    GoStmt.GoAssign(target, GoExpr.GoBinary(opSymbol, target, GoExpr.GoIntLiteral(1))),
+                    GoStmt.GoReturn(target)
+                  ]
+                ),
+                []
+              ),
+              isStringLike: isStringType(expr.t)
+            };
+          case _:
+            {
+              expr: GoExpr.GoUnary(unopSymbol(op), lowerExpr(value).expr),
+              isStringLike: isStringType(expr.t)
+            };
         };
       case _:
         unsupportedExpr(expr, "Unsupported expression");
