@@ -15,7 +15,7 @@ python3 test/run-snapshots.py --list
 ## Run one snapshot
 
 ```bash
-python3 test/run-snapshots.py --case core/hello
+python3 test/run-snapshots.py --case core/hello_trace
 ```
 
 ## Update intended outputs

@@ -1,5 +1,11 @@
 package reflaxe.go.ast;
 
+import reflaxe.go.ast.GoAST.GoDecl;
+import reflaxe.go.ast.GoAST.GoExpr;
+import reflaxe.go.ast.GoAST.GoFile;
+import reflaxe.go.ast.GoAST.GoParam;
+import reflaxe.go.ast.GoAST.GoStmt;
+
 class GoASTPrinter {
   public static function printFile(file:GoFile):String {
     var out = new StringBuf();

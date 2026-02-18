@@ -1,1 +1,0 @@
-reflaxe.go scaffold is active but Go codegen is not implemented yet (Milestone 0).

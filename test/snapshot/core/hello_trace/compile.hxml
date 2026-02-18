@@ -3,6 +3,6 @@
 -D go_output=out
 -D reflaxe_go_strict_examples
 -D reflaxe.dont_output_metadata_id
---no-traces
+-D no-traces
 -D no_traces
 -main Main

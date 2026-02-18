@@ -9,17 +9,25 @@ class CompilerInit {
   static var initialized = false;
 
   public static function Start():Void {
-    if (initialized || !isGoBuild()) {
+    if (initialized) {
       return;
     }
     initialized = true;
 
-    var _ = ProfileResolver.resolve();
+    Context.onAfterTyping(function(_) {
+      if (!isGoBuild()) {
+        return;
+      }
 
-    Context.fatalError(
-      "reflaxe.go scaffold is active but Go codegen is not implemented yet (Milestone 0).",
-      Context.currentPos()
-    );
+      var outputDir = resolveOutputDir();
+      var _ = ProfileResolver.resolve();
+      var compiler = new GoCompiler();
+      var files = compiler.compileModule();
+
+      GoOutputIterator.writeFiles(outputDir, files);
+      GoOutputIterator.writeGoMod(outputDir, "snapshot");
+      GoOutputIterator.copyRuntime(outputDir);
+    });
   }
 
   static function isGoBuild():Bool {
@@ -44,6 +52,14 @@ class CompilerInit {
     }
 
     return false;
+  }
+
+  static function resolveOutputDir():String {
+    var outputDir = Context.definedValue("go_output");
+    if (outputDir == null || outputDir == "") {
+      Context.fatalError("Missing required define -D go_output=<dir>", Context.currentPos());
+    }
+    return outputDir;
   }
   #else
   public static function Start():Void {}
