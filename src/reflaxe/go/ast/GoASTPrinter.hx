@@ -79,7 +79,40 @@ class GoASTPrinter {
 
   static function printStmt(stmt:GoStmt):String {
     return switch (stmt) {
+      case GoVarDecl(name, typeName, value, useShort):
+        if (useShort && value != null) {
+          name + " := " + printExpr(value);
+        } else if (value == null) {
+          typeName == null ? "var " + name : "var " + name + " " + typeName;
+        } else if (typeName == null) {
+          "var " + name + " = " + printExpr(value);
+        } else {
+          "var " + name + " " + typeName + " = " + printExpr(value);
+        }
+      case GoAssign(left, right):
+        printExpr(left) + " = " + printExpr(right);
       case GoExprStmt(expr): printExpr(expr);
+      case GoIf(cond, thenBody, elseBody):
+        var out = new StringBuf();
+        out.add("if ");
+        out.add(printExpr(cond));
+        out.add(" {\n");
+        for (stmt in thenBody) {
+          out.add("\t");
+          out.add(printStmt(stmt));
+          out.add("\n");
+        }
+        out.add("}");
+        if (elseBody != null) {
+          out.add(" else {\n");
+          for (stmt in elseBody) {
+            out.add("\t");
+            out.add(printStmt(stmt));
+            out.add("\n");
+          }
+          out.add("}");
+        }
+        out.toString();
       case GoReturn(expr): expr == null ? "return" : "return " + printExpr(expr);
     }
   }
@@ -87,7 +120,14 @@ class GoASTPrinter {
   static function printExpr(expr:GoExpr):String {
     return switch (expr) {
       case GoIdent(name): name;
+      case GoIntLiteral(value): Std.string(value);
+      case GoFloatLiteral(value): value;
+      case GoBoolLiteral(value): value ? "true" : "false";
       case GoStringLiteral(value): '"' + escapeString(value) + '"';
+      case GoNil: "nil";
+      case GoSelector(target, field): printExpr(target) + "." + field;
+      case GoUnary(op, inner): op + printExpr(inner);
+      case GoBinary(op, left, right): "(" + printExpr(left) + " " + op + " " + printExpr(right) + ")";
       case GoCall(callee, args):
         var renderedArgs = [for (arg in args) printExpr(arg)].join(", ");
         printExpr(callee) + "(" + renderedArgs + ")";
