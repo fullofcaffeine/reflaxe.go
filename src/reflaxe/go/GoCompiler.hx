@@ -2157,6 +2157,10 @@ class GoCompiler {
       };
     }
 
+    if (isStaticCall(callee, "Std", [], "isOfType")) {
+      return lowerStdIsOfTypeCall(args);
+    }
+
     if (isStaticCall(callee, "Exception", ["haxe"], "caught")) {
       var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
       return {
@@ -2214,6 +2218,252 @@ class GoCompiler {
       expr: callExpr,
       isStringLike: isStringType(returnType)
     };
+  }
+
+  function lowerStdIsOfTypeCall(args:Array<TypedExpr>):LoweredExpr {
+    if (args.length != 2) {
+      Context.fatalError("Std.isOfType expects exactly 2 arguments", Context.currentPos());
+    }
+
+    var targetType = stdIsOfTypeTargetType(args[1]);
+    if (targetType == null) {
+      Context.fatalError("Std.isOfType requires a type literal as the second argument", args[1].pos);
+    }
+
+    var loweredValue = lowerExprWithPrefix(args[0]);
+    var loweredCheck = lowerStdIsOfTypeExpr(loweredValue.expr, args[0], targetType);
+    if (loweredValue.prefix.length == 0) {
+      return {
+        expr: loweredCheck,
+        isStringLike: false
+      };
+    }
+
+    return {
+      expr: GoExpr.GoCall(
+        GoExpr.GoFuncLiteral(
+          [],
+          ["bool"],
+          loweredValue.prefix.concat([GoStmt.GoReturn(loweredCheck)])
+        ),
+        []
+      ),
+      isStringLike: false
+    };
+  }
+
+  function stdIsOfTypeTargetType(expr:TypedExpr):Null<Type> {
+    return switch (expr.expr) {
+      case TTypeExpr(moduleType):
+        switch (moduleType) {
+          case TClassDecl(classRef):
+            TInst(classRef, []);
+          case TEnumDecl(enumRef):
+            TEnum(enumRef, []);
+          case TTypeDecl(typeRef):
+            Context.follow(TType(typeRef, []));
+          case TAbstract(abstractRef):
+            TAbstract(abstractRef, []);
+          case _:
+            null;
+        }
+      case TMeta(_, inner):
+        stdIsOfTypeTargetType(inner);
+      case TParenthesis(inner):
+        stdIsOfTypeTargetType(inner);
+      case TCast(inner, _):
+        stdIsOfTypeTargetType(inner);
+      case _:
+        null;
+    };
+  }
+
+  function lowerStdIsOfTypeExpr(valueExpr:GoExpr, valueTypedExpr:TypedExpr, targetType:Type):GoExpr {
+    if (isDynamicCatchType(targetType)) {
+      if (isNullLiteralExpr(valueTypedExpr)) {
+        return GoExpr.GoBoolLiteral(false);
+      }
+      if (isDefinitelyNonNullableType(valueTypedExpr.t)) {
+        return GoExpr.GoBoolLiteral(true);
+      }
+      return GoExpr.GoBinary("!=", valueExpr, GoExpr.GoNil);
+    }
+
+    if (isBoolType(targetType)) {
+      if (isBoolType(valueTypedExpr.t)) {
+        return GoExpr.GoBoolLiteral(true);
+      }
+      if (!isAnyLikeType(valueTypedExpr.t)) {
+        return GoExpr.GoBoolLiteral(false);
+      }
+      return stdIsOfTypeTypeSwitch(valueExpr, ["bool"]);
+    }
+
+    if (isIntType(targetType)) {
+      if (isIntType(valueTypedExpr.t)) {
+        return GoExpr.GoBoolLiteral(true);
+      }
+      if (isFloatType(valueTypedExpr.t) || isBoolType(valueTypedExpr.t) || isStringType(valueTypedExpr.t)) {
+        return GoExpr.GoBoolLiteral(false);
+      }
+      if (!isAnyLikeType(valueTypedExpr.t)) {
+        return GoExpr.GoBoolLiteral(false);
+      }
+      return stdIsOfTypeTypeSwitch(valueExpr, ["int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "uintptr"]);
+    }
+
+    if (isFloatType(targetType)) {
+      if (isIntType(valueTypedExpr.t) || isFloatType(valueTypedExpr.t)) {
+        return GoExpr.GoBoolLiteral(true);
+      }
+      if (isBoolType(valueTypedExpr.t) || isStringType(valueTypedExpr.t)) {
+        return GoExpr.GoBoolLiteral(false);
+      }
+      if (!isAnyLikeType(valueTypedExpr.t)) {
+        return GoExpr.GoBoolLiteral(false);
+      }
+      return stdIsOfTypeTypeSwitch(valueExpr, [
+        "int",
+        "int8",
+        "int16",
+        "int32",
+        "int64",
+        "uint",
+        "uint8",
+        "uint16",
+        "uint32",
+        "uint64",
+        "uintptr",
+        "float32",
+        "float64"
+      ]);
+    }
+
+    if (isStringType(targetType)) {
+      if (isStringType(valueTypedExpr.t)) {
+        return GoExpr.GoBinary("!=", valueExpr, GoExpr.GoNil);
+      }
+      if (!isAnyLikeType(valueTypedExpr.t)) {
+        return GoExpr.GoBoolLiteral(false);
+      }
+      return stdIsOfTypeTypeSwitch(valueExpr, ["*string", "string"]);
+    }
+
+    if (isArrayType(targetType)) {
+      if (isArrayType(valueTypedExpr.t)) {
+        return GoExpr.GoBinary("!=", valueExpr, GoExpr.GoNil);
+      }
+      return GoExpr.GoBoolLiteral(false);
+    }
+
+    var targetClass = classFromType(targetType);
+    if (targetClass != null) {
+      return stdIsOfTypeClassExpr(valueExpr, valueTypedExpr.t, targetClass);
+    }
+
+    var targetEnum = switch (Context.follow(targetType)) {
+      case TEnum(enumRef, _):
+        enumRef.get();
+      case _:
+        null;
+    };
+    if (targetEnum != null) {
+      return stdIsOfTypeEnumExpr(valueExpr, valueTypedExpr.t, targetEnum);
+    }
+
+    Context.fatalError("Unsupported Std.isOfType target type: " + typeToGoType(targetType), valueTypedExpr.pos);
+    return GoExpr.GoBoolLiteral(false);
+  }
+
+  function stdIsOfTypeClassExpr(valueExpr:GoExpr, valueType:Type, targetClass:ClassType):GoExpr {
+    var valueClass = classFromType(valueType);
+    if (valueClass != null) {
+      if (inheritancePath(valueClass, targetClass) != null) {
+        return GoExpr.GoBinary("!=", valueExpr, GoExpr.GoNil);
+      }
+
+      if (inheritancePath(targetClass, valueClass) != null) {
+        var valueTypeName = "*" + classTypeName(valueClass);
+        var targetPointerType = "*" + classTypeName(targetClass);
+        return GoExpr.GoCall(
+          GoExpr.GoFuncLiteral(
+            [{name: "hx_value", typeName: valueTypeName}],
+            ["bool"],
+            [
+              GoStmt.GoIf(
+                GoExpr.GoBinary("==", GoExpr.GoIdent("hx_value"), GoExpr.GoNil),
+                [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))],
+                null
+              ),
+              GoStmt.GoRaw("_, ok := hx_value.__hx_this.(" + targetPointerType + ")"),
+              GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+            ]
+          ),
+          [valueExpr]
+        );
+      }
+
+      return GoExpr.GoBoolLiteral(false);
+    }
+
+    if (!isAnyLikeType(valueType)) {
+      return GoExpr.GoBoolLiteral(false);
+    }
+
+    var checkTypes = ["*" + classTypeName(targetClass)];
+    if (collectDispatchMethods(targetClass).length > 0) {
+      checkTypes.push(interfaceSymbol(targetClass));
+    }
+    return stdIsOfTypeTypeSwitch(valueExpr, checkTypes);
+  }
+
+  function stdIsOfTypeEnumExpr(valueExpr:GoExpr, valueType:Type, targetEnum:EnumType):GoExpr {
+    var valueEnum = switch (Context.follow(valueType)) {
+      case TEnum(enumRef, _):
+        enumRef.get();
+      case _:
+        null;
+    };
+
+    if (valueEnum != null) {
+      return fullEnumName(valueEnum) == fullEnumName(targetEnum)
+        ? GoExpr.GoBinary("!=", valueExpr, GoExpr.GoNil)
+        : GoExpr.GoBoolLiteral(false);
+    }
+
+    if (!isAnyLikeType(valueType)) {
+      return GoExpr.GoBoolLiteral(false);
+    }
+
+    return stdIsOfTypeTypeSwitch(valueExpr, ["*" + enumTypeName(targetEnum)]);
+  }
+
+  function stdIsOfTypeTypeSwitch(valueExpr:GoExpr, typeNames:Array<String>):GoExpr {
+    var bindingName = "hx_type";
+    return GoExpr.GoCall(
+      GoExpr.GoFuncLiteral(
+        [{name: "hx_value", typeName: "any"}],
+        ["bool"],
+        [
+          GoStmt.GoTypeSwitch(
+            GoExpr.GoIdent("hx_value"),
+            bindingName,
+            [for (typeName in typeNames) {
+              typeName: typeName,
+              body: [
+                GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(bindingName)),
+                GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
+              ]
+            }],
+            [
+              GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(bindingName)),
+              GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))
+            ]
+          )
+        ]
+      ),
+      [GoExpr.GoCall(GoExpr.GoIdent("any"), [valueExpr])]
+    );
   }
 
   function isStaticCall(callee:TypedExpr, className:String, classPack:Array<String>, fieldName:String):Bool {
@@ -2535,6 +2785,62 @@ class GoCompiler {
       case TAbstract(abstractRef, _):
         var abstractType = abstractRef.get();
         abstractType.pack.length == 0 && abstractType.name == "String";
+      case _:
+        false;
+    };
+  }
+
+  function isBoolType(type:Type):Bool {
+    var followed = Context.follow(type);
+    return switch (followed) {
+      case TAbstract(abstractRef, _):
+        var abstractType = abstractRef.get();
+        abstractType.pack.length == 0 && abstractType.name == "Bool";
+      case _:
+        false;
+    };
+  }
+
+  function isIntType(type:Type):Bool {
+    var followed = Context.follow(type);
+    return switch (followed) {
+      case TAbstract(abstractRef, _):
+        var abstractType = abstractRef.get();
+        abstractType.pack.length == 0 && abstractType.name == "Int";
+      case _:
+        false;
+    };
+  }
+
+  function isFloatType(type:Type):Bool {
+    var followed = Context.follow(type);
+    return switch (followed) {
+      case TAbstract(abstractRef, _):
+        var abstractType = abstractRef.get();
+        abstractType.pack.length == 0 && abstractType.name == "Float";
+      case _:
+        false;
+    };
+  }
+
+  function isAnyLikeType(type:Type):Bool {
+    return isDynamicCatchType(type) || typeToGoType(type) == "any";
+  }
+
+  function isDefinitelyNonNullableType(type:Type):Bool {
+    return isBoolType(type) || isIntType(type) || isFloatType(type);
+  }
+
+  function isNullLiteralExpr(expr:TypedExpr):Bool {
+    return switch (expr.expr) {
+      case TConst(TNull):
+        true;
+      case TMeta(_, inner):
+        isNullLiteralExpr(inner);
+      case TParenthesis(inner):
+        isNullLiteralExpr(inner);
+      case TCast(inner, _):
+        isNullLiteralExpr(inner);
       case _:
         false;
     };
