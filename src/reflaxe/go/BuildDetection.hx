@@ -79,8 +79,7 @@ class BuildDetection {
       var arg = args[i];
       if (arg == "-D" || arg == "--define") {
         if (i + 1 < args.length) {
-          var defineArg = args[i + 1];
-          if (defineArg == defineName || StringTools.startsWith(defineArg, defineName + "=")) {
+          if (defineArgMatches(args[i + 1], defineName)) {
             return true;
           }
         }
@@ -88,14 +87,29 @@ class BuildDetection {
         continue;
       }
 
-      if (StringTools.startsWith(arg, "-D" + defineName)) {
-        return true;
+      if (StringTools.startsWith(arg, "-D")) {
+        if (defineArgMatches(arg.substr(2), defineName)) {
+          return true;
+        }
+      }
+
+      if (StringTools.startsWith(arg, "--define=")) {
+        if (defineArgMatches(arg.substr("--define=".length), defineName)) {
+          return true;
+        }
       }
 
       i += 1;
     }
 
     return false;
+  }
+
+  static function defineArgMatches(raw:String, defineName:String):Bool {
+    if (raw == null || raw == "") {
+      return false;
+    }
+    return raw == defineName || StringTools.startsWith(raw, defineName + "=");
   }
 
   static function hxmlContainsDefineAny(paths:Array<String>, defineName:String, seen:Map<String, Bool>):Bool {
