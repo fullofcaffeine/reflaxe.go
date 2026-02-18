@@ -77,7 +77,7 @@ class RewriteVirtualCallsPass implements IGoASTPass {
           rewriteStmtList(body, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers)
         );
       case GoDecl.GoGlobalVarDecl(name, typeName, value):
-        GoDecl.GoGlobalVarDecl(name, typeName, value == null ? null : rewriteExpr(value, null, false, new Map<String, Bool>()));
+        GoDecl.GoGlobalVarDecl(name, typeName, value == null ? null : rewriteExpr(value, null, false, new Map<String, Bool>(), leafReceivers));
       case _:
         decl;
     };
@@ -106,7 +106,7 @@ class RewriteVirtualCallsPass implements IGoASTPass {
   ):GoStmt {
     return switch (stmt) {
       case GoStmt.GoVarDecl(name, typeName, value, useShort):
-        var rewrittenValue = value == null ? null : rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars);
+        var rewrittenValue = value == null ? null : rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers);
         if (rewrittenValue != null && isLeafCandidateValue(rewrittenValue, leafReceivers, localLeafVars)) {
           localLeafVars.set(name, true);
         } else {
@@ -114,8 +114,8 @@ class RewriteVirtualCallsPass implements IGoASTPass {
         }
         GoStmt.GoVarDecl(name, typeName, rewrittenValue, useShort);
       case GoStmt.GoAssign(left, right):
-        var rewrittenLeft = rewriteExpr(left, receiverName, canDevirtualizeSelf, localLeafVars);
-        var rewrittenRight = rewriteExpr(right, receiverName, canDevirtualizeSelf, localLeafVars);
+        var rewrittenLeft = rewriteExpr(left, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers);
+        var rewrittenRight = rewriteExpr(right, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers);
         switch (rewrittenLeft) {
           case GoExpr.GoIdent(name):
             if (isLeafCandidateValue(rewrittenRight, leafReceivers, localLeafVars)) {
@@ -130,7 +130,7 @@ class RewriteVirtualCallsPass implements IGoASTPass {
           rewrittenRight
         );
       case GoStmt.GoExprStmt(expr):
-        GoStmt.GoExprStmt(rewriteExpr(expr, receiverName, canDevirtualizeSelf, localLeafVars));
+        GoStmt.GoExprStmt(rewriteExpr(expr, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers));
       case GoStmt.GoRaw(code):
         clearCandidates(localLeafVars);
         GoStmt.GoRaw(code);
@@ -139,7 +139,7 @@ class RewriteVirtualCallsPass implements IGoASTPass {
         var rewrittenBody = rewriteStmtList(body, receiverName, canDevirtualizeSelf, loopCandidates, leafReceivers);
         clearCandidates(localLeafVars);
         GoStmt.GoWhile(
-          rewriteExpr(cond, receiverName, canDevirtualizeSelf, localLeafVars),
+          rewriteExpr(cond, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers),
           rewrittenBody
         );
       case GoStmt.GoIf(cond, thenBody, elseBody):
@@ -149,7 +149,7 @@ class RewriteVirtualCallsPass implements IGoASTPass {
         var rewrittenElse = elseBody == null ? null : rewriteStmtList(elseBody, receiverName, canDevirtualizeSelf, elseCandidates, leafReceivers);
         clearCandidates(localLeafVars);
         GoStmt.GoIf(
-          rewriteExpr(cond, receiverName, canDevirtualizeSelf, localLeafVars),
+          rewriteExpr(cond, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers),
           rewrittenThen,
           rewrittenElse
         );
@@ -159,7 +159,7 @@ class RewriteVirtualCallsPass implements IGoASTPass {
         for (entry in cases) {
           var caseCandidates = cloneCandidates(switchCandidates);
           rewrittenCases.push({
-            values: [for (valueExpr in entry.values) rewriteExpr(valueExpr, receiverName, canDevirtualizeSelf, caseCandidates)],
+            values: [for (valueExpr in entry.values) rewriteExpr(valueExpr, receiverName, canDevirtualizeSelf, caseCandidates, leafReceivers)],
             body: rewriteStmtList(entry.body, receiverName, canDevirtualizeSelf, caseCandidates, leafReceivers)
           });
         }
@@ -171,7 +171,7 @@ class RewriteVirtualCallsPass implements IGoASTPass {
         }
         clearCandidates(localLeafVars);
         GoStmt.GoSwitch(
-          rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars),
+          rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers),
           rewrittenCases,
           rewrittenDefault
         );
@@ -193,13 +193,13 @@ class RewriteVirtualCallsPass implements IGoASTPass {
         }
         clearCandidates(localLeafVars);
         GoStmt.GoTypeSwitch(
-          rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars),
+          rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers),
           bindingName,
           rewrittenCases,
           rewrittenDefault
         );
       case GoStmt.GoReturn(expr):
-        GoStmt.GoReturn(expr == null ? null : rewriteExpr(expr, receiverName, canDevirtualizeSelf, localLeafVars));
+        GoStmt.GoReturn(expr == null ? null : rewriteExpr(expr, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers));
       case _:
         stmt;
     };
@@ -209,57 +209,71 @@ class RewriteVirtualCallsPass implements IGoASTPass {
     expr:GoExpr,
     receiverName:Null<String>,
     canDevirtualizeSelf:Bool,
-    localLeafVars:Map<String, Bool>
+    localLeafVars:Map<String, Bool>,
+    leafReceivers:Map<String, Bool>
   ):GoExpr {
     var rewritten = switch (expr) {
       case GoExpr.GoSelector(target, field):
-        GoExpr.GoSelector(rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars), field);
+        GoExpr.GoSelector(rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers), field);
       case GoExpr.GoIndex(target, index):
         GoExpr.GoIndex(
-          rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars),
-          rewriteExpr(index, receiverName, canDevirtualizeSelf, localLeafVars)
+          rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers),
+          rewriteExpr(index, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers)
         );
       case GoExpr.GoSlice(target, start, end):
         GoExpr.GoSlice(
-          rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars),
-          start == null ? null : rewriteExpr(start, receiverName, canDevirtualizeSelf, localLeafVars),
-          end == null ? null : rewriteExpr(end, receiverName, canDevirtualizeSelf, localLeafVars)
+          rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers),
+          start == null ? null : rewriteExpr(start, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers),
+          end == null ? null : rewriteExpr(end, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers)
         );
       case GoExpr.GoArrayLiteral(elementType, elements):
-        GoExpr.GoArrayLiteral(elementType, [for (element in elements) rewriteExpr(element, receiverName, canDevirtualizeSelf, localLeafVars)]);
+        GoExpr.GoArrayLiteral(elementType, [for (element in elements) rewriteExpr(element, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers)]);
       case GoExpr.GoFuncLiteral(params, results, body):
         // Nested closures may shadow names, so do not apply receiver-specific rewrites inside.
-        GoExpr.GoFuncLiteral(params, results, rewriteStmtList(body, null, false, new Map<String, Bool>(), new Map<String, Bool>()));
+        GoExpr.GoFuncLiteral(params, results, rewriteStmtList(body, null, false, new Map<String, Bool>(), leafReceivers));
       case GoExpr.GoTypeAssert(inner, typeName):
-        GoExpr.GoTypeAssert(rewriteExpr(inner, receiverName, canDevirtualizeSelf, localLeafVars), typeName);
+        GoExpr.GoTypeAssert(rewriteExpr(inner, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers), typeName);
       case GoExpr.GoUnary(op, inner):
-        GoExpr.GoUnary(op, rewriteExpr(inner, receiverName, canDevirtualizeSelf, localLeafVars));
+        GoExpr.GoUnary(op, rewriteExpr(inner, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers));
       case GoExpr.GoBinary(op, left, right):
         GoExpr.GoBinary(
           op,
-          rewriteExpr(left, receiverName, canDevirtualizeSelf, localLeafVars),
-          rewriteExpr(right, receiverName, canDevirtualizeSelf, localLeafVars)
+          rewriteExpr(left, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers),
+          rewriteExpr(right, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers)
         );
       case GoExpr.GoCall(callee, args):
         GoExpr.GoCall(
-          rewriteExpr(callee, receiverName, canDevirtualizeSelf, localLeafVars),
-          [for (arg in args) rewriteExpr(arg, receiverName, canDevirtualizeSelf, localLeafVars)]
+          rewriteExpr(callee, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers),
+          [for (arg in args) rewriteExpr(arg, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers)]
         );
       case _:
         expr;
     };
 
     return switch (rewritten) {
-      case GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent(name), "__hx_this"), field):
-        if (canDevirtualizeSelf && receiverName != null && name == receiverName) {
-          GoExpr.GoSelector(GoExpr.GoIdent(name), field);
-        } else if (localLeafVars.exists(name)) {
-          GoExpr.GoSelector(GoExpr.GoIdent(name), field);
+      case GoExpr.GoSelector(GoExpr.GoSelector(target, "__hx_this"), field):
+        if (shouldDevirtualizeTarget(target, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers)) {
+          GoExpr.GoSelector(target, field);
         } else {
           rewritten;
         }
       case _:
         rewritten;
+    };
+  }
+
+  function shouldDevirtualizeTarget(
+    target:GoExpr,
+    receiverName:Null<String>,
+    canDevirtualizeSelf:Bool,
+    localLeafVars:Map<String, Bool>,
+    leafReceivers:Map<String, Bool>
+  ):Bool {
+    return switch (target) {
+      case GoExpr.GoIdent(name):
+        (canDevirtualizeSelf && receiverName != null && name == receiverName) || localLeafVars.exists(name);
+      case _:
+        isLeafConstructorCall(target, leafReceivers);
     };
   }
 
