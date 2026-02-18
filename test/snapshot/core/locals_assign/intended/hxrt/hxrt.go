@@ -43,6 +43,11 @@ type HaxeException struct {
 	Value any
 }
 
+type ExceptionValue struct {
+	Value   any
+	Message *string
+}
+
 func Throw(value any) {
 	panic(HaxeException{Value: value})
 }
@@ -65,4 +70,27 @@ func TryCatch(tryFn func(), catchFn func(any)) {
 		}
 	}()
 	tryFn()
+}
+
+func ExceptionCaught(value any) *ExceptionValue {
+	switch v := value.(type) {
+	case *ExceptionValue:
+		return v
+	case ExceptionValue:
+		copy := v
+		return &copy
+	default:
+		return &ExceptionValue{
+			Value:   value,
+			Message: StdString(value),
+		}
+	}
+}
+
+func ExceptionThrown(value any) any {
+	return ExceptionCaught(value).Value
+}
+
+func ExceptionMessage(value any) *string {
+	return ExceptionCaught(value).Message
 }

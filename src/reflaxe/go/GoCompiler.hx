@@ -736,14 +736,19 @@ class GoCompiler {
       var catchVarName = normalizeIdent(catchEntry.v.name);
       var catchType = typeToGoType(catchEntry.v.t);
       var catchExprBody = lowerToStatements(catchEntry.expr);
-      var dynamicCatch = isDynamicCatchType(catchEntry.v.t) || catchType == "any";
+      var haxeExceptionCatch = isHaxeExceptionType(catchEntry.v.t);
+      var dynamicCatch = isDynamicCatchType(catchEntry.v.t) || haxeExceptionCatch || catchType == "any";
 
       if (dynamicCatch) {
         if (index != catches.length - 1) {
           Context.fatalError("Dynamic catch must be the final catch clause", catchEntry.expr.pos);
         }
+        var dynamicValueExpr = haxeExceptionCatch
+          ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionCaught"), [GoExpr.GoIdent(caughtName)])
+          : GoExpr.GoIdent(caughtName);
+        var dynamicValueType = haxeExceptionCatch ? "*hxrt.ExceptionValue" : "any";
         dynamicBody = [
-          GoStmt.GoVarDecl(catchVarName, "any", GoExpr.GoIdent(caughtName), true),
+          GoStmt.GoVarDecl(catchVarName, dynamicValueType, dynamicValueExpr, true),
           GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(catchVarName))
         ].concat(catchExprBody);
       } else {
@@ -1120,12 +1125,20 @@ class GoCompiler {
       case FInstance(classRef, _, field):
         var resolved = field.get();
         var classType = classRef.get();
+        var loweredTarget = lowerExpr(target).expr;
 
         if (isSuperTarget(target) && isMethodField(resolved)) {
           var baseSelector = GoExpr.GoSelector(GoExpr.GoIdent("self"), classTypeName(classType));
           return {
             expr: GoExpr.GoSelector(baseSelector, normalizeIdent(resolved.name)),
             isStringLike: isStringType(resolved.type)
+          };
+        }
+
+        if (isHaxeExceptionType(target.t) && resolved.name == "message") {
+          return {
+            expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [loweredTarget]),
+            isStringLike: true
           };
         }
 
@@ -1137,7 +1150,6 @@ class GoCompiler {
             isStringLike: isStringType(resolved.type)
           };
         }
-        var loweredTarget = lowerExpr(target).expr;
         if (resolved.name == "length" && isArrayType(target.t)) {
           {
             expr: GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]),
@@ -1156,6 +1168,13 @@ class GoCompiler {
         }
       case FAnon(field):
         var resolved = field.get();
+        var loweredTarget = lowerExpr(target).expr;
+        if (isHaxeExceptionType(target.t) && resolved.name == "message") {
+          return {
+            expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [loweredTarget]),
+            isStringLike: true
+          };
+        }
         var restTargetName = resolveRestIteratorTargetName(target);
         var restFieldName = restIteratorFieldName(restTargetName, resolved.name);
         if (restFieldName != null) {
@@ -1164,7 +1183,6 @@ class GoCompiler {
             isStringLike: isStringType(resolved.type)
           };
         }
-        var loweredTarget = lowerExpr(target).expr;
         if (resolved.name == "length" && isArrayType(target.t)) {
           {
             expr: GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]),
@@ -1223,6 +1241,30 @@ class GoCompiler {
       var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
       return {
         expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [arg]),
+        isStringLike: true
+      };
+    }
+
+    if (isStaticCall(callee, "Exception", ["haxe"], "caught")) {
+      var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+      return {
+        expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionCaught"), [arg]),
+        isStringLike: false
+      };
+    }
+
+    if (isStaticCall(callee, "Exception", ["haxe"], "thrown")) {
+      var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+      return {
+        expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionThrown"), [arg]),
+        isStringLike: false
+      };
+    }
+
+    var exceptionMessageTarget = asHaxeExceptionMessageGetterTarget(callee);
+    if (exceptionMessageTarget != null && args.length == 0) {
+      return {
+        expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [lowerExpr(exceptionMessageTarget).expr]),
         isStringLike: true
       };
     }
@@ -1456,6 +1498,8 @@ class GoCompiler {
         var classType = classRef.get();
         if (isTypeParameterClass(classType)) {
           "any";
+        } else if (isHaxeExceptionClass(classType)) {
+          "*hxrt.ExceptionValue";
         } else if (classType.pack.length == 0 && classType.name == "String") {
           "*string";
         } else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
@@ -1544,6 +1588,8 @@ class GoCompiler {
         var classType = classRef.get();
         if (isTypeParameterClass(classType)) {
           "any";
+        } else if (isHaxeExceptionClass(classType)) {
+          "*hxrt.ExceptionValue";
         } else if (classType.pack.length == 0 && classType.name == "String") {
           "*string";
         } else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
@@ -1672,6 +1718,20 @@ class GoCompiler {
     };
   }
 
+  function isHaxeExceptionClass(classType:ClassType):Bool {
+    return classType.pack.join(".") == "haxe" && classType.name == "Exception";
+  }
+
+  function isHaxeExceptionType(type:Type):Bool {
+    var followed = Context.follow(type);
+    return switch (followed) {
+      case TInst(classRef, _):
+        isHaxeExceptionClass(classRef.get());
+      case _:
+        false;
+    };
+  }
+
   function isNilExpr(expr:GoExpr):Bool {
     return switch (expr) {
       case GoNil: true;
@@ -1721,6 +1781,20 @@ class GoCompiler {
         {target: target, methodName: field.get().name};
       case TField(target, FDynamic(name)):
         {target: target, methodName: name};
+      case _:
+        null;
+    };
+  }
+
+  function asHaxeExceptionMessageGetterTarget(callee:TypedExpr):Null<TypedExpr> {
+    return switch (callee.expr) {
+      case TField(target, FInstance(classRef, _, field)):
+        var classType = classRef.get();
+        if (isHaxeExceptionClass(classType) && field.get().name == "get_message") {
+          target;
+        } else {
+          null;
+        }
       case _:
         null;
     };
