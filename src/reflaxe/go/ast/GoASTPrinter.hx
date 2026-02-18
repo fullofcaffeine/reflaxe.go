@@ -92,6 +92,19 @@ class GoASTPrinter {
       case GoAssign(left, right):
         printExpr(left) + " = " + printExpr(right);
       case GoExprStmt(expr): printExpr(expr);
+      case GoRaw(code): code;
+      case GoWhile(cond, body):
+        var out = new StringBuf();
+        out.add("for ");
+        out.add(printExpr(cond));
+        out.add(" {\n");
+        for (stmt in body) {
+          out.add("\t");
+          out.add(printStmt(stmt));
+          out.add("\n");
+        }
+        out.add("}");
+        out.toString();
       case GoIf(cond, thenBody, elseBody):
         var out = new StringBuf();
         out.add("if ");
@@ -126,6 +139,14 @@ class GoASTPrinter {
       case GoStringLiteral(value): '"' + escapeString(value) + '"';
       case GoNil: "nil";
       case GoSelector(target, field): printExpr(target) + "." + field;
+      case GoIndex(target, index): printExpr(target) + "[" + printExpr(index) + "]";
+      case GoSlice(target, start, end):
+        var startCode = start == null ? "" : printExpr(start);
+        var endCode = end == null ? "" : printExpr(end);
+        printExpr(target) + "[" + startCode + ":" + endCode + "]";
+      case GoArrayLiteral(elementType, elements):
+        "[]" + elementType + "{" + [for (element in elements) printExpr(element)].join(", ") + "}";
+      case GoRaw(code): code;
       case GoUnary(op, inner): op + printExpr(inner);
       case GoBinary(op, left, right): "(" + printExpr(left) + " " + op + " " + printExpr(right) + ")";
       case GoCall(callee, args):

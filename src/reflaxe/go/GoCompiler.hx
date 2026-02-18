@@ -22,6 +22,11 @@ private typedef LoweredExpr = {
   final expr:GoExpr;
   final isStringLike:Bool;
 }
+
+private typedef ArrayMethodCall = {
+  final target:TypedExpr;
+  final methodName:String;
+}
 #end
 
 class GoCompiler {
@@ -115,8 +120,40 @@ class GoCompiler {
             elseBranch == null ? null : lowerToStatements(elseBranch)
           )
         ];
+      case TWhile(condition, body, _):
+        [GoStmt.GoWhile(lowerExpr(condition).expr, lowerToStatements(body))];
+      case TUnop(op, _, value):
+        switch (op) {
+          case OpIncrement:
+            var target = lowerLValue(value);
+            [GoStmt.GoAssign(target, GoExpr.GoBinary("+", target, GoExpr.GoIntLiteral(1)))];
+          case OpDecrement:
+            var target = lowerLValue(value);
+            [GoStmt.GoAssign(target, GoExpr.GoBinary("-", target, GoExpr.GoIntLiteral(1)))];
+          case _:
+            [GoStmt.GoExprStmt(lowerExpr(expr).expr)];
+        }
       case TReturn(value):
         [GoStmt.GoReturn(value == null ? null : lowerExpr(value).expr)];
+      case TCall(callee, args):
+        var arrayCall = asArrayMethodCall(callee);
+        if (arrayCall != null && arrayCall.methodName == "push") {
+          var targetExpr = lowerLValue(arrayCall.target);
+          var appendArgs = [targetExpr].concat([for (arg in args) lowerExpr(arg).expr]);
+          [GoStmt.GoAssign(targetExpr, GoExpr.GoCall(GoExpr.GoIdent("append"), appendArgs))];
+        } else if (arrayCall != null && arrayCall.methodName == "pop") {
+          var targetExpr = lowerLValue(arrayCall.target);
+          var lenExpr = GoExpr.GoCall(GoExpr.GoIdent("len"), [targetExpr]);
+          [
+            GoStmt.GoIf(
+              GoExpr.GoBinary(">", lenExpr, GoExpr.GoIntLiteral(0)),
+              [GoStmt.GoAssign(targetExpr, GoExpr.GoSlice(targetExpr, null, GoExpr.GoBinary("-", lenExpr, GoExpr.GoIntLiteral(1))))],
+              null
+            )
+          ];
+        } else {
+          [GoStmt.GoExprStmt(lowerCall(callee, args, expr.t).expr)];
+        }
       case _:
         [GoStmt.GoExprStmt(lowerExpr(expr).expr)];
     };
@@ -142,6 +179,16 @@ class GoCompiler {
     return switch (expr.expr) {
       case TConst(constant):
         lowerConst(constant);
+      case TArrayDecl(values):
+        {
+          expr: GoExpr.GoArrayLiteral(arrayElementGoType(expr.t), [for (value in values) lowerExpr(value).expr]),
+          isStringLike: false
+        };
+      case TArray(target, index):
+        {
+          expr: GoExpr.GoIndex(lowerExpr(target).expr, lowerExpr(index).expr),
+          isStringLike: isStringType(expr.t)
+        };
       case TLocal(variable):
         {
           expr: GoExpr.GoIdent(normalizeIdent(variable.name)),
@@ -204,19 +251,38 @@ class GoCompiler {
         };
       case FInstance(_, _, field):
         var resolved = field.get();
-        {
-          expr: GoExpr.GoSelector(loweredTarget, normalizeIdent(resolved.name)),
-          isStringLike: isStringType(resolved.type)
-        };
+        if (resolved.name == "length" && isArrayType(target.t)) {
+          {
+            expr: GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]),
+            isStringLike: false
+          };
+        } else {
+          {
+            expr: GoExpr.GoSelector(loweredTarget, normalizeIdent(resolved.name)),
+            isStringLike: isStringType(resolved.type)
+          };
+        }
       case FAnon(field):
         var resolved = field.get();
-        {
-          expr: GoExpr.GoSelector(loweredTarget, normalizeIdent(resolved.name)),
-          isStringLike: isStringType(resolved.type)
-        };
+        if (resolved.name == "length" && isArrayType(target.t)) {
+          {
+            expr: GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]),
+            isStringLike: false
+          };
+        } else {
+          {
+            expr: GoExpr.GoSelector(loweredTarget, normalizeIdent(resolved.name)),
+            isStringLike: isStringType(resolved.type)
+          };
+        }
       case FDynamic(name):
+        var dynamicExpr = if (name == "length" && isArrayType(target.t)) {
+          GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]);
+        } else {
+          GoExpr.GoSelector(loweredTarget, normalizeIdent(name));
+        };
         {
-          expr: GoExpr.GoSelector(loweredTarget, normalizeIdent(name)),
+          expr: dynamicExpr,
           isStringLike: false
         };
       case FClosure(_, field):
@@ -341,10 +407,12 @@ class GoCompiler {
   function typeToGoType(type:Type):String {
     var followed = Context.follow(type);
     return switch (followed) {
-      case TInst(classRef, _):
+      case TInst(classRef, params):
         var classType = classRef.get();
         if (classType.pack.length == 0 && classType.name == "String") {
           "*string";
+        } else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
+          "[]" + scalarGoType(params[0]);
         } else {
           "any";
         }
@@ -380,6 +448,62 @@ class GoCompiler {
     };
   }
 
+  function isArrayType(type:Type):Bool {
+    var followed = Context.follow(type);
+    return switch (followed) {
+      case TInst(classRef, _):
+        var classType = classRef.get();
+        classType.pack.length == 0 && classType.name == "Array";
+      case _:
+        false;
+    };
+  }
+
+  function arrayElementGoType(type:Type):String {
+    var followed = Context.follow(type);
+    return switch (followed) {
+      case TInst(classRef, params):
+        var classType = classRef.get();
+        if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
+          scalarGoType(params[0]);
+        } else {
+          "any";
+        }
+      case _:
+        "any";
+    };
+  }
+
+  function scalarGoType(type:Type):String {
+    var followed = Context.follow(type);
+    return switch (followed) {
+      case TInst(classRef, params):
+        var classType = classRef.get();
+        if (classType.pack.length == 0 && classType.name == "String") {
+          "*string";
+        } else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
+          "[]" + scalarGoType(params[0]);
+        } else {
+          "any";
+        }
+      case TAbstract(abstractRef, _):
+        var abstractType = abstractRef.get();
+        if (abstractType.pack.length == 0 && abstractType.name == "Int") {
+          "int";
+        } else if (abstractType.pack.length == 0 && abstractType.name == "Float") {
+          "float64";
+        } else if (abstractType.pack.length == 0 && abstractType.name == "Bool") {
+          "bool";
+        } else if (abstractType.pack.length == 0 && abstractType.name == "String") {
+          "*string";
+        } else {
+          "any";
+        }
+      case _:
+        "any";
+    };
+  }
+
   function isNilExpr(expr:GoExpr):Bool {
     return switch (expr) {
       case GoNil: true;
@@ -388,16 +512,68 @@ class GoCompiler {
   }
 
   function normalizeIdent(name:String):String {
-    return switch (name) {
+    var sanitized = new StringBuf();
+    for (index in 0...name.length) {
+      var ch = name.charCodeAt(index);
+      var isLower = ch >= "a".code && ch <= "z".code;
+      var isUpper = ch >= "A".code && ch <= "Z".code;
+      var isDigit = ch >= "0".code && ch <= "9".code;
+      if (isLower || isUpper || isDigit || ch == "_".code) {
+        sanitized.addChar(ch);
+      } else {
+        sanitized.add("_");
+      }
+    }
+
+    var normalized = sanitized.toString();
+    if (normalized == "") {
+      normalized = "hx_tmp";
+    }
+    var hasNonUnderscore = false;
+    for (index in 0...normalized.length) {
+      if (normalized.charCodeAt(index) != "_".code) {
+        hasNonUnderscore = true;
+        break;
+      }
+    }
+    if (!hasNonUnderscore) {
+      normalized = "hx_tmp";
+    }
+
+    var first = normalized.charCodeAt(0);
+    var startsWithDigit = first >= "0".code && first <= "9".code;
+    if (startsWithDigit) {
+      normalized = "hx_" + normalized;
+    }
+
+    return switch (normalized) {
       case "func", "type", "var", "map", "range", "package", "return", "if", "else", "for", "go", "defer", "select", "chan", "switch", "fallthrough", "default", "case":
-        name + "_";
+        normalized + "_";
       case _:
-        name;
+        normalized;
+    };
+  }
+
+  function asArrayMethodCall(callee:TypedExpr):Null<ArrayMethodCall> {
+    return switch (callee.expr) {
+      case TField(target, FInstance(classRef, _, field)):
+        var classType = classRef.get();
+        if (classType.pack.length == 0 && classType.name == "Array") {
+          {target: target, methodName: field.get().name};
+        } else {
+          null;
+        }
+      case TField(target, FAnon(field)):
+        {target: target, methodName: field.get().name};
+      case TField(target, FDynamic(name)):
+        {target: target, methodName: name};
+      case _:
+        null;
     };
   }
 
   function unsupportedExpr(expr:TypedExpr, message:String):LoweredExpr {
-    Context.fatalError(message, expr.pos);
+    Context.fatalError(message + " :: " + Std.string(expr.expr), expr.pos);
     return {expr: GoExpr.GoNil, isStringLike: false};
   }
   #end

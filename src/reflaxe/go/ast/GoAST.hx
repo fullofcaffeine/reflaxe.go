@@ -19,6 +19,8 @@ enum GoStmt {
   GoVarDecl(name:String, typeName:Null<String>, value:Null<GoExpr>, useShort:Bool);
   GoAssign(left:GoExpr, right:GoExpr);
   GoExprStmt(expr:GoExpr);
+  GoRaw(code:String);
+  GoWhile(cond:GoExpr, body:Array<GoStmt>);
   GoIf(cond:GoExpr, thenBody:Array<GoStmt>, elseBody:Null<Array<GoStmt>>);
   GoReturn(expr:Null<GoExpr>);
 }
@@ -31,6 +33,10 @@ enum GoExpr {
   GoStringLiteral(value:String);
   GoNil;
   GoSelector(target:GoExpr, field:String);
+  GoIndex(target:GoExpr, index:GoExpr);
+  GoSlice(target:GoExpr, start:Null<GoExpr>, end:Null<GoExpr>);
+  GoArrayLiteral(elementType:String, elements:Array<GoExpr>);
+  GoRaw(code:String);
   GoUnary(op:String, expr:GoExpr);
   GoBinary(op:String, left:GoExpr, right:GoExpr);
   GoCall(callee:GoExpr, args:Array<GoExpr>);
