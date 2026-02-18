@@ -16,9 +16,10 @@ class InsertRuntimePreludePass implements IGoASTPass {
   }
 
   public function run(file:GoFile, context:CompilationContext):GoFile {
+    var runtimeImportPath = context.runtimeImportPath;
     var hasRuntime = false;
     for (path in file.imports) {
-      if (path == "snapshot/hxrt") {
+      if (path == runtimeImportPath) {
         hasRuntime = true;
         break;
       }
@@ -29,7 +30,7 @@ class InsertRuntimePreludePass implements IGoASTPass {
     }
 
     var imports = file.imports.copy();
-    imports.push("snapshot/hxrt");
+    imports.push(runtimeImportPath);
     return {
       packageName: file.packageName,
       imports: imports,

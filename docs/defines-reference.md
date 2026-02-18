@@ -4,6 +4,9 @@
 
 - `go_output=<dir>`
   - Required signal for Go generation.
+- `go_module=<module/path>`
+  - Optional Go module path for generated `go.mod` and runtime imports (`<module/path>/hxrt`).
+  - Defaults to `snapshot` when omitted.
 - `reflaxe.dont_output_metadata_id`
   - Recommended for deterministic snapshots.
 

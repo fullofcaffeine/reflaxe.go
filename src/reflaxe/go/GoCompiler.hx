@@ -65,7 +65,7 @@ class GoCompiler {
 
   public function new(?compilationContext:CompilationContext) {
     #if macro
-    this.compilationContext = compilationContext == null ? new CompilationContext(GoProfile.Portable) : compilationContext;
+    this.compilationContext = compilationContext == null ? new CompilationContext(GoProfile.Portable, "snapshot") : compilationContext;
     staticFunctionInfos = new Map<String, FunctionInfo>();
     localFunctionScopes = [];
     localRestIteratorScopes = [];
@@ -88,7 +88,7 @@ class GoCompiler {
   function compileResolvedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
     buildStaticFunctionInfoTable(classes);
     var decls = lowerEnums(enums).concat(lowerClasses(classes)).concat(lowerStdlibShimDecls());
-    var imports = ["snapshot/hxrt"];
+    var imports = [compilationContext.runtimeImportPath];
     if (requiredStdlibShimGroups.exists("sys")) {
       imports.push("bufio");
       imports.push("os");
