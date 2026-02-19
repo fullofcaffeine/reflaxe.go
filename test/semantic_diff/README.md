@@ -28,5 +28,6 @@ Goal:
   - anonymous object literal/field mutation semantics
   - crypto/xml/zip behavior parity
   - serializer/unserializer roundtrip semantics
+  - serializer wire-format and sequential cursor semantics
   - EReg match/split/replace contract semantics
   - EReg edge semantics (flags, matched-group errors, global vs non-global replacement/map)
