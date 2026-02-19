@@ -31,6 +31,7 @@ haxe compile.metal.hxml
 
 This starts command-session mode with commands like:
 
+- `reset` (clears persisted state)
 - `help`
 - `add <priority> <title_token>`
 - `toggle <id>`
@@ -41,6 +42,9 @@ This starts command-session mode with commands like:
 - `diag`
 
 Token note: use `_` where you want spaces (for example `Write_profile_docs`).
+
+Command mode persists items to `.tui_todo_state.txt` in the current working directory.
+Use `reset` (or remove that file) to start clean.
 
 Scripted deterministic output mode (used by harness):
 

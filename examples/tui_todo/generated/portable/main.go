@@ -86,13 +86,211 @@ func Harness_runBaseline(app *app__TodoApp) *string {
 	return app.__hx_this.render()
 }
 
+var InteractiveCli_STATE_FILE *string = hxrt.StringFromLiteral(".tui_todo_state.txt")
+
+func InteractiveCli_clearState() {
+	hxrt.TryCatch(func() {
+		sys__io__File_saveContent(hxrt.StringFromLiteral(".tui_todo_state.txt"), hxrt.StringFromLiteral(""))
+	}, func(hx_caught_1 any) {
+		hx_tmp := hx_caught_1
+		_ = hx_tmp
+	})
+}
+
+func InteractiveCli_decodeTags(raw *string) *haxe__ds__List {
+	out := New_haxe__ds__List()
+	_ = out
+	if hxrt.StringEqualAny(raw, hxrt.StringFromLiteral("")) {
+		return out
+	}
+	values := InteractiveCli_splitEscaped(raw, 44)
+	_ = values
+	count := values.length
+	_ = count
+	i := 0
+	_ = i
+	for i < count {
+		value := values.pop().(*string)
+		_ = value
+		if hxrt.StringEqualAny(value, nil) {
+			break
+		}
+		tag := value
+		_ = tag
+		if !hxrt.StringEqualAny(tag, hxrt.StringFromLiteral("")) {
+			out.add(tag)
+		}
+		values.add(tag)
+		i = (i + 1)
+	}
+	return out
+}
+
 func InteractiveCli_decodeToken(raw *string) *string {
 	return StringTools_replace(raw, hxrt.StringFromLiteral("_"), hxrt.StringFromLiteral(" "))
+}
+
+func InteractiveCli_encodeField(raw *string) *string {
+	out := New_haxe__io__BytesBuffer()
+	_ = out
+	bytes := haxe__io__Bytes_ofString(raw)
+	_ = bytes
+	i := 0
+	_ = i
+	for i < bytes.length {
+		code := bytes.b[i]
+		_ = code
+		if code == 92 {
+			out.b = append(out.b, 92)
+			out.b = append(out.b, 92)
+		} else {
+			if code == 9 {
+				out.b = append(out.b, 92)
+				out.b = append(out.b, 116)
+			} else {
+				if code == 10 {
+					out.b = append(out.b, 92)
+					out.b = append(out.b, 110)
+				} else {
+					if code == 44 {
+						out.b = append(out.b, 92)
+						out.b = append(out.b, 99)
+					} else {
+						out.b = append(out.b, code)
+					}
+				}
+			}
+		}
+		i = (i + 1)
+	}
+	return out.getBytes().toString()
+}
+
+func InteractiveCli_encodeTags(tags *haxe__ds__List) *string {
+	out := hxrt.StringFromLiteral("")
+	_ = out
+	first := true
+	_ = first
+	count := tags.length
+	_ = count
+	i := 0
+	_ = i
+	for i < count {
+		value := tags.pop().(*string)
+		_ = value
+		if hxrt.StringEqualAny(value, nil) {
+			break
+		}
+		tag := value
+		_ = tag
+		if !first {
+			out = hxrt.StringConcatAny(out, hxrt.StringFromLiteral(","))
+		}
+		out = hxrt.StringConcatAny(out, InteractiveCli_encodeField(tag))
+		tags.add(tag)
+		first = false
+		i = (i + 1)
+	}
+	return out
 }
 
 func InteractiveCli_failUsage(message *string) {
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("error: "), message))
 	hxrt.Println(hxrt.StringFromLiteral("run `help` for command syntax"))
+}
+
+func InteractiveCli_listIndex(values *haxe__ds__List, index int) *string {
+	count := values.length
+	_ = count
+	i := 0
+	_ = i
+	out := hxrt.StringFromLiteral("")
+	_ = out
+	for i < count {
+		value := values.pop().(*string)
+		_ = value
+		if hxrt.StringEqualAny(value, nil) {
+			break
+		}
+		entry := value
+		_ = entry
+		if i == index {
+			out = entry
+		}
+		values.add(entry)
+		i = (i + 1)
+	}
+	return out
+}
+
+func InteractiveCli_loadState(app *app__TodoApp) {
+	hxrt.TryCatch(func() {
+		raw := sys__io__File_getContent(hxrt.StringFromLiteral(".tui_todo_state.txt"))
+		_ = raw
+		if hxrt.StringEqualAny(raw, hxrt.StringFromLiteral("")) {
+			return
+		}
+		lines := InteractiveCli_splitRaw(raw, 10)
+		_ = lines
+		count := lines.length
+		_ = count
+		i := 0
+		_ = i
+		for i < count {
+			lineValue := lines.pop().(*string)
+			_ = lineValue
+			if hxrt.StringEqualAny(lineValue, nil) {
+				break
+			}
+			line := lineValue
+			_ = line
+			if hxrt.StringEqualAny(line, hxrt.StringFromLiteral("")) {
+				lines.add(line)
+				i = (i + 1)
+				continue
+			}
+			fields := InteractiveCli_splitEscaped(line, 9)
+			_ = fields
+			title := InteractiveCli_listIndex(fields, 0)
+			_ = title
+			priority := InteractiveCli_parsePositiveInt(InteractiveCli_listIndex(fields, 1))
+			_ = priority
+			if priority < 0 {
+				priority = 0
+			}
+			done := hxrt.StringEqualAny(InteractiveCli_listIndex(fields, 2), hxrt.StringFromLiteral("1"))
+			_ = done
+			id := app.__hx_this.add(title, priority)
+			_ = id
+			if done {
+				app.__hx_this.toggle(id)
+			}
+			tags := InteractiveCli_decodeTags(InteractiveCli_listIndex(fields, 3))
+			_ = tags
+			tagCount := tags.length
+			_ = tagCount
+			j := 0
+			_ = j
+			for j < tagCount {
+				tagValue := tags.pop().(*string)
+				_ = tagValue
+				if hxrt.StringEqualAny(tagValue, nil) {
+					break
+				}
+				tag := tagValue
+				_ = tag
+				app.__hx_this.tag(id, tag)
+				tags.add(tag)
+				j = (j + 1)
+			}
+			lines.add(line)
+			i = (i + 1)
+		}
+	}, func(hx_caught_3 any) {
+		hx_tmp := hx_caught_3
+		_ = hx_tmp
+		return
+	})
 }
 
 func InteractiveCli_parsePositiveInt(raw *string) int {
@@ -120,6 +318,7 @@ func InteractiveCli_parsePositiveInt(raw *string) int {
 func InteractiveCli_printHelp(runtime profile__TodoRuntime) {
 	hxrt.Println(hxrt.StringFromLiteral("commands:"))
 	hxrt.Println(hxrt.StringFromLiteral("  help"))
+	hxrt.Println(hxrt.StringFromLiteral("  reset"))
 	hxrt.Println(hxrt.StringFromLiteral("  list"))
 	hxrt.Println(hxrt.StringFromLiteral("  summary"))
 	hxrt.Println(hxrt.StringFromLiteral("  diag"))
@@ -130,22 +329,28 @@ func InteractiveCli_printHelp(runtime profile__TodoRuntime) {
 		hxrt.Println(hxrt.StringFromLiteral("  batch <priority> <title1_token> <title2_token>"))
 	}
 	hxrt.Println(hxrt.StringFromLiteral("token note: use '_' instead of spaces (example: Wire_release_artifacts)"))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("state file: "), hxrt.StringFromLiteral(".tui_todo_state.txt")), hxrt.StringFromLiteral(" (current directory)")))
 }
 
 func InteractiveCli_printUsage(runtime profile__TodoRuntime) {
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("tui_todo command session ("), runtime.profileId()), hxrt.StringFromLiteral(")")))
 	hxrt.Println(hxrt.StringFromLiteral("run scripted contract mode with: --scripted"))
-	hxrt.Println(hxrt.StringFromLiteral("examples:"))
-	hxrt.Println(hxrt.StringFromLiteral("  go run . help"))
-	hxrt.Println(hxrt.StringFromLiteral("  go run . add 2 Write_profile_docs tag 1 docs list"))
+	hxrt.Println(hxrt.StringFromLiteral("commands:"))
+	hxrt.Println(hxrt.StringFromLiteral("  tui_todo reset"))
+	hxrt.Println(hxrt.StringFromLiteral("  tui_todo help"))
+	hxrt.Println(hxrt.StringFromLiteral("  tui_todo add 2 Write_profile_docs tag 1 docs list"))
 	if runtime.supportsBatchAdd() {
-		hxrt.Println(hxrt.StringFromLiteral("  go run . batch 3 Ship_generated_go_sync Add_binary_matrix list"))
+		hxrt.Println(hxrt.StringFromLiteral("  tui_todo batch 3 Ship_generated_go_sync Add_binary_matrix list"))
 	}
+	hxrt.Println(hxrt.StringFromLiteral("generated-source invocation:"))
+	hxrt.Println(hxrt.StringFromLiteral("  go run . <command...>"))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("state file: "), hxrt.StringFromLiteral(".tui_todo_state.txt")), hxrt.StringFromLiteral(" (current directory)")))
 }
 
 func InteractiveCli_run(runtime profile__TodoRuntime) {
 	app := New_app__TodoApp(runtime)
 	_ = app
+	InteractiveCli_loadState(app)
 	args := Sys_args()
 	_ = args
 	if len(args) == 0 {
@@ -157,6 +362,13 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 	for i < len(args) {
 		cmd := args[i]
 		_ = cmd
+		if hxrt.StringEqualAny(cmd, hxrt.StringFromLiteral("reset")) {
+			app = New_app__TodoApp(runtime)
+			InteractiveCli_clearState()
+			hxrt.Println(hxrt.StringFromLiteral("ok reset"))
+			i = (i + 1)
+			continue
+		}
 		if hxrt.StringEqualAny(cmd, hxrt.StringFromLiteral("help")) {
 			InteractiveCli_printHelp(runtime)
 			i = (i + 1)
@@ -191,6 +403,7 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			title := InteractiveCli_decodeToken(args[(i + 2)])
 			_ = title
 			app.__hx_this.add(title, priority)
+			InteractiveCli_saveState(app)
 			hxrt.Println(hxrt.StringFromLiteral("ok add"))
 			i = (i + 3)
 			continue
@@ -207,6 +420,7 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 				return
 			}
 			if app.__hx_this.toggle(id) {
+				InteractiveCli_saveState(app)
 				hxrt.Println(hxrt.StringFromLiteral("ok toggle"))
 			} else {
 				hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id))
@@ -228,6 +442,7 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			tag := InteractiveCli_decodeToken(args[(i + 2)])
 			_ = tag
 			if app.__hx_this.tag(id_1, tag) {
+				InteractiveCli_saveState(app)
 				hxrt.Println(hxrt.StringFromLiteral("ok tag"))
 			} else {
 				hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id_1))
@@ -257,6 +472,9 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			titles.add(InteractiveCli_decodeToken(args[(i + 3)]))
 			added := app.__hx_this.addMany(titles, priority_1)
 			_ = added
+			if added > 0 {
+				InteractiveCli_saveState(app)
+			}
 			hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok batch added="), added))
 			i = (i + 4)
 			continue
@@ -264,6 +482,118 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 		InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("unknown command: "), cmd))
 		return
 	}
+}
+
+func InteractiveCli_saveState(app *app__TodoApp) {
+	items := app.__hx_this.items()
+	_ = items
+	out := hxrt.StringFromLiteral("")
+	_ = out
+	count := items.length
+	_ = count
+	i := 0
+	_ = i
+	for i < count {
+		raw := items.pop().(*model__TodoItem)
+		_ = raw
+		if hxrt.StringEqualAny(raw, nil) {
+			break
+		}
+		item := raw
+		_ = item
+		out = hxrt.StringConcatAny(out, hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(InteractiveCli_encodeField(item.title), hxrt.StringFromLiteral("\t")), item.priority), hxrt.StringFromLiteral("\t")), func() *string {
+			var hx_if_5 *string
+			if item.done {
+				hx_if_5 = hxrt.StringFromLiteral("1")
+			} else {
+				hx_if_5 = hxrt.StringFromLiteral("0")
+			}
+			return hx_if_5
+		}()), hxrt.StringFromLiteral("\t")), InteractiveCli_encodeTags(item.tags)), hxrt.StringFromLiteral("\n")))
+		items.add(item)
+		i = (i + 1)
+	}
+	sys__io__File_saveContent(hxrt.StringFromLiteral(".tui_todo_state.txt"), out)
+}
+
+func InteractiveCli_splitEscaped(raw *string, separatorCode int) *haxe__ds__List {
+	out := New_haxe__ds__List()
+	_ = out
+	current := New_haxe__io__BytesBuffer()
+	_ = current
+	bytes := haxe__io__Bytes_ofString(raw)
+	_ = bytes
+	escaped := false
+	_ = escaped
+	i := 0
+	_ = i
+	for i < bytes.length {
+		code := bytes.b[i]
+		_ = code
+		if escaped {
+			if code == 116 {
+				current.b = append(current.b, 9)
+			} else {
+				if code == 110 {
+					current.b = append(current.b, 10)
+				} else {
+					if code == 99 {
+						current.b = append(current.b, 44)
+					} else {
+						if code == 92 {
+							current.b = append(current.b, 92)
+						} else {
+							current.b = append(current.b, code)
+						}
+					}
+				}
+			}
+			escaped = false
+			i = (i + 1)
+			continue
+		}
+		if code == 92 {
+			escaped = true
+			i = (i + 1)
+			continue
+		}
+		if code == separatorCode {
+			out.add(current.getBytes().toString())
+			current = New_haxe__io__BytesBuffer()
+			i = (i + 1)
+			continue
+		}
+		current.b = append(current.b, code)
+		i = (i + 1)
+	}
+	out.add(current.getBytes().toString())
+	return out
+}
+
+func InteractiveCli_splitRaw(raw *string, separatorCode int) *haxe__ds__List {
+	out := New_haxe__ds__List()
+	_ = out
+	current := New_haxe__io__BytesBuffer()
+	_ = current
+	bytes := haxe__io__Bytes_ofString(raw)
+	_ = bytes
+	i := 0
+	_ = i
+	for i < bytes.length {
+		code := bytes.b[i]
+		_ = code
+		if code == separatorCode {
+			out.add(current.getBytes().toString())
+			current = New_haxe__io__BytesBuffer()
+		} else {
+			if code != 13 {
+				current.b = append(current.b, code)
+			}
+		}
+		i = (i + 1)
+	}
+	out.add(current.getBytes().toString())
+	return out
 }
 
 func hasArg(flag *string) bool {
@@ -293,7 +623,7 @@ func main() {
 }
 
 type I_app__TodoApp interface {
-	add(title *string, priority int)
+	add(title *string, priority int) int
 	addMany(titles *haxe__ds__List, priority int) int
 	toggle(id int) bool
 	tag(id int, tag *string) bool
@@ -320,8 +650,10 @@ func New_app__TodoApp(runtime profile__TodoRuntime) *app__TodoApp {
 	return self
 }
 
-func (self *app__TodoApp) add(title *string, priority int) {
-	self.store.__hx_this.add(self.runtime.normalizeTitle(title), priority)
+func (self *app__TodoApp) add(title *string, priority int) int {
+	item := self.store.__hx_this.add(self.runtime.normalizeTitle(title), priority)
+	_ = item
+	return item.id
 }
 
 func (self *app__TodoApp) addMany(titles *haxe__ds__List, priority int) int {
