@@ -1,3 +1,9 @@
+## [0.7.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.6.0...v0.7.0) (2026-02-19)
+
+### Features
+
+* **perf:** gate metal profile budgets in CI ([8e51e69](https://github.com/fullofcaffeine/reflaxe.go/commit/8e51e690d85558a2014a41d674c71119491a6d0e))
+
 ## [0.6.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.5.0...v0.6.0) (2026-02-19)
 
 ### Features
