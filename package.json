@@ -2,6 +2,7 @@
   "name": "reflaxe.go",
   "private": true,
   "version": "0.0.0",
+  "license": "GPL-3.0-only",
   "description": "Reflaxe-based Go target for Haxe",
   "scripts": {
     "postinstall": "lix download",

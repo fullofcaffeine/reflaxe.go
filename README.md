@@ -73,3 +73,7 @@ The repo-managed pre-commit hook (`npm run hooks:install`) enforces:
 - `examples/tui_todo`: complex app reference (single Haxe codebase -> `portable|gopher|metal`).
 
 See `docs/examples-matrix.md` for commands, output layout, and artifact matrix.
+
+## License
+
+GPL-3.0-only. See `LICENSE`.
