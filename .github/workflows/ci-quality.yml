@@ -64,10 +64,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if ! command -v haxe >/dev/null 2>&1; then
-            brew update
-            brew install haxe
-          fi
+          brew update
+          brew install haxe neko
+          BREW_PREFIX="$(brew --prefix)"
+          echo "${BREW_PREFIX}/bin" >> "$GITHUB_PATH"
+          echo "DYLD_LIBRARY_PATH=$(brew --prefix neko)/lib:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+          echo "HAXE_STD_PATH=$(brew --prefix haxe)/lib/haxe/std" >> "$GITHUB_ENV"
+          command -v haxe
+          command -v haxelib
           haxe -version
 
       - name: Run stable CI surface
