@@ -53,6 +53,7 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 - `test/semantic_diff/anonymous_object_literals`
 - `test/semantic_diff/serializer_unserializer_roundtrip`
 - `test/semantic_diff/ereg_behavior_contract`
+- `test/semantic_diff/ereg_edge_contract`
 
 ## Profile matrix
 
@@ -101,6 +102,14 @@ Shim strategy and alternatives are documented in:
 - `sys.Http` now includes synchronous request semantics for `http`/`https` and deterministic `data:` handling used by tests.
 - Covered behaviors: `setHeader`/`addHeader`, `setParameter`/`addParameter`, `setPostData`/`setPostBytes`, `fileTransfer`/`fileTransfert`, `customRequest`, proxy URL wiring (`Http.PROXY`), `getResponseHeaderValues`, dynamic callbacks (`onData`, `onBytes`, `onError`, `onStatus`), `responseData`/`responseBytes`, and `requestUrl`.
 - Current tradeoff: execution remains synchronous, and the optional `customRequest` socket argument is currently accepted for signature parity but not used as an injected transport in Go.
+
+### `EReg` + `haxe.Serializer` contract and tradeoffs
+
+- `EReg` parity now covers: `g/i/m/s/u` option handling, global vs non-global `replace`/`map`, `matched`/`matchedPos`/`matchedLeft`/`matchedRight` error semantics, and group/null behavior via semantic diff fixtures (`ereg_behavior_contract`, `ereg_edge_contract`).
+- `haxe.Serializer`/`haxe.Unserializer` currently provide deterministic roundtrip behavior for covered fixtures, but are still **not wire-format compatible** with native Haxe serializer tokens (`n/i/y/o/...`) and do not yet implement full cache/reference semantics.
+- Tracking:
+  - `haxe.go-7zy.5` (current hardening task)
+  - `haxe.go-7zy.7` (shim-vs-builtin review matrix)
 
 ### Upstream module sweep (strict CI-gated)
 
