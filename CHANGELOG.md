@@ -1,3 +1,9 @@
+## [0.20.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.19.0...v0.20.0) (2026-02-19)
+
+### Features
+
+* **sys:** add host parity fixtures and resolve/reverse semantics ([4654c0f](https://github.com/fullofcaffeine/reflaxe.go/commit/4654c0ff3abe7a22481db1be66194d933412488f))
+
 ## [0.19.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.18.0...v0.19.0) (2026-02-19)
 
 ### Features
