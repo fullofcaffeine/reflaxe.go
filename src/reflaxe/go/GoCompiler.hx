@@ -135,6 +135,7 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("net_socket")) {
 			imports.push("bufio");
 			imports.push("net");
+			imports.push("os");
 			imports.push("strconv");
 			imports.push("strings");
 			imports.push("time");
@@ -4507,26 +4508,74 @@ class GoCompiler {
 
 	function lowerNetSocketShimDecls():Array<GoDecl> {
 		return [
-			GoDecl.GoStructDecl("sys__net__Host", [{name: "host", typeName: "*string"}, {name: "ip", typeName: "int"}]),
-			GoDecl.GoFuncDecl("New_sys__net__Host", null, [{name: "name", typeName: "*string"}], ["*sys__net__Host"],
-				[GoStmt.GoReturn(GoExpr.GoRaw("&sys__net__Host{host: name, ip: 0}"))]),
+			GoDecl.GoStructDecl("sys__net__Host", [
+				{name: "host", typeName: "*string"},
+				{name: "ip", typeName: "int"},
+				{
+					name: "resolved",
+					typeName: "*string"
+				}
+			]),
+			GoDecl.GoFuncDecl("hxrt__host_empty", null, [], ["*sys__net__Host"], [
+				GoStmt.GoReturn(GoExpr.GoRaw("&sys__net__Host{host: hxrt.StringFromLiteral(\"\"), ip: 0, resolved: hxrt.StringFromLiteral(\"\")}"))
+			]),
+			GoDecl.GoFuncDecl("New_sys__net__Host", null, [
+				{
+					name: "name",
+					typeName: "*string"
+				}
+			], ["*sys__net__Host"], [
+				GoStmt.GoRaw("if name == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Could not resolve host\"))"),
+				GoStmt.GoRaw("\treturn hxrt__host_empty()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("rawName := *hxrt.StdString(name)"),
+				GoStmt.GoRaw("ips, err := net.LookupIP(rawName)"),
+				GoStmt.GoRaw("if err != nil || len(ips) == 0 {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Could not resolve host\"))"),
+				GoStmt.GoRaw("\treturn hxrt__host_empty()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("selected := ips[0]"),
+				GoStmt.GoRaw("for _, candidate := range ips {"),
+				GoStmt.GoRaw("\tif v4 := candidate.To4(); v4 != nil {"),
+				GoStmt.GoRaw("\t\tselected = v4"),
+				GoStmt.GoRaw("\t\tbreak"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("resolved := hxrt.StringFromLiteral(selected.String())"),
+				GoStmt.GoReturn(GoExpr.GoRaw("&sys__net__Host{host: name, ip: 0, resolved: resolved}"))
+			]),
 			GoDecl.GoFuncDecl("toString", {
 				name: "self",
 				typeName: "*sys__net__Host"
 			}, [], ["*string"], [
-				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.host == nil"), [
+				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.resolved == nil"), [
 					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
 				], null),
-				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "host"))
+				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "resolved"))
 			]),
 			GoDecl.GoFuncDecl("reverse", {
 				name: "self",
 				typeName: "*sys__net__Host"
 			}, [], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "toString"), []))
+				GoStmt.GoRaw("if self == nil || self.resolved == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Could not reverse host\"))"),
+				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("names, err := net.LookupAddr(*hxrt.StdString(self.resolved))"),
+				GoStmt.GoRaw("if err != nil || len(names) == 0 {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Could not reverse host\"))"),
+				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("resolved := strings.TrimSuffix(names[0], \".\")"),
+				GoStmt.GoReturn(GoExpr.GoRaw("hxrt.StringFromLiteral(resolved)"))
 			]),
 			GoDecl.GoFuncDecl("sys__net__Host_localhost", null, [], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("localhost")]))
+				GoStmt.GoRaw("name, err := os.Hostname()"),
+				GoStmt.GoRaw("if err != nil || name == \"\" {"),
+				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"localhost\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoRaw("hxrt.StringFromLiteral(name)"))
 			]),
 			GoDecl.GoStructDecl("sys__net__SocketInput", [
 				{
@@ -4652,14 +4701,23 @@ class GoCompiler {
 				},
 				{name: "port", typeName: "int"}
 			], [], [
-				GoStmt.GoIf(GoExpr.GoRaw("self == nil || host == nil || host.host == nil"), [
+				GoStmt.GoIf(GoExpr.GoRaw("self == nil || host == nil"), [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"),
+						[
+							GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("socket connect requires host")])
+						])),
+					GoStmt.GoReturn(null)
+				],
+					null),
+				GoStmt.GoVarDecl("resolvedHost", "*string", GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("host"), "toString"), []), true),
+				GoStmt.GoIf(GoExpr.GoRaw("resolvedHost == nil"), [
 					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [
 						GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("socket connect requires host")])
 					])),
 					GoStmt.GoReturn(null)
 				], null),
 				GoStmt.GoVarDecl("address", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("net"), "JoinHostPort"), [
-					GoExpr.GoRaw("*hxrt.StdString(host.host)"),
+					GoExpr.GoRaw("*hxrt.StdString(resolvedHost)"),
 					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strconv"), "Itoa"), [GoExpr.GoIdent("port")])
 				]), true),
 				GoStmt.GoRaw("conn, err := net.Dial(\"tcp\", address)"),
@@ -4680,14 +4738,23 @@ class GoCompiler {
 				},
 				{name: "port", typeName: "int"}
 			], [], [
-				GoStmt.GoIf(GoExpr.GoRaw("self == nil || host == nil || host.host == nil"), [
+				GoStmt.GoIf(GoExpr.GoRaw("self == nil || host == nil"), [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"),
+						[
+							GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("socket bind requires host")])
+						])),
+					GoStmt.GoReturn(null)
+				],
+					null),
+				GoStmt.GoVarDecl("resolvedHost", "*string", GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("host"), "toString"), []), true),
+				GoStmt.GoIf(GoExpr.GoRaw("resolvedHost == nil"), [
 					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [
 						GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("socket bind requires host")])
 					])),
 					GoStmt.GoReturn(null)
 				], null),
 				GoStmt.GoVarDecl("address", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("net"), "JoinHostPort"), [
-					GoExpr.GoRaw("*hxrt.StdString(host.host)"),
+					GoExpr.GoRaw("*hxrt.StdString(resolvedHost)"),
 					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strconv"), "Itoa"), [GoExpr.GoIdent("port")])
 				]), true),
 				GoStmt.GoRaw("listener, err := net.Listen(\"tcp\", address)"),
@@ -4789,7 +4856,7 @@ class GoCompiler {
 				}
 			], ["map[string]any"], [
 				GoStmt.GoRaw("if addr == nil {"),
-				GoStmt.GoRaw("\treturn map[string]any{\"host\": New_sys__net__Host(hxrt.StringFromLiteral(\"\")), \"port\": 0}"),
+				GoStmt.GoRaw("\treturn map[string]any{\"host\": hxrt__host_empty(), \"port\": 0}"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("rawHost := \"\""),
 				GoStmt.GoRaw("rawPort := \"0\""),
@@ -4799,6 +4866,9 @@ class GoCompiler {
 				GoStmt.GoRaw("\trawPort = portPart"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("port, _ := strconv.Atoi(rawPort)"),
+				GoStmt.GoRaw("if rawHost == \"\" {"),
+				GoStmt.GoRaw("\treturn map[string]any{\"host\": hxrt__host_empty(), \"port\": port}"),
+				GoStmt.GoRaw("}"),
 				GoStmt.GoReturn(GoExpr.GoRaw("map[string]any{\"host\": New_sys__net__Host(hxrt.StringFromLiteral(rawHost)), \"port\": port}"))
 			]),
 			GoDecl.GoFuncDecl("peer", {
@@ -4806,7 +4876,7 @@ class GoCompiler {
 				typeName: "*sys__net__Socket"
 			}, [], ["map[string]any"], [
 				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.conn == nil"), [
-					GoStmt.GoReturn(GoExpr.GoRaw("map[string]any{\"host\": New_sys__net__Host(hxrt.StringFromLiteral(\"\")), \"port\": 0}"))
+					GoStmt.GoReturn(GoExpr.GoRaw("map[string]any{\"host\": hxrt__host_empty(), \"port\": 0}"))
 				], null),
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt__socket_addrInfo"), [
 					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "conn"), "RemoteAddr"), [])
@@ -4817,7 +4887,7 @@ class GoCompiler {
 				typeName: "*sys__net__Socket"
 			}, [], ["map[string]any"], [
 				GoStmt.GoIf(GoExpr.GoRaw("self == nil"), [
-					GoStmt.GoReturn(GoExpr.GoRaw("map[string]any{\"host\": New_sys__net__Host(hxrt.StringFromLiteral(\"\")), \"port\": 0}"))
+					GoStmt.GoReturn(GoExpr.GoRaw("map[string]any{\"host\": hxrt__host_empty(), \"port\": 0}"))
 				], null),
 				GoStmt.GoIf(GoExpr.GoRaw("self.conn != nil"), [
 					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt__socket_addrInfo"), [
@@ -4825,13 +4895,11 @@ class GoCompiler {
 					]))
 				], null),
 				GoStmt.GoIf(GoExpr.GoRaw("self.listener != nil"), [
-					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt__socket_addrInfo"),
-						[
-							GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "listener"), "Addr"), [])
-						]))
-				],
-					null),
-				GoStmt.GoReturn(GoExpr.GoRaw("map[string]any{\"host\": New_sys__net__Host(hxrt.StringFromLiteral(\"\")), \"port\": 0}"))
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt__socket_addrInfo"), [
+						GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "listener"), "Addr"), [])
+					]))
+				], null),
+				GoStmt.GoReturn(GoExpr.GoRaw("map[string]any{\"host\": hxrt__host_empty(), \"port\": 0}"))
 			]),
 			GoDecl.GoFuncDecl("setTimeout", {
 				name: "self",

@@ -33,6 +33,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.Json` | `snapshot` | `stdlib/json_parse_stringify` |
 | `sys.io.Process` | `snapshot` | `sys/process_echo_smoke` |
 | `haxe.ds.Vector` | `semantic-diff` | `vector_contract`, `stdlib/vector_basic` |
+| `sys.net.Host` | `semantic-diff` | `host_basic_contract`, `sys/host_basic_smoke` |
 
 ## Language/Core matrix
 
@@ -73,6 +74,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/numeric_edge_cases`
 - `test/semantic_diff/nullable_struct_refs`
 - `test/semantic_diff/sys_io_roundtrip`
+- `test/semantic_diff/host_basic_contract`
 - `test/semantic_diff/vector_contract`
 - `test/semantic_diff/reflect_compare`
 - `test/semantic_diff/reflect_field_ops`
@@ -132,6 +134,7 @@ Shim strategy and alternatives are documented in:
 - `sys/http_proxy_socket_contract`
 - `sys/http_request_callbacks_smoke`
 - `sys/process_echo_smoke`
+- `sys/host_basic_smoke`
 
 ### `haxe.Json` runtime-lowered contract
 
