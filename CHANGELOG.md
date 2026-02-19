@@ -1,3 +1,9 @@
+## [0.9.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.8.0...v0.9.0) (2026-02-19)
+
+### Features
+
+* **serializer:** add wire-format token baseline ([94b2b77](https://github.com/fullofcaffeine/reflaxe.go/commit/94b2b776c805dd27acbb99d2b2f2a4b1134b23a7))
+
 ## [0.8.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.7.0...v0.8.0) (2026-02-19)
 
 ### Features
