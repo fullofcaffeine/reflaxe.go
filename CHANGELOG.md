@@ -1,3 +1,9 @@
+## [0.2.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.2.0...v0.2.1) (2026-02-19)
+
+### Bug Fixes
+
+* **stdlib:** close haxe.Http go-test parity gap ([503a364](https://github.com/fullofcaffeine/reflaxe.go/commit/503a3645446c4cbba5e9f1135cb20f539b129a50))
+
 ## [0.2.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.1.0...v0.2.0) (2026-02-19)
 
 ### Features
