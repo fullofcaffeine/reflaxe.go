@@ -30,5 +30,6 @@ Goal:
   - serializer/unserializer roundtrip semantics
   - serializer wire-format and sequential cursor semantics
   - serializer date/bytes token semantics
+  - serializer class/enum token semantics
   - EReg match/split/replace contract semantics
   - EReg edge semantics (flags, matched-group errors, global vs non-global replacement/map)

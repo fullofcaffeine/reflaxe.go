@@ -54,6 +54,7 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 - `test/semantic_diff/serializer_unserializer_roundtrip`
 - `test/semantic_diff/serializer_wire_contract`
 - `test/semantic_diff/serializer_date_bytes_contract`
+- `test/semantic_diff/serializer_class_enum_contract`
 - `test/semantic_diff/ereg_behavior_contract`
 - `test/semantic_diff/ereg_edge_contract`
 
@@ -108,8 +109,8 @@ Shim strategy and alternatives are documented in:
 ### `EReg` + `haxe.Serializer` contract and tradeoffs
 
 - `EReg` parity now covers: `g/i/m/s/u` option handling, global vs non-global `replace`/`map`, `matched`/`matchedPos`/`matchedLeft`/`matchedRight` error semantics, and group/null behavior via semantic diff fixtures (`ereg_behavior_contract`, `ereg_edge_contract`).
-- `haxe.Serializer`/`haxe.Unserializer` now cover a wire-format-compatible baseline for core tokens used by fixtures (`n/t/f/z/i/d/k/p/m/v/s/y/a/o/g/u/r/R`) plus sequential `Unserializer` cursor behavior (`serializer_wire_contract`).
-- Remaining gap: full Haxe serializer surface (for example class/enum and specialized collection token families, plus deeper cache/reference edge cases) is still in progress.
+- `haxe.Serializer`/`haxe.Unserializer` now cover a wire-format-compatible baseline for core tokens used by fixtures (`n/t/f/z/i/d/k/p/m/v/s/y/a/o/c/w/g/u/r/R`) plus sequential `Unserializer` cursor behavior (`serializer_wire_contract`).
+- Remaining gap: full Haxe serializer surface (for example exception/custom resolver token families and deeper cache/reference edge cases) is still in progress.
 - Tracking:
   - `haxe.go-7zy.8` (serializer wire-format completion)
   - `haxe.go-7zy.7` (shim-vs-builtin review matrix)
