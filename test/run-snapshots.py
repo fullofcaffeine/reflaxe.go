@@ -28,7 +28,7 @@ CACHE_ROOT = ROOT / "test" / ".test-cache"
 LAST_FAILED = CACHE_ROOT / "last_failed.txt"
 LAST_RUN = CACHE_ROOT / "last_run.json"
 RUN_LOCK = CACHE_ROOT / "run-snapshots.lock"
-EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json"}
+EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json", ".DS_Store"}
 EXCLUDE_DIRS = {".cache"}
 
 
@@ -439,7 +439,7 @@ def run_case(case: SnapshotCase, args: argparse.Namespace) -> CaseResult:
         clean_out_dir(case)
 
         compile_proc = run_command(
-            ["haxe", "compile.hxml"],
+            ["haxe", "compile.hxml", "-D", "go_no_build"],
             cwd=case.case_path,
             timeout_s=args.timeout,
             env={"HAXE_NO_SERVER": "1"},

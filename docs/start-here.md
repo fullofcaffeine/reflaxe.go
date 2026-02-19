@@ -2,7 +2,7 @@
 
 ## What this target does
 
-`reflaxe.go` compiles Haxe to a generated Go module (`go_output`) and copies runtime support under `out/hxrt`.
+`reflaxe.go` compiles Haxe to a generated Go module (`go_output`), copies runtime support under `out/hxrt`, and runs `go build` by default (unless disabled).
 
 ## First successful run
 
@@ -50,6 +50,7 @@ npm run hx:run
 
 - Generated project dependencies/build/test use the Go toolchain directly (`go mod`, `go run`, `go test`, `go build`).
 - Compiler/dev orchestration uses `npm` scripts so workflow stays consistent with `haxe.rust` and `haxe.elixir.codex`.
+- Direct hxml compiles run backend `go build` by default; use `-D go_no_build` for codegen-only flows.
 
 Quick compile+go action from this repo:
 

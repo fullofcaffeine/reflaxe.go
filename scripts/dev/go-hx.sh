@@ -10,6 +10,10 @@ usage() {
 Usage:
   bash scripts/dev/go-hx.sh [options] [-- <go args...>]
 
+Notes:
+  - `compile` uses backend defaults (includes auto `go build` unless disabled by define).
+  - Non-compile actions force `-D go_no_build` and run Go commands explicitly.
+
 Options:
   --project <path>          Optional. Project directory containing compile*.hxml.
                             Default: current working directory.
@@ -276,6 +280,10 @@ fi
 haxe_args=("$selected_hxml_arg")
 if [[ -n "$out_arg" ]]; then
   haxe_args+=("-D" "go_output=$out_arg")
+fi
+if [[ "$action" != "compile" ]]; then
+  # For non-compile actions, let this wrapper own Go execution to avoid double builds.
+  haxe_args+=("-D" "go_no_build")
 fi
 if [[ "${#extra_defines[@]}" -gt 0 ]]; then
   for define_item in "${extra_defines[@]}"; do

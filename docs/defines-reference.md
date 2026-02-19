@@ -10,6 +10,15 @@
 - `reflaxe.dont_output_metadata_id`
   - Recommended for deterministic snapshots.
 
+## Build controls
+
+- `go_no_build` or `go_codegen_only`
+  - Codegen only; skip backend `go build` step.
+- `go_cmd=<binary>`
+  - Override Go CLI used by backend build step (default: `go`).
+- `go_build_output=<path>`
+  - Optional output path passed as `go build -o <path>`.
+
 ## Profiles
 
 - `reflaxe_go_profile=portable|gopher|metal`

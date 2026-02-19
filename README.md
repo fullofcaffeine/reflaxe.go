@@ -46,6 +46,8 @@ Use `-D reflaxe_go_profile=portable|gopher|metal`.
 - Package/build manager for generated code: `go` + Go modules (`go.mod`).
 - Task runner for compiler workflow orchestration: `npm scripts` (stable across targets and includes lix-managed Haxe setup).
 - Entry point for compile+go actions: `npm run dev:hx -- --project <dir> --profile <portable|gopher|metal> --action <compile|run|build|test|vet|fmt>`.
+- Backend compile behavior: plain `haxe compile*.hxml` runs `go build` by default after codegen.
+- Codegen-only escape hatch: `-D go_no_build` (alias: `-D go_codegen_only`).
 
 ## Strictness
 

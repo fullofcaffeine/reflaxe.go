@@ -9,7 +9,7 @@ import shutil
 ROOT = Path(__file__).resolve().parent.parent.parent
 EXAMPLES_ROOT = ROOT / "examples"
 PROFILES = ("portable", "gopher", "metal")
-EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json"}
+EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json", ".DS_Store"}
 EXCLUDE_DIRS = {".cache"}
 
 

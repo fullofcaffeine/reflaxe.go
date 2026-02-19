@@ -202,6 +202,7 @@ python3 scripts/examples/sync-generated.py
 ## Strict examples mode
 
 Snapshots compile with `-D reflaxe_go_strict_examples` so app/test code cannot rely on raw `__go__` escape hatches.
+Harness compile steps also force `-D go_no_build`, then run explicit `go test`/`go run` checks to keep stage ownership deterministic.
 
 ## Profile contract checks
 

@@ -23,6 +23,11 @@ What `setup` does:
 - installs `reflaxe.go` (default source: `github:fullofcaffeine/reflaxe.go`)
 - downloads and pins Haxe 4.3.7 in scope
 
+Compile behavior:
+
+- plain `haxe compile*.hxml` builds a Go binary by default after codegen
+- pass `-D go_no_build` for codegen-only workflows
+
 Override install source (for local compiler development):
 
 ```bash

@@ -13,7 +13,7 @@ import time
 ROOT = Path(__file__).resolve().parent.parent
 EXAMPLES_ROOT = ROOT / "examples"
 PROFILES = ("portable", "gopher", "metal")
-EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json"}
+EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json", ".DS_Store"}
 EXCLUDE_DIRS = {".cache"}
 
 
@@ -225,7 +225,12 @@ def run_case(case: ExampleProfileCase, args: argparse.Namespace) -> CaseResult:
     try:
         clean_out_dirs(case)
 
-        compile_ci_proc = run_command(["haxe", case.compile_ci_hxml.name], cwd=case.example_dir, timeout_s=args.timeout, env={"HAXE_NO_SERVER": "1"})
+        compile_ci_proc = run_command(
+            ["haxe", case.compile_ci_hxml.name, "-D", "go_no_build"],
+            cwd=case.example_dir,
+            timeout_s=args.timeout,
+            env={"HAXE_NO_SERVER": "1"},
+        )
         if compile_ci_proc.returncode != 0:
             return CaseResult(case.case_id, False, "compile_ci", command_output(compile_ci_proc), time.monotonic() - started)
 
@@ -241,7 +246,12 @@ def run_case(case: ExampleProfileCase, args: argparse.Namespace) -> CaseResult:
             if not ok_stdout:
                 return CaseResult(case.case_id, False, "stdout_ci", msg_stdout, time.monotonic() - started)
 
-        compile_proc = run_command(["haxe", case.compile_hxml.name], cwd=case.example_dir, timeout_s=args.timeout, env={"HAXE_NO_SERVER": "1"})
+        compile_proc = run_command(
+            ["haxe", case.compile_hxml.name, "-D", "go_no_build"],
+            cwd=case.example_dir,
+            timeout_s=args.timeout,
+            env={"HAXE_NO_SERVER": "1"},
+        )
         if compile_proc.returncode != 0:
             return CaseResult(case.case_id, False, "compile", command_output(compile_proc), time.monotonic() - started)
 

@@ -8,6 +8,10 @@ usage() {
 	cat <<'EOUSAGE'
 Usage: scripts/dev/hx-go.sh <compile|run|build|test> [--profile portable|gopher|metal] [--hxml <path>] [--out <dir>] [--binary <path>]
 
+Notes:
+  - compile uses backend defaults (includes auto go build unless disabled by define).
+  - run/build/test force -D go_no_build and run Go commands explicitly.
+
 Examples:
   bash scripts/dev/hx-go.sh run
   bash scripts/dev/hx-go.sh build --profile gopher
@@ -106,8 +110,13 @@ if ! command -v haxe >/dev/null 2>&1; then
 fi
 
 compile() {
+	local no_build="${1:-0}"
 	echo "[hx-go] compiling via $hxml"
-	haxe "$hxml"
+	if [[ "$no_build" == "1" ]]; then
+		haxe "$hxml" -D go_no_build
+	else
+		haxe "$hxml"
+	fi
 }
 
 run_generated() {
@@ -151,18 +160,18 @@ build_generated() {
 
 case "$action" in
 compile)
-	compile
+	compile 0
 	;;
 run)
-	compile
+	compile 1
 	run_generated
 	;;
 test)
-	compile
+	compile 1
 	test_generated
 	;;
 build)
-	compile
+	compile 1
 	build_generated
 	;;
 *)

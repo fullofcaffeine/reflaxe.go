@@ -172,6 +172,8 @@ def build_go_cmd(case: SemanticCase) -> list[str]:
         "-D",
         "reflaxe_go_strict_examples",
         "-D",
+        "go_no_build",
+        "-D",
         "reflaxe.dont_output_metadata_id",
         "-D",
         "no-traces",

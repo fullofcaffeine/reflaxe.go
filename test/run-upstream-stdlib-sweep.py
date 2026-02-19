@@ -298,6 +298,7 @@ def write_case(case_dir: Path, module: str) -> None:
         "-cp .\n"
         "-lib reflaxe.go\n"
         "-D go_output=out\n"
+        "-D go_no_build\n"
         "-D reflaxe_go_strict_examples\n"
         "-D reflaxe.dont_output_metadata_id\n"
         "-D no-traces\n"
