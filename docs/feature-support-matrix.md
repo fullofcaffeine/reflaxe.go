@@ -40,7 +40,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | --- | --- | --- |
 | Arithmetic, comparisons, boolean flow | Supported | `core/arithmetic`, `core/if_else` |
 | Locals, assignment, compound assignment | Supported | `core/locals_assign`, `core/compound_assign`, `core/compound_assign_string` |
-| Arrays and indexing | Supported | `core/array_basic`, `core/array_push_pop` |
+| Arrays and indexing | Supported | `core/array_basic`, `core/array_push_pop`, `core/array_constructor_new` |
 | Loops (`for`, `while`, `do-while`, break/continue) | Supported | `core/loops_array_iter`, `core/loops_range`, `core/do_while_semantics`, `core/loop_break_continue` |
 | Expression-form control flow in value positions (`if`, `switch`, `try`) | Supported | `core/if_expr_call_arg`, `core/switch_expr_call_arg`, `core/try_expr_value` |
 | Functions, function values, closures | Supported | `core/function_values`, `core/closures_capture` |

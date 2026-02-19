@@ -6035,6 +6035,11 @@ class GoCompiler {
 						expr: args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil,
 						isStringLike: false
 					};
+				} else if (classType.pack.length == 0 && classType.name == "Array") {
+					{
+						expr: GoExpr.GoArrayLiteral(arrayElementGoType(expr.t), []),
+						isStringLike: false
+					};
 				} else {
 					{
 						expr: GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(classType)), [for (arg in args) lowerExpr(arg).expr]),
