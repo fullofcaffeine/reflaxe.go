@@ -73,6 +73,7 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 ### Upstream module sweep (strict CI-gated)
 
 Source list: `test/upstream_std_modules.txt`
+This sweep validates module symbol/type availability and target compatibility (`haxe` compile + `go test ./...`) for each listed module.
 
 ```text
 haxe.CallStack
@@ -81,23 +82,53 @@ haxe.Int32
 haxe.Int64
 haxe.Json
 haxe.PosInfos
+haxe.Serializer
+haxe.Unserializer
+haxe.crypto.Base64
+haxe.crypto.Md5
+haxe.crypto.Sha1
+haxe.crypto.Sha224
+haxe.crypto.Sha256
+haxe.ds.BalancedTree
 haxe.ds.EnumValueMap
 haxe.ds.IntMap
 haxe.ds.List
 haxe.ds.Map
 haxe.ds.ObjectMap
+haxe.ds.Option
 haxe.ds.ReadOnlyArray
 haxe.ds.StringMap
 haxe.ds.Vector
 haxe.io.Bytes
 haxe.io.BytesBuffer
 haxe.io.BytesData
+haxe.io.BytesInput
+haxe.io.BytesOutput
+haxe.io.Eof
+haxe.io.Error
 haxe.io.Input
 haxe.io.Output
+haxe.io.Path
+haxe.io.StringInput
 haxe.xml.Access
+haxe.xml.Parser
+haxe.xml.Printer
+haxe.zip.Compress
+haxe.zip.Uncompress
+Date
+EReg
+Math
+Reflect
+Std
+StringTools
+Type
+Xml
 Sys
+sys.FileSystem
 sys.io.File
 sys.io.Process
+sys.net.Host
+sys.net.Socket
 ```
 
 ## Unsupported expression inventory (compiler hard-fail paths)
@@ -120,44 +151,14 @@ As of **2026-02-19**, an expanded probe run:
 python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_gap_probe.txt --go-test
 ```
 
-reported `21 passed / 32 failed` and identified these currently failing modules:
+reported `51 passed / 2 failed` and identified these remaining failing modules:
 
 ```text
-haxe.Serializer
-haxe.Unserializer
-haxe.crypto.Base64
-haxe.crypto.Md5
-haxe.crypto.Sha1
-haxe.crypto.Sha224
-haxe.crypto.Sha256
 haxe.crypto.Sha512
-haxe.ds.BalancedTree
-haxe.ds.Option
-haxe.io.BytesInput
-haxe.io.BytesOutput
-haxe.io.Eof
-haxe.io.Error
-haxe.io.Path
-haxe.io.StringInput
 haxe.io.StringOutput
-haxe.xml.Parser
-haxe.xml.Printer
-haxe.zip.Compress
-haxe.zip.Uncompress
-Std
-StringTools
-Date
-Math
-Type
-Reflect
-Xml
-EReg
-sys.FileSystem
-sys.net.Host
-sys.net.Socket
 ```
 
-These are not yet CI-gated support commitments.
+Both remaining failures are compile-time `Type not found` in the installed upstream Haxe stdlib, not Go-lowering failures.
 
 ## Tracking
 

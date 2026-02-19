@@ -25,6 +25,8 @@ PROBE_TYPE_OVERRIDES = {
     "haxe.ds.ObjectMap": "haxe.ds.ObjectMap<Dynamic, Dynamic>",
     "haxe.ds.EnumValueMap": "haxe.ds.EnumValueMap<EnumValue, Dynamic>",
     "haxe.ds.List": "haxe.ds.List<Dynamic>",
+    "haxe.ds.BalancedTree": "haxe.ds.BalancedTree<Dynamic, Dynamic>",
+    "haxe.ds.Option": "haxe.ds.Option<Dynamic>",
     "haxe.ds.ReadOnlyArray": "haxe.ds.ReadOnlyArray<Dynamic>",
     "haxe.ds.Vector": "haxe.ds.Vector<Dynamic>",
 }

@@ -334,6 +334,9 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("sys")) {
 			decls = decls.concat(lowerSysStdlibShimDecls());
 		}
+		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
+			decls = decls.concat(lowerStdlibSymbolShimDecls());
+		}
 		return decls;
 	}
 
@@ -718,6 +721,41 @@ class GoCompiler {
 				GoStmt.GoRaw("}"),
 				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "cmd"), "Wait"), []))
 			])
+		];
+	}
+
+	function lowerStdlibSymbolShimDecls():Array<GoDecl> {
+		return [
+			GoDecl.GoStructDecl("Std", []),
+			GoDecl.GoStructDecl("StringTools", []),
+			GoDecl.GoStructDecl("Date", []),
+			GoDecl.GoStructDecl("Math", []),
+			GoDecl.GoStructDecl("Type", []),
+			GoDecl.GoStructDecl("Reflect", []),
+			GoDecl.GoStructDecl("Xml", []),
+			GoDecl.GoStructDecl("EReg", []),
+			GoDecl.GoStructDecl("haxe__Serializer", []),
+			GoDecl.GoStructDecl("haxe__Unserializer", []),
+			GoDecl.GoStructDecl("haxe__crypto__Base64", []),
+			GoDecl.GoStructDecl("haxe__crypto__Md5", []),
+			GoDecl.GoStructDecl("haxe__crypto__Sha1", []),
+			GoDecl.GoStructDecl("haxe__crypto__Sha224", []),
+			GoDecl.GoStructDecl("haxe__crypto__Sha256", []),
+			GoDecl.GoStructDecl("haxe__ds__BalancedTree", []),
+			GoDecl.GoStructDecl("haxe__ds__Option", []),
+			GoDecl.GoStructDecl("haxe__io__BytesInput", []),
+			GoDecl.GoStructDecl("haxe__io__BytesOutput", []),
+			GoDecl.GoStructDecl("haxe__io__Eof", []),
+			GoDecl.GoStructDecl("haxe__io__Error", []),
+			GoDecl.GoStructDecl("haxe__io__Path", []),
+			GoDecl.GoStructDecl("haxe__io__StringInput", []),
+			GoDecl.GoStructDecl("haxe__xml__Parser", []),
+			GoDecl.GoStructDecl("haxe__xml__Printer", []),
+			GoDecl.GoStructDecl("haxe__zip__Compress", []),
+			GoDecl.GoStructDecl("haxe__zip__Uncompress", []),
+			GoDecl.GoStructDecl("sys__FileSystem", []),
+			GoDecl.GoStructDecl("sys__net__Host", []),
+			GoDecl.GoStructDecl("sys__net__Socket", [])
 		];
 	}
 
@@ -2997,18 +3035,24 @@ class GoCompiler {
 			switch (classType.name) {
 				case "Bytes", "BytesBuffer", "Input", "Output", "Encoding":
 					requireStdlibShimGroup("io");
+					return;
+				case "BytesInput", "BytesOutput", "Eof", "Error", "Path", "StringInput":
+					requireStdlibShimGroup("stdlib_symbols");
+					return;
 				case _:
 			}
-			return;
 		}
 
 		if (pack == "haxe.ds") {
 			switch (classType.name) {
 				case "IntMap", "StringMap", "ObjectMap", "EnumValueMap", "List":
 					requireStdlibShimGroup("ds");
+					return;
+				case "BalancedTree":
+					requireStdlibShimGroup("stdlib_symbols");
+					return;
 				case _:
 			}
-			return;
 		}
 
 		if ((pack == "" && classType.name == "Sys") || (pack == "sys.io" && (classType.name == "File" || classType.name == "Process"))) {
@@ -3019,6 +3063,28 @@ class GoCompiler {
 		if ((pack == "haxe" && classType.name == "Json")
 			|| (pack == "haxe.format" && (classType.name == "JsonParser" || classType.name == "JsonPrinter"))) {
 			requireStdlibShimGroup("json");
+			return;
+		}
+
+		if ((pack == ""
+			&& (classType.name == "Std" || classType.name == "StringTools" || classType.name == "Date" || classType.name == "Math"
+				|| classType.name == "Type" || classType.name == "Reflect" || classType.name == "Xml" || classType.name == "EReg"))
+			|| (pack == "haxe" && (classType.name == "Serializer" || classType.name == "Unserializer"))
+			|| (pack == "haxe.crypto"
+				&& (classType.name == "Base64" || classType.name == "Md5" || classType.name == "Sha1" || classType.name == "Sha224"
+					|| classType.name == "Sha256"))
+			|| (pack == "haxe.xml" && (classType.name == "Parser" || classType.name == "Printer"))
+			|| (pack == "haxe.zip" && (classType.name == "Compress" || classType.name == "Uncompress"))
+			|| (pack == "sys" && classType.name == "FileSystem")
+			|| (pack == "sys.net" && (classType.name == "Host" || classType.name == "Socket"))) {
+			requireStdlibShimGroup("stdlib_symbols");
+		}
+	}
+
+	function noteStdlibEnum(enumType:EnumType):Void {
+		var pack = enumType.pack.join(".");
+		if ((pack == "haxe.io" && enumType.name == "Error") || (pack == "haxe.ds" && enumType.name == "Option")) {
+			requireStdlibShimGroup("stdlib_symbols");
 		}
 	}
 
@@ -3028,6 +3094,7 @@ class GoCompiler {
 	}
 
 	function enumTypeName(enumType:EnumType):String {
+		noteStdlibEnum(enumType);
 		return GoNaming.typeSymbol(enumType.pack, enumType.name);
 	}
 
