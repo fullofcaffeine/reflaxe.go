@@ -82,7 +82,14 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 - `stdlib/option_enum_basic`
 - `stdlib/stringtools_basic`
 - `sys/file_read_write_smoke`
+- `sys/http_request_callbacks_smoke`
 - `sys/process_echo_smoke`
+
+### `sys.Http` shim contract and tradeoffs
+
+- `sys.Http` now includes synchronous request semantics for `http`/`https` and deterministic `data:` handling used by tests.
+- Covered behaviors: `setHeader`/`addHeader`, `setParameter`/`addParameter`, `setPostData`/`setPostBytes`, dynamic callbacks (`onData`, `onBytes`, `onError`, `onStatus`), `responseData`/`responseBytes`, and `requestUrl`.
+- Current tradeoff: behavior is intentionally synchronous and minimal; advanced `sys.Http` paths (proxy/multipart/custom socket plumbing) are not yet implemented.
 
 ### Upstream module sweep (strict CI-gated)
 

@@ -97,6 +97,13 @@ class GoCompiler {
 		buildStaticFunctionInfoTable(classes);
 		var decls = lowerEnums(enums).concat(lowerClasses(classes)).concat(lowerStdlibShimDecls());
 		var imports = [compilationContext.runtimeImportPath];
+		if (requiredStdlibShimGroups.exists("http")) {
+			imports.push("bytes");
+			imports.push("io");
+			imports.push("net/http");
+			imports.push("net/url");
+			imports.push("strings");
+		}
 		if (requiredStdlibShimGroups.exists("sys")) {
 			imports.push("bufio");
 			imports.push("os");
@@ -340,6 +347,10 @@ class GoCompiler {
 		var decls = new Array<GoDecl>();
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			// Symbol shims now include crypto/xml/zip behavior that depends on haxe.io.Bytes.
+			requireStdlibShimGroup("io");
+		}
+		if (requiredStdlibShimGroups.exists("http")) {
+			// Http request shims expose and consume haxe.io.Bytes payloads.
 			requireStdlibShimGroup("io");
 		}
 		if (requiredStdlibShimGroups.exists("json")) {
@@ -660,9 +671,310 @@ class GoCompiler {
 
 	function lowerHttpStdlibShimDecls():Array<GoDecl> {
 		return [
-			GoDecl.GoStructDecl("sys__Http", [{name: "url", typeName: "*string"}]),
-			GoDecl.GoFuncDecl("New_sys__Http", null, [{name: "url", typeName: "*string"}], ["*sys__Http"],
-				[GoStmt.GoReturn(GoExpr.GoRaw("&sys__Http{url: url}"))])
+			GoDecl.GoStructDecl("hxrt__http__Pair", [{name: "name", typeName: "*string"}, {name: "value", typeName: "*string"}]),
+			GoDecl.GoStructDecl("sys__Http", [
+				{name: "url", typeName: "*string"},
+				{name: "responseAsString", typeName: "*string"},
+				{name: "responseBytes", typeName: "*haxe__io__Bytes"},
+				{name: "postData", typeName: "*string"},
+				{name: "postBytes", typeName: "*haxe__io__Bytes"},
+				{name: "headers", typeName: "[]hxrt__http__Pair"},
+				{name: "params", typeName: "[]hxrt__http__Pair"},
+				{name: "onData", typeName: "func(*string)"},
+				{name: "onBytes", typeName: "func(*haxe__io__Bytes)"},
+				{name: "onError", typeName: "func(*string)"},
+				{name: "onStatus", typeName: "func(int)"}
+			]),
+			GoDecl.GoFuncDecl("New_sys__Http", null, [{name: "url", typeName: "*string"}], ["*sys__Http"], [
+				GoStmt.GoVarDecl("self", null, GoExpr.GoRaw("&sys__Http{url: url, headers: []hxrt__http__Pair{}, params: []hxrt__http__Pair{}}"), true),
+				GoStmt.GoRaw("self.onData = func(data *string) {}"),
+				GoStmt.GoRaw("self.onBytes = func(data *haxe__io__Bytes) {}"),
+				GoStmt.GoRaw("self.onError = func(msg *string) {}"),
+				GoStmt.GoRaw("self.onStatus = func(status int) {}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("self"))
+			]),
+			GoDecl.GoFuncDecl("setHeader", {
+				name: "self",
+				typeName: "*sys__Http"
+			}, [
+				{
+					name: "name",
+					typeName: "*string"
+				},
+				{name: "value", typeName: "*string"}
+			], [], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoRaw("for i := 0; i < len(self.headers); i++ {"),
+				GoStmt.GoRaw("\tif *hxrt.StdString(self.headers[i].name) == *hxrt.StdString(name) {"),
+				GoStmt.GoRaw("\t\tself.headers[i] = hxrt__http__Pair{name: name, value: value}"),
+				GoStmt.GoRaw("\t\treturn"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.headers = append(self.headers, hxrt__http__Pair{name: name, value: value})")
+			]),
+			GoDecl.GoFuncDecl("addHeader", {
+				name: "self",
+				typeName: "*sys__Http"
+			}, [
+				{
+					name: "header",
+					typeName: "*string"
+				},
+				{name: "value", typeName: "*string"}
+			], [], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoRaw("self.headers = append(self.headers, hxrt__http__Pair{name: header, value: value})")
+			]),
+			GoDecl.GoFuncDecl("setParameter", {
+				name: "self",
+				typeName: "*sys__Http"
+			}, [
+				{
+					name: "name",
+					typeName: "*string"
+				},
+				{name: "value", typeName: "*string"}
+			], [], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoRaw("for i := 0; i < len(self.params); i++ {"),
+				GoStmt.GoRaw("\tif *hxrt.StdString(self.params[i].name) == *hxrt.StdString(name) {"),
+				GoStmt.GoRaw("\t\tself.params[i] = hxrt__http__Pair{name: name, value: value}"),
+				GoStmt.GoRaw("\t\treturn"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.params = append(self.params, hxrt__http__Pair{name: name, value: value})")
+			]),
+			GoDecl.GoFuncDecl("addParameter", {
+				name: "self",
+				typeName: "*sys__Http"
+			}, [
+				{
+					name: "name",
+					typeName: "*string"
+				},
+				{name: "value", typeName: "*string"}
+			], [], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoRaw("self.params = append(self.params, hxrt__http__Pair{name: name, value: value})")
+			]),
+			GoDecl.GoFuncDecl("setPostData", {
+				name: "self",
+				typeName: "*sys__Http"
+			}, [{name: "data", typeName: "*string"}], [], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "postData"), GoExpr.GoIdent("data")),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "postBytes"), GoExpr.GoNil)
+			]),
+			GoDecl.GoFuncDecl("setPostBytes", {
+				name: "self",
+				typeName: "*sys__Http"
+			}, [{name: "data", typeName: "*haxe__io__Bytes"}], [], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "postBytes"), GoExpr.GoIdent("data")),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "postData"), GoExpr.GoNil)
+			]),
+			GoDecl.GoFuncDecl("get_responseData", {
+				name: "self",
+				typeName: "*sys__Http"
+			}, [], ["*string"], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
+				], null),
+				GoStmt.GoIf(GoExpr.GoRaw("self.responseAsString == nil && self.responseBytes != nil"), [
+					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseAsString"),
+						GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseBytes"), "toString"), []))
+				], null),
+				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseAsString"))
+			]),
+			GoDecl.GoFuncDecl("request", {
+				name: "self",
+				typeName: "*sys__Http"
+			}, [{name: "post", typeName: "...bool"}], [], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoVarDecl("isPost", "bool", GoExpr.GoBoolLiteral(false), true),
+				GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent("post")]), GoExpr.GoIntLiteral(0)), [
+					GoStmt.GoAssign(GoExpr.GoIdent("isPost"), GoExpr.GoIndex(GoExpr.GoIdent("post"), GoExpr.GoIntLiteral(0)))
+				],
+					null),
+				GoStmt.GoIf(GoExpr.GoRaw("self.postData != nil || self.postBytes != nil"),
+					[GoStmt.GoAssign(GoExpr.GoIdent("isPost"), GoExpr.GoBoolLiteral(true))], null),
+				GoStmt.GoVarDecl("rawUrl", null, GoExpr.GoRaw("*hxrt.StdString(self.url)"), true),
+				GoStmt.GoRaw("parsedURL, err := url.Parse(rawUrl)"),
+				GoStmt.GoIf(GoExpr.GoRaw("err != nil || parsedURL == nil"), [
+					GoStmt.GoIf(GoExpr.GoRaw("self.onError != nil"), [
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onError"), [
+							GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Invalid URL")])
+						]))
+					], null),
+					GoStmt.GoReturn(null)
+				], null),
+				GoStmt.GoIf(GoExpr.GoRaw("parsedURL.Scheme == \"data\""), [
+					GoStmt.GoVarDecl("payload", null, GoExpr.GoRaw("parsedURL.Opaque"), true),
+					GoStmt.GoRaw("if isPost {"),
+					GoStmt.GoRaw("\tif self.postBytes != nil {"),
+					GoStmt.GoRaw("\t\trawBody := make([]byte, len(self.postBytes.b))"),
+					GoStmt.GoRaw("\t\tfor i := 0; i < len(self.postBytes.b); i++ {"),
+					GoStmt.GoRaw("\t\t\trawBody[i] = byte(self.postBytes.b[i])"),
+					GoStmt.GoRaw("\t\t}"),
+					GoStmt.GoRaw("\t\tpayload = string(rawBody)"),
+					GoStmt.GoRaw("\t} else if self.postData != nil {"),
+					GoStmt.GoRaw("\t\tpayload = *hxrt.StdString(self.postData)"),
+					GoStmt.GoRaw("\t}"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("commaIndex := strings.Index(payload, \",\")"),
+					GoStmt.GoRaw("if commaIndex >= 0 {"),
+					GoStmt.GoRaw("\tpayload = payload[commaIndex+1:]"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("decoded, decodeErr := url.QueryUnescape(payload)"),
+					GoStmt.GoRaw("if decodeErr == nil {"),
+					GoStmt.GoRaw("\tpayload = decoded"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("rawPayload := []byte(payload)"),
+					GoStmt.GoRaw("intPayload := make([]int, len(rawPayload))"),
+					GoStmt.GoRaw("for i := 0; i < len(rawPayload); i++ {"),
+					GoStmt.GoRaw("\tintPayload[i] = int(rawPayload[i])"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseBytes"),
+						GoExpr.GoRaw("&haxe__io__Bytes{b: intPayload, length: len(intPayload)}")),
+					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseAsString"),
+						GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("payload")])),
+					GoStmt.GoIf(GoExpr.GoRaw("self.onStatus != nil"), [
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onStatus"), [GoExpr.GoIntLiteral(200)]))
+					], null),
+					GoStmt.GoIf(GoExpr.GoRaw("self.onData != nil"), [
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onData"),
+							[GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseAsString")]))
+					], null),
+					GoStmt.GoIf(GoExpr.GoRaw("self.onBytes != nil"), [
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onBytes"),
+							[GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseBytes")]))
+					], null),
+					GoStmt.GoReturn(null)
+				], null),
+				GoStmt.GoIf(GoExpr.GoRaw("parsedURL.Scheme == \"\" || parsedURL.Host == \"\""), [
+					GoStmt.GoIf(GoExpr.GoRaw("self.onError != nil"), [
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onError"),
+							[
+								GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Invalid URL")])
+							]))
+					],
+						null),
+					GoStmt.GoReturn(null)
+				],
+					null),
+				GoStmt.GoRaw("query := parsedURL.Query()"),
+				GoStmt.GoRaw("for _, param := range self.params {"),
+				GoStmt.GoRaw("\tquery.Set(*hxrt.StdString(param.name), *hxrt.StdString(param.value))"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("var bodyReader io.Reader = nil"),
+				GoStmt.GoRaw("if isPost {"),
+				GoStmt.GoRaw("\tif self.postBytes != nil {"),
+				GoStmt.GoRaw("\t\trawBody := make([]byte, len(self.postBytes.b))"),
+				GoStmt.GoRaw("\t\tfor i := 0; i < len(self.postBytes.b); i++ {"),
+				GoStmt.GoRaw("\t\t\trawBody[i] = byte(self.postBytes.b[i])"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tbodyReader = bytes.NewReader(rawBody)"),
+				GoStmt.GoRaw("\t} else if self.postData != nil {"),
+				GoStmt.GoRaw("\t\tbodyReader = strings.NewReader(*hxrt.StdString(self.postData))"),
+				GoStmt.GoRaw("\t} else {"),
+				GoStmt.GoRaw("\t\tencoded := query.Encode()"),
+				GoStmt.GoRaw("\t\tbodyReader = strings.NewReader(encoded)"),
+				GoStmt.GoRaw("\t\thasContentType := false"),
+				GoStmt.GoRaw("\t\tfor _, header := range self.headers {"),
+				GoStmt.GoRaw("\t\t\tif strings.EqualFold(*hxrt.StdString(header.name), \"Content-Type\") {"),
+				GoStmt.GoRaw("\t\t\t\thasContentType = true"),
+				GoStmt.GoRaw("\t\t\t\tbreak"),
+				GoStmt.GoRaw("\t\t\t}"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tif !hasContentType {"),
+				GoStmt.GoRaw("\t\t\tself.headers = append(self.headers, hxrt__http__Pair{name: hxrt.StringFromLiteral(\"Content-Type\"), value: hxrt.StringFromLiteral(\"application/x-www-form-urlencoded\")})"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("} else {"),
+				GoStmt.GoRaw("\tparsedURL.RawQuery = query.Encode()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("method := \"GET\""),
+				GoStmt.GoRaw("if isPost {"),
+				GoStmt.GoRaw("\tmethod = \"POST\""),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("request, err := http.NewRequest(method, parsedURL.String(), bodyReader)"),
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
+					GoStmt.GoIf(GoExpr.GoRaw("self.onError != nil"), [
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onError"),
+							[
+								GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("err.Error()")])
+							]))
+					],
+						null),
+					GoStmt.GoReturn(null)
+				],
+					null),
+				GoStmt.GoRaw("for _, header := range self.headers {"),
+				GoStmt.GoRaw("\trequest.Header.Set(*hxrt.StdString(header.name), *hxrt.StdString(header.value))"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("response, err := http.DefaultClient.Do(request)"),
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
+					GoStmt.GoIf(GoExpr.GoRaw("self.onError != nil"), [
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onError"), [
+							GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("err.Error()")])
+						]))
+					], null),
+					GoStmt.GoReturn(null)
+				], null),
+				GoStmt.GoRaw("defer response.Body.Close()"),
+				GoStmt.GoIf(GoExpr.GoRaw("self.onStatus != nil"), [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onStatus"), [GoExpr.GoRaw("response.StatusCode")]))
+				], null),
+				GoStmt.GoRaw("rawPayload, err := io.ReadAll(response.Body)"),
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
+					GoStmt.GoIf(GoExpr.GoRaw("self.onError != nil"), [
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onError"),
+							[
+								GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("err.Error()")])
+							]))
+					],
+						null),
+					GoStmt.GoReturn(null)
+				],
+					null),
+				GoStmt.GoRaw("intPayload := make([]int, len(rawPayload))"),
+				GoStmt.GoRaw("for i := 0; i < len(rawPayload); i++ {"),
+				GoStmt.GoRaw("\tintPayload[i] = int(rawPayload[i])"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseBytes"),
+					GoExpr.GoRaw("&haxe__io__Bytes{b: intPayload, length: len(intPayload)}")),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseAsString"),
+					GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("string(rawPayload)")])),
+				GoStmt.GoIf(GoExpr.GoRaw("response.StatusCode >= 400"), [
+					GoStmt.GoIf(GoExpr.GoRaw("self.onError != nil"), [
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onError"), [
+							GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("response.Status")])
+						]))
+					], null),
+					GoStmt.GoReturn(null)
+				], null),
+				GoStmt.GoIf(GoExpr.GoRaw("self.onData != nil"), [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onData"),
+						[GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseAsString")]))
+				], null),
+				GoStmt.GoIf(GoExpr.GoRaw("self.onBytes != nil"), [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onBytes"),
+						[GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseBytes")]))
+				], null)
+			]),
+			GoDecl.GoFuncDecl("sys__Http_requestUrl", null, [
+				{
+					name: "url",
+					typeName: "*string"
+				}
+			], ["*string"], [
+				GoStmt.GoVarDecl("self", null, GoExpr.GoCall(GoExpr.GoIdent("New_sys__Http"), [GoExpr.GoIdent("url")]), true),
+				GoStmt.GoVarDecl("result", null, GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]), true),
+				GoStmt.GoRaw("self.onData = func(data *string) { result = data }"),
+				GoStmt.GoRaw("self.onError = func(msg *string) { result = msg }"),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "request"), [])),
+				GoStmt.GoReturn(GoExpr.GoIdent("result"))
+			])
 		];
 	}
 

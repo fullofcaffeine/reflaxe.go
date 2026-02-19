@@ -1,0 +1,8 @@
+data=hello from haxe.go
+bytes=18
+status=200
+response=hello from haxe.go
+error=
+post=post-body
+bad=Invalid URL
+direct=direct ok
