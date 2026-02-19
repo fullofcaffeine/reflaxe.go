@@ -25,7 +25,8 @@
     "examples:sync": "python3 scripts/examples/sync-generated.py",
     "examples:bins": "bash scripts/examples/build-binaries.sh",
     "hooks:install": "bash scripts/install-git-hooks.sh",
-    "security:gitleaks": "bash scripts/security/run-gitleaks.sh"
+    "security:gitleaks": "bash scripts/security/run-gitleaks.sh",
+    "security:deps": "bash scripts/security/run-dependency-audit.sh"
   },
   "devDependencies": {
     "lix": "^15.0.0"
