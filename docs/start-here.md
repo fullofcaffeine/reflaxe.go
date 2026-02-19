@@ -40,6 +40,8 @@ python3 test/run-examples.py
 
 ```bash
 npm run test:perf:go
+# optional local CI parity: hard-fail if metal exceeds budget
+GO_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:go
 npm run release:status
 ```
 

@@ -101,6 +101,7 @@ Details: [docs/profiles.md](docs/profiles.md)
 - Semantic differential checks: `python3 test/run-semantic-diff.py`
 - Examples matrix: `python3 test/run-examples.py`
 - Profile perf harness: `npm run test:perf:go`
+  - Enforce metal budgets locally: `GO_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:go`
 - Release visibility checks: `npm run release:status`
 
 ## Verification and Delivery

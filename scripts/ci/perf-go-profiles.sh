@@ -22,6 +22,12 @@ Environment:
   GO_PERF_BASELINE_FILE     Baseline JSON path (default: scripts/ci/perf/go-profile-baseline.json)
   GO_PERF_SIZE_WARN_PCT     Soft warning threshold for size ratios (default: 5)
   GO_PERF_RUNTIME_WARN_PCT  Soft warning threshold for startup ratios (default: 10)
+  GO_PERF_ENFORCE_METAL_BUDGET
+                            Fail when metal profile exceeds budget (default: 0/off).
+  GO_PERF_METAL_SIZE_FAIL_PCT
+                            Hard-fail threshold for metal size ratios (default: 25).
+  GO_PERF_METAL_RUNTIME_FAIL_PCT
+                            Hard-fail threshold for metal startup ratios (default: 100).
   GO_PERF_HELLO_ITERS       Startup loop count for hello case (default: 300)
   GO_PERF_ARRAY_ITERS       Startup loop count for array case (default: 300)
   GO_PERF_TUI_ITERS         Startup loop count for tui case (default: 30)
@@ -269,6 +275,9 @@ baseline_file="${GO_PERF_BASELINE_FILE:-$root_dir/scripts/ci/perf/go-profile-bas
 baseline_display="$(display_path "$baseline_file")"
 size_warn_pct="${GO_PERF_SIZE_WARN_PCT:-5}"
 runtime_warn_pct="${GO_PERF_RUNTIME_WARN_PCT:-10}"
+enforce_metal_budget="${GO_PERF_ENFORCE_METAL_BUDGET:-0}"
+metal_size_fail_pct="${GO_PERF_METAL_SIZE_FAIL_PCT:-25}"
+metal_runtime_fail_pct="${GO_PERF_METAL_RUNTIME_FAIL_PCT:-100}"
 hello_iters="${GO_PERF_HELLO_ITERS:-300}"
 array_iters="${GO_PERF_ARRAY_ITERS:-300}"
 tui_iters="${GO_PERF_TUI_ITERS:-30}"
@@ -290,6 +299,7 @@ current_json="$results_dir/current.json"
 comparison_json="$results_dir/comparison.json"
 summary_md="$results_dir/summary.md"
 warnings_txt="$results_dir/warnings.txt"
+hard_failures_txt="$results_dir/hard_failures.txt"
 
 cleanup() {
   local original_exit="${1:-0}"
@@ -388,11 +398,15 @@ GO_PERF_CURRENT_JSON="$current_json" \
 GO_PERF_COMPARISON_JSON="$comparison_json" \
 GO_PERF_SUMMARY_MD="$summary_md" \
 GO_PERF_WARNINGS_TXT="$warnings_txt" \
+GO_PERF_HARD_FAILURES_TXT="$hard_failures_txt" \
 GO_PERF_BASELINE_FILE="$baseline_file" \
 GO_PERF_BASELINE_DISPLAY="$baseline_display" \
 GO_PERF_UPDATE_BASELINE="$update_baseline" \
 GO_PERF_SIZE_WARN_PCT="$size_warn_pct" \
 GO_PERF_RUNTIME_WARN_PCT="$runtime_warn_pct" \
+GO_PERF_ENFORCE_METAL_BUDGET="$enforce_metal_budget" \
+GO_PERF_METAL_SIZE_FAIL_PCT="$metal_size_fail_pct" \
+GO_PERF_METAL_RUNTIME_FAIL_PCT="$metal_runtime_fail_pct" \
 GO_PERF_HELLO_ITERS="$hello_iters" \
 GO_PERF_ARRAY_ITERS="$array_iters" \
 GO_PERF_TUI_ITERS="$tui_iters" \
@@ -407,11 +421,15 @@ const currentJsonPath = process.env.GO_PERF_CURRENT_JSON;
 const comparisonJsonPath = process.env.GO_PERF_COMPARISON_JSON;
 const summaryPath = process.env.GO_PERF_SUMMARY_MD;
 const warningsPath = process.env.GO_PERF_WARNINGS_TXT;
+const hardFailuresPath = process.env.GO_PERF_HARD_FAILURES_TXT;
 const baselinePath = process.env.GO_PERF_BASELINE_FILE;
 const baselineDisplay = process.env.GO_PERF_BASELINE_DISPLAY || baselinePath;
 const updateBaseline = process.env.GO_PERF_UPDATE_BASELINE === "1";
 const sizeWarnPct = Number(process.env.GO_PERF_SIZE_WARN_PCT || "5");
 const runtimeWarnPct = Number(process.env.GO_PERF_RUNTIME_WARN_PCT || "10");
+const enforceMetalBudget = /^(1|true|yes|on)$/i.test(process.env.GO_PERF_ENFORCE_METAL_BUDGET || "0");
+const metalSizeFailPct = Number(process.env.GO_PERF_METAL_SIZE_FAIL_PCT || "25");
+const metalRuntimeFailPct = Number(process.env.GO_PERF_METAL_RUNTIME_FAIL_PCT || "100");
 const helloIters = Number(process.env.GO_PERF_HELLO_ITERS || "300");
 const arrayIters = Number(process.env.GO_PERF_ARRAY_ITERS || "300");
 const tuiIters = Number(process.env.GO_PERF_TUI_ITERS || "30");
@@ -540,6 +558,7 @@ if (updateBaseline) {
 }
 
 const warnings = [];
+const hardFailures = [];
 
 function compareGroup(groupLabel, currentGroup, baselineGroup) {
   if (!baselineGroup) {
@@ -579,6 +598,41 @@ function compareGroup(groupLabel, currentGroup, baselineGroup) {
   }
 }
 
+function compareMetalHard(groupLabel, currentGroup, baselineGroup) {
+  if (!baselineGroup) {
+    return;
+  }
+
+  const profile = "metal";
+  const currentProfile = currentGroup[profile];
+  const baselineProfile = baselineGroup[profile];
+  if (!currentProfile || !baselineProfile) {
+    return;
+  }
+
+  const specs = [
+    { key: "binaryRatio", label: "binary ratio", failPct: metalSizeFailPct },
+    { key: "strippedRatio", label: "stripped ratio", failPct: metalSizeFailPct },
+    { key: "startupRatio", label: "startup ratio", failPct: metalRuntimeFailPct },
+  ];
+
+  for (const spec of specs) {
+    const currentValue = Number(currentProfile[spec.key]);
+    const baselineValue = Number(baselineProfile[spec.key]);
+    if (!Number.isFinite(currentValue) || !Number.isFinite(baselineValue) || baselineValue <= 0) {
+      continue;
+    }
+    const maxAllowed = baselineValue * (1 + spec.failPct / 100);
+    if (currentValue > maxAllowed) {
+      const increasePct = ((currentValue / baselineValue) - 1) * 100;
+      hardFailures.push(
+        `${groupLabel}.${profile}.${spec.label} +${increasePct.toFixed(2)}% ` +
+          `(current=${currentValue.toFixed(6)}, baseline=${baselineValue.toFixed(6)}, budget=+${spec.failPct.toFixed(2)}%)`
+      );
+    }
+  }
+}
+
 let baselineLoaded = null;
 if (!updateBaseline) {
   if (!fs.existsSync(baselinePath)) {
@@ -589,6 +643,9 @@ if (!updateBaseline) {
     compareGroup("hello_overhead", current.derived.helloOverheadRatios, baselineDerived.helloOverheadRatios);
     compareGroup("array_overhead", current.derived.arrayOverheadRatios, baselineDerived.arrayOverheadRatios);
     compareGroup("tui_relative", current.derived.tuiRelativeToMin, baselineDerived.tuiRelativeToMin);
+    compareMetalHard("hello_overhead", current.derived.helloOverheadRatios, baselineDerived.helloOverheadRatios);
+    compareMetalHard("array_overhead", current.derived.arrayOverheadRatios, baselineDerived.arrayOverheadRatios);
+    compareMetalHard("tui_relative", current.derived.tuiRelativeToMin, baselineDerived.tuiRelativeToMin);
   }
 }
 
@@ -598,11 +655,20 @@ const comparison = {
   mode: updateBaseline ? "update-baseline" : "compare",
   baselinePath: baselineDisplay,
   baselineAvailable: baselineLoaded != null || updateBaseline,
+  enforceMetalBudget,
+  metalHardFailureCount: hardFailures.length,
+  metalHardFailureBudgets: {
+    sizeFailPct: metalSizeFailPct,
+    runtimeFailPct: metalRuntimeFailPct,
+  },
+  metalWarningCount: warnings.filter((warning) => warning.includes(".metal.")).length,
   warningCount: warnings.length,
   warnings,
+  hardFailures,
 };
 fs.writeFileSync(comparisonJsonPath, `${JSON.stringify(comparison, null, 2)}\n`);
 fs.writeFileSync(warningsPath, warnings.length > 0 ? `${warnings.join("\n")}\n` : "");
+fs.writeFileSync(hardFailuresPath, hardFailures.length > 0 ? `${hardFailures.join("\n")}\n` : "");
 
 function formatRatio(v) {
   return Number(v).toFixed(3);
@@ -628,6 +694,8 @@ summaryLines.push("");
 summaryLines.push(`- Mode: \`${comparison.mode}\``);
 summaryLines.push(`- Size budget: \`+${sizeWarnPct}%\``);
 summaryLines.push(`- Runtime budget: \`+${runtimeWarnPct}%\``);
+summaryLines.push(`- Metal enforcement: \`${enforceMetalBudget ? "on" : "off"}\``);
+summaryLines.push(`- Metal hard budgets: size=\`+${metalSizeFailPct}%\`, runtime=\`+${metalRuntimeFailPct}%\``);
 summaryLines.push(`- Startup loops: hello=${helloIters}, array=${arrayIters}, tui=${tuiIters}`);
 if (haxeVersion.length > 0 || goVersion.length > 0) {
   summaryLines.push(`- Toolchain: ${haxeVersion || "haxe:unknown"} | ${goVersion || "go:unknown"}`);
@@ -648,18 +716,50 @@ if (warnings.length > 0) {
 }
 summaryLines.push("");
 
+if (hardFailures.length > 0) {
+  summaryLines.push("### Metal Hard-Fail Candidates");
+  for (const hardFailure of hardFailures) {
+    summaryLines.push(`- ${hardFailure}`);
+  }
+} else {
+  summaryLines.push("### Metal Hard-Fail Candidates");
+  summaryLines.push("- none");
+}
+summaryLines.push("");
+
 fs.writeFileSync(summaryPath, `${summaryLines.join("\n")}\n`);
 
 console.log(`[go-perf] mode=${comparison.mode} warnings=${warnings.length}`);
 NODE
 
 warning_count=0
+metal_warning_count=0
+baseline_warning_count=0
+hard_failure_count=0
 if [[ -s "$warnings_txt" ]]; then
   while IFS= read -r warning; do
     [[ -n "$warning" ]] || continue
     warning_count=$((warning_count + 1))
+    if [[ "$warning" == *".metal."* ]]; then
+      metal_warning_count=$((metal_warning_count + 1))
+    fi
+    if [[ "$warning" == baseline\ file\ not\ found:* ]]; then
+      baseline_warning_count=$((baseline_warning_count + 1))
+    fi
     echo "::warning::[go-perf] $warning"
   done < "$warnings_txt"
+fi
+
+if [[ -s "$hard_failures_txt" ]]; then
+  while IFS= read -r hard_failure; do
+    [[ -n "$hard_failure" ]] || continue
+    hard_failure_count=$((hard_failure_count + 1))
+    if is_truthy "$enforce_metal_budget"; then
+      echo "::error::[go-perf] $hard_failure"
+    else
+      echo "::warning::[go-perf][metal-hard-candidate] $hard_failure"
+    fi
+  done < "$hard_failures_txt"
 fi
 
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" && -f "$summary_md" ]]; then
@@ -674,7 +774,18 @@ if [[ -f "$baseline_file" ]]; then
   cp "$baseline_file" "$results_dir/baseline_used.json"
 fi
 
-log "done (warnings=$warning_count)"
+if is_truthy "$enforce_metal_budget"; then
+  if [[ "$hard_failure_count" -gt 0 || "$baseline_warning_count" -gt 0 ]]; then
+    echo "::error::[go-perf] metal budget enforcement failed (hard_failures=$hard_failure_count baseline_warnings=$baseline_warning_count)"
+    log "failing due to GO_PERF_ENFORCE_METAL_BUDGET with budget regressions"
+    log "metrics: $(display_path "$current_json")"
+    log "comparison: $(display_path "$comparison_json")"
+    log "summary: $(display_path "$summary_md")"
+    exit 1
+  fi
+fi
+
+log "done (warnings=$warning_count, metal_warnings=$metal_warning_count, metal_hard_failures=$hard_failure_count)"
 log "metrics: $(display_path "$current_json")"
 log "comparison: $(display_path "$comparison_json")"
 log "summary: $(display_path "$summary_md")"

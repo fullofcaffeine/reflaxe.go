@@ -207,6 +207,18 @@ Collect soft-budget benchmark ratios for `portable|gopher|metal` vs pure-Go micr
 bash scripts/ci/perf-go-profiles.sh
 ```
 
+Enforce metal profile budget regressions as hard failures (portable/gopher remain soft warnings):
+
+```bash
+GO_PERF_ENFORCE_METAL_BUDGET=1 bash scripts/ci/perf-go-profiles.sh
+```
+
+Tune hard-fail budgets if needed:
+
+```bash
+GO_PERF_ENFORCE_METAL_BUDGET=1 GO_PERF_METAL_RUNTIME_FAIL_PCT=90 bash scripts/ci/perf-go-profiles.sh
+```
+
 Regenerate baseline:
 
 ```bash

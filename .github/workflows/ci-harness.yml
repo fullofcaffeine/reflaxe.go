@@ -95,7 +95,7 @@ jobs:
         run: npm run security:deps
 
   perf-go:
-    name: Go Profile Perf (soft budgets)
+    name: Go Profile Perf (metal gated)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -123,8 +123,10 @@ jobs:
         with:
           haxe-version: ${{ env.HAXE_VERSION }}
 
-      - name: Run Go profile benchmarks (soft warnings)
+      - name: Run Go profile benchmarks (metal budget enforced)
         run: npm run test:perf:go
+        env:
+          GO_PERF_ENFORCE_METAL_BUDGET: "1"
 
       - name: Upload Go perf benchmark artifacts
         if: always()
