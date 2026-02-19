@@ -56,7 +56,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx lix download
           npx lix download haxe "${{ env.HAXE_VERSION }}"
           npx lix use haxe "${{ env.HAXE_VERSION }}"
           echo "$(pwd)/node_modules/.bin" >> "$GITHUB_PATH"
@@ -80,8 +79,6 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: --redact --config .gitleaks.toml
 
   dependency-audit:
     name: Dependency Audit

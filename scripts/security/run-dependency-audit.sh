@@ -93,6 +93,22 @@ if ! ensure_govulncheck; then
 fi
 
 echo "[deps] govulncheck (runtime/hxrt package)"
-GO111MODULE=off govulncheck ./runtime/hxrt
+govuln_tmp_dir="$(mktemp -d)"
+cp -R runtime/hxrt/. "$govuln_tmp_dir/"
+cat >"$govuln_tmp_dir/go.mod" <<'EOF'
+module reflaxe_go_hxrt_audit
+
+go 1.23
+EOF
+
+if ! (
+  cd "$govuln_tmp_dir"
+  govulncheck ./...
+); then
+  govuln_status=$?
+  rm -rf "$govuln_tmp_dir"
+  exit "$govuln_status"
+fi
+rm -rf "$govuln_tmp_dir"
 
 echo "[deps] dependency audit passed"
