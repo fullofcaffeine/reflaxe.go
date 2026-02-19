@@ -1,67 +1,76 @@
-# Stdlib Strategy and Shim Rationale
+# Stdlib Strategy and Shim Decision Matrix
 
-## Context
+## Scope
 
-`reflaxe.go` supports Haxe stdlib behavior through a mix of:
+`reflaxe.go` currently combines three mechanisms:
 
-- generated Go runtime support (`runtime/hxrt/hxrt.go`)
-- compiler-emitted compatibility shims (`src/reflaxe/go/GoCompiler.hx`)
-- optional staged stdlib classpath support (`std/_std`) wired by `src/reflaxe/go/CompilerBootstrap.hx`
+- runtime helpers in `runtime/hxrt/hxrt.go`
+- compiler-emitted stdlib shims in `src/reflaxe/go/GoCompiler.hx`
+- staged stdlib sources under `std/_std` (wired by `src/reflaxe/go/CompilerBootstrap.hx`)
 
-This document explains why shims currently live in compiler core, and what simpler alternatives were considered.
+This document records which compiler-core shims should stay, which should migrate, and why.
 
-## Alternatives Evaluated
+## Alternatives Reviewed
 
-### 1. Externs + external Go package
+| Alternative | Strength | Current blocker |
+| --- | --- | --- |
+| Externs + external Go runtime package | Clean boundary and reuse potential | Externs are type-only and `ignoreExterns: true` is currently required for deterministic emission in `src/reflaxe/go/CompilerInit.hx`. |
+| Raw `__go__` in Haxe std/app code | Minimal indirection for target-native calls | Violates strict policy in app/examples (`src/reflaxe/go/macros/StrictModeEnforcer.hx`, `src/reflaxe/go/macros/BoundaryEnforcer.hx`) and harms portability/readability. |
+| Vendored stdlib-only (`std/_std`) | Most idiomatic long-term ownership model | Behavior-heavy contracts still depend on compiler context (serializer metadata, socket readiness/deadline behavior, profile-aware lowering). |
 
-Approach:
+## Decision Matrix
 
-- model stdlib surfaces as `extern` Haxe APIs
-- implement behavior in a separately maintained Go package
+`Compiler LOC` values below are from shim function spans in `src/reflaxe/go/GoCompiler.hx` (measured on 2026-02-19).
 
-Why this is not enough right now:
+| Shim group | Primary surfaces | Compiler LOC | Highest CI tier | Decision | Reason | Follow-up |
+| --- | --- | ---: | --- | --- | --- | --- |
+| `json` | `haxe.Json`, `haxe.format.JsonParser/JsonPrinter` | 38 | Snapshot | Migrate | Mostly forwarding to `hxrt.JsonParse`/`hxrt.JsonStringify`; low compiler-context coupling. | `haxe.go-7zy.10` |
+| `sys` | `Sys`, `sys.io.File`, `sys.io.Process` | 89 | Snapshot | Migrate | Mostly OS/process wrappers; good candidate for `std/_std` ownership once parity fixtures are preserved. | `haxe.go-7zy.11` |
+| `io` | `haxe.io.Bytes`, buffers, input/output base wiring | 108 | Snapshot + semantic-diff dependency | Keep (for now) | Shared representation boundary used by crypto/http/serializer flows. | - |
+| `ds` | `haxe.ds.*Map`, `List`, enum maps | 149 | Snapshot + semantic-diff dependency | Keep (for now) | Serializer and HTTP contracts rely on deterministic generated map/list shapes. | - |
+| `http` | `sys.Http` request/callback/proxy contract | 542 | Semantic-diff | Keep | Behavior includes callback choreography and deterministic request handling under test contract. | - |
+| `stdlib_symbols` | `Std`, `StringTools`, `Date`, `Math`, `Reflect`, crypto/xml/zip, filesystem subset | 706 | Semantic-diff | Keep + optimize | Broad compatibility layer still needed; measured conversion overhead should be reduced. | `haxe.go-7zy.12` |
+| `regex_serializer` | `EReg`, `haxe.Serializer`, `haxe.Unserializer` | 2460 | Semantic-diff | Keep | High behavior density and project metadata coupling (resolver semantics, token stream, reflection). | - |
+| `net_socket` | `sys.net.Host`, `sys.net.Socket` | 2958 | Semantic-diff | Keep | Deadline/select/shutdown readiness behavior is target-specific and currently best enforced in one compiler-controlled path. | - |
 
-- Externs only provide type-level contracts; they do not provide behavior by themselves.
-- The current compiler config intentionally ignores extern declarations during code emission (`ignoreExterns: true` in `src/reflaxe/go/CompilerInit.hx`).
-- A separate Go package would duplicate compatibility logic outside compiler lowering/profile policy and add another versioned surface to keep in sync.
+## Measured Tradeoff: Shim vs Simpler Path
 
-### 2. Raw `__go__` injection in Haxe std/app code
+Representative surface: `haxe.crypto.Base64.encode` in `stdlib_symbols`.
 
-Approach:
+Repro command:
 
-- use target-code injection (`__go__`) directly in Haxe classes for edge behavior
+```bash
+npm run test:perf:stdlib-shims
+```
 
-Why this is not the default path:
+Artifacts:
 
-- Strict policy intentionally forbids this in app/examples lanes (`src/reflaxe/go/macros/StrictModeEnforcer.hx`, `src/reflaxe/go/macros/BoundaryEnforcer.hx`).
-- It weakens portability/readability and pushes target logic into user/app code paths.
-- It is harder to reason about and test as a reusable compiler contract.
+- `.cache/perf-stdlib-shim-review/report.json`
+- `.cache/perf-stdlib-shim-review/report.md`
 
-### 3. Vendored stdlib-only (no core shims)
+Measured at `2026-02-19T22:50:44Z` on `darwin/arm64` (`Apple M2 Pro`):
 
-Approach:
+| Path | ns/op | B/op | allocs/op | Code-shape LOC (call path) |
+| --- | ---: | ---: | ---: | ---: |
+| Generated shim (`haxe__crypto__Base64_encode` + bytes conversion helpers) | 71.52 | 112 | 3 | 28 |
+| Direct Go (`base64.StdEncoding.EncodeToString`) | 46.55 | 96 | 2 | 3 |
+| Delta | +53.64% | +16 | +1 | +25 |
 
-- rely only on transpiling vendored stdlib sources under `std/_std`
+Interpretation:
 
-Status:
+- overhead is primarily representation conversion (`[]int` <-> `[]byte`) rather than base64 algorithm cost
+- this supports keeping the compatibility shim while targeting focused conversion-path optimization (`haxe.go-7zy.12`)
 
-- This is a long-term direction and is already classpath-wired.
-- In practice, some behavior-heavy surfaces still need explicit target glue and policy-aware lowering (regex/serializer/socket/http contracts and deterministic runtime tradeoffs).
+## Migration Sequence
 
-## Current Decision
-
-Use compiler-core shims for behavior-critical stdlib surfaces, with these constraints:
-
-- Inject only when referenced (`requiredStdlibShimGroups` in `src/reflaxe/go/GoCompiler.hx`).
-- Keep behavior under CI contract coverage (snapshot + semantic diff + stdlib sweep).
-- Prefer minimal, deterministic shims and remove them when a cleaner source-level path is proven.
+1. Move `json` out of compiler core first (`haxe.go-7zy.10`) because it is the thinnest shim and lowest risk.
+2. Move `sys` wrappers second (`haxe.go-7zy.11`) once snapshot parity remains stable.
+3. Keep behavior-heavy shim groups in compiler core until an equivalent `std/_std` path proves equal parity under semantic-diff coverage.
 
 ## Revisit Triggers
 
-We should retire/move shims when one of these is true:
+Re-open keep decisions when one of these becomes true:
 
-1. Vendored stdlib (`std/_std`) can provide equivalent behavior with equal or better CI parity.
-2. A shared external runtime package can provide stable semantics without fragmenting profile/lowering policy.
-3. A shim is only forwarding behavior and no longer needs compiler-context decisions.
-
-Until then, shims remain the lowest-risk way to keep Haxe contracts explicit, testable, and profile-aware.
+1. `std/_std` path reaches equal or better parity for the same fixtures.
+2. Runtime package extraction can preserve profile/lowering policy without semantic drift.
+3. A compiler shim becomes pure forwarding with no compiler-context decisions.

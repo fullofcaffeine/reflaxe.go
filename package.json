@@ -26,6 +26,7 @@
     "test:stdlib-sweep:full": "python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict",
     "test:stdlib-sweep:full:go-test": "python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test",
     "test:perf:go": "bash scripts/ci/perf-go-profiles.sh",
+    "test:perf:stdlib-shims": "bash scripts/ci/perf-stdlib-shim-review.sh",
     "test:perf:go:update-baseline": "bash scripts/ci/perf-go-profiles.sh --update-baseline",
     "examples:compile": "python3 test/run-examples.py --compile-only",
     "examples:bless": "python3 test/run-examples.py --bless-generated",
