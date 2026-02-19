@@ -103,6 +103,7 @@ haxe.CallStack
 haxe.Exception
 haxe.Int32
 haxe.Int64
+haxe.Http
 haxe.Json
 haxe.PosInfos
 haxe.Serializer
@@ -148,6 +149,7 @@ Type
 Xml
 Sys
 sys.FileSystem
+sys.Http
 sys.io.File
 sys.io.Process
 sys.net.Host
