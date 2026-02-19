@@ -1020,8 +1020,10 @@ type haxe__io__Output struct {
 }
 
 type haxe__io__Bytes struct {
-	b      []int
-	length int
+	b             []int
+	length        int
+	__hx_raw      []byte
+	__hx_rawValid bool
 }
 
 type haxe__io__BytesBuffer struct {
@@ -1048,8 +1050,12 @@ func haxe__io__Bytes_alloc(length int) *haxe__io__Bytes {
 }
 
 func haxe__io__Bytes_ofString(value *string, encoding ...*haxe__io__Encoding) *haxe__io__Bytes {
-	raw := hxrt.BytesFromString(value)
-	return &haxe__io__Bytes{b: raw, length: len(raw)}
+	raw := []byte(*hxrt.StdString(value))
+	converted := make([]int, len(raw))
+	for i := 0; i < len(raw); i++ {
+		converted[i] = int(raw[i])
+	}
+	return &haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: raw, __hx_rawValid: true}
 }
 
 func (self *haxe__io__Bytes) toString() *string {
@@ -1065,6 +1071,7 @@ func (self *haxe__io__Bytes) get(pos int) int {
 
 func (self *haxe__io__Bytes) set(pos int, value int) {
 	self.b[pos] = value
+	self.__hx_rawValid = false
 }
 
 func New_haxe__io__BytesBuffer() *haxe__io__BytesBuffer {
@@ -1647,10 +1654,15 @@ func hxrt_haxeBytesToRaw(value *haxe__io__Bytes) []byte {
 	if value == nil {
 		return []byte{}
 	}
+	if value.__hx_rawValid && len(value.__hx_raw) == len(value.b) {
+		return value.__hx_raw
+	}
 	raw := make([]byte, len(value.b))
 	for i := 0; i < len(value.b); i++ {
 		raw[i] = byte(value.b[i])
 	}
+	value.__hx_raw = raw
+	value.__hx_rawValid = true
 	return raw
 }
 
@@ -1659,7 +1671,7 @@ func hxrt_rawToHaxeBytes(value []byte) *haxe__io__Bytes {
 	for i := 0; i < len(value); i++ {
 		converted[i] = int(value[i])
 	}
-	return &haxe__io__Bytes{b: converted, length: len(converted)}
+	return &haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: value, __hx_rawValid: true}
 }
 
 func haxe__crypto__Base64_encode(bytes *haxe__io__Bytes, complement ...bool) *string {

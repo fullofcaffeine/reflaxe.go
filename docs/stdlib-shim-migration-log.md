@@ -50,6 +50,37 @@ Observed result:
 - Snapshot no longer emits `haxe__Json`/`haxe__format__JsonParser` declarations.
 - Strict stdlib sweeps remain green (`55/55` and `175/175`).
 
+### 2026-02-19: `stdlib_symbols` bytes-conversion optimization (`haxe.go-7zy.12`)
+
+Implementation:
+
+- Added an internal raw-byte cache to generated `haxe__io__Bytes` in `src/reflaxe/go/GoCompiler.hx`:
+  - `__hx_raw []byte`
+  - `__hx_rawValid bool`
+- Updated `haxe__io__Bytes_ofString` to initialize both int-backed (`b`) and raw-byte representations.
+- Invalidated cache in mutating `haxe__io__Bytes.set`.
+- Updated conversion helpers:
+  - `hxrt_haxeBytesToRaw` now reuses cached raw bytes when valid.
+  - `hxrt_rawToHaxeBytes` now seeds cache on construction.
+
+Validation evidence:
+
+- Perf harness:
+  - `npm run test:perf:stdlib-shims`
+  - comparative 3-run sample using prior commit (`8b18b3f`) vs optimized commit:
+    - baseline shim `ns/op`: `135.0`, `179.7`, `79.58` (median `135.0`)
+    - optimized shim `ns/op`: `107.8`, `70.25`, `74.75` (median `74.75`)
+    - median delta: `-44.63%` shim `ns/op`
+- Semantic parity:
+  - `python3 test/run-semantic-diff.py --case crypto_xml_zip`
+- Full regression harness:
+  - `npm run test:ci`
+
+Observed result:
+
+- `stdlib_symbols` bytes conversion path keeps parity while improving measured shim-path performance versus baseline sample on the same machine.
+- Snapshot/example goldens were refreshed for impacted stdlib/sys surfaces.
+
 ## Open migration track
 
 - `haxe.go-7zy.11`: move `Sys`/`sys.io.File`/`sys.io.Process` shims out of compiler core.

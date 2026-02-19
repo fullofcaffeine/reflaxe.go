@@ -156,7 +156,7 @@ Shim strategy and alternatives are documented in:
 - Active follow-up tracking:
   - `haxe.go-7zy.10` (migrate `haxe.Json` shim out of compiler core, completed 2026-02-19)
   - `haxe.go-7zy.11` (migrate `Sys`/`sys.io.File`/`sys.io.Process` shim path out of compiler core)
-  - `haxe.go-7zy.12` (reduce `stdlib_symbols` bytes-conversion overhead)
+  - `haxe.go-7zy.12` (reduce `stdlib_symbols` bytes-conversion overhead, completed 2026-02-19)
 
 ### Upstream module sweep (strict CI-gated)
 

@@ -476,7 +476,9 @@ class GoCompiler {
 						name: "b",
 						typeName: "[]int"
 					},
-					{name: "length", typeName: "int"}
+					{name: "length", typeName: "int"},
+					{name: "__hx_raw", typeName: "[]byte"},
+					{name: "__hx_rawValid", typeName: "bool"}
 				]),
 			GoDecl.GoStructDecl("haxe__io__BytesBuffer", [{name: "b", typeName: "[]int"}]),
 			GoDecl.GoFuncDecl("New_haxe__io__Input", null, [], ["*haxe__io__Input"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Input{}"))]),
@@ -507,8 +509,12 @@ class GoCompiler {
 				},
 				{name: "encoding", typeName: "...*haxe__io__Encoding"}
 			], ["*haxe__io__Bytes"], [
-				GoStmt.GoVarDecl("raw", null, GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesFromString"), [GoExpr.GoIdent("value")]), true),
-				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: raw, length: len(raw)}"))
+				GoStmt.GoRaw("raw := []byte(*hxrt.StdString(value))"),
+				GoStmt.GoRaw("converted := make([]int, len(raw))"),
+				GoStmt.GoRaw("for i := 0; i < len(raw); i++ {"),
+				GoStmt.GoRaw("\tconverted[i] = int(raw[i])"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: raw, __hx_rawValid: true}"))
 			]),
 			GoDecl.GoFuncDecl("toString", {
 				name: "self",
@@ -528,7 +534,8 @@ class GoCompiler {
 			]),
 			GoDecl.GoFuncDecl("set", {name: "self", typeName: "*haxe__io__Bytes"}, [{name: "pos", typeName: "int"}, {name: "value", typeName: "int"}], [],
 				[
-					GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoIdent("pos")), GoExpr.GoIdent("value"))
+					GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoIdent("pos")), GoExpr.GoIdent("value")),
+					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_rawValid"), GoExpr.GoBoolLiteral(false))
 				]),
 			GoDecl.GoFuncDecl("New_haxe__io__BytesBuffer", null, [], ["*haxe__io__BytesBuffer"],
 				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__BytesBuffer{b: []int{}}"))]),
@@ -1715,10 +1722,15 @@ class GoCompiler {
 				}
 			], ["[]byte"], [
 				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("value"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoRaw("[]byte{}"))], null),
+				GoStmt.GoRaw("if value.__hx_rawValid && len(value.__hx_raw) == len(value.b) {"),
+				GoStmt.GoRaw("\treturn value.__hx_raw"),
+				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("raw := make([]byte, len(value.b))"),
 				GoStmt.GoRaw("for i := 0; i < len(value.b); i++ {"),
 				GoStmt.GoRaw("\traw[i] = byte(value.b[i])"),
 				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("value.__hx_raw = raw"),
+				GoStmt.GoRaw("value.__hx_rawValid = true"),
 				GoStmt.GoReturn(GoExpr.GoIdent("raw"))
 			]),
 			GoDecl.GoFuncDecl("hxrt_rawToHaxeBytes", null, [
@@ -1731,7 +1743,7 @@ class GoCompiler {
 				GoStmt.GoRaw("for i := 0; i < len(value); i++ {"),
 				GoStmt.GoRaw("\tconverted[i] = int(value[i])"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: converted, length: len(converted)}"))
+				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: value, __hx_rawValid: true}"))
 			]),
 			GoDecl.GoFuncDecl("haxe__crypto__Base64_encode", null, [
 				{
