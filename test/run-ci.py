@@ -25,6 +25,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-stdlib-sweep", action="store_true", help="Skip upstream stdlib sweep stage")
     parser.add_argument("--force-stdlib-sweep", action="store_true", help="Run stdlib sweep even for chunked/filtered runs")
     parser.add_argument("--stdlib-compile-only", action="store_true", help="Run stdlib sweep without go test stage")
+    parser.add_argument("--skip-semantic-diff", action="store_true", help="Skip semantic differential stage")
+    parser.add_argument("--force-semantic-diff", action="store_true", help="Run semantic differential stage even for chunked/filtered runs")
     parser.add_argument("--skip-examples", action="store_true", help="Skip examples stage")
     parser.add_argument("--force-examples", action="store_true", help="Run examples even for chunked/filtered runs")
     parser.add_argument("--examples-compile-only", action="store_true", help="Run examples compile/go-test checks without go run stdout checks")
@@ -75,6 +77,28 @@ def build_stdlib_command(args: argparse.Namespace) -> list[str]:
     return cmd
 
 
+def should_run_semantic_diff(args: argparse.Namespace) -> bool:
+    if args.skip_semantic_diff:
+        return False
+    if args.force_semantic_diff:
+        return True
+
+    # Keep semantic diff on full runs by default.
+    return not (args.chunk or args.failed or args.changed or args.pattern)
+
+
+def build_semantic_diff_command(args: argparse.Namespace) -> list[str]:
+    cmd = [
+        "python3",
+        "test/run-semantic-diff.py",
+        "--timeout",
+        str(args.timeout),
+    ]
+    if args.changed:
+        cmd.append("--changed")
+    return cmd
+
+
 def should_run_examples(args: argparse.Namespace) -> bool:
     if args.skip_examples:
         return False
@@ -114,6 +138,14 @@ def main() -> int:
             return stdlib_code
     else:
         print("==> Skipping stdlib sweep stage")
+
+    if should_run_semantic_diff(args):
+        print("==> Semantic diff stage")
+        semantic_diff_code = run(build_semantic_diff_command(args))
+        if semantic_diff_code != 0:
+            return semantic_diff_code
+    else:
+        print("==> Skipping semantic diff stage")
 
     if not should_run_examples(args):
         print("==> Skipping examples stage")

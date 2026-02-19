@@ -5,7 +5,7 @@
 `reflaxe.go` treats a surface area as **supported** when all of the following are true:
 
 1. It has snapshot or harness coverage in `test/snapshot`.
-2. It runs through `python3 test/run-ci.py` in CI (`snapshot` + `stdlib sweep` + `examples`).
+2. It runs through `python3 test/run-ci.py` in CI (`snapshot` + `stdlib sweep` + `semantic diff` + `examples`).
 3. Generated Go passes `go test ./...` for the covered case(s).
 
 Anything outside that bar is either **partial** (implemented but not fully gated) or **unsupported**.
@@ -31,6 +31,13 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 | Unsigned right shift behavior | Supported | `core/unsigned_shift`, `core/unsigned_shift_assign` |
 | Naming/mangling and deterministic code shape | Supported | `core/naming_mangling`, `core/optimized_ast_policy` |
 | HXML define/include resolution | Supported | `core/nested_hxml_define_detection`, `core/nested_hxml_long_define_detection`, `core/nested_hxml_quoted_define_detection`, `core/nested_hxml_root_relative_include_detection` |
+
+### Semantic diff fixture coverage
+
+- `test/semantic_diff/null_string_concat`
+- `test/semantic_diff/exceptions_typed_dynamic`
+- `test/semantic_diff/enum_switch_bindings`
+- `test/semantic_diff/virtual_dispatch`
 
 ## Profile matrix
 

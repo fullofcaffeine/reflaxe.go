@@ -30,6 +30,18 @@ Force stdlib sweep on a shard:
 python3 test/run-ci.py --chunk 0/4 --force-stdlib-sweep
 ```
 
+Skip semantic diff stage:
+
+```bash
+python3 test/run-ci.py --skip-semantic-diff
+```
+
+Force semantic diff on a shard:
+
+```bash
+python3 test/run-ci.py --chunk 0/4 --force-semantic-diff
+```
+
 Force examples stage on a focused run:
 
 ```bash
@@ -120,6 +132,26 @@ Run the broader parity-gap probe inventory list:
 
 ```bash
 python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_gap_probe.txt --go-test
+```
+
+## Semantic differential harness
+
+Compare runtime behavior between Haxe reference execution (`--interp`) and `reflaxe.go` generated output (`portable` profile):
+
+```bash
+python3 test/run-semantic-diff.py
+```
+
+List cases:
+
+```bash
+python3 test/run-semantic-diff.py --list
+```
+
+Run only changed semantic cases:
+
+```bash
+python3 test/run-semantic-diff.py --changed
 ```
 
 ## Examples matrix

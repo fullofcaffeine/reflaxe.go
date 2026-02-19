@@ -1,2 +1,3 @@
 snapshot/**/out/
+semantic_diff/**/out/
 .test-cache/

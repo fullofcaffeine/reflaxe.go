@@ -29,6 +29,7 @@ Use `-D reflaxe_go_profile=portable|gopher|metal`.
 
 - Run snapshots: `python3 test/run-snapshots.py`
 - Run CI surface: `python3 test/run-ci.py`
+- Run semantic differential checks (interp vs Go portable): `python3 test/run-semantic-diff.py`
 - Run examples profile matrix: `python3 test/run-examples.py`
 - Re-run previous failures: `python3 test/run-snapshots.py --failed`
 - Bless changed snapshot files only: `python3 test/run-snapshots.py --bless`

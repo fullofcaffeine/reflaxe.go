@@ -16,6 +16,7 @@
     "test:changed": "python3 test/run-snapshots.py --changed",
     "test:update": "python3 test/run-snapshots.py --update",
     "test:bless": "python3 test/run-snapshots.py --bless",
+    "test:semantic-diff": "python3 test/run-semantic-diff.py",
     "test:stdlib-sweep": "python3 test/run-upstream-stdlib-sweep.py",
     "test:stdlib-sweep:strict": "python3 test/run-upstream-stdlib-sweep.py --strict",
     "test:stdlib-sweep:go-test": "python3 test/run-upstream-stdlib-sweep.py --strict --go-test",
