@@ -92,6 +92,18 @@ Details: [docs/profiles.md](docs/profiles.md)
 - [examples/README.md](examples/README.md): examples overview.
 - [docs/examples-matrix.md](docs/examples-matrix.md): exact compile/run/artifact matrix.
 
+## Coverage Tiers
+
+The project uses explicit guarantee tiers so “supported” has a concrete meaning:
+
+| Tier | Guarantee | Harness | Representative coverage |
+| --- | --- | --- | --- |
+| `compile-only` | Module/API compiles and generated Go passes probe-level `go test`, but no runtime parity claim by itself | `python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test` | `haxe.Int64`, `haxe.PosInfos`, `haxe.ds.Vector`, `sys.net.Host` |
+| `snapshot` | Deterministic generated Go shape + targeted runtime smoke for selected behaviors | `python3 test/run-snapshots.py` | `stdlib/json_parse_stringify`, `stdlib/crypto_xml_zip_basic`, `sys/http_custom_request_parity` |
+| `semantic-diff` | Runtime output parity against Haxe `--interp` for deterministic fixtures | `python3 test/run-semantic-diff.py` | `serializer_resolver_polymorphism_contract`, `serializer_reference_stress_contract`, `socket_advanced_contract`, `ereg_edge_contract` |
+
+Details and full inventory: [docs/feature-support-matrix.md](docs/feature-support-matrix.md#coverage-tiers)
+
 ## Most Useful Commands
 
 - New project generator: `npm run dev:new-project -- ./my_haxe_go_app`

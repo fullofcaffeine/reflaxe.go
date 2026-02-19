@@ -10,6 +10,30 @@
 
 Anything outside that bar is either **partial** (implemented but not fully gated) or **unsupported**.
 
+## Coverage tiers
+
+Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, and the highest tier is its effective guarantee.
+
+| Tier | Guarantee | Primary evidence |
+| --- | --- | --- |
+| `compile-only` | Symbol/type availability and codegen viability (`go test` on generated probe), without runtime parity guarantees on its own | `test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test` |
+| `snapshot` | Deterministic generated Go shape and targeted runtime smoke behavior | `test/run-snapshots.py`, fixtures in `test/snapshot` |
+| `semantic-diff` | Runtime output parity against Haxe `--interp` for deterministic behavior contracts | `test/run-semantic-diff.py`, fixtures in `test/semantic_diff` |
+
+`compile-only` by itself is a **partial** guarantee. Surfaces become fully supported only when they satisfy the support contract above.
+
+### Representative tier map
+
+| Surface | Highest tier | Evidence |
+| --- | --- | --- |
+| `haxe.Serializer` / `haxe.Unserializer` | `semantic-diff` | `serializer_wire_contract`, `serializer_cache_reference_contract`, `serializer_resolver_polymorphism_contract`, `serializer_reference_stress_contract` |
+| `EReg` | `semantic-diff` | `ereg_behavior_contract`, `ereg_edge_contract` |
+| `sys.net.Socket` | `semantic-diff` | `socket_loopback_contract`, `socket_advanced_contract` |
+| `haxe.crypto.*` + `haxe.xml.*` + `haxe.zip.*` subset | `semantic-diff` | `crypto_xml_zip` |
+| `haxe.Json` | `snapshot` | `stdlib/json_parse_stringify` |
+| `sys.io.Process` | `snapshot` | `sys/process_echo_smoke` |
+| `haxe.ds.Vector` | `compile-only` | `test/upstream_std_modules_full.txt` sweep coverage |
+
 ## Language/Core matrix
 
 | Surface | Status | Evidence (snapshot IDs) |
