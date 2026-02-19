@@ -1,3 +1,9 @@
+## [0.8.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.7.0...v0.8.0) (2026-02-19)
+
+### Features
+
+* **ereg:** harden option and match-state parity ([193d30f](https://github.com/fullofcaffeine/reflaxe.go/commit/193d30f8acd7a5b18fab0722721236da313719d9))
+
 ## [0.7.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.6.0...v0.7.0) (2026-02-19)
 
 ### Features
