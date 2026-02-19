@@ -127,12 +127,15 @@ class GoCompiler {
 			imports.push("time");
 		}
 		if (requiredStdlibShimGroups.exists("regex_serializer")) {
+			imports.push("encoding/base64");
 			imports.push("math");
 			imports.push("reflect");
 			imports.push("regexp");
 			imports.push("sort");
 			imports.push("strconv");
 			imports.push("strings");
+			imports.push("time");
+			imports.push("unsafe");
 		}
 		if (requiredStdlibShimGroups.exists("net_socket")) {
 			imports.push("bufio");
@@ -2338,6 +2341,13 @@ class GoCompiler {
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
 					[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("builder"), "String"), [])]))
 			]),
+			GoDecl.GoStructDecl("haxe__SerializedDate", [
+				{
+					name: "ms",
+					typeName: "float64"
+				}
+			]),
+			GoDecl.GoStructDecl("haxe__SerializedBytes", [{name: "data", typeName: "[]byte"}]),
 			GoDecl.GoStructDecl("haxe__Serializer", [
 				{
 					name: "buf",
@@ -2437,6 +2447,105 @@ class GoCompiler {
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("hxrt_serializerAppend(self, \"i\" + strconv.FormatInt(value, 10))")
 			]),
+			GoDecl.GoFuncDecl("hxrt_serializerWriteBytesToken", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Serializer"
+				},
+				{name: "raw", typeName: "[]byte"}
+			], [], [
+				GoStmt.GoRaw("encoded := base64.StdEncoding.EncodeToString(raw)"),
+				GoStmt.GoRaw("encoded = strings.TrimRight(encoded, \"=\")"),
+				GoStmt.GoRaw("hxrt_serializerAppend(self, \"s\" + strconv.Itoa(len(encoded)) + \":\" + encoded)")
+			]),
+			GoDecl.GoFuncDecl("hxrt_serializerTryDateStruct", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Serializer"
+				},
+				{name: "ref", typeName: "reflect.Value"}
+			], ["bool"], [
+				GoStmt.GoRaw("defer func() {"),
+				GoStmt.GoRaw("\tif recover() != nil {"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}()"),
+				GoStmt.GoRaw("if !ref.IsValid() || ref.Kind() != reflect.Struct {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("valueField := ref.FieldByName(\"value\")"),
+				GoStmt.GoRaw("if !valueField.IsValid() || !valueField.CanAddr() {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("fieldType := valueField.Type()"),
+				GoStmt.GoRaw("if fieldType.PkgPath() != \"time\" || fieldType.Name() != \"Time\" {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("timeAny := reflect.NewAt(fieldType, unsafe.Pointer(valueField.UnsafeAddr())).Elem().Interface()"),
+				GoStmt.GoRaw("timeValue, ok := timeAny.(time.Time)"),
+				GoStmt.GoRaw("if !ok {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("ms := float64(timeValue.UnixNano()) / 1000000.0"),
+				GoStmt.GoRaw("hxrt_serializerAppend(self, \"v\" + strconv.FormatFloat(ms, 'g', -1, 64))"),
+				GoStmt.GoRaw("return true")
+			]),
+			GoDecl.GoFuncDecl("hxrt_serializerTrySpecialReflect", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Serializer"
+				},
+				{name: "value", typeName: "any"}
+			], ["bool"], [
+				GoStmt.GoRaw("ref := reflect.ValueOf(value)"),
+				GoStmt.GoRaw("if !ref.IsValid() {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("for ref.Kind() == reflect.Interface {"),
+				GoStmt.GoRaw("\tif ref.IsNil() {"),
+				GoStmt.GoRaw("\t\treturn false"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tref = ref.Elem()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("for ref.Kind() == reflect.Pointer {"),
+				GoStmt.GoRaw("\tif ref.IsNil() {"),
+				GoStmt.GoRaw("\t\treturn false"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tref = ref.Elem()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if !ref.IsValid() || ref.Kind() != reflect.Struct {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("typeName := ref.Type().Name()"),
+				GoStmt.GoRaw("if typeName == \"Date\" {"),
+				GoStmt.GoRaw("\tif hxrt_serializerTryDateStruct(self, ref) {"),
+				GoStmt.GoRaw("\t\treturn true"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if typeName == \"haxe__io__Bytes\" {"),
+				GoStmt.GoRaw("\tbytesField := ref.FieldByName(\"b\")"),
+				GoStmt.GoRaw("\tif !bytesField.IsValid() || bytesField.Kind() != reflect.Slice {"),
+				GoStmt.GoRaw("\t\treturn false"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\traw := make([]byte, bytesField.Len())"),
+				GoStmt.GoRaw("\tfor i := 0; i < bytesField.Len(); i++ {"),
+				GoStmt.GoRaw("\t\tentry := bytesField.Index(i)"),
+				GoStmt.GoRaw("\t\tif !entry.IsValid() {"),
+				GoStmt.GoRaw("\t\t\treturn false"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tswitch entry.Kind() {"),
+				GoStmt.GoRaw("\t\tcase reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:"),
+				GoStmt.GoRaw("\t\t\traw[i] = byte(entry.Int())"),
+				GoStmt.GoRaw("\t\tcase reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:"),
+				GoStmt.GoRaw("\t\t\traw[i] = byte(entry.Uint())"),
+				GoStmt.GoRaw("\t\tdefault:"),
+				GoStmt.GoRaw("\t\t\treturn false"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\thxrt_serializerWriteBytesToken(self, raw)"),
+				GoStmt.GoRaw("\treturn true"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return false")
+			]),
 			GoDecl.GoFuncDecl("hxrt_serializerTrackRef", null, [
 				{
 					name: "self",
@@ -2516,6 +2625,26 @@ class GoCompiler {
 				GoStmt.GoRaw("\t\thxrt_serializerWriteStringToken(self, *current)"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case haxe__SerializedDate:"),
+				GoStmt.GoRaw("\thxrt_serializerAppend(self, \"v\" + strconv.FormatFloat(current.ms, 'g', -1, 64))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case *haxe__SerializedDate:"),
+				GoStmt.GoRaw("\tif current == nil {"),
+				GoStmt.GoRaw("\t\thxrt_serializerAppend(self, \"n\")"),
+				GoStmt.GoRaw("\t} else {"),
+				GoStmt.GoRaw("\t\thxrt_serializerAppend(self, \"v\" + strconv.FormatFloat(current.ms, 'g', -1, 64))"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case haxe__SerializedBytes:"),
+				GoStmt.GoRaw("\thxrt_serializerWriteBytesToken(self, current.data)"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case *haxe__SerializedBytes:"),
+				GoStmt.GoRaw("\tif current == nil {"),
+				GoStmt.GoRaw("\t\thxrt_serializerAppend(self, \"n\")"),
+				GoStmt.GoRaw("\t} else {"),
+				GoStmt.GoRaw("\t\thxrt_serializerWriteBytesToken(self, current.data)"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn"),
 				GoStmt.GoRaw("case int:"),
 				GoStmt.GoRaw("\thxrt_serializerWriteIntToken(self, int64(current))"),
 				GoStmt.GoRaw("\treturn"),
@@ -2581,6 +2710,9 @@ class GoCompiler {
 				GoStmt.GoRaw("ref := reflect.ValueOf(value)"),
 				GoStmt.GoRaw("if !ref.IsValid() {"),
 				GoStmt.GoRaw("\thxrt_serializerAppend(self, \"n\")"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if hxrt_serializerTrySpecialReflect(self, value) {"),
 				GoStmt.GoRaw("\treturn"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("switch ref.Kind() {"),
@@ -2820,6 +2952,56 @@ class GoCompiler {
 				GoStmt.GoRaw("\t\treturn 0.0"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\treturn parsed"),
+				GoStmt.GoRaw("case 'v':"),
+				GoStmt.GoRaw("\tstart := self.pos"),
+				GoStmt.GoRaw("\thasDigit := false"),
+				GoStmt.GoRaw("\tfor self.pos < len(raw) {"),
+				GoStmt.GoRaw("\t\tch := raw[self.pos]"),
+				GoStmt.GoRaw("\t\tif ch >= '0' && ch <= '9' {"),
+				GoStmt.GoRaw("\t\t\thasDigit = true"),
+				GoStmt.GoRaw("\t\t\tself.pos++"),
+				GoStmt.GoRaw("\t\t\tcontinue"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tif ch == '+' || ch == '-' || ch == '.' || ch == 'e' || ch == 'E' {"),
+				GoStmt.GoRaw("\t\t\tself.pos++"),
+				GoStmt.GoRaw("\t\t\tcontinue"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tbreak"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tif !hasDigit {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized date\"))"),
+				GoStmt.GoRaw("\t\treturn &haxe__SerializedDate{ms: 0}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tparsed, err := strconv.ParseFloat(raw[start:self.pos], 64)"),
+				GoStmt.GoRaw("\tif err != nil {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(err)"),
+				GoStmt.GoRaw("\t\treturn &haxe__SerializedDate{ms: 0}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn &haxe__SerializedDate{ms: parsed}"),
+				GoStmt.GoRaw("case 's':"),
+				GoStmt.GoRaw("\tlength := haxe__Unserializer_readUInt(self)"),
+				GoStmt.GoRaw("\tif self.pos >= len(raw) || raw[self.pos] != ':' {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized bytes\"))"),
+				GoStmt.GoRaw("\t\treturn &haxe__SerializedBytes{data: []byte{}}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tself.pos++"),
+				GoStmt.GoRaw("\tif length < 0 || self.pos+length > len(raw) {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized bytes length\"))"),
+				GoStmt.GoRaw("\t\treturn &haxe__SerializedBytes{data: []byte{}}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tencoded := raw[self.pos : self.pos+length]"),
+				GoStmt.GoRaw("\tself.pos += length"),
+				GoStmt.GoRaw("\tdecoded, err := base64.RawStdEncoding.DecodeString(encoded)"),
+				GoStmt.GoRaw("\tif err != nil {"),
+				GoStmt.GoRaw("\t\tdecoded, err = base64.StdEncoding.DecodeString(encoded)"),
+				GoStmt.GoRaw("\t\tif err != nil {"),
+				GoStmt.GoRaw("\t\t\thxrt.Throw(err)"),
+				GoStmt.GoRaw("\t\t\treturn &haxe__SerializedBytes{data: []byte{}}"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tout := make([]byte, len(decoded))"),
+				GoStmt.GoRaw("\tcopy(out, decoded)"),
+				GoStmt.GoRaw("\treturn &haxe__SerializedBytes{data: out}"),
 				GoStmt.GoRaw("case 'y':"),
 				GoStmt.GoRaw("\tlength := haxe__Unserializer_readUInt(self)"),
 				GoStmt.GoRaw("\tif self.pos >= len(raw) || raw[self.pos] != ':' {"),
