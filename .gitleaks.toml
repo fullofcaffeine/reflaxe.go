@@ -1,0 +1,9 @@
+title = "reflaxe.go gitleaks config"
+
+[allowlist]
+description = "Allow known placeholder local Postgres credentials used in docs/CI examples"
+regexes = [
+  '''POSTGRES_PASSWORD=postgres''',
+  '''POSTGRES_PASSWORD:[[:space:]]+postgres''',
+  '''PGPASSWORD:[[:space:]]+postgres''',
+]

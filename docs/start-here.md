@@ -12,6 +12,12 @@
 npm install
 ```
 
+Install repo pre-commit hooks (recommended):
+
+```bash
+npm run hooks:install
+```
+
 2. Run snapshots:
 
 ```bash
@@ -60,3 +66,4 @@ Compatibility note:
 - `docs/profile-admission-criteria.md`
 - `docs/compiler-target-template.md`
 - `docs/snapshot-policy.md`
+- `SECURITY.md`

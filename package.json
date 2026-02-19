@@ -22,7 +22,9 @@
     "examples:compile": "python3 test/run-examples.py --compile-only",
     "examples:bless": "python3 test/run-examples.py --bless-generated",
     "examples:sync": "python3 scripts/examples/sync-generated.py",
-    "examples:bins": "bash scripts/examples/build-binaries.sh"
+    "examples:bins": "bash scripts/examples/build-binaries.sh",
+    "hooks:install": "bash scripts/install-git-hooks.sh",
+    "security:gitleaks": "bash scripts/security/run-gitleaks.sh"
   },
   "devDependencies": {
     "lix": "^15.0.0"

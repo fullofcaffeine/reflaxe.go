@@ -11,6 +11,7 @@ This backend prioritizes portable Haxe semantics first, with an opt-in Go-first 
 - Defines reference: `docs/defines-reference.md`
 - Examples matrix: `docs/examples-matrix.md`
 - Future target template: `docs/compiler-target-template.md`
+- Security policy: `SECURITY.md`
 
 ## Profiles
 
@@ -30,12 +31,22 @@ Use `-D reflaxe_go_profile=portable|gopher|metal`.
 - Re-run previous failures: `python3 test/run-snapshots.py --failed`
 - Bless changed snapshot files only: `python3 test/run-snapshots.py --bless`
 - Bless generated example Go trees: `python3 test/run-examples.py --bless-generated`
+- Install repo pre-commit hook: `npm run hooks:install`
+- Run repository gitleaks scan: `npm run security:gitleaks`
 
 ## Strictness
 
 - `-D reflaxe_go_strict_examples`: repo examples/snapshots may not use raw `__go__`.
 - `-D reflaxe_go_strict`: user project strict app-boundary policy.
 - `metal` enables strict mode defaults for app-side injections.
+
+## Local Security Gate
+
+The repo-managed pre-commit hook (`npm run hooks:install`) enforces:
+
+- staged local path leak guard (`scripts/lint/local_path_guard_staged.sh`)
+- staged secret scan with `gitleaks` (`scripts/security/run-gitleaks.sh --staged`)
+- staged Haxe auto-format (`haxelib run formatter`)
 
 ## Examples
 
