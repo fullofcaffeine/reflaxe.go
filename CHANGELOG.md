@@ -1,3 +1,9 @@
+## [0.13.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.12.0...v0.13.0) (2026-02-19)
+
+### Features
+
+* **serializer:** add custom token and resolver materialization ([c312c2f](https://github.com/fullofcaffeine/reflaxe.go/commit/c312c2fe418b5252c22ecb87c4d2b0e8bfc3d1ea))
+
 ## [0.12.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.11.0...v0.12.0) (2026-02-19)
 
 ### Features
