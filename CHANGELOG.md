@@ -1,3 +1,9 @@
+## [0.17.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.16.0...v0.17.0) (2026-02-19)
+
+### Features
+
+* **stdlib:** migrate json shim declarations out of compiler core ([8b18b3f](https://github.com/fullofcaffeine/reflaxe.go/commit/8b18b3f07d1f6ad116b6101035883dd53d2aa90f))
+
 ## [0.16.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.15.0...v0.16.0) (2026-02-19)
 
 ### Features
