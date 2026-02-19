@@ -136,6 +136,15 @@ Shim strategy and alternatives are documented in:
 - `haxe.Json.parse`/`haxe.Json.stringify`, `haxe.format.JsonPrinter.print`, and `haxe.format.JsonParser.doParse` now lower directly to `hxrt.JsonParse`/`hxrt.JsonStringify`.
 - Compiler-emitted JSON shim declarations were removed from `GoCompiler` (no `haxe__Json`/`haxe__format__JsonParser` synthetic declarations in generated output).
 
+### `Sys` / `sys.io.File` / `sys.io.Process` ownership contract
+
+- Runtime behavior now lives in `runtime/hxrt/hxrt.go`:
+  - `hxrt.SysGetCwd`, `hxrt.SysArgs`
+  - `hxrt.FileSaveContent`, `hxrt.FileGetContent`
+  - `hxrt.NewProcess`, `Process.Stdout`, `ProcessOutput.ReadLine`, `Process.Close`
+- Compiler-generated `sys` declarations remain as thin wrappers to preserve Haxe type shape and call signatures.
+- `lowerSysStdlibShimDecls` is forwarding-only for this surface; behavior changes must be implemented in runtime and verified by `sys/file_read_write_smoke` and `sys/process_echo_smoke`.
+
 ### `sys.Http` shim contract and tradeoffs
 
 - `sys.Http` now includes synchronous request semantics for `http`/`https` and deterministic `data:` handling used by tests.
@@ -155,7 +164,7 @@ Shim strategy and alternatives are documented in:
 - Remaining gap: full Haxe serializer surface is still in progress (notably under-tested exotic edge combinations outside current fixtures and cross-target differences for unsupported non-standard resolver return payloads).
 - Active follow-up tracking:
   - `haxe.go-7zy.10` (migrate `haxe.Json` shim out of compiler core, completed 2026-02-19)
-  - `haxe.go-7zy.11` (migrate `Sys`/`sys.io.File`/`sys.io.Process` shim path out of compiler core)
+  - `haxe.go-7zy.11` (migrate `Sys`/`sys.io.File`/`sys.io.Process` shim path out of compiler core, completed 2026-02-19)
   - `haxe.go-7zy.12` (reduce `stdlib_symbols` bytes-conversion overhead, completed 2026-02-19)
 
 ### Upstream module sweep (strict CI-gated)

@@ -105,11 +105,6 @@ class GoCompiler {
 			imports.push("strings");
 			imports.push("time");
 		}
-		if (requiredStdlibShimGroups.exists("sys")) {
-			imports.push("bufio");
-			imports.push("os");
-			imports.push("os/exec");
-		}
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			imports.push("bytes");
 			imports.push("compress/zlib");
@@ -1275,28 +1270,16 @@ class GoCompiler {
 		return [
 			GoDecl.GoStructDecl("Sys", []),
 			GoDecl.GoStructDecl("sys__io__File", []),
-			GoDecl.GoStructDecl("sys__io__ProcessOutput", [{name: "scanner", typeName: "*bufio.Scanner"}]),
+			GoDecl.GoStructDecl("sys__io__ProcessOutput", [{name: "impl", typeName: "*hxrt.ProcessOutput"}]),
 			GoDecl.GoStructDecl("sys__io__Process", [
-				{name: "cmd", typeName: "*exec.Cmd"},
+				{name: "impl", typeName: "*hxrt.Process"},
 				{name: "stdout", typeName: "*sys__io__ProcessOutput"}
 			]),
 			GoDecl.GoFuncDecl("Sys_getCwd", null, [], ["*string"], [
-				GoStmt.GoRaw("cwd, err := os.Getwd()"),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
-				],
-					null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("cwd")]))
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysGetCwd"), []))
 			]),
 			GoDecl.GoFuncDecl("Sys_args", null, [], ["[]*string"], [
-				GoStmt.GoRaw("args := os.Args"),
-				GoStmt.GoIf(GoExpr.GoBinary("<=", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent("args")]), GoExpr.GoIntLiteral(1)),
-					[GoStmt.GoReturn(GoExpr.GoRaw("[]*string{}"))], null),
-				GoStmt.GoRaw("out := make([]*string, 0, len(args)-1)"),
-				GoStmt.GoRaw("for _, arg := range args[1:] {"),
-				GoStmt.GoRaw("\tout = append(out, hxrt.StringFromLiteral(arg))"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoIdent("out"))
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysArgs"), []))
 			]),
 			GoDecl.GoFuncDecl("sys__io__File_saveContent", null, [
 				{
@@ -1305,7 +1288,8 @@ class GoCompiler {
 				},
 				{name: "content", typeName: "*string"}
 			], [], [
-				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoRaw("os.WriteFile(*hxrt.StdString(path), []byte(*hxrt.StdString(content)), 0o644)"))
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "FileSaveContent"),
+					[GoExpr.GoIdent("path"), GoExpr.GoIdent("content")]))
 			]),
 			GoDecl.GoFuncDecl("sys__io__File_getContent", null, [
 				{
@@ -1313,12 +1297,7 @@ class GoCompiler {
 					typeName: "*string"
 				}
 			], ["*string"], [
-				GoStmt.GoRaw("raw, err := os.ReadFile(*hxrt.StdString(path))"),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
-				],
-					null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("string(raw)")]))
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "FileGetContent"), [GoExpr.GoIdent("path")]))
 			]),
 			GoDecl.GoFuncDecl("New_sys__io__Process", null, [
 				{
@@ -1327,35 +1306,30 @@ class GoCompiler {
 				},
 				{name: "args", typeName: "[]*string"}
 			], ["*sys__io__Process"], [
-				GoStmt.GoRaw("cmd := exec.Command(*hxrt.StdString(command), hxrt.StringSlice(args)...)"),
-				GoStmt.GoRaw("stdoutPipe, _ := cmd.StdoutPipe()"),
-				GoStmt.GoRaw("_ = cmd.Start()"),
-				GoStmt.GoRaw("scanner := bufio.NewScanner(stdoutPipe)"),
-				GoStmt.GoReturn(GoExpr.GoRaw("&sys__io__Process{cmd: cmd, stdout: &sys__io__ProcessOutput{scanner: scanner}}"))
+				GoStmt.GoVarDecl("impl", null,
+					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "NewProcess"), [GoExpr.GoIdent("command"), GoExpr.GoIdent("args")]), true),
+				GoStmt.GoVarDecl("stdout", null, GoExpr.GoRaw("&sys__io__ProcessOutput{}"), true),
+				GoStmt.GoRaw("if impl != nil {"),
+				GoStmt.GoRaw("\tstdout.impl = impl.Stdout()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoRaw("&sys__io__Process{impl: impl, stdout: stdout}"))
 			]),
 			GoDecl.GoFuncDecl("readLine", {
 				name: "self",
 				typeName: "*sys__io__ProcessOutput"
 			}, [], ["*string"], [
-				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.scanner == nil"), [
+				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.impl == nil"), [
 					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
-				], null),
-				GoStmt.GoIf(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "scanner"), "Scan"), []), [
-					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [
-						GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "scanner"), "Text"), [])
-					]))
-				], null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
+				],
+					null),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "impl"), "ReadLine"), []))
 			]),
 			GoDecl.GoFuncDecl("close", {
 				name: "self",
 				typeName: "*sys__io__Process"
 			}, [], [], [
-				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.cmd == nil"), [GoStmt.GoReturn(null)], null),
-				GoStmt.GoRaw("if self.cmd.Process != nil {"),
-				GoStmt.GoRaw("\t_ = self.cmd.Process.Kill()"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "cmd"), "Wait"), []))
+				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.impl == nil"), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "impl"), "Close"), []))
 			])
 		];
 	}

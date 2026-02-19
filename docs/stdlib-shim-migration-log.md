@@ -50,6 +50,42 @@ Observed result:
 - Snapshot no longer emits `haxe__Json`/`haxe__format__JsonParser` declarations.
 - Strict stdlib sweeps remain green (`55/55` and `175/175`).
 
+### 2026-02-19: Sys/File/Process extraction from compiler core (`haxe.go-7zy.11`)
+
+Implementation:
+
+- Removed behavior-heavy `sys` imports (`bufio`, `os`, `os/exec`) from compiler shim import wiring in `src/reflaxe/go/GoCompiler.hx`.
+- Reworked `lowerSysStdlibShimDecls` to forwarding wrappers only:
+  - `Sys_getCwd` -> `hxrt.SysGetCwd`
+  - `Sys_args` -> `hxrt.SysArgs`
+  - `sys__io__File_saveContent` -> `hxrt.FileSaveContent`
+  - `sys__io__File_getContent` -> `hxrt.FileGetContent`
+  - `New_sys__io__Process` -> `hxrt.NewProcess`
+  - `sys__io__ProcessOutput.readLine` -> `hxrt.ProcessOutput.ReadLine`
+  - `sys__io__Process.close` -> `hxrt.Process.Close`
+- Added runtime-owned behavior to `runtime/hxrt/hxrt.go`:
+  - `SysGetCwd`, `SysArgs`, `FileSaveContent`, `FileGetContent`
+  - `ProcessOutput` and `Process` runtime types
+  - `NewProcess`, `Stdout`, `ReadLine`, `Close`
+- Preserved generated Haxe type-shape parity by keeping compiler-side wrapper structs that now delegate all behavior.
+
+Validation evidence:
+
+- Focused parity:
+  - `python3 test/run-snapshots.py --case sys/file_read_write_smoke --case sys/process_echo_smoke`
+  - `python3 test/run-upstream-stdlib-sweep.py --module Sys --module sys.io.File --module sys.io.Process --strict --go-test`
+- Full regression:
+  - `npm run test:ci`
+
+Observed result:
+
+- `lowerSysStdlibShimDecls` no longer carries behavior-heavy file/process logic.
+- Local CI remains fully green after migration:
+  - snapshots: `94/94`
+  - strict stdlib sweep: `55/55`
+  - semantic diff: `27/27`
+  - examples: `6/6`
+
 ### 2026-02-19: `stdlib_symbols` bytes-conversion optimization (`haxe.go-7zy.12`)
 
 Implementation:
@@ -83,5 +119,4 @@ Observed result:
 
 ## Open migration track
 
-- `haxe.go-7zy.11`: move `Sys`/`sys.io.File`/`sys.io.Process` shims out of compiler core.
-- `haxe.go-7zy.12`: reduce `stdlib_symbols` conversion overhead while preserving parity.
+- No open shim migration beads remain in the `haxe.go-7zy.10`/`.11`/`.12` sequence.

@@ -26,13 +26,19 @@ Execution history and validation evidence are tracked in `docs/stdlib-shim-migra
 | Shim group | Primary surfaces | Compiler LOC | Highest CI tier | Decision | Reason | Follow-up |
 | --- | --- | ---: | --- | --- | --- | --- |
 | `json` | `haxe.Json`, `haxe.format.JsonParser/JsonPrinter` | 38 | Snapshot | Migrated (runtime-lowered) | Compiler-emitted JSON declarations removed; calls now lower directly to `hxrt.JsonParse`/`hxrt.JsonStringify`. | `haxe.go-7zy.10` |
-| `sys` | `Sys`, `sys.io.File`, `sys.io.Process` | 89 | Snapshot | Migrate | Mostly OS/process wrappers; good candidate for `std/_std` ownership once parity fixtures are preserved. | `haxe.go-7zy.11` |
+| `sys` | `Sys`, `sys.io.File`, `sys.io.Process` | 89 | Snapshot | Migrated (runtime-owned wrappers) | Behavior now lives in `hxrt.Sys*`/`hxrt.File*`/`hxrt.Process*`; compiler shim generation is reduced to thin wrapper/type-shape forwarding. | `haxe.go-7zy.11` (completed 2026-02-19) |
 | `io` | `haxe.io.Bytes`, buffers, input/output base wiring | 108 | Snapshot + semantic-diff dependency | Keep (for now) | Shared representation boundary used by crypto/http/serializer flows. | - |
 | `ds` | `haxe.ds.*Map`, `List`, enum maps | 149 | Snapshot + semantic-diff dependency | Keep (for now) | Serializer and HTTP contracts rely on deterministic generated map/list shapes. | - |
 | `http` | `sys.Http` request/callback/proxy contract | 542 | Semantic-diff | Keep | Behavior includes callback choreography and deterministic request handling under test contract. | - |
 | `stdlib_symbols` | `Std`, `StringTools`, `Date`, `Math`, `Reflect`, crypto/xml/zip, filesystem subset | 706 | Semantic-diff | Keep + optimize (landed) | Broad compatibility layer remains in compiler core; bytes conversion path now uses cached raw representation to cut repeated conversion overhead. | `haxe.go-7zy.12` |
 | `regex_serializer` | `EReg`, `haxe.Serializer`, `haxe.Unserializer` | 2460 | Semantic-diff | Keep | High behavior density and project metadata coupling (resolver semantics, token stream, reflection). | - |
 | `net_socket` | `sys.net.Host`, `sys.net.Socket` | 2958 | Semantic-diff | Keep | Deadline/select/shutdown readiness behavior is target-specific and currently best enforced in one compiler-controlled path. | - |
+
+## Ownership Boundary (Post `haxe.go-7zy.11`)
+
+- `runtime/hxrt/hxrt.go` owns `Sys`/`sys.io.File`/`sys.io.Process` behavior (OS args/cwd, file reads/writes, process launch/stdout/close).
+- `src/reflaxe/go/GoCompiler.hx` owns lowering and generated type-shape wrappers only for this surface.
+- `lowerSysStdlibShimDecls` must remain forwarding-only unless a behavior change is intentionally re-centralized and justified with parity/perf evidence.
 
 ## Measured Tradeoff: Shim vs Simpler Path
 
@@ -65,7 +71,7 @@ Interpretation:
 ## Migration Sequence
 
 1. Move `json` out of compiler core first (`haxe.go-7zy.10`) because it is the thinnest shim and lowest risk.
-2. Move `sys` wrappers second (`haxe.go-7zy.11`) once snapshot parity remains stable.
+2. Move `sys` wrappers second (`haxe.go-7zy.11`, completed 2026-02-19) once snapshot parity remains stable.
 3. Keep behavior-heavy shim groups in compiler core until an equivalent `std/_std` path proves equal parity under semantic-diff coverage.
 
 ## Revisit Triggers
