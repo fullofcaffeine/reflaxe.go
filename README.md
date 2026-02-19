@@ -19,6 +19,7 @@ This backend prioritizes portable Haxe semantics first, with an opt-in Go-first 
 - Profiles: `docs/profiles.md`
 - Defines reference: `docs/defines-reference.md`
 - Examples matrix: `docs/examples-matrix.md`
+- Release visibility checks: `docs/release-visibility.md`
 - Future target template: `docs/compiler-target-template.md`
 - Security policy: `SECURITY.md`
 
@@ -40,12 +41,14 @@ Use `-D reflaxe_go_profile=portable|gopher|metal`.
 - Run CI surface: `python3 test/run-ci.py`
 - Run semantic differential checks (interp vs Go portable): `python3 test/run-semantic-diff.py`
 - Run examples profile matrix: `python3 test/run-examples.py`
+- Run Go profile performance harness (soft budgets): `npm run test:perf:go`
 - Re-run previous failures: `python3 test/run-snapshots.py --failed`
 - Bless changed snapshot files only: `python3 test/run-snapshots.py --bless`
 - Bless generated example Go trees: `python3 test/run-examples.py --bless-generated`
 - Install repo pre-commit hook: `npm run hooks:install`
 - Run repository gitleaks scan: `npm run security:gitleaks`
 - Run dependency vulnerability audit: `npm run security:deps`
+- Check release visibility/readiness state: `npm run release:status`
 - Run semantic-release dry run: `npm run release:dry-run`
 
 ## Tooling Model

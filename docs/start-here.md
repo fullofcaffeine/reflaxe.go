@@ -36,6 +36,13 @@ python3 test/run-ci.py
 python3 test/run-examples.py
 ```
 
+5. Run perf harness + release visibility checks:
+
+```bash
+npm run test:perf:go
+npm run release:status
+```
+
 ## Scaffold a new project
 
 ```bash
@@ -93,6 +100,7 @@ Compatibility note:
 - `docs/profiles.md`
 - `docs/feature-support-matrix.md`
 - `docs/examples-matrix.md`
+- `docs/release-visibility.md`
 - `docs/defines-reference.md`
 - `docs/profile-admission-criteria.md`
 - `docs/compiler-target-template.md`

@@ -1,0 +1,14 @@
+{
+  "rules": [
+    {
+      "module": "haxe.Http",
+      "stage": "go_test",
+      "reason": "Current lowering emits a sys.Http runtime reference that is unresolved in generated Go module probes.",
+      "haxe_version": {
+        "min_inclusive": "4.3.0",
+        "max_exclusive": "4.4.0"
+      },
+      "failure_regex": "undefined:\\s*sys__Http"
+    }
+  ]
+}

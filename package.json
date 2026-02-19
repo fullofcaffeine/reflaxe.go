@@ -23,6 +23,10 @@
     "test:stdlib-sweep": "python3 test/run-upstream-stdlib-sweep.py",
     "test:stdlib-sweep:strict": "python3 test/run-upstream-stdlib-sweep.py --strict",
     "test:stdlib-sweep:go-test": "python3 test/run-upstream-stdlib-sweep.py --strict --go-test",
+    "test:stdlib-sweep:full": "python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict",
+    "test:stdlib-sweep:full:go-test": "python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test",
+    "test:perf:go": "bash scripts/ci/perf-go-profiles.sh",
+    "test:perf:go:update-baseline": "bash scripts/ci/perf-go-profiles.sh --update-baseline",
     "examples:compile": "python3 test/run-examples.py --compile-only",
     "examples:bless": "python3 test/run-examples.py --bless-generated",
     "examples:sync": "python3 scripts/examples/sync-generated.py",
@@ -30,6 +34,7 @@
     "hooks:install": "bash scripts/install-git-hooks.sh",
     "security:gitleaks": "bash scripts/security/run-gitleaks.sh",
     "security:deps": "bash scripts/security/run-dependency-audit.sh",
+    "release:status": "bash scripts/release/check-release-state.sh",
     "release": "semantic-release",
     "release:dry-run": "semantic-release --dry-run"
   },

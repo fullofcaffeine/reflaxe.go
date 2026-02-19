@@ -116,12 +116,20 @@ Expected-missing policy source (version-aware):
 test/upstream_std_expected_missing.json
 ```
 
+Expected-unavailable policy source (version-aware):
+
+```text
+test/upstream_std_expected_unavailable.json
+```
+
+Policy rules can optionally set `"stage": "compile" | "go_test" | "any"` to scope expected failures.
+
 Result categories:
 
 - `PASS`: module compiled (and optionally passed `go test`)
-- `EXPECTED_MISSING`: compile-time `Type not found` matched policy for current Haxe version
+- `EXPECTED_POLICY`: compile-time failure matched active expected-missing/expected-unavailable policy for current Haxe version
 - `FAIL`: non-policy failure
-- `UNEXPECTED_PRESENT`: module compiled even though policy says expected-missing (policy drift to investigate)
+- `UNEXPECTED_PRESENT`: module compiled even though policy says expected failure (policy drift to investigate)
 
 Strict mode exits non-zero when any module fails:
 
@@ -133,6 +141,18 @@ Strict mode + generated Go build checks:
 
 ```bash
 python3 test/run-upstream-stdlib-sweep.py --strict --go-test
+```
+
+Run full runtime-eligible inventory:
+
+```bash
+python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict
+```
+
+Run full inventory with generated Go compile checks:
+
+```bash
+python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test
 ```
 
 Run one module:
@@ -153,6 +173,12 @@ Disable expected-missing policy classification (raw failures only):
 python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_gap_probe.txt --go-test --no-expected-missing-policy
 ```
 
+Disable expected-unavailable policy classification (raw failures only):
+
+```bash
+python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_gap_probe.txt --go-test --no-expected-unavailable-policy
+```
+
 ## Semantic differential harness
 
 Compare runtime behavior between Haxe reference execution (`--interp`) and `reflaxe.go` generated output (`portable` profile):
@@ -171,6 +197,34 @@ Run only changed semantic cases:
 
 ```bash
 python3 test/run-semantic-diff.py --changed
+```
+
+## Go profile perf harness
+
+Collect soft-budget benchmark ratios for `portable|gopher|metal` vs pure-Go microcases plus `examples/tui_todo` profile spread:
+
+```bash
+bash scripts/ci/perf-go-profiles.sh
+```
+
+Regenerate baseline:
+
+```bash
+bash scripts/ci/perf-go-profiles.sh --update-baseline
+```
+
+Baseline source:
+
+```text
+scripts/ci/perf/go-profile-baseline.json
+```
+
+Result artifacts:
+
+```text
+.cache/perf-go/results/current.json
+.cache/perf-go/results/comparison.json
+.cache/perf-go/results/summary.md
 ```
 
 ## Examples matrix

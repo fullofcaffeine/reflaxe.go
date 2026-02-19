@@ -52,6 +52,11 @@ jobs:
       - name: Run stable CI surface
         run: npm run test:ci
 
+      - name: Check release visibility state
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run release:status
+
   gitleaks:
     name: Secret Scan (gitleaks)
     runs-on: ubuntu-latest
@@ -89,6 +94,46 @@ jobs:
       - name: Run dependency vulnerability audit
         run: npm run security:deps
 
+  perf-go:
+    name: Go Profile Perf (soft budgets)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: false
+
+      - name: Install npm dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: ${{ env.HAXE_VERSION }}
+
+      - name: Run Go profile benchmarks (soft warnings)
+        run: npm run test:perf:go
+
+      - name: Upload Go perf benchmark artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-profile-perf-results
+          path: .cache/perf-go/results
+          if-no-files-found: warn
+
   semantic-release:
     name: Semantic Release
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
@@ -96,6 +141,7 @@ jobs:
       - quality
       - gitleaks
       - dependency-audit
+      - perf-go
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

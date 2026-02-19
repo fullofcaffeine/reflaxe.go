@@ -145,6 +145,24 @@ sys.net.Host
 sys.net.Socket
 ```
 
+### Full runtime-eligible inventory sweep
+
+Source list: `test/upstream_std_modules_full.txt` (175 modules).
+
+As of **2026-02-19**:
+
+- Compile-only strict sweep:
+  - `python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict`
+  - Result: `175 passed / 0 expected policy / 0 failed / 0 unexpected present`
+- Compile + generated Go validation:
+  - `python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test`
+  - Result: `174 passed / 1 expected policy / 0 failed / 0 unexpected present`
+
+Policy sources:
+
+- `test/upstream_std_expected_missing.json` (currently empty)
+- `test/upstream_std_expected_unavailable.json` (currently one `go_test`-stage rule for `haxe.Http`)
+
 ## Unsupported expression inventory (compiler hard-fail paths)
 
 These are explicit fatal guards in `src/reflaxe/go/GoCompiler.hx` that represent unsupported paths.
@@ -159,26 +177,19 @@ These are explicit fatal guards in `src/reflaxe/go/GoCompiler.hx` that represent
 
 ## Known stdlib parity gaps (probe inventory)
 
-As of **2026-02-19**, an expanded probe run:
+As of **2026-02-19**, the broader probe list:
 
 ```bash
-python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_gap_probe.txt --go-test
+python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_gap_probe.txt --strict --go-test
 ```
 
-reported `51 passed / 2 expected missing / 0 failed` under the version-aware expected-missing policy in:
+reports:
 
-```text
-test/upstream_std_expected_missing.json
-```
+- `53 passed / 0 expected policy / 0 failed / 0 unexpected present`
 
-Current expected-missing modules for Haxe `>=4.3.0,<4.4.0`:
+The only active expected-policy rule in the full inventory is:
 
-```text
-haxe.crypto.Sha512
-haxe.io.StringOutput
-```
-
-These are compile-time `Type not found` gaps in the installed upstream Haxe stdlib, not Go-lowering failures.
+- `haxe.Http` (`go_test` stage): generated probe output references an unresolved `sys__Http` symbol.
 
 ## Tracking
 
