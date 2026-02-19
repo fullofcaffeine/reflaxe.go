@@ -82,6 +82,11 @@ Compatibility note:
 - `-D reflaxe_go_strict`: forbids raw `__go__` in app project sources.
 - `metal` enables strict mode by default for app-side injection boundaries.
 
+## GitHub CI harness
+
+- `.github/workflows/ci-harness.yml`: integrated quality + security gates (`test:ci`, gitleaks, dependency audit) plus semantic-release on `master`.
+- `.github/workflows/security-static-analysis.yml`: dependency review/codeql and scheduled security analysis.
+
 ## Related docs
 
 - `docs/profiles.md`

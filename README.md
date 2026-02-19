@@ -11,6 +11,7 @@ This backend prioritizes portable Haxe semantics first, with an opt-in Go-first 
 ## Start Here
 
 - Onboarding: `docs/start-here.md`
+- Integrated CI harness + release automation: `.github/workflows/ci-harness.yml`
 - CI quality gate: `.github/workflows/ci-quality.yml`
 - CI static security gate: `.github/workflows/security-static-analysis.yml`
 - Feature support matrix: `docs/feature-support-matrix.md`
@@ -44,6 +45,7 @@ Use `-D reflaxe_go_profile=portable|gopher|metal`.
 - Install repo pre-commit hook: `npm run hooks:install`
 - Run repository gitleaks scan: `npm run security:gitleaks`
 - Run dependency vulnerability audit: `npm run security:deps`
+- Run semantic-release dry run: `npm run release:dry-run`
 
 ## Tooling Model
 

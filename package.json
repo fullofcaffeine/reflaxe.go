@@ -29,9 +29,17 @@
     "examples:bins": "bash scripts/examples/build-binaries.sh",
     "hooks:install": "bash scripts/install-git-hooks.sh",
     "security:gitleaks": "bash scripts/security/run-gitleaks.sh",
-    "security:deps": "bash scripts/security/run-dependency-audit.sh"
+    "security:deps": "bash scripts/security/run-dependency-audit.sh",
+    "release": "semantic-release",
+    "release:dry-run": "semantic-release --dry-run"
   },
   "devDependencies": {
-    "lix": "^15.0.0"
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.6",
+    "@semantic-release/release-notes-generator": "^14.1.0",
+    "lix": "^15.0.0",
+    "semantic-release": "^24.2.2"
   }
 }
