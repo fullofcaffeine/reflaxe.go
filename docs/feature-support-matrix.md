@@ -18,6 +18,7 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 | Locals, assignment, compound assignment | Supported | `core/locals_assign`, `core/compound_assign`, `core/compound_assign_string` |
 | Arrays and indexing | Supported | `core/array_basic`, `core/array_push_pop` |
 | Loops (`for`, `while`, `do-while`, break/continue) | Supported | `core/loops_array_iter`, `core/loops_range`, `core/do_while_semantics`, `core/loop_break_continue` |
+| Expression-form control flow in value positions (`if`, `switch`, `try`) | Supported | `core/if_expr_call_arg`, `core/switch_expr_call_arg`, `core/try_expr_value` |
 | Functions, function values, closures | Supported | `core/function_values`, `core/closures_capture` |
 | Default arguments and varargs | Supported | `core/default_args`, `core/varargs`, `core/varargs_foreach` |
 | Prefix/postfix call argument order | Supported | `core/prefix_call_arg`, `core/postfix_call_arg` |
