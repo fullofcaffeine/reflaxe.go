@@ -441,9 +441,6 @@ class GoCompiler {
 			// Serializer token support includes haxe.ds.List/StringMap/IntMap/ObjectMap families.
 			requireStdlibShimGroup("ds");
 		}
-		if (requiredStdlibShimGroups.exists("json")) {
-			decls = decls.concat(lowerJsonStdlibShimDecls());
-		}
 		if (requiredStdlibShimGroups.exists("io")) {
 			decls = decls.concat(lowerIoStdlibShimDecls());
 		}
@@ -466,44 +463,6 @@ class GoCompiler {
 			decls = decls.concat(lowerNetSocketShimDecls());
 		}
 		return decls;
-	}
-
-	function lowerJsonStdlibShimDecls():Array<GoDecl> {
-		return [
-			GoDecl.GoStructDecl("haxe__Json", []),
-			GoDecl.GoStructDecl("haxe__format__JsonParser", [{name: "source", typeName: "*string"}]),
-			GoDecl.GoFuncDecl("New_haxe__format__JsonParser", null, [{name: "source", typeName: "*string"}], ["*haxe__format__JsonParser"],
-				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__format__JsonParser{source: source}"))]),
-			GoDecl.GoFuncDecl("doParse", {name: "self", typeName: "*haxe__format__JsonParser"}, [], ["any"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonParse"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "source")]))
-			]),
-			GoDecl.GoFuncDecl("haxe__format__JsonPrinter_print", null, [
-				{
-					name: "value",
-					typeName: "any"
-				},
-				{name: "rest", typeName: "...any"}
-			], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonStringify"), [GoExpr.GoIdent("value")]))
-			]),
-			GoDecl.GoFuncDecl("haxe__Json_parse", null, [
-				{
-					name: "source",
-					typeName: "*string"
-				}
-			], ["any"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonParse"), [GoExpr.GoIdent("source")]))
-			]),
-			GoDecl.GoFuncDecl("haxe__Json_stringify", null, [
-				{
-					name: "value",
-					typeName: "any"
-				},
-				{name: "rest", typeName: "...any"}
-			], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonStringify"), [GoExpr.GoIdent("value")]))
-			])
-		];
 	}
 
 	function lowerIoStdlibShimDecls():Array<GoDecl> {
@@ -6037,10 +5996,18 @@ class GoCompiler {
 					isStringLike: isStringType(expr.t)
 				};
 			case TNew(classRef, _, args):
-				{
-					expr: GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(classRef.get())), [for (arg in args) lowerExpr(arg).expr]),
-					isStringLike: false
-				};
+				var classType = classRef.get();
+				if (isHaxeJsonParserClass(classType)) {
+					{
+						expr: args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil,
+						isStringLike: false
+					};
+				} else {
+					{
+						expr: GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(classType)), [for (arg in args) lowerExpr(arg).expr]),
+						isStringLike: false
+					};
+				}
 			case TFunction(func):
 				pushFunctionVarNameScope();
 				var loweredParams = lowerFunctionParams(func);
@@ -6386,6 +6353,14 @@ class GoCompiler {
 	}
 
 	function lowerCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):LoweredExpr {
+		var jsonParserTarget = jsonParserDoParseTarget(callee, args);
+		if (jsonParserTarget != null) {
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonParse"), [jsonParserSourceExpr(jsonParserTarget)]),
+				isStringLike: false
+			};
+		}
+
 		if (isStaticCall(callee, "Json", ["haxe"], "parse")) {
 			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 			return {
@@ -6494,6 +6469,49 @@ class GoCompiler {
 		return {
 			expr: callExpr,
 			isStringLike: isStringType(returnType)
+		};
+	}
+
+	function jsonParserDoParseTarget(callee:TypedExpr, args:Array<TypedExpr>):Null<TypedExpr> {
+		if (args.length != 0) {
+			return null;
+		}
+		return switch (callee.expr) {
+			case TField(target, FInstance(classRef, _, field)):
+				var classType = classRef.get();
+				var resolvedField = field.get();
+				if (isHaxeJsonParserClass(classType) && resolvedField.name == "doParse") {
+					target;
+				} else {
+					null;
+				}
+			case TMeta(_, inner):
+				jsonParserDoParseTarget(inner, args);
+			case TParenthesis(inner):
+				jsonParserDoParseTarget(inner, args);
+			case TCast(inner, _):
+				jsonParserDoParseTarget(inner, args);
+			case _:
+				null;
+		};
+	}
+
+	function jsonParserSourceExpr(target:TypedExpr):GoExpr {
+		return switch (target.expr) {
+			case TNew(classRef, _, args):
+				if (isHaxeJsonParserClass(classRef.get())) {
+					args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+				} else {
+					lowerExpr(target).expr;
+				}
+			case TMeta(_, inner):
+				jsonParserSourceExpr(inner);
+			case TParenthesis(inner):
+				jsonParserSourceExpr(inner);
+			case TCast(inner, _):
+				jsonParserSourceExpr(inner);
+			case _:
+				lowerExpr(target).expr;
 		};
 	}
 
@@ -7057,6 +7075,8 @@ class GoCompiler {
 					classTypeName(classType);
 				} else if (classType.pack.length == 0 && classType.name == "String") {
 					"*string";
+				} else if (isHaxeJsonParserClass(classType)) {
+					"*string";
 				} else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
 					"[]" + scalarGoType(params[0]);
 				} else {
@@ -7217,6 +7237,8 @@ class GoCompiler {
 					classTypeName(classType);
 				} else if (classType.pack.length == 0 && classType.name == "String") {
 					"*string";
+				} else if (isHaxeJsonParserClass(classType)) {
+					"*string";
 				} else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
 					"[]" + scalarGoType(params[0]);
 				} else {
@@ -7353,6 +7375,10 @@ class GoCompiler {
 		return classType.pack.join(".") == "haxe" && classType.name == "Exception";
 	}
 
+	function isHaxeJsonParserClass(classType:ClassType):Bool {
+		return classType.pack.join(".") == "haxe.format" && classType.name == "JsonParser";
+	}
+
 	function isHaxeExceptionType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {
@@ -7407,12 +7433,6 @@ class GoCompiler {
 
 		if ((pack == "" && classType.name == "Sys") || (pack == "sys.io" && (classType.name == "File" || classType.name == "Process"))) {
 			requireStdlibShimGroup("sys");
-			return;
-		}
-
-		if ((pack == "haxe" && classType.name == "Json")
-			|| (pack == "haxe.format" && (classType.name == "JsonParser" || classType.name == "JsonPrinter"))) {
-			requireStdlibShimGroup("json");
 			return;
 		}
 

@@ -154,6 +154,7 @@ By default, backend compile runs `go build` after codegen. Use `-D go_no_build` 
 - Snapshot policy: [docs/snapshot-policy.md](docs/snapshot-policy.md)
 - Release visibility and gates: [docs/release-visibility.md](docs/release-visibility.md)
 - Stdlib shim strategy and alternatives: [docs/stdlib-shim-rationale.md](docs/stdlib-shim-rationale.md)
+- Stdlib shim migration process log: [docs/stdlib-shim-migration-log.md](docs/stdlib-shim-migration-log.md)
 - Multi-package output evaluation: [docs/multi-package-output-evaluation.md](docs/multi-package-output-evaluation.md)
 - Future compiler template/patterns: [docs/compiler-target-template.md](docs/compiler-target-template.md)
 - Security policy: [SECURITY.md](SECURITY.md)

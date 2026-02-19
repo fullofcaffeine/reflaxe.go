@@ -111,6 +111,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 Shim strategy and alternatives are documented in:
 
 - `docs/stdlib-shim-rationale.md`
+- `docs/stdlib-shim-migration-log.md`
 
 ### Snapshot-level behavioral coverage
 
@@ -130,6 +131,11 @@ Shim strategy and alternatives are documented in:
 - `sys/http_request_callbacks_smoke`
 - `sys/process_echo_smoke`
 
+### `haxe.Json` runtime-lowered contract
+
+- `haxe.Json.parse`/`haxe.Json.stringify`, `haxe.format.JsonPrinter.print`, and `haxe.format.JsonParser.doParse` now lower directly to `hxrt.JsonParse`/`hxrt.JsonStringify`.
+- Compiler-emitted JSON shim declarations were removed from `GoCompiler` (no `haxe__Json`/`haxe__format__JsonParser` synthetic declarations in generated output).
+
 ### `sys.Http` shim contract and tradeoffs
 
 - `sys.Http` now includes synchronous request semantics for `http`/`https` and deterministic `data:` handling used by tests.
@@ -148,7 +154,7 @@ Shim strategy and alternatives are documented in:
 - `haxe.Serializer`/`haxe.Unserializer` now cover a wire-format-compatible baseline for core tokens used by fixtures (`n/t/f/z/i/d/k/p/m/v/s/y/a/o/l/b/q/M/c/w/j/C/x/A/B/g/u/h/r/R`) plus sequential `Unserializer` cursor behavior (`serializer_wire_contract`), resolver paths (`serializer_custom_resolver_contract`), resolver method-shape polymorphism (`serializer_resolver_polymorphism_contract`), cache/reference graph parity (`serializer_cache_reference_contract`), and mixed string/object reference stress (`serializer_reference_stress_contract`).
 - Remaining gap: full Haxe serializer surface is still in progress (notably under-tested exotic edge combinations outside current fixtures and cross-target differences for unsupported non-standard resolver return payloads).
 - Active follow-up tracking:
-  - `haxe.go-7zy.10` (migrate `haxe.Json` shim out of compiler core)
+  - `haxe.go-7zy.10` (migrate `haxe.Json` shim out of compiler core, completed 2026-02-19)
   - `haxe.go-7zy.11` (migrate `Sys`/`sys.io.File`/`sys.io.Process` shim path out of compiler core)
   - `haxe.go-7zy.12` (reduce `stdlib_symbols` bytes-conversion overhead)
 

@@ -9,6 +9,7 @@
 - staged stdlib sources under `std/_std` (wired by `src/reflaxe/go/CompilerBootstrap.hx`)
 
 This document records which compiler-core shims should stay, which should migrate, and why.
+Execution history and validation evidence are tracked in `docs/stdlib-shim-migration-log.md`.
 
 ## Alternatives Reviewed
 
@@ -24,7 +25,7 @@ This document records which compiler-core shims should stay, which should migrat
 
 | Shim group | Primary surfaces | Compiler LOC | Highest CI tier | Decision | Reason | Follow-up |
 | --- | --- | ---: | --- | --- | --- | --- |
-| `json` | `haxe.Json`, `haxe.format.JsonParser/JsonPrinter` | 38 | Snapshot | Migrate | Mostly forwarding to `hxrt.JsonParse`/`hxrt.JsonStringify`; low compiler-context coupling. | `haxe.go-7zy.10` |
+| `json` | `haxe.Json`, `haxe.format.JsonParser/JsonPrinter` | 38 | Snapshot | Migrated (runtime-lowered) | Compiler-emitted JSON declarations removed; calls now lower directly to `hxrt.JsonParse`/`hxrt.JsonStringify`. | `haxe.go-7zy.10` |
 | `sys` | `Sys`, `sys.io.File`, `sys.io.Process` | 89 | Snapshot | Migrate | Mostly OS/process wrappers; good candidate for `std/_std` ownership once parity fixtures are preserved. | `haxe.go-7zy.11` |
 | `io` | `haxe.io.Bytes`, buffers, input/output base wiring | 108 | Snapshot + semantic-diff dependency | Keep (for now) | Shared representation boundary used by crypto/http/serializer flows. | - |
 | `ds` | `haxe.ds.*Map`, `List`, enum maps | 149 | Snapshot + semantic-diff dependency | Keep (for now) | Serializer and HTTP contracts rely on deterministic generated map/list shapes. | - |
