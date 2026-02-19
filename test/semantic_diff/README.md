@@ -26,3 +26,5 @@ Goal:
   - reflection compare + dynamic field semantics
   - anonymous object literal/field mutation semantics
   - crypto/xml/zip behavior parity
+  - serializer/unserializer roundtrip semantics
+  - EReg match/split/replace contract semantics

@@ -126,6 +126,11 @@ class GoCompiler {
 			imports.push("strings");
 			imports.push("time");
 		}
+		if (requiredStdlibShimGroups.exists("regex_serializer")) {
+			imports.push("encoding/json");
+			imports.push("regexp");
+			imports.push("strings");
+		}
 		var mainFile:GoFile = {
 			packageName: "main",
 			imports: imports,
@@ -372,6 +377,9 @@ class GoCompiler {
 		}
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			decls = decls.concat(lowerStdlibSymbolShimDecls());
+		}
+		if (requiredStdlibShimGroups.exists("regex_serializer")) {
+			decls = decls.concat(lowerRegexSerializerShimDecls());
 		}
 		return decls;
 	}
@@ -1652,9 +1660,6 @@ class GoCompiler {
 						null),
 					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("*self.raw")]))
 				]),
-			GoDecl.GoStructDecl("EReg", []),
-			GoDecl.GoStructDecl("haxe__Serializer", []),
-			GoDecl.GoStructDecl("haxe__Unserializer", []),
 			GoDecl.GoStructDecl("haxe__crypto__Base64", []),
 			GoDecl.GoStructDecl("haxe__crypto__Md5", []),
 			GoDecl.GoStructDecl("haxe__crypto__Sha1", []),
@@ -2011,6 +2016,331 @@ class GoCompiler {
 			GoDecl.GoStructDecl("sys__FileSystem", []),
 			GoDecl.GoStructDecl("sys__net__Host", []),
 			GoDecl.GoStructDecl("sys__net__Socket", [])
+		];
+	}
+
+	function lowerRegexSerializerShimDecls():Array<GoDecl> {
+		return [
+			GoDecl.GoStructDecl("EReg", [
+				{name: "regex", typeName: "*regexp.Regexp"},
+				{name: "global", typeName: "bool"},
+				{name: "lastSource", typeName: "*string"},
+				{name: "lastIndices", typeName: "[]int"}
+			]),
+			GoDecl.GoFuncDecl("New_EReg", null, [
+				{
+					name: "pattern",
+					typeName: "*string"
+				},
+				{name: "options", typeName: "*string"}
+			], ["*EReg"], [
+				GoStmt.GoRaw("rawPattern := *hxrt.StdString(pattern)"),
+				GoStmt.GoRaw("rawOptions := *hxrt.StdString(options)"),
+				GoStmt.GoRaw("if strings.Contains(rawOptions, \"i\") {"),
+				GoStmt.GoRaw("\trawPattern = \"(?i)\" + rawPattern"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("compiled, err := regexp.Compile(rawPattern)"),
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent("err")])),
+					GoStmt.GoAssign(GoExpr.GoIdent("compiled"),
+						GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("regexp"), "MustCompile"), [GoExpr.GoStringLiteral("a^")]))
+				],
+					null),
+				GoStmt.GoReturn(GoExpr.GoRaw("&EReg{regex: compiled, global: strings.Contains(rawOptions, \"g\"), lastSource: hxrt.StringFromLiteral(\"\"), lastIndices: nil}"))
+			]),
+			GoDecl.GoFuncDecl("match", {
+				name: "self",
+				typeName: "*EReg"
+			}, [{name: "source", typeName: "*string"}], ["bool"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "matchSub"), [GoExpr.GoIdent("source"), GoExpr.GoIntLiteral(0)]))
+			]),
+			GoDecl.GoFuncDecl("matchSub", {
+				name: "self",
+				typeName: "*EReg"
+			}, [
+				{
+					name: "source",
+					typeName: "*string"
+				},
+				{name: "pos", typeName: "int"}
+			], ["bool"], [
+				GoStmt.GoRaw("if self == nil || self.regex == nil {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("raw := *hxrt.StdString(source)"),
+				GoStmt.GoRaw("if pos < 0 {"),
+				GoStmt.GoRaw("\tpos = 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if pos > len(raw) {"),
+				GoStmt.GoRaw("\tself.lastSource = hxrt.StringFromLiteral(raw)"),
+				GoStmt.GoRaw("\tself.lastIndices = nil"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("found := self.regex.FindStringSubmatchIndex(raw[pos:])"),
+				GoStmt.GoRaw("if found == nil {"),
+				GoStmt.GoRaw("\tself.lastSource = hxrt.StringFromLiteral(raw)"),
+				GoStmt.GoRaw("\tself.lastIndices = nil"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("shifted := make([]int, len(found))"),
+				GoStmt.GoRaw("for i := 0; i < len(found); i++ {"),
+				GoStmt.GoRaw("\tif found[i] >= 0 {"),
+				GoStmt.GoRaw("\t\tshifted[i] = found[i] + pos"),
+				GoStmt.GoRaw("\t} else {"),
+				GoStmt.GoRaw("\t\tshifted[i] = -1"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.lastSource = hxrt.StringFromLiteral(raw)"),
+				GoStmt.GoRaw("self.lastIndices = shifted"),
+				GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
+			]),
+			GoDecl.GoFuncDecl("matched", {
+				name: "self",
+				typeName: "*EReg"
+			}, [{name: "index", typeName: "int"}], ["*string"], [
+				GoStmt.GoRaw("if self == nil || self.lastSource == nil || index < 0 {"),
+				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("offset := index * 2"),
+				GoStmt.GoRaw("if offset+1 >= len(self.lastIndices) {"),
+				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("start := self.lastIndices[offset]"),
+				GoStmt.GoRaw("end := self.lastIndices[offset+1]"),
+				GoStmt.GoRaw("if start < 0 || end < start {"),
+				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("raw := *hxrt.StdString(self.lastSource)"),
+				GoStmt.GoRaw("if end > len(raw) {"),
+				GoStmt.GoRaw("\tend = len(raw)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("raw[start:end]")]))
+			]),
+			GoDecl.GoFuncDecl("matchedPos", {
+				name: "self",
+				typeName: "*EReg"
+			}, [], ["map[string]any"], [
+				GoStmt.GoRaw("if self == nil || len(self.lastIndices) < 2 || self.lastIndices[0] < 0 || self.lastIndices[1] < self.lastIndices[0] {"),
+				GoStmt.GoRaw("\treturn map[string]any{\"pos\": 0, \"len\": 0}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("start := self.lastIndices[0]"),
+				GoStmt.GoRaw("end := self.lastIndices[1]"),
+				GoStmt.GoReturn(GoExpr.GoRaw("map[string]any{\"pos\": start, \"len\": end - start}"))
+			]),
+			GoDecl.GoFuncDecl("matchedLeft", {
+				name: "self",
+				typeName: "*EReg"
+			}, [], ["*string"], [
+				GoStmt.GoRaw("if self == nil || self.lastSource == nil || len(self.lastIndices) < 2 || self.lastIndices[0] < 0 {"),
+				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("raw := *hxrt.StdString(self.lastSource)"),
+				GoStmt.GoRaw("start := self.lastIndices[0]"),
+				GoStmt.GoRaw("if start > len(raw) {"),
+				GoStmt.GoRaw("\tstart = len(raw)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("raw[:start]")]))
+			]),
+			GoDecl.GoFuncDecl("matchedRight", {
+				name: "self",
+				typeName: "*EReg"
+			}, [], ["*string"], [
+				GoStmt.GoRaw("if self == nil || self.lastSource == nil || len(self.lastIndices) < 2 || self.lastIndices[1] < 0 {"),
+				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("raw := *hxrt.StdString(self.lastSource)"),
+				GoStmt.GoRaw("end := self.lastIndices[1]"),
+				GoStmt.GoRaw("if end > len(raw) {"),
+				GoStmt.GoRaw("\tend = len(raw)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("raw[end:]")]))
+			]),
+			GoDecl.GoFuncDecl("split", {
+				name: "self",
+				typeName: "*EReg"
+			}, [{name: "source", typeName: "*string"}], ["[]*string"], [
+				GoStmt.GoRaw("raw := *hxrt.StdString(source)"),
+				GoStmt.GoRaw("if self == nil || self.regex == nil {"),
+				GoStmt.GoRaw("\treturn []*string{hxrt.StringFromLiteral(raw)}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("parts := self.regex.Split(raw, -1)"),
+				GoStmt.GoRaw("out := make([]*string, 0, len(parts))"),
+				GoStmt.GoRaw("for _, part := range parts {"),
+				GoStmt.GoRaw("\tout = append(out, hxrt.StringFromLiteral(part))"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("out"))
+			]),
+			GoDecl.GoFuncDecl("replace", {
+				name: "self",
+				typeName: "*EReg"
+			}, [
+				{
+					name: "source",
+					typeName: "*string"
+				},
+				{name: "by", typeName: "*string"}
+			], ["*string"], [
+				GoStmt.GoRaw("if self == nil || self.regex == nil {"),
+				GoStmt.GoRaw("\treturn source"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [
+					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "regex"), "ReplaceAllString"),
+						[GoExpr.GoRaw("*hxrt.StdString(source)"), GoExpr.GoRaw("*hxrt.StdString(by)")])
+				]))
+			]),
+			GoDecl.GoFuncDecl("map_", {
+				name: "self",
+				typeName: "*EReg"
+			}, [
+				{
+					name: "source",
+					typeName: "*string"
+				},
+				{name: "callback", typeName: "func(*EReg) *string"}
+			], ["*string"], [
+				GoStmt.GoRaw("if self == nil || self.regex == nil {"),
+				GoStmt.GoRaw("\treturn source"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("raw := *hxrt.StdString(source)"),
+				GoStmt.GoRaw("matches := self.regex.FindAllStringSubmatchIndex(raw, -1)"),
+				GoStmt.GoRaw("if len(matches) == 0 {"),
+				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(raw)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("var builder strings.Builder"),
+				GoStmt.GoRaw("cursor := 0"),
+				GoStmt.GoRaw("for _, match := range matches {"),
+				GoStmt.GoRaw("\tif len(match) < 2 {"),
+				GoStmt.GoRaw("\t\tcontinue"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tstart := match[0]"),
+				GoStmt.GoRaw("\tend := match[1]"),
+				GoStmt.GoRaw("\tif start < cursor {"),
+				GoStmt.GoRaw("\t\tstart = cursor"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tif end < start {"),
+				GoStmt.GoRaw("\t\tend = start"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tif start > len(raw) {"),
+				GoStmt.GoRaw("\t\tstart = len(raw)"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tif end > len(raw) {"),
+				GoStmt.GoRaw("\t\tend = len(raw)"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tbuilder.WriteString(raw[cursor:start])"),
+				GoStmt.GoRaw("\tindices := make([]int, len(match))"),
+				GoStmt.GoRaw("\tcopy(indices, match)"),
+				GoStmt.GoRaw("\tself.lastSource = hxrt.StringFromLiteral(raw)"),
+				GoStmt.GoRaw("\tself.lastIndices = indices"),
+				GoStmt.GoRaw("\treplacement := callback(self)"),
+				GoStmt.GoRaw("\tbuilder.WriteString(*hxrt.StdString(replacement))"),
+				GoStmt.GoRaw("\tcursor = end"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("builder.WriteString(raw[cursor:])"),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
+					[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("builder"), "String"), [])]))
+			]),
+			GoDecl.GoStructDecl("haxe__Serializer", [
+				{
+					name: "buf",
+					typeName: "*string"
+				},
+				{name: "useEnumIndex", typeName: "bool"}
+			]),
+			GoDecl.GoFuncDecl("New_haxe__Serializer", null, [], ["*haxe__Serializer"], [
+				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__Serializer{buf: hxrt.StringFromLiteral(\"\"), useEnumIndex: false}"))
+			]),
+			GoDecl.GoFuncDecl("serialize", {
+				name: "self",
+				typeName: "*haxe__Serializer"
+			}, [{name: "value", typeName: "any"}], [], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "buf"),
+					GoExpr.GoCall(GoExpr.GoIdent("haxe__Serializer_run"), [GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("toString", {
+				name: "self",
+				typeName: "*haxe__Serializer"
+			}, [], ["*string"], [
+				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.buf == nil"), [
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
+				], null),
+				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "buf"))
+			]),
+			GoDecl.GoFuncDecl("haxe__Serializer_run", null, [
+				{
+					name: "value",
+					typeName: "any"
+				}
+			], ["*string"], [
+				GoStmt.GoRaw("encoded, err := json.Marshal(value)"),
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent("err")])),
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
+				],
+					null),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("string(encoded)")]))
+			]),
+			GoDecl.GoStructDecl("haxe__Unserializer",
+				[
+					{
+						name: "buf",
+						typeName: "*string"
+					}
+				]),
+			GoDecl.GoFuncDecl("New_haxe__Unserializer", null, [{name: "buf", typeName: "*string"}], ["*haxe__Unserializer"],
+				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__Unserializer{buf: buf}"))]),
+			GoDecl.GoFuncDecl("unserialize", {
+				name: "self",
+				typeName: "*haxe__Unserializer"
+			}, [], ["any"], [
+				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.buf == nil"), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("haxe__Unserializer_run"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "buf")]))
+			]),
+			GoDecl.GoFuncDecl("hxrt_jsonNormalize", null, [
+				{
+					name: "value",
+					typeName: "any"
+				}
+			], ["any"], [
+				GoStmt.GoRaw("switch current := value.(type) {"),
+				GoStmt.GoRaw("case map[string]any:"),
+				GoStmt.GoRaw("\tout := make(map[string]any, len(current))"),
+				GoStmt.GoRaw("\tfor key, item := range current {"),
+				GoStmt.GoRaw("\t\tout[key] = hxrt_jsonNormalize(item)"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn out"),
+				GoStmt.GoRaw("case []any:"),
+				GoStmt.GoRaw("\tout := make([]any, len(current))"),
+				GoStmt.GoRaw("\tfor i, item := range current {"),
+				GoStmt.GoRaw("\t\tout[i] = hxrt_jsonNormalize(item)"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn out"),
+				GoStmt.GoRaw("case float64:"),
+				GoStmt.GoRaw("\tasInt := int(current)"),
+				GoStmt.GoRaw("\tif float64(asInt) == current {"),
+				GoStmt.GoRaw("\t\treturn asInt"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn current"),
+				GoStmt.GoRaw("default:"),
+				GoStmt.GoRaw("\treturn current"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("haxe__Unserializer_run", null, [
+				{
+					name: "source",
+					typeName: "*string"
+				}
+			], ["any"], [
+				GoStmt.GoRaw("if source == nil {"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("var decoded any"),
+				GoStmt.GoRaw("if err := json.Unmarshal([]byte(*hxrt.StdString(source)), &decoded); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(err)"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt_jsonNormalize"), [GoExpr.GoIdent("decoded")]))
+			])
 		];
 	}
 
@@ -4383,10 +4713,15 @@ class GoCompiler {
 			return;
 		}
 
+		if ((pack == "" && classType.name == "EReg")
+			|| (pack == "haxe" && (classType.name == "Serializer" || classType.name == "Unserializer"))) {
+			requireStdlibShimGroup("regex_serializer");
+			return;
+		}
+
 		if ((pack == ""
 			&& (classType.name == "Std" || classType.name == "StringTools" || classType.name == "Date" || classType.name == "Math"
-				|| classType.name == "Type" || classType.name == "Reflect" || classType.name == "Xml" || classType.name == "EReg"))
-			|| (pack == "haxe" && (classType.name == "Serializer" || classType.name == "Unserializer"))
+				|| classType.name == "Type" || classType.name == "Reflect" || classType.name == "Xml"))
 			|| (pack == "haxe.crypto"
 				&& (classType.name == "Base64" || classType.name == "Md5" || classType.name == "Sha1" || classType.name == "Sha224"
 					|| classType.name == "Sha256"))

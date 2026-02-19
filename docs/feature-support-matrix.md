@@ -36,6 +36,8 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 
 ### Semantic diff fixture coverage
 
+- `test/semantic_diff/crypto_xml_zip`
+- `test/semantic_diff/http_proxy_custom_request`
 - `test/semantic_diff/null_string_concat`
 - `test/semantic_diff/exceptions_typed_dynamic`
 - `test/semantic_diff/enum_switch_bindings`
@@ -48,6 +50,8 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 - `test/semantic_diff/reflect_compare`
 - `test/semantic_diff/reflect_field_ops`
 - `test/semantic_diff/anonymous_object_literals`
+- `test/semantic_diff/serializer_unserializer_roundtrip`
+- `test/semantic_diff/ereg_behavior_contract`
 
 ## Profile matrix
 

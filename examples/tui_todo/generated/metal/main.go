@@ -1573,15 +1573,6 @@ func (self *Xml) toString() *string {
 	return hxrt.StringFromLiteral(*self.raw)
 }
 
-type EReg struct {
-}
-
-type haxe__Serializer struct {
-}
-
-type haxe__Unserializer struct {
-}
-
 type haxe__crypto__Base64 struct {
 }
 
