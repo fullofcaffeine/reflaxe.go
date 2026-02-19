@@ -6,6 +6,7 @@
   "scripts": {
     "postinstall": "lix download",
     "dev:new-project": "bash scripts/dev/new-project.sh",
+    "dev:hx": "bash scripts/dev/go-hx.sh",
     "test": "python3 test/run-snapshots.py",
     "test:ci": "python3 test/run-ci.py",
     "test:examples": "python3 test/run-examples.py",

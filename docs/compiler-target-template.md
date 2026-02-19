@@ -49,3 +49,14 @@ Every major architecture or policy decision should include:
 - alternatives considered
 - acceptance criteria
 - rollback/follow-up trigger
+
+## 7) Tooling split (recommended pattern)
+
+- Use `npm` scripts as the cross-target workflow surface (setup, test harness, dev wrappers).
+- Use the target-native toolchain for generated output lifecycle.
+- Add one root `scripts/dev/<target>-hx.sh` wrapper that:
+  - selects `compile*.hxml` via `--project`, `--profile`, `--ci`
+  - runs Haxe compile
+  - resolves output directory from target define (`go_output`, `rust_output`, etc.)
+  - runs target action (`run`, `build`, `test`, etc.)
+- Mirror this wrapper pattern in `templates/basic` for consumer projects.

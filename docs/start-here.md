@@ -46,6 +46,19 @@ npm run setup
 npm run hx:run
 ```
 
+## Task and package manager model
+
+- Generated project dependencies/build/test use the Go toolchain directly (`go mod`, `go run`, `go test`, `go build`).
+- Compiler/dev orchestration uses `npm` scripts so workflow stays consistent with `haxe.rust` and `haxe.elixir.codex`.
+
+Quick compile+go action from this repo:
+
+```bash
+npm run dev:hx -- --project examples/tui_todo --profile portable --action run
+```
+
+The wrapper resolves `compile*.hxml`, runs Haxe, resolves `-D go_output=...`, then executes the selected Go action.
+
 ## Profile selection
 
 Set via:

@@ -29,6 +29,7 @@ Use `-D reflaxe_go_profile=portable|gopher|metal`.
 ## Useful Commands
 
 - Scaffold a starter project: `npm run dev:new-project -- ./my_haxe_go_app`
+- Compile + run generated Go in one step: `npm run dev:hx -- --project examples/tui_todo --profile portable --action run`
 - Run snapshots: `python3 test/run-snapshots.py`
 - Run CI surface: `python3 test/run-ci.py`
 - Run semantic differential checks (interp vs Go portable): `python3 test/run-semantic-diff.py`
@@ -39,6 +40,12 @@ Use `-D reflaxe_go_profile=portable|gopher|metal`.
 - Install repo pre-commit hook: `npm run hooks:install`
 - Run repository gitleaks scan: `npm run security:gitleaks`
 - Run dependency vulnerability audit: `npm run security:deps`
+
+## Tooling Model
+
+- Package/build manager for generated code: `go` + Go modules (`go.mod`).
+- Task runner for compiler workflow orchestration: `npm scripts` (stable across targets and includes lix-managed Haxe setup).
+- Entry point for compile+go actions: `npm run dev:hx -- --project <dir> --profile <portable|gopher|metal> --action <compile|run|build|test|vet|fmt>`.
 
 ## Strictness
 
