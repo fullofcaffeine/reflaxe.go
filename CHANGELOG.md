@@ -1,3 +1,13 @@
+## [0.19.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.18.0...v0.19.0) (2026-02-19)
+
+### Features
+
+* **stdlib:** add vector runtime parity coverage ([fa2a6ae](https://github.com/fullofcaffeine/reflaxe.go/commit/fa2a6aee11a3a4451a797aa7fb13a141815a1b3d))
+
+### Bug Fixes
+
+* **core:** lower new Array() constructors to native slices ([1df97e1](https://github.com/fullofcaffeine/reflaxe.go/commit/1df97e1baf54c4a080dfa03f1fd7fe4ed7563657))
+
 ## [0.18.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.17.1...v0.18.0) (2026-02-19)
 
 ### Features
