@@ -684,9 +684,3 @@ func haxe__zip__Uncompress_run(src *haxe__io__Bytes, bufsize ...int) *haxe__io__
 
 type sys__FileSystem struct {
 }
-
-type sys__net__Host struct {
-}
-
-type sys__net__Socket struct {
-}

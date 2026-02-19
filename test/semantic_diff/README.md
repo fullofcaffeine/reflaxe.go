@@ -23,6 +23,7 @@ Goal:
   - nullable reference fields
   - selected sys/io behavior
   - deterministic HTTP behavior (`requestUrl`, `customRequest`, `Http.PROXY`) without external network
+  - deterministic `sys.net.Socket` loopback (`bind/listen/connect/accept/read/write/close`) parity
   - reflection compare + dynamic field semantics
   - anonymous object literal/field mutation semantics
   - crypto/xml/zip behavior parity

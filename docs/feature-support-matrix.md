@@ -38,6 +38,7 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 
 - `test/semantic_diff/crypto_xml_zip`
 - `test/semantic_diff/http_proxy_custom_request`
+- `test/semantic_diff/socket_loopback_contract`
 - `test/semantic_diff/null_string_concat`
 - `test/semantic_diff/exceptions_typed_dynamic`
 - `test/semantic_diff/enum_switch_bindings`
