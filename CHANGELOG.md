@@ -1,3 +1,9 @@
+## [0.18.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.17.1...v0.18.0) (2026-02-19)
+
+### Features
+
+* **stdlib:** move Sys/File/Process behavior into hxrt runtime ([638a7ea](https://github.com/fullofcaffeine/reflaxe.go/commit/638a7eac4432b58b44118c86681e7818953fcd7d))
+
 ## [0.17.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.17.0...v0.17.1) (2026-02-19)
 
 ### Performance Improvements
