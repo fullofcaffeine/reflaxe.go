@@ -34,3 +34,13 @@ You can run the local dependency vulnerability audit with:
 ```bash
 npm run security:deps
 ```
+
+`security:deps` behavior knobs:
+
+- `SKIP_GOVULNCHECK=1` skip Go vulnerability scanning entirely.
+- `GOVULNCHECK_INSTALL_ATTEMPTS` retry count for installing `govulncheck` (default `3`).
+- `GOVULNCHECK_INSTALL_RETRY_DELAY_SEC` base backoff seconds between retries (default `2`).
+- `GOVULNCHECK_VERSION` pin install target version (default `latest`).
+- `GOVULNCHECK_ALLOW_INSTALL_FAILURE=1` local soft-fail mode if install still fails after retries.
+
+In CI (`CI=true`), govulncheck install failure remains a hard failure.
