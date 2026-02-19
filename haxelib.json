@@ -9,8 +9,8 @@
     "backend"
   ],
   "description": "Reflaxe-based Go target",
-  "version": "0.0.1",
-  "releasenote": "Initial Milestone 0 scaffold",
+  "version": "0.1.0",
+  "releasenote": "Reset release baseline to pre-1.0 track",
   "contributors": [
     "fullofcaffeine"
   ],
