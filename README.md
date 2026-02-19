@@ -20,8 +20,6 @@ If you want Haxe productivity with a serious Go delivery pipeline, this is that 
 - One Haxe codebase, multiple Go profiles (`portable`, `gopher`, `metal`).
 - Generated Go module output (`go.mod` + `main.go` + `hxrt`) with backend `go build` by default.
 - Strong verification harness: snapshots, stdlib sweep, semantic diff, examples matrix, and perf checks.
-- Pre-commit and CI include staged gitleaks scanning and static security checks.
-- CI release automation publishes versioned artifacts with semantic-release.
 
 ## Quick Start
 
