@@ -3253,6 +3253,7 @@ class GoCompiler {
 					name: "self",
 					typeName: "*haxe__Serializer"
 				},
+				{name: "value", typeName: "any"},
 				{name: "ref", typeName: "reflect.Value"}
 			], ["bool"], [
 				GoStmt.GoRaw("defer func() {"),
@@ -3277,6 +3278,9 @@ class GoCompiler {
 				GoStmt.GoRaw("enumName, constructorName, ok := hxrt_serializerLookupEnumConstructor(ref.Type().Name(), tag)"),
 				GoStmt.GoRaw("if !ok {"),
 				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if hxrt_serializerTrackRef(self, value) {"),
+				GoStmt.GoRaw("\treturn true"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("args := make([]any, 0, paramsField.Len())"),
 				GoStmt.GoRaw("for i := 0; i < paramsField.Len(); i++ {"),
@@ -3387,7 +3391,7 @@ class GoCompiler {
 				GoStmt.GoRaw("if hxrt_serializerTryDsObjectMapStruct(self, ref) {"),
 				GoStmt.GoRaw("\treturn true"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if hxrt_serializerTryEnumStruct(self, ref) {"),
+				GoStmt.GoRaw("if hxrt_serializerTryEnumStruct(self, value, ref) {"),
 				GoStmt.GoRaw("\treturn true"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("if hxrt_serializerTryClassStruct(self, value, ref) {"),

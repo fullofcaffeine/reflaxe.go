@@ -33,5 +33,6 @@ Goal:
   - serializer class/enum token semantics
   - serializer extended token families (`l/b/q/M/j/x/A/B`)
   - serializer custom token + resolver semantics (`C`, `setResolver`, default/null resolver paths)
+  - serializer cache/reference graph semantics (`r` parity for repeated enum/class/custom instances and cycles)
   - EReg match/split/replace contract semantics
   - EReg edge semantics (flags, matched-group errors, global vs non-global replacement/map)
