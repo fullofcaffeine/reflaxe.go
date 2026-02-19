@@ -20,8 +20,8 @@ If you want Haxe productivity with a serious Go delivery pipeline, this is that 
 - One Haxe codebase, multiple Go profiles (`portable`, `gopher`, `metal`).
 - Generated Go module output (`go.mod` + `main.go` + `hxrt`) with backend `go build` by default.
 - Strong verification harness: snapshots, stdlib sweep, semantic diff, examples matrix, and perf checks.
-- Secure-by-default workflow with staged gitleaks scanning and CI security gates.
-- Production-focused release pipeline with artifacts and semantic-release automation.
+- Pre-commit and CI include staged gitleaks scanning and static security checks.
+- CI release automation publishes versioned artifacts with semantic-release.
 
 ## Quick Start
 
@@ -105,7 +105,7 @@ Details: [docs/profiles.md](docs/profiles.md)
 - Profile perf harness: `npm run test:perf:go`
 - Release visibility checks: `npm run release:status`
 
-## Why This Is Credible
+## Verification and Delivery
 
 - Verification surface is built in, not optional:
   - snapshots: `test/run-snapshots.py`
