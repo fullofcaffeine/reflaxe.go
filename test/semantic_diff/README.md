@@ -22,6 +22,7 @@ Goal:
   - numeric edge behavior
   - nullable reference fields
   - selected sys/io behavior
+  - deterministic HTTP behavior (`requestUrl`, `customRequest`, `Http.PROXY`) without external network
   - reflection compare + dynamic field semantics
   - anonymous object literal/field mutation semantics
   - crypto/xml/zip behavior parity
