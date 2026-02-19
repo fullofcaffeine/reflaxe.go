@@ -19,3 +19,7 @@ Goal:
   - exceptions
   - enum/switch bindings
   - virtual dispatch
+  - numeric edge behavior
+  - nullable reference fields
+  - selected sys/io behavior
+  - reflection compare semantics

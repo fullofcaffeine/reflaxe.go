@@ -105,6 +105,59 @@ type Type struct {
 type Reflect struct {
 }
 
+func Reflect_compare(a any, b any) int {
+	toFloat := func(value any) (float64, bool) {
+		switch v := value.(type) {
+		case int:
+			return float64(v), true
+		case int8:
+			return float64(v), true
+		case int16:
+			return float64(v), true
+		case int32:
+			return float64(v), true
+		case int64:
+			return float64(v), true
+		case uint:
+			return float64(v), true
+		case uint8:
+			return float64(v), true
+		case uint16:
+			return float64(v), true
+		case uint32:
+			return float64(v), true
+		case uint64:
+			return float64(v), true
+		case float32:
+			return float64(v), true
+		case float64:
+			return v, true
+		default:
+			return 0, false
+		}
+	}
+	if af, ok := toFloat(a); ok {
+		if bf, okB := toFloat(b); okB {
+			if af < bf {
+				return -1
+			}
+			if af > bf {
+				return 1
+			}
+			return 0
+		}
+	}
+	aStr := *hxrt.StdString(a)
+	bStr := *hxrt.StdString(b)
+	if aStr < bStr {
+		return -1
+	}
+	if aStr > bStr {
+		return 1
+	}
+	return 0
+}
+
 type Xml struct {
 }
 

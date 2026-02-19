@@ -41,6 +41,10 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 - `test/semantic_diff/virtual_dispatch`
 - `test/semantic_diff/stringtools_math`
 - `test/semantic_diff/option_date_path`
+- `test/semantic_diff/numeric_edge_cases`
+- `test/semantic_diff/nullable_struct_refs`
+- `test/semantic_diff/sys_io_roundtrip`
+- `test/semantic_diff/reflect_compare`
 
 ## Profile matrix
 
