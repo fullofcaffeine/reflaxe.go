@@ -20,10 +20,17 @@ LAST_RUN = CACHE_ROOT / "upstream_std_sweep_last.json"
 
 PROBE_TYPE_OVERRIDES = {
     "haxe.ds.IntMap": "haxe.ds.IntMap<Dynamic>",
+    "haxe.ds.Map": "haxe.ds.Map<Dynamic, Dynamic>",
     "haxe.ds.StringMap": "haxe.ds.StringMap<Dynamic>",
     "haxe.ds.ObjectMap": "haxe.ds.ObjectMap<Dynamic, Dynamic>",
     "haxe.ds.EnumValueMap": "haxe.ds.EnumValueMap<EnumValue, Dynamic>",
     "haxe.ds.List": "haxe.ds.List<Dynamic>",
+    "haxe.ds.ReadOnlyArray": "haxe.ds.ReadOnlyArray<Dynamic>",
+    "haxe.ds.Vector": "haxe.ds.Vector<Dynamic>",
+}
+
+PROBE_VALUE_OVERRIDES = {
+    "haxe.Int32": "0",
 }
 
 
@@ -107,16 +114,21 @@ def probe_type_for(module: str) -> str:
     return PROBE_TYPE_OVERRIDES.get(module, module)
 
 
+def probe_value_for(module: str) -> str:
+    return PROBE_VALUE_OVERRIDES.get(module, "null")
+
+
 def write_case(case_dir: Path, module: str) -> None:
     if case_dir.exists():
         shutil.rmtree(case_dir)
     case_dir.mkdir(parents=True, exist_ok=True)
 
     probe_type = probe_type_for(module)
+    probe_value = probe_value_for(module)
     main_hx = (
         f"import {module};\n\n"
         "class Main {\n"
-        f"  static var __probe:{probe_type} = null;\n\n"
+        f"  static var __probe:{probe_type} = {probe_value};\n\n"
         "  static function main() {\n"
         "    Sys.println(__probe);\n"
         "  }\n"

@@ -1,16 +1,27 @@
-# Curated upstream stdlib modules for early parity-gaps sweep.
+# Curated upstream stdlib modules for parity sweep.
+# Keep this list focused and passing under --strict --go-test.
 # One module per line. Lines starting with # are ignored.
 
+haxe.CallStack
+haxe.Exception
+haxe.Int32
+haxe.Int64
 haxe.Json
+haxe.PosInfos
+haxe.ds.EnumValueMap
+haxe.ds.IntMap
+haxe.ds.List
+haxe.ds.Map
+haxe.ds.ObjectMap
+haxe.ds.ReadOnlyArray
+haxe.ds.StringMap
+haxe.ds.Vector
 haxe.io.Bytes
 haxe.io.BytesBuffer
+haxe.io.BytesData
 haxe.io.Input
 haxe.io.Output
-haxe.ds.IntMap
-haxe.ds.StringMap
-haxe.ds.ObjectMap
-haxe.ds.EnumValueMap
-haxe.ds.List
+haxe.xml.Access
 Sys
 sys.io.File
 sys.io.Process

@@ -7,6 +7,7 @@ This backend prioritizes portable Haxe semantics first, with an opt-in Go-first 
 ## Start Here
 
 - Onboarding: `docs/start-here.md`
+- CI quality gate: `.github/workflows/ci-quality.yml`
 - Profiles: `docs/profiles.md`
 - Defines reference: `docs/defines-reference.md`
 - Examples matrix: `docs/examples-matrix.md`

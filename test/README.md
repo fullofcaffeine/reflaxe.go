@@ -92,6 +92,12 @@ Run curated upstream stdlib module compile checks:
 python3 test/run-upstream-stdlib-sweep.py
 ```
 
+Module list source:
+
+```text
+test/upstream_std_modules.txt
+```
+
 Strict mode exits non-zero when any module fails:
 
 ```bash
