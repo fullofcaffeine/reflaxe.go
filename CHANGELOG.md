@@ -1,3 +1,9 @@
+## [0.15.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.14.0...v0.15.0) (2026-02-19)
+
+### Features
+
+* **socket:** add advanced sys.net.Socket shim semantics ([952a175](https://github.com/fullofcaffeine/reflaxe.go/commit/952a1750a4e6bd4267b9304b941d94502b7ca5cb))
+
 ## [0.14.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.13.0...v0.14.0) (2026-02-19)
 
 ### Features
