@@ -61,6 +61,7 @@ Compatibility note:
 ## Related docs
 
 - `docs/profiles.md`
+- `docs/feature-support-matrix.md`
 - `docs/examples-matrix.md`
 - `docs/defines-reference.md`
 - `docs/profile-admission-criteria.md`

@@ -116,6 +116,12 @@ Run one module:
 python3 test/run-upstream-stdlib-sweep.py --module haxe.Json
 ```
 
+Run the broader parity-gap probe inventory list:
+
+```bash
+python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_gap_probe.txt --go-test
+```
+
 ## Examples matrix
 
 Run all example/profile cases:
