@@ -1,3 +1,9 @@
+## [0.10.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.9.0...v0.10.0) (2026-02-19)
+
+### Features
+
+* **serializer:** add date/bytes wire-token coverage ([2f36c5e](https://github.com/fullofcaffeine/reflaxe.go/commit/2f36c5e2d2439480c11321a389f58393ee994a85))
+
 ## [0.9.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.8.0...v0.9.0) (2026-02-19)
 
 ### Features
