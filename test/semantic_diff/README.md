@@ -32,5 +32,6 @@ Goal:
   - serializer date/bytes token semantics
   - serializer class/enum token semantics
   - serializer extended token families (`l/b/q/M/j/x/A/B`)
+  - serializer custom token + resolver semantics (`C`, `setResolver`, default/null resolver paths)
   - EReg match/split/replace contract semantics
   - EReg edge semantics (flags, matched-group errors, global vs non-global replacement/map)
