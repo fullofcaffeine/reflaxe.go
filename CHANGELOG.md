@@ -1,3 +1,9 @@
+## [0.17.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.17.0...v0.17.1) (2026-02-19)
+
+### Performance Improvements
+
+* **stdlib:** cache bytes raw conversion path ([94d4adb](https://github.com/fullofcaffeine/reflaxe.go/commit/94d4adbe6f97656c9c71e1e29f6af2fcaca7ecad))
+
 ## [0.17.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.16.0...v0.17.0) (2026-02-19)
 
 ### Features
