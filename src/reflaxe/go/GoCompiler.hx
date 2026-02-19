@@ -5367,12 +5367,17 @@ class GoCompiler {
 				switch (op) {
 					case OpAssign:
 						var loweredRight = lowerExprWithPrefix(right);
-						var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t);
-						var assignStmt = GoStmt.GoAssign(lowerLValue(left), rightExpr);
-						if (loweredRight.prefix.length > 0) {
-							loweredRight.prefix.concat([assignStmt]);
+						var lengthAssignStmts = lowerArrayLengthAssign(left, loweredRight.expr);
+						var assignStmts = if (lengthAssignStmts != null) {
+							lengthAssignStmts;
 						} else {
-							[assignStmt];
+							var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t);
+							[GoStmt.GoAssign(lowerLValue(left), rightExpr)];
+						};
+						if (loweredRight.prefix.length > 0) {
+							loweredRight.prefix.concat(assignStmts);
+						} else {
+							assignStmts;
 						}
 					case OpAssignOp(assignOp):
 						var loweredRight = lowerExprWithPrefix(right);
@@ -5468,6 +5473,48 @@ class GoCompiler {
 				}
 			case _:
 				[GoStmt.GoExprStmt(lowerExpr(expr).expr)];
+		};
+	}
+
+	function fieldAccessName(access:FieldAccess):Null<String> {
+		return switch (access) {
+			case FInstance(_, _, field):
+				field.get().name;
+			case FAnon(field):
+				field.get().name;
+			case FDynamic(name):
+				name;
+			case _:
+				null;
+		};
+	}
+
+	function lowerArrayLengthAssign(left:TypedExpr, rightExpr:GoExpr):Null<Array<GoStmt>> {
+		return switch (left.expr) {
+			case TField(target, access):
+				var fieldName = fieldAccessName(access);
+				if (fieldName != "length" || !isArrayType(target.t)) {
+					null;
+				} else {
+					var targetExpr = lowerExpr(target).expr;
+					var desiredLenName = freshTempName("hx_len");
+					var zeroName = freshTempName("hx_zero");
+					var desiredLen = GoExpr.GoIdent(desiredLenName);
+					var currentLen = GoExpr.GoCall(GoExpr.GoIdent("len"), [targetExpr]);
+					[
+						GoStmt.GoVarDecl(desiredLenName, "int", rightExpr, true),
+						GoStmt.GoIf(GoExpr.GoBinary("<", desiredLen, GoExpr.GoIntLiteral(0)), [GoStmt.GoAssign(desiredLen, GoExpr.GoIntLiteral(0))], null),
+						GoStmt.GoIf(GoExpr.GoBinary("<=", desiredLen, currentLen),
+							[GoStmt.GoAssign(targetExpr, GoExpr.GoSlice(targetExpr, null, desiredLen))], [
+								GoStmt.GoVarDecl(zeroName, arrayElementGoType(target.t), null, false),
+								GoStmt.GoWhile(GoExpr.GoBinary("<", GoExpr.GoCall(GoExpr.GoIdent("len"), [targetExpr]), desiredLen), [
+									GoStmt.GoAssign(targetExpr, GoExpr.GoCall(GoExpr.GoIdent("append"), [targetExpr, GoExpr.GoIdent(zeroName)]))
+								])
+							])
+					];
+				}
+			case _:
+				null;
 		};
 	}
 
@@ -7046,6 +7093,10 @@ class GoCompiler {
 		if (restElement != null) {
 			return "[]" + scalarGoType(restElement);
 		}
+		var vectorElement = vectorElementType(type);
+		if (vectorElement != null) {
+			return "[]" + scalarGoType(vectorElement);
+		}
 
 		var followed = Context.follow(type);
 		return switch (followed) {
@@ -7174,6 +7225,9 @@ class GoCompiler {
 		if (restElementType(type) != null) {
 			return true;
 		}
+		if (vectorElementType(type) != null) {
+			return true;
+		}
 
 		var followed = Context.follow(type);
 		return switch (followed) {
@@ -7187,6 +7241,10 @@ class GoCompiler {
 		var restElement = restElementType(type);
 		if (restElement != null) {
 			return scalarGoType(restElement);
+		}
+		var vectorElement = vectorElementType(type);
+		if (vectorElement != null) {
+			return scalarGoType(vectorElement);
 		}
 
 		var followed = Context.follow(type);
@@ -7207,6 +7265,10 @@ class GoCompiler {
 		var restElement = restElementType(type);
 		if (restElement != null) {
 			return "[]" + scalarGoType(restElement);
+		}
+		var vectorElement = vectorElementType(type);
+		if (vectorElement != null) {
+			return "[]" + scalarGoType(vectorElement);
 		}
 
 		var followed = Context.follow(type);
@@ -7273,6 +7335,21 @@ class GoCompiler {
 			case TType(typeRef, params):
 				var typeDef = typeRef.get();
 				if (typeDef.pack.join(".") == "haxe._Rest" && typeDef.name == "NativeRest" && params.length == 1) {
+					params[0];
+				} else {
+					null;
+				}
+			case _:
+				null;
+		};
+	}
+
+	function vectorElementType(type:Type):Null<Type> {
+		var followed = Context.follow(type);
+		return switch (followed) {
+			case TAbstract(abstractRef, params):
+				var abstractType = abstractRef.get();
+				if (abstractType.pack.join(".") == "haxe.ds" && abstractType.name == "Vector" && params.length == 1) {
 					params[0];
 				} else {
 					null;

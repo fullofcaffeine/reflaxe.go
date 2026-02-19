@@ -32,7 +32,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.crypto.*` + `haxe.xml.*` + `haxe.zip.*` subset | `semantic-diff` | `crypto_xml_zip` |
 | `haxe.Json` | `snapshot` | `stdlib/json_parse_stringify` |
 | `sys.io.Process` | `snapshot` | `sys/process_echo_smoke` |
-| `haxe.ds.Vector` | `compile-only` | `test/upstream_std_modules_full.txt` sweep coverage |
+| `haxe.ds.Vector` | `semantic-diff` | `vector_contract`, `stdlib/vector_basic` |
 
 ## Language/Core matrix
 
@@ -73,6 +73,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/numeric_edge_cases`
 - `test/semantic_diff/nullable_struct_refs`
 - `test/semantic_diff/sys_io_roundtrip`
+- `test/semantic_diff/vector_contract`
 - `test/semantic_diff/reflect_compare`
 - `test/semantic_diff/reflect_field_ops`
 - `test/semantic_diff/anonymous_object_literals`
@@ -125,6 +126,7 @@ Shim strategy and alternatives are documented in:
 - `stdlib/math_basic`
 - `stdlib/option_enum_basic`
 - `stdlib/stringtools_basic`
+- `stdlib/vector_basic`
 - `sys/file_read_write_smoke`
 - `sys/http_custom_request_parity`
 - `sys/http_proxy_socket_contract`

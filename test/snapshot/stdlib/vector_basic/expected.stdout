@@ -1,0 +1,9 @@
+len:4
+base:3,1,4,1
+base_sum:9
+len_after_set:4
+mut:3,9,4,1
+mut_sum:17
+w_len:6
+w:2,4,6,8,10,12
+w_sum:42
