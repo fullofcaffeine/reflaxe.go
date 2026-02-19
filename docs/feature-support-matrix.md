@@ -156,12 +156,12 @@ As of **2026-02-19**:
   - Result: `175 passed / 0 expected policy / 0 failed / 0 unexpected present`
 - Compile + generated Go validation:
   - `python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test`
-  - Result: `174 passed / 1 expected policy / 0 failed / 0 unexpected present`
+  - Result: `175 passed / 0 expected policy / 0 failed / 0 unexpected present`
 
 Policy sources:
 
 - `test/upstream_std_expected_missing.json` (currently empty)
-- `test/upstream_std_expected_unavailable.json` (currently one `go_test`-stage rule for `haxe.Http`)
+- `test/upstream_std_expected_unavailable.json` (currently empty)
 
 ## Unsupported expression inventory (compiler hard-fail paths)
 
@@ -187,9 +187,7 @@ reports:
 
 - `53 passed / 0 expected policy / 0 failed / 0 unexpected present`
 
-The only active expected-policy rule in the full inventory is:
-
-- `haxe.Http` (`go_test` stage): generated probe output references an unresolved `sys__Http` symbol.
+There are currently no active expected-policy rules in the full inventory.
 
 ## Tracking
 

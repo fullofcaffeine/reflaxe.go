@@ -351,6 +351,9 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("ds")) {
 			decls = decls.concat(lowerDsStdlibShimDecls());
 		}
+		if (requiredStdlibShimGroups.exists("http")) {
+			decls = decls.concat(lowerHttpStdlibShimDecls());
+		}
 		if (requiredStdlibShimGroups.exists("sys")) {
 			decls = decls.concat(lowerSysStdlibShimDecls());
 		}
@@ -652,6 +655,14 @@ class GoCompiler {
 				GoStmt.GoReturn(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"),
 					GoExpr.GoBinary("-", GoExpr.GoIdent("size"), GoExpr.GoIntLiteral(1))))
 			])
+		];
+	}
+
+	function lowerHttpStdlibShimDecls():Array<GoDecl> {
+		return [
+			GoDecl.GoStructDecl("sys__Http", [{name: "url", typeName: "*string"}]),
+			GoDecl.GoFuncDecl("New_sys__Http", null, [{name: "url", typeName: "*string"}], ["*sys__Http"],
+				[GoStmt.GoReturn(GoExpr.GoRaw("&sys__Http{url: url}"))])
 		];
 	}
 
@@ -3807,6 +3818,11 @@ class GoCompiler {
 					return;
 				case _:
 			}
+		}
+
+		if (pack == "sys" && classType.name == "Http") {
+			requireStdlibShimGroup("http");
+			return;
 		}
 
 		if ((pack == "" && classType.name == "Sys") || (pack == "sys.io" && (classType.name == "File" || classType.name == "Process"))) {
