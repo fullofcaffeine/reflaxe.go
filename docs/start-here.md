@@ -86,6 +86,7 @@ Compatibility note:
 
 - `.github/workflows/ci-harness.yml`: integrated quality + security gates (`test:ci`, gitleaks, dependency audit) plus semantic-release on `master`.
 - `.github/workflows/security-static-analysis.yml`: dependency review/codeql and scheduled security analysis.
+- `.github/workflows/examples-artifacts.yml`: builds and uploads examples binary artifacts on `master`, and on tag pushes publishes release assets via a separate release job.
 
 ## Related docs
 

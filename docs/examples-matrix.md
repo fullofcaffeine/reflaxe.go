@@ -47,8 +47,12 @@ Binary matrix targets:
   - `push` to `master`: builds matrix and uploads workflow artifacts.
   - `push` tags: builds matrix, uploads workflow artifacts, and publishes release assets.
   - `workflow_dispatch`: manual artifact build/upload.
+- Why this uses artifact upload/download:
+  - The workflow intentionally splits `build` and `release` jobs so release publishing only runs on tag pushes and with `contents: write` permissions.
+  - Job filesystems are isolated in GitHub Actions, so assets must cross jobs via `upload-artifact`/`download-artifact`.
+  - Downloaded artifact layout is not guaranteed to preserve the original `dist/...` prefix, so the release job normalizes discovered files into a deterministic staging directory before `action-gh-release`.
 - Release assets:
   - `examples-<tag>.tar.gz`
   - `examples-<tag>.tar.gz.sha256`
-  - `dist/examples/manifest.json`
-  - `dist/examples/checksums.txt`
+  - `manifest.json`
+  - `checksums.txt`

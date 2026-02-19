@@ -14,6 +14,7 @@ This backend prioritizes portable Haxe semantics first, with an opt-in Go-first 
 - Integrated CI harness + release automation: `.github/workflows/ci-harness.yml`
 - CI quality gate: `.github/workflows/ci-quality.yml`
 - CI static security gate: `.github/workflows/security-static-analysis.yml`
+- Examples binary artifact + tag release publishing: `.github/workflows/examples-artifacts.yml`
 - Feature support matrix: `docs/feature-support-matrix.md`
 - Profiles: `docs/profiles.md`
 - Defines reference: `docs/defines-reference.md`

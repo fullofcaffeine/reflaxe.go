@@ -65,6 +65,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # download-artifact does not guarantee preservation of the original
+          # dist/ prefix from upload globs, so stage files into deterministic
+          # paths before publishing with action-gh-release.
 
           pick_one() {
             local pattern="$1"
