@@ -74,6 +74,10 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 
 ## Stdlib matrix
 
+Shim strategy and alternatives are documented in:
+
+- `docs/stdlib-shim-rationale.md`
+
 ### Snapshot-level behavioral coverage
 
 - `stdlib/bytes_basic`

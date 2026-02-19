@@ -103,6 +103,7 @@ Compatibility note:
 - `docs/feature-support-matrix.md`
 - `docs/examples-matrix.md`
 - `docs/release-visibility.md`
+- `docs/stdlib-shim-rationale.md`
 - `docs/defines-reference.md`
 - `docs/profile-admission-criteria.md`
 - `docs/compiler-target-template.md`
