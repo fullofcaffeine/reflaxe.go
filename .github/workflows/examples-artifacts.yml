@@ -61,12 +61,48 @@ jobs:
           name: examples-binaries-${{ github.ref_name }}
           path: dist-upload
 
+      - name: Normalize release asset paths
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pick_one() {
+            local pattern="$1"
+            local label="$2"
+            local matches
+            local count
+            local first
+            matches="$(find dist-upload -type f -name "$pattern" | sort || true)"
+            if [ -z "$matches" ]; then
+              echo "::error::Missing ${label} (${pattern}) in downloaded artifact"
+              find dist-upload -maxdepth 6 -type f | sort || true
+              exit 1
+            fi
+            count="$(printf '%s\n' "$matches" | sed '/^$/d' | wc -l | tr -d ' ')"
+            first="$(printf '%s\n' "$matches" | sed -n '1p')"
+            if [ "$count" -gt 1 ]; then
+              echo "::warning::Multiple matches for ${label}; using ${first}"
+            fi
+            printf '%s\n' "$first"
+          }
+
+          checksums_file="$(pick_one 'checksums.txt' 'checksums manifest')"
+          manifest_file="$(pick_one 'manifest.json' 'artifact manifest')"
+          archive_file="$(pick_one "examples-${GITHUB_REF_NAME}.tar.gz" 'release archive')"
+          archive_sha_file="$(pick_one "examples-${GITHUB_REF_NAME}.tar.gz.sha256" 'release archive checksum')"
+
+          mkdir -p dist-upload/release-files
+          cp "${checksums_file}" dist-upload/release-files/checksums.txt
+          cp "${manifest_file}" dist-upload/release-files/manifest.json
+          cp "${archive_file}" "dist-upload/release-files/examples-${GITHUB_REF_NAME}.tar.gz"
+          cp "${archive_sha_file}" "dist-upload/release-files/examples-${GITHUB_REF_NAME}.tar.gz.sha256"
+
       - name: Publish GitHub release assets
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist-upload/dist/examples/checksums.txt
-            dist-upload/dist/examples/manifest.json
-            dist-upload/dist/releases/examples-${{ github.ref_name }}.tar.gz
-            dist-upload/dist/releases/examples-${{ github.ref_name }}.tar.gz.sha256
+            dist-upload/release-files/checksums.txt
+            dist-upload/release-files/manifest.json
+            dist-upload/release-files/examples-${{ github.ref_name }}.tar.gz
+            dist-upload/release-files/examples-${{ github.ref_name }}.tar.gz.sha256
           fail_on_unmatched_files: true
