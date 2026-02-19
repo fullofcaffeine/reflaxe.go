@@ -102,6 +102,12 @@ class GoCompiler {
 			imports.push("os");
 			imports.push("os/exec");
 		}
+		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
+			imports.push("math");
+			imports.push("path/filepath");
+			imports.push("strings");
+			imports.push("time");
+		}
 		var mainFile:GoFile = {
 			packageName: "main",
 			imports: imports,
@@ -728,8 +734,109 @@ class GoCompiler {
 		return [
 			GoDecl.GoStructDecl("Std", []),
 			GoDecl.GoStructDecl("StringTools", []),
-			GoDecl.GoStructDecl("Date", []),
+			GoDecl.GoFuncDecl("StringTools_trim", null, [{name: "value", typeName: "*string"}], ["*string"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [
+					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "TrimSpace"), [GoExpr.GoRaw("*hxrt.StdString(value)")])
+				]))
+			]),
+			GoDecl.GoFuncDecl("StringTools_startsWith", null, [
+				{
+					name: "value",
+					typeName: "*string"
+				},
+				{name: "prefix", typeName: "*string"}
+			], ["bool"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "HasPrefix"),
+					[GoExpr.GoRaw("*hxrt.StdString(value)"), GoExpr.GoRaw("*hxrt.StdString(prefix)")]))
+			]),
+			GoDecl.GoFuncDecl("StringTools_replace", null, [
+				{
+					name: "value",
+					typeName: "*string"
+				},
+				{name: "sub", typeName: "*string"},
+				{name: "by", typeName: "*string"}
+			], ["*string"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [
+					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "ReplaceAll"), [
+						GoExpr.GoRaw("*hxrt.StdString(value)"),
+						GoExpr.GoRaw("*hxrt.StdString(sub)"),
+						GoExpr.GoRaw("*hxrt.StdString(by)")
+					])
+				]))
+			]),
+			GoDecl.GoStructDecl("Date", [
+				{
+					name: "value",
+					typeName: "time.Time"
+				}
+			]),
+			GoDecl.GoFuncDecl("Date_fromString", null, [{name: "source", typeName: "*string"}], ["*Date"], [
+				GoStmt.GoVarDecl("raw", null, GoExpr.GoRaw("*hxrt.StdString(source)"), true),
+				GoStmt.GoRaw("parsed, err := time.ParseInLocation(\"2006-01-02 15:04:05\", raw, time.Local)"),
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
+					GoStmt.GoRaw("parsedDateOnly, errDateOnly := time.ParseInLocation(\"2006-01-02\", raw, time.Local)"),
+					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("errDateOnly"), GoExpr.GoNil),
+						[GoStmt.GoAssign(GoExpr.GoIdent("parsed"), GoExpr.GoIdent("parsedDateOnly"))],
+						[GoStmt.GoAssign(GoExpr.GoIdent("parsed"), GoExpr.GoRaw("time.Unix(0, 0)"))])
+				],
+					null),
+				GoStmt.GoReturn(GoExpr.GoRaw("&Date{value: parsed}"))
+			]),
+			GoDecl.GoFuncDecl("Date_now", null, [], ["*Date"], [GoStmt.GoReturn(GoExpr.GoRaw("&Date{value: time.Now()}"))]),
+			GoDecl.GoFuncDecl("getFullYear", {
+				name: "self",
+				typeName: "*Date"
+			}, [], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "value"), "Year"), []))
+			]),
+			GoDecl.GoFuncDecl("getMonth", {
+				name: "self",
+				typeName: "*Date"
+			},
+				[], ["int"], [GoStmt.GoReturn(GoExpr.GoRaw("int(self.value.Month()) - 1"))]),
+			GoDecl.GoFuncDecl("getDate", {name: "self", typeName: "*Date"}, [], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "value"), "Day"), []))
+			]),
+			GoDecl.GoFuncDecl("getHours", {
+				name: "self",
+				typeName: "*Date"
+			}, [], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "value"), "Hour"), []))
+			]),
 			GoDecl.GoStructDecl("Math", []),
+			GoDecl.GoFuncDecl("Math_floor", null, [
+				{
+					name: "value",
+					typeName: "float64"
+				}
+			],
+				["int"], [GoStmt.GoReturn(GoExpr.GoRaw("int(math.Floor(value))"))]),
+			GoDecl.GoFuncDecl("Math_ceil", null, [{name: "value", typeName: "float64"}], ["int"], [GoStmt.GoReturn(GoExpr.GoRaw("int(math.Ceil(value))"))]),
+			GoDecl.GoFuncDecl("Math_round", null, [{name: "value", typeName: "float64"}], ["int"],
+				[GoStmt.GoReturn(GoExpr.GoRaw("int(math.Floor(value + 0.5))"))]),
+			GoDecl.GoFuncDecl("Math_abs", null, [{name: "value", typeName: "float64"}], ["float64"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("math"), "Abs"), [GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("Math_min", null, [
+				{
+					name: "a",
+					typeName: "float64"
+				},
+				{name: "b", typeName: "float64"}
+			], ["float64"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("math"), "Min"), [GoExpr.GoIdent("a"), GoExpr.GoIdent("b")]))
+			]),
+			GoDecl.GoFuncDecl("Math_max", null, [
+				{
+					name: "a",
+					typeName: "float64"
+				},
+				{name: "b", typeName: "float64"}
+			], ["float64"],
+				[
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("math"), "Max"), [GoExpr.GoIdent("a"), GoExpr.GoIdent("b")]))
+				]),
 			GoDecl.GoStructDecl("Type", []),
 			GoDecl.GoStructDecl("Reflect", []),
 			GoDecl.GoStructDecl("Xml", []),
@@ -742,12 +849,66 @@ class GoCompiler {
 			GoDecl.GoStructDecl("haxe__crypto__Sha224", []),
 			GoDecl.GoStructDecl("haxe__crypto__Sha256", []),
 			GoDecl.GoStructDecl("haxe__ds__BalancedTree", []),
-			GoDecl.GoStructDecl("haxe__ds__Option", []),
+			GoDecl.GoStructDecl("haxe__ds__Option",
+				[
+					{
+						name: "tag",
+						typeName: "int"
+					},
+					{name: "params", typeName: "[]any"}
+				]),
+			GoDecl.GoGlobalVarDecl("haxe__ds__Option_None", "*haxe__ds__Option", GoExpr.GoRaw("&haxe__ds__Option{tag: 1, params: []any{}}")),
+			GoDecl.GoFuncDecl("haxe__ds__Option_Some", null, [
+				{
+					name: "value",
+					typeName: "any"
+				}
+			],
+				["*haxe__ds__Option"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__Option{tag: 0, params: []any{value}}"))]),
 			GoDecl.GoStructDecl("haxe__io__BytesInput", []),
 			GoDecl.GoStructDecl("haxe__io__BytesOutput", []),
 			GoDecl.GoStructDecl("haxe__io__Eof", []),
 			GoDecl.GoStructDecl("haxe__io__Error", []),
-			GoDecl.GoStructDecl("haxe__io__Path", []),
+			GoDecl.GoStructDecl("haxe__io__Path", [
+				{
+					name: "dir",
+					typeName: "*string"
+				},
+				{name: "file", typeName: "*string"},
+				{name: "ext", typeName: "*string"},
+				{name: "backslash", typeName: "bool"}
+			]),
+			GoDecl.GoFuncDecl("New_haxe__io__Path", null, [{name: "path", typeName: "*string"}], ["*haxe__io__Path"], [
+				GoStmt.GoVarDecl("raw", null, GoExpr.GoRaw("*hxrt.StdString(path)"), true),
+				GoStmt.GoVarDecl("dir", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("filepath"), "Dir"), [GoExpr.GoIdent("raw")]), true),
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("dir"), GoExpr.GoStringLiteral(".")),
+					[GoStmt.GoAssign(GoExpr.GoIdent("dir"), GoExpr.GoStringLiteral(""))], null),
+				GoStmt.GoVarDecl("base", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("filepath"), "Base"), [GoExpr.GoIdent("raw")]), true),
+				GoStmt.GoVarDecl("dotExt", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("filepath"), "Ext"), [GoExpr.GoIdent("base")]), true),
+				GoStmt.GoVarDecl("file", null, GoExpr.GoIdent("base"), true),
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("dotExt"), GoExpr.GoStringLiteral("")), [
+					GoStmt.GoAssign(GoExpr.GoIdent("file"),
+						GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "TrimSuffix"), [GoExpr.GoIdent("base"), GoExpr.GoIdent("dotExt")]))
+				],
+					null),
+				GoStmt.GoVarDecl("ext", null,
+					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "TrimPrefix"), [GoExpr.GoIdent("dotExt"), GoExpr.GoStringLiteral(".")]), true),
+				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Path{dir: hxrt.StringFromLiteral(dir), file: hxrt.StringFromLiteral(file), ext: hxrt.StringFromLiteral(ext), backslash: strings.Contains(raw, \"\\\\\")}"))
+			]),
+			GoDecl.GoFuncDecl("haxe__io__Path_join", null, [
+				{
+					name: "parts",
+					typeName: "[]*string"
+				}
+			], ["*string"],
+				[
+					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent("parts")]), GoExpr.GoIntLiteral(0)), [
+						GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
+					],
+						null),
+					GoStmt.GoVarDecl("joined", null, GoExpr.GoRaw("filepath.ToSlash(filepath.Join(hxrt.StringSlice(parts)...))"), true),
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("joined")]))
+				]),
 			GoDecl.GoStructDecl("haxe__io__StringInput", []),
 			GoDecl.GoStructDecl("haxe__xml__Parser", []),
 			GoDecl.GoStructDecl("haxe__xml__Printer", []),

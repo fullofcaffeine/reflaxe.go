@@ -39,6 +39,8 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 - `test/semantic_diff/exceptions_typed_dynamic`
 - `test/semantic_diff/enum_switch_bindings`
 - `test/semantic_diff/virtual_dispatch`
+- `test/semantic_diff/stringtools_math`
+- `test/semantic_diff/option_date_path`
 
 ## Profile matrix
 
@@ -63,10 +65,14 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 ### Snapshot-level behavioral coverage
 
 - `stdlib/bytes_basic`
+- `stdlib/date_path_basic`
 - `stdlib/ds_maps_list_basic`
 - `stdlib/intmap_basic`
 - `stdlib/io_type_smoke`
 - `stdlib/json_parse_stringify`
+- `stdlib/math_basic`
+- `stdlib/option_enum_basic`
+- `stdlib/stringtools_basic`
 - `sys/file_read_write_smoke`
 - `sys/process_echo_smoke`
 
