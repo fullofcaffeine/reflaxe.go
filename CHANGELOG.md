@@ -1,3 +1,9 @@
+## [0.16.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.15.0...v0.16.0) (2026-02-19)
+
+### Features
+
+* **serializer:** support resolver polymorphism and ref stress ([8fb3100](https://github.com/fullofcaffeine/reflaxe.go/commit/8fb3100b328fb738c68b5fcf91d08b271cf29029))
+
 ## [0.15.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.14.0...v0.15.0) (2026-02-19)
 
 ### Features
