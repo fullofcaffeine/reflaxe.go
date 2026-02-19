@@ -1,3 +1,9 @@
+## [0.12.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.11.0...v0.12.0) (2026-02-19)
+
+### Features
+
+* **serializer:** extend wire-token parity for maps refs and enum index ([7dc81ff](https://github.com/fullofcaffeine/reflaxe.go/commit/7dc81ffeb312376cc3c34ca8ada6d5153668eb18))
+
 ## [0.11.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.10.0...v0.11.0) (2026-02-19)
 
 ### Features
