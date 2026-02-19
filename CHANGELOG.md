@@ -1,3 +1,9 @@
+## [0.3.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.2.1...v0.3.0) (2026-02-19)
+
+### Features
+
+* **stdlib:** add functional sys.Http shim semantics ([71dfebd](https://github.com/fullofcaffeine/reflaxe.go/commit/71dfebd53f9c0de75133ad1cf3e92fa170559a4f))
+
 ## [0.2.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.2.0...v0.2.1) (2026-02-19)
 
 ### Bug Fixes
