@@ -1,0 +1,26 @@
+{
+  "name": "hx_app",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Haxe -> Go starter project using reflaxe.go",
+  "devDependencies": {
+    "lix": "^15.0.0"
+  },
+  "scripts": {
+    "setup": "bash scripts/dev/setup.sh",
+    "setup:haxe": "bash scripts/dev/setup.sh --haxe-only",
+    "setup:reflaxe-go": "bash scripts/dev/setup.sh --target-only",
+    "hx:compile": "bash scripts/dev/hx-go.sh compile",
+    "hx:run": "bash scripts/dev/hx-go.sh run",
+    "hx:build": "bash scripts/dev/hx-go.sh build",
+    "hx:test": "bash scripts/dev/hx-go.sh test",
+    "hx:compile:gopher": "bash scripts/dev/hx-go.sh compile --profile gopher",
+    "hx:run:gopher": "bash scripts/dev/hx-go.sh run --profile gopher",
+    "hx:build:gopher": "bash scripts/dev/hx-go.sh build --profile gopher",
+    "hx:test:gopher": "bash scripts/dev/hx-go.sh test --profile gopher",
+    "hx:compile:metal": "bash scripts/dev/hx-go.sh compile --profile metal",
+    "hx:run:metal": "bash scripts/dev/hx-go.sh run --profile metal",
+    "hx:build:metal": "bash scripts/dev/hx-go.sh build --profile metal",
+    "hx:test:metal": "bash scripts/dev/hx-go.sh test --profile metal"
+  }
+}

@@ -1,0 +1,6 @@
+-cp src
+-lib reflaxe.go
+-D go_output=out_gopher
+-D go_module=hx_app
+-D reflaxe_go_profile=gopher
+-main Main

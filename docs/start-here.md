@@ -36,6 +36,16 @@ python3 test/run-ci.py
 python3 test/run-examples.py
 ```
 
+## Scaffold a new project
+
+```bash
+npm run dev:new-project -- ./my_haxe_go_app
+cd ./my_haxe_go_app
+npm install
+npm run setup
+npm run hx:run
+```
+
 ## Profile selection
 
 Set via:

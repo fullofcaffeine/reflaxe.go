@@ -28,6 +28,7 @@ Use `-D reflaxe_go_profile=portable|gopher|metal`.
 
 ## Useful Commands
 
+- Scaffold a starter project: `npm run dev:new-project -- ./my_haxe_go_app`
 - Run snapshots: `python3 test/run-snapshots.py`
 - Run CI surface: `python3 test/run-ci.py`
 - Run semantic differential checks (interp vs Go portable): `python3 test/run-semantic-diff.py`
