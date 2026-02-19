@@ -1,3 +1,9 @@
+## [0.11.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.10.0...v0.11.0) (2026-02-19)
+
+### Features
+
+* **serializer:** add class/enum wire-token parity ([b563f4a](https://github.com/fullofcaffeine/reflaxe.go/commit/b563f4a1002000bcf333ef49a2db793fed5f777a))
+
 ## [0.10.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.9.0...v0.10.0) (2026-02-19)
 
 ### Features
