@@ -1,3 +1,9 @@
+## [0.6.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.5.0...v0.6.0) (2026-02-19)
+
+### Features
+
+* **socket:** add deterministic sys.net loopback parity fixture ([c2f4f2e](https://github.com/fullofcaffeine/reflaxe.go/commit/c2f4f2eed053d7f69c38754c11640770188d9eb4))
+
 ## [0.5.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.4.0...v0.5.0) (2026-02-19)
 
 ### Features
