@@ -851,14 +851,12 @@ class GoCompiler {
 				{name: "rest", typeName: "...any"}
 			], [], [
 				GoStmt.GoVarDecl("methodOverride", "*string", GoExpr.GoNil, false),
-				GoStmt.GoRaw("for i := len(rest) - 1; i >= 0; i-- {"),
-				GoStmt.GoRaw("\tswitch candidate := rest[i].(type) {"),
+				GoStmt.GoRaw("if len(rest) >= 2 {"),
+				GoStmt.GoRaw("\tswitch candidate := rest[1].(type) {"),
 				GoStmt.GoRaw("\tcase *string:"),
 				GoStmt.GoRaw("\t\tmethodOverride = candidate"),
-				GoStmt.GoRaw("\t\ti = -1"),
 				GoStmt.GoRaw("\tcase string:"),
 				GoStmt.GoRaw("\t\tmethodOverride = hxrt.StringFromLiteral(candidate)"),
-				GoStmt.GoRaw("\t\ti = -1"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__http__requestWith"),
@@ -1189,6 +1187,15 @@ class GoCompiler {
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoReturn(GoExpr.GoIdent("proxyURL"))
+			]),
+			GoDecl.GoFuncDecl("sys__Http_hxrt_proxyDescriptor", null, [], ["*string"], [
+				GoStmt.GoVarDecl("proxyURL", null, GoExpr.GoCall(GoExpr.GoIdent("hxrt__http__proxyURL"), []), true),
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("proxyURL"), GoExpr.GoNil), [
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("null")]))
+				],
+					null),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
+					[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("proxyURL"), "String"), [])]))
 			]),
 			GoDecl.GoFuncDecl("sys__Http_requestUrl", null, [
 				{

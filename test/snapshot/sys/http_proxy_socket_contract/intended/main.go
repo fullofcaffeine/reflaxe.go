@@ -11,44 +11,48 @@ import (
 )
 
 func main() {
-	http := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,hello%20from%20haxe.go"))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy0="), sys__Http_hxrt_proxyDescriptor()))
+	hx_obj_1 := map[string]any{}
+	hx_obj_1["host"] = hxrt.StringFromLiteral("proxy.local")
+	hx_obj_1["port"] = 3128
+	hx_obj_2 := map[string]any{}
+	hx_obj_2["user"] = hxrt.StringFromLiteral("scott")
+	hx_obj_2["pass"] = hxrt.StringFromLiteral("tiger")
+	hx_obj_1["auth"] = hx_obj_2
+	sys__Http_PROXY = hx_obj_1
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy1="), sys__Http_hxrt_proxyDescriptor()))
+	hx_obj_3 := map[string]any{}
+	hx_obj_3["host"] = hxrt.StringFromLiteral("proxy.local")
+	hx_obj_3["port"] = 80
+	hx_obj_4 := map[string]any{}
+	hx_obj_4["user"] = hxrt.StringFromLiteral("scott")
+	hx_obj_4["pass"] = nil
+	hx_obj_3["auth"] = hx_obj_4
+	sys__Http_PROXY = hx_obj_3
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy2="), sys__Http_hxrt_proxyDescriptor()))
+	hx_obj_5 := map[string]any{}
+	hx_obj_5["host"] = hxrt.StringFromLiteral("proxy.local:9000")
+	hx_obj_5["port"] = 3128
+	hx_obj_5["auth"] = nil
+	sys__Http_PROXY = hx_obj_5
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy3="), sys__Http_hxrt_proxyDescriptor()))
+	hx_obj_6 := map[string]any{}
+	hx_obj_6["host"] = nil
+	hx_obj_6["port"] = 3128
+	hx_obj_6["auth"] = nil
+	sys__Http_PROXY = hx_obj_6
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy4="), sys__Http_hxrt_proxyDescriptor()))
+	sys__Http_PROXY = nil
+	http := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,body"))
 	_ = http
 	sink := New_haxe__io__BytesBuffer()
 	_ = sink
-	http.customRequest(false, sink)
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("custom="), sink.getBytes().toString()))
-	values := http.getResponseHeaderValues(hxrt.StringFromLiteral("Content-Type"))
-	_ = values
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("headers="), func() int {
-		var hx_if_1 int
-		if hxrt.StringEqualAny(values, nil) {
-			hx_if_1 = -1
-		} else {
-			hx_if_1 = len(values)
-		}
-		return hx_if_1
-	}()))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("header0="), func() *string {
-		var hx_if_2 *string
-		if !hxrt.StringEqualAny(values, nil) && (len(values) > 0) {
-			hx_if_2 = values[0]
-		} else {
-			hx_if_2 = hxrt.StringFromLiteral("none")
-		}
-		return hx_if_2
-	}()))
-	putSink := New_haxe__io__BytesBuffer()
-	_ = putSink
-	http.customRequest(false, putSink, nil, hxrt.StringFromLiteral("PUT"))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("method="), putSink.getBytes().toString()))
-	upload := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,ignored"))
-	_ = upload
-	upload.setParameter(hxrt.StringFromLiteral("token"), hxrt.StringFromLiteral("42"))
-	upload.fileTransfer(hxrt.StringFromLiteral("asset"), hxrt.StringFromLiteral("demo.txt"), nil, 4, hxrt.StringFromLiteral("text/plain"))
-	uploadSink := New_haxe__io__BytesBuffer()
-	_ = uploadSink
-	upload.customRequest(true, uploadSink)
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("upload="), uploadSink.getBytes().toString()))
+	http.customRequest(false, sink, func() map[string]any {
+		hx_obj_7 := map[string]any{}
+		hx_obj_7["marker"] = hxrt.StringFromLiteral("sock")
+		return hx_obj_7
+	}(), hxrt.StringFromLiteral("PATCH"))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("methodSock="), sink.getBytes().toString()))
 }
 
 type haxe__io__Encoding struct {

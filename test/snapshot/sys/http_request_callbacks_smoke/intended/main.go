@@ -459,14 +459,12 @@ func (self *sys__Http) get_responseData() *string {
 
 func (self *sys__Http) customRequest(post bool, api any, rest ...any) {
 	var methodOverride *string = nil
-	for i := len(rest) - 1; i >= 0; i-- {
-		switch candidate := rest[i].(type) {
+	if len(rest) >= 2 {
+		switch candidate := rest[1].(type) {
 		case *string:
 			methodOverride = candidate
-			i = -1
 		case string:
 			methodOverride = hxrt.StringFromLiteral(candidate)
-			i = -1
 		}
 	}
 	self.hxrt__http__requestWith(post, methodOverride, api)
@@ -758,6 +756,14 @@ func hxrt__http__proxyURL() *url.URL {
 		}
 	}
 	return proxyURL
+}
+
+func sys__Http_hxrt_proxyDescriptor() *string {
+	proxyURL := hxrt__http__proxyURL()
+	if proxyURL == nil {
+		return hxrt.StringFromLiteral("null")
+	}
+	return hxrt.StringFromLiteral(proxyURL.String())
 }
 
 func sys__Http_requestUrl(url *string) *string {
