@@ -13,57 +13,42 @@ import (
 func main() {
 	http := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,hello%20from%20haxe.go"))
 	_ = http
-	dataLog := hxrt.StringFromLiteral("")
-	_ = dataLog
-	statusLog := -1
-	_ = statusLog
-	byteCount := -1
-	_ = byteCount
-	errLog := hxrt.StringFromLiteral("")
-	_ = errLog
-	http.onData = func(data *string) {
-		dataLog = data
-	}
-	http.onStatus = func(status int) {
-		statusLog = status
-	}
-	http.onBytes = func(bytes *haxe__io__Bytes) {
-		byteCount = bytes.length
-	}
-	http.onError = func(msg *string) {
-		errLog = msg
-	}
-	http.setHeader(hxrt.StringFromLiteral("X-Test"), hxrt.StringFromLiteral("one"))
-	http.setHeader(hxrt.StringFromLiteral("X-Test"), hxrt.StringFromLiteral("two"))
-	http.addHeader(hxrt.StringFromLiteral("X-Trace"), hxrt.StringFromLiteral("ok"))
-	http.setParameter(hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("1"))
-	http.addParameter(hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("2"))
-	http.request()
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("data="), dataLog))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("bytes="), byteCount))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("status="), statusLog))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("response="), http.get_responseData()))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("error="), errLog))
-	post := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,ignored"))
-	_ = post
-	post.setPostData(hxrt.StringFromLiteral("post-body"))
-	postData := hxrt.StringFromLiteral("")
-	_ = postData
-	post.onData = func(data *string) {
-		postData = data
-	}
-	post.request(true)
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("post="), postData))
-	bad := New_sys__Http(hxrt.StringFromLiteral("://bad"))
-	_ = bad
-	badErr := hxrt.StringFromLiteral("")
-	_ = badErr
-	bad.onError = func(msg *string) {
-		badErr = msg
-	}
-	bad.request()
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("bad="), badErr))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("direct="), sys__Http_requestUrl(hxrt.StringFromLiteral("data:text/plain,direct%20ok"))))
+	sink := New_haxe__io__BytesBuffer()
+	_ = sink
+	http.customRequest(false, sink)
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("custom="), sink.getBytes().toString()))
+	values := http.getResponseHeaderValues(hxrt.StringFromLiteral("Content-Type"))
+	_ = values
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("headers="), func() int {
+		var hx_if_1 int
+		if hxrt.StringEqualAny(values, nil) {
+			hx_if_1 = -1
+		} else {
+			hx_if_1 = len(values)
+		}
+		return hx_if_1
+	}()))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("header0="), func() *string {
+		var hx_if_2 *string
+		if !hxrt.StringEqualAny(values, nil) && (len(values) > 0) {
+			hx_if_2 = values[0]
+		} else {
+			hx_if_2 = hxrt.StringFromLiteral("none")
+		}
+		return hx_if_2
+	}()))
+	putSink := New_haxe__io__BytesBuffer()
+	_ = putSink
+	http.customRequest(false, putSink, nil, hxrt.StringFromLiteral("PUT"))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("method="), putSink.getBytes().toString()))
+	upload := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,ignored"))
+	_ = upload
+	upload.setParameter(hxrt.StringFromLiteral("token"), hxrt.StringFromLiteral("42"))
+	upload.fileTransfer(hxrt.StringFromLiteral("asset"), hxrt.StringFromLiteral("demo.txt"), nil, 4, hxrt.StringFromLiteral("text/plain"))
+	uploadSink := New_haxe__io__BytesBuffer()
+	_ = uploadSink
+	upload.customRequest(true, uploadSink)
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("upload="), uploadSink.getBytes().toString()))
 }
 
 type haxe__io__Encoding struct {

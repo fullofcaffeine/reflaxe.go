@@ -1,0 +1,5 @@
+custom=hello from haxe.go
+headers=1
+header0=text/plain
+method=PUT hello from haxe.go
+upload=multipart file=demo.txt;mime=text/plain;size=4

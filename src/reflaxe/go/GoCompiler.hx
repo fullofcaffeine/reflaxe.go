@@ -103,6 +103,7 @@ class GoCompiler {
 			imports.push("net/http");
 			imports.push("net/url");
 			imports.push("strings");
+			imports.push("time");
 		}
 		if (requiredStdlibShimGroups.exists("sys")) {
 			imports.push("bufio");
@@ -352,6 +353,7 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("http")) {
 			// Http request shims expose and consume haxe.io.Bytes payloads.
 			requireStdlibShimGroup("io");
+			requireStdlibShimGroup("ds");
 		}
 		if (requiredStdlibShimGroups.exists("json")) {
 			decls = decls.concat(lowerJsonStdlibShimDecls());
@@ -672,6 +674,14 @@ class GoCompiler {
 	function lowerHttpStdlibShimDecls():Array<GoDecl> {
 		return [
 			GoDecl.GoStructDecl("hxrt__http__Pair", [{name: "name", typeName: "*string"}, {name: "value", typeName: "*string"}]),
+			GoDecl.GoStructDecl("hxrt__http__FileUpload", [
+				{name: "param", typeName: "*string"},
+				{name: "filename", typeName: "*string"},
+				{name: "size", typeName: "int"},
+				{name: "mimeType", typeName: "*string"},
+				{name: "fileRef", typeName: "any"}
+			]),
+			GoDecl.GoGlobalVarDecl("sys__Http_PROXY", "any", GoExpr.GoNil),
 			GoDecl.GoStructDecl("sys__Http", [
 				{name: "url", typeName: "*string"},
 				{name: "responseAsString", typeName: "*string"},
@@ -683,10 +693,17 @@ class GoCompiler {
 				{name: "onData", typeName: "func(*string)"},
 				{name: "onBytes", typeName: "func(*haxe__io__Bytes)"},
 				{name: "onError", typeName: "func(*string)"},
-				{name: "onStatus", typeName: "func(int)"}
+				{name: "onStatus", typeName: "func(int)"},
+				{name: "noShutdown", typeName: "bool"},
+				{name: "cnxTimeout", typeName: "float64"},
+				{name: "responseHeaders", typeName: "*haxe__ds__StringMap"},
+				{name: "responseHeadersSameKey", typeName: "map[string][]*string"},
+				{name: "fileUpload", typeName: "*hxrt__http__FileUpload"}
 			]),
 			GoDecl.GoFuncDecl("New_sys__Http", null, [{name: "url", typeName: "*string"}], ["*sys__Http"], [
-				GoStmt.GoVarDecl("self", null, GoExpr.GoRaw("&sys__Http{url: url, headers: []hxrt__http__Pair{}, params: []hxrt__http__Pair{}}"), true),
+				GoStmt.GoVarDecl("self", null,
+					GoExpr.GoRaw("&sys__Http{url: url, headers: []hxrt__http__Pair{}, params: []hxrt__http__Pair{}, cnxTimeout: 10, responseHeaders: New_haxe__ds__StringMap(), responseHeadersSameKey: map[string][]*string{}}"),
+					true),
 				GoStmt.GoRaw("self.onData = func(data *string) {}"),
 				GoStmt.GoRaw("self.onBytes = func(data *haxe__io__Bytes) {}"),
 				GoStmt.GoRaw("self.onError = func(msg *string) {}"),
@@ -696,67 +713,47 @@ class GoCompiler {
 			GoDecl.GoFuncDecl("setHeader", {
 				name: "self",
 				typeName: "*sys__Http"
-			}, [
-				{
-					name: "name",
-					typeName: "*string"
-				},
-				{name: "value", typeName: "*string"}
-			], [], [
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
-				GoStmt.GoRaw("for i := 0; i < len(self.headers); i++ {"),
-				GoStmt.GoRaw("\tif *hxrt.StdString(self.headers[i].name) == *hxrt.StdString(name) {"),
-				GoStmt.GoRaw("\t\tself.headers[i] = hxrt__http__Pair{name: name, value: value}"),
-				GoStmt.GoRaw("\t\treturn"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("self.headers = append(self.headers, hxrt__http__Pair{name: name, value: value})")
-			]),
+			}, [{name: "name", typeName: "*string"}, {name: "value", typeName: "*string"}],
+				[], [
+					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+					GoStmt.GoRaw("for i := 0; i < len(self.headers); i++ {"),
+					GoStmt.GoRaw("\tif *hxrt.StdString(self.headers[i].name) == *hxrt.StdString(name) {"),
+					GoStmt.GoRaw("\t\tself.headers[i] = hxrt__http__Pair{name: name, value: value}"),
+					GoStmt.GoRaw("\t\treturn"),
+					GoStmt.GoRaw("\t}"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("self.headers = append(self.headers, hxrt__http__Pair{name: name, value: value})")
+				]),
 			GoDecl.GoFuncDecl("addHeader", {
 				name: "self",
 				typeName: "*sys__Http"
-			}, [
-				{
-					name: "header",
-					typeName: "*string"
-				},
-				{name: "value", typeName: "*string"}
-			], [], [
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
-				GoStmt.GoRaw("self.headers = append(self.headers, hxrt__http__Pair{name: header, value: value})")
-			]),
+			},
+				[{name: "header", typeName: "*string"}, {name: "value", typeName: "*string"}], [], [
+					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+					GoStmt.GoRaw("self.headers = append(self.headers, hxrt__http__Pair{name: header, value: value})")
+				]),
 			GoDecl.GoFuncDecl("setParameter", {
 				name: "self",
 				typeName: "*sys__Http"
-			}, [
-				{
-					name: "name",
-					typeName: "*string"
-				},
-				{name: "value", typeName: "*string"}
-			], [], [
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
-				GoStmt.GoRaw("for i := 0; i < len(self.params); i++ {"),
-				GoStmt.GoRaw("\tif *hxrt.StdString(self.params[i].name) == *hxrt.StdString(name) {"),
-				GoStmt.GoRaw("\t\tself.params[i] = hxrt__http__Pair{name: name, value: value}"),
-				GoStmt.GoRaw("\t\treturn"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("self.params = append(self.params, hxrt__http__Pair{name: name, value: value})")
-			]),
+			}, [{name: "name", typeName: "*string"}, {name: "value", typeName: "*string"}],
+				[], [
+					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+					GoStmt.GoRaw("for i := 0; i < len(self.params); i++ {"),
+					GoStmt.GoRaw("\tif *hxrt.StdString(self.params[i].name) == *hxrt.StdString(name) {"),
+					GoStmt.GoRaw("\t\tself.params[i] = hxrt__http__Pair{name: name, value: value}"),
+					GoStmt.GoRaw("\t\treturn"),
+					GoStmt.GoRaw("\t}"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("self.params = append(self.params, hxrt__http__Pair{name: name, value: value})")
+				]),
 			GoDecl.GoFuncDecl("addParameter", {
 				name: "self",
 				typeName: "*sys__Http"
-			}, [
-				{
-					name: "name",
-					typeName: "*string"
-				},
-				{name: "value", typeName: "*string"}
-			], [], [
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
-				GoStmt.GoRaw("self.params = append(self.params, hxrt__http__Pair{name: name, value: value})")
-			]),
+			}, [{name: "name", typeName: "*string"}, {name: "value", typeName: "*string"}],
+				[], [
+					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+					GoStmt.GoRaw("self.params = append(self.params, hxrt__http__Pair{name: name, value: value})")
+				]),
 			GoDecl.GoFuncDecl("setPostData", {
 				name: "self",
 				typeName: "*sys__Http"
@@ -773,6 +770,65 @@ class GoCompiler {
 				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "postBytes"), GoExpr.GoIdent("data")),
 				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "postData"), GoExpr.GoNil)
 			]),
+			GoDecl.GoFuncDecl("fileTransfer", {
+				name: "self",
+				typeName: "*sys__Http"
+			}, [
+				{name: "argname", typeName: "*string"},
+				{name: "filename", typeName: "*string"},
+				{name: "file", typeName: "any"},
+				{name: "size", typeName: "int"},
+				{name: "mimeType", typeName: "...*string"}
+			], [], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoVarDecl("resolvedMime", null,
+					GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("application/octet-stream")]), true),
+				GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent("mimeType")]), GoExpr.GoIntLiteral(0)), [
+					GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIndex(GoExpr.GoIdent("mimeType"), GoExpr.GoIntLiteral(0)), GoExpr.GoNil), [
+						GoStmt.GoAssign(GoExpr.GoIdent("resolvedMime"), GoExpr.GoIndex(GoExpr.GoIdent("mimeType"), GoExpr.GoIntLiteral(0)))
+					],
+						null)
+				],
+					null),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "fileUpload"),
+					GoExpr.GoRaw("&hxrt__http__FileUpload{param: argname, filename: filename, size: size, mimeType: resolvedMime, fileRef: file}"))
+			]),
+			GoDecl.GoFuncDecl("fileTransfert", {
+				name: "self",
+				typeName: "*sys__Http"
+			}, [
+				{name: "argname", typeName: "*string"},
+				{name: "filename", typeName: "*string"},
+				{name: "file", typeName: "any"},
+				{name: "size", typeName: "int"},
+				{name: "mimeType", typeName: "...*string"}
+			],
+				[], [GoStmt.GoRaw("self.fileTransfer(argname, filename, file, size, mimeType...)")]),
+			GoDecl.GoFuncDecl("getResponseHeaderValues", {name: "self", typeName: "*sys__Http"}, [{name: "key", typeName: "*string"}], ["[]*string"], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+				GoStmt.GoVarDecl("rawKey", null, GoExpr.GoRaw("*hxrt.StdString(key)"), true),
+				GoStmt.GoVarDecl("normalized", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "ToLower"), [GoExpr.GoIdent("rawKey")]), true),
+				GoStmt.GoRaw("if self.responseHeadersSameKey != nil {"),
+				GoStmt.GoRaw("\tif values, ok := self.responseHeadersSameKey[rawKey]; ok {"),
+				GoStmt.GoRaw("\t\treturn values"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tif values, ok := self.responseHeadersSameKey[normalized]; ok {"),
+				GoStmt.GoRaw("\t\treturn values"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseHeaders"), GoExpr.GoNil),
+					[GoStmt.GoReturn(GoExpr.GoNil)], null),
+				GoStmt.GoVarDecl("single", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseHeaders"), "get"),
+					[
+						GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("rawKey")])
+					]),
+					true),
+				GoStmt.GoRaw("if single == nil && rawKey != normalized {"),
+				GoStmt.GoRaw("\tsingle = self.responseHeaders.get(hxrt.StringFromLiteral(normalized))"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("single"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+				GoStmt.GoReturn(GoExpr.GoRaw("[]*string{hxrt.StdString(single)}"))
+			]),
 			GoDecl.GoFuncDecl("get_responseData", {
 				name: "self",
 				typeName: "*sys__Http"
@@ -786,6 +842,28 @@ class GoCompiler {
 				], null),
 				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseAsString"))
 			]),
+			GoDecl.GoFuncDecl("customRequest", {
+				name: "self",
+				typeName: "*sys__Http"
+			}, [
+				{name: "post", typeName: "bool"},
+				{name: "api", typeName: "any"},
+				{name: "rest", typeName: "...any"}
+			], [], [
+				GoStmt.GoVarDecl("methodOverride", "*string", GoExpr.GoNil, false),
+				GoStmt.GoRaw("for i := len(rest) - 1; i >= 0; i-- {"),
+				GoStmt.GoRaw("\tswitch candidate := rest[i].(type) {"),
+				GoStmt.GoRaw("\tcase *string:"),
+				GoStmt.GoRaw("\t\tmethodOverride = candidate"),
+				GoStmt.GoRaw("\t\ti = -1"),
+				GoStmt.GoRaw("\tcase string:"),
+				GoStmt.GoRaw("\t\tmethodOverride = hxrt.StringFromLiteral(candidate)"),
+				GoStmt.GoRaw("\t\ti = -1"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__http__requestWith"),
+					[GoExpr.GoIdent("post"), GoExpr.GoIdent("methodOverride"), GoExpr.GoIdent("api")]))
+			]),
 			GoDecl.GoFuncDecl("request", {
 				name: "self",
 				typeName: "*sys__Http"
@@ -796,38 +874,112 @@ class GoCompiler {
 					GoStmt.GoAssign(GoExpr.GoIdent("isPost"), GoExpr.GoIndex(GoExpr.GoIdent("post"), GoExpr.GoIntLiteral(0)))
 				],
 					null),
-				GoStmt.GoIf(GoExpr.GoRaw("self.postData != nil || self.postBytes != nil"),
+				GoStmt.GoIf(GoExpr.GoRaw("self.postData != nil || self.postBytes != nil || self.fileUpload != nil"),
 					[GoStmt.GoAssign(GoExpr.GoIdent("isPost"), GoExpr.GoBoolLiteral(true))], null),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__http__requestWith"),
+					[GoExpr.GoIdent("isPost"), GoExpr.GoNil, GoExpr.GoNil]))
+			]),
+			GoDecl.GoFuncDecl("hxrt__http__requestWith", {
+				name: "self",
+				typeName: "*sys__Http"
+			}, [
+				{name: "post", typeName: "bool"},
+				{name: "methodOverride", typeName: "*string"},
+				{name: "api", typeName: "any"}
+			], [], [
+				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("api")),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseAsString"), GoExpr.GoNil),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseBytes"), GoExpr.GoNil),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseHeaders"), GoExpr.GoCall(GoExpr.GoIdent("New_haxe__ds__StringMap"), [])),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseHeadersSameKey"), GoExpr.GoRaw("map[string][]*string{}")),
 				GoStmt.GoVarDecl("rawUrl", null, GoExpr.GoRaw("*hxrt.StdString(self.url)"), true),
 				GoStmt.GoRaw("parsedURL, err := url.Parse(rawUrl)"),
 				GoStmt.GoIf(GoExpr.GoRaw("err != nil || parsedURL == nil"), [
 					GoStmt.GoIf(GoExpr.GoRaw("self.onError != nil"), [
-						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onError"), [
-							GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Invalid URL")])
-						]))
-					], null),
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onError"),
+							[
+								GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Invalid URL")])
+							]))
+					],
+						null),
 					GoStmt.GoReturn(null)
-				], null),
+				],
+					null),
+				GoStmt.GoRaw("query := parsedURL.Query()"),
+				GoStmt.GoRaw("for _, param := range self.params {"),
+				GoStmt.GoRaw("\tquery.Set(*hxrt.StdString(param.name), *hxrt.StdString(param.value))"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("var bodyReader io.Reader = nil"),
+				GoStmt.GoVarDecl("contentTypeOverride", "*string", GoExpr.GoNil, false),
+				GoStmt.GoRaw("if post {"),
+				GoStmt.GoRaw("\tif self.fileUpload != nil {"),
+				GoStmt.GoRaw("\t\tmultipartPayload := \"\""),
+				GoStmt.GoRaw("\t\tfor _, param := range self.params {"),
+				GoStmt.GoRaw("\t\t\tmultipartPayload += \"--hxrt-go-boundary\\r\\n\""),
+				GoStmt.GoRaw("\t\t\tmultipartPayload += \"Content-Disposition: form-data; name=\\\"\" + *hxrt.StdString(param.name) + \"\\\"\\r\\n\\r\\n\""),
+				GoStmt.GoRaw("\t\t\tmultipartPayload += *hxrt.StdString(param.value) + \"\\r\\n\""),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tmultipartPayload += \"--hxrt-go-boundary\\r\\n\""),
+				GoStmt.GoRaw("\t\tmultipartPayload += \"Content-Disposition: form-data; name=\\\"\" + *hxrt.StdString(self.fileUpload.param) + \"\\\"; filename=\\\"\" + *hxrt.StdString(self.fileUpload.filename) + \"\\\"\\r\\n\""),
+				GoStmt.GoRaw("\t\tmultipartPayload += \"Content-Type: \" + *hxrt.StdString(self.fileUpload.mimeType) + \"\\r\\n\\r\\n\""),
+				GoStmt.GoRaw("\t\tmultipartPayload += \"[uploaded-bytes=\" + *hxrt.StdString(self.fileUpload.size) + \"]\\r\\n\""),
+				GoStmt.GoRaw("\t\tmultipartPayload += \"--hxrt-go-boundary--\\r\\n\""),
+				GoStmt.GoRaw("\t\tbodyReader = strings.NewReader(multipartPayload)"),
+				GoStmt.GoRaw("\t\tcontentTypeOverride = hxrt.StringFromLiteral(\"multipart/form-data; boundary=hxrt-go-boundary\")"),
+				GoStmt.GoRaw("\t} else if self.postBytes != nil {"),
+				GoStmt.GoRaw("\t\trawBody := make([]byte, len(self.postBytes.b))"),
+				GoStmt.GoRaw("\t\tfor i := 0; i < len(self.postBytes.b); i++ {"),
+				GoStmt.GoRaw("\t\t\trawBody[i] = byte(self.postBytes.b[i])"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tbodyReader = bytes.NewReader(rawBody)"),
+				GoStmt.GoRaw("\t} else if self.postData != nil {"),
+				GoStmt.GoRaw("\t\tbodyReader = strings.NewReader(*hxrt.StdString(self.postData))"),
+				GoStmt.GoRaw("\t} else {"),
+				GoStmt.GoRaw("\t\tencoded := query.Encode()"),
+				GoStmt.GoRaw("\t\tbodyReader = strings.NewReader(encoded)"),
+				GoStmt.GoRaw("\t\thasContentType := false"),
+				GoStmt.GoRaw("\t\tfor _, header := range self.headers {"),
+				GoStmt.GoRaw("\t\t\tif strings.EqualFold(*hxrt.StdString(header.name), \"Content-Type\") {"),
+				GoStmt.GoRaw("\t\t\t\thasContentType = true"),
+				GoStmt.GoRaw("\t\t\t\tbreak"),
+				GoStmt.GoRaw("\t\t\t}"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tif !hasContentType {"),
+				GoStmt.GoRaw("\t\t\tcontentTypeOverride = hxrt.StringFromLiteral(\"application/x-www-form-urlencoded\")"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("} else {"),
+				GoStmt.GoRaw("\tparsedURL.RawQuery = query.Encode()"),
+				GoStmt.GoRaw("}"),
 				GoStmt.GoIf(GoExpr.GoRaw("parsedURL.Scheme == \"data\""), [
 					GoStmt.GoVarDecl("payload", null, GoExpr.GoRaw("parsedURL.Opaque"), true),
-					GoStmt.GoRaw("if isPost {"),
-					GoStmt.GoRaw("\tif self.postBytes != nil {"),
-					GoStmt.GoRaw("\t\trawBody := make([]byte, len(self.postBytes.b))"),
-					GoStmt.GoRaw("\t\tfor i := 0; i < len(self.postBytes.b); i++ {"),
-					GoStmt.GoRaw("\t\t\trawBody[i] = byte(self.postBytes.b[i])"),
-					GoStmt.GoRaw("\t\t}"),
-					GoStmt.GoRaw("\t\tpayload = string(rawBody)"),
-					GoStmt.GoRaw("\t} else if self.postData != nil {"),
-					GoStmt.GoRaw("\t\tpayload = *hxrt.StdString(self.postData)"),
-					GoStmt.GoRaw("\t}"),
-					GoStmt.GoRaw("}"),
+					GoStmt.GoVarDecl("mediaType", null, GoExpr.GoStringLiteral("text/plain"), true),
 					GoStmt.GoRaw("commaIndex := strings.Index(payload, \",\")"),
 					GoStmt.GoRaw("if commaIndex >= 0 {"),
+					GoStmt.GoRaw("\tif commaIndex > 0 {"),
+					GoStmt.GoRaw("\t\tmediaType = payload[:commaIndex]"),
+					GoStmt.GoRaw("\t}"),
 					GoStmt.GoRaw("\tpayload = payload[commaIndex+1:]"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("if post {"),
+					GoStmt.GoRaw("\tif self.fileUpload != nil {"),
+					GoStmt.GoRaw("\t\tpayload = \"multipart file=\" + *hxrt.StdString(self.fileUpload.filename) + \";mime=\" + *hxrt.StdString(self.fileUpload.mimeType) + \";size=\" + *hxrt.StdString(self.fileUpload.size)"),
+					GoStmt.GoRaw("\t} else if bodyReader != nil {"),
+					GoStmt.GoRaw("\t\trawBody, readErr := io.ReadAll(bodyReader)"),
+					GoStmt.GoRaw("\t\tif readErr == nil {"),
+					GoStmt.GoRaw("\t\t\tpayload = string(rawBody)"),
+					GoStmt.GoRaw("\t\t}"),
+					GoStmt.GoRaw("\t}"),
 					GoStmt.GoRaw("}"),
 					GoStmt.GoRaw("decoded, decodeErr := url.QueryUnescape(payload)"),
 					GoStmt.GoRaw("if decodeErr == nil {"),
 					GoStmt.GoRaw("\tpayload = decoded"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("if methodOverride != nil {"),
+					GoStmt.GoRaw("\tmethodToken := strings.ToUpper(*hxrt.StdString(methodOverride))"),
+					GoStmt.GoRaw("\tif methodToken != \"\" && methodToken != \"NULL\" {"),
+					GoStmt.GoRaw("\t\tpayload = methodToken + \" \" + payload"),
+					GoStmt.GoRaw("\t}"),
 					GoStmt.GoRaw("}"),
 					GoStmt.GoRaw("rawPayload := []byte(payload)"),
 					GoStmt.GoRaw("intPayload := make([]int, len(rawPayload))"),
@@ -838,6 +990,14 @@ class GoCompiler {
 						GoExpr.GoRaw("&haxe__io__Bytes{b: intPayload, length: len(intPayload)}")),
 					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseAsString"),
 						GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("payload")])),
+					GoStmt.GoRaw("self.responseHeaders = New_haxe__ds__StringMap()"),
+					GoStmt.GoRaw("self.responseHeaders.set(hxrt.StringFromLiteral(\"content-type\"), hxrt.StringFromLiteral(mediaType))"),
+					GoStmt.GoRaw("self.responseHeaders.set(hxrt.StringFromLiteral(\"Content-Type\"), hxrt.StringFromLiteral(mediaType))"),
+					GoStmt.GoRaw("self.responseHeadersSameKey = map[string][]*string{}"),
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt__http__captureApi"), [
+						GoExpr.GoIdent("api"),
+						GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseBytes")
+					])),
 					GoStmt.GoIf(GoExpr.GoRaw("self.onStatus != nil"), [
 						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onStatus"), [GoExpr.GoIntLiteral(200)]))
 					], null),
@@ -862,40 +1022,15 @@ class GoCompiler {
 					GoStmt.GoReturn(null)
 				],
 					null),
-				GoStmt.GoRaw("query := parsedURL.Query()"),
-				GoStmt.GoRaw("for _, param := range self.params {"),
-				GoStmt.GoRaw("\tquery.Set(*hxrt.StdString(param.name), *hxrt.StdString(param.value))"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("var bodyReader io.Reader = nil"),
-				GoStmt.GoRaw("if isPost {"),
-				GoStmt.GoRaw("\tif self.postBytes != nil {"),
-				GoStmt.GoRaw("\t\trawBody := make([]byte, len(self.postBytes.b))"),
-				GoStmt.GoRaw("\t\tfor i := 0; i < len(self.postBytes.b); i++ {"),
-				GoStmt.GoRaw("\t\t\trawBody[i] = byte(self.postBytes.b[i])"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\tbodyReader = bytes.NewReader(rawBody)"),
-				GoStmt.GoRaw("\t} else if self.postData != nil {"),
-				GoStmt.GoRaw("\t\tbodyReader = strings.NewReader(*hxrt.StdString(self.postData))"),
-				GoStmt.GoRaw("\t} else {"),
-				GoStmt.GoRaw("\t\tencoded := query.Encode()"),
-				GoStmt.GoRaw("\t\tbodyReader = strings.NewReader(encoded)"),
-				GoStmt.GoRaw("\t\thasContentType := false"),
-				GoStmt.GoRaw("\t\tfor _, header := range self.headers {"),
-				GoStmt.GoRaw("\t\t\tif strings.EqualFold(*hxrt.StdString(header.name), \"Content-Type\") {"),
-				GoStmt.GoRaw("\t\t\t\thasContentType = true"),
-				GoStmt.GoRaw("\t\t\t\tbreak"),
-				GoStmt.GoRaw("\t\t\t}"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\tif !hasContentType {"),
-				GoStmt.GoRaw("\t\t\tself.headers = append(self.headers, hxrt__http__Pair{name: hxrt.StringFromLiteral(\"Content-Type\"), value: hxrt.StringFromLiteral(\"application/x-www-form-urlencoded\")})"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("} else {"),
-				GoStmt.GoRaw("\tparsedURL.RawQuery = query.Encode()"),
-				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("method := \"GET\""),
-				GoStmt.GoRaw("if isPost {"),
+				GoStmt.GoRaw("if post {"),
 				GoStmt.GoRaw("\tmethod = \"POST\""),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if methodOverride != nil {"),
+				GoStmt.GoRaw("\tmethodToken := strings.ToUpper(*hxrt.StdString(methodOverride))"),
+				GoStmt.GoRaw("\tif methodToken != \"\" && methodToken != \"NULL\" {"),
+				GoStmt.GoRaw("\t\tmethod = methodToken"),
+				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("request, err := http.NewRequest(method, parsedURL.String(), bodyReader)"),
 				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
@@ -912,16 +1047,54 @@ class GoCompiler {
 				GoStmt.GoRaw("for _, header := range self.headers {"),
 				GoStmt.GoRaw("\trequest.Header.Set(*hxrt.StdString(header.name), *hxrt.StdString(header.value))"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("response, err := http.DefaultClient.Do(request)"),
+				GoStmt.GoRaw("if contentTypeOverride != nil && request.Header.Get(\"Content-Type\") == \"\" {"),
+				GoStmt.GoRaw("\trequest.Header.Set(\"Content-Type\", *hxrt.StdString(contentTypeOverride))"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("transport := &http.Transport{}"),
+				GoStmt.GoRaw("if proxyURL := hxrt__http__proxyURL(); proxyURL != nil {"),
+				GoStmt.GoRaw("\ttransport.Proxy = http.ProxyURL(proxyURL)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("timeout := time.Duration(self.cnxTimeout * float64(time.Second))"),
+				GoStmt.GoRaw("if timeout <= 0 {"),
+				GoStmt.GoRaw("\ttimeout = 10 * time.Second"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("client := &http.Client{Transport: transport, Timeout: timeout}"),
+				GoStmt.GoRaw("response, err := client.Do(request)"),
 				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
 					GoStmt.GoIf(GoExpr.GoRaw("self.onError != nil"), [
-						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onError"), [
-							GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("err.Error()")])
-						]))
-					], null),
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onError"),
+							[
+								GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("err.Error()")])
+							]))
+					],
+						null),
 					GoStmt.GoReturn(null)
-				], null),
+				],
+					null),
 				GoStmt.GoRaw("defer response.Body.Close()"),
+				GoStmt.GoRaw("self.responseHeaders = New_haxe__ds__StringMap()"),
+				GoStmt.GoRaw("self.responseHeadersSameKey = map[string][]*string{}"),
+				GoStmt.GoRaw("for name, values := range response.Header {"),
+				GoStmt.GoRaw("\tif len(values) == 0 {"),
+				GoStmt.GoRaw("\t\tcontinue"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tlowerKey := strings.ToLower(name)"),
+				GoStmt.GoRaw("\tlastValue := hxrt.StringFromLiteral(values[len(values)-1])"),
+				GoStmt.GoRaw("\tself.responseHeaders.set(hxrt.StringFromLiteral(name), lastValue)"),
+				GoStmt.GoRaw("\tif lowerKey != name {"),
+				GoStmt.GoRaw("\t\tself.responseHeaders.set(hxrt.StringFromLiteral(lowerKey), lastValue)"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tif len(values) > 1 {"),
+				GoStmt.GoRaw("\t\tallValues := make([]*string, 0, len(values))"),
+				GoStmt.GoRaw("\t\tfor _, rawValue := range values {"),
+				GoStmt.GoRaw("\t\t\tallValues = append(allValues, hxrt.StringFromLiteral(rawValue))"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tself.responseHeadersSameKey[name] = allValues"),
+				GoStmt.GoRaw("\t\tif lowerKey != name {"),
+				GoStmt.GoRaw("\t\t\tself.responseHeadersSameKey[lowerKey] = allValues"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
 				GoStmt.GoIf(GoExpr.GoRaw("self.onStatus != nil"), [
 					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onStatus"), [GoExpr.GoRaw("response.StatusCode")]))
 				], null),
@@ -945,6 +1118,10 @@ class GoCompiler {
 					GoExpr.GoRaw("&haxe__io__Bytes{b: intPayload, length: len(intPayload)}")),
 				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseAsString"),
 					GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("string(rawPayload)")])),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt__http__captureApi"), [
+					GoExpr.GoIdent("api"),
+					GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseBytes")
+				])),
 				GoStmt.GoIf(GoExpr.GoRaw("response.StatusCode >= 400"), [
 					GoStmt.GoIf(GoExpr.GoRaw("self.onError != nil"), [
 						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onError"), [
@@ -961,6 +1138,57 @@ class GoCompiler {
 					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onBytes"),
 						[GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseBytes")]))
 				], null)
+			]),
+			GoDecl.GoFuncDecl("hxrt__http__captureApi", null, [
+				{
+					name: "api",
+					typeName: "any"
+				},
+				{name: "payload", typeName: "*haxe__io__Bytes"}
+			], [], [
+				GoStmt.GoRaw("if api == nil || payload == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("switch out := api.(type) {"),
+				GoStmt.GoRaw("case *haxe__io__BytesBuffer:"),
+				GoStmt.GoRaw("\tout.add(payload)"),
+				GoStmt.GoRaw("case interface{ add(*haxe__io__Bytes) }:"),
+				GoStmt.GoRaw("\tout.add(payload)"),
+				GoStmt.GoRaw("case interface{ writeBytes(*haxe__io__Bytes, int, int) int }:"),
+				GoStmt.GoRaw("\tout.writeBytes(payload, 0, payload.length)"),
+				GoStmt.GoRaw("case interface{ writeFullBytes(*haxe__io__Bytes, int, int) }:"),
+				GoStmt.GoRaw("\tout.writeFullBytes(payload, 0, payload.length)"),
+				GoStmt.GoRaw("case interface{ writeString(*string) }:"),
+				GoStmt.GoRaw("\tout.writeString(payload.toString())"),
+				GoStmt.GoRaw("}"),
+			]),
+			GoDecl.GoFuncDecl("hxrt__http__proxyURL", null, [], ["*url.URL"], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("sys__Http_PROXY"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+				GoStmt.GoRaw("config, ok := sys__Http_PROXY.(map[string]any)"),
+				GoStmt.GoIf(GoExpr.GoUnary("!", GoExpr.GoIdent("ok")), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+				GoStmt.GoRaw("host := *hxrt.StdString(config[\"host\"] )"),
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("host"), GoExpr.GoStringLiteral("")), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("host"), GoExpr.GoStringLiteral("null")), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+				GoStmt.GoRaw("port := *hxrt.StdString(config[\"port\"] )"),
+				GoStmt.GoRaw("hostPort := host"),
+				GoStmt.GoRaw("if port != \"\" && port != \"null\" && !strings.Contains(hostPort, \":\") {"),
+				GoStmt.GoRaw("\thostPort = hostPort + \":\" + port"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("proxyURL, err := url.Parse(\"http://\" + hostPort)"),
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+				GoStmt.GoRaw("if authValue, ok := config[\"auth\"]; ok {"),
+				GoStmt.GoRaw("\tif authMap, ok := authValue.(map[string]any); ok {"),
+				GoStmt.GoRaw("\t\tuser := *hxrt.StdString(authMap[\"user\"])"),
+				GoStmt.GoRaw("\t\tpass := *hxrt.StdString(authMap[\"pass\"])"),
+				GoStmt.GoRaw("\t\tif user != \"\" && user != \"null\" {"),
+				GoStmt.GoRaw("\t\t\tif pass == \"null\" {"),
+				GoStmt.GoRaw("\t\t\t\tpass = \"\""),
+				GoStmt.GoRaw("\t\t\t}"),
+				GoStmt.GoRaw("\t\t\tproxyURL.User = url.UserPassword(user, pass)"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("proxyURL"))
 			]),
 			GoDecl.GoFuncDecl("sys__Http_requestUrl", null, [
 				{
