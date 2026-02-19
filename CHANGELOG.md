@@ -1,3 +1,9 @@
+## [0.4.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.3.0...v0.4.0) (2026-02-19)
+
+### Features
+
+* **http:** expand sys.Http parity with customRequest and multipart ([de7bc21](https://github.com/fullofcaffeine/reflaxe.go/commit/de7bc218b4b85de9d326e6dd2a376bb1938ad7bc))
+
 ## [0.3.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.2.1...v0.3.0) (2026-02-19)
 
 ### Features
