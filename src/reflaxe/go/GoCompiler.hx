@@ -142,6 +142,7 @@ class GoCompiler {
 			imports.push("net");
 			imports.push("strconv");
 			imports.push("strings");
+			imports.push("time");
 		}
 		var mainFile:GoFile = {
 			packageName: "main",
@@ -4416,18 +4417,88 @@ class GoCompiler {
 				{
 					name: "reader",
 					typeName: "*bufio.Reader"
-				}
+				},
+				{name: "socket", typeName: "*sys__net__Socket"}
 			]),
-			GoDecl.GoStructDecl("sys__net__SocketOutput", [{name: "writer", typeName: "*bufio.Writer"}]),
+			GoDecl.GoStructDecl("sys__net__SocketOutput", [
+				{name: "writer", typeName: "*bufio.Writer"},
+				{name: "socket", typeName: "*sys__net__Socket"}
+			]),
 			GoDecl.GoStructDecl("sys__net__Socket", [
 				{name: "input", typeName: "*sys__net__SocketInput"},
 				{name: "output", typeName: "*sys__net__SocketOutput"},
 				{name: "custom", typeName: "any"},
 				{name: "conn", typeName: "net.Conn"},
-				{name: "listener", typeName: "net.Listener"}
+				{name: "listener", typeName: "net.Listener"},
+				{name: "timeout", typeName: "float64"},
+				{name: "hasTimeout", typeName: "bool"},
+				{name: "blocking", typeName: "bool"},
+				{name: "fastSend", typeName: "bool"}
 			]),
 			GoDecl.GoFuncDecl("New_sys__net__Socket", null, [], ["*sys__net__Socket"], [
-				GoStmt.GoReturn(GoExpr.GoRaw("&sys__net__Socket{input: &sys__net__SocketInput{}, output: &sys__net__SocketOutput{}}"))
+				GoStmt.GoReturn(GoExpr.GoRaw("&sys__net__Socket{input: &sys__net__SocketInput{}, output: &sys__net__SocketOutput{}, blocking: true}"))
+			]),
+			GoDecl.GoFuncDecl("hxrt__socket_deadline", null, [
+				{
+					name: "timeout",
+					typeName: "float64"
+				}
+			], ["time.Time"], [
+				GoStmt.GoRaw("duration := time.Duration(timeout * float64(time.Second))"),
+				GoStmt.GoRaw("return time.Now().Add(duration)")
+			]),
+			GoDecl.GoFuncDecl("hxrt__socket_applyConnDeadline", {
+				name: "self",
+				typeName: "*sys__net__Socket"
+			}, [], [], [
+				GoStmt.GoRaw("if self == nil || self.conn == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if !self.blocking {"),
+				GoStmt.GoRaw("\t_ = self.conn.SetDeadline(time.Now())"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self.hasTimeout {"),
+				GoStmt.GoRaw("\t_ = self.conn.SetDeadline(hxrt__socket_deadline(self.timeout))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("_ = self.conn.SetDeadline(time.Time{})")
+			]),
+			GoDecl.GoFuncDecl("hxrt__socket_applyListenerDeadline", {
+				name: "self",
+				typeName: "*sys__net__Socket"
+			}, [], [], [
+				GoStmt.GoRaw("if self == nil || self.listener == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("tcpListener, ok := self.listener.(*net.TCPListener)"),
+				GoStmt.GoRaw("if !ok {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if !self.blocking {"),
+				GoStmt.GoRaw("\t_ = tcpListener.SetDeadline(time.Now())"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self.hasTimeout {"),
+				GoStmt.GoRaw("\t_ = tcpListener.SetDeadline(hxrt__socket_deadline(self.timeout))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("_ = tcpListener.SetDeadline(time.Time{})")
+			]),
+			GoDecl.GoFuncDecl("hxrt__socket_applyFastSend", {
+				name: "self",
+				typeName: "*sys__net__Socket"
+			}, [], [], [
+				GoStmt.GoRaw("if self == nil || self.conn == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("tcpConn, ok := self.conn.(*net.TCPConn)"),
+				GoStmt.GoRaw("if !ok {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if err := tcpConn.SetNoDelay(self.fastSend); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(err)"),
+				GoStmt.GoRaw("}")
 			]),
 			GoDecl.GoFuncDecl("hxrt__socket_setConn", {
 				name: "self",
@@ -4435,8 +4506,12 @@ class GoCompiler {
 			}, [{name: "conn", typeName: "net.Conn"}], [], [
 				GoStmt.GoIf(GoExpr.GoRaw("self == nil || conn == nil"), [GoStmt.GoReturn(null)], null),
 				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "conn"), GoExpr.GoIdent("conn")),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "input"), GoExpr.GoRaw("&sys__net__SocketInput{reader: bufio.NewReader(conn)}")),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "output"), GoExpr.GoRaw("&sys__net__SocketOutput{writer: bufio.NewWriter(conn)}"))
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "input"),
+					GoExpr.GoRaw("&sys__net__SocketInput{reader: bufio.NewReader(conn), socket: self}")),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "output"),
+					GoExpr.GoRaw("&sys__net__SocketOutput{writer: bufio.NewWriter(conn), socket: self}")),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__socket_applyFastSend"), [])),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__socket_applyConnDeadline"), []))
 			]),
 			GoDecl.GoFuncDecl("close", {
 				name: "self",
@@ -4507,7 +4582,8 @@ class GoCompiler {
 				],
 					null),
 				GoStmt.GoIf(GoExpr.GoRaw("self.listener != nil"), [GoStmt.GoRaw("_ = self.listener.Close()")], null),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "listener"), GoExpr.GoIdent("listener"))
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "listener"), GoExpr.GoIdent("listener")),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__socket_applyListenerDeadline"), []))
 			]),
 			GoDecl.GoFuncDecl("listen", {
 				name: "self",
@@ -4524,7 +4600,9 @@ class GoCompiler {
 							GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("socket accept requires listener")])
 						])),
 					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_sys__net__Socket"), []))
-				], null),
+				],
+					null),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__socket_applyListenerDeadline"), [])),
 				GoStmt.GoRaw("conn, err := self.listener.Accept()"),
 				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
 					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent("err")])),
@@ -4532,6 +4610,10 @@ class GoCompiler {
 				],
 					null),
 				GoStmt.GoVarDecl("accepted", null, GoExpr.GoCall(GoExpr.GoIdent("New_sys__net__Socket"), []), true),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("accepted"), "timeout"), GoExpr.GoSelector(GoExpr.GoIdent("self"), "timeout")),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("accepted"), "hasTimeout"), GoExpr.GoSelector(GoExpr.GoIdent("self"), "hasTimeout")),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("accepted"), "blocking"), GoExpr.GoSelector(GoExpr.GoIdent("self"), "blocking")),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("accepted"), "fastSend"), GoExpr.GoSelector(GoExpr.GoIdent("self"), "fastSend")),
 				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("accepted"), "hxrt__socket_setConn"), [GoExpr.GoIdent("conn")])),
 				GoStmt.GoReturn(GoExpr.GoIdent("accepted"))
 			]),
@@ -4563,9 +4645,34 @@ class GoCompiler {
 					typeName: "bool"
 				},
 				{name: "write", typeName: "bool"}
-			],
-				[], [GoStmt.GoRaw("_ = read"), GoStmt.GoRaw("_ = write")]),
-			GoDecl.GoFuncDecl("hxrt__socket_addrInfo", null, [{name: "addr", typeName: "net.Addr"}], ["map[string]any"], [
+			], [], [
+				GoStmt.GoRaw("if self == nil || self.conn == nil || (!read && !write) {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if tcpConn, ok := self.conn.(*net.TCPConn); ok {"),
+				GoStmt.GoRaw("\tif read {"),
+				GoStmt.GoRaw("\t\tif err := tcpConn.CloseRead(); err != nil {"),
+				GoStmt.GoRaw("\t\t\thxrt.Throw(err)"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tif write {"),
+				GoStmt.GoRaw("\t\tif err := tcpConn.CloseWrite(); err != nil {"),
+				GoStmt.GoRaw("\t\t\thxrt.Throw(err)"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if err := self.conn.Close(); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(err)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.conn = nil")
+			]),
+			GoDecl.GoFuncDecl("hxrt__socket_addrInfo", null, [
+				{
+					name: "addr",
+					typeName: "net.Addr"
+				}
+			], ["map[string]any"], [
 				GoStmt.GoRaw("if addr == nil {"),
 				GoStmt.GoRaw("\treturn map[string]any{\"host\": New_sys__net__Host(hxrt.StringFromLiteral(\"\")), \"port\": 0}"),
 				GoStmt.GoRaw("}"),
@@ -4614,22 +4721,51 @@ class GoCompiler {
 			GoDecl.GoFuncDecl("setTimeout", {
 				name: "self",
 				typeName: "*sys__net__Socket"
-			}, [{name: "timeout", typeName: "float64"}], [],
-				[GoStmt.GoRaw("_ = timeout")]),
+			}, [{name: "timeout", typeName: "float64"}], [], [
+				GoStmt.GoRaw("if self == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if timeout < 0 {"),
+				GoStmt.GoRaw("\tself.hasTimeout = false"),
+				GoStmt.GoRaw("\tself.timeout = 0"),
+				GoStmt.GoRaw("} else {"),
+				GoStmt.GoRaw("\tself.hasTimeout = true"),
+				GoStmt.GoRaw("\tself.timeout = timeout"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__socket_applyConnDeadline"), [])),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__socket_applyListenerDeadline"), []))
+			]),
 			GoDecl.GoFuncDecl("waitForRead", {
 				name: "self",
 				typeName: "*sys__net__Socket"
-			}, [], [], []),
+			}, [], [], [
+				GoStmt.GoRaw("if self == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("_ = sys__net__Socket_select_([]*sys__net__Socket{self}, []*sys__net__Socket{}, []*sys__net__Socket{}, -1)")
+			]),
 			GoDecl.GoFuncDecl("setBlocking", {
 				name: "self",
 				typeName: "*sys__net__Socket"
-			}, [{name: "b", typeName: "bool"}], [], [GoStmt.GoRaw("_ = b")]),
+			}, [{name: "b", typeName: "bool"}], [], [
+				GoStmt.GoRaw("if self == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.blocking = b"),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__socket_applyConnDeadline"), [])),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__socket_applyListenerDeadline"), []))
+			]),
 			GoDecl.GoFuncDecl("setFastSend", {
 				name: "self",
 				typeName: "*sys__net__Socket"
-			}, [{name: "b", typeName: "bool"}], [],
-				[GoStmt.GoRaw("_ = b")]),
-			GoDecl.GoFuncDecl("sys__net__Socket_select", null, [
+			}, [{name: "b", typeName: "bool"}], [], [
+				GoStmt.GoRaw("if self == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.fastSend = b"),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__socket_applyFastSend"), []))
+			]),
+			GoDecl.GoFuncDecl("sys__net__Socket_select_", null, [
 				{
 					name: "read",
 					typeName: "[]*sys__net__Socket"
@@ -4638,14 +4774,59 @@ class GoCompiler {
 				{name: "others", typeName: "[]*sys__net__Socket"},
 				{name: "timeout", typeName: "...float64"}
 			], ["map[string]any"], [
-				GoStmt.GoRaw("_ = timeout"),
 				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("read"), GoExpr.GoNil),
 					[GoStmt.GoAssign(GoExpr.GoIdent("read"), GoExpr.GoRaw("[]*sys__net__Socket{}"))], null),
 				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("write"), GoExpr.GoNil),
 					[GoStmt.GoAssign(GoExpr.GoIdent("write"), GoExpr.GoRaw("[]*sys__net__Socket{}"))], null),
 				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("others"), GoExpr.GoNil),
 					[GoStmt.GoAssign(GoExpr.GoIdent("others"), GoExpr.GoRaw("[]*sys__net__Socket{}"))], null),
-				GoStmt.GoReturn(GoExpr.GoRaw("map[string]any{\"read\": read, \"write\": write, \"others\": others}"))
+				GoStmt.GoRaw("effectiveTimeout := -1.0"),
+				GoStmt.GoRaw("if len(timeout) > 0 {"),
+				GoStmt.GoRaw("\teffectiveTimeout = timeout[0]"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("readyRead := make([]*sys__net__Socket, 0, len(read))"),
+				GoStmt.GoRaw("readyWrite := make([]*sys__net__Socket, 0, len(write))"),
+				GoStmt.GoRaw("readyOther := make([]*sys__net__Socket, 0, len(others))"),
+				GoStmt.GoRaw("for _, socket := range read {"),
+				GoStmt.GoRaw("\tif socket == nil || socket.conn == nil || socket.input == nil || socket.input.reader == nil {"),
+				GoStmt.GoRaw("\t\tcontinue"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treader := socket.input.reader"),
+				GoStmt.GoRaw("\tif reader.Buffered() > 0 {"),
+				GoStmt.GoRaw("\t\treadyRead = append(readyRead, socket)"),
+				GoStmt.GoRaw("\t\tcontinue"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tif effectiveTimeout >= 0 {"),
+				GoStmt.GoRaw("\t\tdeadline := time.Now()"),
+				GoStmt.GoRaw("\t\tif effectiveTimeout > 0 {"),
+				GoStmt.GoRaw("\t\t\tdeadline = time.Now().Add(time.Duration(effectiveTimeout * float64(time.Second)))"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\t_ = socket.conn.SetReadDeadline(deadline)"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\t_, err := reader.Peek(1)"),
+				GoStmt.GoRaw("\tsocket.hxrt__socket_applyConnDeadline()"),
+				GoStmt.GoRaw("\tif err == nil {"),
+				GoStmt.GoRaw("\t\treadyRead = append(readyRead, socket)"),
+				GoStmt.GoRaw("\t\tcontinue"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tif netErr, ok := err.(net.Error); ok && netErr.Timeout() {"),
+				GoStmt.GoRaw("\t\tcontinue"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treadyOther = append(readyOther, socket)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("for _, socket := range write {"),
+				GoStmt.GoRaw("\tif socket == nil || socket.conn == nil {"),
+				GoStmt.GoRaw("\t\tcontinue"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treadyWrite = append(readyWrite, socket)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("for _, socket := range others {"),
+				GoStmt.GoRaw("\tif socket == nil {"),
+				GoStmt.GoRaw("\t\tcontinue"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treadyOther = append(readyOther, socket)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoRaw("map[string]any{\"read\": readyRead, \"write\": readyWrite, \"others\": readyOther}"))
 			]),
 			GoDecl.GoFuncDecl("readLine", {
 				name: "self",
@@ -4653,6 +4834,9 @@ class GoCompiler {
 			}, [], ["*string"], [
 				GoStmt.GoRaw("if self == nil || self.reader == nil {"),
 				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self.socket != nil {"),
+				GoStmt.GoRaw("\tself.socket.hxrt__socket_applyConnDeadline()"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("line, err := self.reader.ReadString('\\n')"),
 				GoStmt.GoRaw("if err != nil && len(line) == 0 {"),
@@ -4666,8 +4850,11 @@ class GoCompiler {
 				name: "self",
 				typeName: "*sys__net__SocketOutput"
 			}, [{name: "value", typeName: "*string"}], [], [
-				GoStmt.GoRaw("if self == nil || self.writer == nil {"),
+				GoStmt.GoRaw("if self == nil || self.writer == nil || value == nil {"),
 				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self.socket != nil {"),
+				GoStmt.GoRaw("\tself.socket.hxrt__socket_applyConnDeadline()"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("if _, err := self.writer.WriteString(*hxrt.StdString(value)); err != nil {"),
 				GoStmt.GoRaw("\thxrt.Throw(err)"),
@@ -4679,6 +4866,9 @@ class GoCompiler {
 			}, [], [], [
 				GoStmt.GoRaw("if self == nil || self.writer == nil {"),
 				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self.socket != nil {"),
+				GoStmt.GoRaw("\tself.socket.hxrt__socket_applyConnDeadline()"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("if err := self.writer.Flush(); err != nil {"),
 				GoStmt.GoRaw("\thxrt.Throw(err)"),

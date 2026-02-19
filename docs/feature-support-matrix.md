@@ -39,6 +39,7 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 - `test/semantic_diff/crypto_xml_zip`
 - `test/semantic_diff/http_proxy_custom_request`
 - `test/semantic_diff/socket_loopback_contract`
+- `test/semantic_diff/socket_advanced_contract`
 - `test/semantic_diff/null_string_concat`
 - `test/semantic_diff/exceptions_typed_dynamic`
 - `test/semantic_diff/enum_switch_bindings`
@@ -108,6 +109,12 @@ Shim strategy and alternatives are documented in:
 - `sys.Http` now includes synchronous request semantics for `http`/`https` and deterministic `data:` handling used by tests.
 - Covered behaviors: `setHeader`/`addHeader`, `setParameter`/`addParameter`, `setPostData`/`setPostBytes`, `fileTransfer`/`fileTransfert`, `customRequest`, proxy URL wiring (`Http.PROXY`), `getResponseHeaderValues`, dynamic callbacks (`onData`, `onBytes`, `onError`, `onStatus`), `responseData`/`responseBytes`, and `requestUrl`.
 - Current tradeoff: execution remains synchronous, and the optional `customRequest` socket argument is currently accepted for signature parity but not used as an injected transport in Go.
+
+### `sys.net.Socket` shim contract and tradeoffs
+
+- Socket parity now covers deterministic loopback contracts (`bind`/`listen`/`connect`/`accept`/`read`/`write`/`close`) plus advanced methods: `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, and `shutdown` (`socket_loopback_contract`, `socket_advanced_contract`).
+- `select` now returns readiness-filtered arrays for read/write groups under timeout control, and `waitForRead` delegates to this readiness path.
+- Current tradeoff: `setBlocking` is implemented through deadline behavior rather than true OS-level non-blocking file descriptor mode.
 
 ### `EReg` + `haxe.Serializer` contract and tradeoffs
 
