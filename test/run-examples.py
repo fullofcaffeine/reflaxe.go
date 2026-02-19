@@ -6,6 +6,7 @@ import argparse
 import dataclasses
 import os
 from pathlib import Path
+import shlex
 import shutil
 import subprocess
 import time
@@ -127,6 +128,18 @@ def run_command(cmd: list[str], cwd: Path, timeout_s: int, env: dict[str, str] |
     return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout_s, env=merged)
 
 
+def read_run_args(path: Path) -> list[str]:
+    if not path.exists():
+        return []
+    raw = path.read_text(encoding="utf-8", errors="replace").strip()
+    if raw == "":
+        return []
+    try:
+        return shlex.split(raw)
+    except ValueError as exc:
+        raise RuntimeError(f"invalid run args file {path}: {exc}") from exc
+
+
 def command_output(proc: subprocess.CompletedProcess[str]) -> str:
     chunks: list[str] = []
     if proc.stdout:
@@ -223,6 +236,8 @@ def compare_stdout(expected_file: Path, actual: str) -> tuple[bool, str]:
 def run_case(case: ExampleProfileCase, args: argparse.Namespace) -> CaseResult:
     started = time.monotonic()
     try:
+        run_ci_args = read_run_args(case.example_dir / "run.ci.args")
+        run_args = read_run_args(case.example_dir / "run.args")
         clean_out_dirs(case)
 
         compile_ci_proc = run_command(
@@ -239,7 +254,7 @@ def run_case(case: ExampleProfileCase, args: argparse.Namespace) -> CaseResult:
             return CaseResult(case.case_id, False, stage + "_ci", msg, time.monotonic() - started)
 
         if not args.compile_only:
-            run_ci_proc = run_command(["go", "run", "."], cwd=case.out_ci_dir, timeout_s=args.timeout)
+            run_ci_proc = run_command(["go", "run", ".", *run_ci_args], cwd=case.out_ci_dir, timeout_s=args.timeout)
             if run_ci_proc.returncode != 0:
                 return CaseResult(case.case_id, False, "runtime_ci", command_output(run_ci_proc), time.monotonic() - started)
             ok_stdout, msg_stdout = compare_stdout(case.expected_ci_stdout, run_ci_proc.stdout)
@@ -260,7 +275,7 @@ def run_case(case: ExampleProfileCase, args: argparse.Namespace) -> CaseResult:
             return CaseResult(case.case_id, False, stage, msg, time.monotonic() - started)
 
         if not args.compile_only:
-            run_proc = run_command(["go", "run", "."], cwd=case.out_dir, timeout_s=args.timeout)
+            run_proc = run_command(["go", "run", ".", *run_args], cwd=case.out_dir, timeout_s=args.timeout)
             if run_proc.returncode != 0:
                 return CaseResult(case.case_id, False, "runtime", command_output(run_proc), time.monotonic() - started)
             ok_stdout, msg_stdout = compare_stdout(case.expected_stdout, run_proc.stdout)
@@ -286,6 +301,8 @@ def run_case(case: ExampleProfileCase, args: argparse.Namespace) -> CaseResult:
         return CaseResult(case.case_id, False, "timeout", f"command timed out after {args.timeout}s: {exc.cmd}", time.monotonic() - started)
     except FileNotFoundError as exc:
         return CaseResult(case.case_id, False, "tool", f"missing tool: {exc}", time.monotonic() - started)
+    except RuntimeError as exc:
+        return CaseResult(case.case_id, False, "config", str(exc), time.monotonic() - started)
 
 
 def main() -> int:

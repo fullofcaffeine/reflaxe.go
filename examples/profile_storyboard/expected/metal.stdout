@@ -1,5 +1,28 @@
-profile=metal
-baseline=cards=3,points=13,open=3
-view=#1:[Ship profile docs]:p3:metal-docs|metal-profiles;#2:[Backfill regression snapshots]:p5:metal-tests;#3:[Wire release artifacts]:p5:metal-ci|metal-release
-extra=interop_lane=typed+strict,high_value=2
-velocity_hint=on
+==============================================
+Release Command Center :: metal
+Window: sprint-24
+==============================================
+Health
+  Readiness  [#########---------------] 38% (8/21 points)
+  Cards      total=5, todo=1, doing=2, done=2
+  Open Load  13 points | velocity=9 points/sprint | eta=2 sprint(s)
+  Team Focus Noah(p5), Jules(p3), Sam(p5)
+  Velocity Hint: adaptive
+
+Board
+TODO (1)
+  - #4 p3 [strict] CLI polish for dev:hx owner:Jules tags:metal-devex
+DOING (2)
+  - #3 p5 [strict] Wire release artifacts owner:Noah tags:metal-ci|metal-release
+  - #5 p5 [strict] Interactive tui_todo demo owner:Sam tags:metal-examples|metal-release
+DONE (2)
+  - #1 p3 [strict] Ship profile docs owner:Alex tags:metal-docs|metal-profiles
+  - #2 p5 [strict] Backfill regression snapshots owner:Mira tags:metal-tests
+
+Risk Radar
+  High-Risk Open (>= p4): 2
+  Release-Tagged Open: 2
+  Profile Signal: interop_lane=typed+strict,high_value=3,open_high_value=2,policy_gate=on
+
+Decision
+  ship high-risk open cards first

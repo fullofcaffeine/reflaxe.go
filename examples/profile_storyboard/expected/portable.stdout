@@ -1,5 +1,28 @@
-profile=portable
-baseline=cards=3,points=13,open=3
-view=#1:Ship profile docs:p3:docs|profiles;#2:Backfill regression snapshots:p5:tests;#3:Wire release artifacts:p5:ci|release
-extra=interop_lane=off
-velocity_hint=off
+==============================================
+Release Command Center :: portable
+Window: sprint-24
+==============================================
+Health
+  Readiness  [#########---------------] 38% (8/21 points)
+  Cards      total=5, todo=1, doing=2, done=2
+  Open Load  13 points | velocity=5 points/sprint | eta=3 sprint(s)
+  Team Focus Noah(p5), Jules(p3), Sam(p5)
+  Velocity Hint: baseline
+
+Board
+TODO (1)
+  - #4 p3 CLI polish for dev:hx owner:Jules tags:devex
+DOING (2)
+  - #3 p5 Wire release artifacts owner:Noah tags:ci|release
+  - #5 p5 Interactive tui_todo demo owner:Sam tags:examples|release
+DONE (2)
+  - #1 p3 Ship profile docs owner:Alex tags:docs|profiles
+  - #2 p5 Backfill regression snapshots owner:Mira tags:tests
+
+Risk Radar
+  High-Risk Open (>= p5): 2
+  Release-Tagged Open: 2
+  Profile Signal: interop_lane=off,optimizer=stable,policy_gate=off
+
+Decision
+  ship high-risk open cards first

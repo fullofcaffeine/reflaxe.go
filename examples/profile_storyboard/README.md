@@ -1,12 +1,13 @@
 # profile_storyboard
 
-Compact profile-idiom example showing one shared domain compiled to `portable`, `gopher`, and `metal`.
+Showcase "release command center" example compiled from one Haxe codebase to `portable`, `gopher`, and `metal`.
 
 ## Why this exists
 
-- Keeps profile differences easy to inspect in a small codebase.
-- Demonstrates runtime-adapter pattern (`profile/RuntimeFactory.hx`) for future compilers.
-- Shows additive profile behavior while preserving baseline semantics.
+- Produces a demo-friendly output that still represents useful project telemetry.
+- Shows a shared abstraction with profile overlays via `profile/RuntimeFactory.hx`.
+- Makes profile differences obvious without forking core app logic.
+- Serves as a high-signal docs/demo artifact for reflaxe.go.
 
 ## Compile
 
@@ -23,3 +24,11 @@ haxe compile.metal.hxml
 (cd out_gopher && go run .)
 (cd out_metal && go run .)
 ```
+
+## What it shows
+
+- Health block: readiness progress bar, card mix, open load, velocity, ETA.
+- Board block: `TODO`, `DOING`, `DONE` lanes with owners/tags.
+- Risk block: high-risk open work and release-tagged open count.
+- Profile signal line: profile-specific telemetry from runtime adapters.
+- Decision line: simple release recommendation based on computed risk.
