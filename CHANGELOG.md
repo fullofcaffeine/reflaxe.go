@@ -1,3 +1,9 @@
+## [0.5.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.4.0...v0.5.0) (2026-02-19)
+
+### Features
+
+* **semantic-diff:** add serializer/ereg parity fixtures and shim group ([1b1e0e4](https://github.com/fullofcaffeine/reflaxe.go/commit/1b1e0e47eecd492f1a45c8bfcf77e369aa159e90))
+
 ## [0.4.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.3.0...v0.4.0) (2026-02-19)
 
 ### Features
