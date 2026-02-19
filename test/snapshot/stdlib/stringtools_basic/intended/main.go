@@ -1,6 +1,15 @@
 package main
 
 import (
+	"bytes"
+	"compress/zlib"
+	"crypto/md5"
+	"crypto/sha1"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
+	"encoding/xml"
+	"io"
 	"math"
 	"path/filepath"
 	"snapshot/hxrt"
@@ -14,6 +23,91 @@ func main() {
 	hxrt.Println(StringTools_trim(s))
 	hxrt.Println(StringTools_startsWith(hxrt.StringFromLiteral("hello"), hxrt.StringFromLiteral("he")))
 	hxrt.Println(StringTools_replace(hxrt.StringFromLiteral("a-b-c"), hxrt.StringFromLiteral("-"), hxrt.StringFromLiteral(":")))
+}
+
+type haxe__io__Encoding struct {
+}
+
+type haxe__io__Input struct {
+}
+
+type haxe__io__Output struct {
+}
+
+type haxe__io__Bytes struct {
+	b      []int
+	length int
+}
+
+type haxe__io__BytesBuffer struct {
+	b []int
+}
+
+func New_haxe__io__Input() *haxe__io__Input {
+	return &haxe__io__Input{}
+}
+
+func New_haxe__io__Output() *haxe__io__Output {
+	return &haxe__io__Output{}
+}
+
+func New_haxe__io__Bytes(length int, b []int) *haxe__io__Bytes {
+	if b == nil {
+		b = make([]int, length)
+	}
+	return &haxe__io__Bytes{b: b, length: len(b)}
+}
+
+func haxe__io__Bytes_alloc(length int) *haxe__io__Bytes {
+	return &haxe__io__Bytes{b: make([]int, length), length: length}
+}
+
+func haxe__io__Bytes_ofString(value *string, encoding ...*haxe__io__Encoding) *haxe__io__Bytes {
+	raw := hxrt.BytesFromString(value)
+	return &haxe__io__Bytes{b: raw, length: len(raw)}
+}
+
+func (self *haxe__io__Bytes) toString() *string {
+	if self == nil {
+		return hxrt.StringFromLiteral("")
+	}
+	return hxrt.BytesToString(self.b)
+}
+
+func (self *haxe__io__Bytes) get(pos int) int {
+	return self.b[pos]
+}
+
+func (self *haxe__io__Bytes) set(pos int, value int) {
+	self.b[pos] = value
+}
+
+func New_haxe__io__BytesBuffer() *haxe__io__BytesBuffer {
+	return &haxe__io__BytesBuffer{b: []int{}}
+}
+
+func (self *haxe__io__BytesBuffer) addByte(value int) {
+	self.b = append(self.b, value)
+}
+
+func (self *haxe__io__BytesBuffer) add(src *haxe__io__Bytes) {
+	if src == nil {
+		return
+	}
+	self.b = append(self.b, src.b...)
+}
+
+func (self *haxe__io__BytesBuffer) addString(value *string, encoding ...*haxe__io__Encoding) {
+	self.add(haxe__io__Bytes_ofString(value))
+}
+
+func (self *haxe__io__BytesBuffer) getBytes() *haxe__io__Bytes {
+	copied := hxrt.BytesClone(self.b)
+	return &haxe__io__Bytes{b: copied, length: len(copied)}
+}
+
+func (self *haxe__io__BytesBuffer) get_length() int {
+	return len(self.b)
 }
 
 type Std struct {
@@ -159,6 +253,18 @@ func Reflect_compare(a any, b any) int {
 }
 
 type Xml struct {
+	raw *string
+}
+
+func Xml_parse(source *string) *Xml {
+	return haxe__xml__Parser_parse(source)
+}
+
+func (self *Xml) toString() *string {
+	if self == nil || self.raw == nil {
+		return hxrt.StringFromLiteral("")
+	}
+	return hxrt.StringFromLiteral(*self.raw)
 }
 
 type EReg struct {
@@ -183,6 +289,122 @@ type haxe__crypto__Sha224 struct {
 }
 
 type haxe__crypto__Sha256 struct {
+}
+
+func hxrt_haxeBytesToRaw(value *haxe__io__Bytes) []byte {
+	if value == nil {
+		return []byte{}
+	}
+	raw := make([]byte, len(value.b))
+	for i := 0; i < len(value.b); i++ {
+		raw[i] = byte(value.b[i])
+	}
+	return raw
+}
+
+func hxrt_rawToHaxeBytes(value []byte) *haxe__io__Bytes {
+	converted := make([]int, len(value))
+	for i := 0; i < len(value); i++ {
+		converted[i] = int(value[i])
+	}
+	return &haxe__io__Bytes{b: converted, length: len(converted)}
+}
+
+func haxe__crypto__Base64_encode(bytes *haxe__io__Bytes, complement ...bool) *string {
+	useComplement := true
+	if len(complement) > 0 {
+		useComplement = complement[0]
+	}
+	encoded := base64.StdEncoding.EncodeToString(hxrt_haxeBytesToRaw(bytes))
+	if !useComplement {
+		encoded = strings.TrimRight(encoded, "=")
+	}
+	return hxrt.StringFromLiteral(encoded)
+}
+
+func haxe__crypto__Base64_decode(value *string, complement ...bool) *haxe__io__Bytes {
+	useComplement := true
+	if len(complement) > 0 {
+		useComplement = complement[0]
+	}
+	rawValue := *hxrt.StdString(value)
+	if useComplement {
+		rawValue = strings.TrimRight(rawValue, "=")
+	}
+	decoded, err := base64.RawStdEncoding.DecodeString(rawValue)
+	if err != nil {
+		decoded, err = base64.StdEncoding.DecodeString(*hxrt.StdString(value))
+		if err != nil {
+			hxrt.Throw(err)
+			return &haxe__io__Bytes{b: []int{}, length: 0}
+		}
+	}
+	return hxrt_rawToHaxeBytes(decoded)
+}
+
+func haxe__crypto__Base64_urlEncode(bytes *haxe__io__Bytes, complement ...bool) *string {
+	useComplement := false
+	if len(complement) > 0 {
+		useComplement = complement[0]
+	}
+	encoded := base64.RawURLEncoding.EncodeToString(hxrt_haxeBytesToRaw(bytes))
+	if useComplement {
+		missing := len(encoded) % 4
+		if missing != 0 {
+			encoded = (encoded + strings.Repeat("=", (4-missing)))
+		}
+	}
+	return hxrt.StringFromLiteral(encoded)
+}
+
+func haxe__crypto__Base64_urlDecode(value *string, complement ...bool) *haxe__io__Bytes {
+	rawValue := *hxrt.StdString(value)
+	decoded, err := base64.RawURLEncoding.DecodeString(strings.TrimRight(rawValue, "="))
+	if err != nil {
+		hxrt.Throw(err)
+		return &haxe__io__Bytes{b: []int{}, length: 0}
+	}
+	return hxrt_rawToHaxeBytes(decoded)
+}
+
+func haxe__crypto__Md5_encode(value *string) *string {
+	sum := md5.Sum([]byte(*hxrt.StdString(value)))
+	return hxrt.StringFromLiteral(hex.EncodeToString(sum[:]))
+}
+
+func haxe__crypto__Md5_make(value *haxe__io__Bytes) *haxe__io__Bytes {
+	sum := md5.Sum(hxrt_haxeBytesToRaw(value))
+	return hxrt_rawToHaxeBytes(sum[:])
+}
+
+func haxe__crypto__Sha1_encode(value *string) *string {
+	sum := sha1.Sum([]byte(*hxrt.StdString(value)))
+	return hxrt.StringFromLiteral(hex.EncodeToString(sum[:]))
+}
+
+func haxe__crypto__Sha1_make(value *haxe__io__Bytes) *haxe__io__Bytes {
+	sum := sha1.Sum(hxrt_haxeBytesToRaw(value))
+	return hxrt_rawToHaxeBytes(sum[:])
+}
+
+func haxe__crypto__Sha224_encode(value *string) *string {
+	sum := sha256.Sum224([]byte(*hxrt.StdString(value)))
+	return hxrt.StringFromLiteral(hex.EncodeToString(sum[:]))
+}
+
+func haxe__crypto__Sha224_make(value *haxe__io__Bytes) *haxe__io__Bytes {
+	sum := sha256.Sum224(hxrt_haxeBytesToRaw(value))
+	return hxrt_rawToHaxeBytes(sum[:])
+}
+
+func haxe__crypto__Sha256_encode(value *string) *string {
+	sum := sha256.Sum256([]byte(*hxrt.StdString(value)))
+	return hxrt.StringFromLiteral(hex.EncodeToString(sum[:]))
+}
+
+func haxe__crypto__Sha256_make(value *haxe__io__Bytes) *haxe__io__Bytes {
+	sum := sha256.Sum256(hxrt_haxeBytesToRaw(value))
+	return hxrt_rawToHaxeBytes(sum[:])
 }
 
 type haxe__ds__BalancedTree struct {
@@ -251,10 +473,69 @@ type haxe__xml__Parser struct {
 type haxe__xml__Printer struct {
 }
 
+func haxe__xml__Parser_parse(source *string, strict ...bool) *Xml {
+	raw := *hxrt.StdString(source)
+	decoder := xml.NewDecoder(strings.NewReader(raw))
+	for {
+		_, err := decoder.Token()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			hxrt.Throw(err)
+			return &Xml{raw: hxrt.StringFromLiteral("")}
+		}
+	}
+	return &Xml{raw: hxrt.StringFromLiteral(raw)}
+}
+
+func haxe__xml__Printer_print(value *Xml, pretty ...bool) *string {
+	if value == nil || value.raw == nil {
+		return hxrt.StringFromLiteral("")
+	}
+	return hxrt.StringFromLiteral(*value.raw)
+}
+
 type haxe__zip__Compress struct {
 }
 
 type haxe__zip__Uncompress struct {
+}
+
+func haxe__zip__Compress_run(src *haxe__io__Bytes, level int) *haxe__io__Bytes {
+	raw := hxrt_haxeBytesToRaw(src)
+	var buffer bytes.Buffer
+	writer, err := zlib.NewWriterLevel(&buffer, level)
+	if err != nil {
+		hxrt.Throw(err)
+		return nil
+	}
+	if _, err := writer.Write(raw); err != nil {
+		_ = writer.Close()
+		hxrt.Throw(err)
+		return nil
+	}
+	if err := writer.Close(); err != nil {
+		hxrt.Throw(err)
+		return nil
+	}
+	return hxrt_rawToHaxeBytes(buffer.Bytes())
+}
+
+func haxe__zip__Uncompress_run(src *haxe__io__Bytes, bufsize ...int) *haxe__io__Bytes {
+	raw := hxrt_haxeBytesToRaw(src)
+	reader, err := zlib.NewReader(bytes.NewReader(raw))
+	if err != nil {
+		hxrt.Throw(err)
+		return nil
+	}
+	defer reader.Close()
+	decoded, err := io.ReadAll(reader)
+	if err != nil {
+		hxrt.Throw(err)
+		return nil
+	}
+	return hxrt_rawToHaxeBytes(decoded)
 }
 
 type sys__FileSystem struct {

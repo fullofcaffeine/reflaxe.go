@@ -1,0 +1,22 @@
+{
+  "rules": [
+    {
+      "module": "haxe.crypto.Sha512",
+      "reason": "Missing from upstream Haxe 4.3.x stdlib in current toolchains.",
+      "haxe_version": {
+        "min_inclusive": "4.3.0",
+        "max_exclusive": "4.4.0"
+      },
+      "failure_regex": "Type not found\\s*:\\s*haxe\\.crypto\\.Sha512"
+    },
+    {
+      "module": "haxe.io.StringOutput",
+      "reason": "Missing from upstream Haxe 4.3.x stdlib in current toolchains.",
+      "haxe_version": {
+        "min_inclusive": "4.3.0",
+        "max_exclusive": "4.4.0"
+      },
+      "failure_regex": "Type not found\\s*:\\s*haxe\\.io\\.StringOutput"
+    }
+  ]
+}

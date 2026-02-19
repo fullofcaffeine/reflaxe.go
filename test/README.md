@@ -110,6 +110,19 @@ Module list source:
 test/upstream_std_modules.txt
 ```
 
+Expected-missing policy source (version-aware):
+
+```text
+test/upstream_std_expected_missing.json
+```
+
+Result categories:
+
+- `PASS`: module compiled (and optionally passed `go test`)
+- `EXPECTED_MISSING`: compile-time `Type not found` matched policy for current Haxe version
+- `FAIL`: non-policy failure
+- `UNEXPECTED_PRESENT`: module compiled even though policy says expected-missing (policy drift to investigate)
+
 Strict mode exits non-zero when any module fails:
 
 ```bash
@@ -132,6 +145,12 @@ Run the broader parity-gap probe inventory list:
 
 ```bash
 python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_gap_probe.txt --go-test
+```
+
+Disable expected-missing policy classification (raw failures only):
+
+```bash
+python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_gap_probe.txt --go-test --no-expected-missing-policy
 ```
 
 ## Semantic differential harness

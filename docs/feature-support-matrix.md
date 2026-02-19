@@ -71,6 +71,7 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 ### Snapshot-level behavioral coverage
 
 - `stdlib/bytes_basic`
+- `stdlib/crypto_xml_zip_basic`
 - `stdlib/date_path_basic`
 - `stdlib/ds_maps_list_basic`
 - `stdlib/intmap_basic`
@@ -163,14 +164,20 @@ As of **2026-02-19**, an expanded probe run:
 python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_gap_probe.txt --go-test
 ```
 
-reported `51 passed / 2 failed` and identified these remaining failing modules:
+reported `51 passed / 2 expected missing / 0 failed` under the version-aware expected-missing policy in:
+
+```text
+test/upstream_std_expected_missing.json
+```
+
+Current expected-missing modules for Haxe `>=4.3.0,<4.4.0`:
 
 ```text
 haxe.crypto.Sha512
 haxe.io.StringOutput
 ```
 
-Both remaining failures are compile-time `Type not found` in the installed upstream Haxe stdlib, not Go-lowering failures.
+These are compile-time `Type not found` gaps in the installed upstream Haxe stdlib, not Go-lowering failures.
 
 ## Tracking
 

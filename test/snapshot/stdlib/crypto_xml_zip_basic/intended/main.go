@@ -18,18 +18,28 @@ import (
 )
 
 func main() {
-	d := Date_fromString(hxrt.StringFromLiteral("2024-02-03 04:05:06"))
-	_ = d
-	hxrt.Println(d.getFullYear())
-	hxrt.Println(d.getMonth())
-	hxrt.Println(d.getDate())
-	hxrt.Println(d.getHours())
-	hxrt.Println(haxe__io__Path_join([]*string{hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("c.txt")}))
-	p := New_haxe__io__Path(hxrt.StringFromLiteral("/tmp/demo.txt"))
-	_ = p
-	hxrt.Println(p.dir)
-	hxrt.Println(p.file)
-	hxrt.Println(p.ext)
+	payload := hxrt.StringFromLiteral("ab")
+	_ = payload
+	bytes := haxe__io__Bytes_ofString(payload)
+	_ = bytes
+	hxrt.Println(haxe__crypto__Base64_encode(bytes))
+	hxrt.Println(haxe__crypto__Base64_encode(bytes, false))
+	hxrt.Println(haxe__crypto__Base64_decode(hxrt.StringFromLiteral("YWI=")).toString())
+	hxrt.Println(haxe__crypto__Base64_urlEncode(bytes, true))
+	hxrt.Println(haxe__crypto__Base64_urlDecode(hxrt.StringFromLiteral("YWI")).toString())
+	hxrt.Println(haxe__crypto__Md5_encode(payload))
+	hxrt.Println(haxe__crypto__Sha1_encode(payload))
+	hxrt.Println(haxe__crypto__Sha224_encode(payload))
+	hxrt.Println(haxe__crypto__Sha256_encode(payload))
+	doc := haxe__xml__Parser_parse(hxrt.StringFromLiteral("<root><item n=\"1\">x</item></root>"))
+	_ = doc
+	hxrt.Println(haxe__xml__Printer_print(doc))
+	compressed := haxe__zip__Compress_run(bytes, 9)
+	_ = compressed
+	roundtrip := haxe__zip__Uncompress_run(compressed)
+	_ = roundtrip
+	hxrt.Println(roundtrip.toString())
+	hxrt.Println((compressed.length > 0))
 }
 
 type haxe__io__Encoding struct {

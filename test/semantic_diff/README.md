@@ -24,3 +24,4 @@ Goal:
   - selected sys/io behavior
   - reflection compare semantics
   - anonymous object literal/field mutation semantics
+  - crypto/xml/zip behavior parity
