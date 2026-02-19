@@ -39,3 +39,16 @@ Binary matrix targets:
 - `linux/arm64`
 - `darwin/arm64`
 - `windows/amd64`
+
+## CI artifact/release automation
+
+- Workflow: `.github/workflows/examples-artifacts.yml`
+- Triggers:
+  - `push` to `master`: builds matrix and uploads workflow artifacts.
+  - `push` tags: builds matrix, uploads workflow artifacts, and publishes release assets.
+  - `workflow_dispatch`: manual artifact build/upload.
+- Release assets:
+  - `examples-<tag>.tar.gz`
+  - `examples-<tag>.tar.gz.sha256`
+  - `dist/examples/manifest.json`
+  - `dist/examples/checksums.txt`
