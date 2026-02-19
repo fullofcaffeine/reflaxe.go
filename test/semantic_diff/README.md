@@ -23,3 +23,4 @@ Goal:
   - nullable reference fields
   - selected sys/io behavior
   - reflection compare semantics
+  - anonymous object literal/field mutation semantics

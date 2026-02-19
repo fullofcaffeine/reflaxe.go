@@ -27,6 +27,7 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 | Interface dispatch | Supported | `core/interface_dispatch_basic` |
 | Super calls | Supported | `core/super_calls` |
 | Enums and switch pattern bindings | Supported | `core/enum_constructors`, `core/switch_enum_basic`, `core/enum_switch_bindings` |
+| Anonymous object literals and structural field mutation | Supported | `core/object_literal_fields` |
 | Exception subset (`throw`, typed/dynamic catch, rethrow) | Supported | `core/haxe_exception_subset`, `core/try_catch_typed`, `core/try_catch_dynamic`, `core/try_catch_rethrow` |
 | `Std.isOfType` behavior | Supported | `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic` |
 | Unsigned right shift behavior | Supported | `core/unsigned_shift`, `core/unsigned_shift_assign` |
@@ -45,6 +46,7 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 - `test/semantic_diff/nullable_struct_refs`
 - `test/semantic_diff/sys_io_roundtrip`
 - `test/semantic_diff/reflect_compare`
+- `test/semantic_diff/anonymous_object_literals`
 
 ## Profile matrix
 

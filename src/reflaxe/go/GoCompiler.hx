@@ -1683,6 +1683,24 @@ class GoCompiler {
 		};
 	}
 
+	function lowerObjectDeclExpr(fields:Array<{name:String, expr:TypedExpr}>):LoweredExprWithPrefix {
+		var temp = freshTempName("hx_obj");
+		var prefix = [GoStmt.GoVarDecl(temp, "map[string]any", GoExpr.GoRaw("map[string]any{}"), true)];
+		var targetExpr = GoExpr.GoIdent(temp);
+
+		for (field in fields) {
+			var loweredValue = lowerExprWithPrefix(field.expr);
+			prefix = prefix.concat(loweredValue.prefix);
+			prefix.push(GoStmt.GoAssign(GoExpr.GoIndex(targetExpr, GoExpr.GoStringLiteral(field.name)), loweredValue.expr));
+		}
+
+		return {
+			prefix: prefix,
+			expr: targetExpr,
+			isStringLike: false
+		};
+	}
+
 	function lowerBlock(exprs:Array<TypedExpr>):Array<GoStmt> {
 		pushLocalScope();
 		var out = new Array<GoStmt>();
@@ -1894,7 +1912,14 @@ class GoCompiler {
 			case TArray(target, index):
 				GoExpr.GoIndex(lowerExpr(target).expr, lowerExpr(index).expr);
 			case TField(target, access):
-				lowerField(target, access).expr;
+				switch (access) {
+					case FAnon(field) if (isAnonymousObjectType(target.t)):
+						GoExpr.GoIndex(lowerExpr(target).expr, GoExpr.GoStringLiteral(field.get().name));
+					case FDynamic(name) if (isAnonymousObjectType(target.t)):
+						GoExpr.GoIndex(lowerExpr(target).expr, GoExpr.GoStringLiteral(name));
+					case _:
+						lowerField(target, access).expr;
+				}
 			case TParenthesis(inner):
 				lowerLValue(inner);
 			case TCast(inner, _):
@@ -1914,6 +1939,8 @@ class GoCompiler {
 					expr: GoExpr.GoArrayLiteral(arrayElementGoType(expr.t), [for (value in values) lowerExpr(value).expr]),
 					isStringLike: false
 				};
+			case TObjectDecl(fields):
+				materializeExprWithPrefix(lowerObjectDeclExpr(fields), expr.t);
 			case TBlock(exprs):
 				var restPacked = lowerRestPackBlock(exprs);
 				if (restPacked != null) {
@@ -2080,6 +2107,8 @@ class GoCompiler {
 				lowerIfExpr(condition, thenBranch, elseBranch, expr.t);
 			case TTry(tryExpr, catches):
 				lowerTryCatchExpr(tryExpr, catches, expr.t);
+			case TObjectDecl(fields):
+				lowerObjectDeclExpr(fields);
 			case TArray(target, index):
 				var loweredTarget = lowerExprWithPrefix(target);
 				var loweredIndex = lowerExprWithPrefix(index);
@@ -2222,6 +2251,14 @@ class GoCompiler {
 			case FAnon(field):
 				var resolved = field.get();
 				var loweredTarget = lowerExpr(target).expr;
+				if (isAnonymousObjectType(target.t)) {
+					var anonField = GoExpr.GoIndex(loweredTarget, GoExpr.GoStringLiteral(resolved.name));
+					var anonFieldType = scalarGoType(resolved.type);
+					return {
+						expr: anonFieldType == "any" ? anonField : GoExpr.GoTypeAssert(anonField, anonFieldType),
+						isStringLike: isStringType(resolved.type)
+					};
+				}
 				if (isHaxeExceptionType(target.t) && resolved.name == "message") {
 					return {
 						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [loweredTarget]),
@@ -2249,6 +2286,12 @@ class GoCompiler {
 				}
 			case FDynamic(name):
 				var loweredTarget = lowerExpr(target).expr;
+				if (isAnonymousObjectType(target.t)) {
+					return {
+						expr: GoExpr.GoIndex(loweredTarget, GoExpr.GoStringLiteral(name)),
+						isStringLike: false
+					};
+				}
 				var dynamicExpr = if (name == "length" && isArrayType(target.t)) {
 					GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]);
 				} else {
@@ -2952,6 +2995,8 @@ class GoCompiler {
 				}
 			case TEnum(enumRef, _):
 				"*" + enumTypeName(enumRef.get());
+			case TAnonymous(_):
+				"map[string]any";
 			case TAbstract(abstractRef, _):
 				var abstractType = abstractRef.get();
 				if (abstractType.pack.length == 0 && abstractType.name == "Int") {
@@ -3040,6 +3085,16 @@ class GoCompiler {
 		};
 	}
 
+	function isAnonymousObjectType(type:Type):Bool {
+		var followed = Context.follow(type);
+		return switch (followed) {
+			case TAnonymous(_):
+				true;
+			case _:
+				false;
+		};
+	}
+
 	function isArrayType(type:Type):Bool {
 		if (restElementType(type) != null) {
 			return true;
@@ -3100,6 +3155,8 @@ class GoCompiler {
 				}
 			case TEnum(enumRef, _):
 				"*" + enumTypeName(enumRef.get());
+			case TAnonymous(_):
+				"map[string]any";
 			case TAbstract(abstractRef, _):
 				var abstractType = abstractRef.get();
 				if (abstractType.pack.length == 0 && abstractType.name == "Int") {
