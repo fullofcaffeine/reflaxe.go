@@ -416,6 +416,10 @@ class GoCompiler {
 			requireStdlibShimGroup("io");
 			requireStdlibShimGroup("ds");
 		}
+		if (requiredStdlibShimGroups.exists("regex_serializer")) {
+			// Serializer token support includes haxe.ds.List/StringMap/IntMap/ObjectMap families.
+			requireStdlibShimGroup("ds");
+		}
 		if (requiredStdlibShimGroups.exists("json")) {
 			decls = decls.concat(lowerJsonStdlibShimDecls());
 		}
@@ -2101,6 +2105,34 @@ class GoCompiler {
 		enumLookupBody.push(GoStmt.GoRaw("\treturn \"\", \"\", false"));
 		enumLookupBody.push(GoStmt.GoRaw("}"));
 
+		var enumLookupByNameBody = [GoStmt.GoRaw("switch enumName {")];
+		for (entry in enumMetadata) {
+			var constructorLiterals = [for (constructor in entry.constructors) goRawQuotedString(constructor)].join(", ");
+			enumLookupByNameBody.push(GoStmt.GoRaw("case " + goRawQuotedString(entry.haxeTypeName) + ":"));
+			enumLookupByNameBody.push(GoStmt.GoRaw("\tconstructors := []string{" + constructorLiterals + "}"));
+			enumLookupByNameBody.push(GoStmt.GoRaw("\tif index < 0 || index >= len(constructors) {"));
+			enumLookupByNameBody.push(GoStmt.GoRaw("\t\treturn \"\", false"));
+			enumLookupByNameBody.push(GoStmt.GoRaw("\t}"));
+			enumLookupByNameBody.push(GoStmt.GoRaw("\treturn constructors[index], true"));
+		}
+		enumLookupByNameBody.push(GoStmt.GoRaw("default:"));
+		enumLookupByNameBody.push(GoStmt.GoRaw("\treturn \"\", false"));
+		enumLookupByNameBody.push(GoStmt.GoRaw("}"));
+
+		var enumLookupIndexBody = [GoStmt.GoRaw("switch enumName {")];
+		for (entry in enumMetadata) {
+			enumLookupIndexBody.push(GoStmt.GoRaw("case " + goRawQuotedString(entry.haxeTypeName) + ":"));
+			for (index in 0...entry.constructors.length) {
+				enumLookupIndexBody.push(GoStmt.GoRaw("\tif constructorName == " + goRawQuotedString(entry.constructors[index]) + " {"));
+				enumLookupIndexBody.push(GoStmt.GoRaw("\t\treturn " + index + ", true"));
+				enumLookupIndexBody.push(GoStmt.GoRaw("\t}"));
+			}
+			enumLookupIndexBody.push(GoStmt.GoRaw("\treturn 0, false"));
+		}
+		enumLookupIndexBody.push(GoStmt.GoRaw("default:"));
+		enumLookupIndexBody.push(GoStmt.GoRaw("\treturn 0, false"));
+		enumLookupIndexBody.push(GoStmt.GoRaw("}"));
+
 		return [
 			GoDecl.GoStructDecl("EReg", [
 				{name: "regex", typeName: "*regexp.Regexp"},
@@ -2410,13 +2442,16 @@ class GoCompiler {
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
 					[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("builder"), "String"), [])]))
 			]),
-			GoDecl.GoStructDecl("haxe__SerializedDate", [
-				{
-					name: "ms",
-					typeName: "float64"
-				}
-			]),
+			GoDecl.GoStructDecl("haxe__SerializedDate",
+				[
+					{
+						name: "ms",
+						typeName: "float64"
+					}
+				]),
 			GoDecl.GoStructDecl("haxe__SerializedBytes", [{name: "data", typeName: "[]byte"}]),
+			GoDecl.GoStructDecl("haxe__SerializedClassRef", [{name: "name", typeName: "string"}]),
+			GoDecl.GoStructDecl("haxe__SerializedEnumRef", [{name: "name", typeName: "string"}]),
 			GoDecl.GoStructDecl("haxe__SerializedClass", [
 				{
 					name: "name",
@@ -2432,6 +2467,8 @@ class GoCompiler {
 						typeName: "string"
 					},
 					{name: "constructor", typeName: "string"},
+					{name: "constructorIndex", typeName: "int"},
+					{name: "hasConstructorIndex", typeName: "bool"},
 					{name: "args", typeName: "[]any"}
 				]),
 			GoDecl.GoFuncDecl("hxrt_serializerLookupClassName", null, [{name: "typeName", typeName: "string"}], ["string", "bool"], classLookupBody),
@@ -2441,7 +2478,22 @@ class GoCompiler {
 					typeName: "string"
 				},
 				{name: "tag", typeName: "int"}
-			], ["string", "string", "bool"], enumLookupBody),
+			], ["string", "string", "bool"],
+				enumLookupBody),
+			GoDecl.GoFuncDecl("hxrt_serializerLookupEnumConstructorByName", null, [
+				{
+					name: "enumName",
+					typeName: "string"
+				},
+				{name: "index", typeName: "int"}
+			], ["string", "bool"], enumLookupByNameBody),
+			GoDecl.GoFuncDecl("hxrt_serializerLookupEnumIndexByName", null, [
+				{
+					name: "enumName",
+					typeName: "string"
+				},
+				{name: "constructorName", typeName: "string"}
+			], ["int", "bool"], enumLookupIndexBody),
 			GoDecl.GoStructDecl("haxe__Serializer", [
 				{
 					name: "buf",
@@ -2460,6 +2512,14 @@ class GoCompiler {
 				typeName: "*haxe__Serializer"
 			}, [{name: "value", typeName: "any"}], [], [
 				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt_serializerWriteValue"), [GoExpr.GoIdent("self"), GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("serializeException", {
+				name: "self",
+				typeName: "*haxe__Serializer"
+			}, [{name: "value", typeName: "any"}], [], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoRaw("hxrt_serializerAppend(self, \"x\")"),
 				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt_serializerWriteValue"), [GoExpr.GoIdent("self"), GoExpr.GoIdent("value")]))
 			]),
 			GoDecl.GoFuncDecl("toString", {
@@ -2552,6 +2612,96 @@ class GoCompiler {
 				GoStmt.GoRaw("encoded = strings.TrimRight(encoded, \"=\")"),
 				GoStmt.GoRaw("hxrt_serializerAppend(self, \"s\" + strconv.Itoa(len(encoded)) + \":\" + encoded)")
 			]),
+			GoDecl.GoFuncDecl("hxrt_serializerWriteEnumToken", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Serializer"
+				},
+				{name: "enumName", typeName: "string"},
+				{name: "constructorName", typeName: "string"},
+				{name: "constructorIndex", typeName: "int"},
+				{name: "hasConstructorIndex", typeName: "bool"},
+				{name: "args", typeName: "[]any"}
+			], [], [
+				GoStmt.GoRaw("if self != nil && self.useEnumIndex && hasConstructorIndex {"),
+				GoStmt.GoRaw("\thxrt_serializerAppend(self, \"j\")"),
+				GoStmt.GoRaw("\thxrt_serializerWriteStringToken(self, enumName)"),
+				GoStmt.GoRaw("\thxrt_serializerAppend(self, \":\" + strconv.Itoa(constructorIndex))"),
+				GoStmt.GoRaw("} else {"),
+				GoStmt.GoRaw("\thxrt_serializerAppend(self, \"w\")"),
+				GoStmt.GoRaw("\thxrt_serializerWriteStringToken(self, enumName)"),
+				GoStmt.GoRaw("\thxrt_serializerWriteStringToken(self, constructorName)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("hxrt_serializerAppend(self, \":\" + strconv.Itoa(len(args)))"),
+				GoStmt.GoRaw("for _, arg := range args {"),
+				GoStmt.GoRaw("\thxrt_serializerWriteValue(self, arg)"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("hxrt_serializerWriteListToken", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Serializer"
+				},
+				{name: "items", typeName: "[]any"}
+			], [], [
+				GoStmt.GoRaw("hxrt_serializerAppend(self, \"l\")"),
+				GoStmt.GoRaw("for _, item := range items {"),
+				GoStmt.GoRaw("\thxrt_serializerWriteValue(self, item)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("hxrt_serializerAppend(self, \"h\")")
+			]),
+			GoDecl.GoFuncDecl("hxrt_serializerWriteStringMapToken", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Serializer"
+				},
+				{name: "entries", typeName: "map[string]any"}
+			], [], [
+				GoStmt.GoRaw("hxrt_serializerAppend(self, \"b\")"),
+				GoStmt.GoRaw("keys := make([]string, 0, len(entries))"),
+				GoStmt.GoRaw("for key := range entries {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("sort.Strings(keys)"),
+				GoStmt.GoRaw("for _, key := range keys {"),
+				GoStmt.GoRaw("\thxrt_serializerWriteStringToken(self, key)"),
+				GoStmt.GoRaw("\thxrt_serializerWriteValue(self, entries[key])"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("hxrt_serializerAppend(self, \"h\")")
+			]),
+			GoDecl.GoFuncDecl("hxrt_serializerWriteIntMapToken", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Serializer"
+				},
+				{name: "entries", typeName: "map[int]any"}
+			], [], [
+				GoStmt.GoRaw("hxrt_serializerAppend(self, \"q\")"),
+				GoStmt.GoRaw("keys := make([]int, 0, len(entries))"),
+				GoStmt.GoRaw("for key := range entries {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("sort.Ints(keys)"),
+				GoStmt.GoRaw("for _, key := range keys {"),
+				GoStmt.GoRaw("\thxrt_serializerAppend(self, \":\" + strconv.Itoa(key))"),
+				GoStmt.GoRaw("\thxrt_serializerWriteValue(self, entries[key])"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("hxrt_serializerAppend(self, \"h\")")
+			]),
+			GoDecl.GoFuncDecl("hxrt_serializerWriteObjectMapToken", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Serializer"
+				},
+				{name: "entries", typeName: "map[any]any"}
+			], [], [
+				GoStmt.GoRaw("hxrt_serializerAppend(self, \"M\")"),
+				GoStmt.GoRaw("for key, value := range entries {"),
+				GoStmt.GoRaw("\thxrt_serializerWriteValue(self, key)"),
+				GoStmt.GoRaw("\thxrt_serializerWriteValue(self, value)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("hxrt_serializerAppend(self, \"h\")")
+			]),
 			GoDecl.GoFuncDecl("hxrt_serializerReflectAny", null, [
 				{
 					name: "value",
@@ -2611,13 +2761,129 @@ class GoCompiler {
 				GoStmt.GoRaw("\thxrt_serializerAppend(self, \"n\")"),
 				GoStmt.GoRaw("\treturn"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("hxrt_serializerAppend(self, \"w\")"),
-				GoStmt.GoRaw("hxrt_serializerWriteStringToken(self, serialized.name)"),
-				GoStmt.GoRaw("hxrt_serializerWriteStringToken(self, serialized.constructor)"),
-				GoStmt.GoRaw("hxrt_serializerAppend(self, \":\" + strconv.Itoa(len(serialized.args)))"),
-				GoStmt.GoRaw("for _, arg := range serialized.args {"),
-				GoStmt.GoRaw("\thxrt_serializerWriteValue(self, arg)"),
-				GoStmt.GoRaw("}")
+				GoStmt.GoRaw("constructorIndex := serialized.constructorIndex"),
+				GoStmt.GoRaw("hasConstructorIndex := serialized.hasConstructorIndex"),
+				GoStmt.GoRaw("if !hasConstructorIndex {"),
+				GoStmt.GoRaw("\tif resolvedIndex, ok := hxrt_serializerLookupEnumIndexByName(serialized.name, serialized.constructor); ok {"),
+				GoStmt.GoRaw("\t\tconstructorIndex = resolvedIndex"),
+				GoStmt.GoRaw("\t\thasConstructorIndex = true"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("hxrt_serializerWriteEnumToken(self, serialized.name, serialized.constructor, constructorIndex, hasConstructorIndex, serialized.args)")
+			]),
+			GoDecl.GoFuncDecl("hxrt_serializerTryDsListStruct", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Serializer"
+				},
+				{name: "ref", typeName: "reflect.Value"}
+			], ["bool"], [
+				GoStmt.GoRaw("if !ref.IsValid() || ref.Kind() != reflect.Struct || ref.Type().Name() != \"haxe__ds__List\" {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("itemsField := ref.FieldByName(\"items\")"),
+				GoStmt.GoRaw("if !itemsField.IsValid() || itemsField.Kind() != reflect.Slice {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("items := make([]any, 0, itemsField.Len())"),
+				GoStmt.GoRaw("for i := 0; i < itemsField.Len(); i++ {"),
+				GoStmt.GoRaw("\titem, ok := hxrt_serializerReflectAny(itemsField.Index(i))"),
+				GoStmt.GoRaw("\tif !ok {"),
+				GoStmt.GoRaw("\t\treturn false"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\titems = append(items, item)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("hxrt_serializerWriteListToken(self, items)"),
+				GoStmt.GoRaw("return true")
+			]),
+			GoDecl.GoFuncDecl("hxrt_serializerTryDsStringMapStruct", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Serializer"
+				},
+				{name: "ref", typeName: "reflect.Value"}
+			], ["bool"], [
+				GoStmt.GoRaw("if !ref.IsValid() || ref.Kind() != reflect.Struct || ref.Type().Name() != \"haxe__ds__StringMap\" {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("mapField := ref.FieldByName(\"h\")"),
+				GoStmt.GoRaw("if !mapField.IsValid() || mapField.Kind() != reflect.Map {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("entries := map[string]any{}"),
+				GoStmt.GoRaw("for _, key := range mapField.MapKeys() {"),
+				GoStmt.GoRaw("\tif key.Kind() != reflect.String {"),
+				GoStmt.GoRaw("\t\treturn false"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tvalue, ok := hxrt_serializerReflectAny(mapField.MapIndex(key))"),
+				GoStmt.GoRaw("\tif !ok {"),
+				GoStmt.GoRaw("\t\treturn false"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tentries[key.String()] = value"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("hxrt_serializerWriteStringMapToken(self, entries)"),
+				GoStmt.GoRaw("return true")
+			]),
+			GoDecl.GoFuncDecl("hxrt_serializerTryDsIntMapStruct", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Serializer"
+				},
+				{name: "ref", typeName: "reflect.Value"}
+			], ["bool"], [
+				GoStmt.GoRaw("if !ref.IsValid() || ref.Kind() != reflect.Struct || ref.Type().Name() != \"haxe__ds__IntMap\" {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("mapField := ref.FieldByName(\"h\")"),
+				GoStmt.GoRaw("if !mapField.IsValid() || mapField.Kind() != reflect.Map {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("entries := map[int]any{}"),
+				GoStmt.GoRaw("for _, key := range mapField.MapKeys() {"),
+				GoStmt.GoRaw("\tvar intKey int"),
+				GoStmt.GoRaw("\tswitch key.Kind() {"),
+				GoStmt.GoRaw("\tcase reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:"),
+				GoStmt.GoRaw("\t\tintKey = int(key.Int())"),
+				GoStmt.GoRaw("\tdefault:"),
+				GoStmt.GoRaw("\t\treturn false"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tvalue, ok := hxrt_serializerReflectAny(mapField.MapIndex(key))"),
+				GoStmt.GoRaw("\tif !ok {"),
+				GoStmt.GoRaw("\t\treturn false"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tentries[intKey] = value"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("hxrt_serializerWriteIntMapToken(self, entries)"),
+				GoStmt.GoRaw("return true")
+			]),
+			GoDecl.GoFuncDecl("hxrt_serializerTryDsObjectMapStruct", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Serializer"
+				},
+				{name: "ref", typeName: "reflect.Value"}
+			], ["bool"], [
+				GoStmt.GoRaw("if !ref.IsValid() || ref.Kind() != reflect.Struct || ref.Type().Name() != \"haxe__ds__ObjectMap\" {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("mapField := ref.FieldByName(\"h\")"),
+				GoStmt.GoRaw("if !mapField.IsValid() || mapField.Kind() != reflect.Map {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("entries := map[any]any{}"),
+				GoStmt.GoRaw("for _, key := range mapField.MapKeys() {"),
+				GoStmt.GoRaw("\tkeyAny, ok := hxrt_serializerReflectAny(key)"),
+				GoStmt.GoRaw("\tif !ok {"),
+				GoStmt.GoRaw("\t\treturn false"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tvalueAny, ok := hxrt_serializerReflectAny(mapField.MapIndex(key))"),
+				GoStmt.GoRaw("\tif !ok {"),
+				GoStmt.GoRaw("\t\treturn false"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tentries[keyAny] = valueAny"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("hxrt_serializerWriteObjectMapToken(self, entries)"),
+				GoStmt.GoRaw("return true")
 			]),
 			GoDecl.GoFuncDecl("hxrt_serializerTryClassStruct", null, [
 				{
@@ -2686,17 +2952,15 @@ class GoCompiler {
 				GoStmt.GoRaw("if !ok {"),
 				GoStmt.GoRaw("\treturn false"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("hxrt_serializerAppend(self, \"w\")"),
-				GoStmt.GoRaw("hxrt_serializerWriteStringToken(self, enumName)"),
-				GoStmt.GoRaw("hxrt_serializerWriteStringToken(self, constructorName)"),
-				GoStmt.GoRaw("hxrt_serializerAppend(self, \":\" + strconv.Itoa(paramsField.Len()))"),
+				GoStmt.GoRaw("args := make([]any, 0, paramsField.Len())"),
 				GoStmt.GoRaw("for i := 0; i < paramsField.Len(); i++ {"),
 				GoStmt.GoRaw("\tvalue, ok := hxrt_serializerReflectAny(paramsField.Index(i))"),
 				GoStmt.GoRaw("\tif !ok {"),
 				GoStmt.GoRaw("\t\treturn false"),
 				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\thxrt_serializerWriteValue(self, value)"),
+				GoStmt.GoRaw("\targs = append(args, value)"),
 				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("hxrt_serializerWriteEnumToken(self, enumName, constructorName, tag, true, args)"),
 				GoStmt.GoRaw("return true")
 			]),
 			GoDecl.GoFuncDecl("hxrt_serializerTryDateStruct", null, [
@@ -2783,6 +3047,18 @@ class GoCompiler {
 				GoStmt.GoRaw("\t\t}"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\thxrt_serializerWriteBytesToken(self, raw)"),
+				GoStmt.GoRaw("\treturn true"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if hxrt_serializerTryDsListStruct(self, ref) {"),
+				GoStmt.GoRaw("\treturn true"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if hxrt_serializerTryDsStringMapStruct(self, ref) {"),
+				GoStmt.GoRaw("\treturn true"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if hxrt_serializerTryDsIntMapStruct(self, ref) {"),
+				GoStmt.GoRaw("\treturn true"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if hxrt_serializerTryDsObjectMapStruct(self, ref) {"),
 				GoStmt.GoRaw("\treturn true"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("if hxrt_serializerTryEnumStruct(self, ref) {"),
@@ -2903,6 +3179,70 @@ class GoCompiler {
 				GoStmt.GoRaw("\treturn"),
 				GoStmt.GoRaw("case *haxe__SerializedEnum:"),
 				GoStmt.GoRaw("\thxrt_serializerWriteSerializedEnum(self, current)"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case haxe__SerializedClassRef:"),
+				GoStmt.GoRaw("\thxrt_serializerAppend(self, \"A\")"),
+				GoStmt.GoRaw("\thxrt_serializerWriteStringToken(self, current.name)"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case *haxe__SerializedClassRef:"),
+				GoStmt.GoRaw("\tif current == nil {"),
+				GoStmt.GoRaw("\t\thxrt_serializerAppend(self, \"n\")"),
+				GoStmt.GoRaw("\t} else {"),
+				GoStmt.GoRaw("\t\thxrt_serializerAppend(self, \"A\")"),
+				GoStmt.GoRaw("\t\thxrt_serializerWriteStringToken(self, current.name)"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case haxe__SerializedEnumRef:"),
+				GoStmt.GoRaw("\thxrt_serializerAppend(self, \"B\")"),
+				GoStmt.GoRaw("\thxrt_serializerWriteStringToken(self, current.name)"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case *haxe__SerializedEnumRef:"),
+				GoStmt.GoRaw("\tif current == nil {"),
+				GoStmt.GoRaw("\t\thxrt_serializerAppend(self, \"n\")"),
+				GoStmt.GoRaw("\t} else {"),
+				GoStmt.GoRaw("\t\thxrt_serializerAppend(self, \"B\")"),
+				GoStmt.GoRaw("\t\thxrt_serializerWriteStringToken(self, current.name)"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case *haxe__ds__List:"),
+				GoStmt.GoRaw("\tif current == nil {"),
+				GoStmt.GoRaw("\t\thxrt_serializerAppend(self, \"n\")"),
+				GoStmt.GoRaw("\t} else {"),
+				GoStmt.GoRaw("\t\tif hxrt_serializerTrackRef(self, current) {"),
+				GoStmt.GoRaw("\t\t\treturn"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\thxrt_serializerWriteListToken(self, current.items)"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case *haxe__ds__StringMap:"),
+				GoStmt.GoRaw("\tif current == nil {"),
+				GoStmt.GoRaw("\t\thxrt_serializerAppend(self, \"n\")"),
+				GoStmt.GoRaw("\t} else {"),
+				GoStmt.GoRaw("\t\tif hxrt_serializerTrackRef(self, current) {"),
+				GoStmt.GoRaw("\t\t\treturn"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\thxrt_serializerWriteStringMapToken(self, current.h)"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case *haxe__ds__IntMap:"),
+				GoStmt.GoRaw("\tif current == nil {"),
+				GoStmt.GoRaw("\t\thxrt_serializerAppend(self, \"n\")"),
+				GoStmt.GoRaw("\t} else {"),
+				GoStmt.GoRaw("\t\tif hxrt_serializerTrackRef(self, current) {"),
+				GoStmt.GoRaw("\t\t\treturn"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\thxrt_serializerWriteIntMapToken(self, current.h)"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case *haxe__ds__ObjectMap:"),
+				GoStmt.GoRaw("\tif current == nil {"),
+				GoStmt.GoRaw("\t\thxrt_serializerAppend(self, \"n\")"),
+				GoStmt.GoRaw("\t} else {"),
+				GoStmt.GoRaw("\t\tif hxrt_serializerTrackRef(self, current) {"),
+				GoStmt.GoRaw("\t\t\treturn"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\thxrt_serializerWriteObjectMapToken(self, current.h)"),
+				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\treturn"),
 				GoStmt.GoRaw("case int:"),
 				GoStmt.GoRaw("\thxrt_serializerWriteIntToken(self, int64(current))"),
@@ -3082,6 +3422,32 @@ class GoCompiler {
 				GoStmt.GoRaw("\tself.pos++"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("if self.pos == start {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized integer\"))"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("parsed, err := strconv.Atoi(raw[start:self.pos])"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(err)"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("parsed"))
+			]),
+			GoDecl.GoFuncDecl("haxe__Unserializer_readDigits", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Unserializer"
+				}
+			], ["int"], [
+				GoStmt.GoRaw("raw := *hxrt.StdString(self.buf)"),
+				GoStmt.GoRaw("start := self.pos"),
+				GoStmt.GoRaw("if self.pos < len(raw) && (raw[self.pos] == '-' || raw[self.pos] == '+') {"),
+				GoStmt.GoRaw("\tself.pos++"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("digitStart := self.pos"),
+				GoStmt.GoRaw("for self.pos < len(raw) && raw[self.pos] >= '0' && raw[self.pos] <= '9' {"),
+				GoStmt.GoRaw("\tself.pos++"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self.pos == digitStart {"),
 				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized integer\"))"),
 				GoStmt.GoRaw("\treturn 0"),
 				GoStmt.GoRaw("}"),
@@ -3283,6 +3649,87 @@ class GoCompiler {
 				GoStmt.GoRaw("\t\treturn hxrt.StringFromLiteral(\"\")"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\treturn self.stringCache[index]"),
+				GoStmt.GoRaw("case 'x':"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__Unserializer_readValue(self))"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("case 'l':"),
+				GoStmt.GoRaw("\tlist := New_haxe__ds__List()"),
+				GoStmt.GoRaw("\tcacheIndex := len(self.cache)"),
+				GoStmt.GoRaw("\tself.cache = append(self.cache, list)"),
+				GoStmt.GoRaw("\tfor {"),
+				GoStmt.GoRaw("\t\tif self.pos >= len(raw) {"),
+				GoStmt.GoRaw("\t\t\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized list\"))"),
+				GoStmt.GoRaw("\t\t\treturn list"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tif raw[self.pos] == 'h' {"),
+				GoStmt.GoRaw("\t\t\tself.pos++"),
+				GoStmt.GoRaw("\t\t\tbreak"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tlist.items = append(list.items, haxe__Unserializer_readValue(self))"),
+				GoStmt.GoRaw("\t\tlist.length = len(list.items)"),
+				GoStmt.GoRaw("\t\tself.cache[cacheIndex] = list"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn list"),
+				GoStmt.GoRaw("case 'b':"),
+				GoStmt.GoRaw("\tstringMap := New_haxe__ds__StringMap()"),
+				GoStmt.GoRaw("\tcacheIndex := len(self.cache)"),
+				GoStmt.GoRaw("\tself.cache = append(self.cache, stringMap)"),
+				GoStmt.GoRaw("\tfor {"),
+				GoStmt.GoRaw("\t\tif self.pos >= len(raw) {"),
+				GoStmt.GoRaw("\t\t\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized StringMap\"))"),
+				GoStmt.GoRaw("\t\t\treturn stringMap"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tif raw[self.pos] == 'h' {"),
+				GoStmt.GoRaw("\t\t\tself.pos++"),
+				GoStmt.GoRaw("\t\t\tbreak"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tkeyAny := haxe__Unserializer_readValue(self)"),
+				GoStmt.GoRaw("\t\tkey := *hxrt.StdString(keyAny)"),
+				GoStmt.GoRaw("\t\tstringMap.h[key] = haxe__Unserializer_readValue(self)"),
+				GoStmt.GoRaw("\t\tself.cache[cacheIndex] = stringMap"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn stringMap"),
+				GoStmt.GoRaw("case 'q':"),
+				GoStmt.GoRaw("\tintMap := New_haxe__ds__IntMap()"),
+				GoStmt.GoRaw("\tcacheIndex := len(self.cache)"),
+				GoStmt.GoRaw("\tself.cache = append(self.cache, intMap)"),
+				GoStmt.GoRaw("\tfor {"),
+				GoStmt.GoRaw("\t\tif self.pos >= len(raw) {"),
+				GoStmt.GoRaw("\t\t\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized IntMap\"))"),
+				GoStmt.GoRaw("\t\t\treturn intMap"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tif raw[self.pos] == 'h' {"),
+				GoStmt.GoRaw("\t\t\tself.pos++"),
+				GoStmt.GoRaw("\t\t\tbreak"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tif raw[self.pos] != ':' {"),
+				GoStmt.GoRaw("\t\t\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized IntMap format\"))"),
+				GoStmt.GoRaw("\t\t\treturn intMap"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tself.pos++"),
+				GoStmt.GoRaw("\t\tkey := haxe__Unserializer_readDigits(self)"),
+				GoStmt.GoRaw("\t\tintMap.h[key] = haxe__Unserializer_readValue(self)"),
+				GoStmt.GoRaw("\t\tself.cache[cacheIndex] = intMap"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn intMap"),
+				GoStmt.GoRaw("case 'M':"),
+				GoStmt.GoRaw("\tobjectMap := New_haxe__ds__ObjectMap()"),
+				GoStmt.GoRaw("\tcacheIndex := len(self.cache)"),
+				GoStmt.GoRaw("\tself.cache = append(self.cache, objectMap)"),
+				GoStmt.GoRaw("\tfor {"),
+				GoStmt.GoRaw("\t\tif self.pos >= len(raw) {"),
+				GoStmt.GoRaw("\t\t\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized ObjectMap\"))"),
+				GoStmt.GoRaw("\t\t\treturn objectMap"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tif raw[self.pos] == 'h' {"),
+				GoStmt.GoRaw("\t\t\tself.pos++"),
+				GoStmt.GoRaw("\t\t\tbreak"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tkey := haxe__Unserializer_readValue(self)"),
+				GoStmt.GoRaw("\t\tobjectMap.h[key] = haxe__Unserializer_readValue(self)"),
+				GoStmt.GoRaw("\t\tself.cache[cacheIndex] = objectMap"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn objectMap"),
 				GoStmt.GoRaw("case 'a':"),
 				GoStmt.GoRaw("\tarr := make([]any, 0)"),
 				GoStmt.GoRaw("\tcacheIndex := len(self.cache)"),
@@ -3328,6 +3775,14 @@ class GoCompiler {
 				GoStmt.GoRaw("\t\tself.cache[cacheIndex] = obj"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\treturn obj"),
+				GoStmt.GoRaw("case 'A':"),
+				GoStmt.GoRaw("\tnameAny := haxe__Unserializer_readValue(self)"),
+				GoStmt.GoRaw("\tname := *hxrt.StdString(nameAny)"),
+				GoStmt.GoRaw("\treturn &haxe__SerializedClassRef{name: name}"),
+				GoStmt.GoRaw("case 'B':"),
+				GoStmt.GoRaw("\tnameAny := haxe__Unserializer_readValue(self)"),
+				GoStmt.GoRaw("\tname := *hxrt.StdString(nameAny)"),
+				GoStmt.GoRaw("\treturn &haxe__SerializedEnumRef{name: name}"),
 				GoStmt.GoRaw("case 'c':"),
 				GoStmt.GoRaw("\tclassNameAny := haxe__Unserializer_readValue(self)"),
 				GoStmt.GoRaw("\tclassName := *hxrt.StdString(classNameAny)"),
@@ -3350,6 +3805,38 @@ class GoCompiler {
 				GoStmt.GoRaw("\t\tself.cache[cacheIndex] = serialized"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\treturn serialized"),
+				GoStmt.GoRaw("case 'j':"),
+				GoStmt.GoRaw("\tenumNameAny := haxe__Unserializer_readValue(self)"),
+				GoStmt.GoRaw("\tenumName := *hxrt.StdString(enumNameAny)"),
+				GoStmt.GoRaw("\tif self.pos >= len(raw) || raw[self.pos] != ':' {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized enum index\"))"),
+				GoStmt.GoRaw("\t\treturn &haxe__SerializedEnum{name: enumName, constructor: \"\", constructorIndex: 0, hasConstructorIndex: false, args: []any{}}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tself.pos++"),
+				GoStmt.GoRaw("\tenumIndex := haxe__Unserializer_readDigits(self)"),
+				GoStmt.GoRaw("\tconstructorName, ok := hxrt_serializerLookupEnumConstructorByName(enumName, enumIndex)"),
+				GoStmt.GoRaw("\tif !ok {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Unknown enum index\"))"),
+				GoStmt.GoRaw("\t\tconstructorName = \"\""),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tif self.pos >= len(raw) || raw[self.pos] != ':' {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized enum\"))"),
+				GoStmt.GoRaw("\t\treturn &haxe__SerializedEnum{name: enumName, constructor: constructorName, constructorIndex: enumIndex, hasConstructorIndex: true, args: []any{}}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tself.pos++"),
+				GoStmt.GoRaw("\targCount := haxe__Unserializer_readUInt(self)"),
+				GoStmt.GoRaw("\tif argCount < 0 {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized enum arity\"))"),
+				GoStmt.GoRaw("\t\treturn &haxe__SerializedEnum{name: enumName, constructor: constructorName, constructorIndex: enumIndex, hasConstructorIndex: true, args: []any{}}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tserialized := &haxe__SerializedEnum{name: enumName, constructor: constructorName, constructorIndex: enumIndex, hasConstructorIndex: true, args: make([]any, 0, argCount)}"),
+				GoStmt.GoRaw("\tcacheIndex := len(self.cache)"),
+				GoStmt.GoRaw("\tself.cache = append(self.cache, serialized)"),
+				GoStmt.GoRaw("\tfor i := 0; i < argCount; i++ {"),
+				GoStmt.GoRaw("\t\tserialized.args = append(serialized.args, haxe__Unserializer_readValue(self))"),
+				GoStmt.GoRaw("\t\tself.cache[cacheIndex] = serialized"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn serialized"),
 				GoStmt.GoRaw("case 'w':"),
 				GoStmt.GoRaw("\tenumNameAny := haxe__Unserializer_readValue(self)"),
 				GoStmt.GoRaw("\tconstructorAny := haxe__Unserializer_readValue(self)"),
@@ -3357,15 +3844,15 @@ class GoCompiler {
 				GoStmt.GoRaw("\tconstructorName := *hxrt.StdString(constructorAny)"),
 				GoStmt.GoRaw("\tif self.pos >= len(raw) || raw[self.pos] != ':' {"),
 				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized enum\"))"),
-				GoStmt.GoRaw("\t\treturn &haxe__SerializedEnum{name: enumName, constructor: constructorName, args: []any{}}"),
+				GoStmt.GoRaw("\t\treturn &haxe__SerializedEnum{name: enumName, constructor: constructorName, constructorIndex: 0, hasConstructorIndex: false, args: []any{}}"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\tself.pos++"),
 				GoStmt.GoRaw("\targCount := haxe__Unserializer_readUInt(self)"),
 				GoStmt.GoRaw("\tif argCount < 0 {"),
 				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Invalid serialized enum arity\"))"),
-				GoStmt.GoRaw("\t\treturn &haxe__SerializedEnum{name: enumName, constructor: constructorName, args: []any{}}"),
+				GoStmt.GoRaw("\t\treturn &haxe__SerializedEnum{name: enumName, constructor: constructorName, constructorIndex: 0, hasConstructorIndex: false, args: []any{}}"),
 				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tserialized := &haxe__SerializedEnum{name: enumName, constructor: constructorName, args: make([]any, 0, argCount)}"),
+				GoStmt.GoRaw("\tserialized := &haxe__SerializedEnum{name: enumName, constructor: constructorName, constructorIndex: 0, hasConstructorIndex: false, args: make([]any, 0, argCount)}"),
 				GoStmt.GoRaw("\tcacheIndex := len(self.cache)"),
 				GoStmt.GoRaw("\tself.cache = append(self.cache, serialized)"),
 				GoStmt.GoRaw("\tfor i := 0; i < argCount; i++ {"),
