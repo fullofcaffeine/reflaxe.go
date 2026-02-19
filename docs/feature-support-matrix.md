@@ -59,6 +59,8 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 - `test/semantic_diff/serializer_extended_tokens_contract`
 - `test/semantic_diff/serializer_custom_resolver_contract`
 - `test/semantic_diff/serializer_cache_reference_contract`
+- `test/semantic_diff/serializer_resolver_polymorphism_contract`
+- `test/semantic_diff/serializer_reference_stress_contract`
 - `test/semantic_diff/ereg_behavior_contract`
 - `test/semantic_diff/ereg_edge_contract`
 
@@ -119,10 +121,11 @@ Shim strategy and alternatives are documented in:
 ### `EReg` + `haxe.Serializer` contract and tradeoffs
 
 - `EReg` parity now covers: `g/i/m/s/u` option handling, global vs non-global `replace`/`map`, `matched`/`matchedPos`/`matchedLeft`/`matchedRight` error semantics, and group/null behavior via semantic diff fixtures (`ereg_behavior_contract`, `ereg_edge_contract`).
-- `haxe.Serializer`/`haxe.Unserializer` now cover a wire-format-compatible baseline for core tokens used by fixtures (`n/t/f/z/i/d/k/p/m/v/s/y/a/o/l/b/q/M/c/w/j/C/x/A/B/g/u/h/r/R`) plus sequential `Unserializer` cursor behavior (`serializer_wire_contract`), resolver paths (`serializer_custom_resolver_contract`), and cache/reference graph parity (`serializer_cache_reference_contract`).
-- Remaining gap: full Haxe serializer surface is still in progress (notably broader cross-target/custom-resolver polymorphism and under-tested exotic edge combinations outside current fixtures).
+- `haxe.Serializer`/`haxe.Unserializer` now cover a wire-format-compatible baseline for core tokens used by fixtures (`n/t/f/z/i/d/k/p/m/v/s/y/a/o/l/b/q/M/c/w/j/C/x/A/B/g/u/h/r/R`) plus sequential `Unserializer` cursor behavior (`serializer_wire_contract`), resolver paths (`serializer_custom_resolver_contract`), resolver method-shape polymorphism (`serializer_resolver_polymorphism_contract`), cache/reference graph parity (`serializer_cache_reference_contract`), and mixed string/object reference stress (`serializer_reference_stress_contract`).
+- Remaining gap: full Haxe serializer surface is still in progress (notably under-tested exotic edge combinations outside current fixtures and cross-target differences for unsupported non-standard resolver return payloads).
 - Tracking:
   - `haxe.go-7zy.8` (serializer wire-format completion)
+  - `haxe.go-7zy.9` (resolver polymorphism + reference stress fixtures)
   - `haxe.go-7zy.7` (shim-vs-builtin review matrix)
 
 ### Upstream module sweep (strict CI-gated)
