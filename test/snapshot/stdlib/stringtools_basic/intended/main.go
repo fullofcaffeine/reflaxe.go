@@ -12,6 +12,7 @@ import (
 	"io"
 	"math"
 	"path/filepath"
+	"reflect"
 	"snapshot/hxrt"
 	"strings"
 	"time"
@@ -250,6 +251,154 @@ func Reflect_compare(a any, b any) int {
 		return 1
 	}
 	return 0
+}
+
+func Reflect_field(obj any, field *string) any {
+	if obj == nil {
+		return nil
+	}
+	key := *hxrt.StdString(field)
+	switch value := obj.(type) {
+	case map[string]any:
+		return value[key]
+	case map[any]any:
+		return value[key]
+	case *map[string]any:
+		if value == nil {
+			return nil
+		}
+		return (*value)[key]
+	case *map[any]any:
+		if value == nil {
+			return nil
+		}
+		return (*value)[key]
+	}
+	rv := reflect.ValueOf(obj)
+	if !rv.IsValid() {
+		return nil
+	}
+	if rv.Kind() == reflect.Pointer {
+		if rv.IsNil() {
+			return nil
+		}
+		rv = rv.Elem()
+	}
+	if rv.Kind() == reflect.Struct {
+		if fieldValue := rv.FieldByName(key); fieldValue.IsValid() && fieldValue.CanInterface() {
+			return fieldValue.Interface()
+		}
+	}
+	method := reflect.ValueOf(obj).MethodByName(key)
+	if method.IsValid() {
+		return method.Interface()
+	}
+	return nil
+}
+
+func Reflect_hasField(obj any, field *string) bool {
+	if obj == nil {
+		return false
+	}
+	key := *hxrt.StdString(field)
+	switch value := obj.(type) {
+	case map[string]any:
+		_, ok := value[key]
+		return ok
+	case map[any]any:
+		_, ok := value[key]
+		return ok
+	case *map[string]any:
+		if value == nil {
+			return false
+		}
+		_, ok := (*value)[key]
+		return ok
+	case *map[any]any:
+		if value == nil {
+			return false
+		}
+		_, ok := (*value)[key]
+		return ok
+	}
+	rv := reflect.ValueOf(obj)
+	if !rv.IsValid() {
+		return false
+	}
+	if rv.Kind() == reflect.Pointer {
+		if rv.IsNil() {
+			return false
+		}
+		rv = rv.Elem()
+	}
+	if rv.Kind() == reflect.Struct {
+		if rv.FieldByName(key).IsValid() {
+			return true
+		}
+	}
+	return reflect.ValueOf(obj).MethodByName(key).IsValid()
+}
+
+func Reflect_setField(obj any, field *string, value any) {
+	if obj == nil {
+		hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
+		return
+	}
+	key := *hxrt.StdString(field)
+	switch target := obj.(type) {
+	case map[string]any:
+		target[key] = value
+		return
+	case map[any]any:
+		target[key] = value
+		return
+	case *map[string]any:
+		if target == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
+			return
+		}
+		(*target)[key] = value
+		return
+	case *map[any]any:
+		if target == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
+			return
+		}
+		(*target)[key] = value
+		return
+	}
+	rv := reflect.ValueOf(obj)
+	if !rv.IsValid() || rv.Kind() != reflect.Pointer {
+		return
+	}
+	if rv.IsNil() {
+		hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
+		return
+	}
+	rv = rv.Elem()
+	if rv.Kind() != reflect.Struct {
+		return
+	}
+	fieldValue := rv.FieldByName(key)
+	if !fieldValue.IsValid() || !fieldValue.CanSet() {
+		return
+	}
+	if value == nil {
+		fieldValue.Set(reflect.Zero(fieldValue.Type()))
+		return
+	}
+	incoming := reflect.ValueOf(value)
+	if incoming.Type().AssignableTo(fieldValue.Type()) {
+		fieldValue.Set(incoming)
+		return
+	}
+	if incoming.Type().ConvertibleTo(fieldValue.Type()) {
+		fieldValue.Set(incoming.Convert(fieldValue.Type()))
+		return
+	}
+	if fieldValue.Kind() == reflect.Interface {
+		fieldValue.Set(incoming)
+	}
 }
 
 type Xml struct {

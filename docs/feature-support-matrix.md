@@ -46,6 +46,7 @@ Anything outside that bar is either **partial** (implemented but not fully gated
 - `test/semantic_diff/nullable_struct_refs`
 - `test/semantic_diff/sys_io_roundtrip`
 - `test/semantic_diff/reflect_compare`
+- `test/semantic_diff/reflect_field_ops`
 - `test/semantic_diff/anonymous_object_literals`
 
 ## Profile matrix

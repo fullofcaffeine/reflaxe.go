@@ -22,6 +22,6 @@ Goal:
   - numeric edge behavior
   - nullable reference fields
   - selected sys/io behavior
-  - reflection compare semantics
+  - reflection compare + dynamic field semantics
   - anonymous object literal/field mutation semantics
   - crypto/xml/zip behavior parity
