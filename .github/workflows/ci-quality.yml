@@ -59,7 +59,7 @@ jobs:
             ${{ runner.os }}-lix-haxe-${{ env.HAXE_VERSION }}-
 
       - name: Install npm dependencies
-        run: npm install --no-audit --no-fund
+        run: npm install --ignore-scripts --no-audit --no-fund
 
       - name: Install Haxe (pinned via lix)
         shell: bash
