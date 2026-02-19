@@ -28,7 +28,7 @@ CACHE_ROOT = ROOT / "test" / ".test-cache"
 LAST_FAILED = CACHE_ROOT / "last_failed.txt"
 LAST_RUN = CACHE_ROOT / "last_run.json"
 RUN_LOCK = CACHE_ROOT / "run-snapshots.lock"
-EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json", ".DS_Store"}
+EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json", ".DS_Store", ".gitkeep"}
 EXCLUDE_DIRS = {".cache"}
 
 

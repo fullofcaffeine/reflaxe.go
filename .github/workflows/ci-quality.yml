@@ -53,10 +53,22 @@ jobs:
       - name: Install npm dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
 
-      - name: Setup Haxe
+      - name: Setup Haxe (linux)
+        if: runner.os != 'macOS'
         uses: krdlab/setup-haxe@v1
         with:
           haxe-version: ${{ env.HAXE_VERSION }}
+
+      - name: Setup Haxe (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v haxe >/dev/null 2>&1; then
+            brew update
+            brew install haxe
+          fi
+          haxe -version
 
       - name: Run stable CI surface
         run: npm run test:ci
