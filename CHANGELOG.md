@@ -1,3 +1,9 @@
+## [0.14.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.13.0...v0.14.0) (2026-02-19)
+
+### Features
+
+* **serializer:** align enum cache refs with Haxe semantics ([ec0cf87](https://github.com/fullofcaffeine/reflaxe.go/commit/ec0cf8740f63ca6d982b6ffeddef68267aa65e26))
+
 ## [0.13.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.12.0...v0.13.0) (2026-02-19)
 
 ### Features
