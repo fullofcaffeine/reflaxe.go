@@ -1,3 +1,9 @@
+## [0.29.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.28.0...v0.29.0) (2026-02-20)
+
+### Features
+
+* add bytes input/output semantic parity subset ([096d0c9](https://github.com/fullofcaffeine/reflaxe.go/commit/096d0c9430304265ecc8aeccb9fc9389aa5b9c3f))
+
 ## [0.28.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.27.4...v0.28.0) (2026-02-20)
 
 ### Features
