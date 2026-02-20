@@ -1,3 +1,9 @@
+## [0.36.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.35.0...v0.36.0) (2026-02-20)
+
+### Features
+
+* **io:** add Bytes.ofData shim and alias parity contract ([d368007](https://github.com/fullofcaffeine/reflaxe.go/commit/d3680071995a56e4abe7aa48dfce61ca6819f2a6))
+
 ## [0.35.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.34.0...v0.35.0) (2026-02-20)
 
 ### Features
