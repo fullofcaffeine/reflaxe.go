@@ -1,3 +1,9 @@
+## [0.21.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.20.0...v0.21.0) (2026-02-20)
+
+### Features
+
+* **stdlib:** add haxe.PosInfos runtime parity coverage ([5dbb994](https://github.com/fullofcaffeine/reflaxe.go/commit/5dbb99472e7569511bfdc0577aaee02171233926))
+
 ## [0.20.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.19.0...v0.20.0) (2026-02-19)
 
 ### Features
