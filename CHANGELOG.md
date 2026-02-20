@@ -1,3 +1,9 @@
+## [0.28.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.27.4...v0.28.0) (2026-02-20)
+
+### Features
+
+* add haxe.io.Bytes core ops shim parity ([d009513](https://github.com/fullofcaffeine/reflaxe.go/commit/d0095131587591dcca7e1efcca5148685f49d387))
+
 ## [0.27.4](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.27.3...v0.27.4) (2026-02-20)
 
 ### Bug Fixes
