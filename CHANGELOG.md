@@ -1,3 +1,9 @@
+## [0.27.4](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.27.3...v0.27.4) (2026-02-20)
+
+### Bug Fixes
+
+* normalize haxe.io.BytesBuffer byte pushes ([cdbf7ad](https://github.com/fullofcaffeine/reflaxe.go/commit/cdbf7ad064a3d148045751bbb7eb6d27f362776d))
+
 ## [0.27.3](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.27.2...v0.27.3) (2026-02-20)
 
 ### Bug Fixes
