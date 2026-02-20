@@ -25,6 +25,7 @@ Goal:
   - deterministic `sys.io.File` save/get parity behavior
   - deterministic `sys.FileSystem` create/read/rename/delete/stat-size parity behavior
   - deterministic `haxe.ds` map/list core operation parity (`set/get/exists/remove`, `add/push/pop/first/last/length`, missing-key/empty typed-null reads)
+  - deterministic `haxe.ds.ReadOnlyArray` length/index/read-only-view parity subset
   - deterministic `sys.io.Process` spawn/stdout behavior (cross-platform echo and `haxe --version` smoke)
   - deterministic throw-as-expression parity (`throw` in value-returning expression contexts)
   - deterministic `sys.net.Host` constructor/resolve/reverse/localhost behavior

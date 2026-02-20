@@ -38,6 +38,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `sys.FileSystem` | `semantic-diff` | `filesystem_contract`, `sys/filesystem_basic_smoke` |
 | `haxe.ds.*Map` + `haxe.ds.List` (core ops subset) | `semantic-diff` | `ds_maps_list_contract`, `stdlib/ds_maps_list_basic` |
 | `haxe.ds.Vector` | `semantic-diff` | `vector_contract`, `stdlib/vector_basic` |
+| `haxe.ds.ReadOnlyArray` (length/index/read-only view subset) | `semantic-diff` | `readonly_array_contract` |
 | `sys.net.Host` | `semantic-diff` | `host_basic_contract`, `sys/host_basic_smoke` |
 | `haxe.PosInfos` | `semantic-diff` | `posinfos_contract`, `stdlib/posinfos_basic` |
 | `haxe.Int32` | `semantic-diff` | `int32_contract` |
@@ -103,6 +104,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/posinfos_contract`
 - `test/semantic_diff/posinfos_custom_params_contract`
 - `test/semantic_diff/vector_contract`
+- `test/semantic_diff/readonly_array_contract`
 - `test/semantic_diff/process_echo_contract`
 - `test/semantic_diff/reflect_compare`
 - `test/semantic_diff/reflect_field_ops`
@@ -358,3 +360,4 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-dq2`: evaluate and guard RawNative compatibility policy with explicit mode controls.
 - `haxe.go-rcv`: add `haxe.io.Bytes.ofData` shim and lock `getData` alias semantics (`bytes_of_data_contract`).
 - `haxe.go-nmg`: add `haxe.io.Bytes.toHex` / `haxe.io.Bytes.ofHex` shim parity (`bytes_hex_contract`).
+- `haxe.go-9v6`: promote `haxe.ds.ReadOnlyArray` from compile-only to semantic-diff coverage (`readonly_array_contract`).

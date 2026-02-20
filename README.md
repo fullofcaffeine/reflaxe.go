@@ -98,7 +98,7 @@ The project uses explicit guarantee tiers so “supported” has a concrete mean
 
 | Tier | Guarantee | Harness | Representative coverage |
 | --- | --- | --- | --- |
-| `compile-only` | Module/API compiles and generated Go passes probe-level `go test`, but no runtime parity claim by itself | `python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test` | `haxe.ds.ReadOnlyArray`, `sys.ssl.Socket`, `sys.thread.Thread` |
+| `compile-only` | Module/API compiles and generated Go passes probe-level `go test`, but no runtime parity claim by itself | `python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test` | `haxe.rtti.CType`, `sys.ssl.Socket`, `sys.thread.Thread` |
 | `snapshot` | Deterministic generated Go shape + targeted runtime smoke for selected behaviors | `python3 test/run-snapshots.py` | `stdlib/json_parse_stringify`, `stdlib/crypto_xml_zip_basic`, `sys/http_custom_request_parity` |
 | `semantic-diff` | Runtime output parity against Haxe `--interp` for deterministic fixtures | `python3 test/run-semantic-diff.py` | `serializer_resolver_polymorphism_contract`, `serializer_reference_stress_contract`, `socket_advanced_contract`, `ereg_edge_contract` |
 

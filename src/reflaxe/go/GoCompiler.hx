@@ -9858,6 +9858,10 @@ class GoCompiler {
 		if (vectorElement != null) {
 			return "[]" + scalarGoType(vectorElement);
 		}
+		var readOnlyElement = readOnlyArrayElementType(type);
+		if (readOnlyElement != null) {
+			return "[]" + scalarGoType(readOnlyElement);
+		}
 
 		var followed = Context.follow(type);
 		return switch (followed) {
@@ -10044,6 +10048,9 @@ class GoCompiler {
 		if (vectorElementType(type) != null) {
 			return true;
 		}
+		if (readOnlyArrayElementType(type) != null) {
+			return true;
+		}
 
 		var followed = Context.follow(type);
 		return switch (followed) {
@@ -10061,6 +10068,10 @@ class GoCompiler {
 		var vectorElement = vectorElementType(type);
 		if (vectorElement != null) {
 			return scalarGoType(vectorElement);
+		}
+		var readOnlyElement = readOnlyArrayElementType(type);
+		if (readOnlyElement != null) {
+			return scalarGoType(readOnlyElement);
 		}
 
 		var followed = Context.follow(type);
@@ -10085,6 +10096,10 @@ class GoCompiler {
 		var vectorElement = vectorElementType(type);
 		if (vectorElement != null) {
 			return "[]" + scalarGoType(vectorElement);
+		}
+		var readOnlyElement = readOnlyArrayElementType(type);
+		if (readOnlyElement != null) {
+			return "[]" + scalarGoType(readOnlyElement);
 		}
 
 		var followed = Context.follow(type);
@@ -10172,6 +10187,21 @@ class GoCompiler {
 			case TAbstract(abstractRef, params):
 				var abstractType = abstractRef.get();
 				if (abstractType.pack.join(".") == "haxe.ds" && abstractType.name == "Vector" && params.length == 1) {
+					params[0];
+				} else {
+					null;
+				}
+			case _:
+				null;
+		};
+	}
+
+	function readOnlyArrayElementType(type:Type):Null<Type> {
+		var followed = Context.follow(type);
+		return switch (followed) {
+			case TAbstract(abstractRef, params):
+				var abstractType = abstractRef.get();
+				if (abstractType.pack.join(".") == "haxe.ds" && abstractType.name == "ReadOnlyArray" && params.length == 1) {
 					params[0];
 				} else {
 					null;
