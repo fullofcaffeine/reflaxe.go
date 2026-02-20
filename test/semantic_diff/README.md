@@ -30,6 +30,7 @@ Goal:
   - deterministic `sys.net.Host` constructor/resolve/reverse/localhost behavior
   - deterministic `haxe.io.Bytes`/`haxe.io.BytesBuffer` semantics (`set`/`addByte` byte normalization, plus `blit`/`fill`/`sub`/`compare` behavior)
   - deterministic `haxe.io.Bytes.getData` / `haxe.io.Bytes.ofData` alias semantics
+  - deterministic `haxe.io.Bytes.toHex` / `haxe.io.Bytes.ofHex` semantics (including odd-digit error path)
   - deterministic `haxe.io.BytesInput`/`haxe.io.BytesOutput` stream + inherited helper subset semantics (`position`/`length`, EOF, bounds, read/write contracts, `readLine`/`readAll`/`readUntil`/`readFullBytes`, typed numeric read/write helpers, `writeInput`, and `readLine` EOF/tail/CRLF edge behavior)
   - deterministic `haxe.io.Encoding` constructor and `haxe.io.Bytes` string conversion semantics (`UTF8`/`RawNative`, `Bytes.ofString`, `Bytes.getString`, and IO read/write string paths)
   - deterministic `haxe.Int64` arithmetic/compare/parse/fromFloat/toInt behavior parity

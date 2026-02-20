@@ -952,6 +952,28 @@ class GoCompiler {
 				GoStmt.GoRaw("}"),
 				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: b, length: len(b)}"))
 			]),
+			GoDecl.GoFuncDecl("haxe__io__Bytes_ofHex", null, [
+				{
+					name: "s",
+					typeName: "*string"
+				}
+			], ["*haxe__io__Bytes"], [
+				GoStmt.GoRaw("raw := *hxrt.StdString(s)"),
+				GoStmt.GoRaw("lenValue := len(raw)"),
+				GoStmt.GoRaw("if (lenValue & 1) != 0 {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Not a hex string (odd number of digits)\"))"),
+				GoStmt.GoRaw("\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("ret := haxe__io__Bytes_alloc(lenValue >> 1)"),
+				GoStmt.GoRaw("for i := 0; i < ret.length; i++ {"),
+				GoStmt.GoRaw("\thigh := int(raw[i*2])"),
+				GoStmt.GoRaw("\tlow := int(raw[i*2+1])"),
+				GoStmt.GoRaw("\thigh = (high & 0xF) + ((high & 0x40) >> 6) * 9"),
+				GoStmt.GoRaw("\tlow = (low & 0xF) + ((low & 0x40) >> 6) * 9"),
+				GoStmt.GoRaw("\tret.set(i, ((high << 4) | low) & 0xFF)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("ret"))
+			]),
 			GoDecl.GoFuncDecl("toString", {
 				name: "self",
 				typeName: "*haxe__io__Bytes"
@@ -961,6 +983,22 @@ class GoCompiler {
 				],
 					null),
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesToString"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b")]))
+			]),
+			GoDecl.GoFuncDecl("toHex", {
+				name: "self",
+				typeName: "*haxe__io__Bytes"
+			}, [], ["*string"], [
+				GoStmt.GoRaw("if self == nil || self.length == 0 {"),
+				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("hexChars := \"0123456789abcdef\""),
+				GoStmt.GoRaw("out := make([]byte, self.length*2)"),
+				GoStmt.GoRaw("for i := 0; i < self.length; i++ {"),
+				GoStmt.GoRaw("\tc := self.b[i] & 0xFF"),
+				GoStmt.GoRaw("\tout[i*2] = hexChars[c>>4]"),
+				GoStmt.GoRaw("\tout[i*2+1] = hexChars[c&15]"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("string(out)")]))
 			]),
 			GoDecl.GoFuncDecl("getData", {
 				name: "self",
