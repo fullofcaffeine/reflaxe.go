@@ -56,9 +56,17 @@ type haxe__io__Encoding struct {
 }
 
 type haxe__io__Input struct {
+	bigEndian bool
 }
 
 type haxe__io__Output struct {
+	bigEndian bool
+}
+
+type haxe__io__Eof struct {
+}
+
+type haxe__io__Error struct {
 }
 
 type haxe__io__Bytes struct {
@@ -72,12 +80,33 @@ type haxe__io__BytesBuffer struct {
 	b []int
 }
 
+type haxe__io__BytesInput struct {
+	bigEndian bool
+	b         []int
+	pos       int
+	len       int
+	totlen    int
+}
+
+type haxe__io__BytesOutput struct {
+	bigEndian bool
+	b         *haxe__io__BytesBuffer
+}
+
 func New_haxe__io__Input() *haxe__io__Input {
 	return &haxe__io__Input{}
 }
 
 func New_haxe__io__Output() *haxe__io__Output {
 	return &haxe__io__Output{}
+}
+
+func New_haxe__io__Eof() *haxe__io__Eof {
+	return &haxe__io__Eof{}
+}
+
+func (self *haxe__io__Eof) toString() *string {
+	return hxrt.StringFromLiteral("Eof")
 }
 
 func New_haxe__io__Bytes(length int, b []int) *haxe__io__Bytes {
@@ -207,6 +236,17 @@ func (self *haxe__io__BytesBuffer) add(src *haxe__io__Bytes) {
 	self.b = append(self.b, src.b...)
 }
 
+func (self *haxe__io__BytesBuffer) addBytes(src *haxe__io__Bytes, pos int, len int) {
+	if src == nil || pos < 0 || len < 0 || pos+len > src.length {
+		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		return
+	}
+	if len == 0 {
+		return
+	}
+	self.b = append(self.b, src.b[pos:pos+len]...)
+}
+
 func (self *haxe__io__BytesBuffer) addString(value *string, encoding ...*haxe__io__Encoding) {
 	self.add(haxe__io__Bytes_ofString(value))
 }
@@ -218,6 +258,118 @@ func (self *haxe__io__BytesBuffer) getBytes() *haxe__io__Bytes {
 
 func (self *haxe__io__BytesBuffer) get_length() int {
 	return len(self.b)
+}
+
+func New_haxe__io__BytesInput(b *haxe__io__Bytes, opts ...int) *haxe__io__BytesInput {
+	if b == nil {
+		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		return &haxe__io__BytesInput{}
+	}
+	start := 0
+	if len(opts) > 0 {
+		start = opts[0]
+	}
+	sliceLen := (b.length - start)
+	if len(opts) > 1 {
+		sliceLen = opts[1]
+	}
+	if start < 0 || sliceLen < 0 || start+sliceLen > b.length {
+		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		return &haxe__io__BytesInput{}
+	}
+	return &haxe__io__BytesInput{b: b.b, pos: start, len: sliceLen, totlen: sliceLen}
+}
+
+func (self *haxe__io__BytesInput) get_position() int {
+	return self.pos
+}
+
+func (self *haxe__io__BytesInput) set_position(p int) int {
+	if p < 0 {
+		p = 0
+	} else {
+		if p > self.totlen {
+			p = self.totlen
+		}
+	}
+	self.len = (self.totlen - p)
+	self.pos = p
+	return p
+}
+
+func (self *haxe__io__BytesInput) get_length() int {
+	return self.totlen
+}
+
+func (self *haxe__io__BytesInput) readByte() int {
+	if self == nil || self.len == 0 {
+		hxrt.Throw(&haxe__io__Eof{})
+		return 0
+	}
+	self.len = (self.len - 1)
+	value := self.b[self.pos]
+	self.pos = (self.pos + 1)
+	return value
+}
+
+func (self *haxe__io__BytesInput) readBytes(buf *haxe__io__Bytes, pos int, len int) int {
+	if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {
+		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		return 0
+	}
+	if len > 0 && (self == nil || self.len == 0) {
+		hxrt.Throw(&haxe__io__Eof{})
+		return 0
+	}
+	if self == nil {
+		return 0
+	}
+	if self.len < len {
+		len = self.len
+	}
+	for i := 0; i < len; i++ {
+		buf.b[pos+i] = self.b[self.pos+i]
+	}
+	self.pos += len
+	self.len -= len
+	return len
+}
+
+func New_haxe__io__BytesOutput() *haxe__io__BytesOutput {
+	return &haxe__io__BytesOutput{b: &haxe__io__BytesBuffer{b: []int{}}}
+}
+
+func (self *haxe__io__BytesOutput) get_length() int {
+	if self == nil || self.b == nil {
+		return 0
+	}
+	return self.b.get_length()
+}
+
+func (self *haxe__io__BytesOutput) writeByte(c int) {
+	if self == nil || self.b == nil {
+		return
+	}
+	self.b.addByte(c)
+}
+
+func (self *haxe__io__BytesOutput) writeBytes(buf *haxe__io__Bytes, pos int, len int) int {
+	if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {
+		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		return 0
+	}
+	if self == nil || self.b == nil {
+		return 0
+	}
+	self.b.addBytes(buf, pos, len)
+	return len
+}
+
+func (self *haxe__io__BytesOutput) getBytes() *haxe__io__Bytes {
+	if self == nil || self.b == nil {
+		return &haxe__io__Bytes{b: []int{}, length: 0}
+	}
+	return self.b.getBytes()
 }
 
 type haxe__ds__IntMap struct {

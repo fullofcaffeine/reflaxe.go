@@ -32,7 +32,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `sys.net.Socket` | `semantic-diff` | `socket_loopback_contract`, `socket_advanced_contract` |
 | `haxe.crypto.*` + `haxe.xml.*` + `haxe.zip.*` subset | `semantic-diff` | `crypto_xml_zip` |
 | `haxe.Json` | `semantic-diff` | `json_parse_stringify_contract`, `stdlib/json_parse_stringify` |
-| `haxe.io.Bytes` / `haxe.io.BytesBuffer` (core ops subset) | `semantic-diff` | `bytes_normalization_contract`, `bytes_ops_contract`, `stdlib/bytes_basic` |
+| `haxe.io.Bytes` / `haxe.io.BytesBuffer` / `haxe.io.BytesInput` / `haxe.io.BytesOutput` (core ops subset) | `semantic-diff` | `bytes_normalization_contract`, `bytes_ops_contract`, `bytes_io_stream_contract`, `stdlib/bytes_basic` |
 | `sys.io.Process` | `semantic-diff` | `process_echo_contract`, `sys/process_echo_smoke` |
 | `sys.io.File` | `semantic-diff` | `file_read_write_contract`, `sys/file_read_write_smoke` |
 | `sys.FileSystem` | `semantic-diff` | `filesystem_contract`, `sys/filesystem_basic_smoke` |
@@ -92,6 +92,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/ds_maps_list_contract`
 - `test/semantic_diff/bytes_normalization_contract`
 - `test/semantic_diff/bytes_ops_contract`
+- `test/semantic_diff/bytes_io_stream_contract`
 - `test/semantic_diff/host_basic_contract`
 - `test/semantic_diff/int32_contract`
 - `test/semantic_diff/int64_contract`
@@ -200,6 +201,11 @@ Shim strategy and alternatives are documented in:
 - Coverage includes `stdlib/ds_maps_list_basic` and `test/semantic_diff/ds_maps_list_contract` for deterministic `set/get/exists/remove` behavior across `StringMap`/`IntMap`/`ObjectMap`/`EnumValueMap`, plus `List` `add`/`push`/`pop`/`first`/`last`/`length`.
 - `List.push` now prepends to match Haxe semantics (with `pop` removing the list head).
 - Missing-key map reads and empty `List` reads in typed call sites now lower through nil-safe typed assertions, returning typed zero values (`null` for reference-like types) instead of panicking.
+
+### `haxe.io.BytesInput` / `haxe.io.BytesOutput` shim contract and tradeoffs
+
+- Coverage includes `test/semantic_diff/bytes_io_stream_contract` for deterministic constructor bounds checks, `position`/`length` behavior, EOF signaling (`haxe.io.Eof`), `readByte`/`readBytes` semantics, and `writeByte`/`writeBytes`/`getBytes` output behavior.
+- Current tradeoff: this is still a focused stream subset and does not yet claim full `haxe.io.Input`/`haxe.io.Output` inherited helper API parity (`readLine`, `readAll`, `writeInput`, numeric typed read/write helpers, etc.).
 
 ### `sys.Http` shim contract and tradeoffs
 

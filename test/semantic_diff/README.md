@@ -29,6 +29,7 @@ Goal:
   - deterministic throw-as-expression parity (`throw` in value-returning expression contexts)
   - deterministic `sys.net.Host` constructor/resolve/reverse/localhost behavior
   - deterministic `haxe.io.Bytes`/`haxe.io.BytesBuffer` semantics (`set`/`addByte` byte normalization, plus `blit`/`fill`/`sub`/`compare` behavior)
+  - deterministic `haxe.io.BytesInput`/`haxe.io.BytesOutput` stream subset semantics (`position`/`length`, EOF, bounds, read/write contracts)
   - deterministic `haxe.Int64` arithmetic/compare/parse/fromFloat/toInt behavior parity
   - deterministic `haxe.Int32` overflow/bitwise/shift/ucompare operator behavior parity
   - deterministic `Std.isOfType` behavior parity for typed and Dynamic class/array/enum/null checks

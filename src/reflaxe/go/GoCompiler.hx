@@ -513,21 +513,41 @@ class GoCompiler {
 	function lowerIoStdlibShimDecls():Array<GoDecl> {
 		return [
 			GoDecl.GoStructDecl("haxe__io__Encoding", []),
-			GoDecl.GoStructDecl("haxe__io__Input", []),
-			GoDecl.GoStructDecl("haxe__io__Output", []),
-			GoDecl.GoStructDecl("haxe__io__Bytes",
-				[
-					{
-						name: "b",
-						typeName: "[]int"
-					},
-					{name: "length", typeName: "int"},
-					{name: "__hx_raw", typeName: "[]byte"},
-					{name: "__hx_rawValid", typeName: "bool"}
-				]),
+			GoDecl.GoStructDecl("haxe__io__Input", [{name: "bigEndian", typeName: "bool"}]),
+			GoDecl.GoStructDecl("haxe__io__Output", [{name: "bigEndian", typeName: "bool"}]),
+			GoDecl.GoStructDecl("haxe__io__Eof", []),
+			GoDecl.GoStructDecl("haxe__io__Error", []),
+			GoDecl.GoStructDecl("haxe__io__Bytes", [
+				{
+					name: "b",
+					typeName: "[]int"
+				},
+				{name: "length", typeName: "int"},
+				{name: "__hx_raw", typeName: "[]byte"},
+				{name: "__hx_rawValid", typeName: "bool"}
+			]),
 			GoDecl.GoStructDecl("haxe__io__BytesBuffer", [{name: "b", typeName: "[]int"}]),
+			GoDecl.GoStructDecl("haxe__io__BytesInput", [
+				{name: "bigEndian", typeName: "bool"},
+				{name: "b", typeName: "[]int"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"},
+				{name: "totlen", typeName: "int"}
+			]),
+			GoDecl.GoStructDecl("haxe__io__BytesOutput",
+				[
+					{name: "bigEndian", typeName: "bool"},
+					{name: "b", typeName: "*haxe__io__BytesBuffer"}
+				]),
 			GoDecl.GoFuncDecl("New_haxe__io__Input", null, [], ["*haxe__io__Input"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Input{}"))]),
 			GoDecl.GoFuncDecl("New_haxe__io__Output", null, [], ["*haxe__io__Output"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Output{}"))]),
+			GoDecl.GoFuncDecl("New_haxe__io__Eof", null, [], ["*haxe__io__Eof"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Eof{}"))]),
+			GoDecl.GoFuncDecl("toString", {
+				name: "self",
+				typeName: "*haxe__io__Eof"
+			}, [], ["*string"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Eof")]))
+			]),
 			GoDecl.GoFuncDecl("New_haxe__io__Bytes", null, [
 				{
 					name: "length",
@@ -694,6 +714,23 @@ class GoCompiler {
 				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("src"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
 				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoRaw("append(self.b, src.b...)"))
 			]),
+			GoDecl.GoFuncDecl("addBytes", {
+				name: "self",
+				typeName: "*haxe__io__BytesBuffer"
+			}, [
+				{name: "src", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], [], [
+				GoStmt.GoRaw("if src == nil || pos < 0 || len < 0 || pos+len > src.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if len == 0 {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoRaw("append(self.b, src.b[pos:pos+len]...)"))
+			]),
 			GoDecl.GoFuncDecl("addString", {
 				name: "self",
 				typeName: "*haxe__io__BytesBuffer"
@@ -717,6 +754,145 @@ class GoCompiler {
 				typeName: "*haxe__io__BytesBuffer"
 			}, [], ["int"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b")]))
+			]),
+			GoDecl.GoFuncDecl("New_haxe__io__BytesInput", null, [
+				{
+					name: "b",
+					typeName: "*haxe__io__Bytes"
+				},
+				{name: "opts", typeName: "...int"}
+			], ["*haxe__io__BytesInput"], [
+				GoStmt.GoRaw("if b == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\treturn &haxe__io__BytesInput{}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoVarDecl("start", null, GoExpr.GoIntLiteral(0), true),
+				GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent("opts")]), GoExpr.GoIntLiteral(0)), [
+					GoStmt.GoAssign(GoExpr.GoIdent("start"), GoExpr.GoIndex(GoExpr.GoIdent("opts"), GoExpr.GoIntLiteral(0)))
+				],
+					null),
+				GoStmt.GoVarDecl("sliceLen", null, GoExpr.GoBinary("-", GoExpr.GoSelector(GoExpr.GoIdent("b"), "length"), GoExpr.GoIdent("start")), true),
+				GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent("opts")]), GoExpr.GoIntLiteral(1)), [
+					GoStmt.GoAssign(GoExpr.GoIdent("sliceLen"), GoExpr.GoIndex(GoExpr.GoIdent("opts"), GoExpr.GoIntLiteral(1)))
+				],
+					null),
+				GoStmt.GoRaw("if start < 0 || sliceLen < 0 || start+sliceLen > b.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\treturn &haxe__io__BytesInput{}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__BytesInput{b: b.b, pos: start, len: sliceLen, totlen: sliceLen}"))
+			]),
+			GoDecl.GoFuncDecl("get_position", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], ["int"],
+				[GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "pos"))]),
+			GoDecl.GoFuncDecl("set_position", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [{name: "p", typeName: "int"}], ["int"], [
+				GoStmt.GoIf(GoExpr.GoBinary("<", GoExpr.GoIdent("p"), GoExpr.GoIntLiteral(0)), [GoStmt.GoAssign(GoExpr.GoIdent("p"), GoExpr.GoIntLiteral(0))],
+					[
+						GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoIdent("p"), GoExpr.GoSelector(GoExpr.GoIdent("self"), "totlen")), [
+							GoStmt.GoAssign(GoExpr.GoIdent("p"), GoExpr.GoSelector(GoExpr.GoIdent("self"), "totlen"))
+						],
+							null)
+					]),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "len"),
+					GoExpr.GoBinary("-", GoExpr.GoSelector(GoExpr.GoIdent("self"), "totlen"), GoExpr.GoIdent("p"))),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "pos"), GoExpr.GoIdent("p")),
+				GoStmt.GoReturn(GoExpr.GoIdent("p"))
+			]),
+			GoDecl.GoFuncDecl("get_length", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], ["int"],
+				[GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "totlen"))]),
+			GoDecl.GoFuncDecl("readByte", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], ["int"], [
+				GoStmt.GoRaw("if self == nil || self.len == 0 {"),
+				GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "len"),
+					GoExpr.GoBinary("-", GoExpr.GoSelector(GoExpr.GoIdent("self"), "len"), GoExpr.GoIntLiteral(1))),
+				GoStmt.GoVarDecl("value", null,
+					GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoSelector(GoExpr.GoIdent("self"), "pos")), true),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "pos"),
+					GoExpr.GoBinary("+", GoExpr.GoSelector(GoExpr.GoIdent("self"), "pos"), GoExpr.GoIntLiteral(1))),
+				GoStmt.GoReturn(GoExpr.GoIdent("value"))
+			]),
+			GoDecl.GoFuncDecl("readBytes", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [
+				{name: "buf", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoRaw("if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if len > 0 && (self == nil || self.len == 0) {"),
+				GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self == nil {"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self.len < len {"),
+				GoStmt.GoRaw("\tlen = self.len"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("for i := 0; i < len; i++ {"),
+				GoStmt.GoRaw("\tbuf.b[pos+i] = self.b[self.pos+i]"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.pos += len"),
+				GoStmt.GoRaw("self.len -= len"),
+				GoStmt.GoReturn(GoExpr.GoIdent("len"))
+			]),
+			GoDecl.GoFuncDecl("New_haxe__io__BytesOutput", null, [], ["*haxe__io__BytesOutput"], [
+				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__BytesOutput{b: &haxe__io__BytesBuffer{b: []int{}}}"))
+			]),
+			GoDecl.GoFuncDecl("get_length", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [], ["int"], [
+				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.b == nil"), [GoStmt.GoReturn(GoExpr.GoIntLiteral(0))], null),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), "get_length"), []))
+			]),
+			GoDecl.GoFuncDecl("writeByte", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [{name: "c", typeName: "int"}], [], [
+				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.b == nil"), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), "addByte"), [GoExpr.GoIdent("c")]))
+			]),
+			GoDecl.GoFuncDecl("writeBytes", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [
+				{name: "buf", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoRaw("if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.b == nil"), [GoStmt.GoReturn(GoExpr.GoIntLiteral(0))], null),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), "addBytes"),
+					[GoExpr.GoIdent("buf"), GoExpr.GoIdent("pos"), GoExpr.GoIdent("len")])),
+				GoStmt.GoReturn(GoExpr.GoIdent("len"))
+			]),
+			GoDecl.GoFuncDecl("getBytes", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [], ["*haxe__io__Bytes"], [
+				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.b == nil"), [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: []int{}, length: 0}"))], null),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), "getBytes"), []))
 			])
 		];
 	}
@@ -2380,10 +2556,6 @@ class GoCompiler {
 				}
 			],
 				["*haxe__ds__Option"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__Option{tag: 0, params: []any{value}}"))]),
-			GoDecl.GoStructDecl("haxe__io__BytesInput", []),
-			GoDecl.GoStructDecl("haxe__io__BytesOutput", []),
-			GoDecl.GoStructDecl("haxe__io__Eof", []),
-			GoDecl.GoStructDecl("haxe__io__Error", []),
 			GoDecl.GoStructDecl("haxe__io__Path", [
 				{
 					name: "dir",
@@ -8539,10 +8711,10 @@ class GoCompiler {
 		var pack = classType.pack.join(".");
 		if (pack == "haxe.io") {
 			switch (classType.name) {
-				case "Bytes", "BytesBuffer", "Input", "Output", "Encoding":
+				case "Bytes", "BytesBuffer", "Input", "Output", "Encoding", "BytesInput", "BytesOutput", "Eof":
 					requireStdlibShimGroup("io");
 					return;
-				case "BytesInput", "BytesOutput", "Eof", "Error", "Path", "StringInput":
+				case "Path", "StringInput":
 					requireStdlibShimGroup("stdlib_symbols");
 					return;
 				case _:
@@ -8610,7 +8782,11 @@ class GoCompiler {
 
 	function noteStdlibEnum(enumType:EnumType):Void {
 		var pack = enumType.pack.join(".");
-		if ((pack == "haxe.io" && enumType.name == "Error") || (pack == "haxe.ds" && enumType.name == "Option")) {
+		if (pack == "haxe.io" && enumType.name == "Error") {
+			requireStdlibShimGroup("io");
+			return;
+		}
+		if (pack == "haxe.ds" && enumType.name == "Option") {
 			requireStdlibShimGroup("stdlib_symbols");
 		}
 	}
