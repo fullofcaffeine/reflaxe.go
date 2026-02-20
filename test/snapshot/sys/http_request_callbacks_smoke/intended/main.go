@@ -208,7 +208,7 @@ func (self *haxe__io__Bytes) set(pos int, value int) {
 
 func (self *haxe__io__Bytes) blit(pos int, src *haxe__io__Bytes, srcpos int, len int) {
 	if self == nil || src == nil || pos < 0 || srcpos < 0 || len < 0 || pos+len > self.length || srcpos+len > src.length {
-		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		hxrt.Throw(haxe__io__Error_OutsideBounds)
 		return
 	}
 	if len == 0 {
@@ -228,7 +228,7 @@ func (self *haxe__io__Bytes) blit(pos int, src *haxe__io__Bytes, srcpos int, len
 
 func (self *haxe__io__Bytes) fill(pos int, len int, value int) {
 	if self == nil || pos < 0 || len < 0 || pos+len > self.length {
-		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		hxrt.Throw(haxe__io__Error_OutsideBounds)
 		return
 	}
 	masked := value & 255
@@ -240,7 +240,7 @@ func (self *haxe__io__Bytes) fill(pos int, len int, value int) {
 
 func (self *haxe__io__Bytes) sub(pos int, len int) *haxe__io__Bytes {
 	if self == nil || pos < 0 || len < 0 || pos+len > self.length {
-		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		hxrt.Throw(haxe__io__Error_OutsideBounds)
 		return &haxe__io__Bytes{b: []int{}, length: 0}
 	}
 	if len == 0 {
@@ -299,7 +299,7 @@ func (self *haxe__io__BytesBuffer) add(src *haxe__io__Bytes) {
 
 func (self *haxe__io__BytesBuffer) addBytes(src *haxe__io__Bytes, pos int, len int) {
 	if src == nil || pos < 0 || len < 0 || pos+len > src.length {
-		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		hxrt.Throw(haxe__io__Error_OutsideBounds)
 		return
 	}
 	if len == 0 {
@@ -323,7 +323,7 @@ func (self *haxe__io__BytesBuffer) get_length() int {
 
 func New_haxe__io__BytesInput(b *haxe__io__Bytes, opts ...int) *haxe__io__BytesInput {
 	if b == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		hxrt.Throw(haxe__io__Error_OutsideBounds)
 		return &haxe__io__BytesInput{}
 	}
 	start := 0
@@ -335,7 +335,7 @@ func New_haxe__io__BytesInput(b *haxe__io__Bytes, opts ...int) *haxe__io__BytesI
 		sliceLen = opts[1]
 	}
 	if start < 0 || sliceLen < 0 || start+sliceLen > b.length {
-		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		hxrt.Throw(haxe__io__Error_OutsideBounds)
 		return &haxe__io__BytesInput{}
 	}
 	return &haxe__io__BytesInput{b: b.b, pos: start, len: sliceLen, totlen: sliceLen}
@@ -375,7 +375,7 @@ func (self *haxe__io__BytesInput) readByte() int {
 
 func (self *haxe__io__BytesInput) readBytes(buf *haxe__io__Bytes, pos int, len int) int {
 	if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {
-		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		hxrt.Throw(haxe__io__Error_OutsideBounds)
 		return 0
 	}
 	if len > 0 && (self == nil || self.len == 0) {
@@ -434,7 +434,7 @@ func (self *haxe__io__BytesOutput) writeByte(c int) {
 
 func (self *haxe__io__BytesOutput) writeBytes(buf *haxe__io__Bytes, pos int, len int) int {
 	if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {
-		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		hxrt.Throw(haxe__io__Error_OutsideBounds)
 		return 0
 	}
 	if self == nil || self.b == nil {

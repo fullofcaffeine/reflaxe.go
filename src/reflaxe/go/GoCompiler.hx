@@ -878,7 +878,7 @@ class GoCompiler {
 				{name: "len", typeName: "int"}
 			], [], [
 				GoStmt.GoRaw("if self == nil || src == nil || pos < 0 || srcpos < 0 || len < 0 || pos+len > self.length || srcpos+len > src.length {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
 				GoStmt.GoRaw("\treturn"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("if len == 0 {"),
@@ -904,7 +904,7 @@ class GoCompiler {
 				{name: "value", typeName: "int"}
 			], [], [
 				GoStmt.GoRaw("if self == nil || pos < 0 || len < 0 || pos+len > self.length {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
 				GoStmt.GoRaw("\treturn"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("masked := value & 255"),
@@ -919,7 +919,7 @@ class GoCompiler {
 			}, [{name: "pos", typeName: "int"}, {name: "len", typeName: "int"}],
 				["*haxe__io__Bytes"], [
 					GoStmt.GoRaw("if self == nil || pos < 0 || len < 0 || pos+len > self.length {"),
-					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+					GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
 					GoStmt.GoRaw("\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
 					GoStmt.GoRaw("}"),
 					GoStmt.GoRaw("if len == 0 {"),
@@ -990,7 +990,7 @@ class GoCompiler {
 				{name: "len", typeName: "int"}
 			], [], [
 				GoStmt.GoRaw("if src == nil || pos < 0 || len < 0 || pos+len > src.length {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
 				GoStmt.GoRaw("\treturn"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("if len == 0 {"),
@@ -1068,7 +1068,7 @@ class GoCompiler {
 				GoStmt.GoRaw("\t\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\tif chunk == 0 {"),
-				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\t\thxrt.Throw(haxe__io__Error_Blocked)"),
 				GoStmt.GoRaw("\t\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\ttotal.addBytes(buf, 0, chunk)"),
@@ -1085,13 +1085,13 @@ class GoCompiler {
 				{name: "len", typeName: "int"}
 			], [], [
 				GoStmt.GoRaw("if self == nil {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_Blocked)"),
 				GoStmt.GoRaw("\treturn"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("for len > 0 {"),
 				GoStmt.GoRaw("\tk := self.readBytes(s, pos, len)"),
 				GoStmt.GoRaw("\tif k == 0 {"),
-				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\t\thxrt.Throw(haxe__io__Error_Blocked)"),
 				GoStmt.GoRaw("\t\treturn"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\tpos += k"),
@@ -1110,7 +1110,7 @@ class GoCompiler {
 				GoStmt.GoRaw("for nbytes > 0 {"),
 				GoStmt.GoRaw("\tk := self.readBytes(s, p, nbytes)"),
 				GoStmt.GoRaw("\tif k == 0 {"),
-				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\t\thxrt.Throw(haxe__io__Error_Blocked)"),
 				GoStmt.GoRaw("\t\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\tp += k"),
@@ -1327,7 +1327,7 @@ class GoCompiler {
 				GoStmt.GoRaw("for remaining > 0 {"),
 				GoStmt.GoRaw("\tk := self.writeBytes(s, p, remaining)"),
 				GoStmt.GoRaw("\tif k == 0 {"),
-				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\t\thxrt.Throw(haxe__io__Error_Blocked)"),
 				GoStmt.GoRaw("\t\treturn"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\tp += k"),
@@ -1510,14 +1510,14 @@ class GoCompiler {
 				GoStmt.GoRaw("\t\treturn"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\tif lenRead == 0 {"),
-				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\t\thxrt.Throw(haxe__io__Error_Blocked)"),
 				GoStmt.GoRaw("\t\treturn"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\tp := 0"),
 				GoStmt.GoRaw("\tfor lenRead > 0 {"),
 				GoStmt.GoRaw("\t\tk := self.writeBytes(buf, p, lenRead)"),
 				GoStmt.GoRaw("\t\tif k == 0 {"),
-				GoStmt.GoRaw("\t\t\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\t\t\thxrt.Throw(haxe__io__Error_Blocked)"),
 				GoStmt.GoRaw("\t\t\treturn"),
 				GoStmt.GoRaw("\t\t}"),
 				GoStmt.GoRaw("\t\tp += k"),
@@ -1547,7 +1547,7 @@ class GoCompiler {
 				{name: "opts", typeName: "...int"}
 			], ["*haxe__io__BytesInput"], [
 				GoStmt.GoRaw("if b == nil {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
 				GoStmt.GoRaw("\treturn &haxe__io__BytesInput{}"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoVarDecl("start", null, GoExpr.GoIntLiteral(0), true),
@@ -1561,7 +1561,7 @@ class GoCompiler {
 				],
 					null),
 				GoStmt.GoRaw("if start < 0 || sliceLen < 0 || start+sliceLen > b.length {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
 				GoStmt.GoRaw("\treturn &haxe__io__BytesInput{}"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__BytesInput{b: b.b, pos: start, len: sliceLen, totlen: sliceLen}"))
@@ -1617,7 +1617,7 @@ class GoCompiler {
 				{name: "len", typeName: "int"}
 			], ["int"], [
 				GoStmt.GoRaw("if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
 				GoStmt.GoRaw("\treturn 0"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("if len > 0 && (self == nil || self.len == 0) {"),
@@ -1761,7 +1761,7 @@ class GoCompiler {
 				{name: "len", typeName: "int"}
 			], ["int"], [
 				GoStmt.GoRaw("if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
 				GoStmt.GoRaw("\treturn 0"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.b == nil"), [GoStmt.GoReturn(GoExpr.GoIntLiteral(0))], null),
@@ -7222,11 +7222,11 @@ class GoCompiler {
 					{name: "len", typeName: "int"}
 				], ["int"], [
 					GoStmt.GoRaw("if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {"),
-					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+					GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
 					GoStmt.GoRaw("\treturn 0"),
 					GoStmt.GoRaw("}"),
 					GoStmt.GoRaw("if self == nil {"),
-					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+					GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_Blocked)"),
 					GoStmt.GoRaw("\treturn 0"),
 					GoStmt.GoRaw("}"),
 					GoStmt.GoRaw("k := 0"),
@@ -7322,7 +7322,7 @@ class GoCompiler {
 					{name: "len", typeName: "int"}
 				], ["int"], [
 					GoStmt.GoRaw("if s == nil || pos < 0 || len < 0 || pos+len > s.length {"),
-					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+					GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
 					GoStmt.GoRaw("\treturn 0"),
 					GoStmt.GoRaw("}"),
 					GoStmt.GoRaw("n := len"),

@@ -1,3 +1,15 @@
+class BlockedInput extends haxe.io.Input {
+	public function new() {}
+
+	override public function readByte():Int {
+		return throw new haxe.io.Eof();
+	}
+
+	override public function readBytes(buf:haxe.io.Bytes, pos:Int, len:Int):Int {
+		return 0;
+	}
+}
+
 class Main {
 	static function overflowTag():String {
 		var out = new haxe.io.BytesOutput();
@@ -60,10 +72,67 @@ class Main {
 		return result;
 	}
 
+	static function outsideInputTag():String {
+		var input = new haxe.io.BytesInput(haxe.io.Bytes.ofString("a"));
+		var result = "outsideInput=miss";
+		try {
+			input.readBytes(haxe.io.Bytes.alloc(1), 2, 1);
+		} catch (e:haxe.io.Error) {
+			result = switch (e) {
+				case OutsideBounds:
+					"outsideInput=outside";
+				case _:
+					"outsideInput=other";
+			};
+		} catch (e:Dynamic) {
+			result = "outsideInput=dynamic:" + Std.string(e);
+		}
+		return result;
+	}
+
+	static function outsideOutputTag():String {
+		var output = new haxe.io.BytesOutput();
+		var result = "outsideOutput=miss";
+		try {
+			output.writeBytes(haxe.io.Bytes.ofString("a"), 2, 1);
+		} catch (e:haxe.io.Error) {
+			result = switch (e) {
+				case OutsideBounds:
+					"outsideOutput=outside";
+				case _:
+					"outsideOutput=other";
+			};
+		} catch (e:Dynamic) {
+			result = "outsideOutput=dynamic:" + Std.string(e);
+		}
+		return result;
+	}
+
+	static function blockedTag():String {
+		var output = new haxe.io.BytesOutput();
+		var result = "blocked=miss";
+		try {
+			output.writeInput(new BlockedInput(), 1);
+		} catch (e:haxe.io.Error) {
+			result = switch (e) {
+				case Blocked:
+					"blocked=blocked";
+				case _:
+					"blocked=other";
+			};
+		} catch (e:Dynamic) {
+			result = "blocked=dynamic:" + Std.string(e);
+		}
+		return result;
+	}
+
 	static function main() {
 		Sys.println(overflowTag());
 		Sys.println(customTag("boom"));
 		Sys.println(customTag(123));
 		Sys.println(writeThroughBaseOutputTag());
+		Sys.println(outsideInputTag());
+		Sys.println(outsideOutputTag());
+		Sys.println(blockedTag());
 	}
 }
