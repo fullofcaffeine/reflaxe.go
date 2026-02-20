@@ -577,10 +577,104 @@ class GoCompiler {
 			}, [{name: "pos", typeName: "int"}], ["int"], [
 				GoStmt.GoReturn(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoIdent("pos")))
 			]),
-			GoDecl.GoFuncDecl("set", {name: "self", typeName: "*haxe__io__Bytes"}, [{name: "pos", typeName: "int"}, {name: "value", typeName: "int"}], [],
+			GoDecl.GoFuncDecl("set", {name: "self", typeName: "*haxe__io__Bytes"}, [{name: "pos", typeName: "int"}, {name: "value", typeName: "int"}], [], [
+				GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoIdent("pos")), GoExpr.GoIdent("value")),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_rawValid"), GoExpr.GoBoolLiteral(false))
+			]),
+			GoDecl.GoFuncDecl("blit", {
+				name: "self",
+				typeName: "*haxe__io__Bytes"
+			}, [
+				{name: "pos", typeName: "int"},
+				{name: "src", typeName: "*haxe__io__Bytes"},
+				{name: "srcpos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], [], [
+				GoStmt.GoRaw("if self == nil || src == nil || pos < 0 || srcpos < 0 || len < 0 || pos+len > self.length || srcpos+len > src.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if len == 0 {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self == src && pos > srcpos {"),
+				GoStmt.GoRaw("\tfor i := len - 1; i >= 0; i-- {"),
+				GoStmt.GoRaw("\t\tself.b[pos+i] = src.b[srcpos+i]"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("} else {"),
+				GoStmt.GoRaw("\tfor i := 0; i < len; i++ {"),
+				GoStmt.GoRaw("\t\tself.b[pos+i] = src.b[srcpos+i]"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.__hx_rawValid = false")
+			]),
+			GoDecl.GoFuncDecl("fill", {
+				name: "self",
+				typeName: "*haxe__io__Bytes"
+			}, [
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"},
+				{name: "value", typeName: "int"}
+			], [], [
+				GoStmt.GoRaw("if self == nil || pos < 0 || len < 0 || pos+len > self.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("masked := value & 255"),
+				GoStmt.GoRaw("for i := 0; i < len; i++ {"),
+				GoStmt.GoRaw("\tself.b[pos+i] = masked"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.__hx_rawValid = false")
+			]),
+			GoDecl.GoFuncDecl("sub", {
+				name: "self",
+				typeName: "*haxe__io__Bytes"
+			}, [{name: "pos", typeName: "int"}, {name: "len", typeName: "int"}],
+				["*haxe__io__Bytes"], [
+					GoStmt.GoRaw("if self == nil || pos < 0 || len < 0 || pos+len > self.length {"),
+					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+					GoStmt.GoRaw("\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("if len == 0 {"),
+					GoStmt.GoRaw("\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("copied := make([]int, len)"),
+					GoStmt.GoRaw("copy(copied, self.b[pos:pos+len])"),
+					GoStmt.GoRaw("return &haxe__io__Bytes{b: copied, length: len}")
+				]),
+			GoDecl.GoFuncDecl("compare", {
+				name: "self",
+				typeName: "*haxe__io__Bytes"
+			}, [{name: "other", typeName: "*haxe__io__Bytes"}], ["int"],
 				[
-					GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoIdent("pos")), GoExpr.GoIdent("value")),
-					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_rawValid"), GoExpr.GoBoolLiteral(false))
+					GoStmt.GoRaw("if self == nil && other == nil {"),
+					GoStmt.GoRaw("\treturn 0"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("if self == nil {"),
+					GoStmt.GoRaw("\treturn -1"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("if other == nil {"),
+					GoStmt.GoRaw("\treturn 1"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("limit := self.length"),
+					GoStmt.GoRaw("if other.length < limit {"),
+					GoStmt.GoRaw("\tlimit = other.length"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("for i := 0; i < limit; i++ {"),
+					GoStmt.GoRaw("\tif self.b[i] < other.b[i] {"),
+					GoStmt.GoRaw("\t\treturn -1"),
+					GoStmt.GoRaw("\t}"),
+					GoStmt.GoRaw("\tif self.b[i] > other.b[i] {"),
+					GoStmt.GoRaw("\t\treturn 1"),
+					GoStmt.GoRaw("\t}"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("if self.length < other.length {"),
+					GoStmt.GoRaw("\treturn -1"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("if self.length > other.length {"),
+					GoStmt.GoRaw("\treturn 1"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("return 0")
 				]),
 			GoDecl.GoFuncDecl("New_haxe__io__BytesBuffer", null, [], ["*haxe__io__BytesBuffer"],
 				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__BytesBuffer{b: []int{}}"))]),

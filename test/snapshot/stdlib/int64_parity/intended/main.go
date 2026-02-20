@@ -1471,6 +1471,82 @@ func (self *haxe__io__Bytes) set(pos int, value int) {
 	self.__hx_rawValid = false
 }
 
+func (self *haxe__io__Bytes) blit(pos int, src *haxe__io__Bytes, srcpos int, len int) {
+	if self == nil || src == nil || pos < 0 || srcpos < 0 || len < 0 || pos+len > self.length || srcpos+len > src.length {
+		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		return
+	}
+	if len == 0 {
+		return
+	}
+	if self == src && pos > srcpos {
+		for i := len - 1; i >= 0; i-- {
+			self.b[pos+i] = src.b[srcpos+i]
+		}
+	} else {
+		for i := 0; i < len; i++ {
+			self.b[pos+i] = src.b[srcpos+i]
+		}
+	}
+	self.__hx_rawValid = false
+}
+
+func (self *haxe__io__Bytes) fill(pos int, len int, value int) {
+	if self == nil || pos < 0 || len < 0 || pos+len > self.length {
+		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		return
+	}
+	masked := value & 255
+	for i := 0; i < len; i++ {
+		self.b[pos+i] = masked
+	}
+	self.__hx_rawValid = false
+}
+
+func (self *haxe__io__Bytes) sub(pos int, len int) *haxe__io__Bytes {
+	if self == nil || pos < 0 || len < 0 || pos+len > self.length {
+		hxrt.Throw(hxrt.StringFromLiteral("OutsideBounds"))
+		return &haxe__io__Bytes{b: []int{}, length: 0}
+	}
+	if len == 0 {
+		return &haxe__io__Bytes{b: []int{}, length: 0}
+	}
+	copied := make([]int, len)
+	copy(copied, self.b[pos:pos+len])
+	return &haxe__io__Bytes{b: copied, length: len}
+}
+
+func (self *haxe__io__Bytes) compare(other *haxe__io__Bytes) int {
+	if self == nil && other == nil {
+		return 0
+	}
+	if self == nil {
+		return -1
+	}
+	if other == nil {
+		return 1
+	}
+	limit := self.length
+	if other.length < limit {
+		limit = other.length
+	}
+	for i := 0; i < limit; i++ {
+		if self.b[i] < other.b[i] {
+			return -1
+		}
+		if self.b[i] > other.b[i] {
+			return 1
+		}
+	}
+	if self.length < other.length {
+		return -1
+	}
+	if self.length > other.length {
+		return 1
+	}
+	return 0
+}
+
 func New_haxe__io__BytesBuffer() *haxe__io__BytesBuffer {
 	return &haxe__io__BytesBuffer{b: []int{}}
 }
