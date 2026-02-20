@@ -33,6 +33,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.Json` | `semantic-diff` | `json_parse_stringify_contract`, `stdlib/json_parse_stringify` |
 | `sys.io.Process` | `semantic-diff` | `process_echo_contract`, `sys/process_echo_smoke` |
 | `sys.io.File` | `semantic-diff` | `file_read_write_contract`, `sys/file_read_write_smoke` |
+| `sys.FileSystem` | `semantic-diff` | `filesystem_contract`, `sys/filesystem_basic_smoke` |
 | `haxe.ds.Vector` | `semantic-diff` | `vector_contract`, `stdlib/vector_basic` |
 | `sys.net.Host` | `semantic-diff` | `host_basic_contract`, `sys/host_basic_smoke` |
 | `haxe.PosInfos` | `semantic-diff` | `posinfos_contract`, `stdlib/posinfos_basic` |
@@ -60,7 +61,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Super calls | Supported | `core/super_calls` |
 | Enums and switch pattern bindings | Supported | `core/enum_constructors`, `core/switch_enum_basic`, `core/enum_switch_bindings` |
 | Anonymous object literals and structural field mutation | Supported | `core/object_literal_fields` |
-| Exception subset (`throw`, typed/dynamic catch, rethrow) | Supported | `core/haxe_exception_subset`, `core/try_catch_typed`, `core/try_catch_dynamic`, `core/try_catch_rethrow` |
+| Exception subset (`throw`, typed/dynamic catch, rethrow, throw-as-expression`) | Supported | `core/haxe_exception_subset`, `core/try_catch_typed`, `core/try_catch_dynamic`, `core/try_catch_rethrow`, `throw_expr_contract` |
 | `Std.isOfType` behavior | Supported | `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic`, `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract` |
 | Type-value expressions (`TTypeExpr`) for class/enum refs | Supported | `type_expr_contract` |
 | Unsigned right shift behavior | Supported | `core/unsigned_shift`, `core/unsigned_shift_assign` |
@@ -83,6 +84,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/nullable_struct_refs`
 - `test/semantic_diff/sys_io_roundtrip`
 - `test/semantic_diff/file_read_write_contract`
+- `test/semantic_diff/filesystem_contract`
 - `test/semantic_diff/host_basic_contract`
 - `test/semantic_diff/int32_contract`
 - `test/semantic_diff/int64_contract`
@@ -108,6 +110,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/std_is_of_type_contract`
 - `test/semantic_diff/std_is_of_type_runtime_core_abstract_contract`
 - `test/semantic_diff/type_expr_contract`
+- `test/semantic_diff/throw_expr_contract`
 - `test/semantic_diff/atomic_int_bool_contract`
 - `test/semantic_diff/atomic_object_contract`
 
@@ -155,6 +158,7 @@ Shim strategy and alternatives are documented in:
 - `stdlib/stringtools_basic`
 - `stdlib/vector_basic`
 - `sys/file_read_write_smoke`
+- `sys/filesystem_basic_smoke`
 - `sys/http_custom_request_parity`
 - `sys/http_proxy_socket_contract`
 - `sys/http_request_callbacks_smoke`
@@ -175,6 +179,13 @@ Shim strategy and alternatives are documented in:
   - `hxrt.NewProcess`, `Process.Stdout`, `ProcessOutput.ReadLine`, `Process.Close`
 - Compiler-generated `sys` declarations remain as thin wrappers to preserve Haxe type shape and call signatures.
 - `lowerSysStdlibShimDecls` is forwarding-only for this surface; behavior changes must be implemented in runtime and verified by `sys/file_read_write_smoke`, `test/semantic_diff/file_read_write_contract`, `sys/process_echo_smoke`, and `test/semantic_diff/process_echo_contract`.
+
+### `sys.FileSystem` shim contract and tradeoffs
+
+- `sys.FileSystem` static calls now lower to compiler-emitted wrappers in `lowerFileSystemShimDecls`:
+  - `sys__FileSystem_exists`, `rename`, `stat`, `fullPath`, `isDirectory`, `createDirectory`, `deleteFile`, `deleteDirectory`, `readDirectory`.
+- Coverage now includes `sys/filesystem_basic_smoke` and `test/semantic_diff/filesystem_contract` (deterministic create/read/rename/delete/stat-size behavior).
+- Current tradeoff: `stat` currently maps non-portable fields (`uid/gid/dev/ino/nlink/rdev`) to stable fallback values when unavailable from portable Go APIs.
 
 ### `sys.Http` shim contract and tradeoffs
 
@@ -287,7 +298,7 @@ These are explicit fatal guards in `src/reflaxe/go/GoCompiler.hx` that represent
 | --- | --- | --- |
 | Non-lvalue assignment targets in `lowerLValue` | Fatal: `Unsupported assignment target` | Either (a) support any newly reachable legal lvalue shape, or (b) keep as invariant and add a dedicated negative test if a reproducer becomes possible. |
 | Non-`++/--` postfix unary in `lowerExpr` / `lowerExprWithPrefix` | Fatal: `Unsupported postfix unary operator` | Keep parser/typed-ast assumptions validated; if new postfix forms become reachable, add lowering + snapshots before enabling. |
-| Catch-all `lowerExpr` default | Fatal: `Unsupported expression` | Continue replacing reachable typed-node gaps with explicit lowering (for example `TTypeExpr` class/enum refs are now covered via `type_expr_contract`) and keep dedicated coverage as each newly reachable node is supported. |
+| Catch-all `lowerExpr` default | Fatal: `Unsupported expression` | Continue replacing reachable typed-node gaps with explicit lowering (for example `TTypeExpr` class/enum refs are now covered via `type_expr_contract`, and `TThrow` in value positions is covered via `throw_expr_contract`) and keep dedicated coverage as each newly reachable node is supported. |
 | Unsupported constant kind in `lowerConst` | Fatal: `Unsupported constant` | Add lowering + snapshot for any new constant kind encountered in real programs. |
 | Unsupported `Std.isOfType` target kind | No compiler hard-fail for unresolved runtime-value abstract targets; falls back to conservative `false`/type-switch check | Keep adding explicit lowering for newly important target families and lock behavior with semantic diff coverage. |
 
@@ -312,3 +323,5 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-19u`: expand stdlib parity from the documented probe gap list.
 - `haxe.go-ab2`: add semantic differential regression harness.
 - `haxe.go-3d4`: reduce unsupported expression surface by lowering `TTypeExpr` class/enum value nodes.
+- `haxe.go-8zt`: lower `TThrow` in expression positions and lock with semantic diff coverage.
+- `haxe.go-888`: promote `sys.FileSystem` with deterministic snapshot + semantic parity contracts.
