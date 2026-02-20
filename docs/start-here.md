@@ -99,6 +99,7 @@ Compatibility note:
 
 ## Related docs
 
+- `docs/hxrt-runtime.md`
 - `docs/profiles.md`
 - `docs/feature-support-matrix.md`
 - `docs/examples-matrix.md`

@@ -145,9 +145,12 @@ out/
 
 By default, backend compile runs `go build` after codegen. Use `-D go_no_build` when you want codegen-only flows.
 
+Runtime details: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
+
 ## Documentation
 
 - Start here: [docs/start-here.md](docs/start-here.md)
+- `hxrt` runtime architecture and contract: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
 - Feature support and coverage inventory: [docs/feature-support-matrix.md](docs/feature-support-matrix.md)
 - Defines reference: [docs/defines-reference.md](docs/defines-reference.md)
 - Profile admission criteria: [docs/profile-admission-criteria.md](docs/profile-admission-criteria.md)

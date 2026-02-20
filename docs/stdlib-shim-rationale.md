@@ -9,6 +9,7 @@
 - staged stdlib sources under `std/_std` (wired by `src/reflaxe/go/CompilerBootstrap.hx`)
 
 This document records which compiler-core shims should stay, which should migrate, and why.
+For runtime package internals and call-flow wiring, see `docs/hxrt-runtime.md`.
 Execution history and validation evidence are tracked in `docs/stdlib-shim-migration-log.md`.
 
 ## Alternatives Reviewed
