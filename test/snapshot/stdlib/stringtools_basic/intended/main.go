@@ -27,6 +27,7 @@ func main() {
 }
 
 type haxe__io__Encoding struct {
+	tag int
 }
 
 type haxe__io__Input interface {
@@ -88,6 +89,28 @@ func New_haxe__io__Output() haxe__io__Output {
 
 func New_haxe__io__Eof() *haxe__io__Eof {
 	return &haxe__io__Eof{}
+}
+
+var haxe__io__Encoding_UTF8 *haxe__io__Encoding = &haxe__io__Encoding{tag: 0}
+
+var haxe__io__Encoding_RawNative *haxe__io__Encoding = &haxe__io__Encoding{tag: 1}
+
+func (self *haxe__io__Encoding) String() string {
+	if self == nil {
+		return "null"
+	}
+	switch self.tag {
+	case 0:
+		return "UTF8"
+	case 1:
+		return "RawNative"
+	default:
+		return "Encoding"
+	}
+}
+
+func (self *haxe__io__Encoding) toString() *string {
+	return hxrt.StringFromLiteral(self.String())
 }
 
 func (self *haxe__io__Eof) toString() *string {
@@ -154,6 +177,19 @@ func (self *haxe__io__Bytes) toString() *string {
 		return hxrt.StringFromLiteral("")
 	}
 	return hxrt.BytesToString(self.b)
+}
+
+func (self *haxe__io__Bytes) getString(pos int, len int, encoding ...*haxe__io__Encoding) *string {
+	if self == nil || pos < 0 || len < 0 || pos+len > self.length {
+		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		return hxrt.StringFromLiteral("")
+	}
+	slice := self.b[pos : pos+len]
+	return hxrt.BytesToString(slice)
+}
+
+func (self *haxe__io__Bytes) readString(pos int, len int) *string {
+	return self.getString(pos, len)
 }
 
 func (self *haxe__io__Bytes) get(pos int) int {

@@ -520,7 +520,7 @@ class GoCompiler {
 
 	function lowerIoStdlibShimDecls():Array<GoDecl> {
 		var decls = [
-			GoDecl.GoStructDecl("haxe__io__Encoding", []),
+			GoDecl.GoStructDecl("haxe__io__Encoding", [{name: "tag", typeName: "int"}]),
 			GoDecl.GoInterfaceDecl("haxe__io__Input", [
 				{
 					name: "get_bigEndian",
@@ -768,6 +768,31 @@ class GoCompiler {
 			GoDecl.GoFuncDecl("New_haxe__io__Output", null, [], ["haxe__io__Output"],
 				[GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_haxe__io__BytesOutput"), []))]),
 			GoDecl.GoFuncDecl("New_haxe__io__Eof", null, [], ["*haxe__io__Eof"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Eof{}"))]),
+			GoDecl.GoGlobalVarDecl("haxe__io__Encoding_UTF8", "*haxe__io__Encoding", GoExpr.GoRaw("&haxe__io__Encoding{tag: 0}")),
+			GoDecl.GoGlobalVarDecl("haxe__io__Encoding_RawNative", "*haxe__io__Encoding", GoExpr.GoRaw("&haxe__io__Encoding{tag: 1}")),
+			GoDecl.GoFuncDecl("String", {
+				name: "self",
+				typeName: "*haxe__io__Encoding"
+			}, [], ["string"], [
+				GoStmt.GoRaw("if self == nil {"),
+				GoStmt.GoRaw("\treturn \"null\""),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("switch self.tag {"),
+				GoStmt.GoRaw("case 0:"),
+				GoStmt.GoRaw("\treturn \"UTF8\""),
+				GoStmt.GoRaw("case 1:"),
+				GoStmt.GoRaw("\treturn \"RawNative\""),
+				GoStmt.GoRaw("default:"),
+				GoStmt.GoRaw("\treturn \"Encoding\""),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("toString", {
+				name: "self",
+				typeName: "*haxe__io__Encoding"
+			}, [], ["*string"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
+					[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "String"), [])]))
+			]),
 			GoDecl.GoFuncDecl("toString", {
 				name: "self",
 				typeName: "*haxe__io__Eof"
@@ -858,6 +883,28 @@ class GoCompiler {
 					null),
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesToString"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b")]))
 			]),
+			GoDecl.GoFuncDecl("getString", {
+				name: "self",
+				typeName: "*haxe__io__Bytes"
+			}, [
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"},
+				{name: "encoding", typeName: "...*haxe__io__Encoding"}
+			], ["*string"], [
+				GoStmt.GoRaw("if self == nil || pos < 0 || len < 0 || pos+len > self.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
+				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoVarDecl("slice", null, GoExpr.GoRaw("self.b[pos:pos+len]"), true),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesToString"), [GoExpr.GoIdent("slice")]))
+			]),
+			GoDecl.GoFuncDecl("readString", {
+				name: "self",
+				typeName: "*haxe__io__Bytes"
+			}, [{name: "pos", typeName: "int"}, {name: "len", typeName: "int"}], ["*string"],
+				[
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "getString"), [GoExpr.GoIdent("pos"), GoExpr.GoIdent("len")]))
+				]),
 			GoDecl.GoFuncDecl("get", {
 				name: "self",
 				typeName: "*haxe__io__Bytes"
