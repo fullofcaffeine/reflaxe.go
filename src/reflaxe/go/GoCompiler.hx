@@ -600,7 +600,100 @@ class GoCompiler {
 
 	function lowerAtomicStdlibShimDecls():Array<GoDecl> {
 		return [
-			GoDecl.GoFuncDecl("haxe__atomic___AtomicObject__AtomicObject_Impl___new", null, [{name: "value", typeName: "any"}], ["any"], [
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicInt__AtomicInt_Impl___new", null, [{name: "value", typeName: "int"}], ["any"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicIntNew"), [GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicInt__AtomicInt_Impl__add", null, [
+				{
+					name: "atom",
+					typeName: "any"
+				},
+				{name: "value", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicIntAdd"), [GoExpr.GoIdent("atom"), GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicInt__AtomicInt_Impl__sub", null, [
+				{
+					name: "atom",
+					typeName: "any"
+				},
+				{name: "value", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicIntSub"), [GoExpr.GoIdent("atom"), GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicInt__AtomicInt_Impl__and", null, [
+				{
+					name: "atom",
+					typeName: "any"
+				},
+				{name: "value", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicIntAnd"), [GoExpr.GoIdent("atom"), GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicInt__AtomicInt_Impl__or", null, [
+				{
+					name: "atom",
+					typeName: "any"
+				},
+				{name: "value", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicIntOr"), [GoExpr.GoIdent("atom"), GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicInt__AtomicInt_Impl__xor", null, [
+				{
+					name: "atom",
+					typeName: "any"
+				},
+				{name: "value", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicIntXor"), [GoExpr.GoIdent("atom"), GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicInt__AtomicInt_Impl__compareExchange", null, [
+				{
+					name: "atom",
+					typeName: "any"
+				},
+				{name: "expected", typeName: "int"},
+				{name: "replacement", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicIntCompareExchange"), [
+					GoExpr.GoIdent("atom"),
+					GoExpr.GoIdent("expected"),
+					GoExpr.GoIdent("replacement")
+				]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicInt__AtomicInt_Impl__exchange", null, [
+				{
+					name: "atom",
+					typeName: "any"
+				},
+				{name: "value", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicIntExchange"), [GoExpr.GoIdent("atom"), GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicInt__AtomicInt_Impl__load", null, [
+				{
+					name: "atom",
+					typeName: "any"
+				}
+			], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicIntLoad"), [GoExpr.GoIdent("atom")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicInt__AtomicInt_Impl__store", null, [
+				{
+					name: "atom",
+					typeName: "any"
+				},
+				{name: "value", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicIntStore"), [GoExpr.GoIdent("atom"), GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicObject__AtomicObject_Impl___new", null, [
+				{
+					name: "value",
+					typeName: "any"
+				}
+			], ["any"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicObjectNew"), [GoExpr.GoIdent("value")]))
 			]),
 			GoDecl.GoFuncDecl("haxe__atomic___AtomicObject__AtomicObject_Impl__load", null, [
@@ -7929,7 +8022,10 @@ class GoCompiler {
 			return;
 		}
 
-		if ((pack == "haxe.atomic" && classType.name == "AtomicObject")
+		if ((pack == "haxe.atomic"
+			&& (classType.name == "AtomicInt" || classType.name == "AtomicBool" || classType.name == "AtomicObject"))
+			|| (pack == "haxe.atomic._AtomicInt" && classType.name == "AtomicInt_Impl_")
+			|| (pack == "haxe.atomic._AtomicBool" && classType.name == "AtomicBool_Impl_")
 			|| (pack == "haxe.atomic._AtomicObject" && classType.name == "AtomicObject_Impl_")) {
 			requireStdlibShimGroup("atomic");
 			return;

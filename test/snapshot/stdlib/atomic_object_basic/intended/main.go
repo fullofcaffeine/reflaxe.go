@@ -69,6 +69,46 @@ func New_Node(id *string) *Node {
 	return self
 }
 
+func haxe__atomic___AtomicInt__AtomicInt_Impl___new(value int) any {
+	return hxrt.AtomicIntNew(value)
+}
+
+func haxe__atomic___AtomicInt__AtomicInt_Impl__add(atom any, value int) int {
+	return hxrt.AtomicIntAdd(atom, value)
+}
+
+func haxe__atomic___AtomicInt__AtomicInt_Impl__sub(atom any, value int) int {
+	return hxrt.AtomicIntSub(atom, value)
+}
+
+func haxe__atomic___AtomicInt__AtomicInt_Impl__and(atom any, value int) int {
+	return hxrt.AtomicIntAnd(atom, value)
+}
+
+func haxe__atomic___AtomicInt__AtomicInt_Impl__or(atom any, value int) int {
+	return hxrt.AtomicIntOr(atom, value)
+}
+
+func haxe__atomic___AtomicInt__AtomicInt_Impl__xor(atom any, value int) int {
+	return hxrt.AtomicIntXor(atom, value)
+}
+
+func haxe__atomic___AtomicInt__AtomicInt_Impl__compareExchange(atom any, expected int, replacement int) int {
+	return hxrt.AtomicIntCompareExchange(atom, expected, replacement)
+}
+
+func haxe__atomic___AtomicInt__AtomicInt_Impl__exchange(atom any, value int) int {
+	return hxrt.AtomicIntExchange(atom, value)
+}
+
+func haxe__atomic___AtomicInt__AtomicInt_Impl__load(atom any) int {
+	return hxrt.AtomicIntLoad(atom)
+}
+
+func haxe__atomic___AtomicInt__AtomicInt_Impl__store(atom any, value int) int {
+	return hxrt.AtomicIntStore(atom, value)
+}
+
 func haxe__atomic___AtomicObject__AtomicObject_Impl___new(value any) any {
 	return hxrt.AtomicObjectNew(value)
 }

@@ -116,6 +116,95 @@ func Int32Wrap(value int) int32 {
 	return int32(value)
 }
 
+type AtomicIntCell struct {
+	mu    sync.Mutex
+	value int
+}
+
+func AtomicIntNew(value int) any {
+	return &AtomicIntCell{value: value}
+}
+
+func AtomicIntLoad(cell any) int {
+	typed := cell.(*AtomicIntCell)
+	typed.mu.Lock()
+	defer typed.mu.Unlock()
+	return typed.value
+}
+
+func AtomicIntStore(cell any, value int) int {
+	typed := cell.(*AtomicIntCell)
+	typed.mu.Lock()
+	defer typed.mu.Unlock()
+	typed.value = value
+	return value
+}
+
+func AtomicIntExchange(cell any, value int) int {
+	typed := cell.(*AtomicIntCell)
+	typed.mu.Lock()
+	defer typed.mu.Unlock()
+	previous := typed.value
+	typed.value = value
+	return previous
+}
+
+func AtomicIntCompareExchange(cell any, expected int, replacement int) int {
+	typed := cell.(*AtomicIntCell)
+	typed.mu.Lock()
+	defer typed.mu.Unlock()
+	previous := typed.value
+	if previous == expected {
+		typed.value = replacement
+	}
+	return previous
+}
+
+func AtomicIntAdd(cell any, value int) int {
+	typed := cell.(*AtomicIntCell)
+	typed.mu.Lock()
+	defer typed.mu.Unlock()
+	previous := typed.value
+	typed.value += value
+	return previous
+}
+
+func AtomicIntSub(cell any, value int) int {
+	typed := cell.(*AtomicIntCell)
+	typed.mu.Lock()
+	defer typed.mu.Unlock()
+	previous := typed.value
+	typed.value -= value
+	return previous
+}
+
+func AtomicIntAnd(cell any, value int) int {
+	typed := cell.(*AtomicIntCell)
+	typed.mu.Lock()
+	defer typed.mu.Unlock()
+	previous := typed.value
+	typed.value &= value
+	return previous
+}
+
+func AtomicIntOr(cell any, value int) int {
+	typed := cell.(*AtomicIntCell)
+	typed.mu.Lock()
+	defer typed.mu.Unlock()
+	previous := typed.value
+	typed.value |= value
+	return previous
+}
+
+func AtomicIntXor(cell any, value int) int {
+	typed := cell.(*AtomicIntCell)
+	typed.mu.Lock()
+	defer typed.mu.Unlock()
+	previous := typed.value
+	typed.value ^= value
+	return previous
+}
+
 type AtomicObjectCell struct {
 	mu    sync.Mutex
 	value any
