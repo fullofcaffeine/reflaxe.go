@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"reflect"
 	"sync"
+	"sync/atomic"
 )
 
 func StringFromLiteral(value string) *string {
@@ -117,92 +118,92 @@ func Int32Wrap(value int) int32 {
 }
 
 type AtomicIntCell struct {
-	mu    sync.Mutex
-	value int
+	value atomic.Int64
 }
 
 func AtomicIntNew(value int) any {
-	return &AtomicIntCell{value: value}
+	cell := &AtomicIntCell{}
+	cell.value.Store(int64(value))
+	return cell
 }
 
 func AtomicIntLoad(cell any) int {
 	typed := cell.(*AtomicIntCell)
-	typed.mu.Lock()
-	defer typed.mu.Unlock()
-	return typed.value
+	return int(typed.value.Load())
 }
 
 func AtomicIntStore(cell any, value int) int {
 	typed := cell.(*AtomicIntCell)
-	typed.mu.Lock()
-	defer typed.mu.Unlock()
-	typed.value = value
+	typed.value.Store(int64(value))
 	return value
 }
 
 func AtomicIntExchange(cell any, value int) int {
 	typed := cell.(*AtomicIntCell)
-	typed.mu.Lock()
-	defer typed.mu.Unlock()
-	previous := typed.value
-	typed.value = value
-	return previous
+	return int(typed.value.Swap(int64(value)))
 }
 
 func AtomicIntCompareExchange(cell any, expected int, replacement int) int {
 	typed := cell.(*AtomicIntCell)
-	typed.mu.Lock()
-	defer typed.mu.Unlock()
-	previous := typed.value
-	if previous == expected {
-		typed.value = replacement
+	expectedValue := int64(expected)
+	replacementValue := int64(replacement)
+	for {
+		previous := typed.value.Load()
+		if previous != expectedValue {
+			return int(previous)
+		}
+		if typed.value.CompareAndSwap(previous, replacementValue) {
+			return int(previous)
+		}
 	}
-	return previous
 }
 
 func AtomicIntAdd(cell any, value int) int {
 	typed := cell.(*AtomicIntCell)
-	typed.mu.Lock()
-	defer typed.mu.Unlock()
-	previous := typed.value
-	typed.value += value
-	return previous
+	delta := int64(value)
+	return int(typed.value.Add(delta) - delta)
 }
 
 func AtomicIntSub(cell any, value int) int {
 	typed := cell.(*AtomicIntCell)
-	typed.mu.Lock()
-	defer typed.mu.Unlock()
-	previous := typed.value
-	typed.value -= value
-	return previous
+	delta := int64(value)
+	return int(typed.value.Add(-delta) + delta)
 }
 
 func AtomicIntAnd(cell any, value int) int {
 	typed := cell.(*AtomicIntCell)
-	typed.mu.Lock()
-	defer typed.mu.Unlock()
-	previous := typed.value
-	typed.value &= value
-	return previous
+	mask := int64(value)
+	for {
+		previous := typed.value.Load()
+		next := previous & mask
+		if typed.value.CompareAndSwap(previous, next) {
+			return int(previous)
+		}
+	}
 }
 
 func AtomicIntOr(cell any, value int) int {
 	typed := cell.(*AtomicIntCell)
-	typed.mu.Lock()
-	defer typed.mu.Unlock()
-	previous := typed.value
-	typed.value |= value
-	return previous
+	mask := int64(value)
+	for {
+		previous := typed.value.Load()
+		next := previous | mask
+		if typed.value.CompareAndSwap(previous, next) {
+			return int(previous)
+		}
+	}
 }
 
 func AtomicIntXor(cell any, value int) int {
 	typed := cell.(*AtomicIntCell)
-	typed.mu.Lock()
-	defer typed.mu.Unlock()
-	previous := typed.value
-	typed.value ^= value
-	return previous
+	mask := int64(value)
+	for {
+		previous := typed.value.Load()
+		next := previous ^ mask
+		if typed.value.CompareAndSwap(previous, next) {
+			return int(previous)
+		}
+	}
 }
 
 type AtomicObjectCell struct {
