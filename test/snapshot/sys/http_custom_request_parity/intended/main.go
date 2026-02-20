@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"snapshot/hxrt"
@@ -451,7 +452,22 @@ func (self *sys__Http) get_responseData() *string {
 }
 
 func (self *sys__Http) customRequest(post bool, api any, rest ...any) {
+	var socketOverride any = nil
 	var methodOverride *string = nil
+	if len(rest) >= 1 {
+		switch candidate := rest[0].(type) {
+		case string:
+			if len(rest) == 1 {
+				methodOverride = hxrt.StringFromLiteral(candidate)
+			}
+		case *string:
+			if len(rest) == 1 {
+				methodOverride = candidate
+			}
+		default:
+			socketOverride = candidate
+		}
+	}
 	if len(rest) >= 2 {
 		switch candidate := rest[1].(type) {
 		case *string:
@@ -460,7 +476,7 @@ func (self *sys__Http) customRequest(post bool, api any, rest ...any) {
 			methodOverride = hxrt.StringFromLiteral(candidate)
 		}
 	}
-	self.hxrt__http__requestWith(post, methodOverride, api)
+	self.hxrt__http__requestWith(post, methodOverride, api, socketOverride)
 }
 
 func (self *sys__Http) request(post ...bool) {
@@ -474,11 +490,10 @@ func (self *sys__Http) request(post ...bool) {
 	if self.postData != nil || self.postBytes != nil || self.fileUpload != nil {
 		isPost = true
 	}
-	self.hxrt__http__requestWith(isPost, nil, nil)
+	self.hxrt__http__requestWith(isPost, nil, nil, nil)
 }
 
-func (self *sys__Http) hxrt__http__requestWith(post bool, methodOverride *string, api any) {
-	_ = api
+func (self *sys__Http) hxrt__http__requestWith(post bool, methodOverride *string, api any, sock any) {
 	self.responseAsString = nil
 	self.responseBytes = nil
 	self.responseHeaders = New_haxe__ds__StringMap()
@@ -620,8 +635,41 @@ func (self *sys__Http) hxrt__http__requestWith(post bool, methodOverride *string
 		request.Header.Set("Content-Type", *hxrt.StdString(contentTypeOverride))
 	}
 	transport := &http.Transport{}
-	if proxyURL := hxrt__http__proxyURL(); proxyURL != nil {
+	proxyURL := hxrt__http__proxyURL()
+	if proxyURL != nil {
 		transport.Proxy = http.ProxyURL(proxyURL)
+	}
+	var socketAdapter interface {
+		hxrt__socket_conn() net.Conn
+		hxrt__socket_setConn(net.Conn)
+		close()
+	}
+	if candidate, ok := sock.(interface {
+		hxrt__socket_conn() net.Conn
+		hxrt__socket_setConn(net.Conn)
+		close()
+	}); ok {
+		socketAdapter = candidate
+		transport.DisableKeepAlives = true
+		request.Close = true
+		socketConsumed := false
+		transport.Dial = func(network string, addr string) (net.Conn, error) {
+			if socketConsumed {
+				return nil, io.EOF
+			}
+			socketConsumed = true
+			conn := socketAdapter.hxrt__socket_conn()
+			if conn == nil {
+				dialConn, dialErr := net.Dial(network, addr)
+				if dialErr != nil {
+					return nil, dialErr
+				}
+				socketAdapter.hxrt__socket_setConn(dialConn)
+				conn = dialConn
+			}
+			return conn, nil
+		}
+		defer socketAdapter.close()
 	}
 	timeout := time.Duration(self.cnxTimeout * float64(time.Second))
 	if timeout <= 0 {

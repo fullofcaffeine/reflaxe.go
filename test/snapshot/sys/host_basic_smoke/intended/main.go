@@ -187,6 +187,13 @@ func (self *sys__net__Socket) hxrt__socket_setConn(conn net.Conn) {
 	self.hxrt__socket_applyConnDeadline()
 }
 
+func (self *sys__net__Socket) hxrt__socket_conn() net.Conn {
+	if self == nil {
+		return nil
+	}
+	return self.conn
+}
+
 func (self *sys__net__Socket) close() {
 	if self == nil {
 		return

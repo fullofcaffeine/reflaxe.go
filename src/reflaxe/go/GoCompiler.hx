@@ -107,6 +107,7 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("http")) {
 			imports.push("bytes");
 			imports.push("io");
+			imports.push("net");
 			imports.push("net/http");
 			imports.push("net/url");
 			imports.push("strings");
@@ -1098,7 +1099,22 @@ class GoCompiler {
 				{name: "api", typeName: "any"},
 				{name: "rest", typeName: "...any"}
 			], [], [
+				GoStmt.GoVarDecl("socketOverride", "any", GoExpr.GoNil, false),
 				GoStmt.GoVarDecl("methodOverride", "*string", GoExpr.GoNil, false),
+				GoStmt.GoRaw("if len(rest) >= 1 {"),
+				GoStmt.GoRaw("\tswitch candidate := rest[0].(type) {"),
+				GoStmt.GoRaw("\tcase string:"),
+				GoStmt.GoRaw("\t\tif len(rest) == 1 {"),
+				GoStmt.GoRaw("\t\t\tmethodOverride = hxrt.StringFromLiteral(candidate)"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\tcase *string:"),
+				GoStmt.GoRaw("\t\tif len(rest) == 1 {"),
+				GoStmt.GoRaw("\t\t\tmethodOverride = candidate"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\tdefault:"),
+				GoStmt.GoRaw("\t\tsocketOverride = candidate"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("if len(rest) >= 2 {"),
 				GoStmt.GoRaw("\tswitch candidate := rest[1].(type) {"),
 				GoStmt.GoRaw("\tcase *string:"),
@@ -1107,8 +1123,12 @@ class GoCompiler {
 				GoStmt.GoRaw("\t\tmethodOverride = hxrt.StringFromLiteral(candidate)"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__http__requestWith"),
-					[GoExpr.GoIdent("post"), GoExpr.GoIdent("methodOverride"), GoExpr.GoIdent("api")]))
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__http__requestWith"), [
+					GoExpr.GoIdent("post"),
+					GoExpr.GoIdent("methodOverride"),
+					GoExpr.GoIdent("api"),
+					GoExpr.GoIdent("socketOverride")
+				]))
 			]),
 			GoDecl.GoFuncDecl("request", {
 				name: "self",
@@ -1123,7 +1143,7 @@ class GoCompiler {
 				GoStmt.GoIf(GoExpr.GoRaw("self.postData != nil || self.postBytes != nil || self.fileUpload != nil"),
 					[GoStmt.GoAssign(GoExpr.GoIdent("isPost"), GoExpr.GoBoolLiteral(true))], null),
 				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__http__requestWith"),
-					[GoExpr.GoIdent("isPost"), GoExpr.GoNil, GoExpr.GoNil]))
+					[GoExpr.GoIdent("isPost"), GoExpr.GoNil, GoExpr.GoNil, GoExpr.GoNil]))
 			]),
 			GoDecl.GoFuncDecl("hxrt__http__requestWith", {
 				name: "self",
@@ -1131,9 +1151,9 @@ class GoCompiler {
 			}, [
 				{name: "post", typeName: "bool"},
 				{name: "methodOverride", typeName: "*string"},
-				{name: "api", typeName: "any"}
+				{name: "api", typeName: "any"},
+				{name: "sock", typeName: "any"}
 			], [], [
-				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("api")),
 				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseAsString"), GoExpr.GoNil),
 				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseBytes"), GoExpr.GoNil),
 				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseHeaders"), GoExpr.GoCall(GoExpr.GoIdent("New_haxe__ds__StringMap"), [])),
@@ -1297,8 +1317,41 @@ class GoCompiler {
 				GoStmt.GoRaw("\trequest.Header.Set(\"Content-Type\", *hxrt.StdString(contentTypeOverride))"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("transport := &http.Transport{}"),
-				GoStmt.GoRaw("if proxyURL := hxrt__http__proxyURL(); proxyURL != nil {"),
+				GoStmt.GoRaw("proxyURL := hxrt__http__proxyURL()"),
+				GoStmt.GoRaw("if proxyURL != nil {"),
 				GoStmt.GoRaw("\ttransport.Proxy = http.ProxyURL(proxyURL)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("var socketAdapter interface {"),
+				GoStmt.GoRaw("\thxrt__socket_conn() net.Conn"),
+				GoStmt.GoRaw("\thxrt__socket_setConn(net.Conn)"),
+				GoStmt.GoRaw("\tclose()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if candidate, ok := sock.(interface {"),
+				GoStmt.GoRaw("\thxrt__socket_conn() net.Conn"),
+				GoStmt.GoRaw("\thxrt__socket_setConn(net.Conn)"),
+				GoStmt.GoRaw("\tclose()"),
+				GoStmt.GoRaw("}); ok {"),
+				GoStmt.GoRaw("\tsocketAdapter = candidate"),
+				GoStmt.GoRaw("\ttransport.DisableKeepAlives = true"),
+				GoStmt.GoRaw("\trequest.Close = true"),
+				GoStmt.GoRaw("\tsocketConsumed := false"),
+				GoStmt.GoRaw("\ttransport.Dial = func(network string, addr string) (net.Conn, error) {"),
+				GoStmt.GoRaw("\t\tif socketConsumed {"),
+				GoStmt.GoRaw("\t\t\treturn nil, io.EOF"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tsocketConsumed = true"),
+				GoStmt.GoRaw("\t\tconn := socketAdapter.hxrt__socket_conn()"),
+				GoStmt.GoRaw("\t\tif conn == nil {"),
+				GoStmt.GoRaw("\t\t\tdialConn, dialErr := net.Dial(network, addr)"),
+				GoStmt.GoRaw("\t\t\tif dialErr != nil {"),
+				GoStmt.GoRaw("\t\t\t\treturn nil, dialErr"),
+				GoStmt.GoRaw("\t\t\t}"),
+				GoStmt.GoRaw("\t\t\tsocketAdapter.hxrt__socket_setConn(dialConn)"),
+				GoStmt.GoRaw("\t\t\tconn = dialConn"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\treturn conn, nil"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tdefer socketAdapter.close()"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("timeout := time.Duration(self.cnxTimeout * float64(time.Second))"),
 				GoStmt.GoRaw("if timeout <= 0 {"),
@@ -5077,6 +5130,13 @@ class GoCompiler {
 					GoExpr.GoRaw("&sys__net__SocketOutput{writer: bufio.NewWriter(conn), socket: self}")),
 				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__socket_applyFastSend"), [])),
 				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "hxrt__socket_applyConnDeadline"), []))
+			]),
+			GoDecl.GoFuncDecl("hxrt__socket_conn", {
+				name: "self",
+				typeName: "*sys__net__Socket"
+			}, [], ["net.Conn"], [
+				GoStmt.GoIf(GoExpr.GoRaw("self == nil"), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "conn"))
 			]),
 			GoDecl.GoFuncDecl("close", {
 				name: "self",

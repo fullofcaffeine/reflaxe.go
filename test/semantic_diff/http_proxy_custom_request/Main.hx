@@ -72,6 +72,14 @@ class Main {
 		closeServer(customServer);
 		Sys.println("customTrace=" + readLog(customLog));
 
+		var socketLog = "/tmp/reflaxe_go_http_socket.log";
+		var socketServer = startServer(socketLog);
+		var socketReq = new haxe.Http("http://127.0.0.1:" + socketServer.port + "/socket");
+		var socketSink = new haxe.io.BytesBuffer();
+		socketReq.customRequest(false, cast socketSink, new sys.net.Socket(), "PATCH");
+		closeServer(socketServer);
+		Sys.println("socketTrace=" + readLog(socketLog));
+
 		var proxyLog = "/tmp/reflaxe_go_http_proxy.log";
 		var proxyServer = startServer(proxyLog);
 		haxe.Http.PROXY = cast {
