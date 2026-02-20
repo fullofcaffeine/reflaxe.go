@@ -6895,6 +6895,18 @@ class GoCompiler {
 		]), [targetExpr]);
 	}
 
+	function lowerNilSafeTypeAssertExpr(expr:GoExpr, assertedType:String):GoExpr {
+		var valueName = freshTempName("hx_value");
+		var zeroName = freshTempName("hx_zero");
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: valueName, typeName: "any"}], [assertedType], [
+			GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent(valueName), GoExpr.GoNil), [
+				GoStmt.GoVarDecl(zeroName, assertedType, null, false),
+				GoStmt.GoReturn(GoExpr.GoIdent(zeroName))
+			], null),
+			GoStmt.GoReturn(GoExpr.GoTypeAssert(GoExpr.GoIdent(valueName), assertedType))
+		]), [expr]);
+	}
+
 	function lowerCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):LoweredExpr {
 		var stringInstanceCall = lowerStringInstanceCall(callee, args);
 		if (stringInstanceCall != null) {
@@ -7058,7 +7070,7 @@ class GoCompiler {
 		if (shouldAssertGenericCallResult(callee, returnType)) {
 			var expectedType = typeToGoType(returnType);
 			if (expectedType != "any") {
-				callExpr = GoExpr.GoTypeAssert(callExpr, expectedType);
+				callExpr = lowerNilSafeTypeAssertExpr(callExpr, expectedType);
 			}
 		}
 

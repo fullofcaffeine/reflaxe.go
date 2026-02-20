@@ -193,7 +193,7 @@ Shim strategy and alternatives are documented in:
 
 - Coverage includes `stdlib/ds_maps_list_basic` and `test/semantic_diff/ds_maps_list_contract` for deterministic `set/get/exists/remove` behavior across `StringMap`/`IntMap`/`ObjectMap`/`EnumValueMap`, plus `List` `add`/`push`/`pop`/`first`/`last`/`length`.
 - `List.push` now prepends to match Haxe semantics (with `pop` removing the list head).
-- Current gap: missing-key typed reads can still panic in some shapes due Go type-assertion behavior around untyped nil; tracked by `haxe.go-rlj`.
+- Missing-key map reads and empty `List` reads in typed call sites now lower through nil-safe typed assertions, returning typed zero values (`null` for reference-like types) instead of panicking.
 
 ### `sys.Http` shim contract and tradeoffs
 
@@ -333,5 +333,5 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-3d4`: reduce unsupported expression surface by lowering `TTypeExpr` class/enum value nodes.
 - `haxe.go-8zt`: lower `TThrow` in expression positions and lock with semantic diff coverage.
 - `haxe.go-888`: promote `sys.FileSystem` with deterministic snapshot + semantic parity contracts.
-- `haxe.go-6fc`: promote `haxe.ds` map/list core-ops subset with semantic parity coverage and `List.push` parity.
-- `haxe.go-rlj`: fix missing-key typed-read null semantics for `haxe.ds` map shims.
+- `haxe.go-6fc`: completed `haxe.ds` map/list core-ops semantic parity coverage and `List.push` parity alignment.
+- `haxe.go-rlj`: completed nil-safe typed-read null semantics for `haxe.ds` map/list generic call results.

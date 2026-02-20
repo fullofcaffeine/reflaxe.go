@@ -45,7 +45,13 @@ func Harness_countByState(cards *haxe__ds__List, state *string) int {
 	_ = count
 	i := 0
 	for i < count {
-		value := cards.pop().(*domain__StoryCard)
+		value := func(hx_value_1 any) *domain__StoryCard {
+			if hx_value_1 == nil {
+				var hx_zero_2 *domain__StoryCard
+				return hx_zero_2
+			}
+			return hx_value_1.(*domain__StoryCard)
+		}(cards.pop())
 		if hxrt.StringEqualAny(value, nil) {
 			break
 		}
@@ -66,7 +72,13 @@ func Harness_donePoints(cards *haxe__ds__List) int {
 	_ = count
 	i := 0
 	for i < count {
-		value := cards.pop().(*domain__StoryCard)
+		value := func(hx_value_3 any) *domain__StoryCard {
+			if hx_value_3 == nil {
+				var hx_zero_4 *domain__StoryCard
+				return hx_zero_4
+			}
+			return hx_value_3.(*domain__StoryCard)
+		}(cards.pop())
 		if hxrt.StringEqualAny(value, nil) {
 			break
 		}
@@ -87,7 +99,13 @@ func Harness_formatCard(card *domain__StoryCard, runtime profile__StoryboardRunt
 	_ = tagCount
 	j := 0
 	for j < tagCount {
-		tagValue := card.tags.pop().(*string)
+		tagValue := func(hx_value_5 any) *string {
+			if hx_value_5 == nil {
+				var hx_zero_6 *string
+				return hx_zero_6
+			}
+			return hx_value_5.(*string)
+		}(card.tags.pop())
 		if hxrt.StringEqualStringPtr(tagValue, nil) {
 			break
 		}
@@ -108,7 +126,13 @@ func Harness_formatLane(cards *haxe__ds__List, state *string, title *string, run
 	_ = cardCount
 	i := 0
 	for i < cardCount {
-		cardValue := cards.pop().(*domain__StoryCard)
+		cardValue := func(hx_value_7 any) *domain__StoryCard {
+			if hx_value_7 == nil {
+				var hx_zero_8 *domain__StoryCard
+				return hx_zero_8
+			}
+			return hx_value_7.(*domain__StoryCard)
+		}(cards.pop())
 		if hxrt.StringEqualAny(cardValue, nil) {
 			break
 		}
@@ -133,7 +157,13 @@ func Harness_hasTag(card *domain__StoryCard, needle *string) bool {
 	_ = count
 	i := 0
 	for i < count {
-		value := card.tags.pop().(*string)
+		value := func(hx_value_9 any) *string {
+			if hx_value_9 == nil {
+				var hx_zero_10 *string
+				return hx_zero_10
+			}
+			return hx_value_9.(*string)
+		}(card.tags.pop())
 		if hxrt.StringEqualStringPtr(value, nil) {
 			break
 		}
@@ -170,7 +200,13 @@ func Harness_joinStringList(values *haxe__ds__List, separator *string) *string {
 	_ = count
 	i := 0
 	for i < count {
-		raw := values.pop().(*string)
+		raw := func(hx_value_11 any) *string {
+			if hx_value_11 == nil {
+				var hx_zero_12 *string
+				return hx_zero_12
+			}
+			return hx_value_11.(*string)
+		}(values.pop())
 		if hxrt.StringEqualStringPtr(raw, nil) {
 			break
 		}
@@ -203,7 +239,13 @@ func Harness_openHighRisk(cards *haxe__ds__List, threshold int) int {
 	_ = count
 	i := 0
 	for i < count {
-		value := cards.pop().(*domain__StoryCard)
+		value := func(hx_value_13 any) *domain__StoryCard {
+			if hx_value_13 == nil {
+				var hx_zero_14 *domain__StoryCard
+				return hx_zero_14
+			}
+			return hx_value_13.(*domain__StoryCard)
+		}(cards.pop())
 		if hxrt.StringEqualAny(value, nil) {
 			break
 		}
@@ -224,7 +266,13 @@ func Harness_openOwnerFocus(cards *haxe__ds__List) *string {
 	_ = cardCount
 	i := 0
 	for i < cardCount {
-		cardValue := cards.pop().(*domain__StoryCard)
+		cardValue := func(hx_value_15 any) *domain__StoryCard {
+			if hx_value_15 == nil {
+				var hx_zero_16 *domain__StoryCard
+				return hx_zero_16
+			}
+			return hx_value_15.(*domain__StoryCard)
+		}(cards.pop())
 		if hxrt.StringEqualAny(cardValue, nil) {
 			break
 		}
@@ -248,7 +296,13 @@ func Harness_openPoints(cards *haxe__ds__List) int {
 	_ = count
 	i := 0
 	for i < count {
-		value := cards.pop().(*domain__StoryCard)
+		value := func(hx_value_17 any) *domain__StoryCard {
+			if hx_value_17 == nil {
+				var hx_zero_18 *domain__StoryCard
+				return hx_zero_18
+			}
+			return hx_value_17.(*domain__StoryCard)
+		}(cards.pop())
 		if hxrt.StringEqualAny(value, nil) {
 			break
 		}
@@ -293,7 +347,13 @@ func Harness_releaseTaggedOpen(cards *haxe__ds__List) int {
 	_ = count
 	i := 0
 	for i < count {
-		value := cards.pop().(*domain__StoryCard)
+		value := func(hx_value_19 any) *domain__StoryCard {
+			if hx_value_19 == nil {
+				var hx_zero_20 *domain__StoryCard
+				return hx_zero_20
+			}
+			return hx_value_19.(*domain__StoryCard)
+		}(cards.pop())
 		if hxrt.StringEqualAny(value, nil) {
 			break
 		}
@@ -331,13 +391,13 @@ func Harness_render(runtime profile__StoryboardRuntime) *string {
 	_ = highRisk
 	releaseOpen := Harness_releaseTaggedOpen(cards)
 	_ = releaseOpen
-	var hx_if_1 *string
+	var hx_if_21 *string
 	if runtime.supportsVelocityHint() {
-		hx_if_1 = hxrt.StringFromLiteral("adaptive")
+		hx_if_21 = hxrt.StringFromLiteral("adaptive")
 	} else {
-		hx_if_1 = hxrt.StringFromLiteral("baseline")
+		hx_if_21 = hxrt.StringFromLiteral("baseline")
 	}
-	velocityHint := hx_if_1
+	velocityHint := hx_if_21
 	_ = velocityHint
 	bar := Harness_progressBar(done, total, 24)
 	_ = bar
@@ -380,7 +440,13 @@ func Harness_totalPoints(cards *haxe__ds__List) int {
 	_ = count
 	i := 0
 	for i < count {
-		value := cards.pop().(*domain__StoryCard)
+		value := func(hx_value_22 any) *domain__StoryCard {
+			if hx_value_22 == nil {
+				var hx_zero_23 *domain__StoryCard
+				return hx_zero_23
+			}
+			return hx_value_22.(*domain__StoryCard)
+		}(cards.pop())
 		if hxrt.StringEqualAny(value, nil) {
 			break
 		}
@@ -463,7 +529,13 @@ func (self *profile__MetalRuntime) extraSignal(cards *haxe__ds__List) *string {
 	_ = count
 	i := 0
 	for i < count {
-		value := cards.pop().(*domain__StoryCard)
+		value := func(hx_value_24 any) *domain__StoryCard {
+			if hx_value_24 == nil {
+				var hx_zero_25 *domain__StoryCard
+				return hx_zero_25
+			}
+			return hx_value_24.(*domain__StoryCard)
+		}(cards.pop())
 		if hxrt.StringEqualAny(value, nil) {
 			break
 		}

@@ -7,7 +7,13 @@ func main() {
 	_ = m
 	m.set(1, hxrt.StringFromLiteral("one"))
 	m.set(2, hxrt.StringFromLiteral("two"))
-	one := m.get(1).(*string)
+	one := func(hx_value_1 any) *string {
+		if hx_value_1 == nil {
+			var hx_zero_2 *string
+			return hx_zero_2
+		}
+		return hx_value_1.(*string)
+	}(m.get(1))
 	_ = one
 	hxrt.Println(one)
 	hxrt.Println(m.exists(3))
