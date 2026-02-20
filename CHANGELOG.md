@@ -1,3 +1,9 @@
+## [0.27.2](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.27.1...v0.27.2) (2026-02-20)
+
+### Bug Fixes
+
+* support resolver type-value class and enum returns ([446e055](https://github.com/fullofcaffeine/reflaxe.go/commit/446e055fc4ccc4116c5a4deebdd29eab94f13f25))
+
 ## [0.27.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.27.0...v0.27.1) (2026-02-20)
 
 ### Bug Fixes
