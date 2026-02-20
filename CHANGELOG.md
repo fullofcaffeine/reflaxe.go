@@ -1,3 +1,9 @@
+## [0.33.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.32.0...v0.33.0) (2026-02-20)
+
+### Features
+
+* **io:** throw haxe.io.Error constructors for blocked/outside paths ([e13b13e](https://github.com/fullofcaffeine/reflaxe.go/commit/e13b13e525f656b18e07a77db64725ee26267e00))
+
 ## [0.32.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.31.2...v0.32.0) (2026-02-20)
 
 ### Features
