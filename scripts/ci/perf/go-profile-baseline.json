@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-02-19T17:06:30.319Z",
+  "generatedAt": "2026-02-20T01:32:15.855Z",
   "thresholds": {
     "sizeWarnPct": 5,
     "runtimeWarnPct": 10
@@ -8,58 +8,79 @@
   "startupLoops": {
     "hello": 300,
     "array": 300,
+    "atomic": 120,
     "tui": 30
+  },
+  "caseParams": {
+    "atomicWork": 200000
   },
   "derivedBaseline": {
     "helloOverheadRatios": {
       "portable": {
-        "binaryRatio": 1.0150959704713973,
-        "strippedRatio": 1.0147180414249277,
-        "startupRatio": 1.2582781627998783
+        "binaryRatio": 1.015263480130423,
+        "strippedRatio": 1.0147390621934471,
+        "startupRatio": 1.0989011097693528
       },
       "gopher": {
-        "binaryRatio": 1.0150959704713973,
-        "strippedRatio": 1.0147145379635079,
-        "startupRatio": 1.4503312218762399
+        "binaryRatio": 1.015263480130423,
+        "strippedRatio": 1.0147355587320273,
+        "startupRatio": 1.0219781342833116
       },
       "metal": {
-        "binaryRatio": 1.0150959704713973,
-        "strippedRatio": 1.0147145379635079,
-        "startupRatio": 1.6887418336915123
+        "binaryRatio": 1.015263480130423,
+        "strippedRatio": 1.0147355587320273,
+        "startupRatio": 1.08791220746288
       }
     },
     "arrayOverheadRatios": {
       "portable": {
-        "binaryRatio": 1.0150959704713973,
-        "strippedRatio": 1.0147180414249277,
-        "startupRatio": 1.172794037764925
+        "binaryRatio": 1.015263480130423,
+        "strippedRatio": 1.0147390621934471,
+        "startupRatio": 0.9099999909999991
       },
       "gopher": {
-        "binaryRatio": 1.0150959704713973,
-        "strippedRatio": 1.0147145379635079,
-        "startupRatio": 1.0588234904844305
+        "binaryRatio": 1.015263480130423,
+        "strippedRatio": 1.0147355587320273,
+        "startupRatio": 1
       },
       "metal": {
-        "binaryRatio": 1.0150959704713973,
-        "strippedRatio": 1.0147145379635079,
-        "startupRatio": 0.6580882478644026
+        "binaryRatio": 1.015263480130423,
+        "strippedRatio": 1.0147355587320273,
+        "startupRatio": 0.9600000960000096
+      }
+    },
+    "atomicOverheadRatios": {
+      "portable": {
+        "binaryRatio": 1.015263480130423,
+        "strippedRatio": 1.0147390621934471,
+        "startupRatio": 1.0535714247448982
+      },
+      "gopher": {
+        "binaryRatio": 1.015263480130423,
+        "strippedRatio": 1.0147390621934471,
+        "startupRatio": 1.0178570701530663
+      },
+      "metal": {
+        "binaryRatio": 1.015263480130423,
+        "strippedRatio": 1.0147355587320273,
+        "startupRatio": 1.0714284948979647
       }
     },
     "tuiRelativeToMin": {
       "portable": {
-        "binaryRatio": 1.0000065462537835,
-        "strippedRatio": 1,
-        "startupRatio": 1.8148147777777777
-      },
-      "gopher": {
         "binaryRatio": 1,
         "strippedRatio": 1,
-        "startupRatio": 1.1481481111111111
+        "startupRatio": 1.125
+      },
+      "gopher": {
+        "binaryRatio": 1.0135048331493575,
+        "strippedRatio": 1.0141455123636165,
+        "startupRatio": 1
       },
       "metal": {
-        "binaryRatio": 1.0067491876508194,
-        "strippedRatio": 1.0070727561818082,
-        "startupRatio": 1
+        "binaryRatio": 1.0134982869384273,
+        "strippedRatio": 1.0141455123636165,
+        "startupRatio": 1.041666625
       }
     }
   }

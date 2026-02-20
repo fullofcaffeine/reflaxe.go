@@ -30,6 +30,8 @@ Environment:
                             Hard-fail threshold for metal startup ratios (default: 100).
   GO_PERF_HELLO_ITERS       Startup loop count for hello case (default: 300)
   GO_PERF_ARRAY_ITERS       Startup loop count for array case (default: 300)
+  GO_PERF_ATOMIC_ITERS      Startup loop count for atomic case (default: 120)
+  GO_PERF_ATOMIC_WORK       Atomic add operations per process run (default: 200000)
   GO_PERF_TUI_ITERS         Startup loop count for tui case (default: 30)
 USAGE
 }
@@ -154,6 +156,27 @@ class Main {
 EOF
 }
 
+write_haxe_atomic_case() {
+  local dir="$1"
+  local work="$2"
+  mkdir -p "$dir"
+  cat > "$dir/Main.hx" <<EOF
+import haxe.atomic.AtomicInt;
+
+class Main {
+  static function main():Void {
+    var atom = new AtomicInt(0);
+    var i = 0;
+    while (i < ${work}) {
+      atom.add(1);
+      i++;
+    }
+    Sys.println(atom.load());
+  }
+}
+EOF
+}
+
 compile_haxe_case() {
   local src_dir="$1"
   local out_dir="$2"
@@ -220,6 +243,33 @@ func main() {
 EOF
 }
 
+write_pure_atomic_module() {
+  local dir="$1"
+  local work="$2"
+  mkdir -p "$dir"
+  cat > "$dir/go.mod" <<'EOF'
+module pure_atomic
+
+go 1.22
+EOF
+  cat > "$dir/main.go" <<EOF
+package main
+
+import (
+  "fmt"
+  "sync/atomic"
+)
+
+func main() {
+  var cell atomic.Int64
+  for i := 0; i < ${work}; i++ {
+    cell.Add(1)
+  }
+  fmt.Println(cell.Load())
+}
+EOF
+}
+
 record_metric() {
   local id="$1"
   local case_name="$2"
@@ -280,6 +330,8 @@ metal_size_fail_pct="${GO_PERF_METAL_SIZE_FAIL_PCT:-25}"
 metal_runtime_fail_pct="${GO_PERF_METAL_RUNTIME_FAIL_PCT:-100}"
 hello_iters="${GO_PERF_HELLO_ITERS:-300}"
 array_iters="${GO_PERF_ARRAY_ITERS:-300}"
+atomic_iters="${GO_PERF_ATOMIC_ITERS:-120}"
+atomic_work="${GO_PERF_ATOMIC_WORK:-200000}"
 tui_iters="${GO_PERF_TUI_ITERS:-30}"
 
 if [[ -x /usr/bin/time ]]; then
@@ -373,6 +425,31 @@ write_pure_array_module "$array_pure_dir"
 record_metric "array_pure_go" "array" "pure" "pure_go" \
   "$array_pure_bin" "$array_iters" "$array_pure_dir/startup.time"
 
+atomic_src="$work_dir/haxe_cases/atomic"
+write_haxe_atomic_case "$atomic_src" "$atomic_work"
+
+for profile in "${profiles[@]}"; do
+  log "atomic case ($profile)"
+  case_dir="$work_dir/atomic/$profile"
+  out_dir="$case_dir/out"
+  bin_path="$case_dir/atomic_haxe_${profile}"
+  mkdir -p "$case_dir"
+
+  compile_haxe_case "$atomic_src" "$out_dir" "$profile"
+  (cd "$out_dir" && "$go_bin" build -o "$bin_path" .)
+
+  record_metric "atomic_haxe_${profile}" "atomic" "$profile" "haxe" \
+    "$bin_path" "$atomic_iters" "$case_dir/startup.time"
+done
+
+log "atomic pure Go baseline"
+atomic_pure_dir="$work_dir/atomic/pure"
+atomic_pure_bin="$atomic_pure_dir/pure_atomic"
+write_pure_atomic_module "$atomic_pure_dir" "$atomic_work"
+(cd "$atomic_pure_dir" && "$go_bin" build -o "$atomic_pure_bin" .)
+record_metric "atomic_pure_go" "atomic" "pure" "pure_go" \
+  "$atomic_pure_bin" "$atomic_iters" "$atomic_pure_dir/startup.time"
+
 for profile in "${profiles[@]}"; do
   log "tui case ($profile)"
   case_dir="$work_dir/tui/$profile"
@@ -409,6 +486,8 @@ GO_PERF_METAL_SIZE_FAIL_PCT="$metal_size_fail_pct" \
 GO_PERF_METAL_RUNTIME_FAIL_PCT="$metal_runtime_fail_pct" \
 GO_PERF_HELLO_ITERS="$hello_iters" \
 GO_PERF_ARRAY_ITERS="$array_iters" \
+GO_PERF_ATOMIC_ITERS="$atomic_iters" \
+GO_PERF_ATOMIC_WORK="$atomic_work" \
 GO_PERF_TUI_ITERS="$tui_iters" \
 GO_PERF_HAXE_VERSION="$haxe_version" \
 GO_PERF_GO_VERSION="$go_version" \
@@ -432,6 +511,8 @@ const metalSizeFailPct = Number(process.env.GO_PERF_METAL_SIZE_FAIL_PCT || "25")
 const metalRuntimeFailPct = Number(process.env.GO_PERF_METAL_RUNTIME_FAIL_PCT || "100");
 const helloIters = Number(process.env.GO_PERF_HELLO_ITERS || "300");
 const arrayIters = Number(process.env.GO_PERF_ARRAY_ITERS || "300");
+const atomicIters = Number(process.env.GO_PERF_ATOMIC_ITERS || "120");
+const atomicWork = Number(process.env.GO_PERF_ATOMIC_WORK || "200000");
 const tuiIters = Number(process.env.GO_PERF_TUI_ITERS || "30");
 const haxeVersion = process.env.GO_PERF_HAXE_VERSION || "";
 const goVersion = process.env.GO_PERF_GO_VERSION || "";
@@ -498,6 +579,7 @@ function buildCaseOverhead(caseName) {
 
 const helloOverheadRatios = buildCaseOverhead("hello");
 const arrayOverheadRatios = buildCaseOverhead("array");
+const atomicOverheadRatios = buildCaseOverhead("atomic");
 
 const tuiMetrics = Object.fromEntries(
   profiles.map((profile) => [profile, requireMetric(`tui_haxe_${profile}`)])
@@ -531,12 +613,17 @@ const current = {
   startupLoops: {
     hello: helloIters,
     array: arrayIters,
+    atomic: atomicIters,
     tui: tuiIters,
+  },
+  caseParams: {
+    atomicWork,
   },
   metrics,
   derived: {
     helloOverheadRatios,
     arrayOverheadRatios,
+    atomicOverheadRatios,
     tuiRelativeToMin,
   },
 };
@@ -549,6 +636,7 @@ const baselinePayload = {
   generatedAt: current.generatedAt,
   thresholds: current.thresholds,
   startupLoops: current.startupLoops,
+  caseParams: current.caseParams,
   derivedBaseline: current.derived,
 };
 
@@ -642,9 +730,11 @@ if (!updateBaseline) {
     const baselineDerived = baselineLoaded.derivedBaseline || {};
     compareGroup("hello_overhead", current.derived.helloOverheadRatios, baselineDerived.helloOverheadRatios);
     compareGroup("array_overhead", current.derived.arrayOverheadRatios, baselineDerived.arrayOverheadRatios);
+    compareGroup("atomic_overhead", current.derived.atomicOverheadRatios, baselineDerived.atomicOverheadRatios);
     compareGroup("tui_relative", current.derived.tuiRelativeToMin, baselineDerived.tuiRelativeToMin);
     compareMetalHard("hello_overhead", current.derived.helloOverheadRatios, baselineDerived.helloOverheadRatios);
     compareMetalHard("array_overhead", current.derived.arrayOverheadRatios, baselineDerived.arrayOverheadRatios);
+    compareMetalHard("atomic_overhead", current.derived.atomicOverheadRatios, baselineDerived.atomicOverheadRatios);
     compareMetalHard("tui_relative", current.derived.tuiRelativeToMin, baselineDerived.tuiRelativeToMin);
   }
 }
@@ -696,13 +786,15 @@ summaryLines.push(`- Size budget: \`+${sizeWarnPct}%\``);
 summaryLines.push(`- Runtime budget: \`+${runtimeWarnPct}%\``);
 summaryLines.push(`- Metal enforcement: \`${enforceMetalBudget ? "on" : "off"}\``);
 summaryLines.push(`- Metal hard budgets: size=\`+${metalSizeFailPct}%\`, runtime=\`+${metalRuntimeFailPct}%\``);
-summaryLines.push(`- Startup loops: hello=${helloIters}, array=${arrayIters}, tui=${tuiIters}`);
+summaryLines.push(`- Startup loops: hello=${helloIters}, array=${arrayIters}, atomic=${atomicIters}, tui=${tuiIters}`);
+summaryLines.push(`- Atomic workload: atomic_add_ops_per_run=${atomicWork}`);
 if (haxeVersion.length > 0 || goVersion.length > 0) {
   summaryLines.push(`- Toolchain: ${haxeVersion || "haxe:unknown"} | ${goVersion || "go:unknown"}`);
 }
 summaryLines.push("");
 summaryLines.push(ratioTable("Hello Overhead (x vs pure Go hello)", current.derived.helloOverheadRatios));
 summaryLines.push(ratioTable("Array Overhead (x vs pure Go array loop)", current.derived.arrayOverheadRatios));
+summaryLines.push(ratioTable("Atomic Overhead (x vs pure Go atomic loop)", current.derived.atomicOverheadRatios));
 summaryLines.push(ratioTable("TUI Profile Spread (x vs fastest/smallest profile in this run)", current.derived.tuiRelativeToMin));
 
 if (warnings.length > 0) {
