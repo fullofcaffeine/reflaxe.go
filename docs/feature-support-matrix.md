@@ -31,7 +31,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `sys.net.Socket` | `semantic-diff` | `socket_loopback_contract`, `socket_advanced_contract` |
 | `haxe.crypto.*` + `haxe.xml.*` + `haxe.zip.*` subset | `semantic-diff` | `crypto_xml_zip` |
 | `haxe.Json` | `semantic-diff` | `json_parse_stringify_contract`, `stdlib/json_parse_stringify` |
-| `sys.io.Process` | `snapshot` | `sys/process_echo_smoke` |
+| `sys.io.Process` | `semantic-diff` | `process_echo_contract`, `sys/process_echo_smoke` |
 | `haxe.ds.Vector` | `semantic-diff` | `vector_contract`, `stdlib/vector_basic` |
 | `sys.net.Host` | `semantic-diff` | `host_basic_contract`, `sys/host_basic_smoke` |
 | `haxe.PosInfos` | `semantic-diff` | `posinfos_contract`, `stdlib/posinfos_basic` |
@@ -86,6 +86,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/posinfos_contract`
 - `test/semantic_diff/posinfos_custom_params_contract`
 - `test/semantic_diff/vector_contract`
+- `test/semantic_diff/process_echo_contract`
 - `test/semantic_diff/reflect_compare`
 - `test/semantic_diff/reflect_field_ops`
 - `test/semantic_diff/anonymous_object_literals`
@@ -168,7 +169,7 @@ Shim strategy and alternatives are documented in:
   - `hxrt.FileSaveContent`, `hxrt.FileGetContent`
   - `hxrt.NewProcess`, `Process.Stdout`, `ProcessOutput.ReadLine`, `Process.Close`
 - Compiler-generated `sys` declarations remain as thin wrappers to preserve Haxe type shape and call signatures.
-- `lowerSysStdlibShimDecls` is forwarding-only for this surface; behavior changes must be implemented in runtime and verified by `sys/file_read_write_smoke` and `sys/process_echo_smoke`.
+- `lowerSysStdlibShimDecls` is forwarding-only for this surface; behavior changes must be implemented in runtime and verified by `sys/file_read_write_smoke`, `sys/process_echo_smoke`, and `test/semantic_diff/process_echo_contract`.
 
 ### `sys.Http` shim contract and tradeoffs
 

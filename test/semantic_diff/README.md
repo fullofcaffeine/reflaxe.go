@@ -22,6 +22,7 @@ Goal:
   - numeric edge behavior
   - nullable reference fields
   - selected sys/io behavior
+  - deterministic `sys.io.Process` spawn/stdout behavior (cross-platform echo and `haxe --version` smoke)
   - deterministic `sys.net.Host` constructor/resolve/reverse/localhost behavior
   - deterministic `haxe.Int64` arithmetic/compare/parse/fromFloat/toInt behavior parity
   - deterministic `haxe.Int32` overflow/bitwise/shift/ucompare operator behavior parity
