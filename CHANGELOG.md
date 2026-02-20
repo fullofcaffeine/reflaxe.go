@@ -1,3 +1,9 @@
+## [0.24.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.23.0...v0.24.0) (2026-02-20)
+
+### Features
+
+* **atomic:** promote AtomicInt/AtomicBool to snapshot tier ([8b076de](https://github.com/fullofcaffeine/reflaxe.go/commit/8b076ded74e5598cb847fe732bef3248d2537336))
+
 ## [0.23.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.22.1...v0.23.0) (2026-02-20)
 
 ### Features
