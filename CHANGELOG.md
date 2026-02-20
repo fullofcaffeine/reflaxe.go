@@ -1,3 +1,9 @@
+## [0.31.2](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.31.1...v0.31.2) (2026-02-20)
+
+### Bug Fixes
+
+* **throw:** emit non-void fallback return after statement throws ([ceab5ec](https://github.com/fullofcaffeine/reflaxe.go/commit/ceab5ec51c2719b5ff0b571b74eb8d84b78df6b2))
+
 ## [0.31.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.31.0...v0.31.1) (2026-02-20)
 
 ### Bug Fixes
