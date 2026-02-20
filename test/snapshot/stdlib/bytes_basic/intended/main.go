@@ -204,11 +204,25 @@ func haxe__io__Bytes_ofString(value *string, encoding ...*haxe__io__Encoding) *h
 	return &haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: raw, __hx_rawValid: true}
 }
 
+func haxe__io__Bytes_ofData(b []int) *haxe__io__Bytes {
+	if b == nil {
+		return &haxe__io__Bytes{b: []int{}, length: 0}
+	}
+	return &haxe__io__Bytes{b: b, length: len(b)}
+}
+
 func (self *haxe__io__Bytes) toString() *string {
 	if self == nil {
 		return hxrt.StringFromLiteral("")
 	}
 	return hxrt.BytesToString(self.b)
+}
+
+func (self *haxe__io__Bytes) getData() []int {
+	if self == nil {
+		return []int{}
+	}
+	return self.b
 }
 
 func (self *haxe__io__Bytes) getString(pos int, len int, encoding ...*haxe__io__Encoding) *string {

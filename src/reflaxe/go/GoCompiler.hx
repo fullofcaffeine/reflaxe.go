@@ -941,6 +941,17 @@ class GoCompiler {
 				GoStmt.GoRaw("}"),
 				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: raw, __hx_rawValid: true}"))
 			]),
+			GoDecl.GoFuncDecl("haxe__io__Bytes_ofData", null, [
+				{
+					name: "b",
+					typeName: "[]int"
+				}
+			], ["*haxe__io__Bytes"], [
+				GoStmt.GoRaw("if b == nil {"),
+				GoStmt.GoRaw("\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: b, length: len(b)}"))
+			]),
 			GoDecl.GoFuncDecl("toString", {
 				name: "self",
 				typeName: "*haxe__io__Bytes"
@@ -950,6 +961,13 @@ class GoCompiler {
 				],
 					null),
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesToString"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b")]))
+			]),
+			GoDecl.GoFuncDecl("getData", {
+				name: "self",
+				typeName: "*haxe__io__Bytes"
+			}, [], ["[]int"], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoRaw("[]int{}"))], null),
+				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"))
 			]),
 			GoDecl.GoFuncDecl("getString", {
 				name: "self",
