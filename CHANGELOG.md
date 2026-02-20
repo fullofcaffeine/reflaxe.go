@@ -1,3 +1,9 @@
+## [0.27.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.26.0...v0.27.0) (2026-02-20)
+
+### Features
+
+* align haxe.ds List.push parity and add ds semantic contract ([b0c392b](https://github.com/fullofcaffeine/reflaxe.go/commit/b0c392be1457bfa8799a53c42a9d032b0dae2279))
+
 ## [0.26.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.25.0...v0.26.0) (2026-02-20)
 
 ### Features
