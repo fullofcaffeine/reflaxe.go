@@ -30,6 +30,8 @@ func main() {
 func risky(v int) int {
 	if v == 0 {
 		hxrt.Throw(hxrt.StringFromLiteral("bad"))
+		var hx_throw_zero_7 int
+		return hx_throw_zero_7
 	}
 	return int(int32((hxrt.Int32Wrap(v) + hxrt.Int32Wrap(1))))
 }

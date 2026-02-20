@@ -17,6 +17,8 @@ func main() {
 func mayFail(flag bool) int {
 	if flag {
 		hxrt.Throw(hxrt.StringFromLiteral("boom"))
+		var hx_throw_zero_3 int
+		return hx_throw_zero_3
 	}
 	return 7
 }

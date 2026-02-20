@@ -61,6 +61,7 @@ class GoCompiler {
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
 	final functionReturnTypeScopes:Array<Type>;
+	var cachedVoidType:Null<Type>;
 	var requiresIoHelperSurface:Bool;
 	var projectClasses:Array<ClassType>;
 	var projectEnums:Array<EnumType>;
@@ -78,6 +79,7 @@ class GoCompiler {
 		functionVarNameScopes = [];
 		functionVarNameCountScopes = [];
 		functionReturnTypeScopes = [];
+		cachedVoidType = null;
 		requiresIoHelperSurface = false;
 		projectClasses = [];
 		projectEnums = [];
@@ -7549,9 +7551,10 @@ class GoCompiler {
 			case TSwitch(value, cases, defaultExpr):
 				[lowerSwitchStmt(value, cases, defaultExpr)];
 			case TThrow(value):
-				[
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [lowerExpr(value).expr]))
-				];
+				var loweredValue = lowerExprWithPrefix(value);
+				loweredValue.prefix.concat([
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [loweredValue.expr]))
+				]).concat(nonVoidThrowFallbackReturnStmts());
 			case TTry(tryExpr, catches):
 				[lowerTryCatchStmt(tryExpr, catches)];
 			case TReturn(value):
@@ -7760,7 +7763,7 @@ class GoCompiler {
 
 	function lowerTryCatchStmt(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>):GoStmt {
 		if (catches.length == 0) {
-			var tryBody = lowerToStatements(tryExpr);
+			var tryBody = lowerStatementsWithReturnType(tryExpr, voidType());
 			return GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], tryBody), []));
 		}
 
@@ -7773,7 +7776,7 @@ class GoCompiler {
 			var catchEntry = catches[index];
 			var catchVarName = localVarName(catchEntry.v);
 			var catchType = typeToGoType(catchEntry.v.t);
-			var catchExprBody = lowerToStatements(catchEntry.expr);
+			var catchExprBody = lowerStatementsWithReturnType(catchEntry.expr, voidType());
 			var haxeExceptionCatch = isHaxeExceptionType(catchEntry.v.t);
 			var dynamicCatch = isDynamicCatchType(catchEntry.v.t) || haxeExceptionCatch || catchType == "any";
 
@@ -7814,7 +7817,7 @@ class GoCompiler {
 		};
 
 		return GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.TryCatch"), [
-			GoExpr.GoFuncLiteral([], [], lowerToStatements(tryExpr)),
+			GoExpr.GoFuncLiteral([], [], lowerStatementsWithReturnType(tryExpr, voidType())),
 			GoExpr.GoFuncLiteral([
 				{
 					name: caughtName,
@@ -7981,6 +7984,34 @@ class GoCompiler {
 			return null;
 		}
 		return functionReturnTypeScopes[functionReturnTypeScopes.length - 1];
+	}
+
+	function lowerStatementsWithReturnType(expr:TypedExpr, returnType:Type):Array<GoStmt> {
+		pushFunctionReturnType(returnType);
+		var lowered = lowerToStatements(expr);
+		popFunctionReturnType();
+		return lowered;
+	}
+
+	function voidType():Type {
+		if (cachedVoidType == null) {
+			cachedVoidType = Context.getType("Void");
+		}
+		return cachedVoidType;
+	}
+
+	function nonVoidThrowFallbackReturnStmts():Array<GoStmt> {
+		var returnType = currentFunctionReturnType();
+		if (returnType == null || isVoidType(returnType)) {
+			return [];
+		}
+
+		var zeroName = freshTempName("hx_throw_zero");
+		var returnTypeName = typeToGoType(returnType);
+		return [
+			GoStmt.GoVarDecl(zeroName, returnTypeName, null, false),
+			GoStmt.GoReturn(GoExpr.GoIdent(zeroName))
+		];
 	}
 
 	function currentFunctionVarNameScope():Null<Map<Int, String>> {

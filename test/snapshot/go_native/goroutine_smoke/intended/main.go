@@ -150,6 +150,8 @@ func (self *go___Result) isErr() bool {
 func (self *go___Result) unwrap() any {
 	if !hxrt.StringEqualAny(self.errorValue, nil) {
 		hxrt.Throw(self.errorValue.__hx_this.toString())
+		var hx_throw_zero_1 any
+		return hx_throw_zero_1
 	}
 	return self.value
 }
