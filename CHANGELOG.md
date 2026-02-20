@@ -1,3 +1,9 @@
+## [0.24.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.24.0...v0.24.1) (2026-02-20)
+
+### Performance Improvements
+
+* **atomic:** use sync/atomic for AtomicInt runtime ops ([bfaa9e5](https://github.com/fullofcaffeine/reflaxe.go/commit/bfaa9e567ccabb9b5c5789e3166babde46603102))
+
 ## [0.24.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.23.0...v0.24.0) (2026-02-20)
 
 ### Features
