@@ -6805,6 +6805,10 @@ class GoCompiler {
 		var decls = new Array<GoDecl>();
 		var typeName = classTypeName(classType);
 		var superClass = projectSuperClass(classType);
+		var ioSubclassKind = ioStdlibSubclassKind(classType);
+		if (ioSubclassKind != null) {
+			requiresIoHelperSurface = true;
+		}
 
 		var instanceDataFields = new Array<GoParam>();
 		var instanceMethods = new Array<{name:String, func:TFunc}>();
@@ -6823,6 +6827,12 @@ class GoCompiler {
 						}
 					}
 			}
+		}
+		if (ioSubclassKind != null && !hasStructField(instanceDataFields, "__hx_io_bigEndian")) {
+			instanceDataFields.push({
+				name: "__hx_io_bigEndian",
+				typeName: "bool"
+			});
 		}
 
 		var ctorRef = classType.constructor;
@@ -6863,6 +6873,7 @@ class GoCompiler {
 		for (method in instanceMethods) {
 			decls.push(lowerInstanceMethodDecl(classType, method.name, method.func));
 		}
+		decls = decls.concat(lowerIoSubclassSyntheticDecls(classType, ioSubclassKind, instanceMethods));
 
 		var staticFields = classType.statics.get().copy();
 		staticFields.sort(function(a, b) return Reflect.compare(a.name, b.name));
@@ -6995,6 +7006,311 @@ class GoCompiler {
 			name: "self",
 			typeName: "*" + classTypeName(classType)
 		});
+	}
+
+	function hasStructField(fields:Array<GoParam>, fieldName:String):Bool {
+		for (field in fields) {
+			if (field.name == fieldName) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function ioStdlibSubclassKind(classType:ClassType):Null<String> {
+		var cursor = classType.superClass;
+		while (cursor != null) {
+			var superType = cursor.t.get();
+			var pack = superType.pack.join(".");
+			if (pack == "haxe.io" && superType.name == "Input") {
+				return "input";
+			}
+			if (pack == "haxe.io" && superType.name == "Output") {
+				return "output";
+			}
+			cursor = superType.superClass;
+		}
+		return null;
+	}
+
+	function ioSyntheticMethod(receiverType:String, name:String, params:Array<GoParam>, results:Array<String>, body:Array<GoStmt>):GoDecl {
+		return GoDecl.GoFuncDecl(name, {name: "self", typeName: receiverType}, params, results, body);
+	}
+
+	function lowerIoInputSyntheticHelper(receiverType:String, methodName:String):GoDecl {
+		return switch (methodName) {
+			case "readAll":
+				ioSyntheticMethod(receiverType, "readAll", [{name: "bufsize", typeName: "...int"}], ["*haxe__io__Bytes"],
+					[GoStmt.GoRaw("return haxe__io__input_readAll(self, bufsize...)")]);
+			case "readFullBytes":
+				ioSyntheticMethod(receiverType, "readFullBytes", [
+					{name: "s", typeName: "*haxe__io__Bytes"},
+					{name: "pos", typeName: "int"},
+					{name: "len", typeName: "int"}
+				], [], [GoStmt.GoRaw("haxe__io__input_readFullBytes(self, s, pos, len)")]);
+			case "read":
+				ioSyntheticMethod(receiverType, "read", [{name: "nbytes", typeName: "int"}], ["*haxe__io__Bytes"],
+					[GoStmt.GoRaw("return haxe__io__input_read(self, nbytes)")]);
+			case "readUntil":
+				ioSyntheticMethod(receiverType, "readUntil", [{name: "end", typeName: "int"}], ["*string"],
+					[GoStmt.GoRaw("return haxe__io__input_readUntil(self, end)")]);
+			case "readLine":
+				ioSyntheticMethod(receiverType, "readLine", [], ["*string"], [GoStmt.GoRaw("return haxe__io__input_readLine(self)")]);
+			case "readFloat":
+				ioSyntheticMethod(receiverType, "readFloat", [], ["float64"], [GoStmt.GoRaw("return haxe__io__input_readFloat(self)")]);
+			case "readDouble":
+				ioSyntheticMethod(receiverType, "readDouble", [], ["float64"], [GoStmt.GoRaw("return haxe__io__input_readDouble(self)")]);
+			case "readInt8":
+				ioSyntheticMethod(receiverType, "readInt8", [], ["int"], [GoStmt.GoRaw("return haxe__io__input_readInt8(self)")]);
+			case "readInt16":
+				ioSyntheticMethod(receiverType, "readInt16", [], ["int"], [GoStmt.GoRaw("return haxe__io__input_readInt16(self)")]);
+			case "readUInt16":
+				ioSyntheticMethod(receiverType, "readUInt16", [], ["int"], [GoStmt.GoRaw("return haxe__io__input_readUInt16(self)")]);
+			case "readInt24":
+				ioSyntheticMethod(receiverType, "readInt24", [], ["int"], [GoStmt.GoRaw("return haxe__io__input_readInt24(self)")]);
+			case "readUInt24":
+				ioSyntheticMethod(receiverType, "readUInt24", [], ["int"], [GoStmt.GoRaw("return haxe__io__input_readUInt24(self)")]);
+			case "readInt32":
+				ioSyntheticMethod(receiverType, "readInt32", [], ["int"], [GoStmt.GoRaw("return haxe__io__input_readInt32(self)")]);
+			case "readString":
+				ioSyntheticMethod(receiverType, "readString", [
+					{name: "len", typeName: "int"},
+					{name: "encoding", typeName: "...*haxe__io__Encoding"}
+				], ["*string"],
+					[GoStmt.GoRaw("return haxe__io__input_readString(self, len, encoding...)")]);
+			case _:
+				Context.fatalError("Unsupported io input helper synthetic method: " + methodName, Context.currentPos());
+				ioSyntheticMethod(receiverType, methodName, [], [], []);
+		};
+	}
+
+	function lowerIoOutputSyntheticHelper(receiverType:String, methodName:String):GoDecl {
+		return switch (methodName) {
+			case "write":
+				ioSyntheticMethod(receiverType, "write", [{name: "s", typeName: "*haxe__io__Bytes"}], [], [GoStmt.GoRaw("haxe__io__output_write(self, s)")]);
+			case "writeFullBytes":
+				ioSyntheticMethod(receiverType, "writeFullBytes", [
+					{name: "s", typeName: "*haxe__io__Bytes"},
+					{name: "pos", typeName: "int"},
+					{name: "len", typeName: "int"}
+				], [], [GoStmt.GoRaw("haxe__io__output_writeFullBytes(self, s, pos, len)")]);
+			case "writeFloat":
+				ioSyntheticMethod(receiverType, "writeFloat", [{name: "x", typeName: "float64"}], [], [GoStmt.GoRaw("haxe__io__output_writeFloat(self, x)")]);
+			case "writeDouble":
+				ioSyntheticMethod(receiverType, "writeDouble", [{name: "x", typeName: "float64"}], [], [GoStmt.GoRaw("haxe__io__output_writeDouble(self, x)")]);
+			case "writeInt8":
+				ioSyntheticMethod(receiverType, "writeInt8", [{name: "x", typeName: "int"}], [], [GoStmt.GoRaw("haxe__io__output_writeInt8(self, x)")]);
+			case "writeInt16":
+				ioSyntheticMethod(receiverType, "writeInt16", [{name: "x", typeName: "int"}], [], [GoStmt.GoRaw("haxe__io__output_writeInt16(self, x)")]);
+			case "writeUInt16":
+				ioSyntheticMethod(receiverType, "writeUInt16", [{name: "x", typeName: "int"}], [], [GoStmt.GoRaw("haxe__io__output_writeUInt16(self, x)")]);
+			case "writeInt24":
+				ioSyntheticMethod(receiverType, "writeInt24", [{name: "x", typeName: "int"}], [], [GoStmt.GoRaw("haxe__io__output_writeInt24(self, x)")]);
+			case "writeUInt24":
+				ioSyntheticMethod(receiverType, "writeUInt24", [{name: "x", typeName: "int"}], [], [GoStmt.GoRaw("haxe__io__output_writeUInt24(self, x)")]);
+			case "writeInt32":
+				ioSyntheticMethod(receiverType, "writeInt32", [{name: "x", typeName: "int"}], [], [GoStmt.GoRaw("haxe__io__output_writeInt32(self, x)")]);
+			case "writeInput":
+				ioSyntheticMethod(receiverType, "writeInput", [{name: "i", typeName: "haxe__io__Input"}, {name: "bufsize", typeName: "...int"}], [],
+					[GoStmt.GoRaw("haxe__io__output_writeInput(self, i, bufsize...)")]);
+			case "writeString":
+				ioSyntheticMethod(receiverType, "writeString", [
+					{name: "s", typeName: "*string"},
+					{name: "encoding", typeName: "...*haxe__io__Encoding"}
+				], [], [GoStmt.GoRaw("haxe__io__output_writeString(self, s, encoding...)")]);
+			case _:
+				Context.fatalError("Unsupported io output helper synthetic method: " + methodName, Context.currentPos());
+				ioSyntheticMethod(receiverType, methodName, [], [], []);
+		};
+	}
+
+	function lowerIoSubclassSyntheticDecls(classType:ClassType, ioSubclassKind:Null<String>, instanceMethods:Array<{name:String, func:TFunc}>):Array<GoDecl> {
+		if (ioSubclassKind == null) {
+			return [];
+		}
+
+		var out = new Array<GoDecl>();
+		var receiverType = "*" + classTypeName(classType);
+		var methodNames = new Map<String, Bool>();
+		for (method in instanceMethods) {
+			methodNames.set(normalizeIdent(method.name), true);
+		}
+
+		inline function hasMethod(name:String):Bool {
+			return methodNames.exists(name);
+		}
+
+		inline function addMethod(decl:GoDecl, name:String):Void {
+			out.push(decl);
+			methodNames.set(name, true);
+		}
+
+		if (ioSubclassKind == "input") {
+			if (!hasMethod("get_bigEndian")) {
+				addMethod(ioSyntheticMethod(receiverType, "get_bigEndian", [], ["bool"], [
+					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null),
+					GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_io_bigEndian"))
+				]), "get_bigEndian");
+			}
+			if (!hasMethod("set_bigEndian")) {
+				addMethod(ioSyntheticMethod(receiverType, "set_bigEndian", [{name: "e", typeName: "bool"}], ["bool"], [
+					GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("self"), GoExpr.GoNil), [
+						GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_io_bigEndian"), GoExpr.GoIdent("e"))
+					], null),
+					GoStmt.GoReturn(GoExpr.GoIdent("e"))
+				]), "set_bigEndian");
+			}
+			if (!hasMethod("close")) {
+				addMethod(ioSyntheticMethod(receiverType, "close", [], [], [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self"))]), "close");
+			}
+			if (!hasMethod("readByte")) {
+				addMethod(ioSyntheticMethod(receiverType, "readByte", [], ["int"], [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [
+						GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Not implemented")])
+					])),
+					GoStmt.GoReturn(GoExpr.GoIntLiteral(0))
+				]), "readByte");
+			}
+			if (!hasMethod("readBytes")) {
+				addMethod(ioSyntheticMethod(receiverType, "readBytes", [
+					{name: "buf", typeName: "*haxe__io__Bytes"},
+					{name: "pos", typeName: "int"},
+					{name: "len", typeName: "int"}
+				], ["int"], [
+					GoStmt.GoRaw("if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {"),
+					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+					GoStmt.GoRaw("\treturn 0"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("if self == nil {"),
+					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+					GoStmt.GoRaw("\treturn 0"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("k := 0"),
+					GoStmt.GoRaw("for k < len {"),
+					GoStmt.GoRaw("\tvalue := 0"),
+					GoStmt.GoRaw("\tthrew := false"),
+					GoStmt.GoRaw("\tvar thrown any"),
+					GoStmt.GoRaw("\tfunc() {"),
+					GoStmt.GoRaw("\t\tdefer func() {"),
+					GoStmt.GoRaw("\t\t\tif recovered := recover(); recovered != nil {"),
+					GoStmt.GoRaw("\t\t\t\tthrew = true"),
+					GoStmt.GoRaw("\t\t\t\tthrown = hxrt.UnwrapException(recovered)"),
+					GoStmt.GoRaw("\t\t\t}"),
+					GoStmt.GoRaw("\t\t}()"),
+					GoStmt.GoRaw("\t\tvalue = self.readByte()"),
+					GoStmt.GoRaw("\t}()"),
+					GoStmt.GoRaw("\tif threw {"),
+					GoStmt.GoRaw("\t\tif haxe__io__input_isEof(thrown) {"),
+					GoStmt.GoRaw("\t\t\tif k > 0 {"),
+					GoStmt.GoRaw("\t\t\t\treturn k"),
+					GoStmt.GoRaw("\t\t\t}"),
+					GoStmt.GoRaw("\t\t}"),
+					GoStmt.GoRaw("\t\thxrt.Throw(thrown)"),
+					GoStmt.GoRaw("\t\treturn 0"),
+					GoStmt.GoRaw("\t}"),
+					GoStmt.GoRaw("\tbuf.b[pos+k] = value"),
+					GoStmt.GoRaw("\tk++"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("return len")
+				]), "readBytes");
+			}
+			for (methodName in [
+				"readAll",
+				"readFullBytes",
+				"read",
+				"readUntil",
+				"readLine",
+				"readFloat",
+				"readDouble",
+				"readInt8",
+				"readInt16",
+				"readUInt16",
+				"readInt24",
+				"readUInt24",
+				"readInt32",
+				"readString"
+			]) {
+				if (!hasMethod(methodName)) {
+					addMethod(lowerIoInputSyntheticHelper(receiverType, methodName), methodName);
+				}
+			}
+		}
+
+		if (ioSubclassKind == "output") {
+			if (!hasMethod("get_bigEndian")) {
+				addMethod(ioSyntheticMethod(receiverType, "get_bigEndian", [], ["bool"], [
+					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null),
+					GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_io_bigEndian"))
+				]), "get_bigEndian");
+			}
+			if (!hasMethod("set_bigEndian")) {
+				addMethod(ioSyntheticMethod(receiverType, "set_bigEndian", [{name: "e", typeName: "bool"}], ["bool"], [
+					GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("self"), GoExpr.GoNil), [
+						GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_io_bigEndian"), GoExpr.GoIdent("e"))
+					], null),
+					GoStmt.GoReturn(GoExpr.GoIdent("e"))
+				]), "set_bigEndian");
+			}
+			if (!hasMethod("flush")) {
+				addMethod(ioSyntheticMethod(receiverType, "flush", [], [], [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self"))]), "flush");
+			}
+			if (!hasMethod("close")) {
+				addMethod(ioSyntheticMethod(receiverType, "close", [], [], [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self"))]), "close");
+			}
+			if (!hasMethod("prepare")) {
+				addMethod(ioSyntheticMethod(receiverType, "prepare", [{name: "nbytes", typeName: "int"}], [], [
+					GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self")),
+					GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("nbytes"))
+				]), "prepare");
+			}
+			if (!hasMethod("writeByte")) {
+				addMethod(ioSyntheticMethod(receiverType, "writeByte", [{name: "c", typeName: "int"}], [], [
+					GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("c")),
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [
+						GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Not implemented")])
+					]))
+				]), "writeByte");
+			}
+			if (!hasMethod("writeBytes")) {
+				addMethod(ioSyntheticMethod(receiverType, "writeBytes", [
+					{name: "s", typeName: "*haxe__io__Bytes"},
+					{name: "pos", typeName: "int"},
+					{name: "len", typeName: "int"}
+				], ["int"], [
+					GoStmt.GoRaw("if s == nil || pos < 0 || len < 0 || pos+len > s.length {"),
+					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"OutsideBounds\"))"),
+					GoStmt.GoRaw("\treturn 0"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("n := len"),
+					GoStmt.GoRaw("for len > 0 {"),
+					GoStmt.GoRaw("\tself.writeByte(s.b[pos])"),
+					GoStmt.GoRaw("\tpos++"),
+					GoStmt.GoRaw("\tlen--"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("return n")
+				]), "writeBytes");
+			}
+			for (methodName in [
+				"write",
+				"writeFullBytes",
+				"writeFloat",
+				"writeDouble",
+				"writeInt8",
+				"writeInt16",
+				"writeUInt16",
+				"writeInt24",
+				"writeUInt24",
+				"writeInt32",
+				"writeInput",
+				"writeString"
+			]) {
+				if (!hasMethod(methodName)) {
+					addMethod(lowerIoOutputSyntheticHelper(receiverType, methodName), methodName);
+				}
+			}
+		}
+
+		return out;
 	}
 
 	function lowerConstructorBody(expr:TypedExpr):ConstructorBodyLowering {
