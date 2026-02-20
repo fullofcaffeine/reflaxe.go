@@ -28,6 +28,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | --- | --- | --- |
 | `haxe.Serializer` / `haxe.Unserializer` | `semantic-diff` | `serializer_wire_contract`, `serializer_cache_reference_contract`, `serializer_resolver_polymorphism_contract`, `serializer_reference_stress_contract` |
 | `EReg` | `semantic-diff` | `ereg_behavior_contract`, `ereg_edge_contract` |
+| `sys.Http` | `semantic-diff` | `http_proxy_custom_request`, `http_request_callbacks_contract` |
 | `sys.net.Socket` | `semantic-diff` | `socket_loopback_contract`, `socket_advanced_contract` |
 | `haxe.crypto.*` + `haxe.xml.*` + `haxe.zip.*` subset | `semantic-diff` | `crypto_xml_zip` |
 | `haxe.Json` | `semantic-diff` | `json_parse_stringify_contract`, `stdlib/json_parse_stringify` |
@@ -73,6 +74,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 
 - `test/semantic_diff/crypto_xml_zip`
 - `test/semantic_diff/http_proxy_custom_request`
+- `test/semantic_diff/http_request_callbacks_contract`
 - `test/semantic_diff/socket_loopback_contract`
 - `test/semantic_diff/socket_advanced_contract`
 - `test/semantic_diff/null_string_concat`
@@ -200,6 +202,7 @@ Shim strategy and alternatives are documented in:
 
 - `sys.Http` now includes synchronous request semantics for `http`/`https` and deterministic `data:` handling used by tests.
 - Covered behaviors: `setHeader`/`addHeader`, `setParameter`/`addParameter`, `setPostData`/`setPostBytes`, `fileTransfer`/`fileTransfert`, `customRequest` (including optional socket transport injection), proxy URL wiring (`Http.PROXY`), `getResponseHeaderValues`, dynamic callbacks (`onData`, `onBytes`, `onError`, `onStatus`), `responseData`/`responseBytes`, and `requestUrl`.
+- Semantic diff now also locks callback/status/header/error parity for local deterministic HTTP servers (`http_request_callbacks_contract`), including 4xx `onError` formatting (`Http Error #<status>`).
 - Current tradeoff: execution remains synchronous, and `customRequest` socket injection currently maps into Go `http.Transport` dialing semantics rather than the exact byte-level write/read loop used by upstream `sys.Http`.
 
 ### `sys.net.Socket` shim contract and tradeoffs

@@ -741,7 +741,7 @@ func (self *sys__Http) hxrt__http__requestWith(post bool, methodOverride *string
 	hxrt__http__captureApi(api, self.responseBytes)
 	if response.StatusCode >= 400 {
 		if self.onError != nil {
-			self.onError(hxrt.StringFromLiteral(response.Status))
+			self.onError(hxrt.StringConcatAny(hxrt.StringFromLiteral("Http Error #"), response.StatusCode))
 		}
 		return
 	}

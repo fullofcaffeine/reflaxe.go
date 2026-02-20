@@ -1424,7 +1424,7 @@ class GoCompiler {
 				GoStmt.GoIf(GoExpr.GoRaw("response.StatusCode >= 400"), [
 					GoStmt.GoIf(GoExpr.GoRaw("self.onError != nil"), [
 						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "onError"), [
-							GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("response.Status")])
+							GoExpr.GoRaw("hxrt.StringConcatAny(hxrt.StringFromLiteral(\"Http Error #\"), response.StatusCode)")
 						]))
 					], null),
 					GoStmt.GoReturn(null)
