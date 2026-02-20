@@ -32,6 +32,7 @@ Goal:
   - deterministic `sys.net.Socket` loopback and advanced method parity (`bind/listen/connect/accept/read/write/close`, `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, `shutdown`)
   - reflection compare + dynamic field semantics
   - anonymous object literal/field mutation semantics
+  - deterministic `haxe.Json` parse/stringify + `JsonParser`/`JsonPrinter` behavior
   - crypto/xml/zip behavior parity
   - serializer/unserializer roundtrip semantics
   - serializer wire-format and sequential cursor semantics

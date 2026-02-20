@@ -30,7 +30,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `EReg` | `semantic-diff` | `ereg_behavior_contract`, `ereg_edge_contract` |
 | `sys.net.Socket` | `semantic-diff` | `socket_loopback_contract`, `socket_advanced_contract` |
 | `haxe.crypto.*` + `haxe.xml.*` + `haxe.zip.*` subset | `semantic-diff` | `crypto_xml_zip` |
-| `haxe.Json` | `snapshot` | `stdlib/json_parse_stringify` |
+| `haxe.Json` | `semantic-diff` | `json_parse_stringify_contract`, `stdlib/json_parse_stringify` |
 | `sys.io.Process` | `snapshot` | `sys/process_echo_smoke` |
 | `haxe.ds.Vector` | `semantic-diff` | `vector_contract`, `stdlib/vector_basic` |
 | `sys.net.Host` | `semantic-diff` | `host_basic_contract`, `sys/host_basic_smoke` |
@@ -100,6 +100,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/serializer_reference_stress_contract`
 - `test/semantic_diff/ereg_behavior_contract`
 - `test/semantic_diff/ereg_edge_contract`
+- `test/semantic_diff/json_parse_stringify_contract`
 - `test/semantic_diff/std_is_of_type_contract`
 - `test/semantic_diff/atomic_int_bool_contract`
 - `test/semantic_diff/atomic_object_contract`
@@ -158,6 +159,7 @@ Shim strategy and alternatives are documented in:
 
 - `haxe.Json.parse`/`haxe.Json.stringify`, `haxe.format.JsonPrinter.print`, and `haxe.format.JsonParser.doParse` now lower directly to `hxrt.JsonParse`/`hxrt.JsonStringify`.
 - Compiler-emitted JSON shim declarations were removed from `GoCompiler` (no `haxe__Json`/`haxe__format__JsonParser` synthetic declarations in generated output).
+- Runtime parity evidence: `test/semantic_diff/json_parse_stringify_contract`.
 
 ### `Sys` / `sys.io.File` / `sys.io.Process` ownership contract
 
