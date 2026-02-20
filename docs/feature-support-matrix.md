@@ -38,7 +38,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.Int32` | `semantic-diff` | `int32_contract` |
 | `haxe.Int64` / `haxe.Int64Helper` | `semantic-diff` | `int64_contract`, `stdlib/int64_parity` |
 | `haxe.atomic.AtomicInt` / `haxe.atomic.AtomicBool` | `semantic-diff` | `atomic_int_bool_contract`, `stdlib/atomic_int_bool_basic` |
-| `haxe.atomic.AtomicObject` | `snapshot` | `stdlib/atomic_object_basic` |
+| `haxe.atomic.AtomicObject` | `semantic-diff` | `atomic_object_contract`, `stdlib/atomic_object_basic` |
 
 ## Language/Core matrix
 
@@ -100,6 +100,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/ereg_behavior_contract`
 - `test/semantic_diff/ereg_edge_contract`
 - `test/semantic_diff/atomic_int_bool_contract`
+- `test/semantic_diff/atomic_object_contract`
 
 ## Profile matrix
 

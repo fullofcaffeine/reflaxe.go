@@ -1,4 +1,4 @@
-#if go
+#if target.atomics
 import haxe.atomic.AtomicBool;
 import haxe.atomic.AtomicInt;
 
