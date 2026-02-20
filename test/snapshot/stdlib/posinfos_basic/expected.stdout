@@ -1,0 +1,8 @@
+main.class=Main
+main.method=main
+main.line=12
+main.fileNonEmpty=true
+closure.class=Main
+closure.method=main
+closure.line=14
+closure.fileNonEmpty=true

@@ -23,6 +23,7 @@ Goal:
   - nullable reference fields
   - selected sys/io behavior
   - deterministic `sys.net.Host` constructor/resolve/reverse/localhost behavior
+  - deterministic `haxe.PosInfos` default-argument injection behavior
   - deterministic HTTP behavior (`requestUrl`, `customRequest`, `Http.PROXY`) without external network
   - deterministic `sys.net.Socket` loopback and advanced method parity (`bind/listen/connect/accept/read/write/close`, `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, `shutdown`)
   - reflection compare + dynamic field semantics
