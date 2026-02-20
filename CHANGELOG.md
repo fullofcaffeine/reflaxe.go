@@ -1,3 +1,9 @@
+## [0.27.3](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.27.2...v0.27.3) (2026-02-20)
+
+### Bug Fixes
+
+* wire customRequest socket transport injection ([6b7f32f](https://github.com/fullofcaffeine/reflaxe.go/commit/6b7f32f0dc23f080cfb338755e0ce79b239da033))
+
 ## [0.27.2](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.27.1...v0.27.2) (2026-02-20)
 
 ### Bug Fixes
