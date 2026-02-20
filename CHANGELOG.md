@@ -1,3 +1,9 @@
+## [0.22.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.22.0...v0.22.1) (2026-02-20)
+
+### Bug Fixes
+
+* add Int32 parity fixture and numeric lowering fixes ([d217980](https://github.com/fullofcaffeine/reflaxe.go/commit/d21798052d9cc50151e4b26c008001b234ed5b54))
+
 ## [0.22.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.21.1...v0.22.0) (2026-02-20)
 
 ### Features
