@@ -7177,8 +7177,22 @@ class GoCompiler {
 			return stdIsOfTypeEnumExpr(valueExpr, valueTypedExpr.t, targetEnum);
 		}
 
-		Context.fatalError("Unsupported Std.isOfType target type: " + typeToGoType(targetType), valueTypedExpr.pos);
-		return GoExpr.GoBoolLiteral(false);
+		// For unresolved runtime-value abstract targets (for example @:runtimeValue @:coreType),
+		// align with Haxe runtime behavior by returning false instead of hard-failing compilation.
+		return stdIsOfTypeUnknownTargetExpr(valueExpr, valueTypedExpr.t, targetType);
+	}
+
+	function stdIsOfTypeUnknownTargetExpr(valueExpr:GoExpr, valueType:Type, targetType:Type):GoExpr {
+		var targetGoType = typeToGoType(targetType);
+		if (targetGoType == "any") {
+			return GoExpr.GoBoolLiteral(false);
+		}
+
+		if (!isAnyLikeType(valueType)) {
+			return GoExpr.GoBoolLiteral(false);
+		}
+
+		return stdIsOfTypeTypeSwitch(valueExpr, [targetGoType]);
 	}
 
 	function stdIsOfTypeClassExpr(valueExpr:GoExpr, valueType:Type, targetClass:ClassType):GoExpr {

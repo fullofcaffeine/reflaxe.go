@@ -22,11 +22,13 @@ Goal:
   - numeric edge behavior
   - nullable reference fields
   - selected sys/io behavior
+  - deterministic `sys.io.File` save/get parity behavior
   - deterministic `sys.io.Process` spawn/stdout behavior (cross-platform echo and `haxe --version` smoke)
   - deterministic `sys.net.Host` constructor/resolve/reverse/localhost behavior
   - deterministic `haxe.Int64` arithmetic/compare/parse/fromFloat/toInt behavior parity
   - deterministic `haxe.Int32` overflow/bitwise/shift/ucompare operator behavior parity
   - deterministic `Std.isOfType` behavior parity for typed and Dynamic class/array/enum/null checks
+  - deterministic `Std.isOfType` behavior for unresolved `@:runtimeValue @:coreType` abstract targets (no hard-fail path)
   - deterministic type-value expression parity for class/enum refs (`TTypeExpr`)
   - deterministic `haxe.PosInfos` default-argument injection behavior
   - deterministic `haxe.PosInfos.customParams` missing-field/null-access behavior

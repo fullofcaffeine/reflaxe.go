@@ -32,12 +32,13 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.crypto.*` + `haxe.xml.*` + `haxe.zip.*` subset | `semantic-diff` | `crypto_xml_zip` |
 | `haxe.Json` | `semantic-diff` | `json_parse_stringify_contract`, `stdlib/json_parse_stringify` |
 | `sys.io.Process` | `semantic-diff` | `process_echo_contract`, `sys/process_echo_smoke` |
+| `sys.io.File` | `semantic-diff` | `file_read_write_contract`, `sys/file_read_write_smoke` |
 | `haxe.ds.Vector` | `semantic-diff` | `vector_contract`, `stdlib/vector_basic` |
 | `sys.net.Host` | `semantic-diff` | `host_basic_contract`, `sys/host_basic_smoke` |
 | `haxe.PosInfos` | `semantic-diff` | `posinfos_contract`, `stdlib/posinfos_basic` |
 | `haxe.Int32` | `semantic-diff` | `int32_contract` |
 | `haxe.Int64` / `haxe.Int64Helper` | `semantic-diff` | `int64_contract`, `stdlib/int64_parity` |
-| `Std.isOfType` | `semantic-diff` | `std_is_of_type_contract`, `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic` |
+| `Std.isOfType` | `semantic-diff` | `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract`, `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic` |
 | `haxe.atomic.AtomicInt` / `haxe.atomic.AtomicBool` | `semantic-diff` | `atomic_int_bool_contract`, `stdlib/atomic_int_bool_basic` |
 | `haxe.atomic.AtomicObject` | `semantic-diff` | `atomic_object_contract`, `stdlib/atomic_object_basic` |
 
@@ -60,7 +61,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Enums and switch pattern bindings | Supported | `core/enum_constructors`, `core/switch_enum_basic`, `core/enum_switch_bindings` |
 | Anonymous object literals and structural field mutation | Supported | `core/object_literal_fields` |
 | Exception subset (`throw`, typed/dynamic catch, rethrow) | Supported | `core/haxe_exception_subset`, `core/try_catch_typed`, `core/try_catch_dynamic`, `core/try_catch_rethrow` |
-| `Std.isOfType` behavior | Supported | `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic`, `std_is_of_type_contract` |
+| `Std.isOfType` behavior | Supported | `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic`, `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract` |
 | Type-value expressions (`TTypeExpr`) for class/enum refs | Supported | `type_expr_contract` |
 | Unsigned right shift behavior | Supported | `core/unsigned_shift`, `core/unsigned_shift_assign` |
 | Naming/mangling and deterministic code shape | Supported | `core/naming_mangling`, `core/optimized_ast_policy` |
@@ -81,6 +82,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/numeric_edge_cases`
 - `test/semantic_diff/nullable_struct_refs`
 - `test/semantic_diff/sys_io_roundtrip`
+- `test/semantic_diff/file_read_write_contract`
 - `test/semantic_diff/host_basic_contract`
 - `test/semantic_diff/int32_contract`
 - `test/semantic_diff/int64_contract`
@@ -104,6 +106,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/ereg_edge_contract`
 - `test/semantic_diff/json_parse_stringify_contract`
 - `test/semantic_diff/std_is_of_type_contract`
+- `test/semantic_diff/std_is_of_type_runtime_core_abstract_contract`
 - `test/semantic_diff/type_expr_contract`
 - `test/semantic_diff/atomic_int_bool_contract`
 - `test/semantic_diff/atomic_object_contract`
@@ -171,7 +174,7 @@ Shim strategy and alternatives are documented in:
   - `hxrt.FileSaveContent`, `hxrt.FileGetContent`
   - `hxrt.NewProcess`, `Process.Stdout`, `ProcessOutput.ReadLine`, `Process.Close`
 - Compiler-generated `sys` declarations remain as thin wrappers to preserve Haxe type shape and call signatures.
-- `lowerSysStdlibShimDecls` is forwarding-only for this surface; behavior changes must be implemented in runtime and verified by `sys/file_read_write_smoke`, `sys/process_echo_smoke`, and `test/semantic_diff/process_echo_contract`.
+- `lowerSysStdlibShimDecls` is forwarding-only for this surface; behavior changes must be implemented in runtime and verified by `sys/file_read_write_smoke`, `test/semantic_diff/file_read_write_contract`, `sys/process_echo_smoke`, and `test/semantic_diff/process_echo_contract`.
 
 ### `sys.Http` shim contract and tradeoffs
 
@@ -286,7 +289,7 @@ These are explicit fatal guards in `src/reflaxe/go/GoCompiler.hx` that represent
 | Non-`++/--` postfix unary in `lowerExpr` / `lowerExprWithPrefix` | Fatal: `Unsupported postfix unary operator` | Keep parser/typed-ast assumptions validated; if new postfix forms become reachable, add lowering + snapshots before enabling. |
 | Catch-all `lowerExpr` default | Fatal: `Unsupported expression` | Continue replacing reachable typed-node gaps with explicit lowering (for example `TTypeExpr` class/enum refs are now covered via `type_expr_contract`) and keep dedicated coverage as each newly reachable node is supported. |
 | Unsupported constant kind in `lowerConst` | Fatal: `Unsupported constant` | Add lowering + snapshot for any new constant kind encountered in real programs. |
-| Unsupported `Std.isOfType` target kind | Fatal with target-type diagnostic | Add explicit lowering path and dedicated snapshot for each new accepted target type. |
+| Unsupported `Std.isOfType` target kind | No compiler hard-fail for unresolved runtime-value abstract targets; falls back to conservative `false`/type-switch check | Keep adding explicit lowering for newly important target families and lock behavior with semantic diff coverage. |
 
 ## Known stdlib parity gaps (probe inventory)
 
