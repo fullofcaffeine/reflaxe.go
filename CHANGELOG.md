@@ -1,3 +1,9 @@
+## [0.22.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.21.1...v0.22.0) (2026-02-20)
+
+### Features
+
+* add Int64 parity fixtures and lowering/runtime support ([fed4f74](https://github.com/fullofcaffeine/reflaxe.go/commit/fed4f74e9cfdff7149c820a9fcc3500873ea40b2))
+
 ## [0.21.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.21.0...v0.21.1) (2026-02-20)
 
 ### Bug Fixes
