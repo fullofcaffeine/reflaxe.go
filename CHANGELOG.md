@@ -1,3 +1,9 @@
+## [0.35.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.34.0...v0.35.0) (2026-02-20)
+
+### Features
+
+* **io:** add configurable RawNative mode with snapshot guardrails ([8c763c3](https://github.com/fullofcaffeine/reflaxe.go/commit/8c763c3ac9c99dd52f80b761261eb0a57103c0cf))
+
 ## [0.34.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.33.0...v0.34.0) (2026-02-20)
 
 ### Features
