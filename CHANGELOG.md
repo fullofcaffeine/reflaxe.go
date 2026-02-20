@@ -1,3 +1,9 @@
+## [0.23.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.22.1...v0.23.0) (2026-02-20)
+
+### Features
+
+* add AtomicObject runtime shims and snapshot parity ([163324c](https://github.com/fullofcaffeine/reflaxe.go/commit/163324c7fbef286c01db570557b4ac8408a181b3))
+
 ## [0.22.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.22.0...v0.22.1) (2026-02-20)
 
 ### Bug Fixes
