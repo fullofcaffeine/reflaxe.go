@@ -1,3 +1,9 @@
+## [0.26.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.25.0...v0.26.0) (2026-02-20)
+
+### Features
+
+* add FileSystem parity coverage and throw-expression lowering ([e8bae77](https://github.com/fullofcaffeine/reflaxe.go/commit/e8bae7719d8abab4cfce9395130f24e68018065c))
+
 ## [0.25.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.24.2...v0.25.0) (2026-02-20)
 
 ### Features
