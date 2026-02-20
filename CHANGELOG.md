@@ -1,3 +1,9 @@
+## [0.31.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.31.0...v0.31.1) (2026-02-20)
+
+### Bug Fixes
+
+* **io:** support custom Input/Output subclasses ([b814d18](https://github.com/fullofcaffeine/reflaxe.go/commit/b814d186e220ec960696694a8ceac91e09556b35))
+
 ## [0.31.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.30.0...v0.31.0) (2026-02-20)
 
 ### Features
