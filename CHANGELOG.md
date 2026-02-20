@@ -1,3 +1,9 @@
+## [0.21.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.21.0...v0.21.1) (2026-02-20)
+
+### Bug Fixes
+
+* **core:** avoid panic on missing anonymous object fields ([f88c4f6](https://github.com/fullofcaffeine/reflaxe.go/commit/f88c4f65087faa5900d74650cbca13613b3436ae))
+
 ## [0.21.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.20.0...v0.21.0) (2026-02-20)
 
 ### Features
