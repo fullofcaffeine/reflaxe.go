@@ -6394,10 +6394,8 @@ class GoCompiler {
 				var resolved = field.get();
 				var loweredTarget = lowerExpr(target).expr;
 				if (isAnonymousObjectType(target.t)) {
-					var anonField = GoExpr.GoIndex(loweredTarget, GoExpr.GoStringLiteral(resolved.name));
-					var anonFieldType = scalarGoType(resolved.type);
 					return {
-						expr: anonFieldType == "any" ? anonField : GoExpr.GoTypeAssert(anonField, anonFieldType),
+						expr: lowerAnonymousFieldRead(loweredTarget, resolved.name, resolved.type),
 						isStringLike: isStringType(resolved.type)
 					};
 				}
@@ -6456,6 +6454,27 @@ class GoCompiler {
 					isStringLike: false
 				};
 		};
+	}
+
+	function lowerAnonymousFieldRead(targetExpr:GoExpr, fieldName:String, fieldType:Type):GoExpr {
+		var fieldExpr = GoExpr.GoIndex(targetExpr, GoExpr.GoStringLiteral(fieldName));
+		var fieldGoType = scalarGoType(fieldType);
+		if (fieldGoType == "any") {
+			return fieldExpr;
+		}
+
+		var objectName = freshTempName("hx_obj");
+		var valueName = freshTempName("hx_field");
+		var zeroName = freshTempName("hx_zero");
+
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: objectName, typeName: "map[string]any"}], [fieldGoType], [
+			GoStmt.GoVarDecl(valueName, "any", GoExpr.GoIndex(GoExpr.GoIdent(objectName), GoExpr.GoStringLiteral(fieldName)), true),
+			GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent(valueName), GoExpr.GoNil), [
+				GoStmt.GoVarDecl(zeroName, fieldGoType, null, false),
+				GoStmt.GoReturn(GoExpr.GoIdent(zeroName))
+			], null),
+			GoStmt.GoReturn(GoExpr.GoTypeAssert(GoExpr.GoIdent(valueName), fieldGoType))
+		]), [targetExpr]);
 	}
 
 	function lowerCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):LoweredExpr {

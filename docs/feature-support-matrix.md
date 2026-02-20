@@ -77,6 +77,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/sys_io_roundtrip`
 - `test/semantic_diff/host_basic_contract`
 - `test/semantic_diff/posinfos_contract`
+- `test/semantic_diff/posinfos_custom_params_contract`
 - `test/semantic_diff/vector_contract`
 - `test/semantic_diff/reflect_compare`
 - `test/semantic_diff/reflect_field_ops`
@@ -130,6 +131,7 @@ Shim strategy and alternatives are documented in:
 - `stdlib/math_basic`
 - `stdlib/option_enum_basic`
 - `stdlib/posinfos_basic`
+- `stdlib/posinfos_custom_params_smoke`
 - `stdlib/stringtools_basic`
 - `stdlib/vector_basic`
 - `sys/file_read_write_smoke`
