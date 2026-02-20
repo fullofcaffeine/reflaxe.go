@@ -6196,6 +6196,16 @@ class GoCompiler {
 				lowerCall(callee, args, expr.t);
 			case TBinop(op, left, right):
 				switch (op) {
+					case OpAssign:
+						var targetExpr = lowerLValue(left);
+						var loweredRight = lowerExprWithPrefix(right);
+						var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t);
+						{
+							expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
+								loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, rightExpr), GoStmt.GoReturn(targetExpr)])),
+								[]),
+							isStringLike: isStringType(left.t)
+						};
 					case OpAssignOp(assignOp):
 						var targetExpr = lowerLValue(left);
 						var loweredRight = lowerExprWithPrefix(right);
@@ -7150,6 +7160,9 @@ class GoCompiler {
 		var int32Mode = isInt32SemanticType(left.t, left.pos)
 			|| isInt32SemanticType(right.t, right.pos)
 			|| isInt32SemanticType(resultType, left.pos);
+		if (isFloatType(left.t) || isFloatType(right.t) || isFloatType(resultType)) {
+			int32Mode = false;
+		}
 
 		return switch (op) {
 			case OpAdd if (stringMode):
@@ -7171,9 +7184,17 @@ class GoCompiler {
 							[leftLowered.expr, rightLowered.expr])),
 					isStringLike: false
 				};
-			case OpMod if (isFloatType(left.t) || isFloatType(right.t)):
+			case OpAdd | OpSub | OpMult | OpDiv if (isFloatType(resultType)):
 				{
-					expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.FloatMod"), [leftLowered.expr, rightLowered.expr]),
+					expr: GoExpr.GoBinary(binopSymbol(op), floatOperandExpr(leftLowered.expr, left.t), floatOperandExpr(rightLowered.expr, right.t)),
+					isStringLike: false
+				};
+			case OpMod if (isFloatType(left.t) || isFloatType(right.t) || isFloatType(resultType)):
+				{
+					expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.FloatMod"), [
+						floatOperandExpr(leftLowered.expr, left.t),
+						floatOperandExpr(rightLowered.expr, right.t)
+					]),
 					isStringLike: false
 				};
 			case OpUShr if (int32Mode):
@@ -7203,17 +7224,25 @@ class GoCompiler {
 	}
 
 	function lowerAssignOpExpr(op:Binop, leftExpr:GoExpr, rightExpr:GoExpr, leftType:Type, rightType:Type, ?sourcePos:haxe.macro.Expr.Position):GoExpr {
+		if (op == OpAssign) {
+			return rightExpr;
+		}
 		if (op == OpAdd && (isStringType(leftType) || isStringType(rightType))) {
 			var typedStringOps = compilationContext.profile != GoProfile.Portable && isStringType(leftType) && isStringType(rightType);
 			return GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringConcatStringPtr" : "hxrt.StringConcatAny"), [leftExpr, rightExpr]);
 		}
 		if ((isInt32SemanticType(leftType, sourcePos) || isInt32SemanticType(rightType, sourcePos))
+			&& !isFloatType(leftType)
+			&& !isFloatType(rightType)
 			&& (op == OpAdd || op == OpSub || op == OpMult || op == OpMod || op == OpAnd || op == OpOr || op == OpXor || op == OpShl || op == OpShr
 				|| op == OpUShr)) {
 			return lowerHaxeInt32BinopExpr(op, leftExpr, rightExpr);
 		}
+		if ((op == OpAdd || op == OpSub || op == OpMult || op == OpDiv) && isFloatType(leftType)) {
+			return GoExpr.GoBinary(binopSymbol(op), floatOperandExpr(leftExpr, leftType), floatOperandExpr(rightExpr, rightType));
+		}
 		if (op == OpMod && (isFloatType(leftType) || isFloatType(rightType))) {
-			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.FloatMod"), [leftExpr, rightExpr]);
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.FloatMod"), [floatOperandExpr(leftExpr, leftType), floatOperandExpr(rightExpr, rightType)]);
 		}
 		if (op == OpUShr) {
 			var ushrInner = GoExpr.GoBinary(">>", GoExpr.GoCall(GoExpr.GoIdent("uint32"), [leftExpr]), GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr]));
@@ -7224,7 +7253,7 @@ class GoCompiler {
 	}
 
 	function lowerHaxeInt32BinopExpr(op:Binop, leftExpr:GoExpr, rightExpr:GoExpr):GoExpr {
-		var leftInt32 = GoExpr.GoCall(GoExpr.GoIdent("int32"), [leftExpr]);
+		var leftInt32 = GoExpr.GoCall(GoExpr.GoIdent("hxrt.Int32Wrap"), [leftExpr]);
 		return switch (op) {
 			case OpUShr:
 				var shifted = GoExpr.GoBinary(">>", GoExpr.GoCall(GoExpr.GoIdent("uint32"), [leftInt32]), GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr]));
@@ -7234,7 +7263,7 @@ class GoCompiler {
 			case OpShr:
 				wrapInt32Expr(GoExpr.GoBinary(">>", leftInt32, GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr])));
 			case OpAdd | OpSub | OpMult | OpMod | OpAnd | OpOr | OpXor:
-				var rightInt32 = GoExpr.GoCall(GoExpr.GoIdent("int32"), [rightExpr]);
+				var rightInt32 = GoExpr.GoCall(GoExpr.GoIdent("hxrt.Int32Wrap"), [rightExpr]);
 				wrapInt32Expr(GoExpr.GoBinary(binopSymbol(op), leftInt32, rightInt32));
 			case _:
 				GoExpr.GoBinary(binopSymbol(op), leftExpr, rightExpr);
@@ -7243,6 +7272,10 @@ class GoCompiler {
 
 	function wrapInt32Expr(expr:GoExpr):GoExpr {
 		return GoExpr.GoCall(GoExpr.GoIdent("int"), [GoExpr.GoCall(GoExpr.GoIdent("int32"), [expr])]);
+	}
+
+	function floatOperandExpr(expr:GoExpr, operandType:Type):GoExpr {
+		return isFloatType(operandType) ? expr : GoExpr.GoCall(GoExpr.GoIdent("float64"), [expr]);
 	}
 
 	function unitStepExpr(target:GoExpr, opSymbol:String, valueType:Type, ?sourcePos:haxe.macro.Expr.Position):GoExpr {

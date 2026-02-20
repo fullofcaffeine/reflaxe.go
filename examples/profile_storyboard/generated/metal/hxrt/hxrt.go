@@ -110,6 +110,10 @@ func FloatMod(a float64, b float64) float64 {
 	return math.Mod(a, b)
 }
 
+func Int32Wrap(value int) int32 {
+	return int32(value)
+}
+
 func Println(value any) {
 	fmt.Println(*StdString(value))
 }

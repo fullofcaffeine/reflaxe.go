@@ -55,7 +55,7 @@ func main() {
 		_g = int(int32((_g + 1)))
 		i := hx_post_5
 		_ = i
-		w[i] = int(int32((int32(int(int32((int32(i) + int32(1))))) * int32(2))))
+		w[i] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))) * hxrt.Int32Wrap(2))))
 	}
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("w_len:"), len(w)))
 	render(hxrt.StringFromLiteral("w"), w)
@@ -79,7 +79,7 @@ func render(label *string, v []int) {
 			out = hxrt.StringConcatAny(out, hxrt.StringFromLiteral(","))
 		}
 		out = hxrt.StringConcatAny(out, hxrt.StdString(v[i]))
-		sum = int(int32((int32(sum) + int32(v[i]))))
+		sum = int(int32((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(v[i]))))
 	}
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(label, hxrt.StringFromLiteral(":")), out))
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(label, hxrt.StringFromLiteral("_sum:")), sum))

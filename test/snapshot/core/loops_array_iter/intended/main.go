@@ -13,7 +13,7 @@ func main() {
 		value := values[_g]
 		_ = value
 		_g = int(int32((_g + 1)))
-		sum = int(int32((int32(sum) + int32(value))))
+		sum = int(int32((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(value))))
 	}
 	hxrt.Println(sum)
 }

@@ -306,7 +306,7 @@ func InteractiveCli_parsePositiveInt(raw *string) int {
 		if (code < 48) || (code > 57) {
 			return -1
 		}
-		value = int(int32((int32(int(int32((int32(value) * int32(10))))) + int32(int(int32((int32(code) - int32(48))))))))
+		value = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(10))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48))))))))
 		i = int(int32((i + 1)))
 	}
 	return value
@@ -387,33 +387,33 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			continue
 		}
 		if hxrt.StringEqualAny(cmd, hxrt.StringFromLiteral("add")) {
-			if int(int32((int32(i) + int32(2)))) >= len(args) {
+			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))) >= len(args) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("add requires <priority> <title_token>"))
 				return
 			}
-			priority := InteractiveCli_parsePositiveInt(args[int(int32((int32(i) + int32(1))))])
+			priority := InteractiveCli_parsePositiveInt(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))])
 			_ = priority
 			if priority < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid priority: "), args[int(int32((int32(i)+int32(1))))]))
+				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid priority: "), args[int(int32((hxrt.Int32Wrap(i)+hxrt.Int32Wrap(1))))]))
 				return
 			}
-			title := InteractiveCli_decodeToken(args[int(int32((int32(i) + int32(2))))])
+			title := InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))])
 			_ = title
 			app.__hx_this.add(title, priority)
 			InteractiveCli_saveState(app)
 			hxrt.Println(hxrt.StringFromLiteral("ok add"))
-			i = int(int32((int32(i) + int32(3))))
+			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))
 			continue
 		}
 		if hxrt.StringEqualAny(cmd, hxrt.StringFromLiteral("toggle")) {
-			if int(int32((int32(i) + int32(1)))) >= len(args) {
+			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))) >= len(args) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("toggle requires <id>"))
 				return
 			}
-			id := InteractiveCli_parsePositiveInt(args[int(int32((int32(i) + int32(1))))])
+			id := InteractiveCli_parsePositiveInt(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))])
 			_ = id
 			if id < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid id: "), args[int(int32((int32(i)+int32(1))))]))
+				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid id: "), args[int(int32((hxrt.Int32Wrap(i)+hxrt.Int32Wrap(1))))]))
 				return
 			}
 			if app.__hx_this.toggle(id) {
@@ -422,21 +422,21 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			} else {
 				hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id))
 			}
-			i = int(int32((int32(i) + int32(2))))
+			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))
 			continue
 		}
 		if hxrt.StringEqualAny(cmd, hxrt.StringFromLiteral("tag")) {
-			if int(int32((int32(i) + int32(2)))) >= len(args) {
+			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))) >= len(args) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("tag requires <id> <tag_token>"))
 				return
 			}
-			id_1 := InteractiveCli_parsePositiveInt(args[int(int32((int32(i) + int32(1))))])
+			id_1 := InteractiveCli_parsePositiveInt(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))])
 			_ = id_1
 			if id_1 < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid id: "), args[int(int32((int32(i)+int32(1))))]))
+				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid id: "), args[int(int32((hxrt.Int32Wrap(i)+hxrt.Int32Wrap(1))))]))
 				return
 			}
-			tag := InteractiveCli_decodeToken(args[int(int32((int32(i) + int32(2))))])
+			tag := InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))])
 			_ = tag
 			if app.__hx_this.tag(id_1, tag) {
 				InteractiveCli_saveState(app)
@@ -444,7 +444,7 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			} else {
 				hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id_1))
 			}
-			i = int(int32((int32(i) + int32(3))))
+			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))
 			continue
 		}
 		if hxrt.StringEqualAny(cmd, hxrt.StringFromLiteral("batch")) {
@@ -453,27 +453,27 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 				i = int(int32((i + 1)))
 				continue
 			}
-			if int(int32((int32(i) + int32(3)))) >= len(args) {
+			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))) >= len(args) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("batch requires <priority> <title1_token> <title2_token>"))
 				return
 			}
-			priority_1 := InteractiveCli_parsePositiveInt(args[int(int32((int32(i) + int32(1))))])
+			priority_1 := InteractiveCli_parsePositiveInt(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))])
 			_ = priority_1
 			if priority_1 < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid priority: "), args[int(int32((int32(i)+int32(1))))]))
+				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid priority: "), args[int(int32((hxrt.Int32Wrap(i)+hxrt.Int32Wrap(1))))]))
 				return
 			}
 			titles := New_haxe__ds__List()
 			_ = titles
-			titles.add(InteractiveCli_decodeToken(args[int(int32((int32(i) + int32(2))))]))
-			titles.add(InteractiveCli_decodeToken(args[int(int32((int32(i) + int32(3))))]))
+			titles.add(InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))]))
+			titles.add(InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))]))
 			added := app.__hx_this.addMany(titles, priority_1)
 			_ = added
 			if added > 0 {
 				InteractiveCli_saveState(app)
 			}
 			hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok batch added="), added))
-			i = int(int32((int32(i) + int32(4))))
+			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(4))))
 			continue
 		}
 		InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("unknown command: "), cmd))

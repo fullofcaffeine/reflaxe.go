@@ -37,7 +37,7 @@ func eval(expr *Expr) int {
 		_ = left
 		right := _g1
 		_ = right
-		hx_switch_1 = int(int32((int32(left) + int32(right))))
+		hx_switch_1 = int(int32((hxrt.Int32Wrap(left) + hxrt.Int32Wrap(right))))
 	}
 	return hx_switch_1
 }

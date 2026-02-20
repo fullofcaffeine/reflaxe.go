@@ -9,13 +9,13 @@ func main() {
 	_ = sum
 	for i < 10 {
 		i = int(int32((i + 1)))
-		if int(int32((int32(i) % int32(2)))) == 0 {
+		if int(int32((hxrt.Int32Wrap(i) % hxrt.Int32Wrap(2)))) == 0 {
 			continue
 		}
 		if i > 7 {
 			break
 		}
-		sum = int(int32((int32(sum) + int32(i))))
+		sum = int(int32((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(i))))
 	}
 	hxrt.Println(hxrt.StdString(sum))
 	hxrt.Println(hxrt.StdString(i))

@@ -25,7 +25,7 @@ func sum(values []int) int {
 		_ = index
 		value := this1[index]
 		_ = value
-		total = int(int32((int32(total) + int32(value))))
+		total = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(value))))
 	}
 	return total
 }

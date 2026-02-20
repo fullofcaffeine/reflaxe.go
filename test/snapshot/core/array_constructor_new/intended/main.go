@@ -23,7 +23,7 @@ func main() {
 		n := nums[_g]
 		_ = n
 		_g = int(int32((_g + 1)))
-		sum = int(int32((int32(sum) + int32(n))))
+		sum = int(int32((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(n))))
 	}
 	hxrt.Println(sum)
 }

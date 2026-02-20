@@ -33,7 +33,7 @@ type Child struct {
 
 func New_Child(value int) *Child {
 	self := &Child{}
-	self.Base = New_Base(int(int32((int32(value) + int32(1)))))
+	self.Base = New_Base(int(int32((hxrt.Int32Wrap(value) + hxrt.Int32Wrap(1)))))
 	self.Base.__hx_this = self
 	self.__hx_this = self
 	return self
