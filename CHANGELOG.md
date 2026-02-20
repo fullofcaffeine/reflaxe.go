@@ -1,3 +1,9 @@
+## [0.32.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.31.2...v0.32.0) (2026-02-20)
+
+### Features
+
+* **io:** model haxe.io.Error constructors in shim parity ([a7c71bc](https://github.com/fullofcaffeine/reflaxe.go/commit/a7c71bc9c7414983b1c6b7b409ac886ad0b31b3c))
+
 ## [0.31.2](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.31.1...v0.31.2) (2026-02-20)
 
 ### Bug Fixes
