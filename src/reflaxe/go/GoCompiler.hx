@@ -880,9 +880,14 @@ class GoCompiler {
 				name: "self",
 				typeName: "*haxe__ds__List"
 			}, [{name: "item", typeName: "any"}], [], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "add"), [GoExpr.GoIdent("item")]))
+				GoStmt.GoRaw("self.items = append([]any{item}, self.items...)"),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "length"),
+					GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items")]))
 			]),
-			GoDecl.GoFuncDecl("pop", {name: "self", typeName: "*haxe__ds__List"}, [], ["any"], [
+			GoDecl.GoFuncDecl("pop", {
+				name: "self",
+				typeName: "*haxe__ds__List"
+			}, [], ["any"], [
 				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items")]),
 					GoExpr.GoIntLiteral(0)),
 					[GoStmt.GoReturn(GoExpr.GoNil)], null),

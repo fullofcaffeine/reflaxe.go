@@ -34,6 +34,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `sys.io.Process` | `semantic-diff` | `process_echo_contract`, `sys/process_echo_smoke` |
 | `sys.io.File` | `semantic-diff` | `file_read_write_contract`, `sys/file_read_write_smoke` |
 | `sys.FileSystem` | `semantic-diff` | `filesystem_contract`, `sys/filesystem_basic_smoke` |
+| `haxe.ds.*Map` + `haxe.ds.List` (core ops subset) | `semantic-diff` | `ds_maps_list_contract`, `stdlib/ds_maps_list_basic` |
 | `haxe.ds.Vector` | `semantic-diff` | `vector_contract`, `stdlib/vector_basic` |
 | `sys.net.Host` | `semantic-diff` | `host_basic_contract`, `sys/host_basic_smoke` |
 | `haxe.PosInfos` | `semantic-diff` | `posinfos_contract`, `stdlib/posinfos_basic` |
@@ -85,6 +86,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/sys_io_roundtrip`
 - `test/semantic_diff/file_read_write_contract`
 - `test/semantic_diff/filesystem_contract`
+- `test/semantic_diff/ds_maps_list_contract`
 - `test/semantic_diff/host_basic_contract`
 - `test/semantic_diff/int32_contract`
 - `test/semantic_diff/int64_contract`
@@ -186,6 +188,12 @@ Shim strategy and alternatives are documented in:
   - `sys__FileSystem_exists`, `rename`, `stat`, `fullPath`, `isDirectory`, `createDirectory`, `deleteFile`, `deleteDirectory`, `readDirectory`.
 - Coverage now includes `sys/filesystem_basic_smoke` and `test/semantic_diff/filesystem_contract` (deterministic create/read/rename/delete/stat-size behavior).
 - Current tradeoff: `stat` currently maps non-portable fields (`uid/gid/dev/ino/nlink/rdev`) to stable fallback values when unavailable from portable Go APIs.
+
+### `haxe.ds.*Map` / `haxe.ds.List` shim contract and tradeoffs
+
+- Coverage includes `stdlib/ds_maps_list_basic` and `test/semantic_diff/ds_maps_list_contract` for deterministic `set/get/exists/remove` behavior across `StringMap`/`IntMap`/`ObjectMap`/`EnumValueMap`, plus `List` `add`/`push`/`pop`/`first`/`last`/`length`.
+- `List.push` now prepends to match Haxe semantics (with `pop` removing the list head).
+- Current gap: missing-key typed reads can still panic in some shapes due Go type-assertion behavior around untyped nil; tracked by `haxe.go-rlj`.
 
 ### `sys.Http` shim contract and tradeoffs
 
@@ -325,3 +333,5 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-3d4`: reduce unsupported expression surface by lowering `TTypeExpr` class/enum value nodes.
 - `haxe.go-8zt`: lower `TThrow` in expression positions and lock with semantic diff coverage.
 - `haxe.go-888`: promote `sys.FileSystem` with deterministic snapshot + semantic parity contracts.
+- `haxe.go-6fc`: promote `haxe.ds` map/list core-ops subset with semantic parity coverage and `List.push` parity.
+- `haxe.go-rlj`: fix missing-key typed-read null semantics for `haxe.ds` map shims.

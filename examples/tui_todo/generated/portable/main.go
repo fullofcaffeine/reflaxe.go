@@ -1224,7 +1224,8 @@ func (self *haxe__ds__List) add(item any) {
 }
 
 func (self *haxe__ds__List) push(item any) {
-	self.add(item)
+	self.items = append([]any{item}, self.items...)
+	self.length = len(self.items)
 }
 
 func (self *haxe__ds__List) pop() any {
