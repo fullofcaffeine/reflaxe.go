@@ -1,3 +1,9 @@
+## [0.27.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.27.0...v0.27.1) (2026-02-20)
+
+### Bug Fixes
+
+* make haxe.ds typed reads nil-safe ([0254ac6](https://github.com/fullofcaffeine/reflaxe.go/commit/0254ac6628e3f35ed462066028c5545c486cced4))
+
 ## [0.27.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.26.0...v0.27.0) (2026-02-20)
 
 ### Features
