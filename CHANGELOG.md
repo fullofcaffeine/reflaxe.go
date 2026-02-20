@@ -1,3 +1,9 @@
+## [0.37.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.36.0...v0.37.0) (2026-02-20)
+
+### Features
+
+* **io:** add bytes hex shim parity ([42bd1c0](https://github.com/fullofcaffeine/reflaxe.go/commit/42bd1c0c4368f5301c1437a1becd9c712d8a2f6d))
+
 ## [0.36.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.35.0...v0.36.0) (2026-02-20)
 
 ### Features
