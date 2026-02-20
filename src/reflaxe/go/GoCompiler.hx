@@ -477,6 +477,9 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("net_socket")) {
 			decls = decls.concat(lowerNetSocketShimDecls());
 		}
+		if (requiredStdlibShimGroups.exists("atomic")) {
+			decls = decls.concat(lowerAtomicStdlibShimDecls());
+		}
 		return decls;
 	}
 
@@ -591,6 +594,54 @@ class GoCompiler {
 				typeName: "*haxe__io__BytesBuffer"
 			}, [], ["int"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b")]))
+			])
+		];
+	}
+
+	function lowerAtomicStdlibShimDecls():Array<GoDecl> {
+		return [
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicObject__AtomicObject_Impl___new", null, [{name: "value", typeName: "any"}], ["any"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicObjectNew"), [GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicObject__AtomicObject_Impl__load", null, [
+				{
+					name: "atom",
+					typeName: "any"
+				}
+			], ["any"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicObjectLoad"), [GoExpr.GoIdent("atom")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicObject__AtomicObject_Impl__store", null, [
+				{
+					name: "atom",
+					typeName: "any"
+				},
+				{name: "value", typeName: "any"}
+			], ["any"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicObjectStore"), [GoExpr.GoIdent("atom"), GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicObject__AtomicObject_Impl__exchange", null, [
+				{
+					name: "atom",
+					typeName: "any"
+				},
+				{name: "value", typeName: "any"}
+			], ["any"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicObjectExchange"), [GoExpr.GoIdent("atom"), GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__atomic___AtomicObject__AtomicObject_Impl__compareExchange", null, [
+				{
+					name: "atom",
+					typeName: "any"
+				},
+				{name: "expected", typeName: "any"},
+				{name: "replacement", typeName: "any"}
+			], ["any"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AtomicObjectCompareExchange"), [
+					GoExpr.GoIdent("atom"),
+					GoExpr.GoIdent("expected"),
+					GoExpr.GoIdent("replacement")
+				]))
 			])
 		];
 	}
@@ -6629,6 +6680,54 @@ class GoCompiler {
 			};
 		}
 
+		if (isStaticCall(callee, "AtomicObject_Impl_", ["haxe", "atomic", "_AtomicObject"], "load")) {
+			requireStdlibShimGroup("atomic");
+			var atom = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			var rawCall = GoExpr.GoCall(GoExpr.GoIdent("haxe__atomic___AtomicObject__AtomicObject_Impl__load"), [atom]);
+			var expectedType = typeToGoType(returnType);
+			return {
+				expr: expectedType == "any" ? rawCall : GoExpr.GoTypeAssert(rawCall, expectedType),
+				isStringLike: isStringType(returnType)
+			};
+		}
+
+		if (isStaticCall(callee, "AtomicObject_Impl_", ["haxe", "atomic", "_AtomicObject"], "store")) {
+			requireStdlibShimGroup("atomic");
+			var atom = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			var value = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoNil;
+			var rawCall = GoExpr.GoCall(GoExpr.GoIdent("haxe__atomic___AtomicObject__AtomicObject_Impl__store"), [atom, value]);
+			var expectedType = typeToGoType(returnType);
+			return {
+				expr: expectedType == "any" ? rawCall : GoExpr.GoTypeAssert(rawCall, expectedType),
+				isStringLike: isStringType(returnType)
+			};
+		}
+
+		if (isStaticCall(callee, "AtomicObject_Impl_", ["haxe", "atomic", "_AtomicObject"], "exchange")) {
+			requireStdlibShimGroup("atomic");
+			var atom = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			var value = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoNil;
+			var rawCall = GoExpr.GoCall(GoExpr.GoIdent("haxe__atomic___AtomicObject__AtomicObject_Impl__exchange"), [atom, value]);
+			var expectedType = typeToGoType(returnType);
+			return {
+				expr: expectedType == "any" ? rawCall : GoExpr.GoTypeAssert(rawCall, expectedType),
+				isStringLike: isStringType(returnType)
+			};
+		}
+
+		if (isStaticCall(callee, "AtomicObject_Impl_", ["haxe", "atomic", "_AtomicObject"], "compareExchange")) {
+			requireStdlibShimGroup("atomic");
+			var atom = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			var expected = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoNil;
+			var replacement = args.length > 2 ? lowerExpr(args[2]).expr : GoExpr.GoNil;
+			var rawCall = GoExpr.GoCall(GoExpr.GoIdent("haxe__atomic___AtomicObject__AtomicObject_Impl__compareExchange"), [atom, expected, replacement]);
+			var expectedType = typeToGoType(returnType);
+			return {
+				expr: expectedType == "any" ? rawCall : GoExpr.GoTypeAssert(rawCall, expectedType),
+				isStringLike: isStringType(returnType)
+			};
+		}
+
 		var exceptionMessageTarget = asHaxeExceptionMessageGetterTarget(callee);
 		if (exceptionMessageTarget != null && args.length == 0) {
 			return {
@@ -7827,6 +7926,12 @@ class GoCompiler {
 
 		if (pack == "sys.net" && (classType.name == "Host" || classType.name == "Socket")) {
 			requireStdlibShimGroup("net_socket");
+			return;
+		}
+
+		if ((pack == "haxe.atomic" && classType.name == "AtomicObject")
+			|| (pack == "haxe.atomic._AtomicObject" && classType.name == "AtomicObject_Impl_")) {
+			requireStdlibShimGroup("atomic");
 			return;
 		}
 

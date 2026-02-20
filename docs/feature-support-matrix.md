@@ -37,6 +37,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.PosInfos` | `semantic-diff` | `posinfos_contract`, `stdlib/posinfos_basic` |
 | `haxe.Int32` | `semantic-diff` | `int32_contract` |
 | `haxe.Int64` / `haxe.Int64Helper` | `semantic-diff` | `int64_contract`, `stdlib/int64_parity` |
+| `haxe.atomic.AtomicObject` | `snapshot` | `stdlib/atomic_object_basic` |
 
 ## Language/Core matrix
 
@@ -131,6 +132,7 @@ Shim strategy and alternatives are documented in:
 - `stdlib/ds_maps_list_basic`
 - `stdlib/intmap_basic`
 - `stdlib/int64_parity`
+- `stdlib/atomic_object_basic`
 - `stdlib/io_type_smoke`
 - `stdlib/json_parse_stringify`
 - `stdlib/math_basic`

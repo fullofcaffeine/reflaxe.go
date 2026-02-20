@@ -1,0 +1,12 @@
+load.0=a
+cmp.miss.old=a
+cmp.miss.now=a
+cmp.hit.old=a
+cmp.hit.now=c
+xchg.old=c
+xchg.now=d
+store.ret=a
+store.now=a
+alias.now=a_mut
+cmp.alias.old=a_mut
+cmp.alias.now=c
