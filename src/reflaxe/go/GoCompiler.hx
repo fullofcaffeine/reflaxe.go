@@ -113,6 +113,9 @@ class GoCompiler {
 			imports.push("strings");
 			imports.push("time");
 		}
+		if (requiredStdlibShimGroups.exists("io")) {
+			imports.push("math");
+		}
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			imports.push("bytes");
 			imports.push("compress/zlib");
@@ -513,8 +516,222 @@ class GoCompiler {
 	function lowerIoStdlibShimDecls():Array<GoDecl> {
 		return [
 			GoDecl.GoStructDecl("haxe__io__Encoding", []),
-			GoDecl.GoStructDecl("haxe__io__Input", [{name: "bigEndian", typeName: "bool"}]),
-			GoDecl.GoStructDecl("haxe__io__Output", [{name: "bigEndian", typeName: "bool"}]),
+			GoDecl.GoInterfaceDecl("haxe__io__Input", [
+				{
+					name: "get_bigEndian",
+					params: [],
+					results: ["bool"]
+				},
+				{
+					name: "set_bigEndian",
+					params: [{name: "e", typeName: "bool"}],
+					results: ["bool"]
+				},
+				{
+					name: "readByte",
+					params: [],
+					results: ["int"]
+				},
+				{
+					name: "readBytes",
+					params: [
+						{name: "buf", typeName: "*haxe__io__Bytes"},
+						{name: "pos", typeName: "int"},
+						{name: "len", typeName: "int"}
+					],
+					results: ["int"]
+				},
+				{
+					name: "close",
+					params: [],
+					results: []
+				},
+				{
+					name: "readAll",
+					params: [{name: "bufsize", typeName: "...int"}],
+					results: ["*haxe__io__Bytes"]
+				},
+				{
+					name: "readFullBytes",
+					params: [
+						{name: "s", typeName: "*haxe__io__Bytes"},
+						{name: "pos", typeName: "int"},
+						{name: "len", typeName: "int"}
+					],
+					results: []
+				},
+				{
+					name: "read",
+					params: [{name: "nbytes", typeName: "int"}],
+					results: ["*haxe__io__Bytes"]
+				},
+				{
+					name: "readUntil",
+					params: [{name: "end", typeName: "int"}],
+					results: ["*string"]
+				},
+				{
+					name: "readLine",
+					params: [],
+					results: ["*string"]
+				},
+				{
+					name: "readFloat",
+					params: [],
+					results: ["float64"]
+				},
+				{
+					name: "readDouble",
+					params: [],
+					results: ["float64"]
+				},
+				{
+					name: "readInt8",
+					params: [],
+					results: ["int"]
+				},
+				{
+					name: "readInt16",
+					params: [],
+					results: ["int"]
+				},
+				{
+					name: "readUInt16",
+					params: [],
+					results: ["int"]
+				},
+				{
+					name: "readInt24",
+					params: [],
+					results: ["int"]
+				},
+				{
+					name: "readUInt24",
+					params: [],
+					results: ["int"]
+				},
+				{
+					name: "readInt32",
+					params: [],
+					results: ["int"]
+				},
+				{
+					name: "readString",
+					params: [
+						{name: "len", typeName: "int"},
+						{name: "encoding", typeName: "...*haxe__io__Encoding"}
+					],
+					results: ["*string"]
+				}
+			]),
+			GoDecl.GoInterfaceDecl("haxe__io__Output", [
+				{
+					name: "get_bigEndian",
+					params: [],
+					results: ["bool"]
+				},
+				{
+					name: "set_bigEndian",
+					params: [{name: "e", typeName: "bool"}],
+					results: ["bool"]
+				},
+				{
+					name: "writeByte",
+					params: [{name: "c", typeName: "int"}],
+					results: []
+				},
+				{
+					name: "writeBytes",
+					params: [
+						{name: "s", typeName: "*haxe__io__Bytes"},
+						{name: "pos", typeName: "int"},
+						{name: "len", typeName: "int"}
+					],
+					results: ["int"]
+				},
+				{
+					name: "flush",
+					params: [],
+					results: []
+				},
+				{
+					name: "close",
+					params: [],
+					results: []
+				},
+				{
+					name: "write",
+					params: [{name: "s", typeName: "*haxe__io__Bytes"}],
+					results: []
+				},
+				{
+					name: "writeFullBytes",
+					params: [
+						{name: "s", typeName: "*haxe__io__Bytes"},
+						{name: "pos", typeName: "int"},
+						{name: "len", typeName: "int"}
+					],
+					results: []
+				},
+				{
+					name: "writeFloat",
+					params: [{name: "x", typeName: "float64"}],
+					results: []
+				},
+				{
+					name: "writeDouble",
+					params: [{name: "x", typeName: "float64"}],
+					results: []
+				},
+				{
+					name: "writeInt8",
+					params: [{name: "x", typeName: "int"}],
+					results: []
+				},
+				{
+					name: "writeInt16",
+					params: [{name: "x", typeName: "int"}],
+					results: []
+				},
+				{
+					name: "writeUInt16",
+					params: [{name: "x", typeName: "int"}],
+					results: []
+				},
+				{
+					name: "writeInt24",
+					params: [{name: "x", typeName: "int"}],
+					results: []
+				},
+				{
+					name: "writeUInt24",
+					params: [{name: "x", typeName: "int"}],
+					results: []
+				},
+				{
+					name: "writeInt32",
+					params: [{name: "x", typeName: "int"}],
+					results: []
+				},
+				{
+					name: "prepare",
+					params: [{name: "nbytes", typeName: "int"}],
+					results: []
+				},
+				{
+					name: "writeInput",
+					params: [{name: "i", typeName: "haxe__io__Input"}, {name: "bufsize", typeName: "...int"}],
+					results: []
+				},
+				{
+					name: "writeString",
+					params: [
+						{name: "s", typeName: "*string"},
+						{name: "encoding", typeName: "...*haxe__io__Encoding"}
+					],
+					results: []
+				}
+			]),
 			GoDecl.GoStructDecl("haxe__io__Eof", []),
 			GoDecl.GoStructDecl("haxe__io__Error", []),
 			GoDecl.GoStructDecl("haxe__io__Bytes", [
@@ -534,13 +751,16 @@ class GoCompiler {
 				{name: "len", typeName: "int"},
 				{name: "totlen", typeName: "int"}
 			]),
-			GoDecl.GoStructDecl("haxe__io__BytesOutput",
+			GoDecl.GoStructDecl("haxe__io__BytesOutput", [
+				{name: "bigEndian", typeName: "bool"},
+				{name: "b", typeName: "*haxe__io__BytesBuffer"}
+			]),
+			GoDecl.GoFuncDecl("New_haxe__io__Input", null, [], ["haxe__io__Input"],
 				[
-					{name: "bigEndian", typeName: "bool"},
-					{name: "b", typeName: "*haxe__io__BytesBuffer"}
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_haxe__io__BytesInput"), [GoExpr.GoRaw("&haxe__io__Bytes{b: []int{}, length: 0}")]))
 				]),
-			GoDecl.GoFuncDecl("New_haxe__io__Input", null, [], ["*haxe__io__Input"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Input{}"))]),
-			GoDecl.GoFuncDecl("New_haxe__io__Output", null, [], ["*haxe__io__Output"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Output{}"))]),
+			GoDecl.GoFuncDecl("New_haxe__io__Output", null, [], ["haxe__io__Output"],
+				[GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_haxe__io__BytesOutput"), []))]),
 			GoDecl.GoFuncDecl("New_haxe__io__Eof", null, [], ["*haxe__io__Eof"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Eof{}"))]),
 			GoDecl.GoFuncDecl("toString", {
 				name: "self",
@@ -755,6 +975,523 @@ class GoCompiler {
 			}, [], ["int"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b")]))
 			]),
+			GoDecl.GoFuncDecl("haxe__io__input_isEof", null, [
+				{
+					name: "value",
+					typeName: "any"
+				}
+			], ["bool"], [
+				GoStmt.GoRaw("_, ok := value.(*haxe__io__Eof)"),
+				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_readAll", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				},
+				{name: "bufsize", typeName: "...int"}
+			], ["*haxe__io__Bytes"], [
+				GoStmt.GoRaw("if self == nil {"),
+				GoStmt.GoRaw("\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("resolved := 1 << 14"),
+				GoStmt.GoRaw("if len(bufsize) > 0 {"),
+				GoStmt.GoRaw("\tresolved = bufsize[0]"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("buf := haxe__io__Bytes_alloc(resolved)"),
+				GoStmt.GoRaw("total := New_haxe__io__BytesBuffer()"),
+				GoStmt.GoRaw("for {"),
+				GoStmt.GoRaw("\tchunk := 0"),
+				GoStmt.GoRaw("\tthrew := false"),
+				GoStmt.GoRaw("\tvar thrown any"),
+				GoStmt.GoRaw("\tfunc() {"),
+				GoStmt.GoRaw("\t\tdefer func() {"),
+				GoStmt.GoRaw("\t\t\tif recovered := recover(); recovered != nil {"),
+				GoStmt.GoRaw("\t\t\t\tthrew = true"),
+				GoStmt.GoRaw("\t\t\t\tthrown = hxrt.UnwrapException(recovered)"),
+				GoStmt.GoRaw("\t\t\t}"),
+				GoStmt.GoRaw("\t\t}()"),
+				GoStmt.GoRaw("\t\tchunk = self.readBytes(buf, 0, resolved)"),
+				GoStmt.GoRaw("\t}()"),
+				GoStmt.GoRaw("\tif threw {"),
+				GoStmt.GoRaw("\t\tif haxe__io__input_isEof(thrown) {"),
+				GoStmt.GoRaw("\t\t\tbreak"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\thxrt.Throw(thrown)"),
+				GoStmt.GoRaw("\t\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tif chunk == 0 {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\t\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\ttotal.addBytes(buf, 0, chunk)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("total"), "getBytes"), []))
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_readFullBytes", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				},
+				{name: "s", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], [], [
+				GoStmt.GoRaw("if self == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("for len > 0 {"),
+				GoStmt.GoRaw("\tk := self.readBytes(s, pos, len)"),
+				GoStmt.GoRaw("\tif k == 0 {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\t\treturn"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tpos += k"),
+				GoStmt.GoRaw("\tlen -= k"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_read", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				},
+				{name: "nbytes", typeName: "int"}
+			], ["*haxe__io__Bytes"], [
+				GoStmt.GoRaw("s := haxe__io__Bytes_alloc(nbytes)"),
+				GoStmt.GoRaw("p := 0"),
+				GoStmt.GoRaw("for nbytes > 0 {"),
+				GoStmt.GoRaw("\tk := self.readBytes(s, p, nbytes)"),
+				GoStmt.GoRaw("\tif k == 0 {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\t\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tp += k"),
+				GoStmt.GoRaw("\tnbytes -= k"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("s"))
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_readUntil", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				},
+				{name: "end", typeName: "int"}
+			], ["*string"], [
+				GoStmt.GoRaw("buf := New_haxe__io__BytesBuffer()"),
+				GoStmt.GoRaw("for {"),
+				GoStmt.GoRaw("\tlast := self.readByte()"),
+				GoStmt.GoRaw("\tif last == end {"),
+				GoStmt.GoRaw("\t\tbreak"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tbuf.addByte(last)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("buf"), "getBytes"), []), "toString"), []))
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_readLine", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				}
+			], ["*string"], [
+				GoStmt.GoRaw("buf := New_haxe__io__BytesBuffer()"),
+				GoStmt.GoRaw("for {"),
+				GoStmt.GoRaw("\tlast := 0"),
+				GoStmt.GoRaw("\tthrew := false"),
+				GoStmt.GoRaw("\tvar thrown any"),
+				GoStmt.GoRaw("\tfunc() {"),
+				GoStmt.GoRaw("\t\tdefer func() {"),
+				GoStmt.GoRaw("\t\t\tif recovered := recover(); recovered != nil {"),
+				GoStmt.GoRaw("\t\t\t\tthrew = true"),
+				GoStmt.GoRaw("\t\t\t\tthrown = hxrt.UnwrapException(recovered)"),
+				GoStmt.GoRaw("\t\t\t}"),
+				GoStmt.GoRaw("\t\t}()"),
+				GoStmt.GoRaw("\t\tlast = self.readByte()"),
+				GoStmt.GoRaw("\t}()"),
+				GoStmt.GoRaw("\tif threw {"),
+				GoStmt.GoRaw("\t\tif haxe__io__input_isEof(thrown) {"),
+				GoStmt.GoRaw("\t\t\ts := buf.getBytes().toString()"),
+				GoStmt.GoRaw("\t\t\traw := *hxrt.StdString(s)"),
+				GoStmt.GoRaw("\t\t\tif len(raw) == 0 {"),
+				GoStmt.GoRaw("\t\t\t\thxrt.Throw(thrown)"),
+				GoStmt.GoRaw("\t\t\t\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("\t\t\t}"),
+				GoStmt.GoRaw("\t\t\treturn s"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\thxrt.Throw(thrown)"),
+				GoStmt.GoRaw("\t\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tif last == 10 {"),
+				GoStmt.GoRaw("\t\tbreak"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tbuf.addByte(last)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("s := buf.getBytes().toString()"),
+				GoStmt.GoRaw("raw := *hxrt.StdString(s)"),
+				GoStmt.GoRaw("if len(raw) > 0 && raw[len(raw)-1] == 13 {"),
+				GoStmt.GoRaw("\traw = raw[:len(raw)-1]"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("raw")]))
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_readFloat", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				}
+			], ["float64"], [
+				GoStmt.GoRaw("bits := uint32(self.readInt32())"),
+				GoStmt.GoRaw("return float64(math.Float32frombits(bits))")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_readDouble", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				}
+			], ["float64"], [
+				GoStmt.GoRaw("i1 := self.readInt32()"),
+				GoStmt.GoRaw("i2 := self.readInt32()"),
+				GoStmt.GoRaw("if self.get_bigEndian() {"),
+				GoStmt.GoRaw("\treturn math.Float64frombits((uint64(uint32(i1)) << 32) | uint64(uint32(i2)))"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return math.Float64frombits((uint64(uint32(i2)) << 32) | uint64(uint32(i1)))")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_readInt8", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				}
+			], ["int"], [
+				GoStmt.GoRaw("n := self.readByte()"),
+				GoStmt.GoRaw("if n >= 128 {"),
+				GoStmt.GoRaw("\treturn n - 256"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("n"))
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_readInt16", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				}
+			], ["int"], [
+				GoStmt.GoRaw("ch1 := self.readByte()"),
+				GoStmt.GoRaw("ch2 := self.readByte()"),
+				GoStmt.GoRaw("n := 0"),
+				GoStmt.GoRaw("if self.get_bigEndian() {"),
+				GoStmt.GoRaw("\tn = ch2 | (ch1 << 8)"),
+				GoStmt.GoRaw("} else {"),
+				GoStmt.GoRaw("\tn = ch1 | (ch2 << 8)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if (n & 0x8000) != 0 {"),
+				GoStmt.GoRaw("\treturn n - 0x10000"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("n"))
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_readUInt16", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				}
+			], ["int"], [
+				GoStmt.GoRaw("ch1 := self.readByte()"),
+				GoStmt.GoRaw("ch2 := self.readByte()"),
+				GoStmt.GoRaw("if self.get_bigEndian() {"),
+				GoStmt.GoRaw("\treturn ch2 | (ch1 << 8)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return ch1 | (ch2 << 8)")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_readInt24", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				}
+			], ["int"], [
+				GoStmt.GoRaw("ch1 := self.readByte()"),
+				GoStmt.GoRaw("ch2 := self.readByte()"),
+				GoStmt.GoRaw("ch3 := self.readByte()"),
+				GoStmt.GoRaw("n := 0"),
+				GoStmt.GoRaw("if self.get_bigEndian() {"),
+				GoStmt.GoRaw("\tn = ch3 | (ch2 << 8) | (ch1 << 16)"),
+				GoStmt.GoRaw("} else {"),
+				GoStmt.GoRaw("\tn = ch1 | (ch2 << 8) | (ch3 << 16)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if (n & 0x800000) != 0 {"),
+				GoStmt.GoRaw("\treturn n - 0x1000000"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("n"))
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_readUInt24", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				}
+			], ["int"], [
+				GoStmt.GoRaw("ch1 := self.readByte()"),
+				GoStmt.GoRaw("ch2 := self.readByte()"),
+				GoStmt.GoRaw("ch3 := self.readByte()"),
+				GoStmt.GoRaw("if self.get_bigEndian() {"),
+				GoStmt.GoRaw("\treturn ch3 | (ch2 << 8) | (ch1 << 16)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return ch1 | (ch2 << 8) | (ch3 << 16)")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_readInt32", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				}
+			], ["int"], [
+				GoStmt.GoRaw("ch1 := self.readByte()"),
+				GoStmt.GoRaw("ch2 := self.readByte()"),
+				GoStmt.GoRaw("ch3 := self.readByte()"),
+				GoStmt.GoRaw("ch4 := self.readByte()"),
+				GoStmt.GoRaw("if self.get_bigEndian() {"),
+				GoStmt.GoRaw("\treturn ch4 | (ch3 << 8) | (ch2 << 16) | (ch1 << 24)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return ch1 | (ch2 << 8) | (ch3 << 16) | (ch4 << 24)")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__input_readString", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Input"
+				},
+				{name: "len", typeName: "int"},
+				{name: "encoding", typeName: "...*haxe__io__Encoding"}
+			], ["*string"], [
+				GoStmt.GoRaw("b := haxe__io__Bytes_alloc(len)"),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("haxe__io__input_readFullBytes"), [
+					GoExpr.GoIdent("self"),
+					GoExpr.GoIdent("b"),
+					GoExpr.GoIntLiteral(0),
+					GoExpr.GoIdent("len")
+				])),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("b"), "toString"), []))
+			]),
+			GoDecl.GoFuncDecl("haxe__io__output_write", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Output"
+				},
+				{name: "s", typeName: "*haxe__io__Bytes"}
+			], [], [
+				GoStmt.GoRaw("if self == nil || s == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("remaining := s.length"),
+				GoStmt.GoRaw("p := 0"),
+				GoStmt.GoRaw("for remaining > 0 {"),
+				GoStmt.GoRaw("\tk := self.writeBytes(s, p, remaining)"),
+				GoStmt.GoRaw("\tif k == 0 {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\t\treturn"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tp += k"),
+				GoStmt.GoRaw("\tremaining -= k"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__output_writeFullBytes", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Output"
+				},
+				{name: "s", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], [], [
+				GoStmt.GoRaw("for len > 0 {"),
+				GoStmt.GoRaw("\tk := self.writeBytes(s, pos, len)"),
+				GoStmt.GoRaw("\tpos += k"),
+				GoStmt.GoRaw("\tlen -= k"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__output_writeFloat", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Output"
+				},
+				{name: "x", typeName: "float64"}
+			], [],
+				[GoStmt.GoRaw("self.writeInt32(int(math.Float32bits(float32(x))))")]),
+			GoDecl.GoFuncDecl("haxe__io__output_writeDouble", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Output"
+				},
+				{name: "x", typeName: "float64"}
+			], [], [
+				GoStmt.GoRaw("bits := math.Float64bits(x)"),
+				GoStmt.GoRaw("low := int(uint32(bits))"),
+				GoStmt.GoRaw("high := int(uint32(bits >> 32))"),
+				GoStmt.GoRaw("if self.get_bigEndian() {"),
+				GoStmt.GoRaw("\tself.writeInt32(high)"),
+				GoStmt.GoRaw("\tself.writeInt32(low)"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.writeInt32(low)"),
+				GoStmt.GoRaw("self.writeInt32(high)")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__output_writeInt8", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Output"
+				},
+				{name: "x", typeName: "int"}
+			], [], [
+				GoStmt.GoRaw("if x < -0x80 || x >= 0x80 {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Overflow\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.writeByte(x & 0xFF)")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__output_writeInt16", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Output"
+				},
+				{name: "x", typeName: "int"}
+			], [], [
+				GoStmt.GoRaw("if x < -0x8000 || x >= 0x8000 {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Overflow\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.writeUInt16(x & 0xFFFF)")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__output_writeUInt16", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Output"
+				},
+				{name: "x", typeName: "int"}
+			], [], [
+				GoStmt.GoRaw("if x < 0 || x >= 0x10000 {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Overflow\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self.get_bigEndian() {"),
+				GoStmt.GoRaw("\tself.writeByte(x >> 8)"),
+				GoStmt.GoRaw("\tself.writeByte(x & 0xFF)"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.writeByte(x & 0xFF)"),
+				GoStmt.GoRaw("self.writeByte(x >> 8)")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__output_writeInt24", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Output"
+				},
+				{name: "x", typeName: "int"}
+			], [], [
+				GoStmt.GoRaw("if x < -0x800000 || x >= 0x800000 {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Overflow\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.writeUInt24(x & 0xFFFFFF)")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__output_writeUInt24", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Output"
+				},
+				{name: "x", typeName: "int"}
+			], [], [
+				GoStmt.GoRaw("if x < 0 || x >= 0x1000000 {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Overflow\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self.get_bigEndian() {"),
+				GoStmt.GoRaw("\tself.writeByte(x >> 16)"),
+				GoStmt.GoRaw("\tself.writeByte((x >> 8) & 0xFF)"),
+				GoStmt.GoRaw("\tself.writeByte(x & 0xFF)"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.writeByte(x & 0xFF)"),
+				GoStmt.GoRaw("self.writeByte((x >> 8) & 0xFF)"),
+				GoStmt.GoRaw("self.writeByte(x >> 16)")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__output_writeInt32", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Output"
+				},
+				{name: "x", typeName: "int"}
+			], [], [
+				GoStmt.GoRaw("if self.get_bigEndian() {"),
+				GoStmt.GoRaw("\tself.writeByte(int(uint(x) >> 24))"),
+				GoStmt.GoRaw("\tself.writeByte((x >> 16) & 0xFF)"),
+				GoStmt.GoRaw("\tself.writeByte((x >> 8) & 0xFF)"),
+				GoStmt.GoRaw("\tself.writeByte(x & 0xFF)"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.writeByte(x & 0xFF)"),
+				GoStmt.GoRaw("self.writeByte((x >> 8) & 0xFF)"),
+				GoStmt.GoRaw("self.writeByte((x >> 16) & 0xFF)"),
+				GoStmt.GoRaw("self.writeByte(int(uint(x) >> 24))")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__output_writeInput", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Output"
+				},
+				{name: "i", typeName: "haxe__io__Input"},
+				{name: "bufsize", typeName: "...int"}
+			], [], [
+				GoStmt.GoRaw("if self == nil || i == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("resolved := 4096"),
+				GoStmt.GoRaw("if len(bufsize) > 0 {"),
+				GoStmt.GoRaw("\tresolved = bufsize[0]"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("buf := haxe__io__Bytes_alloc(resolved)"),
+				GoStmt.GoRaw("for {"),
+				GoStmt.GoRaw("\tlenRead := 0"),
+				GoStmt.GoRaw("\tthrew := false"),
+				GoStmt.GoRaw("\tvar thrown any"),
+				GoStmt.GoRaw("\tfunc() {"),
+				GoStmt.GoRaw("\t\tdefer func() {"),
+				GoStmt.GoRaw("\t\t\tif recovered := recover(); recovered != nil {"),
+				GoStmt.GoRaw("\t\t\t\tthrew = true"),
+				GoStmt.GoRaw("\t\t\t\tthrown = hxrt.UnwrapException(recovered)"),
+				GoStmt.GoRaw("\t\t\t}"),
+				GoStmt.GoRaw("\t\t}()"),
+				GoStmt.GoRaw("\t\tlenRead = i.readBytes(buf, 0, resolved)"),
+				GoStmt.GoRaw("\t}()"),
+				GoStmt.GoRaw("\tif threw {"),
+				GoStmt.GoRaw("\t\tif haxe__io__input_isEof(thrown) {"),
+				GoStmt.GoRaw("\t\t\tbreak"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\thxrt.Throw(thrown)"),
+				GoStmt.GoRaw("\t\treturn"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tif lenRead == 0 {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\t\treturn"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tp := 0"),
+				GoStmt.GoRaw("\tfor lenRead > 0 {"),
+				GoStmt.GoRaw("\t\tk := self.writeBytes(buf, p, lenRead)"),
+				GoStmt.GoRaw("\t\tif k == 0 {"),
+				GoStmt.GoRaw("\t\t\thxrt.Throw(hxrt.StringFromLiteral(\"Blocked\"))"),
+				GoStmt.GoRaw("\t\t\treturn"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\tp += k"),
+				GoStmt.GoRaw("\t\tlenRead -= k"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__output_writeString", null, [
+				{
+					name: "self",
+					typeName: "haxe__io__Output"
+				},
+				{name: "s", typeName: "*string"},
+				{name: "encoding", typeName: "...*haxe__io__Encoding"}
+			], [], [
+				GoStmt.GoRaw("if s == nil {"),
+				GoStmt.GoRaw("\ts = hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("b := haxe__io__Bytes_ofString(s, encoding...)"),
+				GoStmt.GoRaw("self.writeFullBytes(b, 0, b.length)")
+			]),
 			GoDecl.GoFuncDecl("New_haxe__io__BytesInput", null, [
 				{
 					name: "b",
@@ -853,6 +1590,104 @@ class GoCompiler {
 				GoStmt.GoRaw("self.len -= len"),
 				GoStmt.GoReturn(GoExpr.GoIdent("len"))
 			]),
+			GoDecl.GoFuncDecl("get_bigEndian", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], ["bool"], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null),
+				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "bigEndian"))
+			]),
+			GoDecl.GoFuncDecl("set_bigEndian", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [{name: "e", typeName: "bool"}], ["bool"], [
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("self"), GoExpr.GoNil), [
+					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "bigEndian"), GoExpr.GoIdent("e"))
+				], null),
+				GoStmt.GoReturn(GoExpr.GoIdent("e"))
+			]),
+			GoDecl.GoFuncDecl("close", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], [],
+				[GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self"))]),
+			GoDecl.GoFuncDecl("readAll", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			},
+				[{name: "bufsize", typeName: "...int"}], ["*haxe__io__Bytes"], [GoStmt.GoRaw("return haxe__io__input_readAll(self, bufsize...)")]),
+			GoDecl.GoFuncDecl("readFullBytes", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [
+				{name: "s", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], [],
+				[GoStmt.GoRaw("haxe__io__input_readFullBytes(self, s, pos, len)")]),
+			GoDecl.GoFuncDecl("read", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			},
+				[{name: "nbytes", typeName: "int"}], ["*haxe__io__Bytes"], [GoStmt.GoRaw("return haxe__io__input_read(self, nbytes)")]),
+			GoDecl.GoFuncDecl("readUntil", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			},
+				[{name: "end", typeName: "int"}], ["*string"], [GoStmt.GoRaw("return haxe__io__input_readUntil(self, end)")]),
+			GoDecl.GoFuncDecl("readLine", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], ["*string"],
+				[GoStmt.GoRaw("return haxe__io__input_readLine(self)")]),
+			GoDecl.GoFuncDecl("readFloat", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], ["float64"],
+				[GoStmt.GoRaw("return haxe__io__input_readFloat(self)")]),
+			GoDecl.GoFuncDecl("readDouble", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], ["float64"],
+				[GoStmt.GoRaw("return haxe__io__input_readDouble(self)")]),
+			GoDecl.GoFuncDecl("readInt8", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], ["int"],
+				[GoStmt.GoRaw("return haxe__io__input_readInt8(self)")]),
+			GoDecl.GoFuncDecl("readInt16", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], ["int"],
+				[GoStmt.GoRaw("return haxe__io__input_readInt16(self)")]),
+			GoDecl.GoFuncDecl("readUInt16", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], ["int"],
+				[GoStmt.GoRaw("return haxe__io__input_readUInt16(self)")]),
+			GoDecl.GoFuncDecl("readInt24", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], ["int"],
+				[GoStmt.GoRaw("return haxe__io__input_readInt24(self)")]),
+			GoDecl.GoFuncDecl("readUInt24", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], ["int"],
+				[GoStmt.GoRaw("return haxe__io__input_readUInt24(self)")]),
+			GoDecl.GoFuncDecl("readInt32", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [], ["int"],
+				[GoStmt.GoRaw("return haxe__io__input_readInt32(self)")]),
+			GoDecl.GoFuncDecl("readString", {
+				name: "self",
+				typeName: "*haxe__io__BytesInput"
+			}, [
+				{name: "len", typeName: "int"},
+				{name: "encoding", typeName: "...*haxe__io__Encoding"}
+			],
+				["*string"], [GoStmt.GoRaw("return haxe__io__input_readString(self, len, encoding...)")]),
 			GoDecl.GoFuncDecl("New_haxe__io__BytesOutput", null, [], ["*haxe__io__BytesOutput"], [
 				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__BytesOutput{b: &haxe__io__BytesBuffer{b: []int{}}}"))
 			]),
@@ -887,6 +1722,107 @@ class GoCompiler {
 					[GoExpr.GoIdent("buf"), GoExpr.GoIdent("pos"), GoExpr.GoIdent("len")])),
 				GoStmt.GoReturn(GoExpr.GoIdent("len"))
 			]),
+			GoDecl.GoFuncDecl("get_bigEndian", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [], ["bool"], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null),
+				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "bigEndian"))
+			]),
+			GoDecl.GoFuncDecl("set_bigEndian", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [{name: "e", typeName: "bool"}], ["bool"], [
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("self"), GoExpr.GoNil), [
+					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "bigEndian"), GoExpr.GoIdent("e"))
+				], null),
+				GoStmt.GoReturn(GoExpr.GoIdent("e"))
+			]),
+			GoDecl.GoFuncDecl("flush", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [], [],
+				[GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self"))]),
+			GoDecl.GoFuncDecl("close", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [], [],
+				[GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self"))]),
+			GoDecl.GoFuncDecl("write", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			},
+				[{name: "s", typeName: "*haxe__io__Bytes"}], [], [GoStmt.GoRaw("haxe__io__output_write(self, s)")]),
+			GoDecl.GoFuncDecl("writeFullBytes", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [
+				{name: "s", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], [],
+				[GoStmt.GoRaw("haxe__io__output_writeFullBytes(self, s, pos, len)")]),
+			GoDecl.GoFuncDecl("writeFloat", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			},
+				[{name: "x", typeName: "float64"}], [], [GoStmt.GoRaw("haxe__io__output_writeFloat(self, x)")]),
+			GoDecl.GoFuncDecl("writeDouble", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			},
+				[{name: "x", typeName: "float64"}], [], [GoStmt.GoRaw("haxe__io__output_writeDouble(self, x)")]),
+			GoDecl.GoFuncDecl("writeInt8", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [{name: "x", typeName: "int"}],
+				[], [GoStmt.GoRaw("haxe__io__output_writeInt8(self, x)")]),
+			GoDecl.GoFuncDecl("writeInt16", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [{name: "x", typeName: "int"}],
+				[], [GoStmt.GoRaw("haxe__io__output_writeInt16(self, x)")]),
+			GoDecl.GoFuncDecl("writeUInt16", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [{name: "x", typeName: "int"}],
+				[], [GoStmt.GoRaw("haxe__io__output_writeUInt16(self, x)")]),
+			GoDecl.GoFuncDecl("writeInt24", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [{name: "x", typeName: "int"}],
+				[], [GoStmt.GoRaw("haxe__io__output_writeInt24(self, x)")]),
+			GoDecl.GoFuncDecl("writeUInt24", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [{name: "x", typeName: "int"}],
+				[], [GoStmt.GoRaw("haxe__io__output_writeUInt24(self, x)")]),
+			GoDecl.GoFuncDecl("writeInt32", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [{name: "x", typeName: "int"}], [],
+				[GoStmt.GoRaw("haxe__io__output_writeInt32(self, x)")]),
+			GoDecl.GoFuncDecl("prepare", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [{name: "nbytes", typeName: "int"}], [], [
+				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self")),
+				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("nbytes"))
+			]),
+			GoDecl.GoFuncDecl("writeInput", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			},
+				[{name: "i", typeName: "haxe__io__Input"}, {name: "bufsize", typeName: "...int"}], [],
+				[GoStmt.GoRaw("haxe__io__output_writeInput(self, i, bufsize...)")]),
+			GoDecl.GoFuncDecl("writeString", {
+				name: "self",
+				typeName: "*haxe__io__BytesOutput"
+			}, [
+				{name: "s", typeName: "*string"},
+				{name: "encoding", typeName: "...*haxe__io__Encoding"}
+			], [],
+				[GoStmt.GoRaw("haxe__io__output_writeString(self, s, encoding...)")]),
 			GoDecl.GoFuncDecl("getBytes", {
 				name: "self",
 				typeName: "*haxe__io__BytesOutput"
@@ -8295,6 +9231,8 @@ class GoCompiler {
 					"any";
 				} else if (isHaxeExceptionClass(classType)) {
 					"*hxrt.ExceptionValue";
+				} else if (isHaxeIoBaseClass(classType)) {
+					classTypeName(classType);
 				} else if (classType.isInterface) {
 					classTypeName(classType);
 				} else if (classType.pack.length == 0 && classType.name == "String") {
@@ -8521,6 +9459,8 @@ class GoCompiler {
 					"any";
 				} else if (isHaxeExceptionClass(classType)) {
 					"*hxrt.ExceptionValue";
+				} else if (isHaxeIoBaseClass(classType)) {
+					classTypeName(classType);
 				} else if (classType.isInterface) {
 					classTypeName(classType);
 				} else if (classType.pack.length == 0 && classType.name == "String") {
@@ -8684,6 +9624,10 @@ class GoCompiler {
 
 	function isHaxeJsonParserClass(classType:ClassType):Bool {
 		return classType.pack.join(".") == "haxe.format" && classType.name == "JsonParser";
+	}
+
+	function isHaxeIoBaseClass(classType:ClassType):Bool {
+		return classType.pack.join(".") == "haxe.io" && (classType.name == "Input" || classType.name == "Output");
 	}
 
 	function isHaxeExceptionType(type:Type):Bool {
