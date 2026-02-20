@@ -1,3 +1,9 @@
+## [0.30.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.29.0...v0.30.0) (2026-02-20)
+
+### Features
+
+* **io:** expand Input/Output helper subset parity ([5b5a49f](https://github.com/fullofcaffeine/reflaxe.go/commit/5b5a49f101a3629dbcae992c74df828371f1f3c1))
+
 ## [0.29.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.28.0...v0.29.0) (2026-02-20)
 
 ### Features
