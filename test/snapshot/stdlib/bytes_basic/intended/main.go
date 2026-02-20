@@ -24,7 +24,7 @@ func main() {
 	_ = _g1
 	for _g < _g1 {
 		hx_post_1 := _g
-		_g = (_g + 1)
+		_g = int(int32((_g + 1)))
 		i := hx_post_1
 		_ = i
 		buffer.b = append(buffer.b, b2[i])

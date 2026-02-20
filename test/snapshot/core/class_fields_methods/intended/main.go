@@ -19,7 +19,7 @@ func New_Counter(start int) *Counter {
 }
 
 func (self *Counter) inc(step int) int {
-	self.value = (self.value + step)
+	self.value = int(int32((int32(self.value) + int32(step))))
 	return self.value
 }
 

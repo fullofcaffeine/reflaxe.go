@@ -13,14 +13,14 @@ func main() {
 		}
 		return hx_field_2.(*string)
 	}(user))
-	user["score"] = (func(hx_obj_4 map[string]any) int {
+	user["score"] = int(int32((int32(func(hx_obj_4 map[string]any) int {
 		hx_field_5 := hx_obj_4["score"]
 		if hx_field_5 == nil {
 			var hx_zero_6 int
 			return hx_zero_6
 		}
 		return hx_field_5.(int)
-	}(user) + 5)
+	}(user)) + int32(5))))
 	hxrt.Println(func(hx_obj_7 map[string]any) int {
 		hx_field_8 := hx_obj_7["score"]
 		if hx_field_8 == nil {
@@ -36,7 +36,7 @@ func main() {
 	nested_inner_flag = true
 	nested_inner_count = 2
 	hxrt.Println(nested_inner_flag)
-	nested_inner_count = (nested_inner_count + 3)
+	nested_inner_count = int(int32((int32(nested_inner_count) + int32(3))))
 	hxrt.Println(nested_inner_count)
 }
 

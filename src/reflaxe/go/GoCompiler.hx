@@ -223,6 +223,10 @@ class GoCompiler {
 	}
 
 	function isProjectClass(classType:ClassType):Bool {
+		if (isRequiredStdlibClass(classType)) {
+			return true;
+		}
+
 		if (classType.isExtern) {
 			return false;
 		}
@@ -247,6 +251,10 @@ class GoCompiler {
 	}
 
 	function isProjectEnum(enumType:EnumType):Bool {
+		if (isRequiredStdlibEnum(enumType)) {
+			return true;
+		}
+
 		if (enumType.isExtern) {
 			return false;
 		}
@@ -268,6 +276,17 @@ class GoCompiler {
 		}
 
 		return true;
+	}
+
+	function isRequiredStdlibClass(classType:ClassType):Bool {
+		var pack = classType.pack.join(".");
+		return (pack == "haxe" && classType.name == "Int64Helper")
+			|| (pack == "haxe._Int64" && (classType.name == "Int64_Impl_" || classType.name == "___Int64"))
+			|| (pack == "haxe._Int32" && classType.name == "Int32_Impl_");
+	}
+
+	function isRequiredStdlibEnum(enumType:EnumType):Bool {
+		return false;
 	}
 
 	function fullClassName(classType:ClassType):String {
@@ -1422,6 +1441,23 @@ class GoCompiler {
 				[GoStmt.GoReturn(GoExpr.GoRaw("int(math.Floor(value + 0.5))"))]),
 			GoDecl.GoFuncDecl("Math_abs", null, [{name: "value", typeName: "float64"}], ["float64"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("math"), "Abs"), [GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("Math_isNaN", null, [
+				{
+					name: "value",
+					typeName: "float64"
+				}
+			], ["bool"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("math"), "IsNaN"), [GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("Math_isFinite", null, [
+				{
+					name: "value",
+					typeName: "float64"
+				}
+			], ["bool"], [
+				GoStmt.GoReturn(GoExpr.GoUnary("!",
+					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("math"), "IsInf"), [GoExpr.GoIdent("value"), GoExpr.GoIntLiteral(0)])))
 			]),
 			GoDecl.GoFuncDecl("Math_min", null, [
 				{
@@ -5451,7 +5487,7 @@ class GoCompiler {
 						var loweredRight = lowerExprWithPrefix(right);
 						var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t);
 						var targetExpr = lowerLValue(left);
-						var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t);
+						var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t, expr.pos);
 						var assignStmt = GoStmt.GoAssign(targetExpr, assignExpr);
 						if (loweredRight.prefix.length > 0) {
 							loweredRight.prefix.concat([assignStmt]);
@@ -5459,7 +5495,7 @@ class GoCompiler {
 							[assignStmt];
 						}
 					case _:
-						[GoStmt.GoExprStmt(lowerExpr(expr).expr)];
+						exprStatement(lowerExpr(expr).expr);
 				}
 			case TIf(condition, thenBranch, elseBranch):
 				[
@@ -5486,12 +5522,12 @@ class GoCompiler {
 				switch (op) {
 					case OpIncrement:
 						var target = lowerLValue(value);
-						[GoStmt.GoAssign(target, GoExpr.GoBinary("+", target, GoExpr.GoIntLiteral(1)))];
+						[GoStmt.GoAssign(target, unitStepExpr(target, "+", value.t, expr.pos))];
 					case OpDecrement:
 						var target = lowerLValue(value);
-						[GoStmt.GoAssign(target, GoExpr.GoBinary("-", target, GoExpr.GoIntLiteral(1)))];
+						[GoStmt.GoAssign(target, unitStepExpr(target, "-", value.t, expr.pos))];
 					case _:
-						[GoStmt.GoExprStmt(lowerExpr(expr).expr)];
+						exprStatement(lowerExpr(expr).expr);
 				}
 			case TSwitch(value, cases, defaultExpr):
 				[lowerSwitchStmt(value, cases, defaultExpr)];
@@ -5536,11 +5572,24 @@ class GoCompiler {
 							], null)
 						];
 					} else {
-						[GoStmt.GoExprStmt(lowerCall(callee, args, expr.t).expr)];
+						exprStatement(lowerCall(callee, args, expr.t).expr);
 					}
 				}
 			case _:
-				[GoStmt.GoExprStmt(lowerExpr(expr).expr)];
+				exprStatement(lowerExpr(expr).expr);
+		};
+	}
+
+	function exprStatement(expr:GoExpr):Array<GoStmt> {
+		return switch (expr) {
+			case GoExpr.GoCall(_, _):
+				[GoStmt.GoExprStmt(expr)];
+			case _:
+				if (isNilExpr(expr)) {
+					[];
+				} else {
+					[GoStmt.GoAssign(GoExpr.GoIdent("_"), expr)];
+				}
 		};
 	}
 
@@ -6074,10 +6123,8 @@ class GoCompiler {
 				var restPacked = lowerRestPackBlock(exprs);
 				if (restPacked != null) {
 					{expr: restPacked, isStringLike: false};
-				} else if (exprs.length == 0) {
-					{expr: GoExpr.GoNil, isStringLike: false};
 				} else {
-					lowerExpr(exprs[exprs.length - 1]);
+					materializeExprWithPrefix(lowerExprWithPrefix(expr), expr.t);
 				}
 			case TArray(target, index):
 				{
@@ -6153,7 +6200,7 @@ class GoCompiler {
 						var targetExpr = lowerLValue(left);
 						var loweredRight = lowerExprWithPrefix(right);
 						var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t);
-						var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t);
+						var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t, expr.pos);
 						{
 							expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
 								loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, assignExpr), GoStmt.GoReturn(targetExpr)])),
@@ -6173,7 +6220,7 @@ class GoCompiler {
 							{
 								expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(value.t)], [
 									GoStmt.GoVarDecl(temp, null, target, true),
-									GoStmt.GoAssign(target, GoExpr.GoBinary(opSymbol, target, GoExpr.GoIntLiteral(1))),
+									GoStmt.GoAssign(target, unitStepExpr(target, opSymbol, value.t, expr.pos)),
 									GoStmt.GoReturn(GoExpr.GoIdent(temp))
 								]), []),
 								isStringLike: isStringType(expr.t)
@@ -6188,14 +6235,20 @@ class GoCompiler {
 						var opSymbol = op == OpIncrement ? "+" : "-";
 						{
 							expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(value.t)], [
-								GoStmt.GoAssign(target, GoExpr.GoBinary(opSymbol, target, GoExpr.GoIntLiteral(1))),
+								GoStmt.GoAssign(target, unitStepExpr(target, opSymbol, value.t, expr.pos)),
 								GoStmt.GoReturn(target)
 							]), []),
 							isStringLike: isStringType(expr.t)
 						};
 					case _:
+						var loweredValue = lowerExpr(value).expr;
+						var unaryExpr = if (isInt32SemanticType(expr.t, expr.pos) && (op == OpNeg || op == OpNegBits)) {
+							wrapInt32Expr(GoExpr.GoUnary(unopSymbol(op), GoExpr.GoCall(GoExpr.GoIdent("int32"), [loweredValue])));
+						} else {
+							GoExpr.GoUnary(unopSymbol(op), loweredValue);
+						}
 						{
-							expr: GoExpr.GoUnary(unopSymbol(op), lowerExpr(value).expr),
+							expr: unaryExpr,
 							isStringLike: isStringType(expr.t)
 						};
 				};
@@ -6269,7 +6322,7 @@ class GoCompiler {
 							{
 								prefix: [
 									GoStmt.GoVarDecl(temp, null, target, true),
-									GoStmt.GoAssign(target, GoExpr.GoBinary(opSymbol, target, GoExpr.GoIntLiteral(1)))
+									GoStmt.GoAssign(target, unitStepExpr(target, opSymbol, value.t, expr.pos))
 								],
 								expr: GoExpr.GoIdent(temp),
 								isStringLike: false
@@ -6356,6 +6409,13 @@ class GoCompiler {
 					return {
 						expr: GoExpr.GoSelector(loweredTarget, normalizeIdent(resolved.name)),
 						isStringLike: isStringType(resolved.type)
+					};
+				}
+
+				if (classType.pack.length == 0 && classType.name == "String" && resolved.name == "length") {
+					return {
+						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringLength"), [loweredTarget]),
+						isStringLike: false
 					};
 				}
 
@@ -6478,6 +6538,11 @@ class GoCompiler {
 	}
 
 	function lowerCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):LoweredExpr {
+		var stringInstanceCall = lowerStringInstanceCall(callee, args);
+		if (stringInstanceCall != null) {
+			return stringInstanceCall;
+		}
+
 		var jsonParserTarget = jsonParserDoParseTarget(callee, args);
 		if (jsonParserTarget != null) {
 			return {
@@ -6594,6 +6659,50 @@ class GoCompiler {
 		return {
 			expr: callExpr,
 			isStringLike: isStringType(returnType)
+		};
+	}
+
+	function lowerStringInstanceCall(callee:TypedExpr, args:Array<TypedExpr>):Null<LoweredExpr> {
+		return switch (callee.expr) {
+			case TField(target, FInstance(classRef, _, field)):
+				var classType = classRef.get();
+				var resolvedField = field.get();
+				if (classType.pack.length != 0 || classType.name != "String") {
+					null;
+				} else {
+					var loweredTarget = lowerExpr(target).expr;
+					switch (resolvedField.name) {
+						case "charAt":
+							var indexExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
+							{
+								expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringCharAt"), [loweredTarget, indexExpr]),
+								isStringLike: true
+							};
+						case "charCodeAt":
+							var indexExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
+							{
+								expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringCharCodeAt"), [loweredTarget, indexExpr]),
+								isStringLike: false
+							};
+						case "substring":
+							var startExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
+							var endExpr = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringLength"), [loweredTarget]);
+							{
+								expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringSubstring"), [loweredTarget, startExpr, endExpr]),
+								isStringLike: true
+							};
+						case _:
+							null;
+					}
+				}
+			case TMeta(_, inner):
+				lowerStringInstanceCall(inner, args);
+			case TParenthesis(inner):
+				lowerStringInstanceCall(inner, args);
+			case TCast(inner, _):
+				lowerStringInstanceCall(inner, args);
+			case _:
+				null;
 		};
 	}
 
@@ -7038,6 +7147,9 @@ class GoCompiler {
 		var rightLowered = lowerExpr(right);
 		var stringMode = leftLowered.isStringLike || rightLowered.isStringLike || isStringType(left.t) || isStringType(right.t);
 		var typedStringOps = compilationContext.profile != GoProfile.Portable && isStringType(left.t) && isStringType(right.t);
+		var int32Mode = isInt32SemanticType(left.t, left.pos)
+			|| isInt32SemanticType(right.t, right.pos)
+			|| isInt32SemanticType(resultType, left.pos);
 
 		return switch (op) {
 			case OpAdd if (stringMode):
@@ -7059,12 +7171,27 @@ class GoCompiler {
 							[leftLowered.expr, rightLowered.expr])),
 					isStringLike: false
 				};
-			case OpUShr:
+			case OpMod if (isFloatType(left.t) || isFloatType(right.t)):
 				{
-					expr: GoExpr.GoCall(GoExpr.GoIdent("int"), [
-						GoExpr.GoBinary(">>", GoExpr.GoCall(GoExpr.GoIdent("uint32"), [leftLowered.expr]),
-							GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightLowered.expr]))
-					]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.FloatMod"), [leftLowered.expr, rightLowered.expr]),
+					isStringLike: false
+				};
+			case OpUShr if (int32Mode):
+				{
+					expr: lowerHaxeInt32BinopExpr(op, leftLowered.expr, rightLowered.expr),
+					isStringLike: false
+				};
+			case OpAdd | OpSub | OpMult | OpMod | OpAnd | OpOr | OpXor | OpShl | OpShr if (int32Mode):
+				{
+					expr: lowerHaxeInt32BinopExpr(op, leftLowered.expr, rightLowered.expr),
+					isStringLike: false
+				};
+			case OpUShr:
+				var ushrInner = GoExpr.GoBinary(">>", GoExpr.GoCall(GoExpr.GoIdent("uint32"), [leftLowered.expr]),
+					GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightLowered.expr]));
+				var ushrCast = scalarGoType(resultType) == "int32" ? "int32" : "int";
+				{
+					expr: GoExpr.GoCall(GoExpr.GoIdent(ushrCast), [ushrInner]),
 					isStringLike: false
 				};
 			case _:
@@ -7075,17 +7202,52 @@ class GoCompiler {
 		};
 	}
 
-	function lowerAssignOpExpr(op:Binop, leftExpr:GoExpr, rightExpr:GoExpr, leftType:Type, rightType:Type):GoExpr {
+	function lowerAssignOpExpr(op:Binop, leftExpr:GoExpr, rightExpr:GoExpr, leftType:Type, rightType:Type, ?sourcePos:haxe.macro.Expr.Position):GoExpr {
 		if (op == OpAdd && (isStringType(leftType) || isStringType(rightType))) {
 			var typedStringOps = compilationContext.profile != GoProfile.Portable && isStringType(leftType) && isStringType(rightType);
 			return GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringConcatStringPtr" : "hxrt.StringConcatAny"), [leftExpr, rightExpr]);
 		}
+		if ((isInt32SemanticType(leftType, sourcePos) || isInt32SemanticType(rightType, sourcePos))
+			&& (op == OpAdd || op == OpSub || op == OpMult || op == OpMod || op == OpAnd || op == OpOr || op == OpXor || op == OpShl || op == OpShr
+				|| op == OpUShr)) {
+			return lowerHaxeInt32BinopExpr(op, leftExpr, rightExpr);
+		}
+		if (op == OpMod && (isFloatType(leftType) || isFloatType(rightType))) {
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.FloatMod"), [leftExpr, rightExpr]);
+		}
 		if (op == OpUShr) {
-			return GoExpr.GoCall(GoExpr.GoIdent("int"), [
-				GoExpr.GoBinary(">>", GoExpr.GoCall(GoExpr.GoIdent("uint32"), [leftExpr]), GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr]))
-			]);
+			var ushrInner = GoExpr.GoBinary(">>", GoExpr.GoCall(GoExpr.GoIdent("uint32"), [leftExpr]), GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr]));
+			var ushrCast = scalarGoType(leftType) == "int32" ? "int32" : "int";
+			return GoExpr.GoCall(GoExpr.GoIdent(ushrCast), [ushrInner]);
 		}
 		return GoExpr.GoBinary(binopSymbol(op), leftExpr, rightExpr);
+	}
+
+	function lowerHaxeInt32BinopExpr(op:Binop, leftExpr:GoExpr, rightExpr:GoExpr):GoExpr {
+		var leftInt32 = GoExpr.GoCall(GoExpr.GoIdent("int32"), [leftExpr]);
+		return switch (op) {
+			case OpUShr:
+				var shifted = GoExpr.GoBinary(">>", GoExpr.GoCall(GoExpr.GoIdent("uint32"), [leftInt32]), GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr]));
+				wrapInt32Expr(GoExpr.GoCall(GoExpr.GoIdent("int32"), [shifted]));
+			case OpShl:
+				wrapInt32Expr(GoExpr.GoBinary("<<", leftInt32, GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr])));
+			case OpShr:
+				wrapInt32Expr(GoExpr.GoBinary(">>", leftInt32, GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr])));
+			case OpAdd | OpSub | OpMult | OpMod | OpAnd | OpOr | OpXor:
+				var rightInt32 = GoExpr.GoCall(GoExpr.GoIdent("int32"), [rightExpr]);
+				wrapInt32Expr(GoExpr.GoBinary(binopSymbol(op), leftInt32, rightInt32));
+			case _:
+				GoExpr.GoBinary(binopSymbol(op), leftExpr, rightExpr);
+		};
+	}
+
+	function wrapInt32Expr(expr:GoExpr):GoExpr {
+		return GoExpr.GoCall(GoExpr.GoIdent("int"), [GoExpr.GoCall(GoExpr.GoIdent("int32"), [expr])]);
+	}
+
+	function unitStepExpr(target:GoExpr, opSymbol:String, valueType:Type, ?sourcePos:haxe.macro.Expr.Position):GoExpr {
+		var stepped = GoExpr.GoBinary(opSymbol, target, GoExpr.GoIntLiteral(1));
+		return isInt32SemanticType(valueType, sourcePos) ? wrapInt32Expr(stepped) : stepped;
 	}
 
 	function binopSymbol(op:Binop):String {
@@ -7225,6 +7387,10 @@ class GoCompiler {
 					"bool";
 				} else if (abstractType.pack.length == 0 && abstractType.name == "String") {
 					"*string";
+				} else if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int32") {
+					"int";
+				} else if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int64") {
+					"*haxe___Int64_____Int64";
 				} else {
 					"any";
 				}
@@ -7269,6 +7435,37 @@ class GoCompiler {
 			case _:
 				false;
 		};
+	}
+
+	function isHaxeInt32Type(type:Type):Bool {
+		return switch (type) {
+			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.join(".") == "haxe" && abstractType.name == "Int32";
+			case TMono(ref): var resolved = ref.get(); resolved != null && isHaxeInt32Type(resolved);
+			case TType(_, _):
+				isHaxeInt32Type(Context.follow(type));
+			case _:
+				false;
+		};
+	}
+
+	function isInt32SemanticType(type:Type, ?sourcePos:haxe.macro.Expr.Position):Bool {
+		return isIntType(type) || isHaxeInt32Type(type);
+	}
+
+	function isInt32StdlibPosition(pos:Null<haxe.macro.Expr.Position>):Bool {
+		if (pos == null) {
+			return false;
+		}
+
+		var file = Std.string(PositionTools.toLocation(pos).file);
+		if (file == null || file == "") {
+			return false;
+		}
+
+		var normalized = StringTools.replace(file, "\\", "/");
+		return StringTools.contains(normalized, "/std/haxe/Int32.hx")
+			|| StringTools.contains(normalized, "/std/haxe/Int64.hx")
+			|| StringTools.contains(normalized, "/std/haxe/Int64Helper.hx");
 	}
 
 	function isFloatType(type:Type):Bool {
@@ -7398,6 +7595,10 @@ class GoCompiler {
 					"bool";
 				} else if (abstractType.pack.length == 0 && abstractType.name == "String") {
 					"*string";
+				} else if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int32") {
+					"int";
+				} else if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int64") {
+					"*haxe___Int64_____Int64";
 				} else {
 					"any";
 				}

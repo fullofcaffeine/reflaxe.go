@@ -22,8 +22,8 @@ func main() {
 	for _g < len(nums) {
 		n := nums[_g]
 		_ = n
-		_g = (_g + 1)
-		sum = (sum + n)
+		_g = int(int32((_g + 1)))
+		sum = int(int32((int32(sum) + int32(n))))
 	}
 	hxrt.Println(sum)
 }

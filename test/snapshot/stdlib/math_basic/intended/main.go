@@ -197,6 +197,14 @@ func Math_abs(value float64) float64 {
 	return math.Abs(value)
 }
 
+func Math_isNaN(value float64) bool {
+	return math.IsNaN(value)
+}
+
+func Math_isFinite(value float64) bool {
+	return !math.IsInf(value, 0)
+}
+
 func Math_min(a float64, b float64) float64 {
 	return math.Min(a, b)
 }

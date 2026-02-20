@@ -13,8 +13,8 @@ func sum(values []int) int {
 	i := 0
 	_ = i
 	for i < len(values) {
-		total = (total + values[i])
-		i = (i + 1)
+		total = int(int32((int32(total) + int32(values[i]))))
+		i = int(int32((int32(i) + int32(1))))
 	}
 	return total
 }

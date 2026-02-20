@@ -10,7 +10,7 @@ func main() {
 	i := 1
 	_ = i
 	now := id(func() int {
-		i = (i + 1)
+		i = int(int32((i + 1)))
 		return i
 	}())
 	_ = now

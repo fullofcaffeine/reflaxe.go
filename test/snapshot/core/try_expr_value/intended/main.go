@@ -31,5 +31,5 @@ func risky(v int) int {
 	if v == 0 {
 		hxrt.Throw(hxrt.StringFromLiteral("bad"))
 	}
-	return (v + 1)
+	return int(int32((int32(v) + int32(1))))
 }

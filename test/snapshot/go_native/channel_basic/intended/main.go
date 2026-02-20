@@ -41,6 +41,6 @@ func (self *go___Chan) recv() any {
 	}
 	var value any = self.queue[self.readIndex]
 	_ = value
-	self.readIndex = (self.readIndex + 1)
+	self.readIndex = int(int32((self.readIndex + 1)))
 	return value
 }

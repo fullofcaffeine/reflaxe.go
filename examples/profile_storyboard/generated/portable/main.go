@@ -58,10 +58,10 @@ func Harness_countByState(cards *haxe__ds__List, state *string) int {
 		card := value
 		_ = card
 		if hxrt.StringEqualAny(card.state, state) {
-			total = (total + 1)
+			total = int(int32((total + 1)))
 		}
 		cards.add(card)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return total
 }
@@ -82,10 +82,10 @@ func Harness_donePoints(cards *haxe__ds__List) int {
 		card := value
 		_ = card
 		if hxrt.StringEqualAny(card.state, hxrt.StringFromLiteral("done")) {
-			total = (total + card.points)
+			total = int(int32((int32(total) + int32(card.points))))
 		}
 		cards.add(card)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return total
 }
@@ -107,7 +107,7 @@ func Harness_formatCard(card *domain__StoryCard, runtime profile__StoryboardRunt
 		_ = tag
 		tags.add(runtime.highlightTag(tag))
 		card.tags.add(tag)
-		j = (j + 1)
+		j = int(int32((j + 1)))
 	}
 	return hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("#"), card.id), hxrt.StringFromLiteral(" p")), card.points), hxrt.StringFromLiteral(" ")), runtime.decorateTitle(card.title)), hxrt.StringFromLiteral(" owner:")), card.owner), hxrt.StringFromLiteral(" tags:")), Harness_joinStringList(tags, hxrt.StringFromLiteral("|")))
 }
@@ -134,7 +134,7 @@ func Harness_formatLane(cards *haxe__ds__List, state *string, title *string, run
 			hasEntries = true
 		}
 		cards.add(card)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	if !hasEntries {
 		out = hxrt.StringConcatAny(out, hxrt.StringFromLiteral("  - none\n"))
@@ -161,7 +161,7 @@ func Harness_hasTag(card *domain__StoryCard, needle *string) bool {
 			found = true
 		}
 		card.tags.add(tag)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return found
 }
@@ -175,8 +175,8 @@ func Harness_intFloorDiv(numerator int, denominator int) int {
 	remaining := numerator
 	_ = remaining
 	for remaining >= denominator {
-		remaining = (remaining - denominator)
-		quotient = (quotient + 1)
+		remaining = int(int32((int32(remaining) - int32(denominator))))
+		quotient = int(int32((quotient + 1)))
 	}
 	return quotient
 }
@@ -204,7 +204,7 @@ func Harness_joinStringList(values *haxe__ds__List, separator *string) *string {
 		out = hxrt.StringConcatAny(out, value)
 		values.add(value)
 		first = false
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return out
 }
@@ -235,10 +235,10 @@ func Harness_openHighRisk(cards *haxe__ds__List, threshold int) int {
 		card := value
 		_ = card
 		if !hxrt.StringEqualAny(card.state, hxrt.StringFromLiteral("done")) && (card.points >= threshold) {
-			total = (total + 1)
+			total = int(int32((total + 1)))
 		}
 		cards.add(card)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return total
 }
@@ -262,7 +262,7 @@ func Harness_openOwnerFocus(cards *haxe__ds__List) *string {
 			owners.add(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(card.owner, hxrt.StringFromLiteral("(p")), card.points), hxrt.StringFromLiteral(")")))
 		}
 		cards.add(card)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	if owners.length == 0 {
 		return hxrt.StringFromLiteral("none")
@@ -286,10 +286,10 @@ func Harness_openPoints(cards *haxe__ds__List) int {
 		card := value
 		_ = card
 		if !hxrt.StringEqualAny(card.state, hxrt.StringFromLiteral("done")) {
-			total = (total + card.points)
+			total = int(int32((int32(total) + int32(card.points))))
 		}
 		cards.add(card)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return total
 }
@@ -301,7 +301,7 @@ func Harness_progressBar(donePoints int, totalPoints int, width int) *string {
 	filled := 0
 	_ = filled
 	if totalPoints > 0 {
-		filled = Harness_intFloorDiv((donePoints * width), totalPoints)
+		filled = Harness_intFloorDiv(int(int32((int32(donePoints) * int32(width)))), totalPoints)
 	}
 	if filled < 0 {
 		filled = 0
@@ -309,14 +309,14 @@ func Harness_progressBar(donePoints int, totalPoints int, width int) *string {
 	if filled > width {
 		filled = width
 	}
-	return hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("["), Harness_repeatChar(hxrt.StringFromLiteral("#"), filled)), Harness_repeatChar(hxrt.StringFromLiteral("-"), (width-filled))), hxrt.StringFromLiteral("]"))
+	return hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("["), Harness_repeatChar(hxrt.StringFromLiteral("#"), filled)), Harness_repeatChar(hxrt.StringFromLiteral("-"), int(int32((int32(width)-int32(filled)))))), hxrt.StringFromLiteral("]"))
 }
 
 func Harness_readinessPercent(donePoints int, totalPoints int) int {
 	if totalPoints <= 0 {
 		return 0
 	}
-	return Harness_intFloorDiv((donePoints * 100), totalPoints)
+	return Harness_intFloorDiv(int(int32((int32(donePoints) * int32(100)))), totalPoints)
 }
 
 func Harness_releaseTaggedOpen(cards *haxe__ds__List) int {
@@ -335,10 +335,10 @@ func Harness_releaseTaggedOpen(cards *haxe__ds__List) int {
 		card := value
 		_ = card
 		if !hxrt.StringEqualAny(card.state, hxrt.StringFromLiteral("done")) && Harness_hasTag(card, hxrt.StringFromLiteral("release")) {
-			total = (total + 1)
+			total = int(int32((total + 1)))
 		}
 		cards.add(card)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return total
 }
@@ -402,7 +402,7 @@ func Harness_repeatChar(ch *string, count int) *string {
 	_ = i
 	for i < count {
 		out = hxrt.StringConcatAny(out, ch)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return out
 }
@@ -411,7 +411,7 @@ func Harness_sprintForecast(openPoints int, velocityPerSprint int) int {
 	if openPoints <= 0 {
 		return 0
 	}
-	return Harness_intFloorDiv(((openPoints + velocityPerSprint) - 1), velocityPerSprint)
+	return Harness_intFloorDiv(int(int32((int32(int(int32((int32(openPoints) + int32(velocityPerSprint))))) - int32(1)))), velocityPerSprint)
 }
 
 func Harness_totalPoints(cards *haxe__ds__List) int {
@@ -429,9 +429,9 @@ func Harness_totalPoints(cards *haxe__ds__List) int {
 		}
 		card := value
 		_ = card
-		totalPoints = (totalPoints + card.points)
+		totalPoints = int(int32((int32(totalPoints) + int32(card.points))))
 		cards.add(card)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return totalPoints
 }

@@ -23,6 +23,7 @@ Goal:
   - nullable reference fields
   - selected sys/io behavior
   - deterministic `sys.net.Host` constructor/resolve/reverse/localhost behavior
+  - deterministic `haxe.Int64` arithmetic/compare/parse/fromFloat/toInt behavior parity
   - deterministic `haxe.PosInfos` default-argument injection behavior
   - deterministic `haxe.PosInfos.customParams` missing-field/null-access behavior
   - deterministic HTTP behavior (`requestUrl`, `customRequest`, `Http.PROXY`) without external network

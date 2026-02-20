@@ -8,7 +8,7 @@ func main() {
 	hx_do_first_1 := true
 	for hx_do_first_1 || false {
 		hx_do_first_1 = false
-		once = (once + 1)
+		once = int(int32((once + 1)))
 	}
 	i := 0
 	_ = i
@@ -17,7 +17,7 @@ func main() {
 	hx_do_first_2 := true
 	for hx_do_first_2 || (i < 3) {
 		hx_do_first_2 = false
-		i = (i + 1)
+		i = int(int32((i + 1)))
 		if i < 3 {
 			continue
 		}

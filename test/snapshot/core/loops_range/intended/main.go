@@ -6,8 +6,8 @@ func main() {
 	sum := 0
 	_ = sum
 	sum = sum
-	sum = (sum + 1)
-	sum = (sum + 2)
-	sum = (sum + 3)
+	sum = int(int32((int32(sum) + int32(1))))
+	sum = int(int32((int32(sum) + int32(2))))
+	sum = int(int32((int32(sum) + int32(3))))
 	hxrt.Println(sum)
 }

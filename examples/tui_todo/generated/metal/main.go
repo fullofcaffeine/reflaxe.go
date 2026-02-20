@@ -105,7 +105,7 @@ func InteractiveCli_decodeTags(raw *string) *haxe__ds__List {
 			out.add(tag)
 		}
 		values.add(tag)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return out
 }
@@ -143,7 +143,7 @@ func InteractiveCli_encodeField(raw *string) *string {
 				}
 			}
 		}
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return out.getBytes().toString()
 }
@@ -169,7 +169,7 @@ func InteractiveCli_encodeTags(tags *haxe__ds__List) *string {
 		out = hxrt.StringConcatStringPtr(out, InteractiveCli_encodeField(tag))
 		tags.add(tag)
 		first = false
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return out
 }
@@ -195,7 +195,7 @@ func InteractiveCli_listIndex(values *haxe__ds__List, index int) *string {
 			out = entry
 		}
 		values.add(entry)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return out
 }
@@ -218,7 +218,7 @@ func InteractiveCli_loadState(app *app__TodoApp) {
 			line := lineValue
 			if hxrt.StringEqualStringPtr(line, hxrt.StringFromLiteral("")) {
 				lines.add(line)
-				i = (i + 1)
+				i = int(int32((i + 1)))
 				continue
 			}
 			fields := InteractiveCli_splitEscaped(line, 9)
@@ -246,10 +246,10 @@ func InteractiveCli_loadState(app *app__TodoApp) {
 				tag := tagValue
 				app.__hx_this.tag(id, tag)
 				tags.add(tag)
-				j = (j + 1)
+				j = int(int32((j + 1)))
 			}
 			lines.add(line)
-			i = (i + 1)
+			i = int(int32((i + 1)))
 		}
 	}, func(hx_caught_3 any) {
 		hx_tmp := hx_caught_3
@@ -272,8 +272,8 @@ func InteractiveCli_parsePositiveInt(raw *string) int {
 		if (code < 48) || (code > 57) {
 			return -1
 		}
-		value = ((value * 10) + (code - 48))
-		i = (i + 1)
+		value = int(int32((int32(int(int32((int32(value) * int32(10))))) + int32(int(int32((int32(code) - int32(48))))))))
+		i = int(int32((i + 1)))
 	}
 	return value
 }
@@ -325,54 +325,54 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			app = New_app__TodoApp(runtime)
 			InteractiveCli_clearState()
 			hxrt.Println(hxrt.StringFromLiteral("ok reset"))
-			i = (i + 1)
+			i = int(int32((i + 1)))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("help")) {
 			InteractiveCli_printHelp(runtime)
-			i = (i + 1)
+			i = int(int32((i + 1)))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("list")) {
 			hxrt.Println(app.__hx_this.render())
-			i = (i + 1)
+			i = int(int32((i + 1)))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("summary")) {
 			hxrt.Println(app.__hx_this.baselineSignature())
-			i = (i + 1)
+			i = int(int32((i + 1)))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("diag")) {
 			hxrt.Println(app.__hx_this.diagnostics())
-			i = (i + 1)
+			i = int(int32((i + 1)))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("add")) {
-			if (i + 2) >= len(args) {
+			if int(int32((int32(i) + int32(2)))) >= len(args) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("add requires <priority> <title_token>"))
 				return
 			}
-			priority := InteractiveCli_parsePositiveInt(args[(i + 1)])
+			priority := InteractiveCli_parsePositiveInt(args[int(int32((int32(i) + int32(1))))])
 			if priority < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid priority: "), args[(i+1)]))
+				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid priority: "), args[int(int32((int32(i)+int32(1))))]))
 				return
 			}
-			title := InteractiveCli_decodeToken(args[(i + 2)])
+			title := InteractiveCli_decodeToken(args[int(int32((int32(i) + int32(2))))])
 			app.__hx_this.add(title, priority)
 			InteractiveCli_saveState(app)
 			hxrt.Println(hxrt.StringFromLiteral("ok add"))
-			i = (i + 3)
+			i = int(int32((int32(i) + int32(3))))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("toggle")) {
-			if (i + 1) >= len(args) {
+			if int(int32((int32(i) + int32(1)))) >= len(args) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("toggle requires <id>"))
 				return
 			}
-			id := InteractiveCli_parsePositiveInt(args[(i + 1)])
+			id := InteractiveCli_parsePositiveInt(args[int(int32((int32(i) + int32(1))))])
 			if id < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid id: "), args[(i+1)]))
+				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid id: "), args[int(int32((int32(i)+int32(1))))]))
 				return
 			}
 			if app.__hx_this.toggle(id) {
@@ -381,53 +381,53 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			} else {
 				hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id))
 			}
-			i = (i + 2)
+			i = int(int32((int32(i) + int32(2))))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("tag")) {
-			if (i + 2) >= len(args) {
+			if int(int32((int32(i) + int32(2)))) >= len(args) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("tag requires <id> <tag_token>"))
 				return
 			}
-			id_1 := InteractiveCli_parsePositiveInt(args[(i + 1)])
+			id_1 := InteractiveCli_parsePositiveInt(args[int(int32((int32(i) + int32(1))))])
 			if id_1 < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid id: "), args[(i+1)]))
+				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid id: "), args[int(int32((int32(i)+int32(1))))]))
 				return
 			}
-			tag := InteractiveCli_decodeToken(args[(i + 2)])
+			tag := InteractiveCli_decodeToken(args[int(int32((int32(i) + int32(2))))])
 			if app.__hx_this.tag(id_1, tag) {
 				InteractiveCli_saveState(app)
 				hxrt.Println(hxrt.StringFromLiteral("ok tag"))
 			} else {
 				hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id_1))
 			}
-			i = (i + 3)
+			i = int(int32((int32(i) + int32(3))))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("batch")) {
 			if !runtime.supportsBatchAdd() {
 				hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("batch not supported in "), runtime.profileId()))
-				i = (i + 1)
+				i = int(int32((i + 1)))
 				continue
 			}
-			if (i + 3) >= len(args) {
+			if int(int32((int32(i) + int32(3)))) >= len(args) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("batch requires <priority> <title1_token> <title2_token>"))
 				return
 			}
-			priority_1 := InteractiveCli_parsePositiveInt(args[(i + 1)])
+			priority_1 := InteractiveCli_parsePositiveInt(args[int(int32((int32(i) + int32(1))))])
 			if priority_1 < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid priority: "), args[(i+1)]))
+				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid priority: "), args[int(int32((int32(i)+int32(1))))]))
 				return
 			}
 			titles := New_haxe__ds__List()
-			titles.add(InteractiveCli_decodeToken(args[(i + 2)]))
-			titles.add(InteractiveCli_decodeToken(args[(i + 3)]))
+			titles.add(InteractiveCli_decodeToken(args[int(int32((int32(i) + int32(2))))]))
+			titles.add(InteractiveCli_decodeToken(args[int(int32((int32(i) + int32(3))))]))
 			added := app.__hx_this.addMany(titles, priority_1)
 			if added > 0 {
 				InteractiveCli_saveState(app)
 			}
 			hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok batch added="), added))
-			i = (i + 4)
+			i = int(int32((int32(i) + int32(4))))
 			continue
 		}
 		InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("unknown command: "), cmd))
@@ -459,7 +459,7 @@ func InteractiveCli_saveState(app *app__TodoApp) {
 			return hx_if_5
 		}()), hxrt.StringFromLiteral("\t")), InteractiveCli_encodeTags(item.tags)), hxrt.StringFromLiteral("\n")))
 		items.add(item)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	sys__io__File_saveContent(hxrt.StringFromLiteral(".tui_todo_state.txt"), out)
 }
@@ -495,22 +495,22 @@ func InteractiveCli_splitEscaped(raw *string, separatorCode int) *haxe__ds__List
 				}
 			}
 			escaped = false
-			i = (i + 1)
+			i = int(int32((i + 1)))
 			continue
 		}
 		if code == 92 {
 			escaped = true
-			i = (i + 1)
+			i = int(int32((i + 1)))
 			continue
 		}
 		if code == separatorCode {
 			out.add(current.getBytes().toString())
 			current = New_haxe__io__BytesBuffer()
-			i = (i + 1)
+			i = int(int32((i + 1)))
 			continue
 		}
 		current.b = append(current.b, code)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	out.add(current.getBytes().toString())
 	return out
@@ -534,7 +534,7 @@ func InteractiveCli_splitRaw(raw *string, separatorCode int) *haxe__ds__List {
 				current.b = append(current.b, code)
 			}
 		}
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	out.add(current.getBytes().toString())
 	return out
@@ -547,7 +547,7 @@ func hasArg(flag *string) bool {
 	for _g < len(_g1) {
 		arg := _g1[_g]
 		_ = arg
-		_g = (_g + 1)
+		_g = int(int32((_g + 1)))
 		if hxrt.StringEqualStringPtr(arg, flag) {
 			return true
 		}
@@ -614,8 +614,8 @@ func (self *app__TodoApp) addMany(titles *haxe__ds__List, priority int) int {
 		title := raw
 		self.add(title, priority)
 		titles.add(title)
-		added = (added + 1)
-		i = (i + 1)
+		added = int(int32((added + 1)))
+		i = int(int32((i + 1)))
 	}
 	return added
 }
@@ -675,7 +675,7 @@ func (self *app__TodoApp) render() *string {
 		}
 		out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("\n"), state), hxrt.StringFromLiteral(" #")), item.id), hxrt.StringFromLiteral(" p")), item.priority), hxrt.StringFromLiteral(" ")), item.title), hxrt.StringFromLiteral(" tags:")), tags))
 		items.add(item)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("\nsummary "), self.baselineSignature()))
 	return out
@@ -706,7 +706,7 @@ func app__TodoApp_joinStringList(values *haxe__ds__List, separator *string) *str
 		out = hxrt.StringConcatStringPtr(out, value)
 		values.add(value)
 		first = false
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return out
 }
@@ -780,7 +780,7 @@ func New_model__TodoStore() *model__TodoStore {
 func (self *model__TodoStore) add(title *string, priority int) *model__TodoItem {
 	item := New_model__TodoItem(self.nextId, title, priority)
 	_ = item
-	self.nextId = (self.nextId + 1)
+	self.nextId = int(int32((self.nextId + 1)))
 	self.entries.add(item)
 	return item
 }
@@ -824,10 +824,10 @@ func (self *model__TodoStore) openCount() int {
 		}
 		item := value
 		if !item.done {
-			total = (total + 1)
+			total = int(int32((total + 1)))
 		}
 		self.entries.add(item)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return total
 }
@@ -845,10 +845,10 @@ func (self *model__TodoStore) doneCount() int {
 		}
 		item := value
 		if item.done {
-			total = (total + 1)
+			total = int(int32((total + 1)))
 		}
 		self.entries.add(item)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return total
 }
@@ -869,7 +869,7 @@ func (self *model__TodoStore) findById(id int) *model__TodoItem {
 			found = item
 		}
 		self.entries.add(item)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return found
 }
@@ -928,13 +928,13 @@ func (self *profile__MetalRuntime) diagnostics(items *haxe__ds__List) *string {
 		}
 		item := value
 		if item.priority == 1 {
-			p1 = (p1 + 1)
+			p1 = int(int32((p1 + 1)))
 		}
 		if item.done {
-			completed = (completed + 1)
+			completed = int(int32((completed + 1)))
 		}
 		items.add(item)
-		i = (i + 1)
+		i = int(int32((i + 1)))
 	}
 	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("p1="), p1), hxrt.StringFromLiteral(",completed=")), completed)
 }
@@ -1324,6 +1324,14 @@ func Math_round(value float64) int {
 
 func Math_abs(value float64) float64 {
 	return math.Abs(value)
+}
+
+func Math_isNaN(value float64) bool {
+	return math.IsNaN(value)
+}
+
+func Math_isFinite(value float64) bool {
+	return !math.IsInf(value, 0)
 }
 
 func Math_min(a float64, b float64) float64 {

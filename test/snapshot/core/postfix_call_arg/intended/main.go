@@ -11,7 +11,7 @@ func main() {
 	_ = i
 	before := id(func() int {
 		hx_post_1 := i
-		i = (i + 1)
+		i = int(int32((i + 1)))
 		return hx_post_1
 	}())
 	_ = before

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"os/exec"
 )
@@ -62,6 +63,51 @@ func StringConcatStringPtr(left *string, right *string) *string {
 
 func StringEqualStringPtr(left *string, right *string) bool {
 	return stringValueOrNullToken(left) == stringValueOrNullToken(right)
+}
+
+func StringLength(value any) int {
+	runes := []rune(*StdString(value))
+	return len(runes)
+}
+
+func StringCharAt(value any, index int) *string {
+	runes := []rune(*StdString(value))
+	if index < 0 || index >= len(runes) {
+		return StringFromLiteral("")
+	}
+	return StringFromLiteral(string(runes[index]))
+}
+
+func StringCharCodeAt(value any, index int) int {
+	runes := []rune(*StdString(value))
+	if index < 0 || index >= len(runes) {
+		return -1
+	}
+	return int(runes[index])
+}
+
+func StringSubstring(value any, start int, end int) *string {
+	runes := []rune(*StdString(value))
+	if start < 0 {
+		start = 0
+	}
+	if end < 0 {
+		end = 0
+	}
+	if start > len(runes) {
+		start = len(runes)
+	}
+	if end > len(runes) {
+		end = len(runes)
+	}
+	if end < start {
+		end = start
+	}
+	return StringFromLiteral(string(runes[start:end]))
+}
+
+func FloatMod(a float64, b float64) float64 {
+	return math.Mod(a, b)
 }
 
 func Println(value any) {
