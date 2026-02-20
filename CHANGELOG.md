@@ -1,3 +1,9 @@
+## [0.34.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.33.0...v0.34.0) (2026-02-20)
+
+### Features
+
+* **io:** add Encoding enum constructors and Bytes.getString parity ([d481791](https://github.com/fullofcaffeine/reflaxe.go/commit/d481791fb140884f738badf505d2dcb5bbd515dc))
+
 ## [0.33.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.32.0...v0.33.0) (2026-02-20)
 
 ### Features
