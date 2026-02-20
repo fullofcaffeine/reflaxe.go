@@ -1,3 +1,9 @@
+## [0.25.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.24.2...v0.25.0) (2026-02-20)
+
+### Features
+
+* **core:** lower TTypeExpr class/enum value expressions ([2ebaf6f](https://github.com/fullofcaffeine/reflaxe.go/commit/2ebaf6f0367f019aab36f51381fbc22373e6af05))
+
 ## [0.24.2](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.24.1...v0.24.2) (2026-02-20)
 
 ### Performance Improvements
