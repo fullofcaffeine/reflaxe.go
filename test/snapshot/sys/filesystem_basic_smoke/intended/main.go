@@ -106,6 +106,8 @@ type haxe__io__Eof struct {
 }
 
 type haxe__io__Error struct {
+	tag    int
+	params []any
 }
 
 type haxe__io__Bytes struct {
@@ -146,6 +148,41 @@ func New_haxe__io__Eof() *haxe__io__Eof {
 
 func (self *haxe__io__Eof) toString() *string {
 	return hxrt.StringFromLiteral("Eof")
+}
+
+var haxe__io__Error_Blocked *haxe__io__Error = &haxe__io__Error{tag: 0}
+
+var haxe__io__Error_Overflow *haxe__io__Error = &haxe__io__Error{tag: 1}
+
+var haxe__io__Error_OutsideBounds *haxe__io__Error = &haxe__io__Error{tag: 2}
+
+func haxe__io__Error_Custom(e any) *haxe__io__Error {
+	return &haxe__io__Error{tag: 3, params: []any{e}}
+}
+
+func (self *haxe__io__Error) String() string {
+	if self == nil {
+		return "null"
+	}
+	switch self.tag {
+	case 0:
+		return "Blocked"
+	case 1:
+		return "Overflow"
+	case 2:
+		return "OutsideBounds"
+	case 3:
+		if len(self.params) == 0 {
+			return "Custom(null)"
+		}
+		return "Custom(" + *hxrt.StdString(self.params[0]) + ")"
+	default:
+		return "Error"
+	}
+}
+
+func (self *haxe__io__Error) toString() *string {
+	return hxrt.StringFromLiteral(self.String())
 }
 
 func New_haxe__io__Bytes(length int, b []int) *haxe__io__Bytes {

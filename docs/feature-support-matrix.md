@@ -206,8 +206,8 @@ Shim strategy and alternatives are documented in:
 
 ### `haxe.io.BytesInput` / `haxe.io.BytesOutput` shim contract and tradeoffs
 
-- Coverage includes `test/semantic_diff/bytes_io_stream_contract` plus `test/semantic_diff/io_input_output_helpers_contract` and `test/semantic_diff/io_input_output_edge_contract` for deterministic constructor bounds checks, `position`/`length`, EOF behavior, `readByte`/`readBytes`, inherited helper subset parity (`readAll`, `readFullBytes`, `read`, `readUntil`, `readLine`, `readString`, `readFloat`/`readDouble`, signed/unsigned numeric reads), output helper subset parity (`write`, `writeFullBytes`, `writeInput`, `writeString`, numeric typed writes, overflow guards), and `readLine` EOF/tail/CRLF edge paths.
-- Current tradeoff: parity remains focused on `BytesInput`/`BytesOutput` stream behavior and does not yet claim full cross-target `haxe.io.Input`/`haxe.io.Output` edge compatibility (for example less-common encoding variants and every `haxe.io.Error` constructor path).
+- Coverage includes `test/semantic_diff/bytes_io_stream_contract`, `test/semantic_diff/io_input_output_helpers_contract`, `test/semantic_diff/io_input_output_edge_contract`, and `test/semantic_diff/io_error_constructor_contract` for deterministic constructor bounds checks, `position`/`length`, EOF behavior, `readByte`/`readBytes`, inherited helper subset parity (`readAll`, `readFullBytes`, `read`, `readUntil`, `readLine`, `readString`, `readFloat`/`readDouble`, signed/unsigned numeric reads), output helper subset parity (`write`, `writeFullBytes`, `writeInput`, `writeString`, numeric typed writes, overflow guards), `haxe.io.Error` typed constructor matching (`Overflow`, `Custom`), and `readLine` EOF/tail/CRLF edge paths.
+- Current tradeoff: parity remains focused on `BytesInput`/`BytesOutput` stream behavior and does not yet claim full cross-target `haxe.io.Input`/`haxe.io.Output` edge compatibility (for example less-common encoding variants and exhaustive constructor-path coverage for every `haxe.io.Error` throw site).
 
 ### `sys.Http` shim contract and tradeoffs
 
