@@ -27,9 +27,9 @@ func main() {
 		_g = int(int32((_g + 1)))
 		i := hx_post_1
 		_ = i
-		buffer.b = append(buffer.b, b2[i])
+		buffer.b = append(buffer.b, (b2[i] & 255))
 	}
-	buffer.b = append(buffer.b, 33)
+	buffer.b = append(buffer.b, (33 & 255))
 	out := buffer.getBytes()
 	_ = out
 	hxrt.Println(out.toString())
@@ -104,7 +104,7 @@ func New_haxe__io__BytesBuffer() *haxe__io__BytesBuffer {
 }
 
 func (self *haxe__io__BytesBuffer) addByte(value int) {
-	self.b = append(self.b, value)
+	self.b = append(self.b, (value & 255))
 }
 
 func (self *haxe__io__BytesBuffer) add(src *haxe__io__Bytes) {

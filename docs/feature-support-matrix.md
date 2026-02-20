@@ -32,6 +32,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `sys.net.Socket` | `semantic-diff` | `socket_loopback_contract`, `socket_advanced_contract` |
 | `haxe.crypto.*` + `haxe.xml.*` + `haxe.zip.*` subset | `semantic-diff` | `crypto_xml_zip` |
 | `haxe.Json` | `semantic-diff` | `json_parse_stringify_contract`, `stdlib/json_parse_stringify` |
+| `haxe.io.Bytes` / `haxe.io.BytesBuffer` (byte normalization subset) | `semantic-diff` | `bytes_normalization_contract`, `stdlib/bytes_basic` |
 | `sys.io.Process` | `semantic-diff` | `process_echo_contract`, `sys/process_echo_smoke` |
 | `sys.io.File` | `semantic-diff` | `file_read_write_contract`, `sys/file_read_write_smoke` |
 | `sys.FileSystem` | `semantic-diff` | `filesystem_contract`, `sys/filesystem_basic_smoke` |
@@ -89,6 +90,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/file_read_write_contract`
 - `test/semantic_diff/filesystem_contract`
 - `test/semantic_diff/ds_maps_list_contract`
+- `test/semantic_diff/bytes_normalization_contract`
 - `test/semantic_diff/host_basic_contract`
 - `test/semantic_diff/int32_contract`
 - `test/semantic_diff/int64_contract`

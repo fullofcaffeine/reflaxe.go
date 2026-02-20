@@ -28,6 +28,7 @@ Goal:
   - deterministic `sys.io.Process` spawn/stdout behavior (cross-platform echo and `haxe --version` smoke)
   - deterministic throw-as-expression parity (`throw` in value-returning expression contexts)
   - deterministic `sys.net.Host` constructor/resolve/reverse/localhost behavior
+  - deterministic `haxe.io.Bytes`/`haxe.io.BytesBuffer` byte normalization semantics (`set`/`addByte` wrap to `0..255`)
   - deterministic `haxe.Int64` arithmetic/compare/parse/fromFloat/toInt behavior parity
   - deterministic `haxe.Int32` overflow/bitwise/shift/ucompare operator behavior parity
   - deterministic `Std.isOfType` behavior parity for typed and Dynamic class/array/enum/null checks

@@ -144,22 +144,22 @@ func InteractiveCli_encodeField(raw *string) *string {
 		code := bytes.b[i]
 		_ = code
 		if code == 92 {
-			out.b = append(out.b, 92)
-			out.b = append(out.b, 92)
+			out.b = append(out.b, (92 & 255))
+			out.b = append(out.b, (92 & 255))
 		} else {
 			if code == 9 {
-				out.b = append(out.b, 92)
-				out.b = append(out.b, 116)
+				out.b = append(out.b, (92 & 255))
+				out.b = append(out.b, (116 & 255))
 			} else {
 				if code == 10 {
-					out.b = append(out.b, 92)
-					out.b = append(out.b, 110)
+					out.b = append(out.b, (92 & 255))
+					out.b = append(out.b, (110 & 255))
 				} else {
 					if code == 44 {
-						out.b = append(out.b, 92)
-						out.b = append(out.b, 99)
+						out.b = append(out.b, (92 & 255))
+						out.b = append(out.b, (99 & 255))
 					} else {
-						out.b = append(out.b, code)
+						out.b = append(out.b, (code & 255))
 					}
 				}
 			}
@@ -565,18 +565,18 @@ func InteractiveCli_splitEscaped(raw *string, separatorCode int) *haxe__ds__List
 		_ = code
 		if escaped {
 			if code == 116 {
-				current.b = append(current.b, 9)
+				current.b = append(current.b, (9 & 255))
 			} else {
 				if code == 110 {
-					current.b = append(current.b, 10)
+					current.b = append(current.b, (10 & 255))
 				} else {
 					if code == 99 {
-						current.b = append(current.b, 44)
+						current.b = append(current.b, (44 & 255))
 					} else {
 						if code == 92 {
-							current.b = append(current.b, 92)
+							current.b = append(current.b, (92 & 255))
 						} else {
-							current.b = append(current.b, code)
+							current.b = append(current.b, (code & 255))
 						}
 					}
 				}
@@ -596,7 +596,7 @@ func InteractiveCli_splitEscaped(raw *string, separatorCode int) *haxe__ds__List
 			i = int(int32((i + 1)))
 			continue
 		}
-		current.b = append(current.b, code)
+		current.b = append(current.b, (code & 255))
 		i = int(int32((i + 1)))
 	}
 	out.add(current.getBytes().toString())
@@ -620,7 +620,7 @@ func InteractiveCli_splitRaw(raw *string, separatorCode int) *haxe__ds__List {
 			current = New_haxe__io__BytesBuffer()
 		} else {
 			if code != 13 {
-				current.b = append(current.b, code)
+				current.b = append(current.b, (code & 255))
 			}
 		}
 		i = int(int32((i + 1)))
@@ -1148,7 +1148,7 @@ func New_haxe__io__BytesBuffer() *haxe__io__BytesBuffer {
 }
 
 func (self *haxe__io__BytesBuffer) addByte(value int) {
-	self.b = append(self.b, value)
+	self.b = append(self.b, (value & 255))
 }
 
 func (self *haxe__io__BytesBuffer) add(src *haxe__io__Bytes) {

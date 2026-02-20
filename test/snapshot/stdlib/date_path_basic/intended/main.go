@@ -102,7 +102,7 @@ func New_haxe__io__BytesBuffer() *haxe__io__BytesBuffer {
 }
 
 func (self *haxe__io__BytesBuffer) addByte(value int) {
-	self.b = append(self.b, value)
+	self.b = append(self.b, (value & 255))
 }
 
 func (self *haxe__io__BytesBuffer) add(src *haxe__io__Bytes) {

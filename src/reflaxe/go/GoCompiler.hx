@@ -588,8 +588,10 @@ class GoCompiler {
 				name: "self",
 				typeName: "*haxe__io__BytesBuffer"
 			}, [{name: "value", typeName: "int"}], [], [
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"),
-					GoExpr.GoCall(GoExpr.GoIdent("append"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoIdent("value")]))
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoCall(GoExpr.GoIdent("append"), [
+					GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"),
+					GoExpr.GoBinary("&", GoExpr.GoIdent("value"), GoExpr.GoIntLiteral(255))
+				]))
 			]),
 			GoDecl.GoFuncDecl("add", {
 				name: "self",
@@ -5986,7 +5988,15 @@ class GoCompiler {
 					var arrayCall = asArrayMethodCall(callee);
 					if (arrayCall != null && arrayCall.methodName == "push") {
 						var targetExpr = lowerLValue(arrayCall.target);
-						var appendArgs = [targetExpr].concat([for (arg in args) lowerExpr(arg).expr]);
+						var shouldMaskToByte = isBytesBufferStorageArray(arrayCall.target);
+						var appendArgs = [targetExpr];
+						for (arg in args) {
+							var appendValue = lowerExpr(arg).expr;
+							if (shouldMaskToByte) {
+								appendValue = GoExpr.GoBinary("&", appendValue, GoExpr.GoIntLiteral(255));
+							}
+							appendArgs.push(appendValue);
+						}
 						[GoStmt.GoAssign(targetExpr, GoExpr.GoCall(GoExpr.GoIdent("append"), appendArgs))];
 					} else if (arrayCall != null && arrayCall.methodName == "pop") {
 						var targetExpr = lowerLValue(arrayCall.target);
@@ -6028,6 +6038,30 @@ class GoCompiler {
 				name;
 			case _:
 				null;
+		};
+	}
+
+	function isBytesBufferStorageArray(target:TypedExpr):Bool {
+		return switch (target.expr) {
+			case TField(receiver, access):
+				var fieldName = fieldAccessName(access);
+				if (fieldName != "b") {
+					false;
+				} else {
+					switch (Context.follow(receiver.t)) {
+						case TInst(classRef, _): var classType = classRef.get(); classType.pack.join(".") == "haxe.io" && classType.name == "BytesBuffer";
+						case _:
+							false;
+					}
+				}
+			case TMeta(_, inner):
+				isBytesBufferStorageArray(inner);
+			case TParenthesis(inner):
+				isBytesBufferStorageArray(inner);
+			case TCast(inner, _):
+				isBytesBufferStorageArray(inner);
+			case _:
+				false;
 		};
 	}
 
