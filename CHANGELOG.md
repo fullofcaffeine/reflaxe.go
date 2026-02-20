@@ -1,3 +1,9 @@
+## [0.38.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.37.0...v0.38.0) (2026-02-20)
+
+### Features
+
+* **stdlib:** add ReadOnlyArray semantic-diff parity ([2ab312c](https://github.com/fullofcaffeine/reflaxe.go/commit/2ab312c7b9043fb8a2ff15964035ba9e08b47806))
+
 ## [0.37.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.36.0...v0.37.0) (2026-02-20)
 
 ### Features
