@@ -1,3 +1,9 @@
+## [0.31.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.30.0...v0.31.0) (2026-02-20)
+
+### Features
+
+* **io:** gate helper shim emission by usage ([d22adf7](https://github.com/fullofcaffeine/reflaxe.go/commit/d22adf764fae72ca650ce75c9f249eac82a448c7))
+
 ## [0.30.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.29.0...v0.30.0) (2026-02-20)
 
 ### Features
