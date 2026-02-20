@@ -1,3 +1,9 @@
+## [0.24.2](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.24.1...v0.24.2) (2026-02-20)
+
+### Performance Improvements
+
+* **harness:** add atomic microcase to go profile baseline ([ded32bc](https://github.com/fullofcaffeine/reflaxe.go/commit/ded32bced6b6a7a2a2e1e0bc80f2188604d8e218))
+
 ## [0.24.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.24.0...v0.24.1) (2026-02-20)
 
 ### Performance Improvements
