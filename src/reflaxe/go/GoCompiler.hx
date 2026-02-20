@@ -61,6 +61,7 @@ class GoCompiler {
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
 	final functionReturnTypeScopes:Array<Type>;
+	var requiresIoHelperSurface:Bool;
 	var projectClasses:Array<ClassType>;
 	var projectEnums:Array<EnumType>;
 	var tempVarCounter:Int;
@@ -77,6 +78,7 @@ class GoCompiler {
 		functionVarNameScopes = [];
 		functionVarNameCountScopes = [];
 		functionReturnTypeScopes = [];
+		requiresIoHelperSurface = false;
 		projectClasses = [];
 		projectEnums = [];
 		tempVarCounter = 0;
@@ -96,6 +98,7 @@ class GoCompiler {
 	function compileResolvedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
 		projectClasses = classes.copy();
 		projectEnums = enums.copy();
+		requiresIoHelperSurface = false;
 		buildStaticFunctionInfoTable(classes);
 		requiresTypeValueSupport = false;
 		var decls = lowerEnums(enums).concat(lowerClasses(classes));
@@ -113,7 +116,7 @@ class GoCompiler {
 			imports.push("strings");
 			imports.push("time");
 		}
-		if (requiredStdlibShimGroups.exists("io")) {
+		if (requiredStdlibShimGroups.exists("io") && requiresIoHelperSurface) {
 			imports.push("math");
 		}
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
@@ -514,7 +517,7 @@ class GoCompiler {
 	}
 
 	function lowerIoStdlibShimDecls():Array<GoDecl> {
-		return [
+		var decls = [
 			GoDecl.GoStructDecl("haxe__io__Encoding", []),
 			GoDecl.GoInterfaceDecl("haxe__io__Input", [
 				{
@@ -1831,6 +1834,75 @@ class GoCompiler {
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), "getBytes"), []))
 			])
 		];
+		if (!requiresIoHelperSurface) {
+			decls = trimIoShimToCoreSurface(decls);
+		}
+		return decls;
+	}
+
+	function trimIoShimToCoreSurface(decls:Array<GoDecl>):Array<GoDecl> {
+		var out = new Array<GoDecl>();
+		for (decl in decls) {
+			switch (decl) {
+				case GoDecl.GoInterfaceDecl(name, methods):
+					if (name == "haxe__io__Input") {
+						out.push(GoDecl.GoInterfaceDecl(name, [for (method in methods) if (!isIoInputHelperMethodName(method.name)) method]));
+					} else if (name == "haxe__io__Output") {
+						out.push(GoDecl.GoInterfaceDecl(name, [for (method in methods) if (!isIoOutputHelperMethodName(method.name)) method]));
+					} else {
+						out.push(decl);
+					}
+				case GoDecl.GoFuncDecl(name, receiver, _, _, _):
+					if (receiver == null && isIoHelperFunctionDecl(name)) {
+						continue;
+					}
+					if (receiver != null && receiver.typeName == "*haxe__io__BytesInput" && isIoInputHelperMethodName(name)) {
+						continue;
+					}
+					if (receiver != null && receiver.typeName == "*haxe__io__BytesOutput" && isIoOutputHelperMethodName(name)) {
+						continue;
+					}
+					out.push(decl);
+				case _:
+					out.push(decl);
+			}
+		}
+		return out;
+	}
+
+	function isIoInputHelperMethodName(name:String):Bool {
+		return switch (name) {
+			case "readAll", "readFullBytes", "read", "readUntil", "readLine", "readFloat", "readDouble", "readInt8", "readInt16", "readUInt16", "readInt24",
+				"readUInt24", "readInt32", "readString":
+				true;
+			case _:
+				false;
+		};
+	}
+
+	function isIoOutputHelperMethodName(name:String):Bool {
+		return switch (name) {
+			case "write", "writeFullBytes", "writeFloat", "writeDouble", "writeInt8", "writeInt16", "writeUInt16", "writeInt24", "writeUInt24", "writeInt32",
+				"prepare", "writeInput", "writeString":
+				true;
+			case _:
+				false;
+		};
+	}
+
+	function isIoHelperFunctionDecl(name:String):Bool {
+		return switch (name) {
+			case "haxe__io__input_isEof", "haxe__io__input_readAll", "haxe__io__input_readFullBytes", "haxe__io__input_read", "haxe__io__input_readUntil",
+				"haxe__io__input_readLine", "haxe__io__input_readFloat", "haxe__io__input_readDouble", "haxe__io__input_readInt8",
+				"haxe__io__input_readInt16", "haxe__io__input_readUInt16", "haxe__io__input_readInt24", "haxe__io__input_readUInt24",
+				"haxe__io__input_readInt32", "haxe__io__input_readString", "haxe__io__output_write", "haxe__io__output_writeFullBytes",
+				"haxe__io__output_writeFloat", "haxe__io__output_writeDouble", "haxe__io__output_writeInt8", "haxe__io__output_writeInt16",
+				"haxe__io__output_writeUInt16", "haxe__io__output_writeInt24", "haxe__io__output_writeUInt24", "haxe__io__output_writeInt32",
+				"haxe__io__output_writeInput", "haxe__io__output_writeString":
+				true;
+			case _:
+				false;
+		};
 	}
 
 	function lowerAtomicStdlibShimDecls():Array<GoDecl> {
@@ -8130,6 +8202,7 @@ class GoCompiler {
 			case FInstance(classRef, _, field):
 				var resolved = field.get();
 				var classType = classRef.get();
+				noteIoHelperFieldUsage(classType, resolved.name);
 				var loweredTarget = lowerExpr(target).expr;
 
 				if (isSuperTarget(target) && isMethodField(resolved)) {
@@ -9649,6 +9722,23 @@ class GoCompiler {
 
 	function requireStdlibShimGroup(group:String):Void {
 		requiredStdlibShimGroups.set(group, true);
+	}
+
+	function noteIoHelperFieldUsage(classType:ClassType, fieldName:String):Void {
+		if (classType.pack.join(".") != "haxe.io") {
+			return;
+		}
+		switch (classType.name) {
+			case "Input", "BytesInput":
+				if (isIoInputHelperMethodName(fieldName)) {
+					requiresIoHelperSurface = true;
+				}
+			case "Output", "BytesOutput":
+				if (isIoOutputHelperMethodName(fieldName)) {
+					requiresIoHelperSurface = true;
+				}
+			case _:
+		}
 	}
 
 	function noteStdlibClass(classType:ClassType):Void {

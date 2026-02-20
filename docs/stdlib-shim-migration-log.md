@@ -117,6 +117,35 @@ Observed result:
 - `stdlib_symbols` bytes conversion path keeps parity while improving measured shim-path performance versus baseline sample on the same machine.
 - Snapshot/example goldens were refreshed for impacted stdlib/sys surfaces.
 
+### 2026-02-20: IO helper surface gating + edge coverage (`haxe.go-czm`)
+
+Implementation:
+
+- Kept `haxe.io` ownership in compiler core but split emission policy:
+  - core bytes stream declarations are always emitted when `io` shims are required.
+  - inherited `haxe.io.Input`/`haxe.io.Output` helper surface declarations are emitted only when helper methods are actually referenced by lowered code.
+- Added usage tracking in lowering:
+  - `noteIoHelperFieldUsage` now marks helper-surface requirement when `haxe.io.Input`/`BytesInput` helper reads or `haxe.io.Output`/`BytesOutput` helper writes are accessed.
+- Added selective trimming path in `lowerIoStdlibShimDecls`:
+  - `trimIoShimToCoreSurface` removes helper-only interfaces/functions/method wrappers when not needed.
+  - helper mode still preserves full parity subset introduced by `haxe.go-vxe`.
+- Added semantic edge fixture:
+  - `test/semantic_diff/io_input_output_edge_contract` for `readLine` EOF/tail/CRLF behavior.
+
+Validation evidence:
+
+- `python3 test/run-snapshots.py --update --timeout 180`
+- `python3 test/run-semantic-diff.py --timeout 180` (`51/51`, includes new edge fixture)
+
+Observed result:
+
+- Generated footprint for non-IO-heavy fixtures dropped without behavior regressions:
+  - `stdlib/math_basic`: `1488` -> `971` lines (`-517`, `-34.7%`)
+  - `stdlib/stringtools_basic`: `1484` -> `967` lines (`-517`, `-34.8%`)
+- IO-smoke fixture also shrank after eliminating always-on helper declarations:
+  - `stdlib/io_type_smoke`: `901` -> `381` lines (`-520`, `-57.7%`)
+- Snapshot refresh delta for this optimization pass: `6218` deleted lines, `95` inserted lines.
+
 ## Open migration track
 
 - No open shim migration beads remain in the `haxe.go-7zy.10`/`.11`/`.12` sequence.
