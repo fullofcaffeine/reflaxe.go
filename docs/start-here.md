@@ -61,6 +61,16 @@ npm run hx:run
 - Compiler/dev orchestration uses `npm` scripts so workflow stays consistent with `haxe.rust` and `haxe.elixir.codex`.
 - Direct hxml compiles run backend `go build` by default; use `-D go_no_build` for codegen-only flows.
 
+## Why stdlib ownership is hybrid
+
+`reflaxe.go` intentionally uses a hybrid stdlib model:
+
+- runtime helpers in `hxrt`
+- compiler-owned shims for metadata/profile-sensitive behavior
+- staged `std/_std` migration surfaces
+
+This pattern is not unique to Go, but Go's exception/string/dynamic semantics and profile policy model make it especially practical here. Details: `docs/stdlib-shim-rationale.md`.
+
 Quick compile+go action from this repo:
 
 ```bash

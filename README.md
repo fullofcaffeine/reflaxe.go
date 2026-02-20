@@ -21,6 +21,16 @@ If you want Haxe productivity with a serious Go delivery pipeline, this is that 
 - Generated Go module output (`go.mod` + `main.go` + `hxrt`) with backend `go build` by default.
 - Strong verification harness: snapshots, stdlib sweep, semantic diff, examples matrix, and perf checks.
 
+## Stdlib Architecture
+
+`reflaxe.go` uses a hybrid stdlib ownership model:
+
+- runtime helpers in `hxrt`
+- compiler-owned shims for compile-time metadata/profile-sensitive contracts
+- staged migration surfaces under `std/_std`
+
+This is a general compiler-target pattern, not something exclusive to Go; Go just amplifies the need because of exception/string/dynamic/runtime-model differences. Details: [docs/stdlib-shim-rationale.md](docs/stdlib-shim-rationale.md).
+
 ## Quick Start
 
 1. Install project dependencies:

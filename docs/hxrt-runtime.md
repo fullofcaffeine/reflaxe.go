@@ -14,6 +14,8 @@
 
 `hxrt` exists to bridge semantic and representation gaps between Haxe and Go in a deterministic, reusable way.
 
+This is not a Go-only idea; many compiler targets use a runtime package. In `reflaxe.go`, the runtime is intentionally paired with compiler shims and staged stdlib migration to keep parity work incremental and verifiable.
+
 1. Haxe semantics do not map 1:1 to native Go primitives.
    - String behavior and nullability need helper semantics (`Std.string` shape, null-safe concat/equality, rune-aware length/indexing).
    - Haxe exception flow (`throw`/`try`/`catch`) needs a controlled panic/recover boundary.

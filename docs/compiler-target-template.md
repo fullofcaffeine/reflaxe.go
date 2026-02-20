@@ -26,6 +26,19 @@ Use this checklist when building new `reflaxe.<target>` compilers.
   - cycle detection
 - Keep lean bundle default with optional granular bundle.
 
+## 3.5) Stdlib ownership model
+
+- Start hybrid unless there is strong evidence for a pure approach:
+  - runtime package helpers
+  - compiler shims for compile-time-context-sensitive behavior
+  - staged stdlib migration path
+- Treat this as target-agnostic architecture, then document target-specific pressure points.
+- For each surface, choose ownership by evidence:
+  - runtime when behavior is reusable target-runtime logic
+  - compiler when behavior depends on typed metadata/profile lowering
+  - staged stdlib when parity is proven and maintenance cost drops
+- Add migration criteria up front (tests/perf/complexity thresholds) before moving ownership.
+
 ## 4) Boundary policy
 
 - Enforce strict examples policy in repo examples/snapshots.

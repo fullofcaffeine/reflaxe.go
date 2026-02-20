@@ -12,6 +12,41 @@ This document records which compiler-core shims should stay, which should migrat
 For runtime package internals and call-flow wiring, see `docs/hxrt-runtime.md`.
 Execution history and validation evidence are tracked in `docs/stdlib-shim-migration-log.md`.
 
+## Why This Approach (and Whether It Is Go-Specific)
+
+Short answer:
+
+- The hybrid model is a general compiler-target pattern, not Go-only.
+- Go amplifies the need for it because several Haxe semantics do not map directly to native Go behavior.
+
+### Target-agnostic reasons to start hybrid
+
+1. Time-to-quality
+   - A full stdlib rewrite in target language before shipping parity is usually too large and too risky.
+2. Verification-first iteration
+   - Hybrid ownership lets teams land small slices with snapshot/semantic gates and migrate safely.
+3. Ownership flexibility
+   - Runtime helpers, compiler lowering, and staged stdlib code can move independently as evidence improves.
+
+### Why Go makes this especially pragmatic
+
+1. Exception model mismatch
+   - Haxe throw/catch semantics require controlled panic/recover bridging.
+2. String/nullability/dynamic representation differences
+   - Pointer-string conventions and `Std.string`-compatible behavior need centralized helpers.
+3. Reflection and resolver edge cases
+   - Serializer/unserializer contracts require typed metadata-aware lowering plus runtime behavior.
+4. Profile-dependent output policy
+   - `portable|gopher|metal` profile guarantees are compile-time policy decisions, not runtime-only toggles.
+
+### Design rule in this repo
+
+Use the simplest ownership that preserves parity and maintainability:
+
+- runtime (`hxrt`) for reusable target-runtime behavior,
+- compiler shims for compile-time metadata/profile-sensitive contracts,
+- staged `std/_std` as migration destination once parity is proven.
+
 ## Alternatives Reviewed
 
 | Alternative | Strength | Current blocker |

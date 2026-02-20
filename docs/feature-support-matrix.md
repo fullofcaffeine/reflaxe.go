@@ -26,7 +26,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 
 | Surface | Highest tier | Evidence |
 | --- | --- | --- |
-| `haxe.Serializer` / `haxe.Unserializer` | `semantic-diff` | `serializer_wire_contract`, `serializer_cache_reference_contract`, `serializer_resolver_polymorphism_contract`, `serializer_reference_stress_contract` |
+| `haxe.Serializer` / `haxe.Unserializer` | `semantic-diff` | `serializer_wire_contract`, `serializer_cache_reference_contract`, `serializer_global_flags_contract`, `serializer_resolver_polymorphism_contract`, `serializer_reference_stress_contract` |
 | `EReg` | `semantic-diff` | `ereg_behavior_contract`, `ereg_edge_contract` |
 | `sys.Http` | `semantic-diff` | `http_proxy_custom_request`, `http_request_callbacks_contract` |
 | `sys.net.Socket` | `semantic-diff` | `socket_loopback_contract`, `socket_advanced_contract` |
@@ -119,6 +119,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/serializer_resolver_polymorphism_contract`
 - `test/semantic_diff/serializer_resolver_type_value_contract`
 - `test/semantic_diff/serializer_reference_stress_contract`
+- `test/semantic_diff/serializer_global_flags_contract`
 - `test/semantic_diff/ereg_behavior_contract`
 - `test/semantic_diff/ereg_edge_contract`
 - `test/semantic_diff/json_parse_stringify_contract`
@@ -230,8 +231,8 @@ Shim strategy and alternatives are documented in:
 ### `EReg` + `haxe.Serializer` contract and tradeoffs
 
 - `EReg` parity now covers: `g/i/m/s/u` option handling, global vs non-global `replace`/`map`, `matched`/`matchedPos`/`matchedLeft`/`matchedRight` error semantics, and group/null behavior via semantic diff fixtures (`ereg_behavior_contract`, `ereg_edge_contract`).
-- `haxe.Serializer`/`haxe.Unserializer` now cover a wire-format-compatible baseline for core tokens used by fixtures (`n/t/f/z/i/d/k/p/m/v/s/y/a/o/l/b/q/M/c/w/j/C/x/A/B/g/u/h/r/R`) plus sequential `Unserializer` cursor behavior (`serializer_wire_contract`), resolver paths (`serializer_custom_resolver_contract`), resolver method-shape polymorphism (`serializer_resolver_polymorphism_contract`), cache/reference graph parity (`serializer_cache_reference_contract`), and mixed string/object reference stress (`serializer_reference_stress_contract`).
-- Remaining gap: full Haxe serializer surface is still in progress (notably under-tested exotic edge combinations outside current fixtures and cross-target differences for less common resolver payload shapes).
+- `haxe.Serializer`/`haxe.Unserializer` now cover a wire-format-compatible baseline for core tokens used by fixtures (`n/t/f/z/i/d/k/p/m/v/s/y/a/o/l/b/q/M/c/w/j/C/x/A/B/g/u/h/r/R`) plus sequential `Unserializer` cursor behavior (`serializer_wire_contract`), resolver paths (`serializer_custom_resolver_contract`), resolver method-shape polymorphism (`serializer_resolver_polymorphism_contract`), cache/reference graph parity (`serializer_cache_reference_contract`), global serializer default flag behavior (`Serializer.USE_CACHE`/`Serializer.USE_ENUM_INDEX`) with `serializeException` interaction (`serializer_global_flags_contract`), and mixed string/object reference stress (`serializer_reference_stress_contract`).
+- Remaining gap: full Haxe serializer surface is still in progress (mainly exotic/uncommon resolver payload shapes and less-common cross-target edge combinations outside current fixtures).
 - Active follow-up tracking:
   - `haxe.go-7zy.10` (migrate `haxe.Json` shim out of compiler core, completed 2026-02-19)
   - `haxe.go-7zy.11` (migrate `Sys`/`sys.io.File`/`sys.io.Process` shim path out of compiler core, completed 2026-02-19)
@@ -361,3 +362,4 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-rcv`: add `haxe.io.Bytes.ofData` shim and lock `getData` alias semantics (`bytes_of_data_contract`).
 - `haxe.go-nmg`: add `haxe.io.Bytes.toHex` / `haxe.io.Bytes.ofHex` shim parity (`bytes_hex_contract`).
 - `haxe.go-9v6`: promote `haxe.ds.ReadOnlyArray` from compile-only to semantic-diff coverage (`readonly_array_contract`).
+- `haxe.go-8hs`: add serializer global default flag semantic coverage (`serializer_global_flags_contract`).

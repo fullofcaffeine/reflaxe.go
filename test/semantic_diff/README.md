@@ -55,6 +55,7 @@ Goal:
   - serializer custom token + resolver semantics (`C`, `setResolver`, default/null resolver paths)
   - serializer resolver type-value semantics (`Class<T>`/`Enum<T>` returns from resolver methods)
   - serializer cache/reference graph semantics (`r` parity for repeated enum/class/custom instances and cycles)
+  - serializer global default flag semantics (`Serializer.USE_CACHE`, `Serializer.USE_ENUM_INDEX`) and `serializeException` interaction
   - serializer resolver polymorphism semantics (method-shape variants and dynamic/object resolver invocation paths)
   - serializer mixed reference stress semantics (`R`/`r` interleaving and sequential cache replay)
   - EReg match/split/replace contract semantics
