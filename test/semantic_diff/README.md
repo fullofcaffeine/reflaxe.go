@@ -27,6 +27,7 @@ Goal:
   - deterministic `haxe.Int64` arithmetic/compare/parse/fromFloat/toInt behavior parity
   - deterministic `haxe.Int32` overflow/bitwise/shift/ucompare operator behavior parity
   - deterministic `Std.isOfType` behavior parity for typed and Dynamic class/array/enum/null checks
+  - deterministic type-value expression parity for class/enum refs (`TTypeExpr`)
   - deterministic `haxe.PosInfos` default-argument injection behavior
   - deterministic `haxe.PosInfos.customParams` missing-field/null-access behavior
   - deterministic HTTP behavior (`requestUrl`, `customRequest`, `Http.PROXY`) without external network

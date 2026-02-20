@@ -64,6 +64,7 @@ class GoCompiler {
 	var projectClasses:Array<ClassType>;
 	var projectEnums:Array<EnumType>;
 	var tempVarCounter:Int;
+	var requiresTypeValueSupport:Bool;
 	#end
 
 	public function new(?compilationContext:CompilationContext) {
@@ -79,6 +80,7 @@ class GoCompiler {
 		projectClasses = [];
 		projectEnums = [];
 		tempVarCounter = 0;
+		requiresTypeValueSupport = false;
 		#end
 	}
 
@@ -95,7 +97,12 @@ class GoCompiler {
 		projectClasses = classes.copy();
 		projectEnums = enums.copy();
 		buildStaticFunctionInfoTable(classes);
-		var decls = lowerEnums(enums).concat(lowerClasses(classes)).concat(lowerStdlibShimDecls());
+		requiresTypeValueSupport = false;
+		var decls = lowerEnums(enums).concat(lowerClasses(classes));
+		if (requiresTypeValueSupport) {
+			decls = lowerTypeValueDecls().concat(decls);
+		}
+		decls = decls.concat(lowerStdlibShimDecls());
 		var imports = [compilationContext.runtimeImportPath];
 		if (requiredStdlibShimGroups.exists("http")) {
 			imports.push("bytes");
@@ -439,6 +446,13 @@ class GoCompiler {
 			decls = decls.concat(lowerClassDecls(classType));
 		}
 		return decls;
+	}
+
+	function lowerTypeValueDecls():Array<GoDecl> {
+		return [
+			GoDecl.GoStructDecl("hxrt__TypeClassValue", [{name: "name", typeName: "*string"}]),
+			GoDecl.GoStructDecl("hxrt__TypeEnumValue", [{name: "name", typeName: "*string"}])
+		];
 	}
 
 	function lowerStdlibShimDecls():Array<GoDecl> {
@@ -6338,6 +6352,8 @@ class GoCompiler {
 				lowerField(target, access);
 			case TCall(callee, args):
 				lowerCall(callee, args, expr.t);
+			case TTypeExpr(moduleType):
+				lowerTypeExpr(moduleType);
 			case TBinop(op, left, right):
 				switch (op) {
 					case OpAssign:
@@ -6510,6 +6526,47 @@ class GoCompiler {
 					expr: lowered.expr,
 					isStringLike: lowered.isStringLike
 				};
+		};
+	}
+
+	function lowerTypeExpr(moduleType:ModuleType):LoweredExpr {
+		requiresTypeValueSupport = true;
+		var markerType = moduleTypeRepresentsEnumValue(moduleType) ? "hxrt__TypeEnumValue" : "hxrt__TypeClassValue";
+		var markerName = goRawQuotedString(moduleTypeDisplayName(moduleType));
+		return {
+			expr: GoExpr.GoRaw("&" + markerType + "{name: hxrt.StringFromLiteral(" + markerName + ")}"),
+			isStringLike: false
+		};
+	}
+
+	function moduleTypeRepresentsEnumValue(moduleType:ModuleType):Bool {
+		return switch (moduleType) {
+			case TEnumDecl(_):
+				true;
+			case TTypeDecl(typeRef):
+				switch (Context.follow(TType(typeRef, []))) {
+					case TEnum(_, _):
+						true;
+					case _:
+						false;
+				}
+			case _:
+				false;
+		};
+	}
+
+	function moduleTypeDisplayName(moduleType:ModuleType):String {
+		return switch (moduleType) {
+			case TClassDecl(classRef):
+				fullClassName(classRef.get());
+			case TEnumDecl(enumRef):
+				fullEnumName(enumRef.get());
+			case TTypeDecl(typeRef):
+				var typeDef = typeRef.get();
+				typeDef.pack.length == 0 ? typeDef.name : typeDef.pack.join(".") + "." + typeDef.name;
+			case TAbstract(abstractRef):
+				var abstractType = abstractRef.get();
+				abstractType.pack.length == 0 ? abstractType.name : abstractType.pack.join(".") + "." + abstractType.name;
 		};
 	}
 
@@ -7013,6 +7070,26 @@ class GoCompiler {
 			return GoExpr.GoBinary("!=", valueExpr, GoExpr.GoNil);
 		}
 
+		if (isStdClassMetaType(targetType)) {
+			if (isStdClassMetaType(valueTypedExpr.t)) {
+				return GoExpr.GoBinary("!=", valueExpr, GoExpr.GoNil);
+			}
+			if (!isAnyLikeType(valueTypedExpr.t)) {
+				return GoExpr.GoBoolLiteral(false);
+			}
+			return stdIsOfTypeTypeSwitch(valueExpr, ["*hxrt__TypeClassValue"]);
+		}
+
+		if (isStdEnumMetaType(targetType)) {
+			if (isStdEnumMetaType(valueTypedExpr.t)) {
+				return GoExpr.GoBinary("!=", valueExpr, GoExpr.GoNil);
+			}
+			if (!isAnyLikeType(valueTypedExpr.t)) {
+				return GoExpr.GoBoolLiteral(false);
+			}
+			return stdIsOfTypeTypeSwitch(valueExpr, ["*hxrt__TypeEnumValue"]);
+		}
+
 		if (isBoolType(targetType)) {
 			if (isBoolType(valueTypedExpr.t)) {
 				return GoExpr.GoBoolLiteral(true);
@@ -7189,6 +7266,23 @@ class GoCompiler {
 		if (hasInstanceLayout(targetClass) && !seen.exists(targetTypeName)) {
 			out.push(targetTypeName);
 		}
+
+		var targetPack = targetClass.pack.join(".");
+		if (targetPack == "" && targetClass.name == "Class") {
+			var classMarker = "*hxrt__TypeClassValue";
+			if (!seen.exists(classMarker)) {
+				seen.set(classMarker, true);
+				out.push(classMarker);
+			}
+		}
+		if (targetPack == "" && targetClass.name == "Enum") {
+			var enumMarker = "*hxrt__TypeEnumValue";
+			if (!seen.exists(enumMarker)) {
+				seen.set(enumMarker, true);
+				out.push(enumMarker);
+			}
+		}
+
 		out.sort(function(a, b) return Reflect.compare(a, b));
 		return out;
 	}
@@ -7704,6 +7798,24 @@ class GoCompiler {
 
 	function isAnyLikeType(type:Type):Bool {
 		return isDynamicCatchType(type) || typeToGoType(type) == "any";
+	}
+
+	function isStdClassMetaType(type:Type):Bool {
+		var followed = Context.follow(type);
+		return switch (followed) {
+			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Class";
+			case _:
+				false;
+		};
+	}
+
+	function isStdEnumMetaType(type:Type):Bool {
+		var followed = Context.follow(type);
+		return switch (followed) {
+			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Enum";
+			case _:
+				false;
+		};
 	}
 
 	function isDefinitelyNonNullableType(type:Type):Bool {

@@ -61,6 +61,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Anonymous object literals and structural field mutation | Supported | `core/object_literal_fields` |
 | Exception subset (`throw`, typed/dynamic catch, rethrow) | Supported | `core/haxe_exception_subset`, `core/try_catch_typed`, `core/try_catch_dynamic`, `core/try_catch_rethrow` |
 | `Std.isOfType` behavior | Supported | `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic`, `std_is_of_type_contract` |
+| Type-value expressions (`TTypeExpr`) for class/enum refs | Supported | `type_expr_contract` |
 | Unsigned right shift behavior | Supported | `core/unsigned_shift`, `core/unsigned_shift_assign` |
 | Naming/mangling and deterministic code shape | Supported | `core/naming_mangling`, `core/optimized_ast_policy` |
 | HXML define/include resolution | Supported | `core/nested_hxml_define_detection`, `core/nested_hxml_long_define_detection`, `core/nested_hxml_quoted_define_detection`, `core/nested_hxml_root_relative_include_detection` |
@@ -103,6 +104,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/ereg_edge_contract`
 - `test/semantic_diff/json_parse_stringify_contract`
 - `test/semantic_diff/std_is_of_type_contract`
+- `test/semantic_diff/type_expr_contract`
 - `test/semantic_diff/atomic_int_bool_contract`
 - `test/semantic_diff/atomic_object_contract`
 
@@ -282,7 +284,7 @@ These are explicit fatal guards in `src/reflaxe/go/GoCompiler.hx` that represent
 | --- | --- | --- |
 | Non-lvalue assignment targets in `lowerLValue` | Fatal: `Unsupported assignment target` | Either (a) support any newly reachable legal lvalue shape, or (b) keep as invariant and add a dedicated negative test if a reproducer becomes possible. |
 | Non-`++/--` postfix unary in `lowerExpr` / `lowerExprWithPrefix` | Fatal: `Unsupported postfix unary operator` | Keep parser/typed-ast assumptions validated; if new postfix forms become reachable, add lowering + snapshots before enabling. |
-| Catch-all `lowerExpr` default | Fatal: `Unsupported expression` | Replace with exhaustive typed-expression handling or narrower typed-node diagnostics; add negative regression coverage for each unsupported reachable node. |
+| Catch-all `lowerExpr` default | Fatal: `Unsupported expression` | Continue replacing reachable typed-node gaps with explicit lowering (for example `TTypeExpr` class/enum refs are now covered via `type_expr_contract`) and keep dedicated coverage as each newly reachable node is supported. |
 | Unsupported constant kind in `lowerConst` | Fatal: `Unsupported constant` | Add lowering + snapshot for any new constant kind encountered in real programs. |
 | Unsupported `Std.isOfType` target kind | Fatal with target-type diagnostic | Add explicit lowering path and dedicated snapshot for each new accepted target type. |
 
@@ -306,3 +308,4 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-61w`: reduce compiler hard-fail unsupported expression surface.
 - `haxe.go-19u`: expand stdlib parity from the documented probe gap list.
 - `haxe.go-ab2`: add semantic differential regression harness.
+- `haxe.go-3d4`: reduce unsupported expression surface by lowering `TTypeExpr` class/enum value nodes.
