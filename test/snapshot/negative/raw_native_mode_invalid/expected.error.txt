@@ -1,0 +1,1 @@
+Invalid value "utf32" for -D reflaxe_go_raw_native_mode (expected interp|utf16le)

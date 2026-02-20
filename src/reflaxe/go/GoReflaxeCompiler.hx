@@ -20,6 +20,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 	var generatedFiles:Array<GoCompiler.GoGeneratedFile> = [];
 	var profile:GoProfile = GoProfile.Portable;
 	var goModuleName:String = "snapshot";
+	var rawNativeMode:RawNativeMode = RawNativeMode.Interp;
 
 	public function new() {
 		super();
@@ -33,13 +34,14 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 	override public function onCompileStart():Void {
 		profile = ProfileResolver.resolve();
 		goModuleName = resolveGoModuleName();
+		rawNativeMode = RawNativeModeResolver.resolve();
 		selectedClasses = [];
 		selectedEnums = [];
 		generatedFiles = [];
 	}
 
 	override public function onCompileEnd():Void {
-		var compiler = new GoCompiler(new CompilationContext(profile, goModuleName));
+		var compiler = new GoCompiler(new CompilationContext(profile, goModuleName, rawNativeMode));
 		if (selectedClasses.length == 0 && selectedEnums.length == 0) {
 			generatedFiles = compiler.compileModule(allModules);
 		} else {

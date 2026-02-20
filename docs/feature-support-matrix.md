@@ -134,6 +134,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `gopher` string helper optimizations | Supported | `core/gopher_string_ptr_helpers`, `core/gopher_string_literal_folding`, `core/portable_string_literal_no_folding` |
 | Profile policy enforcement and removed aliases | Supported | `negative/profile_conflict`, `negative/profile_invalid`, `negative/profile_removed_idiomatic`, `negative/profile_removed_idiomatic_alias` |
 | Strict examples/app boundary policy | Supported | `negative/strict_examples_injection`, `negative/strict_mode_injection`, `negative/metal_profile_injection` |
+| RawNative encoding policy define (`reflaxe_go_raw_native_mode`) | Supported | `core/raw_native_utf16_mode`, `negative/raw_native_mode_invalid` |
 
 ## Go-native abstraction matrix
 
@@ -207,7 +208,7 @@ Shim strategy and alternatives are documented in:
 ### `haxe.io.BytesInput` / `haxe.io.BytesOutput` shim contract and tradeoffs
 
 - Coverage includes `test/semantic_diff/bytes_io_stream_contract`, `test/semantic_diff/io_input_output_helpers_contract`, `test/semantic_diff/io_input_output_edge_contract`, `test/semantic_diff/io_error_constructor_contract`, and `test/semantic_diff/io_encoding_contract` for deterministic constructor bounds checks, `position`/`length`, EOF behavior, `readByte`/`readBytes`, inherited helper subset parity (`readAll`, `readFullBytes`, `read`, `readUntil`, `readLine`, `readString`, `readFloat`/`readDouble`, signed/unsigned numeric reads), output helper subset parity (`write`, `writeFullBytes`, `writeInput`, `writeString`, numeric typed writes, overflow guards), `haxe.io.Error` typed constructor matching (`Blocked`, `Overflow`, `OutsideBounds`, `Custom`), `haxe.io.Encoding` constructor parity (`UTF8`, `RawNative`), `Bytes.getString` bounds behavior, and `readLine` EOF/tail/CRLF edge paths.
-- Current tradeoff: parity remains focused on `BytesInput`/`BytesOutput` stream behavior under interpreter-compatible encoding semantics (`UTF8` and `RawNative` both mapping to UTF-8 byte/string conversion here), and does not yet claim full cross-target `haxe.io.Input`/`haxe.io.Output` edge compatibility for target-specific native string-memory layouts.
+- Current tradeoff: parity remains focused on `BytesInput`/`BytesOutput` stream behavior with interpreter-compatible semantics by default (`reflaxe_go_raw_native_mode=interp`, where `UTF8` and `RawNative` both map to UTF-8 conversion). For projects that need Java/C#-style RawNative byte layout, `reflaxe_go_raw_native_mode=utf16le` provides an explicit opt-in UTF-16LE path; full target-by-target RawNative equivalence is still not claimed outside these documented modes.
 
 ### `sys.Http` shim contract and tradeoffs
 
@@ -352,3 +353,4 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-6fc`: completed `haxe.ds` map/list core-ops semantic parity coverage and `List.push` parity alignment.
 - `haxe.go-rlj`: completed nil-safe typed-read null semantics for `haxe.ds` map/list generic call results.
 - `haxe.go-aiy`: add `haxe.io.Encoding` constructor parity and `Bytes.getString` coverage (`io_encoding_contract`).
+- `haxe.go-dq2`: evaluate and guard RawNative compatibility policy with explicit mode controls.

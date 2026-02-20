@@ -35,6 +35,13 @@ Removed:
 - `reflaxe_go_profile=idiomatic` -> compile error, use `gopher`.
 - `reflaxe_go_idiomatic` -> compile error, use `reflaxe_go_profile=gopher`.
 
+## IO encoding
+
+- `reflaxe_go_raw_native_mode=interp|utf16le`
+  - Controls `haxe.io.Encoding.RawNative` conversion strategy in generated IO/Bytes shims.
+  - `interp` (default): match Haxe `--interp` behavior (RawNative treated like UTF-8 conversion path).
+  - `utf16le`: opt-in compatibility mode that encodes/decodes RawNative as UTF-16LE bytes (useful when aligning with Java/C#-style RawNative expectations).
+
 ## Strictness
 
 - `reflaxe_go_strict`

@@ -121,6 +121,9 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("io") && requiresIoHelperSurface) {
 			imports.push("math");
 		}
+		if (requiredStdlibShimGroups.exists("io") && compilationContext.rawNativeMode == RawNativeMode.Utf16LE) {
+			imports.push("unicode/utf16");
+		}
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			imports.push("bytes");
 			imports.push("compress/zlib");
@@ -519,6 +522,7 @@ class GoCompiler {
 	}
 
 	function lowerIoStdlibShimDecls():Array<GoDecl> {
+		var rawNativeUtf16 = compilationContext.rawNativeMode == RawNativeMode.Utf16LE;
 		var decls = [
 			GoDecl.GoStructDecl("haxe__io__Encoding", [{name: "tag", typeName: "int"}]),
 			GoDecl.GoInterfaceDecl("haxe__io__Input", [
@@ -793,6 +797,67 @@ class GoCompiler {
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
 					[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("self"), "String"), [])]))
 			]),
+			GoDecl.GoFuncDecl("haxe__io__resolveEncodingTag", null, [
+				{
+					name: "encoding",
+					typeName: "...*haxe__io__Encoding"
+				}
+			], ["int"], [
+				GoStmt.GoRaw("if len(encoding) == 0 || encoding[0] == nil {"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return encoding[0].tag")
+			]),
+			GoDecl.GoFuncDecl("haxe__io__bytes_fromStringRawNativeUTF16LE", null, [
+				{
+					name: "value",
+					typeName: "*string"
+				}
+			], ["*haxe__io__Bytes"], rawNativeUtf16 ? [
+				GoStmt.GoRaw("runes := []rune(*hxrt.StdString(value))"),
+				GoStmt.GoRaw("units := utf16.Encode(runes)"),
+				GoStmt.GoRaw("raw := make([]byte, len(units)*2)"),
+				GoStmt.GoRaw("for i := 0; i < len(units); i++ {"),
+				GoStmt.GoRaw("\tunit := units[i]"),
+				GoStmt.GoRaw("\traw[i*2] = byte(unit)"),
+				GoStmt.GoRaw("\traw[i*2+1] = byte(unit >> 8)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("converted := make([]int, len(raw))"),
+				GoStmt.GoRaw("for i := 0; i < len(raw); i++ {"),
+				GoStmt.GoRaw("\tconverted[i] = int(raw[i])"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: raw, __hx_rawValid: true}"))
+			] : [
+				GoStmt.GoRaw("raw := []byte(*hxrt.StdString(value))"),
+				GoStmt.GoRaw("converted := make([]int, len(raw))"),
+				GoStmt.GoRaw("for i := 0; i < len(raw); i++ {"),
+				GoStmt.GoRaw("\tconverted[i] = int(raw[i])"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: raw, __hx_rawValid: true}"))
+			]),
+			GoDecl.GoFuncDecl("haxe__io__bytes_toStringRawNativeUTF16LE", null, [
+				{
+					name: "value",
+					typeName: "[]int"
+				}
+			], ["*string"], rawNativeUtf16 ? [
+				GoStmt.GoRaw("if len(value) == 0 {"),
+				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("limit := len(value)"),
+				GoStmt.GoRaw("if (limit & 1) == 1 {"),
+				GoStmt.GoRaw("\tlimit--"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("units := make([]uint16, limit/2)"),
+				GoStmt.GoRaw("for i := 0; i < len(units); i++ {"),
+				GoStmt.GoRaw("\tlow := uint16(value[i*2] & 0xFF)"),
+				GoStmt.GoRaw("\thigh := uint16(value[i*2+1] & 0xFF)"),
+				GoStmt.GoRaw("\tunits[i] = low | (high << 8)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return hxrt.StringFromLiteral(string(utf16.Decode(units)))")
+			] : [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesToString"), [GoExpr.GoIdent("value")]))
+			]),
 			GoDecl.GoFuncDecl("toString", {
 				name: "self",
 				typeName: "*haxe__io__Eof"
@@ -866,6 +931,9 @@ class GoCompiler {
 				},
 				{name: "encoding", typeName: "...*haxe__io__Encoding"}
 			], ["*haxe__io__Bytes"], [
+				GoStmt.GoRaw("if haxe__io__resolveEncodingTag(encoding...) == 1 {"),
+				GoStmt.GoRaw("\treturn haxe__io__bytes_fromStringRawNativeUTF16LE(value)"),
+				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("raw := []byte(*hxrt.StdString(value))"),
 				GoStmt.GoRaw("converted := make([]int, len(raw))"),
 				GoStmt.GoRaw("for i := 0; i < len(raw); i++ {"),
@@ -896,6 +964,9 @@ class GoCompiler {
 				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoVarDecl("slice", null, GoExpr.GoRaw("self.b[pos:pos+len]"), true),
+				GoStmt.GoRaw("if haxe__io__resolveEncodingTag(encoding...) == 1 {"),
+				GoStmt.GoRaw("\treturn haxe__io__bytes_toStringRawNativeUTF16LE(slice)"),
+				GoStmt.GoRaw("}"),
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesToString"), [GoExpr.GoIdent("slice")]))
 			]),
 			GoDecl.GoFuncDecl("readString", {
@@ -1351,13 +1422,15 @@ class GoCompiler {
 				{name: "encoding", typeName: "...*haxe__io__Encoding"}
 			], ["*string"], [
 				GoStmt.GoRaw("b := haxe__io__Bytes_alloc(len)"),
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("haxe__io__input_readFullBytes"), [
-					GoExpr.GoIdent("self"),
-					GoExpr.GoIdent("b"),
-					GoExpr.GoIntLiteral(0),
-					GoExpr.GoIdent("len")
-				])),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("b"), "toString"), []))
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("haxe__io__input_readFullBytes"),
+					[
+						GoExpr.GoIdent("self"),
+						GoExpr.GoIdent("b"),
+						GoExpr.GoIntLiteral(0),
+						GoExpr.GoIdent("len")
+					])),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("b"), "getString"),
+					[GoExpr.GoIntLiteral(0), GoExpr.GoIdent("len"), GoExpr.GoRaw("encoding...")]))
 			]),
 			GoDecl.GoFuncDecl("haxe__io__output_write", null, [
 				{

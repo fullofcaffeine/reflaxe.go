@@ -1,0 +1,5 @@
+utf8.len=3 hex=104,195,169
+raw.len=4 hex=104,0,233,0
+raw.get=hé
+out.raw.hex=104,0,233,0
+in.raw=hé

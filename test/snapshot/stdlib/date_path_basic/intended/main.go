@@ -120,6 +120,26 @@ func (self *haxe__io__Encoding) toString() *string {
 	return hxrt.StringFromLiteral(self.String())
 }
 
+func haxe__io__resolveEncodingTag(encoding ...*haxe__io__Encoding) int {
+	if len(encoding) == 0 || encoding[0] == nil {
+		return 0
+	}
+	return encoding[0].tag
+}
+
+func haxe__io__bytes_fromStringRawNativeUTF16LE(value *string) *haxe__io__Bytes {
+	raw := []byte(*hxrt.StdString(value))
+	converted := make([]int, len(raw))
+	for i := 0; i < len(raw); i++ {
+		converted[i] = int(raw[i])
+	}
+	return &haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: raw, __hx_rawValid: true}
+}
+
+func haxe__io__bytes_toStringRawNativeUTF16LE(value []int) *string {
+	return hxrt.BytesToString(value)
+}
+
 func (self *haxe__io__Eof) toString() *string {
 	return hxrt.StringFromLiteral("Eof")
 }
@@ -171,6 +191,9 @@ func haxe__io__Bytes_alloc(length int) *haxe__io__Bytes {
 }
 
 func haxe__io__Bytes_ofString(value *string, encoding ...*haxe__io__Encoding) *haxe__io__Bytes {
+	if haxe__io__resolveEncodingTag(encoding...) == 1 {
+		return haxe__io__bytes_fromStringRawNativeUTF16LE(value)
+	}
 	raw := []byte(*hxrt.StdString(value))
 	converted := make([]int, len(raw))
 	for i := 0; i < len(raw); i++ {
@@ -192,6 +215,9 @@ func (self *haxe__io__Bytes) getString(pos int, len int, encoding ...*haxe__io__
 		return hxrt.StringFromLiteral("")
 	}
 	slice := self.b[pos : pos+len]
+	if haxe__io__resolveEncodingTag(encoding...) == 1 {
+		return haxe__io__bytes_toStringRawNativeUTF16LE(slice)
+	}
 	return hxrt.BytesToString(slice)
 }
 
