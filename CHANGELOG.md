@@ -1,3 +1,9 @@
+## [0.39.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.38.1...v0.39.0) (2026-02-23)
+
+### Features
+
+* **ast:** add go/defer statement nodes ([77d3083](https://github.com/fullofcaffeine/reflaxe.go/commit/77d30831c4c108d9fefdfd42d911e58e32b441c2))
+
 ## [0.38.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.38.0...v0.38.1) (2026-02-23)
 
 ### Bug Fixes
