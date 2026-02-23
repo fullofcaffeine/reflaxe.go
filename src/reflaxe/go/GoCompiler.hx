@@ -6,6 +6,7 @@ import haxe.macro.Expr.Binop;
 import haxe.macro.Expr.Unop;
 import haxe.macro.PositionTools;
 import haxe.macro.Type;
+import reflaxe.go.compiler.GoTypeMapper;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoFile;
@@ -10150,119 +10151,31 @@ class GoCompiler {
 	}
 
 	function typeToGoType(type:Type):String {
-		var restElement = restElementType(type);
-		if (restElement != null) {
-			return "[]" + scalarGoType(restElement);
-		}
-		var vectorElement = vectorElementType(type);
-		if (vectorElement != null) {
-			return "[]" + scalarGoType(vectorElement);
-		}
-		var readOnlyElement = readOnlyArrayElementType(type);
-		if (readOnlyElement != null) {
-			return "[]" + scalarGoType(readOnlyElement);
-		}
-
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TFun(args, returnType):
-				goFunctionType(args, returnType);
-			case TInst(classRef, params):
-				var classType = classRef.get();
-				if (isTypeParameterClass(classType)) {
-					"any";
-				} else if (isHaxeExceptionClass(classType)) {
-					"*hxrt.ExceptionValue";
-				} else if (isHaxeIoBaseClass(classType)) {
-					classTypeName(classType);
-				} else if (classType.isInterface) {
-					classTypeName(classType);
-				} else if (classType.pack.length == 0 && classType.name == "String") {
-					"*string";
-				} else if (isHaxeJsonParserClass(classType)) {
-					"*string";
-				} else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
-					"[]" + scalarGoType(params[0]);
-				} else {
-					"*" + classTypeName(classType);
-				}
-			case TEnum(enumRef, _):
-				"*" + enumTypeName(enumRef.get());
-			case TAnonymous(_):
-				"map[string]any";
-			case TAbstract(abstractRef, _):
-				var abstractType = abstractRef.get();
-				if (abstractType.pack.length == 0 && abstractType.name == "Int") {
-					"int";
-				} else if (abstractType.pack.length == 0 && abstractType.name == "Float") {
-					"float64";
-				} else if (abstractType.pack.length == 0 && abstractType.name == "Bool") {
-					"bool";
-				} else if (abstractType.pack.length == 0 && abstractType.name == "String") {
-					"*string";
-				} else if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int32") {
-					"int";
-				} else if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int64") {
-					"*haxe___Int64_____Int64";
-				} else {
-					"any";
-				}
-			case _:
-				"any";
-		};
+		return GoTypeMapper.typeToGoType(type, classTypeName, enumTypeName);
 	}
 
 	function isStringType(type:Type):Bool {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TInst(classRef, _): var classType = classRef.get(); classType.pack.length == 0 && classType.name == "String";
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "String";
-			case _:
-				false;
-		};
+		return GoTypeMapper.isStringType(type);
 	}
 
 	function isInterfaceType(type:Type):Bool {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TInst(classRef, _):
-				classRef.get().isInterface;
-			case _:
-				false;
-		};
+		return GoTypeMapper.isInterfaceType(type);
 	}
 
 	function isBoolType(type:Type):Bool {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Bool";
-			case _:
-				false;
-		};
+		return GoTypeMapper.isBoolType(type);
 	}
 
 	function isIntType(type:Type):Bool {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Int";
-			case _:
-				false;
-		};
+		return GoTypeMapper.isIntType(type);
 	}
 
 	function isHaxeInt32Type(type:Type):Bool {
-		return switch (type) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.join(".") == "haxe" && abstractType.name == "Int32";
-			case TMono(ref): var resolved = ref.get(); resolved != null && isHaxeInt32Type(resolved);
-			case TType(_, _):
-				isHaxeInt32Type(Context.follow(type));
-			case _:
-				false;
-		};
+		return GoTypeMapper.isHaxeInt32Type(type);
 	}
 
 	function isInt32SemanticType(type:Type, ?sourcePos:haxe.macro.Expr.Position):Bool {
-		return isIntType(type) || isHaxeInt32Type(type);
+		return GoTypeMapper.isInt32SemanticType(type);
 	}
 
 	function isInt32StdlibPosition(pos:Null<haxe.macro.Expr.Position>):Bool {
@@ -10282,12 +10195,7 @@ class GoCompiler {
 	}
 
 	function isFloatType(type:Type):Bool {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Float";
-			case _:
-				false;
-		};
+		return GoTypeMapper.isFloatType(type);
 	}
 
 	function isAnyLikeType(type:Type):Bool {
@@ -10295,25 +10203,15 @@ class GoCompiler {
 	}
 
 	function isStdClassMetaType(type:Type):Bool {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Class";
-			case _:
-				false;
-		};
+		return GoTypeMapper.isStdClassMetaType(type);
 	}
 
 	function isStdEnumMetaType(type:Type):Bool {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Enum";
-			case _:
-				false;
-		};
+		return GoTypeMapper.isStdEnumMetaType(type);
 	}
 
 	function isDefinitelyNonNullableType(type:Type):Bool {
-		return isBoolType(type) || isIntType(type) || isFloatType(type);
+		return GoTypeMapper.isDefinitelyNonNullableType(type);
 	}
 
 	function isNullLiteralExpr(expr:TypedExpr):Bool {
@@ -10332,183 +10230,35 @@ class GoCompiler {
 	}
 
 	function isAnonymousObjectType(type:Type):Bool {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TAnonymous(_):
-				true;
-			case _:
-				false;
-		};
+		return GoTypeMapper.isAnonymousObjectType(type);
 	}
 
 	function isArrayType(type:Type):Bool {
-		if (restElementType(type) != null) {
-			return true;
-		}
-		if (vectorElementType(type) != null) {
-			return true;
-		}
-		if (readOnlyArrayElementType(type) != null) {
-			return true;
-		}
-
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TInst(classRef, _): var classType = classRef.get(); classType.pack.length == 0 && classType.name == "Array";
-			case _:
-				false;
-		};
+		return GoTypeMapper.isArrayType(type);
 	}
 
 	function arrayElementGoType(type:Type):String {
-		var restElement = restElementType(type);
-		if (restElement != null) {
-			return scalarGoType(restElement);
-		}
-		var vectorElement = vectorElementType(type);
-		if (vectorElement != null) {
-			return scalarGoType(vectorElement);
-		}
-		var readOnlyElement = readOnlyArrayElementType(type);
-		if (readOnlyElement != null) {
-			return scalarGoType(readOnlyElement);
-		}
-
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TInst(classRef, params):
-				var classType = classRef.get();
-				if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
-					scalarGoType(params[0]);
-				} else {
-					"any";
-				}
-			case _:
-				"any";
-		};
+		return GoTypeMapper.arrayElementGoType(type, classTypeName, enumTypeName);
 	}
 
 	function scalarGoType(type:Type):String {
-		var restElement = restElementType(type);
-		if (restElement != null) {
-			return "[]" + scalarGoType(restElement);
-		}
-		var vectorElement = vectorElementType(type);
-		if (vectorElement != null) {
-			return "[]" + scalarGoType(vectorElement);
-		}
-		var readOnlyElement = readOnlyArrayElementType(type);
-		if (readOnlyElement != null) {
-			return "[]" + scalarGoType(readOnlyElement);
-		}
-
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TFun(args, returnType):
-				goFunctionType(args, returnType);
-			case TInst(classRef, params):
-				var classType = classRef.get();
-				if (isTypeParameterClass(classType)) {
-					"any";
-				} else if (isHaxeExceptionClass(classType)) {
-					"*hxrt.ExceptionValue";
-				} else if (isHaxeIoBaseClass(classType)) {
-					classTypeName(classType);
-				} else if (classType.isInterface) {
-					classTypeName(classType);
-				} else if (classType.pack.length == 0 && classType.name == "String") {
-					"*string";
-				} else if (isHaxeJsonParserClass(classType)) {
-					"*string";
-				} else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
-					"[]" + scalarGoType(params[0]);
-				} else {
-					"*" + classTypeName(classType);
-				}
-			case TEnum(enumRef, _):
-				"*" + enumTypeName(enumRef.get());
-			case TAnonymous(_):
-				"map[string]any";
-			case TAbstract(abstractRef, _):
-				var abstractType = abstractRef.get();
-				if (abstractType.pack.length == 0 && abstractType.name == "Int") {
-					"int";
-				} else if (abstractType.pack.length == 0 && abstractType.name == "Float") {
-					"float64";
-				} else if (abstractType.pack.length == 0 && abstractType.name == "Bool") {
-					"bool";
-				} else if (abstractType.pack.length == 0 && abstractType.name == "String") {
-					"*string";
-				} else if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int32") {
-					"int";
-				} else if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int64") {
-					"*haxe___Int64_____Int64";
-				} else {
-					"any";
-				}
-			case _:
-				"any";
-		};
+		return GoTypeMapper.scalarGoType(type, classTypeName, enumTypeName);
 	}
 
 	function goFunctionType(args:Array<{name:String, opt:Bool, t:Type}>, returnType:Type):String {
-		var params = [for (arg in args) scalarGoType(arg.t)].join(", ");
-		if (isVoidType(returnType)) {
-			return "func(" + params + ")";
-		}
-		return "func(" + params + ") " + scalarGoType(returnType);
+		return GoTypeMapper.goFunctionType(args, returnType, classTypeName, enumTypeName);
 	}
 
 	function restElementType(type:Type):Null<Type> {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TAbstract(abstractRef, params):
-				var abstractType = abstractRef.get();
-				if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Rest" && params.length == 1) {
-					params[0];
-				} else {
-					null;
-				}
-			case TType(typeRef, params):
-				var typeDef = typeRef.get();
-				if (typeDef.pack.join(".") == "haxe._Rest" && typeDef.name == "NativeRest" && params.length == 1) {
-					params[0];
-				} else {
-					null;
-				}
-			case _:
-				null;
-		};
+		return GoTypeMapper.restElementType(type);
 	}
 
 	function vectorElementType(type:Type):Null<Type> {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TAbstract(abstractRef, params):
-				var abstractType = abstractRef.get();
-				if (abstractType.pack.join(".") == "haxe.ds" && abstractType.name == "Vector" && params.length == 1) {
-					params[0];
-				} else {
-					null;
-				}
-			case _:
-				null;
-		};
+		return GoTypeMapper.vectorElementType(type);
 	}
 
 	function readOnlyArrayElementType(type:Type):Null<Type> {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TAbstract(abstractRef, params):
-				var abstractType = abstractRef.get();
-				if (abstractType.pack.join(".") == "haxe.ds" && abstractType.name == "ReadOnlyArray" && params.length == 1) {
-					params[0];
-				} else {
-					null;
-				}
-			case _:
-				null;
-		};
+		return GoTypeMapper.readOnlyArrayElementType(type);
 	}
 
 	function restIteratorCtorArg(expr:Null<TypedExpr>):Null<TypedExpr> {
@@ -10558,54 +10308,31 @@ class GoCompiler {
 	}
 
 	function isVoidType(type:Type):Bool {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Void";
-			case _:
-				false;
-		};
+		return GoTypeMapper.isVoidType(type);
 	}
 
 	function isDynamicCatchType(type:Type):Bool {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TDynamic(_):
-				true;
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Dynamic";
-			case _:
-				false;
-		};
+		return GoTypeMapper.isDynamicCatchType(type);
 	}
 
 	function isTypeParameterClass(classType:ClassType):Bool {
-		return switch (classType.kind) {
-			case KTypeParameter(_):
-				true;
-			case _:
-				false;
-		};
+		return GoTypeMapper.isTypeParameterClass(classType);
 	}
 
 	function isHaxeExceptionClass(classType:ClassType):Bool {
-		return classType.pack.join(".") == "haxe" && classType.name == "Exception";
+		return GoTypeMapper.isHaxeExceptionClass(classType);
 	}
 
 	function isHaxeJsonParserClass(classType:ClassType):Bool {
-		return classType.pack.join(".") == "haxe.format" && classType.name == "JsonParser";
+		return GoTypeMapper.isHaxeJsonParserClass(classType);
 	}
 
 	function isHaxeIoBaseClass(classType:ClassType):Bool {
-		return classType.pack.join(".") == "haxe.io" && (classType.name == "Input" || classType.name == "Output");
+		return GoTypeMapper.isHaxeIoBaseClass(classType);
 	}
 
 	function isHaxeExceptionType(type:Type):Bool {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TInst(classRef, _):
-				isHaxeExceptionClass(classRef.get());
-			case _:
-				false;
-		};
+		return GoTypeMapper.isHaxeExceptionType(type);
 	}
 
 	function isNilExpr(expr:GoExpr):Bool {
