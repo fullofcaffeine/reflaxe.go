@@ -1,3 +1,9 @@
+## [0.38.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.38.0...v0.38.1) (2026-02-23)
+
+### Bug Fixes
+
+* **trycatch:** forward statement try/catch returns and seed phase2 roadmap ([59eecfd](https://github.com/fullofcaffeine/reflaxe.go/commit/59eecfda808f46e306fbd32289f0dd4d915ef74a))
+
 ## [0.38.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.37.0...v0.38.0) (2026-02-20)
 
 ### Features
