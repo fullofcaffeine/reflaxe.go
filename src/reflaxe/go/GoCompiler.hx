@@ -15,6 +15,7 @@ import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoFile;
 import reflaxe.go.ast.GoAST.GoInterfaceMethod;
 import reflaxe.go.ast.GoAST.GoParam;
+import reflaxe.go.ast.GoAST.GoSelectClause;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
@@ -2299,6 +2300,24 @@ class GoCompiler {
 			], [], [
 				GoStmt.GoSendStmt(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any"), GoExpr.GoIdent("value"))
 			]),
+			GoDecl.GoFuncDecl("go__concurrency_trySend", null, [
+				{
+					name: "channel",
+					typeName: "any"
+				},
+				{name: "value", typeName: "any"}
+			], ["bool"], [
+				GoStmt.GoSelect([
+					{
+						clause: GoSelectClause.GoSelectSend(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any"), GoExpr.GoIdent("value")),
+						body: [GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))]
+					},
+					{
+						clause: GoSelectClause.GoSelectDefault,
+						body: [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))]
+					}
+				])
+			]),
 			GoDecl.GoFuncDecl("go__concurrency_recv", null, [
 				{
 					name: "channel",
@@ -2306,6 +2325,25 @@ class GoCompiler {
 				}
 			], ["any"], [
 				GoStmt.GoReturn(GoExpr.GoRecvExpr(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any")))
+			]),
+			GoDecl.GoFuncDecl("go__concurrency_recvOr", null, [
+				{
+					name: "channel",
+					typeName: "any"
+				},
+				{name: "defaultValue", typeName: "any"}
+			], ["any"], [
+				GoStmt.GoSelect([
+					{
+						clause: GoSelectClause.GoSelectRecvAssign(GoExpr.GoIdent("value"),
+							GoExpr.GoRecvExpr(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any")), true),
+						body: [GoStmt.GoReturn(GoExpr.GoIdent("value"))]
+					},
+					{
+						clause: GoSelectClause.GoSelectDefault,
+						body: [GoStmt.GoReturn(GoExpr.GoIdent("defaultValue"))]
+					}
+				])
 			]),
 			GoDecl.GoFuncDecl("go__concurrency_close", null, [
 				{
@@ -9256,6 +9294,28 @@ class GoCompiler {
 			var expectedType = typeToGoType(returnType);
 			return {
 				expr: expectedType == "any" ? rawRecv : lowerNilSafeTypeAssertExpr(rawRecv, expectedType),
+				isStringLike: isStringType(returnType)
+			};
+		}
+
+		if (isStaticCall(callee, "Go", ["go"], "__chanTrySend")) {
+			requireStdlibShimGroup("go_concurrency");
+			var channel = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			var value = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoNil;
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("go__concurrency_trySend"), [channel, value]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Go", ["go"], "__chanRecvOr")) {
+			requireStdlibShimGroup("go_concurrency");
+			var channel = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			var defaultValue = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoNil;
+			var rawRecvOr = GoExpr.GoCall(GoExpr.GoIdent("go__concurrency_recvOr"), [channel, defaultValue]);
+			var expectedType = typeToGoType(returnType);
+			return {
+				expr: expectedType == "any" ? rawRecvOr : lowerNilSafeTypeAssertExpr(rawRecvOr, expectedType),
 				isStringLike: isStringType(returnType)
 			};
 		}

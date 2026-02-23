@@ -15,6 +15,8 @@ type I_go___Chan interface {
 	__hx_setBuffer(buffer int)
 	send(value any)
 	recv() any
+	trySend(value any) bool
+	recvOr(defaultValue any) any
 	close()
 }
 
@@ -40,6 +42,14 @@ func (self *go___Chan) send(value any) {
 
 func (self *go___Chan) recv() any {
 	return go__concurrency_recv(self.__hx_native)
+}
+
+func (self *go___Chan) trySend(value any) bool {
+	return go__concurrency_trySend(self.__hx_native, value)
+}
+
+func (self *go___Chan) recvOr(defaultValue any) any {
+	return go__concurrency_recvOr(self.__hx_native, defaultValue)
 }
 
 func (self *go___Chan) close() {
@@ -77,7 +87,15 @@ func go___Go___chanRecv(channel any) any {
 	return nil
 }
 
+func go___Go___chanRecvOr(channel any, defaultValue any) any {
+	return defaultValue
+}
+
 func go___Go___chanSend(channel any, value any) {
+}
+
+func go___Go___chanTrySend(channel any, value any) bool {
+	return false
 }
 
 func go___Go___goSpawn(fn func()) {
@@ -401,8 +419,26 @@ func go__concurrency_send(channel any, value any) {
 	channel.(chan any) <- value
 }
 
+func go__concurrency_trySend(channel any, value any) bool {
+	select {
+	case channel.(chan any) <- value:
+		return true
+	default:
+		return false
+	}
+}
+
 func go__concurrency_recv(channel any) any {
 	return <-channel.(chan any)
+}
+
+func go__concurrency_recvOr(channel any, defaultValue any) any {
+	select {
+	case value := <-channel.(chan any):
+		return value
+	default:
+		return defaultValue
+	}
 }
 
 func go__concurrency_close(channel any) {

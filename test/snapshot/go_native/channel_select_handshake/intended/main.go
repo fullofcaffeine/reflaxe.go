@@ -2,23 +2,25 @@ package main
 
 import "snapshot/hxrt"
 
-func errValue() *go___Result {
-	return go___Go_fail(hxrt.StringFromLiteral("bad"))
-}
-
 func main() {
-	ok := okValue()
-	_ = ok
-	hxrt.Println(ok.__hx_this.isOk())
-	hxrt.Println(ok.__hx_this.unwrap())
-	err := errValue()
-	_ = err
-	hxrt.Println(err.__hx_this.isErr())
-	hxrt.Println(err.__hx_this.error())
-}
-
-func okValue() *go___Result {
-	return go___Go_ok(12)
+	requests := go___Go_newChan(0)
+	_ = requests
+	responses := go___Go_newChan(0)
+	_ = responses
+	go___Go_spawn(func() {
+		value := requests.__hx_this.recv()
+		_ = value
+		responses.__hx_this.send(value)
+	})
+	requests.__hx_this.send(41)
+	hxrt.Println(responses.__hx_this.recv())
+	buffered := go___Go_newChan(1)
+	_ = buffered
+	hxrt.Println(buffered.__hx_this.trySend(7))
+	hxrt.Println(buffered.__hx_this.trySend(8))
+	hxrt.Println(buffered.__hx_this.recvOr(-1))
+	hxrt.Println(buffered.__hx_this.recvOr(-1))
+	buffered.__hx_this.close()
 }
 
 type I_go___Chan interface {

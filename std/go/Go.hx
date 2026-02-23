@@ -46,5 +46,15 @@ class Go {
 	}
 
 	@:noCompletion
+	public static function __chanTrySend(channel:Dynamic, value:Dynamic):Bool {
+		return false;
+	}
+
+	@:noCompletion
+	public static function __chanRecvOr(channel:Dynamic, defaultValue:Dynamic):Dynamic {
+		return defaultValue;
+	}
+
+	@:noCompletion
 	public static function __chanClose(channel:Dynamic):Void {}
 }

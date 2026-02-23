@@ -20,6 +20,14 @@ class Chan<T> {
 		return cast Go.__chanRecv(__hx_native);
 	}
 
+	public function trySend(value:T):Bool {
+		return Go.__chanTrySend(__hx_native, value);
+	}
+
+	public function recvOr(defaultValue:T):T {
+		return cast Go.__chanRecvOr(__hx_native, defaultValue);
+	}
+
 	public function close():Void {
 		Go.__chanClose(__hx_native);
 	}
