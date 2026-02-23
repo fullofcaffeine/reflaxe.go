@@ -146,7 +146,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 
 | Surface | Status | Evidence (snapshot IDs) |
 | --- | --- | --- |
-| Channels and goroutines | Supported (current implementation uses simulated queue/call semantics; real goroutine/channel lowering is tracked in Phase-2 M2) | `go_native/channel_basic`, `go_native/goroutine_smoke` |
+| Channels and goroutines | Supported (real goroutine/channel/select lowering; `metal` adds a `go.Chan<T>` typed shim lane for concrete element types) | `go_native/channel_basic`, `go_native/channel_select_handshake`, `go_native/channel_metal_monomorph`, `go_native/goroutine_smoke` |
 | Result/Error mapping | Supported | `go_native/result_basic`, `go_native/error_result_mapping` |
 | Slice/Map wrappers | Supported | `go_native/slice_map_basic` |
 

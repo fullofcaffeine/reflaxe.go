@@ -47,6 +47,12 @@ private typedef ArrayMethodCall = {
 	final methodName:String;
 }
 
+private typedef GoChanMethodCall = {
+	final target:TypedExpr;
+	final methodName:String;
+	final elementType:Type;
+}
+
 private typedef FunctionInfo = {
 	final defaults:Array<Null<TypedExpr>>;
 }
@@ -70,6 +76,7 @@ class GoCompiler {
 	final localFunctionScopes:Array<Map<String, FunctionInfo>>;
 	final localRestIteratorScopes:Array<Array<String>>;
 	final requiredStdlibShimGroups:Map<String, Bool>;
+	final requiredMetalChanElementTypes:Map<String, Bool>;
 	final externImportPaths:Map<String, Bool>;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
@@ -90,6 +97,7 @@ class GoCompiler {
 		localFunctionScopes = [];
 		localRestIteratorScopes = [];
 		requiredStdlibShimGroups = new Map<String, Bool>();
+		requiredMetalChanElementTypes = new Map<String, Bool>();
 		externImportPaths = new Map<String, Bool>();
 		functionVarNameScopes = [];
 		functionVarNameCountScopes = [];
@@ -117,6 +125,7 @@ class GoCompiler {
 		projectClasses = classes.copy();
 		projectEnums = enums.copy();
 		requiresIoHelperSurface = false;
+		resetRequiredMetalChanElementTypes();
 		resetExternImportPaths();
 		buildStaticFunctionInfoTable(classes);
 		requiresTypeValueSupport = false;
@@ -2292,7 +2301,7 @@ class GoCompiler {
 	}
 
 	function lowerGoConcurrencyShimDecls():Array<GoDecl> {
-		return [
+		var decls = [
 			GoDecl.GoFuncDecl("go__concurrency_makeChan", null, [{name: "buffer", typeName: "int"}], ["any"], [
 				GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoIdent("buffer"), GoExpr.GoIntLiteral(0)), [GoStmt.GoReturn(GoExpr.GoRaw("make(chan any, buffer)"))],
 					null),
@@ -2367,6 +2376,97 @@ class GoCompiler {
 				}
 			], [], [GoStmt.GoGoStmt(GoExpr.GoCall(GoExpr.GoIdent("fn"), []))])
 		];
+		if (isMetalProfile()) {
+			decls = decls.concat(lowerMetalGoConcurrencyShimDecls());
+		}
+		return decls;
+	}
+
+	function lowerMetalGoConcurrencyShimDecls():Array<GoDecl> {
+		var elementTypes = [for (elementType in requiredMetalChanElementTypes.keys()) elementType];
+		if (elementTypes.length == 0) {
+			return [];
+		}
+
+		elementTypes.sort(function(a, b) return Reflect.compare(a, b));
+
+		var chanTypeName = GoNaming.typeSymbol(["go"], "Chan");
+		var chanCtorName = GoNaming.constructorSymbol(["go"], "Chan");
+		var chanPointerType = "*" + chanTypeName;
+		var decls = new Array<GoDecl>();
+
+		for (elementType in elementTypes) {
+			var chanType = "chan " + elementType;
+			var makeName = metalChanShimName("go__concurrency_makeChan", elementType);
+			var setBufferName = metalChanShimName("go__concurrency_setBuffer", elementType);
+			var newChanName = metalChanShimName("go__concurrency_newChan", elementType);
+			var sendName = metalChanShimName("go__concurrency_send", elementType);
+			var trySendName = metalChanShimName("go__concurrency_trySend", elementType);
+			var recvName = metalChanShimName("go__concurrency_recv", elementType);
+			var recvOrName = metalChanShimName("go__concurrency_recvOr", elementType);
+			var closeName = metalChanShimName("go__concurrency_close", elementType);
+
+			decls.push(GoDecl.GoFuncDecl(makeName, null, [{name: "buffer", typeName: "int"}], ["any"], [
+				GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoIdent("buffer"), GoExpr.GoIntLiteral(0)),
+					[GoStmt.GoReturn(GoExpr.GoRaw("make(" + chanType + ", buffer)"))], null),
+				GoStmt.GoReturn(GoExpr.GoRaw("make(" + chanType + ")"))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(setBufferName, null, [{name: "channel", typeName: chanPointerType}, {name: "buffer", typeName: "int"}], [], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("channel"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("channel"), "__hx_native"),
+					GoExpr.GoCall(GoExpr.GoIdent(makeName), [GoExpr.GoIdent("buffer")]))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(newChanName, null, [{name: "buffer", typeName: "int"}], [chanPointerType], [
+				GoStmt.GoVarDecl("channel", null, GoExpr.GoCall(GoExpr.GoIdent(chanCtorName), []), true),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent(setBufferName), [GoExpr.GoIdent("channel"), GoExpr.GoIdent("buffer")])),
+				GoStmt.GoReturn(GoExpr.GoIdent("channel"))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(sendName, null, [{name: "channel", typeName: "any"}, {name: "value", typeName: elementType}], [], [
+				GoStmt.GoSendStmt(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), chanType), GoExpr.GoIdent("value"))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(trySendName, null, [{name: "channel", typeName: "any"}, {name: "value", typeName: elementType}], ["bool"], [
+				GoStmt.GoSelect([
+					{
+						clause: GoSelectClause.GoSelectSend(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), chanType), GoExpr.GoIdent("value")),
+						body: [GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))]
+					},
+					{
+						clause: GoSelectClause.GoSelectDefault,
+						body: [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))]
+					}
+				])
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(recvName, null, [{name: "channel", typeName: "any"}], [elementType], [
+				GoStmt.GoReturn(GoExpr.GoRecvExpr(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), chanType)))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(recvOrName, null, [
+				{name: "channel", typeName: "any"},
+				{name: "defaultValue", typeName: elementType}
+			], [elementType], [
+				GoStmt.GoSelect([
+					{
+						clause: GoSelectClause.GoSelectRecvAssign(GoExpr.GoIdent("value"),
+							GoExpr.GoRecvExpr(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), chanType)), true),
+						body: [GoStmt.GoReturn(GoExpr.GoIdent("value"))]
+					},
+					{
+						clause: GoSelectClause.GoSelectDefault,
+						body: [GoStmt.GoReturn(GoExpr.GoIdent("defaultValue"))]
+					}
+				])
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(closeName, null, [{name: "channel", typeName: "any"}], [], [
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("close"), [GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), chanType)]))
+			]));
+		}
+		return decls;
 	}
 
 	function lowerDsStdlibShimDecls():Array<GoDecl> {
@@ -8772,6 +8872,21 @@ class GoCompiler {
 						expr: args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil,
 						isStringLike: false
 					};
+				} else if (isMetalProfile() && isGoChanClass(classType)) {
+					var elementGoType = goChanElementGoType(expr.t);
+					if (elementGoType != null) {
+						requireStdlibShimGroup("go_concurrency");
+						registerMetalChanElementGoType(elementGoType);
+						{
+							expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_newChan", elementGoType)), [GoExpr.GoIntLiteral(0)]),
+							isStringLike: false
+						};
+					} else {
+						{
+							expr: GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(classType)), [for (arg in args) lowerExpr(arg).expr]),
+							isStringLike: false
+						};
+					}
 				} else if (classType.pack.length == 0 && classType.name == "Array") {
 					{
 						expr: GoExpr.GoArrayLiteral(arrayElementGoType(expr.t), []),
@@ -9297,6 +9412,11 @@ class GoCompiler {
 			return externReceiverCall;
 		}
 
+		var metalChanCall = lowerMetalGoChanCall(callee, args, returnType);
+		if (metalChanCall != null) {
+			return metalChanCall;
+		}
+
 		if (isStaticCall(callee, "Go", ["go"], "__chanMake")) {
 			requireStdlibShimGroup("go_concurrency");
 			var buffer = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
@@ -9524,6 +9644,81 @@ class GoCompiler {
 			expr: callExpr,
 			isStringLike: isStringType(returnType)
 		};
+	}
+
+	function lowerMetalGoChanCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		if (!isMetalProfile()) {
+			return null;
+		}
+
+		if (isStaticCall(callee, "Go", ["go"], "newChan")) {
+			var elementGoType = goChanElementGoType(returnType);
+			if (elementGoType == null) {
+				return null;
+			}
+			requireStdlibShimGroup("go_concurrency");
+			registerMetalChanElementGoType(elementGoType);
+			var buffer = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_newChan", elementGoType)), [buffer]),
+				isStringLike: false
+			};
+		}
+
+		var methodCall = asGoChanMethodCall(callee);
+		if (methodCall == null) {
+			return null;
+		}
+
+		var elementGoType = scalarGoType(methodCall.elementType);
+		if (!isMonomorphizableMetalChanElementType(elementGoType)) {
+			return null;
+		}
+
+		requireStdlibShimGroup("go_concurrency");
+		registerMetalChanElementGoType(elementGoType);
+
+		var channel = lowerExpr(methodCall.target).expr;
+		var channelNative = GoExpr.GoSelector(channel, "__hx_native");
+
+		switch (methodCall.methodName) {
+			case "send":
+				var value = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_send", elementGoType)), [channelNative, value]),
+					isStringLike: false
+				};
+			case "trySend":
+				var value = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_trySend", elementGoType)), [channelNative, value]),
+					isStringLike: false
+				};
+			case "recv":
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_recv", elementGoType)), [channelNative]),
+					isStringLike: isStringType(returnType)
+				};
+			case "recvOr":
+				var defaultValue = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_recvOr", elementGoType)), [channelNative, defaultValue]),
+					isStringLike: isStringType(returnType)
+				};
+			case "close":
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_close", elementGoType)), [channelNative]),
+					isStringLike: false
+				};
+			case "__hx_setBuffer":
+				var buffer = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_setBuffer", elementGoType)), [channel, buffer]),
+					isStringLike: false
+				};
+			case _:
+				return null;
+		}
 	}
 
 	function lowerExternReceiverCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
@@ -10020,6 +10215,86 @@ class GoCompiler {
 		};
 	}
 
+	function isMetalProfile():Bool {
+		return compilationContext.profile == GoProfile.Metal;
+	}
+
+	function isGoChanClass(classType:ClassType):Bool {
+		return classType.pack.join(".") == "go" && classType.name == "Chan";
+	}
+
+	function goChanElementType(type:Type):Null<Type> {
+		var followed = Context.follow(type);
+		return switch (followed) {
+			case TInst(classRef, params):
+				var classType = classRef.get();
+				if (isGoChanClass(classType) && params.length == 1) {
+					params[0];
+				} else {
+					null;
+				}
+			case TAbstract(abstractRef, params):
+				var abstractType = abstractRef.get();
+				if (abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1) {
+					goChanElementType(params[0]);
+				} else {
+					null;
+				}
+			case TMono(ref):
+				var resolved = ref.get();
+				resolved == null ? null : goChanElementType(resolved);
+			case _:
+				null;
+		};
+	}
+
+	function isMonomorphizableMetalChanElementType(elementGoType:String):Bool {
+		return elementGoType != null && elementGoType != "" && elementGoType != "any";
+	}
+
+	function goChanElementGoType(type:Type):Null<String> {
+		var elementType = goChanElementType(type);
+		if (elementType == null) {
+			return null;
+		}
+		var elementGoType = scalarGoType(elementType);
+		if (!isMonomorphizableMetalChanElementType(elementGoType)) {
+			return null;
+		}
+		return elementGoType;
+	}
+
+	function registerMetalChanElementGoType(elementGoType:String):Void {
+		if (!isMetalProfile()) {
+			return;
+		}
+		if (!isMonomorphizableMetalChanElementType(elementGoType)) {
+			return;
+		}
+		requiredMetalChanElementTypes.set(elementGoType, true);
+	}
+
+	function metalChanTypeHash(value:String):String {
+		var hash = 0x811C9DC5;
+		for (index in 0...value.length) {
+			hash ^= value.charCodeAt(index);
+			hash *= 0x01000193;
+		}
+		return StringTools.hex(hash, 8).toLowerCase();
+	}
+
+	function metalChanTypeSuffix(elementGoType:String):String {
+		var normalized = GoNaming.normalizeIdent(elementGoType);
+		if (normalized == "" || normalized == "hx_tmp") {
+			normalized = "t";
+		}
+		return normalized + "_" + metalChanTypeHash(elementGoType);
+	}
+
+	function metalChanShimName(base:String, elementGoType:String):String {
+		return base + "__" + metalChanTypeSuffix(elementGoType);
+	}
+
 	function shouldAssertGenericCallResult(callee:TypedExpr, returnType:Type):Bool {
 		if (typeToGoType(returnType) == "any") {
 			return false;
@@ -10499,6 +10774,12 @@ class GoCompiler {
 		}
 	}
 
+	function resetRequiredMetalChanElementTypes():Void {
+		for (elementType in requiredMetalChanElementTypes.keys()) {
+			requiredMetalChanElementTypes.remove(elementType);
+		}
+	}
+
 	function noteExternImportPath(classType:ClassType):Void {
 		var path = externClassImportPath(classType);
 		if (path == null || path == "") {
@@ -10673,6 +10954,31 @@ class GoCompiler {
 				{target: target, methodName: field.get().name};
 			case TField(target, FDynamic(name)):
 				{target: target, methodName: name};
+			case _:
+				null;
+		};
+	}
+
+	function asGoChanMethodCall(callee:TypedExpr):Null<GoChanMethodCall> {
+		return switch (callee.expr) {
+			case TField(target, FInstance(classRef, _, field)):
+				var classType = classRef.get();
+				var elementType = goChanElementType(target.t);
+				if (isGoChanClass(classType) && elementType != null) {
+					{
+						target: target,
+						methodName: field.get().name,
+						elementType: elementType
+					};
+				} else {
+					null;
+				}
+			case TMeta(_, inner):
+				asGoChanMethodCall(inner);
+			case TParenthesis(inner):
+				asGoChanMethodCall(inner);
+			case TCast(inner, _):
+				asGoChanMethodCall(inner);
 			case _:
 				null;
 		};
