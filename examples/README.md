@@ -1,9 +1,10 @@
 # Examples
 
-This repository ships two first-class multi-profile examples:
+This repository ships three first-class multi-profile examples:
 
 - `profile_storyboard`: compact profile-idiom walkthrough.
 - `tui_todo`: canonical complex app with deterministic pseudo-TUI flow.
+- `interop_smoke`: typed Go interop reference (`fmt`/`time`/`context`).
 
 Both examples compile from one Haxe codebase into:
 

@@ -1,0 +1,41 @@
+@:go.import("fmt")
+extern class GoFmt {
+	@:go.name("Println")
+	public static function println(value:Int):Void;
+}
+
+@:go.import("time")
+@:go.name("Time")
+extern class GoTime {
+	@:go.name("Now")
+	public static function now():GoTime;
+
+	@:go.name("Unix")
+	public function unix():Int;
+
+	@:go.receiver
+	@:go.name("Unix")
+	public static function unixViaReceiver(value:GoTime):Int;
+}
+
+@:go.import("context")
+@:go.name("Context")
+extern interface GoContext {}
+
+@:go.import("context")
+extern class GoContextPkg {
+	@:go.name("Background")
+	public static function background():GoContext;
+}
+
+class Main {
+	static function main() {
+		var now = GoTime.now();
+		var unixDirect = now.unix();
+		var unixReceiver = GoTime.unixViaReceiver(now);
+		var ctx = GoContextPkg.background();
+
+		var ok = unixDirect == unixReceiver && unixDirect > 0 && ctx != null;
+		GoFmt.println(ok ? 1 : 0);
+	}
+}

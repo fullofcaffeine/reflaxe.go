@@ -1,11 +1,12 @@
 # Examples Matrix
 
-`reflaxe.go` ships two canonical examples designed to show one Haxe codebase compiled into all supported profiles.
+`reflaxe.go` ships canonical examples designed to show one Haxe codebase compiled into all supported profiles.
 
 | Example | portable | gopher | metal | Purpose |
 | --- | --- | --- | --- | --- |
 | `examples/profile_storyboard` | Yes | Yes | Yes | Compact profile-idiom reference with profile runtime adapters. |
 | `examples/tui_todo` | Yes | Yes | Yes | Complex app reference with deterministic pseudo-TUI flow and additive profile capabilities. |
+| `examples/interop_smoke` | Yes | Yes | Yes | Typed interop smoke reference for `@:go.import`, `@:go.name`, `@:go.receiver`, and interface-returning package APIs (`fmt`/`time`/`context`). |
 
 ## Build and run matrix
 
