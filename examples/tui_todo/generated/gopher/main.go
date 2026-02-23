@@ -227,9 +227,11 @@ func InteractiveCli_listIndex(values *haxe__ds__List, index int) *string {
 }
 
 func InteractiveCli_loadState(app *app__TodoApp) {
+	hx_try_return_13 := false
 	hxrt.TryCatch(func() {
 		raw := sys__io__File_getContent(hxrt.StringFromLiteral(".tui_todo_state.txt"))
 		if hxrt.StringEqualStringPtr(raw, hxrt.StringFromLiteral("")) {
+			hx_try_return_13 = true
 			return
 		}
 		lines := InteractiveCli_splitRaw(raw, 10)
@@ -237,12 +239,12 @@ func InteractiveCli_loadState(app *app__TodoApp) {
 		_ = count
 		i := 0
 		for i < count {
-			lineValue := func(hx_value_15 any) *string {
-				if hx_value_15 == nil {
-					var hx_zero_16 *string
-					return hx_zero_16
+			lineValue := func(hx_value_16 any) *string {
+				if hx_value_16 == nil {
+					var hx_zero_17 *string
+					return hx_zero_17
 				}
-				return hx_value_15.(*string)
+				return hx_value_16.(*string)
 			}(lines.pop())
 			if hxrt.StringEqualStringPtr(lineValue, nil) {
 				break
@@ -271,12 +273,12 @@ func InteractiveCli_loadState(app *app__TodoApp) {
 			_ = tagCount
 			j := 0
 			for j < tagCount {
-				tagValue := func(hx_value_17 any) *string {
-					if hx_value_17 == nil {
-						var hx_zero_18 *string
-						return hx_zero_18
+				tagValue := func(hx_value_18 any) *string {
+					if hx_value_18 == nil {
+						var hx_zero_19 *string
+						return hx_zero_19
 					}
-					return hx_value_17.(*string)
+					return hx_value_18.(*string)
 				}(tags.pop())
 				if hxrt.StringEqualStringPtr(tagValue, nil) {
 					break
@@ -289,11 +291,15 @@ func InteractiveCli_loadState(app *app__TodoApp) {
 			lines.add(line)
 			i = int(int32((i + 1)))
 		}
-	}, func(hx_caught_13 any) {
-		hx_tmp := hx_caught_13
+	}, func(hx_caught_14 any) {
+		hx_tmp := hx_caught_14
 		_ = hx_tmp
+		hx_try_return_13 = true
 		return
 	})
+	if hx_try_return_13 {
+		return
+	}
 }
 
 func InteractiveCli_parsePositiveInt(raw *string) int {
@@ -482,25 +488,25 @@ func InteractiveCli_saveState(app *app__TodoApp) {
 	_ = count
 	i := 0
 	for i < count {
-		raw := func(hx_value_19 any) *model__TodoItem {
-			if hx_value_19 == nil {
-				var hx_zero_20 *model__TodoItem
-				return hx_zero_20
+		raw := func(hx_value_20 any) *model__TodoItem {
+			if hx_value_20 == nil {
+				var hx_zero_21 *model__TodoItem
+				return hx_zero_21
 			}
-			return hx_value_19.(*model__TodoItem)
+			return hx_value_20.(*model__TodoItem)
 		}(items.pop())
 		if hxrt.StringEqualAny(raw, nil) {
 			break
 		}
 		item := raw
 		out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(InteractiveCli_encodeField(item.title), hxrt.StringFromLiteral("\t")), item.priority), hxrt.StringFromLiteral("\t")), func() *string {
-			var hx_if_21 *string
+			var hx_if_22 *string
 			if item.done {
-				hx_if_21 = hxrt.StringFromLiteral("1")
+				hx_if_22 = hxrt.StringFromLiteral("1")
 			} else {
-				hx_if_21 = hxrt.StringFromLiteral("0")
+				hx_if_22 = hxrt.StringFromLiteral("0")
 			}
-			return hx_if_21
+			return hx_if_22
 		}()), hxrt.StringFromLiteral("\t")), InteractiveCli_encodeTags(item.tags)), hxrt.StringFromLiteral("\n")))
 		items.add(item)
 		i = int(int32((i + 1)))
@@ -651,12 +657,12 @@ func (self *app__TodoApp) addMany(titles *haxe__ds__List, priority int) int {
 	_ = count
 	i := 0
 	for i < count {
-		raw := func(hx_value_22 any) *string {
-			if hx_value_22 == nil {
-				var hx_zero_23 *string
-				return hx_zero_23
+		raw := func(hx_value_23 any) *string {
+			if hx_value_23 == nil {
+				var hx_zero_24 *string
+				return hx_zero_24
 			}
-			return hx_value_22.(*string)
+			return hx_value_23.(*string)
 		}(titles.pop())
 		if hxrt.StringEqualStringPtr(raw, nil) {
 			break
@@ -709,12 +715,12 @@ func (self *app__TodoApp) render() *string {
 	_ = count
 	i := 0
 	for i < count {
-		raw := func(hx_value_24 any) *model__TodoItem {
-			if hx_value_24 == nil {
-				var hx_zero_25 *model__TodoItem
-				return hx_zero_25
+		raw := func(hx_value_25 any) *model__TodoItem {
+			if hx_value_25 == nil {
+				var hx_zero_26 *model__TodoItem
+				return hx_zero_26
 			}
-			return hx_value_24.(*model__TodoItem)
+			return hx_value_25.(*model__TodoItem)
 		}(items.pop())
 		if hxrt.StringEqualAny(raw, nil) {
 			break
@@ -750,12 +756,12 @@ func app__TodoApp_joinStringList(values *haxe__ds__List, separator *string) *str
 	_ = count
 	i := 0
 	for i < count {
-		raw := func(hx_value_26 any) *string {
-			if hx_value_26 == nil {
-				var hx_zero_27 *string
-				return hx_zero_27
+		raw := func(hx_value_27 any) *string {
+			if hx_value_27 == nil {
+				var hx_zero_28 *string
+				return hx_zero_28
 			}
-			return hx_value_26.(*string)
+			return hx_value_27.(*string)
 		}(values.pop())
 		if hxrt.StringEqualStringPtr(raw, nil) {
 			break
@@ -880,12 +886,12 @@ func (self *model__TodoStore) openCount() int {
 	_ = count
 	i := 0
 	for i < count {
-		value := func(hx_value_28 any) *model__TodoItem {
-			if hx_value_28 == nil {
-				var hx_zero_29 *model__TodoItem
-				return hx_zero_29
+		value := func(hx_value_29 any) *model__TodoItem {
+			if hx_value_29 == nil {
+				var hx_zero_30 *model__TodoItem
+				return hx_zero_30
 			}
-			return hx_value_28.(*model__TodoItem)
+			return hx_value_29.(*model__TodoItem)
 		}(self.entries.pop())
 		if hxrt.StringEqualAny(value, nil) {
 			break
@@ -907,12 +913,12 @@ func (self *model__TodoStore) doneCount() int {
 	_ = count
 	i := 0
 	for i < count {
-		value := func(hx_value_30 any) *model__TodoItem {
-			if hx_value_30 == nil {
-				var hx_zero_31 *model__TodoItem
-				return hx_zero_31
+		value := func(hx_value_31 any) *model__TodoItem {
+			if hx_value_31 == nil {
+				var hx_zero_32 *model__TodoItem
+				return hx_zero_32
 			}
-			return hx_value_30.(*model__TodoItem)
+			return hx_value_31.(*model__TodoItem)
 		}(self.entries.pop())
 		if hxrt.StringEqualAny(value, nil) {
 			break
@@ -934,12 +940,12 @@ func (self *model__TodoStore) findById(id int) *model__TodoItem {
 	_ = count
 	i := 0
 	for i < count {
-		value := func(hx_value_32 any) *model__TodoItem {
-			if hx_value_32 == nil {
-				var hx_zero_33 *model__TodoItem
-				return hx_zero_33
+		value := func(hx_value_33 any) *model__TodoItem {
+			if hx_value_33 == nil {
+				var hx_zero_34 *model__TodoItem
+				return hx_zero_34
 			}
-			return hx_value_32.(*model__TodoItem)
+			return hx_value_33.(*model__TodoItem)
 		}(self.entries.pop())
 		if hxrt.StringEqualAny(value, nil) {
 			break

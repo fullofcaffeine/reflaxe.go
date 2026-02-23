@@ -49,6 +49,12 @@ private typedef ConstructorBodyLowering = {
 	final superArgs:Null<Array<TypedExpr>>;
 	final body:Array<GoStmt>;
 }
+
+private typedef ReturnRedirect = {
+	final flagName:String;
+	final valueName:Null<String>;
+	final valueType:Null<Type>;
+}
 #end
 
 class GoCompiler {
@@ -61,6 +67,7 @@ class GoCompiler {
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
 	final functionReturnTypeScopes:Array<Type>;
+	final returnRedirectScopes:Array<Null<ReturnRedirect>>;
 	var cachedVoidType:Null<Type>;
 	var requiresIoHelperSurface:Bool;
 	var projectClasses:Array<ClassType>;
@@ -79,6 +86,7 @@ class GoCompiler {
 		functionVarNameScopes = [];
 		functionVarNameCountScopes = [];
 		functionReturnTypeScopes = [];
+		returnRedirectScopes = [];
 		cachedVoidType = null;
 		requiresIoHelperSurface = false;
 		projectClasses = [];
@@ -7774,9 +7782,26 @@ class GoCompiler {
 					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [loweredValue.expr]))
 				]).concat(nonVoidThrowFallbackReturnStmts());
 			case TTry(tryExpr, catches):
-				[lowerTryCatchStmt(tryExpr, catches)];
+				lowerTryCatchStmt(tryExpr, catches);
 			case TReturn(value):
-				if (value == null) {
+				var redirect = currentReturnRedirect();
+				if (redirect != null) {
+					var redirected = new Array<GoStmt>();
+					if (value != null) {
+						var loweredReturn = lowerExprWithPrefix(value);
+						var returnExpr = loweredReturn.expr;
+						redirected = redirected.concat(loweredReturn.prefix);
+						if (redirect.valueName != null && redirect.valueType != null) {
+							returnExpr = upcastIfNeeded(returnExpr, value.t, redirect.valueType);
+							redirected.push(GoStmt.GoAssign(GoExpr.GoIdent(redirect.valueName), returnExpr));
+						} else {
+							redirected.push(GoStmt.GoExprStmt(returnExpr));
+						}
+					}
+					redirected.push(GoStmt.GoAssign(GoExpr.GoIdent(redirect.flagName), GoExpr.GoBoolLiteral(true)));
+					redirected.push(GoStmt.GoReturn(null));
+					redirected;
+				} else if (value == null) {
 					[GoStmt.GoReturn(null)];
 				} else {
 					var loweredReturn = lowerExprWithPrefix(value);
@@ -7907,7 +7932,9 @@ class GoCompiler {
 
 	function lowerFunctionBody(expr:TypedExpr):Array<GoStmt> {
 		pushLocalScope();
+		pushReturnRedirectMask();
 		var out = lowerToStatements(expr);
+		popReturnRedirect();
 		popLocalScope();
 		return out;
 	}
@@ -7979,10 +8006,36 @@ class GoCompiler {
 		};
 	}
 
-	function lowerTryCatchStmt(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>):GoStmt {
+	function lowerTryCatchStmt(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>):Array<GoStmt> {
+		var redirect:Null<ReturnRedirect> = null;
+		var redirectPrefix = new Array<GoStmt>();
+		var outerReturnType = currentFunctionReturnType();
+		if (outerReturnType != null && tryCatchContainsReturn(tryExpr, catches)) {
+			var flagName = freshTempName("hx_try_return");
+			var valueName:Null<String> = null;
+			var valueType:Null<Type> = null;
+
+			redirectPrefix.push(GoStmt.GoVarDecl(flagName, "bool", GoExpr.GoBoolLiteral(false), true));
+			if (!isVoidType(outerReturnType)) {
+				valueName = freshTempName("hx_try_value");
+				valueType = outerReturnType;
+				redirectPrefix.push(GoStmt.GoVarDecl(valueName, typeToGoType(outerReturnType), null, false));
+			}
+
+			redirect = {
+				flagName: flagName,
+				valueName: valueName,
+				valueType: valueType
+			};
+		}
+
 		if (catches.length == 0) {
-			var tryBody = lowerStatementsWithReturnType(tryExpr, voidType());
-			return GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], tryBody), []));
+			var tryBody = lowerStatementsWithReturnType(tryExpr, voidType(), redirect);
+			var out = redirectPrefix.concat([GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], tryBody), []))]);
+			if (redirect != null) {
+				out.push(tryReturnRedirectStmt(redirect));
+			}
+			return out;
 		}
 
 		var caughtName = freshTempName("hx_caught");
@@ -7994,7 +8047,7 @@ class GoCompiler {
 			var catchEntry = catches[index];
 			var catchVarName = localVarName(catchEntry.v);
 			var catchType = typeToGoType(catchEntry.v.t);
-			var catchExprBody = lowerStatementsWithReturnType(catchEntry.expr, voidType());
+			var catchExprBody = lowerStatementsWithReturnType(catchEntry.expr, voidType(), redirect);
 			var haxeExceptionCatch = isHaxeExceptionType(catchEntry.v.t);
 			var dynamicCatch = isDynamicCatchType(catchEntry.v.t) || haxeExceptionCatch || catchType == "any";
 
@@ -8034,15 +8087,164 @@ class GoCompiler {
 			];
 		};
 
-		return GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.TryCatch"), [
-			GoExpr.GoFuncLiteral([], [], lowerStatementsWithReturnType(tryExpr, voidType())),
-			GoExpr.GoFuncLiteral([
-				{
-					name: caughtName,
-					typeName: "any"
+		var out = redirectPrefix.concat([
+			GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.TryCatch"), [
+				GoExpr.GoFuncLiteral([], [], lowerStatementsWithReturnType(tryExpr, voidType(), redirect)),
+				GoExpr.GoFuncLiteral([
+					{
+						name: caughtName,
+						typeName: "any"
+					}
+				], [], catchBody)
+			]))
+		]);
+		if (redirect != null) {
+			out.push(tryReturnRedirectStmt(redirect));
+		}
+		return out;
+	}
+
+	function tryReturnRedirectStmt(redirect:ReturnRedirect):GoStmt {
+		var returnStmt = redirect.valueName == null ? GoStmt.GoReturn(null) : GoStmt.GoReturn(GoExpr.GoIdent(redirect.valueName));
+		return GoStmt.GoIf(GoExpr.GoIdent(redirect.flagName), [returnStmt], null);
+	}
+
+	function tryCatchContainsReturn(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>):Bool {
+		if (exprContainsReturn(tryExpr)) {
+			return true;
+		}
+		for (catchEntry in catches) {
+			if (exprContainsReturn(catchEntry.expr)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function exprContainsReturn(expr:TypedExpr):Bool {
+		return switch (expr.expr) {
+			case TReturn(_):
+				true;
+			case TFunction(_):
+				false;
+			case TMeta(_, inner):
+				exprContainsReturn(inner);
+			case TParenthesis(inner):
+				exprContainsReturn(inner);
+			case TCast(inner, _):
+				exprContainsReturn(inner);
+			case TEnumIndex(inner):
+				exprContainsReturn(inner);
+			case TEnumParameter(target, _, _):
+				exprContainsReturn(target);
+			case TVar(_, value): value != null && exprContainsReturn(value);
+			case TArray(target, index): exprContainsReturn(target) || exprContainsReturn(index);
+			case TBinop(_, left, right): exprContainsReturn(left) || exprContainsReturn(right);
+			case TUnop(_, _, value):
+				exprContainsReturn(value);
+			case TField(target, _):
+				exprContainsReturn(target);
+			case TNew(_, _, args):
+				var hasReturn = false;
+				for (arg in args) {
+					if (exprContainsReturn(arg)) {
+						hasReturn = true;
+						break;
+					}
 				}
-			], [], catchBody)
-		]));
+				hasReturn;
+			case TCall(callee, args):
+				if (exprContainsReturn(callee)) {
+					true;
+				} else {
+					var hasReturn = false;
+					for (arg in args) {
+						if (exprContainsReturn(arg)) {
+							hasReturn = true;
+							break;
+						}
+					}
+					hasReturn;
+				}
+			case TObjectDecl(fields):
+				var hasReturn = false;
+				for (field in fields) {
+					if (exprContainsReturn(field.expr)) {
+						hasReturn = true;
+						break;
+					}
+				}
+				hasReturn;
+			case TArrayDecl(values):
+				var hasReturn = false;
+				for (value in values) {
+					if (exprContainsReturn(value)) {
+						hasReturn = true;
+						break;
+					}
+				}
+				hasReturn;
+			case TBlock(exprs):
+				var hasReturn = false;
+				for (inner in exprs) {
+					if (exprContainsReturn(inner)) {
+						hasReturn = true;
+						break;
+					}
+				}
+				hasReturn;
+			case TIf(condition, thenBranch, elseBranch): exprContainsReturn(condition) || exprContainsReturn(thenBranch) || (elseBranch != null
+					&& exprContainsReturn(elseBranch));
+			case TSwitch(value, cases, defaultExpr):
+				if (exprContainsReturn(value)) {
+					true;
+				} else {
+					var hasReturn = false;
+					for (caseEntry in cases) {
+						for (caseValue in caseEntry.values) {
+							if (exprContainsReturn(caseValue)) {
+								hasReturn = true;
+								break;
+							}
+						}
+						if (hasReturn || exprContainsReturn(caseEntry.expr)) {
+							hasReturn = true;
+							break;
+						}
+					}
+					hasReturn || (defaultExpr != null && exprContainsReturn(defaultExpr))
+					;
+				}
+			case TWhile(condition, body, _): exprContainsReturn(condition) || exprContainsReturn(body);
+			case TFor(_, iterator, body): exprContainsReturn(iterator) || exprContainsReturn(body);
+			case TTry(innerTry, innerCatches):
+				if (exprContainsReturn(innerTry)) {
+					true;
+				} else {
+					var hasReturn = false;
+					for (catchEntry in innerCatches) {
+						if (exprContainsReturn(catchEntry.expr)) {
+							hasReturn = true;
+							break;
+						}
+					}
+					hasReturn;
+				}
+			case TThrow(value):
+				exprContainsReturn(value);
+			case TConst(_):
+				false;
+			case TLocal(_):
+				false;
+			case TIdent(_):
+				false;
+			case TTypeExpr(_):
+				false;
+			case TBreak:
+				false;
+			case TContinue:
+				false;
+		};
 	}
 
 	function lowerTryCatchExpr(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>, resultType:Type):LoweredExprWithPrefix {
@@ -8204,9 +8406,36 @@ class GoCompiler {
 		return functionReturnTypeScopes[functionReturnTypeScopes.length - 1];
 	}
 
-	function lowerStatementsWithReturnType(expr:TypedExpr, returnType:Type):Array<GoStmt> {
+	function pushReturnRedirectMask():Void {
+		returnRedirectScopes.push(null);
+	}
+
+	function pushReturnRedirect(redirect:ReturnRedirect):Void {
+		returnRedirectScopes.push(redirect);
+	}
+
+	function popReturnRedirect():Void {
+		if (returnRedirectScopes.length > 0) {
+			returnRedirectScopes.pop();
+		}
+	}
+
+	function currentReturnRedirect():Null<ReturnRedirect> {
+		if (returnRedirectScopes.length == 0) {
+			return null;
+		}
+		return returnRedirectScopes[returnRedirectScopes.length - 1];
+	}
+
+	function lowerStatementsWithReturnType(expr:TypedExpr, returnType:Type, ?redirect:Null<ReturnRedirect>):Array<GoStmt> {
 		pushFunctionReturnType(returnType);
+		if (redirect != null) {
+			pushReturnRedirect(redirect);
+		}
 		var lowered = lowerToStatements(expr);
+		if (redirect != null) {
+			popReturnRedirect();
+		}
 		popFunctionReturnType();
 		return lowered;
 	}

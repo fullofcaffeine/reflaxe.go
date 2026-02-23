@@ -65,7 +65,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Super calls | Supported | `core/super_calls` |
 | Enums and switch pattern bindings | Supported | `core/enum_constructors`, `core/switch_enum_basic`, `core/enum_switch_bindings` |
 | Anonymous object literals and structural field mutation | Supported | `core/object_literal_fields` |
-| Exception subset (`throw`, typed/dynamic catch, rethrow, throw-as-expression`) | Supported | `core/haxe_exception_subset`, `core/try_catch_typed`, `core/try_catch_dynamic`, `core/try_catch_rethrow`, `throw_expr_contract` |
+| Exception subset (`throw`, typed/dynamic catch, rethrow, throw-as-expression, return-forwarding in statement-form try/catch) | Supported | `core/haxe_exception_subset`, `core/try_catch_typed`, `core/try_catch_dynamic`, `core/try_catch_rethrow`, `core/try_catch_return_forwarding`, `throw_expr_contract`, `try_catch_return_forwarding_contract` |
 | `Std.isOfType` behavior | Supported | `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic`, `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract` |
 | Type-value expressions (`TTypeExpr`) for class/enum refs | Supported | `type_expr_contract` |
 | Unsigned right shift behavior | Supported | `core/unsigned_shift`, `core/unsigned_shift_assign` |
@@ -127,6 +127,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/std_is_of_type_runtime_core_abstract_contract`
 - `test/semantic_diff/type_expr_contract`
 - `test/semantic_diff/throw_expr_contract`
+- `test/semantic_diff/try_catch_return_forwarding_contract`
 - `test/semantic_diff/atomic_int_bool_contract`
 - `test/semantic_diff/atomic_object_contract`
 
@@ -145,7 +146,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 
 | Surface | Status | Evidence (snapshot IDs) |
 | --- | --- | --- |
-| Channels and goroutines | Supported | `go_native/channel_basic`, `go_native/goroutine_smoke` |
+| Channels and goroutines | Supported (current implementation uses simulated queue/call semantics; real goroutine/channel lowering is tracked in Phase-2 M2) | `go_native/channel_basic`, `go_native/goroutine_smoke` |
 | Result/Error mapping | Supported | `go_native/result_basic`, `go_native/error_result_mapping` |
 | Slice/Map wrappers | Supported | `go_native/slice_map_basic` |
 

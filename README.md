@@ -160,6 +160,7 @@ Runtime details: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
 ## Documentation
 
 - Start here: [docs/start-here.md](docs/start-here.md)
+- Phase-2 roadmap (active): [docs/phase2-roadmap.md](docs/phase2-roadmap.md)
 - `hxrt` runtime architecture and contract: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
 - Feature support and coverage inventory: [docs/feature-support-matrix.md](docs/feature-support-matrix.md)
 - Defines reference: [docs/defines-reference.md](docs/defines-reference.md)

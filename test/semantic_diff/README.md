@@ -28,6 +28,7 @@ Goal:
   - deterministic `haxe.ds.ReadOnlyArray` length/index/read-only-view parity subset
   - deterministic `sys.io.Process` spawn/stdout behavior (cross-platform echo and `haxe --version` smoke)
   - deterministic throw-as-expression parity (`throw` in value-returning expression contexts)
+  - deterministic try/catch return-forwarding parity for statement-form `try` branches that `return` from enclosing functions
   - deterministic `sys.net.Host` constructor/resolve/reverse/localhost behavior
   - deterministic `haxe.io.Bytes`/`haxe.io.BytesBuffer` semantics (`set`/`addByte` byte normalization, plus `blit`/`fill`/`sub`/`compare` behavior)
   - deterministic `haxe.io.Bytes.getData` / `haxe.io.Bytes.ofData` alias semantics

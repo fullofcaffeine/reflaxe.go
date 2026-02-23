@@ -1,5 +1,10 @@
 # PRD: reflaxe.go — Haxe 4.3.7 → Go target (Reflaxe-based)
 
+> Historical Phase-1 document.
+>
+> Active roadmap: `docs/phase2-roadmap.md`.
+> This file is preserved for design history and implementation traceability.
+
 This PRD is optimized for LLM-agent implementation: it specifies a deterministic **test harness** (snapshot + build + runtime smoke), a modular compiler architecture (AST-first), and clear milestones with acceptance criteria.
 
 ## 0) What I extracted from your shipped targets (patterns worth copying)
