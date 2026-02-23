@@ -8945,6 +8945,14 @@ class GoCompiler {
 						GoStmt.GoGoStmt(GoExpr.GoCall(GoExpr.GoIdent("fn"), []))
 					])
 				];
+			case "send_recv":
+				[
+					GoDecl.GoFuncDecl("hxrt__test_ast_send_recv_stmt_smoke", null, [], [], [
+						GoStmt.GoVarDecl("ch", null, GoExpr.GoCall(GoExpr.GoIdent("make"), [GoExpr.GoRaw("chan int"), GoExpr.GoIntLiteral(1)]), true),
+						GoStmt.GoSendStmt(GoExpr.GoIdent("ch"), GoExpr.GoIntLiteral(7)),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoRecvExpr(GoExpr.GoIdent("ch")))
+					])
+				];
 			case _:
 				Context.fatalError('Unknown AST statement test case "' + testCase + '"', Context.currentPos());
 				[];

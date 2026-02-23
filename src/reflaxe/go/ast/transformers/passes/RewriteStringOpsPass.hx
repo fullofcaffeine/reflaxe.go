@@ -56,6 +56,8 @@ class RewriteStringOpsPass implements IGoASTPass {
 				GoStmt.GoGoStmt(rewriteExpr(call));
 			case GoStmt.GoDeferStmt(call):
 				GoStmt.GoDeferStmt(rewriteExpr(call));
+			case GoStmt.GoSendStmt(channel, value):
+				GoStmt.GoSendStmt(rewriteExpr(channel), rewriteExpr(value));
 			case GoStmt.GoWhile(cond, body):
 				GoStmt.GoWhile(rewriteExpr(cond), [for (inner in body) rewriteStmt(inner)]);
 			case GoStmt.GoIf(cond, thenBody, elseBody):
@@ -101,6 +103,8 @@ class RewriteStringOpsPass implements IGoASTPass {
 				GoExpr.GoFuncLiteral(params, results, [for (stmt in body) rewriteStmt(stmt)]);
 			case GoExpr.GoTypeAssert(inner, typeName):
 				GoExpr.GoTypeAssert(rewriteExpr(inner), typeName);
+			case GoExpr.GoRecvExpr(channel):
+				GoExpr.GoRecvExpr(rewriteExpr(channel));
 			case GoExpr.GoUnary(op, inner):
 				GoExpr.GoUnary(op, rewriteExpr(inner));
 			case GoExpr.GoBinary(op, left, right):

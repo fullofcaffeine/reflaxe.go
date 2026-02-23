@@ -134,6 +134,9 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 				GoStmt.GoGoStmt(rewriteExpr(call, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
 			case GoStmt.GoDeferStmt(call):
 				GoStmt.GoDeferStmt(rewriteExpr(call, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
+			case GoStmt.GoSendStmt(channel, value):
+				GoStmt.GoSendStmt(rewriteExpr(channel, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets),
+					rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
 			case GoStmt.GoRaw(code):
 				clearCandidates(localLeafVars);
 				GoStmt.GoRaw(code);
@@ -214,13 +217,16 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 					end == null ? null : rewriteExpr(end, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
 			case GoExpr.GoArrayLiteral(elementType, elements):
 				GoExpr.GoArrayLiteral(elementType, [
-					for (element in elements) rewriteExpr(element, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets)
+					for (element in elements)
+						rewriteExpr(element, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets)
 				]);
 			case GoExpr.GoFuncLiteral(params, results, body):
 				// Nested closures may shadow names, so do not apply receiver-specific rewrites inside.
 				GoExpr.GoFuncLiteral(params, results, rewriteStmtList(body, null, false, new Map<String, Bool>(), leafReceivers, leafReturnCallTargets));
 			case GoExpr.GoTypeAssert(inner, typeName):
 				GoExpr.GoTypeAssert(rewriteExpr(inner, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets), typeName);
+			case GoExpr.GoRecvExpr(channel):
+				GoExpr.GoRecvExpr(rewriteExpr(channel, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
 			case GoExpr.GoUnary(op, inner):
 				GoExpr.GoUnary(op, rewriteExpr(inner, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
 			case GoExpr.GoBinary(op, left, right):
@@ -228,7 +234,8 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 					rewriteExpr(right, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
 			case GoExpr.GoCall(callee, args):
 				GoExpr.GoCall(rewriteExpr(callee, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets), [
-					for (arg in args) rewriteExpr(arg, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets)
+					for (arg in args)
+						rewriteExpr(arg, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets)
 				]);
 			case _:
 				expr;
@@ -355,6 +362,7 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 				exprDeclaresIdent(call, ident);
 			case GoStmt.GoDeferStmt(call):
 				exprDeclaresIdent(call, ident);
+			case GoStmt.GoSendStmt(channel, value): exprDeclaresIdent(channel, ident) || exprDeclaresIdent(value, ident);
 			case GoStmt.GoWhile(_, body):
 				stmtListDeclaresIdent(body, ident);
 			case GoStmt.GoIf(_, thenBody, elseBody): stmtListDeclaresIdent(thenBody, ident) || (elseBody != null && stmtListDeclaresIdent(elseBody, ident));
@@ -409,6 +417,8 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 				found;
 			case GoExpr.GoTypeAssert(inner, _):
 				exprDeclaresIdent(inner, ident);
+			case GoExpr.GoRecvExpr(channel):
+				exprDeclaresIdent(channel, ident);
 			case GoExpr.GoUnary(_, inner):
 				exprDeclaresIdent(inner, ident);
 			case GoExpr.GoBinary(_, left, right): exprDeclaresIdent(left, ident) || exprDeclaresIdent(right, ident);
@@ -440,6 +450,7 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 				exprUsesIdent(call, ident);
 			case GoStmt.GoDeferStmt(call):
 				exprUsesIdent(call, ident);
+			case GoStmt.GoSendStmt(channel, value): exprUsesIdent(channel, ident) || exprUsesIdent(value, ident);
 			case GoStmt.GoWhile(cond, body): exprUsesIdent(cond, ident) || stmtListUsesIdent(body, ident);
 			case GoStmt.GoIf(cond, thenBody, elseBody): exprUsesIdent(cond,
 					ident) || stmtListUsesIdent(thenBody, ident) || (elseBody != null && stmtListUsesIdent(elseBody, ident));
@@ -509,6 +520,8 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 				shadows ? false : stmtListUsesIdent(body, ident);
 			case GoExpr.GoTypeAssert(inner, _):
 				exprUsesIdent(inner, ident);
+			case GoExpr.GoRecvExpr(channel):
+				exprUsesIdent(channel, ident);
 			case GoExpr.GoUnary(_, inner):
 				exprUsesIdent(inner, ident);
 			case GoExpr.GoBinary(_, left, right): exprUsesIdent(left, ident) || exprUsesIdent(right, ident);

@@ -157,6 +157,8 @@ class GoASTPrinter {
 				"go " + printExpr(call);
 			case GoDeferStmt(call):
 				"defer " + printExpr(call);
+			case GoSendStmt(channel, value):
+				printExpr(channel) + " <- " + printExpr(value);
 			case GoRaw(code): code;
 			case GoWhile(cond, body):
 				var out = new StringBuf();
@@ -310,6 +312,8 @@ class GoASTPrinter {
 			case GoRaw(code): code;
 			case GoTypeAssert(inner, typeName):
 				printExpr(inner) + ".(" + typeName + ")";
+			case GoRecvExpr(channel):
+				"<-" + printExpr(channel);
 			case GoUnary(op, inner): op + printExpr(inner);
 			case GoBinary(op, left, right): "(" + printExpr(left) + " " + op + " " + printExpr(right) + ")";
 			case GoCall(callee, args):
