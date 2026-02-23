@@ -1,3 +1,9 @@
+## [0.43.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.42.0...v0.43.0) (2026-02-23)
+
+### Features
+
+* **go-native:** enable real channel and goroutine primitives ([397e40a](https://github.com/fullofcaffeine/reflaxe.go/commit/397e40ad2f3aebafb557176c9858a5ccfaf626ae))
+
 ## [0.42.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.41.0...v0.42.0) (2026-02-23)
 
 ### Features
