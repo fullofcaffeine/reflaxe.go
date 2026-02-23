@@ -2,6 +2,7 @@ package reflaxe.go;
 
 #if macro
 import haxe.macro.Context;
+import haxe.macro.Expr;
 import haxe.macro.Expr.Binop;
 import haxe.macro.Expr.Unop;
 import haxe.macro.PositionTools;
@@ -69,6 +70,7 @@ class GoCompiler {
 	final localFunctionScopes:Array<Map<String, FunctionInfo>>;
 	final localRestIteratorScopes:Array<Array<String>>;
 	final requiredStdlibShimGroups:Map<String, Bool>;
+	final externImportPaths:Map<String, Bool>;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
 	final functionReturnTypeScopes:Array<Type>;
@@ -88,6 +90,7 @@ class GoCompiler {
 		localFunctionScopes = [];
 		localRestIteratorScopes = [];
 		requiredStdlibShimGroups = new Map<String, Bool>();
+		externImportPaths = new Map<String, Bool>();
 		functionVarNameScopes = [];
 		functionVarNameCountScopes = [];
 		functionReturnTypeScopes = [];
@@ -114,6 +117,7 @@ class GoCompiler {
 		projectClasses = classes.copy();
 		projectEnums = enums.copy();
 		requiresIoHelperSurface = false;
+		resetExternImportPaths();
 		buildStaticFunctionInfoTable(classes);
 		requiresTypeValueSupport = false;
 		var decls = lowerEnums(enums).concat(lowerClasses(classes));
@@ -176,6 +180,9 @@ class GoCompiler {
 			imports.push("strconv");
 			imports.push("strings");
 			imports.push("time");
+		}
+		for (path in externImportPaths.keys()) {
+			imports.push(path);
 		}
 		var mainFile:GoFile = {
 			packageName: "main",
@@ -9092,8 +9099,19 @@ class GoCompiler {
 		return switch (access) {
 			case FStatic(classRef, field):
 				var resolved = field.get();
+				var classType = classRef.get();
+				if (classType.isExtern) {
+					var externPackage = externClassPackageName(classType);
+					if (externPackage != null) {
+						noteExternImportPath(classType);
+						return {
+							expr: GoExpr.GoSelector(GoExpr.GoIdent(externPackage), externFieldName(resolved)),
+							isStringLike: isStringType(resolved.type)
+						};
+					}
+				}
 				{
-					expr: GoExpr.GoIdent(staticSymbol(classRef.get(), resolved.name)),
+					expr: GoExpr.GoIdent(staticSymbol(classType, resolved.name)),
 					isStringLike: isStringType(resolved.type)
 				};
 			case FInstance(classRef, _, field):
@@ -9143,6 +9161,12 @@ class GoCompiler {
 					{
 						expr: GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]),
 						isStringLike: false
+					};
+				} else if (classType.isExtern) {
+					noteExternImportPath(classType);
+					{
+						expr: GoExpr.GoSelector(loweredTarget, externFieldName(resolved)),
+						isStringLike: isStringType(resolved.type)
 					};
 				} else if (shouldUseVirtualDispatch(classType, resolved)) {
 					{
@@ -9266,6 +9290,11 @@ class GoCompiler {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonParse"), [jsonParserSourceExpr(jsonParserTarget)]),
 				isStringLike: false
 			};
+		}
+
+		var externReceiverCall = lowerExternReceiverCall(callee, args, returnType);
+		if (externReceiverCall != null) {
+			return externReceiverCall;
 		}
 
 		if (isStaticCall(callee, "Go", ["go"], "__chanMake")) {
@@ -9494,6 +9523,54 @@ class GoCompiler {
 		return {
 			expr: callExpr,
 			isStringLike: isStringType(returnType)
+		};
+	}
+
+	function lowerExternReceiverCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		return switch (callee.expr) {
+			case TField(_, FStatic(classRef, fieldRef)):
+				var classType = classRef.get();
+				var field = fieldRef.get();
+				if (!classType.isExtern || !hasExternReceiverMeta(field)) {
+					null;
+				} else if (args.length == 0) {
+					Context.fatalError("Extern @:go.receiver call requires a receiver argument", callee.pos);
+					null;
+				} else {
+					noteExternImportPath(classType);
+					var loweredReceiver = lowerExpr(args[0]).expr;
+					var loweredArgs = new Array<GoExpr>();
+					for (index in 1...args.length) {
+						var arg = args[index];
+						var loweredArg = lowerExpr(arg).expr;
+						var paramType = callParamType(callee.t, index);
+						if (paramType != null) {
+							loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType);
+						}
+						loweredArgs.push(loweredArg);
+					}
+
+					var callExpr = GoExpr.GoCall(GoExpr.GoSelector(loweredReceiver, externFieldName(field)), loweredArgs);
+					if (shouldAssertGenericCallResult(callee, returnType)) {
+						var expectedType = typeToGoType(returnType);
+						if (expectedType != "any") {
+							callExpr = lowerNilSafeTypeAssertExpr(callExpr, expectedType);
+						}
+					}
+
+					{
+						expr: callExpr,
+						isStringLike: isStringType(returnType)
+					};
+				}
+			case TMeta(_, inner):
+				lowerExternReceiverCall(inner, args, returnType);
+			case TParenthesis(inner):
+				lowerExternReceiverCall(inner, args, returnType);
+			case TCast(inner, _):
+				lowerExternReceiverCall(inner, args, returnType);
+			case _:
+				null;
 		};
 	}
 
@@ -10416,7 +10493,141 @@ class GoCompiler {
 		}
 	}
 
+	function resetExternImportPaths():Void {
+		for (path in externImportPaths.keys()) {
+			externImportPaths.remove(path);
+		}
+	}
+
+	function noteExternImportPath(classType:ClassType):Void {
+		var path = externClassImportPath(classType);
+		if (path == null || path == "") {
+			return;
+		}
+		externImportPaths.set(path, true);
+	}
+
+	function normalizeMetaName(name:String):String {
+		return StringTools.startsWith(name, ":") ? name.substr(1) : name;
+	}
+
+	function metaNameEquals(actual:String, expected:String):Bool {
+		return normalizeMetaName(actual) == normalizeMetaName(expected);
+	}
+
+	function unwrapMetaExpr(expr:Expr):Expr {
+		return switch (expr.expr) {
+			case EParenthesis(inner):
+				unwrapMetaExpr(inner);
+			case EMeta(_, inner):
+				unwrapMetaExpr(inner);
+			case _:
+				expr;
+		};
+	}
+
+	function readConstStringExpr(expr:Expr):Null<String> {
+		return switch (unwrapMetaExpr(expr).expr) {
+			case EConst(CString(value, _)):
+				value;
+			case _:
+				null;
+		};
+	}
+
+	function readMetadataString(meta:MetaAccess, names:Array<String>):Null<String> {
+		if (meta == null) {
+			return null;
+		}
+		for (entry in meta.get()) {
+			var matches = false;
+			for (name in names) {
+				if (metaNameEquals(entry.name, name)) {
+					matches = true;
+					break;
+				}
+			}
+			if (!matches) {
+				continue;
+			}
+			if (entry.params == null || entry.params.length == 0) {
+				Context.fatalError("@" + normalizeMetaName(entry.name) + " requires a string parameter", entry.pos);
+				return null;
+			}
+			var value = readConstStringExpr(entry.params[0]);
+			if (value == null) {
+				Context.fatalError("@" + normalizeMetaName(entry.name) + " requires a compile-time string parameter", entry.pos);
+				return null;
+			}
+			return StringTools.trim(value);
+		}
+		return null;
+	}
+
+	function hasMetadata(meta:MetaAccess, names:Array<String>):Bool {
+		if (meta == null) {
+			return false;
+		}
+		for (entry in meta.get()) {
+			for (name in names) {
+				if (metaNameEquals(entry.name, name)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	function externClassImportPath(classType:ClassType):Null<String> {
+		var value = readMetadataString(classType.meta, ["go.import"]);
+		return value == null || value == "" ? null : value;
+	}
+
+	function externClassPackageName(classType:ClassType):Null<String> {
+		var importPath = externClassImportPath(classType);
+		if (importPath == null) {
+			return null;
+		}
+
+		var packageName = readMetadataString(classType.meta, ["go.package", "go.pkg"]);
+		if (packageName == null || packageName == "") {
+			var segments = [for (segment in importPath.split("/")) StringTools.trim(segment)];
+			var index = segments.length - 1;
+			while (index >= 0 && segments[index] == "") {
+				index--;
+			}
+			packageName = index >= 0 ? segments[index] : "";
+		}
+		if (packageName == null || packageName == "") {
+			Context.fatalError('Unable to infer Go package identifier from @:go.import("' + importPath + '")', classType.pos);
+			return null;
+		}
+
+		return normalizeIdent(packageName);
+	}
+
+	function externClassTypeName(classType:ClassType):String {
+		var typeName = readMetadataString(classType.meta, ["go.name", "native"]);
+		return typeName == null || typeName == "" ? classType.name : typeName;
+	}
+
+	function externFieldName(field:ClassField):String {
+		var mapped = readMetadataString(field.meta, ["go.name", "native"]);
+		return mapped == null || mapped == "" ? field.name : mapped;
+	}
+
+	function hasExternReceiverMeta(field:ClassField):Bool {
+		return hasMetadata(field.meta, ["go.receiver"]);
+	}
+
 	function classTypeName(classType:ClassType):String {
+		if (classType.isExtern) {
+			var packageName = externClassPackageName(classType);
+			if (packageName != null) {
+				noteExternImportPath(classType);
+				return packageName + "." + externClassTypeName(classType);
+			}
+		}
 		noteStdlibClass(classType);
 		return GoNaming.typeSymbol(classType.pack, classType.name);
 	}
