@@ -1,3 +1,9 @@
+## [0.44.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.43.0...v0.44.0) (2026-02-23)
+
+### Features
+
+* **go-native:** add deterministic channel/select handshake contracts ([da6ac11](https://github.com/fullofcaffeine/reflaxe.go/commit/da6ac114053521b755330f5dbea8e7e7bba25fdc))
+
 ## [0.43.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.42.0...v0.43.0) (2026-02-23)
 
 ### Features
