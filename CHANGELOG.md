@@ -1,3 +1,9 @@
+## [0.45.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.44.0...v0.45.0) (2026-02-23)
+
+### Features
+
+* **interop:** add extern metadata lowering and import mapping ([2951fee](https://github.com/fullofcaffeine/reflaxe.go/commit/2951feea515e68a28e71cdffdbcf351db62970ae))
+
 ## [0.44.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.43.0...v0.44.0) (2026-02-23)
 
 ### Features
