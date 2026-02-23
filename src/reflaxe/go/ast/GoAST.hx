@@ -27,6 +27,18 @@ typedef GoTypeSwitchCase = {
 	final body:Array<GoStmt>;
 }
 
+typedef GoSelectCase = {
+	final clause:GoSelectClause;
+	final body:Array<GoStmt>;
+}
+
+enum GoSelectClause {
+	GoSelectSend(channel:GoExpr, value:GoExpr);
+	GoSelectRecv(recv:GoExpr);
+	GoSelectRecvAssign(target:GoExpr, recv:GoExpr, useShort:Bool);
+	GoSelectDefault;
+}
+
 enum GoDecl {
 	GoInterfaceDecl(name:String, methods:Array<GoInterfaceMethod>);
 	GoStructDecl(name:String, fields:Array<GoParam>);
@@ -46,6 +58,7 @@ enum GoStmt {
 	GoIf(cond:GoExpr, thenBody:Array<GoStmt>, elseBody:Null<Array<GoStmt>>);
 	GoSwitch(value:GoExpr, cases:Array<GoSwitchCase>, defaultBody:Null<Array<GoStmt>>);
 	GoTypeSwitch(value:GoExpr, bindingName:String, cases:Array<GoTypeSwitchCase>, defaultBody:Null<Array<GoStmt>>);
+	GoSelect(cases:Array<GoSelectCase>);
 	GoBreak;
 	GoContinue;
 	GoReturn(expr:Null<GoExpr>);

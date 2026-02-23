@@ -5,6 +5,8 @@ import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoFile;
 import reflaxe.go.ast.GoAST.GoInterfaceMethod;
 import reflaxe.go.ast.GoAST.GoParam;
+import reflaxe.go.ast.GoAST.GoSelectCase;
+import reflaxe.go.ast.GoAST.GoSelectClause;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
@@ -235,6 +237,16 @@ class GoASTPrinter {
 				}
 				out.add("}");
 				out.toString();
+			case GoSelect(cases):
+				var out = new StringBuf();
+				out.add("select {\n");
+				for (caseEntry in cases) {
+					out.add("\t");
+					out.add(printSelectCase(caseEntry));
+					out.add("\n");
+				}
+				out.add("}");
+				out.toString();
 			case GoBreak:
 				"break";
 			case GoContinue:
@@ -261,6 +273,36 @@ class GoASTPrinter {
 		out.add("case ");
 		out.add(caseEntry.typeName);
 		out.add(":\n");
+		for (stmt in caseEntry.body) {
+			out.add("\t\t");
+			out.add(printStmt(stmt));
+			out.add("\n");
+		}
+		return StringTools.rtrim(out.toString());
+	}
+
+	static function printSelectCase(caseEntry:GoSelectCase):String {
+		var out = new StringBuf();
+		switch (caseEntry.clause) {
+			case GoSelectClause.GoSelectSend(channel, value):
+				out.add("case ");
+				out.add(printExpr(channel));
+				out.add(" <- ");
+				out.add(printExpr(value));
+				out.add(":\n");
+			case GoSelectClause.GoSelectRecv(recv):
+				out.add("case ");
+				out.add(printExpr(recv));
+				out.add(":\n");
+			case GoSelectClause.GoSelectRecvAssign(target, recv, useShort):
+				out.add("case ");
+				out.add(printExpr(target));
+				out.add(useShort ? " := " : " = ");
+				out.add(printExpr(recv));
+				out.add(":\n");
+			case GoSelectClause.GoSelectDefault:
+				out.add("default:\n");
+		}
 		for (stmt in caseEntry.body) {
 			out.add("\t\t");
 			out.add(printStmt(stmt));

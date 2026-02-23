@@ -5,6 +5,8 @@ import reflaxe.go.GoProfile;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoFile;
+import reflaxe.go.ast.GoAST.GoSelectCase;
+import reflaxe.go.ast.GoAST.GoSelectClause;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
@@ -82,10 +84,32 @@ class RewriteStringOpsPass implements IGoASTPass {
 				}
 				GoStmt.GoTypeSwitch(rewriteExpr(value), bindingName, rewrittenCases,
 					defaultBody == null ? null : [for (inner in defaultBody) rewriteStmt(inner)]);
+			case GoStmt.GoSelect(cases):
+				var rewrittenCases:Array<GoSelectCase> = [];
+				for (entry in cases) {
+					rewrittenCases.push({
+						clause: rewriteSelectClause(entry.clause),
+						body: [for (bodyStmt in entry.body) rewriteStmt(bodyStmt)]
+					});
+				}
+				GoStmt.GoSelect(rewrittenCases);
 			case GoStmt.GoReturn(expr):
 				GoStmt.GoReturn(expr == null ? null : rewriteExpr(expr));
 			case _:
 				stmt;
+		};
+	}
+
+	function rewriteSelectClause(clause:GoSelectClause):GoSelectClause {
+		return switch (clause) {
+			case GoSelectClause.GoSelectSend(channel, value):
+				GoSelectClause.GoSelectSend(rewriteExpr(channel), rewriteExpr(value));
+			case GoSelectClause.GoSelectRecv(recv):
+				GoSelectClause.GoSelectRecv(rewriteExpr(recv));
+			case GoSelectClause.GoSelectRecvAssign(target, recv, useShort):
+				GoSelectClause.GoSelectRecvAssign(rewriteExpr(target), rewriteExpr(recv), useShort);
+			case GoSelectClause.GoSelectDefault:
+				GoSelectClause.GoSelectDefault;
 		};
 	}
 

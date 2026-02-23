@@ -5,6 +5,8 @@ import reflaxe.go.GoProfile;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoFile;
+import reflaxe.go.ast.GoAST.GoSelectCase;
+import reflaxe.go.ast.GoAST.GoSelectClause;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
@@ -195,11 +197,39 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 				clearCandidates(localLeafVars);
 				GoStmt.GoTypeSwitch(rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets), bindingName,
 					rewrittenCases, rewrittenDefault);
+			case GoStmt.GoSelect(cases):
+				var selectCandidates = cloneCandidates(localLeafVars);
+				var rewrittenCases:Array<GoSelectCase> = [];
+				for (entry in cases) {
+					var caseCandidates = cloneCandidates(selectCandidates);
+					rewrittenCases.push({
+						clause: rewriteSelectClause(entry.clause, receiverName, canDevirtualizeSelf, caseCandidates, leafReceivers, leafReturnCallTargets),
+						body: rewriteStmtList(entry.body, receiverName, canDevirtualizeSelf, caseCandidates, leafReceivers, leafReturnCallTargets)
+					});
+				}
+				clearCandidates(localLeafVars);
+				GoStmt.GoSelect(rewrittenCases);
 			case GoStmt.GoReturn(expr):
 				GoStmt.GoReturn(expr == null ? null : rewriteExpr(expr, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers,
 					leafReturnCallTargets));
 			case _:
 				stmt;
+		};
+	}
+
+	function rewriteSelectClause(clause:GoSelectClause, receiverName:Null<String>, canDevirtualizeSelf:Bool, localLeafVars:Map<String, Bool>,
+			leafReceivers:Map<String, Bool>, leafReturnCallTargets:Map<String, Bool>):GoSelectClause {
+		return switch (clause) {
+			case GoSelectClause.GoSelectSend(channel, value):
+				GoSelectClause.GoSelectSend(rewriteExpr(channel, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets),
+					rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
+			case GoSelectClause.GoSelectRecv(recv):
+				GoSelectClause.GoSelectRecv(rewriteExpr(recv, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
+			case GoSelectClause.GoSelectRecvAssign(target, recv, useShort):
+				GoSelectClause.GoSelectRecvAssign(rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets),
+					rewriteExpr(recv, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets), useShort);
+			case GoSelectClause.GoSelectDefault:
+				GoSelectClause.GoSelectDefault;
 		};
 	}
 
@@ -378,8 +408,28 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 						break;
 					}
 				} found || (defaultBody != null && stmtListDeclaresIdent(defaultBody, ident));
+			case GoStmt.GoSelect(cases):
+				var found = false;
+				for (entry in cases) {
+					if (selectClauseDeclaresIdent(entry.clause, ident) || stmtListDeclaresIdent(entry.body, ident)) {
+						found = true;
+						break;
+					}
+				}
+				found;
 			case GoStmt.GoReturn(expr): expr != null && exprDeclaresIdent(expr, ident);
 			case _:
+				false;
+		};
+	}
+
+	function selectClauseDeclaresIdent(clause:GoSelectClause, ident:String):Bool {
+		return switch (clause) {
+			case GoSelectClause.GoSelectSend(channel, value): exprDeclaresIdent(channel, ident) || exprDeclaresIdent(value, ident);
+			case GoSelectClause.GoSelectRecv(recv):
+				exprDeclaresIdent(recv, ident);
+			case GoSelectClause.GoSelectRecvAssign(target, recv, _): exprDeclaresIdent(target, ident) || exprDeclaresIdent(recv, ident);
+			case GoSelectClause.GoSelectDefault:
 				false;
 		};
 	}
@@ -476,8 +526,28 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 						}
 					}
 				} found || (defaultBody != null && stmtListUsesIdent(defaultBody, ident));
+			case GoStmt.GoSelect(cases):
+				var found = false;
+				for (entry in cases) {
+					if (selectClauseUsesIdent(entry.clause, ident) || stmtListUsesIdent(entry.body, ident)) {
+						found = true;
+						break;
+					}
+				}
+				found;
 			case GoStmt.GoReturn(expr): expr != null && exprUsesIdent(expr, ident);
 			case _:
+				false;
+		};
+	}
+
+	function selectClauseUsesIdent(clause:GoSelectClause, ident:String):Bool {
+		return switch (clause) {
+			case GoSelectClause.GoSelectSend(channel, value): exprUsesIdent(channel, ident) || exprUsesIdent(value, ident);
+			case GoSelectClause.GoSelectRecv(recv):
+				exprUsesIdent(recv, ident);
+			case GoSelectClause.GoSelectRecvAssign(target, recv, _): exprUsesIdent(target, ident) || exprUsesIdent(recv, ident);
+			case GoSelectClause.GoSelectDefault:
 				false;
 		};
 	}

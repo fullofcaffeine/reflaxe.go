@@ -11,6 +11,8 @@ import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoFile;
 import reflaxe.go.ast.GoAST.GoInterfaceMethod;
 import reflaxe.go.ast.GoAST.GoParam;
+import reflaxe.go.ast.GoAST.GoSelectCase;
+import reflaxe.go.ast.GoAST.GoSelectClause;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
@@ -8951,6 +8953,31 @@ class GoCompiler {
 						GoStmt.GoVarDecl("ch", null, GoExpr.GoCall(GoExpr.GoIdent("make"), [GoExpr.GoRaw("chan int"), GoExpr.GoIntLiteral(1)]), true),
 						GoStmt.GoSendStmt(GoExpr.GoIdent("ch"), GoExpr.GoIntLiteral(7)),
 						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoRecvExpr(GoExpr.GoIdent("ch")))
+					])
+				];
+			case "select":
+				[
+					GoDecl.GoFuncDecl("hxrt__test_ast_select_stmt_smoke", null, [], [], [
+						GoStmt.GoVarDecl("in", null, GoExpr.GoCall(GoExpr.GoIdent("make"), [GoExpr.GoRaw("chan int"), GoExpr.GoIntLiteral(1)]), true),
+						GoStmt.GoVarDecl("out", null, GoExpr.GoCall(GoExpr.GoIdent("make"), [GoExpr.GoRaw("chan int"), GoExpr.GoIntLiteral(1)]), true),
+						GoStmt.GoSelect([
+							{
+								clause: GoSelectClause.GoSelectSend(GoExpr.GoIdent("out"), GoExpr.GoIntLiteral(1)),
+								body: [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIntLiteral(11))]
+							},
+							{
+								clause: GoSelectClause.GoSelectRecvAssign(GoExpr.GoIdent("value"), GoExpr.GoRecvExpr(GoExpr.GoIdent("in")), true),
+								body: [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("value"))]
+							},
+							{
+								clause: GoSelectClause.GoSelectRecv(GoExpr.GoRecvExpr(GoExpr.GoIdent("in"))),
+								body: [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIntLiteral(22))]
+							},
+							{
+								clause: GoSelectClause.GoSelectDefault,
+								body: [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIntLiteral(0))]
+							}
+						])
 					])
 				];
 			case _:
