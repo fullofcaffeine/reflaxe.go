@@ -8980,6 +8980,20 @@ class GoCompiler {
 						])
 					])
 				];
+			case "range":
+				[
+					GoDecl.GoFuncDecl("hxrt__test_ast_range_stmt_smoke", null, [], [], [
+						GoStmt.GoVarDecl("items", null, GoExpr.GoRaw("map[string]int{\"a\": 1, \"b\": 2}"), true),
+						GoStmt.GoRangeStmt("key", "value", GoExpr.GoIdent("items"), true,
+							[
+								GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("key")),
+								GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("value"))
+							]),
+						GoStmt.GoVarDecl("seenKey", "string", null, false),
+						GoStmt.GoRangeStmt("seenKey", null, GoExpr.GoIdent("items"), false, [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("seenKey"))]),
+						GoStmt.GoRangeStmt("index", null, GoExpr.GoRaw("[]int{1, 2, 3}"), true, [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("index"))])
+					])
+				];
 			case _:
 				Context.fatalError('Unknown AST statement test case "' + testCase + '"', Context.currentPos());
 				[];

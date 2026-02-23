@@ -55,6 +55,7 @@ enum GoStmt {
 	GoSendStmt(channel:GoExpr, value:GoExpr);
 	GoRaw(code:String);
 	GoWhile(cond:GoExpr, body:Array<GoStmt>);
+	GoRangeStmt(keyName:Null<String>, valueName:Null<String>, source:GoExpr, useShort:Bool, body:Array<GoStmt>);
 	GoIf(cond:GoExpr, thenBody:Array<GoStmt>, elseBody:Null<Array<GoStmt>>);
 	GoSwitch(value:GoExpr, cases:Array<GoSwitchCase>, defaultBody:Null<Array<GoStmt>>);
 	GoTypeSwitch(value:GoExpr, bindingName:String, cases:Array<GoTypeSwitchCase>, defaultBody:Null<Array<GoStmt>>);

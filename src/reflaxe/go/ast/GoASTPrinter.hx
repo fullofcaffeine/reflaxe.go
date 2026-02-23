@@ -174,6 +174,34 @@ class GoASTPrinter {
 				}
 				out.add("}");
 				out.toString();
+			case GoRangeStmt(keyName, valueName, source, useShort, body):
+				var out = new StringBuf();
+				out.add("for ");
+				var hasBindings = keyName != null || valueName != null;
+				if (hasBindings) {
+					if (keyName != null) {
+						out.add(keyName);
+					}
+					if (valueName != null) {
+						if (keyName == null) {
+							out.add("_");
+						}
+						out.add(", ");
+						out.add(valueName);
+					}
+					out.add(useShort ? " := range " : " = range ");
+				} else {
+					out.add("range ");
+				}
+				out.add(printExpr(source));
+				out.add(" {\n");
+				for (stmt in body) {
+					out.add("\t");
+					out.add(printStmt(stmt));
+					out.add("\n");
+				}
+				out.add("}");
+				out.toString();
 			case GoIf(cond, thenBody, elseBody):
 				var out = new StringBuf();
 				out.add("if ");

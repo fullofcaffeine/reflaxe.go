@@ -147,6 +147,12 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 				var rewrittenBody = rewriteStmtList(body, receiverName, canDevirtualizeSelf, loopCandidates, leafReceivers, leafReturnCallTargets);
 				clearCandidates(localLeafVars);
 				GoStmt.GoWhile(rewriteExpr(cond, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets), rewrittenBody);
+			case GoStmt.GoRangeStmt(keyName, valueName, source, useShort, body):
+				var rangeCandidates = cloneCandidates(localLeafVars);
+				var rewrittenBody = rewriteStmtList(body, receiverName, canDevirtualizeSelf, rangeCandidates, leafReceivers, leafReturnCallTargets);
+				clearCandidates(localLeafVars);
+				GoStmt.GoRangeStmt(keyName, valueName,
+					rewriteExpr(source, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets), useShort, rewrittenBody);
 			case GoStmt.GoIf(cond, thenBody, elseBody):
 				var thenCandidates = cloneCandidates(localLeafVars);
 				var elseCandidates = cloneCandidates(localLeafVars);
@@ -395,6 +401,14 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 			case GoStmt.GoSendStmt(channel, value): exprDeclaresIdent(channel, ident) || exprDeclaresIdent(value, ident);
 			case GoStmt.GoWhile(_, body):
 				stmtListDeclaresIdent(body, ident);
+			case GoStmt.GoRangeStmt(keyName, valueName, source, useShort, body): var declaresBinding = false; if (useShort) {
+					if (keyName != null && keyName != "_" && keyName == ident) {
+						declaresBinding = true;
+					}
+					if (valueName != null && valueName != "_" && valueName == ident) {
+						declaresBinding = true;
+					}
+				} declaresBinding || exprDeclaresIdent(source, ident) || stmtListDeclaresIdent(body, ident);
 			case GoStmt.GoIf(_, thenBody, elseBody): stmtListDeclaresIdent(thenBody, ident) || (elseBody != null && stmtListDeclaresIdent(elseBody, ident));
 			case GoStmt.GoSwitch(_, cases, defaultBody): var found = false; for (entry in cases) {
 					if (stmtListDeclaresIdent(entry.body, ident)) {
@@ -502,6 +516,7 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 				exprUsesIdent(call, ident);
 			case GoStmt.GoSendStmt(channel, value): exprUsesIdent(channel, ident) || exprUsesIdent(value, ident);
 			case GoStmt.GoWhile(cond, body): exprUsesIdent(cond, ident) || stmtListUsesIdent(body, ident);
+			case GoStmt.GoRangeStmt(_, _, source, _, body): exprUsesIdent(source, ident) || stmtListUsesIdent(body, ident);
 			case GoStmt.GoIf(cond, thenBody, elseBody): exprUsesIdent(cond,
 					ident) || stmtListUsesIdent(thenBody, ident) || (elseBody != null && stmtListUsesIdent(elseBody, ident));
 			case GoStmt.GoSwitch(value, cases, defaultBody): var found = exprUsesIdent(value, ident); if (!found) {
