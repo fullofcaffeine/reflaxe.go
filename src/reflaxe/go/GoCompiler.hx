@@ -116,6 +116,7 @@ class GoCompiler {
 			decls = lowerTypeValueDecls().concat(decls);
 		}
 		decls = decls.concat(lowerStdlibShimDecls());
+		decls = decls.concat(lowerTestAstStmtDecls());
 		var imports = [compilationContext.runtimeImportPath];
 		if (requiredStdlibShimGroups.exists("http")) {
 			imports.push("bytes");
@@ -8926,6 +8927,27 @@ class GoCompiler {
 		return {
 			expr: GoExpr.GoRaw("&" + markerType + "{name: hxrt.StringFromLiteral(" + markerName + ")}"),
 			isStringLike: false
+		};
+	}
+
+	function lowerTestAstStmtDecls():Array<GoDecl> {
+		var testCase = Context.definedValue("reflaxe_go_test_ast_stmt_case");
+		if (testCase == null || testCase == "") {
+			return [];
+		}
+
+		return switch (testCase) {
+			case "go_defer":
+				[
+					GoDecl.GoFuncDecl("hxrt__test_ast_go_defer_stmt_smoke", null, [], [], [
+						GoStmt.GoVarDecl("fn", "func()", GoExpr.GoFuncLiteral([], [], []), true),
+						GoStmt.GoDeferStmt(GoExpr.GoCall(GoExpr.GoIdent("fn"), [])),
+						GoStmt.GoGoStmt(GoExpr.GoCall(GoExpr.GoIdent("fn"), []))
+					])
+				];
+			case _:
+				Context.fatalError('Unknown AST statement test case "' + testCase + '"', Context.currentPos());
+				[];
 		};
 	}
 
