@@ -1,3 +1,9 @@
+## [0.46.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.45.0...v0.46.0) (2026-02-23)
+
+### Features
+
+* **examples:** add typed interop smoke app across profiles ([080e06d](https://github.com/fullofcaffeine/reflaxe.go/commit/080e06daa55b2c65ed944633b4135cad5704552a))
+
 ## [0.45.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.44.0...v0.45.0) (2026-02-23)
 
 ### Features
