@@ -1,3 +1,9 @@
+## [0.40.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.39.0...v0.40.0) (2026-02-23)
+
+### Features
+
+* **ast:** add channel send/recv forms ([22eceff](https://github.com/fullofcaffeine/reflaxe.go/commit/22eceffb1bec89d3bbd8485aa79c0f6f4d4b8405))
+
 ## [0.39.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.38.1...v0.39.0) (2026-02-23)
 
 ### Features
