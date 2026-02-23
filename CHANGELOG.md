@@ -1,3 +1,9 @@
+## [0.42.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.41.0...v0.42.0) (2026-02-23)
+
+### Features
+
+* **ast:** add range loop form ([90b9867](https://github.com/fullofcaffeine/reflaxe.go/commit/90b986751d0565b3cd07283a80b3313d4ff77b20))
+
 ## [0.41.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.40.0...v0.41.0) (2026-02-23)
 
 ### Features
