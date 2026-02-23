@@ -3,7 +3,7 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	ch := go___Go_newChan()
+	ch := go___Go_newChan(0)
 	_ = ch
 	go___Go_spawn(func() {
 		ch.__hx_this.send(5)
@@ -12,36 +12,38 @@ func main() {
 }
 
 type I_go___Chan interface {
+	__hx_setBuffer(buffer int)
 	send(value any)
 	recv() any
+	close()
 }
 
 type go___Chan struct {
-	__hx_this I_go___Chan
-	queue     []any
-	readIndex int
+	__hx_this   I_go___Chan
+	__hx_native any
 }
 
 func New_go___Chan() *go___Chan {
 	self := &go___Chan{}
 	self.__hx_this = self
-	self.queue = []any{}
-	self.readIndex = 0
+	self.__hx_native = go__concurrency_makeChan(0)
 	return self
 }
 
+func (self *go___Chan) __hx_setBuffer(buffer int) {
+	self.__hx_native = go__concurrency_makeChan(buffer)
+}
+
 func (self *go___Chan) send(value any) {
-	self.queue = append(self.queue, value)
+	go__concurrency_send(self.__hx_native, value)
 }
 
 func (self *go___Chan) recv() any {
-	if self.readIndex >= len(self.queue) {
-		return nil
-	}
-	var value any = self.queue[self.readIndex]
-	_ = value
-	self.readIndex = int(int32((self.readIndex + 1)))
-	return value
+	return go__concurrency_recv(self.__hx_native)
+}
+
+func (self *go___Chan) close() {
+	go__concurrency_close(self.__hx_native)
 }
 
 type I_go___Error interface {
@@ -64,12 +66,34 @@ func (self *go___Error) toString() *string {
 	return self.message
 }
 
+func go___Go___chanClose(channel any) {
+}
+
+func go___Go___chanMake(buffer int) any {
+	return nil
+}
+
+func go___Go___chanRecv(channel any) any {
+	return nil
+}
+
+func go___Go___chanSend(channel any, value any) {
+}
+
+func go___Go___goSpawn(fn func()) {
+}
+
 func go___Go_fail(message *string) *go___Result {
 	return go___Result_failure(message)
 }
 
-func go___Go_newChan() *go___Chan {
-	return New_go___Chan()
+func go___Go_newChan(buffer int) *go___Chan {
+	channel := New_go___Chan()
+	_ = channel
+	if buffer > 0 {
+		channel.__hx_this.__hx_setBuffer(buffer)
+	}
+	return channel
 }
 
 func go___Go_newMap() *go___Map {
@@ -85,7 +109,7 @@ func go___Go_ok(value any) *go___Result {
 }
 
 func go___Go_spawn(fn func()) {
-	fn()
+	go__concurrency_spawn(fn)
 }
 
 type I_go___Map interface {
@@ -364,4 +388,27 @@ func (self *haxe__ds__List) last() any {
 		return nil
 	}
 	return self.items[(size - 1)]
+}
+
+func go__concurrency_makeChan(buffer int) any {
+	if buffer > 0 {
+		return make(chan any, buffer)
+	}
+	return make(chan any)
+}
+
+func go__concurrency_send(channel any, value any) {
+	channel.(chan any) <- value
+}
+
+func go__concurrency_recv(channel any) any {
+	return <-channel.(chan any)
+}
+
+func go__concurrency_close(channel any) {
+	close(channel.(chan any))
+}
+
+func go__concurrency_spawn(fn func()) {
+	go fn()
 }

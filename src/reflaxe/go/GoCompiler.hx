@@ -318,7 +318,8 @@ class GoCompiler {
 		var pack = classType.pack.join(".");
 		return (pack == "haxe" && classType.name == "Int64Helper")
 			|| (pack == "haxe._Int64" && (classType.name == "Int64_Impl_" || classType.name == "___Int64"))
-			|| (pack == "haxe._Int32" && classType.name == "Int32_Impl_");
+			|| (pack == "haxe._Int32" && classType.name == "Int32_Impl_")
+			|| (pack == "go" && (classType.name == "Go" || classType.name == "Chan"));
 	}
 
 	function isRequiredStdlibEnum(enumType:EnumType):Bool {
@@ -530,6 +531,9 @@ class GoCompiler {
 		}
 		if (requiredStdlibShimGroups.exists("atomic")) {
 			decls = decls.concat(lowerAtomicStdlibShimDecls());
+		}
+		if (requiredStdlibShimGroups.exists("go_concurrency")) {
+			decls = decls.concat(lowerGoConcurrencyShimDecls());
 		}
 		return decls;
 	}
@@ -2276,6 +2280,47 @@ class GoCompiler {
 					GoExpr.GoIdent("replacement")
 				]))
 			])
+		];
+	}
+
+	function lowerGoConcurrencyShimDecls():Array<GoDecl> {
+		return [
+			GoDecl.GoFuncDecl("go__concurrency_makeChan", null, [{name: "buffer", typeName: "int"}], ["any"], [
+				GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoIdent("buffer"), GoExpr.GoIntLiteral(0)), [GoStmt.GoReturn(GoExpr.GoRaw("make(chan any, buffer)"))],
+					null),
+				GoStmt.GoReturn(GoExpr.GoRaw("make(chan any)"))
+			]),
+			GoDecl.GoFuncDecl("go__concurrency_send", null, [
+				{
+					name: "channel",
+					typeName: "any"
+				},
+				{name: "value", typeName: "any"}
+			], [], [
+				GoStmt.GoSendStmt(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any"), GoExpr.GoIdent("value"))
+			]),
+			GoDecl.GoFuncDecl("go__concurrency_recv", null, [
+				{
+					name: "channel",
+					typeName: "any"
+				}
+			], ["any"], [
+				GoStmt.GoReturn(GoExpr.GoRecvExpr(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any")))
+			]),
+			GoDecl.GoFuncDecl("go__concurrency_close", null, [
+				{
+					name: "channel",
+					typeName: "any"
+				}
+			], [], [
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("close"), [GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any")]))
+			]),
+			GoDecl.GoFuncDecl("go__concurrency_spawn", null, [
+				{
+					name: "fn",
+					typeName: "func()"
+				}
+			], [], [GoStmt.GoGoStmt(GoExpr.GoCall(GoExpr.GoIdent("fn"), []))])
 		];
 	}
 
@@ -9181,6 +9226,54 @@ class GoCompiler {
 		if (jsonParserTarget != null) {
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonParse"), [jsonParserSourceExpr(jsonParserTarget)]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Go", ["go"], "__chanMake")) {
+			requireStdlibShimGroup("go_concurrency");
+			var buffer = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("go__concurrency_makeChan"), [buffer]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Go", ["go"], "__chanSend")) {
+			requireStdlibShimGroup("go_concurrency");
+			var channel = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			var value = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoNil;
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("go__concurrency_send"), [channel, value]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Go", ["go"], "__chanRecv")) {
+			requireStdlibShimGroup("go_concurrency");
+			var channel = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			var rawRecv = GoExpr.GoCall(GoExpr.GoIdent("go__concurrency_recv"), [channel]);
+			var expectedType = typeToGoType(returnType);
+			return {
+				expr: expectedType == "any" ? rawRecv : lowerNilSafeTypeAssertExpr(rawRecv, expectedType),
+				isStringLike: isStringType(returnType)
+			};
+		}
+
+		if (isStaticCall(callee, "Go", ["go"], "__chanClose")) {
+			requireStdlibShimGroup("go_concurrency");
+			var channel = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("go__concurrency_close"), [channel]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Go", ["go"], "__goSpawn")) {
+			requireStdlibShimGroup("go_concurrency");
+			var fn = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoFuncLiteral([], [], []);
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("go__concurrency_spawn"), [fn]),
 				isStringLike: false
 			};
 		}

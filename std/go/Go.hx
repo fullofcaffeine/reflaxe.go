@@ -26,6 +26,25 @@ class Go {
 	}
 
 	public static function spawn(fn:Void->Void):Void {
-		fn();
+		__goSpawn(fn);
 	}
+
+	@:noCompletion
+	public static function __goSpawn(fn:Void->Void):Void {}
+
+	@:noCompletion
+	public static function __chanMake(buffer:Int):Dynamic {
+		return null;
+	}
+
+	@:noCompletion
+	public static function __chanSend(channel:Dynamic, value:Dynamic):Void {}
+
+	@:noCompletion
+	public static function __chanRecv(channel:Dynamic):Dynamic {
+		return null;
+	}
+
+	@:noCompletion
+	public static function __chanClose(channel:Dynamic):Void {}
 }
