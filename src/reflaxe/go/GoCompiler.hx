@@ -6,6 +6,7 @@ import haxe.macro.Expr.Binop;
 import haxe.macro.Expr.Unop;
 import haxe.macro.PositionTools;
 import haxe.macro.Type;
+import reflaxe.go.compiler.GoStdlibShimClassifier;
 import reflaxe.go.compiler.GoTypeMapper;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
@@ -10347,103 +10348,20 @@ class GoCompiler {
 	}
 
 	function noteIoHelperFieldUsage(classType:ClassType, fieldName:String):Void {
-		if (classType.pack.join(".") != "haxe.io") {
-			return;
-		}
-		switch (classType.name) {
-			case "Input", "BytesInput":
-				if (isIoInputHelperMethodName(fieldName)) {
-					requiresIoHelperSurface = true;
-				}
-			case "Output", "BytesOutput":
-				if (isIoOutputHelperMethodName(fieldName)) {
-					requiresIoHelperSurface = true;
-				}
-			case _:
+		if (GoStdlibShimClassifier.needsIoHelperSurface(classType, fieldName, isIoInputHelperMethodName, isIoOutputHelperMethodName)) {
+			requiresIoHelperSurface = true;
 		}
 	}
 
 	function noteStdlibClass(classType:ClassType):Void {
-		var pack = classType.pack.join(".");
-		if (pack == "haxe.io") {
-			switch (classType.name) {
-				case "Bytes", "BytesBuffer", "Input", "Output", "Encoding", "BytesInput", "BytesOutput", "Eof":
-					requireStdlibShimGroup("io");
-					return;
-				case "Path", "StringInput":
-					requireStdlibShimGroup("stdlib_symbols");
-					return;
-				case _:
-			}
-		}
-
-		if (pack == "haxe.ds") {
-			switch (classType.name) {
-				case "IntMap", "StringMap", "ObjectMap", "EnumValueMap", "List":
-					requireStdlibShimGroup("ds");
-					return;
-				case "BalancedTree":
-					requireStdlibShimGroup("stdlib_symbols");
-					return;
-				case _:
-			}
-		}
-
-		if (pack == "sys" && classType.name == "Http") {
-			requireStdlibShimGroup("http");
-			return;
-		}
-
-		if (pack == "sys" && classType.name == "FileSystem") {
-			requireStdlibShimGroup("filesystem");
-			return;
-		}
-
-		if ((pack == "" && classType.name == "Sys") || (pack == "sys.io" && (classType.name == "File" || classType.name == "Process"))) {
-			requireStdlibShimGroup("sys");
-			return;
-		}
-
-		if (pack == "sys.net" && (classType.name == "Host" || classType.name == "Socket")) {
-			requireStdlibShimGroup("net_socket");
-			return;
-		}
-
-		if ((pack == "haxe.atomic"
-			&& (classType.name == "AtomicInt" || classType.name == "AtomicBool" || classType.name == "AtomicObject"))
-			|| (pack == "haxe.atomic._AtomicInt" && classType.name == "AtomicInt_Impl_")
-			|| (pack == "haxe.atomic._AtomicBool" && classType.name == "AtomicBool_Impl_")
-			|| (pack == "haxe.atomic._AtomicObject" && classType.name == "AtomicObject_Impl_")) {
-			requireStdlibShimGroup("atomic");
-			return;
-		}
-
-		if ((pack == "" && classType.name == "EReg")
-			|| (pack == "haxe" && (classType.name == "Serializer" || classType.name == "Unserializer"))) {
-			requireStdlibShimGroup("regex_serializer");
-			return;
-		}
-
-		if ((pack == ""
-			&& (classType.name == "Std" || classType.name == "StringTools" || classType.name == "Date" || classType.name == "Math"
-				|| classType.name == "Type" || classType.name == "Reflect" || classType.name == "Xml"))
-			|| (pack == "haxe.crypto"
-				&& (classType.name == "Base64" || classType.name == "Md5" || classType.name == "Sha1" || classType.name == "Sha224"
-					|| classType.name == "Sha256"))
-			|| (pack == "haxe.xml" && (classType.name == "Parser" || classType.name == "Printer"))
-			|| (pack == "haxe.zip" && (classType.name == "Compress" || classType.name == "Uncompress"))) {
-			requireStdlibShimGroup("stdlib_symbols");
+		for (group in GoStdlibShimClassifier.requiredGroupsForClass(classType)) {
+			requireStdlibShimGroup(group);
 		}
 	}
 
 	function noteStdlibEnum(enumType:EnumType):Void {
-		var pack = enumType.pack.join(".");
-		if (pack == "haxe.io" && enumType.name == "Error") {
-			requireStdlibShimGroup("io");
-			return;
-		}
-		if (pack == "haxe.ds" && enumType.name == "Option") {
-			requireStdlibShimGroup("stdlib_symbols");
+		for (group in GoStdlibShimClassifier.requiredGroupsForEnum(enumType)) {
+			requireStdlibShimGroup(group);
 		}
 	}
 
