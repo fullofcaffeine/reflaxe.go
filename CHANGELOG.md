@@ -1,3 +1,9 @@
+## [0.41.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.40.0...v0.41.0) (2026-02-23)
+
+### Features
+
+* **ast:** add select statement form ([09ca5c4](https://github.com/fullofcaffeine/reflaxe.go/commit/09ca5c484e2ccc4ff2518d228a733f95b7405f64))
+
 ## [0.40.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.39.0...v0.40.0) (2026-02-23)
 
 ### Features
