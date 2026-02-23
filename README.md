@@ -119,6 +119,8 @@ Details and full inventory: [docs/feature-support-matrix.md](docs/feature-suppor
 
 - New project generator: `npm run dev:new-project -- ./my_haxe_go_app`
 - Compile/run wrapper: `npm run dev:hx -- --project <dir> --profile <portable|gopher|metal> --action <compile|run|build|test|vet|fmt>`
+- Go extern generator: `npm run dev:goextern -- --package <go/import/path>`
+- Go extern fixtures drift check: `npm run test:goextern:fixtures`
 - Snapshots: `python3 test/run-snapshots.py`
 - Upstream stdlib sweep (strict + go test): `python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test`
 - Semantic differential checks: `python3 test/run-semantic-diff.py`
@@ -171,6 +173,7 @@ Runtime details: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
 - Stdlib shim strategy and alternatives: [docs/stdlib-shim-rationale.md](docs/stdlib-shim-rationale.md)
 - Stdlib shim migration process log: [docs/stdlib-shim-migration-log.md](docs/stdlib-shim-migration-log.md)
 - Multi-package output evaluation: [docs/multi-package-output-evaluation.md](docs/multi-package-output-evaluation.md)
+- Go extern generator: [docs/goextern.md](docs/goextern.md)
 - Future compiler template/patterns: [docs/compiler-target-template.md](docs/compiler-target-template.md)
 - Security policy: [SECURITY.md](SECURITY.md)
 - Changelog: [CHANGELOG.md](CHANGELOG.md)

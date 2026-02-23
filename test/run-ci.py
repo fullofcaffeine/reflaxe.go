@@ -30,6 +30,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-examples", action="store_true", help="Skip examples stage")
     parser.add_argument("--force-examples", action="store_true", help="Run examples even for chunked/filtered runs")
     parser.add_argument("--examples-compile-only", action="store_true", help="Run examples compile/go-test checks without go run stdout checks")
+    parser.add_argument("--skip-goextern-fixtures", action="store_true", help="Skip goextern fixture drift stage")
     return parser.parse_args()
 
 
@@ -123,6 +124,10 @@ def build_examples_command(args: argparse.Namespace) -> list[str]:
     return cmd
 
 
+def build_goextern_fixtures_command() -> list[str]:
+    return ["python3", "test/run-goextern-fixtures.py"]
+
+
 def main() -> int:
     args = parse_args()
 
@@ -146,6 +151,14 @@ def main() -> int:
             return semantic_diff_code
     else:
         print("==> Skipping semantic diff stage")
+
+    if args.skip_goextern_fixtures:
+        print("==> Skipping goextern fixtures stage")
+    else:
+        print("==> goextern fixtures stage")
+        goextern_code = run(build_goextern_fixtures_command())
+        if goextern_code != 0:
+            return goextern_code
 
     if not should_run_examples(args):
         print("==> Skipping examples stage")
