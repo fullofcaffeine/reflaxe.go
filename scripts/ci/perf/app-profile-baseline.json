@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-02-24T23:45:38.534502+00:00",
+  "thresholds": {
+    "throughputWarnPct": 12.0,
+    "latencyWarnPct": 12.0,
+    "allocWarnPct": 15.0,
+    "memoryWarnPct": 12.0,
+    "startupWarnPct": 15.0,
+    "sizeWarnPct": 8.0
+  },
+  "derivedBaseline": {
+    "haxeVsPure": [
+      {
+        "app": "fluxproxy",
+        "variant": "core",
+        "profile": "metal",
+        "throughput_ratio_vs_pure": 1.116323973775201,
+        "latency_avg_ratio_vs_pure": 0.8957973050826877,
+        "alloc_bytes_ratio_vs_pure": 2.592816708959594,
+        "allocs_ratio_vs_pure": 7.191489361702128,
+        "rss_ratio_vs_pure": 0.9960159362549801,
+        "startup_ratio_vs_pure": 0.9988036662951417,
+        "binary_ratio_vs_pure": 1.1303213996651802,
+        "stripped_ratio_vs_pure": 1.1279015527523013
+      },
+      {
+        "app": "fluxproxy",
+        "variant": "core",
+        "profile": "portable",
+        "throughput_ratio_vs_pure": 1.2828393187494438,
+        "latency_avg_ratio_vs_pure": 0.7795208469597361,
+        "alloc_bytes_ratio_vs_pure": 2.63302752293578,
+        "allocs_ratio_vs_pure": 7.191489361702128,
+        "rss_ratio_vs_pure": 0.9960159362549801,
+        "startup_ratio_vs_pure": 1.0960798854398153,
+        "binary_ratio_vs_pure": 1.1303213996651802,
+        "stripped_ratio_vs_pure": 1.1279015527523013
+      },
+      {
+        "app": "fluxproxy",
+        "variant": "go_native",
+        "profile": "metal",
+        "throughput_ratio_vs_pure": 1.5129500451537592,
+        "latency_avg_ratio_vs_pure": 0.6609603184336986,
+        "alloc_bytes_ratio_vs_pure": 2.32385243593354,
+        "allocs_ratio_vs_pure": 7.087719298245614,
+        "rss_ratio_vs_pure": 1.0158102766798418,
+        "startup_ratio_vs_pure": 0.5553791635036127,
+        "binary_ratio_vs_pure": 1.144394416676493,
+        "stripped_ratio_vs_pure": 1.1420527001087293
+      },
+      {
+        "app": "fluxproxy",
+        "variant": "go_native",
+        "profile": "portable",
+        "throughput_ratio_vs_pure": 1.4003412825677566,
+        "latency_avg_ratio_vs_pure": 0.7141116524880421,
+        "alloc_bytes_ratio_vs_pure": 2.55040833568009,
+        "allocs_ratio_vs_pure": 8.421052631578947,
+        "rss_ratio_vs_pure": 1.0434782608695652,
+        "startup_ratio_vs_pure": 0.6592760213693837,
+        "binary_ratio_vs_pure": 1.1790154503180947,
+        "stripped_ratio_vs_pure": 1.1769299434876572
+      },
+      {
+        "app": "pulseforge",
+        "variant": "core",
+        "profile": "metal",
+        "throughput_ratio_vs_pure": 1.1865988236790066,
+        "latency_avg_ratio_vs_pure": 0.8427448774117825,
+        "alloc_bytes_ratio_vs_pure": 2.888982515272804,
+        "allocs_ratio_vs_pure": 7.571428571428571,
+        "rss_ratio_vs_pure": 0.9920634920634921,
+        "startup_ratio_vs_pure": 1.4637515613517424,
+        "binary_ratio_vs_pure": 1.1161223200565284,
+        "stripped_ratio_vs_pure": 1.1131519055251398
+      },
+      {
+        "app": "pulseforge",
+        "variant": "core",
+        "profile": "portable",
+        "throughput_ratio_vs_pure": 0.7183401394146687,
+        "latency_avg_ratio_vs_pure": 1.3920982381409028,
+        "alloc_bytes_ratio_vs_pure": 2.9210027385717297,
+        "allocs_ratio_vs_pure": 7.571428571428571,
+        "rss_ratio_vs_pure": 1.0277777777777777,
+        "startup_ratio_vs_pure": 0.9862972575938725,
+        "binary_ratio_vs_pure": 1.1161223200565284,
+        "stripped_ratio_vs_pure": 1.1131519055251398
+      },
+      {
+        "app": "pulseforge",
+        "variant": "go_native",
+        "profile": "metal",
+        "throughput_ratio_vs_pure": 1.2207993961688253,
+        "latency_avg_ratio_vs_pure": 0.8191354148165603,
+        "alloc_bytes_ratio_vs_pure": 2.257626310772164,
+        "allocs_ratio_vs_pure": 7.17910447761194,
+        "rss_ratio_vs_pure": 1.0745098039215686,
+        "startup_ratio_vs_pure": 1.0089361973808688,
+        "binary_ratio_vs_pure": 1.1369365178121194,
+        "stripped_ratio_vs_pure": 1.1341477231074768
+      },
+      {
+        "app": "pulseforge",
+        "variant": "go_native",
+        "profile": "portable",
+        "throughput_ratio_vs_pure": 1.3370915030109536,
+        "latency_avg_ratio_vs_pure": 0.7478919600585656,
+        "alloc_bytes_ratio_vs_pure": 2.600214489990467,
+        "allocs_ratio_vs_pure": 9.149253731343284,
+        "rss_ratio_vs_pure": 1.035294117647059,
+        "startup_ratio_vs_pure": 0.6754427594619912,
+        "binary_ratio_vs_pure": 1.17121685147021,
+        "stripped_ratio_vs_pure": 1.1687726173101145
+      }
+    ]
+  }
+}

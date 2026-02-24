@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - master
+  schedule:
+    - cron: "0 7 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -149,6 +151,46 @@ jobs:
           path: .cache/perf-hxrt-selective/results
           if-no-files-found: warn
 
+  perf-apps:
+    name: Flagship App Perf (ratio compare)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: false
+
+      - name: Install npm dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: ${{ env.HAXE_VERSION }}
+
+      - name: Run flagship app benchmark harness
+        run: npm run test:perf:apps
+
+      - name: Upload flagship app benchmark artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-app-perf-results
+          path: .cache/perf-apps/results
+          if-no-files-found: warn
+
   semantic-release:
     name: Semantic Release
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
@@ -157,6 +199,7 @@ jobs:
       - gitleaks
       - dependency-audit
       - perf-go
+      - perf-apps
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

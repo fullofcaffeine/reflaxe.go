@@ -135,7 +135,9 @@ Benchmark both apps with the same workload generator and data:
   - `benchmarks/pure_go/pulseforge`
   - `benchmarks/pure_go/fluxproxy`
 - benchmark orchestration:
-  - extend `scripts/ci/perf-go-profiles.sh` or add `scripts/ci/perf-apps.sh`
+  - `scripts/ci/perf-apps.sh` (`npm run test:perf:apps`)
+  - baseline ratios: `scripts/ci/perf/app-profile-baseline.json` (`npm run test:perf:apps:update-baseline`)
+  - artifacts under `.cache/perf-apps/results/` (`current.json`, `comparison.json`, `summary.md`, `raw_metrics.tsv`, `warnings.txt`, `hard_failures.txt`)
 
 ## Acceptance Gates
 
@@ -146,3 +148,5 @@ Before calling either app complete:
 - documented profile behavior table exists.
 - benchmark run produces machine-readable results.
 - README links to benchmark summary and known tradeoffs.
+
+Benchmark methodology and fairness rules are defined in `docs/benchmark-methodology-apps.md`.

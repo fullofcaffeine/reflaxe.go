@@ -31,6 +31,8 @@
     "test:pure-go:fluxproxy": "cd benchmarks/pure_go/fluxproxy && go test ./...",
     "test:perf:pure-go:pulseforge": "cd benchmarks/pure_go/pulseforge && go test -run '^$' -bench . -benchmem",
     "test:perf:pure-go:fluxproxy": "cd benchmarks/pure_go/fluxproxy && go test -run '^$' -bench . -benchmem",
+    "test:perf:apps": "bash scripts/ci/perf-apps.sh",
+    "test:perf:apps:update-baseline": "bash scripts/ci/perf-apps.sh --update-baseline",
     "test:perf:go": "bash scripts/ci/perf-go-profiles.sh",
     "test:perf:stdlib-shims": "bash scripts/ci/perf-stdlib-shim-review.sh",
     "test:perf:go:update-baseline": "bash scripts/ci/perf-go-profiles.sh --update-baseline",

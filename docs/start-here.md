@@ -45,10 +45,16 @@ GO_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:go
 npm run test:perf:hxrt-selective
 # optional local CI parity: hard-fail if selective runtime exceeds budget
 GO_HXRT_SLICE_ENFORCE=1 npm run test:perf:hxrt-selective
+npm run test:perf:apps
+# optional local CI parity: hard-fail if app metal ratios exceed budget
+GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
+# baseline management for app harness
+npm run test:perf:apps:update-baseline
 npm run release:status
 ```
 
 Perf harness lanes now include hello/array/atomic plus channel/map/generic/string/virtual/select microbench cases and TUI profile spread.
+Flagship app harness output is written under `.cache/perf-apps/results/` (`current.json`, `comparison.json`, `summary.md`, `raw_metrics.tsv`) and uses `scripts/ci/perf/app-profile-baseline.json`.
 
 ## Scaffold a new project
 
@@ -88,7 +94,9 @@ Reference examples for this phase:
 
 - `examples/worker_pool_select` (worker pool + select-style channel ops)
 - `examples/interop_smoke` (`fmt`/`time`/`context`/`net/http` typed interop)
-- `examples/pulseforge` (flagship scaffold with `core` vs `go_native` variant plumbing)
+- `examples/pulseforge` (flagship observability app with profile + variant behavior matrices)
+- `examples/fluxproxy` (flagship proxy app with profile + variant behavior matrices)
+- `docs/examples-matrix.md` (benchmark harness commands and artifact paths)
 
 ## Profile selection
 
@@ -116,6 +124,7 @@ Compatibility note:
 ## GitHub CI harness
 
 - `.github/workflows/ci-harness.yml`: integrated quality + security gates (`test:ci`, gitleaks, dependency audit) plus semantic-release on `master`.
+- `ci-harness.yml` includes flagship app benchmark job `perf-apps` (PR/push/manual/weekly schedule) with `go-app-perf-results` artifact upload.
 - `.github/workflows/security-static-analysis.yml`: dependency review/codeql and scheduled security analysis.
 - `.github/workflows/examples-artifacts.yml`: builds and uploads examples binary artifacts on `master`, and on tag pushes publishes release assets via a separate release job.
 
@@ -129,6 +138,7 @@ Compatibility note:
 - `docs/flagship-apps-plan.md`
 - `docs/feature-support-matrix.md`
 - `docs/examples-matrix.md`
+- `docs/benchmark-methodology-apps.md`
 - `docs/known-gaps.md`
 - `docs/release-visibility.md`
 - `docs/stdlib-shim-rationale.md`

@@ -11,12 +11,19 @@
 | `examples/pulseforge` | Yes | Yes | Flagship app scaffold proving profile matrix + explicit variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
 | `examples/fluxproxy` | Yes | Yes | Flagship proxy scaffold with profile matrix + variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
 
+## Flagship app behavior docs
+
+- PulseForge: `examples/pulseforge/README.md`
+- FluxProxy: `examples/fluxproxy/README.md`
+- Planning + scope contract: `docs/flagship-apps-plan.md`
+- Benchmark fairness + reproducibility rules: `docs/benchmark-methodology-apps.md`
+
 ## Pure-Go parity baselines
 
 | Baseline | Status | Purpose |
 | --- | --- | --- |
-| `benchmarks/pure_go/pulseforge` | Ready | Handwritten Go parity baseline for PulseForge workload/contract and benchmark comparison against generated portable/metal outputs. |
-| `benchmarks/pure_go/fluxproxy` | Ready | Handwritten Go parity baseline for FluxProxy workload/contract and benchmark comparison against generated portable/metal outputs. |
+| `benchmarks/pure_go/pulseforge` | Ready | Handwritten Go parity baseline for PulseForge workload/contract and benchmark comparison against generated portable/metal outputs. Does **not** use `hxrt`. |
+| `benchmarks/pure_go/fluxproxy` | Ready | Handwritten Go parity baseline for FluxProxy workload/contract and benchmark comparison against generated portable/metal outputs. Does **not** use `hxrt`. |
 
 Run:
 
@@ -26,6 +33,47 @@ npm run test:pure-go:fluxproxy
 npm run test:perf:pure-go:pulseforge
 npm run test:perf:pure-go:fluxproxy
 ```
+
+## Flagship app perf harness
+
+Run the full app-level harness:
+
+```bash
+npm run test:perf:apps
+# regenerate baseline ratios
+npm run test:perf:apps:update-baseline
+# optional CI parity: enforce metal hard budgets
+GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
+```
+
+This covers both flagship apps across:
+
+- generated Haxe lanes: `portable/core`, `portable/go_native`, `metal/core`, `metal/go_native`
+- handwritten Go parity lanes: `pure_go/core`, `pure_go/go_native`
+
+Terminology:
+
+- `pure_go`: handwritten baseline modules under `benchmarks/pure_go/*` (no `hxrt`)
+- `go_native`: runtime adapter variant in the app codebase enabling Go-first lane behavior (`chan/select` worker paths) while preserving the same domain contract
+
+Outputs:
+
+- `.cache/perf-apps/results/current.json`
+- `.cache/perf-apps/results/comparison.json`
+- `.cache/perf-apps/results/summary.md`
+- `.cache/perf-apps/results/raw_metrics.tsv`
+- `.cache/perf-apps/results/warnings.txt`
+- `.cache/perf-apps/results/hard_failures.txt`
+- `scripts/ci/perf/app-profile-baseline.json`
+
+Metrics reported per app/profile/variant lane:
+
+- throughput (`ops/s`)
+- latency (`avg`, `p95`, `p99`, milliseconds)
+- allocation (`B/op`, `allocs/op`)
+- memory (`max RSS`, KB)
+- startup (`avg ms`, help-mode loop)
+- binary size (raw + stripped)
 
 Execution plan and acceptance gates for flagship examples: `docs/flagship-apps-plan.md`.
 
@@ -78,3 +126,5 @@ Binary matrix targets:
   - `examples-<tag>.tar.gz.sha256`
   - `manifest.json`
   - `checksums.txt`
+
+Flagship app perf artifacts are published by `.github/workflows/ci-harness.yml` job `perf-apps` as `go-app-perf-results`.
