@@ -13,7 +13,7 @@ func main() {
 		return hx_value_1.(*go___Result)
 	}(ch.__hx_this.tryRecv())
 	_ = empty
-	hxrt.Println(empty.value)
+	hxrt.Println(empty.__hx_this.isErr())
 	ch.__hx_this.send(9)
 	got := func(hx_value_3 any) *go___Result {
 		if hx_value_3 == nil {
@@ -23,7 +23,8 @@ func main() {
 		return hx_value_3.(*go___Result)
 	}(ch.__hx_this.tryRecv())
 	_ = got
-	hxrt.Println(got.value)
+	hxrt.Println(got.__hx_this.isOk())
+	hxrt.Println(got.__hx_this.unwrap())
 	emptyAgain := func(hx_value_5 any) *go___Result {
 		if hx_value_5 == nil {
 			var hx_zero_6 *go___Result
@@ -32,7 +33,7 @@ func main() {
 		return hx_value_5.(*go___Result)
 	}(ch.__hx_this.tryRecv())
 	_ = emptyAgain
-	hxrt.Println(emptyAgain.value)
+	hxrt.Println(emptyAgain.__hx_this.isErr())
 }
 
 type haxe__ds__IntMap struct {

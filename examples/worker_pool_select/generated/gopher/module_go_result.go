@@ -24,15 +24,15 @@ func New_go___Result(value any, errorValue *go___Error) *go___Result {
 }
 
 func (self *go___Result) isOk() bool {
-	return hxrt.StringEqualAny(self.errorValue, nil)
+	return (self.errorValue == nil)
 }
 
 func (self *go___Result) isErr() bool {
-	return !hxrt.StringEqualAny(self.errorValue, nil)
+	return (self.errorValue != nil)
 }
 
 func (self *go___Result) unwrap() any {
-	if !hxrt.StringEqualAny(self.errorValue, nil) {
+	if self.errorValue != nil {
 		hxrt.Throw(self.errorValue.__hx_this.toString())
 		var hx_throw_zero_11 any
 		return hx_throw_zero_11
@@ -41,7 +41,7 @@ func (self *go___Result) unwrap() any {
 }
 
 func (self *go___Result) error() *string {
-	if hxrt.StringEqualAny(self.errorValue, nil) {
+	if self.errorValue == nil {
 		return nil
 	}
 	return self.errorValue.__hx_this.toString()

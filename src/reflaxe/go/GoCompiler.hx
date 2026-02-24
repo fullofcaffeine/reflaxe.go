@@ -11620,6 +11620,8 @@ class GoCompiler {
 		var leftLowered = lowerExpr(left);
 		var rightLowered = lowerExpr(right);
 		var stringMode = leftLowered.isStringLike || rightLowered.isStringLike || isStringType(left.t) || isStringType(right.t);
+		var nullComparison = isNullLiteralExpr(left) || isNullLiteralExpr(right);
+		var useStringEquality = stringMode && (!nullComparison || isStringType(left.t) || isStringType(right.t));
 		var typedStringOps = compilationContext.profile != GoProfile.Portable && isStringType(left.t) && isStringType(right.t);
 		var int32Mode = isInt32SemanticType(left.t, left.pos)
 			|| isInt32SemanticType(right.t, right.pos)
@@ -11635,13 +11637,13 @@ class GoCompiler {
 						[leftLowered.expr, rightLowered.expr]),
 					isStringLike: true
 				};
-			case OpEq if (stringMode):
+			case OpEq if (useStringEquality):
 				{
 					expr: GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringEqualStringPtr" : "hxrt.StringEqualAny"),
 						[leftLowered.expr, rightLowered.expr]),
 					isStringLike: false
 				};
-			case OpNotEq if (stringMode):
+			case OpNotEq if (useStringEquality):
 				{
 					expr: GoExpr.GoUnary("!",
 						GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringEqualStringPtr" : "hxrt.StringEqualAny"),

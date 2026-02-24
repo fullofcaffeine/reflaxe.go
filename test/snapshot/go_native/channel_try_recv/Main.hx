@@ -6,13 +6,14 @@ class Main {
 		var ch:Chan<Int> = Go.newChan(1);
 
 		var empty = ch.tryRecv();
-		Sys.println(empty.value);
+		Sys.println(empty.isErr());
 
 		ch.send(9);
 		var got = ch.tryRecv();
-		Sys.println(got.value);
+		Sys.println(got.isOk());
+		Sys.println(got.unwrap());
 
 		var emptyAgain = ch.tryRecv();
-		Sys.println(emptyAgain.value);
+		Sys.println(emptyAgain.isErr());
 	}
 }
