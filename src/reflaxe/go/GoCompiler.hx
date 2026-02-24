@@ -53,6 +53,24 @@ private typedef GoChanMethodCall = {
 	final elementType:Type;
 }
 
+private typedef GoSliceMethodCall = {
+	final target:TypedExpr;
+	final methodName:String;
+	final elementType:Type;
+}
+
+private typedef GoMapMethodCall = {
+	final target:TypedExpr;
+	final methodName:String;
+	final keyType:Type;
+	final valueType:Type;
+}
+
+private typedef MetalMapTypePair = {
+	final keyGoType:String;
+	final valueGoType:String;
+}
+
 private typedef FunctionInfo = {
 	final defaults:Array<Null<TypedExpr>>;
 }
@@ -77,6 +95,8 @@ class GoCompiler {
 	final localRestIteratorScopes:Array<Array<String>>;
 	final requiredStdlibShimGroups:Map<String, Bool>;
 	final requiredMetalChanElementTypes:Map<String, Bool>;
+	final requiredMetalSliceElementTypes:Map<String, Bool>;
+	final requiredMetalMapTypePairs:Map<String, MetalMapTypePair>;
 	final externImportPaths:Map<String, Bool>;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
@@ -98,6 +118,8 @@ class GoCompiler {
 		localRestIteratorScopes = [];
 		requiredStdlibShimGroups = new Map<String, Bool>();
 		requiredMetalChanElementTypes = new Map<String, Bool>();
+		requiredMetalSliceElementTypes = new Map<String, Bool>();
+		requiredMetalMapTypePairs = new Map<String, MetalMapTypePair>();
 		externImportPaths = new Map<String, Bool>();
 		functionVarNameScopes = [];
 		functionVarNameCountScopes = [];
@@ -126,6 +148,8 @@ class GoCompiler {
 		projectEnums = enums.copy();
 		requiresIoHelperSurface = false;
 		resetRequiredMetalChanElementTypes();
+		resetRequiredMetalSliceElementTypes();
+		resetRequiredMetalMapTypePairs();
 		resetExternImportPaths();
 		buildStaticFunctionInfoTable(classes);
 		requiresTypeValueSupport = false;
@@ -551,6 +575,9 @@ class GoCompiler {
 		}
 		if (requiredStdlibShimGroups.exists("go_concurrency")) {
 			decls = decls.concat(lowerGoConcurrencyShimDecls());
+		}
+		if (requiredStdlibShimGroups.exists("go_collections")) {
+			decls = decls.concat(lowerMetalGoCollectionShimDecls());
 		}
 		return decls;
 	}
@@ -2466,6 +2493,142 @@ class GoCompiler {
 				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("close"), [GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), chanType)]))
 			]));
 		}
+		return decls;
+	}
+
+	function lowerMetalGoCollectionShimDecls():Array<GoDecl> {
+		if (!isMetalProfile()) {
+			return [];
+		}
+
+		var decls = new Array<GoDecl>();
+		var sliceElementTypes = [for (elementType in requiredMetalSliceElementTypes.keys()) elementType];
+		sliceElementTypes.sort(function(a, b) return Reflect.compare(a, b));
+		var sliceTypeName = GoNaming.typeSymbol(["go"], "Slice");
+		var slicePointerType = "*" + sliceTypeName;
+		for (elementType in sliceElementTypes) {
+			var pushName = metalSliceShimName("go__slice_push", elementType);
+			var setName = metalSliceShimName("go__slice_set", elementType);
+			var getName = metalSliceShimName("go__slice_get", elementType);
+			var lengthName = metalSliceShimName("go__slice_length", elementType);
+			var toArrayName = metalSliceShimName("go__slice_toArray", elementType);
+
+			decls.push(GoDecl.GoFuncDecl(pushName, null, [
+				{
+					name: "slice",
+					typeName: slicePointerType
+				},
+				{name: "value", typeName: elementType}
+			], [], [
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("slice"), "data"),
+					GoExpr.GoCall(GoExpr.GoIdent("append"), [GoExpr.GoSelector(GoExpr.GoIdent("slice"), "data"), GoExpr.GoIdent("value")]))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(setName, null, [
+				{
+					name: "slice",
+					typeName: slicePointerType
+				},
+				{name: "index", typeName: "int"},
+				{name: "value", typeName: elementType}
+			], [], [
+				GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("slice"), "data"), GoExpr.GoIdent("index")), GoExpr.GoIdent("value"))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(getName, null, [
+				{
+					name: "slice",
+					typeName: slicePointerType
+				},
+				{name: "index", typeName: "int"}
+			], [elementType], [
+				GoStmt.GoVarDecl("raw", "any", GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("slice"), "data"), GoExpr.GoIdent("index")), true),
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("raw"), GoExpr.GoNil), [
+					GoStmt.GoVarDecl("zero", elementType, null, false),
+					GoStmt.GoReturn(GoExpr.GoIdent("zero"))
+				], null),
+				GoStmt.GoReturn(GoExpr.GoTypeAssert(GoExpr.GoIdent("raw"), elementType))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(lengthName, null, [
+				{
+					name: "slice",
+					typeName: slicePointerType
+				}
+			], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("slice"), "data")]))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(toArrayName, null, [
+				{
+					name: "slice",
+					typeName: slicePointerType
+				}
+			], ["[]" + elementType], [
+				GoStmt.GoVarDecl("raw", "[]any", GoExpr.GoSelector(GoExpr.GoIdent("slice"), "data"), true),
+				GoStmt.GoVarDecl("out", "[]" + elementType, GoExpr.GoRaw("make([]" + elementType + ", len(raw))"), true),
+				GoStmt.GoRangeStmt("idx", "value", GoExpr.GoIdent("raw"), true, [
+					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("value"), GoExpr.GoNil), [GoStmt.GoContinue], null),
+					GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent("out"), GoExpr.GoIdent("idx")), GoExpr.GoTypeAssert(GoExpr.GoIdent("value"), elementType))
+				]),
+				GoStmt.GoReturn(GoExpr.GoIdent("out"))
+			]));
+		}
+
+		var mapSignatures = [for (signature in requiredMetalMapTypePairs.keys()) signature];
+		mapSignatures.sort(function(a, b) return Reflect.compare(a, b));
+		var mapTypeName = GoNaming.typeSymbol(["go"], "Map");
+		var mapPointerType = "*" + mapTypeName;
+		for (signature in mapSignatures) {
+			var pair = requiredMetalMapTypePairs.get(signature);
+			if (pair == null) {
+				continue;
+			}
+			var keyType = pair.keyGoType;
+			var valueType = pair.valueGoType;
+			var setName = metalMapShimName("go__map_set", keyType, valueType);
+			var getName = metalMapShimName("go__map_get", keyType, valueType);
+			var existsName = metalMapShimName("go__map_exists", keyType, valueType);
+
+			decls.push(GoDecl.GoFuncDecl(setName, null, [
+				{
+					name: "mapValue",
+					typeName: mapPointerType
+				},
+				{name: "key", typeName: keyType},
+				{name: "value", typeName: valueType}
+			], [], [
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("mapValue"), "inner"), "set"), [
+					GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [GoExpr.GoCall(GoExpr.GoIdent("any"), [GoExpr.GoIdent("key")])]),
+					GoExpr.GoIdent("value")
+				]))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(getName, null, [
+				{
+					name: "mapValue",
+					typeName: mapPointerType
+				},
+				{name: "key", typeName: keyType}
+			], ["any"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("mapValue"), "inner"), "get"), [
+					GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [GoExpr.GoCall(GoExpr.GoIdent("any"), [GoExpr.GoIdent("key")])])
+				]))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(existsName, null, [
+				{
+					name: "mapValue",
+					typeName: mapPointerType
+				},
+				{name: "key", typeName: keyType}
+			], ["bool"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("mapValue"), "inner"), "exists"), [
+					GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [GoExpr.GoCall(GoExpr.GoIdent("any"), [GoExpr.GoIdent("key")])])
+				]))
+			]));
+		}
+
 		return decls;
 	}
 
@@ -9417,6 +9580,16 @@ class GoCompiler {
 			return metalChanCall;
 		}
 
+		var metalSliceCall = lowerMetalGoSliceCall(callee, args, returnType);
+		if (metalSliceCall != null) {
+			return metalSliceCall;
+		}
+
+		var metalMapCall = lowerMetalGoMapCall(callee, args, returnType);
+		if (metalMapCall != null) {
+			return metalMapCall;
+		}
+
 		if (isStaticCall(callee, "Go", ["go"], "__chanMake")) {
 			requireStdlibShimGroup("go_concurrency");
 			var buffer = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
@@ -9714,6 +9887,108 @@ class GoCompiler {
 				var buffer = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
 				return {
 					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_setBuffer", elementGoType)), [channel, buffer]),
+					isStringLike: false
+				};
+			case _:
+				return null;
+		}
+	}
+
+	function lowerMetalGoSliceCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		if (!isMetalProfile()) {
+			return null;
+		}
+
+		var methodCall = asGoSliceMethodCall(callee);
+		if (methodCall == null) {
+			return null;
+		}
+
+		var elementGoType = goSliceElementGoType(methodCall.target.t);
+		if (elementGoType == null) {
+			return null;
+		}
+
+		requireStdlibShimGroup("go_collections");
+		registerMetalSliceElementGoType(elementGoType);
+		var sliceExpr = lowerExpr(methodCall.target).expr;
+
+		switch (methodCall.methodName) {
+			case "push":
+				var value = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalSliceShimName("go__slice_push", elementGoType)), [sliceExpr, value]),
+					isStringLike: false
+				};
+			case "set":
+				var index = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
+				var value = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoNil;
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalSliceShimName("go__slice_set", elementGoType)), [sliceExpr, index, value]),
+					isStringLike: false
+				};
+			case "get":
+				var index = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalSliceShimName("go__slice_get", elementGoType)), [sliceExpr, index]),
+					isStringLike: isStringType(returnType)
+				};
+			case "get_length":
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalSliceShimName("go__slice_length", elementGoType)), [sliceExpr]),
+					isStringLike: false
+				};
+			case "toArray":
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalSliceShimName("go__slice_toArray", elementGoType)), [sliceExpr]),
+					isStringLike: false
+				};
+			case _:
+				return null;
+		}
+	}
+
+	function lowerMetalGoMapCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		if (!isMetalProfile()) {
+			return null;
+		}
+
+		var methodCall = asGoMapMethodCall(callee);
+		if (methodCall == null) {
+			return null;
+		}
+
+		var pair = goMapTypePairGoTypes(methodCall.target.t);
+		if (pair == null) {
+			return null;
+		}
+		var keyGoType = pair.keyGoType;
+		var valueGoType = pair.valueGoType;
+
+		requireStdlibShimGroup("go_collections");
+		registerMetalMapTypePair(keyGoType, valueGoType);
+		var mapExpr = lowerExpr(methodCall.target).expr;
+
+		switch (methodCall.methodName) {
+			case "set":
+				var keyExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+				var valueExpr = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoNil;
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalMapShimName("go__map_set", keyGoType, valueGoType)), [mapExpr, keyExpr, valueExpr]),
+					isStringLike: false
+				};
+			case "get":
+				var keyExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+				var rawCall = GoExpr.GoCall(GoExpr.GoIdent(metalMapShimName("go__map_get", keyGoType, valueGoType)), [mapExpr, keyExpr]);
+				var expectedType = typeToGoType(returnType);
+				return {
+					expr: expectedType == "any" ? rawCall : lowerNilSafeTypeAssertExpr(rawCall, expectedType),
+					isStringLike: isStringType(returnType)
+				};
+			case "exists":
+				var keyExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalMapShimName("go__map_exists", keyGoType, valueGoType)), [mapExpr, keyExpr]),
 					isStringLike: false
 				};
 			case _:
@@ -10223,6 +10498,14 @@ class GoCompiler {
 		return classType.pack.join(".") == "go" && classType.name == "Chan";
 	}
 
+	function isGoSliceClass(classType:ClassType):Bool {
+		return classType.pack.join(".") == "go" && classType.name == "Slice";
+	}
+
+	function isGoMapClass(classType:ClassType):Bool {
+		return classType.pack.join(".") == "go" && classType.name == "Map";
+	}
+
 	function goChanElementType(type:Type):Null<Type> {
 		var followed = Context.follow(type);
 		return switch (followed) {
@@ -10248,8 +10531,65 @@ class GoCompiler {
 		};
 	}
 
-	function isMonomorphizableMetalChanElementType(elementGoType:String):Bool {
+	function goSliceElementType(type:Type):Null<Type> {
+		var followed = Context.follow(type);
+		return switch (followed) {
+			case TInst(classRef, params):
+				var classType = classRef.get();
+				if (isGoSliceClass(classType) && params.length == 1) {
+					params[0];
+				} else {
+					null;
+				}
+			case TAbstract(abstractRef, params):
+				var abstractType = abstractRef.get();
+				if (abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1) {
+					goSliceElementType(params[0]);
+				} else {
+					null;
+				}
+			case TMono(ref):
+				var resolved = ref.get();
+				resolved == null ? null : goSliceElementType(resolved);
+			case _:
+				null;
+		};
+	}
+
+	function goMapTypePair(type:Type):Null<{keyType:Type, valueType:Type}> {
+		var followed = Context.follow(type);
+		return switch (followed) {
+			case TInst(classRef, params):
+				var classType = classRef.get();
+				if (isGoMapClass(classType) && params.length == 2) {
+					{
+						keyType: params[0],
+						valueType: params[1]
+					};
+				} else {
+					null;
+				}
+			case TAbstract(abstractRef, params):
+				var abstractType = abstractRef.get();
+				if (abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1) {
+					goMapTypePair(params[0]);
+				} else {
+					null;
+				}
+			case TMono(ref):
+				var resolved = ref.get();
+				resolved == null ? null : goMapTypePair(resolved);
+			case _:
+				null;
+		};
+	}
+
+	function isMonomorphizableMetalElementType(elementGoType:String):Bool {
 		return elementGoType != null && elementGoType != "" && elementGoType != "any";
+	}
+
+	function isMonomorphizableMetalChanElementType(elementGoType:String):Bool {
+		return isMonomorphizableMetalElementType(elementGoType);
 	}
 
 	function goChanElementGoType(type:Type):Null<String> {
@@ -10264,6 +10604,34 @@ class GoCompiler {
 		return elementGoType;
 	}
 
+	function goSliceElementGoType(type:Type):Null<String> {
+		var elementType = goSliceElementType(type);
+		if (elementType == null) {
+			return null;
+		}
+		var elementGoType = scalarGoType(elementType);
+		if (!isMonomorphizableMetalElementType(elementGoType)) {
+			return null;
+		}
+		return elementGoType;
+	}
+
+	function goMapTypePairGoTypes(type:Type):Null<MetalMapTypePair> {
+		var pair = goMapTypePair(type);
+		if (pair == null) {
+			return null;
+		}
+		var keyGoType = scalarGoType(pair.keyType);
+		var valueGoType = scalarGoType(pair.valueType);
+		if (!isMonomorphizableMetalElementType(keyGoType) || !isMonomorphizableMetalElementType(valueGoType)) {
+			return null;
+		}
+		return {
+			keyGoType: keyGoType,
+			valueGoType: valueGoType
+		};
+	}
+
 	function registerMetalChanElementGoType(elementGoType:String):Void {
 		if (!isMetalProfile()) {
 			return;
@@ -10274,7 +10642,31 @@ class GoCompiler {
 		requiredMetalChanElementTypes.set(elementGoType, true);
 	}
 
-	function metalChanTypeHash(value:String):String {
+	function registerMetalSliceElementGoType(elementGoType:String):Void {
+		if (!isMetalProfile()) {
+			return;
+		}
+		if (!isMonomorphizableMetalElementType(elementGoType)) {
+			return;
+		}
+		requiredMetalSliceElementTypes.set(elementGoType, true);
+	}
+
+	function registerMetalMapTypePair(keyGoType:String, valueGoType:String):Void {
+		if (!isMetalProfile()) {
+			return;
+		}
+		if (!isMonomorphizableMetalElementType(keyGoType) || !isMonomorphizableMetalElementType(valueGoType)) {
+			return;
+		}
+		var signature = metalMapTypeSignature(keyGoType, valueGoType);
+		requiredMetalMapTypePairs.set(signature, {
+			keyGoType: keyGoType,
+			valueGoType: valueGoType
+		});
+	}
+
+	function metalTypeHash(value:String):String {
 		var hash = 0x811C9DC5;
 		for (index in 0...value.length) {
 			hash ^= value.charCodeAt(index);
@@ -10283,16 +10675,28 @@ class GoCompiler {
 		return StringTools.hex(hash, 8).toLowerCase();
 	}
 
-	function metalChanTypeSuffix(elementGoType:String):String {
-		var normalized = GoNaming.normalizeIdent(elementGoType);
+	function metalTypeSuffix(typeKey:String):String {
+		var normalized = GoNaming.normalizeIdent(typeKey);
 		if (normalized == "" || normalized == "hx_tmp") {
 			normalized = "t";
 		}
-		return normalized + "_" + metalChanTypeHash(elementGoType);
+		return normalized + "_" + metalTypeHash(typeKey);
+	}
+
+	function metalMapTypeSignature(keyGoType:String, valueGoType:String):String {
+		return keyGoType + "__" + valueGoType;
 	}
 
 	function metalChanShimName(base:String, elementGoType:String):String {
-		return base + "__" + metalChanTypeSuffix(elementGoType);
+		return base + "__" + metalTypeSuffix(elementGoType);
+	}
+
+	function metalSliceShimName(base:String, elementGoType:String):String {
+		return base + "__" + metalTypeSuffix(elementGoType);
+	}
+
+	function metalMapShimName(base:String, keyGoType:String, valueGoType:String):String {
+		return base + "__" + metalTypeSuffix(metalMapTypeSignature(keyGoType, valueGoType));
 	}
 
 	function shouldAssertGenericCallResult(callee:TypedExpr, returnType:Type):Bool {
@@ -10780,6 +11184,18 @@ class GoCompiler {
 		}
 	}
 
+	function resetRequiredMetalSliceElementTypes():Void {
+		for (elementType in requiredMetalSliceElementTypes.keys()) {
+			requiredMetalSliceElementTypes.remove(elementType);
+		}
+	}
+
+	function resetRequiredMetalMapTypePairs():Void {
+		for (signature in requiredMetalMapTypePairs.keys()) {
+			requiredMetalMapTypePairs.remove(signature);
+		}
+	}
+
 	function noteExternImportPath(classType:ClassType):Void {
 		var path = externClassImportPath(classType);
 		if (path == null || path == "") {
@@ -10979,6 +11395,57 @@ class GoCompiler {
 				asGoChanMethodCall(inner);
 			case TCast(inner, _):
 				asGoChanMethodCall(inner);
+			case _:
+				null;
+		};
+	}
+
+	function asGoSliceMethodCall(callee:TypedExpr):Null<GoSliceMethodCall> {
+		return switch (callee.expr) {
+			case TField(target, FInstance(classRef, _, field)):
+				var classType = classRef.get();
+				var elementType = goSliceElementType(target.t);
+				if (isGoSliceClass(classType) && elementType != null) {
+					{
+						target: target,
+						methodName: field.get().name,
+						elementType: elementType
+					};
+				} else {
+					null;
+				}
+			case TMeta(_, inner):
+				asGoSliceMethodCall(inner);
+			case TParenthesis(inner):
+				asGoSliceMethodCall(inner);
+			case TCast(inner, _):
+				asGoSliceMethodCall(inner);
+			case _:
+				null;
+		};
+	}
+
+	function asGoMapMethodCall(callee:TypedExpr):Null<GoMapMethodCall> {
+		return switch (callee.expr) {
+			case TField(target, FInstance(classRef, _, field)):
+				var classType = classRef.get();
+				var pair = goMapTypePair(target.t);
+				if (isGoMapClass(classType) && pair != null) {
+					{
+						target: target,
+						methodName: field.get().name,
+						keyType: pair.keyType,
+						valueType: pair.valueType
+					};
+				} else {
+					null;
+				}
+			case TMeta(_, inner):
+				asGoMapMethodCall(inner);
+			case TParenthesis(inner):
+				asGoMapMethodCall(inner);
+			case TCast(inner, _):
+				asGoMapMethodCall(inner);
 			case _:
 				null;
 		};

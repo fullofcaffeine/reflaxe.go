@@ -72,7 +72,7 @@ Depends on: M3, M3.5
 
 - Start with monomorphization-first typed lane for hot generic surfaces.
   - Prototype landed: `go.Chan<T>` metal call-site specialization with typed channel shims per concrete element type.
-  - Follow-up: extend the same approach to `go.Slice<T>` and `go.Map<K,V>`.
+  - Extended prototype landed: `go.Slice<T>` + `go.Map<K,V>` metal call-site specialization with typed collection shims per concrete type set.
 - Add `go.Result<T>` lowering strategy for metal.
 - Expand perf harness and enforce metal budgets.
 
