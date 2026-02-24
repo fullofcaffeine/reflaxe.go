@@ -8039,7 +8039,7 @@ class GoCompiler {
 				case FMethod(_):
 					var func = unwrapFunction(field.expr());
 					if (func != null) {
-						decls.push(lowerFunctionDecl(symbol, func, null));
+						decls.push(lowerFunctionDecl(symbol, func, null, classType.module));
 					}
 			}
 		}
@@ -8111,12 +8111,13 @@ class GoCompiler {
 		return out;
 	}
 
-	function lowerFunctionDecl(name:String, func:TFunc, receiver:Null<GoParam>):GoDecl {
+	function lowerFunctionDecl(name:String, func:TFunc, receiver:Null<GoParam>, ?sourceModule:String):GoDecl {
 		pushFunctionVarNameScope();
 		var params = lowerFunctionParams(func);
 		var results = lowerFunctionResults(func.t);
 		pushFunctionReturnType(func.t);
 		var body = lowerFunctionBody(func.expr);
+		prependLineDirective(body, func.expr.pos, sourceModule);
 		popFunctionReturnType();
 		popFunctionVarNameScope();
 		return GoDecl.GoFuncDecl(name, receiver, params, results, body);
@@ -8145,6 +8146,9 @@ class GoCompiler {
 			body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName), "__hx_this"), GoExpr.GoIdent("self")));
 		}
 		body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_this"), GoExpr.GoIdent("self")));
+		if (ctorFunc != null) {
+			prependLineDirective(loweredCtorBody.body, ctorFunc.expr.pos, classType.module);
+		}
 		body = body.concat(loweredCtorBody.body);
 		body.push(GoStmt.GoReturn(GoExpr.GoIdent("self")));
 		popFunctionVarNameScope();
@@ -8155,7 +8159,31 @@ class GoCompiler {
 		return lowerFunctionDecl(normalizeIdent(fieldName), func, {
 			name: "self",
 			typeName: "*" + classTypeName(classType)
-		});
+		}, classType.module);
+	}
+
+	function prependLineDirective(body:Array<GoStmt>, pos:haxe.macro.Expr.Position, sourceModule:Null<String>):Void {
+		var directive = lineDirectiveStmt(pos, sourceModule);
+		if (directive == null) {
+			return;
+		}
+		body.unshift(directive);
+	}
+
+	function lineDirectiveStmt(pos:haxe.macro.Expr.Position, sourceModule:Null<String>):Null<GoStmt> {
+		if (!compilationContext.emitLineDirectives || sourceModule == null || sourceModule == "") {
+			return null;
+		}
+		var line = 1;
+		var location = PositionTools.toLocation(pos);
+		if (location != null && location.range != null && location.range.start != null && location.range.start.line > 0) {
+			line = location.range.start.line;
+		}
+		return GoStmt.GoRaw("//line " + sourceModuleToFilePath(sourceModule) + ":" + line);
+	}
+
+	function sourceModuleToFilePath(moduleName:String):String {
+		return StringTools.replace(moduleName, ".", "/") + ".hx";
 	}
 
 	function hasStructField(fields:Array<GoParam>, fieldName:String):Bool {

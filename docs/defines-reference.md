@@ -19,6 +19,8 @@
   - Override Go CLI used by backend build step (default: `go`).
 - `go_build_output=<path>`
   - Optional output path passed as `go build -o <path>`.
+- `reflaxe_go_line_directives`
+  - Emit `//line <module>.hx:<line>` directives for user functions/constructors so panics and traces resolve to Haxe source locations.
 
 ## Profiles
 

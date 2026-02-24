@@ -102,6 +102,7 @@ Compatibility note:
 - `-D reflaxe_go_strict_examples`: forbids raw `__go__` in repo examples/snapshots.
 - `-D reflaxe_go_strict`: forbids raw `__go__` in app project sources.
 - `metal` enables strict mode by default for app-side injection boundaries.
+- `-D reflaxe_go_line_directives`: opt-in `//line` source mapping directives in generated user functions.
 
 ## GitHub CI harness
 
