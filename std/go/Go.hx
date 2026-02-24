@@ -1,5 +1,9 @@
 package go;
 
+@:noCompletion
+@:dox(hide)
+abstract __ChanHandle<T>(Dynamic) from Dynamic to Dynamic {}
+
 class Go {
 	public static function ok<T>(value:T):Result<T> {
 		return Result.ok(value);
@@ -33,33 +37,33 @@ class Go {
 	public static function __goSpawn(fn:Void->Void):Void {}
 
 	@:noCompletion
-	public static function __chanMake(buffer:Int):Dynamic {
+	public static function __chanMake<T>(buffer:Int):__ChanHandle<T> {
 		return null;
 	}
 
 	@:noCompletion
-	public static function __chanSend(channel:Dynamic, value:Dynamic):Void {}
+	public static function __chanSend<T>(channel:__ChanHandle<T>, value:T):Void {}
 
 	@:noCompletion
-	public static function __chanRecv(channel:Dynamic):Dynamic {
+	public static function __chanRecv<T>(channel:__ChanHandle<T>):Null<T> {
 		return null;
 	}
 
 	@:noCompletion
-	public static function __chanTrySend(channel:Dynamic, value:Dynamic):Bool {
+	public static function __chanTrySend<T>(channel:__ChanHandle<T>, value:T):Bool {
 		return false;
 	}
 
 	@:noCompletion
-	public static function __chanRecvOr(channel:Dynamic, defaultValue:Dynamic):Dynamic {
+	public static function __chanRecvOr<T>(channel:__ChanHandle<T>, defaultValue:T):T {
 		return defaultValue;
 	}
 
 	@:noCompletion
-	public static function __chanTryRecv(channel:Dynamic):Dynamic {
+	public static function __chanTryRecv<T>(channel:__ChanHandle<T>):Result<T> {
 		return Result.failure("empty");
 	}
 
 	@:noCompletion
-	public static function __chanClose(channel:Dynamic):Void {}
+	public static function __chanClose<T>(channel:__ChanHandle<T>):Void {}
 }

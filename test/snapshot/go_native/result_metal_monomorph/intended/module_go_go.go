@@ -20,7 +20,7 @@ func go___Go___chanRecvOr(channel any, defaultValue any) any {
 func go___Go___chanSend(channel any, value any) {
 }
 
-func go___Go___chanTryRecv(channel any) any {
+func go___Go___chanTryRecv(channel any) *go___Result {
 	return go___Result_failure(hxrt.StringFromLiteral("empty"))
 }
 
