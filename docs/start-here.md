@@ -45,6 +45,8 @@ GO_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:go
 npm run release:status
 ```
 
+Perf harness lanes now include hello/array/atomic plus channel/map/generic microbench cases and TUI profile spread.
+
 ## Scaffold a new project
 
 ```bash

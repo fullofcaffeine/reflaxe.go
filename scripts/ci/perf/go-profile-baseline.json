@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-02-20T01:32:15.855Z",
+  "generatedAt": "2026-02-24T00:38:42.479Z",
   "thresholds": {
     "sizeWarnPct": 5,
     "runtimeWarnPct": 10
@@ -9,10 +9,16 @@
     "hello": 300,
     "array": 300,
     "atomic": 120,
+    "channel": 100,
+    "map": 100,
+    "generic": 100,
     "tui": 30
   },
   "caseParams": {
-    "atomicWork": 200000
+    "atomicWork": 200000,
+    "channelWork": 40000,
+    "mapWork": 40000,
+    "genericWork": 50000
   },
   "derivedBaseline": {
     "helloOverheadRatios": {
@@ -64,6 +70,57 @@
         "binaryRatio": 1.015263480130423,
         "strippedRatio": 1.0147355587320273,
         "startupRatio": 1.0714284948979647
+      }
+    },
+    "channelOverheadRatios": {
+      "portable": {
+        "binaryRatio": 1.0155247951985031,
+        "strippedRatio": 1.014830152190364,
+        "startupRatio": 1.2307692307692308
+      },
+      "gopher": {
+        "binaryRatio": 1.0154644917212539,
+        "strippedRatio": 1.0148231452675243,
+        "startupRatio": 1.1846153846153846
+      },
+      "metal": {
+        "binaryRatio": 1.0153907874712826,
+        "strippedRatio": 1.0148161383446845,
+        "startupRatio": 1.1846153846153846
+      }
+    },
+    "mapOverheadRatios": {
+      "portable": {
+        "binaryRatio": 1.0154436662124575,
+        "strippedRatio": 1.014836483385591,
+        "startupRatio": 4.19298245614035
+      },
+      "gopher": {
+        "binaryRatio": 1.0154436662124575,
+        "strippedRatio": 1.014836483385591,
+        "startupRatio": 4.2105263157894735
+      },
+      "metal": {
+        "binaryRatio": 1.015450366284567,
+        "strippedRatio": 1.0148294767818669,
+        "startupRatio": 4.385964912280701
+      }
+    },
+    "genericOverheadRatios": {
+      "portable": {
+        "binaryRatio": 1.0154376901758098,
+        "strippedRatio": 1.0148231452675243,
+        "startupRatio": 2.2549019607843137
+      },
+      "gopher": {
+        "binaryRatio": 1.0154175890167267,
+        "strippedRatio": 1.0148231452675243,
+        "startupRatio": 2.2549019607843137
+      },
+      "metal": {
+        "binaryRatio": 1.0153773866985605,
+        "strippedRatio": 1.0148161383446845,
+        "startupRatio": 3.490196078431373
       }
     },
     "tuiRelativeToMin": {

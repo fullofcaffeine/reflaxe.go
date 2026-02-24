@@ -33,6 +33,12 @@ Environment:
   GO_PERF_ATOMIC_ITERS      Startup loop count for atomic case (default: 120)
   GO_PERF_ATOMIC_WORK       Atomic add operations per process run (default: 200000)
   GO_PERF_TUI_ITERS         Startup loop count for tui case (default: 30)
+  GO_PERF_CHANNEL_ITERS     Startup loop count for channel case (default: 100)
+  GO_PERF_CHANNEL_WORK      Channel send/recv operations per process run (default: 40000)
+  GO_PERF_MAP_ITERS         Startup loop count for map case (default: 100)
+  GO_PERF_MAP_WORK          Map set/get operations per process run (default: 40000)
+  GO_PERF_GENERIC_ITERS     Startup loop count for generic case (default: 100)
+  GO_PERF_GENERIC_WORK      Generic push/get operations per process run (default: 50000)
 USAGE
 }
 
@@ -177,6 +183,99 @@ class Main {
 EOF
 }
 
+write_haxe_channel_case() {
+  local dir="$1"
+  local work="$2"
+  mkdir -p "$dir"
+  cat > "$dir/Main.hx" <<EOF
+import go.Chan;
+import go.Go;
+
+class Main {
+  static function main():Void {
+    var channel:Chan<Int> = Go.newChan(${work});
+    var i = 0;
+    while (i < ${work}) {
+      channel.send(i);
+      i++;
+    }
+
+    var last:Dynamic = 0;
+    i = 0;
+    while (i < ${work}) {
+      last = channel.recvOr(0);
+      i++;
+    }
+    channel.close();
+    Sys.println(last);
+  }
+}
+EOF
+}
+
+write_haxe_map_case() {
+  local dir="$1"
+  local work="$2"
+  mkdir -p "$dir"
+  cat > "$dir/Main.hx" <<EOF
+import go.Map;
+
+class Main {
+  static function main():Void {
+    var values = new Map<Int, Int>();
+    var i = 0;
+    while (i < ${work}) {
+      values.set(i, i + 3);
+      i++;
+    }
+
+    var found = 0;
+    i = 0;
+    while (i < ${work}) {
+      var value:Dynamic = values.get(i);
+      if (value != null) {
+        found++;
+      }
+      i++;
+    }
+    Sys.println(found);
+  }
+}
+EOF
+}
+
+write_haxe_generic_case() {
+  local dir="$1"
+  local work="$2"
+  mkdir -p "$dir"
+  cat > "$dir/Main.hx" <<EOF
+import go.Slice;
+
+class Main {
+  static function main():Void {
+    var values = new Slice<Int>();
+    var i = 0;
+    while (i < ${work}) {
+      values.push(i);
+      i++;
+    }
+
+    var hits = 0;
+    i = 0;
+    while (i < ${work}) {
+      var value:Dynamic = values.get(i);
+      if (value != null) {
+        hits++;
+      }
+      i++;
+    }
+    var view = values.toArray();
+    Sys.println(hits + view.length);
+  }
+}
+EOF
+}
+
 compile_haxe_case() {
   local src_dir="$1"
   local out_dir="$2"
@@ -270,6 +369,113 @@ func main() {
 EOF
 }
 
+write_pure_channel_module() {
+  local dir="$1"
+  local work="$2"
+  mkdir -p "$dir"
+  cat > "$dir/go.mod" <<'EOF'
+module pure_channel
+
+go 1.22
+EOF
+  cat > "$dir/main.go" <<EOF
+package main
+
+import "fmt"
+
+func main() {
+  channel := make(chan int, ${work})
+  for i := 0; i < ${work}; i++ {
+    channel <- i
+  }
+
+  last := 0
+  for i := 0; i < ${work}; i++ {
+    last = <-channel
+  }
+  close(channel)
+  fmt.Println(last)
+}
+EOF
+}
+
+write_pure_map_module() {
+  local dir="$1"
+  local work="$2"
+  mkdir -p "$dir"
+  cat > "$dir/go.mod" <<'EOF'
+module pure_map
+
+go 1.22
+EOF
+  cat > "$dir/main.go" <<EOF
+package main
+
+import "fmt"
+
+func main() {
+  values := make(map[int]int, ${work})
+  for i := 0; i < ${work}; i++ {
+    values[i] = i + 3
+  }
+
+  found := 0
+  for i := 0; i < ${work}; i++ {
+    if _, ok := values[i]; ok {
+      found++
+    }
+  }
+  fmt.Println(found)
+}
+EOF
+}
+
+write_pure_generic_module() {
+  local dir="$1"
+  local work="$2"
+  mkdir -p "$dir"
+  cat > "$dir/go.mod" <<'EOF'
+module pure_generic
+
+go 1.22
+EOF
+  cat > "$dir/main.go" <<EOF
+package main
+
+import "fmt"
+
+type IntBag[T ~int] struct {
+  values []T
+}
+
+func (b *IntBag[T]) Add(value T) {
+  b.values = append(b.values, value)
+}
+
+func (b *IntBag[T]) Get(index int) T {
+  return b.values[index]
+}
+
+func (b *IntBag[T]) Len() int {
+  return len(b.values)
+}
+
+func main() {
+  var bag IntBag[int]
+  for i := 0; i < ${work}; i++ {
+    bag.Add(i)
+  }
+
+  hits := 0
+  for i := 0; i < ${work}; i++ {
+    _ = bag.Get(i)
+    hits++
+  }
+  fmt.Println(hits + bag.Len())
+}
+EOF
+}
+
 record_metric() {
   local id="$1"
   local case_name="$2"
@@ -333,6 +539,12 @@ array_iters="${GO_PERF_ARRAY_ITERS:-300}"
 atomic_iters="${GO_PERF_ATOMIC_ITERS:-120}"
 atomic_work="${GO_PERF_ATOMIC_WORK:-200000}"
 tui_iters="${GO_PERF_TUI_ITERS:-30}"
+channel_iters="${GO_PERF_CHANNEL_ITERS:-100}"
+channel_work="${GO_PERF_CHANNEL_WORK:-40000}"
+map_iters="${GO_PERF_MAP_ITERS:-100}"
+map_work="${GO_PERF_MAP_WORK:-40000}"
+generic_iters="${GO_PERF_GENERIC_ITERS:-100}"
+generic_work="${GO_PERF_GENERIC_WORK:-50000}"
 
 if [[ -x /usr/bin/time ]]; then
   time_bin="/usr/bin/time"
@@ -450,6 +662,81 @@ write_pure_atomic_module "$atomic_pure_dir" "$atomic_work"
 record_metric "atomic_pure_go" "atomic" "pure" "pure_go" \
   "$atomic_pure_bin" "$atomic_iters" "$atomic_pure_dir/startup.time"
 
+channel_src="$work_dir/haxe_cases/channel"
+write_haxe_channel_case "$channel_src" "$channel_work"
+
+for profile in "${profiles[@]}"; do
+  log "channel case ($profile)"
+  case_dir="$work_dir/channel/$profile"
+  out_dir="$case_dir/out"
+  bin_path="$case_dir/channel_haxe_${profile}"
+  mkdir -p "$case_dir"
+
+  compile_haxe_case "$channel_src" "$out_dir" "$profile"
+  (cd "$out_dir" && "$go_bin" build -o "$bin_path" .)
+
+  record_metric "channel_haxe_${profile}" "channel" "$profile" "haxe" \
+    "$bin_path" "$channel_iters" "$case_dir/startup.time"
+done
+
+log "channel pure Go baseline"
+channel_pure_dir="$work_dir/channel/pure"
+channel_pure_bin="$channel_pure_dir/pure_channel"
+write_pure_channel_module "$channel_pure_dir" "$channel_work"
+(cd "$channel_pure_dir" && "$go_bin" build -o "$channel_pure_bin" .)
+record_metric "channel_pure_go" "channel" "pure" "pure_go" \
+  "$channel_pure_bin" "$channel_iters" "$channel_pure_dir/startup.time"
+
+map_src="$work_dir/haxe_cases/map"
+write_haxe_map_case "$map_src" "$map_work"
+
+for profile in "${profiles[@]}"; do
+  log "map case ($profile)"
+  case_dir="$work_dir/map/$profile"
+  out_dir="$case_dir/out"
+  bin_path="$case_dir/map_haxe_${profile}"
+  mkdir -p "$case_dir"
+
+  compile_haxe_case "$map_src" "$out_dir" "$profile"
+  (cd "$out_dir" && "$go_bin" build -o "$bin_path" .)
+
+  record_metric "map_haxe_${profile}" "map" "$profile" "haxe" \
+    "$bin_path" "$map_iters" "$case_dir/startup.time"
+done
+
+log "map pure Go baseline"
+map_pure_dir="$work_dir/map/pure"
+map_pure_bin="$map_pure_dir/pure_map"
+write_pure_map_module "$map_pure_dir" "$map_work"
+(cd "$map_pure_dir" && "$go_bin" build -o "$map_pure_bin" .)
+record_metric "map_pure_go" "map" "pure" "pure_go" \
+  "$map_pure_bin" "$map_iters" "$map_pure_dir/startup.time"
+
+generic_src="$work_dir/haxe_cases/generic"
+write_haxe_generic_case "$generic_src" "$generic_work"
+
+for profile in "${profiles[@]}"; do
+  log "generic case ($profile)"
+  case_dir="$work_dir/generic/$profile"
+  out_dir="$case_dir/out"
+  bin_path="$case_dir/generic_haxe_${profile}"
+  mkdir -p "$case_dir"
+
+  compile_haxe_case "$generic_src" "$out_dir" "$profile"
+  (cd "$out_dir" && "$go_bin" build -o "$bin_path" .)
+
+  record_metric "generic_haxe_${profile}" "generic" "$profile" "haxe" \
+    "$bin_path" "$generic_iters" "$case_dir/startup.time"
+done
+
+log "generic pure Go baseline"
+generic_pure_dir="$work_dir/generic/pure"
+generic_pure_bin="$generic_pure_dir/pure_generic"
+write_pure_generic_module "$generic_pure_dir" "$generic_work"
+(cd "$generic_pure_dir" && "$go_bin" build -o "$generic_pure_bin" .)
+record_metric "generic_pure_go" "generic" "pure" "pure_go" \
+  "$generic_pure_bin" "$generic_iters" "$generic_pure_dir/startup.time"
+
 for profile in "${profiles[@]}"; do
   log "tui case ($profile)"
   case_dir="$work_dir/tui/$profile"
@@ -489,6 +776,12 @@ GO_PERF_ARRAY_ITERS="$array_iters" \
 GO_PERF_ATOMIC_ITERS="$atomic_iters" \
 GO_PERF_ATOMIC_WORK="$atomic_work" \
 GO_PERF_TUI_ITERS="$tui_iters" \
+GO_PERF_CHANNEL_ITERS="$channel_iters" \
+GO_PERF_CHANNEL_WORK="$channel_work" \
+GO_PERF_MAP_ITERS="$map_iters" \
+GO_PERF_MAP_WORK="$map_work" \
+GO_PERF_GENERIC_ITERS="$generic_iters" \
+GO_PERF_GENERIC_WORK="$generic_work" \
 GO_PERF_HAXE_VERSION="$haxe_version" \
 GO_PERF_GO_VERSION="$go_version" \
 node <<'NODE'
@@ -514,6 +807,12 @@ const arrayIters = Number(process.env.GO_PERF_ARRAY_ITERS || "300");
 const atomicIters = Number(process.env.GO_PERF_ATOMIC_ITERS || "120");
 const atomicWork = Number(process.env.GO_PERF_ATOMIC_WORK || "200000");
 const tuiIters = Number(process.env.GO_PERF_TUI_ITERS || "30");
+const channelIters = Number(process.env.GO_PERF_CHANNEL_ITERS || "100");
+const channelWork = Number(process.env.GO_PERF_CHANNEL_WORK || "40000");
+const mapIters = Number(process.env.GO_PERF_MAP_ITERS || "100");
+const mapWork = Number(process.env.GO_PERF_MAP_WORK || "40000");
+const genericIters = Number(process.env.GO_PERF_GENERIC_ITERS || "100");
+const genericWork = Number(process.env.GO_PERF_GENERIC_WORK || "50000");
 const haxeVersion = process.env.GO_PERF_HAXE_VERSION || "";
 const goVersion = process.env.GO_PERF_GO_VERSION || "";
 
@@ -580,6 +879,9 @@ function buildCaseOverhead(caseName) {
 const helloOverheadRatios = buildCaseOverhead("hello");
 const arrayOverheadRatios = buildCaseOverhead("array");
 const atomicOverheadRatios = buildCaseOverhead("atomic");
+const channelOverheadRatios = buildCaseOverhead("channel");
+const mapOverheadRatios = buildCaseOverhead("map");
+const genericOverheadRatios = buildCaseOverhead("generic");
 
 const tuiMetrics = Object.fromEntries(
   profiles.map((profile) => [profile, requireMetric(`tui_haxe_${profile}`)])
@@ -614,16 +916,25 @@ const current = {
     hello: helloIters,
     array: arrayIters,
     atomic: atomicIters,
+    channel: channelIters,
+    map: mapIters,
+    generic: genericIters,
     tui: tuiIters,
   },
   caseParams: {
     atomicWork,
+    channelWork,
+    mapWork,
+    genericWork,
   },
   metrics,
   derived: {
     helloOverheadRatios,
     arrayOverheadRatios,
     atomicOverheadRatios,
+    channelOverheadRatios,
+    mapOverheadRatios,
+    genericOverheadRatios,
     tuiRelativeToMin,
   },
 };
@@ -731,11 +1042,16 @@ if (!updateBaseline) {
     compareGroup("hello_overhead", current.derived.helloOverheadRatios, baselineDerived.helloOverheadRatios);
     compareGroup("array_overhead", current.derived.arrayOverheadRatios, baselineDerived.arrayOverheadRatios);
     compareGroup("atomic_overhead", current.derived.atomicOverheadRatios, baselineDerived.atomicOverheadRatios);
+    compareGroup("channel_overhead", current.derived.channelOverheadRatios, baselineDerived.channelOverheadRatios);
+    compareGroup("map_overhead", current.derived.mapOverheadRatios, baselineDerived.mapOverheadRatios);
+    compareGroup("generic_overhead", current.derived.genericOverheadRatios, baselineDerived.genericOverheadRatios);
     compareGroup("tui_relative", current.derived.tuiRelativeToMin, baselineDerived.tuiRelativeToMin);
     compareMetalHard("hello_overhead", current.derived.helloOverheadRatios, baselineDerived.helloOverheadRatios);
     compareMetalHard("array_overhead", current.derived.arrayOverheadRatios, baselineDerived.arrayOverheadRatios);
     compareMetalHard("atomic_overhead", current.derived.atomicOverheadRatios, baselineDerived.atomicOverheadRatios);
-    compareMetalHard("tui_relative", current.derived.tuiRelativeToMin, baselineDerived.tuiRelativeToMin);
+    compareMetalHard("channel_overhead", current.derived.channelOverheadRatios, baselineDerived.channelOverheadRatios);
+    compareMetalHard("map_overhead", current.derived.mapOverheadRatios, baselineDerived.mapOverheadRatios);
+    compareMetalHard("generic_overhead", current.derived.genericOverheadRatios, baselineDerived.genericOverheadRatios);
   }
 }
 
@@ -786,8 +1102,8 @@ summaryLines.push(`- Size budget: \`+${sizeWarnPct}%\``);
 summaryLines.push(`- Runtime budget: \`+${runtimeWarnPct}%\``);
 summaryLines.push(`- Metal enforcement: \`${enforceMetalBudget ? "on" : "off"}\``);
 summaryLines.push(`- Metal hard budgets: size=\`+${metalSizeFailPct}%\`, runtime=\`+${metalRuntimeFailPct}%\``);
-summaryLines.push(`- Startup loops: hello=${helloIters}, array=${arrayIters}, atomic=${atomicIters}, tui=${tuiIters}`);
-summaryLines.push(`- Atomic workload: atomic_add_ops_per_run=${atomicWork}`);
+summaryLines.push(`- Startup loops: hello=${helloIters}, array=${arrayIters}, atomic=${atomicIters}, channel=${channelIters}, map=${mapIters}, generic=${genericIters}, tui=${tuiIters}`);
+summaryLines.push(`- Workload params: atomic_ops=${atomicWork}, channel_ops=${channelWork}, map_ops=${mapWork}, generic_ops=${genericWork}`);
 if (haxeVersion.length > 0 || goVersion.length > 0) {
   summaryLines.push(`- Toolchain: ${haxeVersion || "haxe:unknown"} | ${goVersion || "go:unknown"}`);
 }
@@ -795,6 +1111,9 @@ summaryLines.push("");
 summaryLines.push(ratioTable("Hello Overhead (x vs pure Go hello)", current.derived.helloOverheadRatios));
 summaryLines.push(ratioTable("Array Overhead (x vs pure Go array loop)", current.derived.arrayOverheadRatios));
 summaryLines.push(ratioTable("Atomic Overhead (x vs pure Go atomic loop)", current.derived.atomicOverheadRatios));
+summaryLines.push(ratioTable("Channel Overhead (x vs pure Go buffered channel loop)", current.derived.channelOverheadRatios));
+summaryLines.push(ratioTable("Map Overhead (x vs pure Go map set/get loop)", current.derived.mapOverheadRatios));
+summaryLines.push(ratioTable("Generic Overhead (x vs pure Go generic bag loop)", current.derived.genericOverheadRatios));
 summaryLines.push(ratioTable("TUI Profile Spread (x vs fastest/smallest profile in this run)", current.derived.tuiRelativeToMin));
 
 if (warnings.length > 0) {

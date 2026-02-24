@@ -74,7 +74,7 @@ Depends on: M3, M3.5
   - Prototype landed: `go.Chan<T>` metal call-site specialization with typed channel shims per concrete element type.
   - Extended prototype landed: `go.Slice<T>` + `go.Map<K,V>` metal call-site specialization with typed collection shims per concrete type set.
 - `go.Result<T>` metal lowering now includes typed call-site shims with internal `(T, error)` helpers; continue iterating toward broader direct idiom emission.
-- Expand perf harness and enforce metal budgets.
+- Perf harness now covers channel/map/generic microbench lanes with metal budget enforcement.
 
 ### M5 - Output Ergonomics
 
