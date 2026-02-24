@@ -1,16 +1,18 @@
-import app.core.PulseEvent;
 import app.core.PulsePipeline;
+import app.core.PulseIngressFrame;
 import app.runtime.RuntimeFactory;
 
 class Main {
-	static function workload():Array<PulseEvent> {
+	static function workload():Array<PulseIngressFrame> {
 		return [
-			new PulseEvent(1, "edge", 3),
-			new PulseEvent(2, "api", 7),
-			new PulseEvent(3, "db", 11),
-			new PulseEvent(4, "edge", 2),
-			new PulseEvent(5, "auth", 13),
-			new PulseEvent(6, "worker", 5)
+			new PulseIngressFrame(1, "edge", 3, "iad"),
+			new PulseIngressFrame(2, "api", 7, "sfo"),
+			new PulseIngressFrame(3, "db", 11, "fra"),
+			new PulseIngressFrame(4, "edge", 2, "iad"),
+			new PulseIngressFrame(5, "auth", 13, "gru"),
+			new PulseIngressFrame(6, "worker", 5, "sfo"),
+			new PulseIngressFrame(7, "api", 9, "fra"),
+			new PulseIngressFrame(8, "db", 4, "iad")
 		];
 	}
 

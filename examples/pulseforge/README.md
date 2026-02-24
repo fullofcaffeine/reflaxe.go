@@ -1,12 +1,16 @@
 # pulseforge
 
-Scaffold for the flagship observability-stream app.
+Flagship observability-stream pipeline demo.
 
-This milestone intentionally keeps scope small while proving the execution model:
+Current scope implements the full scripted contract pipeline:
 
-- one shared Haxe codebase
-- all profiles compile (`portable`, `metal`)
-- explicit variant plumbing (`core`, `go_native`)
+- ingest with bounded queue + deterministic backpressure policy
+- parse stage (typed ingress frame normalization)
+- enrich stage (severity + weighted value)
+- aggregate stage (per-source rollups)
+- alert stage (weighted-threshold alerts)
+- one shared Haxe codebase across `portable` and `metal`
+- explicit runtime variants (`core`, `go_native`)
 - deterministic scripted output for CI
 
 ## Compile
@@ -32,14 +36,28 @@ haxe compile.metal.ci.hxml
 (cd out_metal && go run .)
 ```
 
+Or build binaries:
+
+```bash
+(cd out_portable && go build -o pulseforge_portable . && ./pulseforge_portable)
+(cd out_metal && go build -o pulseforge_metal . && ./pulseforge_metal)
+```
+
 ## Variant strategy
 
 - `core` variant:
   - deterministic loop-based runtime path (`runtime.capability=core_loop`)
 - `go_native` variant:
-  - typed channel/select path (`runtime.capability=chan_select`)
+  - typed channel/select path (`runtime.capability=chan_fanout_select`)
 
-Current profile behavior differs by build identity and generated code shape, while keeping the same contract-level domain metrics.
+Current profile behavior differs by runtime adapter and generated code shape while keeping the same domain contract and deterministic outputs.
+
+- `core`:
+  - loop-based stage adapters
+  - capability id: `core_loop`
+- `go_native`:
+  - channel/select worker adapters with fan-out + fan-in flow
+  - capability id: `chan_fanout_select`
 
 ## Matrix expectation
 

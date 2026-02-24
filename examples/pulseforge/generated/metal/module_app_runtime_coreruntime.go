@@ -6,7 +6,9 @@ type I_app__runtime__CoreRuntime interface {
 	profileId() *string
 	variantId() *string
 	capabilityId() *string
-	processScore(events []*app__core__PulseEvent) int
+	parse(frames []*app__core__PulseIngressFrame, workerCount int) []*app__core__PulseEvent
+	enrich(events []*app__core__PulseEvent, workerCount int) []*app__core__PulseEnrichedEvent
+	stageScore(parsed []*app__core__PulseEvent, enriched []*app__core__PulseEnrichedEvent, alerts []*app__core__PulseAlert, backpressureEvents int) int
 }
 
 type app__runtime__CoreRuntime struct {
@@ -31,18 +33,44 @@ func (self *app__runtime__CoreRuntime) capabilityId() *string {
 	return hxrt.StringFromLiteral("core_loop")
 }
 
-func (self *app__runtime__CoreRuntime) processScore(events []*app__core__PulseEvent) int {
-	score := 0
-	_ = score
+func (self *app__runtime__CoreRuntime) parse(frames []*app__core__PulseIngressFrame, workerCount int) []*app__core__PulseEvent {
+	parsed := []*app__core__PulseEvent{}
+	_ = parsed
+	_g := 0
+	for _g < len(frames) {
+		frame := frames[_g]
+		_ = frame
+		_g = int(int32((_g + 1)))
+		parsed = append(parsed, app__core__PulseCodec_parse(frame))
+	}
+	return parsed
+}
+
+func (self *app__runtime__CoreRuntime) enrich(events []*app__core__PulseEvent, workerCount int) []*app__core__PulseEnrichedEvent {
+	enriched := []*app__core__PulseEnrichedEvent{}
+	_ = enriched
 	_g := 0
 	for _g < len(events) {
 		event := events[_g]
 		_ = event
 		_g = int(int32((_g + 1)))
-		score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(event.value))))
-		if event.value >= 8 {
-			score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(3))))
-		}
+		enriched = append(enriched, app__core__PulseCodec_enrich(event))
 	}
+	return enriched
+}
+
+func (self *app__runtime__CoreRuntime) stageScore(parsed []*app__core__PulseEvent, enriched []*app__core__PulseEnrichedEvent, alerts []*app__core__PulseAlert, backpressureEvents int) int {
+	score := 0
+	_ = score
+	_g := 0
+	for _g < len(enriched) {
+		entry := enriched[_g]
+		_ = entry
+		_g = int(int32((_g + 1)))
+		score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(entry.weightedValue))))
+	}
+	score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(len(alerts)) * hxrt.Int32Wrap(5))))))))
+	score = int(int32((hxrt.Int32Wrap(score) - hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(backpressureEvents) * hxrt.Int32Wrap(2))))))))
+	score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(len(parsed)))))
 	return score
 }
