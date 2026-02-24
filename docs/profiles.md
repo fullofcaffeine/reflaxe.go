@@ -22,6 +22,9 @@ This target supports two profiles:
 Selective `hxrt` runtime inference is complementary and does not replace profile contracts.
 See `docs/hxrt-selective-runtime.md`.
 
+`auto` spike decision (why `portable+metal` remains canonical and how a future additive planner would work):
+`docs/profile-auto-spike.md`.
+
 ## Removed selectors
 
 - `-D reflaxe_go_profile=gopher` is removed; use `portable`.

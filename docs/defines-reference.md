@@ -38,6 +38,11 @@ Removed:
 - `reflaxe_go_profile=idiomatic` -> compile error, use `portable`.
 - `reflaxe_go_idiomatic` -> compile error, use `reflaxe_go_profile=portable`.
 
+Design note:
+
+- `auto` is not a semantic profile in this repo.
+- Spike rationale and future additive-planner shape: `docs/profile-auto-spike.md`.
+
 ## IO encoding
 
 - `reflaxe_go_raw_native_mode=interp|utf16le`
