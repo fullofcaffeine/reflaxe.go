@@ -32,45 +32,45 @@ func (self *app__core__PulsePipeline) run(frames []*app__core__PulseIngressFrame
 	runtimeScore := self.runtime.stageScore(parsed, enriched, alerts, ingest.backpressureEvents)
 	_ = runtimeScore
 	alertDigest := self.alertToken(alerts)
-	return New_app__core__PulseReport(self.runtime.profileId(), self.runtime.variantId(), self.runtime.capabilityId(), ingest.receivedCount, len(ingest.acceptedFrames), ingest.backpressureEvents, len(parsed), len(enriched), len(func(hx_obj_3 map[string]any) []*app__core__PulseSourceAggregate {
-		hx_field_4 := hx_obj_3["sources"]
-		if hx_field_4 == nil {
-			var hx_zero_5 []*app__core__PulseSourceAggregate
-			return hx_zero_5
+	return New_app__core__PulseReport(self.runtime.profileId(), self.runtime.variantId(), self.runtime.capabilityId(), ingest.receivedCount, len(ingest.acceptedFrames), ingest.backpressureEvents, len(parsed), len(enriched), len(func(hx_obj_13 map[string]any) []*app__core__PulseSourceAggregate {
+		hx_field_14 := hx_obj_13["sources"]
+		if hx_field_14 == nil {
+			var hx_zero_15 []*app__core__PulseSourceAggregate
+			return hx_zero_15
 		}
-		return hx_field_4.([]*app__core__PulseSourceAggregate)
-	}(aggregates)), func(hx_obj_6 map[string]any) int {
-		hx_field_7 := hx_obj_6["totalValue"]
-		if hx_field_7 == nil {
-			var hx_zero_8 int
-			return hx_zero_8
+		return hx_field_14.([]*app__core__PulseSourceAggregate)
+	}(aggregates)), func(hx_obj_16 map[string]any) int {
+		hx_field_17 := hx_obj_16["totalValue"]
+		if hx_field_17 == nil {
+			var hx_zero_18 int
+			return hx_zero_18
 		}
-		return hx_field_7.(int)
-	}(aggregates), func(hx_obj_9 map[string]any) int {
-		hx_field_10 := hx_obj_9["totalWeighted"]
-		if hx_field_10 == nil {
-			var hx_zero_11 int
-			return hx_zero_11
+		return hx_field_17.(int)
+	}(aggregates), func(hx_obj_19 map[string]any) int {
+		hx_field_20 := hx_obj_19["totalWeighted"]
+		if hx_field_20 == nil {
+			var hx_zero_21 int
+			return hx_zero_21
 		}
-		return hx_field_10.(int)
-	}(aggregates), func(hx_obj_12 map[string]any) *string {
-		hx_field_13 := hx_obj_12["summary"]
-		if hx_field_13 == nil {
-			var hx_zero_14 *string
-			return hx_zero_14
+		return hx_field_20.(int)
+	}(aggregates), func(hx_obj_22 map[string]any) *string {
+		hx_field_23 := hx_obj_22["summary"]
+		if hx_field_23 == nil {
+			var hx_zero_24 *string
+			return hx_zero_24
 		}
-		return hx_field_13.(*string)
+		return hx_field_23.(*string)
 	}(aggregates), len(alerts), alertDigest, runtimeScore)
 }
 
 func (self *app__core__PulsePipeline) ingest(frames []*app__core__PulseIngressFrame, capacity int) *app__core__PulseIngestResult {
-	var hx_if_15 int
+	var hx_if_25 int
 	if capacity <= 0 {
-		hx_if_15 = 1
+		hx_if_25 = 1
 	} else {
-		hx_if_15 = capacity
+		hx_if_25 = capacity
 	}
-	boundedCapacity := hx_if_15
+	boundedCapacity := hx_if_25
 	_ = boundedCapacity
 	queue := []*app__core__PulseIngressFrame{}
 	_ = queue
@@ -116,12 +116,12 @@ func (self *app__core__PulsePipeline) aggregate(enriched []*app__core__PulseEnri
 		totalValue = int(int32((hxrt.Int32Wrap(totalValue) + hxrt.Int32Wrap(entry.event.value))))
 		totalWeighted = int(int32((hxrt.Int32Wrap(totalWeighted) + hxrt.Int32Wrap(entry.weightedValue))))
 		source := entry.event.source
-		bucket := func(hx_value_16 any) *app__core__PulseSourceAggregate {
-			if hx_value_16 == nil {
-				var hx_zero_17 *app__core__PulseSourceAggregate
-				return hx_zero_17
+		bucket := func(hx_value_26 any) *app__core__PulseSourceAggregate {
+			if hx_value_26 == nil {
+				var hx_zero_27 *app__core__PulseSourceAggregate
+				return hx_zero_27
 			}
-			return hx_value_16.(*app__core__PulseSourceAggregate)
+			return hx_value_26.(*app__core__PulseSourceAggregate)
 		}(bySource.get(source))
 		if bucket == nil {
 			bucket = New_app__core__PulseSourceAggregate(source)
@@ -137,12 +137,12 @@ func (self *app__core__PulsePipeline) aggregate(enriched []*app__core__PulseEnri
 	index := 0
 	for index < len(sourceKeys) {
 		source_1 := sourceKeys[index]
-		summary := func(hx_value_18 any) *app__core__PulseSourceAggregate {
-			if hx_value_18 == nil {
-				var hx_zero_19 *app__core__PulseSourceAggregate
-				return hx_zero_19
+		summary := func(hx_value_28 any) *app__core__PulseSourceAggregate {
+			if hx_value_28 == nil {
+				var hx_zero_29 *app__core__PulseSourceAggregate
+				return hx_zero_29
 			}
-			return hx_value_18.(*app__core__PulseSourceAggregate)
+			return hx_value_28.(*app__core__PulseSourceAggregate)
 		}(bySource.get(source_1))
 		if summary != nil {
 			sourceSummaries = append(sourceSummaries, summary)
@@ -153,12 +153,12 @@ func (self *app__core__PulsePipeline) aggregate(enriched []*app__core__PulseEnri
 		}
 		index = int(int32((index + 1)))
 	}
-	hx_obj_20 := map[string]any{}
-	hx_obj_20["sources"] = sourceSummaries
-	hx_obj_20["totalValue"] = totalValue
-	hx_obj_20["totalWeighted"] = totalWeighted
-	hx_obj_20["summary"] = digest
-	return hx_obj_20
+	hx_obj_30 := map[string]any{}
+	hx_obj_30["sources"] = sourceSummaries
+	hx_obj_30["totalValue"] = totalValue
+	hx_obj_30["totalWeighted"] = totalWeighted
+	hx_obj_30["summary"] = digest
+	return hx_obj_30
 }
 
 func (self *app__core__PulsePipeline) collectAlerts(enriched []*app__core__PulseEnrichedEvent, weightedThreshold int) []*app__core__PulseAlert {

@@ -1,27 +1,25 @@
-import app.core.PulsePipeline;
-import app.core.PulseIngressFrame;
 import app.runtime.RuntimeFactory;
 
 class Main {
-	static function workload():Array<PulseIngressFrame> {
-		return [
-			new PulseIngressFrame(1, "edge", 3, "iad"),
-			new PulseIngressFrame(2, "api", 7, "sfo"),
-			new PulseIngressFrame(3, "db", 11, "fra"),
-			new PulseIngressFrame(4, "edge", 2, "iad"),
-			new PulseIngressFrame(5, "auth", 13, "gru"),
-			new PulseIngressFrame(6, "worker", 5, "sfo"),
-			new PulseIngressFrame(7, "api", 9, "fra"),
-			new PulseIngressFrame(8, "db", 4, "iad")
-		];
+	static function hasArg(flag:String):Bool {
+		for (arg in Sys.args()) {
+			if (arg == flag) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	static function main():Void {
 		var runtime = RuntimeFactory.create();
-		var pipeline = new PulsePipeline(runtime);
-		var report = pipeline.run(workload());
-		for (line in report.lines()) {
-			Sys.println(line);
+		#if example_ci
+		Sys.println(Harness.assertContract(runtime));
+		#else
+		if (hasArg("--scripted")) {
+			Sys.println(Harness.run(runtime));
+		} else {
+			InteractiveCli.run(runtime);
 		}
+		#end
 	}
 }

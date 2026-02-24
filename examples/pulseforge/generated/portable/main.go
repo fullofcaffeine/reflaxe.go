@@ -18,24 +18,28 @@ import (
 	"time"
 )
 
-func main() {
-	var runtime app__runtime__PulseRuntime = app__runtime__RuntimeFactory_create()
-	pipeline := New_app__core__PulsePipeline(runtime)
-	report := pipeline.run(workload())
-	_ = report
+func hasArg(flag *string) bool {
 	_g := 0
 	_ = _g
-	_g1 := report.lines()
+	_g1 := Sys_args()
 	for _g < len(_g1) {
-		line := _g1[_g]
-		_ = line
+		arg := _g1[_g]
+		_ = arg
 		_g = int(int32((_g + 1)))
-		hxrt.Println(line)
+		if hxrt.StringEqualStringPtr(arg, flag) {
+			return true
+		}
 	}
+	return false
 }
 
-func workload() []*app__core__PulseIngressFrame {
-	return []*app__core__PulseIngressFrame{New_app__core__PulseIngressFrame(1, hxrt.StringFromLiteral("edge"), 3, hxrt.StringFromLiteral("iad")), New_app__core__PulseIngressFrame(2, hxrt.StringFromLiteral("api"), 7, hxrt.StringFromLiteral("sfo")), New_app__core__PulseIngressFrame(3, hxrt.StringFromLiteral("db"), 11, hxrt.StringFromLiteral("fra")), New_app__core__PulseIngressFrame(4, hxrt.StringFromLiteral("edge"), 2, hxrt.StringFromLiteral("iad")), New_app__core__PulseIngressFrame(5, hxrt.StringFromLiteral("auth"), 13, hxrt.StringFromLiteral("gru")), New_app__core__PulseIngressFrame(6, hxrt.StringFromLiteral("worker"), 5, hxrt.StringFromLiteral("sfo")), New_app__core__PulseIngressFrame(7, hxrt.StringFromLiteral("api"), 9, hxrt.StringFromLiteral("fra")), New_app__core__PulseIngressFrame(8, hxrt.StringFromLiteral("db"), 4, hxrt.StringFromLiteral("iad"))}
+func main() {
+	var runtime app__runtime__PulseRuntime = app__runtime__RuntimeFactory_create()
+	if hasArg(hxrt.StringFromLiteral("--scripted")) {
+		hxrt.Println(Harness_run(runtime))
+	} else {
+		InteractiveCli_run(runtime)
+	}
 }
 
 type haxe__io__Encoding struct {
@@ -704,6 +708,60 @@ func (self *haxe__ds__List) last() any {
 		return nil
 	}
 	return self.items[(size - 1)]
+}
+
+type Sys struct {
+}
+
+type sys__io__File struct {
+}
+
+type sys__io__ProcessOutput struct {
+	impl *hxrt.ProcessOutput
+}
+
+type sys__io__Process struct {
+	impl   *hxrt.Process
+	stdout *sys__io__ProcessOutput
+}
+
+func Sys_getCwd() *string {
+	return hxrt.SysGetCwd()
+}
+
+func Sys_args() []*string {
+	return hxrt.SysArgs()
+}
+
+func sys__io__File_saveContent(path *string, content *string) {
+	hxrt.FileSaveContent(path, content)
+}
+
+func sys__io__File_getContent(path *string) *string {
+	return hxrt.FileGetContent(path)
+}
+
+func New_sys__io__Process(command *string, args []*string) *sys__io__Process {
+	impl := hxrt.NewProcess(command, args)
+	stdout := &sys__io__ProcessOutput{}
+	if impl != nil {
+		stdout.impl = impl.Stdout()
+	}
+	return &sys__io__Process{impl: impl, stdout: stdout}
+}
+
+func (self *sys__io__ProcessOutput) readLine() *string {
+	if self == nil || self.impl == nil {
+		return hxrt.StringFromLiteral("")
+	}
+	return self.impl.ReadLine()
+}
+
+func (self *sys__io__Process) close() {
+	if self == nil || self.impl == nil {
+		return
+	}
+	self.impl.Close()
 }
 
 type Std struct {

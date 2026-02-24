@@ -12,6 +12,7 @@ Current scope implements the full scripted contract pipeline:
 - one shared Haxe codebase across `portable` and `metal`
 - explicit runtime variants (`core`, `go_native`)
 - deterministic scripted output for CI
+- interactive command mode for local demos
 
 ## Compile
 
@@ -43,6 +44,19 @@ Or build binaries:
 (cd out_metal && go build -o pulseforge_metal . && ./pulseforge_metal)
 ```
 
+## Modes
+
+- scripted: deterministic contract output (`--scripted`)
+- interactive: command session (`help`, `profile`, `status`, `ingest`, `reset`, `scripted`)
+
+Examples:
+
+```bash
+(cd out_portable && go run . --scripted)
+(cd out_portable && go run . status)
+(cd out_portable && go run . ingest edge 8 iad status)
+```
+
 ## Variant strategy
 
 - `core` variant:
@@ -61,5 +75,6 @@ Current profile behavior differs by runtime adapter and generated code shape whi
 
 ## Matrix expectation
 
-- `*.stdout` files represent `core` variant output.
-- `*.ci.stdout` files represent `go_native` variant output.
+- `run.args` pins example harness execution to scripted mode.
+- `*.stdout` files represent `core` variant scripted output.
+- `*.ci.stdout` files represent `go_native` variant scripted output.

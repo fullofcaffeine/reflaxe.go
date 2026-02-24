@@ -28,12 +28,12 @@ func New_app__core__PulseAlert(eventId int, source *string, region *string, seve
 }
 
 func app__core__PulseAlert_fromEnriched(entry *app__core__PulseEnrichedEvent) *app__core__PulseAlert {
-	var hx_if_1 *string
+	var hx_if_11 *string
 	if entry.severity >= 3 {
-		hx_if_1 = hxrt.StringFromLiteral("critical")
+		hx_if_11 = hxrt.StringFromLiteral("critical")
 	} else {
-		hx_if_1 = hxrt.StringFromLiteral("warning")
+		hx_if_11 = hxrt.StringFromLiteral("warning")
 	}
-	label := hx_if_1
+	label := hx_if_11
 	return New_app__core__PulseAlert(entry.event.id, entry.event.source, entry.event.region, entry.severity, entry.weightedValue, label)
 }

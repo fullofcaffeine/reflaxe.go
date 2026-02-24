@@ -56,4 +56,54 @@ class PulseReport {
 			"runtime.score=" + runtimeScore
 		];
 	}
+
+	public inline function profileId():String {
+		return profile;
+	}
+
+	public inline function variantId():String {
+		return variant;
+	}
+
+	public inline function capabilityId():String {
+		return capability;
+	}
+
+	public inline function ingestReceivedCount():Int {
+		return ingestReceived;
+	}
+
+	public inline function ingestAcceptedCount():Int {
+		return ingestAccepted;
+	}
+
+	public inline function ingestBackpressureCount():Int {
+		return backpressureEvents;
+	}
+
+	public inline function alertEventCount():Int {
+		return alertCount;
+	}
+
+	public inline function alertEventDigest():String {
+		return alertDigest;
+	}
+
+	public inline function score():Int {
+		return runtimeScore;
+	}
+
+	public function render():String {
+		var out = "";
+		var values = lines();
+		var i = 0;
+		while (i < values.length) {
+			if (i > 0) {
+				out += "\n";
+			}
+			out += values[i];
+			i++;
+		}
+		return out;
+	}
 }
