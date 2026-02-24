@@ -571,20 +571,28 @@ func renderDeclaration(haxePackage string, goImportPath string, decl declaration
 		b.WriteString("\")\n")
 	}
 
-	if decl.Interface {
-		b.WriteString("extern interface ")
-		b.WriteString(decl.ClassName)
-		b.WriteString(" {\n")
-	} else {
-		b.WriteString("extern class ")
-		b.WriteString(decl.ClassName)
-		b.WriteString(" {\n")
-	}
-
 	allMethods := make([]methodDecl, 0, len(decl.StaticMethods)+len(decl.InstanceMethods))
 	allMethods = append(allMethods, decl.StaticMethods...)
 	allMethods = append(allMethods, decl.InstanceMethods...)
 	sortMethodDecls(allMethods)
+
+	if decl.Interface {
+		b.WriteString("extern interface ")
+		b.WriteString(decl.ClassName)
+		if len(allMethods) == 0 {
+			b.WriteString(" {}\n")
+			return b.String()
+		}
+		b.WriteString(" {\n")
+	} else {
+		b.WriteString("extern class ")
+		b.WriteString(decl.ClassName)
+		if len(allMethods) == 0 {
+			b.WriteString(" {}\n")
+			return b.String()
+		}
+		b.WriteString(" {\n")
+	}
 
 	for idx, method := range allMethods {
 		if idx > 0 {

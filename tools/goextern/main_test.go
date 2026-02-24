@@ -86,6 +86,11 @@ func TestBuildEmissionContextIncludesInterfaceAndPackageClass(t *testing.T) {
 	if !strings.Contains(contextPkg, "@:go.name(\"Background\")") {
 		t.Fatalf("ContextPkg.hx missing Background mapping")
 	}
+
+	cancelFunc := fileContentsByName(t, emission, "CancelFunc.hx")
+	if !strings.Contains(cancelFunc, "extern class CancelFunc {}") {
+		t.Fatalf("CancelFunc.hx must emit empty extern class on a single line for formatter-stable fixtures")
+	}
 }
 
 func TestBuildEmissionErrorsPackageClass(t *testing.T) {
