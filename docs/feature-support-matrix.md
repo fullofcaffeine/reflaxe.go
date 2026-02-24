@@ -27,6 +27,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Surface | Highest tier | Evidence |
 | --- | --- | --- |
 | `haxe.Serializer` / `haxe.Unserializer` | `semantic-diff` | `serializer_wire_contract`, `serializer_cache_reference_contract`, `serializer_global_flags_contract`, `serializer_resolver_polymorphism_contract`, `serializer_reference_stress_contract` |
+| `haxe.Exception` (`caught`/`thrown`/`message`) | `semantic-diff` | `exception_api_contract`, `exceptions_typed_dynamic` |
 | `EReg` | `semantic-diff` | `ereg_behavior_contract`, `ereg_edge_contract` |
 | `sys.Http` | `semantic-diff` | `http_proxy_custom_request`, `http_request_callbacks_contract` |
 | `sys.net.Socket` | `semantic-diff` | `socket_loopback_contract`, `socket_advanced_contract` |
@@ -65,7 +66,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Super calls | Supported | `core/super_calls` |
 | Enums and switch pattern bindings | Supported | `core/enum_constructors`, `core/switch_enum_basic`, `core/enum_switch_bindings` |
 | Anonymous object literals and structural field mutation | Supported | `core/object_literal_fields` |
-| Exception subset (`throw`, typed/dynamic catch, rethrow, throw-as-expression, return-forwarding in statement-form try/catch) | Supported | `core/haxe_exception_subset`, `core/try_catch_typed`, `core/try_catch_dynamic`, `core/try_catch_rethrow`, `core/try_catch_return_forwarding`, `throw_expr_contract`, `try_catch_return_forwarding_contract` |
+| Exception subset (`throw`, typed/dynamic catch, rethrow, throw-as-expression, return-forwarding in statement-form try/catch, `haxe.Exception` API mapping) | Supported | `core/haxe_exception_subset`, `core/try_catch_typed`, `core/try_catch_dynamic`, `core/try_catch_rethrow`, `core/try_catch_return_forwarding`, `throw_expr_contract`, `try_catch_return_forwarding_contract`, `exception_api_contract` |
 | `Std.isOfType` behavior | Supported | `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic`, `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract` |
 | Type-value expressions (`TTypeExpr`) for class/enum refs | Supported | `type_expr_contract` |
 | Unsigned right shift behavior | Supported | `core/unsigned_shift`, `core/unsigned_shift_assign` |
@@ -81,6 +82,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/socket_advanced_contract`
 - `test/semantic_diff/null_string_concat`
 - `test/semantic_diff/exceptions_typed_dynamic`
+- `test/semantic_diff/exception_api_contract`
 - `test/semantic_diff/enum_switch_bindings`
 - `test/semantic_diff/virtual_dispatch`
 - `test/semantic_diff/stringtools_math`

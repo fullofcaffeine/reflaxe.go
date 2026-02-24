@@ -88,6 +88,7 @@ Depends on: M3
 Depends on: M2 (with task-level dependencies on M3+ lanes where needed)
 
 - Promote high-value compile-only surfaces to semantic-diff contracts.
+  - Latest promotion: `haxe.Exception` (`caught`/`thrown`/`message`) via `test/semantic_diff/exception_api_contract`.
 - Continue unsupported-expression inventory reduction.
 - Publish concrete onboarding docs and showcase examples.
 
