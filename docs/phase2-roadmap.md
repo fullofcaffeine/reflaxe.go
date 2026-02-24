@@ -90,6 +90,7 @@ Depends on: M2 (with task-level dependencies on M3+ lanes where needed)
 - Promote high-value compile-only surfaces to semantic-diff contracts.
   - Latest promotion: `haxe.Exception` (`caught`/`thrown`/`message`) via `test/semantic_diff/exception_api_contract`.
 - Continue unsupported-expression inventory reduction.
+  - Latest reduction: explicit `TIdent` lowering for untyped identifiers with snapshot coverage in `test/snapshot/core/untyped_ident_nil`.
 - Publish concrete onboarding docs and showcase examples.
 
 ## Execution Rules

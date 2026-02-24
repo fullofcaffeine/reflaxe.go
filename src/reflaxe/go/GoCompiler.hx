@@ -9670,6 +9670,11 @@ class GoCompiler {
 					expr: GoExpr.GoIdent(localVarName(variable)),
 					isStringLike: isStringType(variable.t)
 				};
+			case TIdent(name):
+				{
+					expr: GoExpr.GoIdent(name),
+					isStringLike: isStringType(expr.t)
+				};
 			case TParenthesis(inner):
 				lowerExpr(inner);
 			case TMeta(_, inner):
