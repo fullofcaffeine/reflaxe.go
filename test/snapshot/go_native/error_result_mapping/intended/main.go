@@ -208,6 +208,15 @@ func go__concurrency_recvOr(channel any, defaultValue any) any {
 	}
 }
 
+func go__concurrency_tryRecv(channel any) *go___Result {
+	select {
+	case value := <-channel.(chan any):
+		return New_go___Result(value, nil)
+	default:
+		return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("empty")))
+	}
+}
+
 func go__concurrency_close(channel any) {
 	close(channel.(chan any))
 }

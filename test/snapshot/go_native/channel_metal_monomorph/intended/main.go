@@ -204,6 +204,15 @@ func go__concurrency_recvOr(channel any, defaultValue any) any {
 	}
 }
 
+func go__concurrency_tryRecv(channel any) *go___Result {
+	select {
+	case value := <-channel.(chan any):
+		return New_go___Result(value, nil)
+	default:
+		return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("empty")))
+	}
+}
+
 func go__concurrency_close(channel any) {
 	close(channel.(chan any))
 }
@@ -255,6 +264,15 @@ func go__concurrency_recvOr__int_95e97e5e(channel any, defaultValue int) int {
 		return value
 	default:
 		return defaultValue
+	}
+}
+
+func go__concurrency_tryRecv__int_95e97e5e(channel any) *go___Result {
+	select {
+	case value := <-channel.(chan int):
+		return New_go___Result(value, nil)
+	default:
+		return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("empty")))
 	}
 }
 

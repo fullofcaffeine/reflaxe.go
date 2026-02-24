@@ -56,5 +56,10 @@ class Go {
 	}
 
 	@:noCompletion
+	public static function __chanTryRecv(channel:Dynamic):Dynamic {
+		return Result.failure("empty");
+	}
+
+	@:noCompletion
 	public static function __chanClose(channel:Dynamic):Void {}
 }

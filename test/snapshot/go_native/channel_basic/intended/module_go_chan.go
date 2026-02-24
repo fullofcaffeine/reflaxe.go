@@ -5,6 +5,7 @@ type I_go___Chan interface {
 	send(value any)
 	recv() any
 	trySend(value any) bool
+	tryRecv() *go___Result
 	recvOr(defaultValue any) any
 	close()
 }
@@ -35,6 +36,10 @@ func (self *go___Chan) recv() any {
 
 func (self *go___Chan) trySend(value any) bool {
 	return go__concurrency_trySend(self.__hx_native, value)
+}
+
+func (self *go___Chan) tryRecv() *go___Result {
+	return go__concurrency_tryRecv(self.__hx_native)
 }
 
 func (self *go___Chan) recvOr(defaultValue any) any {

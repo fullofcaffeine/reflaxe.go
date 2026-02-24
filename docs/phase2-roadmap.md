@@ -53,6 +53,7 @@ Depends on: M1, M1.5
 - Allow `std/go/*` override classes through compiler project-class filtering.
 - Add deterministic go-native concurrency contracts (no sleep-based race tests).
 - Latest follow-up: typed `go.Chan<T>` `recv`/`recvOr` call results now route through generic assertion bridging in `portable`/`gopher`, so typed channel reads compile without forcing `Dynamic` callsites.
+- Latest follow-up: `go.Chan<T>.tryRecv():go.Result<T>` now lowers through select-backed concurrency shims across `portable`/`gopher`/`metal`, with dedicated go_native snapshot coverage.
 
 ### M3 - Typed Interop Foundation
 

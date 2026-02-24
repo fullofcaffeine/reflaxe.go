@@ -3,48 +3,36 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	requests := go___Go_newChan(0)
-	_ = requests
-	responses := go___Go_newChan(0)
-	_ = responses
-	go___Go_spawn(func() {
-		value := func(hx_value_1 any) int {
-			if hx_value_1 == nil {
-				var hx_zero_2 int
-				return hx_zero_2
-			}
-			return hx_value_1.(int)
-		}(requests.__hx_this.recv())
-		_ = value
-		responses.__hx_this.send(value)
-	})
-	requests.__hx_this.send(41)
-	hxrt.Println(func(hx_value_3 any) int {
+	ch := go___Go_newChan(1)
+	_ = ch
+	empty := func(hx_value_1 any) *go___Result {
+		if hx_value_1 == nil {
+			var hx_zero_2 *go___Result
+			return hx_zero_2
+		}
+		return hx_value_1.(*go___Result)
+	}(ch.__hx_this.tryRecv())
+	_ = empty
+	hxrt.Println(empty.value)
+	ch.__hx_this.send(9)
+	got := func(hx_value_3 any) *go___Result {
 		if hx_value_3 == nil {
-			var hx_zero_4 int
+			var hx_zero_4 *go___Result
 			return hx_zero_4
 		}
-		return hx_value_3.(int)
-	}(responses.__hx_this.recv()))
-	buffered := go___Go_newChan(1)
-	_ = buffered
-	hxrt.Println(buffered.__hx_this.trySend(7))
-	hxrt.Println(buffered.__hx_this.trySend(8))
-	hxrt.Println(func(hx_value_5 any) int {
+		return hx_value_3.(*go___Result)
+	}(ch.__hx_this.tryRecv())
+	_ = got
+	hxrt.Println(got.value)
+	emptyAgain := func(hx_value_5 any) *go___Result {
 		if hx_value_5 == nil {
-			var hx_zero_6 int
+			var hx_zero_6 *go___Result
 			return hx_zero_6
 		}
-		return hx_value_5.(int)
-	}(buffered.__hx_this.recvOr(-1)))
-	hxrt.Println(func(hx_value_7 any) int {
-		if hx_value_7 == nil {
-			var hx_zero_8 int
-			return hx_zero_8
-		}
-		return hx_value_7.(int)
-	}(buffered.__hx_this.recvOr(-1)))
-	buffered.__hx_this.close()
+		return hx_value_5.(*go___Result)
+	}(ch.__hx_this.tryRecv())
+	_ = emptyAgain
+	hxrt.Println(emptyAgain.value)
 }
 
 type haxe__ds__IntMap struct {

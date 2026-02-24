@@ -2873,6 +2873,33 @@ class GoCompiler {
 					}
 				])
 			]),
+			GoDecl.GoFuncDecl("go__concurrency_tryRecv", null, [
+				{
+					name: "channel",
+					typeName: "any"
+				}
+			], ["*go___Result"], [
+				GoStmt.GoSelect([
+					{
+						clause: GoSelectClause.GoSelectRecvAssign(GoExpr.GoIdent("value"),
+							GoExpr.GoRecvExpr(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any")), true),
+						body: [
+							GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [GoExpr.GoIdent("value"), GoExpr.GoNil]))
+						]
+					},
+					{
+						clause: GoSelectClause.GoSelectDefault,
+						body: [
+							GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [
+								GoExpr.GoNil,
+								GoExpr.GoCall(GoExpr.GoIdent("New_go___Error"), [
+									GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("empty")])
+								])
+							]))
+						]
+					}
+				])
+			]),
 			GoDecl.GoFuncDecl("go__concurrency_close", null, [
 				{
 					name: "channel",
@@ -2916,6 +2943,7 @@ class GoCompiler {
 			var trySendName = metalChanShimName("go__concurrency_trySend", elementType);
 			var recvName = metalChanShimName("go__concurrency_recv", elementType);
 			var recvOrName = metalChanShimName("go__concurrency_recvOr", elementType);
+			var tryRecvName = metalChanShimName("go__concurrency_tryRecv", elementType);
 			var closeName = metalChanShimName("go__concurrency_close", elementType);
 
 			decls.push(GoDecl.GoFuncDecl(makeName, null, [{name: "buffer", typeName: "int"}], ["any"], [
@@ -2970,6 +2998,29 @@ class GoCompiler {
 					{
 						clause: GoSelectClause.GoSelectDefault,
 						body: [GoStmt.GoReturn(GoExpr.GoIdent("defaultValue"))]
+					}
+				])
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(tryRecvName, null, [{name: "channel", typeName: "any"}], ["*go___Result"], [
+				GoStmt.GoSelect([
+					{
+						clause: GoSelectClause.GoSelectRecvAssign(GoExpr.GoIdent("value"),
+							GoExpr.GoRecvExpr(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), chanType)), true),
+						body: [
+							GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [GoExpr.GoIdent("value"), GoExpr.GoNil]))
+						]
+					},
+					{
+						clause: GoSelectClause.GoSelectDefault,
+						body: [
+							GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [
+								GoExpr.GoNil,
+								GoExpr.GoCall(GoExpr.GoIdent("New_go___Error"), [
+									GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("empty")])
+								])
+							]))
+						]
 					}
 				])
 			]));
@@ -10247,6 +10298,15 @@ class GoCompiler {
 			};
 		}
 
+		if (isStaticCall(callee, "Go", ["go"], "__chanTryRecv")) {
+			requireStdlibShimGroup("go_concurrency");
+			var channel = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("go__concurrency_tryRecv"), [channel]),
+				isStringLike: false
+			};
+		}
+
 		if (isStaticCall(callee, "Go", ["go"], "__chanClose")) {
 			requireStdlibShimGroup("go_concurrency");
 			var channel = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
@@ -10483,6 +10543,11 @@ class GoCompiler {
 				return {
 					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_recvOr", elementGoType)), [channelNative, defaultValue]),
 					isStringLike: isStringType(returnType)
+				};
+			case "tryRecv":
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_tryRecv", elementGoType)), [channelNative]),
+					isStringLike: false
 				};
 			case "close":
 				return {
@@ -11456,7 +11521,9 @@ class GoCompiler {
 					} else {
 						false;
 					}
-				} else if (pack == "go" && classType.name == "Chan" && (fieldName == "recv" || fieldName == "recvOr")) {
+				} else if (pack == "go"
+					&& classType.name == "Chan"
+					&& (fieldName == "recv" || fieldName == "recvOr" || fieldName == "tryRecv")) {
 					true;
 				} else {
 					false;

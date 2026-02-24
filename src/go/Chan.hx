@@ -43,6 +43,15 @@ class Chan<T> {
 		return true;
 	}
 
+	public function tryRecv():Result<T> {
+		if (readIndex >= queue.length) {
+			return Result.failure("empty");
+		}
+		var value = queue[readIndex];
+		readIndex++;
+		return Result.ok(value);
+	}
+
 	public function recvOr(defaultValue:T):T {
 		var value = recv();
 		return value == null ? defaultValue : cast value;

@@ -17,7 +17,7 @@ This page is the blunt status view for current limitations so teams can plan mig
 ## Concurrency caveats
 
 - `go.Go.spawn` and `go.Chan<T>` map to real goroutine/channel behavior on Go output.
-- Non-blocking operations are currently exposed via `Chan.trySend` / `Chan.recvOr` (select-backed in Go output).
+- Non-blocking operations are exposed via `Chan.trySend` / `Chan.recvOr` / `Chan.tryRecv` (select-backed in Go output).
 - A full general-purpose Haxe-level `select` expression API is not finalized yet.
 
 ## Metal profile caveats

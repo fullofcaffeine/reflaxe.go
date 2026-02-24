@@ -1,5 +1,7 @@
 package main
 
+import "examples_worker_pool_select_gopher/hxrt"
+
 func go___Go___chanClose(channel any) {
 }
 
@@ -16,6 +18,10 @@ func go___Go___chanRecvOr(channel any, defaultValue any) any {
 }
 
 func go___Go___chanSend(channel any, value any) {
+}
+
+func go___Go___chanTryRecv(channel any) any {
+	return go___Result_failure(hxrt.StringFromLiteral("empty"))
 }
 
 func go___Go___chanTrySend(channel any, value any) bool {

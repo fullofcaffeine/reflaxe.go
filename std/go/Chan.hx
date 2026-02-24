@@ -24,6 +24,10 @@ class Chan<T> {
 		return Go.__chanTrySend(__hx_native, value);
 	}
 
+	public function tryRecv():Result<T> {
+		return cast Go.__chanTryRecv(__hx_native);
+	}
+
 	public function recvOr(defaultValue:T):T {
 		return cast Go.__chanRecvOr(__hx_native, defaultValue);
 	}
