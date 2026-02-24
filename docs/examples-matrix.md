@@ -8,6 +8,7 @@
 | `examples/tui_todo` | Yes | Yes | Yes | Complex app reference with deterministic pseudo-TUI flow and additive profile capabilities. |
 | `examples/interop_smoke` | Yes | Yes | Yes | Typed interop smoke reference for `@:go.import`, `@:go.name`, `@:go.receiver`, and package APIs (`fmt`/`time`/`context`/`net/http`). |
 | `examples/worker_pool_select` | Yes | Yes | Yes | Deterministic worker pool with channel fan-out plus typed `go.Select` helper flows (`recv`/`recv2`/`send`/`send2`). |
+| `examples/pulseforge` | Yes | Yes | Yes | Flagship app scaffold proving profile matrix + explicit variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
 
 ## Planned flagship examples
 
@@ -15,7 +16,6 @@ Execution plan and acceptance gates: `docs/flagship-apps-plan.md`.
 
 | Planned Example | Target status | portable | gopher | metal | Purpose |
 | --- | --- | --- | --- | --- | --- |
-| `examples/pulseforge` | Planned (build first) | Required | Required | Required | Full "wow" observability stream processor + primary Haxe->Go vs pure-Go benchmark app. |
 | `examples/fluxproxy` | Planned (build second) | Required | Required | Required | High-throughput proxy/gateway app focused on networking and resilience performance lanes. |
 
 ## Build and run matrix

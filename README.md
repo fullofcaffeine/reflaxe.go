@@ -101,6 +101,7 @@ Details: [docs/profiles.md](docs/profiles.md)
 - [examples/profile_storyboard](examples/profile_storyboard/README.md): compact profile adapter/storyboard reference.
 - [examples/interop_smoke](examples/interop_smoke/README.md): typed interop smoke reference for `fmt`/`time`/`context`/`net/http` extern metadata.
 - [examples/worker_pool_select](examples/worker_pool_select/README.md): worker-pool and typed `go.Select` channel-branching operations from one shared Haxe codebase.
+- [examples/pulseforge](examples/pulseforge/README.md): flagship app scaffold with explicit `core` and `go_native` variant lanes across all profiles.
 - [examples/README.md](examples/README.md): examples overview.
 - [docs/examples-matrix.md](docs/examples-matrix.md): exact compile/run/artifact matrix.
 - [docs/go-concurrency-interop-guide.md](docs/go-concurrency-interop-guide.md): practical worker-pool/select + typed interop patterns.

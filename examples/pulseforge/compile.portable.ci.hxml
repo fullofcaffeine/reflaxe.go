@@ -1,0 +1,13 @@
+-cp .
+-cp ../../src
+-cp ../../vendor/reflaxe/src
+--macro reflaxe.go.CompilerBootstrap.Start()
+--macro reflaxe.go.CompilerInit.Start()
+-D go_output=out_portable_ci
+-D go_module=examples_pulseforge_portable_ci
+-D reflaxe_go_profile=portable
+-D reflaxe_go_strict_examples
+-D pulseforge_profile_portable
+-D pulseforge_variant_go_native
+-D example_ci
+-main Main

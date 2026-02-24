@@ -85,6 +85,7 @@ Reference examples for this phase:
 
 - `examples/worker_pool_select` (worker pool + select-style channel ops)
 - `examples/interop_smoke` (`fmt`/`time`/`context`/`net/http` typed interop)
+- `examples/pulseforge` (flagship scaffold with `core` vs `go_native` variant plumbing)
 
 ## Profile selection
 
