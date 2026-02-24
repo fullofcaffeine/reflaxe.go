@@ -17,6 +17,7 @@ Goal:
 - keep a focused set of high-signal semantic fixtures:
   - nullability/string behavior
   - deterministic non-string null-equality behavior (`== null` / `!= null` on typed references)
+  - deterministic `go.Chan<T>` non-blocking behavior (`trySend`, `recvOr`, `tryRecv`)
   - deterministic `go.Result` success/failure semantics (`isOk`/`isErr`/`unwrap`/`error`, `Go.ok`/`Go.fail`)
   - exceptions
   - enum/switch bindings
