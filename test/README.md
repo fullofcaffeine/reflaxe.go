@@ -201,7 +201,7 @@ python3 test/run-semantic-diff.py --changed
 
 ## Go profile perf harness
 
-Collect soft-budget benchmark ratios for `portable|gopher|metal` vs pure-Go microcases (`hello`, `array`, `atomic`) plus `examples/tui_todo` profile spread:
+Collect soft-budget benchmark ratios for `portable|gopher|metal` vs pure-Go microcases (`hello`, `array`, `atomic`, `channel`, `map`, `generic`, `select`) plus `examples/tui_todo` profile spread:
 
 ```bash
 bash scripts/ci/perf-go-profiles.sh
@@ -223,6 +223,12 @@ Tune atomic workload/loop stability if needed:
 
 ```bash
 GO_PERF_ATOMIC_WORK=400000 GO_PERF_ATOMIC_ITERS=80 bash scripts/ci/perf-go-profiles.sh
+```
+
+Tune select workload/loop stability if needed:
+
+```bash
+GO_PERF_SELECT_WORK=80000 GO_PERF_SELECT_ITERS=80 bash scripts/ci/perf-go-profiles.sh
 ```
 
 Regenerate baseline:

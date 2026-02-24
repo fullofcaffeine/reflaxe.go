@@ -39,6 +39,8 @@ Environment:
   GO_PERF_MAP_WORK          Map set/get operations per process run (default: 40000)
   GO_PERF_GENERIC_ITERS     Startup loop count for generic case (default: 100)
   GO_PERF_GENERIC_WORK      Generic push/get operations per process run (default: 50000)
+  GO_PERF_SELECT_ITERS      Startup loop count for select case (default: 100)
+  GO_PERF_SELECT_WORK       Select helper operations per process run (default: 40000)
 USAGE
 }
 
@@ -200,7 +202,7 @@ class Main {
       i++;
     }
 
-    var last:Dynamic = 0;
+    var last = 0;
     i = 0;
     while (i < ${work}) {
       last = channel.recvOr(0);
@@ -232,8 +234,7 @@ class Main {
     var found = 0;
     i = 0;
     while (i < ${work}) {
-      var value:Dynamic = values.get(i);
-      if (value != null) {
+      if (values.exists(i)) {
         found++;
       }
       i++;
@@ -263,14 +264,74 @@ class Main {
     var hits = 0;
     i = 0;
     while (i < ${work}) {
-      var value:Dynamic = values.get(i);
-      if (value != null) {
-        hits++;
-      }
+      values.get(i);
+      hits++;
       i++;
     }
     var view = values.toArray();
     Sys.println(hits + view.length);
+  }
+}
+EOF
+}
+
+write_haxe_select_case() {
+  local dir="$1"
+  local work="$2"
+  mkdir -p "$dir"
+  cat > "$dir/Main.hx" <<EOF
+import go.Chan;
+import go.Go;
+import go.Select;
+
+class Main {
+  static function main():Void {
+    var gate:Chan<Int> = Go.newChan(1);
+    var left:Chan<Int> = Go.newChan(1);
+    var right:Chan<Int> = Go.newChan(1);
+    var total = 0;
+    var i = 0;
+
+    while (i < ${work}) {
+      total += switch (Select.send(gate, i)) {
+        case Sent: 1;
+        case Defaulted: 0;
+      };
+
+      total += switch (Select.recv(gate)) {
+        case Received(value): value;
+        case Defaulted: 0;
+      };
+
+      if ((i & 1) == 0) {
+        left.send(i);
+      } else {
+        right.send(i);
+      }
+      total += switch (Select.recv2(left, right)) {
+        case First(value): value;
+        case Second(value): value;
+        case Defaulted: 0;
+      };
+
+      total += switch (Select.send2(left, i + 1, right, i + 2)) {
+        case FirstSent: 1;
+        case SecondSent: 2;
+        case Defaulted: 0;
+      };
+      total += switch (Select.recv2(left, right)) {
+        case First(value): value;
+        case Second(value): value;
+        case Defaulted: 0;
+      };
+
+      i++;
+    }
+
+    gate.close();
+    left.close();
+    right.close();
+    Sys.println(total);
   }
 }
 EOF
@@ -476,6 +537,76 @@ func main() {
 EOF
 }
 
+write_pure_select_module() {
+  local dir="$1"
+  local work="$2"
+  mkdir -p "$dir"
+  cat > "$dir/go.mod" <<'EOF'
+module pure_select
+
+go 1.22
+EOF
+  cat > "$dir/main.go" <<EOF
+package main
+
+import "fmt"
+
+func main() {
+  gate := make(chan int, 1)
+  left := make(chan int, 1)
+  right := make(chan int, 1)
+  total := 0
+
+  for i := 0; i < ${work}; i++ {
+    select {
+    case gate <- i:
+      total += 1
+    default:
+    }
+
+    select {
+    case value := <-gate:
+      total += value
+    default:
+    }
+
+    if i%2 == 0 {
+      left <- i
+    } else {
+      right <- i
+    }
+    select {
+    case value := <-left:
+      total += value
+    case value := <-right:
+      total += value
+    default:
+    }
+
+    select {
+    case left <- (i + 1):
+      total += 1
+    case right <- (i + 2):
+      total += 2
+    default:
+    }
+    select {
+    case value := <-left:
+      total += value
+    case value := <-right:
+      total += value
+    default:
+    }
+  }
+
+  close(gate)
+  close(left)
+  close(right)
+  fmt.Println(total)
+}
+EOF
+}
+
 record_metric() {
   local id="$1"
   local case_name="$2"
@@ -545,6 +676,8 @@ map_iters="${GO_PERF_MAP_ITERS:-100}"
 map_work="${GO_PERF_MAP_WORK:-40000}"
 generic_iters="${GO_PERF_GENERIC_ITERS:-100}"
 generic_work="${GO_PERF_GENERIC_WORK:-50000}"
+select_iters="${GO_PERF_SELECT_ITERS:-100}"
+select_work="${GO_PERF_SELECT_WORK:-40000}"
 
 if [[ -x /usr/bin/time ]]; then
   time_bin="/usr/bin/time"
@@ -737,6 +870,31 @@ write_pure_generic_module "$generic_pure_dir" "$generic_work"
 record_metric "generic_pure_go" "generic" "pure" "pure_go" \
   "$generic_pure_bin" "$generic_iters" "$generic_pure_dir/startup.time"
 
+select_src="$work_dir/haxe_cases/select"
+write_haxe_select_case "$select_src" "$select_work"
+
+for profile in "${profiles[@]}"; do
+  log "select case ($profile)"
+  case_dir="$work_dir/select/$profile"
+  out_dir="$case_dir/out"
+  bin_path="$case_dir/select_haxe_${profile}"
+  mkdir -p "$case_dir"
+
+  compile_haxe_case "$select_src" "$out_dir" "$profile"
+  (cd "$out_dir" && "$go_bin" build -o "$bin_path" .)
+
+  record_metric "select_haxe_${profile}" "select" "$profile" "haxe" \
+    "$bin_path" "$select_iters" "$case_dir/startup.time"
+done
+
+log "select pure Go baseline"
+select_pure_dir="$work_dir/select/pure"
+select_pure_bin="$select_pure_dir/pure_select"
+write_pure_select_module "$select_pure_dir" "$select_work"
+(cd "$select_pure_dir" && "$go_bin" build -o "$select_pure_bin" .)
+record_metric "select_pure_go" "select" "pure" "pure_go" \
+  "$select_pure_bin" "$select_iters" "$select_pure_dir/startup.time"
+
 for profile in "${profiles[@]}"; do
   log "tui case ($profile)"
   case_dir="$work_dir/tui/$profile"
@@ -782,6 +940,8 @@ GO_PERF_MAP_ITERS="$map_iters" \
 GO_PERF_MAP_WORK="$map_work" \
 GO_PERF_GENERIC_ITERS="$generic_iters" \
 GO_PERF_GENERIC_WORK="$generic_work" \
+GO_PERF_SELECT_ITERS="$select_iters" \
+GO_PERF_SELECT_WORK="$select_work" \
 GO_PERF_HAXE_VERSION="$haxe_version" \
 GO_PERF_GO_VERSION="$go_version" \
 node <<'NODE'
@@ -813,6 +973,8 @@ const mapIters = Number(process.env.GO_PERF_MAP_ITERS || "100");
 const mapWork = Number(process.env.GO_PERF_MAP_WORK || "40000");
 const genericIters = Number(process.env.GO_PERF_GENERIC_ITERS || "100");
 const genericWork = Number(process.env.GO_PERF_GENERIC_WORK || "50000");
+const selectIters = Number(process.env.GO_PERF_SELECT_ITERS || "100");
+const selectWork = Number(process.env.GO_PERF_SELECT_WORK || "40000");
 const haxeVersion = process.env.GO_PERF_HAXE_VERSION || "";
 const goVersion = process.env.GO_PERF_GO_VERSION || "";
 
@@ -882,6 +1044,7 @@ const atomicOverheadRatios = buildCaseOverhead("atomic");
 const channelOverheadRatios = buildCaseOverhead("channel");
 const mapOverheadRatios = buildCaseOverhead("map");
 const genericOverheadRatios = buildCaseOverhead("generic");
+const selectOverheadRatios = buildCaseOverhead("select");
 
 const tuiMetrics = Object.fromEntries(
   profiles.map((profile) => [profile, requireMetric(`tui_haxe_${profile}`)])
@@ -919,6 +1082,7 @@ const current = {
     channel: channelIters,
     map: mapIters,
     generic: genericIters,
+    select: selectIters,
     tui: tuiIters,
   },
   caseParams: {
@@ -926,6 +1090,7 @@ const current = {
     channelWork,
     mapWork,
     genericWork,
+    selectWork,
   },
   metrics,
   derived: {
@@ -935,6 +1100,7 @@ const current = {
     channelOverheadRatios,
     mapOverheadRatios,
     genericOverheadRatios,
+    selectOverheadRatios,
     tuiRelativeToMin,
   },
 };
@@ -1045,6 +1211,7 @@ if (!updateBaseline) {
     compareGroup("channel_overhead", current.derived.channelOverheadRatios, baselineDerived.channelOverheadRatios);
     compareGroup("map_overhead", current.derived.mapOverheadRatios, baselineDerived.mapOverheadRatios);
     compareGroup("generic_overhead", current.derived.genericOverheadRatios, baselineDerived.genericOverheadRatios);
+    compareGroup("select_overhead", current.derived.selectOverheadRatios, baselineDerived.selectOverheadRatios);
     compareGroup("tui_relative", current.derived.tuiRelativeToMin, baselineDerived.tuiRelativeToMin);
     compareMetalHard("hello_overhead", current.derived.helloOverheadRatios, baselineDerived.helloOverheadRatios);
     compareMetalHard("array_overhead", current.derived.arrayOverheadRatios, baselineDerived.arrayOverheadRatios);
@@ -1052,6 +1219,7 @@ if (!updateBaseline) {
     compareMetalHard("channel_overhead", current.derived.channelOverheadRatios, baselineDerived.channelOverheadRatios);
     compareMetalHard("map_overhead", current.derived.mapOverheadRatios, baselineDerived.mapOverheadRatios);
     compareMetalHard("generic_overhead", current.derived.genericOverheadRatios, baselineDerived.genericOverheadRatios);
+    compareMetalHard("select_overhead", current.derived.selectOverheadRatios, baselineDerived.selectOverheadRatios);
   }
 }
 
@@ -1102,8 +1270,8 @@ summaryLines.push(`- Size budget: \`+${sizeWarnPct}%\``);
 summaryLines.push(`- Runtime budget: \`+${runtimeWarnPct}%\``);
 summaryLines.push(`- Metal enforcement: \`${enforceMetalBudget ? "on" : "off"}\``);
 summaryLines.push(`- Metal hard budgets: size=\`+${metalSizeFailPct}%\`, runtime=\`+${metalRuntimeFailPct}%\``);
-summaryLines.push(`- Startup loops: hello=${helloIters}, array=${arrayIters}, atomic=${atomicIters}, channel=${channelIters}, map=${mapIters}, generic=${genericIters}, tui=${tuiIters}`);
-summaryLines.push(`- Workload params: atomic_ops=${atomicWork}, channel_ops=${channelWork}, map_ops=${mapWork}, generic_ops=${genericWork}`);
+summaryLines.push(`- Startup loops: hello=${helloIters}, array=${arrayIters}, atomic=${atomicIters}, channel=${channelIters}, map=${mapIters}, generic=${genericIters}, select=${selectIters}, tui=${tuiIters}`);
+summaryLines.push(`- Workload params: atomic_ops=${atomicWork}, channel_ops=${channelWork}, map_ops=${mapWork}, generic_ops=${genericWork}, select_ops=${selectWork}`);
 if (haxeVersion.length > 0 || goVersion.length > 0) {
   summaryLines.push(`- Toolchain: ${haxeVersion || "haxe:unknown"} | ${goVersion || "go:unknown"}`);
 }
@@ -1114,6 +1282,7 @@ summaryLines.push(ratioTable("Atomic Overhead (x vs pure Go atomic loop)", curre
 summaryLines.push(ratioTable("Channel Overhead (x vs pure Go buffered channel loop)", current.derived.channelOverheadRatios));
 summaryLines.push(ratioTable("Map Overhead (x vs pure Go map set/get loop)", current.derived.mapOverheadRatios));
 summaryLines.push(ratioTable("Generic Overhead (x vs pure Go generic bag loop)", current.derived.genericOverheadRatios));
+summaryLines.push(ratioTable("Select Overhead (x vs pure Go select helper loop)", current.derived.selectOverheadRatios));
 summaryLines.push(ratioTable("TUI Profile Spread (x vs fastest/smallest profile in this run)", current.derived.tuiRelativeToMin));
 
 if (warnings.length > 0) {
