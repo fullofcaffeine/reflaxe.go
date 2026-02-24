@@ -1,7 +1,6 @@
 package reflaxe.go.ast.transformers.passes;
 
 import reflaxe.go.CompilationContext;
-import reflaxe.go.GoProfile;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoFile;
@@ -24,10 +23,6 @@ class RewriteStringOpsPass implements IGoASTPass {
 	}
 
 	public function run(file:GoFile, context:CompilationContext):GoFile {
-		if (context.profile == GoProfile.Portable) {
-			return file;
-		}
-
 		return {
 			packageName: file.packageName,
 			imports: file.imports,

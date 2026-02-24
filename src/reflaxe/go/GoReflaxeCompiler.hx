@@ -8,6 +8,7 @@ import reflaxe.GenericCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
+import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
 import reflaxe.output.DataAndFileInfo;
 import reflaxe.output.StringOrBytes;
 import sys.FileSystem;
@@ -22,6 +23,11 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 	var goModuleName:String = "snapshot";
 	var rawNativeMode:RawNativeMode = RawNativeMode.Interp;
 	var emitLineDirectives:Bool = false;
+	var compilationContext:Null<CompilationContext> = null;
+
+	static inline final HXRT_DEFAULT_FEATURES_DEFINE = "reflaxe_go_hxrt_default_features";
+	static inline final HXRT_FEATURES_DEFINE = "reflaxe_go_hxrt_features";
+	static inline final HXRT_NO_FEATURE_INFER_DEFINE = "reflaxe_go_hxrt_no_feature_infer";
 
 	public function new() {
 		super();
@@ -37,13 +43,16 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		goModuleName = resolveGoModuleName();
 		rawNativeMode = RawNativeModeResolver.resolve();
 		emitLineDirectives = Context.defined("reflaxe_go_line_directives");
+		compilationContext = new CompilationContext(profile, goModuleName, rawNativeMode, emitLineDirectives);
 		selectedClasses = [];
 		selectedEnums = [];
 		generatedFiles = [];
 	}
 
 	override public function onCompileEnd():Void {
-		var compiler = new GoCompiler(new CompilationContext(profile, goModuleName, rawNativeMode, emitLineDirectives));
+		var context = compilationContext == null ? new CompilationContext(profile, goModuleName, rawNativeMode, emitLineDirectives) : compilationContext;
+		compilationContext = context;
+		var compiler = new GoCompiler(context);
 		if (selectedClasses.length == 0 && selectedEnums.length == 0) {
 			generatedFiles = compiler.compileModule(allModules);
 		} else {
@@ -62,7 +71,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		}
 
 		output.saveFile("go.mod", buildGoMod(goModuleName));
-		writeRuntime(output);
+		writeRuntime(output, compilationContext);
 	}
 
 	override public function onOutputComplete():Void {
@@ -148,13 +157,30 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		return ["module " + moduleName, "", "go 1.22", ""].join("\n");
 	}
 
-	function writeRuntime(outputManager:reflaxe.output.OutputManager):Void {
+	function writeRuntime(outputManager:reflaxe.output.OutputManager, context:Null<CompilationContext>):Void {
 		var runtimeSource = Path.join([findLibraryRoot(), "runtime", "hxrt"]);
 		if (!FileSystem.exists(runtimeSource) || !FileSystem.isDirectory(runtimeSource)) {
 			Context.fatalError('Missing runtime directory at "' + runtimeSource + '"', Context.currentPos());
 		}
 
-		writeRuntimeDir(outputManager, runtimeSource, "hxrt");
+		var plan = resolveRuntimeCopyPlan(context);
+		if (context != null) {
+			context.selectedHxrtFeatures = plan.features.copy();
+		}
+
+		if (plan.fullCopy) {
+			writeRuntimeDir(outputManager, runtimeSource, "hxrt");
+			return;
+		}
+
+		for (fileName in plan.files) {
+			var sourcePath = Path.join([runtimeSource, fileName]);
+			if (!FileSystem.exists(sourcePath) || FileSystem.isDirectory(sourcePath)) {
+				Context.fatalError('Missing runtime file for feature plan: "' + sourcePath + '"', Context.currentPos());
+			}
+			var targetPath = Path.join(["hxrt", fileName]);
+			outputManager.saveFile(targetPath, File.getContent(sourcePath));
+		}
 	}
 
 	function writeRuntimeDir(outputManager:reflaxe.output.OutputManager, sourceDir:String, targetDir:String):Void {
@@ -174,6 +200,55 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		var thisFile = Context.resolvePath("reflaxe/go/GoReflaxeCompiler.hx");
 		var srcDir = Path.normalize(Path.directory(thisFile));
 		return Path.normalize(Path.join([srcDir, "..", "..", ".."]));
+	}
+
+	function resolveRuntimeCopyPlan(context:Null<CompilationContext>):{fullCopy:Bool, features:Array<String>, files:Array<String>} {
+		var forceFullCopy = Context.defined(HXRT_DEFAULT_FEATURES_DEFINE);
+		var manualFeaturesDefined = Context.defined(HXRT_FEATURES_DEFINE);
+		var noFeatureInfer = Context.defined(HXRT_NO_FEATURE_INFER_DEFINE);
+		var selectiveEnabled = manualFeaturesDefined || noFeatureInfer;
+
+		if (forceFullCopy || !selectiveEnabled) {
+			return {fullCopy: true, features: [], files: []};
+		}
+
+		var manualFeatures = parseManualHxrtFeatures(Context.definedValue(HXRT_FEATURES_DEFINE));
+		var selected = manualFeatures.copy();
+		if (!noFeatureInfer && context != null) {
+			for (feature in context.inferredHxrtFeatures) {
+				if (!selected.contains(feature)) {
+					selected.push(feature);
+				}
+			}
+		}
+
+		var expanded = GoHxrtFeatureAnalyzer.expandWithDependencies(selected);
+		return {
+			fullCopy: false,
+			features: expanded,
+			files: GoHxrtFeatureAnalyzer.filesForFeatures(expanded)
+		};
+	}
+
+	function parseManualHxrtFeatures(raw:Null<String>):Array<String> {
+		if (raw == null) {
+			return [];
+		}
+		var tokens = [for (part in raw.split(",")) StringTools.trim(part).toLowerCase()];
+		var out:Array<String> = [];
+		for (token in tokens) {
+			if (token == "") {
+				continue;
+			}
+			if (!GoHxrtFeatureAnalyzer.isKnownFeature(token)) {
+				var expected = GoHxrtFeatureAnalyzer.knownFeatures().join(", ");
+				Context.fatalError('Unknown `' + HXRT_FEATURES_DEFINE + '` feature "' + token + '" (expected one of: ' + expected + ")", Context.currentPos());
+			}
+			if (!out.contains(token)) {
+				out.push(token);
+			}
+		}
+		return out;
 	}
 }
 #else

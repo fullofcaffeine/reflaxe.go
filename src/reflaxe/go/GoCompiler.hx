@@ -8,6 +8,7 @@ import haxe.macro.Expr.Unop;
 import haxe.macro.PositionTools;
 import haxe.macro.Type;
 import reflaxe.go.compiler.GoExprOperatorOps;
+import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
 import reflaxe.go.compiler.GoStdlibShimClassifier;
 import reflaxe.go.compiler.GoTestAstFixtureEmitter;
 import reflaxe.go.compiler.GoTypeMapper;
@@ -114,6 +115,7 @@ class GoCompiler {
 	var requiresIoHelperSurface:Bool;
 	var projectClasses:Array<ClassType>;
 	var projectEnums:Array<EnumType>;
+	var globalLeafReceiverTypes:Map<String, Bool>;
 	var tempVarCounter:Int;
 	var requiresTypeValueSupport:Bool;
 	#end
@@ -139,6 +141,7 @@ class GoCompiler {
 		requiresIoHelperSurface = false;
 		projectClasses = [];
 		projectEnums = [];
+		globalLeafReceiverTypes = new Map<String, Bool>();
 		tempVarCounter = 0;
 		requiresTypeValueSupport = false;
 		#end
@@ -156,6 +159,9 @@ class GoCompiler {
 	function compileResolvedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
 		projectClasses = classes.copy();
 		projectEnums = enums.copy();
+		globalLeafReceiverTypes = buildGlobalLeafReceiverTypes(projectClasses);
+		syncCompilationContextLeafReceivers();
+		clearBoolMap(compilationContext.leafReturningFunctions);
 		requiresIoHelperSurface = false;
 		resetRequiredMetalChanElementTypes();
 		resetRequiredMetalSliceElementTypes();
@@ -179,6 +185,11 @@ class GoCompiler {
 		var supportDecls = new Array<GoDecl>();
 		supportDecls = supportDecls.concat(lowerStdlibShimDecls());
 		supportDecls = supportDecls.concat(lowerTestAstStmtDecls());
+		populateLeafReturningFunctions(moduleDecls, preludeDecls, supportDecls);
+		var requiredShimGroups = sortedRequiredStdlibShimGroups();
+		compilationContext.requiredStdlibShimGroups = requiredShimGroups.copy();
+		compilationContext.requiresIoHelperSurface = requiresIoHelperSurface;
+		compilationContext.inferredHxrtFeatures = inferRuntimeFeatures(requiredShimGroups);
 
 		var supportImports = buildSupportImports();
 		var moduleImports = buildModuleImports();
@@ -924,6 +935,74 @@ class GoCompiler {
 		}
 		var superType = classType.superClass.t.get();
 		return isProjectClass(superType) ? superType : null;
+	}
+
+	function buildGlobalLeafReceiverTypes(classes:Array<ClassType>):Map<String, Bool> {
+		var hasSubclass = new Map<String, Bool>();
+		for (classType in classes) {
+			if (classType.isExtern || classType.isInterface) {
+				continue;
+			}
+			var superClass = projectSuperClass(classType);
+			if (superClass != null) {
+				hasSubclass.set(fullClassName(superClass), true);
+			}
+		}
+
+		var out = new Map<String, Bool>();
+		for (classType in classes) {
+			if (classType.isExtern || classType.isInterface) {
+				continue;
+			}
+			var className = fullClassName(classType);
+			if (!hasSubclass.exists(className)) {
+				out.set("*" + classTypeName(classType), true);
+			}
+		}
+		return out;
+	}
+
+	function syncCompilationContextLeafReceivers():Void {
+		clearBoolMap(compilationContext.leafReceiverTypes);
+		for (typeName in globalLeafReceiverTypes.keys()) {
+			compilationContext.leafReceiverTypes.set(typeName, true);
+		}
+	}
+
+	function populateLeafReturningFunctions(moduleDecls:Map<String, Array<GoDecl>>, preludeDecls:Array<GoDecl>, supportDecls:Array<GoDecl>):Void {
+		clearBoolMap(compilationContext.leafReturningFunctions);
+		for (decl in preludeDecls) {
+			noteLeafReturningFunctionDecl(decl);
+		}
+		for (decl in supportDecls) {
+			noteLeafReturningFunctionDecl(decl);
+		}
+		for (moduleName in moduleDecls.keys()) {
+			var decls = moduleDecls.get(moduleName);
+			if (decls == null) {
+				continue;
+			}
+			for (decl in decls) {
+				noteLeafReturningFunctionDecl(decl);
+			}
+		}
+	}
+
+	function noteLeafReturningFunctionDecl(decl:GoDecl):Void {
+		switch (decl) {
+			case GoDecl.GoFuncDecl(name, receiver, _, results, _):
+				if (receiver == null && results.length == 1 && globalLeafReceiverTypes.exists(results[0])) {
+					compilationContext.leafReturningFunctions.set(name, true);
+				}
+			case _:
+		}
+	}
+
+	function clearBoolMap(map:Map<String, Bool>):Void {
+		var keys = [for (key in map.keys()) key];
+		for (key in keys) {
+			map.remove(key);
+		}
 	}
 
 	function interfaceSymbol(classType:ClassType):String {
@@ -10255,6 +10334,7 @@ class GoCompiler {
 
 		var jsonParserTarget = jsonParserDoParseTarget(callee, args);
 		if (jsonParserTarget != null) {
+			requireStdlibShimGroup("json");
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonParse"), [jsonParserSourceExpr(jsonParserTarget)]),
 				isStringLike: false
@@ -10366,6 +10446,7 @@ class GoCompiler {
 		}
 
 		if (isStaticCall(callee, "Json", ["haxe"], "parse")) {
+			requireStdlibShimGroup("json");
 			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonParse"), [arg]),
@@ -10374,6 +10455,7 @@ class GoCompiler {
 		}
 
 		if (isStaticCall(callee, "Json", ["haxe"], "stringify")) {
+			requireStdlibShimGroup("json");
 			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonStringify"), [arg]),
@@ -10382,6 +10464,7 @@ class GoCompiler {
 		}
 
 		if (isStaticCall(callee, "JsonPrinter", ["haxe", "format"], "print")) {
+			requireStdlibShimGroup("json");
 			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonStringify"), [arg]),
@@ -11644,6 +11727,9 @@ class GoCompiler {
 		if (!isMethodField(field)) {
 			return false;
 		}
+		if (globalLeafReceiverTypes.exists("*" + classTypeName(classType))) {
+			return false;
+		}
 		return field.name != "new";
 	}
 
@@ -11662,7 +11748,8 @@ class GoCompiler {
 		var stringMode = leftLowered.isStringLike || rightLowered.isStringLike || isStringType(left.t) || isStringType(right.t);
 		var nullComparison = isNullLiteralExpr(left) || isNullLiteralExpr(right);
 		var useStringEquality = stringMode && (!nullComparison || isStringType(left.t) || isStringType(right.t));
-		var typedStringOps = compilationContext.profile != GoProfile.Portable && isStringType(left.t) && isStringType(right.t);
+		var typedStringOps = isStringType(left.t) && isStringType(right.t);
+		var anyNullComparison = nullComparison && (isAnyLikeType(left.t) || isAnyLikeType(right.t));
 		var int32Mode = isInt32SemanticType(left.t, left.pos)
 			|| isInt32SemanticType(right.t, right.pos)
 			|| isInt32SemanticType(resultType, left.pos);
@@ -11690,6 +11777,32 @@ class GoCompiler {
 							[leftLowered.expr, rightLowered.expr])),
 					isStringLike: false
 				};
+			case OpEq if (anyNullComparison):
+				if (isNullLiteralExpr(left) && isNullLiteralExpr(right)) {
+					{
+						expr: GoExpr.GoBoolLiteral(true),
+						isStringLike: false
+					};
+				} else {
+					var targetExpr = isNullLiteralExpr(left) ? rightLowered.expr : leftLowered.expr;
+					{
+						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnyEqualsNull"), [targetExpr]),
+						isStringLike: false
+					};
+				}
+			case OpNotEq if (anyNullComparison):
+				if (isNullLiteralExpr(left) && isNullLiteralExpr(right)) {
+					{
+						expr: GoExpr.GoBoolLiteral(false),
+						isStringLike: false
+					};
+				} else {
+					var targetExpr = isNullLiteralExpr(left) ? rightLowered.expr : leftLowered.expr;
+					{
+						expr: GoExpr.GoUnary("!", GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnyEqualsNull"), [targetExpr])),
+						isStringLike: false
+					};
+				}
 			case OpAdd | OpSub | OpMult | OpDiv if (isFloatType(resultType)):
 				{
 					expr: GoExpr.GoBinary(binopSymbol(op), floatOperandExpr(leftLowered.expr, left.t), floatOperandExpr(rightLowered.expr, right.t)),
@@ -11734,7 +11847,7 @@ class GoCompiler {
 			return rightExpr;
 		}
 		if (op == OpAdd && (isStringType(leftType) || isStringType(rightType))) {
-			var typedStringOps = compilationContext.profile != GoProfile.Portable && isStringType(leftType) && isStringType(rightType);
+			var typedStringOps = isStringType(leftType) && isStringType(rightType);
 			return GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringConcatStringPtr" : "hxrt.StringConcatAny"), [leftExpr, rightExpr]);
 		}
 		if ((isInt32SemanticType(leftType, sourcePos) || isInt32SemanticType(rightType, sourcePos))
@@ -12044,6 +12157,20 @@ class GoCompiler {
 		for (group in GoStdlibShimClassifier.requiredGroupsForEnum(enumType)) {
 			requireStdlibShimGroup(group);
 		}
+	}
+
+	function sortedRequiredStdlibShimGroups():Array<String> {
+		var groups = [for (group in requiredStdlibShimGroups.keys()) group];
+		groups.sort(Reflect.compare);
+		return groups;
+	}
+
+	function inferRuntimeFeatures(requiredShimGroups:Array<String>):Array<String> {
+		var classPaths = [for (classType in projectClasses) fullClassName(classType)];
+		classPaths.sort(Reflect.compare);
+		var enumPaths = [for (enumType in projectEnums) fullEnumName(enumType)];
+		enumPaths.sort(Reflect.compare);
+		return GoHxrtFeatureAnalyzer.inferFromUsage(classPaths, enumPaths, requiredShimGroups, requiresIoHelperSurface);
 	}
 
 	function resetExternImportPaths():Void {

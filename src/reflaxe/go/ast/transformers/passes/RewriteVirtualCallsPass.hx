@@ -1,7 +1,6 @@
 package reflaxe.go.ast.transformers.passes;
 
 import reflaxe.go.CompilationContext;
-import reflaxe.go.GoProfile;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoFile;
@@ -24,60 +23,17 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 	}
 
 	public function run(file:GoFile, context:CompilationContext):GoFile {
-		if (context.profile == GoProfile.Portable) {
+		if (isEmptyMap(context.leafReceiverTypes)) {
 			return file;
 		}
 
-		var leafReceivers = detectLeafReceiverTypes(file.decls);
-		var leafReturnCallTargets = detectLeafReturningFunctions(file.decls, leafReceivers);
+		var leafReceivers = context.leafReceiverTypes;
+		var leafReturnCallTargets = context.leafReturningFunctions;
 		return {
 			packageName: file.packageName,
 			imports: file.imports,
 			decls: [for (decl in file.decls) rewriteDecl(decl, leafReceivers, leafReturnCallTargets)]
 		};
-	}
-
-	function detectLeafReceiverTypes(decls:Array<GoDecl>):Map<String, Bool> {
-		var structHasVirtual = new Map<String, Bool>();
-		var subclasses = new Map<String, Bool>();
-
-		for (decl in decls) {
-			switch (decl) {
-				case GoDecl.GoStructDecl(name, fields):
-					var hasVirtual = false;
-					for (field in fields) {
-						if (field.name == "__hx_this") {
-							hasVirtual = true;
-						} else if (field.name == "" && StringTools.startsWith(field.typeName, "*")) {
-							subclasses.set(field.typeName.substr(1), true);
-						}
-					}
-					structHasVirtual.set(name, hasVirtual);
-				case _:
-			}
-		}
-
-		var leafReceivers = new Map<String, Bool>();
-		for (name in structHasVirtual.keys()) {
-			if (structHasVirtual.get(name) && !subclasses.exists(name)) {
-				leafReceivers.set("*" + name, true);
-			}
-		}
-		return leafReceivers;
-	}
-
-	function detectLeafReturningFunctions(decls:Array<GoDecl>, leafReceivers:Map<String, Bool>):Map<String, Bool> {
-		var out = new Map<String, Bool>();
-		for (decl in decls) {
-			switch (decl) {
-				case GoDecl.GoFuncDecl(name, receiver, _, results, _):
-					if (receiver == null && results.length == 1 && leafReceivers.exists(results[0])) {
-						out.set(name, true);
-					}
-				case _:
-			}
-		}
-		return out;
 	}
 
 	function rewriteDecl(decl:GoDecl, leafReceivers:Map<String, Bool>, leafReturnCallTargets:Map<String, Bool>):GoDecl {
@@ -331,6 +287,13 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 
 	function isLeafTargetExpr(expr:GoExpr, leafReceivers:Map<String, Bool>, leafReturnCallTargets:Map<String, Bool>):Bool {
 		return isLeafConstructorCall(expr, leafReceivers) || isLeafReturningCallExpr(expr, leafReturnCallTargets);
+	}
+
+	function isEmptyMap(map:Map<String, Bool>):Bool {
+		for (_ in map.keys()) {
+			return false;
+		}
+		return true;
 	}
 
 	function cloneCandidates(source:Map<String, Bool>):Map<String, Bool> {

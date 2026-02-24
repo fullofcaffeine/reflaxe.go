@@ -6,6 +6,12 @@ class CompilationContext {
 	public final runtimeImportPath:String;
 	public final rawNativeMode:RawNativeMode;
 	public final emitLineDirectives:Bool;
+	public final leafReceiverTypes:Map<String, Bool>;
+	public final leafReturningFunctions:Map<String, Bool>;
+	public var inferredHxrtFeatures:Array<String>;
+	public var selectedHxrtFeatures:Array<String>;
+	public var requiredStdlibShimGroups:Array<String>;
+	public var requiresIoHelperSurface:Bool;
 
 	public function new(profile:GoProfile, ?goModuleName:String, ?rawNativeMode:RawNativeMode, ?emitLineDirectives:Bool) {
 		this.profile = profile;
@@ -14,6 +20,12 @@ class CompilationContext {
 		this.runtimeImportPath = moduleName + "/hxrt";
 		this.rawNativeMode = rawNativeMode == null ? RawNativeMode.Interp : rawNativeMode;
 		this.emitLineDirectives = emitLineDirectives == true;
+		this.leafReceiverTypes = new Map<String, Bool>();
+		this.leafReturningFunctions = new Map<String, Bool>();
+		this.inferredHxrtFeatures = [];
+		this.selectedHxrtFeatures = [];
+		this.requiredStdlibShimGroups = [];
+		this.requiresIoHelperSurface = false;
 	}
 
 	static function normalizeGoModuleName(raw:Null<String>):String {
