@@ -7,6 +7,7 @@
 -D go_module=examples_pulseforge_metal
 -D reflaxe_go_profile=metal
 -D reflaxe_go_strict_examples
+-D reflaxe_go_auto_empty_ctor_interfaces=app.runtime.PulseRuntime
 -D pulseforge_profile_metal
 -D pulseforge_variant_core
 -main Main

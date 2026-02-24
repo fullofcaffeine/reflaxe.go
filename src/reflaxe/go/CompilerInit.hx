@@ -5,6 +5,7 @@ import haxe.macro.Compiler as MacroCompiler;
 import haxe.macro.Context;
 import reflaxe.BaseCompiler.BaseCompilerFileOutputType;
 import reflaxe.ReflectCompiler;
+import reflaxe.go.macros.AutoEmptyConstructor;
 import reflaxe.go.macros.BoundaryEnforcer;
 import reflaxe.go.macros.StrictModeEnforcer;
 #end
@@ -24,6 +25,7 @@ class CompilerInit {
 		initialized = true;
 
 		var profile = ProfileResolver.resolve();
+		AutoEmptyConstructor.init();
 		if (Context.defined("reflaxe_go_strict_examples")) {
 			BoundaryEnforcer.init();
 		}

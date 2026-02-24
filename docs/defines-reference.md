@@ -65,6 +65,13 @@ Removed:
 - `reflaxe_go_strict_examples`
   - Enforce strict no raw `__go__` policy for repo examples/snapshots.
 
+## Constructor devex
+
+- `reflaxe_go_auto_empty_ctor_interfaces=<csv>`
+  - Auto-inject `public function new() {}` into classes implementing listed interfaces.
+  - Value is a comma-separated list of fully-qualified interface paths (for example `app.runtime.PulseRuntime`).
+  - Keeps app classes free from repeated empty constructor boilerplate while preserving explicit opt-in behavior.
+
 ## Pass registry
 
 - `go_granular_pass_registry`

@@ -7,8 +7,6 @@ import app.core.PulseEvent;
 import app.core.PulseIngressFrame;
 
 class CoreRuntime implements PulseRuntime {
-	public function new() {}
-
 	public function profileId():String {
 		return BuildConfig.PROFILE;
 	}

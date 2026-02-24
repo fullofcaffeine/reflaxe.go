@@ -11,8 +11,6 @@ import go.Select;
 import haxe.ds.IntMap;
 
 class GoNativeRuntime implements PulseRuntime {
-	public function new() {}
-
 	public function profileId():String {
 		return BuildConfig.PROFILE;
 	}
