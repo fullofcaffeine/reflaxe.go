@@ -104,6 +104,7 @@ Details: [docs/profiles.md](docs/profiles.md)
 - [examples/README.md](examples/README.md): examples overview.
 - [docs/examples-matrix.md](docs/examples-matrix.md): exact compile/run/artifact matrix.
 - [docs/go-concurrency-interop-guide.md](docs/go-concurrency-interop-guide.md): practical worker-pool/select + typed interop patterns.
+- [docs/flagship-apps-plan.md](docs/flagship-apps-plan.md): planned full-blown PulseForge + FluxProxy usable examples and benchmark protocol.
 
 ## Coverage Tiers
 
@@ -178,6 +179,7 @@ Runtime details: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
 - Stdlib shim migration process log: [docs/stdlib-shim-migration-log.md](docs/stdlib-shim-migration-log.md)
 - Multi-package output evaluation: [docs/multi-package-output-evaluation.md](docs/multi-package-output-evaluation.md)
 - Go extern generator: [docs/goextern.md](docs/goextern.md)
+- Flagship app execution plan: [docs/flagship-apps-plan.md](docs/flagship-apps-plan.md)
 - Future compiler template/patterns: [docs/compiler-target-template.md](docs/compiler-target-template.md)
 - Security policy: [SECURITY.md](SECURITY.md)
 - Changelog: [CHANGELOG.md](CHANGELOG.md)

@@ -45,7 +45,7 @@ GO_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:go
 npm run release:status
 ```
 
-Perf harness lanes now include hello/array/atomic plus channel/map/generic microbench cases and TUI profile spread.
+Perf harness lanes now include hello/array/atomic plus channel/map/generic/string/virtual/select microbench cases and TUI profile spread.
 
 ## Scaffold a new project
 
@@ -120,6 +120,7 @@ Compatibility note:
 - `docs/hxrt-runtime.md`
 - `docs/profiles.md`
 - `docs/go-concurrency-interop-guide.md`
+- `docs/flagship-apps-plan.md`
 - `docs/feature-support-matrix.md`
 - `docs/examples-matrix.md`
 - `docs/known-gaps.md`
