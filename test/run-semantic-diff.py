@@ -143,6 +143,8 @@ def build_interp_cmd(case: SemanticCase) -> list[str]:
         "haxe",
         "-cp",
         str(case.case_path),
+        "-cp",
+        str(ROOT / "src"),
         "-D",
         "no-traces",
         "-D",

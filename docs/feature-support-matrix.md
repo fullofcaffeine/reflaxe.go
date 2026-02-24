@@ -133,6 +133,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/try_catch_return_forwarding_contract`
 - `test/semantic_diff/atomic_int_bool_contract`
 - `test/semantic_diff/atomic_object_contract`
+- `test/semantic_diff/go_result_contract`
 
 ## Profile matrix
 
