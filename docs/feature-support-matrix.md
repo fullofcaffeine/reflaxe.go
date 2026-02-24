@@ -81,6 +81,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/socket_loopback_contract`
 - `test/semantic_diff/socket_advanced_contract`
 - `test/semantic_diff/null_string_concat`
+- `test/semantic_diff/non_string_null_equality_contract`
 - `test/semantic_diff/exceptions_typed_dynamic`
 - `test/semantic_diff/exception_api_contract`
 - `test/semantic_diff/enum_switch_bindings`

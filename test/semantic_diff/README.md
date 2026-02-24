@@ -16,6 +16,7 @@ Goal:
 - catch semantic drift where generated Go behavior diverges from the Haxe baseline
 - keep a focused set of high-signal semantic fixtures:
   - nullability/string behavior
+  - deterministic non-string null-equality behavior (`== null` / `!= null` on typed references)
   - exceptions
   - enum/switch bindings
   - virtual dispatch
