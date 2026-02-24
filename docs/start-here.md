@@ -2,7 +2,7 @@
 
 ## What this target does
 
-`reflaxe.go` compiles Haxe to a generated Go module (`go_output`), copies runtime support under `out/hxrt`, and runs `go build` by default (unless disabled).
+`reflaxe.go` compiles Haxe to a generated Go module (`go_output`) with `main.go` plus per-module `module_*.go` files, copies runtime support under `out/hxrt`, and runs `go build` by default (unless disabled).
 
 ## First successful run
 

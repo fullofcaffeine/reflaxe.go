@@ -18,7 +18,7 @@ If you want Haxe productivity with a serious Go delivery pipeline, this is that 
 ## Why reflaxe.go
 
 - One Haxe codebase, multiple Go profiles (`portable`, `gopher`, `metal`).
-- Generated Go module output (`go.mod` + `main.go` + `hxrt`) with backend `go build` by default.
+- Generated Go module output (`go.mod` + `main.go` + `module_*.go` + `hxrt`) with backend `go build` by default.
 - Strong verification harness: snapshots, stdlib sweep, semantic diff, examples matrix, and perf checks.
 
 ## Stdlib Architecture
@@ -152,6 +152,7 @@ A typical compile emits a Go module like:
 out/
   go.mod
   main.go
+  module_<haxe_module>.go
   hxrt/
     hxrt.go
 ```

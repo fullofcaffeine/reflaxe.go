@@ -105,6 +105,7 @@ class GoCompiler {
 	final requiredMetalMapTypePairs:Map<String, MetalMapTypePair>;
 	final requiredMetalResultElementTypes:Map<String, Bool>;
 	final externImportPaths:Map<String, Bool>;
+	final externImportPackages:Map<String, String>;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
 	final functionReturnTypeScopes:Array<Type>;
@@ -129,6 +130,7 @@ class GoCompiler {
 		requiredMetalMapTypePairs = new Map<String, MetalMapTypePair>();
 		requiredMetalResultElementTypes = new Map<String, Bool>();
 		externImportPaths = new Map<String, Bool>();
+		externImportPackages = new Map<String, String>();
 		functionVarNameScopes = [];
 		functionVarNameCountScopes = [];
 		functionReturnTypeScopes = [];
@@ -162,12 +164,103 @@ class GoCompiler {
 		resetExternImportPaths();
 		buildStaticFunctionInfoTable(classes);
 		requiresTypeValueSupport = false;
-		var decls = lowerEnums(enums).concat(lowerClasses(classes));
-		if (requiresTypeValueSupport) {
-			decls = lowerTypeValueDecls().concat(decls);
+		var moduleDecls = new Map<String, Array<GoDecl>>();
+		for (enumType in enums) {
+			appendModuleDecls(moduleDecls, enumType.module, lowerEnumDecls(enumType));
 		}
-		decls = decls.concat(lowerStdlibShimDecls());
-		decls = decls.concat(lowerTestAstStmtDecls());
+		for (classType in classes) {
+			appendModuleDecls(moduleDecls, classType.module, lowerClassDecls(classType));
+		}
+
+		var preludeDecls = new Array<GoDecl>();
+		if (requiresTypeValueSupport) {
+			preludeDecls = preludeDecls.concat(lowerTypeValueDecls());
+		}
+		var supportDecls = new Array<GoDecl>();
+		supportDecls = supportDecls.concat(lowerStdlibShimDecls());
+		supportDecls = supportDecls.concat(lowerTestAstStmtDecls());
+
+		var supportImports = buildSupportImports();
+		var moduleImports = buildModuleImports();
+
+		var moduleNames = [for (moduleName in moduleDecls.keys()) moduleName];
+		moduleNames.sort(function(a, b) return Reflect.compare(a, b));
+
+		var generated = new Array<GoGeneratedFile>();
+		var usedFileNames = new Map<String, Int>();
+		for (moduleName in moduleNames) {
+			var moduleFileDecls = moduleDecls.get(moduleName);
+			if (moduleFileDecls == null || moduleFileDecls.length == 0) {
+				continue;
+			}
+
+			var fileDecls = moduleFileDecls.copy();
+			var candidateImports = moduleImports.copy();
+			var relativePath = moduleFilePath(moduleName, usedFileNames);
+			if (moduleName == "Main") {
+				fileDecls = preludeDecls.concat(fileDecls).concat(supportDecls);
+				candidateImports = supportImports.concat(candidateImports);
+				preludeDecls = [];
+				supportDecls = [];
+			}
+			generated.push(renderGeneratedFile(relativePath, fileDecls, candidateImports));
+		}
+
+		if (preludeDecls.length > 0 || supportDecls.length > 0) {
+			generated.push(renderGeneratedFile(nextGoFileName("support", usedFileNames), preludeDecls.concat(supportDecls), supportImports));
+		}
+
+		return generated;
+	}
+
+	function appendModuleDecls(bucket:Map<String, Array<GoDecl>>, moduleName:String, decls:Array<GoDecl>):Void {
+		if (decls.length == 0) {
+			return;
+		}
+		var key = moduleName == null || moduleName == "" ? "Main" : moduleName;
+		var existing = bucket.get(key);
+		if (existing == null) {
+			existing = [];
+			bucket.set(key, existing);
+		}
+		for (decl in decls) {
+			existing.push(decl);
+		}
+	}
+
+	function moduleFilePath(moduleName:String, usedFileNames:Map<String, Int>):String {
+		if (moduleName == "Main") {
+			return nextGoFileName("main", usedFileNames);
+		}
+		var sanitized = sanitizeFileToken(moduleName).toLowerCase();
+		if (sanitized == "") {
+			sanitized = "module";
+		}
+		return nextGoFileName("module_" + sanitized, usedFileNames);
+	}
+
+	function nextGoFileName(base:String, usedFileNames:Map<String, Int>):String {
+		var key = base.toLowerCase();
+		var count = usedFileNames.exists(key) ? usedFileNames.get(key) : 0;
+		usedFileNames.set(key, count + 1);
+		if (count == 0) {
+			return base + ".go";
+		}
+		return base + "_" + count + ".go";
+	}
+
+	function sanitizeFileToken(value:String):String {
+		var token = ~/[^A-Za-z0-9]+/g.replace(value, "_");
+		while (StringTools.startsWith(token, "_")) {
+			token = token.substr(1);
+		}
+		while (StringTools.endsWith(token, "_")) {
+			token = token.substr(0, token.length - 1);
+		}
+		return token;
+	}
+
+	function buildSupportImports():Array<String> {
 		var imports = [compilationContext.runtimeImportPath];
 		if (requiredStdlibShimGroups.exists("http")) {
 			imports.push("bytes");
@@ -226,22 +319,393 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("go_result")) {
 			imports.push("errors");
 		}
+		return imports;
+	}
+
+	function buildModuleImports():Array<String> {
+		var imports = [compilationContext.runtimeImportPath];
 		for (path in externImportPaths.keys()) {
 			imports.push(path);
 		}
-		var mainFile:GoFile = {
+		return imports;
+	}
+
+	function renderGeneratedFile(relativePath:String, decls:Array<GoDecl>, candidateImports:Array<String>):GoGeneratedFile {
+		var file:GoFile = {
 			packageName: "main",
-			imports: imports,
+			imports: candidateImports,
 			decls: decls
 		};
-		var transformedFile = GoASTTransformer.transform(mainFile, compilationContext);
+		var transformed = GoASTTransformer.transform(file, compilationContext);
+		var filtered = filterImportsByUsage(transformed);
+		return {
+			relativePath: relativePath,
+			contents: GoASTPrinter.printFile(filtered)
+		};
+	}
 
-		return [
-			{
-				relativePath: "main.go",
-				contents: GoASTPrinter.printFile(transformedFile)
+	function filterImportsByUsage(file:GoFile):GoFile {
+		var dedup = new Map<String, Bool>();
+		var filtered = new Array<String>();
+		for (path in file.imports) {
+			if (path == null) {
+				continue;
 			}
-		];
+			var trimmed = StringTools.trim(path);
+			if (trimmed == "") {
+				continue;
+			}
+			if (dedup.exists(trimmed)) {
+				continue;
+			}
+			var alias = importAliasForPath(trimmed);
+			if (alias == "" || fileUsesImportAlias(file, alias)) {
+				dedup.set(trimmed, true);
+				filtered.push(trimmed);
+			}
+		}
+		filtered.sort(function(a, b) return Reflect.compare(a, b));
+		return {
+			packageName: file.packageName,
+			imports: filtered,
+			decls: file.decls
+		};
+	}
+
+	function importAliasForPath(path:String):String {
+		var alias = externImportPackages.exists(path) ? externImportPackages.get(path) : null;
+		if (alias == null || alias == "") {
+			var segments = [for (segment in path.split("/")) StringTools.trim(segment)];
+			var index = segments.length - 1;
+			while (index >= 0 && segments[index] == "") {
+				index--;
+			}
+			alias = index >= 0 ? segments[index] : "";
+		}
+		return alias == null || alias == "" ? "" : normalizeIdent(alias);
+	}
+
+	function fileUsesImportAlias(file:GoFile, alias:String):Bool {
+		for (decl in file.decls) {
+			if (declUsesImportAlias(decl, alias)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function declUsesImportAlias(decl:GoDecl, alias:String):Bool {
+		return switch (decl) {
+			case GoInterfaceDecl(_, methods):
+				var used = false;
+				for (method in methods) {
+					for (param in method.params) {
+						if (typeNameUsesImportAlias(param.typeName, alias)) {
+							used = true;
+							break;
+						}
+					}
+					if (used) {
+						break;
+					}
+					for (result in method.results) {
+						if (typeNameUsesImportAlias(result, alias)) {
+							used = true;
+							break;
+						}
+					}
+					if (used) {
+						break;
+					}
+				}
+				used;
+			case GoStructDecl(_, fields):
+				var used = false;
+				for (field in fields) {
+					if (typeNameUsesImportAlias(field.typeName, alias)) {
+						used = true;
+						break;
+					}
+				}
+				used;
+			case GoGlobalVarDecl(_, typeName, value): typeNameUsesImportAlias(typeName, alias) || (value != null && exprUsesImportAlias(value, alias));
+			case GoFuncDecl(_, receiver, params, results, body):
+				if (receiver != null && typeNameUsesImportAlias(receiver.typeName, alias)) {
+					true;
+				} else {
+					var used = false;
+					for (param in params) {
+						if (typeNameUsesImportAlias(param.typeName, alias)) {
+							used = true;
+							break;
+						}
+					}
+					if (!used) {
+						for (result in results) {
+							if (typeNameUsesImportAlias(result, alias)) {
+								used = true;
+								break;
+							}
+						}
+					}
+					if (!used) {
+						for (stmt in body) {
+							if (stmtUsesImportAlias(stmt, alias)) {
+								used = true;
+								break;
+							}
+						}
+					}
+					used;
+				}
+		};
+	}
+
+	function stmtUsesImportAlias(stmt:GoStmt, alias:String):Bool {
+		return switch (stmt) {
+			case GoVarDecl(_, typeName, value, _): typeName != null && typeNameUsesImportAlias(typeName,
+					alias) || (value != null && exprUsesImportAlias(value, alias));
+			case GoAssign(left, right): exprUsesImportAlias(left, alias) || exprUsesImportAlias(right, alias);
+			case GoExprStmt(expr):
+				exprUsesImportAlias(expr, alias);
+			case GoGoStmt(call):
+				exprUsesImportAlias(call, alias);
+			case GoDeferStmt(call):
+				exprUsesImportAlias(call, alias);
+			case GoSendStmt(channel, value): exprUsesImportAlias(channel, alias) || exprUsesImportAlias(value, alias);
+			case GoRaw(code):
+				rawCodeUsesImportAlias(code, alias);
+			case GoWhile(cond, body):
+				if (exprUsesImportAlias(cond, alias)) {
+					true;
+				} else {
+					var used = false;
+					for (child in body) {
+						if (stmtUsesImportAlias(child, alias)) {
+							used = true;
+							break;
+						}
+					}
+					used;
+				}
+			case GoRangeStmt(_, _, source, _, body):
+				if (exprUsesImportAlias(source, alias)) {
+					true;
+				} else {
+					var used = false;
+					for (child in body) {
+						if (stmtUsesImportAlias(child, alias)) {
+							used = true;
+							break;
+						}
+					}
+					used;
+				}
+			case GoIf(cond, thenBody, elseBody):
+				if (exprUsesImportAlias(cond, alias)) {
+					true;
+				} else {
+					var used = false;
+					for (child in thenBody) {
+						if (stmtUsesImportAlias(child, alias)) {
+							used = true;
+							break;
+						}
+					}
+					if (!used && elseBody != null) {
+						for (child in elseBody) {
+							if (stmtUsesImportAlias(child, alias)) {
+								used = true;
+								break;
+							}
+						}
+					}
+					used;
+				}
+			case GoSwitch(value, cases, defaultBody):
+				if (exprUsesImportAlias(value, alias)) {
+					true;
+				} else {
+					var used = false;
+					for (switchCase in cases) {
+						for (caseValue in switchCase.values) {
+							if (exprUsesImportAlias(caseValue, alias)) {
+								used = true;
+								break;
+							}
+						}
+						if (used) {
+							break;
+						}
+						for (child in switchCase.body) {
+							if (stmtUsesImportAlias(child, alias)) {
+								used = true;
+								break;
+							}
+						}
+						if (used) {
+							break;
+						}
+					}
+					if (!used && defaultBody != null) {
+						for (child in defaultBody) {
+							if (stmtUsesImportAlias(child, alias)) {
+								used = true;
+								break;
+							}
+						}
+					}
+					used;
+				}
+			case GoTypeSwitch(value, _, cases, defaultBody):
+				if (exprUsesImportAlias(value, alias)) {
+					true;
+				} else {
+					var used = false;
+					for (typeCase in cases) {
+						if (typeNameUsesImportAlias(typeCase.typeName, alias)) {
+							used = true;
+							break;
+						}
+						for (child in typeCase.body) {
+							if (stmtUsesImportAlias(child, alias)) {
+								used = true;
+								break;
+							}
+						}
+						if (used) {
+							break;
+						}
+					}
+					if (!used && defaultBody != null) {
+						for (child in defaultBody) {
+							if (stmtUsesImportAlias(child, alias)) {
+								used = true;
+								break;
+							}
+						}
+					}
+					used;
+				}
+			case GoSelect(cases):
+				var used = false;
+				for (selectCase in cases) {
+					if (selectClauseUsesImportAlias(selectCase.clause, alias)) {
+						used = true;
+						break;
+					}
+					for (child in selectCase.body) {
+						if (stmtUsesImportAlias(child, alias)) {
+							used = true;
+							break;
+						}
+					}
+					if (used) {
+						break;
+					}
+				}
+				used;
+			case GoBreak, GoContinue:
+				false;
+			case GoReturn(expr): expr != null && exprUsesImportAlias(expr, alias);
+		};
+	}
+
+	function selectClauseUsesImportAlias(clause:GoSelectClause, alias:String):Bool {
+		return switch (clause) {
+			case GoSelectSend(channel, value): exprUsesImportAlias(channel, alias) || exprUsesImportAlias(value, alias);
+			case GoSelectRecv(recv):
+				exprUsesImportAlias(recv, alias);
+			case GoSelectRecvAssign(target, recv, _): exprUsesImportAlias(target, alias) || exprUsesImportAlias(recv, alias);
+			case GoSelectDefault:
+				false;
+		};
+	}
+
+	function exprUsesImportAlias(expr:GoExpr, alias:String):Bool {
+		return switch (expr) {
+			case GoIdent(name): name == alias || rawCodeUsesImportAlias(name, alias);
+			case GoIntLiteral(_), GoFloatLiteral(_), GoBoolLiteral(_), GoStringLiteral(_), GoNil:
+				false;
+			case GoSelector(target, _):
+				exprUsesImportAlias(target, alias);
+			case GoIndex(target, index): exprUsesImportAlias(target, alias) || exprUsesImportAlias(index, alias);
+			case GoSlice(target, start, end): exprUsesImportAlias(target,
+					alias) || (start != null && exprUsesImportAlias(start, alias)) || (end != null && exprUsesImportAlias(end, alias));
+			case GoArrayLiteral(elementType, elements):
+				if (typeNameUsesImportAlias(elementType, alias)) {
+					true;
+				} else {
+					var used = false;
+					for (element in elements) {
+						if (exprUsesImportAlias(element, alias)) {
+							used = true;
+							break;
+						}
+					}
+					used;
+				}
+			case GoFuncLiteral(params, results, body):
+				var used = false;
+				for (param in params) {
+					if (typeNameUsesImportAlias(param.typeName, alias)) {
+						used = true;
+						break;
+					}
+				}
+				if (!used) {
+					for (result in results) {
+						if (typeNameUsesImportAlias(result, alias)) {
+							used = true;
+							break;
+						}
+					}
+				}
+				if (!used) {
+					for (stmt in body) {
+						if (stmtUsesImportAlias(stmt, alias)) {
+							used = true;
+							break;
+						}
+					}
+				}
+				used;
+			case GoRaw(code):
+				rawCodeUsesImportAlias(code, alias);
+			case GoTypeAssert(inner, typeName): exprUsesImportAlias(inner, alias) || typeNameUsesImportAlias(typeName, alias);
+			case GoRecvExpr(channel):
+				exprUsesImportAlias(channel, alias);
+			case GoUnary(_, inner):
+				exprUsesImportAlias(inner, alias);
+			case GoBinary(_, left, right): exprUsesImportAlias(left, alias) || exprUsesImportAlias(right, alias);
+			case GoCall(callee, args):
+				if (exprUsesImportAlias(callee, alias)) {
+					true;
+				} else {
+					var used = false;
+					for (arg in args) {
+						if (exprUsesImportAlias(arg, alias)) {
+							used = true;
+							break;
+						}
+					}
+					used;
+				}
+		};
+	}
+
+	function typeNameUsesImportAlias(typeName:String, alias:String):Bool {
+		if (typeName == null || typeName == "") {
+			return false;
+		}
+		return rawCodeUsesImportAlias(typeName, alias);
+	}
+
+	function rawCodeUsesImportAlias(code:String, alias:String):Bool {
+		if (code == null || code == "") {
+			return false;
+		}
+		return new EReg("\\b" + EReg.escape(alias) + "\\s*\\.", "").match(code);
 	}
 
 	function collectProjectClasses(types:Array<ModuleType>):Array<ClassType> {
@@ -478,36 +942,42 @@ class GoCompiler {
 	function lowerEnums(enums:Array<EnumType>):Array<GoDecl> {
 		var decls = new Array<GoDecl>();
 		for (enumType in enums) {
-			var enumName = enumTypeName(enumType);
-			decls.push(GoDecl.GoStructDecl(enumName, [{name: "tag", typeName: "int"}, {name: "params", typeName: "[]any"}]));
+			decls = decls.concat(lowerEnumDecls(enumType));
+		}
+		return decls;
+	}
 
-			var constructors = [for (field in enumType.constructs) field];
-			constructors.sort(function(a, b) return a.index - b.index);
+	function lowerEnumDecls(enumType:EnumType):Array<GoDecl> {
+		var decls = new Array<GoDecl>();
+		var enumName = enumTypeName(enumType);
+		decls.push(GoDecl.GoStructDecl(enumName, [{name: "tag", typeName: "int"}, {name: "params", typeName: "[]any"}]));
 
-			for (constructor in constructors) {
-				var symbol = enumConstructorSymbol(enumType, constructor.name);
-				var ctorArgs = enumConstructorArgs(constructor.type);
-				if (ctorArgs.length == 0) {
-					decls.push(GoDecl.GoGlobalVarDecl(symbol, "*" + enumName, GoExpr.GoRaw("&" + enumName + "{tag: " + constructor.index + "}")));
-				} else {
-					var params = new Array<GoParam>();
-					var payloadExprs = new Array<GoExpr>();
-					for (index in 0...ctorArgs.length) {
-						var arg = ctorArgs[index];
-						var argName = normalizeIdent(arg.name == "" ? ("arg" + index) : arg.name);
-						params.push({
-							name: argName,
-							typeName: scalarGoType(arg.t)
-						});
-						payloadExprs.push(GoExpr.GoIdent(argName));
-					}
+		var constructors = [for (field in enumType.constructs) field];
+		constructors.sort(function(a, b) return a.index - b.index);
 
-					decls.push(GoDecl.GoFuncDecl(symbol, null, params, ["*" + enumName], [
-						GoStmt.GoVarDecl("enumValue", null, GoExpr.GoRaw("&" + enumName + "{tag: " + constructor.index + "}"), true),
-						GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("enumValue"), "params"), GoExpr.GoArrayLiteral("any", payloadExprs)),
-						GoStmt.GoReturn(GoExpr.GoIdent("enumValue"))
-					]));
+		for (constructor in constructors) {
+			var symbol = enumConstructorSymbol(enumType, constructor.name);
+			var ctorArgs = enumConstructorArgs(constructor.type);
+			if (ctorArgs.length == 0) {
+				decls.push(GoDecl.GoGlobalVarDecl(symbol, "*" + enumName, GoExpr.GoRaw("&" + enumName + "{tag: " + constructor.index + "}")));
+			} else {
+				var params = new Array<GoParam>();
+				var payloadExprs = new Array<GoExpr>();
+				for (index in 0...ctorArgs.length) {
+					var arg = ctorArgs[index];
+					var argName = normalizeIdent(arg.name == "" ? ("arg" + index) : arg.name);
+					params.push({
+						name: argName,
+						typeName: scalarGoType(arg.t)
+					});
+					payloadExprs.push(GoExpr.GoIdent(argName));
 				}
+
+				decls.push(GoDecl.GoFuncDecl(symbol, null, params, ["*" + enumName], [
+					GoStmt.GoVarDecl("enumValue", null, GoExpr.GoRaw("&" + enumName + "{tag: " + constructor.index + "}"), true),
+					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("enumValue"), "params"), GoExpr.GoArrayLiteral("any", payloadExprs)),
+					GoStmt.GoReturn(GoExpr.GoIdent("enumValue"))
+				]));
 			}
 		}
 		return decls;
@@ -9475,7 +9945,7 @@ class GoCompiler {
 				if (classType.isExtern) {
 					var externPackage = externClassPackageName(classType);
 					if (externPackage != null) {
-						noteExternImportPath(classType);
+						noteExternImportPath(classType, externPackage);
 						return {
 							expr: GoExpr.GoSelector(GoExpr.GoIdent(externPackage), externFieldName(resolved)),
 							isStringLike: isStringType(resolved.type)
@@ -9535,7 +10005,10 @@ class GoCompiler {
 						isStringLike: false
 					};
 				} else if (classType.isExtern) {
-					noteExternImportPath(classType);
+					var externPackage = externClassPackageName(classType);
+					if (externPackage != null) {
+						noteExternImportPath(classType, externPackage);
+					}
 					{
 						expr: GoExpr.GoSelector(loweredTarget, externFieldName(resolved)),
 						isStringLike: isStringType(resolved.type)
@@ -10179,7 +10652,10 @@ class GoCompiler {
 					Context.fatalError("Extern @:go.receiver call requires a receiver argument", callee.pos);
 					null;
 				} else {
-					noteExternImportPath(classType);
+					var externPackage = externClassPackageName(classType);
+					if (externPackage != null) {
+						noteExternImportPath(classType, externPackage);
+					}
 					var loweredReceiver = lowerExpr(args[0]).expr;
 					var loweredArgs = new Array<GoExpr>();
 					for (index in 1...args.length) {
@@ -11403,6 +11879,9 @@ class GoCompiler {
 		for (path in externImportPaths.keys()) {
 			externImportPaths.remove(path);
 		}
+		for (path in externImportPackages.keys()) {
+			externImportPackages.remove(path);
+		}
 	}
 
 	function resetRequiredMetalChanElementTypes():Void {
@@ -11429,12 +11908,15 @@ class GoCompiler {
 		}
 	}
 
-	function noteExternImportPath(classType:ClassType):Void {
+	function noteExternImportPath(classType:ClassType, packageName:String):Void {
 		var path = externClassImportPath(classType);
 		if (path == null || path == "") {
 			return;
 		}
 		externImportPaths.set(path, true);
+		if (packageName != null && packageName != "") {
+			externImportPackages.set(path, packageName);
+		}
 	}
 
 	function normalizeMetaName(name:String):String {
@@ -11554,7 +12036,7 @@ class GoCompiler {
 		if (classType.isExtern) {
 			var packageName = externClassPackageName(classType);
 			if (packageName != null) {
-				noteExternImportPath(classType);
+				noteExternImportPath(classType, packageName);
 				return packageName + "." + externClassTypeName(classType);
 			}
 		}
