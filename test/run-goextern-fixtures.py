@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_ROOT = ROOT / "test" / "fixtures" / "goextern"
 CACHE_ROOT = ROOT / "test" / ".test-cache" / "goextern-fixtures"
-DEFAULT_PACKAGES = ("context", "fmt", "sync", "time")
+DEFAULT_PACKAGES = ("context", "errors", "fmt", "sync", "time")
 
 
 def parse_args() -> argparse.Namespace:
@@ -20,7 +20,7 @@ def parse_args() -> argparse.Namespace:
         "--package",
         action="append",
         default=[],
-        help="Go package import path to include (repeatable). Default: context, fmt, sync, time",
+        help="Go package import path to include (repeatable). Default: context, errors, fmt, sync, time",
     )
     parser.add_argument("--timeout", type=int, default=120, help="Timeout per generator invocation in seconds")
     return parser.parse_args()

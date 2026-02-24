@@ -51,6 +51,9 @@ func TestBuildEmissionFmtIsDeterministic(t *testing.T) {
 	}
 
 	pkgFile := fileContentsByName(t, first, "FmtPkg.hx")
+	if !strings.Contains(pkgFile, "// Source package: fmt\npackage goextern.fmt;") {
+		t.Fatalf("FmtPkg.hx header/package spacing drifted")
+	}
 	if !strings.Contains(pkgFile, "@:go.import(\"fmt\")") {
 		t.Fatalf("FmtPkg.hx missing @:go.import metadata")
 	}
@@ -82,6 +85,36 @@ func TestBuildEmissionContextIncludesInterfaceAndPackageClass(t *testing.T) {
 	contextPkg := fileContentsByName(t, emission, "ContextPkg.hx")
 	if !strings.Contains(contextPkg, "@:go.name(\"Background\")") {
 		t.Fatalf("ContextPkg.hx missing Background mapping")
+	}
+}
+
+func TestBuildEmissionErrorsPackageClass(t *testing.T) {
+	cfg := Config{
+		GoImportPath:      "errors",
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	}
+
+	emission, err := BuildEmission(cfg)
+	if err != nil {
+		t.Fatalf("BuildEmission failed: %v", err)
+	}
+
+	if len(emission.Files) != 1 {
+		t.Fatalf("expected 1 emitted file for errors package, got %d", len(emission.Files))
+	}
+	if emission.Files[0].Name != "ErrorsPkg.hx" {
+		t.Fatalf("unexpected file name: %s", emission.Files[0].Name)
+	}
+
+	pkgFile := emission.Files[0].Contents
+	if !strings.Contains(pkgFile, "@:go.import(\"errors\")") {
+		t.Fatalf("ErrorsPkg.hx missing @:go.import metadata")
+	}
+	for _, symbol := range []string{"As", "Is", "Join", "New", "Unwrap"} {
+		if !strings.Contains(pkgFile, "@:go.name(\""+symbol+"\")") {
+			t.Fatalf("ErrorsPkg.hx missing symbol mapping for %s", symbol)
+		}
 	}
 }
 
