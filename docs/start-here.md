@@ -42,6 +42,9 @@ python3 test/run-examples.py
 npm run test:perf:go
 # optional local CI parity: hard-fail if metal exceeds budget
 GO_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:go
+npm run test:perf:hxrt-selective
+# optional local CI parity: hard-fail if selective runtime exceeds budget
+GO_HXRT_SLICE_ENFORCE=1 npm run test:perf:hxrt-selective
 npm run release:status
 ```
 
@@ -92,16 +95,16 @@ Reference examples for this phase:
 Set via:
 
 ```bash
--D reflaxe_go_profile=portable|gopher|metal
+-D reflaxe_go_profile=portable|metal
 ```
 
 - `portable` (default): choose this for portability and lowest migration risk.
-- `gopher`: choose this for Go-first APIs/output style while keeping core semantics stable.
-- `metal` (experimental): choose this when gopher abstractions are not enough and you need typed low-level interop with strict boundaries.
+- `metal` (experimental): choose this when portable abstractions are not enough and you need typed low-level interop with strict boundaries.
 
 Compatibility note:
 
-- `idiomatic` is removed and intentionally fails fast; use `gopher` instead.
+- `idiomatic` is removed and intentionally fails fast; use `portable` instead.
+- `gopher` is removed and intentionally fails fast; use `portable` instead.
 
 ## Strict policy knobs
 
@@ -119,6 +122,8 @@ Compatibility note:
 ## Related docs
 
 - `docs/hxrt-runtime.md`
+- `docs/hxrt-selective-runtime.md`
+- `docs/portable-canonical-contract.md`
 - `docs/profiles.md`
 - `docs/go-concurrency-interop-guide.md`
 - `docs/flagship-apps-plan.md`

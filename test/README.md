@@ -201,13 +201,13 @@ python3 test/run-semantic-diff.py --changed
 
 ## Go profile perf harness
 
-Collect soft-budget benchmark ratios for `portable|gopher|metal` vs pure-Go microcases (`hello`, `array`, `atomic`, `channel`, `map`, `generic`, `string`, `virtual`, `select`) plus `examples/tui_todo` profile spread:
+Collect soft-budget benchmark ratios for `portable|metal` vs pure-Go microcases (`hello`, `array`, `atomic`, `channel`, `map`, `generic`, `string`, `virtual`, `select`) plus `examples/tui_todo` profile spread:
 
 ```bash
 bash scripts/ci/perf-go-profiles.sh
 ```
 
-Enforce metal profile budget regressions as hard failures (portable/gopher remain soft warnings):
+Enforce metal profile budget regressions as hard failures (portable remains soft warnings):
 
 ```bash
 GO_PERF_ENFORCE_METAL_BUDGET=1 bash scripts/ci/perf-go-profiles.sh
@@ -257,6 +257,48 @@ Result artifacts:
 .cache/perf-go/results/summary.md
 ```
 
+## HXRT selective runtime perf/size harness
+
+Collect selective-vs-full runtime footprint metrics (`runtime file count`, `runtime source bytes`, `binary bytes`) for representative portable+metal cases:
+
+```bash
+bash scripts/ci/perf-hxrt-selective.sh
+```
+
+Enforce selective runtime budget regressions as hard failures:
+
+```bash
+GO_HXRT_SLICE_ENFORCE=1 bash scripts/ci/perf-hxrt-selective.sh
+```
+
+Tune hard-fail budgets if needed:
+
+```bash
+GO_HXRT_SLICE_ENFORCE=1 GO_HXRT_SLICE_MAX_SOURCE_PCT=2 GO_HXRT_SLICE_MAX_BINARY_PCT=5 bash scripts/ci/perf-hxrt-selective.sh
+```
+
+Regenerate baseline:
+
+```bash
+bash scripts/ci/perf-hxrt-selective.sh --update-baseline
+```
+
+Baseline source:
+
+```text
+scripts/ci/perf/hxrt-selective-baseline.json
+```
+
+Result artifacts:
+
+```text
+.cache/perf-hxrt-selective/results/current.json
+.cache/perf-hxrt-selective/results/comparison.json
+.cache/perf-hxrt-selective/results/summary.md
+```
+
+`summary.md` includes drift columns (source/binary delta drift) relative to `scripts/ci/perf/hxrt-selective-baseline.json`.
+
 ## Examples matrix
 
 Run all example/profile cases:
@@ -294,12 +336,12 @@ Negative snapshot cases validate profile policy:
 
 - conflicts (`portable` + `metal`) fail
 - invalid profile values fail
+- removed `gopher` value and alias fail fast
 - removed `idiomatic` value and alias fail fast
 
 Supported profile selector values are:
 
 - `portable`
-- `gopher`
 - `metal`
 
 ## Snapshot shape policy

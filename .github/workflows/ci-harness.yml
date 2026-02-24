@@ -128,12 +128,25 @@ jobs:
         env:
           GO_PERF_ENFORCE_METAL_BUDGET: "1"
 
+      - name: Run HXRT selective runtime perf/size harness (budget enforced)
+        run: npm run test:perf:hxrt-selective
+        env:
+          GO_HXRT_SLICE_ENFORCE: "1"
+
       - name: Upload Go perf benchmark artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: go-profile-perf-results
           path: .cache/perf-go/results
+          if-no-files-found: warn
+
+      - name: Upload HXRT selective harness artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-hxrt-selective-results
+          path: .cache/perf-hxrt-selective/results
           if-no-files-found: warn
 
   semantic-release:

@@ -30,6 +30,8 @@
     "test:perf:go": "bash scripts/ci/perf-go-profiles.sh",
     "test:perf:stdlib-shims": "bash scripts/ci/perf-stdlib-shim-review.sh",
     "test:perf:go:update-baseline": "bash scripts/ci/perf-go-profiles.sh --update-baseline",
+    "test:perf:hxrt-selective": "bash scripts/ci/perf-hxrt-selective.sh",
+    "test:perf:hxrt-selective:update-baseline": "bash scripts/ci/perf-hxrt-selective.sh --update-baseline",
     "test:goextern": "cd tools/goextern && go test ./...",
     "examples:compile": "python3 test/run-examples.py --compile-only",
     "examples:bless": "python3 test/run-examples.py --bless-generated",

@@ -17,7 +17,7 @@ If you want Haxe productivity with a serious Go delivery pipeline, this is that 
 
 ## Why reflaxe.go
 
-- One Haxe codebase, multiple Go profiles (`portable`, `gopher`, `metal`).
+- One Haxe codebase, two Go profiles (`portable`, `metal`).
 - Generated Go module output (`go.mod` + `main.go` + `module_*.go` + `hxrt`) with backend `go build` by default.
 - Strong verification harness: snapshots, stdlib sweep, semantic diff, examples matrix, and perf checks.
 
@@ -74,34 +74,33 @@ python3 test/run-snapshots.py
 python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test
 ```
 
-Then switch profiles and compare output/runtime behavior:
+Then switch to `metal` and compare output/runtime behavior:
 
 ```bash
-npm run dev:hx -- --project examples/tui_todo --profile gopher --action run
 npm run dev:hx -- --project examples/tui_todo --profile metal --action run
 ```
 
 ## Profiles
 
-Use `-D reflaxe_go_profile=portable|gopher|metal`.
+Use `-D reflaxe_go_profile=portable|metal`.
 
 | Profile | Best for | Contract |
 | --- | --- | --- |
 | `portable` (default) | Haxe-first teams | Portability-first semantics and lowest migration risk |
-| `gopher` | Go-aware teams | Go-first style and safe lowering optimizations without intentional semantic drift |
-| `metal` (experimental) | Low-level interop needs | `gopher` + strict boundary defaults + typed low-level interop lane |
+| `metal` (experimental) | Low-level interop needs | `portable` + strict boundary defaults + typed low-level interop lane |
 
-`idiomatic` was removed and now fails fast. Use `gopher`.
+`idiomatic` and `gopher` were removed and now fail fast. Use `portable`.
 
 Details: [docs/profiles.md](docs/profiles.md)
+Canonical portable semantics: [docs/portable-canonical-contract.md](docs/portable-canonical-contract.md)
 
 ## Flagship Examples
 
-- [examples/tui_todo](examples/tui_todo/README.md): complex single-codebase app compiled across all profiles.
+- [examples/tui_todo](examples/tui_todo/README.md): complex single-codebase app compiled across both profiles.
 - [examples/profile_storyboard](examples/profile_storyboard/README.md): compact profile adapter/storyboard reference.
 - [examples/interop_smoke](examples/interop_smoke/README.md): typed interop smoke reference for `fmt`/`time`/`context`/`net/http` extern metadata.
 - [examples/worker_pool_select](examples/worker_pool_select/README.md): worker-pool and typed `go.Select` channel-branching operations from one shared Haxe codebase.
-- [examples/pulseforge](examples/pulseforge/README.md): flagship app scaffold with explicit `core` and `go_native` variant lanes across all profiles.
+- [examples/pulseforge](examples/pulseforge/README.md): flagship app scaffold with explicit `core` and `go_native` variant lanes across both profiles.
 - [examples/README.md](examples/README.md): examples overview.
 - [docs/examples-matrix.md](docs/examples-matrix.md): exact compile/run/artifact matrix.
 - [docs/go-concurrency-interop-guide.md](docs/go-concurrency-interop-guide.md): practical worker-pool/select + typed interop patterns.
@@ -122,7 +121,7 @@ Details and full inventory: [docs/feature-support-matrix.md](docs/feature-suppor
 ## Most Useful Commands
 
 - New project generator: `npm run dev:new-project -- ./my_haxe_go_app`
-- Compile/run wrapper: `npm run dev:hx -- --project <dir> --profile <portable|gopher|metal> --action <compile|run|build|test|vet|fmt>`
+- Compile/run wrapper: `npm run dev:hx -- --project <dir> --profile <portable|metal> --action <compile|run|build|test|vet|fmt>`
 - Go extern generator: `npm run dev:goextern -- --package <go/import/path>`
 - Go extern fixtures drift check: `npm run test:goextern:fixtures`
 - Snapshots: `python3 test/run-snapshots.py`
@@ -131,6 +130,8 @@ Details and full inventory: [docs/feature-support-matrix.md](docs/feature-suppor
 - Examples matrix: `python3 test/run-examples.py`
 - Profile perf harness: `npm run test:perf:go`
   - Enforce metal budgets locally: `GO_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:go`
+- HXRT selective runtime perf/size harness: `npm run test:perf:hxrt-selective`
+  - Enforce selective runtime budgets locally: `GO_HXRT_SLICE_ENFORCE=1 npm run test:perf:hxrt-selective`
 - Release visibility checks: `npm run release:status`
 
 ## Verification and Delivery
@@ -171,6 +172,8 @@ Runtime details: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
 - Start here: [docs/start-here.md](docs/start-here.md)
 - Phase-2 roadmap (active): [docs/phase2-roadmap.md](docs/phase2-roadmap.md)
 - `hxrt` runtime architecture and contract: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
+- Selective `hxrt` + profile policy plan: [docs/hxrt-selective-runtime.md](docs/hxrt-selective-runtime.md)
+- Canonical portable contract (cross-compiler reference): [docs/portable-canonical-contract.md](docs/portable-canonical-contract.md)
 - Feature support and coverage inventory: [docs/feature-support-matrix.md](docs/feature-support-matrix.md)
 - Defines reference: [docs/defines-reference.md](docs/defines-reference.md)
 - Profile admission criteria: [docs/profile-admission-criteria.md](docs/profile-admission-criteria.md)
