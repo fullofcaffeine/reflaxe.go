@@ -1,0 +1,14 @@
+-cp .
+-cp ../../src
+-cp ../../vendor/reflaxe/src
+--macro reflaxe.go.CompilerBootstrap.Start()
+--macro reflaxe.go.CompilerInit.Start()
+-D go_output=out_portable_ci
+-D go_module=examples_fluxproxy_portable_ci
+-D reflaxe_go_profile=portable
+-D reflaxe_go_strict_examples
+-D reflaxe_go_auto_empty_ctor_interfaces=app.runtime.FluxRuntime
+-D fluxproxy_profile_portable
+-D fluxproxy_variant_go_native
+-D example_ci
+-main Main

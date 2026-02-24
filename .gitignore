@@ -4,4 +4,5 @@ __pycache__/
 test/.test-cache/
 test/snapshot/**/out/
 examples/**/out*/
+.cache/
 dist/

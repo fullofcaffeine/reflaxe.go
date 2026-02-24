@@ -9,14 +9,25 @@
 | `examples/interop_smoke` | Yes | Yes | Typed interop smoke reference for `@:go.import`, `@:go.name`, `@:go.receiver`, and package APIs (`fmt`/`time`/`context`/`net/http`). |
 | `examples/worker_pool_select` | Yes | Yes | Deterministic worker pool with channel fan-out plus typed `go.Select` helper flows (`recv`/`recv2`/`send`/`send2`). |
 | `examples/pulseforge` | Yes | Yes | Flagship app scaffold proving profile matrix + explicit variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
+| `examples/fluxproxy` | Yes | Yes | Flagship proxy scaffold with profile matrix + variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
 
-## Planned flagship examples
+## Pure-Go parity baselines
 
-Execution plan and acceptance gates: `docs/flagship-apps-plan.md`.
+| Baseline | Status | Purpose |
+| --- | --- | --- |
+| `benchmarks/pure_go/pulseforge` | Ready | Handwritten Go parity baseline for PulseForge workload/contract and benchmark comparison against generated portable/metal outputs. |
+| `benchmarks/pure_go/fluxproxy` | Ready | Handwritten Go parity baseline for FluxProxy workload/contract and benchmark comparison against generated portable/metal outputs. |
 
-| Planned Example | Target status | portable | metal | Purpose |
-| --- | --- | --- | --- | --- |
-| `examples/fluxproxy` | Planned (build second) | Required | Required | High-throughput proxy/gateway app focused on networking and resilience performance lanes. |
+Run:
+
+```bash
+npm run test:pure-go:pulseforge
+npm run test:pure-go:fluxproxy
+npm run test:perf:pure-go:pulseforge
+npm run test:perf:pure-go:fluxproxy
+```
+
+Execution plan and acceptance gates for flagship examples: `docs/flagship-apps-plan.md`.
 
 ## Build and run matrix
 

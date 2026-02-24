@@ -78,3 +78,11 @@ Current profile behavior differs by runtime adapter and generated code shape whi
 - `run.args` pins example harness execution to scripted mode.
 - `*.stdout` files represent `core` variant scripted output.
 - `*.ci.stdout` files represent `go_native` variant scripted output.
+
+## Pure-Go parity baseline
+
+```bash
+(cd benchmarks/pure_go/pulseforge && go run . --scripted)
+(cd benchmarks/pure_go/pulseforge && go test ./...)
+(cd benchmarks/pure_go/pulseforge && go test -run '^$' -bench . -benchmem)
+```

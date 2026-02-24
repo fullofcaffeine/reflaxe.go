@@ -1,0 +1,14 @@
+fluxproxy.profile=portable
+fluxproxy.variant=core
+runtime.capability=loop_dispatch
+ingress.received=8
+ingress.accepted=8
+ingress.backpressure=5
+proxy.responses=8
+proxy.retries=2
+policy.rate_limited=1
+policy.breaker_open=0
+routes.count=5
+routes.summary=/v1/items:3/1/2/39,/assets/logo.png:1/1/0/12,/health:1/1/0/4,/v1/auth:2/1/1/34,/assets/main.css:1/1/0/9
+errors.count=3
+runtime.score=26

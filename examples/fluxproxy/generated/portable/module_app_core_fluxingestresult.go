@@ -1,0 +1,20 @@
+package main
+
+type I_app__core__FluxIngestResult interface {
+}
+
+type app__core__FluxIngestResult struct {
+	__hx_this          I_app__core__FluxIngestResult
+	receivedCount      int
+	acceptedRequests   []*app__core__FluxRequest
+	backpressureEvents int
+}
+
+func New_app__core__FluxIngestResult(receivedCount int, acceptedRequests []*app__core__FluxRequest, backpressureEvents int) *app__core__FluxIngestResult {
+	self := &app__core__FluxIngestResult{}
+	self.__hx_this = self
+	self.receivedCount = receivedCount
+	self.acceptedRequests = acceptedRequests
+	self.backpressureEvents = backpressureEvents
+	return self
+}
