@@ -51,6 +51,7 @@ Use the simplest ownership that preserves parity and maintainability:
 
 | Alternative | Strength | Current blocker |
 | --- | --- | --- |
+| Compiler-lowered builtins/intrinsics only | Minimal generated wrappers for hot paths | Only viable when behavior is pure and profile-invariant; many stdlib surfaces still require serializer metadata, exception wiring, or dynamic conversion policy. |
 | Externs + external Go runtime package | Clean boundary and reuse potential | Externs are type-only and `ignoreExterns: true` is currently required for deterministic emission in `src/reflaxe/go/CompilerInit.hx`. |
 | Raw `__go__` in Haxe std/app code | Minimal indirection for target-native calls | Violates strict policy in app/examples (`src/reflaxe/go/macros/StrictModeEnforcer.hx`, `src/reflaxe/go/macros/BoundaryEnforcer.hx`) and harms portability/readability. |
 | Vendored stdlib-only (`std/_std`) | Most idiomatic long-term ownership model | Behavior-heavy contracts still depend on compiler context (serializer metadata, socket readiness/deadline behavior, profile-aware lowering). |
@@ -69,6 +70,22 @@ Use the simplest ownership that preserves parity and maintainability:
 | `stdlib_symbols` | `Std`, `StringTools`, `Date`, `Math`, `Reflect`, crypto/xml/zip, filesystem subset | 706 | Semantic-diff | Keep + optimize (landed) | Broad compatibility layer remains in compiler core; bytes conversion path now uses cached raw representation to cut repeated conversion overhead. | `haxe.go-7zy.12` |
 | `regex_serializer` | `EReg`, `haxe.Serializer`, `haxe.Unserializer` | 2460 | Semantic-diff | Keep | High behavior density and project metadata coupling (resolver semantics, token stream, reflection). | - |
 | `net_socket` | `sys.net.Host`, `sys.net.Socket` | 2958 | Semantic-diff | Keep | Deadline/select/shutdown readiness behavior is target-specific and currently best enforced in one compiler-controlled path. | - |
+
+## Explicit Decision Records
+
+These are the canonical per-surface decisions for shim ownership and alternatives.
+
+| Record | Surface | Decision | Alternatives reviewed | Evidence |
+| --- | --- | --- | --- | --- |
+| `SDR-001` | `json` (`haxe.Json`, `haxe.format.Json*`) | Keep lowering in compiler, move behavior to `hxrt` (`JsonParse`/`JsonStringify`) | Compiler shim, `std/_std`, extern/runtime package | Snapshot parity + migration log (`haxe.go-7zy.10`) |
+| `SDR-002` | `sys` (`Sys`, `sys.io.File`, `sys.io.Process`) | Keep thin compiler wrappers, move behavior to `hxrt` (`Sys*`, `File*`, `Process*`) | Compiler shim, direct externs, `std/_std` | Snapshot parity + migration log (`haxe.go-7zy.11`) |
+| `SDR-003` | `io` (`haxe.io.Bytes*`, stream helpers, encoding edges) | Keep compiler shims for now; allow selective helper emission + targeted runtime helpers | Compiler builtin lowering, extern/runtime package, `std/_std` | Semantic-diff contracts + shim-vs-direct benchmark (`test:perf:stdlib-shims`) |
+| `SDR-004` | `ds` (`haxe.ds.*Map`, `List`) | Keep compiler-owned shape generation until typed null/reflect parity is proven in a replacement path | `std/_std`, extern-backed containers, pure runtime wrappers | Semantic-diff contracts (`ds_maps_list_contract`, map/list follow-ups) |
+| `SDR-005` | `http` (`sys.Http`) | Keep compiler shims (behavioral choreography, callbacks, proxy and payload conversion) | Extern-only wrappers, raw-native app code, `std/_std` | Semantic-diff contracts (`http_request_callbacks_contract`, proxy/custom request tests) |
+| `SDR-006` | `regex_serializer` (`EReg`, serializer/unserializer stack) | Keep compiler shims; revisit only with equivalent metadata-aware runtime path | Runtime-only package, extern-only, `std/_std` | Serializer and regex semantic-diff suite |
+| `SDR-007` | `net_socket` (`sys.net.Host`, `sys.net.Socket`) | Keep compiler shims for deadline/shutdown/readiness semantics | Extern-only wrappers, `std/_std` | Socket semantic-diff contracts (loopback + advanced) |
+
+Review trigger for all records: revisit when an alternative path proves equal/better parity and performance under the same harness gates.
 
 ## Ownership Boundary (Post `haxe.go-7zy.11`)
 
@@ -91,13 +108,13 @@ Artifacts:
 - `.cache/perf-stdlib-shim-review/report.json`
 - `.cache/perf-stdlib-shim-review/report.md`
 
-Measured at `2026-02-19T22:50:44Z` on `darwin/arm64` (`Apple M2 Pro`):
+Measured at `2026-02-24T01:22:42Z` on `darwin/arm64` (`Apple M2 Pro`):
 
 | Path | ns/op | B/op | allocs/op | Code-shape LOC (call path) |
 | --- | ---: | ---: | ---: | ---: |
-| Generated shim (`haxe__crypto__Base64_encode` + bytes conversion helpers) | 71.52 | 112 | 3 | 28 |
-| Direct Go (`base64.StdEncoding.EncodeToString`) | 46.55 | 96 | 2 | 3 |
-| Delta | +53.64% | +16 | +1 | +25 |
+| Generated shim (`haxe__crypto__Base64_encode` + bytes conversion helpers) | 64.05 | 112 | 3 | 33 |
+| Direct Go (`base64.StdEncoding.EncodeToString`) | 57.09 | 96 | 2 | 3 |
+| Delta | +12.19% | +16 | +1 | +30 |
 
 Interpretation:
 
