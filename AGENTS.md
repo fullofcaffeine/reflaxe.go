@@ -41,7 +41,8 @@ bd sync               # Sync with git
 ## Compiler Guardrails
 
 - Prefer the AST-first pipeline: builder/lowering -> transform passes -> printer/output.
-- Keep `Dynamic` usage minimal and localized. If unavoidable, contain it behind runtime/shim boundaries.
+- **Hard rule:** avoid `Dynamic`/`Any` whenever possible and prefer explicit typed abstractions end-to-end.
+- If `Dynamic`/`Any` is truly unavoidable, keep it localized behind runtime/shim boundaries and include a short justification in code/docs.
 - Never emit absolute machine-local paths in generated output or snapshots.
 - When fixing a bug, always add or update a regression test in `test/snapshot`.
 

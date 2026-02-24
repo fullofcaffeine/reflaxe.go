@@ -14,6 +14,17 @@ This target supports three profiles:
 | `gopher` | Go-aware teams wanting cleaner Go-first output style | Go-first API/lowering preferences without forcing semantic drift (includes safe compile-time folding for literal string helper ops, typed string helper lowering for `String`+`String`, and leaf-receiver devirtualization for `self`, inline constructor targets, tracked constructor-local aliases, and known leaf-returning call targets) |
 | `metal` (experimental) | Teams needing typed low-level interop lane | `gopher` + strict default app-boundary policy + typed framework interop façade |
 
+## Metal-ready subset (current)
+
+Use `metal` for bounded hot paths that are already covered by typed specialization lanes:
+
+- `go.Chan<T>`
+- `go.Slice<T>`
+- `go.Map<K,V>`
+- `go.Result<T>`
+
+If your code path falls outside this subset, start from `portable`/`gopher` and promote only after benchmark evidence.
+
 ## What changed
 
 - `idiomatic` was removed.
@@ -32,6 +43,8 @@ Framework-owned typed facades are allowed in `metal` strict mode; raw app-side i
 
 - Cross-profile micro app: `examples/profile_storyboard`
 - Cross-profile complex app: `examples/tui_todo`
+- Worker pool/select-style concurrency app: `examples/worker_pool_select`
 - Coverage + artifact matrix: `docs/examples-matrix.md`
+- Production caveats: `docs/known-gaps.md`
 
 Both examples intentionally keep a shared baseline scenario and only allow additive profile capabilities (for example gopher batch helpers, metal diagnostics).

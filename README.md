@@ -99,9 +99,11 @@ Details: [docs/profiles.md](docs/profiles.md)
 
 - [examples/tui_todo](examples/tui_todo/README.md): complex single-codebase app compiled across all profiles.
 - [examples/profile_storyboard](examples/profile_storyboard/README.md): compact profile adapter/storyboard reference.
-- [examples/interop_smoke](examples/interop_smoke/README.md): typed interop smoke reference for `fmt`/`time`/`context` extern metadata.
+- [examples/interop_smoke](examples/interop_smoke/README.md): typed interop smoke reference for `fmt`/`time`/`context`/`net/http` extern metadata.
+- [examples/worker_pool_select](examples/worker_pool_select/README.md): worker-pool and select-style channel operations from one shared Haxe codebase.
 - [examples/README.md](examples/README.md): examples overview.
 - [docs/examples-matrix.md](docs/examples-matrix.md): exact compile/run/artifact matrix.
+- [docs/go-concurrency-interop-guide.md](docs/go-concurrency-interop-guide.md): practical worker-pool/select + typed interop patterns.
 
 ## Coverage Tiers
 
@@ -143,6 +145,7 @@ Details and full inventory: [docs/feature-support-matrix.md](docs/feature-suppor
   - [.github/workflows/examples-artifacts.yml](.github/workflows/examples-artifacts.yml)
 - Current support inventory and known tradeoffs are explicit:
   - [docs/feature-support-matrix.md](docs/feature-support-matrix.md)
+  - [docs/known-gaps.md](docs/known-gaps.md)
 
 ## Output Model
 

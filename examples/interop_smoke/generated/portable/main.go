@@ -4,6 +4,7 @@ import (
 	"context"
 	"examples_interop_smoke_portable/hxrt"
 	"fmt"
+	"net/http"
 	"time"
 )
 
@@ -16,7 +17,9 @@ func main() {
 	_ = unixReceiver
 	var ctx context.Context = context.Background()
 	_ = ctx
-	ok := (((unixDirect == unixReceiver) && (unixDirect > 0)) && !hxrt.StringEqualAny(ctx, nil))
+	statusOk := hxrt.StringEqualAny(hxrt.StdString(http.StatusText(200)), hxrt.StringFromLiteral("OK"))
+	_ = statusOk
+	ok := ((((unixDirect == unixReceiver) && (unixDirect > 0)) && !hxrt.StringEqualAny(ctx, nil)) && statusOk)
 	_ = ok
 	fmt.Println(func() int {
 		var hx_if_1 int

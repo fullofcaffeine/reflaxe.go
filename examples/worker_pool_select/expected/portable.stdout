@@ -1,0 +1,3 @@
+worker.count=4
+select.trySend=true,false
+select.recvOr=5,99

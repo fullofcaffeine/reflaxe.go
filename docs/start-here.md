@@ -81,6 +81,11 @@ npm run dev:hx -- --project examples/tui_todo --profile portable --action run
 
 The wrapper resolves `compile*.hxml`, runs Haxe, resolves `-D go_output=...`, then executes the selected Go action.
 
+Reference examples for this phase:
+
+- `examples/worker_pool_select` (worker pool + select-style channel ops)
+- `examples/interop_smoke` (`fmt`/`time`/`context`/`net/http` typed interop)
+
 ## Profile selection
 
 Set via:
@@ -114,8 +119,10 @@ Compatibility note:
 
 - `docs/hxrt-runtime.md`
 - `docs/profiles.md`
+- `docs/go-concurrency-interop-guide.md`
 - `docs/feature-support-matrix.md`
 - `docs/examples-matrix.md`
+- `docs/known-gaps.md`
 - `docs/release-visibility.md`
 - `docs/stdlib-shim-rationale.md`
 - `docs/defines-reference.md`

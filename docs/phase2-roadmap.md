@@ -92,6 +92,7 @@ Depends on: M2 (with task-level dependencies on M3+ lanes where needed)
 - Continue unsupported-expression inventory reduction.
   - Latest reduction: explicit `TIdent` lowering for untyped identifiers with snapshot coverage in `test/snapshot/core/untyped_ident_nil`.
 - Publish concrete onboarding docs and showcase examples.
+  - Latest docs/examples pass: added `examples/worker_pool_select`, expanded `examples/interop_smoke` with `net/http`, and published `docs/go-concurrency-interop-guide.md` + `docs/known-gaps.md`.
 
 ## Execution Rules
 
