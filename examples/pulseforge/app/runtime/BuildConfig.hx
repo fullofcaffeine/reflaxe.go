@@ -3,8 +3,6 @@ package app.runtime;
 class BuildConfig {
 	#if pulseforge_profile_portable
 	public static inline final PROFILE = "portable";
-	#elseif pulseforge_profile_gopher
-	public static inline final PROFILE = "gopher";
 	#elseif pulseforge_profile_metal
 	public static inline final PROFILE = "metal";
 	#else

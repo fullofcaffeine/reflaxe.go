@@ -37,7 +37,7 @@ Short answer:
 3. Reflection and resolver edge cases
    - Serializer/unserializer contracts require typed metadata-aware lowering plus runtime behavior.
 4. Profile-dependent output policy
-   - `portable|gopher|metal` profile guarantees are compile-time policy decisions, not runtime-only toggles.
+   - `portable|metal` profile guarantees are compile-time policy decisions, not runtime-only toggles.
 
 ### Design rule in this repo
 

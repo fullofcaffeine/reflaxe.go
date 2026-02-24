@@ -112,7 +112,7 @@ haxe_out="$work_dir/haxe_out"
   --macro reflaxe.go.CompilerBootstrap.Start\(\) \
   --macro reflaxe.go.CompilerInit.Start\(\) \
   -D "go_output=$haxe_out" \
-  -D reflaxe_go_profile=gopher \
+  -D reflaxe_go_profile=portable \
   -D go_no_build \
   -D reflaxe.dont_output_metadata_id \
   -D no-traces \

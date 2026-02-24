@@ -1,6 +1,6 @@
 # profile_storyboard
 
-Showcase "release command center" example compiled from one Haxe codebase to `portable`, `gopher`, and `metal`.
+Showcase "release command center" example compiled from one Haxe codebase to `portable` and `metal`.
 
 ## Why this exists
 
@@ -13,7 +13,6 @@ Showcase "release command center" example compiled from one Haxe codebase to `po
 
 ```bash
 haxe compile.portable.hxml
-haxe compile.gopher.hxml
 haxe compile.metal.hxml
 ```
 
@@ -21,7 +20,6 @@ haxe compile.metal.hxml
 
 ```bash
 (cd out_portable && go run .)
-(cd out_gopher && go run .)
 (cd out_metal && go run .)
 ```
 

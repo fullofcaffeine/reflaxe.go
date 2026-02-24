@@ -11,14 +11,17 @@
 2. Make Go-target `go.*` APIs genuinely Go-native.
 3. Provide typed interop so Go ecosystem usage does not depend on raw `__go__`.
 4. Make `metal` a real typed-performance lane with explicit budgets.
+5. Add selective `hxrt` runtime slicing so metal can minimize runtime overhead without dropping portability contracts.
 
 ## Profile Contract
 
 - `portable`: semantics-first output, lowest migration risk.
-- `gopher`: portable behavior plus safe Go-first optimizations.
-- `metal`: `gopher` + typed interop/performance lane (strict defaults).
+- `metal`: `portable` + typed interop/performance lane (strict defaults).
 
 `idiomatic` remains removed and must not be reintroduced.
+
+Selective runtime slicing is tracked separately and does not replace profile contracts.
+See `docs/hxrt-selective-runtime.md`.
 
 ## Milestones And Dependencies
 
@@ -52,8 +55,8 @@ Depends on: M1, M1.5
 - Implement Go-target overrides for `std/go/Go.hx` and `std/go/Chan.hx` with real goroutines/channels.
 - Allow `std/go/*` override classes through compiler project-class filtering.
 - Add deterministic go-native concurrency contracts (no sleep-based race tests).
-- Latest follow-up: typed `go.Chan<T>` `recv`/`recvOr` call results now route through generic assertion bridging in `portable`/`gopher`, so typed channel reads compile without forcing `Dynamic` callsites.
-- Latest follow-up: `go.Chan<T>.tryRecv():go.Result<T>` now lowers through select-backed concurrency shims across `portable`/`gopher`/`metal`, with dedicated go_native snapshot coverage.
+- Latest follow-up: typed `go.Chan<T>` `recv`/`recvOr` call results now route through generic assertion bridging in `portable`, so typed channel reads compile without forcing `Dynamic` callsites.
+- Latest follow-up: `go.Chan<T>.tryRecv():go.Result<T>` now lowers through select-backed concurrency shims across `portable`/`metal`, with dedicated go_native snapshot coverage.
 - Latest follow-up: typed `go.Select` helpers (`recv`, `recv2`, `send`, `send2`) now provide a deterministic Haxe-level select API with explicit branch-priority semantics.
 
 ### M3 - Typed Interop Foundation
@@ -79,6 +82,15 @@ Depends on: M3, M3.5
   - Extended prototype landed: `go.Slice<T>` + `go.Map<K,V>` metal call-site specialization with typed collection shims per concrete type set.
 - `go.Result<T>` metal lowering now includes typed call-site shims with internal `(T, error)` helpers; continue iterating toward broader direct idiom emission.
 - Perf harness now covers channel/map/generic microbench lanes with metal budget enforcement.
+
+### M4.5 - Selective `hxrt` Runtime Slicing
+
+Depends on: M4
+
+- Split runtime into feature files (`core` + optional slices).
+- Infer required runtime features from compilation inputs and shim usage.
+- Support selective runtime copy with define-based overrides.
+- Keep full runtime copy fallback for compatibility/debugging.
 
 ### M5 - Output Ergonomics
 

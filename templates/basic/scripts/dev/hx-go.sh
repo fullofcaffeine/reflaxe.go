@@ -6,7 +6,7 @@ cd "$project_root"
 
 usage() {
 	cat <<'EOUSAGE'
-Usage: scripts/dev/hx-go.sh <compile|run|build|test> [--profile portable|gopher|metal] [--hxml <path>] [--out <dir>] [--binary <path>]
+Usage: scripts/dev/hx-go.sh <compile|run|build|test> [--profile portable|metal] [--hxml <path>] [--out <dir>] [--binary <path>]
 
 Notes:
   - compile uses backend defaults (includes auto go build unless disabled by define).
@@ -14,7 +14,7 @@ Notes:
 
 Examples:
   bash scripts/dev/hx-go.sh run
-  bash scripts/dev/hx-go.sh build --profile gopher
+  bash scripts/dev/hx-go.sh build --profile portable
   bash scripts/dev/hx-go.sh test --hxml compile.custom.hxml --out out_custom
 EOUSAGE
 }
@@ -68,9 +68,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$profile" in
-portable | gopher | metal) ;;
+portable | metal) ;;
 *)
-	echo "[hx-go] error: invalid profile '$profile' (expected portable|gopher|metal)" >&2
+	echo "[hx-go] error: invalid profile '$profile' (expected portable|metal)" >&2
 	exit 2
 	;;
 esac
@@ -78,7 +78,6 @@ esac
 if [[ -z "$hxml" ]]; then
 	case "$profile" in
 	portable) hxml="compile.hxml" ;;
-	gopher) hxml="compile.gopher.hxml" ;;
 	metal) hxml="compile.metal.hxml" ;;
 	esac
 fi
@@ -86,7 +85,6 @@ fi
 if [[ -z "$out_dir" ]]; then
 	case "$profile" in
 	portable) out_dir="out" ;;
-	gopher) out_dir="out_gopher" ;;
 	metal) out_dir="out_metal" ;;
 	esac
 fi
@@ -94,7 +92,6 @@ fi
 if [[ -z "$binary" ]]; then
 	case "$profile" in
 	portable) binary="bin/hx_app" ;;
-	gopher) binary="bin/hx_app_gopher" ;;
 	metal) binary="bin/hx_app_metal" ;;
 	esac
 fi

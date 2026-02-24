@@ -10,17 +10,14 @@ import (
 
 func main() {
 	now := time.Now()
-	_ = now
 	unixDirect := now.Unix()
 	_ = unixDirect
 	unixReceiver := now.Unix()
 	_ = unixReceiver
 	var ctx context.Context = context.Background()
 	_ = ctx
-	statusOk := hxrt.StringEqualAny(hxrt.StdString(http.StatusText(200)), hxrt.StringFromLiteral("OK"))
-	_ = statusOk
-	ok := ((((unixDirect == unixReceiver) && (unixDirect > 0)) && !hxrt.StringEqualAny(ctx, nil)) && statusOk)
-	_ = ok
+	statusOk := hxrt.StringEqualStringPtr(hxrt.StdString(http.StatusText(200)), hxrt.StringFromLiteral("OK"))
+	ok := ((((unixDirect == unixReceiver) && (unixDirect > 0)) && (ctx != nil)) && statusOk)
 	fmt.Println(func() int {
 		var hx_if_1 int
 		if ok {

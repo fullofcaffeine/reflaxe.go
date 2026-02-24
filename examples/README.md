@@ -8,10 +8,9 @@ This repository ships five first-class multi-profile examples:
 - `worker_pool_select`: worker-pool + select-style channel flow reference.
 - `pulseforge`: flagship app scaffold with profile matrix + `core`/`go_native` variant plumbing.
 
-Both examples compile from one Haxe codebase into:
+Examples compile from one Haxe codebase into:
 
 - `portable`
-- `gopher`
 - `metal`
 
 ## Quick commands

@@ -13,34 +13,30 @@ func main() {
 	workerCount := 3
 	_ = workerCount
 	tasks := []*string{hxrt.StringFromLiteral("alpha"), hxrt.StringFromLiteral("beta"), hxrt.StringFromLiteral("gamma"), hxrt.StringFromLiteral("delta")}
-	_ = tasks
 	jobs := go___Go_newChan(int(int32((hxrt.Int32Wrap(len(tasks)) + hxrt.Int32Wrap(workerCount)))))
 	_ = jobs
 	results := go___Go_newChan(len(tasks))
 	_ = results
 	_g := 0
-	_ = _g
 	for _g < len(tasks) {
 		task := tasks[_g]
 		_ = task
 		_g = int(int32((_g + 1)))
-		jobs.__hx_this.send(task)
+		jobs.send(task)
 	}
 	_g_1 := 0
 	_ = _g_1
 	_g1 := workerCount
-	_ = _g1
 	for _g_1 < _g1 {
 		hx_post_1 := _g_1
 		_g_1 = int(int32((_g_1 + 1)))
 		hx_tmp := hx_post_1
 		_ = hx_tmp
-		jobs.__hx_this.send(hxrt.StringFromLiteral("__stop__"))
+		jobs.send(hxrt.StringFromLiteral("__stop__"))
 	}
 	_g_2 := 0
 	_ = _g_2
 	_g1_1 := workerCount
-	_ = _g1_1
 	for _g_2 < _g1_1 {
 		hx_post_2 := _g_2
 		_g_2 = int(int32((_g_2 + 1)))
@@ -51,7 +47,6 @@ func main() {
 		})
 	}
 	received := 0
-	_ = received
 	for received < len(tasks) {
 		value := func(hx_value_3 any) *string {
 			if hx_value_3 == nil {
@@ -59,15 +54,13 @@ func main() {
 				return hx_zero_4
 			}
 			return hx_value_3.(*string)
-		}(results.__hx_this.recvOr(hxrt.StringFromLiteral("__empty__")))
-		_ = value
-		if hxrt.StringEqualAny(value, hxrt.StringFromLiteral("__empty__")) {
+		}(results.recvOr(hxrt.StringFromLiteral("__empty__")))
+		if hxrt.StringEqualStringPtr(value, hxrt.StringFromLiteral("__empty__")) {
 			continue
 		}
 		received = int(int32((received + 1)))
 	}
 	selectGate := go___Go_newChan(1)
-	_ = selectGate
 	_g_3 := go___Select_send_Int(selectGate, 5)
 	_ = _g_3
 	var hx_switch_5 bool
@@ -96,9 +89,7 @@ func main() {
 	switch _g_5.tag {
 	case 0:
 		_g_6 := _g_5.params[0].(int)
-		_ = _g_6
 		value_1 := _g_6
-		_ = value_1
 		hx_switch_7 = value_1
 	case 1:
 		hx_switch_7 = -1
@@ -111,9 +102,7 @@ func main() {
 	switch _g_7.tag {
 	case 0:
 		_g_8 := _g_7.params[0].(int)
-		_ = _g_8
 		value_2 := _g_8
-		_ = value_2
 		hx_switch_8 = value_2
 	case 1:
 		hx_switch_8 = 99
@@ -123,24 +112,19 @@ func main() {
 	left := go___Go_newChan(1)
 	_ = left
 	right := go___Go_newChan(1)
-	_ = right
-	right.__hx_this.send(hxrt.StringFromLiteral("right"))
+	right.send(hxrt.StringFromLiteral("right"))
 	_g_9 := go___Select_recv2_String_String(left, right)
 	_ = _g_9
 	var hx_switch_9 *string
 	switch _g_9.tag {
 	case 0:
 		_g_10 := _g_9.params[0].(*string)
-		_ = _g_10
 		value_3 := _g_10
-		_ = value_3
-		hx_switch_9 = hxrt.StringConcatAny(hxrt.StringFromLiteral("left:"), value_3)
+		hx_switch_9 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("left:"), value_3)
 	case 1:
 		_g_11 := _g_9.params[0].(*string)
-		_ = _g_11
 		value_4 := _g_11
-		_ = value_4
-		hx_switch_9 = hxrt.StringConcatAny(hxrt.StringFromLiteral("right:"), value_4)
+		hx_switch_9 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("right:"), value_4)
 	case 2:
 		hx_switch_9 = hxrt.StringFromLiteral("none")
 	}
@@ -149,7 +133,6 @@ func main() {
 	send2a := go___Go_newChan(1)
 	_ = send2a
 	send2b := go___Go_newChan(1)
-	_ = send2b
 	_g_12 := go___Select_send2_Int_Int(send2a, 11, send2b, 22)
 	_ = _g_12
 	var hx_switch_10 *string
@@ -169,19 +152,19 @@ func main() {
 			return hx_zero_12
 		}
 		return hx_value_11.(int)
-	}(send2a.__hx_this.recvOr(-1)), hxrt.StringFromLiteral(",")), func(hx_value_13 any) int {
+	}(send2a.recvOr(-1)), hxrt.StringFromLiteral(",")), func(hx_value_13 any) int {
 		if hx_value_13 == nil {
 			var hx_zero_14 int
 			return hx_zero_14
 		}
 		return hx_value_13.(int)
-	}(send2b.__hx_this.recvOr(-1)))
+	}(send2b.recvOr(-1)))
 	_ = send2Values
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("worker.count="), received))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("select.trySend="), hxrt.StdString(firstTry)), hxrt.StringFromLiteral(",")), hxrt.StdString(secondTry)))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("select.recvOr="), firstRecv), hxrt.StringFromLiteral(",")), secondRecv))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("select.recv2="), recv2))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("select.send2="), send2), hxrt.StringFromLiteral(" values=")), send2Values))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("select.trySend="), hxrt.StdString(firstTry)), hxrt.StringFromLiteral(",")), hxrt.StdString(secondTry)))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("select.recvOr="), firstRecv), hxrt.StringFromLiteral(",")), secondRecv))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("select.recv2="), recv2))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("select.send2="), send2), hxrt.StringFromLiteral(" values=")), send2Values))
 }
 
 func worker(jobs *go___Chan, results *go___Chan) {
@@ -192,12 +175,11 @@ func worker(jobs *go___Chan, results *go___Chan) {
 				return hx_zero_16
 			}
 			return hx_value_15.(*string)
-		}(jobs.__hx_this.recvOr(hxrt.StringFromLiteral("__stop__")))
-		_ = job
-		if hxrt.StringEqualAny(job, hxrt.StringFromLiteral("__stop__")) {
+		}(jobs.recvOr(hxrt.StringFromLiteral("__stop__")))
+		if hxrt.StringEqualStringPtr(job, hxrt.StringFromLiteral("__stop__")) {
 			return
 		}
-		results.__hx_this.send(job)
+		results.send(job)
 	}
 }
 

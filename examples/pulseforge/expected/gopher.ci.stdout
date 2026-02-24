@@ -1,7 +1,0 @@
-pulseforge.profile=gopher
-pulseforge.variant=go_native
-runtime.capability=chan_select
-ingest.events=6
-pipeline.total=41
-pipeline.alerts=2
-runtime.score=53

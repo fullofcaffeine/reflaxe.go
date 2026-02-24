@@ -1,18 +1,33 @@
 # Profiles (`-D reflaxe_go_profile=...`)
 
-This target supports three profiles:
+This target supports two profiles:
 
 ```bash
--D reflaxe_go_profile=portable|gopher|metal
+-D reflaxe_go_profile=portable|metal
 ```
 
 ## Matrix
 
 | Profile | Best for | Behavior contract |
 | --- | --- | --- |
-| `portable` (default) | Haxe-first and cross-target code | Stable Haxe-oriented semantics, portability-first output |
-| `gopher` | Go-aware teams wanting cleaner Go-first output style | Go-first API/lowering preferences without forcing semantic drift (includes safe compile-time folding for literal string helper ops, typed string helper lowering for `String`+`String`, and leaf-receiver devirtualization for `self`, inline constructor targets, tracked constructor-local aliases, and known leaf-returning call targets) |
-| `metal` (experimental) | Teams needing typed low-level interop lane | `gopher` + strict default app-boundary policy + typed framework interop façade |
+| `portable` (default) | Haxe-first and cross-target code | Stable Haxe-oriented semantics, portability-first output (includes former gopher-safe optimizations) |
+| `metal` (experimental) | Teams needing typed low-level interop lane | `portable` + strict default app-boundary policy + typed framework interop façade |
+
+## Why two profiles
+
+- `portable` is the semantic baseline.
+- `metal` is the explicit low-level performance/interop lane.
+- Canonical portable semantics are documented in `docs/portable-canonical-contract.md`.
+
+Selective `hxrt` runtime inference is complementary and does not replace profile contracts.
+See `docs/hxrt-selective-runtime.md`.
+
+## Removed selectors
+
+- `-D reflaxe_go_profile=gopher` is removed; use `portable`.
+- `-D reflaxe_go_gopher` is removed; use `reflaxe_go_profile=portable`.
+- `-D reflaxe_go_profile=idiomatic` is removed; use `portable`.
+- `-D reflaxe_go_idiomatic` is removed; use `reflaxe_go_profile=portable`.
 
 ## Metal-ready subset (current)
 
@@ -23,13 +38,7 @@ Use `metal` for bounded hot paths that are already covered by typed specializati
 - `go.Map<K,V>`
 - `go.Result<T>`
 
-If your code path falls outside this subset, start from `portable`/`gopher` and promote only after benchmark evidence.
-
-## What changed
-
-- `idiomatic` was removed.
-- `-D reflaxe_go_profile=idiomatic` fails fast and should be replaced with `gopher`.
-- `-D reflaxe_go_idiomatic` alias also fails fast.
+If your code path falls outside this subset, start from `portable` and promote only after benchmark evidence.
 
 ## Boundary policy
 
@@ -46,5 +55,3 @@ Framework-owned typed facades are allowed in `metal` strict mode; raw app-side i
 - Worker pool/select-style concurrency app: `examples/worker_pool_select`
 - Coverage + artifact matrix: `docs/examples-matrix.md`
 - Production caveats: `docs/known-gaps.md`
-
-Both examples intentionally keep a shared baseline scenario and only allow additive profile capabilities (for example gopher batch helpers, metal diagnostics).

@@ -1,0 +1,510 @@
+package main
+
+import "examples_tui_todo_metal/hxrt"
+
+var InteractiveCli_STATE_FILE *string = hxrt.StringFromLiteral(".tui_todo_state.txt")
+
+func InteractiveCli_clearState() {
+	hxrt.TryCatch(func() {
+		sys__io__File_saveContent(hxrt.StringFromLiteral(".tui_todo_state.txt"), hxrt.StringFromLiteral(""))
+	}, func(hx_caught_5 any) {
+		hx_tmp := hx_caught_5
+		_ = hx_tmp
+	})
+}
+
+func InteractiveCli_decodeTags(raw *string) *haxe__ds__List {
+	out := New_haxe__ds__List()
+	if hxrt.StringEqualStringPtr(raw, hxrt.StringFromLiteral("")) {
+		return out
+	}
+	values := InteractiveCli_splitEscaped(raw, 44)
+	count := values.length
+	_ = count
+	i := 0
+	for i < count {
+		value := func(hx_value_7 any) *string {
+			if hx_value_7 == nil {
+				var hx_zero_8 *string
+				return hx_zero_8
+			}
+			return hx_value_7.(*string)
+		}(values.pop())
+		if hxrt.StringEqualStringPtr(value, nil) {
+			break
+		}
+		tag := value
+		if !hxrt.StringEqualStringPtr(tag, hxrt.StringFromLiteral("")) {
+			out.add(tag)
+		}
+		values.add(tag)
+		i = int(int32((i + 1)))
+	}
+	return out
+}
+
+func InteractiveCli_decodeToken(raw *string) *string {
+	return StringTools_replace(raw, hxrt.StringFromLiteral("_"), hxrt.StringFromLiteral(" "))
+}
+
+func InteractiveCli_encodeField(raw *string) *string {
+	out := New_haxe__io__BytesBuffer()
+	_ = out
+	bytes := haxe__io__Bytes_ofString(raw)
+	_ = bytes
+	i := 0
+	for i < bytes.length {
+		code := bytes.b[i]
+		if code == 92 {
+			out.b = append(out.b, (92 & 255))
+			out.b = append(out.b, (92 & 255))
+		} else {
+			if code == 9 {
+				out.b = append(out.b, (92 & 255))
+				out.b = append(out.b, (116 & 255))
+			} else {
+				if code == 10 {
+					out.b = append(out.b, (92 & 255))
+					out.b = append(out.b, (110 & 255))
+				} else {
+					if code == 44 {
+						out.b = append(out.b, (92 & 255))
+						out.b = append(out.b, (99 & 255))
+					} else {
+						out.b = append(out.b, (code & 255))
+					}
+				}
+			}
+		}
+		i = int(int32((i + 1)))
+	}
+	return out.getBytes().toString()
+}
+
+func InteractiveCli_encodeTags(tags *haxe__ds__List) *string {
+	out := hxrt.StringFromLiteral("")
+	_ = out
+	first := true
+	_ = first
+	count := tags.length
+	_ = count
+	i := 0
+	for i < count {
+		value := func(hx_value_9 any) *string {
+			if hx_value_9 == nil {
+				var hx_zero_10 *string
+				return hx_zero_10
+			}
+			return hx_value_9.(*string)
+		}(tags.pop())
+		if hxrt.StringEqualStringPtr(value, nil) {
+			break
+		}
+		tag := value
+		_ = tag
+		if !first {
+			out = hxrt.StringConcatStringPtr(out, hxrt.StringFromLiteral(","))
+		}
+		out = hxrt.StringConcatStringPtr(out, InteractiveCli_encodeField(tag))
+		tags.add(tag)
+		first = false
+		i = int(int32((i + 1)))
+	}
+	return out
+}
+
+func InteractiveCli_failUsage(message *string) {
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error: "), message))
+	hxrt.Println(hxrt.StringFromLiteral("run `help` for command syntax"))
+}
+
+func InteractiveCli_listIndex(values *haxe__ds__List, index int) *string {
+	count := values.length
+	_ = count
+	i := 0
+	_ = i
+	out := hxrt.StringFromLiteral("")
+	for i < count {
+		value := func(hx_value_11 any) *string {
+			if hx_value_11 == nil {
+				var hx_zero_12 *string
+				return hx_zero_12
+			}
+			return hx_value_11.(*string)
+		}(values.pop())
+		if hxrt.StringEqualStringPtr(value, nil) {
+			break
+		}
+		entry := value
+		if i == index {
+			out = entry
+		}
+		values.add(entry)
+		i = int(int32((i + 1)))
+	}
+	return out
+}
+
+func InteractiveCli_loadState(app *app__TodoApp) {
+	hx_try_return_13 := false
+	hxrt.TryCatch(func() {
+		raw := sys__io__File_getContent(hxrt.StringFromLiteral(".tui_todo_state.txt"))
+		if hxrt.StringEqualStringPtr(raw, hxrt.StringFromLiteral("")) {
+			hx_try_return_13 = true
+			return
+		}
+		lines := InteractiveCli_splitRaw(raw, 10)
+		count := lines.length
+		_ = count
+		i := 0
+		for i < count {
+			lineValue := func(hx_value_16 any) *string {
+				if hx_value_16 == nil {
+					var hx_zero_17 *string
+					return hx_zero_17
+				}
+				return hx_value_16.(*string)
+			}(lines.pop())
+			if hxrt.StringEqualStringPtr(lineValue, nil) {
+				break
+			}
+			line := lineValue
+			if hxrt.StringEqualStringPtr(line, hxrt.StringFromLiteral("")) {
+				lines.add(line)
+				i = int(int32((i + 1)))
+				continue
+			}
+			fields := InteractiveCli_splitEscaped(line, 9)
+			title := InteractiveCli_listIndex(fields, 0)
+			_ = title
+			priority := InteractiveCli_parsePositiveInt(InteractiveCli_listIndex(fields, 1))
+			if priority < 0 {
+				priority = 0
+			}
+			done := hxrt.StringEqualStringPtr(InteractiveCli_listIndex(fields, 2), hxrt.StringFromLiteral("1"))
+			_ = done
+			id := app.add(title, priority)
+			if done {
+				app.toggle(id)
+			}
+			tags := InteractiveCli_decodeTags(InteractiveCli_listIndex(fields, 3))
+			tagCount := tags.length
+			_ = tagCount
+			j := 0
+			for j < tagCount {
+				tagValue := func(hx_value_18 any) *string {
+					if hx_value_18 == nil {
+						var hx_zero_19 *string
+						return hx_zero_19
+					}
+					return hx_value_18.(*string)
+				}(tags.pop())
+				if hxrt.StringEqualStringPtr(tagValue, nil) {
+					break
+				}
+				tag := tagValue
+				app.tag(id, tag)
+				tags.add(tag)
+				j = int(int32((j + 1)))
+			}
+			lines.add(line)
+			i = int(int32((i + 1)))
+		}
+	}, func(hx_caught_14 any) {
+		hx_tmp := hx_caught_14
+		_ = hx_tmp
+		hx_try_return_13 = true
+		return
+	})
+	if hx_try_return_13 {
+		return
+	}
+}
+
+func InteractiveCli_parsePositiveInt(raw *string) int {
+	if hxrt.StringEqualStringPtr(raw, hxrt.StringFromLiteral("")) {
+		return -1
+	}
+	bytes := haxe__io__Bytes_ofString(raw)
+	_ = bytes
+	value := 0
+	_ = value
+	i := 0
+	for i < bytes.length {
+		code := bytes.b[i]
+		if (code < 48) || (code > 57) {
+			return -1
+		}
+		value = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(10))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48))))))))
+		i = int(int32((i + 1)))
+	}
+	return value
+}
+
+func InteractiveCli_printHelp(runtime profile__TodoRuntime) {
+	hxrt.Println(hxrt.StringFromLiteral("commands:"))
+	hxrt.Println(hxrt.StringFromLiteral("  help"))
+	hxrt.Println(hxrt.StringFromLiteral("  reset"))
+	hxrt.Println(hxrt.StringFromLiteral("  list"))
+	hxrt.Println(hxrt.StringFromLiteral("  summary"))
+	hxrt.Println(hxrt.StringFromLiteral("  diag"))
+	hxrt.Println(hxrt.StringFromLiteral("  add <priority> <title_token>"))
+	hxrt.Println(hxrt.StringFromLiteral("  toggle <id>"))
+	hxrt.Println(hxrt.StringFromLiteral("  tag <id> <tag_token>"))
+	if runtime.supportsBatchAdd() {
+		hxrt.Println(hxrt.StringFromLiteral("  batch <priority> <title1_token> <title2_token>"))
+	}
+	hxrt.Println(hxrt.StringFromLiteral("token note: use '_' instead of spaces (example: Wire_release_artifacts)"))
+	hxrt.Println(hxrt.StringFromLiteral("state file: .tui_todo_state.txt (current directory)"))
+}
+
+func InteractiveCli_printUsage(runtime profile__TodoRuntime) {
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("tui_todo command session ("), runtime.profileId()), hxrt.StringFromLiteral(")")))
+	hxrt.Println(hxrt.StringFromLiteral("run scripted contract mode with: --scripted"))
+	hxrt.Println(hxrt.StringFromLiteral("commands:"))
+	hxrt.Println(hxrt.StringFromLiteral("  tui_todo reset"))
+	hxrt.Println(hxrt.StringFromLiteral("  tui_todo help"))
+	hxrt.Println(hxrt.StringFromLiteral("  tui_todo add 2 Write_profile_docs tag 1 docs list"))
+	if runtime.supportsBatchAdd() {
+		hxrt.Println(hxrt.StringFromLiteral("  tui_todo batch 3 Ship_generated_go_sync Add_binary_matrix list"))
+	}
+	hxrt.Println(hxrt.StringFromLiteral("generated-source invocation:"))
+	hxrt.Println(hxrt.StringFromLiteral("  go run . <command...>"))
+	hxrt.Println(hxrt.StringFromLiteral("state file: .tui_todo_state.txt (current directory)"))
+}
+
+func InteractiveCli_run(runtime profile__TodoRuntime) {
+	app := New_app__TodoApp(runtime)
+	InteractiveCli_loadState(app)
+	args := Sys_args()
+	if len(args) == 0 {
+		InteractiveCli_printUsage(runtime)
+		return
+	}
+	i := 0
+	for i < len(args) {
+		cmd := args[i]
+		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("reset")) {
+			app = New_app__TodoApp(runtime)
+			InteractiveCli_clearState()
+			hxrt.Println(hxrt.StringFromLiteral("ok reset"))
+			i = int(int32((i + 1)))
+			continue
+		}
+		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("help")) {
+			InteractiveCli_printHelp(runtime)
+			i = int(int32((i + 1)))
+			continue
+		}
+		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("list")) {
+			hxrt.Println(app.render())
+			i = int(int32((i + 1)))
+			continue
+		}
+		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("summary")) {
+			hxrt.Println(app.baselineSignature())
+			i = int(int32((i + 1)))
+			continue
+		}
+		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("diag")) {
+			hxrt.Println(app.diagnostics())
+			i = int(int32((i + 1)))
+			continue
+		}
+		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("add")) {
+			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))) >= len(args) {
+				InteractiveCli_failUsage(hxrt.StringFromLiteral("add requires <priority> <title_token>"))
+				return
+			}
+			priority := InteractiveCli_parsePositiveInt(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))])
+			if priority < 0 {
+				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid priority: "), args[int(int32((hxrt.Int32Wrap(i)+hxrt.Int32Wrap(1))))]))
+				return
+			}
+			title := InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))])
+			app.add(title, priority)
+			InteractiveCli_saveState(app)
+			hxrt.Println(hxrt.StringFromLiteral("ok add"))
+			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))
+			continue
+		}
+		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("toggle")) {
+			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))) >= len(args) {
+				InteractiveCli_failUsage(hxrt.StringFromLiteral("toggle requires <id>"))
+				return
+			}
+			id := InteractiveCli_parsePositiveInt(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))])
+			if id < 0 {
+				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid id: "), args[int(int32((hxrt.Int32Wrap(i)+hxrt.Int32Wrap(1))))]))
+				return
+			}
+			if app.toggle(id) {
+				InteractiveCli_saveState(app)
+				hxrt.Println(hxrt.StringFromLiteral("ok toggle"))
+			} else {
+				hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id))
+			}
+			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))
+			continue
+		}
+		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("tag")) {
+			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))) >= len(args) {
+				InteractiveCli_failUsage(hxrt.StringFromLiteral("tag requires <id> <tag_token>"))
+				return
+			}
+			id_1 := InteractiveCli_parsePositiveInt(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))])
+			if id_1 < 0 {
+				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid id: "), args[int(int32((hxrt.Int32Wrap(i)+hxrt.Int32Wrap(1))))]))
+				return
+			}
+			tag := InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))])
+			if app.tag(id_1, tag) {
+				InteractiveCli_saveState(app)
+				hxrt.Println(hxrt.StringFromLiteral("ok tag"))
+			} else {
+				hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id_1))
+			}
+			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))
+			continue
+		}
+		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("batch")) {
+			if !runtime.supportsBatchAdd() {
+				hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("batch not supported in "), runtime.profileId()))
+				i = int(int32((i + 1)))
+				continue
+			}
+			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))) >= len(args) {
+				InteractiveCli_failUsage(hxrt.StringFromLiteral("batch requires <priority> <title1_token> <title2_token>"))
+				return
+			}
+			priority_1 := InteractiveCli_parsePositiveInt(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))])
+			if priority_1 < 0 {
+				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid priority: "), args[int(int32((hxrt.Int32Wrap(i)+hxrt.Int32Wrap(1))))]))
+				return
+			}
+			titles := New_haxe__ds__List()
+			titles.add(InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))]))
+			titles.add(InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))]))
+			added := app.addMany(titles, priority_1)
+			if added > 0 {
+				InteractiveCli_saveState(app)
+			}
+			hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok batch added="), added))
+			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(4))))
+			continue
+		}
+		InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("unknown command: "), cmd))
+		return
+	}
+}
+
+func InteractiveCli_saveState(app *app__TodoApp) {
+	items := app.items()
+	_ = items
+	out := hxrt.StringFromLiteral("")
+	_ = out
+	count := items.length
+	_ = count
+	i := 0
+	for i < count {
+		raw := func(hx_value_20 any) *model__TodoItem {
+			if hx_value_20 == nil {
+				var hx_zero_21 *model__TodoItem
+				return hx_zero_21
+			}
+			return hx_value_20.(*model__TodoItem)
+		}(items.pop())
+		if raw == nil {
+			break
+		}
+		item := raw
+		out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(InteractiveCli_encodeField(item.title), hxrt.StringFromLiteral("\t")), item.priority), hxrt.StringFromLiteral("\t")), func() *string {
+			var hx_if_22 *string
+			if item.done {
+				hx_if_22 = hxrt.StringFromLiteral("1")
+			} else {
+				hx_if_22 = hxrt.StringFromLiteral("0")
+			}
+			return hx_if_22
+		}()), hxrt.StringFromLiteral("\t")), InteractiveCli_encodeTags(item.tags)), hxrt.StringFromLiteral("\n")))
+		items.add(item)
+		i = int(int32((i + 1)))
+	}
+	sys__io__File_saveContent(hxrt.StringFromLiteral(".tui_todo_state.txt"), out)
+}
+
+func InteractiveCli_splitEscaped(raw *string, separatorCode int) *haxe__ds__List {
+	out := New_haxe__ds__List()
+	_ = out
+	current := New_haxe__io__BytesBuffer()
+	_ = current
+	bytes := haxe__io__Bytes_ofString(raw)
+	_ = bytes
+	escaped := false
+	_ = escaped
+	i := 0
+	for i < bytes.length {
+		code := bytes.b[i]
+		if escaped {
+			if code == 116 {
+				current.b = append(current.b, (9 & 255))
+			} else {
+				if code == 110 {
+					current.b = append(current.b, (10 & 255))
+				} else {
+					if code == 99 {
+						current.b = append(current.b, (44 & 255))
+					} else {
+						if code == 92 {
+							current.b = append(current.b, (92 & 255))
+						} else {
+							current.b = append(current.b, (code & 255))
+						}
+					}
+				}
+			}
+			escaped = false
+			i = int(int32((i + 1)))
+			continue
+		}
+		if code == 92 {
+			escaped = true
+			i = int(int32((i + 1)))
+			continue
+		}
+		if code == separatorCode {
+			out.add(current.getBytes().toString())
+			current = New_haxe__io__BytesBuffer()
+			i = int(int32((i + 1)))
+			continue
+		}
+		current.b = append(current.b, (code & 255))
+		i = int(int32((i + 1)))
+	}
+	out.add(current.getBytes().toString())
+	return out
+}
+
+func InteractiveCli_splitRaw(raw *string, separatorCode int) *haxe__ds__List {
+	out := New_haxe__ds__List()
+	_ = out
+	current := New_haxe__io__BytesBuffer()
+	_ = current
+	bytes := haxe__io__Bytes_ofString(raw)
+	_ = bytes
+	i := 0
+	for i < bytes.length {
+		code := bytes.b[i]
+		if code == separatorCode {
+			out.add(current.getBytes().toString())
+			current = New_haxe__io__BytesBuffer()
+		} else {
+			if code != 13 {
+				current.b = append(current.b, (code & 255))
+			}
+		}
+		i = int(int32((i + 1)))
+	}
+	out.add(current.getBytes().toString())
+	return out
+}

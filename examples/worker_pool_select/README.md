@@ -1,6 +1,6 @@
 # worker_pool_select
 
-Deterministic worker-pool and select-style channel example across `portable`, `gopher`, and `metal`.
+Deterministic worker-pool and select-style channel example across `portable` and `metal`.
 
 ## What it demonstrates
 
@@ -13,7 +13,6 @@ Deterministic worker-pool and select-style channel example across `portable`, `g
 
 ```bash
 haxe compile.portable.hxml
-haxe compile.gopher.hxml
 haxe compile.metal.hxml
 ```
 
@@ -21,7 +20,6 @@ haxe compile.metal.hxml
 
 ```bash
 (cd out_portable && go run .)
-(cd out_gopher && go run .)
 (cd out_metal && go run .)
 ```
 

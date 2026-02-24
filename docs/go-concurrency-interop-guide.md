@@ -18,7 +18,7 @@ Core pattern:
 Why this is recommended:
 
 - Maps to real goroutine/channel/select behavior in generated Go output.
-- Still runs in `portable`/`gopher`/`metal` profile matrix from one codebase.
+- Still runs in `portable`/`metal` profile matrix from one codebase.
 
 ## 2) Typed interop externs
 
@@ -48,7 +48,7 @@ Use `metal` when you need typed low-level lanes that are already contract-covere
 
 Promotion rule:
 
-1. Keep semantic baseline in `portable`/`gopher`.
+1. Keep semantic baseline in `portable`.
 2. Move hot paths to `metal` only with benchmark evidence.
 3. Keep strict boundary enforcement enabled (`reflaxe_go_strict`).
 

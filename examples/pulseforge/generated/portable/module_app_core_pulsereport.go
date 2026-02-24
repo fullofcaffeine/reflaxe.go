@@ -31,5 +31,5 @@ func New_app__core__PulseReport(profile *string, variant *string, capability *st
 }
 
 func (self *app__core__PulseReport) lines() []*string {
-	return []*string{hxrt.StringConcatAny(hxrt.StringFromLiteral("pulseforge.profile="), self.profile), hxrt.StringConcatAny(hxrt.StringFromLiteral("pulseforge.variant="), self.variant), hxrt.StringConcatAny(hxrt.StringFromLiteral("runtime.capability="), self.capability), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingest.events="), self.ingestCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("pipeline.total="), self.totalValue), hxrt.StringConcatAny(hxrt.StringFromLiteral("pipeline.alerts="), self.alertCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("runtime.score="), self.runtimeScore)}
+	return []*string{hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pulseforge.profile="), self.profile), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pulseforge.variant="), self.variant), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("runtime.capability="), self.capability), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingest.events="), self.ingestCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("pipeline.total="), self.totalValue), hxrt.StringConcatAny(hxrt.StringFromLiteral("pipeline.alerts="), self.alertCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("runtime.score="), self.runtimeScore)}
 }

@@ -841,7 +841,7 @@ printf "id\tcase\tprofile\tkind\tbinary_bytes\tstripped_bytes\tstartup_avg_ms\ts
 
 log "collecting metrics (results: $(display_path "$results_dir"))"
 
-declare -a profiles=(portable gopher metal)
+declare -a profiles=(portable metal)
 
 hello_src="$work_dir/haxe_cases/hello"
 write_haxe_hello_case "$hello_src"
@@ -1159,7 +1159,7 @@ const selectWork = Number(process.env.GO_PERF_SELECT_WORK || "40000");
 const haxeVersion = process.env.GO_PERF_HAXE_VERSION || "";
 const goVersion = process.env.GO_PERF_GO_VERSION || "";
 
-const profiles = ["portable", "gopher", "metal"];
+const profiles = ["portable", "metal"];
 
 function parseMetrics(tsvPath) {
   const raw = fs.readFileSync(tsvPath, "utf8").trim();

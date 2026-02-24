@@ -9,13 +9,12 @@ Minimal typed-interop reference example for reflaxe.go.
 - `@:go.receiver` lowering for static receiver-style calls.
 - Interface-returning package APIs (`context.Background(): context.Context`).
 - `net/http` static API interop (`http.StatusText(200)`).
-- One Haxe codebase compiled across `portable`, `gopher`, and `metal`.
+- One Haxe codebase compiled across `portable` and `metal`.
 
 ## Compile
 
 ```bash
 haxe compile.portable.hxml
-haxe compile.gopher.hxml
 haxe compile.metal.hxml
 ```
 
@@ -23,7 +22,6 @@ haxe compile.metal.hxml
 
 ```bash
 (cd out_portable && go run .)
-(cd out_gopher && go run .)
 (cd out_metal && go run .)
 ```
 

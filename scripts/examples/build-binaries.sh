@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DIST_DIR="${DIST_DIR:-$ROOT/dist/examples}"
 TARGETS=("linux/amd64" "linux/arm64" "darwin/arm64" "windows/amd64")
-PROFILES=("portable" "gopher" "metal")
+PROFILES=("portable" "metal")
 
 mkdir -p "$DIST_DIR"
 

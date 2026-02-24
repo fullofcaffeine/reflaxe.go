@@ -24,19 +24,19 @@
 
 ## Profiles
 
-- `reflaxe_go_profile=portable|gopher|metal`
+- `reflaxe_go_profile=portable|metal`
   - Main profile selector.
 - `reflaxe_go_portable`
   - Alias selector for portable.
-- `reflaxe_go_gopher`
-  - Alias selector for gopher.
 - `reflaxe_go_metal`
   - Alias selector for metal.
 
 Removed:
 
-- `reflaxe_go_profile=idiomatic` -> compile error, use `gopher`.
-- `reflaxe_go_idiomatic` -> compile error, use `reflaxe_go_profile=gopher`.
+- `reflaxe_go_profile=gopher` -> compile error, use `portable`.
+- `reflaxe_go_gopher` -> compile error, use `reflaxe_go_profile=portable`.
+- `reflaxe_go_profile=idiomatic` -> compile error, use `portable`.
+- `reflaxe_go_idiomatic` -> compile error, use `reflaxe_go_profile=portable`.
 
 ## IO encoding
 
@@ -44,6 +44,19 @@ Removed:
   - Controls `haxe.io.Encoding.RawNative` conversion strategy in generated IO/Bytes shims.
   - `interp` (default): match Haxe `--interp` behavior (RawNative treated like UTF-8 conversion path).
   - `utf16le`: opt-in compatibility mode that encodes/decodes RawNative as UTF-16LE bytes (useful when aligning with Java/C#-style RawNative expectations).
+
+## Runtime slicing
+
+- `reflaxe_go_hxrt_default_features`
+  - Force legacy full runtime copy (`runtime/hxrt/**`) into output.
+  - Takes precedence over selective runtime defines.
+- `reflaxe_go_hxrt_features=<csv>`
+  - Enable selective runtime mode and add manual feature names (for example `core,string,sys`).
+  - Unknown feature names fail compilation.
+  - Empty value is allowed (`-D reflaxe_go_hxrt_features=`) and means "manual list empty; use inference unless disabled."
+- `reflaxe_go_hxrt_no_feature_infer`
+  - Enable selective runtime mode and disable inferred features from compiler analysis.
+  - Resulting runtime set is `core` plus any manual `reflaxe_go_hxrt_features`.
 
 ## Strictness
 

@@ -13,9 +13,9 @@ Both must be usable and runnable, not design-only artifacts.
 
 Each app must ship with:
 
-- `app/` Haxe source that compiles in `portable`, `gopher`, and `metal`.
-- `compile.portable.hxml`, `compile.gopher.hxml`, `compile.metal.hxml`.
-- `compile.portable.ci.hxml`, `compile.gopher.ci.hxml`, `compile.metal.ci.hxml`.
+- `app/` Haxe source that compiles in `portable` and `metal`.
+- `compile.portable.hxml`, `compile.metal.hxml`.
+- `compile.portable.ci.hxml`, `compile.metal.ci.hxml`.
 - deterministic scripted mode used by CI (`expected/<profile>.stdout`).
 - interactive mode for local demo.
 - generated Go trees committed under `generated/<profile>/`.
@@ -29,11 +29,11 @@ This keeps both examples visible in `python3 test/run-examples.py` and prevents 
 Use one shared codebase per app, with explicit runtime variants instead of separate forks:
 
 - `core` variant:
-  - must run on all profiles (`portable`, `gopher`, `metal`)
+  - must run on all profiles (`portable`, `metal`)
   - profile differences should be mostly code-shape/perf, not feature removals
 - `go_native` variant:
   - still one codebase, but enables Go-first lanes through typed adapters
-  - can expose additional capability in `gopher`/`metal` (for example richer concurrency or interop paths)
+  - can expose additional capability in `metal` (for example richer concurrency or interop paths)
 
 Implementation mechanism:
 
@@ -51,7 +51,6 @@ Use one shared app core and profile runtime adapters:
 - Isolate profile-sensitive behavior behind a small runtime adapter layer.
 - Document behavior contracts explicitly:
   - `portable`: semantics-first fallback paths.
-  - `gopher`: same contract, safer Go-first optimizations.
   - `metal`: typed low-level interop/perf lane.
 
 For each app README, include:
@@ -106,7 +105,6 @@ Benchmark both apps with the same workload generator and data:
 - variants:
   - pure Go baseline
   - Haxe->Go `portable`
-  - Haxe->Go `gopher`
   - Haxe->Go `metal`
 - metrics:
   - throughput (events or requests/sec)

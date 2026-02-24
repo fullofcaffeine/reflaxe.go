@@ -4,15 +4,12 @@ import "examples_pulseforge_portable/hxrt"
 
 func main() {
 	var runtime app__runtime__PulseRuntime = app__runtime__RuntimeFactory_create()
-	_ = runtime
 	pipeline := New_app__core__PulsePipeline(runtime)
-	_ = pipeline
-	report := pipeline.__hx_this.run(workload())
+	report := pipeline.run(workload())
 	_ = report
 	_g := 0
 	_ = _g
-	_g1 := report.__hx_this.lines()
-	_ = _g1
+	_g1 := report.lines()
 	for _g < len(_g1) {
 		line := _g1[_g]
 		_ = line

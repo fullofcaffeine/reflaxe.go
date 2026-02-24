@@ -35,7 +35,6 @@ func (self *app__runtime__CoreRuntime) processScore(events []*app__core__PulseEv
 	score := 0
 	_ = score
 	_g := 0
-	_ = _g
 	for _g < len(events) {
 		event := events[_g]
 		_ = event

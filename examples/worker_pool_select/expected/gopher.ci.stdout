@@ -1,5 +1,0 @@
-worker.count=4
-select.trySend=true,false
-select.recvOr=5,99
-select.recv2=right:right
-select.send2=a values=11,-1

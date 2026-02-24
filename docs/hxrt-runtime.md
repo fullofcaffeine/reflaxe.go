@@ -4,11 +4,13 @@
 
 `hxrt` is the Go runtime support package emitted with every `reflaxe.go` build output.
 
-- Source of truth: `runtime/hxrt/hxrt.go`
-- Generated location: `<go_output>/hxrt/hxrt.go`
+- Source of truth: `runtime/hxrt/*.go`
+- Generated location: `<go_output>/hxrt/*.go`
 - Import path in generated code: `<go_module>/hxrt`
 
 `hxrt` is not a separate dependency you install from the network. It is copied into the generated module so output stays self-contained and reproducible.
+
+Selective runtime strategy and profile interaction are documented in `docs/hxrt-selective-runtime.md`.
 
 ## Why `hxrt` is needed
 
@@ -48,7 +50,7 @@ Key implementation points:
 
 - Runtime copy/write: `src/reflaxe/go/GoReflaxeCompiler.hx`
 - Runtime copy helper for iterator flows: `src/reflaxe/go/GoOutputIterator.hx`
-- Runtime source: `runtime/hxrt/hxrt.go`
+- Runtime source: `runtime/hxrt/*.go`
 
 ## What `hxrt` currently does
 

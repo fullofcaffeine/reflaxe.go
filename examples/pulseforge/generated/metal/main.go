@@ -5,11 +5,11 @@ import "examples_pulseforge_metal/hxrt"
 func main() {
 	var runtime app__runtime__PulseRuntime = app__runtime__RuntimeFactory_create()
 	pipeline := New_app__core__PulsePipeline(runtime)
-	report := pipeline.__hx_this.run(workload())
+	report := pipeline.run(workload())
 	_ = report
 	_g := 0
 	_ = _g
-	_g1 := report.__hx_this.lines()
+	_g1 := report.lines()
 	for _g < len(_g1) {
 		line := _g1[_g]
 		_ = line

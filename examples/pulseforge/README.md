@@ -5,7 +5,7 @@ Scaffold for the flagship observability-stream app.
 This milestone intentionally keeps scope small while proving the execution model:
 
 - one shared Haxe codebase
-- all profiles compile (`portable`, `gopher`, `metal`)
+- all profiles compile (`portable`, `metal`)
 - explicit variant plumbing (`core`, `go_native`)
 - deterministic scripted output for CI
 
@@ -15,7 +15,6 @@ Core variant (default compile files):
 
 ```bash
 haxe compile.portable.hxml
-haxe compile.gopher.hxml
 haxe compile.metal.hxml
 ```
 
@@ -23,7 +22,6 @@ Go-native variant (CI compile files):
 
 ```bash
 haxe compile.portable.ci.hxml
-haxe compile.gopher.ci.hxml
 haxe compile.metal.ci.hxml
 ```
 
@@ -31,7 +29,6 @@ haxe compile.metal.ci.hxml
 
 ```bash
 (cd out_portable && go run .)
-(cd out_gopher && go run .)
 (cd out_metal && go run .)
 ```
 

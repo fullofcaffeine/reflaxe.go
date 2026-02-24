@@ -17,7 +17,7 @@ Notes:
 Options:
   --project <path>          Optional. Project directory containing compile*.hxml.
                             Default: current working directory.
-  --profile <name>          Optional. portable|gopher|metal.
+  --profile <name>          Optional. portable|metal.
   --hxml <path>             Optional. Explicit hxml file (relative to --project by default).
   --ci                      Prefer compile*.ci.hxml variants.
   --action <name>           Action: compile|run|build|test|vet|fmt. Default: run.
@@ -30,7 +30,7 @@ Options:
 
 Examples:
   bash scripts/dev/go-hx.sh --project examples/tui_todo --profile portable --action run
-  bash scripts/dev/go-hx.sh --project examples/profile_storyboard --profile gopher --ci --action test
+  bash scripts/dev/go-hx.sh --project examples/profile_storyboard --profile portable --ci --action test
   bash scripts/dev/go-hx.sh --project ./my_haxe_go_app --action build --binary bin/my_hx_app
 USAGE
 }
@@ -210,8 +210,8 @@ esac
 
 if [[ -n "$profile" ]]; then
   case "$profile" in
-    portable|gopher|metal) ;;
-    *) fail "invalid --profile '$profile' (expected: portable, gopher, or metal)" ;;
+    portable|metal) ;;
+    *) fail "invalid --profile '$profile' (expected: portable or metal)" ;;
   esac
 fi
 
@@ -243,7 +243,6 @@ else
       candidates+=(
         "compile.ci.hxml"
         "compile.portable.ci.hxml"
-        "compile.gopher.ci.hxml"
         "compile.metal.ci.hxml"
       )
     fi
@@ -256,7 +255,7 @@ else
   fi
 
   if [[ -z "$profile" ]]; then
-    candidates+=("compile.portable.hxml" "compile.gopher.hxml" "compile.metal.hxml")
+    candidates+=("compile.portable.hxml" "compile.metal.hxml")
   fi
 
   for candidate in "${candidates[@]}"; do

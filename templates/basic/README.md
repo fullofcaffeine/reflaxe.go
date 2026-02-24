@@ -42,12 +42,6 @@ Portable profile:
 npm run hx:run
 ```
 
-Go-first profile:
-
-```bash
-npm run hx:run:gopher
-```
-
 Metal profile:
 
 ```bash
@@ -58,11 +52,10 @@ Build binaries:
 
 ```bash
 npm run hx:build
-npm run hx:build:gopher
 npm run hx:build:metal
 ```
 
 Output locations:
 
-- `out`, `out_gopher`, `out_metal` for generated Go modules
+- `out`, `out_metal` for generated Go modules
 - `bin/hx_app*` for compiled binaries

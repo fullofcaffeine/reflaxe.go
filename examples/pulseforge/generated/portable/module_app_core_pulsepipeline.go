@@ -24,7 +24,6 @@ func (self *app__core__PulsePipeline) run(events []*app__core__PulseEvent) *app_
 	totalValue := 0
 	_ = totalValue
 	_g := 0
-	_ = _g
 	for _g < len(events) {
 		event := events[_g]
 		_ = event
@@ -35,6 +34,5 @@ func (self *app__core__PulsePipeline) run(events []*app__core__PulseEvent) *app_
 		}
 	}
 	runtimeScore := self.runtime.processScore(events)
-	_ = runtimeScore
 	return New_app__core__PulseReport(self.runtime.profileId(), self.runtime.variantId(), self.runtime.capabilityId(), len(events), totalValue, alertCount, runtimeScore)
 }

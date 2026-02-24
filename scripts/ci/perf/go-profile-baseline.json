@@ -33,11 +33,6 @@
         "strippedRatio": 1.0147390621934471,
         "startupRatio": 1.223214484215579
       },
-      "gopher": {
-        "binaryRatio": 1.015263480130423,
-        "strippedRatio": 1.0147355587320273,
-        "startupRatio": 1.3482143168048497
-      },
       "metal": {
         "binaryRatio": 1.015263480130423,
         "strippedRatio": 1.0147355587320273,
@@ -49,11 +44,6 @@
         "binaryRatio": 1.015263480130423,
         "strippedRatio": 1.0147390621934471,
         "startupRatio": 1
-      },
-      "gopher": {
-        "binaryRatio": 1.015263480130423,
-        "strippedRatio": 1.0147355587320273,
-        "startupRatio": 1.099099189189189
       },
       "metal": {
         "binaryRatio": 1.015263480130423,
@@ -67,11 +57,6 @@
         "strippedRatio": 1.0147390621934471,
         "startupRatio": 0.9365080000000001
       },
-      "gopher": {
-        "binaryRatio": 1.015263480130423,
-        "strippedRatio": 1.0147390621934471,
-        "startupRatio": 1.0317460952380952
-      },
       "metal": {
         "binaryRatio": 1.015263480130423,
         "strippedRatio": 1.0147355587320273,
@@ -83,11 +68,6 @@
         "binaryRatio": 1.0587958903180255,
         "strippedRatio": 1.058588385324701,
         "startupRatio": 1.5999999999999999
-      },
-      "gopher": {
-        "binaryRatio": 1.0587958903180255,
-        "strippedRatio": 1.058588385324701,
-        "startupRatio": 1.6833333333333333
       },
       "metal": {
         "binaryRatio": 1.015518094812142,
@@ -101,11 +81,6 @@
         "strippedRatio": 1.014836483385591,
         "startupRatio": 2.907407407407407
       },
-      "gopher": {
-        "binaryRatio": 1.015423565996129,
-        "strippedRatio": 1.014836483385591,
-        "startupRatio": 2.9814814814814814
-      },
       "metal": {
         "binaryRatio": 1.0154369661403482,
         "strippedRatio": 1.0148294767818669,
@@ -117,11 +92,6 @@
         "binaryRatio": 1.0154175890167267,
         "strippedRatio": 1.0148231452675243,
         "startupRatio": 0.9113924050632911
-      },
-      "gopher": {
-        "binaryRatio": 1.0154175890167267,
-        "strippedRatio": 1.0148231452675243,
-        "startupRatio": 1.1392405063291138
       },
       "metal": {
         "binaryRatio": 1.0153572855394775,
@@ -135,11 +105,6 @@
         "strippedRatio": 1.0147390621934471,
         "startupRatio": 1.7251908396946565
       },
-      "gopher": {
-        "binaryRatio": 1.0152969820622282,
-        "strippedRatio": 1.0147390621934471,
-        "startupRatio": 1.083969465648855
-      },
       "metal": {
         "binaryRatio": 1.0152969820622282,
         "strippedRatio": 1.0147355587320273,
@@ -151,11 +116,6 @@
         "binaryRatio": 1.0153022470150486,
         "strippedRatio": 1.0147734757080198,
         "startupRatio": 0.8301886792452832
-      },
-      "gopher": {
-        "binaryRatio": 1.0153022470150486,
-        "strippedRatio": 1.0147734757080198,
-        "startupRatio": 1.0377358490566038
       },
       "metal": {
         "binaryRatio": 1.0153022470150486,
@@ -169,11 +129,6 @@
         "strippedRatio": 1.043607542478243,
         "startupRatio": 2.9275362318840576
       },
-      "gopher": {
-        "binaryRatio": 1.044678339579501,
-        "strippedRatio": 1.043607542478243,
-        "startupRatio": 3.072463768115942
-      },
       "metal": {
         "binaryRatio": 1.0087691401600352,
         "strippedRatio": 1.0076737118386518,
@@ -184,11 +139,6 @@
       "portable": {
         "binaryRatio": 1,
         "strippedRatio": 1,
-        "startupRatio": 1
-      },
-      "gopher": {
-        "binaryRatio": 1.006722958625492,
-        "strippedRatio": 1.0070727561818082,
         "startupRatio": 1
       },
       "metal": {

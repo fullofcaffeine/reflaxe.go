@@ -1,0 +1,1 @@
+`-D reflaxe_go_gopher` has been removed. Use `-D reflaxe_go_profile=portable` or `-D reflaxe_go_profile=metal`.

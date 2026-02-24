@@ -141,10 +141,9 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 
 | Surface | Status | Evidence (snapshot IDs) |
 | --- | --- | --- |
-| `portable` dispatch path preserved | Supported | `core/portable_leaf_virtual_dispatch`, `core/portable_leaf_virtual_alias_dispatch`, `core/portable_leaf_virtual_inline_ctor_dispatch`, `core/portable_leaf_virtual_function_return_dispatch` |
-| `gopher` safe devirtualization path | Supported | `core/gopher_leaf_virtual_devirtualization`, `core/gopher_leaf_virtual_alias_devirtualization`, `core/gopher_leaf_virtual_inline_ctor_devirtualization`, `core/gopher_leaf_virtual_function_return_devirtualization`, `core/gopher_non_leaf_virtual_dispatch_preserved` |
-| `gopher` string helper optimizations | Supported | `core/gopher_string_ptr_helpers`, `core/gopher_string_literal_folding`, `core/portable_string_literal_no_folding` |
-| Profile policy enforcement and removed aliases | Supported | `negative/profile_conflict`, `negative/profile_invalid`, `negative/profile_removed_idiomatic`, `negative/profile_removed_idiomatic_alias` |
+| `portable` safe devirtualization path | Supported | `core/portable_leaf_virtual_devirtualization`, `core/portable_leaf_virtual_alias_devirtualization`, `core/portable_leaf_virtual_inline_ctor_devirtualization`, `core/portable_leaf_virtual_function_return_devirtualization`, `core/portable_non_leaf_virtual_dispatch_preserved` |
+| `portable` string helper optimizations | Supported | `core/portable_string_ptr_helpers`, `core/portable_string_literal_folding` |
+| Profile policy enforcement and removed aliases | Supported | `negative/profile_conflict`, `negative/profile_invalid`, `negative/profile_removed_gopher`, `negative/profile_removed_gopher_alias`, `negative/profile_removed_idiomatic`, `negative/profile_removed_idiomatic_alias` |
 | Strict examples/app boundary policy | Supported | `negative/strict_examples_injection`, `negative/strict_mode_injection`, `negative/metal_profile_injection` |
 | RawNative encoding policy define (`reflaxe_go_raw_native_mode`) | Supported | `core/raw_native_utf16_mode`, `negative/raw_native_mode_invalid` |
 
@@ -363,7 +362,7 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-3d4`: reduce unsupported expression surface by lowering `TTypeExpr` class/enum value nodes.
 - `haxe.go-8zt`: lower `TThrow` in expression positions and lock with semantic diff coverage.
 - `haxe.go-888`: promote `sys.FileSystem` with deterministic snapshot + semantic parity contracts.
-- `haxe.go-uz4.10`: enable typed `go.Chan<T>` recv/recvOr assertions in `portable`/`gopher`.
+- `haxe.go-uz4.10`: enable typed `go.Chan<T>` recv/recvOr assertions in `portable`.
 - `haxe.go-6fc`: completed `haxe.ds` map/list core-ops semantic parity coverage and `List.push` parity alignment.
 - `haxe.go-rlj`: completed nil-safe typed-read null semantics for `haxe.ds` map/list generic call results.
 - `haxe.go-aiy`: add `haxe.io.Encoding` constructor parity and `Bytes.getString` coverage (`io_encoding_contract`).

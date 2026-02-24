@@ -17,7 +17,7 @@ func main() {
 	var ctx context.Context = context.Background()
 	_ = ctx
 	statusOk := hxrt.StringEqualStringPtr(hxrt.StdString(http.StatusText(200)), hxrt.StringFromLiteral("OK"))
-	ok := ((((unixDirect == unixReceiver) && (unixDirect > 0)) && !hxrt.StringEqualAny(ctx, nil)) && statusOk)
+	ok := ((((unixDirect == unixReceiver) && (unixDirect > 0)) && (ctx != nil)) && statusOk)
 	fmt.Println(func() int {
 		var hx_if_1 int
 		if ok {

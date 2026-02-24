@@ -1,7 +1,0 @@
-pulseforge.profile=gopher
-pulseforge.variant=core
-runtime.capability=core_loop
-ingest.events=6
-pipeline.total=41
-pipeline.alerts=2
-runtime.score=47
