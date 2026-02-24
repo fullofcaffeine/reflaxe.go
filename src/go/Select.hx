@@ -23,6 +23,11 @@ enum SelectSend2 {
 }
 
 class Select {
+	/**
+		`@:generic` forces per-type specialization so `go.Chan<T>` operations stay typed at call sites.
+		This helps metal output keep typed channel shim paths instead of collapsing into broader `any` fallback lanes.
+	**/
+	@:generic
 	public static function recv<T>(channel:Chan<T>):SelectRecv<T> {
 		var received = channel.tryRecv();
 		if (received.isOk()) {
@@ -31,6 +36,7 @@ class Select {
 		return Defaulted;
 	}
 
+	@:generic
 	public static function recv2<A, B>(first:Chan<A>, second:Chan<B>):SelectRecv2<A, B> {
 		var firstRecv = first.tryRecv();
 		if (firstRecv.isOk()) {
@@ -45,6 +51,7 @@ class Select {
 		return Defaulted;
 	}
 
+	@:generic
 	public static function send<T>(channel:Chan<T>, value:T):SelectSend {
 		if (channel.trySend(value)) {
 			return Sent;
@@ -52,6 +59,7 @@ class Select {
 		return Defaulted;
 	}
 
+	@:generic
 	public static function send2<A, B>(first:Chan<A>, firstValue:A, second:Chan<B>, secondValue:B):SelectSend2 {
 		if (first.trySend(firstValue)) {
 			return FirstSent;

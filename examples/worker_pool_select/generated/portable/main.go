@@ -68,7 +68,7 @@ func main() {
 	}
 	selectGate := go___Go_newChan(1)
 	_ = selectGate
-	_g_3 := go___Select_send(selectGate, 5)
+	_g_3 := go___Select_send_Int(selectGate, 5)
 	_ = _g_3
 	var hx_switch_5 bool
 	switch _g_3.tag {
@@ -79,7 +79,7 @@ func main() {
 	}
 	firstTry := hx_switch_5
 	_ = firstTry
-	_g_4 := go___Select_send(selectGate, 6)
+	_g_4 := go___Select_send_Int(selectGate, 6)
 	_ = _g_4
 	var hx_switch_6 bool
 	switch _g_4.tag {
@@ -90,7 +90,7 @@ func main() {
 	}
 	secondTry := hx_switch_6
 	_ = secondTry
-	_g_5 := go___Select_recv(selectGate)
+	_g_5 := go___Select_recv_Int(selectGate)
 	_ = _g_5
 	var hx_switch_7 int
 	switch _g_5.tag {
@@ -105,7 +105,7 @@ func main() {
 	}
 	firstRecv := hx_switch_7
 	_ = firstRecv
-	_g_7 := go___Select_recv(selectGate)
+	_g_7 := go___Select_recv_Int(selectGate)
 	_ = _g_7
 	var hx_switch_8 int
 	switch _g_7.tag {
@@ -125,7 +125,7 @@ func main() {
 	right := go___Go_newChan(1)
 	_ = right
 	right.__hx_this.send(hxrt.StringFromLiteral("right"))
-	_g_9 := go___Select_recv2(left, right)
+	_g_9 := go___Select_recv2_String_String(left, right)
 	_ = _g_9
 	var hx_switch_9 *string
 	switch _g_9.tag {
@@ -150,7 +150,7 @@ func main() {
 	_ = send2a
 	send2b := go___Go_newChan(1)
 	_ = send2b
-	_g_12 := go___Select_send2(send2a, 11, send2b, 22)
+	_g_12 := go___Select_send2_Int_Int(send2a, 11, send2b, 22)
 	_ = _g_12
 	var hx_switch_10 *string
 	switch _g_12.tag {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"examples_worker_pool_select_metal/hxrt"
 	"reflect"
 )
@@ -55,7 +56,7 @@ func main() {
 		received = int(int32((received + 1)))
 	}
 	selectGate := go__concurrency_newChan__int_95e97e5e(1)
-	_g_3 := go___Select_send(selectGate, 5)
+	_g_3 := go___Select_send_Int(selectGate, 5)
 	_ = _g_3
 	var hx_switch_3 bool
 	switch _g_3.tag {
@@ -66,7 +67,7 @@ func main() {
 	}
 	firstTry := hx_switch_3
 	_ = firstTry
-	_g_4 := go___Select_send(selectGate, 6)
+	_g_4 := go___Select_send_Int(selectGate, 6)
 	_ = _g_4
 	var hx_switch_4 bool
 	switch _g_4.tag {
@@ -77,7 +78,7 @@ func main() {
 	}
 	secondTry := hx_switch_4
 	_ = secondTry
-	_g_5 := go___Select_recv(selectGate)
+	_g_5 := go___Select_recv_Int(selectGate)
 	_ = _g_5
 	var hx_switch_5 int
 	switch _g_5.tag {
@@ -90,7 +91,7 @@ func main() {
 	}
 	firstRecv := hx_switch_5
 	_ = firstRecv
-	_g_7 := go___Select_recv(selectGate)
+	_g_7 := go___Select_recv_Int(selectGate)
 	_ = _g_7
 	var hx_switch_6 int
 	switch _g_7.tag {
@@ -107,7 +108,7 @@ func main() {
 	_ = left
 	right := go__concurrency_newChan___string_f613ccd0(1)
 	go__concurrency_send___string_f613ccd0(right.__hx_native, hxrt.StringFromLiteral("right"))
-	_g_9 := go___Select_recv2(left, right)
+	_g_9 := go___Select_recv2_String_String(left, right)
 	_ = _g_9
 	var hx_switch_7 *string
 	switch _g_9.tag {
@@ -127,7 +128,7 @@ func main() {
 	send2a := go__concurrency_newChan__int_95e97e5e(1)
 	_ = send2a
 	send2b := go__concurrency_newChan__int_95e97e5e(1)
-	_g_12 := go___Select_send2(send2a, 11, send2b, 22)
+	_g_12 := go___Select_send2_Int_Int(send2a, 11, send2b, 22)
 	_ = _g_12
 	var hx_switch_8 *string
 	switch _g_12.tag {
@@ -539,4 +540,104 @@ func go__concurrency_tryRecv__int_95e97e5e(channel any) *go___Result {
 
 func go__concurrency_close__int_95e97e5e(channel any) {
 	close(channel.(chan int))
+}
+
+func go__result_ok___string_f613ccd0(value *string) *go___Result {
+	return New_go___Result(value, nil)
+}
+
+func go__result_failure___string_f613ccd0(message *string) *go___Result {
+	return New_go___Result(nil, New_go___Error(message))
+}
+
+func go__result_valueError___string_f613ccd0(result *go___Result) (*string, error) {
+	var zero *string
+	if result == nil {
+		return zero, errors.New("nil go.Result")
+	}
+	if result.errorValue != nil {
+		return zero, errors.New(*hxrt.StdString(result.errorValue.message))
+	}
+	if result.value == nil {
+		return zero, nil
+	}
+	return result.value.(*string), nil
+}
+
+func go__result_isOk___string_f613ccd0(result *go___Result) bool {
+	_, err := go__result_valueError___string_f613ccd0(result)
+	return (err == nil)
+}
+
+func go__result_isErr___string_f613ccd0(result *go___Result) bool {
+	_, err := go__result_valueError___string_f613ccd0(result)
+	return (err != nil)
+}
+
+func go__result_unwrap___string_f613ccd0(result *go___Result) *string {
+	value, err := go__result_valueError___string_f613ccd0(result)
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		var zero *string
+		return zero
+	}
+	return value
+}
+
+func go__result_error___string_f613ccd0(result *go___Result) *string {
+	_, err := go__result_valueError___string_f613ccd0(result)
+	if err == nil {
+		return nil
+	}
+	return hxrt.StringFromLiteral(err.Error())
+}
+
+func go__result_ok__int_95e97e5e(value int) *go___Result {
+	return New_go___Result(value, nil)
+}
+
+func go__result_failure__int_95e97e5e(message *string) *go___Result {
+	return New_go___Result(nil, New_go___Error(message))
+}
+
+func go__result_valueError__int_95e97e5e(result *go___Result) (int, error) {
+	var zero int
+	if result == nil {
+		return zero, errors.New("nil go.Result")
+	}
+	if result.errorValue != nil {
+		return zero, errors.New(*hxrt.StdString(result.errorValue.message))
+	}
+	if result.value == nil {
+		return zero, nil
+	}
+	return result.value.(int), nil
+}
+
+func go__result_isOk__int_95e97e5e(result *go___Result) bool {
+	_, err := go__result_valueError__int_95e97e5e(result)
+	return (err == nil)
+}
+
+func go__result_isErr__int_95e97e5e(result *go___Result) bool {
+	_, err := go__result_valueError__int_95e97e5e(result)
+	return (err != nil)
+}
+
+func go__result_unwrap__int_95e97e5e(result *go___Result) int {
+	value, err := go__result_valueError__int_95e97e5e(result)
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		var zero int
+		return zero
+	}
+	return value
+}
+
+func go__result_error__int_95e97e5e(result *go___Result) *string {
+	_, err := go__result_valueError__int_95e97e5e(result)
+	if err == nil {
+		return nil
+	}
+	return hxrt.StringFromLiteral(err.Error())
 }

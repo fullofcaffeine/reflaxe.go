@@ -8,7 +8,7 @@ import (
 func main() {
 	gate := go___Go_newChan(1)
 	_ = gate
-	_g := go___Select_send(gate, 7)
+	_g := go___Select_send_Int(gate, 7)
 	_ = _g
 	var hx_switch_1 *string
 	switch _g.tag {
@@ -19,7 +19,7 @@ func main() {
 	}
 	sendFirst := hx_switch_1
 	_ = sendFirst
-	_g_1 := go___Select_send(gate, 8)
+	_g_1 := go___Select_send_Int(gate, 8)
 	_ = _g_1
 	var hx_switch_2 *string
 	switch _g_1.tag {
@@ -30,7 +30,7 @@ func main() {
 	}
 	sendSecond := hx_switch_2
 	_ = sendSecond
-	_g_2 := go___Select_recv(gate)
+	_g_2 := go___Select_recv_Int(gate)
 	_ = _g_2
 	var hx_switch_3 *string
 	switch _g_2.tag {
@@ -45,7 +45,7 @@ func main() {
 	}
 	recvFirst := hx_switch_3
 	_ = recvFirst
-	_g_4 := go___Select_recv(gate)
+	_g_4 := go___Select_recv_Int(gate)
 	_ = _g_4
 	var hx_switch_4 *string
 	switch _g_4.tag {
@@ -69,7 +69,7 @@ func main() {
 	right := go___Go_newChan(1)
 	_ = right
 	right.__hx_this.send(hxrt.StringFromLiteral("beta"))
-	_g_6 := go___Select_recv2(left, right)
+	_g_6 := go___Select_recv2_String_String(left, right)
 	_ = _g_6
 	var hx_switch_5 *string
 	switch _g_6.tag {
@@ -95,7 +95,7 @@ func main() {
 	_ = sendTwoA
 	sendTwoB := go___Go_newChan(1)
 	_ = sendTwoB
-	_g_9 := go___Select_send2(sendTwoA, 11, sendTwoB, 22)
+	_g_9 := go___Select_send2_Int_Int(sendTwoA, 11, sendTwoB, 22)
 	_ = _g_9
 	var hx_switch_6 *string
 	switch _g_9.tag {

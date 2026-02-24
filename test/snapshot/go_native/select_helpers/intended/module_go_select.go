@@ -52,39 +52,24 @@ var go___SelectSend2_SecondSent *go___SelectSend2 = &go___SelectSend2{tag: 1}
 
 var go___SelectSend2_Defaulted *go___SelectSend2 = &go___SelectSend2{tag: 2}
 
-func go___Select_recv(channel *go___Chan) *go___SelectRecv {
-	received := func(hx_value_12 any) *go___Result {
+func go___Select_recv2_String_String(first *go___Chan, second *go___Chan) *go___SelectRecv2 {
+	firstRecv := func(hx_value_12 any) *go___Result {
 		if hx_value_12 == nil {
 			var hx_zero_13 *go___Result
 			return hx_zero_13
 		}
 		return hx_value_12.(*go___Result)
-	}(channel.__hx_this.tryRecv())
-	_ = received
-	if received.__hx_this.isOk() {
-		return go___SelectRecv_Received(received.__hx_this.unwrap())
-	}
-	return go___SelectRecv_Defaulted
-}
-
-func go___Select_recv2(first *go___Chan, second *go___Chan) *go___SelectRecv2 {
-	firstRecv := func(hx_value_14 any) *go___Result {
-		if hx_value_14 == nil {
-			var hx_zero_15 *go___Result
-			return hx_zero_15
-		}
-		return hx_value_14.(*go___Result)
 	}(first.__hx_this.tryRecv())
 	_ = firstRecv
 	if firstRecv.__hx_this.isOk() {
 		return go___SelectRecv2_First(firstRecv.__hx_this.unwrap())
 	}
-	secondRecv := func(hx_value_16 any) *go___Result {
-		if hx_value_16 == nil {
-			var hx_zero_17 *go___Result
-			return hx_zero_17
+	secondRecv := func(hx_value_14 any) *go___Result {
+		if hx_value_14 == nil {
+			var hx_zero_15 *go___Result
+			return hx_zero_15
 		}
-		return hx_value_16.(*go___Result)
+		return hx_value_14.(*go___Result)
 	}(second.__hx_this.tryRecv())
 	_ = secondRecv
 	if secondRecv.__hx_this.isOk() {
@@ -93,14 +78,22 @@ func go___Select_recv2(first *go___Chan, second *go___Chan) *go___SelectRecv2 {
 	return go___SelectRecv2_Defaulted
 }
 
-func go___Select_send(channel *go___Chan, value any) *go___SelectSend {
-	if channel.__hx_this.trySend(value) {
-		return go___SelectSend_Sent
+func go___Select_recv_Int(channel *go___Chan) *go___SelectRecv {
+	received := func(hx_value_16 any) *go___Result {
+		if hx_value_16 == nil {
+			var hx_zero_17 *go___Result
+			return hx_zero_17
+		}
+		return hx_value_16.(*go___Result)
+	}(channel.__hx_this.tryRecv())
+	_ = received
+	if received.__hx_this.isOk() {
+		return go___SelectRecv_Received(received.__hx_this.unwrap())
 	}
-	return go___SelectSend_Defaulted
+	return go___SelectRecv_Defaulted
 }
 
-func go___Select_send2(first *go___Chan, firstValue any, second *go___Chan, secondValue any) *go___SelectSend2 {
+func go___Select_send2_Int_Int(first *go___Chan, firstValue int, second *go___Chan, secondValue int) *go___SelectSend2 {
 	if first.__hx_this.trySend(firstValue) {
 		return go___SelectSend2_FirstSent
 	}
@@ -108,4 +101,11 @@ func go___Select_send2(first *go___Chan, firstValue any, second *go___Chan, seco
 		return go___SelectSend2_SecondSent
 	}
 	return go___SelectSend2_Defaulted
+}
+
+func go___Select_send_Int(channel *go___Chan, value int) *go___SelectSend {
+	if channel.__hx_this.trySend(value) {
+		return go___SelectSend_Sent
+	}
+	return go___SelectSend_Defaulted
 }
