@@ -7,9 +7,27 @@ func main() {
 	_ = ch
 	ch.__hx_this.send(10)
 	ch.__hx_this.send(20)
-	hxrt.Println(ch.__hx_this.recv())
-	hxrt.Println(ch.__hx_this.recv())
-	hxrt.Println(ch.__hx_this.recv())
+	hxrt.Println(func(hx_value_1 any) int {
+		if hx_value_1 == nil {
+			var hx_zero_2 int
+			return hx_zero_2
+		}
+		return hx_value_1.(int)
+	}(ch.__hx_this.recv()))
+	hxrt.Println(func(hx_value_3 any) int {
+		if hx_value_3 == nil {
+			var hx_zero_4 int
+			return hx_zero_4
+		}
+		return hx_value_3.(int)
+	}(ch.__hx_this.recv()))
+	hxrt.Println(func(hx_value_5 any) int {
+		if hx_value_5 == nil {
+			var hx_zero_6 int
+			return hx_zero_6
+		}
+		return hx_value_5.(int)
+	}(ch.__hx_this.recv()))
 }
 
 type haxe__ds__IntMap struct {

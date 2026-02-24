@@ -52,6 +52,7 @@ Depends on: M1, M1.5
 - Implement Go-target overrides for `std/go/Go.hx` and `std/go/Chan.hx` with real goroutines/channels.
 - Allow `std/go/*` override classes through compiler project-class filtering.
 - Add deterministic go-native concurrency contracts (no sleep-based race tests).
+- Latest follow-up: typed `go.Chan<T>` `recv`/`recvOr` call results now route through generic assertion bridging in `portable`/`gopher`, so typed channel reads compile without forcing `Dynamic` callsites.
 
 ### M3 - Typed Interop Foundation
 

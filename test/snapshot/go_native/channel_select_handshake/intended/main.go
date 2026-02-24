@@ -8,18 +8,42 @@ func main() {
 	responses := go___Go_newChan(0)
 	_ = responses
 	go___Go_spawn(func() {
-		value := requests.__hx_this.recv()
+		value := func(hx_value_1 any) int {
+			if hx_value_1 == nil {
+				var hx_zero_2 int
+				return hx_zero_2
+			}
+			return hx_value_1.(int)
+		}(requests.__hx_this.recv())
 		_ = value
 		responses.__hx_this.send(value)
 	})
 	requests.__hx_this.send(41)
-	hxrt.Println(responses.__hx_this.recv())
+	hxrt.Println(func(hx_value_3 any) int {
+		if hx_value_3 == nil {
+			var hx_zero_4 int
+			return hx_zero_4
+		}
+		return hx_value_3.(int)
+	}(responses.__hx_this.recv()))
 	buffered := go___Go_newChan(1)
 	_ = buffered
 	hxrt.Println(buffered.__hx_this.trySend(7))
 	hxrt.Println(buffered.__hx_this.trySend(8))
-	hxrt.Println(buffered.__hx_this.recvOr(-1))
-	hxrt.Println(buffered.__hx_this.recvOr(-1))
+	hxrt.Println(func(hx_value_5 any) int {
+		if hx_value_5 == nil {
+			var hx_zero_6 int
+			return hx_zero_6
+		}
+		return hx_value_5.(int)
+	}(buffered.__hx_this.recvOr(-1)))
+	hxrt.Println(func(hx_value_7 any) int {
+		if hx_value_7 == nil {
+			var hx_zero_8 int
+			return hx_zero_8
+		}
+		return hx_value_7.(int)
+	}(buffered.__hx_this.recvOr(-1)))
 	buffered.__hx_this.close()
 }
 

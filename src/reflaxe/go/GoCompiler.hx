@@ -11454,6 +11454,8 @@ class GoCompiler {
 					} else {
 						false;
 					}
+				} else if (pack == "go" && classType.name == "Chan" && (fieldName == "recv" || fieldName == "recvOr")) {
+					true;
 				} else {
 					false;
 				}

@@ -8,7 +8,13 @@ func main() {
 	go___Go_spawn(func() {
 		ch.__hx_this.send(5)
 	})
-	hxrt.Println(ch.__hx_this.recv())
+	hxrt.Println(func(hx_value_1 any) int {
+		if hx_value_1 == nil {
+			var hx_zero_2 int
+			return hx_zero_2
+		}
+		return hx_value_1.(int)
+	}(ch.__hx_this.recv()))
 }
 
 type haxe__ds__IntMap struct {

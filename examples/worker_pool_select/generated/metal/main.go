@@ -2,20 +2,24 @@ package main
 
 import "examples_worker_pool_select_metal/hxrt"
 
+var EMPTY_TOKEN *string = hxrt.StringFromLiteral("__empty__")
+
+var STOP_TOKEN *string = hxrt.StringFromLiteral("__stop__")
+
 func main() {
 	workerCount := 3
 	_ = workerCount
 	tasks := []*string{hxrt.StringFromLiteral("alpha"), hxrt.StringFromLiteral("beta"), hxrt.StringFromLiteral("gamma"), hxrt.StringFromLiteral("delta")}
-	jobs := go___Go_newChan(int(int32((hxrt.Int32Wrap(len(tasks)) + hxrt.Int32Wrap(workerCount)))))
+	jobs := go__concurrency_newChan___string_f613ccd0(int(int32((hxrt.Int32Wrap(len(tasks)) + hxrt.Int32Wrap(workerCount)))))
 	_ = jobs
-	results := go___Go_newChan(len(tasks))
+	results := go__concurrency_newChan___string_f613ccd0(len(tasks))
 	_ = results
 	_g := 0
 	for _g < len(tasks) {
 		task := tasks[_g]
 		_ = task
 		_g = int(int32((_g + 1)))
-		jobs.__hx_this.send(task)
+		go__concurrency_send___string_f613ccd0(jobs.__hx_native, task)
 	}
 	_g_1 := 0
 	_ = _g_1
@@ -25,7 +29,7 @@ func main() {
 		_g_1 = int(int32((_g_1 + 1)))
 		hx_tmp := hx_post_1
 		_ = hx_tmp
-		jobs.__hx_this.send(nil)
+		go__concurrency_send___string_f613ccd0(jobs.__hx_native, hxrt.StringFromLiteral("__stop__"))
 	}
 	_g_2 := 0
 	_ = _g_2
@@ -41,8 +45,8 @@ func main() {
 	}
 	received := 0
 	for received < len(tasks) {
-		var value any = results.__hx_this.recvOr(nil)
-		if hxrt.StringEqualAny(value, nil) {
+		value := go__concurrency_recvOr___string_f613ccd0(results.__hx_native, hxrt.StringFromLiteral("__empty__"))
+		if hxrt.StringEqualStringPtr(value, hxrt.StringFromLiteral("__empty__")) {
 			continue
 		}
 		received = int(int32((received + 1)))
@@ -63,11 +67,11 @@ func main() {
 
 func worker(jobs *go___Chan, results *go___Chan) {
 	for true {
-		var job any = jobs.__hx_this.recvOr(nil)
-		if hxrt.StringEqualAny(job, nil) {
+		job := go__concurrency_recvOr___string_f613ccd0(jobs.__hx_native, hxrt.StringFromLiteral("__stop__"))
+		if hxrt.StringEqualStringPtr(job, hxrt.StringFromLiteral("__stop__")) {
 			return
 		}
-		results.__hx_this.send(job)
+		go__concurrency_send___string_f613ccd0(results.__hx_native, job)
 	}
 }
 
@@ -264,6 +268,56 @@ func go__concurrency_close(channel any) {
 
 func go__concurrency_spawn(fn func()) {
 	go fn()
+}
+
+func go__concurrency_makeChan___string_f613ccd0(buffer int) any {
+	if buffer > 0 {
+		return make(chan *string, buffer)
+	}
+	return make(chan *string)
+}
+
+func go__concurrency_setBuffer___string_f613ccd0(channel *go___Chan, buffer int) {
+	if channel == nil {
+		return
+	}
+	channel.__hx_native = go__concurrency_makeChan___string_f613ccd0(buffer)
+}
+
+func go__concurrency_newChan___string_f613ccd0(buffer int) *go___Chan {
+	channel := New_go___Chan()
+	go__concurrency_setBuffer___string_f613ccd0(channel, buffer)
+	return channel
+}
+
+func go__concurrency_send___string_f613ccd0(channel any, value *string) {
+	channel.(chan *string) <- value
+}
+
+func go__concurrency_trySend___string_f613ccd0(channel any, value *string) bool {
+	select {
+	case channel.(chan *string) <- value:
+		return true
+	default:
+		return false
+	}
+}
+
+func go__concurrency_recv___string_f613ccd0(channel any) *string {
+	return <-channel.(chan *string)
+}
+
+func go__concurrency_recvOr___string_f613ccd0(channel any, defaultValue *string) *string {
+	select {
+	case value := <-channel.(chan *string):
+		return value
+	default:
+		return defaultValue
+	}
+}
+
+func go__concurrency_close___string_f613ccd0(channel any) {
+	close(channel.(chan *string))
 }
 
 func go__concurrency_makeChan__int_95e97e5e(buffer int) any {

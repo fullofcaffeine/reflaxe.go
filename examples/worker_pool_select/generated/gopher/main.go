@@ -2,6 +2,10 @@ package main
 
 import "examples_worker_pool_select_gopher/hxrt"
 
+var EMPTY_TOKEN *string = hxrt.StringFromLiteral("__empty__")
+
+var STOP_TOKEN *string = hxrt.StringFromLiteral("__stop__")
+
 func main() {
 	workerCount := 3
 	_ = workerCount
@@ -25,7 +29,7 @@ func main() {
 		_g_1 = int(int32((_g_1 + 1)))
 		hx_tmp := hx_post_1
 		_ = hx_tmp
-		jobs.__hx_this.send(nil)
+		jobs.__hx_this.send(hxrt.StringFromLiteral("__stop__"))
 	}
 	_g_2 := 0
 	_ = _g_2
@@ -41,8 +45,14 @@ func main() {
 	}
 	received := 0
 	for received < len(tasks) {
-		var value any = results.__hx_this.recvOr(nil)
-		if hxrt.StringEqualAny(value, nil) {
+		value := func(hx_value_3 any) *string {
+			if hx_value_3 == nil {
+				var hx_zero_4 *string
+				return hx_zero_4
+			}
+			return hx_value_3.(*string)
+		}(results.__hx_this.recvOr(hxrt.StringFromLiteral("__empty__")))
+		if hxrt.StringEqualStringPtr(value, hxrt.StringFromLiteral("__empty__")) {
 			continue
 		}
 		received = int(int32((received + 1)))
@@ -52,9 +62,21 @@ func main() {
 	_ = firstTry
 	secondTry := selectGate.__hx_this.trySend(6)
 	_ = secondTry
-	firstRecv := selectGate.__hx_this.recvOr(-1)
+	firstRecv := func(hx_value_5 any) int {
+		if hx_value_5 == nil {
+			var hx_zero_6 int
+			return hx_zero_6
+		}
+		return hx_value_5.(int)
+	}(selectGate.__hx_this.recvOr(-1))
 	_ = firstRecv
-	secondRecv := selectGate.__hx_this.recvOr(99)
+	secondRecv := func(hx_value_7 any) int {
+		if hx_value_7 == nil {
+			var hx_zero_8 int
+			return hx_zero_8
+		}
+		return hx_value_7.(int)
+	}(selectGate.__hx_this.recvOr(99))
 	_ = secondRecv
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("worker.count="), received))
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("select.trySend="), hxrt.StdString(firstTry)), hxrt.StringFromLiteral(",")), hxrt.StdString(secondTry)))
@@ -63,8 +85,14 @@ func main() {
 
 func worker(jobs *go___Chan, results *go___Chan) {
 	for true {
-		var job any = jobs.__hx_this.recvOr(nil)
-		if hxrt.StringEqualAny(job, nil) {
+		job := func(hx_value_9 any) *string {
+			if hx_value_9 == nil {
+				var hx_zero_10 *string
+				return hx_zero_10
+			}
+			return hx_value_9.(*string)
+		}(jobs.__hx_this.recvOr(hxrt.StringFromLiteral("__stop__")))
+		if hxrt.StringEqualStringPtr(job, hxrt.StringFromLiteral("__stop__")) {
 			return
 		}
 		results.__hx_this.send(job)

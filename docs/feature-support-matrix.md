@@ -148,7 +148,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 
 | Surface | Status | Evidence (snapshot IDs) |
 | --- | --- | --- |
-| Channels and goroutines | Supported (real goroutine/channel/select lowering; `metal` adds a `go.Chan<T>` typed shim lane for concrete element types) | `go_native/channel_basic`, `go_native/channel_select_handshake`, `go_native/channel_metal_monomorph`, `go_native/goroutine_smoke` |
+| Channels and goroutines | Supported (real goroutine/channel/select lowering; non-metal now applies typed recv/recvOr assertion bridging for `go.Chan<T>` reads; `metal` adds concrete typed shim lanes) | `go_native/channel_basic`, `go_native/channel_select_handshake`, `go_native/channel_metal_monomorph`, `go_native/goroutine_smoke` |
 | Result/Error mapping | Supported (`metal` adds typed `go.Result<T>` shim lowering with internal `(T,error)` helper emission) | `go_native/result_basic`, `go_native/error_result_mapping`, `go_native/result_metal_monomorph` |
 | Slice/Map wrappers | Supported (`metal` adds typed shim specialization for concrete `go.Slice<T>` and `go.Map<K,V>` call-sites) | `go_native/slice_map_basic`, `go_native/slice_map_metal_monomorph` |
 
@@ -358,6 +358,7 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-3d4`: reduce unsupported expression surface by lowering `TTypeExpr` class/enum value nodes.
 - `haxe.go-8zt`: lower `TThrow` in expression positions and lock with semantic diff coverage.
 - `haxe.go-888`: promote `sys.FileSystem` with deterministic snapshot + semantic parity contracts.
+- `haxe.go-uz4.10`: enable typed `go.Chan<T>` recv/recvOr assertions in `portable`/`gopher`.
 - `haxe.go-6fc`: completed `haxe.ds` map/list core-ops semantic parity coverage and `List.push` parity alignment.
 - `haxe.go-rlj`: completed nil-safe typed-read null semantics for `haxe.ds` map/list generic call results.
 - `haxe.go-aiy`: add `haxe.io.Encoding` constructor parity and `Bytes.getString` coverage (`io_encoding_contract`).
