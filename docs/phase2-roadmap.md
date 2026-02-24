@@ -60,6 +60,7 @@ Depends on: M2
 
 - Implement typed interop metadata and import resolution (`@:go.import`, symbol mapping).
 - Add smoke examples for `fmt`, `time`, and `context`.
+- Latest follow-up: extern calls typed as Haxe `String` now normalize return values through `hxrt.StdString` (covers static/instance/receiver interop forms without `Dynamic` callsite workarounds).
 
 ### M3.5 - Interop Autopilot
 

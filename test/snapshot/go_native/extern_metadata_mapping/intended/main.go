@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"snapshot/hxrt"
 	"time"
 )
@@ -13,7 +14,9 @@ func main() {
 	_ = direct
 	viaReceiver := now.Unix()
 	_ = viaReceiver
-	if (direct == viaReceiver) && (direct > 0) {
+	statusOk := hxrt.StringEqualAny(hxrt.StdString(http.StatusText(200)), hxrt.StringFromLiteral("OK"))
+	_ = statusOk
+	if ((direct == viaReceiver) && (direct > 0)) && statusOk {
 		fmt.Println(321)
 	} else {
 		hxrt.Println(-1)

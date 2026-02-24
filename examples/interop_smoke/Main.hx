@@ -31,7 +31,7 @@ extern class GoContextPkg {
 @:go.import("net/http")
 extern class GoHttp {
 	@:go.name("StatusText")
-	public static function statusText(code:Int):Dynamic;
+	public static function statusText(code:Int):String;
 }
 
 class Main {
@@ -40,7 +40,7 @@ class Main {
 		var unixDirect = now.unix();
 		var unixReceiver = GoTime.unixViaReceiver(now);
 		var ctx = GoContextPkg.background();
-		var statusOk = Std.string(GoHttp.statusText(200)) == "OK";
+		var statusOk = GoHttp.statusText(200) == "OK";
 
 		var ok = unixDirect == unixReceiver && unixDirect > 0 && ctx != null && statusOk;
 		GoFmt.println(ok ? 1 : 0);

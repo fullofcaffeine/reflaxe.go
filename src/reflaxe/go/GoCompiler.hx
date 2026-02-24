@@ -10417,6 +10417,7 @@ class GoCompiler {
 				callExpr = lowerNilSafeTypeAssertExpr(callExpr, expectedType);
 			}
 		}
+		callExpr = normalizeExternStringCallResult(callee, returnType, callExpr);
 
 		return {
 			expr: callExpr,
@@ -10708,6 +10709,7 @@ class GoCompiler {
 							callExpr = lowerNilSafeTypeAssertExpr(callExpr, expectedType);
 						}
 					}
+					callExpr = normalizeExternStringCallResult(callee, returnType, callExpr);
 
 					{
 						expr: callExpr,
@@ -11459,6 +11461,31 @@ class GoCompiler {
 				} else {
 					false;
 				}
+			case _:
+				false;
+		};
+	}
+
+	function normalizeExternStringCallResult(callee:TypedExpr, returnType:Type, callExpr:GoExpr):GoExpr {
+		if (!isStringType(returnType)) {
+			return callExpr;
+		}
+		if (!isGoImportExternCall(callee)) {
+			return callExpr;
+		}
+		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [callExpr]);
+	}
+
+	function isGoImportExternCall(callee:TypedExpr):Bool {
+		return switch (callee.expr) {
+			case TField(_, FStatic(classRef, _)): var classType = classRef.get(); classType.isExtern && externClassImportPath(classType) != null;
+			case TField(_, FInstance(classRef, _, _)): var classType = classRef.get(); classType.isExtern && externClassImportPath(classType) != null;
+			case TMeta(_, inner):
+				isGoImportExternCall(inner);
+			case TParenthesis(inner):
+				isGoImportExternCall(inner);
+			case TCast(inner, _):
+				isGoImportExternCall(inner);
 			case _:
 				false;
 		};

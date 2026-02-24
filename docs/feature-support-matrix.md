@@ -149,6 +149,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Surface | Status | Evidence (snapshot IDs) |
 | --- | --- | --- |
 | Channels and goroutines | Supported (real goroutine/channel/select lowering; non-metal now applies typed recv/recvOr assertion bridging for `go.Chan<T>` reads; `metal` adds concrete typed shim lanes) | `go_native/channel_basic`, `go_native/channel_select_handshake`, `go_native/channel_metal_monomorph`, `go_native/goroutine_smoke` |
+| Extern metadata mapping | Supported (`@:go.import`/`@:go.name`/`@:go.receiver`, including extern `String` return normalization via `hxrt.StdString`) | `go_native/extern_metadata_mapping` |
 | Result/Error mapping | Supported (`metal` adds typed `go.Result<T>` shim lowering with internal `(T,error)` helper emission) | `go_native/result_basic`, `go_native/error_result_mapping`, `go_native/result_metal_monomorph` |
 | Slice/Map wrappers | Supported (`metal` adds typed shim specialization for concrete `go.Slice<T>` and `go.Map<K,V>` call-sites) | `go_native/slice_map_basic`, `go_native/slice_map_metal_monomorph` |
 
