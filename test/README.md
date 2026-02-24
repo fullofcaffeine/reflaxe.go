@@ -304,4 +304,5 @@ Snapshots are canonicalized against the **post-Reflaxe optimized AST** output, n
 - Use `--failed` to rerun only the previous failing set.
 - Use `--changed` to focus only on touched snapshot cases.
 - Use `--bless` to update only changed files and print a gofmt/naming/runtime checklist.
+- Snapshot diff failures print deterministic file-set summaries and unified diff excerpts for modified files (helpful for multi-file output cases).
 - Snapshot runs are process-locked to avoid concurrent `out/` races; tune with `--lock-timeout <seconds>` (or `0` for fail-fast).

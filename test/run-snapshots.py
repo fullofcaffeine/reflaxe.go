@@ -6,6 +6,7 @@ import argparse
 import concurrent.futures
 import contextlib
 import dataclasses
+import difflib
 import hashlib
 import json
 import os
@@ -30,6 +31,8 @@ LAST_RUN = CACHE_ROOT / "last_run.json"
 RUN_LOCK = CACHE_ROOT / "run-snapshots.lock"
 EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json", ".DS_Store", ".gitkeep"}
 EXCLUDE_DIRS = {".cache"}
+MAX_UNIFIED_DIFF_FILES = 5
+MAX_UNIFIED_DIFF_LINES = 120
 
 
 @dataclasses.dataclass(frozen=True)
@@ -300,12 +303,42 @@ def collect_tree_deltas(left: Path, right: Path) -> list[TreeDelta]:
     return deltas
 
 
+def render_unified_diff(left: Path, right: Path, rel: Path) -> str:
+    left_path = left / rel
+    right_path = right / rel
+    left_text = left_path.read_text(encoding="utf-8", errors="replace")
+    right_text = right_path.read_text(encoding="utf-8", errors="replace")
+    diff_lines = list(
+        difflib.unified_diff(
+            left_text.splitlines(),
+            right_text.splitlines(),
+            fromfile=f"{left.name}/{rel.as_posix()}",
+            tofile=f"{right.name}/{rel.as_posix()}",
+            lineterm="",
+        )
+    )
+    if not diff_lines:
+        return ""
+
+    if len(diff_lines) > MAX_UNIFIED_DIFF_LINES:
+        omitted = len(diff_lines) - MAX_UNIFIED_DIFF_LINES
+        diff_lines = diff_lines[:MAX_UNIFIED_DIFF_LINES]
+        diff_lines.append(f"... ({omitted} more diff line(s) omitted)")
+
+    return "\n".join(diff_lines)
+
+
 def diff_trees(left: Path, right: Path) -> tuple[bool, str]:
     deltas = collect_tree_deltas(left, right)
     if not deltas:
         return True, ""
 
     lines: list[str] = []
+    added = sum(1 for delta in deltas if delta.kind == "added")
+    removed = sum(1 for delta in deltas if delta.kind == "removed")
+    modified = sum(1 for delta in deltas if delta.kind == "modified")
+    lines.append(f"tree delta summary: +{added} / -{removed} / ~{modified}")
+
     for delta in deltas:
         if delta.kind == "added":
             lines.append(f"Only in {right}: {delta.rel_path.as_posix()}")
@@ -313,6 +346,23 @@ def diff_trees(left: Path, right: Path) -> tuple[bool, str]:
             lines.append(f"Only in {left}: {delta.rel_path.as_posix()}")
         else:
             lines.append(f"Diff: {delta.rel_path.as_posix()}")
+
+    shown = 0
+    for delta in deltas:
+        if delta.kind != "modified":
+            continue
+        if shown >= MAX_UNIFIED_DIFF_FILES:
+            remaining = modified - shown
+            if remaining > 0:
+                lines.append(f"... {remaining} additional modified file(s) omitted")
+            break
+        snippet = render_unified_diff(left, right, delta.rel_path)
+        if not snippet:
+            continue
+        lines.append("")
+        lines.append(snippet)
+        shown += 1
+
     return False, "\n".join(lines)
 
 
