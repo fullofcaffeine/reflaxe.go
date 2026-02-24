@@ -10,9 +10,10 @@ Core pattern:
 
 - `go.Go.newChan<T>(buffer)` for buffered queues.
 - `go.Go.spawn(fn)` for worker fan-out.
-- `Chan.recvOr(default)` + sentinel values for deterministic loop shutdown.
-- `Chan.trySend(value)` for non-blocking enqueue/backpressure checks.
-- `Chan.tryRecv()` for non-blocking receive as `go.Result<T>`.
+- `go.Select.recv/recv2` for typed receive-side branching.
+- `go.Select.send/send2` for typed non-blocking send-side branching.
+- `Chan.recvOr(default)` + sentinel values for deterministic loop shutdown loops.
+- `Chan.trySend(value)` / `Chan.tryRecv()` for low-level non-blocking operations.
 
 Why this is recommended:
 
@@ -53,6 +54,6 @@ Promotion rule:
 
 ## 4) Caveats (important)
 
-- Non-blocking channel operations are currently exposed via `trySend`/`recvOr`/`tryRecv` helpers; there is no finalized general-purpose Haxe `select` expression API yet.
+- `go.Select` multi-branch helpers are deterministic and branch-priority ordered; they do not mirror Go runtime pseudo-random ready-case selection.
 - Complex Go extern signatures may need façade wrappers until broader mapping lanes land.
 - For current limitations and planning guidance, use `docs/known-gaps.md`.

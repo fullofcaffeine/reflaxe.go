@@ -1,6 +1,6 @@
 package main
 
-import "examples_worker_pool_select_gopher/hxrt"
+import "snapshot/hxrt"
 
 func go___Go___chanClose(channel any) {
 }
@@ -37,6 +37,7 @@ func go___Go_fail(message *string) *go___Result {
 
 func go___Go_newChan(buffer int) *go___Chan {
 	channel := New_go___Chan()
+	_ = channel
 	if buffer > 0 {
 		channel.__hx_this.__hx_setBuffer(buffer)
 	}

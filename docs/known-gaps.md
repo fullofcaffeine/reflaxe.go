@@ -17,8 +17,8 @@ This page is the blunt status view for current limitations so teams can plan mig
 ## Concurrency caveats
 
 - `go.Go.spawn` and `go.Chan<T>` map to real goroutine/channel behavior on Go output.
-- Non-blocking operations are exposed via `Chan.trySend` / `Chan.recvOr` / `Chan.tryRecv` (select-backed in Go output).
-- A full general-purpose Haxe-level `select` expression API is not finalized yet.
+- `go.Select` exposes typed deterministic helpers (`recv`, `recv2`, `send`, `send2`) built on non-blocking channel operations.
+- Multi-branch helper priority is explicit and deterministic (`first` branch checked before `second`); it does not model Go runtime pseudo-random ready-case selection.
 
 ## Metal profile caveats
 

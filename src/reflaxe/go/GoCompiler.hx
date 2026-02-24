@@ -319,6 +319,9 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("go_result")) {
 			imports.push("errors");
 		}
+		if (requiredStdlibShimGroups.exists("go_concurrency")) {
+			imports.push("reflect");
+		}
 		return imports;
 	}
 
@@ -836,7 +839,7 @@ class GoCompiler {
 		return (pack == "haxe" && classType.name == "Int64Helper")
 			|| (pack == "haxe._Int64" && (classType.name == "Int64_Impl_" || classType.name == "___Int64"))
 			|| (pack == "haxe._Int32" && classType.name == "Int32_Impl_")
-			|| (pack == "go" && (classType.name == "Go" || classType.name == "Chan"));
+			|| (pack == "go" && (classType.name == "Go" || classType.name == "Chan" || classType.name == "Select"));
 	}
 
 	function isRequiredStdlibEnum(enumType:EnumType):Bool {
@@ -2826,7 +2829,21 @@ class GoCompiler {
 				},
 				{name: "value", typeName: "any"}
 			], [], [
-				GoStmt.GoSendStmt(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any"), GoExpr.GoIdent("value"))
+				GoStmt.GoRaw("chanValue := reflect.ValueOf(channel)"),
+				GoStmt.GoRaw("if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("sendValue := reflect.ValueOf(value)"),
+				GoStmt.GoRaw("if !sendValue.IsValid() {"),
+				GoStmt.GoRaw("\tsendValue = reflect.Zero(chanValue.Type().Elem())"),
+				GoStmt.GoRaw("} else if !sendValue.Type().AssignableTo(chanValue.Type().Elem()) {"),
+				GoStmt.GoRaw("\tif sendValue.Type().ConvertibleTo(chanValue.Type().Elem()) {"),
+				GoStmt.GoRaw("\t\tsendValue = sendValue.Convert(chanValue.Type().Elem())"),
+				GoStmt.GoRaw("\t} else {"),
+				GoStmt.GoRaw("\t\treturn"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("chanValue.Send(sendValue)")
 			]),
 			GoDecl.GoFuncDecl("go__concurrency_trySend", null, [
 				{
@@ -2835,16 +2852,26 @@ class GoCompiler {
 				},
 				{name: "value", typeName: "any"}
 			], ["bool"], [
-				GoStmt.GoSelect([
-					{
-						clause: GoSelectClause.GoSelectSend(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any"), GoExpr.GoIdent("value")),
-						body: [GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))]
-					},
-					{
-						clause: GoSelectClause.GoSelectDefault,
-						body: [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))]
-					}
-				])
+				GoStmt.GoRaw("chanValue := reflect.ValueOf(channel)"),
+				GoStmt.GoRaw("if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("sendValue := reflect.ValueOf(value)"),
+				GoStmt.GoRaw("if !sendValue.IsValid() {"),
+				GoStmt.GoRaw("\tsendValue = reflect.Zero(chanValue.Type().Elem())"),
+				GoStmt.GoRaw("} else if !sendValue.Type().AssignableTo(chanValue.Type().Elem()) {"),
+				GoStmt.GoRaw("\tif sendValue.Type().ConvertibleTo(chanValue.Type().Elem()) {"),
+				GoStmt.GoRaw("\t\tsendValue = sendValue.Convert(chanValue.Type().Elem())"),
+				GoStmt.GoRaw("\t} else {"),
+				GoStmt.GoRaw("\t\treturn false"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("cases := []reflect.SelectCase{"),
+				GoStmt.GoRaw("\t{Dir: reflect.SelectSend, Chan: chanValue, Send: sendValue},"),
+				GoStmt.GoRaw("\t{Dir: reflect.SelectDefault},"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("chosen, _, _ := reflect.Select(cases)"),
+				GoStmt.GoRaw("return chosen == 0")
 			]),
 			GoDecl.GoFuncDecl("go__concurrency_recv", null, [
 				{
@@ -2852,7 +2879,15 @@ class GoCompiler {
 					typeName: "any"
 				}
 			], ["any"], [
-				GoStmt.GoReturn(GoExpr.GoRecvExpr(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any")))
+				GoStmt.GoRaw("chanValue := reflect.ValueOf(channel)"),
+				GoStmt.GoRaw("if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("recvValue, _ := chanValue.Recv()"),
+				GoStmt.GoRaw("if !recvValue.IsValid() {"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return recvValue.Interface()")
 			]),
 			GoDecl.GoFuncDecl("go__concurrency_recvOr", null, [
 				{
@@ -2861,17 +2896,22 @@ class GoCompiler {
 				},
 				{name: "defaultValue", typeName: "any"}
 			], ["any"], [
-				GoStmt.GoSelect([
-					{
-						clause: GoSelectClause.GoSelectRecvAssign(GoExpr.GoIdent("value"),
-							GoExpr.GoRecvExpr(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any")), true),
-						body: [GoStmt.GoReturn(GoExpr.GoIdent("value"))]
-					},
-					{
-						clause: GoSelectClause.GoSelectDefault,
-						body: [GoStmt.GoReturn(GoExpr.GoIdent("defaultValue"))]
-					}
-				])
+				GoStmt.GoRaw("chanValue := reflect.ValueOf(channel)"),
+				GoStmt.GoRaw("if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {"),
+				GoStmt.GoRaw("\treturn defaultValue"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("cases := []reflect.SelectCase{"),
+				GoStmt.GoRaw("\t{Dir: reflect.SelectRecv, Chan: chanValue},"),
+				GoStmt.GoRaw("\t{Dir: reflect.SelectDefault},"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("chosen, recvValue, _ := reflect.Select(cases)"),
+				GoStmt.GoRaw("if chosen == 0 {"),
+				GoStmt.GoRaw("\tif !recvValue.IsValid() {"),
+				GoStmt.GoRaw("\t\treturn defaultValue"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn recvValue.Interface()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return defaultValue")
 			]),
 			GoDecl.GoFuncDecl("go__concurrency_tryRecv", null, [
 				{
@@ -2879,26 +2919,22 @@ class GoCompiler {
 					typeName: "any"
 				}
 			], ["*go___Result"], [
-				GoStmt.GoSelect([
-					{
-						clause: GoSelectClause.GoSelectRecvAssign(GoExpr.GoIdent("value"),
-							GoExpr.GoRecvExpr(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any")), true),
-						body: [
-							GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [GoExpr.GoIdent("value"), GoExpr.GoNil]))
-						]
-					},
-					{
-						clause: GoSelectClause.GoSelectDefault,
-						body: [
-							GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [
-								GoExpr.GoNil,
-								GoExpr.GoCall(GoExpr.GoIdent("New_go___Error"), [
-									GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("empty")])
-								])
-							]))
-						]
-					}
-				])
+				GoStmt.GoRaw("chanValue := reflect.ValueOf(channel)"),
+				GoStmt.GoRaw("if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {"),
+				GoStmt.GoRaw("\treturn New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral(\"empty\")))"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("cases := []reflect.SelectCase{"),
+				GoStmt.GoRaw("\t{Dir: reflect.SelectRecv, Chan: chanValue},"),
+				GoStmt.GoRaw("\t{Dir: reflect.SelectDefault},"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("chosen, recvValue, _ := reflect.Select(cases)"),
+				GoStmt.GoRaw("if chosen == 0 {"),
+				GoStmt.GoRaw("\tif !recvValue.IsValid() {"),
+				GoStmt.GoRaw("\t\treturn New_go___Result(nil, nil)"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn New_go___Result(recvValue.Interface(), nil)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral(\"empty\")))")
 			]),
 			GoDecl.GoFuncDecl("go__concurrency_close", null, [
 				{
@@ -2906,7 +2942,11 @@ class GoCompiler {
 					typeName: "any"
 				}
 			], [], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("close"), [GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), "chan any")]))
+				GoStmt.GoRaw("chanValue := reflect.ValueOf(channel)"),
+				GoStmt.GoRaw("if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("chanValue.Close()")
 			]),
 			GoDecl.GoFuncDecl("go__concurrency_spawn", null, [
 				{

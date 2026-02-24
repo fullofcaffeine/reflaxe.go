@@ -1,6 +1,9 @@
 package main
 
-import "snapshot/hxrt"
+import (
+	"reflect"
+	"snapshot/hxrt"
+)
 
 func main() {
 	requests := go___Go_newChan(0)
@@ -209,42 +212,102 @@ func go__concurrency_makeChan(buffer int) any {
 }
 
 func go__concurrency_send(channel any, value any) {
-	channel.(chan any) <- value
+	chanValue := reflect.ValueOf(channel)
+	if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {
+		return
+	}
+	sendValue := reflect.ValueOf(value)
+	if !sendValue.IsValid() {
+		sendValue = reflect.Zero(chanValue.Type().Elem())
+	} else if !sendValue.Type().AssignableTo(chanValue.Type().Elem()) {
+		if sendValue.Type().ConvertibleTo(chanValue.Type().Elem()) {
+			sendValue = sendValue.Convert(chanValue.Type().Elem())
+		} else {
+			return
+		}
+	}
+	chanValue.Send(sendValue)
 }
 
 func go__concurrency_trySend(channel any, value any) bool {
-	select {
-	case channel.(chan any) <- value:
-		return true
-	default:
+	chanValue := reflect.ValueOf(channel)
+	if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {
 		return false
 	}
+	sendValue := reflect.ValueOf(value)
+	if !sendValue.IsValid() {
+		sendValue = reflect.Zero(chanValue.Type().Elem())
+	} else if !sendValue.Type().AssignableTo(chanValue.Type().Elem()) {
+		if sendValue.Type().ConvertibleTo(chanValue.Type().Elem()) {
+			sendValue = sendValue.Convert(chanValue.Type().Elem())
+		} else {
+			return false
+		}
+	}
+	cases := []reflect.SelectCase{
+		{Dir: reflect.SelectSend, Chan: chanValue, Send: sendValue},
+		{Dir: reflect.SelectDefault},
+	}
+	chosen, _, _ := reflect.Select(cases)
+	return chosen == 0
 }
 
 func go__concurrency_recv(channel any) any {
-	return <-channel.(chan any)
+	chanValue := reflect.ValueOf(channel)
+	if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {
+		return nil
+	}
+	recvValue, _ := chanValue.Recv()
+	if !recvValue.IsValid() {
+		return nil
+	}
+	return recvValue.Interface()
 }
 
 func go__concurrency_recvOr(channel any, defaultValue any) any {
-	select {
-	case value := <-channel.(chan any):
-		return value
-	default:
+	chanValue := reflect.ValueOf(channel)
+	if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {
 		return defaultValue
 	}
+	cases := []reflect.SelectCase{
+		{Dir: reflect.SelectRecv, Chan: chanValue},
+		{Dir: reflect.SelectDefault},
+	}
+	chosen, recvValue, _ := reflect.Select(cases)
+	if chosen == 0 {
+		if !recvValue.IsValid() {
+			return defaultValue
+		}
+		return recvValue.Interface()
+	}
+	return defaultValue
 }
 
 func go__concurrency_tryRecv(channel any) *go___Result {
-	select {
-	case value := <-channel.(chan any):
-		return New_go___Result(value, nil)
-	default:
+	chanValue := reflect.ValueOf(channel)
+	if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {
 		return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("empty")))
 	}
+	cases := []reflect.SelectCase{
+		{Dir: reflect.SelectRecv, Chan: chanValue},
+		{Dir: reflect.SelectDefault},
+	}
+	chosen, recvValue, _ := reflect.Select(cases)
+	if chosen == 0 {
+		if !recvValue.IsValid() {
+			return New_go___Result(nil, nil)
+		}
+		return New_go___Result(recvValue.Interface(), nil)
+	}
+	return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("empty")))
 }
 
 func go__concurrency_close(channel any) {
-	close(channel.(chan any))
+	chanValue := reflect.ValueOf(channel)
+	if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {
+		return
+	}
+	chanValue.Close()
 }
 
 func go__concurrency_spawn(fn func()) {

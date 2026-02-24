@@ -54,6 +54,7 @@ Depends on: M1, M1.5
 - Add deterministic go-native concurrency contracts (no sleep-based race tests).
 - Latest follow-up: typed `go.Chan<T>` `recv`/`recvOr` call results now route through generic assertion bridging in `portable`/`gopher`, so typed channel reads compile without forcing `Dynamic` callsites.
 - Latest follow-up: `go.Chan<T>.tryRecv():go.Result<T>` now lowers through select-backed concurrency shims across `portable`/`gopher`/`metal`, with dedicated go_native snapshot coverage.
+- Latest follow-up: typed `go.Select` helpers (`recv`, `recv2`, `send`, `send2`) now provide a deterministic Haxe-level select API with explicit branch-priority semantics.
 
 ### M3 - Typed Interop Foundation
 

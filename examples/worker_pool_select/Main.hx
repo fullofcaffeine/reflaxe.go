@@ -1,5 +1,6 @@
 import go.Chan;
 import go.Go;
+import go.Select;
 
 class Main {
 	static inline var STOP_TOKEN = "__stop__";
@@ -44,13 +45,59 @@ class Main {
 		}
 
 		var selectGate:Chan<Int> = Go.newChan(1);
-		var firstTry = selectGate.trySend(5);
-		var secondTry = selectGate.trySend(6);
-		var firstRecv = selectGate.recvOr(-1);
-		var secondRecv = selectGate.recvOr(99);
+		var firstTry = switch (Select.send(selectGate, 5)) {
+			case Sent:
+				true;
+			case Defaulted:
+				false;
+		}
+		var secondTry = switch (Select.send(selectGate, 6)) {
+			case Sent:
+				true;
+			case Defaulted:
+				false;
+		}
+		var firstRecv = switch (Select.recv(selectGate)) {
+			case Received(value):
+				value;
+			case Defaulted:
+				-1;
+		}
+		var secondRecv = switch (Select.recv(selectGate)) {
+			case Received(value):
+				value;
+			case Defaulted:
+				99;
+		}
+
+		var left:Chan<String> = Go.newChan(1);
+		var right:Chan<String> = Go.newChan(1);
+		right.send("right");
+		var recv2 = switch (Select.recv2(left, right)) {
+			case First(value):
+				"left:" + value;
+			case Second(value):
+				"right:" + value;
+			case Defaulted:
+				"none";
+		}
+
+		var send2a:Chan<Int> = Go.newChan(1);
+		var send2b:Chan<Int> = Go.newChan(1);
+		var send2 = switch (Select.send2(send2a, 11, send2b, 22)) {
+			case FirstSent:
+				"a";
+			case SecondSent:
+				"b";
+			case Defaulted:
+				"none";
+		}
+		var send2Values = send2a.recvOr(-1) + "," + send2b.recvOr(-1);
 
 		Sys.println("worker.count=" + received);
 		Sys.println("select.trySend=" + firstTry + "," + secondTry);
 		Sys.println("select.recvOr=" + firstRecv + "," + secondRecv);
+		Sys.println("select.recv2=" + recv2);
+		Sys.println("select.send2=" + send2 + " values=" + send2Values);
 	}
 }

@@ -1,204 +1,129 @@
 package main
 
 import (
-	"examples_worker_pool_select_portable/hxrt"
 	"reflect"
+	"snapshot/hxrt"
 )
 
-var EMPTY_TOKEN *string = hxrt.StringFromLiteral("__empty__")
-
-var STOP_TOKEN *string = hxrt.StringFromLiteral("__stop__")
-
 func main() {
-	workerCount := 3
-	_ = workerCount
-	tasks := []*string{hxrt.StringFromLiteral("alpha"), hxrt.StringFromLiteral("beta"), hxrt.StringFromLiteral("gamma"), hxrt.StringFromLiteral("delta")}
-	_ = tasks
-	jobs := go___Go_newChan(int(int32((hxrt.Int32Wrap(len(tasks)) + hxrt.Int32Wrap(workerCount)))))
-	_ = jobs
-	results := go___Go_newChan(len(tasks))
-	_ = results
-	_g := 0
+	gate := go___Go_newChan(1)
+	_ = gate
+	_g := go___Select_send(gate, 7)
 	_ = _g
-	for _g < len(tasks) {
-		task := tasks[_g]
-		_ = task
-		_g = int(int32((_g + 1)))
-		jobs.__hx_this.send(task)
-	}
-	_g_1 := 0
-	_ = _g_1
-	_g1 := workerCount
-	_ = _g1
-	for _g_1 < _g1 {
-		hx_post_1 := _g_1
-		_g_1 = int(int32((_g_1 + 1)))
-		hx_tmp := hx_post_1
-		_ = hx_tmp
-		jobs.__hx_this.send(hxrt.StringFromLiteral("__stop__"))
-	}
-	_g_2 := 0
-	_ = _g_2
-	_g1_1 := workerCount
-	_ = _g1_1
-	for _g_2 < _g1_1 {
-		hx_post_2 := _g_2
-		_g_2 = int(int32((_g_2 + 1)))
-		hx_tmp_1 := hx_post_2
-		_ = hx_tmp_1
-		go___Go_spawn(func() {
-			worker(jobs, results)
-		})
-	}
-	received := 0
-	_ = received
-	for received < len(tasks) {
-		value := func(hx_value_3 any) *string {
-			if hx_value_3 == nil {
-				var hx_zero_4 *string
-				return hx_zero_4
-			}
-			return hx_value_3.(*string)
-		}(results.__hx_this.recvOr(hxrt.StringFromLiteral("__empty__")))
-		_ = value
-		if hxrt.StringEqualAny(value, hxrt.StringFromLiteral("__empty__")) {
-			continue
-		}
-		received = int(int32((received + 1)))
-	}
-	selectGate := go___Go_newChan(1)
-	_ = selectGate
-	_g_3 := go___Select_send(selectGate, 5)
-	_ = _g_3
-	var hx_switch_5 bool
-	switch _g_3.tag {
+	var hx_switch_1 *string
+	switch _g.tag {
 	case 0:
-		hx_switch_5 = true
+		hx_switch_1 = hxrt.StringFromLiteral("sent")
 	case 1:
-		hx_switch_5 = false
+		hx_switch_1 = hxrt.StringFromLiteral("default")
 	}
-	firstTry := hx_switch_5
-	_ = firstTry
-	_g_4 := go___Select_send(selectGate, 6)
+	sendFirst := hx_switch_1
+	_ = sendFirst
+	_g_1 := go___Select_send(gate, 8)
+	_ = _g_1
+	var hx_switch_2 *string
+	switch _g_1.tag {
+	case 0:
+		hx_switch_2 = hxrt.StringFromLiteral("sent")
+	case 1:
+		hx_switch_2 = hxrt.StringFromLiteral("default")
+	}
+	sendSecond := hx_switch_2
+	_ = sendSecond
+	_g_2 := go___Select_recv(gate)
+	_ = _g_2
+	var hx_switch_3 *string
+	switch _g_2.tag {
+	case 0:
+		_g_3 := _g_2.params[0].(int)
+		_ = _g_3
+		value := _g_3
+		_ = value
+		hx_switch_3 = hxrt.StringConcatAny(hxrt.StringFromLiteral("recv:"), value)
+	case 1:
+		hx_switch_3 = hxrt.StringFromLiteral("empty")
+	}
+	recvFirst := hx_switch_3
+	_ = recvFirst
+	_g_4 := go___Select_recv(gate)
 	_ = _g_4
-	var hx_switch_6 bool
+	var hx_switch_4 *string
 	switch _g_4.tag {
 	case 0:
-		hx_switch_6 = true
-	case 1:
-		hx_switch_6 = false
-	}
-	secondTry := hx_switch_6
-	_ = secondTry
-	_g_5 := go___Select_recv(selectGate)
-	_ = _g_5
-	var hx_switch_7 int
-	switch _g_5.tag {
-	case 0:
-		_g_6 := _g_5.params[0].(int)
-		_ = _g_6
-		value_1 := _g_6
+		_g_5 := _g_4.params[0].(int)
+		_ = _g_5
+		value_1 := _g_5
 		_ = value_1
-		hx_switch_7 = value_1
+		hx_switch_4 = hxrt.StringConcatAny(hxrt.StringFromLiteral("recv:"), value_1)
 	case 1:
-		hx_switch_7 = -1
+		hx_switch_4 = hxrt.StringFromLiteral("empty")
 	}
-	firstRecv := hx_switch_7
-	_ = firstRecv
-	_g_7 := go___Select_recv(selectGate)
-	_ = _g_7
-	var hx_switch_8 int
-	switch _g_7.tag {
-	case 0:
-		_g_8 := _g_7.params[0].(int)
-		_ = _g_8
-		value_2 := _g_8
-		_ = value_2
-		hx_switch_8 = value_2
-	case 1:
-		hx_switch_8 = 99
-	}
-	secondRecv := hx_switch_8
-	_ = secondRecv
+	recvSecond := hx_switch_4
+	_ = recvSecond
+	hxrt.Println(sendFirst)
+	hxrt.Println(sendSecond)
+	hxrt.Println(recvFirst)
+	hxrt.Println(recvSecond)
 	left := go___Go_newChan(1)
 	_ = left
 	right := go___Go_newChan(1)
 	_ = right
-	right.__hx_this.send(hxrt.StringFromLiteral("right"))
-	_g_9 := go___Select_recv2(left, right)
+	right.__hx_this.send(hxrt.StringFromLiteral("beta"))
+	_g_6 := go___Select_recv2(left, right)
+	_ = _g_6
+	var hx_switch_5 *string
+	switch _g_6.tag {
+	case 0:
+		_g_7 := _g_6.params[0].(*string)
+		_ = _g_7
+		value_2 := _g_7
+		_ = value_2
+		hx_switch_5 = hxrt.StringConcatAny(hxrt.StringFromLiteral("left:"), value_2)
+	case 1:
+		_g_8 := _g_6.params[0].(*string)
+		_ = _g_8
+		value_3 := _g_8
+		_ = value_3
+		hx_switch_5 = hxrt.StringConcatAny(hxrt.StringFromLiteral("right:"), value_3)
+	case 2:
+		hx_switch_5 = hxrt.StringFromLiteral("none")
+	}
+	recvTwo := hx_switch_5
+	_ = recvTwo
+	hxrt.Println(recvTwo)
+	sendTwoA := go___Go_newChan(1)
+	_ = sendTwoA
+	sendTwoB := go___Go_newChan(1)
+	_ = sendTwoB
+	_g_9 := go___Select_send2(sendTwoA, 11, sendTwoB, 22)
 	_ = _g_9
-	var hx_switch_9 *string
+	var hx_switch_6 *string
 	switch _g_9.tag {
 	case 0:
-		_g_10 := _g_9.params[0].(*string)
-		_ = _g_10
-		value_3 := _g_10
-		_ = value_3
-		hx_switch_9 = hxrt.StringConcatAny(hxrt.StringFromLiteral("left:"), value_3)
+		hx_switch_6 = hxrt.StringFromLiteral("a")
 	case 1:
-		_g_11 := _g_9.params[0].(*string)
-		_ = _g_11
-		value_4 := _g_11
-		_ = value_4
-		hx_switch_9 = hxrt.StringConcatAny(hxrt.StringFromLiteral("right:"), value_4)
+		hx_switch_6 = hxrt.StringFromLiteral("b")
 	case 2:
-		hx_switch_9 = hxrt.StringFromLiteral("none")
+		hx_switch_6 = hxrt.StringFromLiteral("none")
 	}
-	recv2 := hx_switch_9
-	_ = recv2
-	send2a := go___Go_newChan(1)
-	_ = send2a
-	send2b := go___Go_newChan(1)
-	_ = send2b
-	_g_12 := go___Select_send2(send2a, 11, send2b, 22)
-	_ = _g_12
-	var hx_switch_10 *string
-	switch _g_12.tag {
-	case 0:
-		hx_switch_10 = hxrt.StringFromLiteral("a")
-	case 1:
-		hx_switch_10 = hxrt.StringFromLiteral("b")
-	case 2:
-		hx_switch_10 = hxrt.StringFromLiteral("none")
-	}
-	send2 := hx_switch_10
-	_ = send2
-	send2Values := hxrt.StringConcatAny(hxrt.StringConcatAny(func(hx_value_11 any) int {
-		if hx_value_11 == nil {
-			var hx_zero_12 int
-			return hx_zero_12
+	sendTwo := hx_switch_6
+	_ = sendTwo
+	sendTwoValues := hxrt.StringConcatAny(hxrt.StringConcatAny(func(hx_value_7 any) int {
+		if hx_value_7 == nil {
+			var hx_zero_8 int
+			return hx_zero_8
 		}
-		return hx_value_11.(int)
-	}(send2a.__hx_this.recvOr(-1)), hxrt.StringFromLiteral(",")), func(hx_value_13 any) int {
-		if hx_value_13 == nil {
-			var hx_zero_14 int
-			return hx_zero_14
+		return hx_value_7.(int)
+	}(sendTwoA.__hx_this.recvOr(-1)), hxrt.StringFromLiteral(",")), func(hx_value_9 any) int {
+		if hx_value_9 == nil {
+			var hx_zero_10 int
+			return hx_zero_10
 		}
-		return hx_value_13.(int)
-	}(send2b.__hx_this.recvOr(-1)))
-	_ = send2Values
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("worker.count="), received))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("select.trySend="), hxrt.StdString(firstTry)), hxrt.StringFromLiteral(",")), hxrt.StdString(secondTry)))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("select.recvOr="), firstRecv), hxrt.StringFromLiteral(",")), secondRecv))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("select.recv2="), recv2))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("select.send2="), send2), hxrt.StringFromLiteral(" values=")), send2Values))
-}
-
-func worker(jobs *go___Chan, results *go___Chan) {
-	for true {
-		job := func(hx_value_15 any) *string {
-			if hx_value_15 == nil {
-				var hx_zero_16 *string
-				return hx_zero_16
-			}
-			return hx_value_15.(*string)
-		}(jobs.__hx_this.recvOr(hxrt.StringFromLiteral("__stop__")))
-		_ = job
-		if hxrt.StringEqualAny(job, hxrt.StringFromLiteral("__stop__")) {
-			return
-		}
-		results.__hx_this.send(job)
-	}
+		return hx_value_9.(int)
+	}(sendTwoB.__hx_this.recvOr(-1)))
+	_ = sendTwoValues
+	hxrt.Println(sendTwo)
+	hxrt.Println(sendTwoValues)
 }
 
 type haxe__ds__IntMap struct {

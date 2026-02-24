@@ -7,7 +7,7 @@
 | `examples/profile_storyboard` | Yes | Yes | Yes | Compact profile-idiom reference with profile runtime adapters. |
 | `examples/tui_todo` | Yes | Yes | Yes | Complex app reference with deterministic pseudo-TUI flow and additive profile capabilities. |
 | `examples/interop_smoke` | Yes | Yes | Yes | Typed interop smoke reference for `@:go.import`, `@:go.name`, `@:go.receiver`, and package APIs (`fmt`/`time`/`context`/`net/http`). |
-| `examples/worker_pool_select` | Yes | Yes | Yes | Deterministic worker pool with channel fan-out plus select-style non-blocking ops (`trySend`/`recvOr`). |
+| `examples/worker_pool_select` | Yes | Yes | Yes | Deterministic worker pool with channel fan-out plus typed `go.Select` helper flows (`recv`/`recv2`/`send`/`send2`). |
 
 ## Build and run matrix
 

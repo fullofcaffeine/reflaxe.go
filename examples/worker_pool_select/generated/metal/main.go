@@ -1,6 +1,9 @@
 package main
 
-import "examples_worker_pool_select_metal/hxrt"
+import (
+	"examples_worker_pool_select_metal/hxrt"
+	"reflect"
+)
 
 var EMPTY_TOKEN *string = hxrt.StringFromLiteral("__empty__")
 
@@ -52,17 +55,98 @@ func main() {
 		received = int(int32((received + 1)))
 	}
 	selectGate := go__concurrency_newChan__int_95e97e5e(1)
-	firstTry := go__concurrency_trySend__int_95e97e5e(selectGate.__hx_native, 5)
+	_g_3 := go___Select_send(selectGate, 5)
+	_ = _g_3
+	var hx_switch_3 bool
+	switch _g_3.tag {
+	case 0:
+		hx_switch_3 = true
+	case 1:
+		hx_switch_3 = false
+	}
+	firstTry := hx_switch_3
 	_ = firstTry
-	secondTry := go__concurrency_trySend__int_95e97e5e(selectGate.__hx_native, 6)
+	_g_4 := go___Select_send(selectGate, 6)
+	_ = _g_4
+	var hx_switch_4 bool
+	switch _g_4.tag {
+	case 0:
+		hx_switch_4 = true
+	case 1:
+		hx_switch_4 = false
+	}
+	secondTry := hx_switch_4
 	_ = secondTry
-	firstRecv := go__concurrency_recvOr__int_95e97e5e(selectGate.__hx_native, -1)
+	_g_5 := go___Select_recv(selectGate)
+	_ = _g_5
+	var hx_switch_5 int
+	switch _g_5.tag {
+	case 0:
+		_g_6 := _g_5.params[0].(int)
+		value_1 := _g_6
+		hx_switch_5 = value_1
+	case 1:
+		hx_switch_5 = -1
+	}
+	firstRecv := hx_switch_5
 	_ = firstRecv
-	secondRecv := go__concurrency_recvOr__int_95e97e5e(selectGate.__hx_native, 99)
+	_g_7 := go___Select_recv(selectGate)
+	_ = _g_7
+	var hx_switch_6 int
+	switch _g_7.tag {
+	case 0:
+		_g_8 := _g_7.params[0].(int)
+		value_2 := _g_8
+		hx_switch_6 = value_2
+	case 1:
+		hx_switch_6 = 99
+	}
+	secondRecv := hx_switch_6
 	_ = secondRecv
+	left := go__concurrency_newChan___string_f613ccd0(1)
+	_ = left
+	right := go__concurrency_newChan___string_f613ccd0(1)
+	go__concurrency_send___string_f613ccd0(right.__hx_native, hxrt.StringFromLiteral("right"))
+	_g_9 := go___Select_recv2(left, right)
+	_ = _g_9
+	var hx_switch_7 *string
+	switch _g_9.tag {
+	case 0:
+		_g_10 := _g_9.params[0].(*string)
+		value_3 := _g_10
+		hx_switch_7 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("left:"), value_3)
+	case 1:
+		_g_11 := _g_9.params[0].(*string)
+		value_4 := _g_11
+		hx_switch_7 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("right:"), value_4)
+	case 2:
+		hx_switch_7 = hxrt.StringFromLiteral("none")
+	}
+	recv2 := hx_switch_7
+	_ = recv2
+	send2a := go__concurrency_newChan__int_95e97e5e(1)
+	_ = send2a
+	send2b := go__concurrency_newChan__int_95e97e5e(1)
+	_g_12 := go___Select_send2(send2a, 11, send2b, 22)
+	_ = _g_12
+	var hx_switch_8 *string
+	switch _g_12.tag {
+	case 0:
+		hx_switch_8 = hxrt.StringFromLiteral("a")
+	case 1:
+		hx_switch_8 = hxrt.StringFromLiteral("b")
+	case 2:
+		hx_switch_8 = hxrt.StringFromLiteral("none")
+	}
+	send2 := hx_switch_8
+	_ = send2
+	send2Values := hxrt.StringConcatAny(hxrt.StringConcatAny(go__concurrency_recvOr__int_95e97e5e(send2a.__hx_native, -1), hxrt.StringFromLiteral(",")), go__concurrency_recvOr__int_95e97e5e(send2b.__hx_native, -1))
+	_ = send2Values
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("worker.count="), received))
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("select.trySend="), hxrt.StdString(firstTry)), hxrt.StringFromLiteral(",")), hxrt.StdString(secondTry)))
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("select.recvOr="), firstRecv), hxrt.StringFromLiteral(",")), secondRecv))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("select.recv2="), recv2))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("select.send2="), send2), hxrt.StringFromLiteral(" values=")), send2Values))
 }
 
 func worker(jobs *go___Chan, results *go___Chan) {
@@ -237,42 +321,102 @@ func go__concurrency_makeChan(buffer int) any {
 }
 
 func go__concurrency_send(channel any, value any) {
-	channel.(chan any) <- value
+	chanValue := reflect.ValueOf(channel)
+	if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {
+		return
+	}
+	sendValue := reflect.ValueOf(value)
+	if !sendValue.IsValid() {
+		sendValue = reflect.Zero(chanValue.Type().Elem())
+	} else if !sendValue.Type().AssignableTo(chanValue.Type().Elem()) {
+		if sendValue.Type().ConvertibleTo(chanValue.Type().Elem()) {
+			sendValue = sendValue.Convert(chanValue.Type().Elem())
+		} else {
+			return
+		}
+	}
+	chanValue.Send(sendValue)
 }
 
 func go__concurrency_trySend(channel any, value any) bool {
-	select {
-	case channel.(chan any) <- value:
-		return true
-	default:
+	chanValue := reflect.ValueOf(channel)
+	if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {
 		return false
 	}
+	sendValue := reflect.ValueOf(value)
+	if !sendValue.IsValid() {
+		sendValue = reflect.Zero(chanValue.Type().Elem())
+	} else if !sendValue.Type().AssignableTo(chanValue.Type().Elem()) {
+		if sendValue.Type().ConvertibleTo(chanValue.Type().Elem()) {
+			sendValue = sendValue.Convert(chanValue.Type().Elem())
+		} else {
+			return false
+		}
+	}
+	cases := []reflect.SelectCase{
+		{Dir: reflect.SelectSend, Chan: chanValue, Send: sendValue},
+		{Dir: reflect.SelectDefault},
+	}
+	chosen, _, _ := reflect.Select(cases)
+	return chosen == 0
 }
 
 func go__concurrency_recv(channel any) any {
-	return <-channel.(chan any)
+	chanValue := reflect.ValueOf(channel)
+	if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {
+		return nil
+	}
+	recvValue, _ := chanValue.Recv()
+	if !recvValue.IsValid() {
+		return nil
+	}
+	return recvValue.Interface()
 }
 
 func go__concurrency_recvOr(channel any, defaultValue any) any {
-	select {
-	case value := <-channel.(chan any):
-		return value
-	default:
+	chanValue := reflect.ValueOf(channel)
+	if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {
 		return defaultValue
 	}
+	cases := []reflect.SelectCase{
+		{Dir: reflect.SelectRecv, Chan: chanValue},
+		{Dir: reflect.SelectDefault},
+	}
+	chosen, recvValue, _ := reflect.Select(cases)
+	if chosen == 0 {
+		if !recvValue.IsValid() {
+			return defaultValue
+		}
+		return recvValue.Interface()
+	}
+	return defaultValue
 }
 
 func go__concurrency_tryRecv(channel any) *go___Result {
-	select {
-	case value := <-channel.(chan any):
-		return New_go___Result(value, nil)
-	default:
+	chanValue := reflect.ValueOf(channel)
+	if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {
 		return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("empty")))
 	}
+	cases := []reflect.SelectCase{
+		{Dir: reflect.SelectRecv, Chan: chanValue},
+		{Dir: reflect.SelectDefault},
+	}
+	chosen, recvValue, _ := reflect.Select(cases)
+	if chosen == 0 {
+		if !recvValue.IsValid() {
+			return New_go___Result(nil, nil)
+		}
+		return New_go___Result(recvValue.Interface(), nil)
+	}
+	return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("empty")))
 }
 
 func go__concurrency_close(channel any) {
-	close(channel.(chan any))
+	chanValue := reflect.ValueOf(channel)
+	if !chanValue.IsValid() || chanValue.Kind() != reflect.Chan {
+		return
+	}
+	chanValue.Close()
 }
 
 func go__concurrency_spawn(fn func()) {

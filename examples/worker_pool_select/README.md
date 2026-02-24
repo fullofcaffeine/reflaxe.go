@@ -6,7 +6,7 @@ Deterministic worker-pool and select-style channel example across `portable`, `g
 
 - `go.Go.spawn` worker fan-out from one Haxe codebase.
 - `go.Chan<T>` buffered queues and deterministic work collection.
-- Select-backed non-blocking channel operations (`trySend`, `recvOr`) that map to `select { ... default: }` on Go output.
+- Typed `go.Select` helpers (`recv`, `recv2`, `send`, `send2`) layered on select-backed non-blocking channel operations.
 - Same source compiled to all profiles with stable output.
 
 ## Compile
@@ -31,4 +31,6 @@ Expected output:
 worker.count=4
 select.trySend=true,false
 select.recvOr=5,99
+select.recv2=right:right
+select.send2=a values=11,-1
 ```
