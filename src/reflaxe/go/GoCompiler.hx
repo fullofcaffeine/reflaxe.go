@@ -71,6 +71,12 @@ private typedef MetalMapTypePair = {
 	final valueGoType:String;
 }
 
+private typedef GoResultMethodCall = {
+	final target:TypedExpr;
+	final methodName:String;
+	final elementType:Type;
+}
+
 private typedef FunctionInfo = {
 	final defaults:Array<Null<TypedExpr>>;
 }
@@ -97,6 +103,7 @@ class GoCompiler {
 	final requiredMetalChanElementTypes:Map<String, Bool>;
 	final requiredMetalSliceElementTypes:Map<String, Bool>;
 	final requiredMetalMapTypePairs:Map<String, MetalMapTypePair>;
+	final requiredMetalResultElementTypes:Map<String, Bool>;
 	final externImportPaths:Map<String, Bool>;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
@@ -120,6 +127,7 @@ class GoCompiler {
 		requiredMetalChanElementTypes = new Map<String, Bool>();
 		requiredMetalSliceElementTypes = new Map<String, Bool>();
 		requiredMetalMapTypePairs = new Map<String, MetalMapTypePair>();
+		requiredMetalResultElementTypes = new Map<String, Bool>();
 		externImportPaths = new Map<String, Bool>();
 		functionVarNameScopes = [];
 		functionVarNameCountScopes = [];
@@ -150,6 +158,7 @@ class GoCompiler {
 		resetRequiredMetalChanElementTypes();
 		resetRequiredMetalSliceElementTypes();
 		resetRequiredMetalMapTypePairs();
+		resetRequiredMetalResultElementTypes();
 		resetExternImportPaths();
 		buildStaticFunctionInfoTable(classes);
 		requiresTypeValueSupport = false;
@@ -213,6 +222,9 @@ class GoCompiler {
 			imports.push("strconv");
 			imports.push("strings");
 			imports.push("time");
+		}
+		if (requiredStdlibShimGroups.exists("go_result")) {
+			imports.push("errors");
 		}
 		for (path in externImportPaths.keys()) {
 			imports.push(path);
@@ -578,6 +590,9 @@ class GoCompiler {
 		}
 		if (requiredStdlibShimGroups.exists("go_collections")) {
 			decls = decls.concat(lowerMetalGoCollectionShimDecls());
+		}
+		if (requiredStdlibShimGroups.exists("go_result")) {
+			decls = decls.concat(lowerMetalGoResultShimDecls());
 		}
 		return decls;
 	}
@@ -2626,6 +2641,85 @@ class GoCompiler {
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("mapValue"), "inner"), "exists"), [
 					GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [GoExpr.GoCall(GoExpr.GoIdent("any"), [GoExpr.GoIdent("key")])])
 				]))
+			]));
+		}
+
+		return decls;
+	}
+
+	function lowerMetalGoResultShimDecls():Array<GoDecl> {
+		if (!isMetalProfile()) {
+			return [];
+		}
+
+		var elementTypes = [for (elementType in requiredMetalResultElementTypes.keys()) elementType];
+		if (elementTypes.length == 0) {
+			return [];
+		}
+
+		elementTypes.sort(function(a, b) return Reflect.compare(a, b));
+		var resultTypeName = GoNaming.typeSymbol(["go"], "Result");
+		var resultPointerType = "*" + resultTypeName;
+		var decls = new Array<GoDecl>();
+
+		for (elementType in elementTypes) {
+			var okName = metalResultShimName("go__result_ok", elementType);
+			var failureName = metalResultShimName("go__result_failure", elementType);
+			var valueErrorName = metalResultShimName("go__result_valueError", elementType);
+			var isOkName = metalResultShimName("go__result_isOk", elementType);
+			var isErrName = metalResultShimName("go__result_isErr", elementType);
+			var unwrapName = metalResultShimName("go__result_unwrap", elementType);
+			var errorName = metalResultShimName("go__result_error", elementType);
+
+			decls.push(GoDecl.GoFuncDecl(okName, null, [{name: "value", typeName: elementType}], [resultPointerType], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [GoExpr.GoIdent("value"), GoExpr.GoNil]))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(failureName, null, [{name: "message", typeName: "*string"}], [resultPointerType], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [
+					GoExpr.GoNil,
+					GoExpr.GoCall(GoExpr.GoIdent("New_go___Error"), [GoExpr.GoIdent("message")])
+				]))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(valueErrorName, null, [{name: "result", typeName: resultPointerType}], [elementType, "error"], [
+				GoStmt.GoRaw("var zero " + elementType),
+				GoStmt.GoRaw("if result == nil {"),
+				GoStmt.GoRaw("return zero, errors.New(\"nil go.Result\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if result.errorValue != nil {"),
+				GoStmt.GoRaw("return zero, errors.New(*hxrt.StdString(result.errorValue.message))"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if result.value == nil {"),
+				GoStmt.GoRaw("return zero, nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return result.value.(" + elementType + "), nil")
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(isOkName, null, [{name: "result", typeName: resultPointerType}], ["bool"], [
+				GoStmt.GoRaw("_, err := " + valueErrorName + "(result)"),
+				GoStmt.GoReturn(GoExpr.GoBinary("==", GoExpr.GoIdent("err"), GoExpr.GoNil))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(isErrName, null, [{name: "result", typeName: resultPointerType}], ["bool"], [
+				GoStmt.GoRaw("_, err := " + valueErrorName + "(result)"),
+				GoStmt.GoReturn(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(unwrapName, null, [{name: "result", typeName: resultPointerType}], [elementType], [
+				GoStmt.GoRaw("value, err := " + valueErrorName + "(result)"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("hxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("var zero " + elementType),
+				GoStmt.GoRaw("return zero"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("value"))
+			]));
+
+			decls.push(GoDecl.GoFuncDecl(errorName, null, [{name: "result", typeName: resultPointerType}], ["*string"], [
+				GoStmt.GoRaw("_, err := " + valueErrorName + "(result)"),
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("err"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("err"), "Error"), [])]))
 			]));
 		}
 
@@ -9590,6 +9684,11 @@ class GoCompiler {
 			return metalMapCall;
 		}
 
+		var metalResultCall = lowerMetalGoResultCall(callee, args, returnType);
+		if (metalResultCall != null) {
+			return metalResultCall;
+		}
+
 		if (isStaticCall(callee, "Go", ["go"], "__chanMake")) {
 			requireStdlibShimGroup("go_concurrency");
 			var buffer = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
@@ -9990,6 +10089,79 @@ class GoCompiler {
 				return {
 					expr: GoExpr.GoCall(GoExpr.GoIdent(metalMapShimName("go__map_exists", keyGoType, valueGoType)), [mapExpr, keyExpr]),
 					isStringLike: false
+				};
+			case _:
+				return null;
+		}
+	}
+
+	function lowerMetalGoResultCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		if (!isMetalProfile()) {
+			return null;
+		}
+
+		var returnElementGoType = goResultElementGoType(returnType);
+
+		if (isStaticCall(callee, "Result", ["go"], "ok") || isStaticCall(callee, "Go", ["go"], "ok")) {
+			if (returnElementGoType == null) {
+				return null;
+			}
+			requireStdlibShimGroup("go_result");
+			registerMetalResultElementGoType(returnElementGoType);
+			var value = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_ok", returnElementGoType)), [value]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Result", ["go"], "failure") || isStaticCall(callee, "Go", ["go"], "fail")) {
+			if (returnElementGoType == null) {
+				return null;
+			}
+			requireStdlibShimGroup("go_result");
+			registerMetalResultElementGoType(returnElementGoType);
+			var message = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_failure", returnElementGoType)), [message]),
+				isStringLike: false
+			};
+		}
+
+		var methodCall = asGoResultMethodCall(callee);
+		if (methodCall == null) {
+			return null;
+		}
+
+		var elementGoType = goResultElementGoType(methodCall.target.t);
+		if (elementGoType == null) {
+			return null;
+		}
+
+		requireStdlibShimGroup("go_result");
+		registerMetalResultElementGoType(elementGoType);
+		var resultExpr = lowerExpr(methodCall.target).expr;
+
+		switch (methodCall.methodName) {
+			case "isOk":
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_isOk", elementGoType)), [resultExpr]),
+					isStringLike: false
+				};
+			case "isErr":
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_isErr", elementGoType)), [resultExpr]),
+					isStringLike: false
+				};
+			case "unwrap":
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_unwrap", elementGoType)), [resultExpr]),
+					isStringLike: isStringType(returnType)
+				};
+			case "error":
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_error", elementGoType)), [resultExpr]),
+					isStringLike: true
 				};
 			case _:
 				return null;
@@ -10506,6 +10678,10 @@ class GoCompiler {
 		return classType.pack.join(".") == "go" && classType.name == "Map";
 	}
 
+	function isGoResultClass(classType:ClassType):Bool {
+		return classType.pack.join(".") == "go" && classType.name == "Result";
+	}
+
 	function goChanElementType(type:Type):Null<Type> {
 		var followed = Context.follow(type);
 		return switch (followed) {
@@ -10584,6 +10760,31 @@ class GoCompiler {
 		};
 	}
 
+	function goResultElementType(type:Type):Null<Type> {
+		var followed = Context.follow(type);
+		return switch (followed) {
+			case TInst(classRef, params):
+				var classType = classRef.get();
+				if (isGoResultClass(classType) && params.length == 1) {
+					params[0];
+				} else {
+					null;
+				}
+			case TAbstract(abstractRef, params):
+				var abstractType = abstractRef.get();
+				if (abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1) {
+					goResultElementType(params[0]);
+				} else {
+					null;
+				}
+			case TMono(ref):
+				var resolved = ref.get();
+				resolved == null ? null : goResultElementType(resolved);
+			case _:
+				null;
+		};
+	}
+
 	function isMonomorphizableMetalElementType(elementGoType:String):Bool {
 		return elementGoType != null && elementGoType != "" && elementGoType != "any";
 	}
@@ -10632,6 +10833,18 @@ class GoCompiler {
 		};
 	}
 
+	function goResultElementGoType(type:Type):Null<String> {
+		var elementType = goResultElementType(type);
+		if (elementType == null) {
+			return null;
+		}
+		var elementGoType = scalarGoType(elementType);
+		if (!isMonomorphizableMetalElementType(elementGoType)) {
+			return null;
+		}
+		return elementGoType;
+	}
+
 	function registerMetalChanElementGoType(elementGoType:String):Void {
 		if (!isMetalProfile()) {
 			return;
@@ -10666,6 +10879,16 @@ class GoCompiler {
 		});
 	}
 
+	function registerMetalResultElementGoType(elementGoType:String):Void {
+		if (!isMetalProfile()) {
+			return;
+		}
+		if (!isMonomorphizableMetalElementType(elementGoType)) {
+			return;
+		}
+		requiredMetalResultElementTypes.set(elementGoType, true);
+	}
+
 	function metalTypeHash(value:String):String {
 		var hash = 0x811C9DC5;
 		for (index in 0...value.length) {
@@ -10697,6 +10920,10 @@ class GoCompiler {
 
 	function metalMapShimName(base:String, keyGoType:String, valueGoType:String):String {
 		return base + "__" + metalTypeSuffix(metalMapTypeSignature(keyGoType, valueGoType));
+	}
+
+	function metalResultShimName(base:String, elementGoType:String):String {
+		return base + "__" + metalTypeSuffix(elementGoType);
 	}
 
 	function shouldAssertGenericCallResult(callee:TypedExpr, returnType:Type):Bool {
@@ -11196,6 +11423,12 @@ class GoCompiler {
 		}
 	}
 
+	function resetRequiredMetalResultElementTypes():Void {
+		for (elementType in requiredMetalResultElementTypes.keys()) {
+			requiredMetalResultElementTypes.remove(elementType);
+		}
+	}
+
 	function noteExternImportPath(classType:ClassType):Void {
 		var path = externClassImportPath(classType);
 		if (path == null || path == "") {
@@ -11446,6 +11679,31 @@ class GoCompiler {
 				asGoMapMethodCall(inner);
 			case TCast(inner, _):
 				asGoMapMethodCall(inner);
+			case _:
+				null;
+		};
+	}
+
+	function asGoResultMethodCall(callee:TypedExpr):Null<GoResultMethodCall> {
+		return switch (callee.expr) {
+			case TField(target, FInstance(classRef, _, field)):
+				var classType = classRef.get();
+				var elementType = goResultElementType(target.t);
+				if (isGoResultClass(classType) && elementType != null) {
+					{
+						target: target,
+						methodName: field.get().name,
+						elementType: elementType
+					};
+				} else {
+					null;
+				}
+			case TMeta(_, inner):
+				asGoResultMethodCall(inner);
+			case TParenthesis(inner):
+				asGoResultMethodCall(inner);
+			case TCast(inner, _):
+				asGoResultMethodCall(inner);
 			case _:
 				null;
 		};

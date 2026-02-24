@@ -73,7 +73,7 @@ Depends on: M3, M3.5
 - Start with monomorphization-first typed lane for hot generic surfaces.
   - Prototype landed: `go.Chan<T>` metal call-site specialization with typed channel shims per concrete element type.
   - Extended prototype landed: `go.Slice<T>` + `go.Map<K,V>` metal call-site specialization with typed collection shims per concrete type set.
-- Add `go.Result<T>` lowering strategy for metal.
+- `go.Result<T>` metal lowering now includes typed call-site shims with internal `(T, error)` helpers; continue iterating toward broader direct idiom emission.
 - Expand perf harness and enforce metal budgets.
 
 ### M5 - Output Ergonomics
