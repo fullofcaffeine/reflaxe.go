@@ -134,6 +134,7 @@ Compatibility note:
 - `docs/hxrt-selective-runtime.md`
 - `docs/portable-canonical-contract.md`
 - `docs/profiles.md`
+- `docs/profile-semantics-guide.md`
 - `docs/profile-auto-spike.md`
 - `docs/go-concurrency-interop-guide.md`
 - `docs/flagship-apps-plan.md`

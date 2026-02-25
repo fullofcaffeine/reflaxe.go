@@ -18,6 +18,8 @@ This target supports two profiles:
 - `portable` is the semantic baseline.
 - `metal` is the explicit low-level performance/interop lane.
 - Canonical portable semantics are documented in `docs/portable-canonical-contract.md`.
+- World-class profile strategy, semantics, and migration guidance:
+  `docs/profile-semantics-guide.md`.
 
 Selective `hxrt` runtime inference is complementary and does not replace profile contracts.
 See `docs/hxrt-selective-runtime.md`.
@@ -58,3 +60,4 @@ Framework-owned typed facades are allowed in `metal` strict mode; raw app-side i
 - Worker pool/select-style concurrency app: `examples/worker_pool_select`
 - Coverage + artifact matrix: `docs/examples-matrix.md`
 - Production caveats: `docs/known-gaps.md`
+- Canonical profile playbook: `docs/profile-semantics-guide.md`

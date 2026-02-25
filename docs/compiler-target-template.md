@@ -73,3 +73,13 @@ Every major architecture or policy decision should include:
   - resolves output directory from target define (`go_output`, `rust_output`, etc.)
   - runs target action (`run`, `build`, `test`, etc.)
 - Mirror this wrapper pattern in `templates/basic` for consumer projects.
+
+## 8) Profile documentation contract
+
+- Ship a dedicated profile semantics guide (`portable` vs `metal`).
+- Explicitly document:
+  - semantic guarantees
+  - codegen expectations
+  - migration rules (`portable` -> `metal`, `metal` -> `portable`)
+  - cross-target interoperability guidance
+- Keep this guide linked from `README`, `start-here`, and `profiles` reference docs.

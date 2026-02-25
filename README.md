@@ -93,6 +93,7 @@ Use `-D reflaxe_go_profile=portable|metal`.
 
 Details: [docs/profiles.md](docs/profiles.md)
 Canonical portable semantics: [docs/portable-canonical-contract.md](docs/portable-canonical-contract.md)
+Profile semantics and migration guide: [docs/profile-semantics-guide.md](docs/profile-semantics-guide.md)
 
 ## Flagship Examples
 
@@ -174,6 +175,7 @@ Runtime details: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
 - `hxrt` runtime architecture and contract: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
 - Selective `hxrt` + profile policy plan: [docs/hxrt-selective-runtime.md](docs/hxrt-selective-runtime.md)
 - Canonical portable contract (cross-compiler reference): [docs/portable-canonical-contract.md](docs/portable-canonical-contract.md)
+- Profile semantics playbook (`portable` vs `metal`): [docs/profile-semantics-guide.md](docs/profile-semantics-guide.md)
 - Feature support and coverage inventory: [docs/feature-support-matrix.md](docs/feature-support-matrix.md)
 - Defines reference: [docs/defines-reference.md](docs/defines-reference.md)
 - Profile admission criteria: [docs/profile-admission-criteria.md](docs/profile-admission-criteria.md)
