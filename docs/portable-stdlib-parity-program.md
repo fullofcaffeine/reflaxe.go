@@ -41,6 +41,27 @@ Excluded from this parity objective:
 4. Library-expressible behavior should migrate to staged stdlib sources (`.cross.hx` and approved override paths).
 5. Upstream sync must be provenance-tracked and boundary-checked in CI.
 
+## Provenance And Boundary Workflow
+
+Governance artifacts:
+
+- `docs/stdlib-provenance-ledger.json`: baseline upstream tag + per-file provenance records for tracked std override files.
+- `scripts/ci/upstream-stdlib-boundary-check.js`: prevents tracked upstream vendor roots and enforces approved std override roots.
+- `scripts/ci/stdlib-provenance-ledger-check.js`: validates ledger schema and ensures ledger coverage exactly matches tracked std override files.
+
+Required commands:
+
+```bash
+npm run test:stdlib:governance
+```
+
+Update sequence when std override files change:
+
+1. Update tracked std override files under approved roots (`std/go/**`, `std/_std/**`).
+2. Add/update matching entries in `docs/stdlib-provenance-ledger.json`.
+3. Run `npm run test:stdlib:governance`.
+4. Run `python3 test/run-ci.py` (or `npm run test:ci`) before merging.
+
 ## Portable Native-Import Policy
 
 Portable programmers may temporarily import native modules during migration, but the compiler should make that explicit.

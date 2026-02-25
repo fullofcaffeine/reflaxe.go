@@ -36,6 +36,12 @@ Skip semantic diff stage:
 python3 test/run-ci.py --skip-semantic-diff
 ```
 
+Skip stdlib governance stage:
+
+```bash
+python3 test/run-ci.py --skip-stdlib-governance
+```
+
 Force semantic diff on a shard:
 
 ```bash
@@ -199,6 +205,29 @@ Primary artifacts:
 test/portable_stdlib_inventory.json
 test/.test-cache/portable_stdlib_inventory_summary.json
 test/.test-cache/portable_stdlib_inventory_summary.md
+```
+
+## Stdlib governance guards (provenance + boundary)
+
+Validate upstream-boundary and provenance-ledger policy:
+
+```bash
+npm run test:stdlib:governance
+```
+
+Run checks individually:
+
+```bash
+npm run test:stdlib:boundary
+npm run test:stdlib:provenance
+```
+
+Primary policy artifacts:
+
+```text
+docs/stdlib-provenance-ledger.json
+scripts/ci/upstream-stdlib-boundary-check.js
+scripts/ci/stdlib-provenance-ledger-check.js
 ```
 
 ## Semantic differential harness
