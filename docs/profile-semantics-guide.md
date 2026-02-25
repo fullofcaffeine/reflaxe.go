@@ -68,6 +68,12 @@ Key reasons:
 3. CI/review needs explicit semantic mode selection in diffs.
 4. Cross-target compatibility is easier to preserve when portable is a named contract.
 
+Semantic-flip examples we want to avoid:
+
+- A dependency starts using target-native surfaces and an inferred global mode begins treating nearby `Dynamic`/string/null paths as native-first instead of portable-contract-first.
+- A refactor that looks “type-only” (for example, replacing a generic container path with a target-specific fast path) quietly changes dispatch/runtime-helper behavior for the same public API.
+- A minor dependency update changes inferred feature sets and produces different exception/stringification/equality behavior without an explicit profile change in version control.
+
 In short: runtime feature inference is useful, but semantic profile inference is too risky as a default model.
 
 ## Future `auto` direction
