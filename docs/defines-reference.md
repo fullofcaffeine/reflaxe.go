@@ -69,6 +69,10 @@ Design note:
   - Enforce strict no raw `__go__` policy in app project sources.
 - `reflaxe_go_strict_examples`
   - Enforce strict no raw `__go__` policy for repo examples/snapshots.
+- `reflaxe_go_metal_allow_fallback`
+  - Opt-in escape hatch for `metal` profile to allow raw `__go__` in app sources.
+  - Does not affect `reflaxe_go_strict` (explicit strict mode still forbids raw injection).
+  - Does not affect strict examples enforcement in snapshots/examples.
 
 ## Constructor devex
 

@@ -13,6 +13,7 @@ import reflaxe.go.macros.StrictModeEnforcer;
 class CompilerInit {
 	#if macro
 	static var initialized = false;
+	static inline var METAL_ALLOW_FALLBACK_DEFINE = "reflaxe_go_metal_allow_fallback";
 
 	public static function Start():Void {
 		if (!BuildDetection.isGoBuild()) {
@@ -29,7 +30,8 @@ class CompilerInit {
 		if (Context.defined("reflaxe_go_strict_examples")) {
 			BoundaryEnforcer.init();
 		}
-		if (Context.defined("reflaxe_go_strict") || profile == GoProfile.Metal) {
+		var metalStrictByDefault = profile == GoProfile.Metal && !Context.defined(METAL_ALLOW_FALLBACK_DEFINE);
+		if (Context.defined("reflaxe_go_strict") || metalStrictByDefault) {
 			StrictModeEnforcer.init();
 		}
 

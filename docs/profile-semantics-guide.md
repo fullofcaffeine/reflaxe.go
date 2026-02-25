@@ -136,6 +136,7 @@ Opt into native-first behavior:
 
 1. Compile with `-D reflaxe_go_profile=metal`.
 2. Use target-native surfaces (for example `go.*` APIs or explicit native interop wrappers).
+3. If you need raw `__go__`, opt in explicitly with `-D reflaxe_go_metal_allow_fallback` (still discouraged, but available).
 
 Stay in portable semantics:
 

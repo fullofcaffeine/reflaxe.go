@@ -50,6 +50,7 @@ If your code path falls outside this subset, start from `portable` and promote o
 - `reflaxe_go_strict_examples`: forbids raw `__go__` in repo examples/snapshots.
 - `reflaxe_go_strict`: forbids raw `__go__` in app project sources.
 - `metal` enables strict mode by default for app-side raw injection.
+- `reflaxe_go_metal_allow_fallback`: opt-in escape hatch to allow raw `__go__` in `metal` app sources.
 
 Framework-owned typed facades are allowed in `metal` strict mode; raw app-side injection remains disallowed.
 
