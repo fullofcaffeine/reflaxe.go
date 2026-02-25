@@ -46,6 +46,22 @@ These are explicitly locked in tests:
 - Typed-nil values boxed into `Dynamic`/`any` still behave as null for portable stringification/equality expectations.
 - Removed profile selectors (`gopher`, `idiomatic`) fail fast with clear diagnostics.
 
+### Portable null semantics (practical contract)
+
+For portable pathways, null-facing behavior is Haxe-oriented and should not drift to raw target-native nil quirks.
+
+Expected behavior examples:
+
+```haxe
+var n:Node = null;
+var d:Dynamic = n;
+Sys.println(Std.string(d)); // "null"
+Sys.println("" + d);        // "null"
+Sys.println(d == null);     // true (boxed typed-nil still compares as null in portable contract)
+```
+
+This specifically guards against Go interface-nil traps leaking into portable semantics (for example `"<nil>"` stringification or false negative null-equality on boxed typed-nil values).
+
 ## Canonical Test Gates in `haxe.go`
 
 Portable contract changes require green results in:

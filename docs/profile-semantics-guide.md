@@ -38,6 +38,30 @@ For programs written against portable surfaces (Haxe stdlib + app code, no targe
 
 If this rule regresses, it is a compiler bug or a contract deviation that must be documented and tested.
 
+### Portable null/string/dynamic semantics to keep in mind
+
+These are easy to break if a compiler silently switches to native-first behavior in loose-typing paths:
+
+1. `Std.string(null)` should behave as portable contract `"null"` stringification.
+2. String concatenation with null-like dynamic values should keep portable `"null"` semantics.
+3. Boxed typed-nil values in `Dynamic`/`any` pathways should still satisfy portable null expectations (`d == null` style behavior).
+4. Dispatch and inheritance behavior should remain portable-correct even with optimization passes (no silent override bypass).
+
+In practice, this is why “explicit profile contract + tests” is safer than “implicit inferred profile.”
+
+### How this compares in `metal`
+
+| Case | `portable` | `metal` (when code stays on portable surfaces) | `metal` (when using native-first surfaces) |
+| --- | --- | --- | --- |
+| `Std.string(null)` | `"null"` | `"null"` (same contract) | May differ if you bypass portable pathway with native formatting APIs |
+| `"" + dynamicNull` | `"null"` | `"null"` (same contract) | May differ if concatenation goes through native-only path |
+| `d == null` where `d` is boxed typed-nil | `true` | `true` (same contract) | May differ if code depends on raw target-native boxed-nil behavior |
+
+Rule of thumb:
+
+- If your code remains on portable APIs, null semantics should remain portable even under `metal`.
+- Differences appear when you intentionally opt into target-native behavior outside the portable contract.
+
 ## Choosing a profile
 
 ### Choose `portable` when
@@ -71,7 +95,15 @@ Key reasons:
 Semantic-flip examples we want to avoid:
 
 - A dependency starts using target-native surfaces and an inferred global mode begins treating nearby loosely-typed value paths (`Dynamic`, stringification, `null` handling) as native-first instead of portable-contract-first.
-  Portable-contract-first means keeping Haxe-oriented behavior in those paths (for example, `Std.string(null)` style `"null"` semantics) instead of raw target-native behavior (for example, Go interface-nil formatting like `"<nil>"`).
+  In practice, this can change observable behavior:
+  ```haxe
+  var n:Node = null;
+  var d:Dynamic = n;
+  Sys.println(Std.string(d)); // portable contract: "null"
+  Sys.println("" + d);        // portable contract: "null"
+  Sys.println(d == null);     // portable contract: true (null stays null when boxed as Dynamic)
+  ```
+  A native-first Go pathway can instead produce interface-nil behavior like `"<nil>"` stringification and `d == null` mismatches.
 - A refactor that looks “type-only” (for example, replacing a generic container path with a target-specific fast path) quietly changes dispatch/runtime-helper behavior for the same public API.
 - A minor dependency update changes inferred feature sets and produces different exception/stringification/equality behavior without an explicit profile change in version control.
 
