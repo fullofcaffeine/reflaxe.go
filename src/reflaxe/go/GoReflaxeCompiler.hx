@@ -41,6 +41,9 @@ private typedef ContractReportSnapshot = {
 	final hxrtManualFeatures:Array<String>;
 	final metalLaneModules:Array<String>;
 	final metalFallbackViolationCount:Int;
+	final metalFallbackLaneViolationCount:Int;
+	final metalFallbackNonLaneViolationCount:Int;
+	final metalFallbackViolationsByModule:Array<ContractFallbackModuleSummary>;
 	final metalFallbackViolations:Array<ContractFallbackViolation>;
 }
 
@@ -50,6 +53,12 @@ private typedef ContractFallbackViolation = {
 	final location:String;
 	final module:String;
 	final inMetalLane:Bool;
+}
+
+private typedef ContractFallbackModuleSummary = {
+	final module:String;
+	final inMetalLane:Bool;
+	final count:Int;
 }
 
 private typedef RuntimeFeatureReason = {
@@ -325,10 +334,21 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		var manualFeatures = sortedUniqueStrings(buildContext.hxrtManualFeatures.copy());
 		var laneModules = sortedUniqueStrings(buildContext.metalLaneModules.copy());
 		var fallbackViolations = new Array<ContractFallbackViolation>();
+		var laneViolationCount = 0;
+		var nonLaneViolationCount = 0;
+		var laneCountsByModule = new Map<String, Int>();
+		var nonLaneCountsByModule = new Map<String, Int>();
 		if (context != null) {
 			for (violation in context.metalFallbackViolations) {
 				if (violation == null) {
 					continue;
+				}
+				if (violation.inMetalLane) {
+					laneViolationCount++;
+					incrementIntMap(laneCountsByModule, violation.module);
+				} else {
+					nonLaneViolationCount++;
+					incrementIntMap(nonLaneCountsByModule, violation.module);
 				}
 				fallbackViolations.push({
 					kind: violation.kind,
@@ -340,8 +360,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			}
 		}
 		fallbackViolations.sort(compareContractFallbackViolations);
+		var fallbackSummary = buildContractFallbackModuleSummary(laneCountsByModule, nonLaneCountsByModule);
 		return {
-			schemaVersion: 2,
+			schemaVersion: 3,
 			contract: contractLabel,
 			strictExamples: buildContext.strictExamples,
 			strictUserBoundaries: buildContext.strictUserBoundaries,
@@ -355,6 +376,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			hxrtManualFeatures: manualFeatures,
 			metalLaneModules: laneModules,
 			metalFallbackViolationCount: fallbackViolations.length,
+			metalFallbackLaneViolationCount: laneViolationCount,
+			metalFallbackNonLaneViolationCount: nonLaneViolationCount,
+			metalFallbackViolationsByModule: fallbackSummary,
 			metalFallbackViolations: fallbackViolations
 		};
 	}
@@ -443,6 +467,39 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		return Reflect.compare(a.detail, b.detail);
 	}
 
+	static function buildContractFallbackModuleSummary(laneCountsByModule:Map<String, Int>,
+			nonLaneCountsByModule:Map<String, Int>):Array<ContractFallbackModuleSummary> {
+		var summary = new Array<ContractFallbackModuleSummary>();
+		for (moduleName in laneCountsByModule.keys()) {
+			summary.push({
+				module: moduleName,
+				inMetalLane: true,
+				count: laneCountsByModule.get(moduleName)
+			});
+		}
+		for (moduleName in nonLaneCountsByModule.keys()) {
+			summary.push({
+				module: moduleName,
+				inMetalLane: false,
+				count: nonLaneCountsByModule.get(moduleName)
+			});
+		}
+		summary.sort(compareContractFallbackModuleSummary);
+		return summary;
+	}
+
+	static function compareContractFallbackModuleSummary(a:ContractFallbackModuleSummary, b:ContractFallbackModuleSummary):Int {
+		var moduleOrder = Reflect.compare(a.module, b.module);
+		if (moduleOrder != 0) {
+			return moduleOrder;
+		}
+		var laneOrder = Reflect.compare(a.inMetalLane ? 1 : 0, b.inMetalLane ? 1 : 0);
+		if (laneOrder != 0) {
+			return laneOrder;
+		}
+		return Reflect.compare(a.count, b.count);
+	}
+
 	static function renderContractReportJson(snapshot:ContractReportSnapshot):String {
 		var lines:Array<String> = [];
 		lines.push("{");
@@ -458,11 +515,16 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push('\t"hxrtForceFullCopy": ' + boolString(snapshot.hxrtForceFullCopy) + ",");
 		lines.push('\t"hxrtNoFeatureInfer": ' + boolString(snapshot.hxrtNoFeatureInfer) + ",");
 		lines.push('\t"metalFallbackViolationCount": ' + snapshot.metalFallbackViolationCount + ",");
+		lines.push('\t"metalFallbackLaneViolationCount": ' + snapshot.metalFallbackLaneViolationCount + ",");
+		lines.push('\t"metalFallbackNonLaneViolationCount": ' + snapshot.metalFallbackNonLaneViolationCount + ",");
 		lines.push('\t"hxrtManualFeatures": [');
 		appendJsonStringArray(lines, snapshot.hxrtManualFeatures, 2);
 		lines.push("\t],");
 		lines.push('\t"metalLaneModules": [');
 		appendJsonStringArray(lines, snapshot.metalLaneModules, 2);
+		lines.push("\t],");
+		lines.push('\t"metalFallbackViolationsByModule": [');
+		appendJsonContractFallbackSummaryArray(lines, snapshot.metalFallbackViolationsByModule, 2);
 		lines.push("\t],");
 		lines.push('\t"metalFallbackViolations": [');
 		appendJsonContractFallbackArray(lines, snapshot.metalFallbackViolations, 2);
@@ -487,6 +549,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("- hxrt force full copy: `" + boolLabel(snapshot.hxrtForceFullCopy) + "`");
 		lines.push("- hxrt no feature infer: `" + boolLabel(snapshot.hxrtNoFeatureInfer) + "`");
 		lines.push("- metal fallback violations: `" + snapshot.metalFallbackViolationCount + "`");
+		lines.push("- metal fallback lane violations: `" + snapshot.metalFallbackLaneViolationCount + "`");
+		lines.push("- metal fallback non-lane violations: `" + snapshot.metalFallbackNonLaneViolationCount + "`");
 		lines.push("");
 		lines.push("## hxrt manual features");
 		if (snapshot.hxrtManualFeatures.length == 0) {
@@ -503,6 +567,16 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		} else {
 			for (moduleName in snapshot.metalLaneModules) {
 				lines.push("- `" + moduleName + "`");
+			}
+		}
+		lines.push("");
+		lines.push("## metal fallback violation summary by module");
+		if (snapshot.metalFallbackViolationsByModule.length == 0) {
+			lines.push("- none");
+		} else {
+			for (entry in snapshot.metalFallbackViolationsByModule) {
+				var laneLabel = entry.inMetalLane ? "lane" : "non-lane";
+				lines.push("- `" + entry.module + "` (" + laneLabel + "): `" + entry.count + "`");
 			}
 		}
 		lines.push("");
@@ -629,6 +703,19 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		}
 	}
 
+	static function appendJsonContractFallbackSummaryArray(lines:Array<String>, summary:Array<ContractFallbackModuleSummary>, indentLevel:Int):Void {
+		var indent = [for (_ in 0...indentLevel) "\t"].join("");
+		for (index in 0...summary.length) {
+			var entry = summary[index];
+			var suffix = index == summary.length - 1 ? "" : ",";
+			lines.push(indent + "{");
+			lines.push(indent + '\t"module": "' + jsonEscape(entry.module) + '",');
+			lines.push(indent + '\t"inMetalLane": ' + boolString(entry.inMetalLane) + ",");
+			lines.push(indent + '\t"count": ' + entry.count);
+			lines.push(indent + "}" + suffix);
+		}
+	}
+
 	static function appendJsonRuntimeReasons(lines:Array<String>, reasons:Array<RuntimeFeatureReason>, indentLevel:Int):Void {
 		var indent = [for (_ in 0...indentLevel) "\t"].join("");
 		for (index in 0...reasons.length) {
@@ -674,6 +761,11 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		}
 		out.sort((a, b) -> a < b ? -1 : (a > b ? 1 : 0));
 		return out;
+	}
+
+	static function incrementIntMap(map:Map<String, Int>, key:String):Void {
+		var existing = map.exists(key) ? map.get(key) : 0;
+		map.set(key, existing + 1);
 	}
 }
 #else

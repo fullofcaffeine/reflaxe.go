@@ -79,7 +79,10 @@ Opt-in report defines:
 - `-D reflaxe_go_contract_report` -> `profile_contract.json`, `profile_contract.md`
 - `-D reflaxe_go_runtime_plan_report` -> `hxrt_plan.json`, `hxrt_plan.md`
 
-`profile_contract.json` (schema v2) includes structured `metalFallbackViolations` entries with deterministic `module`, `inMetalLane`, `kind`, `location`, and `detail`.
+`profile_contract.json` (schema v3) includes structured `metalFallbackViolations` entries and deterministic lane summaries:
+- `metalFallbackLaneViolationCount`
+- `metalFallbackNonLaneViolationCount`
+- `metalFallbackViolationsByModule`
 
 Snapshot coverage:
 - `test/snapshot/core/report_artifacts_basic`

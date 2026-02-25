@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 2,
+	"schemaVersion": 3,
 	"contract": "portable",
 	"strictExamples": false,
 	"strictUserBoundaries": false,
@@ -11,9 +11,13 @@
 	"hxrtForceFullCopy": false,
 	"hxrtNoFeatureInfer": false,
 	"metalFallbackViolationCount": 0,
+	"metalFallbackLaneViolationCount": 0,
+	"metalFallbackNonLaneViolationCount": 0,
 	"hxrtManualFeatures": [
 	],
 	"metalLaneModules": [
+	],
+	"metalFallbackViolationsByModule": [
 	],
 	"metalFallbackViolations": [
 	]

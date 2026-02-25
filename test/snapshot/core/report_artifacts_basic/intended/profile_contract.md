@@ -1,6 +1,6 @@
 # Contract Report
 
-- schema version: `2`
+- schema version: `3`
 - contract: `portable`
 - strict examples: `no`
 - strict user boundaries: `no`
@@ -12,11 +12,16 @@
 - hxrt force full copy: `no`
 - hxrt no feature infer: `no`
 - metal fallback violations: `0`
+- metal fallback lane violations: `0`
+- metal fallback non-lane violations: `0`
 
 ## hxrt manual features
 - none
 
 ## metal lane modules
+- none
+
+## metal fallback violation summary by module
 - none
 
 ## metal fallback violations

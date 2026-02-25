@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 2,
+	"schemaVersion": 3,
 	"contract": "metal",
 	"strictExamples": false,
 	"strictUserBoundaries": false,
@@ -11,24 +11,43 @@
 	"hxrtForceFullCopy": false,
 	"hxrtNoFeatureInfer": false,
 	"metalFallbackViolationCount": 4,
+	"metalFallbackLaneViolationCount": 1,
+	"metalFallbackNonLaneViolationCount": 3,
 	"hxrtManualFeatures": [
 	],
 	"metalLaneModules": [
 		"LaneWorker"
+	],
+	"metalFallbackViolationsByModule": [
+		{
+			"module": "LaneWorker",
+			"inMetalLane": true,
+			"count": 1
+		},
+		{
+			"module": "NonLaneWorker",
+			"inMetalLane": false,
+			"count": 1
+		},
+		{
+			"module": "go.Go",
+			"inMetalLane": false,
+			"count": 2
+		}
 	],
 	"metalFallbackViolations": [
 		{
 			"module": "LaneWorker",
 			"inMetalLane": true,
 			"kind": "go_result_static_failure_unmorphable",
-			"location": "LaneWorker:5",
+			"location": "LaneWorker:4",
 			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization."
 		},
 		{
 			"module": "NonLaneWorker",
 			"inMetalLane": false,
 			"kind": "go_result_static_failure_unmorphable",
-			"location": "NonLaneWorker:4",
+			"location": "NonLaneWorker:3",
 			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization."
 		},
 		{
