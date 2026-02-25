@@ -124,6 +124,8 @@ Depends on: M6 (and cross-cuts M2-M4.5)
 
 Execution tracker: `haxe.go-cgk` (`docs/portable-stdlib-parity-program.md`).
 
+Approach-C closure follow-up tracker: `haxe.go-qhv` (lane enforcement depth + lane semantic gates).
+
 ## Execution Rules
 
 - Harness is the source of truth: snapshots, stdlib sweep, semantic diff, examples, perf.

@@ -66,6 +66,11 @@ Epic: `haxe.go-cgk`
 7. `haxe.go-cgk.7` - Parity closure harness (all modules)
 8. `haxe.go-cgk.8` - Family shared portable stdlib extraction spike
 9. `haxe.go-cgk.9` - Rename lane metadata to `@:goMetal` only
+10. `haxe.go-cgk.10` - Portable allowlist artifact (`portable_allowlist.json`, tiered contract set)
+11. `haxe.go-cgk.11` - Portable semantics spec v1 (family-grade)
+12. `haxe.go-cgk.12` - Tier1 portable conformance suite seed (repo-local)
+13. `haxe.go-cgk.13` - Module mapping contract doc (Haxe code vs runtime binding vs intrinsic)
+14. `haxe.go-cgk.14` - Family extraction execution prep (post-spike checklist)
 
 ## Definition of Done
 
