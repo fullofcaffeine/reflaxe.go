@@ -9,11 +9,9 @@ func handle(v int) {
 		switch hx_typed_2 := hx_caught_1.(type) {
 		case *string:
 			s := hx_typed_2
-			_ = s
-			hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("S:"), s))
+			hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("S:"), s))
 		case int:
 			i := hx_typed_2
-			_ = i
 			hxrt.Println(i)
 		default:
 			e := hx_caught_1

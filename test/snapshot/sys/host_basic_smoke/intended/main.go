@@ -12,13 +12,10 @@ import (
 
 func main() {
 	loop := New_sys__net__Host(hxrt.StringFromLiteral("127.0.0.1"))
-	_ = loop
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("loop.to_nonempty="), hxrt.StdString(!hxrt.StringEqualAny(loop.toString(), hxrt.StringFromLiteral("")))))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("loop.to_nonempty="), hxrt.StdString(!hxrt.StringEqualStringPtr(loop.toString(), hxrt.StringFromLiteral("")))))
 	named := New_sys__net__Host(hxrt.StringFromLiteral("localhost"))
-	_ = named
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("named.to_nonempty="), hxrt.StdString(!hxrt.StringEqualAny(named.toString(), hxrt.StringFromLiteral("")))))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("named.to_nonempty="), hxrt.StdString(!hxrt.StringEqualStringPtr(named.toString(), hxrt.StringFromLiteral("")))))
 	invalidThrows := false
-	_ = invalidThrows
 	hxrt.TryCatch(func() {
 		New_sys__net__Host(hxrt.StringFromLiteral("256.256.256.256"))
 	}, func(hx_caught_1 any) {
@@ -26,8 +23,8 @@ func main() {
 		_ = hx_tmp
 		invalidThrows = true
 	})
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid_throws="), hxrt.StdString(invalidThrows)))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("localhost_nonempty="), hxrt.StdString(!hxrt.StringEqualAny(sys__net__Host_localhost(), hxrt.StringFromLiteral("")))))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid_throws="), hxrt.StdString(invalidThrows)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("localhost_nonempty="), hxrt.StdString(!hxrt.StringEqualStringPtr(sys__net__Host_localhost(), hxrt.StringFromLiteral("")))))
 	hxrt.TryCatch(func() {
 		loop.reverse()
 	}, func(hx_caught_3 any) {

@@ -41,7 +41,6 @@ func New_Child(value int) *Child {
 
 func main() {
 	child := New_Child(4)
-	_ = child
 	base := child.Base
 	_ = base
 	show(child.Base)

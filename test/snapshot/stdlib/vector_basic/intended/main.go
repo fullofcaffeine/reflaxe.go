@@ -4,7 +4,6 @@ import "snapshot/hxrt"
 
 func main() {
 	var this1 []int
-	_ = this1
 	this1 = []int{}
 	hx_len_1 := 4
 	if hx_len_1 < 0 {
@@ -19,7 +18,6 @@ func main() {
 		}
 	}
 	v := this1
-	_ = v
 	v[0] = 3
 	v[1] = 1
 	v[2] = 4
@@ -30,7 +28,6 @@ func main() {
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("len_after_set:"), len(v)))
 	render(hxrt.StringFromLiteral("mut"), v)
 	var this1_1 []int
-	_ = this1_1
 	this1_1 = []int{}
 	hx_len_3 := 6
 	if hx_len_3 < 0 {
@@ -49,12 +46,10 @@ func main() {
 	_g := 0
 	_ = _g
 	_g1 := len(w)
-	_ = _g1
 	for _g < _g1 {
 		hx_post_5 := _g
 		_g = int(int32((_g + 1)))
 		i := hx_post_5
-		_ = i
 		w[i] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))) * hxrt.Int32Wrap(2))))
 	}
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("w_len:"), len(w)))
@@ -69,18 +64,16 @@ func render(label *string, v []int) {
 	_g := 0
 	_ = _g
 	_g1 := len(v)
-	_ = _g1
 	for _g < _g1 {
 		hx_post_6 := _g
 		_g = int(int32((_g + 1)))
 		i := hx_post_6
-		_ = i
 		if i > 0 {
-			out = hxrt.StringConcatAny(out, hxrt.StringFromLiteral(","))
+			out = hxrt.StringConcatStringPtr(out, hxrt.StringFromLiteral(","))
 		}
-		out = hxrt.StringConcatAny(out, hxrt.StdString(v[i]))
+		out = hxrt.StringConcatStringPtr(out, hxrt.StdString(v[i]))
 		sum = int(int32((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(v[i]))))
 	}
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(label, hxrt.StringFromLiteral(":")), out))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(label, hxrt.StringFromLiteral("_sum:")), sum))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral(":")), out))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("_sum:")), sum))
 }

@@ -28,9 +28,7 @@ func render(opt *haxe__ds__Option) *string {
 	switch opt.tag {
 	case 0:
 		_g := opt.params[0].(int)
-		_ = _g
 		v := _g
-		_ = v
 		hx_switch_1 = hxrt.StringConcatAny(hxrt.StringFromLiteral("some:"), v)
 	case 1:
 		hx_switch_1 = hxrt.StringFromLiteral("none")

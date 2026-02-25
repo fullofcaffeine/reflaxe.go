@@ -9,18 +9,28 @@ import (
 )
 
 func main() {
-	now := time.Now()
-	unixDirect := now.Unix()
-	_ = unixDirect
-	unixReceiver := now.Unix()
-	_ = unixReceiver
-	var ctx context.Context = context.Background()
-	_ = ctx
-	statusOk := hxrt.StringEqualStringPtr(hxrt.StdString(http.StatusText(200)), hxrt.StringFromLiteral("OK"))
-	ok := ((((unixDirect == unixReceiver) && (unixDirect > 0)) && (ctx != nil)) && statusOk)
+	wrappedNow := time.Now()
+	wrappedUnixDirect := wrappedNow.Unix()
+	_ = wrappedUnixDirect
+	wrappedUnixReceiver := wrappedNow.Unix()
+	_ = wrappedUnixReceiver
+	var wrappedCtx context.Context = context.Background()
+	_ = wrappedCtx
+	wrappedStatusOk := hxrt.StringEqualStringPtr(hxrt.StdString(http.StatusText(200)), hxrt.StringFromLiteral("OK"))
+	wrappedOk := ((((wrappedUnixDirect == wrappedUnixReceiver) && (wrappedUnixDirect > 0)) && (wrappedCtx != nil)) && wrappedStatusOk)
+	_ = wrappedOk
+	externNow := time.Now()
+	externUnixDirect := externNow.Unix()
+	_ = externUnixDirect
+	externUnixReceiver := externNow.Unix()
+	_ = externUnixReceiver
+	var externCtx context.Context = context.Background()
+	_ = externCtx
+	externStatusOk := hxrt.StringEqualStringPtr(hxrt.StdString(http.StatusText(200)), hxrt.StringFromLiteral("OK"))
+	externOk := ((((externUnixDirect == externUnixReceiver) && (externUnixDirect > 0)) && (externCtx != nil)) && externStatusOk)
 	fmt.Println(func() int {
 		var hx_if_1 int
-		if ok {
+		if wrappedOk && externOk {
 			hx_if_1 = 1
 		} else {
 			hx_if_1 = 0

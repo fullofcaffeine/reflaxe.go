@@ -7,36 +7,56 @@ import (
 
 func main() {
 	ch := go___Go_newChan(1)
-	_ = ch
 	empty := func(hx_value_1 any) *go___Result {
 		if hx_value_1 == nil {
 			var hx_zero_2 *go___Result
 			return hx_zero_2
 		}
 		return hx_value_1.(*go___Result)
-	}(ch.__hx_this.tryRecv())
-	_ = empty
-	hxrt.Println(empty.__hx_this.isErr())
-	ch.__hx_this.send(9)
-	got := func(hx_value_3 any) *go___Result {
+	}(ch.tryRecv())
+	hxrt.Println(func(hx_value_3 any) bool {
 		if hx_value_3 == nil {
-			var hx_zero_4 *go___Result
+			var hx_zero_4 bool
 			return hx_zero_4
 		}
-		return hx_value_3.(*go___Result)
-	}(ch.__hx_this.tryRecv())
-	_ = got
-	hxrt.Println(got.__hx_this.isOk())
-	hxrt.Println(got.__hx_this.unwrap())
-	emptyAgain := func(hx_value_5 any) *go___Result {
+		return hx_value_3.(bool)
+	}(empty.isErr()))
+	ch.send(9)
+	got := func(hx_value_5 any) *go___Result {
 		if hx_value_5 == nil {
 			var hx_zero_6 *go___Result
 			return hx_zero_6
 		}
 		return hx_value_5.(*go___Result)
-	}(ch.__hx_this.tryRecv())
-	_ = emptyAgain
-	hxrt.Println(emptyAgain.__hx_this.isErr())
+	}(ch.tryRecv())
+	hxrt.Println(func(hx_value_7 any) bool {
+		if hx_value_7 == nil {
+			var hx_zero_8 bool
+			return hx_zero_8
+		}
+		return hx_value_7.(bool)
+	}(got.isOk()))
+	hxrt.Println(func(hx_value_9 any) int {
+		if hx_value_9 == nil {
+			var hx_zero_10 int
+			return hx_zero_10
+		}
+		return hx_value_9.(int)
+	}(got.unwrap()))
+	emptyAgain := func(hx_value_11 any) *go___Result {
+		if hx_value_11 == nil {
+			var hx_zero_12 *go___Result
+			return hx_zero_12
+		}
+		return hx_value_11.(*go___Result)
+	}(ch.tryRecv())
+	hxrt.Println(func(hx_value_13 any) bool {
+		if hx_value_13 == nil {
+			var hx_zero_14 bool
+			return hx_zero_14
+		}
+		return hx_value_13.(bool)
+	}(emptyAgain.isErr()))
 }
 
 type haxe__ds__IntMap struct {

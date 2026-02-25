@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy0="), sys__Http_hxrt_proxyDescriptor()))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy0="), sys__Http_hxrt_proxyDescriptor()))
 	hx_obj_1 := map[string]any{}
 	hx_obj_1["host"] = hxrt.StringFromLiteral("proxy.local")
 	hx_obj_1["port"] = 3128
@@ -21,7 +21,7 @@ func main() {
 	hx_obj_2["pass"] = hxrt.StringFromLiteral("tiger")
 	hx_obj_1["auth"] = hx_obj_2
 	sys__Http_PROXY = hx_obj_1
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy1="), sys__Http_hxrt_proxyDescriptor()))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy1="), sys__Http_hxrt_proxyDescriptor()))
 	hx_obj_3 := map[string]any{}
 	hx_obj_3["host"] = hxrt.StringFromLiteral("proxy.local")
 	hx_obj_3["port"] = 80
@@ -30,30 +30,29 @@ func main() {
 	hx_obj_4["pass"] = nil
 	hx_obj_3["auth"] = hx_obj_4
 	sys__Http_PROXY = hx_obj_3
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy2="), sys__Http_hxrt_proxyDescriptor()))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy2="), sys__Http_hxrt_proxyDescriptor()))
 	hx_obj_5 := map[string]any{}
 	hx_obj_5["host"] = hxrt.StringFromLiteral("proxy.local:9000")
 	hx_obj_5["port"] = 3128
 	hx_obj_5["auth"] = nil
 	sys__Http_PROXY = hx_obj_5
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy3="), sys__Http_hxrt_proxyDescriptor()))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy3="), sys__Http_hxrt_proxyDescriptor()))
 	hx_obj_6 := map[string]any{}
 	hx_obj_6["host"] = nil
 	hx_obj_6["port"] = 3128
 	hx_obj_6["auth"] = nil
 	sys__Http_PROXY = hx_obj_6
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy4="), sys__Http_hxrt_proxyDescriptor()))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy4="), sys__Http_hxrt_proxyDescriptor()))
 	sys__Http_PROXY = nil
 	http := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,body"))
 	_ = http
 	sink := New_haxe__io__BytesBuffer()
-	_ = sink
 	http.customRequest(false, sink, func() map[string]any {
 		hx_obj_7 := map[string]any{}
 		hx_obj_7["marker"] = hxrt.StringFromLiteral("sock")
 		return hx_obj_7
 	}(), hxrt.StringFromLiteral("PATCH"))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("methodSock="), sink.getBytes().toString()))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("methodSock="), sink.getBytes().toString()))
 }
 
 type haxe__io__Encoding struct {

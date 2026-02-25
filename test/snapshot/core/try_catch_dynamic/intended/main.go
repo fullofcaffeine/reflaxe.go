@@ -8,7 +8,6 @@ func main() {
 		hxrt.Println(mayFail(true))
 	}, func(hx_caught_1 any) {
 		e := hx_caught_1
-		_ = e
 		hxrt.Println(e)
 	})
 	hxrt.Println(9)

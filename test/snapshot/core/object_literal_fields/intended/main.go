@@ -4,7 +4,6 @@ import "snapshot/hxrt"
 
 func main() {
 	user := makeUser(hxrt.StringFromLiteral("marcelo"), 10)
-	_ = user
 	hxrt.Println(func(hx_obj_1 map[string]any) *string {
 		hx_field_2 := hx_obj_1["name"]
 		if hx_field_2 == nil {

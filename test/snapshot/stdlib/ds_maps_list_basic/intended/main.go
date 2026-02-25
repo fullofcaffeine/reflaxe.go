@@ -32,7 +32,6 @@ func New_Box(id int) *Box {
 
 func main() {
 	sm := New_haxe__ds__StringMap()
-	_ = sm
 	sm.set(hxrt.StringFromLiteral("a"), 1)
 	av := func(hx_value_1 any) int {
 		if hx_value_1 == nil {
@@ -41,12 +40,10 @@ func main() {
 		}
 		return hx_value_1.(int)
 	}(sm.get(hxrt.StringFromLiteral("a")))
-	_ = av
 	hxrt.Println(av)
 	om := New_haxe__ds__ObjectMap()
 	_ = om
 	box := New_Box(7)
-	_ = box
 	om.set(box, hxrt.StringFromLiteral("box"))
 	ov := func(hx_value_3 any) *string {
 		if hx_value_3 == nil {
@@ -55,39 +52,41 @@ func main() {
 		}
 		return hx_value_3.(*string)
 	}(om.get(box))
-	_ = ov
 	hxrt.Println(ov)
 	em := New_haxe__ds__EnumValueMap()
-	_ = em
 	em.set(EKey_A, hxrt.StringFromLiteral("enum"))
-	ev := em.get(EKey_A)
-	_ = ev
+	ev := func(hx_value_5 any) *string {
+		if hx_value_5 == nil {
+			var hx_zero_6 *string
+			return hx_zero_6
+		}
+		return hx_value_5.(*string)
+	}(em.get(EKey_A))
 	hxrt.Println(ev)
 	list := New_haxe__ds__List()
-	_ = list
 	list.add(4)
 	list.add(5)
 	hxrt.Println(list.length)
-	hxrt.Println(func(hx_value_5 any) int {
-		if hx_value_5 == nil {
-			var hx_zero_6 int
-			return hx_zero_6
-		}
-		return hx_value_5.(int)
-	}(list.first()))
 	hxrt.Println(func(hx_value_7 any) int {
 		if hx_value_7 == nil {
 			var hx_zero_8 int
 			return hx_zero_8
 		}
 		return hx_value_7.(int)
-	}(list.last()))
+	}(list.first()))
 	hxrt.Println(func(hx_value_9 any) int {
 		if hx_value_9 == nil {
 			var hx_zero_10 int
 			return hx_zero_10
 		}
 		return hx_value_9.(int)
+	}(list.last()))
+	hxrt.Println(func(hx_value_11 any) int {
+		if hx_value_11 == nil {
+			var hx_zero_12 int
+			return hx_zero_12
+		}
+		return hx_value_11.(int)
 	}(list.pop()))
 	hxrt.Println(list.length)
 }

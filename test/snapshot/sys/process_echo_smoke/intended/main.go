@@ -4,9 +4,7 @@ import "snapshot/hxrt"
 
 func main() {
 	p := New_sys__io__Process(hxrt.StringFromLiteral("echo"), []*string{hxrt.StringFromLiteral("hi")})
-	_ = p
 	line := p.stdout.readLine()
-	_ = line
 	hxrt.Println(line)
 	p.close()
 }

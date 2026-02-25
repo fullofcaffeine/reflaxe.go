@@ -4,18 +4,40 @@ import "snapshot/hxrt"
 
 func main() {
 	s := New_go___Slice()
-	_ = s
-	s.__hx_this.push(1)
-	s.__hx_this.push(2)
-	s.__hx_this.push(3)
-	s.__hx_this.set(1, 7)
-	hxrt.Println(s.__hx_this.get_length())
-	hxrt.Println(s.__hx_this.get(1))
+	s.push(1)
+	s.push(2)
+	s.push(3)
+	s.set(1, 7)
+	hxrt.Println(func(hx_value_1 any) int {
+		if hx_value_1 == nil {
+			var hx_zero_2 int
+			return hx_zero_2
+		}
+		return hx_value_1.(int)
+	}(s.get_length()))
+	hxrt.Println(func(hx_value_3 any) int {
+		if hx_value_3 == nil {
+			var hx_zero_4 int
+			return hx_zero_4
+		}
+		return hx_value_3.(int)
+	}(s.get(1)))
 	m := New_go___Map()
-	_ = m
-	m.__hx_this.set(42, hxrt.StringFromLiteral("answer"))
-	hxrt.Println(m.__hx_this.exists(42))
-	hxrt.Println(m.__hx_this.get(42))
+	m.set(42, hxrt.StringFromLiteral("answer"))
+	hxrt.Println(func(hx_value_5 any) bool {
+		if hx_value_5 == nil {
+			var hx_zero_6 bool
+			return hx_zero_6
+		}
+		return hx_value_5.(bool)
+	}(m.exists(42)))
+	hxrt.Println(func(hx_value_7 any) *string {
+		if hx_value_7 == nil {
+			var hx_zero_8 *string
+			return hx_zero_8
+		}
+		return hx_value_7.(*string)
+	}(m.get(42)))
 }
 
 type haxe__ds__IntMap struct {

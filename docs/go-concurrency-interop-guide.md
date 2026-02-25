@@ -20,22 +20,27 @@ Why this is recommended:
 - Maps to real goroutine/channel/select behavior in generated Go output.
 - Still runs in `portable`/`metal` profile matrix from one codebase.
 
-## 2) Typed interop externs
+## 2) Typed interop wrappers + user externs
 
 Reference app: `examples/interop_smoke`.
 
-Interop metadata:
+Note: this reference is intentionally profile-neutral for interop parity. For visible
+portable-vs-metal codegen contrast, use `examples/profile_storyboard`.
 
-- `@:go.import("pkg/path")`
-- `@:go.name("SymbolName")`
-- `@:go.receiver` for receiver-style static wrappers
+The reference app (`examples/interop_smoke`) demonstrates both:
 
-Example surfaces in the reference app:
+- framework-owned wrapper surfaces from `std/go/*`, and
+- app-level extern metadata declarations for user-owned package bindings.
+
+Shared package surfaces in both lanes:
 
 - `fmt.Println`
 - `time.Now` + receiver/static `Unix`
 - `context.Background`
 - `net/http.StatusText`
+
+Compiler metadata support (`@:go.import`, `@:go.name`, `@:go.receiver`) is covered in
+`test/snapshot/go_native/extern_metadata_mapping`.
 
 ## 3) Metal subset guidance
 

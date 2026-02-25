@@ -82,3 +82,11 @@ bd sync               # Sync with git
 
 - App/test/example code must not use raw `__go__` escapes.
 - `__go__` usage is reserved for controlled target layers (e.g. std/runtime shims), not business logic.
+
+## Session Lessons (Interop + Std)
+
+- Higher-level rule: preserve **layered DX contracts** in canonical examples.
+  - Show the default safe/productive layer (framework-owned wrappers).
+  - Also show the explicit power layer (user-owned typed externs), without forcing users into it for common cases.
+- Keep examples as contract docs: refactors that improve default DX must not erase the lower-level teaching path.
+- For std wrapper modules, keep importable types in their own module files (one primary import target per file) to avoid hidden module/type resolution pitfalls.

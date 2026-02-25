@@ -8,46 +8,38 @@ import (
 
 func bytesHex(value *haxe__io__Bytes) *string {
 	var out_b *string
-	_ = out_b
 	out_b = hxrt.StringFromLiteral("")
 	_g := 0
 	_ = _g
 	_g1 := value.length
-	_ = _g1
 	for _g < _g1 {
 		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
 		i := hx_post_1
-		_ = i
 		if i > 0 {
-			out_b = hxrt.StringConcatAny(out_b, hxrt.StringFromLiteral(","))
+			out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral(","))
 		}
 		x := value.b[i]
-		_ = x
-		out_b = hxrt.StringConcatAny(out_b, hxrt.StdString(x))
+		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x))
 	}
 	return out_b
 }
 
 func main() {
 	sample := hxrt.StringFromLiteral("hé")
-	_ = sample
 	utf8 := haxe__io__Bytes_ofString(sample, haxe__io__Encoding_UTF8)
 	_ = utf8
 	rawNative := haxe__io__Bytes_ofString(sample, haxe__io__Encoding_RawNative)
 	_ = rawNative
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("utf8.len="), utf8.length), hxrt.StringFromLiteral(" hex=")), bytesHex(utf8)))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("raw.len="), rawNative.length), hxrt.StringFromLiteral(" hex=")), bytesHex(rawNative)))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("raw.get="), rawNative.getString(0, rawNative.length, haxe__io__Encoding_RawNative)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("utf8.len="), utf8.length), hxrt.StringFromLiteral(" hex=")), bytesHex(utf8)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("raw.len="), rawNative.length), hxrt.StringFromLiteral(" hex=")), bytesHex(rawNative)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("raw.get="), rawNative.getString(0, rawNative.length, haxe__io__Encoding_RawNative)))
 	output := New_haxe__io__BytesOutput()
-	_ = output
 	output.writeString(sample, haxe__io__Encoding_RawNative)
 	written := output.getBytes()
-	_ = written
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("out.raw.hex="), bytesHex(written)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("out.raw.hex="), bytesHex(written)))
 	input := New_haxe__io__BytesInput(written)
-	_ = input
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("in.raw="), input.readString(written.length, haxe__io__Encoding_RawNative)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("in.raw="), input.readString(written.length, haxe__io__Encoding_RawNative)))
 }
 
 type haxe__io__Encoding struct {

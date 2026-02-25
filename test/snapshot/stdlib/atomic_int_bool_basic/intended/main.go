@@ -4,7 +4,6 @@ import "snapshot/hxrt"
 
 func main() {
 	var atom any = haxe__atomic___AtomicInt__AtomicInt_Impl___new(10)
-	_ = atom
 	out(hxrt.StringFromLiteral("int.load.0"), haxe__atomic___AtomicInt__AtomicInt_Impl__load(atom))
 	out(hxrt.StringFromLiteral("int.add.old"), haxe__atomic___AtomicInt__AtomicInt_Impl__add(atom, 5))
 	out(hxrt.StringFromLiteral("int.load.1"), haxe__atomic___AtomicInt__AtomicInt_Impl__load(atom))
@@ -25,59 +24,48 @@ func main() {
 	out(hxrt.StringFromLiteral("int.store.ret"), haxe__atomic___AtomicInt__AtomicInt_Impl__store(atom, 42))
 	out(hxrt.StringFromLiteral("int.store.now"), haxe__atomic___AtomicInt__AtomicInt_Impl__load(atom))
 	var this1 any
-	_ = this1
 	this1 = haxe__atomic___AtomicInt__AtomicInt_Impl___new(0)
 	var flag any = this1
-	_ = flag
 	out(hxrt.StringFromLiteral("bool.load.0"), func() bool {
 		v := haxe__atomic___AtomicInt__AtomicInt_Impl__load(flag)
-		_ = v
 		return (v == 1)
 	}())
 	out(hxrt.StringFromLiteral("bool.cmp.miss.old"), func() bool {
 		v_1 := haxe__atomic___AtomicInt__AtomicInt_Impl__compareExchange(flag, 1, 0)
-		_ = v_1
 		return (v_1 == 1)
 	}())
 	out(hxrt.StringFromLiteral("bool.cmp.miss.now"), func() bool {
 		v_2 := haxe__atomic___AtomicInt__AtomicInt_Impl__load(flag)
-		_ = v_2
 		return (v_2 == 1)
 	}())
 	out(hxrt.StringFromLiteral("bool.cmp.hit.old"), func() bool {
 		v_3 := haxe__atomic___AtomicInt__AtomicInt_Impl__compareExchange(flag, 0, 1)
-		_ = v_3
 		return (v_3 == 1)
 	}())
 	out(hxrt.StringFromLiteral("bool.cmp.hit.now"), func() bool {
 		v_4 := haxe__atomic___AtomicInt__AtomicInt_Impl__load(flag)
-		_ = v_4
 		return (v_4 == 1)
 	}())
 	out(hxrt.StringFromLiteral("bool.xchg.old"), func() bool {
 		v_5 := haxe__atomic___AtomicInt__AtomicInt_Impl__exchange(flag, 0)
-		_ = v_5
 		return (v_5 == 1)
 	}())
 	out(hxrt.StringFromLiteral("bool.xchg.now"), func() bool {
 		v_6 := haxe__atomic___AtomicInt__AtomicInt_Impl__load(flag)
-		_ = v_6
 		return (v_6 == 1)
 	}())
 	out(hxrt.StringFromLiteral("bool.store.ret"), func() bool {
 		v_7 := haxe__atomic___AtomicInt__AtomicInt_Impl__store(flag, 1)
-		_ = v_7
 		return (v_7 == 1)
 	}())
 	out(hxrt.StringFromLiteral("bool.store.now"), func() bool {
 		v_8 := haxe__atomic___AtomicInt__AtomicInt_Impl__load(flag)
-		_ = v_8
 		return (v_8 == 1)
 	}())
 }
 
 func out(label *string, value any) {
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatAny(label, hxrt.StringFromLiteral("=")), hxrt.StdString(value)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("=")), hxrt.StdString(value)))
 }
 
 func haxe__atomic___AtomicInt__AtomicInt_Impl___new(value int) any {

@@ -11635,7 +11635,9 @@ class GoCompiler {
 				var classType = classRef.get();
 				var pack = classType.pack.join(".");
 				var fieldName = field.get().name;
-				if (pack == "haxe.ds") {
+				if (classType.params.length > 0) {
+					true;
+				} else if (pack == "haxe.ds") {
 					if ((classType.name == "IntMap" || classType.name == "StringMap" || classType.name == "ObjectMap" || classType.name == "EnumValueMap")
 						&& fieldName == "get") {
 						true;
@@ -11747,6 +11749,9 @@ class GoCompiler {
 		var rightLowered = lowerExpr(right);
 		var stringMode = leftLowered.isStringLike || rightLowered.isStringLike || isStringType(left.t) || isStringType(right.t);
 		var nullComparison = isNullLiteralExpr(left) || isNullLiteralExpr(right);
+		var impossiblePrimitiveNullComparison = nullComparison
+			&& ((isNullLiteralExpr(left) && isDefinitelyNonNullableType(right.t))
+				|| (isNullLiteralExpr(right) && isDefinitelyNonNullableType(left.t)));
 		var useStringEquality = stringMode && (!nullComparison || isStringType(left.t) || isStringType(right.t));
 		var typedStringOps = isStringType(left.t) && isStringType(right.t);
 		var anyNullComparison = nullComparison && (isAnyLikeType(left.t) || isAnyLikeType(right.t));
@@ -11775,6 +11780,16 @@ class GoCompiler {
 					expr: GoExpr.GoUnary("!",
 						GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringEqualStringPtr" : "hxrt.StringEqualAny"),
 							[leftLowered.expr, rightLowered.expr])),
+					isStringLike: false
+				};
+			case OpEq if (impossiblePrimitiveNullComparison):
+				{
+					expr: GoExpr.GoBoolLiteral(false),
+					isStringLike: false
+				};
+			case OpNotEq if (impossiblePrimitiveNullComparison):
+				{
+					expr: GoExpr.GoBoolLiteral(true),
 					isStringLike: false
 				};
 			case OpEq if (anyNullComparison):

@@ -4,12 +4,21 @@ Minimal typed-interop reference example for reflaxe.go.
 
 ## What It Demonstrates
 
-- `@:go.import` package mapping (`fmt`, `time`, `context`, `net/http`).
-- `@:go.name` symbol mapping for types and fields.
-- `@:go.receiver` lowering for static receiver-style calls.
-- Interface-returning package APIs (`context.Background(): context.Context`).
-- `net/http` static API interop (`http.StatusText(200)`).
+- Framework-owned interop wrappers from `std/go/*` (`go.Fmt`, `go.Time`, `go.ContextPkg`, `go.Http`).
+- User-level extern metadata in app code (`UserGoTime`, `UserGoContextPkg`, `UserGoHttp`) using:
+  - `@:go.import("pkg/path")`
+  - `@:go.name("SymbolName")`
+  - `@:go.receiver`
 - One Haxe codebase compiled across `portable` and `metal`.
+
+Compiler metadata coverage is additionally locked by snapshot fixtures
+(`test/snapshot/go_native/extern_metadata_mapping`).
+
+## Profile Note
+
+This example is expected to generate near-identical Go for `portable` and `metal`
+because it only uses profile-safe interop calls.
+The profile matrix here validates contract consistency, not profile-divergent code shape.
 
 ## Compile
 

@@ -8,7 +8,6 @@ func main() {
 	sum := 0
 	_ = sum
 	_g := 0
-	_ = _g
 	for _g < len(values) {
 		value := values[_g]
 		_ = value

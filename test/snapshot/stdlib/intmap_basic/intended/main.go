@@ -4,7 +4,6 @@ import "snapshot/hxrt"
 
 func main() {
 	m := New_haxe__ds__IntMap()
-	_ = m
 	m.set(1, hxrt.StringFromLiteral("one"))
 	m.set(2, hxrt.StringFromLiteral("two"))
 	one := func(hx_value_1 any) *string {
@@ -14,9 +13,14 @@ func main() {
 		}
 		return hx_value_1.(*string)
 	}(m.get(1))
-	_ = one
 	hxrt.Println(one)
-	hxrt.Println(m.exists(3))
+	hxrt.Println(func(hx_value_3 any) bool {
+		if hx_value_3 == nil {
+			var hx_zero_4 bool
+			return hx_zero_4
+		}
+		return hx_value_3.(bool)
+	}(m.exists(3)))
 }
 
 type haxe__ds__IntMap struct {

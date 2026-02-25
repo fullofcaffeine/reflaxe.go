@@ -31,20 +31,18 @@ func firstEntry(items []*string) *string {
 
 func main() {
 	root := hxrt.StringFromLiteral("tmp_fs_smoke")
-	_ = root
-	fileA := hxrt.StringConcatAny(root, hxrt.StringFromLiteral("/a.txt"))
+	fileA := hxrt.StringConcatStringPtr(root, hxrt.StringFromLiteral("/a.txt"))
 	_ = fileA
-	fileB := hxrt.StringConcatAny(root, hxrt.StringFromLiteral("/b.txt"))
+	fileB := hxrt.StringConcatStringPtr(root, hxrt.StringFromLiteral("/b.txt"))
 	_ = fileB
 	rmDirRecursive(root)
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("exists0="), hxrt.StdString(sys__FileSystem_exists(root))))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("exists0="), hxrt.StdString(sys__FileSystem_exists(root))))
 	sys__FileSystem_createDirectory(root)
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("dir1="), hxrt.StdString(sys__FileSystem_isDirectory(root))))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("dir1="), hxrt.StdString(sys__FileSystem_isDirectory(root))))
 	sys__io__File_saveContent(fileA, hxrt.StringFromLiteral("hello"))
 	sys__FileSystem_rename(fileA, fileB)
 	names := sys__FileSystem_readDirectory(root)
-	_ = names
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("entry="), firstEntry(names)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("entry="), firstEntry(names)))
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("size="), func(hx_obj_2 map[string]any) int {
 		hx_field_3 := hx_obj_2["size"]
 		if hx_field_3 == nil {
@@ -53,10 +51,10 @@ func main() {
 		}
 		return hx_field_3.(int)
 	}(sys__FileSystem_stat(fileB))))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("content="), sys__io__File_getContent(fileB)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("content="), sys__io__File_getContent(fileB)))
 	sys__FileSystem_deleteFile(fileB)
 	sys__FileSystem_deleteDirectory(root)
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("exists1="), hxrt.StdString(sys__FileSystem_exists(root))))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("exists1="), hxrt.StdString(sys__FileSystem_exists(root))))
 }
 
 func rmDirRecursive(path *string) {
@@ -66,13 +64,11 @@ func rmDirRecursive(path *string) {
 	_g := 0
 	_ = _g
 	_g1 := sys__FileSystem_readDirectory(path)
-	_ = _g1
 	for _g < len(_g1) {
 		entry := _g1[_g]
 		_ = entry
 		_g = int(int32((_g + 1)))
-		child := hxrt.StringConcatAny(hxrt.StringConcatAny(path, hxrt.StringFromLiteral("/")), entry)
-		_ = child
+		child := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(path, hxrt.StringFromLiteral("/")), entry)
 		if sys__FileSystem_isDirectory(child) {
 			rmDirRecursive(child)
 		} else {

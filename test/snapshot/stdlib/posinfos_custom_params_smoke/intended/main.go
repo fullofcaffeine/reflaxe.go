@@ -24,8 +24,7 @@ func read(pos map[string]any) {
 	}(pos)
 	_ = custom
 	count := 0
-	_ = count
-	if !hxrt.StringEqualAny(custom, nil) {
+	if custom != nil {
 		count = len(custom)
 	}
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("count="), count))

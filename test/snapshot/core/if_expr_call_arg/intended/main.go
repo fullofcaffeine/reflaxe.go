@@ -8,7 +8,6 @@ func id(value int) int {
 
 func main() {
 	cond := true
-	_ = cond
 	hxrt.Println(hxrt.StdString(id(func() int {
 		var hx_if_1 int
 		if cond {

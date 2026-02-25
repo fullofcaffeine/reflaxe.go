@@ -1,48 +1,54 @@
-@:go.import("fmt")
-extern class GoFmt {
-	@:go.name("Println")
-	public static function println(value:Int):Void;
-}
+import go.ContextPkg;
+import go.Fmt;
+import go.Http;
+import go.Time;
 
 @:go.import("time")
 @:go.name("Time")
-extern class GoTime {
+extern class UserGoTime {
 	@:go.name("Now")
-	public static function now():GoTime;
+	public static function now():UserGoTime;
 
 	@:go.name("Unix")
 	public function unix():Int;
 
 	@:go.receiver
 	@:go.name("Unix")
-	public static function unixViaReceiver(value:GoTime):Int;
+	public static function unixViaReceiver(value:UserGoTime):Int;
 }
 
 @:go.import("context")
 @:go.name("Context")
-extern interface GoContext {}
+extern interface UserGoContext {}
 
 @:go.import("context")
-extern class GoContextPkg {
+extern class UserGoContextPkg {
 	@:go.name("Background")
-	public static function background():GoContext;
+	public static function background():UserGoContext;
 }
 
 @:go.import("net/http")
-extern class GoHttp {
+extern class UserGoHttp {
 	@:go.name("StatusText")
 	public static function statusText(code:Int):String;
 }
 
 class Main {
 	static function main() {
-		var now = GoTime.now();
-		var unixDirect = now.unix();
-		var unixReceiver = GoTime.unixViaReceiver(now);
-		var ctx = GoContextPkg.background();
-		var statusOk = GoHttp.statusText(200) == "OK";
+		var wrappedNow = Time.now();
+		var wrappedUnixDirect = wrappedNow.unix();
+		var wrappedUnixReceiver = Time.unixViaReceiver(wrappedNow);
+		var wrappedCtx = ContextPkg.background();
+		var wrappedStatusOk = Http.statusText(200) == "OK";
+		var wrappedOk = wrappedUnixDirect == wrappedUnixReceiver && wrappedUnixDirect > 0 && wrappedCtx != null && wrappedStatusOk;
 
-		var ok = unixDirect == unixReceiver && unixDirect > 0 && ctx != null && statusOk;
-		GoFmt.println(ok ? 1 : 0);
+		var externNow = UserGoTime.now();
+		var externUnixDirect = externNow.unix();
+		var externUnixReceiver = UserGoTime.unixViaReceiver(externNow);
+		var externCtx = UserGoContextPkg.background();
+		var externStatusOk = UserGoHttp.statusText(200) == "OK";
+		var externOk = externUnixDirect == externUnixReceiver && externUnixDirect > 0 && externCtx != null && externStatusOk;
+
+		Fmt.println(wrappedOk && externOk ? 1 : 0);
 	}
 }

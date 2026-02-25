@@ -6,7 +6,6 @@ func main() {
 	i := 0
 	_ = i
 	sum := 0
-	_ = sum
 	for i < 10 {
 		i = int(int32((i + 1)))
 		if int(int32((hxrt.Int32Wrap(i) % hxrt.Int32Wrap(2)))) == 0 {

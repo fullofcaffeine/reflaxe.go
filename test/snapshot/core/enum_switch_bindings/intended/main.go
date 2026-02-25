@@ -24,9 +24,7 @@ func eval(expr *Expr) int {
 	switch expr.tag {
 	case 0:
 		_g := expr.params[0].(int)
-		_ = _g
 		value := _g
-		_ = value
 		hx_switch_1 = value
 	case 1:
 		_g_1 := expr.params[0].(int)
@@ -36,7 +34,6 @@ func eval(expr *Expr) int {
 		left := _g_1
 		_ = left
 		right := _g1
-		_ = right
 		hx_switch_1 = int(int32((hxrt.Int32Wrap(left) + hxrt.Int32Wrap(right))))
 	}
 	return hx_switch_1

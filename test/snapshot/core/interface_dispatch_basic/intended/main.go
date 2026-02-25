@@ -4,7 +4,6 @@ import "snapshot/hxrt"
 
 func main() {
 	var named Named = New_Person()
-	_ = named
 	printNamed(named)
 	printNamed(New_Person())
 }

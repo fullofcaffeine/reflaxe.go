@@ -15,7 +15,7 @@ func withTry(flag bool) *string {
 	hxrt.TryCatch(func() {
 		state = hxrt.StringFromLiteral("try")
 		if flag {
-			hx_try_value_2 = hxrt.StringConcatAny(hxrt.StringFromLiteral("try:"), state)
+			hx_try_value_2 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("try:"), state)
 			hx_try_return_1 = true
 			return
 		}
@@ -24,7 +24,7 @@ func withTry(flag bool) *string {
 		e := hx_caught_3
 		_ = e
 		state = hxrt.StringFromLiteral("catch")
-		hx_try_value_2 = hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringConcatAny(hxrt.StringFromLiteral("catch:"), state), hxrt.StringFromLiteral(":")), hxrt.StdString(e))
+		hx_try_value_2 = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("catch:"), state), hxrt.StringFromLiteral(":")), hxrt.StdString(e))
 		hx_try_return_1 = true
 		return
 	})
@@ -32,5 +32,5 @@ func withTry(flag bool) *string {
 		return hx_try_value_2
 	}
 	state = hxrt.StringFromLiteral("tail")
-	return hxrt.StringConcatAny(hxrt.StringFromLiteral("tail:"), state)
+	return hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("tail:"), state)
 }

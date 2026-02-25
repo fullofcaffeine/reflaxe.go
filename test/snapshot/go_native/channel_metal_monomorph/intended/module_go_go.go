@@ -38,7 +38,7 @@ func go___Go_fail(message *string) *go___Result {
 func go___Go_newChan(buffer int) *go___Chan {
 	channel := New_go___Chan()
 	if buffer > 0 {
-		channel.__hx_this.__hx_setBuffer(buffer)
+		channel.__hx_setBuffer(buffer)
 	}
 	return channel
 }

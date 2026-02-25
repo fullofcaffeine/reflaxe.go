@@ -29,5 +29,11 @@ func (self *go___Map) get(key any) any {
 }
 
 func (self *go___Map) exists(key any) bool {
-	return self.inner.exists(hxrt.StdString(key))
+	return func(hx_value_7 any) bool {
+		if hx_value_7 == nil {
+			var hx_zero_8 bool
+			return hx_zero_8
+		}
+		return hx_value_7.(bool)
+	}(self.inner.exists(hxrt.StdString(key)))
 }

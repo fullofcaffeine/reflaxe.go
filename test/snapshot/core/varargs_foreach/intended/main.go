@@ -22,9 +22,7 @@ func sum(values []int) int {
 		hx_post_1 := _g_current
 		_g_current = int(int32((_g_current + 1)))
 		index := hx_post_1
-		_ = index
 		value := this1[index]
-		_ = value
 		total = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(value))))
 	}
 	return total

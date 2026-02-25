@@ -17,5 +17,5 @@ func New_helper__Greeter() *helper__Greeter {
 }
 
 func (self *helper__Greeter) hello(name *string) *string {
-	return hxrt.StringConcatAny(hxrt.StringFromLiteral("hello,"), name)
+	return hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("hello,"), name)
 }

@@ -7,9 +7,8 @@ import (
 
 func main() {
 	ch := go___Go_newChan(0)
-	_ = ch
 	go___Go_spawn(func() {
-		ch.__hx_this.send(5)
+		ch.send(5)
 	})
 	hxrt.Println(func(hx_value_1 any) int {
 		if hx_value_1 == nil {
@@ -17,7 +16,7 @@ func main() {
 			return hx_zero_2
 		}
 		return hx_value_1.(int)
-	}(ch.__hx_this.recv()))
+	}(ch.recv()))
 }
 
 type haxe__ds__IntMap struct {

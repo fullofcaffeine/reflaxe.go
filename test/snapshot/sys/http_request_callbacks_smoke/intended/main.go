@@ -40,31 +40,28 @@ func main() {
 	http.setParameter(hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("1"))
 	http.addParameter(hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("2"))
 	http.request()
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("data="), dataLog))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("data="), dataLog))
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("bytes="), byteCount))
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("status="), statusLog))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("response="), http.get_responseData()))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("error="), errLog))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("response="), http.get_responseData()))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error="), errLog))
 	post := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,ignored"))
-	_ = post
 	post.setPostData(hxrt.StringFromLiteral("post-body"))
 	postData := hxrt.StringFromLiteral("")
-	_ = postData
 	post.onData = func(data *string) {
 		postData = data
 	}
 	post.request(true)
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("post="), postData))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("post="), postData))
 	bad := New_sys__Http(hxrt.StringFromLiteral("://bad"))
 	_ = bad
 	badErr := hxrt.StringFromLiteral("")
-	_ = badErr
 	bad.onError = func(msg *string) {
 		badErr = msg
 	}
 	bad.request()
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("bad="), badErr))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("direct="), sys__Http_requestUrl(hxrt.StringFromLiteral("data:text/plain,direct%20ok"))))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("bad="), badErr))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("direct="), sys__Http_requestUrl(hxrt.StringFromLiteral("data:text/plain,direct%20ok"))))
 }
 
 type haxe__io__Encoding struct {

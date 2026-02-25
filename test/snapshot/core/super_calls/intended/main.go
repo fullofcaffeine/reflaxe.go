@@ -59,11 +59,10 @@ func (self *Child) callSuperCallWho() int {
 
 func main() {
 	child := New_Child()
-	_ = child
 	base := child.Base
 	_ = base
-	hxrt.Println(child.__hx_this.callWho())
-	hxrt.Println(child.__hx_this.callSuperWho())
-	hxrt.Println(child.__hx_this.callSuperCallWho())
+	hxrt.Println(child.callWho())
+	hxrt.Println(child.callSuperWho())
+	hxrt.Println(child.callSuperCallWho())
 	hxrt.Println(base.__hx_this.callWho())
 }

@@ -33,9 +33,9 @@ func (self *go___Result) isErr() bool {
 
 func (self *go___Result) unwrap() any {
 	if self.errorValue != nil {
-		hxrt.Throw(self.errorValue.__hx_this.toString())
-		var hx_throw_zero_7 any
-		return hx_throw_zero_7
+		hxrt.Throw(self.errorValue.toString())
+		var hx_throw_zero_9 any
+		return hx_throw_zero_9
 	}
 	return self.value
 }
@@ -44,7 +44,7 @@ func (self *go___Result) error() *string {
 	if self.errorValue == nil {
 		return nil
 	}
-	return self.errorValue.__hx_this.toString()
+	return self.errorValue.toString()
 }
 
 func go___Result_failure(message *string) *go___Result {

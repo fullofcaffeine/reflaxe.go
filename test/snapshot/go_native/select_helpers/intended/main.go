@@ -7,7 +7,6 @@ import (
 
 func main() {
 	gate := go___Go_newChan(1)
-	_ = gate
 	_g := go___Select_send_Int(gate, 7)
 	_ = _g
 	var hx_switch_1 *string
@@ -36,9 +35,7 @@ func main() {
 	switch _g_2.tag {
 	case 0:
 		_g_3 := _g_2.params[0].(int)
-		_ = _g_3
 		value := _g_3
-		_ = value
 		hx_switch_3 = hxrt.StringConcatAny(hxrt.StringFromLiteral("recv:"), value)
 	case 1:
 		hx_switch_3 = hxrt.StringFromLiteral("empty")
@@ -51,9 +48,7 @@ func main() {
 	switch _g_4.tag {
 	case 0:
 		_g_5 := _g_4.params[0].(int)
-		_ = _g_5
 		value_1 := _g_5
-		_ = value_1
 		hx_switch_4 = hxrt.StringConcatAny(hxrt.StringFromLiteral("recv:"), value_1)
 	case 1:
 		hx_switch_4 = hxrt.StringFromLiteral("empty")
@@ -67,34 +62,27 @@ func main() {
 	left := go___Go_newChan(1)
 	_ = left
 	right := go___Go_newChan(1)
-	_ = right
-	right.__hx_this.send(hxrt.StringFromLiteral("beta"))
+	right.send(hxrt.StringFromLiteral("beta"))
 	_g_6 := go___Select_recv2_String_String(left, right)
 	_ = _g_6
 	var hx_switch_5 *string
 	switch _g_6.tag {
 	case 0:
 		_g_7 := _g_6.params[0].(*string)
-		_ = _g_7
 		value_2 := _g_7
-		_ = value_2
-		hx_switch_5 = hxrt.StringConcatAny(hxrt.StringFromLiteral("left:"), value_2)
+		hx_switch_5 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("left:"), value_2)
 	case 1:
 		_g_8 := _g_6.params[0].(*string)
-		_ = _g_8
 		value_3 := _g_8
-		_ = value_3
-		hx_switch_5 = hxrt.StringConcatAny(hxrt.StringFromLiteral("right:"), value_3)
+		hx_switch_5 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("right:"), value_3)
 	case 2:
 		hx_switch_5 = hxrt.StringFromLiteral("none")
 	}
 	recvTwo := hx_switch_5
-	_ = recvTwo
 	hxrt.Println(recvTwo)
 	sendTwoA := go___Go_newChan(1)
 	_ = sendTwoA
 	sendTwoB := go___Go_newChan(1)
-	_ = sendTwoB
 	_g_9 := go___Select_send2_Int_Int(sendTwoA, 11, sendTwoB, 22)
 	_ = _g_9
 	var hx_switch_6 *string
@@ -114,13 +102,13 @@ func main() {
 			return hx_zero_8
 		}
 		return hx_value_7.(int)
-	}(sendTwoA.__hx_this.recvOr(-1)), hxrt.StringFromLiteral(",")), func(hx_value_9 any) int {
+	}(sendTwoA.recvOr(-1)), hxrt.StringFromLiteral(",")), func(hx_value_9 any) int {
 		if hx_value_9 == nil {
 			var hx_zero_10 int
 			return hx_zero_10
 		}
 		return hx_value_9.(int)
-	}(sendTwoB.__hx_this.recvOr(-1)))
+	}(sendTwoB.recvOr(-1)))
 	_ = sendTwoValues
 	hxrt.Println(sendTwo)
 	hxrt.Println(sendTwoValues)

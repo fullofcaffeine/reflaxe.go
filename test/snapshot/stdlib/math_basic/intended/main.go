@@ -20,7 +20,6 @@ import (
 
 func main() {
 	x := 3.8
-	_ = x
 	hxrt.Println(Math_floor(x))
 	hxrt.Println(Math_ceil(x))
 	hxrt.Println(Math_round(x))

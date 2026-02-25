@@ -20,9 +20,7 @@ import (
 
 func main() {
 	payload := hxrt.StringFromLiteral("ab")
-	_ = payload
 	bytes := haxe__io__Bytes_ofString(payload)
-	_ = bytes
 	hxrt.Println(haxe__crypto__Base64_encode(bytes))
 	hxrt.Println(haxe__crypto__Base64_encode(bytes, false))
 	hxrt.Println(haxe__crypto__Base64_decode(hxrt.StringFromLiteral("YWI=")).toString())
@@ -33,12 +31,9 @@ func main() {
 	hxrt.Println(haxe__crypto__Sha224_encode(payload))
 	hxrt.Println(haxe__crypto__Sha256_encode(payload))
 	doc := haxe__xml__Parser_parse(hxrt.StringFromLiteral("<root><item n=\"1\">x</item></root>"))
-	_ = doc
 	hxrt.Println(haxe__xml__Printer_print(doc))
 	compressed := haxe__zip__Compress_run(bytes, 9)
-	_ = compressed
 	roundtrip := haxe__zip__Uncompress_run(compressed)
-	_ = roundtrip
 	hxrt.Println(roundtrip.toString())
 	hxrt.Println((compressed.length > 0))
 }

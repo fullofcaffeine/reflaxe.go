@@ -16,7 +16,7 @@ func Color_RGB(r int, g int, b int) *Color {
 }
 
 func isSome(value *Color) int {
-	if hxrt.StringEqualAny(value, nil) {
+	if value == nil {
 		return 0
 	}
 	return 1

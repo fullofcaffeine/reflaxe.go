@@ -19,3 +19,19 @@ This means snapshots intentionally preserve simplifications such as:
 ## Sentinel test
 
 `test/snapshot/core/optimized_ast_policy` is the explicit policy sentinel.
+
+## Snapshot Realignment Notes
+
+### 2026-02-24 broad realignment (`haxe.go-cme`)
+
+Snapshot fixtures were intentionally refreshed after coordinated runtime/profile/codegen updates:
+
+- `hxrt` split output (`hxrt/*.go`) replaced monolithic fixture shapes.
+- generic-call result assertions were expanded to preserve typed semantics after monomorphization/generic erasure boundaries.
+- primitive-vs-`null` comparisons are now normalized at lowering time to valid constant boolean outcomes.
+
+Policy reminder:
+
+- this type of broad fixture update is expected when generated Go shape changes intentionally,
+- semantic parity is validated in parallel via `python3 test/run-semantic-diff.py`,
+- example UX parity is validated via `python3 test/run-examples.py`.

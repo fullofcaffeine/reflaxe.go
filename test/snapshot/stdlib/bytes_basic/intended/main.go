@@ -4,14 +4,12 @@ import "snapshot/hxrt"
 
 func main() {
 	bytes := haxe__io__Bytes_ofString(hxrt.StringFromLiteral("abc"))
-	_ = bytes
 	bytes.b[1] = 122
 	hxrt.Println(bytes.toString())
 	hxrt.Println(bytes.length)
 	buffer := New_haxe__io__BytesBuffer()
 	_ = buffer
 	var encoding *haxe__io__Encoding = nil
-	_ = encoding
 	src := haxe__io__Bytes_ofString(hxrt.StringFromLiteral("Hi"), encoding)
 	_ = src
 	b1 := buffer.b
@@ -21,17 +19,14 @@ func main() {
 	_g := 0
 	_ = _g
 	_g1 := src.length
-	_ = _g1
 	for _g < _g1 {
 		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
 		i := hx_post_1
-		_ = i
 		buffer.b = append(buffer.b, (b2[i] & 255))
 	}
 	buffer.b = append(buffer.b, (33 & 255))
 	out := buffer.getBytes()
-	_ = out
 	hxrt.Println(out.toString())
 }
 

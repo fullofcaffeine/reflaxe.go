@@ -16,11 +16,3 @@ func main() {
 	hxrt.Println(Keywords_map_())
 	hxrt.Println(Keywords_range_())
 }
-
-func a__b__Util_value() int {
-	return 2
-}
-
-func a_b__Util_value() int {
-	return 1
-}

@@ -20,7 +20,6 @@ import (
 
 func main() {
 	s := hxrt.StringFromLiteral("  hi  ")
-	_ = s
 	hxrt.Println(StringTools_trim(s))
 	hxrt.Println(StringTools_startsWith(hxrt.StringFromLiteral("hello"), hxrt.StringFromLiteral("he")))
 	hxrt.Println(StringTools_replace(hxrt.StringFromLiteral("a-b-c"), hxrt.StringFromLiteral("-"), hxrt.StringFromLiteral(":")))

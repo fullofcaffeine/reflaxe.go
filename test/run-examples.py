@@ -149,14 +149,45 @@ def command_output(proc: subprocess.CompletedProcess[str]) -> str:
     return "\n".join(chunk for chunk in chunks if chunk)
 
 
-def all_files(root: Path) -> list[Path]:
+def go_module_binary_names(root: Path) -> set[str]:
+    go_mod = root / "go.mod"
+    if not go_mod.exists():
+        return set()
+
+    try:
+        lines = go_mod.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return set()
+
+    for line in lines:
+        trimmed = line.strip()
+        if not trimmed.startswith("module "):
+            continue
+        parts = trimmed.split(maxsplit=1)
+        if len(parts) != 2:
+            continue
+        module_path = parts[1].strip()
+        if module_path == "":
+            continue
+        base = module_path.rstrip("/").split("/")[-1]
+        if base == "":
+            continue
+        return {base, base + ".exe"}
+
+    return set()
+
+
+def all_files(root: Path, extra_exclude_names: set[str] | None = None) -> list[Path]:
     if not root.exists():
         return []
     files: list[Path] = []
+    exclude_names = set(EXCLUDE_NAMES)
+    if extra_exclude_names:
+        exclude_names.update(extra_exclude_names)
     for path in sorted(root.rglob("*")):
         if path.is_dir():
             continue
-        if path.name in EXCLUDE_NAMES:
+        if path.name in exclude_names:
             continue
         if any(part in EXCLUDE_DIRS for part in path.parts):
             continue
@@ -165,8 +196,9 @@ def all_files(root: Path) -> list[Path]:
 
 
 def collect_tree_deltas(left: Path, right: Path) -> list[str]:
-    left_files = {path.relative_to(left): path for path in all_files(left)} if left.exists() else {}
-    right_files = {path.relative_to(right): path for path in all_files(right)} if right.exists() else {}
+    dynamic_excludes = go_module_binary_names(left) | go_module_binary_names(right)
+    left_files = {path.relative_to(left): path for path in all_files(left, dynamic_excludes)} if left.exists() else {}
+    right_files = {path.relative_to(right): path for path in all_files(right, dynamic_excludes)} if right.exists() else {}
 
     rels = sorted(set(left_files) | set(right_files))
     deltas: list[str] = []
@@ -190,7 +222,7 @@ def copy_tree(source: Path, target: Path) -> None:
     if target.exists():
         shutil.rmtree(target)
     target.mkdir(parents=True, exist_ok=True)
-    for path in all_files(source):
+    for path in all_files(source, go_module_binary_names(source)):
         rel = path.relative_to(source)
         dest = target / rel
         dest.parent.mkdir(parents=True, exist_ok=True)

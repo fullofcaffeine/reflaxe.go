@@ -4,8 +4,7 @@ import "snapshot/hxrt"
 
 func main() {
 	var dynamicNil any = nil
-	_ = dynamicNil
-	if dynamicNil == nil {
+	if hxrt.AnyEqualsNull(dynamicNil) {
 		hxrt.Println(hxrt.StringFromLiteral("ident:nil"))
 	} else {
 		hxrt.Println(hxrt.StringFromLiteral("ident:non_nil"))

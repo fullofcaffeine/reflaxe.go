@@ -20,14 +20,12 @@ import (
 
 func main() {
 	d := Date_fromString(hxrt.StringFromLiteral("2024-02-03 04:05:06"))
-	_ = d
 	hxrt.Println(d.getFullYear())
 	hxrt.Println(d.getMonth())
 	hxrt.Println(d.getDate())
 	hxrt.Println(d.getHours())
 	hxrt.Println(haxe__io__Path_join([]*string{hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("c.txt")}))
 	p := New_haxe__io__Path(hxrt.StringFromLiteral("/tmp/demo.txt"))
-	_ = p
 	hxrt.Println(p.dir)
 	hxrt.Println(p.file)
 	hxrt.Println(p.ext)

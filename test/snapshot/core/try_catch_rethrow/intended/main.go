@@ -10,7 +10,6 @@ func main() {
 			switch hx_typed_4 := hx_caught_3.(type) {
 			case int:
 				i := hx_typed_4
-				_ = i
 				hxrt.Println(i)
 			default:
 				hxrt.Throw(hx_caught_3)

@@ -33,7 +33,6 @@ func New_Child() *Child {
 
 func main() {
 	var d any = New_Child()
-	_ = d
 	hxrt.Println(func(hx_value any) bool {
 		switch hx_type := hx_value.(type) {
 		case *Base:

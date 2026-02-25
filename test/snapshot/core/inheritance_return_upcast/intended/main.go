@@ -50,6 +50,5 @@ func Factory_makeBase(flag bool) *Base {
 
 func main() {
 	asBase := Factory_makeBase(true)
-	_ = asBase
 	hxrt.Println(asBase.__hx_this.tag())
 }
