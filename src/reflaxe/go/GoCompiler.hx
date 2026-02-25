@@ -11237,21 +11237,14 @@ class GoCompiler {
 	}
 
 	function stdIsOfTypeTypeSwitch(valueExpr:GoExpr, typeNames:Array<String>):GoExpr {
-		var bindingName = "hx_type";
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "hx_value", typeName: "any"}], ["bool"], [
-			GoStmt.GoTypeSwitch(GoExpr.GoIdent("hx_value"), bindingName, [
+			GoStmt.GoTypeSwitch(GoExpr.GoIdent("hx_value"), null, [
 				for (typeName in typeNames)
 					{
 						typeName: typeName,
-						body: [
-							GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(bindingName)),
-							GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
-						]
+						body: [GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))]
 					}
-			], [
-				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(bindingName)),
-				GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))
-			])
+			], [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
 		]), [GoExpr.GoCall(GoExpr.GoIdent("any"), [valueExpr])]);
 	}
 

@@ -246,8 +246,10 @@ class GoASTPrinter {
 			case GoTypeSwitch(value, bindingName, cases, defaultBody):
 				var out = new StringBuf();
 				out.add("switch ");
-				out.add(bindingName);
-				out.add(" := ");
+				if (bindingName != null) {
+					out.add(bindingName);
+					out.add(" := ");
+				}
 				out.add(printExpr(value));
 				out.add(".(type) {\n");
 				for (caseEntry in cases) {

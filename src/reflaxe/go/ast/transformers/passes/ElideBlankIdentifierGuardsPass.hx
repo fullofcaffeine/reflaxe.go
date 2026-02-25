@@ -232,13 +232,17 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				collectExprReads(value);
 				for (entry in cases) {
 					pushScope();
-					declareBinding(bindingName);
+					if (bindingName != null) {
+						declareBinding(bindingName);
+					}
 					collectStmtList(entry.body);
 					popScope();
 				}
 				if (defaultBody != null) {
 					pushScope();
-					declareBinding(bindingName);
+					if (bindingName != null) {
+						declareBinding(bindingName);
+					}
 					collectStmtList(defaultBody);
 					popScope();
 				}
@@ -486,7 +490,9 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				var rewrittenCases = new Array<GoTypeSwitchCase>();
 				for (entry in cases) {
 					pushScope();
-					declareBinding(bindingName);
+					if (bindingName != null) {
+						declareBinding(bindingName);
+					}
 					var rewrittenBody = rewriteStmtList(entry.body);
 					popScope();
 					rewrittenCases.push({
@@ -498,7 +504,9 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 					null;
 				} else {
 					pushScope();
-					declareBinding(bindingName);
+					if (bindingName != null) {
+						declareBinding(bindingName);
+					}
 					var body = rewriteStmtList(defaultBody);
 					popScope();
 					body;

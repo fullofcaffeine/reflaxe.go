@@ -50,12 +50,10 @@ func main() {
 		return ok
 	}(base))
 	hxrt.Println(func(hx_value any) bool {
-		switch hx_type := hx_value.(type) {
+		switch hx_value.(type) {
 		case *Child:
-			_ = hx_type
 			return true
 		default:
-			_ = hx_type
 			return false
 		}
 	}(any(nil)))
