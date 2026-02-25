@@ -4,11 +4,5 @@ import "snapshot/hxrt"
 
 func main() {
 	var parsed any = hxrt.JsonParse(hxrt.StringFromLiteral("[1,true,\"x\"]"))
-	hxrt.Println(func() *string {
-		var replacer func(any, any) any = nil
-		_ = replacer
-		var space *string = nil
-		_ = space
-		return hxrt.JsonStringify(parsed)
-	}())
+	hxrt.Println(hxrt.StdString(hxrt.JsonStringify(parsed)))
 }

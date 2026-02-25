@@ -91,8 +91,6 @@ class GoHxrtFeatureAnalyzer {
 
 		for (group in shimGroups) {
 			switch (group) {
-				case "json":
-					add(out, FEATURE_JSON);
 				case "atomic":
 					add(out, FEATURE_ATOMIC_INT);
 					add(out, FEATURE_ATOMIC_OBJECT);

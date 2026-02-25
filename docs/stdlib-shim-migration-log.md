@@ -146,6 +146,38 @@ Observed result:
   - `stdlib/io_type_smoke`: `901` -> `381` lines (`-520`, `-57.7%`)
 - Snapshot refresh delta for this optimization pass: `6218` deleted lines, `95` inserted lines.
 
+### 2026-02-25: staged JSON stdlib ownership (`haxe.go-cgk.5`)
+
+Implementation:
+
+- Added staged std overrides:
+  - `std/_std/haxe/Json.cross.hx`
+  - `std/_std/haxe/format/JsonParser.cross.hx`
+  - `std/_std/haxe/format/JsonPrinter.cross.hx`
+- Marked JSON classes as required staged stdlib classes in compiler ownership routing so override modules are compiled into output:
+  - `haxe.Json`
+  - `haxe.format.JsonParser`
+  - `haxe.format.JsonPrinter`
+- Removed compiler-call special cases that previously bypassed staged module ownership:
+  - removed `haxe.Json.parse/stringify` direct lowerings
+  - removed `haxe.format.JsonPrinter.print` direct lowering
+  - removed `JsonParser` constructor/string-pointer special casing
+- Kept runtime behavior centralized in `hxrt` through staged std wrappers.
+- Updated runtime/shim ownership docs and provenance ledger for staged std files.
+
+Validation evidence:
+
+- `python3 test/run-snapshots.py --case stdlib/json_parse_stringify`
+- `python3 test/run-semantic-diff.py --case json_parse_stringify_contract`
+- `python3 test/run-upstream-stdlib-sweep.py --module haxe.Json --strict --go-test`
+- `python3 test/run-ci.py --changed --skip-stdlib-sweep`
+
+Observed result:
+
+- JSON API ownership is now staged-stdlib-first while preserving runtime behavior and parity gates.
+- Contract/runtime report and shim ownership remain deterministic after migration.
+
 ## Open migration track
 
-- No open shim migration beads remain in the `haxe.go-7zy.10`/`.11`/`.12` sequence.
+- Legacy `haxe.go-7zy.*` shim migration sequence is closed.
+- Staged stdlib migration follow-ups continue under `haxe.go-cgk.*` (portable parity program).

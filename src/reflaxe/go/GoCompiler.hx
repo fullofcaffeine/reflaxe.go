@@ -856,6 +856,8 @@ class GoCompiler {
 	function isRequiredStdlibClass(classType:ClassType):Bool {
 		var pack = classType.pack.join(".");
 		return (pack == "haxe" && classType.name == "Int64Helper")
+			|| (pack == "haxe" && classType.name == "Json")
+			|| (pack == "haxe.format" && (classType.name == "JsonParser" || classType.name == "JsonPrinter"))
 			|| (pack == "haxe._Int64" && (classType.name == "Int64_Impl_" || classType.name == "___Int64"))
 			|| (pack == "haxe._Int32" && classType.name == "Int32_Impl_")
 			|| (pack == "go" && (classType.name == "Go" || classType.name == "Chan" || classType.name == "Select"));
@@ -9868,12 +9870,7 @@ class GoCompiler {
 				};
 			case TNew(classRef, _, args):
 				var classType = classRef.get();
-				if (isHaxeJsonParserClass(classType)) {
-					{
-						expr: args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil,
-						isStringLike: false
-					};
-				} else if (isMetalProfile() && isGoChanClass(classType)) {
+				if (isMetalProfile() && isGoChanClass(classType)) {
 					var elementGoType = goChanElementGoType(expr.t);
 					if (elementGoType != null) {
 						requireStdlibShimGroup("go_concurrency");
@@ -10409,15 +10406,6 @@ class GoCompiler {
 			return stringInstanceCall;
 		}
 
-		var jsonParserTarget = jsonParserDoParseTarget(callee, args);
-		if (jsonParserTarget != null) {
-			requireStdlibShimGroup("json");
-			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonParse"), [jsonParserSourceExpr(jsonParserTarget)]),
-				isStringLike: false
-			};
-		}
-
 		var externReceiverCall = lowerExternReceiverCall(callee, args, returnType);
 		if (externReceiverCall != null) {
 			return externReceiverCall;
@@ -10519,33 +10507,6 @@ class GoCompiler {
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("go__concurrency_spawn"), [fn]),
 				isStringLike: false
-			};
-		}
-
-		if (isStaticCall(callee, "Json", ["haxe"], "parse")) {
-			requireStdlibShimGroup("json");
-			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
-			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonParse"), [arg]),
-				isStringLike: false
-			};
-		}
-
-		if (isStaticCall(callee, "Json", ["haxe"], "stringify")) {
-			requireStdlibShimGroup("json");
-			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
-			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonStringify"), [arg]),
-				isStringLike: true
-			};
-		}
-
-		if (isStaticCall(callee, "JsonPrinter", ["haxe", "format"], "print")) {
-			requireStdlibShimGroup("json");
-			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
-			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.JsonStringify"), [arg]),
-				isStringLike: true
 			};
 		}
 
@@ -11042,49 +11003,6 @@ class GoCompiler {
 				lowerStringInstanceCall(inner, args);
 			case _:
 				null;
-		};
-	}
-
-	function jsonParserDoParseTarget(callee:TypedExpr, args:Array<TypedExpr>):Null<TypedExpr> {
-		if (args.length != 0) {
-			return null;
-		}
-		return switch (callee.expr) {
-			case TField(target, FInstance(classRef, _, field)):
-				var classType = classRef.get();
-				var resolvedField = field.get();
-				if (isHaxeJsonParserClass(classType) && resolvedField.name == "doParse") {
-					target;
-				} else {
-					null;
-				}
-			case TMeta(_, inner):
-				jsonParserDoParseTarget(inner, args);
-			case TParenthesis(inner):
-				jsonParserDoParseTarget(inner, args);
-			case TCast(inner, _):
-				jsonParserDoParseTarget(inner, args);
-			case _:
-				null;
-		};
-	}
-
-	function jsonParserSourceExpr(target:TypedExpr):GoExpr {
-		return switch (target.expr) {
-			case TNew(classRef, _, args):
-				if (isHaxeJsonParserClass(classRef.get())) {
-					args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
-				} else {
-					lowerExpr(target).expr;
-				}
-			case TMeta(_, inner):
-				jsonParserSourceExpr(inner);
-			case TParenthesis(inner):
-				jsonParserSourceExpr(inner);
-			case TCast(inner, _):
-				jsonParserSourceExpr(inner);
-			case _:
-				lowerExpr(target).expr;
 		};
 	}
 
@@ -12266,10 +12184,6 @@ class GoCompiler {
 		return GoTypeMapper.isHaxeExceptionClass(classType);
 	}
 
-	function isHaxeJsonParserClass(classType:ClassType):Bool {
-		return GoTypeMapper.isHaxeJsonParserClass(classType);
-	}
-
 	function isHaxeIoBaseClass(classType:ClassType):Bool {
 		return GoTypeMapper.isHaxeIoBaseClass(classType);
 	}
@@ -12438,7 +12352,15 @@ class GoCompiler {
 
 	function externClassImportPath(classType:ClassType):Null<String> {
 		var value = readMetadataString(classType.meta, ["go.import"]);
-		return value == null || value == "" ? null : value;
+		if (value == null || value == "") {
+			return null;
+		}
+		// Allow staged stdlib externs to bind to the active runtime import path without
+		// hardcoding a module prefix like "snapshot/hxrt".
+		if (value == "hxrt") {
+			return compilationContext.runtimeImportPath;
+		}
+		return value;
 	}
 
 	function externClassPackageName(classType:ClassType):Null<String> {

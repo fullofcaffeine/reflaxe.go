@@ -31,6 +31,21 @@
       "path": "std/go/Time.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go native facade for time package interoperability helpers."
+    },
+    {
+      "path": "std/_std/haxe/Json.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.Json, delegating behavior to hxrt runtime helpers."
+    },
+    {
+      "path": "std/_std/haxe/format/JsonParser.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.format.JsonParser, delegating parse path to haxe.Json."
+    },
+    {
+      "path": "std/_std/haxe/format/JsonPrinter.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.format.JsonPrinter, delegating print path to haxe.Json."
     }
   ]
 }

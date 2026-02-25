@@ -38,8 +38,6 @@ class GoTypeMapper {
 					classTypeName(classType);
 				} else if (classType.pack.length == 0 && classType.name == "String") {
 					"*string";
-				} else if (isHaxeJsonParserClass(classType)) {
-					"*string";
 				} else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
 					"[]" + scalarGoType(params[0], classTypeName, enumTypeName);
 				} else {
@@ -242,8 +240,6 @@ class GoTypeMapper {
 					classTypeName(classType);
 				} else if (classType.pack.length == 0 && classType.name == "String") {
 					"*string";
-				} else if (isHaxeJsonParserClass(classType)) {
-					"*string";
 				} else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
 					"[]" + scalarGoType(params[0], classTypeName, enumTypeName);
 				} else {
@@ -367,10 +363,6 @@ class GoTypeMapper {
 
 	public static function isHaxeExceptionClass(classType:ClassType):Bool {
 		return classType.pack.join(".") == "haxe" && classType.name == "Exception";
-	}
-
-	public static function isHaxeJsonParserClass(classType:ClassType):Bool {
-		return classType.pack.join(".") == "haxe.format" && classType.name == "JsonParser";
 	}
 
 	public static function isHaxeIoBaseClass(classType:ClassType):Bool {

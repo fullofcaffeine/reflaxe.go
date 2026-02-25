@@ -69,7 +69,7 @@ Portable and native surfaces are distinct:
 
 | Shim group | Primary surfaces | Compiler LOC | Highest CI tier | Decision | Reason | Follow-up |
 | --- | --- | ---: | --- | --- | --- | --- |
-| `json` | `haxe.Json`, `haxe.format.JsonParser/JsonPrinter` | 38 | Snapshot | Migrated (runtime-lowered) | Compiler-emitted JSON declarations removed; calls now lower directly to `hxrt.JsonParse`/`hxrt.JsonStringify`. | `haxe.go-7zy.10` |
+| `json` | `haxe.Json`, `haxe.format.JsonParser/JsonPrinter` | 38 | Snapshot | Migrated (staged std/_std + runtime-owned behavior) | Staged std overrides (`std/_std/**`) now own JSON API surfaces; behavior delegates to `hxrt.JsonParse`/`hxrt.JsonStringify`. | `haxe.go-7zy.10`, `haxe.go-cgk.5` |
 | `sys` | `Sys`, `sys.io.File`, `sys.io.Process` | 89 | Snapshot | Migrated (runtime-owned wrappers) | Behavior now lives in `hxrt.Sys*`/`hxrt.File*`/`hxrt.Process*`; compiler shim generation is reduced to thin wrapper/type-shape forwarding. | `haxe.go-7zy.11` (completed 2026-02-19) |
 | `io` | `haxe.io.Bytes`, buffers, input/output base wiring | 108 | Snapshot + semantic-diff dependency | Keep (for now, with selective helper emission) | Shared representation boundary used by crypto/http/serializer flows; inherited Input/Output helper declarations are now emitted only when helper usage is detected. | `haxe.go-czm` (in progress) |
 | `ds` | `haxe.ds.*Map`, `List`, enum maps | 149 | Snapshot + semantic-diff dependency | Keep (for now) | Serializer and HTTP contracts rely on deterministic generated map/list shapes. | - |
@@ -84,7 +84,7 @@ These are the canonical per-surface decisions for shim ownership and alternative
 
 | Record | Surface | Decision | Alternatives reviewed | Evidence |
 | --- | --- | --- | --- | --- |
-| `SDR-001` | `json` (`haxe.Json`, `haxe.format.Json*`) | Keep lowering in compiler, move behavior to `hxrt` (`JsonParse`/`JsonStringify`) | Compiler shim, `std/_std`, extern/runtime package | Snapshot parity + migration log (`haxe.go-7zy.10`) |
+| `SDR-001` | `json` (`haxe.Json`, `haxe.format.Json*`) | Move API ownership to staged std (`std/_std`) and keep behavior in `hxrt` (`JsonParse`/`JsonStringify`) | Compiler shim, direct lower-call rewrites, extern/runtime package | Snapshot parity + migration log (`haxe.go-7zy.10`, `haxe.go-cgk.5`) |
 | `SDR-002` | `sys` (`Sys`, `sys.io.File`, `sys.io.Process`) | Keep thin compiler wrappers, move behavior to `hxrt` (`Sys*`, `File*`, `Process*`) | Compiler shim, direct externs, `std/_std` | Snapshot parity + migration log (`haxe.go-7zy.11`) |
 | `SDR-003` | `io` (`haxe.io.Bytes*`, stream helpers, encoding edges) | Keep compiler shims for now; allow selective helper emission + targeted runtime helpers | Compiler builtin lowering, extern/runtime package, `std/_std` | Semantic-diff contracts + shim-vs-direct benchmark (`test:perf:stdlib-shims`) |
 | `SDR-004` | `ds` (`haxe.ds.*Map`, `List`) | Keep compiler-owned shape generation until typed null/reflect parity is proven in a replacement path | `std/_std`, extern-backed containers, pure runtime wrappers | Semantic-diff contracts (`ds_maps_list_contract`, map/list follow-ups) |
@@ -130,7 +130,7 @@ Interpretation:
 
 ## Migration Sequence
 
-1. Move `json` out of compiler core first (`haxe.go-7zy.10`) because it is the thinnest shim and lowest risk.
+1. Move `json` out of compiler core first (`haxe.go-7zy.10`) and then promote staged std ownership (`haxe.go-cgk.5`) because it is the thinnest shim and lowest risk.
 2. Move `sys` wrappers second (`haxe.go-7zy.11`, completed 2026-02-19) once snapshot parity remains stable.
 3. Keep behavior-heavy shim groups in compiler core until an equivalent `std/_std` path proves equal parity under semantic-diff coverage.
 
