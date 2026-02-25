@@ -1,0 +1,20 @@
+{
+	"schemaVersion": 1,
+	"contract": "portable",
+	"strictExamples": false,
+	"strictUserBoundaries": false,
+	"metalFallbackAllowed": false,
+	"metalContractHardError": false,
+	"emitLineDirectives": false,
+	"rawNativeMode": "interp",
+	"hxrtSelectiveEnabled": false,
+	"hxrtForceFullCopy": false,
+	"hxrtNoFeatureInfer": false,
+	"metalFallbackViolationCount": 0,
+	"hxrtManualFeatures": [
+	],
+	"metalLaneModules": [
+	],
+	"metalFallbackViolations": [
+	]
+}

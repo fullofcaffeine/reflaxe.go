@@ -1,0 +1,1 @@
+Metal contract fallback is not allowed:

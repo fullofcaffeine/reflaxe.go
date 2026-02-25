@@ -108,6 +108,7 @@ Set via:
 
 - `portable` (default): choose this for portability and lowest migration risk.
 - `metal` (experimental): choose this when portable abstractions are not enough and you need typed low-level interop with strict boundaries.
+- `@:haxeMetal`: optional lane metadata for portable builds when you want module-by-module metal-clean enforcement.
 
 Compatibility note:
 
@@ -119,7 +120,13 @@ Compatibility note:
 - `-D reflaxe_go_strict_examples`: forbids raw `__go__` in repo examples/snapshots.
 - `-D reflaxe_go_strict`: forbids raw `__go__` in app project sources.
 - `metal` enables strict mode by default for app-side injection boundaries.
+- `-D reflaxe_go_metal_allow_fallback`: allows typed-specialization fallback in metal builds (instead of hard error) and disables metal strict-by-default boundary behavior.
 - `-D reflaxe_go_line_directives`: opt-in `//line` source mapping directives in generated user functions.
+
+## Contract/runtime report knobs
+
+- `-D reflaxe_go_contract_report`: writes `profile_contract.json` + `profile_contract.md` to output root.
+- `-D reflaxe_go_runtime_plan_report`: writes `hxrt_plan.json` + `hxrt_plan.md` to output root.
 
 ## GitHub CI harness
 

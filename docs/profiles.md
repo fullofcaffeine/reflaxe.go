@@ -50,9 +50,27 @@ If your code path falls outside this subset, start from `portable` and promote o
 - `reflaxe_go_strict_examples`: forbids raw `__go__` in repo examples/snapshots.
 - `reflaxe_go_strict`: forbids raw `__go__` in app project sources.
 - `metal` enables strict mode by default for app-side raw injection.
-- `reflaxe_go_metal_allow_fallback`: opt-in escape hatch to allow raw `__go__` in `metal` app sources.
+- `reflaxe_go_metal_allow_fallback`: opt-in escape hatch that relaxes metal hard-error fallback policy and disables metal strict-by-default boundary enforcement.
 
 Framework-owned typed facades are allowed in `metal` strict mode; raw app-side injection remains disallowed.
+
+## `@:haxeMetal` lanes (portable builds)
+
+`@:haxeMetal` marks module islands that must obey metal-clean restrictions even when the build contract is `portable`.
+
+- Current enforced rule: raw `__go__` is disallowed in `@:haxeMetal` modules under portable contract.
+- Snapshot coverage: `test/snapshot/negative/haxe_metal_lane_injection`.
+
+Lane module discovery is deterministic and emitted in profile contract reports.
+
+## Contract/runtime reports
+
+Opt-in report defines:
+
+- `-D reflaxe_go_contract_report` -> `profile_contract.json`, `profile_contract.md`
+- `-D reflaxe_go_runtime_plan_report` -> `hxrt_plan.json`, `hxrt_plan.md`
+
+Snapshot coverage: `test/snapshot/core/report_artifacts_basic`.
 
 ## Example references
 

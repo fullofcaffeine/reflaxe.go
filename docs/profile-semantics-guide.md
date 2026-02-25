@@ -83,6 +83,19 @@ class Main {
 - `metal`: intended lane for this style, with typed specialization work prioritized here.
 - `portable`: can compile on Go target, but this is target-native code and not part of cross-target portable expectations.
 
+### Example D: portable build with a metal lane island
+
+```haxe
+@:haxeMetal
+class Adapter {
+  static function boot() {
+    // raw __go__ is forbidden in this lane when contract=portable
+  }
+}
+```
+
+`@:haxeMetal` lets you mark incremental migration islands inside a portable build. Those modules get metal-clean enforcement rules even when global contract stays portable.
+
 ## What changes and what does not
 
 ### Non-negotiable
@@ -136,7 +149,8 @@ Opt into native-first behavior:
 
 1. Compile with `-D reflaxe_go_profile=metal`.
 2. Use target-native surfaces (for example `go.*` APIs or explicit native interop wrappers).
-3. If you need raw `__go__`, opt in explicitly with `-D reflaxe_go_metal_allow_fallback` (still discouraged, but available).
+3. If typed specialization cannot be monomorphized, use `-D reflaxe_go_metal_allow_fallback` to allow fallback (otherwise metal hard-errors by default).
+4. If you need raw `__go__`, prefer typed framework facades; explicit `-D reflaxe_go_strict` still forbids raw injection.
 
 Stay in portable semantics:
 
@@ -261,6 +275,15 @@ This split preserves cross-target leverage while allowing Go-native power where 
 - `metal`: aim for hand-written-Go-like shape in typed lanes, while still preserving correctness contracts.
 
 If metal output degrades readability without measurable benefit, treat it as a codegen quality issue and add snapshot/perf evidence.
+
+## Build report artifacts
+
+Use these optional flags when auditing effective contract/runtime behavior:
+
+- `-D reflaxe_go_contract_report` emits `profile_contract.json` and `profile_contract.md`.
+- `-D reflaxe_go_runtime_plan_report` emits `hxrt_plan.json` and `hxrt_plan.md`.
+
+Reference snapshot: `test/snapshot/core/report_artifacts_basic`.
 
 ## Contract guardrails in this repo
 

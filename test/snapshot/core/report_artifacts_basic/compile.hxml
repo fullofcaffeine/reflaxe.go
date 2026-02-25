@@ -1,0 +1,6 @@
+-cp .
+-lib reflaxe.go
+-D go_output=out
+-D reflaxe_go_contract_report
+-D reflaxe_go_runtime_plan_report
+-main Main

@@ -1,0 +1,22 @@
+{
+	"schemaVersion": 1,
+	"contract": "portable",
+	"mode": "full_copy",
+	"selectiveEnabled": false,
+	"fullCopy": true,
+	"inferenceDisabled": false,
+	"manualFeatures": [
+	],
+	"inferredFeatures": [
+		"core",
+		"exception",
+		"print",
+		"string"
+	],
+	"selectedFeatures": [
+	],
+	"files": [
+	],
+	"reasons": [
+	]
+}

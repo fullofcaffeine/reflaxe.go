@@ -9808,6 +9808,7 @@ class GoCompiler {
 							isStringLike: false
 						};
 					} else {
+						noteMetalFallback("go_chan_new_unmorphable", expr.pos, "Could not monomorphize go.Chan element type for constructor specialization.");
 						{
 							expr: GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(classType)), [for (arg in args) lowerExpr(arg).expr]),
 							isStringLike: false
@@ -10617,6 +10618,7 @@ class GoCompiler {
 		if (isStaticCall(callee, "Go", ["go"], "newChan")) {
 			var elementGoType = goChanElementGoType(returnType);
 			if (elementGoType == null) {
+				noteMetalFallback("go_chan_new_unmorphable", callee.pos, "Could not monomorphize go.Go.newChan return type for metal specialization.");
 				return null;
 			}
 			requireStdlibShimGroup("go_concurrency");
@@ -10635,6 +10637,7 @@ class GoCompiler {
 
 		var elementGoType = scalarGoType(methodCall.elementType);
 		if (!isMonomorphizableMetalChanElementType(elementGoType)) {
+			noteMetalFallback("go_chan_method_unmorphable", callee.pos, 'Could not monomorphize go.Chan method call (element type: ' + elementGoType + ").");
 			return null;
 		}
 
@@ -10701,6 +10704,7 @@ class GoCompiler {
 
 		var elementGoType = goSliceElementGoType(methodCall.target.t);
 		if (elementGoType == null) {
+			noteMetalFallback("go_slice_method_unmorphable", callee.pos, "Could not monomorphize go.Slice element type for metal specialization.");
 			return null;
 		}
 
@@ -10755,6 +10759,7 @@ class GoCompiler {
 
 		var pair = goMapTypePairGoTypes(methodCall.target.t);
 		if (pair == null) {
+			noteMetalFallback("go_map_method_unmorphable", callee.pos, "Could not monomorphize go.Map key/value types for metal specialization.");
 			return null;
 		}
 		var keyGoType = pair.keyGoType;
@@ -10800,6 +10805,8 @@ class GoCompiler {
 
 		if (isStaticCall(callee, "Result", ["go"], "ok") || isStaticCall(callee, "Go", ["go"], "ok")) {
 			if (returnElementGoType == null) {
+				noteMetalFallback("go_result_static_ok_unmorphable", callee.pos,
+					"Could not monomorphize go.Result<T>.ok return type for metal specialization.");
 				return null;
 			}
 			requireStdlibShimGroup("go_result");
@@ -10813,6 +10820,8 @@ class GoCompiler {
 
 		if (isStaticCall(callee, "Result", ["go"], "failure") || isStaticCall(callee, "Go", ["go"], "fail")) {
 			if (returnElementGoType == null) {
+				noteMetalFallback("go_result_static_failure_unmorphable", callee.pos,
+					"Could not monomorphize go.Result<T>.failure return type for metal specialization.");
 				return null;
 			}
 			requireStdlibShimGroup("go_result");
@@ -10831,6 +10840,7 @@ class GoCompiler {
 
 		var elementGoType = goResultElementGoType(methodCall.target.t);
 		if (elementGoType == null) {
+			noteMetalFallback("go_result_method_unmorphable", callee.pos, "Could not monomorphize go.Result<T> method receiver for metal specialization.");
 			return null;
 		}
 
@@ -11357,6 +11367,38 @@ class GoCompiler {
 
 	function isMetalProfile():Bool {
 		return compilationContext.profile == GoProfile.Metal;
+	}
+
+	function noteMetalFallback(kind:String, pos:haxe.macro.Expr.Position, detail:String):Void {
+		if (!isMetalProfile()) {
+			return;
+		}
+		var infos = Context.getPosInfos(pos);
+		var location = infos.file + ":" + infos.min;
+		var violation = {
+			kind: kind,
+			detail: detail,
+			location: location
+		};
+		compilationContext.metalFallbackViolations.push(violation);
+		var hardError = compilationContext.buildContext.metalContractHardError && !isFrameworkInternalPos(pos);
+		if (hardError) {
+			Context.error("Metal contract fallback is not allowed: "
+				+ detail
+				+ " Use `-D reflaxe_go_metal_allow_fallback` to permit fallback for this build.", pos);
+		}
+	}
+
+	function isFrameworkInternalPos(pos:haxe.macro.Expr.Position):Bool {
+		var file = normalizeSourcePath(Context.getPosInfos(pos).file);
+		return file.indexOf("/std/") != -1
+			|| file.indexOf("/src/reflaxe/") != -1
+			|| StringTools.startsWith(file, "std/")
+			|| StringTools.startsWith(file, "src/reflaxe/");
+	}
+
+	static function normalizeSourcePath(value:String):String {
+		return value == null ? "" : value.split("\\").join("/");
 	}
 
 	function isGoChanClass(classType:ClassType):Bool {

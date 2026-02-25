@@ -70,9 +70,23 @@ Design note:
 - `reflaxe_go_strict_examples`
   - Enforce strict no raw `__go__` policy for repo examples/snapshots.
 - `reflaxe_go_metal_allow_fallback`
-  - Opt-in escape hatch for `metal` profile to allow raw `__go__` in app sources.
+  - Opt-in escape hatch for `metal` profile to allow typed-specialization fallback instead of hard error.
+  - Also disables metal strict-by-default app-boundary enforcement.
   - Does not affect `reflaxe_go_strict` (explicit strict mode still forbids raw injection).
   - Does not affect strict examples enforcement in snapshots/examples.
+
+## Lane metadata
+
+- `@:haxeMetal`
+  - Module/type/field metadata for metal-clean lane islands inside portable builds.
+  - Portable builds enforce lane restrictions for these modules (for example raw `__go__` is disallowed).
+
+## Reports
+
+- `reflaxe_go_contract_report`
+  - Emit `profile_contract.json` and `profile_contract.md` into output root with effective contract/capability state and fallback summary.
+- `reflaxe_go_runtime_plan_report`
+  - Emit `hxrt_plan.json` and `hxrt_plan.md` into output root with selected runtime features/files and selection reasons.
 
 ## Constructor devex
 
