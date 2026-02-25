@@ -72,6 +72,13 @@ Framework-owned typed facades are allowed in `metal` strict mode; raw app-side i
 
 Lane module discovery is deterministic and emitted in profile contract reports.
 
+Lane test commands:
+
+- `python3 test/run-snapshots.py --case negative/go_metal_lane_injection --case negative/go_metal_lane_fallback_result --case negative/go_metal_lane_fallback_chan --case negative/go_metal_lane_fallback_slice --case negative/go_metal_lane_fallback_map --case core/go_metal_lane_nonlane_fallback_allowed`
+- `python3 test/run-semantic-diff.py --suite lanes`
+- `npm run test:semantic-diff:lanes`
+- `python3 test/run-ci.py --force-semantic-diff-lanes`
+
 ## Contract/runtime reports
 
 Opt-in report defines:

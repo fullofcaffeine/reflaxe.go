@@ -93,6 +93,10 @@ Design note:
   - Portable builds enforce lane restrictions for these modules:
     - raw `__go__` is disallowed.
     - typed fallback paths for `go.Chan`/`go.Slice`/`go.Map`/`go.Result` are disallowed (for example non-monomorphizable `Dynamic`/`Any` lane usage).
+  - Validation commands:
+    - `python3 test/run-snapshots.py --case negative/go_metal_lane_injection --case negative/go_metal_lane_fallback_result --case negative/go_metal_lane_fallback_chan --case negative/go_metal_lane_fallback_slice --case negative/go_metal_lane_fallback_map --case core/go_metal_lane_nonlane_fallback_allowed`
+    - `python3 test/run-semantic-diff.py --suite lanes`
+    - `npm run test:semantic-diff:lanes`
 
 Removed:
 

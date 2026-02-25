@@ -293,7 +293,11 @@ Use these optional flags when auditing effective contract/runtime behavior:
 - `-D reflaxe_go_contract_report` emits `profile_contract.json` and `profile_contract.md`.
 - `-D reflaxe_go_runtime_plan_report` emits `hxrt_plan.json` and `hxrt_plan.md`.
 
-`profile_contract.json` (schema v2) carries deterministic structured fallback entries, including module and lane attribution (`module`, `inMetalLane`) for each metal fallback violation.
+`profile_contract.json` (schema v3) carries deterministic structured fallback entries, including module and lane attribution (`module`, `inMetalLane`) and lane summary fields:
+
+- `metalFallbackLaneViolationCount`
+- `metalFallbackNonLaneViolationCount`
+- `metalFallbackViolationsByModule`
 
 Reference snapshots:
 - `test/snapshot/core/report_artifacts_basic`
@@ -305,7 +309,10 @@ Use these gates when profile behavior changes:
 
 - `python3 test/run-snapshots.py`
 - `python3 test/run-semantic-diff.py`
+- `python3 test/run-semantic-diff.py --suite lanes`
+- `npm run test:semantic-diff:lanes`
 - `python3 test/run-ci.py`
+- `python3 test/run-ci.py --force-semantic-diff-lanes`
 - `python3 test/run-examples.py`
 
 Canonical portable semantics reference: `docs/portable-canonical-contract.md`.
