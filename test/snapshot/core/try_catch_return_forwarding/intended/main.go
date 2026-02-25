@@ -21,7 +21,6 @@ func withTry(flag bool) *string {
 		hxrt.Throw(hxrt.StringFromLiteral("boom"))
 	}, func(hx_caught_3 any) {
 		e := hx_caught_3
-		_ = e
 		state = hxrt.StringFromLiteral("catch")
 		hx_try_value_2 = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("catch:"), state), hxrt.StringFromLiteral(":")), hxrt.StdString(e))
 		hx_try_return_1 = true

@@ -13,15 +13,12 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 		case 1:
 			hx_obj_55 := map[string]any{}
 			high := dividend.high
-			_ = high
 			low := dividend.low
 			x := New_haxe___Int64_____Int64(high, low)
-			_ = x
 			var this1 *haxe___Int64_____Int64
 			this1 = x
 			hx_obj_55["quotient"] = this1
 			x_1 := New_haxe___Int64_____Int64(0, 0)
-			_ = x_1
 			var this1_1 *haxe___Int64_____Int64
 			this1_1 = x_1
 			hx_obj_55["modulus"] = this1_1
@@ -32,26 +29,22 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 	var hx_if_57 *haxe___Int64_____Int64
 	if dividend.high < 0 {
 		high_1 := int(int32(^int32(dividend.high)))
-		_ = high_1
 		low_1 := int(int32((hxrt.Int32Wrap(int(int32(^int32(dividend.low)))) + hxrt.Int32Wrap(1))))
 		if low_1 == 0 {
 			hx_post_56 := high_1
 			high_1 = int(int32((high_1 + 1)))
 			ret := hx_post_56
-			high_1 = high_1
 			_ = ret
+			high_1 = high_1
 		}
 		x_2 := New_haxe___Int64_____Int64(high_1, low_1)
-		_ = x_2
 		var this1_2 *haxe___Int64_____Int64
 		this1_2 = x_2
 		hx_if_57 = this1_2
 	} else {
 		high_2 := dividend.high
-		_ = high_2
 		low_2 := dividend.low
 		x_3 := New_haxe___Int64_____Int64(high_2, low_2)
-		_ = x_3
 		var this1_3 *haxe___Int64_____Int64
 		this1_3 = x_3
 		hx_if_57 = this1_3
@@ -60,17 +53,15 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 	var hx_if_59 *haxe___Int64_____Int64
 	if divisor.high < 0 {
 		high_3 := int(int32(^int32(divisor.high)))
-		_ = high_3
 		low_3 := int(int32((hxrt.Int32Wrap(int(int32(^int32(divisor.low)))) + hxrt.Int32Wrap(1))))
 		if low_3 == 0 {
 			hx_post_58 := high_3
 			high_3 = int(int32((high_3 + 1)))
 			ret_1 := hx_post_58
-			high_3 = high_3
 			_ = ret_1
+			high_3 = high_3
 		}
 		x_4 := New_haxe___Int64_____Int64(high_3, low_3)
-		_ = x_4
 		var this1_4 *haxe___Int64_____Int64
 		this1_4 = x_4
 		hx_if_59 = this1_4
@@ -100,10 +91,8 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 		var hx_if_62 *haxe___Int64_____Int64
 		if b == 0 {
 			high_4 := divisor.high
-			_ = high_4
 			low_4 := divisor.low
 			x_7 := New_haxe___Int64_____Int64(high_4, low_4)
-			_ = x_7
 			var this1_7 *haxe___Int64_____Int64
 			this1_7 = x_7
 			hx_if_62 = this1_7
@@ -111,17 +100,14 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 			var hx_if_61 *haxe___Int64_____Int64
 			if b < 32 {
 				high_5 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(divisor.high) << uint(b))))) | hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(divisor.low)) >> uint(int(int32((hxrt.Int32Wrap(32) - hxrt.Int32Wrap(b)))))))))))))
-				_ = high_5
 				low_5 := int(int32((hxrt.Int32Wrap(divisor.low) << uint(b))))
 				x_8 := New_haxe___Int64_____Int64(high_5, low_5)
-				_ = x_8
 				var this1_8 *haxe___Int64_____Int64
 				this1_8 = x_8
 				hx_if_61 = this1_8
 			} else {
 				high_6 := int(int32((hxrt.Int32Wrap(divisor.low) << uint(int(int32((hxrt.Int32Wrap(b) - hxrt.Int32Wrap(32))))))))
 				x_9 := New_haxe___Int64_____Int64(high_6, 0)
-				_ = x_9
 				var this1_9 *haxe___Int64_____Int64
 				this1_9 = x_9
 				hx_if_61 = this1_9
@@ -134,10 +120,8 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 		var hx_if_64 *haxe___Int64_____Int64
 		if b_1 == 0 {
 			high_7 := mask.high
-			_ = high_7
 			low_6 := mask.low
 			x_10 := New_haxe___Int64_____Int64(high_7, low_6)
-			_ = x_10
 			var this1_10 *haxe___Int64_____Int64
 			this1_10 = x_10
 			hx_if_64 = this1_10
@@ -145,17 +129,14 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 			var hx_if_63 *haxe___Int64_____Int64
 			if b_1 < 32 {
 				high_8 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(mask.high) << uint(b_1))))) | hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(mask.low)) >> uint(int(int32((hxrt.Int32Wrap(32) - hxrt.Int32Wrap(b_1)))))))))))))
-				_ = high_8
 				low_7 := int(int32((hxrt.Int32Wrap(mask.low) << uint(b_1))))
 				x_11 := New_haxe___Int64_____Int64(high_8, low_7)
-				_ = x_11
 				var this1_11 *haxe___Int64_____Int64
 				this1_11 = x_11
 				hx_if_63 = this1_11
 			} else {
 				high_9 := int(int32((hxrt.Int32Wrap(mask.low) << uint(int(int32((hxrt.Int32Wrap(b_1) - hxrt.Int32Wrap(32))))))))
 				x_12 := New_haxe___Int64_____Int64(high_9, 0)
-				_ = x_12
 				var this1_12 *haxe___Int64_____Int64
 				this1_12 = x_12
 				hx_if_63 = this1_12
@@ -169,7 +150,6 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 	}
 	for func() bool {
 		var b_low int
-		_ = b_low
 		var b_high int
 		b_high = 0
 		b_low = 0
@@ -177,7 +157,6 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 	}() {
 		if func() int {
 			v_1 := haxe___Int32__Int32_Impl__ucompare(modulus.high, divisor.high)
-			_ = v_1
 			var hx_if_65 int
 			if v_1 != 0 {
 				hx_if_65 = v_1
@@ -198,8 +177,8 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 				hx_post_66 := high_11
 				high_11 = int(int32((high_11 - 1)))
 				ret_2 := hx_post_66
-				high_11 = high_11
 				_ = ret_2
+				high_11 = high_11
 			}
 			x_14 := New_haxe___Int64_____Int64(high_11, low_9)
 			var this1_14 *haxe___Int64_____Int64
@@ -211,10 +190,8 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 		var hx_if_68 *haxe___Int64_____Int64
 		if b_2 == 0 {
 			high_12 := mask.high
-			_ = high_12
 			low_10 := mask.low
 			x_15 := New_haxe___Int64_____Int64(high_12, low_10)
-			_ = x_15
 			var this1_15 *haxe___Int64_____Int64
 			this1_15 = x_15
 			hx_if_68 = this1_15
@@ -222,17 +199,14 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 			var hx_if_67 *haxe___Int64_____Int64
 			if b_2 < 32 {
 				high_13 := int(int32(int32((uint32(hxrt.Int32Wrap(mask.high)) >> uint(b_2)))))
-				_ = high_13
 				low_11 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(mask.high) << uint(int(int32((hxrt.Int32Wrap(32) - hxrt.Int32Wrap(b_2))))))))) | hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(mask.low)) >> uint(b_2)))))))))
 				x_16 := New_haxe___Int64_____Int64(high_13, low_11)
-				_ = x_16
 				var this1_16 *haxe___Int64_____Int64
 				this1_16 = x_16
 				hx_if_67 = this1_16
 			} else {
 				low_12 := int(int32(int32((uint32(hxrt.Int32Wrap(mask.high)) >> uint(int(int32((hxrt.Int32Wrap(b_2) - hxrt.Int32Wrap(32)))))))))
 				x_17 := New_haxe___Int64_____Int64(0, low_12)
-				_ = x_17
 				var this1_17 *haxe___Int64_____Int64
 				this1_17 = x_17
 				hx_if_67 = this1_17
@@ -245,10 +219,8 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 		var hx_if_70 *haxe___Int64_____Int64
 		if b_3 == 0 {
 			high_14 := divisor.high
-			_ = high_14
 			low_13 := divisor.low
 			x_18 := New_haxe___Int64_____Int64(high_14, low_13)
-			_ = x_18
 			var this1_18 *haxe___Int64_____Int64
 			this1_18 = x_18
 			hx_if_70 = this1_18
@@ -256,17 +228,14 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 			var hx_if_69 *haxe___Int64_____Int64
 			if b_3 < 32 {
 				high_15 := int(int32(int32((uint32(hxrt.Int32Wrap(divisor.high)) >> uint(b_3)))))
-				_ = high_15
 				low_14 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(divisor.high) << uint(int(int32((hxrt.Int32Wrap(32) - hxrt.Int32Wrap(b_3))))))))) | hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(divisor.low)) >> uint(b_3)))))))))
 				x_19 := New_haxe___Int64_____Int64(high_15, low_14)
-				_ = x_19
 				var this1_19 *haxe___Int64_____Int64
 				this1_19 = x_19
 				hx_if_69 = this1_19
 			} else {
 				low_15 := int(int32(int32((uint32(hxrt.Int32Wrap(divisor.high)) >> uint(int(int32((hxrt.Int32Wrap(b_3) - hxrt.Int32Wrap(32)))))))))
 				x_20 := New_haxe___Int64_____Int64(0, low_15)
-				_ = x_20
 				var this1_20 *haxe___Int64_____Int64
 				this1_20 = x_20
 				hx_if_69 = this1_20
@@ -277,34 +246,30 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 	}
 	if divSign {
 		high_16 := int(int32(^int32(quotient.high)))
-		_ = high_16
 		low_16 := int(int32((hxrt.Int32Wrap(int(int32(^int32(quotient.low)))) + hxrt.Int32Wrap(1))))
 		if low_16 == 0 {
 			hx_post_71 := high_16
 			high_16 = int(int32((high_16 + 1)))
 			ret_3 := hx_post_71
-			high_16 = high_16
 			_ = ret_3
+			high_16 = high_16
 		}
 		x_21 := New_haxe___Int64_____Int64(high_16, low_16)
-		_ = x_21
 		var this1_21 *haxe___Int64_____Int64
 		this1_21 = x_21
 		quotient = this1_21
 	}
 	if dividend.high < 0 {
 		high_17 := int(int32(^int32(modulus.high)))
-		_ = high_17
 		low_17 := int(int32((hxrt.Int32Wrap(int(int32(^int32(modulus.low)))) + hxrt.Int32Wrap(1))))
 		if low_17 == 0 {
 			hx_post_72 := high_17
 			high_17 = int(int32((high_17 + 1)))
 			ret_4 := hx_post_72
-			high_17 = high_17
 			_ = ret_4
+			high_17 = high_17
 		}
 		x_22 := New_haxe___Int64_____Int64(high_17, low_17)
-		_ = x_22
 		var this1_22 *haxe___Int64_____Int64
 		this1_22 = x_22
 		modulus = this1_22
@@ -319,7 +284,6 @@ func haxe___Int64__Int64_Impl__toString(this1 *haxe___Int64_____Int64) *string {
 	i := this1
 	if func() bool {
 		var b_low int
-		_ = b_low
 		var b_high int
 		b_high = 0
 		b_low = 0
@@ -338,7 +302,6 @@ func haxe___Int64__Int64_Impl__toString(this1 *haxe___Int64_____Int64) *string {
 	ten := this1_1
 	for func() bool {
 		var b_low_1 int
-		_ = b_low_1
 		var b_high_1 int
 		b_high_1 = 0
 		b_low_1 = 0
@@ -355,7 +318,6 @@ func haxe___Int64__Int64_Impl__toString(this1 *haxe___Int64_____Int64) *string {
 		}(r).high < 0 {
 			str = hxrt.StringConcatAny(func() int {
 				var this_low int
-				_ = this_low
 				var this_high int
 				_ = this_high
 				x_1 := func(hx_obj_77 map[string]any) *haxe___Int64_____Int64 {
@@ -367,14 +329,13 @@ func haxe___Int64__Int64_Impl__toString(this1 *haxe___Int64_____Int64) *string {
 					return hx_field_78.(*haxe___Int64_____Int64)
 				}(r)
 				high := int(int32(^int32(x_1.high)))
-				_ = high
 				low := int(int32((hxrt.Int32Wrap(int(int32(^int32(x_1.low)))) + hxrt.Int32Wrap(1))))
 				if low == 0 {
 					hx_post_80 := high
 					high = int(int32((high + 1)))
 					ret := hx_post_80
-					high = high
 					_ = ret
+					high = high
 				}
 				this_high = high
 				this_low = low
@@ -394,8 +355,8 @@ func haxe___Int64__Int64_Impl__toString(this1 *haxe___Int64_____Int64) *string {
 				hx_post_84 := high_1
 				high_1 = int(int32((high_1 + 1)))
 				ret_1 := hx_post_84
-				high_1 = high_1
 				_ = ret_1
+				high_1 = high_1
 			}
 			x_3 := New_haxe___Int64_____Int64(high_1, low_1)
 			var this1_2 *haxe___Int64_____Int64

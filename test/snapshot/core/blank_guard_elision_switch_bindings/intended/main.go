@@ -37,6 +37,13 @@ func eval(expr *Expr) int {
 }
 
 func main() {
+	writeOnly()
 	hxrt.Println(eval(Expr_Lit(3)))
 	hxrt.Println(eval(Expr_Pair(2, 5)))
+}
+
+func writeOnly() {
+	x := 0
+	_ = x
+	x = 1
 }

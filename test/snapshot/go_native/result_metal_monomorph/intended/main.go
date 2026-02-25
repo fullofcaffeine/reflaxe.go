@@ -22,7 +22,6 @@ func main() {
 		hxrt.Println(hxrt.StringFromLiteral("unexpected"))
 	}, func(hx_caught_1 any) {
 		e := hx_caught_1
-		_ = e
 		hxrt.Println(hxrt.StringFromLiteral("caught"))
 		hxrt.Println(hxrt.StdString(e))
 	})
