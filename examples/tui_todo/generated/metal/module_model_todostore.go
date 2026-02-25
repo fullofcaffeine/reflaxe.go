@@ -27,7 +27,6 @@ func New_model__TodoStore() *model__TodoStore {
 
 func (self *model__TodoStore) add(title *string, priority int) *model__TodoItem {
 	item := New_model__TodoItem(self.nextId, title, priority)
-	_ = item
 	self.nextId = int(int32((self.nextId + 1)))
 	self.entries.add(item)
 	return item
@@ -61,9 +60,7 @@ func (self *model__TodoStore) totalCount() int {
 
 func (self *model__TodoStore) openCount() int {
 	total := 0
-	_ = total
 	count := self.entries.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_29 any) *model__TodoItem {
@@ -88,9 +85,7 @@ func (self *model__TodoStore) openCount() int {
 
 func (self *model__TodoStore) doneCount() int {
 	total := 0
-	_ = total
 	count := self.entries.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_31 any) *model__TodoItem {
@@ -115,9 +110,7 @@ func (self *model__TodoStore) doneCount() int {
 
 func (self *model__TodoStore) findById(id int) *model__TodoItem {
 	var found *model__TodoItem = nil
-	_ = found
 	count := self.entries.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_33 any) *model__TodoItem {

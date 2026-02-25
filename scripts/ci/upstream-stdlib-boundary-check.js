@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const cp = require("child_process");
+const fs = require("fs");
 
 function fail(message) {
   console.error(`[ci:guards] ERROR: ${message}`);
@@ -12,7 +13,10 @@ function gitTrackedUnder(path) {
     const out = cp.execFileSync("git", ["ls-files", "-z", "--", path], {
       encoding: "utf8",
     });
-    return out.split("\0").filter(Boolean);
+    return out
+      .split("\0")
+      .filter(Boolean)
+      .filter((trackedPath) => fs.existsSync(trackedPath));
   } catch (_) {
     return [];
   }

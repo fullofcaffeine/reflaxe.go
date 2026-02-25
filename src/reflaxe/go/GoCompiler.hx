@@ -11392,8 +11392,10 @@ class GoCompiler {
 	function isFrameworkInternalPos(pos:haxe.macro.Expr.Position):Bool {
 		var file = normalizeSourcePath(Context.getPosInfos(pos).file);
 		return file.indexOf("/std/") != -1
+			|| file.indexOf("/src/go/") != -1
 			|| file.indexOf("/src/reflaxe/") != -1
 			|| StringTools.startsWith(file, "std/")
+			|| StringTools.startsWith(file, "src/go/")
 			|| StringTools.startsWith(file, "src/reflaxe/");
 	}
 

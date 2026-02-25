@@ -46,9 +46,7 @@ func Harness_card(id int, title *string, points int, tags *haxe__ds__List, state
 
 func Harness_countByState(cards *haxe__ds__List, state *string) int {
 	total := 0
-	_ = total
 	count := cards.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_4 any) *domain__StoryCard {
@@ -73,9 +71,7 @@ func Harness_countByState(cards *haxe__ds__List, state *string) int {
 
 func Harness_donePoints(cards *haxe__ds__List) int {
 	total := 0
-	_ = total
 	count := cards.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_6 any) *domain__StoryCard {
@@ -100,9 +96,7 @@ func Harness_donePoints(cards *haxe__ds__List) int {
 
 func Harness_formatCard(card *domain__StoryCard, runtime profile__StoryboardRuntime) *string {
 	tags := New_haxe__ds__List()
-	_ = tags
 	tagCount := card.tags.length
-	_ = tagCount
 	j := 0
 	for j < tagCount {
 		tagValue := func(hx_value_8 any) *string {
@@ -125,11 +119,8 @@ func Harness_formatCard(card *domain__StoryCard, runtime profile__StoryboardRunt
 
 func Harness_formatLane(cards *haxe__ds__List, state *string, title *string, runtime profile__StoryboardRuntime) *string {
 	out := hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(title, hxrt.StringFromLiteral(" (")), Harness_countByState(cards, state)), hxrt.StringFromLiteral(")\n"))
-	_ = out
 	hasEntries := false
-	_ = hasEntries
 	cardCount := cards.length
-	_ = cardCount
 	i := 0
 	for i < cardCount {
 		cardValue := func(hx_value_10 any) *domain__StoryCard {
@@ -158,9 +149,7 @@ func Harness_formatLane(cards *haxe__ds__List, state *string, title *string, run
 
 func Harness_hasTag(card *domain__StoryCard, needle *string) bool {
 	found := false
-	_ = found
 	count := card.tags.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_12 any) *string {
@@ -188,7 +177,6 @@ func Harness_intFloorDiv(numerator int, denominator int) int {
 		return 0
 	}
 	quotient := 0
-	_ = quotient
 	remaining := numerator
 	for remaining >= denominator {
 		remaining = int(int32((hxrt.Int32Wrap(remaining) - hxrt.Int32Wrap(denominator))))
@@ -199,11 +187,8 @@ func Harness_intFloorDiv(numerator int, denominator int) int {
 
 func Harness_joinStringList(values *haxe__ds__List, separator *string) *string {
 	out := hxrt.StringFromLiteral("")
-	_ = out
 	first := true
-	_ = first
 	count := values.length
-	_ = count
 	i := 0
 	for i < count {
 		raw := func(hx_value_14 any) *string {
@@ -217,7 +202,6 @@ func Harness_joinStringList(values *haxe__ds__List, separator *string) *string {
 			break
 		}
 		value := raw
-		_ = value
 		if !first {
 			out = hxrt.StringConcatStringPtr(out, separator)
 		}
@@ -240,9 +224,7 @@ func Harness_makeTags(a *string, b *string) *haxe__ds__List {
 
 func Harness_openHighRisk(cards *haxe__ds__List, threshold int) int {
 	total := 0
-	_ = total
 	count := cards.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_16 any) *domain__StoryCard {
@@ -267,9 +249,7 @@ func Harness_openHighRisk(cards *haxe__ds__List, threshold int) int {
 
 func Harness_openOwnerFocus(cards *haxe__ds__List) *string {
 	owners := New_haxe__ds__List()
-	_ = owners
 	cardCount := cards.length
-	_ = cardCount
 	i := 0
 	for i < cardCount {
 		cardValue := func(hx_value_18 any) *domain__StoryCard {
@@ -297,9 +277,7 @@ func Harness_openOwnerFocus(cards *haxe__ds__List) *string {
 
 func Harness_openPoints(cards *haxe__ds__List) int {
 	total := 0
-	_ = total
 	count := cards.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_20 any) *domain__StoryCard {
@@ -348,9 +326,7 @@ func Harness_readinessPercent(donePoints int, totalPoints int) int {
 
 func Harness_releaseTaggedOpen(cards *haxe__ds__List) int {
 	total := 0
-	_ = total
 	count := cards.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_22 any) *domain__StoryCard {
@@ -376,27 +352,17 @@ func Harness_releaseTaggedOpen(cards *haxe__ds__List) int {
 func Harness_render(runtime profile__StoryboardRuntime) *string {
 	cards := Harness_buildCards()
 	total := Harness_totalPoints(cards)
-	_ = total
 	done := Harness_donePoints(cards)
-	_ = done
 	open := Harness_openPoints(cards)
-	_ = open
 	readiness := Harness_readinessPercent(done, total)
-	_ = readiness
 	doneCards := Harness_countByState(cards, hxrt.StringFromLiteral("done"))
-	_ = doneCards
 	doingCards := Harness_countByState(cards, hxrt.StringFromLiteral("doing"))
-	_ = doingCards
 	todoCards := Harness_countByState(cards, hxrt.StringFromLiteral("todo"))
-	_ = todoCards
 	velocity := runtime.velocityPerSprint()
 	forecast := Harness_sprintForecast(open, velocity)
-	_ = forecast
 	riskThreshold := runtime.riskThreshold()
 	highRisk := Harness_openHighRisk(cards, riskThreshold)
-	_ = highRisk
 	releaseOpen := Harness_releaseTaggedOpen(cards)
-	_ = releaseOpen
 	var hx_if_24 *string
 	if runtime.supportsVelocityHint() {
 		hx_if_24 = hxrt.StringFromLiteral("adaptive")
@@ -404,9 +370,7 @@ func Harness_render(runtime profile__StoryboardRuntime) *string {
 		hx_if_24 = hxrt.StringFromLiteral("baseline")
 	}
 	velocityHint := hx_if_24
-	_ = velocityHint
 	bar := Harness_progressBar(done, total, 24)
-	_ = bar
 	action := hxrt.StringFromLiteral("ready to cut release")
 	if highRisk > 0 {
 		action = hxrt.StringFromLiteral("ship high-risk open cards first")
@@ -423,7 +387,6 @@ func Harness_repeatChar(ch *string, count int) *string {
 		return hxrt.StringFromLiteral("")
 	}
 	out := hxrt.StringFromLiteral("")
-	_ = out
 	i := 0
 	for i < count {
 		out = hxrt.StringConcatStringPtr(out, ch)
@@ -441,9 +404,7 @@ func Harness_sprintForecast(openPoints int, velocityPerSprint int) int {
 
 func Harness_totalPoints(cards *haxe__ds__List) int {
 	totalPoints := 0
-	_ = totalPoints
 	count := cards.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_25 any) *domain__StoryCard {

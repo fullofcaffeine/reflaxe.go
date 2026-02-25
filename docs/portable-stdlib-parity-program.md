@@ -22,6 +22,10 @@ That means every portable-eligible upstream Haxe stdlib module for the pinned ba
 
 No portable-eligible module should remain implicit/unknown.
 
+Contract artifact:
+
+- `test/portable_allowlist.json` (tiered canonical portable module set, validated in CI)
+
 Excluded from this parity objective:
 
 - target-specific stdlib namespaces such as `cpp.*`, `java.*`, `cs.*`, `hl.*`, `lua.*`, `php.*`, `python.*`, `js.*`, and similar target-bound modules.
@@ -40,6 +44,7 @@ Excluded from this parity objective:
 3. Compiler-owned shims remain only where compiler context is required (for example metadata-dependent lowering).
 4. Library-expressible behavior should migrate to staged stdlib sources (`.cross.hx` and approved override paths).
 5. Upstream sync must be provenance-tracked and boundary-checked in CI.
+6. `go.*` core authority is singular: `src/go/*` owns `go.Go`/`go.Chan` with target-conditional behavior; `std/go/*` stays focused on package extern facades (`Fmt`, `Time`, `ContextPkg`, `Http`, ...).
 
 ## Provenance And Boundary Workflow
 
@@ -52,6 +57,7 @@ Governance artifacts:
 Required commands:
 
 ```bash
+npm run test:portable-allowlist
 npm run test:stdlib:governance
 ```
 

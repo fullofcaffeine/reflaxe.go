@@ -17,11 +17,9 @@ func InteractiveCli_liveLine(report *app__core__PulseReport) *string {
 
 func InteractiveCli_nextSequence(frames []*app__core__PulseIngressFrame) int {
 	next := 1
-	_ = next
 	_g := 0
 	for _g < len(frames) {
 		frame := frames[_g]
-		_ = frame
 		_g = int(int32((_g + 1)))
 		if frame.sequence >= next {
 			next = int(int32((hxrt.Int32Wrap(frame.sequence) + hxrt.Int32Wrap(1))))
@@ -35,9 +33,7 @@ func InteractiveCli_parsePositiveInt(raw *string) int {
 		return -1
 	}
 	bytes := haxe__io__Bytes_ofString(raw)
-	_ = bytes
 	value := 0
-	_ = value
 	i := 0
 	for i < bytes.length {
 		code := bytes.b[i]
@@ -77,7 +73,6 @@ func InteractiveCli_printUsage(runtime app__runtime__PulseRuntime) {
 
 func InteractiveCli_run(runtime app__runtime__PulseRuntime) {
 	frames := Harness_baselineFrames()
-	_ = frames
 	args := Sys_args()
 	if len(args) == 0 {
 		InteractiveCli_printUsage(runtime)
@@ -99,7 +94,6 @@ func InteractiveCli_run(runtime app__runtime__PulseRuntime) {
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("reset")) {
 			frames = Harness_baselineFrames()
 			resetReport := InteractiveCli_runReport(runtime, frames)
-			_ = resetReport
 			hxrt.Println(hxrt.StringFromLiteral("ok reset"))
 			hxrt.Println(InteractiveCli_liveLine(resetReport))
 			i = int(int32((i + 1)))
@@ -122,18 +116,15 @@ func InteractiveCli_run(runtime app__runtime__PulseRuntime) {
 				return
 			}
 			source := InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))])
-			_ = source
 			value := InteractiveCli_parsePositiveInt(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))])
 			if value < 0 {
 				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid value: "), args[int(int32((hxrt.Int32Wrap(i)+hxrt.Int32Wrap(2))))]))
 				return
 			}
 			region := InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))])
-			_ = region
 			sequence := InteractiveCli_nextSequence(frames)
 			frames = append(frames, New_app__core__PulseIngressFrame(sequence, source, value, region))
 			ingestReport := InteractiveCli_runReport(runtime, frames)
-			_ = ingestReport
 			hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok ingest seq="), sequence))
 			hxrt.Println(InteractiveCli_liveLine(ingestReport))
 			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(4))))

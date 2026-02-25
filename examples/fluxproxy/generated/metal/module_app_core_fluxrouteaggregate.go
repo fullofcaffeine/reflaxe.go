@@ -43,7 +43,6 @@ func (self *app__core__FluxRouteAggregate) averageLatencyMs() int {
 		return 0
 	}
 	remaining := self.totalLatencyMs
-	_ = remaining
 	quotient := 0
 	for remaining >= self.count {
 		remaining = int(int32((hxrt.Int32Wrap(remaining) - hxrt.Int32Wrap(self.count))))

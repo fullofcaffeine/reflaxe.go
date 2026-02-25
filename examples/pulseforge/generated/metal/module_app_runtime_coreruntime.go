@@ -35,11 +35,9 @@ func (self *app__runtime__CoreRuntime) capabilityId() *string {
 
 func (self *app__runtime__CoreRuntime) parse(frames []*app__core__PulseIngressFrame, workerCount int) []*app__core__PulseEvent {
 	parsed := []*app__core__PulseEvent{}
-	_ = parsed
 	_g := 0
 	for _g < len(frames) {
 		frame := frames[_g]
-		_ = frame
 		_g = int(int32((_g + 1)))
 		parsed = append(parsed, app__core__PulseCodec_parse(frame))
 	}
@@ -48,11 +46,9 @@ func (self *app__runtime__CoreRuntime) parse(frames []*app__core__PulseIngressFr
 
 func (self *app__runtime__CoreRuntime) enrich(events []*app__core__PulseEvent, workerCount int) []*app__core__PulseEnrichedEvent {
 	enriched := []*app__core__PulseEnrichedEvent{}
-	_ = enriched
 	_g := 0
 	for _g < len(events) {
 		event := events[_g]
-		_ = event
 		_g = int(int32((_g + 1)))
 		enriched = append(enriched, app__core__PulseCodec_enrich(event))
 	}
@@ -61,11 +57,9 @@ func (self *app__runtime__CoreRuntime) enrich(events []*app__core__PulseEvent, w
 
 func (self *app__runtime__CoreRuntime) stageScore(parsed []*app__core__PulseEvent, enriched []*app__core__PulseEnrichedEvent, alerts []*app__core__PulseAlert, backpressureEvents int) int {
 	score := 0
-	_ = score
 	_g := 0
 	for _g < len(enriched) {
 		entry := enriched[_g]
-		_ = entry
 		_g = int(int32((_g + 1)))
 		score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(entry.weightedValue))))
 	}

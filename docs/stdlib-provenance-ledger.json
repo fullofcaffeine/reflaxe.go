@@ -8,11 +8,6 @@
   },
   "entries": [
     {
-      "path": "std/go/Chan.hx",
-      "provenanceKind": "repo_authored_override",
-      "notes": "Go native facade for channel interop and compiler-lowered typed specialization lanes."
-    },
-    {
       "path": "std/go/Context.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go native facade type definitions for context.Context wrappers."
@@ -26,11 +21,6 @@
       "path": "std/go/Fmt.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go native facade for fmt package interoperability surfaces."
-    },
-    {
-      "path": "std/go/Go.hx",
-      "provenanceKind": "repo_authored_override",
-      "notes": "Core go.* facade utilities and helper entrypoints."
     },
     {
       "path": "std/go/Http.hx",

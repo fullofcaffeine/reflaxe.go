@@ -14,6 +14,7 @@ Portable-eligible upstream module status is tracked in machine-readable form at:
 
 - `test/portable_stdlib_inventory.json` (validated by `python3 test/run-portable-stdlib-inventory.py`)
 - summary artifact: `test/.test-cache/portable_stdlib_inventory_summary.json`
+- `test/portable_allowlist.json` (validated by `python3 test/run-portable-allowlist.py`)
 
 ## Coverage tiers
 

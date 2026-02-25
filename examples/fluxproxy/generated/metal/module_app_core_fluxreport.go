@@ -106,9 +106,7 @@ func (self *app__core__FluxReport) score() int {
 
 func (self *app__core__FluxReport) render() *string {
 	out := hxrt.StringFromLiteral("")
-	_ = out
 	values := self.lines()
-	_ = values
 	i := 0
 	for i < len(values) {
 		if i > 0 {

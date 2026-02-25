@@ -18,9 +18,7 @@ func app__core__PulseCodec_normalizeToken(value *string, fallback *string) *stri
 
 func app__core__PulseCodec_parse(frame *app__core__PulseIngressFrame) *app__core__PulseEvent {
 	source := app__core__PulseCodec_normalizeToken(frame.source, hxrt.StringFromLiteral("unknown"))
-	_ = source
 	region := app__core__PulseCodec_normalizeToken(frame.region, hxrt.StringFromLiteral("global"))
-	_ = region
 	value := frame.value
 	if value < 0 {
 		value = 0

@@ -98,9 +98,7 @@ func (self *app__core__PulseReport) score() int {
 
 func (self *app__core__PulseReport) render() *string {
 	out := hxrt.StringFromLiteral("")
-	_ = out
 	values := self.lines()
-	_ = values
 	i := 0
 	for i < len(values) {
 		if i > 0 {

@@ -40,9 +40,7 @@ func (self *app__TodoApp) addMany(titles *haxe__ds__List, priority int) int {
 		return 0
 	}
 	added := 0
-	_ = added
 	count := titles.length
-	_ = count
 	i := 0
 	for i < count {
 		raw := func(hx_value_23 any) *string {
@@ -97,10 +95,8 @@ func (self *app__TodoApp) diagnostics() *string {
 
 func (self *app__TodoApp) render() *string {
 	out := hxrt.StringFromLiteral("== TODO ==")
-	_ = out
 	items := self.store.list()
 	count := items.length
-	_ = count
 	i := 0
 	for i < count {
 		raw := func(hx_value_25 any) *model__TodoItem {
@@ -114,7 +110,6 @@ func (self *app__TodoApp) render() *string {
 			break
 		}
 		item := raw
-		_ = item
 		state := hxrt.StringFromLiteral("[ ]")
 		if item.done {
 			state = hxrt.StringFromLiteral("[x]")
@@ -137,11 +132,8 @@ func (self *app__TodoApp) items() *haxe__ds__List {
 
 func app__TodoApp_joinStringList(values *haxe__ds__List, separator *string) *string {
 	out := hxrt.StringFromLiteral("")
-	_ = out
 	first := true
-	_ = first
 	count := values.length
-	_ = count
 	i := 0
 	for i < count {
 		raw := func(hx_value_27 any) *string {
@@ -155,7 +147,6 @@ func app__TodoApp_joinStringList(values *haxe__ds__List, separator *string) *str
 			break
 		}
 		value := raw
-		_ = value
 		if !first {
 			out = hxrt.StringConcatStringPtr(out, separator)
 		}

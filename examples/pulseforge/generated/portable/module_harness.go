@@ -65,11 +65,9 @@ func Harness_baselineFrames() []*app__core__PulseIngressFrame {
 
 func Harness_cloneFrames(frames []*app__core__PulseIngressFrame) []*app__core__PulseIngressFrame {
 	out := []*app__core__PulseIngressFrame{}
-	_ = out
 	_g := 0
 	for _g < len(frames) {
 		frame := frames[_g]
-		_ = frame
 		_g = int(int32((_g + 1)))
 		out = append(out, New_app__core__PulseIngressFrame(frame.sequence, frame.source, frame.value, frame.region))
 	}

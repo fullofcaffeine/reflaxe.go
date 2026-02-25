@@ -17,11 +17,9 @@ func InteractiveCli_liveLine(report *app__core__FluxReport) *string {
 
 func InteractiveCli_nextId(requests []*app__core__FluxRequest) int {
 	next := 1
-	_ = next
 	_g := 0
 	for _g < len(requests) {
 		request := requests[_g]
-		_ = request
 		_g = int(int32((_g + 1)))
 		if request.id >= next {
 			next = int(int32((hxrt.Int32Wrap(request.id) + hxrt.Int32Wrap(1))))
@@ -35,9 +33,7 @@ func InteractiveCli_parsePositiveInt(raw *string) int {
 		return -1
 	}
 	bytes := haxe__io__Bytes_ofString(raw)
-	_ = bytes
 	value := 0
-	_ = value
 	i := 0
 	for i < bytes.length {
 		code := bytes.b[i]
@@ -77,7 +73,6 @@ func InteractiveCli_printUsage(runtime app__runtime__FluxRuntime) {
 
 func InteractiveCli_run(runtime app__runtime__FluxRuntime) {
 	requests := Harness_baselineRequests()
-	_ = requests
 	args := Sys_args()
 	if len(args) == 0 {
 		InteractiveCli_printUsage(runtime)
@@ -99,7 +94,6 @@ func InteractiveCli_run(runtime app__runtime__FluxRuntime) {
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("reset")) {
 			requests = Harness_baselineRequests()
 			resetReport := InteractiveCli_runReport(runtime, requests)
-			_ = resetReport
 			hxrt.Println(hxrt.StringFromLiteral("ok reset"))
 			hxrt.Println(InteractiveCli_liveLine(resetReport))
 			i = int(int32((i + 1)))
@@ -122,7 +116,6 @@ func InteractiveCli_run(runtime app__runtime__FluxRuntime) {
 				return
 			}
 			route := InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))])
-			_ = route
 			latency := InteractiveCli_parsePositiveInt(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))])
 			if latency < 0 {
 				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid latency_ms: "), args[int(int32((hxrt.Int32Wrap(i)+hxrt.Int32Wrap(2))))]))
@@ -136,7 +129,6 @@ func InteractiveCli_run(runtime app__runtime__FluxRuntime) {
 			requestId := InteractiveCli_nextId(requests)
 			requests = append(requests, New_app__core__FluxRequest(requestId, route, latency, status))
 			ingestReport := InteractiveCli_runReport(runtime, requests)
-			_ = ingestReport
 			hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok ingest id="), requestId))
 			hxrt.Println(InteractiveCli_liveLine(ingestReport))
 			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(4))))

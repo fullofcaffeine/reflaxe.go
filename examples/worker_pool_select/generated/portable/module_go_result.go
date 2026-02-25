@@ -34,8 +34,8 @@ func (self *go___Result) isErr() bool {
 func (self *go___Result) unwrap() any {
 	if self.errorValue != nil {
 		hxrt.Throw(self.errorValue.toString())
-		var hx_throw_zero_17 any
-		return hx_throw_zero_17
+		var hx_throw_zero_19 any
+		return hx_throw_zero_19
 	}
 	return self.value
 }

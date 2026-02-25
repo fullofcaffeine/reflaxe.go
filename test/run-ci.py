@@ -26,6 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--force-stdlib-sweep", action="store_true", help="Run stdlib sweep even for chunked/filtered runs")
     parser.add_argument("--stdlib-compile-only", action="store_true", help="Run stdlib sweep without go test stage")
     parser.add_argument("--skip-stdlib-inventory", action="store_true", help="Skip portable stdlib inventory validation stage")
+    parser.add_argument("--skip-portable-allowlist", action="store_true", help="Skip portable allowlist validation stage")
     parser.add_argument("--skip-stdlib-governance", action="store_true", help="Skip stdlib provenance/boundary governance stage")
     parser.add_argument("--skip-semantic-diff", action="store_true", help="Skip semantic differential stage")
     parser.add_argument("--force-semantic-diff", action="store_true", help="Run semantic differential stage even for chunked/filtered runs")
@@ -86,6 +87,14 @@ def should_run_stdlib_inventory(args: argparse.Namespace) -> bool:
 
 def build_stdlib_inventory_command() -> list[str]:
     return ["python3", "test/run-portable-stdlib-inventory.py"]
+
+
+def should_run_portable_allowlist(args: argparse.Namespace) -> bool:
+    return not args.skip_portable_allowlist
+
+
+def build_portable_allowlist_command() -> list[str]:
+    return ["python3", "test/run-portable-allowlist.py"]
 
 
 def should_run_stdlib_governance(args: argparse.Namespace) -> bool:
@@ -169,6 +178,14 @@ def main() -> int:
             return stdlib_inventory_code
     else:
         print("==> Skipping portable stdlib inventory stage")
+
+    if should_run_portable_allowlist(args):
+        print("==> Portable allowlist stage")
+        portable_allowlist_code = run(build_portable_allowlist_command())
+        if portable_allowlist_code != 0:
+            return portable_allowlist_code
+    else:
+        print("==> Skipping portable allowlist stage")
 
     if should_run_stdlib_governance(args):
         print("==> Stdlib governance stage")

@@ -20,7 +20,6 @@ func InteractiveCli_decodeTags(raw *string) *haxe__ds__List {
 	}
 	values := InteractiveCli_splitEscaped(raw, 44)
 	count := values.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_7 any) *string {
@@ -49,9 +48,7 @@ func InteractiveCli_decodeToken(raw *string) *string {
 
 func InteractiveCli_encodeField(raw *string) *string {
 	out := New_haxe__io__BytesBuffer()
-	_ = out
 	bytes := haxe__io__Bytes_ofString(raw)
-	_ = bytes
 	i := 0
 	for i < bytes.length {
 		code := bytes.b[i]
@@ -83,11 +80,8 @@ func InteractiveCli_encodeField(raw *string) *string {
 
 func InteractiveCli_encodeTags(tags *haxe__ds__List) *string {
 	out := hxrt.StringFromLiteral("")
-	_ = out
 	first := true
-	_ = first
 	count := tags.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_9 any) *string {
@@ -101,7 +95,6 @@ func InteractiveCli_encodeTags(tags *haxe__ds__List) *string {
 			break
 		}
 		tag := value
-		_ = tag
 		if !first {
 			out = hxrt.StringConcatStringPtr(out, hxrt.StringFromLiteral(","))
 		}
@@ -120,9 +113,7 @@ func InteractiveCli_failUsage(message *string) {
 
 func InteractiveCli_listIndex(values *haxe__ds__List, index int) *string {
 	count := values.length
-	_ = count
 	i := 0
-	_ = i
 	out := hxrt.StringFromLiteral("")
 	for i < count {
 		value := func(hx_value_11 any) *string {
@@ -155,7 +146,6 @@ func InteractiveCli_loadState(app *app__TodoApp) {
 		}
 		lines := InteractiveCli_splitRaw(raw, 10)
 		count := lines.length
-		_ = count
 		i := 0
 		for i < count {
 			lineValue := func(hx_value_16 any) *string {
@@ -176,20 +166,17 @@ func InteractiveCli_loadState(app *app__TodoApp) {
 			}
 			fields := InteractiveCli_splitEscaped(line, 9)
 			title := InteractiveCli_listIndex(fields, 0)
-			_ = title
 			priority := InteractiveCli_parsePositiveInt(InteractiveCli_listIndex(fields, 1))
 			if priority < 0 {
 				priority = 0
 			}
 			done := hxrt.StringEqualStringPtr(InteractiveCli_listIndex(fields, 2), hxrt.StringFromLiteral("1"))
-			_ = done
 			id := app.add(title, priority)
 			if done {
 				app.toggle(id)
 			}
 			tags := InteractiveCli_decodeTags(InteractiveCli_listIndex(fields, 3))
 			tagCount := tags.length
-			_ = tagCount
 			j := 0
 			for j < tagCount {
 				tagValue := func(hx_value_18 any) *string {
@@ -226,9 +213,7 @@ func InteractiveCli_parsePositiveInt(raw *string) int {
 		return -1
 	}
 	bytes := haxe__io__Bytes_ofString(raw)
-	_ = bytes
 	value := 0
-	_ = value
 	i := 0
 	for i < bytes.length {
 		code := bytes.b[i]
@@ -400,11 +385,8 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 
 func InteractiveCli_saveState(app *app__TodoApp) {
 	items := app.items()
-	_ = items
 	out := hxrt.StringFromLiteral("")
-	_ = out
 	count := items.length
-	_ = count
 	i := 0
 	for i < count {
 		raw := func(hx_value_20 any) *model__TodoItem {
@@ -435,13 +417,9 @@ func InteractiveCli_saveState(app *app__TodoApp) {
 
 func InteractiveCli_splitEscaped(raw *string, separatorCode int) *haxe__ds__List {
 	out := New_haxe__ds__List()
-	_ = out
 	current := New_haxe__io__BytesBuffer()
-	_ = current
 	bytes := haxe__io__Bytes_ofString(raw)
-	_ = bytes
 	escaped := false
-	_ = escaped
 	i := 0
 	for i < bytes.length {
 		code := bytes.b[i]
@@ -487,11 +465,8 @@ func InteractiveCli_splitEscaped(raw *string, separatorCode int) *haxe__ds__List
 
 func InteractiveCli_splitRaw(raw *string, separatorCode int) *haxe__ds__List {
 	out := New_haxe__ds__List()
-	_ = out
 	current := New_haxe__io__BytesBuffer()
-	_ = current
 	bytes := haxe__io__Bytes_ofString(raw)
-	_ = bytes
 	i := 0
 	for i < bytes.length {
 		code := bytes.b[i]

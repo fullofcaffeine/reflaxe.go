@@ -34,11 +34,9 @@ func (self *app__runtime__CoreRuntime) capabilityId() *string {
 
 func (self *app__runtime__CoreRuntime) dispatch(requests []*app__core__FluxRequest, workerCount int) []*app__core__FluxProxyResponse {
 	responses := []*app__core__FluxProxyResponse{}
-	_ = responses
 	_g := 0
 	for _g < len(requests) {
 		request := requests[_g]
-		_ = request
 		_g = int(int32((_g + 1)))
 		responses = append(responses, app__core__FluxCodec_proxy(request, 50))
 	}
@@ -47,13 +45,10 @@ func (self *app__runtime__CoreRuntime) dispatch(requests []*app__core__FluxReque
 
 func (self *app__runtime__CoreRuntime) stageScore(responses []*app__core__FluxProxyResponse, retryCount int, backpressureEvents int) int {
 	successCount := 0
-	_ = successCount
 	errorCount := 0
-	_ = errorCount
 	_g := 0
 	for _g < len(responses) {
 		response := responses[_g]
-		_ = response
 		_g = int(int32((_g + 1)))
 		if response.success {
 			successCount = int(int32((successCount + 1)))

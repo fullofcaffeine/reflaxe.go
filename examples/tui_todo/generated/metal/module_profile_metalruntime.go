@@ -43,11 +43,8 @@ func (self *profile__MetalRuntime) supportsDiagnostics() bool {
 
 func (self *profile__MetalRuntime) diagnostics(items *haxe__ds__List) *string {
 	p1 := 0
-	_ = p1
 	completed := 0
-	_ = completed
 	count := items.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_35 any) *model__TodoItem {

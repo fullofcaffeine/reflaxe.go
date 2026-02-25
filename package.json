@@ -28,6 +28,7 @@
     "test:stdlib-sweep:full": "python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict",
     "test:stdlib-sweep:full:go-test": "python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test",
     "test:stdlib-inventory": "python3 test/run-portable-stdlib-inventory.py",
+    "test:portable-allowlist": "python3 test/run-portable-allowlist.py",
     "test:stdlib:boundary": "node scripts/ci/upstream-stdlib-boundary-check.js",
     "test:stdlib:provenance": "node scripts/ci/stdlib-provenance-ledger-check.js",
     "test:stdlib:governance": "npm run test:stdlib:boundary && npm run test:stdlib:provenance",

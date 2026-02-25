@@ -36,11 +36,8 @@ func (self *profile__MetalRuntime) highlightTag(tag *string) *string {
 
 func (self *profile__MetalRuntime) extraSignal(cards *haxe__ds__List) *string {
 	highValue := 0
-	_ = highValue
 	openHighValue := 0
-	_ = openHighValue
 	count := cards.length
-	_ = count
 	i := 0
 	for i < count {
 		value := func(hx_value_27 any) *domain__StoryCard {

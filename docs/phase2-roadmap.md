@@ -53,7 +53,7 @@ Depends on: M1
 
 Depends on: M1, M1.5
 
-- Implement Go-target overrides for `std/go/Go.hx` and `std/go/Chan.hx` with real goroutines/channels.
+- Implement unified `go.Go` / `go.Chan` authority in `src/go/*` with target-conditional lowering hooks (Go-native on `go` builds, deterministic simulation for non-Go harness paths).
 - Allow `std/go/*` override classes through compiler project-class filtering.
 - Add deterministic go-native concurrency contracts (no sleep-based race tests).
 - Latest follow-up: typed `go.Chan<T>` `recv`/`recvOr` call results now route through generic assertion bridging in `portable`, so typed channel reads compile without forcing `Dynamic` callsites.

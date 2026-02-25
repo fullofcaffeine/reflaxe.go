@@ -17,13 +17,11 @@ func app__core__FluxCodec_normalizedRoute(route *string) *string {
 
 func app__core__FluxCodec_proxy(request *app__core__FluxRequest, timeoutMs int) *app__core__FluxProxyResponse {
 	route := app__core__FluxCodec_normalizedRoute(request.route)
-	_ = route
 	latency := request.latencyMs
 	if latency < 0 {
 		latency = 0
 	}
 	status := request.status
-	_ = status
 	var hx_if_13 int
 	if status >= 500 {
 		hx_if_13 = 2
@@ -41,7 +39,6 @@ func app__core__FluxCodec_proxy(request *app__core__FluxRequest, timeoutMs int) 
 
 func app__core__FluxCodec_rateLimited(request *app__core__FluxRequest) *app__core__FluxProxyResponse {
 	route := app__core__FluxCodec_normalizedRoute(request.route)
-	_ = route
 	latency := request.latencyMs
 	if latency < 0 {
 		latency = 0

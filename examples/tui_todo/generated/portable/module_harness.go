@@ -46,9 +46,7 @@ func Harness_batchTitles() *haxe__ds__List {
 func Harness_run(runtime profile__TodoRuntime) *string {
 	app := New_app__TodoApp(runtime)
 	baselineView := Harness_runBaseline(app)
-	_ = baselineView
 	baseline := app.baselineSignature()
-	_ = baseline
 	extras := hxrt.StringFromLiteral("batch_add=0")
 	if runtime.supportsBatchAdd() {
 		added := app.addMany(Harness_batchTitles(), 3)

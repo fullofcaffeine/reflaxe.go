@@ -42,6 +42,12 @@ Skip stdlib governance stage:
 python3 test/run-ci.py --skip-stdlib-governance
 ```
 
+Skip portable allowlist stage:
+
+```bash
+python3 test/run-ci.py --skip-portable-allowlist
+```
+
 Force semantic diff on a shard:
 
 ```bash
@@ -205,6 +211,28 @@ Primary artifacts:
 test/portable_stdlib_inventory.json
 test/.test-cache/portable_stdlib_inventory_summary.json
 test/.test-cache/portable_stdlib_inventory_summary.md
+```
+
+## Portable allowlist (tiered contract set)
+
+Validate the tiered portable contract allowlist:
+
+```bash
+python3 test/run-portable-allowlist.py
+```
+
+Equivalent npm command:
+
+```bash
+npm run test:portable-allowlist
+```
+
+Primary artifacts:
+
+```text
+test/portable_allowlist.json
+test/.test-cache/portable_allowlist_summary.json
+test/.test-cache/portable_allowlist_summary.md
 ```
 
 ## Stdlib governance guards (provenance + boundary)

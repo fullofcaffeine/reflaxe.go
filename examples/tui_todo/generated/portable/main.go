@@ -20,11 +20,9 @@ import (
 
 func hasArg(flag *string) bool {
 	_g := 0
-	_ = _g
 	_g1 := Sys_args()
 	for _g < len(_g1) {
 		arg := _g1[_g]
-		_ = arg
 		_g = int(int32((_g + 1)))
 		if hxrt.StringEqualStringPtr(arg, flag) {
 			return true

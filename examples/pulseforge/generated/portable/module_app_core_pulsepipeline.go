@@ -27,10 +27,8 @@ func (self *app__core__PulsePipeline) run(frames []*app__core__PulseIngressFrame
 	parsed := self.runtime.parse(ingest.acceptedFrames, 1)
 	enriched := self.runtime.enrich(parsed, 1)
 	aggregates := self.aggregate(enriched)
-	_ = aggregates
 	alerts := self.collectAlerts(enriched, 20)
 	runtimeScore := self.runtime.stageScore(parsed, enriched, alerts, ingest.backpressureEvents)
-	_ = runtimeScore
 	alertDigest := self.alertToken(alerts)
 	return New_app__core__PulseReport(self.runtime.profileId(), self.runtime.variantId(), self.runtime.capabilityId(), ingest.receivedCount, len(ingest.acceptedFrames), ingest.backpressureEvents, len(parsed), len(enriched), len(func(hx_obj_13 map[string]any) []*app__core__PulseSourceAggregate {
 		hx_field_14 := hx_obj_13["sources"]
@@ -71,19 +69,13 @@ func (self *app__core__PulsePipeline) ingest(frames []*app__core__PulseIngressFr
 		hx_if_25 = capacity
 	}
 	boundedCapacity := hx_if_25
-	_ = boundedCapacity
 	queue := []*app__core__PulseIngressFrame{}
-	_ = queue
 	queueHead := 0
-	_ = queueHead
 	accepted := []*app__core__PulseIngressFrame{}
-	_ = accepted
 	backpressureEvents := 0
-	_ = backpressureEvents
 	_g := 0
 	for _g < len(frames) {
 		frame := frames[_g]
-		_ = frame
 		_g = int(int32((_g + 1)))
 		if int(int32((hxrt.Int32Wrap(len(queue)) - hxrt.Int32Wrap(queueHead)))) >= boundedCapacity {
 			backpressureEvents = int(int32((backpressureEvents + 1)))
@@ -101,17 +93,12 @@ func (self *app__core__PulsePipeline) ingest(frames []*app__core__PulseIngressFr
 
 func (self *app__core__PulsePipeline) aggregate(enriched []*app__core__PulseEnrichedEvent) map[string]any {
 	bySource := New_haxe__ds__StringMap()
-	_ = bySource
 	sourceKeys := []*string{}
-	_ = sourceKeys
 	totalValue := 0
-	_ = totalValue
 	totalWeighted := 0
-	_ = totalWeighted
 	_g := 0
 	for _g < len(enriched) {
 		entry := enriched[_g]
-		_ = entry
 		_g = int(int32((_g + 1)))
 		totalValue = int(int32((hxrt.Int32Wrap(totalValue) + hxrt.Int32Wrap(entry.event.value))))
 		totalWeighted = int(int32((hxrt.Int32Wrap(totalWeighted) + hxrt.Int32Wrap(entry.weightedValue))))
@@ -131,9 +118,7 @@ func (self *app__core__PulsePipeline) aggregate(enriched []*app__core__PulseEnri
 		bucket.record(entry)
 	}
 	sourceSummaries := []*app__core__PulseSourceAggregate{}
-	_ = sourceSummaries
 	digest := hxrt.StringFromLiteral("")
-	_ = digest
 	index := 0
 	for index < len(sourceKeys) {
 		source_1 := sourceKeys[index]
@@ -163,11 +148,9 @@ func (self *app__core__PulsePipeline) aggregate(enriched []*app__core__PulseEnri
 
 func (self *app__core__PulsePipeline) collectAlerts(enriched []*app__core__PulseEnrichedEvent, weightedThreshold int) []*app__core__PulseAlert {
 	alerts := []*app__core__PulseAlert{}
-	_ = alerts
 	_g := 0
 	for _g < len(enriched) {
 		entry := enriched[_g]
-		_ = entry
 		_g = int(int32((_g + 1)))
 		if entry.weightedValue >= weightedThreshold {
 			alerts = append(alerts, app__core__PulseAlert_fromEnriched(entry))
@@ -181,7 +164,6 @@ func (self *app__core__PulsePipeline) alertToken(alerts []*app__core__PulseAlert
 		return hxrt.StringFromLiteral("none")
 	}
 	digest := hxrt.StringFromLiteral("")
-	_ = digest
 	index := 0
 	for index < len(alerts) {
 		if index > 0 {

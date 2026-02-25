@@ -1,7 +1,5 @@
 package main
 
-import "examples_worker_pool_select_portable/hxrt"
-
 func go___Go___chanClose(channel any) {
 }
 
@@ -21,7 +19,7 @@ func go___Go___chanSend(channel any, value any) {
 }
 
 func go___Go___chanTryRecv(channel any) *go___Result {
-	return go___Result_failure(hxrt.StringFromLiteral("empty"))
+	return nil
 }
 
 func go___Go___chanTrySend(channel any, value any) bool {
@@ -32,7 +30,7 @@ func go___Go___goSpawn(fn func()) {
 }
 
 func go___Go_fail(message *string) *go___Result {
-	return go___Result_failure(message)
+	return New_go___Result(nil, New_go___Error(message))
 }
 
 func go___Go_newChan(buffer int) *go___Chan {
@@ -52,7 +50,7 @@ func go___Go_newSlice() *go___Slice {
 }
 
 func go___Go_ok(value any) *go___Result {
-	return go___Result_ok(value)
+	return New_go___Result(value, nil)
 }
 
 func go___Go_spawn(fn func()) {

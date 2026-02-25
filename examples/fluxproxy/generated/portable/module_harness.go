@@ -90,11 +90,9 @@ func Harness_baselineRequests() []*app__core__FluxRequest {
 
 func Harness_cloneRequests(requests []*app__core__FluxRequest) []*app__core__FluxRequest {
 	out := []*app__core__FluxRequest{}
-	_ = out
 	_g := 0
 	for _g < len(requests) {
 		request := requests[_g]
-		_ = request
 		_g = int(int32((_g + 1)))
 		out = append(out, New_app__core__FluxRequest(request.id, request.route, request.latencyMs, request.status))
 	}
