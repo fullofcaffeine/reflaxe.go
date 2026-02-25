@@ -62,6 +62,19 @@ Rule of thumb:
 - If your code remains on portable APIs, null semantics should remain portable even under `metal`.
 - Differences appear when you intentionally opt into target-native behavior outside the portable contract.
 
+### How you opt in (or out)
+
+Opt into native-first behavior:
+
+1. Compile with `-D reflaxe_go_profile=metal`.
+2. Use target-native surfaces (for example `go.*` APIs or explicit native interop wrappers).
+
+Stay in portable semantics:
+
+1. Keep code on portable Haxe stdlib/application APIs.
+2. Avoid target-native-only surfaces in shared/core modules.
+3. You can still compile with `metal` for boundary/perf validation without changing semantics if those modules remain portable-surface-only.
+
 ## Choosing a profile
 
 ### Choose `portable` when
