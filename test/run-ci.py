@@ -30,6 +30,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-stdlib-governance", action="store_true", help="Skip stdlib provenance/boundary governance stage")
     parser.add_argument("--skip-semantic-diff", action="store_true", help="Skip semantic differential stage")
     parser.add_argument("--force-semantic-diff", action="store_true", help="Run semantic differential stage even for chunked/filtered runs")
+    parser.add_argument("--skip-semantic-diff-lanes", action="store_true", help="Skip lane semantic differential stage")
+    parser.add_argument(
+        "--force-semantic-diff-lanes",
+        action="store_true",
+        help="Run lane semantic differential stage even for chunked/filtered runs",
+    )
     parser.add_argument("--skip-examples", action="store_true", help="Skip examples stage")
     parser.add_argument("--force-examples", action="store_true", help="Run examples even for chunked/filtered runs")
     parser.add_argument("--examples-compile-only", action="store_true", help="Run examples compile/go-test checks without go run stdout checks")
@@ -127,6 +133,30 @@ def build_semantic_diff_command(args: argparse.Namespace) -> list[str]:
     return cmd
 
 
+def should_run_semantic_diff_lanes(args: argparse.Namespace) -> bool:
+    if args.skip_semantic_diff_lanes:
+        return False
+    if args.force_semantic_diff_lanes:
+        return True
+
+    # Keep lane semantic diff on full runs by default.
+    return not (args.chunk or args.failed or args.changed or args.pattern)
+
+
+def build_semantic_diff_lanes_command(args: argparse.Namespace) -> list[str]:
+    cmd = [
+        "python3",
+        "test/run-semantic-diff.py",
+        "--suite",
+        "lanes",
+        "--timeout",
+        str(args.timeout),
+    ]
+    if args.changed:
+        cmd.append("--changed")
+    return cmd
+
+
 def should_run_examples(args: argparse.Namespace) -> bool:
     if args.skip_examples:
         return False
@@ -202,6 +232,14 @@ def main() -> int:
             return semantic_diff_code
     else:
         print("==> Skipping semantic diff stage")
+
+    if should_run_semantic_diff_lanes(args):
+        print("==> Semantic diff lanes stage")
+        semantic_diff_lanes_code = run(build_semantic_diff_lanes_command(args))
+        if semantic_diff_lanes_code != 0:
+            return semantic_diff_lanes_code
+    else:
+        print("==> Skipping semantic diff lanes stage")
 
     if args.skip_goextern_fixtures:
         print("==> Skipping goextern fixtures stage")

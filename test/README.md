@@ -36,6 +36,12 @@ Skip semantic diff stage:
 python3 test/run-ci.py --skip-semantic-diff
 ```
 
+Skip lane semantic diff stage:
+
+```bash
+python3 test/run-ci.py --skip-semantic-diff-lanes
+```
+
 Skip stdlib governance stage:
 
 ```bash
@@ -52,6 +58,12 @@ Force semantic diff on a shard:
 
 ```bash
 python3 test/run-ci.py --chunk 0/4 --force-semantic-diff
+```
+
+Force lane semantic diff on a shard:
+
+```bash
+python3 test/run-ci.py --chunk 0/4 --force-semantic-diff-lanes
 ```
 
 Force examples stage on a focused run:
