@@ -70,7 +70,8 @@ Key reasons:
 
 Semantic-flip examples we want to avoid:
 
-- A dependency starts using target-native surfaces and an inferred global mode begins treating nearby `Dynamic`/string/null paths as native-first instead of portable-contract-first.
+- A dependency starts using target-native surfaces and an inferred global mode begins treating nearby loosely-typed value paths (`Dynamic`, stringification, `null` handling) as native-first instead of portable-contract-first.
+  Portable-contract-first means keeping Haxe-oriented behavior in those paths (for example, `Std.string(null)` style `"null"` semantics) instead of raw target-native behavior (for example, Go interface-nil formatting like `"<nil>"`).
 - A refactor that looks “type-only” (for example, replacing a generic container path with a target-specific fast path) quietly changes dispatch/runtime-helper behavior for the same public API.
 - A minor dependency update changes inferred feature sets and produces different exception/stringification/equality behavior without an explicit profile change in version control.
 
