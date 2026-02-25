@@ -12,6 +12,10 @@ If a program uses only Haxe stdlib/application code (no target-only APIs like `g
 - `haxe.rust` (`portable`)
 - `haxe.elixir.codex` (portable authoring style / equivalent lane)
 
+Portable also carries a full-coverage objective: every portable-eligible upstream Haxe stdlib module on the pinned baseline (`4.3.7`) should be supported in portable mode (or be an explicitly tracked temporary gap with closure plan).
+
+Target-specific namespaces (for example `cpp.*`, `lua.*`, `java.*`) are outside this portable objective.
+
 ## Contract Boundaries
 
 In scope for canonical portability:
@@ -26,6 +30,8 @@ Out of scope for canonical portability:
 - Target-native APIs (`go.*`, Rust-only or Elixir-only native facades)
 - Target-native performance lanes (`metal`)
 - Target-native interop behavior and ABI details
+
+Related execution program: `docs/portable-stdlib-parity-program.md`.
 
 ## Profile Model
 

@@ -31,6 +31,8 @@ If you want Haxe productivity with a serious Go delivery pipeline, this is that 
 
 This is a general compiler-target pattern, not something exclusive to Go; Go just amplifies the need because of exception/string/dynamic/runtime-model differences. Details: [docs/stdlib-shim-rationale.md](docs/stdlib-shim-rationale.md).
 
+Portable mode targets full parity for portable-eligible Haxe stdlib modules (not target-specific namespaces like `cpp.*`/`lua.*`), tracked by an explicit execution program and module-level closure plan: [docs/portable-stdlib-parity-program.md](docs/portable-stdlib-parity-program.md).
+
 ## Quick Start
 
 1. Install project dependencies:

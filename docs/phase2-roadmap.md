@@ -12,6 +12,7 @@
 3. Provide typed interop so Go ecosystem usage does not depend on raw `__go__`.
 4. Make `metal` a real typed-performance lane with explicit budgets.
 5. Add selective `hxrt` runtime slicing so metal can minimize runtime overhead without dropping portability contracts.
+6. Reach full portable-eligible Haxe stdlib parity in `portable`, with explicit portable-vs-native facade boundaries and deterministic parity reporting.
 
 ## Profile Contract
 
@@ -109,6 +110,19 @@ Depends on: M2 (with task-level dependencies on M3+ lanes where needed)
   - Latest reduction: explicit `TIdent` lowering for untyped identifiers with snapshot coverage in `test/snapshot/core/untyped_ident_nil`.
 - Publish concrete onboarding docs and showcase examples.
   - Latest docs/examples pass: added `examples/worker_pool_select`, expanded `examples/interop_smoke` with `net/http`, and published `docs/go-concurrency-interop-guide.md` + `docs/known-gaps.md`.
+
+### M7 - Portable Stdlib 100% Parity Program
+
+Depends on: M6 (and cross-cuts M2-M4.5)
+
+- Adopt explicit stdlib layering contract: portable canonical surface + `go.*` native facade (non-portable).
+- Close module-by-module parity gaps until all portable-eligible upstream Haxe stdlib modules are supported in portable mode.
+- Add deterministic inventory/provenance artifacts and CI boundary gates for stdlib synchronization.
+- Add portable contract native-import policy with migration warnings and CI/release hard errors.
+- Consolidate duplicate native facade authorities (`src/go/*` vs `std/go/*`) under one canonical path.
+- Track family-shared portable stdlib extraction path once Go parity program stabilizes.
+
+Execution tracker: `haxe.go-cgk` (`docs/portable-stdlib-parity-program.md`).
 
 ## Execution Rules
 

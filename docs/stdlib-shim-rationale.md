@@ -12,6 +12,8 @@ This document records which compiler-core shims should stay, which should migrat
 For runtime package internals and call-flow wiring, see `docs/hxrt-runtime.md`.
 Execution history and validation evidence are tracked in `docs/stdlib-shim-migration-log.md`.
 
+This document covers current shim ownership decisions. The long-range parity program (portable full stdlib coverage + portable/native facade boundary governance) is tracked in `docs/portable-stdlib-parity-program.md`.
+
 ## Why This Approach (and Whether It Is Go-Specific)
 
 Short answer:
@@ -46,6 +48,11 @@ Use the simplest ownership that preserves parity and maintainability:
 - runtime (`hxrt`) for reusable target-runtime behavior,
 - compiler shims for compile-time metadata/profile-sensitive contracts,
 - staged `std/_std` as migration destination once parity is proven.
+
+Portable and native surfaces are distinct:
+
+- portable contract targets full Haxe stdlib parity;
+- `go.*` is an explicit native facade and is not portability-safe.
 
 ## Alternatives Reviewed
 

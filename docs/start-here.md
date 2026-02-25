@@ -82,6 +82,9 @@ npm run hx:run
 
 This pattern is not unique to Go, but Go's exception/string/dynamic semantics and profile policy model make it especially practical here. Details: `docs/stdlib-shim-rationale.md`.
 
+Portable target objective is full portable-eligible Haxe stdlib parity (excluding target-specific namespaces, with explicit module-by-module tracking and closure plan):
+`docs/portable-stdlib-parity-program.md`.
+
 Quick compile+go action from this repo:
 
 ```bash
@@ -151,6 +154,7 @@ Compatibility note:
 - `docs/known-gaps.md`
 - `docs/release-visibility.md`
 - `docs/stdlib-shim-rationale.md`
+- `docs/portable-stdlib-parity-program.md`
 - `docs/defines-reference.md`
 - `docs/profile-admission-criteria.md`
 - `docs/compiler-target-template.md`
