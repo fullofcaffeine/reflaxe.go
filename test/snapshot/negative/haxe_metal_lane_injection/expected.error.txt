@@ -1,1 +1,0 @@
-MetalLaneEnforcer: __go__ is not allowed in @:haxeMetal modules when contract=portable.

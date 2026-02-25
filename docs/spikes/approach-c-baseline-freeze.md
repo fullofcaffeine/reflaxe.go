@@ -92,7 +92,7 @@ References:
 ## 7. Known architecture gaps this freeze preserves
 
 1. No unified `GoBuildContext` with resolved effective contract/capability data.
-2. No module-level metal lanes metadata analyzer/enforcement (`@:haxeMetal` pending).
+2. No module-level metal lanes metadata analyzer/enforcement (`@:goMetal` pending at baseline capture time).
 3. Metal fallback policy is not generalized across typed-lowering fallbacks.
 4. No deterministic contract/runtime plan reports emitted as build artifacts.
 5. Semantic diff harness is portable-only by default; no lane-specific coverage yet.

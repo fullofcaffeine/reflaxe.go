@@ -83,7 +83,7 @@ class MetalLaneEnforcer {
 
 	static function scanForGoInjection(expr:TypedExpr):Void {
 		if (isGoInjectionCall(expr)) {
-			Context.error("MetalLaneEnforcer: __go__ is not allowed in @:haxeMetal modules when contract=portable.", expr.pos);
+			Context.error("MetalLaneEnforcer: __go__ is not allowed in @:goMetal modules when contract=portable.", expr.pos);
 		}
 		TypedExprTools.iter(expr, e -> scanForGoInjection(e));
 	}

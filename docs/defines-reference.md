@@ -75,11 +75,26 @@ Design note:
   - Does not affect `reflaxe_go_strict` (explicit strict mode still forbids raw injection).
   - Does not affect strict examples enforcement in snapshots/examples.
 
+## Portable native-import gate
+
+- `reflaxe_go_portable_native_policy=warn|error|off`
+  - Policy for target-native `go.*` usage when compiling with `reflaxe_go_profile=portable`.
+  - `warn` (default): emit warnings for portable-contract modules using `go.*`.
+  - `error`: fail compilation on portable-contract modules using `go.*` (recommended for CI/release).
+  - `off`: disable portable native-import checks.
+- `reflaxe_go_portable_native_allow=<csv>`
+  - Optional comma-separated module-prefix allowlist for portable builds (for sanctioned adapter islands).
+  - Example: `-D reflaxe_go_portable_native_allow=app.adapters.go,app.platform`.
+
 ## Lane metadata
 
-- `@:haxeMetal`
+- `@:goMetal`
   - Module/type/field metadata for metal-clean lane islands inside portable builds.
   - Portable builds enforce lane restrictions for these modules (for example raw `__go__` is disallowed).
+
+Removed:
+
+- `@:haxeMetal` -> compile error, use `@:goMetal`.
 
 ## Reports
 

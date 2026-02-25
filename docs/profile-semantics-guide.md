@@ -86,7 +86,7 @@ class Main {
 ### Example D: portable build with a metal lane island
 
 ```haxe
-@:haxeMetal
+@:goMetal
 class Adapter {
   static function boot() {
     // raw __go__ is forbidden in this lane when contract=portable
@@ -94,7 +94,7 @@ class Adapter {
 }
 ```
 
-`@:haxeMetal` lets you mark incremental migration islands inside a portable build. Those modules get metal-clean enforcement rules even when global contract stays portable.
+`@:goMetal` lets you mark incremental migration islands inside a portable build. Those modules get metal-clean enforcement rules even when global contract stays portable.
 
 ## What changes and what does not
 
@@ -156,7 +156,8 @@ Stay in portable semantics:
 
 1. Keep code on portable Haxe stdlib/application APIs.
 2. Avoid target-native-only surfaces in shared/core modules.
-3. You can still compile with `metal` for boundary/perf validation without changing semantics if those modules remain portable-surface-only.
+3. Use `-D reflaxe_go_portable_native_policy=error` in CI/release to hard-fail accidental `go.*` usage in portable modules (`warn` is the local default).
+4. You can still compile with `metal` for boundary/perf validation without changing semantics if those modules remain portable-surface-only.
 
 ## Choosing a profile
 

@@ -51,15 +51,17 @@ If your code path falls outside this subset, start from `portable` and promote o
 - `reflaxe_go_strict`: forbids raw `__go__` in app project sources.
 - `metal` enables strict mode by default for app-side raw injection.
 - `reflaxe_go_metal_allow_fallback`: opt-in escape hatch that relaxes metal hard-error fallback policy and disables metal strict-by-default boundary enforcement.
+- `reflaxe_go_portable_native_policy=warn|error|off`: policy for `go.*` usage under portable contract (`warn` default, `error` recommended in CI/release).
+- `reflaxe_go_portable_native_allow=<csv>`: optional portable allowlist for sanctioned native adapter modules.
 
 Framework-owned typed facades are allowed in `metal` strict mode; raw app-side injection remains disallowed.
 
-## `@:haxeMetal` lanes (portable builds)
+## `@:goMetal` lanes (portable builds)
 
-`@:haxeMetal` marks module islands that must obey metal-clean restrictions even when the build contract is `portable`.
+`@:goMetal` marks module islands that must obey metal-clean restrictions even when the build contract is `portable`.
 
-- Current enforced rule: raw `__go__` is disallowed in `@:haxeMetal` modules under portable contract.
-- Snapshot coverage: `test/snapshot/negative/haxe_metal_lane_injection`.
+- Current enforced rule: raw `__go__` is disallowed in `@:goMetal` modules under portable contract.
+- Snapshot coverage: `test/snapshot/negative/go_metal_lane_injection`.
 
 Lane module discovery is deterministic and emitted in profile contract reports.
 

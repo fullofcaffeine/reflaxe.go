@@ -27,6 +27,7 @@
     "test:stdlib-sweep:go-test": "python3 test/run-upstream-stdlib-sweep.py --strict --go-test",
     "test:stdlib-sweep:full": "python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict",
     "test:stdlib-sweep:full:go-test": "python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test",
+    "test:stdlib-inventory": "python3 test/run-portable-stdlib-inventory.py",
     "test:pure-go:pulseforge": "cd benchmarks/pure_go/pulseforge && go test ./...",
     "test:pure-go:fluxproxy": "cd benchmarks/pure_go/fluxproxy && go test ./...",
     "test:perf:pure-go:pulseforge": "cd benchmarks/pure_go/pulseforge && go test -run '^$' -bench . -benchmem",

@@ -9,6 +9,7 @@ import reflaxe.go.compiler.GoBuildContextResolver;
 import reflaxe.go.macros.AutoEmptyConstructor;
 import reflaxe.go.macros.BoundaryEnforcer;
 import reflaxe.go.macros.MetalLaneEnforcer;
+import reflaxe.go.macros.PortableNativeImportGate;
 import reflaxe.go.macros.StrictModeEnforcer;
 #end
 
@@ -35,6 +36,7 @@ class CompilerInit {
 			StrictModeEnforcer.init();
 		}
 		MetalLaneEnforcer.init();
+		PortableNativeImportGate.init();
 
 		// Enable stdlib atomic surfaces guarded behind target.atomics.
 		MacroCompiler.define("target.atomics");

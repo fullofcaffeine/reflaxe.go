@@ -1,10 +1,11 @@
 package reflaxe.go.analyze;
 
 #if macro
+import haxe.macro.Context;
 import haxe.macro.Type;
 
 /**
-	Collect `@:haxeMetal` lane declarations and map them to owning modules.
+	Collect `@:goMetal` lane declarations and map them to owning modules.
 **/
 class MetalLaneAnalyzer {
 	public static function collect(moduleTypes:Array<ModuleType>):MetalLaneSnapshot {
@@ -60,7 +61,7 @@ class MetalLaneAnalyzer {
 			if (field == null || field.meta == null) {
 				continue;
 			}
-			if (!metaHasHaxeMetal(field.meta)) {
+			if (!metaHasGoMetal(field.meta)) {
 				continue;
 			}
 			addDeclaration(moduleSet, declarations, module, prefix + owner + "." + field.name, field.pos);
@@ -69,7 +70,7 @@ class MetalLaneAnalyzer {
 
 	static function addTypeDeclarationIfTagged(moduleSet:Map<String, Bool>, declarations:Array<MetalLaneDeclaration>, module:String, source:String,
 			meta:MetaAccess, pos:haxe.macro.Expr.Position):Void {
-		if (meta == null || !metaHasHaxeMetal(meta)) {
+		if (meta == null || !metaHasGoMetal(meta)) {
 			return;
 		}
 		addDeclaration(moduleSet, declarations, module, source, pos);
@@ -86,10 +87,13 @@ class MetalLaneAnalyzer {
 		});
 	}
 
-	static function metaHasHaxeMetal(meta:MetaAccess):Bool {
+	static function metaHasGoMetal(meta:MetaAccess):Bool {
 		for (entry in meta.get()) {
-			if (entry.name == ":haxeMetal" || entry.name == "haxeMetal") {
+			if (entry.name == ":goMetal" || entry.name == "goMetal") {
 				return true;
+			}
+			if (entry.name == ":haxeMetal" || entry.name == "haxeMetal") {
+				Context.error("Metal lane metadata @:haxeMetal was removed; use @:goMetal.", entry.pos);
 			}
 		}
 		return false;

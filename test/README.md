@@ -179,6 +179,28 @@ Disable expected-unavailable policy classification (raw failures only):
 python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_gap_probe.txt --go-test --no-expected-unavailable-policy
 ```
 
+## Portable stdlib inventory ledger
+
+Validate the machine-readable portable-eligible stdlib inventory:
+
+```bash
+python3 test/run-portable-stdlib-inventory.py
+```
+
+Regenerate inventory after policy/module changes:
+
+```bash
+python3 test/run-portable-stdlib-inventory.py --update
+```
+
+Primary artifacts:
+
+```text
+test/portable_stdlib_inventory.json
+test/.test-cache/portable_stdlib_inventory_summary.json
+test/.test-cache/portable_stdlib_inventory_summary.md
+```
+
 ## Semantic differential harness
 
 Compare runtime behavior between Haxe reference execution (`--interp`) and `reflaxe.go` generated output (`portable` profile):
