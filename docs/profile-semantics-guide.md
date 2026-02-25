@@ -33,6 +33,56 @@ Current concrete differences:
 4. Portability posture:
    `portable` is the cross-target baseline contract; `metal` accepts lower portability when you opt into native-first surfaces.
 
+## Concrete examples (where you can see the difference)
+
+### Example A: raw native injection boundary
+
+```haxe
+class Main {
+  static function main() {
+    untyped __go__("fmt.Println(\"hi\")");
+  }
+}
+```
+
+- `portable`: may compile when strict mode is not enabled (still discouraged for maintainability).
+- `metal`: fails by default because metal enables strict app-boundary policy.
+
+This is a real profile difference today.
+
+### Example B: portable semantics path
+
+```haxe
+class Main {
+  static function main() {
+    var n:Dynamic = null;
+    Sys.println(Std.string(n));
+  }
+}
+```
+
+- `portable`: prints `"null"`.
+- `metal` (portable surfaces only): also prints `"null"`.
+
+This is an intentional “same semantics” case.
+
+### Example C: metal-intended native lane
+
+```haxe
+import go.Go;
+
+class Main {
+  static function main() {
+    var ch = Go.newChan<Int>();
+    Go.spawn(() -> ch.send(1));
+    Sys.println(ch.recv());
+  }
+}
+```
+
+- `metal`: intended lane for this style, with typed specialization work prioritized here.
+- `portable`: can compile on Go target, but this is target-native code and not part of cross-target portable expectations.
+
 ## What changes and what does not
 
 ### Non-negotiable
