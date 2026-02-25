@@ -64,6 +64,9 @@ Rule of thumb:
 
 ### How you opt in (or out)
 
+There is no implicit profile switching during compilation.
+`reflaxe_go_profile` is explicit and fixed per build.
+
 Opt into native-first behavior:
 
 1. Compile with `-D reflaxe_go_profile=metal`.
