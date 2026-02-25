@@ -18,6 +18,21 @@ Profiles should be explicit in source control and CI (`-D reflaxe_go_profile=...
 | `portable` (default) | Stable Haxe semantics and lowest migration risk | Highest (within documented support matrix) | Use Haxe stdlib/application surfaces first | More `hxrt`/shim-mediated behavior for semantic stability |
 | `metal` (experimental) | Go-native control with strict boundaries | Lower by design when using Go-native surfaces | Typed Go-facing APIs and stricter escape-hatch policy | More typed specialization and direct Go-shaped output in supported lanes |
 
+## What differs today (practical reality)
+
+If your code stays fully on portable surfaces, outputs can look similar across profiles. That is intentional.
+
+Current concrete differences:
+
+1. Boundary defaults:
+   `metal` enables stricter app-side injection policy by default.
+2. Native-surface lane:
+   `metal` is the intended lane for explicit Go-native APIs and interop patterns.
+3. Typed specialization focus:
+   `metal` is where typed low-level specialization work is prioritized (`go.Chan<T>`, `go.Slice<T>`, `go.Map<K,V>`, `go.Result<T>` lanes).
+4. Portability posture:
+   `portable` is the cross-target baseline contract; `metal` accepts lower portability when you opt into native-first surfaces.
+
 ## What changes and what does not
 
 ### Non-negotiable
