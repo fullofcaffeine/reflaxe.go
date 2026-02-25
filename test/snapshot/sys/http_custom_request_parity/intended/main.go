@@ -13,7 +13,6 @@ import (
 
 func main() {
 	http := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,hello%20from%20haxe.go"))
-	_ = http
 	sink := New_haxe__io__BytesBuffer()
 	http.customRequest(false, sink)
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("custom="), sink.getBytes().toString()))

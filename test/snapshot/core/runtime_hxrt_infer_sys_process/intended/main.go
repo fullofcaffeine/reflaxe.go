@@ -4,7 +4,6 @@ import "snapshot/hxrt"
 
 func main() {
 	cwd := Sys_getCwd()
-	_ = cwd
 	process := New_sys__io__Process(hxrt.StringFromLiteral("echo"), []*string{hxrt.StringFromLiteral("ok")})
 	process.close()
 	hxrt.Println(cwd)

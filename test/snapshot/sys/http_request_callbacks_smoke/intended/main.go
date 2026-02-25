@@ -13,15 +13,10 @@ import (
 
 func main() {
 	http := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,hello%20from%20haxe.go"))
-	_ = http
 	dataLog := hxrt.StringFromLiteral("")
-	_ = dataLog
 	statusLog := -1
-	_ = statusLog
 	byteCount := -1
-	_ = byteCount
 	errLog := hxrt.StringFromLiteral("")
-	_ = errLog
 	http.onData = func(data *string) {
 		dataLog = data
 	}
@@ -54,7 +49,6 @@ func main() {
 	post.request(true)
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("post="), postData))
 	bad := New_sys__Http(hxrt.StringFromLiteral("://bad"))
-	_ = bad
 	badErr := hxrt.StringFromLiteral("")
 	bad.onError = func(msg *string) {
 		badErr = msg

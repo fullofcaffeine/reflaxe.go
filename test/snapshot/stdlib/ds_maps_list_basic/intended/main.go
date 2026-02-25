@@ -42,7 +42,6 @@ func main() {
 	}(sm.get(hxrt.StringFromLiteral("a")))
 	hxrt.Println(av)
 	om := New_haxe__ds__ObjectMap()
-	_ = om
 	box := New_Box(7)
 	om.set(box, hxrt.StringFromLiteral("box"))
 	ov := func(hx_value_3 any) *string {

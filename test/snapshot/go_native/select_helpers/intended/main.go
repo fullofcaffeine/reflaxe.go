@@ -8,7 +8,6 @@ import (
 func main() {
 	gate := go___Go_newChan(1)
 	_g := go___Select_send_Int(gate, 7)
-	_ = _g
 	var hx_switch_1 *string
 	switch _g.tag {
 	case 0:
@@ -17,9 +16,7 @@ func main() {
 		hx_switch_1 = hxrt.StringFromLiteral("default")
 	}
 	sendFirst := hx_switch_1
-	_ = sendFirst
 	_g_1 := go___Select_send_Int(gate, 8)
-	_ = _g_1
 	var hx_switch_2 *string
 	switch _g_1.tag {
 	case 0:
@@ -28,9 +25,7 @@ func main() {
 		hx_switch_2 = hxrt.StringFromLiteral("default")
 	}
 	sendSecond := hx_switch_2
-	_ = sendSecond
 	_g_2 := go___Select_recv_Int(gate)
-	_ = _g_2
 	var hx_switch_3 *string
 	switch _g_2.tag {
 	case 0:
@@ -41,9 +36,7 @@ func main() {
 		hx_switch_3 = hxrt.StringFromLiteral("empty")
 	}
 	recvFirst := hx_switch_3
-	_ = recvFirst
 	_g_4 := go___Select_recv_Int(gate)
-	_ = _g_4
 	var hx_switch_4 *string
 	switch _g_4.tag {
 	case 0:
@@ -54,17 +47,14 @@ func main() {
 		hx_switch_4 = hxrt.StringFromLiteral("empty")
 	}
 	recvSecond := hx_switch_4
-	_ = recvSecond
 	hxrt.Println(sendFirst)
 	hxrt.Println(sendSecond)
 	hxrt.Println(recvFirst)
 	hxrt.Println(recvSecond)
 	left := go___Go_newChan(1)
-	_ = left
 	right := go___Go_newChan(1)
 	right.send(hxrt.StringFromLiteral("beta"))
 	_g_6 := go___Select_recv2_String_String(left, right)
-	_ = _g_6
 	var hx_switch_5 *string
 	switch _g_6.tag {
 	case 0:
@@ -81,10 +71,8 @@ func main() {
 	recvTwo := hx_switch_5
 	hxrt.Println(recvTwo)
 	sendTwoA := go___Go_newChan(1)
-	_ = sendTwoA
 	sendTwoB := go___Go_newChan(1)
 	_g_9 := go___Select_send2_Int_Int(sendTwoA, 11, sendTwoB, 22)
-	_ = _g_9
 	var hx_switch_6 *string
 	switch _g_9.tag {
 	case 0:
@@ -95,7 +83,6 @@ func main() {
 		hx_switch_6 = hxrt.StringFromLiteral("none")
 	}
 	sendTwo := hx_switch_6
-	_ = sendTwo
 	sendTwoValues := hxrt.StringConcatAny(hxrt.StringConcatAny(func(hx_value_7 any) int {
 		if hx_value_7 == nil {
 			var hx_zero_8 int
@@ -109,7 +96,6 @@ func main() {
 		}
 		return hx_value_9.(int)
 	}(sendTwoB.recvOr(-1)))
-	_ = sendTwoValues
 	hxrt.Println(sendTwo)
 	hxrt.Println(sendTwoValues)
 }

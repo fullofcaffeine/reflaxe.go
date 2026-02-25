@@ -4,13 +4,9 @@ import "snapshot/hxrt"
 
 func main() {
 	a := New_Node(hxrt.StringFromLiteral("a"))
-	_ = a
 	b := New_Node(hxrt.StringFromLiteral("a"))
-	_ = b
 	c := New_Node(hxrt.StringFromLiteral("c"))
-	_ = c
 	d := New_Node(hxrt.StringFromLiteral("d"))
-	_ = d
 	var atom any = haxe__atomic___AtomicObject__AtomicObject_Impl___new(a)
 	out(hxrt.StringFromLiteral("load.0"), nodeId(haxe__atomic___AtomicObject__AtomicObject_Impl__load(atom).(*Node)))
 	oldMiss := haxe__atomic___AtomicObject__AtomicObject_Impl__compareExchange(atom, b, c).(*Node)

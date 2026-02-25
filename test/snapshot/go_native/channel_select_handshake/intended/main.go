@@ -7,7 +7,6 @@ import (
 
 func main() {
 	requests := go___Go_newChan(0)
-	_ = requests
 	responses := go___Go_newChan(0)
 	go___Go_spawn(func() {
 		value := func(hx_value_1 any) int {

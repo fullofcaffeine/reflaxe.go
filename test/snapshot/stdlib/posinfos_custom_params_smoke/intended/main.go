@@ -22,7 +22,6 @@ func read(pos map[string]any) {
 		}
 		return hx_field_3.([]any)
 	}(pos)
-	_ = custom
 	count := 0
 	if custom != nil {
 		count = len(custom)

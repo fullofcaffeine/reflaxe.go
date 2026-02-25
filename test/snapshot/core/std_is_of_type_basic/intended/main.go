@@ -33,9 +33,7 @@ func New_Child() *Child {
 
 func main() {
 	child := New_Child().Base
-	_ = child
 	base := New_Base()
-	_ = base
 	hxrt.Println(func(hx_value *Base) bool {
 		if hx_value == nil {
 			return false

@@ -4,9 +4,7 @@ import "snapshot/hxrt"
 
 func main() {
 	var input haxe__io__Input = nil
-	_ = input
 	var output haxe__io__Output = nil
-	_ = output
 	hxrt.Println(input)
 	hxrt.Println(output)
 }

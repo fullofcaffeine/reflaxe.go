@@ -24,130 +24,98 @@ func emit(label *string, value *haxe___Int64_____Int64) {
 
 func main() {
 	max := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("9223372036854775807"))
-	_ = max
 	min := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("-9223372036854775808"))
-	_ = min
 	var b_low int
-	_ = b_low
 	var b_high int
 	b_high = 0
 	b_low = 1
 	high := int(int32((hxrt.Int32Wrap(max.high) + hxrt.Int32Wrap(b_high))))
-	_ = high
 	low := int(int32((hxrt.Int32Wrap(max.low) + hxrt.Int32Wrap(b_low))))
 	if haxe___Int32__Int32_Impl__ucompare(low, max.low) < 0 {
 		hx_post_1 := high
 		high = int(int32((high + 1)))
 		ret := hx_post_1
-		_ = ret
 		high = high
 		_ = ret
 	}
 	x := New_haxe___Int64_____Int64(high, low)
-	_ = x
 	var this1 *haxe___Int64_____Int64
 	this1 = x
 	value := this1
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("wrap_add="), haxe___Int64__Int64_Impl__toString(value)))
 	var b_low_1 int
-	_ = b_low_1
 	var b_high_1 int
 	b_high_1 = 0
 	b_low_1 = 1
 	high_1 := int(int32((hxrt.Int32Wrap(min.high) - hxrt.Int32Wrap(b_high_1))))
-	_ = high_1
 	low_1 := int(int32((hxrt.Int32Wrap(min.low) - hxrt.Int32Wrap(b_low_1))))
-	_ = low_1
 	if haxe___Int32__Int32_Impl__ucompare(min.low, b_low_1) < 0 {
 		hx_post_2 := high_1
 		high_1 = int(int32((high_1 - 1)))
 		ret_1 := hx_post_2
-		_ = ret_1
 		high_1 = high_1
 		_ = ret_1
 	}
 	x_1 := New_haxe___Int64_____Int64(high_1, low_1)
-	_ = x_1
 	var this1_1 *haxe___Int64_____Int64
 	this1_1 = x_1
 	value_1 := this1_1
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("wrap_sub="), haxe___Int64__Int64_Impl__toString(value_1)))
 	a := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("1234567890123"))
-	_ = a
 	b := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("-987654321"))
 	high_2 := int(int32((hxrt.Int32Wrap(a.high) + hxrt.Int32Wrap(b.high))))
-	_ = high_2
 	low_2 := int(int32((hxrt.Int32Wrap(a.low) + hxrt.Int32Wrap(b.low))))
 	if haxe___Int32__Int32_Impl__ucompare(low_2, a.low) < 0 {
 		hx_post_3 := high_2
 		high_2 = int(int32((high_2 + 1)))
 		ret_2 := hx_post_3
-		_ = ret_2
 		high_2 = high_2
 		_ = ret_2
 	}
 	x_2 := New_haxe___Int64_____Int64(high_2, low_2)
-	_ = x_2
 	var this1_2 *haxe___Int64_____Int64
 	this1_2 = x_2
 	value_2 := this1_2
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sum="), haxe___Int64__Int64_Impl__toString(value_2)))
 	high_3 := int(int32((hxrt.Int32Wrap(a.high) - hxrt.Int32Wrap(b.high))))
-	_ = high_3
 	low_3 := int(int32((hxrt.Int32Wrap(a.low) - hxrt.Int32Wrap(b.low))))
-	_ = low_3
 	if haxe___Int32__Int32_Impl__ucompare(a.low, b.low) < 0 {
 		hx_post_4 := high_3
 		high_3 = int(int32((high_3 - 1)))
 		ret_3 := hx_post_4
-		_ = ret_3
 		high_3 = high_3
 		_ = ret_3
 	}
 	x_3 := New_haxe___Int64_____Int64(high_3, low_3)
-	_ = x_3
 	var this1_3 *haxe___Int64_____Int64
 	this1_3 = x_3
 	value_3 := this1_3
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("diff="), haxe___Int64__Int64_Impl__toString(value_3)))
 	var a_low int
-	_ = a_low
 	var a_high int
 	a_high = 0
 	a_low = 30000
 	var b_low_2 int
-	_ = b_low_2
 	var b_high_2 int
 	b_high_2 = 0
 	b_low_2 = 30000
 	mask := 65535
 	al := int(int32((hxrt.Int32Wrap(a_low) & hxrt.Int32Wrap(mask))))
-	_ = al
 	ah := int(int32(int32((uint32(hxrt.Int32Wrap(a_low)) >> uint(16)))))
-	_ = ah
 	bl := int(int32((hxrt.Int32Wrap(b_low_2) & hxrt.Int32Wrap(mask))))
-	_ = bl
 	bh := int(int32(int32((uint32(hxrt.Int32Wrap(b_low_2)) >> uint(16)))))
-	_ = bh
 	p00 := int(int32((hxrt.Int32Wrap(al) * hxrt.Int32Wrap(bl))))
-	_ = p00
 	p10 := int(int32((hxrt.Int32Wrap(ah) * hxrt.Int32Wrap(bl))))
-	_ = p10
 	p01 := int(int32((hxrt.Int32Wrap(al) * hxrt.Int32Wrap(bh))))
-	_ = p01
 	p11 := int(int32((hxrt.Int32Wrap(ah) * hxrt.Int32Wrap(bh))))
-	_ = p11
 	low_4 := p00
-	_ = low_4
 	high_4 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(p11) + hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(p01)) >> uint(16)))))))))) + hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(p10)) >> uint(16)))))))))
-	_ = high_4
 	p01 = int(int32((hxrt.Int32Wrap(p01) << uint(16))))
 	low_4 = int(int32((hxrt.Int32Wrap(low_4) + hxrt.Int32Wrap(p01))))
 	if haxe___Int32__Int32_Impl__ucompare(low_4, p01) < 0 {
 		hx_post_5 := high_4
 		high_4 = int(int32((high_4 + 1)))
 		ret_4 := hx_post_5
-		_ = ret_4
 		high_4 = high_4
 		_ = ret_4
 	}
@@ -157,13 +125,11 @@ func main() {
 		hx_post_6 := high_4
 		high_4 = int(int32((high_4 + 1)))
 		ret_5 := hx_post_6
-		_ = ret_5
 		high_4 = high_4
 		_ = ret_5
 	}
 	high_4 = int(int32((hxrt.Int32Wrap(high_4) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(a_low) * hxrt.Int32Wrap(b_high_2))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(a_high) * hxrt.Int32Wrap(b_low_2))))))))))))
 	x_4 := New_haxe___Int64_____Int64(high_4, low_4)
-	_ = x_4
 	var this1_4 *haxe___Int64_____Int64
 	this1_4 = x_4
 	value_4 := this1_4
@@ -280,7 +246,6 @@ func main() {
 		return hx_if_23
 	}()))
 	var a_low_3 int
-	_ = a_low_3
 	var a_high_3 int
 	a_high_3 = 0
 	a_low_3 = 1
@@ -320,7 +285,6 @@ func main() {
 	value_9 := hx_if_25
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("shl="), haxe___Int64__Int64_Impl__toString(value_9)))
 	a_1 := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("-8"))
-	_ = a_1
 	b_2 := 1
 	b_2 = int(int32((hxrt.Int32Wrap(b_2) & hxrt.Int32Wrap(63))))
 	var hx_if_27 *haxe___Int64_____Int64
@@ -359,7 +323,6 @@ func main() {
 	value_10 := hx_if_27
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("shr="), haxe___Int64__Int64_Impl__toString(value_10)))
 	a_2 := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("-1"))
-	_ = a_2
 	b_3 := 1
 	b_3 = int(int32((hxrt.Int32Wrap(b_3) & hxrt.Int32Wrap(63))))
 	var hx_if_29 *haxe___Int64_____Int64
@@ -420,7 +383,6 @@ func main() {
 		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("to_int_overflow="), hxrt.StdString(e)))
 	})
 	var round_low int
-	_ = round_low
 	var round_high int
 	round_high = 2147483647
 	round_low = -12345

@@ -10,7 +10,6 @@ func main() {
 	local := func(v int) int {
 		return int(int32((hxrt.Int32Wrap(v) + hxrt.Int32Wrap(1))))
 	}
-	_ = local
 	hxrt.Println(add(1, 2))
 	hxrt.Println(add(5, 2))
 	hxrt.Println(add(5, 6))

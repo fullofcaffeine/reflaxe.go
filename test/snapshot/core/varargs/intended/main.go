@@ -9,7 +9,6 @@ func main() {
 
 func sum(values []int) int {
 	total := 0
-	_ = total
 	i := 0
 	for i < len(values) {
 		total = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(values[i]))))

@@ -8,16 +8,12 @@ func main() {
 	hxrt.Println(bytes.toString())
 	hxrt.Println(bytes.length)
 	buffer := New_haxe__io__BytesBuffer()
-	_ = buffer
 	var encoding *haxe__io__Encoding = nil
 	src := haxe__io__Bytes_ofString(hxrt.StringFromLiteral("Hi"), encoding)
-	_ = src
 	b1 := buffer.b
 	_ = b1
 	b2 := src.b
-	_ = b2
 	_g := 0
-	_ = _g
 	_g1 := src.length
 	for _g < _g1 {
 		hx_post_1 := _g

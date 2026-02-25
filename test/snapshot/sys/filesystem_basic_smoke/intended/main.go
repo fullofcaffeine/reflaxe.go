@@ -32,9 +32,7 @@ func firstEntry(items []*string) *string {
 func main() {
 	root := hxrt.StringFromLiteral("tmp_fs_smoke")
 	fileA := hxrt.StringConcatStringPtr(root, hxrt.StringFromLiteral("/a.txt"))
-	_ = fileA
 	fileB := hxrt.StringConcatStringPtr(root, hxrt.StringFromLiteral("/b.txt"))
-	_ = fileB
 	rmDirRecursive(root)
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("exists0="), hxrt.StdString(sys__FileSystem_exists(root))))
 	sys__FileSystem_createDirectory(root)
@@ -62,11 +60,9 @@ func rmDirRecursive(path *string) {
 		return
 	}
 	_g := 0
-	_ = _g
 	_g1 := sys__FileSystem_readDirectory(path)
 	for _g < len(_g1) {
 		entry := _g1[_g]
-		_ = entry
 		_g = int(int32((_g + 1)))
 		child := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(path, hxrt.StringFromLiteral("/")), entry)
 		if sys__FileSystem_isDirectory(child) {

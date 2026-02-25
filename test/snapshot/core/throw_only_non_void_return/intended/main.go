@@ -24,7 +24,6 @@ func main() {
 		hx_try_3 = 7
 	})
 	a := hx_try_3
-	_ = a
 	var hx_try_6 *string
 	hxrt.TryCatch(func() {
 		hx_try_6 = failString()
@@ -34,7 +33,6 @@ func main() {
 		hx_try_6 = hxrt.StringFromLiteral("ok")
 	})
 	b := hx_try_6
-	_ = b
 	hxrt.Println(hxrt.StdString(a))
 	hxrt.Println(b)
 }

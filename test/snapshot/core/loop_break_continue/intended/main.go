@@ -4,7 +4,6 @@ import "snapshot/hxrt"
 
 func main() {
 	i := 0
-	_ = i
 	sum := 0
 	for i < 10 {
 		i = int(int32((i + 1)))

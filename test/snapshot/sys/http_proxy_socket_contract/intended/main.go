@@ -45,7 +45,6 @@ func main() {
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy4="), sys__Http_hxrt_proxyDescriptor()))
 	sys__Http_PROXY = nil
 	http := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,body"))
-	_ = http
 	sink := New_haxe__io__BytesBuffer()
 	http.customRequest(false, sink, func() map[string]any {
 		hx_obj_7 := map[string]any{}

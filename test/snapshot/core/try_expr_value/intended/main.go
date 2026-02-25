@@ -12,7 +12,6 @@ func main() {
 		hx_try_1 = 11
 	})
 	a := hx_try_1
-	_ = a
 	var hx_try_4 int
 	hxrt.TryCatch(func() {
 		hx_try_4 = risky(4)
@@ -22,7 +21,6 @@ func main() {
 		hx_try_4 = 11
 	})
 	b := hx_try_4
-	_ = b
 	hxrt.Println(hxrt.StdString(a))
 	hxrt.Println(hxrt.StdString(b))
 }

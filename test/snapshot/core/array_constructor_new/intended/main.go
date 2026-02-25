@@ -14,11 +14,9 @@ func main() {
 	nums = append(nums, 3)
 	nums = append(nums, 5)
 	sum := 0
-	_ = sum
 	_g := 0
 	for _g < len(nums) {
 		n := nums[_g]
-		_ = n
 		_g = int(int32((_g + 1)))
 		sum = int(int32((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(n))))
 	}

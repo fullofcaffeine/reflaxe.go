@@ -9,7 +9,6 @@ func main() {
 
 func withTry(flag bool) *string {
 	state := hxrt.StringFromLiteral("start")
-	_ = state
 	hx_try_return_1 := false
 	var hx_try_value_2 *string
 	hxrt.TryCatch(func() {

@@ -60,7 +60,6 @@ func (self *Child) callSuperCallWho() int {
 func main() {
 	child := New_Child()
 	base := child.Base
-	_ = base
 	hxrt.Println(child.callWho())
 	hxrt.Println(child.callSuperWho())
 	hxrt.Println(child.callSuperCallWho())

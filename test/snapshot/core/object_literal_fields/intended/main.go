@@ -29,9 +29,7 @@ func main() {
 		return hx_field_8.(int)
 	}(user))
 	var nested_inner_flag bool
-	_ = nested_inner_flag
 	var nested_inner_count int
-	_ = nested_inner_count
 	nested_inner_flag = true
 	nested_inner_count = 2
 	hxrt.Println(nested_inner_flag)

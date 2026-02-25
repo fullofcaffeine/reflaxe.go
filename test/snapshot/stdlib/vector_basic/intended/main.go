@@ -42,9 +42,7 @@ func main() {
 		}
 	}
 	w := this1_1
-	_ = w
 	_g := 0
-	_ = _g
 	_g1 := len(w)
 	for _g < _g1 {
 		hx_post_5 := _g
@@ -58,11 +56,8 @@ func main() {
 
 func render(label *string, v []int) {
 	out := hxrt.StringFromLiteral("")
-	_ = out
 	sum := 0
-	_ = sum
 	_g := 0
-	_ = _g
 	_g1 := len(v)
 	for _g < _g1 {
 		hx_post_6 := _g

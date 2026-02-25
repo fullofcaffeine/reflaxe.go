@@ -68,6 +68,8 @@ Both profiles preserve the same proxy/policy contract. Differences are code shap
 
 `go_native` is a compile-time app variant (`-D fluxproxy_variant_go_native`), not a compiler profile.
 
+`core` is effectively the portable-equivalent app path. Compiling `core` with the `metal` profile is still useful for strict-boundary verification and migration readiness, but typically yields smaller code-shape differences than `go_native`.
+
 ## Generated Go Highlights
 
 Committed generated trees under `generated/portable` and `generated/metal` currently track the `core` lane:
@@ -117,3 +119,4 @@ Methodology and fairness constraints: `docs/benchmark-methodology-apps.md`.
 - `go_native` is compile-time selected; it is not switchable at runtime inside one binary.
 - Committed generated trees are currently `core` snapshots; `go_native` codegen is validated via CI compile lanes and perf harness runs.
 - App-level allocation and binary-size overhead vs pure-Go is measurable and expected while `hxrt` ownership and stdlib shims remain in active optimization work.
+- `metal` is not a "fewer lines" mode. In `go_native` lanes it can emit additional specialized typed helpers (`go__concurrency_*`, `go__result_*`) to reduce dynamic paths in hot code, which may increase generated LOC while improving runtime behavior.
