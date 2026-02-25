@@ -284,7 +284,11 @@ Use these optional flags when auditing effective contract/runtime behavior:
 - `-D reflaxe_go_contract_report` emits `profile_contract.json` and `profile_contract.md`.
 - `-D reflaxe_go_runtime_plan_report` emits `hxrt_plan.json` and `hxrt_plan.md`.
 
-Reference snapshot: `test/snapshot/core/report_artifacts_basic`.
+`profile_contract.json` (schema v2) carries deterministic structured fallback entries, including module and lane attribution (`module`, `inMetalLane`) for each metal fallback violation.
+
+Reference snapshots:
+- `test/snapshot/core/report_artifacts_basic`
+- `test/snapshot/core/report_artifacts_lane_fallback`
 
 ## Contract guardrails in this repo
 

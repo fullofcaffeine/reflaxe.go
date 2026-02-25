@@ -99,7 +99,8 @@ Removed:
 ## Reports
 
 - `reflaxe_go_contract_report`
-  - Emit `profile_contract.json` and `profile_contract.md` into output root with effective contract/capability state and fallback summary.
+  - Emit `profile_contract.json` and `profile_contract.md` into output root with effective contract/capability state.
+  - `profile_contract.json` schema v2 includes structured `metalFallbackViolations` entries with deterministic `module` and `inMetalLane` attribution.
 - `reflaxe_go_runtime_plan_report`
   - Emit `hxrt_plan.json` and `hxrt_plan.md` into output root with selected runtime features/files and selection reasons.
 

@@ -41,7 +41,15 @@ private typedef ContractReportSnapshot = {
 	final hxrtManualFeatures:Array<String>;
 	final metalLaneModules:Array<String>;
 	final metalFallbackViolationCount:Int;
-	final metalFallbackViolations:Array<String>;
+	final metalFallbackViolations:Array<ContractFallbackViolation>;
+}
+
+private typedef ContractFallbackViolation = {
+	final kind:String;
+	final detail:String;
+	final location:String;
+	final module:String;
+	final inMetalLane:Bool;
 }
 
 private typedef RuntimeFeatureReason = {
@@ -316,18 +324,24 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		var contractLabel = buildContext.profile == GoProfile.Metal ? "metal" : "portable";
 		var manualFeatures = sortedUniqueStrings(buildContext.hxrtManualFeatures.copy());
 		var laneModules = sortedUniqueStrings(buildContext.metalLaneModules.copy());
-		var fallbackViolations = new Array<String>();
+		var fallbackViolations = new Array<ContractFallbackViolation>();
 		if (context != null) {
 			for (violation in context.metalFallbackViolations) {
 				if (violation == null) {
 					continue;
 				}
-				fallbackViolations.push(violation.kind + " | " + violation.location + " | " + violation.detail);
+				fallbackViolations.push({
+					kind: violation.kind,
+					detail: violation.detail,
+					location: violation.location,
+					module: violation.module,
+					inMetalLane: violation.inMetalLane
+				});
 			}
 		}
-		fallbackViolations = sortedUniqueStrings(fallbackViolations);
+		fallbackViolations.sort(compareContractFallbackViolations);
 		return {
-			schemaVersion: 1,
+			schemaVersion: 2,
 			contract: contractLabel,
 			strictExamples: buildContext.strictExamples,
 			strictUserBoundaries: buildContext.strictUserBoundaries,
@@ -409,6 +423,26 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		return reasons;
 	}
 
+	static function compareContractFallbackViolations(a:ContractFallbackViolation, b:ContractFallbackViolation):Int {
+		var moduleOrder = Reflect.compare(a.module, b.module);
+		if (moduleOrder != 0) {
+			return moduleOrder;
+		}
+		var laneOrder = Reflect.compare(a.inMetalLane ? 1 : 0, b.inMetalLane ? 1 : 0);
+		if (laneOrder != 0) {
+			return laneOrder;
+		}
+		var kindOrder = Reflect.compare(a.kind, b.kind);
+		if (kindOrder != 0) {
+			return kindOrder;
+		}
+		var locationOrder = Reflect.compare(a.location, b.location);
+		if (locationOrder != 0) {
+			return locationOrder;
+		}
+		return Reflect.compare(a.detail, b.detail);
+	}
+
 	static function renderContractReportJson(snapshot:ContractReportSnapshot):String {
 		var lines:Array<String> = [];
 		lines.push("{");
@@ -431,7 +465,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		appendJsonStringArray(lines, snapshot.metalLaneModules, 2);
 		lines.push("\t],");
 		lines.push('\t"metalFallbackViolations": [');
-		appendJsonStringArray(lines, snapshot.metalFallbackViolations, 2);
+		appendJsonContractFallbackArray(lines, snapshot.metalFallbackViolations, 2);
 		lines.push("\t]");
 		lines.push("}");
 		return lines.join("\n") + "\n";
@@ -477,7 +511,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			lines.push("- none");
 		} else {
 			for (entry in snapshot.metalFallbackViolations) {
-				lines.push("- `" + entry + "`");
+				var laneLabel = entry.inMetalLane ? "lane" : "non-lane";
+				lines.push("- `" + entry.module + "` (" + laneLabel + ") | `" + entry.kind + "` | `" + entry.location + "` | " + entry.detail);
 			}
 		}
 		lines.push("");
@@ -576,6 +611,21 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		for (index in 0...values.length) {
 			var suffix = index == values.length - 1 ? "" : ",";
 			lines.push(indent + '"' + jsonEscape(values[index]) + '"' + suffix);
+		}
+	}
+
+	static function appendJsonContractFallbackArray(lines:Array<String>, violations:Array<ContractFallbackViolation>, indentLevel:Int):Void {
+		var indent = [for (_ in 0...indentLevel) "\t"].join("");
+		for (index in 0...violations.length) {
+			var violation = violations[index];
+			var suffix = index == violations.length - 1 ? "" : ",";
+			lines.push(indent + "{");
+			lines.push(indent + '\t"module": "' + jsonEscape(violation.module) + '",');
+			lines.push(indent + '\t"inMetalLane": ' + boolString(violation.inMetalLane) + ",");
+			lines.push(indent + '\t"kind": "' + jsonEscape(violation.kind) + '",');
+			lines.push(indent + '\t"location": "' + jsonEscape(violation.location) + '",');
+			lines.push(indent + '\t"detail": "' + jsonEscape(violation.detail) + '"');
+			lines.push(indent + "}" + suffix);
 		}
 	}
 

@@ -108,10 +108,13 @@ class GoCompiler {
 	final requiredMetalResultElementTypes:Map<String, Bool>;
 	final externImportPaths:Map<String, Bool>;
 	final externImportPackages:Map<String, String>;
+	final sourceFileToModule:Map<String, String>;
+	final sourceModuleBySuffix:Map<String, String>;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
 	final functionReturnTypeScopes:Array<Type>;
 	final returnRedirectScopes:Array<Null<ReturnRedirect>>;
+	var sourceModuleSuffixes:Array<String>;
 	var cachedVoidType:Null<Type>;
 	var requiresIoHelperSurface:Bool;
 	var projectClasses:Array<ClassType>;
@@ -134,10 +137,13 @@ class GoCompiler {
 		requiredMetalResultElementTypes = new Map<String, Bool>();
 		externImportPaths = new Map<String, Bool>();
 		externImportPackages = new Map<String, String>();
+		sourceFileToModule = new Map<String, String>();
+		sourceModuleBySuffix = new Map<String, String>();
 		functionVarNameScopes = [];
 		functionVarNameCountScopes = [];
 		functionReturnTypeScopes = [];
 		returnRedirectScopes = [];
+		sourceModuleSuffixes = [];
 		cachedVoidType = null;
 		requiresIoHelperSurface = false;
 		projectClasses = [];
@@ -160,6 +166,7 @@ class GoCompiler {
 	function compileResolvedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
 		projectClasses = classes.copy();
 		projectEnums = enums.copy();
+		rebuildSourceModuleLookup(classes, enums);
 		globalLeafReceiverTypes = buildGlobalLeafReceiverTypes(projectClasses);
 		syncCompilationContextLeafReceivers();
 		clearBoolMap(compilationContext.leafReturningFunctions);
@@ -1004,6 +1011,74 @@ class GoCompiler {
 		for (key in keys) {
 			map.remove(key);
 		}
+	}
+
+	function clearStringMap(map:Map<String, String>):Void {
+		var keys = [for (key in map.keys()) key];
+		for (key in keys) {
+			map.remove(key);
+		}
+	}
+
+	function rebuildSourceModuleLookup(classes:Array<ClassType>, enums:Array<EnumType>):Void {
+		clearStringMap(sourceFileToModule);
+		clearStringMap(sourceModuleBySuffix);
+		sourceModuleSuffixes = [];
+
+		for (classType in classes) {
+			registerSourceModule(classType.module, classType.pos);
+		}
+		for (enumType in enums) {
+			registerSourceModule(enumType.module, enumType.pos);
+		}
+		sourceModuleSuffixes.sort(compareSuffixBySpecificity);
+	}
+
+	function registerSourceModule(moduleName:Null<String>, pos:haxe.macro.Expr.Position):Void {
+		var normalizedModule = normalizeModuleLabel(moduleName);
+		if (normalizedModule == "<unknown>") {
+			return;
+		}
+
+		var location = PositionTools.toLocation(pos);
+		var sourcePath = location == null ? "" : normalizeSourcePath(Std.string(location.file));
+		if (sourcePath != "" && !sourceFileToModule.exists(sourcePath)) {
+			sourceFileToModule.set(sourcePath, normalizedModule);
+		}
+
+		var suffix = sourceModuleToFilePath(normalizedModule);
+		if (suffix != "" && !sourceModuleBySuffix.exists(suffix)) {
+			sourceModuleBySuffix.set(suffix, normalizedModule);
+			sourceModuleSuffixes.push(suffix);
+		}
+	}
+
+	function sourceModuleForPos(pos:haxe.macro.Expr.Position):String {
+		var sourcePath = normalizeSourcePath(Context.getPosInfos(pos).file);
+		if (sourcePath != "" && sourceFileToModule.exists(sourcePath)) {
+			return sourceFileToModule.get(sourcePath);
+		}
+
+		for (suffix in sourceModuleSuffixes) {
+			if (pathEndsWithSuffix(sourcePath, suffix)) {
+				return sourceModuleBySuffix.get(suffix);
+			}
+		}
+		return "<unknown>";
+	}
+
+	static function pathEndsWithSuffix(path:String, suffix:String):Bool {
+		if (path == suffix) {
+			return true;
+		}
+		return path != "" && suffix != "" && StringTools.endsWith(path, "/" + suffix);
+	}
+
+	static function compareSuffixBySpecificity(a:String, b:String):Int {
+		if (a.length != b.length) {
+			return b.length - a.length;
+		}
+		return Reflect.compare(a, b);
 	}
 
 	function interfaceSymbol(classType:ClassType):String {
@@ -11373,12 +11448,15 @@ class GoCompiler {
 		if (!isMetalProfile()) {
 			return;
 		}
-		var infos = Context.getPosInfos(pos);
-		var location = infos.file + ":" + infos.min;
+		var moduleName = sourceModuleForPos(pos);
+		var inMetalLane = compilationContext.buildContext.metalLaneModules.indexOf(moduleName) != -1;
+		var location = fallbackLocationLabel(pos, moduleName);
 		var violation = {
 			kind: kind,
 			detail: detail,
-			location: location
+			location: location,
+			module: moduleName,
+			inMetalLane: inMetalLane
 		};
 		compilationContext.metalFallbackViolations.push(violation);
 		var hardError = compilationContext.buildContext.metalContractHardError && !isFrameworkInternalPos(pos);
@@ -11387,6 +11465,15 @@ class GoCompiler {
 				+ detail
 				+ " Use `-D reflaxe_go_metal_allow_fallback` to permit fallback for this build.", pos);
 		}
+	}
+
+	function fallbackLocationLabel(pos:haxe.macro.Expr.Position, moduleName:String):String {
+		var line = 1;
+		var location = PositionTools.toLocation(pos);
+		if (location != null && location.range != null && location.range.start != null && location.range.start.line > 0) {
+			line = location.range.start.line;
+		}
+		return normalizeModuleLabel(moduleName) + ":" + line;
 	}
 
 	function isFrameworkInternalPos(pos:haxe.macro.Expr.Position):Bool {
@@ -11401,6 +11488,14 @@ class GoCompiler {
 
 	static function normalizeSourcePath(value:String):String {
 		return value == null ? "" : value.split("\\").join("/");
+	}
+
+	static function normalizeModuleLabel(value:Null<String>):String {
+		if (value == null) {
+			return "<unknown>";
+		}
+		var trimmed = StringTools.trim(value);
+		return trimmed == "" ? "<unknown>" : trimmed;
 	}
 
 	function isGoChanClass(classType:ClassType):Bool {

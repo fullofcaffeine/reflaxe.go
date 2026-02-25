@@ -1,6 +1,6 @@
 # Contract Report
 
-- schema version: `1`
+- schema version: `2`
 - contract: `portable`
 - strict examples: `no`
 - strict user boundaries: `no`

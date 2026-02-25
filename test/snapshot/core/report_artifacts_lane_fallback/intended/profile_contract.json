@@ -1,0 +1,49 @@
+{
+	"schemaVersion": 2,
+	"contract": "metal",
+	"strictExamples": false,
+	"strictUserBoundaries": false,
+	"metalFallbackAllowed": true,
+	"metalContractHardError": false,
+	"emitLineDirectives": false,
+	"rawNativeMode": "interp",
+	"hxrtSelectiveEnabled": false,
+	"hxrtForceFullCopy": false,
+	"hxrtNoFeatureInfer": false,
+	"metalFallbackViolationCount": 4,
+	"hxrtManualFeatures": [
+	],
+	"metalLaneModules": [
+		"LaneWorker"
+	],
+	"metalFallbackViolations": [
+		{
+			"module": "LaneWorker",
+			"inMetalLane": true,
+			"kind": "go_result_static_failure_unmorphable",
+			"location": "LaneWorker:5",
+			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization."
+		},
+		{
+			"module": "NonLaneWorker",
+			"inMetalLane": false,
+			"kind": "go_result_static_failure_unmorphable",
+			"location": "NonLaneWorker:4",
+			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization."
+		},
+		{
+			"module": "go.Go",
+			"inMetalLane": false,
+			"kind": "go_chan_method_unmorphable",
+			"location": "go.Go:19",
+			"detail": "Could not monomorphize go.Chan method call (element type: any)."
+		},
+		{
+			"module": "go.Go",
+			"inMetalLane": false,
+			"kind": "go_chan_new_unmorphable",
+			"location": "go.Go:17",
+			"detail": "Could not monomorphize go.Chan element type for constructor specialization."
+		}
+	]
+}

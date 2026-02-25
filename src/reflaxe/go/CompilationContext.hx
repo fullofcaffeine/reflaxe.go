@@ -6,6 +6,8 @@ typedef MetalFallbackViolation = {
 	var kind:String;
 	var detail:String;
 	var location:String;
+	var module:String;
+	var inMetalLane:Bool;
 }
 
 class CompilationContext {
