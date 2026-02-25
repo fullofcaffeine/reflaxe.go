@@ -14,10 +14,9 @@ import time
 from typing import Iterable
 
 ROOT = Path(__file__).resolve().parent.parent
-SEMANTIC_ROOT = ROOT / "test" / "semantic_diff"
+SEMANTIC_CORE_ROOT = ROOT / "test" / "semantic_diff"
+SEMANTIC_LANES_ROOT = ROOT / "test" / "semantic_diff_lanes"
 CACHE_ROOT = ROOT / "test" / ".test-cache"
-LAST_FAILED = CACHE_ROOT / "semantic_diff_last_failed.txt"
-LAST_RUN = CACHE_ROOT / "semantic_diff_last_run.json"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -40,6 +39,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run semantic differential tests (Haxe --interp vs reflaxe.go portable output)"
     )
+    parser.add_argument(
+        "--suite",
+        choices=["core", "lanes"],
+        default="core",
+        help="Semantic diff suite to run (core or lanes)",
+    )
     parser.add_argument("--list", action="store_true", help="List discovered semantic diff cases")
     parser.add_argument("--case", action="append", default=[], help="Run specific case id(s)")
     parser.add_argument("--pattern", default="", help="Regex filter over case ids")
@@ -49,12 +54,28 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def discover_cases() -> list[SemanticCase]:
+def semantic_root_for_suite(suite: str) -> Path:
+    return SEMANTIC_LANES_ROOT if suite == "lanes" else SEMANTIC_CORE_ROOT
+
+
+def cache_paths_for_suite(suite: str) -> tuple[Path, Path]:
+    if suite == "lanes":
+        return (
+            CACHE_ROOT / "semantic_diff_lanes_last_failed.txt",
+            CACHE_ROOT / "semantic_diff_lanes_last_run.json",
+        )
+    return (
+        CACHE_ROOT / "semantic_diff_last_failed.txt",
+        CACHE_ROOT / "semantic_diff_last_run.json",
+    )
+
+
+def discover_cases(semantic_root: Path) -> list[SemanticCase]:
     cases: list[SemanticCase] = []
-    if not SEMANTIC_ROOT.exists():
+    if not semantic_root.exists():
         return cases
 
-    for case_dir in sorted(SEMANTIC_ROOT.iterdir()):
+    for case_dir in sorted(semantic_root.iterdir()):
         if not case_dir.is_dir():
             continue
         main_hx = case_dir / "Main.hx"
@@ -71,8 +92,9 @@ def discover_cases() -> list[SemanticCase]:
     return cases
 
 
-def changed_case_ids() -> set[str]:
-    cmd = ["git", "diff", "--name-only", "--", "test/semantic_diff"]
+def changed_case_ids(semantic_root: Path) -> set[str]:
+    relative_root = semantic_root.relative_to(ROOT).as_posix()
+    cmd = ["git", "diff", "--name-only", "--", relative_root]
     try:
         proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, check=True)
     except (FileNotFoundError, subprocess.CalledProcessError):
@@ -82,26 +104,28 @@ def changed_case_ids() -> set[str]:
     for line in proc.stdout.splitlines():
         path = Path(line.strip())
         parts = path.parts
-        if len(parts) >= 3 and parts[0] == "test" and parts[1] == "semantic_diff":
-            ids.add(parts[2])
+        expected_parts = Path(relative_root).parts
+        if len(parts) >= len(expected_parts) + 1 and tuple(parts[: len(expected_parts)]) == expected_parts:
+            ids.add(parts[len(expected_parts)])
     return ids
 
 
-def read_last_failed() -> list[str]:
-    if not LAST_FAILED.exists():
+def read_last_failed(last_failed_file: Path) -> list[str]:
+    if not last_failed_file.exists():
         return []
-    return [line.strip() for line in LAST_FAILED.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [line.strip() for line in last_failed_file.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
-def apply_filters(cases: Iterable[SemanticCase], args: argparse.Namespace) -> list[SemanticCase]:
+def apply_filters(cases: Iterable[SemanticCase], args: argparse.Namespace, semantic_root: Path,
+                  last_failed_file: Path) -> list[SemanticCase]:
     selected = list(cases)
 
     if args.failed:
-        failed = set(read_last_failed())
+        failed = set(read_last_failed(last_failed_file))
         selected = [case for case in selected if case.case_id in failed]
 
     if args.changed:
-        changed = changed_case_ids()
+        changed = changed_case_ids(semantic_root)
         selected = [case for case in selected if case.case_id in changed]
 
     if args.case:
@@ -253,13 +277,13 @@ def run_case(case: SemanticCase, args: argparse.Namespace) -> CaseResult:
         )
 
 
-def write_last_failed(results: list[CaseResult]) -> None:
+def write_last_failed(results: list[CaseResult], last_failed_file: Path) -> None:
     CACHE_ROOT.mkdir(parents=True, exist_ok=True)
     failed = sorted(result.case_id for result in results if not result.ok)
-    LAST_FAILED.write_text("\n".join(failed) + ("\n" if failed else ""), encoding="utf-8")
+    last_failed_file.write_text("\n".join(failed) + ("\n" if failed else ""), encoding="utf-8")
 
 
-def write_last_run(results: list[CaseResult]) -> None:
+def write_last_run(results: list[CaseResult], last_run_file: Path) -> None:
     CACHE_ROOT.mkdir(parents=True, exist_ok=True)
     payload = {
         "generated_at_epoch": int(time.time()),
@@ -268,19 +292,21 @@ def write_last_run(results: list[CaseResult]) -> None:
         "failed": sum(1 for result in results if not result.ok),
         "results": [dataclasses.asdict(result) for result in results],
     }
-    LAST_RUN.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    last_run_file.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
 def main() -> int:
     args = parse_args()
-    cases = discover_cases()
+    semantic_root = semantic_root_for_suite(args.suite)
+    last_failed_file, last_run_file = cache_paths_for_suite(args.suite)
+    cases = discover_cases(semantic_root)
 
     if args.list:
         for case in cases:
             print(case.case_id)
         return 0
 
-    selected = apply_filters(cases, args)
+    selected = apply_filters(cases, args, semantic_root, last_failed_file)
     if not selected:
         print("No semantic diff cases selected")
         return 0
@@ -295,13 +321,13 @@ def main() -> int:
         if not result.ok and result.message:
             print(result.message)
 
-    write_last_failed(results)
-    write_last_run(results)
+    write_last_failed(results, last_failed_file)
+    write_last_run(results, last_run_file)
 
     passed = sum(1 for result in results if result.ok)
     failed = len(results) - passed
     print(f"\nSummary: {passed} passed, {failed} failed, {len(results)} total")
-    print(f"Last run report: {LAST_RUN}")
+    print(f"Last run report: {last_run_file}")
 
     return 1 if failed else 0
 

@@ -1,3 +1,4 @@
 snapshot/**/out/
 semantic_diff/**/out/
+semantic_diff_lanes/**/out/
 .test-cache/

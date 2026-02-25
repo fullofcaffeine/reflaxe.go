@@ -266,6 +266,13 @@ Compare runtime behavior between Haxe reference execution (`--interp`) and `refl
 python3 test/run-semantic-diff.py
 ```
 
+Run the lane-focused suite (`@:goMetal` lane-clean fixtures):
+
+```bash
+python3 test/run-semantic-diff.py --suite lanes
+npm run test:semantic-diff:lanes
+```
+
 List cases:
 
 ```bash
