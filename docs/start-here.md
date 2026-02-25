@@ -145,6 +145,7 @@ Compatibility note:
 - `docs/hxrt-runtime.md`
 - `docs/hxrt-selective-runtime.md`
 - `docs/portable-canonical-contract.md`
+- `docs/portable-semantics-v1.md`
 - `docs/profiles.md`
 - `docs/profile-semantics-guide.md`
 - `docs/profile-auto-spike.md`

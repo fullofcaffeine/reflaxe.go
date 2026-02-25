@@ -315,7 +315,9 @@ Use these gates when profile behavior changes:
 - `python3 test/run-ci.py --force-semantic-diff-lanes`
 - `python3 test/run-examples.py`
 
-Canonical portable semantics reference: `docs/portable-canonical-contract.md`.
+Canonical portable semantics references:
+- `docs/portable-canonical-contract.md`
+- `docs/portable-semantics-v1.md`
 
 ## Family template requirements
 

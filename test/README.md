@@ -274,6 +274,10 @@ scripts/ci/stdlib-provenance-ledger-check.js
 
 Compare runtime behavior between Haxe reference execution (`--interp`) and `reflaxe.go` generated output (`portable` profile):
 
+Portable semantic contract reference:
+
+- `docs/portable-semantics-v1.md`
+
 ```bash
 python3 test/run-semantic-diff.py
 ```

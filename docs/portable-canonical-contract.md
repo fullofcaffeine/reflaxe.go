@@ -2,6 +2,8 @@
 
 This document is the source-of-truth portable contract for the Haxe native compiler family (`haxe.go`, then `haxe.rust`, then `haxe.elixir.codex`).
 
+Versioned normative semantics spec: `docs/portable-semantics-v1.md`.
+
 ## Purpose
 
 `portable` is the cross-compiler compatibility lane.
@@ -44,7 +46,11 @@ Selective `hxrt` runtime slicing is orthogonal to profiles. It optimizes packagi
 
 ## Portable Semantic Rules (current)
 
-These are explicitly locked in tests:
+Normative semantics (versioned, family-grade) are defined in:
+
+- `docs/portable-semantics-v1.md`
+
+Key rules are explicitly locked in tests:
 
 - Dynamic dispatch must remain correct across modules.
 - Leaf-call devirtualization is allowed only when globally proven safe.

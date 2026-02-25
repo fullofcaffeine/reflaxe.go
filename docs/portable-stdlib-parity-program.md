@@ -25,6 +25,7 @@ No portable-eligible module should remain implicit/unknown.
 Contract artifact:
 
 - `test/portable_allowlist.json` (tiered canonical portable module set, validated in CI)
+- `docs/portable-semantics-v1.md` (versioned portable semantics contract for high-risk cross-target behavior)
 
 Excluded from this parity objective:
 

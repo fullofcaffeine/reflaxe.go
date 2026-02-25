@@ -18,6 +18,7 @@ This target supports two profiles:
 - `portable` is the semantic baseline.
 - `metal` is the explicit low-level performance/interop lane.
 - Canonical portable semantics are documented in `docs/portable-canonical-contract.md`.
+- Versioned portable semantics rules are documented in `docs/portable-semantics-v1.md`.
 - World-class profile strategy, semantics, and migration guidance:
   `docs/profile-semantics-guide.md`.
 

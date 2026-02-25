@@ -10,6 +10,8 @@
 
 Anything outside that bar is either **partial** (implemented but not fully gated) or **unsupported**.
 
+Portable semantic rulebook for high-risk behavior classes is versioned in `docs/portable-semantics-v1.md`.
+
 Portable-eligible upstream module status is tracked in machine-readable form at:
 
 - `test/portable_stdlib_inventory.json` (validated by `python3 test/run-portable-stdlib-inventory.py`)
