@@ -61,7 +61,14 @@ Framework-owned typed facades are allowed in `metal` strict mode; raw app-side i
 `@:goMetal` marks module islands that must obey metal-clean restrictions even when the build contract is `portable`.
 
 - Current enforced rule: raw `__go__` is disallowed in `@:goMetal` modules under portable contract.
-- Snapshot coverage: `test/snapshot/negative/go_metal_lane_injection`.
+- Typed fallback rule: `go.Chan` / `go.Slice` / `go.Map` / `go.Result` calls that would fall back from typed specialization (for example `Dynamic`/`Any` paths) are disallowed in `@:goMetal` modules under portable contract.
+- Snapshot coverage:
+  - `test/snapshot/negative/go_metal_lane_injection`
+  - `test/snapshot/negative/go_metal_lane_fallback_result`
+  - `test/snapshot/negative/go_metal_lane_fallback_chan`
+  - `test/snapshot/negative/go_metal_lane_fallback_slice`
+  - `test/snapshot/negative/go_metal_lane_fallback_map`
+  - `test/snapshot/core/go_metal_lane_nonlane_fallback_allowed`
 
 Lane module discovery is deterministic and emitted in profile contract reports.
 

@@ -90,7 +90,9 @@ Design note:
 
 - `@:goMetal`
   - Module/type/field metadata for metal-clean lane islands inside portable builds.
-  - Portable builds enforce lane restrictions for these modules (for example raw `__go__` is disallowed).
+  - Portable builds enforce lane restrictions for these modules:
+    - raw `__go__` is disallowed.
+    - typed fallback paths for `go.Chan`/`go.Slice`/`go.Map`/`go.Result` are disallowed (for example non-monomorphizable `Dynamic`/`Any` lane usage).
 
 Removed:
 

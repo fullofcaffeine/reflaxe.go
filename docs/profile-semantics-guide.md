@@ -90,11 +90,20 @@ class Main {
 class Adapter {
   static function boot() {
     // raw __go__ is forbidden in this lane when contract=portable
+    // non-monomorphizable go.Result/go.Chan/go.Slice/go.Map calls are also forbidden
   }
 }
 ```
 
 `@:goMetal` lets you mark incremental migration islands inside a portable build. Those modules get metal-clean enforcement rules even when global contract stays portable.
+
+Lane enforcement snapshots:
+- `test/snapshot/negative/go_metal_lane_injection`
+- `test/snapshot/negative/go_metal_lane_fallback_result`
+- `test/snapshot/negative/go_metal_lane_fallback_chan`
+- `test/snapshot/negative/go_metal_lane_fallback_slice`
+- `test/snapshot/negative/go_metal_lane_fallback_map`
+- `test/snapshot/core/go_metal_lane_nonlane_fallback_allowed`
 
 ## What changes and what does not
 

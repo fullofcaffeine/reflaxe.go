@@ -1,0 +1,1 @@
+MetalLaneEnforcer: typed metal fallback is not allowed in @:goMetal module "Main" when contract=portable. Could not monomorphize go.Slice element type for metal specialization.
