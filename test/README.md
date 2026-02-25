@@ -54,6 +54,12 @@ Skip portable allowlist stage:
 python3 test/run-ci.py --skip-portable-allowlist
 ```
 
+Skip portable conformance stage:
+
+```bash
+python3 test/run-ci.py --skip-portable-conformance
+```
+
 Force semantic diff on a shard:
 
 ```bash
@@ -64,6 +70,12 @@ Force lane semantic diff on a shard:
 
 ```bash
 python3 test/run-ci.py --chunk 0/4 --force-semantic-diff-lanes
+```
+
+Force portable conformance on a focused run:
+
+```bash
+python3 test/run-ci.py --changed --force-portable-conformance
 ```
 
 Force examples stage on a focused run:
@@ -245,6 +257,35 @@ Primary artifacts:
 test/portable_allowlist.json
 test/.test-cache/portable_allowlist_summary.json
 test/.test-cache/portable_allowlist_summary.md
+```
+
+## Portable Tier1 conformance suite
+
+Run the dedicated Tier1 portable conformance seed (mapped from `portable_allowlist` modules to deterministic semantic-diff cases):
+
+```bash
+python3 test/run-portable-conformance.py
+npm run test:portable-conformance
+```
+
+List module-to-case mapping:
+
+```bash
+python3 test/run-portable-conformance.py --list
+```
+
+Run only selected Tier1 module checks:
+
+```bash
+python3 test/run-portable-conformance.py --module haxe.Json --module sys.net.Socket
+```
+
+Primary artifacts:
+
+```text
+test/portable_conformance_tier1.json
+test/.test-cache/portable_conformance_tier1_summary.json
+test/.test-cache/portable_conformance_tier1_summary.md
 ```
 
 ## Stdlib governance guards (provenance + boundary)

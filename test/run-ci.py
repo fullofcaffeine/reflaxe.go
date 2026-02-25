@@ -27,6 +27,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--stdlib-compile-only", action="store_true", help="Run stdlib sweep without go test stage")
     parser.add_argument("--skip-stdlib-inventory", action="store_true", help="Skip portable stdlib inventory validation stage")
     parser.add_argument("--skip-portable-allowlist", action="store_true", help="Skip portable allowlist validation stage")
+    parser.add_argument("--skip-portable-conformance", action="store_true", help="Skip portable Tier1 conformance stage")
+    parser.add_argument(
+        "--force-portable-conformance",
+        action="store_true",
+        help="Run portable Tier1 conformance stage even for chunked/filtered runs",
+    )
     parser.add_argument("--skip-stdlib-governance", action="store_true", help="Skip stdlib provenance/boundary governance stage")
     parser.add_argument("--skip-semantic-diff", action="store_true", help="Skip semantic differential stage")
     parser.add_argument("--force-semantic-diff", action="store_true", help="Run semantic differential stage even for chunked/filtered runs")
@@ -101,6 +107,20 @@ def should_run_portable_allowlist(args: argparse.Namespace) -> bool:
 
 def build_portable_allowlist_command() -> list[str]:
     return ["python3", "test/run-portable-allowlist.py"]
+
+
+def should_run_portable_conformance(args: argparse.Namespace) -> bool:
+    if args.skip_portable_conformance:
+        return False
+    if args.force_portable_conformance:
+        return True
+
+    # Keep portable conformance on full runs by default.
+    return not (args.chunk or args.failed or args.changed or args.pattern)
+
+
+def build_portable_conformance_command(args: argparse.Namespace) -> list[str]:
+    return ["python3", "test/run-portable-conformance.py", "--timeout", str(args.timeout)]
 
 
 def should_run_stdlib_governance(args: argparse.Namespace) -> bool:
@@ -216,6 +236,14 @@ def main() -> int:
             return portable_allowlist_code
     else:
         print("==> Skipping portable allowlist stage")
+
+    if should_run_portable_conformance(args):
+        print("==> Portable conformance stage")
+        portable_conformance_code = run(build_portable_conformance_command(args))
+        if portable_conformance_code != 0:
+            return portable_conformance_code
+    else:
+        print("==> Skipping portable conformance stage")
 
     if should_run_stdlib_governance(args):
         print("==> Stdlib governance stage")

@@ -59,6 +59,7 @@ Required commands:
 
 ```bash
 npm run test:portable-allowlist
+npm run test:portable-conformance
 npm run test:stdlib:governance
 ```
 
