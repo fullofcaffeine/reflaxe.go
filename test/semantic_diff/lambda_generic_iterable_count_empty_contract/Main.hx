@@ -45,10 +45,14 @@ class Main {
 		Sys.println("has.values.9=" + Lambda.has(values, 9));
 
 		var filtered = Lambda.filter(values, function(v:Int):Bool return v % 2 == 1);
+		var mapFn = Lambda.map;
+		var mapped = mapFn(values, function(v:Int):Int return v * 10);
 		var folded = Lambda.fold(values, function(v:Int, acc:Int):Int return acc + v, 0);
 		Sys.println("filter.values.length=" + filtered.length);
 		Sys.println("filter.values.first=" + filtered[0]);
 		Sys.println("filter.values.last=" + filtered[filtered.length - 1]);
+		Sys.println("map.values.first=" + mapped[0]);
+		Sys.println("map.values.last=" + mapped[mapped.length - 1]);
 		Sys.println("fold.values.sum=" + folded);
 	}
 }

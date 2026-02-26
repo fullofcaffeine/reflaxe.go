@@ -11345,6 +11345,11 @@ class GoCompiler {
 			return lambdaStaticCall;
 		}
 
+		var lambdaFunctionValueCall = lowerLambdaFunctionValueCall(callee, args, returnType);
+		if (lambdaFunctionValueCall != null) {
+			return lambdaFunctionValueCall;
+		}
+
 		var metalChanCall = lowerMetalGoChanCall(callee, args, returnType);
 		if (metalChanCall != null) {
 			return metalChanCall;
@@ -12139,6 +12144,67 @@ class GoCompiler {
 			GoStmt.GoRaw("}"),
 			GoStmt.GoReturn(GoExpr.GoIdent(outName))
 		]), [anySliceExpr]);
+	}
+
+	function functionTypedSignature(type:Type):Null<{args:Array<{name:String, opt:Bool, t:Type}>, result:Type}> {
+		return switch (Context.follow(type)) {
+			case TFun(args, returnType):
+				{
+					args: args,
+					result: returnType
+				};
+			case _:
+				null;
+		};
+	}
+
+	function lowerLambdaFunctionValueCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		if (args.length < 2) {
+			return null;
+		}
+		var sourcePlan = tryLambdaSourcePlan(args[0]);
+		if (sourcePlan != null) {
+			return null;
+		}
+		var signature = functionTypedSignature(callee.t);
+		if (signature == null) {
+			return null;
+		}
+		var calleeExpr = lowerExpr(callee).expr;
+		var dynamicSourceExpr = lowerLambdaDynamicIterableSource(args[0]);
+
+		// Function-value `Lambda.map` calls are lowered as plain function calls by typing.
+		// Detect Lambda-shaped signature and apply the same generic Iterable adapter path as static lowering.
+		if (args.length == 2 && signature.args.length == 2 && signature.args[0].name == "it" && signature.args[1].name == "f" && isArrayType(returnType)) {
+			switch (Context.follow(signature.args[1].t)) {
+				case TFun(_, mapperReturnType):
+					if (!isBoolType(mapperReturnType)) {
+						var mapperExpr = lowerExpr(args[1]).expr;
+						var adaptedMapperExpr = lowerLambdaMapperAnyAdapter(mapperExpr, args[1].t);
+						var mappedAnyExpr = GoExpr.GoCall(calleeExpr, [dynamicSourceExpr, adaptedMapperExpr]);
+						return {
+							expr: lowerLambdaAnyArrayCoerce(mappedAnyExpr, returnType),
+							isStringLike: false
+						};
+					}
+				case _:
+			}
+		}
+
+		// Function-value `Lambda.fold` follows the same typed adapter bridge.
+		if (args.length == 3 && signature.args.length == 3 && signature.args[0].name == "it" && signature.args[1].name == "f"
+			&& signature.args[2].name == "first") {
+			var folderExpr = lowerExpr(args[1]).expr;
+			var initExpr = lowerExpr(args[2]).expr;
+			var adaptedFolderExpr = lowerLambdaFolderAnyAdapter(folderExpr, args[1].t);
+			var foldedAnyExpr = GoExpr.GoCall(calleeExpr, [dynamicSourceExpr, adaptedFolderExpr, initExpr]);
+			return {
+				expr: lowerNullableAwareTypeAssertExpr(foldedAnyExpr, returnType),
+				isStringLike: false
+			};
+		}
+
+		return null;
 	}
 
 	function lowerLambdaStaticCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
