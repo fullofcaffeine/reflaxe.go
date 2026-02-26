@@ -125,6 +125,30 @@ class GoTypeMapper {
 		};
 	}
 
+	public static function isNullableFloatType(type:Type):Bool {
+		return switch (type) {
+			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isFloatType(params[0]);
+			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableFloatType(resolved);
+			case TType(_, _): var followed = TypeTools.follow(type, true); followed != type && isNullableFloatType(followed);
+			case TLazy(f):
+				isNullableFloatType(f());
+			case _:
+				false;
+		};
+	}
+
+	public static function isNullableBoolType(type:Type):Bool {
+		return switch (type) {
+			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isBoolType(params[0]);
+			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableBoolType(resolved);
+			case TType(_, _): var followed = TypeTools.follow(type, true); followed != type && isNullableBoolType(followed);
+			case TLazy(f):
+				isNullableBoolType(f());
+			case _:
+				false;
+		};
+	}
+
 	public static function isNullablePrimitiveType(type:Type):Bool {
 		return switch (type) {
 			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isPrimitiveValueType(params[0]);

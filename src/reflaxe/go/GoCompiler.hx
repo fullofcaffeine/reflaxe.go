@@ -13205,10 +13205,12 @@ class GoCompiler {
 		var useStringEquality = stringMode && (!nullComparison || isStringType(left.t) || isStringType(right.t));
 		var typedStringOps = isStringType(left.t) && isStringType(right.t);
 		var anyNullComparison = nullComparison && (isAnyLikeType(left.t) || isAnyLikeType(right.t));
+		var floatMode = isFloatType(left.t) || isFloatType(right.t) || isFloatType(resultType) || isNullableFloatType(left.t)
+			|| isNullableFloatType(right.t) || isNullableFloatType(resultType);
 		var int32Mode = isInt32SemanticType(left.t, left.pos)
 			|| isInt32SemanticType(right.t, right.pos)
 			|| isInt32SemanticType(resultType, left.pos);
-		if (isFloatType(left.t) || isFloatType(right.t) || isFloatType(resultType)) {
+		if (floatMode) {
 			int32Mode = false;
 		}
 
@@ -13268,12 +13270,12 @@ class GoCompiler {
 						isStringLike: false
 					};
 				}
-			case OpAdd | OpSub | OpMult | OpDiv if (isFloatType(resultType)):
+			case OpAdd | OpSub | OpMult | OpDiv if (floatMode):
 				{
 					expr: GoExpr.GoBinary(binopSymbol(op), floatOperandExpr(leftLowered.expr, left.t), floatOperandExpr(rightLowered.expr, right.t)),
 					isStringLike: false
 				};
-			case OpMod if (isFloatType(left.t) || isFloatType(right.t) || isFloatType(resultType)):
+			case OpMod if (floatMode):
 				{
 					expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.FloatMod"), [
 						floatOperandExpr(leftLowered.expr, left.t),
@@ -13322,16 +13324,20 @@ class GoCompiler {
 		if ((isInt32SemanticType(leftType, sourcePos) || isInt32SemanticType(rightType, sourcePos))
 			&& !isFloatType(leftType)
 			&& !isFloatType(rightType)
+			&& !isNullableFloatType(leftType)
+			&& !isNullableFloatType(rightType)
 			&& (op == OpAdd || op == OpSub || op == OpMult || op == OpMod || op == OpAnd || op == OpOr || op == OpXor || op == OpShl || op == OpShr
 				|| op == OpUShr)) {
 			var int32Left = coerceNullableIntOperandExpr(leftExpr, leftType);
 			var int32Right = coerceNullableIntOperandExpr(rightExpr, rightType);
 			return lowerHaxeInt32BinopExpr(op, int32Left, int32Right);
 		}
-		if ((op == OpAdd || op == OpSub || op == OpMult || op == OpDiv) && isFloatType(leftType)) {
+		if ((op == OpAdd || op == OpSub || op == OpMult || op == OpDiv)
+			&& (isFloatType(leftType) || isNullableFloatType(leftType) || isFloatType(rightType) || isNullableFloatType(rightType))) {
 			return GoExpr.GoBinary(binopSymbol(op), floatOperandExpr(leftExpr, leftType), floatOperandExpr(rightExpr, rightType));
 		}
-		if (op == OpMod && (isFloatType(leftType) || isFloatType(rightType))) {
+		if (op == OpMod
+			&& (isFloatType(leftType) || isFloatType(rightType) || isNullableFloatType(leftType) || isNullableFloatType(rightType))) {
 			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.FloatMod"), [floatOperandExpr(leftExpr, leftType), floatOperandExpr(rightExpr, rightType)]);
 		}
 		if (op == OpUShr) {
@@ -13353,6 +13359,13 @@ class GoCompiler {
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [expr]);
 	}
 
+	function coerceNullableFloatOperandExpr(expr:GoExpr, operandType:Type):GoExpr {
+		if (!isNullableFloatType(operandType)) {
+			return expr;
+		}
+		return lowerNilSafeTypeAssertExpr(expr, "float64");
+	}
+
 	function coerceAnyExprToType(expr:GoExpr, fromType:Type, toType:Type, ?fromAnyOverride:Bool = false):GoExpr {
 		var fromGoType = typeToGoType(fromType);
 		var toGoType = typeToGoType(toType);
@@ -13361,6 +13374,12 @@ class GoCompiler {
 		}
 		if (isIntType(toType) || isHaxeInt32Type(toType)) {
 			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [expr]);
+		}
+		if (isFloatType(toType) || isNullableFloatType(toType)) {
+			return lowerNilSafeTypeAssertExpr(expr, "float64");
+		}
+		if (isBoolType(toType) || isNullableBoolType(toType)) {
+			return lowerNilSafeTypeAssertExpr(expr, "bool");
 		}
 		if (isStringType(toType)) {
 			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [expr]);
@@ -13373,6 +13392,9 @@ class GoCompiler {
 	}
 
 	function floatOperandExpr(expr:GoExpr, operandType:Type):GoExpr {
+		if (isNullableFloatType(operandType)) {
+			return coerceNullableFloatOperandExpr(expr, operandType);
+		}
 		return GoExprOperatorOps.floatOperandExpr(expr, isFloatType(operandType));
 	}
 
@@ -13460,6 +13482,14 @@ class GoCompiler {
 
 	function isNullableIntType(type:Type):Bool {
 		return GoTypeMapper.isNullableIntType(type);
+	}
+
+	function isNullableFloatType(type:Type):Bool {
+		return GoTypeMapper.isNullableFloatType(type);
+	}
+
+	function isNullableBoolType(type:Type):Bool {
+		return GoTypeMapper.isNullableBoolType(type);
 	}
 
 	function isNullablePrimitiveType(type:Type):Bool {

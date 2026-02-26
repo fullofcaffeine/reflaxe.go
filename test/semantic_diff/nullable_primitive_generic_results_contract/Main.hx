@@ -17,8 +17,10 @@ class Main {
 		var floatMissing:Null<Float> = floatMap.get("missing");
 		Sys.println("float.present.null=" + (floatPresent == null));
 		Sys.println("float.present.string=" + Std.string(floatPresent));
+		Sys.println("float.present.half=" + Std.string(floatPresent == null ? -1.0 : floatPresent / 2.0));
 		Sys.println("float.missing.null=" + (floatMissing == null));
 		Sys.println("float.missing.string=" + Std.string(floatMissing));
+		Sys.println("float.missing.half=" + Std.string(floatMissing == null ? -1.0 : floatMissing / 2.0));
 		var floatCast:Float = cast floatMap.get("pi");
 		Sys.println("float.cast=" + Std.string(floatCast));
 
@@ -28,8 +30,10 @@ class Main {
 		var boolMissing:Null<Bool> = boolMap.get("missing");
 		Sys.println("bool.present.null=" + (boolPresent == null));
 		Sys.println("bool.present.string=" + Std.string(boolPresent));
+		Sys.println("bool.present.value=" + Std.string(boolPresent == null ? false : boolPresent));
 		Sys.println("bool.missing.null=" + (boolMissing == null));
 		Sys.println("bool.missing.string=" + Std.string(boolMissing));
+		Sys.println("bool.missing.value=" + Std.string(boolMissing == null ? false : boolMissing));
 		var boolCast:Bool = cast boolMap.get("yes");
 		Sys.println("bool.cast=" + Std.string(boolCast));
 
