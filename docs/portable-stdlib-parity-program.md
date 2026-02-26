@@ -63,6 +63,7 @@ npm run test:portable-allowlist
 npm run test:portable-conformance
 npm run test:portable-parity-closure
 npm run test:stdlib-sweep:full
+npm run test:family-stdlib-bootstrap
 npm run test:stdlib:governance
 ```
 

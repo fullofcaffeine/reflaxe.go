@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "description": "Boundary policy for portable stdlib override roots and upstream vendor restrictions.",
+  "forbid_tracked_roots": [
+    "vendor/haxe/"
+  ],
+  "approved_override_roots": [
+    "std/_std/",
+    "std/go/"
+  ],
+  "notes": [
+    "Portable family extraction must not commit vendored upstream stdlib trees directly.",
+    "Only approved override roots are allowed for tracked portable/native facade overlays."
+  ]
+}

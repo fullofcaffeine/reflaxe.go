@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "description": "Tiered portable contract allowlist for haxe.go (portable-eligible modules only).",
+  "tiers": {
+    "tier1": [
+      "Math",
+      "Std",
+      "StringTools",
+      "Sys",
+      "haxe.Json",
+      "haxe.ds.EnumValueMap",
+      "haxe.ds.IntMap",
+      "haxe.ds.ObjectMap",
+      "haxe.ds.StringMap",
+      "haxe.io.Bytes",
+      "sys.FileSystem",
+      "sys.io.File",
+      "sys.io.Process",
+      "sys.net.Socket"
+    ],
+    "tier2": []
+  }
+}
