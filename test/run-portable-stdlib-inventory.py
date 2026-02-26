@@ -28,6 +28,7 @@ SEMANTIC_DIFF_EXPLICIT = {
     "Reflect",
     "Std",
     "StringTools",
+    "Type",
     "haxe.Exception",
     "haxe.Int32",
     "haxe.Int64",

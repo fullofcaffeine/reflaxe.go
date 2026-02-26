@@ -275,15 +275,16 @@
     {
       "coverage_evidence": [
         "upstream_sweep:full_compile",
-        "upstream_sweep:strict_go_test"
+        "upstream_sweep:strict_go_test",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Type",
-      "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
