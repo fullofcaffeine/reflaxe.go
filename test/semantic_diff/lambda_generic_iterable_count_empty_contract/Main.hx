@@ -32,7 +32,12 @@ class CounterIterable {
 
 class Main {
 	static function main() {
-		var source:Iterable<Int> = new CounterIterable([1, 2, 3]);
-		Sys.println(Lambda.exists(source, function(value:Int):Bool return value == 2));
+		var values:Iterable<Int> = new CounterIterable([1, 2, 3]);
+		var emptyValues:Iterable<Int> = new CounterIterable([]);
+
+		Sys.println("count.values=" + Lambda.count(values));
+		Sys.println("count.empty=" + Lambda.count(emptyValues));
+		Sys.println("empty.values=" + Lambda.empty(values));
+		Sys.println("empty.empty=" + Lambda.empty(emptyValues));
 	}
 }

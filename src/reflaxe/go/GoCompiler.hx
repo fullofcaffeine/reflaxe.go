@@ -896,6 +896,7 @@ class GoCompiler {
 			|| (pack == "haxe.format" && (classType.name == "JsonParser" || classType.name == "JsonPrinter"))
 			|| (pack == "haxe._Int64" && (classType.name == "Int64_Impl_" || classType.name == "___Int64"))
 			|| (pack == "haxe._Int32" && classType.name == "Int32_Impl_")
+			|| (pack == "" && classType.name == "Lambda")
 			|| (pack == "go" && (classType.name == "Go" || classType.name == "Chan" || classType.name == "Select"));
 	}
 
@@ -11997,14 +11998,13 @@ class GoCompiler {
 		};
 	}
 
-	function lambdaSourcePlan(sourceExpr:TypedExpr, methodName:String, callPos:haxe.macro.Expr.Position):LambdaSourcePlan {
-		var loweredSourceExpr = lowerExpr(sourceExpr).expr;
+	function tryLambdaSourcePlan(sourceExpr:TypedExpr):Null<LambdaSourcePlan> {
 		if (isArrayType(sourceExpr.t)) {
 			var elementType = arrayElementGoType(sourceExpr.t);
 			return {
 				domain: "array",
 				elementType: elementType,
-				sourceExpr: loweredSourceExpr,
+				sourceExpr: lowerExpr(sourceExpr).expr,
 				sourceType: "[]" + elementType
 			};
 		}
@@ -12015,9 +12015,18 @@ class GoCompiler {
 			return {
 				domain: "list",
 				elementType: scalarGoType(listElement),
-				sourceExpr: loweredSourceExpr,
+				sourceExpr: lowerExpr(sourceExpr).expr,
 				sourceType: "*haxe__ds__List"
 			};
+		}
+
+		return null;
+	}
+
+	function lambdaSourcePlan(sourceExpr:TypedExpr, methodName:String, callPos:haxe.macro.Expr.Position):LambdaSourcePlan {
+		var sourcePlan = tryLambdaSourcePlan(sourceExpr);
+		if (sourcePlan != null) {
+			return sourcePlan;
 		}
 
 		Context.fatalError("Lambda."
@@ -12027,17 +12036,43 @@ class GoCompiler {
 		return {
 			domain: "array",
 			elementType: "any",
-			sourceExpr: loweredSourceExpr,
+			sourceExpr: lowerExpr(sourceExpr).expr,
 			sourceType: "[]any"
 		};
 	}
 
+	function lowerLambdaDynamicIterableSource(sourceExpr:TypedExpr):GoExpr {
+		var loweredSourceExpr = lowerExpr(sourceExpr).expr;
+		var sourceName = freshTempName("hx_lambda_source");
+		var wrappedName = freshTempName("hx_lambda_wrapped");
+		var iteratorName = freshTempName("hx_lambda_iterator");
+		var iteratorMapLiteral = "map[string]any{\"hasNext\": func() bool { return " + iteratorName + ".hasNext() }, \"next\": func() any { return "
+			+ iteratorName + ".next() }}";
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["map[string]any"], [
+			GoStmt.GoVarDecl(sourceName, null, loweredSourceExpr, true),
+			GoStmt.GoVarDecl(wrappedName, "map[string]any", GoExpr.GoRaw("map[string]any{}"), true),
+			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(wrappedName), GoExpr.GoStringLiteral("iterator")), GoExpr.GoFuncLiteral([], ["map[string]any"], [
+				GoStmt.GoVarDecl(iteratorName, null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "iterator"), []), true),
+				GoStmt.GoReturn(GoExpr.GoRaw(iteratorMapLiteral))
+			])),
+			GoStmt.GoReturn(GoExpr.GoIdent(wrappedName))
+		]), []);
+	}
+
 	function lowerLambdaStaticCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
-		if (isStaticCall(callee, "Lambda", [], "count")) {
-			if (args.length != 1) {
-				Context.fatalError("Lambda.count expects exactly 1 argument", callee.pos);
+		if (isStaticCall(callee, "Lambda", [], "count") || isGeneratedLambdaCall(callee, "count")) {
+			var supportsOptimizedCount = args.length == 1 || (args.length == 2 && isNullLiteralExpr(args[1]));
+			if (!supportsOptimizedCount) {
+				return null;
 			}
-			var sourcePlan = lambdaSourcePlan(args[0], "count", callee.pos);
+			var sourcePlan = tryLambdaSourcePlan(args[0]);
+			if (sourcePlan == null) {
+				var dynamicSourceExpr = lowerLambdaDynamicIterableSource(args[0]);
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent("Lambda_count"), [dynamicSourceExpr, GoExpr.GoNil]),
+					isStringLike: false
+				};
+			}
 			var sourceExpr = sourcePlan.domain == "list" ? GoExpr.GoSelector(sourcePlan.sourceExpr, "items") : sourcePlan.sourceExpr;
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("len"), [sourceExpr]),
@@ -12045,11 +12080,18 @@ class GoCompiler {
 			};
 		}
 
-		if (isStaticCall(callee, "Lambda", [], "empty")) {
+		if (isStaticCall(callee, "Lambda", [], "empty") || isGeneratedLambdaCall(callee, "empty")) {
 			if (args.length != 1) {
 				Context.fatalError("Lambda.empty expects exactly 1 argument", callee.pos);
 			}
-			var sourcePlan = lambdaSourcePlan(args[0], "empty", callee.pos);
+			var sourcePlan = tryLambdaSourcePlan(args[0]);
+			if (sourcePlan == null) {
+				var dynamicSourceExpr = lowerLambdaDynamicIterableSource(args[0]);
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent("Lambda_empty"), [dynamicSourceExpr]),
+					isStringLike: false
+				};
+			}
 			var sourceExpr = sourcePlan.domain == "list" ? GoExpr.GoSelector(sourcePlan.sourceExpr, "items") : sourcePlan.sourceExpr;
 			return {
 				expr: GoExpr.GoBinary("==", GoExpr.GoCall(GoExpr.GoIdent("len"), [sourceExpr]), GoExpr.GoIntLiteral(0)),
@@ -12367,6 +12409,21 @@ class GoCompiler {
 		}
 
 		return null;
+	}
+
+	function isGeneratedLambdaCall(callee:TypedExpr, methodName:String):Bool {
+		return switch (callee.expr) {
+			case TIdent(name):
+				name == ("Lambda_" + methodName);
+			case TMeta(_, inner):
+				isGeneratedLambdaCall(inner, methodName);
+			case TParenthesis(inner):
+				isGeneratedLambdaCall(inner, methodName);
+			case TCast(inner, _):
+				isGeneratedLambdaCall(inner, methodName);
+			case _:
+				false;
+		};
 	}
 
 	function lowerStdIsOfTypeCall(args:Array<TypedExpr>):LoweredExpr {
