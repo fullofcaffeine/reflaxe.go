@@ -54,6 +54,12 @@ Skip semantic diff stage:
 python3 test/run-ci.py --skip-semantic-diff
 ```
 
+Skip semantic-diff optimizer matrix stage:
+
+```bash
+python3 test/run-ci.py --skip-semantic-diff-optimizer-matrix
+```
+
 Skip lane semantic diff stage:
 
 ```bash
@@ -100,6 +106,12 @@ Force semantic diff on a shard:
 
 ```bash
 python3 test/run-ci.py --chunk 0/4 --force-semantic-diff
+```
+
+Force semantic-diff optimizer matrix on a focused run:
+
+```bash
+python3 test/run-ci.py --changed --force-semantic-diff-optimizer-matrix
 ```
 
 Force lane semantic diff on a shard:
@@ -180,6 +192,14 @@ Runs the orthogonal optimizer axis matrix (string fastpath preset on/off and con
 
 ```bash
 npm run test:optimizer:matrix
+```
+
+## Run optimizer semantic-diff matrix
+
+Runs semantic parity checks across the same optimizer toggle matrix:
+
+```bash
+npm run test:semantic-diff:optimizer-matrix
 ```
 
 ## Upstream stdlib sweep

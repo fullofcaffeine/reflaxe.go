@@ -47,6 +47,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--skip-semantic-diff", action="store_true", help="Skip semantic differential stage")
     parser.add_argument("--force-semantic-diff", action="store_true", help="Run semantic differential stage even for chunked/filtered runs")
+    parser.add_argument("--skip-semantic-diff-optimizer-matrix", action="store_true", help="Skip semantic-diff optimizer matrix stage")
+    parser.add_argument(
+        "--force-semantic-diff-optimizer-matrix",
+        action="store_true",
+        help="Run semantic-diff optimizer matrix stage even for chunked/filtered runs",
+    )
     parser.add_argument("--skip-semantic-diff-lanes", action="store_true", help="Skip lane semantic differential stage")
     parser.add_argument(
         "--force-semantic-diff-lanes",
@@ -217,6 +223,20 @@ def build_semantic_diff_command(args: argparse.Namespace) -> list[str]:
     return cmd
 
 
+def should_run_semantic_diff_optimizer_matrix(args: argparse.Namespace) -> bool:
+    if args.skip_semantic_diff_optimizer_matrix:
+        return False
+    if args.force_semantic_diff_optimizer_matrix:
+        return True
+
+    # Keep semantic-diff optimizer matrix on full runs by default.
+    return not (args.chunk or args.failed or args.changed or args.pattern)
+
+
+def build_semantic_diff_optimizer_matrix_command() -> list[str]:
+    return ["npm", "run", "test:semantic-diff:optimizer-matrix"]
+
+
 def should_run_semantic_diff_lanes(args: argparse.Namespace) -> bool:
     if args.skip_semantic_diff_lanes:
         return False
@@ -356,6 +376,14 @@ def main() -> int:
             return semantic_diff_code
     else:
         print("==> Skipping semantic diff stage")
+
+    if should_run_semantic_diff_optimizer_matrix(args):
+        print("==> Semantic diff optimizer matrix stage")
+        semantic_diff_optimizer_matrix_code = run(build_semantic_diff_optimizer_matrix_command())
+        if semantic_diff_optimizer_matrix_code != 0:
+            return semantic_diff_optimizer_matrix_code
+    else:
+        print("==> Skipping semantic diff optimizer matrix stage")
 
     if should_run_semantic_diff_lanes(args):
         print("==> Semantic diff lanes stage")
