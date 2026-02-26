@@ -74,6 +74,7 @@ Design note:
   - Capability toggle for typed go-concurrency fastpath (`go.Chan` specialization path) in portable builds.
   - Defaults to `on` when `reflaxe_go_opt=portable_fast`, otherwise `off`.
   - Example disable: `-D reflaxe_go_opt_go_concurrency_fastpath=0`.
+  - Example explicit override with preset off: `-D reflaxe_go_opt=none -D reflaxe_go_opt_go_concurrency_fastpath=1`.
 
 ## Strictness
 
