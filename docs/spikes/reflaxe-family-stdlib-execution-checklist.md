@@ -43,6 +43,10 @@ Execution tasks created from spike output:
 3. `haxe.go-cgk.17` - pin family package in `haxe.go` with dual-run checks
 4. `haxe.go-cgk.18` - sibling compiler rollout gate plan
 
+Sibling rollout plan artifact:
+
+- `docs/spikes/reflaxe-family-sibling-rollout-gate-plan.md`
+
 These tasks are intentionally blocked by this checklist task (`haxe.go-cgk.14`) and should be unblocked only after explicit approval.
 
 ## Rollout Order

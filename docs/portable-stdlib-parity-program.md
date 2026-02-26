@@ -93,6 +93,7 @@ Portable parity closure artifacts:
 - `test/.test-cache/portable_parity_closure_summary.md`
 - `test/.test-cache/family_std_dual_run_report.json`
 - `test/.test-cache/family_std_dual_run_report.md`
+- `docs/spikes/reflaxe-family-sibling-rollout-gate-plan.md`
 
 ## Portable Native-Import Policy
 
@@ -124,6 +125,10 @@ Epic: `haxe.go-cgk`
 12. `haxe.go-cgk.12` - Tier1 portable conformance suite seed (repo-local)
 13. `haxe.go-cgk.13` - Module mapping contract doc (Haxe code vs runtime binding vs intrinsic)
 14. `haxe.go-cgk.14` - Family extraction execution prep (post-spike checklist)
+15. `haxe.go-cgk.15` - Bootstrap `reflaxe.family.std` skeleton + schema pack
+16. `haxe.go-cgk.16` - Family export/import sync tooling for `haxe.go`
+17. `haxe.go-cgk.17` - Family pin + dual-run contract checks in `haxe.go`
+18. `haxe.go-cgk.18` - Sibling compiler rollout gate plan (`rust`/`elixir`/`ocaml`)
 
 ## Definition of Done
 
