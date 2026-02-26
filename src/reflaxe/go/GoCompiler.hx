@@ -11269,6 +11269,11 @@ class GoCompiler {
 			return externReceiverCall;
 		}
 
+		var lambdaStaticCall = lowerLambdaStaticCall(callee, args, returnType);
+		if (lambdaStaticCall != null) {
+			return lambdaStaticCall;
+		}
+
 		var metalChanCall = lowerMetalGoChanCall(callee, args, returnType);
 		if (metalChanCall != null) {
 			return metalChanCall;
@@ -11870,6 +11875,184 @@ class GoCompiler {
 			case _:
 				null;
 		};
+	}
+
+	function lambdaArrayElementGoType(arrayExpr:TypedExpr, methodName:String, callPos:haxe.macro.Expr.Position):String {
+		if (!isArrayType(arrayExpr.t)) {
+			Context.fatalError("Lambda." + methodName + " currently supports Array<T> inputs only", callPos);
+		}
+		return arrayElementGoType(arrayExpr.t);
+	}
+
+	function lowerLambdaStaticCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		if (isStaticCall(callee, "Lambda", [], "count")) {
+			if (args.length != 1) {
+				Context.fatalError("Lambda.count expects exactly 1 argument", callee.pos);
+			}
+			lambdaArrayElementGoType(args[0], "count", callee.pos);
+			var sourceExpr = lowerExpr(args[0]).expr;
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("len"), [sourceExpr]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "empty")) {
+			if (args.length != 1) {
+				Context.fatalError("Lambda.empty expects exactly 1 argument", callee.pos);
+			}
+			lambdaArrayElementGoType(args[0], "empty", callee.pos);
+			var sourceExpr = lowerExpr(args[0]).expr;
+			return {
+				expr: GoExpr.GoBinary("==", GoExpr.GoCall(GoExpr.GoIdent("len"), [sourceExpr]), GoExpr.GoIntLiteral(0)),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "exists")) {
+			if (args.length != 2) {
+				Context.fatalError("Lambda.exists expects exactly 2 arguments", callee.pos);
+			}
+			var elementType = lambdaArrayElementGoType(args[0], "exists", callee.pos);
+			var sourceExpr = lowerExpr(args[0]).expr;
+			var predicateExpr = lowerExpr(args[1]).expr;
+			var sourceName = freshTempName("hx_lambda_items");
+			var predicateName = freshTempName("hx_lambda_predicate");
+			var itemName = freshTempName("hx_lambda_item");
+			var sourceType = "[]" + elementType;
+			var predicateType = "func(" + elementType + ") bool";
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([
+					{name: sourceName, typeName: sourceType},
+					{name: predicateName, typeName: predicateType}
+				], ["bool"], [
+					GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
+					GoStmt.GoRaw("\tif " + predicateName + "(" + itemName + ") {"),
+					GoStmt.GoReturn(GoExpr.GoBoolLiteral(true)),
+					GoStmt.GoRaw("\t}"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))
+				]), [sourceExpr, predicateExpr]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "has")) {
+			if (args.length != 2) {
+				Context.fatalError("Lambda.has expects exactly 2 arguments", callee.pos);
+			}
+			requireStdlibShimGroup("stdlib_symbols");
+			var elementType = lambdaArrayElementGoType(args[0], "has", callee.pos);
+			var sourceExpr = lowerExpr(args[0]).expr;
+			var needleExpr = lowerExpr(args[1]).expr;
+			var sourceName = freshTempName("hx_lambda_items");
+			var needleName = freshTempName("hx_lambda_needle");
+			var itemName = freshTempName("hx_lambda_item");
+			var sourceType = "[]" + elementType;
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: sourceType}, {name: needleName, typeName: "any"}], ["bool"], [
+					GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
+					GoStmt.GoRaw("\tif reflect.DeepEqual(" + itemName + ", " + needleName + ") {"),
+					GoStmt.GoReturn(GoExpr.GoBoolLiteral(true)),
+					GoStmt.GoRaw("\t}"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))
+				]), [sourceExpr, needleExpr]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "filter")) {
+			if (args.length != 2) {
+				Context.fatalError("Lambda.filter expects exactly 2 arguments", callee.pos);
+			}
+			var elementType = lambdaArrayElementGoType(args[0], "filter", callee.pos);
+			var sourceExpr = lowerExpr(args[0]).expr;
+			var predicateExpr = lowerExpr(args[1]).expr;
+			var sourceName = freshTempName("hx_lambda_items");
+			var predicateName = freshTempName("hx_lambda_predicate");
+			var outName = freshTempName("hx_lambda_out");
+			var itemName = freshTempName("hx_lambda_item");
+			var sourceType = "[]" + elementType;
+			var predicateType = "func(" + elementType + ") bool";
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([
+					{name: sourceName, typeName: sourceType},
+					{name: predicateName, typeName: predicateType}
+				], [sourceType], [
+					GoStmt.GoVarDecl(outName, sourceType, GoExpr.GoRaw("make(" + sourceType + ", 0, len(" + sourceName + "))"), true),
+					GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
+					GoStmt.GoRaw("\tif " + predicateName + "(" + itemName + ") {"),
+					GoStmt.GoRaw("\t\t" + outName + " = append(" + outName + ", " + itemName + ")"),
+					GoStmt.GoRaw("\t}"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoReturn(GoExpr.GoIdent(outName))
+				]), [sourceExpr, predicateExpr]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "map")) {
+			if (args.length != 2) {
+				Context.fatalError("Lambda.map expects exactly 2 arguments", callee.pos);
+			}
+			var sourceElementType = lambdaArrayElementGoType(args[0], "map", callee.pos);
+			var mappedElementType = arrayElementGoType(returnType);
+			var sourceExpr = lowerExpr(args[0]).expr;
+			var mapperExpr = lowerExpr(args[1]).expr;
+			var sourceName = freshTempName("hx_lambda_items");
+			var mapperName = freshTempName("hx_lambda_mapper");
+			var outName = freshTempName("hx_lambda_out");
+			var itemName = freshTempName("hx_lambda_item");
+			var sourceType = "[]" + sourceElementType;
+			var mappedType = "[]" + mappedElementType;
+			var mapperType = "func(" + sourceElementType + ") " + mappedElementType;
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([
+					{name: sourceName, typeName: sourceType},
+					{name: mapperName, typeName: mapperType}
+				], [mappedType], [
+					GoStmt.GoVarDecl(outName, mappedType, GoExpr.GoRaw("make(" + mappedType + ", 0, len(" + sourceName + "))"), true),
+					GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
+					GoStmt.GoRaw("\t" + outName + " = append(" + outName + ", " + mapperName + "(" + itemName + "))"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoReturn(GoExpr.GoIdent(outName))
+				]), [sourceExpr, mapperExpr]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "fold")) {
+			if (args.length != 3) {
+				Context.fatalError("Lambda.fold expects exactly 3 arguments", callee.pos);
+			}
+			var elementType = lambdaArrayElementGoType(args[0], "fold", callee.pos);
+			var accType = typeToGoType(returnType);
+			var sourceExpr = lowerExpr(args[0]).expr;
+			var folderExpr = lowerExpr(args[1]).expr;
+			var initExpr = lowerExpr(args[2]).expr;
+			var sourceName = freshTempName("hx_lambda_items");
+			var folderName = freshTempName("hx_lambda_folder");
+			var accName = freshTempName("hx_lambda_acc");
+			var itemName = freshTempName("hx_lambda_item");
+			var sourceType = "[]" + elementType;
+			var folderType = "func(" + elementType + ", " + accType + ") " + accType;
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([
+					{name: sourceName, typeName: sourceType},
+					{name: folderName, typeName: folderType},
+					{name: accName, typeName: accType}
+				], [accType], [
+					GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
+					GoStmt.GoRaw("\t" + accName + " = " + folderName + "(" + itemName + ", " + accName + ")"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoReturn(GoExpr.GoIdent(accName))
+				]), [sourceExpr, folderExpr, initExpr]),
+				isStringLike: false
+			};
+		}
+
+		return null;
 	}
 
 	function lowerStdIsOfTypeCall(args:Array<TypedExpr>):LoweredExpr {
