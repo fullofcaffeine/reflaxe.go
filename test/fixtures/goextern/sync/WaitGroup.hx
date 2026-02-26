@@ -11,9 +11,6 @@ extern class WaitGroup {
 	@:go.name("Done")
 	public function done():Void;
 
-	@:go.name("Go")
-	public function go(f:Dynamic):Void;
-
 	@:go.name("Wait")
 	public function wait():Void;
 }

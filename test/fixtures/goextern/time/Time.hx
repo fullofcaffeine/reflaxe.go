@@ -14,14 +14,8 @@ extern class Time {
 	@:go.name("After")
 	public function after(u:Time):Bool;
 
-	@:go.name("AppendBinary")
-	public function appendBinary(b:Array<Int>):Dynamic;
-
 	@:go.name("AppendFormat")
 	public function appendFormat(b:Array<Int>, layout:String):Array<Int>;
-
-	@:go.name("AppendText")
-	public function appendText(b:Array<Int>):Dynamic;
 
 	@:go.name("Before")
 	public function before(u:Time):Bool;
