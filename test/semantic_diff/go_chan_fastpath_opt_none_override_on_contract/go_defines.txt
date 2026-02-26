@@ -1,0 +1,2 @@
+reflaxe_go_opt=none
+reflaxe_go_opt_go_concurrency_fastpath=1
