@@ -13,6 +13,8 @@ class Main {
 
 		var base = Date.fromString("2024-01-02 03:04:05");
 		var shifted = DateTools.delta(base, DateTools.days(2) + DateTools.hours(4) + DateTools.minutes(30));
+		Sys.println(DateTools.format(base, "%Y-%m-%d %H:%M:%S"));
+		Sys.println(DateTools.format(shifted, "%Y-%m-%d %H:%M:%S"));
 		Sys.println(base.getDate());
 		Sys.println(shifted.getDate());
 		Sys.println(shifted.getHours());

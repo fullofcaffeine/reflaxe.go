@@ -4592,6 +4592,27 @@ class GoCompiler {
 				typeName: "*Date"
 			},
 				[], ["float64"], [GoStmt.GoReturn(GoExpr.GoRaw("float64(self.value.UnixNano()) / 1e6"))]),
+			GoDecl.GoStructDecl("DateTools", []),
+			GoDecl.GoFuncDecl("DateTools_format", null, [
+				{
+					name: "date",
+					typeName: "*Date"
+				},
+				{name: "format", typeName: "*string"}
+			], ["*string"], [
+				GoStmt.GoRaw("layout := *hxrt.StdString(format)"),
+				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%%\", \"__HX_PERCENT__\")"),
+				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%Y\", \"2006\")"),
+				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%m\", \"01\")"),
+				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%d\", \"02\")"),
+				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%H\", \"15\")"),
+				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%M\", \"04\")"),
+				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%S\", \"05\")"),
+				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"__HX_PERCENT__\", \"%\")"),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [
+					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("date"), "value"), "Format"), [GoExpr.GoIdent("layout")])
+				]))
+			]),
 			GoDecl.GoStructDecl("Math", []),
 			GoDecl.GoFuncDecl("Math_floor", null, [
 				{

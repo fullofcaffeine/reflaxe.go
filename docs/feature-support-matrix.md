@@ -52,7 +52,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `Date` + `haxe.ds.Option` + `haxe.io.Path` subset | `semantic-diff` | `option_date_path`, `stdlib/date_path_basic` |
 | `Array` + `IntIterator` core subset (`push`/`pop` statement-form, length/index access, array iteration, `0...N` range iteration) | `semantic-diff` | `array_string_intiterator_contract` |
 | `String` core subset (`length`, `charAt`, `charCodeAt` with null on out-of-range, `substring`, `fromCharCode`) | `semantic-diff` | `array_string_intiterator_contract`, `string_charcodeat_bounds_contract` |
-| `StringBuf` + `DateTools` + `Lambda` core subset (`add`/`addChar`/`addSub`, `DateTools.delta` with duration helpers, iterable `Lambda.map`) | `semantic-diff` | `stringbuf_datetools_lambda_contract` |
+| `StringBuf` + `DateTools` + `Lambda` core subset (`add`/`addChar`/`addSub`, `DateTools.delta` with duration helpers and `%Y-%m-%d %H:%M:%S` formatting, iterable `Lambda.map`) | `semantic-diff` | `stringbuf_datetools_lambda_contract` |
 | Core `Class`/`Enum`/`EnumValue` type-value subset | `semantic-diff` | `type_expr_contract` |
 | `Type` reflection subset (`getClass`, `getSuperClass`, `getClassFields`, `getInstanceFields`, `resolveClass`, `createInstance`, `createEmptyInstance`, `getEnum`, `getEnumConstructs`, `resolveEnum`, `allEnums`, enum constructor/index/parameters/equality) | `semantic-diff` | `type_reflection_contract`, `type_reflection_extended_contract` |
 | `haxe.ds.Vector` | `semantic-diff` | `vector_contract`, `stdlib/vector_basic` |
