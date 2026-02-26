@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"contract": "portable",
+	"optimizationPreset": "none",
+	"portableStringFastpathEnabled": false,
+	"portableConcurrencyFastpathEnabled": false,
+	"stringInstanceTypedLowerings": 0,
+	"stringInstanceLegacyLowerings": 4,
+	"stringLengthFieldTypedLowerings": 0,
+	"stringLengthFieldLegacyLowerings": 2,
+	"portableConcurrencyTypedFastpathHits": 0,
+	"portableConcurrencyTypedFastpathFallbacks": 0,
+	"goAstPasses": [
+		"normalize_names",
+		"rewrite_string_ops",
+		"rewrite_virtual_calls",
+		"insert_runtime_prelude",
+		"elide_blank_identifier_guards",
+		"collect_imports"
+	]
+}
