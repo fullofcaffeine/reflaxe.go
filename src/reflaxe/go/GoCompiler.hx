@@ -9762,6 +9762,7 @@ class GoCompiler {
 				var loweredValue = lowered == null ? null : lowered.expr;
 				if (value != null && loweredValue != null) {
 					loweredValue = upcastIfNeeded(loweredValue, value.t, variable.t);
+					loweredValue = coerceAnyExprToType(loweredValue, value.t, variable.t, exprBackedByAny(value));
 				}
 				var goType = typeToGoType(variable.t);
 				var useShort = loweredValue != null && !isNilExpr(loweredValue) && goType != "any" && !isInterfaceType(variable.t);
@@ -10056,6 +10057,8 @@ class GoCompiler {
 		var temp = freshTempName("hx_if");
 		var loweredThenValue = upcastIfNeeded(loweredThen.expr, thenBranch.t, resultType);
 		var loweredElseValue = upcastIfNeeded(loweredElse.expr, elseExpr.t, resultType);
+		loweredThenValue = coerceAnyExprToType(loweredThenValue, thenBranch.t, resultType, exprBackedByAny(thenBranch));
+		loweredElseValue = coerceAnyExprToType(loweredElseValue, elseExpr.t, resultType, exprBackedByAny(elseExpr));
 
 		var prefix = [GoStmt.GoVarDecl(temp, typeToGoType(resultType), null, false)].concat(loweredCondition.prefix);
 
@@ -10777,9 +10780,15 @@ class GoCompiler {
 					isStringLike: false
 				};
 			case TLocal(variable):
+				var localExpr:GoExpr = GoExpr.GoIdent(localVarName(variable));
+				var variableGoType = typeToGoType(variable.t);
+				var exprGoType = typeToGoType(expr.t);
+				if (variableGoType == "any" && exprGoType != "any") {
+					localExpr = GoExpr.GoTypeAssert(localExpr, exprGoType);
+				}
 				{
-					expr: GoExpr.GoIdent(localVarName(variable)),
-					isStringLike: isStringType(variable.t)
+					expr: localExpr,
+					isStringLike: isStringType(expr.t)
 				};
 			case TIdent(name):
 				{
@@ -10791,7 +10800,21 @@ class GoCompiler {
 			case TMeta(_, inner):
 				lowerExpr(inner);
 			case TCast(inner, _):
-				lowerExpr(inner);
+				var loweredInner = lowerExpr(inner);
+				var innerGoType = typeToGoType(inner.t);
+				var castGoType = typeToGoType(expr.t);
+				var castExpr = loweredInner.expr;
+				if (innerGoType != castGoType) {
+					if (castGoType != "any" && innerGoType == "any") {
+						castExpr = lowerNullableAwareTypeAssertExpr(castExpr, expr.t);
+					} else if (castGoType == "any" && innerGoType != "any") {
+						castExpr = GoExpr.GoCall(GoExpr.GoIdent("any"), [castExpr]);
+					}
+				}
+				{
+					expr: castExpr,
+					isStringLike: isStringType(expr.t)
+				};
 			case TIf(condition, thenBranch, elseBranch):
 				materializeExprWithPrefix(lowerIfExpr(condition, thenBranch, elseBranch, expr.t), expr.t);
 			case TSwitch(value, cases, defaultExpr):
@@ -10989,7 +11012,12 @@ class GoCompiler {
 			case TParenthesis(inner):
 				lowerExprWithPrefix(inner);
 			case TCast(inner, _):
-				lowerExprWithPrefix(inner);
+				var lowered = lowerExpr(expr);
+				{
+					prefix: [],
+					expr: lowered.expr,
+					isStringLike: lowered.isStringLike
+				};
 			case _:
 				var lowered = lowerExpr(expr);
 				{
@@ -13325,6 +13353,21 @@ class GoCompiler {
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [expr]);
 	}
 
+	function coerceAnyExprToType(expr:GoExpr, fromType:Type, toType:Type, ?fromAnyOverride:Bool = false):GoExpr {
+		var fromGoType = typeToGoType(fromType);
+		var toGoType = typeToGoType(toType);
+		if ((!fromAnyOverride && fromGoType != "any") || toGoType == "any") {
+			return expr;
+		}
+		if (isIntType(toType) || isHaxeInt32Type(toType)) {
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [expr]);
+		}
+		if (isStringType(toType)) {
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [expr]);
+		}
+		return expr;
+	}
+
 	function wrapInt32Expr(expr:GoExpr):GoExpr {
 		return GoExprOperatorOps.wrapInt32Expr(expr);
 	}
@@ -13477,6 +13520,21 @@ class GoCompiler {
 				isNullLiteralExpr(inner);
 			case TCast(inner, _):
 				isNullLiteralExpr(inner);
+			case _:
+				false;
+		};
+	}
+
+	function exprBackedByAny(expr:TypedExpr):Bool {
+		return switch (expr.expr) {
+			case TLocal(variable):
+				typeToGoType(variable.t) == "any";
+			case TMeta(_, inner):
+				exprBackedByAny(inner);
+			case TParenthesis(inner):
+				exprBackedByAny(inner);
+			case TCast(inner, _):
+				exprBackedByAny(inner);
 			case _:
 				false;
 		};
