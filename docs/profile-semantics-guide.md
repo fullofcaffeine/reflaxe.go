@@ -215,6 +215,16 @@ Semantic-flip examples we want to avoid:
 
 In short: runtime feature inference is useful, but semantic profile inference is too risky as a default model.
 
+## Portable convergence optimizer controls
+
+These controls are additive and do not redefine profile semantics:
+
+- `-D reflaxe_go_opt=portable_fast|none` (default `portable_fast`)
+- `-D reflaxe_go_opt_go_concurrency_fastpath=...` (typed portable concurrency fastpath capability)
+- `-D reflaxe_go_optimizer_plan_report` (emits deterministic optimizer plan artifacts)
+
+Use them to tune portable performance convergence without switching semantic contract.
+
 ## Future `auto` direction
 
 `auto` is planned as an explicit additive planner, not a hidden semantic profile.

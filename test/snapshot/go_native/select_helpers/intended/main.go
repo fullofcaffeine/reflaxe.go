@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	gate := go___Go_newChan(1)
+	gate := go__concurrency_newChan__int_95e97e5e(1)
 	_g := go___Select_send_Int(gate, 7)
 	var hx_switch_1 *string
 	switch _g.tag {
@@ -51,9 +51,9 @@ func main() {
 	hxrt.Println(sendSecond)
 	hxrt.Println(recvFirst)
 	hxrt.Println(recvSecond)
-	left := go___Go_newChan(1)
-	right := go___Go_newChan(1)
-	right.send(hxrt.StringFromLiteral("beta"))
+	left := go__concurrency_newChan___string_f613ccd0(1)
+	right := go__concurrency_newChan___string_f613ccd0(1)
+	go__concurrency_send___string_f613ccd0(right.__hx_native, hxrt.StringFromLiteral("beta"))
 	_g_6 := go___Select_recv2_String_String(left, right)
 	var hx_switch_5 *string
 	switch _g_6.tag {
@@ -70,8 +70,8 @@ func main() {
 	}
 	recvTwo := hx_switch_5
 	hxrt.Println(recvTwo)
-	sendTwoA := go___Go_newChan(1)
-	sendTwoB := go___Go_newChan(1)
+	sendTwoA := go__concurrency_newChan__int_95e97e5e(1)
+	sendTwoB := go__concurrency_newChan__int_95e97e5e(1)
 	_g_9 := go___Select_send2_Int_Int(sendTwoA, 11, sendTwoB, 22)
 	var hx_switch_6 *string
 	switch _g_9.tag {
@@ -83,19 +83,7 @@ func main() {
 		hx_switch_6 = hxrt.StringFromLiteral("none")
 	}
 	sendTwo := hx_switch_6
-	sendTwoValues := hxrt.StringConcatAny(hxrt.StringConcatAny(func(hx_value_7 any) int {
-		if hx_value_7 == nil {
-			var hx_zero_8 int
-			return hx_zero_8
-		}
-		return hx_value_7.(int)
-	}(sendTwoA.recvOr(-1)), hxrt.StringFromLiteral(",")), func(hx_value_9 any) int {
-		if hx_value_9 == nil {
-			var hx_zero_10 int
-			return hx_zero_10
-		}
-		return hx_value_9.(int)
-	}(sendTwoB.recvOr(-1)))
+	sendTwoValues := hxrt.StringConcatAny(hxrt.StringConcatAny(go__concurrency_recvOr__int_95e97e5e(sendTwoA.__hx_native, -1), hxrt.StringFromLiteral(",")), go__concurrency_recvOr__int_95e97e5e(sendTwoB.__hx_native, -1))
 	hxrt.Println(sendTwo)
 	hxrt.Println(sendTwoValues)
 }
@@ -362,4 +350,122 @@ func go__concurrency_close(channel any) {
 
 func go__concurrency_spawn(fn func()) {
 	go fn()
+}
+
+func go__concurrency_makeChan___string_f613ccd0(buffer int) any {
+	if buffer > 0 {
+		return make(chan *string, buffer)
+	}
+	return make(chan *string)
+}
+
+func go__concurrency_setBuffer___string_f613ccd0(channel *go___Chan, buffer int) {
+	if channel == nil {
+		return
+	}
+	channel.__hx_native = go__concurrency_makeChan___string_f613ccd0(buffer)
+}
+
+func go__concurrency_newChan___string_f613ccd0(buffer int) *go___Chan {
+	channel := New_go___Chan()
+	go__concurrency_setBuffer___string_f613ccd0(channel, buffer)
+	return channel
+}
+
+func go__concurrency_send___string_f613ccd0(channel any, value *string) {
+	channel.(chan *string) <- value
+}
+
+func go__concurrency_trySend___string_f613ccd0(channel any, value *string) bool {
+	select {
+	case channel.(chan *string) <- value:
+		return true
+	default:
+		return false
+	}
+}
+
+func go__concurrency_recv___string_f613ccd0(channel any) *string {
+	return <-channel.(chan *string)
+}
+
+func go__concurrency_recvOr___string_f613ccd0(channel any, defaultValue *string) *string {
+	select {
+	case value := <-channel.(chan *string):
+		return value
+	default:
+		return defaultValue
+	}
+}
+
+func go__concurrency_tryRecv___string_f613ccd0(channel any) *go___Result {
+	select {
+	case value := <-channel.(chan *string):
+		return New_go___Result(value, nil)
+	default:
+		return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("empty")))
+	}
+}
+
+func go__concurrency_close___string_f613ccd0(channel any) {
+	close(channel.(chan *string))
+}
+
+func go__concurrency_makeChan__int_95e97e5e(buffer int) any {
+	if buffer > 0 {
+		return make(chan int, buffer)
+	}
+	return make(chan int)
+}
+
+func go__concurrency_setBuffer__int_95e97e5e(channel *go___Chan, buffer int) {
+	if channel == nil {
+		return
+	}
+	channel.__hx_native = go__concurrency_makeChan__int_95e97e5e(buffer)
+}
+
+func go__concurrency_newChan__int_95e97e5e(buffer int) *go___Chan {
+	channel := New_go___Chan()
+	go__concurrency_setBuffer__int_95e97e5e(channel, buffer)
+	return channel
+}
+
+func go__concurrency_send__int_95e97e5e(channel any, value int) {
+	channel.(chan int) <- value
+}
+
+func go__concurrency_trySend__int_95e97e5e(channel any, value int) bool {
+	select {
+	case channel.(chan int) <- value:
+		return true
+	default:
+		return false
+	}
+}
+
+func go__concurrency_recv__int_95e97e5e(channel any) int {
+	return <-channel.(chan int)
+}
+
+func go__concurrency_recvOr__int_95e97e5e(channel any, defaultValue int) int {
+	select {
+	case value := <-channel.(chan int):
+		return value
+	default:
+		return defaultValue
+	}
+}
+
+func go__concurrency_tryRecv__int_95e97e5e(channel any) *go___Result {
+	select {
+	case value := <-channel.(chan int):
+		return New_go___Result(value, nil)
+	default:
+		return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("empty")))
+	}
+}
+
+func go__concurrency_close__int_95e97e5e(channel any) {
+	close(channel.(chan int))
 }

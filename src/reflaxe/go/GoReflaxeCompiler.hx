@@ -81,6 +81,21 @@ private typedef RuntimePlanReportSnapshot = {
 	final reasons:Array<RuntimeFeatureReason>;
 }
 
+private typedef OptimizerPlanReportSnapshot = {
+	final schemaVersion:Int;
+	final contract:String;
+	final optimizationPreset:String;
+	final portableStringFastpathEnabled:Bool;
+	final portableConcurrencyFastpathEnabled:Bool;
+	final goAstPasses:Array<String>;
+	final stringInstanceTypedLowerings:Int;
+	final stringInstanceLegacyLowerings:Int;
+	final stringLengthFieldTypedLowerings:Int;
+	final stringLengthFieldLegacyLowerings:Int;
+	final portableConcurrencyTypedFastpathHits:Int;
+	final portableConcurrencyTypedFastpathFallbacks:Int;
+}
+
 class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dynamic> {
 	var allModules:Array<ModuleType> = [];
 	var selectedClasses:Array<ClassType> = [];
@@ -327,6 +342,12 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			outputManager.saveFile("hxrt_plan.json", renderRuntimePlanJson(runtimeSnapshot));
 			outputManager.saveFile("hxrt_plan.md", renderRuntimePlanMarkdown(runtimeSnapshot));
 		}
+
+		if (buildContext.optimizerPlanReportEnabled) {
+			var optimizerSnapshot = buildOptimizerPlanReportSnapshot(buildContext, context);
+			outputManager.saveFile("optimizer_plan.json", renderOptimizerPlanJson(optimizerSnapshot));
+			outputManager.saveFile("optimizer_plan.md", renderOptimizerPlanMarkdown(optimizerSnapshot));
+		}
 	}
 
 	function buildContractReportSnapshot(buildContext:GoBuildContext, context:Null<CompilationContext>):ContractReportSnapshot {
@@ -402,6 +423,28 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			selectedFeatures: selectedFeatures,
 			files: files,
 			reasons: buildRuntimeFeatureReasons(manualFeatures, inferredFeatures, selectedFeatures)
+		};
+	}
+
+	function buildOptimizerPlanReportSnapshot(buildContext:GoBuildContext, context:Null<CompilationContext>):OptimizerPlanReportSnapshot {
+		var contractLabel = buildContext.profile == GoProfile.Metal ? "metal" : "portable";
+		var goAstPasses:Array<String> = [];
+		if (context != null) {
+			goAstPasses = context.appliedGoAstPassNames.copy();
+		}
+		return {
+			schemaVersion: 1,
+			contract: contractLabel,
+			optimizationPreset: buildContext.optimizationPreset,
+			portableStringFastpathEnabled: buildContext.portableStringFastpathEnabled,
+			portableConcurrencyFastpathEnabled: buildContext.portableConcurrencyFastpathEnabled,
+			goAstPasses: goAstPasses,
+			stringInstanceTypedLowerings: context == null ? 0 : context.optimizerStringInstanceTypedLowerings,
+			stringInstanceLegacyLowerings: context == null ? 0 : context.optimizerStringInstanceLegacyLowerings,
+			stringLengthFieldTypedLowerings: context == null ? 0 : context.optimizerStringLengthFieldTypedLowerings,
+			stringLengthFieldLegacyLowerings: context == null ? 0 : context.optimizerStringLengthFieldLegacyLowerings,
+			portableConcurrencyTypedFastpathHits: context == null ? 0 : context.optimizerPortableConcurrencyTypedFastpathHits,
+			portableConcurrencyTypedFastpathFallbacks: context == null ? 0 : context.optimizerPortableConcurrencyTypedFastpathFallbacks
 		};
 	}
 
@@ -674,6 +717,55 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		} else {
 			for (reason in snapshot.reasons) {
 				lines.push("- `" + reason.feature + "` <- `" + reason.sourceKind + "` (`" + reason.source + "`)");
+			}
+		}
+		lines.push("");
+		return lines.join("\n");
+	}
+
+	static function renderOptimizerPlanJson(snapshot:OptimizerPlanReportSnapshot):String {
+		var lines:Array<String> = [];
+		lines.push("{");
+		lines.push('\t"schemaVersion": ' + snapshot.schemaVersion + ",");
+		lines.push('\t"contract": "' + jsonEscape(snapshot.contract) + '",');
+		lines.push('\t"optimizationPreset": "' + jsonEscape(snapshot.optimizationPreset) + '",');
+		lines.push('\t"portableStringFastpathEnabled": ' + boolString(snapshot.portableStringFastpathEnabled) + ",");
+		lines.push('\t"portableConcurrencyFastpathEnabled": ' + boolString(snapshot.portableConcurrencyFastpathEnabled) + ",");
+		lines.push('\t"stringInstanceTypedLowerings": ' + snapshot.stringInstanceTypedLowerings + ",");
+		lines.push('\t"stringInstanceLegacyLowerings": ' + snapshot.stringInstanceLegacyLowerings + ",");
+		lines.push('\t"stringLengthFieldTypedLowerings": ' + snapshot.stringLengthFieldTypedLowerings + ",");
+		lines.push('\t"stringLengthFieldLegacyLowerings": ' + snapshot.stringLengthFieldLegacyLowerings + ",");
+		lines.push('\t"portableConcurrencyTypedFastpathHits": ' + snapshot.portableConcurrencyTypedFastpathHits + ",");
+		lines.push('\t"portableConcurrencyTypedFastpathFallbacks": ' + snapshot.portableConcurrencyTypedFastpathFallbacks + ",");
+		lines.push('\t"goAstPasses": [');
+		appendJsonStringArray(lines, snapshot.goAstPasses, 2);
+		lines.push("\t]");
+		lines.push("}");
+		return lines.join("\n") + "\n";
+	}
+
+	static function renderOptimizerPlanMarkdown(snapshot:OptimizerPlanReportSnapshot):String {
+		var lines:Array<String> = [];
+		lines.push("# Optimizer Plan Report");
+		lines.push("");
+		lines.push("- schema version: `" + snapshot.schemaVersion + "`");
+		lines.push("- contract: `" + snapshot.contract + "`");
+		lines.push("- optimization preset: `" + snapshot.optimizationPreset + "`");
+		lines.push("- portable string fastpath enabled: `" + boolLabel(snapshot.portableStringFastpathEnabled) + "`");
+		lines.push("- portable concurrency fastpath enabled: `" + boolLabel(snapshot.portableConcurrencyFastpathEnabled) + "`");
+		lines.push("- string instance typed lowerings: `" + snapshot.stringInstanceTypedLowerings + "`");
+		lines.push("- string instance legacy lowerings: `" + snapshot.stringInstanceLegacyLowerings + "`");
+		lines.push("- string length field typed lowerings: `" + snapshot.stringLengthFieldTypedLowerings + "`");
+		lines.push("- string length field legacy lowerings: `" + snapshot.stringLengthFieldLegacyLowerings + "`");
+		lines.push("- portable concurrency typed fastpath hits: `" + snapshot.portableConcurrencyTypedFastpathHits + "`");
+		lines.push("- portable concurrency typed fastpath fallbacks: `" + snapshot.portableConcurrencyTypedFastpathFallbacks + "`");
+		lines.push("");
+		lines.push("## go ast passes");
+		if (snapshot.goAstPasses.length == 0) {
+			lines.push("- none");
+		} else {
+			for (passName in snapshot.goAstPasses) {
+				lines.push("- `" + passName + "`");
 			}
 		}
 		lines.push("");

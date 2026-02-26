@@ -53,109 +53,73 @@ var go___SelectSend2_SecondSent *go___SelectSend2 = &go___SelectSend2{tag: 1}
 var go___SelectSend2_Defaulted *go___SelectSend2 = &go___SelectSend2{tag: 2}
 
 func go___Select_recv2_String_String(first *go___Chan, second *go___Chan) *go___SelectRecv2 {
-	firstRecv := func(hx_value_14 any) *go___Result {
-		if hx_value_14 == nil {
-			var hx_zero_15 *go___Result
-			return hx_zero_15
+	firstRecv := go__concurrency_tryRecv___string_f613ccd0(first.__hx_native)
+	if func(hx_value_10 any) bool {
+		if hx_value_10 == nil {
+			var hx_zero_11 bool
+			return hx_zero_11
 		}
-		return hx_value_14.(*go___Result)
-	}(first.tryRecv())
-	if func(hx_value_16 any) bool {
-		if hx_value_16 == nil {
-			var hx_zero_17 bool
-			return hx_zero_17
-		}
-		return hx_value_16.(bool)
+		return hx_value_10.(bool)
 	}(firstRecv.isOk()) {
-		return go___SelectRecv2_First(func(hx_value_18 any) *string {
-			if hx_value_18 == nil {
-				var hx_zero_19 *string
-				return hx_zero_19
+		return go___SelectRecv2_First(func(hx_value_12 any) *string {
+			if hx_value_12 == nil {
+				var hx_zero_13 *string
+				return hx_zero_13
 			}
-			return hx_value_18.(*string)
+			return hx_value_12.(*string)
 		}(firstRecv.unwrap()))
 	}
-	secondRecv := func(hx_value_20 any) *go___Result {
-		if hx_value_20 == nil {
-			var hx_zero_21 *go___Result
-			return hx_zero_21
+	secondRecv := go__concurrency_tryRecv___string_f613ccd0(second.__hx_native)
+	if func(hx_value_14 any) bool {
+		if hx_value_14 == nil {
+			var hx_zero_15 bool
+			return hx_zero_15
 		}
-		return hx_value_20.(*go___Result)
-	}(second.tryRecv())
-	if func(hx_value_22 any) bool {
-		if hx_value_22 == nil {
-			var hx_zero_23 bool
-			return hx_zero_23
-		}
-		return hx_value_22.(bool)
+		return hx_value_14.(bool)
 	}(secondRecv.isOk()) {
-		return go___SelectRecv2_Second(func(hx_value_24 any) *string {
-			if hx_value_24 == nil {
-				var hx_zero_25 *string
-				return hx_zero_25
+		return go___SelectRecv2_Second(func(hx_value_16 any) *string {
+			if hx_value_16 == nil {
+				var hx_zero_17 *string
+				return hx_zero_17
 			}
-			return hx_value_24.(*string)
+			return hx_value_16.(*string)
 		}(secondRecv.unwrap()))
 	}
 	return go___SelectRecv2_Defaulted
 }
 
 func go___Select_recv_Int(channel *go___Chan) *go___SelectRecv {
-	received := func(hx_value_26 any) *go___Result {
-		if hx_value_26 == nil {
-			var hx_zero_27 *go___Result
-			return hx_zero_27
+	received := go__concurrency_tryRecv__int_95e97e5e(channel.__hx_native)
+	if func(hx_value_18 any) bool {
+		if hx_value_18 == nil {
+			var hx_zero_19 bool
+			return hx_zero_19
 		}
-		return hx_value_26.(*go___Result)
-	}(channel.tryRecv())
-	if func(hx_value_28 any) bool {
-		if hx_value_28 == nil {
-			var hx_zero_29 bool
-			return hx_zero_29
-		}
-		return hx_value_28.(bool)
+		return hx_value_18.(bool)
 	}(received.isOk()) {
-		return go___SelectRecv_Received(func(hx_value_30 any) int {
-			if hx_value_30 == nil {
-				var hx_zero_31 int
-				return hx_zero_31
+		return go___SelectRecv_Received(func(hx_value_20 any) int {
+			if hx_value_20 == nil {
+				var hx_zero_21 int
+				return hx_zero_21
 			}
-			return hx_value_30.(int)
+			return hx_value_20.(int)
 		}(received.unwrap()))
 	}
 	return go___SelectRecv_Defaulted
 }
 
 func go___Select_send2_Int_Int(first *go___Chan, firstValue int, second *go___Chan, secondValue int) *go___SelectSend2 {
-	if func(hx_value_32 any) bool {
-		if hx_value_32 == nil {
-			var hx_zero_33 bool
-			return hx_zero_33
-		}
-		return hx_value_32.(bool)
-	}(first.trySend(firstValue)) {
+	if go__concurrency_trySend__int_95e97e5e(first.__hx_native, firstValue) {
 		return go___SelectSend2_FirstSent
 	}
-	if func(hx_value_34 any) bool {
-		if hx_value_34 == nil {
-			var hx_zero_35 bool
-			return hx_zero_35
-		}
-		return hx_value_34.(bool)
-	}(second.trySend(secondValue)) {
+	if go__concurrency_trySend__int_95e97e5e(second.__hx_native, secondValue) {
 		return go___SelectSend2_SecondSent
 	}
 	return go___SelectSend2_Defaulted
 }
 
 func go___Select_send_Int(channel *go___Chan, value int) *go___SelectSend {
-	if func(hx_value_36 any) bool {
-		if hx_value_36 == nil {
-			var hx_zero_37 bool
-			return hx_zero_37
-		}
-		return hx_value_36.(bool)
-	}(channel.trySend(value)) {
+	if go__concurrency_trySend__int_95e97e5e(channel.__hx_native, value) {
 		return go___SelectSend_Sent
 	}
 	return go___SelectSend_Defaulted

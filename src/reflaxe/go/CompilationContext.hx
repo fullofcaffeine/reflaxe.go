@@ -24,6 +24,13 @@ class CompilationContext {
 	public var requiredStdlibShimGroups:Array<String>;
 	public var requiresIoHelperSurface:Bool;
 	public var metalFallbackViolations:Array<MetalFallbackViolation>;
+	public var appliedGoAstPassNames:Array<String>;
+	public var optimizerStringInstanceTypedLowerings:Int;
+	public var optimizerStringInstanceLegacyLowerings:Int;
+	public var optimizerStringLengthFieldTypedLowerings:Int;
+	public var optimizerStringLengthFieldLegacyLowerings:Int;
+	public var optimizerPortableConcurrencyTypedFastpathHits:Int;
+	public var optimizerPortableConcurrencyTypedFastpathFallbacks:Int;
 
 	public function new(profile:GoProfile, ?goModuleName:String, ?rawNativeMode:RawNativeMode, ?emitLineDirectives:Bool, ?buildContext:GoBuildContext) {
 		this.profile = profile;
@@ -41,6 +48,13 @@ class CompilationContext {
 		this.requiredStdlibShimGroups = [];
 		this.requiresIoHelperSurface = false;
 		this.metalFallbackViolations = [];
+		this.appliedGoAstPassNames = [];
+		this.optimizerStringInstanceTypedLowerings = 0;
+		this.optimizerStringInstanceLegacyLowerings = 0;
+		this.optimizerStringLengthFieldTypedLowerings = 0;
+		this.optimizerStringLengthFieldLegacyLowerings = 0;
+		this.optimizerPortableConcurrencyTypedFastpathHits = 0;
+		this.optimizerPortableConcurrencyTypedFastpathFallbacks = 0;
 	}
 
 	public static function fromBuildContext(buildContext:GoBuildContext):CompilationContext {

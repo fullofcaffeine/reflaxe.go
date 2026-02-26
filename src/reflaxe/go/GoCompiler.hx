@@ -3247,7 +3247,7 @@ class GoCompiler {
 				}
 			], [], [GoStmt.GoGoStmt(GoExpr.GoCall(GoExpr.GoIdent("fn"), []))])
 		];
-		if (isMetalProfile()) {
+		if (useTypedGoConcurrencySpecialization()) {
 			decls = decls.concat(lowerMetalGoConcurrencyShimDecls());
 		}
 		return decls;
@@ -10728,16 +10728,18 @@ class GoCompiler {
 				};
 			case TNew(classRef, _, args):
 				var classType = classRef.get();
-				if (isMetalProfile() && isGoChanClass(classType)) {
+				if (useTypedGoConcurrencySpecialization() && isGoChanClass(classType)) {
 					var elementGoType = goChanElementGoType(expr.t);
 					if (elementGoType != null) {
 						requireStdlibShimGroup("go_concurrency");
 						registerMetalChanElementGoType(elementGoType);
+						notePortableConcurrencyFastpathHit();
 						{
 							expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_newChan", elementGoType)), [GoExpr.GoIntLiteral(0)]),
 							isStringLike: false
 						};
 					} else {
+						notePortableConcurrencyFastpathFallback();
 						noteMetalFallback("go_chan_new_unmorphable", expr.pos, "Could not monomorphize go.Chan element type for constructor specialization.");
 						{
 							expr: GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(classType)), [for (arg in args) lowerExpr(arg).expr]),
@@ -11113,8 +11115,15 @@ class GoCompiler {
 				}
 
 				if (classType.pack.length == 0 && classType.name == "String" && resolved.name == "length") {
+					var lengthHelper = if (useStringFastpath()) {
+						compilationContext.optimizerStringLengthFieldTypedLowerings++;
+						"hxrt.StringLengthStringPtr";
+					} else {
+						compilationContext.optimizerStringLengthFieldLegacyLowerings++;
+						"hxrt.StringLength";
+					};
 					return {
-						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringLength"), [loweredTarget]),
+						expr: GoExpr.GoCall(GoExpr.GoIdent(lengthHelper), [loweredTarget]),
 						isStringLike: false
 					};
 				}
@@ -11259,7 +11268,7 @@ class GoCompiler {
 	}
 
 	function lowerCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):LoweredExpr {
-		var stringInstanceCall = lowerStringInstanceCall(callee, args);
+		var stringInstanceCall = lowerStringInstanceCall(callee, args, returnType);
 		if (stringInstanceCall != null) {
 			return stringInstanceCall;
 		}
@@ -11510,18 +11519,20 @@ class GoCompiler {
 	}
 
 	function lowerMetalGoChanCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
-		if (!isMetalProfile()) {
+		if (!useTypedGoConcurrencySpecialization()) {
 			return null;
 		}
 
 		if (isStaticCall(callee, "Go", ["go"], "newChan")) {
 			var elementGoType = goChanElementGoType(returnType);
 			if (elementGoType == null) {
+				notePortableConcurrencyFastpathFallback();
 				noteMetalFallback("go_chan_new_unmorphable", callee.pos, "Could not monomorphize go.Go.newChan return type for metal specialization.");
 				return null;
 			}
 			requireStdlibShimGroup("go_concurrency");
 			registerMetalChanElementGoType(elementGoType);
+			notePortableConcurrencyFastpathHit();
 			var buffer = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_newChan", elementGoType)), [buffer]),
@@ -11536,12 +11547,14 @@ class GoCompiler {
 
 		var elementGoType = scalarGoType(methodCall.elementType);
 		if (!isMonomorphizableMetalChanElementType(elementGoType)) {
+			notePortableConcurrencyFastpathFallback();
 			noteMetalFallback("go_chan_method_unmorphable", callee.pos, 'Could not monomorphize go.Chan method call (element type: ' + elementGoType + ").");
 			return null;
 		}
 
 		requireStdlibShimGroup("go_concurrency");
 		registerMetalChanElementGoType(elementGoType);
+		notePortableConcurrencyFastpathHit();
 
 		var channel = lowerExpr(methodCall.target).expr;
 		var channelNative = GoExpr.GoSelector(channel, "__hx_native");
@@ -11825,7 +11838,7 @@ class GoCompiler {
 		};
 	}
 
-	function lowerStringInstanceCall(callee:TypedExpr, args:Array<TypedExpr>):Null<LoweredExpr> {
+	function lowerStringInstanceCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		return switch (callee.expr) {
 			case TField(target, FInstance(classRef, _, field)):
 				var classType = classRef.get();
@@ -11834,32 +11847,62 @@ class GoCompiler {
 					null;
 				} else {
 					var loweredTarget = lowerExpr(target).expr;
+					var useTypedHelpers = useStringFastpath();
 					switch (resolvedField.name) {
 						case "charAt":
 							var indexExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
+							var helper = if (useTypedHelpers) {
+								compilationContext.optimizerStringInstanceTypedLowerings++;
+								"hxrt.StringCharAtStringPtr";
+							} else {
+								compilationContext.optimizerStringInstanceLegacyLowerings++;
+								"hxrt.StringCharAt";
+							};
 							{
-								expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringCharAt"), [loweredTarget, indexExpr]),
+								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, indexExpr]),
 								isStringLike: true
 							};
 						case "charCodeAt":
 							var indexExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
+							var useIntReturn = isIntType(returnType) && !isNullableIntType(returnType);
+							var helper = if (useTypedHelpers) {
+								compilationContext.optimizerStringInstanceTypedLowerings++;
+								useIntReturn ? "hxrt.StringCharCodeAtStringPtr" : "hxrt.StringCharCodeAtAnyStringPtr";
+							} else {
+								compilationContext.optimizerStringInstanceLegacyLowerings++;
+								useIntReturn ? "hxrt.StringCharCodeAt" : "hxrt.StringCharCodeAtAny";
+							};
 							{
-								expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringCharCodeAtAny"), [loweredTarget, indexExpr]),
+								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, indexExpr]),
 								isStringLike: false
 							};
 						case "substring":
 							var startExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
-							var endExpr = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringLength"), [loweredTarget]);
+							var lengthHelper = useTypedHelpers ? "hxrt.StringLengthStringPtr" : "hxrt.StringLength";
+							var substringHelper = useTypedHelpers ? "hxrt.StringSubstringStringPtr" : "hxrt.StringSubstring";
+							if (useTypedHelpers) {
+								compilationContext.optimizerStringInstanceTypedLowerings++;
+							} else {
+								compilationContext.optimizerStringInstanceLegacyLowerings++;
+							}
+							var endExpr = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoCall(GoExpr.GoIdent(lengthHelper), [loweredTarget]);
 							{
-								expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringSubstring"), [loweredTarget, startExpr, endExpr]),
+								expr: GoExpr.GoCall(GoExpr.GoIdent(substringHelper), [loweredTarget, startExpr, endExpr]),
 								isStringLike: true
 							};
 						case "substr":
 							var posExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
 							var lenExpr = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoIntLiteral(0);
 							var hasLenExpr = GoExpr.GoBoolLiteral(args.length > 1);
+							var helper = if (useTypedHelpers) {
+								compilationContext.optimizerStringInstanceTypedLowerings++;
+								"hxrt.StringSubstrStringPtr";
+							} else {
+								compilationContext.optimizerStringInstanceLegacyLowerings++;
+								"hxrt.StringSubstr";
+							};
 							{
-								expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringSubstr"), [loweredTarget, posExpr, lenExpr, hasLenExpr]),
+								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, posExpr, lenExpr, hasLenExpr]),
 								isStringLike: true
 							};
 						case _:
@@ -11867,11 +11910,11 @@ class GoCompiler {
 					}
 				}
 			case TMeta(_, inner):
-				lowerStringInstanceCall(inner, args);
+				lowerStringInstanceCall(inner, args, returnType);
 			case TParenthesis(inner):
-				lowerStringInstanceCall(inner, args);
+				lowerStringInstanceCall(inner, args, returnType);
 			case TCast(inner, _):
-				lowerStringInstanceCall(inner, args);
+				lowerStringInstanceCall(inner, args, returnType);
 			case _:
 				null;
 		};
@@ -12411,6 +12454,36 @@ class GoCompiler {
 		return compilationContext.profile == GoProfile.Metal;
 	}
 
+	function isPortableProfile():Bool {
+		return compilationContext.profile == GoProfile.Portable;
+	}
+
+	function useStringFastpath():Bool {
+		return compilationContext.buildContext.portableStringFastpathEnabled;
+	}
+
+	function usePortableConcurrencyFastpath():Bool {
+		return isPortableProfile() && compilationContext.buildContext.portableConcurrencyFastpathEnabled;
+	}
+
+	function useTypedGoConcurrencySpecialization():Bool {
+		return isMetalProfile() || usePortableConcurrencyFastpath();
+	}
+
+	function notePortableConcurrencyFastpathHit():Void {
+		if (!usePortableConcurrencyFastpath()) {
+			return;
+		}
+		compilationContext.optimizerPortableConcurrencyTypedFastpathHits++;
+	}
+
+	function notePortableConcurrencyFastpathFallback():Void {
+		if (!usePortableConcurrencyFastpath()) {
+			return;
+		}
+		compilationContext.optimizerPortableConcurrencyTypedFastpathFallbacks++;
+	}
+
 	function noteMetalFallback(kind:String, pos:haxe.macro.Expr.Position, detail:String):Void {
 		if (!isMetalProfile()) {
 			return;
@@ -12645,7 +12718,7 @@ class GoCompiler {
 	}
 
 	function registerMetalChanElementGoType(elementGoType:String):Void {
-		if (!isMetalProfile()) {
+		if (!useTypedGoConcurrencySpecialization()) {
 			return;
 		}
 		if (!isMonomorphizableMetalChanElementType(elementGoType)) {
@@ -12932,13 +13005,17 @@ class GoCompiler {
 					isStringLike: false
 				};
 			case OpUShr if (int32Mode):
+				var int32Left = coerceNullableIntOperandExpr(leftLowered.expr, left.t);
+				var int32Right = coerceNullableIntOperandExpr(rightLowered.expr, right.t);
 				{
-					expr: lowerHaxeInt32BinopExpr(op, leftLowered.expr, rightLowered.expr),
+					expr: lowerHaxeInt32BinopExpr(op, int32Left, int32Right),
 					isStringLike: false
 				};
 			case OpAdd | OpSub | OpMult | OpMod | OpAnd | OpOr | OpXor | OpShl | OpShr if (int32Mode):
+				var int32Left = coerceNullableIntOperandExpr(leftLowered.expr, left.t);
+				var int32Right = coerceNullableIntOperandExpr(rightLowered.expr, right.t);
 				{
-					expr: lowerHaxeInt32BinopExpr(op, leftLowered.expr, rightLowered.expr),
+					expr: lowerHaxeInt32BinopExpr(op, int32Left, int32Right),
 					isStringLike: false
 				};
 			case OpUShr:
@@ -12970,7 +13047,9 @@ class GoCompiler {
 			&& !isFloatType(rightType)
 			&& (op == OpAdd || op == OpSub || op == OpMult || op == OpMod || op == OpAnd || op == OpOr || op == OpXor || op == OpShl || op == OpShr
 				|| op == OpUShr)) {
-			return lowerHaxeInt32BinopExpr(op, leftExpr, rightExpr);
+			var int32Left = coerceNullableIntOperandExpr(leftExpr, leftType);
+			var int32Right = coerceNullableIntOperandExpr(rightExpr, rightType);
+			return lowerHaxeInt32BinopExpr(op, int32Left, int32Right);
 		}
 		if ((op == OpAdd || op == OpSub || op == OpMult || op == OpDiv) && isFloatType(leftType)) {
 			return GoExpr.GoBinary(binopSymbol(op), floatOperandExpr(leftExpr, leftType), floatOperandExpr(rightExpr, rightType));
@@ -12988,6 +13067,13 @@ class GoCompiler {
 
 	function lowerHaxeInt32BinopExpr(op:Binop, leftExpr:GoExpr, rightExpr:GoExpr):GoExpr {
 		return GoExprOperatorOps.lowerHaxeInt32BinopExpr(op, leftExpr, rightExpr);
+	}
+
+	function coerceNullableIntOperandExpr(expr:GoExpr, operandType:Type):GoExpr {
+		if (!isNullableIntType(operandType)) {
+			return expr;
+		}
+		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [expr]);
 	}
 
 	function wrapInt32Expr(expr:GoExpr):GoExpr {
@@ -13078,6 +13164,10 @@ class GoCompiler {
 
 	function isIntType(type:Type):Bool {
 		return GoTypeMapper.isIntType(type);
+	}
+
+	function isNullableIntType(type:Type):Bool {
+		return GoTypeMapper.isNullableIntType(type);
 	}
 
 	function isHaxeInt32Type(type:Type):Bool {

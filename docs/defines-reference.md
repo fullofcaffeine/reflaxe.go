@@ -63,6 +63,18 @@ Design note:
   - Enable selective runtime mode and disable inferred features from compiler analysis.
   - Resulting runtime set is `core` plus any manual `reflaxe_go_hxrt_features`.
 
+## Optimizer controls
+
+- `reflaxe_go_opt=portable_fast|none`
+  - Additive optimizer preset (not a semantic profile switch).
+  - Default: `portable_fast`.
+  - `portable_fast` enables semantics-preserving portable convergence fastpaths.
+  - `none` disables preset-driven fastpaths.
+- `reflaxe_go_opt_go_concurrency_fastpath[=0|1|false|true|off|on]`
+  - Capability toggle for typed go-concurrency fastpath (`go.Chan` specialization path) in portable builds.
+  - Defaults to `on` when `reflaxe_go_opt=portable_fast`, otherwise `off`.
+  - Example disable: `-D reflaxe_go_opt_go_concurrency_fastpath=0`.
+
 ## Strictness
 
 - `reflaxe_go_strict`
@@ -109,6 +121,8 @@ Removed:
   - `profile_contract.json` schema v3 includes structured `metalFallbackViolations` plus deterministic lane summary fields (`metalFallbackLaneViolationCount`, `metalFallbackNonLaneViolationCount`, `metalFallbackViolationsByModule`).
 - `reflaxe_go_runtime_plan_report`
   - Emit `hxrt_plan.json` and `hxrt_plan.md` into output root with selected runtime features/files and selection reasons.
+- `reflaxe_go_optimizer_plan_report`
+  - Emit `optimizer_plan.json` and `optimizer_plan.md` into output root with effective optimizer preset/capabilities and applied lowering counters.
 
 ## Constructor devex
 

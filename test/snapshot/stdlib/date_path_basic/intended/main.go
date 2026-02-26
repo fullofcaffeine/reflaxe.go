@@ -18,6 +18,14 @@ import (
 	"time"
 )
 
+type hxrt__TypeClassValue struct {
+	name *string
+}
+
+type hxrt__TypeEnumValue struct {
+	name *string
+}
+
 func main() {
 	d := Date_fromString(hxrt.StringFromLiteral("2024-02-03 04:05:06"))
 	hxrt.Println(d.getFullYear())
@@ -585,6 +593,11 @@ func Date_now() *Date {
 	return &Date{value: time.Now()}
 }
 
+func Date_fromTime(ms float64) *Date {
+	nanos := int64(ms * 1e6)
+	return &Date{value: time.Unix(0, nanos).In(time.Local)}
+}
+
 func (self *Date) getFullYear() int {
 	return self.value.Year()
 }
@@ -599,6 +612,26 @@ func (self *Date) getDate() int {
 
 func (self *Date) getHours() int {
 	return self.value.Hour()
+}
+
+func (self *Date) getTime() float64 {
+	return float64(self.value.UnixNano()) / 1e6
+}
+
+type DateTools struct {
+}
+
+func DateTools_format(date *Date, format *string) *string {
+	layout := *hxrt.StdString(format)
+	layout = strings.ReplaceAll(layout, "%%", "__HX_PERCENT__")
+	layout = strings.ReplaceAll(layout, "%Y", "2006")
+	layout = strings.ReplaceAll(layout, "%m", "01")
+	layout = strings.ReplaceAll(layout, "%d", "02")
+	layout = strings.ReplaceAll(layout, "%H", "15")
+	layout = strings.ReplaceAll(layout, "%M", "04")
+	layout = strings.ReplaceAll(layout, "%S", "05")
+	layout = strings.ReplaceAll(layout, "__HX_PERCENT__", "%")
+	return hxrt.StringFromLiteral(date.value.Format(layout))
 }
 
 type Math struct {
@@ -1114,4 +1147,557 @@ func haxe__zip__Uncompress_run(src *haxe__io__Bytes, bufsize ...int) *haxe__io__
 }
 
 type sys__FileSystem struct {
+}
+
+type ValueType struct {
+	tag    int
+	params []any
+}
+
+var ValueType_TNull *ValueType = &ValueType{tag: 0, params: []any{}}
+
+var ValueType_TInt *ValueType = &ValueType{tag: 1, params: []any{}}
+
+var ValueType_TFloat *ValueType = &ValueType{tag: 2, params: []any{}}
+
+var ValueType_TBool *ValueType = &ValueType{tag: 3, params: []any{}}
+
+var ValueType_TObject *ValueType = &ValueType{tag: 4, params: []any{}}
+
+var ValueType_TFunction *ValueType = &ValueType{tag: 5, params: []any{}}
+
+var ValueType_TUnknown *ValueType = &ValueType{tag: 8, params: []any{}}
+
+func ValueType_TClass(c any) *ValueType {
+	return &ValueType{tag: 6, params: []any{c}}
+}
+
+func ValueType_TEnum(e any) *ValueType {
+	return &ValueType{tag: 7, params: []any{e}}
+}
+
+func hxrt_typeCallAny(callable any, args []any) (any, bool) {
+	result := any(nil)
+	ok := false
+	defer func() {
+		if recover() != nil {
+			result = nil
+			ok = false
+		}
+	}()
+	if callable == nil {
+		return nil, false
+	}
+	fn := reflect.ValueOf(callable)
+	if !fn.IsValid() || fn.Kind() != reflect.Func {
+		return nil, false
+	}
+	fnType := fn.Type()
+	if fnType.NumIn() != len(args) {
+		return nil, false
+	}
+	in := make([]reflect.Value, len(args))
+	for i := 0; i < len(args); i++ {
+		paramType := fnType.In(i)
+		arg := args[i]
+		if arg == nil {
+			in[i] = reflect.Zero(paramType)
+			continue
+		}
+		v := reflect.ValueOf(arg)
+		if v.IsValid() && v.Type().AssignableTo(paramType) {
+			in[i] = v
+			continue
+		}
+		if v.IsValid() && v.Type().ConvertibleTo(paramType) {
+			in[i] = v.Convert(paramType)
+			continue
+		}
+		if paramType.Kind() == reflect.Interface && v.IsValid() {
+			in[i] = v
+			continue
+		}
+		return nil, false
+	}
+	out := fn.Call(in)
+	if len(out) == 0 {
+		return nil, true
+	}
+	first := out[0]
+	if !first.IsValid() {
+		return nil, true
+	}
+	result = first.Interface()
+	ok = true
+	return result, ok
+}
+
+func hxrt_typeResolvedClassName(value any) (string, bool) {
+	switch current := value.(type) {
+	case *hxrt__TypeClassValue:
+		if current == nil || current.name == nil {
+			return "", false
+		}
+		return *current.name, true
+	case hxrt__TypeClassValue:
+		if current.name == nil {
+			return "", false
+		}
+		return *current.name, true
+	case string:
+		return current, true
+	case *string:
+		if current == nil {
+			return "", false
+		}
+		return *current, true
+	default:
+		return "", false
+	}
+}
+
+func hxrt_typeResolvedEnumName(value any) (string, bool) {
+	switch current := value.(type) {
+	case *hxrt__TypeEnumValue:
+		if current == nil || current.name == nil {
+			return "", false
+		}
+		return *current.name, true
+	case hxrt__TypeEnumValue:
+		if current.name == nil {
+			return "", false
+		}
+		return *current.name, true
+	case string:
+		return current, true
+	case *string:
+		if current == nil {
+			return "", false
+		}
+		return *current, true
+	default:
+		return "", false
+	}
+}
+
+func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
+	switch className {
+	default:
+		return nil, false
+	}
+}
+
+func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
+	switch className {
+	default:
+		return nil, false
+	}
+}
+
+func hxrt_typeCreateEnumInstance(enumName string, constructorName string, constructorIndex int, useIndex bool, args []any) (any, bool) {
+	switch enumName {
+	case "ValueType":
+		if useIndex {
+			switch constructorIndex {
+			case 0:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return ValueType_TNull, true
+			case 1:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return ValueType_TInt, true
+			case 2:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return ValueType_TFloat, true
+			case 3:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return ValueType_TBool, true
+			case 4:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return ValueType_TObject, true
+			case 5:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return ValueType_TFunction, true
+			case 6:
+				if len(args) != 1 {
+					return nil, false
+				}
+				return hxrt_typeCallAny(ValueType_TClass, args)
+			case 7:
+				if len(args) != 1 {
+					return nil, false
+				}
+				return hxrt_typeCallAny(ValueType_TEnum, args)
+			case 8:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return ValueType_TUnknown, true
+			default:
+				return nil, false
+			}
+		}
+		switch constructorName {
+		case "TNull":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return ValueType_TNull, true
+		case "TInt":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return ValueType_TInt, true
+		case "TFloat":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return ValueType_TFloat, true
+		case "TBool":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return ValueType_TBool, true
+		case "TObject":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return ValueType_TObject, true
+		case "TFunction":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return ValueType_TFunction, true
+		case "TClass":
+			if len(args) != 1 {
+				return nil, false
+			}
+			return hxrt_typeCallAny(ValueType_TClass, args)
+		case "TEnum":
+			if len(args) != 1 {
+				return nil, false
+			}
+			return hxrt_typeCallAny(ValueType_TEnum, args)
+		case "TUnknown":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return ValueType_TUnknown, true
+		default:
+			return nil, false
+		}
+	default:
+		return nil, false
+	}
+}
+
+func Type_getClass(o any) any {
+	if hxrt.AnyEqualsNull(o) {
+		return nil
+	}
+	switch value := o.(type) {
+	case *hxrt__TypeClassValue:
+		if value == nil {
+			return nil
+		}
+		return value
+	case hxrt__TypeClassValue:
+		copyValue := value
+		return &copyValue
+	default:
+		return nil
+	}
+}
+
+func Type_getEnum(o any) any {
+	if hxrt.AnyEqualsNull(o) {
+		return nil
+	}
+	switch value := o.(type) {
+	case *hxrt__TypeEnumValue:
+		if value == nil {
+			return nil
+		}
+		return value
+	case hxrt__TypeEnumValue:
+		copyValue := value
+		return &copyValue
+	case *ValueType:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("ValueType")}
+	default:
+		return nil
+	}
+}
+
+func Type_getSuperClass(c any) any {
+	className, ok := hxrt_typeResolvedClassName(c)
+	if !ok {
+		return nil
+	}
+	switch className {
+	default:
+		return nil
+	}
+}
+
+func Type_getClassName(c any) *string {
+	className, ok := hxrt_typeResolvedClassName(c)
+	if !ok {
+		return nil
+	}
+	return hxrt.StringFromLiteral(className)
+}
+
+func Type_getClassFields(c any) []*string {
+	className, ok := hxrt_typeResolvedClassName(c)
+	if !ok {
+		return []*string{}
+	}
+	switch className {
+	default:
+		return []*string{}
+	}
+}
+
+func Type_getInstanceFields(c any) []*string {
+	className, ok := hxrt_typeResolvedClassName(c)
+	if !ok {
+		return []*string{}
+	}
+	switch className {
+	default:
+		return []*string{}
+	}
+}
+
+func Type_getEnumName(e any) *string {
+	enumName, ok := hxrt_typeResolvedEnumName(e)
+	if !ok {
+		return nil
+	}
+	return hxrt.StringFromLiteral(enumName)
+}
+
+func Type_resolveClass(name *string) any {
+	if name == nil {
+		return nil
+	}
+	rawName := *hxrt.StdString(name)
+	switch rawName {
+	default:
+		return nil
+	}
+}
+
+func Type_resolveEnum(name *string) any {
+	if name == nil {
+		return nil
+	}
+	rawName := *hxrt.StdString(name)
+	switch rawName {
+	case "ValueType":
+		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
+	default:
+		return nil
+	}
+}
+
+func Type_createInstance(cl any, args []any) any {
+	className, ok := hxrt_typeResolvedClassName(cl)
+	if !ok {
+		return nil
+	}
+	instance, ok := hxrt_typeCreateClassInstance(className, args)
+	if !ok {
+		return nil
+	}
+	return instance
+}
+
+func Type_createEmptyInstance(cl any) any {
+	className, ok := hxrt_typeResolvedClassName(cl)
+	if !ok {
+		return nil
+	}
+	instance, ok := hxrt_typeCreateClassEmptyInstance(className)
+	if !ok {
+		return nil
+	}
+	return instance
+}
+
+func Type_createEnum(e any, constr *string, params []any) any {
+	enumName, ok := hxrt_typeResolvedEnumName(e)
+	if !ok {
+		return nil
+	}
+	constructorName := ""
+	if constr != nil {
+		constructorName = *hxrt.StdString(constr)
+	}
+	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, params)
+	if !ok {
+		return nil
+	}
+	return enumValue
+}
+
+func Type_createEnumIndex(e any, index int, params []any) any {
+	enumName, ok := hxrt_typeResolvedEnumName(e)
+	if !ok {
+		return nil
+	}
+	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, "", index, true, params)
+	if !ok {
+		return nil
+	}
+	return enumValue
+}
+
+func Type_enumConstructor(e any) *string {
+	if hxrt.AnyEqualsNull(e) {
+		return nil
+	}
+	switch value := e.(type) {
+	case *ValueType:
+		if value == nil {
+			return nil
+		}
+		switch value.tag {
+		case 0:
+			return hxrt.StringFromLiteral("TNull")
+		case 1:
+			return hxrt.StringFromLiteral("TInt")
+		case 2:
+			return hxrt.StringFromLiteral("TFloat")
+		case 3:
+			return hxrt.StringFromLiteral("TBool")
+		case 4:
+			return hxrt.StringFromLiteral("TObject")
+		case 5:
+			return hxrt.StringFromLiteral("TFunction")
+		case 6:
+			return hxrt.StringFromLiteral("TClass")
+		case 7:
+			return hxrt.StringFromLiteral("TEnum")
+		case 8:
+			return hxrt.StringFromLiteral("TUnknown")
+		default:
+			return nil
+		}
+	default:
+		return nil
+	}
+}
+
+func Type_enumIndex(e any) int {
+	if hxrt.AnyEqualsNull(e) {
+		return -1
+	}
+	switch value := e.(type) {
+	case *ValueType:
+		if value == nil {
+			return -1
+		}
+		return value.tag
+	default:
+		return -1
+	}
+}
+
+func Type_getEnumConstructs(e any) []*string {
+	enumName, ok := hxrt_typeResolvedEnumName(e)
+	if !ok {
+		return []*string{}
+	}
+	switch enumName {
+	case "ValueType":
+		return []*string{hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown")}
+	default:
+		return []*string{}
+	}
+}
+
+func Type_enumParameters(e any) []any {
+	if hxrt.AnyEqualsNull(e) {
+		return []any{}
+	}
+	switch value := e.(type) {
+	case *ValueType:
+		if value == nil || value.params == nil {
+			return []any{}
+		}
+		out := make([]any, len(value.params))
+		copy(out, value.params)
+		return out
+	default:
+		return []any{}
+	}
+}
+
+func Type_allEnums(e any) []any {
+	enumName, ok := hxrt_typeResolvedEnumName(e)
+	if !ok {
+		return []any{}
+	}
+	switch enumName {
+	case "ValueType":
+		return []any{ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown}
+	default:
+		return []any{}
+	}
+}
+
+func Type_typeof(v any) any {
+	if hxrt.AnyEqualsNull(v) {
+		return ValueType_TNull
+	}
+	if enumValue := Type_getEnum(v); enumValue != nil {
+		return ValueType_TEnum(enumValue)
+	}
+	if classValue := Type_getClass(v); classValue != nil {
+		return ValueType_TClass(classValue)
+	}
+	switch v.(type) {
+	case bool:
+		return ValueType_TBool
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr:
+		return ValueType_TInt
+	case float32, float64:
+		return ValueType_TFloat
+	case string, *string:
+		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("String")})
+	}
+	ref := reflect.ValueOf(v)
+	if !ref.IsValid() {
+		return ValueType_TNull
+	}
+	switch ref.Kind() {
+	case reflect.Func:
+		return ValueType_TFunction
+	case reflect.Slice, reflect.Array:
+		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")})
+	case reflect.Map, reflect.Struct, reflect.Interface, reflect.Pointer:
+		return ValueType_TObject
+	default:
+		return ValueType_TUnknown
+	}
+}
+
+func Type_enumEq(a any, b any) bool {
+	return reflect.DeepEqual(a, b)
 }

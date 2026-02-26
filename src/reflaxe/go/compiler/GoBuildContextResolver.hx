@@ -18,16 +18,23 @@ class GoBuildContextResolver {
 	public static inline final HXRT_NO_FEATURE_INFER_DEFINE = "reflaxe_go_hxrt_no_feature_infer";
 	public static inline final CONTRACT_REPORT_DEFINE = "reflaxe_go_contract_report";
 	public static inline final RUNTIME_PLAN_REPORT_DEFINE = "reflaxe_go_runtime_plan_report";
+	public static inline final OPTIMIZER_PLAN_REPORT_DEFINE = "reflaxe_go_optimizer_plan_report";
+	public static inline final OPT_PRESET_DEFINE = "reflaxe_go_opt";
+	public static inline final OPT_PORTABLE_CONCURRENCY_FASTPATH_DEFINE = "reflaxe_go_opt_go_concurrency_fastpath";
 
 	public static function resolve():GoBuildContext {
 		var profile = ProfileResolver.resolve();
 		var metalFallbackAllowed = Context.defined(METAL_ALLOW_FALLBACK_DEFINE);
+		var optimizationPreset = parseOptimizationPreset(Context.definedValue(OPT_PRESET_DEFINE));
+		var portableStringFastpathEnabled = optimizationPreset == "portable_fast";
+		var portableConcurrencyFastpathEnabled = parseBoolDefine(OPT_PORTABLE_CONCURRENCY_FASTPATH_DEFINE, portableStringFastpathEnabled);
 		return new GoBuildContext(profile, normalizeGoModuleName(Context.definedValue(GO_MODULE_DEFINE)), RawNativeModeResolver.resolve(),
 			Context.defined(LINE_DIRECTIVES_DEFINE), Context.defined(STRICT_EXAMPLES_DEFINE), Context.defined(STRICT_DEFINE) || (profile == GoProfile.Metal
 				&& !metalFallbackAllowed), metalFallbackAllowed, profile == GoProfile.Metal && !metalFallbackAllowed,
 			Context.defined(HXRT_DEFAULT_FEATURES_DEFINE), Context.defined(HXRT_FEATURES_DEFINE),
 			Context.defined(HXRT_NO_FEATURE_INFER_DEFINE), parseManualHxrtFeatures(Context.definedValue(HXRT_FEATURES_DEFINE)),
-			Context.defined(CONTRACT_REPORT_DEFINE), Context.defined(RUNTIME_PLAN_REPORT_DEFINE), []);
+			Context.defined(CONTRACT_REPORT_DEFINE), Context.defined(RUNTIME_PLAN_REPORT_DEFINE), parseBoolDefine(OPTIMIZER_PLAN_REPORT_DEFINE, false),
+			optimizationPreset, portableStringFastpathEnabled, portableConcurrencyFastpathEnabled, []);
 	}
 
 	static function parseManualHxrtFeatures(raw:Null<String>):Array<String> {
@@ -57,6 +64,44 @@ class GoBuildContextResolver {
 		}
 		var trimmed = StringTools.trim(raw);
 		return trimmed == "" ? "snapshot" : trimmed;
+	}
+
+	static function parseOptimizationPreset(raw:Null<String>):String {
+		if (raw == null) {
+			return "portable_fast";
+		}
+		var normalized = StringTools.trim(raw).toLowerCase();
+		if (normalized == "") {
+			return "portable_fast";
+		}
+		return switch (normalized) {
+			case "portable_fast", "none":
+				normalized;
+			case _:
+				Context.fatalError('Unknown `' + OPT_PRESET_DEFINE + '` preset "' + raw + '" (expected: portable_fast, none)', Context.currentPos());
+				"portable_fast";
+		};
+	}
+
+	static function parseBoolDefine(defineName:String, defaultValue:Bool):Bool {
+		var raw = Context.definedValue(defineName);
+		if (raw == null) {
+			return defaultValue;
+		}
+		var normalized = StringTools.trim(raw).toLowerCase();
+		if (normalized == "") {
+			return true;
+		}
+		return switch (normalized) {
+			case "1", "true", "yes", "on":
+				true;
+			case "0", "false", "no", "off":
+				false;
+			case _:
+				Context.fatalError('Unknown boolean value for `-D ' + defineName + '=' + raw + '` (expected one of: 1,true,yes,on,0,false,no,off)',
+					Context.currentPos());
+				defaultValue;
+		};
 	}
 }
 #else

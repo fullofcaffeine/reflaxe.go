@@ -118,18 +118,18 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 	multiplier := this1_1
 	sIsNegative := false
 	s := StringTools_trim(sParam)
-	if hxrt.StringEqualStringPtr(hxrt.StringCharAt(s, 0), hxrt.StringFromLiteral("-")) {
+	if hxrt.StringEqualStringPtr(hxrt.StringCharAtStringPtr(s, 0), hxrt.StringFromLiteral("-")) {
 		sIsNegative = true
-		s = hxrt.StringSubstring(s, 1, hxrt.StringLength(s))
+		s = hxrt.StringSubstringStringPtr(s, 1, hxrt.StringLengthStringPtr(s))
 	}
-	len := hxrt.StringLength(s)
+	len := hxrt.StringLengthStringPtr(s)
 	_g := 0
 	_g1 := len
 	for _g < _g1 {
 		hx_post_40 := _g
 		_g = int(int32((_g + 1)))
 		i := hx_post_40
-		digitInt := int(int32((hxrt.Int32Wrap(hxrt.StringCharCodeAt(s, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(len)-hxrt.Int32Wrap(1)))))-hxrt.Int32Wrap(i)))))) - hxrt.Int32Wrap(48))))
+		digitInt := int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(s, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(len)-hxrt.Int32Wrap(1)))))-hxrt.Int32Wrap(i))))))) - hxrt.Int32Wrap(48))))
 		if (digitInt < 0) || (digitInt > 9) {
 			hxrt.Throw(hxrt.StringFromLiteral("NumberFormatError"))
 			var hx_throw_zero_41 *haxe___Int64_____Int64

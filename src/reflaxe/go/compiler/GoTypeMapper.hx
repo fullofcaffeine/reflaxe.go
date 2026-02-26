@@ -3,6 +3,7 @@ package reflaxe.go.compiler;
 #if macro
 import haxe.macro.Context;
 import haxe.macro.Type;
+import haxe.macro.TypeTools;
 
 typedef GoClassTypeNamer = ClassType->String;
 typedef GoEnumTypeNamer = EnumType->String;
@@ -102,6 +103,18 @@ class GoTypeMapper {
 		var followed = Context.follow(type);
 		return switch (followed) {
 			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Int";
+			case _:
+				false;
+		};
+	}
+
+	public static function isNullableIntType(type:Type):Bool {
+		return switch (type) {
+			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isIntType(params[0]);
+			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableIntType(resolved);
+			case TType(_, _): var followed = TypeTools.follow(type, true); followed != type && isNullableIntType(followed);
+			case TLazy(f):
+				isNullableIntType(f());
 			case _:
 				false;
 		};

@@ -25,11 +25,16 @@ class GoBuildContext {
 	public final hxrtManualFeatures:Array<String>;
 	public final contractReportEnabled:Bool;
 	public final runtimePlanReportEnabled:Bool;
+	public final optimizerPlanReportEnabled:Bool;
+	public final optimizationPreset:String;
+	public final portableStringFastpathEnabled:Bool;
+	public final portableConcurrencyFastpathEnabled:Bool;
 	public final metalLaneModules:Array<String>;
 
 	public function new(profile:GoProfile, goModuleName:String, rawNativeMode:RawNativeMode, emitLineDirectives:Bool, strictExamples:Bool,
 			strictUserBoundaries:Bool, metalFallbackAllowed:Bool, metalContractHardError:Bool, hxrtForceFullCopy:Bool, hxrtFeaturesDefinePresent:Bool,
 			hxrtNoFeatureInfer:Bool, hxrtManualFeatures:Array<String>, contractReportEnabled:Bool, runtimePlanReportEnabled:Bool,
+			optimizerPlanReportEnabled:Bool, optimizationPreset:String, portableStringFastpathEnabled:Bool, portableConcurrencyFastpathEnabled:Bool,
 			metalLaneModules:Array<String>) {
 		this.profile = profile;
 		this.goModuleName = normalizeGoModuleName(goModuleName);
@@ -45,6 +50,10 @@ class GoBuildContext {
 		this.hxrtManualFeatures = sortedUniqueLowercase(hxrtManualFeatures);
 		this.contractReportEnabled = contractReportEnabled == true;
 		this.runtimePlanReportEnabled = runtimePlanReportEnabled == true;
+		this.optimizerPlanReportEnabled = optimizerPlanReportEnabled == true;
+		this.optimizationPreset = normalizeOptimizationPreset(optimizationPreset);
+		this.portableStringFastpathEnabled = portableStringFastpathEnabled == true;
+		this.portableConcurrencyFastpathEnabled = portableConcurrencyFastpathEnabled == true;
 		this.metalLaneModules = sortedUnique(metalLaneModules);
 	}
 
@@ -59,12 +68,13 @@ class GoBuildContext {
 	public function withMetalLaneModules(metalLaneModules:Array<String>):GoBuildContext {
 		return new GoBuildContext(profile, goModuleName, rawNativeMode, emitLineDirectives, strictExamples, strictUserBoundaries, metalFallbackAllowed,
 			metalContractHardError, hxrtForceFullCopy, hxrtFeaturesDefinePresent, hxrtNoFeatureInfer, hxrtManualFeatures, contractReportEnabled,
-			runtimePlanReportEnabled, metalLaneModules);
+			runtimePlanReportEnabled, optimizerPlanReportEnabled, optimizationPreset, portableStringFastpathEnabled, portableConcurrencyFastpathEnabled,
+			metalLaneModules);
 	}
 
 	public static function legacyDefaults(profile:GoProfile, ?goModuleName:String, ?rawNativeMode:RawNativeMode, ?emitLineDirectives:Bool):GoBuildContext {
 		return new GoBuildContext(profile, normalizeGoModuleName(goModuleName), rawNativeMode == null ? RawNativeMode.Interp : rawNativeMode,
-			emitLineDirectives == true, false, false, false, false, false, false, false, [], false, false, []);
+			emitLineDirectives == true, false, false, false, false, false, false, false, [], false, false, false, "portable_fast", true, true, []);
 	}
 
 	static function normalizeGoModuleName(raw:Null<String>):String {
@@ -101,5 +111,13 @@ class GoBuildContext {
 		}
 		out.sort((a, b) -> a < b ? -1 : (a > b ? 1 : 0));
 		return out;
+	}
+
+	static function normalizeOptimizationPreset(raw:Null<String>):String {
+		if (raw == null) {
+			return "portable_fast";
+		}
+		var trimmed = StringTools.trim(raw).toLowerCase();
+		return trimmed == "" ? "portable_fast" : trimmed;
 	}
 }

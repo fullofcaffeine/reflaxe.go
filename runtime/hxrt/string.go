@@ -3,11 +3,18 @@ package hxrt
 import (
 	"fmt"
 	"reflect"
+	"strconv"
+	"unicode/utf8"
 )
 
 func isAnyNil(value any) bool {
 	if value == nil {
 		return true
+	}
+
+	switch value.(type) {
+	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, float32, float64:
+		return false
 	}
 
 	inner := reflect.ValueOf(value)
@@ -33,6 +40,30 @@ func StdString(value any) *string {
 		return v
 	case string:
 		return StringFromLiteral(v)
+	case bool:
+		return StringFromLiteral(strconv.FormatBool(v))
+	case int:
+		return StringFromLiteral(strconv.FormatInt(int64(v), 10))
+	case int8:
+		return StringFromLiteral(strconv.FormatInt(int64(v), 10))
+	case int16:
+		return StringFromLiteral(strconv.FormatInt(int64(v), 10))
+	case int32:
+		return StringFromLiteral(strconv.FormatInt(int64(v), 10))
+	case int64:
+		return StringFromLiteral(strconv.FormatInt(v, 10))
+	case uint:
+		return StringFromLiteral(strconv.FormatUint(uint64(v), 10))
+	case uint8:
+		return StringFromLiteral(strconv.FormatUint(uint64(v), 10))
+	case uint16:
+		return StringFromLiteral(strconv.FormatUint(uint64(v), 10))
+	case uint32:
+		return StringFromLiteral(strconv.FormatUint(uint64(v), 10))
+	case uint64:
+		return StringFromLiteral(strconv.FormatUint(v, 10))
+	case uintptr:
+		return StringFromLiteral(strconv.FormatUint(uint64(v), 10))
 	default:
 		return StringFromLiteral(fmt.Sprint(v))
 	}
@@ -77,58 +108,59 @@ func StringEqualStringPtr(left *string, right *string) bool {
 	return stringValueOrNullToken(left) == stringValueOrNullToken(right)
 }
 
-func StringLength(value any) int {
-	runes := []rune(*StdString(value))
-	return len(runes)
+func StringLengthStringPtr(value *string) int {
+	return utf8.RuneCountInString(stringValueOrNullToken(value))
 }
 
-func StringCharAt(value any, index int) *string {
-	runes := []rune(*StdString(value))
-	if index < 0 || index >= len(runes) {
+func StringCharAtStringPtr(value *string, index int) *string {
+	if index < 0 {
 		return StringFromLiteral("")
 	}
-	return StringFromLiteral(string(runes[index]))
+	raw := stringValueOrNullToken(value)
+	runeIndex := 0
+	for _, runeValue := range raw {
+		if runeIndex == index {
+			return StringFromLiteral(string(runeValue))
+		}
+		runeIndex++
+	}
+	return StringFromLiteral("")
 }
 
-func StringCharCodeAt(value any, index int) int {
-	runes := []rune(*StdString(value))
-	if index < 0 || index >= len(runes) {
+func StringCharCodeAtStringPtr(value *string, index int) int {
+	if index < 0 {
 		return -1
 	}
-	return int(runes[index])
+	raw := stringValueOrNullToken(value)
+	runeIndex := 0
+	for _, runeValue := range raw {
+		if runeIndex == index {
+			return int(runeValue)
+		}
+		runeIndex++
+	}
+	return -1
 }
 
-func StringCharCodeAtAny(value any, index int) any {
-	code := StringCharCodeAt(value, index)
+func StringCharCodeAtAnyStringPtr(value *string, index int) any {
+	code := StringCharCodeAtStringPtr(value, index)
 	if code < 0 {
 		return nil
 	}
 	return code
 }
 
-func StringSubstring(value any, start int, end int) *string {
-	runes := []rune(*StdString(value))
-	if start < 0 {
-		start = 0
-	}
-	if end < 0 {
-		end = 0
-	}
-	if start > len(runes) {
-		start = len(runes)
-	}
-	if end > len(runes) {
-		end = len(runes)
-	}
-	if end < start {
-		end = start
-	}
-	return StringFromLiteral(string(runes[start:end]))
+func StringSubstringStringPtr(value *string, start int, end int) *string {
+	raw := stringValueOrNullToken(value)
+	total := utf8.RuneCountInString(raw)
+	clampedStart, clampedEnd := clampSubstringRange(start, end, total)
+	return StringFromLiteral(sliceStringByRuneRange(raw, clampedStart, clampedEnd))
 }
 
-func StringSubstr(value any, pos int, length int, hasLength bool) *string {
-	runes := []rune(*StdString(value))
-	total := len(runes)
+func StringSubstrStringPtr(value *string, pos int, length int, hasLength bool) *string {
+	raw := stringValueOrNullToken(value)
+	total := utf8.RuneCountInString(raw)
+
 	start := pos
 	if start < 0 {
 		start = total + start
@@ -153,5 +185,86 @@ func StringSubstr(value any, pos int, length int, hasLength bool) *string {
 	if end < start {
 		end = start
 	}
-	return StringFromLiteral(string(runes[start:end]))
+	return StringFromLiteral(sliceStringByRuneRange(raw, start, end))
+}
+
+func clampSubstringRange(start int, end int, total int) (int, int) {
+	if start < 0 {
+		start = 0
+	}
+	if end < 0 {
+		end = 0
+	}
+	if start > total {
+		start = total
+	}
+	if end > total {
+		end = total
+	}
+	if end < start {
+		end = start
+	}
+	return start, end
+}
+
+func sliceStringByRuneRange(raw string, start int, end int) string {
+	if start >= end {
+		return ""
+	}
+
+	runeIndex := 0
+	byteIndex := 0
+	startByte := -1
+	endByte := -1
+	for byteIndex < len(raw) {
+		if runeIndex == start && startByte == -1 {
+			startByte = byteIndex
+		}
+		if runeIndex == end {
+			endByte = byteIndex
+			break
+		}
+		_, size := utf8.DecodeRuneInString(raw[byteIndex:])
+		byteIndex += size
+		runeIndex++
+	}
+
+	if startByte == -1 {
+		startByte = len(raw)
+	}
+	if endByte == -1 {
+		if runeIndex == end {
+			endByte = byteIndex
+		} else {
+			endByte = len(raw)
+		}
+	}
+	if endByte < startByte {
+		endByte = startByte
+	}
+	return raw[startByte:endByte]
+}
+
+func StringLength(value any) int {
+	return StringLengthStringPtr(StdString(value))
+}
+
+func StringCharAt(value any, index int) *string {
+	return StringCharAtStringPtr(StdString(value), index)
+}
+
+func StringCharCodeAt(value any, index int) int {
+	return StringCharCodeAtStringPtr(StdString(value), index)
+}
+
+func StringCharCodeAtAny(value any, index int) any {
+	return StringCharCodeAtAnyStringPtr(StdString(value), index)
+}
+
+func StringSubstring(value any, start int, end int) *string {
+	return StringSubstringStringPtr(StdString(value), start, end)
+}
+
+func StringSubstr(value any, pos int, length int, hasLength bool) *string {
+	return StringSubstrStringPtr(StdString(value), pos, length, hasLength)
 }

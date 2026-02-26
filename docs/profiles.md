@@ -86,6 +86,16 @@ Opt-in report defines:
 
 - `-D reflaxe_go_contract_report` -> `profile_contract.json`, `profile_contract.md`
 - `-D reflaxe_go_runtime_plan_report` -> `hxrt_plan.json`, `hxrt_plan.md`
+- `-D reflaxe_go_optimizer_plan_report` -> `optimizer_plan.json`, `optimizer_plan.md`
+
+## Portable convergence optimizer controls
+
+- `-D reflaxe_go_opt=portable_fast|none`
+  - default: `portable_fast`
+  - additive optimizer preset (not a semantic profile).
+- `-D reflaxe_go_opt_go_concurrency_fastpath=0|1|off|on|false|true`
+  - typed go-concurrency fastpath capability in portable builds.
+  - defaults to `on` with `portable_fast`.
 
 `profile_contract.json` (schema v3) includes structured `metalFallbackViolations` entries and deterministic lane summaries:
 - `metalFallbackLaneViolationCount`

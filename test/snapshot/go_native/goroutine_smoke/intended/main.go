@@ -6,17 +6,11 @@ import (
 )
 
 func main() {
-	ch := go___Go_newChan(0)
+	ch := go__concurrency_newChan__int_95e97e5e(0)
 	go___Go_spawn(func() {
-		ch.send(5)
+		go__concurrency_send__int_95e97e5e(ch.__hx_native, 5)
 	})
-	hxrt.Println(func(hx_value_1 any) int {
-		if hx_value_1 == nil {
-			var hx_zero_2 int
-			return hx_zero_2
-		}
-		return hx_value_1.(int)
-	}(ch.recv()))
+	hxrt.Println(go__concurrency_recv__int_95e97e5e(ch.__hx_native))
 }
 
 type haxe__ds__IntMap struct {
@@ -281,4 +275,63 @@ func go__concurrency_close(channel any) {
 
 func go__concurrency_spawn(fn func()) {
 	go fn()
+}
+
+func go__concurrency_makeChan__int_95e97e5e(buffer int) any {
+	if buffer > 0 {
+		return make(chan int, buffer)
+	}
+	return make(chan int)
+}
+
+func go__concurrency_setBuffer__int_95e97e5e(channel *go___Chan, buffer int) {
+	if channel == nil {
+		return
+	}
+	channel.__hx_native = go__concurrency_makeChan__int_95e97e5e(buffer)
+}
+
+func go__concurrency_newChan__int_95e97e5e(buffer int) *go___Chan {
+	channel := New_go___Chan()
+	go__concurrency_setBuffer__int_95e97e5e(channel, buffer)
+	return channel
+}
+
+func go__concurrency_send__int_95e97e5e(channel any, value int) {
+	channel.(chan int) <- value
+}
+
+func go__concurrency_trySend__int_95e97e5e(channel any, value int) bool {
+	select {
+	case channel.(chan int) <- value:
+		return true
+	default:
+		return false
+	}
+}
+
+func go__concurrency_recv__int_95e97e5e(channel any) int {
+	return <-channel.(chan int)
+}
+
+func go__concurrency_recvOr__int_95e97e5e(channel any, defaultValue int) int {
+	select {
+	case value := <-channel.(chan int):
+		return value
+	default:
+		return defaultValue
+	}
+}
+
+func go__concurrency_tryRecv__int_95e97e5e(channel any) *go___Result {
+	select {
+	case value := <-channel.(chan int):
+		return New_go___Result(value, nil)
+	default:
+		return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("empty")))
+	}
+}
+
+func go__concurrency_close__int_95e97e5e(channel any) {
+	close(channel.(chan int))
 }
