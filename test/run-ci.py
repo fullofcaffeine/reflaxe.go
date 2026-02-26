@@ -39,6 +39,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-portable-parity-closure", action="store_true", help="Skip portable parity-closure summary stage")
     parser.add_argument("--skip-family-stdlib-bootstrap", action="store_true", help="Skip family std sync/verify stage")
     parser.add_argument("--skip-stdlib-governance", action="store_true", help="Skip stdlib provenance/boundary governance stage")
+    parser.add_argument("--skip-optimizer-matrix", action="store_true", help="Skip optimizer-plan matrix snapshot stage")
+    parser.add_argument(
+        "--force-optimizer-matrix",
+        action="store_true",
+        help="Run optimizer-plan matrix snapshot stage even for chunked/filtered runs",
+    )
     parser.add_argument("--skip-semantic-diff", action="store_true", help="Skip semantic differential stage")
     parser.add_argument("--force-semantic-diff", action="store_true", help="Run semantic differential stage even for chunked/filtered runs")
     parser.add_argument("--skip-semantic-diff-lanes", action="store_true", help="Skip lane semantic differential stage")
@@ -173,6 +179,20 @@ def should_run_stdlib_governance(args: argparse.Namespace) -> bool:
 
 def build_stdlib_governance_command() -> list[str]:
     return ["npm", "run", "test:stdlib:governance"]
+
+
+def should_run_optimizer_matrix(args: argparse.Namespace) -> bool:
+    if args.skip_optimizer_matrix:
+        return False
+    if args.force_optimizer_matrix:
+        return True
+
+    # Keep optimizer matrix on full runs by default.
+    return not (args.chunk or args.failed or args.changed or args.pattern)
+
+
+def build_optimizer_matrix_command() -> list[str]:
+    return ["npm", "run", "test:optimizer:matrix"]
 
 
 def should_run_semantic_diff(args: argparse.Namespace) -> bool:
@@ -320,6 +340,14 @@ def main() -> int:
             return stdlib_governance_code
     else:
         print("==> Skipping stdlib governance stage")
+
+    if should_run_optimizer_matrix(args):
+        print("==> Optimizer matrix stage")
+        optimizer_matrix_code = run(build_optimizer_matrix_command())
+        if optimizer_matrix_code != 0:
+            return optimizer_matrix_code
+    else:
+        print("==> Skipping optimizer matrix stage")
 
     if should_run_semantic_diff(args):
         print("==> Semantic diff stage")

@@ -66,6 +66,12 @@ Skip stdlib governance stage:
 python3 test/run-ci.py --skip-stdlib-governance
 ```
 
+Skip optimizer matrix stage:
+
+```bash
+python3 test/run-ci.py --skip-optimizer-matrix
+```
+
 Skip portable allowlist stage:
 
 ```bash
@@ -112,6 +118,12 @@ Force examples stage on a focused run:
 
 ```bash
 python3 test/run-ci.py --changed --force-examples
+```
+
+Force optimizer matrix stage on a focused run:
+
+```bash
+python3 test/run-ci.py --changed --force-optimizer-matrix
 ```
 
 ## List snapshots
