@@ -125,6 +125,18 @@ class GoTypeMapper {
 		};
 	}
 
+	public static function isNullablePrimitiveType(type:Type):Bool {
+		return switch (type) {
+			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isPrimitiveValueType(params[0]);
+			case TMono(ref): var resolved = ref.get(); resolved != null && isNullablePrimitiveType(resolved);
+			case TType(_, _): var followed = TypeTools.follow(type, true); followed != type && isNullablePrimitiveType(followed);
+			case TLazy(f):
+				isNullablePrimitiveType(f());
+			case _:
+				false;
+		};
+	}
+
 	public static function isHaxeInt32Type(type:Type):Bool {
 		return switch (type) {
 			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.join(".") == "haxe" && abstractType.name == "Int32";
@@ -168,7 +180,14 @@ class GoTypeMapper {
 	}
 
 	public static function isDefinitelyNonNullableType(type:Type):Bool {
+		if (isNullablePrimitiveType(type)) {
+			return false;
+		}
 		return isBoolType(type) || isIntType(type) || isFloatType(type);
+	}
+
+	static function isPrimitiveValueType(type:Type):Bool {
+		return isBoolType(type) || isIntType(type) || isHaxeInt32Type(type) || isFloatType(type);
 	}
 
 	public static function isAnonymousObjectType(type:Type):Bool {

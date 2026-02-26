@@ -6,33 +6,32 @@ func main() {
 	map_ := New_haxe__ds__StringMap()
 	map_.set(hxrt.StringFromLiteral("alpha"), 2)
 	map_.set(hxrt.StringFromLiteral("beta"), 5)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("map.alpha="), hxrt.StdString(func(hx_value_1 any) int {
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("map.alpha="), hxrt.StdString(func(hx_value_1 any) any {
 		if hx_value_1 == nil {
-			var hx_zero_2 int
-			return hx_zero_2
+			return nil
 		}
 		return hx_value_1.(int)
 	}(map_.get(hxrt.StringFromLiteral("alpha"))))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("map.exists.beta0="), hxrt.StdString(func(hx_value_3 any) bool {
-		if hx_value_3 == nil {
-			var hx_zero_4 bool
-			return hx_zero_4
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("map.exists.beta0="), hxrt.StdString(func(hx_value_2 any) bool {
+		if hx_value_2 == nil {
+			var hx_zero_3 bool
+			return hx_zero_3
 		}
-		return hx_value_3.(bool)
+		return hx_value_2.(bool)
 	}(map_.exists(hxrt.StringFromLiteral("beta"))))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("map.remove.beta="), hxrt.StdString(func(hx_value_5 any) bool {
-		if hx_value_5 == nil {
-			var hx_zero_6 bool
-			return hx_zero_6
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("map.remove.beta="), hxrt.StdString(func(hx_value_4 any) bool {
+		if hx_value_4 == nil {
+			var hx_zero_5 bool
+			return hx_zero_5
 		}
-		return hx_value_5.(bool)
+		return hx_value_4.(bool)
 	}(map_.remove(hxrt.StringFromLiteral("beta"))))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("map.exists.beta1="), hxrt.StdString(func(hx_value_7 any) bool {
-		if hx_value_7 == nil {
-			var hx_zero_8 bool
-			return hx_zero_8
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("map.exists.beta1="), hxrt.StdString(func(hx_value_6 any) bool {
+		if hx_value_6 == nil {
+			var hx_zero_7 bool
+			return hx_zero_7
 		}
-		return hx_value_7.(bool)
+		return hx_value_6.(bool)
 	}(map_.exists(hxrt.StringFromLiteral("beta"))))))
 }
 

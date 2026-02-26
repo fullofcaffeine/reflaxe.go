@@ -33,10 +33,9 @@ func New_Box(id int) *Box {
 func main() {
 	sm := New_haxe__ds__StringMap()
 	sm.set(hxrt.StringFromLiteral("a"), 1)
-	av := func(hx_value_1 any) int {
+	av := func(hx_value_1 any) any {
 		if hx_value_1 == nil {
-			var hx_zero_2 int
-			return hx_zero_2
+			return nil
 		}
 		return hx_value_1.(int)
 	}(sm.get(hxrt.StringFromLiteral("a")))
@@ -44,48 +43,45 @@ func main() {
 	om := New_haxe__ds__ObjectMap()
 	box := New_Box(7)
 	om.set(box, hxrt.StringFromLiteral("box"))
-	ov := func(hx_value_3 any) *string {
-		if hx_value_3 == nil {
-			var hx_zero_4 *string
-			return hx_zero_4
+	ov := func(hx_value_2 any) *string {
+		if hx_value_2 == nil {
+			var hx_zero_3 *string
+			return hx_zero_3
 		}
-		return hx_value_3.(*string)
+		return hx_value_2.(*string)
 	}(om.get(box))
 	hxrt.Println(ov)
 	em := New_haxe__ds__EnumValueMap()
 	em.set(EKey_A, hxrt.StringFromLiteral("enum"))
-	ev := func(hx_value_5 any) *string {
-		if hx_value_5 == nil {
-			var hx_zero_6 *string
-			return hx_zero_6
+	ev := func(hx_value_4 any) *string {
+		if hx_value_4 == nil {
+			var hx_zero_5 *string
+			return hx_zero_5
 		}
-		return hx_value_5.(*string)
+		return hx_value_4.(*string)
 	}(em.get(EKey_A))
 	hxrt.Println(ev)
 	list := New_haxe__ds__List()
 	list.add(4)
 	list.add(5)
 	hxrt.Println(list.length)
-	hxrt.Println(func(hx_value_7 any) int {
+	hxrt.Println(func(hx_value_6 any) any {
+		if hx_value_6 == nil {
+			return nil
+		}
+		return hx_value_6.(int)
+	}(list.first()))
+	hxrt.Println(func(hx_value_7 any) any {
 		if hx_value_7 == nil {
-			var hx_zero_8 int
-			return hx_zero_8
+			return nil
 		}
 		return hx_value_7.(int)
-	}(list.first()))
-	hxrt.Println(func(hx_value_9 any) int {
-		if hx_value_9 == nil {
-			var hx_zero_10 int
-			return hx_zero_10
-		}
-		return hx_value_9.(int)
 	}(list.last()))
-	hxrt.Println(func(hx_value_11 any) int {
-		if hx_value_11 == nil {
-			var hx_zero_12 int
-			return hx_zero_12
+	hxrt.Println(func(hx_value_8 any) any {
+		if hx_value_8 == nil {
+			return nil
 		}
-		return hx_value_11.(int)
+		return hx_value_8.(int)
 	}(list.pop()))
 	hxrt.Println(list.length)
 }

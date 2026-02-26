@@ -11274,6 +11274,32 @@ class GoCompiler {
 		]), [expr]);
 	}
 
+	function lowerNilPreservingTypeAssertExpr(expr:GoExpr, assertedType:String):GoExpr {
+		var valueName = freshTempName("hx_value");
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: valueName, typeName: "any"}], ["any"], [
+			GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent(valueName), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+			GoStmt.GoReturn(GoExpr.GoTypeAssert(GoExpr.GoIdent(valueName), assertedType))
+		]), [expr]);
+	}
+
+	function lowerNullableAwareTypeAssertExpr(expr:GoExpr, returnType:Type):GoExpr {
+		var expectedType = typeToGoType(returnType);
+		if (expectedType == "any") {
+			return expr;
+		}
+		if (shouldPreserveNilInTypeAssert(returnType, expectedType)) {
+			return lowerNilPreservingTypeAssertExpr(expr, expectedType);
+		}
+		return lowerNilSafeTypeAssertExpr(expr, expectedType);
+	}
+
+	function shouldPreserveNilInTypeAssert(returnType:Type, expectedType:String):Bool {
+		if (!isNullablePrimitiveType(returnType)) {
+			return false;
+		}
+		return expectedType == "int" || expectedType == "float64" || expectedType == "bool";
+	}
+
 	function lowerCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):LoweredExpr {
 		var stringInstanceCall = lowerStringInstanceCall(callee, args, returnType);
 		if (stringInstanceCall != null) {
@@ -11333,9 +11359,8 @@ class GoCompiler {
 			requireStdlibShimGroup("go_concurrency");
 			var channel = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 			var rawRecv = GoExpr.GoCall(GoExpr.GoIdent("go__concurrency_recv"), [channel]);
-			var expectedType = typeToGoType(returnType);
 			return {
-				expr: expectedType == "any" ? rawRecv : lowerNilSafeTypeAssertExpr(rawRecv, expectedType),
+				expr: lowerNullableAwareTypeAssertExpr(rawRecv, returnType),
 				isStringLike: isStringType(returnType)
 			};
 		}
@@ -11355,9 +11380,8 @@ class GoCompiler {
 			var channel = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 			var defaultValue = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoNil;
 			var rawRecvOr = GoExpr.GoCall(GoExpr.GoIdent("go__concurrency_recvOr"), [channel, defaultValue]);
-			var expectedType = typeToGoType(returnType);
 			return {
-				expr: expectedType == "any" ? rawRecvOr : lowerNilSafeTypeAssertExpr(rawRecvOr, expectedType),
+				expr: lowerNullableAwareTypeAssertExpr(rawRecvOr, returnType),
 				isStringLike: isStringType(returnType)
 			};
 		}
@@ -11512,10 +11536,7 @@ class GoCompiler {
 
 		var callExpr:GoExpr = GoExpr.GoCall(lowerExpr(callee).expr, loweredArgs);
 		if (shouldAssertGenericCallResult(callee, returnType)) {
-			var expectedType = typeToGoType(returnType);
-			if (expectedType != "any") {
-				callExpr = lowerNilSafeTypeAssertExpr(callExpr, expectedType);
-			}
+			callExpr = lowerNullableAwareTypeAssertExpr(callExpr, returnType);
 		}
 		callExpr = normalizeExternStringCallResult(callee, returnType, callExpr);
 
@@ -11699,9 +11720,8 @@ class GoCompiler {
 			case "get":
 				var keyExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 				var rawCall = GoExpr.GoCall(GoExpr.GoIdent(metalMapShimName("go__map_get", keyGoType, valueGoType)), [mapExpr, keyExpr]);
-				var expectedType = typeToGoType(returnType);
 				return {
-					expr: expectedType == "any" ? rawCall : lowerNilSafeTypeAssertExpr(rawCall, expectedType),
+					expr: lowerNullableAwareTypeAssertExpr(rawCall, returnType),
 					isStringLike: isStringType(returnType)
 				};
 			case "exists":
@@ -11822,10 +11842,7 @@ class GoCompiler {
 
 					var callExpr = GoExpr.GoCall(GoExpr.GoSelector(loweredReceiver, externFieldName(field)), loweredArgs);
 					if (shouldAssertGenericCallResult(callee, returnType)) {
-						var expectedType = typeToGoType(returnType);
-						if (expectedType != "any") {
-							callExpr = lowerNilSafeTypeAssertExpr(callExpr, expectedType);
-						}
+						callExpr = lowerNullableAwareTypeAssertExpr(callExpr, returnType);
 					}
 					callExpr = normalizeExternStringCallResult(callee, returnType, callExpr);
 
@@ -13400,6 +13417,10 @@ class GoCompiler {
 
 	function isNullableIntType(type:Type):Bool {
 		return GoTypeMapper.isNullableIntType(type);
+	}
+
+	function isNullablePrimitiveType(type:Type):Bool {
+		return GoTypeMapper.isNullablePrimitiveType(type);
 	}
 
 	function isHaxeInt32Type(type:Type):Bool {
