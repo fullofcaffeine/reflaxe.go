@@ -162,6 +162,14 @@ python3 test/run-snapshots.py --changed
 python3 test/run-snapshots.py --chunk 0/4
 ```
 
+## Run optimizer-plan matrix snapshots
+
+Runs the orthogonal optimizer axis matrix (string fastpath preset on/off and concurrency fastpath default/override combinations):
+
+```bash
+npm run test:optimizer:matrix
+```
+
 ## Upstream stdlib sweep
 
 Run curated upstream stdlib module compile checks:

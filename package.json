@@ -18,6 +18,7 @@
     "test:go-native": "python3 test/run-snapshots.py --category go_native",
     "test:failed": "python3 test/run-snapshots.py --failed",
     "test:changed": "python3 test/run-snapshots.py --changed",
+    "test:optimizer:matrix": "python3 test/run-snapshots.py --case core/optimizer_plan_string_fastpath_enabled --case core/optimizer_plan_string_fastpath_disabled --case core/optimizer_plan_opt_none_concurrency_default_off --case core/optimizer_plan_opt_none_concurrency_override_on --case core/optimizer_plan_portable_fast_concurrency_override_off --case core/optimizer_plan_portable_fast_concurrency_default_on",
     "test:update": "python3 test/run-snapshots.py --update",
     "test:bless": "python3 test/run-snapshots.py --bless",
     "test:semantic-diff": "python3 test/run-semantic-diff.py",
