@@ -294,15 +294,16 @@
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "snapshot"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "UInt",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
-      "owner": "mixed",
+      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "snapshot"
     },
     {
       "coverage_evidence": [

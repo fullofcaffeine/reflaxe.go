@@ -2,6 +2,7 @@
   "schema_version": 1,
   "levels": {
     "snapshot": [
+      "UInt",
       "haxe.DynamicAccess"
     ],
     "semantic_diff": []

@@ -52,6 +52,8 @@ class GoTypeMapper {
 				var abstractType = abstractRef.get();
 				if (abstractType.pack.length == 0 && abstractType.name == "Int") {
 					"int";
+				} else if (abstractType.pack.length == 0 && abstractType.name == "UInt") {
+					"int";
 				} else if (abstractType.pack.length == 0 && abstractType.name == "Float") {
 					"float64";
 				} else if (abstractType.pack.length == 0 && abstractType.name == "Bool") {
@@ -102,7 +104,8 @@ class GoTypeMapper {
 	public static function isIntType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Int";
+			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && (abstractType.name == "Int"
+					|| abstractType.name == "UInt");
 			case _:
 				false;
 		};
@@ -265,6 +268,8 @@ class GoTypeMapper {
 			case TAbstract(abstractRef, _):
 				var abstractType = abstractRef.get();
 				if (abstractType.pack.length == 0 && abstractType.name == "Int") {
+					"int";
+				} else if (abstractType.pack.length == 0 && abstractType.name == "UInt") {
 					"int";
 				} else if (abstractType.pack.length == 0 && abstractType.name == "Float") {
 					"float64";
