@@ -10,7 +10,7 @@
 - string length field typed lowerings: `0`
 - string length field legacy lowerings: `2`
 - portable concurrency typed fastpath hits: `3`
-- portable concurrency typed fastpath fallbacks: `2`
+- portable concurrency typed fastpath fallbacks: `0`
 
 ## go ast passes
 - `normalize_names`

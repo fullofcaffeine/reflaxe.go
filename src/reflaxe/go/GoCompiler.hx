@@ -10740,13 +10740,13 @@ class GoCompiler {
 					if (elementGoType != null) {
 						requireStdlibShimGroup("go_concurrency");
 						registerMetalChanElementGoType(elementGoType);
-						notePortableConcurrencyFastpathHit();
+						notePortableConcurrencyFastpathHit(expr.pos);
 						{
 							expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_newChan", elementGoType)), [GoExpr.GoIntLiteral(0)]),
 							isStringLike: false
 						};
 					} else {
-						notePortableConcurrencyFastpathFallback();
+						notePortableConcurrencyFastpathFallback(expr.pos);
 						noteMetalFallback("go_chan_new_unmorphable", expr.pos, "Could not monomorphize go.Chan element type for constructor specialization.");
 						{
 							expr: GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(classType)), [for (arg in args) lowerExpr(arg).expr]),
@@ -11533,13 +11533,13 @@ class GoCompiler {
 		if (isStaticCall(callee, "Go", ["go"], "newChan")) {
 			var elementGoType = goChanElementGoType(returnType);
 			if (elementGoType == null) {
-				notePortableConcurrencyFastpathFallback();
+				notePortableConcurrencyFastpathFallback(callee.pos);
 				noteMetalFallback("go_chan_new_unmorphable", callee.pos, "Could not monomorphize go.Go.newChan return type for metal specialization.");
 				return null;
 			}
 			requireStdlibShimGroup("go_concurrency");
 			registerMetalChanElementGoType(elementGoType);
-			notePortableConcurrencyFastpathHit();
+			notePortableConcurrencyFastpathHit(callee.pos);
 			var buffer = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_newChan", elementGoType)), [buffer]),
@@ -11554,14 +11554,14 @@ class GoCompiler {
 
 		var elementGoType = scalarGoType(methodCall.elementType);
 		if (!isMonomorphizableMetalChanElementType(elementGoType)) {
-			notePortableConcurrencyFastpathFallback();
+			notePortableConcurrencyFastpathFallback(callee.pos);
 			noteMetalFallback("go_chan_method_unmorphable", callee.pos, 'Could not monomorphize go.Chan method call (element type: ' + elementGoType + ").");
 			return null;
 		}
 
 		requireStdlibShimGroup("go_concurrency");
 		registerMetalChanElementGoType(elementGoType);
-		notePortableConcurrencyFastpathHit();
+		notePortableConcurrencyFastpathHit(callee.pos);
 
 		var channel = lowerExpr(methodCall.target).expr;
 		var channelNative = GoExpr.GoSelector(channel, "__hx_native");
@@ -12696,15 +12696,21 @@ class GoCompiler {
 		return isMetalProfile() || usePortableConcurrencyFastpath();
 	}
 
-	function notePortableConcurrencyFastpathHit():Void {
+	function notePortableConcurrencyFastpathHit(pos:haxe.macro.Expr.Position):Void {
 		if (!usePortableConcurrencyFastpath()) {
+			return;
+		}
+		if (isFrameworkInternalPos(pos)) {
 			return;
 		}
 		compilationContext.optimizerPortableConcurrencyTypedFastpathHits++;
 	}
 
-	function notePortableConcurrencyFastpathFallback():Void {
+	function notePortableConcurrencyFastpathFallback(pos:haxe.macro.Expr.Position):Void {
 		if (!usePortableConcurrencyFastpath()) {
+			return;
+		}
+		if (isFrameworkInternalPos(pos)) {
 			return;
 		}
 		compilationContext.optimizerPortableConcurrencyTypedFastpathFallbacks++;

@@ -225,6 +225,8 @@ These controls are additive and do not redefine profile semantics:
 
 Use them to tune portable performance convergence without switching semantic contract.
 
+Optimizer-plan concurrency counters are source-aware: typed fastpath hits/fallbacks count user/app lowering sites and intentionally exclude framework-internal (`std/`, `src/go/`, `src/reflaxe/`) emission paths.
+
 ## Future `auto` direction
 
 `auto` is planned as an explicit additive planner, not a hidden semantic profile.

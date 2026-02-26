@@ -9,7 +9,7 @@
 	"stringLengthFieldTypedLowerings": 0,
 	"stringLengthFieldLegacyLowerings": 2,
 	"portableConcurrencyTypedFastpathHits": 3,
-	"portableConcurrencyTypedFastpathFallbacks": 2,
+	"portableConcurrencyTypedFastpathFallbacks": 0,
 	"goAstPasses": [
 		"normalize_names",
 		"rewrite_string_ops",
