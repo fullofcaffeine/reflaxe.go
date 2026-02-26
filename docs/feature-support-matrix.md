@@ -51,7 +51,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `Reflect` (compare + dynamic field ops subset) | `semantic-diff` | `reflect_compare`, `reflect_field_ops` |
 | `Date` + `haxe.ds.Option` + `haxe.io.Path` subset | `semantic-diff` | `option_date_path`, `stdlib/date_path_basic` |
 | Core `Class`/`Enum`/`EnumValue` type-value subset | `semantic-diff` | `type_expr_contract` |
-| `Type` reflection subset (`getClass`, `resolveClass`, `createInstance`, `getEnum`, `resolveEnum`, enum constructor/index/parameters/equality) | `semantic-diff` | `type_reflection_contract` |
+| `Type` reflection subset (`getClass`, `getSuperClass`, `getClassFields`, `getInstanceFields`, `resolveClass`, `createInstance`, `createEmptyInstance`, `getEnum`, `getEnumConstructs`, `resolveEnum`, `allEnums`, enum constructor/index/parameters/equality) | `semantic-diff` | `type_reflection_contract`, `type_reflection_extended_contract` |
 | `haxe.ds.Vector` | `semantic-diff` | `vector_contract`, `stdlib/vector_basic` |
 | `haxe.ds.ReadOnlyArray` (length/index/read-only view subset) | `semantic-diff` | `readonly_array_contract` |
 | `sys.net.Host` | `semantic-diff` | `host_basic_contract`, `sys/host_basic_smoke` |
@@ -83,7 +83,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Exception subset (`throw`, typed/dynamic catch, rethrow, throw-as-expression, return-forwarding in statement-form try/catch, `haxe.Exception` API mapping) | Supported | `core/haxe_exception_subset`, `core/try_catch_typed`, `core/try_catch_dynamic`, `core/try_catch_rethrow`, `core/try_catch_return_forwarding`, `throw_expr_contract`, `try_catch_return_forwarding_contract`, `exception_api_contract` |
 | `Std.isOfType` behavior | Supported | `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic`, `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract` |
 | Type-value expressions (`TTypeExpr`) for class/enum refs | Supported | `type_expr_contract` |
-| `Type` reflection subset (`getClass`, `resolveClass`, `createInstance`, `getEnum`, `resolveEnum`, `createEnum`, `createEnumIndex`, `enumConstructor`, `enumIndex`, `enumParameters`, `enumEq`) | Supported | `type_reflection_contract` |
+| `Type` reflection subset (`getClass`, `getSuperClass`, `getClassFields`, `getInstanceFields`, `resolveClass`, `createInstance`, `createEmptyInstance`, `getEnum`, `getEnumConstructs`, `resolveEnum`, `createEnum`, `createEnumIndex`, `allEnums`, `enumConstructor`, `enumIndex`, `enumParameters`, `enumEq`) | Supported | `type_reflection_contract`, `type_reflection_extended_contract` |
 | Unsigned right shift behavior | Supported | `core/unsigned_shift`, `core/unsigned_shift_assign` |
 | Naming/mangling and deterministic code shape | Supported | `core/naming_mangling`, `core/optimized_ast_policy` |
 | HXML define/include resolution | Supported | `core/nested_hxml_define_detection`, `core/nested_hxml_long_define_detection`, `core/nested_hxml_quoted_define_detection`, `core/nested_hxml_root_relative_include_detection` |
@@ -145,6 +145,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/std_is_of_type_runtime_core_abstract_contract`
 - `test/semantic_diff/type_expr_contract`
 - `test/semantic_diff/type_reflection_contract`
+- `test/semantic_diff/type_reflection_extended_contract`
 - `test/semantic_diff/throw_expr_contract`
 - `test/semantic_diff/try_catch_return_forwarding_contract`
 - `test/semantic_diff/atomic_int_bool_contract`
