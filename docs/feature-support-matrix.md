@@ -50,6 +50,8 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.ds.*Map` + `haxe.ds.List` (core ops subset) | `semantic-diff` | `ds_maps_list_contract`, `stdlib/ds_maps_list_basic` |
 | `Reflect` (compare + dynamic field ops subset) | `semantic-diff` | `reflect_compare`, `reflect_field_ops` |
 | `Date` + `haxe.ds.Option` + `haxe.io.Path` subset | `semantic-diff` | `option_date_path`, `stdlib/date_path_basic` |
+| `Array` + `IntIterator` core subset (`push`/`pop` statement-form, length/index access, array iteration, `0...N` range iteration) | `semantic-diff` | `array_string_intiterator_contract` |
+| `String` core subset (`length`, `charAt`, in-range `charCodeAt`, `substring`, `fromCharCode`) | `semantic-diff` | `array_string_intiterator_contract` |
 | Core `Class`/`Enum`/`EnumValue` type-value subset | `semantic-diff` | `type_expr_contract` |
 | `Type` reflection subset (`getClass`, `getSuperClass`, `getClassFields`, `getInstanceFields`, `resolveClass`, `createInstance`, `createEmptyInstance`, `getEnum`, `getEnumConstructs`, `resolveEnum`, `allEnums`, enum constructor/index/parameters/equality) | `semantic-diff` | `type_reflection_contract`, `type_reflection_extended_contract` |
 | `haxe.ds.Vector` | `semantic-diff` | `vector_contract`, `stdlib/vector_basic` |
@@ -103,6 +105,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/virtual_dispatch`
 - `test/semantic_diff/stringtools_math`
 - `test/semantic_diff/option_date_path`
+- `test/semantic_diff/array_string_intiterator_contract`
 - `test/semantic_diff/numeric_edge_cases`
 - `test/semantic_diff/nullable_struct_refs`
 - `test/semantic_diff/sys_io_roundtrip`

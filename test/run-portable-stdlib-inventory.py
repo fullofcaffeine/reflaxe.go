@@ -19,13 +19,16 @@ ALLOWED_STATUS = {"unsupported", "compile-only", "snapshot", "semantic-diff"}
 ALLOWED_OWNER = {"unassigned", "mixed", "compiler_shim", "runtime_hxrt", "staged_std"}
 
 SEMANTIC_DIFF_EXPLICIT = {
+    "Array",
     "Class",
     "Date",
     "EReg",
     "Enum",
     "EnumValue",
+    "IntIterator",
     "Math",
     "Reflect",
+    "String",
     "Std",
     "StringTools",
     "Type",

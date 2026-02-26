@@ -44,6 +44,7 @@ Goal:
   - deterministic `Std.isOfType` behavior for unresolved `@:runtimeValue @:coreType` abstract targets (no hard-fail path)
   - deterministic type-value expression parity for class/enum refs (`TTypeExpr`)
   - deterministic `Type` reflection subset parity (`getClass`, `getSuperClass`, `getClassFields`, `getInstanceFields`, `resolveClass`, `createInstance`, `createEmptyInstance`, `getEnum`, `getEnumConstructs`, `resolveEnum`, `allEnums`, enum constructor/index/parameters/equality)
+  - deterministic core `Array`/`String`/`IntIterator` subset parity (`push`/`pop` statement-form, length/index/iteration, `0...N` range iteration, `String.length`/`charAt`/in-range `charCodeAt`/`substring`/`fromCharCode`)
   - deterministic `haxe.PosInfos` default-argument injection behavior
   - deterministic `haxe.PosInfos.customParams` missing-field/null-access behavior
   - deterministic HTTP behavior (`requestUrl`, `customRequest`, `customRequest` socket transport, callback/status/error flows, `Http.PROXY`) without external network
