@@ -13,6 +13,7 @@
     "map": 100,
     "generic": 100,
     "string": 80,
+    "string_instance": 60,
     "virtual": 100,
     "select": 100,
     "tui": 30
@@ -23,6 +24,7 @@
     "mapWork": 40000,
     "genericWork": 50000,
     "stringWork": 12000,
+    "stringInstanceWork": 6000,
     "virtualWork": 100000,
     "selectWork": 40000
   },
@@ -109,6 +111,18 @@
         "binaryRatio": 1.0152969820622282,
         "strippedRatio": 1.0147355587320273,
         "startupRatio": 1.0458015267175573
+      }
+    },
+    "stringInstanceOverheadRatios": {
+      "portable": {
+        "binaryRatio": 1.0085236842477359,
+        "strippedRatio": 1.0076626886541424,
+        "startupRatio": 1.0866983398733927
+      },
+      "metal": {
+        "binaryRatio": 1.0085236842477359,
+        "strippedRatio": 1.0076626886541424,
+        "startupRatio": 1.199524941091508
       }
     },
     "virtualOverheadRatios": {

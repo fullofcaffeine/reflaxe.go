@@ -39,7 +39,7 @@ Environment:
   GO_PERF_DELTA_FAIL_PCT    Hard-fail threshold for portable-vs-metal startup delta drift vs baseline
                             when GO_PERF_ENFORCE_DELTA_BUDGET=1 (default: 25).
   GO_PERF_DELTA_CASES       Comma-separated microcases for delta budget checks
-                            (default: string,select,channel).
+                            (default: string,string_instance,select,channel).
   GO_PERF_HELLO_ITERS       Startup loop count for hello case (default: 300)
   GO_PERF_ARRAY_ITERS       Startup loop count for array case (default: 300)
   GO_PERF_ATOMIC_ITERS      Startup loop count for atomic case (default: 120)
@@ -53,6 +53,10 @@ Environment:
   GO_PERF_GENERIC_WORK      Generic push/get operations per process run (default: 50000)
   GO_PERF_STRING_ITERS      Startup loop count for string case (default: 80)
   GO_PERF_STRING_WORK       String concat operations per process run (default: 12000)
+  GO_PERF_STRING_INSTANCE_ITERS
+                            Startup loop count for string_instance case (default: 60)
+  GO_PERF_STRING_INSTANCE_WORK
+                            String instance operations per process run (default: 6000)
   GO_PERF_VIRTUAL_ITERS     Startup loop count for virtual dispatch case (default: 100)
   GO_PERF_VIRTUAL_WORK      Virtual dispatch operations per process run (default: 100000)
   GO_PERF_SELECT_ITERS      Startup loop count for select case (default: 100)
@@ -302,6 +306,34 @@ class Main {
     var i = 0;
     while (i < ${work}) {
       out = out + Std.string(i & 15);
+      i++;
+    }
+    Sys.println(out.length);
+  }
+}
+EOF
+}
+
+write_haxe_string_instance_case() {
+  local dir="$1"
+  local work="$2"
+  mkdir -p "$dir"
+  cat > "$dir/Main.hx" <<EOF
+class Main {
+  static function main():Void {
+    var seed = "héllo_";
+    var out = "";
+    var i = 0;
+    while (i < ${work}) {
+      var text = seed + Std.string(i & 1023);
+      var len = text.length;
+      out = out + text.charAt(i % len);
+      var code = text.charCodeAt((i + 1) % len);
+      if (code != null) {
+        out = out + Std.string(code);
+      }
+      out = out + text.substring(0, i % len);
+      out = out + text.substr(-2);
       i++;
     }
     Sys.println(out.length);
@@ -637,6 +669,47 @@ func main() {
 EOF
 }
 
+write_pure_string_instance_module() {
+  local dir="$1"
+  local work="$2"
+  mkdir -p "$dir"
+  cat > "$dir/go.mod" <<'EOF'
+module pure_string_instance
+
+go 1.22
+EOF
+  cat > "$dir/main.go" <<EOF
+package main
+
+import (
+  "fmt"
+  "strconv"
+)
+
+func main() {
+  seed := "héllo_"
+  out := ""
+
+  for i := 0; i < ${work}; i++ {
+    text := seed + strconv.Itoa(i&1023)
+    runes := []rune(text)
+    length := len(runes)
+
+    out += string(runes[i%length])
+    out += strconv.Itoa(int(runes[(i+1)%length]))
+    out += string(runes[:i%length])
+    start := length - 2
+    if start < 0 {
+      start = 0
+    }
+    out += string(runes[start:])
+  }
+
+  fmt.Println(len([]rune(out)))
+}
+EOF
+}
+
 write_pure_virtual_module() {
   local dir="$1"
   local work="$2"
@@ -805,7 +878,7 @@ portable_concurrency_fastpath="${GO_PERF_PORTABLE_CONCURRENCY_FASTPATH:-1}"
 delta_warn_pct="${GO_PERF_DELTA_WARN_PCT:-15}"
 enforce_delta_budget="${GO_PERF_ENFORCE_DELTA_BUDGET:-0}"
 delta_fail_pct="${GO_PERF_DELTA_FAIL_PCT:-25}"
-delta_cases="${GO_PERF_DELTA_CASES:-string,select,channel}"
+delta_cases="${GO_PERF_DELTA_CASES:-string,string_instance,select,channel}"
 hello_iters="${GO_PERF_HELLO_ITERS:-300}"
 array_iters="${GO_PERF_ARRAY_ITERS:-300}"
 atomic_iters="${GO_PERF_ATOMIC_ITERS:-120}"
@@ -819,6 +892,8 @@ generic_iters="${GO_PERF_GENERIC_ITERS:-100}"
 generic_work="${GO_PERF_GENERIC_WORK:-50000}"
 string_iters="${GO_PERF_STRING_ITERS:-80}"
 string_work="${GO_PERF_STRING_WORK:-12000}"
+string_instance_iters="${GO_PERF_STRING_INSTANCE_ITERS:-60}"
+string_instance_work="${GO_PERF_STRING_INSTANCE_WORK:-6000}"
 virtual_iters="${GO_PERF_VIRTUAL_ITERS:-100}"
 virtual_work="${GO_PERF_VIRTUAL_WORK:-100000}"
 select_iters="${GO_PERF_SELECT_ITERS:-100}"
@@ -1045,6 +1120,31 @@ write_pure_string_module "$string_pure_dir" "$string_work"
 record_metric "string_pure_go" "string" "pure" "pure_go" \
   "$string_pure_bin" "$string_iters" "$string_pure_dir/startup.time"
 
+string_instance_src="$work_dir/haxe_cases/string_instance"
+write_haxe_string_instance_case "$string_instance_src" "$string_instance_work"
+
+for profile in "${profiles[@]}"; do
+  log "string_instance case ($profile)"
+  case_dir="$work_dir/string_instance/$profile"
+  out_dir="$case_dir/out"
+  bin_path="$case_dir/string_instance_haxe_${profile}"
+  mkdir -p "$case_dir"
+
+  compile_haxe_case "$string_instance_src" "$out_dir" "$profile"
+  (cd "$out_dir" && "$go_bin" build -o "$bin_path" .)
+
+  record_metric "string_instance_haxe_${profile}" "string_instance" "$profile" "haxe" \
+    "$bin_path" "$string_instance_iters" "$case_dir/startup.time"
+done
+
+log "string_instance pure Go baseline"
+string_instance_pure_dir="$work_dir/string_instance/pure"
+string_instance_pure_bin="$string_instance_pure_dir/pure_string_instance"
+write_pure_string_instance_module "$string_instance_pure_dir" "$string_instance_work"
+(cd "$string_instance_pure_dir" && "$go_bin" build -o "$string_instance_pure_bin" .)
+record_metric "string_instance_pure_go" "string_instance" "pure" "pure_go" \
+  "$string_instance_pure_bin" "$string_instance_iters" "$string_instance_pure_dir/startup.time"
+
 virtual_src="$work_dir/haxe_cases/virtual"
 write_haxe_virtual_case "$virtual_src" "$virtual_work"
 
@@ -1147,6 +1247,8 @@ GO_PERF_GENERIC_ITERS="$generic_iters" \
 GO_PERF_GENERIC_WORK="$generic_work" \
 GO_PERF_STRING_ITERS="$string_iters" \
 GO_PERF_STRING_WORK="$string_work" \
+GO_PERF_STRING_INSTANCE_ITERS="$string_instance_iters" \
+GO_PERF_STRING_INSTANCE_WORK="$string_instance_work" \
 GO_PERF_VIRTUAL_ITERS="$virtual_iters" \
 GO_PERF_VIRTUAL_WORK="$virtual_work" \
 GO_PERF_SELECT_ITERS="$select_iters" \
@@ -1175,7 +1277,7 @@ const portableConcurrencyFastpathEnabled = /^(1|true|yes|on)$/i.test(process.env
 const deltaWarnPct = Number(process.env.GO_PERF_DELTA_WARN_PCT || "15");
 const enforceDeltaBudget = /^(1|true|yes|on)$/i.test(process.env.GO_PERF_ENFORCE_DELTA_BUDGET || "0");
 const deltaFailPct = Number(process.env.GO_PERF_DELTA_FAIL_PCT || "25");
-const deltaCases = (process.env.GO_PERF_DELTA_CASES || "string,select,channel")
+const deltaCases = (process.env.GO_PERF_DELTA_CASES || "string,string_instance,select,channel")
   .split(",")
   .map((value) => value.trim().toLowerCase())
   .filter((value) => value.length > 0);
@@ -1193,6 +1295,8 @@ const genericIters = Number(process.env.GO_PERF_GENERIC_ITERS || "100");
 const genericWork = Number(process.env.GO_PERF_GENERIC_WORK || "50000");
 const stringIters = Number(process.env.GO_PERF_STRING_ITERS || "80");
 const stringWork = Number(process.env.GO_PERF_STRING_WORK || "12000");
+const stringInstanceIters = Number(process.env.GO_PERF_STRING_INSTANCE_ITERS || "60");
+const stringInstanceWork = Number(process.env.GO_PERF_STRING_INSTANCE_WORK || "6000");
 const virtualIters = Number(process.env.GO_PERF_VIRTUAL_ITERS || "100");
 const virtualWork = Number(process.env.GO_PERF_VIRTUAL_WORK || "100000");
 const selectIters = Number(process.env.GO_PERF_SELECT_ITERS || "100");
@@ -1267,6 +1371,7 @@ const channelOverheadRatios = buildCaseOverhead("channel");
 const mapOverheadRatios = buildCaseOverhead("map");
 const genericOverheadRatios = buildCaseOverhead("generic");
 const stringOverheadRatios = buildCaseOverhead("string");
+const stringInstanceOverheadRatios = buildCaseOverhead("string_instance");
 const virtualOverheadRatios = buildCaseOverhead("virtual");
 const selectOverheadRatios = buildCaseOverhead("select");
 const caseOverheadByName = {
@@ -1277,6 +1382,7 @@ const caseOverheadByName = {
   map: mapOverheadRatios,
   generic: genericOverheadRatios,
   string: stringOverheadRatios,
+  string_instance: stringInstanceOverheadRatios,
   virtual: virtualOverheadRatios,
   select: selectOverheadRatios,
 };
@@ -1307,6 +1413,7 @@ function deriveCaseOverheadByName(derived) {
     map: derived?.mapOverheadRatios,
     generic: derived?.genericOverheadRatios,
     string: derived?.stringOverheadRatios,
+    string_instance: derived?.stringInstanceOverheadRatios,
     virtual: derived?.virtualOverheadRatios,
     select: derived?.selectOverheadRatios,
   };
@@ -1360,6 +1467,7 @@ const current = {
     map: mapIters,
     generic: genericIters,
     string: stringIters,
+    string_instance: stringInstanceIters,
     virtual: virtualIters,
     select: selectIters,
     tui: tuiIters,
@@ -1370,6 +1478,7 @@ const current = {
     mapWork,
     genericWork,
     stringWork,
+    stringInstanceWork,
     virtualWork,
     selectWork,
   },
@@ -1388,6 +1497,7 @@ const current = {
     mapOverheadRatios,
     genericOverheadRatios,
     stringOverheadRatios,
+    stringInstanceOverheadRatios,
     virtualOverheadRatios,
     selectOverheadRatios,
     portableMetalDeltaRatios,
@@ -1542,6 +1652,7 @@ if (!updateBaseline) {
     compareGroup("map_overhead", current.derived.mapOverheadRatios, baselineDerived.mapOverheadRatios);
     compareGroup("generic_overhead", current.derived.genericOverheadRatios, baselineDerived.genericOverheadRatios);
     compareGroup("string_overhead", current.derived.stringOverheadRatios, baselineDerived.stringOverheadRatios);
+    compareGroup("string_instance_overhead", current.derived.stringInstanceOverheadRatios, baselineDerived.stringInstanceOverheadRatios);
     compareGroup("virtual_overhead", current.derived.virtualOverheadRatios, baselineDerived.virtualOverheadRatios);
     compareGroup("select_overhead", current.derived.selectOverheadRatios, baselineDerived.selectOverheadRatios);
     compareGroup("tui_relative", current.derived.tuiRelativeToMin, baselineDerived.tuiRelativeToMin);
@@ -1552,6 +1663,7 @@ if (!updateBaseline) {
     compareMetalHard("map_overhead", current.derived.mapOverheadRatios, baselineDerived.mapOverheadRatios);
     compareMetalHard("generic_overhead", current.derived.genericOverheadRatios, baselineDerived.genericOverheadRatios);
     compareMetalHard("string_overhead", current.derived.stringOverheadRatios, baselineDerived.stringOverheadRatios);
+    compareMetalHard("string_instance_overhead", current.derived.stringInstanceOverheadRatios, baselineDerived.stringInstanceOverheadRatios);
     compareMetalHard("virtual_overhead", current.derived.virtualOverheadRatios, baselineDerived.virtualOverheadRatios);
     compareMetalHard("select_overhead", current.derived.selectOverheadRatios, baselineDerived.selectOverheadRatios);
     comparePortableMetalDelta(current.derived.portableMetalDeltaRatios, baselinePortableMetalDeltaRatios);
@@ -1636,8 +1748,8 @@ summaryLines.push(`- Delta enforcement: \`${enforceDeltaBudget ? "on" : "off"}\`
 summaryLines.push(`- Metal hard budgets: size=\`+${metalSizeFailPct}%\`, runtime=\`+${metalRuntimeFailPct}%\``);
 summaryLines.push(`- Delta hard budget: startup=\`+${deltaFailPct}%\` for cases=\`${uniqueDeltaCases.join(",") || "none"}\``);
 summaryLines.push(`- Portable concurrency fastpath: \`${portableConcurrencyFastpathEnabled ? "on" : "off"}\``);
-summaryLines.push(`- Startup loops: hello=${helloIters}, array=${arrayIters}, atomic=${atomicIters}, channel=${channelIters}, map=${mapIters}, generic=${genericIters}, string=${stringIters}, virtual=${virtualIters}, select=${selectIters}, tui=${tuiIters}`);
-summaryLines.push(`- Workload params: atomic_ops=${atomicWork}, channel_ops=${channelWork}, map_ops=${mapWork}, generic_ops=${genericWork}, string_ops=${stringWork}, virtual_ops=${virtualWork}, select_ops=${selectWork}`);
+summaryLines.push(`- Startup loops: hello=${helloIters}, array=${arrayIters}, atomic=${atomicIters}, channel=${channelIters}, map=${mapIters}, generic=${genericIters}, string=${stringIters}, string_instance=${stringInstanceIters}, virtual=${virtualIters}, select=${selectIters}, tui=${tuiIters}`);
+summaryLines.push(`- Workload params: atomic_ops=${atomicWork}, channel_ops=${channelWork}, map_ops=${mapWork}, generic_ops=${genericWork}, string_ops=${stringWork}, string_instance_ops=${stringInstanceWork}, virtual_ops=${virtualWork}, select_ops=${selectWork}`);
 if (haxeVersion.length > 0 || goVersion.length > 0) {
   summaryLines.push(`- Toolchain: ${haxeVersion || "haxe:unknown"} | ${goVersion || "go:unknown"}`);
 }
@@ -1649,6 +1761,7 @@ summaryLines.push(ratioTable("Channel Overhead (x vs pure Go buffered channel lo
 summaryLines.push(ratioTable("Map Overhead (x vs pure Go map set/get loop)", current.derived.mapOverheadRatios));
 summaryLines.push(ratioTable("Generic Overhead (x vs pure Go generic bag loop)", current.derived.genericOverheadRatios));
 summaryLines.push(ratioTable("String Overhead (x vs pure Go concat loop)", current.derived.stringOverheadRatios));
+summaryLines.push(ratioTable("String Instance Overhead (x vs pure Go string instance loop)", current.derived.stringInstanceOverheadRatios));
 summaryLines.push(ratioTable("Virtual Overhead (x vs pure Go interface dispatch loop)", current.derived.virtualOverheadRatios));
 summaryLines.push(ratioTable("Select Overhead (x vs pure Go select helper loop)", current.derived.selectOverheadRatios));
 summaryLines.push(portableMetalDeltaTable("Portable-vs-metal Delta (portable ratio / metal ratio)", current.derived.portableMetalDeltaRatios));

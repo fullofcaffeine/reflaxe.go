@@ -437,7 +437,7 @@ python3 test/run-semantic-diff.py --changed
 
 ## Go profile perf harness
 
-Collect soft-budget benchmark ratios for `portable|metal` vs pure-Go microcases (`hello`, `array`, `atomic`, `channel`, `map`, `generic`, `string`, `virtual`, `select`) plus `examples/tui_todo` profile spread:
+Collect soft-budget benchmark ratios for `portable|metal` vs pure-Go microcases (`hello`, `array`, `atomic`, `channel`, `map`, `generic`, `string`, `string_instance`, `virtual`, `select`) plus `examples/tui_todo` profile spread:
 
 ```bash
 bash scripts/ci/perf-go-profiles.sh
@@ -464,7 +464,7 @@ GO_PERF_ENFORCE_METAL_BUDGET=1 GO_PERF_METAL_RUNTIME_FAIL_PCT=90 bash scripts/ci
 Tune delta budget cases and thresholds if needed:
 
 ```bash
-GO_PERF_ENFORCE_DELTA_BUDGET=1 GO_PERF_DELTA_CASES=string,select,channel GO_PERF_DELTA_WARN_PCT=12 GO_PERF_DELTA_FAIL_PCT=20 bash scripts/ci/perf-go-profiles.sh
+GO_PERF_ENFORCE_DELTA_BUDGET=1 GO_PERF_DELTA_CASES=string,string_instance,select,channel GO_PERF_DELTA_WARN_PCT=12 GO_PERF_DELTA_FAIL_PCT=20 bash scripts/ci/perf-go-profiles.sh
 ```
 
 Disable portable concurrency fastpath for A/B perf checks:
@@ -488,7 +488,7 @@ GO_PERF_SELECT_WORK=80000 GO_PERF_SELECT_ITERS=80 bash scripts/ci/perf-go-profil
 Tune string and virtual workloads if needed:
 
 ```bash
-GO_PERF_STRING_WORK=20000 GO_PERF_STRING_ITERS=70 GO_PERF_VIRTUAL_WORK=150000 GO_PERF_VIRTUAL_ITERS=90 bash scripts/ci/perf-go-profiles.sh
+GO_PERF_STRING_WORK=20000 GO_PERF_STRING_ITERS=70 GO_PERF_STRING_INSTANCE_WORK=10000 GO_PERF_STRING_INSTANCE_ITERS=50 GO_PERF_VIRTUAL_WORK=150000 GO_PERF_VIRTUAL_ITERS=90 bash scripts/ci/perf-go-profiles.sh
 ```
 
 Regenerate baseline:

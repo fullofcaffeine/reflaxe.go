@@ -130,7 +130,7 @@ jobs:
         env:
           GO_PERF_ENFORCE_METAL_BUDGET: "1"
           GO_PERF_PORTABLE_CONCURRENCY_FASTPATH: "1"
-          GO_PERF_DELTA_CASES: "string,select,channel"
+          GO_PERF_DELTA_CASES: "string,string_instance,select,channel"
           GO_PERF_DELTA_WARN_PCT: "15"
           GO_PERF_ENFORCE_DELTA_BUDGET: "0"
           GO_PERF_DELTA_FAIL_PCT: "25"
