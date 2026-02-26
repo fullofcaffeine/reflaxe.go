@@ -146,6 +146,7 @@ Compatibility note:
 - `docs/hxrt-selective-runtime.md`
 - `docs/portable-canonical-contract.md`
 - `docs/portable-semantics-v1.md`
+- `docs/semantic-diff-guide.md`
 - `docs/portable-module-mapping-contract.md`
 - `docs/profiles.md`
 - `docs/profile-semantics-guide.md`
