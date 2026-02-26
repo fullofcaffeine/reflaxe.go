@@ -129,6 +129,7 @@ jobs:
         run: npm run test:perf:go
         env:
           GO_PERF_ENFORCE_METAL_BUDGET: "1"
+          GO_PERF_METAL_RUNTIME_FAIL_PCT: "300"
           GO_PERF_PORTABLE_CONCURRENCY_FASTPATH: "1"
           GO_PERF_DELTA_CASES: "string,string_instance,select,channel"
           GO_PERF_DELTA_WARN_PCT: "15"
