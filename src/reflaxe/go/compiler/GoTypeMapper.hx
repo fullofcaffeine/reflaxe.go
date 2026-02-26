@@ -48,12 +48,14 @@ class GoTypeMapper {
 				"*" + enumTypeName(enumRef.get());
 			case TAnonymous(_):
 				"map[string]any";
-			case TAbstract(abstractRef, _):
+			case TAbstract(abstractRef, params):
 				var abstractType = abstractRef.get();
 				if (abstractType.pack.length == 0 && abstractType.name == "Int") {
 					"int";
 				} else if (abstractType.pack.length == 0 && abstractType.name == "UInt") {
 					"int";
+				} else if (isHaxeMapAbstract(abstractType)) {
+					mapAbstractGoType(params);
 				} else if (abstractType.pack.length == 0 && abstractType.name == "Float") {
 					"float64";
 				} else if (abstractType.pack.length == 0 && abstractType.name == "Bool") {
@@ -265,12 +267,14 @@ class GoTypeMapper {
 				"*" + enumTypeName(enumRef.get());
 			case TAnonymous(_):
 				"map[string]any";
-			case TAbstract(abstractRef, _):
+			case TAbstract(abstractRef, params):
 				var abstractType = abstractRef.get();
 				if (abstractType.pack.length == 0 && abstractType.name == "Int") {
 					"int";
 				} else if (abstractType.pack.length == 0 && abstractType.name == "UInt") {
 					"int";
+				} else if (isHaxeMapAbstract(abstractType)) {
+					mapAbstractGoType(params);
 				} else if (abstractType.pack.length == 0 && abstractType.name == "Float") {
 					"float64";
 				} else if (abstractType.pack.length == 0 && abstractType.name == "Bool") {
@@ -357,6 +361,30 @@ class GoTypeMapper {
 			case _:
 				false;
 		};
+	}
+
+	static function mapAbstractGoType(params:Array<Type>):String {
+		if (params.length != 2) {
+			return "any";
+		}
+
+		var keyType = Context.follow(params[0]);
+		return switch (keyType) {
+			case TEnum(_, _):
+				"*haxe__ds__EnumValueMap";
+			case _:
+				if (isStringType(params[0])) {
+					"*haxe__ds__StringMap";
+				} else if (isIntType(params[0])) {
+					"*haxe__ds__IntMap";
+				} else {
+					"*haxe__ds__ObjectMap";
+				}
+		};
+	}
+
+	static function isHaxeMapAbstract(abstractType:AbstractType):Bool {
+		return abstractType.name == "Map" && (abstractType.pack.length == 0 || abstractType.pack.join(".") == "haxe.ds");
 	}
 
 	public static function isDynamicCatchType(type:Type):Bool {
