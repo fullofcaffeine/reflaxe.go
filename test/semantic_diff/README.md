@@ -11,6 +11,12 @@ Runner:
 python3 test/run-semantic-diff.py
 ```
 
+Optional case-local Go defines:
+
+- Add `go_defines.txt` inside a semantic case directory.
+- Each non-empty, non-comment line is appended as `-D <value>` to the Go compile invocation only.
+- Use this for targeted parity checks (for example optimizer/fastpath toggle coverage) without changing global harness defaults.
+
 Goal:
 
 - catch semantic drift where generated Go behavior diverges from the Haxe baseline

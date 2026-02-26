@@ -179,9 +179,23 @@ def build_interp_cmd(case: SemanticCase) -> list[str]:
     ]
 
 
+def read_case_go_defines(case: SemanticCase) -> list[str]:
+    defines_file = case.case_path / "go_defines.txt"
+    if not defines_file.exists():
+        return []
+
+    out: list[str] = []
+    for raw_line in defines_file.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        out.append(line)
+    return out
+
+
 def build_go_cmd(case: SemanticCase) -> list[str]:
     out_dir = case.case_path / "out"
-    return [
+    cmd = [
         "haxe",
         "-cp",
         str(case.case_path),
@@ -208,6 +222,9 @@ def build_go_cmd(case: SemanticCase) -> list[str]:
         "-main",
         "Main",
     ]
+    for define in read_case_go_defines(case):
+        cmd.extend(["-D", define])
+    return cmd
 
 
 def ensure_no_out(case: SemanticCase) -> None:
