@@ -230,7 +230,11 @@ def build_go_cmd(case: SemanticCase) -> list[str]:
 def ensure_no_out(case: SemanticCase) -> None:
     out_dir = case.case_path / "out"
     if out_dir.exists():
-        shutil.rmtree(out_dir)
+        try:
+            shutil.rmtree(out_dir)
+        except FileNotFoundError:
+            # Another overlapping test process may have removed it.
+            pass
 
 
 def build_stdout_diff(reference: str, actual: str) -> str:
