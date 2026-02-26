@@ -1,1 +1,1 @@
-Lambda.filter currently supports Array<T> and haxe.ds.List<T> inputs only; generic Iterable<T> lowering is not implemented yet on reflaxe.go.
+Lambda.iter currently supports Array<T> and haxe.ds.List<T> inputs only; generic Iterable<T> lowering is not implemented yet on reflaxe.go.

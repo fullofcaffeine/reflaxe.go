@@ -33,6 +33,6 @@ class CounterIterable {
 class Main {
 	static function main() {
 		var source:Iterable<Int> = new CounterIterable([1, 2, 3]);
-		Sys.println(Lambda.filter(source, function(value:Int):Bool return value == 2).length);
+		Lambda.iter(source, function(value:Int):Void {});
 	}
 }

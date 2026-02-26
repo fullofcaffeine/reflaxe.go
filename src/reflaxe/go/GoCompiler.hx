@@ -11998,6 +11998,32 @@ class GoCompiler {
 		};
 	}
 
+	function arrayElementType(type:Type):Null<Type> {
+		var restElement = restElementType(type);
+		if (restElement != null) {
+			return restElement;
+		}
+		var vectorElement = vectorElementType(type);
+		if (vectorElement != null) {
+			return vectorElement;
+		}
+		var readOnlyElement = readOnlyArrayElementType(type);
+		if (readOnlyElement != null) {
+			return readOnlyElement;
+		}
+		return switch (Context.follow(type)) {
+			case TInst(classRef, params):
+				var classType = classRef.get();
+				if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
+					params[0];
+				} else {
+					null;
+				}
+			case _:
+				null;
+		};
+	}
+
 	function tryLambdaSourcePlan(sourceExpr:TypedExpr):Null<LambdaSourcePlan> {
 		if (isArrayType(sourceExpr.t)) {
 			var elementType = arrayElementGoType(sourceExpr.t);
@@ -12021,24 +12047,6 @@ class GoCompiler {
 		}
 
 		return null;
-	}
-
-	function lambdaSourcePlan(sourceExpr:TypedExpr, methodName:String, callPos:haxe.macro.Expr.Position):LambdaSourcePlan {
-		var sourcePlan = tryLambdaSourcePlan(sourceExpr);
-		if (sourcePlan != null) {
-			return sourcePlan;
-		}
-
-		Context.fatalError("Lambda."
-			+ methodName
-			+ " currently supports Array<T> and haxe.ds.List<T> inputs only; generic Iterable<T> lowering is not implemented yet on reflaxe.go.",
-			callPos);
-		return {
-			domain: "array",
-			elementType: "any",
-			sourceExpr: lowerExpr(sourceExpr).expr,
-			sourceType: "[]any"
-		};
 	}
 
 	function lowerLambdaDynamicIterableSource(sourceExpr:TypedExpr):GoExpr {
@@ -12076,6 +12084,61 @@ class GoCompiler {
 			adaptedArgExpr = lowerNullableAwareTypeAssertExpr(adaptedArgExpr, argType);
 		}
 		return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["bool"], [GoStmt.GoReturn(GoExpr.GoCall(predicateExpr, [adaptedArgExpr]))]);
+	}
+
+	function lowerLambdaMapperAnyAdapter(mapperExpr:GoExpr, mapperType:Type):GoExpr {
+		var rawArgName = freshTempName("hx_lambda_arg");
+		var adaptedArgExpr:GoExpr = GoExpr.GoIdent(rawArgName);
+		var argType = firstFunctionArgType(mapperType);
+		if (argType != null) {
+			adaptedArgExpr = lowerNullableAwareTypeAssertExpr(adaptedArgExpr, argType);
+		}
+		return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["any"], [GoStmt.GoReturn(GoExpr.GoCall(mapperExpr, [adaptedArgExpr]))]);
+	}
+
+	function lowerLambdaFolderAnyAdapter(folderExpr:GoExpr, folderType:Type):GoExpr {
+		var rawValueName = freshTempName("hx_lambda_value");
+		var rawAccName = freshTempName("hx_lambda_acc");
+		var adaptedValueExpr:GoExpr = GoExpr.GoIdent(rawValueName);
+		var adaptedAccExpr:GoExpr = GoExpr.GoIdent(rawAccName);
+		switch (Context.follow(folderType)) {
+			case TFun(args, _):
+				if (args.length > 0) {
+					adaptedValueExpr = lowerNullableAwareTypeAssertExpr(adaptedValueExpr, args[0].t);
+				}
+				if (args.length > 1) {
+					adaptedAccExpr = lowerNullableAwareTypeAssertExpr(adaptedAccExpr, args[1].t);
+				}
+			case _:
+		}
+		return GoExpr.GoFuncLiteral([{name: rawValueName, typeName: "any"}, {name: rawAccName, typeName: "any"}], ["any"],
+			[GoStmt.GoReturn(GoExpr.GoCall(folderExpr, [adaptedValueExpr, adaptedAccExpr]))]);
+	}
+
+	function lowerLambdaAnyArrayCoerce(anySliceExpr:GoExpr, targetArrayType:Type):GoExpr {
+		if (!isArrayType(targetArrayType)) {
+			return anySliceExpr;
+		}
+		var targetElementType = arrayElementType(targetArrayType);
+		if (targetElementType == null) {
+			return anySliceExpr;
+		}
+		var targetElementGoType = arrayElementGoType(targetArrayType);
+		if (targetElementGoType == "any") {
+			return anySliceExpr;
+		}
+		var rawName = freshTempName("hx_lambda_raw");
+		var outName = freshTempName("hx_lambda_out");
+		var itemName = freshTempName("hx_lambda_item");
+		var convertedItemExpr = lowerNullableAwareTypeAssertExpr(GoExpr.GoIdent(itemName), targetElementType);
+		var outType = "[]" + targetElementGoType;
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: rawName, typeName: "[]any"}], [outType], [
+			GoStmt.GoVarDecl(outName, outType, GoExpr.GoRaw("make(" + outType + ", 0, len(" + rawName + "))"), true),
+			GoStmt.GoRaw("for _, " + itemName + " := range " + rawName + " {"),
+			GoStmt.GoAssign(GoExpr.GoIdent(outName), GoExpr.GoCall(GoExpr.GoIdent("append"), [GoExpr.GoIdent(outName), convertedItemExpr])),
+			GoStmt.GoRaw("}"),
+			GoStmt.GoReturn(GoExpr.GoIdent(outName))
+		]), [anySliceExpr]);
 	}
 
 	function lowerLambdaStaticCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
@@ -12257,11 +12320,32 @@ class GoCompiler {
 			};
 		}
 
-		if (isStaticCall(callee, "Lambda", [], "filter")) {
+		if (isStaticCall(callee, "Lambda", [], "iter") || isGeneratedLambdaCall(callee, "iter")) {
+			if (args.length != 2) {
+				Context.fatalError("Lambda.iter expects exactly 2 arguments", callee.pos);
+			}
+			if (tryLambdaSourcePlan(args[0]) == null) {
+				Context.fatalError("Lambda.iter currently supports Array<T> and haxe.ds.List<T> inputs only; generic Iterable<T> lowering is not implemented yet on reflaxe.go.",
+					callee.pos);
+			}
+			return null;
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "filter") || isGeneratedLambdaCall(callee, "filter")) {
 			if (args.length != 2) {
 				Context.fatalError("Lambda.filter expects exactly 2 arguments", callee.pos);
 			}
-			var sourcePlan = lambdaSourcePlan(args[0], "filter", callee.pos);
+			var sourcePlan = tryLambdaSourcePlan(args[0]);
+			if (sourcePlan == null) {
+				var dynamicSourceExpr = lowerLambdaDynamicIterableSource(args[0]);
+				var predicateExpr = lowerExpr(args[1]).expr;
+				var adaptedPredicateExpr = lowerLambdaPredicateAnyAdapter(predicateExpr, args[1].t);
+				var filteredAnyExpr = GoExpr.GoCall(GoExpr.GoIdent("Lambda_filter"), [dynamicSourceExpr, adaptedPredicateExpr]);
+				return {
+					expr: lowerLambdaAnyArrayCoerce(filteredAnyExpr, returnType),
+					isStringLike: false
+				};
+			}
 			var elementType = sourcePlan.elementType;
 			var sourceExpr = sourcePlan.sourceExpr;
 			var predicateExpr = lowerExpr(args[1]).expr;
@@ -12323,11 +12407,32 @@ class GoCompiler {
 			};
 		}
 
-		if (isStaticCall(callee, "Lambda", [], "map")) {
+		if (isStaticCall(callee, "Lambda", [], "map") || isGeneratedLambdaCall(callee, "map")) {
 			if (args.length != 2) {
 				Context.fatalError("Lambda.map expects exactly 2 arguments", callee.pos);
 			}
-			var sourcePlan = lambdaSourcePlan(args[0], "map", callee.pos);
+			var sourcePlan = tryLambdaSourcePlan(args[0]);
+			if (sourcePlan == null) {
+				var dynamicSourceExpr = lowerLambdaDynamicIterableSource(args[0]);
+				var mapperExpr = lowerExpr(args[1]).expr;
+				var adaptedMapperExpr = lowerLambdaMapperAnyAdapter(mapperExpr, args[1].t);
+				var foldValueName = freshTempName("hx_lambda_value");
+				var foldAccName = freshTempName("hx_lambda_acc");
+				var mappedAnyExpr = GoExpr.GoCall(GoExpr.GoIdent("Lambda_fold"), [
+					dynamicSourceExpr,
+					GoExpr.GoFuncLiteral([{name: foldValueName, typeName: "any"}, {name: foldAccName, typeName: "any"}], ["any"], [
+						GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("append"), [
+							GoExpr.GoTypeAssert(GoExpr.GoIdent(foldAccName), "[]any"),
+							GoExpr.GoCall(adaptedMapperExpr, [GoExpr.GoIdent(foldValueName)])
+						]))
+					]),
+					GoExpr.GoRaw("[]any{}")
+				]);
+				return {
+					expr: lowerLambdaAnyArrayCoerce(mappedAnyExpr, returnType),
+					isStringLike: false
+				};
+			}
 			var sourceElementType = sourcePlan.elementType;
 			var mappedElementType = arrayElementGoType(returnType);
 			var sourceExpr = sourcePlan.sourceExpr;
@@ -12384,11 +12489,22 @@ class GoCompiler {
 			};
 		}
 
-		if (isStaticCall(callee, "Lambda", [], "fold")) {
+		if (isStaticCall(callee, "Lambda", [], "fold") || isGeneratedLambdaCall(callee, "fold")) {
 			if (args.length != 3) {
 				Context.fatalError("Lambda.fold expects exactly 3 arguments", callee.pos);
 			}
-			var sourcePlan = lambdaSourcePlan(args[0], "fold", callee.pos);
+			var sourcePlan = tryLambdaSourcePlan(args[0]);
+			if (sourcePlan == null) {
+				var dynamicSourceExpr = lowerLambdaDynamicIterableSource(args[0]);
+				var folderExpr = lowerExpr(args[1]).expr;
+				var initExpr = lowerExpr(args[2]).expr;
+				var adaptedFolderExpr = lowerLambdaFolderAnyAdapter(folderExpr, args[1].t);
+				var foldedAnyExpr = GoExpr.GoCall(GoExpr.GoIdent("Lambda_fold"), [dynamicSourceExpr, adaptedFolderExpr, initExpr]);
+				return {
+					expr: lowerNullableAwareTypeAssertExpr(foldedAnyExpr, returnType),
+					isStringLike: false
+				};
+			}
 			var elementType = sourcePlan.elementType;
 			var accType = typeToGoType(returnType);
 			var sourceExpr = sourcePlan.sourceExpr;
