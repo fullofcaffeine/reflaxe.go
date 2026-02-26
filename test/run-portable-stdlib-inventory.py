@@ -19,8 +19,10 @@ ALLOWED_STATUS = {"unsupported", "compile-only", "snapshot", "semantic-diff"}
 ALLOWED_OWNER = {"unassigned", "mixed", "compiler_shim", "runtime_hxrt", "staged_std"}
 
 SEMANTIC_DIFF_EXPLICIT = {
+    "Date",
     "EReg",
     "Math",
+    "Reflect",
     "Std",
     "StringTools",
     "haxe.Exception",
@@ -38,6 +40,7 @@ SEMANTIC_DIFF_EXPLICIT = {
     "haxe.ds.IntMap",
     "haxe.ds.List",
     "haxe.ds.Map",
+    "haxe.ds.Option",
     "haxe.ds.ObjectMap",
     "haxe.ds.ReadOnlyArray",
     "haxe.ds.StringMap",
@@ -50,6 +53,7 @@ SEMANTIC_DIFF_EXPLICIT = {
     "haxe.io.BytesOutput",
     "haxe.io.Input",
     "haxe.io.Output",
+    "haxe.io.Path",
     "sys.FileSystem",
     "sys.Http",
     "sys.io.File",
