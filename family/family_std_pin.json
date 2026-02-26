@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "name": "reflaxe.family.std",
+  "version": "0.1.0-bootstrap.1",
+  "source": "in-repo-bootstrap",
+  "path": "family/reflaxe.family.std",
+  "migration_window": {
+    "mode": "dual-run",
+    "cutover_criteria": [
+      "family sync verify stays green in CI for >= 14 consecutive days",
+      "portable parity closure summary is stable and tracked",
+      "no unresolved blocker in execution checklist that invalidates family extraction",
+      "approved migration record captured in docs/spikes/reflaxe-family-stdlib-execution-checklist.md"
+    ]
+  }
+}

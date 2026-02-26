@@ -37,7 +37,7 @@ def parse_args() -> argparse.Namespace:
         help="Run portable Tier1 conformance stage even for chunked/filtered runs",
     )
     parser.add_argument("--skip-portable-parity-closure", action="store_true", help="Skip portable parity-closure summary stage")
-    parser.add_argument("--skip-family-stdlib-bootstrap", action="store_true", help="Skip family std bootstrap snapshot validation stage")
+    parser.add_argument("--skip-family-stdlib-bootstrap", action="store_true", help="Skip family std sync/verify stage")
     parser.add_argument("--skip-stdlib-governance", action="store_true", help="Skip stdlib provenance/boundary governance stage")
     parser.add_argument("--skip-semantic-diff", action="store_true", help="Skip semantic differential stage")
     parser.add_argument("--force-semantic-diff", action="store_true", help="Run semantic differential stage even for chunked/filtered runs")
@@ -164,7 +164,7 @@ def should_run_family_std_bootstrap(args: argparse.Namespace) -> bool:
 
 
 def build_family_std_bootstrap_command() -> list[str]:
-    return ["python3", "family/reflaxe.family.std/tools/verify_family_std.py"]
+    return ["python3", "tools/family_std_sync.py", "--mode", "verify"]
 
 
 def should_run_stdlib_governance(args: argparse.Namespace) -> bool:
@@ -306,12 +306,12 @@ def main() -> int:
         print("==> Skipping portable parity closure summary stage")
 
     if should_run_family_std_bootstrap(args):
-        print("==> Family std bootstrap snapshot stage")
+        print("==> Family std sync/verify stage")
         family_std_bootstrap_code = run(build_family_std_bootstrap_command())
         if family_std_bootstrap_code != 0:
             return family_std_bootstrap_code
     else:
-        print("==> Skipping family std bootstrap snapshot stage")
+        print("==> Skipping family std sync/verify stage")
 
     if should_run_stdlib_governance(args):
         print("==> Stdlib governance stage")

@@ -63,6 +63,7 @@ npm run test:portable-allowlist
 npm run test:portable-conformance
 npm run test:portable-parity-closure
 npm run test:stdlib-sweep:full
+npm run test:family-stdlib-sync
 npm run test:family-stdlib-bootstrap
 npm run test:stdlib:governance
 ```
@@ -90,6 +91,8 @@ Portable parity closure artifacts:
 
 - `test/.test-cache/portable_parity_closure_summary.json`
 - `test/.test-cache/portable_parity_closure_summary.md`
+- `test/.test-cache/family_std_dual_run_report.json`
+- `test/.test-cache/family_std_dual_run_report.md`
 
 ## Portable Native-Import Policy
 

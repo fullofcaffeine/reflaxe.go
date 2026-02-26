@@ -84,7 +84,7 @@ Skip portable parity closure summary stage:
 python3 test/run-ci.py --skip-portable-parity-closure
 ```
 
-Skip family std bootstrap snapshot stage:
+Skip family std sync/verify stage:
 
 ```bash
 python3 test/run-ci.py --skip-family-stdlib-bootstrap
@@ -353,21 +353,32 @@ test/.test-cache/portable_parity_closure_summary.json
 test/.test-cache/portable_parity_closure_summary.md
 ```
 
-## Family std bootstrap snapshot
+## Family std sync and bootstrap validation
 
-Validate the in-repo `reflaxe.family.std` bootstrap skeleton, schema pack, and manifest determinism:
+Validate canonical<->family sync state plus bootstrap skeleton schemas/manifest:
 
 ```bash
-python3 family/reflaxe.family.std/tools/verify_family_std.py
+python3 tools/family_std_sync.py --mode verify
+npm run test:family-stdlib-sync
 npm run test:family-stdlib-bootstrap
+```
+
+Sync commands:
+
+```bash
+npm run family:stdlib:export
+npm run family:stdlib:import
 ```
 
 Primary artifacts:
 
 ```text
+family/family_std_pin.json
 family/reflaxe.family.std/MANIFEST.v1.txt
 family/reflaxe.family.std/provenance/stdlib-provenance-ledger.schema.json
 family/reflaxe.family.std/provenance/upstream-boundary-policy.v1.json
+test/.test-cache/family_std_dual_run_report.json
+test/.test-cache/family_std_dual_run_report.md
 ```
 
 ## Stdlib governance guards (provenance + boundary)

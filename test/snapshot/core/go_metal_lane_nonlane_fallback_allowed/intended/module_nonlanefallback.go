@@ -3,6 +3,10 @@ package main
 import "snapshot/hxrt"
 
 func NonLaneFallback_run() {
-	var maybe any = go___Go_fail(hxrt.StringFromLiteral("non-lane"))
-	hxrt.Println(hxrt.AnyEqualsNull(maybe))
+	nonLaneResult := NonLaneFallback_unresolvedFail(hxrt.StringFromLiteral("non-lane"))
+	hxrt.Println((nonLaneResult == nil))
+}
+
+func NonLaneFallback_unresolvedFail(message *string) *go___Result {
+	return go___Go_fail(message)
 }

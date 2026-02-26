@@ -28,6 +28,12 @@ Do not start extraction execution tasks until all gates pass:
 4. `npm run test:stdlib-sweep:full`
 5. `npm run test:stdlib:governance`
 
+Active dual-run pin and report artifacts:
+
+- `family/family_std_pin.json`
+- `test/.test-cache/family_std_dual_run_report.json`
+- `test/.test-cache/family_std_dual_run_report.md`
+
 ## Approved Task Sequence
 
 Execution tasks created from spike output:
