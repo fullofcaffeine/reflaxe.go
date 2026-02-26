@@ -26,6 +26,7 @@ Contract artifact:
 
 - `test/portable_allowlist.json` (tiered canonical portable module set, validated in CI)
 - `docs/portable-semantics-v1.md` (versioned portable semantics contract for high-risk cross-target behavior)
+- `docs/portable-module-mapping-contract.md` (Tier1 ownership map: Haxe source vs runtime binding vs compiler intrinsic)
 
 Excluded from this parity objective:
 

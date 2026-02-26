@@ -11,6 +11,7 @@
 Anything outside that bar is either **partial** (implemented but not fully gated) or **unsupported**.
 
 Portable semantic rulebook for high-risk behavior classes is versioned in `docs/portable-semantics-v1.md`.
+Tier1 ownership mapping for portable modules is tracked in `docs/portable-module-mapping-contract.md`.
 
 Portable-eligible upstream module status is tracked in machine-readable form at:
 

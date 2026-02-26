@@ -268,6 +268,10 @@ python3 test/run-portable-conformance.py
 npm run test:portable-conformance
 ```
 
+Ownership mapping reference:
+
+- `docs/portable-module-mapping-contract.md`
+
 List module-to-case mapping:
 
 ```bash
