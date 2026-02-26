@@ -1,3 +1,51 @@
+## [0.47.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.46.0...v0.47.0) (2026-02-26)
+
+### Features
+
+* add lambda exists/has iterable fallback ([e1c3cf7](https://github.com/fullofcaffeine/reflaxe.go/commit/e1c3cf75fc2aeec504821756f7a13da2c5faeb15))
+* add opt-in Go line directives for Haxe sources ([451f3e6](https://github.com/fullofcaffeine/reflaxe.go/commit/451f3e66814584c4a76f1d0622a11a037fa134de))
+* add selective hxrt runtime slicing and contracts ([0f301a6](https://github.com/fullofcaffeine/reflaxe.go/commit/0f301a6253a658564c238506adb49f936d04c89b))
+* **codegen:** elide redundant blank-identifier guards and refresh snapshots ([d496e4e](https://github.com/fullofcaffeine/reflaxe.go/commit/d496e4e942ecbeb799223bdb37f45602a33629c2))
+* **devex:** add flag-driven auto empty constructor injection ([8220ede](https://github.com/fullofcaffeine/reflaxe.go/commit/8220ede1b1ca0f4108a0db06c9bbcdfb0b89d1bb))
+* emit single-package file-per-module Go output ([16a4176](https://github.com/fullofcaffeine/reflaxe.go/commit/16a4176614710c6750984f49f950146cbcc4cf63))
+* **examples:** add fluxproxy matrix and pure-go parity baselines ([cd5d10c](https://github.com/fullofcaffeine/reflaxe.go/commit/cd5d10c98b87752a35fd30d2293e3168e7a2c653))
+* **examples:** add pulseforge scripted and interactive cli modes ([8629b30](https://github.com/fullofcaffeine/reflaxe.go/commit/8629b3041d2abd3fd6ad42e12b3979acb4b3cbbb))
+* **examples:** implement pulseforge pipeline contract across profiles ([8f48495](https://github.com/fullofcaffeine/reflaxe.go/commit/8f484957dbab32da0650c1e84f68934f2dee3d42))
+* **family:** add std sync verify and dual-run pin checks ([51ce2cd](https://github.com/fullofcaffeine/reflaxe.go/commit/51ce2cd34677658b1c1ed4b6fbe011f0df9014c9))
+* **go-ast:** emit no-binding type switch when binding unused ([b7c0bd8](https://github.com/fullofcaffeine/reflaxe.go/commit/b7c0bd8cd3a7cfb0b31cd3b39d5e3a44ccda517d))
+* **go:** add non-blocking Chan.tryRecv API ([95eff86](https://github.com/fullofcaffeine/reflaxe.go/commit/95eff86d0ce55957983d5c501eeb776fc9f79e8b))
+* **go:** add typed select helper API with deterministic branching ([77c252b](https://github.com/fullofcaffeine/reflaxe.go/commit/77c252b1b45e6a485bcd42b3a3f1a3ebb7682fda))
+* **goextern:** add deterministic generator and fixture CI checks ([9e6e1a2](https://github.com/fullofcaffeine/reflaxe.go/commit/9e6e1a2170c5f8d85dea120b3c1de1f35e9b402e))
+* **interp+snapshots:** add std/go interop wrappers and realign fixtures ([c3bb620](https://github.com/fullofcaffeine/reflaxe.go/commit/c3bb62094a5c676971457f6b04aa91265e508cc7))
+* **lambda:** add haxe.ds.List lowering and iterable diagnostics ([1b53122](https://github.com/fullofcaffeine/reflaxe.go/commit/1b53122eb3c264a4b21f77347e7d282bc30ab982))
+* lower untyped identifier expressions ([b6b6f6d](https://github.com/fullofcaffeine/reflaxe.go/commit/b6b6f6d16853c88186397b0774f8aa017fbbb410))
+* **metal:** add explicit __go__ fallback define ([acb86b8](https://github.com/fullofcaffeine/reflaxe.go/commit/acb86b8932f0cc0af9324ba49d321dfc418f8187))
+* **metal:** add go.Chan typed monomorphization prototype ([737ceb2](https://github.com/fullofcaffeine/reflaxe.go/commit/737ceb245ecbd02abe2c2404b7e10fdceebcf3e0))
+* **metal:** add typed go.Result lowering shims ([ef0def6](https://github.com/fullofcaffeine/reflaxe.go/commit/ef0def643cdad631ed22c9bfe05d58f1c5dc06c1))
+* **metal:** extend monomorphization to go slice/map ([81bcf68](https://github.com/fullofcaffeine/reflaxe.go/commit/81bcf68f3315b25c21eaab5d6ebdd91db5eb4179))
+* **perf:** add channel map generic go profile benches ([de21aa0](https://github.com/fullofcaffeine/reflaxe.go/commit/de21aa07148367ed5d714f7dd75c743021d990c5))
+* **perf:** add flagship app benchmark baselines and CI stage ([904ab3c](https://github.com/fullofcaffeine/reflaxe.go/commit/904ab3cfa038f0922217861646fda2bf39cf708f))
+* remove gopher profile and migrate portable baseline ([a7208e6](https://github.com/fullofcaffeine/reflaxe.go/commit/a7208e6e4c5a997540fce528fd1bf71e95f550c5))
+* support lambda count/empty generic iterables ([e5c8fff](https://github.com/fullofcaffeine/reflaxe.go/commit/e5c8fff153b8f163b14aa3bdb11b810b93b7dbdd))
+
+### Bug Fixes
+
+* coerce nullable float/bool any-branches ([ee5f3c5](https://github.com/fullofcaffeine/reflaxe.go/commit/ee5f3c5c894ec41d29a164216ad1e8d8e8423a45))
+* **go:** correct null equality lowering for Result semantics ([82e63d3](https://github.com/fullofcaffeine/reflaxe.go/commit/82e63d3bc74a3cd6836d102f0c2213c8a3a9fff7))
+* **goextern:** stabilize empty extern formatting ([1ef9131](https://github.com/fullofcaffeine/reflaxe.go/commit/1ef913148cb2fed62932840cd256752602a2b200))
+* normalize extern string returns to hxrt pointers ([b158c52](https://github.com/fullofcaffeine/reflaxe.go/commit/b158c520534a0d966bb422f5079b82a06420f57d))
+* type-assert chan recv results in non-metal profiles ([7e8fe08](https://github.com/fullofcaffeine/reflaxe.go/commit/7e8fe088e0cc64357042f7d13d7d66bc6ea5c191))
+
+### Performance Improvements
+
+* add select microcase to go profile harness ([0b53260](https://github.com/fullofcaffeine/reflaxe.go/commit/0b53260d23dcb83ec4bd232a36dc38ccbac4c13b))
+* add selective hxrt perf-size harness gating ([42b90ba](https://github.com/fullofcaffeine/reflaxe.go/commit/42b90ba23a9c8a6b77599b7e4d0817369b00cb38))
+* add virtual and string go profile microcases ([ecf2597](https://github.com/fullofcaffeine/reflaxe.go/commit/ecf259776af3449b9327086c2c9a99325aa80a51))
+* **apps:** add portable-vs-metal delta reporting and gating ([72dfc28](https://github.com/fullofcaffeine/reflaxe.go/commit/72dfc287b7b5c7af279a83120a2212028ec93bae))
+* **go:** add portable-vs-metal delta budgets and docs ([88df1ca](https://github.com/fullofcaffeine/reflaxe.go/commit/88df1ca509142ff5b06e0d9153731d7d7ca033f2))
+* **go:** add string_instance microcase to profile harness ([252b4ac](https://github.com/fullofcaffeine/reflaxe.go/commit/252b4ac8226e476c376e279a5bac3ce6f1683a1b))
+* **go:** specialize go.Select helpers with @:generic ([6a52bbf](https://github.com/fullofcaffeine/reflaxe.go/commit/6a52bbfdfa1bd014b44c63e2d9f22d82eda96b65))
+
 ## [0.46.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.45.0...v0.46.0) (2026-02-23)
 
 ### Features
