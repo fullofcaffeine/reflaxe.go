@@ -18,29 +18,35 @@ func main() {
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("custom="), sink.getBytes().toString()))
 	values := http.getResponseHeaderValues(hxrt.StringFromLiteral("Content-Type"))
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("headers="), func() int {
-		var hx_if_1 int
+		var hx_if_10 int
 		if values == nil {
-			hx_if_1 = -1
+			hx_if_10 = -1
 		} else {
-			hx_if_1 = len(values)
+			hx_if_10 = len(values)
 		}
-		return hx_if_1
+		return hx_if_10
 	}()))
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("header0="), func() *string {
-		var hx_if_2 *string
+		var hx_if_11 *string
 		if (values != nil) && (len(values) > 0) {
-			hx_if_2 = values[0]
+			hx_if_11 = values[0]
 		} else {
-			hx_if_2 = hxrt.StringFromLiteral("none")
+			hx_if_11 = hxrt.StringFromLiteral("none")
 		}
-		return hx_if_2
+		return hx_if_11
 	}()))
 	putSink := New_haxe__io__BytesBuffer()
 	http.customRequest(false, putSink, nil, hxrt.StringFromLiteral("PUT"))
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("method="), putSink.getBytes().toString()))
 	upload := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,ignored"))
 	upload.setParameter(hxrt.StringFromLiteral("token"), hxrt.StringFromLiteral("42"))
-	upload.fileTransfer(hxrt.StringFromLiteral("asset"), hxrt.StringFromLiteral("demo.txt"), nil, 4, hxrt.StringFromLiteral("text/plain"))
+	upload.fileTransfer(hxrt.StringFromLiteral("asset"), hxrt.StringFromLiteral("demo.txt"), func(hx_value_12 any) haxe__io__Input {
+		if hx_value_12 == nil {
+			var hx_zero_13 haxe__io__Input
+			return hx_zero_13
+		}
+		return hx_value_12.(haxe__io__Input)
+	}(nil), 4, hxrt.StringFromLiteral("text/plain"))
 	uploadSink := New_haxe__io__BytesBuffer()
 	upload.customRequest(true, uploadSink)
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("upload="), uploadSink.getBytes().toString()))

@@ -9,19 +9,17 @@ func main() {
 	ch := New_go___Chan()
 	ch.send(10)
 	ch.send(20)
-	hxrt.Println(func(hx_value_1 any) int {
+	hxrt.Println(func(hx_value_1 any) any {
 		if hx_value_1 == nil {
-			var hx_zero_2 int
-			return hx_zero_2
+			return nil
 		}
 		return hx_value_1.(int)
 	}(ch.recv()))
-	hxrt.Println(func(hx_value_3 any) int {
-		if hx_value_3 == nil {
-			var hx_zero_4 int
-			return hx_zero_4
+	hxrt.Println(func(hx_value_2 any) any {
+		if hx_value_2 == nil {
+			return nil
 		}
-		return hx_value_3.(int)
+		return hx_value_2.(int)
 	}(ch.recv()))
 }
 

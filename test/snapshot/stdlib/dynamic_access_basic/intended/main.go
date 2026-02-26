@@ -33,7 +33,17 @@ func main() {
 	_ = 2
 	Reflect_setField(values, hxrt.StringFromLiteral("right"), 5)
 	_ = 5
-	sum := int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(Reflect_field(values, hxrt.StringFromLiteral("left")))) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(Reflect_field(values, hxrt.StringFromLiteral("right")))))))
+	sum := int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(func(hx_value_2 any) any {
+		if hx_value_2 == nil {
+			return nil
+		}
+		return hx_value_2.(int)
+	}(Reflect_field(values, hxrt.StringFromLiteral("left"))))) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(func(hx_value_3 any) any {
+		if hx_value_3 == nil {
+			return nil
+		}
+		return hx_value_3.(int)
+	}(Reflect_field(values, hxrt.StringFromLiteral("right"))))))))
 	hxrt.Println(hxrt.StdString(sum))
 	hxrt.Println(hxrt.StdString(Reflect_hasField(values, hxrt.StringFromLiteral("missing"))))
 }

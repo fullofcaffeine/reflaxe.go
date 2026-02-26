@@ -33,12 +33,12 @@ func New_Box(id int) *Box {
 func main() {
 	sm := New_haxe__ds__StringMap()
 	sm.set(hxrt.StringFromLiteral("a"), 1)
-	av := func(hx_value_1 any) any {
+	av := hxrt.IntFromNullableAny(func(hx_value_1 any) any {
 		if hx_value_1 == nil {
 			return nil
 		}
 		return hx_value_1.(int)
-	}(sm.get(hxrt.StringFromLiteral("a")))
+	}(sm.get(hxrt.StringFromLiteral("a"))))
 	hxrt.Println(av)
 	om := New_haxe__ds__ObjectMap()
 	box := New_Box(7)

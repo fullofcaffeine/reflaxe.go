@@ -126,14 +126,20 @@ class FluxPipeline {
 
 		for (request in requests) {
 			var route = FluxCodec.normalizedRoute(request.route);
-			var streak = failureStreak.exists(route) ? failureStreak.get(route) : 0;
+			var streak = 0;
+			if (failureStreak.exists(route)) {
+				streak += failureStreak.get(route);
+			}
 			if (streak >= normalizedBreaker) {
 				synthetic.push(FluxCodec.breakerOpen(request));
 				breakerOpen++;
 				continue;
 			}
 
-			var routeCount = routeCounts.exists(route) ? routeCounts.get(route) : 0;
+			var routeCount = 0;
+			if (routeCounts.exists(route)) {
+				routeCount += routeCounts.get(route);
+			}
 			if (routeCount >= normalizedLimit) {
 				synthetic.push(FluxCodec.rateLimited(request));
 				rateLimited++;

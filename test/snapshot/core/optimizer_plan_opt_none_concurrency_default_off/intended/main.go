@@ -11,10 +11,9 @@ func main() {
 	hxrt.Println(int(int32((hxrt.Int32Wrap(hxrt.StringLength(s)) + hxrt.Int32Wrap(hxrt.StringLength(out))))))
 	ch := New_go___Chan()
 	ch.send(7)
-	hxrt.Println(func(hx_value_1 any) int {
+	hxrt.Println(func(hx_value_1 any) any {
 		if hx_value_1 == nil {
-			var hx_zero_2 int
-			return hx_zero_2
+			return nil
 		}
 		return hx_value_1.(int)
 	}(ch.recv()))

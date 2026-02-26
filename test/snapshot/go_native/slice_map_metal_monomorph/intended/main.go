@@ -49,10 +49,9 @@ func main() {
 	byName := go___Go_newMap()
 	go__map_set___string__int_e8ed7ec7(byName, hxrt.StringFromLiteral("alice"), 11)
 	hxrt.Println(go__map_exists___string__int_e8ed7ec7(byName, hxrt.StringFromLiteral("alice")))
-	hxrt.Println(func(hx_value_6 any) int {
+	hxrt.Println(func(hx_value_6 any) any {
 		if hx_value_6 == nil {
-			var hx_zero_7 int
-			return hx_zero_7
+			return nil
 		}
 		return hx_value_6.(int)
 	}(go__map_get___string__int_e8ed7ec7(byName, hxrt.StringFromLiteral("alice"))))

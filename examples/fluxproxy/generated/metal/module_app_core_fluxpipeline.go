@@ -207,7 +207,7 @@ func (self *app__core__FluxPipeline) applyRoutePolicies(requests []*app__core__F
 		request := requests[_g]
 		_g = int(int32((_g + 1)))
 		route := app__core__FluxCodec_normalizedRoute(request.route)
-		var hx_if_44 int
+		streak := 0
 		if func(hx_value_40 any) bool {
 			if hx_value_40 == nil {
 				var hx_zero_41 bool
@@ -215,41 +215,33 @@ func (self *app__core__FluxPipeline) applyRoutePolicies(requests []*app__core__F
 			}
 			return hx_value_40.(bool)
 		}(failureStreak.exists(route)) {
-			hx_if_44 = func(hx_value_42 any) int {
+			streak = int(int32((hxrt.Int32Wrap(streak) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(func(hx_value_42 any) any {
 				if hx_value_42 == nil {
-					var hx_zero_43 int
-					return hx_zero_43
+					return nil
 				}
 				return hx_value_42.(int)
-			}(failureStreak.get(route))
-		} else {
-			hx_if_44 = 0
+			}(failureStreak.get(route)))))))
 		}
-		streak := hx_if_44
 		if streak >= normalizedBreaker {
 			synthetic = append(synthetic, app__core__FluxCodec_breakerOpen(request))
 			breakerOpen = int(int32((breakerOpen + 1)))
 			continue
 		}
-		var hx_if_49 int
-		if func(hx_value_45 any) bool {
-			if hx_value_45 == nil {
-				var hx_zero_46 bool
-				return hx_zero_46
+		routeCount := 0
+		if func(hx_value_43 any) bool {
+			if hx_value_43 == nil {
+				var hx_zero_44 bool
+				return hx_zero_44
 			}
-			return hx_value_45.(bool)
+			return hx_value_43.(bool)
 		}(routeCounts.exists(route)) {
-			hx_if_49 = func(hx_value_47 any) int {
-				if hx_value_47 == nil {
-					var hx_zero_48 int
-					return hx_zero_48
+			routeCount = int(int32((hxrt.Int32Wrap(routeCount) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(func(hx_value_45 any) any {
+				if hx_value_45 == nil {
+					return nil
 				}
-				return hx_value_47.(int)
-			}(routeCounts.get(route))
-		} else {
-			hx_if_49 = 0
+				return hx_value_45.(int)
+			}(routeCounts.get(route)))))))
 		}
-		routeCount := hx_if_49
 		if routeCount >= normalizedLimit {
 			synthetic = append(synthetic, app__core__FluxCodec_rateLimited(request))
 			rateLimited = int(int32((rateLimited + 1)))
@@ -264,12 +256,12 @@ func (self *app__core__FluxPipeline) applyRoutePolicies(requests []*app__core__F
 			failureStreak.set(route, 0)
 		}
 	}
-	hx_obj_50 := map[string]any{}
-	hx_obj_50["dispatchable"] = dispatchable
-	hx_obj_50["synthetic"] = synthetic
-	hx_obj_50["rateLimited"] = rateLimited
-	hx_obj_50["breakerOpen"] = breakerOpen
-	return hx_obj_50
+	hx_obj_46 := map[string]any{}
+	hx_obj_46["dispatchable"] = dispatchable
+	hx_obj_46["synthetic"] = synthetic
+	hx_obj_46["rateLimited"] = rateLimited
+	hx_obj_46["breakerOpen"] = breakerOpen
+	return hx_obj_46
 }
 
 func (self *app__core__FluxPipeline) orderedResponses(synthetic []*app__core__FluxProxyResponse, dispatched []*app__core__FluxProxyResponse, acceptedRequests []*app__core__FluxRequest) []*app__core__FluxProxyResponse {
@@ -291,12 +283,12 @@ func (self *app__core__FluxPipeline) orderedResponses(synthetic []*app__core__Fl
 	for _g_2 < len(acceptedRequests) {
 		request := acceptedRequests[_g_2]
 		_g_2 = int(int32((_g_2 + 1)))
-		response_2 := func(hx_value_51 any) *app__core__FluxProxyResponse {
-			if hx_value_51 == nil {
-				var hx_zero_52 *app__core__FluxProxyResponse
-				return hx_zero_52
+		response_2 := func(hx_value_47 any) *app__core__FluxProxyResponse {
+			if hx_value_47 == nil {
+				var hx_zero_48 *app__core__FluxProxyResponse
+				return hx_zero_48
 			}
-			return hx_value_51.(*app__core__FluxProxyResponse)
+			return hx_value_47.(*app__core__FluxProxyResponse)
 		}(byId.get(request.id))
 		if response_2 != nil {
 			ordered = append(ordered, response_2)

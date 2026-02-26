@@ -12,12 +12,18 @@ func sum(values []int) int {
 	var _g_current int
 	var _g_args []int
 	_g_current = 0
-	_g_args = values
+	_g_args = func(hx_value_1 any) []int {
+		if hx_value_1 == nil {
+			var hx_zero_2 []int
+			return hx_zero_2
+		}
+		return hx_value_1.([]int)
+	}(any(values))
 	for _g_current < len(_g_args) {
 		this1 := _g_args
-		hx_post_1 := _g_current
+		hx_post_3 := _g_current
 		_g_current = int(int32((_g_current + 1)))
-		index := hx_post_1
+		index := hx_post_3
 		value := this1[index]
 		total = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(value))))
 	}

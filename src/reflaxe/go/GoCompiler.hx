@@ -129,6 +129,7 @@ class GoCompiler {
 	final compilationContext:CompilationContext;
 	final staticFunctionInfos:Map<String, FunctionInfo>;
 	final localFunctionScopes:Array<Map<String, FunctionInfo>>;
+	final localLambdaAliasScopes:Array<Map<String, String>>;
 	final localRestIteratorScopes:Array<Array<String>>;
 	final requiredStdlibShimGroups:Map<String, Bool>;
 	final requiredMetalChanElementTypes:Map<String, Bool>;
@@ -141,6 +142,7 @@ class GoCompiler {
 	final sourceModuleBySuffix:Map<String, String>;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
+	final optionalPrimitiveParamScopes:Array<Map<Int, Bool>>;
 	final functionReturnTypeScopes:Array<Type>;
 	final returnRedirectScopes:Array<Null<ReturnRedirect>>;
 	var sourceModuleSuffixes:Array<String>;
@@ -158,6 +160,7 @@ class GoCompiler {
 		this.compilationContext = compilationContext == null ? new CompilationContext(GoProfile.Portable, "snapshot") : compilationContext;
 		staticFunctionInfos = new Map<String, FunctionInfo>();
 		localFunctionScopes = [];
+		localLambdaAliasScopes = [];
 		localRestIteratorScopes = [];
 		requiredStdlibShimGroups = new Map<String, Bool>();
 		requiredMetalChanElementTypes = new Map<String, Bool>();
@@ -170,6 +173,7 @@ class GoCompiler {
 		sourceModuleBySuffix = new Map<String, String>();
 		functionVarNameScopes = [];
 		functionVarNameCountScopes = [];
+		optionalPrimitiveParamScopes = [];
 		functionReturnTypeScopes = [];
 		returnRedirectScopes = [];
 		sourceModuleSuffixes = [];
@@ -9714,6 +9718,7 @@ class GoCompiler {
 	function lowerFunctionParams(func:TFunc):Array<GoParam> {
 		var params = new Array<GoParam>();
 		for (arg in func.args) {
+			registerOptionalPrimitiveParam(arg.v, arg.value != null);
 			params.push({
 				name: localVarName(arg.v),
 				typeName: scalarGoType(arg.v.t)
@@ -9757,13 +9762,18 @@ class GoCompiler {
 				if (functionValue != null) {
 					registerLocalFunction(variableName, functionValue);
 				}
+				var lambdaAlias = value == null ? null : lambdaFunctionAliasName(value);
+				if (lambdaAlias != null) {
+					registerLocalLambdaAlias(variableName, lambdaAlias);
+				}
 
 				var lowered = value == null ? null : lowerExprWithPrefix(value);
 				var prefix = lowered == null ? [] : lowered.prefix;
 				var loweredValue = lowered == null ? null : lowered.expr;
 				if (value != null && loweredValue != null) {
 					loweredValue = upcastIfNeeded(loweredValue, value.t, variable.t);
-					loweredValue = coerceAnyExprToType(loweredValue, value.t, variable.t, exprBackedByAny(value));
+					loweredValue = coerceAnyExprToType(loweredValue, value.t, variable.t, exprBackedByAny(value)
+						|| shouldForceAnyCoerce(value.t, variable.t));
 				}
 				var goType = typeToGoType(variable.t);
 				var useShort = loweredValue != null && !isNilExpr(loweredValue) && goType != "any" && !isInterfaceType(variable.t);
@@ -10058,8 +10068,10 @@ class GoCompiler {
 		var temp = freshTempName("hx_if");
 		var loweredThenValue = upcastIfNeeded(loweredThen.expr, thenBranch.t, resultType);
 		var loweredElseValue = upcastIfNeeded(loweredElse.expr, elseExpr.t, resultType);
-		loweredThenValue = coerceAnyExprToType(loweredThenValue, thenBranch.t, resultType, exprBackedByAny(thenBranch));
-		loweredElseValue = coerceAnyExprToType(loweredElseValue, elseExpr.t, resultType, exprBackedByAny(elseExpr));
+		loweredThenValue = coerceAnyExprToType(loweredThenValue, thenBranch.t, resultType, exprBackedByAny(thenBranch) || shouldForceAnyCoerce(thenBranch.t,
+			resultType));
+		loweredElseValue = coerceAnyExprToType(loweredElseValue, elseExpr.t, resultType, exprBackedByAny(elseExpr) || shouldForceAnyCoerce(elseExpr.t,
+			resultType));
 
 		var prefix = [GoStmt.GoVarDecl(temp, typeToGoType(resultType), null, false)].concat(loweredCondition.prefix);
 
@@ -10430,12 +10442,16 @@ class GoCompiler {
 
 	function pushLocalScope():Void {
 		localFunctionScopes.push(new Map<String, FunctionInfo>());
+		localLambdaAliasScopes.push(new Map<String, String>());
 		localRestIteratorScopes.push([]);
 	}
 
 	function popLocalScope():Void {
 		if (localFunctionScopes.length > 0) {
 			localFunctionScopes.pop();
+		}
+		if (localLambdaAliasScopes.length > 0) {
+			localLambdaAliasScopes.pop();
 		}
 		if (localRestIteratorScopes.length > 0) {
 			localRestIteratorScopes.pop();
@@ -10445,6 +10461,7 @@ class GoCompiler {
 	function pushFunctionVarNameScope():Void {
 		functionVarNameScopes.push(new Map<Int, String>());
 		functionVarNameCountScopes.push(new Map<String, Int>());
+		optionalPrimitiveParamScopes.push(new Map<Int, Bool>());
 	}
 
 	function popFunctionVarNameScope():Void {
@@ -10453,6 +10470,9 @@ class GoCompiler {
 		}
 		if (functionVarNameCountScopes.length > 0) {
 			functionVarNameCountScopes.pop();
+		}
+		if (optionalPrimitiveParamScopes.length > 0) {
+			optionalPrimitiveParamScopes.pop();
 		}
 	}
 
@@ -10566,6 +10586,40 @@ class GoCompiler {
 		return assigned;
 	}
 
+	function registerOptionalPrimitiveParam(variable:TVar, hasDefaultExpr:Bool):Void {
+		if (!hasDefaultExpr) {
+			return;
+		}
+		var goType = typeToGoType(variable.t);
+		if (goType != "int" && goType != "float64" && goType != "bool") {
+			return;
+		}
+		var scope = currentOptionalPrimitiveParamScope();
+		if (scope == null) {
+			return;
+		}
+		scope.set(variable.id, true);
+	}
+
+	function currentOptionalPrimitiveParamScope():Null<Map<Int, Bool>> {
+		if (optionalPrimitiveParamScopes.length == 0) {
+			return null;
+		}
+		return optionalPrimitiveParamScopes[optionalPrimitiveParamScopes.length - 1];
+	}
+
+	function isRegisteredOptionalPrimitiveParam(variable:TVar):Bool {
+		var index = optionalPrimitiveParamScopes.length - 1;
+		while (index >= 0) {
+			var scope = optionalPrimitiveParamScopes[index];
+			if (scope.exists(variable.id)) {
+				return true;
+			}
+			index--;
+		}
+		return false;
+	}
+
 	function registerLocalFunction(name:String, func:TFunc):Void {
 		var scope = currentLocalScope();
 		if (scope == null) {
@@ -10579,6 +10633,33 @@ class GoCompiler {
 			return null;
 		}
 		return localFunctionScopes[localFunctionScopes.length - 1];
+	}
+
+	function registerLocalLambdaAlias(name:String, alias:String):Void {
+		var scope = currentLocalLambdaAliasScope();
+		if (scope == null) {
+			return;
+		}
+		scope.set(name, alias);
+	}
+
+	function currentLocalLambdaAliasScope():Null<Map<String, String>> {
+		if (localLambdaAliasScopes.length == 0) {
+			return null;
+		}
+		return localLambdaAliasScopes[localLambdaAliasScopes.length - 1];
+	}
+
+	function lookupLocalLambdaAlias(name:String):Null<String> {
+		var index = localLambdaAliasScopes.length - 1;
+		while (index >= 0) {
+			var scope = localLambdaAliasScopes[index];
+			if (scope.exists(name)) {
+				return scope.get(name);
+			}
+			index--;
+		}
+		return null;
 	}
 
 	function registerRestIterator(name:String):Void {
@@ -12081,6 +12162,29 @@ class GoCompiler {
 		};
 	}
 
+	function lambdaFunctionAliasName(expr:TypedExpr):Null<String> {
+		return switch (expr.expr) {
+			case TField(_, FStatic(classRef, fieldRef)):
+				var classType = classRef.get();
+				var field = fieldRef.get();
+				if (classType.pack.length == 0 && classType.name == "Lambda" && (field.name == "map" || field.name == "fold")) {
+					field.name;
+				} else {
+					null;
+				}
+			case TLocal(variable):
+				lookupLocalLambdaAlias(localVarName(variable));
+			case TMeta(_, inner):
+				lambdaFunctionAliasName(inner);
+			case TParenthesis(inner):
+				lambdaFunctionAliasName(inner);
+			case TCast(inner, _):
+				lambdaFunctionAliasName(inner);
+			case _:
+				null;
+		};
+	}
+
 	function lowerLambdaPredicateAnyAdapter(predicateExpr:GoExpr, predicateType:Type):GoExpr {
 		var rawArgName = freshTempName("hx_lambda_arg");
 		var adaptedArgExpr:GoExpr = GoExpr.GoIdent(rawArgName);
@@ -12146,54 +12250,38 @@ class GoCompiler {
 		]), [anySliceExpr]);
 	}
 
-	function functionTypedSignature(type:Type):Null<{args:Array<{name:String, opt:Bool, t:Type}>, result:Type}> {
-		return switch (Context.follow(type)) {
-			case TFun(args, returnType):
-				{
-					args: args,
-					result: returnType
-				};
-			case _:
-				null;
-		};
-	}
-
 	function lowerLambdaFunctionValueCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		if (args.length < 2) {
 			return null;
 		}
-		var sourcePlan = tryLambdaSourcePlan(args[0]);
-		if (sourcePlan != null) {
+		var alias = lambdaFunctionAliasName(callee);
+		if (alias == null) {
 			return null;
 		}
-		var signature = functionTypedSignature(callee.t);
-		if (signature == null) {
-			return null;
-		}
-		var calleeExpr = lowerExpr(callee).expr;
-		var dynamicSourceExpr = lowerLambdaDynamicIterableSource(args[0]);
 
-		// Function-value `Lambda.map` calls are lowered as plain function calls by typing.
-		// Detect Lambda-shaped signature and apply the same generic Iterable adapter path as static lowering.
-		if (args.length == 2 && signature.args.length == 2 && signature.args[0].name == "it" && signature.args[1].name == "f" && isArrayType(returnType)) {
-			switch (Context.follow(signature.args[1].t)) {
-				case TFun(_, mapperReturnType):
-					if (!isBoolType(mapperReturnType)) {
-						var mapperExpr = lowerExpr(args[1]).expr;
-						var adaptedMapperExpr = lowerLambdaMapperAnyAdapter(mapperExpr, args[1].t);
-						var mappedAnyExpr = GoExpr.GoCall(calleeExpr, [dynamicSourceExpr, adaptedMapperExpr]);
-						return {
-							expr: lowerLambdaAnyArrayCoerce(mappedAnyExpr, returnType),
-							isStringLike: false
-						};
-					}
-				case _:
+		// Function-value Lambda.map alias call path.
+		if (alias == "map") {
+			if (args.length != 2) {
+				Context.fatalError("Lambda.map expects exactly 2 arguments", callee.pos);
 			}
+			var calleeExpr = lowerExpr(callee).expr;
+			var dynamicSourceExpr = lowerLambdaDynamicIterableSource(args[0]);
+			var mapperExpr = lowerExpr(args[1]).expr;
+			var adaptedMapperExpr = lowerLambdaMapperAnyAdapter(mapperExpr, args[1].t);
+			var mappedAnyExpr = GoExpr.GoCall(calleeExpr, [dynamicSourceExpr, adaptedMapperExpr]);
+			return {
+				expr: lowerLambdaAnyArrayCoerce(mappedAnyExpr, returnType),
+				isStringLike: false
+			};
 		}
 
-		// Function-value `Lambda.fold` follows the same typed adapter bridge.
-		if (args.length == 3 && signature.args.length == 3 && signature.args[0].name == "it" && signature.args[1].name == "f"
-			&& signature.args[2].name == "first") {
+		// Function-value Lambda.fold alias call path.
+		if (alias == "fold") {
+			if (args.length != 3) {
+				Context.fatalError("Lambda.fold expects exactly 3 arguments", callee.pos);
+			}
+			var calleeExpr = lowerExpr(callee).expr;
+			var dynamicSourceExpr = lowerLambdaDynamicIterableSource(args[0]);
 			var folderExpr = lowerExpr(args[1]).expr;
 			var initExpr = lowerExpr(args[2]).expr;
 			var adaptedFolderExpr = lowerLambdaFolderAnyAdapter(folderExpr, args[1].t);
@@ -13477,6 +13565,10 @@ class GoCompiler {
 		var impossiblePrimitiveNullComparison = nullComparison
 			&& ((isNullLiteralExpr(left) && isDefinitelyNonNullableType(right.t))
 				|| (isNullLiteralExpr(right) && isDefinitelyNonNullableType(left.t)));
+		var optionalPrimitiveLocalNullComparison = nullComparison
+			&& ((isNullLiteralExpr(left) && isOptionalPrimitiveLocalExpr(right))
+				|| (isNullLiteralExpr(right) && isOptionalPrimitiveLocalExpr(left)));
+		impossiblePrimitiveNullComparison = impossiblePrimitiveNullComparison || optionalPrimitiveLocalNullComparison;
 		var useStringEquality = stringMode && (!nullComparison || isStringType(left.t) || isStringType(right.t));
 		var typedStringOps = isStringType(left.t) && isStringType(right.t);
 		var anyNullComparison = nullComparison && (isAnyLikeType(left.t) || isAnyLikeType(right.t));
@@ -13639,6 +13731,13 @@ class GoCompiler {
 			return expr;
 		}
 		return lowerNilSafeTypeAssertExpr(expr, "float64");
+	}
+
+	function shouldForceAnyCoerce(fromType:Type, toType:Type):Bool {
+		if (!isNullablePrimitiveType(fromType) || isNullablePrimitiveType(toType)) {
+			return false;
+		}
+		return typeToGoType(toType) != "any";
 	}
 
 	function coerceAnyExprToType(expr:GoExpr, fromType:Type, toType:Type, ?fromAnyOverride:Bool = false):GoExpr {
@@ -13825,6 +13924,21 @@ class GoCompiler {
 				isNullLiteralExpr(inner);
 			case TCast(inner, _):
 				isNullLiteralExpr(inner);
+			case _:
+				false;
+		};
+	}
+
+	function isOptionalPrimitiveLocalExpr(expr:TypedExpr):Bool {
+		return switch (expr.expr) {
+			case TLocal(variable):
+				isRegisteredOptionalPrimitiveParam(variable);
+			case TMeta(_, inner):
+				isOptionalPrimitiveLocalExpr(inner);
+			case TParenthesis(inner):
+				isOptionalPrimitiveLocalExpr(inner);
+			case TCast(inner, _):
+				isOptionalPrimitiveLocalExpr(inner);
 			case _:
 				false;
 		};
