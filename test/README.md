@@ -519,6 +519,60 @@ Delta interpretation:
 - `comparison.json` -> `deltaWarningCount` / `deltaHardFailureCount` and `deltaCases` summarize selected-case drift checks.
 - `summary.md` includes a dedicated `Portable-vs-metal Delta` table plus `Delta Hard-Fail Candidates`.
 
+## Flagship app perf harness
+
+Collect app-level profile ratios for `pulseforge` and `fluxproxy` (portable/metal vs pure-go, variants `core` and `go_native`):
+
+```bash
+bash scripts/ci/perf-apps.sh
+```
+
+Enforce metal hard budgets:
+
+```bash
+GO_APP_PERF_ENFORCE_METAL_BUDGET=1 bash scripts/ci/perf-apps.sh
+```
+
+Enable portable-vs-metal delta hard budget checks:
+
+```bash
+GO_APP_PERF_ENFORCE_DELTA_BUDGET=1 bash scripts/ci/perf-apps.sh
+```
+
+Tune delta cases and thresholds:
+
+```bash
+GO_APP_PERF_ENFORCE_DELTA_BUDGET=1 GO_APP_PERF_DELTA_CASES=pulseforge:go_native,fluxproxy:go_native GO_APP_PERF_DELTA_WARN_PCT=12 GO_APP_PERF_DELTA_FAIL_PCT=20 bash scripts/ci/perf-apps.sh
+```
+
+Regenerate app baseline:
+
+```bash
+bash scripts/ci/perf-apps.sh --update-baseline
+```
+
+App baseline source:
+
+```text
+scripts/ci/perf/app-profile-baseline.json
+```
+
+App result artifacts:
+
+```text
+.cache/perf-apps/results/current.json
+.cache/perf-apps/results/comparison.json
+.cache/perf-apps/results/summary.md
+.cache/perf-apps/results/warnings.txt
+.cache/perf-apps/results/hard_failures.txt
+```
+
+App delta interpretation:
+
+- `current.json` -> `derived.portableVsMetal` reports portable/metal deltas per `app+variant`.
+- `comparison.json` -> `deltaCases`, `deltaWarningCount`, and `deltaHardFailureCount` expose selected-case budget outcomes.
+- `summary.md` includes `Portable-vs-Metal Deltas` and separate `Metal Hard-Fail` vs `Delta Hard-Fail` sections.
+
 ## HXRT selective runtime perf/size harness
 
 Collect selective-vs-full runtime footprint metrics (`runtime file count`, `runtime source bytes`, `binary bytes`) for representative portable+metal cases:

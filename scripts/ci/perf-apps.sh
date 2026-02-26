@@ -37,6 +37,11 @@ Environment:
   GO_APP_PERF_METAL_MEMORY_FAIL_PCT      Hard fail if metal rss ratio rises beyond this pct (default: 20)
   GO_APP_PERF_METAL_STARTUP_FAIL_PCT     Hard fail if metal startup ratio rises beyond this pct (default: 30)
   GO_APP_PERF_METAL_SIZE_FAIL_PCT        Hard fail if metal size ratios rise beyond this pct (default: 15)
+  GO_APP_PERF_DELTA_WARN_PCT             Warn if portable-vs-metal deltas drift beyond this pct vs baseline (default: 15)
+  GO_APP_PERF_ENFORCE_DELTA_BUDGET       Fail on portable-vs-metal delta hard-budget regressions (default: 0/off)
+  GO_APP_PERF_DELTA_FAIL_PCT             Hard fail if portable-vs-metal deltas drift beyond this pct vs baseline (default: 25)
+  GO_APP_PERF_DELTA_CASES                Comma-separated app:variant selectors for delta checks
+                                         (default: pulseforge:core,pulseforge:go_native,fluxproxy:core,fluxproxy:go_native)
 USAGE
 }
 
@@ -481,6 +486,10 @@ metal_alloc_fail_pct="${GO_APP_PERF_METAL_ALLOC_FAIL_PCT:-30}"
 metal_memory_fail_pct="${GO_APP_PERF_METAL_MEMORY_FAIL_PCT:-20}"
 metal_startup_fail_pct="${GO_APP_PERF_METAL_STARTUP_FAIL_PCT:-30}"
 metal_size_fail_pct="${GO_APP_PERF_METAL_SIZE_FAIL_PCT:-15}"
+delta_warn_pct="${GO_APP_PERF_DELTA_WARN_PCT:-15}"
+enforce_delta_budget="${GO_APP_PERF_ENFORCE_DELTA_BUDGET:-0}"
+delta_fail_pct="${GO_APP_PERF_DELTA_FAIL_PCT:-25}"
+delta_cases="${GO_APP_PERF_DELTA_CASES:-pulseforge:core,pulseforge:go_native,fluxproxy:core,fluxproxy:go_native}"
 baseline_display="$(display_path "$baseline_file")"
 
 require_command "$haxe_bin"
@@ -591,6 +600,10 @@ GO_APP_PERF_METAL_ALLOC_FAIL_PCT="$metal_alloc_fail_pct" \
 GO_APP_PERF_METAL_MEMORY_FAIL_PCT="$metal_memory_fail_pct" \
 GO_APP_PERF_METAL_STARTUP_FAIL_PCT="$metal_startup_fail_pct" \
 GO_APP_PERF_METAL_SIZE_FAIL_PCT="$metal_size_fail_pct" \
+GO_APP_PERF_DELTA_WARN_PCT="$delta_warn_pct" \
+GO_APP_PERF_ENFORCE_DELTA_BUDGET="$enforce_delta_budget" \
+GO_APP_PERF_DELTA_FAIL_PCT="$delta_fail_pct" \
+GO_APP_PERF_DELTA_CASES="$delta_cases" \
 python3 <<'PY'
 import csv
 import datetime as dt
@@ -627,6 +640,13 @@ metal_alloc_fail_pct = float(os.environ.get("GO_APP_PERF_METAL_ALLOC_FAIL_PCT", 
 metal_memory_fail_pct = float(os.environ.get("GO_APP_PERF_METAL_MEMORY_FAIL_PCT", "20"))
 metal_startup_fail_pct = float(os.environ.get("GO_APP_PERF_METAL_STARTUP_FAIL_PCT", "30"))
 metal_size_fail_pct = float(os.environ.get("GO_APP_PERF_METAL_SIZE_FAIL_PCT", "15"))
+delta_warn_pct = float(os.environ.get("GO_APP_PERF_DELTA_WARN_PCT", "15"))
+enforce_delta_budget = bool(re.match(r"^(1|true|yes|on)$", os.environ.get("GO_APP_PERF_ENFORCE_DELTA_BUDGET", "0"), re.IGNORECASE))
+delta_fail_pct = float(os.environ.get("GO_APP_PERF_DELTA_FAIL_PCT", "25"))
+delta_cases = [part.strip().lower() for part in os.environ.get("GO_APP_PERF_DELTA_CASES", "").split(",") if part.strip()]
+if not delta_cases:
+    delta_cases = ["all"]
+delta_case_set = set(delta_cases)
 
 numeric_int_fields = {
     "workload_count",
@@ -707,6 +727,38 @@ for metric in metrics:
     )
 haxe_vs_pure.sort(key=lambda item: (item["app"], item["variant"], item["profile"]))
 
+def build_portable_vs_metal(rows: List[Dict[str, object]]) -> List[Dict[str, object]]:
+    index: Dict[str, Dict[str, Dict[str, object]]] = {}
+    for row in rows:
+        key = f"{row['app']}::{row['variant']}"
+        profile = str(row["profile"])
+        index.setdefault(key, {})[profile] = row
+
+    deltas: List[Dict[str, object]] = []
+    for key, profile_rows in sorted(index.items()):
+        portable = profile_rows.get("portable")
+        metal = profile_rows.get("metal")
+        if portable is None or metal is None:
+            continue
+        app, variant = key.split("::", 1)
+        deltas.append(
+            {
+                "app": app,
+                "variant": variant,
+                "throughput_delta": ratio(float(portable["throughput_ratio_vs_pure"]), float(metal["throughput_ratio_vs_pure"])),
+                "latency_delta": ratio(float(portable["latency_avg_ratio_vs_pure"]), float(metal["latency_avg_ratio_vs_pure"])),
+                "alloc_bytes_delta": ratio(float(portable["alloc_bytes_ratio_vs_pure"]), float(metal["alloc_bytes_ratio_vs_pure"])),
+                "allocs_delta": ratio(float(portable["allocs_ratio_vs_pure"]), float(metal["allocs_ratio_vs_pure"])),
+                "rss_delta": ratio(float(portable["rss_ratio_vs_pure"]), float(metal["rss_ratio_vs_pure"])),
+                "startup_delta": ratio(float(portable["startup_ratio_vs_pure"]), float(metal["startup_ratio_vs_pure"])),
+                "binary_delta": ratio(float(portable["binary_ratio_vs_pure"]), float(metal["binary_ratio_vs_pure"])),
+                "stripped_delta": ratio(float(portable["stripped_ratio_vs_pure"]), float(metal["stripped_ratio_vs_pure"])),
+            }
+        )
+    return deltas
+
+portable_vs_metal = build_portable_vs_metal(haxe_vs_pure)
+
 warning_thresholds = {
     "throughputWarnPct": throughput_warn_pct,
     "latencyWarnPct": latency_warn_pct,
@@ -714,6 +766,7 @@ warning_thresholds = {
     "memoryWarnPct": memory_warn_pct,
     "startupWarnPct": startup_warn_pct,
     "sizeWarnPct": size_warn_pct,
+    "deltaWarnPct": delta_warn_pct,
 }
 metal_fail_thresholds = {
     "throughputFailPct": metal_throughput_fail_pct,
@@ -722,6 +775,9 @@ metal_fail_thresholds = {
     "memoryFailPct": metal_memory_fail_pct,
     "startupFailPct": metal_startup_fail_pct,
     "sizeFailPct": metal_size_fail_pct,
+}
+delta_fail_thresholds = {
+    "deltaFailPct": delta_fail_pct,
 }
 
 now = dt.datetime.now(dt.timezone.utc).isoformat()
@@ -739,11 +795,15 @@ current_payload = {
         "benchCount": bench_count if bench_count else None,
         "warningThresholds": warning_thresholds,
         "metalFailThresholds": metal_fail_thresholds,
+        "deltaFailThresholds": delta_fail_thresholds,
         "enforceMetalBudget": enforce_metal_budget,
+        "enforceDeltaBudget": enforce_delta_budget,
+        "deltaCases": sorted(delta_case_set),
     },
     "metrics": metrics,
     "derived": {
         "haxeVsPure": haxe_vs_pure,
+        "portableVsMetal": portable_vs_metal,
     },
 }
 
@@ -758,6 +818,7 @@ baseline_payload = {
     "thresholds": warning_thresholds,
     "derivedBaseline": {
         "haxeVsPure": haxe_vs_pure,
+        "portableVsMetal": portable_vs_metal,
     },
 }
 if update_baseline:
@@ -782,9 +843,16 @@ if not update_baseline:
         with open(baseline_path, "r", encoding="utf-8") as handle:
             baseline_loaded = json.load(handle)
         baseline_rows = baseline_loaded.get("derivedBaseline", {}).get("haxeVsPure", [])
+        baseline_portable_vs_metal = baseline_loaded.get("derivedBaseline", {}).get("portableVsMetal")
+        if not isinstance(baseline_portable_vs_metal, list):
+            baseline_portable_vs_metal = build_portable_vs_metal(baseline_rows)
         baseline_ratio_index = {
             f"{row['app']}::{row['variant']}::{row['profile']}": row
             for row in baseline_rows
+        }
+        baseline_delta_index = {
+            f"{row['app']}::{row['variant']}": row
+            for row in baseline_portable_vs_metal
         }
 
         def compare_higher_is_better(key: str, label: str, current_value: float, baseline_value: float, warn_pct: float, fail_pct: float, allow_hard: bool) -> None:
@@ -820,6 +888,12 @@ if not update_baseline:
                     hard_failures.append(
                         f"{key}.{label} rose {rise_pct:.2f}% (current={current_value:.6f}, baseline={baseline_value:.6f}, metal budget={fail_pct:.2f}%)"
                     )
+
+        def should_track_delta_case(app: str, variant: str) -> bool:
+            if "all" in delta_case_set:
+                return True
+            selector = f"{app}:{variant}".lower()
+            return selector in delta_case_set
 
         for key, current_row in current_ratio_index.items():
             baseline_row = baseline_ratio_index.get(key)
@@ -901,6 +975,66 @@ if not update_baseline:
                 is_metal,
             )
 
+        current_delta_index = {
+            f"{row['app']}::{row['variant']}": row
+            for row in portable_vs_metal
+        }
+        for key, current_row in current_delta_index.items():
+            baseline_row = baseline_delta_index.get(key)
+            if baseline_row is None:
+                warnings.append(f"delta baseline entry missing: {key}")
+                continue
+
+            app = str(current_row["app"])
+            variant = str(current_row["variant"])
+            if not should_track_delta_case(app, variant):
+                continue
+
+            def compare_delta_higher(label: str) -> None:
+                current_value = float(current_row[label])
+                baseline_value = float(baseline_row[label])
+                if baseline_value <= 0:
+                    return
+                warn_floor = baseline_value * (1 - delta_warn_pct / 100.0)
+                if current_value < warn_floor:
+                    drop_pct = (1 - (current_value / baseline_value)) * 100.0
+                    warnings.append(
+                        f"delta.{app}::{variant}.{label} dropped {drop_pct:.2f}% (current={current_value:.6f}, baseline={baseline_value:.6f}, budget={delta_warn_pct:.2f}%)"
+                    )
+                fail_floor = baseline_value * (1 - delta_fail_pct / 100.0)
+                if current_value < fail_floor:
+                    drop_pct = (1 - (current_value / baseline_value)) * 100.0
+                    hard_failures.append(
+                        f"delta.{app}::{variant}.{label} dropped {drop_pct:.2f}% (current={current_value:.6f}, baseline={baseline_value:.6f}, delta budget={delta_fail_pct:.2f}%)"
+                    )
+
+            def compare_delta_lower(label: str) -> None:
+                current_value = float(current_row[label])
+                baseline_value = float(baseline_row[label])
+                if baseline_value <= 0:
+                    return
+                warn_ceiling = baseline_value * (1 + delta_warn_pct / 100.0)
+                if current_value > warn_ceiling:
+                    rise_pct = ((current_value / baseline_value) - 1) * 100.0
+                    warnings.append(
+                        f"delta.{app}::{variant}.{label} rose {rise_pct:.2f}% (current={current_value:.6f}, baseline={baseline_value:.6f}, budget={delta_warn_pct:.2f}%)"
+                    )
+                fail_ceiling = baseline_value * (1 + delta_fail_pct / 100.0)
+                if current_value > fail_ceiling:
+                    rise_pct = ((current_value / baseline_value) - 1) * 100.0
+                    hard_failures.append(
+                        f"delta.{app}::{variant}.{label} rose {rise_pct:.2f}% (current={current_value:.6f}, baseline={baseline_value:.6f}, delta budget={delta_fail_pct:.2f}%)"
+                    )
+
+            compare_delta_higher("throughput_delta")
+            compare_delta_lower("latency_delta")
+            compare_delta_lower("alloc_bytes_delta")
+            compare_delta_lower("allocs_delta")
+            compare_delta_lower("rss_delta")
+            compare_delta_lower("startup_delta")
+            compare_delta_lower("binary_delta")
+            compare_delta_lower("stripped_delta")
+
 def fmt_ratio(value: float) -> str:
     return f"{value:.3f}x"
 
@@ -915,6 +1049,10 @@ lines.append(f"- Startup iterations: `{startup_iters}`")
 lines.append(f"- Bench time: `{bench_time}`")
 if bench_count:
     lines.append(f"- Bench count: `{bench_count}`")
+lines.append(f"- Delta warn budget: `+{delta_warn_pct:.2f}%`")
+lines.append(f"- Delta hard budget: `+{delta_fail_pct:.2f}%`")
+lines.append(f"- Delta enforcement: `{'on' if enforce_delta_budget else 'off'}`")
+lines.append(f"- Delta cases: `{','.join(sorted(delta_case_set))}`")
 if haxe_version or go_version:
     lines.append(f"- Toolchain: {haxe_version or 'haxe:unknown'} | {go_version or 'go:unknown'}")
 lines.append("")
@@ -943,6 +1081,19 @@ for row in sorted(haxe_vs_pure, key=lambda item: (item["app"], item["variant"], 
     )
 lines.append("")
 
+lines.append("### Portable-vs-Metal Deltas (portable ratio / metal ratio)")
+lines.append("| App | Variant | Throughput | Latency | B/op | allocs/op | RSS | Startup | Binary | Stripped |")
+lines.append("| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+for row in sorted(portable_vs_metal, key=lambda item: (item["app"], item["variant"])):
+    lines.append(
+        f"| {row['app']} | {row['variant']} | "
+        f"{fmt_ratio(row['throughput_delta'])} | {fmt_ratio(row['latency_delta'])} | "
+        f"{fmt_ratio(row['alloc_bytes_delta'])} | {fmt_ratio(row['allocs_delta'])} | "
+        f"{fmt_ratio(row['rss_delta'])} | {fmt_ratio(row['startup_delta'])} | "
+        f"{fmt_ratio(row['binary_delta'])} | {fmt_ratio(row['stripped_delta'])} |"
+    )
+lines.append("")
+
 lines.append("### Budget Warnings")
 if warnings:
     for warning in warnings:
@@ -952,8 +1103,18 @@ else:
 lines.append("")
 
 lines.append("### Metal Hard-Fail Candidates")
-if hard_failures:
-    for failure in hard_failures:
+metal_hard_failures = [failure for failure in hard_failures if not failure.startswith("delta.")]
+delta_hard_failures = [failure for failure in hard_failures if failure.startswith("delta.")]
+if metal_hard_failures:
+    for failure in metal_hard_failures:
+        lines.append(f"- {failure}")
+else:
+    lines.append("- none")
+lines.append("")
+
+lines.append("### Delta Hard-Fail Candidates")
+if delta_hard_failures:
+    for failure in delta_hard_failures:
         lines.append(f"- {failure}")
 else:
     lines.append("- none")
@@ -969,9 +1130,14 @@ comparison_payload = {
     "baselinePath": baseline_display,
     "baselineAvailable": update_baseline or baseline_loaded is not None,
     "enforceMetalBudget": enforce_metal_budget,
+    "enforceDeltaBudget": enforce_delta_budget,
+    "deltaCases": sorted(delta_case_set),
     "warningCount": len(warnings),
     "metalWarningCount": len([warning for warning in warnings if ("::metal::" in warning or "::metal." in warning)]),
+    "deltaWarningCount": len([warning for warning in warnings if warning.startswith("delta.")]),
     "hardFailureCount": len(hard_failures),
+    "metalHardFailureCount": len([failure for failure in hard_failures if not failure.startswith("delta.")]),
+    "deltaHardFailureCount": len([failure for failure in hard_failures if failure.startswith("delta.")]),
     "warnings": warnings,
     "hardFailures": hard_failures,
 }
@@ -990,11 +1156,17 @@ PY
 
 warning_count=0
 baseline_warning_count=0
+delta_warning_count=0
 hard_failure_count=0
+metal_hard_failure_count=0
+delta_hard_failure_count=0
 if [[ -s "$warnings_txt" ]]; then
   while IFS= read -r warning; do
     [[ -n "$warning" ]] || continue
     warning_count=$((warning_count + 1))
+    if [[ "$warning" == delta.* ]]; then
+      delta_warning_count=$((delta_warning_count + 1))
+    fi
     if [[ "$warning" == baseline* ]]; then
       baseline_warning_count=$((baseline_warning_count + 1))
     fi
@@ -1006,10 +1178,20 @@ if [[ -s "$hard_failures_txt" ]]; then
   while IFS= read -r hard_failure; do
     [[ -n "$hard_failure" ]] || continue
     hard_failure_count=$((hard_failure_count + 1))
-    if is_truthy "$enforce_metal_budget"; then
-      echo "::error::[app-perf] $hard_failure"
+    if [[ "$hard_failure" == delta.* ]]; then
+      delta_hard_failure_count=$((delta_hard_failure_count + 1))
+      if is_truthy "$enforce_delta_budget"; then
+        echo "::error::[app-perf] $hard_failure"
+      else
+        echo "::warning::[app-perf][delta-hard-candidate] $hard_failure"
+      fi
     else
-      echo "::warning::[app-perf][metal-hard-candidate] $hard_failure"
+      metal_hard_failure_count=$((metal_hard_failure_count + 1))
+      if is_truthy "$enforce_metal_budget"; then
+        echo "::error::[app-perf] $hard_failure"
+      else
+        echo "::warning::[app-perf][metal-hard-candidate] $hard_failure"
+      fi
     fi
   done < "$hard_failures_txt"
 fi
@@ -1023,13 +1205,21 @@ if [[ -n "${GITHUB_STEP_SUMMARY:-}" && -f "$summary_md" ]]; then
 fi
 
 if is_truthy "$enforce_metal_budget"; then
-  if [[ "$hard_failure_count" -gt 0 || "$baseline_warning_count" -gt 0 ]]; then
-    echo "::error::[app-perf] metal budget enforcement failed (hard_failures=$hard_failure_count baseline_warnings=$baseline_warning_count)"
+  if [[ "$metal_hard_failure_count" -gt 0 || "$baseline_warning_count" -gt 0 ]]; then
+    echo "::error::[app-perf] metal budget enforcement failed (hard_failures=$metal_hard_failure_count baseline_warnings=$baseline_warning_count)"
+    exit 1
+  fi
+fi
+
+if is_truthy "$enforce_delta_budget"; then
+  if [[ "$delta_hard_failure_count" -gt 0 || "$baseline_warning_count" -gt 0 ]]; then
+    echo "::error::[app-perf] delta budget enforcement failed (hard_failures=$delta_hard_failure_count baseline_warnings=$baseline_warning_count)"
     exit 1
   fi
 fi
 
 log "done"
+log "warning summary: total=$warning_count delta=$delta_warning_count hard_total=$hard_failure_count metal_hard=$metal_hard_failure_count delta_hard=$delta_hard_failure_count"
 log "metrics: $(display_path "$current_json")"
 log "comparison: $(display_path "$comparison_json")"
 log "summary: $(display_path "$summary_md")"

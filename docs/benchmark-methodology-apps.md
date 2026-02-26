@@ -90,6 +90,11 @@ Derived comparison uses `haxe_vs_pure` ratios (same app + variant):
 - throughput ratio: higher is better
 - latency/alloc/rss/startup/size ratios: lower is better
 
+The harness also derives `portable_vs_metal` deltas per app+variant:
+
+- throughput delta (`portable/metal`): higher is better
+- latency/alloc/rss/startup/size deltas (`portable/metal`): lower is better
+
 ## Baselines and Budgets
 
 Baseline file:
@@ -124,6 +129,14 @@ Optional metal hard-gate:
   - `GO_APP_PERF_METAL_STARTUP_FAIL_PCT`
   - `GO_APP_PERF_METAL_SIZE_FAIL_PCT`
 
+Optional portable-vs-metal delta hard-gate:
+
+- enable with `GO_APP_PERF_ENFORCE_DELTA_BUDGET=1`
+- selectors/thresholds:
+  - `GO_APP_PERF_DELTA_CASES` (comma-separated `app:variant`, or `all`)
+  - `GO_APP_PERF_DELTA_WARN_PCT`
+  - `GO_APP_PERF_DELTA_FAIL_PCT`
+
 ## CI Cadence
 
 CI stage: `.github/workflows/ci-harness.yml` job `perf-apps`.
@@ -143,6 +156,8 @@ Artifacts published by the job:
 - `.cache/perf-apps/results/raw_metrics.tsv`
 - `.cache/perf-apps/results/warnings.txt`
 - `.cache/perf-apps/results/hard_failures.txt`
+
+`comparison.json` includes independent counts for metal hard-fail and delta hard-fail candidates.
 
 ## Fairness Constraints
 

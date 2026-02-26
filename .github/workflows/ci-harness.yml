@@ -187,6 +187,12 @@ jobs:
 
       - name: Run flagship app benchmark harness
         run: npm run test:perf:apps
+        env:
+          GO_APP_PERF_ENFORCE_METAL_BUDGET: "0"
+          GO_APP_PERF_ENFORCE_DELTA_BUDGET: "0"
+          GO_APP_PERF_DELTA_CASES: "pulseforge:core,pulseforge:go_native,fluxproxy:core,fluxproxy:go_native"
+          GO_APP_PERF_DELTA_WARN_PCT: "15"
+          GO_APP_PERF_DELTA_FAIL_PCT: "25"
 
       - name: Upload flagship app benchmark artifacts
         if: always()
