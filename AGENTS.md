@@ -90,3 +90,5 @@ bd sync               # Sync with git
   - Also show the explicit power layer (user-owned typed externs), without forcing users into it for common cases.
 - Keep examples as contract docs: refactors that improve default DX must not erase the lower-level teaching path.
 - For std wrapper modules, keep importable types in their own module files (one primary import target per file) to avoid hidden module/type resolution pitfalls.
+- Documentation readability rule: prefer neutral, direct titles and scannable structure; avoid labels like "beginner-friendly" unless explicitly requested.
+- When documenting harnesses/contracts, explain `what it is`, `why it exists`, and `how it works` in a short step-by-step flow first, then list commands.

@@ -82,6 +82,8 @@ Portable contract changes require green results in:
 - `python3 test/run-semantic-diff.py`
 - `python3 test/run-ci.py`
 
+Harness explanation: `docs/semantic-diff-guide.md`.
+
 Key semantic guards include:
 
 - `test/semantic_diff/virtual_dispatch_cross_module`

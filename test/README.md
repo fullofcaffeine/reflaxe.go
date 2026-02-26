@@ -451,6 +451,7 @@ Compare runtime behavior between Haxe reference execution (`--interp`) and `refl
 Portable semantic contract reference:
 
 - `docs/portable-semantics-v1.md`
+- guide: `docs/semantic-diff-guide.md`
 
 ```bash
 python3 test/run-semantic-diff.py
