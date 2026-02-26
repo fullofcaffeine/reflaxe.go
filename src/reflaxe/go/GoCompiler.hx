@@ -4558,6 +4558,15 @@ class GoCompiler {
 				GoStmt.GoReturn(GoExpr.GoRaw("&Date{value: parsed}"))
 			]),
 			GoDecl.GoFuncDecl("Date_now", null, [], ["*Date"], [GoStmt.GoReturn(GoExpr.GoRaw("&Date{value: time.Now()}"))]),
+			GoDecl.GoFuncDecl("Date_fromTime", null, [
+				{
+					name: "ms",
+					typeName: "float64"
+				}
+			], ["*Date"], [
+				GoStmt.GoRaw("nanos := int64(ms * 1e6)"),
+				GoStmt.GoReturn(GoExpr.GoRaw("&Date{value: time.Unix(0, nanos).In(time.Local)}"))
+			]),
 			GoDecl.GoFuncDecl("getFullYear", {
 				name: "self",
 				typeName: "*Date"
@@ -4578,6 +4587,11 @@ class GoCompiler {
 			}, [], ["int"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "value"), "Hour"), []))
 			]),
+			GoDecl.GoFuncDecl("getTime", {
+				name: "self",
+				typeName: "*Date"
+			},
+				[], ["float64"], [GoStmt.GoReturn(GoExpr.GoRaw("float64(self.value.UnixNano()) / 1e6"))]),
 			GoDecl.GoStructDecl("Math", []),
 			GoDecl.GoFuncDecl("Math_floor", null, [
 				{
