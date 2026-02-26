@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 from pathlib import Path
 
@@ -289,6 +290,51 @@ def build_goextern_fixtures_command() -> list[str]:
     return ["python3", "test/run-goextern-fixtures.py"]
 
 
+def current_go_release() -> str | None:
+    proc = subprocess.run(
+        ["go", "env", "GOVERSION"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+    if proc.returncode != 0:
+        return None
+
+    raw = proc.stdout.strip().lower()
+    if not raw.startswith("go"):
+        return None
+
+    parts = raw[2:].split(".")
+    if len(parts) < 2:
+        return None
+    if not parts[0].isdigit() or not parts[1].isdigit():
+        return None
+
+    return f"{int(parts[0])}.{int(parts[1])}"
+
+
+def should_run_goextern_fixtures(args: argparse.Namespace) -> tuple[bool, str]:
+    if args.skip_goextern_fixtures:
+        return (False, "explicitly skipped via --skip-goextern-fixtures")
+
+    target_release = os.environ.get("GOEXTERN_FIXTURE_GO_VERSION", "1.23").strip()
+    if not target_release:
+        target_release = "1.23"
+
+    current_release = current_go_release()
+    if current_release is None:
+        return (False, "unable to detect current Go release for fixture gate")
+
+    if current_release != target_release:
+        return (
+            False,
+            f"fixtures are pinned to Go {target_release}; current toolchain is Go {current_release}",
+        )
+
+    return (True, f"Go {current_release} matches pinned fixture toolchain")
+
+
 def main() -> int:
     args = parse_args()
 
@@ -393,8 +439,9 @@ def main() -> int:
     else:
         print("==> Skipping semantic diff lanes stage")
 
-    if args.skip_goextern_fixtures:
-        print("==> Skipping goextern fixtures stage")
+    run_goextern_fixtures, goextern_reason = should_run_goextern_fixtures(args)
+    if not run_goextern_fixtures:
+        print(f"==> Skipping goextern fixtures stage ({goextern_reason})")
     else:
         print("==> goextern fixtures stage")
         goextern_code = run(build_goextern_fixtures_command())
