@@ -50,6 +50,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.ds.*Map` + `haxe.ds.List` (core ops subset) | `semantic-diff` | `ds_maps_list_contract`, `stdlib/ds_maps_list_basic` |
 | `Reflect` (compare + dynamic field ops subset) | `semantic-diff` | `reflect_compare`, `reflect_field_ops` |
 | `Date` + `haxe.ds.Option` + `haxe.io.Path` subset | `semantic-diff` | `option_date_path`, `stdlib/date_path_basic` |
+| Core `Class`/`Enum`/`EnumValue` type-value subset | `semantic-diff` | `type_expr_contract` |
 | `haxe.ds.Vector` | `semantic-diff` | `vector_contract`, `stdlib/vector_basic` |
 | `haxe.ds.ReadOnlyArray` (length/index/read-only view subset) | `semantic-diff` | `readonly_array_contract` |
 | `sys.net.Host` | `semantic-diff` | `host_basic_contract`, `sys/host_basic_smoke` |

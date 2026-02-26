@@ -19,8 +19,11 @@ ALLOWED_STATUS = {"unsupported", "compile-only", "snapshot", "semantic-diff"}
 ALLOWED_OWNER = {"unassigned", "mixed", "compiler_shim", "runtime_hxrt", "staged_std"}
 
 SEMANTIC_DIFF_EXPLICIT = {
+    "Class",
     "Date",
     "EReg",
+    "Enum",
+    "EnumValue",
     "Math",
     "Reflect",
     "Std",
