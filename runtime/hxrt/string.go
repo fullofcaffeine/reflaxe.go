@@ -98,6 +98,14 @@ func StringCharCodeAt(value any, index int) int {
 	return int(runes[index])
 }
 
+func StringCharCodeAtAny(value any, index int) any {
+	code := StringCharCodeAt(value, index)
+	if code < 0 {
+		return nil
+	}
+	return code
+}
+
 func StringSubstring(value any, start int, end int) *string {
 	runes := []rune(*StdString(value))
 	if start < 0 {

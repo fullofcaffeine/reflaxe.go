@@ -31,7 +31,7 @@ class Main {
 		var s = "Abc-Abc";
 		Sys.println("string.len=" + s.length);
 		Sys.println("string.charAt=" + s.charAt(0) + ":" + s.charAt(99));
-		Sys.println("string.charCodeAt=" + s.charCodeAt(1));
+		Sys.println("string.charCodeAt=" + s.charCodeAt(1) + ":" + s.charCodeAt(99));
 		Sys.println("string.substring=" + s.substring(4, 7));
 		Sys.println("string.fromCharCode=" + String.fromCharCode(65) + String.fromCharCode(122));
 	}

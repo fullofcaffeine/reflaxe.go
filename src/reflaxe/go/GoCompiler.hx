@@ -5599,7 +5599,8 @@ class GoCompiler {
 		for (entry in enumMetadata) {
 			allEnumsBody.push(GoStmt.GoRaw("case " + goRawQuotedString(entry.haxeTypeName) + ":"));
 			var zeroAritySymbols = [
-				for (constructor in entry.constructors) if (constructor.arity == 0) constructor.symbol
+				for (constructor in entry.constructors)
+					if (constructor.arity == 0) constructor.symbol
 			];
 			if (zeroAritySymbols.length == 0) {
 				allEnumsBody.push(GoStmt.GoRaw("\treturn []any{}"));
@@ -11803,7 +11804,7 @@ class GoCompiler {
 						case "charCodeAt":
 							var indexExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
 							{
-								expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringCharCodeAt"), [loweredTarget, indexExpr]),
+								expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringCharCodeAtAny"), [loweredTarget, indexExpr]),
 								isStringLike: false
 							};
 						case "substring":
