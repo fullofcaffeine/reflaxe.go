@@ -11828,6 +11828,14 @@ class GoCompiler {
 								expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringSubstring"), [loweredTarget, startExpr, endExpr]),
 								isStringLike: true
 							};
+						case "substr":
+							var posExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
+							var lenExpr = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoIntLiteral(0);
+							var hasLenExpr = GoExpr.GoBoolLiteral(args.length > 1);
+							{
+								expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringSubstr"), [loweredTarget, posExpr, lenExpr, hasLenExpr]),
+								isStringLike: true
+							};
 						case _:
 							null;
 					}

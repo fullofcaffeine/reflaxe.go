@@ -6,6 +6,7 @@ class Main {
 		var buf = new StringBuf();
 		buf.add("alpha");
 		buf.add("-");
+		buf.addSub("bravo-charlie", 0, 5);
 		buf.addChar("0".code + 7);
 		buf.add("!");
 		Sys.println(buf.toString());

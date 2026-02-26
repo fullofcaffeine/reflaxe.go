@@ -125,3 +125,33 @@ func StringSubstring(value any, start int, end int) *string {
 	}
 	return StringFromLiteral(string(runes[start:end]))
 }
+
+func StringSubstr(value any, pos int, length int, hasLength bool) *string {
+	runes := []rune(*StdString(value))
+	total := len(runes)
+	start := pos
+	if start < 0 {
+		start = total + start
+	}
+	if start < 0 {
+		start = 0
+	}
+	if start > total {
+		start = total
+	}
+
+	end := total
+	if hasLength {
+		if length <= 0 {
+			return StringFromLiteral("")
+		}
+		end = start + length
+		if end > total {
+			end = total
+		}
+	}
+	if end < start {
+		end = start
+	}
+	return StringFromLiteral(string(runes[start:end]))
+}
