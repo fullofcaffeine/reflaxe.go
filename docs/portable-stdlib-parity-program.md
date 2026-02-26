@@ -61,8 +61,22 @@ Required commands:
 ```bash
 npm run test:portable-allowlist
 npm run test:portable-conformance
+npm run test:portable-parity-closure
+npm run test:stdlib-sweep:full
 npm run test:stdlib:governance
 ```
+
+Full CI runs (`python3 test/run-ci.py` with no focused flags) include:
+
+1. curated strict stdlib sweep (`test/upstream_std_modules.txt`),
+2. full portable-eligible sweep (`test/upstream_std_modules_full.txt`),
+3. portable parity closure summary generation (`test/.test-cache/portable_parity_closure_summary.*`).
+
+Automated promotion workflow (`compile-only -> snapshot -> semantic-diff`) is produced by:
+
+- `python3 test/run-portable-parity-closure.py`
+
+The summary artifact includes module-level `next_step` guidance for every remaining blocker.
 
 Update sequence when std override files change:
 
@@ -70,6 +84,11 @@ Update sequence when std override files change:
 2. Add/update matching entries in `docs/stdlib-provenance-ledger.json`.
 3. Run `npm run test:stdlib:governance`.
 4. Run `python3 test/run-ci.py` (or `npm run test:ci`) before merging.
+
+Portable parity closure artifacts:
+
+- `test/.test-cache/portable_parity_closure_summary.json`
+- `test/.test-cache/portable_parity_closure_summary.md`
 
 ## Portable Native-Import Policy
 

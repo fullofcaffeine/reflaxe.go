@@ -144,12 +144,17 @@ def module_notes(module: str, status: str, in_strict_sweep: bool) -> str:
                 "Covered by strict upstream stdlib sweep compile/go-test checks "
                 "(test/upstream_std_modules.txt)."
             )
-        return "Compile-only status assigned by policy; runtime parity contracts are not yet promoted."
+        return (
+            "Covered by full portable-eligible upstream stdlib sweep compile checks "
+            "(test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted."
+        )
     return "Portable-eligible module inventoried; parity promotion is pending."
 
 
-def module_evidence(status: str, in_strict_sweep: bool) -> list[str]:
+def module_evidence(status: str, in_full_sweep: bool, in_strict_sweep: bool) -> list[str]:
     evidence: list[str] = []
+    if in_full_sweep:
+        evidence.append("upstream_sweep:full_compile")
     if in_strict_sweep:
         evidence.append("upstream_sweep:strict_go_test")
     if status == "snapshot":
@@ -162,10 +167,9 @@ def module_evidence(status: str, in_strict_sweep: bool) -> list[str]:
 def build_inventory(full_modules: list[str], strict_sweep_modules: set[str]) -> dict[str, Any]:
     modules_payload: list[dict[str, Any]] = []
     for module in sorted(full_modules):
+        in_full_sweep = True
         in_strict_sweep = module in strict_sweep_modules
-        status = "unsupported"
-        if in_strict_sweep:
-            status = "compile-only"
+        status = "compile-only"
         if is_semantic_diff_module(module):
             status = "semantic-diff"
 
@@ -175,8 +179,9 @@ def build_inventory(full_modules: list[str], strict_sweep_modules: set[str]) -> 
             "portable_eligible": True,
             "status": status,
             "owner": owner,
+            "in_full_sweep": in_full_sweep,
             "in_strict_sweep": in_strict_sweep,
-            "coverage_evidence": module_evidence(status, in_strict_sweep),
+            "coverage_evidence": module_evidence(status, in_full_sweep, in_strict_sweep),
             "notes": module_notes(module, status, in_strict_sweep),
         }
         modules_payload.append(entry)
@@ -249,16 +254,20 @@ def build_summary(inventory: dict[str, Any]) -> dict[str, Any]:
     modules = inventory["modules"]
     status_counts: dict[str, int] = {status: 0 for status in sorted(ALLOWED_STATUS)}
     owner_counts: dict[str, int] = {owner: 0 for owner in sorted(ALLOWED_OWNER)}
+    full_sweep_count = 0
     strict_sweep_count = 0
     for entry in modules:
         status_counts[entry["status"]] += 1
         owner_counts[entry["owner"]] += 1
+        if entry.get("in_full_sweep"):
+            full_sweep_count += 1
         if entry["in_strict_sweep"]:
             strict_sweep_count += 1
 
     return {
         "schema_version": 1,
         "total_modules": len(modules),
+        "full_sweep_modules": full_sweep_count,
         "strict_sweep_modules": strict_sweep_count,
         "status_counts": status_counts,
         "owner_counts": owner_counts,
@@ -273,6 +282,7 @@ def write_summary(summary: dict[str, Any]) -> None:
         "# Portable Stdlib Inventory Summary",
         "",
         f"- total_modules: `{summary['total_modules']}`",
+        f"- full_sweep_modules: `{summary['full_sweep_modules']}`",
         f"- strict_sweep_modules: `{summary['strict_sweep_modules']}`",
         "",
         "## Status counts",

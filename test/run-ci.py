@@ -25,6 +25,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-stdlib-sweep", action="store_true", help="Skip upstream stdlib sweep stage")
     parser.add_argument("--force-stdlib-sweep", action="store_true", help="Run stdlib sweep even for chunked/filtered runs")
     parser.add_argument("--stdlib-compile-only", action="store_true", help="Run stdlib sweep without go test stage")
+    parser.add_argument("--skip-stdlib-full-sweep", action="store_true", help="Skip full portable-eligible stdlib sweep stage")
+    parser.add_argument("--force-stdlib-full-sweep", action="store_true", help="Run full portable-eligible stdlib sweep even for chunked/filtered runs")
+    parser.add_argument("--stdlib-full-go-test", action="store_true", help="Run full portable-eligible stdlib sweep with go test stage")
     parser.add_argument("--skip-stdlib-inventory", action="store_true", help="Skip portable stdlib inventory validation stage")
     parser.add_argument("--skip-portable-allowlist", action="store_true", help="Skip portable allowlist validation stage")
     parser.add_argument("--skip-portable-conformance", action="store_true", help="Skip portable Tier1 conformance stage")
@@ -33,6 +36,7 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Run portable Tier1 conformance stage even for chunked/filtered runs",
     )
+    parser.add_argument("--skip-portable-parity-closure", action="store_true", help="Skip portable parity-closure summary stage")
     parser.add_argument("--skip-stdlib-governance", action="store_true", help="Skip stdlib provenance/boundary governance stage")
     parser.add_argument("--skip-semantic-diff", action="store_true", help="Skip semantic differential stage")
     parser.add_argument("--force-semantic-diff", action="store_true", help="Run semantic differential stage even for chunked/filtered runs")
@@ -93,6 +97,29 @@ def build_stdlib_command(args: argparse.Namespace) -> list[str]:
     return cmd
 
 
+def should_run_stdlib_full_sweep(args: argparse.Namespace) -> bool:
+    if args.skip_stdlib_full_sweep:
+        return False
+    if args.force_stdlib_full_sweep:
+        return True
+
+    # Full portable-eligible sweep is intended for complete CI runs.
+    return not (args.chunk or args.failed or args.changed or args.pattern)
+
+
+def build_stdlib_full_command(args: argparse.Namespace) -> list[str]:
+    cmd = [
+        "python3",
+        "test/run-upstream-stdlib-sweep.py",
+        "--modules-file",
+        "test/upstream_std_modules_full.txt",
+        "--strict",
+    ]
+    if args.stdlib_full_go_test:
+        cmd.append("--go-test")
+    return cmd
+
+
 def should_run_stdlib_inventory(args: argparse.Namespace) -> bool:
     return not args.skip_stdlib_inventory
 
@@ -121,6 +148,14 @@ def should_run_portable_conformance(args: argparse.Namespace) -> bool:
 
 def build_portable_conformance_command(args: argparse.Namespace) -> list[str]:
     return ["python3", "test/run-portable-conformance.py", "--timeout", str(args.timeout)]
+
+
+def should_run_portable_parity_closure(args: argparse.Namespace) -> bool:
+    return not args.skip_portable_parity_closure
+
+
+def build_portable_parity_closure_command() -> list[str]:
+    return ["python3", "test/run-portable-parity-closure.py"]
 
 
 def should_run_stdlib_governance(args: argparse.Namespace) -> bool:
@@ -221,6 +256,14 @@ def main() -> int:
     else:
         print("==> Skipping stdlib sweep stage")
 
+    if should_run_stdlib_full_sweep(args):
+        print("==> Full portable-eligible stdlib sweep stage")
+        stdlib_full_code = run(build_stdlib_full_command(args))
+        if stdlib_full_code != 0:
+            return stdlib_full_code
+    else:
+        print("==> Skipping full portable-eligible stdlib sweep stage")
+
     if should_run_stdlib_inventory(args):
         print("==> Portable stdlib inventory stage")
         stdlib_inventory_code = run(build_stdlib_inventory_command())
@@ -244,6 +287,14 @@ def main() -> int:
             return portable_conformance_code
     else:
         print("==> Skipping portable conformance stage")
+
+    if should_run_portable_parity_closure(args):
+        print("==> Portable parity closure summary stage")
+        portable_parity_closure_code = run(build_portable_parity_closure_command())
+        if portable_parity_closure_code != 0:
+            return portable_parity_closure_code
+    else:
+        print("==> Skipping portable parity closure summary stage")
 
     if should_run_stdlib_governance(args):
         print("==> Stdlib governance stage")

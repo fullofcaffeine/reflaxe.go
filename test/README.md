@@ -30,6 +30,24 @@ Force stdlib sweep on a shard:
 python3 test/run-ci.py --chunk 0/4 --force-stdlib-sweep
 ```
 
+Force full portable-eligible stdlib sweep on a focused run:
+
+```bash
+python3 test/run-ci.py --changed --force-stdlib-full-sweep
+```
+
+Skip full portable-eligible stdlib sweep stage:
+
+```bash
+python3 test/run-ci.py --skip-stdlib-full-sweep
+```
+
+Include `go test` in full portable-eligible stdlib sweep stage:
+
+```bash
+python3 test/run-ci.py --stdlib-full-go-test
+```
+
 Skip semantic diff stage:
 
 ```bash
@@ -58,6 +76,12 @@ Skip portable conformance stage:
 
 ```bash
 python3 test/run-ci.py --skip-portable-conformance
+```
+
+Skip portable parity closure summary stage:
+
+```bash
+python3 test/run-ci.py --skip-portable-parity-closure
 ```
 
 Force semantic diff on a shard:
@@ -215,6 +239,13 @@ Disable expected-unavailable policy classification (raw failures only):
 python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_gap_probe.txt --go-test --no-expected-unavailable-policy
 ```
 
+Equivalent npm commands:
+
+```bash
+npm run test:stdlib-sweep:full
+npm run test:stdlib-sweep:full:go-test
+```
+
 ## Portable stdlib inventory ledger
 
 Validate the machine-readable portable-eligible stdlib inventory:
@@ -290,6 +321,30 @@ Primary artifacts:
 test/portable_conformance_tier1.json
 test/.test-cache/portable_conformance_tier1_summary.json
 test/.test-cache/portable_conformance_tier1_summary.md
+```
+
+## Portable parity closure summary
+
+Generate full-module parity closure summary (remaining blockers + promotion queue):
+
+```bash
+python3 test/run-portable-parity-closure.py
+npm run test:portable-parity-closure
+```
+
+List blocker modules with next promotion step:
+
+```bash
+python3 test/run-portable-parity-closure.py --list-blockers
+```
+
+`--list-blockers` prints the automated promotion queue (`compile-only -> snapshot -> semantic-diff`) with module-level `next_step` guidance.
+
+Primary artifacts:
+
+```text
+test/.test-cache/portable_parity_closure_summary.json
+test/.test-cache/portable_parity_closure_summary.md
 ```
 
 ## Stdlib governance guards (provenance + boundary)

@@ -17,36 +17,47 @@
   "generated_by": "test/run-portable-stdlib-inventory.py",
   "modules": [
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "Any",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "Array",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "Class",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "Array",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "Class",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Date",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -55,19 +66,24 @@
       "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "DateTools",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "EReg",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -76,64 +92,84 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "Enum",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "EnumValue",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "IntIterator",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "Lambda",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "List",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "Map",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "EnumValue",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "IntIterator",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "Lambda",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "List",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "Map",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Math",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -143,8 +179,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Reflect",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -154,9 +192,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Std",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -165,37 +205,48 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "StdTypes",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "String",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "StringBuf",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "String",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "StringBuf",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "StringTools",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -205,8 +256,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Sys",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -216,8 +269,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Type",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -226,27 +281,35 @@
       "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "UInt",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "UnicodeString",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "UnicodeString",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Xml",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -256,8 +319,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.CallStack",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -266,55 +331,72 @@
       "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Constraints",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.DynamicAccess",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.EntryPoint",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.EnumFlags",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.EnumTools",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.DynamicAccess",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.EntryPoint",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.EnumFlags",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.EnumTools",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.Exception",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -324,8 +406,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.Http",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -335,9 +419,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.Int32",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -347,9 +433,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.Int64",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -359,8 +447,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Int64Helper",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -370,9 +460,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.Json",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -381,37 +473,48 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Log",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.MainLoop",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.NativeStackTrace",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.MainLoop",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.NativeStackTrace",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.PosInfos",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -420,28 +523,36 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Resource",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.Rest",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.Rest",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.Serializer",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -450,46 +561,60 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.SysTools",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.Template",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.Timer",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.Ucs2",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.Template",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.Timer",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.Ucs2",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.Unserializer",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -498,27 +623,35 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Utf8",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.ValueException",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.ValueException",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.atomic.AtomicBool",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -528,8 +661,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.atomic.AtomicInt",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -539,8 +674,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.atomic.AtomicObject",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -550,8 +687,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.crypto.Adler32",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -561,9 +700,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.crypto.Base64",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -573,8 +714,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.crypto.BaseCode",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -584,8 +727,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.crypto.Crc32",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -595,8 +740,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.crypto.Hmac",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -606,9 +753,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.crypto.Md5",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -618,9 +767,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.crypto.Sha1",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -630,9 +781,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.crypto.Sha224",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -642,9 +795,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.crypto.Sha256",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -653,18 +808,23 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.ds.ArraySort",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.ds.BalancedTree",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -673,19 +833,24 @@
       "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.ds.Either",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.ds.EnumValueMap",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -694,28 +859,36 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.ds.GenericStack",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.ds.HashMap",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.ds.HashMap",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.ds.IntMap",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -725,9 +898,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.ds.List",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -736,19 +911,24 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.ds.ListSort",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.ds.Map",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -758,9 +938,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.ds.ObjectMap",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -770,8 +952,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.ds.Option",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -781,9 +965,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.ds.ReadOnlyArray",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -793,9 +979,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.ds.StringMap",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -805,9 +993,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.ds.Vector",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -816,45 +1006,59 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.ds.WeakMap",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.exceptions.ArgumentException",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.exceptions.NotImplementedException",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.exceptions.PosException",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.exceptions.ArgumentException",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.exceptions.NotImplementedException",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.exceptions.PosException",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.format.JsonParser",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -864,8 +1068,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.format.JsonPrinter",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -874,73 +1080,96 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.http.HttpBase",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.http.HttpJs",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.http.HttpMethod",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.http.HttpNodeJs",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.http.HttpStatus",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.io.ArrayBufferView",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.io.BufferInput",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.http.HttpJs",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.http.HttpMethod",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.http.HttpNodeJs",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.http.HttpStatus",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.io.ArrayBufferView",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.io.BufferInput",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.Bytes",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -950,9 +1179,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.BytesBuffer",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -962,8 +1193,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.BytesData",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -973,9 +1206,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.BytesInput",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -985,9 +1220,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.BytesOutput",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -996,18 +1233,23 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.Encoding",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.Eof",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -1017,8 +1259,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.Error",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -1027,37 +1271,48 @@
       "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.FPHelper",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.io.Float32Array",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.io.Float64Array",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.io.Float32Array",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.io.Float64Array",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.Input",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1066,28 +1321,36 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.Int32Array",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.io.Mime",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.io.Mime",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.Output",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1097,8 +1360,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.Path",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -1107,18 +1372,23 @@
       "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.Scheme",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.StringInput",
       "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt).",
@@ -1127,181 +1397,240 @@
       "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.UInt16Array",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.io.UInt32Array",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.io.UInt8Array",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.iterators.ArrayIterator",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.iterators.ArrayKeyValueIterator",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.iterators.DynamicAccessIterator",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.iterators.DynamicAccessKeyValueIterator",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.iterators.HashMapKeyValueIterator",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.iterators.MapKeyValueIterator",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.iterators.RestIterator",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.iterators.RestKeyValueIterator",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.iterators.StringIterator",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.iterators.StringIteratorUnicode",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.iterators.StringKeyValueIterator",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.iterators.StringKeyValueIteratorUnicode",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.rtti.CType",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.rtti.Meta",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.rtti.Rtti",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "haxe.rtti.XmlParser",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.io.UInt32Array",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.io.UInt8Array",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.iterators.ArrayIterator",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.iterators.ArrayKeyValueIterator",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.iterators.DynamicAccessIterator",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.iterators.DynamicAccessKeyValueIterator",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.iterators.HashMapKeyValueIterator",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.iterators.MapKeyValueIterator",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.iterators.RestIterator",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.iterators.RestKeyValueIterator",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.iterators.StringIterator",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.iterators.StringIteratorUnicode",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.iterators.StringKeyValueIterator",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.iterators.StringKeyValueIteratorUnicode",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.rtti.CType",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.rtti.Meta",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.rtti.Rtti",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "haxe.rtti.XmlParser",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.xml.Access",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1311,8 +1640,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.xml.Check",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1322,8 +1653,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.xml.Fast",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1333,9 +1666,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.xml.Parser",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1345,9 +1680,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.xml.Printer",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1357,9 +1694,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.zip.Compress",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1369,8 +1708,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.zip.Entry",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1380,8 +1721,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.zip.FlushMode",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1391,8 +1734,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.zip.Huffman",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1402,8 +1747,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.zip.InflateImpl",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1413,8 +1760,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.zip.Reader",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1424,8 +1773,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.zip.Tools",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1435,9 +1786,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.zip.Uncompress",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1447,8 +1800,10 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.zip.Writer",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1457,19 +1812,24 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.FileStat",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "sys.FileSystem",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1479,9 +1839,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "sys.Http",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1490,46 +1852,60 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.db.Connection",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "sys.db.Mysql",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "sys.db.ResultSet",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "sys.db.Sqlite",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "sys.db.Mysql",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "sys.db.ResultSet",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "sys.db.Sqlite",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "sys.io.File",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1538,37 +1914,48 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.io.FileInput",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "sys.io.FileOutput",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
-    },
-    {
-      "coverage_evidence": [],
-      "in_strict_sweep": false,
-      "module": "sys.io.FileSeek",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
-      "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "sys.io.FileOutput",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
+      "module": "sys.io.FileSeek",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "compile-only"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "sys.io.Process",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1577,19 +1964,24 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.net.Address",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "sys.net.Host",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1599,9 +1991,11 @@
     },
     {
       "coverage_evidence": [
+        "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test",
         "semantic_diff"
       ],
+      "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "sys.net.Socket",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
@@ -1610,175 +2004,232 @@
       "status": "semantic-diff"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.net.UdpSocket",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.ssl.Certificate",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.ssl.Digest",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.ssl.DigestAlgorithm",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.ssl.Key",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.ssl.Socket",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.thread.Condition",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.thread.Deque",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.thread.ElasticThreadPool",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.thread.EventLoop",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.thread.FixedThreadPool",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.thread.IThreadPool",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.thread.Lock",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.thread.Mutex",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.thread.NoEventLoopException",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.thread.Semaphore",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.thread.Thread",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.thread.ThreadPoolException",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     },
     {
-      "coverage_evidence": [],
+      "coverage_evidence": [
+        "upstream_sweep:full_compile"
+      ],
+      "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.thread.Tls",
-      "notes": "Portable-eligible module inventoried; parity promotion is pending.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "compile-only"
     }
   ],
   "schema_version": 1

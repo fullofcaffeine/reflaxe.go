@@ -31,6 +31,7 @@
     "test:stdlib-inventory": "python3 test/run-portable-stdlib-inventory.py",
     "test:portable-allowlist": "python3 test/run-portable-allowlist.py",
     "test:portable-conformance": "python3 test/run-portable-conformance.py",
+    "test:portable-parity-closure": "python3 test/run-portable-parity-closure.py",
     "test:stdlib:boundary": "node scripts/ci/upstream-stdlib-boundary-check.js",
     "test:stdlib:provenance": "node scripts/ci/stdlib-provenance-ledger-check.js",
     "test:stdlib:governance": "npm run test:stdlib:boundary && npm run test:stdlib:provenance",
