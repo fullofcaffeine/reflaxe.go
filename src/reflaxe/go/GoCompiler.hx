@@ -115,6 +115,13 @@ private typedef ReturnRedirect = {
 	final valueName:Null<String>;
 	final valueType:Null<Type>;
 }
+
+private typedef LambdaSourcePlan = {
+	final domain:String;
+	final elementType:String;
+	final sourceExpr:GoExpr;
+	final sourceType:String;
+}
 #end
 
 class GoCompiler {
@@ -11920,11 +11927,64 @@ class GoCompiler {
 		};
 	}
 
-	function lambdaArrayElementGoType(arrayExpr:TypedExpr, methodName:String, callPos:haxe.macro.Expr.Position):String {
-		if (!isArrayType(arrayExpr.t)) {
-			Context.fatalError("Lambda." + methodName + " currently supports Array<T> inputs only", callPos);
+	function haxeDsListElementType(type:Type):Null<Type> {
+		var followed = Context.follow(type);
+		return switch (followed) {
+			case TInst(classRef, params):
+				var classType = classRef.get();
+				if (classType.pack.join(".") == "haxe.ds" && classType.name == "List" && params.length == 1) {
+					params[0];
+				} else {
+					null;
+				}
+			case TAbstract(abstractRef, params):
+				var abstractType = abstractRef.get();
+				if (abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1) {
+					haxeDsListElementType(params[0]);
+				} else {
+					null;
+				}
+			case TMono(ref):
+				var resolved = ref.get();
+				resolved == null ? null : haxeDsListElementType(resolved);
+			case _:
+				null;
+		};
+	}
+
+	function lambdaSourcePlan(sourceExpr:TypedExpr, methodName:String, callPos:haxe.macro.Expr.Position):LambdaSourcePlan {
+		var loweredSourceExpr = lowerExpr(sourceExpr).expr;
+		if (isArrayType(sourceExpr.t)) {
+			var elementType = arrayElementGoType(sourceExpr.t);
+			return {
+				domain: "array",
+				elementType: elementType,
+				sourceExpr: loweredSourceExpr,
+				sourceType: "[]" + elementType
+			};
 		}
-		return arrayElementGoType(arrayExpr.t);
+
+		var listElement = haxeDsListElementType(sourceExpr.t);
+		if (listElement != null) {
+			requireStdlibShimGroup("ds");
+			return {
+				domain: "list",
+				elementType: scalarGoType(listElement),
+				sourceExpr: loweredSourceExpr,
+				sourceType: "*haxe__ds__List"
+			};
+		}
+
+		Context.fatalError("Lambda."
+			+ methodName
+			+ " currently supports Array<T> and haxe.ds.List<T> inputs only; generic Iterable<T> lowering is not implemented yet on reflaxe.go.",
+			callPos);
+		return {
+			domain: "array",
+			elementType: "any",
+			sourceExpr: loweredSourceExpr,
+			sourceType: "[]any"
+		};
 	}
 
 	function lowerLambdaStaticCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
@@ -11932,8 +11992,8 @@ class GoCompiler {
 			if (args.length != 1) {
 				Context.fatalError("Lambda.count expects exactly 1 argument", callee.pos);
 			}
-			lambdaArrayElementGoType(args[0], "count", callee.pos);
-			var sourceExpr = lowerExpr(args[0]).expr;
+			var sourcePlan = lambdaSourcePlan(args[0], "count", callee.pos);
+			var sourceExpr = sourcePlan.domain == "list" ? GoExpr.GoSelector(sourcePlan.sourceExpr, "items") : sourcePlan.sourceExpr;
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("len"), [sourceExpr]),
 				isStringLike: false
@@ -11944,8 +12004,8 @@ class GoCompiler {
 			if (args.length != 1) {
 				Context.fatalError("Lambda.empty expects exactly 1 argument", callee.pos);
 			}
-			lambdaArrayElementGoType(args[0], "empty", callee.pos);
-			var sourceExpr = lowerExpr(args[0]).expr;
+			var sourcePlan = lambdaSourcePlan(args[0], "empty", callee.pos);
+			var sourceExpr = sourcePlan.domain == "list" ? GoExpr.GoSelector(sourcePlan.sourceExpr, "items") : sourcePlan.sourceExpr;
 			return {
 				expr: GoExpr.GoBinary("==", GoExpr.GoCall(GoExpr.GoIdent("len"), [sourceExpr]), GoExpr.GoIntLiteral(0)),
 				isStringLike: false
@@ -11956,26 +12016,60 @@ class GoCompiler {
 			if (args.length != 2) {
 				Context.fatalError("Lambda.exists expects exactly 2 arguments", callee.pos);
 			}
-			var elementType = lambdaArrayElementGoType(args[0], "exists", callee.pos);
-			var sourceExpr = lowerExpr(args[0]).expr;
+			var sourcePlan = lambdaSourcePlan(args[0], "exists", callee.pos);
+			var elementType = sourcePlan.elementType;
+			var sourceExpr = sourcePlan.sourceExpr;
 			var predicateExpr = lowerExpr(args[1]).expr;
 			var sourceName = freshTempName("hx_lambda_items");
 			var predicateName = freshTempName("hx_lambda_predicate");
 			var itemName = freshTempName("hx_lambda_item");
-			var sourceType = "[]" + elementType;
+			var sourceType = sourcePlan.sourceType;
 			var predicateType = "func(" + elementType + ") bool";
+			var loopBody = switch (sourcePlan.domain) {
+				case "array":
+					[
+						GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
+						GoStmt.GoRaw("\tif " + predicateName + "(" + itemName + ") {"),
+						GoStmt.GoReturn(GoExpr.GoBoolLiteral(true)),
+						GoStmt.GoRaw("\t}"),
+						GoStmt.GoRaw("}")
+					];
+				case "list":
+					if (elementType == "any") {
+						[
+							GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + ".items {"),
+							GoStmt.GoRaw("\tif " + predicateName + "(" + itemName + ") {"),
+							GoStmt.GoReturn(GoExpr.GoBoolLiteral(true)),
+							GoStmt.GoRaw("\t}"),
+							GoStmt.GoRaw("}")
+						];
+					} else {
+						var itemAnyName = freshTempName("hx_lambda_item_any");
+						var itemZeroName = freshTempName("hx_lambda_item_zero");
+						[
+							GoStmt.GoRaw("for _, " + itemAnyName + " := range " + sourceName + ".items {"),
+							GoStmt.GoRaw("\tvar " + itemName + " " + elementType),
+							GoStmt.GoRaw("\tif " + itemAnyName + " == nil {"),
+							GoStmt.GoRaw("\t\tvar " + itemZeroName + " " + elementType),
+							GoStmt.GoRaw("\t\t" + itemName + " = " + itemZeroName),
+							GoStmt.GoRaw("\t} else {"),
+							GoStmt.GoRaw("\t\t" + itemName + " = " + itemAnyName + ".(" + elementType + ")"),
+							GoStmt.GoRaw("\t}"),
+							GoStmt.GoRaw("\tif " + predicateName + "(" + itemName + ") {"),
+							GoStmt.GoReturn(GoExpr.GoBoolLiteral(true)),
+							GoStmt.GoRaw("\t}"),
+							GoStmt.GoRaw("}")
+						];
+					}
+				case _:
+					[];
+			};
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([
 					{name: sourceName, typeName: sourceType},
 					{name: predicateName, typeName: predicateType}
-				], ["bool"], [
-					GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
-					GoStmt.GoRaw("\tif " + predicateName + "(" + itemName + ") {"),
-					GoStmt.GoReturn(GoExpr.GoBoolLiteral(true)),
-					GoStmt.GoRaw("\t}"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))
-				]), [sourceExpr, predicateExpr]),
+				], ["bool"],
+					loopBody.concat([GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])), [sourceExpr, predicateExpr]),
 				isStringLike: false
 			};
 		}
@@ -11985,22 +12079,57 @@ class GoCompiler {
 				Context.fatalError("Lambda.has expects exactly 2 arguments", callee.pos);
 			}
 			requireStdlibShimGroup("stdlib_symbols");
-			var elementType = lambdaArrayElementGoType(args[0], "has", callee.pos);
-			var sourceExpr = lowerExpr(args[0]).expr;
+			var sourcePlan = lambdaSourcePlan(args[0], "has", callee.pos);
+			var elementType = sourcePlan.elementType;
+			var sourceExpr = sourcePlan.sourceExpr;
 			var needleExpr = lowerExpr(args[1]).expr;
 			var sourceName = freshTempName("hx_lambda_items");
 			var needleName = freshTempName("hx_lambda_needle");
 			var itemName = freshTempName("hx_lambda_item");
-			var sourceType = "[]" + elementType;
+			var sourceType = sourcePlan.sourceType;
+			var loopBody = switch (sourcePlan.domain) {
+				case "array":
+					[
+						GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
+						GoStmt.GoRaw("\tif reflect.DeepEqual(" + itemName + ", " + needleName + ") {"),
+						GoStmt.GoReturn(GoExpr.GoBoolLiteral(true)),
+						GoStmt.GoRaw("\t}"),
+						GoStmt.GoRaw("}")
+					];
+				case "list":
+					if (elementType == "any") {
+						[
+							GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + ".items {"),
+							GoStmt.GoRaw("\tif reflect.DeepEqual(" + itemName + ", " + needleName + ") {"),
+							GoStmt.GoReturn(GoExpr.GoBoolLiteral(true)),
+							GoStmt.GoRaw("\t}"),
+							GoStmt.GoRaw("}")
+						];
+					} else {
+						var itemAnyName = freshTempName("hx_lambda_item_any");
+						var itemZeroName = freshTempName("hx_lambda_item_zero");
+						[
+							GoStmt.GoRaw("for _, " + itemAnyName + " := range " + sourceName + ".items {"),
+							GoStmt.GoRaw("\tvar " + itemName + " " + elementType),
+							GoStmt.GoRaw("\tif " + itemAnyName + " == nil {"),
+							GoStmt.GoRaw("\t\tvar " + itemZeroName + " " + elementType),
+							GoStmt.GoRaw("\t\t" + itemName + " = " + itemZeroName),
+							GoStmt.GoRaw("\t} else {"),
+							GoStmt.GoRaw("\t\t" + itemName + " = " + itemAnyName + ".(" + elementType + ")"),
+							GoStmt.GoRaw("\t}"),
+							GoStmt.GoRaw("\tif reflect.DeepEqual(" + itemName + ", " + needleName + ") {"),
+							GoStmt.GoReturn(GoExpr.GoBoolLiteral(true)),
+							GoStmt.GoRaw("\t}"),
+							GoStmt.GoRaw("}")
+						];
+					}
+				case _:
+					[];
+			};
 			return {
-				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: sourceType}, {name: needleName, typeName: "any"}], ["bool"], [
-					GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
-					GoStmt.GoRaw("\tif reflect.DeepEqual(" + itemName + ", " + needleName + ") {"),
-					GoStmt.GoReturn(GoExpr.GoBoolLiteral(true)),
-					GoStmt.GoRaw("\t}"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))
-				]), [sourceExpr, needleExpr]),
+				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: sourceType}, {name: needleName, typeName: "any"}], ["bool"],
+					loopBody.concat([GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])),
+					[sourceExpr, needleExpr]),
 				isStringLike: false
 			};
 		}
@@ -12009,28 +12138,64 @@ class GoCompiler {
 			if (args.length != 2) {
 				Context.fatalError("Lambda.filter expects exactly 2 arguments", callee.pos);
 			}
-			var elementType = lambdaArrayElementGoType(args[0], "filter", callee.pos);
-			var sourceExpr = lowerExpr(args[0]).expr;
+			var sourcePlan = lambdaSourcePlan(args[0], "filter", callee.pos);
+			var elementType = sourcePlan.elementType;
+			var sourceExpr = sourcePlan.sourceExpr;
 			var predicateExpr = lowerExpr(args[1]).expr;
 			var sourceName = freshTempName("hx_lambda_items");
 			var predicateName = freshTempName("hx_lambda_predicate");
 			var outName = freshTempName("hx_lambda_out");
 			var itemName = freshTempName("hx_lambda_item");
-			var sourceType = "[]" + elementType;
+			var sourceType = sourcePlan.sourceType;
+			var outType = "[]" + elementType;
 			var predicateType = "func(" + elementType + ") bool";
+			var loopBody = switch (sourcePlan.domain) {
+				case "array":
+					[
+						GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
+						GoStmt.GoRaw("\tif " + predicateName + "(" + itemName + ") {"),
+						GoStmt.GoRaw("\t\t" + outName + " = append(" + outName + ", " + itemName + ")"),
+						GoStmt.GoRaw("\t}"),
+						GoStmt.GoRaw("}")
+					];
+				case "list":
+					if (elementType == "any") {
+						[
+							GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + ".items {"),
+							GoStmt.GoRaw("\tif " + predicateName + "(" + itemName + ") {"),
+							GoStmt.GoRaw("\t\t" + outName + " = append(" + outName + ", " + itemName + ")"),
+							GoStmt.GoRaw("\t}"),
+							GoStmt.GoRaw("}")
+						];
+					} else {
+						var itemAnyName = freshTempName("hx_lambda_item_any");
+						var itemZeroName = freshTempName("hx_lambda_item_zero");
+						[
+							GoStmt.GoRaw("for _, " + itemAnyName + " := range " + sourceName + ".items {"),
+							GoStmt.GoRaw("\tvar " + itemName + " " + elementType),
+							GoStmt.GoRaw("\tif " + itemAnyName + " == nil {"),
+							GoStmt.GoRaw("\t\tvar " + itemZeroName + " " + elementType),
+							GoStmt.GoRaw("\t\t" + itemName + " = " + itemZeroName),
+							GoStmt.GoRaw("\t} else {"),
+							GoStmt.GoRaw("\t\t" + itemName + " = " + itemAnyName + ".(" + elementType + ")"),
+							GoStmt.GoRaw("\t}"),
+							GoStmt.GoRaw("\tif " + predicateName + "(" + itemName + ") {"),
+							GoStmt.GoRaw("\t\t" + outName + " = append(" + outName + ", " + itemName + ")"),
+							GoStmt.GoRaw("\t}"),
+							GoStmt.GoRaw("}")
+						];
+					}
+				case _:
+					[];
+			};
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([
 					{name: sourceName, typeName: sourceType},
 					{name: predicateName, typeName: predicateType}
-				], [sourceType], [
-					GoStmt.GoVarDecl(outName, sourceType, GoExpr.GoRaw("make(" + sourceType + ", 0, len(" + sourceName + "))"), true),
-					GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
-					GoStmt.GoRaw("\tif " + predicateName + "(" + itemName + ") {"),
-					GoStmt.GoRaw("\t\t" + outName + " = append(" + outName + ", " + itemName + ")"),
-					GoStmt.GoRaw("\t}"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoReturn(GoExpr.GoIdent(outName))
-				]), [sourceExpr, predicateExpr]),
+				], [outType], [
+					GoStmt.GoVarDecl(outName, outType,
+						GoExpr.GoRaw("make(" + outType + ", 0, len(" + (sourcePlan.domain == "list" ? sourceName + ".items" : sourceName) + "))"), true)
+				].concat(loopBody).concat([GoStmt.GoReturn(GoExpr.GoIdent(outName))])), [sourceExpr, predicateExpr]),
 				isStringLike: false
 			};
 		}
@@ -12039,28 +12204,59 @@ class GoCompiler {
 			if (args.length != 2) {
 				Context.fatalError("Lambda.map expects exactly 2 arguments", callee.pos);
 			}
-			var sourceElementType = lambdaArrayElementGoType(args[0], "map", callee.pos);
+			var sourcePlan = lambdaSourcePlan(args[0], "map", callee.pos);
+			var sourceElementType = sourcePlan.elementType;
 			var mappedElementType = arrayElementGoType(returnType);
-			var sourceExpr = lowerExpr(args[0]).expr;
+			var sourceExpr = sourcePlan.sourceExpr;
 			var mapperExpr = lowerExpr(args[1]).expr;
 			var sourceName = freshTempName("hx_lambda_items");
 			var mapperName = freshTempName("hx_lambda_mapper");
 			var outName = freshTempName("hx_lambda_out");
 			var itemName = freshTempName("hx_lambda_item");
-			var sourceType = "[]" + sourceElementType;
+			var sourceType = sourcePlan.sourceType;
 			var mappedType = "[]" + mappedElementType;
 			var mapperType = "func(" + sourceElementType + ") " + mappedElementType;
+			var loopBody = switch (sourcePlan.domain) {
+				case "array":
+					[
+						GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
+						GoStmt.GoRaw("\t" + outName + " = append(" + outName + ", " + mapperName + "(" + itemName + "))"),
+						GoStmt.GoRaw("}")
+					];
+				case "list":
+					if (sourceElementType == "any") {
+						[
+							GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + ".items {"),
+							GoStmt.GoRaw("\t" + outName + " = append(" + outName + ", " + mapperName + "(" + itemName + "))"),
+							GoStmt.GoRaw("}")
+						];
+					} else {
+						var itemAnyName = freshTempName("hx_lambda_item_any");
+						var itemZeroName = freshTempName("hx_lambda_item_zero");
+						[
+							GoStmt.GoRaw("for _, " + itemAnyName + " := range " + sourceName + ".items {"),
+							GoStmt.GoRaw("\tvar " + itemName + " " + sourceElementType),
+							GoStmt.GoRaw("\tif " + itemAnyName + " == nil {"),
+							GoStmt.GoRaw("\t\tvar " + itemZeroName + " " + sourceElementType),
+							GoStmt.GoRaw("\t\t" + itemName + " = " + itemZeroName),
+							GoStmt.GoRaw("\t} else {"),
+							GoStmt.GoRaw("\t\t" + itemName + " = " + itemAnyName + ".(" + sourceElementType + ")"),
+							GoStmt.GoRaw("\t}"),
+							GoStmt.GoRaw("\t" + outName + " = append(" + outName + ", " + mapperName + "(" + itemName + "))"),
+							GoStmt.GoRaw("}")
+						];
+					}
+				case _:
+					[];
+			};
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([
 					{name: sourceName, typeName: sourceType},
 					{name: mapperName, typeName: mapperType}
 				], [mappedType], [
-					GoStmt.GoVarDecl(outName, mappedType, GoExpr.GoRaw("make(" + mappedType + ", 0, len(" + sourceName + "))"), true),
-					GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
-					GoStmt.GoRaw("\t" + outName + " = append(" + outName + ", " + mapperName + "(" + itemName + "))"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoReturn(GoExpr.GoIdent(outName))
-				]), [sourceExpr, mapperExpr]),
+					GoStmt.GoVarDecl(outName, mappedType,
+						GoExpr.GoRaw("make(" + mappedType + ", 0, len(" + (sourcePlan.domain == "list" ? sourceName + ".items" : sourceName) + "))"), true)
+				].concat(loopBody).concat([GoStmt.GoReturn(GoExpr.GoIdent(outName))])), [sourceExpr, mapperExpr]),
 				isStringLike: false
 			};
 		}
@@ -12069,28 +12265,58 @@ class GoCompiler {
 			if (args.length != 3) {
 				Context.fatalError("Lambda.fold expects exactly 3 arguments", callee.pos);
 			}
-			var elementType = lambdaArrayElementGoType(args[0], "fold", callee.pos);
+			var sourcePlan = lambdaSourcePlan(args[0], "fold", callee.pos);
+			var elementType = sourcePlan.elementType;
 			var accType = typeToGoType(returnType);
-			var sourceExpr = lowerExpr(args[0]).expr;
+			var sourceExpr = sourcePlan.sourceExpr;
 			var folderExpr = lowerExpr(args[1]).expr;
 			var initExpr = lowerExpr(args[2]).expr;
 			var sourceName = freshTempName("hx_lambda_items");
 			var folderName = freshTempName("hx_lambda_folder");
 			var accName = freshTempName("hx_lambda_acc");
 			var itemName = freshTempName("hx_lambda_item");
-			var sourceType = "[]" + elementType;
+			var sourceType = sourcePlan.sourceType;
 			var folderType = "func(" + elementType + ", " + accType + ") " + accType;
+			var loopBody = switch (sourcePlan.domain) {
+				case "array":
+					[
+						GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
+						GoStmt.GoRaw("\t" + accName + " = " + folderName + "(" + itemName + ", " + accName + ")"),
+						GoStmt.GoRaw("}")
+					];
+				case "list":
+					if (elementType == "any") {
+						[
+							GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + ".items {"),
+							GoStmt.GoRaw("\t" + accName + " = " + folderName + "(" + itemName + ", " + accName + ")"),
+							GoStmt.GoRaw("}")
+						];
+					} else {
+						var itemAnyName = freshTempName("hx_lambda_item_any");
+						var itemZeroName = freshTempName("hx_lambda_item_zero");
+						[
+							GoStmt.GoRaw("for _, " + itemAnyName + " := range " + sourceName + ".items {"),
+							GoStmt.GoRaw("\tvar " + itemName + " " + elementType),
+							GoStmt.GoRaw("\tif " + itemAnyName + " == nil {"),
+							GoStmt.GoRaw("\t\tvar " + itemZeroName + " " + elementType),
+							GoStmt.GoRaw("\t\t" + itemName + " = " + itemZeroName),
+							GoStmt.GoRaw("\t} else {"),
+							GoStmt.GoRaw("\t\t" + itemName + " = " + itemAnyName + ".(" + elementType + ")"),
+							GoStmt.GoRaw("\t}"),
+							GoStmt.GoRaw("\t" + accName + " = " + folderName + "(" + itemName + ", " + accName + ")"),
+							GoStmt.GoRaw("}")
+						];
+					}
+				case _:
+					[];
+			};
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([
 					{name: sourceName, typeName: sourceType},
 					{name: folderName, typeName: folderType},
 					{name: accName, typeName: accType}
-				], [accType], [
-					GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
-					GoStmt.GoRaw("\t" + accName + " = " + folderName + "(" + itemName + ", " + accName + ")"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoReturn(GoExpr.GoIdent(accName))
-				]), [sourceExpr, folderExpr, initExpr]),
+				], [accType],
+					loopBody.concat([GoStmt.GoReturn(GoExpr.GoIdent(accName))])), [sourceExpr, folderExpr, initExpr]),
 				isStringLike: false
 			};
 		}
