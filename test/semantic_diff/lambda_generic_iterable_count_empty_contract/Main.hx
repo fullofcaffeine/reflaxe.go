@@ -39,5 +39,9 @@ class Main {
 		Sys.println("count.empty=" + Lambda.count(emptyValues));
 		Sys.println("empty.values=" + Lambda.empty(values));
 		Sys.println("empty.empty=" + Lambda.empty(emptyValues));
+		Sys.println("exists.values.gt2=" + Lambda.exists(values, function(v:Int):Bool return v > 2));
+		Sys.println("exists.values.gt10=" + Lambda.exists(values, function(v:Int):Bool return v > 10));
+		Sys.println("has.values.2=" + Lambda.has(values, 2));
+		Sys.println("has.values.9=" + Lambda.has(values, 9));
 	}
 }

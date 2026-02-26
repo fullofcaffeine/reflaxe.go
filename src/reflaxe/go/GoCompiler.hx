@@ -12059,6 +12059,25 @@ class GoCompiler {
 		]), []);
 	}
 
+	function firstFunctionArgType(type:Type):Null<Type> {
+		return switch (Context.follow(type)) {
+			case TFun(args, _):
+				args.length > 0 ? args[0].t : null;
+			case _:
+				null;
+		};
+	}
+
+	function lowerLambdaPredicateAnyAdapter(predicateExpr:GoExpr, predicateType:Type):GoExpr {
+		var rawArgName = freshTempName("hx_lambda_arg");
+		var adaptedArgExpr:GoExpr = GoExpr.GoIdent(rawArgName);
+		var argType = firstFunctionArgType(predicateType);
+		if (argType != null) {
+			adaptedArgExpr = lowerNullableAwareTypeAssertExpr(adaptedArgExpr, argType);
+		}
+		return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["bool"], [GoStmt.GoReturn(GoExpr.GoCall(predicateExpr, [adaptedArgExpr]))]);
+	}
+
 	function lowerLambdaStaticCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		if (isStaticCall(callee, "Lambda", [], "count") || isGeneratedLambdaCall(callee, "count")) {
 			var supportsOptimizedCount = args.length == 1 || (args.length == 2 && isNullLiteralExpr(args[1]));
@@ -12099,11 +12118,20 @@ class GoCompiler {
 			};
 		}
 
-		if (isStaticCall(callee, "Lambda", [], "exists")) {
+		if (isStaticCall(callee, "Lambda", [], "exists") || isGeneratedLambdaCall(callee, "exists")) {
 			if (args.length != 2) {
 				Context.fatalError("Lambda.exists expects exactly 2 arguments", callee.pos);
 			}
-			var sourcePlan = lambdaSourcePlan(args[0], "exists", callee.pos);
+			var sourcePlan = tryLambdaSourcePlan(args[0]);
+			if (sourcePlan == null) {
+				var dynamicSourceExpr = lowerLambdaDynamicIterableSource(args[0]);
+				var predicateExpr = lowerExpr(args[1]).expr;
+				var adaptedPredicateExpr = lowerLambdaPredicateAnyAdapter(predicateExpr, args[1].t);
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent("Lambda_exists"), [dynamicSourceExpr, adaptedPredicateExpr]),
+					isStringLike: false
+				};
+			}
 			var elementType = sourcePlan.elementType;
 			var sourceExpr = sourcePlan.sourceExpr;
 			var predicateExpr = lowerExpr(args[1]).expr;
@@ -12161,12 +12189,20 @@ class GoCompiler {
 			};
 		}
 
-		if (isStaticCall(callee, "Lambda", [], "has")) {
+		if (isStaticCall(callee, "Lambda", [], "has") || isGeneratedLambdaCall(callee, "has")) {
 			if (args.length != 2) {
 				Context.fatalError("Lambda.has expects exactly 2 arguments", callee.pos);
 			}
 			requireStdlibShimGroup("stdlib_symbols");
-			var sourcePlan = lambdaSourcePlan(args[0], "has", callee.pos);
+			var sourcePlan = tryLambdaSourcePlan(args[0]);
+			if (sourcePlan == null) {
+				var dynamicSourceExpr = lowerLambdaDynamicIterableSource(args[0]);
+				var needleExpr = lowerExpr(args[1]).expr;
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent("Lambda_has"), [dynamicSourceExpr, needleExpr]),
+					isStringLike: false
+				};
+			}
 			var elementType = sourcePlan.elementType;
 			var sourceExpr = sourcePlan.sourceExpr;
 			var needleExpr = lowerExpr(args[1]).expr;
