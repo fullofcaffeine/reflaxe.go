@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import dataclasses
 import difflib
 import json
@@ -12,6 +13,11 @@ import shutil
 import subprocess
 import time
 from typing import Iterable
+
+try:
+    import fcntl  # type: ignore[attr-defined]
+except ImportError:
+    fcntl = None
 
 ROOT = Path(__file__).resolve().parent.parent
 SEMANTIC_CORE_ROOT = ROOT / "test" / "semantic_diff"
@@ -51,7 +57,73 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--changed", action="store_true", help="Run only semantic diff cases touched by git diff")
     parser.add_argument("--failed", action="store_true", help="Re-run only previously failing cases")
     parser.add_argument("--timeout", type=int, default=120, help="Timeout per command in seconds")
+    parser.add_argument("--lock-timeout", type=int, default=30, help="Seconds to wait for harness lock (0 = fail fast)")
     return parser.parse_args()
+
+
+def run_lock_for_suite(suite: str) -> Path:
+    return CACHE_ROOT / ("run-semantic-diff-" + suite + ".lock")
+
+
+@contextlib.contextmanager
+def acquire_run_lock(timeout_s: int, suite: str):
+    CACHE_ROOT.mkdir(parents=True, exist_ok=True)
+    run_lock = run_lock_for_suite(suite)
+    if fcntl is not None:
+        lock_file = run_lock.open("a+", encoding="utf-8")
+        start = time.monotonic()
+        while True:
+            try:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if timeout_s <= 0 or (time.monotonic() - start) >= timeout_s:
+                    lock_file.close()
+                    raise SystemExit(
+                        f"Another semantic diff run is active for suite '{suite}' (lock: {run_lock}). "
+                        "Wait and retry, or set --lock-timeout to a larger value."
+                    )
+                time.sleep(0.2)
+
+        try:
+            lock_file.seek(0)
+            lock_file.truncate(0)
+            lock_file.write(f"pid={os.getpid()}\n")
+            lock_file.flush()
+            yield
+        finally:
+            try:
+                lock_file.seek(0)
+                lock_file.truncate(0)
+                lock_file.flush()
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+                lock_file.close()
+        return
+
+    # Fallback path (platforms without fcntl).
+    start = time.monotonic()
+    while True:
+        try:
+            fd = os.open(str(run_lock), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            break
+        except FileExistsError:
+            if timeout_s <= 0 or (time.monotonic() - start) >= timeout_s:
+                raise SystemExit(
+                    f"Another semantic diff run is active for suite '{suite}' (lock: {run_lock}). "
+                    "Wait and retry, or set --lock-timeout to a larger value."
+                )
+            time.sleep(0.2)
+
+    try:
+        os.write(fd, f"pid={os.getpid()}\n".encode("utf-8"))
+        yield
+    finally:
+        os.close(fd)
+        try:
+            run_lock.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def semantic_root_for_suite(suite: str) -> Path:
@@ -333,14 +405,15 @@ def main() -> int:
         return 0
 
     results: list[CaseResult] = []
-    for case in selected:
-        print(f"==> {case.case_id}")
-        result = run_case(case, args)
-        results.append(result)
-        status = "PASS" if result.ok else "FAIL"
-        print(f"[{status}] {case.case_id} ({result.stage}, {result.duration_s:.2f}s)")
-        if not result.ok and result.message:
-            print(result.message)
+    with acquire_run_lock(args.lock_timeout, args.suite):
+        for case in selected:
+            print(f"==> {case.case_id}")
+            result = run_case(case, args)
+            results.append(result)
+            status = "PASS" if result.ok else "FAIL"
+            print(f"[{status}] {case.case_id} ({result.stage}, {result.duration_s:.2f}s)")
+            if not result.ok and result.message:
+                print(result.message)
 
     write_last_failed(results, last_failed_file)
     write_last_run(results, last_run_file)

@@ -475,6 +475,12 @@ Run only changed semantic cases:
 python3 test/run-semantic-diff.py --changed
 ```
 
+Run semantic diff with fail-fast lock behavior:
+
+```bash
+python3 test/run-semantic-diff.py --lock-timeout 0
+```
+
 ## Go profile perf harness
 
 Collect soft-budget benchmark ratios for `portable|metal` vs pure-Go microcases (`hello`, `array`, `atomic`, `channel`, `map`, `generic`, `string`, `string_instance`, `virtual`, `select`) plus `examples/tui_todo` profile spread:
