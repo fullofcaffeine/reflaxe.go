@@ -295,15 +295,15 @@
     {
       "coverage_evidence": [
         "upstream_sweep:full_compile",
-        "snapshot"
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "UInt",
-      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
       "owner": "unassigned",
       "portable_eligible": true,
-      "status": "snapshot"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
@@ -358,15 +358,15 @@
     {
       "coverage_evidence": [
         "upstream_sweep:full_compile",
-        "snapshot"
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.DynamicAccess",
-      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
       "owner": "unassigned",
       "portable_eligible": true,
-      "status": "snapshot"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
