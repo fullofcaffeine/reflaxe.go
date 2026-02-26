@@ -92,3 +92,4 @@ bd sync               # Sync with git
 - For std wrapper modules, keep importable types in their own module files (one primary import target per file) to avoid hidden module/type resolution pitfalls.
 - Documentation readability rule: prefer neutral, direct titles and scannable structure; avoid labels like "beginner-friendly" unless explicitly requested.
 - When documenting harnesses/contracts, explain `what it is`, `why it exists`, and `how it works` in a short step-by-step flow first, then list commands.
+- Anti-assumption rule: do not assume prior knowledge; define terms on first use (or link to their canonical doc) so a new reader can follow without hidden context.
