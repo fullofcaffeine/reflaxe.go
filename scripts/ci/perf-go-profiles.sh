@@ -28,6 +28,18 @@ Environment:
                             Hard-fail threshold for metal size ratios (default: 25).
   GO_PERF_METAL_RUNTIME_FAIL_PCT
                             Hard-fail threshold for metal startup ratios (default: 100).
+  GO_PERF_PORTABLE_CONCURRENCY_FASTPATH
+                            Sets -D reflaxe_go_opt_go_concurrency_fastpath for portable builds in this harness
+                            (default: 1/on).
+  GO_PERF_DELTA_WARN_PCT    Soft warning threshold for portable-vs-metal startup delta drift vs baseline
+                            for selected cases (default: 15).
+  GO_PERF_ENFORCE_DELTA_BUDGET
+                            Fail when selected portable-vs-metal startup deltas exceed hard budget
+                            (default: 0/off).
+  GO_PERF_DELTA_FAIL_PCT    Hard-fail threshold for portable-vs-metal startup delta drift vs baseline
+                            when GO_PERF_ENFORCE_DELTA_BUDGET=1 (default: 25).
+  GO_PERF_DELTA_CASES       Comma-separated microcases for delta budget checks
+                            (default: string,select,channel).
   GO_PERF_HELLO_ITERS       Startup loop count for hello case (default: 300)
   GO_PERF_ARRAY_ITERS       Startup loop count for array case (default: 300)
   GO_PERF_ATOMIC_ITERS      Startup loop count for atomic case (default: 120)
@@ -401,18 +413,23 @@ compile_haxe_case() {
   mkdir -p "$out_dir"
   (
     cd "$src_dir"
-    "$haxe_bin" \
-      -cp . \
-      -cp "$root_dir/src" \
-      --macro reflaxe.go.CompilerBootstrap.Start\(\) \
-      --macro reflaxe.go.CompilerInit.Start\(\) \
-      -D "go_output=$out_dir" \
-      -D "reflaxe_go_profile=$profile" \
-      -D go_no_build \
-      -D reflaxe.dont_output_metadata_id \
-      -D no-traces \
-      -D no_traces \
-      -main Main >/dev/null
+    local -a haxe_args=(
+      -cp .
+      -cp "$root_dir/src"
+      --macro "reflaxe.go.CompilerBootstrap.Start()"
+      --macro "reflaxe.go.CompilerInit.Start()"
+      -D "go_output=$out_dir"
+      -D "reflaxe_go_profile=$profile"
+      -D go_no_build
+      -D reflaxe.dont_output_metadata_id
+      -D no-traces
+      -D no_traces
+      -main Main
+    )
+    if [[ "$profile" == "portable" ]]; then
+      haxe_args+=(-D "reflaxe_go_opt_go_concurrency_fastpath=$portable_concurrency_fastpath_bool")
+    fi
+    "$haxe_bin" "${haxe_args[@]}" >/dev/null
   )
 }
 
@@ -784,6 +801,11 @@ runtime_warn_pct="${GO_PERF_RUNTIME_WARN_PCT:-10}"
 enforce_metal_budget="${GO_PERF_ENFORCE_METAL_BUDGET:-0}"
 metal_size_fail_pct="${GO_PERF_METAL_SIZE_FAIL_PCT:-25}"
 metal_runtime_fail_pct="${GO_PERF_METAL_RUNTIME_FAIL_PCT:-100}"
+portable_concurrency_fastpath="${GO_PERF_PORTABLE_CONCURRENCY_FASTPATH:-1}"
+delta_warn_pct="${GO_PERF_DELTA_WARN_PCT:-15}"
+enforce_delta_budget="${GO_PERF_ENFORCE_DELTA_BUDGET:-0}"
+delta_fail_pct="${GO_PERF_DELTA_FAIL_PCT:-25}"
+delta_cases="${GO_PERF_DELTA_CASES:-string,select,channel}"
 hello_iters="${GO_PERF_HELLO_ITERS:-300}"
 array_iters="${GO_PERF_ARRAY_ITERS:-300}"
 atomic_iters="${GO_PERF_ATOMIC_ITERS:-120}"
@@ -801,6 +823,11 @@ virtual_iters="${GO_PERF_VIRTUAL_ITERS:-100}"
 virtual_work="${GO_PERF_VIRTUAL_WORK:-100000}"
 select_iters="${GO_PERF_SELECT_ITERS:-100}"
 select_work="${GO_PERF_SELECT_WORK:-40000}"
+
+portable_concurrency_fastpath_bool="0"
+if is_truthy "$portable_concurrency_fastpath"; then
+  portable_concurrency_fastpath_bool="1"
+fi
 
 if [[ -x /usr/bin/time ]]; then
   time_bin="/usr/bin/time"
@@ -1102,6 +1129,11 @@ GO_PERF_RUNTIME_WARN_PCT="$runtime_warn_pct" \
 GO_PERF_ENFORCE_METAL_BUDGET="$enforce_metal_budget" \
 GO_PERF_METAL_SIZE_FAIL_PCT="$metal_size_fail_pct" \
 GO_PERF_METAL_RUNTIME_FAIL_PCT="$metal_runtime_fail_pct" \
+GO_PERF_PORTABLE_CONCURRENCY_FASTPATH="$portable_concurrency_fastpath_bool" \
+GO_PERF_DELTA_WARN_PCT="$delta_warn_pct" \
+GO_PERF_ENFORCE_DELTA_BUDGET="$enforce_delta_budget" \
+GO_PERF_DELTA_FAIL_PCT="$delta_fail_pct" \
+GO_PERF_DELTA_CASES="$delta_cases" \
 GO_PERF_HELLO_ITERS="$hello_iters" \
 GO_PERF_ARRAY_ITERS="$array_iters" \
 GO_PERF_ATOMIC_ITERS="$atomic_iters" \
@@ -1139,6 +1171,15 @@ const runtimeWarnPct = Number(process.env.GO_PERF_RUNTIME_WARN_PCT || "10");
 const enforceMetalBudget = /^(1|true|yes|on)$/i.test(process.env.GO_PERF_ENFORCE_METAL_BUDGET || "0");
 const metalSizeFailPct = Number(process.env.GO_PERF_METAL_SIZE_FAIL_PCT || "25");
 const metalRuntimeFailPct = Number(process.env.GO_PERF_METAL_RUNTIME_FAIL_PCT || "100");
+const portableConcurrencyFastpathEnabled = /^(1|true|yes|on)$/i.test(process.env.GO_PERF_PORTABLE_CONCURRENCY_FASTPATH || "1");
+const deltaWarnPct = Number(process.env.GO_PERF_DELTA_WARN_PCT || "15");
+const enforceDeltaBudget = /^(1|true|yes|on)$/i.test(process.env.GO_PERF_ENFORCE_DELTA_BUDGET || "0");
+const deltaFailPct = Number(process.env.GO_PERF_DELTA_FAIL_PCT || "25");
+const deltaCases = (process.env.GO_PERF_DELTA_CASES || "string,select,channel")
+  .split(",")
+  .map((value) => value.trim().toLowerCase())
+  .filter((value) => value.length > 0);
+const uniqueDeltaCases = [...new Set(deltaCases)];
 const helloIters = Number(process.env.GO_PERF_HELLO_ITERS || "300");
 const arrayIters = Number(process.env.GO_PERF_ARRAY_ITERS || "300");
 const atomicIters = Number(process.env.GO_PERF_ATOMIC_ITERS || "120");
@@ -1228,6 +1269,57 @@ const genericOverheadRatios = buildCaseOverhead("generic");
 const stringOverheadRatios = buildCaseOverhead("string");
 const virtualOverheadRatios = buildCaseOverhead("virtual");
 const selectOverheadRatios = buildCaseOverhead("select");
+const caseOverheadByName = {
+  hello: helloOverheadRatios,
+  array: arrayOverheadRatios,
+  atomic: atomicOverheadRatios,
+  channel: channelOverheadRatios,
+  map: mapOverheadRatios,
+  generic: genericOverheadRatios,
+  string: stringOverheadRatios,
+  virtual: virtualOverheadRatios,
+  select: selectOverheadRatios,
+};
+
+function buildPortableMetalDeltaRatios(overheadByCase) {
+  const out = {};
+  for (const [caseName, ratioGroup] of Object.entries(overheadByCase || {})) {
+    const portable = ratioGroup?.portable;
+    const metal = ratioGroup?.metal;
+    if (!portable || !metal) {
+      continue;
+    }
+    out[caseName] = {
+      binaryRatio: ratio(portable.binaryRatio, metal.binaryRatio),
+      strippedRatio: ratio(portable.strippedRatio, metal.strippedRatio),
+      startupRatio: ratio(portable.startupRatio, metal.startupRatio),
+    };
+  }
+  return out;
+}
+
+function deriveCaseOverheadByName(derived) {
+  return {
+    hello: derived?.helloOverheadRatios,
+    array: derived?.arrayOverheadRatios,
+    atomic: derived?.atomicOverheadRatios,
+    channel: derived?.channelOverheadRatios,
+    map: derived?.mapOverheadRatios,
+    generic: derived?.genericOverheadRatios,
+    string: derived?.stringOverheadRatios,
+    virtual: derived?.virtualOverheadRatios,
+    select: derived?.selectOverheadRatios,
+  };
+}
+
+function derivePortableMetalDeltaRatios(derived) {
+  if (derived?.portableMetalDeltaRatios && typeof derived.portableMetalDeltaRatios === "object") {
+    return derived.portableMetalDeltaRatios;
+  }
+  return buildPortableMetalDeltaRatios(deriveCaseOverheadByName(derived));
+}
+
+const portableMetalDeltaRatios = buildPortableMetalDeltaRatios(caseOverheadByName);
 
 const tuiMetrics = Object.fromEntries(
   profiles.map((profile) => [profile, requireMetric(`tui_haxe_${profile}`)])
@@ -1257,6 +1349,8 @@ const current = {
   thresholds: {
     sizeWarnPct,
     runtimeWarnPct,
+    deltaWarnPct,
+    deltaFailPct,
   },
   startupLoops: {
     hello: helloIters,
@@ -1280,6 +1374,12 @@ const current = {
     selectWork,
   },
   metrics,
+  options: {
+    portableConcurrencyFastpathEnabled,
+    enforceMetalBudget,
+    enforceDeltaBudget,
+    deltaCases: uniqueDeltaCases,
+  },
   derived: {
     helloOverheadRatios,
     arrayOverheadRatios,
@@ -1290,6 +1390,7 @@ const current = {
     stringOverheadRatios,
     virtualOverheadRatios,
     selectOverheadRatios,
+    portableMetalDeltaRatios,
     tuiRelativeToMin,
   },
 };
@@ -1387,6 +1488,45 @@ function compareMetalHard(groupLabel, currentGroup, baselineGroup) {
   }
 }
 
+function comparePortableMetalDelta(currentDeltaRatios, baselineDeltaRatios) {
+  if (!baselineDeltaRatios || typeof baselineDeltaRatios !== "object") {
+    warnings.push("delta.portable_metal: missing baseline group");
+    return;
+  }
+
+  for (const caseName of uniqueDeltaCases) {
+    const currentCase = currentDeltaRatios?.[caseName];
+    const baselineCase = baselineDeltaRatios?.[caseName];
+    if (!currentCase || !baselineCase) {
+      warnings.push(`delta.${caseName}.startup ratio missing data in current/baseline`);
+      continue;
+    }
+    const currentValue = Number(currentCase.startupRatio);
+    const baselineValue = Number(baselineCase.startupRatio);
+    if (!Number.isFinite(currentValue) || !Number.isFinite(baselineValue) || baselineValue <= 0) {
+      continue;
+    }
+
+    const warnAllowed = baselineValue * (1 + deltaWarnPct / 100);
+    if (currentValue > warnAllowed) {
+      const increasePct = ((currentValue / baselineValue) - 1) * 100;
+      warnings.push(
+        `delta.${caseName}.startup ratio +${increasePct.toFixed(2)}% ` +
+          `(current=${currentValue.toFixed(6)}, baseline=${baselineValue.toFixed(6)}, budget=+${deltaWarnPct.toFixed(2)}%)`
+      );
+    }
+
+    const failAllowed = baselineValue * (1 + deltaFailPct / 100);
+    if (currentValue > failAllowed) {
+      const increasePct = ((currentValue / baselineValue) - 1) * 100;
+      hardFailures.push(
+        `delta.${caseName}.startup ratio +${increasePct.toFixed(2)}% ` +
+          `(current=${currentValue.toFixed(6)}, baseline=${baselineValue.toFixed(6)}, budget=+${deltaFailPct.toFixed(2)}%)`
+      );
+    }
+  }
+}
+
 let baselineLoaded = null;
 if (!updateBaseline) {
   if (!fs.existsSync(baselinePath)) {
@@ -1394,6 +1534,7 @@ if (!updateBaseline) {
   } else {
     baselineLoaded = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
     const baselineDerived = baselineLoaded.derivedBaseline || {};
+    const baselinePortableMetalDeltaRatios = derivePortableMetalDeltaRatios(baselineDerived);
     compareGroup("hello_overhead", current.derived.helloOverheadRatios, baselineDerived.helloOverheadRatios);
     compareGroup("array_overhead", current.derived.arrayOverheadRatios, baselineDerived.arrayOverheadRatios);
     compareGroup("atomic_overhead", current.derived.atomicOverheadRatios, baselineDerived.atomicOverheadRatios);
@@ -1413,8 +1554,14 @@ if (!updateBaseline) {
     compareMetalHard("string_overhead", current.derived.stringOverheadRatios, baselineDerived.stringOverheadRatios);
     compareMetalHard("virtual_overhead", current.derived.virtualOverheadRatios, baselineDerived.virtualOverheadRatios);
     compareMetalHard("select_overhead", current.derived.selectOverheadRatios, baselineDerived.selectOverheadRatios);
+    comparePortableMetalDelta(current.derived.portableMetalDeltaRatios, baselinePortableMetalDeltaRatios);
   }
 }
+
+const deltaWarnings = warnings.filter((warning) => warning.startsWith("delta."));
+const metalWarnings = warnings.filter((warning) => warning.includes(".metal."));
+const deltaHardFailures = hardFailures.filter((failure) => failure.startsWith("delta."));
+const metalHardFailures = hardFailures.filter((failure) => !failure.startsWith("delta."));
 
 const comparison = {
   schemaVersion: 1,
@@ -1422,13 +1569,21 @@ const comparison = {
   mode: updateBaseline ? "update-baseline" : "compare",
   baselinePath: baselineDisplay,
   baselineAvailable: baselineLoaded != null || updateBaseline,
+  portableConcurrencyFastpathEnabled,
   enforceMetalBudget,
-  metalHardFailureCount: hardFailures.length,
+  enforceDeltaBudget,
+  deltaCases: uniqueDeltaCases,
+  metalHardFailureCount: metalHardFailures.length,
+  deltaHardFailureCount: deltaHardFailures.length,
   metalHardFailureBudgets: {
     sizeFailPct: metalSizeFailPct,
     runtimeFailPct: metalRuntimeFailPct,
   },
-  metalWarningCount: warnings.filter((warning) => warning.includes(".metal.")).length,
+  deltaHardFailureBudgets: {
+    startupFailPct: deltaFailPct,
+  },
+  metalWarningCount: metalWarnings.length,
+  deltaWarningCount: deltaWarnings.length,
   warningCount: warnings.length,
   warnings,
   hardFailures,
@@ -1455,14 +1610,32 @@ function ratioTable(title, ratioGroup) {
   return lines.join("\n");
 }
 
+function portableMetalDeltaTable(title, deltaRatioGroup) {
+  const lines = [];
+  lines.push(`### ${title}`);
+  lines.push("| Case | Binary x | Stripped x | Startup x |\n| --- | ---: | ---: | ---: |");
+  for (const caseName of Object.keys(deltaRatioGroup).sort()) {
+    const row = deltaRatioGroup[caseName];
+    lines.push(
+      `| ${caseName} | ${formatRatio(row.binaryRatio)} | ${formatRatio(row.strippedRatio)} | ${formatRatio(row.startupRatio)} |`
+    );
+  }
+  lines.push("");
+  return lines.join("\n");
+}
+
 const summaryLines = [];
 summaryLines.push("## Go Profile Performance Benchmarks");
 summaryLines.push("");
 summaryLines.push(`- Mode: \`${comparison.mode}\``);
 summaryLines.push(`- Size budget: \`+${sizeWarnPct}%\``);
 summaryLines.push(`- Runtime budget: \`+${runtimeWarnPct}%\``);
+summaryLines.push(`- Portable-vs-metal delta warn budget: \`+${deltaWarnPct}%\` (startup ratio drift vs baseline)`);
 summaryLines.push(`- Metal enforcement: \`${enforceMetalBudget ? "on" : "off"}\``);
+summaryLines.push(`- Delta enforcement: \`${enforceDeltaBudget ? "on" : "off"}\``);
 summaryLines.push(`- Metal hard budgets: size=\`+${metalSizeFailPct}%\`, runtime=\`+${metalRuntimeFailPct}%\``);
+summaryLines.push(`- Delta hard budget: startup=\`+${deltaFailPct}%\` for cases=\`${uniqueDeltaCases.join(",") || "none"}\``);
+summaryLines.push(`- Portable concurrency fastpath: \`${portableConcurrencyFastpathEnabled ? "on" : "off"}\``);
 summaryLines.push(`- Startup loops: hello=${helloIters}, array=${arrayIters}, atomic=${atomicIters}, channel=${channelIters}, map=${mapIters}, generic=${genericIters}, string=${stringIters}, virtual=${virtualIters}, select=${selectIters}, tui=${tuiIters}`);
 summaryLines.push(`- Workload params: atomic_ops=${atomicWork}, channel_ops=${channelWork}, map_ops=${mapWork}, generic_ops=${genericWork}, string_ops=${stringWork}, virtual_ops=${virtualWork}, select_ops=${selectWork}`);
 if (haxeVersion.length > 0 || goVersion.length > 0) {
@@ -1478,6 +1651,7 @@ summaryLines.push(ratioTable("Generic Overhead (x vs pure Go generic bag loop)",
 summaryLines.push(ratioTable("String Overhead (x vs pure Go concat loop)", current.derived.stringOverheadRatios));
 summaryLines.push(ratioTable("Virtual Overhead (x vs pure Go interface dispatch loop)", current.derived.virtualOverheadRatios));
 summaryLines.push(ratioTable("Select Overhead (x vs pure Go select helper loop)", current.derived.selectOverheadRatios));
+summaryLines.push(portableMetalDeltaTable("Portable-vs-metal Delta (portable ratio / metal ratio)", current.derived.portableMetalDeltaRatios));
 summaryLines.push(ratioTable("TUI Profile Spread (x vs fastest/smallest profile in this run)", current.derived.tuiRelativeToMin));
 
 if (warnings.length > 0) {
@@ -1491,13 +1665,24 @@ if (warnings.length > 0) {
 }
 summaryLines.push("");
 
-if (hardFailures.length > 0) {
+if (metalHardFailures.length > 0) {
   summaryLines.push("### Metal Hard-Fail Candidates");
-  for (const hardFailure of hardFailures) {
+  for (const hardFailure of metalHardFailures) {
     summaryLines.push(`- ${hardFailure}`);
   }
 } else {
   summaryLines.push("### Metal Hard-Fail Candidates");
+  summaryLines.push("- none");
+}
+summaryLines.push("");
+
+if (deltaHardFailures.length > 0) {
+  summaryLines.push("### Delta Hard-Fail Candidates");
+  for (const hardFailure of deltaHardFailures) {
+    summaryLines.push(`- ${hardFailure}`);
+  }
+} else {
+  summaryLines.push("### Delta Hard-Fail Candidates");
   summaryLines.push("- none");
 }
 summaryLines.push("");
@@ -1509,12 +1694,18 @@ NODE
 
 warning_count=0
 metal_warning_count=0
+delta_warning_count=0
 baseline_warning_count=0
 hard_failure_count=0
+metal_hard_failure_count=0
+delta_hard_failure_count=0
 if [[ -s "$warnings_txt" ]]; then
   while IFS= read -r warning; do
     [[ -n "$warning" ]] || continue
     warning_count=$((warning_count + 1))
+    if [[ "$warning" == delta.* ]]; then
+      delta_warning_count=$((delta_warning_count + 1))
+    fi
     if [[ "$warning" == *".metal."* ]]; then
       metal_warning_count=$((metal_warning_count + 1))
     fi
@@ -1529,10 +1720,20 @@ if [[ -s "$hard_failures_txt" ]]; then
   while IFS= read -r hard_failure; do
     [[ -n "$hard_failure" ]] || continue
     hard_failure_count=$((hard_failure_count + 1))
-    if is_truthy "$enforce_metal_budget"; then
-      echo "::error::[go-perf] $hard_failure"
+    if [[ "$hard_failure" == delta.* ]]; then
+      delta_hard_failure_count=$((delta_hard_failure_count + 1))
+      if is_truthy "$enforce_delta_budget"; then
+        echo "::error::[go-perf] $hard_failure"
+      else
+        echo "::warning::[go-perf][delta-hard-candidate] $hard_failure"
+      fi
     else
-      echo "::warning::[go-perf][metal-hard-candidate] $hard_failure"
+      metal_hard_failure_count=$((metal_hard_failure_count + 1))
+      if is_truthy "$enforce_metal_budget"; then
+        echo "::error::[go-perf] $hard_failure"
+      else
+        echo "::warning::[go-perf][metal-hard-candidate] $hard_failure"
+      fi
     fi
   done < "$hard_failures_txt"
 fi
@@ -1550,8 +1751,8 @@ if [[ -f "$baseline_file" ]]; then
 fi
 
 if is_truthy "$enforce_metal_budget"; then
-  if [[ "$hard_failure_count" -gt 0 || "$baseline_warning_count" -gt 0 ]]; then
-    echo "::error::[go-perf] metal budget enforcement failed (hard_failures=$hard_failure_count baseline_warnings=$baseline_warning_count)"
+  if [[ "$metal_hard_failure_count" -gt 0 || "$baseline_warning_count" -gt 0 ]]; then
+    echo "::error::[go-perf] metal budget enforcement failed (hard_failures=$metal_hard_failure_count baseline_warnings=$baseline_warning_count)"
     log "failing due to GO_PERF_ENFORCE_METAL_BUDGET with budget regressions"
     log "metrics: $(display_path "$current_json")"
     log "comparison: $(display_path "$comparison_json")"
@@ -1560,7 +1761,18 @@ if is_truthy "$enforce_metal_budget"; then
   fi
 fi
 
-log "done (warnings=$warning_count, metal_warnings=$metal_warning_count, metal_hard_failures=$hard_failure_count)"
+if is_truthy "$enforce_delta_budget"; then
+  if [[ "$delta_hard_failure_count" -gt 0 || "$baseline_warning_count" -gt 0 ]]; then
+    echo "::error::[go-perf] delta budget enforcement failed (hard_failures=$delta_hard_failure_count baseline_warnings=$baseline_warning_count)"
+    log "failing due to GO_PERF_ENFORCE_DELTA_BUDGET with budget regressions"
+    log "metrics: $(display_path "$current_json")"
+    log "comparison: $(display_path "$comparison_json")"
+    log "summary: $(display_path "$summary_md")"
+    exit 1
+  fi
+fi
+
+log "done (warnings=$warning_count, metal_warnings=$metal_warning_count, delta_warnings=$delta_warning_count, metal_hard_failures=$metal_hard_failure_count, delta_hard_failures=$delta_hard_failure_count)"
 log "metrics: $(display_path "$current_json")"
 log "comparison: $(display_path "$comparison_json")"
 log "summary: $(display_path "$summary_md")"

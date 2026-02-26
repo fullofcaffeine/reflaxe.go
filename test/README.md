@@ -449,10 +449,28 @@ Enforce metal profile budget regressions as hard failures (portable remains soft
 GO_PERF_ENFORCE_METAL_BUDGET=1 bash scripts/ci/perf-go-profiles.sh
 ```
 
+Enable portable-vs-metal startup delta hard budget checks (selected cases only):
+
+```bash
+GO_PERF_ENFORCE_DELTA_BUDGET=1 bash scripts/ci/perf-go-profiles.sh
+```
+
 Tune hard-fail budgets if needed:
 
 ```bash
 GO_PERF_ENFORCE_METAL_BUDGET=1 GO_PERF_METAL_RUNTIME_FAIL_PCT=90 bash scripts/ci/perf-go-profiles.sh
+```
+
+Tune delta budget cases and thresholds if needed:
+
+```bash
+GO_PERF_ENFORCE_DELTA_BUDGET=1 GO_PERF_DELTA_CASES=string,select,channel GO_PERF_DELTA_WARN_PCT=12 GO_PERF_DELTA_FAIL_PCT=20 bash scripts/ci/perf-go-profiles.sh
+```
+
+Disable portable concurrency fastpath for A/B perf checks:
+
+```bash
+GO_PERF_PORTABLE_CONCURRENCY_FASTPATH=0 bash scripts/ci/perf-go-profiles.sh
 ```
 
 Tune atomic workload/loop stability if needed:
@@ -491,7 +509,15 @@ Result artifacts:
 .cache/perf-go/results/current.json
 .cache/perf-go/results/comparison.json
 .cache/perf-go/results/summary.md
+.cache/perf-go/results/warnings.txt
+.cache/perf-go/results/hard_failures.txt
 ```
+
+Delta interpretation:
+
+- `current.json` -> `derived.portableMetalDeltaRatios.<case>.startupRatio` reports portable/metal ratio per microcase (`1.000` means equal startup overhead ratio).
+- `comparison.json` -> `deltaWarningCount` / `deltaHardFailureCount` and `deltaCases` summarize selected-case drift checks.
+- `summary.md` includes a dedicated `Portable-vs-metal Delta` table plus `Delta Hard-Fail Candidates`.
 
 ## HXRT selective runtime perf/size harness
 
