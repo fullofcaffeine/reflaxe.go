@@ -77,6 +77,7 @@ Full CI runs (`python3 test/run-ci.py` with no focused flags) include:
 Automated promotion workflow (`compile-only -> snapshot -> semantic-diff`) is produced by:
 
 - `python3 test/run-portable-parity-closure.py`
+- `test/portable_parity_promotions.json` (deterministic promotion registry consumed by inventory generation)
 
 The summary artifact includes module-level `next_step` guidance for every remaining blocker.
 

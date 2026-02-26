@@ -306,10 +306,17 @@ Regenerate inventory after policy/module changes:
 python3 test/run-portable-stdlib-inventory.py --update
 ```
 
+Promotion overrides (`compile-only -> snapshot -> semantic-diff`) are declared in:
+
+```text
+test/portable_parity_promotions.json
+```
+
 Primary artifacts:
 
 ```text
 test/portable_stdlib_inventory.json
+test/portable_parity_promotions.json
 test/.test-cache/portable_stdlib_inventory_summary.json
 test/.test-cache/portable_stdlib_inventory_summary.md
 ```

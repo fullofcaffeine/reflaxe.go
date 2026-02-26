@@ -12,6 +12,7 @@ CACHE_ROOT = ROOT / "test" / ".test-cache"
 FULL_MODULES_FILE = ROOT / "test" / "upstream_std_modules_full.txt"
 STRICT_SWEEP_MODULES_FILE = ROOT / "test" / "upstream_std_modules.txt"
 INVENTORY_FILE = ROOT / "test" / "portable_stdlib_inventory.json"
+PROMOTIONS_FILE = ROOT / "test" / "portable_parity_promotions.json"
 SUMMARY_JSON = CACHE_ROOT / "portable_stdlib_inventory_summary.json"
 SUMMARY_MD = CACHE_ROOT / "portable_stdlib_inventory_summary.md"
 
@@ -102,6 +103,8 @@ OWNER_OVERRIDES = {
     "haxe.io.Output": "compiler_shim",
 }
 
+PROMOTION_LEVEL_KEYS = ("snapshot", "semantic_diff")
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -123,6 +126,71 @@ def load_modules(path: Path) -> list[str]:
             continue
         modules.append(line)
     return modules
+
+
+def load_promotions(path: Path, valid_modules: set[str], auto_semantic_modules: set[str]) -> dict[str, set[str]]:
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise SystemExit(
+            "portable parity promotions file missing. "
+            "Expected: test/portable_parity_promotions.json"
+        ) from exc
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"{path.name}: invalid JSON ({exc})") from exc
+
+    if not isinstance(raw, dict):
+        raise SystemExit(f"{path.name}: root must be an object")
+    if raw.get("schema_version") != 1:
+        raise SystemExit(f"{path.name}: schema_version must be 1")
+
+    levels = raw.get("levels")
+    if not isinstance(levels, dict):
+        raise SystemExit(f"{path.name}: levels must be an object")
+
+    unknown_keys = sorted(set(levels.keys()) - set(PROMOTION_LEVEL_KEYS))
+    if unknown_keys:
+        raise SystemExit(
+            f"{path.name}: unknown levels keys: {', '.join(unknown_keys)} "
+            f"(allowed: {', '.join(PROMOTION_LEVEL_KEYS)})"
+        )
+
+    normalized: dict[str, set[str]] = {}
+    for key in PROMOTION_LEVEL_KEYS:
+        raw_modules = levels.get(key, [])
+        if not isinstance(raw_modules, list):
+            raise SystemExit(f"{path.name}: levels.{key} must be an array")
+        if raw_modules != sorted(raw_modules):
+            raise SystemExit(f"{path.name}: levels.{key} must be sorted")
+
+        seen: set[str] = set()
+        modules: set[str] = set()
+        for module in raw_modules:
+            if not isinstance(module, str) or not module.strip():
+                raise SystemExit(f"{path.name}: levels.{key} contains invalid module entry: {module!r}")
+            if module in seen:
+                raise SystemExit(f"{path.name}: levels.{key} has duplicate module `{module}`")
+            seen.add(module)
+            if module not in valid_modules:
+                raise SystemExit(f"{path.name}: levels.{key} module `{module}` not found in full module list")
+            modules.add(module)
+        normalized[key] = modules
+
+    overlap = normalized["snapshot"] & normalized["semantic_diff"]
+    if overlap:
+        raise SystemExit(
+            f"{path.name}: modules cannot be in both snapshot and semantic_diff levels: "
+            + ", ".join(sorted(overlap))
+        )
+
+    redundant_snapshot = normalized["snapshot"] & auto_semantic_modules
+    if redundant_snapshot:
+        raise SystemExit(
+            f"{path.name}: snapshot promotions cannot include modules already auto-promoted to semantic-diff: "
+            + ", ".join(sorted(redundant_snapshot))
+        )
+
+    return normalized
 
 
 def is_semantic_diff_module(module: str) -> bool:
@@ -178,14 +246,20 @@ def module_evidence(status: str, in_full_sweep: bool, in_strict_sweep: bool) -> 
     return evidence
 
 
-def build_inventory(full_modules: list[str], strict_sweep_modules: set[str]) -> dict[str, Any]:
+def build_inventory(
+    full_modules: list[str], strict_sweep_modules: set[str], promotions: dict[str, set[str]]
+) -> dict[str, Any]:
+    snapshot_promotions = promotions["snapshot"]
+    semantic_promotions = promotions["semantic_diff"]
     modules_payload: list[dict[str, Any]] = []
     for module in sorted(full_modules):
         in_full_sweep = True
         in_strict_sweep = module in strict_sweep_modules
         status = "compile-only"
-        if is_semantic_diff_module(module):
+        if is_semantic_diff_module(module) or module in semantic_promotions:
             status = "semantic-diff"
+        elif module in snapshot_promotions:
+            status = "snapshot"
 
         owner = select_owner(module, status, in_strict_sweep)
         entry = {
@@ -321,7 +395,10 @@ def main() -> int:
 
     full_modules = load_modules(FULL_MODULES_FILE)
     strict_sweep_modules = set(load_modules(STRICT_SWEEP_MODULES_FILE))
-    generated = build_inventory(full_modules, strict_sweep_modules)
+    full_module_set = set(full_modules)
+    auto_semantic_modules = {module for module in full_modules if is_semantic_diff_module(module)}
+    promotions = load_promotions(PROMOTIONS_FILE, full_module_set, auto_semantic_modules)
+    generated = build_inventory(full_modules, strict_sweep_modules, promotions)
 
     if args.update:
         INVENTORY_FILE.write_text(json.dumps(generated, indent=2, sort_keys=True) + "\n", encoding="utf-8")

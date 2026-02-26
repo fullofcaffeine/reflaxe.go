@@ -12,6 +12,10 @@ bd close <id>         # Complete work
 bd sync               # Sync with git
 ```
 
+## High-Level Goal
+
+- Make `haxe.go` the best way to write Go without writing raw Go, while preserving first-class portability via Haxe for codebases that need cross-target builds.
+
 ## Landing the Plane (Session Completion)
 
 **When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
