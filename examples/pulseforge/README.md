@@ -2,6 +2,12 @@
 
 Flagship observability-stream pipeline demo with one Haxe codebase compiled across profile and runtime-variant lanes.
 
+## Why this example exists
+
+- Demonstrates a production-shaped app architecture, not just a toy program.
+- Shows profile contract (`portable` vs `metal`) and app variant (`core` vs `go_native`) as separate axes.
+- Provides benchmark-ready lanes against handwritten Go baselines.
+
 ## Architecture
 
 | Layer | Files | Responsibility |
@@ -59,6 +65,17 @@ Modes:
 
 Both profiles keep the same domain contract and workload semantics. Differences are code shape and optimization policy, not app feature removal.
 
+## When to choose each profile here
+
+- Choose `portable` when PulseForge core logic must stay aligned with cross-target portable semantics.
+- Choose `metal` when Go-native optimization and strict boundary policy are required for this deployment.
+
+## Tradeoffs shown by this example
+
+- `portable` and `metal` can preserve the same app contract while using different codegen strategies.
+- `metal` may emit more typed helper code in hot lanes; more LOC does not imply lower quality.
+- Profile choice and variant choice are independent decisions.
+
 ## Variant Behavior Matrix
 
 | Variant | Capability id | Strategy | Notes |
@@ -78,6 +95,13 @@ Committed generated trees under `generated/portable` and `generated/metal` curre
 - entry orchestration: `generated/portable/main.go`
 
 For `go_native` generated Go inspection, compile the `*.ci.hxml` lanes and inspect `out_portable_ci` / `out_metal_ci`.
+
+Generated diff commands:
+
+```bash
+diff -ru generated/portable generated/metal
+diff -ru out_portable_ci out_metal_ci
+```
 
 ## Matrix Expectations
 
@@ -117,3 +141,10 @@ Methodology and fairness constraints: `docs/benchmark-methodology-apps.md`.
 - `go_native` is compile-time selected; it is not switchable at runtime inside one binary.
 - Committed generated trees are currently `core` snapshots; `go_native` codegen is validated via CI compile lanes and perf harness runs.
 - App-level allocation and binary-size overhead vs pure-Go is measurable and expected while `hxrt` ownership and stdlib shims remain in active optimization work.
+
+## Related docs
+
+- `docs/profiles.md`
+- `docs/profile-semantics-guide.md`
+- `docs/examples-matrix.md`
+- `docs/benchmark-methodology-apps.md`

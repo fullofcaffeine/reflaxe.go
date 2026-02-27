@@ -2,6 +2,12 @@
 
 Reverse-proxy style flagship app with deterministic policy contract and profile/variant benchmark lanes.
 
+## Why this example exists
+
+- Demonstrates a realistic service-style workload with deterministic policy assertions.
+- Shows separation between profile contract (`portable` vs `metal`) and app capability variant (`core` vs `go_native`).
+- Provides benchmark-ready lanes for generated-vs-handwritten Go comparisons.
+
 ## Architecture
 
 | Layer | Files | Responsibility |
@@ -59,6 +65,17 @@ Modes:
 
 Both profiles preserve the same proxy/policy contract. Differences are code shape and optimization policy, not app behavior removal.
 
+## When to choose each profile here
+
+- Choose `portable` when this proxy logic is intended to stay portable and shareable across targets.
+- Choose `metal` when this deployment is Go-first and you want stricter boundary enforcement plus stronger typed specialization pressure.
+
+## Tradeoffs shown by this example
+
+- Same app behavior can be preserved while codegen strategy differs.
+- `metal` can emit extra typed helpers in `go_native` lanes; that can increase LOC while reducing dynamic overhead.
+- Running `core` under `metal` is useful for metal-readiness checks even when deltas are smaller than `go_native`.
+
 ## Variant Behavior Matrix
 
 | Variant | Capability id | Strategy | Notes |
@@ -80,6 +97,13 @@ Committed generated trees under `generated/portable` and `generated/metal` curre
 - entry orchestration: `generated/portable/main.go`
 
 For `go_native` generated Go inspection, compile the `*.ci.hxml` lanes and inspect `out_portable_ci` / `out_metal_ci`.
+
+Generated diff commands:
+
+```bash
+diff -ru generated/portable generated/metal
+diff -ru out_portable_ci out_metal_ci
+```
 
 ## Matrix Expectations
 
@@ -120,3 +144,10 @@ Methodology and fairness constraints: `docs/benchmark-methodology-apps.md`.
 - Committed generated trees are currently `core` snapshots; `go_native` codegen is validated via CI compile lanes and perf harness runs.
 - App-level allocation and binary-size overhead vs pure-Go is measurable and expected while `hxrt` ownership and stdlib shims remain in active optimization work.
 - `metal` is not a "fewer lines" mode. In `go_native` lanes it can emit additional specialized typed helpers (`go__concurrency_*`, `go__result_*`) to reduce dynamic paths in hot code, which may increase generated LOC while improving runtime behavior.
+
+## Related docs
+
+- `docs/profiles.md`
+- `docs/profile-semantics-guide.md`
+- `docs/examples-matrix.md`
+- `docs/benchmark-methodology-apps.md`

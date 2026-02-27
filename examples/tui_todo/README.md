@@ -2,6 +2,12 @@
 
 Canonical complex example for reflaxe.go profile comparisons.
 
+## Why this example exists
+
+- Demonstrates a practical app workflow from one Haxe codebase in both profiles.
+- Shows profile runtime adapter selection via `profile/RuntimeFactory.hx`.
+- Provides deterministic scripted mode for CI plus interactive local mode.
+
 ## What it demonstrates
 
 - Shared todo app/domain code compiled to `portable` and `metal`.
@@ -11,6 +17,23 @@ Canonical complex example for reflaxe.go profile comparisons.
   - `metal`: batch add + diagnostics.
 - User-driven command session mode for local demo runs.
 - Deterministic scripted mode for CI (`--scripted`).
+
+## Profile behavior in this example
+
+- `portable`: baseline semantics and portability-first lane.
+- `metal`: explicit Go-first lane with additive capabilities (`batch`, diagnostics) enabled by runtime adapter.
+- Same baseline todo contract remains intact across both profiles.
+
+## When to choose each profile here
+
+- Choose `portable` when this app logic is intended for cross-target reuse.
+- Choose `metal` when this app is Go-targeted and you want stricter boundaries plus additive Go-focused capabilities.
+
+## Tradeoffs shown by this example
+
+- You can keep one domain model and still expose profile-specific capabilities.
+- Similar generated shapes are normal in portable-surface-heavy paths.
+- Profile adapters keep intent explicit without forking the whole app.
 
 ## Compile
 
@@ -56,3 +79,22 @@ Command-session mode examples:
 (cd out_portable && go run . add 2 Write_profile_docs tag 1 docs list)
 (cd out_metal && go run . batch 3 Ship_generated_go_sync Add_binary_matrix list)
 ```
+
+## Generated Go diff inspection
+
+```bash
+diff -ru generated/portable generated/metal
+```
+
+High-signal files:
+
+- `generated/portable/module_profile_runtimefactory.go`
+- `generated/metal/module_profile_runtimefactory.go`
+- `generated/portable/module_profile_portableruntime.go`
+- `generated/metal/module_profile_metalruntime.go`
+
+## Related docs
+
+- `docs/profiles.md`
+- `docs/profile-semantics-guide.md`
+- `docs/examples-matrix.md`
