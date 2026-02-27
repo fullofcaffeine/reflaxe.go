@@ -11,7 +11,7 @@
 
 Haxe 4.3.7 -> Go compiler target built on Reflaxe.
 
-Write Haxe, generate idiomatic-enough Go modules, and ship native binaries with profile-based control over portability vs Go-first output style.
+Write Haxe, generate readable Go modules, and ship native binaries with profile-based control over portability vs Go-first output style.
 
 If you want Haxe productivity with a serious Go delivery pipeline, this is that target.
 
@@ -90,8 +90,6 @@ Use `-D reflaxe_go_profile=portable|metal`.
 | --- | --- | --- |
 | `portable` (default) | Haxe-first teams | Portability-first semantics and lowest migration risk |
 | `metal` (experimental) | Low-level interop needs | `portable` + strict boundary defaults + typed low-level interop lane |
-
-`idiomatic` and `gopher` were removed and now fail fast. Use `portable`.
 
 Details: [docs/profiles.md](docs/profiles.md)
 Canonical portable semantics: [docs/portable-canonical-contract.md](docs/portable-canonical-contract.md)

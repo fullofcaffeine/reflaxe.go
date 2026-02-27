@@ -113,11 +113,6 @@ Set via:
 - `metal` (experimental): choose this when portable abstractions are not enough and you need typed low-level interop with strict boundaries.
 - `@:goMetal`: optional lane metadata for portable builds when you want module-by-module metal-clean enforcement.
 
-Compatibility note:
-
-- `idiomatic` is removed and intentionally fails fast; use `portable` instead.
-- `gopher` is removed and intentionally fails fast; use `portable` instead.
-
 ## Strict policy knobs
 
 - `-D reflaxe_go_strict_examples`: forbids raw `__go__` in repo examples/snapshots.

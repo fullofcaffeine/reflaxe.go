@@ -31,13 +31,6 @@
 - `reflaxe_go_metal`
   - Alias selector for metal.
 
-Removed:
-
-- `reflaxe_go_profile=gopher` -> compile error, use `portable`.
-- `reflaxe_go_gopher` -> compile error, use `reflaxe_go_profile=portable`.
-- `reflaxe_go_profile=idiomatic` -> compile error, use `portable`.
-- `reflaxe_go_idiomatic` -> compile error, use `reflaxe_go_profile=portable`.
-
 Design note:
 
 - `auto` is not a semantic profile in this repo.

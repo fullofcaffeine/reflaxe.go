@@ -8,7 +8,6 @@ import app.core.PulseIngressFrame;
 import go.Chan;
 import go.Go;
 import go.Select;
-import haxe.ds.IntMap;
 
 class GoNativeRuntime implements PulseRuntime {
 	public function profileId():String {
@@ -182,17 +181,25 @@ class GoNativeRuntime implements PulseRuntime {
 	}
 
 	function orderParsed(items:Array<PulseEvent>, expected:Int):Array<PulseEvent> {
-		var byId:IntMap<PulseEvent> = new IntMap<PulseEvent>();
+		var byId = new Array<Null<PulseEvent>>();
+		var size = expected + 1;
+		var i = 0;
+		while (i < size) {
+			byId.push(null);
+			i++;
+		}
 		for (item in items) {
-			byId.set(item.id, item);
+			if (item.id >= 1 && item.id <= expected) {
+				byId[item.id] = item;
+			}
 		}
 
 		var ordered = new Array<PulseEvent>();
 		var id = 1;
 		while (id <= expected) {
-			var event = byId.get(id);
+			var event = byId[id];
 			if (event != null) {
-				ordered.push(event);
+				ordered.push(cast event);
 			}
 			id++;
 		}
@@ -200,17 +207,26 @@ class GoNativeRuntime implements PulseRuntime {
 	}
 
 	function orderEnriched(items:Array<PulseEnrichedEvent>, expected:Int):Array<PulseEnrichedEvent> {
-		var byId:IntMap<PulseEnrichedEvent> = new IntMap<PulseEnrichedEvent>();
+		var byId = new Array<Null<PulseEnrichedEvent>>();
+		var size = expected + 1;
+		var i = 0;
+		while (i < size) {
+			byId.push(null);
+			i++;
+		}
 		for (item in items) {
-			byId.set(item.event.id, item);
+			var id = item.event.id;
+			if (id >= 1 && id <= expected) {
+				byId[id] = item;
+			}
 		}
 
 		var ordered = new Array<PulseEnrichedEvent>();
 		var id = 1;
 		while (id <= expected) {
-			var event = byId.get(id);
+			var event = byId[id];
 			if (event != null) {
-				ordered.push(event);
+				ordered.push(cast event);
 			}
 			id++;
 		}

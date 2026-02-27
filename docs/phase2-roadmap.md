@@ -19,8 +19,6 @@
 - `portable`: semantics-first output, lowest migration risk.
 - `metal`: `portable` + typed interop/performance lane (strict defaults).
 
-`idiomatic` remains removed and must not be reintroduced.
-
 Selective runtime slicing is tracked separately and does not replace profile contracts.
 See `docs/hxrt-selective-runtime.md`.
 

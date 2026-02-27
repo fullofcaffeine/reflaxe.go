@@ -8,7 +8,7 @@ type I_profile__MetalRuntime interface {
 	normalizeTag(tag *string) *string
 	supportsBatchAdd() bool
 	supportsDiagnostics() bool
-	diagnostics(items *haxe__ds__List) *string
+	diagnostics(metrics *profile__TodoRuntimeMetrics) *string
 }
 
 type profile__MetalRuntime struct {
@@ -41,31 +41,6 @@ func (self *profile__MetalRuntime) supportsDiagnostics() bool {
 	return true
 }
 
-func (self *profile__MetalRuntime) diagnostics(items *haxe__ds__List) *string {
-	p1 := 0
-	completed := 0
-	count := items.length
-	i := 0
-	for i < count {
-		value := func(hx_value_35 any) *model__TodoItem {
-			if hx_value_35 == nil {
-				var hx_zero_36 *model__TodoItem
-				return hx_zero_36
-			}
-			return hx_value_35.(*model__TodoItem)
-		}(items.pop())
-		if value == nil {
-			break
-		}
-		item := value
-		if item.priority == 1 {
-			p1 = int(int32((p1 + 1)))
-		}
-		if item.done {
-			completed = int(int32((completed + 1)))
-		}
-		items.add(item)
-		i = int(int32((i + 1)))
-	}
-	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("p1="), p1), hxrt.StringFromLiteral(",completed=")), completed)
+func (self *profile__MetalRuntime) diagnostics(metrics *profile__TodoRuntimeMetrics) *string {
+	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("p1="), metrics.p1), hxrt.StringFromLiteral(",completed=")), metrics.done)
 }

@@ -6,7 +6,7 @@ type I_profile__PortableRuntime interface {
 	profileId() *string
 	decorateTitle(title *string) *string
 	highlightTag(tag *string) *string
-	extraSignal(cards *haxe__ds__List) *string
+	extraSignal(metrics *profile__StorySignalMetrics) *string
 	supportsVelocityHint() bool
 	velocityPerSprint() int
 	riskThreshold() int
@@ -34,7 +34,7 @@ func (self *profile__PortableRuntime) highlightTag(tag *string) *string {
 	return tag
 }
 
-func (self *profile__PortableRuntime) extraSignal(cards *haxe__ds__List) *string {
+func (self *profile__PortableRuntime) extraSignal(metrics *profile__StorySignalMetrics) *string {
 	return hxrt.StringFromLiteral("interop_lane=off,optimizer=stable,policy_gate=off")
 }
 

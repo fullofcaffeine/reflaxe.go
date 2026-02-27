@@ -63,12 +63,12 @@ func (self *model__TodoStore) openCount() int {
 	count := self.entries.length
 	i := 0
 	for i < count {
-		value := func(hx_value_29 any) *model__TodoItem {
-			if hx_value_29 == nil {
-				var hx_zero_30 *model__TodoItem
-				return hx_zero_30
+		value := func(hx_value_31 any) *model__TodoItem {
+			if hx_value_31 == nil {
+				var hx_zero_32 *model__TodoItem
+				return hx_zero_32
 			}
-			return hx_value_29.(*model__TodoItem)
+			return hx_value_31.(*model__TodoItem)
 		}(self.entries.pop())
 		if value == nil {
 			break
@@ -88,12 +88,12 @@ func (self *model__TodoStore) doneCount() int {
 	count := self.entries.length
 	i := 0
 	for i < count {
-		value := func(hx_value_31 any) *model__TodoItem {
-			if hx_value_31 == nil {
-				var hx_zero_32 *model__TodoItem
-				return hx_zero_32
+		value := func(hx_value_33 any) *model__TodoItem {
+			if hx_value_33 == nil {
+				var hx_zero_34 *model__TodoItem
+				return hx_zero_34
 			}
-			return hx_value_31.(*model__TodoItem)
+			return hx_value_33.(*model__TodoItem)
 		}(self.entries.pop())
 		if value == nil {
 			break
@@ -113,12 +113,12 @@ func (self *model__TodoStore) findById(id int) *model__TodoItem {
 	count := self.entries.length
 	i := 0
 	for i < count {
-		value := func(hx_value_33 any) *model__TodoItem {
-			if hx_value_33 == nil {
-				var hx_zero_34 *model__TodoItem
-				return hx_zero_34
+		value := func(hx_value_35 any) *model__TodoItem {
+			if hx_value_35 == nil {
+				var hx_zero_36 *model__TodoItem
+				return hx_zero_36
 			}
-			return hx_value_33.(*model__TodoItem)
+			return hx_value_35.(*model__TodoItem)
 		}(self.entries.pop())
 		if value == nil {
 			break

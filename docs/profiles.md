@@ -10,7 +10,7 @@ This target supports two profiles:
 
 | Profile | Best for | Behavior contract |
 | --- | --- | --- |
-| `portable` (default) | Haxe-first and cross-target code | Stable Haxe-oriented semantics, portability-first output (includes former gopher-safe optimizations) |
+| `portable` (default) | Haxe-first and cross-target code | Stable Haxe-oriented semantics and portability-first output |
 | `metal` (experimental) | Teams needing typed low-level interop lane | `portable` + strict default app-boundary policy + typed framework interop façade |
 
 ## Why two profiles
@@ -27,13 +27,6 @@ See `docs/hxrt-selective-runtime.md`.
 
 `auto` spike decision (why `portable+metal` remains canonical and how a future additive planner would work):
 `docs/profile-auto-spike.md`.
-
-## Removed selectors
-
-- `-D reflaxe_go_profile=gopher` is removed; use `portable`.
-- `-D reflaxe_go_gopher` is removed; use `reflaxe_go_profile=portable`.
-- `-D reflaxe_go_profile=idiomatic` is removed; use `portable`.
-- `-D reflaxe_go_idiomatic` is removed; use `reflaxe_go_profile=portable`.
 
 ## Metal-ready subset (current)
 

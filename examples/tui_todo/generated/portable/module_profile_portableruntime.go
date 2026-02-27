@@ -8,7 +8,7 @@ type I_profile__PortableRuntime interface {
 	normalizeTag(tag *string) *string
 	supportsBatchAdd() bool
 	supportsDiagnostics() bool
-	diagnostics(items *haxe__ds__List) *string
+	diagnostics(metrics *profile__TodoRuntimeMetrics) *string
 }
 
 type profile__PortableRuntime struct {
@@ -41,6 +41,6 @@ func (self *profile__PortableRuntime) supportsDiagnostics() bool {
 	return false
 }
 
-func (self *profile__PortableRuntime) diagnostics(items *haxe__ds__List) *string {
+func (self *profile__PortableRuntime) diagnostics(metrics *profile__TodoRuntimeMetrics) *string {
 	return hxrt.StringFromLiteral("off")
 }

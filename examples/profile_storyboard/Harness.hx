@@ -1,5 +1,6 @@
 import domain.StoryCard;
 import haxe.ds.List;
+import profile.StorySignalMetrics;
 import profile.StoryboardRuntime;
 
 class Harness {
@@ -183,6 +184,29 @@ class Harness {
 		return total;
 	}
 
+	static function buildSignalMetrics(cards:List<StoryCard>):StorySignalMetrics {
+		var highValue = 0;
+		var openHighValue = 0;
+		var count = cards.length;
+		var i = 0;
+		while (i < count) {
+			var value = cards.pop();
+			if (value == null) {
+				break;
+			}
+			var card:StoryCard = cast value;
+			if (card.points >= 5) {
+				highValue++;
+				if (card.state != STATE_DONE) {
+					openHighValue++;
+				}
+			}
+			cards.add(card);
+			i++;
+		}
+		return new StorySignalMetrics(cards.length, highValue, openHighValue);
+	}
+
 	static function readinessPercent(donePoints:Int, totalPoints:Int):Int {
 		if (totalPoints <= 0) {
 			return 0;
@@ -327,6 +351,7 @@ class Harness {
 		var riskThreshold = runtime.riskThreshold();
 		var highRisk = openHighRisk(cards, riskThreshold);
 		var releaseOpen = releaseTaggedOpen(cards);
+		var signalMetrics = buildSignalMetrics(cards);
 		var velocityHint = runtime.supportsVelocityHint() ? "adaptive" : "baseline";
 		var bar = progressBar(done, total, 24);
 
@@ -343,7 +368,7 @@ class Harness {
 			+ "\n  Open Load  " + open + " points | velocity=" + velocity + " points/sprint | eta=" + forecast + " sprint(s)" + "\n  Team Focus "
 			+ openOwnerFocus(cards) + "\n  Velocity Hint: " + velocityHint + "\n\nBoard" + "\n" + formatLane(cards, STATE_TODO, "TODO", runtime)
 			+ formatLane(cards, STATE_DOING, "DOING", runtime) + formatLane(cards, STATE_DONE, "DONE", runtime) + "\nRisk Radar" + "\n  High-Risk Open (>= p"
-			+ riskThreshold + "): " + highRisk + "\n  Release-Tagged Open: " + releaseOpen + "\n  Profile Signal: " + runtime.extraSignal(cards)
+			+ riskThreshold + "): " + highRisk + "\n  Release-Tagged Open: " + releaseOpen + "\n  Profile Signal: " + runtime.extraSignal(signalMetrics)
 			+ "\n\nDecision" + "\n  " + action;
 	}
 
@@ -354,7 +379,7 @@ class Harness {
 		if (summary != "cards=5,points=21,done_points=8,open_points=13,readiness=38") {
 			throw "baseline drift: " + summary;
 		}
-		var extra = runtime.extraSignal(cards);
+		var extra = runtime.extraSignal(buildSignalMetrics(cards));
 		if (extra == null || extra == "") {
 			throw "missing extra signal";
 		}

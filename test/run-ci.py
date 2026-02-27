@@ -63,6 +63,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-examples", action="store_true", help="Skip examples stage")
     parser.add_argument("--force-examples", action="store_true", help="Run examples even for chunked/filtered runs")
     parser.add_argument("--examples-compile-only", action="store_true", help="Run examples compile/go-test checks without go run stdout checks")
+    parser.add_argument("--skip-metal-example-boundary", action="store_true", help="Skip metal example boundary stage")
     parser.add_argument("--skip-goextern-fixtures", action="store_true", help="Skip goextern fixture drift stage")
     return parser.parse_args()
 
@@ -286,6 +287,14 @@ def build_examples_command(args: argparse.Namespace) -> list[str]:
     return cmd
 
 
+def should_run_metal_example_boundary(args: argparse.Namespace) -> bool:
+    return not args.skip_metal_example_boundary
+
+
+def build_metal_example_boundary_command() -> list[str]:
+    return ["python3", "test/run-metal-example-boundary.py"]
+
+
 def build_goextern_fixtures_command() -> list[str]:
     return ["python3", "test/run-goextern-fixtures.py"]
 
@@ -438,6 +447,14 @@ def main() -> int:
             return semantic_diff_lanes_code
     else:
         print("==> Skipping semantic diff lanes stage")
+
+    if should_run_metal_example_boundary(args):
+        print("==> Metal example boundary stage")
+        metal_example_boundary_code = run(build_metal_example_boundary_command())
+        if metal_example_boundary_code != 0:
+            return metal_example_boundary_code
+    else:
+        print("==> Skipping metal example boundary stage")
 
     run_goextern_fixtures, goextern_reason = should_run_goextern_fixtures(args)
     if not run_goextern_fixtures:

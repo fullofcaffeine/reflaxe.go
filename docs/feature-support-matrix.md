@@ -168,7 +168,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | --- | --- | --- |
 | `portable` safe devirtualization path | Supported | `core/portable_leaf_virtual_devirtualization`, `core/portable_leaf_virtual_alias_devirtualization`, `core/portable_leaf_virtual_inline_ctor_devirtualization`, `core/portable_leaf_virtual_function_return_devirtualization`, `core/portable_non_leaf_virtual_dispatch_preserved` |
 | `portable` string helper optimizations | Supported | `core/portable_string_ptr_helpers`, `core/portable_string_literal_folding` |
-| Profile policy enforcement and removed aliases | Supported | `negative/profile_conflict`, `negative/profile_invalid`, `negative/profile_removed_gopher`, `negative/profile_removed_gopher_alias`, `negative/profile_removed_idiomatic`, `negative/profile_removed_idiomatic_alias` |
+| Profile policy enforcement | Supported | `negative/profile_conflict`, `negative/profile_invalid` |
 | Strict examples/app boundary policy + portable native-import policy modes | Supported | `negative/strict_examples_injection`, `negative/strict_mode_injection`, `negative/metal_profile_injection`, `negative/go_metal_lane_injection`, `negative/portable_native_import_error`, `core/portable_native_import_warn_policy` |
 | RawNative encoding policy define (`reflaxe_go_raw_native_mode`) | Supported | `core/raw_native_utf16_mode`, `negative/raw_native_mode_invalid` |
 

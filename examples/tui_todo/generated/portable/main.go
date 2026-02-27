@@ -1507,6 +1507,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return hxrt_typeCallAny(New_model__TodoStore, args)
 	case "profile.PortableRuntime":
 		return hxrt_typeCallAny(New_profile__PortableRuntime, args)
+	case "profile.TodoRuntimeMetrics":
+		return hxrt_typeCallAny(New_profile__TodoRuntimeMetrics, args)
 	default:
 		return nil, false
 	}
@@ -1522,6 +1524,8 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 		return &model__TodoStore{}, true
 	case "profile.PortableRuntime":
 		return &profile__PortableRuntime{}, true
+	case "profile.TodoRuntimeMetrics":
+		return &profile__TodoRuntimeMetrics{}, true
 	default:
 		return nil, false
 	}
@@ -1668,6 +1672,11 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("profile.PortableRuntime")}
+	case *profile__TodoRuntimeMetrics:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("profile.TodoRuntimeMetrics")}
 	default:
 		return nil
 	}
@@ -1710,6 +1719,8 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "profile.PortableRuntime":
 		return nil
+	case "profile.TodoRuntimeMetrics":
+		return nil
 	default:
 		return nil
 	}
@@ -1737,6 +1748,8 @@ func Type_getClassFields(c any) []*string {
 		return []*string{}
 	case "profile.PortableRuntime":
 		return []*string{}
+	case "profile.TodoRuntimeMetrics":
+		return []*string{}
 	default:
 		return []*string{}
 	}
@@ -1749,13 +1762,15 @@ func Type_getInstanceFields(c any) []*string {
 	}
 	switch className {
 	case "app.TodoApp":
-		return []*string{hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("addMany"), hxrt.StringFromLiteral("baselineSignature"), hxrt.StringFromLiteral("diagnostics"), hxrt.StringFromLiteral("doneCount"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("openCount"), hxrt.StringFromLiteral("render"), hxrt.StringFromLiteral("runtime"), hxrt.StringFromLiteral("store"), hxrt.StringFromLiteral("tag"), hxrt.StringFromLiteral("toggle"), hxrt.StringFromLiteral("totalCount")}
+		return []*string{hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("addMany"), hxrt.StringFromLiteral("baselineSignature"), hxrt.StringFromLiteral("buildRuntimeMetrics"), hxrt.StringFromLiteral("diagnostics"), hxrt.StringFromLiteral("doneCount"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("openCount"), hxrt.StringFromLiteral("render"), hxrt.StringFromLiteral("runtime"), hxrt.StringFromLiteral("store"), hxrt.StringFromLiteral("tag"), hxrt.StringFromLiteral("toggle"), hxrt.StringFromLiteral("totalCount")}
 	case "model.TodoItem":
 		return []*string{hxrt.StringFromLiteral("done"), hxrt.StringFromLiteral("id"), hxrt.StringFromLiteral("priority"), hxrt.StringFromLiteral("set_done"), hxrt.StringFromLiteral("set_priority"), hxrt.StringFromLiteral("set_title"), hxrt.StringFromLiteral("tags"), hxrt.StringFromLiteral("title")}
 	case "model.TodoStore":
 		return []*string{hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("addTag"), hxrt.StringFromLiteral("doneCount"), hxrt.StringFromLiteral("entries"), hxrt.StringFromLiteral("findById"), hxrt.StringFromLiteral("list"), hxrt.StringFromLiteral("nextId"), hxrt.StringFromLiteral("openCount"), hxrt.StringFromLiteral("toggle"), hxrt.StringFromLiteral("totalCount")}
 	case "profile.PortableRuntime":
 		return []*string{hxrt.StringFromLiteral("diagnostics"), hxrt.StringFromLiteral("normalizeTag"), hxrt.StringFromLiteral("normalizeTitle"), hxrt.StringFromLiteral("profileId"), hxrt.StringFromLiteral("supportsBatchAdd"), hxrt.StringFromLiteral("supportsDiagnostics")}
+	case "profile.TodoRuntimeMetrics":
+		return []*string{hxrt.StringFromLiteral("done"), hxrt.StringFromLiteral("open"), hxrt.StringFromLiteral("p1"), hxrt.StringFromLiteral("total")}
 	default:
 		return []*string{}
 	}
@@ -1782,6 +1797,8 @@ func Type_resolveClass(name *string) any {
 	case "model.TodoStore":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "profile.PortableRuntime":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "profile.TodoRuntimeMetrics":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil

@@ -4,6 +4,7 @@ import haxe.ds.List;
 import model.TodoItem;
 import model.TodoStore;
 import profile.TodoRuntime;
+import profile.TodoRuntimeMetrics;
 
 class TodoApp {
 	var runtime:TodoRuntime;
@@ -91,7 +92,31 @@ class TodoApp {
 		if (!runtime.supportsDiagnostics()) {
 			return "off";
 		}
-		return runtime.diagnostics(store.list());
+		return runtime.diagnostics(buildRuntimeMetrics());
+	}
+
+	function buildRuntimeMetrics():TodoRuntimeMetrics {
+		var items = store.list();
+		var total = items.length;
+		var done = 0;
+		var p1 = 0;
+		var i = 0;
+		while (i < total) {
+			var value = items.pop();
+			if (value == null) {
+				break;
+			}
+			var item:TodoItem = cast value;
+			if (item.done) {
+				done++;
+			}
+			if (item.priority == 1) {
+				p1++;
+			}
+			items.add(item);
+			i++;
+		}
+		return new TodoRuntimeMetrics(total, total - done, done, p1);
 	}
 
 	public function render():String {

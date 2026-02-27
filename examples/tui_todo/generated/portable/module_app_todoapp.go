@@ -12,6 +12,7 @@ type I_app__TodoApp interface {
 	openCount() int
 	doneCount() int
 	diagnostics() *string
+	buildRuntimeMetrics() *profile__TodoRuntimeMetrics
 	render() *string
 	items() *haxe__ds__List
 }
@@ -90,7 +91,37 @@ func (self *app__TodoApp) diagnostics() *string {
 	if !self.runtime.supportsDiagnostics() {
 		return hxrt.StringFromLiteral("off")
 	}
-	return self.runtime.diagnostics(self.store.list())
+	return self.runtime.diagnostics(self.buildRuntimeMetrics())
+}
+
+func (self *app__TodoApp) buildRuntimeMetrics() *profile__TodoRuntimeMetrics {
+	items := self.store.list()
+	total := items.length
+	done := 0
+	p1 := 0
+	i := 0
+	for i < total {
+		value := func(hx_value_25 any) *model__TodoItem {
+			if hx_value_25 == nil {
+				var hx_zero_26 *model__TodoItem
+				return hx_zero_26
+			}
+			return hx_value_25.(*model__TodoItem)
+		}(items.pop())
+		if value == nil {
+			break
+		}
+		item := value
+		if item.done {
+			done = int(int32((done + 1)))
+		}
+		if item.priority == 1 {
+			p1 = int(int32((p1 + 1)))
+		}
+		items.add(item)
+		i = int(int32((i + 1)))
+	}
+	return New_profile__TodoRuntimeMetrics(total, int(int32((hxrt.Int32Wrap(total) - hxrt.Int32Wrap(done)))), done, p1)
 }
 
 func (self *app__TodoApp) render() *string {
@@ -99,12 +130,12 @@ func (self *app__TodoApp) render() *string {
 	count := items.length
 	i := 0
 	for i < count {
-		raw := func(hx_value_25 any) *model__TodoItem {
-			if hx_value_25 == nil {
-				var hx_zero_26 *model__TodoItem
-				return hx_zero_26
+		raw := func(hx_value_27 any) *model__TodoItem {
+			if hx_value_27 == nil {
+				var hx_zero_28 *model__TodoItem
+				return hx_zero_28
 			}
-			return hx_value_25.(*model__TodoItem)
+			return hx_value_27.(*model__TodoItem)
 		}(items.pop())
 		if raw == nil {
 			break
@@ -136,12 +167,12 @@ func app__TodoApp_joinStringList(values *haxe__ds__List, separator *string) *str
 	count := values.length
 	i := 0
 	for i < count {
-		raw := func(hx_value_27 any) *string {
-			if hx_value_27 == nil {
-				var hx_zero_28 *string
-				return hx_zero_28
+		raw := func(hx_value_29 any) *string {
+			if hx_value_29 == nil {
+				var hx_zero_30 *string
+				return hx_zero_30
 			}
-			return hx_value_27.(*string)
+			return hx_value_29.(*string)
 		}(values.pop())
 		if hxrt.StringEqualStringPtr(raw, nil) {
 			break

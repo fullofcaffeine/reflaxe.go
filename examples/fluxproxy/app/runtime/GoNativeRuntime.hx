@@ -6,7 +6,6 @@ import app.core.FluxRequest;
 import go.Chan;
 import go.Go;
 import go.Select;
-import haxe.ds.IntMap;
 
 class GoNativeRuntime implements FluxRuntime {
 	public function profileId():String {
@@ -136,16 +135,35 @@ class GoNativeRuntime implements FluxRuntime {
 	}
 
 	function orderResponses(items:Array<FluxProxyResponse>, requests:Array<FluxRequest>):Array<FluxProxyResponse> {
-		var byId:IntMap<FluxProxyResponse> = new IntMap<FluxProxyResponse>();
+		var maxId = 0;
+		for (request in requests) {
+			if (request.id > maxId) {
+				maxId = request.id;
+			}
+		}
+
+		var byId = new Array<Null<FluxProxyResponse>>();
+		var size = maxId + 1;
+		var i = 0;
+		while (i < size) {
+			byId.push(null);
+			i++;
+		}
+
 		for (item in items) {
-			byId.set(item.requestId, item);
+			if (item.requestId >= 0 && item.requestId <= maxId) {
+				byId[item.requestId] = item;
+			}
 		}
 
 		var ordered = new Array<FluxProxyResponse>();
 		for (request in requests) {
-			var response = byId.get(request.id);
+			var response:Null<FluxProxyResponse> = null;
+			if (request.id >= 0 && request.id <= maxId) {
+				response = byId[request.id];
+			}
 			if (response != null) {
-				ordered.push(response);
+				ordered.push(cast response);
 			}
 		}
 		return ordered;

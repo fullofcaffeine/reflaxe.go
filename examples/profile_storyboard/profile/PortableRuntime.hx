@@ -1,8 +1,5 @@
 package profile;
 
-import domain.StoryCard;
-import haxe.ds.List;
-
 class PortableRuntime implements StoryboardRuntime {
 	public function new() {}
 
@@ -18,7 +15,7 @@ class PortableRuntime implements StoryboardRuntime {
 		return tag;
 	}
 
-	public function extraSignal(cards:List<StoryCard>):String {
+	public function extraSignal(metrics:StorySignalMetrics):String {
 		return "interop_lane=off,optimizer=stable,policy_gate=off";
 	}
 

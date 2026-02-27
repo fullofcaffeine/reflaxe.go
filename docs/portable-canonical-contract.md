@@ -56,7 +56,6 @@ Key rules are explicitly locked in tests:
 - Leaf-call devirtualization is allowed only when globally proven safe.
 - `Std.string(null)` and `"" + null` produce `"null"`.
 - Typed-nil values boxed into `Dynamic`/`any` still behave as null for portable stringification/equality expectations.
-- Removed profile selectors (`gopher`, `idiomatic`) fail fast with clear diagnostics.
 
 ### Portable null semantics (practical contract)
 
@@ -90,8 +89,6 @@ Key semantic guards include:
 - `test/semantic_diff/typed_nil_dynamic_string_contract`
 - `test/snapshot/core/portable_leaf_virtual_devirtualization`
 - `test/snapshot/core/portable_non_leaf_virtual_dispatch_preserved`
-- `test/snapshot/negative/profile_removed_gopher`
-- `test/snapshot/negative/profile_removed_gopher_alias`
 
 ## Adoption Pattern for Other Compilers
 

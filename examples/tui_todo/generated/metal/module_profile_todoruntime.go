@@ -6,5 +6,5 @@ type profile__TodoRuntime interface {
 	normalizeTag(tag *string) *string
 	supportsBatchAdd() bool
 	supportsDiagnostics() bool
-	diagnostics(items *haxe__ds__List) *string
+	diagnostics(metrics *profile__TodoRuntimeMetrics) *string
 }

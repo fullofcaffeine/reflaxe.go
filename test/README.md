@@ -132,6 +132,12 @@ Force examples stage on a focused run:
 python3 test/run-ci.py --changed --force-examples
 ```
 
+Skip metal-only example boundary import policy stage:
+
+```bash
+python3 test/run-ci.py --skip-metal-example-boundary
+```
+
 Force optimizer matrix stage on a focused run:
 
 ```bash
@@ -148,6 +154,13 @@ python3 test/run-snapshots.py --list
 
 ```bash
 python3 test/run-snapshots.py --case core/hello_trace
+```
+
+## Check metal-only example import boundary directly
+
+```bash
+python3 test/run-metal-example-boundary.py
+npm run test:examples:metal-boundary
 ```
 
 ## Run with parallel workers

@@ -111,7 +111,6 @@ Lane enforcement snapshots:
 
 - Portable semantics are the baseline contract.
 - Runtime feature inference/slicing is orthogonal and must not silently change profile semantics.
-- Removed profiles (`gopher`, `idiomatic`) are hard errors, not aliases.
 
 ### What can differ between profiles
 

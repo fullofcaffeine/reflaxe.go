@@ -11,6 +11,24 @@
 | `examples/pulseforge` | Yes | Yes | Flagship app scaffold proving profile matrix + explicit variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
 | `examples/fluxproxy` | Yes | Yes | Flagship proxy scaffold with profile matrix + variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
 
+## Profile performance teaching contract
+
+Examples intentionally show two valid outcomes:
+
+- parity cases: when code stays on portable-facing surfaces, `portable` and `metal` can be near-identical in behavior and sometimes code shape.
+- advantage cases: Go-native hot paths should show measurable profile deltas where `metal`-oriented specialization is expected to help.
+
+Use these anchors:
+
+- parity-focused: `examples/interop_smoke`, `core` lanes in `examples/pulseforge` and `examples/fluxproxy`.
+- metal-advantage-focused: `examples/worker_pool_select`, `go_native` lanes in `examples/pulseforge` and `examples/fluxproxy`.
+
+Evidence sources:
+
+- micro profile baselines: `scripts/ci/perf/go-profile-baseline.json`
+- flagship app baselines: `scripts/ci/perf/app-profile-baseline.json`
+- methodology and delta interpretation: `docs/benchmark-methodology-apps.md`
+
 ## Flagship app behavior docs
 
 - PulseForge: `examples/pulseforge/README.md`
