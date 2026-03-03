@@ -305,7 +305,7 @@ Use these optional flags when auditing effective contract/runtime behavior:
 - `-D reflaxe_go_contract_report` emits `profile_contract.json` and `profile_contract.md`.
 - `-D reflaxe_go_runtime_plan_report` emits `hxrt_plan.json` and `hxrt_plan.md`.
 
-`profile_contract.json` (schema v4) carries deterministic structured fallback entries, includes `autoLoweringMode`, and preserves module/lane attribution (`module`, `inMetalLane`) plus lane summary fields:
+`profile_contract.json` (schema v5) carries deterministic lowering-decision ledger fields (`loweringDecisionCount`, `loweringDecisionAttemptCount`, `loweringDecisionSuccessCount`, `loweringDecisionFallbackCount`, `loweringDecisions`), includes `autoLoweringMode`, and preserves module/lane attribution (`module`, `inMetalLane`) plus lane summary fields:
 
 - `metalFallbackLaneViolationCount`
 - `metalFallbackNonLaneViolationCount`

@@ -10,6 +10,16 @@ typedef MetalFallbackViolation = {
 	var inMetalLane:Bool;
 }
 
+typedef LoweringDecisionLedgerEntry = {
+	var feature:String;
+	var kind:String;
+	var outcome:String;
+	var detail:String;
+	var location:String;
+	var module:String;
+	var inMetalLane:Bool;
+}
+
 class CompilationContext {
 	public final buildContext:GoBuildContext;
 	public final profile:GoProfile;
@@ -24,6 +34,7 @@ class CompilationContext {
 	public var requiredStdlibShimGroups:Array<String>;
 	public var requiresIoHelperSurface:Bool;
 	public var metalFallbackViolations:Array<MetalFallbackViolation>;
+	public var loweringDecisionLedger:Array<LoweringDecisionLedgerEntry>;
 	public var appliedGoAstPassNames:Array<String>;
 	public var optimizerStringInstanceTypedLowerings:Int;
 	public var optimizerStringInstanceLegacyLowerings:Int;
@@ -48,6 +59,7 @@ class CompilationContext {
 		this.requiredStdlibShimGroups = [];
 		this.requiresIoHelperSurface = false;
 		this.metalFallbackViolations = [];
+		this.loweringDecisionLedger = [];
 		this.appliedGoAstPassNames = [];
 		this.optimizerStringInstanceTypedLowerings = 0;
 		this.optimizerStringInstanceLegacyLowerings = 0;

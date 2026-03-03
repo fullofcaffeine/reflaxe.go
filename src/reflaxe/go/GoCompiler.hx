@@ -10821,18 +10821,22 @@ class GoCompiler {
 			case TNew(classRef, _, args):
 				var classType = classRef.get();
 				if (useTypedGoConcurrencySpecialization() && isGoChanClass(classType)) {
+					noteLoweringAttempt("go.concurrency.typed", "go_chan_new", expr.pos, "Attempt typed go.Chan constructor specialization.");
 					var elementGoType = goChanElementGoType(expr.t);
 					if (elementGoType != null) {
 						requireStdlibShimGroup("go_concurrency");
 						registerMetalChanElementGoType(elementGoType);
 						notePortableConcurrencyFastpathHit(expr.pos);
+						noteLoweringSuccess("go.concurrency.typed", "go_chan_new", expr.pos,
+							'Applied typed go.Chan constructor specialization (element type: ' + elementGoType + ").");
 						{
 							expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_newChan", elementGoType)), [GoExpr.GoIntLiteral(0)]),
 							isStringLike: false
 						};
 					} else {
 						notePortableConcurrencyFastpathFallback(expr.pos);
-						noteMetalFallback("go_chan_new_unmorphable", expr.pos, "Could not monomorphize go.Chan element type for constructor specialization.");
+						noteLoweringFallback("go.concurrency.typed", "go_chan_new_unmorphable", expr.pos,
+							"Could not monomorphize go.Chan element type for constructor specialization.");
 						{
 							expr: GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(classType)), [for (arg in args) lowerExpr(arg).expr]),
 							isStringLike: false
@@ -11667,15 +11671,19 @@ class GoCompiler {
 		}
 
 		if (isStaticCall(callee, "Go", ["go"], "newChan")) {
+			noteLoweringAttempt("go.concurrency.typed", "go_chan_new", callee.pos, "Attempt typed go.Go.newChan specialization.");
 			var elementGoType = goChanElementGoType(returnType);
 			if (elementGoType == null) {
 				notePortableConcurrencyFastpathFallback(callee.pos);
-				noteMetalFallback("go_chan_new_unmorphable", callee.pos, "Could not monomorphize go.Go.newChan return type for metal specialization.");
+				noteLoweringFallback("go.concurrency.typed", "go_chan_new_unmorphable", callee.pos,
+					"Could not monomorphize go.Go.newChan return type for metal specialization.");
 				return null;
 			}
 			requireStdlibShimGroup("go_concurrency");
 			registerMetalChanElementGoType(elementGoType);
 			notePortableConcurrencyFastpathHit(callee.pos);
+			noteLoweringSuccess("go.concurrency.typed", "go_chan_new", callee.pos,
+				'Applied typed go.Go.newChan specialization (element type: ' + elementGoType + ").");
 			var buffer = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_newChan", elementGoType)), [buffer]),
@@ -11687,17 +11695,22 @@ class GoCompiler {
 		if (methodCall == null) {
 			return null;
 		}
+		var methodKind = "go_chan_method_" + methodCall.methodName;
+		noteLoweringAttempt("go.concurrency.typed", methodKind, callee.pos, "Attempt typed go.Chan method specialization.");
 
 		var elementGoType = scalarGoType(methodCall.elementType);
 		if (!isMonomorphizableMetalChanElementType(elementGoType)) {
 			notePortableConcurrencyFastpathFallback(callee.pos);
-			noteMetalFallback("go_chan_method_unmorphable", callee.pos, 'Could not monomorphize go.Chan method call (element type: ' + elementGoType + ").");
+			noteLoweringFallback("go.concurrency.typed", "go_chan_method_unmorphable", callee.pos,
+				'Could not monomorphize go.Chan method call (element type: ' + elementGoType + ").");
 			return null;
 		}
 
 		requireStdlibShimGroup("go_concurrency");
 		registerMetalChanElementGoType(elementGoType);
 		notePortableConcurrencyFastpathHit(callee.pos);
+		noteLoweringSuccess("go.concurrency.typed", methodKind, callee.pos,
+			'Applied typed go.Chan method specialization (element type: ' + elementGoType + ").");
 
 		var channel = lowerExpr(methodCall.target).expr;
 		var channelNative = GoExpr.GoSelector(channel, "__hx_native");
@@ -11756,15 +11769,20 @@ class GoCompiler {
 		if (methodCall == null) {
 			return null;
 		}
+		var methodKind = "go_slice_method_" + methodCall.methodName;
+		noteLoweringAttempt("go.collections.typed", methodKind, callee.pos, "Attempt typed go.Slice method specialization.");
 
 		var elementGoType = goSliceElementGoType(methodCall.target.t);
 		if (elementGoType == null) {
-			noteMetalFallback("go_slice_method_unmorphable", callee.pos, "Could not monomorphize go.Slice element type for metal specialization.");
+			noteLoweringFallback("go.collections.typed", "go_slice_method_unmorphable", callee.pos,
+				"Could not monomorphize go.Slice element type for metal specialization.");
 			return null;
 		}
 
 		requireStdlibShimGroup("go_collections");
 		registerMetalSliceElementGoType(elementGoType);
+		noteLoweringSuccess("go.collections.typed", methodKind, callee.pos,
+			'Applied typed go.Slice method specialization (element type: ' + elementGoType + ").");
 		var sliceExpr = lowerExpr(methodCall.target).expr;
 
 		switch (methodCall.methodName) {
@@ -11811,10 +11829,13 @@ class GoCompiler {
 		if (methodCall == null) {
 			return null;
 		}
+		var methodKind = "go_map_method_" + methodCall.methodName;
+		noteLoweringAttempt("go.collections.typed", methodKind, callee.pos, "Attempt typed go.Map method specialization.");
 
 		var pair = goMapTypePairGoTypes(methodCall.target.t);
 		if (pair == null) {
-			noteMetalFallback("go_map_method_unmorphable", callee.pos, "Could not monomorphize go.Map key/value types for metal specialization.");
+			noteLoweringFallback("go.collections.typed", "go_map_method_unmorphable", callee.pos,
+				"Could not monomorphize go.Map key/value types for metal specialization.");
 			return null;
 		}
 		var keyGoType = pair.keyGoType;
@@ -11822,6 +11843,12 @@ class GoCompiler {
 
 		requireStdlibShimGroup("go_collections");
 		registerMetalMapTypePair(keyGoType, valueGoType);
+		noteLoweringSuccess("go.collections.typed", methodKind, callee.pos,
+			'Applied typed go.Map method specialization (key: '
+			+ keyGoType
+			+ ", value: "
+			+ valueGoType
+			+ ").");
 		var mapExpr = lowerExpr(methodCall.target).expr;
 
 		switch (methodCall.methodName) {
@@ -11858,13 +11885,16 @@ class GoCompiler {
 		var returnElementGoType = goResultElementGoType(returnType);
 
 		if (isStaticCall(callee, "Result", ["go"], "ok") || isStaticCall(callee, "Go", ["go"], "ok")) {
+			noteLoweringAttempt("go.result.typed", "go_result_static_ok", callee.pos, "Attempt typed go.Result.ok specialization.");
 			if (returnElementGoType == null) {
-				noteMetalFallback("go_result_static_ok_unmorphable", callee.pos,
+				noteLoweringFallback("go.result.typed", "go_result_static_ok_unmorphable", callee.pos,
 					"Could not monomorphize go.Result<T>.ok return type for metal specialization.");
 				return null;
 			}
 			requireStdlibShimGroup("go_result");
 			registerMetalResultElementGoType(returnElementGoType);
+			noteLoweringSuccess("go.result.typed", "go_result_static_ok", callee.pos,
+				'Applied typed go.Result.ok specialization (element type: ' + returnElementGoType + ").");
 			var value = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_ok", returnElementGoType)), [value]),
@@ -11873,13 +11903,16 @@ class GoCompiler {
 		}
 
 		if (isStaticCall(callee, "Result", ["go"], "failure") || isStaticCall(callee, "Go", ["go"], "fail")) {
+			noteLoweringAttempt("go.result.typed", "go_result_static_failure", callee.pos, "Attempt typed go.Result.failure specialization.");
 			if (returnElementGoType == null) {
-				noteMetalFallback("go_result_static_failure_unmorphable", callee.pos,
+				noteLoweringFallback("go.result.typed", "go_result_static_failure_unmorphable", callee.pos,
 					"Could not monomorphize go.Result<T>.failure return type for metal specialization.");
 				return null;
 			}
 			requireStdlibShimGroup("go_result");
 			registerMetalResultElementGoType(returnElementGoType);
+			noteLoweringSuccess("go.result.typed", "go_result_static_failure", callee.pos,
+				'Applied typed go.Result.failure specialization (element type: ' + returnElementGoType + ").");
 			var message = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_failure", returnElementGoType)), [message]),
@@ -11891,15 +11924,19 @@ class GoCompiler {
 		if (methodCall == null) {
 			return null;
 		}
+		var methodKind = "go_result_method_" + methodCall.methodName;
+		noteLoweringAttempt("go.result.typed", methodKind, callee.pos, "Attempt typed go.Result method specialization.");
 
 		var elementGoType = goResultElementGoType(methodCall.target.t);
 		if (elementGoType == null) {
-			noteMetalFallback("go_result_method_unmorphable", callee.pos, "Could not monomorphize go.Result<T> method receiver for metal specialization.");
+			noteLoweringFallback("go.result.typed", "go_result_method_unmorphable", callee.pos,
+				"Could not monomorphize go.Result<T> method receiver for metal specialization.");
 			return null;
 		}
 
 		requireStdlibShimGroup("go_result");
 		registerMetalResultElementGoType(elementGoType);
+		noteLoweringSuccess("go.result.typed", methodKind, callee.pos, 'Applied typed go.Result method specialization (element type: ' + elementGoType + ").");
 		var resultExpr = lowerExpr(methodCall.target).expr;
 
 		switch (methodCall.methodName) {
@@ -13124,19 +13161,43 @@ class GoCompiler {
 		compilationContext.optimizerPortableConcurrencyTypedFastpathFallbacks++;
 	}
 
+	function noteLoweringAttempt(feature:String, kind:String, pos:haxe.macro.Expr.Position, detail:String):Void {
+		noteLoweringDecision(feature, kind, "attempted", pos, detail);
+	}
+
+	function noteLoweringSuccess(feature:String, kind:String, pos:haxe.macro.Expr.Position, detail:String):Void {
+		noteLoweringDecision(feature, kind, "succeeded", pos, detail);
+	}
+
+	function noteLoweringFallback(feature:String, kind:String, pos:haxe.macro.Expr.Position, detail:String):Void {
+		noteLoweringDecision(feature, kind, "fallback", pos, detail);
+		noteMetalFallback(kind, pos, detail);
+	}
+
+	function noteLoweringDecision(feature:String, kind:String, outcome:String, pos:haxe.macro.Expr.Position, detail:String):Void {
+		var metadata = loweringDecisionMetadata(pos);
+		compilationContext.loweringDecisionLedger.push({
+			feature: feature,
+			kind: kind,
+			outcome: outcome,
+			detail: detail,
+			location: metadata.location,
+			module: metadata.moduleName,
+			inMetalLane: metadata.inMetalLane
+		});
+	}
+
 	function noteMetalFallback(kind:String, pos:haxe.macro.Expr.Position, detail:String):Void {
 		if (!isMetalProfile()) {
 			return;
 		}
-		var moduleName = sourceModuleForPos(pos);
-		var inMetalLane = compilationContext.buildContext.metalLaneModules.indexOf(moduleName) != -1;
-		var location = fallbackLocationLabel(pos, moduleName);
+		var metadata = loweringDecisionMetadata(pos);
 		var violation = {
 			kind: kind,
 			detail: detail,
-			location: location,
-			module: moduleName,
-			inMetalLane: inMetalLane
+			location: metadata.location,
+			module: metadata.moduleName,
+			inMetalLane: metadata.inMetalLane
 		};
 		compilationContext.metalFallbackViolations.push(violation);
 		var hardError = compilationContext.buildContext.metalContractHardError && !isFrameworkInternalPos(pos);
@@ -13145,6 +13206,17 @@ class GoCompiler {
 				+ detail
 				+ " Use `-D reflaxe_go_metal_allow_fallback` to permit fallback for this build.", pos);
 		}
+	}
+
+	function loweringDecisionMetadata(pos:haxe.macro.Expr.Position):{moduleName:String, inMetalLane:Bool, location:String} {
+		var moduleName = sourceModuleForPos(pos);
+		var inMetalLane = compilationContext.buildContext.metalLaneModules.indexOf(moduleName) != -1;
+		var location = fallbackLocationLabel(pos, moduleName);
+		return {
+			moduleName: moduleName,
+			inMetalLane: inMetalLane,
+			location: location
+		};
 	}
 
 	function fallbackLocationLabel(pos:haxe.macro.Expr.Position, moduleName:String):String {

@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 4,
+	"schemaVersion": 5,
 	"contract": "portable",
 	"autoLoweringMode": "auto",
 	"strictExamples": false,
@@ -11,12 +11,18 @@
 	"hxrtSelectiveEnabled": false,
 	"hxrtForceFullCopy": false,
 	"hxrtNoFeatureInfer": false,
+	"loweringDecisionCount": 0,
+	"loweringDecisionAttemptCount": 0,
+	"loweringDecisionSuccessCount": 0,
+	"loweringDecisionFallbackCount": 0,
 	"metalFallbackViolationCount": 0,
 	"metalFallbackLaneViolationCount": 0,
 	"metalFallbackNonLaneViolationCount": 0,
 	"hxrtManualFeatures": [
 	],
 	"metalLaneModules": [
+	],
+	"loweringDecisions": [
 	],
 	"metalFallbackViolationsByModule": [
 	],

@@ -45,8 +45,23 @@ private typedef ContractReportSnapshot = {
 	final metalFallbackViolationCount:Int;
 	final metalFallbackLaneViolationCount:Int;
 	final metalFallbackNonLaneViolationCount:Int;
+	final loweringDecisionCount:Int;
+	final loweringDecisionAttemptCount:Int;
+	final loweringDecisionSuccessCount:Int;
+	final loweringDecisionFallbackCount:Int;
+	final loweringDecisions:Array<ContractLoweringDecision>;
 	final metalFallbackViolationsByModule:Array<ContractFallbackModuleSummary>;
 	final metalFallbackViolations:Array<ContractFallbackViolation>;
+}
+
+private typedef ContractLoweringDecision = {
+	final feature:String;
+	final kind:String;
+	final outcome:String;
+	final detail:String;
+	final location:String;
+	final module:String;
+	final inMetalLane:Bool;
 }
 
 private typedef ContractFallbackViolation = {
@@ -358,11 +373,38 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		var manualFeatures = sortedUniqueStrings(buildContext.hxrtManualFeatures.copy());
 		var laneModules = sortedUniqueStrings(buildContext.metalLaneModules.copy());
 		var fallbackViolations = new Array<ContractFallbackViolation>();
+		var loweringDecisions = new Array<ContractLoweringDecision>();
 		var laneViolationCount = 0;
 		var nonLaneViolationCount = 0;
 		var laneCountsByModule = new Map<String, Int>();
 		var nonLaneCountsByModule = new Map<String, Int>();
+		var loweringAttemptCount = 0;
+		var loweringSuccessCount = 0;
+		var loweringFallbackCount = 0;
 		if (context != null) {
+			for (entry in context.loweringDecisionLedger) {
+				if (entry == null) {
+					continue;
+				}
+				switch (entry.outcome) {
+					case "attempted":
+						loweringAttemptCount++;
+					case "succeeded":
+						loweringSuccessCount++;
+					case "fallback":
+						loweringFallbackCount++;
+					case _:
+				}
+				loweringDecisions.push({
+					feature: entry.feature,
+					kind: entry.kind,
+					outcome: entry.outcome,
+					detail: entry.detail,
+					location: entry.location,
+					module: entry.module,
+					inMetalLane: entry.inMetalLane
+				});
+			}
 			for (violation in context.metalFallbackViolations) {
 				if (violation == null) {
 					continue;
@@ -383,10 +425,11 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 				});
 			}
 		}
+		loweringDecisions.sort(compareContractLoweringDecision);
 		fallbackViolations.sort(compareContractFallbackViolations);
 		var fallbackSummary = buildContractFallbackModuleSummary(laneCountsByModule, nonLaneCountsByModule);
 		return {
-			schemaVersion: 4,
+			schemaVersion: 5,
 			contract: contractLabel,
 			autoLoweringMode: GoAutoLoweringModeTools.label(buildContext.autoLoweringMode),
 			strictExamples: buildContext.strictExamples,
@@ -400,6 +443,11 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			hxrtNoFeatureInfer: buildContext.hxrtNoFeatureInfer,
 			hxrtManualFeatures: manualFeatures,
 			metalLaneModules: laneModules,
+			loweringDecisionCount: loweringDecisions.length,
+			loweringDecisionAttemptCount: loweringAttemptCount,
+			loweringDecisionSuccessCount: loweringSuccessCount,
+			loweringDecisionFallbackCount: loweringFallbackCount,
+			loweringDecisions: loweringDecisions,
 			metalFallbackViolationCount: fallbackViolations.length,
 			metalFallbackLaneViolationCount: laneViolationCount,
 			metalFallbackNonLaneViolationCount: nonLaneViolationCount,
@@ -515,6 +563,34 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		return Reflect.compare(a.detail, b.detail);
 	}
 
+	static function compareContractLoweringDecision(a:ContractLoweringDecision, b:ContractLoweringDecision):Int {
+		var moduleOrder = Reflect.compare(a.module, b.module);
+		if (moduleOrder != 0) {
+			return moduleOrder;
+		}
+		var laneOrder = Reflect.compare(a.inMetalLane ? 1 : 0, b.inMetalLane ? 1 : 0);
+		if (laneOrder != 0) {
+			return laneOrder;
+		}
+		var featureOrder = Reflect.compare(a.feature, b.feature);
+		if (featureOrder != 0) {
+			return featureOrder;
+		}
+		var kindOrder = Reflect.compare(a.kind, b.kind);
+		if (kindOrder != 0) {
+			return kindOrder;
+		}
+		var outcomeOrder = Reflect.compare(a.outcome, b.outcome);
+		if (outcomeOrder != 0) {
+			return outcomeOrder;
+		}
+		var locationOrder = Reflect.compare(a.location, b.location);
+		if (locationOrder != 0) {
+			return locationOrder;
+		}
+		return Reflect.compare(a.detail, b.detail);
+	}
+
 	static function buildContractFallbackModuleSummary(laneCountsByModule:Map<String, Int>,
 			nonLaneCountsByModule:Map<String, Int>):Array<ContractFallbackModuleSummary> {
 		var summary = new Array<ContractFallbackModuleSummary>();
@@ -563,6 +639,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push('\t"hxrtSelectiveEnabled": ' + boolString(snapshot.hxrtSelectiveEnabled) + ",");
 		lines.push('\t"hxrtForceFullCopy": ' + boolString(snapshot.hxrtForceFullCopy) + ",");
 		lines.push('\t"hxrtNoFeatureInfer": ' + boolString(snapshot.hxrtNoFeatureInfer) + ",");
+		lines.push('\t"loweringDecisionCount": ' + snapshot.loweringDecisionCount + ",");
+		lines.push('\t"loweringDecisionAttemptCount": ' + snapshot.loweringDecisionAttemptCount + ",");
+		lines.push('\t"loweringDecisionSuccessCount": ' + snapshot.loweringDecisionSuccessCount + ",");
+		lines.push('\t"loweringDecisionFallbackCount": ' + snapshot.loweringDecisionFallbackCount + ",");
 		lines.push('\t"metalFallbackViolationCount": ' + snapshot.metalFallbackViolationCount + ",");
 		lines.push('\t"metalFallbackLaneViolationCount": ' + snapshot.metalFallbackLaneViolationCount + ",");
 		lines.push('\t"metalFallbackNonLaneViolationCount": ' + snapshot.metalFallbackNonLaneViolationCount + ",");
@@ -571,6 +651,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("\t],");
 		lines.push('\t"metalLaneModules": [');
 		appendJsonStringArray(lines, snapshot.metalLaneModules, 2);
+		lines.push("\t],");
+		lines.push('\t"loweringDecisions": [');
+		appendJsonContractLoweringDecisionArray(lines, snapshot.loweringDecisions, 2);
 		lines.push("\t],");
 		lines.push('\t"metalFallbackViolationsByModule": [');
 		appendJsonContractFallbackSummaryArray(lines, snapshot.metalFallbackViolationsByModule, 2);
@@ -601,6 +684,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("- metal fallback violations: `" + snapshot.metalFallbackViolationCount + "`");
 		lines.push("- metal fallback lane violations: `" + snapshot.metalFallbackLaneViolationCount + "`");
 		lines.push("- metal fallback non-lane violations: `" + snapshot.metalFallbackNonLaneViolationCount + "`");
+		lines.push("- lowering decisions: `" + snapshot.loweringDecisionCount + "` (attempts `" + snapshot.loweringDecisionAttemptCount + "`, success `"
+			+ snapshot.loweringDecisionSuccessCount + "`, fallback `" + snapshot.loweringDecisionFallbackCount + "`)");
 		lines.push("");
 		lines.push("## hxrt manual features");
 		if (snapshot.hxrtManualFeatures.length == 0) {
@@ -617,6 +702,17 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		} else {
 			for (moduleName in snapshot.metalLaneModules) {
 				lines.push("- `" + moduleName + "`");
+			}
+		}
+		lines.push("");
+		lines.push("## lowering decisions");
+		if (snapshot.loweringDecisions.length == 0) {
+			lines.push("- none");
+		} else {
+			for (entry in snapshot.loweringDecisions) {
+				var laneLabel = entry.inMetalLane ? "lane" : "non-lane";
+				lines.push("- `" + entry.module + "` (" + laneLabel + ") | `" + entry.feature + "` | `" + entry.kind + "` | `" + entry.outcome + "` | `"
+					+ entry.location + "` | " + entry.detail);
 			}
 		}
 		lines.push("");
@@ -800,6 +896,23 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			lines.push(indent + '\t"kind": "' + jsonEscape(violation.kind) + '",');
 			lines.push(indent + '\t"location": "' + jsonEscape(violation.location) + '",');
 			lines.push(indent + '\t"detail": "' + jsonEscape(violation.detail) + '"');
+			lines.push(indent + "}" + suffix);
+		}
+	}
+
+	static function appendJsonContractLoweringDecisionArray(lines:Array<String>, decisions:Array<ContractLoweringDecision>, indentLevel:Int):Void {
+		var indent = [for (_ in 0...indentLevel) "\t"].join("");
+		for (index in 0...decisions.length) {
+			var entry = decisions[index];
+			var suffix = index == decisions.length - 1 ? "" : ",";
+			lines.push(indent + "{");
+			lines.push(indent + '\t"module": "' + jsonEscape(entry.module) + '",');
+			lines.push(indent + '\t"inMetalLane": ' + boolString(entry.inMetalLane) + ",");
+			lines.push(indent + '\t"feature": "' + jsonEscape(entry.feature) + '",');
+			lines.push(indent + '\t"kind": "' + jsonEscape(entry.kind) + '",');
+			lines.push(indent + '\t"outcome": "' + jsonEscape(entry.outcome) + '",');
+			lines.push(indent + '\t"location": "' + jsonEscape(entry.location) + '",');
+			lines.push(indent + '\t"detail": "' + jsonEscape(entry.detail) + '"');
 			lines.push(indent + "}" + suffix);
 		}
 	}
