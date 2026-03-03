@@ -1,6 +1,7 @@
 {
-	"schemaVersion": 1,
+	"schemaVersion": 2,
 	"contract": "portable",
+	"autoLoweringMode": "off",
 	"optimizationPreset": "portable_fast",
 	"portableStringFastpathEnabled": true,
 	"portableConcurrencyFastpathEnabled": true,

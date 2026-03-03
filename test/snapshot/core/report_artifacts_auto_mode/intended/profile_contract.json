@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 4,
 	"contract": "portable",
-	"autoLoweringMode": "off",
+	"autoLoweringMode": "auto",
 	"strictExamples": false,
 	"strictUserBoundaries": false,
 	"metalFallbackAllowed": false,

@@ -1,7 +1,8 @@
 # Contract Report
 
-- schema version: `3`
+- schema version: `4`
 - contract: `metal`
+- auto lowering mode: `off`
 - strict examples: `no`
 - strict user boundaries: `no`
 - metal fallback allowed: `yes`

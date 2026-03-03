@@ -83,6 +83,9 @@ Opt-in report defines:
 
 ## Portable convergence optimizer controls
 
+- `-D reflaxe_go_auto=off|auto|auto_strict`
+  - explicit auto-lowering planner mode (additive, not a semantic profile switch).
+  - default: `off`.
 - `-D reflaxe_go_opt=portable_fast|none`
   - default: `portable_fast`
   - additive optimizer preset (not a semantic profile).
@@ -90,7 +93,7 @@ Opt-in report defines:
   - typed go-concurrency fastpath capability in portable builds.
   - defaults to `on` with `portable_fast`.
 
-`profile_contract.json` (schema v3) includes structured `metalFallbackViolations` entries and deterministic lane summaries:
+`profile_contract.json` (schema v4) includes `autoLoweringMode`, structured `metalFallbackViolations` entries, and deterministic lane summaries:
 - `metalFallbackLaneViolationCount`
 - `metalFallbackNonLaneViolationCount`
 - `metalFallbackViolationsByModule`

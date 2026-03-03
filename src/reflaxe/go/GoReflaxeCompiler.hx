@@ -11,6 +11,7 @@ import reflaxe.data.EnumOptionData;
 import reflaxe.go.analyze.MetalLaneAnalyzer;
 import reflaxe.go.compiler.GoBuildContext;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
+import reflaxe.go.compiler.GoAutoLoweringModeTools;
 import reflaxe.go.compiler.GoBuildContextResolver;
 import reflaxe.output.DataAndFileInfo;
 import reflaxe.output.StringOrBytes;
@@ -29,6 +30,7 @@ private typedef RuntimeCopyPlan = {
 private typedef ContractReportSnapshot = {
 	final schemaVersion:Int;
 	final contract:String;
+	final autoLoweringMode:String;
 	final strictExamples:Bool;
 	final strictUserBoundaries:Bool;
 	final metalFallbackAllowed:Bool;
@@ -84,6 +86,7 @@ private typedef RuntimePlanReportSnapshot = {
 private typedef OptimizerPlanReportSnapshot = {
 	final schemaVersion:Int;
 	final contract:String;
+	final autoLoweringMode:String;
 	final optimizationPreset:String;
 	final portableStringFastpathEnabled:Bool;
 	final portableConcurrencyFastpathEnabled:Bool;
@@ -383,8 +386,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		fallbackViolations.sort(compareContractFallbackViolations);
 		var fallbackSummary = buildContractFallbackModuleSummary(laneCountsByModule, nonLaneCountsByModule);
 		return {
-			schemaVersion: 3,
+			schemaVersion: 4,
 			contract: contractLabel,
+			autoLoweringMode: GoAutoLoweringModeTools.label(buildContext.autoLoweringMode),
 			strictExamples: buildContext.strictExamples,
 			strictUserBoundaries: buildContext.strictUserBoundaries,
 			metalFallbackAllowed: buildContext.metalFallbackAllowed,
@@ -433,8 +437,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			goAstPasses = context.appliedGoAstPassNames.copy();
 		}
 		return {
-			schemaVersion: 1,
+			schemaVersion: 2,
 			contract: contractLabel,
+			autoLoweringMode: GoAutoLoweringModeTools.label(buildContext.autoLoweringMode),
 			optimizationPreset: buildContext.optimizationPreset,
 			portableStringFastpathEnabled: buildContext.portableStringFastpathEnabled,
 			portableConcurrencyFastpathEnabled: buildContext.portableConcurrencyFastpathEnabled,
@@ -548,6 +553,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("{");
 		lines.push('\t"schemaVersion": ' + snapshot.schemaVersion + ",");
 		lines.push('\t"contract": "' + jsonEscape(snapshot.contract) + '",');
+		lines.push('\t"autoLoweringMode": "' + jsonEscape(snapshot.autoLoweringMode) + '",');
 		lines.push('\t"strictExamples": ' + boolString(snapshot.strictExamples) + ",");
 		lines.push('\t"strictUserBoundaries": ' + boolString(snapshot.strictUserBoundaries) + ",");
 		lines.push('\t"metalFallbackAllowed": ' + boolString(snapshot.metalFallbackAllowed) + ",");
@@ -582,6 +588,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("");
 		lines.push("- schema version: `" + snapshot.schemaVersion + "`");
 		lines.push("- contract: `" + snapshot.contract + "`");
+		lines.push("- auto lowering mode: `" + snapshot.autoLoweringMode + "`");
 		lines.push("- strict examples: `" + boolLabel(snapshot.strictExamples) + "`");
 		lines.push("- strict user boundaries: `" + boolLabel(snapshot.strictUserBoundaries) + "`");
 		lines.push("- metal fallback allowed: `" + boolLabel(snapshot.metalFallbackAllowed) + "`");
@@ -728,6 +735,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("{");
 		lines.push('\t"schemaVersion": ' + snapshot.schemaVersion + ",");
 		lines.push('\t"contract": "' + jsonEscape(snapshot.contract) + '",');
+		lines.push('\t"autoLoweringMode": "' + jsonEscape(snapshot.autoLoweringMode) + '",');
 		lines.push('\t"optimizationPreset": "' + jsonEscape(snapshot.optimizationPreset) + '",');
 		lines.push('\t"portableStringFastpathEnabled": ' + boolString(snapshot.portableStringFastpathEnabled) + ",");
 		lines.push('\t"portableConcurrencyFastpathEnabled": ' + boolString(snapshot.portableConcurrencyFastpathEnabled) + ",");
@@ -750,6 +758,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("");
 		lines.push("- schema version: `" + snapshot.schemaVersion + "`");
 		lines.push("- contract: `" + snapshot.contract + "`");
+		lines.push("- auto lowering mode: `" + snapshot.autoLoweringMode + "`");
 		lines.push("- optimization preset: `" + snapshot.optimizationPreset + "`");
 		lines.push("- portable string fastpath enabled: `" + boolLabel(snapshot.portableStringFastpathEnabled) + "`");
 		lines.push("- portable concurrency fastpath enabled: `" + boolLabel(snapshot.portableConcurrencyFastpathEnabled) + "`");

@@ -1,6 +1,7 @@
 {
-	"schemaVersion": 3,
+	"schemaVersion": 4,
 	"contract": "metal",
+	"autoLoweringMode": "off",
 	"strictExamples": false,
 	"strictUserBoundaries": false,
 	"metalFallbackAllowed": true,

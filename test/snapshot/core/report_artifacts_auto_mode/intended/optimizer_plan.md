@@ -2,13 +2,13 @@
 
 - schema version: `2`
 - contract: `portable`
-- auto lowering mode: `off`
+- auto lowering mode: `auto`
 - optimization preset: `portable_fast`
 - portable string fastpath enabled: `yes`
-- portable concurrency fastpath enabled: `no`
-- string instance typed lowerings: `4`
+- portable concurrency fastpath enabled: `yes`
+- string instance typed lowerings: `0`
 - string instance legacy lowerings: `0`
-- string length field typed lowerings: `2`
+- string length field typed lowerings: `0`
 - string length field legacy lowerings: `0`
 - portable concurrency typed fastpath hits: `0`
 - portable concurrency typed fastpath fallbacks: `0`

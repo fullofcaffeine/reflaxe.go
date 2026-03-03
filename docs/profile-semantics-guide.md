@@ -218,6 +218,7 @@ In short: runtime feature inference is useful, but semantic profile inference is
 
 These controls are additive and do not redefine profile semantics:
 
+- `-D reflaxe_go_auto=off|auto|auto_strict` (explicit planner mode, default `off`)
 - `-D reflaxe_go_opt=portable_fast|none` (default `portable_fast`)
 - `-D reflaxe_go_opt_go_concurrency_fastpath=...` (typed portable concurrency fastpath capability)
 - `-D reflaxe_go_optimizer_plan_report` (emits deterministic optimizer plan artifacts)
@@ -304,7 +305,7 @@ Use these optional flags when auditing effective contract/runtime behavior:
 - `-D reflaxe_go_contract_report` emits `profile_contract.json` and `profile_contract.md`.
 - `-D reflaxe_go_runtime_plan_report` emits `hxrt_plan.json` and `hxrt_plan.md`.
 
-`profile_contract.json` (schema v3) carries deterministic structured fallback entries, including module and lane attribution (`module`, `inMetalLane`) and lane summary fields:
+`profile_contract.json` (schema v4) carries deterministic structured fallback entries, includes `autoLoweringMode`, and preserves module/lane attribution (`module`, `inMetalLane`) plus lane summary fields:
 
 - `metalFallbackLaneViolationCount`
 - `metalFallbackNonLaneViolationCount`

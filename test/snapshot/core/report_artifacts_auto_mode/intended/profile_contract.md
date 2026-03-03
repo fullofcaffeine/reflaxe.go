@@ -2,7 +2,7 @@
 
 - schema version: `4`
 - contract: `portable`
-- auto lowering mode: `off`
+- auto lowering mode: `auto`
 - strict examples: `no`
 - strict user boundaries: `no`
 - metal fallback allowed: `no`

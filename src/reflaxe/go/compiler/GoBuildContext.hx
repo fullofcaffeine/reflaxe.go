@@ -26,6 +26,7 @@ class GoBuildContext {
 	public final contractReportEnabled:Bool;
 	public final runtimePlanReportEnabled:Bool;
 	public final optimizerPlanReportEnabled:Bool;
+	public final autoLoweringMode:GoAutoLoweringMode;
 	public final optimizationPreset:String;
 	public final portableStringFastpathEnabled:Bool;
 	public final portableConcurrencyFastpathEnabled:Bool;
@@ -34,8 +35,8 @@ class GoBuildContext {
 	public function new(profile:GoProfile, goModuleName:String, rawNativeMode:RawNativeMode, emitLineDirectives:Bool, strictExamples:Bool,
 			strictUserBoundaries:Bool, metalFallbackAllowed:Bool, metalContractHardError:Bool, hxrtForceFullCopy:Bool, hxrtFeaturesDefinePresent:Bool,
 			hxrtNoFeatureInfer:Bool, hxrtManualFeatures:Array<String>, contractReportEnabled:Bool, runtimePlanReportEnabled:Bool,
-			optimizerPlanReportEnabled:Bool, optimizationPreset:String, portableStringFastpathEnabled:Bool, portableConcurrencyFastpathEnabled:Bool,
-			metalLaneModules:Array<String>) {
+			optimizerPlanReportEnabled:Bool, autoLoweringMode:GoAutoLoweringMode, optimizationPreset:String, portableStringFastpathEnabled:Bool,
+			portableConcurrencyFastpathEnabled:Bool, metalLaneModules:Array<String>) {
 		this.profile = profile;
 		this.goModuleName = normalizeGoModuleName(goModuleName);
 		this.rawNativeMode = rawNativeMode == null ? RawNativeMode.Interp : rawNativeMode;
@@ -51,6 +52,7 @@ class GoBuildContext {
 		this.contractReportEnabled = contractReportEnabled == true;
 		this.runtimePlanReportEnabled = runtimePlanReportEnabled == true;
 		this.optimizerPlanReportEnabled = optimizerPlanReportEnabled == true;
+		this.autoLoweringMode = autoLoweringMode == null ? GoAutoLoweringMode.Off : autoLoweringMode;
 		this.optimizationPreset = normalizeOptimizationPreset(optimizationPreset);
 		this.portableStringFastpathEnabled = portableStringFastpathEnabled == true;
 		this.portableConcurrencyFastpathEnabled = portableConcurrencyFastpathEnabled == true;
@@ -68,13 +70,14 @@ class GoBuildContext {
 	public function withMetalLaneModules(metalLaneModules:Array<String>):GoBuildContext {
 		return new GoBuildContext(profile, goModuleName, rawNativeMode, emitLineDirectives, strictExamples, strictUserBoundaries, metalFallbackAllowed,
 			metalContractHardError, hxrtForceFullCopy, hxrtFeaturesDefinePresent, hxrtNoFeatureInfer, hxrtManualFeatures, contractReportEnabled,
-			runtimePlanReportEnabled, optimizerPlanReportEnabled, optimizationPreset, portableStringFastpathEnabled, portableConcurrencyFastpathEnabled,
-			metalLaneModules);
+			runtimePlanReportEnabled, optimizerPlanReportEnabled, autoLoweringMode, optimizationPreset, portableStringFastpathEnabled,
+			portableConcurrencyFastpathEnabled, metalLaneModules);
 	}
 
 	public static function legacyDefaults(profile:GoProfile, ?goModuleName:String, ?rawNativeMode:RawNativeMode, ?emitLineDirectives:Bool):GoBuildContext {
 		return new GoBuildContext(profile, normalizeGoModuleName(goModuleName), rawNativeMode == null ? RawNativeMode.Interp : rawNativeMode,
-			emitLineDirectives == true, false, false, false, false, false, false, false, [], false, false, false, "portable_fast", true, true, []);
+			emitLineDirectives == true, false, false, false, false, false, false, false, [], false, false, false, GoAutoLoweringMode.Off, "portable_fast",
+			true, true, []);
 	}
 
 	static function normalizeGoModuleName(raw:Null<String>):String {

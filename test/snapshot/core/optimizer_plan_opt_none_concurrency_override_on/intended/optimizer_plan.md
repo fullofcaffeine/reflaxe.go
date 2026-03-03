@@ -1,7 +1,8 @@
 # Optimizer Plan Report
 
-- schema version: `1`
+- schema version: `2`
 - contract: `portable`
+- auto lowering mode: `off`
 - optimization preset: `none`
 - portable string fastpath enabled: `no`
 - portable concurrency fastpath enabled: `yes`

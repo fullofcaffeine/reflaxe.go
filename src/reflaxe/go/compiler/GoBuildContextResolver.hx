@@ -11,6 +11,7 @@ class GoBuildContextResolver {
 	public static inline final STRICT_EXAMPLES_DEFINE = "reflaxe_go_strict_examples";
 	public static inline final STRICT_DEFINE = "reflaxe_go_strict";
 	public static inline final METAL_ALLOW_FALLBACK_DEFINE = "reflaxe_go_metal_allow_fallback";
+	public static inline final AUTO_MODE_DEFINE = "reflaxe_go_auto";
 	public static inline final GO_MODULE_DEFINE = "go_module";
 	public static inline final LINE_DIRECTIVES_DEFINE = "reflaxe_go_line_directives";
 	public static inline final HXRT_DEFAULT_FEATURES_DEFINE = "reflaxe_go_hxrt_default_features";
@@ -25,6 +26,7 @@ class GoBuildContextResolver {
 	public static function resolve():GoBuildContext {
 		var profile = ProfileResolver.resolve();
 		var metalFallbackAllowed = Context.defined(METAL_ALLOW_FALLBACK_DEFINE);
+		var autoLoweringMode = parseAutoLoweringMode(Context.definedValue(AUTO_MODE_DEFINE));
 		var optimizationPreset = parseOptimizationPreset(Context.definedValue(OPT_PRESET_DEFINE));
 		var portableStringFastpathEnabled = optimizationPreset == "portable_fast";
 		var portableConcurrencyFastpathEnabled = parseBoolDefine(OPT_PORTABLE_CONCURRENCY_FASTPATH_DEFINE, portableStringFastpathEnabled);
@@ -34,7 +36,7 @@ class GoBuildContextResolver {
 			Context.defined(HXRT_DEFAULT_FEATURES_DEFINE), Context.defined(HXRT_FEATURES_DEFINE),
 			Context.defined(HXRT_NO_FEATURE_INFER_DEFINE), parseManualHxrtFeatures(Context.definedValue(HXRT_FEATURES_DEFINE)),
 			Context.defined(CONTRACT_REPORT_DEFINE), Context.defined(RUNTIME_PLAN_REPORT_DEFINE), parseBoolDefine(OPTIMIZER_PLAN_REPORT_DEFINE, false),
-			optimizationPreset, portableStringFastpathEnabled, portableConcurrencyFastpathEnabled, []);
+			autoLoweringMode, optimizationPreset, portableStringFastpathEnabled, portableConcurrencyFastpathEnabled, []);
 	}
 
 	static function parseManualHxrtFeatures(raw:Null<String>):Array<String> {
@@ -80,6 +82,27 @@ class GoBuildContextResolver {
 			case _:
 				Context.fatalError('Unknown `' + OPT_PRESET_DEFINE + '` preset "' + raw + '" (expected: portable_fast, none)', Context.currentPos());
 				"portable_fast";
+		};
+	}
+
+	static function parseAutoLoweringMode(raw:Null<String>):GoAutoLoweringMode {
+		if (raw == null) {
+			return GoAutoLoweringMode.Off;
+		}
+		var normalized = StringTools.trim(raw).toLowerCase();
+		if (normalized == "") {
+			return GoAutoLoweringMode.Auto;
+		}
+		return switch (normalized) {
+			case "off":
+				GoAutoLoweringMode.Off;
+			case "auto":
+				GoAutoLoweringMode.Auto;
+			case "auto_strict":
+				GoAutoLoweringMode.AutoStrict;
+			case _:
+				Context.fatalError('Unknown `' + AUTO_MODE_DEFINE + '` mode "' + raw + '" (expected: off, auto, auto_strict)', Context.currentPos());
+				GoAutoLoweringMode.Off;
 		};
 	}
 

@@ -58,6 +58,12 @@ Design note:
 
 ## Optimizer controls
 
+- `reflaxe_go_auto=off|auto|auto_strict`
+  - Explicit auto-lowering planner mode.
+  - This is additive and does **not** switch semantic contract/profile.
+  - Default: `off`.
+  - `auto`: allow deterministic planner-driven lowering attempts with normal fallback behavior.
+  - `auto_strict`: reserved strict planner mode for fail-fast lane policies.
 - `reflaxe_go_opt=portable_fast|none`
   - Additive optimizer preset (not a semantic profile switch).
   - Default: `portable_fast`.
@@ -112,11 +118,12 @@ Removed:
 
 - `reflaxe_go_contract_report`
   - Emit `profile_contract.json` and `profile_contract.md` into output root with effective contract/capability state.
-  - `profile_contract.json` schema v3 includes structured `metalFallbackViolations` plus deterministic lane summary fields (`metalFallbackLaneViolationCount`, `metalFallbackNonLaneViolationCount`, `metalFallbackViolationsByModule`).
+  - `profile_contract.json` schema v4 includes `autoLoweringMode`, structured `metalFallbackViolations`, and deterministic lane summary fields (`metalFallbackLaneViolationCount`, `metalFallbackNonLaneViolationCount`, `metalFallbackViolationsByModule`).
 - `reflaxe_go_runtime_plan_report`
   - Emit `hxrt_plan.json` and `hxrt_plan.md` into output root with selected runtime features/files and selection reasons.
 - `reflaxe_go_optimizer_plan_report`
   - Emit `optimizer_plan.json` and `optimizer_plan.md` into output root with effective optimizer preset/capabilities and applied lowering counters.
+  - `optimizer_plan.json` schema v2 includes `autoLoweringMode`.
 
 ## Constructor devex
 
