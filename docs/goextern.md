@@ -50,6 +50,7 @@ Examples:
 - Metadata for compiler lowering:
   - `@:go.import("<path>")`
   - `@:go.name("<symbol>")`
+  - `@:go.valueError` (when the extern returns Go `(T,error)` and the Haxe return type is `go.Result<T>`)
 
 ## Determinism Contract
 
@@ -80,6 +81,13 @@ The generator intentionally starts conservative:
 - map with string keys -> `haxe.DynamicAccess<T>`
 - multi-return signatures -> `Dynamic`
 - unsupported/complex boundaries -> `Dynamic`
+
+First-class `(T,error)` interop pattern:
+
+- Declare extern methods with return type `go.Result<T>`.
+- Add `@:go.valueError` to the method metadata.
+- Compiler lowering wraps the Go multi-return call into `go.Result<T>` automatically.
+- See `examples/interop_smoke` and `test/semantic_diff/go_value_error_result_contract`.
 
 This keeps generated externs broadly usable while avoiding unsafe precision claims.
 You can refine generated files manually where stronger typing is needed.

@@ -42,6 +42,11 @@ Shared package surfaces in both lanes:
 Compiler metadata support (`@:go.import`, `@:go.name`, `@:go.receiver`) is covered in
 `test/snapshot/go_native/extern_metadata_mapping`.
 
+`(T,error)` metadata support (`@:go.valueError` -> `go.Result<T>`) is covered in:
+
+- `test/snapshot/go_native/extern_value_error_result`
+- `test/semantic_diff/go_value_error_result_contract`
+
 ## 3) Metal subset guidance
 
 Use `metal` when you need typed low-level lanes that are already contract-covered:

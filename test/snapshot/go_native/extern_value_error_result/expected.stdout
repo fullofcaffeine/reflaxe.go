@@ -1,0 +1,6 @@
+ok.isOk=true
+ok.isErr=false
+ok.unwrap=42
+err.isOk=false
+err.isErr=true
+err.hasError=true

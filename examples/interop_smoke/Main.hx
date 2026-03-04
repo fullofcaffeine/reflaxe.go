@@ -33,6 +33,13 @@ extern class UserGoHttp {
 	public static function statusText(code:Int):String;
 }
 
+@:go.import("strconv")
+extern class UserGoStrconv {
+	@:go.name("Atoi")
+	@:go.valueError
+	public static function atoi(value:String):go.Result<Int>;
+}
+
 class Main {
 	static function main() {
 		var wrappedNow = Time.now();
@@ -49,6 +56,11 @@ class Main {
 		var externStatusOk = UserGoHttp.statusText(200) == "OK";
 		var externOk = externUnixDirect == externUnixReceiver && externUnixDirect > 0 && externCtx != null && externStatusOk;
 
-		Fmt.println(wrappedOk && externOk ? 1 : 0);
+		var valueErrorOk = UserGoStrconv.atoi("42");
+		var valueErrorErr = UserGoStrconv.atoi("oops");
+		var valueErrorPass = valueErrorOk.isOk() && !valueErrorOk.isErr() && valueErrorOk.unwrap() == 42 && !valueErrorErr.isOk() && valueErrorErr.isErr()
+			&& valueErrorErr.error() != null;
+
+		Fmt.println(wrappedOk && externOk && valueErrorPass ? 1 : 0);
 	}
 }

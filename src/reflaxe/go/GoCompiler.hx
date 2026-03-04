@@ -1351,7 +1351,7 @@ class GoCompiler {
 			decls = decls.concat(lowerMetalGoCollectionShimDecls());
 		}
 		if (requiredStdlibShimGroups.exists("go_result")) {
-			decls = decls.concat(lowerMetalGoResultShimDecls());
+			decls = decls.concat(lowerGoResultShimDecls());
 		}
 		return decls;
 	}
@@ -3513,6 +3513,25 @@ class GoCompiler {
 		}
 
 		return decls;
+	}
+
+	function lowerGoResultShimDecls():Array<GoDecl> {
+		var resultTypeName = GoNaming.typeSymbol(["go"], "Result");
+		var resultPointerType = "*" + resultTypeName;
+		var decls = [
+			GoDecl.GoFuncDecl("go__result_fromValueError", null, [{name: "value", typeName: "any"}, {name: "err", typeName: "error"}], [resultPointerType], [
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [
+						GoExpr.GoNil,
+						GoExpr.GoCall(GoExpr.GoIdent("New_go___Error"), [
+							GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("err"), "Error"), [])])
+						])
+					]))
+				], null),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [GoExpr.GoIdent("value"), GoExpr.GoNil]))
+			])
+		];
+		return decls.concat(lowerMetalGoResultShimDecls());
 	}
 
 	function lowerMetalGoResultShimDecls():Array<GoDecl> {
@@ -11644,6 +11663,7 @@ class GoCompiler {
 			if (paramType != null) {
 				loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType);
 			}
+			loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, returnType);
 			loweredArgs.push(loweredArg);
 		}
 		var functionInfo = resolveFunctionInfo(callee);
@@ -11658,6 +11678,13 @@ class GoCompiler {
 		}
 
 		var callExpr:GoExpr = GoExpr.GoCall(lowerExpr(callee).expr, loweredArgs);
+		if (isExternValueErrorCall(callee, returnType)) {
+			requireStdlibShimGroup("go_result");
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("go__result_fromValueError"), [callExpr]),
+				isStringLike: false
+			};
+		}
 		if (shouldAssertGenericCallResult(callee, returnType)) {
 			callExpr = lowerNullableAwareTypeAssertExpr(callExpr, returnType);
 		}
@@ -12036,10 +12063,19 @@ class GoCompiler {
 						if (paramType != null) {
 							loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType);
 						}
+						loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, returnType);
 						loweredArgs.push(loweredArg);
 					}
 
 					var callExpr = GoExpr.GoCall(GoExpr.GoSelector(loweredReceiver, externFieldName(field)), loweredArgs);
+					if (isExternValueErrorCall(callee, returnType)) {
+						requireStdlibShimGroup("go_result");
+						callExpr = GoExpr.GoCall(GoExpr.GoIdent("go__result_fromValueError"), [callExpr]);
+						return {
+							expr: callExpr,
+							isStringLike: false
+						};
+					}
 					if (shouldAssertGenericCallResult(callee, returnType)) {
 						callExpr = lowerNullableAwareTypeAssertExpr(callExpr, returnType);
 					}
@@ -13632,6 +13668,34 @@ class GoCompiler {
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [callExpr]);
 	}
 
+	function normalizeExternCallArg(callee:TypedExpr, argExpr:GoExpr, paramType:Null<Type>, returnType:Type):GoExpr {
+		if (paramType == null || !isExternValueErrorCall(callee, returnType)) {
+			return argExpr;
+		}
+		if (isStringType(paramType)) {
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringValue"), [argExpr]);
+		}
+		return argExpr;
+	}
+
+	function isExternValueErrorCall(callee:TypedExpr, returnType:Type):Bool {
+		if (goResultElementType(returnType) == null) {
+			return false;
+		}
+		return switch (callee.expr) {
+			case TField(_, FStatic(classRef, fieldRef)): var classType = classRef.get(); classType.isExtern && externClassImportPath(classType) != null && hasExternValueErrorMeta(fieldRef.get());
+			case TField(_, FInstance(classRef, _, fieldRef)): var classType = classRef.get(); classType.isExtern && externClassImportPath(classType) != null && hasExternValueErrorMeta(fieldRef.get());
+			case TMeta(_, inner):
+				isExternValueErrorCall(inner, returnType);
+			case TParenthesis(inner):
+				isExternValueErrorCall(inner, returnType);
+			case TCast(inner, _):
+				isExternValueErrorCall(inner, returnType);
+			case _:
+				false;
+		};
+	}
+
 	function isGoImportExternCall(callee:TypedExpr):Bool {
 		return switch (callee.expr) {
 			case TField(_, FStatic(classRef, _)): var classType = classRef.get(); classType.isExtern && externClassImportPath(classType) != null;
@@ -14418,6 +14482,10 @@ class GoCompiler {
 
 	function hasExternReceiverMeta(field:ClassField):Bool {
 		return hasMetadata(field.meta, ["go.receiver"]);
+	}
+
+	function hasExternValueErrorMeta(field:ClassField):Bool {
+		return hasMetadata(field.meta, ["go.valueError", "go.value_error"]);
 	}
 
 	function classTypeName(classType:ClassType):String {

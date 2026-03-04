@@ -11,7 +11,7 @@ This page is the blunt status view for current limitations so teams can plan mig
 ## Interop caveats
 
 - Typed extern metadata (`@:go.import`, `@:go.name`, `@:go.receiver`) is supported, but advanced Go signatures may still require façade wrappers.
-- Multi-return-heavy Go APIs are not yet first-class at the Haxe surface; prefer wrapper functions when exposing `(T, error)` heavy flows.
+- Single `(T, error)` extern surfaces are supported via `@:go.valueError` + `go.Result<T>`, but multi-return-heavy APIs beyond that pattern still need façade wrappers.
 - Keep strict policy enabled in production (`reflaxe_go_strict` / `reflaxe_go_strict_examples`) to avoid drifting into raw app-side `__go__`.
 
 ## Concurrency caveats
