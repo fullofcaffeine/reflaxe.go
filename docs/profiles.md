@@ -1,171 +1,108 @@
 # Profiles (`-D reflaxe_go_profile=...`)
 
-This target supports two profiles:
+Use profiles to choose the compiler contract for your build.
 
 ```bash
 -D reflaxe_go_profile=portable|metal
 ```
 
+## Terms
+
+- [portable](docs/glossary.md#portable-profile): portability-first profile.
+- [metal](docs/glossary.md#metal-profile): Go-first profile with stricter defaults.
+- [lane](docs/glossary.md#lane): scoped enforcement zone (for example `@:goMetal` modules).
+- [fallback](docs/glossary.md#fallback): safe path when strict typed lowering cannot apply.
+
 ## Matrix
 
-| Profile | Best for | Behavior contract |
+| Profile | Best for | Practical behavior |
 | --- | --- | --- |
-| `portable` (default) | Haxe-first and cross-target code | Stable Haxe-oriented semantics and portability-first output |
-| `metal` | Teams needing typed low-level interop lane | `portable` + strict default app-boundary policy + typed framework interop façade |
+| `portable` (default) | Cross-target-friendly Haxe code | Keeps portability semantics first; native usage can be warned/blocked by policy. |
+| `metal` | Go-first lanes and strict native policy | Enables stricter defaults and stronger typed specialization pressure in supported native surfaces. |
 
-## Why two profiles
+## Practical policy difference
 
-- `portable` is the semantic baseline.
-- `metal` is the explicit low-level performance/interop lane.
-- Canonical portable semantics are documented in `docs/portable-canonical-contract.md`.
-- Versioned portable semantics rules are documented in `docs/portable-semantics-v1.md`.
-- World-class profile strategy, semantics, and migration guidance:
-  `docs/profile-semantics-guide.md`.
+### Raw `__go__` policy
 
-Selective `hxrt` runtime inference is complementary and does not replace profile contracts.
-See `docs/hxrt-selective-runtime.md`.
+- `portable`: allowed unless strict policy is enabled.
+- `metal`: strict by default (`auto` policy), so raw app-side `__go__` is rejected.
 
-`auto` spike decision (why `portable+metal` remains canonical and how a future additive planner would work):
-`docs/profile-auto-spike.md`.
+Control flags:
 
-## Metal-ready subset (current)
+- `-D reflaxe_go_strict`
+- `-D reflaxe_go_strict_policy=auto|on|off`
+- `-D reflaxe_go_strict_examples`
 
-Use `metal` for bounded hot paths that are already covered by typed specialization lanes:
+### Native facade usage (`go.*`) in portable
 
-- `go.Chan<T>`
-- `go.Slice<T>`
-- `go.Map<K,V>`
-- `go.Result<T>`
+Portable builds can warn or error when `go.*` is used:
 
-If your code path falls outside this subset, start from `portable` and promote only after benchmark evidence.
-
-## Boundary policy
-
-- `reflaxe_go_strict_examples`: forbids raw `__go__` in repo examples/snapshots.
-- `reflaxe_go_strict`: forbids raw `__go__` in app project sources.
-- `reflaxe_go_strict_policy=auto|on|off` controls app strictness policy explicitly (`auto` default: strict in `metal`, relaxed in `portable`).
-- `metal` with default strict policy enforces strict app boundaries.
-- `reflaxe_go_metal_allow_fallback`: opt-in escape hatch that relaxes metal hard-error fallback policy only (strictness policy unchanged).
-- `reflaxe_go_portable_native_policy=warn|error|off`: policy for `go.*` usage under portable contract (`warn` default, `error` recommended in CI/release).
-- `reflaxe_go_portable_native_scan_mode=typed|scanner|hybrid`: portable native-import detection mode (`typed` default; `scanner` is deterministic import/using scan mode).
-- `reflaxe_go_portable_native_allow=<csv>`: optional portable allowlist for sanctioned native adapter modules.
-
-Framework-owned typed facades are allowed in `metal` strict mode; raw app-side injection remains disallowed.
-
-## Metal collection purity policy (examples)
-
-Collection-purity enforcement for examples has two scopes:
-
-1. Hard boundary scope:
-   - `examples/*/app/runtime/GoNativeRuntime.hx`
-2. Full-build scope:
-   - all example modules, auditing `haxe.ds.*` usage across the tree.
-
-Checker entrypoint: `test/run-metal-example-boundary.py`
-
-- hard boundary gate:
-  - `python3 test/run-metal-example-boundary.py`
-- full-build audit report:
-  - `python3 test/run-metal-example-boundary.py --scope full --mode audit --report .cache/metal-example-boundary/full-scope-audit.json`
-- enforced threshold gate (current CI default):
-  - `python3 test/run-metal-example-boundary.py --scope full --mode audit --report .cache/metal-example-boundary/full-scope-audit.json --max-violations 0`
-
-CI default (`.github/workflows/ci-harness.yml`) enforces full-scope threshold mode with:
-
-- `GO_METAL_COLLECTION_AUDIT_ENFORCE=1`
-- `GO_METAL_COLLECTION_AUDIT_MAX=0`
-
-Allowlist policy:
-
-- allowlists must be explicit file-level exceptions with owner + reason + removal milestone.
-- avoid broad wildcard allowlists.
-- use allowlists as temporary migration tools, not permanent policy.
-
-Policy decision and rationale:
-- `docs/spikes/metal-build-collection-purity-policy.md`
+- `-D reflaxe_go_portable_native_policy=warn|error|off`
+- `-D reflaxe_go_portable_native_scan_mode=typed|scanner|hybrid`
+- `-D reflaxe_go_portable_native_allow=<csv>`
 
 ## `@:goMetal` lanes (portable builds)
 
-`@:goMetal` marks module islands that must obey metal-clean restrictions even when the build contract is `portable`.
+`@:goMetal` marks modules that must obey metal-clean restrictions even in a portable build.
 
-- Current enforced rule: raw `__go__` is disallowed in `@:goMetal` modules under portable contract.
-- Typed fallback fail-fast rule: under `-D reflaxe_go_auto=auto_strict`, `go.Chan` / `go.Slice` / `go.Map` / `go.Result` calls that would fall back from typed specialization (for example `Dynamic`/`Any` paths) are disallowed in `@:goMetal` modules.
-- Eligibility for typed specialization is centralized in `src/reflaxe/go/compiler/GoMetalTypeEligibility.hx` and currently requires:
-  - concrete non-`any` Go type,
-  - no nullable-primitive dynamic path representation,
-  - comparable Go key type for `go.Map` keys.
-- Under `reflaxe_go_auto=off|auto`, typed fallback paths remain allowed in lane modules and are tracked in lowering/report artifacts.
-- Snapshot coverage:
-  - `test/snapshot/negative/go_metal_lane_injection`
-  - `test/snapshot/negative/go_metal_lane_fallback_result`
-  - `test/snapshot/negative/go_metal_lane_fallback_chan`
-  - `test/snapshot/negative/go_metal_lane_fallback_slice`
-  - `test/snapshot/negative/go_metal_lane_fallback_map`
-  - `test/snapshot/negative/go_metal_lane_fallback_map_noncomparable_key`
-  - `test/snapshot/core/go_metal_lane_nonlane_fallback_allowed`
+Current enforced rules:
 
-Lane module discovery is deterministic and emitted in profile contract reports.
+1. Raw `__go__` is disallowed in `@:goMetal` modules.
+2. Under `-D reflaxe_go_auto=auto_strict`, typed-lowering fallback in these modules is disallowed for:
+   - `go.Chan`
+   - `go.Slice`
+   - `go.Map`
+   - `go.Result`
 
-Lane test commands:
+This supports incremental migration: you can keep the full app portable while hardening specific modules.
 
-- `python3 test/run-snapshots.py --case negative/go_metal_lane_injection --case negative/go_metal_lane_fallback_result --case negative/go_metal_lane_fallback_chan --case negative/go_metal_lane_fallback_slice --case negative/go_metal_lane_fallback_map --case negative/go_metal_lane_fallback_map_noncomparable_key --case core/go_metal_lane_nonlane_fallback_allowed`
-- `python3 test/run-snapshots.py --case core/go_metal_lane_fallback_allowed_off`
-- `python3 test/run-semantic-diff.py --suite lanes`
-- `npm run test:semantic-diff:lanes`
-- `python3 test/run-ci.py --force-semantic-diff-lanes`
+## Optimizer controls (additive, not profile switches)
 
-CI fallback diagnostics gate commands:
+- `-D reflaxe_go_auto=off|auto|auto_strict`
+- `-D reflaxe_go_opt=portable_fast|none`
+- `-D reflaxe_go_opt_go_concurrency_fastpath=0|1|off|on|false|true`
 
-- `python3 test/run-snapshots.py --case core/report_artifacts_lane_fallback`
-- `python3 test/run-ci.py --force-metal-fallback-diagnostics`
+These flags tune lowering behavior but do not silently change profile semantics.
 
-## Contract/runtime reports
+## Report artifacts
 
-Opt-in report defines:
+Optional report defines:
 
 - `-D reflaxe_go_contract_report` -> `profile_contract.json`, `profile_contract.md`
 - `-D reflaxe_go_runtime_plan_report` -> `hxrt_plan.json`, `hxrt_plan.md`
 - `-D reflaxe_go_optimizer_plan_report` -> `optimizer_plan.json`, `optimizer_plan.md`
 
-## Portable convergence optimizer controls
+Use these reports to audit:
 
-- Practical model:
-  - `portable` keeps portability semantics first, then opportunistically lowers to metal-like Go constructs when specialization is semantics-safe and type-safe.
-  - `metal` allows direct Go-first authoring surfaces (`go.*`) and enforces stricter typed-lowering expectations by default.
+- active profile and strictness
+- fallback counts and reasons
+- lane vs non-lane fallback attribution
+- optimizer capability outcomes
 
-- `-D reflaxe_go_auto=off|auto|auto_strict`
-  - explicit auto-lowering planner mode (additive, not a semantic profile switch).
-  - default: `off`.
-  - in `portable`, `auto|auto_strict` enable typed specialization attempts for `go.Slice` / `go.Map` / `go.Result` (attempt/success/fallback outcomes are emitted in contract reports).
-- `-D reflaxe_go_opt=portable_fast|none`
-  - default: `portable_fast`
-  - additive optimizer preset (not a semantic profile).
-- `-D reflaxe_go_opt_go_concurrency_fastpath=0|1|off|on|false|true`
-  - typed go-concurrency fastpath capability in portable builds.
-  - defaults to `on` with `portable_fast`.
+## Recommended defaults
 
-`profile_contract.json` (schema v7) includes `autoLoweringMode`, centralized analyzer diagnostics (`contractDiagnosticCount`, `contractDiagnostics`), portable native scan summary fields (`portableNativeImportScanMode`, `portableNativeImportHitCount`, `portableNativeImportHits`, `portableNativeImportTypedHitCount`, `portableNativeImportTypedHits`, `portableNativeImportScannerHitCount`, `portableNativeImportScannerHits`), lowering-decision ledger fields (`loweringDecisionCount`, `loweringDecisionAttemptCount`, `loweringDecisionSuccessCount`, `loweringDecisionFallbackCount`, `loweringDecisions`), structured `metalFallbackViolations`, and deterministic lane summaries:
-- `metalFallbackLaneViolationCount`
-- `metalFallbackNonLaneViolationCount`
-- `metalFallbackViolationsByModule`
+For most teams:
 
-`optimizer_plan.json` (schema v5) includes planner-selected pass-set provenance (`goAstPassSelectionSource`, `goAstPassSelectionReasons`), typed-lowering counters (`goCollectionsTypedLowerings`, `goCollectionsTypedFallbacks`, `goResultTypedLowerings`, `goResultTypedFallbacks`), lane-scoped lowering fallback summary, and capability-level auto-lowering summaries:
-- `loweringFallbackLaneCount`
-- `loweringFallbackNonLaneCount`
-- `autoLoweringCapabilities` (`id`, `attempts`, `successes`, `fallbacks`, `fallbackReasonCounts`)
+1. Start with `portable`.
+2. Set `reflaxe_go_portable_native_policy=error` in CI/release.
+3. Promote only performance-critical or native-heavy modules toward metal lanes.
+4. Use `metal` for Go-first deployments that need stricter native policy.
 
-Snapshot coverage:
-- `test/snapshot/core/report_artifacts_basic`
-- `test/snapshot/core/report_artifacts_lane_fallback`
-- `test/snapshot/core/report_artifacts_auto_collections_result`
-- `test/snapshot/core/optimizer_plan_auto_collections_result_fallback`
+## Validation commands
 
-## Example references
+```bash
+python3 test/run-snapshots.py
+python3 test/run-semantic-diff.py
+python3 test/run-semantic-diff.py --suite lanes
+python3 test/run-ci.py
+```
 
-- Portable-first app references: `examples/profile_storyboard`, `examples/tui_todo`
-- Cross-profile compact app: `examples/interop_smoke`
-- Worker pool/select-style concurrency app: `examples/worker_pool_select`
-- Cross-profile flagship apps: `examples/pulseforge`, `examples/fluxproxy`
-- Coverage + artifact matrix: `docs/examples-matrix.md`
-- Production caveats: `docs/known-gaps.md`
-- Canonical profile playbook: `docs/profile-semantics-guide.md`
+## Related docs
+
+- Docs map: [docs/index.md](index.md)
+- Glossary: [docs/glossary.md](glossary.md)
+- Profile semantics deep guide: [docs/profile-semantics-guide.md](profile-semantics-guide.md)
+- Portable contract: [docs/portable-canonical-contract.md](portable-canonical-contract.md)
+- Versioned semantics spec: [docs/portable-semantics-v1.md](portable-semantics-v1.md)
+- Defines reference: [docs/defines-reference.md](defines-reference.md)
+- Examples matrix: [docs/examples-matrix.md](examples-matrix.md)

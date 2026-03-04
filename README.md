@@ -11,149 +11,71 @@
 
 Haxe 4.3.7 -> Go compiler target built on Reflaxe.
 
-Write Haxe, generate readable Go modules, and ship native binaries with profile-based control over portability vs Go-first output style.
+Write Haxe, generate readable Go, and choose between:
 
-If you want Haxe productivity with a serious Go delivery pipeline, this is that target.
+- a portability-first build (`portable`), or
+- a Go-first build (`metal`) for stricter native lanes.
 
-## Why reflaxe.go
+## Start here
 
-- One Haxe codebase, two Go profiles (`portable`, `metal`).
-- Generated Go module output (`go.mod` + `main.go` + `module_*.go` + `hxrt`) with backend `go build` by default.
-- Strong verification harness: snapshots, stdlib sweep, semantic diff, examples matrix, and perf checks.
+If you are new, read these first:
 
-## Stdlib Architecture
+1. [docs/start-here.md](docs/start-here.md)
+2. [docs/index.md](docs/index.md)
+3. [docs/glossary.md](docs/glossary.md)
 
-`reflaxe.go` uses a hybrid stdlib ownership model:
+## Terms
 
-- runtime helpers in `hxrt`
-- compiler-owned shims for compile-time metadata/profile-sensitive contracts
-- staged migration surfaces under `std/_std`
+- [profile](docs/glossary.md#profile): build contract that controls semantics and policy defaults.
+- [portable](docs/glossary.md#portable-profile): portability-first profile contract.
+- [metal](docs/glossary.md#metal-profile): Go-first profile contract with stricter defaults.
+- [`hxrt`](docs/glossary.md#hxrt): runtime support package copied into generated Go output.
 
-This is a general compiler-target pattern, not something exclusive to Go; Go just amplifies the need because of exception/string/dynamic/runtime-model differences. Details: [docs/stdlib-shim-rationale.md](docs/stdlib-shim-rationale.md).
-
-Portable mode targets full parity for portable-eligible Haxe stdlib modules (not target-specific namespaces like `cpp.*`/`lua.*`), tracked by an explicit execution program and module-level closure plan: [docs/portable-stdlib-parity-program.md](docs/portable-stdlib-parity-program.md).
-
-## Quick Start
-
-1. Install project dependencies:
+## Quick start
 
 ```bash
 npm install
-```
-
-2. Run core compiler snapshots:
-
-```bash
 npm test
-```
-
-3. Run the full local CI harness:
-
-```bash
 python3 test/run-ci.py
-```
-
-4. Compile and run a real example:
-
-```bash
 npm run dev:hx -- --project examples/tui_todo --profile portable --action run
 ```
 
-5. Scaffold your own project:
+## Which profile should I choose?
 
-```bash
-npm run dev:new-project -- ./my_haxe_go_app
-```
+| If you want... | Choose |
+| --- | --- |
+| Cross-target-friendly Haxe code and safer defaults | `portable` |
+| Go-first native lanes with stricter policy and typed specialization pressure | `metal` |
 
-## First 5 Minutes
+Detailed behavior and policy knobs: [docs/profiles.md](docs/profiles.md)
 
-Run a real app and verify the compiler quality gates:
+## Example apps
 
-```bash
-npm install
-npm run dev:hx -- --project examples/tui_todo --profile portable --action run
-python3 test/run-snapshots.py
-python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test
-```
-
-Then switch to `metal` and compare output/runtime behavior:
-
-```bash
-npm run dev:hx -- --project examples/tui_todo --profile metal --action run
-```
-
-## Profiles
-
-Use `-D reflaxe_go_profile=portable|metal`.
-
-| Profile | Best for | Contract |
+| Example | Profile support | Why run it |
 | --- | --- | --- |
-| `portable` (default) | Haxe-first teams | Portability-first semantics and lowest migration risk |
-| `metal` (experimental) | Low-level interop needs | `portable` + strict boundary defaults + typed low-level interop lane |
+| [examples/tui_todo](examples/tui_todo/README.md) | portable only | Portable CLI baseline and deterministic output contract. |
+| [examples/profile_storyboard](examples/profile_storyboard/README.md) | portable only | Portable dashboard/reporting baseline. |
+| [examples/interop_smoke](examples/interop_smoke/README.md) | portable + metal | Typed interop patterns (`@:go.import`, receiver/name metadata). |
+| [examples/worker_pool_select](examples/worker_pool_select/README.md) | portable + metal | Go channel/select usage and profile comparison. |
+| [examples/pulseforge](examples/pulseforge/README.md) | portable + metal | Flagship app with `core` and `go_native` variants. |
+| [examples/fluxproxy](examples/fluxproxy/README.md) | portable + metal | Flagship proxy app with `core` and `go_native` variants. |
 
-Details: [docs/profiles.md](docs/profiles.md)
-Canonical portable semantics: [docs/portable-canonical-contract.md](docs/portable-canonical-contract.md)
-Profile semantics and migration guide: [docs/profile-semantics-guide.md](docs/profile-semantics-guide.md)
+Full matrix: [docs/examples-matrix.md](docs/examples-matrix.md)
 
-## Flagship Examples
+## Most useful commands
 
-- [examples/tui_todo](examples/tui_todo/README.md): complex single-codebase app compiled across both profiles.
-- [examples/profile_storyboard](examples/profile_storyboard/README.md): compact profile adapter/storyboard reference.
-- [examples/interop_smoke](examples/interop_smoke/README.md): typed interop smoke reference for `fmt`/`time`/`context`/`net/http` extern metadata.
-- [examples/worker_pool_select](examples/worker_pool_select/README.md): worker-pool and typed `go.Select` channel-branching operations from one shared Haxe codebase.
-- [examples/pulseforge](examples/pulseforge/README.md): flagship app scaffold with explicit `core` and `go_native` variant lanes across both profiles.
-- [examples/README.md](examples/README.md): examples overview.
-- [docs/examples-matrix.md](docs/examples-matrix.md): exact compile/run/artifact matrix.
-- [docs/go-concurrency-interop-guide.md](docs/go-concurrency-interop-guide.md): practical worker-pool/select + typed interop patterns.
-- [docs/flagship-apps-plan.md](docs/flagship-apps-plan.md): planned full-blown PulseForge + FluxProxy usable examples and benchmark protocol.
-
-## Coverage Tiers
-
-The project uses explicit guarantee tiers so “supported” has a concrete meaning:
-
-| Tier | Guarantee | Harness | Representative coverage |
-| --- | --- | --- | --- |
-| `compile-only` | Module/API compiles and generated Go passes probe-level `go test`, but no runtime parity claim by itself | `python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test` | `haxe.rtti.CType`, `sys.ssl.Socket`, `sys.thread.Thread` |
-| `snapshot` | Deterministic generated Go shape + targeted runtime smoke for selected behaviors | `python3 test/run-snapshots.py` | `stdlib/json_parse_stringify`, `stdlib/crypto_xml_zip_basic`, `sys/http_custom_request_parity` |
-| `semantic-diff` | Runtime output parity against Haxe `--interp` for deterministic fixtures | `python3 test/run-semantic-diff.py` | `serializer_resolver_polymorphism_contract`, `serializer_reference_stress_contract`, `socket_advanced_contract`, `ereg_edge_contract` |
-
-Details and full inventory: [docs/feature-support-matrix.md](docs/feature-support-matrix.md#coverage-tiers)
-
-## Most Useful Commands
-
-- New project generator: `npm run dev:new-project -- ./my_haxe_go_app`
-- Compile/run wrapper: `npm run dev:hx -- --project <dir> --profile <portable|metal> --action <compile|run|build|test|vet|fmt>`
-- Go extern generator: `npm run dev:goextern -- --package <go/import/path>`
-- Go extern fixtures drift check: `npm run test:goextern:fixtures`
 - Snapshots: `python3 test/run-snapshots.py`
-- Upstream stdlib sweep (strict + go test): `python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test`
-- Semantic differential checks: `python3 test/run-semantic-diff.py`
+- Semantic diff: `python3 test/run-semantic-diff.py`
 - Examples matrix: `python3 test/run-examples.py`
+- Full CI harness: `python3 test/run-ci.py`
 - Profile perf harness: `npm run test:perf:go`
-  - Enforce metal budgets locally: `GO_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:go`
-- HXRT selective runtime perf/size harness: `npm run test:perf:hxrt-selective`
-  - Enforce selective runtime budgets locally: `GO_HXRT_SLICE_ENFORCE=1 npm run test:perf:hxrt-selective`
-- Release visibility checks: `npm run release:status`
+- App perf harness: `npm run test:perf:apps`
+- New project: `npm run dev:new-project -- ./my_haxe_go_app`
+- Compile/run wrapper: `npm run dev:hx -- --project <dir> --profile <portable|metal> --action <compile|run|build|test|vet|fmt>`
 
-## Verification and Delivery
+## Output model
 
-- Verification surface is built in, not optional:
-  - snapshots: `test/run-snapshots.py`
-  - stdlib inventory sweeps: `test/run-upstream-stdlib-sweep.py`
-  - semantic differential checks: `test/run-semantic-diff.py`
-  - examples matrix + generated output drift checks: `test/run-examples.py`
-- CI is split into dedicated harness/quality/security/release workflows:
-  - [.github/workflows/ci-harness.yml](.github/workflows/ci-harness.yml)
-  - [.github/workflows/ci-quality.yml](.github/workflows/ci-quality.yml)
-  - [.github/workflows/security-static-analysis.yml](.github/workflows/security-static-analysis.yml)
-  - [.github/workflows/examples-artifacts.yml](.github/workflows/examples-artifacts.yml)
-- Current support inventory and known tradeoffs are explicit:
-  - [docs/feature-support-matrix.md](docs/feature-support-matrix.md)
-  - [docs/known-gaps.md](docs/known-gaps.md)
-
-## Output Model
-
-A typical compile emits a Go module like:
+A typical compile emits:
 
 ```text
 out/
@@ -161,58 +83,22 @@ out/
   main.go
   module_<haxe_module>.go
   hxrt/
-    hxrt.go
+    *.go
 ```
 
-By default, backend compile runs `go build` after codegen. Use `-D go_no_build` when you want codegen-only flows.
+By default the backend runs `go build` after codegen. Use `-D go_no_build` for codegen-only workflows.
 
-Runtime details: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
+## Related docs
 
-## Documentation
-
-- Start here: [docs/start-here.md](docs/start-here.md)
-- Phase-2 roadmap (active): [docs/phase2-roadmap.md](docs/phase2-roadmap.md)
-- `hxrt` runtime architecture and contract: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
-- Selective `hxrt` + profile policy plan: [docs/hxrt-selective-runtime.md](docs/hxrt-selective-runtime.md)
-- Canonical portable contract (cross-compiler reference): [docs/portable-canonical-contract.md](docs/portable-canonical-contract.md)
-- Profile semantics playbook (`portable` vs `metal`): [docs/profile-semantics-guide.md](docs/profile-semantics-guide.md)
-- Feature support and coverage inventory: [docs/feature-support-matrix.md](docs/feature-support-matrix.md)
+- Docs map: [docs/index.md](docs/index.md)
+- Glossary: [docs/glossary.md](docs/glossary.md)
+- Start guide: [docs/start-here.md](docs/start-here.md)
+- Profiles and policy: [docs/profiles.md](docs/profiles.md)
+- Profile semantics guide: [docs/profile-semantics-guide.md](docs/profile-semantics-guide.md)
+- Portable contract: [docs/portable-canonical-contract.md](docs/portable-canonical-contract.md)
+- Versioned semantics: [docs/portable-semantics-v1.md](docs/portable-semantics-v1.md)
+- `hxrt` runtime: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
+- Feature support matrix: [docs/feature-support-matrix.md](docs/feature-support-matrix.md)
 - Defines reference: [docs/defines-reference.md](docs/defines-reference.md)
-- Profile admission criteria: [docs/profile-admission-criteria.md](docs/profile-admission-criteria.md)
-- Snapshot policy: [docs/snapshot-policy.md](docs/snapshot-policy.md)
 - Semantic diff guide: [docs/semantic-diff-guide.md](docs/semantic-diff-guide.md)
-- Release visibility and gates: [docs/release-visibility.md](docs/release-visibility.md)
-- Stdlib shim strategy and alternatives: [docs/stdlib-shim-rationale.md](docs/stdlib-shim-rationale.md)
-- Stdlib shim migration process log: [docs/stdlib-shim-migration-log.md](docs/stdlib-shim-migration-log.md)
-- Multi-package output evaluation: [docs/multi-package-output-evaluation.md](docs/multi-package-output-evaluation.md)
-- Go extern generator: [docs/goextern.md](docs/goextern.md)
-- Flagship app execution plan: [docs/flagship-apps-plan.md](docs/flagship-apps-plan.md)
-- Future compiler template/patterns: [docs/compiler-target-template.md](docs/compiler-target-template.md)
-- Security policy: [SECURITY.md](SECURITY.md)
-- Changelog: [CHANGELOG.md](CHANGELOG.md)
-
-## CI and Security
-
-- Integrated harness + release flow: [.github/workflows/ci-harness.yml](.github/workflows/ci-harness.yml)
-- Quality gate workflow: [.github/workflows/ci-quality.yml](.github/workflows/ci-quality.yml)
-- Static security analysis: [.github/workflows/security-static-analysis.yml](.github/workflows/security-static-analysis.yml)
-- Gitleaks workflow: [.github/workflows/security-gitleaks.yml](.github/workflows/security-gitleaks.yml)
-- Example artifact/release publishing: [.github/workflows/examples-artifacts.yml](.github/workflows/examples-artifacts.yml)
-
-Local pre-commit hook setup:
-
-```bash
-npm run hooks:install
-```
-
-This enforces staged local-path leak guard, staged gitleaks scan, and staged Haxe auto-format.
-
-## Project Status
-
-`reflaxe.go` is currently pre-1.0 and moving quickly. The quality bar is enforced by the harnesses above, and profile/runtime parity is tracked continuously through snapshots and stdlib sweeps.
-
-Releases: [github.com/fullofcaffeine/reflaxe.go/releases](https://github.com/fullofcaffeine/reflaxe.go/releases)
-
-## License
-
-GPL-3.0-only. See [LICENSE](LICENSE).
+- Release readiness checklist: [docs/release-readiness-checklist.md](docs/release-readiness-checklist.md)

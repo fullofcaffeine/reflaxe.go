@@ -190,3 +190,12 @@ Binary matrix targets:
   - `checksums.txt`
 
 Flagship app perf artifacts are published by `.github/workflows/ci-harness.yml` job `perf-apps` as `go-app-perf-results`.
+
+## Related docs
+
+- `docs/start-here.md` - first-run setup and the default command flow.
+- `docs/profiles.md` - what `portable` and `metal` mean in day-to-day use.
+- `docs/profile-semantics-guide.md` - behavior guarantees and contract boundaries.
+- `docs/benchmark-methodology-apps.md` - how app/perf comparisons are measured and interpreted.
+- `docs/flagship-apps-plan.md` - execution plan and acceptance criteria for flagship examples.
+- `docs/glossary.md` - shared terms used across compiler and example docs.

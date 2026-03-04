@@ -2,7 +2,7 @@
 
 This guide explains what semantic diff is, why we use it, and how to add/diagnose cases.
 
-## Key Terms
+## Terms
 
 - `portable contract`: the baseline behavior contract for cross-target-compatible code.
   - reference: `docs/portable-canonical-contract.md`
@@ -191,3 +191,11 @@ Use:
 - semantic diff for behavior
 - snapshots for generated shape
 - perf harness for performance budgets
+
+## Related docs
+
+- `docs/start-here.md` - first-run setup and default test flow.
+- `docs/profiles.md` - portable vs metal contracts and policy knobs.
+- `docs/profile-semantics-guide.md` - behavior guarantees and lane constraints.
+- `docs/snapshot-policy.md` - generated Go shape contracts.
+- `docs/glossary.md` - shared vocabulary used across compiler docs.

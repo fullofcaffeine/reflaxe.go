@@ -1,5 +1,11 @@
 # `hxrt` Runtime: Why It Exists, How It Works, and What It Does
 
+## Terms
+
+- `hxrt`: the runtime helper package copied into each generated Go module (`<go_module>/hxrt`).
+- `compiler shim`: helper declarations emitted by the compiler at build time (not copied from `runtime/hxrt` files).
+- `semantic contract`: the behavior rules we keep stable for a profile, especially `portable`.
+
 ## What `hxrt` is
 
 `hxrt` is the Go runtime support package emitted with every `reflaxe.go` build output.
@@ -109,3 +115,12 @@ And if ownership boundaries move, update:
 
 - `docs/stdlib-shim-rationale.md`
 - `docs/feature-support-matrix.md`
+
+## Related docs
+
+- `docs/start-here.md` - first-run commands and how generated output is produced.
+- `docs/hxrt-selective-runtime.md` - runtime feature slicing policy and controls.
+- `docs/stdlib-shim-rationale.md` - ownership split between runtime, compiler shims, and staged stdlib overrides.
+- `docs/profiles.md` - profile contracts and boundary behavior.
+- `docs/portable-canonical-contract.md` - portable semantics baseline used by tests.
+- `docs/glossary.md` - shared definitions used across docs.
