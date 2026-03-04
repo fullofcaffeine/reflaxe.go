@@ -16,11 +16,11 @@
 - metal fallback violations: `0`
 - metal fallback lane violations: `0`
 - metal fallback non-lane violations: `0`
-- portable native import scan mode: `typed`
-- portable native import hits: `1`
+- portable native import scan mode: `scanner`
+- portable native import hits: `0`
 - portable native import typed hits: `1`
-- portable native import scanner hits: `1`
-- contract diagnostics: `1`
+- portable native import scanner hits: `0`
+- contract diagnostics: `0`
 - lowering decisions: `8` (attempts `4`, success `2`, fallback `2`)
 
 ## hxrt manual features
@@ -30,22 +30,22 @@
 - none
 
 ## portable native import hits
-- `Main`
+- none
 
 ## portable native import typed hits
 - `Main`
 
 ## portable native import scanner hits
-- `Main`
+- none
 
 ## contract diagnostics
-- `Main` | `portable_native_import` | `warning` | `Main:3` | PortableNativeImportGate: module `Main` uses target-native `go.*` surfaces while `reflaxe_go_profile=portable` is active. Move native usage behind adapters, or use `-D reflaxe_go_portable_native_policy=off|warn|error`.
+- none
 
 ## lowering decisions
-- `Main` (non-lane) | `go.concurrency.typed` | `go_chan_method_close` | `attempted` | `Main:6` | Attempt typed go.Chan method specialization.
-- `Main` (non-lane) | `go.concurrency.typed` | `go_chan_method_close` | `succeeded` | `Main:6` | Applied typed go.Chan method specialization (element type: int).
-- `Main` (non-lane) | `go.concurrency.typed` | `go_chan_new` | `attempted` | `Main:5` | Attempt typed go.Go.newChan specialization.
-- `Main` (non-lane) | `go.concurrency.typed` | `go_chan_new` | `succeeded` | `Main:5` | Applied typed go.Go.newChan specialization (element type: int).
+- `Main` (non-lane) | `go.concurrency.typed` | `go_chan_method_close` | `attempted` | `Main:4` | Attempt typed go.Chan method specialization.
+- `Main` (non-lane) | `go.concurrency.typed` | `go_chan_method_close` | `succeeded` | `Main:4` | Applied typed go.Chan method specialization (element type: int).
+- `Main` (non-lane) | `go.concurrency.typed` | `go_chan_new` | `attempted` | `Main:3` | Attempt typed go.Go.newChan specialization.
+- `Main` (non-lane) | `go.concurrency.typed` | `go_chan_new` | `succeeded` | `Main:3` | Applied typed go.Go.newChan specialization (element type: int).
 - `go.Go` (non-lane) | `go.concurrency.typed` | `go_chan_method___hx_setBuffer` | `attempted` | `go.Go:19` | Attempt typed go.Chan method specialization.
 - `go.Go` (non-lane) | `go.concurrency.typed` | `go_chan_method_unmorphable` | `fallback` | `go.Go:19` | Could not monomorphize go.Chan method call (element type: any).
 - `go.Go` (non-lane) | `go.concurrency.typed` | `go_chan_new` | `attempted` | `go.Go:17` | Attempt typed go.Chan constructor specialization.

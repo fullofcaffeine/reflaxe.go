@@ -47,6 +47,7 @@ If your code path falls outside this subset, start from `portable` and promote o
 - `metal` with default strict policy enforces strict app boundaries.
 - `reflaxe_go_metal_allow_fallback`: opt-in escape hatch that relaxes metal hard-error fallback policy only (strictness policy unchanged).
 - `reflaxe_go_portable_native_policy=warn|error|off`: policy for `go.*` usage under portable contract (`warn` default, `error` recommended in CI/release).
+- `reflaxe_go_portable_native_scan_mode=typed|scanner|hybrid`: portable native-import detection mode (`typed` default; `scanner` is deterministic import/using scan mode).
 - `reflaxe_go_portable_native_allow=<csv>`: optional portable allowlist for sanctioned native adapter modules.
 
 Framework-owned typed facades are allowed in `metal` strict mode; raw app-side injection remains disallowed.
@@ -96,7 +97,7 @@ Opt-in report defines:
   - typed go-concurrency fastpath capability in portable builds.
   - defaults to `on` with `portable_fast`.
 
-`profile_contract.json` (schema v6) includes `autoLoweringMode`, centralized analyzer diagnostics (`contractDiagnosticCount`, `contractDiagnostics`, `portableNativeImportHitCount`, `portableNativeImportHits`), lowering-decision ledger fields (`loweringDecisionCount`, `loweringDecisionAttemptCount`, `loweringDecisionSuccessCount`, `loweringDecisionFallbackCount`, `loweringDecisions`), structured `metalFallbackViolations`, and deterministic lane summaries:
+`profile_contract.json` (schema v7) includes `autoLoweringMode`, centralized analyzer diagnostics (`contractDiagnosticCount`, `contractDiagnostics`), portable native scan summary fields (`portableNativeImportScanMode`, `portableNativeImportHitCount`, `portableNativeImportHits`, `portableNativeImportTypedHitCount`, `portableNativeImportTypedHits`, `portableNativeImportScannerHitCount`, `portableNativeImportScannerHits`), lowering-decision ledger fields (`loweringDecisionCount`, `loweringDecisionAttemptCount`, `loweringDecisionSuccessCount`, `loweringDecisionFallbackCount`, `loweringDecisions`), structured `metalFallbackViolations`, and deterministic lane summaries:
 - `metalFallbackLaneViolationCount`
 - `metalFallbackNonLaneViolationCount`
 - `metalFallbackViolationsByModule`

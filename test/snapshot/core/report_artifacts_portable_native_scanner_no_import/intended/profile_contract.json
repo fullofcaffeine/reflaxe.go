@@ -19,32 +19,23 @@
 	"metalFallbackViolationCount": 0,
 	"metalFallbackLaneViolationCount": 0,
 	"metalFallbackNonLaneViolationCount": 0,
-	"portableNativeImportScanMode": "typed",
-	"portableNativeImportHitCount": 1,
+	"portableNativeImportScanMode": "scanner",
+	"portableNativeImportHitCount": 0,
 	"portableNativeImportTypedHitCount": 1,
-	"portableNativeImportScannerHitCount": 1,
-	"contractDiagnosticCount": 1,
+	"portableNativeImportScannerHitCount": 0,
+	"contractDiagnosticCount": 0,
 	"hxrtManualFeatures": [
 	],
 	"metalLaneModules": [
 	],
 	"portableNativeImportHits": [
-		"Main"
 	],
 	"portableNativeImportTypedHits": [
 		"Main"
 	],
 	"portableNativeImportScannerHits": [
-		"Main"
 	],
 	"contractDiagnostics": [
-		{
-			"module": "Main",
-			"code": "portable_native_import",
-			"severity": "warning",
-			"location": "Main:3",
-			"message": "PortableNativeImportGate: module `Main` uses target-native `go.*` surfaces while `reflaxe_go_profile=portable` is active. Move native usage behind adapters, or use `-D reflaxe_go_portable_native_policy=off|warn|error`."
-		}
 	],
 	"loweringDecisions": [
 		{
@@ -53,7 +44,7 @@
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_method_close",
 			"outcome": "attempted",
-			"location": "Main:6",
+			"location": "Main:4",
 			"detail": "Attempt typed go.Chan method specialization."
 		},
 		{
@@ -62,7 +53,7 @@
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_method_close",
 			"outcome": "succeeded",
-			"location": "Main:6",
+			"location": "Main:4",
 			"detail": "Applied typed go.Chan method specialization (element type: int)."
 		},
 		{
@@ -71,7 +62,7 @@
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_new",
 			"outcome": "attempted",
-			"location": "Main:5",
+			"location": "Main:3",
 			"detail": "Attempt typed go.Go.newChan specialization."
 		},
 		{
@@ -80,7 +71,7 @@
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_new",
 			"outcome": "succeeded",
-			"location": "Main:5",
+			"location": "Main:3",
 			"detail": "Applied typed go.Go.newChan specialization (element type: int)."
 		},
 		{

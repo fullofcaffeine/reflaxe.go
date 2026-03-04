@@ -168,6 +168,7 @@ Stay in portable semantics:
 1. Keep code on portable Haxe stdlib/application APIs.
 2. Avoid target-native-only surfaces in shared/core modules.
 3. Use `-D reflaxe_go_portable_native_policy=error` in CI/release to hard-fail accidental `go.*` usage in portable modules (`warn` is the local default).
+4. If you want deterministic import/using scanner detection (instead of typed traversal), set `-D reflaxe_go_portable_native_scan_mode=scanner` (`hybrid` unions both sources).
 4. You can still compile with `metal` for boundary/perf validation without changing semantics if those modules remain portable-surface-only.
 
 ## Choosing a profile
@@ -308,7 +309,7 @@ Use these optional flags when auditing effective contract/runtime behavior:
 - `-D reflaxe_go_contract_report` emits `profile_contract.json` and `profile_contract.md`.
 - `-D reflaxe_go_runtime_plan_report` emits `hxrt_plan.json` and `hxrt_plan.md`.
 
-`profile_contract.json` (schema v6) carries centralized analyzer diagnostics (`contractDiagnosticCount`, `contractDiagnostics`, `portableNativeImportHitCount`, `portableNativeImportHits`), deterministic lowering-decision ledger fields (`loweringDecisionCount`, `loweringDecisionAttemptCount`, `loweringDecisionSuccessCount`, `loweringDecisionFallbackCount`, `loweringDecisions`), includes `autoLoweringMode`, and preserves module/lane attribution (`module`, `inMetalLane`) plus lane summary fields:
+`profile_contract.json` (schema v7) carries centralized analyzer diagnostics (`contractDiagnosticCount`, `contractDiagnostics`), portable native scan summary fields (`portableNativeImportScanMode`, `portableNativeImportHitCount`, `portableNativeImportHits`, `portableNativeImportTypedHitCount`, `portableNativeImportTypedHits`, `portableNativeImportScannerHitCount`, `portableNativeImportScannerHits`), deterministic lowering-decision ledger fields (`loweringDecisionCount`, `loweringDecisionAttemptCount`, `loweringDecisionSuccessCount`, `loweringDecisionFallbackCount`, `loweringDecisions`), includes `autoLoweringMode`, and preserves module/lane attribution (`module`, `inMetalLane`) plus lane summary fields:
 
 - `metalFallbackLaneViolationCount`
 - `metalFallbackNonLaneViolationCount`

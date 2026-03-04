@@ -121,6 +121,7 @@ Set via:
 - `metal` with default strict policy enforces strict app boundaries.
 - `-D reflaxe_go_metal_allow_fallback`: allows typed-specialization fallback in metal builds (instead of hard error) without changing strictness policy.
 - `-D reflaxe_go_portable_native_policy=warn|error|off`: controls `go.*` diagnostics in portable builds (`warn` default, `error` recommended in CI/release).
+- `-D reflaxe_go_portable_native_scan_mode=typed|scanner|hybrid`: controls how portable native-import hits are detected (`typed` default).
 - `-D reflaxe_go_portable_native_allow=<csv>`: optional module-prefix allowlist for sanctioned native adapter modules in portable builds.
 - `-D reflaxe_go_line_directives`: opt-in `//line` source mapping directives in generated user functions.
 

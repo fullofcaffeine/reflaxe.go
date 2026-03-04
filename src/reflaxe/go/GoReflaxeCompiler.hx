@@ -9,6 +9,7 @@ import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
 import reflaxe.go.analyze.GoProfileContractAnalyzer;
+import reflaxe.go.analyze.GoProfileContractAnalyzer.PortableNativeScanMode;
 import reflaxe.go.analyze.MetalLaneAnalyzer;
 import reflaxe.go.compiler.GoBuildContext;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
@@ -47,8 +48,13 @@ private typedef ContractReportSnapshot = {
 	final metalFallbackViolationCount:Int;
 	final metalFallbackLaneViolationCount:Int;
 	final metalFallbackNonLaneViolationCount:Int;
+	final portableNativeImportScanMode:String;
 	final portableNativeImportHitCount:Int;
+	final portableNativeImportTypedHitCount:Int;
+	final portableNativeImportScannerHitCount:Int;
 	final portableNativeImportHits:Array<String>;
+	final portableNativeImportTypedHits:Array<String>;
+	final portableNativeImportScannerHits:Array<String>;
 	final contractDiagnosticCount:Int;
 	final contractDiagnostics:Array<ContractDiagnosticEntry>;
 	final loweringDecisionCount:Int;
@@ -390,10 +396,15 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		var laneModules = sortedUniqueStrings(buildContext.metalLaneModules.copy());
 		var contractDiagnostics = new Array<ContractDiagnosticEntry>();
 		var portableNativeImportHits = new Array<String>();
+		var portableNativeImportTypedHits = new Array<String>();
+		var portableNativeImportScannerHits = new Array<String>();
 		var nativePolicy = GoProfileContractAnalyzer.resolvePortableNativePolicyModeFromDefines();
+		var nativeScanMode = GoProfileContractAnalyzer.resolvePortableNativeScanModeFromDefines();
 		var nativeAllowPrefixes = GoProfileContractAnalyzer.resolvePortableNativeAllowPrefixesFromDefines();
-		var analyzed = GoProfileContractAnalyzer.analyze(allModules, buildContext, Sys.getCwd(), nativePolicy, nativeAllowPrefixes);
+		var analyzed = GoProfileContractAnalyzer.analyze(allModules, buildContext, Sys.getCwd(), nativePolicy, nativeScanMode, nativeAllowPrefixes);
 		portableNativeImportHits = analyzed.portableNativeImportHits.copy();
+		portableNativeImportTypedHits = analyzed.portableNativeImportTypedHits.copy();
+		portableNativeImportScannerHits = analyzed.portableNativeImportScannerHits.copy();
 		for (entry in analyzed.diagnostics) {
 			if (entry == null) {
 				continue;
@@ -464,7 +475,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		fallbackViolations.sort(compareContractFallbackViolations);
 		var fallbackSummary = buildContractFallbackModuleSummary(laneCountsByModule, nonLaneCountsByModule);
 		return {
-			schemaVersion: 6,
+			schemaVersion: 7,
 			contract: contractLabel,
 			autoLoweringMode: GoAutoLoweringModeTools.label(buildContext.autoLoweringMode),
 			strictExamples: buildContext.strictExamples,
@@ -487,8 +498,13 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			metalFallbackViolationCount: fallbackViolations.length,
 			metalFallbackLaneViolationCount: laneViolationCount,
 			metalFallbackNonLaneViolationCount: nonLaneViolationCount,
+			portableNativeImportScanMode: portableNativeScanModeLabel(nativeScanMode),
 			portableNativeImportHitCount: portableNativeImportHits.length,
+			portableNativeImportTypedHitCount: portableNativeImportTypedHits.length,
+			portableNativeImportScannerHitCount: portableNativeImportScannerHits.length,
 			portableNativeImportHits: portableNativeImportHits,
+			portableNativeImportTypedHits: portableNativeImportTypedHits,
+			portableNativeImportScannerHits: portableNativeImportScannerHits,
 			contractDiagnosticCount: contractDiagnostics.length,
 			contractDiagnostics: contractDiagnostics,
 			metalFallbackViolationsByModule: fallbackSummary,
@@ -721,7 +737,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push('\t"metalFallbackViolationCount": ' + snapshot.metalFallbackViolationCount + ",");
 		lines.push('\t"metalFallbackLaneViolationCount": ' + snapshot.metalFallbackLaneViolationCount + ",");
 		lines.push('\t"metalFallbackNonLaneViolationCount": ' + snapshot.metalFallbackNonLaneViolationCount + ",");
+		lines.push('\t"portableNativeImportScanMode": "' + jsonEscape(snapshot.portableNativeImportScanMode) + '",');
 		lines.push('\t"portableNativeImportHitCount": ' + snapshot.portableNativeImportHitCount + ",");
+		lines.push('\t"portableNativeImportTypedHitCount": ' + snapshot.portableNativeImportTypedHitCount + ",");
+		lines.push('\t"portableNativeImportScannerHitCount": ' + snapshot.portableNativeImportScannerHitCount + ",");
 		lines.push('\t"contractDiagnosticCount": ' + snapshot.contractDiagnosticCount + ",");
 		lines.push('\t"hxrtManualFeatures": [');
 		appendJsonStringArray(lines, snapshot.hxrtManualFeatures, 2);
@@ -731,6 +750,12 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("\t],");
 		lines.push('\t"portableNativeImportHits": [');
 		appendJsonStringArray(lines, snapshot.portableNativeImportHits, 2);
+		lines.push("\t],");
+		lines.push('\t"portableNativeImportTypedHits": [');
+		appendJsonStringArray(lines, snapshot.portableNativeImportTypedHits, 2);
+		lines.push("\t],");
+		lines.push('\t"portableNativeImportScannerHits": [');
+		appendJsonStringArray(lines, snapshot.portableNativeImportScannerHits, 2);
 		lines.push("\t],");
 		lines.push('\t"contractDiagnostics": [');
 		appendJsonContractDiagnosticArray(lines, snapshot.contractDiagnostics, 2);
@@ -768,7 +793,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("- metal fallback violations: `" + snapshot.metalFallbackViolationCount + "`");
 		lines.push("- metal fallback lane violations: `" + snapshot.metalFallbackLaneViolationCount + "`");
 		lines.push("- metal fallback non-lane violations: `" + snapshot.metalFallbackNonLaneViolationCount + "`");
+		lines.push("- portable native import scan mode: `" + snapshot.portableNativeImportScanMode + "`");
 		lines.push("- portable native import hits: `" + snapshot.portableNativeImportHitCount + "`");
+		lines.push("- portable native import typed hits: `" + snapshot.portableNativeImportTypedHitCount + "`");
+		lines.push("- portable native import scanner hits: `" + snapshot.portableNativeImportScannerHitCount + "`");
 		lines.push("- contract diagnostics: `" + snapshot.contractDiagnosticCount + "`");
 		lines.push("- lowering decisions: `" + snapshot.loweringDecisionCount + "` (attempts `" + snapshot.loweringDecisionAttemptCount + "`, success `"
 			+ snapshot.loweringDecisionSuccessCount + "`, fallback `" + snapshot.loweringDecisionFallbackCount + "`)");
@@ -796,6 +824,24 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			lines.push("- none");
 		} else {
 			for (moduleName in snapshot.portableNativeImportHits) {
+				lines.push("- `" + moduleName + "`");
+			}
+		}
+		lines.push("");
+		lines.push("## portable native import typed hits");
+		if (snapshot.portableNativeImportTypedHits.length == 0) {
+			lines.push("- none");
+		} else {
+			for (moduleName in snapshot.portableNativeImportTypedHits) {
+				lines.push("- `" + moduleName + "`");
+			}
+		}
+		lines.push("");
+		lines.push("## portable native import scanner hits");
+		if (snapshot.portableNativeImportScannerHits.length == 0) {
+			lines.push("- none");
+		} else {
+			for (moduleName in snapshot.portableNativeImportScannerHits) {
 				lines.push("- `" + moduleName + "`");
 			}
 		}
@@ -1081,6 +1127,17 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 
 	static function boolLabel(value:Bool):String {
 		return value ? "yes" : "no";
+	}
+
+	static function portableNativeScanModeLabel(mode:PortableNativeScanMode):String {
+		return switch (mode) {
+			case Typed:
+				"typed";
+			case Scanner:
+				"scanner";
+			case Hybrid:
+				"hybrid";
+		};
 	}
 
 	static function jsonEscape(value:String):String {

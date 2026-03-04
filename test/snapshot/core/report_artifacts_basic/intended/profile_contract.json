@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 6,
+	"schemaVersion": 7,
 	"contract": "portable",
 	"autoLoweringMode": "off",
 	"strictExamples": false,
@@ -19,13 +19,20 @@
 	"metalFallbackViolationCount": 0,
 	"metalFallbackLaneViolationCount": 0,
 	"metalFallbackNonLaneViolationCount": 0,
+	"portableNativeImportScanMode": "typed",
 	"portableNativeImportHitCount": 0,
+	"portableNativeImportTypedHitCount": 0,
+	"portableNativeImportScannerHitCount": 0,
 	"contractDiagnosticCount": 0,
 	"hxrtManualFeatures": [
 	],
 	"metalLaneModules": [
 	],
 	"portableNativeImportHits": [
+	],
+	"portableNativeImportTypedHits": [
+	],
+	"portableNativeImportScannerHits": [
 	],
 	"contractDiagnostics": [
 	],

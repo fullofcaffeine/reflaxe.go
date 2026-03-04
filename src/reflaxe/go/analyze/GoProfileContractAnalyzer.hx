@@ -31,14 +31,28 @@ private typedef AnalyzerMapMethodCall = {
 class GoProfileContractAnalyzer {
 	public static inline final PORTABLE_NATIVE_POLICY_DEFINE = "reflaxe_go_portable_native_policy";
 	public static inline final PORTABLE_NATIVE_ALLOW_DEFINE = "reflaxe_go_portable_native_allow";
+	public static inline final PORTABLE_NATIVE_SCAN_MODE_DEFINE = "reflaxe_go_portable_native_scan_mode";
 
 	public static function analyze(types:Array<ModuleType>, buildContext:GoBuildContext, projectRoot:String, portableNativePolicy:PortableNativePolicyMode,
-			portableNativeAllowPrefixes:Array<String>):GoProfileContractDiagnostics {
+			portableNativeScanMode:PortableNativeScanMode, portableNativeAllowPrefixes:Array<String>):GoProfileContractDiagnostics {
 		var diagnostics:Array<GoContractDiagnostic> = [];
 		var portableNativeImportHits:Array<String> = [];
+		var portableNativeImportTypedHits:Array<String> = [];
+		var portableNativeImportScannerHits:Array<String> = [];
 
 		if (buildContext.profile == GoProfile.Portable && portableNativePolicy != PortableNativePolicyMode.Off) {
-			var hits = collectPortableNativeImportHits(types, projectRoot, portableNativeAllowPrefixes);
+			var typedHits = collectPortableNativeImportTypedHits(types, projectRoot, portableNativeAllowPrefixes);
+			var scannerHits = collectPortableNativeImportScannerHits(types, projectRoot, portableNativeAllowPrefixes);
+			portableNativeImportTypedHits = [for (hit in typedHits) hit.module];
+			portableNativeImportScannerHits = [for (hit in scannerHits) hit.module];
+			var hits = switch (portableNativeScanMode) {
+				case Typed:
+					typedHits;
+				case Scanner:
+					scannerHits;
+				case Hybrid:
+					unionPortableNativeHits(typedHits, scannerHits);
+			}
 			portableNativeImportHits = [for (hit in hits) hit.module];
 			for (hit in hits) {
 				diagnostics.push({
@@ -55,7 +69,9 @@ class GoProfileContractAnalyzer {
 		diagnostics.sort(compareDiagnostics);
 		return {
 			diagnostics: diagnostics,
-			portableNativeImportHits: portableNativeImportHits
+			portableNativeImportHits: portableNativeImportHits,
+			portableNativeImportTypedHits: portableNativeImportTypedHits,
+			portableNativeImportScannerHits: portableNativeImportScannerHits
 		};
 	}
 
@@ -65,6 +81,10 @@ class GoProfileContractAnalyzer {
 
 	public static function resolvePortableNativeAllowPrefixesFromDefines():Array<String> {
 		return resolvePortableNativeAllowPrefixes(Context.definedValue(PORTABLE_NATIVE_ALLOW_DEFINE));
+	}
+
+	public static function resolvePortableNativeScanModeFromDefines():PortableNativeScanMode {
+		return resolvePortableNativeScanMode(Context.definedValue(PORTABLE_NATIVE_SCAN_MODE_DEFINE));
 	}
 
 	public static function resolvePortableNativePolicyMode(rawValue:Null<String>):PortableNativePolicyMode {
@@ -102,7 +122,27 @@ class GoProfileContractAnalyzer {
 		return prefixes;
 	}
 
-	public static function collectPortableNativeImportHits(types:Array<ModuleType>, projectRoot:String,
+	public static function resolvePortableNativeScanMode(rawValue:Null<String>):PortableNativeScanMode {
+		if (rawValue == null || StringTools.trim(rawValue) == "") {
+			return PortableNativeScanMode.Typed;
+		}
+		var normalized = StringTools.trim(rawValue).toLowerCase();
+		return switch (normalized) {
+			case "typed":
+				PortableNativeScanMode.Typed;
+			case "scanner":
+				PortableNativeScanMode.Scanner;
+			case "hybrid":
+				PortableNativeScanMode.Hybrid;
+			case _:
+				Context.fatalError("PortableNativeImportGate: invalid " + PORTABLE_NATIVE_SCAN_MODE_DEFINE + " `" + rawValue
+					+ "`. Expected `typed`, `scanner`, or `hybrid`.",
+					Context.currentPos());
+				PortableNativeScanMode.Typed;
+		};
+	}
+
+	public static function collectPortableNativeImportTypedHits(types:Array<ModuleType>, projectRoot:String,
 			allowPrefixes:Array<String>):Array<GoPortableNativeImportHit> {
 		var hitsByModule:Map<String, GoPortableNativeImportHit> = [];
 		for (moduleType in types) {
@@ -132,6 +172,38 @@ class GoProfileContractAnalyzer {
 						hitsByModule.set(moduleName, hitForModule(moduleName, abstractType.pos));
 					}
 				case _:
+			}
+		}
+
+		var out:Array<GoPortableNativeImportHit> = [for (moduleName in hitsByModule.keys()) hitsByModule.get(moduleName)];
+		out.sort(comparePortableNativeHits);
+		return out;
+	}
+
+	public static function collectPortableNativeImportScannerHits(types:Array<ModuleType>, projectRoot:String,
+			allowPrefixes:Array<String>):Array<GoPortableNativeImportHit> {
+		var hitsByModule:Map<String, GoPortableNativeImportHit> = [];
+		var sourceScanCache:Map<String, Null<Int>> = [];
+		for (moduleType in types) {
+			var modulePos = modulePosForType(moduleType);
+			if (modulePos == null || !isPortableContractSource(modulePos, projectRoot)) {
+				continue;
+			}
+			var moduleName = moduleNameForType(moduleType);
+			if (moduleName == null || moduleName == "" || hitsByModule.exists(moduleName) || isAllowedModule(moduleName, allowPrefixes)) {
+				continue;
+			}
+			var sourceFile = moduleSourceFile(moduleType);
+			if (sourceFile == null || sourceFile == "") {
+				continue;
+			}
+			var cachedLine = sourceScanCache.get(sourceFile);
+			if (!sourceScanCache.exists(sourceFile)) {
+				cachedLine = firstGoNativeImportLine(sourceFile);
+				sourceScanCache.set(sourceFile, cachedLine);
+			}
+			if (cachedLine != null) {
+				hitsByModule.set(moduleName, hitForModule(moduleName, modulePos, cachedLine));
 			}
 		}
 
@@ -380,6 +452,29 @@ class GoProfileContractAnalyzer {
 		return pack != null && pack.length > 0 && pack[0] == "go";
 	}
 
+	static function unionPortableNativeHits(typedHits:Array<GoPortableNativeImportHit>,
+			scannerHits:Array<GoPortableNativeImportHit>):Array<GoPortableNativeImportHit> {
+		var merged:Map<String, GoPortableNativeImportHit> = [];
+		for (hit in typedHits) {
+			if (hit == null) {
+				continue;
+			}
+			merged.set(hit.module, hit);
+		}
+		for (hit in scannerHits) {
+			if (hit == null) {
+				continue;
+			}
+			var existing = merged.get(hit.module);
+			if (existing == null || comparePortableNativeHits(hit, existing) < 0) {
+				merged.set(hit.module, hit);
+			}
+		}
+		var out:Array<GoPortableNativeImportHit> = [for (moduleName in merged.keys()) merged.get(moduleName)];
+		out.sort(comparePortableNativeHits);
+		return out;
+	}
+
 	static function portableNativeImportMessage(moduleName:String):String {
 		return "PortableNativeImportGate: module `"
 			+ moduleName
@@ -426,6 +521,23 @@ class GoProfileContractAnalyzer {
 		return classType.pack == null || classType.pack.length == 0 ? classType.name : classType.pack.join(".") + "." + classType.name;
 	}
 
+	static function moduleNameForType(moduleType:ModuleType):String {
+		return switch (moduleType) {
+			case TClassDecl(classRef):
+				moduleNameForClass(classRef.get());
+			case TEnumDecl(enumRef): var enumType = enumRef.get(); enumType.module != null && enumType.module.length > 0 ? enumType.module : (enumType.pack == null
+					|| enumType.pack.length == 0 ? enumType.name : enumType.pack.join(".")
+						+ "."
+						+ enumType.name);
+			case TTypeDecl(typeRef): var typeDecl = typeRef.get(); typeDecl.module != null && typeDecl.module.length > 0 ? typeDecl.module : (typeDecl.pack == null
+					|| typeDecl.pack.length == 0 ? typeDecl.name : typeDecl.pack.join(".")
+						+ "."
+						+ typeDecl.name);
+			case TAbstract(abstractRef):
+				moduleNameForAbstract(abstractRef.get());
+		};
+	}
+
 	static inline function moduleNameForAbstract(abstractType:AbstractType):String {
 		if (abstractType.module != null && abstractType.module.length > 0) {
 			return abstractType.module;
@@ -434,15 +546,73 @@ class GoProfileContractAnalyzer {
 			|| abstractType.pack.length == 0 ? abstractType.name : abstractType.pack.join(".") + "." + abstractType.name;
 	}
 
-	static function hitForModule(moduleName:String, pos:haxe.macro.Expr.Position):GoPortableNativeImportHit {
-		return {
-			module: moduleName,
-			pos: pos,
-			location: locationLabel(moduleName, pos)
+	static function modulePosForType(moduleType:ModuleType):haxe.macro.Expr.Position {
+		return switch (moduleType) {
+			case TClassDecl(classRef):
+				classRef.get().pos;
+			case TEnumDecl(enumRef):
+				enumRef.get().pos;
+			case TTypeDecl(typeRef):
+				typeRef.get().pos;
+			case TAbstract(abstractRef):
+				abstractRef.get().pos;
 		};
 	}
 
-	static function locationLabel(moduleName:String, pos:haxe.macro.Expr.Position):String {
+	static function moduleSourceFile(moduleType:ModuleType):String {
+		var modulePos = modulePosForType(moduleType);
+		if (modulePos == null) {
+			return "";
+		}
+		var info = Context.getPosInfos(modulePos);
+		if (info == null || info.file == null || info.file == "") {
+			return "";
+		}
+		return normalizePath(info.file);
+	}
+
+	static function firstGoNativeImportLine(sourceFile:String):Null<Int> {
+		if (sourceFile == null || sourceFile == "" || !sys.FileSystem.exists(sourceFile) || sys.FileSystem.isDirectory(sourceFile)) {
+			return null;
+		}
+		var source = sys.io.File.getContent(sourceFile);
+		if (source == null || source.length == 0) {
+			return null;
+		}
+		var lines = source.split("\n");
+		var importPattern = ~/^\s*(import|using)\s+([A-Za-z0-9_.]+)\s*;/;
+		for (i in 0...lines.length) {
+			var line = lines[i];
+			if (!importPattern.match(line)) {
+				continue;
+			}
+			var modulePath = importPattern.matched(2);
+			if (modulePath == null || modulePath == "") {
+				continue;
+			}
+			if (isGoNativeImportPath(modulePath)) {
+				return i + 1;
+			}
+		}
+		return null;
+	}
+
+	static inline function isGoNativeImportPath(modulePath:String):Bool {
+		return modulePath == "go" || StringTools.startsWith(modulePath, "go.");
+	}
+
+	static function hitForModule(moduleName:String, pos:haxe.macro.Expr.Position, ?lineOverride:Null<Int>):GoPortableNativeImportHit {
+		return {
+			module: moduleName,
+			pos: pos,
+			location: locationLabel(moduleName, pos, lineOverride)
+		};
+	}
+
+	static function locationLabel(moduleName:String, pos:haxe.macro.Expr.Position, ?lineOverride:Null<Int>):String {
+		if (lineOverride != null && lineOverride > 0) {
+			return moduleName + ":" + lineOverride;
+		}
 		var line = 1;
 		var location = PositionTools.toLocation(pos);
 		if (location != null && location.range != null && location.range.start != null && location.range.start.line > 0) {
@@ -723,6 +893,12 @@ enum PortableNativePolicyMode {
 	Error;
 }
 
+enum PortableNativeScanMode {
+	Typed;
+	Scanner;
+	Hybrid;
+}
+
 typedef GoPortableNativeImportHit = {
 	var module:String;
 	var location:String;
@@ -741,5 +917,7 @@ typedef GoContractDiagnostic = {
 typedef GoProfileContractDiagnostics = {
 	var diagnostics:Array<GoContractDiagnostic>;
 	var portableNativeImportHits:Array<String>;
+	var portableNativeImportTypedHits:Array<String>;
+	var portableNativeImportScannerHits:Array<String>;
 }
 #end

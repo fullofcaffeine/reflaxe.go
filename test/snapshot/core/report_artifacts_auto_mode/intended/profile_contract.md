@@ -1,6 +1,6 @@
 # Contract Report
 
-- schema version: `6`
+- schema version: `7`
 - contract: `portable`
 - auto lowering mode: `auto`
 - strict examples: `no`
@@ -16,7 +16,10 @@
 - metal fallback violations: `0`
 - metal fallback lane violations: `0`
 - metal fallback non-lane violations: `0`
+- portable native import scan mode: `typed`
 - portable native import hits: `0`
+- portable native import typed hits: `0`
+- portable native import scanner hits: `0`
 - contract diagnostics: `0`
 - lowering decisions: `0` (attempts `0`, success `0`, fallback `0`)
 
@@ -27,6 +30,12 @@
 - none
 
 ## portable native import hits
+- none
+
+## portable native import typed hits
+- none
+
+## portable native import scanner hits
 - none
 
 ## contract diagnostics

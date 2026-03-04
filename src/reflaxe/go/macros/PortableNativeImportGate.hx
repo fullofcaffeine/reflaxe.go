@@ -6,6 +6,7 @@ import haxe.macro.Type;
 import reflaxe.go.GoProfile;
 import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.analyze.GoProfileContractAnalyzer.PortableNativePolicyMode;
+import reflaxe.go.analyze.GoProfileContractAnalyzer.PortableNativeScanMode;
 import reflaxe.go.compiler.GoBuildContextResolver;
 #end
 
@@ -32,15 +33,16 @@ class PortableNativeImportGate {
 		if (policy == PortableNativePolicyMode.Off) {
 			return;
 		}
+		var scanMode = GoProfileContractAnalyzer.resolvePortableNativeScanModeFromDefines();
 		var allowPrefixes = GoProfileContractAnalyzer.resolvePortableNativeAllowPrefixesFromDefines();
 		var projectRoot = Sys.getCwd();
 
-		Context.onAfterTyping(types -> enforce(types, buildContext, policy, projectRoot, allowPrefixes));
+		Context.onAfterTyping(types -> enforce(types, buildContext, policy, scanMode, projectRoot, allowPrefixes));
 	}
 
-	static function enforce(types:Array<ModuleType>, buildContext:reflaxe.go.compiler.GoBuildContext, policy:PortableNativePolicyMode, projectRoot:String,
-			allowPrefixes:Array<String>):Void {
-		var diagnostics = GoProfileContractAnalyzer.analyze(types, buildContext, projectRoot, policy, allowPrefixes).diagnostics;
+	static function enforce(types:Array<ModuleType>, buildContext:reflaxe.go.compiler.GoBuildContext, policy:PortableNativePolicyMode,
+			scanMode:PortableNativeScanMode, projectRoot:String, allowPrefixes:Array<String>):Void {
+		var diagnostics = GoProfileContractAnalyzer.analyze(types, buildContext, projectRoot, policy, scanMode, allowPrefixes).diagnostics;
 		for (entry in diagnostics) {
 			switch (entry.severity) {
 				case "error":
