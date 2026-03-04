@@ -1,6 +1,6 @@
 # Lane Semantic Diff Suite
 
-This suite verifies that `@:goMetal` lane enforcement in portable builds does not change runtime semantics for lane-clean programs.
+This suite verifies that `@:goMetal` lane enforcement in portable builds (`reflaxe_go_auto=auto_strict`) does not change runtime semantics for lane-clean programs.
 
 Runner:
 

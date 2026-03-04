@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 2,
+	"schemaVersion": 3,
 	"contract": "portable",
 	"autoLoweringMode": "off",
 	"optimizationPreset": "none",
@@ -11,6 +11,8 @@
 	"stringLengthFieldLegacyLowerings": 2,
 	"portableConcurrencyTypedFastpathHits": 0,
 	"portableConcurrencyTypedFastpathFallbacks": 0,
+	"loweringFallbackLaneCount": 0,
+	"loweringFallbackNonLaneCount": 0,
 	"goAstPasses": [
 		"normalize_names",
 		"rewrite_string_ops",

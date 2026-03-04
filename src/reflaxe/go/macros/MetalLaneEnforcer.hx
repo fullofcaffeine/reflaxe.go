@@ -6,6 +6,7 @@ import haxe.macro.Type;
 import haxe.macro.TypedExprTools;
 import reflaxe.go.GoProfile;
 import reflaxe.go.analyze.MetalLaneAnalyzer;
+import reflaxe.go.compiler.GoAutoLoweringMode;
 import reflaxe.go.compiler.GoBuildContextResolver;
 import reflaxe.go.compiler.GoTypeMapper;
 
@@ -40,10 +41,11 @@ class MetalLaneEnforcer {
 			return;
 		}
 
-		Context.onAfterTyping(types -> enforce(types));
+		var enforceTypedFallbacks = buildContext.autoLoweringMode == GoAutoLoweringMode.AutoStrict;
+		Context.onAfterTyping(types -> enforce(types, enforceTypedFallbacks));
 	}
 
-	static function enforce(types:Array<ModuleType>):Void {
+	static function enforce(types:Array<ModuleType>, enforceTypedFallbacks:Bool):Void {
 		var laneSnapshot = MetalLaneAnalyzer.collect(types);
 		if (laneSnapshot.modules.length == 0) {
 			return;
@@ -61,8 +63,8 @@ class MetalLaneEnforcer {
 					if (!laneModules.exists(moduleNameForClass(classType))) {
 						continue;
 					}
-					enforceClassFields(classType.fields.get(), moduleNameForClass(classType));
-					enforceClassFields(classType.statics.get(), moduleNameForClass(classType));
+					enforceClassFields(classType.fields.get(), moduleNameForClass(classType), enforceTypedFallbacks);
+					enforceClassFields(classType.statics.get(), moduleNameForClass(classType), enforceTypedFallbacks);
 				case TAbstract(abstractRef):
 					var abstractType = abstractRef.get();
 					if (!laneModules.exists(moduleNameForAbstract(abstractType))) {
@@ -71,8 +73,8 @@ class MetalLaneEnforcer {
 					if (abstractType.impl != null) {
 						var impl = abstractType.impl.get();
 						if (impl != null) {
-							enforceClassFields(impl.fields.get(), moduleNameForAbstract(abstractType));
-							enforceClassFields(impl.statics.get(), moduleNameForAbstract(abstractType));
+							enforceClassFields(impl.fields.get(), moduleNameForAbstract(abstractType), enforceTypedFallbacks);
+							enforceClassFields(impl.statics.get(), moduleNameForAbstract(abstractType), enforceTypedFallbacks);
 						}
 					}
 				case _:
@@ -80,7 +82,7 @@ class MetalLaneEnforcer {
 		}
 	}
 
-	static function enforceClassFields(fields:Array<ClassField>, moduleName:String):Void {
+	static function enforceClassFields(fields:Array<ClassField>, moduleName:String, enforceTypedFallbacks:Bool):Void {
 		if (fields == null) {
 			return;
 		}
@@ -89,24 +91,26 @@ class MetalLaneEnforcer {
 			if (expr == null) {
 				continue;
 			}
-			scanForLaneViolations(expr, moduleName);
+			scanForLaneViolations(expr, moduleName, enforceTypedFallbacks);
 		}
 	}
 
-	static function scanForLaneViolations(expr:TypedExpr, moduleName:String):Void {
+	static function scanForLaneViolations(expr:TypedExpr, moduleName:String, enforceTypedFallbacks:Bool):Void {
 		if (isGoInjectionCall(expr)) {
 			Context.error("MetalLaneEnforcer: __go__ is not allowed in @:goMetal modules when contract=portable.", expr.pos);
 		}
-		var typedFallback = detectTypedFallbackViolation(expr);
-		if (typedFallback != null) {
-			Context.error('MetalLaneEnforcer: typed metal fallback is not allowed in @:goMetal module "'
-				+ moduleName
-				+ '" when contract=portable. '
-				+ typedFallback
-				+ " Use concrete generic types for go.Chan/go.Slice/go.Map/go.Result in lane modules (avoid Dynamic/Any).",
-				expr.pos);
+		if (enforceTypedFallbacks) {
+			var typedFallback = detectTypedFallbackViolation(expr);
+			if (typedFallback != null) {
+				Context.error('MetalLaneEnforcer: typed metal fallback is not allowed in @:goMetal module "'
+					+ moduleName
+					+ '" when contract=portable and `-D reflaxe_go_auto=auto_strict`. '
+					+ typedFallback
+					+ " Use concrete generic types for go.Chan/go.Slice/go.Map/go.Result in lane modules (avoid Dynamic/Any).",
+					expr.pos);
+			}
 		}
-		TypedExprTools.iter(expr, e -> scanForLaneViolations(e, moduleName));
+		TypedExprTools.iter(expr, e -> scanForLaneViolations(e, moduleName, enforceTypedFallbacks));
 	}
 
 	static function isGoInjectionCall(expr:TypedExpr):Bool {

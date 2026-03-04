@@ -113,6 +113,8 @@ private typedef OptimizerPlanReportSnapshot = {
 	final stringLengthFieldLegacyLowerings:Int;
 	final portableConcurrencyTypedFastpathHits:Int;
 	final portableConcurrencyTypedFastpathFallbacks:Int;
+	final loweringFallbackLaneCount:Int;
+	final loweringFallbackNonLaneCount:Int;
 }
 
 class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dynamic> {
@@ -483,11 +485,23 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 	function buildOptimizerPlanReportSnapshot(buildContext:GoBuildContext, context:Null<CompilationContext>):OptimizerPlanReportSnapshot {
 		var contractLabel = buildContext.profile == GoProfile.Metal ? "metal" : "portable";
 		var goAstPasses:Array<String> = [];
+		var loweringFallbackLaneCount = 0;
+		var loweringFallbackNonLaneCount = 0;
 		if (context != null) {
 			goAstPasses = context.appliedGoAstPassNames.copy();
+			for (entry in context.loweringDecisionLedger) {
+				if (entry == null || entry.outcome != "fallback") {
+					continue;
+				}
+				if (entry.inMetalLane) {
+					loweringFallbackLaneCount++;
+				} else {
+					loweringFallbackNonLaneCount++;
+				}
+			}
 		}
 		return {
-			schemaVersion: 2,
+			schemaVersion: 3,
 			contract: contractLabel,
 			autoLoweringMode: GoAutoLoweringModeTools.label(buildContext.autoLoweringMode),
 			optimizationPreset: buildContext.optimizationPreset,
@@ -499,7 +513,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			stringLengthFieldTypedLowerings: context == null ? 0 : context.optimizerStringLengthFieldTypedLowerings,
 			stringLengthFieldLegacyLowerings: context == null ? 0 : context.optimizerStringLengthFieldLegacyLowerings,
 			portableConcurrencyTypedFastpathHits: context == null ? 0 : context.optimizerPortableConcurrencyTypedFastpathHits,
-			portableConcurrencyTypedFastpathFallbacks: context == null ? 0 : context.optimizerPortableConcurrencyTypedFastpathFallbacks
+			portableConcurrencyTypedFastpathFallbacks: context == null ? 0 : context.optimizerPortableConcurrencyTypedFastpathFallbacks,
+			loweringFallbackLaneCount: loweringFallbackLaneCount,
+			loweringFallbackNonLaneCount: loweringFallbackNonLaneCount
 		};
 	}
 
@@ -845,6 +861,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push('\t"stringLengthFieldLegacyLowerings": ' + snapshot.stringLengthFieldLegacyLowerings + ",");
 		lines.push('\t"portableConcurrencyTypedFastpathHits": ' + snapshot.portableConcurrencyTypedFastpathHits + ",");
 		lines.push('\t"portableConcurrencyTypedFastpathFallbacks": ' + snapshot.portableConcurrencyTypedFastpathFallbacks + ",");
+		lines.push('\t"loweringFallbackLaneCount": ' + snapshot.loweringFallbackLaneCount + ",");
+		lines.push('\t"loweringFallbackNonLaneCount": ' + snapshot.loweringFallbackNonLaneCount + ",");
 		lines.push('\t"goAstPasses": [');
 		appendJsonStringArray(lines, snapshot.goAstPasses, 2);
 		lines.push("\t]");
@@ -868,6 +886,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("- string length field legacy lowerings: `" + snapshot.stringLengthFieldLegacyLowerings + "`");
 		lines.push("- portable concurrency typed fastpath hits: `" + snapshot.portableConcurrencyTypedFastpathHits + "`");
 		lines.push("- portable concurrency typed fastpath fallbacks: `" + snapshot.portableConcurrencyTypedFastpathFallbacks + "`");
+		lines.push("- lowering fallback lane count: `" + snapshot.loweringFallbackLaneCount + "`");
+		lines.push("- lowering fallback non-lane count: `" + snapshot.loweringFallbackNonLaneCount + "`");
 		lines.push("");
 		lines.push("## go ast passes");
 		if (snapshot.goAstPasses.length == 0) {

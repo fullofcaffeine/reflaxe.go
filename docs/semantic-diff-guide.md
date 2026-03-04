@@ -7,7 +7,7 @@ This guide explains what semantic diff is, why we use it, and how to add/diagnos
 - `portable contract`: the baseline behavior contract for cross-target-compatible code.
   - reference: `docs/portable-canonical-contract.md`
 - `semantic diff case`: a fixture where we compare runtime stdout between Haxe `--interp` and generated Go.
-- `lane suite`: semantic-diff fixtures for lane-specific guarantees (for example `@:goMetal` lane enforcement behavior).
+- `lane suite`: semantic-diff fixtures for lane-specific guarantees (for example `@:goMetal` lane behavior under `reflaxe_go_auto=auto_strict`).
 - `go_defines.txt`: optional case-local define list used to toggle compiler behavior for a semantic-diff fixture.
 
 ## What Semantic Diff Is

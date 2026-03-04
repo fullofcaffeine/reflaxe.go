@@ -109,9 +109,10 @@ Design note:
   - Module/type/field metadata for metal-clean lane islands inside portable builds.
   - Portable builds enforce lane restrictions for these modules:
     - raw `__go__` is disallowed.
-    - typed fallback paths for `go.Chan`/`go.Slice`/`go.Map`/`go.Result` are disallowed (for example non-monomorphizable `Dynamic`/`Any` lane usage).
+    - with `-D reflaxe_go_auto=auto_strict`, typed fallback paths for `go.Chan`/`go.Slice`/`go.Map`/`go.Result` are disallowed (for example non-monomorphizable `Dynamic`/`Any` lane usage).
+    - with `reflaxe_go_auto=off|auto`, typed fallback paths are allowed and recorded in lowering/report artifacts.
   - Validation commands:
-    - `python3 test/run-snapshots.py --case negative/go_metal_lane_injection --case negative/go_metal_lane_fallback_result --case negative/go_metal_lane_fallback_chan --case negative/go_metal_lane_fallback_slice --case negative/go_metal_lane_fallback_map --case core/go_metal_lane_nonlane_fallback_allowed`
+    - `python3 test/run-snapshots.py --case negative/go_metal_lane_injection --case negative/go_metal_lane_fallback_result --case negative/go_metal_lane_fallback_chan --case negative/go_metal_lane_fallback_slice --case negative/go_metal_lane_fallback_map --case core/go_metal_lane_nonlane_fallback_allowed --case core/go_metal_lane_fallback_allowed_off`
     - `python3 test/run-semantic-diff.py --suite lanes`
     - `npm run test:semantic-diff:lanes`
 
@@ -128,7 +129,7 @@ Removed:
   - Emit `hxrt_plan.json` and `hxrt_plan.md` into output root with selected runtime features/files and selection reasons.
 - `reflaxe_go_optimizer_plan_report`
   - Emit `optimizer_plan.json` and `optimizer_plan.md` into output root with effective optimizer preset/capabilities and applied lowering counters.
-  - `optimizer_plan.json` schema v2 includes `autoLoweringMode`.
+  - `optimizer_plan.json` schema v3 includes `autoLoweringMode` and lane-scoped fallback counters (`loweringFallbackLaneCount`, `loweringFallbackNonLaneCount`).
 
 ## Constructor devex
 

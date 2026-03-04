@@ -1,6 +1,6 @@
 # Optimizer Plan Report
 
-- schema version: `2`
+- schema version: `3`
 - contract: `portable`
 - auto lowering mode: `off`
 - optimization preset: `none`
@@ -12,6 +12,8 @@
 - string length field legacy lowerings: `2`
 - portable concurrency typed fastpath hits: `0`
 - portable concurrency typed fastpath fallbacks: `0`
+- lowering fallback lane count: `0`
+- lowering fallback non-lane count: `0`
 
 ## go ast passes
 - `normalize_names`
