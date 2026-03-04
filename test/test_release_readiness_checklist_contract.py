@@ -34,6 +34,12 @@ class ReleaseReadinessChecklistContractTest(unittest.TestCase):
         start_here = (REPO_ROOT / "docs" / "start-here.md").read_text(encoding="utf-8")
         self.assertIn("docs/release-readiness-checklist.md", start_here)
 
+    def test_ci_runner_has_release_contracts_stage(self) -> None:
+        ci_runner = (REPO_ROOT / "test" / "run-ci.py").read_text(encoding="utf-8")
+        self.assertIn("==> Release contracts stage", ci_runner)
+        self.assertIn("def build_release_contracts_command", ci_runner)
+        self.assertIn("test/run-release-contracts.py", ci_runner)
+
 
 if __name__ == "__main__":
     unittest.main()

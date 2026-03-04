@@ -52,6 +52,12 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Run auto planner report-schema gate stage even for chunked/filtered runs",
     )
+    parser.add_argument("--skip-release-contracts", action="store_true", help="Skip release contracts stage")
+    parser.add_argument(
+        "--force-release-contracts",
+        action="store_true",
+        help="Run release contracts stage even for chunked/filtered runs",
+    )
     parser.add_argument("--skip-semantic-diff", action="store_true", help="Skip semantic differential stage")
     parser.add_argument("--force-semantic-diff", action="store_true", help="Run semantic differential stage even for chunked/filtered runs")
     parser.add_argument("--skip-semantic-diff-optimizer-matrix", action="store_true", help="Skip semantic-diff optimizer matrix stage")
@@ -227,6 +233,20 @@ def should_run_auto_planner_schema(args: argparse.Namespace) -> bool:
 
 def build_auto_planner_schema_command() -> list[str]:
     return ["npm", "run", "test:auto-planner:schema"]
+
+
+def should_run_release_contracts(args: argparse.Namespace) -> bool:
+    if args.skip_release_contracts:
+        return False
+    if args.force_release_contracts:
+        return True
+
+    # Keep release contracts on full runs by default.
+    return not (args.chunk or args.failed or args.changed or args.pattern)
+
+
+def build_release_contracts_command() -> list[str]:
+    return ["python3", "test/run-release-contracts.py"]
 
 
 def should_run_semantic_diff(args: argparse.Namespace) -> bool:
@@ -480,6 +500,14 @@ def main() -> int:
             return auto_planner_schema_code
     else:
         print("==> Skipping auto planner report schema stage")
+
+    if should_run_release_contracts(args):
+        print("==> Release contracts stage")
+        release_contracts_code = run(build_release_contracts_command())
+        if release_contracts_code != 0:
+            return release_contracts_code
+    else:
+        print("==> Skipping release contracts stage")
 
     if should_run_semantic_diff(args):
         print("==> Semantic diff stage")
