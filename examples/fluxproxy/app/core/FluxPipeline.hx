@@ -2,8 +2,16 @@ package app.core;
 
 import app.runtime.BuildConfig;
 import app.runtime.FluxRuntime;
-import haxe.ds.IntMap;
-import haxe.ds.StringMap;
+
+private typedef FluxStringIntState = {
+	var key:String;
+	var value:Int;
+}
+
+private typedef FluxResponseById = {
+	var requestId:Int;
+	var response:FluxProxyResponse;
+}
 
 class FluxPipeline {
 	final runtime:FluxRuntime;
@@ -55,34 +63,24 @@ class FluxPipeline {
 		routes:Array<FluxRouteAggregate>,
 		summary:String
 	} {
-		var byRoute:StringMap<FluxRouteAggregate> = new StringMap<FluxRouteAggregate>();
-		var routeKeys = new Array<String>();
+		var routes = new Array<FluxRouteAggregate>();
 
 		for (response in responses) {
 			var route = response.route;
-			var bucket = byRoute.get(route);
+			var bucket = findRouteAggregate(routes, route);
 			if (bucket == null) {
 				bucket = new FluxRouteAggregate(route);
-				byRoute.set(route, bucket);
-				routeKeys.push(route);
+				routes.push(bucket);
 			}
 			bucket.record(response);
 		}
 
-		var routes = new Array<FluxRouteAggregate>();
 		var digest = "";
-		var i = 0;
-		while (i < routeKeys.length) {
-			var route = routeKeys[i];
-			var item = byRoute.get(route);
-			if (item != null) {
-				routes.push(item);
-				if (digest != "") {
-					digest += ",";
-				}
-				digest += item.summaryToken();
+		for (item in routes) {
+			if (digest != "") {
+				digest += ",";
 			}
-			i++;
+			digest += item.summaryToken();
 		}
 
 		return {
@@ -117,8 +115,8 @@ class FluxPipeline {
 	} {
 		var normalizedLimit = perRouteLimit <= 0 ? 1 : perRouteLimit;
 		var normalizedBreaker = breakerFailureThreshold <= 0 ? 1 : breakerFailureThreshold;
-		var routeCounts:StringMap<Int> = new StringMap<Int>();
-		var failureStreak:StringMap<Int> = new StringMap<Int>();
+		var routeCounts = new Array<FluxStringIntState>();
+		var failureStreak = new Array<FluxStringIntState>();
 		var dispatchable = new Array<FluxRequest>();
 		var synthetic = new Array<FluxProxyResponse>();
 		var rateLimited = 0;
@@ -126,33 +124,27 @@ class FluxPipeline {
 
 		for (request in requests) {
 			var route = FluxCodec.normalizedRoute(request.route);
-			var streak = 0;
-			if (failureStreak.exists(route)) {
-				streak += failureStreak.get(route);
-			}
+			var streak = getStringIntStateValue(failureStreak, route);
 			if (streak >= normalizedBreaker) {
 				synthetic.push(FluxCodec.breakerOpen(request));
 				breakerOpen++;
 				continue;
 			}
 
-			var routeCount = 0;
-			if (routeCounts.exists(route)) {
-				routeCount += routeCounts.get(route);
-			}
+			var routeCount = getStringIntStateValue(routeCounts, route);
 			if (routeCount >= normalizedLimit) {
 				synthetic.push(FluxCodec.rateLimited(request));
 				rateLimited++;
 				continue;
 			}
-			routeCounts.set(route, routeCount + 1);
+			routeCounts = setStringIntStateValue(routeCounts, route, routeCount + 1);
 
 			dispatchable.push(request);
 			var predictsFailure = request.status >= 500 || request.latencyMs > timeoutMs;
 			if (predictsFailure) {
-				failureStreak.set(route, streak + 1);
+				failureStreak = setStringIntStateValue(failureStreak, route, streak + 1);
 			} else {
-				failureStreak.set(route, 0);
+				failureStreak = setStringIntStateValue(failureStreak, route, 0);
 			}
 		}
 
@@ -166,21 +158,76 @@ class FluxPipeline {
 
 	function orderedResponses(synthetic:Array<FluxProxyResponse>, dispatched:Array<FluxProxyResponse>,
 			acceptedRequests:Array<FluxRequest>):Array<FluxProxyResponse> {
-		var byId:IntMap<FluxProxyResponse> = new IntMap<FluxProxyResponse>();
+		var byId = new Array<FluxResponseById>();
 		for (response in synthetic) {
-			byId.set(response.requestId, response);
+			byId = setResponseById(byId, response.requestId, response);
 		}
 		for (response in dispatched) {
-			byId.set(response.requestId, response);
+			byId = setResponseById(byId, response.requestId, response);
 		}
 
 		var ordered = new Array<FluxProxyResponse>();
 		for (request in acceptedRequests) {
-			var response = byId.get(request.id);
+			var response = getResponseById(byId, request.id);
 			if (response != null) {
 				ordered.push(response);
 			}
 		}
 		return ordered;
+	}
+
+	function findRouteAggregate(routes:Array<FluxRouteAggregate>, route:String):Null<FluxRouteAggregate> {
+		for (item in routes) {
+			if (item.route == route) {
+				return item;
+			}
+		}
+		return null;
+	}
+
+	function getStringIntStateValue(states:Array<FluxStringIntState>, key:String):Int {
+		for (state in states) {
+			if (state.key == key) {
+				return state.value;
+			}
+		}
+		return 0;
+	}
+
+	function setStringIntStateValue(states:Array<FluxStringIntState>, key:String, value:Int):Array<FluxStringIntState> {
+		for (state in states) {
+			if (state.key == key) {
+				state.value = value;
+				return states;
+			}
+		}
+		states.push({
+			key: key,
+			value: value
+		});
+		return states;
+	}
+
+	function getResponseById(states:Array<FluxResponseById>, requestId:Int):Null<FluxProxyResponse> {
+		for (state in states) {
+			if (state.requestId == requestId) {
+				return state.response;
+			}
+		}
+		return null;
+	}
+
+	function setResponseById(states:Array<FluxResponseById>, requestId:Int, response:FluxProxyResponse):Array<FluxResponseById> {
+		for (state in states) {
+			if (state.requestId == requestId) {
+				state.response = response;
+				return states;
+			}
+		}
+		states.push({
+			requestId: requestId,
+			response: response
+		});
+		return states;
 	}
 }

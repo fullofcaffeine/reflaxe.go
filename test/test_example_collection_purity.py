@@ -15,6 +15,11 @@ class ExampleCollectionPurityTest(unittest.TestCase):
         text = path.read_text(encoding="utf-8")
         self.assertNotIn("import haxe.ds.", text, "PulsePipeline should avoid haxe.ds.* imports in metal-purity migration slice")
 
+    def test_flux_pipeline_has_no_haxe_ds_imports(self) -> None:
+        path = REPO_ROOT / "examples" / "fluxproxy" / "app" / "core" / "FluxPipeline.hx"
+        text = path.read_text(encoding="utf-8")
+        self.assertNotIn("import haxe.ds.", text, "FluxPipeline should avoid haxe.ds.* imports in metal-purity migration slice")
+
 
 if __name__ == "__main__":
     unittest.main()
