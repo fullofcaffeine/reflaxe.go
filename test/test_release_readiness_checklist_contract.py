@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import unittest
+from pathlib import Path
+
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+class ReleaseReadinessChecklistContractTest(unittest.TestCase):
+    def test_checklist_doc_exists_with_required_sections(self) -> None:
+        checklist = (REPO_ROOT / "docs" / "release-readiness-checklist.md").read_text(encoding="utf-8")
+        self.assertIn("# Release Readiness Checklist", checklist)
+        self.assertIn("## Required GA gates", checklist)
+        self.assertIn("## Reproducible command set", checklist)
+        self.assertIn("## Pass criteria", checklist)
+
+    def test_checklist_includes_canonical_commands(self) -> None:
+        checklist = (REPO_ROOT / "docs" / "release-readiness-checklist.md").read_text(encoding="utf-8")
+        self.assertIn("python3 test/run-ci.py", checklist)
+        self.assertIn("npm run release:status", checklist)
+        self.assertIn("npm run test:perf:go", checklist)
+        self.assertIn("npm run test:perf:hxrt-selective", checklist)
+        self.assertIn("npm run test:perf:apps", checklist)
+
+    def test_checklist_links_to_release_visibility_and_run_ci(self) -> None:
+        checklist = (REPO_ROOT / "docs" / "release-readiness-checklist.md").read_text(encoding="utf-8")
+        self.assertIn("docs/release-visibility.md", checklist)
+        self.assertIn("test/run-ci.py", checklist)
+
+    def test_start_here_references_checklist(self) -> None:
+        start_here = (REPO_ROOT / "docs" / "start-here.md").read_text(encoding="utf-8")
+        self.assertIn("docs/release-readiness-checklist.md", start_here)
+
+
+if __name__ == "__main__":
+    unittest.main()

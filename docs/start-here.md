@@ -153,6 +153,7 @@ Set via:
 - `docs/feature-support-matrix.md`
 - `docs/examples-matrix.md`
 - `docs/benchmark-methodology-apps.md`
+- `docs/release-readiness-checklist.md`
 - `docs/known-gaps.md`
 - `docs/release-visibility.md`
 - `docs/stdlib-shim-rationale.md`
