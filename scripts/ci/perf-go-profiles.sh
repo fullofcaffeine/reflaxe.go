@@ -1195,13 +1195,20 @@ write_pure_select_module "$select_pure_dir" "$select_work"
 record_metric "select_pure_go" "select" "pure" "pure_go" \
   "$select_pure_bin" "$select_iters" "$select_pure_dir/startup.time"
 
+tui_profiles_collected=0
 for profile in "${profiles[@]}"; do
   log "tui case ($profile)"
   case_dir="$work_dir/tui/$profile"
   out_dir="$case_dir/out"
   bin_path="$case_dir/tui_haxe_${profile}"
-  mkdir -p "$case_dir"
+  compile_file="$root_dir/examples/tui_todo/compile.${profile}.ci.hxml"
 
+  if [[ ! -f "$compile_file" ]]; then
+    log "tui case ($profile) skipped: compile.${profile}.ci.hxml not found"
+    continue
+  fi
+
+  mkdir -p "$case_dir"
   (
     cd "$root_dir/examples/tui_todo"
     "$haxe_bin" "compile.${profile}.ci.hxml" -D "go_output=$out_dir" -D go_no_build >/dev/null
@@ -1210,7 +1217,12 @@ for profile in "${profiles[@]}"; do
 
   record_metric "tui_haxe_${profile}" "tui" "$profile" "haxe" \
     "$bin_path" "$tui_iters" "$case_dir/startup.time"
+  tui_profiles_collected=$((tui_profiles_collected + 1))
 done
+
+if [[ "$tui_profiles_collected" -eq 0 ]]; then
+  fail "tui case: no profile compile files found (expected at least one compile.<profile>.ci.hxml)"
+fi
 
 haxe_version="$($haxe_bin --version 2>/dev/null | tr -d '\r' | head -n 1 || true)"
 go_version="$($go_bin version 2>/dev/null | tr -d '\r' | head -n 1 || true)"
@@ -1334,6 +1346,15 @@ function parseMetrics(tsvPath) {
 
 const metrics = parseMetrics(metricsPath);
 const byId = Object.fromEntries(metrics.map((metric) => [metric.id, metric]));
+const tuiProfiles = [...new Set(
+  metrics
+    .filter((metric) => metric.case === "tui" && metric.kind === "haxe" && profiles.includes(metric.profile))
+    .map((metric) => metric.profile)
+)]
+  .sort((a, b) => profiles.indexOf(a) - profiles.indexOf(b));
+if (tuiProfiles.length === 0) {
+  throw new Error("Missing metric: tui_haxe_<profile> (expected at least one haxe tui metric)");
+}
 
 function requireMetric(id) {
   const found = byId[id];
@@ -1429,15 +1450,15 @@ function derivePortableMetalDeltaRatios(derived) {
 const portableMetalDeltaRatios = buildPortableMetalDeltaRatios(caseOverheadByName);
 
 const tuiMetrics = Object.fromEntries(
-  profiles.map((profile) => [profile, requireMetric(`tui_haxe_${profile}`)])
+  tuiProfiles.map((profile) => [profile, requireMetric(`tui_haxe_${profile}`)])
 );
 const tuiMin = {
-  binary_bytes: Math.min(...profiles.map((profile) => tuiMetrics[profile].binary_bytes)),
-  stripped_bytes: Math.min(...profiles.map((profile) => tuiMetrics[profile].stripped_bytes)),
-  startup_avg_ms: Math.min(...profiles.map((profile) => tuiMetrics[profile].startup_avg_ms)),
+  binary_bytes: Math.min(...tuiProfiles.map((profile) => tuiMetrics[profile].binary_bytes)),
+  stripped_bytes: Math.min(...tuiProfiles.map((profile) => tuiMetrics[profile].stripped_bytes)),
+  startup_avg_ms: Math.min(...tuiProfiles.map((profile) => tuiMetrics[profile].startup_avg_ms)),
 };
 const tuiRelativeToMin = {};
-for (const profile of profiles) {
+for (const profile of tuiProfiles) {
   const metric = tuiMetrics[profile];
   tuiRelativeToMin[profile] = {
     binaryRatio: ratio(metric.binary_bytes, tuiMin.binary_bytes),
@@ -1488,6 +1509,7 @@ const current = {
     enforceMetalBudget,
     enforceDeltaBudget,
     deltaCases: uniqueDeltaCases,
+    tuiProfiles,
   },
   derived: {
     helloOverheadRatios,
@@ -1525,7 +1547,7 @@ if (updateBaseline) {
 const warnings = [];
 const hardFailures = [];
 
-function compareGroup(groupLabel, currentGroup, baselineGroup) {
+function compareGroup(groupLabel, currentGroup, baselineGroup, profileList = profiles) {
   if (!baselineGroup) {
     warnings.push(`${groupLabel}: missing baseline group`);
     return;
@@ -1537,7 +1559,7 @@ function compareGroup(groupLabel, currentGroup, baselineGroup) {
     { key: "startupRatio", label: "startup ratio", warnPct: runtimeWarnPct },
   ];
 
-  for (const profile of profiles) {
+  for (const profile of profileList) {
     const currentProfile = currentGroup[profile];
     const baselineProfile = baselineGroup[profile];
     if (!currentProfile || !baselineProfile) {
@@ -1655,7 +1677,7 @@ if (!updateBaseline) {
     compareGroup("string_instance_overhead", current.derived.stringInstanceOverheadRatios, baselineDerived.stringInstanceOverheadRatios);
     compareGroup("virtual_overhead", current.derived.virtualOverheadRatios, baselineDerived.virtualOverheadRatios);
     compareGroup("select_overhead", current.derived.selectOverheadRatios, baselineDerived.selectOverheadRatios);
-    compareGroup("tui_relative", current.derived.tuiRelativeToMin, baselineDerived.tuiRelativeToMin);
+    compareGroup("tui_relative", current.derived.tuiRelativeToMin, baselineDerived.tuiRelativeToMin, tuiProfiles);
     compareMetalHard("hello_overhead", current.derived.helloOverheadRatios, baselineDerived.helloOverheadRatios);
     compareMetalHard("array_overhead", current.derived.arrayOverheadRatios, baselineDerived.arrayOverheadRatios);
     compareMetalHard("atomic_overhead", current.derived.atomicOverheadRatios, baselineDerived.atomicOverheadRatios);
@@ -1708,12 +1730,16 @@ function formatRatio(v) {
   return Number(v).toFixed(3);
 }
 
-function ratioTable(title, ratioGroup) {
+function ratioTable(title, ratioGroup, profileList = profiles) {
   const lines = [];
   lines.push(`### ${title}`);
   lines.push("| Profile | Binary x | Stripped x | Startup x |\n| --- | ---: | ---: | ---: |");
-  for (const profile of profiles) {
+  for (const profile of profileList) {
     const row = ratioGroup[profile];
+    if (!row) {
+      lines.push(`| ${profile} | - | - | - |`);
+      continue;
+    }
     lines.push(
       `| ${profile} | ${formatRatio(row.binaryRatio)} | ${formatRatio(row.strippedRatio)} | ${formatRatio(row.startupRatio)} |`
     );
@@ -1765,7 +1791,7 @@ summaryLines.push(ratioTable("String Instance Overhead (x vs pure Go string inst
 summaryLines.push(ratioTable("Virtual Overhead (x vs pure Go interface dispatch loop)", current.derived.virtualOverheadRatios));
 summaryLines.push(ratioTable("Select Overhead (x vs pure Go select helper loop)", current.derived.selectOverheadRatios));
 summaryLines.push(portableMetalDeltaTable("Portable-vs-metal Delta (portable ratio / metal ratio)", current.derived.portableMetalDeltaRatios));
-summaryLines.push(ratioTable("TUI Profile Spread (x vs fastest/smallest profile in this run)", current.derived.tuiRelativeToMin));
+summaryLines.push(ratioTable("TUI Profile Spread (x vs fastest/smallest profile in this run)", current.derived.tuiRelativeToMin, tuiProfiles));
 
 if (warnings.length > 0) {
   summaryLines.push("### Soft Budget Warnings");
