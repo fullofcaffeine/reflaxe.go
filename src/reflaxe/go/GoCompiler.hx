@@ -7,6 +7,7 @@ import haxe.macro.Expr.Binop;
 import haxe.macro.Expr.Unop;
 import haxe.macro.PositionTools;
 import haxe.macro.Type;
+import reflaxe.go.compiler.GoAutoLoweringMode;
 import reflaxe.go.compiler.GoExprOperatorOps;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
 import reflaxe.go.compiler.GoMetalTypeEligibility;
@@ -3380,7 +3381,7 @@ class GoCompiler {
 	}
 
 	function lowerMetalGoCollectionShimDecls():Array<GoDecl> {
-		if (!isMetalProfile()) {
+		if (!useTypedGoCollectionsSpecialization()) {
 			return [];
 		}
 
@@ -3535,7 +3536,7 @@ class GoCompiler {
 	}
 
 	function lowerMetalGoResultShimDecls():Array<GoDecl> {
-		if (!isMetalProfile()) {
+		if (!useTypedGoResultSpecialization()) {
 			return [];
 		}
 
@@ -11804,7 +11805,7 @@ class GoCompiler {
 	}
 
 	function lowerMetalGoSliceCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
-		if (!isMetalProfile()) {
+		if (!useTypedGoCollectionsSpecialization()) {
 			return null;
 		}
 
@@ -11870,7 +11871,7 @@ class GoCompiler {
 	}
 
 	function lowerMetalGoMapCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
-		if (!isMetalProfile()) {
+		if (!useTypedGoCollectionsSpecialization()) {
 			return null;
 		}
 
@@ -11945,7 +11946,7 @@ class GoCompiler {
 	}
 
 	function lowerMetalGoResultCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
-		if (!isMetalProfile()) {
+		if (!useTypedGoResultSpecialization()) {
 			return null;
 		}
 
@@ -13231,8 +13232,20 @@ class GoCompiler {
 		return isPortableProfile() && compilationContext.buildContext.portableConcurrencyFastpathEnabled;
 	}
 
+	function useAutoLoweringPlannerMode():Bool {
+		return isPortableProfile() && compilationContext.buildContext.autoLoweringMode != GoAutoLoweringMode.Off;
+	}
+
 	function useTypedGoConcurrencySpecialization():Bool {
 		return isMetalProfile() || usePortableConcurrencyFastpath();
+	}
+
+	function useTypedGoCollectionsSpecialization():Bool {
+		return isMetalProfile() || useAutoLoweringPlannerMode();
+	}
+
+	function useTypedGoResultSpecialization():Bool {
+		return isMetalProfile() || useAutoLoweringPlannerMode();
 	}
 
 	function notePortableConcurrencyFastpathHit(pos:haxe.macro.Expr.Position):Void {
@@ -13566,7 +13579,7 @@ class GoCompiler {
 	}
 
 	function registerMetalSliceElementGoType(elementGoType:String):Void {
-		if (!isMetalProfile()) {
+		if (!useTypedGoCollectionsSpecialization()) {
 			return;
 		}
 		if (!isMonomorphizableMetalElementType(elementGoType)) {
@@ -13576,7 +13589,7 @@ class GoCompiler {
 	}
 
 	function registerMetalMapTypePair(keyGoType:String, valueGoType:String):Void {
-		if (!isMetalProfile()) {
+		if (!useTypedGoCollectionsSpecialization()) {
 			return;
 		}
 		if (!isMonomorphizableMetalElementType(keyGoType) || !isMonomorphizableMetalElementType(valueGoType)) {
@@ -13590,7 +13603,7 @@ class GoCompiler {
 	}
 
 	function registerMetalResultElementGoType(elementGoType:String):Void {
-		if (!isMetalProfile()) {
+		if (!useTypedGoResultSpecialization()) {
 			return;
 		}
 		if (!isMonomorphizableMetalElementType(elementGoType)) {

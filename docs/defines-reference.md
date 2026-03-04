@@ -63,7 +63,9 @@ Design note:
   - This is additive and does **not** switch semantic contract/profile.
   - Default: `off`.
   - `auto`: allow deterministic planner-driven lowering attempts with normal fallback behavior.
-  - `auto_strict`: reserved strict planner mode for fail-fast lane policies.
+  - `auto_strict`: same planner attempts, plus fail-fast lane fallback policy where configured.
+  - In `portable`, `auto|auto_strict` enable typed specialization attempts for `go.Slice` / `go.Map` / `go.Result`; outcomes are recorded in contract lowering ledgers.
+  - `go.Chan` typed specialization in `portable` remains controlled by `reflaxe_go_opt_go_concurrency_fastpath`.
 - `reflaxe_go_opt=portable_fast|none`
   - Additive optimizer preset (not a semantic profile switch).
   - Default: `portable_fast`.

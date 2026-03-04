@@ -133,6 +133,7 @@ Opt-in report defines:
 - `-D reflaxe_go_auto=off|auto|auto_strict`
   - explicit auto-lowering planner mode (additive, not a semantic profile switch).
   - default: `off`.
+  - in `portable`, `auto|auto_strict` enable typed specialization attempts for `go.Slice` / `go.Map` / `go.Result` (attempt/success/fallback outcomes are emitted in contract reports).
 - `-D reflaxe_go_opt=portable_fast|none`
   - default: `portable_fast`
   - additive optimizer preset (not a semantic profile).
@@ -152,6 +153,7 @@ Opt-in report defines:
 Snapshot coverage:
 - `test/snapshot/core/report_artifacts_basic`
 - `test/snapshot/core/report_artifacts_lane_fallback`
+- `test/snapshot/core/report_artifacts_auto_collections_result`
 
 ## Example references
 

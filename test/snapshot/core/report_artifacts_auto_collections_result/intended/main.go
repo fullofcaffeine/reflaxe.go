@@ -7,9 +7,27 @@ import (
 )
 
 func main() {
-	LaneClean_run()
-	NonLaneFallback_run()
-	hxrt.Println(hxrt.StringFromLiteral("ok"))
+	slice := go___Go_newSlice()
+	go__slice_push__int_95e97e5e(slice, 3)
+	go__slice_push__int_95e97e5e(slice, 4)
+	map_ := go___Go_newMap()
+	go__map_set___string__int_e8ed7ec7(map_, hxrt.StringFromLiteral("k"), go__slice_get__int_95e97e5e(slice, 0))
+	var hx_if_1 int
+	if go__map_exists___string__int_e8ed7ec7(map_, hxrt.StringFromLiteral("k")) {
+		hx_if_1 = 1
+	} else {
+		hx_if_1 = 0
+	}
+	fromMap := hx_if_1
+	result := go__result_ok__int_95e97e5e(go__slice_get__int_95e97e5e(slice, 1))
+	var hx_if_2 int
+	if go__result_isOk__int_95e97e5e(result) {
+		hx_if_2 = go__result_unwrap__int_95e97e5e(result)
+	} else {
+		hx_if_2 = 0
+	}
+	value := hx_if_2
+	hxrt.Println(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(go__slice_length__int_95e97e5e(slice)) + hxrt.Int32Wrap(fromMap))))) + hxrt.Int32Wrap(value)))))
 }
 
 type haxe__ds__IntMap struct {
@@ -276,6 +294,51 @@ func go__concurrency_spawn(fn func()) {
 	go fn()
 }
 
+func go__slice_push__int_95e97e5e(slice *go___Slice, value int) {
+	slice.data = append(slice.data, value)
+}
+
+func go__slice_set__int_95e97e5e(slice *go___Slice, index int, value int) {
+	slice.data[index] = value
+}
+
+func go__slice_get__int_95e97e5e(slice *go___Slice, index int) int {
+	raw := slice.data[index]
+	if raw == nil {
+		var zero int
+		return zero
+	}
+	return raw.(int)
+}
+
+func go__slice_length__int_95e97e5e(slice *go___Slice) int {
+	return len(slice.data)
+}
+
+func go__slice_toArray__int_95e97e5e(slice *go___Slice) []int {
+	raw := slice.data
+	out := make([]int, len(raw))
+	for idx, value := range raw {
+		if value == nil {
+			continue
+		}
+		out[idx] = value.(int)
+	}
+	return out
+}
+
+func go__map_set___string__int_e8ed7ec7(mapValue *go___Map, key *string, value int) {
+	mapValue.inner.set(hxrt.StdString(any(key)), value)
+}
+
+func go__map_get___string__int_e8ed7ec7(mapValue *go___Map, key *string) any {
+	return mapValue.inner.get(hxrt.StdString(any(key)))
+}
+
+func go__map_exists___string__int_e8ed7ec7(mapValue *go___Map, key *string) bool {
+	return mapValue.inner.exists(hxrt.StdString(any(key)))
+}
+
 func go__result_fromValueError(value any, err error) *go___Result {
 	if err != nil {
 		return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral(err.Error())))
@@ -283,16 +346,16 @@ func go__result_fromValueError(value any, err error) *go___Result {
 	return New_go___Result(value, nil)
 }
 
-func go__result_ok___string_f613ccd0(value *string) *go___Result {
+func go__result_ok__int_95e97e5e(value int) *go___Result {
 	return New_go___Result(value, nil)
 }
 
-func go__result_failure___string_f613ccd0(message *string) *go___Result {
+func go__result_failure__int_95e97e5e(message *string) *go___Result {
 	return New_go___Result(nil, New_go___Error(message))
 }
 
-func go__result_valueError___string_f613ccd0(result *go___Result) (*string, error) {
-	var zero *string
+func go__result_valueError__int_95e97e5e(result *go___Result) (int, error) {
+	var zero int
 	if result == nil {
 		return zero, errors.New("nil go.Result")
 	}
@@ -302,31 +365,31 @@ func go__result_valueError___string_f613ccd0(result *go___Result) (*string, erro
 	if result.value == nil {
 		return zero, nil
 	}
-	return result.value.(*string), nil
+	return result.value.(int), nil
 }
 
-func go__result_isOk___string_f613ccd0(result *go___Result) bool {
-	_, err := go__result_valueError___string_f613ccd0(result)
+func go__result_isOk__int_95e97e5e(result *go___Result) bool {
+	_, err := go__result_valueError__int_95e97e5e(result)
 	return (err == nil)
 }
 
-func go__result_isErr___string_f613ccd0(result *go___Result) bool {
-	_, err := go__result_valueError___string_f613ccd0(result)
+func go__result_isErr__int_95e97e5e(result *go___Result) bool {
+	_, err := go__result_valueError__int_95e97e5e(result)
 	return (err != nil)
 }
 
-func go__result_unwrap___string_f613ccd0(result *go___Result) *string {
-	value, err := go__result_valueError___string_f613ccd0(result)
+func go__result_unwrap__int_95e97e5e(result *go___Result) int {
+	value, err := go__result_valueError__int_95e97e5e(result)
 	if err != nil {
 		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		var zero *string
+		var zero int
 		return zero
 	}
 	return value
 }
 
-func go__result_error___string_f613ccd0(result *go___Result) *string {
-	_, err := go__result_valueError___string_f613ccd0(result)
+func go__result_error__int_95e97e5e(result *go___Result) *string {
+	_, err := go__result_valueError__int_95e97e5e(result)
 	if err == nil {
 		return nil
 	}

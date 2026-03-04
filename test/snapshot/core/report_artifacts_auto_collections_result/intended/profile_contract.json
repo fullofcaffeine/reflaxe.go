@@ -1,0 +1,252 @@
+{
+	"schemaVersion": 7,
+	"contract": "portable",
+	"autoLoweringMode": "auto",
+	"strictExamples": false,
+	"strictUserBoundaryPolicy": "auto",
+	"strictUserBoundaries": false,
+	"metalFallbackAllowed": false,
+	"metalContractHardError": false,
+	"emitLineDirectives": false,
+	"rawNativeMode": "interp",
+	"hxrtSelectiveEnabled": false,
+	"hxrtForceFullCopy": false,
+	"hxrtNoFeatureInfer": false,
+	"loweringDecisionCount": 22,
+	"loweringDecisionAttemptCount": 12,
+	"loweringDecisionSuccessCount": 10,
+	"loweringDecisionFallbackCount": 0,
+	"metalFallbackViolationCount": 0,
+	"metalFallbackLaneViolationCount": 0,
+	"metalFallbackNonLaneViolationCount": 0,
+	"portableNativeImportScanMode": "typed",
+	"portableNativeImportHitCount": 1,
+	"portableNativeImportTypedHitCount": 1,
+	"portableNativeImportScannerHitCount": 0,
+	"contractDiagnosticCount": 1,
+	"hxrtManualFeatures": [
+	],
+	"metalLaneModules": [
+	],
+	"portableNativeImportHits": [
+		"Main"
+	],
+	"portableNativeImportTypedHits": [
+		"Main"
+	],
+	"portableNativeImportScannerHits": [
+	],
+	"contractDiagnostics": [
+		{
+			"module": "Main",
+			"code": "portable_native_import",
+			"severity": "warning",
+			"location": "Main:1",
+			"message": "PortableNativeImportGate: module `Main` uses target-native `go.*` surfaces while `reflaxe_go_profile=portable` is active. Move native usage behind adapters, or use `-D reflaxe_go_portable_native_policy=off|warn|error`."
+		}
+	],
+	"loweringDecisions": [
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_map_method_exists",
+			"outcome": "attempted",
+			"location": "Main:9",
+			"detail": "Attempt typed go.Map method specialization."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_map_method_exists",
+			"outcome": "succeeded",
+			"location": "Main:9",
+			"detail": "Applied typed go.Map method specialization (key: *string, value: int)."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_map_method_set",
+			"outcome": "attempted",
+			"location": "Main:8",
+			"detail": "Attempt typed go.Map method specialization."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_map_method_set",
+			"outcome": "succeeded",
+			"location": "Main:8",
+			"detail": "Applied typed go.Map method specialization (key: *string, value: int)."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_slice_method_get",
+			"outcome": "attempted",
+			"location": "Main:11",
+			"detail": "Attempt typed go.Slice method specialization."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_slice_method_get",
+			"outcome": "attempted",
+			"location": "Main:8",
+			"detail": "Attempt typed go.Slice method specialization."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_slice_method_get",
+			"outcome": "succeeded",
+			"location": "Main:11",
+			"detail": "Applied typed go.Slice method specialization (element type: int)."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_slice_method_get",
+			"outcome": "succeeded",
+			"location": "Main:8",
+			"detail": "Applied typed go.Slice method specialization (element type: int)."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_slice_method_get_length",
+			"outcome": "attempted",
+			"location": "Main:14",
+			"detail": "Attempt typed go.Slice method specialization."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_slice_method_get_length",
+			"outcome": "succeeded",
+			"location": "Main:14",
+			"detail": "Applied typed go.Slice method specialization (element type: int)."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_slice_method_push",
+			"outcome": "attempted",
+			"location": "Main:4",
+			"detail": "Attempt typed go.Slice method specialization."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_slice_method_push",
+			"outcome": "attempted",
+			"location": "Main:5",
+			"detail": "Attempt typed go.Slice method specialization."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_slice_method_push",
+			"outcome": "succeeded",
+			"location": "Main:4",
+			"detail": "Applied typed go.Slice method specialization (element type: int)."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.collections.typed",
+			"kind": "go_slice_method_push",
+			"outcome": "succeeded",
+			"location": "Main:5",
+			"detail": "Applied typed go.Slice method specialization (element type: int)."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.result.typed",
+			"kind": "go_result_method_isOk",
+			"outcome": "attempted",
+			"location": "Main:12",
+			"detail": "Attempt typed go.Result method specialization."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.result.typed",
+			"kind": "go_result_method_isOk",
+			"outcome": "succeeded",
+			"location": "Main:12",
+			"detail": "Applied typed go.Result method specialization (element type: int)."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.result.typed",
+			"kind": "go_result_method_unwrap",
+			"outcome": "attempted",
+			"location": "Main:12",
+			"detail": "Attempt typed go.Result method specialization."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.result.typed",
+			"kind": "go_result_method_unwrap",
+			"outcome": "succeeded",
+			"location": "Main:12",
+			"detail": "Applied typed go.Result method specialization (element type: int)."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.result.typed",
+			"kind": "go_result_static_ok",
+			"outcome": "attempted",
+			"location": "Main:11",
+			"detail": "Attempt typed go.Result.ok specialization."
+		},
+		{
+			"module": "Main",
+			"inMetalLane": false,
+			"feature": "go.result.typed",
+			"kind": "go_result_static_ok",
+			"outcome": "succeeded",
+			"location": "Main:11",
+			"detail": "Applied typed go.Result.ok specialization (element type: int)."
+		},
+		{
+			"module": "go.Go",
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method___hx_setBuffer",
+			"outcome": "attempted",
+			"location": "go.Go:19",
+			"detail": "Attempt typed go.Chan method specialization."
+		},
+		{
+			"module": "go.Go",
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_new",
+			"outcome": "attempted",
+			"location": "go.Go:17",
+			"detail": "Attempt typed go.Chan constructor specialization."
+		}
+	],
+	"metalFallbackViolationsByModule": [
+	],
+	"metalFallbackViolations": [
+	]
+}
