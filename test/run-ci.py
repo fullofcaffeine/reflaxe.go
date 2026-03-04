@@ -66,6 +66,12 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Run lane semantic differential stage even for chunked/filtered runs",
     )
+    parser.add_argument("--skip-metal-fallback-diagnostics", action="store_true", help="Skip metal fallback diagnostics stage")
+    parser.add_argument(
+        "--force-metal-fallback-diagnostics",
+        action="store_true",
+        help="Run metal fallback diagnostics stage even for chunked/filtered runs",
+    )
     parser.add_argument("--skip-examples", action="store_true", help="Skip examples stage")
     parser.add_argument("--force-examples", action="store_true", help="Run examples even for chunked/filtered runs")
     parser.add_argument("--examples-compile-only", action="store_true", help="Run examples compile/go-test checks without go run stdout checks")
@@ -283,6 +289,29 @@ def build_semantic_diff_lanes_command(args: argparse.Namespace) -> list[str]:
     return cmd
 
 
+def should_run_metal_fallback_diagnostics(args: argparse.Namespace) -> bool:
+    if args.skip_metal_fallback_diagnostics:
+        return False
+    if args.force_metal_fallback_diagnostics:
+        return True
+
+    # Keep fallback diagnostics on full runs by default.
+    return not (args.chunk or args.failed or args.changed or args.pattern)
+
+
+def build_metal_fallback_diagnostics_command(args: argparse.Namespace) -> list[str]:
+    return [
+        "python3",
+        "test/run-snapshots.py",
+        "--timeout",
+        str(args.timeout),
+        "--lock-timeout",
+        str(args.snapshot_lock_timeout),
+        "--case",
+        "core/report_artifacts_lane_fallback",
+    ]
+
+
 def should_run_examples(args: argparse.Namespace) -> bool:
     if args.skip_examples:
         return False
@@ -475,6 +504,14 @@ def main() -> int:
             return semantic_diff_lanes_code
     else:
         print("==> Skipping semantic diff lanes stage")
+
+    if should_run_metal_fallback_diagnostics(args):
+        print("==> Metal fallback diagnostics stage")
+        metal_fallback_diagnostics_code = run(build_metal_fallback_diagnostics_command(args))
+        if metal_fallback_diagnostics_code != 0:
+            return metal_fallback_diagnostics_code
+    else:
+        print("==> Skipping metal fallback diagnostics stage")
 
     if should_run_metal_example_boundary(args):
         print("==> Metal example boundary stage")

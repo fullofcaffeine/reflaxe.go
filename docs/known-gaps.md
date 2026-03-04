@@ -22,7 +22,6 @@ This page is the blunt status view for current limitations so teams can plan mig
 
 ## Metal profile caveats
 
-- `metal` is still marked experimental.
 - Current "metal-ready" high-value lane:
   - `go.Chan<T>`
   - `go.Slice<T>`

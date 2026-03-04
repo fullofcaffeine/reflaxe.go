@@ -110,7 +110,7 @@ Set via:
 ```
 
 - `portable` (default): choose this for portability and lowest migration risk.
-- `metal` (experimental): choose this when portable abstractions are not enough and you need typed low-level interop with strict boundaries.
+- `metal`: choose this when portable abstractions are not enough and you need typed low-level interop with strict boundaries.
 - `@:goMetal`: optional lane metadata for portable builds when you want module-by-module metal-clean enforcement (`reflaxe_go_auto=auto_strict` enables typed fallback fail-fast inside those lanes).
 
 ## Strict policy knobs

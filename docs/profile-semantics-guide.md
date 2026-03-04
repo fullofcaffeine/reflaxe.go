@@ -16,7 +16,7 @@ Profiles should be explicit in source control and CI (`-D reflaxe_go_profile=...
 | Profile | Primary goal | Portability expectation | Interop expectation | Codegen tendency |
 | --- | --- | --- | --- | --- |
 | `portable` (default) | Stable Haxe semantics and lowest migration risk | Highest (within documented support matrix) | Use Haxe stdlib/application surfaces first | More `hxrt`/shim-mediated behavior for semantic stability |
-| `metal` (experimental) | Go-native control with strict boundaries | Lower by design when using Go-native surfaces | Typed Go-facing APIs and stricter escape-hatch policy | More typed specialization and direct Go-shaped output in supported lanes |
+| `metal` | Go-native control with strict boundaries | Lower by design when using Go-native surfaces | Typed Go-facing APIs and stricter escape-hatch policy | More typed specialization and direct Go-shaped output in supported lanes |
 
 ## What differs today (practical reality)
 
@@ -293,6 +293,25 @@ This split preserves cross-target leverage while allowing Go-native power where 
 3. Fix strict-boundary violations using typed facades, not raw app-side injection.
 4. Benchmark before/after (`npm run test:perf:go`, `npm run test:perf:apps`).
 5. Keep portable-compatible modules untouched unless data proves metal-only specialization is needed.
+
+## Portable to metal admission criteria (pass/fail)
+
+### Pass criteria
+
+1. Contract gates are green in CI:
+   - `python3 test/run-semantic-diff.py --suite lanes`
+   - `python3 test/run-metal-example-boundary.py`
+   - `python3 test/run-snapshots.py --case core/report_artifacts_lane_fallback`
+2. Strict boundary policy stays enabled for app code (`reflaxe_go_strict_policy=auto|on`; no raw app-side `__go__`).
+3. `profile_contract.json` shows deterministic fallback diagnostics (`metalFallbackViolations`, lane/non-lane counts).
+4. Perf evidence exists for promoted modules (`npm run test:perf:go` and/or `npm run test:perf:apps`) with documented rationale.
+
+### Fail criteria
+
+1. Lane semantic-diff or metal boundary gates fail.
+2. Fallback diagnostics are missing, unstable, or only visible through ad-hoc local commands.
+3. Promotion relies on raw app-side `__go__` instead of typed facades.
+4. Profile switch is made without benchmark evidence or without documenting accepted portability tradeoffs.
 
 ## Metal back to portable checklist
 

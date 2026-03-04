@@ -11,7 +11,7 @@ This target supports two profiles:
 | Profile | Best for | Behavior contract |
 | --- | --- | --- |
 | `portable` (default) | Haxe-first and cross-target code | Stable Haxe-oriented semantics and portability-first output |
-| `metal` (experimental) | Teams needing typed low-level interop lane | `portable` + strict default app-boundary policy + typed framework interop façade |
+| `metal` | Teams needing typed low-level interop lane | `portable` + strict default app-boundary policy + typed framework interop façade |
 
 ## Why two profiles
 
@@ -114,6 +114,11 @@ Lane test commands:
 - `python3 test/run-semantic-diff.py --suite lanes`
 - `npm run test:semantic-diff:lanes`
 - `python3 test/run-ci.py --force-semantic-diff-lanes`
+
+CI fallback diagnostics gate commands:
+
+- `python3 test/run-snapshots.py --case core/report_artifacts_lane_fallback`
+- `python3 test/run-ci.py --force-metal-fallback-diagnostics`
 
 ## Contract/runtime reports
 
