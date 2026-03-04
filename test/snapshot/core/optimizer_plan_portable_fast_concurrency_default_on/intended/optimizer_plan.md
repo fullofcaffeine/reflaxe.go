@@ -13,7 +13,7 @@
 - portable concurrency typed fastpath hits: `3`
 - portable concurrency typed fastpath fallbacks: `0`
 - lowering fallback lane count: `0`
-- lowering fallback non-lane count: `2`
+- lowering fallback non-lane count: `0`
 - go ast pass selection source: `planner`
 
 ## go ast passes

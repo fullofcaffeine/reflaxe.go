@@ -8,7 +8,9 @@ import haxe.macro.Type;
 import haxe.macro.TypedExprTools;
 import reflaxe.go.GoProfile;
 import reflaxe.go.compiler.GoBuildContext;
-import reflaxe.go.compiler.GoTypeMapper;
+import reflaxe.go.compiler.GoMetalTypeEligibility;
+import reflaxe.go.compiler.GoMetalTypeEligibility.GoMetalEligibilityRole;
+import reflaxe.go.compiler.GoMetalTypeEligibility.GoMetalTypeEligibilityResult;
 
 private typedef AnalyzerElementMethodCall = {
 	final methodName:String;
@@ -242,9 +244,10 @@ class GoProfileContractAnalyzer {
 			case TNew(classRef, _, _):
 				var classType = classRef.get();
 				if (isGoClass(classType, "Chan")) {
-					var elementType = goChanElementType(expr.t);
-					if (elementType == null || !isMonomorphizableMetalType(elementType)) {
-						"Could not monomorphize go.Chan element type for constructor specialization.";
+					var eligibility = metalTypeEligibility(goChanElementType(expr.t), GoMetalEligibilityRole.ChanElement,
+						"Could not resolve go.Chan element type for constructor specialization.");
+					if (!eligibility.eligible) {
+						withEligibilityReason("Could not monomorphize go.Chan element type for constructor specialization.", eligibility);
 					} else {
 						null;
 					}
@@ -260,44 +263,68 @@ class GoProfileContractAnalyzer {
 
 	static function detectLaneTypedFallbackViolationFromCall(callee:TypedExpr, returnType:Type):Null<String> {
 		if (isGoStaticCall(callee, "Go", "newChan")) {
-			var elementType = goChanElementType(returnType);
-			if (elementType == null || !isMonomorphizableMetalType(elementType)) {
-				return "Could not monomorphize go.Go.newChan return type for metal specialization.";
+			var eligibility = metalTypeEligibility(goChanElementType(returnType), GoMetalEligibilityRole.ChanElement,
+				"Could not resolve go.Go.newChan return type for metal specialization.");
+			if (!eligibility.eligible) {
+				return withEligibilityReason("Could not monomorphize go.Go.newChan return type for metal specialization.", eligibility);
 			}
 		}
 
 		if (isGoStaticCall(callee, "Result", "ok") || isGoStaticCall(callee, "Go", "ok")) {
-			var elementType = goResultElementType(returnType);
-			if (elementType == null || !isMonomorphizableMetalType(elementType)) {
-				return "Could not monomorphize go.Result<T>.ok return type for metal specialization.";
+			var eligibility = metalTypeEligibility(goResultElementType(returnType), GoMetalEligibilityRole.ResultElement,
+				"Could not resolve go.Result<T>.ok return type for metal specialization.");
+			if (!eligibility.eligible) {
+				return withEligibilityReason("Could not monomorphize go.Result<T>.ok return type for metal specialization.", eligibility);
 			}
 		}
 
 		if (isGoStaticCall(callee, "Result", "failure") || isGoStaticCall(callee, "Go", "fail")) {
-			var elementType = goResultElementType(returnType);
-			if (elementType == null || !isMonomorphizableMetalType(elementType)) {
-				return "Could not monomorphize go.Result<T>.failure return type for metal specialization.";
+			var eligibility = metalTypeEligibility(goResultElementType(returnType), GoMetalEligibilityRole.ResultElement,
+				"Could not resolve go.Result<T>.failure return type for metal specialization.");
+			if (!eligibility.eligible) {
+				return withEligibilityReason("Could not monomorphize go.Result<T>.failure return type for metal specialization.", eligibility);
 			}
 		}
 
 		var chanMethod = asGoChanMethodCall(callee);
-		if (chanMethod != null && !isMonomorphizableMetalType(chanMethod.elementType)) {
-			return "Could not monomorphize go.Chan method call (element type resolves to any).";
+		if (chanMethod != null) {
+			var eligibility = metalTypeEligibility(chanMethod.elementType, GoMetalEligibilityRole.ChanElement,
+				"Could not resolve go.Chan method element type for metal specialization.");
+			if (!eligibility.eligible) {
+				return withEligibilityReason("Could not monomorphize go.Chan method call for metal specialization.", eligibility);
+			}
 		}
 
 		var sliceMethod = asGoSliceMethodCall(callee);
-		if (sliceMethod != null && !isMonomorphizableMetalType(sliceMethod.elementType)) {
-			return "Could not monomorphize go.Slice element type for metal specialization.";
+		if (sliceMethod != null) {
+			var eligibility = metalTypeEligibility(sliceMethod.elementType, GoMetalEligibilityRole.SliceElement,
+				"Could not resolve go.Slice element type for metal specialization.");
+			if (!eligibility.eligible) {
+				return withEligibilityReason("Could not monomorphize go.Slice element type for metal specialization.", eligibility);
+			}
 		}
 
 		var mapMethod = asGoMapMethodCall(callee);
-		if (mapMethod != null && (!isMonomorphizableMetalType(mapMethod.keyType) || !isMonomorphizableMetalType(mapMethod.valueType))) {
-			return "Could not monomorphize go.Map key/value types for metal specialization.";
+		if (mapMethod != null) {
+			var keyEligibility = metalTypeEligibility(mapMethod.keyType, GoMetalEligibilityRole.MapKey,
+				"Could not resolve go.Map key type for metal specialization.");
+			if (!keyEligibility.eligible) {
+				return withEligibilityReason("Could not monomorphize go.Map key/value types for metal specialization.", keyEligibility);
+			}
+			var valueEligibility = metalTypeEligibility(mapMethod.valueType, GoMetalEligibilityRole.MapValue,
+				"Could not resolve go.Map value type for metal specialization.");
+			if (!valueEligibility.eligible) {
+				return withEligibilityReason("Could not monomorphize go.Map key/value types for metal specialization.", valueEligibility);
+			}
 		}
 
 		var resultMethod = asGoResultMethodCall(callee);
-		if (resultMethod != null && !isMonomorphizableMetalType(resultMethod.elementType)) {
-			return "Could not monomorphize go.Result<T> method receiver for metal specialization.";
+		if (resultMethod != null) {
+			var eligibility = metalTypeEligibility(resultMethod.elementType, GoMetalEligibilityRole.ResultElement,
+				"Could not resolve go.Result<T> method receiver type for metal specialization.");
+			if (!eligibility.eligible) {
+				return withEligibilityReason("Could not monomorphize go.Result<T> method receiver for metal specialization.", eligibility);
+			}
 		}
 
 		return null;
@@ -877,9 +904,25 @@ class GoProfileContractAnalyzer {
 		};
 	}
 
-	static function isMonomorphizableMetalType(type:Type):Bool {
-		var goType = GoTypeMapper.scalarGoType(type, _ -> "_", _ -> "_");
-		return goType != "any";
+	static function metalTypeEligibility(type:Null<Type>, role:GoMetalEligibilityRole, missingMessage:String):GoMetalTypeEligibilityResult {
+		if (type == null) {
+			return {
+				eligible: false,
+				goType: null,
+				reasonCode: "missing_type",
+				reason: missingMessage
+			};
+		}
+		return GoMetalTypeEligibility.resolve(type, role, _ -> "_", _ -> "_");
+	}
+
+	static function withEligibilityReason(base:String, eligibility:GoMetalTypeEligibilityResult):String {
+		var reason = eligibility.reason;
+		if (reason == null || StringTools.trim(reason) == "") {
+			return base;
+		}
+		var prefix = StringTools.endsWith(base, ".") ? base.substr(0, base.length - 1) : base;
+		return prefix + ": " + reason;
 	}
 
 	static inline function isGoClass(classType:ClassType, className:String):Bool {

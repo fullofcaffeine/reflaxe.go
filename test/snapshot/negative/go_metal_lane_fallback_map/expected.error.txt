@@ -1,1 +1,1 @@
-MetalLaneEnforcer: typed metal fallback is not allowed in @:goMetal module "Main" when contract=portable and `-D reflaxe_go_auto=auto_strict`. Could not monomorphize go.Map key/value types for metal specialization.
+MetalLaneEnforcer: typed metal fallback is not allowed in @:goMetal module "Main" when contract=portable and `-D reflaxe_go_auto=auto_strict`. Could not monomorphize go.Map key/value types for metal specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type.

@@ -54,7 +54,7 @@
 			"kind": "go_result_static_failure_unmorphable",
 			"outcome": "fallback",
 			"location": "LaneWorker:4",
-			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization."
+			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		},
 		{
 			"module": "NonLaneWorker",
@@ -72,7 +72,7 @@
 			"kind": "go_result_static_failure_unmorphable",
 			"outcome": "fallback",
 			"location": "NonLaneWorker:3",
-			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization."
+			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		},
 		{
 			"module": "go.Go",
@@ -90,7 +90,7 @@
 			"kind": "go_chan_method_unmorphable",
 			"outcome": "fallback",
 			"location": "go.Go:19",
-			"detail": "Could not monomorphize go.Chan method call (element type: any)."
+			"detail": "Could not monomorphize go.Chan method call for metal specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		},
 		{
 			"module": "go.Go",
@@ -108,7 +108,7 @@
 			"kind": "go_chan_new_unmorphable",
 			"outcome": "fallback",
 			"location": "go.Go:17",
-			"detail": "Could not monomorphize go.Chan element type for constructor specialization."
+			"detail": "Could not monomorphize go.Chan element type for constructor specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		}
 	],
 	"metalFallbackViolationsByModule": [
@@ -134,28 +134,28 @@
 			"inMetalLane": true,
 			"kind": "go_result_static_failure_unmorphable",
 			"location": "LaneWorker:4",
-			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization."
+			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		},
 		{
 			"module": "NonLaneWorker",
 			"inMetalLane": false,
 			"kind": "go_result_static_failure_unmorphable",
 			"location": "NonLaneWorker:3",
-			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization."
+			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		},
 		{
 			"module": "go.Go",
 			"inMetalLane": false,
 			"kind": "go_chan_method_unmorphable",
 			"location": "go.Go:19",
-			"detail": "Could not monomorphize go.Chan method call (element type: any)."
+			"detail": "Could not monomorphize go.Chan method call for metal specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		},
 		{
 			"module": "go.Go",
 			"inMetalLane": false,
 			"kind": "go_chan_new_unmorphable",
 			"location": "go.Go:17",
-			"detail": "Could not monomorphize go.Chan element type for constructor specialization."
+			"detail": "Could not monomorphize go.Chan element type for constructor specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		}
 	]
 }

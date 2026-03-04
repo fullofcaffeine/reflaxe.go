@@ -12,10 +12,10 @@
 	"hxrtSelectiveEnabled": false,
 	"hxrtForceFullCopy": false,
 	"hxrtNoFeatureInfer": false,
-	"loweringDecisionCount": 8,
+	"loweringDecisionCount": 6,
 	"loweringDecisionAttemptCount": 4,
 	"loweringDecisionSuccessCount": 2,
-	"loweringDecisionFallbackCount": 2,
+	"loweringDecisionFallbackCount": 0,
 	"metalFallbackViolationCount": 0,
 	"metalFallbackLaneViolationCount": 0,
 	"metalFallbackNonLaneViolationCount": 0,
@@ -96,28 +96,10 @@
 			"module": "go.Go",
 			"inMetalLane": false,
 			"feature": "go.concurrency.typed",
-			"kind": "go_chan_method_unmorphable",
-			"outcome": "fallback",
-			"location": "go.Go:19",
-			"detail": "Could not monomorphize go.Chan method call (element type: any)."
-		},
-		{
-			"module": "go.Go",
-			"inMetalLane": false,
-			"feature": "go.concurrency.typed",
 			"kind": "go_chan_new",
 			"outcome": "attempted",
 			"location": "go.Go:17",
 			"detail": "Attempt typed go.Chan constructor specialization."
-		},
-		{
-			"module": "go.Go",
-			"inMetalLane": false,
-			"feature": "go.concurrency.typed",
-			"kind": "go_chan_new_unmorphable",
-			"outcome": "fallback",
-			"location": "go.Go:17",
-			"detail": "Could not monomorphize go.Chan element type for constructor specialization."
 		}
 	],
 	"metalFallbackViolationsByModule": [

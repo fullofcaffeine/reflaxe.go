@@ -58,6 +58,10 @@ Framework-owned typed facades are allowed in `metal` strict mode; raw app-side i
 
 - Current enforced rule: raw `__go__` is disallowed in `@:goMetal` modules under portable contract.
 - Typed fallback fail-fast rule: under `-D reflaxe_go_auto=auto_strict`, `go.Chan` / `go.Slice` / `go.Map` / `go.Result` calls that would fall back from typed specialization (for example `Dynamic`/`Any` paths) are disallowed in `@:goMetal` modules.
+- Eligibility for typed specialization is centralized in `src/reflaxe/go/compiler/GoMetalTypeEligibility.hx` and currently requires:
+  - concrete non-`any` Go type,
+  - no nullable-primitive dynamic path representation,
+  - comparable Go key type for `go.Map` keys.
 - Under `reflaxe_go_auto=off|auto`, typed fallback paths remain allowed in lane modules and are tracked in lowering/report artifacts.
 - Snapshot coverage:
   - `test/snapshot/negative/go_metal_lane_injection`
@@ -65,13 +69,14 @@ Framework-owned typed facades are allowed in `metal` strict mode; raw app-side i
   - `test/snapshot/negative/go_metal_lane_fallback_chan`
   - `test/snapshot/negative/go_metal_lane_fallback_slice`
   - `test/snapshot/negative/go_metal_lane_fallback_map`
+  - `test/snapshot/negative/go_metal_lane_fallback_map_noncomparable_key`
   - `test/snapshot/core/go_metal_lane_nonlane_fallback_allowed`
 
 Lane module discovery is deterministic and emitted in profile contract reports.
 
 Lane test commands:
 
-- `python3 test/run-snapshots.py --case negative/go_metal_lane_injection --case negative/go_metal_lane_fallback_result --case negative/go_metal_lane_fallback_chan --case negative/go_metal_lane_fallback_slice --case negative/go_metal_lane_fallback_map --case core/go_metal_lane_nonlane_fallback_allowed`
+- `python3 test/run-snapshots.py --case negative/go_metal_lane_injection --case negative/go_metal_lane_fallback_result --case negative/go_metal_lane_fallback_chan --case negative/go_metal_lane_fallback_slice --case negative/go_metal_lane_fallback_map --case negative/go_metal_lane_fallback_map_noncomparable_key --case core/go_metal_lane_nonlane_fallback_allowed`
 - `python3 test/run-snapshots.py --case core/go_metal_lane_fallback_allowed_off`
 - `python3 test/run-semantic-diff.py --suite lanes`
 - `npm run test:semantic-diff:lanes`

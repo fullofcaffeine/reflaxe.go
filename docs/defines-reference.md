@@ -115,9 +115,10 @@ Design note:
   - Portable builds enforce lane restrictions for these modules:
     - raw `__go__` is disallowed.
     - with `-D reflaxe_go_auto=auto_strict`, typed fallback paths for `go.Chan`/`go.Slice`/`go.Map`/`go.Result` are disallowed (for example non-monomorphizable `Dynamic`/`Any` lane usage).
+    - typed-specialization eligibility is centralized in `src/reflaxe/go/compiler/GoMetalTypeEligibility.hx` (concrete non-`any` type required; nullable primitive dynamic-path types excluded; `go.Map` keys must be comparable).
     - with `reflaxe_go_auto=off|auto`, typed fallback paths are allowed and recorded in lowering/report artifacts.
   - Validation commands:
-    - `python3 test/run-snapshots.py --case negative/go_metal_lane_injection --case negative/go_metal_lane_fallback_result --case negative/go_metal_lane_fallback_chan --case negative/go_metal_lane_fallback_slice --case negative/go_metal_lane_fallback_map --case core/go_metal_lane_nonlane_fallback_allowed --case core/go_metal_lane_fallback_allowed_off`
+    - `python3 test/run-snapshots.py --case negative/go_metal_lane_injection --case negative/go_metal_lane_fallback_result --case negative/go_metal_lane_fallback_chan --case negative/go_metal_lane_fallback_slice --case negative/go_metal_lane_fallback_map --case negative/go_metal_lane_fallback_map_noncomparable_key --case core/go_metal_lane_nonlane_fallback_allowed --case core/go_metal_lane_fallback_allowed_off`
     - `python3 test/run-semantic-diff.py --suite lanes`
     - `npm run test:semantic-diff:lanes`
 

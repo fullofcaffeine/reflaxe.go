@@ -21,7 +21,7 @@
 - portable native import typed hits: `1`
 - portable native import scanner hits: `0`
 - contract diagnostics: `0`
-- lowering decisions: `8` (attempts `4`, success `2`, fallback `2`)
+- lowering decisions: `6` (attempts `4`, success `2`, fallback `0`)
 
 ## hxrt manual features
 - none
@@ -47,9 +47,7 @@
 - `Main` (non-lane) | `go.concurrency.typed` | `go_chan_new` | `attempted` | `Main:3` | Attempt typed go.Go.newChan specialization.
 - `Main` (non-lane) | `go.concurrency.typed` | `go_chan_new` | `succeeded` | `Main:3` | Applied typed go.Go.newChan specialization (element type: int).
 - `go.Go` (non-lane) | `go.concurrency.typed` | `go_chan_method___hx_setBuffer` | `attempted` | `go.Go:19` | Attempt typed go.Chan method specialization.
-- `go.Go` (non-lane) | `go.concurrency.typed` | `go_chan_method_unmorphable` | `fallback` | `go.Go:19` | Could not monomorphize go.Chan method call (element type: any).
 - `go.Go` (non-lane) | `go.concurrency.typed` | `go_chan_new` | `attempted` | `go.Go:17` | Attempt typed go.Chan constructor specialization.
-- `go.Go` (non-lane) | `go.concurrency.typed` | `go_chan_new_unmorphable` | `fallback` | `go.Go:17` | Could not monomorphize go.Chan element type for constructor specialization.
 
 ## metal fallback violation summary by module
 - none

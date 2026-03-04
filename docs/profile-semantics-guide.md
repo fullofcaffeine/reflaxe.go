@@ -99,12 +99,18 @@ class Adapter {
 `@:goMetal` lets you mark incremental migration islands inside a portable build. Those modules get metal-clean enforcement rules even when global contract stays portable.
 Typed fallback fail-fast in lane modules is enabled under `-D reflaxe_go_auto=auto_strict`; under `off|auto` those fallback paths are allowed and reported.
 
+Typed-lowering eligibility is centralized in `src/reflaxe/go/compiler/GoMetalTypeEligibility.hx`:
+- concrete non-`any` Go type is required,
+- nullable primitive dynamic-path representations are excluded for semantic safety,
+- `go.Map` key specialization additionally requires a comparable Go key type.
+
 Lane enforcement snapshots:
 - `test/snapshot/negative/go_metal_lane_injection`
 - `test/snapshot/negative/go_metal_lane_fallback_result`
 - `test/snapshot/negative/go_metal_lane_fallback_chan`
 - `test/snapshot/negative/go_metal_lane_fallback_slice`
 - `test/snapshot/negative/go_metal_lane_fallback_map`
+- `test/snapshot/negative/go_metal_lane_fallback_map_noncomparable_key`
 - `test/snapshot/core/go_metal_lane_nonlane_fallback_allowed`
 - `test/snapshot/core/go_metal_lane_fallback_allowed_off`
 

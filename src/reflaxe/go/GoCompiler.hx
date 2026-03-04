@@ -9,6 +9,9 @@ import haxe.macro.PositionTools;
 import haxe.macro.Type;
 import reflaxe.go.compiler.GoExprOperatorOps;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
+import reflaxe.go.compiler.GoMetalTypeEligibility;
+import reflaxe.go.compiler.GoMetalTypeEligibility.GoMetalEligibilityRole;
+import reflaxe.go.compiler.GoMetalTypeEligibility.GoMetalTypeEligibilityResult;
 import reflaxe.go.compiler.GoStdlibShimClassifier;
 import reflaxe.go.compiler.GoTestAstFixtureEmitter;
 import reflaxe.go.compiler.GoTypeMapper;
@@ -10822,8 +10825,9 @@ class GoCompiler {
 				var classType = classRef.get();
 				if (useTypedGoConcurrencySpecialization() && isGoChanClass(classType)) {
 					noteLoweringAttempt("go.concurrency.typed", "go_chan_new", expr.pos, "Attempt typed go.Chan constructor specialization.");
-					var elementGoType = goChanElementGoType(expr.t);
-					if (elementGoType != null) {
+					var elementEligibility = goChanElementEligibility(expr.t, "Could not resolve go.Chan element type for constructor specialization.");
+					if (elementEligibility.eligible) {
+						var elementGoType = elementEligibility.goType;
 						requireStdlibShimGroup("go_concurrency");
 						registerMetalChanElementGoType(elementGoType);
 						notePortableConcurrencyFastpathHit(expr.pos);
@@ -10836,7 +10840,7 @@ class GoCompiler {
 					} else {
 						notePortableConcurrencyFastpathFallback(expr.pos);
 						noteLoweringFallback("go.concurrency.typed", "go_chan_new_unmorphable", expr.pos,
-							"Could not monomorphize go.Chan element type for constructor specialization.");
+							withEligibilityReason("Could not monomorphize go.Chan element type for constructor specialization.", elementEligibility));
 						{
 							expr: GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(classType)), [for (arg in args) lowerExpr(arg).expr]),
 							isStringLike: false
@@ -11672,7 +11676,14 @@ class GoCompiler {
 
 		if (isStaticCall(callee, "Go", ["go"], "newChan")) {
 			noteLoweringAttempt("go.concurrency.typed", "go_chan_new", callee.pos, "Attempt typed go.Go.newChan specialization.");
-			var elementGoType = goChanElementGoType(returnType);
+			var elementEligibility = goChanElementEligibility(returnType, "Could not resolve go.Go.newChan return type for metal specialization.");
+			if (!elementEligibility.eligible) {
+				notePortableConcurrencyFastpathFallback(callee.pos);
+				noteLoweringFallback("go.concurrency.typed", "go_chan_new_unmorphable", callee.pos,
+					withEligibilityReason("Could not monomorphize go.Go.newChan return type for metal specialization.", elementEligibility));
+				return null;
+			}
+			var elementGoType = elementEligibility.goType;
 			if (elementGoType == null) {
 				notePortableConcurrencyFastpathFallback(callee.pos);
 				noteLoweringFallback("go.concurrency.typed", "go_chan_new_unmorphable", callee.pos,
@@ -11698,11 +11709,19 @@ class GoCompiler {
 		var methodKind = "go_chan_method_" + methodCall.methodName;
 		noteLoweringAttempt("go.concurrency.typed", methodKind, callee.pos, "Attempt typed go.Chan method specialization.");
 
-		var elementGoType = scalarGoType(methodCall.elementType);
-		if (!isMonomorphizableMetalChanElementType(elementGoType)) {
+		var elementEligibility = metalTypeEligibility(methodCall.elementType, GoMetalEligibilityRole.ChanElement,
+			"Could not resolve go.Chan method element type for metal specialization.");
+		if (!elementEligibility.eligible) {
 			notePortableConcurrencyFastpathFallback(callee.pos);
 			noteLoweringFallback("go.concurrency.typed", "go_chan_method_unmorphable", callee.pos,
-				'Could not monomorphize go.Chan method call (element type: ' + elementGoType + ").");
+				withEligibilityReason("Could not monomorphize go.Chan method call for metal specialization.", elementEligibility));
+			return null;
+		}
+		var elementGoType = elementEligibility.goType;
+		if (elementGoType == null) {
+			notePortableConcurrencyFastpathFallback(callee.pos);
+			noteLoweringFallback("go.concurrency.typed", "go_chan_method_unmorphable", callee.pos,
+				"Could not monomorphize go.Chan method call for metal specialization.");
 			return null;
 		}
 
@@ -11772,7 +11791,13 @@ class GoCompiler {
 		var methodKind = "go_slice_method_" + methodCall.methodName;
 		noteLoweringAttempt("go.collections.typed", methodKind, callee.pos, "Attempt typed go.Slice method specialization.");
 
-		var elementGoType = goSliceElementGoType(methodCall.target.t);
+		var elementEligibility = goSliceElementEligibility(methodCall.target.t, "Could not resolve go.Slice element type for metal specialization.");
+		if (!elementEligibility.eligible) {
+			noteLoweringFallback("go.collections.typed", "go_slice_method_unmorphable", callee.pos,
+				withEligibilityReason("Could not monomorphize go.Slice element type for metal specialization.", elementEligibility));
+			return null;
+		}
+		var elementGoType = elementEligibility.goType;
 		if (elementGoType == null) {
 			noteLoweringFallback("go.collections.typed", "go_slice_method_unmorphable", callee.pos,
 				"Could not monomorphize go.Slice element type for metal specialization.");
@@ -11832,14 +11857,32 @@ class GoCompiler {
 		var methodKind = "go_map_method_" + methodCall.methodName;
 		noteLoweringAttempt("go.collections.typed", methodKind, callee.pos, "Attempt typed go.Map method specialization.");
 
-		var pair = goMapTypePairGoTypes(methodCall.target.t);
+		var pair = goMapTypePair(methodCall.target.t);
 		if (pair == null) {
 			noteLoweringFallback("go.collections.typed", "go_map_method_unmorphable", callee.pos,
 				"Could not monomorphize go.Map key/value types for metal specialization.");
 			return null;
 		}
-		var keyGoType = pair.keyGoType;
-		var valueGoType = pair.valueGoType;
+		var keyEligibility = metalTypeEligibility(pair.keyType, GoMetalEligibilityRole.MapKey, "Could not resolve go.Map key type for metal specialization.");
+		if (!keyEligibility.eligible) {
+			noteLoweringFallback("go.collections.typed", "go_map_method_unmorphable", callee.pos,
+				withEligibilityReason("Could not monomorphize go.Map key/value types for metal specialization.", keyEligibility));
+			return null;
+		}
+		var valueEligibility = metalTypeEligibility(pair.valueType, GoMetalEligibilityRole.MapValue,
+			"Could not resolve go.Map value type for metal specialization.");
+		if (!valueEligibility.eligible) {
+			noteLoweringFallback("go.collections.typed", "go_map_method_unmorphable", callee.pos,
+				withEligibilityReason("Could not monomorphize go.Map key/value types for metal specialization.", valueEligibility));
+			return null;
+		}
+		var keyGoType = keyEligibility.goType;
+		var valueGoType = valueEligibility.goType;
+		if (keyGoType == null || valueGoType == null) {
+			noteLoweringFallback("go.collections.typed", "go_map_method_unmorphable", callee.pos,
+				"Could not monomorphize go.Map key/value types for metal specialization.");
+			return null;
+		}
 
 		requireStdlibShimGroup("go_collections");
 		registerMetalMapTypePair(keyGoType, valueGoType);
@@ -11882,15 +11925,16 @@ class GoCompiler {
 			return null;
 		}
 
-		var returnElementGoType = goResultElementGoType(returnType);
+		var returnElementEligibility = goResultElementEligibility(returnType, "Could not resolve go.Result<T> return type for metal specialization.");
 
 		if (isStaticCall(callee, "Result", ["go"], "ok") || isStaticCall(callee, "Go", ["go"], "ok")) {
 			noteLoweringAttempt("go.result.typed", "go_result_static_ok", callee.pos, "Attempt typed go.Result.ok specialization.");
-			if (returnElementGoType == null) {
+			if (!returnElementEligibility.eligible || returnElementEligibility.goType == null) {
 				noteLoweringFallback("go.result.typed", "go_result_static_ok_unmorphable", callee.pos,
-					"Could not monomorphize go.Result<T>.ok return type for metal specialization.");
+					withEligibilityReason("Could not monomorphize go.Result<T>.ok return type for metal specialization.", returnElementEligibility));
 				return null;
 			}
+			var returnElementGoType = returnElementEligibility.goType;
 			requireStdlibShimGroup("go_result");
 			registerMetalResultElementGoType(returnElementGoType);
 			noteLoweringSuccess("go.result.typed", "go_result_static_ok", callee.pos,
@@ -11904,11 +11948,12 @@ class GoCompiler {
 
 		if (isStaticCall(callee, "Result", ["go"], "failure") || isStaticCall(callee, "Go", ["go"], "fail")) {
 			noteLoweringAttempt("go.result.typed", "go_result_static_failure", callee.pos, "Attempt typed go.Result.failure specialization.");
-			if (returnElementGoType == null) {
+			if (!returnElementEligibility.eligible || returnElementEligibility.goType == null) {
 				noteLoweringFallback("go.result.typed", "go_result_static_failure_unmorphable", callee.pos,
-					"Could not monomorphize go.Result<T>.failure return type for metal specialization.");
+					withEligibilityReason("Could not monomorphize go.Result<T>.failure return type for metal specialization.", returnElementEligibility));
 				return null;
 			}
+			var returnElementGoType = returnElementEligibility.goType;
 			requireStdlibShimGroup("go_result");
 			registerMetalResultElementGoType(returnElementGoType);
 			noteLoweringSuccess("go.result.typed", "go_result_static_failure", callee.pos,
@@ -11927,12 +11972,14 @@ class GoCompiler {
 		var methodKind = "go_result_method_" + methodCall.methodName;
 		noteLoweringAttempt("go.result.typed", methodKind, callee.pos, "Attempt typed go.Result method specialization.");
 
-		var elementGoType = goResultElementGoType(methodCall.target.t);
-		if (elementGoType == null) {
+		var receiverEligibility = goResultElementEligibility(methodCall.target.t,
+			"Could not resolve go.Result<T> method receiver type for metal specialization.");
+		if (!receiverEligibility.eligible || receiverEligibility.goType == null) {
 			noteLoweringFallback("go.result.typed", "go_result_method_unmorphable", callee.pos,
-				"Could not monomorphize go.Result<T> method receiver for metal specialization.");
+				withEligibilityReason("Could not monomorphize go.Result<T> method receiver for metal specialization.", receiverEligibility));
 			return null;
 		}
+		var elementGoType = receiverEligibility.goType;
 
 		requireStdlibShimGroup("go_result");
 		registerMetalResultElementGoType(elementGoType);
@@ -13170,8 +13217,24 @@ class GoCompiler {
 	}
 
 	function noteLoweringFallback(feature:String, kind:String, pos:haxe.macro.Expr.Position, detail:String):Void {
+		if (shouldSuppressPortableInternalFallbackReport(feature, pos)) {
+			return;
+		}
 		noteLoweringDecision(feature, kind, "fallback", pos, detail);
 		noteMetalFallback(kind, pos, detail);
+	}
+
+	function shouldSuppressPortableInternalFallbackReport(feature:String, pos:haxe.macro.Expr.Position):Bool {
+		if (!isPortableProfile()) {
+			return false;
+		}
+		if (!usePortableConcurrencyFastpath()) {
+			return false;
+		}
+		if (feature != "go.concurrency.typed") {
+			return false;
+		}
+		return isFrameworkInternalPos(pos);
 	}
 
 	function noteLoweringDecision(feature:String, kind:String, outcome:String, pos:haxe.macro.Expr.Position, detail:String):Void {
@@ -13377,28 +13440,22 @@ class GoCompiler {
 		return isMonomorphizableMetalElementType(elementGoType);
 	}
 
+	function goChanElementEligibility(type:Type, missingMessage:String):GoMetalTypeEligibilityResult {
+		return metalTypeEligibility(goChanElementType(type), GoMetalEligibilityRole.ChanElement, missingMessage);
+	}
+
 	function goChanElementGoType(type:Type):Null<String> {
-		var elementType = goChanElementType(type);
-		if (elementType == null) {
-			return null;
-		}
-		var elementGoType = scalarGoType(elementType);
-		if (!isMonomorphizableMetalChanElementType(elementGoType)) {
-			return null;
-		}
-		return elementGoType;
+		var eligibility = goChanElementEligibility(type, "Could not resolve go.Chan element type for metal specialization.");
+		return eligibility.eligible ? eligibility.goType : null;
+	}
+
+	function goSliceElementEligibility(type:Type, missingMessage:String):GoMetalTypeEligibilityResult {
+		return metalTypeEligibility(goSliceElementType(type), GoMetalEligibilityRole.SliceElement, missingMessage);
 	}
 
 	function goSliceElementGoType(type:Type):Null<String> {
-		var elementType = goSliceElementType(type);
-		if (elementType == null) {
-			return null;
-		}
-		var elementGoType = scalarGoType(elementType);
-		if (!isMonomorphizableMetalElementType(elementGoType)) {
-			return null;
-		}
-		return elementGoType;
+		var eligibility = goSliceElementEligibility(type, "Could not resolve go.Slice element type for metal specialization.");
+		return eligibility.eligible ? eligibility.goType : null;
 	}
 
 	function goMapTypePairGoTypes(type:Type):Null<MetalMapTypePair> {
@@ -13406,27 +13463,49 @@ class GoCompiler {
 		if (pair == null) {
 			return null;
 		}
-		var keyGoType = scalarGoType(pair.keyType);
-		var valueGoType = scalarGoType(pair.valueType);
-		if (!isMonomorphizableMetalElementType(keyGoType) || !isMonomorphizableMetalElementType(valueGoType)) {
+		var keyEligibility = metalTypeEligibility(pair.keyType, GoMetalEligibilityRole.MapKey, "Could not resolve go.Map key type for metal specialization.");
+		if (!keyEligibility.eligible || keyEligibility.goType == null) {
+			return null;
+		}
+		var valueEligibility = metalTypeEligibility(pair.valueType, GoMetalEligibilityRole.MapValue,
+			"Could not resolve go.Map value type for metal specialization.");
+		if (!valueEligibility.eligible || valueEligibility.goType == null) {
 			return null;
 		}
 		return {
-			keyGoType: keyGoType,
-			valueGoType: valueGoType
+			keyGoType: keyEligibility.goType,
+			valueGoType: valueEligibility.goType
 		};
 	}
 
+	function goResultElementEligibility(type:Type, missingMessage:String):GoMetalTypeEligibilityResult {
+		return metalTypeEligibility(goResultElementType(type), GoMetalEligibilityRole.ResultElement, missingMessage);
+	}
+
 	function goResultElementGoType(type:Type):Null<String> {
-		var elementType = goResultElementType(type);
-		if (elementType == null) {
-			return null;
+		var eligibility = goResultElementEligibility(type, "Could not resolve go.Result<T> element type for metal specialization.");
+		return eligibility.eligible ? eligibility.goType : null;
+	}
+
+	function metalTypeEligibility(type:Null<Type>, role:GoMetalEligibilityRole, missingMessage:String):GoMetalTypeEligibilityResult {
+		if (type == null) {
+			return {
+				eligible: false,
+				goType: null,
+				reasonCode: "missing_type",
+				reason: missingMessage
+			};
 		}
-		var elementGoType = scalarGoType(elementType);
-		if (!isMonomorphizableMetalElementType(elementGoType)) {
-			return null;
+		return GoMetalTypeEligibility.resolve(type, role, classTypeName, enumTypeName);
+	}
+
+	function withEligibilityReason(base:String, eligibility:GoMetalTypeEligibilityResult):String {
+		var reason = eligibility.reason;
+		if (reason == null || StringTools.trim(reason) == "") {
+			return base;
 		}
-		return elementGoType;
+		var prefix = StringTools.endsWith(base, ".") ? base.substr(0, base.length - 1) : base;
+		return prefix + ": " + reason;
 	}
 
 	function registerMetalChanElementGoType(elementGoType:String):Void {

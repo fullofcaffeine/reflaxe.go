@@ -12,7 +12,7 @@
 	"portableConcurrencyTypedFastpathHits": 3,
 	"portableConcurrencyTypedFastpathFallbacks": 0,
 	"loweringFallbackLaneCount": 0,
-	"loweringFallbackNonLaneCount": 2,
+	"loweringFallbackNonLaneCount": 0,
 	"goAstPassSelectionSource": "planner",
 	"goAstPasses": [
 		"normalize_names",
