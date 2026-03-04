@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	ok := go__result_fromValueError(strconv.Atoi(hxrt.StringValue(hxrt.StringFromLiteral("42"))))
+	ok := go__result_fromValueError(strconv.Atoi(*hxrt.StdString(hxrt.StringFromLiteral("42"))))
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ok.isOk="), hxrt.StdString(func(hx_value_1 any) bool {
 		if hx_value_1 == nil {
 			var hx_zero_2 bool
@@ -28,7 +28,7 @@ func main() {
 		}
 		return hx_value_5.(int)
 	}(ok.unwrap())))
-	err := go__result_fromValueError(strconv.Atoi(hxrt.StringValue(hxrt.StringFromLiteral("x"))))
+	err := go__result_fromValueError(strconv.Atoi(*hxrt.StdString(hxrt.StringFromLiteral("x"))))
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("err.isOk="), hxrt.StdString(func(hx_value_7 any) bool {
 		if hx_value_7 == nil {
 			var hx_zero_8 bool

@@ -5,7 +5,11 @@ This page is the blunt status view for current limitations so teams can plan mig
 ## Compiler/output caveats
 
 - Output remains a single Go package (multi-file, single package); multi-package emission is not implemented yet.
-- Some unsupported typed-expression guards still exist by design (`docs/feature-support-matrix.md` inventory section).
+- Some unsupported typed-expression guards still exist by design (`docs/feature-support-matrix.md` inventory section). Current compiler hard-fails:
+  - `Unsupported assignment target` (`lowerLValue`)
+  - `Unsupported postfix unary operator` (`lowerExpr` / `lowerExprWithPrefix`)
+  - `Unsupported expression` (catch-all `lowerExpr` fallback)
+  - `Std.isOfType` still has conservative fallback behavior for unresolved runtime-value abstract targets (documented as partial support, not a hard-fail)
 - `go.*` APIs are target-specific. They compile to real Go behavior on this target, but they are not portability-safe across non-Go Haxe targets.
 
 ## Interop caveats

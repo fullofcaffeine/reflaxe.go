@@ -22,8 +22,8 @@ func main() {
 	var externCtx context.Context = context.Background()
 	externStatusOk := hxrt.StringEqualStringPtr(hxrt.StdString(http.StatusText(200)), hxrt.StringFromLiteral("OK"))
 	externOk := ((((externUnixDirect == externUnixReceiver) && (externUnixDirect > 0)) && (externCtx != nil)) && externStatusOk)
-	valueErrorOk := go__result_fromValueError(strconv.Atoi(hxrt.StringValue(hxrt.StringFromLiteral("42"))))
-	valueErrorErr := go__result_fromValueError(strconv.Atoi(hxrt.StringValue(hxrt.StringFromLiteral("oops"))))
+	valueErrorOk := go__result_fromValueError(strconv.Atoi(*hxrt.StdString(hxrt.StringFromLiteral("42"))))
+	valueErrorErr := go__result_fromValueError(strconv.Atoi(*hxrt.StdString(hxrt.StringFromLiteral("oops"))))
 	valueErrorPass := (((((func(hx_value_1 any) bool {
 		if hx_value_1 == nil {
 			var hx_zero_2 bool

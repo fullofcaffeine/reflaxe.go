@@ -100,10 +100,6 @@ func stringValueOrNullToken(value *string) string {
 	return *value
 }
 
-func StringValue(value *string) string {
-	return stringValueOrNullToken(value)
-}
-
 func StringConcatStringPtr(left *string, right *string) *string {
 	return StringFromLiteral(stringValueOrNullToken(left) + stringValueOrNullToken(right))
 }

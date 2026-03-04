@@ -299,6 +299,13 @@ func go__concurrency_spawn(fn func()) {
 	go fn()
 }
 
+func go__result_fromValueError(value any, err error) *go___Result {
+	if err != nil {
+		return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral(err.Error())))
+	}
+	return New_go___Result(value, nil)
+}
+
 func go__result_ok___string_f613ccd0(value *string) *go___Result {
 	return New_go___Result(value, nil)
 }

@@ -11212,9 +11212,6 @@ class GoCompiler {
 				{expr: GoExpr.GoIdent("self"), isStringLike: false};
 			case TSuper:
 				{expr: GoExpr.GoIdent("self"), isStringLike: false};
-			case _:
-				Context.fatalError("Unsupported constant: " + Std.string(constant), Context.currentPos());
-				{expr: GoExpr.GoNil, isStringLike: false};
 		};
 	}
 
@@ -11658,7 +11655,7 @@ class GoCompiler {
 		var loweredArgs = new Array<GoExpr>();
 		for (index in 0...args.length) {
 			var arg = args[index];
-			var loweredArg = lowerExpr(arg).expr;
+			var loweredArg = lowerCallArgExpr(arg);
 			var paramType = callParamType(callee.t, index);
 			if (paramType != null) {
 				loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType);
@@ -12058,7 +12055,7 @@ class GoCompiler {
 					var loweredArgs = new Array<GoExpr>();
 					for (index in 1...args.length) {
 						var arg = args[index];
-						var loweredArg = lowerExpr(arg).expr;
+						var loweredArg = lowerCallArgExpr(arg);
 						var paramType = callParamType(callee.t, index);
 						if (paramType != null) {
 							loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType);
@@ -12177,6 +12174,20 @@ class GoCompiler {
 			case _:
 				null;
 		};
+	}
+
+	function lowerCallArgExpr(expr:TypedExpr):GoExpr {
+		if (!isVoidType(expr.t)) {
+			return lowerExpr(expr).expr;
+		}
+
+		var lowered = lowerExprWithPrefix(expr);
+		var body = lowered.prefix.copy();
+		if (!isNilExpr(lowered.expr)) {
+			body.push(GoStmt.GoExprStmt(lowered.expr));
+		}
+		body.push(GoStmt.GoReturn(GoExpr.GoNil));
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["any"], body), []);
 	}
 
 	function haxeDsListElementType(type:Type):Null<Type> {
@@ -13673,7 +13684,7 @@ class GoCompiler {
 			return argExpr;
 		}
 		if (isStringType(paramType)) {
-			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringValue"), [argExpr]);
+			return GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [argExpr]));
 		}
 		return argExpr;
 	}

@@ -23,8 +23,8 @@ func main() {
 	var externCtx context.Context = context.Background()
 	externStatusOk := hxrt.StringEqualStringPtr(hxrt.StdString(http.StatusText(200)), hxrt.StringFromLiteral("OK"))
 	externOk := ((((externUnixDirect == externUnixReceiver) && (externUnixDirect > 0)) && (externCtx != nil)) && externStatusOk)
-	valueErrorOk := go__result_fromValueError(strconv.Atoi(hxrt.StringValue(hxrt.StringFromLiteral("42"))))
-	valueErrorErr := go__result_fromValueError(strconv.Atoi(hxrt.StringValue(hxrt.StringFromLiteral("oops"))))
+	valueErrorOk := go__result_fromValueError(strconv.Atoi(*hxrt.StdString(hxrt.StringFromLiteral("42"))))
+	valueErrorErr := go__result_fromValueError(strconv.Atoi(*hxrt.StdString(hxrt.StringFromLiteral("oops"))))
 	valueErrorPass := (((((go__result_isOk__int_95e97e5e(valueErrorOk) && !go__result_isErr__int_95e97e5e(valueErrorOk)) && (go__result_unwrap__int_95e97e5e(valueErrorOk) == 42)) && !go__result_isOk__int_95e97e5e(valueErrorErr)) && go__result_isErr__int_95e97e5e(valueErrorErr)) && !hxrt.StringEqualStringPtr(go__result_error__int_95e97e5e(valueErrorErr), nil))
 	fmt.Println(func() int {
 		var hx_if_1 int
