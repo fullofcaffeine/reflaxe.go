@@ -36,6 +36,24 @@ def require_nonempty_list(value: Any, label: str) -> list[Any]:
     return value
 
 
+def require_int(value: Any, label: str) -> int:
+    if not isinstance(value, int):
+        raise SystemExit(f"{label}: expected int, got {type(value).__name__}")
+    return value
+
+
+def require_counter_eq(obj: dict[str, Any], key: str, expected: int, label: str) -> None:
+    value = require_int(obj.get(key), f"{label}.{key}")
+    if value != expected:
+        raise SystemExit(f"{label}.{key}: expected {expected}, got {value}")
+
+
+def require_counter_gt(obj: dict[str, Any], key: str, threshold: int, label: str) -> None:
+    value = require_int(obj.get(key), f"{label}.{key}")
+    if value <= threshold:
+        raise SystemExit(f"{label}.{key}: expected > {threshold}, got {value}")
+
+
 def require_reason_entries(entries: list[Any], expected_source_prefix: str, label: str) -> None:
     for index, entry in enumerate(entries):
         if not isinstance(entry, dict):
@@ -57,6 +75,12 @@ def main() -> int:
     optimizer_path = ROOT / "test/snapshot/core/report_artifacts_auto_mode/intended/optimizer_plan.json"
     optimizer_legacy_path = (
         ROOT / "test/snapshot/core/optimizer_plan_pass_selection_legacy_granular/intended/optimizer_plan.json"
+    )
+    optimizer_typed_path = (
+        ROOT / "test/snapshot/core/report_artifacts_auto_collections_result/intended/optimizer_plan.json"
+    )
+    optimizer_fallback_path = (
+        ROOT / "test/snapshot/core/optimizer_plan_auto_collections_result_fallback/intended/optimizer_plan.json"
     )
     runtime_path = ROOT / "test/snapshot/core/report_artifacts_basic/intended/hxrt_plan.json"
 
@@ -117,6 +141,22 @@ def main() -> int:
         )
     legacy_reasons = require_nonempty_list(optimizer_legacy.get("goAstPassSelectionReasons"), str(optimizer_legacy_path))
     require_reason_entries(legacy_reasons, "legacy_granular_bundle", str(optimizer_legacy_path))
+
+    optimizer_typed = load_json(optimizer_typed_path)
+    require_schema(optimizer_typed, 4, str(optimizer_typed_path))
+    require_counter_gt(optimizer_typed, "goCollectionsTypedLowerings", 0, str(optimizer_typed_path))
+    require_counter_eq(optimizer_typed, "goCollectionsTypedFallbacks", 0, str(optimizer_typed_path))
+    require_counter_gt(optimizer_typed, "goResultTypedLowerings", 0, str(optimizer_typed_path))
+    require_counter_eq(optimizer_typed, "goResultTypedFallbacks", 0, str(optimizer_typed_path))
+    require_counter_eq(optimizer_typed, "loweringFallbackNonLaneCount", 0, str(optimizer_typed_path))
+
+    optimizer_fallback = load_json(optimizer_fallback_path)
+    require_schema(optimizer_fallback, 4, str(optimizer_fallback_path))
+    require_counter_eq(optimizer_fallback, "goCollectionsTypedLowerings", 0, str(optimizer_fallback_path))
+    require_counter_gt(optimizer_fallback, "goCollectionsTypedFallbacks", 0, str(optimizer_fallback_path))
+    require_counter_eq(optimizer_fallback, "goResultTypedLowerings", 0, str(optimizer_fallback_path))
+    require_counter_gt(optimizer_fallback, "goResultTypedFallbacks", 0, str(optimizer_fallback_path))
+    require_counter_gt(optimizer_fallback, "loweringFallbackNonLaneCount", 0, str(optimizer_fallback_path))
 
     runtime = load_json(runtime_path)
     require_schema(runtime, 1, str(runtime_path))
