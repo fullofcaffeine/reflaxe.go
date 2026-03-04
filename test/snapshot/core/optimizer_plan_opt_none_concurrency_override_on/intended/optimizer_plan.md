@@ -25,9 +25,9 @@
 - `collect_imports`
 
 ## go ast pass selection reasons
-- `normalize_names` | `planner` | No planner reason recorded; pass selected by registry ordering.
-- `rewrite_string_ops` | `planner` | No planner reason recorded; pass selected by registry ordering.
-- `rewrite_virtual_calls` | `planner` | No planner reason recorded; pass selected by registry ordering.
-- `insert_runtime_prelude` | `planner` | No planner reason recorded; pass selected by registry ordering.
-- `elide_blank_identifier_guards` | `planner` | No planner reason recorded; pass selected by registry ordering.
-- `collect_imports` | `planner` | No planner reason recorded; pass selected by registry ordering.
+- `normalize_names` | `planner(contract=portable, auto=off, opt=none)` | Canonicalize generated identifiers before rewrite passes.
+- `rewrite_string_ops` | `planner(contract=portable, auto=off, opt=none)` | Apply planner-selected string rewrite/folding pass for deterministic code shape.
+- `rewrite_virtual_calls` | `planner(contract=portable, auto=off, opt=none)` | Apply planner-selected safe virtual-call rewrite pass.
+- `insert_runtime_prelude` | `planner(contract=portable, auto=off, opt=none)` | Inject runtime prelude declarations before cleanup/import collection.
+- `elide_blank_identifier_guards` | `planner(contract=portable, auto=off, opt=none)` | Remove redundant blank-identifier consume guards after lowering.
+- `collect_imports` | `planner(contract=portable, auto=off, opt=none)` | Collect final deterministic import set after all rewrites.

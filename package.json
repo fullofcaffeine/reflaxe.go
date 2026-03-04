@@ -24,6 +24,7 @@
     "test:semantic-diff": "python3 test/run-semantic-diff.py",
     "test:semantic-diff:optimizer-matrix": "python3 test/run-semantic-diff.py --case go_string_fastpath_on_off_contract_on --case go_string_fastpath_on_off_contract_off --case go_chan_fastpath_on_off_contract_on --case go_chan_fastpath_on_off_contract_off --case go_chan_fastpath_opt_none_default_off_contract --case go_chan_fastpath_opt_none_override_on_contract",
     "test:semantic-diff:lanes": "python3 test/run-semantic-diff.py --suite lanes",
+    "test:auto-planner:schema": "python3 test/run-auto-planner-schema.py",
     "test:examples:metal-boundary": "python3 test/run-metal-example-boundary.py",
     "test:goextern:fixtures": "python3 test/run-goextern-fixtures.py",
     "test:stdlib-sweep": "python3 test/run-upstream-stdlib-sweep.py",

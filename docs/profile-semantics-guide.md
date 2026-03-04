@@ -327,9 +327,16 @@ Use these gates when profile behavior changes:
 - `python3 test/run-semantic-diff.py`
 - `python3 test/run-semantic-diff.py --suite lanes`
 - `npm run test:semantic-diff:lanes`
+- `npm run test:auto-planner:schema`
+- `npm run test:perf:go`
 - `python3 test/run-ci.py`
 - `python3 test/run-ci.py --force-semantic-diff-lanes`
 - `python3 test/run-examples.py`
+
+CI auto-planner schema stage controls:
+
+- `python3 test/run-ci.py --skip-auto-planner-schema`
+- `python3 test/run-ci.py --force-auto-planner-schema`
 
 Canonical portable semantics references:
 - `docs/portable-canonical-contract.md`

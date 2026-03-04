@@ -25,33 +25,33 @@
 	"goAstPassSelectionReasons": [
 		{
 			"pass": "normalize_names",
-			"source": "planner",
-			"reason": "No planner reason recorded; pass selected by registry ordering."
+			"source": "planner(contract=portable, auto=auto, opt=portable_fast)",
+			"reason": "Canonicalize generated identifiers before rewrite passes."
 		},
 		{
 			"pass": "rewrite_string_ops",
-			"source": "planner",
-			"reason": "No planner reason recorded; pass selected by registry ordering."
+			"source": "planner(contract=portable, auto=auto, opt=portable_fast)",
+			"reason": "Apply planner-selected string rewrite/folding pass for deterministic code shape."
 		},
 		{
 			"pass": "rewrite_virtual_calls",
-			"source": "planner",
-			"reason": "No planner reason recorded; pass selected by registry ordering."
+			"source": "planner(contract=portable, auto=auto, opt=portable_fast)",
+			"reason": "Apply planner-selected safe virtual-call rewrite pass."
 		},
 		{
 			"pass": "insert_runtime_prelude",
-			"source": "planner",
-			"reason": "No planner reason recorded; pass selected by registry ordering."
+			"source": "planner(contract=portable, auto=auto, opt=portable_fast)",
+			"reason": "Inject runtime prelude declarations before cleanup/import collection."
 		},
 		{
 			"pass": "elide_blank_identifier_guards",
-			"source": "planner",
-			"reason": "No planner reason recorded; pass selected by registry ordering."
+			"source": "planner(contract=portable, auto=auto, opt=portable_fast)",
+			"reason": "Remove redundant blank-identifier consume guards after lowering."
 		},
 		{
 			"pass": "collect_imports",
-			"source": "planner",
-			"reason": "No planner reason recorded; pass selected by registry ordering."
+			"source": "planner(contract=portable, auto=auto, opt=portable_fast)",
+			"reason": "Collect final deterministic import set after all rewrites."
 		}
 	]
 }

@@ -69,21 +69,27 @@ class GoASTPassRegistry {
 			optimizationPreset = context.buildContext.optimizationPreset;
 		}
 		var plannerTag = "planner(contract=" + contractLabel + ", auto=" + autoModeLabel + ", opt=" + optimizationPreset + ")";
+		var passNormalize = new NormalizeNamesPass();
+		var passRewriteStrings = new RewriteStringOpsPass();
+		var passRewriteVirtualCalls = new RewriteVirtualCallsPass();
+		var passRuntimePrelude = new InsertRuntimePreludePass();
+		var passElideBlankGuards = new ElideBlankIdentifierGuardsPass();
+		var passCollectImports = new CollectImportsPass();
 		var passes:Array<IGoASTPass> = [
-			new NormalizeNamesPass(),
-			new RewriteStringOpsPass(),
-			new RewriteVirtualCallsPass(),
-			new InsertRuntimePreludePass(),
-			new ElideBlankIdentifierGuardsPass(),
-			new CollectImportsPass()
+			passNormalize,
+			passRewriteStrings,
+			passRewriteVirtualCalls,
+			passRuntimePrelude,
+			passElideBlankGuards,
+			passCollectImports
 		];
 		var reasons:Array<GoASTPassSelectionReason> = [
-			reasonForPass("NormalizeNamesPass", "Canonicalize generated identifiers before rewrite passes.", plannerTag),
-			reasonForPass("RewriteStringOpsPass", "Apply planner-selected string rewrite/folding pass for deterministic code shape.", plannerTag),
-			reasonForPass("RewriteVirtualCallsPass", "Apply planner-selected safe virtual-call rewrite pass.", plannerTag),
-			reasonForPass("InsertRuntimePreludePass", "Inject runtime prelude declarations before cleanup/import collection.", plannerTag),
-			reasonForPass("ElideBlankIdentifierGuardsPass", "Remove redundant blank-identifier consume guards after lowering.", plannerTag),
-			reasonForPass("CollectImportsPass", "Collect final deterministic import set after all rewrites.", plannerTag)
+			reasonForPass(passNormalize.getName(), "Canonicalize generated identifiers before rewrite passes.", plannerTag),
+			reasonForPass(passRewriteStrings.getName(), "Apply planner-selected string rewrite/folding pass for deterministic code shape.", plannerTag),
+			reasonForPass(passRewriteVirtualCalls.getName(), "Apply planner-selected safe virtual-call rewrite pass.", plannerTag),
+			reasonForPass(passRuntimePrelude.getName(), "Inject runtime prelude declarations before cleanup/import collection.", plannerTag),
+			reasonForPass(passElideBlankGuards.getName(), "Remove redundant blank-identifier consume guards after lowering.", plannerTag),
+			reasonForPass(passCollectImports.getName(), "Collect final deterministic import set after all rewrites.", plannerTag)
 		];
 		return {
 			source: "planner",

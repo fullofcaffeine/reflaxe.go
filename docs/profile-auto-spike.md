@@ -60,6 +60,31 @@ Required gates (future):
 - planner-specific determinism tests compare emitted plan reports
 - examples/perf jobs can consume planner reports but must still declare semantic profile contract
 
+## Implemented safety gates (current repo)
+
+The CI harness now includes a dedicated auto-planner schema stage on full runs:
+
+- `npm run test:auto-planner:schema`
+  - Validates deterministic report contracts from snapshot artifacts:
+    - `profile_contract.json` schema v7 + required planner/native-scan keys
+    - `optimizer_plan.json` schema v4 + pass-selection source/reason keys
+    - `hxrt_plan.json` schema v1 + runtime-plan core keys
+  - Verifies planner vs compatibility fallback sources:
+    - planner case: `goAstPassSelectionSource=planner`
+    - legacy granular case: `goAstPassSelectionSource=legacy_granular_bundle`
+
+CI wiring:
+
+- `python3 test/run-ci.py` runs auto-planner schema stage by default on full runs.
+- `--skip-auto-planner-schema` / `--force-auto-planner-schema` control this stage explicitly.
+
+Related semantic/perf commands for planner safety:
+
+- `npm run test:semantic-diff`
+- `npm run test:semantic-diff:optimizer-matrix`
+- `npm run test:semantic-diff:lanes`
+- `npm run test:perf:go`
+
 ## Recommended Future Shape (Low Priority)
 
 1. Keep `reflaxe_go_profile=portable|metal` unchanged.

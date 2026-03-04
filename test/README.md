@@ -78,6 +78,12 @@ Skip optimizer matrix stage:
 python3 test/run-ci.py --skip-optimizer-matrix
 ```
 
+Skip auto planner report-schema stage:
+
+```bash
+python3 test/run-ci.py --skip-auto-planner-schema
+```
+
 Skip portable allowlist stage:
 
 ```bash
@@ -142,6 +148,12 @@ Force optimizer matrix stage on a focused run:
 
 ```bash
 python3 test/run-ci.py --changed --force-optimizer-matrix
+```
+
+Force auto planner report-schema stage on a focused run:
+
+```bash
+python3 test/run-ci.py --changed --force-auto-planner-schema
 ```
 
 ## List snapshots
@@ -213,6 +225,14 @@ Runs semantic parity checks across the same optimizer toggle matrix:
 
 ```bash
 npm run test:semantic-diff:optimizer-matrix
+```
+
+## Run auto planner report schema gate
+
+Validates deterministic planner/runtime/contract artifact schemas and required keys:
+
+```bash
+npm run test:auto-planner:schema
 ```
 
 ## Upstream stdlib sweep
