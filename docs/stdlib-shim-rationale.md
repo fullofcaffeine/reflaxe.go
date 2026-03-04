@@ -1,5 +1,14 @@
 # Stdlib Strategy and Shim Decision Matrix
 
+Terms used in this document:
+
+- **Shim**: glue code that preserves Haxe API/semantics when lowering to Go. It can be compiler-emitted or runtime-backed.
+- **`hxrt`**: shared Go runtime helper package copied into generated output (`<go_output>/hxrt`).
+- **staged stdlib (`std/_std`)**: target-specific stdlib override modules that replace selected upstream std behavior in a controlled way.
+- **portable contract**: portability-first semantic baseline documented in `docs/portable-canonical-contract.md`.
+
+Reference glossary: `docs/glossary.md`.
+
 ## Scope
 
 `reflaxe.go` currently combines three mechanisms:

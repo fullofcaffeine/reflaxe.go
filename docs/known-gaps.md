@@ -2,6 +2,12 @@
 
 This page is the blunt status view for current limitations so teams can plan migrations with clear tradeoffs.
 
+Before reading:
+
+- `portable` and `metal` are compiler profiles (contracts), not app variants. See `docs/profiles.md`.
+- `go.*` is the Go-native facade surface. It is intentionally outside the cross-target portable contract.
+- `semantic-diff` is the runtime parity harness against Haxe `--interp`. See `docs/semantic-diff-guide.md`.
+
 ## Compiler/output caveats
 
 - Output remains a single Go package (multi-file, single package); multi-package emission is not implemented yet.

@@ -1,5 +1,17 @@
 # Feature Support Matrix and Unsupported Inventory
 
+How to read this page:
+
+1. Start with the support contract below to understand what "Supported" means in this repo.
+2. Use the coverage tiers table to understand the strength of evidence behind each surface.
+3. Use linked fixtures to inspect exact expected behavior.
+
+Key terms:
+
+- `snapshot`: checks generated Go code shape/text (`docs/snapshot-policy.md`).
+- `semantic-diff`: compares runtime behavior of generated Go vs Haxe `--interp` (`docs/semantic-diff-guide.md`).
+- `portable` / `metal`: compiler profiles (contracts), documented in `docs/profiles.md`.
+
 ## Support contract
 
 `reflaxe.go` treats a surface area as **supported** when all of the following are true:

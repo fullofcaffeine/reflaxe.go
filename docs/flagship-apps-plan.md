@@ -1,5 +1,14 @@
 # Flagship Apps Plan: PulseForge + FluxProxy
 
+Terms used in this plan:
+
+- **Profile**: compiler contract (`portable` or `metal`), documented in `docs/profiles.md`.
+- **Variant**: app runtime adapter path (`core` or `go_native`) inside one shared app codebase. This is not a compiler profile.
+- **core variant**: lowest-risk implementation path that avoids target-specific `go.*` API dependence where possible.
+- **go_native variant**: Go-first runtime adapter path that intentionally uses typed `go.*` surfaces.
+
+Reference glossary: `docs/glossary.md`.
+
 ## Decision
 
 Build both apps, with strict sequencing:

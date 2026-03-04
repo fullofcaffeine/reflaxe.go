@@ -2,10 +2,19 @@
 
 This document defines fairness and reproducibility rules for app-level benchmarking of:
 
-- generated Haxe->Go lanes (`portable` / `metal`, `core` / `go_native`)
-- handwritten parity baselines (`pure_go`, `core` / `go_native`)
+- generated Haxe->Go outputs (`portable` / `metal`, `core` / `go_native`)
+- handwritten Go parity baselines (`pure_go`, `core` / `go_native`)
 
 Harness entrypoint: `scripts/ci/perf-apps.sh` (`npm run test:perf:apps`).
+
+## Terms used in this doc
+
+- **Profile** (`portable`, `metal`): compiler contract selected with `-D reflaxe_go_profile=...`. See `docs/profiles.md`.
+- **Variant** (`core`, `go_native`): app runtime adapter choice inside one app codebase. This is not a compiler profile. See `docs/examples-matrix.md`.
+- **Lane**: one profile+variant combination in benchmark output (for example `portable/core`).
+- **pure_go**: handwritten Go reference implementation used as a baseline for ratio comparisons.
+
+Reference glossary: `docs/glossary.md`.
 
 ## Scope
 
@@ -33,6 +42,7 @@ Each run captures these lanes for both apps:
 | `pure_go` | `pure` | `go_native` |
 
 `pure_go` is handwritten baseline code and does not use `hxrt`.
+`hxrt` is the shared runtime helper package generated projects import. See `docs/hxrt-runtime.md`.
 
 ## Workload Shape
 
@@ -94,6 +104,11 @@ The harness also derives `portable_vs_metal` deltas per app+variant:
 
 - throughput delta (`portable/metal`): higher is better
 - latency/alloc/rss/startup/size deltas (`portable/metal`): lower is better
+
+Reading tip:
+
+- Use `haxe_vs_pure` to answer "how close are generated outputs to handwritten Go?"
+- Use `portable_vs_metal` to answer "how much headroom still exists between default portability-first output and Go-first output?"
 
 ## Baselines and Budgets
 

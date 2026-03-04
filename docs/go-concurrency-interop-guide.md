@@ -2,6 +2,14 @@
 
 Practical patterns for using `reflaxe.go` as a production-grade Go-target lane without dropping to raw `__go__`.
 
+Quick context:
+
+- `portable` and `metal` are compiler profiles (contracts). See `docs/profiles.md`.
+- `go.*` APIs (`go.Go`, `go.Chan`, `go.Select`) are Go-native facades. They are powerful, but they are not portability-safe across non-Go targets.
+- `interop` means calling Go packages through typed extern metadata (`@:go.import`, `@:go.name`, `@:go.receiver`) instead of raw string injection.
+
+Reference glossary: `docs/glossary.md`.
+
 ## 1) Worker pool with channels
 
 Reference app: `examples/worker_pool_select`.
@@ -18,7 +26,7 @@ Core pattern:
 Why this is recommended:
 
 - Maps to real goroutine/channel/select behavior in generated Go output.
-- Still runs in `portable`/`metal` profile matrix from one codebase.
+- Still runs in `portable`/`metal` from one codebase, so you can keep one app and compare both contracts directly.
 
 ## 2) Typed interop wrappers + user externs
 
@@ -62,6 +70,11 @@ Promotion rule:
 1. Keep semantic baseline in `portable`.
 2. Move hot paths to `metal` only with benchmark evidence.
 3. Keep strict boundary enforcement enabled (`reflaxe_go_strict`).
+
+Practical interpretation:
+
+- Start in `portable` when cross-target compatibility and predictable Haxe semantics are primary.
+- Use `metal` when Go-first performance and stricter Go-shaped authoring constraints are primary.
 
 ## 4) Caveats (important)
 

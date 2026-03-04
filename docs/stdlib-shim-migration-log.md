@@ -2,6 +2,18 @@
 
 This log tracks the end-to-end shim migration process so decisions, rollout order, and validation evidence stay auditable.
 
+How to use this log:
+
+1. Read `docs/stdlib-shim-rationale.md` first for current ownership decisions.
+2. Use this page as the chronological execution record (what changed, when, and how it was validated).
+3. Use linked test commands to reproduce evidence on current HEAD.
+
+Terms:
+
+- **shim**: compatibility glue between Haxe std APIs and Go output behavior.
+- **semantic-diff**: runtime parity harness comparing generated Go output against Haxe `--interp`.
+- **staged stdlib**: target-specific overrides under `std/_std`.
+
 ## Process Template
 
 For each shim surface:
