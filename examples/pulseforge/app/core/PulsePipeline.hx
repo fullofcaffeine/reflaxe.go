@@ -2,7 +2,6 @@ package app.core;
 
 import app.runtime.BuildConfig;
 import app.runtime.PulseRuntime;
-import haxe.ds.StringMap;
 
 class PulsePipeline {
 	final runtime:PulseRuntime;
@@ -56,8 +55,7 @@ class PulsePipeline {
 		totalWeighted:Int,
 		summary:String
 	} {
-		var bySource:StringMap<PulseSourceAggregate> = new StringMap<PulseSourceAggregate>();
-		var sourceKeys = new Array<String>();
+		var sourceSummaries = new Array<PulseSourceAggregate>();
 		var totalValue = 0;
 		var totalWeighted = 0;
 
@@ -65,29 +63,20 @@ class PulsePipeline {
 			totalValue += entry.event.value;
 			totalWeighted += entry.weightedValue;
 			var source = entry.event.source;
-			var bucket = bySource.get(source);
+			var bucket = findSourceAggregate(sourceSummaries, source);
 			if (bucket == null) {
 				bucket = new PulseSourceAggregate(source);
-				bySource.set(source, bucket);
-				sourceKeys.push(source);
+				sourceSummaries.push(bucket);
 			}
 			bucket.record(entry);
 		}
 
-		var sourceSummaries = new Array<PulseSourceAggregate>();
 		var digest = "";
-		var index = 0;
-		while (index < sourceKeys.length) {
-			var source = sourceKeys[index];
-			var summary = bySource.get(source);
-			if (summary != null) {
-				sourceSummaries.push(summary);
-				if (digest != "") {
-					digest += ",";
-				}
-				digest += summary.summaryToken();
+		for (summary in sourceSummaries) {
+			if (digest != "") {
+				digest += ",";
 			}
-			index++;
+			digest += summary.summaryToken();
 		}
 
 		return {
@@ -96,6 +85,15 @@ class PulsePipeline {
 			totalWeighted: totalWeighted,
 			summary: digest
 		};
+	}
+
+	function findSourceAggregate(summaries:Array<PulseSourceAggregate>, source:String):Null<PulseSourceAggregate> {
+		for (summary in summaries) {
+			if (summary.source == source) {
+				return summary;
+			}
+		}
+		return null;
 	}
 
 	function collectAlerts(enriched:Array<PulseEnrichedEvent>, weightedThreshold:Int):Array<PulseAlert> {
