@@ -50,6 +50,10 @@ class CompilationContext {
 	public var optimizerStringLengthFieldLegacyLowerings:Int;
 	public var optimizerPortableConcurrencyTypedFastpathHits:Int;
 	public var optimizerPortableConcurrencyTypedFastpathFallbacks:Int;
+	public var optimizerGoCollectionsTypedLowerings:Int;
+	public var optimizerGoCollectionsTypedFallbacks:Int;
+	public var optimizerGoResultTypedLowerings:Int;
+	public var optimizerGoResultTypedFallbacks:Int;
 
 	public function new(profile:GoProfile, ?goModuleName:String, ?rawNativeMode:RawNativeMode, ?emitLineDirectives:Bool, ?buildContext:GoBuildContext) {
 		this.profile = profile;
@@ -77,6 +81,10 @@ class CompilationContext {
 		this.optimizerStringLengthFieldLegacyLowerings = 0;
 		this.optimizerPortableConcurrencyTypedFastpathHits = 0;
 		this.optimizerPortableConcurrencyTypedFastpathFallbacks = 0;
+		this.optimizerGoCollectionsTypedLowerings = 0;
+		this.optimizerGoCollectionsTypedFallbacks = 0;
+		this.optimizerGoResultTypedLowerings = 0;
+		this.optimizerGoResultTypedFallbacks = 0;
 	}
 
 	public static function fromBuildContext(buildContext:GoBuildContext):CompilationContext {

@@ -12,6 +12,10 @@
 - string length field legacy lowerings: `0`
 - portable concurrency typed fastpath hits: `0`
 - portable concurrency typed fastpath fallbacks: `0`
+- go collections typed lowerings: `0`
+- go collections typed fallbacks: `0`
+- go result typed lowerings: `0`
+- go result typed fallbacks: `0`
 - lowering fallback lane count: `0`
 - lowering fallback non-lane count: `0`
 - go ast pass selection source: `legacy_granular_bundle`

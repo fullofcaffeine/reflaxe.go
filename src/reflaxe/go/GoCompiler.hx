@@ -13274,6 +13274,7 @@ class GoCompiler {
 
 	function noteLoweringSuccess(feature:String, kind:String, pos:haxe.macro.Expr.Position, detail:String):Void {
 		noteLoweringDecision(feature, kind, "succeeded", pos, detail);
+		noteOptimizerTypedLoweringSuccess(feature);
 	}
 
 	function noteLoweringFallback(feature:String, kind:String, pos:haxe.macro.Expr.Position, detail:String):Void {
@@ -13281,7 +13282,28 @@ class GoCompiler {
 			return;
 		}
 		noteLoweringDecision(feature, kind, "fallback", pos, detail);
+		noteOptimizerTypedLoweringFallback(feature);
 		noteMetalFallback(kind, pos, detail);
+	}
+
+	function noteOptimizerTypedLoweringSuccess(feature:String):Void {
+		switch (feature) {
+			case "go.collections.typed":
+				compilationContext.optimizerGoCollectionsTypedLowerings++;
+			case "go.result.typed":
+				compilationContext.optimizerGoResultTypedLowerings++;
+			case _:
+		}
+	}
+
+	function noteOptimizerTypedLoweringFallback(feature:String):Void {
+		switch (feature) {
+			case "go.collections.typed":
+				compilationContext.optimizerGoCollectionsTypedFallbacks++;
+			case "go.result.typed":
+				compilationContext.optimizerGoResultTypedFallbacks++;
+			case _:
+		}
 	}
 
 	function shouldSuppressPortableInternalFallbackReport(feature:String, pos:haxe.macro.Expr.Position):Bool {

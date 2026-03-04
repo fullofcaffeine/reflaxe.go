@@ -134,6 +134,10 @@ private typedef OptimizerPlanReportSnapshot = {
 	final stringLengthFieldLegacyLowerings:Int;
 	final portableConcurrencyTypedFastpathHits:Int;
 	final portableConcurrencyTypedFastpathFallbacks:Int;
+	final goCollectionsTypedLowerings:Int;
+	final goCollectionsTypedFallbacks:Int;
+	final goResultTypedLowerings:Int;
+	final goResultTypedFallbacks:Int;
 	final loweringFallbackLaneCount:Int;
 	final loweringFallbackNonLaneCount:Int;
 }
@@ -589,6 +593,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			stringLengthFieldLegacyLowerings: context == null ? 0 : context.optimizerStringLengthFieldLegacyLowerings,
 			portableConcurrencyTypedFastpathHits: context == null ? 0 : context.optimizerPortableConcurrencyTypedFastpathHits,
 			portableConcurrencyTypedFastpathFallbacks: context == null ? 0 : context.optimizerPortableConcurrencyTypedFastpathFallbacks,
+			goCollectionsTypedLowerings: context == null ? 0 : context.optimizerGoCollectionsTypedLowerings,
+			goCollectionsTypedFallbacks: context == null ? 0 : context.optimizerGoCollectionsTypedFallbacks,
+			goResultTypedLowerings: context == null ? 0 : context.optimizerGoResultTypedLowerings,
+			goResultTypedFallbacks: context == null ? 0 : context.optimizerGoResultTypedFallbacks,
 			loweringFallbackLaneCount: loweringFallbackLaneCount,
 			loweringFallbackNonLaneCount: loweringFallbackNonLaneCount
 		};
@@ -1023,6 +1031,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push('\t"stringLengthFieldLegacyLowerings": ' + snapshot.stringLengthFieldLegacyLowerings + ",");
 		lines.push('\t"portableConcurrencyTypedFastpathHits": ' + snapshot.portableConcurrencyTypedFastpathHits + ",");
 		lines.push('\t"portableConcurrencyTypedFastpathFallbacks": ' + snapshot.portableConcurrencyTypedFastpathFallbacks + ",");
+		lines.push('\t"goCollectionsTypedLowerings": ' + snapshot.goCollectionsTypedLowerings + ",");
+		lines.push('\t"goCollectionsTypedFallbacks": ' + snapshot.goCollectionsTypedFallbacks + ",");
+		lines.push('\t"goResultTypedLowerings": ' + snapshot.goResultTypedLowerings + ",");
+		lines.push('\t"goResultTypedFallbacks": ' + snapshot.goResultTypedFallbacks + ",");
 		lines.push('\t"loweringFallbackLaneCount": ' + snapshot.loweringFallbackLaneCount + ",");
 		lines.push('\t"loweringFallbackNonLaneCount": ' + snapshot.loweringFallbackNonLaneCount + ",");
 		lines.push('\t"goAstPassSelectionSource": "' + jsonEscape(snapshot.goAstPassSelectionSource) + '",');
@@ -1052,6 +1064,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("- string length field legacy lowerings: `" + snapshot.stringLengthFieldLegacyLowerings + "`");
 		lines.push("- portable concurrency typed fastpath hits: `" + snapshot.portableConcurrencyTypedFastpathHits + "`");
 		lines.push("- portable concurrency typed fastpath fallbacks: `" + snapshot.portableConcurrencyTypedFastpathFallbacks + "`");
+		lines.push("- go collections typed lowerings: `" + snapshot.goCollectionsTypedLowerings + "`");
+		lines.push("- go collections typed fallbacks: `" + snapshot.goCollectionsTypedFallbacks + "`");
+		lines.push("- go result typed lowerings: `" + snapshot.goResultTypedLowerings + "`");
+		lines.push("- go result typed fallbacks: `" + snapshot.goResultTypedFallbacks + "`");
 		lines.push("- lowering fallback lane count: `" + snapshot.loweringFallbackLaneCount + "`");
 		lines.push("- lowering fallback non-lane count: `" + snapshot.loweringFallbackNonLaneCount + "`");
 		lines.push("- go ast pass selection source: `" + snapshot.goAstPassSelectionSource + "`");
