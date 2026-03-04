@@ -8,6 +8,7 @@ import reflaxe.GenericCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
+import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.analyze.MetalLaneAnalyzer;
 import reflaxe.go.compiler.GoBuildContext;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
@@ -46,6 +47,10 @@ private typedef ContractReportSnapshot = {
 	final metalFallbackViolationCount:Int;
 	final metalFallbackLaneViolationCount:Int;
 	final metalFallbackNonLaneViolationCount:Int;
+	final portableNativeImportHitCount:Int;
+	final portableNativeImportHits:Array<String>;
+	final contractDiagnosticCount:Int;
+	final contractDiagnostics:Array<ContractDiagnosticEntry>;
 	final loweringDecisionCount:Int;
 	final loweringDecisionAttemptCount:Int;
 	final loweringDecisionSuccessCount:Int;
@@ -63,6 +68,14 @@ private typedef ContractLoweringDecision = {
 	final location:String;
 	final module:String;
 	final inMetalLane:Bool;
+}
+
+private typedef ContractDiagnosticEntry = {
+	final code:String;
+	final severity:String;
+	final module:String;
+	final location:String;
+	final message:String;
 }
 
 private typedef ContractFallbackViolation = {
@@ -375,6 +388,25 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		var contractLabel = buildContext.profile == GoProfile.Metal ? "metal" : "portable";
 		var manualFeatures = sortedUniqueStrings(buildContext.hxrtManualFeatures.copy());
 		var laneModules = sortedUniqueStrings(buildContext.metalLaneModules.copy());
+		var contractDiagnostics = new Array<ContractDiagnosticEntry>();
+		var portableNativeImportHits = new Array<String>();
+		var nativePolicy = GoProfileContractAnalyzer.resolvePortableNativePolicyModeFromDefines();
+		var nativeAllowPrefixes = GoProfileContractAnalyzer.resolvePortableNativeAllowPrefixesFromDefines();
+		var analyzed = GoProfileContractAnalyzer.analyze(allModules, buildContext, Sys.getCwd(), nativePolicy, nativeAllowPrefixes);
+		portableNativeImportHits = analyzed.portableNativeImportHits.copy();
+		for (entry in analyzed.diagnostics) {
+			if (entry == null) {
+				continue;
+			}
+			contractDiagnostics.push({
+				code: entry.code,
+				severity: entry.severity,
+				module: entry.module,
+				location: entry.location,
+				message: entry.message
+			});
+		}
+		contractDiagnostics.sort(compareContractDiagnostics);
 		var fallbackViolations = new Array<ContractFallbackViolation>();
 		var loweringDecisions = new Array<ContractLoweringDecision>();
 		var laneViolationCount = 0;
@@ -432,7 +464,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		fallbackViolations.sort(compareContractFallbackViolations);
 		var fallbackSummary = buildContractFallbackModuleSummary(laneCountsByModule, nonLaneCountsByModule);
 		return {
-			schemaVersion: 5,
+			schemaVersion: 6,
 			contract: contractLabel,
 			autoLoweringMode: GoAutoLoweringModeTools.label(buildContext.autoLoweringMode),
 			strictExamples: buildContext.strictExamples,
@@ -455,6 +487,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			metalFallbackViolationCount: fallbackViolations.length,
 			metalFallbackLaneViolationCount: laneViolationCount,
 			metalFallbackNonLaneViolationCount: nonLaneViolationCount,
+			portableNativeImportHitCount: portableNativeImportHits.length,
+			portableNativeImportHits: portableNativeImportHits,
+			contractDiagnosticCount: contractDiagnostics.length,
+			contractDiagnostics: contractDiagnostics,
 			metalFallbackViolationsByModule: fallbackSummary,
 			metalFallbackViolations: fallbackViolations
 		};
@@ -609,6 +645,26 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		return Reflect.compare(a.detail, b.detail);
 	}
 
+	static function compareContractDiagnostics(a:ContractDiagnosticEntry, b:ContractDiagnosticEntry):Int {
+		var moduleOrder = Reflect.compare(a.module, b.module);
+		if (moduleOrder != 0) {
+			return moduleOrder;
+		}
+		var severityOrder = Reflect.compare(a.severity, b.severity);
+		if (severityOrder != 0) {
+			return severityOrder;
+		}
+		var codeOrder = Reflect.compare(a.code, b.code);
+		if (codeOrder != 0) {
+			return codeOrder;
+		}
+		var locationOrder = Reflect.compare(a.location, b.location);
+		if (locationOrder != 0) {
+			return locationOrder;
+		}
+		return Reflect.compare(a.message, b.message);
+	}
+
 	static function buildContractFallbackModuleSummary(laneCountsByModule:Map<String, Int>,
 			nonLaneCountsByModule:Map<String, Int>):Array<ContractFallbackModuleSummary> {
 		var summary = new Array<ContractFallbackModuleSummary>();
@@ -665,11 +721,19 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push('\t"metalFallbackViolationCount": ' + snapshot.metalFallbackViolationCount + ",");
 		lines.push('\t"metalFallbackLaneViolationCount": ' + snapshot.metalFallbackLaneViolationCount + ",");
 		lines.push('\t"metalFallbackNonLaneViolationCount": ' + snapshot.metalFallbackNonLaneViolationCount + ",");
+		lines.push('\t"portableNativeImportHitCount": ' + snapshot.portableNativeImportHitCount + ",");
+		lines.push('\t"contractDiagnosticCount": ' + snapshot.contractDiagnosticCount + ",");
 		lines.push('\t"hxrtManualFeatures": [');
 		appendJsonStringArray(lines, snapshot.hxrtManualFeatures, 2);
 		lines.push("\t],");
 		lines.push('\t"metalLaneModules": [');
 		appendJsonStringArray(lines, snapshot.metalLaneModules, 2);
+		lines.push("\t],");
+		lines.push('\t"portableNativeImportHits": [');
+		appendJsonStringArray(lines, snapshot.portableNativeImportHits, 2);
+		lines.push("\t],");
+		lines.push('\t"contractDiagnostics": [');
+		appendJsonContractDiagnosticArray(lines, snapshot.contractDiagnostics, 2);
 		lines.push("\t],");
 		lines.push('\t"loweringDecisions": [');
 		appendJsonContractLoweringDecisionArray(lines, snapshot.loweringDecisions, 2);
@@ -704,6 +768,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("- metal fallback violations: `" + snapshot.metalFallbackViolationCount + "`");
 		lines.push("- metal fallback lane violations: `" + snapshot.metalFallbackLaneViolationCount + "`");
 		lines.push("- metal fallback non-lane violations: `" + snapshot.metalFallbackNonLaneViolationCount + "`");
+		lines.push("- portable native import hits: `" + snapshot.portableNativeImportHitCount + "`");
+		lines.push("- contract diagnostics: `" + snapshot.contractDiagnosticCount + "`");
 		lines.push("- lowering decisions: `" + snapshot.loweringDecisionCount + "` (attempts `" + snapshot.loweringDecisionAttemptCount + "`, success `"
 			+ snapshot.loweringDecisionSuccessCount + "`, fallback `" + snapshot.loweringDecisionFallbackCount + "`)");
 		lines.push("");
@@ -722,6 +788,33 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		} else {
 			for (moduleName in snapshot.metalLaneModules) {
 				lines.push("- `" + moduleName + "`");
+			}
+		}
+		lines.push("");
+		lines.push("## portable native import hits");
+		if (snapshot.portableNativeImportHits.length == 0) {
+			lines.push("- none");
+		} else {
+			for (moduleName in snapshot.portableNativeImportHits) {
+				lines.push("- `" + moduleName + "`");
+			}
+		}
+		lines.push("");
+		lines.push("## contract diagnostics");
+		if (snapshot.contractDiagnostics.length == 0) {
+			lines.push("- none");
+		} else {
+			for (entry in snapshot.contractDiagnostics) {
+				lines.push("- `"
+					+ entry.module
+					+ "` | `"
+					+ entry.code
+					+ "` | `"
+					+ entry.severity
+					+ "` | `"
+					+ entry.location
+					+ "` | "
+					+ entry.message);
 			}
 		}
 		lines.push("");
@@ -937,6 +1030,21 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			lines.push(indent + '\t"outcome": "' + jsonEscape(entry.outcome) + '",');
 			lines.push(indent + '\t"location": "' + jsonEscape(entry.location) + '",');
 			lines.push(indent + '\t"detail": "' + jsonEscape(entry.detail) + '"');
+			lines.push(indent + "}" + suffix);
+		}
+	}
+
+	static function appendJsonContractDiagnosticArray(lines:Array<String>, diagnostics:Array<ContractDiagnosticEntry>, indentLevel:Int):Void {
+		var indent = [for (_ in 0...indentLevel) "\t"].join("");
+		for (index in 0...diagnostics.length) {
+			var entry = diagnostics[index];
+			var suffix = index == diagnostics.length - 1 ? "" : ",";
+			lines.push(indent + "{");
+			lines.push(indent + '\t"module": "' + jsonEscape(entry.module) + '",');
+			lines.push(indent + '\t"code": "' + jsonEscape(entry.code) + '",');
+			lines.push(indent + '\t"severity": "' + jsonEscape(entry.severity) + '",');
+			lines.push(indent + '\t"location": "' + jsonEscape(entry.location) + '",');
+			lines.push(indent + '\t"message": "' + jsonEscape(entry.message) + '"');
 			lines.push(indent + "}" + suffix);
 		}
 	}

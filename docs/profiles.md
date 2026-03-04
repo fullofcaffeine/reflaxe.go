@@ -96,7 +96,7 @@ Opt-in report defines:
   - typed go-concurrency fastpath capability in portable builds.
   - defaults to `on` with `portable_fast`.
 
-`profile_contract.json` (schema v5) includes `autoLoweringMode`, lowering-decision ledger fields (`loweringDecisionCount`, `loweringDecisionAttemptCount`, `loweringDecisionSuccessCount`, `loweringDecisionFallbackCount`, `loweringDecisions`), structured `metalFallbackViolations`, and deterministic lane summaries:
+`profile_contract.json` (schema v6) includes `autoLoweringMode`, centralized analyzer diagnostics (`contractDiagnosticCount`, `contractDiagnostics`, `portableNativeImportHitCount`, `portableNativeImportHits`), lowering-decision ledger fields (`loweringDecisionCount`, `loweringDecisionAttemptCount`, `loweringDecisionSuccessCount`, `loweringDecisionFallbackCount`, `loweringDecisions`), structured `metalFallbackViolations`, and deterministic lane summaries:
 - `metalFallbackLaneViolationCount`
 - `metalFallbackNonLaneViolationCount`
 - `metalFallbackViolationsByModule`

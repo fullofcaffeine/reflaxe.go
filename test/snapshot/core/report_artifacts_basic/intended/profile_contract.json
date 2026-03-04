@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 5,
+	"schemaVersion": 6,
 	"contract": "portable",
 	"autoLoweringMode": "off",
 	"strictExamples": false,
@@ -19,9 +19,15 @@
 	"metalFallbackViolationCount": 0,
 	"metalFallbackLaneViolationCount": 0,
 	"metalFallbackNonLaneViolationCount": 0,
+	"portableNativeImportHitCount": 0,
+	"contractDiagnosticCount": 0,
 	"hxrtManualFeatures": [
 	],
 	"metalLaneModules": [
+	],
+	"portableNativeImportHits": [
+	],
+	"contractDiagnostics": [
 	],
 	"loweringDecisions": [
 	],

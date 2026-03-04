@@ -1,6 +1,6 @@
 # Contract Report
 
-- schema version: `5`
+- schema version: `6`
 - contract: `metal`
 - auto lowering mode: `off`
 - strict examples: `no`
@@ -16,6 +16,8 @@
 - metal fallback violations: `4`
 - metal fallback lane violations: `1`
 - metal fallback non-lane violations: `3`
+- portable native import hits: `0`
+- contract diagnostics: `0`
 - lowering decisions: `8` (attempts `4`, success `0`, fallback `4`)
 
 ## hxrt manual features
@@ -23,6 +25,12 @@
 
 ## metal lane modules
 - `LaneWorker`
+
+## portable native import hits
+- none
+
+## contract diagnostics
+- none
 
 ## lowering decisions
 - `LaneWorker` (lane) | `go.result.typed` | `go_result_static_failure` | `attempted` | `LaneWorker:4` | Attempt typed go.Result.failure specialization.

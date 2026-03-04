@@ -1,6 +1,6 @@
 # Contract Report
 
-- schema version: `5`
+- schema version: `6`
 - contract: `portable`
 - auto lowering mode: `off`
 - strict examples: `no`
@@ -16,12 +16,20 @@
 - metal fallback violations: `0`
 - metal fallback lane violations: `0`
 - metal fallback non-lane violations: `0`
+- portable native import hits: `0`
+- contract diagnostics: `0`
 - lowering decisions: `0` (attempts `0`, success `0`, fallback `0`)
 
 ## hxrt manual features
 - none
 
 ## metal lane modules
+- none
+
+## portable native import hits
+- none
+
+## contract diagnostics
 - none
 
 ## lowering decisions
