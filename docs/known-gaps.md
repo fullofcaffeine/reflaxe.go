@@ -5,6 +5,7 @@ This page is the blunt status view for current limitations so teams can plan mig
 ## Compiler/output caveats
 
 - Output remains a single Go package (multi-file, single package); multi-package emission is not implemented yet.
+- Multi-package output is currently deferred as non-blocking for production GA; explicit boundary conditions for re-opening are documented in `docs/multi-package-output-evaluation.md`.
 - Some unsupported typed-expression guards still exist by design (`docs/feature-support-matrix.md` inventory section). Current compiler hard-fails:
   - `Unsupported assignment target` (`lowerLValue`)
   - `Unsupported postfix unary operator` (`lowerExpr` / `lowerExprWithPrefix`)
