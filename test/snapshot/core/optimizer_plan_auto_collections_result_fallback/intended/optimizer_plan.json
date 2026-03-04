@@ -1,0 +1,61 @@
+{
+	"schemaVersion": 4,
+	"contract": "portable",
+	"autoLoweringMode": "auto",
+	"optimizationPreset": "portable_fast",
+	"portableStringFastpathEnabled": true,
+	"portableConcurrencyFastpathEnabled": true,
+	"stringInstanceTypedLowerings": 0,
+	"stringInstanceLegacyLowerings": 0,
+	"stringLengthFieldTypedLowerings": 0,
+	"stringLengthFieldLegacyLowerings": 0,
+	"portableConcurrencyTypedFastpathHits": 0,
+	"portableConcurrencyTypedFastpathFallbacks": 0,
+	"goCollectionsTypedLowerings": 0,
+	"goCollectionsTypedFallbacks": 3,
+	"goResultTypedLowerings": 0,
+	"goResultTypedFallbacks": 2,
+	"loweringFallbackLaneCount": 0,
+	"loweringFallbackNonLaneCount": 5,
+	"goAstPassSelectionSource": "planner",
+	"goAstPasses": [
+		"normalize_names",
+		"rewrite_string_ops",
+		"rewrite_virtual_calls",
+		"insert_runtime_prelude",
+		"elide_blank_identifier_guards",
+		"collect_imports"
+	],
+	"goAstPassSelectionReasons": [
+		{
+			"pass": "normalize_names",
+			"source": "planner(contract=portable, auto=auto, opt=portable_fast)",
+			"reason": "Canonicalize generated identifiers before rewrite passes."
+		},
+		{
+			"pass": "rewrite_string_ops",
+			"source": "planner(contract=portable, auto=auto, opt=portable_fast)",
+			"reason": "Apply planner-selected string rewrite/folding pass for deterministic code shape."
+		},
+		{
+			"pass": "rewrite_virtual_calls",
+			"source": "planner(contract=portable, auto=auto, opt=portable_fast)",
+			"reason": "Apply planner-selected safe virtual-call rewrite pass."
+		},
+		{
+			"pass": "insert_runtime_prelude",
+			"source": "planner(contract=portable, auto=auto, opt=portable_fast)",
+			"reason": "Inject runtime prelude declarations before cleanup/import collection."
+		},
+		{
+			"pass": "elide_blank_identifier_guards",
+			"source": "planner(contract=portable, auto=auto, opt=portable_fast)",
+			"reason": "Remove redundant blank-identifier consume guards after lowering."
+		},
+		{
+			"pass": "collect_imports",
+			"source": "planner(contract=portable, auto=auto, opt=portable_fast)",
+			"reason": "Collect final deterministic import set after all rewrites."
+		}
+	]
+}

@@ -154,6 +154,7 @@ Snapshot coverage:
 - `test/snapshot/core/report_artifacts_basic`
 - `test/snapshot/core/report_artifacts_lane_fallback`
 - `test/snapshot/core/report_artifacts_auto_collections_result`
+- `test/snapshot/core/optimizer_plan_auto_collections_result_fallback`
 
 ## Example references
 
