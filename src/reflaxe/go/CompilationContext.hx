@@ -20,6 +20,12 @@ typedef LoweringDecisionLedgerEntry = {
 	var inMetalLane:Bool;
 }
 
+typedef GoAstPassSelectionReasonEntry = {
+	var pass:String;
+	var reason:String;
+	var source:String;
+}
+
 class CompilationContext {
 	public final buildContext:GoBuildContext;
 	public final profile:GoProfile;
@@ -36,6 +42,8 @@ class CompilationContext {
 	public var metalFallbackViolations:Array<MetalFallbackViolation>;
 	public var loweringDecisionLedger:Array<LoweringDecisionLedgerEntry>;
 	public var appliedGoAstPassNames:Array<String>;
+	public var selectedGoAstPassSource:String;
+	public var selectedGoAstPassReasons:Array<GoAstPassSelectionReasonEntry>;
 	public var optimizerStringInstanceTypedLowerings:Int;
 	public var optimizerStringInstanceLegacyLowerings:Int;
 	public var optimizerStringLengthFieldTypedLowerings:Int;
@@ -61,6 +69,8 @@ class CompilationContext {
 		this.metalFallbackViolations = [];
 		this.loweringDecisionLedger = [];
 		this.appliedGoAstPassNames = [];
+		this.selectedGoAstPassSource = "legacy_lean_bundle";
+		this.selectedGoAstPassReasons = [];
 		this.optimizerStringInstanceTypedLowerings = 0;
 		this.optimizerStringInstanceLegacyLowerings = 0;
 		this.optimizerStringLengthFieldTypedLowerings = 0;

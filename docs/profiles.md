@@ -102,7 +102,7 @@ Opt-in report defines:
 - `metalFallbackNonLaneViolationCount`
 - `metalFallbackViolationsByModule`
 
-`optimizer_plan.json` (schema v3) includes lane-scoped lowering fallback summary:
+`optimizer_plan.json` (schema v4) includes planner-selected pass-set provenance (`goAstPassSelectionSource`, `goAstPassSelectionReasons`) and lane-scoped lowering fallback summary:
 - `loweringFallbackLaneCount`
 - `loweringFallbackNonLaneCount`
 

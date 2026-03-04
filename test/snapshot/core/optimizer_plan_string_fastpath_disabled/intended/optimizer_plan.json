@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 3,
+	"schemaVersion": 4,
 	"contract": "portable",
 	"autoLoweringMode": "off",
 	"optimizationPreset": "none",
@@ -13,6 +13,7 @@
 	"portableConcurrencyTypedFastpathFallbacks": 0,
 	"loweringFallbackLaneCount": 0,
 	"loweringFallbackNonLaneCount": 0,
+	"goAstPassSelectionSource": "planner",
 	"goAstPasses": [
 		"normalize_names",
 		"rewrite_string_ops",
@@ -20,5 +21,37 @@
 		"insert_runtime_prelude",
 		"elide_blank_identifier_guards",
 		"collect_imports"
+	],
+	"goAstPassSelectionReasons": [
+		{
+			"pass": "normalize_names",
+			"source": "planner",
+			"reason": "No planner reason recorded; pass selected by registry ordering."
+		},
+		{
+			"pass": "rewrite_string_ops",
+			"source": "planner",
+			"reason": "No planner reason recorded; pass selected by registry ordering."
+		},
+		{
+			"pass": "rewrite_virtual_calls",
+			"source": "planner",
+			"reason": "No planner reason recorded; pass selected by registry ordering."
+		},
+		{
+			"pass": "insert_runtime_prelude",
+			"source": "planner",
+			"reason": "No planner reason recorded; pass selected by registry ordering."
+		},
+		{
+			"pass": "elide_blank_identifier_guards",
+			"source": "planner",
+			"reason": "No planner reason recorded; pass selected by registry ordering."
+		},
+		{
+			"pass": "collect_imports",
+			"source": "planner",
+			"reason": "No planner reason recorded; pass selected by registry ordering."
+		}
 	]
 }

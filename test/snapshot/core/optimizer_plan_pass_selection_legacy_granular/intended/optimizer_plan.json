@@ -5,15 +5,15 @@
 	"optimizationPreset": "portable_fast",
 	"portableStringFastpathEnabled": true,
 	"portableConcurrencyFastpathEnabled": true,
-	"stringInstanceTypedLowerings": 4,
+	"stringInstanceTypedLowerings": 0,
 	"stringInstanceLegacyLowerings": 0,
-	"stringLengthFieldTypedLowerings": 2,
+	"stringLengthFieldTypedLowerings": 0,
 	"stringLengthFieldLegacyLowerings": 0,
 	"portableConcurrencyTypedFastpathHits": 0,
 	"portableConcurrencyTypedFastpathFallbacks": 0,
 	"loweringFallbackLaneCount": 0,
 	"loweringFallbackNonLaneCount": 0,
-	"goAstPassSelectionSource": "planner",
+	"goAstPassSelectionSource": "legacy_granular_bundle",
 	"goAstPasses": [
 		"normalize_names",
 		"rewrite_string_ops",
@@ -25,33 +25,33 @@
 	"goAstPassSelectionReasons": [
 		{
 			"pass": "normalize_names",
-			"source": "planner",
-			"reason": "No planner reason recorded; pass selected by registry ordering."
+			"source": "legacy_granular_bundle",
+			"reason": "Selected by compatibility define `-D go_granular_pass_registry`."
 		},
 		{
 			"pass": "rewrite_string_ops",
-			"source": "planner",
-			"reason": "No planner reason recorded; pass selected by registry ordering."
+			"source": "legacy_granular_bundle",
+			"reason": "Selected by compatibility define `-D go_granular_pass_registry`."
 		},
 		{
 			"pass": "rewrite_virtual_calls",
-			"source": "planner",
-			"reason": "No planner reason recorded; pass selected by registry ordering."
+			"source": "legacy_granular_bundle",
+			"reason": "Selected by compatibility define `-D go_granular_pass_registry`."
 		},
 		{
 			"pass": "insert_runtime_prelude",
-			"source": "planner",
-			"reason": "No planner reason recorded; pass selected by registry ordering."
+			"source": "legacy_granular_bundle",
+			"reason": "Selected by compatibility define `-D go_granular_pass_registry`."
 		},
 		{
 			"pass": "elide_blank_identifier_guards",
-			"source": "planner",
-			"reason": "No planner reason recorded; pass selected by registry ordering."
+			"source": "legacy_granular_bundle",
+			"reason": "Selected by compatibility define `-D go_granular_pass_registry`."
 		},
 		{
 			"pass": "collect_imports",
-			"source": "planner",
-			"reason": "No planner reason recorded; pass selected by registry ordering."
+			"source": "legacy_granular_bundle",
+			"reason": "Selected by compatibility define `-D go_granular_pass_registry`."
 		}
 	]
 }

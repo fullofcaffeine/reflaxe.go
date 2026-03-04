@@ -125,7 +125,9 @@ private typedef OptimizerPlanReportSnapshot = {
 	final optimizationPreset:String;
 	final portableStringFastpathEnabled:Bool;
 	final portableConcurrencyFastpathEnabled:Bool;
+	final goAstPassSelectionSource:String;
 	final goAstPasses:Array<String>;
+	final goAstPassSelectionReasons:Array<OptimizerPassSelectionReason>;
 	final stringInstanceTypedLowerings:Int;
 	final stringInstanceLegacyLowerings:Int;
 	final stringLengthFieldTypedLowerings:Int;
@@ -134,6 +136,12 @@ private typedef OptimizerPlanReportSnapshot = {
 	final portableConcurrencyTypedFastpathFallbacks:Int;
 	final loweringFallbackLaneCount:Int;
 	final loweringFallbackNonLaneCount:Int;
+}
+
+private typedef OptimizerPassSelectionReason = {
+	final pass:String;
+	final reason:String;
+	final source:String;
 }
 
 class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dynamic> {
@@ -537,10 +545,23 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 	function buildOptimizerPlanReportSnapshot(buildContext:GoBuildContext, context:Null<CompilationContext>):OptimizerPlanReportSnapshot {
 		var contractLabel = buildContext.profile == GoProfile.Metal ? "metal" : "portable";
 		var goAstPasses:Array<String> = [];
+		var goAstPassSelectionSource = "planner";
+		var goAstPassSelectionReasons:Array<OptimizerPassSelectionReason> = [];
 		var loweringFallbackLaneCount = 0;
 		var loweringFallbackNonLaneCount = 0;
 		if (context != null) {
 			goAstPasses = context.appliedGoAstPassNames.copy();
+			goAstPassSelectionSource = context.selectedGoAstPassSource;
+			for (entry in context.selectedGoAstPassReasons) {
+				if (entry == null) {
+					continue;
+				}
+				goAstPassSelectionReasons.push({
+					pass: entry.pass,
+					reason: entry.reason,
+					source: entry.source
+				});
+			}
 			for (entry in context.loweringDecisionLedger) {
 				if (entry == null || entry.outcome != "fallback") {
 					continue;
@@ -553,13 +574,15 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			}
 		}
 		return {
-			schemaVersion: 3,
+			schemaVersion: 4,
 			contract: contractLabel,
 			autoLoweringMode: GoAutoLoweringModeTools.label(buildContext.autoLoweringMode),
 			optimizationPreset: buildContext.optimizationPreset,
 			portableStringFastpathEnabled: buildContext.portableStringFastpathEnabled,
 			portableConcurrencyFastpathEnabled: buildContext.portableConcurrencyFastpathEnabled,
+			goAstPassSelectionSource: goAstPassSelectionSource,
 			goAstPasses: goAstPasses,
+			goAstPassSelectionReasons: goAstPassSelectionReasons,
 			stringInstanceTypedLowerings: context == null ? 0 : context.optimizerStringInstanceTypedLowerings,
 			stringInstanceLegacyLowerings: context == null ? 0 : context.optimizerStringInstanceLegacyLowerings,
 			stringLengthFieldTypedLowerings: context == null ? 0 : context.optimizerStringLengthFieldTypedLowerings,
@@ -1002,8 +1025,12 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push('\t"portableConcurrencyTypedFastpathFallbacks": ' + snapshot.portableConcurrencyTypedFastpathFallbacks + ",");
 		lines.push('\t"loweringFallbackLaneCount": ' + snapshot.loweringFallbackLaneCount + ",");
 		lines.push('\t"loweringFallbackNonLaneCount": ' + snapshot.loweringFallbackNonLaneCount + ",");
+		lines.push('\t"goAstPassSelectionSource": "' + jsonEscape(snapshot.goAstPassSelectionSource) + '",');
 		lines.push('\t"goAstPasses": [');
 		appendJsonStringArray(lines, snapshot.goAstPasses, 2);
+		lines.push("\t],");
+		lines.push('\t"goAstPassSelectionReasons": [');
+		appendJsonOptimizerPassSelectionReasons(lines, snapshot.goAstPassSelectionReasons, 2);
 		lines.push("\t]");
 		lines.push("}");
 		return lines.join("\n") + "\n";
@@ -1027,6 +1054,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("- portable concurrency typed fastpath fallbacks: `" + snapshot.portableConcurrencyTypedFastpathFallbacks + "`");
 		lines.push("- lowering fallback lane count: `" + snapshot.loweringFallbackLaneCount + "`");
 		lines.push("- lowering fallback non-lane count: `" + snapshot.loweringFallbackNonLaneCount + "`");
+		lines.push("- go ast pass selection source: `" + snapshot.goAstPassSelectionSource + "`");
 		lines.push("");
 		lines.push("## go ast passes");
 		if (snapshot.goAstPasses.length == 0) {
@@ -1034,6 +1062,15 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		} else {
 			for (passName in snapshot.goAstPasses) {
 				lines.push("- `" + passName + "`");
+			}
+		}
+		lines.push("");
+		lines.push("## go ast pass selection reasons");
+		if (snapshot.goAstPassSelectionReasons.length == 0) {
+			lines.push("- none");
+		} else {
+			for (entry in snapshot.goAstPassSelectionReasons) {
+				lines.push("- `" + entry.pass + "` | `" + entry.source + "` | " + entry.reason);
 			}
 		}
 		lines.push("");
@@ -1117,6 +1154,19 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			lines.push(indent + '\t"feature": "' + jsonEscape(reason.feature) + '",');
 			lines.push(indent + '\t"sourceKind": "' + jsonEscape(reason.sourceKind) + '",');
 			lines.push(indent + '\t"source": "' + jsonEscape(reason.source) + '"');
+			lines.push(indent + "}" + suffix);
+		}
+	}
+
+	static function appendJsonOptimizerPassSelectionReasons(lines:Array<String>, reasons:Array<OptimizerPassSelectionReason>, indentLevel:Int):Void {
+		var indent = [for (_ in 0...indentLevel) "\t"].join("");
+		for (index in 0...reasons.length) {
+			var entry = reasons[index];
+			var suffix = index == reasons.length - 1 ? "" : ",";
+			lines.push(indent + "{");
+			lines.push(indent + '\t"pass": "' + jsonEscape(entry.pass) + '",');
+			lines.push(indent + '\t"source": "' + jsonEscape(entry.source) + '",');
+			lines.push(indent + '\t"reason": "' + jsonEscape(entry.reason) + '"');
 			lines.push(indent + "}" + suffix);
 		}
 	}

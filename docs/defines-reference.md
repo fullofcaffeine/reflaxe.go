@@ -134,7 +134,7 @@ Removed:
   - Emit `hxrt_plan.json` and `hxrt_plan.md` into output root with selected runtime features/files and selection reasons.
 - `reflaxe_go_optimizer_plan_report`
   - Emit `optimizer_plan.json` and `optimizer_plan.md` into output root with effective optimizer preset/capabilities and applied lowering counters.
-  - `optimizer_plan.json` schema v3 includes `autoLoweringMode` and lane-scoped fallback counters (`loweringFallbackLaneCount`, `loweringFallbackNonLaneCount`).
+  - `optimizer_plan.json` schema v4 includes `autoLoweringMode`, pass-plan selection fields (`goAstPassSelectionSource`, `goAstPassSelectionReasons`), and lane-scoped fallback counters (`loweringFallbackLaneCount`, `loweringFallbackNonLaneCount`).
 
 ## Constructor devex
 
@@ -146,6 +146,10 @@ Removed:
 ## Pass registry
 
 - `go_granular_pass_registry`
-  - Use granular pass bundle.
+  - Compatibility fallback: use legacy fixed granular pass bundle.
+- `reflaxe_go_legacy_pass_bundle`
+  - Compatibility fallback: use legacy fixed lean pass bundle.
+- (default, no compatibility define)
+  - Planner-driven deterministic pass selection keyed by contract/auto/optimizer build context.
 - `reflaxe_go_test_registry_case=<duplicate|missing_dep|cycle>`
   - Test-only define used by negative snapshot cases for registry validation.
