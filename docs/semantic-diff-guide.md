@@ -78,6 +78,41 @@ test/semantic_diff/<case_id>/
 
 `go_defines.txt` lets you pin optimizer/profile capability toggles per case without changing harness code.
 
+## Portable+Auto Contract Pattern
+
+When adding planner-driven lowering behavior, keep two paired semantic-diff cases:
+
+1. typed-success case (eligible types; specialization should apply)
+2. fallback case (ineligible types; fallback path should preserve semantics)
+
+Current reference pair:
+
+- `test/semantic_diff/go_auto_collections_result_typed_contract`
+- `test/semantic_diff/go_auto_collections_result_fallback_contract`
+
+Both cases pin:
+
+```text
+reflaxe_go_auto=auto
+```
+
+via `go_defines.txt`.
+
+Why this pairing exists:
+
+- semantic diff proves runtime parity vs `--interp` for both execution paths.
+- optimizer report contracts prove planner-path intent:
+  - typed case records typed lowerings with zero typed fallbacks.
+  - fallback case records typed fallbacks with reason counts.
+
+The optimizer side is validated by:
+
+```bash
+npm run test:auto-planner:schema
+```
+
+Use this same pattern whenever a new auto-lowering capability is introduced.
+
 ## Commands You Will Use
 
 Run core suite:
