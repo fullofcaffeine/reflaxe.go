@@ -129,6 +129,10 @@ Opt-in report defines:
 
 ## Portable convergence optimizer controls
 
+- Practical model:
+  - `portable` keeps portability semantics first, then opportunistically lowers to metal-like Go constructs when specialization is semantics-safe and type-safe.
+  - `metal` allows direct Go-first authoring surfaces (`go.*`) and enforces stricter typed-lowering expectations by default.
+
 - `-D reflaxe_go_auto=off|auto|auto_strict`
   - explicit auto-lowering planner mode (additive, not a semantic profile switch).
   - default: `off`.
