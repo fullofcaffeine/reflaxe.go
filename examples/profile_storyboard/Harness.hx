@@ -1,5 +1,4 @@
 import domain.StoryCard;
-import haxe.ds.List;
 import profile.StorySignalMetrics;
 import profile.StoryboardRuntime;
 
@@ -8,201 +7,119 @@ class Harness {
 	static inline final STATE_DOING = "doing";
 	static inline final STATE_DONE = "done";
 
-	static function makeTags(a:String, ?b:String):List<String> {
-		var tags = new List<String>();
-		tags.add(a);
+	static function makeTags(a:String, ?b:String):Array<String> {
+		var tags = new Array<String>();
+		tags.push(a);
 		if (b != null) {
-			tags.add(b);
+			tags.push(b);
 		}
 		return tags;
 	}
 
-	static function joinStringList(values:List<String>, separator:String):String {
+	static function joinStringList(values:Array<String>, separator:String):String {
 		var out = "";
 		var first = true;
-		var count = values.length;
-		var i = 0;
-		while (i < count) {
-			var raw = values.pop();
-			if (raw == null) {
-				break;
-			}
-			var value:String = cast raw;
+		for (value in values) {
 			if (!first) {
 				out += separator;
 			}
 			out += value;
-			values.add(value);
 			first = false;
-			i++;
 		}
 		return out;
 	}
 
-	static function card(id:Int, title:String, points:Int, tags:List<String>, state:String, owner:String):StoryCard {
+	static function card(id:Int, title:String, points:Int, tags:Array<String>, state:String, owner:String):StoryCard {
 		return new StoryCard(id, title, points, tags, state, owner);
 	}
 
-	public static function buildCards():List<StoryCard> {
-		var cards = new List<StoryCard>();
-		cards.add(card(1, "Ship profile docs", 3, makeTags("docs", "profiles"), STATE_DONE, "Alex"));
-		cards.add(card(2, "Backfill regression snapshots", 5, makeTags("tests"), STATE_DONE, "Mira"));
-		cards.add(card(3, "Wire release artifacts", 5, makeTags("ci", "release"), STATE_DOING, "Noah"));
-		cards.add(card(4, "CLI polish for dev:hx", 3, makeTags("devex"), STATE_TODO, "Jules"));
-		cards.add(card(5, "Interactive tui_todo demo", 5, makeTags("examples", "release"), STATE_DOING, "Sam"));
+	public static function buildCards():Array<StoryCard> {
+		var cards = new Array<StoryCard>();
+		cards.push(card(1, "Ship profile docs", 3, makeTags("docs", "profiles"), STATE_DONE, "Alex"));
+		cards.push(card(2, "Backfill regression snapshots", 5, makeTags("tests"), STATE_DONE, "Mira"));
+		cards.push(card(3, "Wire release artifacts", 5, makeTags("ci", "release"), STATE_DOING, "Noah"));
+		cards.push(card(4, "CLI polish for dev:hx", 3, makeTags("devex"), STATE_TODO, "Jules"));
+		cards.push(card(5, "Interactive tui_todo demo", 5, makeTags("examples", "release"), STATE_DOING, "Sam"));
 		return cards;
 	}
 
-	static function totalPoints(cards:List<StoryCard>):Int {
+	static function totalPoints(cards:Array<StoryCard>):Int {
 		var totalPoints = 0;
-		var count = cards.length;
-		var i = 0;
-		while (i < count) {
-			var value = cards.pop();
-			if (value == null) {
-				break;
-			}
-			var card:StoryCard = cast value;
+		for (card in cards) {
 			totalPoints += card.points;
-			cards.add(card);
-			i++;
 		}
 		return totalPoints;
 	}
 
-	static function countByState(cards:List<StoryCard>, state:String):Int {
+	static function countByState(cards:Array<StoryCard>, state:String):Int {
 		var total = 0;
-		var count = cards.length;
-		var i = 0;
-		while (i < count) {
-			var value = cards.pop();
-			if (value == null) {
-				break;
-			}
-			var card:StoryCard = cast value;
+		for (card in cards) {
 			if (card.state == state) {
 				total++;
 			}
-			cards.add(card);
-			i++;
 		}
 		return total;
 	}
 
-	static function donePoints(cards:List<StoryCard>):Int {
+	static function donePoints(cards:Array<StoryCard>):Int {
 		var total = 0;
-		var count = cards.length;
-		var i = 0;
-		while (i < count) {
-			var value = cards.pop();
-			if (value == null) {
-				break;
-			}
-			var card:StoryCard = cast value;
+		for (card in cards) {
 			if (card.state == STATE_DONE) {
 				total += card.points;
 			}
-			cards.add(card);
-			i++;
 		}
 		return total;
 	}
 
-	static function openPoints(cards:List<StoryCard>):Int {
+	static function openPoints(cards:Array<StoryCard>):Int {
 		var total = 0;
-		var count = cards.length;
-		var i = 0;
-		while (i < count) {
-			var value = cards.pop();
-			if (value == null) {
-				break;
-			}
-			var card:StoryCard = cast value;
+		for (card in cards) {
 			if (card.state != STATE_DONE) {
 				total += card.points;
 			}
-			cards.add(card);
-			i++;
 		}
 		return total;
 	}
 
 	static function hasTag(card:StoryCard, needle:String):Bool {
-		var found = false;
-		var count = card.tags.length;
-		var i = 0;
-		while (i < count) {
-			var value = card.tags.pop();
-			if (value == null) {
-				break;
-			}
-			var tag:String = cast value;
+		for (tag in card.tags) {
 			if (tag == needle) {
-				found = true;
+				return true;
 			}
-			card.tags.add(tag);
-			i++;
 		}
-		return found;
+		return false;
 	}
 
-	static function openHighRisk(cards:List<StoryCard>, threshold:Int):Int {
+	static function openHighRisk(cards:Array<StoryCard>, threshold:Int):Int {
 		var total = 0;
-		var count = cards.length;
-		var i = 0;
-		while (i < count) {
-			var value = cards.pop();
-			if (value == null) {
-				break;
-			}
-			var card:StoryCard = cast value;
+		for (card in cards) {
 			if (card.state != STATE_DONE && card.points >= threshold) {
 				total++;
 			}
-			cards.add(card);
-			i++;
 		}
 		return total;
 	}
 
-	static function releaseTaggedOpen(cards:List<StoryCard>):Int {
+	static function releaseTaggedOpen(cards:Array<StoryCard>):Int {
 		var total = 0;
-		var count = cards.length;
-		var i = 0;
-		while (i < count) {
-			var value = cards.pop();
-			if (value == null) {
-				break;
-			}
-			var card:StoryCard = cast value;
+		for (card in cards) {
 			if (card.state != STATE_DONE && hasTag(card, "release")) {
 				total++;
 			}
-			cards.add(card);
-			i++;
 		}
 		return total;
 	}
 
-	static function buildSignalMetrics(cards:List<StoryCard>):StorySignalMetrics {
+	static function buildSignalMetrics(cards:Array<StoryCard>):StorySignalMetrics {
 		var highValue = 0;
 		var openHighValue = 0;
-		var count = cards.length;
-		var i = 0;
-		while (i < count) {
-			var value = cards.pop();
-			if (value == null) {
-				break;
-			}
-			var card:StoryCard = cast value;
+		for (card in cards) {
 			if (card.points >= 5) {
 				highValue++;
 				if (card.state != STATE_DONE) {
 					openHighValue++;
 				}
 			}
-			cards.add(card);
-			i++;
 		}
 		return new StorySignalMetrics(cards.length, highValue, openHighValue);
 	}
@@ -235,18 +152,9 @@ class Harness {
 	}
 
 	static function formatCard(card:StoryCard, runtime:StoryboardRuntime):String {
-		var tags = new List<String>();
-		var tagCount = card.tags.length;
-		var j = 0;
-		while (j < tagCount) {
-			var tagValue = card.tags.pop();
-			if (tagValue == null) {
-				break;
-			}
-			var tag:String = cast tagValue;
-			tags.add(runtime.highlightTag(tag));
-			card.tags.add(tag);
-			j++;
+		var tags = new Array<String>();
+		for (tag in card.tags) {
+			tags.push(runtime.highlightTag(tag));
 		}
 
 		return "#"
@@ -291,23 +199,14 @@ class Harness {
 		return "[" + repeatChar("#", filled) + repeatChar("-", width - filled) + "]";
 	}
 
-	static function formatLane(cards:List<StoryCard>, state:String, title:String, runtime:StoryboardRuntime):String {
+	static function formatLane(cards:Array<StoryCard>, state:String, title:String, runtime:StoryboardRuntime):String {
 		var out = title + " (" + countByState(cards, state) + ")\n";
 		var hasEntries = false;
-		var cardCount = cards.length;
-		var i = 0;
-		while (i < cardCount) {
-			var cardValue = cards.pop();
-			if (cardValue == null) {
-				break;
-			}
-			var card:StoryCard = cast cardValue;
+		for (card in cards) {
 			if (card.state == state) {
 				out += "  - " + formatCard(card, runtime) + "\n";
 				hasEntries = true;
 			}
-			cards.add(card);
-			i++;
 		}
 		if (!hasEntries) {
 			out += "  - none\n";
@@ -315,21 +214,12 @@ class Harness {
 		return out;
 	}
 
-	static function openOwnerFocus(cards:List<StoryCard>):String {
-		var owners = new List<String>();
-		var cardCount = cards.length;
-		var i = 0;
-		while (i < cardCount) {
-			var cardValue = cards.pop();
-			if (cardValue == null) {
-				break;
-			}
-			var card:StoryCard = cast cardValue;
+	static function openOwnerFocus(cards:Array<StoryCard>):String {
+		var owners = new Array<String>();
+		for (card in cards) {
 			if (card.state != STATE_DONE) {
-				owners.add(card.owner + "(p" + card.points + ")");
+				owners.push(card.owner + "(p" + card.points + ")");
 			}
-			cards.add(card);
-			i++;
 		}
 		if (owners.length == 0) {
 			return "none";

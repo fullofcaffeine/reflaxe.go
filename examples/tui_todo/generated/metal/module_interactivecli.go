@@ -13,31 +13,19 @@ func InteractiveCli_clearState() {
 	})
 }
 
-func InteractiveCli_decodeTags(raw *string) *haxe__ds__List {
-	out := New_haxe__ds__List()
+func InteractiveCli_decodeTags(raw *string) []*string {
+	out := []*string{}
 	if hxrt.StringEqualStringPtr(raw, hxrt.StringFromLiteral("")) {
 		return out
 	}
 	values := InteractiveCli_splitEscaped(raw, 44)
-	count := values.length
-	i := 0
-	for i < count {
-		value := func(hx_value_7 any) *string {
-			if hx_value_7 == nil {
-				var hx_zero_8 *string
-				return hx_zero_8
-			}
-			return hx_value_7.(*string)
-		}(values.pop())
-		if hxrt.StringEqualStringPtr(value, nil) {
-			break
-		}
-		tag := value
+	_g := 0
+	for _g < len(values) {
+		tag := values[_g]
+		_g = int(int32((_g + 1)))
 		if !hxrt.StringEqualStringPtr(tag, hxrt.StringFromLiteral("")) {
-			out.add(tag)
+			out = append(out, tag)
 		}
-		values.add(tag)
-		i = int(int32((i + 1)))
 	}
 	return out
 }
@@ -78,30 +66,18 @@ func InteractiveCli_encodeField(raw *string) *string {
 	return out.getBytes().toString()
 }
 
-func InteractiveCli_encodeTags(tags *haxe__ds__List) *string {
+func InteractiveCli_encodeTags(tags []*string) *string {
 	out := hxrt.StringFromLiteral("")
 	first := true
-	count := tags.length
-	i := 0
-	for i < count {
-		value := func(hx_value_9 any) *string {
-			if hx_value_9 == nil {
-				var hx_zero_10 *string
-				return hx_zero_10
-			}
-			return hx_value_9.(*string)
-		}(tags.pop())
-		if hxrt.StringEqualStringPtr(value, nil) {
-			break
-		}
-		tag := value
+	_g := 0
+	for _g < len(tags) {
+		tag := tags[_g]
+		_g = int(int32((_g + 1)))
 		if !first {
 			out = hxrt.StringConcatStringPtr(out, hxrt.StringFromLiteral(","))
 		}
 		out = hxrt.StringConcatStringPtr(out, InteractiveCli_encodeField(tag))
-		tags.add(tag)
 		first = false
-		i = int(int32((i + 1)))
 	}
 	return out
 }
@@ -111,57 +87,27 @@ func InteractiveCli_failUsage(message *string) {
 	hxrt.Println(hxrt.StringFromLiteral("run `help` for command syntax"))
 }
 
-func InteractiveCli_listIndex(values *haxe__ds__List, index int) *string {
-	count := values.length
-	i := 0
-	out := hxrt.StringFromLiteral("")
-	for i < count {
-		value := func(hx_value_11 any) *string {
-			if hx_value_11 == nil {
-				var hx_zero_12 *string
-				return hx_zero_12
-			}
-			return hx_value_11.(*string)
-		}(values.pop())
-		if hxrt.StringEqualStringPtr(value, nil) {
-			break
-		}
-		entry := value
-		if i == index {
-			out = entry
-		}
-		values.add(entry)
-		i = int(int32((i + 1)))
+func InteractiveCli_listIndex(values []*string, index int) *string {
+	if (index < 0) || (index >= len(values)) {
+		return hxrt.StringFromLiteral("")
 	}
-	return out
+	return values[index]
 }
 
 func InteractiveCli_loadState(app *app__TodoApp) {
-	hx_try_return_13 := false
+	hx_try_return_7 := false
 	hxrt.TryCatch(func() {
 		raw := sys__io__File_getContent(hxrt.StringFromLiteral(".tui_todo_state.txt"))
 		if hxrt.StringEqualStringPtr(raw, hxrt.StringFromLiteral("")) {
-			hx_try_return_13 = true
+			hx_try_return_7 = true
 			return
 		}
 		lines := InteractiveCli_splitRaw(raw, 10)
-		count := lines.length
-		i := 0
-		for i < count {
-			lineValue := func(hx_value_16 any) *string {
-				if hx_value_16 == nil {
-					var hx_zero_17 *string
-					return hx_zero_17
-				}
-				return hx_value_16.(*string)
-			}(lines.pop())
-			if hxrt.StringEqualStringPtr(lineValue, nil) {
-				break
-			}
-			line := lineValue
+		_g := 0
+		for _g < len(lines) {
+			line := lines[_g]
+			_g = int(int32((_g + 1)))
 			if hxrt.StringEqualStringPtr(line, hxrt.StringFromLiteral("")) {
-				lines.add(line)
-				i = int(int32((i + 1)))
 				continue
 			}
 			fields := InteractiveCli_splitEscaped(line, 9)
@@ -176,34 +122,20 @@ func InteractiveCli_loadState(app *app__TodoApp) {
 				app.toggle(id)
 			}
 			tags := InteractiveCli_decodeTags(InteractiveCli_listIndex(fields, 3))
-			tagCount := tags.length
-			j := 0
-			for j < tagCount {
-				tagValue := func(hx_value_18 any) *string {
-					if hx_value_18 == nil {
-						var hx_zero_19 *string
-						return hx_zero_19
-					}
-					return hx_value_18.(*string)
-				}(tags.pop())
-				if hxrt.StringEqualStringPtr(tagValue, nil) {
-					break
-				}
-				tag := tagValue
+			_g_1 := 0
+			for _g_1 < len(tags) {
+				tag := tags[_g_1]
+				_g_1 = int(int32((_g_1 + 1)))
 				app.tag(id, tag)
-				tags.add(tag)
-				j = int(int32((j + 1)))
 			}
-			lines.add(line)
-			i = int(int32((i + 1)))
 		}
-	}, func(hx_caught_14 any) {
-		hx_tmp := hx_caught_14
+	}, func(hx_caught_8 any) {
+		hx_tmp := hx_caught_8
 		_ = hx_tmp
-		hx_try_return_13 = true
+		hx_try_return_7 = true
 		return
 	})
-	if hx_try_return_13 {
+	if hx_try_return_7 {
 		return
 	}
 }
@@ -367,9 +299,9 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 				InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("invalid priority: "), args[int(int32((hxrt.Int32Wrap(i)+hxrt.Int32Wrap(1))))]))
 				return
 			}
-			titles := New_haxe__ds__List()
-			titles.add(InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))]))
-			titles.add(InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))]))
+			titles := []*string{}
+			titles = append(titles, InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i)+hxrt.Int32Wrap(2))))]))
+			titles = append(titles, InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i)+hxrt.Int32Wrap(3))))]))
 			added := app.addMany(titles, priority_1)
 			if added > 0 {
 				InteractiveCli_saveState(app)
@@ -386,37 +318,25 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 func InteractiveCli_saveState(app *app__TodoApp) {
 	items := app.items()
 	out := hxrt.StringFromLiteral("")
-	count := items.length
-	i := 0
-	for i < count {
-		raw := func(hx_value_20 any) *model__TodoItem {
-			if hx_value_20 == nil {
-				var hx_zero_21 *model__TodoItem
-				return hx_zero_21
-			}
-			return hx_value_20.(*model__TodoItem)
-		}(items.pop())
-		if raw == nil {
-			break
-		}
-		item := raw
+	_g := 0
+	for _g < len(items) {
+		item := items[_g]
+		_g = int(int32((_g + 1)))
 		out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(InteractiveCli_encodeField(item.title), hxrt.StringFromLiteral("\t")), item.priority), hxrt.StringFromLiteral("\t")), func() *string {
-			var hx_if_22 *string
+			var hx_if_10 *string
 			if item.done {
-				hx_if_22 = hxrt.StringFromLiteral("1")
+				hx_if_10 = hxrt.StringFromLiteral("1")
 			} else {
-				hx_if_22 = hxrt.StringFromLiteral("0")
+				hx_if_10 = hxrt.StringFromLiteral("0")
 			}
-			return hx_if_22
+			return hx_if_10
 		}()), hxrt.StringFromLiteral("\t")), InteractiveCli_encodeTags(item.tags)), hxrt.StringFromLiteral("\n")))
-		items.add(item)
-		i = int(int32((i + 1)))
 	}
 	sys__io__File_saveContent(hxrt.StringFromLiteral(".tui_todo_state.txt"), out)
 }
 
-func InteractiveCli_splitEscaped(raw *string, separatorCode int) *haxe__ds__List {
-	out := New_haxe__ds__List()
+func InteractiveCli_splitEscaped(raw *string, separatorCode int) []*string {
+	out := []*string{}
 	current := New_haxe__io__BytesBuffer()
 	bytes := haxe__io__Bytes_ofString(raw)
 	escaped := false
@@ -451,7 +371,7 @@ func InteractiveCli_splitEscaped(raw *string, separatorCode int) *haxe__ds__List
 			continue
 		}
 		if code == separatorCode {
-			out.add(current.getBytes().toString())
+			out = append(out, current.getBytes().toString())
 			current = New_haxe__io__BytesBuffer()
 			i = int(int32((i + 1)))
 			continue
@@ -459,19 +379,19 @@ func InteractiveCli_splitEscaped(raw *string, separatorCode int) *haxe__ds__List
 		current.b = append(current.b, (code & 255))
 		i = int(int32((i + 1)))
 	}
-	out.add(current.getBytes().toString())
+	out = append(out, current.getBytes().toString())
 	return out
 }
 
-func InteractiveCli_splitRaw(raw *string, separatorCode int) *haxe__ds__List {
-	out := New_haxe__ds__List()
+func InteractiveCli_splitRaw(raw *string, separatorCode int) []*string {
+	out := []*string{}
 	current := New_haxe__io__BytesBuffer()
 	bytes := haxe__io__Bytes_ofString(raw)
 	i := 0
 	for i < bytes.length {
 		code := bytes.b[i]
 		if code == separatorCode {
-			out.add(current.getBytes().toString())
+			out = append(out, current.getBytes().toString())
 			current = New_haxe__io__BytesBuffer()
 		} else {
 			if code != 13 {
@@ -480,6 +400,6 @@ func InteractiveCli_splitRaw(raw *string, separatorCode int) *haxe__ds__List {
 		}
 		i = int(int32((i + 1)))
 	}
-	out.add(current.getBytes().toString())
+	out = append(out, current.getBytes().toString())
 	return out
 }

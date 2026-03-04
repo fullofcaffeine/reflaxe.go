@@ -8,12 +8,12 @@ type domain__StoryCard struct {
 	id        int
 	title     *string
 	points    int
-	tags      *haxe__ds__List
+	tags      []*string
 	state     *string
 	owner     *string
 }
 
-func New_domain__StoryCard(id int, title *string, points int, tags *haxe__ds__List, state *string, owner *string) *domain__StoryCard {
+func New_domain__StoryCard(id int, title *string, points int, tags []*string, state *string, owner *string) *domain__StoryCard {
 	self := &domain__StoryCard{}
 	self.__hx_this = self
 	self.id = id

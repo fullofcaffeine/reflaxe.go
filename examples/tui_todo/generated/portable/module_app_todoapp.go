@@ -4,7 +4,7 @@ import "examples_tui_todo_portable/hxrt"
 
 type I_app__TodoApp interface {
 	add(title *string, priority int) int
-	addMany(titles *haxe__ds__List, priority int) int
+	addMany(titles []*string, priority int) int
 	toggle(id int) bool
 	tag(id int, tag *string) bool
 	baselineSignature() *string
@@ -14,7 +14,7 @@ type I_app__TodoApp interface {
 	diagnostics() *string
 	buildRuntimeMetrics() *profile__TodoRuntimeMetrics
 	render() *string
-	items() *haxe__ds__List
+	items() []*model__TodoItem
 }
 
 type app__TodoApp struct {
@@ -36,29 +36,17 @@ func (self *app__TodoApp) add(title *string, priority int) int {
 	return item.id
 }
 
-func (self *app__TodoApp) addMany(titles *haxe__ds__List, priority int) int {
+func (self *app__TodoApp) addMany(titles []*string, priority int) int {
 	if !self.runtime.supportsBatchAdd() {
 		return 0
 	}
 	added := 0
-	count := titles.length
-	i := 0
-	for i < count {
-		raw := func(hx_value_23 any) *string {
-			if hx_value_23 == nil {
-				var hx_zero_24 *string
-				return hx_zero_24
-			}
-			return hx_value_23.(*string)
-		}(titles.pop())
-		if hxrt.StringEqualStringPtr(raw, nil) {
-			break
-		}
-		title := raw
+	_g := 0
+	for _g < len(titles) {
+		title := titles[_g]
+		_g = int(int32((_g + 1)))
 		self.add(title, priority)
-		titles.add(title)
 		added = int(int32((added + 1)))
-		i = int(int32((i + 1)))
 	}
 	return added
 }
@@ -96,30 +84,19 @@ func (self *app__TodoApp) diagnostics() *string {
 
 func (self *app__TodoApp) buildRuntimeMetrics() *profile__TodoRuntimeMetrics {
 	items := self.store.list()
-	total := items.length
+	total := len(items)
 	done := 0
 	p1 := 0
-	i := 0
-	for i < total {
-		value := func(hx_value_25 any) *model__TodoItem {
-			if hx_value_25 == nil {
-				var hx_zero_26 *model__TodoItem
-				return hx_zero_26
-			}
-			return hx_value_25.(*model__TodoItem)
-		}(items.pop())
-		if value == nil {
-			break
-		}
-		item := value
+	_g := 0
+	for _g < len(items) {
+		item := items[_g]
+		_g = int(int32((_g + 1)))
 		if item.done {
 			done = int(int32((done + 1)))
 		}
 		if item.priority == 1 {
 			p1 = int(int32((p1 + 1)))
 		}
-		items.add(item)
-		i = int(int32((i + 1)))
 	}
 	return New_profile__TodoRuntimeMetrics(total, int(int32((hxrt.Int32Wrap(total) - hxrt.Int32Wrap(done)))), done, p1)
 }
@@ -127,64 +104,40 @@ func (self *app__TodoApp) buildRuntimeMetrics() *profile__TodoRuntimeMetrics {
 func (self *app__TodoApp) render() *string {
 	out := hxrt.StringFromLiteral("== TODO ==")
 	items := self.store.list()
-	count := items.length
-	i := 0
-	for i < count {
-		raw := func(hx_value_27 any) *model__TodoItem {
-			if hx_value_27 == nil {
-				var hx_zero_28 *model__TodoItem
-				return hx_zero_28
-			}
-			return hx_value_27.(*model__TodoItem)
-		}(items.pop())
-		if raw == nil {
-			break
-		}
-		item := raw
+	_g := 0
+	for _g < len(items) {
+		item := items[_g]
+		_g = int(int32((_g + 1)))
 		state := hxrt.StringFromLiteral("[ ]")
 		if item.done {
 			state = hxrt.StringFromLiteral("[x]")
 		}
 		tags := hxrt.StringFromLiteral("-")
-		if item.tags.length != 0 {
+		if len(item.tags) != 0 {
 			tags = app__TodoApp_joinStringList(item.tags, hxrt.StringFromLiteral(","))
 		}
 		out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("\n"), state), hxrt.StringFromLiteral(" #")), item.id), hxrt.StringFromLiteral(" p")), item.priority), hxrt.StringFromLiteral(" ")), item.title), hxrt.StringFromLiteral(" tags:")), tags))
-		items.add(item)
-		i = int(int32((i + 1)))
 	}
 	out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("\nsummary "), self.baselineSignature()))
 	return out
 }
 
-func (self *app__TodoApp) items() *haxe__ds__List {
+func (self *app__TodoApp) items() []*model__TodoItem {
 	return self.store.list()
 }
 
-func app__TodoApp_joinStringList(values *haxe__ds__List, separator *string) *string {
+func app__TodoApp_joinStringList(values []*string, separator *string) *string {
 	out := hxrt.StringFromLiteral("")
 	first := true
-	count := values.length
-	i := 0
-	for i < count {
-		raw := func(hx_value_29 any) *string {
-			if hx_value_29 == nil {
-				var hx_zero_30 *string
-				return hx_zero_30
-			}
-			return hx_value_29.(*string)
-		}(values.pop())
-		if hxrt.StringEqualStringPtr(raw, nil) {
-			break
-		}
-		value := raw
+	_g := 0
+	for _g < len(values) {
+		value := values[_g]
+		_g = int(int32((_g + 1)))
 		if !first {
 			out = hxrt.StringConcatStringPtr(out, separator)
 		}
 		out = hxrt.StringConcatStringPtr(out, value)
-		values.add(value)
 		first = false
-		i = int(int32((i + 1)))
 	}
 	return out
 }

@@ -1,6 +1,5 @@
 package app;
 
-import haxe.ds.List;
 import model.TodoItem;
 import model.TodoStore;
 import profile.TodoRuntime;
@@ -10,24 +9,15 @@ class TodoApp {
 	var runtime:TodoRuntime;
 	var store:TodoStore;
 
-	static function joinStringList(values:List<String>, separator:String):String {
+	static function joinStringList(values:Array<String>, separator:String):String {
 		var out = "";
 		var first = true;
-		var count = values.length;
-		var i = 0;
-		while (i < count) {
-			var raw = values.pop();
-			if (raw == null) {
-				break;
-			}
-			var value:String = cast raw;
+		for (value in values) {
 			if (!first) {
 				out += separator;
 			}
 			out += value;
-			values.add(value);
 			first = false;
-			i++;
 		}
 		return out;
 	}
@@ -42,24 +32,15 @@ class TodoApp {
 		return item.id;
 	}
 
-	public function addMany(titles:List<String>, priority:Int):Int {
+	public function addMany(titles:Array<String>, priority:Int):Int {
 		if (!runtime.supportsBatchAdd()) {
 			return 0;
 		}
 
 		var added = 0;
-		var count = titles.length;
-		var i = 0;
-		while (i < count) {
-			var raw = titles.pop();
-			if (raw == null) {
-				break;
-			}
-			var title:String = cast raw;
+		for (title in titles) {
 			add(title, priority);
-			titles.add(title);
 			added++;
-			i++;
 		}
 		return added;
 	}
@@ -100,21 +81,13 @@ class TodoApp {
 		var total = items.length;
 		var done = 0;
 		var p1 = 0;
-		var i = 0;
-		while (i < total) {
-			var value = items.pop();
-			if (value == null) {
-				break;
-			}
-			var item:TodoItem = cast value;
+		for (item in items) {
 			if (item.done) {
 				done++;
 			}
 			if (item.priority == 1) {
 				p1++;
 			}
-			items.add(item);
-			i++;
 		}
 		return new TodoRuntimeMetrics(total, total - done, done, p1);
 	}
@@ -122,15 +95,7 @@ class TodoApp {
 	public function render():String {
 		var out = "== TODO ==";
 		var items = store.list();
-		var count = items.length;
-		var i = 0;
-		while (i < count) {
-			var raw = items.pop();
-			if (raw == null) {
-				break;
-			}
-			var item:TodoItem = cast raw;
-
+		for (item in items) {
 			var state = "[ ]";
 			if (item.done) {
 				state = "[x]";
@@ -142,15 +107,13 @@ class TodoApp {
 			}
 
 			out += "\n" + state + " #" + item.id + " p" + item.priority + " " + item.title + " tags:" + tags;
-			items.add(item);
-			i++;
 		}
 
 		out += "\nsummary " + baselineSignature();
 		return out;
 	}
 
-	public function items():List<TodoItem> {
+	public function items():Array<TodoItem> {
 		return store.list();
 	}
 }

@@ -36,10 +36,10 @@ func Harness_assertContract(runtime profile__TodoRuntime) *string {
 	return hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("OK "), runtime.profileId())
 }
 
-func Harness_batchTitles() *haxe__ds__List {
-	out := New_haxe__ds__List()
-	out.add(hxrt.StringFromLiteral("Ship generated-go sync"))
-	out.add(hxrt.StringFromLiteral("Add binary matrix"))
+func Harness_batchTitles() []*string {
+	out := []*string{}
+	out = append(out, hxrt.StringFromLiteral("Ship generated-go sync"))
+	out = append(out, hxrt.StringFromLiteral("Add binary matrix"))
 	return out
 }
 

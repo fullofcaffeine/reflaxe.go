@@ -1,5 +1,4 @@
 import app.TodoApp;
-import haxe.ds.List;
 import haxe.io.Bytes;
 import haxe.io.BytesBuffer;
 import model.TodoItem;
@@ -100,27 +99,27 @@ class InteractiveCli {
 		return out.getBytes().toString();
 	}
 
-	static function splitRaw(raw:String, separatorCode:Int):List<String> {
-		var out = new List<String>();
+	static function splitRaw(raw:String, separatorCode:Int):Array<String> {
+		var out = new Array<String>();
 		var current = new BytesBuffer();
 		var bytes = Bytes.ofString(raw);
 		var i = 0;
 		while (i < bytes.length) {
 			var code = bytes.get(i);
 			if (code == separatorCode) {
-				out.add(current.getBytes().toString());
+				out.push(current.getBytes().toString());
 				current = new BytesBuffer();
 			} else if (code != 13) {
 				current.addByte(code);
 			}
 			i++;
 		}
-		out.add(current.getBytes().toString());
+		out.push(current.getBytes().toString());
 		return out;
 	}
 
-	static function splitEscaped(raw:String, separatorCode:Int):List<String> {
-		var out = new List<String>();
+	static function splitEscaped(raw:String, separatorCode:Int):Array<String> {
+		var out = new Array<String>();
 		var current = new BytesBuffer();
 		var bytes = Bytes.ofString(raw);
 		var escaped = false;
@@ -149,7 +148,7 @@ class InteractiveCli {
 				continue;
 			}
 			if (code == separatorCode) {
-				out.add(current.getBytes().toString());
+				out.push(current.getBytes().toString());
 				current = new BytesBuffer();
 				i++;
 				continue;
@@ -157,70 +156,40 @@ class InteractiveCli {
 			current.addByte(code);
 			i++;
 		}
-		out.add(current.getBytes().toString());
+		out.push(current.getBytes().toString());
 		return out;
 	}
 
-	static function listIndex(values:List<String>, index:Int):String {
-		var count = values.length;
-		var i = 0;
-		var out = "";
-		while (i < count) {
-			var value = values.pop();
-			if (value == null) {
-				break;
-			}
-			var entry:String = cast value;
-			if (i == index) {
-				out = entry;
-			}
-			values.add(entry);
-			i++;
+	static function listIndex(values:Array<String>, index:Int):String {
+		if (index < 0 || index >= values.length) {
+			return "";
 		}
-		return out;
+		return values[index];
 	}
 
-	static function encodeTags(tags:List<String>):String {
+	static function encodeTags(tags:Array<String>):String {
 		var out = "";
 		var first = true;
-		var count = tags.length;
-		var i = 0;
-		while (i < count) {
-			var value = tags.pop();
-			if (value == null) {
-				break;
-			}
-			var tag:String = cast value;
+		for (tag in tags) {
 			if (!first) {
 				out += ",";
 			}
 			out += encodeField(tag);
-			tags.add(tag);
 			first = false;
-			i++;
 		}
 		return out;
 	}
 
-	static function decodeTags(raw:String):List<String> {
-		var out = new List<String>();
+	static function decodeTags(raw:String):Array<String> {
+		var out = new Array<String>();
 		if (raw == "") {
 			return out;
 		}
 		var values = splitEscaped(raw, 44);
-		var count = values.length;
-		var i = 0;
-		while (i < count) {
-			var value = values.pop();
-			if (value == null) {
-				break;
-			}
-			var tag:String = cast value;
+		for (tag in values) {
 			if (tag != "") {
-				out.add(tag);
+				out.push(tag);
 			}
-			values.add(tag);
-			i++;
 		}
 		return out;
 	}
@@ -228,17 +197,8 @@ class InteractiveCli {
 	static function saveState(app:TodoApp):Void {
 		var items = app.items();
 		var out = "";
-		var count = items.length;
-		var i = 0;
-		while (i < count) {
-			var raw = items.pop();
-			if (raw == null) {
-				break;
-			}
-			var item:TodoItem = cast raw;
+		for (item in items) {
 			out += encodeField(item.title) + "\t" + item.priority + "\t" + (item.done ? "1" : "0") + "\t" + encodeTags(item.tags) + "\n";
-			items.add(item);
-			i++;
 		}
 		File.saveContent(STATE_FILE, out);
 	}
@@ -251,17 +211,8 @@ class InteractiveCli {
 			}
 
 			var lines = splitRaw(raw, 10);
-			var count = lines.length;
-			var i = 0;
-			while (i < count) {
-				var lineValue = lines.pop();
-				if (lineValue == null) {
-					break;
-				}
-				var line:String = cast lineValue;
+			for (line in lines) {
 				if (line == "") {
-					lines.add(line);
-					i++;
 					continue;
 				}
 				var fields = splitEscaped(line, 9);
@@ -276,20 +227,9 @@ class InteractiveCli {
 					app.toggle(id);
 				}
 				var tags = decodeTags(listIndex(fields, 3));
-				var tagCount = tags.length;
-				var j = 0;
-				while (j < tagCount) {
-					var tagValue = tags.pop();
-					if (tagValue == null) {
-						break;
-					}
-					var tag:String = cast tagValue;
+				for (tag in tags) {
 					app.tag(id, tag);
-					tags.add(tag);
-					j++;
 				}
-				lines.add(line);
-				i++;
 			}
 		} catch (_:Dynamic) {
 			return;
@@ -406,9 +346,9 @@ class InteractiveCli {
 					failUsage("invalid priority: " + args[i + 1]);
 					return;
 				}
-				var titles = new List<String>();
-				titles.add(decodeToken(args[i + 2]));
-				titles.add(decodeToken(args[i + 3]));
+				var titles = new Array<String>();
+				titles.push(decodeToken(args[i + 2]));
+				titles.push(decodeToken(args[i + 3]));
 				var added = app.addMany(titles, priority);
 				if (added > 0) {
 					saveState(app);

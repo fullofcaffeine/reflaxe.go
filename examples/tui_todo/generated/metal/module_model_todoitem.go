@@ -12,7 +12,7 @@ type model__TodoItem struct {
 	title     *string
 	done      bool
 	priority  int
-	tags      *haxe__ds__List
+	tags      []*string
 }
 
 func New_model__TodoItem(id int, title *string, priority int) *model__TodoItem {
@@ -22,7 +22,7 @@ func New_model__TodoItem(id int, title *string, priority int) *model__TodoItem {
 	self.set_title(title)
 	self.set_done(false)
 	self.set_priority(priority)
-	self.tags = New_haxe__ds__List()
+	self.tags = []*string{}
 	return self
 }
 
