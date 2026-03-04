@@ -7,8 +7,8 @@ var InteractiveCli_STATE_FILE *string = hxrt.StringFromLiteral(".tui_todo_state.
 func InteractiveCli_clearState() {
 	hxrt.TryCatch(func() {
 		sys__io__File_saveContent(hxrt.StringFromLiteral(".tui_todo_state.txt"), hxrt.StringFromLiteral(""))
-	}, func(hx_caught_5 any) {
-		hx_tmp := hx_caught_5
+	}, func(hx_caught_4 any) {
+		hx_tmp := hx_caught_4
 		_ = hx_tmp
 	})
 }
@@ -95,11 +95,11 @@ func InteractiveCli_listIndex(values []*string, index int) *string {
 }
 
 func InteractiveCli_loadState(app *app__TodoApp) {
-	hx_try_return_7 := false
+	hx_try_return_6 := false
 	hxrt.TryCatch(func() {
 		raw := sys__io__File_getContent(hxrt.StringFromLiteral(".tui_todo_state.txt"))
 		if hxrt.StringEqualStringPtr(raw, hxrt.StringFromLiteral("")) {
-			hx_try_return_7 = true
+			hx_try_return_6 = true
 			return
 		}
 		lines := InteractiveCli_splitRaw(raw, 10)
@@ -129,13 +129,13 @@ func InteractiveCli_loadState(app *app__TodoApp) {
 				app.tag(id, tag)
 			}
 		}
-	}, func(hx_caught_8 any) {
-		hx_tmp := hx_caught_8
+	}, func(hx_caught_7 any) {
+		hx_tmp := hx_caught_7
 		_ = hx_tmp
-		hx_try_return_7 = true
+		hx_try_return_6 = true
 		return
 	})
-	if hx_try_return_7 {
+	if hx_try_return_6 {
 		return
 	}
 }
@@ -168,9 +168,7 @@ func InteractiveCli_printHelp(runtime profile__TodoRuntime) {
 	hxrt.Println(hxrt.StringFromLiteral("  add <priority> <title_token>"))
 	hxrt.Println(hxrt.StringFromLiteral("  toggle <id>"))
 	hxrt.Println(hxrt.StringFromLiteral("  tag <id> <tag_token>"))
-	if runtime.supportsBatchAdd() {
-		hxrt.Println(hxrt.StringFromLiteral("  batch <priority> <title1_token> <title2_token>"))
-	}
+	hxrt.Println(hxrt.StringFromLiteral("  batch <priority> <title1_token> <title2_token>"))
 	hxrt.Println(hxrt.StringFromLiteral("token note: use '_' instead of spaces (example: Wire_release_artifacts)"))
 	hxrt.Println(hxrt.StringFromLiteral("state file: .tui_todo_state.txt (current directory)"))
 }
@@ -182,9 +180,7 @@ func InteractiveCli_printUsage(runtime profile__TodoRuntime) {
 	hxrt.Println(hxrt.StringFromLiteral("  tui_todo reset"))
 	hxrt.Println(hxrt.StringFromLiteral("  tui_todo help"))
 	hxrt.Println(hxrt.StringFromLiteral("  tui_todo add 2 Write_profile_docs tag 1 docs list"))
-	if runtime.supportsBatchAdd() {
-		hxrt.Println(hxrt.StringFromLiteral("  tui_todo batch 3 Ship_generated_go_sync Add_binary_matrix list"))
-	}
+	hxrt.Println(hxrt.StringFromLiteral("  tui_todo batch 3 Ship_generated_go_sync Add_binary_matrix list"))
 	hxrt.Println(hxrt.StringFromLiteral("generated-source invocation:"))
 	hxrt.Println(hxrt.StringFromLiteral("  go run . <command...>"))
 	hxrt.Println(hxrt.StringFromLiteral("state file: .tui_todo_state.txt (current directory)"))
@@ -285,11 +281,6 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("batch")) {
-			if !runtime.supportsBatchAdd() {
-				hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("batch not supported in "), runtime.profileId()))
-				i = int(int32((i + 1)))
-				continue
-			}
 			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))) >= len(args) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("batch requires <priority> <title1_token> <title2_token>"))
 				return
@@ -323,13 +314,13 @@ func InteractiveCli_saveState(app *app__TodoApp) {
 		item := items[_g]
 		_g = int(int32((_g + 1)))
 		out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(InteractiveCli_encodeField(item.title), hxrt.StringFromLiteral("\t")), item.priority), hxrt.StringFromLiteral("\t")), func() *string {
-			var hx_if_10 *string
+			var hx_if_9 *string
 			if item.done {
-				hx_if_10 = hxrt.StringFromLiteral("1")
+				hx_if_9 = hxrt.StringFromLiteral("1")
 			} else {
-				hx_if_10 = hxrt.StringFromLiteral("0")
+				hx_if_9 = hxrt.StringFromLiteral("0")
 			}
-			return hx_if_10
+			return hx_if_9
 		}()), hxrt.StringFromLiteral("\t")), InteractiveCli_encodeTags(item.tags)), hxrt.StringFromLiteral("\n")))
 	}
 	sys__io__File_saveContent(hxrt.StringFromLiteral(".tui_todo_state.txt"), out)

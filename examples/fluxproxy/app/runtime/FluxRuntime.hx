@@ -3,6 +3,14 @@ package app.runtime;
 import app.core.FluxProxyResponse;
 import app.core.FluxRequest;
 
+/**
+	Execution-strategy contract for FluxProxy runtime lanes.
+
+	`CoreRuntime` is the portable baseline implementation (loop dispatch).
+	`GoNativeRuntime` is the Go-first implementation (worker/channel/select dispatch).
+
+	Both implementations must preserve the same routing/policy result contract.
+**/
 interface FluxRuntime {
 	public function profileId():String;
 	public function variantId():String;

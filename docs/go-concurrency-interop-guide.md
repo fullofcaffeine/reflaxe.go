@@ -25,7 +25,8 @@ Why this is recommended:
 Reference app: `examples/interop_smoke`.
 
 Note: this reference is intentionally profile-neutral for interop parity. For visible
-portable-vs-metal codegen contrast, use `examples/profile_storyboard`.
+portable-vs-metal value, use `examples/worker_pool_select` and the `go_native`
+lanes in `examples/pulseforge` / `examples/fluxproxy`.
 
 The reference app (`examples/interop_smoke`) demonstrates both:
 

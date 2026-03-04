@@ -1,5 +1,12 @@
 package profile;
 
+/**
+	Portable runtime implementation for `tui_todo`.
+
+	This runtime owns title/tag normalization and diagnostics string formatting for
+	the portable scripted contract. No separate metal runtime is kept because it
+	did not provide meaningful user-facing value in this app.
+**/
 class PortableRuntime implements TodoRuntime {
 	public function new() {}
 
@@ -15,15 +22,7 @@ class PortableRuntime implements TodoRuntime {
 		return tag;
 	}
 
-	public function supportsBatchAdd():Bool {
-		return false;
-	}
-
-	public function supportsDiagnostics():Bool {
-		return false;
-	}
-
 	public function diagnostics(metrics:TodoRuntimeMetrics):String {
-		return "off";
+		return "p1=" + metrics.p1 + ",completed=" + metrics.done;
 	}
 }

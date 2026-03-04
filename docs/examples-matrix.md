@@ -1,22 +1,28 @@
 # Examples Matrix
 
-`reflaxe.go` ships canonical examples designed to show one Haxe codebase compiled into all supported profiles.
+`reflaxe.go` ships canonical examples designed to show portable-first contracts and metal value where it is technically meaningful.
 
 | Example | portable | metal | Purpose |
 | --- | --- | --- | --- |
-| `examples/profile_storyboard` | Yes | Yes | Compact profile-idiom reference with profile runtime adapters. |
-| `examples/tui_todo` | Yes | Yes | Complex app reference with deterministic pseudo-TUI flow and additive profile capabilities. |
+| `examples/profile_storyboard` | Yes | No | Portable-first release dashboard reference. |
+| `examples/tui_todo` | Yes | No | Portable-first deterministic CLI app reference. |
 | `examples/interop_smoke` | Yes | Yes | Typed interop smoke reference for `@:go.import`, `@:go.name`, `@:go.receiver`, `@:go.valueError` (`(T,error)` -> `go.Result<T>`), and package APIs (`fmt`/`time`/`context`/`net/http`/`strconv`). This app is intentionally profile-neutral, so generated Go is expected to be near-identical across profiles. |
 | `examples/worker_pool_select` | Yes | Yes | Deterministic worker pool with channel fan-out plus typed `go.Select` helper flows (`recv`/`recv2`/`send`/`send2`). |
 | `examples/pulseforge` | Yes | Yes | Flagship app scaffold proving profile matrix + explicit variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
 | `examples/fluxproxy` | Yes | Yes | Flagship proxy scaffold with profile matrix + variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
 
+Portable-only examples are intentional: if an app does not expose real profile-contract/perf value, we keep it portable-only to avoid synthetic deltas.
+
+## Terms
+
+- `go_native` (app variant): compile-time runtime-adapter lane used by an example app for Go-first execution paths (for example worker/channel/select flows). It is not a compiler profile.
+- `hot path`: the frequently-executed part of an app where optimization has the biggest runtime impact.
+
 ## Metal collection purity gates (examples)
 
-Examples use two collection-purity gates:
+Dual-profile examples use two collection-purity gates:
 
 - Hard boundary gate:
-  - `examples/*/profile/MetalRuntime.hx`
   - `examples/*/app/runtime/GoNativeRuntime.hx`
 - Full-tree gate: audits `haxe.ds.*` imports across all example modules.
 
@@ -58,7 +64,7 @@ Examples intentionally show two valid outcomes:
 
 Use these anchors:
 
-- parity-focused: `examples/interop_smoke`, `core` lanes in `examples/pulseforge` and `examples/fluxproxy`.
+- parity-focused: `examples/interop_smoke`, `core` lanes in `examples/pulseforge` and `examples/fluxproxy`, plus portable-only references (`examples/tui_todo`, `examples/profile_storyboard`).
 - metal-advantage-focused: `examples/worker_pool_select`, `go_native` lanes in `examples/pulseforge` and `examples/fluxproxy`.
 
 Evidence sources:
@@ -139,11 +145,11 @@ Execution plan and acceptance gates for flagship examples: `docs/flagship-apps-p
 python3 test/run-examples.py
 ```
 
-This runs:
+This runs discovered profile cases per example:
 
 - `compile.<profile>.ci.hxml` + `go test` + `go run` expected output checks
 - `compile.<profile>.hxml` + `go test` + `go run` expected output checks
-- generated tree drift checks (`generated/<profile>` vs `out_<profile>`)
+- generated tree drift checks (`generated/<profile>` vs `out_<profile>`) for available profiles in that example
 
 ## Generated Go + binaries
 

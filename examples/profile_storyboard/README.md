@@ -1,69 +1,49 @@
 # profile_storyboard
 
-Compact profile walkthrough example compiled from one Haxe codebase to `portable` and `metal`.
+Portable-first release-dashboard renderer for a small planning board.
 
-## Why this example exists
+## What this app does
 
-- Gives a small, readable app where profile behavior is visible quickly.
-- Demonstrates profile adapter selection via `profile/RuntimeFactory.hx`.
-- Shows why two profiles are useful without splitting app/domain logic.
+- Builds a deterministic set of story cards.
+- Computes readiness, lane counts, open-load, ETA, and risk summary.
+- Renders a compact “command center” text dashboard.
 
-## Profile behavior in this example
+## Profile support
 
-- `portable`: portability-first semantic lane.
-- `metal`: explicit Go-first lane with strict boundary defaults.
-- Both lanes preserve the same storyboard contract; profile differences are mainly code shape and adapter wiring.
+- portable: Yes
+- metal: No
 
-## When to choose each profile here
+This example is intentionally portable-only. The previous metal lane in this app changed adapter strings/thresholds for demonstration, not because metal generated materially better behavior or meaningful Go-hot-path benefits.
 
-- Choose `portable` when this pattern will be shared across other Haxe targets.
-- Choose `metal` when this module is part of a Go-native/perf-focused pipeline and you want stricter metal checks.
+For real portable-vs-metal differences, use:
 
-## Tradeoffs shown by this example
-
-- You get one shared Haxe codebase and deterministic output in both profiles.
-- Generated Go may look similar when portable surfaces dominate; that is expected.
-- Profile-specific runtime adapters still make intent explicit in source control and CI.
+- `examples/worker_pool_select`
+- `examples/pulseforge` (`go_native` lanes)
+- `examples/fluxproxy` (`go_native` lanes)
 
 ## Compile
 
 ```bash
 haxe compile.portable.hxml
-haxe compile.metal.hxml
+haxe compile.portable.ci.hxml
 ```
 
 ## Run
 
 ```bash
 (cd out_portable && go run .)
-(cd out_metal && go run .)
+(cd out_portable_ci && go run .)
 ```
 
-## Generated Go diff inspection
+## Expected scripted contract
 
-Quick whole-tree diff:
+Portable outputs are validated by:
 
-```bash
-diff -ru generated/portable generated/metal
-```
-
-High-signal files:
-
-- `generated/portable/module_profile_runtimefactory.go`
-- `generated/metal/module_profile_runtimefactory.go`
-- `generated/portable/main.go`
-- `generated/metal/main.go`
-
-## What it renders
-
-- Health block: readiness progress bar, card mix, open load, velocity, ETA.
-- Board block: `TODO`, `DOING`, `DONE` lanes with owners/tags.
-- Risk block: high-risk open work and release-tagged open count.
-- Profile signal line: profile-specific telemetry from runtime adapters.
-- Decision line: release recommendation based on computed risk.
+- `expected/portable.stdout`
+- `expected/portable.ci.stdout`
 
 ## Related docs
 
+- `docs/examples-matrix.md`
 - `docs/profiles.md`
 - `docs/profile-semantics-guide.md`
-- `docs/examples-matrix.md`

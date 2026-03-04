@@ -40,9 +40,7 @@ class InteractiveCli {
 		Sys.println("  add <priority> <title_token>");
 		Sys.println("  toggle <id>");
 		Sys.println("  tag <id> <tag_token>");
-		if (runtime.supportsBatchAdd()) {
-			Sys.println("  batch <priority> <title1_token> <title2_token>");
-		}
+		Sys.println("  batch <priority> <title1_token> <title2_token>");
 		Sys.println("token note: use '_' instead of spaces (example: Wire_release_artifacts)");
 		Sys.println("state file: " + STATE_FILE + " (current directory)");
 	}
@@ -54,9 +52,7 @@ class InteractiveCli {
 		Sys.println("  tui_todo reset");
 		Sys.println("  tui_todo help");
 		Sys.println("  tui_todo add 2 Write_profile_docs tag 1 docs list");
-		if (runtime.supportsBatchAdd()) {
-			Sys.println("  tui_todo batch 3 Ship_generated_go_sync Add_binary_matrix list");
-		}
+		Sys.println("  tui_todo batch 3 Ship_generated_go_sync Add_binary_matrix list");
 		Sys.println("generated-source invocation:");
 		Sys.println("  go run . <command...>");
 		Sys.println("state file: " + STATE_FILE + " (current directory)");
@@ -332,11 +328,6 @@ class InteractiveCli {
 				continue;
 			}
 			if (cmd == "batch") {
-				if (!runtime.supportsBatchAdd()) {
-					Sys.println("batch not supported in " + runtime.profileId());
-					i++;
-					continue;
-				}
 				if (i + 3 >= args.length) {
 					failUsage("batch requires <priority> <title1_token> <title2_token>");
 					return;

@@ -7,6 +7,16 @@ import go.Chan;
 import go.Go;
 import go.Select;
 
+/**
+	Go-first runtime adapter for FluxProxy `go_native` variant.
+
+	Why this differs from `CoreRuntime`:
+	- uses worker/channel/select dispatch paths,
+	- stresses typed specialization in generated Go for hot request flows,
+	- keeps the same routing/policy output contract as `CoreRuntime`.
+
+	Use this lane when benchmarking or tuning Go-native execution behavior.
+**/
 class GoNativeRuntime implements FluxRuntime {
 	public function profileId():String {
 		return BuildConfig.PROFILE;

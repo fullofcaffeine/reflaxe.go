@@ -1614,7 +1614,7 @@ func Type_getInstanceFields(c any) []*string {
 	case "model.TodoStore":
 		return []*string{hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("addTag"), hxrt.StringFromLiteral("doneCount"), hxrt.StringFromLiteral("entries"), hxrt.StringFromLiteral("findById"), hxrt.StringFromLiteral("list"), hxrt.StringFromLiteral("nextId"), hxrt.StringFromLiteral("openCount"), hxrt.StringFromLiteral("toggle"), hxrt.StringFromLiteral("totalCount")}
 	case "profile.PortableRuntime":
-		return []*string{hxrt.StringFromLiteral("diagnostics"), hxrt.StringFromLiteral("normalizeTag"), hxrt.StringFromLiteral("normalizeTitle"), hxrt.StringFromLiteral("profileId"), hxrt.StringFromLiteral("supportsBatchAdd"), hxrt.StringFromLiteral("supportsDiagnostics")}
+		return []*string{hxrt.StringFromLiteral("diagnostics"), hxrt.StringFromLiteral("normalizeTag"), hxrt.StringFromLiteral("normalizeTitle"), hxrt.StringFromLiteral("profileId")}
 	case "profile.TodoRuntimeMetrics":
 		return []*string{hxrt.StringFromLiteral("done"), hxrt.StringFromLiteral("open"), hxrt.StringFromLiteral("p1"), hxrt.StringFromLiteral("total")}
 	default:

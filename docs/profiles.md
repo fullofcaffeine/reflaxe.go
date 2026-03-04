@@ -57,7 +57,6 @@ Framework-owned typed facades are allowed in `metal` strict mode; raw app-side i
 Collection-purity enforcement for examples has two scopes:
 
 1. Hard boundary scope:
-   - `examples/*/profile/MetalRuntime.hx`
    - `examples/*/app/runtime/GoNativeRuntime.hx`
 2. Full-build scope:
    - all example modules, auditing `haxe.ds.*` usage across the tree.
@@ -159,9 +158,10 @@ Snapshot coverage:
 
 ## Example references
 
-- Cross-profile micro app: `examples/profile_storyboard`
-- Cross-profile complex app: `examples/tui_todo`
+- Portable-first app references: `examples/profile_storyboard`, `examples/tui_todo`
+- Cross-profile compact app: `examples/interop_smoke`
 - Worker pool/select-style concurrency app: `examples/worker_pool_select`
+- Cross-profile flagship apps: `examples/pulseforge`, `examples/fluxproxy`
 - Coverage + artifact matrix: `docs/examples-matrix.md`
 - Production caveats: `docs/known-gaps.md`
 - Canonical profile playbook: `docs/profile-semantics-guide.md`

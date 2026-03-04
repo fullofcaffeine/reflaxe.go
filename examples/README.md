@@ -1,58 +1,49 @@
 # Examples
 
-This repository ships six first-class multi-profile examples.
+This repository ships canonical app examples for portable and metal contract teaching.
 
-| Example | What it teaches | Profile visibility |
-| --- | --- | --- |
-| `profile_storyboard` | Compact profile walkthrough with explicit runtime adapters | High (`portable` vs `metal` differences are easy to inspect) |
-| `tui_todo` | Complex single-codebase app with deterministic scripted contract and interactive mode | Medium (same contract, additive metal capabilities) |
-| `interop_smoke` | Typed Go interop metadata (`@:go.import`, `@:go.name`, `@:go.receiver`) | Low by design (intentionally near-identical output) |
-| `worker_pool_select` | Go concurrency surfaces (`go.Chan`, `go.Select`, worker fan-out) | Medium-high (typed helper shape differences) |
-| `pulseforge` | Flagship observability app with `core` and `go_native` variants | Medium-high (especially in `go_native` lanes) |
-| `fluxproxy` | Flagship reverse-proxy app with `core` and `go_native` variants | Medium-high (especially in `go_native` lanes) |
+| Example | What it does | Profile support | Portable vs metal diff |
+| --- | --- | --- | --- |
+| `profile_storyboard` | Renders a release-planning command-center dashboard from deterministic card data. | portable only | N/A (portable reference only; no meaningful metal delta). |
+| `tui_todo` | Interactive + scripted todo CLI with local state persistence and deterministic contract output. | portable only | N/A (portable reference only; no meaningful metal delta). |
+| `interop_smoke` | Typed Go interop smoke (`@:go.import`, `@:go.name`, `@:go.receiver`, `@:go.valueError`). | portable + metal | Intentionally near-identical output; validates contract consistency, not divergence. |
+| `worker_pool_select` | Deterministic worker pool using `go.Chan` + typed `go.Select` helpers. | portable + metal | Same behavior contract; metal emphasizes typed specialization/readability in Go-native paths. |
+| `pulseforge` | Flagship observability pipeline with `core` and `go_native` runtime variants. | portable + metal | Largest practical delta appears in `go_native` lanes (typed channel/select specialization pressure). |
+| `fluxproxy` | Flagship reverse-proxy policy pipeline with `core` and `go_native` runtime variants. | portable + metal | Largest practical delta appears in `go_native` lanes (worker fanout + typed channel/select paths). |
 
-## Why two profiles exist in these examples
+## Why not force every app to have both profiles
 
-- `portable` is the semantic portability contract.
-- `metal` is the explicit Go-native/perf lane with stricter boundary defaults.
-- One Haxe codebase can target both. If your code stays on portable surfaces, outputs may be similar; that is expected and desirable for compatibility.
+Dual-profile examples are useful only when they show real compiler/runtime value. Portable-only examples are used when behavior is portability-first and metal would only add synthetic, non-instructive differences.
 
 ## Start here by goal
 
-- Understand profile differences first: `examples/profile_storyboard`.
-- Learn baseline app portability: `examples/tui_todo`.
-- Learn typed interop metadata: `examples/interop_smoke`.
-- Learn Go concurrency surfaces: `examples/worker_pool_select`.
-- Evaluate larger app architecture + perf lanes: `examples/pulseforge`, `examples/fluxproxy`.
+- Portable-first app reference: `examples/tui_todo`, `examples/profile_storyboard`.
+- Typed interop surface: `examples/interop_smoke`.
+- Concurrency/select profile value: `examples/worker_pool_select`.
+- Large app + perf lanes: `examples/pulseforge`, `examples/fluxproxy`.
 
 ## Quick commands
 
-Compile/run all example-profile cases and validate expected stdout:
+Run example harness:
 
 ```bash
 python3 test/run-examples.py
 ```
 
-Refresh committed generated trees from fresh outputs:
+Refresh committed generated trees:
 
 ```bash
 python3 test/run-examples.py --bless-generated
 ```
 
-Build binary artifacts from committed generated trees:
+Build cross-platform binaries from committed generated trees:
 
 ```bash
 bash scripts/examples/build-binaries.sh
 ```
 
-Inspect generated Go differences for a specific example:
-
-```bash
-diff -ru examples/profile_storyboard/generated/portable examples/profile_storyboard/generated/metal
-```
-
 ## Canonical references
 
 - Profile contract matrix: `docs/profiles.md`
-- Deep semantics and migration guidance: `docs/profile-semantics-guide.md`
+- Profile semantics guide: `docs/profile-semantics-guide.md`
 - Example/perf matrix: `docs/examples-matrix.md`

@@ -6,8 +6,6 @@ type I_profile__PortableRuntime interface {
 	profileId() *string
 	normalizeTitle(title *string) *string
 	normalizeTag(tag *string) *string
-	supportsBatchAdd() bool
-	supportsDiagnostics() bool
 	diagnostics(metrics *profile__TodoRuntimeMetrics) *string
 }
 
@@ -33,14 +31,6 @@ func (self *profile__PortableRuntime) normalizeTag(tag *string) *string {
 	return tag
 }
 
-func (self *profile__PortableRuntime) supportsBatchAdd() bool {
-	return false
-}
-
-func (self *profile__PortableRuntime) supportsDiagnostics() bool {
-	return false
-}
-
 func (self *profile__PortableRuntime) diagnostics(metrics *profile__TodoRuntimeMetrics) *string {
-	return hxrt.StringFromLiteral("off")
+	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("p1="), metrics.p1), hxrt.StringFromLiteral(",completed=")), metrics.done)
 }

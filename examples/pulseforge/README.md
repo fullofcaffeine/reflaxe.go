@@ -8,6 +8,11 @@ Flagship observability-stream pipeline demo with one Haxe codebase compiled acro
 - Shows profile contract (`portable` vs `metal`) and app variant (`core` vs `go_native`) as separate axes.
 - Provides benchmark-ready lanes against handwritten Go baselines.
 
+## Terms used in this README
+
+- `go_native` (app variant): compile-time runtime-adapter choice that uses Go-first execution paths (channel/select worker fanout). It is **not** a compiler profile.
+- `hot path`: the code that runs most often during normal workload (the part where performance changes matter most).
+
 ## Architecture
 
 | Layer | Files | Responsibility |
@@ -56,32 +61,27 @@ Modes:
 - scripted: deterministic contract output (`--scripted`)
 - interactive: command session (`help`, `profile`, `status`, `ingest`, `reset`, `scripted`)
 
-## Profile Behavior Matrix
+## Portable vs metal in practice
 
-| Profile | Contract intent | Boundary policy | Runtime package |
+| Profile | Choose this when... | What you get | What to watch for |
 | --- | --- | --- | --- |
-| `portable` | Semantic baseline lane | Strict examples boundary enabled via compile files | Generated Go + `hxrt` |
-| `metal` | Go-first/perf lane under explicit opt-in | Strict examples boundary enabled; metal compiler profile selected | Generated Go + `hxrt` |
+| `portable` | You want this codebase to stay cross-target friendly and easy to share with other Haxe targets. | Stable portable behavior and the lowest migration risk for shared app/domain code. | In frequently-executed `go_native` paths, generated Go can rely more on generic/runtime helper paths, so peak Go performance may be lower than `metal`. |
+| `metal` | This deployment is Go-first and you want stricter compile-time checks plus stronger typed lowering in hot paths. | More aggressive typed specialization in `go_native` paths (`go.Chan`/`go.Select` style flows) and fail-fast checks for unsupported typed specialization cases. | You may need more explicit typing (avoid loose `Dynamic`/`Any` paths), and generated code can be larger because of specialized helpers. |
 
-Both profiles keep the same domain contract and workload semantics. Differences are code shape and optimization policy, not app feature removal.
+Both profiles keep the same app behavior contract and scripted outputs. The main difference is how aggressively the compiler optimizes Go-native paths.
 
-## When to choose each profile here
+Practical rule for this app:
 
-- Choose `portable` when PulseForge core logic must stay aligned with cross-target portable semantics.
-- Choose `metal` when Go-native optimization and strict boundary policy are required for this deployment.
+- Start with `portable` for shared domain logic.
+- Use `metal` when this service is Go-only and benchmark data shows the `go_native` lane is a bottleneck.
+- Expect the biggest profile differences in `go_native`, not `core`.
 
-## Tradeoffs shown by this example
+## Variant choices in plain terms
 
-- `portable` and `metal` can preserve the same app contract while using different codegen strategies.
-- `metal` may emit more typed helper code in hot lanes; more LOC does not imply lower quality.
-- Profile choice and variant choice are independent decisions.
-
-## Variant Behavior Matrix
-
-| Variant | Capability id | Strategy | Notes |
-| --- | --- | --- | --- |
-| `core` | `core_loop` | Deterministic loop-based parse/enrich stages | Lowest-risk baseline behavior |
-| `go_native` | `chan_fanout_select` | Channel fan-out/fan-in plus `go.Select` helpers | Go-first execution lane |
+| Variant | What changes in the app | Choose this when |
+| --- | --- | --- |
+| `core` | Uses simple loop-based processing for parse/enrich stages. | You want the most straightforward, portable reference behavior. |
+| `go_native` | Uses worker fanout with channels/select helpers in runtime adapters. | You are testing/tuning Go-first execution paths and want to benchmark that lane. |
 
 `go_native` is a compile-time app variant (`-D pulseforge_variant_go_native`), not a compiler profile.
 

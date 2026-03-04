@@ -6,6 +6,15 @@ import app.core.PulseEnrichedEvent;
 import app.core.PulseEvent;
 import app.core.PulseIngressFrame;
 
+/**
+	Portable-baseline runtime adapter for PulseForge.
+
+	This lane uses straightforward sequential loops. It is the reference behavior
+	for portability and deterministic contract output.
+
+	See `GoNativeRuntime` for the Go-first lane that changes execution strategy
+	(using channels/select) while preserving the same domain contract.
+**/
 class CoreRuntime implements PulseRuntime {
 	public function profileId():String {
 		return BuildConfig.PROFILE;

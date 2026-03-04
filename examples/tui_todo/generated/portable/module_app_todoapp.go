@@ -37,9 +37,6 @@ func (self *app__TodoApp) add(title *string, priority int) int {
 }
 
 func (self *app__TodoApp) addMany(titles []*string, priority int) int {
-	if !self.runtime.supportsBatchAdd() {
-		return 0
-	}
 	added := 0
 	_g := 0
 	for _g < len(titles) {
@@ -76,9 +73,6 @@ func (self *app__TodoApp) doneCount() int {
 }
 
 func (self *app__TodoApp) diagnostics() *string {
-	if !self.runtime.supportsDiagnostics() {
-		return hxrt.StringFromLiteral("off")
-	}
 	return self.runtime.diagnostics(self.buildRuntimeMetrics())
 }
 

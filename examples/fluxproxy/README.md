@@ -8,6 +8,11 @@ Reverse-proxy style flagship app with deterministic policy contract and profile/
 - Shows separation between profile contract (`portable` vs `metal`) and app capability variant (`core` vs `go_native`).
 - Provides benchmark-ready lanes for generated-vs-handwritten Go comparisons.
 
+## Terms used in this README
+
+- `go_native` (app variant): compile-time runtime-adapter choice that uses Go-first execution paths (worker/channel/select dispatch). It is **not** a compiler profile.
+- `hot path`: the code that runs most often during normal request flow (the highest-impact place to optimize).
+
 ## Architecture
 
 | Layer | Files | Responsibility |
@@ -56,32 +61,27 @@ Modes:
 - scripted: deterministic contract output (`--scripted`)
 - interactive: command session (`help`, `profile`, `status`, `ingest`, `reset`, `scripted`)
 
-## Profile Behavior Matrix
+## Portable vs metal in practice
 
-| Profile | Contract intent | Boundary policy | Runtime package |
+| Profile | Choose this when... | What you get | What to watch for |
 | --- | --- | --- | --- |
-| `portable` | Semantic baseline lane | Strict examples boundary enabled via compile files | Generated Go + `hxrt` |
-| `metal` | Go-first/perf lane under explicit opt-in | Strict examples boundary enabled; metal compiler profile selected | Generated Go + `hxrt` |
+| `portable` | You want proxy/domain code to remain cross-target friendly and easy to reuse. | Stable portable behavior and the safest default for shared code. | Frequently-executed `go_native` paths can keep more generic/runtime helper behavior, so top-end Go performance may trail `metal`. |
+| `metal` | This proxy deployment is Go-first and you want stricter compile-time constraints plus stronger typed lowering. | More aggressive typed specialization in `go_native` paths and fail-fast checks when typed specialization is impossible. | You need clearer static types (avoid loose `Dynamic`/`Any` in hot paths), and generated Go can grow due to specialized helpers. |
 
-Both profiles preserve the same proxy/policy contract. Differences are code shape and optimization policy, not app behavior removal.
+Both profiles preserve the same proxy/policy behavior and scripted outputs. The practical difference is optimization aggressiveness in Go-native lanes.
 
-## When to choose each profile here
+Practical rule for this app:
 
-- Choose `portable` when this proxy logic is intended to stay portable and shareable across targets.
-- Choose `metal` when this deployment is Go-first and you want stricter boundary enforcement plus stronger typed specialization pressure.
+- Start with `portable` for shared policy/domain modules.
+- Move to `metal` when this service is Go-only and perf data points to `go_native` bottlenecks.
+- Expect larger profile deltas in `go_native`; `core` often differs less.
 
-## Tradeoffs shown by this example
+## Variant choices in plain terms
 
-- Same app behavior can be preserved while codegen strategy differs.
-- `metal` can emit extra typed helpers in `go_native` lanes; that can increase LOC while reducing dynamic overhead.
-- Running `core` under `metal` is useful for metal-readiness checks even when deltas are smaller than `go_native`.
-
-## Variant Behavior Matrix
-
-| Variant | Capability id | Strategy | Notes |
-| --- | --- | --- | --- |
-| `core` | `loop_dispatch` | Deterministic loop-based dispatch path | Baseline lane with simple flow |
-| `go_native` | `worker_chan_fanout` | Worker fan-out with channels/select helpers | Go-first dispatch lane |
+| Variant | What changes in the app | Choose this when |
+| --- | --- | --- |
+| `core` | Uses simple loop-based dispatch in runtime adapters. | You want the clearest portable reference lane. |
+| `go_native` | Uses worker fanout with channels/select helpers in runtime adapters. | You are testing/tuning Go-first execution paths and want that benchmark lane. |
 
 `go_native` is a compile-time app variant (`-D fluxproxy_variant_go_native`), not a compiler profile.
 

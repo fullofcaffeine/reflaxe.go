@@ -9,6 +9,16 @@ import go.Chan;
 import go.Go;
 import go.Select;
 
+/**
+	Go-first runtime adapter for PulseForge `go_native` variant.
+
+	Why this differs from `CoreRuntime`:
+	- uses channel/select worker fanout to model Go-concurrency execution paths,
+	- creates pressure on typed specialization in generated Go,
+	- keeps the same domain-level output contract as `CoreRuntime`.
+
+	Use this lane when benchmarking/tuning Go-native execution behavior.
+**/
 class GoNativeRuntime implements PulseRuntime {
 	public function profileId():String {
 		return BuildConfig.PROFILE;

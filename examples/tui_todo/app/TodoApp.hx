@@ -33,10 +33,6 @@ class TodoApp {
 	}
 
 	public function addMany(titles:Array<String>, priority:Int):Int {
-		if (!runtime.supportsBatchAdd()) {
-			return 0;
-		}
-
 		var added = 0;
 		for (title in titles) {
 			add(title, priority);
@@ -70,9 +66,6 @@ class TodoApp {
 	}
 
 	public function diagnostics():String {
-		if (!runtime.supportsDiagnostics()) {
-			return "off";
-		}
 		return runtime.diagnostics(buildRuntimeMetrics());
 	}
 

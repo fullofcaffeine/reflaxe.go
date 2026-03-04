@@ -23,12 +23,8 @@ class Harness {
 		var baselineView = runBaseline(app);
 		var baseline = app.baselineSignature();
 
-		var extras = "batch_add=0";
-		if (runtime.supportsBatchAdd()) {
-			var added = app.addMany(batchTitles(), 3);
-			extras = "batch_add=" + added;
-		}
-
+		var added = app.addMany(batchTitles(), 3);
+		var extras = "batch_add=" + added;
 		extras += ",diag=" + app.diagnostics();
 
 		return "profile=" + runtime.profileId() + "\nbaseline=" + baseline + "\nbaseline_view:\n" + baselineView + "\nfinal_view:\n" + app.render()
@@ -44,20 +40,14 @@ class Harness {
 			throw "baseline drift: " + baseline;
 		}
 
-		if (runtime.supportsBatchAdd()) {
-			var added = app.addMany(batchTitles(), 3);
-			if (added != 2 || app.totalCount() != 4) {
-				throw "batch add drift";
-			}
-		} else if (app.totalCount() != 2) {
-			throw "portable total drift";
+		var added = app.addMany(batchTitles(), 3);
+		if (added != 2 || app.totalCount() != 4) {
+			throw "batch add drift";
 		}
 
-		if (runtime.supportsDiagnostics()) {
-			var diag = app.diagnostics();
-			if (diag != "p1=1,completed=1") {
-				throw "missing diagnostics";
-			}
+		var diag = app.diagnostics();
+		if (diag != "p1=1,completed=1") {
+			throw "missing diagnostics";
 		}
 
 		return "OK " + runtime.profileId();

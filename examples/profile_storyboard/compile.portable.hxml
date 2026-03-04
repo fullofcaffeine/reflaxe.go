@@ -6,6 +6,5 @@
 -D go_output=out_portable
 -D go_module=examples_profile_storyboard_portable
 -D reflaxe_go_profile=portable
--D example_profile_portable
 -D reflaxe_go_strict_examples
 -main Main

@@ -11,27 +11,17 @@ func Harness_assertContract(runtime profile__TodoRuntime) *string {
 		var hx_throw_zero_1 *string
 		return hx_throw_zero_1
 	}
-	if runtime.supportsBatchAdd() {
-		added := app.addMany(Harness_batchTitles(), 3)
-		if (added != 2) || (app.totalCount() != 4) {
-			hxrt.Throw(hxrt.StringFromLiteral("batch add drift"))
-			var hx_throw_zero_2 *string
-			return hx_throw_zero_2
-		}
-	} else {
-		if app.totalCount() != 2 {
-			hxrt.Throw(hxrt.StringFromLiteral("portable total drift"))
-			var hx_throw_zero_3 *string
-			return hx_throw_zero_3
-		}
+	added := app.addMany(Harness_batchTitles(), 3)
+	if (added != 2) || (app.totalCount() != 4) {
+		hxrt.Throw(hxrt.StringFromLiteral("batch add drift"))
+		var hx_throw_zero_2 *string
+		return hx_throw_zero_2
 	}
-	if runtime.supportsDiagnostics() {
-		diag := app.diagnostics()
-		if !hxrt.StringEqualStringPtr(diag, hxrt.StringFromLiteral("p1=1,completed=1")) {
-			hxrt.Throw(hxrt.StringFromLiteral("missing diagnostics"))
-			var hx_throw_zero_4 *string
-			return hx_throw_zero_4
-		}
+	diag := app.diagnostics()
+	if !hxrt.StringEqualStringPtr(diag, hxrt.StringFromLiteral("p1=1,completed=1")) {
+		hxrt.Throw(hxrt.StringFromLiteral("missing diagnostics"))
+		var hx_throw_zero_3 *string
+		return hx_throw_zero_3
 	}
 	return hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("OK "), runtime.profileId())
 }
@@ -47,11 +37,8 @@ func Harness_run(runtime profile__TodoRuntime) *string {
 	app := New_app__TodoApp(runtime)
 	baselineView := Harness_runBaseline(app)
 	baseline := app.baselineSignature()
-	extras := hxrt.StringFromLiteral("batch_add=0")
-	if runtime.supportsBatchAdd() {
-		added := app.addMany(Harness_batchTitles(), 3)
-		extras = hxrt.StringConcatAny(hxrt.StringFromLiteral("batch_add="), added)
-	}
+	added := app.addMany(Harness_batchTitles(), 3)
+	extras := hxrt.StringConcatAny(hxrt.StringFromLiteral("batch_add="), added)
 	extras = hxrt.StringConcatStringPtr(extras, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(",diag="), app.diagnostics()))
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("profile="), runtime.profileId()), hxrt.StringFromLiteral("\nbaseline=")), baseline), hxrt.StringFromLiteral("\nbaseline_view:\n")), baselineView), hxrt.StringFromLiteral("\nfinal_view:\n")), app.render()), hxrt.StringFromLiteral("\nextras=")), extras)
 }

@@ -1,100 +1,64 @@
 # tui_todo
 
-Canonical complex example for reflaxe.go profile comparisons.
+Portable-first todo CLI reference with deterministic scripted output and interactive command mode.
 
-## Why this example exists
+## What this app does
 
-- Demonstrates a practical app workflow from one Haxe codebase in both profiles.
-- Shows profile runtime adapter selection via `profile/RuntimeFactory.hx`.
-- Provides deterministic scripted mode for CI plus interactive local mode.
+- Manages a small todo list (add/toggle/tag/batch/list/summary/diag).
+- Persists state in `.tui_todo_state.txt` in the current directory.
+- Provides a deterministic `--scripted` flow used by harness/CI.
 
-## What it demonstrates
+## Profile support
 
-- Shared todo app/domain code compiled to `portable` and `metal`.
-- Profile runtime adapters chosen at compile-time via `profile/RuntimeFactory.hx`.
-- Equivalent baseline semantics across profiles.
-- Additive profile capabilities:
-  - `metal`: batch add + diagnostics.
-- User-driven command session mode for local demo runs.
-- Deterministic scripted mode for CI (`--scripted`).
+- portable: Yes
+- metal: No
 
-## Profile behavior in this example
+This example is intentionally portable-only. Its behavior is stdlib-heavy and there is no meaningful compiler-profile benefit to demonstrate here; keeping a metal lane in this app created synthetic runtime differences instead of real profile value.
 
-- `portable`: baseline semantics and portability-first lane.
-- `metal`: explicit Go-first lane with additive capabilities (`batch`, diagnostics) enabled by runtime adapter.
-- Same baseline todo contract remains intact across both profiles.
+For concrete metal value examples, use:
 
-## When to choose each profile here
-
-- Choose `portable` when this app logic is intended for cross-target reuse.
-- Choose `metal` when this app is Go-targeted and you want stricter boundaries plus additive Go-focused capabilities.
-
-## Tradeoffs shown by this example
-
-- You can keep one domain model and still expose profile-specific capabilities.
-- Similar generated shapes are normal in portable-surface-heavy paths.
-- Profile adapters keep intent explicit without forking the whole app.
+- `examples/worker_pool_select`
+- `examples/pulseforge` (`go_native` lanes)
+- `examples/fluxproxy` (`go_native` lanes)
 
 ## Compile
 
 ```bash
 haxe compile.portable.hxml
-haxe compile.metal.hxml
+haxe compile.portable.ci.hxml
 ```
 
 ## Run
 
 ```bash
-(cd out_portable && go run .)
-(cd out_metal && go run .)
+(cd out_portable && go run . --scripted)
+(cd out_portable && go run . help)
+(cd out_portable && go run . add 2 Write_profile_docs tag 1 docs list)
 ```
 
-This starts command-session mode with commands like:
+## Commands
 
-- `reset` (clears persisted state)
+- `reset`
 - `help`
 - `add <priority> <title_token>`
 - `toggle <id>`
 - `tag <id> <tag_token>`
-- `batch <priority> <title1_token> <title2_token>` (metal)
+- `batch <priority> <title1_token> <title2_token>`
 - `list`
 - `summary`
 - `diag`
 
-Token note: use `_` where you want spaces (for example `Write_profile_docs`).
+Token note: use `_` for spaces (for example `Write_profile_docs`).
 
-Command mode persists items to `.tui_todo_state.txt` in the current working directory.
-Use `reset` (or remove that file) to start clean.
+## Expected scripted contract
 
-Scripted deterministic output mode (used by harness):
+Portable scripted output is validated by:
 
-```bash
-(cd out_portable && go run . --scripted)
-```
-
-Command-session mode examples:
-
-```bash
-(cd out_portable && go run . help)
-(cd out_portable && go run . add 2 Write_profile_docs tag 1 docs list)
-(cd out_metal && go run . batch 3 Ship_generated_go_sync Add_binary_matrix list)
-```
-
-## Generated Go diff inspection
-
-```bash
-diff -ru generated/portable generated/metal
-```
-
-High-signal files:
-
-- `generated/portable/module_profile_runtimefactory.go`
-- `generated/metal/module_profile_runtimefactory.go`
-- `generated/portable/module_profile_portableruntime.go`
-- `generated/metal/module_profile_metalruntime.go`
+- `expected/portable.stdout`
+- `expected/portable.ci.stdout`
 
 ## Related docs
 
+- `docs/examples-matrix.md`
 - `docs/profiles.md`
 - `docs/profile-semantics-guide.md`
-- `docs/examples-matrix.md`

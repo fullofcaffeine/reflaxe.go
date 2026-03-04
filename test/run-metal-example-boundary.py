@@ -11,7 +11,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 BOUNDARY_TARGET_GLOBS = [
-    "examples/*/profile/MetalRuntime.hx",
     "examples/*/app/runtime/GoNativeRuntime.hx",
 ]
 

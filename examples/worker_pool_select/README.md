@@ -15,7 +15,7 @@ Deterministic worker-pool and select-style channel example across `portable` and
 - Typed `go.Select` helpers (`recv`, `recv2`, `send`, `send2`) layered on select-backed non-blocking channel operations.
 - Same source compiled to all profiles with stable output.
 
-## Profile behavior in this example
+## Portable vs metal diff in this app
 
 - `portable`: semantic baseline and portability-first defaults.
 - `metal`: explicit Go-first/perf lane; typed specialization is prioritized here.

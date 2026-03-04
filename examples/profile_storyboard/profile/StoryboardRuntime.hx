@@ -1,5 +1,12 @@
 package profile;
 
+/**
+	Runtime-contract interface for `profile_storyboard`.
+
+	This example is intentionally portable-only. A previous metal runtime was
+	removed because it introduced synthetic differences that did not provide real
+	profile value for users.
+**/
 interface StoryboardRuntime {
 	public function profileId():String;
 	public function decorateTitle(title:String):String;

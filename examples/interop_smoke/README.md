@@ -20,7 +20,7 @@ Minimal typed-interop reference example for reflaxe.go.
 Compiler metadata coverage is additionally locked by snapshot fixtures
 (`test/snapshot/go_native/extern_metadata_mapping`).
 
-## Profile behavior in this example
+## Portable vs metal diff in this app
 
 This example is expected to generate near-identical Go for `portable` and `metal`
 because it only uses profile-safe interop calls.
@@ -35,7 +35,7 @@ The profile matrix here validates contract consistency, not profile-divergent co
 
 - Near-identical generated Go across profiles is expected for portable-surface interop.
 - This example is not the right place to inspect large profile code-shape divergence.
-- Use `examples/profile_storyboard` and `examples/worker_pool_select` for visible divergence.
+- Use `examples/worker_pool_select` and `go_native` lanes in `examples/pulseforge` / `examples/fluxproxy` for visible profile divergence.
 
 ## Compile
 

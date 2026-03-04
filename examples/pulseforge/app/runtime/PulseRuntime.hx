@@ -5,6 +5,15 @@ import app.core.PulseEnrichedEvent;
 import app.core.PulseEvent;
 import app.core.PulseIngressFrame;
 
+/**
+	Execution-strategy contract for PulseForge runtime lanes.
+
+	`CoreRuntime` is the portable baseline implementation (simple loop stages).
+	`GoNativeRuntime` is the Go-first implementation (channel/select worker fanout).
+
+	Both implementations must keep the same domain-level output contract; only
+	the execution strategy differs.
+**/
 interface PulseRuntime {
 	public function profileId():String;
 	public function variantId():String;
