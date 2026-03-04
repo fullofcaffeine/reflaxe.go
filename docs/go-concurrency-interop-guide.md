@@ -68,3 +68,28 @@ Promotion rule:
 - `go.Select` multi-branch helpers are deterministic and branch-priority ordered; they do not mirror Go runtime pseudo-random ready-case selection.
 - Complex Go extern signatures may need façade wrappers until broader mapping lanes land.
 - For current limitations and planning guidance, use `docs/known-gaps.md`.
+
+## 5) Planned portable channel facade
+
+Goal: support channel-style concurrency in portable code without exposing `go.*` as the portable contract surface.
+
+Do not make `go.Chan` itself portable.
+`go.Chan<T>` remains a Go-native facade API.
+
+Instead, introduce a portable abstraction layer (planned), for example:
+
+- `hx.concurrent.Channel<T>`
+
+Design rule:
+
+1. Define semantics explicitly first (blocking behavior, close behavior, receive-after-close behavior, and select guarantees).
+2. Implement target-specific backends for the same contract:
+   - Go backend: lower to real goroutines/channels/select.
+   - non-Go backends: runtime/scheduler implementations that match the declared contract.
+3. Keep `go.*` available as native power APIs outside the portable contract.
+
+Why this shape:
+
+- portable users get a stable cross-target API.
+- Go users still keep direct access to native `go.*` lanes when needed.
+- semantic-diff tests can validate portable behavior independently from native optimizations.
