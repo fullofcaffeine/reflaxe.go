@@ -1,3 +1,9 @@
+## [0.47.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.47.0...v0.47.1) (2026-03-04)
+
+### Performance Improvements
+
+* make go profile harness tolerate portable-only tui lane ([43364d5](https://github.com/fullofcaffeine/reflaxe.go/commit/43364d50c40392382f9ec508fcaafcfea4d20c1a))
+
 ## [0.47.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.46.0...v0.47.0) (2026-02-26)
 
 ### Features
