@@ -229,7 +229,7 @@ npm run test:semantic-diff:optimizer-matrix
 
 ## Run auto planner report schema gate
 
-Validates deterministic planner/runtime/contract artifact schemas and required keys, including optimizer counter invariants for portable+auto typed-lowering vs fallback snapshot contracts (`goCollections*` / `goResult*`):
+Validates deterministic planner/runtime/contract artifact schemas and required keys, including optimizer counter invariants for portable+auto typed-lowering vs fallback snapshot contracts (`goCollections*` / `goResult*`) and capability-level `autoLoweringCapabilities` invariants:
 
 ```bash
 npm run test:auto-planner:schema

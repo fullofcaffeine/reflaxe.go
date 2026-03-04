@@ -83,6 +83,15 @@ def require_optimizer_capabilities(value: Any, label: str) -> None:
             require_int(reason["count"], f"{label}[{index}].fallbackReasonCounts[{reason_index}].count")
 
 
+def require_capability(capabilities: Any, capability_id: str, label: str) -> dict[str, Any]:
+    if not isinstance(capabilities, list):
+        raise SystemExit(f"{label}: expected capabilities array")
+    for entry in capabilities:
+        if isinstance(entry, dict) and entry.get("id") == capability_id:
+            return entry
+    raise SystemExit(f"{label}: missing capability `{capability_id}`")
+
+
 def require_reason_entries(entries: list[Any], expected_source_prefix: str, label: str) -> None:
     for index, entry in enumerate(entries):
         if not isinstance(entry, dict):
@@ -183,6 +192,25 @@ def main() -> int:
         optimizer_typed.get("autoLoweringCapabilities"),
         str(optimizer_typed_path) + ".autoLoweringCapabilities",
     )
+    typed_capabilities = optimizer_typed["autoLoweringCapabilities"]
+    typed_collections = require_capability(
+        typed_capabilities, "go.collections.typed", str(optimizer_typed_path) + ".autoLoweringCapabilities"
+    )
+    typed_result = require_capability(
+        typed_capabilities, "go.result.typed", str(optimizer_typed_path) + ".autoLoweringCapabilities"
+    )
+    require_counter_gt(typed_collections, "attempts", 0, str(optimizer_typed_path) + ".go.collections.typed")
+    require_counter_gt(typed_collections, "successes", 0, str(optimizer_typed_path) + ".go.collections.typed")
+    require_counter_eq(typed_collections, "fallbacks", 0, str(optimizer_typed_path) + ".go.collections.typed")
+    if typed_collections.get("fallbackReasonCounts") != []:
+        raise SystemExit(
+            f"{optimizer_typed_path}.go.collections.typed.fallbackReasonCounts: expected empty for typed-success contract"
+        )
+    require_counter_gt(typed_result, "attempts", 0, str(optimizer_typed_path) + ".go.result.typed")
+    require_counter_gt(typed_result, "successes", 0, str(optimizer_typed_path) + ".go.result.typed")
+    require_counter_eq(typed_result, "fallbacks", 0, str(optimizer_typed_path) + ".go.result.typed")
+    if typed_result.get("fallbackReasonCounts") != []:
+        raise SystemExit(f"{optimizer_typed_path}.go.result.typed.fallbackReasonCounts: expected empty for typed-success contract")
     require_counter_gt(optimizer_typed, "goCollectionsTypedLowerings", 0, str(optimizer_typed_path))
     require_counter_eq(optimizer_typed, "goCollectionsTypedFallbacks", 0, str(optimizer_typed_path))
     require_counter_gt(optimizer_typed, "goResultTypedLowerings", 0, str(optimizer_typed_path))
@@ -195,6 +223,23 @@ def main() -> int:
         optimizer_fallback.get("autoLoweringCapabilities"),
         str(optimizer_fallback_path) + ".autoLoweringCapabilities",
     )
+    fallback_capabilities = optimizer_fallback["autoLoweringCapabilities"]
+    fallback_collections = require_capability(
+        fallback_capabilities, "go.collections.typed", str(optimizer_fallback_path) + ".autoLoweringCapabilities"
+    )
+    fallback_result = require_capability(
+        fallback_capabilities, "go.result.typed", str(optimizer_fallback_path) + ".autoLoweringCapabilities"
+    )
+    require_counter_gt(fallback_collections, "attempts", 0, str(optimizer_fallback_path) + ".go.collections.typed")
+    require_counter_gt(fallback_collections, "fallbacks", 0, str(optimizer_fallback_path) + ".go.collections.typed")
+    if not fallback_collections.get("fallbackReasonCounts"):
+        raise SystemExit(
+            f"{optimizer_fallback_path}.go.collections.typed.fallbackReasonCounts: expected non-empty fallback reasons"
+        )
+    require_counter_gt(fallback_result, "attempts", 0, str(optimizer_fallback_path) + ".go.result.typed")
+    require_counter_gt(fallback_result, "fallbacks", 0, str(optimizer_fallback_path) + ".go.result.typed")
+    if not fallback_result.get("fallbackReasonCounts"):
+        raise SystemExit(f"{optimizer_fallback_path}.go.result.typed.fallbackReasonCounts: expected non-empty fallback reasons")
     require_counter_eq(optimizer_fallback, "goCollectionsTypedLowerings", 0, str(optimizer_fallback_path))
     require_counter_gt(optimizer_fallback, "goCollectionsTypedFallbacks", 0, str(optimizer_fallback_path))
     require_counter_eq(optimizer_fallback, "goResultTypedLowerings", 0, str(optimizer_fallback_path))
