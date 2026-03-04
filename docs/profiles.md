@@ -43,8 +43,9 @@ If your code path falls outside this subset, start from `portable` and promote o
 
 - `reflaxe_go_strict_examples`: forbids raw `__go__` in repo examples/snapshots.
 - `reflaxe_go_strict`: forbids raw `__go__` in app project sources.
-- `metal` enables strict mode by default for app-side raw injection.
-- `reflaxe_go_metal_allow_fallback`: opt-in escape hatch that relaxes metal hard-error fallback policy and disables metal strict-by-default boundary enforcement.
+- `reflaxe_go_strict_policy=auto|on|off` controls app strictness policy explicitly (`auto` default: strict in `metal`, relaxed in `portable`).
+- `metal` with default strict policy enforces strict app boundaries.
+- `reflaxe_go_metal_allow_fallback`: opt-in escape hatch that relaxes metal hard-error fallback policy only (strictness policy unchanged).
 - `reflaxe_go_portable_native_policy=warn|error|off`: policy for `go.*` usage under portable contract (`warn` default, `error` recommended in CI/release).
 - `reflaxe_go_portable_native_allow=<csv>`: optional portable allowlist for sanctioned native adapter modules.
 

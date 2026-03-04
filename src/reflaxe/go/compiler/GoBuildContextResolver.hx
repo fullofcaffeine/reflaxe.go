@@ -10,6 +10,7 @@ import reflaxe.go.RawNativeModeResolver;
 class GoBuildContextResolver {
 	public static inline final STRICT_EXAMPLES_DEFINE = "reflaxe_go_strict_examples";
 	public static inline final STRICT_DEFINE = "reflaxe_go_strict";
+	public static inline final STRICT_POLICY_DEFINE = "reflaxe_go_strict_policy";
 	public static inline final METAL_ALLOW_FALLBACK_DEFINE = "reflaxe_go_metal_allow_fallback";
 	public static inline final AUTO_MODE_DEFINE = "reflaxe_go_auto";
 	public static inline final GO_MODULE_DEFINE = "go_module";
@@ -26,14 +27,16 @@ class GoBuildContextResolver {
 	public static function resolve():GoBuildContext {
 		var profile = ProfileResolver.resolve();
 		var metalFallbackAllowed = Context.defined(METAL_ALLOW_FALLBACK_DEFINE);
+		var strictPolicy = parseStrictUserBoundaryPolicy(Context.definedValue(STRICT_POLICY_DEFINE));
+		var strictUserBoundaries = resolveStrictUserBoundaries(profile, strictPolicy, Context.defined(STRICT_DEFINE));
 		var autoLoweringMode = parseAutoLoweringMode(Context.definedValue(AUTO_MODE_DEFINE));
 		var optimizationPreset = parseOptimizationPreset(Context.definedValue(OPT_PRESET_DEFINE));
 		var portableStringFastpathEnabled = optimizationPreset == "portable_fast";
 		var portableConcurrencyFastpathEnabled = parseBoolDefine(OPT_PORTABLE_CONCURRENCY_FASTPATH_DEFINE, portableStringFastpathEnabled);
 		return new GoBuildContext(profile, normalizeGoModuleName(Context.definedValue(GO_MODULE_DEFINE)), RawNativeModeResolver.resolve(),
-			Context.defined(LINE_DIRECTIVES_DEFINE), Context.defined(STRICT_EXAMPLES_DEFINE), Context.defined(STRICT_DEFINE) || (profile == GoProfile.Metal
-				&& !metalFallbackAllowed), metalFallbackAllowed, profile == GoProfile.Metal && !metalFallbackAllowed,
-			Context.defined(HXRT_DEFAULT_FEATURES_DEFINE), Context.defined(HXRT_FEATURES_DEFINE),
+			Context.defined(LINE_DIRECTIVES_DEFINE), Context.defined(STRICT_EXAMPLES_DEFINE), strictPolicy, strictUserBoundaries,
+			metalFallbackAllowed, profile == GoProfile.Metal
+			&& !metalFallbackAllowed, Context.defined(HXRT_DEFAULT_FEATURES_DEFINE), Context.defined(HXRT_FEATURES_DEFINE),
 			Context.defined(HXRT_NO_FEATURE_INFER_DEFINE), parseManualHxrtFeatures(Context.definedValue(HXRT_FEATURES_DEFINE)),
 			Context.defined(CONTRACT_REPORT_DEFINE), Context.defined(RUNTIME_PLAN_REPORT_DEFINE), parseBoolDefine(OPTIMIZER_PLAN_REPORT_DEFINE, false),
 			autoLoweringMode, optimizationPreset, portableStringFastpathEnabled, portableConcurrencyFastpathEnabled, []);
@@ -82,6 +85,37 @@ class GoBuildContextResolver {
 			case _:
 				Context.fatalError('Unknown `' + OPT_PRESET_DEFINE + '` preset "' + raw + '" (expected: portable_fast, none)', Context.currentPos());
 				"portable_fast";
+		};
+	}
+
+	static function parseStrictUserBoundaryPolicy(raw:Null<String>):String {
+		if (raw == null) {
+			return "auto";
+		}
+		var normalized = StringTools.trim(raw).toLowerCase();
+		if (normalized == "") {
+			return "auto";
+		}
+		return switch (normalized) {
+			case "auto", "on", "off":
+				normalized;
+			case _:
+				Context.fatalError('Unknown `' + STRICT_POLICY_DEFINE + '` value "' + raw + '" (expected: auto, on, off)', Context.currentPos());
+				"auto";
+		};
+	}
+
+	static function resolveStrictUserBoundaries(profile:GoProfile, strictPolicy:String, strictDefineEnabled:Bool):Bool {
+		if (strictDefineEnabled) {
+			return true;
+		}
+		return switch (strictPolicy) {
+			case "on":
+				true;
+			case "off":
+				false;
+			case _:
+				profile == GoProfile.Metal;
 		};
 	}
 

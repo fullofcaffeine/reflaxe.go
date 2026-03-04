@@ -4,6 +4,7 @@
 - contract: `portable`
 - auto lowering mode: `off`
 - strict examples: `no`
+- strict user boundary policy: `auto`
 - strict user boundaries: `no`
 - metal fallback allowed: `no`
 - metal contract hard error: `no`

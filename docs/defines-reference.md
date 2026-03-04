@@ -79,12 +79,17 @@ Design note:
 
 - `reflaxe_go_strict`
   - Enforce strict no raw `__go__` policy in app project sources.
+- `reflaxe_go_strict_policy=auto|on|off`
+  - Explicit app-boundary strictness policy axis.
+  - `auto` (default): `metal` -> strict on, `portable` -> strict off.
+  - `on`: strict on regardless of profile.
+  - `off`: strict off regardless of profile.
+  - `reflaxe_go_strict` remains a compatibility alias for forcing strict `on`.
 - `reflaxe_go_strict_examples`
   - Enforce strict no raw `__go__` policy for repo examples/snapshots.
 - `reflaxe_go_metal_allow_fallback`
   - Opt-in escape hatch for `metal` profile to allow typed-specialization fallback instead of hard error.
-  - Also disables metal strict-by-default app-boundary enforcement.
-  - Does not affect `reflaxe_go_strict` (explicit strict mode still forbids raw injection).
+  - Does not change strict boundary policy.
   - Does not affect strict examples enforcement in snapshots/examples.
 
 ## Portable native-import gate

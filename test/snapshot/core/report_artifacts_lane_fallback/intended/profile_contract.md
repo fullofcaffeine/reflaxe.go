@@ -4,7 +4,8 @@
 - contract: `metal`
 - auto lowering mode: `off`
 - strict examples: `no`
-- strict user boundaries: `no`
+- strict user boundary policy: `auto`
+- strict user boundaries: `yes`
 - metal fallback allowed: `yes`
 - metal contract hard error: `no`
 - emit line directives: `no`

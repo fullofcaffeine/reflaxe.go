@@ -3,6 +3,7 @@
 	"contract": "portable",
 	"autoLoweringMode": "off",
 	"strictExamples": false,
+	"strictUserBoundaryPolicy": "auto",
 	"strictUserBoundaries": false,
 	"metalFallbackAllowed": false,
 	"metalContractHardError": false,

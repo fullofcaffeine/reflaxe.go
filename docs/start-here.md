@@ -117,8 +117,9 @@ Set via:
 
 - `-D reflaxe_go_strict_examples`: forbids raw `__go__` in repo examples/snapshots.
 - `-D reflaxe_go_strict`: forbids raw `__go__` in app project sources.
-- `metal` enables strict mode by default for app-side injection boundaries.
-- `-D reflaxe_go_metal_allow_fallback`: allows typed-specialization fallback in metal builds (instead of hard error) and disables metal strict-by-default boundary behavior.
+- `-D reflaxe_go_strict_policy=auto|on|off`: explicit app strictness policy (`auto` default: strict in metal, relaxed in portable).
+- `metal` with default strict policy enforces strict app boundaries.
+- `-D reflaxe_go_metal_allow_fallback`: allows typed-specialization fallback in metal builds (instead of hard error) without changing strictness policy.
 - `-D reflaxe_go_portable_native_policy=warn|error|off`: controls `go.*` diagnostics in portable builds (`warn` default, `error` recommended in CI/release).
 - `-D reflaxe_go_portable_native_allow=<csv>`: optional module-prefix allowlist for sanctioned native adapter modules in portable builds.
 - `-D reflaxe_go_line_directives`: opt-in `//line` source mapping directives in generated user functions.

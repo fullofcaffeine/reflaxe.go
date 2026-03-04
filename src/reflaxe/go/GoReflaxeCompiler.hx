@@ -32,6 +32,7 @@ private typedef ContractReportSnapshot = {
 	final contract:String;
 	final autoLoweringMode:String;
 	final strictExamples:Bool;
+	final strictUserBoundaryPolicy:String;
 	final strictUserBoundaries:Bool;
 	final metalFallbackAllowed:Bool;
 	final metalContractHardError:Bool;
@@ -433,6 +434,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			contract: contractLabel,
 			autoLoweringMode: GoAutoLoweringModeTools.label(buildContext.autoLoweringMode),
 			strictExamples: buildContext.strictExamples,
+			strictUserBoundaryPolicy: buildContext.strictUserBoundaryPolicy,
 			strictUserBoundaries: buildContext.strictUserBoundaries,
 			metalFallbackAllowed: buildContext.metalFallbackAllowed,
 			metalContractHardError: buildContext.metalContractHardError,
@@ -631,6 +633,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push('\t"contract": "' + jsonEscape(snapshot.contract) + '",');
 		lines.push('\t"autoLoweringMode": "' + jsonEscape(snapshot.autoLoweringMode) + '",');
 		lines.push('\t"strictExamples": ' + boolString(snapshot.strictExamples) + ",");
+		lines.push('\t"strictUserBoundaryPolicy": "' + jsonEscape(snapshot.strictUserBoundaryPolicy) + '",');
 		lines.push('\t"strictUserBoundaries": ' + boolString(snapshot.strictUserBoundaries) + ",");
 		lines.push('\t"metalFallbackAllowed": ' + boolString(snapshot.metalFallbackAllowed) + ",");
 		lines.push('\t"metalContractHardError": ' + boolString(snapshot.metalContractHardError) + ",");
@@ -673,6 +676,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("- contract: `" + snapshot.contract + "`");
 		lines.push("- auto lowering mode: `" + snapshot.autoLoweringMode + "`");
 		lines.push("- strict examples: `" + boolLabel(snapshot.strictExamples) + "`");
+		lines.push("- strict user boundary policy: `" + snapshot.strictUserBoundaryPolicy + "`");
 		lines.push("- strict user boundaries: `" + boolLabel(snapshot.strictUserBoundaries) + "`");
 		lines.push("- metal fallback allowed: `" + boolLabel(snapshot.metalFallbackAllowed) + "`");
 		lines.push("- metal contract hard error: `" + boolLabel(snapshot.metalContractHardError) + "`");

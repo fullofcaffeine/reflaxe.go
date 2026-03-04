@@ -16,6 +16,7 @@ class GoBuildContext {
 	public final rawNativeMode:RawNativeMode;
 	public final emitLineDirectives:Bool;
 	public final strictExamples:Bool;
+	public final strictUserBoundaryPolicy:String;
 	public final strictUserBoundaries:Bool;
 	public final metalFallbackAllowed:Bool;
 	public final metalContractHardError:Bool;
@@ -33,15 +34,16 @@ class GoBuildContext {
 	public final metalLaneModules:Array<String>;
 
 	public function new(profile:GoProfile, goModuleName:String, rawNativeMode:RawNativeMode, emitLineDirectives:Bool, strictExamples:Bool,
-			strictUserBoundaries:Bool, metalFallbackAllowed:Bool, metalContractHardError:Bool, hxrtForceFullCopy:Bool, hxrtFeaturesDefinePresent:Bool,
-			hxrtNoFeatureInfer:Bool, hxrtManualFeatures:Array<String>, contractReportEnabled:Bool, runtimePlanReportEnabled:Bool,
-			optimizerPlanReportEnabled:Bool, autoLoweringMode:GoAutoLoweringMode, optimizationPreset:String, portableStringFastpathEnabled:Bool,
-			portableConcurrencyFastpathEnabled:Bool, metalLaneModules:Array<String>) {
+			strictUserBoundaryPolicy:String, strictUserBoundaries:Bool, metalFallbackAllowed:Bool, metalContractHardError:Bool, hxrtForceFullCopy:Bool,
+			hxrtFeaturesDefinePresent:Bool, hxrtNoFeatureInfer:Bool, hxrtManualFeatures:Array<String>, contractReportEnabled:Bool,
+			runtimePlanReportEnabled:Bool, optimizerPlanReportEnabled:Bool, autoLoweringMode:GoAutoLoweringMode, optimizationPreset:String,
+			portableStringFastpathEnabled:Bool, portableConcurrencyFastpathEnabled:Bool, metalLaneModules:Array<String>) {
 		this.profile = profile;
 		this.goModuleName = normalizeGoModuleName(goModuleName);
 		this.rawNativeMode = rawNativeMode == null ? RawNativeMode.Interp : rawNativeMode;
 		this.emitLineDirectives = emitLineDirectives == true;
 		this.strictExamples = strictExamples == true;
+		this.strictUserBoundaryPolicy = normalizeStrictUserBoundaryPolicy(strictUserBoundaryPolicy);
 		this.strictUserBoundaries = strictUserBoundaries == true;
 		this.metalFallbackAllowed = metalFallbackAllowed == true;
 		this.metalContractHardError = metalContractHardError == true;
@@ -68,16 +70,16 @@ class GoBuildContext {
 	}
 
 	public function withMetalLaneModules(metalLaneModules:Array<String>):GoBuildContext {
-		return new GoBuildContext(profile, goModuleName, rawNativeMode, emitLineDirectives, strictExamples, strictUserBoundaries, metalFallbackAllowed,
-			metalContractHardError, hxrtForceFullCopy, hxrtFeaturesDefinePresent, hxrtNoFeatureInfer, hxrtManualFeatures, contractReportEnabled,
-			runtimePlanReportEnabled, optimizerPlanReportEnabled, autoLoweringMode, optimizationPreset, portableStringFastpathEnabled,
+		return new GoBuildContext(profile, goModuleName, rawNativeMode, emitLineDirectives, strictExamples, strictUserBoundaryPolicy, strictUserBoundaries,
+			metalFallbackAllowed, metalContractHardError, hxrtForceFullCopy, hxrtFeaturesDefinePresent, hxrtNoFeatureInfer, hxrtManualFeatures,
+			contractReportEnabled, runtimePlanReportEnabled, optimizerPlanReportEnabled, autoLoweringMode, optimizationPreset, portableStringFastpathEnabled,
 			portableConcurrencyFastpathEnabled, metalLaneModules);
 	}
 
 	public static function legacyDefaults(profile:GoProfile, ?goModuleName:String, ?rawNativeMode:RawNativeMode, ?emitLineDirectives:Bool):GoBuildContext {
 		return new GoBuildContext(profile, normalizeGoModuleName(goModuleName), rawNativeMode == null ? RawNativeMode.Interp : rawNativeMode,
-			emitLineDirectives == true, false, false, false, false, false, false, false, [], false, false, false, GoAutoLoweringMode.Off, "portable_fast",
-			true, true, []);
+			emitLineDirectives == true, false, "auto", false, false, false, false, false, false, [], false, false, false, GoAutoLoweringMode.Off,
+			"portable_fast", true, true, []);
 	}
 
 	static function normalizeGoModuleName(raw:Null<String>):String {
@@ -122,5 +124,13 @@ class GoBuildContext {
 		}
 		var trimmed = StringTools.trim(raw).toLowerCase();
 		return trimmed == "" ? "portable_fast" : trimmed;
+	}
+
+	static function normalizeStrictUserBoundaryPolicy(raw:Null<String>):String {
+		if (raw == null) {
+			return "auto";
+		}
+		var trimmed = StringTools.trim(raw).toLowerCase();
+		return trimmed == "" ? "auto" : trimmed;
 	}
 }
