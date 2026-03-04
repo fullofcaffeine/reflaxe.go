@@ -25,6 +25,7 @@ Goal:
   - deterministic non-string null-equality behavior (`== null` / `!= null` on typed references)
   - deterministic `go.Chan<T>` non-blocking behavior (`trySend`, `recvOr`, `tryRecv`)
   - deterministic `go.Result` success/failure semantics (`isOk`/`isErr`/`unwrap`/`error`, `Go.ok`/`Go.fail`)
+  - deterministic portable+auto fallback parity for ineligible typed `go.Slice`/`go.Map`/`go.Result` specializations
   - exceptions
   - enum/switch bindings
   - virtual dispatch

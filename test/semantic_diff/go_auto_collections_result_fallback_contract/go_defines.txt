@@ -1,0 +1,2 @@
+# Keep semantic contract portable while enabling auto-lowering attempts.
+reflaxe_go_auto=auto
