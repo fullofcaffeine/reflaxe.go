@@ -60,6 +60,27 @@ Detailed profile policy: [/docs/profiles.md](/docs/profiles.md)
 - `-D reflaxe_go_strict`: forbids raw `__go__` in app code.
 - `-D reflaxe_go_strict_policy=auto|on|off`: app strictness policy (`auto` default: strict in `metal`, relaxed in `portable`).
 
+## Where is the stdlib?
+
+Short answer: most of it is **not** copied into this repo under `std/`.
+
+Beginner mental model:
+
+1. You still start from the upstream Haxe stdlib.
+2. `reflaxe.go` adds only the target-specific parts it needs:
+   - staged overrides in `std/_std`
+   - Go facade modules in `std/go`
+   - runtime helper files in `runtime/hxrt`
+   - compiler-emitted shims in `src/reflaxe/go/GoCompiler.hx`
+
+Why this is done:
+
+- it avoids maintaining a full stdlib fork in this repository,
+- it lets parity work land incrementally with tests,
+- and it keeps target-specific behavior isolated.
+
+Deep dive and ownership details: [/docs/stdlib-shim-rationale.md](/docs/stdlib-shim-rationale.md).
+
 ## Performance and release checks
 
 ```bash

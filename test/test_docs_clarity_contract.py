@@ -45,6 +45,14 @@ class DocsClarityContractTest(unittest.TestCase):
         self.assertIn("/docs/glossary.md", profiles)
         self.assertIn("/docs/glossary.md", start_here)
 
+    def test_start_here_explains_why_std_folder_is_small(self) -> None:
+        start_here = (REPO_ROOT / "docs" / "start-here.md").read_text(encoding="utf-8")
+        self.assertIn("## Where is the stdlib?", start_here)
+        self.assertIn("upstream Haxe stdlib", start_here)
+        self.assertIn("runtime/hxrt", start_here)
+        self.assertIn("src/reflaxe/go/GoCompiler.hx", start_here)
+        self.assertIn("docs/stdlib-shim-rationale.md", start_here)
+
     def test_docs_internal_links_do_not_use_docs_relative_prefix(self) -> None:
         targets = [
             "docs/index.md",
