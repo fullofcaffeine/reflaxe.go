@@ -8,10 +8,10 @@ Use profiles to choose the compiler contract for your build.
 
 ## Terms
 
-- [portable](docs/glossary.md#portable-profile): portability-first profile.
-- [metal](docs/glossary.md#metal-profile): Go-first profile with stricter defaults.
-- [lane](docs/glossary.md#lane): scoped enforcement zone (for example `@:goMetal` modules).
-- [fallback](docs/glossary.md#fallback): safe path when strict typed lowering cannot apply.
+- [portable](/docs/glossary.md#portable-profile): portability-first profile.
+- [metal](/docs/glossary.md#metal-profile): Go-first profile with stricter defaults.
+- [lane](/docs/glossary.md#lane): scoped enforcement zone (for example `@:goMetal` modules).
+- [fallback](/docs/glossary.md#fallback): safe path when strict typed lowering cannot apply.
 
 ## Matrix
 

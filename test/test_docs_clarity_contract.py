@@ -42,8 +42,22 @@ class DocsClarityContractTest(unittest.TestCase):
     def test_profile_and_start_here_reference_glossary(self) -> None:
         profiles = (REPO_ROOT / "docs" / "profiles.md").read_text(encoding="utf-8")
         start_here = (REPO_ROOT / "docs" / "start-here.md").read_text(encoding="utf-8")
-        self.assertIn("docs/glossary.md", profiles)
-        self.assertIn("docs/glossary.md", start_here)
+        self.assertIn("/docs/glossary.md", profiles)
+        self.assertIn("/docs/glossary.md", start_here)
+
+    def test_docs_internal_links_do_not_use_docs_relative_prefix(self) -> None:
+        targets = [
+            "docs/index.md",
+            "docs/start-here.md",
+            "docs/profiles.md",
+            "docs/profile-semantics-guide.md",
+            "docs/semantic-diff-guide.md",
+            "docs/examples-matrix.md",
+            "docs/hxrt-runtime.md",
+        ]
+        for rel in targets:
+            text = (REPO_ROOT / rel).read_text(encoding="utf-8")
+            self.assertNotIn("](docs/", text, f"{rel} should use root-relative /docs/ links")
 
 
 if __name__ == "__main__":

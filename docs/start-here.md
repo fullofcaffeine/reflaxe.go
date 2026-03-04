@@ -4,9 +4,9 @@ This is the shortest path from clone -> running app -> understanding profile cho
 
 ## Terms
 
-- [profile](docs/glossary.md#profile): build contract (`portable` or `metal`).
-- [`hxrt`](docs/glossary.md#hxrt): runtime package copied into generated output.
-- [semantic diff](docs/glossary.md#semantic-diff): behavior parity test versus Haxe `--interp`.
+- [profile](/docs/glossary.md#profile): build contract (`portable` or `metal`).
+- [`hxrt`](/docs/glossary.md#hxrt): runtime package copied into generated output.
+- [semantic diff](/docs/glossary.md#semantic-diff): behavior parity test versus Haxe `--interp`.
 
 ## What this target does
 
@@ -52,7 +52,7 @@ Use:
 - `portable`: best default for shared/cross-target-friendly code.
 - `metal`: opt-in Go-first lanes with stricter defaults and stronger typed specialization pressure.
 
-Detailed profile policy: [docs/profiles.md](docs/profiles.md)
+Detailed profile policy: [/docs/profiles.md](/docs/profiles.md)
 
 ## Strict policy knobs
 
@@ -69,7 +69,7 @@ npm run test:perf:apps
 npm run release:status
 ```
 
-Release checklist: [docs/release-readiness-checklist.md](docs/release-readiness-checklist.md)
+Release checklist: [/docs/release-readiness-checklist.md](/docs/release-readiness-checklist.md)
 
 ## Related docs
 

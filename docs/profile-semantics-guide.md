@@ -4,10 +4,10 @@ This guide explains the practical and semantic differences between profiles.
 
 ## Terms
 
-- [portable](docs/glossary.md#portable-profile): portability-first profile contract.
-- [metal](docs/glossary.md#metal-profile): Go-first profile contract.
-- [fallback](docs/glossary.md#fallback): safe path used when strict typed lowering cannot apply.
-- [semantic diff](docs/glossary.md#semantic-diff): runtime behavior parity test against Haxe `--interp`.
+- [portable](/docs/glossary.md#portable-profile): portability-first profile contract.
+- [metal](/docs/glossary.md#metal-profile): Go-first profile contract.
+- [fallback](/docs/glossary.md#fallback): safe path used when strict typed lowering cannot apply.
+- [semantic diff](/docs/glossary.md#semantic-diff): runtime behavior parity test against Haxe `--interp`.
 
 ## Quick answer
 
