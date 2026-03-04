@@ -52,6 +52,34 @@ If your code path falls outside this subset, start from `portable` and promote o
 
 Framework-owned typed facades are allowed in `metal` strict mode; raw app-side injection remains disallowed.
 
+## Metal collection purity policy (examples)
+
+Current collection-purity enforcement for examples is staged:
+
+1. Hard enforcement scope (default gate):
+   - `examples/*/profile/MetalRuntime.hx`
+   - `examples/*/app/runtime/GoNativeRuntime.hx`
+2. Full-build scope:
+   - currently audit-only (non-blocking by default), used for migration visibility.
+
+Checker entrypoint: `test/run-metal-example-boundary.py`
+
+- hard boundary gate:
+  - `python3 test/run-metal-example-boundary.py`
+- full-build audit report:
+  - `python3 test/run-metal-example-boundary.py --scope full --mode audit --report .cache/metal-example-boundary/full-scope-audit.json`
+- optional strict threshold (for nightly/experiments):
+  - `python3 test/run-metal-example-boundary.py --scope full --mode audit --report .cache/metal-example-boundary/full-scope-audit.json --max-violations 0`
+
+Allowlist policy:
+
+- allowlists must be explicit file-level exceptions with owner + reason + removal milestone.
+- avoid broad wildcard allowlists.
+- use allowlists as temporary migration tools, not permanent policy.
+
+Policy decision and rationale:
+- `docs/spikes/metal-build-collection-purity-policy.md`
+
 ## `@:goMetal` lanes (portable builds)
 
 `@:goMetal` marks module islands that must obey metal-clean restrictions even when the build contract is `portable`.

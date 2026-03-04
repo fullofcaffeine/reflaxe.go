@@ -11,6 +11,44 @@
 | `examples/pulseforge` | Yes | Yes | Flagship app scaffold proving profile matrix + explicit variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
 | `examples/fluxproxy` | Yes | Yes | Flagship proxy scaffold with profile matrix + variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
 
+## Metal collection purity gates (examples)
+
+Examples use staged collection-purity enforcement:
+
+- Hard gate (default): metal boundary modules only
+  - `examples/*/profile/MetalRuntime.hx`
+  - `examples/*/app/runtime/GoNativeRuntime.hx`
+- Full-tree audit: reports `haxe.ds.*` imports across all example modules, non-blocking by default.
+
+Commands:
+
+```bash
+# hard gate
+python3 test/run-metal-example-boundary.py
+
+# full-tree audit report
+python3 test/run-metal-example-boundary.py --scope full --mode audit --report .cache/metal-example-boundary/full-scope-audit.json
+
+# optional strict threshold mode (fails if violation count exceeds threshold)
+python3 test/run-metal-example-boundary.py --scope full --mode audit --report .cache/metal-example-boundary/full-scope-audit.json --max-violations 0
+```
+
+CI:
+
+- `ci-harness.yml` quality job runs hard gate via `npm run test:ci`.
+- the same job also uploads a full-scope audit artifact (`metal-collection-audit`).
+- strict threshold mode is opt-in via CI env:
+  - `GO_METAL_COLLECTION_AUDIT_ENFORCE=1`
+  - `GO_METAL_COLLECTION_AUDIT_MAX=<n>`
+
+Allowlist rule:
+
+- if temporary exceptions are needed, keep them file-specific, justified, and time-bounded.
+- do not use broad `examples/**` exception patterns.
+
+Policy spike:
+- `docs/spikes/metal-build-collection-purity-policy.md`
+
 ## Profile performance teaching contract
 
 Examples intentionally show two valid outcomes:

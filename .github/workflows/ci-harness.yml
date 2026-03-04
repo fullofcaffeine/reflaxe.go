@@ -20,6 +20,8 @@ env:
   NODE_VERSION: "20"
   HAXE_VERSION: "4.3.7"
   GO_VERSION: "1.23.x"
+  GO_METAL_COLLECTION_AUDIT_ENFORCE: "0"
+  GO_METAL_COLLECTION_AUDIT_MAX: "0"
 
 jobs:
   quality:
@@ -53,6 +55,23 @@ jobs:
 
       - name: Run stable CI surface
         run: npm run test:ci
+
+      - name: Run full-scope metal collection audit
+        run: |
+          set -euo pipefail
+          cmd=(python3 test/run-metal-example-boundary.py --scope full --mode audit --report .cache/metal-example-boundary/full-scope-audit.json)
+          if [[ "${GO_METAL_COLLECTION_AUDIT_ENFORCE}" == "1" ]]; then
+            cmd+=(--max-violations "${GO_METAL_COLLECTION_AUDIT_MAX}")
+          fi
+          "${cmd[@]}"
+
+      - name: Upload metal collection audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: metal-collection-audit
+          path: .cache/metal-example-boundary
+          if-no-files-found: warn
 
       - name: Check release visibility state
         env:
