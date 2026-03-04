@@ -54,6 +54,35 @@ def require_counter_gt(obj: dict[str, Any], key: str, threshold: int, label: str
         raise SystemExit(f"{label}.{key}: expected > {threshold}, got {value}")
 
 
+def require_optimizer_capabilities(value: Any, label: str) -> None:
+    if not isinstance(value, list):
+        raise SystemExit(f"{label}: expected array")
+    for index, entry in enumerate(value):
+        if not isinstance(entry, dict):
+            raise SystemExit(f"{label}[{index}]: expected object")
+        for key in ("id", "attempts", "successes", "fallbacks", "fallbackReasonCounts"):
+            if key not in entry:
+                raise SystemExit(f"{label}[{index}]: missing key `{key}`")
+        if not isinstance(entry["id"], str) or entry["id"].strip() == "":
+            raise SystemExit(f"{label}[{index}].id: expected non-empty string")
+        require_int(entry["attempts"], f"{label}[{index}].attempts")
+        require_int(entry["successes"], f"{label}[{index}].successes")
+        require_int(entry["fallbacks"], f"{label}[{index}].fallbacks")
+        reasons = entry["fallbackReasonCounts"]
+        if not isinstance(reasons, list):
+            raise SystemExit(f"{label}[{index}].fallbackReasonCounts: expected array")
+        for reason_index, reason in enumerate(reasons):
+            if not isinstance(reason, dict):
+                raise SystemExit(f"{label}[{index}].fallbackReasonCounts[{reason_index}]: expected object")
+            if "kind" not in reason or "count" not in reason:
+                raise SystemExit(
+                    f"{label}[{index}].fallbackReasonCounts[{reason_index}]: missing `kind` or `count`"
+                )
+            if not isinstance(reason["kind"], str) or reason["kind"].strip() == "":
+                raise SystemExit(f"{label}[{index}].fallbackReasonCounts[{reason_index}].kind: expected string")
+            require_int(reason["count"], f"{label}[{index}].fallbackReasonCounts[{reason_index}].count")
+
+
 def require_reason_entries(entries: list[Any], expected_source_prefix: str, label: str) -> None:
     for index, entry in enumerate(entries):
         if not isinstance(entry, dict):
@@ -107,7 +136,7 @@ def main() -> int:
     )
 
     optimizer = load_json(optimizer_path)
-    require_schema(optimizer, 4, str(optimizer_path))
+    require_schema(optimizer, 5, str(optimizer_path))
     require_keys(
         optimizer,
         [
@@ -122,6 +151,7 @@ def main() -> int:
             "goResultTypedFallbacks",
             "loweringFallbackLaneCount",
             "loweringFallbackNonLaneCount",
+            "autoLoweringCapabilities",
         ],
         str(optimizer_path),
     )
@@ -132,18 +162,27 @@ def main() -> int:
         )
     planner_reasons = require_nonempty_list(optimizer["goAstPassSelectionReasons"], str(optimizer_path))
     require_reason_entries(planner_reasons, "planner", str(optimizer_path))
+    require_optimizer_capabilities(optimizer["autoLoweringCapabilities"], str(optimizer_path) + ".autoLoweringCapabilities")
 
     optimizer_legacy = load_json(optimizer_legacy_path)
-    require_schema(optimizer_legacy, 4, str(optimizer_legacy_path))
+    require_schema(optimizer_legacy, 5, str(optimizer_legacy_path))
     if optimizer_legacy.get("goAstPassSelectionSource") != "legacy_granular_bundle":
         raise SystemExit(
             f"{optimizer_legacy_path}: goAstPassSelectionSource expected `legacy_granular_bundle`, got `{optimizer_legacy.get('goAstPassSelectionSource')}`"
         )
     legacy_reasons = require_nonempty_list(optimizer_legacy.get("goAstPassSelectionReasons"), str(optimizer_legacy_path))
     require_reason_entries(legacy_reasons, "legacy_granular_bundle", str(optimizer_legacy_path))
+    require_optimizer_capabilities(
+        optimizer_legacy.get("autoLoweringCapabilities"),
+        str(optimizer_legacy_path) + ".autoLoweringCapabilities",
+    )
 
     optimizer_typed = load_json(optimizer_typed_path)
-    require_schema(optimizer_typed, 4, str(optimizer_typed_path))
+    require_schema(optimizer_typed, 5, str(optimizer_typed_path))
+    require_optimizer_capabilities(
+        optimizer_typed.get("autoLoweringCapabilities"),
+        str(optimizer_typed_path) + ".autoLoweringCapabilities",
+    )
     require_counter_gt(optimizer_typed, "goCollectionsTypedLowerings", 0, str(optimizer_typed_path))
     require_counter_eq(optimizer_typed, "goCollectionsTypedFallbacks", 0, str(optimizer_typed_path))
     require_counter_gt(optimizer_typed, "goResultTypedLowerings", 0, str(optimizer_typed_path))
@@ -151,7 +190,11 @@ def main() -> int:
     require_counter_eq(optimizer_typed, "loweringFallbackNonLaneCount", 0, str(optimizer_typed_path))
 
     optimizer_fallback = load_json(optimizer_fallback_path)
-    require_schema(optimizer_fallback, 4, str(optimizer_fallback_path))
+    require_schema(optimizer_fallback, 5, str(optimizer_fallback_path))
+    require_optimizer_capabilities(
+        optimizer_fallback.get("autoLoweringCapabilities"),
+        str(optimizer_fallback_path) + ".autoLoweringCapabilities",
+    )
     require_counter_eq(optimizer_fallback, "goCollectionsTypedLowerings", 0, str(optimizer_fallback_path))
     require_counter_gt(optimizer_fallback, "goCollectionsTypedFallbacks", 0, str(optimizer_fallback_path))
     require_counter_eq(optimizer_fallback, "goResultTypedLowerings", 0, str(optimizer_fallback_path))

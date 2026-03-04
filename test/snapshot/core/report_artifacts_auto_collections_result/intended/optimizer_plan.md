@@ -1,6 +1,6 @@
 # Optimizer Plan Report
 
-- schema version: `4`
+- schema version: `5`
 - contract: `portable`
 - auto lowering mode: `auto`
 - optimization preset: `portable_fast`
@@ -19,6 +19,14 @@
 - lowering fallback lane count: `0`
 - lowering fallback non-lane count: `0`
 - go ast pass selection source: `planner`
+
+## auto lowering capabilities
+- `go.collections.typed` | attempts `7` | success `7` | fallback `0`
+  fallback reasons: none
+- `go.concurrency.typed` | attempts `2` | success `0` | fallback `0`
+  fallback reasons: none
+- `go.result.typed` | attempts `3` | success `3` | fallback `0`
+  fallback reasons: none
 
 ## go ast passes
 - `normalize_names`

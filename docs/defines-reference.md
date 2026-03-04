@@ -137,7 +137,7 @@ Removed:
   - Emit `hxrt_plan.json` and `hxrt_plan.md` into output root with selected runtime features/files and selection reasons.
 - `reflaxe_go_optimizer_plan_report`
   - Emit `optimizer_plan.json` and `optimizer_plan.md` into output root with effective optimizer preset/capabilities and applied lowering counters.
-  - `optimizer_plan.json` schema v4 includes `autoLoweringMode`, pass-plan selection fields (`goAstPassSelectionSource`, `goAstPassSelectionReasons`), typed-lowering counters (`goCollectionsTypedLowerings`, `goCollectionsTypedFallbacks`, `goResultTypedLowerings`, `goResultTypedFallbacks`), and lane-scoped fallback counters (`loweringFallbackLaneCount`, `loweringFallbackNonLaneCount`).
+  - `optimizer_plan.json` schema v5 includes `autoLoweringMode`, pass-plan selection fields (`goAstPassSelectionSource`, `goAstPassSelectionReasons`), typed-lowering counters (`goCollectionsTypedLowerings`, `goCollectionsTypedFallbacks`, `goResultTypedLowerings`, `goResultTypedFallbacks`), lane-scoped fallback counters (`loweringFallbackLaneCount`, `loweringFallbackNonLaneCount`), and deterministic capability-level auto-lowering summaries (`autoLoweringCapabilities` with attempt/success/fallback counts plus fallback reason counts).
 
 ## Constructor devex
 

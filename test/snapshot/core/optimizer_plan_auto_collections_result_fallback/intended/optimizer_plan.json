@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 4,
+	"schemaVersion": 5,
 	"contract": "portable",
 	"autoLoweringMode": "auto",
 	"optimizationPreset": "portable_fast",
@@ -17,6 +17,48 @@
 	"goResultTypedFallbacks": 2,
 	"loweringFallbackLaneCount": 0,
 	"loweringFallbackNonLaneCount": 5,
+	"autoLoweringCapabilities": [
+		{
+			"id": "go.collections.typed",
+			"attempts": 3,
+			"successes": 0,
+			"fallbacks": 3,
+			"fallbackReasonCounts": [
+				{
+					"kind": "go_map_method_unmorphable",
+					"count": 2
+				},
+				{
+					"kind": "go_slice_method_unmorphable",
+					"count": 1
+				}
+			]
+		},
+		{
+			"id": "go.concurrency.typed",
+			"attempts": 2,
+			"successes": 0,
+			"fallbacks": 0,
+			"fallbackReasonCounts": [
+			]
+		},
+		{
+			"id": "go.result.typed",
+			"attempts": 2,
+			"successes": 0,
+			"fallbacks": 2,
+			"fallbackReasonCounts": [
+				{
+					"kind": "go_result_method_unmorphable",
+					"count": 1
+				},
+				{
+					"kind": "go_result_static_ok_unmorphable",
+					"count": 1
+				}
+			]
+		}
+	],
 	"goAstPassSelectionSource": "planner",
 	"goAstPasses": [
 		"normalize_names",

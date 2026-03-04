@@ -140,12 +140,33 @@ private typedef OptimizerPlanReportSnapshot = {
 	final goResultTypedFallbacks:Int;
 	final loweringFallbackLaneCount:Int;
 	final loweringFallbackNonLaneCount:Int;
+	final autoLoweringCapabilities:Array<OptimizerCapabilitySummary>;
 }
 
 private typedef OptimizerPassSelectionReason = {
 	final pass:String;
 	final reason:String;
 	final source:String;
+}
+
+private typedef OptimizerCapabilitySummary = {
+	final id:String;
+	final attempts:Int;
+	final successes:Int;
+	final fallbacks:Int;
+	final fallbackReasonCounts:Array<OptimizerCapabilityFallbackReasonCount>;
+}
+
+private typedef OptimizerCapabilityFallbackReasonCount = {
+	final kind:String;
+	final count:Int;
+}
+
+private typedef OptimizerCapabilityAccumulator = {
+	var attempts:Int;
+	var successes:Int;
+	var fallbacks:Int;
+	var fallbackReasonCounts:Map<String, Int>;
 }
 
 class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dynamic> {
@@ -553,6 +574,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		var goAstPassSelectionReasons:Array<OptimizerPassSelectionReason> = [];
 		var loweringFallbackLaneCount = 0;
 		var loweringFallbackNonLaneCount = 0;
+		var autoLoweringCapabilities:Array<OptimizerCapabilitySummary> = [];
 		if (context != null) {
 			goAstPasses = context.appliedGoAstPassNames.copy();
 			goAstPassSelectionSource = context.selectedGoAstPassSource;
@@ -576,9 +598,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 					loweringFallbackNonLaneCount++;
 				}
 			}
+			autoLoweringCapabilities = buildOptimizerCapabilitySummaries(context);
 		}
 		return {
-			schemaVersion: 4,
+			schemaVersion: 5,
 			contract: contractLabel,
 			autoLoweringMode: GoAutoLoweringModeTools.label(buildContext.autoLoweringMode),
 			optimizationPreset: buildContext.optimizationPreset,
@@ -598,7 +621,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			goResultTypedLowerings: context == null ? 0 : context.optimizerGoResultTypedLowerings,
 			goResultTypedFallbacks: context == null ? 0 : context.optimizerGoResultTypedFallbacks,
 			loweringFallbackLaneCount: loweringFallbackLaneCount,
-			loweringFallbackNonLaneCount: loweringFallbackNonLaneCount
+			loweringFallbackNonLaneCount: loweringFallbackNonLaneCount,
+			autoLoweringCapabilities: autoLoweringCapabilities
 		};
 	}
 
@@ -642,6 +666,67 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			return Reflect.compare(a.source, b.source);
 		});
 		return reasons;
+	}
+
+	function buildOptimizerCapabilitySummaries(context:CompilationContext):Array<OptimizerCapabilitySummary> {
+		var byCapability:Map<String, OptimizerCapabilityAccumulator> = [];
+		for (entry in context.loweringDecisionLedger) {
+			if (entry == null) {
+				continue;
+			}
+			var capability = entry.feature == null ? "" : StringTools.trim(entry.feature);
+			if (capability == "") {
+				continue;
+			}
+			var accumulator = byCapability.get(capability);
+			if (accumulator == null) {
+				accumulator = {
+					attempts: 0,
+					successes: 0,
+					fallbacks: 0,
+					fallbackReasonCounts: []
+				};
+				byCapability.set(capability, accumulator);
+			}
+			switch (entry.outcome) {
+				case "attempted":
+					accumulator.attempts++;
+				case "succeeded":
+					accumulator.successes++;
+				case "fallback":
+					accumulator.fallbacks++;
+					var kind = entry.kind == null ? "" : StringTools.trim(entry.kind);
+					if (kind != "") {
+						incrementIntMap(accumulator.fallbackReasonCounts, kind);
+					}
+				case _:
+			}
+		}
+
+		var capabilityIds = sortedUniqueStrings([for (id in byCapability.keys()) id]);
+		var summaries:Array<OptimizerCapabilitySummary> = [];
+		for (capability in capabilityIds) {
+			var accumulator = byCapability.get(capability);
+			if (accumulator == null) {
+				continue;
+			}
+			var kinds = sortedUniqueStrings([for (kind in accumulator.fallbackReasonCounts.keys()) kind]);
+			var reasonCounts:Array<OptimizerCapabilityFallbackReasonCount> = [];
+			for (kind in kinds) {
+				reasonCounts.push({
+					kind: kind,
+					count: accumulator.fallbackReasonCounts.get(kind)
+				});
+			}
+			summaries.push({
+				id: capability,
+				attempts: accumulator.attempts,
+				successes: accumulator.successes,
+				fallbacks: accumulator.fallbacks,
+				fallbackReasonCounts: reasonCounts
+			});
+		}
+		return summaries;
 	}
 
 	static function compareContractFallbackViolations(a:ContractFallbackViolation, b:ContractFallbackViolation):Int {
@@ -1037,6 +1122,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push('\t"goResultTypedFallbacks": ' + snapshot.goResultTypedFallbacks + ",");
 		lines.push('\t"loweringFallbackLaneCount": ' + snapshot.loweringFallbackLaneCount + ",");
 		lines.push('\t"loweringFallbackNonLaneCount": ' + snapshot.loweringFallbackNonLaneCount + ",");
+		lines.push('\t"autoLoweringCapabilities": [');
+		appendJsonOptimizerCapabilitySummaries(lines, snapshot.autoLoweringCapabilities, 2);
+		lines.push("\t],");
 		lines.push('\t"goAstPassSelectionSource": "' + jsonEscape(snapshot.goAstPassSelectionSource) + '",');
 		lines.push('\t"goAstPasses": [');
 		appendJsonStringArray(lines, snapshot.goAstPasses, 2);
@@ -1071,6 +1159,25 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("- lowering fallback lane count: `" + snapshot.loweringFallbackLaneCount + "`");
 		lines.push("- lowering fallback non-lane count: `" + snapshot.loweringFallbackNonLaneCount + "`");
 		lines.push("- go ast pass selection source: `" + snapshot.goAstPassSelectionSource + "`");
+		lines.push("");
+		lines.push("## auto lowering capabilities");
+		if (snapshot.autoLoweringCapabilities.length == 0) {
+			lines.push("- none");
+		} else {
+			for (capability in snapshot.autoLoweringCapabilities) {
+				lines.push("- `" + capability.id + "` | attempts `" + capability.attempts + "` | success `" + capability.successes + "` | fallback `"
+					+ capability.fallbacks + "`");
+				if (capability.fallbackReasonCounts.length == 0) {
+					lines.push("  fallback reasons: none");
+				} else {
+					var parts = new Array<String>();
+					for (reason in capability.fallbackReasonCounts) {
+						parts.push(reason.kind + "=" + reason.count);
+					}
+					lines.push("  fallback reasons: " + parts.join(", "));
+				}
+			}
+		}
 		lines.push("");
 		lines.push("## go ast passes");
 		if (snapshot.goAstPasses.length == 0) {
@@ -1183,6 +1290,36 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			lines.push(indent + '\t"pass": "' + jsonEscape(entry.pass) + '",');
 			lines.push(indent + '\t"source": "' + jsonEscape(entry.source) + '",');
 			lines.push(indent + '\t"reason": "' + jsonEscape(entry.reason) + '"');
+			lines.push(indent + "}" + suffix);
+		}
+	}
+
+	static function appendJsonOptimizerCapabilitySummaries(lines:Array<String>, capabilities:Array<OptimizerCapabilitySummary>, indentLevel:Int):Void {
+		var indent = [for (_ in 0...indentLevel) "\t"].join("");
+		for (index in 0...capabilities.length) {
+			var entry = capabilities[index];
+			var suffix = index == capabilities.length - 1 ? "" : ",";
+			lines.push(indent + "{");
+			lines.push(indent + '\t"id": "' + jsonEscape(entry.id) + '",');
+			lines.push(indent + '\t"attempts": ' + entry.attempts + ",");
+			lines.push(indent + '\t"successes": ' + entry.successes + ",");
+			lines.push(indent + '\t"fallbacks": ' + entry.fallbacks + ",");
+			lines.push(indent + '\t"fallbackReasonCounts": [');
+			appendJsonOptimizerCapabilityFallbackReasonCounts(lines, entry.fallbackReasonCounts, indentLevel + 2);
+			lines.push(indent + "\t]");
+			lines.push(indent + "}" + suffix);
+		}
+	}
+
+	static function appendJsonOptimizerCapabilityFallbackReasonCounts(lines:Array<String>, reasons:Array<OptimizerCapabilityFallbackReasonCount>,
+			indentLevel:Int):Void {
+		var indent = [for (_ in 0...indentLevel) "\t"].join("");
+		for (index in 0...reasons.length) {
+			var entry = reasons[index];
+			var suffix = index == reasons.length - 1 ? "" : ",";
+			lines.push(indent + "{");
+			lines.push(indent + '\t"kind": "' + jsonEscape(entry.kind) + '",');
+			lines.push(indent + '\t"count": ' + entry.count);
 			lines.push(indent + "}" + suffix);
 		}
 	}

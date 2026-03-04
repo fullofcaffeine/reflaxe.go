@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 4,
+	"schemaVersion": 5,
 	"contract": "portable",
 	"autoLoweringMode": "off",
 	"optimizationPreset": "portable_fast",
@@ -17,6 +17,16 @@
 	"goResultTypedFallbacks": 0,
 	"loweringFallbackLaneCount": 0,
 	"loweringFallbackNonLaneCount": 0,
+	"autoLoweringCapabilities": [
+		{
+			"id": "go.concurrency.typed",
+			"attempts": 5,
+			"successes": 3,
+			"fallbacks": 0,
+			"fallbackReasonCounts": [
+			]
+		}
+	],
 	"goAstPassSelectionSource": "planner",
 	"goAstPasses": [
 		"normalize_names",

@@ -146,9 +146,10 @@ Opt-in report defines:
 - `metalFallbackNonLaneViolationCount`
 - `metalFallbackViolationsByModule`
 
-`optimizer_plan.json` (schema v4) includes planner-selected pass-set provenance (`goAstPassSelectionSource`, `goAstPassSelectionReasons`), typed-lowering counters (`goCollectionsTypedLowerings`, `goCollectionsTypedFallbacks`, `goResultTypedLowerings`, `goResultTypedFallbacks`), and lane-scoped lowering fallback summary:
+`optimizer_plan.json` (schema v5) includes planner-selected pass-set provenance (`goAstPassSelectionSource`, `goAstPassSelectionReasons`), typed-lowering counters (`goCollectionsTypedLowerings`, `goCollectionsTypedFallbacks`, `goResultTypedLowerings`, `goResultTypedFallbacks`), lane-scoped lowering fallback summary, and capability-level auto-lowering summaries:
 - `loweringFallbackLaneCount`
 - `loweringFallbackNonLaneCount`
+- `autoLoweringCapabilities` (`id`, `attempts`, `successes`, `fallbacks`, `fallbackReasonCounts`)
 
 Snapshot coverage:
 - `test/snapshot/core/report_artifacts_basic`

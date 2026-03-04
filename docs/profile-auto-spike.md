@@ -67,7 +67,7 @@ The CI harness now includes a dedicated auto-planner schema stage on full runs:
 - `npm run test:auto-planner:schema`
   - Validates deterministic report contracts from snapshot artifacts:
     - `profile_contract.json` schema v7 + required planner/native-scan keys
-    - `optimizer_plan.json` schema v4 + pass-selection source/reason keys
+    - `optimizer_plan.json` schema v5 + pass-selection source/reason keys + capability-level auto-lowering summary keys (`autoLoweringCapabilities`)
     - `hxrt_plan.json` schema v1 + runtime-plan core keys
   - Verifies planner vs compatibility fallback sources:
     - planner case: `goAstPassSelectionSource=planner`

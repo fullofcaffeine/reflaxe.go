@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 4,
+	"schemaVersion": 5,
 	"contract": "portable",
 	"autoLoweringMode": "off",
 	"optimizationPreset": "portable_fast",
@@ -17,6 +17,8 @@
 	"goResultTypedFallbacks": 0,
 	"loweringFallbackLaneCount": 0,
 	"loweringFallbackNonLaneCount": 0,
+	"autoLoweringCapabilities": [
+	],
 	"goAstPassSelectionSource": "legacy_granular_bundle",
 	"goAstPasses": [
 		"normalize_names",

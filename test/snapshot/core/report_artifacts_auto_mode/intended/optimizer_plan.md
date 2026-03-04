@@ -1,6 +1,6 @@
 # Optimizer Plan Report
 
-- schema version: `4`
+- schema version: `5`
 - contract: `portable`
 - auto lowering mode: `auto`
 - optimization preset: `portable_fast`
@@ -19,6 +19,9 @@
 - lowering fallback lane count: `0`
 - lowering fallback non-lane count: `0`
 - go ast pass selection source: `planner`
+
+## auto lowering capabilities
+- none
 
 ## go ast passes
 - `normalize_names`
