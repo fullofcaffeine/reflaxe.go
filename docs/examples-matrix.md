@@ -13,12 +13,12 @@
 
 ## Metal collection purity gates (examples)
 
-Examples use staged collection-purity enforcement:
+Examples use two collection-purity gates:
 
-- Hard gate (default): metal boundary modules only
+- Hard boundary gate:
   - `examples/*/profile/MetalRuntime.hx`
   - `examples/*/app/runtime/GoNativeRuntime.hx`
-- Full-tree audit: reports `haxe.ds.*` imports across all example modules, non-blocking by default.
+- Full-tree gate: audits `haxe.ds.*` imports across all example modules.
 
 Commands:
 
@@ -29,17 +29,17 @@ python3 test/run-metal-example-boundary.py
 # full-tree audit report
 python3 test/run-metal-example-boundary.py --scope full --mode audit --report .cache/metal-example-boundary/full-scope-audit.json
 
-# optional strict threshold mode (fails if violation count exceeds threshold)
+# full-tree threshold gate (fails if violation count exceeds threshold)
 python3 test/run-metal-example-boundary.py --scope full --mode audit --report .cache/metal-example-boundary/full-scope-audit.json --max-violations 0
 ```
 
 CI:
 
 - `ci-harness.yml` quality job runs hard gate via `npm run test:ci`.
-- the same job also uploads a full-scope audit artifact (`metal-collection-audit`).
-- strict threshold mode is opt-in via CI env:
+- the same job enforces full-scope threshold mode by default:
   - `GO_METAL_COLLECTION_AUDIT_ENFORCE=1`
-  - `GO_METAL_COLLECTION_AUDIT_MAX=<n>`
+  - `GO_METAL_COLLECTION_AUDIT_MAX=0`
+- the job also uploads the full-scope audit artifact (`metal-collection-audit`).
 
 Allowlist rule:
 

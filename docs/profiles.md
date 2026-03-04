@@ -54,13 +54,13 @@ Framework-owned typed facades are allowed in `metal` strict mode; raw app-side i
 
 ## Metal collection purity policy (examples)
 
-Current collection-purity enforcement for examples is staged:
+Collection-purity enforcement for examples has two scopes:
 
-1. Hard enforcement scope (default gate):
+1. Hard boundary scope:
    - `examples/*/profile/MetalRuntime.hx`
    - `examples/*/app/runtime/GoNativeRuntime.hx`
 2. Full-build scope:
-   - currently audit-only (non-blocking by default), used for migration visibility.
+   - all example modules, auditing `haxe.ds.*` usage across the tree.
 
 Checker entrypoint: `test/run-metal-example-boundary.py`
 
@@ -68,8 +68,13 @@ Checker entrypoint: `test/run-metal-example-boundary.py`
   - `python3 test/run-metal-example-boundary.py`
 - full-build audit report:
   - `python3 test/run-metal-example-boundary.py --scope full --mode audit --report .cache/metal-example-boundary/full-scope-audit.json`
-- optional strict threshold (for nightly/experiments):
+- enforced threshold gate (current CI default):
   - `python3 test/run-metal-example-boundary.py --scope full --mode audit --report .cache/metal-example-boundary/full-scope-audit.json --max-violations 0`
+
+CI default (`.github/workflows/ci-harness.yml`) enforces full-scope threshold mode with:
+
+- `GO_METAL_COLLECTION_AUDIT_ENFORCE=1`
+- `GO_METAL_COLLECTION_AUDIT_MAX=0`
 
 Allowlist policy:
 
