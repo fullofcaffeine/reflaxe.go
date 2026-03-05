@@ -901,9 +901,13 @@ class GoCompiler {
 		var pack = classType.pack.join(".");
 		return (pack == "haxe" && classType.name == "Int64Helper")
 			|| (pack == "haxe" && classType.name == "Json")
+			|| (pack == "haxe" && classType.name == "IMap")
 			|| (pack == "haxe.format" && (classType.name == "JsonParser" || classType.name == "JsonPrinter"))
 			|| (pack == "haxe._Int64" && (classType.name == "Int64_Impl_" || classType.name == "___Int64"))
 			|| (pack == "haxe._Int32" && classType.name == "Int32_Impl_")
+			|| (pack == "haxe.ds" && classType.name == "HashMap")
+			|| (pack == "haxe.ds._HashMap" && classType.name == "HashMapData")
+			|| (pack == "haxe.iterators" && classType.name == "HashMapKeyValueIterator")
 			|| (pack == "" && classType.name == "Lambda")
 			|| (pack == "go" && (classType.name == "Go" || classType.name == "Chan" || classType.name == "Select"));
 	}
@@ -3625,49 +3629,182 @@ class GoCompiler {
 			GoDecl.GoFuncDecl("set", {
 				name: "self",
 				typeName: "*haxe__ds__IntMap"
-			}, [{name: "key", typeName: "int"}, {name: "value", typeName: "any"}], [], [
-				GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("key")), GoExpr.GoIdent("value"))
+			}, [{name: "key", typeName: "any"}, {name: "value", typeName: "any"}], [], [
+				GoStmt.GoVarDecl("resolvedKey", "int", GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [GoExpr.GoIdent("key")]), true),
+				GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("resolvedKey")), GoExpr.GoIdent("value"))
 			]),
 			GoDecl.GoFuncDecl("get", {
 				name: "self",
 				typeName: "*haxe__ds__IntMap"
-			}, [{name: "key", typeName: "int"}], ["any"], [
-				GoStmt.GoVarDecl("value", null, GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("key")), true),
+			}, [{name: "key", typeName: "any"}], ["any"], [
+				GoStmt.GoVarDecl("resolvedKey", "int", GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [GoExpr.GoIdent("key")]), true),
+				GoStmt.GoVarDecl("value", null, GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("resolvedKey")), true),
 				GoStmt.GoReturn(GoExpr.GoIdent("value"))
 			]),
 			GoDecl.GoFuncDecl("exists", {
 				name: "self",
 				typeName: "*haxe__ds__IntMap"
+			}, [{name: "key", typeName: "any"}], ["bool"], [
+				GoStmt.GoVarDecl("resolvedKey", "int", GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [GoExpr.GoIdent("key")]), true),
+				GoStmt.GoRaw("_, ok := self.h[resolvedKey]"),
+				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+			]),
+			GoDecl.GoFuncDecl("remove", {
+				name: "self",
+				typeName: "*haxe__ds__IntMap"
+			}, [{name: "key", typeName: "any"}], ["bool"], [
+				GoStmt.GoVarDecl("resolvedKey", "int", GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [GoExpr.GoIdent("key")]), true),
+				GoStmt.GoRaw("_, ok := self.h[resolvedKey]"),
+				GoStmt.GoRaw("delete(self.h, resolvedKey)"),
+				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+			]),
+			GoDecl.GoFuncDecl("keys", {
+				name: "self",
+				typeName: "*haxe__ds__IntMap"
+			}, [], ["map[string]any"], [
+				GoStmt.GoRaw("keys := make([]int, 0, len(self.h))"),
+				GoStmt.GoRaw("for key := range self.h {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("index := 0"),
+				GoStmt.GoRaw("iter := map[string]any{}"),
+				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
+				GoStmt.GoRaw("iter[\"next\"] = func() int { key := keys[index]; index++; return key }"),
+				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
+			]),
+			GoDecl.GoFuncDecl("iterator", {
+				name: "self",
+				typeName: "*haxe__ds__IntMap"
+			}, [], ["map[string]any"], [
+				GoStmt.GoRaw("keys := make([]int, 0, len(self.h))"),
+				GoStmt.GoRaw("for key := range self.h {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("index := 0"),
+				GoStmt.GoRaw("iter := map[string]any{}"),
+				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
+				GoStmt.GoRaw("iter[\"next\"] = func() any { key := keys[index]; index++; return self.h[key] }"),
+				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
+			]),
+			GoDecl.GoFuncDecl("keyValueIterator", {
+				name: "self",
+				typeName: "*haxe__ds__IntMap"
+			}, [], ["map[string]any"], [
+				GoStmt.GoRaw("keys := make([]int, 0, len(self.h))"),
+				GoStmt.GoRaw("for key := range self.h {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("index := 0"),
+				GoStmt.GoRaw("iter := map[string]any{}"),
+				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
+				GoStmt.GoRaw("iter[\"next\"] = func() map[string]any { key := keys[index]; index++; return map[string]any{\"key\": key, \"value\": self.h[key]} }"),
+				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
+			]),
+			GoDecl.GoFuncDecl("copy", {
+				name: "self",
+				typeName: "*haxe__ds__IntMap"
+			}, [], ["*haxe__ds__IntMap"], [
+				GoStmt.GoRaw("copied := New_haxe__ds__IntMap()"),
+				GoStmt.GoRaw("for key, value := range self.h {"),
+				GoStmt.GoRaw("\tcopied.h[key] = value"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("copied"))
+			]),
+			GoDecl.GoFuncDecl("toString", {
+				name: "self",
+				typeName: "*haxe__ds__IntMap"
+			}, [], ["*string"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("{}")]))
+			]),
+			GoDecl.GoFuncDecl("clear", {
+				name: "self",
+				typeName: "*haxe__ds__IntMap"
 			},
-				[{name: "key", typeName: "int"}], ["bool"], [GoStmt.GoRaw("_, ok := self.h[key]"), GoStmt.GoReturn(GoExpr.GoIdent("ok"))]),
-			GoDecl.GoFuncDecl("remove", {name: "self", typeName: "*haxe__ds__IntMap"}, [{name: "key", typeName: "int"}], ["bool"],
-				[
-					GoStmt.GoRaw("_, ok := self.h[key]"),
-					GoStmt.GoRaw("delete(self.h, key)"),
-					GoStmt.GoReturn(GoExpr.GoIdent("ok"))
-				]),
+				[], [], [GoStmt.GoRaw("self.h = map[int]any{}")]),
 			GoDecl.GoFuncDecl("New_haxe__ds__StringMap", null, [], ["*haxe__ds__StringMap"],
 				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__StringMap{h: map[string]any{}}"))]),
 			GoDecl.GoFuncDecl("set", {
 				name: "self",
 				typeName: "*haxe__ds__StringMap"
-			}, [{name: "key", typeName: "*string"}, {name: "value", typeName: "any"}], [], [
+			}, [{name: "key", typeName: "any"}, {name: "value", typeName: "any"}], [], [
 				GoStmt.GoAssign(GoExpr.GoRaw("self.h[*hxrt.StdString(key)]"), GoExpr.GoIdent("value"))
 			]),
-			GoDecl.GoFuncDecl("get", {name: "self", typeName: "*haxe__ds__StringMap"}, [{name: "key", typeName: "*string"}], ["any"], [
+			GoDecl.GoFuncDecl("get", {name: "self", typeName: "*haxe__ds__StringMap"}, [{name: "key", typeName: "any"}], ["any"], [
 				GoStmt.GoRaw("value := self.h[*hxrt.StdString(key)]"),
 				GoStmt.GoReturn(GoExpr.GoIdent("value"))
 			]),
-			GoDecl.GoFuncDecl("exists", {name: "self", typeName: "*haxe__ds__StringMap"}, [{name: "key", typeName: "*string"}], ["bool"], [
+			GoDecl.GoFuncDecl("exists", {name: "self", typeName: "*haxe__ds__StringMap"}, [{name: "key", typeName: "any"}], ["bool"], [
 				GoStmt.GoRaw("_, ok := self.h[*hxrt.StdString(key)]"),
 				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
 			]),
-			GoDecl.GoFuncDecl("remove", {name: "self", typeName: "*haxe__ds__StringMap"}, [{name: "key", typeName: "*string"}], ["bool"],
-				[
-					GoStmt.GoRaw("_, ok := self.h[*hxrt.StdString(key)]"),
-					GoStmt.GoRaw("delete(self.h, *hxrt.StdString(key))"),
-					GoStmt.GoReturn(GoExpr.GoIdent("ok"))
-				]),
+			GoDecl.GoFuncDecl("remove", {name: "self", typeName: "*haxe__ds__StringMap"}, [{name: "key", typeName: "any"}], ["bool"], [
+				GoStmt.GoRaw("_, ok := self.h[*hxrt.StdString(key)]"),
+				GoStmt.GoRaw("delete(self.h, *hxrt.StdString(key))"),
+				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+			]),
+			GoDecl.GoFuncDecl("keys", {
+				name: "self",
+				typeName: "*haxe__ds__StringMap"
+			}, [], ["map[string]any"], [
+				GoStmt.GoRaw("keys := make([]string, 0, len(self.h))"),
+				GoStmt.GoRaw("for key := range self.h {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("index := 0"),
+				GoStmt.GoRaw("iter := map[string]any{}"),
+				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
+				GoStmt.GoRaw("iter[\"next\"] = func() *string { key := keys[index]; index++; return hxrt.StringFromLiteral(key) }"),
+				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
+			]),
+			GoDecl.GoFuncDecl("iterator", {
+				name: "self",
+				typeName: "*haxe__ds__StringMap"
+			}, [], ["map[string]any"], [
+				GoStmt.GoRaw("keys := make([]string, 0, len(self.h))"),
+				GoStmt.GoRaw("for key := range self.h {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("index := 0"),
+				GoStmt.GoRaw("iter := map[string]any{}"),
+				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
+				GoStmt.GoRaw("iter[\"next\"] = func() any { key := keys[index]; index++; return self.h[key] }"),
+				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
+			]),
+			GoDecl.GoFuncDecl("keyValueIterator", {
+				name: "self",
+				typeName: "*haxe__ds__StringMap"
+			}, [], ["map[string]any"], [
+				GoStmt.GoRaw("keys := make([]string, 0, len(self.h))"),
+				GoStmt.GoRaw("for key := range self.h {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("index := 0"),
+				GoStmt.GoRaw("iter := map[string]any{}"),
+				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
+				GoStmt.GoRaw("iter[\"next\"] = func() map[string]any { key := keys[index]; index++; return map[string]any{\"key\": hxrt.StringFromLiteral(key), \"value\": self.h[key]} }"),
+				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
+			]),
+			GoDecl.GoFuncDecl("copy", {
+				name: "self",
+				typeName: "*haxe__ds__StringMap"
+			}, [], ["*haxe__ds__StringMap"], [
+				GoStmt.GoRaw("copied := New_haxe__ds__StringMap()"),
+				GoStmt.GoRaw("for key, value := range self.h {"),
+				GoStmt.GoRaw("\tcopied.h[key] = value"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("copied"))
+			]),
+			GoDecl.GoFuncDecl("toString", {
+				name: "self",
+				typeName: "*haxe__ds__StringMap"
+			}, [], ["*string"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("{}")]))
+			]),
+			GoDecl.GoFuncDecl("clear", {
+				name: "self",
+				typeName: "*haxe__ds__StringMap"
+			},
+				[], [], [GoStmt.GoRaw("self.h = map[string]any{}")]),
 			GoDecl.GoFuncDecl("New_haxe__ds__ObjectMap", null, [], ["*haxe__ds__ObjectMap"],
 				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__ObjectMap{h: map[any]any{}}"))]),
 			GoDecl.GoFuncDecl("set", {
@@ -3685,12 +3822,74 @@ class GoCompiler {
 				]),
 			GoDecl.GoFuncDecl("exists", {name: "self", typeName: "*haxe__ds__ObjectMap"}, [{name: "key", typeName: "any"}], ["bool"],
 				[GoStmt.GoRaw("_, ok := self.h[key]"), GoStmt.GoReturn(GoExpr.GoIdent("ok"))]),
-			GoDecl.GoFuncDecl("remove", {name: "self", typeName: "*haxe__ds__ObjectMap"}, [{name: "key", typeName: "any"}], ["bool"],
-				[
-					GoStmt.GoRaw("_, ok := self.h[key]"),
-					GoStmt.GoRaw("delete(self.h, key)"),
-					GoStmt.GoReturn(GoExpr.GoIdent("ok"))
-				]),
+			GoDecl.GoFuncDecl("remove", {name: "self", typeName: "*haxe__ds__ObjectMap"}, [{name: "key", typeName: "any"}], ["bool"], [
+				GoStmt.GoRaw("_, ok := self.h[key]"),
+				GoStmt.GoRaw("delete(self.h, key)"),
+				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+			]),
+			GoDecl.GoFuncDecl("keys", {
+				name: "self",
+				typeName: "*haxe__ds__ObjectMap"
+			}, [], ["map[string]any"], [
+				GoStmt.GoRaw("keys := make([]any, 0, len(self.h))"),
+				GoStmt.GoRaw("for key := range self.h {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("index := 0"),
+				GoStmt.GoRaw("iter := map[string]any{}"),
+				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
+				GoStmt.GoRaw("iter[\"next\"] = func() any { key := keys[index]; index++; return key }"),
+				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
+			]),
+			GoDecl.GoFuncDecl("iterator", {
+				name: "self",
+				typeName: "*haxe__ds__ObjectMap"
+			}, [], ["map[string]any"], [
+				GoStmt.GoRaw("keys := make([]any, 0, len(self.h))"),
+				GoStmt.GoRaw("for key := range self.h {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("index := 0"),
+				GoStmt.GoRaw("iter := map[string]any{}"),
+				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
+				GoStmt.GoRaw("iter[\"next\"] = func() any { key := keys[index]; index++; return self.h[key] }"),
+				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
+			]),
+			GoDecl.GoFuncDecl("keyValueIterator", {
+				name: "self",
+				typeName: "*haxe__ds__ObjectMap"
+			}, [], ["map[string]any"], [
+				GoStmt.GoRaw("keys := make([]any, 0, len(self.h))"),
+				GoStmt.GoRaw("for key := range self.h {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("index := 0"),
+				GoStmt.GoRaw("iter := map[string]any{}"),
+				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
+				GoStmt.GoRaw("iter[\"next\"] = func() map[string]any { key := keys[index]; index++; return map[string]any{\"key\": key, \"value\": self.h[key]} }"),
+				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
+			]),
+			GoDecl.GoFuncDecl("copy", {
+				name: "self",
+				typeName: "*haxe__ds__ObjectMap"
+			}, [], ["*haxe__ds__ObjectMap"], [
+				GoStmt.GoRaw("copied := New_haxe__ds__ObjectMap()"),
+				GoStmt.GoRaw("for key, value := range self.h {"),
+				GoStmt.GoRaw("\tcopied.h[key] = value"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("copied"))
+			]),
+			GoDecl.GoFuncDecl("toString", {
+				name: "self",
+				typeName: "*haxe__ds__ObjectMap"
+			}, [], ["*string"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("{}")]))
+			]),
+			GoDecl.GoFuncDecl("clear", {
+				name: "self",
+				typeName: "*haxe__ds__ObjectMap"
+			},
+				[], [], [GoStmt.GoRaw("self.h = map[any]any{}")]),
 			GoDecl.GoFuncDecl("New_haxe__ds__EnumValueMap", null, [], ["*haxe__ds__EnumValueMap"],
 				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__EnumValueMap{h: map[any]any{}}"))]),
 			GoDecl.GoFuncDecl("set", {
@@ -3708,12 +3907,74 @@ class GoCompiler {
 				]),
 			GoDecl.GoFuncDecl("exists", {name: "self", typeName: "*haxe__ds__EnumValueMap"}, [{name: "key", typeName: "any"}], ["bool"],
 				[GoStmt.GoRaw("_, ok := self.h[key]"), GoStmt.GoReturn(GoExpr.GoIdent("ok"))]),
-			GoDecl.GoFuncDecl("remove", {name: "self", typeName: "*haxe__ds__EnumValueMap"}, [{name: "key", typeName: "any"}], ["bool"],
-				[
-					GoStmt.GoRaw("_, ok := self.h[key]"),
-					GoStmt.GoRaw("delete(self.h, key)"),
-					GoStmt.GoReturn(GoExpr.GoIdent("ok"))
-				]),
+			GoDecl.GoFuncDecl("remove", {name: "self", typeName: "*haxe__ds__EnumValueMap"}, [{name: "key", typeName: "any"}], ["bool"], [
+				GoStmt.GoRaw("_, ok := self.h[key]"),
+				GoStmt.GoRaw("delete(self.h, key)"),
+				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
+			]),
+			GoDecl.GoFuncDecl("keys", {
+				name: "self",
+				typeName: "*haxe__ds__EnumValueMap"
+			}, [], ["map[string]any"], [
+				GoStmt.GoRaw("keys := make([]any, 0, len(self.h))"),
+				GoStmt.GoRaw("for key := range self.h {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("index := 0"),
+				GoStmt.GoRaw("iter := map[string]any{}"),
+				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
+				GoStmt.GoRaw("iter[\"next\"] = func() any { key := keys[index]; index++; return key }"),
+				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
+			]),
+			GoDecl.GoFuncDecl("iterator", {
+				name: "self",
+				typeName: "*haxe__ds__EnumValueMap"
+			}, [], ["map[string]any"], [
+				GoStmt.GoRaw("keys := make([]any, 0, len(self.h))"),
+				GoStmt.GoRaw("for key := range self.h {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("index := 0"),
+				GoStmt.GoRaw("iter := map[string]any{}"),
+				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
+				GoStmt.GoRaw("iter[\"next\"] = func() any { key := keys[index]; index++; return self.h[key] }"),
+				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
+			]),
+			GoDecl.GoFuncDecl("keyValueIterator", {
+				name: "self",
+				typeName: "*haxe__ds__EnumValueMap"
+			}, [], ["map[string]any"], [
+				GoStmt.GoRaw("keys := make([]any, 0, len(self.h))"),
+				GoStmt.GoRaw("for key := range self.h {"),
+				GoStmt.GoRaw("\tkeys = append(keys, key)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("index := 0"),
+				GoStmt.GoRaw("iter := map[string]any{}"),
+				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
+				GoStmt.GoRaw("iter[\"next\"] = func() map[string]any { key := keys[index]; index++; return map[string]any{\"key\": key, \"value\": self.h[key]} }"),
+				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
+			]),
+			GoDecl.GoFuncDecl("copy", {
+				name: "self",
+				typeName: "*haxe__ds__EnumValueMap"
+			}, [], ["*haxe__ds__EnumValueMap"], [
+				GoStmt.GoRaw("copied := New_haxe__ds__EnumValueMap()"),
+				GoStmt.GoRaw("for key, value := range self.h {"),
+				GoStmt.GoRaw("\tcopied.h[key] = value"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("copied"))
+			]),
+			GoDecl.GoFuncDecl("toString", {
+				name: "self",
+				typeName: "*haxe__ds__EnumValueMap"
+			}, [], ["*string"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("{}")]))
+			]),
+			GoDecl.GoFuncDecl("clear", {
+				name: "self",
+				typeName: "*haxe__ds__EnumValueMap"
+			},
+				[], [], [GoStmt.GoRaw("self.h = map[any]any{}")]),
 			GoDecl.GoFuncDecl("New_haxe__ds__List", null, [], ["*haxe__ds__List"],
 				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__List{items: []any{}, length: 0}"))]),
 			GoDecl.GoFuncDecl("add", {

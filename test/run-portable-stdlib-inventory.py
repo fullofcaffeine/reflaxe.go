@@ -56,6 +56,8 @@ SEMANTIC_DIFF_EXPLICIT = {
     "haxe.ds.ReadOnlyArray",
     "haxe.ds.StringMap",
     "haxe.ds.Vector",
+    "haxe.iterators.HashMapKeyValueIterator",
+    "haxe.iterators.MapKeyValueIterator",
     "haxe.format.JsonParser",
     "haxe.format.JsonPrinter",
     "haxe.io.Bytes",
