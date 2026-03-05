@@ -11,6 +11,8 @@ This document is the active standard-library execution plan for `reflaxe.go`.
 
 These are not two competing stdlibs. They are two lanes with different guarantees.
 
+In family terms, this program uses explicit `contracts + capabilities + planner + lanes`, not inferred semantics.
+
 ## Portable Contract Objective
 
 Portable mode targets full parity for the portable-eligible Haxe stdlib surface.
@@ -38,6 +40,14 @@ Excluded from this parity objective:
 1. Portable-first is the only way to keep cross-target Haxe promises credible.
 2. A typed native facade is the only maintainable way to expose Go-native power without raw `__go__` sprawl.
 3. Runtime/shim/slicing controls are orthogonal capabilities; they should not redefine the semantic contract.
+
+## Compiler Resolution Spine (current)
+
+- `GoBuildContextResolver.resolve()` centralizes contract, boundary defaults, runtime/planner flags, and report toggles.
+- `GoReflaxeCompiler` consumes that context during compile start/end and runtime plan emission.
+- Optional report artifacts (`profile_contract.*`, `hxrt_plan.*`, `optimizer_plan.*`) provide deterministic audit output for contract/runtime/planner decisions.
+
+This parity program is therefore about semantic closure and coverage promotion, not about replacing the profile architecture.
 
 ## Architecture Rules
 

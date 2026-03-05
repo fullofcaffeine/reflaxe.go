@@ -8,6 +8,12 @@ Before reading:
 - `go.*` is the Go-native facade surface. It is intentionally outside the cross-target portable contract.
 - `semantic-diff` is the runtime parity harness against Haxe `--interp`. See `docs/semantic-diff-guide.md`.
 
+Current architecture status:
+
+- `GoBuildContext` and `GoBuildContextResolver` are already in place for centralized contract/capability resolution.
+- Deterministic contract/runtime/optimizer reports (`profile_contract`, `hxrt_plan`, `optimizer_plan`) are already emitted when enabled.
+- Remaining work is primarily language/stdlib parity closure, not profile-model replacement.
+
 ## Compiler/output caveats
 
 - Output remains a single Go package (multi-file, single package); multi-package emission is not implemented yet.

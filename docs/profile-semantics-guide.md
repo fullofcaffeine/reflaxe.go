@@ -9,6 +9,18 @@ This guide explains the practical and semantic differences between profiles.
 - [fallback](/docs/glossary.md#fallback): safe path used when strict typed lowering cannot apply.
 - [semantic diff](/docs/glossary.md#semantic-diff): runtime behavior parity test against Haxe `--interp`.
 
+## Architecture model (current)
+
+The profile system is explicit and layered:
+
+1. semantic contract: `portable|metal`
+2. boundary policy: strict mode + portable native-import policy
+3. runtime policy: full vs selective hxrt copy
+4. planner policy: `off|auto|auto_strict`
+5. lane scope: `@:goMetal` modules
+
+`GoBuildContextResolver.resolve()` computes these axes once, and `GoReflaxeCompiler` uses the resolved context to drive compile behavior and report emission.
+
 ## Quick answer
 
 - Choose `portable` when you want shared, cross-target-friendly Haxe behavior.
@@ -80,6 +92,12 @@ If semantics were inferred from usage:
 - debugging profile-related behavior drift would become harder.
 
 Inference is still used for additive planning (runtime feature selection, optimizer plans), not for hidden semantic profile switching.
+
+## What profiles do not do
+
+- They do not infer semantic contract from imports or optimizer outcomes.
+- They do not collapse runtime slicing into contract selection.
+- They do not replace lane metadata (`@:goMetal`) with implicit module inference.
 
 ## Portable to metal migration checklist
 

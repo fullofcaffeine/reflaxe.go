@@ -1,6 +1,6 @@
 # Profiles (`-D reflaxe_go_profile=...`)
 
-Use profiles to choose the compiler contract for your build.
+Use profiles to choose the semantic contract for your build.
 
 ```bash
 -D reflaxe_go_profile=portable|metal
@@ -13,12 +13,26 @@ Use profiles to choose the compiler contract for your build.
 - [lane](/docs/glossary.md#lane): scoped enforcement zone (for example `@:goMetal` modules).
 - [fallback](/docs/glossary.md#fallback): safe path when strict typed lowering cannot apply.
 
+## Model (`contracts + capabilities + planner + lanes`)
+
+`reflaxe.go` treats profile selection as one axis, not the whole build policy:
+
+- contract axis: `portable|metal` (semantic contract)
+- boundary axis: strict policy + portable native-import policy
+- runtime axis: full copy vs selective feature copy
+- planner axis: `reflaxe_go_auto=off|auto|auto_strict`
+- lane axis: `@:goMetal` scoped enforcement inside portable builds
+
+Current implementation resolves these once in `GoBuildContextResolver.resolve()`, then `GoReflaxeCompiler` consumes that context at compile start/end and emits deterministic report artifacts when enabled.
+
 ## Matrix
 
 | Profile | Best for | Practical behavior |
 | --- | --- | --- |
 | `portable` (default) | Cross-target-friendly Haxe code | Keeps portability semantics first; native usage can be warned/blocked by policy. |
 | `metal` | Go-first lanes and strict native policy | Enables stricter defaults and stronger typed specialization pressure in supported native surfaces. |
+
+Profile does not implicitly select runtime slicing or planner mode.
 
 ## Practical policy difference
 
@@ -56,7 +70,17 @@ Current enforced rules:
 
 This supports incremental migration: you can keep the full app portable while hardening specific modules.
 
-## Optimizer controls (additive, not profile switches)
+## Runtime policy (additive, not a semantic switch)
+
+Runtime copy planning is orthogonal to profile selection:
+
+- default: full runtime copy
+- selective: `-D reflaxe_go_hxrt_features=<csv>` (manual + inferred feature set)
+- selective locked: `-D reflaxe_go_hxrt_features=<csv> -D reflaxe_go_hxrt_no_feature_infer` (manual-only, inference off)
+
+Planning is resolved in `GoReflaxeCompiler.resolveRuntimeCopyPlan` using the already-resolved `GoBuildContext`.
+
+## Planner and optimizer controls (additive, not profile switches)
 
 - `-D reflaxe_go_auto=off|auto|auto_strict`
 - `-D reflaxe_go_opt=portable_fast|none`
