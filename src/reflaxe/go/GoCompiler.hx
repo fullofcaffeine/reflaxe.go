@@ -12651,11 +12651,8 @@ class GoCompiler {
 				Context.fatalError("Lambda.iter expects exactly 2 arguments", callee.pos);
 			}
 			var sourcePlan = tryLambdaSourcePlan(args[0]);
-			if (sourcePlan == null) {
-				Context.fatalError("Lambda.iter currently supports Array<T> and haxe.ds.List<T> inputs only; generic Iterable<T> lowering is not implemented yet on reflaxe.go.",
-					callee.pos);
-			}
-			var iteratorSourceExpr = lowerLambdaManualIteratorProtocolSource(sourcePlan.sourceExpr, sourcePlan);
+			var iteratorSourceExpr = sourcePlan == null ? lowerLambdaDynamicIterableSource(args[0]) : lowerLambdaManualIteratorProtocolSource(sourcePlan.sourceExpr,
+				sourcePlan);
 			var consumerExpr = lowerExpr(args[1]).expr;
 			var adaptedConsumerExpr = lowerLambdaConsumerAnyAdapter(consumerExpr, args[1].t);
 			return {

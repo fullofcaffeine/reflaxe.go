@@ -33,6 +33,11 @@ class CounterIterable {
 class Main {
 	static function main() {
 		var source:Iterable<Int> = new CounterIterable([1, 2, 3]);
-		Lambda.iter(source, function(value:Int):Void {});
+		var sum = 0;
+		Lambda.iter(source, function(value:Int):Void {
+			Sys.println("iter.value=" + value);
+			sum += value;
+		});
+		Sys.println("iter.sum=" + sum);
 	}
 }
