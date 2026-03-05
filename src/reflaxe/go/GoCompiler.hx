@@ -12245,10 +12245,11 @@ class GoCompiler {
 	function tryLambdaSourcePlan(sourceExpr:TypedExpr):Null<LambdaSourcePlan> {
 		if (isArrayType(sourceExpr.t)) {
 			var elementType = arrayElementGoType(sourceExpr.t);
+			var loweredSourceExpr = lowerExpr(sourceExpr).expr;
 			return {
 				domain: "array",
 				elementType: elementType,
-				sourceExpr: lowerExpr(sourceExpr).expr,
+				sourceExpr: loweredSourceExpr,
 				sourceType: "[]" + elementType
 			};
 		}
@@ -12256,10 +12257,11 @@ class GoCompiler {
 		var listElement = haxeDsListElementType(sourceExpr.t);
 		if (listElement != null) {
 			requireStdlibShimGroup("ds");
+			var loweredSourceExpr = lowerExpr(sourceExpr).expr;
 			return {
 				domain: "list",
 				elementType: scalarGoType(listElement),
-				sourceExpr: lowerExpr(sourceExpr).expr,
+				sourceExpr: loweredSourceExpr,
 				sourceType: "*haxe__ds__List"
 			};
 		}
@@ -12267,22 +12269,50 @@ class GoCompiler {
 		return null;
 	}
 
-	function lowerLambdaDynamicIterableSource(sourceExpr:TypedExpr):GoExpr {
-		var loweredSourceExpr = lowerExpr(sourceExpr).expr;
+	function lowerLambdaManualIteratorProtocolSource(sourceExpr:GoExpr, ?sourcePlan:Null<LambdaSourcePlan>):GoExpr {
 		var sourceName = freshTempName("hx_lambda_source");
 		var wrappedName = freshTempName("hx_lambda_wrapped");
-		var iteratorName = freshTempName("hx_lambda_iterator");
-		var iteratorMapLiteral = "map[string]any{\"hasNext\": func() bool { return " + iteratorName + ".hasNext() }, \"next\": func() any { return "
-			+ iteratorName + ".next() }}";
+		var iteratorFactoryBody:Array<GoStmt> = switch (sourcePlan == null ? "generic" : sourcePlan.domain) {
+			case "array":
+				var indexName = freshTempName("hx_lambda_index");
+				var valueName = freshTempName("hx_lambda_value");
+				var iteratorMapLiteral = "map[string]any{\"hasNext\": func() bool { return " + indexName + " < len(" + sourceName
+					+ ") }, \"next\": func() any { " + valueName + " := " + sourceName + "[" + indexName + "]; " + indexName + "++; return " + valueName +
+					" }}";
+				[
+					GoStmt.GoVarDecl(indexName, "int", GoExpr.GoIntLiteral(0), true),
+					GoStmt.GoReturn(GoExpr.GoRaw(iteratorMapLiteral))
+				];
+			case "list":
+				var indexName = freshTempName("hx_lambda_index");
+				var valueName = freshTempName("hx_lambda_value");
+				var iteratorMapLiteral = "map[string]any{\"hasNext\": func() bool { return " + indexName + " < len(" + sourceName
+					+ ".items) }, \"next\": func() any { " + valueName + " := " + sourceName + ".items[" + indexName + "]; " + indexName + "++; return "
+					+ valueName + " }}";
+				[
+					GoStmt.GoVarDecl(indexName, "int", GoExpr.GoIntLiteral(0), true),
+					GoStmt.GoReturn(GoExpr.GoRaw(iteratorMapLiteral))
+				];
+			case _:
+				var iteratorName = freshTempName("hx_lambda_iterator");
+				var iteratorMapLiteral = "map[string]any{\"hasNext\": func() bool { return " + iteratorName + ".hasNext() }, \"next\": func() any { return "
+					+ iteratorName + ".next() }}";
+				[
+					GoStmt.GoVarDecl(iteratorName, null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "iterator"), []), true),
+					GoStmt.GoReturn(GoExpr.GoRaw(iteratorMapLiteral))
+				];
+		};
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["map[string]any"], [
-			GoStmt.GoVarDecl(sourceName, null, loweredSourceExpr, true),
+			GoStmt.GoVarDecl(sourceName, null, sourceExpr, true),
 			GoStmt.GoVarDecl(wrappedName, "map[string]any", GoExpr.GoRaw("map[string]any{}"), true),
-			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(wrappedName), GoExpr.GoStringLiteral("iterator")), GoExpr.GoFuncLiteral([], ["map[string]any"], [
-				GoStmt.GoVarDecl(iteratorName, null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "iterator"), []), true),
-				GoStmt.GoReturn(GoExpr.GoRaw(iteratorMapLiteral))
-			])),
+			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(wrappedName), GoExpr.GoStringLiteral("iterator")),
+				GoExpr.GoFuncLiteral([], ["map[string]any"], iteratorFactoryBody)),
 			GoStmt.GoReturn(GoExpr.GoIdent(wrappedName))
 		]), []);
+	}
+
+	function lowerLambdaDynamicIterableSource(sourceExpr:TypedExpr):GoExpr {
+		return lowerLambdaManualIteratorProtocolSource(lowerExpr(sourceExpr).expr);
 	}
 
 	function firstFunctionArgType(type:Type):Null<Type> {
@@ -12335,6 +12365,16 @@ class GoCompiler {
 			adaptedArgExpr = lowerNullableAwareTypeAssertExpr(adaptedArgExpr, argType);
 		}
 		return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["any"], [GoStmt.GoReturn(GoExpr.GoCall(mapperExpr, [adaptedArgExpr]))]);
+	}
+
+	function lowerLambdaConsumerAnyAdapter(consumerExpr:GoExpr, consumerType:Type):GoExpr {
+		var rawArgName = freshTempName("hx_lambda_arg");
+		var adaptedArgExpr:GoExpr = GoExpr.GoIdent(rawArgName);
+		var argType = firstFunctionArgType(consumerType);
+		if (argType != null) {
+			adaptedArgExpr = lowerNullableAwareTypeAssertExpr(adaptedArgExpr, argType);
+		}
+		return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], [], [GoStmt.GoExprStmt(GoExpr.GoCall(consumerExpr, [adaptedArgExpr]))]);
 	}
 
 	function lowerLambdaFolderAnyAdapter(folderExpr:GoExpr, folderType:Type):GoExpr {
@@ -12610,11 +12650,18 @@ class GoCompiler {
 			if (args.length != 2) {
 				Context.fatalError("Lambda.iter expects exactly 2 arguments", callee.pos);
 			}
-			if (tryLambdaSourcePlan(args[0]) == null) {
+			var sourcePlan = tryLambdaSourcePlan(args[0]);
+			if (sourcePlan == null) {
 				Context.fatalError("Lambda.iter currently supports Array<T> and haxe.ds.List<T> inputs only; generic Iterable<T> lowering is not implemented yet on reflaxe.go.",
 					callee.pos);
 			}
-			return null;
+			var iteratorSourceExpr = lowerLambdaManualIteratorProtocolSource(sourcePlan.sourceExpr, sourcePlan);
+			var consumerExpr = lowerExpr(args[1]).expr;
+			var adaptedConsumerExpr = lowerLambdaConsumerAnyAdapter(consumerExpr, args[1].t);
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("Lambda_iter"), [iteratorSourceExpr, adaptedConsumerExpr]),
+				isStringLike: false
+			};
 		}
 
 		if (isStaticCall(callee, "Lambda", [], "filter") || isGeneratedLambdaCall(callee, "filter")) {
