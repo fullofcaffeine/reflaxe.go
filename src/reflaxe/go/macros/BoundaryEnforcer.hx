@@ -15,6 +15,7 @@ import sys.io.File;
 class BoundaryEnforcer {
 	#if macro
 	static var initialized = false;
+	static final FRAMEWORK_TYPED_INJECTION_PATHS = ["/src/reflaxe/go/macros/", "/src/go/"];
 
 	public static function init():Void {
 		if (initialized) {
@@ -103,7 +104,12 @@ class BoundaryEnforcer {
 			normalized = normalizePath(Path.join([cwd, normalized]));
 		}
 
-		return normalized.indexOf("/src/reflaxe/go/macros/") != -1 || normalized.indexOf("/std/go/metal/") != -1;
+		for (authorityPath in FRAMEWORK_TYPED_INJECTION_PATHS) {
+			if (normalized.indexOf(authorityPath) != -1) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	static function preflightScanForGoInjections():Array<String> {

@@ -1,0 +1,1 @@
+BoundaryEnforcer: __go__ is not allowed in strict examples

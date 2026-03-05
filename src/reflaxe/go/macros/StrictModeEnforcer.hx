@@ -15,6 +15,7 @@ import sys.io.File;
 class StrictModeEnforcer {
 	#if macro
 	static var initialized = false;
+	static final FRAMEWORK_TYPED_INJECTION_PATHS = ["/src/reflaxe/go/macros/", "/src/go/"];
 
 	public static function init():Void {
 		if (initialized) {
@@ -110,7 +111,12 @@ class StrictModeEnforcer {
 			return true;
 		}
 
-		return file.indexOf("/src/reflaxe/go/macros/") != -1 || file.indexOf("/std/go/metal/") != -1;
+		for (authorityPath in FRAMEWORK_TYPED_INJECTION_PATHS) {
+			if (file.indexOf(authorityPath) != -1) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	static function preflightScanForGoInjections(projectRoot:String):Array<String> {
