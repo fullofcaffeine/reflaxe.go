@@ -10,6 +10,7 @@ import haxe.macro.Type;
 import reflaxe.go.compiler.GoAutoLoweringMode;
 import reflaxe.go.compiler.GoExprOperatorOps;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
+import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureInference;
 import reflaxe.go.compiler.GoMetalTypeEligibility;
 import reflaxe.go.compiler.GoMetalTypeEligibility.GoMetalEligibilityRole;
 import reflaxe.go.compiler.GoMetalTypeEligibility.GoMetalTypeEligibilityResult;
@@ -244,7 +245,9 @@ class GoCompiler {
 		var requiredShimGroups = sortedRequiredStdlibShimGroups();
 		compilationContext.requiredStdlibShimGroups = requiredShimGroups.copy();
 		compilationContext.requiresIoHelperSurface = requiresIoHelperSurface;
-		compilationContext.inferredHxrtFeatures = inferRuntimeFeatures(requiredShimGroups);
+		var inferredRuntimeFeatures = inferRuntimeFeatures(requiredShimGroups);
+		compilationContext.inferredHxrtFeatures = inferredRuntimeFeatures.features;
+		compilationContext.inferredHxrtFeatureReasons = inferredRuntimeFeatures.reasons;
 
 		var supportImports = buildSupportImports();
 		var moduleImports = buildModuleImports();
@@ -14741,12 +14744,12 @@ class GoCompiler {
 		return groups;
 	}
 
-	function inferRuntimeFeatures(requiredShimGroups:Array<String>):Array<String> {
+	function inferRuntimeFeatures(requiredShimGroups:Array<String>):GoHxrtFeatureInference {
 		var classPaths = [for (classType in projectClasses) fullClassName(classType)];
 		classPaths.sort(Reflect.compare);
 		var enumPaths = [for (enumType in projectEnums) fullEnumName(enumType)];
 		enumPaths.sort(Reflect.compare);
-		return GoHxrtFeatureAnalyzer.inferFromUsage(classPaths, enumPaths, requiredShimGroups, requiresIoHelperSurface);
+		return GoHxrtFeatureAnalyzer.inferWithReasons(classPaths, enumPaths, requiredShimGroups, requiresIoHelperSurface);
 	}
 
 	function resetExternImportPaths():Void {

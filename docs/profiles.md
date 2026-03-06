@@ -99,6 +99,7 @@ Optional report defines:
 Use these reports to audit:
 
 - active profile and strictness
+- runtime feature provenance (`manual_define`, inferred usage, dependency edges)
 - fallback counts and reasons
 - lane vs non-lane fallback attribution
 - optimizer capability outcomes

@@ -53,64 +53,83 @@ class GoHxrtFeatureAnalyzer {
 
 	public static function inferFromUsage(classPaths:Array<String>, enumPaths:Array<String>, shimGroups:Array<String>,
 			requiresIoHelperSurface:Bool):Array<String> {
+		return inferWithReasons(classPaths, enumPaths, shimGroups, requiresIoHelperSurface).features;
+	}
+
+	public static function inferWithReasons(classPaths:Array<String>, enumPaths:Array<String>, shimGroups:Array<String>,
+			requiresIoHelperSurface:Bool):GoHxrtFeatureInference {
 		var out = new Map<String, Bool>();
-		add(out, FEATURE_CORE);
-		add(out, FEATURE_STRING);
-		add(out, FEATURE_PRINT);
-		add(out, FEATURE_EXCEPTION);
+		var reasonsByFeature = new Map<String, Array<GoHxrtFeatureReason>>();
+
+		inline function add(feature:String, sourceKind:String, source:String):Void {
+			if (feature == null || !isKnownFeature(feature)) {
+				return;
+			}
+			out.set(feature, true);
+			addReason(reasonsByFeature, feature, sourceKind, source);
+		}
+
+		add(FEATURE_CORE, "baseline", "compiler_baseline");
+		add(FEATURE_STRING, "baseline", "compiler_baseline");
+		add(FEATURE_PRINT, "baseline", "compiler_baseline");
+		add(FEATURE_EXCEPTION, "baseline", "compiler_baseline");
 
 		for (path in classPaths) {
 			if (path == "haxe.Json" || StringTools.startsWith(path, "haxe.json.")) {
-				add(out, FEATURE_JSON);
+				add(FEATURE_JSON, "class_usage", path);
 			}
 
 			if (path == "sys.io.Process") {
-				add(out, FEATURE_PROCESS);
+				add(FEATURE_PROCESS, "class_usage", path);
 			}
 
 			if (path == "Sys" || path == "sys.io.File" || path == "sys.FileSystem" || StringTools.startsWith(path, "sys.")) {
-				add(out, FEATURE_SYS);
+				add(FEATURE_SYS, "class_usage", path);
 			}
 
 			if (StringTools.startsWith(path, "haxe.io.")) {
-				add(out, FEATURE_BYTES);
+				add(FEATURE_BYTES, "class_usage", path);
 			}
 
 			if (StringTools.startsWith(path, "haxe.atomic.")) {
-				add(out, FEATURE_ATOMIC_INT);
-				add(out, FEATURE_ATOMIC_OBJECT);
+				add(FEATURE_ATOMIC_INT, "class_usage", path);
+				add(FEATURE_ATOMIC_OBJECT, "class_usage", path);
 			}
 		}
 
 		for (path in enumPaths) {
 			if (path == "haxe.io.Error") {
-				add(out, FEATURE_EXCEPTION);
-				add(out, FEATURE_BYTES);
+				add(FEATURE_EXCEPTION, "enum_usage", path);
+				add(FEATURE_BYTES, "enum_usage", path);
 			}
 		}
 
 		for (group in shimGroups) {
 			switch (group) {
 				case "atomic":
-					add(out, FEATURE_ATOMIC_INT);
-					add(out, FEATURE_ATOMIC_OBJECT);
+					add(FEATURE_ATOMIC_INT, "shim_group", group);
+					add(FEATURE_ATOMIC_OBJECT, "shim_group", group);
 				case "io":
-					add(out, FEATURE_BYTES);
+					add(FEATURE_BYTES, "shim_group", group);
 				case "sys", "filesystem", "http", "net_socket":
-					add(out, FEATURE_SYS);
-					add(out, FEATURE_PROCESS);
+					add(FEATURE_SYS, "shim_group", group);
+					add(FEATURE_PROCESS, "shim_group", group);
 				case _:
 			}
 		}
 
 		if (requiresIoHelperSurface) {
-			add(out, FEATURE_BYTES);
+			add(FEATURE_BYTES, "io_helper_surface", "compiler_io_helpers");
 		}
 
-		return expandWithDependencies([for (feature in out.keys()) feature]);
+		return expandWithReasons([for (feature in out.keys()) feature], flattenReasons(reasonsByFeature));
 	}
 
 	public static function expandWithDependencies(features:Array<String>):Array<String> {
+		return expandWithReasons(features, []).features;
+	}
+
+	public static function expandWithReasons(features:Array<String>, baseReasons:Array<GoHxrtFeatureReason>):GoHxrtFeatureInference {
 		var selected = new Map<String, Bool>();
 		for (feature in features) {
 			if (feature != null && isKnownFeature(feature)) {
@@ -119,14 +138,27 @@ class GoHxrtFeatureAnalyzer {
 		}
 		selected.set(FEATURE_CORE, true);
 
+		var reasonsByFeature = new Map<String, Array<GoHxrtFeatureReason>>();
+		for (entry in baseReasons) {
+			if (entry == null || entry.feature == null || !selected.exists(entry.feature)) {
+				continue;
+			}
+			addReason(reasonsByFeature, entry.feature, entry.sourceKind, entry.source);
+		}
+		if (!reasonsByFeature.exists(FEATURE_CORE)) {
+			addReason(reasonsByFeature, FEATURE_CORE, "baseline", "compiler_baseline");
+		}
+
 		var changed = true;
 		while (changed) {
 			changed = false;
 			var keys = [for (feature in selected.keys()) feature];
+			keys.sort(compareFeatureNames);
 			for (feature in keys) {
 				for (dependency in featureDependencies(feature)) {
 					if (!selected.exists(dependency)) {
 						selected.set(dependency, true);
+						addReason(reasonsByFeature, dependency, "dependency_edge", feature + "->" + dependency);
 						changed = true;
 					}
 				}
@@ -134,15 +166,11 @@ class GoHxrtFeatureAnalyzer {
 		}
 
 		var out = [for (feature in selected.keys()) feature];
-		out.sort(function(a, b) {
-			var ai = FEATURE_ORDER.indexOf(a);
-			var bi = FEATURE_ORDER.indexOf(b);
-			if (ai == bi) {
-				return Reflect.compare(a, b);
-			}
-			return ai - bi;
-		});
-		return out;
+		out.sort(compareFeatureNames);
+		return {
+			features: out,
+			reasons: flattenReasons(reasonsByFeature)
+		};
 	}
 
 	public static function filesForFeatures(features:Array<String>):Array<String> {
@@ -156,10 +184,6 @@ class GoHxrtFeatureAnalyzer {
 		var out = [for (fileName in files.keys()) fileName];
 		out.sort(Reflect.compare);
 		return out;
-	}
-
-	static function add(map:Map<String, Bool>, feature:String):Void {
-		map.set(feature, true);
 	}
 
 	static function featureDependencies(feature:String):Array<String> {
@@ -209,5 +233,76 @@ class GoHxrtFeatureAnalyzer {
 				[];
 		};
 	}
+
+	static function addReason(reasonsByFeature:Map<String, Array<GoHxrtFeatureReason>>, feature:String, sourceKind:String, source:String):Void {
+		var list = reasonsByFeature.get(feature);
+		if (list == null) {
+			list = [];
+			reasonsByFeature.set(feature, list);
+		}
+		for (entry in list) {
+			if (entry.sourceKind == sourceKind && entry.source == source) {
+				return;
+			}
+		}
+		list.push({
+			feature: feature,
+			sourceKind: sourceKind,
+			source: source
+		});
+	}
+
+	static function flattenReasons(reasonsByFeature:Map<String, Array<GoHxrtFeatureReason>>):Array<GoHxrtFeatureReason> {
+		var out = new Array<GoHxrtFeatureReason>();
+		var featureNames = [for (feature in reasonsByFeature.keys()) feature];
+		featureNames.sort(compareFeatureNames);
+		for (feature in featureNames) {
+			var entries = reasonsByFeature.get(feature);
+			if (entries == null) {
+				continue;
+			}
+			entries.sort(compareReasons);
+			for (entry in entries) {
+				out.push({
+					feature: entry.feature,
+					sourceKind: entry.sourceKind,
+					source: entry.source
+				});
+			}
+		}
+		return out;
+	}
+
+	static function compareFeatureNames(a:String, b:String):Int {
+		var ai = FEATURE_ORDER.indexOf(a);
+		var bi = FEATURE_ORDER.indexOf(b);
+		if (ai == bi) {
+			return Reflect.compare(a, b);
+		}
+		return ai - bi;
+	}
+
+	static function compareReasons(a:GoHxrtFeatureReason, b:GoHxrtFeatureReason):Int {
+		var featureOrder = compareFeatureNames(a.feature, b.feature);
+		if (featureOrder != 0) {
+			return featureOrder;
+		}
+		var kindOrder = Reflect.compare(a.sourceKind, b.sourceKind);
+		if (kindOrder != 0) {
+			return kindOrder;
+		}
+		return Reflect.compare(a.source, b.source);
+	}
+}
+
+typedef GoHxrtFeatureReason = {
+	var feature:String;
+	var sourceKind:String;
+	var source:String;
+}
+
+typedef GoHxrtFeatureInference = {
+	var features:Array<String>;
+	var reasons:Array<GoHxrtFeatureReason>;
 }
 #end

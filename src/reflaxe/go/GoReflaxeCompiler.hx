@@ -13,6 +13,8 @@ import reflaxe.go.analyze.GoProfileContractAnalyzer.PortableNativeScanMode;
 import reflaxe.go.analyze.MetalLaneAnalyzer;
 import reflaxe.go.compiler.GoBuildContext;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
+import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureInference;
+import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureReason;
 import reflaxe.go.compiler.GoAutoLoweringModeTools;
 import reflaxe.go.compiler.GoBuildContextResolver;
 import reflaxe.output.DataAndFileInfo;
@@ -27,6 +29,7 @@ private typedef RuntimeCopyPlan = {
 	final inferredFeatures:Array<String>;
 	final features:Array<String>;
 	final files:Array<String>;
+	final reasons:Array<RuntimeFeatureReason>;
 }
 
 private typedef ContractReportSnapshot = {
@@ -362,11 +365,22 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		var selectiveEnabled = buildContext.isHxrtSelectiveEnabled();
 		var manualFeatures = sortedUniqueStrings(buildContext.hxrtManualFeatures.copy());
 		var inferredFeatures = new Array<String>();
+		var inferredReasons = new Array<RuntimeFeatureReason>();
 		if (!buildContext.hxrtNoFeatureInfer && context != null) {
 			for (feature in context.inferredHxrtFeatures) {
 				if (feature != null && StringTools.trim(feature) != "" && inferredFeatures.indexOf(feature) == -1) {
 					inferredFeatures.push(feature);
 				}
+			}
+			for (entry in context.inferredHxrtFeatureReasons) {
+				if (entry == null) {
+					continue;
+				}
+				inferredReasons.push({
+					feature: entry.feature,
+					sourceKind: entry.sourceKind,
+					source: entry.source
+				});
 			}
 		}
 		inferredFeatures = sortedUniqueStrings(inferredFeatures);
@@ -378,20 +392,14 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 				manualFeatures: manualFeatures,
 				inferredFeatures: inferredFeatures,
 				features: [],
-				files: []
+				files: [],
+				reasons: []
 			};
 		}
 
-		var selected = manualFeatures.copy();
-		for (feature in inferredFeatures) {
-			if (selected.indexOf(feature) == -1) {
-				selected.push(feature);
-			}
-		}
-
-		var expanded = GoHxrtFeatureAnalyzer.expandWithDependencies(selected);
+		var selection = buildRuntimeFeatureSelection(manualFeatures, inferredFeatures, inferredReasons);
+		var expanded = sortedUniqueStrings(selection.features.copy());
 		var files = GoHxrtFeatureAnalyzer.filesForFeatures(expanded);
-		expanded = sortedUniqueStrings(expanded);
 		files = sortedUniqueStrings(files);
 		return {
 			fullCopy: false,
@@ -399,7 +407,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			manualFeatures: manualFeatures,
 			inferredFeatures: inferredFeatures,
 			features: expanded,
-			files: files
+			files: files,
+			reasons: selection.reasons
 		};
 	}
 
@@ -563,7 +572,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			inferredFeatures: inferredFeatures,
 			selectedFeatures: selectedFeatures,
 			files: files,
-			reasons: buildRuntimeFeatureReasons(manualFeatures, inferredFeatures, selectedFeatures)
+			reasons: plan.reasons.copy()
 		};
 	}
 
@@ -626,46 +635,34 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		};
 	}
 
-	function buildRuntimeFeatureReasons(manualFeatures:Array<String>, inferredFeatures:Array<String>,
-			selectedFeatures:Array<String>):Array<RuntimeFeatureReason> {
-		var reasons = new Array<RuntimeFeatureReason>();
-		for (feature in selectedFeatures) {
-			var fromManual = manualFeatures.indexOf(feature) != -1;
-			var fromInferred = inferredFeatures.indexOf(feature) != -1;
-			if (fromManual) {
-				reasons.push({
-					feature: feature,
-					sourceKind: "manual_define",
-					source: GoBuildContextResolver.HXRT_FEATURES_DEFINE
-				});
+	function buildRuntimeFeatureSelection(manualFeatures:Array<String>, inferredFeatures:Array<String>,
+			inferredReasons:Array<RuntimeFeatureReason>):GoHxrtFeatureInference {
+		var selected = inferredFeatures.copy();
+		var reasons:Array<GoHxrtFeatureReason> = [];
+		for (entry in inferredReasons) {
+			if (entry == null) {
+				continue;
 			}
-			if (fromInferred) {
-				reasons.push({
-					feature: feature,
-					sourceKind: "inferred_codegen",
-					source: "compilation_context.inferredHxrtFeatures"
-				});
-			}
-			if (!fromManual && !fromInferred) {
-				reasons.push({
-					feature: feature,
-					sourceKind: "dependency_expansion",
-					source: "GoHxrtFeatureAnalyzer.expandWithDependencies"
-				});
-			}
+			reasons.push({
+				feature: entry.feature,
+				sourceKind: entry.sourceKind,
+				source: entry.source
+			});
 		}
-		reasons.sort((a, b) -> {
-			var featureOrder = Reflect.compare(a.feature, b.feature);
-			if (featureOrder != 0) {
-				return featureOrder;
+		for (feature in manualFeatures) {
+			if (feature == null || !GoHxrtFeatureAnalyzer.isKnownFeature(feature)) {
+				continue;
 			}
-			var kindOrder = Reflect.compare(a.sourceKind, b.sourceKind);
-			if (kindOrder != 0) {
-				return kindOrder;
+			if (selected.indexOf(feature) == -1) {
+				selected.push(feature);
 			}
-			return Reflect.compare(a.source, b.source);
-		});
-		return reasons;
+			reasons.push({
+				feature: feature,
+				sourceKind: "manual_define",
+				source: GoBuildContextResolver.HXRT_FEATURES_DEFINE
+			});
+		}
+		return GoHxrtFeatureAnalyzer.expandWithReasons(selected, reasons);
 	}
 
 	function buildOptimizerCapabilitySummaries(context:CompilationContext):Array<OptimizerCapabilitySummary> {

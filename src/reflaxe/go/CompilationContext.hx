@@ -1,6 +1,7 @@
 package reflaxe.go;
 
 import reflaxe.go.compiler.GoBuildContext;
+import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureReason;
 
 typedef MetalFallbackViolation = {
 	var kind:String;
@@ -36,6 +37,7 @@ class CompilationContext {
 	public final leafReceiverTypes:Map<String, Bool>;
 	public final leafReturningFunctions:Map<String, Bool>;
 	public var inferredHxrtFeatures:Array<String>;
+	public var inferredHxrtFeatureReasons:Array<GoHxrtFeatureReason>;
 	public var selectedHxrtFeatures:Array<String>;
 	public var requiredStdlibShimGroups:Array<String>;
 	public var requiresIoHelperSurface:Bool;
@@ -67,6 +69,7 @@ class CompilationContext {
 		this.leafReceiverTypes = new Map<String, Bool>();
 		this.leafReturningFunctions = new Map<String, Bool>();
 		this.inferredHxrtFeatures = [];
+		this.inferredHxrtFeatureReasons = [];
 		this.selectedHxrtFeatures = [];
 		this.requiredStdlibShimGroups = [];
 		this.requiresIoHelperSurface = false;

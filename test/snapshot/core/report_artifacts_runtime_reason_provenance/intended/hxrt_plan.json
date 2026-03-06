@@ -1,0 +1,74 @@
+{
+	"schemaVersion": 1,
+	"contract": "portable",
+	"mode": "selective",
+	"selectiveEnabled": true,
+	"fullCopy": false,
+	"inferenceDisabled": false,
+	"manualFeatures": [
+		"process"
+	],
+	"inferredFeatures": [
+		"core",
+		"exception",
+		"json",
+		"print",
+		"string"
+	],
+	"selectedFeatures": [
+		"core",
+		"exception",
+		"json",
+		"print",
+		"process",
+		"string",
+		"sys"
+	],
+	"files": [
+		"core.go",
+		"exception.go",
+		"hxrt.go",
+		"json.go",
+		"print.go",
+		"process.go",
+		"string.go",
+		"sys.go"
+	],
+	"reasons": [
+		{
+			"feature": "core",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "string",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "print",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "exception",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "json",
+			"sourceKind": "class_usage",
+			"source": "haxe.Json"
+		},
+		{
+			"feature": "sys",
+			"sourceKind": "dependency_edge",
+			"source": "process->sys"
+		},
+		{
+			"feature": "process",
+			"sourceKind": "manual_define",
+			"source": "reflaxe_go_hxrt_features"
+		}
+	]
+}

@@ -108,6 +108,25 @@ def require_reason_entries(entries: list[Any], expected_source_prefix: str, labe
             )
 
 
+def require_runtime_reason_entries(entries: Any, label: str) -> None:
+    if not isinstance(entries, list) or len(entries) == 0:
+        raise SystemExit(f"{label}: expected non-empty reasons array")
+    seen_kinds: set[str] = set()
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            raise SystemExit(f"{label}[{index}]: expected object")
+        for key in ("feature", "sourceKind", "source"):
+            if key not in entry:
+                raise SystemExit(f"{label}[{index}]: missing key `{key}`")
+            if not isinstance(entry[key], str) or entry[key].strip() == "":
+                raise SystemExit(f"{label}[{index}].{key}: expected non-empty string")
+        seen_kinds.add(entry["sourceKind"])
+    required_kinds = {"baseline", "class_usage", "dependency_edge", "manual_define"}
+    missing = sorted(required_kinds - seen_kinds)
+    if missing:
+        raise SystemExit(f"{label}: missing expected sourceKind values: {', '.join(missing)}")
+
+
 def main() -> int:
     contract_path = ROOT / "test/snapshot/core/report_artifacts_auto_mode/intended/profile_contract.json"
     optimizer_path = ROOT / "test/snapshot/core/report_artifacts_auto_mode/intended/optimizer_plan.json"
@@ -120,7 +139,7 @@ def main() -> int:
     optimizer_fallback_path = (
         ROOT / "test/snapshot/core/optimizer_plan_auto_collections_result_fallback/intended/optimizer_plan.json"
     )
-    runtime_path = ROOT / "test/snapshot/core/report_artifacts_basic/intended/hxrt_plan.json"
+    runtime_path = ROOT / "test/snapshot/core/report_artifacts_runtime_reason_provenance/intended/hxrt_plan.json"
 
     contract = load_json(contract_path)
     require_schema(contract, 7, str(contract_path))
@@ -264,6 +283,7 @@ def main() -> int:
         ],
         str(runtime_path),
     )
+    require_runtime_reason_entries(runtime["reasons"], str(runtime_path) + ".reasons")
 
     print("[PASS] auto planner report schema gate (contract/runtime/optimizer artifacts)")
     return 0
