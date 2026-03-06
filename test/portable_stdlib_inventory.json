@@ -1517,7 +1517,7 @@
       "in_strict_sweep": true,
       "module": "haxe.io.Path",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "mixed",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },

@@ -11,8 +11,6 @@ import (
 	"encoding/xml"
 	"io"
 	"math"
-	"os"
-	"path/filepath"
 	"reflect"
 	"snapshot/hxrt"
 	"strings"
@@ -27,59 +25,31 @@ type hxrt__TypeEnumValue struct {
 	name *string
 }
 
-func firstEntry(items []*string) *string {
-	var hx_if_1 *string
-	if len(items) > 0 {
-		hx_if_1 = items[0]
-	} else {
-		hx_if_1 = hxrt.StringFromLiteral("")
-	}
-	return hx_if_1
-}
-
 func main() {
-	root := hxrt.StringFromLiteral("tmp_fs_smoke")
-	fileA := hxrt.StringConcatStringPtr(root, hxrt.StringFromLiteral("/a.txt"))
-	fileB := hxrt.StringConcatStringPtr(root, hxrt.StringFromLiteral("/b.txt"))
-	rmDirRecursive(root)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("exists0="), hxrt.StdString(sys__FileSystem_exists(root))))
-	sys__FileSystem_createDirectory(root)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("dir1="), hxrt.StdString(sys__FileSystem_isDirectory(root))))
-	sys__io__File_saveContent(fileA, hxrt.StringFromLiteral("hello"))
-	sys__FileSystem_rename(fileA, fileB)
-	names := sys__FileSystem_readDirectory(root)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("entry="), firstEntry(names)))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("size="), func(hx_obj_2 map[string]any) int {
-		hx_field_3 := hx_obj_2["size"]
-		if hx_field_3 == nil {
-			var hx_zero_4 int
-			return hx_zero_4
-		}
-		return hx_field_3.(int)
-	}(sys__FileSystem_stat(fileB))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("content="), sys__io__File_getContent(fileB)))
-	sys__FileSystem_deleteFile(fileB)
-	sys__FileSystem_deleteDirectory(root)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("exists1="), hxrt.StdString(sys__FileSystem_exists(root))))
-}
-
-func rmDirRecursive(path *string) {
-	if !sys__FileSystem_exists(path) {
-		return
-	}
-	_g := 0
-	_g1 := sys__FileSystem_readDirectory(path)
-	for _g < len(_g1) {
-		entry := _g1[_g]
-		_g = int(int32((_g + 1)))
-		child := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(path, hxrt.StringFromLiteral("/")), entry)
-		if sys__FileSystem_isDirectory(child) {
-			rmDirRecursive(child)
-		} else {
-			sys__FileSystem_deleteFile(child)
-		}
-	}
-	sys__FileSystem_deleteDirectory(path)
+	unix := New_haxe__io__Path(hxrt.StringFromLiteral("/tmp/demo.txt"))
+	hxrt.Println(unix.dir)
+	hxrt.Println(unix.file)
+	hxrt.Println(unix.ext)
+	hxrt.Println(unix.toString())
+	dot := New_haxe__io__Path(hxrt.StringFromLiteral("."))
+	hxrt.Println(dot.dir)
+	hxrt.Println(dot.file)
+	hxrt.Println(dot.ext)
+	hxrt.Println(dot.toString())
+	hxrt.Println(haxe__io__Path_withoutExtension(hxrt.StringFromLiteral("/tmp/demo.txt")))
+	hxrt.Println(haxe__io__Path_withoutDirectory(hxrt.StringFromLiteral("/tmp/demo.txt")))
+	hxrt.Println(haxe__io__Path_directory(hxrt.StringFromLiteral("demo.txt")))
+	hxrt.Println(haxe__io__Path_extension(hxrt.StringFromLiteral("/tmp/demo.txt")))
+	hxrt.Println(haxe__io__Path_withExtension(hxrt.StringFromLiteral("/tmp/demo.txt"), hxrt.StringFromLiteral("log")))
+	hxrt.Println(haxe__io__Path_join([]*string{hxrt.StringFromLiteral("/tmp"), hxrt.StringFromLiteral("demo"), hxrt.StringFromLiteral(".."), hxrt.StringFromLiteral("out"), hxrt.StringFromLiteral("file.txt")}))
+	hxrt.Println(haxe__io__Path_normalize(hxrt.StringFromLiteral("/usr/local/../lib//./a\\b")))
+	hxrt.Println(haxe__io__Path_addTrailingSlash(hxrt.StringFromLiteral("a\\b")))
+	hxrt.Println(haxe__io__Path_addTrailingSlash(hxrt.StringFromLiteral("a/b")))
+	hxrt.Println(haxe__io__Path_removeTrailingSlashes(hxrt.StringFromLiteral("a///")))
+	hxrt.Println(haxe__io__Path_isAbsolute(hxrt.StringFromLiteral("/tmp/demo.txt")))
+	hxrt.Println(haxe__io__Path_isAbsolute(hxrt.StringFromLiteral("C:\\tmp\\demo.txt")))
+	hxrt.Println(haxe__io__Path_isAbsolute(hxrt.StringFromLiteral("\\\\server\\share")))
+	hxrt.Println(haxe__io__Path_isAbsolute(hxrt.StringFromLiteral("relative/path")))
 }
 
 type haxe__io__Encoding struct {
@@ -594,142 +564,6 @@ func (self *haxe__io__BytesOutput) getBytes() *haxe__io__Bytes {
 		return &haxe__io__Bytes{b: []int{}, length: 0}
 	}
 	return self.b.getBytes()
-}
-
-type Sys struct {
-}
-
-type sys__io__File struct {
-}
-
-type sys__io__ProcessOutput struct {
-	impl *hxrt.ProcessOutput
-}
-
-type sys__io__Process struct {
-	impl   *hxrt.Process
-	stdout *sys__io__ProcessOutput
-}
-
-func Sys_getCwd() *string {
-	return hxrt.SysGetCwd()
-}
-
-func Sys_args() []*string {
-	return hxrt.SysArgs()
-}
-
-func Sys_getEnv(key *string) *string {
-	return hxrt.SysGetEnv(key)
-}
-
-func Sys_putEnv(key *string, value *string) {
-	hxrt.SysPutEnv(key, value)
-}
-
-func Sys_systemName() *string {
-	return hxrt.SysSystemName()
-}
-
-func sys__io__File_saveContent(path *string, content *string) {
-	hxrt.FileSaveContent(path, content)
-}
-
-func sys__io__File_getContent(path *string) *string {
-	return hxrt.FileGetContent(path)
-}
-
-func New_sys__io__Process(command *string, args []*string) *sys__io__Process {
-	impl := hxrt.NewProcess(command, args)
-	stdout := &sys__io__ProcessOutput{}
-	if impl != nil {
-		stdout.impl = impl.Stdout()
-	}
-	return &sys__io__Process{impl: impl, stdout: stdout}
-}
-
-func (self *sys__io__ProcessOutput) readLine() *string {
-	if self == nil || self.impl == nil {
-		return hxrt.StringFromLiteral("")
-	}
-	return self.impl.ReadLine()
-}
-
-func (self *sys__io__Process) close() {
-	if self == nil || self.impl == nil {
-		return
-	}
-	self.impl.Close()
-}
-
-func sys__FileSystem_exists(path *string) bool {
-	_, err := os.Stat(*hxrt.StdString(path))
-	return err == nil
-}
-
-func sys__FileSystem_rename(path *string, newPath *string) {
-	if err := os.Rename(*hxrt.StdString(path), *hxrt.StdString(newPath)); err != nil {
-		hxrt.Throw(err)
-	}
-}
-
-func sys__FileSystem_stat(path *string) map[string]any {
-	info, err := os.Stat(*hxrt.StdString(path))
-	if err != nil {
-		hxrt.Throw(err)
-		return map[string]any{}
-	}
-	modTime := info.ModTime()
-	timeValue := &Date{value: modTime}
-	return map[string]any{"gid": 0, "uid": 0, "atime": timeValue, "mtime": timeValue, "ctime": timeValue, "dev": 0, "ino": 0, "nlink": 1, "rdev": 0, "size": int(info.Size()), "mode": int(info.Mode())}
-}
-
-func sys__FileSystem_fullPath(path *string) *string {
-	resolved, err := filepath.Abs(*hxrt.StdString(path))
-	if err != nil {
-		hxrt.Throw(err)
-		return hxrt.StringFromLiteral("")
-	}
-	return hxrt.StringFromLiteral(filepath.ToSlash(resolved))
-}
-
-func sys__FileSystem_isDirectory(path *string) bool {
-	info, err := os.Stat(*hxrt.StdString(path))
-	if err != nil {
-		return false
-	}
-	return info.IsDir()
-}
-
-func sys__FileSystem_createDirectory(path *string) {
-	if err := os.MkdirAll(*hxrt.StdString(path), 0o755); err != nil {
-		hxrt.Throw(err)
-	}
-}
-
-func sys__FileSystem_deleteFile(path *string) {
-	if err := os.Remove(*hxrt.StdString(path)); err != nil {
-		hxrt.Throw(err)
-	}
-}
-
-func sys__FileSystem_deleteDirectory(path *string) {
-	if err := os.Remove(*hxrt.StdString(path)); err != nil {
-		hxrt.Throw(err)
-	}
-}
-
-func sys__FileSystem_readDirectory(path *string) []*string {
-	entries, err := os.ReadDir(*hxrt.StdString(path))
-	if err != nil {
-		hxrt.Throw(err)
-		return []*string{}
-	}
-	out := make([]*string, 0, len(entries))
-	for _, entry := range entries {
-		out = append(out, hxrt.StringFromLiteral(entry.Name()))
-	}
-	return out
 }
 
 type Std struct {
@@ -2042,6 +1876,12 @@ func hxrt_typeResolvedEnumName(value any) (string, bool) {
 
 func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	switch className {
+	case "haxe.io.Path":
+		return hxrt_typeCallAny(New_haxe__io__Path, args)
+	case "haxe.iterators.StringIterator":
+		return hxrt_typeCallAny(New_haxe__iterators__StringIterator, args)
+	case "haxe.iterators.StringKeyValueIterator":
+		return hxrt_typeCallAny(New_haxe__iterators__StringKeyValueIterator, args)
 	default:
 		return nil, false
 	}
@@ -2049,6 +1889,12 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 
 func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
+	case "haxe.io.Path":
+		return &haxe__io__Path{}, true
+	case "haxe.iterators.StringIterator":
+		return &haxe__iterators__StringIterator{}, true
+	case "haxe.iterators.StringKeyValueIterator":
+		return &haxe__iterators__StringKeyValueIterator{}, true
 	default:
 		return nil, false
 	}
@@ -2175,6 +2021,21 @@ func Type_getClass(o any) any {
 	case hxrt__TypeClassValue:
 		copyValue := value
 		return &copyValue
+	case *haxe__io__Path:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Path")}
+	case *haxe__iterators__StringIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.StringIterator")}
+	case *haxe__iterators__StringKeyValueIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.StringKeyValueIterator")}
 	default:
 		return nil
 	}
@@ -2209,6 +2070,12 @@ func Type_getSuperClass(c any) any {
 		return nil
 	}
 	switch className {
+	case "haxe.io.Path":
+		return nil
+	case "haxe.iterators.StringIterator":
+		return nil
+	case "haxe.iterators.StringKeyValueIterator":
+		return nil
 	default:
 		return nil
 	}
@@ -2228,6 +2095,12 @@ func Type_getClassFields(c any) []*string {
 		return []*string{}
 	}
 	switch className {
+	case "haxe.io.Path":
+		return []*string{hxrt.StringFromLiteral("addTrailingSlash"), hxrt.StringFromLiteral("directory"), hxrt.StringFromLiteral("extension"), hxrt.StringFromLiteral("isAbsolute"), hxrt.StringFromLiteral("join"), hxrt.StringFromLiteral("joinWithSlash"), hxrt.StringFromLiteral("lastIndexOfCode"), hxrt.StringFromLiteral("normalize"), hxrt.StringFromLiteral("removeTrailingSlashes"), hxrt.StringFromLiteral("splitOnSlash"), hxrt.StringFromLiteral("withExtension"), hxrt.StringFromLiteral("withoutDirectory"), hxrt.StringFromLiteral("withoutExtension")}
+	case "haxe.iterators.StringIterator":
+		return []*string{}
+	case "haxe.iterators.StringKeyValueIterator":
+		return []*string{}
 	default:
 		return []*string{}
 	}
@@ -2239,6 +2112,12 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{}
 	}
 	switch className {
+	case "haxe.io.Path":
+		return []*string{hxrt.StringFromLiteral("backslash"), hxrt.StringFromLiteral("dir"), hxrt.StringFromLiteral("ext"), hxrt.StringFromLiteral("file"), hxrt.StringFromLiteral("toString")}
+	case "haxe.iterators.StringIterator":
+		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
+	case "haxe.iterators.StringKeyValueIterator":
+		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
 	default:
 		return []*string{}
 	}
@@ -2258,6 +2137,12 @@ func Type_resolveClass(name *string) any {
 	}
 	rawName := *hxrt.StdString(name)
 	switch rawName {
+	case "haxe.io.Path":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.iterators.StringIterator":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.iterators.StringKeyValueIterator":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
 	}

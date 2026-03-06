@@ -93,6 +93,7 @@ OWNER_OVERRIDES = {
     "sys.FileSystem": "runtime_hxrt",
     "DateTools": "staged_std",
     "StringTools": "staged_std",
+    "haxe.io.Path": "staged_std",
     "EReg": "compiler_shim",
     "haxe.Serializer": "compiler_shim",
     "haxe.Unserializer": "compiler_shim",

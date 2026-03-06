@@ -273,6 +273,30 @@ Observed result:
 - `DateTools` helper semantics no longer live in `GoCompiler`.
 - Date formatting now follows the staged std implementation, while core `Date` storage and time conversion remain compiler-owned.
 
+### 2026-03-06: `haxe.io.Path` moved from compiler shims to staged std (`haxe.go-14as.36`)
+
+Implementation:
+
+- Added `std/haxe/io/Path.cross.hx` and moved `Path` parsing, formatting, normalization, trailing-slash helpers, and absolute-path checks into staged std.
+- Removed compiler-owned `haxe__io__Path` constructor and `haxe__io__Path_join` declarations from `lowerStdlibSymbolShimDecls`.
+- Reused the on-demand staged-stdlib inclusion path so `haxe.io.Path` is only compiled when user code actually references the class.
+- Kept the override narrowly expressed in target-supported string primitives and documented explicitly why upstream `haxe.io.Path` could not be reused unchanged yet.
+- Updated the stdlib provenance ledger and ownership map so governance points at the staged source instead of compiler helpers.
+
+Validation evidence:
+
+- Red/green semantic-diff:
+  - `python3 test/run-semantic-diff.py --case path_cross_std_contract`
+- Existing mixed contract coverage:
+  - `python3 test/run-semantic-diff.py --case option_date_path`
+- Snapshot coverage:
+  - `python3 test/run-snapshots.py --case stdlib/path_cross_std_basic --case stdlib/date_path_basic --update --runtime`
+
+Observed result:
+
+- `haxe.io.Path` no longer bloats `GoCompiler` with library semantics.
+- The staged override preserves the upstream helper surface while making the current lowering gaps explicit and local to `std/`.
+
 ## Open migration track
 
 - Legacy `haxe.go-7zy.*` shim migration sequence is closed.

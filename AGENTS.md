@@ -77,6 +77,7 @@ Agent policy:
 - Use sibling-target precedent before keeping stdlib behavior in `GoCompiler`: `haxe.rust` and `haxe.elixir` default library surfaces like `StringTools`/`DateTools` to staged std + small runtime helpers, and reserve compiler ownership for compile-context-sensitive behavior.
 - Documentation threshold rule: do not reserve HaxeDoc only for obviously "big" constructs or artifacts. If a type/function/abstract/macro/extern override/metadata pattern is even slightly non-obvious, surprising, or easy to misuse, document it with `Why / What / How` HaxeDoc where it is declared.
 - Bias toward documenting earlier rather than later, especially for abstracts, compiler helpers, runtime bindings, lowering hooks, and `std/` compatibility shims.
+- For each staged std/runtime compatibility override you add, include `What / Why / How` HaxeDoc at the declaration and make the `Why` explicit about why the mainstream Haxe stdlib implementation could not be used unchanged on `haxe.go`.
 - Never emit absolute machine-local paths in generated output or snapshots.
 - When fixing a bug, always add or update a regression test in `test/snapshot`.
 

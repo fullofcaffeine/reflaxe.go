@@ -6078,46 +6078,6 @@ class GoCompiler {
 				}
 			],
 				["*haxe__ds__Option"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__Option{tag: 0, params: []any{value}}"))]),
-			GoDecl.GoStructDecl("haxe__io__Path", [
-				{
-					name: "dir",
-					typeName: "*string"
-				},
-				{name: "file", typeName: "*string"},
-				{name: "ext", typeName: "*string"},
-				{name: "backslash", typeName: "bool"}
-			]),
-			GoDecl.GoFuncDecl("New_haxe__io__Path", null, [{name: "path", typeName: "*string"}], ["*haxe__io__Path"], [
-				GoStmt.GoVarDecl("raw", null, GoExpr.GoRaw("*hxrt.StdString(path)"), true),
-				GoStmt.GoVarDecl("dir", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("filepath"), "Dir"), [GoExpr.GoIdent("raw")]), true),
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("dir"), GoExpr.GoStringLiteral(".")),
-					[GoStmt.GoAssign(GoExpr.GoIdent("dir"), GoExpr.GoStringLiteral(""))], null),
-				GoStmt.GoVarDecl("base", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("filepath"), "Base"), [GoExpr.GoIdent("raw")]), true),
-				GoStmt.GoVarDecl("dotExt", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("filepath"), "Ext"), [GoExpr.GoIdent("base")]), true),
-				GoStmt.GoVarDecl("file", null, GoExpr.GoIdent("base"), true),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("dotExt"), GoExpr.GoStringLiteral("")), [
-					GoStmt.GoAssign(GoExpr.GoIdent("file"),
-						GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "TrimSuffix"), [GoExpr.GoIdent("base"), GoExpr.GoIdent("dotExt")]))
-				],
-					null),
-				GoStmt.GoVarDecl("ext", null,
-					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "TrimPrefix"), [GoExpr.GoIdent("dotExt"), GoExpr.GoStringLiteral(".")]), true),
-				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Path{dir: hxrt.StringFromLiteral(dir), file: hxrt.StringFromLiteral(file), ext: hxrt.StringFromLiteral(ext), backslash: strings.Contains(raw, \"\\\\\")}"))
-			]),
-			GoDecl.GoFuncDecl("haxe__io__Path_join", null, [
-				{
-					name: "parts",
-					typeName: "[]*string"
-				}
-			], ["*string"],
-				[
-					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent("parts")]), GoExpr.GoIntLiteral(0)), [
-						GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
-					],
-						null),
-					GoStmt.GoVarDecl("joined", null, GoExpr.GoRaw("filepath.ToSlash(filepath.Join(hxrt.StringSlice(parts)...))"), true),
-					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("joined")]))
-				]),
 			GoDecl.GoStructDecl("haxe__io__StringInput", []),
 			GoDecl.GoStructDecl("haxe__xml__Parser", []),
 			GoDecl.GoStructDecl("haxe__xml__Printer", []),
@@ -11984,6 +11944,9 @@ class GoCompiler {
 				};
 			case TNew(classRef, _, args):
 				var classType = classRef.get();
+				if (fullClassName(classType) == "haxe.io.Path") {
+					requireSourceOwnedStdlibClass("haxe.io.Path");
+				}
 				if (useTypedGoConcurrencySpecialization() && isGoChanClass(classType)) {
 					noteLoweringAttempt("go.concurrency.typed", "go_chan_new", expr.pos, "Attempt typed go.Chan constructor specialization.");
 					var elementEligibility = goChanElementEligibility(expr.t, "Could not resolve go.Chan element type for constructor specialization.");
@@ -12380,6 +12343,9 @@ class GoCompiler {
 			case FInstance(classRef, _, field):
 				var resolved = field.get();
 				var classType = classRef.get();
+				if (fullClassName(classType) == "haxe.io.Path") {
+					requireSourceOwnedStdlibClass("haxe.io.Path");
+				}
 				noteIoHelperFieldUsage(classType, resolved.name);
 				var loweredTarget = lowerExpr(target).expr;
 
@@ -15541,6 +15507,9 @@ class GoCompiler {
 		}
 		if (classType.pack.length == 0 && classType.name == "DateTools") {
 			requireSourceOwnedStdlibClass("DateTools");
+		}
+		if (fullClassName(classType) == "haxe.io.Path") {
+			requireSourceOwnedStdlibClass("haxe.io.Path");
 		}
 	}
 

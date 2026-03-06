@@ -11,7 +11,6 @@ import (
 	"encoding/xml"
 	"io"
 	"math"
-	"path/filepath"
 	"reflect"
 	"snapshot/hxrt"
 	"strings"
@@ -1525,37 +1524,6 @@ var haxe__ds__Option_None *haxe__ds__Option = &haxe__ds__Option{tag: 1, params: 
 
 func haxe__ds__Option_Some(value any) *haxe__ds__Option {
 	return &haxe__ds__Option{tag: 0, params: []any{value}}
-}
-
-type haxe__io__Path struct {
-	dir       *string
-	file      *string
-	ext       *string
-	backslash bool
-}
-
-func New_haxe__io__Path(path *string) *haxe__io__Path {
-	raw := *hxrt.StdString(path)
-	dir := filepath.Dir(raw)
-	if dir == "." {
-		dir = ""
-	}
-	base := filepath.Base(raw)
-	dotExt := filepath.Ext(base)
-	file := base
-	if dotExt != "" {
-		file = strings.TrimSuffix(base, dotExt)
-	}
-	ext := strings.TrimPrefix(dotExt, ".")
-	return &haxe__io__Path{dir: hxrt.StringFromLiteral(dir), file: hxrt.StringFromLiteral(file), ext: hxrt.StringFromLiteral(ext), backslash: strings.Contains(raw, "\\")}
-}
-
-func haxe__io__Path_join(parts []*string) *string {
-	if len(parts) == 0 {
-		return hxrt.StringFromLiteral("")
-	}
-	joined := filepath.ToSlash(filepath.Join(hxrt.StringSlice(parts)...))
-	return hxrt.StringFromLiteral(joined)
 }
 
 type haxe__io__StringInput struct {
