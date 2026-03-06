@@ -367,14 +367,14 @@ Policy sources:
 ## Unsupported expression inventory (compiler hard-fail paths)
 
 These are explicit fatal guards in `src/reflaxe/go/GoCompiler.hx` that represent unsupported paths.
-As of **2026-03-04**, the hard-fail inventory count is **4** (reduced from **5**) after removing the unreachable `lowerConst` fallback hard-fail and locking constant lowering coverage with `core/const_kinds_contract`.
+As of **2026-03-06**, the hard-fail inventory count remains **4**, with invariant fixture strategies now explicitly named per path.
 
-| Inventory item | Current behavior | Acceptance criteria for closure | Owner |
-| --- | --- | --- | --- |
-| Non-lvalue assignment targets in `lowerLValue` | Fatal: `Unsupported assignment target` | Either (a) support any newly reachable legal lvalue shape, or (b) keep as invariant and add a dedicated negative test if a reproducer becomes possible. | `haxe.go-l3qt.3` |
-| Non-`++/--` postfix unary in `lowerExpr` / `lowerExprWithPrefix` | Fatal: `Unsupported postfix unary operator` | Keep parser/typed-ast assumptions validated; if new postfix forms become reachable, add lowering + snapshots before enabling. | `haxe.go-l3qt.3` |
-| Catch-all `lowerExpr` default | Fatal: `Unsupported expression` | Continue replacing reachable typed-node gaps with explicit lowering (for example `TTypeExpr` class/enum refs are now covered via `type_expr_contract`, `TThrow` in value positions is covered via `throw_expr_contract`, and untyped identifier `TIdent` nodes are covered via `core/untyped_ident_nil`) and keep dedicated coverage as each newly reachable node is supported. | `haxe.go-l3qt.3` |
-| Unsupported `Std.isOfType` target kind | No compiler hard-fail for unresolved runtime-value abstract targets; falls back to conservative `false`/type-switch check | Keep adding explicit lowering for newly important target families and lock behavior with semantic diff coverage. | `haxe.go-l3qt.3` |
+| Inventory item | Current behavior | Fixture strategy (named) | Acceptance criteria for closure | Owner |
+| --- | --- | --- | --- | --- |
+| Non-lvalue assignment targets in `lowerLValue` | Fatal: `Unsupported assignment target` | `negative/non_lvalue_assignment_invariant` locks Haxe front-end rejection (`Invalid assign`) so backend fatal remains an explicit invariant unless a typed reproducer becomes reachable. | Either (a) support any newly reachable legal lvalue shape, or (b) keep as invariant and add a dedicated negative test if a reproducer becomes possible. | `haxe.go-14as.8` |
+| Non-`++/--` postfix unary in `lowerExpr` / `lowerExprWithPrefix` | Fatal: `Unsupported postfix unary operator` | `negative/postfix_non_inc_dec_invariant` locks parser-level rejection (`Postfix ! is not supported`) so only `++/--` postfix forms can reach lowering today. | Keep parser/typed-ast assumptions validated; if new postfix forms become reachable, add lowering + snapshots before enabling. | `haxe.go-14as.8` |
+| Catch-all `lowerExpr` default | Fatal: `Unsupported expression` | Node-family closure map: `semantic-diff/type_expr_contract`, `semantic-diff/throw_expr_contract`, `core/untyped_ident_nil`, and `core/const_kinds_contract`; new reachable node families must add a dedicated contract fixture in the same change. | Continue replacing reachable typed-node gaps with explicit lowering and keep dedicated coverage as each newly reachable node is supported. | `haxe.go-14as.8` |
+| Unsupported `Std.isOfType` target kind | No compiler hard-fail for unresolved runtime-value abstract targets; falls back to conservative `false`/type-switch check | `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract`, `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic`, `core/type_switch_no_binding_std_is_of_type` lock current fallback semantics. | Keep adding explicit lowering for newly important target families and lock behavior with semantic diff coverage. | `haxe.go-14as.8` |
 
 ## Known stdlib parity gaps (probe inventory)
 
@@ -410,3 +410,4 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-8hs`: add serializer global default flag semantic coverage (`serializer_global_flags_contract`).
 - `haxe.go-14as.6`: promote iterator-family parity (`haxe.iterators.ArrayIterator`, `ArrayKeyValueIterator`, `DynamicAccessIterator`, `DynamicAccessKeyValueIterator`, `RestIterator`, `RestKeyValueIterator`, `StringIterator`, `StringIteratorUnicode`, `StringKeyValueIterator`, `StringKeyValueIteratorUnicode`) via `iterators_family_contract` and staged std overrides.
 - `haxe.go-14as.7`: add portable-vs-metal invariance coverage for iterator/list/map/string portable surfaces (`portable_surfaces_metal_invariance_contract`, `portable_surfaces_lane_invariance_contract`) and snapshot fallback-report attribution lock (`core/report_artifacts_lane_fallback_portable_surfaces`).
+- `haxe.go-14as.8`: close unsupported-expression inventory with explicit invariant fixture strategy mapping (`negative/non_lvalue_assignment_invariant`, `negative/postfix_non_inc_dec_invariant`, plus node-family closure fixtures for `lowerExpr` and `Std.isOfType` fallback behavior).

@@ -23,6 +23,11 @@ Current architecture status:
   - `Unsupported postfix unary operator` (`lowerExpr` / `lowerExprWithPrefix`)
   - `Unsupported expression` (catch-all `lowerExpr` fallback)
   - `Std.isOfType` still has conservative fallback behavior for unresolved runtime-value abstract targets (documented as partial support, not a hard-fail)
+- Invariant fixture strategy for surviving hard-fail paths (`haxe.go-14as.8`):
+  - `Unsupported assignment target`: `test/snapshot/negative/non_lvalue_assignment_invariant`
+  - `Unsupported postfix unary operator`: `test/snapshot/negative/postfix_non_inc_dec_invariant`
+  - `Unsupported expression` catch-all: closure-by-node-family via `test/semantic_diff/type_expr_contract`, `test/semantic_diff/throw_expr_contract`, `test/snapshot/core/untyped_ident_nil`, `test/snapshot/core/const_kinds_contract`
+  - `Std.isOfType` fallback behavior: `test/semantic_diff/std_is_of_type_contract`, `test/semantic_diff/std_is_of_type_runtime_core_abstract_contract`, and `test/snapshot/core/std_is_of_type_basic`, `test/snapshot/core/std_is_of_type_dynamic`, `test/snapshot/core/type_switch_no_binding_std_is_of_type`
 - `go.*` APIs are target-specific. They compile to real Go behavior on this target, but they are not portability-safe across non-Go Haxe targets.
 
 ## Interop caveats
