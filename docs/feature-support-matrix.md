@@ -408,3 +408,4 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-nmg`: add `haxe.io.Bytes.toHex` / `haxe.io.Bytes.ofHex` shim parity (`bytes_hex_contract`).
 - `haxe.go-9v6`: promote `haxe.ds.ReadOnlyArray` from compile-only to semantic-diff coverage (`readonly_array_contract`).
 - `haxe.go-8hs`: add serializer global default flag semantic coverage (`serializer_global_flags_contract`).
+- `haxe.go-14as.6`: promote iterator-family parity (`haxe.iterators.ArrayIterator`, `ArrayKeyValueIterator`, `DynamicAccessIterator`, `DynamicAccessKeyValueIterator`, `RestIterator`, `RestKeyValueIterator`, `StringIterator`, `StringIteratorUnicode`, `StringKeyValueIterator`, `StringKeyValueIteratorUnicode`) via `iterators_family_contract` and staged std overrides.

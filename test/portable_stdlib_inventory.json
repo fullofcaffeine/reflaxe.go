@@ -1452,51 +1452,55 @@
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.iterators.ArrayIterator",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.iterators.ArrayKeyValueIterator",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.iterators.DynamicAccessIterator",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.iterators.DynamicAccessKeyValueIterator",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
@@ -1526,75 +1530,81 @@
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.iterators.RestIterator",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.iterators.RestKeyValueIterator",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.iterators.StringIterator",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.iterators.StringIteratorUnicode",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.iterators.StringKeyValueIterator",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.iterators.StringKeyValueIteratorUnicode",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [

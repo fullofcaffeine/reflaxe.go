@@ -152,6 +152,7 @@ class GoCompiler {
 	var sourceModuleSuffixes:Array<String>;
 	var cachedVoidType:Null<Type>;
 	var requiresIoHelperSurface:Bool;
+	var requiresReflectFieldsShim:Bool;
 	var projectClasses:Array<ClassType>;
 	var projectEnums:Array<EnumType>;
 	var globalLeafReceiverTypes:Map<String, Bool>;
@@ -183,6 +184,7 @@ class GoCompiler {
 		sourceModuleSuffixes = [];
 		cachedVoidType = null;
 		requiresIoHelperSurface = false;
+		requiresReflectFieldsShim = false;
 		projectClasses = [];
 		projectEnums = [];
 		globalLeafReceiverTypes = new Map<String, Bool>();
@@ -208,6 +210,7 @@ class GoCompiler {
 		syncCompilationContextLeafReceivers();
 		clearBoolMap(compilationContext.leafReturningFunctions);
 		requiresIoHelperSurface = false;
+		requiresReflectFieldsShim = false;
 		resetRequiredMetalChanElementTypes();
 		resetRequiredMetalSliceElementTypes();
 		resetRequiredMetalMapTypePairs();
@@ -5557,8 +5560,79 @@ class GoCompiler {
 			]),
 			GoDecl.GoStructDecl("sys__FileSystem", [])
 		];
+		if (requiresReflectFieldsShim) {
+			decls.push(reflectFieldsShimDecl());
+		}
 		decls = decls.concat(lowerTypeReflectionShimDecls());
 		return decls;
+	}
+
+	function reflectFieldsShimDecl():GoDecl {
+		return GoDecl.GoFuncDecl("Reflect_fields", null, [
+			{
+				name: "obj",
+				typeName: "any"
+			}
+		], ["[]*string"], [
+			GoStmt.GoRaw("if obj == nil {"),
+			GoStmt.GoRaw("\treturn []*string{}"),
+			GoStmt.GoRaw("}"),
+			GoStmt.GoRaw("switch value := obj.(type) {"),
+			GoStmt.GoRaw("case map[string]any:"),
+			GoStmt.GoRaw("\tkeys := make([]*string, 0, len(value))"),
+			GoStmt.GoRaw("\tfor key := range value {"),
+			GoStmt.GoRaw("\t\tkeys = append(keys, hxrt.StringFromLiteral(key))"),
+			GoStmt.GoRaw("\t}"),
+			GoStmt.GoRaw("\treturn keys"),
+			GoStmt.GoRaw("case map[any]any:"),
+			GoStmt.GoRaw("\tkeys := make([]*string, 0, len(value))"),
+			GoStmt.GoRaw("\tfor key := range value {"),
+			GoStmt.GoRaw("\t\tkeys = append(keys, hxrt.StdString(key))"),
+			GoStmt.GoRaw("\t}"),
+			GoStmt.GoRaw("\treturn keys"),
+			GoStmt.GoRaw("case *map[string]any:"),
+			GoStmt.GoRaw("\tif value == nil {"),
+			GoStmt.GoRaw("\t\treturn []*string{}"),
+			GoStmt.GoRaw("\t}"),
+			GoStmt.GoRaw("\tkeys := make([]*string, 0, len(*value))"),
+			GoStmt.GoRaw("\tfor key := range *value {"),
+			GoStmt.GoRaw("\t\tkeys = append(keys, hxrt.StringFromLiteral(key))"),
+			GoStmt.GoRaw("\t}"),
+			GoStmt.GoRaw("\treturn keys"),
+			GoStmt.GoRaw("case *map[any]any:"),
+			GoStmt.GoRaw("\tif value == nil {"),
+			GoStmt.GoRaw("\t\treturn []*string{}"),
+			GoStmt.GoRaw("\t}"),
+			GoStmt.GoRaw("\tkeys := make([]*string, 0, len(*value))"),
+			GoStmt.GoRaw("\tfor key := range *value {"),
+			GoStmt.GoRaw("\t\tkeys = append(keys, hxrt.StdString(key))"),
+			GoStmt.GoRaw("\t}"),
+			GoStmt.GoRaw("\treturn keys"),
+			GoStmt.GoRaw("}"),
+			GoStmt.GoRaw("rv := reflect.ValueOf(obj)"),
+			GoStmt.GoRaw("if !rv.IsValid() {"),
+			GoStmt.GoRaw("\treturn []*string{}"),
+			GoStmt.GoRaw("}"),
+			GoStmt.GoRaw("if rv.Kind() == reflect.Pointer {"),
+			GoStmt.GoRaw("\tif rv.IsNil() {"),
+			GoStmt.GoRaw("\t\treturn []*string{}"),
+			GoStmt.GoRaw("\t}"),
+			GoStmt.GoRaw("\trv = rv.Elem()"),
+			GoStmt.GoRaw("}"),
+			GoStmt.GoRaw("if rv.Kind() != reflect.Struct {"),
+			GoStmt.GoRaw("\treturn []*string{}"),
+			GoStmt.GoRaw("}"),
+			GoStmt.GoRaw("rt := rv.Type()"),
+			GoStmt.GoRaw("keys := make([]*string, 0, rv.NumField())"),
+			GoStmt.GoRaw("for i := 0; i < rv.NumField(); i++ {"),
+			GoStmt.GoRaw("\tfield := rt.Field(i)"),
+			GoStmt.GoRaw("\tif field.PkgPath != \"\" {"),
+			GoStmt.GoRaw("\t\tcontinue"),
+			GoStmt.GoRaw("\t}"),
+			GoStmt.GoRaw("\tkeys = append(keys, hxrt.StringFromLiteral(field.Name))"),
+			GoStmt.GoRaw("}"),
+			GoStmt.GoRaw("return keys")
+		]);
 	}
 
 	function lowerTypeReflectionShimDecls():Array<GoDecl> {
@@ -11697,6 +11771,11 @@ class GoCompiler {
 	}
 
 	function lowerCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):LoweredExpr {
+		if (isStaticCall(callee, "Reflect", [], "fields")) {
+			requireStdlibShimGroup("stdlib_symbols");
+			requiresReflectFieldsShim = true;
+		}
+
 		var stringInstanceCall = lowerStringInstanceCall(callee, args, returnType);
 		if (stringInstanceCall != null) {
 			return stringInstanceCall;
