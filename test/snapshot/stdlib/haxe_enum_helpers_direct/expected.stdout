@@ -1,0 +1,7 @@
+flags.alpha=false
+flags.gamma=true
+flags.int=4
+created.name=Beta
+created.index=1
+ctors=Alpha|Beta|Gamma
+all=Alpha|Gamma

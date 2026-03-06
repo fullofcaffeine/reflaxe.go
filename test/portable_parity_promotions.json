@@ -13,6 +13,8 @@
       "Xml",
       "haxe.Constraints",
       "haxe.DynamicAccess",
+      "haxe.EnumFlags",
+      "haxe.EnumTools",
       "haxe.Http",
       "haxe.Log",
       "haxe.Resource",

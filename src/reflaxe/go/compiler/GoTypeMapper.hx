@@ -50,25 +50,8 @@ class GoTypeMapper {
 				"map[string]any";
 			case TAbstract(abstractRef, params):
 				var abstractType = abstractRef.get();
-				if (abstractType.pack.length == 0 && abstractType.name == "Int") {
-					"int";
-				} else if (abstractType.pack.length == 0 && abstractType.name == "UInt") {
-					"int";
-				} else if (isHaxeMapAbstract(abstractType)) {
-					mapAbstractGoType(params);
-				} else if (abstractType.pack.length == 0 && abstractType.name == "Float") {
-					"float64";
-				} else if (abstractType.pack.length == 0 && abstractType.name == "Bool") {
-					"bool";
-				} else if (abstractType.pack.length == 0 && abstractType.name == "String") {
-					"*string";
-				} else if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int32") {
-					"int";
-				} else if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int64") {
-					"*haxe___Int64_____Int64";
-				} else {
-					"any";
-				}
+				var mapped = abstractGoType(abstractType, params, classTypeName, enumTypeName);
+				mapped == null ? "any" : mapped;
 			case _:
 				"any";
 		};
@@ -312,28 +295,42 @@ class GoTypeMapper {
 				"map[string]any";
 			case TAbstract(abstractRef, params):
 				var abstractType = abstractRef.get();
-				if (abstractType.pack.length == 0 && abstractType.name == "Int") {
-					"int";
-				} else if (abstractType.pack.length == 0 && abstractType.name == "UInt") {
-					"int";
-				} else if (isHaxeMapAbstract(abstractType)) {
-					mapAbstractGoType(params);
-				} else if (abstractType.pack.length == 0 && abstractType.name == "Float") {
-					"float64";
-				} else if (abstractType.pack.length == 0 && abstractType.name == "Bool") {
-					"bool";
-				} else if (abstractType.pack.length == 0 && abstractType.name == "String") {
-					"*string";
-				} else if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int32") {
-					"int";
-				} else if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int64") {
-					"*haxe___Int64_____Int64";
-				} else {
-					"any";
-				}
+				var mapped = abstractGoType(abstractType, params, classTypeName, enumTypeName);
+				mapped == null ? "any" : mapped;
 			case _:
 				"any";
 		};
+	}
+
+	static function abstractGoType(abstractType:AbstractType, params:Array<Type>, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):Null<String> {
+		if (abstractType.pack.length == 0 && abstractType.name == "Int") {
+			return "int";
+		}
+		if (abstractType.pack.length == 0 && abstractType.name == "UInt") {
+			return "int";
+		}
+		if (isHaxeMapAbstract(abstractType)) {
+			return mapAbstractGoType(params);
+		}
+		if (abstractType.pack.length == 0 && abstractType.name == "Float") {
+			return "float64";
+		}
+		if (abstractType.pack.length == 0 && abstractType.name == "Bool") {
+			return "bool";
+		}
+		if (abstractType.pack.length == 0 && abstractType.name == "String") {
+			return "*string";
+		}
+		if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int32") {
+			return "int";
+		}
+		if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Int64") {
+			return "*haxe___Int64_____Int64";
+		}
+		if (abstractType.pack.join(".") == "haxe" && abstractType.name == "EnumFlags") {
+			return "int";
+		}
+		return null;
 	}
 
 	public static function goFunctionType(args:Array<{name:String, opt:Bool, t:Type}>, returnType:Type, classTypeName:GoClassTypeNamer,

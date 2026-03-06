@@ -946,6 +946,7 @@ class GoCompiler {
 		return (pack == "haxe" && classType.name == "Int64Helper")
 			|| (pack == "haxe" && classType.name == "Json")
 			|| (pack == "haxe" && classType.name == "IMap")
+			|| (pack == "haxe._EnumFlags" && classType.name == "EnumFlags_Impl_")
 			|| (pack == "haxe.format" && (classType.name == "JsonParser" || classType.name == "JsonPrinter"))
 			|| (pack == "haxe._Int64" && (classType.name == "Int64_Impl_" || classType.name == "___Int64"))
 			|| (pack == "haxe._Int32" && classType.name == "Int32_Impl_")
