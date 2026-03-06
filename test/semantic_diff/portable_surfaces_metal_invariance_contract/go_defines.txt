@@ -1,0 +1,2 @@
+reflaxe_go_profile=metal
+reflaxe_go_strict_policy=off
