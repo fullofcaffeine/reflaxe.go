@@ -70,6 +70,11 @@ Agent policy:
 - **Hard rule:** avoid `Dynamic`/`Any` whenever possible and prefer explicit typed abstractions end-to-end.
 - **Hard rule:** use test-first development (TDD) for all code changes (compiler, runtime, std/shims, examples, docs-with-contracts).
 - If `Dynamic`/`Any` is truly unavoidable, keep it localized behind runtime/shim boundaries and include a short justification in code/docs.
+- If a change starts re-implementing Haxe stdlib library semantics as large `GoStmt.GoRaw` blocks inside `GoCompiler`, stop and reconsider ownership before proceeding.
+- Prefer staged std overrides under `std/_std` for library-expressible behavior, then thin `hxrt` helpers when Go-side runtime support is actually needed; keep compiler shims as the last resort.
+- Use externs only to model real Go-native APIs. Do not use externs to smuggle Haxe stdlib behavior into the target layer when staged std or `hxrt` is the correct ownership.
+- If you hit one compiler-owned stdlib helper that looks misplaced, audit adjacent helpers in the same shim group and file follow-up beads instead of expanding the compiler one function at a time.
+- Use sibling-target precedent before keeping stdlib behavior in `GoCompiler`: `haxe.rust` and `haxe.elixir` default library surfaces like `StringTools`/`DateTools` to staged std + small runtime helpers, and reserve compiler ownership for compile-context-sensitive behavior.
 - Never emit absolute machine-local paths in generated output or snapshots.
 - When fixing a bug, always add or update a regression test in `test/snapshot`.
 

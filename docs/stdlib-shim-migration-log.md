@@ -189,6 +189,41 @@ Observed result:
 - JSON API ownership is now staged-stdlib-first while preserving runtime behavior and parity gates.
 - Contract/runtime report and shim ownership remain deterministic after migration.
 
+### 2026-03-06: `stdlib_symbols` anti-bloat audit against sibling targets (`haxe.go-14as.33`)
+
+Implementation:
+
+- Audited compiler-resident library-style helper surfaces in `src/reflaxe/go/GoCompiler.hx` instead of adding more behavior-heavy `GoStmt.GoRaw` blocks.
+- Compared ownership patterns with sibling targets:
+  - `haxe.rust`: `std/StringTools.cross.hx`, `std/hxrt/string/NativeString.hx`, `runtime/hxrt/src/string.rs`
+  - `haxe.elixir`: `std/StringTools.cross.hx`, `std/DateTools.cross.hx`, target-gated `std/_std/**`
+- Reclassified the `stdlib_symbols` strategy:
+  - keep compiler ownership only for compile-context-sensitive or representation-bound surfaces (`Std`, `Reflect`, `Type`, `Xml`, bytes-sensitive crypto/zip paths)
+  - migrate library-expressible helpers (`StringTools`, `DateTools` helpers, `haxe.io.Path`) to staged std and thin runtime helpers
+- Opened focused migration beads:
+  - `haxe.go-14as.34` (`StringTools`)
+  - `haxe.go-14as.35` (`DateTools` helper formatting ownership`)
+  - `haxe.go-14as.36` (`haxe.io.Path`)
+- Updated `AGENTS.md` so future compiler work audits adjacent shim-group surfaces instead of expanding `GoCompiler` helper-by-helper.
+
+Validation evidence:
+
+- Local source audit against current HEAD:
+  - `src/reflaxe/go/GoCompiler.hx` (`lowerStdlibSymbolShimDecls`)
+  - sibling reference: `haxe.rust/std/StringTools.cross.hx`
+  - sibling reference: `haxe.rust/std/hxrt/string/NativeString.hx`
+  - sibling reference: `haxe.rust/runtime/hxrt/src/string.rs`
+  - sibling reference: `haxe.elixir.codex/std/StringTools.cross.hx`
+  - sibling reference: `haxe.elixir.codex/std/DateTools.cross.hx`
+  - sibling reference: `haxe.elixir.codex/docs/04-api-reference/STANDARD_LIBRARY_HANDLING.md`
+- Repo hygiene:
+  - `git diff --check`
+
+Observed result:
+
+- The repo now states the stronger default rule explicitly: library-expressible stdlib does not belong in `GoCompiler` unless there is a concrete compiler-only reason.
+- Future migration work is split into concrete beads instead of one-off local exceptions.
+
 ## Open migration track
 
 - Legacy `haxe.go-7zy.*` shim migration sequence is closed.

@@ -58,6 +58,12 @@ Use the simplest ownership that preserves parity and maintainability:
 - compiler shims for compile-time metadata/profile-sensitive contracts,
 - staged `std/_std` as migration destination once parity is proven.
 
+Family precedent matters here:
+
+- `haxe.rust` keeps library-style surfaces like `StringTools` in staged std/runtime layers (`std/StringTools.cross.hx`, `std/hxrt/string/NativeString.hx`) instead of compiler-emitted decl blobs.
+- `haxe.elixir` keeps library-style surfaces like `StringTools` and `DateTools` in target-gated std overrides (`std/*.cross.hx`, `std/_std/**`) instead of compiler-core shims.
+- `haxe.go` should follow the same default. Compiler ownership needs a concrete reason such as compile-time metadata coupling, profile-sensitive lowering, or a representation boundary that staged std/runtime cannot express cleanly.
+
 Portable and native surfaces are distinct:
 
 - portable contract targets full Haxe stdlib parity;
@@ -83,7 +89,7 @@ Portable and native surfaces are distinct:
 | `io` | `haxe.io.Bytes`, buffers, input/output base wiring | 108 | Snapshot + semantic-diff dependency | Keep (for now, with selective helper emission) | Shared representation boundary used by crypto/http/serializer flows; inherited Input/Output helper declarations are now emitted only when helper usage is detected. | `haxe.go-czm` (in progress) |
 | `ds` | `haxe.ds.*Map`, `List`, enum maps | 149 | Snapshot + semantic-diff dependency | Keep (for now) | Serializer and HTTP contracts rely on deterministic generated map/list shapes. | - |
 | `http` | `sys.Http` request/callback/proxy contract | 542 | Semantic-diff | Keep | Behavior includes callback choreography and deterministic request handling under test contract. | - |
-| `stdlib_symbols` | `Std`, `StringTools`, `Date`, `Math`, `Reflect`, crypto/xml/zip, filesystem subset | 706 | Semantic-diff | Keep + optimize (landed) | Broad compatibility layer remains in compiler core; bytes conversion path now uses cached raw representation to cut repeated conversion overhead. | `haxe.go-7zy.12` |
+| `stdlib_symbols` | `Std`, `StringTools`, `Date`, `Math`, `Reflect`, crypto/xml/zip, filesystem subset | 706 | Semantic-diff | Split: keep compiler-context-sensitive core, migrate library surfaces | Keep compiler ownership for `Std`, `Reflect`, `Type`, `Xml`, and bytes/representation-sensitive crypto-zip paths where lowering context still matters. Migrate library-expressible helper surfaces such as `StringTools`, `DateTools` helpers, and `haxe.io.Path` out of `GoCompiler` following rust/elixir precedent. | `haxe.go-7zy.12`, `haxe.go-14as.33`, `haxe.go-14as.34`, `haxe.go-14as.35`, `haxe.go-14as.36` |
 | `regex_serializer` | `EReg`, `haxe.Serializer`, `haxe.Unserializer` | 2460 | Semantic-diff | Keep | High behavior density and project metadata coupling (resolver semantics, token stream, reflection). | - |
 | `net_socket` | `sys.net.Host`, `sys.net.Socket` | 2958 | Semantic-diff | Keep | Deadline/select/shutdown readiness behavior is target-specific and currently best enforced in one compiler-controlled path. | - |
 
@@ -100,6 +106,7 @@ These are the canonical per-surface decisions for shim ownership and alternative
 | `SDR-005` | `http` (`sys.Http`) | Keep compiler shims (behavioral choreography, callbacks, proxy and payload conversion) | Extern-only wrappers, raw-native app code, `std/_std` | Semantic-diff contracts (`http_request_callbacks_contract`, proxy/custom request tests) |
 | `SDR-006` | `regex_serializer` (`EReg`, serializer/unserializer stack) | Keep compiler shims; revisit only with equivalent metadata-aware runtime path | Runtime-only package, extern-only, `std/_std` | Serializer and regex semantic-diff suite |
 | `SDR-007` | `net_socket` (`sys.net.Host`, `sys.net.Socket`) | Keep compiler shims for deadline/shutdown/readiness semantics | Extern-only wrappers, `std/_std` | Socket semantic-diff contracts (loopback + advanced) |
+| `SDR-008` | library-expressible `stdlib_symbols` surfaces (`StringTools`, `DateTools` helpers, `haxe.io.Path`) | Default to staged std/runtime ownership; do not grow compiler-resident helper logic unless staged std/runtime is proven insufficient | Keep in compiler core, extern-only wrappers | Cross-target precedent (`haxe.rust` `std/StringTools.cross.hx` + runtime helper; `haxe.elixir` `std/StringTools.cross.hx`, `std/DateTools.cross.hx`) plus local migration beads (`haxe.go-14as.33`-`haxe.go-14as.36`) |
 
 Review trigger for all records: revisit when an alternative path proves equal/better parity and performance under the same harness gates.
 
