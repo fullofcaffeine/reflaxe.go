@@ -1,3 +1,5 @@
 <root id="r1">hello</root>
 1
 <outer><inner a="1">v</inner></outer>
+type=CData
+<outer><![CDATA[x]]></outer>

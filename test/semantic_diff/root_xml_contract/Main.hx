@@ -57,5 +57,11 @@ class Main {
 		var parsedSecond = parsedIter.next();
 		Sys.println("parsed.named=" + parsedFirst.get("a") + "," + parsedSecond.get("a"));
 		Sys.println("parsed.str=" + parsed.toString());
+
+		var parsedCData = Xml.parse("<outer><![CDATA[x]]></outer>");
+		var parsedCDataChild = parsedCData.firstElement().firstChild();
+		Sys.println("parsed.cdata.type=" + parsedCDataChild.nodeType);
+		Sys.println("parsed.cdata.value=" + parsedCDataChild.nodeValue);
+		Sys.println("parsed.cdata.str=" + parsedCData.toString());
 	}
 }

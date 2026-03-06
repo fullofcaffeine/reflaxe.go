@@ -416,6 +416,7 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-14as.10`: final closure sync task; inventory/closure artifacts now require explicit blocker metadata for remaining compile-only modules, and release readiness docs include portable parity + family sync gates.
 - `haxe.go-14as.11`: root/core tranche triage closure. Direct semantic-diff contracts promoted `Any`, `StdTypes`, and `sys.FileStat`; remaining root blockers were split into dedicated tasks for `Sys`, `Xml`, and `UnicodeString`.
 - `haxe.go-14as.20`: closed root `Sys` surface split. Added direct semantic-diff coverage in `root_sys_contract` and wired `Sys.getEnv`, `Sys.putEnv`, `Sys.environment`, and `Sys.systemName` through new hxrt/compiler shims.
-- `haxe.go-14as.21`: closed root `Xml` surface split. Added direct semantic-diff coverage in `root_xml_contract` plus snapshot coverage in `stdlib/xml_root_dom_basic`; parsed-CDATA node-type preservation remains tracked separately in `haxe.go-14as.24`.
+- `haxe.go-14as.21`: closed root `Xml` surface split. Added direct semantic-diff coverage in `root_xml_contract` plus snapshot coverage in `stdlib/xml_root_dom_basic`.
+- `haxe.go-14as.24`: closed the remaining `Xml.parse()` parsed-CDATA node-type follow-up, so root `Xml` now preserves `CData` instead of collapsing it to `PCData`.
 - `haxe.go-14as.12` to `haxe.go-14as.19`: dated blocker families for the remaining compile-only portable tranches (`haxe_misc`, `haxe_ds_exceptions`, `haxe_http_rtti`, `haxe_io_misc`, `haxe_io_typed_arrays`, `sys_db_io`, `sys_net_ssl`, `sys_thread`).
 - `haxe.go-14as.22`: dedicated root-surface blocker for `UnicodeString`, created after direct red fixtures showed it is not just inventory lag.

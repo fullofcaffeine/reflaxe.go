@@ -334,7 +334,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Xml",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic; parsed CDATA sections still normalize to PCData for now (tracked by haxe.go-14as.24; see docs/known-gaps.md).",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic, including parsed CDATA node-type preservation.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"

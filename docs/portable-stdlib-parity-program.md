@@ -112,7 +112,8 @@ Current dated blocker families:
 
 Closed root-surface follow-up:
 
-- `haxe.go-14as.21` promoted `Xml` to semantic-diff coverage through `root_xml_contract` and `stdlib/xml_root_dom_basic`. The remaining parsed-CDATA node-type distinction is tracked separately by `haxe.go-14as.24` in `docs/known-gaps.md`; it is not a compile-only inventory blocker anymore.
+- `haxe.go-14as.21` promoted `Xml` to semantic-diff coverage through `root_xml_contract` and `stdlib/xml_root_dom_basic`.
+- `haxe.go-14as.24` closes parsed-CDATA node-type preservation for `Xml.parse()`, so the root `Xml` DOM subset no longer carries that documented caveat.
 
 Update sequence when std override files change:
 

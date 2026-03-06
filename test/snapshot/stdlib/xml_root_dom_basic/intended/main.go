@@ -33,9 +33,18 @@ func main() {
 	root.addChild(Xml_createPCData(hxrt.StringFromLiteral("hello")))
 	doc.addChild(root)
 	parsed := Xml_parse(hxrt.StringFromLiteral("<outer><inner a=\"1\">v</inner></outer>"))
+	parsedCData := Xml_parse(hxrt.StringFromLiteral("<outer><![CDATA[x]]></outer>"))
 	hxrt.Println(haxe__xml__Printer_print(doc))
 	hxrt.Println(parsed.firstElement().firstElement().get(hxrt.StringFromLiteral("a")))
 	hxrt.Println(haxe__xml__Printer_print(parsed))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("type="), _Xml__XmlType_Impl__toString(func() *Xml {
+		_this := parsedCData.firstElement()
+		if (_this.nodeType != Xml_Document) && (_this.nodeType != Xml_Element) {
+			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element or Document but found "), _Xml__XmlType_Impl__toString(_this.nodeType)))
+		}
+		return _this.children[0]
+	}().nodeType)))
+	hxrt.Println(haxe__xml__Printer_print(parsedCData))
 }
 
 type haxe__io__Encoding struct {
@@ -1341,7 +1350,9 @@ func haxe__xml__Parser_parse(source *string, strict ...bool) *Xml {
 	stack := []*Xml{doc}
 	decoder := xml.NewDecoder(strings.NewReader(raw))
 	for {
+		tokenStart := decoder.InputOffset()
 		token, err := decoder.Token()
+		tokenEnd := decoder.InputOffset()
 		if err == io.EOF {
 			break
 		}
@@ -1365,7 +1376,12 @@ func haxe__xml__Parser_parse(source *string, strict ...bool) *Xml {
 		case xml.CharData:
 			text := string([]byte(value))
 			if len(text) != 0 {
-				current.addChild(Xml_createPCData(hxrt.StringFromLiteral(text)))
+				tokenSource := raw[tokenStart:tokenEnd]
+				if strings.HasPrefix(tokenSource, "<![CDATA[") && strings.HasSuffix(tokenSource, "]]>") {
+					current.addChild(Xml_createCData(hxrt.StringFromLiteral(text)))
+				} else {
+					current.addChild(Xml_createPCData(hxrt.StringFromLiteral(text)))
+				}
 			}
 		case xml.Comment:
 			current.addChild(Xml_createComment(hxrt.StringFromLiteral(string([]byte(value)))))

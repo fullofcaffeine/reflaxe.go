@@ -59,10 +59,6 @@ Current architecture status:
   - `npm run test:perf:go`
   - `npm run test:perf:stdlib-shims`
 
-## Portable stdlib caveats
-
-- `Xml` root DOM support now covers the subset locked by `test/semantic_diff/root_xml_contract` and `test/snapshot/stdlib/xml_root_dom_basic`, but `Xml.parse()` still normalizes parsed CDATA sections to `PCData` instead of preserving `CData`. That gap is tracked by `haxe.go-14as.24`.
-
 ## Source of truth links
 
 - Feature/support inventory: `docs/feature-support-matrix.md`

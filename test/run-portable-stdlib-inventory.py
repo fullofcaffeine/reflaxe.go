@@ -107,9 +107,8 @@ OWNER_OVERRIDES = {
 
 MODULE_NOTES_OVERRIDES = {
     "Xml": (
-        "Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic; "
-        "parsed CDATA sections still normalize to PCData for now (tracked by haxe.go-14as.24; "
-        "see docs/known-gaps.md)."
+        "Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic, "
+        "including parsed CDATA node-type preservation."
     ),
 }
 

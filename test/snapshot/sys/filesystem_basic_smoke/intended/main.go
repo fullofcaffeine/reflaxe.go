@@ -1521,7 +1521,9 @@ func haxe__xml__Parser_parse(source *string, strict ...bool) *Xml {
 	stack := []*Xml{doc}
 	decoder := xml.NewDecoder(strings.NewReader(raw))
 	for {
+		tokenStart := decoder.InputOffset()
 		token, err := decoder.Token()
+		tokenEnd := decoder.InputOffset()
 		if err == io.EOF {
 			break
 		}
@@ -1545,7 +1547,12 @@ func haxe__xml__Parser_parse(source *string, strict ...bool) *Xml {
 		case xml.CharData:
 			text := string([]byte(value))
 			if len(text) != 0 {
-				current.addChild(Xml_createPCData(hxrt.StringFromLiteral(text)))
+				tokenSource := raw[tokenStart:tokenEnd]
+				if strings.HasPrefix(tokenSource, "<![CDATA[") && strings.HasSuffix(tokenSource, "]]>") {
+					current.addChild(Xml_createCData(hxrt.StringFromLiteral(text)))
+				} else {
+					current.addChild(Xml_createPCData(hxrt.StringFromLiteral(text)))
+				}
 			}
 		case xml.Comment:
 			current.addChild(Xml_createComment(hxrt.StringFromLiteral(string([]byte(value)))))
