@@ -29,6 +29,7 @@ This page helps you find the right docs quickly.
 
 - [Semantic diff guide](semantic-diff-guide.md)
 - [Snapshot policy](snapshot-policy.md)
+- [Thinking levels](thinking-levels.md)
 - [Feature support matrix](feature-support-matrix.md)
 - [Release readiness checklist](release-readiness-checklist.md)
 - [Release visibility](release-visibility.md)

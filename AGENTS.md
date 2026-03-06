@@ -12,6 +12,28 @@ bd close <id>         # Complete work
 bd sync               # Sync with git
 ```
 
+## Thinking Levels (Bead Labels)
+
+Use a `thinking:*` label on active beads so execution effort matches task risk.
+
+- `thinking:low`
+  - Mechanical edits, simple docs cleanup, straightforward renames, obvious wiring.
+- `thinking:medium`
+  - CI/job plumbing, runner scripts, artifact flow, bounded retry/timeout logic.
+- `thinking:high`
+  - Parity contracts, gate semantics, dependency graph changes, perf-policy changes, compiler/macro architecture decisions.
+- `thinking:xhigh`
+  - Scope-definition changes, release enforcement, provenance-sensitive implementation strategy, or any task where a wrong decision would create misleading release evidence.
+
+Agent policy:
+
+- When a bead has a `thinking:*` label, match reasoning depth to that label automatically.
+- If a claimed bead has no `thinking:*` label, infer one immediately and add it before substantial work.
+- `thinking:xhigh` should get a second-pass review before closure.
+  - Preferred: an Oracle checkpoint/review.
+  - Acceptable fallback: an explicit written second-pass design review recorded in the bead comments.
+- Oracle is a review/escalation tool for `thinking:xhigh`; it is not a substitute for implementation, tests, or CI evidence.
+
 ## High-Level Goal
 
 - Make `haxe.go` the best way to write Go without writing raw Go, while preserving first-class portability via Haxe for codebases that need cross-target builds.
