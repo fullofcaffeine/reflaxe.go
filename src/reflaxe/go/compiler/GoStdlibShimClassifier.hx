@@ -72,9 +72,10 @@ class GoStdlibShimClassifier {
 			return ["regex_serializer"];
 		}
 
-		if ((pack == ""
+		if (((pack == ""
 			&& (classType.name == "Std" || classType.name == "StringTools" || classType.name == "Date" || classType.name == "Math"
-				|| classType.name == "Type" || classType.name == "Reflect" || classType.name == "Xml"))
+				|| classType.name == "Type" || classType.name == "Reflect" || classType.name == "Xml" || classType.name == "UnicodeString"))
+			|| (pack == "_UnicodeString" && classType.name == "UnicodeString_Impl_"))
 			|| (pack == "haxe.crypto"
 				&& (classType.name == "Base64" || classType.name == "Md5" || classType.name == "Sha1" || classType.name == "Sha224"
 					|| classType.name == "Sha256"))

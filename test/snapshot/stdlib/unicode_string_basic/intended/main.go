@@ -27,24 +27,32 @@ type hxrt__TypeEnumValue struct {
 }
 
 func main() {
-	doc := Xml_createDocument()
-	root := Xml_createElement(hxrt.StringFromLiteral("root"))
-	root.set(hxrt.StringFromLiteral("id"), hxrt.StringFromLiteral("r1"))
-	root.addChild(Xml_createPCData(hxrt.StringFromLiteral("hello")))
-	doc.addChild(root)
-	parsed := Xml_parse(hxrt.StringFromLiteral("<outer><inner a=\"1\">v</inner></outer>"))
-	parsedCData := Xml_parse(hxrt.StringFromLiteral("<outer><![CDATA[x]]></outer>"))
-	hxrt.Println(haxe__xml__Printer_print(doc))
-	hxrt.Println(parsed.firstElement().firstElement().get(hxrt.StringFromLiteral("a")))
-	hxrt.Println(haxe__xml__Printer_print(parsed))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("type="), _Xml__XmlType_Impl__toString(func() *Xml {
-		_this := parsedCData.firstElement()
-		if (_this.nodeType != Xml_Document) && (_this.nodeType != Xml_Element) {
-			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element or Document but found "), _Xml__XmlType_Impl__toString(_this.nodeType)))
-		}
-		return _this.children[0]
-	}().nodeType)))
-	hxrt.Println(haxe__xml__Printer_print(parsedCData))
+	var s any = hxrt.StringFromLiteral("a😀bé")
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("length="), _UnicodeString__UnicodeString_Impl__get_length(s)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("char1="), _UnicodeString__UnicodeString_Impl__charAt(s, 1)))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("code1="), _UnicodeString__UnicodeString_Impl__charCodeAt(s, 1)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substr="), _UnicodeString__UnicodeString_Impl__substr(s, 1, 2)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substring="), _UnicodeString__UnicodeString_Impl__substring(s, 1, 3)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substring.swap="), _UnicodeString__UnicodeString_Impl__substring(s, 3, 1)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substring.neg="), _UnicodeString__UnicodeString_Impl__substring(s, -2, 2)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substring.omit="), _UnicodeString__UnicodeString_Impl__substring(s, 2)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substr.neglen="), _UnicodeString__UnicodeString_Impl__substr(s, 1, -1)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substr.negpos="), _UnicodeString__UnicodeString_Impl__substr(s, -2, 2)))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("index="), _UnicodeString__UnicodeString_Impl__indexOf(s, hxrt.StringFromLiteral("bé"))))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("index.empty="), _UnicodeString__UnicodeString_Impl__indexOf(s, hxrt.StringFromLiteral(""))))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("index.startNeg="), _UnicodeString__UnicodeString_Impl__indexOf(s, hxrt.StringFromLiteral("bé"), -2)))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("last="), _UnicodeString__UnicodeString_Impl__lastIndexOf(s, hxrt.StringFromLiteral("a"))))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("last.empty="), _UnicodeString__UnicodeString_Impl__lastIndexOf(s, hxrt.StringFromLiteral(""))))
+	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("last.start="), _UnicodeString__UnicodeString_Impl__lastIndexOf(s, hxrt.StringFromLiteral("bé"), 2)))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("valid.utf8="), hxrt.StdString(_UnicodeString__UnicodeString_Impl__validate(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("ok")), haxe__io__Encoding_UTF8))))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("valid.invalid="), hxrt.StdString(_UnicodeString__UnicodeString_Impl__validate(haxe__io__Bytes_ofHex(hxrt.StringFromLiteral("ff")), haxe__io__Encoding_UTF8))))
+	hxrt.TryCatch(func() {
+		_UnicodeString__UnicodeString_Impl__validate(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("ok")), haxe__io__Encoding_RawNative)
+		hxrt.Println(hxrt.StringFromLiteral("valid.raw=ok"))
+	}, func(hx_caught_1 any) {
+		error := hx_caught_1
+		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("valid.raw="), hxrt.StdString(error)))
+	})
 }
 
 type haxe__io__Encoding struct {

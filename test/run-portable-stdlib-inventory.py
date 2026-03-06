@@ -203,12 +203,6 @@ BLOCKER_FAMILY_SPECS = (
         },
     },
     {
-        "issue": "haxe.go-14as.22",
-        "family": "unicode_string_surface",
-        "closure_target": "2026-04-21",
-        "modules": {"UnicodeString"},
-    },
-    {
         "issue": "haxe.go-14as.17",
         "family": "sys_db_io",
         "closure_target": "2026-05-14",
