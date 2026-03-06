@@ -33,6 +33,11 @@
       "notes": "Go native facade for time package interoperability helpers."
     },
     {
+      "path": "std/StringTools.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for StringTools helper ownership, keeping basic string helpers out of GoCompiler."
+    },
+    {
       "path": "std/_std/haxe/Json.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged portable override for haxe.Json, delegating behavior to hxrt runtime helpers."

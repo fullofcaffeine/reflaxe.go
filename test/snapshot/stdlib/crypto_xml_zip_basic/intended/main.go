@@ -563,21 +563,6 @@ func (self *haxe__io__BytesOutput) getBytes() *haxe__io__Bytes {
 type Std struct {
 }
 
-type StringTools struct {
-}
-
-func StringTools_trim(value *string) *string {
-	return hxrt.StringFromLiteral(strings.TrimSpace(*hxrt.StdString(value)))
-}
-
-func StringTools_startsWith(value *string, prefix *string) bool {
-	return strings.HasPrefix(*hxrt.StdString(value), *hxrt.StdString(prefix))
-}
-
-func StringTools_replace(value *string, sub *string, by *string) *string {
-	return hxrt.StringFromLiteral(strings.ReplaceAll(*hxrt.StdString(value), *hxrt.StdString(sub), *hxrt.StdString(by)))
-}
-
 func _UnicodeString__UnicodeString_Impl__get_length(value any) int {
 	return len([]rune(*hxrt.StdString(value)))
 }

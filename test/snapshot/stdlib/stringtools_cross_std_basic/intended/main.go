@@ -3,10 +3,11 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	s := hxrt.StringFromLiteral("  hi  ")
-	hxrt.Println(StringTools_trim(s))
-	hxrt.Println(StringTools_startsWith(hxrt.StringFromLiteral("hello"), hxrt.StringFromLiteral("he")))
-	hxrt.Println(StringTools_replace(hxrt.StringFromLiteral("a-b-c"), hxrt.StringFromLiteral("-"), hxrt.StringFromLiteral(":")))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("trim="), StringTools_trim(hxrt.StringFromLiteral("  hi  "))))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("starts="), hxrt.StdString(StringTools_startsWith(hxrt.StringFromLiteral("hello"), hxrt.StringFromLiteral("he")))))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("replace="), StringTools_replace(hxrt.StringFromLiteral("a-b-c"), hxrt.StringFromLiteral("-"), hxrt.StringFromLiteral(":"))))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("contains="), hxrt.StdString(StringTools_contains(hxrt.StringFromLiteral("banana"), hxrt.StringFromLiteral("nan")))))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ends="), hxrt.StdString(StringTools_endsWith(hxrt.StringFromLiteral("banana"), hxrt.StringFromLiteral("na")))))
 }
 
 type haxe__io__Encoding struct {

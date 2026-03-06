@@ -890,21 +890,6 @@ func (self *haxe__io__BytesOutput) getBytes() *haxe__io__Bytes {
 type Std struct {
 }
 
-type StringTools struct {
-}
-
-func StringTools_trim(value *string) *string {
-	return hxrt.StringFromLiteral(strings.TrimSpace(*hxrt.StdString(value)))
-}
-
-func StringTools_startsWith(value *string, prefix *string) bool {
-	return strings.HasPrefix(*hxrt.StdString(value), *hxrt.StdString(prefix))
-}
-
-func StringTools_replace(value *string, sub *string, by *string) *string {
-	return hxrt.StringFromLiteral(strings.ReplaceAll(*hxrt.StdString(value), *hxrt.StdString(sub), *hxrt.StdString(by)))
-}
-
 func _UnicodeString__UnicodeString_Impl__get_length(value any) int {
 	return len([]rune(*hxrt.StdString(value)))
 }
@@ -2249,6 +2234,10 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	switch className {
 	case "haxe._Int64.___Int64":
 		return hxrt_typeCallAny(New_haxe___Int64_____Int64, args)
+	case "haxe.iterators.StringIterator":
+		return hxrt_typeCallAny(New_haxe__iterators__StringIterator, args)
+	case "haxe.iterators.StringKeyValueIterator":
+		return hxrt_typeCallAny(New_haxe__iterators__StringKeyValueIterator, args)
 	default:
 		return nil, false
 	}
@@ -2258,6 +2247,10 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
 	case "haxe._Int64.___Int64":
 		return &haxe___Int64_____Int64{}, true
+	case "haxe.iterators.StringIterator":
+		return &haxe__iterators__StringIterator{}, true
+	case "haxe.iterators.StringKeyValueIterator":
+		return &haxe__iterators__StringKeyValueIterator{}, true
 	default:
 		return nil, false
 	}
@@ -2389,6 +2382,16 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe._Int64.___Int64")}
+	case *haxe__iterators__StringIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.StringIterator")}
+	case *haxe__iterators__StringKeyValueIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.StringKeyValueIterator")}
 	default:
 		return nil
 	}
@@ -2425,6 +2428,10 @@ func Type_getSuperClass(c any) any {
 	switch className {
 	case "haxe._Int64.___Int64":
 		return nil
+	case "haxe.iterators.StringIterator":
+		return nil
+	case "haxe.iterators.StringKeyValueIterator":
+		return nil
 	default:
 		return nil
 	}
@@ -2446,6 +2453,10 @@ func Type_getClassFields(c any) []*string {
 	switch className {
 	case "haxe._Int64.___Int64":
 		return []*string{}
+	case "haxe.iterators.StringIterator":
+		return []*string{}
+	case "haxe.iterators.StringKeyValueIterator":
+		return []*string{}
 	default:
 		return []*string{}
 	}
@@ -2459,6 +2470,10 @@ func Type_getInstanceFields(c any) []*string {
 	switch className {
 	case "haxe._Int64.___Int64":
 		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
+	case "haxe.iterators.StringIterator":
+		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
+	case "haxe.iterators.StringKeyValueIterator":
+		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
 	default:
 		return []*string{}
 	}
@@ -2479,6 +2494,10 @@ func Type_resolveClass(name *string) any {
 	rawName := *hxrt.StdString(name)
 	switch rawName {
 	case "haxe._Int64.___Int64":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.iterators.StringIterator":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.iterators.StringKeyValueIterator":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil

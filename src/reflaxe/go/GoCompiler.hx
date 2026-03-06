@@ -156,6 +156,8 @@ class GoCompiler {
 	var requiresReflectFieldsShim:Bool;
 	var projectClasses:Array<ClassType>;
 	var projectEnums:Array<EnumType>;
+	final availableClassesByName:Map<String, ClassType>;
+	final pendingRequiredClassesByName:Map<String, ClassType>;
 	var globalLeafReceiverTypes:Map<String, Bool>;
 	var tempVarCounter:Int;
 	var requiresTypeValueSupport:Bool;
@@ -188,6 +190,8 @@ class GoCompiler {
 		requiresReflectFieldsShim = false;
 		projectClasses = [];
 		projectEnums = [];
+		availableClassesByName = new Map<String, ClassType>();
+		pendingRequiredClassesByName = new Map<String, ClassType>();
 		globalLeafReceiverTypes = new Map<String, Bool>();
 		tempVarCounter = 0;
 		requiresTypeValueSupport = false;
@@ -196,10 +200,12 @@ class GoCompiler {
 
 	#if macro
 	public function compileModule(types:Array<ModuleType>):Array<GoGeneratedFile> {
+		cacheAvailableClasses(collectAllClasses(types));
 		return compileResolvedTypes(collectProjectClasses(types), collectProjectEnums(types));
 	}
 
 	public function compileSelectedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
+		cacheAvailableClasses(classes);
 		return compileResolvedTypes(normalizeProjectClasses(classes), normalizeProjectEnums(enums));
 	}
 
@@ -223,8 +229,28 @@ class GoCompiler {
 		for (enumType in enums) {
 			appendModuleDecls(moduleDecls, enumType.module, lowerEnumDecls(enumType));
 		}
+		clearClassMap(pendingRequiredClassesByName);
+		var queuedClassNames = new Map<String, Bool>();
+		var classQueue = classes.copy();
 		for (classType in classes) {
+			queuedClassNames.set(fullClassName(classType), true);
+		}
+		while (classQueue.length > 0) {
+			var classType = classQueue.shift();
 			appendModuleDecls(moduleDecls, classType.module, lowerClassDecls(classType));
+			for (requiredName in pendingRequiredClassesByName.keys()) {
+				if (queuedClassNames.exists(requiredName)) {
+					continue;
+				}
+				var requiredClass = pendingRequiredClassesByName.get(requiredName);
+				if (requiredClass == null) {
+					continue;
+				}
+				queuedClassNames.set(requiredName, true);
+				classQueue.push(requiredClass);
+				projectClasses.push(requiredClass);
+			}
+			clearClassMap(pendingRequiredClassesByName);
 		}
 		applyStdlibShimGroupDependencies();
 
@@ -792,6 +818,18 @@ class GoCompiler {
 		return normalizeProjectClasses(collected);
 	}
 
+	function collectAllClasses(types:Array<ModuleType>):Array<ClassType> {
+		var collected = new Array<ClassType>();
+		for (moduleType in types) {
+			switch (moduleType) {
+				case TClassDecl(classRef):
+					collected.push(classRef.get());
+				case _:
+			}
+		}
+		return collected;
+	}
+
 	function normalizeProjectClasses(classes:Array<ClassType>):Array<ClassType> {
 		var dedup = new Map<String, ClassType>();
 		for (classType in classes) {
@@ -1176,6 +1214,20 @@ class GoCompiler {
 		var keys = [for (key in map.keys()) key];
 		for (key in keys) {
 			map.remove(key);
+		}
+	}
+
+	function clearClassMap(map:Map<String, ClassType>):Void {
+		var keys = [for (key in map.keys()) key];
+		for (key in keys) {
+			map.remove(key);
+		}
+	}
+
+	function cacheAvailableClasses(classes:Array<ClassType>):Void {
+		clearClassMap(availableClassesByName);
+		for (classType in classes) {
+			availableClassesByName.set(fullClassName(classType), classType);
 		}
 	}
 
@@ -4841,38 +4893,6 @@ class GoCompiler {
 	function lowerStdlibSymbolShimDecls():Array<GoDecl> {
 		var decls = [
 			GoDecl.GoStructDecl("Std", []),
-			GoDecl.GoStructDecl("StringTools", []),
-			GoDecl.GoFuncDecl("StringTools_trim", null, [{name: "value", typeName: "*string"}], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [
-					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "TrimSpace"), [GoExpr.GoRaw("*hxrt.StdString(value)")])
-				]))
-			]),
-			GoDecl.GoFuncDecl("StringTools_startsWith", null, [
-				{
-					name: "value",
-					typeName: "*string"
-				},
-				{name: "prefix", typeName: "*string"}
-			], ["bool"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "HasPrefix"),
-					[GoExpr.GoRaw("*hxrt.StdString(value)"), GoExpr.GoRaw("*hxrt.StdString(prefix)")]))
-			]),
-			GoDecl.GoFuncDecl("StringTools_replace", null, [
-				{
-					name: "value",
-					typeName: "*string"
-				},
-				{name: "sub", typeName: "*string"},
-				{name: "by", typeName: "*string"}
-			], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [
-					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "ReplaceAll"), [
-						GoExpr.GoRaw("*hxrt.StdString(value)"),
-						GoExpr.GoRaw("*hxrt.StdString(sub)"),
-						GoExpr.GoRaw("*hxrt.StdString(by)")
-					])
-				]))
-			]),
 			GoDecl.GoFuncDecl("_UnicodeString__UnicodeString_Impl__get_length", null, [
 				{
 					name: "value",
@@ -15518,6 +15538,18 @@ class GoCompiler {
 		if (classType.pack.length == 0 && classType.name == "Sys" && fieldName == "environment") {
 			requireStdlibShimGroup("ds");
 		}
+		if (classType.pack.length == 0 && classType.name == "StringTools") {
+			requireSourceOwnedStdlibClass("StringTools");
+			requireSourceOwnedStdlibClass("haxe.iterators.StringIterator");
+			requireSourceOwnedStdlibClass("haxe.iterators.StringKeyValueIterator");
+		}
+	}
+
+	function requireSourceOwnedStdlibClass(className:String):Void {
+		if (!availableClassesByName.exists(className) || pendingRequiredClassesByName.exists(className)) {
+			return;
+		}
+		pendingRequiredClassesByName.set(className, availableClassesByName.get(className));
 	}
 
 	function noteStdlibClass(classType:ClassType):Void {

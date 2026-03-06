@@ -1,0 +1,5 @@
+trim=hi
+starts=true
+replace=a:b:c
+contains=true
+ends=true

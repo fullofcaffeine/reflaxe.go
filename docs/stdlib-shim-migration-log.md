@@ -224,6 +224,31 @@ Observed result:
 - The repo now states the stronger default rule explicitly: library-expressible stdlib does not belong in `GoCompiler` unless there is a concrete compiler-only reason.
 - Future migration work is split into concrete beads instead of one-off local exceptions.
 
+### 2026-03-06: `StringTools` moved from compiler shims to staged std (`haxe.go-14as.34`)
+
+Implementation:
+
+- Added `std/StringTools.cross.hx` and moved portable helper semantics there instead of emitting `StringTools_*` declarations from `GoCompiler`.
+- Removed compiler-owned `StringTools` declarations from `lowerStdlibSymbolShimDecls`.
+- Marked `StringTools`, `haxe.iterators.StringIterator`, and `haxe.iterators.StringKeyValueIterator` as required stdlib classes so the staged source is compiled directly.
+- Removed `StringTools` from the `stdlib_symbols` shim-group classifier.
+- Updated the stdlib provenance ledger and ownership map so governance points at the staged source instead of compiler helpers.
+
+Validation evidence:
+
+- Red/green semantic-diff:
+  - `python3 test/run-semantic-diff.py --case stringtools_cross_std_contract`
+- Regression coverage on existing callers:
+  - `python3 test/run-semantic-diff.py --case stringtools_math --case file_read_write_contract --case process_echo_contract --case http_proxy_custom_request --case http_request_callbacks_contract`
+- Snapshot coverage:
+  - `python3 test/run-snapshots.py --case stdlib/stringtools_cross_std_basic --update --runtime`
+  - `python3 test/run-snapshots.py --pattern '^(stdlib/(crypto_xml_zip_basic|date_path_basic|dynamic_access_basic|int64_parity|math_basic|option_enum_basic|stringtools_basic|stringtools_cross_std_basic|unicode_string_basic|xml_root_dom_basic)|sys/filesystem_basic_smoke)$' --update`
+
+Observed result:
+
+- `StringTools` no longer bloats `GoCompiler` with library semantics.
+- Existing StringTools consumers now compile through the staged std source, and iterator helper modules are emitted as normal modules rather than shim-group fragments.
+
 ## Open migration track
 
 - Legacy `haxe.go-7zy.*` shim migration sequence is closed.
