@@ -93,6 +93,7 @@ OWNER_OVERRIDES = {
     "sys.FileSystem": "runtime_hxrt",
     "DateTools": "staged_std",
     "StringTools": "staged_std",
+    "haxe.SysTools": "staged_std",
     "haxe.io.Path": "staged_std",
     "EReg": "compiler_shim",
     "haxe.Serializer": "compiler_shim",
@@ -113,6 +114,16 @@ MODULE_NOTES_OVERRIDES = {
         "Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic, "
         "including parsed CDATA node-type preservation."
     ),
+    "haxe.Template": (
+        "Direct haxe.Template usage is intentionally blocked by the compiler until source-owned std "
+        "inclusion can emit module-local enum support cleanly. See negative/direct_haxe_template_unsupported "
+        "and blocker haxe.go-14as.38."
+    ),
+    "haxe.ValueException": (
+        "Direct haxe.ValueException usage is intentionally blocked until string-payload message parity is "
+        "restored across Any/string boxing. See negative/direct_haxe_value_exception_unsupported and "
+        "blocker haxe.go-14as.39."
+    ),
 }
 
 PROMOTION_LEVEL_KEYS = ("snapshot", "semantic_diff")
@@ -123,10 +134,21 @@ BLOCKER_FAMILY_SPECS = (
         "family": "haxe_misc_symbols",
         "closure_target": "2026-03-20",
         "modules": {
-            "haxe.Log",
-            "haxe.Resource",
-            "haxe.SysTools",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.38",
+        "family": "haxe_template_direct",
+        "closure_target": "2026-03-27",
+        "modules": {
             "haxe.Template",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.39",
+        "family": "haxe_value_exception_direct",
+        "closure_target": "2026-04-03",
+        "modules": {
             "haxe.ValueException",
         },
     },

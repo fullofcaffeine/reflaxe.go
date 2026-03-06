@@ -107,17 +107,19 @@ Current dated blocker families:
 - `haxe.go-14as.17` - `sys.db` + `sys.io` tranche - target `2026-05-14`
 - `haxe.go-14as.18` - `sys.net` + `sys.ssl` tranche - target `2026-05-21`
 - `haxe.go-14as.19` - `sys.thread` tranche - target `2026-05-31`
-- `haxe.go-14as.25` - direct `haxe.misc` helper-symbol tranche (`haxe.Log`, `haxe.Resource`, `haxe.SysTools`, `haxe.Template`, `haxe.ValueException`) - target `2026-03-20`
 - `haxe.go-14as.26` - `haxe.Constraints` + `haxe.Rest` abstraction-lowering tranche - target `2026-03-27`
 - `haxe.go-14as.27` - `haxe.EnumFlags` + `haxe.EnumTools` enum-helper tranche - target `2026-04-03`
 - `haxe.go-14as.28` - stack/main-loop `haxe.misc` tranche (`haxe.CallStack`, `haxe.NativeStackTrace`, `haxe.EntryPoint`, `haxe.MainLoop`, `haxe.Timer`) - target `2026-04-10`
 - `haxe.go-14as.29` - legacy text `haxe.misc` tranche (`haxe.Ucs2`, `haxe.Utf8`) - target `2026-04-17`
+- `haxe.go-14as.38` - direct `haxe.Template` tranche (module-local enum emission blocker) - target `2026-03-27`
+- `haxe.go-14as.39` - direct `haxe.ValueException` tranche (`Any`/string boxing parity blocker) - target `2026-04-03`
 
 Closed root-surface follow-up:
 
 - `haxe.go-14as.21` promoted `Xml` to semantic-diff coverage through `root_xml_contract` and `stdlib/xml_root_dom_basic`.
 - `haxe.go-14as.24` closes parsed-CDATA node-type preservation for `Xml.parse()`, so the root `Xml` DOM subset no longer carries that documented caveat.
 - `haxe.go-14as.12` closed the generic `haxe.misc` tranche triage by promoting `haxe.Http` from existing semantic-diff evidence and splitting the remaining modules into `haxe.go-14as.25` to `haxe.go-14as.29`.
+- `haxe.go-14as.25` promoted direct `haxe.Log`, `haxe.Resource`, and `haxe.SysTools` usage to semantic-diff coverage, then split the remaining direct blockers into `haxe.go-14as.38` (`haxe.Template`) and `haxe.go-14as.39` (`haxe.ValueException`).
 
 Update sequence when std override files change:
 

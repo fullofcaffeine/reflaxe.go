@@ -11944,9 +11944,7 @@ class GoCompiler {
 				};
 			case TNew(classRef, _, args):
 				var classType = classRef.get();
-				if (fullClassName(classType) == "haxe.io.Path") {
-					requireSourceOwnedStdlibClass("haxe.io.Path");
-				}
+				noteSourceOwnedStdlibUsage(classType);
 				if (useTypedGoConcurrencySpecialization() && isGoChanClass(classType)) {
 					noteLoweringAttempt("go.concurrency.typed", "go_chan_new", expr.pos, "Attempt typed go.Chan constructor specialization.");
 					var elementEligibility = goChanElementEligibility(expr.t, "Could not resolve go.Chan element type for constructor specialization.");
@@ -12343,9 +12341,7 @@ class GoCompiler {
 			case FInstance(classRef, _, field):
 				var resolved = field.get();
 				var classType = classRef.get();
-				if (fullClassName(classType) == "haxe.io.Path") {
-					requireSourceOwnedStdlibClass("haxe.io.Path");
-				}
+				noteSourceOwnedStdlibUsage(classType);
 				noteIoHelperFieldUsage(classType, resolved.name);
 				var loweredTarget = lowerExpr(target).expr;
 
@@ -15500,16 +15496,28 @@ class GoCompiler {
 		if (classType.pack.length == 0 && classType.name == "Sys" && fieldName == "environment") {
 			requireStdlibShimGroup("ds");
 		}
-		if (classType.pack.length == 0 && classType.name == "StringTools") {
-			requireSourceOwnedStdlibClass("StringTools");
-			requireSourceOwnedStdlibClass("haxe.iterators.StringIterator");
-			requireSourceOwnedStdlibClass("haxe.iterators.StringKeyValueIterator");
-		}
-		if (classType.pack.length == 0 && classType.name == "DateTools") {
-			requireSourceOwnedStdlibClass("DateTools");
-		}
-		if (fullClassName(classType) == "haxe.io.Path") {
-			requireSourceOwnedStdlibClass("haxe.io.Path");
+		noteSourceOwnedStdlibUsage(classType);
+	}
+
+	function noteSourceOwnedStdlibUsage(classType:ClassType):Void {
+		switch (fullClassName(classType)) {
+			case "StringTools":
+				requireSourceOwnedStdlibClass("StringTools");
+				requireSourceOwnedStdlibClass("haxe.iterators.StringIterator");
+				requireSourceOwnedStdlibClass("haxe.iterators.StringKeyValueIterator");
+			case "DateTools":
+				requireSourceOwnedStdlibClass("DateTools");
+			case "haxe.io.Path":
+				requireSourceOwnedStdlibClass("haxe.io.Path");
+			case "haxe.Log", "haxe.Resource", "haxe.SysTools":
+				requireSourceOwnedStdlibClass(fullClassName(classType));
+			case "haxe.Template":
+				Context.fatalError("Direct haxe.Template usage is not supported yet on haxe.go; staged source inclusion still misses module-local enum emission. Track haxe.go-14as.38.",
+					classType.pos);
+			case "haxe.ValueException":
+				Context.fatalError("Direct haxe.ValueException usage is not supported yet on haxe.go; string payload parity still depends on unresolved Any/string boxing semantics. Track haxe.go-14as.39.",
+					classType.pos);
+			case _:
 		}
 	}
 

@@ -238,6 +238,32 @@ Validation evidence:
 
 - Red/green semantic-diff:
   - `python3 test/run-semantic-diff.py --case stringtools_cross_std_contract`
+
+### 2026-03-06: direct `haxe.Log` / `haxe.Resource` / `haxe.SysTools` support and explicit helper blockers (`haxe.go-14as.25`)
+
+Implementation:
+
+- Routed direct `haxe.Log` and `haxe.Resource` references through source-owned std inclusion instead of leaving them as missing symbols in generated output.
+- Added `std/haxe/SysTools.cross.hx` with explicit `What / Why / How` HaxeDoc and moved direct quoting helper semantics into staged std instead of adding compiler-owned raw-Go helpers.
+- Added direct semantic-diff coverage:
+  - `test/semantic_diff/direct_haxe_helpers_contract`
+  - `test/semantic_diff/direct_haxe_resource_contract`
+- Added explicit compile-time blocker fixtures for the remaining direct-helper surfaces that are not honestly portable-ready yet:
+  - `test/snapshot/negative/direct_haxe_template_unsupported`
+  - `test/snapshot/negative/direct_haxe_value_exception_unsupported`
+- Split the remaining debt into focused blocker beads:
+  - `haxe.go-14as.38` (`haxe.Template`)
+  - `haxe.go-14as.39` (`haxe.ValueException`)
+
+Validation evidence:
+
+- `python3 test/run-semantic-diff.py --case direct_haxe_helpers_contract --case direct_haxe_resource_contract`
+- `python3 test/run-snapshots.py --case negative/direct_haxe_template_unsupported --case negative/direct_haxe_value_exception_unsupported`
+
+Observed result:
+
+- Direct `haxe.Log`, `haxe.Resource`, and `haxe.SysTools` references no longer fall off the backend as undefined symbols.
+- `haxe.Template` and `haxe.ValueException` no longer fail late in `go test`; they now fail fast with named blockers and regression fixtures until the underlying architecture gaps are closed.
 - Regression coverage on existing callers:
   - `python3 test/run-semantic-diff.py --case stringtools_math --case file_read_write_contract --case process_echo_contract --case http_proxy_custom_request --case http_request_callbacks_contract`
 - Snapshot coverage:

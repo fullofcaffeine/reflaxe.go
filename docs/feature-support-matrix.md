@@ -63,6 +63,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.ds.*Map` + `haxe.ds.List` (core ops subset) | `semantic-diff` | `ds_maps_list_contract`, `stdlib/ds_maps_list_basic` |
 | `Reflect` (compare + dynamic field ops subset) | `semantic-diff` | `reflect_compare`, `reflect_field_ops` |
 | `Date` + `haxe.ds.Option` + `haxe.io.Path` subset | `semantic-diff` | `option_date_path`, `path_cross_std_contract`, `stdlib/date_path_basic`, `stdlib/path_cross_std_basic` |
+| `haxe.Log` + `haxe.Resource` + `haxe.SysTools` direct helper subset | `semantic-diff` | `direct_haxe_helpers_contract`, `direct_haxe_resource_contract` |
 | `Array` + `IntIterator` core subset (`push`/`pop` statement-form, length/index access, array iteration, `0...N` range iteration) | `semantic-diff` | `array_string_intiterator_contract` |
 | `String` core subset (`length`, `charAt`, `charCodeAt` with null on out-of-range, `substring`, `fromCharCode`) | `semantic-diff` | `array_string_intiterator_contract`, `string_charcodeat_bounds_contract` |
 | `StringBuf` + `DateTools` + `Lambda` core subset (`add`/`addChar`/`addSub`, `DateTools.delta` with duration helpers, staged-std `DateTools.format` strftime subset plus `getMonthDays`/`parse`/`make`, `Lambda.filter`/`map`/`fold`/`has`/`exists`/`iter` over `Array<T>`/`haxe.ds.List<T>`, generic-`Iterable<T>` support for `Lambda.count`/`Lambda.empty`/`Lambda.exists`/`Lambda.has`/`Lambda.filter`/`Lambda.map`/`Lambda.fold`/`Lambda.iter` including function-value `Lambda.map` call-sites) | `semantic-diff` | `stringbuf_datetools_lambda_contract`, `datetools_cross_std_contract`, `lambda_list_contract`, `lambda_generic_iterable_count_empty_contract`, `lambda_iter_array_list_contract`, `lambda_iter_generic_iterable_contract` |
@@ -226,6 +227,11 @@ Shim strategy and alternatives are documented in:
 - `sys/http_request_callbacks_smoke`
 - `sys/process_echo_smoke`
 - `sys/host_basic_smoke`
+
+### Explicit direct-helper exclusions
+
+- `haxe.Template` direct usage is intentionally blocked until source-owned std inclusion can emit the module-local enum support it needs. Evidence: `negative/direct_haxe_template_unsupported`.
+- `haxe.ValueException` direct usage is intentionally blocked until string-payload message parity is restored across `Any`/string boxing. Evidence: `negative/direct_haxe_value_exception_unsupported`.
 
 ### `haxe.Json` runtime-lowered contract
 

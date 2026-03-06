@@ -1,0 +1,1 @@
+Direct haxe.ValueException usage is not supported yet on haxe.go; string payload parity still depends on unresolved Any/string boxing semantics. Track haxe.go-14as.39.

@@ -43,6 +43,11 @@
       "notes": "Go staged portable override for haxe.io.Path helper ownership, keeping path parsing and normalization semantics out of GoCompiler while upstream lowerings remain incomplete."
     },
     {
+      "path": "std/haxe/SysTools.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for direct haxe.SysTools quoting helpers, keeping command-line quoting semantics out of GoCompiler while upstream string/array lowerings remain incomplete."
+    },
+    {
       "path": "std/StringTools.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged portable override for StringTools helper ownership, keeping basic string helpers out of GoCompiler."
