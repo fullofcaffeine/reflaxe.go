@@ -12,6 +12,7 @@
       "UnicodeString",
       "Xml",
       "haxe.DynamicAccess",
+      "haxe.Http",
       "haxe.iterators.ArrayIterator",
       "haxe.iterators.ArrayKeyValueIterator",
       "haxe.iterators.DynamicAccessIterator",

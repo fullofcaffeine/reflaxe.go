@@ -338,9 +338,9 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_stack_loop",
+      "blocker_issue": "haxe.go-14as.28",
+      "closure_target": "2026-04-10",
       "coverage_evidence": [
         "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
@@ -348,22 +348,22 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.CallStack",
-      "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt). Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt). Tracked by haxe.go-14as.28 (haxe_misc_stack_loop); closure target 2026-04-10.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_abstractions",
+      "blocker_issue": "haxe.go-14as.26",
+      "closure_target": "2026-03-27",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Constraints",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.26 (haxe_misc_abstractions); closure target 2026-03-27.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
@@ -382,46 +382,46 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_stack_loop",
+      "blocker_issue": "haxe.go-14as.28",
+      "closure_target": "2026-04-10",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.EntryPoint",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.28 (haxe_misc_stack_loop); closure target 2026-04-10.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_enum_helpers",
+      "blocker_issue": "haxe.go-14as.27",
+      "closure_target": "2026-04-03",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.EnumFlags",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.27 (haxe_misc_enum_helpers); closure target 2026-04-03.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_enum_helpers",
+      "blocker_issue": "haxe.go-14as.27",
+      "closure_target": "2026-04-03",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.EnumTools",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.27 (haxe_misc_enum_helpers); closure target 2026-04-03.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
@@ -441,20 +441,18 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
       "coverage_evidence": [
         "upstream_sweep:full_compile",
-        "upstream_sweep:strict_go_test"
+        "upstream_sweep:strict_go_test",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.Http",
-      "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt). Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
@@ -512,46 +510,46 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_symbols",
+      "blocker_issue": "haxe.go-14as.25",
+      "closure_target": "2026-03-20",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Log",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.25 (haxe_misc_symbols); closure target 2026-03-20.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_stack_loop",
+      "blocker_issue": "haxe.go-14as.28",
+      "closure_target": "2026-04-10",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.MainLoop",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.28 (haxe_misc_stack_loop); closure target 2026-04-10.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_stack_loop",
+      "blocker_issue": "haxe.go-14as.28",
+      "closure_target": "2026-04-10",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.NativeStackTrace",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.28 (haxe_misc_stack_loop); closure target 2026-04-10.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
@@ -571,31 +569,31 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_symbols",
+      "blocker_issue": "haxe.go-14as.25",
+      "closure_target": "2026-03-20",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Resource",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.25 (haxe_misc_symbols); closure target 2026-03-20.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_abstractions",
+      "blocker_issue": "haxe.go-14as.26",
+      "closure_target": "2026-03-27",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Rest",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.26 (haxe_misc_abstractions); closure target 2026-03-27.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
@@ -615,61 +613,61 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_symbols",
+      "blocker_issue": "haxe.go-14as.25",
+      "closure_target": "2026-03-20",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.SysTools",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.25 (haxe_misc_symbols); closure target 2026-03-20.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_symbols",
+      "blocker_issue": "haxe.go-14as.25",
+      "closure_target": "2026-03-20",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Template",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.25 (haxe_misc_symbols); closure target 2026-03-20.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_stack_loop",
+      "blocker_issue": "haxe.go-14as.28",
+      "closure_target": "2026-04-10",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Timer",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.28 (haxe_misc_stack_loop); closure target 2026-04-10.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_legacy_text",
+      "blocker_issue": "haxe.go-14as.29",
+      "closure_target": "2026-04-17",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Ucs2",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.29 (haxe_misc_legacy_text); closure target 2026-04-17.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
@@ -689,31 +687,31 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_legacy_text",
+      "blocker_issue": "haxe.go-14as.29",
+      "closure_target": "2026-04-17",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Utf8",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.29 (haxe_misc_legacy_text); closure target 2026-04-17.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_misc",
-      "blocker_issue": "haxe.go-14as.12",
-      "closure_target": "2026-04-07",
+      "blocker_family": "haxe_misc_symbols",
+      "blocker_issue": "haxe.go-14as.25",
+      "closure_target": "2026-03-20",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.ValueException",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.12 (haxe_misc); closure target 2026-04-07.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.25 (haxe_misc_symbols); closure target 2026-03-20.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"

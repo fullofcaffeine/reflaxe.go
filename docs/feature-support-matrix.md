@@ -51,7 +51,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.Serializer` / `haxe.Unserializer` | `semantic-diff` | `serializer_wire_contract`, `serializer_cache_reference_contract`, `serializer_global_flags_contract`, `serializer_resolver_polymorphism_contract`, `serializer_reference_stress_contract` |
 | `haxe.Exception` (`caught`/`thrown`/`message`) | `semantic-diff` | `exception_api_contract`, `exceptions_typed_dynamic` |
 | `EReg` | `semantic-diff` | `ereg_behavior_contract`, `ereg_edge_contract` |
-| `sys.Http` | `semantic-diff` | `http_proxy_custom_request`, `http_request_callbacks_contract` |
+| `haxe.Http` / `sys.Http` | `semantic-diff` | `http_proxy_custom_request`, `http_request_callbacks_contract` |
 | `sys.net.Socket` | `semantic-diff` | `socket_loopback_contract`, `socket_advanced_contract` |
 | `haxe.crypto.*` + `haxe.xml.*` + `haxe.zip.*` subset | `semantic-diff` | `crypto_xml_zip` |
 | `haxe.Json` | `semantic-diff` | `json_parse_stringify_contract`, `stdlib/json_parse_stringify` |
@@ -260,8 +260,9 @@ Shim strategy and alternatives are documented in:
 - Coverage includes `test/semantic_diff/bytes_io_stream_contract`, `test/semantic_diff/bytes_of_data_contract`, `test/semantic_diff/bytes_hex_contract`, `test/semantic_diff/io_input_output_helpers_contract`, `test/semantic_diff/io_input_output_edge_contract`, `test/semantic_diff/io_error_constructor_contract`, and `test/semantic_diff/io_encoding_contract` for deterministic constructor bounds checks, `position`/`length`, EOF behavior, `readByte`/`readBytes`, inherited helper subset parity (`readAll`, `readFullBytes`, `read`, `readUntil`, `readLine`, `readString`, `readFloat`/`readDouble`, signed/unsigned numeric reads), output helper subset parity (`write`, `writeFullBytes`, `writeInput`, `writeString`, numeric typed writes, overflow guards), `haxe.io.Error` typed constructor matching (`Blocked`, `Overflow`, `OutsideBounds`, `Custom`), `haxe.io.Encoding` constructor parity (`UTF8`, `RawNative`), `Bytes.getString` bounds behavior, `Bytes.getData`/`Bytes.ofData` alias semantics, `Bytes.toHex`/`Bytes.ofHex` behavior, and `readLine` EOF/tail/CRLF edge paths.
 - Current tradeoff: parity remains focused on `BytesInput`/`BytesOutput` stream behavior with interpreter-compatible semantics by default (`reflaxe_go_raw_native_mode=interp`, where `UTF8` and `RawNative` both map to UTF-8 conversion). For projects that need Java/C#-style RawNative byte layout, `reflaxe_go_raw_native_mode=utf16le` provides an explicit opt-in UTF-16LE path; full target-by-target RawNative equivalence is still not claimed outside these documented modes.
 
-### `sys.Http` shim contract and tradeoffs
+### `haxe.Http` / `sys.Http` shim contract and tradeoffs
 
+- `haxe.Http` is a `typedef` alias of `sys.Http` on `sys` targets, so the same semantic-diff fixtures now serve as the portable contract for both entry points.
 - `sys.Http` now includes synchronous request semantics for `http`/`https` and deterministic `data:` handling used by tests.
 - Covered behaviors: `setHeader`/`addHeader`, `setParameter`/`addParameter`, `setPostData`/`setPostBytes`, `fileTransfer`/`fileTransfert`, `customRequest` (including optional socket transport injection), proxy URL wiring (`Http.PROXY`), `getResponseHeaderValues`, dynamic callbacks (`onData`, `onBytes`, `onError`, `onStatus`), `responseData`/`responseBytes`, and `requestUrl`.
 - Semantic diff now also locks callback/status/header/error parity for local deterministic HTTP servers (`http_request_callbacks_contract`), including 4xx `onError` formatting (`Http Error #<status>`).
@@ -419,4 +420,5 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-14as.21`: closed root `Xml` surface split. Added direct semantic-diff coverage in `root_xml_contract` plus snapshot coverage in `stdlib/xml_root_dom_basic`.
 - `haxe.go-14as.22`: closed root `UnicodeString` surface split. Added direct semantic-diff coverage in `root_unicode_string_contract` plus snapshot coverage in `stdlib/unicode_string_basic`, and wired the `_UnicodeString__UnicodeString_Impl__*` lowering surface through generated stdlib-symbol shims.
 - `haxe.go-14as.24`: closed the remaining `Xml.parse()` parsed-CDATA node-type follow-up, so root `Xml` now preserves `CData` instead of collapsing it to `PCData`.
-- `haxe.go-14as.12` to `haxe.go-14as.19`: dated blocker families for the remaining compile-only portable tranches (`haxe_misc`, `haxe_ds_exceptions`, `haxe_http_rtti`, `haxe_io_misc`, `haxe_io_typed_arrays`, `sys_db_io`, `sys_net_ssl`, `sys_thread`).
+- `haxe.go-14as.12`: closed generic `haxe.misc` triage by promoting `haxe.Http` from existing semantic-diff fixtures and splitting the remaining modules into `haxe.go-14as.25` to `haxe.go-14as.29`.
+- `haxe.go-14as.13` to `haxe.go-14as.19` and `haxe.go-14as.25` to `haxe.go-14as.29`: dated blocker families for the remaining compile-only portable tranches (`haxe_ds_exceptions`, `haxe_http_rtti`, `haxe_io_misc`, `haxe_io_typed_arrays`, `sys_db_io`, `sys_net_ssl`, `sys_thread`, `haxe_misc_symbols`, `haxe_misc_abstractions`, `haxe_misc_enum_helpers`, `haxe_misc_stack_loop`, `haxe_misc_legacy_text`).

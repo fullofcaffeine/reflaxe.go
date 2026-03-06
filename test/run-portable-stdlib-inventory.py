@@ -116,27 +116,54 @@ PROMOTION_LEVEL_KEYS = ("snapshot", "semantic_diff")
 
 BLOCKER_FAMILY_SPECS = (
     {
-        "issue": "haxe.go-14as.12",
-        "family": "haxe_misc",
-        "closure_target": "2026-04-07",
+        "issue": "haxe.go-14as.25",
+        "family": "haxe_misc_symbols",
+        "closure_target": "2026-03-20",
         "modules": {
-            "haxe.CallStack",
-            "haxe.Constraints",
-            "haxe.EntryPoint",
-            "haxe.EnumFlags",
-            "haxe.EnumTools",
-            "haxe.Http",
             "haxe.Log",
-            "haxe.MainLoop",
-            "haxe.NativeStackTrace",
             "haxe.Resource",
-            "haxe.Rest",
             "haxe.SysTools",
             "haxe.Template",
+            "haxe.ValueException",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.26",
+        "family": "haxe_misc_abstractions",
+        "closure_target": "2026-03-27",
+        "modules": {
+            "haxe.Constraints",
+            "haxe.Rest",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.27",
+        "family": "haxe_misc_enum_helpers",
+        "closure_target": "2026-04-03",
+        "modules": {
+            "haxe.EnumFlags",
+            "haxe.EnumTools",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.28",
+        "family": "haxe_misc_stack_loop",
+        "closure_target": "2026-04-10",
+        "modules": {
+            "haxe.CallStack",
+            "haxe.EntryPoint",
+            "haxe.MainLoop",
+            "haxe.NativeStackTrace",
             "haxe.Timer",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.29",
+        "family": "haxe_misc_legacy_text",
+        "closure_target": "2026-04-17",
+        "modules": {
             "haxe.Ucs2",
             "haxe.Utf8",
-            "haxe.ValueException",
         },
     },
     {
