@@ -10,9 +10,15 @@ Run these checks from repo root on a clean branch before a release cut.
 2. Snapshot + semantic baseline (already included in CI harness, can be run directly for debugging):
    - `python3 test/run-snapshots.py`
    - `python3 test/run-semantic-diff.py`
-3. Release visibility contract:
+3. Portable parity closure visibility:
+   - `python3 test/run-portable-stdlib-inventory.py`
+   - `python3 test/run-portable-parity-closure.py`
+4. Family stdlib sync gates:
+   - `npm run test:family-stdlib-sync`
+   - `npm run test:family-stdlib-bootstrap`
+5. Release visibility contract:
    - `npm run release:status`
-4. Performance visibility gates:
+6. Performance visibility gates:
    - `npm run test:perf:go`
    - `npm run test:perf:hxrt-selective`
    - `npm run test:perf:apps`
@@ -23,6 +29,10 @@ Use this exact command order when validating a release candidate locally:
 
 ```bash
 python3 test/run-ci.py
+python3 test/run-portable-stdlib-inventory.py
+python3 test/run-portable-parity-closure.py
+npm run test:family-stdlib-sync
+npm run test:family-stdlib-bootstrap
 npm run release:status
 npm run test:perf:go
 npm run test:perf:hxrt-selective
@@ -40,6 +50,9 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 ## Pass criteria
 
 - `python3 test/run-ci.py` exits `0` with no failed stages.
+- `python3 test/run-portable-stdlib-inventory.py` exits `0` and every remaining `compile-only` module carries blocker issue + target metadata.
+- `python3 test/run-portable-parity-closure.py` exits `0` and reports only explicit blocker-backed remaining modules.
+- `npm run test:family-stdlib-sync` and `npm run test:family-stdlib-bootstrap` exit `0`.
 - `npm run release:status` exits `0` and reports release wiring as healthy.
 - Perf runs complete and budgets are within expected thresholds for the current baseline policy.
 

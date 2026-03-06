@@ -38,6 +38,26 @@
       "notes": "Go staged portable override for haxe.Json, delegating behavior to hxrt runtime helpers."
     },
     {
+      "path": "std/_std/haxe/ds/HashMap.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.ds.HashMap entrypoint behavior and owned iterator surfaces."
+    },
+    {
+      "path": "std/_std/haxe/ds/IntMap.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.ds.IntMap entrypoint behavior and owned iterator surfaces."
+    },
+    {
+      "path": "std/_std/haxe/ds/ObjectMap.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.ds.ObjectMap entrypoint behavior and owned iterator surfaces."
+    },
+    {
+      "path": "std/_std/haxe/ds/StringMap.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.ds.StringMap entrypoint behavior and owned iterator surfaces."
+    },
+    {
       "path": "std/_std/haxe/format/JsonParser.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged portable override for haxe.format.JsonParser, delegating parse path to haxe.Json."
@@ -46,6 +66,46 @@
       "path": "std/_std/haxe/format/JsonPrinter.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged portable override for haxe.format.JsonPrinter, delegating print path to haxe.Json."
+    },
+    {
+      "path": "std/_std/haxe/iterators/DynamicAccessKeyValueIterator.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for DynamicAccess key/value iterator semantics."
+    },
+    {
+      "path": "std/_std/haxe/iterators/GoStringRuntime.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable helper module for shared string iterator runtime behavior."
+    },
+    {
+      "path": "std/_std/haxe/iterators/HashMapKeyValueIterator.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for HashMap key/value iterator semantics."
+    },
+    {
+      "path": "std/_std/haxe/iterators/MapKeyValueIterator.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for Map key/value iterator semantics."
+    },
+    {
+      "path": "std/_std/haxe/iterators/StringIterator.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for string iterator semantics."
+    },
+    {
+      "path": "std/_std/haxe/iterators/StringIteratorUnicode.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for Unicode-aware string iterator semantics."
+    },
+    {
+      "path": "std/_std/haxe/iterators/StringKeyValueIterator.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for string key/value iterator semantics."
+    },
+    {
+      "path": "std/_std/haxe/iterators/StringKeyValueIteratorUnicode.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for Unicode-aware string key/value iterator semantics."
     }
   ]
 }

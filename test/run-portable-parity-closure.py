@@ -106,12 +106,22 @@ def main() -> int:
         module = entry.get("module")
         status = entry.get("status")
         owner = entry.get("owner")
+        blocker_issue = entry.get("blocker_issue")
+        blocker_family = entry.get("blocker_family")
+        closure_target = entry.get("closure_target")
         if not isinstance(module, str) or not module:
             raise SystemExit("portable_stdlib_inventory.json: module must be non-empty string")
         if status not in VALID_STATUS:
             raise SystemExit(f"portable_stdlib_inventory.json: invalid status for {module}: {status!r}")
         if not isinstance(owner, str) or not owner:
             raise SystemExit(f"portable_stdlib_inventory.json: invalid owner for {module}: {owner!r}")
+        if status == "compile-only":
+            if not isinstance(blocker_issue, str) or not blocker_issue.strip():
+                raise SystemExit(f"portable_stdlib_inventory.json: compile-only module missing blocker_issue: {module}")
+            if not isinstance(blocker_family, str) or not blocker_family.strip():
+                raise SystemExit(f"portable_stdlib_inventory.json: compile-only module missing blocker_family: {module}")
+            if not isinstance(closure_target, str) or not closure_target.strip():
+                raise SystemExit(f"portable_stdlib_inventory.json: compile-only module missing closure_target: {module}")
         inventory_rows.append(entry)
 
     inventory_rows.sort(key=lambda item: str(item["module"]))
@@ -125,14 +135,17 @@ def main() -> int:
         status_counts[status] = status_counts.get(status, 0) + 1
         owner_counts[owner] = owner_counts.get(owner, 0) + 1
         if status != "semantic-diff":
-            blockers.append(
-                {
-                    "module": str(row["module"]),
-                    "status": status,
-                    "owner": owner,
-                    "next_step": next_promotion_step(status),
-                }
-            )
+            blocker = {
+                "module": str(row["module"]),
+                "status": status,
+                "owner": owner,
+                "next_step": next_promotion_step(status),
+            }
+            if status == "compile-only":
+                blocker["blocker_issue"] = str(row["blocker_issue"])
+                blocker["blocker_family"] = str(row["blocker_family"])
+                blocker["closure_target"] = str(row["closure_target"])
+            blockers.append(blocker)
 
     tier1_modules = sorted(extract_tier1_modules(allowlist))
     conformance_modules = extract_conformance_modules(conformance)
@@ -189,9 +202,15 @@ def main() -> int:
     md_lines.extend(["", "## Remaining blockers (non semantic-diff)"])
     if blockers:
         for blocker in blockers:
-            md_lines.append(
-                f"- `{blocker['module']}` ({blocker['status']}, owner `{blocker['owner']}`) -> {blocker['next_step']}"
-            )
+            if blocker["status"] == "compile-only":
+                md_lines.append(
+                    f"- `{blocker['module']}` ({blocker['status']}, owner `{blocker['owner']}`, "
+                    f"issue `{blocker['blocker_issue']}`, target `{blocker['closure_target']}`) -> {blocker['next_step']}"
+                )
+            else:
+                md_lines.append(
+                    f"- `{blocker['module']}` ({blocker['status']}, owner `{blocker['owner']}`) -> {blocker['next_step']}"
+                )
     else:
         md_lines.append("- none")
 
@@ -202,7 +221,13 @@ def main() -> int:
 
     if args.list_blockers:
         for blocker in blockers:
-            print(f"{blocker['module']} [{blocker['status']}] -> {blocker['next_step']}")
+            if blocker["status"] == "compile-only":
+                print(
+                    f"{blocker['module']} [{blocker['status']}] "
+                    f"[{blocker['blocker_issue']}, target {blocker['closure_target']}] -> {blocker['next_step']}"
+                )
+            else:
+                print(f"{blocker['module']} [{blocker['status']}] -> {blocker['next_step']}")
 
     print(
         f"[PASS] portable parity closure summary generated "

@@ -107,6 +107,150 @@ OWNER_OVERRIDES = {
 
 PROMOTION_LEVEL_KEYS = ("snapshot", "semantic_diff")
 
+BLOCKER_FAMILY_SPECS = (
+    {
+        "issue": "haxe.go-14as.11",
+        "family": "portable_root_core",
+        "closure_target": "2026-03-31",
+        "modules": {"Any", "StdTypes", "Sys", "UnicodeString", "Xml", "sys.FileStat"},
+    },
+    {
+        "issue": "haxe.go-14as.12",
+        "family": "haxe_misc",
+        "closure_target": "2026-04-07",
+        "modules": {
+            "haxe.CallStack",
+            "haxe.Constraints",
+            "haxe.EntryPoint",
+            "haxe.EnumFlags",
+            "haxe.EnumTools",
+            "haxe.Http",
+            "haxe.Log",
+            "haxe.MainLoop",
+            "haxe.NativeStackTrace",
+            "haxe.Resource",
+            "haxe.Rest",
+            "haxe.SysTools",
+            "haxe.Template",
+            "haxe.Timer",
+            "haxe.Ucs2",
+            "haxe.Utf8",
+            "haxe.ValueException",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.13",
+        "family": "haxe_ds_exceptions",
+        "closure_target": "2026-04-14",
+        "modules": {
+            "haxe.ds.ArraySort",
+            "haxe.ds.BalancedTree",
+            "haxe.ds.Either",
+            "haxe.ds.GenericStack",
+            "haxe.ds.HashMap",
+            "haxe.ds.ListSort",
+            "haxe.ds.WeakMap",
+            "haxe.exceptions.ArgumentException",
+            "haxe.exceptions.NotImplementedException",
+            "haxe.exceptions.PosException",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.14",
+        "family": "haxe_http_rtti",
+        "closure_target": "2026-04-21",
+        "modules": {
+            "haxe.http.HttpBase",
+            "haxe.http.HttpJs",
+            "haxe.http.HttpMethod",
+            "haxe.http.HttpNodeJs",
+            "haxe.http.HttpStatus",
+            "haxe.rtti.CType",
+            "haxe.rtti.Meta",
+            "haxe.rtti.Rtti",
+            "haxe.rtti.XmlParser",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.15",
+        "family": "haxe_io_misc",
+        "closure_target": "2026-04-30",
+        "modules": {
+            "haxe.io.BufferInput",
+            "haxe.io.BytesData",
+            "haxe.io.Encoding",
+            "haxe.io.Eof",
+            "haxe.io.Error",
+            "haxe.io.FPHelper",
+            "haxe.io.Mime",
+            "haxe.io.Scheme",
+            "haxe.io.StringInput",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.16",
+        "family": "haxe_io_typed_arrays",
+        "closure_target": "2026-05-07",
+        "modules": {
+            "haxe.io.ArrayBufferView",
+            "haxe.io.Float32Array",
+            "haxe.io.Float64Array",
+            "haxe.io.Int32Array",
+            "haxe.io.UInt16Array",
+            "haxe.io.UInt32Array",
+            "haxe.io.UInt8Array",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.17",
+        "family": "sys_db_io",
+        "closure_target": "2026-05-14",
+        "modules": {
+            "sys.db.Connection",
+            "sys.db.Mysql",
+            "sys.db.ResultSet",
+            "sys.db.Sqlite",
+            "sys.io.FileInput",
+            "sys.io.FileOutput",
+            "sys.io.FileSeek",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.18",
+        "family": "sys_net_ssl",
+        "closure_target": "2026-05-21",
+        "modules": {
+            "sys.net.Address",
+            "sys.net.UdpSocket",
+            "sys.ssl.Certificate",
+            "sys.ssl.Digest",
+            "sys.ssl.DigestAlgorithm",
+            "sys.ssl.Key",
+            "sys.ssl.Socket",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.19",
+        "family": "sys_thread",
+        "closure_target": "2026-05-31",
+        "modules": {
+            "sys.thread.Condition",
+            "sys.thread.Deque",
+            "sys.thread.ElasticThreadPool",
+            "sys.thread.EventLoop",
+            "sys.thread.FixedThreadPool",
+            "sys.thread.IThreadPool",
+            "sys.thread.Lock",
+            "sys.thread.Mutex",
+            "sys.thread.NoEventLoopException",
+            "sys.thread.Semaphore",
+            "sys.thread.Thread",
+            "sys.thread.ThreadPoolException",
+            "sys.thread.Tls",
+        },
+    },
+)
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -214,6 +358,17 @@ def select_owner(module: str, status: str, in_strict_sweep: bool) -> str:
     return "unassigned"
 
 
+def blocker_plan(module: str) -> dict[str, str] | None:
+    for spec in BLOCKER_FAMILY_SPECS:
+        if module in spec["modules"]:
+            return {
+                "issue": str(spec["issue"]),
+                "family": str(spec["family"]),
+                "closure_target": str(spec["closure_target"]),
+            }
+    return None
+
+
 def module_notes(module: str, status: str, in_strict_sweep: bool) -> str:
     if status == "semantic-diff":
         return (
@@ -223,14 +378,23 @@ def module_notes(module: str, status: str, in_strict_sweep: bool) -> str:
     if status == "snapshot":
         return "Covered by snapshot-level deterministic generated-code/runtime smoke contracts."
     if status == "compile-only":
+        blocker = blocker_plan(module)
+        if blocker is None:
+            raise SystemExit(f"compile-only module missing blocker plan: {module}")
         if in_strict_sweep:
-            return (
+            base = (
                 "Covered by strict upstream stdlib sweep compile/go-test checks "
                 "(test/upstream_std_modules.txt)."
             )
+        else:
+            base = (
+                "Covered by full portable-eligible upstream stdlib sweep compile checks "
+                "(test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted."
+            )
         return (
-            "Covered by full portable-eligible upstream stdlib sweep compile checks "
-            "(test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted."
+            base
+            + " "
+            + f"Tracked by {blocker['issue']} ({blocker['family']}); closure target {blocker['closure_target']}."
         )
     return "Portable-eligible module inventoried; parity promotion is pending."
 
@@ -274,6 +438,11 @@ def build_inventory(
             "coverage_evidence": module_evidence(status, in_full_sweep, in_strict_sweep),
             "notes": module_notes(module, status, in_strict_sweep),
         }
+        blocker = blocker_plan(module) if status == "compile-only" else None
+        if blocker is not None:
+            entry["blocker_issue"] = blocker["issue"]
+            entry["blocker_family"] = blocker["family"]
+            entry["closure_target"] = blocker["closure_target"]
         modules_payload.append(entry)
 
     return {
@@ -321,6 +490,16 @@ def validate_inventory_schema(inventory: dict[str, Any], full_modules: list[str]
             raise SystemExit(f"portable_stdlib_inventory.json: invalid owner for {module}: {owner!r}")
         if portable_eligible is not True:
             raise SystemExit(f"portable_stdlib_inventory.json: portable_eligible must be true for {module}")
+        if status == "compile-only":
+            blocker_issue = entry.get("blocker_issue")
+            blocker_family = entry.get("blocker_family")
+            closure_target = entry.get("closure_target")
+            if not isinstance(blocker_issue, str) or not blocker_issue.strip():
+                raise SystemExit(f"portable_stdlib_inventory.json: compile-only module missing blocker_issue: {module}")
+            if not isinstance(blocker_family, str) or not blocker_family.strip():
+                raise SystemExit(f"portable_stdlib_inventory.json: compile-only module missing blocker_family: {module}")
+            if not isinstance(closure_target, str) or not closure_target.strip():
+                raise SystemExit(f"portable_stdlib_inventory.json: compile-only module missing closure_target: {module}")
 
     expected = sorted(full_modules)
     if sorted(seen) != expected:

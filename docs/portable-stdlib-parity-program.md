@@ -90,6 +90,25 @@ Automated promotion workflow (`compile-only -> snapshot -> semantic-diff`) is pr
 - `test/portable_parity_promotions.json` (deterministic promotion registry consumed by inventory generation)
 
 The summary artifact includes module-level `next_step` guidance for every remaining blocker.
+For every remaining `compile-only` module, the generated inventory and closure summary must also carry:
+
+- `blocker_issue`
+- `blocker_family`
+- `closure_target`
+
+That metadata is the repo-level proof that no portable-eligible module is still implicit/unknown.
+
+Current dated blocker families:
+
+- `haxe.go-14as.11` - portable root/core tranche - target `2026-03-31`
+- `haxe.go-14as.12` - `haxe.misc` tranche - target `2026-04-07`
+- `haxe.go-14as.13` - `haxe.ds` + `haxe.exceptions` tranche - target `2026-04-14`
+- `haxe.go-14as.14` - `haxe.http` + `haxe.rtti` tranche - target `2026-04-21`
+- `haxe.go-14as.15` - `haxe.io` misc tranche - target `2026-04-30`
+- `haxe.go-14as.16` - `haxe.io` typed-array tranche - target `2026-05-07`
+- `haxe.go-14as.17` - `sys.db` + `sys.io` tranche - target `2026-05-14`
+- `haxe.go-14as.18` - `sys.net` + `sys.ssl` tranche - target `2026-05-21`
+- `haxe.go-14as.19` - `sys.thread` tranche - target `2026-05-31`
 
 Update sequence when std override files change:
 
