@@ -3,8 +3,10 @@
   "levels": {
     "snapshot": [],
     "semantic_diff": [
+      "Any",
       "List",
       "Map",
+      "StdTypes",
       "UInt",
       "haxe.DynamicAccess",
       "haxe.iterators.ArrayIterator",
@@ -16,7 +18,8 @@
       "haxe.iterators.StringIterator",
       "haxe.iterators.StringIteratorUnicode",
       "haxe.iterators.StringKeyValueIterator",
-      "haxe.iterators.StringKeyValueIteratorUnicode"
+      "haxe.iterators.StringKeyValueIteratorUnicode",
+      "sys.FileStat"
     ]
   }
 }

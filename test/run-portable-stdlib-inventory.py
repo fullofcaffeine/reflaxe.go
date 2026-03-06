@@ -109,12 +109,6 @@ PROMOTION_LEVEL_KEYS = ("snapshot", "semantic_diff")
 
 BLOCKER_FAMILY_SPECS = (
     {
-        "issue": "haxe.go-14as.11",
-        "family": "portable_root_core",
-        "closure_target": "2026-03-31",
-        "modules": {"Any", "StdTypes", "Sys", "UnicodeString", "Xml", "sys.FileStat"},
-    },
-    {
         "issue": "haxe.go-14as.12",
         "family": "haxe_misc",
         "closure_target": "2026-04-07",
@@ -200,6 +194,24 @@ BLOCKER_FAMILY_SPECS = (
             "haxe.io.UInt32Array",
             "haxe.io.UInt8Array",
         },
+    },
+    {
+        "issue": "haxe.go-14as.20",
+        "family": "root_sys_surface",
+        "closure_target": "2026-04-07",
+        "modules": {"Sys"},
+    },
+    {
+        "issue": "haxe.go-14as.21",
+        "family": "root_xml_surface",
+        "closure_target": "2026-04-14",
+        "modules": {"Xml"},
+    },
+    {
+        "issue": "haxe.go-14as.22",
+        "family": "unicode_string_surface",
+        "closure_target": "2026-04-21",
+        "modules": {"UnicodeString"},
     },
     {
         "issue": "haxe.go-14as.17",

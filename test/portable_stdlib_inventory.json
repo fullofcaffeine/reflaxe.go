@@ -17,19 +17,17 @@
   "generated_by": "test/run-portable-stdlib-inventory.py",
   "modules": [
     {
-      "blocker_family": "portable_root_core",
-      "blocker_issue": "haxe.go-14as.11",
-      "closure_target": "2026-03-31",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "Any",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.11 (portable_root_core); closure target 2026-03-31.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
@@ -219,19 +217,17 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "portable_root_core",
-      "blocker_issue": "haxe.go-14as.11",
-      "closure_target": "2026-03-31",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "StdTypes",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.11 (portable_root_core); closure target 2026-03-31.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
@@ -274,9 +270,9 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "portable_root_core",
-      "blocker_issue": "haxe.go-14as.11",
-      "closure_target": "2026-03-31",
+      "blocker_family": "root_sys_surface",
+      "blocker_issue": "haxe.go-14as.20",
+      "closure_target": "2026-04-07",
       "coverage_evidence": [
         "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
@@ -284,7 +280,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Sys",
-      "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt). Tracked by haxe.go-14as.11 (portable_root_core); closure target 2026-03-31.",
+      "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt). Tracked by haxe.go-14as.20 (root_sys_surface); closure target 2026-04-07.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
@@ -317,24 +313,24 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "portable_root_core",
-      "blocker_issue": "haxe.go-14as.11",
-      "closure_target": "2026-03-31",
+      "blocker_family": "unicode_string_surface",
+      "blocker_issue": "haxe.go-14as.22",
+      "closure_target": "2026-04-21",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "UnicodeString",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.11 (portable_root_core); closure target 2026-03-31.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.22 (unicode_string_surface); closure target 2026-04-21.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "portable_root_core",
-      "blocker_issue": "haxe.go-14as.11",
-      "closure_target": "2026-03-31",
+      "blocker_family": "root_xml_surface",
+      "blocker_issue": "haxe.go-14as.21",
+      "closure_target": "2026-04-14",
       "coverage_evidence": [
         "upstream_sweep:full_compile",
         "upstream_sweep:strict_go_test"
@@ -342,7 +338,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Xml",
-      "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt). Tracked by haxe.go-14as.11 (portable_root_core); closure target 2026-03-31.",
+      "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt). Tracked by haxe.go-14as.21 (root_xml_surface); closure target 2026-04-14.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
@@ -2013,19 +2009,17 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "portable_root_core",
-      "blocker_issue": "haxe.go-14as.11",
-      "closure_target": "2026-03-31",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.FileStat",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.11 (portable_root_core); closure target 2026-03-31.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
