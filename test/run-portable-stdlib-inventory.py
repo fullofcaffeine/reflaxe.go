@@ -105,6 +105,14 @@ OWNER_OVERRIDES = {
     "haxe.io.Output": "compiler_shim",
 }
 
+MODULE_NOTES_OVERRIDES = {
+    "Xml": (
+        "Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic; "
+        "parsed CDATA sections still normalize to PCData for now (tracked by haxe.go-14as.24; "
+        "see docs/known-gaps.md)."
+    ),
+}
+
 PROMOTION_LEVEL_KEYS = ("snapshot", "semantic_diff")
 
 BLOCKER_FAMILY_SPECS = (
@@ -194,12 +202,6 @@ BLOCKER_FAMILY_SPECS = (
             "haxe.io.UInt32Array",
             "haxe.io.UInt8Array",
         },
-    },
-    {
-        "issue": "haxe.go-14as.21",
-        "family": "root_xml_surface",
-        "closure_target": "2026-04-14",
-        "modules": {"Xml"},
     },
     {
         "issue": "haxe.go-14as.22",
@@ -377,10 +379,14 @@ def blocker_plan(module: str) -> dict[str, str] | None:
 
 def module_notes(module: str, status: str, in_strict_sweep: bool) -> str:
     if status == "semantic-diff":
-        return (
+        base = (
             "Covered by semantic-diff/runtime contracts in test/semantic_diff and "
             "documented in docs/feature-support-matrix.md."
         )
+        override = MODULE_NOTES_OVERRIDES.get(module)
+        if override:
+            return base + " " + override
+        return base
     if status == "snapshot":
         return "Covered by snapshot-level deterministic generated-code/runtime smoke contracts."
     if status == "compile-only":

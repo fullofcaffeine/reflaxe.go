@@ -326,20 +326,18 @@
       "status": "compile-only"
     },
     {
-      "blocker_family": "root_xml_surface",
-      "blocker_issue": "haxe.go-14as.21",
-      "closure_target": "2026-04-14",
       "coverage_evidence": [
         "upstream_sweep:full_compile",
-        "upstream_sweep:strict_go_test"
+        "upstream_sweep:strict_go_test",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Xml",
-      "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt). Tracked by haxe.go-14as.21 (root_xml_surface); closure target 2026-04-14.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic; parsed CDATA sections still normalize to PCData for now (tracked by haxe.go-14as.24; see docs/known-gaps.md).",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "blocker_family": "haxe_misc",

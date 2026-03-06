@@ -9,6 +9,7 @@
       "StdTypes",
       "Sys",
       "UInt",
+      "Xml",
       "haxe.DynamicAccess",
       "haxe.iterators.ArrayIterator",
       "haxe.iterators.ArrayKeyValueIterator",

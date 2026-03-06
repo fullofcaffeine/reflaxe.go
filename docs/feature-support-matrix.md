@@ -59,6 +59,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `sys.io.Process` | `semantic-diff` | `process_echo_contract`, `sys/process_echo_smoke` |
 | `sys.io.File` | `semantic-diff` | `file_read_write_contract`, `sys/file_read_write_smoke` |
 | `sys.FileSystem` | `semantic-diff` | `filesystem_contract`, `sys/filesystem_basic_smoke` |
+| `Xml` (root DOM subset: document/element creation, attributes, child iteration, parse/print baseline) | `semantic-diff` | `root_xml_contract`, `stdlib/xml_root_dom_basic` |
 | `haxe.ds.*Map` + `haxe.ds.List` (core ops subset) | `semantic-diff` | `ds_maps_list_contract`, `stdlib/ds_maps_list_basic` |
 | `Reflect` (compare + dynamic field ops subset) | `semantic-diff` | `reflect_compare`, `reflect_field_ops` |
 | `Date` + `haxe.ds.Option` + `haxe.io.Path` subset | `semantic-diff` | `option_date_path`, `stdlib/date_path_basic` |
@@ -415,5 +416,6 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-14as.10`: final closure sync task; inventory/closure artifacts now require explicit blocker metadata for remaining compile-only modules, and release readiness docs include portable parity + family sync gates.
 - `haxe.go-14as.11`: root/core tranche triage closure. Direct semantic-diff contracts promoted `Any`, `StdTypes`, and `sys.FileStat`; remaining root blockers were split into dedicated tasks for `Sys`, `Xml`, and `UnicodeString`.
 - `haxe.go-14as.20`: closed root `Sys` surface split. Added direct semantic-diff coverage in `root_sys_contract` and wired `Sys.getEnv`, `Sys.putEnv`, `Sys.environment`, and `Sys.systemName` through new hxrt/compiler shims.
+- `haxe.go-14as.21`: closed root `Xml` surface split. Added direct semantic-diff coverage in `root_xml_contract` plus snapshot coverage in `stdlib/xml_root_dom_basic`; parsed-CDATA node-type preservation remains tracked separately in `haxe.go-14as.24`.
 - `haxe.go-14as.12` to `haxe.go-14as.19`: dated blocker families for the remaining compile-only portable tranches (`haxe_misc`, `haxe_ds_exceptions`, `haxe_http_rtti`, `haxe_io_misc`, `haxe_io_typed_arrays`, `sys_db_io`, `sys_net_ssl`, `sys_thread`).
-- `haxe.go-14as.21` to `haxe.go-14as.22`: dedicated root-surface blockers for `Xml` and `UnicodeString`, created after direct red fixtures showed they are not just inventory lag.
+- `haxe.go-14as.22`: dedicated root-surface blocker for `UnicodeString`, created after direct red fixtures showed it is not just inventory lag.

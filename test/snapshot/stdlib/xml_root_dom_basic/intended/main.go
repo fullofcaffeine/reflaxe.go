@@ -27,21 +27,15 @@ type hxrt__TypeEnumValue struct {
 }
 
 func main() {
-	hxrt.Println(render(haxe__ds__Option_Some(7)))
-	hxrt.Println(render(haxe__ds__Option_None))
-}
-
-func render(opt *haxe__ds__Option) *string {
-	var hx_switch_1 *string
-	switch opt.tag {
-	case 0:
-		_g := opt.params[0].(int)
-		v := _g
-		hx_switch_1 = hxrt.StringConcatAny(hxrt.StringFromLiteral("some:"), v)
-	case 1:
-		hx_switch_1 = hxrt.StringFromLiteral("none")
-	}
-	return hx_switch_1
+	doc := Xml_createDocument()
+	root := Xml_createElement(hxrt.StringFromLiteral("root"))
+	root.set(hxrt.StringFromLiteral("id"), hxrt.StringFromLiteral("r1"))
+	root.addChild(Xml_createPCData(hxrt.StringFromLiteral("hello")))
+	doc.addChild(root)
+	parsed := Xml_parse(hxrt.StringFromLiteral("<outer><inner a=\"1\">v</inner></outer>"))
+	hxrt.Println(haxe__xml__Printer_print(doc))
+	hxrt.Println(parsed.firstElement().firstElement().get(hxrt.StringFromLiteral("a")))
+	hxrt.Println(haxe__xml__Printer_print(parsed))
 }
 
 type haxe__io__Encoding struct {
