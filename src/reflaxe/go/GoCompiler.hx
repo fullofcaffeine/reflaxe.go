@@ -4630,7 +4630,7 @@ class GoCompiler {
 	}
 
 	function lowerSysStdlibShimDecls():Array<GoDecl> {
-		return [
+		var decls = [
 			GoDecl.GoStructDecl("Sys", []),
 			GoDecl.GoStructDecl("sys__io__File", []),
 			GoDecl.GoStructDecl("sys__io__ProcessOutput", [{name: "impl", typeName: "*hxrt.ProcessOutput"}]),
@@ -4643,6 +4643,26 @@ class GoCompiler {
 			]),
 			GoDecl.GoFuncDecl("Sys_args", null, [], ["[]*string"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysArgs"), []))
+			]),
+			GoDecl.GoFuncDecl("Sys_getEnv", null, [
+				{
+					name: "key",
+					typeName: "*string"
+				}
+			], ["*string"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysGetEnv"), [GoExpr.GoIdent("key")]))
+			]),
+			GoDecl.GoFuncDecl("Sys_putEnv", null, [
+				{
+					name: "key",
+					typeName: "*string"
+				},
+				{name: "value", typeName: "*string"}
+			], [], [
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysPutEnv"), [GoExpr.GoIdent("key"), GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("Sys_systemName", null, [], ["*string"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysSystemName"), []))
 			]),
 			GoDecl.GoFuncDecl("sys__io__File_saveContent", null, [
 				{
@@ -4695,6 +4715,18 @@ class GoCompiler {
 				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "impl"), "Close"), []))
 			])
 		];
+
+		if (requiredStdlibShimGroups.exists("ds")) {
+			decls.push(GoDecl.GoFuncDecl("Sys_environment", null, [], ["*haxe__ds__StringMap"], [
+				GoStmt.GoRaw("env := New_haxe__ds__StringMap()"),
+				GoStmt.GoRaw("for key, value := range hxrt.SysEnvironment() {"),
+				GoStmt.GoRaw("\tenv.h[key] = hxrt.StringFromLiteral(value)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("env"))
+			]));
+		}
+
+		return decls;
 	}
 
 	function lowerFileSystemShimDecls():Array<GoDecl> {
@@ -11559,6 +11591,7 @@ class GoCompiler {
 			case FStatic(classRef, field):
 				var resolved = field.get();
 				var classType = classRef.get();
+				noteStaticStdlibFieldUsage(classType, resolved.name);
 				if (classType.isExtern) {
 					var externPackage = externClassPackageName(classType);
 					if (externPackage != null) {
@@ -14723,6 +14756,12 @@ class GoCompiler {
 	function noteIoHelperFieldUsage(classType:ClassType, fieldName:String):Void {
 		if (GoStdlibShimClassifier.needsIoHelperSurface(classType, fieldName, isIoInputHelperMethodName, isIoOutputHelperMethodName)) {
 			requiresIoHelperSurface = true;
+		}
+	}
+
+	function noteStaticStdlibFieldUsage(classType:ClassType, fieldName:String):Void {
+		if (classType.pack.length == 0 && classType.name == "Sys" && fieldName == "environment") {
+			requireStdlibShimGroup("ds");
 		}
 	}
 

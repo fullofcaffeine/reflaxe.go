@@ -101,7 +101,6 @@ That metadata is the repo-level proof that no portable-eligible module is still 
 Current dated blocker families:
 
 - `haxe.go-14as.12` - `haxe.misc` tranche - target `2026-04-07`
-- `haxe.go-14as.20` - root `Sys` surface split from the closed root/core tranche - target `2026-04-07`
 - `haxe.go-14as.13` - `haxe.ds` + `haxe.exceptions` tranche - target `2026-04-14`
 - `haxe.go-14as.21` - root `Xml` surface split from the closed root/core tranche - target `2026-04-14`
 - `haxe.go-14as.14` - `haxe.http` + `haxe.rtti` tranche - target `2026-04-21`

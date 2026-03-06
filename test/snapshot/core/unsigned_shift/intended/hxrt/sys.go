@@ -1,6 +1,10 @@
 package hxrt
 
-import "os"
+import (
+	"os"
+	"runtime"
+	"strings"
+)
 
 func SysGetCwd() *string {
 	cwd, err := os.Getwd()
@@ -20,6 +24,56 @@ func SysArgs() []*string {
 		out = append(out, StringFromLiteral(arg))
 	}
 	return out
+}
+
+func SysGetEnv(key *string) *string {
+	if key == nil {
+		return nil
+	}
+	value, ok := os.LookupEnv(*key)
+	if !ok {
+		return nil
+	}
+	return StringFromLiteral(value)
+}
+
+func SysPutEnv(key *string, value *string) {
+	if key == nil {
+		return
+	}
+	if value == nil {
+		_ = os.Unsetenv(*key)
+		return
+	}
+	_ = os.Setenv(*key, *value)
+}
+
+func SysEnvironment() map[string]string {
+	out := map[string]string{}
+	for _, entry := range os.Environ() {
+		key, value, ok := strings.Cut(entry, "=")
+		if !ok {
+			out[entry] = ""
+			continue
+		}
+		out[key] = value
+	}
+	return out
+}
+
+func SysSystemName() *string {
+	switch runtime.GOOS {
+	case "darwin":
+		return StringFromLiteral("Mac")
+	case "linux":
+		return StringFromLiteral("Linux")
+	case "windows":
+		return StringFromLiteral("Windows")
+	case "freebsd", "openbsd", "netbsd", "dragonfly":
+		return StringFromLiteral("BSD")
+	default:
+		return StringFromLiteral(runtime.GOOS)
+	}
 }
 
 func FileSaveContent(path *string, content *string) {

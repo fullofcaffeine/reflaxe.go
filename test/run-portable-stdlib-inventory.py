@@ -196,12 +196,6 @@ BLOCKER_FAMILY_SPECS = (
         },
     },
     {
-        "issue": "haxe.go-14as.20",
-        "family": "root_sys_surface",
-        "closure_target": "2026-04-07",
-        "modules": {"Sys"},
-    },
-    {
         "issue": "haxe.go-14as.21",
         "family": "root_xml_surface",
         "closure_target": "2026-04-14",

@@ -619,6 +619,18 @@ func Sys_args() []*string {
 	return hxrt.SysArgs()
 }
 
+func Sys_getEnv(key *string) *string {
+	return hxrt.SysGetEnv(key)
+}
+
+func Sys_putEnv(key *string, value *string) {
+	hxrt.SysPutEnv(key, value)
+}
+
+func Sys_systemName() *string {
+	return hxrt.SysSystemName()
+}
+
 func sys__io__File_saveContent(path *string, content *string) {
 	hxrt.FileSaveContent(path, content)
 }
