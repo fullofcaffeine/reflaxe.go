@@ -107,7 +107,6 @@ Current dated blocker families:
 - `haxe.go-14as.17` - `sys.db` + `sys.io` tranche - target `2026-05-14`
 - `haxe.go-14as.18` - `sys.net` + `sys.ssl` tranche - target `2026-05-21`
 - `haxe.go-14as.19` - `sys.thread` tranche - target `2026-05-31`
-- `haxe.go-14as.26` - `haxe.Constraints` + `haxe.Rest` abstraction-lowering tranche - target `2026-03-27`
 - `haxe.go-14as.27` - `haxe.EnumFlags` + `haxe.EnumTools` enum-helper tranche - target `2026-04-03`
 - `haxe.go-14as.28` - stack/main-loop `haxe.misc` tranche (`haxe.CallStack`, `haxe.NativeStackTrace`, `haxe.EntryPoint`, `haxe.MainLoop`, `haxe.Timer`) - target `2026-04-10`
 - `haxe.go-14as.29` - legacy text `haxe.misc` tranche (`haxe.Ucs2`, `haxe.Utf8`) - target `2026-04-17`

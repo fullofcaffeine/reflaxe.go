@@ -13,7 +13,12 @@ extern class IntMap<T> implements haxe.Constraints.IMap<Int, T> {
 		return new haxe.iterators.MapKeyValueIterator(this);
 	}
 
-	function copy():IntMap<T>;
+	@:native("copyIMap") private function copyIMap():haxe.Constraints.IMap<Int, T>;
+
+	@:runtime inline function copy():IntMap<T> {
+		return cast copyIMap();
+	}
+
 	function toString():String;
 	function clear():Void;
 }

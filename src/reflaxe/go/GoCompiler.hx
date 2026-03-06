@@ -3758,10 +3758,10 @@ class GoCompiler {
 				GoStmt.GoRaw("iter[\"next\"] = func() map[string]any { key := keys[index]; index++; return map[string]any{\"key\": key, \"value\": self.h[key]} }"),
 				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
 			]),
-			GoDecl.GoFuncDecl("copy", {
+			GoDecl.GoFuncDecl("copyIMap", {
 				name: "self",
 				typeName: "*haxe__ds__IntMap"
-			}, [], ["*haxe__ds__IntMap"], [
+			}, [], ["haxe__IMap"], [
 				GoStmt.GoRaw("copied := New_haxe__ds__IntMap()"),
 				GoStmt.GoRaw("for key, value := range self.h {"),
 				GoStmt.GoRaw("\tcopied.h[key] = value"),
@@ -3842,10 +3842,10 @@ class GoCompiler {
 				GoStmt.GoRaw("iter[\"next\"] = func() map[string]any { key := keys[index]; index++; return map[string]any{\"key\": hxrt.StringFromLiteral(key), \"value\": self.h[key]} }"),
 				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
 			]),
-			GoDecl.GoFuncDecl("copy", {
+			GoDecl.GoFuncDecl("copyIMap", {
 				name: "self",
 				typeName: "*haxe__ds__StringMap"
-			}, [], ["*haxe__ds__StringMap"], [
+			}, [], ["haxe__IMap"], [
 				GoStmt.GoRaw("copied := New_haxe__ds__StringMap()"),
 				GoStmt.GoRaw("for key, value := range self.h {"),
 				GoStmt.GoRaw("\tcopied.h[key] = value"),
@@ -3927,10 +3927,10 @@ class GoCompiler {
 				GoStmt.GoRaw("iter[\"next\"] = func() map[string]any { key := keys[index]; index++; return map[string]any{\"key\": key, \"value\": self.h[key]} }"),
 				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
 			]),
-			GoDecl.GoFuncDecl("copy", {
+			GoDecl.GoFuncDecl("copyIMap", {
 				name: "self",
 				typeName: "*haxe__ds__ObjectMap"
-			}, [], ["*haxe__ds__ObjectMap"], [
+			}, [], ["haxe__IMap"], [
 				GoStmt.GoRaw("copied := New_haxe__ds__ObjectMap()"),
 				GoStmt.GoRaw("for key, value := range self.h {"),
 				GoStmt.GoRaw("\tcopied.h[key] = value"),
@@ -4012,10 +4012,10 @@ class GoCompiler {
 				GoStmt.GoRaw("iter[\"next\"] = func() map[string]any { key := keys[index]; index++; return map[string]any{\"key\": key, \"value\": self.h[key]} }"),
 				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
 			]),
-			GoDecl.GoFuncDecl("copy", {
+			GoDecl.GoFuncDecl("copyIMap", {
 				name: "self",
 				typeName: "*haxe__ds__EnumValueMap"
-			}, [], ["*haxe__ds__EnumValueMap"], [
+			}, [], ["haxe__IMap"], [
 				GoStmt.GoRaw("copied := New_haxe__ds__EnumValueMap()"),
 				GoStmt.GoRaw("for key, value := range self.h {"),
 				GoStmt.GoRaw("\tcopied.h[key] = value"),
@@ -10298,7 +10298,7 @@ class GoCompiler {
 					if (field.name == "new") {
 						continue;
 					}
-					var method = lowerInterfaceMethod(field);
+					var method = lowerInterfaceMethod(classType, field);
 					if (method != null && !seen.exists(method.name)) {
 						seen.set(method.name, true);
 						methods.push(method);
@@ -10309,12 +10309,13 @@ class GoCompiler {
 		return [GoDecl.GoInterfaceDecl(classTypeName(classType), methods)];
 	}
 
-	function lowerInterfaceMethod(field:ClassField):Null<GoInterfaceMethod> {
+	function lowerInterfaceMethod(classType:ClassType, field:ClassField):Null<GoInterfaceMethod> {
+		var methodName = interfaceFieldName(classType, field);
 		var followed = Context.follow(field.type);
 		return switch (followed) {
 			case TFun(args, returnType):
 				{
-					name: normalizeIdent(field.name),
+					name: methodName,
 					params: lowerTypedFunArgs(args),
 					results: lowerFunctionResults(returnType)
 				};
@@ -10324,7 +10325,7 @@ class GoCompiler {
 					null;
 				} else {
 					{
-						name: normalizeIdent(field.name),
+						name: methodName,
 						params: lowerFunctionParams(methodFunc),
 						results: lowerFunctionResults(methodFunc.t)
 					};
@@ -12394,6 +12395,11 @@ class GoCompiler {
 						expr: GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]),
 						isStringLike: false
 					};
+				} else if (classType.isInterface) {
+					{
+						expr: GoExpr.GoSelector(loweredTarget, interfaceFieldName(classType, resolved)),
+						isStringLike: isStringType(resolved.type)
+					};
 				} else if (classType.isExtern) {
 					var externPackage = externClassPackageName(classType);
 					if (externPackage != null) {
@@ -12543,6 +12549,16 @@ class GoCompiler {
 		if (isStaticCall(callee, "Reflect", [], "fields")) {
 			requireStdlibShimGroup("stdlib_symbols");
 			requiresReflectFieldsShim = true;
+		}
+
+		var arrayInstanceCall = lowerArrayInstanceCall(callee, args, returnType);
+		if (arrayInstanceCall != null) {
+			return arrayInstanceCall;
+		}
+
+		var restAbstractCall = lowerRestAbstractCall(callee, args, returnType);
+		if (restAbstractCall != null) {
+			return restAbstractCall;
 		}
 
 		var stringInstanceCall = lowerStringInstanceCall(callee, args, returnType);
@@ -15715,6 +15731,56 @@ class GoCompiler {
 		return mapped == null || mapped == "" ? field.name : mapped;
 	}
 
+	function interfaceFieldName(classType:ClassType, field:ClassField):String {
+		var mapped = readMetadataString(field.meta, ["go.name", "native"]);
+		if (mapped != null && mapped != "") {
+			return normalizeIdent(mapped);
+		}
+		return normalizeIdent(field.name);
+	}
+
+	function lowerArrayInstanceCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		var methodCall = asArrayMethodCall(callee);
+		if (methodCall == null || !isArrayType(methodCall.target.t)) {
+			return null;
+		}
+
+		return switch (methodCall.methodName) {
+			case "copy" if (args.length == 0):
+				{
+					expr: cloneArrayExpr(lowerExpr(methodCall.target).expr, methodCall.target.t),
+					isStringLike: false
+				};
+			case _:
+				null;
+		};
+	}
+
+	function lowerRestAbstractCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		var isAppend = isStaticCall(callee, "Rest_Impl_", ["haxe", "_Rest"], "append");
+		var isPrepend = isStaticCall(callee, "Rest_Impl_", ["haxe", "_Rest"], "prepend");
+		if (!isAppend && !isPrepend) {
+			return null;
+		}
+
+		if (args.length < 2) {
+			Context.fatalError("haxe.Rest helper lowering requires source and value arguments", callee.pos);
+			return null;
+		}
+
+		var sourceExpr = lowerExpr(args[0]).expr;
+		var valueExpr = lowerExpr(args[1]).expr;
+		var elementType = restElementType(args[0].t);
+		var elementGoType = elementType == null ? arrayElementGoType(returnType) : scalarGoType(elementType);
+		var sliceType = "[]" + elementGoType;
+
+		return {
+			expr: isAppend ? appendClonedArrayExpr(sourceExpr, valueExpr, sliceType,
+				elementGoType) : prependClonedArrayExpr(sourceExpr, valueExpr, sliceType, elementGoType),
+			isStringLike: false
+		};
+	}
+
 	function hasExternReceiverMeta(field:ClassField):Bool {
 		return hasMetadata(field.meta, ["go.receiver"]);
 	}
@@ -15756,6 +15822,29 @@ class GoCompiler {
 
 	function normalizeIdent(name:String):String {
 		return GoNaming.normalizeIdent(name);
+	}
+
+	function cloneArrayExpr(sourceExpr:GoExpr, sourceType:Type):GoExpr {
+		var elementGoType = arrayElementGoType(sourceType);
+		var sliceType = "[]" + elementGoType;
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "src", typeName: sliceType}], [sliceType], [
+			GoStmt.GoRaw("out := append(" + sliceType + "{}, src...)"),
+			GoStmt.GoReturn(GoExpr.GoIdent("out"))
+		]), [sourceExpr]);
+	}
+
+	function appendClonedArrayExpr(sourceExpr:GoExpr, valueExpr:GoExpr, sliceType:String, elementGoType:String):GoExpr {
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "src", typeName: sliceType}, {name: "value", typeName: elementGoType}], [sliceType], [
+			GoStmt.GoRaw("out := append(" + sliceType + "{}, src...)"),
+			GoStmt.GoRaw("out = append(out, value)"),
+			GoStmt.GoReturn(GoExpr.GoIdent("out"))
+		]), [sourceExpr, valueExpr]);
+	}
+
+	function prependClonedArrayExpr(sourceExpr:GoExpr, valueExpr:GoExpr, sliceType:String, elementGoType:String):GoExpr {
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "src", typeName: sliceType}, {name: "value", typeName: elementGoType}], [sliceType],
+			[GoStmt.GoRaw("return append(" + sliceType + "{value}, src...)")]),
+			[sourceExpr, valueExpr]);
 	}
 
 	function freshTempName(prefix:String):String {

@@ -224,6 +224,37 @@ Observed result:
 - The repo now states the stronger default rule explicitly: library-expressible stdlib does not belong in `GoCompiler` unless there is a concrete compiler-only reason.
 - Future migration work is split into concrete beads instead of one-off local exceptions.
 
+### 2026-03-06: direct `haxe.Constraints` + `haxe.Rest` abstraction closure (`haxe.go-14as.26`)
+
+Implementation:
+
+- Added `std/haxe/Constraints.cross.hx` so `haxe.Constraints` aliases and `IMap` bridge metadata live in staged std instead of implicit upstream assumptions.
+- Updated staged std map externs:
+  - `std/_std/haxe/ds/StringMap.cross.hx`
+  - `std/_std/haxe/ds/IntMap.cross.hx`
+  - `std/_std/haxe/ds/ObjectMap.cross.hx`
+- Changed compiler DS shims in `src/reflaxe/go/GoCompiler.hx` to emit `copyIMap()` bridge methods with interface returns for concrete maps.
+- Taught interface lowering to honor native field metadata for interface methods so `IMap.copy()` lowers to `copyIMap` without changing Haxe user code.
+- Added minimal representation-aware lowering for direct `haxe.Rest` usage:
+  - array `copy()` cloning for native-slice arrays
+  - `haxe._Rest.Rest_Impl_.append`
+  - `haxe._Rest.Rest_Impl_.prepend`
+- Added focused parity coverage:
+  - `test/semantic_diff/haxe_constraints_contract`
+  - `test/semantic_diff/haxe_rest_contract`
+  - `test/snapshot/stdlib/haxe_constraints_rest_direct`
+
+Validation evidence:
+
+- `python3 test/run-semantic-diff.py --case haxe_constraints_contract --case haxe_rest_contract`
+- `python3 test/run-snapshots.py --case stdlib/haxe_constraints_rest_direct --update`
+- `python3 test/run-snapshots.py --case stdlib/haxe_constraints_rest_direct --runtime`
+
+Observed result:
+
+- Direct `haxe.Constraints.IMap` assignment and `copy()` parity now compile and run correctly.
+- Direct `haxe.Rest` `toArray()` / `append()` / `prepend()` behavior now lowers through explicit slice-cloning paths instead of falling through to missing raw-slice methods.
+
 ### 2026-03-06: `StringTools` moved from compiler shims to staged std (`haxe.go-14as.34`)
 
 Implementation:

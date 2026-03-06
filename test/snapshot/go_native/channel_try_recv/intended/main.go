@@ -130,7 +130,7 @@ func (self *haxe__ds__IntMap) keyValueIterator() map[string]any {
 	return iter
 }
 
-func (self *haxe__ds__IntMap) copy() *haxe__ds__IntMap {
+func (self *haxe__ds__IntMap) copyIMap() haxe__IMap {
 	copied := New_haxe__ds__IntMap()
 	for key, value := range self.h {
 		copied.h[key] = value
@@ -210,7 +210,7 @@ func (self *haxe__ds__StringMap) keyValueIterator() map[string]any {
 	return iter
 }
 
-func (self *haxe__ds__StringMap) copy() *haxe__ds__StringMap {
+func (self *haxe__ds__StringMap) copyIMap() haxe__IMap {
 	copied := New_haxe__ds__StringMap()
 	for key, value := range self.h {
 		copied.h[key] = value
@@ -289,7 +289,7 @@ func (self *haxe__ds__ObjectMap) keyValueIterator() map[string]any {
 	return iter
 }
 
-func (self *haxe__ds__ObjectMap) copy() *haxe__ds__ObjectMap {
+func (self *haxe__ds__ObjectMap) copyIMap() haxe__IMap {
 	copied := New_haxe__ds__ObjectMap()
 	for key, value := range self.h {
 		copied.h[key] = value
@@ -368,7 +368,7 @@ func (self *haxe__ds__EnumValueMap) keyValueIterator() map[string]any {
 	return iter
 }
 
-func (self *haxe__ds__EnumValueMap) copy() *haxe__ds__EnumValueMap {
+func (self *haxe__ds__EnumValueMap) copyIMap() haxe__IMap {
 	copied := New_haxe__ds__EnumValueMap()
 	for key, value := range self.h {
 		copied.h[key] = value

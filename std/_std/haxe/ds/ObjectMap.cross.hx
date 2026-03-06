@@ -13,7 +13,12 @@ extern class ObjectMap<K:{}, V> implements haxe.Constraints.IMap<K, V> {
 		return new haxe.iterators.MapKeyValueIterator(this);
 	}
 
-	function copy():ObjectMap<K, V>;
+	@:native("copyIMap") private function copyIMap():haxe.Constraints.IMap<K, V>;
+
+	@:runtime inline function copy():ObjectMap<K, V> {
+		return cast copyIMap();
+	}
+
 	function toString():String;
 	function clear():Void;
 }

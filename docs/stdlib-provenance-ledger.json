@@ -38,6 +38,11 @@
       "notes": "Go staged portable override for DateTools helper ownership, keeping formatting and date-helper semantics out of GoCompiler."
     },
     {
+      "path": "std/haxe/Constraints.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.Constraints constraint aliases plus the IMap copyIMap bridge contract, keeping Haxe-facing typing in std while the backend satisfies Go interface exactness."
+    },
+    {
       "path": "std/haxe/io/Path.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged portable override for haxe.io.Path helper ownership, keeping path parsing and normalization semantics out of GoCompiler while upstream lowerings remain incomplete."
