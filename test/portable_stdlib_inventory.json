@@ -78,7 +78,7 @@
       "in_strict_sweep": false,
       "module": "DateTools",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "unassigned",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -265,7 +265,7 @@
       "in_strict_sweep": true,
       "module": "StringTools",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "mixed",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },

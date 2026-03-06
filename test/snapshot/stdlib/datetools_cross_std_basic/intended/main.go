@@ -27,32 +27,61 @@ type hxrt__TypeEnumValue struct {
 }
 
 func main() {
-	var s any = hxrt.StringFromLiteral("a😀bé")
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("length="), _UnicodeString__UnicodeString_Impl__get_length(s)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("char1="), _UnicodeString__UnicodeString_Impl__charAt(s, 1)))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("code1="), _UnicodeString__UnicodeString_Impl__charCodeAt(s, 1)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substr="), _UnicodeString__UnicodeString_Impl__substr(s, 1, 2)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substring="), _UnicodeString__UnicodeString_Impl__substring(s, 1, 3)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substring.swap="), _UnicodeString__UnicodeString_Impl__substring(s, 3, 1)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substring.neg="), _UnicodeString__UnicodeString_Impl__substring(s, -2, 2)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substring.omit="), _UnicodeString__UnicodeString_Impl__substring(s, 2)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substr.neglen="), _UnicodeString__UnicodeString_Impl__substr(s, 1, -1)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("substr.negpos="), _UnicodeString__UnicodeString_Impl__substr(s, -2, 2)))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("index="), _UnicodeString__UnicodeString_Impl__indexOf(s, hxrt.StringFromLiteral("bé"))))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("index.empty="), _UnicodeString__UnicodeString_Impl__indexOf(s, hxrt.StringFromLiteral(""))))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("index.startNeg="), _UnicodeString__UnicodeString_Impl__indexOf(s, hxrt.StringFromLiteral("bé"), -2)))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("last="), _UnicodeString__UnicodeString_Impl__lastIndexOf(s, hxrt.StringFromLiteral("a"))))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("last.empty="), _UnicodeString__UnicodeString_Impl__lastIndexOf(s, hxrt.StringFromLiteral(""))))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("last.start="), _UnicodeString__UnicodeString_Impl__lastIndexOf(s, hxrt.StringFromLiteral("bé"), 2)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("valid.utf8="), hxrt.StdString(_UnicodeString__UnicodeString_Impl__validate(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("ok")), haxe__io__Encoding_UTF8))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("valid.invalid="), hxrt.StdString(_UnicodeString__UnicodeString_Impl__validate(haxe__io__Bytes_ofHex(hxrt.StringFromLiteral("ff")), haxe__io__Encoding_UTF8))))
-	hxrt.TryCatch(func() {
-		_UnicodeString__UnicodeString_Impl__validate(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("ok")), haxe__io__Encoding_RawNative)
-		hxrt.Println(hxrt.StringFromLiteral("valid.raw=ok"))
-	}, func(hx_caught_1 any) {
-		error := hx_caught_1
-		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("valid.raw="), hxrt.StdString(error)))
-	})
+	base := Date_fromString(hxrt.StringFromLiteral("2024-02-29 15:04:05"))
+	hxrt.Println(DateTools_format(base, hxrt.StringFromLiteral("%D|%F|%R|%T|%r|%a|%A|%b|%h|%B|%C|%d|%e|%H|%k|%I|%l|%m|%M|%p|%S|%u|%w|%y|%Y|%%")))
+	hxrt.Println(DateTools_getMonthDays(base))
+	stamp := DateTools_make(func() map[string]any {
+		hx_obj_1 := map[string]any{}
+		hx_obj_1["ms"] = 123.0
+		hx_obj_1["seconds"] = 5
+		hx_obj_1["minutes"] = 4
+		hx_obj_1["hours"] = 3
+		hx_obj_1["days"] = 2
+		return hx_obj_1
+	}())
+	parsed := DateTools_parse(stamp)
+	hxrt.Println(func(hx_obj_2 map[string]any) int {
+		hx_field_3 := hx_obj_2["days"]
+		if hx_field_3 == nil {
+			var hx_zero_4 int
+			return hx_zero_4
+		}
+		return hx_field_3.(int)
+	}(parsed))
+	hxrt.Println(func(hx_obj_5 map[string]any) int {
+		hx_field_6 := hx_obj_5["hours"]
+		if hx_field_6 == nil {
+			var hx_zero_7 int
+			return hx_zero_7
+		}
+		return hx_field_6.(int)
+	}(parsed))
+	hxrt.Println(func(hx_obj_8 map[string]any) int {
+		hx_field_9 := hx_obj_8["minutes"]
+		if hx_field_9 == nil {
+			var hx_zero_10 int
+			return hx_zero_10
+		}
+		return hx_field_9.(int)
+	}(parsed))
+	hxrt.Println(func(hx_obj_11 map[string]any) int {
+		hx_field_12 := hx_obj_11["seconds"]
+		if hx_field_12 == nil {
+			var hx_zero_13 int
+			return hx_zero_13
+		}
+		return hx_field_12.(int)
+	}(parsed))
+	hxrt.Println(func(hx_obj_14 map[string]any) float64 {
+		hx_field_15 := hx_obj_14["ms"]
+		if hx_field_15 == nil {
+			var hx_zero_16 float64
+			return hx_zero_16
+		}
+		return hx_field_15.(float64)
+	}(parsed))
+	shifted := Date_fromTime((base.getTime() + 93784000.))
+	hxrt.Println(DateTools_format(shifted, hxrt.StringFromLiteral("%F %T")))
 }
 
 type haxe__io__Encoding struct {
@@ -1910,6 +1939,10 @@ func hxrt_typeResolvedEnumName(value any) (string, bool) {
 
 func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	switch className {
+	case "haxe.iterators.StringIterator":
+		return hxrt_typeCallAny(New_haxe__iterators__StringIterator, args)
+	case "haxe.iterators.StringKeyValueIterator":
+		return hxrt_typeCallAny(New_haxe__iterators__StringKeyValueIterator, args)
 	default:
 		return nil, false
 	}
@@ -1917,6 +1950,10 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 
 func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
+	case "haxe.iterators.StringIterator":
+		return &haxe__iterators__StringIterator{}, true
+	case "haxe.iterators.StringKeyValueIterator":
+		return &haxe__iterators__StringKeyValueIterator{}, true
 	default:
 		return nil, false
 	}
@@ -2043,6 +2080,16 @@ func Type_getClass(o any) any {
 	case hxrt__TypeClassValue:
 		copyValue := value
 		return &copyValue
+	case *haxe__iterators__StringIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.StringIterator")}
+	case *haxe__iterators__StringKeyValueIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.StringKeyValueIterator")}
 	default:
 		return nil
 	}
@@ -2077,6 +2124,10 @@ func Type_getSuperClass(c any) any {
 		return nil
 	}
 	switch className {
+	case "haxe.iterators.StringIterator":
+		return nil
+	case "haxe.iterators.StringKeyValueIterator":
+		return nil
 	default:
 		return nil
 	}
@@ -2096,6 +2147,10 @@ func Type_getClassFields(c any) []*string {
 		return []*string{}
 	}
 	switch className {
+	case "haxe.iterators.StringIterator":
+		return []*string{}
+	case "haxe.iterators.StringKeyValueIterator":
+		return []*string{}
 	default:
 		return []*string{}
 	}
@@ -2107,6 +2162,10 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{}
 	}
 	switch className {
+	case "haxe.iterators.StringIterator":
+		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
+	case "haxe.iterators.StringKeyValueIterator":
+		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
 	default:
 		return []*string{}
 	}
@@ -2126,6 +2185,10 @@ func Type_resolveClass(name *string) any {
 	}
 	rawName := *hxrt.StdString(name)
 	switch rawName {
+	case "haxe.iterators.StringIterator":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.iterators.StringKeyValueIterator":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
 	}

@@ -5220,38 +5220,34 @@ class GoCompiler {
 			GoDecl.GoFuncDecl("getDate", {name: "self", typeName: "*Date"}, [], ["int"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "value"), "Day"), []))
 			]),
+			GoDecl.GoFuncDecl("getDay", {
+				name: "self",
+				typeName: "*Date"
+			}, [], ["int"],
+				[GoStmt.GoReturn(GoExpr.GoRaw("int(self.value.Weekday())"))]),
 			GoDecl.GoFuncDecl("getHours", {
 				name: "self",
 				typeName: "*Date"
 			}, [], ["int"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "value"), "Hour"), []))
 			]),
+			GoDecl.GoFuncDecl("getMinutes", {
+				name: "self",
+				typeName: "*Date"
+			}, [], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "value"), "Minute"), []))
+			]),
+			GoDecl.GoFuncDecl("getSeconds", {
+				name: "self",
+				typeName: "*Date"
+			}, [], ["int"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "value"), "Second"), []))
+			]),
 			GoDecl.GoFuncDecl("getTime", {
 				name: "self",
 				typeName: "*Date"
 			},
 				[], ["float64"], [GoStmt.GoReturn(GoExpr.GoRaw("float64(self.value.UnixNano()) / 1e6"))]),
-			GoDecl.GoStructDecl("DateTools", []),
-			GoDecl.GoFuncDecl("DateTools_format", null, [
-				{
-					name: "date",
-					typeName: "*Date"
-				},
-				{name: "format", typeName: "*string"}
-			], ["*string"], [
-				GoStmt.GoRaw("layout := *hxrt.StdString(format)"),
-				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%%\", \"__HX_PERCENT__\")"),
-				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%Y\", \"2006\")"),
-				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%m\", \"01\")"),
-				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%d\", \"02\")"),
-				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%H\", \"15\")"),
-				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%M\", \"04\")"),
-				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"%S\", \"05\")"),
-				GoStmt.GoRaw("layout = strings.ReplaceAll(layout, \"__HX_PERCENT__\", \"%\")"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [
-					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("date"), "value"), "Format"), [GoExpr.GoIdent("layout")])
-				]))
-			]),
 			GoDecl.GoStructDecl("Math", []),
 			GoDecl.GoFuncDecl("Math_floor", null, [
 				{
@@ -15542,6 +15538,9 @@ class GoCompiler {
 			requireSourceOwnedStdlibClass("StringTools");
 			requireSourceOwnedStdlibClass("haxe.iterators.StringIterator");
 			requireSourceOwnedStdlibClass("haxe.iterators.StringKeyValueIterator");
+		}
+		if (classType.pack.length == 0 && classType.name == "DateTools") {
+			requireSourceOwnedStdlibClass("DateTools");
 		}
 	}
 

@@ -1017,28 +1017,24 @@ func (self *Date) getDate() int {
 	return self.value.Day()
 }
 
+func (self *Date) getDay() int {
+	return int(self.value.Weekday())
+}
+
 func (self *Date) getHours() int {
 	return self.value.Hour()
 }
 
+func (self *Date) getMinutes() int {
+	return self.value.Minute()
+}
+
+func (self *Date) getSeconds() int {
+	return self.value.Second()
+}
+
 func (self *Date) getTime() float64 {
 	return float64(self.value.UnixNano()) / 1e6
-}
-
-type DateTools struct {
-}
-
-func DateTools_format(date *Date, format *string) *string {
-	layout := *hxrt.StdString(format)
-	layout = strings.ReplaceAll(layout, "%%", "__HX_PERCENT__")
-	layout = strings.ReplaceAll(layout, "%Y", "2006")
-	layout = strings.ReplaceAll(layout, "%m", "01")
-	layout = strings.ReplaceAll(layout, "%d", "02")
-	layout = strings.ReplaceAll(layout, "%H", "15")
-	layout = strings.ReplaceAll(layout, "%M", "04")
-	layout = strings.ReplaceAll(layout, "%S", "05")
-	layout = strings.ReplaceAll(layout, "__HX_PERCENT__", "%")
-	return hxrt.StringFromLiteral(date.value.Format(layout))
 }
 
 type Math struct {

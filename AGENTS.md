@@ -75,6 +75,8 @@ Agent policy:
 - Use externs only to model real Go-native APIs. Do not use externs to smuggle Haxe stdlib behavior into the target layer when staged std or `hxrt` is the correct ownership.
 - If you hit one compiler-owned stdlib helper that looks misplaced, audit adjacent helpers in the same shim group and file follow-up beads instead of expanding the compiler one function at a time.
 - Use sibling-target precedent before keeping stdlib behavior in `GoCompiler`: `haxe.rust` and `haxe.elixir` default library surfaces like `StringTools`/`DateTools` to staged std + small runtime helpers, and reserve compiler ownership for compile-context-sensitive behavior.
+- Documentation threshold rule: do not reserve HaxeDoc only for obviously "big" constructs or artifacts. If a type/function/abstract/macro/extern override/metadata pattern is even slightly non-obvious, surprising, or easy to misuse, document it with `Why / What / How` HaxeDoc where it is declared.
+- Bias toward documenting earlier rather than later, especially for abstracts, compiler helpers, runtime bindings, lowering hooks, and `std/` compatibility shims.
 - Never emit absolute machine-local paths in generated output or snapshots.
 - When fixing a bug, always add or update a regression test in `test/snapshot`.
 

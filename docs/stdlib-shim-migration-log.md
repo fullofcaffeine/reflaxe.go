@@ -230,7 +230,7 @@ Implementation:
 
 - Added `std/StringTools.cross.hx` and moved portable helper semantics there instead of emitting `StringTools_*` declarations from `GoCompiler`.
 - Removed compiler-owned `StringTools` declarations from `lowerStdlibSymbolShimDecls`.
-- Marked `StringTools`, `haxe.iterators.StringIterator`, and `haxe.iterators.StringKeyValueIterator` as required stdlib classes so the staged source is compiled directly.
+- Switched `StringTools` inclusion to on-demand staged-stdlib ownership so only real user-code references pull `StringTools` and its iterator helper modules.
 - Removed `StringTools` from the `stdlib_symbols` shim-group classifier.
 - Updated the stdlib provenance ledger and ownership map so governance points at the staged source instead of compiler helpers.
 
@@ -248,6 +248,30 @@ Observed result:
 
 - `StringTools` no longer bloats `GoCompiler` with library semantics.
 - Existing StringTools consumers now compile through the staged std source, and iterator helper modules are emitted as normal modules rather than shim-group fragments.
+
+### 2026-03-06: `DateTools` helper surface moved from compiler shims to staged std (`haxe.go-14as.35`)
+
+Implementation:
+
+- Added `std/DateTools.cross.hx` and moved `DateTools.format`, `getMonthDays`, `parse`, and `make` into staged std instead of keeping helper semantics in `GoCompiler`.
+- Removed compiler-owned `DateTools_format` declarations from `lowerStdlibSymbolShimDecls`.
+- Reused the on-demand staged-stdlib inclusion path so `DateTools` is only compiled when user code actually references it.
+- Kept core `Date` representation in compiler ownership, but added the missing `getDay`, `getMinutes`, and `getSeconds` accessors required by the staged helper surface.
+- Updated the stdlib provenance ledger and ownership map so governance points at the staged source instead of compiler helpers.
+
+Validation evidence:
+
+- Red/green semantic-diff:
+  - `python3 test/run-semantic-diff.py --case datetools_cross_std_contract`
+- Snapshot coverage:
+  - `python3 test/run-snapshots.py --case stdlib/datetools_cross_std_basic --update --runtime`
+- Existing mixed contract coverage:
+  - `python3 test/run-semantic-diff.py --case stringbuf_datetools_lambda_contract`
+
+Observed result:
+
+- `DateTools` helper semantics no longer live in `GoCompiler`.
+- Date formatting now follows the staged std implementation, while core `Date` storage and time conversion remain compiler-owned.
 
 ## Open migration track
 
