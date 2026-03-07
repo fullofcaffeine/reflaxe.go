@@ -8,6 +8,7 @@ import haxe.macro.TypedExprTools;
 import reflaxe.go.GoProfile;
 import reflaxe.go.ProfileResolver;
 import reflaxe.go.analyze.GoProfileContractAnalyzer;
+import reflaxe.go.analyze.GoRawInjectionAuthorityAnalyzer;
 import sys.FileSystem;
 import sys.io.File;
 #end
@@ -33,10 +34,10 @@ class StrictModeEnforcer {
 		if (preflightFindings.length > 0) {
 			Context.fatalError("StrictModeEnforcer: __go__ is not allowed in strict mode (" + preflightFindings[0] + ")", Context.currentPos());
 		}
-		Context.onAfterTyping(types -> enforce(types, projectRoot, allowFrameworkTypedInjections));
+		Context.onAfterTyping(types -> enforce(types, projectRoot, allowFrameworkTypedInjections, allowedRawInjectionModules(types)));
 	}
 
-	static function enforce(types:Array<ModuleType>, projectRoot:String, allowFrameworkTypedInjections:Bool):Void {
+	static function enforce(types:Array<ModuleType>, projectRoot:String, allowFrameworkTypedInjections:Bool, allowedRawModules:Map<String, Bool>):Void {
 		for (moduleType in types) {
 			switch (moduleType) {
 				case TClassDecl(classRef):
@@ -44,34 +45,54 @@ class StrictModeEnforcer {
 					if (!isStrictProjectSource(classType.pos, projectRoot)) {
 						continue;
 					}
-					enforceNoGoInjectionInClass(classType, projectRoot, allowFrameworkTypedInjections);
+					enforceNoGoInjectionInClass(classType, projectRoot, allowFrameworkTypedInjections, allowedRawModules.exists(moduleNameForClass(classType)));
+				case TAbstract(abstractRef):
+					var abstractType = abstractRef.get();
+					if (!isStrictProjectSource(abstractType.pos, projectRoot) || abstractType.impl == null) {
+						continue;
+					}
+					var impl = abstractType.impl.get();
+					if (impl != null) {
+						enforceNoGoInjectionInFields(impl.fields.get().concat(impl.statics.get()), projectRoot, allowFrameworkTypedInjections,
+							allowedRawModules.exists(moduleNameForAbstract(abstractType)));
+					}
 				case _:
 			}
 		}
 	}
 
-	static function enforceNoGoInjectionInClass(classType:ClassType, projectRoot:String, allowFrameworkTypedInjections:Bool):Void {
-		var allFields = classType.fields.get().concat(classType.statics.get());
-		for (field in allFields) {
+	static function enforceNoGoInjectionInClass(classType:ClassType, projectRoot:String, allowFrameworkTypedInjections:Bool,
+			allowScopedRawAuthority:Bool):Void {
+		enforceNoGoInjectionInFields(classType.fields.get().concat(classType.statics.get()), projectRoot, allowFrameworkTypedInjections,
+			allowScopedRawAuthority);
+	}
+
+	static function enforceNoGoInjectionInFields(fields:Array<ClassField>, projectRoot:String, allowFrameworkTypedInjections:Bool,
+			allowScopedRawAuthority:Bool):Void {
+		for (field in fields) {
 			var expr = field.expr();
 			if (expr == null) {
 				continue;
 			}
-			scanForGoInjection(expr, projectRoot, allowFrameworkTypedInjections);
+			scanForGoInjection(expr, projectRoot, allowFrameworkTypedInjections, allowScopedRawAuthority);
 		}
 	}
 
-	static function scanForGoInjection(expr:TypedExpr, projectRoot:String, allowFrameworkTypedInjections:Bool):Void {
+	static function scanForGoInjection(expr:TypedExpr, projectRoot:String, allowFrameworkTypedInjections:Bool, allowScopedRawAuthority:Bool):Void {
 		if (GoProfileContractAnalyzer.isGoInjectionCall(expr)) {
+			if (allowScopedRawAuthority) {
+				TypedExprTools.iter(expr, e -> scanForGoInjection(e, projectRoot, allowFrameworkTypedInjections, allowScopedRawAuthority));
+				return;
+			}
 			if (allowFrameworkTypedInjections && isFrameworkTypedInjectionExpr(expr.pos, projectRoot)) {
-				TypedExprTools.iter(expr, e -> scanForGoInjection(e, projectRoot, allowFrameworkTypedInjections));
+				TypedExprTools.iter(expr, e -> scanForGoInjection(e, projectRoot, allowFrameworkTypedInjections, allowScopedRawAuthority));
 				return;
 			}
 			Context.error("StrictModeEnforcer: __go__ is not allowed in strict mode. "
 				+ "Prefer a typed wrapper or move target-specific interop into `std/`.", expr.pos);
 		}
 
-		TypedExprTools.iter(expr, e -> scanForGoInjection(e, projectRoot, allowFrameworkTypedInjections));
+		TypedExprTools.iter(expr, e -> scanForGoInjection(e, projectRoot, allowFrameworkTypedInjections, allowScopedRawAuthority));
 	}
 
 	static function isStrictProjectSource(pos:haxe.macro.Expr.Position, projectRoot:String):Bool {
@@ -138,7 +159,7 @@ class StrictModeEnforcer {
 		var findings = new Array<String>();
 		for (path in files) {
 			var content = File.getContent(path);
-			if (StringTools.contains(content, "__go__(")) {
+			if (StringTools.contains(content, "__go__(") && !GoRawInjectionAuthorityAnalyzer.sourceTextHasRawAuthorityMarker(content)) {
 				findings.push(path);
 			}
 		}
@@ -171,6 +192,33 @@ class StrictModeEnforcer {
 	static function ensureTrailingSlash(path:String):String {
 		var normalized = normalizePath(path);
 		return StringTools.endsWith(normalized, "/") ? normalized : normalized + "/";
+	}
+
+	static function allowedRawInjectionModules(types:Array<ModuleType>):Map<String, Bool> {
+		var out:Map<String, Bool> = [];
+		var snapshot = GoRawInjectionAuthorityAnalyzer.collect(types);
+		for (module in snapshot.modules) {
+			out.set(module, true);
+		}
+		return out;
+	}
+
+	static function moduleNameForClass(classType:ClassType):String {
+		if (classType.module != null && classType.module.length > 0) {
+			return classType.module;
+		}
+		return pathFromPack(classType.pack, classType.name);
+	}
+
+	static function moduleNameForAbstract(abstractType:AbstractType):String {
+		if (abstractType.module != null && abstractType.module.length > 0) {
+			return abstractType.module;
+		}
+		return pathFromPack(abstractType.pack, abstractType.name);
+	}
+
+	static function pathFromPack(pack:Array<String>, name:String):String {
+		return pack == null || pack.length == 0 ? name : pack.join(".") + "." + name;
 	}
 
 	static function normalizePath(path:String):String {

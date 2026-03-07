@@ -47,6 +47,20 @@ Control flags:
 - `-D reflaxe_go_strict_policy=auto|on|off`
 - `-D reflaxe_go_strict_examples`
 
+Scoped authority:
+
+- `@:goAllowRaw`
+  - Explicitly authorizes raw `__go__` inside the tagged module/type even when
+    `reflaxe_go_strict` or `reflaxe_go_strict_examples` is enabled.
+  - Intended for framework-owned low-level abstraction layers, not app business logic.
+  - Does not weaken portable `@:goMetal` lane policy; `@:goMetal` modules still reject raw
+    `__go__`.
+  - Prefer typed package interop (`@:go.import`, `@:go.name`, `@:go.receiver`) for imports
+    and symbol binding; `__go__` only injects the expression body and does not auto-add Go
+    package imports.
+  - Framework code can use either `untyped __go__("...")` directly or the macro shim
+    `reflaxe.go.macros.GoInjection.__go__("...{0}...", arg0)`.
+
 ### Native facade usage (`go.*`) in portable
 
 Portable builds can warn or error when `go.*` is used:

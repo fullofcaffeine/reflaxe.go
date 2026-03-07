@@ -128,6 +128,23 @@ Removed:
 
 - `@:haxeMetal` -> compile error, use `@:goMetal`.
 
+- `@:goAllowRaw`
+  - Module/type metadata for framework-owned low-level abstraction islands that need raw
+    `__go__` even when strict boundary enforcement is enabled.
+  - Use this sparingly and document the boundary with `Why / What / How` HaxeDoc where the
+    abstraction is declared.
+  - Intended scope:
+    - staged std overrides,
+    - runtime bindings,
+    - narrow target-owned helper modules.
+  - Not intended scope:
+    - application business logic,
+    - examples/snapshots as user-facing coding style.
+  - Does not bypass `@:goMetal` portable-lane restrictions.
+  - `__go__` still does not infer package imports; if the raw snippet needs external Go
+    packages, carry imports through typed extern metadata (`@:go.import`, `@:go.name`,
+    `@:go.receiver`) or existing framework-owned wrappers.
+
 ## Reports
 
 - `reflaxe_go_contract_report`

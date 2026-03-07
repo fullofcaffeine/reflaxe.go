@@ -44,6 +44,25 @@ class GoASTPrinter {
 		return out.toString();
 	}
 
+	/**
+		Print a single Go expression for target-code injection placeholder expansion.
+
+		Why:
+		`untyped __go__("...{0}...", expr)` needs a stable way to render already-lowered
+		Go expressions back into source text without re-printing an entire file.
+
+		What:
+		This is the minimal expression-only printer used when expanding `__go__`
+		placeholder arguments.
+
+		How:
+		Delegate to the normal expression printer so injection expansion and normal output
+		share one rendering implementation.
+	**/
+	public static function printExprForInjection(expr:GoExpr):String {
+		return printExpr(expr);
+	}
+
 	static function printDecl(decl:GoDecl):String {
 		return switch (decl) {
 			case GoInterfaceDecl(name, methods):

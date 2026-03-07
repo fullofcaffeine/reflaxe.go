@@ -7,6 +7,7 @@ import haxe.macro.Expr.Binop;
 import haxe.macro.Expr.Unop;
 import haxe.macro.PositionTools;
 import haxe.macro.Type;
+import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.compiler.GoAutoLoweringMode;
 import reflaxe.go.compiler.GoExprOperatorOps;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
@@ -12105,7 +12106,8 @@ class GoCompiler {
 			case TField(target, access):
 				lowerField(target, access);
 			case TCall(callee, args):
-				lowerCall(callee, args, expr.t);
+				var injected = lowerTargetCodeInjectionExpr(expr);
+				injected != null ? injected : lowerCall(callee, args, expr.t);
 			case TThrow(value):
 				var loweredValue = lowerExprWithPrefix(value);
 				var throwBody = loweredValue.prefix.concat([
@@ -12199,6 +12201,99 @@ class GoCompiler {
 				};
 			case _:
 				unsupportedExpr(expr, "Unsupported expression");
+		};
+	}
+
+	/**
+		What
+		Lower the framework raw Go escape hatch `__go__`.
+
+		Why
+		`CompilerInit` already declares `targetCodeInjectionName: "__go__"`, and sibling
+		backends (`reflaxe.rust`, `reflaxe.ocaml`) treat raw target injection as an explicit
+		backend responsibility. Before this hook existed, `haxe.go` policy scanners could
+		recognize `__go__`, but the manual lowering pipeline never turned it into raw Go,
+		so allowed callsites still emitted unresolved `__go__(...)` into generated output.
+
+		How
+		Recognize typed `__go__` calls, require a constant first string argument, and expand
+		`{0}`, `{1}`, ... placeholders by lowering only the referenced Haxe expressions and
+		printing them with `GoASTPrinter.printExprForInjection`. If the template has no
+		placeholders, treat it as literal raw Go text.
+	**/
+	function lowerTargetCodeInjectionExpr(expr:TypedExpr):Null<LoweredExpr> {
+		if (!GoProfileContractAnalyzer.isGoInjectionCall(expr)) {
+			return null;
+		}
+
+		var arguments = switch (expr.expr) {
+			case TCall(_, args): args;
+			case _: null;
+		};
+		if (arguments == null) {
+			return null;
+		}
+
+		if (arguments.length == 0) {
+			Context.error("__go__ requires at least one constant String argument.", expr.pos);
+			return {
+				expr: GoExpr.GoNil,
+				isStringLike: isStringType(expr.t)
+			};
+		}
+
+		var injectionString = switch (arguments[0].expr) {
+			case TConst(TString(value)): value;
+			case _:
+				Context.error("__go__ first parameter must be a constant String.", arguments[0].pos);
+				null;
+		};
+		if (injectionString == null) {
+			return {
+				expr: GoExpr.GoNil,
+				isStringLike: isStringType(expr.t)
+			};
+		}
+
+		var cachedArgs:Array<Null<GoExpr>> = [for (_ in 1...arguments.length) null];
+		function getRenderedArg(index:Int):Null<String> {
+			if (index < 0 || index >= cachedArgs.length) {
+				return null;
+			}
+			if (cachedArgs[index] == null) {
+				cachedArgs[index] = lowerExpr(arguments[index + 1]).expr;
+			}
+			return GoASTPrinter.printExprForInjection(cachedArgs[index]);
+		}
+
+		var rendered = new StringBuf();
+		var lastMatchPosition:Null<{pos:Int, len:Int}> = null;
+		~/{(\d+)}/g.map(injectionString, function(ereg) {
+			var lastPos = lastMatchPosition == null ? 0 : lastMatchPosition.pos + lastMatchPosition.len;
+			lastMatchPosition = ereg.matchedPos();
+			if (lastMatchPosition.pos != lastPos) {
+				rendered.add(injectionString.substring(lastPos, lastMatchPosition.pos));
+			}
+
+			var expressionIndex = Std.parseInt(ereg.matched(1));
+			if (expressionIndex != null) {
+				var compiled = getRenderedArg(expressionIndex);
+				if (compiled != null) {
+					rendered.add(compiled);
+				}
+			}
+			return "";
+		});
+
+		if (lastMatchPosition == null) {
+			rendered.add(injectionString);
+		} else {
+			rendered.add(injectionString.substring(lastMatchPosition.pos + lastMatchPosition.len));
+		}
+
+		return {
+			expr: GoExpr.GoRaw(rendered.toString()),
+			isStringLike: isStringType(expr.t)
 		};
 	}
 
