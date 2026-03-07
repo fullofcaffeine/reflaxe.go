@@ -15,6 +15,18 @@ This repo does **not** currently have an early `src/haxe/*.cross.hx` set.
 
 That matters because it lowers the risk of early module-path collisions compared with `reflaxe.ocaml` and `reflaxe.elixir`.
 
+## Quick matrix
+
+| Question | Answer for this repo |
+| --- | --- |
+| Main override style | broad `.cross.hx` usage, including `_std/*.cross.hx` |
+| Is `_std` used? | yes |
+| Is `.cross.hx` used broadly? | yes |
+| Does this repo own early `src/haxe/*` modules? | no |
+| Bootstrap activation currently keys off raw Haxe 4 `Cross`? | no |
+| Same-compilation sibling-target coexistence safe today? | not guaranteed |
+| Highest-priority hardening item | add mixed-target fail-fast while preserving narrow target detection |
+
 ## What `.cross.hx` means here
 
 In this repo, `.cross.hx` is mostly the normal target-conditional stdlib ownership mechanism.
