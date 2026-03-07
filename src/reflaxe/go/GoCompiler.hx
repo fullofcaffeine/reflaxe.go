@@ -15600,22 +15600,17 @@ class GoCompiler {
 			case "haxe.NativeStackTrace":
 				requireSourceOwnedStdlibClass("haxe.NativeStackTrace");
 			case "haxe.EntryPoint":
-				requireSourceOwnedStdlibClass("haxe.EntryPoint");
+				Context.fatalError("Direct haxe.EntryPoint usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.",
+					classType.pos);
 			case "haxe.MainLoop":
-				requireSourceOwnedStdlibClass("haxe.MainLoop");
-				requireSourceOwnedStdlibClass("haxe.MainEvent");
-				requireSourceOwnedStdlibClass("haxe.EntryPoint");
-				requireSourceOwnedStdlibClass("haxe.Timer");
+				Context.fatalError("Direct haxe.MainLoop usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.",
+					classType.pos);
 			case "haxe.MainEvent":
-				requireSourceOwnedStdlibClass("haxe.MainEvent");
-				requireSourceOwnedStdlibClass("haxe.MainLoop");
-				requireSourceOwnedStdlibClass("haxe.EntryPoint");
-				requireSourceOwnedStdlibClass("haxe.Timer");
+				Context.fatalError("Direct haxe.MainEvent usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.",
+					classType.pos);
 			case "haxe.Timer":
-				requireSourceOwnedStdlibClass("haxe.Timer");
-				requireSourceOwnedStdlibClass("haxe.MainLoop");
-				requireSourceOwnedStdlibClass("haxe.MainEvent");
-				requireSourceOwnedStdlibClass("haxe.EntryPoint");
+				Context.fatalError("Direct haxe.Timer usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.",
+					classType.pos);
 			case "haxe.Log", "haxe.Resource", "haxe.SysTools":
 				requireSourceOwnedStdlibClass(fullClassName(classType));
 			case "haxe.Template":

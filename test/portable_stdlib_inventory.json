@@ -378,17 +378,19 @@
       "status": "semantic-diff"
     },
     {
+      "blocker_family": "haxe_event_loop_direct",
+      "blocker_issue": "haxe.go-dt4s",
+      "closure_target": "2026-04-10",
       "coverage_evidence": [
-        "upstream_sweep:full_compile",
-        "snapshot"
+        "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.EntryPoint",
-      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. Queued main-thread execution is available on Go, but it is explicitly excluded from portable semantic-diff guarantees.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-dt4s (haxe_event_loop_direct); closure target 2026-04-10.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "snapshot"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
@@ -513,17 +515,19 @@
       "status": "semantic-diff"
     },
     {
+      "blocker_family": "haxe_event_loop_direct",
+      "blocker_issue": "haxe.go-dt4s",
+      "closure_target": "2026-04-10",
       "coverage_evidence": [
-        "upstream_sweep:full_compile",
-        "snapshot"
+        "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.MainLoop",
-      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. Main-loop scheduling is available on Go, but it is explicitly excluded from portable semantic-diff guarantees.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-dt4s (haxe_event_loop_direct); closure target 2026-04-10.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "snapshot"
+      "status": "compile-only"
     },
     {
       "coverage_evidence": [
@@ -621,17 +625,19 @@
       "status": "compile-only"
     },
     {
+      "blocker_family": "haxe_event_loop_direct",
+      "blocker_issue": "haxe.go-dt4s",
+      "closure_target": "2026-04-10",
       "coverage_evidence": [
-        "upstream_sweep:full_compile",
-        "snapshot"
+        "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Timer",
-      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. Timer scheduling works on Go, but event-loop timing behavior remains outside portable semantic-diff guarantees.",
-      "owner": "unassigned",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-dt4s (haxe_event_loop_direct); closure target 2026-04-10.",
+      "owner": "mixed",
       "portable_eligible": true,
-      "status": "snapshot"
+      "status": "compile-only"
     },
     {
       "blocker_family": "haxe_misc_legacy_text",

@@ -1,5 +1,4 @@
 using haxe.EnumTools;
-using haxe.EnumTools.EnumValueTools;
 
 enum Mode {
 	Alpha;
@@ -8,6 +7,17 @@ enum Mode {
 }
 
 class Main {
+	static function join(values:Array<String>):String {
+		var out = "";
+		for (index in 0...values.length) {
+			if (index > 0) {
+				out += "|";
+			}
+			out += values[index];
+		}
+		return out;
+	}
+
 	static function main() {
 		var flags:haxe.EnumFlags<Mode> = Mode.Alpha;
 		flags.set(Mode.Gamma);
@@ -18,9 +28,9 @@ class Main {
 
 		var enumType = Type.getEnum(Mode.Alpha);
 		var created:Mode = enumType.createByIndex(1, [7]);
-		Sys.println("created.name=" + created.getName());
-		Sys.println("created.index=" + created.getIndex());
-		Sys.println("ctors=" + enumType.getConstructors().join("|"));
-		Sys.println("all=" + [for (value in enumType.createAll()) value.getName()].join("|"));
+		Sys.println("created.name=" + Type.enumConstructor(created));
+		Sys.println("created.index=" + Type.enumIndex(created));
+		Sys.println("ctors=" + join(enumType.getConstructors()));
+		Sys.println("all=" + join([for (value in enumType.createAll()) Type.enumConstructor(value)]));
 	}
 }

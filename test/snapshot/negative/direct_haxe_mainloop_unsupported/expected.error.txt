@@ -1,0 +1,1 @@
+Direct haxe.MainLoop usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.

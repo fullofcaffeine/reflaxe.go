@@ -60,7 +60,7 @@ abstract CallStack(Array<StackItem>) from Array<StackItem> {
 	}
 
 	static function exceptionToString(e:Exception):String {
-		return "Exception: " + e.toString() + CallStack.toString(e.stack);
+		return "Exception: " + Std.string(e);
 	}
 
 	public function subtract(_stack:CallStack):CallStack {

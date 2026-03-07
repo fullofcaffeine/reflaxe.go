@@ -3,10 +3,7 @@
   "levels": {
     "snapshot": [
       "haxe.CallStack",
-      "haxe.EntryPoint",
-      "haxe.MainLoop",
-      "haxe.NativeStackTrace",
-      "haxe.Timer"
+      "haxe.NativeStackTrace"
     ],
     "semantic_diff": [
       "Any",

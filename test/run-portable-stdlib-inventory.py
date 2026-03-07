@@ -118,23 +118,20 @@ MODULE_NOTES_OVERRIDES = {
         "native stack parity."
     ),
     "haxe.EntryPoint": (
-        "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
-        "Queued main-thread execution is available on Go, but it is explicitly excluded from portable "
-        "semantic-diff guarantees."
+        "Direct haxe.EntryPoint usage is still compile-only on Go. The previous source-owned inclusion "
+        "path generated broken Go and is now guarded by compile-time failure until haxe.go-dt4s lands."
     ),
     "haxe.MainLoop": (
-        "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
-        "Main-loop scheduling is available on Go, but it is explicitly excluded from portable "
-        "semantic-diff guarantees."
+        "Direct haxe.MainLoop usage is still compile-only on Go. The previous source-owned inclusion "
+        "path generated broken Go and is now guarded by compile-time failure until haxe.go-dt4s lands."
     ),
     "haxe.NativeStackTrace": (
         "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
         "Go currently exposes a deterministic empty-stack fallback instead of native stack capture."
     ),
     "haxe.Timer": (
-        "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
-        "Timer scheduling works on Go, but event-loop timing behavior remains outside portable "
-        "semantic-diff guarantees."
+        "Direct haxe.Timer usage is still compile-only on Go. The previous source-owned inclusion path "
+        "generated broken Go and is now guarded by compile-time failure until haxe.go-dt4s lands."
     ),
     "Xml": (
         "Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic, "
@@ -197,14 +194,12 @@ BLOCKER_FAMILY_SPECS = (
         },
     },
     {
-        "issue": "haxe.go-14as.28",
-        "family": "haxe_misc_stack_loop",
+        "issue": "haxe.go-dt4s",
+        "family": "haxe_event_loop_direct",
         "closure_target": "2026-04-10",
         "modules": {
-            "haxe.CallStack",
             "haxe.EntryPoint",
             "haxe.MainLoop",
-            "haxe.NativeStackTrace",
             "haxe.Timer",
         },
     },
