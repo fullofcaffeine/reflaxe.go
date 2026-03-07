@@ -29,8 +29,30 @@ function summarize(paths, limit) {
 }
 
 const ledgerPath = "docs/stdlib-provenance-ledger.json";
-const approvedStdOverrideRoots = ["std/go/", "std/_std/"];
+const approvedStdOverrideLayout = [
+  "std/*.hx",
+  "std/*.cross.hx",
+  "std/haxe/**",
+  "std/go/**",
+  "std/_std/**",
+];
 const stdPathAllowlist = new Set(["std/AGENTS.md"]);
+
+function hasSupportedStdExtension(path) {
+  return path.endsWith(".hx") || path.endsWith(".cross.hx");
+}
+
+function isApprovedStdOverridePath(path) {
+  if (!path.startsWith("std/") || !hasSupportedStdExtension(path)) {
+    return false;
+  }
+
+  if (path.startsWith("std/haxe/") || path.startsWith("std/go/") || path.startsWith("std/_std/")) {
+    return true;
+  }
+
+  return path.split("/").length === 2;
+}
 
 if (!fs.existsSync(ledgerPath)) {
   fail(`missing stdlib provenance ledger: ${ledgerPath}`);
@@ -65,9 +87,7 @@ const trackedStdOverrideFiles = gitTrackedUnder("std").filter((path) => {
   if (stdPathAllowlist.has(path)) {
     return false;
   }
-  const inApprovedRoot = approvedStdOverrideRoots.some((root) => path.startsWith(root));
-  const supportedExtension = path.endsWith(".hx") || path.endsWith(".cross.hx");
-  return inApprovedRoot && supportedExtension;
+  return isApprovedStdOverridePath(path);
 });
 const trackedSet = new Set(trackedStdOverrideFiles);
 
@@ -87,13 +107,8 @@ for (const entry of ledger.entries) {
     continue;
   }
 
-  const inApprovedRoot = approvedStdOverrideRoots.some((root) => path.startsWith(root));
-  if (!inApprovedRoot) {
-    fail(`${ledgerPath} entry path must stay under approved roots (${approvedStdOverrideRoots.join(", ")}): ${path}`);
-  }
-
-  if (!path.endsWith(".hx") && !path.endsWith(".cross.hx")) {
-    fail(`${ledgerPath} entry path must target a .hx/.cross.hx file: ${path}`);
+  if (!isApprovedStdOverridePath(path)) {
+    fail(`${ledgerPath} entry path must stay within the approved staged layout (${approvedStdOverrideLayout.join(", ")}): ${path}`);
   }
 
   if (ledgerPaths.includes(path)) {

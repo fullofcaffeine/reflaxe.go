@@ -1,8 +1,5 @@
 {
-  "schema_version": 1,
   "description": "Tier1 portable conformance seed mapping from allowlist modules to deterministic semantic-diff cases.",
-  "suite": "core",
-  "tier": "tier1",
   "modules": {
     "Math": [
       "numeric_edge_cases",
@@ -56,5 +53,8 @@
       "socket_advanced_contract",
       "socket_loopback_contract"
     ]
-  }
+  },
+  "schema_version": 1,
+  "suite": "core",
+  "tier": "tier1"
 }

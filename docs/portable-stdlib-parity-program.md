@@ -63,7 +63,7 @@ This parity program is therefore about semantic closure and coverage promotion, 
 Governance artifacts:
 
 - `docs/stdlib-provenance-ledger.json`: baseline upstream tag + per-file provenance records for tracked std override files.
-- `scripts/ci/upstream-stdlib-boundary-check.js`: prevents tracked upstream vendor roots and enforces approved std override roots.
+- `scripts/ci/upstream-stdlib-boundary-check.js`: prevents tracked upstream vendor roots and enforces the approved staged std layout (`std/*.hx`, `std/*.cross.hx`, `std/haxe/**`, `std/go/**`, `std/_std/**`).
 - `scripts/ci/stdlib-provenance-ledger-check.js`: validates ledger schema and ensures ledger coverage exactly matches tracked std override files.
 
 Required commands:
@@ -122,7 +122,7 @@ Closed root-surface follow-up:
 
 Update sequence when std override files change:
 
-1. Update tracked std override files under approved roots (`std/go/**`, `std/_std/**`).
+1. Update tracked std override files under the approved staged layout (`std/*.hx`, `std/*.cross.hx`, `std/haxe/**`, `std/go/**`, `std/_std/**`).
 2. Add/update matching entries in `docs/stdlib-provenance-ledger.json`.
 3. Run `npm run test:stdlib:governance`.
 4. Run `python3 test/run-ci.py` (or `npm run test:ci`) before merging.

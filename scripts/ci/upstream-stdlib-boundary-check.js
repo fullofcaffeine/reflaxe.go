@@ -28,8 +28,30 @@ function summarize(paths, limit) {
   return `${slice.join("\n")}${suffix}`;
 }
 
-const approvedStdOverrideRoots = ["std/go/", "std/_std/"];
+const approvedStdOverrideLayout = [
+  "std/*.hx",
+  "std/*.cross.hx",
+  "std/haxe/**",
+  "std/go/**",
+  "std/_std/**",
+];
 const stdPathAllowlist = new Set(["std/AGENTS.md"]);
+
+function hasSupportedStdExtension(path) {
+  return path.endsWith(".hx") || path.endsWith(".cross.hx");
+}
+
+function isApprovedStdOverridePath(path) {
+  if (!path.startsWith("std/") || !hasSupportedStdExtension(path)) {
+    return false;
+  }
+
+  if (path.startsWith("std/haxe/") || path.startsWith("std/go/") || path.startsWith("std/_std/")) {
+    return true;
+  }
+
+  return path.split("/").length === 2;
+}
 
 const trackedVendor = gitTrackedUnder("vendor/haxe");
 if (trackedVendor.length > 0) {
@@ -46,28 +68,22 @@ for (const path of trackedStd) {
     continue;
   }
 
-  const inApprovedRoot = approvedStdOverrideRoots.some((root) => path.startsWith(root));
-  if (!inApprovedRoot) {
-    disallowedStdFiles.push(path);
-    continue;
-  }
-
-  if (!path.endsWith(".hx") && !path.endsWith(".cross.hx")) {
+  if (!isApprovedStdOverridePath(path)) {
     disallowedStdFiles.push(path);
   }
 }
 
 if (disallowedStdFiles.length > 0) {
   fail(
-    "stdlib override roots may only contain .hx/.cross.hx files (plus std/AGENTS.md) under approved roots ("
-      + approvedStdOverrideRoots.join(", ")
+    "stdlib override policy allows only .hx/.cross.hx files (plus std/AGENTS.md) in the approved staged layout ("
+      + approvedStdOverrideLayout.join(", ")
       + "). Found:\n"
       + summarize(disallowedStdFiles, 20)
   );
 }
 
 console.log(
-  `[ci:guards] OK: upstream stdlib boundary (vendor/haxe untracked; approved override roots: ${approvedStdOverrideRoots.join(
+  `[ci:guards] OK: upstream stdlib boundary (vendor/haxe untracked; approved staged layout: ${approvedStdOverrideLayout.join(
     ", "
   )})`
 );

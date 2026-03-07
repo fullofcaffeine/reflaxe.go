@@ -1,6 +1,6 @@
 {
-  "schema_version": 1,
   "description": "Tiered portable contract allowlist for haxe.go (portable-eligible modules only).",
+  "schema_version": 1,
   "tiers": {
     "tier1": [
       "Math",
