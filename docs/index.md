@@ -39,6 +39,7 @@ This page helps you find the right docs quickly.
 - [`hxrt` runtime](hxrt-runtime.md)
 - [Selective `hxrt` runtime](hxrt-selective-runtime.md)
 - [Stdlib shim rationale](stdlib-shim-rationale.md)
+- [Cross overrides and hardening](cross-overrides-and-hardening.md)
 - [Portable stdlib parity program](portable-stdlib-parity-program.md)
 - [Portable module mapping contract](portable-module-mapping-contract.md)
 
