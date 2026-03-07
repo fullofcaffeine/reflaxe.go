@@ -242,21 +242,8 @@ func haxe__io__Bytes_ofData(b []int) *haxe__io__Bytes {
 }
 
 func haxe__io__Bytes_ofHex(s *string) *haxe__io__Bytes {
-	raw := *hxrt.StdString(s)
-	lenValue := len(raw)
-	if (lenValue & 1) != 0 {
-		hxrt.Throw(hxrt.StringFromLiteral("Not a hex string (odd number of digits)"))
-		return &haxe__io__Bytes{b: []int{}, length: 0}
-	}
-	ret := haxe__io__Bytes_alloc(lenValue >> 1)
-	for i := 0; i < ret.length; i++ {
-		high := int(raw[i*2])
-		low := int(raw[i*2+1])
-		high = (high & 0xF) + ((high&0x40)>>6)*9
-		low = (low & 0xF) + ((low&0x40)>>6)*9
-		ret.set(i, ((high<<4)|low)&0xFF)
-	}
-	return ret
+	decoded := hxrt.BytesOfHex(s)
+	return &haxe__io__Bytes{b: decoded, length: len(decoded)}
 }
 
 func (self *haxe__io__Bytes) toString() *string {
@@ -270,14 +257,7 @@ func (self *haxe__io__Bytes) toHex() *string {
 	if self == nil || self.length == 0 {
 		return hxrt.StringFromLiteral("")
 	}
-	hexChars := "0123456789abcdef"
-	out := make([]byte, self.length*2)
-	for i := 0; i < self.length; i++ {
-		c := self.b[i] & 0xFF
-		out[i*2] = hexChars[c>>4]
-		out[i*2+1] = hexChars[c&15]
-	}
-	return hxrt.StringFromLiteral(string(out))
+	return hxrt.BytesToHex(self.b, self.length)
 }
 
 func (self *haxe__io__Bytes) getData() []int {
@@ -393,14 +373,14 @@ func New_haxe__io__BytesBuffer() *haxe__io__BytesBuffer {
 }
 
 func (self *haxe__io__BytesBuffer) addByte(value int) {
-	self.b = append(self.b, (value & 255))
+	self.b = hxrt.BytesBufferAddByte(self.b, value)
 }
 
 func (self *haxe__io__BytesBuffer) add(src *haxe__io__Bytes) {
 	if src == nil {
 		return
 	}
-	self.b = append(self.b, src.b...)
+	self.b = hxrt.BytesBufferAdd(self.b, src.b)
 }
 
 func (self *haxe__io__BytesBuffer) addBytes(src *haxe__io__Bytes, pos int, len int) {
@@ -411,7 +391,7 @@ func (self *haxe__io__BytesBuffer) addBytes(src *haxe__io__Bytes, pos int, len i
 	if len == 0 {
 		return
 	}
-	self.b = append(self.b, src.b[pos:pos+len]...)
+	self.b = hxrt.BytesBufferAddSlice(self.b, src.b, pos, len)
 }
 
 func (self *haxe__io__BytesBuffer) addString(value *string, encoding ...*haxe__io__Encoding) {
@@ -424,7 +404,7 @@ func (self *haxe__io__BytesBuffer) getBytes() *haxe__io__Bytes {
 }
 
 func (self *haxe__io__BytesBuffer) get_length() int {
-	return len(self.b)
+	return hxrt.BytesBufferLength(self.b)
 }
 
 func New_haxe__io__BytesInput(b *haxe__io__Bytes, opts ...int) *haxe__io__BytesInput {

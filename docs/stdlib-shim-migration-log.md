@@ -259,6 +259,44 @@ Observed result:
 - The repository now has an explicit post-`__go__` ownership policy instead of an implicit “leave it in `GoCompiler` because raw injection is awkward” bias.
 - Future stdlib work can use framework-owned raw helper islands without weakening the app/example boundary rules or replacing typed extern metadata.
 
+### 2026-03-07: first `haxe.io.Bytes` helper extraction to `hxrt` (`haxe.go-14as.51`)
+
+Implementation:
+
+- Added pure byte-helper functions to `runtime/hxrt/bytes.go`:
+  - `BytesOfHex`
+  - `BytesToHex`
+  - `BytesBufferAddByte`
+  - `BytesBufferAdd`
+  - `BytesBufferAddSlice`
+  - `BytesBufferLength`
+- Reworked the `io` shim wrappers in `src/reflaxe/go/GoCompiler.hx` so:
+  - `haxe__io__Bytes_ofHex`
+  - `haxe__io__Bytes.toHex`
+  - `haxe__io__BytesBuffer.addByte`
+  - `haxe__io__BytesBuffer.add`
+  - `haxe__io__BytesBuffer.addBytes`
+  - `haxe__io__BytesBuffer.get_length`
+  now delegate to `hxrt` instead of embedding their own loop bodies.
+- Added a generated-shape regression snapshot:
+  - `test/snapshot/stdlib/bytes_helper_runtime_ownership`
+- Kept the RawNative/cache-coupled string path compiler-owned for now:
+  - `haxe__io__Bytes_ofString`
+  - `haxe__io__Bytes.getString`
+  - `haxe__io__bytes_fromStringRawNativeUTF16LE`
+  - `haxe__io__bytes_toStringRawNativeUTF16LE`
+- Opened follow-up `haxe.go-14as.54` so the remaining compiler-owned subset stays explicit instead of quietly lumped into “Bytes already migrated”.
+
+Validation evidence:
+
+- `python3 test/run-snapshots.py --case stdlib/bytes_helper_runtime_ownership`
+- `python3 test/run-semantic-diff.py --case bytes_hex_contract --case bytes_normalization_contract`
+
+Observed result:
+
+- The pure `Bytes` hex/buffer leaf operations are no longer large raw Go blocks inside `GoCompiler`.
+- The remaining compiler-owned `Bytes` helpers now have one explicit reason: they still co-own cache and RawNative encoding semantics.
+
 ### 2026-03-06: direct `haxe.Constraints` + `haxe.Rest` abstraction closure (`haxe.go-14as.26`)
 
 Implementation:

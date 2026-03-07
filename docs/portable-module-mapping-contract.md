@@ -60,8 +60,9 @@ Current staged Tier1 coverage includes the JSON family and `StringTools`, with a
 
 - `haxe.io.Bytes`
   - The current `mixed` classification is still correct for parity today.
-  - The representation-sensitive core remains compiler-owned, but the post-`__go__` audit reopened algorithmic helper extraction (`ofString`, `ofHex`, `toHex`, `getString`, `BytesBuffer`, and UTF16/raw-native conversion helpers) into framework-owned `@:goAllowRaw` helper layers where same-package generated-type access is the main requirement rather than compiler context.
-  - Tracking: `haxe.go-14as.51`
+  - The first post-`__go__` extraction already moved pure hex and `BytesBuffer` leaf helpers into `runtime/hxrt/bytes.go`, leaving thin compiler wrappers in place.
+  - The remaining compiler-owned subset is the RawNative/cache-coupled string path (`ofString`, `getString`, UTF16/raw-native conversion helpers) because it still co-owns `__hx_raw` cache validity and encoding-tag behavior.
+  - Tracking: `haxe.go-14as.51`, `haxe.go-14as.54`
 - `haxe.io.Input` / `haxe.io.Output`
   - These surfaces are not listed as separate Tier1 rows here, but their inherited helper loops still sit under the `io` compiler shim group today.
   - The post-`__go__` audit now treats `readAll`, `readLine`, `readUntil`, `writeBytes`, `writeInput`, and related helper loops as migration candidates for framework-owned `GoInjection` islands rather than permanent `GoCompiler` residents.

@@ -1946,21 +1946,8 @@ class GoCompiler {
 					typeName: "*string"
 				}
 			], ["*haxe__io__Bytes"], [
-				GoStmt.GoRaw("raw := *hxrt.StdString(s)"),
-				GoStmt.GoRaw("lenValue := len(raw)"),
-				GoStmt.GoRaw("if (lenValue & 1) != 0 {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Not a hex string (odd number of digits)\"))"),
-				GoStmt.GoRaw("\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("ret := haxe__io__Bytes_alloc(lenValue >> 1)"),
-				GoStmt.GoRaw("for i := 0; i < ret.length; i++ {"),
-				GoStmt.GoRaw("\thigh := int(raw[i*2])"),
-				GoStmt.GoRaw("\tlow := int(raw[i*2+1])"),
-				GoStmt.GoRaw("\thigh = (high & 0xF) + ((high & 0x40) >> 6) * 9"),
-				GoStmt.GoRaw("\tlow = (low & 0xF) + ((low & 0x40) >> 6) * 9"),
-				GoStmt.GoRaw("\tret.set(i, ((high << 4) | low) & 0xFF)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoIdent("ret"))
+				GoStmt.GoVarDecl("decoded", "[]int", GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesOfHex"), [GoExpr.GoIdent("s")]), true),
+				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: decoded, length: len(decoded)}"))
 			]),
 			GoDecl.GoFuncDecl("toString", {
 				name: "self",
@@ -1979,14 +1966,10 @@ class GoCompiler {
 				GoStmt.GoRaw("if self == nil || self.length == 0 {"),
 				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("hexChars := \"0123456789abcdef\""),
-				GoStmt.GoRaw("out := make([]byte, self.length*2)"),
-				GoStmt.GoRaw("for i := 0; i < self.length; i++ {"),
-				GoStmt.GoRaw("\tc := self.b[i] & 0xFF"),
-				GoStmt.GoRaw("\tout[i*2] = hexChars[c>>4]"),
-				GoStmt.GoRaw("\tout[i*2+1] = hexChars[c&15]"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoRaw("string(out)")]))
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesToHex"), [
+					GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"),
+					GoExpr.GoSelector(GoExpr.GoIdent("self"), "length")
+				]))
 			]),
 			GoDecl.GoFuncDecl("getData", {
 				name: "self",
@@ -2131,17 +2114,18 @@ class GoCompiler {
 				name: "self",
 				typeName: "*haxe__io__BytesBuffer"
 			}, [{name: "value", typeName: "int"}], [], [
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoCall(GoExpr.GoIdent("append"), [
-					GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"),
-					GoExpr.GoBinary("&", GoExpr.GoIdent("value"), GoExpr.GoIntLiteral(255))
-				]))
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"),
+					GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesBufferAddByte"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoIdent("value")]))
 			]),
 			GoDecl.GoFuncDecl("add", {
 				name: "self",
 				typeName: "*haxe__io__BytesBuffer"
 			}, [{name: "src", typeName: "*haxe__io__Bytes"}], [], [
 				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("src"), GoExpr.GoNil), [GoStmt.GoReturn(null)], null),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoRaw("append(self.b, src.b...)"))
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesBufferAdd"), [
+					GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"),
+					GoExpr.GoSelector(GoExpr.GoIdent("src"), "b")
+				]))
 			]),
 			GoDecl.GoFuncDecl("addBytes", {
 				name: "self",
@@ -2158,7 +2142,12 @@ class GoCompiler {
 				GoStmt.GoRaw("if len == 0 {"),
 				GoStmt.GoRaw("\treturn"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoRaw("append(self.b, src.b[pos:pos+len]...)"))
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"), GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesBufferAddSlice"), [
+					GoExpr.GoSelector(GoExpr.GoIdent("self"), "b"),
+					GoExpr.GoSelector(GoExpr.GoIdent("src"), "b"),
+					GoExpr.GoIdent("pos"),
+					GoExpr.GoIdent("len")
+				]))
 			]),
 			GoDecl.GoFuncDecl("addString", {
 				name: "self",
@@ -2182,7 +2171,7 @@ class GoCompiler {
 				name: "self",
 				typeName: "*haxe__io__BytesBuffer"
 			}, [], ["int"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b")]))
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.BytesBufferLength"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "b")]))
 			]),
 			GoDecl.GoFuncDecl("haxe__io__input_isEof", null, [
 				{
