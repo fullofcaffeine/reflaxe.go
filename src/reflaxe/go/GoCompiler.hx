@@ -12649,6 +12649,11 @@ class GoCompiler {
 			return lambdaFunctionValueCall;
 		}
 
+		var dsSortHelperCall = lowerDsSortHelperCall(callee, args, returnType);
+		if (dsSortHelperCall != null) {
+			return dsSortHelperCall;
+		}
+
 		var metalChanCall = lowerMetalGoChanCall(callee, args, returnType);
 		if (metalChanCall != null) {
 			return metalChanCall;
@@ -12885,6 +12890,140 @@ class GoCompiler {
 			expr: callExpr,
 			isStringLike: isStringType(returnType)
 		};
+	}
+
+	/**
+		What
+		Adapts direct `haxe.ds.ArraySort` and `haxe.ds.ListSort` calls to Go-compatible
+		entrypoints.
+
+		Why
+		These upstream helper modules are source-owned, but their generic public
+		entrypoints currently erase to `[]any` / `func(any, any) int` on `haxe.go`.
+		Without a call-site bridge, direct typed calls fail even though the underlying
+		sort implementations are valid.
+
+		How
+		For `ArraySort.sort`, box the typed slice to `[]any`, invoke the existing
+		helper, then copy sorted values back into the original slice. For `ListSort`,
+		adapt the comparator to erased `any` parameters and type-assert the returned
+		head back to the expected node type.
+	**/
+	function lowerDsSortHelperCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		if (isStaticCall(callee, "ArraySort", ["haxe", "ds"], "sort")) {
+			if (args.length != 2) {
+				Context.fatalError("haxe.ds.ArraySort.sort expects exactly 2 arguments", callee.pos);
+			}
+			noteSourceOwnedStdlibStaticCall(callee);
+			var arrayType = args[0].t;
+			if (!isArrayType(arrayType)) {
+				return null;
+			}
+			var sliceType = typeToGoType(arrayType);
+			var sliceExpr = lowerExpr(args[0]).expr;
+			var comparatorExpr = lowerExpr(args[1]).expr;
+			var rawSliceName = freshTempName("hx_sort_raw");
+			var sourceName = freshTempName("hx_sort_src");
+			var body = new Array<GoStmt>();
+			body.push(GoStmt.GoVarDecl(rawSliceName, "[]any", lowerTypedArrayToAnyCoerce(GoExpr.GoIdent(sourceName), arrayType), true));
+			body.push(GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("haxe__ds__ArraySort_sort"), [
+				GoExpr.GoIdent(rawSliceName),
+				lowerTypedComparatorToAny(comparatorExpr, arrayType)
+			])));
+			body = body.concat(lowerAnyArrayCopyBack(GoExpr.GoIdent(rawSliceName), GoExpr.GoIdent(sourceName), arrayType));
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: sliceType}], [], body), [sliceExpr]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "ListSort", ["haxe", "ds"], "sort")
+			|| isStaticCall(callee, "ListSort", ["haxe", "ds"], "sortSingleLinked")) {
+			if (args.length != 2) {
+				Context.fatalError("haxe.ds.ListSort direct calls expect exactly 2 arguments", callee.pos);
+			}
+			noteSourceOwnedStdlibStaticCall(callee);
+			var loweredTarget = lowerExpr(args[0]).expr;
+			var loweredComparator = lowerExpr(args[1]).expr;
+			var rawCall = GoExpr.GoCall(lowerExpr(callee).expr, [loweredTarget, lowerTypedComparatorToAny(loweredComparator, args[0].t)]);
+			return {
+				expr: lowerNullableAwareTypeAssertExpr(rawCall, returnType),
+				isStringLike: false
+			};
+		}
+
+		return null;
+	}
+
+	function noteSourceOwnedStdlibStaticCall(callee:TypedExpr):Void {
+		switch (callee.expr) {
+			case TField(_, FStatic(classRef, _)):
+				noteSourceOwnedStdlibUsage(classRef.get());
+			case TMeta(_, inner):
+				noteSourceOwnedStdlibStaticCall(inner);
+			case TParenthesis(inner):
+				noteSourceOwnedStdlibStaticCall(inner);
+			case TCast(inner, _):
+				noteSourceOwnedStdlibStaticCall(inner);
+			case _:
+		}
+	}
+
+	function lowerTypedArrayToAnyCoerce(typedSliceExpr:GoExpr, sourceArrayType:Type):GoExpr {
+		if (!isArrayType(sourceArrayType) || arrayElementGoType(sourceArrayType) == "any") {
+			return typedSliceExpr;
+		}
+		var sourceName = freshTempName("hx_sort_src");
+		var itemName = freshTempName("hx_sort_item");
+		var outName = freshTempName("hx_sort_out");
+		var sourceType = typeToGoType(sourceArrayType);
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: sourceType}], ["[]any"], [
+			GoStmt.GoVarDecl(outName, "[]any", GoExpr.GoRaw("make([]any, 0, len(" + sourceName + "))"), true),
+			GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
+			GoStmt.GoAssign(GoExpr.GoIdent(outName), GoExpr.GoCall(GoExpr.GoIdent("append"), [GoExpr.GoIdent(outName), GoExpr.GoIdent(itemName)])),
+			GoStmt.GoRaw("}"),
+			GoStmt.GoReturn(GoExpr.GoIdent(outName))
+		]), [typedSliceExpr]);
+	}
+
+	function lowerAnyArrayCopyBack(rawSliceExpr:GoExpr, targetSliceExpr:GoExpr, targetArrayType:Type):Array<GoStmt> {
+		var targetElementType = arrayElementType(targetArrayType);
+		var targetElementGoType = arrayElementGoType(targetArrayType);
+		if (targetElementType == null || targetElementGoType == "any") {
+			return [];
+		}
+		var rawName = freshTempName("hx_sort_raw");
+		var targetName = freshTempName("hx_sort_dst");
+		var indexName = freshTempName("hx_sort_i");
+		var itemName = freshTempName("hx_sort_item");
+		var convertedItemExpr = lowerNullableAwareTypeAssertExpr(GoExpr.GoIdent(itemName), targetElementType);
+		return [
+			GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoFuncLiteral([
+				{name: rawName, typeName: "[]any"},
+				{name: targetName, typeName: typeToGoType(targetArrayType)}
+			], [], [
+				GoStmt.GoRaw("for " + indexName + ", " + itemName + " := range " + rawName + " {"),
+				GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(targetName), GoExpr.GoIdent(indexName)), convertedItemExpr),
+				GoStmt.GoRaw("}")
+			]), [rawSliceExpr, targetSliceExpr]))
+		];
+	}
+
+	function lowerTypedComparatorToAny(comparatorExpr:GoExpr, sourceType:Type):GoExpr {
+		var targetType = arrayElementType(sourceType);
+		if (targetType == null) {
+			targetType = sourceType;
+		}
+		var targetGoType = scalarGoType(targetType);
+		if (targetGoType == "any") {
+			return comparatorExpr;
+		}
+		var leftName = freshTempName("hx_cmp_left");
+		var rightName = freshTempName("hx_cmp_right");
+		var leftExpr = lowerNullableAwareTypeAssertExpr(GoExpr.GoIdent(leftName), targetType);
+		var rightExpr = lowerNullableAwareTypeAssertExpr(GoExpr.GoIdent(rightName), targetType);
+		return GoExpr.GoFuncLiteral([{name: leftName, typeName: "any"}, {name: rightName, typeName: "any"}], ["int"],
+			[GoStmt.GoReturn(GoExpr.GoCall(comparatorExpr, [leftExpr, rightExpr]))]);
 	}
 
 	function lowerMetalGoChanCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
@@ -15613,6 +15752,10 @@ class GoCompiler {
 					classType.pos);
 			case "haxe.Log", "haxe.Resource", "haxe.SysTools":
 				requireSourceOwnedStdlibClass(fullClassName(classType));
+			case "haxe.ds.ArraySort":
+				requireSourceOwnedStdlibClass("haxe.ds.ArraySort");
+			case "haxe.ds.ListSort":
+				requireSourceOwnedStdlibClass("haxe.ds.ListSort");
 			case "haxe.Utf8":
 				requireSourceOwnedStdlibClass("haxe.Utf8");
 			case "haxe.Template":

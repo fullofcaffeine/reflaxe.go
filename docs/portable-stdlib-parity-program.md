@@ -101,7 +101,6 @@ That metadata is the repo-level proof that no portable-eligible module is still 
 Current dated blocker families:
 
 - `haxe.go-14as.43` - direct `haxe.exceptions` constructor/inheritance tranche - target `2026-04-14`
-- `haxe.go-14as.45` - direct `haxe.ds.ArraySort` + `haxe.ds.ListSort` callable-lowering tranche - target `2026-04-14`
 - `haxe.go-14as.46` - direct `haxe.ds.BalancedTree` + `haxe.ds.GenericStack` source-owned collection tranche - target `2026-04-14`
 - `haxe.go-14as.47` - direct `haxe.ds.WeakMap` support-classification tranche - target `2026-04-14`
 - `haxe.go-14as.14` - `haxe.http` + `haxe.rtti` tranche - target `2026-04-21`
@@ -122,6 +121,7 @@ Closed root-surface follow-up:
 - `haxe.go-14as.25` promoted direct `haxe.Log`, `haxe.Resource`, and `haxe.SysTools` usage to semantic-diff coverage, then split the remaining direct blockers into `haxe.go-14as.38` (`haxe.Template`) and `haxe.go-14as.39` (`haxe.ValueException`).
 - `haxe.go-14as.13` promoted `haxe.ds.Either` to semantic-diff coverage through `haxe_ds_either_contract` and `stdlib/haxe_ds_either_direct`, then split the remaining collection/exception debt into `haxe.go-14as.43` to `haxe.go-14as.47` so each backend problem is tracked explicitly.
 - `haxe.go-14as.44` promoted direct `haxe.ds.HashMap` to semantic-diff coverage through `haxe_ds_hashmap_contract` and `stdlib/haxe_ds_hashmap_direct`, closing the lowercase `hashCode()` parity gap without requiring target-specific `HashCode` aliases.
+- `haxe.go-14as.45` promoted direct `haxe.ds.ArraySort` and `haxe.ds.ListSort` to semantic-diff coverage through `haxe_ds_sort_helpers_contract` and `stdlib/haxe_ds_sort_helpers_direct`, using narrow call-site adapters instead of widening compiler-owned generic lowering.
 - `haxe.go-14as.27` promoted `haxe.EnumFlags` and `haxe.EnumTools` to semantic-diff coverage via `haxe_enum_helpers_contract` and `stdlib/haxe_enum_helpers_direct`, closing the enum-helper tranche without adding a target-owned std override.
 - `haxe.go-14as.28` closed the stack-fallback half of the old stack/main-loop tranche. `haxe.CallStack` and `haxe.NativeStackTrace` stay under explicit target-sensitive snapshot coverage through `stdlib/haxe_stack_loop_target_sensitive`.
 - `haxe.go-14as.29` closed the legacy text tranche. `haxe.Utf8` now lives in staged std through `std/haxe/Utf8.cross.hx` with semantic-diff coverage in `haxe_utf8_contract` plus snapshot coverage in `stdlib/haxe_utf8_basic`, while `haxe.Ucs2` stays under explicit target-sensitive snapshot coverage through `stdlib/haxe_ucs2_platform_exclusion`.
