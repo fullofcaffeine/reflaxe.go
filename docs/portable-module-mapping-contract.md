@@ -56,6 +56,21 @@ Staged portable overrides are injected first for Go builds by:
 
 Current staged Tier1 coverage includes the JSON family and `StringTools`, with additional migrations gated by semantic-diff and Tier1 conformance coverage.
 
+## Transition Notes (Post-`__go__` Audit)
+
+- `haxe.io.Bytes`
+  - The current `mixed` classification is still correct for parity today.
+  - The representation-sensitive core remains compiler-owned, but the post-`__go__` audit reopened algorithmic helper extraction (`ofString`, `ofHex`, `toHex`, `getString`, `BytesBuffer`, and UTF16/raw-native conversion helpers) into framework-owned `@:goAllowRaw` helper layers where same-package generated-type access is the main requirement rather than compiler context.
+  - Tracking: `haxe.go-14as.51`
+- `haxe.io.Input` / `haxe.io.Output`
+  - These surfaces are not listed as separate Tier1 rows here, but their inherited helper loops still sit under the `io` compiler shim group today.
+  - The post-`__go__` audit now treats `readAll`, `readLine`, `readUntil`, `writeBytes`, `writeInput`, and related helper loops as migration candidates for framework-owned `GoInjection` islands rather than permanent `GoCompiler` residents.
+  - Tracking: `haxe.go-14as.52`
+- `sys.Http`
+  - Tier1 mapping still treats the surface as compiler-owned because request/callback choreography remains one semantic contract.
+  - The audit narrowed any future extraction to leaf payload/proxy helpers only; core request sequencing stays in compiler scope unless parity evidence proves otherwise.
+  - Tracking: `haxe.go-14as.53`
+
 ## Governance Rule
 
 Any ownership change for a Tier1 module must update all of:

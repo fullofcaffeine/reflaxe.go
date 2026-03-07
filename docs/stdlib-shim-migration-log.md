@@ -224,6 +224,41 @@ Observed result:
 - The repo now states the stronger default rule explicitly: library-expressible stdlib does not belong in `GoCompiler` unless there is a concrete compiler-only reason.
 - Future migration work is split into concrete beads instead of one-off local exceptions.
 
+### 2026-03-07: post-`__go__` ownership audit for compiler shim groups (`haxe.go-14as.50`)
+
+Implementation:
+
+- Re-audited the largest `GoStmt.GoRaw` / `GoExpr.GoRaw` clusters in `src/reflaxe/go/GoCompiler.hx` after restoring backend-owned `__go__` lowering and scoped `@:goAllowRaw`.
+- Recorded the new ownership rule in `docs/stdlib-shim-rationale.md`:
+  - typed extern metadata first when a real Go API exists,
+  - framework-owned `@:goAllowRaw` + `reflaxe.go.macros.GoInjection.__go__` helper islands second when same-package generated-type access is the real need,
+  - compiler-owned lowering last when compiler context or representation policy still matters.
+- Classified the top migration candidates:
+  - `haxe.io.Bytes` algorithmic helpers
+  - `haxe.io.Input` / `haxe.io.Output` helper loops
+  - `sys.Http` payload/proxy leaf helpers (while keeping request/callback choreography compiler-owned)
+- Explicitly kept `regex_serializer` and `net_socket` compiler-owned until a materially better parity-preserving path exists.
+- Opened focused follow-up beads:
+  - `haxe.go-14as.51`
+  - `haxe.go-14as.52`
+  - `haxe.go-14as.53`
+- Recorded sibling-family alignment context already in flight:
+  - `haxe.rust-oo3.19`
+  - `haxe.ocaml-x0r2`
+
+Validation evidence:
+
+- Source audit:
+  - `rg -n "GoStmt\\.GoRaw|GoExpr\\.GoRaw" src/reflaxe/go/GoCompiler.hx`
+  - focused scans of `lowerIoStdlibShimDecls`, `lowerHttpStdlibShimDecls`, `lowerRegexSerializerShimDecls`, and `lowerNetSocketShimDecls`
+- Repo hygiene:
+  - `git diff --check`
+
+Observed result:
+
+- The repository now has an explicit post-`__go__` ownership policy instead of an implicit “leave it in `GoCompiler` because raw injection is awkward” bias.
+- Future stdlib work can use framework-owned raw helper islands without weakening the app/example boundary rules or replacing typed extern metadata.
+
 ### 2026-03-06: direct `haxe.Constraints` + `haxe.Rest` abstraction closure (`haxe.go-14as.26`)
 
 Implementation:
