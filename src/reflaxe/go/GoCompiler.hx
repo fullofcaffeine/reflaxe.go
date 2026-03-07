@@ -15613,6 +15613,8 @@ class GoCompiler {
 					classType.pos);
 			case "haxe.Log", "haxe.Resource", "haxe.SysTools":
 				requireSourceOwnedStdlibClass(fullClassName(classType));
+			case "haxe.Utf8":
+				requireSourceOwnedStdlibClass("haxe.Utf8");
 			case "haxe.Template":
 				Context.fatalError("Direct haxe.Template usage is not supported yet on haxe.go; staged source inclusion still misses module-local enum emission. Track haxe.go-14as.38.",
 					classType.pos);

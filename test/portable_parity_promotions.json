@@ -3,7 +3,8 @@
   "levels": {
     "snapshot": [
       "haxe.CallStack",
-      "haxe.NativeStackTrace"
+      "haxe.NativeStackTrace",
+      "haxe.Ucs2"
     ],
     "semantic_diff": [
       "Any",
@@ -23,6 +24,7 @@
       "haxe.Resource",
       "haxe.Rest",
       "haxe.SysTools",
+      "haxe.Utf8",
       "haxe.iterators.ArrayIterator",
       "haxe.iterators.ArrayKeyValueIterator",
       "haxe.iterators.DynamicAccessIterator",

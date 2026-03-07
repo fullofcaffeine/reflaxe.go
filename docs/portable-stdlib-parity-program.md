@@ -108,7 +108,6 @@ Current dated blocker families:
 - `haxe.go-14as.18` - `sys.net` + `sys.ssl` tranche - target `2026-05-21`
 - `haxe.go-14as.19` - `sys.thread` tranche - target `2026-05-31`
 - `haxe.go-dt4s` - direct event-loop tranche (`haxe.EntryPoint`, `haxe.MainLoop`, `haxe.Timer`) - target `2026-04-10`
-- `haxe.go-14as.29` - legacy text `haxe.misc` tranche (`haxe.Ucs2`, `haxe.Utf8`) - target `2026-04-17`
 - `haxe.go-14as.38` - direct `haxe.Template` tranche (module-local enum emission blocker) - target `2026-03-27`
 - `haxe.go-14as.39` - direct `haxe.ValueException` tranche (`Any`/string boxing parity blocker) - target `2026-04-03`
 
@@ -120,6 +119,7 @@ Closed root-surface follow-up:
 - `haxe.go-14as.25` promoted direct `haxe.Log`, `haxe.Resource`, and `haxe.SysTools` usage to semantic-diff coverage, then split the remaining direct blockers into `haxe.go-14as.38` (`haxe.Template`) and `haxe.go-14as.39` (`haxe.ValueException`).
 - `haxe.go-14as.27` promoted `haxe.EnumFlags` and `haxe.EnumTools` to semantic-diff coverage via `haxe_enum_helpers_contract` and `stdlib/haxe_enum_helpers_direct`, closing the enum-helper tranche without adding a target-owned std override.
 - `haxe.go-14as.28` closed the stack-fallback half of the old stack/main-loop tranche. `haxe.CallStack` and `haxe.NativeStackTrace` stay under explicit target-sensitive snapshot coverage through `stdlib/haxe_stack_loop_target_sensitive`.
+- `haxe.go-14as.29` closed the legacy text tranche. `haxe.Utf8` now lives in staged std through `std/haxe/Utf8.cross.hx` with semantic-diff coverage in `haxe_utf8_contract` plus snapshot coverage in `stdlib/haxe_utf8_basic`, while `haxe.Ucs2` stays under explicit target-sensitive snapshot coverage through `stdlib/haxe_ucs2_platform_exclusion`.
 - `haxe.go-dt4s` re-opened direct `haxe.EntryPoint`, `haxe.MainLoop`, and `haxe.Timer` support after CI exposed broken generated Go from the old source-owned inclusion path. Those modules now remain explicit compile-only blockers until the event-loop surface is real.
 
 Update sequence when std override files change:

@@ -640,19 +640,17 @@
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_misc_legacy_text",
-      "blocker_issue": "haxe.go-14as.29",
-      "closure_target": "2026-04-17",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "snapshot"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Ucs2",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.29 (haxe_misc_legacy_text); closure target 2026-04-17.",
-      "owner": "mixed",
+      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Covered by target-sensitive snapshot contract stdlib/haxe_ucs2_platform_exclusion. Go keeps the upstream platform-exclusion behavior and does not claim native UCS2 strings.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "snapshot"
     },
     {
       "coverage_evidence": [
@@ -669,19 +667,17 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_misc_legacy_text",
-      "blocker_issue": "haxe.go-14as.29",
-      "closure_target": "2026-04-17",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Utf8",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.29 (haxe_misc_legacy_text); closure target 2026-04-17.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Covered by staged-std semantic-diff contract haxe_utf8_contract plus snapshot stdlib/haxe_utf8_basic. Go preserves the deprecated no-size constructor and helper subset through std/haxe/Utf8.cross.hx while keeping the optional size constructor explicitly out of scope until optional-constructor lowering is fixed. See negative/direct_haxe_utf8_size_ctor_unsupported and follow-up haxe.go-14as.42.",
+      "owner": "staged_std",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "blocker_family": "haxe_value_exception_direct",

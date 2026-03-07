@@ -35,6 +35,7 @@ Contract inputs:
 | `DateTools` | `haxe_source` | `std/DateTools.cross.hx` | None beyond core `Date` and string primitives already owned elsewhere | `stringbuf_datetools_lambda_contract`, `datetools_cross_std_contract` |
 | `StringTools` | `haxe_source` | `std/StringTools.cross.hx` | None beyond core string/runtime primitives used by normal lowering | `stringtools_math`, `stringtools_cross_std_contract` |
 | `Sys` | `mixed` (`compiler wrapper` + `runtime_binding`) | `src/reflaxe/go/GoCompiler.hx` (`lowerSysStdlibShimDecls`) | `runtime/hxrt/sys.go` | `sys_io_roundtrip` |
+| `haxe.Utf8` | `haxe_source` | `std/haxe/Utf8.cross.hx` | None beyond `haxe.io.Bytes`, `UnicodeString`, and shared Go string runtime helpers already owned elsewhere | `haxe_utf8_contract`, `stdlib/haxe_utf8_basic` |
 | `haxe.Json` | `mixed` (`haxe_source` + `runtime_binding`) | `std/_std/haxe/Json.cross.hx` | `runtime/hxrt/json.go` | `json_parse_stringify_contract` |
 | `haxe.ds.EnumValueMap` | `compiler_intrinsic` | `src/reflaxe/go/GoCompiler.hx` (`lowerDsStdlibShimDecls`) | Uses core runtime helpers for dynamic/null pathways | `ds_maps_list_contract` |
 | `haxe.ds.IntMap` | `compiler_intrinsic` | `src/reflaxe/go/GoCompiler.hx` (`lowerDsStdlibShimDecls`) | Uses core runtime helpers for dynamic/null pathways | `ds_maps_list_contract` |

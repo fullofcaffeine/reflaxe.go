@@ -352,6 +352,31 @@ Validation evidence:
 Observed result:
 
 - `haxe.io.Path` no longer bloats `GoCompiler` with library semantics.
+
+### 2026-03-06: legacy text tranche closure (`haxe.go-14as.29`)
+
+Implementation:
+
+- Added `std/haxe/Utf8.cross.hx` with explicit `What / Why / How` HaxeDoc and moved deprecated `haxe.Utf8` helper semantics into staged std instead of growing compiler-owned text shims.
+- Kept `haxe.Ucs2` on the upstream platform-exclusion path and promoted that behavior to explicit snapshot coverage through `stdlib/haxe_ucs2_platform_exclusion`.
+- Added direct parity coverage:
+  - `test/semantic_diff/haxe_utf8_contract`
+  - `test/snapshot/stdlib/haxe_utf8_basic`
+- Added explicit exclusion coverage for the still-unresolved optional constructor shape:
+  - `test/snapshot/negative/direct_haxe_utf8_size_ctor_unsupported`
+- Split the optional size-constructor residue into follow-up `haxe.go-14as.42` instead of leaving the whole legacy-text tranche open.
+- Updated parity promotions, inventory notes, and provenance records for the new staged std override.
+
+Validation evidence:
+
+- `python3 test/run-semantic-diff.py --case haxe_utf8_contract`
+- `python3 test/run-snapshots.py --case stdlib/haxe_utf8_basic --runtime --update`
+- `python3 test/run-snapshots.py --case stdlib/haxe_ucs2_platform_exclusion --runtime`
+
+Observed result:
+
+- `haxe.Utf8` no longer falls through backend gaps around source-owned constructor lowering, `String.fromCharCode`, string comparison, and callback typing.
+- `haxe.Ucs2` is no longer anonymous compile-only debt; its Go behavior is an explicit platform exclusion with a named snapshot contract.
 - The staged override preserves the upstream helper surface while making the current lowering gaps explicit and local to `std/`.
 
 ### 2026-03-06: stack/main-loop `haxe.misc` tranche moved from compile-only debt to explicit snapshot scope (`haxe.go-14as.28`)

@@ -97,6 +97,7 @@ OWNER_OVERRIDES = {
     "haxe.SysTools": "staged_std",
     "haxe.io.Path": "staged_std",
     "haxe.NativeStackTrace": "staged_std",
+    "haxe.Utf8": "staged_std",
     "EReg": "compiler_shim",
     "haxe.Serializer": "compiler_shim",
     "haxe.Unserializer": "compiler_shim",
@@ -128,6 +129,17 @@ MODULE_NOTES_OVERRIDES = {
     "haxe.NativeStackTrace": (
         "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
         "Go currently exposes a deterministic empty-stack fallback instead of native stack capture."
+    ),
+    "haxe.Ucs2": (
+        "Covered by target-sensitive snapshot contract stdlib/haxe_ucs2_platform_exclusion. "
+        "Go keeps the upstream platform-exclusion behavior and does not claim native UCS2 strings."
+    ),
+    "haxe.Utf8": (
+        "Covered by staged-std semantic-diff contract haxe_utf8_contract plus snapshot "
+        "stdlib/haxe_utf8_basic. Go preserves the deprecated no-size constructor and helper subset "
+        "through std/haxe/Utf8.cross.hx while keeping the optional size constructor explicitly out of "
+        "scope until optional-constructor lowering is fixed. See negative/direct_haxe_utf8_size_ctor_unsupported "
+        "and follow-up haxe.go-14as.42."
     ),
     "haxe.Timer": (
         "Direct haxe.Timer usage is still compile-only on Go. The previous source-owned inclusion path "
