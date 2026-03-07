@@ -100,7 +100,11 @@ That metadata is the repo-level proof that no portable-eligible module is still 
 
 Current dated blocker families:
 
-- `haxe.go-14as.13` - `haxe.ds` + `haxe.exceptions` tranche - target `2026-04-14`
+- `haxe.go-14as.43` - direct `haxe.exceptions` constructor/inheritance tranche - target `2026-04-14`
+- `haxe.go-14as.44` - direct `haxe.ds.HashMap` `hashCode()` parity tranche - target `2026-04-14`
+- `haxe.go-14as.45` - direct `haxe.ds.ArraySort` + `haxe.ds.ListSort` callable-lowering tranche - target `2026-04-14`
+- `haxe.go-14as.46` - direct `haxe.ds.BalancedTree` + `haxe.ds.GenericStack` source-owned collection tranche - target `2026-04-14`
+- `haxe.go-14as.47` - direct `haxe.ds.WeakMap` support-classification tranche - target `2026-04-14`
 - `haxe.go-14as.14` - `haxe.http` + `haxe.rtti` tranche - target `2026-04-21`
 - `haxe.go-14as.15` - `haxe.io` misc tranche - target `2026-04-30`
 - `haxe.go-14as.16` - `haxe.io` typed-array tranche - target `2026-05-07`
@@ -117,6 +121,7 @@ Closed root-surface follow-up:
 - `haxe.go-14as.24` closes parsed-CDATA node-type preservation for `Xml.parse()`, so the root `Xml` DOM subset no longer carries that documented caveat.
 - `haxe.go-14as.12` closed the generic `haxe.misc` tranche triage by promoting `haxe.Http` from existing semantic-diff evidence and splitting the remaining modules into `haxe.go-14as.25` to `haxe.go-14as.29`.
 - `haxe.go-14as.25` promoted direct `haxe.Log`, `haxe.Resource`, and `haxe.SysTools` usage to semantic-diff coverage, then split the remaining direct blockers into `haxe.go-14as.38` (`haxe.Template`) and `haxe.go-14as.39` (`haxe.ValueException`).
+- `haxe.go-14as.13` promoted `haxe.ds.Either` to semantic-diff coverage through `haxe_ds_either_contract` and `stdlib/haxe_ds_either_direct`, then split the remaining collection/exception debt into `haxe.go-14as.43` to `haxe.go-14as.47` so each backend problem is tracked explicitly.
 - `haxe.go-14as.27` promoted `haxe.EnumFlags` and `haxe.EnumTools` to semantic-diff coverage via `haxe_enum_helpers_contract` and `stdlib/haxe_enum_helpers_direct`, closing the enum-helper tranche without adding a target-owned std override.
 - `haxe.go-14as.28` closed the stack-fallback half of the old stack/main-loop tranche. `haxe.CallStack` and `haxe.NativeStackTrace` stay under explicit target-sensitive snapshot coverage through `stdlib/haxe_stack_loop_target_sensitive`.
 - `haxe.go-14as.29` closed the legacy text tranche. `haxe.Utf8` now lives in staged std through `std/haxe/Utf8.cross.hx` with semantic-diff coverage in `haxe_utf8_contract` plus snapshot coverage in `stdlib/haxe_utf8_basic`, while `haxe.Ucs2` stays under explicit target-sensitive snapshot coverage through `stdlib/haxe_ucs2_platform_exclusion`.

@@ -15646,6 +15646,11 @@ class GoCompiler {
 	}
 
 	function noteStdlibEnum(enumType:EnumType):Void {
+		switch (fullEnumName(enumType)) {
+			case "haxe.ds.Either":
+				requireSourceOwnedStdlibEnum("haxe.ds.Either");
+			case _:
+		}
 		for (group in GoStdlibShimClassifier.requiredGroupsForEnum(enumType)) {
 			requireStdlibShimGroup(group);
 		}

@@ -25,6 +25,7 @@
       "haxe.Rest",
       "haxe.SysTools",
       "haxe.Utf8",
+      "haxe.ds.Either",
       "haxe.iterators.ArrayIterator",
       "haxe.iterators.ArrayKeyValueIterator",
       "haxe.iterators.DynamicAccessIterator",

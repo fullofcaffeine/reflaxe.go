@@ -2,6 +2,22 @@ package haxe.ds;
 
 import haxe.iterators.HashMapKeyValueIterator;
 
+/**
+	What
+	Target-owned `HashMap` compatibility override for `haxe.go`.
+
+	Why
+	The upstream stdlib implementation is an abstract over private backing state and
+	assumes direct constrained `k.hashCode()` lowering. `haxe.go` currently erases
+	that constraint too aggressively in this staged-stdlib path, so the target uses
+	a compatibility bridge here instead of inheriting the upstream implementation
+	unchanged.
+
+	How
+	Store keys and values in `IntMap`s keyed by the constrained `hashCode()` result,
+	and expose the normal `Map`-compatible surface plus the dedicated key/value
+	iterator helper.
+**/
 class HashMap<K:{function hashCode():Int;}, V> {
 	final keysByHash:IntMap<K>;
 	final valuesByHash:IntMap<V>;

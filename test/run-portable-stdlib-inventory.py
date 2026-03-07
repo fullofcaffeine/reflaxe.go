@@ -225,17 +225,44 @@ BLOCKER_FAMILY_SPECS = (
         },
     },
     {
-        "issue": "haxe.go-14as.13",
-        "family": "haxe_ds_exceptions",
+        "issue": "haxe.go-14as.44",
+        "family": "haxe_ds_hashmap_direct",
+        "closure_target": "2026-04-14",
+        "modules": {
+            "haxe.ds.HashMap",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.45",
+        "family": "haxe_ds_sort_helpers",
         "closure_target": "2026-04-14",
         "modules": {
             "haxe.ds.ArraySort",
-            "haxe.ds.BalancedTree",
-            "haxe.ds.Either",
-            "haxe.ds.GenericStack",
-            "haxe.ds.HashMap",
             "haxe.ds.ListSort",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.46",
+        "family": "haxe_ds_source_owned_collections",
+        "closure_target": "2026-04-14",
+        "modules": {
+            "haxe.ds.BalancedTree",
+            "haxe.ds.GenericStack",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.47",
+        "family": "haxe_ds_weakmap",
+        "closure_target": "2026-04-14",
+        "modules": {
             "haxe.ds.WeakMap",
+        },
+    },
+    {
+        "issue": "haxe.go-14as.43",
+        "family": "haxe_exceptions_direct",
+        "closure_target": "2026-04-14",
+        "modules": {
             "haxe.exceptions.ArgumentException",
             "haxe.exceptions.NotImplementedException",
             "haxe.exceptions.PosException",
