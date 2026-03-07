@@ -225,14 +225,6 @@ BLOCKER_FAMILY_SPECS = (
         },
     },
     {
-        "issue": "haxe.go-14as.44",
-        "family": "haxe_ds_hashmap_direct",
-        "closure_target": "2026-04-14",
-        "modules": {
-            "haxe.ds.HashMap",
-        },
-    },
-    {
         "issue": "haxe.go-14as.45",
         "family": "haxe_ds_sort_helpers",
         "closure_target": "2026-04-14",

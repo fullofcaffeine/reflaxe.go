@@ -4,6 +4,7 @@ package reflaxe.go.compiler;
 import haxe.macro.Context;
 import haxe.macro.Type;
 import haxe.macro.TypeTools;
+import reflaxe.go.naming.GoNaming;
 
 typedef GoClassTypeNamer = ClassType->String;
 typedef GoEnumTypeNamer = EnumType->String;
@@ -30,7 +31,7 @@ class GoTypeMapper {
 			case TInst(classRef, params):
 				var classType = classRef.get();
 				if (isTypeParameterClass(classType)) {
-					"any";
+					typeParameterGoType(classType, classTypeName, enumTypeName);
 				} else if (isHaxeExceptionClass(classType)) {
 					"*hxrt.ExceptionValue";
 				} else if (isHaxeIoBaseClass(classType)) {
@@ -275,7 +276,7 @@ class GoTypeMapper {
 			case TInst(classRef, params):
 				var classType = classRef.get();
 				if (isTypeParameterClass(classType)) {
-					"any";
+					typeParameterGoType(classType, classTypeName, enumTypeName);
 				} else if (isHaxeExceptionClass(classType)) {
 					"*hxrt.ExceptionValue";
 				} else if (isHaxeIoBaseClass(classType)) {
@@ -444,6 +445,71 @@ class GoTypeMapper {
 				true;
 			case _:
 				false;
+		};
+	}
+
+	/**
+		What
+		Maps a constrained Haxe type parameter to a Go type.
+
+		Why
+		Most type parameters still erase to `any` on `haxe.go`, but some staged-stdlib
+		surfaces depend on method-only constraints such as `K:{function hashCode():Int;}`.
+		Erasing those to `any` breaks direct method dispatch and forces incorrect
+		reflective fallbacks.
+
+		How
+		When the constraint set is a method-only anonymous structure, synthesize a local
+		Go interface with matching method signatures. Otherwise, keep the existing `any`
+		fallback.
+	**/
+	static function typeParameterGoType(classType:ClassType, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
+		return switch (classType.kind) {
+			case KTypeParameter(constraints):
+				var mapped = anonymousMethodConstraintGoType(constraints, classTypeName, enumTypeName);
+				mapped == null ? "any" : mapped;
+			case _:
+				"any";
+		};
+	}
+
+	static function anonymousMethodConstraintGoType(constraints:Array<Type>, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):Null<String> {
+		if (constraints == null || constraints.length == 0) {
+			return null;
+		}
+
+		var signatures = new Map<String, String>();
+		for (constraint in constraints) {
+			switch (Context.follow(constraint)) {
+				case TAnonymous(anonRef):
+					for (field in anonRef.get().fields) {
+						var signature = constraintMethodSignature(field, classTypeName, enumTypeName);
+						if (signature == null) {
+							return null;
+						}
+						signatures.set(GoNaming.normalizeIdent(field.name), signature);
+					}
+				case _:
+					return null;
+			}
+		}
+
+		var ordered = [for (signature in signatures) signature];
+		if (ordered.length == 0) {
+			return null;
+		}
+		ordered.sort(Reflect.compare);
+		return "interface{" + ordered.join("; ") + "}";
+	}
+
+	static function constraintMethodSignature(field:ClassField, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):Null<String> {
+		return switch (Context.follow(field.type)) {
+			case TFun(args, returnType):
+				var params = [for (arg in args) scalarGoType(arg.t, classTypeName, enumTypeName)].join(", ");
+				var returnSuffix = isVoidType(returnType) ? "" : " " + scalarGoType(returnType, classTypeName, enumTypeName);
+				GoNaming.normalizeIdent(field.name) + "(" + params + ")" + returnSuffix;
+			case _:
+				null;
 		};
 	}
 

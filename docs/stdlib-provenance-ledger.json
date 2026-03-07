@@ -80,7 +80,7 @@
     {
       "path": "std/_std/haxe/ds/HashMap.cross.hx",
       "provenanceKind": "repo_authored_override",
-      "notes": "Go staged portable override for haxe.ds.HashMap entrypoint behavior and owned iterator surfaces."
+      "notes": "Go staged portable override for haxe.ds.HashMap entrypoint behavior and owned iterator surfaces, including direct lowercase hashCode parity without target-specific aliases."
     },
     {
       "path": "std/_std/haxe/ds/IntMap.cross.hx",

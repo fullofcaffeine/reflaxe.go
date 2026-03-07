@@ -7,16 +7,18 @@ import haxe.iterators.HashMapKeyValueIterator;
 	Target-owned `HashMap` compatibility override for `haxe.go`.
 
 	Why
-	The upstream stdlib implementation is an abstract over private backing state and
-	assumes direct constrained `k.hashCode()` lowering. `haxe.go` currently erases
-	that constraint too aggressively in this staged-stdlib path, so the target uses
-	a compatibility bridge here instead of inheriting the upstream implementation
-	unchanged.
+	The upstream stdlib implementation is an abstract over private backing state.
+	`haxe.go` keeps this target-owned staged override so the entrypoint and owned
+	iterator surfaces stay explicit in repo-controlled compatibility code, while
+	still honoring the mainstream lowercase `hashCode()` contract without requiring
+	target-specific `HashCode` aliases.
 
 	How
 	Store keys and values in `IntMap`s keyed by the constrained `hashCode()` result,
 	and expose the normal `Map`-compatible surface plus the dedicated key/value
-	iterator helper.
+	iterator helper. The compiler preserves the method-only constraint as a local Go
+	interface, so `key.hashCode()` lowers directly instead of falling back to
+	reflection.
 **/
 class HashMap<K:{function hashCode():Int;}, V> {
 	final keysByHash:IntMap<K>;
@@ -27,12 +29,8 @@ class HashMap<K:{function hashCode():Int;}, V> {
 		valuesByHash = new IntMap();
 	}
 
-	static inline function hashOf(key:Dynamic):Int {
-		var hashCode:Void->Int = cast Reflect.field(key, "hashCode");
-		if (hashCode == null) {
-			hashCode = cast Reflect.field(key, "HashCode");
-		}
-		return hashCode == null ? 0 : hashCode();
+	static inline function hashOf(key:{function hashCode():Int;}):Int {
+		return key.hashCode();
 	}
 
 	@:arrayAccess public inline function set(k:K, v:V):Void {
