@@ -1,3 +1,26 @@
+## [0.48.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.47.1...v0.48.0) (2026-03-07)
+
+### Features
+
+* add hxrt runtime plan reason provenance ([bb2b0c7](https://github.com/fullofcaffeine/reflaxe.go/commit/bb2b0c78c2f49fda96b74e058a94f9455647650a))
+* define stack and main-loop std snapshot scope ([8bf3d22](https://github.com/fullofcaffeine/reflaxe.go/commit/8bf3d228b72fa911af76294d404799509a3ec94c))
+* move DateTools into staged std ([ff597ef](https://github.com/fullofcaffeine/reflaxe.go/commit/ff597ef932e91e9804cf16f957c3ec26ca8f56b5))
+* move haxe.io.Path into staged std ([9e2f737](https://github.com/fullofcaffeine/reflaxe.go/commit/9e2f737fedfcdf59e859b8834e51949fcebd5bc7))
+* move StringTools into staged std ([6acb400](https://github.com/fullofcaffeine/reflaxe.go/commit/6acb400b816da7f7dc02a6cfa4bb1d727969349d))
+* promote direct haxe helper surfaces ([73a7e4c](https://github.com/fullofcaffeine/reflaxe.go/commit/73a7e4cdfc34e1c7eee0db529a3cd648202934d2))
+* promote enum helper parity ([2c8056d](https://github.com/fullofcaffeine/reflaxe.go/commit/2c8056d6c1976a980a3fbf8bfdf8a2c029018e9e))
+* promote haxe constraints and rest parity ([34350bf](https://github.com/fullofcaffeine/reflaxe.go/commit/34350bf52bb8e332c98d7a34bd6b4c097ecc465f))
+* promote iterator family semantic-diff parity ([bc3c9ae](https://github.com/fullofcaffeine/reflaxe.go/commit/bc3c9ae4dd6ccd0ee73a94755b06b9f205308e17))
+* promote root sys parity surface ([f0d5783](https://github.com/fullofcaffeine/reflaxe.go/commit/f0d578362dacd17018622d366c2ae284feb484c1))
+* promote root xml parity surface ([65b35b4](https://github.com/fullofcaffeine/reflaxe.go/commit/65b35b4e892d738769b16dacf9005ad25b1dd1de))
+* promote UnicodeString parity surface ([5e8430f](https://github.com/fullofcaffeine/reflaxe.go/commit/5e8430fb8ae97e9016b82924bb56edae066c3c90))
+
+### Bug Fixes
+
+* preserve parsed xml cdata nodes ([7c42cd6](https://github.com/fullofcaffeine/reflaxe.go/commit/7c42cd64a175c69c33802dba134aa748b3b38bed))
+* realign ci stdlib governance and examples ([5cdb061](https://github.com/fullofcaffeine/reflaxe.go/commit/5cdb06125ea9ad7105fb90684da2ed950de266ee))
+* restore ci snapshot parity gates ([e543acb](https://github.com/fullofcaffeine/reflaxe.go/commit/e543acb5782861bfb0f03db8cf2fbae7cb9b493d))
+
 ## [0.47.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.47.0...v0.47.1) (2026-03-04)
 
 ### Performance Improvements
