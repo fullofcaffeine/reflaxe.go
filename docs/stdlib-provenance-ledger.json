@@ -43,6 +43,16 @@
       "notes": "Go staged portable override for haxe.Constraints constraint aliases plus the IMap copyIMap bridge contract, keeping Haxe-facing typing in std while the backend satisfies Go interface exactness."
     },
     {
+      "path": "std/haxe/CallStack.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged target-sensitive override for haxe.CallStack, providing deterministic empty-stack fallbacks until native stack capture exists."
+    },
+    {
+      "path": "std/haxe/NativeStackTrace.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged target-sensitive override for haxe.NativeStackTrace, exposing deterministic empty-stack behavior instead of pretending native stack parity."
+    },
+    {
       "path": "std/haxe/io/Path.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged portable override for haxe.io.Path helper ownership, keeping path parsing and normalization semantics out of GoCompiler while upstream lowerings remain incomplete."

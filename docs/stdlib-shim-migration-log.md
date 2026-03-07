@@ -354,6 +354,34 @@ Observed result:
 - `haxe.io.Path` no longer bloats `GoCompiler` with library semantics.
 - The staged override preserves the upstream helper surface while making the current lowering gaps explicit and local to `std/`.
 
+### 2026-03-06: stack/main-loop `haxe.misc` tranche moved from compile-only debt to explicit snapshot scope (`haxe.go-14as.28`)
+
+Implementation:
+
+- Added `std/haxe/CallStack.cross.hx` and `std/haxe/NativeStackTrace.cross.hx` with explicit `What / Why / How` HaxeDoc.
+- Kept these stack APIs deterministic and target-sensitive on Go:
+  - `CallStack.callStack()` / `exceptionStack()` return `[]`
+  - `CallStack.toString()` returns `""`
+  - `NativeStackTrace` exposes empty-stack fallbacks instead of pretending native capture exists
+- Wired source-owned std inclusion for direct:
+  - `haxe.EntryPoint`
+  - `haxe.MainLoop`
+  - `haxe.Timer`
+  - `haxe._CallStack.CallStack_Impl_`
+- Added direct snapshot coverage in `test/snapshot/stdlib/haxe_stack_loop_target_sensitive`.
+- Updated parity inventory/docs so these modules are snapshot-classified instead of lingering as generic compile-only debt.
+
+Validation evidence:
+
+- `python3 test/run-snapshots.py --case stdlib/haxe_stack_loop_target_sensitive --update`
+- `python3 test/run-snapshots.py --case stdlib/haxe_stack_loop_target_sensitive`
+
+Observed result:
+
+- Direct `haxe.CallStack` / `haxe.NativeStackTrace` usage now compiles with explicit deterministic fallback behavior on Go.
+- Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage is now compiled through source-owned std inclusion instead of falling off the backend as missing symbols.
+- The tranche is now explicitly documented as target-sensitive snapshot coverage rather than portable semantic-diff parity.
+
 ## Open migration track
 
 - Legacy `haxe.go-7zy.*` shim migration sequence is closed.

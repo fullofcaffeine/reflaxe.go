@@ -107,7 +107,6 @@ Current dated blocker families:
 - `haxe.go-14as.17` - `sys.db` + `sys.io` tranche - target `2026-05-14`
 - `haxe.go-14as.18` - `sys.net` + `sys.ssl` tranche - target `2026-05-21`
 - `haxe.go-14as.19` - `sys.thread` tranche - target `2026-05-31`
-- `haxe.go-14as.28` - stack/main-loop `haxe.misc` tranche (`haxe.CallStack`, `haxe.NativeStackTrace`, `haxe.EntryPoint`, `haxe.MainLoop`, `haxe.Timer`) - target `2026-04-10`
 - `haxe.go-14as.29` - legacy text `haxe.misc` tranche (`haxe.Ucs2`, `haxe.Utf8`) - target `2026-04-17`
 - `haxe.go-14as.38` - direct `haxe.Template` tranche (module-local enum emission blocker) - target `2026-03-27`
 - `haxe.go-14as.39` - direct `haxe.ValueException` tranche (`Any`/string boxing parity blocker) - target `2026-04-03`
@@ -119,6 +118,7 @@ Closed root-surface follow-up:
 - `haxe.go-14as.12` closed the generic `haxe.misc` tranche triage by promoting `haxe.Http` from existing semantic-diff evidence and splitting the remaining modules into `haxe.go-14as.25` to `haxe.go-14as.29`.
 - `haxe.go-14as.25` promoted direct `haxe.Log`, `haxe.Resource`, and `haxe.SysTools` usage to semantic-diff coverage, then split the remaining direct blockers into `haxe.go-14as.38` (`haxe.Template`) and `haxe.go-14as.39` (`haxe.ValueException`).
 - `haxe.go-14as.27` promoted `haxe.EnumFlags` and `haxe.EnumTools` to semantic-diff coverage via `haxe_enum_helpers_contract` and `stdlib/haxe_enum_helpers_direct`, closing the enum-helper tranche without adding a target-owned std override.
+- `haxe.go-14as.28` closed the stack/main-loop tranche by moving `haxe.CallStack`, `haxe.NativeStackTrace`, `haxe.EntryPoint`, `haxe.MainLoop`, and `haxe.Timer` out of generic compile-only debt into explicit target-sensitive snapshot coverage (`stdlib/haxe_stack_loop_target_sensitive`). These surfaces are available on Go, but they are not counted as portable semantic-diff guarantees.
 
 Update sequence when std override files change:
 

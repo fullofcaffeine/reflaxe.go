@@ -158,6 +158,8 @@ class GoCompiler {
 	var projectEnums:Array<EnumType>;
 	final availableClassesByName:Map<String, ClassType>;
 	final pendingRequiredClassesByName:Map<String, ClassType>;
+	final availableEnumsByName:Map<String, EnumType>;
+	final pendingRequiredEnumsByName:Map<String, EnumType>;
 	var globalLeafReceiverTypes:Map<String, Bool>;
 	var tempVarCounter:Int;
 	var requiresTypeValueSupport:Bool;
@@ -192,6 +194,8 @@ class GoCompiler {
 		projectEnums = [];
 		availableClassesByName = new Map<String, ClassType>();
 		pendingRequiredClassesByName = new Map<String, ClassType>();
+		availableEnumsByName = new Map<String, EnumType>();
+		pendingRequiredEnumsByName = new Map<String, EnumType>();
 		globalLeafReceiverTypes = new Map<String, Bool>();
 		tempVarCounter = 0;
 		requiresTypeValueSupport = false;
@@ -201,11 +205,13 @@ class GoCompiler {
 	#if macro
 	public function compileModule(types:Array<ModuleType>):Array<GoGeneratedFile> {
 		cacheAvailableClasses(collectAllClasses(types));
+		cacheAvailableEnums(collectAllEnums(types));
 		return compileResolvedTypes(collectProjectClasses(types), collectProjectEnums(types));
 	}
 
 	public function compileSelectedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
 		cacheAvailableClasses(classes);
+		cacheAvailableEnums(enums);
 		return compileResolvedTypes(normalizeProjectClasses(classes), normalizeProjectEnums(enums));
 	}
 
@@ -251,6 +257,41 @@ class GoCompiler {
 				projectClasses.push(requiredClass);
 			}
 			clearClassMap(pendingRequiredClassesByName);
+		}
+		var queuedEnumNames = new Map<String, Bool>();
+		for (enumType in enums) {
+			queuedEnumNames.set(fullEnumName(enumType), true);
+		}
+		var enumQueue = new Array<EnumType>();
+		for (requiredName in pendingRequiredEnumsByName.keys()) {
+			if (queuedEnumNames.exists(requiredName)) {
+				continue;
+			}
+			var requiredEnum = pendingRequiredEnumsByName.get(requiredName);
+			if (requiredEnum == null) {
+				continue;
+			}
+			queuedEnumNames.set(requiredName, true);
+			enumQueue.push(requiredEnum);
+			projectEnums.push(requiredEnum);
+		}
+		clearEnumMap(pendingRequiredEnumsByName);
+		while (enumQueue.length > 0) {
+			var enumType = enumQueue.shift();
+			appendModuleDecls(moduleDecls, enumType.module, lowerEnumDecls(enumType));
+			for (requiredName in pendingRequiredEnumsByName.keys()) {
+				if (queuedEnumNames.exists(requiredName)) {
+					continue;
+				}
+				var requiredEnum = pendingRequiredEnumsByName.get(requiredName);
+				if (requiredEnum == null) {
+					continue;
+				}
+				queuedEnumNames.set(requiredName, true);
+				enumQueue.push(requiredEnum);
+				projectEnums.push(requiredEnum);
+			}
+			clearEnumMap(pendingRequiredEnumsByName);
 		}
 		applyStdlibShimGroupDependencies();
 
@@ -869,6 +910,18 @@ class GoCompiler {
 		return normalizeProjectEnums(collected);
 	}
 
+	function collectAllEnums(types:Array<ModuleType>):Array<EnumType> {
+		var collected = new Array<EnumType>();
+		for (moduleType in types) {
+			switch (moduleType) {
+				case TEnumDecl(enumRef):
+					collected.push(enumRef.get());
+				case _:
+			}
+		}
+		return collected;
+	}
+
 	function normalizeProjectEnums(enums:Array<EnumType>):Array<EnumType> {
 		var dedup = new Map<String, EnumType>();
 		for (enumType in enums) {
@@ -1225,10 +1278,24 @@ class GoCompiler {
 		}
 	}
 
+	function clearEnumMap(map:Map<String, EnumType>):Void {
+		var keys = [for (key in map.keys()) key];
+		for (key in keys) {
+			map.remove(key);
+		}
+	}
+
 	function cacheAvailableClasses(classes:Array<ClassType>):Void {
 		clearClassMap(availableClassesByName);
 		for (classType in classes) {
 			availableClassesByName.set(fullClassName(classType), classType);
+		}
+	}
+
+	function cacheAvailableEnums(enums:Array<EnumType>):Void {
+		clearEnumMap(availableEnumsByName);
+		for (enumType in enums) {
+			availableEnumsByName.set(fullEnumName(enumType), enumType);
 		}
 	}
 
@@ -15526,6 +15593,29 @@ class GoCompiler {
 				requireSourceOwnedStdlibClass("DateTools");
 			case "haxe.io.Path":
 				requireSourceOwnedStdlibClass("haxe.io.Path");
+			case "haxe._CallStack.CallStack_Impl_":
+				requireSourceOwnedStdlibClass("haxe._CallStack.CallStack_Impl_");
+				requireSourceOwnedStdlibClass("haxe.NativeStackTrace");
+				requireSourceOwnedStdlibEnum("haxe.StackItem");
+			case "haxe.NativeStackTrace":
+				requireSourceOwnedStdlibClass("haxe.NativeStackTrace");
+			case "haxe.EntryPoint":
+				requireSourceOwnedStdlibClass("haxe.EntryPoint");
+			case "haxe.MainLoop":
+				requireSourceOwnedStdlibClass("haxe.MainLoop");
+				requireSourceOwnedStdlibClass("haxe.MainEvent");
+				requireSourceOwnedStdlibClass("haxe.EntryPoint");
+				requireSourceOwnedStdlibClass("haxe.Timer");
+			case "haxe.MainEvent":
+				requireSourceOwnedStdlibClass("haxe.MainEvent");
+				requireSourceOwnedStdlibClass("haxe.MainLoop");
+				requireSourceOwnedStdlibClass("haxe.EntryPoint");
+				requireSourceOwnedStdlibClass("haxe.Timer");
+			case "haxe.Timer":
+				requireSourceOwnedStdlibClass("haxe.Timer");
+				requireSourceOwnedStdlibClass("haxe.MainLoop");
+				requireSourceOwnedStdlibClass("haxe.MainEvent");
+				requireSourceOwnedStdlibClass("haxe.EntryPoint");
 			case "haxe.Log", "haxe.Resource", "haxe.SysTools":
 				requireSourceOwnedStdlibClass(fullClassName(classType));
 			case "haxe.Template":
@@ -15543,6 +15633,13 @@ class GoCompiler {
 			return;
 		}
 		pendingRequiredClassesByName.set(className, availableClassesByName.get(className));
+	}
+
+	function requireSourceOwnedStdlibEnum(enumName:String):Void {
+		if (!availableEnumsByName.exists(enumName) || pendingRequiredEnumsByName.exists(enumName)) {
+			return;
+		}
+		pendingRequiredEnumsByName.set(enumName, availableEnumsByName.get(enumName));
 	}
 
 	function noteStdlibClass(classType:ClassType):Void {

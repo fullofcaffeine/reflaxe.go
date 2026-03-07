@@ -1,7 +1,13 @@
 {
   "schema_version": 1,
   "levels": {
-    "snapshot": [],
+    "snapshot": [
+      "haxe.CallStack",
+      "haxe.EntryPoint",
+      "haxe.MainLoop",
+      "haxe.NativeStackTrace",
+      "haxe.Timer"
+    ],
     "semantic_diff": [
       "Any",
       "List",

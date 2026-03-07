@@ -82,6 +82,7 @@ SEMANTIC_DIFF_PREFIXES = (
 )
 
 OWNER_OVERRIDES = {
+    "haxe.CallStack": "staged_std",
     "haxe.Json": "runtime_hxrt",
     "haxe.format.JsonParser": "runtime_hxrt",
     "haxe.format.JsonPrinter": "runtime_hxrt",
@@ -95,6 +96,7 @@ OWNER_OVERRIDES = {
     "StringTools": "staged_std",
     "haxe.SysTools": "staged_std",
     "haxe.io.Path": "staged_std",
+    "haxe.NativeStackTrace": "staged_std",
     "EReg": "compiler_shim",
     "haxe.Serializer": "compiler_shim",
     "haxe.Unserializer": "compiler_shim",
@@ -110,6 +112,30 @@ OWNER_OVERRIDES = {
 }
 
 MODULE_NOTES_OVERRIDES = {
+    "haxe.CallStack": (
+        "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
+        "Go currently uses a staged std deterministic empty-stack fallback instead of claiming portable "
+        "native stack parity."
+    ),
+    "haxe.EntryPoint": (
+        "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
+        "Queued main-thread execution is available on Go, but it is explicitly excluded from portable "
+        "semantic-diff guarantees."
+    ),
+    "haxe.MainLoop": (
+        "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
+        "Main-loop scheduling is available on Go, but it is explicitly excluded from portable "
+        "semantic-diff guarantees."
+    ),
+    "haxe.NativeStackTrace": (
+        "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
+        "Go currently exposes a deterministic empty-stack fallback instead of native stack capture."
+    ),
+    "haxe.Timer": (
+        "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
+        "Timer scheduling works on Go, but event-loop timing behavior remains outside portable "
+        "semantic-diff guarantees."
+    ),
     "Xml": (
         "Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic, "
         "including parsed CDATA node-type preservation."
@@ -433,7 +459,11 @@ def module_notes(module: str, status: str, in_strict_sweep: bool) -> str:
             return base + " " + override
         return base
     if status == "snapshot":
-        return "Covered by snapshot-level deterministic generated-code/runtime smoke contracts."
+        base = "Covered by snapshot-level deterministic generated-code/runtime smoke contracts."
+        override = MODULE_NOTES_OVERRIDES.get(module)
+        if override:
+            return base + " " + override
+        return base
     if status == "compile-only":
         blocker = blocker_plan(module)
         if blocker is None:
