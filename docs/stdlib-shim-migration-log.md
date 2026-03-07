@@ -219,6 +219,42 @@ Validation evidence:
 - Repo hygiene:
   - `git diff --check`
 
+### 2026-03-07: inherited IO helper loop extraction (`haxe.go-14as.52`)
+
+Implementation:
+
+- Added staged helper source:
+  - `std/haxe/io/GoIoHelpers.cross.hx`
+- Moved inherited `haxe.io.Input` / `haxe.io.Output` loop bodies out of `src/reflaxe/go/GoCompiler.hx`:
+  - `readAll`
+  - `readFullBytes`
+  - `read`
+  - `readUntil`
+  - `readLine`
+  - `write`
+  - `writeFullBytes`
+  - `writeInput`
+  - `writeString`
+- Kept compiler ownership for:
+  - public wrapper symbols (`haxe__io__input_*`, `haxe__io__output_*`)
+  - base IO type-shape generation
+  - numeric IO helpers and RawNative/cache-coupled bytes/string paths
+- Taught `GoCompiler` to resolve and queue `haxe.io.GoIoHelpers` on demand instead of requiring global inclusion.
+
+Validation evidence:
+
+- Ownership snapshot:
+  - `python3 test/run-snapshots.py --case stdlib/io_helper_source_owned_ownership --update`
+- Focused semantic parity:
+  - `python3 test/run-semantic-diff.py --case io_input_output_helpers_contract --case bytes_io_stream_contract`
+- Focused upstream sweep:
+  - `python3 test/run-upstream-stdlib-sweep.py --strict --go-test --module haxe.io.Input --module haxe.io.Output --module haxe.io.BytesInput --module haxe.io.BytesOutput`
+
+Observed result:
+
+- Generated output now routes inherited IO helper wrappers through `haxe__io__GoIoHelpers_*` symbols instead of embedding those loop bodies directly in compiler-owned declarations.
+- The staged helper extraction leaves app/example boundary policy unchanged because the helper is ordinary staged std source, not app-level raw injection.
+
 Observed result:
 
 - The repo now states the stronger default rule explicitly: library-expressible stdlib does not belong in `GoCompiler` unless there is a concrete compiler-only reason.

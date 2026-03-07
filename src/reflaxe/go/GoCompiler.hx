@@ -2189,42 +2189,11 @@ class GoCompiler {
 				},
 				{name: "bufsize", typeName: "...int"}
 			], ["*haxe__io__Bytes"], [
-				GoStmt.GoRaw("if self == nil {"),
-				GoStmt.GoRaw("\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
-				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("resolved := 1 << 14"),
 				GoStmt.GoRaw("if len(bufsize) > 0 {"),
 				GoStmt.GoRaw("\tresolved = bufsize[0]"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("buf := haxe__io__Bytes_alloc(resolved)"),
-				GoStmt.GoRaw("total := New_haxe__io__BytesBuffer()"),
-				GoStmt.GoRaw("for {"),
-				GoStmt.GoRaw("\tchunk := 0"),
-				GoStmt.GoRaw("\tthrew := false"),
-				GoStmt.GoRaw("\tvar thrown any"),
-				GoStmt.GoRaw("\tfunc() {"),
-				GoStmt.GoRaw("\t\tdefer func() {"),
-				GoStmt.GoRaw("\t\t\tif recovered := recover(); recovered != nil {"),
-				GoStmt.GoRaw("\t\t\t\tthrew = true"),
-				GoStmt.GoRaw("\t\t\t\tthrown = hxrt.UnwrapException(recovered)"),
-				GoStmt.GoRaw("\t\t\t}"),
-				GoStmt.GoRaw("\t\t}()"),
-				GoStmt.GoRaw("\t\tchunk = self.readBytes(buf, 0, resolved)"),
-				GoStmt.GoRaw("\t}()"),
-				GoStmt.GoRaw("\tif threw {"),
-				GoStmt.GoRaw("\t\tif haxe__io__input_isEof(thrown) {"),
-				GoStmt.GoRaw("\t\t\tbreak"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\thxrt.Throw(thrown)"),
-				GoStmt.GoRaw("\t\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tif chunk == 0 {"),
-				GoStmt.GoRaw("\t\thxrt.Throw(haxe__io__Error_Blocked)"),
-				GoStmt.GoRaw("\t\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\ttotal.addBytes(buf, 0, chunk)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("total"), "getBytes"), []))
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("haxe__io__GoIoHelpers_inputReadAll"), [GoExpr.GoIdent("self"), GoExpr.GoIdent("resolved")]))
 			]),
 			GoDecl.GoFuncDecl("haxe__io__input_readFullBytes", null, [
 				{
@@ -2235,19 +2204,12 @@ class GoCompiler {
 				{name: "pos", typeName: "int"},
 				{name: "len", typeName: "int"}
 			], [], [
-				GoStmt.GoRaw("if self == nil {"),
-				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_Blocked)"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("for len > 0 {"),
-				GoStmt.GoRaw("\tk := self.readBytes(s, pos, len)"),
-				GoStmt.GoRaw("\tif k == 0 {"),
-				GoStmt.GoRaw("\t\thxrt.Throw(haxe__io__Error_Blocked)"),
-				GoStmt.GoRaw("\t\treturn"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tpos += k"),
-				GoStmt.GoRaw("\tlen -= k"),
-				GoStmt.GoRaw("}")
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("haxe__io__GoIoHelpers_inputReadFullBytes"), [
+					GoExpr.GoIdent("self"),
+					GoExpr.GoIdent("s"),
+					GoExpr.GoIdent("pos"),
+					GoExpr.GoIdent("len")
+				]))
 			]),
 			GoDecl.GoFuncDecl("haxe__io__input_read", null, [
 				{
@@ -2256,18 +2218,7 @@ class GoCompiler {
 				},
 				{name: "nbytes", typeName: "int"}
 			], ["*haxe__io__Bytes"], [
-				GoStmt.GoRaw("s := haxe__io__Bytes_alloc(nbytes)"),
-				GoStmt.GoRaw("p := 0"),
-				GoStmt.GoRaw("for nbytes > 0 {"),
-				GoStmt.GoRaw("\tk := self.readBytes(s, p, nbytes)"),
-				GoStmt.GoRaw("\tif k == 0 {"),
-				GoStmt.GoRaw("\t\thxrt.Throw(haxe__io__Error_Blocked)"),
-				GoStmt.GoRaw("\t\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tp += k"),
-				GoStmt.GoRaw("\tnbytes -= k"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoIdent("s"))
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("haxe__io__GoIoHelpers_inputRead"), [GoExpr.GoIdent("self"), GoExpr.GoIdent("nbytes")]))
 			]),
 			GoDecl.GoFuncDecl("haxe__io__input_readUntil", null, [
 				{
@@ -2276,15 +2227,7 @@ class GoCompiler {
 				},
 				{name: "end", typeName: "int"}
 			], ["*string"], [
-				GoStmt.GoRaw("buf := New_haxe__io__BytesBuffer()"),
-				GoStmt.GoRaw("for {"),
-				GoStmt.GoRaw("\tlast := self.readByte()"),
-				GoStmt.GoRaw("\tif last == end {"),
-				GoStmt.GoRaw("\t\tbreak"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tbuf.addByte(last)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("buf"), "getBytes"), []), "toString"), []))
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("haxe__io__GoIoHelpers_inputReadUntil"), [GoExpr.GoIdent("self"), GoExpr.GoIdent("end")]))
 			]),
 			GoDecl.GoFuncDecl("haxe__io__input_readLine", null, [
 				{
@@ -2292,44 +2235,7 @@ class GoCompiler {
 					typeName: "haxe__io__Input"
 				}
 			], ["*string"], [
-				GoStmt.GoRaw("buf := New_haxe__io__BytesBuffer()"),
-				GoStmt.GoRaw("for {"),
-				GoStmt.GoRaw("\tlast := 0"),
-				GoStmt.GoRaw("\tthrew := false"),
-				GoStmt.GoRaw("\tvar thrown any"),
-				GoStmt.GoRaw("\tfunc() {"),
-				GoStmt.GoRaw("\t\tdefer func() {"),
-				GoStmt.GoRaw("\t\t\tif recovered := recover(); recovered != nil {"),
-				GoStmt.GoRaw("\t\t\t\tthrew = true"),
-				GoStmt.GoRaw("\t\t\t\tthrown = hxrt.UnwrapException(recovered)"),
-				GoStmt.GoRaw("\t\t\t}"),
-				GoStmt.GoRaw("\t\t}()"),
-				GoStmt.GoRaw("\t\tlast = self.readByte()"),
-				GoStmt.GoRaw("\t}()"),
-				GoStmt.GoRaw("\tif threw {"),
-				GoStmt.GoRaw("\t\tif haxe__io__input_isEof(thrown) {"),
-				GoStmt.GoRaw("\t\t\ts := buf.getBytes().toString()"),
-				GoStmt.GoRaw("\t\t\traw := *hxrt.StdString(s)"),
-				GoStmt.GoRaw("\t\t\tif len(raw) == 0 {"),
-				GoStmt.GoRaw("\t\t\t\thxrt.Throw(thrown)"),
-				GoStmt.GoRaw("\t\t\t\treturn hxrt.StringFromLiteral(\"\")"),
-				GoStmt.GoRaw("\t\t\t}"),
-				GoStmt.GoRaw("\t\t\treturn s"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\thxrt.Throw(thrown)"),
-				GoStmt.GoRaw("\t\treturn hxrt.StringFromLiteral(\"\")"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tif last == 10 {"),
-				GoStmt.GoRaw("\t\tbreak"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tbuf.addByte(last)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("s := buf.getBytes().toString()"),
-				GoStmt.GoRaw("raw := *hxrt.StdString(s)"),
-				GoStmt.GoRaw("if len(raw) > 0 && raw[len(raw)-1] == 13 {"),
-				GoStmt.GoRaw("\traw = raw[:len(raw)-1]"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("raw")]))
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("haxe__io__GoIoHelpers_inputReadLine"), [GoExpr.GoIdent("self")]))
 			]),
 			GoDecl.GoFuncDecl("haxe__io__input_readFloat", null, [
 				{
@@ -2472,20 +2378,7 @@ class GoCompiler {
 				},
 				{name: "s", typeName: "*haxe__io__Bytes"}
 			], [], [
-				GoStmt.GoRaw("if self == nil || s == nil {"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("remaining := s.length"),
-				GoStmt.GoRaw("p := 0"),
-				GoStmt.GoRaw("for remaining > 0 {"),
-				GoStmt.GoRaw("\tk := self.writeBytes(s, p, remaining)"),
-				GoStmt.GoRaw("\tif k == 0 {"),
-				GoStmt.GoRaw("\t\thxrt.Throw(haxe__io__Error_Blocked)"),
-				GoStmt.GoRaw("\t\treturn"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tp += k"),
-				GoStmt.GoRaw("\tremaining -= k"),
-				GoStmt.GoRaw("}")
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("haxe__io__GoIoHelpers_outputWrite"), [GoExpr.GoIdent("self"), GoExpr.GoIdent("s")]))
 			]),
 			GoDecl.GoFuncDecl("haxe__io__output_writeFullBytes", null, [
 				{
@@ -2496,11 +2389,12 @@ class GoCompiler {
 				{name: "pos", typeName: "int"},
 				{name: "len", typeName: "int"}
 			], [], [
-				GoStmt.GoRaw("for len > 0 {"),
-				GoStmt.GoRaw("\tk := self.writeBytes(s, pos, len)"),
-				GoStmt.GoRaw("\tpos += k"),
-				GoStmt.GoRaw("\tlen -= k"),
-				GoStmt.GoRaw("}")
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("haxe__io__GoIoHelpers_outputWriteFullBytes"), [
+					GoExpr.GoIdent("self"),
+					GoExpr.GoIdent("s"),
+					GoExpr.GoIdent("pos"),
+					GoExpr.GoIdent("len")
+				]))
 			]),
 			GoDecl.GoFuncDecl("haxe__io__output_writeFloat", null, [
 				{
@@ -2634,49 +2528,12 @@ class GoCompiler {
 				{name: "i", typeName: "haxe__io__Input"},
 				{name: "bufsize", typeName: "...int"}
 			], [], [
-				GoStmt.GoRaw("if self == nil || i == nil {"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("resolved := 4096"),
 				GoStmt.GoRaw("if len(bufsize) > 0 {"),
 				GoStmt.GoRaw("\tresolved = bufsize[0]"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("buf := haxe__io__Bytes_alloc(resolved)"),
-				GoStmt.GoRaw("for {"),
-				GoStmt.GoRaw("\tlenRead := 0"),
-				GoStmt.GoRaw("\tthrew := false"),
-				GoStmt.GoRaw("\tvar thrown any"),
-				GoStmt.GoRaw("\tfunc() {"),
-				GoStmt.GoRaw("\t\tdefer func() {"),
-				GoStmt.GoRaw("\t\t\tif recovered := recover(); recovered != nil {"),
-				GoStmt.GoRaw("\t\t\t\tthrew = true"),
-				GoStmt.GoRaw("\t\t\t\tthrown = hxrt.UnwrapException(recovered)"),
-				GoStmt.GoRaw("\t\t\t}"),
-				GoStmt.GoRaw("\t\t}()"),
-				GoStmt.GoRaw("\t\tlenRead = i.readBytes(buf, 0, resolved)"),
-				GoStmt.GoRaw("\t}()"),
-				GoStmt.GoRaw("\tif threw {"),
-				GoStmt.GoRaw("\t\tif haxe__io__input_isEof(thrown) {"),
-				GoStmt.GoRaw("\t\t\tbreak"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\thxrt.Throw(thrown)"),
-				GoStmt.GoRaw("\t\treturn"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tif lenRead == 0 {"),
-				GoStmt.GoRaw("\t\thxrt.Throw(haxe__io__Error_Blocked)"),
-				GoStmt.GoRaw("\t\treturn"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tp := 0"),
-				GoStmt.GoRaw("\tfor lenRead > 0 {"),
-				GoStmt.GoRaw("\t\tk := self.writeBytes(buf, p, lenRead)"),
-				GoStmt.GoRaw("\t\tif k == 0 {"),
-				GoStmt.GoRaw("\t\t\thxrt.Throw(haxe__io__Error_Blocked)"),
-				GoStmt.GoRaw("\t\t\treturn"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\tp += k"),
-				GoStmt.GoRaw("\t\tlenRead -= k"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}")
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("haxe__io__GoIoHelpers_outputWriteInput"),
+					[GoExpr.GoIdent("self"), GoExpr.GoIdent("i"), GoExpr.GoIdent("resolved")]))
 			]),
 			GoDecl.GoFuncDecl("haxe__io__output_writeString", null, [
 				{
@@ -2686,11 +2543,12 @@ class GoCompiler {
 				{name: "s", typeName: "*string"},
 				{name: "encoding", typeName: "...*haxe__io__Encoding"}
 			], [], [
-				GoStmt.GoRaw("if s == nil {"),
-				GoStmt.GoRaw("\ts = hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("var resolved *haxe__io__Encoding"),
+				GoStmt.GoRaw("if len(encoding) > 0 {"),
+				GoStmt.GoRaw("\tresolved = encoding[0]"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("b := haxe__io__Bytes_ofString(s, encoding...)"),
-				GoStmt.GoRaw("self.writeFullBytes(b, 0, b.length)")
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("haxe__io__GoIoHelpers_outputWriteString"),
+					[GoExpr.GoIdent("self"), GoExpr.GoIdent("s"), GoExpr.GoIdent("resolved")]))
 			]),
 			GoDecl.GoFuncDecl("New_haxe__io__BytesInput", null, [
 				{
@@ -10256,9 +10114,6 @@ class GoCompiler {
 		var typeName = classTypeName(classType);
 		var superClass = projectSuperClass(classType);
 		var ioSubclassKind = ioStdlibSubclassKind(classType);
-		if (ioSubclassKind != null) {
-			requiresIoHelperSurface = true;
-		}
 
 		var instanceDataFields = new Array<GoParam>();
 		var instanceMethods = new Array<{name:String, func:TFunc}>();
@@ -12286,6 +12141,94 @@ class GoCompiler {
 		};
 	}
 
+	function lowerTargetCodeInjectionCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		if (!isTargetCodeInjectionCallee(callee)) {
+			return null;
+		}
+
+		if (args.length == 0) {
+			Context.error("__go__ requires at least one constant String argument.", callee.pos);
+			return {
+				expr: GoExpr.GoNil,
+				isStringLike: isStringType(returnType)
+			};
+		}
+
+		var injectionString = switch (args[0].expr) {
+			case TConst(TString(value)): value;
+			case _:
+				Context.error("__go__ first parameter must be a constant String.", args[0].pos);
+				null;
+		};
+		if (injectionString == null) {
+			return {
+				expr: GoExpr.GoNil,
+				isStringLike: isStringType(returnType)
+			};
+		}
+
+		var cachedArgs:Array<Null<GoExpr>> = [for (_ in 1...args.length) null];
+		function getRenderedArg(index:Int):Null<String> {
+			if (index < 0 || index >= cachedArgs.length) {
+				return null;
+			}
+			if (cachedArgs[index] == null) {
+				cachedArgs[index] = lowerExpr(args[index + 1]).expr;
+			}
+			return GoASTPrinter.printExprForInjection(cachedArgs[index]);
+		}
+
+		var rendered = new StringBuf();
+		var lastMatchPosition:Null<{pos:Int, len:Int}> = null;
+		~/{(\d+)}/g.map(injectionString, function(ereg) {
+			var lastPos = lastMatchPosition == null ? 0 : lastMatchPosition.pos + lastMatchPosition.len;
+			lastMatchPosition = ereg.matchedPos();
+			if (lastMatchPosition.pos != lastPos) {
+				rendered.add(injectionString.substring(lastPos, lastMatchPosition.pos));
+			}
+
+			var expressionIndex = Std.parseInt(ereg.matched(1));
+			if (expressionIndex != null) {
+				var compiled = getRenderedArg(expressionIndex);
+				if (compiled != null) {
+					rendered.add(compiled);
+				}
+			}
+			return "";
+		});
+
+		if (lastMatchPosition == null) {
+			rendered.add(injectionString);
+		} else {
+			rendered.add(injectionString.substring(lastMatchPosition.pos + lastMatchPosition.len));
+		}
+
+		return {
+			expr: GoExpr.GoRaw(rendered.toString()),
+			isStringLike: isStringType(returnType)
+		};
+	}
+
+	function isTargetCodeInjectionCallee(callee:TypedExpr):Bool {
+		return switch (callee.expr) {
+			case TIdent(name):
+				name == "__go__";
+			case TLocal(variable):
+				variable.name == "__go__";
+			case TField(_, fieldAccess):
+				switch (fieldAccess) {
+					case FInstance(_, _, classField) | FStatic(_, classField) | FAnon(classField) | FClosure(_, classField):
+						classField.get().name == "__go__";
+					case FEnum(_, enumField):
+						enumField.name == "__go__";
+					case FDynamic(name):
+						name == "__go__";
+				}
+			case _:
+				false;
+		};
+	}
+
 	function materializeExprWithPrefix(lowered:LoweredExprWithPrefix, resultType:Type):LoweredExpr {
 		if (lowered.prefix.length == 0) {
 			return {
@@ -12698,6 +12641,11 @@ class GoCompiler {
 	}
 
 	function lowerCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):LoweredExpr {
+		var injectedCall = lowerTargetCodeInjectionCall(callee, args, returnType);
+		if (injectedCall != null) {
+			return injectedCall;
+		}
+
 		if (isStaticCall(callee, "Reflect", [], "fields")) {
 			requireStdlibShimGroup("stdlib_symbols");
 			requiresReflectFieldsShim = true;
@@ -15795,7 +15743,7 @@ class GoCompiler {
 
 	function noteIoHelperFieldUsage(classType:ClassType, fieldName:String):Void {
 		if (GoStdlibShimClassifier.needsIoHelperSurface(classType, fieldName, isIoInputHelperMethodName, isIoOutputHelperMethodName)) {
-			requiresIoHelperSurface = true;
+			requireIoSourceOwnedHelperSurface();
 		}
 	}
 
@@ -15852,11 +15800,35 @@ class GoCompiler {
 		}
 	}
 
+	function requireIoSourceOwnedHelperSurface():Void {
+		requiresIoHelperSurface = true;
+		requireSourceOwnedStdlibClass("haxe.io.GoIoHelpers");
+	}
+
 	function requireSourceOwnedStdlibClass(className:String):Void {
+		if (!availableClassesByName.exists(className)) {
+			var resolved = resolveSourceOwnedStdlibClass(className);
+			if (resolved != null) {
+				availableClassesByName.set(className, resolved);
+			}
+		}
 		if (!availableClassesByName.exists(className) || pendingRequiredClassesByName.exists(className)) {
 			return;
 		}
 		pendingRequiredClassesByName.set(className, availableClassesByName.get(className));
+	}
+
+	function resolveSourceOwnedStdlibClass(className:String):Null<ClassType> {
+		try {
+			return switch (Context.getType(className)) {
+				case TInst(classRef, _):
+					classRef.get();
+				case _:
+					null;
+			};
+		} catch (_:Dynamic) {
+			return null;
+		}
 	}
 
 	function requireSourceOwnedStdlibEnum(enumName:String):Void {

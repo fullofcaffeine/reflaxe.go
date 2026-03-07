@@ -3,40 +3,21 @@ package main
 import (
 	"math"
 	"snapshot/hxrt"
-	"unicode/utf16"
 )
 
-func bytesHex(value *haxe__io__Bytes) *string {
-	var out_b *string
-	out_b = hxrt.StringFromLiteral("")
-	_g := 0
-	_g1 := value.length
-	for _g < _g1 {
-		hx_post_1 := _g
-		_g = int(int32((_g + 1)))
-		i := hx_post_1
-		if i > 0 {
-			out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral(","))
-		}
-		x := value.b[i]
-		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x))
-	}
-	return out_b
-}
-
 func main() {
-	sample := hxrt.StringFromLiteral("hé")
-	utf8 := haxe__io__Bytes_ofString(sample, haxe__io__Encoding_UTF8)
-	rawNative := haxe__io__Bytes_ofString(sample, haxe__io__Encoding_RawNative)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("utf8.len="), utf8.length), hxrt.StringFromLiteral(" hex=")), bytesHex(utf8)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("raw.len="), rawNative.length), hxrt.StringFromLiteral(" hex=")), bytesHex(rawNative)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("raw.get="), rawNative.getString(0, rawNative.length, haxe__io__Encoding_RawNative)))
-	output := New_haxe__io__BytesOutput()
-	output.writeString(sample, haxe__io__Encoding_RawNative)
-	written := output.getBytes()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("out.raw.hex="), bytesHex(written)))
-	input := New_haxe__io__BytesInput(written)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("in.raw="), input.readString(written.length, haxe__io__Encoding_RawNative)))
+	lines := New_haxe__io__BytesInput(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("first\r\nsecond")))
+	hxrt.Println(lines.readLine())
+	hxrt.Println(lines.readLine())
+	replay := New_haxe__io__BytesInput(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("012345")))
+	buf := haxe__io__Bytes_alloc(4)
+	replay.readFullBytes(buf, 0, 4)
+	hxrt.Println(buf.toString())
+	copyOut := New_haxe__io__BytesOutput()
+	copyOut.writeInput(New_haxe__io__BytesInput(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("xy"))))
+	hxrt.Println(copyOut.getBytes().toString())
+	all := New_haxe__io__BytesInput(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("zz"))).readAll()
+	hxrt.Println(all.toString())
 }
 
 type haxe__io__Encoding struct {
@@ -161,14 +142,7 @@ func haxe__io__resolveEncodingTag(encoding ...*haxe__io__Encoding) int {
 }
 
 func haxe__io__bytes_fromStringRawNativeUTF16LE(value *string) *haxe__io__Bytes {
-	runes := []rune(*hxrt.StdString(value))
-	units := utf16.Encode(runes)
-	raw := make([]byte, len(units)*2)
-	for i := 0; i < len(units); i++ {
-		unit := units[i]
-		raw[i*2] = byte(unit)
-		raw[i*2+1] = byte(unit >> 8)
-	}
+	raw := []byte(*hxrt.StdString(value))
 	converted := make([]int, len(raw))
 	for i := 0; i < len(raw); i++ {
 		converted[i] = int(raw[i])
@@ -177,20 +151,7 @@ func haxe__io__bytes_fromStringRawNativeUTF16LE(value *string) *haxe__io__Bytes 
 }
 
 func haxe__io__bytes_toStringRawNativeUTF16LE(value []int) *string {
-	if len(value) == 0 {
-		return hxrt.StringFromLiteral("")
-	}
-	limit := len(value)
-	if (limit & 1) == 1 {
-		limit--
-	}
-	units := make([]uint16, limit/2)
-	for i := 0; i < len(units); i++ {
-		low := uint16(value[i*2] & 0xFF)
-		high := uint16(value[i*2+1] & 0xFF)
-		units[i] = low | (high << 8)
-	}
-	return hxrt.StringFromLiteral(string(utf16.Decode(units)))
+	return hxrt.BytesToString(value)
 }
 
 func (self *haxe__io__Eof) toString() *string {
