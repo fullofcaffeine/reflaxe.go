@@ -12,44 +12,32 @@ import (
 )
 
 func main() {
-	http := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,hello%20from%20haxe.go"))
+	http := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,hello%20leaf"))
 	sink := New_haxe__io__BytesBuffer()
 	http.customRequest(false, sink)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("custom="), sink.getBytes().toString()))
 	values := http.getResponseHeaderValues(hxrt.StringFromLiteral("Content-Type"))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("headers="), func() int {
-		var hx_if_10 int
-		if values == nil {
-			hx_if_10 = -1
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("headers="), func() *string {
+		var hx_if_10 *string
+		if (values != nil) && (len(values) > 0) {
+			hx_if_10 = values[0]
 		} else {
-			hx_if_10 = len(values)
+			hx_if_10 = hxrt.StringFromLiteral("null")
 		}
 		return hx_if_10
 	}()))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("header0="), func() *string {
-		var hx_if_11 *string
-		if (values != nil) && (len(values) > 0) {
-			hx_if_11 = values[0]
-		} else {
-			hx_if_11 = hxrt.StringFromLiteral("none")
-		}
-		return hx_if_11
-	}()))
-	putSink := New_haxe__io__BytesBuffer()
-	http.customRequest(false, putSink, nil, hxrt.StringFromLiteral("PUT"))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("method="), putSink.getBytes().toString()))
-	upload := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,ignored"))
-	upload.setParameter(hxrt.StringFromLiteral("token"), hxrt.StringFromLiteral("42"))
-	upload.fileTransfer(hxrt.StringFromLiteral("asset"), hxrt.StringFromLiteral("demo.txt"), func(hx_value_12 any) haxe__io__Input {
-		if hx_value_12 == nil {
-			var hx_zero_13 haxe__io__Input
-			return hx_zero_13
-		}
-		return hx_value_12.(haxe__io__Input)
-	}(nil), 4, hxrt.StringFromLiteral("text/plain"))
-	uploadSink := New_haxe__io__BytesBuffer()
-	upload.customRequest(true, uploadSink)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("upload="), uploadSink.getBytes().toString()))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("direct="), sys__Http_requestUrl(hxrt.StringFromLiteral("data:text/plain,direct%20ok"))))
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy0="), sys__Http_hxrt_proxyDescriptor()))
+	sys__Http_PROXY = func() map[string]any {
+		hx_obj_11 := map[string]any{}
+		hx_obj_11["host"] = hxrt.StringFromLiteral("proxy.local")
+		hx_obj_11["port"] = 3128
+		hx_obj_12 := map[string]any{}
+		hx_obj_12["user"] = hxrt.StringFromLiteral("scott")
+		hx_obj_12["pass"] = hxrt.StringFromLiteral("tiger")
+		hx_obj_11["auth"] = hx_obj_12
+		return hx_obj_11
+	}()
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy1="), sys__Http_hxrt_proxyDescriptor()))
 }
 
 type haxe__io__Encoding struct {

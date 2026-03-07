@@ -69,7 +69,7 @@ Current staged Tier1 coverage includes the JSON family and `StringTools`, with a
   - Tracking: `haxe.go-14as.52`
 - `sys.Http`
   - Tier1 mapping still treats the surface as compiler-owned because request/callback choreography remains one semantic contract.
-  - The audit narrowed any future extraction to leaf payload/proxy helpers only; core request sequencing stays in compiler scope unless parity evidence proves otherwise.
+  - The audit narrowed extraction to leaf payload/proxy helpers only; `getResponseHeaderValues` and payload capture now live in `std/sys/GoHttpHelpers.cross.hx`, while core request sequencing and proxy URL construction stay in compiler scope unless parity evidence proves otherwise.
   - Tracking: `haxe.go-14as.53`
 
 ## Governance Rule

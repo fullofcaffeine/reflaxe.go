@@ -293,6 +293,27 @@ Validation evidence:
 Observed result:
 
 - The repository now has an explicit post-`__go__` ownership policy instead of an implicit “leave it in `GoCompiler` because raw injection is awkward” bias.
+
+### 2026-03-07: `sys.Http` leaf helper extraction (`haxe.go-14as.53`)
+
+Implementation:
+
+- Added staged helper module:
+  - `std/sys/GoHttpHelpers.cross.hx`
+- Routed `sys.Http.getResponseHeaderValues` through the staged helper instead of keeping the lookup glue in `GoCompiler`.
+- Routed HTTP payload capture fan-out for `customRequest` through the staged helper instead of keeping the type-switch leaf block in `GoCompiler`.
+- Kept request lifecycle, callback ordering, response normalization, and proxy URL construction compiler-owned.
+- Used framework-owned `@:goAllowRaw` bridges only for the hidden generated-shape access that staged Haxe cannot express directly.
+
+Validation evidence:
+
+- `python3 test/run-snapshots.py --case sys/http_helper_source_owned_ownership --case sys/http_custom_request_parity --case sys/http_proxy_socket_contract --update`
+- `python3 test/run-semantic-diff.py --case http_request_callbacks_contract --case http_proxy_custom_request`
+
+Observed result:
+
+- `sys.Http` now uses a source-owned helper island for the first safe leaf extractions without weakening the existing request/callback semantic contract.
+- Header lookup kept the case-insensitive fallback behavior by normalizing keys inside the staged raw bridge instead of relying on unsupported staged `String.toLowerCase()` lowering.
 - Future stdlib work can use framework-owned raw helper islands without weakening the app/example boundary rules or replacing typed extern metadata.
 
 ### 2026-03-07: first `haxe.io.Bytes` helper extraction to `hxrt` (`haxe.go-14as.51`)

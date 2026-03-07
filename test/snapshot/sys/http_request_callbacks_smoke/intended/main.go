@@ -1051,30 +1051,7 @@ func (self *sys__Http) fileTransfert(argname *string, filename *string, file any
 }
 
 func (self *sys__Http) getResponseHeaderValues(key *string) []*string {
-	if self == nil {
-		return nil
-	}
-	rawKey := *hxrt.StdString(key)
-	normalized := strings.ToLower(rawKey)
-	if self.responseHeadersSameKey != nil {
-		if values, ok := self.responseHeadersSameKey[rawKey]; ok {
-			return values
-		}
-		if values, ok := self.responseHeadersSameKey[normalized]; ok {
-			return values
-		}
-	}
-	if self.responseHeaders == nil {
-		return nil
-	}
-	single := self.responseHeaders.get(hxrt.StringFromLiteral(rawKey))
-	if single == nil && rawKey != normalized {
-		single = self.responseHeaders.get(hxrt.StringFromLiteral(normalized))
-	}
-	if single == nil {
-		return nil
-	}
-	return []*string{hxrt.StdString(single)}
+	return sys__GoHttpHelpers_getResponseHeaderValues(self, key)
 }
 
 func (self *sys__Http) get_responseData() *string {
@@ -1375,25 +1352,7 @@ func (self *sys__Http) hxrt__http__requestWith(post bool, methodOverride *string
 }
 
 func hxrt__http__captureApi(api any, payload *haxe__io__Bytes) {
-	if api == nil || payload == nil {
-		return
-	}
-	switch out := api.(type) {
-	case *haxe__io__BytesBuffer:
-		out.add(payload)
-	case interface{ add(*haxe__io__Bytes) }:
-		out.add(payload)
-	case interface {
-		writeBytes(*haxe__io__Bytes, int, int) int
-	}:
-		out.writeBytes(payload, 0, payload.length)
-	case interface {
-		writeFullBytes(*haxe__io__Bytes, int, int)
-	}:
-		out.writeFullBytes(payload, 0, payload.length)
-	case interface{ writeString(*string) }:
-		out.writeString(payload.toString())
-	}
+	sys__GoHttpHelpers_captureApi(api, payload)
 }
 
 func hxrt__http__proxyURL() *url.URL {

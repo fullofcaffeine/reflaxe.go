@@ -4137,29 +4137,7 @@ class GoCompiler {
 			],
 				[], [GoStmt.GoRaw("self.fileTransfer(argname, filename, file, size, mimeType...)")]),
 			GoDecl.GoFuncDecl("getResponseHeaderValues", {name: "self", typeName: "*sys__Http"}, [{name: "key", typeName: "*string"}], ["[]*string"], [
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
-				GoStmt.GoVarDecl("rawKey", null, GoExpr.GoRaw("*hxrt.StdString(key)"), true),
-				GoStmt.GoVarDecl("normalized", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "ToLower"), [GoExpr.GoIdent("rawKey")]), true),
-				GoStmt.GoRaw("if self.responseHeadersSameKey != nil {"),
-				GoStmt.GoRaw("\tif values, ok := self.responseHeadersSameKey[rawKey]; ok {"),
-				GoStmt.GoRaw("\t\treturn values"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tif values, ok := self.responseHeadersSameKey[normalized]; ok {"),
-				GoStmt.GoRaw("\t\treturn values"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseHeaders"), GoExpr.GoNil),
-					[GoStmt.GoReturn(GoExpr.GoNil)], null),
-				GoStmt.GoVarDecl("single", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "responseHeaders"), "get"),
-					[
-						GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("rawKey")])
-					]),
-					true),
-				GoStmt.GoRaw("if single == nil && rawKey != normalized {"),
-				GoStmt.GoRaw("\tsingle = self.responseHeaders.get(hxrt.StringFromLiteral(normalized))"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("single"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
-				GoStmt.GoReturn(GoExpr.GoRaw("[]*string{hxrt.StdString(single)}"))
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("sys__GoHttpHelpers_getResponseHeaderValues"), [GoExpr.GoIdent("self"), GoExpr.GoIdent("key")]))
 			]),
 			GoDecl.GoFuncDecl("get_responseData", {
 				name: "self",
@@ -4528,21 +4506,7 @@ class GoCompiler {
 				},
 				{name: "payload", typeName: "*haxe__io__Bytes"}
 			], [], [
-				GoStmt.GoRaw("if api == nil || payload == nil {"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("switch out := api.(type) {"),
-				GoStmt.GoRaw("case *haxe__io__BytesBuffer:"),
-				GoStmt.GoRaw("\tout.add(payload)"),
-				GoStmt.GoRaw("case interface{ add(*haxe__io__Bytes) }:"),
-				GoStmt.GoRaw("\tout.add(payload)"),
-				GoStmt.GoRaw("case interface{ writeBytes(*haxe__io__Bytes, int, int) int }:"),
-				GoStmt.GoRaw("\tout.writeBytes(payload, 0, payload.length)"),
-				GoStmt.GoRaw("case interface{ writeFullBytes(*haxe__io__Bytes, int, int) }:"),
-				GoStmt.GoRaw("\tout.writeFullBytes(payload, 0, payload.length)"),
-				GoStmt.GoRaw("case interface{ writeString(*string) }:"),
-				GoStmt.GoRaw("\tout.writeString(payload.toString())"),
-				GoStmt.GoRaw("}"),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("sys__GoHttpHelpers_captureApi"), [GoExpr.GoIdent("api"), GoExpr.GoIdent("payload")]))
 			]),
 			GoDecl.GoFuncDecl("hxrt__http__proxyURL", null, [], ["*url.URL"], [
 				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("sys__Http_PROXY"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
@@ -15739,6 +15703,9 @@ class GoCompiler {
 
 	function requireStdlibShimGroup(group:String):Void {
 		requiredStdlibShimGroups.set(group, true);
+		if (group == "http") {
+			requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
+		}
 	}
 
 	function noteIoHelperFieldUsage(classType:ClassType, fieldName:String):Void {
@@ -15790,6 +15757,8 @@ class GoCompiler {
 				requireSourceOwnedStdlibClass("haxe.ds.ListSort");
 			case "haxe.Utf8":
 				requireSourceOwnedStdlibClass("haxe.Utf8");
+			case "sys.Http":
+				requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
 			case "haxe.Template":
 				Context.fatalError("Direct haxe.Template usage is not supported yet on haxe.go; staged source inclusion still misses module-local enum emission. Track haxe.go-14as.38.",
 					classType.pos);

@@ -1,0 +1,4 @@
+headers=text/plain
+direct=direct ok
+proxy0=null
+proxy1=http://scott:tiger@proxy.local:3128
