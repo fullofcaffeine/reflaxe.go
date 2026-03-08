@@ -10467,6 +10467,17 @@ class GoCompiler {
 		return null;
 	}
 
+	function ioStdlibClassOrSubclassKind(classType:ClassType):Null<String> {
+		var pack = classType.pack.join(".");
+		if (pack == "haxe.io" && classType.name == "Input") {
+			return "input";
+		}
+		if (pack == "haxe.io" && classType.name == "Output") {
+			return "output";
+		}
+		return ioStdlibSubclassKind(classType);
+	}
+
 	function ioSyntheticMethod(receiverType:String, name:String, params:Array<GoParam>, results:Array<String>, body:Array<GoStmt>):GoDecl {
 		return GoDecl.GoFuncDecl(name, {name: "self", typeName: receiverType}, params, results, body);
 	}
@@ -11845,6 +11856,9 @@ class GoCompiler {
 		return switch (callee.expr) {
 			case TField(_, FStatic(classRef, field)):
 				staticFunctionInfos.get(staticSymbol(classRef.get(), field.get().name));
+			case TField(_, FInstance(_, _, field)) | TField(_, FAnon(field)) | TField(_, FClosure(_, field)):
+				var func = unwrapFunction(field.get().expr());
+				func == null ? null : buildFunctionInfo(func);
 			case TLocal(variable):
 				lookupLocalFunction(localVarName(variable));
 			case TMeta(_, inner):
@@ -11858,16 +11872,69 @@ class GoCompiler {
 		};
 	}
 
-	function isDirectTemplateExecuteCall(callee:TypedExpr):Bool {
+	function calleeReceiverClass(target:TypedExpr):Null<ClassType> {
+		return switch (Context.follow(target.t)) {
+			case TInst(classRef, _):
+				classRef.get();
+			case _:
+				null;
+		};
+	}
+
+	// Some staged std/compiler-owned methods already lower optional arguments into
+	// Go-native rest/vararg shapes. Source-level padding would duplicate those
+	// omitted args and change call arity at the emitted Go boundary.
+	function shouldSkipInstanceDefaultArgPadding(classType:ClassType, fieldName:String):Bool {
+		if (classType.pack.length == 0 && classType.name == "EReg" && fieldName == "matchSub") {
+			return true;
+		}
+
+		if (classType.pack.length == 1 && classType.pack[0] == "sys" && classType.name == "Http") {
+			return switch (fieldName) {
+				case "request", "customRequest":
+					true;
+				case _:
+					false;
+			};
+		}
+
+		return switch (ioStdlibClassOrSubclassKind(classType)) {
+			case "input":
+				switch (fieldName) {
+					case "readAll", "readString":
+						true;
+					case _:
+						false;
+				}
+			case "output":
+				switch (fieldName) {
+					case "writeInput", "writeString":
+						true;
+					case _:
+						false;
+				}
+			case _:
+				false;
+		};
+	}
+
+	function shouldApplySourceDefaultArgPadding(callee:TypedExpr):Bool {
 		return switch (callee.expr) {
-			case TField(_, FInstance(classRef, _, field)): var classType = classRef.get(); classType.module == "haxe.Template" && field.get()
-					.name == "execute";
+			case TField(_, FStatic(_, _)):
+				true;
+			case TField(target, FInstance(classRef, _, field)):
+				!shouldSkipInstanceDefaultArgPadding(classRef.get(), field.get().name);
+			case TField(target, FAnon(field)) | TField(target, FClosure(_, field)):
+				var classType = calleeReceiverClass(target);
+				classType == null ? true : !shouldSkipInstanceDefaultArgPadding(classType, field.get().name);
+			case TLocal(_):
+				true;
 			case TMeta(_, inner):
-				isDirectTemplateExecuteCall(inner);
+				shouldApplySourceDefaultArgPadding(inner);
 			case TParenthesis(inner):
-				isDirectTemplateExecuteCall(inner);
+				shouldApplySourceDefaultArgPadding(inner);
 			case TCast(inner, _):
-				isDirectTemplateExecuteCall(inner);
+				shouldApplySourceDefaultArgPadding(inner);
 			case _:
 				false;
 		};
@@ -13016,7 +13083,7 @@ class GoCompiler {
 			loweredArgs.push(loweredArg);
 		}
 		var functionInfo = resolveFunctionInfo(callee);
-		if (functionInfo != null && loweredArgs.length < functionInfo.defaults.length) {
+		if (functionInfo != null && shouldApplySourceDefaultArgPadding(callee) && loweredArgs.length < functionInfo.defaults.length) {
 			for (i in loweredArgs.length...functionInfo.defaults.length) {
 				var defaultValue = functionInfo.defaults[i];
 				if (defaultValue == null) {
@@ -13024,9 +13091,6 @@ class GoCompiler {
 				}
 				loweredArgs.push(lowerExpr(defaultValue).expr);
 			}
-		}
-		if (isDirectTemplateExecuteCall(callee) && loweredArgs.length == 1) {
-			loweredArgs.push(GoExpr.GoNil);
 		}
 
 		var callExpr:GoExpr = GoExpr.GoCall(lowerExpr(callee).expr, loweredArgs);
