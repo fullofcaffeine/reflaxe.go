@@ -1040,6 +1040,37 @@ class GoCompiler {
 		return "[]*string{" + entries.join(", ") + "}";
 	}
 
+	/**
+		What: materialize the backend-owned `haxe.Resource.content` table.
+
+		Why: `haxe.Resource` methods can come from source-owned std inclusion, but the
+		actual resource payloads are exposed to targets through compiler resources
+		(`Context.getResources()` / `__resources__()`), not reusable Haxe source. If we
+		do nothing, generated Go has the helper methods but an empty content table.
+
+		How: sort resource names for deterministic output and emit the existing
+		`Array<{name,data,str}>` shape as `[]map[string]any`, storing every payload in the
+		`data` field as base64 so both text and binary resources flow through the std
+		`getString` / `getBytes` decode paths unchanged.
+	**/
+	function haxeResourceContentLiteral():GoExpr {
+		var resources = Context.getResources();
+		var names = [for (name in resources.keys()) name];
+		names.sort(function(a, b) return Reflect.compare(a, b));
+		if (names.length == 0) {
+			return GoExpr.GoRaw("[]map[string]any{}");
+		}
+
+		var entries = new Array<String>();
+		for (name in names) {
+			var bytes = resources.get(name);
+			var encoded = bytes == null ? "" : haxe.crypto.Base64.encode(bytes);
+			entries.push('map[string]any{"name": hxrt.StringFromLiteral(' + goRawQuotedString(name) + '), "data": hxrt.StringFromLiteral('
+				+ goRawQuotedString(encoded) + '), "str": nil}');
+		}
+		return GoExpr.GoRaw("[]map[string]any{" + entries.join(", ") + "}");
+	}
+
 	function classHasInstanceLayout(classType:ClassType):Bool {
 		var instanceDataCount = 0;
 		var instanceMethodCount = 0;
@@ -10156,8 +10187,13 @@ class GoCompiler {
 					if (field.name == "__init__") {
 						continue;
 					}
-					var valueExpr = field.expr();
-					decls.push(GoDecl.GoGlobalVarDecl(symbol, scalarGoType(field.type), valueExpr == null ? null : lowerExpr(valueExpr).expr));
+					var loweredValue = if (fullClassName(classType) == "haxe.Resource" && field.name == "content") {
+						haxeResourceContentLiteral();
+					} else {
+						var valueExpr = field.expr();
+						valueExpr == null ? null : lowerExpr(valueExpr).expr;
+					}
+					decls.push(GoDecl.GoGlobalVarDecl(symbol, scalarGoType(field.type), loweredValue));
 				case FMethod(_):
 					var func = unwrapFunction(field.expr());
 					if (func != null) {

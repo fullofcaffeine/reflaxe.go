@@ -463,6 +463,28 @@ Observed result:
 - `StringTools` no longer bloats `GoCompiler` with library semantics.
 - Existing StringTools consumers now compile through the staged std source, and iterator helper modules are emitted as normal modules rather than shim-group fragments.
 
+### 2026-03-07: `haxe.Resource` embedded payload table wired from compiler resources (`haxe.go-14as.30`)
+
+Implementation:
+
+- Added runtime snapshot coverage in `test/snapshot/stdlib/haxe_resource_embedded_basic` with a real `--resource greet.txt@greet` input.
+- Kept the `haxe.Resource` methods source-owned, but moved the actual `content` payload population into `GoCompiler`.
+- Materialized `haxe__Resource_content` from `Context.getResources()` as a deterministic `[]map[string]any` literal, encoding every payload into the existing base64-backed `data` field so std `getString` / `getBytes` semantics stay unchanged.
+
+Validation evidence:
+
+- Red snapshot:
+  - `python3 test/run-snapshots.py --case stdlib/haxe_resource_embedded_basic --runtime`
+- Green validation:
+  - `python3 test/run-snapshots.py --case stdlib/haxe_resource_embedded_basic --runtime --update`
+  - `python3 test/run-semantic-diff.py --case direct_haxe_resource_contract`
+  - `python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict --go-test --module haxe.Resource`
+
+Observed result:
+
+- `haxe.Resource` no longer has the “compiles but empty at runtime” failure mode when `--resource` is used.
+- Ownership is explicit: std methods stay source-owned, while backend resource extraction remains compiler-owned because the data originates in compiler resources rather than reusable Haxe source.
+
 ### 2026-03-06: `DateTools` helper surface moved from compiler shims to staged std (`haxe.go-14as.35`)
 
 Implementation:
