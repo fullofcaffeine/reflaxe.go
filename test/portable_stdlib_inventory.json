@@ -610,19 +610,17 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_template_direct",
-      "blocker_issue": "haxe.go-14as.38",
-      "closure_target": "2026-03-27",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Template",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.38 (haxe_template_direct); closure target 2026-03-27.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.Template constructor/execute usage now has semantic-diff coverage through a staged std override in std/haxe/Template.cross.hx. Evidence: semantic_diff/haxe_template_contract and stdlib/haxe_template_basic.",
+      "owner": "staged_std",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "blocker_family": "haxe_event_loop_direct",

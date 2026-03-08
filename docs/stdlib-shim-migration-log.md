@@ -429,6 +429,11 @@ Validation evidence:
 
 ### 2026-03-06: direct `haxe.Log` / `haxe.Resource` / `haxe.SysTools` support and explicit helper blockers (`haxe.go-14as.25`)
 
+Historical note:
+
+- The direct `haxe.Template` blocker listed below was closed on 2026-03-08 by `haxe.go-14as.38`.
+- The direct `haxe.ValueException` blocker remains open.
+
 Implementation:
 
 - Routed direct `haxe.Log` and `haxe.Resource` references through source-owned std inclusion instead of leaving them as missing symbols in generated output.
@@ -440,18 +445,17 @@ Implementation:
   - `test/snapshot/negative/direct_haxe_template_unsupported`
   - `test/snapshot/negative/direct_haxe_value_exception_unsupported`
 - Split the remaining debt into focused blocker beads:
-  - `haxe.go-14as.38` (`haxe.Template`)
   - `haxe.go-14as.39` (`haxe.ValueException`)
 
 Validation evidence:
 
 - `python3 test/run-semantic-diff.py --case direct_haxe_helpers_contract --case direct_haxe_resource_contract`
-- `python3 test/run-snapshots.py --case negative/direct_haxe_template_unsupported --case negative/direct_haxe_value_exception_unsupported`
+- `python3 test/run-snapshots.py --case negative/direct_haxe_value_exception_unsupported`
 
 Observed result:
 
 - Direct `haxe.Log`, `haxe.Resource`, and `haxe.SysTools` references no longer fall off the backend as undefined symbols.
-- `haxe.Template` and `haxe.ValueException` no longer fail late in `go test`; they now fail fast with named blockers and regression fixtures until the underlying architecture gaps are closed.
+- `haxe.ValueException` no longer fails late in `go test`; it now fails fast with a named blocker and regression fixture until the remaining boxing/message parity gap is closed.
 - Regression coverage on existing callers:
   - `python3 test/run-semantic-diff.py --case stringtools_math --case file_read_write_contract --case process_echo_contract --case http_proxy_custom_request --case http_request_callbacks_contract`
 - Snapshot coverage:
@@ -462,6 +466,32 @@ Observed result:
 
 - `StringTools` no longer bloats `GoCompiler` with library semantics.
 - Existing StringTools consumers now compile through the staged std source, and iterator helper modules are emitted as normal modules rather than shim-group fragments.
+
+### 2026-03-08: direct `haxe.Template` support via staged std override (`haxe.go-14as.38`)
+
+Implementation:
+
+- Replaced the old direct `haxe.Template` hard-fail with real module inclusion.
+- Added `std/haxe/Template.cross.hx` so `haxe.go` owns the portable `Template` constructor/execute contract in staged std code instead of trying to force the untouched upstream module through unsupported source-owned assumptions.
+- Extended the backend/runtime just enough to support that contract cleanly:
+  - direct `Template.execute(context)` now gets an explicit omitted-`macros` bridge instead of relying on a generic instance-method default-argument padding rule
+  - `Reflect_getProperty`, `Reflect_isObject`, and `Reflect_callMethod` are emitted only when the new `template_support` shim group is required
+  - a narrow package-level helper (`haxe__Template_anyArrayToSlice_runtime`) bridges dynamic Go slice/array iteration back to staged std code without bloating `hxrt/core.go`
+- Added direct parity coverage:
+  - `test/semantic_diff/haxe_template_contract`
+  - `test/snapshot/stdlib/haxe_template_basic`
+- Retired the old negative blocker fixture:
+  - `test/snapshot/negative/direct_haxe_template_unsupported`
+
+Validation evidence:
+
+- `python3 test/run-semantic-diff.py --case haxe_template_contract`
+- `python3 test/run-snapshots.py --case stdlib/haxe_template_basic --update`
+
+Observed result:
+
+- Direct `new haxe.Template(...).execute(...)` now compiles and runs under the portable contract.
+- The ownership boundary is clearer: `Template` semantics now live in staged std code, while the compiler/runtime only provide the narrow helper surfaces the override genuinely needs.
 
 ### 2026-03-07: `haxe.Resource` embedded payload table wired from compiler resources (`haxe.go-14as.30`)
 

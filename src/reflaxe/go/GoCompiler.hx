@@ -430,6 +430,9 @@ class GoCompiler {
 			imports.push("strings");
 			imports.push("time");
 		}
+		if (requiredStdlibShimGroups.exists("template_support")) {
+			imports.push("reflect");
+		}
 		if (requiredStdlibShimGroups.exists("filesystem")) {
 			imports.push("os");
 			imports.push("path/filepath");
@@ -1497,6 +1500,9 @@ class GoCompiler {
 		}
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			decls = decls.concat(lowerStdlibSymbolShimDecls());
+		}
+		if (requiredStdlibShimGroups.exists("template_support")) {
+			decls = decls.concat(lowerTemplateSupportShimDecls());
 		}
 		if (requiredStdlibShimGroups.exists("regex_serializer")) {
 			decls = decls.concat(lowerRegexSerializerShimDecls());
@@ -7001,6 +7007,97 @@ class GoCompiler {
 		];
 	}
 
+	function lowerTemplateSupportShimDecls():Array<GoDecl> {
+		return [
+			GoDecl.GoFuncDecl("haxe__Template_anyArrayToSlice_runtime", null, [{name: "value", typeName: "any"}], ["[]any"], [
+				GoStmt.GoRaw("if value == nil {"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("rv := reflect.ValueOf(value)"),
+				GoStmt.GoRaw("if !rv.IsValid() {"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if rv.Kind() == reflect.Pointer {"),
+				GoStmt.GoRaw("\tif rv.IsNil() {"),
+				GoStmt.GoRaw("\t\treturn nil"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\trv = rv.Elem()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if rv.Kind() != reflect.Slice && rv.Kind() != reflect.Array {"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("out := make([]any, rv.Len())"),
+				GoStmt.GoRaw("for i := 0; i < rv.Len(); i++ {"),
+				GoStmt.GoRaw("\titem := rv.Index(i)"),
+				GoStmt.GoRaw("\tif item.CanInterface() {"),
+				GoStmt.GoRaw("\t\tout[i] = item.Interface()"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return out")
+			]),
+			GoDecl.GoFuncDecl("Reflect_getProperty", null, [
+				{
+					name: "obj",
+					typeName: "any"
+				},
+				{name: "field", typeName: "*string"}
+			], ["any"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("Reflect_field"), [GoExpr.GoIdent("obj"), GoExpr.GoIdent("field")]))
+			]),
+			GoDecl.GoFuncDecl("Reflect_isObject", null, [
+				{
+					name: "obj",
+					typeName: "any"
+				}
+			], ["bool"], [
+				GoStmt.GoRaw("if obj == nil {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("rv := reflect.ValueOf(obj)"),
+				GoStmt.GoRaw("if !rv.IsValid() {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("switch rv.Kind() {"),
+				GoStmt.GoRaw("case reflect.Pointer, reflect.Interface:"),
+				GoStmt.GoRaw("\tif rv.IsNil() {"),
+				GoStmt.GoRaw("\t\treturn false"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn Reflect_isObject(rv.Elem().Interface())"),
+				GoStmt.GoRaw("case reflect.Struct, reflect.Map:"),
+				GoStmt.GoRaw("\treturn true"),
+				GoStmt.GoRaw("default:"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("Reflect_callMethod", null, [
+				{
+					name: "obj",
+					typeName: "any"
+				},
+				{name: "funcValue", typeName: "any"},
+				{name: "args", typeName: "[]any"}
+			], ["any"], [
+				GoStmt.GoRaw("_ = obj"),
+				GoStmt.GoRaw("if funcValue == nil {"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("fn := reflect.ValueOf(funcValue)"),
+				GoStmt.GoRaw("if !fn.IsValid() || fn.Kind() != reflect.Func {"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("callArgs := make([]reflect.Value, 0, len(args))"),
+				GoStmt.GoRaw("for _, arg := range args {"),
+				GoStmt.GoRaw("\tcallArgs = append(callArgs, reflect.ValueOf(arg))"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("results := fn.Call(callArgs)"),
+				GoStmt.GoRaw("if len(results) == 0 {"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return results[0].Interface()")
+			])
+		];
+	}
+
 	function lowerRegexSerializerShimDecls():Array<GoDecl> {
 		var classMetadata = serializerClassMetadata();
 		var classLookupBody = [GoStmt.GoRaw("switch typeName {")];
@@ -11750,8 +11847,29 @@ class GoCompiler {
 				staticFunctionInfos.get(staticSymbol(classRef.get(), field.get().name));
 			case TLocal(variable):
 				lookupLocalFunction(localVarName(variable));
+			case TMeta(_, inner):
+				resolveFunctionInfo(inner);
+			case TParenthesis(inner):
+				resolveFunctionInfo(inner);
+			case TCast(inner, _):
+				resolveFunctionInfo(inner);
 			case _:
 				null;
+		};
+	}
+
+	function isDirectTemplateExecuteCall(callee:TypedExpr):Bool {
+		return switch (callee.expr) {
+			case TField(_, FInstance(classRef, _, field)): var classType = classRef.get(); classType.module == "haxe.Template" && field.get()
+					.name == "execute";
+			case TMeta(_, inner):
+				isDirectTemplateExecuteCall(inner);
+			case TParenthesis(inner):
+				isDirectTemplateExecuteCall(inner);
+			case TCast(inner, _):
+				isDirectTemplateExecuteCall(inner);
+			case _:
+				false;
 		};
 	}
 
@@ -12906,6 +13024,9 @@ class GoCompiler {
 				}
 				loweredArgs.push(lowerExpr(defaultValue).expr);
 			}
+		}
+		if (isDirectTemplateExecuteCall(callee) && loweredArgs.length == 1) {
+			loweredArgs.push(GoExpr.GoNil);
 		}
 
 		var callExpr:GoExpr = GoExpr.GoCall(lowerExpr(callee).expr, loweredArgs);
@@ -15799,8 +15920,9 @@ class GoCompiler {
 			case "sys.Http":
 				requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
 			case "haxe.Template":
-				Context.fatalError("Direct haxe.Template usage is not supported yet on haxe.go; staged source inclusion still misses module-local enum emission. Track haxe.go-14as.38.",
-					classType.pos);
+				requireSourceOwnedStdlibModule("haxe.Template");
+				requireStdlibShimGroup("stdlib_symbols");
+				requireStdlibShimGroup("template_support");
 			case "haxe.ValueException":
 				Context.fatalError("Direct haxe.ValueException usage is not supported yet on haxe.go; string payload parity still depends on unresolved Any/string boxing semantics. Track haxe.go-14as.39.",
 					classType.pos);
@@ -15826,6 +15948,41 @@ class GoCompiler {
 		pendingRequiredClassesByName.set(className, availableClassesByName.get(className));
 	}
 
+	/**
+		What: enqueue every class/enum emitted from a source-owned stdlib module.
+
+		Why: some upstream std modules, such as `haxe.Template`, rely on private
+		module-local enums or helper types that `Context.getType()` cannot resolve by
+		name. Requiring only the public class leaves those companions out of the Go
+		output and breaks direct module usage.
+
+		How: resolve the module once through `Context.getModule(...)`, cache any class
+		or enum declarations it contains, and enqueue them through the existing
+		source-owned class/enum pending maps.
+	**/
+	function requireSourceOwnedStdlibModule(moduleName:String):Void {
+		var resolved = resolveSourceOwnedStdlibModule(moduleName);
+		for (moduleType in resolved) {
+			switch (moduleType) {
+				case TInst(classRef, _):
+					var classType = classRef.get();
+					var className = fullClassName(classType);
+					availableClassesByName.set(className, classType);
+					if (!pendingRequiredClassesByName.exists(className)) {
+						pendingRequiredClassesByName.set(className, classType);
+					}
+				case TEnum(enumRef, _):
+					var enumType = enumRef.get();
+					var enumName = fullEnumName(enumType);
+					availableEnumsByName.set(enumName, enumType);
+					if (!pendingRequiredEnumsByName.exists(enumName)) {
+						pendingRequiredEnumsByName.set(enumName, enumType);
+					}
+				case _:
+			}
+		}
+	}
+
 	function resolveSourceOwnedStdlibClass(className:String):Null<ClassType> {
 		try {
 			return switch (Context.getType(className)) {
@@ -15836,6 +15993,14 @@ class GoCompiler {
 			};
 		} catch (_:Dynamic) {
 			return null;
+		}
+	}
+
+	function resolveSourceOwnedStdlibModule(moduleName:String):Array<Type> {
+		try {
+			return Context.getModule(moduleName);
+		} catch (_:Dynamic) {
+			return [];
 		}
 	}
 

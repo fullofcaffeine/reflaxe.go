@@ -1,1 +1,0 @@
-Direct haxe.Template usage is not supported yet on haxe.go; staged source inclusion still misses module-local enum emission. Track haxe.go-14as.38.

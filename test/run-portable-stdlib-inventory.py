@@ -97,6 +97,7 @@ OWNER_OVERRIDES = {
     "haxe.SysTools": "staged_std",
     "haxe.io.Path": "staged_std",
     "haxe.NativeStackTrace": "staged_std",
+    "haxe.Template": "staged_std",
     "haxe.Utf8": "staged_std",
     "EReg": "compiler_shim",
     "haxe.Serializer": "compiler_shim",
@@ -150,9 +151,9 @@ MODULE_NOTES_OVERRIDES = {
         "including parsed CDATA node-type preservation."
     ),
     "haxe.Template": (
-        "Direct haxe.Template usage is intentionally blocked by the compiler until source-owned std "
-        "inclusion can emit module-local enum support cleanly. See negative/direct_haxe_template_unsupported "
-        "and blocker haxe.go-14as.38."
+        "Direct haxe.Template constructor/execute usage now has semantic-diff coverage through "
+        "a staged std override in std/haxe/Template.cross.hx. Evidence: "
+        "semantic_diff/haxe_template_contract and stdlib/haxe_template_basic."
     ),
     "haxe.ValueException": (
         "Direct haxe.ValueException usage is intentionally blocked until string-payload message parity is "
@@ -169,14 +170,6 @@ BLOCKER_FAMILY_SPECS = (
         "family": "haxe_misc_symbols",
         "closure_target": "2026-03-20",
         "modules": {
-        },
-    },
-    {
-        "issue": "haxe.go-14as.38",
-        "family": "haxe_template_direct",
-        "closure_target": "2026-03-27",
-        "modules": {
-            "haxe.Template",
         },
     },
     {

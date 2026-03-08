@@ -143,6 +143,8 @@ def discover_cases() -> list[SnapshotCase]:
             continue
         case_dir = hxml.parent
         rel = case_dir.relative_to(SNAPSHOT_ROOT)
+        if any(part.startswith("_") for part in rel.parts):
+            continue
         if len(rel.parts) < 2:
             continue
         case_id = f"{rel.parts[0]}/{rel.parts[1]}"

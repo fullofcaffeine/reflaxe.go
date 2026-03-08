@@ -24,6 +24,7 @@
       "haxe.Resource",
       "haxe.Rest",
       "haxe.SysTools",
+      "haxe.Template",
       "haxe.Utf8",
       "haxe.ds.ArraySort",
       "haxe.ds.Either",

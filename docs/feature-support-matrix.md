@@ -232,7 +232,7 @@ Shim strategy and alternatives are documented in:
 
 ### Explicit direct-helper exclusions
 
-- `haxe.Template` direct usage is intentionally blocked until source-owned std inclusion can emit the module-local enum support it needs. Evidence: `negative/direct_haxe_template_unsupported`.
+- `haxe.Template` direct constructor/execute usage now has direct parity coverage through `test/semantic_diff/haxe_template_contract` and `test/snapshot/stdlib/haxe_template_basic`.
 - `haxe.ValueException` direct usage is intentionally blocked until string-payload message parity is restored across `Any`/string boxing. Evidence: `negative/direct_haxe_value_exception_unsupported`.
 
 ### `haxe.Json` runtime-lowered contract
