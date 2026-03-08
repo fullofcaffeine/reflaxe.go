@@ -1796,6 +1796,9 @@ class GoCompiler {
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("return encoding[0].tag")
 			]),
+			// Keep RawNative string conversion in the compiler: these helpers co-own
+			// raw-native mode switching and the __hx_raw cache contract that
+			// downstream raw-byte consumers rely on after Bytes mutation.
 			GoDecl.GoFuncDecl("haxe__io__bytes_fromStringRawNativeUTF16LE", null, [
 				{
 					name: "value",

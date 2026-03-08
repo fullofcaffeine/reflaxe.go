@@ -316,6 +316,33 @@ Observed result:
 - Header lookup kept the case-insensitive fallback behavior by normalizing keys inside the staged raw bridge instead of relying on unsupported staged `String.toLowerCase()` lowering.
 - Future stdlib work can use framework-owned raw helper islands without weakening the app/example boundary rules or replacing typed extern metadata.
 
+### 2026-03-07: explicit keep decision for RawNative `haxe.io.Bytes` helpers (`haxe.go-14as.54`)
+
+Implementation:
+
+- Kept the RawNative/cache-coupled `haxe.io.Bytes` string helpers in `src/reflaxe/go/GoCompiler.hx`:
+  - `haxe__io__bytes_fromStringRawNativeUTF16LE`
+  - `haxe__io__bytes_toStringRawNativeUTF16LE`
+  - `haxe__io__Bytes_ofString`
+  - `haxe__io__Bytes.getString`
+  - `hxrt_haxeBytesToRaw`
+- Added an ownership regression snapshot:
+  - `test/snapshot/stdlib/bytes_raw_native_compiler_ownership`
+- Tightened the ownership rationale in the shim strategy docs instead of treating this subset as an unreviewed leftover.
+
+Validation evidence:
+
+- `python3 test/run-snapshots.py --case stdlib/bytes_raw_native_compiler_ownership --update`
+- `python3 test/run-semantic-diff.py --case io_encoding_contract`
+
+Observed result:
+
+- The retained subset is compiler-owned for a concrete reason, not historical inertia: it co-owns raw-native mode dispatch and `__hx_raw` cache invalidation on generated `haxe__io__Bytes`.
+- The ownership snapshot proves both generated shape and public behavior:
+  - RawNative UTF-16LE conversion helpers remain compiler-emitted in `main.go`
+  - mutating `Bytes` before `Base64.encode(...)` still updates the raw-byte view seen by downstream consumers
+  - RawNative `BytesOutput` / `BytesInput` roundtrip behavior remains unchanged
+
 ### 2026-03-07: first `haxe.io.Bytes` helper extraction to `hxrt` (`haxe.go-14as.51`)
 
 Implementation:

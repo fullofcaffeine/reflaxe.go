@@ -62,6 +62,7 @@ Current staged Tier1 coverage includes the JSON family and `StringTools`, with a
   - The current `mixed` classification is still correct for parity today.
   - The first post-`__go__` extraction already moved pure hex and `BytesBuffer` leaf helpers into `runtime/hxrt/bytes.go`, leaving thin compiler wrappers in place.
   - The remaining compiler-owned subset is the RawNative/cache-coupled string path (`ofString`, `getString`, UTF16/raw-native conversion helpers) because it still co-owns `__hx_raw` cache validity and encoding-tag behavior.
+  - The ownership lock is `stdlib/bytes_raw_native_compiler_ownership`, which proves RawNative `Bytes.set(...)` still needs to invalidate the cached raw-byte view seen by downstream consumers such as Base64.
   - Tracking: `haxe.go-14as.51`, `haxe.go-14as.54`
 - `haxe.io.Input` / `haxe.io.Output`
   - These surfaces are not listed as separate Tier1 rows here, but their inherited helper loops no longer live as raw loop bodies in `GoCompiler`.
