@@ -974,6 +974,24 @@ func Reflect_compare(a any, b any) int {
 	return 0
 }
 
+func Reflect_compareMethods(a any, b any) bool {
+	if a == nil || b == nil {
+		return a == nil && b == nil
+	}
+	av := reflect.ValueOf(a)
+	bv := reflect.ValueOf(b)
+	if !av.IsValid() || !bv.IsValid() {
+		return !av.IsValid() && !bv.IsValid()
+	}
+	if av.Kind() == reflect.Func && bv.Kind() == reflect.Func {
+		if av.IsNil() || bv.IsNil() {
+			return av.IsNil() && bv.IsNil()
+		}
+		return av.Pointer() == bv.Pointer()
+	}
+	return reflect.DeepEqual(a, b)
+}
+
 func Reflect_field(obj any, field *string) any {
 	if obj == nil {
 		return nil
@@ -1526,9 +1544,6 @@ func haxe__crypto__Sha256_encode(value *string) *string {
 func haxe__crypto__Sha256_make(value *haxe__io__Bytes) *haxe__io__Bytes {
 	sum := sha256.Sum256(hxrt_haxeBytesToRaw(value))
 	return hxrt_rawToHaxeBytes(sum[:])
-}
-
-type haxe__ds__BalancedTree struct {
 }
 
 type haxe__ds__Option struct {

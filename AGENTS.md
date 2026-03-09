@@ -30,6 +30,9 @@ Agent policy:
 - When a bead has a `thinking:*` label, match reasoning depth to that label automatically.
 - If a claimed bead has no `thinking:*` label, infer one immediately and add it before substantial work.
 - If a task starts to exceed its current thinking level, stop and say so explicitly before widening scope.
+  - Ask the user for the higher thinking level before continuing at that level.
+  - If the current thinking level remains correct, continue without interruption.
+  - Only stop to ask when the reasoning level truly needs to change.
   - Raise to extended thinking when local tracing shows the fix is no longer a bounded implementation and has become a broader design problem.
   - Escalate to Oracle only when local investigation still leaves multiple defensible designs unresolved after that deeper pass.
 - `thinking:xhigh` should get a second-pass review before closure.

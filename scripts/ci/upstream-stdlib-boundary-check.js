@@ -32,6 +32,7 @@ const approvedStdOverrideLayout = [
   "std/*.hx",
   "std/*.cross.hx",
   "std/haxe/**",
+  "std/sys/**",
   "std/go/**",
   "std/_std/**",
 ];
@@ -46,7 +47,12 @@ function isApprovedStdOverridePath(path) {
     return false;
   }
 
-  if (path.startsWith("std/haxe/") || path.startsWith("std/go/") || path.startsWith("std/_std/")) {
+  if (
+    path.startsWith("std/haxe/")
+    || path.startsWith("std/sys/")
+    || path.startsWith("std/go/")
+    || path.startsWith("std/_std/")
+  ) {
     return true;
   }
 

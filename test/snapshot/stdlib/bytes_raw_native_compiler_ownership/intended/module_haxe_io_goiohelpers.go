@@ -24,10 +24,11 @@ func haxe__io__GoIoHelpers_inputReadAll(self haxe__io__Input, bufsize int) *haxe
 		done := false
 		hxrt.TryCatch(func() {
 			chunk := self.readBytes(buf, 0, bufsize)
+			_ = chunk
 			if chunk == 0 {
 				hxrt.Throw(haxe__io__Error_Blocked)
 			}
-			haxe__io__GoIoHelpers_outputWriteFullBytes(total, buf, 0, chunk)
+			_ = func() int { total.writeFullBytes(buf, 0, chunk); return 0 }()
 		}, func(hx_caught_1 any) {
 			switch hx_typed_2 := hx_caught_1.(type) {
 			case *haxe__io__Eof:

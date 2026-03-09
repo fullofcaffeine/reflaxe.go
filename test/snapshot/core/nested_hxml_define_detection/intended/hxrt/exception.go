@@ -9,6 +9,10 @@ type ExceptionValue struct {
 	Message *string
 }
 
+type ExceptionCarrier interface {
+	HxExceptionValue() *ExceptionValue
+}
+
 // NewValueException keeps direct haxe.ValueException construction on the same
 // runtime carrier used by catch/wildcard exception paths. The current portable
 // contract only needs value + message parity here; broader previous/native
@@ -20,6 +24,15 @@ func NewValueException(value any, previous *ExceptionValue, native any) *Excepti
 	return &ExceptionValue{
 		Value:   value,
 		Message: StdString(value),
+	}
+}
+
+func BindException(value any, message *string, previous *ExceptionValue, native any) *ExceptionValue {
+	_ = previous
+	_ = native
+	return &ExceptionValue{
+		Value:   value,
+		Message: message,
 	}
 }
 
@@ -54,6 +67,8 @@ func ExceptionCaught(value any) *ExceptionValue {
 	case ExceptionValue:
 		copy := v
 		return &copy
+	case ExceptionCarrier:
+		return v.HxExceptionValue()
 	default:
 		return &ExceptionValue{
 			Value:   value,

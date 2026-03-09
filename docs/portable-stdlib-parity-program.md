@@ -100,8 +100,6 @@ That metadata is the repo-level proof that no portable-eligible module is still 
 
 Current dated blocker families:
 
-- `haxe.go-14as.43` - direct `haxe.exceptions` constructor/inheritance tranche - target `2026-04-14`
-- `haxe.go-14as.46` - direct `haxe.ds.BalancedTree` + `haxe.ds.GenericStack` source-owned collection tranche - target `2026-04-14`
 - `haxe.go-14as.47` - direct `haxe.ds.WeakMap` support-classification tranche - target `2026-04-14`
 - `haxe.go-14as.14` - `haxe.http` + `haxe.rtti` tranche - target `2026-04-21`
 - `haxe.go-14as.15` - `haxe.io` misc tranche - target `2026-04-30`
@@ -119,6 +117,8 @@ Closed root-surface follow-up:
 - `haxe.go-14as.25` promoted direct `haxe.Log`, `haxe.Resource`, and `haxe.SysTools` usage to semantic-diff coverage, then split the remaining direct blockers into `haxe.go-14as.38` (`haxe.Template`) and `haxe.go-14as.39` (`haxe.ValueException`).
 - `haxe.go-14as.39` closed the direct `haxe.ValueException` string-payload parity blocker through `haxe_value_exception_contract` and `stdlib/haxe_value_exception_basic`, using the existing hxrt exception carrier instead of keeping the direct constructor hard-failed.
 - `haxe.go-14as.38` promoted direct `haxe.Template` constructor/execute usage to semantic-diff coverage through `haxe_template_contract` and `stdlib/haxe_template_basic`, using a staged `std/haxe/Template.cross.hx` override instead of forcing the untouched upstream module through unsupported source-owned assumptions.
+- `haxe.go-14as.43` promoted direct `haxe.exceptions.PosException`, `haxe.exceptions.ArgumentException`, and `haxe.exceptions.NotImplementedException` to semantic-diff coverage through `haxe_exceptions_direct_contract` and `stdlib/haxe_exceptions_direct`, using staged exception overrides plus the hxrt exception carrier bridge instead of keeping the direct constructor path compile-only.
+- `haxe.go-14as.46` promoted direct `haxe.ds.BalancedTree` and `haxe.ds.GenericStack` runtime use to semantic-diff coverage through `haxe_ds_source_owned_collections_contract` and `stdlib/haxe_ds_source_owned_collections`, using staged collection overrides to keep ownership in std code while leaving broader iterator parity to the later collection audit.
 - `haxe.go-14as.30` closed the remaining `haxe.Resource` embedding gap by wiring compiler resources into the backend-owned `haxe.Resource.content` table, with snapshot coverage in `stdlib/haxe_resource_embedded_basic`.
 - `haxe.go-14as.13` promoted `haxe.ds.Either` to semantic-diff coverage through `haxe_ds_either_contract` and `stdlib/haxe_ds_either_direct`, then split the remaining collection/exception debt into `haxe.go-14as.43` to `haxe.go-14as.47` so each backend problem is tracked explicitly.
 - `haxe.go-14as.44` promoted direct `haxe.ds.HashMap` to semantic-diff coverage through `haxe_ds_hashmap_contract` and `stdlib/haxe_ds_hashmap_direct`, closing the lowercase `hashCode()` parity gap without requiring target-specific `HashCode` aliases.
@@ -130,7 +130,7 @@ Closed root-surface follow-up:
 
 Update sequence when std override files change:
 
-1. Update tracked std override files under the approved staged layout (`std/*.hx`, `std/*.cross.hx`, `std/haxe/**`, `std/go/**`, `std/_std/**`).
+1. Update tracked std override files under the approved staged layout (`std/*.hx`, `std/*.cross.hx`, `std/haxe/**`, `std/sys/**`, `std/go/**`, `std/_std/**`).
 2. Add/update matching entries in `docs/stdlib-provenance-ledger.json`.
 3. Run `npm run test:stdlib:governance`.
 4. Run `python3 test/run-ci.py` (or `npm run test:ci`) before merging.

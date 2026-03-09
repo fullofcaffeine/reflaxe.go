@@ -48,9 +48,39 @@
       "notes": "Go staged target-sensitive override for haxe.CallStack, providing deterministic empty-stack fallbacks until native stack capture exists."
     },
     {
+      "path": "std/haxe/Template.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.Template execution semantics, keeping template parsing and macro-default behavior out of GoCompiler."
+    },
+    {
+      "path": "std/haxe/exceptions/PosException.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for direct haxe.exceptions.PosException construction/toString ownership, keeping subclass parity out of GoCompiler."
+    },
+    {
+      "path": "std/haxe/exceptions/ArgumentException.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for direct haxe.exceptions.ArgumentException constructor/message ownership."
+    },
+    {
+      "path": "std/haxe/exceptions/NotImplementedException.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for direct haxe.exceptions.NotImplementedException default-message ownership."
+    },
+    {
       "path": "std/haxe/NativeStackTrace.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged target-sensitive override for haxe.NativeStackTrace, exposing deterministic empty-stack behavior instead of pretending native stack parity."
+    },
+    {
+      "path": "std/haxe/ds/BalancedTree.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for direct haxe.ds.BalancedTree runtime ownership, keeping source-owned collection logic out of GoCompiler while preserving ordered map semantics."
+    },
+    {
+      "path": "std/haxe/ds/GenericStack.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for direct haxe.ds.GenericStack runtime ownership, including localized erased-generic equality recovery."
     },
     {
       "path": "std/haxe/io/Path.cross.hx",

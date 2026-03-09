@@ -161,6 +161,7 @@ class GoCompiler {
 	final pendingRequiredClassesByName:Map<String, ClassType>;
 	final availableEnumsByName:Map<String, EnumType>;
 	final pendingRequiredEnumsByName:Map<String, EnumType>;
+	final requiredSourceOwnedClassNames:Map<String, Bool>;
 	var globalLeafReceiverTypes:Map<String, Bool>;
 	var tempVarCounter:Int;
 	var requiresTypeValueSupport:Bool;
@@ -197,6 +198,7 @@ class GoCompiler {
 		pendingRequiredClassesByName = new Map<String, ClassType>();
 		availableEnumsByName = new Map<String, EnumType>();
 		pendingRequiredEnumsByName = new Map<String, EnumType>();
+		requiredSourceOwnedClassNames = new Map<String, Bool>();
 		globalLeafReceiverTypes = new Map<String, Bool>();
 		tempVarCounter = 0;
 		requiresTypeValueSupport = false;
@@ -219,6 +221,11 @@ class GoCompiler {
 	function compileResolvedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
 		projectClasses = classes.copy();
 		projectEnums = enums.copy();
+		cacheAvailableClasses(classes);
+		cacheAvailableEnums(enums);
+		clearClassMap(pendingRequiredClassesByName);
+		clearEnumMap(pendingRequiredEnumsByName);
+		clearBoolMap(requiredSourceOwnedClassNames);
 		rebuildSourceModuleLookup(classes, enums);
 		globalLeafReceiverTypes = buildGlobalLeafReceiverTypes(projectClasses);
 		syncCompilationContextLeafReceivers();
@@ -355,6 +362,9 @@ class GoCompiler {
 			return;
 		}
 		var key = moduleName == null || moduleName == "" ? "Main" : moduleName;
+		if (isCompilerOwnedStdlibModule(key)) {
+			return;
+		}
 		var existing = bucket.get(key);
 		if (existing == null) {
 			existing = [];
@@ -384,6 +394,24 @@ class GoCompiler {
 			return base + ".go";
 		}
 		return base + "_" + count + ".go";
+	}
+
+	function isCompilerOwnedStdlibModule(moduleName:String):Bool {
+		return isCompilerOwnedStdlibAuthority(moduleName);
+	}
+
+	function isCompilerOwnedStdlibAuthority(name:String):Bool {
+		return switch (name) {
+			case "EReg", "haxe.ds.EnumValueMap", "haxe.io.Bytes", "haxe.io.BytesBuffer", "haxe.io.BytesInput", "haxe.io.BytesOutput", "haxe.io.Eof",
+				"haxe.io.Error", "haxe.io.FPHelper", "haxe.io.Input", "haxe.io.Output", "sys.Http":
+				true;
+			case _:
+				false;
+		};
+	}
+
+	function canConstructEmptyTypeValue(goTypeName:String):Bool {
+		return goTypeName != null && goTypeName != "" && !StringTools.startsWith(goTypeName, "*");
 	}
 
 	function sanitizeFileToken(value:String):String {
@@ -1228,7 +1256,8 @@ class GoCompiler {
 			return null;
 		}
 		var superType = classType.superClass.t.get();
-		return isProjectClass(superType) ? superType : null;
+		var superName = fullClassName(superType);
+		return (isProjectClass(superType) || requiredSourceOwnedClassNames.exists(superName)) ? superType : null;
 	}
 
 	function buildGlobalLeafReceiverTypes(classes:Array<ClassType>):Map<String, Bool> {
@@ -3633,7 +3662,7 @@ class GoCompiler {
 	}
 
 	function lowerDsStdlibShimDecls():Array<GoDecl> {
-		return [
+		var decls = [
 			GoDecl.GoStructDecl("haxe__ds__IntMap", [{name: "h", typeName: "map[int]any"}]),
 			GoDecl.GoStructDecl("haxe__ds__StringMap", [{name: "h", typeName: "map[string]any"}]),
 			GoDecl.GoStructDecl("haxe__ds__ObjectMap", [{name: "h", typeName: "map[any]any"}]),
@@ -4041,6 +4070,7 @@ class GoCompiler {
 					GoExpr.GoBinary("-", GoExpr.GoIdent("size"), GoExpr.GoIntLiteral(1))))
 			])
 		];
+		return decls;
 	}
 
 	function lowerHttpStdlibShimDecls():Array<GoDecl> {
@@ -5277,6 +5307,29 @@ class GoCompiler {
 				GoStmt.GoRaw("}"),
 				GoStmt.GoReturn(GoExpr.GoIntLiteral(0))
 			]),
+			GoDecl.GoFuncDecl("Reflect_compareMethods", null, [
+				{
+					name: "a",
+					typeName: "any"
+				},
+				{name: "b", typeName: "any"}
+			], ["bool"], [
+				GoStmt.GoRaw("if a == nil || b == nil {"),
+				GoStmt.GoRaw("\treturn a == nil && b == nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("av := reflect.ValueOf(a)"),
+				GoStmt.GoRaw("bv := reflect.ValueOf(b)"),
+				GoStmt.GoRaw("if !av.IsValid() || !bv.IsValid() {"),
+				GoStmt.GoRaw("\treturn !av.IsValid() && !bv.IsValid()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if av.Kind() == reflect.Func && bv.Kind() == reflect.Func {"),
+				GoStmt.GoRaw("\tif av.IsNil() || bv.IsNil() {"),
+				GoStmt.GoRaw("\t\treturn av.IsNil() && bv.IsNil()"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn av.Pointer() == bv.Pointer()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return reflect.DeepEqual(a, b)")
+			]),
 			GoDecl.GoFuncDecl("Reflect_field", null, [
 				{
 					name: "obj",
@@ -5981,7 +6034,6 @@ class GoCompiler {
 				GoStmt.GoRaw("sum := sha256.Sum256(hxrt_haxeBytesToRaw(value))"),
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt_rawToHaxeBytes"), [GoExpr.GoRaw("sum[:]")]))
 			]),
-			GoDecl.GoStructDecl("haxe__ds__BalancedTree", []),
 			GoDecl.GoStructDecl("haxe__ds__Option",
 				[
 					{
@@ -6673,6 +6725,9 @@ class GoCompiler {
 
 		var classCreateEmptyBody = [GoStmt.GoRaw("switch className {")];
 		for (entry in classMetadata) {
+			if (!canConstructEmptyTypeValue(entry.goTypeName)) {
+				continue;
+			}
 			classCreateEmptyBody.push(GoStmt.GoRaw("case " + goRawQuotedString(entry.haxeTypeName) + ":"));
 			classCreateEmptyBody.push(GoStmt.GoRaw("\treturn &" + entry.goTypeName + "{}, true"));
 		}
@@ -7163,6 +7218,9 @@ class GoCompiler {
 
 		var classCreateBody = [GoStmt.GoRaw("switch className {")];
 		for (entry in classMetadata) {
+			if (!canConstructEmptyTypeValue(entry.goTypeName)) {
+				continue;
+			}
 			classCreateBody.push(GoStmt.GoRaw("case " + goRawQuotedString(entry.haxeTypeName) + ":"));
 			classCreateBody.push(GoStmt.GoRaw("\tinstance := &" + entry.goTypeName + "{}"));
 			classCreateBody.push(GoStmt.GoRaw("\thxrt_unserializerBindSelf(instance)"));
@@ -10208,6 +10266,7 @@ class GoCompiler {
 		var decls = new Array<GoDecl>();
 		var typeName = classTypeName(classType);
 		var superClass = projectSuperClass(classType);
+		var directHaxeExceptionSuper = directHaxeExceptionSuperClass(classType);
 		var ioSubclassKind = ioStdlibSubclassKind(classType);
 
 		var instanceDataFields = new Array<GoParam>();
@@ -10232,6 +10291,12 @@ class GoCompiler {
 			instanceDataFields.push({
 				name: "__hx_io_bigEndian",
 				typeName: "bool"
+			});
+		}
+		if (directHaxeExceptionSuper && !hasStructField(instanceDataFields, "__hx_exception")) {
+			instanceDataFields.push({
+				name: "__hx_exception",
+				typeName: "*hxrt.ExceptionValue"
 			});
 		}
 
@@ -10268,6 +10333,9 @@ class GoCompiler {
 			decls.push(GoDecl.GoInterfaceDecl(interfaceSymbol(classType), interfaceMethods));
 			decls.push(GoDecl.GoStructDecl(typeName, instanceFields));
 			decls.push(lowerConstructorDecl(classType, ctorFunc, superClass));
+			if (directHaxeExceptionSuper) {
+				decls.push(lowerHaxeExceptionCarrierDecl(classType));
+			}
 		}
 
 		for (method in instanceMethods) {
@@ -10400,6 +10468,13 @@ class GoCompiler {
 			body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName),
 				GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(superClass)), superCtorArgs)));
 			body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName), "__hx_this"), GoExpr.GoIdent("self")));
+		} else if (directHaxeExceptionSuperClass(classType)) {
+			var exceptionCtorArgs = loweredCtorBody.superArgs == null ? [] : [for (arg in loweredCtorBody.superArgs) lowerExpr(arg).expr];
+			while (exceptionCtorArgs.length < 3) {
+				exceptionCtorArgs.push(GoExpr.GoNil);
+			}
+			body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_exception"),
+				GoExpr.GoCall(GoExpr.GoIdent("hxrt.BindException"), [GoExpr.GoIdent("self")].concat(exceptionCtorArgs))));
 		}
 		body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_this"), GoExpr.GoIdent("self")));
 		if (ctorFunc != null) {
@@ -10416,6 +10491,14 @@ class GoCompiler {
 			name: "self",
 			typeName: "*" + classTypeName(classType)
 		}, classType.module);
+	}
+
+	function lowerHaxeExceptionCarrierDecl(classType:ClassType):GoDecl {
+		return GoDecl.GoFuncDecl("HxExceptionValue", {
+			name: "self",
+			typeName: "*" + classTypeName(classType)
+		}, [], ["*hxrt.ExceptionValue"],
+			[GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_exception"))]);
 	}
 
 	function prependLineDirective(body:Array<GoStmt>, pos:haxe.macro.Expr.Position, sourceModule:Null<String>):Void {
@@ -12667,7 +12750,7 @@ class GoCompiler {
 					};
 				}
 
-				if (isHaxeExceptionType(target.t) && resolved.name == "message") {
+				if (isHaxeExceptionFamilyType(target.t) && resolved.name == "message") {
 					return {
 						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [loweredTarget]),
 						isStringLike: true
@@ -12728,7 +12811,7 @@ class GoCompiler {
 						isStringLike: isStringType(resolved.type)
 					};
 				}
-				if (isHaxeExceptionType(target.t) && resolved.name == "message") {
+				if (isHaxeExceptionFamilyType(target.t) && resolved.name == "message") {
 					return {
 						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [loweredTarget]),
 						isStringLike: true
@@ -14687,13 +14770,13 @@ class GoCompiler {
 
 	function stdIsOfTypeClassExpr(valueExpr:GoExpr, valueType:Type, targetClass:ClassType):GoExpr {
 		if (isHaxeExceptionClass(targetClass)) {
-			if (isHaxeExceptionType(valueType)) {
+			if (isHaxeExceptionFamilyType(valueType)) {
 				return GoExpr.GoBinary("!=", valueExpr, GoExpr.GoNil);
 			}
 			if (!isAnyLikeType(valueType)) {
 				return GoExpr.GoBoolLiteral(false);
 			}
-			return stdIsOfTypeTypeSwitch(valueExpr, ["*hxrt.ExceptionValue"]);
+			return stdIsOfTypeTypeSwitch(valueExpr, ["*hxrt.ExceptionValue", "hxrt.ExceptionCarrier"]);
 		}
 
 		var valueClass = classFromType(valueType);
@@ -15444,6 +15527,13 @@ class GoCompiler {
 		if (!isProjectClass(classType)) {
 			return false;
 		}
+		var className = fullClassName(classType);
+		if (isCompilerOwnedStdlibAuthority(className)) {
+			return false;
+		}
+		if (className == "haxe.io.Input" || className == "haxe.io.Output") {
+			return false;
+		}
 		if (!isMethodField(field)) {
 			return false;
 		}
@@ -15726,6 +15816,10 @@ class GoCompiler {
 		if (fromClass == null || toClass == null) {
 			return expr;
 		}
+		var toClassName = fullClassName(toClass);
+		if (toClassName == "haxe.io.Input" || toClassName == "haxe.io.Output") {
+			return expr;
+		}
 
 		var path = inheritancePath(fromClass, toClass);
 		if (path == null || path.length == 0) {
@@ -15958,6 +16052,21 @@ class GoCompiler {
 		return GoTypeMapper.isHaxeExceptionClass(classType);
 	}
 
+	function isHaxeExceptionFamilyClass(classType:ClassType):Bool {
+		if (isHaxeExceptionClass(classType) || isHaxeValueExceptionClass(classType)) {
+			return true;
+		}
+		var cursor = classType.superClass;
+		while (cursor != null) {
+			var superType = cursor.t.get();
+			if (isHaxeExceptionClass(superType) || isHaxeValueExceptionClass(superType)) {
+				return true;
+			}
+			cursor = superType.superClass;
+		}
+		return false;
+	}
+
 	function isHaxeValueExceptionClass(classType:ClassType):Bool {
 		return classType.pack.join(".") == "haxe" && classType.name == "ValueException";
 	}
@@ -15970,12 +16079,32 @@ class GoCompiler {
 		return GoTypeMapper.isHaxeExceptionType(type);
 	}
 
+	function isHaxeExceptionFamilyType(type:Type):Bool {
+		return switch (Context.follow(type)) {
+			case TInst(classRef, _):
+				isHaxeExceptionFamilyClass(classRef.get());
+			case _:
+				false;
+		};
+	}
+
 	function isHaxeValueExceptionType(type:Type):Bool {
 		return switch (Context.follow(type)) {
 			case TInst(classRef, _):
 				isHaxeValueExceptionClass(classRef.get());
 			case _:
 				false;
+		};
+	}
+
+	function directHaxeExceptionSuperClass(classType:ClassType):Bool {
+		if (isHaxeValueExceptionClass(classType)) {
+			return false;
+		}
+		return switch (classType.superClass) {
+			case null:
+				false;
+			case superRef: var superType = superRef.t.get(); isHaxeExceptionClass(superType) || isHaxeValueExceptionClass(superType);
 		};
 	}
 
@@ -16017,8 +16146,7 @@ class GoCompiler {
 			case "haxe.io.Path":
 				requireSourceOwnedStdlibClass("haxe.io.Path");
 			case "haxe._CallStack.CallStack_Impl_":
-				requireSourceOwnedStdlibClass("haxe._CallStack.CallStack_Impl_");
-				requireSourceOwnedStdlibClass("haxe.NativeStackTrace");
+				requireSourceOwnedStdlibModule("haxe.CallStack");
 				requireSourceOwnedStdlibEnum("haxe.StackItem");
 			case "haxe.NativeStackTrace":
 				requireSourceOwnedStdlibClass("haxe.NativeStackTrace");
@@ -16038,10 +16166,22 @@ class GoCompiler {
 				requireSourceOwnedStdlibClass(fullClassName(classType));
 			case "haxe.ds.ArraySort":
 				requireSourceOwnedStdlibClass("haxe.ds.ArraySort");
+			case "haxe.ds.BalancedTree":
+				requireSourceOwnedStdlibModule("haxe.ds.BalancedTree");
+			case "haxe.ds.GenericStack":
+				requireSourceOwnedStdlibModule("haxe.ds.GenericStack");
 			case "haxe.ds.ListSort":
 				requireSourceOwnedStdlibClass("haxe.ds.ListSort");
 			case "haxe.Utf8":
 				requireSourceOwnedStdlibClass("haxe.Utf8");
+			case "haxe.exceptions.PosException":
+				requireSourceOwnedStdlibClass("haxe.exceptions.PosException");
+			case "haxe.exceptions.ArgumentException":
+				requireSourceOwnedStdlibClass("haxe.exceptions.PosException");
+				requireSourceOwnedStdlibClass("haxe.exceptions.ArgumentException");
+			case "haxe.exceptions.NotImplementedException":
+				requireSourceOwnedStdlibClass("haxe.exceptions.PosException");
+				requireSourceOwnedStdlibClass("haxe.exceptions.NotImplementedException");
 			case "sys.Http":
 				requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
 			case "haxe.Template":
@@ -16061,6 +16201,9 @@ class GoCompiler {
 	}
 
 	function requireSourceOwnedStdlibClass(className:String):Void {
+		if (isCompilerOwnedStdlibAuthority(className)) {
+			return;
+		}
 		if (!availableClassesByName.exists(className)) {
 			var resolved = resolveSourceOwnedStdlibClass(className);
 			if (resolved != null) {
@@ -16070,6 +16213,7 @@ class GoCompiler {
 		if (!availableClassesByName.exists(className) || pendingRequiredClassesByName.exists(className)) {
 			return;
 		}
+		requiredSourceOwnedClassNames.set(className, true);
 		pendingRequiredClassesByName.set(className, availableClassesByName.get(className));
 	}
 
@@ -16088,11 +16232,15 @@ class GoCompiler {
 	function requireSourceOwnedStdlibModule(moduleName:String):Void {
 		var resolved = resolveSourceOwnedStdlibModule(moduleName);
 		for (moduleType in resolved) {
+			if (skipCompilerOwnedSourceModuleType(moduleType)) {
+				continue;
+			}
 			switch (moduleType) {
 				case TInst(classRef, _):
 					var classType = classRef.get();
 					var className = fullClassName(classType);
 					availableClassesByName.set(className, classType);
+					requiredSourceOwnedClassNames.set(className, true);
 					if (!pendingRequiredClassesByName.exists(className)) {
 						pendingRequiredClassesByName.set(className, classType);
 					}
@@ -16130,10 +16278,67 @@ class GoCompiler {
 	}
 
 	function requireSourceOwnedStdlibEnum(enumName:String):Void {
+		if (!availableEnumsByName.exists(enumName)) {
+			try {
+				switch (Context.getType(enumName)) {
+					case TEnum(enumRef, _):
+						availableEnumsByName.set(enumName, enumRef.get());
+					case _:
+				}
+			} catch (_:Dynamic) {}
+		}
 		if (!availableEnumsByName.exists(enumName) || pendingRequiredEnumsByName.exists(enumName)) {
 			return;
 		}
 		pendingRequiredEnumsByName.set(enumName, availableEnumsByName.get(enumName));
+	}
+
+	function skipCompilerOwnedSourceModuleType(moduleType:Type):Bool {
+		return switch (moduleType) {
+			case TInst(classRef, _):
+				var classType = classRef.get();
+				isCompilerOwnedStdlibAuthority(fullClassName(classType));
+			case _:
+				false;
+		};
+	}
+
+	function hasLoadedSourceOwnedStdlibClass(className:String):Bool {
+		if (!availableClassesByName.exists(className)) {
+			return false;
+		}
+		var classType = availableClassesByName.get(className);
+		if (classType == null || classType.isExtern) {
+			return false;
+		}
+		var location = PositionTools.toLocation(classType.pos);
+		if (location == null || location.file == null) {
+			return false;
+		}
+		var file = Std.string(location.file);
+		return file != null && (StringTools.contains(file, "/std/") || StringTools.contains(file, "/vendor/"));
+	}
+
+	function isBytesOwnedBySourceStdDecl(decl:GoDecl):Bool {
+		return switch (decl) {
+			case GoDecl.GoStructDecl(name, _):
+				name == "haxe__io__Bytes";
+			case GoDecl.GoFuncDecl(name, receiver, _, _, _): (receiver != null && receiver.typeName == "*haxe__io__Bytes") || name == "New_haxe__io__Bytes" || StringTools.startsWith(name,
+					"haxe__io__Bytes_");
+			case _:
+				false;
+		};
+	}
+
+	function isEnumValueMapOwnedBySourceStdDecl(decl:GoDecl):Bool {
+		return switch (decl) {
+			case GoDecl.GoStructDecl(name, _):
+				name == "haxe__ds__EnumValueMap";
+			case GoDecl.GoFuncDecl(name, receiver, _, _, _): (receiver != null
+					&& receiver.typeName == "*haxe__ds__EnumValueMap") || name == "New_haxe__ds__EnumValueMap";
+			case _:
+				false;
+		};
 	}
 
 	function noteStdlibClass(classType:ClassType):Void {
@@ -16572,7 +16777,7 @@ class GoCompiler {
 		return switch (callee.expr) {
 			case TField(target, FInstance(classRef, _, field)):
 				var classType = classRef.get();
-				if (isHaxeExceptionClass(classType) && field.get().name == "get_message") {
+				if (isHaxeExceptionFamilyClass(classType) && field.get().name == "get_message") {
 					target;
 				} else {
 					null;
@@ -16584,8 +16789,15 @@ class GoCompiler {
 
 	function asHaxeExceptionToStringTarget(callee:TypedExpr):Null<TypedExpr> {
 		return switch (callee.expr) {
-			case TField(target, FInstance(_, _, field)) | TField(target, FAnon(field)) | TField(target, FClosure(_, field)):
-				if (isHaxeExceptionType(target.t) && field.get().name == "toString") {
+			case TField(target, FInstance(classRef, _, field)):
+				var classType = classRef.get();
+				if ((isHaxeExceptionClass(classType) || isHaxeValueExceptionClass(classType)) && field.get().name == "toString") {
+					target;
+				} else {
+					null;
+				}
+			case TField(target, FAnon(field)) | TField(target, FClosure(_, field)):
+				if ((isHaxeExceptionType(target.t) || isHaxeValueExceptionType(target.t)) && field.get().name == "toString") {
 					target;
 				} else {
 					null;

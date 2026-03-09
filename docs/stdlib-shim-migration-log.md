@@ -616,6 +616,31 @@ Observed result:
 - Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage is now compiled through source-owned std inclusion instead of falling off the backend as missing symbols.
 - The tranche is now explicitly documented as target-sensitive snapshot coverage rather than portable semantic-diff parity.
 
+### 2026-03-08: direct exception + source-owned collection parity promoted (`haxe.go-14as.43`, `haxe.go-14as.46`)
+
+Implementation:
+
+- Added staged direct exception overrides:
+  - `std/haxe/exceptions/PosException.cross.hx`
+  - `std/haxe/exceptions/ArgumentException.cross.hx`
+  - `std/haxe/exceptions/NotImplementedException.cross.hx`
+- Added staged direct collection overrides:
+  - `std/haxe/ds/BalancedTree.cross.hx`
+  - `std/haxe/ds/GenericStack.cross.hx`
+- Tightened exception-family lowering so subclass `toString()` overrides stay callable while `.message` still uses the shared hxrt carrier.
+- Added direct semantic-diff coverage:
+  - `test/semantic_diff/haxe_exceptions_direct_contract`
+  - `test/semantic_diff/haxe_ds_source_owned_collections_contract`
+- Added direct snapshot coverage:
+  - `test/snapshot/stdlib/haxe_exceptions_direct`
+  - `test/snapshot/stdlib/haxe_ds_source_owned_collections`
+
+Observed result:
+
+- Direct `haxe.exceptions.PosException`, `ArgumentException`, and `NotImplementedException` construction now preserves message and subclass `toString()` parity on Go.
+- Direct `haxe.ds.BalancedTree` and `haxe.ds.GenericStack` runtime use no longer falls off compiler/source-owned ownership gaps for the covered set/get/remove/pop/toString surface.
+- Iterator-typed generic object parity remains tracked separately; this closure only covers the direct collection runtime surface exercised by the new contracts.
+
 ## Open migration track
 
 - Legacy `haxe.go-7zy.*` shim migration sequence is closed.

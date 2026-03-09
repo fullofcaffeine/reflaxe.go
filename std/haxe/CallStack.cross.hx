@@ -1,20 +1,21 @@
 package haxe;
 
 /**
-	Elements returned by `CallStack` methods.
+	What
+	A staged `haxe.CallStack` override for `haxe.go`.
 
 	Why
-	- `haxe.Exception` and user debug helpers need the public `StackItem` enum shape to exist.
-	- The mainstream stdlib version depends on `NativeStackTrace` integration that `haxe.go`
-	  does not provide yet.
-
-	What
-	- Declares the public `StackItem` enum and a deterministic `CallStack` abstract.
+	Direct source-owned exception and collection flows can touch `CallStack`
+	through `haxe.Exception`-adjacent APIs, but the upstream implementation pulls
+	in a broader transitive stdlib graph than `haxe.go` needs for the current
+	portable contract. That made otherwise unrelated direct-usage fixtures fail on
+	module ownership collisions instead of the actual feature under test.
 
 	How
-	- `callStack()` and `exceptionStack()` currently return empty arrays on `haxe.go`.
-	- `toString()` is intentionally empty until native stack capture exists.
-	- This keeps the API available without pretending Go stack integration is portable today.
+	Provide the same public `StackItem`/`CallStack` surface with the conservative
+	behavior `haxe.go` already uses today for these paths: empty captured stacks
+	and deterministic string rendering when explicitly asked. This keeps ownership
+	in staged std code and avoids forcing unrelated stdlib modules into the build.
 **/
 enum StackItem {
 	CFunction;
@@ -24,46 +25,32 @@ enum StackItem {
 	LocalFunction(?v:Int);
 }
 
-/**
-	Get information about the call stack.
-
-	Why
-	- Upstream `haxe.CallStack` cannot be reused unchanged because it relies on target-owned
-	  `NativeStackTrace` data that does not exist on `haxe.go` yet.
-
-	What
-	- Exposes the stdlib `CallStack` API with deterministic Go-specific fallback behavior.
-
-	How
-	- Stack queries return empty arrays.
-	- Formatting returns `""`.
-	- Copying and array access still behave like the upstream abstract surface.
-**/
 @:allow(haxe.Exception)
 @:using(haxe.CallStack)
 abstract CallStack(Array<StackItem>) from Array<StackItem> {
 	public var length(get, never):Int;
 
-	inline function get_length():Int
+	inline function get_length():Int {
 		return this.length;
+	}
 
 	public static function callStack():Array<StackItem> {
 		return [];
 	}
 
-	public static function exceptionStack(_fullStack:Bool = false):Array<StackItem> {
+	public static function exceptionStack(fullStack = false):Array<StackItem> {
 		return [];
 	}
 
-	static public function toString(_stack:CallStack):String {
-		return "";
+	public static function toString(stack:CallStack):String {
+		var out = "";
+		for (item in stack.asArray()) {
+			out += "\nCalled from " + itemToString(item);
+		}
+		return out;
 	}
 
-	static function exceptionToString(e:Exception):String {
-		return "Exception: " + Std.string(e);
-	}
-
-	public function subtract(_stack:CallStack):CallStack {
+	public function subtract(stack:CallStack):CallStack {
 		return this;
 	}
 
@@ -77,5 +64,32 @@ abstract CallStack(Array<StackItem>) from Array<StackItem> {
 
 	inline function asArray():Array<StackItem> {
 		return this;
+	}
+
+	static function exceptionToString(e:Exception):String {
+		return "Exception: " + e.toString();
+	}
+
+	static function itemToString(item:StackItem):String {
+		return switch (item) {
+			case CFunction:
+				"a C function";
+			case Module(m):
+				"module " + m;
+			case FilePos(inner, file, line, column):
+				var rendered = inner == null ? file : itemToString(inner) + " (" + file;
+				rendered += " line " + line;
+				if (column > 0) {
+					rendered += " column " + column;
+				}
+				if (inner != null) {
+					rendered += ")";
+				}
+				rendered;
+			case Method(classname, method):
+				(classname == null ? "<unknown>" : classname) + "." + method;
+			case LocalFunction(v):
+				"local function #" + Std.string(v);
+		}
 	}
 }

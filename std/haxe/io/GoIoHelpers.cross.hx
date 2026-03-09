@@ -100,7 +100,7 @@ class GoIoHelpers {
 				if (chunk == 0) {
 					throw Error.Blocked;
 				}
-				outputWriteFullBytes(total, buf, 0, chunk);
+				untyped __go__("func() int { {0}.writeFullBytes({1}, {2}, {3}); return 0 }()", total, buf, 0, chunk);
 			} catch (_:Eof) {
 				done = true;
 			}
