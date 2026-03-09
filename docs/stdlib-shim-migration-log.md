@@ -432,7 +432,7 @@ Validation evidence:
 Historical note:
 
 - The direct `haxe.Template` blocker listed below was closed on 2026-03-08 by `haxe.go-14as.38`.
-- The direct `haxe.ValueException` blocker remains open.
+- The direct `haxe.ValueException` blocker listed below was closed on 2026-03-08 by `haxe.go-14as.39`.
 
 Implementation:
 
@@ -441,7 +441,7 @@ Implementation:
 - Added direct semantic-diff coverage:
   - `test/semantic_diff/direct_haxe_helpers_contract`
   - `test/semantic_diff/direct_haxe_resource_contract`
-- Added explicit compile-time blocker fixtures for the remaining direct-helper surfaces that are not honestly portable-ready yet:
+- Added explicit compile-time blocker fixtures for the remaining direct-helper surfaces that were not honestly portable-ready yet:
   - `test/snapshot/negative/direct_haxe_template_unsupported`
   - `test/snapshot/negative/direct_haxe_value_exception_unsupported`
 - Split the remaining debt into focused blocker beads:
@@ -455,7 +455,7 @@ Validation evidence:
 Observed result:
 
 - Direct `haxe.Log`, `haxe.Resource`, and `haxe.SysTools` references no longer fall off the backend as undefined symbols.
-- `haxe.ValueException` no longer fails late in `go test`; it now fails fast with a named blocker and regression fixture until the remaining boxing/message parity gap is closed.
+- `haxe.ValueException` no longer failed late in `go test`; at that point it failed fast with a named blocker and regression fixture until the remaining boxing/message parity gap was closed.
 - Regression coverage on existing callers:
   - `python3 test/run-semantic-diff.py --case stringtools_math --case file_read_write_contract --case process_echo_contract --case http_proxy_custom_request --case http_request_callbacks_contract`
 - Snapshot coverage:

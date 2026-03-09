@@ -156,9 +156,8 @@ MODULE_NOTES_OVERRIDES = {
         "semantic_diff/haxe_template_contract and stdlib/haxe_template_basic."
     ),
     "haxe.ValueException": (
-        "Direct haxe.ValueException usage is intentionally blocked until string-payload message parity is "
-        "restored across Any/string boxing. See negative/direct_haxe_value_exception_unsupported and "
-        "blocker haxe.go-14as.39."
+        "Direct haxe.ValueException constructor/message/value parity now has semantic-diff coverage. "
+        "Evidence: semantic_diff/haxe_value_exception_contract and stdlib/haxe_value_exception_basic."
     ),
 }
 
@@ -170,14 +169,6 @@ BLOCKER_FAMILY_SPECS = (
         "family": "haxe_misc_symbols",
         "closure_target": "2026-03-20",
         "modules": {
-        },
-    },
-    {
-        "issue": "haxe.go-14as.39",
-        "family": "haxe_value_exception_direct",
-        "closure_target": "2026-04-03",
-        "modules": {
-            "haxe.ValueException",
         },
     },
     {

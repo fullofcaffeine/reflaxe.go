@@ -514,7 +514,12 @@ class GoTypeMapper {
 	}
 
 	public static function isHaxeExceptionClass(classType:ClassType):Bool {
-		return classType.pack.join(".") == "haxe" && classType.name == "Exception";
+		return switch (classType.pack.join(".") + "." + classType.name) {
+			case "haxe.Exception", "haxe.ValueException":
+				true;
+			case _:
+				false;
+		};
 	}
 
 	public static function isHaxeIoBaseClass(classType:ClassType):Bool {

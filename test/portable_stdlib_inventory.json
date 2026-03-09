@@ -678,19 +678,17 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_value_exception_direct",
-      "blocker_issue": "haxe.go-14as.39",
-      "closure_target": "2026-04-03",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.ValueException",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.39 (haxe_value_exception_direct); closure target 2026-04-03.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.ValueException constructor/message/value parity now has semantic-diff coverage. Evidence: semantic_diff/haxe_value_exception_contract and stdlib/haxe_value_exception_basic.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [

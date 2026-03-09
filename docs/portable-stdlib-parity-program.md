@@ -110,7 +110,6 @@ Current dated blocker families:
 - `haxe.go-14as.18` - `sys.net` + `sys.ssl` tranche - target `2026-05-21`
 - `haxe.go-14as.19` - `sys.thread` tranche - target `2026-05-31`
 - `haxe.go-dt4s` - direct event-loop tranche (`haxe.EntryPoint`, `haxe.MainLoop`, `haxe.Timer`) - target `2026-04-10`
-- `haxe.go-14as.39` - direct `haxe.ValueException` tranche (`Any`/string boxing parity blocker) - target `2026-04-03`
 
 Closed root-surface follow-up:
 
@@ -118,6 +117,7 @@ Closed root-surface follow-up:
 - `haxe.go-14as.24` closes parsed-CDATA node-type preservation for `Xml.parse()`, so the root `Xml` DOM subset no longer carries that documented caveat.
 - `haxe.go-14as.12` closed the generic `haxe.misc` tranche triage by promoting `haxe.Http` from existing semantic-diff evidence and splitting the remaining modules into `haxe.go-14as.25` to `haxe.go-14as.29`.
 - `haxe.go-14as.25` promoted direct `haxe.Log`, `haxe.Resource`, and `haxe.SysTools` usage to semantic-diff coverage, then split the remaining direct blockers into `haxe.go-14as.38` (`haxe.Template`) and `haxe.go-14as.39` (`haxe.ValueException`).
+- `haxe.go-14as.39` closed the direct `haxe.ValueException` string-payload parity blocker through `haxe_value_exception_contract` and `stdlib/haxe_value_exception_basic`, using the existing hxrt exception carrier instead of keeping the direct constructor hard-failed.
 - `haxe.go-14as.38` promoted direct `haxe.Template` constructor/execute usage to semantic-diff coverage through `haxe_template_contract` and `stdlib/haxe_template_basic`, using a staged `std/haxe/Template.cross.hx` override instead of forcing the untouched upstream module through unsupported source-owned assumptions.
 - `haxe.go-14as.30` closed the remaining `haxe.Resource` embedding gap by wiring compiler resources into the backend-owned `haxe.Resource.content` table, with snapshot coverage in `stdlib/haxe_resource_embedded_basic`.
 - `haxe.go-14as.13` promoted `haxe.ds.Either` to semantic-diff coverage through `haxe_ds_either_contract` and `stdlib/haxe_ds_either_direct`, then split the remaining collection/exception debt into `haxe.go-14as.43` to `haxe.go-14as.47` so each backend problem is tracked explicitly.

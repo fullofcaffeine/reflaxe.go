@@ -9,6 +9,20 @@ type ExceptionValue struct {
 	Message *string
 }
 
+// NewValueException keeps direct haxe.ValueException construction on the same
+// runtime carrier used by catch/wildcard exception paths. The current portable
+// contract only needs value + message parity here; broader previous/native
+// object-model parity is tracked separately in the direct exception-subclass
+// follow-up work.
+func NewValueException(value any, previous *ExceptionValue, native any) *ExceptionValue {
+	_ = previous
+	_ = native
+	return &ExceptionValue{
+		Value:   value,
+		Message: StdString(value),
+	}
+}
+
 func Throw(value any) {
 	panic(HaxeException{Value: value})
 }

@@ -233,7 +233,7 @@ Shim strategy and alternatives are documented in:
 ### Explicit direct-helper exclusions
 
 - `haxe.Template` direct constructor/execute usage now has direct parity coverage through `test/semantic_diff/haxe_template_contract` and `test/snapshot/stdlib/haxe_template_basic`.
-- `haxe.ValueException` direct usage is intentionally blocked until string-payload message parity is restored across `Any`/string boxing. Evidence: `negative/direct_haxe_value_exception_unsupported`.
+- `haxe.ValueException` direct constructor/message/value parity now has semantic-diff coverage through `test/semantic_diff/haxe_value_exception_contract` and snapshot coverage in `test/snapshot/stdlib/haxe_value_exception_basic`.
 
 ### `haxe.Json` runtime-lowered contract
 

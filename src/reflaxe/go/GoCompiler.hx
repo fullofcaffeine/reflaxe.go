@@ -12047,7 +12047,16 @@ class GoCompiler {
 			case TNew(classRef, _, args):
 				var classType = classRef.get();
 				noteSourceOwnedStdlibUsage(classType);
-				if (useTypedGoConcurrencySpecialization() && isGoChanClass(classType)) {
+				if (isHaxeValueExceptionClass(classType)) {
+					var loweredArgs = [for (arg in args) lowerExpr(arg).expr];
+					while (loweredArgs.length < 3) {
+						loweredArgs.push(GoExpr.GoNil);
+					}
+					{
+						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewValueException"), loweredArgs),
+						isStringLike: false
+					};
+				} else if (useTypedGoConcurrencySpecialization() && isGoChanClass(classType)) {
 					noteLoweringAttempt("go.concurrency.typed", "go_chan_new", expr.pos, "Attempt typed go.Chan constructor specialization.");
 					var elementEligibility = goChanElementEligibility(expr.t, "Could not resolve go.Chan element type for constructor specialization.");
 					if (elementEligibility.eligible) {
@@ -12665,6 +12674,13 @@ class GoCompiler {
 					};
 				}
 
+				if (isHaxeValueExceptionType(target.t) && resolved.name == "value") {
+					return {
+						expr: GoExpr.GoSelector(loweredTarget, "Value"),
+						isStringLike: isStringType(resolved.type)
+					};
+				}
+
 				var restTargetName = resolveRestIteratorTargetName(target);
 				var restFieldName = restIteratorFieldName(restTargetName, resolved.name);
 				if (restFieldName != null) {
@@ -12716,6 +12732,12 @@ class GoCompiler {
 					return {
 						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [loweredTarget]),
 						isStringLike: true
+					};
+				}
+				if (isHaxeValueExceptionType(target.t) && resolved.name == "value") {
+					return {
+						expr: GoExpr.GoSelector(loweredTarget, "Value"),
+						isStringLike: isStringType(resolved.type)
 					};
 				}
 				var restTargetName = resolveRestIteratorTargetName(target);
@@ -13068,6 +13090,22 @@ class GoCompiler {
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [lowerExpr(exceptionMessageTarget).expr]),
 				isStringLike: true
+			};
+		}
+
+		var exceptionToStringTarget = asHaxeExceptionToStringTarget(callee);
+		if (exceptionToStringTarget != null && args.length == 0) {
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [lowerExpr(exceptionToStringTarget).expr]),
+				isStringLike: true
+			};
+		}
+
+		var valueExceptionUnwrapTarget = asHaxeValueExceptionUnwrapTarget(callee);
+		if (valueExceptionUnwrapTarget != null && args.length == 0) {
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionThrown"), [lowerExpr(valueExceptionUnwrapTarget).expr]),
+				isStringLike: false
 			};
 		}
 
@@ -14648,6 +14686,16 @@ class GoCompiler {
 	}
 
 	function stdIsOfTypeClassExpr(valueExpr:GoExpr, valueType:Type, targetClass:ClassType):GoExpr {
+		if (isHaxeExceptionClass(targetClass)) {
+			if (isHaxeExceptionType(valueType)) {
+				return GoExpr.GoBinary("!=", valueExpr, GoExpr.GoNil);
+			}
+			if (!isAnyLikeType(valueType)) {
+				return GoExpr.GoBoolLiteral(false);
+			}
+			return stdIsOfTypeTypeSwitch(valueExpr, ["*hxrt.ExceptionValue"]);
+		}
+
 		var valueClass = classFromType(valueType);
 		if (valueClass != null) {
 			if (inheritancePath(valueClass, targetClass) != null) {
@@ -15910,12 +15958,25 @@ class GoCompiler {
 		return GoTypeMapper.isHaxeExceptionClass(classType);
 	}
 
+	function isHaxeValueExceptionClass(classType:ClassType):Bool {
+		return classType.pack.join(".") == "haxe" && classType.name == "ValueException";
+	}
+
 	function isHaxeIoBaseClass(classType:ClassType):Bool {
 		return GoTypeMapper.isHaxeIoBaseClass(classType);
 	}
 
 	function isHaxeExceptionType(type:Type):Bool {
 		return GoTypeMapper.isHaxeExceptionType(type);
+	}
+
+	function isHaxeValueExceptionType(type:Type):Bool {
+		return switch (Context.follow(type)) {
+			case TInst(classRef, _):
+				isHaxeValueExceptionClass(classRef.get());
+			case _:
+				false;
+		};
 	}
 
 	function isNilExpr(expr:GoExpr):Bool {
@@ -15988,8 +16049,8 @@ class GoCompiler {
 				requireStdlibShimGroup("stdlib_symbols");
 				requireStdlibShimGroup("template_support");
 			case "haxe.ValueException":
-				Context.fatalError("Direct haxe.ValueException usage is not supported yet on haxe.go; string payload parity still depends on unresolved Any/string boxing semantics. Track haxe.go-14as.39.",
-					classType.pos);
+				// Direct ValueException usage lowers to the existing hxrt exception
+				// carrier rather than emitting a separate source-owned class body.
 			case _:
 		}
 	}
@@ -16516,6 +16577,44 @@ class GoCompiler {
 				} else {
 					null;
 				}
+			case _:
+				null;
+		};
+	}
+
+	function asHaxeExceptionToStringTarget(callee:TypedExpr):Null<TypedExpr> {
+		return switch (callee.expr) {
+			case TField(target, FInstance(_, _, field)) | TField(target, FAnon(field)) | TField(target, FClosure(_, field)):
+				if (isHaxeExceptionType(target.t) && field.get().name == "toString") {
+					target;
+				} else {
+					null;
+				}
+			case TMeta(_, inner):
+				asHaxeExceptionToStringTarget(inner);
+			case TParenthesis(inner):
+				asHaxeExceptionToStringTarget(inner);
+			case TCast(inner, _):
+				asHaxeExceptionToStringTarget(inner);
+			case _:
+				null;
+		};
+	}
+
+	function asHaxeValueExceptionUnwrapTarget(callee:TypedExpr):Null<TypedExpr> {
+		return switch (callee.expr) {
+			case TField(target, FInstance(_, _, field)) | TField(target, FAnon(field)) | TField(target, FClosure(_, field)):
+				if (isHaxeValueExceptionType(target.t) && field.get().name == "unwrap") {
+					target;
+				} else {
+					null;
+				}
+			case TMeta(_, inner):
+				asHaxeValueExceptionUnwrapTarget(inner);
+			case TParenthesis(inner):
+				asHaxeValueExceptionUnwrapTarget(inner);
+			case TCast(inner, _):
+				asHaxeValueExceptionUnwrapTarget(inner);
 			case _:
 				null;
 		};

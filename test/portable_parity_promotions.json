@@ -26,6 +26,7 @@
       "haxe.SysTools",
       "haxe.Template",
       "haxe.Utf8",
+      "haxe.ValueException",
       "haxe.ds.ArraySort",
       "haxe.ds.Either",
       "haxe.ds.HashMap",
