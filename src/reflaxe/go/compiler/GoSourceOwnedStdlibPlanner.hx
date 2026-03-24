@@ -93,6 +93,8 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibEnum("haxe.StackItem");
 			case "haxe.NativeStackTrace":
 				requireSourceOwnedStdlibClass("haxe.NativeStackTrace");
+			case "haxe.http.HttpBase":
+				requireSourceOwnedStdlibClass("haxe.http.HttpBase");
 			case "haxe.EntryPoint":
 				failDirectEventLoopSurface("haxe.EntryPoint", classType.pos);
 			case "haxe.MainLoop":

@@ -1126,79 +1126,67 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_http_rtti",
-      "blocker_issue": "haxe.go-14as.14",
-      "closure_target": "2026-04-21",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.http.HttpBase",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.14 (haxe_http_rtti); closure target 2026-04-21.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.http.HttpBase constructor/base-field/request baseline now has semantic-diff coverage through the staged override in std/haxe/http/HttpBase.cross.hx. Evidence: semantic_diff/haxe_http_base_contract and stdlib/haxe_http_base_direct.",
+      "owner": "staged_std",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_http_rtti",
-      "blocker_issue": "haxe.go-14as.14",
-      "closure_target": "2026-04-21",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.http.HttpJs",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.14 (haxe_http_rtti); closure target 2026-04-21.",
-      "owner": "mixed",
+      "notes": "Direct haxe.http.HttpJs usage is explicitly unsupported on Go. This is a JS-only target-conditional std module and the Haxe frontend already rejects it on non-JS targets. Evidence: negative/direct_haxe_httpjs_unsupported.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "unsupported"
     },
     {
-      "blocker_family": "haxe_http_rtti",
-      "blocker_issue": "haxe.go-14as.14",
-      "closure_target": "2026-04-21",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.http.HttpMethod",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.14 (haxe_http_rtti); closure target 2026-04-21.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.http.HttpMethod abstract usage now has semantic-diff coverage through haxe_http_base_contract and stdlib/haxe_http_base_direct.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_http_rtti",
-      "blocker_issue": "haxe.go-14as.14",
-      "closure_target": "2026-04-21",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.http.HttpNodeJs",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.14 (haxe_http_rtti); closure target 2026-04-21.",
-      "owner": "mixed",
+      "notes": "Direct haxe.http.HttpNodeJs usage is explicitly unsupported on Go. This is a Node-only target-conditional std module and the Haxe frontend already rejects it on non-Node targets. Evidence: negative/direct_haxe_httpnodejs_unsupported.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "unsupported"
     },
     {
-      "blocker_family": "haxe_http_rtti",
-      "blocker_issue": "haxe.go-14as.14",
-      "closure_target": "2026-04-21",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.http.HttpStatus",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.14 (haxe_http_rtti); closure target 2026-04-21.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.http.HttpStatus abstract usage now has semantic-diff coverage through haxe_http_base_contract and stdlib/haxe_http_base_direct.",
+      "owner": "unassigned",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "blocker_family": "haxe_io_typed_arrays",
@@ -1699,61 +1687,61 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_http_rtti",
-      "blocker_issue": "haxe.go-14as.14",
-      "closure_target": "2026-04-21",
+      "blocker_family": "haxe_rtti_direct",
+      "blocker_issue": "haxe.go-14as.57",
+      "closure_target": "2026-04-28",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.rtti.CType",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.14 (haxe_http_rtti); closure target 2026-04-21.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.57 (haxe_rtti_direct); closure target 2026-04-28.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_http_rtti",
-      "blocker_issue": "haxe.go-14as.14",
-      "closure_target": "2026-04-21",
+      "blocker_family": "haxe_rtti_direct",
+      "blocker_issue": "haxe.go-14as.57",
+      "closure_target": "2026-04-28",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.rtti.Meta",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.14 (haxe_http_rtti); closure target 2026-04-21.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.57 (haxe_rtti_direct); closure target 2026-04-28.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_http_rtti",
-      "blocker_issue": "haxe.go-14as.14",
-      "closure_target": "2026-04-21",
+      "blocker_family": "haxe_rtti_direct",
+      "blocker_issue": "haxe.go-14as.57",
+      "closure_target": "2026-04-28",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.rtti.Rtti",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.14 (haxe_http_rtti); closure target 2026-04-21.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.57 (haxe_rtti_direct); closure target 2026-04-28.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_http_rtti",
-      "blocker_issue": "haxe.go-14as.14",
-      "closure_target": "2026-04-21",
+      "blocker_family": "haxe_rtti_direct",
+      "blocker_issue": "haxe.go-14as.57",
+      "closure_target": "2026-04-28",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.rtti.XmlParser",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.14 (haxe_http_rtti); closure target 2026-04-21.",
+      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.57 (haxe_rtti_direct); closure target 2026-04-28.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "compile-only"

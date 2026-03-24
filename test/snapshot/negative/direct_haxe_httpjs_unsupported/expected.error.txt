@@ -1,0 +1,1 @@
+Module haxe.http.HttpJs does not define type HttpJs

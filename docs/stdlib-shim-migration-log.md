@@ -675,3 +675,35 @@ Observed result:
 - The repo now states one consistent thing across planner, tests, and docs:
   direct Haxe event-loop surfaces are explicitly unsupported on Go today.
 - Future real support is deferred to the `sys.thread` runtime tranche (`haxe.go-14as.19`), which is where a runtime-backed event-loop contract would belong.
+
+### 2026-03-24: direct `haxe.http` baseline promoted and RTTI blocker split (`haxe.go-14as.14`)
+
+Implementation:
+
+- Added staged std ownership for direct `haxe.http.HttpBase` through:
+  - `std/haxe/http/HttpBase.cross.hx`
+- Routed direct `haxe.http.HttpBase` usage through source-owned std planning in:
+  - `src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx`
+- Added direct parity evidence:
+  - `test/semantic_diff/haxe_http_base_contract`
+  - `test/snapshot/stdlib/haxe_http_base_direct`
+- Added explicit negative contracts for target-conditional modules that should stay unsupported on Go:
+  - `test/snapshot/negative/direct_haxe_httpjs_unsupported`
+  - `test/snapshot/negative/direct_haxe_httpnodejs_unsupported`
+- Split the old mixed HTTP/RTTI blocker so direct RTTI reflection now has its own explicit tracker:
+  - `haxe.go-14as.57`
+
+Validation evidence:
+
+- `python3 test/run-semantic-diff.py --case haxe_http_base_contract`
+- `python3 test/run-snapshots.py --case stdlib/haxe_http_base_direct`
+- `python3 test/run-snapshots.py --case negative/direct_haxe_httpjs_unsupported --case negative/direct_haxe_httpnodejs_unsupported`
+- `python3 test/run-portable-stdlib-inventory.py --update`
+- `python3 test/run-portable-parity-closure.py`
+
+Observed result:
+
+- Direct `haxe.http.HttpBase` constructor/base-field/request baseline is now supported under staged std ownership instead of compiling with a missing emitted class body.
+- Direct `haxe.http.HttpMethod` and `haxe.http.HttpStatus` now ride the same parity evidence instead of staying compile-only by omission.
+- `haxe.http.HttpJs` and `haxe.http.HttpNodeJs` are now documented honestly as explicit unsupported target-conditional modules on Go.
+- The remaining direct `haxe.rtti.*` reflection debt is tracked separately instead of being hidden inside the HTTP tranche.

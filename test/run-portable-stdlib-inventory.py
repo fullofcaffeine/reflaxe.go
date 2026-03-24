@@ -82,6 +82,7 @@ SEMANTIC_DIFF_PREFIXES = (
 )
 
 OWNER_OVERRIDES = {
+    "haxe.http.HttpBase": "staged_std",
     "haxe.EntryPoint": "mixed",
     "haxe.CallStack": "staged_std",
     "haxe.Json": "runtime_hxrt",
@@ -119,6 +120,8 @@ OWNER_OVERRIDES = {
 
 UNSUPPORTED_EXPLICIT = {
     "haxe.EntryPoint",
+    "haxe.http.HttpJs",
+    "haxe.http.HttpNodeJs",
     "haxe.MainLoop",
     "haxe.Timer",
 }
@@ -134,6 +137,29 @@ MODULE_NOTES_OVERRIDES = {
         "The previous source-owned inclusion path generated broken Go, and the backend does not yet "
         "provide a real runtime-backed event-loop contract through sys.thread.EventLoop / sys.thread.Thread. "
         "This surface is guarded by compile-time failure rather than pretending support."
+    ),
+    "haxe.http.HttpBase": (
+        "Direct haxe.http.HttpBase constructor/base-field/request baseline now has semantic-diff coverage "
+        "through the staged override in std/haxe/http/HttpBase.cross.hx. Evidence: "
+        "semantic_diff/haxe_http_base_contract and stdlib/haxe_http_base_direct."
+    ),
+    "haxe.http.HttpJs": (
+        "Direct haxe.http.HttpJs usage is explicitly unsupported on Go. "
+        "This is a JS-only target-conditional std module and the Haxe frontend already rejects it "
+        "on non-JS targets. Evidence: negative/direct_haxe_httpjs_unsupported."
+    ),
+    "haxe.http.HttpNodeJs": (
+        "Direct haxe.http.HttpNodeJs usage is explicitly unsupported on Go. "
+        "This is a Node-only target-conditional std module and the Haxe frontend already rejects it "
+        "on non-Node targets. Evidence: negative/direct_haxe_httpnodejs_unsupported."
+    ),
+    "haxe.http.HttpMethod": (
+        "Direct haxe.http.HttpMethod abstract usage now has semantic-diff coverage through "
+        "haxe_http_base_contract and stdlib/haxe_http_base_direct."
+    ),
+    "haxe.http.HttpStatus": (
+        "Direct haxe.http.HttpStatus abstract usage now has semantic-diff coverage through "
+        "haxe_http_base_contract and stdlib/haxe_http_base_direct."
     ),
     "haxe.MainLoop": (
         "Direct haxe.MainLoop usage is explicitly unsupported on Go for now. "
@@ -248,15 +274,10 @@ BLOCKER_FAMILY_SPECS = (
         },
     },
     {
-        "issue": "haxe.go-14as.14",
-        "family": "haxe_http_rtti",
-        "closure_target": "2026-04-21",
+        "issue": "haxe.go-14as.57",
+        "family": "haxe_rtti_direct",
+        "closure_target": "2026-04-28",
         "modules": {
-            "haxe.http.HttpBase",
-            "haxe.http.HttpJs",
-            "haxe.http.HttpMethod",
-            "haxe.http.HttpNodeJs",
-            "haxe.http.HttpStatus",
             "haxe.rtti.CType",
             "haxe.rtti.Meta",
             "haxe.rtti.Rtti",

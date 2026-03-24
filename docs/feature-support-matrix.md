@@ -52,6 +52,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.Exception` (`caught`/`thrown`/`message`) | `semantic-diff` | `exception_api_contract`, `exceptions_typed_dynamic` |
 | `EReg` | `semantic-diff` | `ereg_behavior_contract`, `ereg_edge_contract` |
 | `haxe.Http` / `sys.Http` | `semantic-diff` | `http_proxy_custom_request`, `http_request_callbacks_contract` |
+| Direct `haxe.http.HttpBase` baseline plus direct `haxe.http.HttpMethod` / `haxe.http.HttpStatus` use | `semantic-diff` | `haxe_http_base_contract`, `stdlib/haxe_http_base_direct` |
 | `sys.net.Socket` | `semantic-diff` | `socket_loopback_contract`, `socket_advanced_contract` |
 | `haxe.crypto.*` + `haxe.xml.*` + `haxe.zip.*` subset | `semantic-diff` | `crypto_xml_zip` |
 | `haxe.Json` | `semantic-diff` | `json_parse_stringify_contract`, `stdlib/json_parse_stringify` |
@@ -67,6 +68,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.Log` + `haxe.Resource` + `haxe.SysTools` direct helper subset | `semantic-diff` | `direct_haxe_helpers_contract`, `direct_haxe_resource_contract`, `stdlib/haxe_resource_embedded_basic` |
 | `haxe.Utf8` deprecated helper subset (no-size buffer ctor, `addChar`, `toString`, `iter`, `charCodeAt`, `validate`, byte-length `length`, byte-compare `compare`, UTF-8 character-position `sub`, `encode`, `decode`; optional size ctor stays excluded) | `semantic-diff` | `haxe_utf8_contract`, `stdlib/haxe_utf8_basic`, `negative/direct_haxe_utf8_size_ctor_unsupported` |
 | `haxe.Ucs2` platform exclusion | `snapshot` | `stdlib/haxe_ucs2_platform_exclusion` |
+| `haxe.http.HttpJs` / `haxe.http.HttpNodeJs` target-conditional exclusion on Go | `snapshot` | `negative/direct_haxe_httpjs_unsupported`, `negative/direct_haxe_httpnodejs_unsupported` |
 | `Array` + `IntIterator` core subset (`push`/`pop` statement-form, length/index access, array iteration, `0...N` range iteration) | `semantic-diff` | `array_string_intiterator_contract` |
 | `String` core subset (`length`, `charAt`, `charCodeAt` with null on out-of-range, `substring`, `fromCharCode`) | `semantic-diff` | `array_string_intiterator_contract`, `string_charcodeat_bounds_contract` |
 | `StringBuf` + `DateTools` + `Lambda` core subset (`add`/`addChar`/`addSub`, `DateTools.delta` with duration helpers, staged-std `DateTools.format` strftime subset plus `getMonthDays`/`parse`/`make`, `Lambda.filter`/`map`/`fold`/`has`/`exists`/`iter` over `Array<T>`/`haxe.ds.List<T>`, generic-`Iterable<T>` support for `Lambda.count`/`Lambda.empty`/`Lambda.exists`/`Lambda.has`/`Lambda.filter`/`Lambda.map`/`Lambda.fold`/`Lambda.iter` including function-value `Lambda.map` call-sites) | `semantic-diff` | `stringbuf_datetools_lambda_contract`, `datetools_cross_std_contract`, `lambda_list_contract`, `lambda_generic_iterable_count_empty_contract`, `lambda_iter_array_list_contract`, `lambda_iter_generic_iterable_contract` |
@@ -119,6 +121,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/non_string_null_equality_contract`
 - `test/semantic_diff/exceptions_typed_dynamic`
 - `test/semantic_diff/exception_api_contract`
+- `test/semantic_diff/haxe_http_base_contract`
 - `test/semantic_diff/enum_switch_bindings`
 - `test/semantic_diff/virtual_dispatch`
 - `test/semantic_diff/stringtools_math`
@@ -438,5 +441,7 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-14as.43`: closed direct `haxe.exceptions` subclass construction parity. `haxe.exceptions.PosException`, `haxe.exceptions.ArgumentException`, and `haxe.exceptions.NotImplementedException` now have semantic-diff coverage in `haxe_exceptions_direct_contract` plus snapshot coverage in `stdlib/haxe_exceptions_direct`.
 - `haxe.go-14as.46`: closed the direct `haxe.ds.BalancedTree` / `haxe.ds.GenericStack` runtime tranche. The staged overrides now hold direct set/get/remove/toString/pop behavior under semantic-diff coverage in `haxe_ds_source_owned_collections_contract` plus snapshot coverage in `stdlib/haxe_ds_source_owned_collections`; broader iterator parity stays tracked separately.
 - `haxe.go-14as.47`: closed the direct `haxe.ds.WeakMap` stance blocker. Go now preserves the upstream Haxe platform contract by allowing direct construction to compile and then throw `haxe.exceptions.NotImplementedException` at runtime; evidence lives in `haxe_ds_weakmap_contract` and `stdlib/haxe_ds_weakmap_platform`.
+- `haxe.go-14as.14`: closed the direct `haxe.http` half of the old combined HTTP/RTTI blocker. `haxe.http.HttpBase` now has staged-stdlib baseline support through `std/haxe/http/HttpBase.cross.hx`, with parity evidence in `haxe_http_base_contract` and `stdlib/haxe_http_base_direct`. `haxe.http.HttpJs` and `haxe.http.HttpNodeJs` are now explicit unsupported target-conditional modules on Go, with negative coverage in `negative/direct_haxe_httpjs_unsupported` and `negative/direct_haxe_httpnodejs_unsupported`.
+- `haxe.go-14as.57`: now owns the remaining direct `haxe.rtti.*` reflection tranche after the HTTP half was split out. RTTI still needs deeper metadata/runtime closure before it can be promoted honestly.
 - Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage is now treated as an explicit unsupported surface on Go, not as partial support. The compiler fails early because a real runtime-backed event-loop contract (`sys.thread.EventLoop` / `sys.thread.Thread`) does not exist yet, and the old source-owned inclusion path generated broken Go. Future runtime work belongs with `haxe.go-14as.19`, not with more ad hoc compiler shims.
 - Remaining compile-only portable blocker families are inventory-backed, not hand-maintained here. Use `test/portable_stdlib_inventory.json` plus `test/.test-cache/portable_parity_closure_summary.md` as the authoritative current list.
