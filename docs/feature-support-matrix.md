@@ -376,15 +376,16 @@ Policy sources:
 
 ## Unsupported expression inventory (compiler hard-fail paths)
 
-These are explicit fatal guards in `src/reflaxe/go/GoCompiler.hx` that represent unsupported paths.
-As of **2026-03-06**, the hard-fail inventory count remains **4**, with invariant fixture strategies now explicitly named per path.
+These are explicit fatal guards in `src/reflaxe/go/GoCompiler.hx`.
+The remaining inventory is invariant-only: parser/front-end rejection or node-family closure proof, not active supported-language holes.
+As of **2026-03-24**, the hard-fail inventory count remains **4**, with named fixture strategies per path.
 
 | Inventory item | Current behavior | Fixture strategy (named) | Acceptance criteria for closure | Owner |
 | --- | --- | --- | --- | --- |
-| Non-lvalue assignment targets in `lowerLValue` | Fatal: `Unsupported assignment target` | `negative/non_lvalue_assignment_invariant` locks Haxe front-end rejection (`Invalid assign`) so backend fatal remains an explicit invariant unless a typed reproducer becomes reachable. | Either (a) support any newly reachable legal lvalue shape, or (b) keep as invariant and add a dedicated negative test if a reproducer becomes possible. | `haxe.go-14as.8` |
-| Non-`++/--` postfix unary in `lowerExpr` / `lowerExprWithPrefix` | Fatal: `Unsupported postfix unary operator` | `negative/postfix_non_inc_dec_invariant` locks parser-level rejection (`Postfix ! is not supported`) so only `++/--` postfix forms can reach lowering today. | Keep parser/typed-ast assumptions validated; if new postfix forms become reachable, add lowering + snapshots before enabling. | `haxe.go-14as.8` |
-| Catch-all `lowerExpr` default | Fatal: `Unsupported expression` | Node-family closure map: `semantic-diff/type_expr_contract`, `semantic-diff/throw_expr_contract`, `core/untyped_ident_nil`, and `core/const_kinds_contract`; new reachable node families must add a dedicated contract fixture in the same change. | Continue replacing reachable typed-node gaps with explicit lowering and keep dedicated coverage as each newly reachable node is supported. | `haxe.go-14as.8` |
-| Unsupported `Std.isOfType` target kind | No compiler hard-fail for unresolved runtime-value abstract targets; falls back to conservative `false`/type-switch check | `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract`, `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic`, `core/type_switch_no_binding_std_is_of_type` lock current fallback semantics. | Keep adding explicit lowering for newly important target families and lock behavior with semantic diff coverage. | `haxe.go-14as.8` |
+| Non-lvalue assignment targets in `lowerLValue` | Fatal: `Unsupported assignment target` | `negative/non_lvalue_assignment_invariant` locks Haxe front-end rejection (`Invalid assign`) so backend fatal remains an explicit invariant unless a typed reproducer becomes reachable. | Either (a) support any newly reachable legal lvalue shape, or (b) keep as invariant and add a dedicated negative test if a reproducer becomes possible. | `haxe.go-14as.56` |
+| Non-`++/--` postfix unary in `lowerExpr` / `lowerExprWithPrefix` | Fatal: `Unsupported postfix unary operator` | `negative/postfix_non_inc_dec_invariant` locks parser-level rejection (`Postfix ! is not supported`) so only `++/--` postfix forms can reach lowering today. | Keep parser/typed-ast assumptions validated; if new postfix forms become reachable, add lowering + snapshots before enabling. | `haxe.go-14as.56` |
+| Catch-all `lowerExpr` default | Fatal: `Unsupported expression` | Node-family closure map: `semantic-diff/type_expr_contract`, `semantic-diff/throw_expr_contract`, `core/untyped_ident_nil`, and `core/const_kinds_contract`; new reachable node families must add a dedicated contract fixture in the same change. | Continue replacing reachable typed-node gaps with explicit lowering and keep dedicated coverage as each newly reachable node is supported. | `haxe.go-14as.56` |
+| Unsupported `Std.isOfType` target kind | No compiler hard-fail for unresolved runtime-value abstract targets; falls back to conservative `false`/type-switch check | `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract`, `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic`, `core/type_switch_no_binding_std_is_of_type` lock current fallback semantics. | Keep adding explicit lowering for newly important target families and lock behavior with semantic diff coverage. | `haxe.go-14as.56` |
 
 ## Known stdlib parity gaps (probe inventory)
 

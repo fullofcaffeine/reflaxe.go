@@ -165,8 +165,7 @@ Current execution order:
 2. `haxe.go-14as.55.1` - canonical ownership rubric (`compiler` vs `staged std` vs `hxrt` vs `go.*`)
 3. `haxe.go-14as.55.2` - split compiler-owned stdlib emitters out of `GoCompiler.hx`
 4. `haxe.go-14as.55.4` - make ownership/parity governance release-blocking
-5. `haxe.go-14as.56` - close remaining language hard-fail paths
-6. remaining portable stdlib blocker families in owner-driven order:
+5. remaining portable stdlib blocker families in owner-driven order:
    - `haxe.go-14as.47` (`haxe.ds.WeakMap` stance)
    - `haxe.go-dt4s` (direct event-loop surfaces)
    - `haxe.go-14as.14` (`haxe.http` + `haxe.rtti`)
@@ -178,6 +177,11 @@ Current execution order:
    - `haxe.go-14as.42` (`haxe.Utf8` deprecated optional-size constructor)
 
 The old `haxe.go-cgk.*` planning work is historical context now, not the active execution tracker.
+
+Language hard-fail proof is already locked:
+
+- `haxe.go-14as.56` closed the remaining lowering-guard tranche by making the invariant inventory explicit and release-checked.
+- The release contract now treats those guards as invariant-only proof points, not as open supported-language gaps. See `docs/known-gaps.md`, `docs/feature-support-matrix.md`, and `test/test_language_hard_fail_inventory_contract.py`.
 
 ## Definition of Done
 

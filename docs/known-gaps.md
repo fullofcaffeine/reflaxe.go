@@ -18,12 +18,14 @@ Current architecture status:
 
 - Output remains a single Go package (multi-file, single package); multi-package emission is not implemented yet.
 - Multi-package output is currently deferred as non-blocking for production GA; explicit boundary conditions for re-opening are documented in `docs/multi-package-output-evaluation.md`.
-- Some unsupported typed-expression guards still exist by design (`docs/feature-support-matrix.md` inventory section). Current compiler hard-fails:
+- These remaining lowering guards are invariant checks, not open supported-language gaps.
+- No currently supported Haxe source construct is expected to hit them in normal typed lowering.
+- Current invariant inventory (`docs/feature-support-matrix.md`, owned by `haxe.go-14as.56`):
   - `Unsupported assignment target` (`lowerLValue`)
   - `Unsupported postfix unary operator` (`lowerExpr` / `lowerExprWithPrefix`)
   - `Unsupported expression` (catch-all `lowerExpr` fallback)
   - `Std.isOfType` still has conservative fallback behavior for unresolved runtime-value abstract targets (documented as partial support, not a hard-fail)
-- Invariant fixture strategy for surviving hard-fail paths (`haxe.go-14as.8`):
+- Invariant fixture strategy for the remaining lowering guards:
   - `Unsupported assignment target`: `test/snapshot/negative/non_lvalue_assignment_invariant`
   - `Unsupported postfix unary operator`: `test/snapshot/negative/postfix_non_inc_dec_invariant`
   - `Unsupported expression` catch-all: closure-by-node-family via `test/semantic_diff/type_expr_contract`, `test/semantic_diff/throw_expr_contract`, `test/snapshot/core/untyped_ident_nil`, `test/snapshot/core/const_kinds_contract`
