@@ -19,6 +19,7 @@ def main() -> int:
     commands = [
         ["python3", "test/test_metal_graduation_contract.py"],
         ["python3", "test/test_multi_package_output_decision_contract.py"],
+        ["python3", "test/test_portable_governance_contract.py"],
         ["python3", "test/test_release_readiness_checklist_contract.py"],
     ]
     for command in commands:

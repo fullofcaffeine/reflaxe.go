@@ -13,12 +13,15 @@ Run these checks from repo root on a clean branch before a release cut.
 3. Portable parity closure visibility:
    - `python3 test/run-portable-stdlib-inventory.py`
    - `python3 test/run-portable-parity-closure.py`
-4. Family stdlib sync gates:
+4. Ownership and stdlib governance gates:
+   - `npm run test:stdlib:governance`
+   - `npm run test:release-contracts`
+5. Family stdlib sync gates:
    - `npm run test:family-stdlib-sync`
    - `npm run test:family-stdlib-bootstrap`
-5. Release visibility contract:
+6. Release visibility contract:
    - `npm run release:status`
-6. Performance visibility gates:
+7. Performance visibility gates:
    - `npm run test:perf:go`
    - `npm run test:perf:hxrt-selective`
    - `npm run test:perf:apps`
@@ -31,6 +34,8 @@ Use this exact command order when validating a release candidate locally:
 python3 test/run-ci.py
 python3 test/run-portable-stdlib-inventory.py
 python3 test/run-portable-parity-closure.py
+npm run test:stdlib:governance
+npm run test:release-contracts
 npm run test:family-stdlib-sync
 npm run test:family-stdlib-bootstrap
 npm run release:status
@@ -52,6 +57,8 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 - `python3 test/run-ci.py` exits `0` with no failed stages.
 - `python3 test/run-portable-stdlib-inventory.py` exits `0` and every remaining `compile-only` module carries blocker issue + target metadata.
 - `python3 test/run-portable-parity-closure.py` exits `0` and reports only explicit blocker-backed remaining modules.
+- `npm run test:stdlib:governance` exits `0` and confirms provenance/boundary discipline for staged std ownership.
+- `npm run test:release-contracts` exits `0` and confirms ownership mapping plus release docs still match the live inventory/tracker state.
 - `npm run test:family-stdlib-sync` and `npm run test:family-stdlib-bootstrap` exit `0`.
 - `npm run release:status` exits `0` and reports release wiring as healthy.
 - Perf runs complete and budgets are within expected thresholds for the current baseline policy.

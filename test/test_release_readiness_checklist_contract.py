@@ -20,6 +20,8 @@ class ReleaseReadinessChecklistContractTest(unittest.TestCase):
     def test_checklist_includes_canonical_commands(self) -> None:
         checklist = (REPO_ROOT / "docs" / "release-readiness-checklist.md").read_text(encoding="utf-8")
         self.assertIn("python3 test/run-ci.py", checklist)
+        self.assertIn("npm run test:stdlib:governance", checklist)
+        self.assertIn("npm run test:release-contracts", checklist)
         self.assertIn("npm run release:status", checklist)
         self.assertIn("npm run test:perf:go", checklist)
         self.assertIn("npm run test:perf:hxrt-selective", checklist)

@@ -102,16 +102,12 @@ For every remaining `compile-only` module, the generated inventory and closure s
 
 That metadata is the repo-level proof that no portable-eligible module is still implicit/unknown.
 
-Current dated blocker families:
+Current blocker families are generated from `test/portable_stdlib_inventory.json` and summarized in:
 
-- `haxe.go-14as.47` - direct `haxe.ds.WeakMap` support-classification tranche - target `2026-04-14`
-- `haxe.go-14as.14` - `haxe.http` + `haxe.rtti` tranche - target `2026-04-21`
-- `haxe.go-14as.15` - `haxe.io` misc tranche - target `2026-04-30`
-- `haxe.go-14as.16` - `haxe.io` typed-array tranche - target `2026-05-07`
-- `haxe.go-14as.17` - `sys.db` + `sys.io` tranche - target `2026-05-14`
-- `haxe.go-14as.18` - `sys.net` + `sys.ssl` tranche - target `2026-05-21`
-- `haxe.go-14as.19` - `sys.thread` tranche - target `2026-05-31`
-- `haxe.go-dt4s` - direct event-loop tranche (`haxe.EntryPoint`, `haxe.MainLoop`, `haxe.Timer`) - target `2026-04-10`
+- `test/.test-cache/portable_parity_closure_summary.json`
+- `test/.test-cache/portable_parity_closure_summary.md`
+
+That generated summary is the authoritative live blocker list. This document should describe the workflow and closure rules, not duplicate per-module blocker bookkeeping by hand.
 
 Closed root-surface follow-up:
 
