@@ -113,6 +113,10 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibModule("haxe.ds.BalancedTree");
 			case "haxe.ds.GenericStack":
 				requireSourceOwnedStdlibModule("haxe.ds.GenericStack");
+			case "haxe.ds.WeakMap":
+				requireSourceOwnedStdlibClass("haxe.ds.WeakMap");
+				requireSourceOwnedStdlibClass("haxe.exceptions.PosException");
+				requireSourceOwnedStdlibClass("haxe.exceptions.NotImplementedException");
 			case "haxe.ds.ListSort":
 				requireSourceOwnedStdlibClass("haxe.ds.ListSort");
 			case "haxe.Utf8":

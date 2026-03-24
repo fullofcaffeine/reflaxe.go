@@ -119,6 +119,7 @@ Closed root-surface follow-up:
 - `haxe.go-14as.38` promoted direct `haxe.Template` constructor/execute usage to semantic-diff coverage through `haxe_template_contract` and `stdlib/haxe_template_basic`, using a staged `std/haxe/Template.cross.hx` override instead of forcing the untouched upstream module through unsupported source-owned assumptions.
 - `haxe.go-14as.43` promoted direct `haxe.exceptions.PosException`, `haxe.exceptions.ArgumentException`, and `haxe.exceptions.NotImplementedException` to semantic-diff coverage through `haxe_exceptions_direct_contract` and `stdlib/haxe_exceptions_direct`, using staged exception overrides plus the hxrt exception carrier bridge instead of keeping the direct constructor path compile-only.
 - `haxe.go-14as.46` promoted direct `haxe.ds.BalancedTree` and `haxe.ds.GenericStack` runtime use to semantic-diff coverage through `haxe_ds_source_owned_collections_contract` and `stdlib/haxe_ds_source_owned_collections`, using staged collection overrides to keep ownership in std code while leaving broader iterator parity to the later collection audit.
+- `haxe.go-14as.47` closed the `haxe.ds.WeakMap` stance blocker by promoting the honest upstream platform contract instead of inventing fake weak references. On Go, direct `new haxe.ds.WeakMap()` now compiles and throws `haxe.exceptions.NotImplementedException` at runtime, matching the generic Haxe stdlib behavior. Evidence: `haxe_ds_weakmap_contract` and `stdlib/haxe_ds_weakmap_platform`.
 - `haxe.go-14as.30` closed the remaining `haxe.Resource` embedding gap by wiring compiler resources into the backend-owned `haxe.Resource.content` table, with snapshot coverage in `stdlib/haxe_resource_embedded_basic`.
 - `haxe.go-14as.13` promoted `haxe.ds.Either` to semantic-diff coverage through `haxe_ds_either_contract` and `stdlib/haxe_ds_either_direct`, then split the remaining collection/exception debt into `haxe.go-14as.43` to `haxe.go-14as.47` so each backend problem is tracked explicitly.
 - `haxe.go-14as.44` promoted direct `haxe.ds.HashMap` to semantic-diff coverage through `haxe_ds_hashmap_contract` and `stdlib/haxe_ds_hashmap_direct`, closing the lowercase `hashCode()` parity gap without requiring target-specific `HashCode` aliases.
@@ -166,7 +167,6 @@ Current execution order:
 3. `haxe.go-14as.55.2` - split compiler-owned stdlib emitters out of `GoCompiler.hx`
 4. `haxe.go-14as.55.4` - make ownership/parity governance release-blocking
 5. remaining portable stdlib blocker families in owner-driven order:
-   - `haxe.go-14as.47` (`haxe.ds.WeakMap` stance)
    - `haxe.go-dt4s` (direct event-loop surfaces)
    - `haxe.go-14as.14` (`haxe.http` + `haxe.rtti`)
    - `haxe.go-14as.15` (`haxe.io` misc)

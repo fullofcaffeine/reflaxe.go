@@ -99,6 +99,7 @@ OWNER_OVERRIDES = {
     "haxe.NativeStackTrace": "staged_std",
     "haxe.Template": "staged_std",
     "haxe.Utf8": "staged_std",
+    "haxe.ds.WeakMap": "staged_std",
     "EReg": "compiler_shim",
     "haxe.Serializer": "compiler_shim",
     "haxe.Unserializer": "compiler_shim",
@@ -158,6 +159,12 @@ MODULE_NOTES_OVERRIDES = {
     "haxe.ValueException": (
         "Direct haxe.ValueException constructor/message/value parity now has semantic-diff coverage. "
         "Evidence: semantic_diff/haxe_value_exception_contract and stdlib/haxe_value_exception_basic."
+    ),
+    "haxe.ds.WeakMap": (
+        "Direct WeakMap usage now has semantic-diff coverage for the upstream platform behavior: "
+        "on Go, `new haxe.ds.WeakMap()` preserves the generic Haxe stdlib contract and throws "
+        "`haxe.exceptions.NotImplementedException` instead of pretending to expose real weak references. "
+        "Evidence: semantic_diff/haxe_ds_weakmap_contract and stdlib/haxe_ds_weakmap_platform."
     ),
 }
 

@@ -33,6 +33,7 @@
       "haxe.ds.GenericStack",
       "haxe.ds.HashMap",
       "haxe.ds.ListSort",
+      "haxe.ds.WeakMap",
       "haxe.exceptions.ArgumentException",
       "haxe.exceptions.NotImplementedException",
       "haxe.exceptions.PosException",
