@@ -50,7 +50,9 @@ func haxe__NativeStackTrace_toHaxe(nativeStackTrace any, skip int) []*haxe__Stac
 		hx_post_10 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_10
-		out = append(out, stack[index])
+		hx_arr_11 := out
+		hx_arr_11 = append(hx_arr_11, stack[index])
+		out = hx_arr_11
 	}
 	return out
 }

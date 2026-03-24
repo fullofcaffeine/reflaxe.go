@@ -19,9 +19,13 @@ func main() {
 		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
 		i := hx_post_1
-		buffer.b = append(buffer.b, (b2[i] & 255))
+		hx_arr_2 := buffer.b
+		hx_arr_2 = append(hx_arr_2, (b2[i] & 255))
+		buffer.b = hx_arr_2
 	}
-	buffer.b = append(buffer.b, (33 & 255))
+	hx_arr_3 := buffer.b
+	hx_arr_3 = append(hx_arr_3, (33 & 255))
+	buffer.b = hx_arr_3
 	out := buffer.getBytes()
 	hxrt.Println(out.toString())
 }

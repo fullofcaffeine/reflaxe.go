@@ -261,7 +261,9 @@ func StringTools_urlDecode(s *string) *string {
 			hi := StringTools_hexDigitValue(hxrt.StringSubstrStringPtr(input, int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1)))), 1, true))
 			lo := StringTools_hexDigitValue(hxrt.StringSubstrStringPtr(input, int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(2)))), 1, true))
 			if (hi >= 0) && (lo >= 0) {
-				bytes = append(bytes, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(hi) << uint(4))))) | hxrt.Int32Wrap(lo)))))
+				hx_arr_12 := bytes
+				hx_arr_12 = append(hx_arr_12, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(hi) << uint(4))))) | hxrt.Int32Wrap(lo)))))
+				bytes = hx_arr_12
 				index = int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(3))))
 				continue
 			}
@@ -270,10 +272,12 @@ func StringTools_urlDecode(s *string) *string {
 		_g := 0
 		_g1 := chunk.length
 		for _g < _g1 {
-			hx_post_12 := _g
+			hx_post_13 := _g
 			_g = int(int32((_g + 1)))
-			chunkIndex := hx_post_12
-			bytes = append(bytes, chunk.b[chunkIndex])
+			chunkIndex := hx_post_13
+			hx_arr_14 := bytes
+			hx_arr_14 = append(hx_arr_14, chunk.b[chunkIndex])
+			bytes = hx_arr_14
 		}
 		index = int(int32((index + 1)))
 	}
@@ -281,9 +285,9 @@ func StringTools_urlDecode(s *string) *string {
 	_g_1 := 0
 	_g1_1 := len(bytes)
 	for _g_1 < _g1_1 {
-		hx_post_13 := _g_1
+		hx_post_15 := _g_1
 		_g_1 = int(int32((_g_1 + 1)))
-		byteIndex := hx_post_13
+		byteIndex := hx_post_15
 		out.b[byteIndex] = int(int32((hxrt.Int32Wrap(bytes[byteIndex]) & hxrt.Int32Wrap(255))))
 	}
 	return out.toString()
@@ -297,9 +301,9 @@ func StringTools_urlEncode(s *string) *string {
 	_g := 0
 	_g1 := bytes.length
 	for _g < _g1 {
-		hx_post_14 := _g
+		hx_post_16 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_14
+		index := hx_post_16
 		b := bytes.b[index]
 		isUnreserved := ((((((((b >= 65) && (b <= 90)) || ((b >= 97) && (b <= 122))) || ((b >= 48) && (b <= 57))) || (b == 45)) || (b == 95)) || (b == 46)) || (b == 126))
 		if isUnreserved {
@@ -321,23 +325,23 @@ func StringTools_urlEncode(s *string) *string {
 
 func StringTools_utf16CodePointAt(s *string, index int) int {
 	c_1 := hxrt.StringCharCodeAtAnyStringPtr(s, index)
-	var hx_if_15 int
+	var hx_if_17 int
 	if c_1 == nil {
-		hx_if_15 = -1
+		hx_if_17 = -1
 	} else {
-		hx_if_15 = hxrt.IntFromNullableAny(c_1)
+		hx_if_17 = hxrt.IntFromNullableAny(c_1)
 	}
-	c := hx_if_15
+	c := hx_if_17
 	if (c >= 55296) && (c <= 56319) {
 		c = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(c) - hxrt.Int32Wrap(55232))))) << uint(10))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(func() int {
 			c_2 := hxrt.StringCharCodeAtAnyStringPtr(s, int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1)))))
-			var hx_if_16 int
+			var hx_if_18 int
 			if c_2 == nil {
-				hx_if_16 = -1
+				hx_if_18 = -1
 			} else {
-				hx_if_16 = hxrt.IntFromNullableAny(c_2)
+				hx_if_18 = hxrt.IntFromNullableAny(c_2)
 			}
-			return hx_if_16
+			return hx_if_18
 		}()) & hxrt.Int32Wrap(1023))))))))
 	}
 	return c

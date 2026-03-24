@@ -1,0 +1,4 @@
+fields.len=2
+fields.has_rtti=true
+raw.rtti.null=false
+raw.meta.null=true

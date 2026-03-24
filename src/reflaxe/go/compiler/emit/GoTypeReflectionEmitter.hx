@@ -27,6 +27,7 @@ class GoTypeReflectionEmitter {
 		final goTypeName:String;
 		final haxeTypeName:String;
 		final constructorSymbol:String;
+		final constructible:Bool;
 		final superHaxeTypeName:Null<String>;
 		final staticFieldNames:Array<String>;
 		final instanceFieldNames:Array<String>;
@@ -137,7 +138,11 @@ class GoTypeReflectionEmitter {
 		var classCreateBody = [GoStmt.GoRaw("switch className {")];
 		for (entry in classMetadata) {
 			classCreateBody.push(GoStmt.GoRaw("case " + goRawQuotedString(entry.haxeTypeName) + ":"));
-			classCreateBody.push(GoStmt.GoRaw("\treturn hxrt_typeCallAny(" + entry.constructorSymbol + ", args)"));
+			if (entry.constructible) {
+				classCreateBody.push(GoStmt.GoRaw("\treturn hxrt_typeCallAny(" + entry.constructorSymbol + ", args)"));
+			} else {
+				classCreateBody.push(GoStmt.GoRaw("\treturn nil, false"));
+			}
 		}
 		classCreateBody.push(GoStmt.GoRaw("default:"));
 		classCreateBody.push(GoStmt.GoRaw("\treturn nil, false"));
@@ -288,6 +293,9 @@ class GoTypeReflectionEmitter {
 		getClassBody.push(GoStmt.GoRaw("\tcopyValue := value"));
 		getClassBody.push(GoStmt.GoRaw("\treturn &copyValue"));
 		for (entry in classMetadata) {
+			if (!entry.constructible) {
+				continue;
+			}
 			getClassBody.push(GoStmt.GoRaw("case *" + entry.goTypeName + ":"));
 			getClassBody.push(GoStmt.GoRaw("\tif value == nil {"));
 			getClassBody.push(GoStmt.GoRaw("\t\treturn nil"));
@@ -392,6 +400,9 @@ class GoTypeReflectionEmitter {
 
 		var classCreateEmptyBody = [GoStmt.GoRaw("switch className {")];
 		for (entry in classMetadata) {
+			if (!entry.constructible) {
+				continue;
+			}
 			if (!GoStdlibOwnership.canConstructEmptyTypeValue(entry.goTypeName)) {
 				continue;
 			}
@@ -412,7 +423,8 @@ class GoTypeReflectionEmitter {
 		for (entry in allEnumMetadata) {
 			allEnumsBody.push(GoStmt.GoRaw("case " + goRawQuotedString(entry.haxeTypeName) + ":"));
 			var zeroAritySymbols = [
-				for (constructor in entry.constructors) if (constructor.arity == 0) constructor.symbol
+				for (constructor in entry.constructors)
+					if (constructor.arity == 0) constructor.symbol
 			];
 			if (zeroAritySymbols.length == 0) {
 				allEnumsBody.push(GoStmt.GoRaw("\treturn []any{}"));

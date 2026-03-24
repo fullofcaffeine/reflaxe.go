@@ -75,7 +75,9 @@ func main() {
 		for _g1 < len(_g2) {
 			var value any = _g2[_g1]
 			_g1 = int(int32((_g1 + 1)))
-			_g = append(_g, Type_enumConstructor(value))
+			hx_arr_2 := _g
+			hx_arr_2 = append(hx_arr_2, Type_enumConstructor(value))
+			_g = hx_arr_2
 		}
 		return _g
 	}())))
@@ -997,6 +999,9 @@ func Reflect_field(obj any, field *string) any {
 		return nil
 	}
 	key := *hxrt.StdString(field)
+	if metadataValue, ok := hxrt_typeClassMetadataField(obj, key); ok {
+		return metadataValue
+	}
 	switch value := obj.(type) {
 	case map[string]any:
 		return value[key]
@@ -1040,6 +1045,9 @@ func Reflect_hasField(obj any, field *string) bool {
 		return false
 	}
 	key := *hxrt.StdString(field)
+	if _, ok := hxrt_typeClassMetadataField(obj, key); ok {
+		return true
+	}
 	switch value := obj.(type) {
 	case map[string]any:
 		_, ok := value[key]
@@ -1900,6 +1908,18 @@ func hxrt_typeResolvedEnumName(value any) (string, bool) {
 
 func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	switch className {
+	case "Main":
+		return nil, false
+	case "haxe.Int64Helper":
+		return nil, false
+	case "haxe._EnumFlags.EnumFlags_Impl_":
+		return nil, false
+	case "haxe._Int32.Int32_Impl_":
+		return nil, false
+	case "haxe._Int64.Int64_Impl_":
+		return nil, false
+	case "haxe._Int64.___Int64":
+		return nil, false
 	default:
 		return nil, false
 	}
@@ -2113,6 +2133,18 @@ func Type_getSuperClass(c any) any {
 		return nil
 	}
 	switch className {
+	case "Main":
+		return nil
+	case "haxe.Int64Helper":
+		return nil
+	case "haxe._EnumFlags.EnumFlags_Impl_":
+		return nil
+	case "haxe._Int32.Int32_Impl_":
+		return nil
+	case "haxe._Int64.Int64_Impl_":
+		return nil
+	case "haxe._Int64.___Int64":
+		return nil
 	default:
 		return nil
 	}
@@ -2132,6 +2164,18 @@ func Type_getClassFields(c any) []*string {
 		return []*string{}
 	}
 	switch className {
+	case "Main":
+		return []*string{hxrt.StringFromLiteral("join"), hxrt.StringFromLiteral("main")}
+	case "haxe.Int64Helper":
+		return []*string{}
+	case "haxe._EnumFlags.EnumFlags_Impl_":
+		return []*string{hxrt.StringFromLiteral("from")}
+	case "haxe._Int32.Int32_Impl_":
+		return []*string{}
+	case "haxe._Int64.Int64_Impl_":
+		return []*string{}
+	case "haxe._Int64.___Int64":
+		return []*string{}
 	default:
 		return []*string{}
 	}
@@ -2143,6 +2187,18 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{}
 	}
 	switch className {
+	case "Main":
+		return []*string{}
+	case "haxe.Int64Helper":
+		return []*string{}
+	case "haxe._EnumFlags.EnumFlags_Impl_":
+		return []*string{}
+	case "haxe._Int32.Int32_Impl_":
+		return []*string{}
+	case "haxe._Int64.Int64_Impl_":
+		return []*string{}
+	case "haxe._Int64.___Int64":
+		return []*string{}
 	default:
 		return []*string{}
 	}
@@ -2162,6 +2218,18 @@ func Type_resolveClass(name *string) any {
 	}
 	rawName := *hxrt.StdString(name)
 	switch rawName {
+	case "Main":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.Int64Helper":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe._EnumFlags.EnumFlags_Impl_":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe._Int32.Int32_Impl_":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe._Int64.Int64_Impl_":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe._Int64.___Int64":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
 	}
@@ -2396,4 +2464,15 @@ func Type_typeof(v any) any {
 
 func Type_enumEq(a any, b any) bool {
 	return reflect.DeepEqual(a, b)
+}
+
+func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
+	className, ok := hxrt_typeResolvedClassName(value)
+	if !ok {
+		return nil, false
+	}
+	switch className {
+	default:
+		return nil, false
+	}
 }

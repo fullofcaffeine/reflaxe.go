@@ -22,6 +22,7 @@ import reflaxe.go.compiler.GoStdlibOwnership;
 import reflaxe.go.compiler.GoTestAstFixtureEmitter;
 import reflaxe.go.compiler.GoTypeMapper;
 import reflaxe.go.compiler.emit.GoTypeReflectionEmitter;
+import reflaxe.go.compiler.emit.GoRttiMetadataEmitter;
 import reflaxe.go.compiler.emit.GoRegexSerializerEmitter;
 import reflaxe.go.compiler.emit.GoNetSocketEmitter;
 import reflaxe.go.ast.GoAST.GoDecl;
@@ -89,9 +90,16 @@ private typedef TypeReflectionClassMetadata = {
 	final goTypeName:String;
 	final haxeTypeName:String;
 	final constructorSymbol:String;
+	final constructible:Bool;
 	final superHaxeTypeName:Null<String>;
 	final staticFieldNames:Array<String>;
 	final instanceFieldNames:Array<String>;
+}
+
+private typedef RttiClassMetadata = {
+	final haxeTypeName:String;
+	final rttiSymbol:Null<String>;
+	final metaSymbol:Null<String>;
 }
 
 private typedef TypeReflectionEnumConstructorMetadata = {
@@ -133,6 +141,29 @@ private typedef LambdaSourcePlan = {
 	final elementType:String;
 	final sourceExpr:GoExpr;
 	final sourceType:String;
+}
+
+/**
+	What:
+	Represents the lowered write site for mutating an `Array` through a target
+	expression.
+
+	Why:
+	Some targets, especially anonymous-object fields lowered onto the current
+	`map[string]any` carrier, cannot be mutated safely with a raw `append(...)`
+	against the original lvalue. We need a read -> mutate temp -> write-back plan
+	that still evaluates the target expression only once.
+
+	How:
+	`lowerArrayMutationSite()` computes any required prefix statements, exposes the
+	temp slice expression that later push/pop code mutates, and returns a
+	write-back closure that stores the final slice back into the original target.
+**/
+private typedef ArrayMutationSite = {
+	final prefix:Array<GoStmt>;
+	final tempExpr:GoExpr;
+	final sliceType:String;
+	final writeBack:GoExpr->Array<GoStmt>;
 }
 #end
 
@@ -1184,9 +1215,15 @@ class GoCompiler {
 	function typeReflectionClassMetadata():Array<TypeReflectionClassMetadata> {
 		var entries = new Array<TypeReflectionClassMetadata>();
 		for (classType in projectClasses) {
-			if (classType.isExtern || classType.isInterface || !classHasInstanceLayout(classType)) {
+			if (classType.isExtern || classType.isInterface) {
 				continue;
 			}
+			switch (classType.kind) {
+				case KTypeParameter(_):
+					continue;
+				case _:
+			}
+			var constructible = classHasInstanceLayout(classType);
 			var superName:Null<String> = null;
 			if (classType.superClass != null) {
 				superName = fullClassName(classType.superClass.t.get());
@@ -1194,13 +1231,50 @@ class GoCompiler {
 			entries.push({
 				goTypeName: classTypeName(classType),
 				haxeTypeName: fullClassName(classType),
-				constructorSymbol: constructorSymbol(classType),
+				constructorSymbol: constructible ? constructorSymbol(classType) : "",
+				constructible: constructible,
 				superHaxeTypeName: superName,
 				staticFieldNames: collectClassStaticFieldNames(classType),
-				instanceFieldNames: collectClassInstanceFieldNames(classType)
+				instanceFieldNames: constructible ? collectClassInstanceFieldNames(classType) : []
 			});
 		}
 		entries.sort(function(a, b) return Reflect.compare(a.goTypeName, b.goTypeName));
+		return entries;
+	}
+
+	function rttiClassMetadata():Array<RttiClassMetadata> {
+		var entries = new Array<RttiClassMetadata>();
+		for (classType in projectClasses) {
+			if (classType.isExtern || classType.isInterface) {
+				continue;
+			}
+			switch (classType.kind) {
+				case KTypeParameter(_):
+					continue;
+				case _:
+			}
+			var rttiSymbol:Null<String> = null;
+			var metaSymbol:Null<String> = null;
+			for (field in classType.statics.get()) {
+				switch (field.kind) {
+					case FVar(_, _):
+						if (field.name == "__rtti") {
+							rttiSymbol = staticSymbol(classType, field.name);
+						} else if (field.name == "__meta__") {
+							metaSymbol = staticSymbol(classType, field.name);
+						}
+					case _:
+				}
+			}
+			if (rttiSymbol != null || metaSymbol != null) {
+				entries.push({
+					haxeTypeName: fullClassName(classType),
+					rttiSymbol: rttiSymbol,
+					metaSymbol: metaSymbol
+				});
+			}
+		}
+		entries.sort(function(a, b) return Reflect.compare(a.haxeTypeName, b.haxeTypeName));
 		return entries;
 	}
 
@@ -5263,6 +5337,9 @@ class GoCompiler {
 				GoStmt.GoRaw("\treturn nil"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("key := *hxrt.StdString(field)"),
+				GoStmt.GoRaw("if metadataValue, ok := hxrt_typeClassMetadataField(obj, key); ok {"),
+				GoStmt.GoRaw("\treturn metadataValue"),
+				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("switch value := obj.(type) {"),
 				GoStmt.GoRaw("case map[string]any:"),
 				GoStmt.GoRaw("\treturn value[key]"),
@@ -5311,6 +5388,9 @@ class GoCompiler {
 				GoStmt.GoRaw("\treturn false"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("key := *hxrt.StdString(field)"),
+				GoStmt.GoRaw("if _, ok := hxrt_typeClassMetadataField(obj, key); ok {"),
+				GoStmt.GoRaw("\treturn true"),
+				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("switch value := obj.(type) {"),
 				GoStmt.GoRaw("case map[string]any:"),
 				GoStmt.GoRaw("\t_, ok := value[key]"),
@@ -6296,7 +6376,8 @@ class GoCompiler {
 	}
 
 	function lowerTypeReflectionShimDecls():Array<GoDecl> {
-		return GoTypeReflectionEmitter.emit(typeReflectionClassMetadata(), typeReflectionEnumMetadata(), goRawQuotedString, goStringPointerArrayLiteral);
+		return GoTypeReflectionEmitter.emit(typeReflectionClassMetadata(), typeReflectionEnumMetadata(), goRawQuotedString, goStringPointerArrayLiteral)
+			.concat(GoRttiMetadataEmitter.emit(rttiClassMetadata(), goRawQuotedString));
 	}
 
 	function lowerTemplateSupportShimDecls():Array<GoDecl> {
@@ -7270,9 +7351,9 @@ class GoCompiler {
 				} else {
 					var arrayCall = asArrayMethodCall(callee);
 					if (arrayCall != null && arrayCall.methodName == "push") {
-						var targetExpr = lowerLValue(arrayCall.target);
+						var site = lowerArrayMutationSite(arrayCall.target);
 						var shouldMaskToByte = isBytesBufferStorageArray(arrayCall.target);
-						var appendArgs = [targetExpr];
+						var appendArgs = [site.tempExpr];
 						for (arg in args) {
 							var appendValue = lowerExpr(arg).expr;
 							if (shouldMaskToByte) {
@@ -7280,15 +7361,17 @@ class GoCompiler {
 							}
 							appendArgs.push(appendValue);
 						}
-						[GoStmt.GoAssign(targetExpr, GoExpr.GoCall(GoExpr.GoIdent("append"), appendArgs))];
+						site.prefix.concat([
+							GoStmt.GoAssign(site.tempExpr, GoExpr.GoCall(GoExpr.GoIdent("append"), appendArgs))
+						]).concat(site.writeBack(site.tempExpr));
 					} else if (arrayCall != null && arrayCall.methodName == "pop") {
-						var targetExpr = lowerLValue(arrayCall.target);
-						var lenExpr = GoExpr.GoCall(GoExpr.GoIdent("len"), [targetExpr]);
-						[
+						var site = lowerArrayMutationSite(arrayCall.target);
+						var lenExpr = GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]);
+						site.prefix.concat([
 							GoStmt.GoIf(GoExpr.GoBinary(">", lenExpr, GoExpr.GoIntLiteral(0)), [
-								GoStmt.GoAssign(targetExpr, GoExpr.GoSlice(targetExpr, null, GoExpr.GoBinary("-", lenExpr, GoExpr.GoIntLiteral(1))))
+								GoStmt.GoAssign(site.tempExpr, GoExpr.GoSlice(site.tempExpr, null, GoExpr.GoBinary("-", lenExpr, GoExpr.GoIntLiteral(1))))
 							], null)
-						];
+						]).concat(site.writeBack(site.tempExpr));
 					} else {
 						exprStatement(lowerCall(callee, args, expr.t).expr);
 					}
@@ -8229,6 +8312,77 @@ class GoCompiler {
 			case _:
 				unsupportedExpr(expr, "Unsupported assignment target");
 				GoExpr.GoNil;
+		};
+	}
+
+	/**
+		What:
+		Builds a safe array mutation plan for push/pop-style operations.
+
+		Why:
+		Anonymous-record field lvalues need a temporary slice plus explicit
+		write-back to stay correct on Go. Reusing the same plan for all array
+		push/pop targets keeps single-evaluation semantics consistent across direct
+		lvalues and anonymous-object fields.
+
+		How:
+		Returns prefix statements that capture the target once, the temporary slice
+		expression to mutate, and a write-back closure that stores the final slice in
+		the right place after mutation.
+	**/
+	function lowerArrayMutationSite(target:TypedExpr):ArrayMutationSite {
+		var sliceType = typeToGoType(target.t);
+		var tempName = freshTempName("hx_arr");
+		var tempExpr = GoExpr.GoIdent(tempName);
+
+		return switch (target.expr) {
+			case TField(parent, FAnon(field)) if (isAnonymousObjectType(parent.t)):
+				var objectName = freshTempName("hx_obj");
+				var objectExpr = GoExpr.GoIdent(objectName);
+				var fieldName = field.get().name;
+				{
+					prefix: [
+						GoStmt.GoVarDecl(objectName, typeToGoType(parent.t), lowerExpr(parent).expr, true),
+						GoStmt.GoVarDecl(tempName, sliceType, lowerExpr(target).expr, true)
+					],
+					tempExpr: tempExpr,
+					sliceType: sliceType,
+					writeBack: function(value:GoExpr):Array<GoStmt> {
+						return [
+							GoStmt.GoAssign(GoExpr.GoIndex(objectExpr, GoExpr.GoStringLiteral(fieldName)), value)
+						];
+					}
+				};
+			case TField(parent, FDynamic(name)) if (isAnonymousObjectType(parent.t)):
+				var objectName = freshTempName("hx_obj");
+				var objectExpr = GoExpr.GoIdent(objectName);
+				{
+					prefix: [
+						GoStmt.GoVarDecl(objectName, typeToGoType(parent.t), lowerExpr(parent).expr, true),
+						GoStmt.GoVarDecl(tempName, sliceType, lowerExpr(target).expr, true)
+					],
+					tempExpr: tempExpr,
+					sliceType: sliceType,
+					writeBack: function(value:GoExpr):Array<GoStmt> {
+						return [GoStmt.GoAssign(GoExpr.GoIndex(objectExpr, GoExpr.GoStringLiteral(name)), value)];
+					}
+				};
+			case TParenthesis(inner):
+				lowerArrayMutationSite(inner);
+			case TMeta(_, inner):
+				lowerArrayMutationSite(inner);
+			case TCast(inner, _):
+				lowerArrayMutationSite(inner);
+			case _:
+				var targetExpr = lowerLValue(target);
+				{
+					prefix: [GoStmt.GoVarDecl(tempName, sliceType, lowerExpr(target).expr, true)],
+					tempExpr: tempExpr,
+					sliceType: sliceType,
+					writeBack: function(value:GoExpr):Array<GoStmt> {
+						return [GoStmt.GoAssign(targetExpr, value)];
+					}
+				};
 		};
 	}
 
@@ -12545,6 +12699,45 @@ class GoCompiler {
 				{
 					expr: cloneArrayExpr(lowerExpr(methodCall.target).expr, methodCall.target.t),
 					isStringLike: false
+				};
+			case "push":
+				var site = lowerArrayMutationSite(methodCall.target);
+				var appendArgs = [site.tempExpr];
+				var shouldMaskToByte = isBytesBufferStorageArray(methodCall.target);
+				for (arg in args) {
+					var appendValue = lowerExpr(arg).expr;
+					if (shouldMaskToByte) {
+						appendValue = GoExpr.GoBinary("&", appendValue, GoExpr.GoIntLiteral(255));
+					}
+					appendArgs.push(appendValue);
+				}
+				var body = site.prefix.concat([
+					GoStmt.GoAssign(site.tempExpr, GoExpr.GoCall(GoExpr.GoIdent("append"), appendArgs))
+				]).concat(site.writeBack(site.tempExpr)).concat([GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]))]);
+				{
+					expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["int"], body), []),
+					isStringLike: false
+				};
+			case "pop" if (args.length == 0):
+				var site = lowerArrayMutationSite(methodCall.target);
+				var lenName = freshTempName("hx_len");
+				var valueName = freshTempName("hx_value");
+				var zeroName = freshTempName("hx_zero");
+				var resultType = typeToGoType(returnType);
+				var body = site.prefix.concat([
+					GoStmt.GoVarDecl(lenName, "int", GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]), true),
+					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent(lenName), GoExpr.GoIntLiteral(0)), [
+						GoStmt.GoVarDecl(zeroName, resultType, null, false),
+						GoStmt.GoReturn(GoExpr.GoIdent(zeroName))
+					],
+						null),
+					GoStmt.GoVarDecl(valueName, resultType,
+						GoExpr.GoIndex(site.tempExpr, GoExpr.GoBinary("-", GoExpr.GoIdent(lenName), GoExpr.GoIntLiteral(1))), true),
+					GoStmt.GoAssign(site.tempExpr, GoExpr.GoSlice(site.tempExpr, null, GoExpr.GoBinary("-", GoExpr.GoIdent(lenName), GoExpr.GoIntLiteral(1))))
+				]).concat(site.writeBack(site.tempExpr)).concat([GoStmt.GoReturn(GoExpr.GoIdent(valueName))]);
+				{
+					expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [resultType], body), []),
+					isStringLike: isStringType(returnType)
 				};
 			case _:
 				null;

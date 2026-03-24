@@ -100,14 +100,16 @@ func haxe__Resource_listNames() []*string {
 	for _g1 < len(_g2) {
 		x := _g2[_g1]
 		_g1 = int(int32((_g1 + 1)))
-		_g = append(_g, func(hx_obj_29 map[string]any) *string {
-			hx_field_30 := hx_obj_29["name"]
-			if hx_field_30 == nil {
-				var hx_zero_31 *string
-				return hx_zero_31
+		hx_arr_29 := _g
+		hx_arr_29 = append(hx_arr_29, func(hx_obj_30 map[string]any) *string {
+			hx_field_31 := hx_obj_30["name"]
+			if hx_field_31 == nil {
+				var hx_zero_32 *string
+				return hx_zero_32
 			}
-			return hx_field_30.(*string)
+			return hx_field_31.(*string)
 		}(x))
+		_g = hx_arr_29
 	}
 	return _g
 }

@@ -6,7 +6,9 @@ func main() {
 	parsed := haxe__io__Bytes_ofHex(hxrt.StringFromLiteral("0fDA"))
 	hxrt.Println(parsed.toHex())
 	buffer := New_haxe__io__BytesBuffer()
-	buffer.b = append(buffer.b, (260 & 255))
+	hx_arr_1 := buffer.b
+	hx_arr_1 = append(hx_arr_1, (260 & 255))
+	buffer.b = hx_arr_1
 	if 2 > parsed.length {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
@@ -16,10 +18,12 @@ func main() {
 	_g := 1
 	_g1 := 2
 	for _g < _g1 {
-		hx_post_1 := _g
+		hx_post_2 := _g
 		_g = int(int32((_g + 1)))
-		i := hx_post_1
-		buffer.b = append(buffer.b, (b2[i] & 255))
+		i := hx_post_2
+		hx_arr_3 := buffer.b
+		hx_arr_3 = append(hx_arr_3, (b2[i] & 255))
+		buffer.b = hx_arr_3
 	}
 	var encoding *haxe__io__Encoding = nil
 	src := haxe__io__Bytes_ofString(hxrt.StringFromLiteral("Z"), encoding)
@@ -29,10 +33,12 @@ func main() {
 	_g_1 := 0
 	_g1_1 := src.length
 	for _g_1 < _g1_1 {
-		hx_post_2 := _g_1
+		hx_post_4 := _g_1
 		_g_1 = int(int32((_g_1 + 1)))
-		i_1 := hx_post_2
-		buffer.b = append(buffer.b, (b2_1[i_1] & 255))
+		i_1 := hx_post_4
+		hx_arr_5 := buffer.b
+		hx_arr_5 = append(hx_arr_5, (b2_1[i_1] & 255))
+		buffer.b = hx_arr_5
 	}
 	out := buffer.getBytes()
 	hxrt.Println(out.toHex())

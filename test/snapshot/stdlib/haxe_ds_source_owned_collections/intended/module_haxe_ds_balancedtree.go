@@ -418,13 +418,15 @@ func (self *haxe__ds__BalancedTree) keysLoop(node *haxe__ds__TreeNode, acc []any
 			}
 			return hx_value_72.([]any)
 		}(self.keysLoop(node.left, acc))
-		acc = append(acc, node.key)
-		acc = func(hx_value_74 any) []any {
-			if hx_value_74 == nil {
-				var hx_zero_75 []any
-				return hx_zero_75
+		hx_arr_74 := acc
+		hx_arr_74 = append(hx_arr_74, node.key)
+		acc = hx_arr_74
+		acc = func(hx_value_75 any) []any {
+			if hx_value_75 == nil {
+				var hx_zero_76 []any
+				return hx_zero_76
 			}
-			return hx_value_74.([]any)
+			return hx_value_75.([]any)
 		}(self.keysLoop(node.right, acc))
 	}
 	return acc
@@ -437,160 +439,160 @@ func (self *haxe__ds__BalancedTree) merge(t1 *haxe__ds__TreeNode, t2 *haxe__ds__
 	if t2 == nil {
 		return t1
 	}
-	t := func(hx_value_76 any) *haxe__ds__TreeNode {
-		if hx_value_76 == nil {
-			var hx_zero_77 *haxe__ds__TreeNode
-			return hx_zero_77
+	t := func(hx_value_77 any) *haxe__ds__TreeNode {
+		if hx_value_77 == nil {
+			var hx_zero_78 *haxe__ds__TreeNode
+			return hx_zero_78
 		}
-		return hx_value_76.(*haxe__ds__TreeNode)
+		return hx_value_77.(*haxe__ds__TreeNode)
 	}(self.minBinding(t2))
-	return func(hx_value_80 any) *haxe__ds__TreeNode {
-		if hx_value_80 == nil {
-			var hx_zero_81 *haxe__ds__TreeNode
-			return hx_zero_81
+	return func(hx_value_81 any) *haxe__ds__TreeNode {
+		if hx_value_81 == nil {
+			var hx_zero_82 *haxe__ds__TreeNode
+			return hx_zero_82
 		}
-		return hx_value_80.(*haxe__ds__TreeNode)
-	}(self.balance(t1, t.key, t.value, func(hx_value_78 any) *haxe__ds__TreeNode {
-		if hx_value_78 == nil {
-			var hx_zero_79 *haxe__ds__TreeNode
-			return hx_zero_79
+		return hx_value_81.(*haxe__ds__TreeNode)
+	}(self.balance(t1, t.key, t.value, func(hx_value_79 any) *haxe__ds__TreeNode {
+		if hx_value_79 == nil {
+			var hx_zero_80 *haxe__ds__TreeNode
+			return hx_zero_80
 		}
-		return hx_value_78.(*haxe__ds__TreeNode)
+		return hx_value_79.(*haxe__ds__TreeNode)
 	}(self.removeMinBinding(t2))))
 }
 
 func (self *haxe__ds__BalancedTree) minBinding(t *haxe__ds__TreeNode) *haxe__ds__TreeNode {
-	var hx_if_86 *haxe__ds__TreeNode
+	var hx_if_87 *haxe__ds__TreeNode
 	if t == nil {
-		hx_if_86 = func() *haxe__ds__TreeNode {
+		hx_if_87 = func() *haxe__ds__TreeNode {
 			hxrt.Throw(hxrt.StringFromLiteral("Not_found"))
-			var hx_throw_zero_82 *haxe__ds__TreeNode
-			return hx_throw_zero_82
+			var hx_throw_zero_83 *haxe__ds__TreeNode
+			return hx_throw_zero_83
 		}()
 	} else {
-		var hx_if_85 *haxe__ds__TreeNode
+		var hx_if_86 *haxe__ds__TreeNode
 		if t.left == nil {
-			hx_if_85 = t
+			hx_if_86 = t
 		} else {
-			hx_if_85 = func(hx_value_83 any) *haxe__ds__TreeNode {
-				if hx_value_83 == nil {
-					var hx_zero_84 *haxe__ds__TreeNode
-					return hx_zero_84
+			hx_if_86 = func(hx_value_84 any) *haxe__ds__TreeNode {
+				if hx_value_84 == nil {
+					var hx_zero_85 *haxe__ds__TreeNode
+					return hx_zero_85
 				}
-				return hx_value_83.(*haxe__ds__TreeNode)
+				return hx_value_84.(*haxe__ds__TreeNode)
 			}(self.minBinding(t.left))
 		}
-		hx_if_86 = hx_if_85
+		hx_if_87 = hx_if_86
 	}
-	return hx_if_86
+	return hx_if_87
 }
 
 func (self *haxe__ds__BalancedTree) removeMinBinding(t *haxe__ds__TreeNode) *haxe__ds__TreeNode {
-	var hx_if_91 *haxe__ds__TreeNode
+	var hx_if_92 *haxe__ds__TreeNode
 	if t.left == nil {
-		hx_if_91 = t.right
+		hx_if_92 = t.right
 	} else {
-		hx_if_91 = func(hx_value_89 any) *haxe__ds__TreeNode {
-			if hx_value_89 == nil {
-				var hx_zero_90 *haxe__ds__TreeNode
-				return hx_zero_90
+		hx_if_92 = func(hx_value_90 any) *haxe__ds__TreeNode {
+			if hx_value_90 == nil {
+				var hx_zero_91 *haxe__ds__TreeNode
+				return hx_zero_91
 			}
-			return hx_value_89.(*haxe__ds__TreeNode)
-		}(self.balance(func(hx_value_87 any) *haxe__ds__TreeNode {
-			if hx_value_87 == nil {
-				var hx_zero_88 *haxe__ds__TreeNode
-				return hx_zero_88
+			return hx_value_90.(*haxe__ds__TreeNode)
+		}(self.balance(func(hx_value_88 any) *haxe__ds__TreeNode {
+			if hx_value_88 == nil {
+				var hx_zero_89 *haxe__ds__TreeNode
+				return hx_zero_89
 			}
-			return hx_value_87.(*haxe__ds__TreeNode)
+			return hx_value_88.(*haxe__ds__TreeNode)
 		}(self.removeMinBinding(t.left)), t.key, t.value, t.right))
 	}
-	return hx_if_91
+	return hx_if_92
 }
 
 func (self *haxe__ds__BalancedTree) balance(l *haxe__ds__TreeNode, k any, v any, r *haxe__ds__TreeNode) *haxe__ds__TreeNode {
-	var hx_if_92 int
-	if l == nil {
-		hx_if_92 = 0
-	} else {
-		hx_if_92 = l._height
-	}
-	hl := hx_if_92
 	var hx_if_93 int
-	if r == nil {
+	if l == nil {
 		hx_if_93 = 0
 	} else {
-		hx_if_93 = r._height
+		hx_if_93 = l._height
 	}
-	hr := hx_if_93
-	var hx_if_102 *haxe__ds__TreeNode
+	hl := hx_if_93
+	var hx_if_94 int
+	if r == nil {
+		hx_if_94 = 0
+	} else {
+		hx_if_94 = r._height
+	}
+	hr := hx_if_94
+	var hx_if_103 *haxe__ds__TreeNode
 	if hl > int(int32((hxrt.Int32Wrap(hr) + hxrt.Int32Wrap(2)))) {
-		var hx_if_96 *haxe__ds__TreeNode
+		var hx_if_97 *haxe__ds__TreeNode
 		if func() int {
 			_this := l.left
-			var hx_if_94 int
-			if _this == nil {
-				hx_if_94 = 0
-			} else {
-				hx_if_94 = _this._height
-			}
-			return hx_if_94
-		}() >= func() int {
-			_this_1 := l.right
 			var hx_if_95 int
-			if _this_1 == nil {
+			if _this == nil {
 				hx_if_95 = 0
 			} else {
-				hx_if_95 = _this_1._height
+				hx_if_95 = _this._height
 			}
 			return hx_if_95
+		}() >= func() int {
+			_this_1 := l.right
+			var hx_if_96 int
+			if _this_1 == nil {
+				hx_if_96 = 0
+			} else {
+				hx_if_96 = _this_1._height
+			}
+			return hx_if_96
 		}() {
-			hx_if_96 = New_haxe__ds__TreeNode(l.left, l.key, l.value, New_haxe__ds__TreeNode(l.right, k, v, r, -1), -1)
+			hx_if_97 = New_haxe__ds__TreeNode(l.left, l.key, l.value, New_haxe__ds__TreeNode(l.right, k, v, r, -1), -1)
 		} else {
-			hx_if_96 = New_haxe__ds__TreeNode(New_haxe__ds__TreeNode(l.left, l.key, l.value, l.right.left, -1), l.right.key, l.right.value, New_haxe__ds__TreeNode(l.right.right, k, v, r, -1), -1)
+			hx_if_97 = New_haxe__ds__TreeNode(New_haxe__ds__TreeNode(l.left, l.key, l.value, l.right.left, -1), l.right.key, l.right.value, New_haxe__ds__TreeNode(l.right.right, k, v, r, -1), -1)
 		}
-		hx_if_102 = hx_if_96
+		hx_if_103 = hx_if_97
 	} else {
-		var hx_if_101 *haxe__ds__TreeNode
+		var hx_if_102 *haxe__ds__TreeNode
 		if hr > int(int32((hxrt.Int32Wrap(hl) + hxrt.Int32Wrap(2)))) {
-			var hx_if_99 *haxe__ds__TreeNode
+			var hx_if_100 *haxe__ds__TreeNode
 			if func() int {
 				_this_2 := r.right
-				var hx_if_97 int
-				if _this_2 == nil {
-					hx_if_97 = 0
-				} else {
-					hx_if_97 = _this_2._height
-				}
-				return hx_if_97
-			}() > func() int {
-				_this_3 := r.left
 				var hx_if_98 int
-				if _this_3 == nil {
+				if _this_2 == nil {
 					hx_if_98 = 0
 				} else {
-					hx_if_98 = _this_3._height
+					hx_if_98 = _this_2._height
 				}
 				return hx_if_98
-			}() {
-				hx_if_99 = New_haxe__ds__TreeNode(New_haxe__ds__TreeNode(l, k, v, r.left, -1), r.key, r.value, r.right, -1)
-			} else {
-				hx_if_99 = New_haxe__ds__TreeNode(New_haxe__ds__TreeNode(l, k, v, r.left.left, -1), r.left.key, r.left.value, New_haxe__ds__TreeNode(r.left.right, r.key, r.value, r.right, -1), -1)
-			}
-			hx_if_101 = hx_if_99
-		} else {
-			hx_if_101 = New_haxe__ds__TreeNode(l, k, v, r, int(int32((hxrt.Int32Wrap(func() int {
-				var hx_if_100 int
-				if hl > hr {
-					hx_if_100 = hl
+			}() > func() int {
+				_this_3 := r.left
+				var hx_if_99 int
+				if _this_3 == nil {
+					hx_if_99 = 0
 				} else {
-					hx_if_100 = hr
+					hx_if_99 = _this_3._height
 				}
-				return hx_if_100
+				return hx_if_99
+			}() {
+				hx_if_100 = New_haxe__ds__TreeNode(New_haxe__ds__TreeNode(l, k, v, r.left, -1), r.key, r.value, r.right, -1)
+			} else {
+				hx_if_100 = New_haxe__ds__TreeNode(New_haxe__ds__TreeNode(l, k, v, r.left.left, -1), r.left.key, r.left.value, New_haxe__ds__TreeNode(r.left.right, r.key, r.value, r.right, -1), -1)
+			}
+			hx_if_102 = hx_if_100
+		} else {
+			hx_if_102 = New_haxe__ds__TreeNode(l, k, v, r, int(int32((hxrt.Int32Wrap(func() int {
+				var hx_if_101 int
+				if hl > hr {
+					hx_if_101 = hl
+				} else {
+					hx_if_101 = hr
+				}
+				return hx_if_101
 			}()) + hxrt.Int32Wrap(1)))))
 		}
-		hx_if_102 = hx_if_101
+		hx_if_103 = hx_if_102
 	}
-	return hx_if_102
+	return hx_if_103
 }
 
 func (self *haxe__ds__BalancedTree) compare(k1 any, k2 any) int {
@@ -598,19 +600,19 @@ func (self *haxe__ds__BalancedTree) compare(k1 any, k2 any) int {
 }
 
 func (self *haxe__ds__BalancedTree) toString() *string {
-	var hx_if_105 *string
+	var hx_if_106 *string
 	if self.root == nil {
-		hx_if_105 = hxrt.StringFromLiteral("[]")
+		hx_if_106 = hxrt.StringFromLiteral("[]")
 	} else {
-		hx_if_105 = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("["), func(hx_value_103 any) *string {
-			if hx_value_103 == nil {
-				var hx_zero_104 *string
-				return hx_zero_104
+		hx_if_106 = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("["), func(hx_value_104 any) *string {
+			if hx_value_104 == nil {
+				var hx_zero_105 *string
+				return hx_zero_105
 			}
-			return hx_value_103.(*string)
+			return hx_value_104.(*string)
 		}(self.root.toString())), hxrt.StringFromLiteral("]"))
 	}
-	return hx_if_105
+	return hx_if_106
 }
 
 func (self *haxe__ds__BalancedTree) clear() {
@@ -620,7 +622,9 @@ func (self *haxe__ds__BalancedTree) clear() {
 func haxe__ds__BalancedTree_iteratorLoop(node *haxe__ds__TreeNode, acc []any) []any {
 	if node != nil {
 		acc = haxe__ds__BalancedTree_iteratorLoop(node.left, acc)
-		acc = append(acc, node.value)
+		hx_arr_107 := acc
+		hx_arr_107 = append(hx_arr_107, node.value)
+		acc = hx_arr_107
 		acc = haxe__ds__BalancedTree_iteratorLoop(node.right, acc)
 	}
 	return acc

@@ -1407,6 +1407,9 @@ func Reflect_field(obj any, field *string) any {
 		return nil
 	}
 	key := *hxrt.StdString(field)
+	if metadataValue, ok := hxrt_typeClassMetadataField(obj, key); ok {
+		return metadataValue
+	}
 	switch value := obj.(type) {
 	case map[string]any:
 		return value[key]
@@ -1450,6 +1453,9 @@ func Reflect_hasField(obj any, field *string) bool {
 		return false
 	}
 	key := *hxrt.StdString(field)
+	if _, ok := hxrt_typeClassMetadataField(obj, key); ok {
+		return true
+	}
 	switch value := obj.(type) {
 	case map[string]any:
 		_, ok := value[key]
@@ -2312,6 +2318,16 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	switch className {
 	case "Box":
 		return hxrt_typeCallAny(New_Box, args)
+	case "Main":
+		return nil, false
+	case "haxe.Int64Helper":
+		return nil, false
+	case "haxe._Int32.Int32_Impl_":
+		return nil, false
+	case "haxe._Int64.Int64_Impl_":
+		return nil, false
+	case "haxe._Int64.___Int64":
+		return nil, false
 	case "haxe.ds.BalancedTree":
 		return hxrt_typeCallAny(New_haxe__ds__BalancedTree, args)
 	case "haxe.ds.TreeNode":
@@ -2542,6 +2558,16 @@ func Type_getSuperClass(c any) any {
 	switch className {
 	case "Box":
 		return nil
+	case "Main":
+		return nil
+	case "haxe.Int64Helper":
+		return nil
+	case "haxe._Int32.Int32_Impl_":
+		return nil
+	case "haxe._Int64.Int64_Impl_":
+		return nil
+	case "haxe._Int64.___Int64":
+		return nil
 	case "haxe.ds.BalancedTree":
 		return nil
 	case "haxe.ds.TreeNode":
@@ -2567,6 +2593,16 @@ func Type_getClassFields(c any) []*string {
 	switch className {
 	case "Box":
 		return []*string{}
+	case "Main":
+		return []*string{hxrt.StringFromLiteral("main")}
+	case "haxe.Int64Helper":
+		return []*string{}
+	case "haxe._Int32.Int32_Impl_":
+		return []*string{}
+	case "haxe._Int64.Int64_Impl_":
+		return []*string{}
+	case "haxe._Int64.___Int64":
+		return []*string{}
 	case "haxe.ds.BalancedTree":
 		return []*string{hxrt.StringFromLiteral("iteratorLoop")}
 	case "haxe.ds.TreeNode":
@@ -2584,6 +2620,16 @@ func Type_getInstanceFields(c any) []*string {
 	switch className {
 	case "Box":
 		return []*string{hxrt.StringFromLiteral("id")}
+	case "Main":
+		return []*string{}
+	case "haxe.Int64Helper":
+		return []*string{}
+	case "haxe._Int32.Int32_Impl_":
+		return []*string{}
+	case "haxe._Int64.Int64_Impl_":
+		return []*string{}
+	case "haxe._Int64.___Int64":
+		return []*string{}
 	case "haxe.ds.BalancedTree":
 		return []*string{hxrt.StringFromLiteral("balance"), hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("compare"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("keysLoop"), hxrt.StringFromLiteral("merge"), hxrt.StringFromLiteral("minBinding"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeLoop"), hxrt.StringFromLiteral("removeMinBinding"), hxrt.StringFromLiteral("root"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setLoop"), hxrt.StringFromLiteral("toString")}
 	case "haxe.ds.TreeNode":
@@ -2608,6 +2654,16 @@ func Type_resolveClass(name *string) any {
 	rawName := *hxrt.StdString(name)
 	switch rawName {
 	case "Box":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "Main":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.Int64Helper":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe._Int32.Int32_Impl_":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe._Int64.Int64_Impl_":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe._Int64.___Int64":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.ds.BalancedTree":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
@@ -2845,4 +2901,15 @@ func Type_typeof(v any) any {
 
 func Type_enumEq(a any, b any) bool {
 	return reflect.DeepEqual(a, b)
+}
+
+func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
+	className, ok := hxrt_typeResolvedClassName(value)
+	if !ok {
+		return nil, false
+	}
+	switch className {
+	default:
+		return nil, false
+	}
 }

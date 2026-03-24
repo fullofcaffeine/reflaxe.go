@@ -35,7 +35,7 @@ Current architecture status:
 - Direct `haxe.exceptions` subclass construction for `PosException`, `ArgumentException`, and `NotImplementedException` is covered too.
 - The main remaining portable stdlib blockers are now the explicit compile-only families, not the basic exception surface.
 - Direct `haxe.rtti.CType`, `haxe.rtti.Meta`, `haxe.rtti.Rtti`, and `haxe.rtti.XmlParser` remain an open portable blocker tranche.
-- Reason: naive direct source-owned inclusion reveals missing emitted RTTI helper types plus no stable generated `__meta__` / `__rtti` contract yet, so this surface moved into dedicated blocker `haxe.go-14as.57` instead of staying hidden under the old mixed HTTP/RTTI task.
+- Reason: the narrow backend blocker is now isolated. Go has the class-token `__rtti` / `__meta__` lookup contract and safe anonymous-record array-field mutation on the existing carrier, but the public `haxe.rtti.*` staged-stdlib parity closeout still remains under `haxe.go-14as.57`.
 - Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage is currently an explicit unsupported surface on Go.
 - Reason: the backend does not yet provide a real runtime-backed event-loop contract through `sys.thread.EventLoop` / `sys.thread.Thread`, and the previous source-owned inclusion path generated broken Go instead of a trustworthy partial implementation.
 
