@@ -378,19 +378,16 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_event_loop_direct",
-      "blocker_issue": "haxe.go-dt4s",
-      "closure_target": "2026-04-10",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.EntryPoint",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-dt4s (haxe_event_loop_direct); closure target 2026-04-10.",
+      "notes": "Direct haxe.EntryPoint usage is explicitly unsupported on Go for now. The previous source-owned inclusion path generated broken Go, and the backend does not yet provide a real runtime-backed event-loop contract through sys.thread.EventLoop / sys.thread.Thread. This surface is guarded by compile-time failure rather than pretending support.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "unsupported"
     },
     {
       "coverage_evidence": [
@@ -515,19 +512,16 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_event_loop_direct",
-      "blocker_issue": "haxe.go-dt4s",
-      "closure_target": "2026-04-10",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.MainLoop",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-dt4s (haxe_event_loop_direct); closure target 2026-04-10.",
+      "notes": "Direct haxe.MainLoop usage is explicitly unsupported on Go for now. The previous source-owned inclusion path generated broken Go, and the backend does not yet provide a real runtime-backed event-loop contract through sys.thread.EventLoop / sys.thread.Thread. This surface is guarded by compile-time failure rather than pretending support.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "unsupported"
     },
     {
       "coverage_evidence": [
@@ -623,19 +617,16 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_event_loop_direct",
-      "blocker_issue": "haxe.go-dt4s",
-      "closure_target": "2026-04-10",
       "coverage_evidence": [
         "upstream_sweep:full_compile"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Timer",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-dt4s (haxe_event_loop_direct); closure target 2026-04-10.",
+      "notes": "Direct haxe.Timer usage is explicitly unsupported on Go for now. The previous source-owned inclusion path generated broken Go, and the backend does not yet provide a real runtime-backed event-loop contract through sys.thread.EventLoop / sys.thread.Thread. This surface is guarded by compile-time failure rather than pretending support.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "unsupported"
     },
     {
       "coverage_evidence": [

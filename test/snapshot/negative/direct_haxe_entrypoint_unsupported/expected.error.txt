@@ -1,1 +1,1 @@
-Direct haxe.EntryPoint usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.
+Direct haxe.EntryPoint usage is explicitly unsupported on haxe.go. A real runtime-backed event-loop contract (sys.thread.EventLoop / sys.thread.Thread) does not exist yet, and the previous source-owned inclusion path generated broken Go. Future runtime work is tracked under haxe.go-14as.19.

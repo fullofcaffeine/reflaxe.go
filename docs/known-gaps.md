@@ -33,7 +33,9 @@ Current architecture status:
 - `go.*` APIs are target-specific. They compile to real Go behavior on this target, but they are not portability-safe across non-Go Haxe targets.
 - Direct `haxe.ValueException` constructor/message/value parity is covered.
 - Direct `haxe.exceptions` subclass construction for `PosException`, `ArgumentException`, and `NotImplementedException` is covered too.
-- The main remaining portable stdlib blockers are now the explicit compile-only families and the direct event-loop tranche (`haxe.go-dt4s`), not the basic exception surface.
+- The main remaining portable stdlib blockers are now the explicit compile-only families, not the basic exception surface.
+- Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage is currently an explicit unsupported surface on Go.
+- Reason: the backend does not yet provide a real runtime-backed event-loop contract through `sys.thread.EventLoop` / `sys.thread.Thread`, and the previous source-owned inclusion path generated broken Go instead of a trustworthy partial implementation.
 
 ## Interop caveats
 

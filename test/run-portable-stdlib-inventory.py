@@ -82,8 +82,10 @@ SEMANTIC_DIFF_PREFIXES = (
 )
 
 OWNER_OVERRIDES = {
+    "haxe.EntryPoint": "mixed",
     "haxe.CallStack": "staged_std",
     "haxe.Json": "runtime_hxrt",
+    "haxe.MainLoop": "mixed",
     "haxe.format.JsonParser": "runtime_hxrt",
     "haxe.format.JsonPrinter": "runtime_hxrt",
     "haxe.atomic.AtomicBool": "runtime_hxrt",
@@ -98,6 +100,7 @@ OWNER_OVERRIDES = {
     "haxe.io.Path": "staged_std",
     "haxe.NativeStackTrace": "staged_std",
     "haxe.Template": "staged_std",
+    "haxe.Timer": "mixed",
     "haxe.Utf8": "staged_std",
     "haxe.ds.WeakMap": "staged_std",
     "EReg": "compiler_shim",
@@ -114,6 +117,12 @@ OWNER_OVERRIDES = {
     "haxe.io.Output": "compiler_shim",
 }
 
+UNSUPPORTED_EXPLICIT = {
+    "haxe.EntryPoint",
+    "haxe.MainLoop",
+    "haxe.Timer",
+}
+
 MODULE_NOTES_OVERRIDES = {
     "haxe.CallStack": (
         "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
@@ -121,12 +130,16 @@ MODULE_NOTES_OVERRIDES = {
         "native stack parity."
     ),
     "haxe.EntryPoint": (
-        "Direct haxe.EntryPoint usage is still compile-only on Go. The previous source-owned inclusion "
-        "path generated broken Go and is now guarded by compile-time failure until haxe.go-dt4s lands."
+        "Direct haxe.EntryPoint usage is explicitly unsupported on Go for now. "
+        "The previous source-owned inclusion path generated broken Go, and the backend does not yet "
+        "provide a real runtime-backed event-loop contract through sys.thread.EventLoop / sys.thread.Thread. "
+        "This surface is guarded by compile-time failure rather than pretending support."
     ),
     "haxe.MainLoop": (
-        "Direct haxe.MainLoop usage is still compile-only on Go. The previous source-owned inclusion "
-        "path generated broken Go and is now guarded by compile-time failure until haxe.go-dt4s lands."
+        "Direct haxe.MainLoop usage is explicitly unsupported on Go for now. "
+        "The previous source-owned inclusion path generated broken Go, and the backend does not yet "
+        "provide a real runtime-backed event-loop contract through sys.thread.EventLoop / sys.thread.Thread. "
+        "This surface is guarded by compile-time failure rather than pretending support."
     ),
     "haxe.NativeStackTrace": (
         "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
@@ -144,8 +157,10 @@ MODULE_NOTES_OVERRIDES = {
         "and follow-up haxe.go-14as.42."
     ),
     "haxe.Timer": (
-        "Direct haxe.Timer usage is still compile-only on Go. The previous source-owned inclusion path "
-        "generated broken Go and is now guarded by compile-time failure until haxe.go-dt4s lands."
+        "Direct haxe.Timer usage is explicitly unsupported on Go for now. "
+        "The previous source-owned inclusion path generated broken Go, and the backend does not yet "
+        "provide a real runtime-backed event-loop contract through sys.thread.EventLoop / sys.thread.Thread. "
+        "This surface is guarded by compile-time failure rather than pretending support."
     ),
     "Xml": (
         "Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic, "
@@ -194,16 +209,6 @@ BLOCKER_FAMILY_SPECS = (
         "modules": {
             "haxe.EnumFlags",
             "haxe.EnumTools",
-        },
-    },
-    {
-        "issue": "haxe.go-dt4s",
-        "family": "haxe_event_loop_direct",
-        "closure_target": "2026-04-10",
-        "modules": {
-            "haxe.EntryPoint",
-            "haxe.MainLoop",
-            "haxe.Timer",
         },
     },
     {
@@ -491,6 +496,11 @@ def module_notes(module: str, status: str, in_strict_sweep: bool) -> str:
             + " "
             + f"Tracked by {blocker['issue']} ({blocker['family']}); closure target {blocker['closure_target']}."
         )
+    if status == "unsupported":
+        override = MODULE_NOTES_OVERRIDES.get(module)
+        if override:
+            return override
+        return "Portable-eligible module is explicitly unsupported on Go; the repo does not claim parity for it."
     return "Portable-eligible module inventoried; parity promotion is pending."
 
 
@@ -517,7 +527,9 @@ def build_inventory(
         in_full_sweep = True
         in_strict_sweep = module in strict_sweep_modules
         status = "compile-only"
-        if is_semantic_diff_module(module) or module in semantic_promotions:
+        if module in UNSUPPORTED_EXPLICIT:
+            status = "unsupported"
+        elif is_semantic_diff_module(module) or module in semantic_promotions:
             status = "semantic-diff"
         elif module in snapshot_promotions:
             status = "snapshot"

@@ -94,17 +94,13 @@ class GoSourceOwnedStdlibPlanner {
 			case "haxe.NativeStackTrace":
 				requireSourceOwnedStdlibClass("haxe.NativeStackTrace");
 			case "haxe.EntryPoint":
-				Context.fatalError("Direct haxe.EntryPoint usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.",
-					classType.pos);
+				failDirectEventLoopSurface("haxe.EntryPoint", classType.pos);
 			case "haxe.MainLoop":
-				Context.fatalError("Direct haxe.MainLoop usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.",
-					classType.pos);
+				failDirectEventLoopSurface("haxe.MainLoop", classType.pos);
 			case "haxe.MainEvent":
-				Context.fatalError("Direct haxe.MainEvent usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.",
-					classType.pos);
+				failDirectEventLoopSurface("haxe.MainEvent", classType.pos);
 			case "haxe.Timer":
-				Context.fatalError("Direct haxe.Timer usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.",
-					classType.pos);
+				failDirectEventLoopSurface("haxe.Timer", classType.pos);
 			case "haxe.Log", "haxe.Resource", "haxe.SysTools":
 				requireSourceOwnedStdlibClass(fullClassName(classType));
 			case "haxe.ds.ArraySort":
@@ -262,6 +258,16 @@ class GoSourceOwnedStdlibPlanner {
 			case _:
 				false;
 		};
+	}
+
+	function failDirectEventLoopSurface(surfaceName:String, pos:haxe.macro.Expr.Position):Void {
+		Context.fatalError("Direct "
+			+ surfaceName
+			+ " usage is explicitly unsupported on haxe.go. "
+			+ "A real runtime-backed event-loop contract (sys.thread.EventLoop / sys.thread.Thread) "
+			+ "does not exist yet, and the previous source-owned inclusion path generated broken Go. "
+			+ "Future runtime work is tracked under haxe.go-14as.19.",
+			pos);
 	}
 
 	static function clearClassMap(map:Map<String, ClassType>):Void {

@@ -127,7 +127,7 @@ Closed root-surface follow-up:
 - `haxe.go-14as.27` promoted `haxe.EnumFlags` and `haxe.EnumTools` to semantic-diff coverage via `haxe_enum_helpers_contract` and `stdlib/haxe_enum_helpers_direct`, closing the enum-helper tranche without adding a target-owned std override.
 - `haxe.go-14as.28` closed the stack-fallback half of the old stack/main-loop tranche. `haxe.CallStack` and `haxe.NativeStackTrace` stay under explicit target-sensitive snapshot coverage through `stdlib/haxe_stack_loop_target_sensitive`.
 - `haxe.go-14as.29` closed the legacy text tranche. `haxe.Utf8` now lives in staged std through `std/haxe/Utf8.cross.hx` with semantic-diff coverage in `haxe_utf8_contract` plus snapshot coverage in `stdlib/haxe_utf8_basic`, while `haxe.Ucs2` stays under explicit target-sensitive snapshot coverage through `stdlib/haxe_ucs2_platform_exclusion`.
-- `haxe.go-dt4s` re-opened direct `haxe.EntryPoint`, `haxe.MainLoop`, and `haxe.Timer` support after CI exposed broken generated Go from the old source-owned inclusion path. Those modules now remain explicit compile-only blockers until the event-loop surface is real.
+- Direct `haxe.EntryPoint`, `haxe.MainLoop`, and `haxe.Timer` are now classified as explicit unsupported surfaces on Go. The compiler fails early because the backend does not yet have a real runtime-backed event-loop contract through `sys.thread.EventLoop` / `sys.thread.Thread`, and the previous source-owned inclusion path generated broken Go. Future work belongs with the `sys.thread` tranche (`haxe.go-14as.19`) rather than pretending the direct Haxe event-loop surface is nearly supported.
 
 Update sequence when std override files change:
 
@@ -167,7 +167,6 @@ Current execution order:
 3. `haxe.go-14as.55.2` - split compiler-owned stdlib emitters out of `GoCompiler.hx`
 4. `haxe.go-14as.55.4` - make ownership/parity governance release-blocking
 5. remaining portable stdlib blocker families in owner-driven order:
-   - `haxe.go-dt4s` (direct event-loop surfaces)
    - `haxe.go-14as.14` (`haxe.http` + `haxe.rtti`)
    - `haxe.go-14as.15` (`haxe.io` misc)
    - `haxe.go-14as.16` (`haxe.io` typed arrays)
@@ -175,6 +174,11 @@ Current execution order:
    - `haxe.go-14as.18` (`sys.net` + `sys.ssl`)
    - `haxe.go-14as.19` (`sys.thread`)
    - `haxe.go-14as.42` (`haxe.Utf8` deprecated optional-size constructor)
+
+Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage is no longer an active portable blocker tranche.
+It is an explicit unsupported surface on Go today, and any future real support is folded into
+`haxe.go-14as.19` because it requires a runtime-backed `sys.thread.EventLoop` / `sys.thread.Thread`
+contract rather than another source-owned or compiler-only patch.
 
 The old `haxe.go-cgk.*` planning work is historical context now, not the active execution tracker.
 
