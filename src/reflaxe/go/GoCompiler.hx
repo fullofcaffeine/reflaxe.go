@@ -15,7 +15,10 @@ import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureInference;
 import reflaxe.go.compiler.GoMetalTypeEligibility;
 import reflaxe.go.compiler.GoMetalTypeEligibility.GoMetalEligibilityRole;
 import reflaxe.go.compiler.GoMetalTypeEligibility.GoMetalTypeEligibilityResult;
+import reflaxe.go.compiler.GoSourceModuleRegistry;
+import reflaxe.go.compiler.GoSourceOwnedStdlibPlanner;
 import reflaxe.go.compiler.GoStdlibShimClassifier;
+import reflaxe.go.compiler.GoStdlibOwnership;
 import reflaxe.go.compiler.GoTestAstFixtureEmitter;
 import reflaxe.go.compiler.GoTypeMapper;
 import reflaxe.go.ast.GoAST.GoDecl;
@@ -144,14 +147,13 @@ class GoCompiler {
 	final requiredMetalResultElementTypes:Map<String, Bool>;
 	final externImportPaths:Map<String, Bool>;
 	final externImportPackages:Map<String, String>;
-	final sourceFileToModule:Map<String, String>;
-	final sourceModuleBySuffix:Map<String, String>;
+	final sourceModuleRegistry:GoSourceModuleRegistry;
+	final sourceOwnedStdlibPlanner:GoSourceOwnedStdlibPlanner;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
 	final optionalPrimitiveParamScopes:Array<Map<Int, Bool>>;
 	final functionReturnTypeScopes:Array<Type>;
 	final returnRedirectScopes:Array<Null<ReturnRedirect>>;
-	var sourceModuleSuffixes:Array<String>;
 	var cachedVoidType:Null<Type>;
 	var requiresIoHelperSurface:Bool;
 	var requiresReflectFieldsShim:Bool;
@@ -181,14 +183,11 @@ class GoCompiler {
 		requiredMetalResultElementTypes = new Map<String, Bool>();
 		externImportPaths = new Map<String, Bool>();
 		externImportPackages = new Map<String, String>();
-		sourceFileToModule = new Map<String, String>();
-		sourceModuleBySuffix = new Map<String, String>();
 		functionVarNameScopes = [];
 		functionVarNameCountScopes = [];
 		optionalPrimitiveParamScopes = [];
 		functionReturnTypeScopes = [];
 		returnRedirectScopes = [];
-		sourceModuleSuffixes = [];
 		cachedVoidType = null;
 		requiresIoHelperSurface = false;
 		requiresReflectFieldsShim = false;
@@ -199,6 +198,19 @@ class GoCompiler {
 		availableEnumsByName = new Map<String, EnumType>();
 		pendingRequiredEnumsByName = new Map<String, EnumType>();
 		requiredSourceOwnedClassNames = new Map<String, Bool>();
+		sourceModuleRegistry = new GoSourceModuleRegistry(normalizeModuleLabel, normalizeSourcePath, sourceModuleToFilePath);
+		sourceOwnedStdlibPlanner = new GoSourceOwnedStdlibPlanner({
+			availableClassesByName: availableClassesByName,
+			pendingRequiredClassesByName: pendingRequiredClassesByName,
+			availableEnumsByName: availableEnumsByName,
+			pendingRequiredEnumsByName: pendingRequiredEnumsByName,
+			requiredSourceOwnedClassNames: requiredSourceOwnedClassNames,
+			isCompilerOwnedAuthority: GoStdlibOwnership.isCompilerOwnedAuthority,
+			fullClassName: fullClassName,
+			fullEnumName: fullEnumName,
+			requireStdlibShimGroup: requireStdlibShimGroup,
+			markIoSourceOwnedHelperSurfaceRequired: function() requiresIoHelperSurface = true
+		});
 		globalLeafReceiverTypes = new Map<String, Bool>();
 		tempVarCounter = 0;
 		requiresTypeValueSupport = false;
@@ -207,26 +219,26 @@ class GoCompiler {
 
 	#if macro
 	public function compileModule(types:Array<ModuleType>):Array<GoGeneratedFile> {
-		cacheAvailableClasses(collectAllClasses(types));
-		cacheAvailableEnums(collectAllEnums(types));
+		sourceOwnedStdlibPlanner.cacheAvailableClasses(collectAllClasses(types));
+		sourceOwnedStdlibPlanner.cacheAvailableEnums(collectAllEnums(types));
 		return compileResolvedTypes(collectProjectClasses(types), collectProjectEnums(types));
 	}
 
 	public function compileSelectedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
-		cacheAvailableClasses(classes);
-		cacheAvailableEnums(enums);
+		sourceOwnedStdlibPlanner.cacheAvailableClasses(classes);
+		sourceOwnedStdlibPlanner.cacheAvailableEnums(enums);
 		return compileResolvedTypes(normalizeProjectClasses(classes), normalizeProjectEnums(enums));
 	}
 
 	function compileResolvedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
 		projectClasses = classes.copy();
 		projectEnums = enums.copy();
-		cacheAvailableClasses(classes);
-		cacheAvailableEnums(enums);
+		sourceOwnedStdlibPlanner.cacheAvailableClasses(classes);
+		sourceOwnedStdlibPlanner.cacheAvailableEnums(enums);
 		clearClassMap(pendingRequiredClassesByName);
 		clearEnumMap(pendingRequiredEnumsByName);
 		clearBoolMap(requiredSourceOwnedClassNames);
-		rebuildSourceModuleLookup(classes, enums);
+		sourceModuleRegistry.rebuild(classes, enums);
 		globalLeafReceiverTypes = buildGlobalLeafReceiverTypes(projectClasses);
 		syncCompilationContextLeafReceivers();
 		clearBoolMap(compilationContext.leafReturningFunctions);
@@ -362,7 +374,7 @@ class GoCompiler {
 			return;
 		}
 		var key = moduleName == null || moduleName == "" ? "Main" : moduleName;
-		if (isCompilerOwnedStdlibModule(key)) {
+		if (GoStdlibOwnership.isCompilerOwnedModule(key)) {
 			return;
 		}
 		var existing = bucket.get(key);
@@ -394,24 +406,6 @@ class GoCompiler {
 			return base + ".go";
 		}
 		return base + "_" + count + ".go";
-	}
-
-	function isCompilerOwnedStdlibModule(moduleName:String):Bool {
-		return isCompilerOwnedStdlibAuthority(moduleName);
-	}
-
-	function isCompilerOwnedStdlibAuthority(name:String):Bool {
-		return switch (name) {
-			case "EReg", "haxe.ds.EnumValueMap", "haxe.io.Bytes", "haxe.io.BytesBuffer", "haxe.io.BytesInput", "haxe.io.BytesOutput", "haxe.io.Eof",
-				"haxe.io.Error", "haxe.io.FPHelper", "haxe.io.Input", "haxe.io.Output", "sys.Http":
-				true;
-			case _:
-				false;
-		};
-	}
-
-	function canConstructEmptyTypeValue(goTypeName:String):Bool {
-		return goTypeName != null && goTypeName != "" && !StringTools.startsWith(goTypeName, "*");
 	}
 
 	function sanitizeFileToken(value:String):String {
@@ -1347,81 +1341,6 @@ class GoCompiler {
 		for (key in keys) {
 			map.remove(key);
 		}
-	}
-
-	function cacheAvailableClasses(classes:Array<ClassType>):Void {
-		clearClassMap(availableClassesByName);
-		for (classType in classes) {
-			availableClassesByName.set(fullClassName(classType), classType);
-		}
-	}
-
-	function cacheAvailableEnums(enums:Array<EnumType>):Void {
-		clearEnumMap(availableEnumsByName);
-		for (enumType in enums) {
-			availableEnumsByName.set(fullEnumName(enumType), enumType);
-		}
-	}
-
-	function rebuildSourceModuleLookup(classes:Array<ClassType>, enums:Array<EnumType>):Void {
-		clearStringMap(sourceFileToModule);
-		clearStringMap(sourceModuleBySuffix);
-		sourceModuleSuffixes = [];
-
-		for (classType in classes) {
-			registerSourceModule(classType.module, classType.pos);
-		}
-		for (enumType in enums) {
-			registerSourceModule(enumType.module, enumType.pos);
-		}
-		sourceModuleSuffixes.sort(compareSuffixBySpecificity);
-	}
-
-	function registerSourceModule(moduleName:Null<String>, pos:haxe.macro.Expr.Position):Void {
-		var normalizedModule = normalizeModuleLabel(moduleName);
-		if (normalizedModule == "<unknown>") {
-			return;
-		}
-
-		var location = PositionTools.toLocation(pos);
-		var sourcePath = location == null ? "" : normalizeSourcePath(Std.string(location.file));
-		if (sourcePath != "" && !sourceFileToModule.exists(sourcePath)) {
-			sourceFileToModule.set(sourcePath, normalizedModule);
-		}
-
-		var suffix = sourceModuleToFilePath(normalizedModule);
-		if (suffix != "" && !sourceModuleBySuffix.exists(suffix)) {
-			sourceModuleBySuffix.set(suffix, normalizedModule);
-			sourceModuleSuffixes.push(suffix);
-		}
-	}
-
-	function sourceModuleForPos(pos:haxe.macro.Expr.Position):String {
-		var sourcePath = normalizeSourcePath(Context.getPosInfos(pos).file);
-		if (sourcePath != "" && sourceFileToModule.exists(sourcePath)) {
-			return sourceFileToModule.get(sourcePath);
-		}
-
-		for (suffix in sourceModuleSuffixes) {
-			if (pathEndsWithSuffix(sourcePath, suffix)) {
-				return sourceModuleBySuffix.get(suffix);
-			}
-		}
-		return "<unknown>";
-	}
-
-	static function pathEndsWithSuffix(path:String, suffix:String):Bool {
-		if (path == suffix) {
-			return true;
-		}
-		return path != "" && suffix != "" && StringTools.endsWith(path, "/" + suffix);
-	}
-
-	static function compareSuffixBySpecificity(a:String, b:String):Int {
-		if (a.length != b.length) {
-			return b.length - a.length;
-		}
-		return Reflect.compare(a, b);
 	}
 
 	function interfaceSymbol(classType:ClassType):String {
@@ -6725,7 +6644,7 @@ class GoCompiler {
 
 		var classCreateEmptyBody = [GoStmt.GoRaw("switch className {")];
 		for (entry in classMetadata) {
-			if (!canConstructEmptyTypeValue(entry.goTypeName)) {
+			if (!GoStdlibOwnership.canConstructEmptyTypeValue(entry.goTypeName)) {
 				continue;
 			}
 			classCreateEmptyBody.push(GoStmt.GoRaw("case " + goRawQuotedString(entry.haxeTypeName) + ":"));
@@ -7218,7 +7137,7 @@ class GoCompiler {
 
 		var classCreateBody = [GoStmt.GoRaw("switch className {")];
 		for (entry in classMetadata) {
-			if (!canConstructEmptyTypeValue(entry.goTypeName)) {
+			if (!GoStdlibOwnership.canConstructEmptyTypeValue(entry.goTypeName)) {
 				continue;
 			}
 			classCreateBody.push(GoStmt.GoRaw("case " + goRawQuotedString(entry.haxeTypeName) + ":"));
@@ -15081,7 +15000,7 @@ class GoCompiler {
 	}
 
 	function loweringDecisionMetadata(pos:haxe.macro.Expr.Position):{moduleName:String, inMetalLane:Bool, location:String} {
-		var moduleName = sourceModuleForPos(pos);
+		var moduleName = sourceModuleRegistry.sourceModuleForPos(pos);
 		var inMetalLane = compilationContext.buildContext.metalLaneModules.indexOf(moduleName) != -1;
 		var location = fallbackLocationLabel(pos, moduleName);
 		return {
@@ -15528,7 +15447,7 @@ class GoCompiler {
 			return false;
 		}
 		var className = fullClassName(classType);
-		if (isCompilerOwnedStdlibAuthority(className)) {
+		if (GoStdlibOwnership.isCompilerOwnedAuthority(className)) {
 			return false;
 		}
 		if (className == "haxe.io.Input" || className == "haxe.io.Output") {
@@ -16118,7 +16037,7 @@ class GoCompiler {
 	function requireStdlibShimGroup(group:String):Void {
 		requiredStdlibShimGroups.set(group, true);
 		if (group == "http") {
-			requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
+			sourceOwnedStdlibPlanner.requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
 		}
 	}
 
@@ -16132,89 +16051,20 @@ class GoCompiler {
 		if (classType.pack.length == 0 && classType.name == "Sys" && fieldName == "environment") {
 			requireStdlibShimGroup("ds");
 		}
-		noteSourceOwnedStdlibUsage(classType);
+		sourceOwnedStdlibPlanner.noteSourceOwnedStdlibUsage(classType);
 	}
 
 	function noteSourceOwnedStdlibUsage(classType:ClassType):Void {
-		switch (fullClassName(classType)) {
-			case "StringTools":
-				requireSourceOwnedStdlibClass("StringTools");
-				requireSourceOwnedStdlibClass("haxe.iterators.StringIterator");
-				requireSourceOwnedStdlibClass("haxe.iterators.StringKeyValueIterator");
-			case "DateTools":
-				requireSourceOwnedStdlibClass("DateTools");
-			case "haxe.io.Path":
-				requireSourceOwnedStdlibClass("haxe.io.Path");
-			case "haxe._CallStack.CallStack_Impl_":
-				requireSourceOwnedStdlibModule("haxe.CallStack");
-				requireSourceOwnedStdlibEnum("haxe.StackItem");
-			case "haxe.NativeStackTrace":
-				requireSourceOwnedStdlibClass("haxe.NativeStackTrace");
-			case "haxe.EntryPoint":
-				Context.fatalError("Direct haxe.EntryPoint usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.",
-					classType.pos);
-			case "haxe.MainLoop":
-				Context.fatalError("Direct haxe.MainLoop usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.",
-					classType.pos);
-			case "haxe.MainEvent":
-				Context.fatalError("Direct haxe.MainEvent usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.",
-					classType.pos);
-			case "haxe.Timer":
-				Context.fatalError("Direct haxe.Timer usage is not supported yet on haxe.go; upstream event-loop source still depends on unresolved array helper, callback, and Sys.time lowering. Track haxe.go-dt4s.",
-					classType.pos);
-			case "haxe.Log", "haxe.Resource", "haxe.SysTools":
-				requireSourceOwnedStdlibClass(fullClassName(classType));
-			case "haxe.ds.ArraySort":
-				requireSourceOwnedStdlibClass("haxe.ds.ArraySort");
-			case "haxe.ds.BalancedTree":
-				requireSourceOwnedStdlibModule("haxe.ds.BalancedTree");
-			case "haxe.ds.GenericStack":
-				requireSourceOwnedStdlibModule("haxe.ds.GenericStack");
-			case "haxe.ds.ListSort":
-				requireSourceOwnedStdlibClass("haxe.ds.ListSort");
-			case "haxe.Utf8":
-				requireSourceOwnedStdlibClass("haxe.Utf8");
-			case "haxe.exceptions.PosException":
-				requireSourceOwnedStdlibClass("haxe.exceptions.PosException");
-			case "haxe.exceptions.ArgumentException":
-				requireSourceOwnedStdlibClass("haxe.exceptions.PosException");
-				requireSourceOwnedStdlibClass("haxe.exceptions.ArgumentException");
-			case "haxe.exceptions.NotImplementedException":
-				requireSourceOwnedStdlibClass("haxe.exceptions.PosException");
-				requireSourceOwnedStdlibClass("haxe.exceptions.NotImplementedException");
-			case "sys.Http":
-				requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
-			case "haxe.Template":
-				requireSourceOwnedStdlibModule("haxe.Template");
-				requireStdlibShimGroup("stdlib_symbols");
-				requireStdlibShimGroup("template_support");
-			case "haxe.ValueException":
-				// Direct ValueException usage lowers to the existing hxrt exception
-				// carrier rather than emitting a separate source-owned class body.
-			case _:
-		}
+		sourceOwnedStdlibPlanner.noteSourceOwnedStdlibUsage(classType);
 	}
 
 	function requireIoSourceOwnedHelperSurface():Void {
 		requiresIoHelperSurface = true;
-		requireSourceOwnedStdlibClass("haxe.io.GoIoHelpers");
+		sourceOwnedStdlibPlanner.requireIoSourceOwnedHelperClass();
 	}
 
 	function requireSourceOwnedStdlibClass(className:String):Void {
-		if (isCompilerOwnedStdlibAuthority(className)) {
-			return;
-		}
-		if (!availableClassesByName.exists(className)) {
-			var resolved = resolveSourceOwnedStdlibClass(className);
-			if (resolved != null) {
-				availableClassesByName.set(className, resolved);
-			}
-		}
-		if (!availableClassesByName.exists(className) || pendingRequiredClassesByName.exists(className)) {
-			return;
-		}
-		requiredSourceOwnedClassNames.set(className, true);
-		pendingRequiredClassesByName.set(className, availableClassesByName.get(className));
+		sourceOwnedStdlibPlanner.requireSourceOwnedStdlibClass(className);
 	}
 
 	/**
@@ -16230,93 +16080,15 @@ class GoCompiler {
 		source-owned class/enum pending maps.
 	**/
 	function requireSourceOwnedStdlibModule(moduleName:String):Void {
-		var resolved = resolveSourceOwnedStdlibModule(moduleName);
-		for (moduleType in resolved) {
-			if (skipCompilerOwnedSourceModuleType(moduleType)) {
-				continue;
-			}
-			switch (moduleType) {
-				case TInst(classRef, _):
-					var classType = classRef.get();
-					var className = fullClassName(classType);
-					availableClassesByName.set(className, classType);
-					requiredSourceOwnedClassNames.set(className, true);
-					if (!pendingRequiredClassesByName.exists(className)) {
-						pendingRequiredClassesByName.set(className, classType);
-					}
-				case TEnum(enumRef, _):
-					var enumType = enumRef.get();
-					var enumName = fullEnumName(enumType);
-					availableEnumsByName.set(enumName, enumType);
-					if (!pendingRequiredEnumsByName.exists(enumName)) {
-						pendingRequiredEnumsByName.set(enumName, enumType);
-					}
-				case _:
-			}
-		}
-	}
-
-	function resolveSourceOwnedStdlibClass(className:String):Null<ClassType> {
-		try {
-			return switch (Context.getType(className)) {
-				case TInst(classRef, _):
-					classRef.get();
-				case _:
-					null;
-			};
-		} catch (_:Dynamic) {
-			return null;
-		}
-	}
-
-	function resolveSourceOwnedStdlibModule(moduleName:String):Array<Type> {
-		try {
-			return Context.getModule(moduleName);
-		} catch (_:Dynamic) {
-			return [];
-		}
+		sourceOwnedStdlibPlanner.requireSourceOwnedStdlibModule(moduleName);
 	}
 
 	function requireSourceOwnedStdlibEnum(enumName:String):Void {
-		if (!availableEnumsByName.exists(enumName)) {
-			try {
-				switch (Context.getType(enumName)) {
-					case TEnum(enumRef, _):
-						availableEnumsByName.set(enumName, enumRef.get());
-					case _:
-				}
-			} catch (_:Dynamic) {}
-		}
-		if (!availableEnumsByName.exists(enumName) || pendingRequiredEnumsByName.exists(enumName)) {
-			return;
-		}
-		pendingRequiredEnumsByName.set(enumName, availableEnumsByName.get(enumName));
-	}
-
-	function skipCompilerOwnedSourceModuleType(moduleType:Type):Bool {
-		return switch (moduleType) {
-			case TInst(classRef, _):
-				var classType = classRef.get();
-				isCompilerOwnedStdlibAuthority(fullClassName(classType));
-			case _:
-				false;
-		};
+		sourceOwnedStdlibPlanner.requireSourceOwnedStdlibEnum(enumName);
 	}
 
 	function hasLoadedSourceOwnedStdlibClass(className:String):Bool {
-		if (!availableClassesByName.exists(className)) {
-			return false;
-		}
-		var classType = availableClassesByName.get(className);
-		if (classType == null || classType.isExtern) {
-			return false;
-		}
-		var location = PositionTools.toLocation(classType.pos);
-		if (location == null || location.file == null) {
-			return false;
-		}
-		var file = Std.string(location.file);
-		return file != null && (StringTools.contains(file, "/std/") || StringTools.contains(file, "/vendor/"));
+		return sourceOwnedStdlibPlanner.hasLoadedSourceOwnedStdlibClass(className);
 	}
 
 	function isBytesOwnedBySourceStdDecl(decl:GoDecl):Bool {
