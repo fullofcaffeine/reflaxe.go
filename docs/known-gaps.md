@@ -29,7 +29,9 @@ Current architecture status:
   - `Unsupported expression` catch-all: closure-by-node-family via `test/semantic_diff/type_expr_contract`, `test/semantic_diff/throw_expr_contract`, `test/snapshot/core/untyped_ident_nil`, `test/snapshot/core/const_kinds_contract`
   - `Std.isOfType` fallback behavior: `test/semantic_diff/std_is_of_type_contract`, `test/semantic_diff/std_is_of_type_runtime_core_abstract_contract`, and `test/snapshot/core/std_is_of_type_basic`, `test/snapshot/core/std_is_of_type_dynamic`, `test/snapshot/core/type_switch_no_binding_std_is_of_type`
 - `go.*` APIs are target-specific. They compile to real Go behavior on this target, but they are not portability-safe across non-Go Haxe targets.
-- Direct `haxe.ValueException` constructor/message/value parity is now covered. The remaining exception-family gap is broader subclass construction/runtime wiring (`haxe.go-14as.43`), not the basic string-payload `ValueException` case.
+- Direct `haxe.ValueException` constructor/message/value parity is covered.
+- Direct `haxe.exceptions` subclass construction for `PosException`, `ArgumentException`, and `NotImplementedException` is covered too.
+- The main remaining portable stdlib blockers are now the explicit compile-only families and the direct event-loop tranche (`haxe.go-dt4s`), not the basic exception surface.
 
 ## Interop caveats
 
@@ -63,5 +65,6 @@ Current architecture status:
 ## Source of truth links
 
 - Feature/support inventory: `docs/feature-support-matrix.md`
+- Ownership decision rule: `docs/ownership-rubric.md`
 - Shim ownership decisions: `docs/stdlib-shim-rationale.md`
 - Phase roadmap: `docs/phase2-roadmap.md`

@@ -29,6 +29,7 @@ Contract artifact:
 - `test/portable_allowlist.json` (tiered canonical portable module set, validated in CI)
 - `docs/portable-semantics-v1.md` (versioned portable semantics contract for high-risk cross-target behavior)
 - `docs/portable-module-mapping-contract.md` (Tier1 ownership map: Haxe source vs runtime binding vs compiler intrinsic)
+- `docs/ownership-rubric.md` (canonical rule for deciding where behavior is allowed to live)
 
 Excluded from this parity objective:
 
@@ -57,6 +58,9 @@ This parity program is therefore about semantic closure and coverage promotion, 
 4. Library-expressible behavior should migrate to staged stdlib sources (`.cross.hx` and approved override paths).
 5. Upstream sync must be provenance-tracked and boundary-checked in CI.
 6. `go.*` core authority is singular: `src/go/*` owns `go.Go`/`go.Chan` with target-conditional behavior; `std/go/*` stays focused on package extern facades (`Fmt`, `Time`, `ContextPkg`, `Http`, ...).
+
+Ownership is chosen by the rubric in `docs/ownership-rubric.md`.
+This document tracks closure state and blocker families, not the full decision tree.
 
 ## Provenance And Boundary Workflow
 
@@ -157,26 +161,27 @@ This keeps migration practical while preserving a strict portability gate for re
 
 ## Program Phases (Beads)
 
-Epic: `haxe.go-cgk`
+Primary epic: `haxe.go-14as`
 
-1. `haxe.go-cgk.1` - Canonical stdlib contract/layering spec
-2. `haxe.go-cgk.2` - Portable contract import/boundary gate
-3. `haxe.go-cgk.3` - Full stdlib inventory + parity ledger
-4. `haxe.go-cgk.4` - Upstream provenance ledger + boundary CI
-5. `haxe.go-cgk.5` - Staged stdlib source migration (`.cross.hx` / `std/_std`)
-6. `haxe.go-cgk.6` - Consolidate duplicated `go.*` authority
-7. `haxe.go-cgk.7` - Parity closure harness (all modules)
-8. `haxe.go-cgk.8` - Family shared portable stdlib extraction spike
-9. `haxe.go-cgk.9` - Rename lane metadata to `@:goMetal` only
-10. `haxe.go-cgk.10` - Portable allowlist artifact (`portable_allowlist.json`, tiered contract set)
-11. `haxe.go-cgk.11` - Portable semantics spec v1 (family-grade)
-12. `haxe.go-cgk.12` - Tier1 portable conformance suite seed (repo-local)
-13. `haxe.go-cgk.13` - Module mapping contract doc (Haxe code vs runtime binding vs intrinsic)
-14. `haxe.go-cgk.14` - Family extraction execution prep (post-spike checklist)
-15. `haxe.go-cgk.15` - Bootstrap `reflaxe.family.std` skeleton + schema pack
-16. `haxe.go-cgk.16` - Family export/import sync tooling for `haxe.go`
-17. `haxe.go-cgk.17` - Family pin + dual-run contract checks in `haxe.go`
-18. `haxe.go-cgk.18` - Sibling compiler rollout gate plan (`rust`/`elixir`/`ocaml`)
+Current execution order:
+
+1. `haxe.go-14as.55` - architecture lock for `portable + metal` plus ownership boundaries
+2. `haxe.go-14as.55.1` - canonical ownership rubric (`compiler` vs `staged std` vs `hxrt` vs `go.*`)
+3. `haxe.go-14as.55.2` - split compiler-owned stdlib emitters out of `GoCompiler.hx`
+4. `haxe.go-14as.55.4` - make ownership/parity governance release-blocking
+5. `haxe.go-14as.56` - close remaining language hard-fail paths
+6. remaining portable stdlib blocker families in owner-driven order:
+   - `haxe.go-14as.47` (`haxe.ds.WeakMap` stance)
+   - `haxe.go-dt4s` (direct event-loop surfaces)
+   - `haxe.go-14as.14` (`haxe.http` + `haxe.rtti`)
+   - `haxe.go-14as.15` (`haxe.io` misc)
+   - `haxe.go-14as.16` (`haxe.io` typed arrays)
+   - `haxe.go-14as.17` (`sys.db` + `sys.io`)
+   - `haxe.go-14as.18` (`sys.net` + `sys.ssl`)
+   - `haxe.go-14as.19` (`sys.thread`)
+   - `haxe.go-14as.42` (`haxe.Utf8` deprecated optional-size constructor)
+
+The old `haxe.go-cgk.*` planning work is historical context now, not the active execution tracker.
 
 ## Definition of Done
 

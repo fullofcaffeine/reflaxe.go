@@ -79,7 +79,8 @@ Why this is done:
 - it lets parity work land incrementally with tests,
 - and it keeps target-specific behavior isolated.
 
-Deep dive and ownership details: [/docs/stdlib-shim-rationale.md](/docs/stdlib-shim-rationale.md).
+Deep dive and ownership rule: [/docs/ownership-rubric.md](/docs/ownership-rubric.md).
+Current shim-by-shim decisions: [/docs/stdlib-shim-rationale.md](/docs/stdlib-shim-rationale.md).
 
 ## Performance and release checks
 

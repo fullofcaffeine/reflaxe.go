@@ -36,6 +36,7 @@ This page helps you find the right docs quickly.
 
 ## Runtime and stdlib docs
 
+- [Ownership rubric](ownership-rubric.md)
 - [`hxrt` runtime](hxrt-runtime.md)
 - [Selective `hxrt` runtime](hxrt-selective-runtime.md)
 - [Stdlib shim rationale](stdlib-shim-rationale.md)

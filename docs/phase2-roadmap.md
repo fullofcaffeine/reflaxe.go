@@ -120,7 +120,7 @@ Depends on: M6 (and cross-cuts M2-M4.5)
 - Consolidate duplicate native facade authorities (`src/go/*` vs `std/go/*`) under one canonical path.
 - Track family-shared portable stdlib extraction path once Go parity program stabilizes.
 
-Execution tracker: `haxe.go-cgk` (`docs/portable-stdlib-parity-program.md`).
+Execution tracker: `haxe.go-14as` and `haxe.go-14as.55` (`docs/portable-stdlib-parity-program.md`).
 
 Approach-C closure follow-up tracker: `haxe.go-qhv` (lane enforcement depth + lane semantic gates).
 

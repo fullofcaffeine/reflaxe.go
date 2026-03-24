@@ -1,5 +1,10 @@
 # Portable Module Mapping Contract (Tier1 Seed)
 
+This document is the module-level companion to `docs/ownership-rubric.md`.
+
+Use the rubric document to decide which layer should own behavior.
+Use this document to record the actual ownership split for concrete portable modules.
+
 This document defines ownership mapping for Tier1 portable modules:
 
 - Haxe-source implementation
@@ -7,7 +12,7 @@ This document defines ownership mapping for Tier1 portable modules:
 - compiler intrinsic/shim
 - mixed ownership (explicitly split)
 
-It is the canonical Tier1 mapping seed for family extraction work.
+It is the canonical Tier1 module-mapping seed for family extraction work.
 
 Contract inputs:
 
@@ -78,6 +83,7 @@ Current staged Tier1 coverage includes the JSON family and `StringTools`, with a
 Any ownership change for a Tier1 module must update all of:
 
 1. this mapping document,
-2. `test/portable_conformance_tier1.json`,
-3. `docs/stdlib-provenance-ledger.json` (when staged source files are added/changed),
-4. relevant conformance fixtures in `test/semantic_diff`.
+2. `docs/ownership-rubric.md` when the rule itself changes,
+3. `test/portable_conformance_tier1.json`,
+4. `docs/stdlib-provenance-ledger.json` (when staged source files are added/changed),
+5. relevant conformance fixtures in `test/semantic_diff`.
