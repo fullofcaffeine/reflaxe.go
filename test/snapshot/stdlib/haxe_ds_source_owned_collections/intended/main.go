@@ -1531,9 +1531,6 @@ func haxe__ds__Option_Some(value any) *haxe__ds__Option {
 	return &haxe__ds__Option{tag: 0, params: []any{value}}
 }
 
-type haxe__io__StringInput struct {
-}
-
 type haxe__xml__Parser struct {
 }
 
@@ -1883,7 +1880,7 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	case "haxe._Int64.Int64_Impl_":
 		return nil, false
 	case "haxe._Int64.___Int64":
-		return nil, false
+		return hxrt_typeCallAny(New_haxe___Int64_____Int64, args)
 	case "haxe.ds.BalancedTree":
 		return hxrt_typeCallAny(New_haxe__ds__BalancedTree, args)
 	case "haxe.ds.GenericCell":
@@ -1899,6 +1896,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 
 func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
+	case "haxe._Int64.___Int64":
+		return &haxe___Int64_____Int64{}, true
 	case "haxe.ds.BalancedTree":
 		return &haxe__ds__BalancedTree{}, true
 	case "haxe.ds.GenericCell":
@@ -2033,6 +2032,11 @@ func Type_getClass(o any) any {
 	case hxrt__TypeClassValue:
 		copyValue := value
 		return &copyValue
+	case *haxe___Int64_____Int64:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe._Int64.___Int64")}
 	case *haxe__ds__BalancedTree:
 		if value == nil {
 			return nil
@@ -2162,7 +2166,7 @@ func Type_getInstanceFields(c any) []*string {
 	case "haxe._Int64.Int64_Impl_":
 		return []*string{}
 	case "haxe._Int64.___Int64":
-		return []*string{}
+		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
 	case "haxe.ds.BalancedTree":
 		return []*string{hxrt.StringFromLiteral("balance"), hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("compare"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("keysLoop"), hxrt.StringFromLiteral("merge"), hxrt.StringFromLiteral("minBinding"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeLoop"), hxrt.StringFromLiteral("removeMinBinding"), hxrt.StringFromLiteral("root"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setLoop"), hxrt.StringFromLiteral("toString")}
 	case "haxe.ds.GenericCell":

@@ -1565,9 +1565,6 @@ func haxe__ds__Option_Some(value any) *haxe__ds__Option {
 	return &haxe__ds__Option{tag: 0, params: []any{value}}
 }
 
-type haxe__io__StringInput struct {
-}
-
 type haxe__xml__Parser struct {
 }
 
@@ -1921,7 +1918,7 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	case "haxe._Int64.Int64_Impl_":
 		return nil, false
 	case "haxe._Int64.___Int64":
-		return nil, false
+		return hxrt_typeCallAny(New_haxe___Int64_____Int64, args)
 	case "haxe.iterators.StringIterator":
 		return hxrt_typeCallAny(New_haxe__iterators__StringIterator, args)
 	case "haxe.iterators.StringKeyValueIterator":
@@ -1933,6 +1930,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 
 func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
+	case "haxe._Int64.___Int64":
+		return &haxe___Int64_____Int64{}, true
 	case "haxe.iterators.StringIterator":
 		return &haxe__iterators__StringIterator{}, true
 	case "haxe.iterators.StringKeyValueIterator":
@@ -2063,6 +2062,11 @@ func Type_getClass(o any) any {
 	case hxrt__TypeClassValue:
 		copyValue := value
 		return &copyValue
+	case *haxe___Int64_____Int64:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe._Int64.___Int64")}
 	case *haxe__iterators__StringIterator:
 		if value == nil {
 			return nil
@@ -2186,7 +2190,7 @@ func Type_getInstanceFields(c any) []*string {
 	case "haxe._Int64.Int64_Impl_":
 		return []*string{}
 	case "haxe._Int64.___Int64":
-		return []*string{}
+		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
 	case "haxe.iterators.StringIterator":
 		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
 	case "haxe.iterators.StringKeyValueIterator":

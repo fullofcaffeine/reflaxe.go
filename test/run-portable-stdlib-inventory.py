@@ -103,6 +103,15 @@ OWNER_OVERRIDES = {
     "haxe.Template": "staged_std",
     "haxe.Timer": "mixed",
     "haxe.Utf8": "staged_std",
+    "haxe.io.BufferInput": "compiler_shim",
+    "haxe.io.BytesData": "mixed",
+    "haxe.io.Encoding": "compiler_shim",
+    "haxe.io.Eof": "compiler_shim",
+    "haxe.io.Error": "compiler_shim",
+    "haxe.io.FPHelper": "staged_std",
+    "haxe.io.Mime": "staged_std",
+    "haxe.io.Scheme": "staged_std",
+    "haxe.io.StringInput": "compiler_shim",
     "haxe.rtti.CType": "mixed",
     "haxe.rtti.Meta": "mixed",
     "haxe.rtti.Rtti": "mixed",
@@ -200,6 +209,63 @@ MODULE_NOTES_OVERRIDES = {
         "Direct haxe.Template constructor/execute usage now has semantic-diff coverage through "
         "a staged std override in std/haxe/Template.cross.hx. Evidence: "
         "semantic_diff/haxe_template_contract and stdlib/haxe_template_basic."
+    ),
+    "haxe.io.BufferInput": (
+        "Direct `haxe.io.BufferInput` constructor and buffered-read baseline now have semantic-diff "
+        "coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in "
+        "`stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy "
+        "because this backend still owns the representation-sensitive `Input` / `BytesInput` / "
+        "`BufferInput` type shapes and inherited helper wiring."
+    ),
+    "haxe.io.BytesData": (
+        "Direct `haxe.io.BytesData` alias semantics now have semantic-diff coverage through "
+        "`semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`, "
+        "including `Bytes.getData()` / `Bytes.ofData()` alias mutation behavior. Ownership stays mixed "
+        "because the public alias is source-level, while the actual behavior still rides on the "
+        "compiler-owned `haxe.io.Bytes` carrier."
+    ),
+    "haxe.io.Encoding": (
+        "Direct `haxe.io.Encoding` constructor and pattern-match parity now have semantic-diff coverage "
+        "through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
+        "Ownership stays compiler-owned with the base IO hierarchy because the backend still emits the "
+        "encoding tag values used by `Bytes`, `Input`, and `Output` shims."
+    ),
+    "haxe.io.Eof": (
+        "Direct `haxe.io.Eof` construction and string parity now have semantic-diff coverage through "
+        "`semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
+        "Ownership stays compiler-owned with the base IO hierarchy because the backend still emits the "
+        "`Eof` carrier used by IO shims and exception matching."
+    ),
+    "haxe.io.Error": (
+        "Direct `haxe.io.Error` constructor and pattern-match parity now have semantic-diff coverage "
+        "through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
+        "Ownership stays compiler-owned with the base IO hierarchy because the backend still emits the "
+        "error-tag carrier used by the public IO shims."
+    ),
+    "haxe.io.FPHelper": (
+        "Direct `haxe.io.FPHelper` bit-conversion helpers now have semantic-diff coverage through "
+        "`semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
+        "The public API now lives in the staged override `std/haxe/io/FPHelper.cross.hx`, expressed on "
+        "top of the existing little-endian `BytesInput` / `BytesOutput` contract instead of more raw Go."
+    ),
+    "haxe.io.Mime": (
+        "Direct `haxe.io.Mime` abstract usage now has semantic-diff coverage through "
+        "`semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
+        "Ownership stays source-owned because this surface is just the upstream string-backed abstract "
+        "running on the normal string lowering contract."
+    ),
+    "haxe.io.Scheme": (
+        "Direct `haxe.io.Scheme` abstract usage now has semantic-diff coverage through "
+        "`semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
+        "Ownership stays source-owned because this surface is just the upstream string-backed abstract "
+        "running on the normal string lowering contract."
+    ),
+    "haxe.io.StringInput": (
+        "Direct `haxe.io.StringInput` constructor and inherited-read baseline now have semantic-diff "
+        "coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in "
+        "`stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy because "
+        "this backend still owns the representation-sensitive `BytesInput` / `StringInput` type shapes "
+        "and inherited helper wiring."
     ),
     "haxe.ValueException": (
         "Direct haxe.ValueException constructor/message/value parity now has semantic-diff coverage. "

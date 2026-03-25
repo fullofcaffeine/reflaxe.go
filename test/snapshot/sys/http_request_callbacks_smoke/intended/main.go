@@ -2416,9 +2416,6 @@ func haxe__ds__Option_Some(value any) *haxe__ds__Option {
 	return &haxe__ds__Option{tag: 0, params: []any{value}}
 }
 
-type haxe__io__StringInput struct {
-}
-
 type haxe__xml__Parser struct {
 }
 
@@ -2770,7 +2767,7 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	case "haxe._Int64.Int64_Impl_":
 		return nil, false
 	case "haxe._Int64.___Int64":
-		return nil, false
+		return hxrt_typeCallAny(New_haxe___Int64_____Int64, args)
 	case "haxe.exceptions.NotImplementedException":
 		return hxrt_typeCallAny(New_haxe__exceptions__NotImplementedException, args)
 	case "haxe.exceptions.PosException":
@@ -2786,6 +2783,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 
 func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
+	case "haxe._Int64.___Int64":
+		return &haxe___Int64_____Int64{}, true
 	case "haxe.exceptions.NotImplementedException":
 		return &haxe__exceptions__NotImplementedException{}, true
 	case "haxe.exceptions.PosException":
@@ -2918,6 +2917,11 @@ func Type_getClass(o any) any {
 	case hxrt__TypeClassValue:
 		copyValue := value
 		return &copyValue
+	case *haxe___Int64_____Int64:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe._Int64.___Int64")}
 	case *haxe__exceptions__NotImplementedException:
 		if value == nil {
 			return nil
@@ -3048,7 +3052,7 @@ func Type_getInstanceFields(c any) []*string {
 	case "haxe._Int64.Int64_Impl_":
 		return []*string{}
 	case "haxe._Int64.___Int64":
-		return []*string{}
+		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
 	case "haxe.exceptions.NotImplementedException":
 		return []*string{hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("posInfos"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap")}
 	case "haxe.exceptions.PosException":

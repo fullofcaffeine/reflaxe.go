@@ -1204,19 +1204,17 @@
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_io_misc",
-      "blocker_issue": "haxe.go-14as.15",
-      "closure_target": "2026-04-30",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.BufferInput",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.15 (haxe_io_misc); closure target 2026-04-30.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.BufferInput` constructor and buffered-read baseline now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy because this backend still owns the representation-sensitive `Input` / `BytesInput` / `BufferInput` type shapes and inherited helper wiring.",
+      "owner": "compiler_shim",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
@@ -1247,20 +1245,18 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_misc",
-      "blocker_issue": "haxe.go-14as.15",
-      "closure_target": "2026-04-30",
       "coverage_evidence": [
         "upstream_sweep:full_compile",
-        "upstream_sweep:strict_go_test"
+        "upstream_sweep:strict_go_test",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.BytesData",
-      "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt). Tracked by haxe.go-14as.15 (haxe_io_misc); closure target 2026-04-30.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.BytesData` alias semantics now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`, including `Bytes.getData()` / `Bytes.ofData()` alias mutation behavior. Ownership stays mixed because the public alias is source-level, while the actual behavior still rides on the compiler-owned `haxe.io.Bytes` carrier.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
@@ -1291,66 +1287,58 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_misc",
-      "blocker_issue": "haxe.go-14as.15",
-      "closure_target": "2026-04-30",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.Encoding",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.15 (haxe_io_misc); closure target 2026-04-30.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Encoding` constructor and pattern-match parity now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy because the backend still emits the encoding tag values used by `Bytes`, `Input`, and `Output` shims.",
+      "owner": "compiler_shim",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_misc",
-      "blocker_issue": "haxe.go-14as.15",
-      "closure_target": "2026-04-30",
       "coverage_evidence": [
         "upstream_sweep:full_compile",
-        "upstream_sweep:strict_go_test"
+        "upstream_sweep:strict_go_test",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.Eof",
-      "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt). Tracked by haxe.go-14as.15 (haxe_io_misc); closure target 2026-04-30.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Eof` construction and string parity now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy because the backend still emits the `Eof` carrier used by IO shims and exception matching.",
+      "owner": "compiler_shim",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_misc",
-      "blocker_issue": "haxe.go-14as.15",
-      "closure_target": "2026-04-30",
       "coverage_evidence": [
         "upstream_sweep:full_compile",
-        "upstream_sweep:strict_go_test"
+        "upstream_sweep:strict_go_test",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.Error",
-      "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt). Tracked by haxe.go-14as.15 (haxe_io_misc); closure target 2026-04-30.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Error` constructor and pattern-match parity now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy because the backend still emits the error-tag carrier used by the public IO shims.",
+      "owner": "compiler_shim",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_misc",
-      "blocker_issue": "haxe.go-14as.15",
-      "closure_target": "2026-04-30",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.FPHelper",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.15 (haxe_io_misc); closure target 2026-04-30.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.FPHelper` bit-conversion helpers now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. The public API now lives in the staged override `std/haxe/io/FPHelper.cross.hx`, expressed on top of the existing little-endian `BytesInput` / `BytesOutput` contract instead of more raw Go.",
+      "owner": "staged_std",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "blocker_family": "haxe_io_typed_arrays",
@@ -1412,19 +1400,17 @@
       "status": "compile-only"
     },
     {
-      "blocker_family": "haxe_io_misc",
-      "blocker_issue": "haxe.go-14as.15",
-      "closure_target": "2026-04-30",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.Mime",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.15 (haxe_io_misc); closure target 2026-04-30.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Mime` abstract usage now has semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays source-owned because this surface is just the upstream string-backed abstract running on the normal string lowering contract.",
+      "owner": "staged_std",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
@@ -1455,35 +1441,31 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_misc",
-      "blocker_issue": "haxe.go-14as.15",
-      "closure_target": "2026-04-30",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.Scheme",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.15 (haxe_io_misc); closure target 2026-04-30.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Scheme` abstract usage now has semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays source-owned because this surface is just the upstream string-backed abstract running on the normal string lowering contract.",
+      "owner": "staged_std",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_misc",
-      "blocker_issue": "haxe.go-14as.15",
-      "closure_target": "2026-04-30",
       "coverage_evidence": [
         "upstream_sweep:full_compile",
-        "upstream_sweep:strict_go_test"
+        "upstream_sweep:strict_go_test",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.StringInput",
-      "notes": "Covered by strict upstream stdlib sweep compile/go-test checks (test/upstream_std_modules.txt). Tracked by haxe.go-14as.15 (haxe_io_misc); closure target 2026-04-30.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.StringInput` constructor and inherited-read baseline now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy because this backend still owns the representation-sensitive `BytesInput` / `StringInput` type shapes and inherited helper wiring.",
+      "owner": "compiler_shim",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "blocker_family": "haxe_io_typed_arrays",

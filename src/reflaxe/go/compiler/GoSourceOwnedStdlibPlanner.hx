@@ -88,6 +88,9 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("DateTools");
 			case "haxe.io.Path":
 				requireSourceOwnedStdlibClass("haxe.io.Path");
+			case "haxe.io.FPHelper":
+				requireSourceOwnedStdlibClass("haxe.io.FPHelper");
+				requireStdlibShimGroup("stdlib_symbols");
 			case "haxe._CallStack.CallStack_Impl_":
 				requireSourceOwnedStdlibModule("haxe.CallStack");
 				requireSourceOwnedStdlibEnum("haxe.StackItem");

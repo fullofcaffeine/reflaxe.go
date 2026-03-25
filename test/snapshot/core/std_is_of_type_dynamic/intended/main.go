@@ -67,6 +67,8 @@ func main() {
 			return true
 		case []*Child:
 			return true
+		case []*haxe___Int64_____Int64:
+			return true
 		case []*string:
 			return true
 		case []any:
@@ -87,6 +89,8 @@ func main() {
 		case []*Base:
 			return true
 		case []*Child:
+			return true
+		case []*haxe___Int64_____Int64:
 			return true
 		case []*string:
 			return true

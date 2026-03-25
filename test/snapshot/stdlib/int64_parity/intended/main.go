@@ -1854,9 +1854,6 @@ func haxe__ds__Option_Some(value any) *haxe__ds__Option {
 	return &haxe__ds__Option{tag: 0, params: []any{value}}
 }
 
-type haxe__io__StringInput struct {
-}
-
 type haxe__xml__Parser struct {
 }
 

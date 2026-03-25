@@ -10,7 +10,7 @@ class GoStdlibShimClassifier {
 			return false;
 		}
 		return switch (classType.name) {
-			case "Input", "BytesInput":
+			case "Input", "BytesInput", "BufferInput", "StringInput":
 				isIoInputHelperMethodName(fieldName);
 			case "Output", "BytesOutput":
 				isIoOutputHelperMethodName(fieldName);
@@ -23,9 +23,9 @@ class GoStdlibShimClassifier {
 		var pack = classType.pack.join(".");
 		if (pack == "haxe.io") {
 			return switch (classType.name) {
-				case "Bytes", "BytesBuffer", "Input", "Output", "Encoding", "BytesInput", "BytesOutput", "Eof":
+				case "BufferInput", "Bytes", "BytesBuffer", "Input", "Output", "Encoding", "BytesInput", "BytesOutput", "Eof", "StringInput":
 					["io"];
-				case "Path", "StringInput":
+				case "Path":
 					["stdlib_symbols"];
 				case _:
 					[];

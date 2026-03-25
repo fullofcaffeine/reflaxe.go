@@ -60,6 +60,7 @@ their ownership split is easy to misunderstand.
 
 | Module family | Ownership class | Public implementation location | Backend-owned support beneath it | Evidence |
 | --- | --- | --- | --- | --- |
+| `haxe.io` misc direct surfaces (`BufferInput`, `BytesData`, `Encoding`, `Eof`, `Error`, `FPHelper`, `Mime`, `Scheme`, `StringInput`) | `mixed` | upstream `std/haxe/io/**` plus `std/haxe/io/FPHelper.cross.hx` | compiler-owned base IO/encoding/error/input hierarchy for `BufferInput` / `StringInput` / `Encoding` / `Eof` / `Error`, plus the `haxe.io.Bytes` carrier beneath `BytesData` | `semantic_diff/haxe_io_misc_contract`, `stdlib/haxe_io_misc_direct` |
 | `haxe.rtti.*` (`CType`, `Meta`, `Rtti`, `XmlParser`) | `mixed` | `std/haxe/rtti/*.cross.hx` | class-token `__meta__` / `__rtti` lookup contract plus anonymous-record array-field mutation lowering in the compiler | `semantic_diff/haxe_rtti_direct_contract`, `stdlib/haxe_rtti_direct` |
 
 ## Notes on Staged Source Injection
@@ -82,6 +83,11 @@ Current staged Tier1 coverage includes the JSON family and `StringTools`, with a
   - These surfaces are not listed as separate Tier1 rows here, but their inherited helper loops no longer live as raw loop bodies in `GoCompiler`.
   - `readAll`, `readLine`, `readUntil`, `readFullBytes`, `write`, `writeFullBytes`, `writeInput`, and `writeString` now route through `std/haxe/io/GoIoHelpers.cross.hx`, with `GoCompiler` keeping only the public wrapper functions and the representation-sensitive base IO types.
   - Tracking: `haxe.go-14as.52`
+- `haxe.io` misc direct tranche
+  - `haxe.io.FPHelper` is now the model staged-std slice for this family: public bit-conversion behavior lives in `std/haxe/io/FPHelper.cross.hx` on top of the existing little-endian `BytesInput` / `BytesOutput` contract.
+  - `haxe.io.Mime` and `haxe.io.Scheme` remain plain upstream source-owned string abstracts.
+  - `haxe.io.StringInput`, `haxe.io.BufferInput`, `haxe.io.Encoding`, `haxe.io.Eof`, and `haxe.io.Error` stay compiler-owned with the base IO hierarchy because their type shapes and inherited helper wiring are still representation-sensitive on Go.
+  - Tracking: `haxe.go-14as.15`
 - `sys.Http`
   - Tier1 mapping still treats the surface as compiler-owned because request/callback choreography remains one semantic contract.
   - The audit narrowed extraction to leaf payload/proxy helpers only; `getResponseHeaderValues` and payload capture now live in `std/sys/GoHttpHelpers.cross.hx`, while core request sequencing and proxy URL construction stay in compiler scope unless parity evidence proves otherwise.

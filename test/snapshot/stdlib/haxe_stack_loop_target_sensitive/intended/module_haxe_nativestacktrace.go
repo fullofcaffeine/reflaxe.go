@@ -14,6 +14,8 @@ func haxe__NativeStackTrace_saveStack(_exception any) {
 func haxe__NativeStackTrace_toHaxe(nativeStackTrace any, skip int) []*haxe__StackItem {
 	if !func(hx_value any) bool {
 		switch hx_value.(type) {
+		case []*haxe___Int64_____Int64:
+			return true
 		case []*string:
 			return true
 		case []any:

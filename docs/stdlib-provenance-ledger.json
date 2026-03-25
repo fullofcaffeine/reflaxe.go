@@ -118,6 +118,11 @@
       "notes": "Go staged portable helper surface for inherited haxe.io.Input and haxe.io.Output loop semantics, keeping generic stream-control helpers out of GoCompiler while the backend still owns the base IO type shapes."
     },
     {
+      "path": "std/haxe/io/FPHelper.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.io.FPHelper bit-conversion helpers, expressed on top of the existing little-endian BytesInput/BytesOutput contract instead of more compiler-owned raw Go."
+    },
+    {
       "path": "std/sys/GoHttpHelpers.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged helper surface for sys.Http leaf helpers, keeping response-header lookup glue and payload capture fan-out out of GoCompiler while request choreography stays compiler-owned."

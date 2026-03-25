@@ -1919,9 +1919,6 @@ func haxe__ds__Option_Some(value any) *haxe__ds__Option {
 	return &haxe__ds__Option{tag: 0, params: []any{value}}
 }
 
-type haxe__io__StringInput struct {
-}
-
 type haxe__xml__Parser struct {
 }
 
@@ -2275,7 +2272,7 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	case "haxe._Int64.Int64_Impl_":
 		return nil, false
 	case "haxe._Int64.___Int64":
-		return nil, false
+		return hxrt_typeCallAny(New_haxe___Int64_____Int64, args)
 	case "haxe._Template.ExprCursor":
 		return hxrt_typeCallAny(New_haxe___Template__ExprCursor, args)
 	case "haxe._Template.TokenCursor":
@@ -2293,6 +2290,8 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
 	case "haxe.Template":
 		return &haxe__Template{}, true
+	case "haxe._Int64.___Int64":
+		return &haxe___Int64_____Int64{}, true
 	case "haxe._Template.ExprCursor":
 		return &haxe___Template__ExprCursor{}, true
 	case "haxe._Template.TokenCursor":
@@ -2513,6 +2512,11 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.Template")}
+	case *haxe___Int64_____Int64:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe._Int64.___Int64")}
 	case *haxe___Template__ExprCursor:
 		if value == nil {
 			return nil
@@ -2659,7 +2663,7 @@ func Type_getInstanceFields(c any) []*string {
 	case "haxe._Int64.Int64_Impl_":
 		return []*string{}
 	case "haxe._Int64.___Int64":
-		return []*string{}
+		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
 	case "haxe._Template.ExprCursor":
 		return []*string{hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("tokens")}
 	case "haxe._Template.TokenCursor":
@@ -3339,6 +3343,8 @@ func hxrt_serializerLookupClassName(typeName string) (string, bool) {
 	switch typeName {
 	case "haxe__Template":
 		return "haxe.Template", true
+	case "haxe___Int64_____Int64":
+		return "haxe._Int64.___Int64", true
 	case "haxe___Template__ExprCursor":
 		return "haxe._Template.ExprCursor", true
 	case "haxe___Template__TokenCursor":
@@ -3435,6 +3441,8 @@ func (self *haxe__Unserializer__NullResolver) resolveEnum(name *string) any {
 func hxrt_unserializerHasClass(className string) bool {
 	switch className {
 	case "haxe.Template":
+		return true
+	case "haxe._Int64.___Int64":
 		return true
 	case "haxe._Template.ExprCursor":
 		return true
@@ -3779,6 +3787,10 @@ func hxrt_unserializerCreateClassInstance(className string) (any, bool) {
 	switch className {
 	case "haxe.Template":
 		instance := &haxe__Template{}
+		hxrt_unserializerBindSelf(instance)
+		return instance, true
+	case "haxe._Int64.___Int64":
+		instance := &haxe___Int64_____Int64{}
 		hxrt_unserializerBindSelf(instance)
 		return instance, true
 	case "haxe._Template.ExprCursor":
