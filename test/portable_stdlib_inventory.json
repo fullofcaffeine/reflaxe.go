@@ -1189,19 +1189,17 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_typed_arrays",
-      "blocker_issue": "haxe.go-14as.16",
-      "closure_target": "2026-05-07",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.ArrayBufferView",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.16 (haxe_io_typed_arrays); closure target 2026-05-07.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.ArrayBufferView` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: the public typed-array API now lives in staged overrides under `std/haxe/io/*.cross.hx`, while the underlying carrier still rides on the compiler-owned `haxe.io.Bytes` / `ArrayBufferViewImpl` representation.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
@@ -1341,34 +1339,30 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_typed_arrays",
-      "blocker_issue": "haxe.go-14as.16",
-      "closure_target": "2026-05-07",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.Float32Array",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.16 (haxe_io_typed_arrays); closure target 2026-05-07.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Float32Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, the actual storage still rides on the compiler-owned `haxe.io.Bytes` carrier, and the float bit conversions are expressed through staged `haxe.io.FPHelper` helpers instead of new raw compiler bytes logic.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_typed_arrays",
-      "blocker_issue": "haxe.go-14as.16",
-      "closure_target": "2026-05-07",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.Float64Array",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.16 (haxe_io_typed_arrays); closure target 2026-05-07.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Float64Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, the actual storage still rides on the compiler-owned `haxe.io.Bytes` carrier, and the float bit conversions are expressed through staged `haxe.io.FPHelper` helpers instead of new raw compiler bytes logic.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
@@ -1385,19 +1379,17 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_typed_arrays",
-      "blocker_issue": "haxe.go-14as.16",
-      "closure_target": "2026-05-07",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.Int32Array",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.16 (haxe_io_typed_arrays); closure target 2026-05-07.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Int32Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, while the actual storage and byte normalization still ride on the compiler-owned `haxe.io.Bytes` carrier.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
@@ -1468,49 +1460,43 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_typed_arrays",
-      "blocker_issue": "haxe.go-14as.16",
-      "closure_target": "2026-05-07",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.UInt16Array",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.16 (haxe_io_typed_arrays); closure target 2026-05-07.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.UInt16Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, while the actual storage and byte normalization still ride on the compiler-owned `haxe.io.Bytes` carrier.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_typed_arrays",
-      "blocker_issue": "haxe.go-14as.16",
-      "closure_target": "2026-05-07",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.UInt32Array",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.16 (haxe_io_typed_arrays); closure target 2026-05-07.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.UInt32Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, while the actual storage and byte normalization still ride on the compiler-owned `haxe.io.Bytes` carrier.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_io_typed_arrays",
-      "blocker_issue": "haxe.go-14as.16",
-      "closure_target": "2026-05-07",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.UInt8Array",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.16 (haxe_io_typed_arrays); closure target 2026-05-07.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.UInt8Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, while the actual storage and byte normalization still ride on the compiler-owned `haxe.io.Bytes` carrier.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [

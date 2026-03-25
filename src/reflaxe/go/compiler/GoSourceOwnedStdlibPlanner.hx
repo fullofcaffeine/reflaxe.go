@@ -91,6 +91,20 @@ class GoSourceOwnedStdlibPlanner {
 			case "haxe.io.FPHelper":
 				requireSourceOwnedStdlibClass("haxe.io.FPHelper");
 				requireStdlibShimGroup("stdlib_symbols");
+			case "haxe.io.ArrayBufferViewImpl", "haxe.io._ArrayBufferView.ArrayBufferView_Impl_":
+				requireSourceOwnedStdlibModule("haxe.io.ArrayBufferView");
+			case "haxe.io._UInt8Array.UInt8Array_Impl_":
+				requireSourceOwnedStdlibModule("haxe.io.UInt8Array");
+			case "haxe.io._UInt16Array.UInt16Array_Impl_":
+				requireSourceOwnedStdlibModule("haxe.io.UInt16Array");
+			case "haxe.io._UInt32Array.UInt32Array_Impl_":
+				requireSourceOwnedStdlibModule("haxe.io.UInt32Array");
+			case "haxe.io._Int32Array.Int32Array_Impl_":
+				requireSourceOwnedStdlibModule("haxe.io.Int32Array");
+			case "haxe.io._Float32Array.Float32Array_Impl_":
+				requireSourceOwnedStdlibModule("haxe.io.Float32Array");
+			case "haxe.io._Float64Array.Float64Array_Impl_":
+				requireSourceOwnedStdlibModule("haxe.io.Float64Array");
 			case "haxe._CallStack.CallStack_Impl_":
 				requireSourceOwnedStdlibModule("haxe.CallStack");
 				requireSourceOwnedStdlibEnum("haxe.StackItem");

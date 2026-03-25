@@ -57,6 +57,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.crypto.*` + `haxe.xml.*` + `haxe.zip.*` subset | `semantic-diff` | `crypto_xml_zip` |
 | `haxe.Json` | `semantic-diff` | `json_parse_stringify_contract`, `stdlib/json_parse_stringify` |
 | `haxe.io.Bytes` / `haxe.io.BytesBuffer` / `haxe.io.BytesInput` / `haxe.io.BytesOutput` (core ops + Input/Output helper subset) | `semantic-diff` | `bytes_normalization_contract`, `bytes_ops_contract`, `bytes_of_data_contract`, `bytes_hex_contract`, `bytes_io_stream_contract`, `io_input_output_helpers_contract`, `io_input_output_edge_contract`, `stdlib/bytes_basic` |
+| `haxe.io` typed arrays (`ArrayBufferView`, `UInt8Array`, `UInt16Array`, `UInt32Array`, `Int32Array`, `Float32Array`, `Float64Array`) | `semantic-diff` | `haxe_io_typed_arrays_contract`, `stdlib/haxe_io_typed_arrays_direct` |
 | `sys.io.Process` | `semantic-diff` | `process_echo_contract`, `sys/process_echo_smoke` |
 | `sys.io.File` | `semantic-diff` | `file_read_write_contract`, `sys/file_read_write_smoke` |
 | `sys.FileSystem` | `semantic-diff` | `filesystem_contract`, `sys/filesystem_basic_smoke` |
@@ -271,6 +272,12 @@ Shim strategy and alternatives are documented in:
 
 - Coverage includes `test/semantic_diff/bytes_io_stream_contract`, `test/semantic_diff/bytes_of_data_contract`, `test/semantic_diff/bytes_hex_contract`, `test/semantic_diff/io_input_output_helpers_contract`, `test/semantic_diff/io_input_output_edge_contract`, `test/semantic_diff/io_error_constructor_contract`, `test/semantic_diff/io_encoding_contract`, and `test/semantic_diff/haxe_io_misc_contract` for deterministic constructor bounds checks, `position`/`length`, EOF behavior, `readByte`/`readBytes`, inherited helper subset parity (`readAll`, `readFullBytes`, `read`, `readUntil`, `readLine`, `readString`, `readFloat`/`readDouble`, signed/unsigned numeric reads), output helper subset parity (`write`, `writeFullBytes`, `writeInput`, `writeString`, numeric typed writes, overflow guards), direct `StringInput` / `BufferInput` constructor+read behavior, `haxe.io.Error` typed constructor matching (`Blocked`, `Overflow`, `OutsideBounds`, `Custom`), `haxe.io.Encoding` constructor parity (`UTF8`, `RawNative`), `Bytes.getString` bounds behavior, `Bytes.getData`/`Bytes.ofData` alias semantics, direct `Mime` / `Scheme` abstract usage, `FPHelper` bit conversions, `Bytes.toHex`/`Bytes.ofHex` behavior, and `readLine` EOF/tail/CRLF edge paths. Snapshot evidence for the direct tranche lives in `test/snapshot/stdlib/haxe_io_misc_direct`.
 - Current tradeoff: parity remains focused on `BytesInput`/`BytesOutput` stream behavior with interpreter-compatible semantics by default (`reflaxe_go_raw_native_mode=interp`, where `UTF8` and `RawNative` both map to UTF-8 conversion). For projects that need Java/C#-style RawNative byte layout, `reflaxe_go_raw_native_mode=utf16le` provides an explicit opt-in UTF-16LE path; full target-by-target RawNative equivalence is still not claimed outside these documented modes.
+
+### `haxe.io` typed-array contract and tradeoffs
+
+- Coverage includes `test/semantic_diff/haxe_io_typed_arrays_contract` and `test/snapshot/stdlib/haxe_io_typed_arrays_direct` for direct `ArrayBufferView`, `UInt8Array`, `UInt16Array`, `UInt32Array`, `Int32Array`, `Float32Array`, and `Float64Array` usage, including `fromBytes`, `fromArray`, direct construction, indexing, `sub`, `subarray`, aliasing through `Bytes`, and bounds errors.
+- Public typed-array behavior now lives in staged overrides under `std/haxe/io/*.cross.hx`, so the Haxe-facing API stays library-owned instead of growing more raw compiler-owned bytes logic.
+- Current tradeoff: ownership stays mixed because the actual storage still rides on the compiler-owned `haxe.io.Bytes` / `ArrayBufferViewImpl` carrier, and the float-array bit conversions are expressed through staged `haxe.io.FPHelper` helpers on top of that carrier.
 
 ### `haxe.Http` / `sys.Http` shim contract and tradeoffs
 

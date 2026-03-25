@@ -170,11 +170,17 @@ Current execution order:
 3. `haxe.go-14as.55.2` - split compiler-owned stdlib emitters out of `GoCompiler.hx`
 4. `haxe.go-14as.55.4` - make ownership/parity governance release-blocking
 5. remaining portable stdlib blocker families in owner-driven order:
-   - `haxe.go-14as.16` (`haxe.io` typed arrays)
    - `haxe.go-14as.17` (`sys.db` + `sys.io`)
    - `haxe.go-14as.18` (`sys.net` + `sys.ssl`)
    - `haxe.go-14as.19` (`sys.thread`)
    - `haxe.go-14as.42` (`haxe.Utf8` deprecated optional-size constructor)
+
+Recently closed direct portable tranches:
+
+- `haxe.go-14as.16` promoted the `haxe.io` typed-array family (`ArrayBufferView`, `UInt8Array`, `UInt16Array`,
+  `UInt32Array`, `Int32Array`, `Float32Array`, `Float64Array`) to semantic-diff coverage. Public typed-array
+  behavior now lives in staged overrides under `std/haxe/io/*.cross.hx`, while storage still rides on the
+  compiler-owned `haxe.io.Bytes` / `ArrayBufferViewImpl` carrier.
 
 Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage is no longer an active portable blocker tranche.
 It is an explicit unsupported surface on Go today, and any future real support is folded into

@@ -123,6 +123,41 @@
       "notes": "Go staged portable override for haxe.io.FPHelper bit-conversion helpers, expressed on top of the existing little-endian BytesInput/BytesOutput contract instead of more compiler-owned raw Go."
     },
     {
+      "path": "std/haxe/io/ArrayBufferView.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.io.ArrayBufferView and the shared typed-array carrier API, keeping public typed-array behavior in std while the backend continues to own the underlying Bytes/ArrayBufferViewImpl representation."
+    },
+    {
+      "path": "std/haxe/io/UInt8Array.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.io.UInt8Array, keeping the public typed-array API in std on top of the existing ArrayBufferViewImpl carrier."
+    },
+    {
+      "path": "std/haxe/io/UInt16Array.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.io.UInt16Array, keeping the public typed-array API in std on top of the existing ArrayBufferViewImpl carrier."
+    },
+    {
+      "path": "std/haxe/io/UInt32Array.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.io.UInt32Array, keeping the public typed-array API in std on top of the existing ArrayBufferViewImpl carrier."
+    },
+    {
+      "path": "std/haxe/io/Int32Array.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.io.Int32Array, keeping the public typed-array API in std on top of the existing ArrayBufferViewImpl carrier."
+    },
+    {
+      "path": "std/haxe/io/Float32Array.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.io.Float32Array, reusing staged FPHelper bit-conversion helpers instead of expanding compiler-owned Bytes float logic."
+    },
+    {
+      "path": "std/haxe/io/Float64Array.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.io.Float64Array, reusing staged FPHelper bit-conversion helpers instead of expanding compiler-owned Bytes double logic."
+    },
+    {
       "path": "std/sys/GoHttpHelpers.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged helper surface for sys.Http leaf helpers, keeping response-header lookup glue and payload capture fan-out out of GoCompiler while request choreography stays compiler-owned."

@@ -331,6 +331,16 @@ class GoTypeMapper {
 		if (abstractType.pack.join(".") == "haxe" && abstractType.name == "EnumFlags") {
 			return "int";
 		}
+		if (abstractType.pack.join(".") == "haxe.io"
+			&& (abstractType.name == "ArrayBufferView"
+				|| abstractType.name == "UInt8Array"
+				|| abstractType.name == "UInt16Array"
+				|| abstractType.name == "UInt32Array"
+				|| abstractType.name == "Int32Array"
+				|| abstractType.name == "Float32Array"
+				|| abstractType.name == "Float64Array")) {
+			return "*haxe__io__ArrayBufferViewImpl";
+		}
 		return null;
 	}
 

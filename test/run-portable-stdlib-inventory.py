@@ -109,6 +109,13 @@ OWNER_OVERRIDES = {
     "haxe.io.Eof": "compiler_shim",
     "haxe.io.Error": "compiler_shim",
     "haxe.io.FPHelper": "staged_std",
+    "haxe.io.ArrayBufferView": "mixed",
+    "haxe.io.UInt8Array": "mixed",
+    "haxe.io.UInt16Array": "mixed",
+    "haxe.io.UInt32Array": "mixed",
+    "haxe.io.Int32Array": "mixed",
+    "haxe.io.Float32Array": "mixed",
+    "haxe.io.Float64Array": "mixed",
     "haxe.io.Mime": "staged_std",
     "haxe.io.Scheme": "staged_std",
     "haxe.io.StringInput": "compiler_shim",
@@ -247,6 +254,57 @@ MODULE_NOTES_OVERRIDES = {
         "`semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
         "The public API now lives in the staged override `std/haxe/io/FPHelper.cross.hx`, expressed on "
         "top of the existing little-endian `BytesInput` / `BytesOutput` contract instead of more raw Go."
+    ),
+    "haxe.io.ArrayBufferView": (
+        "Direct `haxe.io.ArrayBufferView` usage now has semantic-diff coverage through "
+        "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
+        "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: the public typed-array API now lives "
+        "in staged overrides under `std/haxe/io/*.cross.hx`, while the underlying carrier still rides on "
+        "the compiler-owned `haxe.io.Bytes` / `ArrayBufferViewImpl` representation."
+    ),
+    "haxe.io.UInt8Array": (
+        "Direct `haxe.io.UInt8Array` usage now has semantic-diff coverage through "
+        "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
+        "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
+        "API, while the actual storage and byte normalization still ride on the compiler-owned "
+        "`haxe.io.Bytes` carrier."
+    ),
+    "haxe.io.UInt16Array": (
+        "Direct `haxe.io.UInt16Array` usage now has semantic-diff coverage through "
+        "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
+        "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
+        "API, while the actual storage and byte normalization still ride on the compiler-owned "
+        "`haxe.io.Bytes` carrier."
+    ),
+    "haxe.io.UInt32Array": (
+        "Direct `haxe.io.UInt32Array` usage now has semantic-diff coverage through "
+        "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
+        "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
+        "API, while the actual storage and byte normalization still ride on the compiler-owned "
+        "`haxe.io.Bytes` carrier."
+    ),
+    "haxe.io.Int32Array": (
+        "Direct `haxe.io.Int32Array` usage now has semantic-diff coverage through "
+        "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
+        "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
+        "API, while the actual storage and byte normalization still ride on the compiler-owned "
+        "`haxe.io.Bytes` carrier."
+    ),
+    "haxe.io.Float32Array": (
+        "Direct `haxe.io.Float32Array` usage now has semantic-diff coverage through "
+        "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
+        "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
+        "API, the actual storage still rides on the compiler-owned `haxe.io.Bytes` carrier, and the float "
+        "bit conversions are expressed through staged `haxe.io.FPHelper` helpers instead of new raw compiler "
+        "bytes logic."
+    ),
+    "haxe.io.Float64Array": (
+        "Direct `haxe.io.Float64Array` usage now has semantic-diff coverage through "
+        "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
+        "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
+        "API, the actual storage still rides on the compiler-owned `haxe.io.Bytes` carrier, and the float "
+        "bit conversions are expressed through staged `haxe.io.FPHelper` helpers instead of new raw compiler "
+        "bytes logic."
     ),
     "haxe.io.Mime": (
         "Direct `haxe.io.Mime` abstract usage now has semantic-diff coverage through "

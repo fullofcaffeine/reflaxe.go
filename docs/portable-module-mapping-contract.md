@@ -61,6 +61,7 @@ their ownership split is easy to misunderstand.
 | Module family | Ownership class | Public implementation location | Backend-owned support beneath it | Evidence |
 | --- | --- | --- | --- | --- |
 | `haxe.io` misc direct surfaces (`BufferInput`, `BytesData`, `Encoding`, `Eof`, `Error`, `FPHelper`, `Mime`, `Scheme`, `StringInput`) | `mixed` | upstream `std/haxe/io/**` plus `std/haxe/io/FPHelper.cross.hx` | compiler-owned base IO/encoding/error/input hierarchy for `BufferInput` / `StringInput` / `Encoding` / `Eof` / `Error`, plus the `haxe.io.Bytes` carrier beneath `BytesData` | `semantic_diff/haxe_io_misc_contract`, `stdlib/haxe_io_misc_direct` |
+| `haxe.io` typed arrays (`ArrayBufferView`, `UInt8Array`, `UInt16Array`, `UInt32Array`, `Int32Array`, `Float32Array`, `Float64Array`) | `mixed` | `std/haxe/io/*.cross.hx` | compiler-owned `haxe.io.Bytes` / `ArrayBufferViewImpl` carrier plus source-owned abstract static-method/default-arg routing in the compiler; float arrays reuse staged `haxe.io.FPHelper` instead of adding more compiler-owned bytes logic | `semantic_diff/haxe_io_typed_arrays_contract`, `stdlib/haxe_io_typed_arrays_direct` |
 | `haxe.rtti.*` (`CType`, `Meta`, `Rtti`, `XmlParser`) | `mixed` | `std/haxe/rtti/*.cross.hx` | class-token `__meta__` / `__rtti` lookup contract plus anonymous-record array-field mutation lowering in the compiler | `semantic_diff/haxe_rtti_direct_contract`, `stdlib/haxe_rtti_direct` |
 
 ## Notes on Staged Source Injection
