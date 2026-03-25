@@ -22,7 +22,7 @@ class GoStdlibOwnership {
 		return switch (name) {
 			case "EReg", "haxe.ds.EnumValueMap", "haxe.io.BufferInput", "haxe.io.Bytes", "haxe.io.BytesBuffer", "haxe.io.BytesInput", "haxe.io.BytesOutput",
 				"haxe.io.Eof", "haxe.io.Error", "haxe.io.Input", "haxe.io.Output", "haxe.io.StringInput", "sys.Http", "sys.io.File", "sys.io.FileInput",
-				"sys.io.FileOutput", "sys.io.FileSeek":
+				"sys.io.FileOutput", "sys.io.FileSeek", "sys.net.Host", "sys.net.Socket", "sys.net.UdpSocket":
 				true;
 			case _:
 				false;
@@ -31,6 +31,29 @@ class GoStdlibOwnership {
 
 	public static inline function isCompilerOwnedModule(moduleName:String):Bool {
 		return isCompilerOwnedAuthority(moduleName);
+	}
+
+	/**
+		What:
+		Identify compiler-owned classes that are safe to embed as concrete
+		superclass carriers in generated Go structs.
+
+		Why:
+		Some compiler-owned stdlib authorities, such as `haxe.io.Input`, lower to
+		Go interfaces rather than concrete structs. Treating those as embeddable
+		superclasses produces invalid `*interface` fields.
+
+		How:
+		Keep the allowlist narrow and concrete. Only compiler-owned surfaces that
+		really materialize as struct carriers should return `true` here.
+	**/
+	public static function isEmbeddableCompilerOwnedSuper(name:String):Bool {
+		return switch (name) {
+			case "sys.net.Socket", "sys.net.UdpSocket":
+				true;
+			case _:
+				false;
+		};
 	}
 
 	public static inline function canConstructEmptyTypeValue(goTypeName:String):Bool {

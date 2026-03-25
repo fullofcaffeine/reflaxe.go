@@ -1310,7 +1310,9 @@ class GoCompiler {
 		}
 		var superType = classType.superClass.t.get();
 		var superName = fullClassName(superType);
-		return (isProjectClass(superType) || requiredSourceOwnedClassNames.exists(superName)) ? superType : null;
+		return (isProjectClass(superType)
+			|| requiredSourceOwnedClassNames.exists(superName)
+			|| GoStdlibOwnership.isEmbeddableCompilerOwnedSuper(superName)) ? superType : null;
 	}
 
 	function buildGlobalLeafReceiverTypes(classes:Array<ClassType>):Map<String, Bool> {
@@ -7581,7 +7583,9 @@ class GoCompiler {
 			var superCtorArgs = loweredCtorBody.superArgs == null ? [] : [for (arg in loweredCtorBody.superArgs) lowerExpr(arg).expr];
 			body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName),
 				GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(superClass)), superCtorArgs)));
-			body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName), "__hx_this"), GoExpr.GoIdent("self")));
+			if (!GoStdlibOwnership.isCompilerOwnedAuthority(fullClassName(superClass))) {
+				body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName), "__hx_this"), GoExpr.GoIdent("self")));
+			}
 		} else if (directHaxeExceptionSuperClass(classType)) {
 			var exceptionCtorArgs = loweredCtorBody.superArgs == null ? [] : [for (arg in loweredCtorBody.superArgs) lowerExpr(arg).expr];
 			while (exceptionCtorArgs.length < 3) {

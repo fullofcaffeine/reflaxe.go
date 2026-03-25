@@ -186,6 +186,12 @@ class GoSourceOwnedStdlibPlanner {
 			case "sys.ssl.Key":
 				requireSourceOwnedStdlibClass("sys.ssl.Key");
 				requireStdlibShimGroup("stdlib_symbols");
+			case "sys.ssl.Socket", "sys.ssl._Socket.Socket_Impl_":
+				requireSourceOwnedStdlibModule("sys.ssl.Socket");
+				requireSourceOwnedStdlibClass("sys.ssl.Certificate");
+				requireSourceOwnedStdlibClass("sys.ssl.Key");
+				requireStdlibShimGroup("net_socket");
+				requireStdlibShimGroup("stdlib_symbols");
 			case "haxe.Template":
 				requireSourceOwnedStdlibModule("haxe.Template");
 				requireStdlibShimGroup("stdlib_symbols");

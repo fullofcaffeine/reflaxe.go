@@ -81,6 +81,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.ds.ReadOnlyArray` (length/index/read-only view subset) | `semantic-diff` | `readonly_array_contract` |
 | `sys.net.Host` | `semantic-diff` | `host_basic_contract`, `sys/host_basic_smoke` |
 | `sys.ssl.Certificate` / `sys.ssl.Digest` / `sys.ssl.Key` | `snapshot` | `stdlib/sys_ssl_leaf_direct` |
+| `sys.ssl.Socket` | `snapshot` | `stdlib/sys_ssl_socket_direct`, `stdlib/sys_ssl_socket_sni_unimplemented` |
 | `sys.ssl.DigestAlgorithm` | `semantic-diff` | `sys_net_address_ssl_digest_algorithm_contract`, `stdlib/sys_net_address_ssl_digest_algorithm_direct` |
 | `haxe.PosInfos` | `semantic-diff` | `posinfos_contract`, `stdlib/posinfos_basic` |
 | `haxe.Int32` | `semantic-diff` | `int32_contract` |

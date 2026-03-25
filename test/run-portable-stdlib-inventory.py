@@ -108,6 +108,7 @@ OWNER_OVERRIDES = {
     "sys.ssl.Digest": "mixed",
     "sys.ssl.DigestAlgorithm": "staged_std",
     "sys.ssl.Key": "mixed",
+    "sys.ssl.Socket": "mixed",
     "DateTools": "staged_std",
     "StringTools": "staged_std",
     "haxe.SysTools": "staged_std",
@@ -444,6 +445,14 @@ MODULE_NOTES_OVERRIDES = {
         "parsing and native key storage live in `runtime/hxrt/ssl.go`. Omitted optional pass arguments still depend "
         "on the broader source-owned static optional-argument lowering follow-up."
     ),
+    "sys.ssl.Socket": (
+        "Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct`, "
+        "covering staged public socket configuration on top of the compiler-owned `sys.net.Socket` carrier plus "
+        "runtime TLS dial/listen/handshake/peer-certificate behavior in `runtime/hxrt/ssl.go`. Ownership stays mixed: "
+        "the public Haxe API lives in `std/sys/ssl/Socket.cross.hx`, while the underlying connection/listener TLS "
+        "behavior remains runtime-owned. `addSNICertificate` still fails fast with a documented `NotImplementedException` "
+        "until the dedicated SNI callback follow-up lands."
+    ),
 }
 
 PROMOTION_LEVEL_KEYS = ("snapshot", "semantic_diff")
@@ -561,7 +570,6 @@ BLOCKER_FAMILY_SPECS = (
             "sys.ssl.Digest",
             "sys.ssl.DigestAlgorithm",
             "sys.ssl.Key",
-            "sys.ssl.Socket",
         },
     },
     {

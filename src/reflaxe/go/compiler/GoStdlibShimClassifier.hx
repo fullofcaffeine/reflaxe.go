@@ -59,6 +59,14 @@ class GoStdlibShimClassifier {
 			return ["net_socket"];
 		}
 
+		if (pack == "sys.ssl" && classType.name == "Socket") {
+			return ["net_socket"];
+		}
+
+		if (pack == "sys.ssl._Socket" && classType.name == "Socket_Impl_") {
+			return ["net_socket"];
+		}
+
 		if ((pack == "haxe.atomic"
 			&& (classType.name == "AtomicInt" || classType.name == "AtomicBool" || classType.name == "AtomicObject"))
 			|| (pack == "haxe.atomic._AtomicInt" && classType.name == "AtomicInt_Impl_")

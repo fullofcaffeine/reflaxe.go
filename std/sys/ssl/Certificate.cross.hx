@@ -24,6 +24,7 @@ class Certificate {
 	@:dox(hide)
 	public var handle(default, null):CertificateHandle;
 
+	@:allow(sys.ssl.Socket)
 	private function new(handle:CertificateHandle) {
 		this.handle = handle;
 	}

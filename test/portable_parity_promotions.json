@@ -8,7 +8,8 @@
       "sys.net.UdpSocket",
       "sys.ssl.Certificate",
       "sys.ssl.Digest",
-      "sys.ssl.Key"
+      "sys.ssl.Key",
+      "sys.ssl.Socket"
     ],
     "semantic_diff": [
       "Any",

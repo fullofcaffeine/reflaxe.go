@@ -188,6 +188,11 @@
       "notes": "Go staged portable override for the public sys.ssl.Key API, keeping Haxe-facing key helpers in std while runtime/hxrt/ssl.go owns PEM parsing and native key handling."
     },
     {
+      "path": "std/sys/ssl/Socket.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for the public sys.ssl.Socket API, reusing the compiler-owned sys.net.Socket carrier while runtime/hxrt/ssl.go owns TLS dial/listen/handshake and peer-certificate behavior."
+    },
+    {
       "path": "std/haxe/SysTools.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged portable override for direct haxe.SysTools quoting helpers, keeping command-line quoting semantics out of GoCompiler while upstream string/array lowerings remain incomplete."

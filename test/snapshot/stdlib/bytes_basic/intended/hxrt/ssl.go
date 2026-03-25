@@ -10,11 +10,14 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -448,4 +451,127 @@ func SslCertAddDER(handle any, der []byte) {
 			cert.pool.AddCert(entry)
 		}
 	}
+}
+
+func sslCertPool(handle any) *x509.CertPool {
+	cert, _ := handle.(*SslCertificate)
+	if cert == nil {
+		return nil
+	}
+	if cert.pool != nil {
+		return cert.pool
+	}
+	pool := x509.NewCertPool()
+	for _, entry := range cert.certs {
+		if entry != nil {
+			pool.AddCert(entry)
+		}
+	}
+	return pool
+}
+
+func sslKeyPair(certHandle any, keyHandle any) (tls.Certificate, error) {
+	cert, _ := certHandle.(*SslCertificate)
+	key, _ := keyHandle.(*SslKey)
+	if cert == nil || len(cert.certs) == 0 {
+		return tls.Certificate{}, x509.IncorrectPasswordError
+	}
+	if key == nil || key.privateKey == nil {
+		return tls.Certificate{}, x509.IncorrectPasswordError
+	}
+	pair := tls.Certificate{
+		Certificate: make([][]byte, 0, len(cert.certs)),
+		PrivateKey:  key.privateKey,
+		Leaf:        cert.certs[0],
+	}
+	for _, entry := range cert.certs {
+		if entry != nil {
+			pair.Certificate = append(pair.Certificate, entry.Raw)
+		}
+	}
+	return pair, nil
+}
+
+func SslSocketConnect(host *string, port int, verifyCert bool, caHandle any, serverName *string, certHandle any, keyHandle any) net.Conn {
+	if host == nil {
+		Throw(StringFromLiteral("socket connect requires host"))
+		return nil
+	}
+	config := &tls.Config{
+		InsecureSkipVerify: !verifyCert,
+	}
+	if verifyCert {
+		if pool := sslCertPool(caHandle); pool != nil {
+			config.RootCAs = pool
+		}
+	}
+	if serverName != nil && *StdString(serverName) != "" {
+		config.ServerName = *StdString(serverName)
+	}
+	if certHandle != nil || keyHandle != nil {
+		pair, err := sslKeyPair(certHandle, keyHandle)
+		if err != nil {
+			Throw(err)
+			return nil
+		}
+		config.Certificates = []tls.Certificate{pair}
+	}
+	conn, err := tls.Dial("tcp", net.JoinHostPort(*StdString(host), strconv.Itoa(port)), config)
+	if err != nil {
+		Throw(err)
+		return nil
+	}
+	return conn
+}
+
+func SslSocketListen(host *string, port int, certHandle any, keyHandle any) net.Listener {
+	if host == nil {
+		Throw(StringFromLiteral("socket bind requires host"))
+		return nil
+	}
+	pair, err := sslKeyPair(certHandle, keyHandle)
+	if err != nil {
+		Throw(err)
+		return nil
+	}
+	listener, err := tls.Listen("tcp", net.JoinHostPort(*StdString(host), strconv.Itoa(port)), &tls.Config{
+		Certificates: []tls.Certificate{pair},
+	})
+	if err != nil {
+		Throw(err)
+		return nil
+	}
+	return listener
+}
+
+func SslSocketHandshake(conn any) {
+	switch typed := conn.(type) {
+	case *tls.Conn:
+		if err := typed.Handshake(); err != nil {
+			Throw(err)
+		}
+	case interface{ Handshake() error }:
+		if err := typed.Handshake(); err != nil {
+			Throw(err)
+		}
+	}
+}
+
+func SslSocketPeerCertificate(conn any) any {
+	if conn == nil {
+		return nil
+	}
+	tlsConn, ok := conn.(*tls.Conn)
+	if !ok {
+		return nil
+	}
+	if err := tlsConn.Handshake(); err != nil {
+		Throw(err)
+		return nil
+	}
+	state := tlsConn.ConnectionState()
+	if len(state.PeerCertificates) == 0 {
+		return nil
+	}
+	return newSslCertificate(state.PeerCertificates, nil)
 }

@@ -2160,19 +2160,17 @@
       "status": "snapshot"
     },
     {
-      "blocker_family": "sys_net_ssl",
-      "blocker_issue": "haxe.go-14as.18",
-      "closure_target": "2026-05-21",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "snapshot"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.ssl.Socket",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.18 (sys_net_ssl); closure target 2026-05-21.",
+      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct`, covering staged public socket configuration on top of the compiler-owned `sys.net.Socket` carrier plus runtime TLS dial/listen/handshake/peer-certificate behavior in `runtime/hxrt/ssl.go`. Ownership stays mixed: the public Haxe API lives in `std/sys/ssl/Socket.cross.hx`, while the underlying connection/listener TLS behavior remains runtime-owned. `addSNICertificate` still fails fast with a documented `NotImplementedException` until the dedicated SNI callback follow-up lands.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "snapshot"
     },
     {
       "blocker_family": "sys_thread",
