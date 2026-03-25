@@ -163,6 +163,31 @@
       "notes": "Go staged helper surface for sys.Http leaf helpers, keeping response-header lookup glue and payload capture fan-out out of GoCompiler while request choreography stays compiler-owned."
     },
     {
+      "path": "std/sys/net/Address.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.net.Address, keeping the public {host, port} carrier and IPv4 helper methods in std while the backend-owned socket shim translates addresses underneath."
+    },
+    {
+      "path": "std/sys/ssl/Certificate.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for the public sys.ssl.Certificate API, keeping certificate-facing methods in std while runtime/hxrt/ssl.go owns parsing and trust-root behavior."
+    },
+    {
+      "path": "std/sys/ssl/Digest.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for the public sys.ssl.Digest API, keeping the Haxe-facing helpers in std while runtime/hxrt/ssl.go owns the cryptographic implementation."
+    },
+    {
+      "path": "std/sys/ssl/DigestAlgorithm.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.ssl.DigestAlgorithm enum/abstract ownership, keeping the public algorithm surface out of compiler shims."
+    },
+    {
+      "path": "std/sys/ssl/Key.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for the public sys.ssl.Key API, keeping Haxe-facing key helpers in std while runtime/hxrt/ssl.go owns PEM parsing and native key handling."
+    },
+    {
       "path": "std/haxe/SysTools.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged portable override for direct haxe.SysTools quoting helpers, keeping command-line quoting semantics out of GoCompiler while upstream string/array lowerings remain incomplete."

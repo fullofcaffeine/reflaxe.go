@@ -193,6 +193,7 @@ class GoCompiler {
 	var requiresIoStringInputSurface:Bool;
 	var requiresIoBufferInputSurface:Bool;
 	var requiresIoEofStringSurface:Bool;
+	var requiresUdpSocketSurface:Bool;
 	var requiresReflectFieldsShim:Bool;
 	var projectClasses:Array<ClassType>;
 	var projectEnums:Array<EnumType>;
@@ -230,6 +231,7 @@ class GoCompiler {
 		requiresIoStringInputSurface = false;
 		requiresIoBufferInputSurface = false;
 		requiresIoEofStringSurface = false;
+		requiresUdpSocketSurface = false;
 		requiresReflectFieldsShim = false;
 		projectClasses = [];
 		projectEnums = [];
@@ -286,6 +288,7 @@ class GoCompiler {
 		requiresIoStringInputSurface = false;
 		requiresIoBufferInputSurface = false;
 		requiresIoEofStringSurface = false;
+		requiresUdpSocketSurface = false;
 		requiresReflectFieldsShim = false;
 		resetRequiredMetalChanElementTypes();
 		resetRequiredMetalSliceElementTypes();
@@ -7363,7 +7366,7 @@ class GoCompiler {
 	}
 
 	function lowerNetSocketShimDecls():Array<GoDecl> {
-		return GoNetSocketEmitter.emit();
+		return GoNetSocketEmitter.emit(requiresUdpSocketSurface);
 	}
 
 	function lowerClassDecls(classType:ClassType):Array<GoDecl> {
@@ -13490,6 +13493,9 @@ class GoCompiler {
 					requiresIoEofStringSurface = true;
 				case _:
 			}
+		}
+		if (classType.pack.join(".") == "sys.net" && classType.name == "UdpSocket") {
+			requiresUdpSocketSurface = true;
 		}
 		for (group in GoStdlibShimClassifier.requiredGroupsForClass(classType)) {
 			requireStdlibShimGroup(group);

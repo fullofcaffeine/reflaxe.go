@@ -62,6 +62,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `sys.io.File` | `semantic-diff` | `file_read_write_contract`, `sys/file_read_write_smoke` |
 | `sys.FileSystem` | `semantic-diff` | `filesystem_contract`, `sys/filesystem_basic_smoke` |
 | `sys.net.Address` | `semantic-diff` | `sys_net_address_ssl_digest_algorithm_contract`, `stdlib/sys_net_address_ssl_digest_algorithm_direct` |
+| `sys.net.UdpSocket` | `snapshot` | `stdlib/sys_net_udp_socket_direct` |
 | `Xml` (root DOM subset: document/element creation, attributes, child iteration, parse/print baseline) | `semantic-diff` | `root_xml_contract`, `stdlib/xml_root_dom_basic` |
 | `haxe.ds.*Map` + `haxe.ds.List` (core ops subset) | `semantic-diff` | `ds_maps_list_contract`, `stdlib/ds_maps_list_basic` |
 | `haxe.ds.WeakMap` (upstream platform contract: constructor throws `haxe.exceptions.NotImplementedException` on this target) | `semantic-diff` | `haxe_ds_weakmap_contract`, `stdlib/haxe_ds_weakmap_platform` |
@@ -296,6 +297,12 @@ Shim strategy and alternatives are documented in:
 - `select` now returns readiness-filtered arrays for read/write groups under timeout control, and `waitForRead` delegates to this readiness path.
 - Current tradeoff: `setBlocking` is implemented through deadline behavior rather than true OS-level non-blocking file descriptor mode.
 
+### `sys.net.UdpSocket` direct baseline and tradeoffs
+
+- Direct UDP parity now has deterministic loopback snapshot/runtime coverage for `bind`, `host`, `sendTo`, `readFrom`, and `Address` round-tripping (`stdlib/sys_net_udp_socket_direct`).
+- `UdpSocket` stays in the compiler-owned `net_socket` slice because the same target-sensitive deadline/blocking/address-translation logic applies there too.
+- Current tradeoff: broadcast socket-option semantics are not part of the promoted evidence yet.
+
 ### `EReg` + `haxe.Serializer` contract and tradeoffs
 
 - `EReg` parity now covers: `g/i/m/s/u` option handling, global vs non-global `replace`/`map`, `matched`/`matchedPos`/`matchedLeft`/`matchedRight` error semantics, and group/null behavior via semantic diff fixtures (`ereg_behavior_contract`, `ereg_edge_contract`).
@@ -368,6 +375,7 @@ sys.io.File
 sys.io.Process
 sys.net.Host
 sys.net.Socket
+sys.net.UdpSocket
 ```
 
 ### Full runtime-eligible inventory sweep

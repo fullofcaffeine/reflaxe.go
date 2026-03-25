@@ -55,7 +55,7 @@ class GoStdlibShimClassifier {
 			return ["sys"];
 		}
 
-		if (pack == "sys.net" && (classType.name == "Host" || classType.name == "Socket")) {
+		if (pack == "sys.net" && (classType.name == "Host" || classType.name == "Socket" || classType.name == "UdpSocket")) {
 			return ["net_socket"];
 		}
 

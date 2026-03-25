@@ -1,0 +1,7 @@
+bound.host=127.0.0.1
+bound.port.positive=true
+wrote=8
+read=8
+payload=udp-ping
+remote.port.positive=true
+remote.host=127.0.0.1

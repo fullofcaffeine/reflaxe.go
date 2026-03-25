@@ -8,7 +8,7 @@ import reflaxe.go.ast.GoAST.GoStmt;
 /**
 	What:
 	Builds the compiler-owned declarations behind `sys.net.Host`,
-	`sys.net.Socket`, and the Go socket helper layer.
+	`sys.net.Socket`, `sys.net.UdpSocket`, and the Go socket helper layer.
 
 	Why:
 	Socket and deadline behavior are runtime-sensitive and stay compiler-owned
@@ -17,12 +17,12 @@ import reflaxe.go.ast.GoAST.GoStmt;
 
 	How:
 	Emits the same socket shim declaration set that previously lived inside
-	`lowerNetSocketShimDecls()`. This extraction is relocation only; no
-	semantic changes belong here.
+	`lowerNetSocketShimDecls()`, plus the UDP sibling needed by
+	`sys.net.UdpSocket`.
 **/
 class GoNetSocketEmitter {
-	public static function emit():Array<GoDecl> {
-		return [
+	public static function emit(includeUdpSocket:Bool):Array<GoDecl> {
+		var decls = [
 			GoDecl.GoStructDecl("sys__net__Host", [
 				{name: "host", typeName: "*string"},
 				{name: "ip", typeName: "int"},
@@ -33,6 +33,31 @@ class GoNetSocketEmitter {
 			]),
 			GoDecl.GoFuncDecl("hxrt__host_empty", null, [], ["*sys__net__Host"], [
 				GoStmt.GoReturn(GoExpr.GoRaw("&sys__net__Host{host: hxrt.StringFromLiteral(\"\"), ip: 0, resolved: hxrt.StringFromLiteral(\"\")}"))
+			]),
+			GoDecl.GoFuncDecl("hxrt__host_ipv4Int", null, [
+				{
+					name: "ip",
+					typeName: "net.IP"
+				}
+			], ["int"], [
+				GoStmt.GoRaw("if ip == nil {"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("v4 := ip.To4()"),
+				GoStmt.GoRaw("if v4 == nil {"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return int(v4[0])<<24 | int(v4[1])<<16 | int(v4[2])<<8 | int(v4[3])")
+			]),
+			GoDecl.GoFuncDecl("hxrt__host_ipv4String", null, [
+				{
+					name: "value",
+					typeName: "int"
+				}
+			], ["*string"], [
+				GoStmt.GoRaw("u := uint32(value)"),
+				GoStmt.GoRaw("rendered := net.IPv4(byte((u>>24)&0xff), byte((u>>16)&0xff), byte((u>>8)&0xff), byte(u&0xff)).String()"),
+				GoStmt.GoReturn(GoExpr.GoRaw("hxrt.StringFromLiteral(rendered)"))
 			]),
 			GoDecl.GoFuncDecl("New_sys__net__Host", null, [
 				{
@@ -58,14 +83,21 @@ class GoNetSocketEmitter {
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("resolved := hxrt.StringFromLiteral(selected.String())"),
-				GoStmt.GoReturn(GoExpr.GoRaw("&sys__net__Host{host: name, ip: 0, resolved: resolved}"))
+				GoStmt.GoRaw("ip := hxrt__host_ipv4Int(selected)"),
+				GoStmt.GoReturn(GoExpr.GoRaw("&sys__net__Host{host: name, ip: ip, resolved: resolved}"))
 			]),
 			GoDecl.GoFuncDecl("toString", {
 				name: "self",
 				typeName: "*sys__net__Host"
 			}, [], ["*string"], [
-				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.resolved == nil"), [
+				GoStmt.GoIf(GoExpr.GoRaw("self == nil"), [
 					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
+				],
+					null),
+				GoStmt.GoIf(GoExpr.GoRaw("self.resolved != nil && *self.resolved != \"\""),
+					[GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "resolved"))], null),
+				GoStmt.GoIf(GoExpr.GoRaw("self.ip != 0"), [
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt__host_ipv4String"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "ip")]))
 				], null),
 				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "resolved"))
 			]),
@@ -103,19 +135,24 @@ class GoNetSocketEmitter {
 				{name: "writer", typeName: "*bufio.Writer"},
 				{name: "socket", typeName: "*sys__net__Socket"}
 			]),
-			GoDecl.GoStructDecl("sys__net__Socket", [
-				{name: "input", typeName: "*sys__net__SocketInput"},
-				{name: "output", typeName: "*sys__net__SocketOutput"},
-				{name: "custom", typeName: "any"},
-				{name: "conn", typeName: "net.Conn"},
-				{name: "listener", typeName: "net.Listener"},
-				{name: "timeout", typeName: "float64"},
-				{name: "hasTimeout", typeName: "bool"},
-				{name: "blocking", typeName: "bool"},
-				{name: "fastSend", typeName: "bool"}
-			]),
+			GoDecl.GoStructDecl("sys__net__Socket",
+				[
+					{name: "input", typeName: "*sys__net__SocketInput"},
+					{name: "output", typeName: "*sys__net__SocketOutput"},
+					{name: "custom", typeName: "any"},
+					{name: "conn", typeName: "net.Conn"},
+					{name: "listener", typeName: "net.Listener"},
+					{name: "timeout", typeName: "float64"},
+					{name: "hasTimeout", typeName: "bool"},
+					{name: "blocking", typeName: "bool"},
+					{name: "fastSend", typeName: "bool"}
+				]),
+			GoDecl.GoStructDecl("sys__net__UdpSocket", [{name: "", typeName: "*sys__net__Socket"}]),
 			GoDecl.GoFuncDecl("New_sys__net__Socket", null, [], ["*sys__net__Socket"], [
 				GoStmt.GoReturn(GoExpr.GoRaw("&sys__net__Socket{input: &sys__net__SocketInput{}, output: &sys__net__SocketOutput{}, blocking: true}"))
+			]),
+			GoDecl.GoFuncDecl("New_sys__net__UdpSocket", null, [], ["*sys__net__UdpSocket"], [
+				GoStmt.GoReturn(GoExpr.GoRaw("&sys__net__UdpSocket{sys__net__Socket: New_sys__net__Socket()}"))
 			]),
 			GoDecl.GoFuncDecl("hxrt__socket_deadline", null, [
 				{
@@ -199,6 +236,33 @@ class GoNetSocketEmitter {
 				GoStmt.GoIf(GoExpr.GoRaw("self == nil"), [GoStmt.GoReturn(GoExpr.GoNil)], null),
 				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "conn"))
 			]),
+			GoDecl.GoFuncDecl("hxrt__udp_socket_conn", {
+				name: "self",
+				typeName: "*sys__net__UdpSocket"
+			}, [{name: "create", typeName: "bool"}], ["*net.UDPConn"], [
+				GoStmt.GoRaw("if self == nil || self.sys__net__Socket == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"udp socket is nil\"))"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self.conn != nil {"),
+				GoStmt.GoRaw("\tudpConn, ok := self.conn.(*net.UDPConn)"),
+				GoStmt.GoRaw("\tif !ok {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"udp socket expects UDP connection\"))"),
+				GoStmt.GoRaw("\t\treturn nil"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn udpConn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if !create {"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("conn, err := net.ListenUDP(\"udp4\", nil)"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(err)"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.hxrt__socket_setConn(conn)"),
+				GoStmt.GoRaw("return conn")
+			]),
 			GoDecl.GoFuncDecl("close", {
 				name: "self",
 				typeName: "*sys__net__Socket"
@@ -212,6 +276,121 @@ class GoNetSocketEmitter {
 					GoStmt.GoRaw("_ = self.listener.Close()"),
 					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "listener"), GoExpr.GoNil)
 				], null)
+			]),
+			GoDecl.GoFuncDecl("bind", {
+				name: "self",
+				typeName: "*sys__net__UdpSocket"
+			},
+				[{name: "host", typeName: "*sys__net__Host"}, {name: "port", typeName: "int"}], [], [
+					GoStmt.GoRaw("if self == nil || host == nil || self.sys__net__Socket == nil {"),
+					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"udp bind requires host\"))"),
+					GoStmt.GoRaw("\treturn"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("resolvedHost := host.toString()"),
+					GoStmt.GoRaw("if resolvedHost == nil {"),
+					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"udp bind requires host\"))"),
+					GoStmt.GoRaw("\treturn"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("udpAddr, err := net.ResolveUDPAddr(\"udp4\", net.JoinHostPort(*hxrt.StdString(resolvedHost), strconv.Itoa(port)))"),
+					GoStmt.GoRaw("if err != nil {"),
+					GoStmt.GoRaw("\thxrt.Throw(err)"),
+					GoStmt.GoRaw("\treturn"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("conn, err := net.ListenUDP(\"udp4\", udpAddr)"),
+					GoStmt.GoRaw("if err != nil {"),
+					GoStmt.GoRaw("\thxrt.Throw(err)"),
+					GoStmt.GoRaw("\treturn"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("self.close()"),
+					GoStmt.GoRaw("self.hxrt__socket_setConn(conn)")
+				]),
+			GoDecl.GoFuncDecl("setBroadcast", {
+				name: "self",
+				typeName: "*sys__net__UdpSocket"
+			},
+				[{name: "enabled", typeName: "bool"}], [], [GoStmt.GoRaw("_ = self"), GoStmt.GoRaw("_ = enabled")]),
+			GoDecl.GoFuncDecl("sendTo", {
+				name: "self",
+				typeName: "*sys__net__UdpSocket"
+			}, [
+				{name: "buf", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "length", typeName: "int"},
+				{name: "addr", typeName: "*sys__net__Address"}
+			], ["int"], [
+				GoStmt.GoRaw("if buf == nil || addr == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if pos < 0 || length < 0 || pos+length > buf.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("conn := self.hxrt__udp_socket_conn(true)"),
+				GoStmt.GoRaw("if conn == nil {"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.hxrt__socket_applyConnDeadline()"),
+				GoStmt.GoRaw("raw := make([]byte, buf.length)"),
+				GoStmt.GoRaw("for i := 0; i < buf.length; i++ {"),
+				GoStmt.GoRaw("\traw[i] = byte(buf.b[i])"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("target := &net.UDPAddr{IP: net.IPv4(byte((uint32(addr.host)>>24)&0xff), byte((uint32(addr.host)>>16)&0xff), byte((uint32(addr.host)>>8)&0xff), byte(uint32(addr.host)&0xff)), Port: addr.port}"),
+				GoStmt.GoRaw("written, err := conn.WriteToUDP(raw[pos:pos+length], target)"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\tif netErr, ok := err.(net.Error); ok && netErr.Timeout() {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(haxe__io__Error_Blocked)"),
+				GoStmt.GoRaw("\t\treturn 0"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\thxrt.Throw(err)"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return written")
+			]),
+			GoDecl.GoFuncDecl("readFrom", {
+				name: "self",
+				typeName: "*sys__net__UdpSocket"
+			}, [
+				{name: "buf", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "length", typeName: "int"},
+				{name: "addr", typeName: "*sys__net__Address"}
+			], ["int"], [
+				GoStmt.GoRaw("if buf == nil || addr == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if pos < 0 || length < 0 || pos+length > buf.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("conn := self.hxrt__udp_socket_conn(false)"),
+				GoStmt.GoRaw("if conn == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.hxrt__socket_applyConnDeadline()"),
+				GoStmt.GoRaw("raw := make([]byte, length)"),
+				GoStmt.GoRaw("read, remote, err := conn.ReadFromUDP(raw)"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\tif netErr, ok := err.(net.Error); ok && netErr.Timeout() {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(haxe__io__Error_Blocked)"),
+				GoStmt.GoRaw("\t\treturn 0"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\thxrt.Throw(err)"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if read <= 0 {"),
+				GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("for i := 0; i < read; i++ {"),
+				GoStmt.GoRaw("\tbuf.b[pos+i] = int(raw[i])"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("buf.__hx_rawValid = false"),
+				GoStmt.GoRaw("addr.host = hxrt__host_ipv4Int(remote.IP)"),
+				GoStmt.GoRaw("addr.port = remote.Port"),
+				GoStmt.GoRaw("return read")
 			]),
 			GoDecl.GoFuncDecl("connect", {
 				name: "self",
@@ -580,6 +759,21 @@ class GoNetSocketEmitter {
 				GoStmt.GoRaw("}")
 			])
 		];
+		if (!includeUdpSocket) {
+			decls = [for (decl in decls) if (!isUdpOnlyDecl(decl)) decl];
+		}
+		return decls;
+	}
+
+	static function isUdpOnlyDecl(decl:GoDecl):Bool {
+		return switch (decl) {
+			case GoDecl.GoStructDecl(name, _):
+				name == "sys__net__UdpSocket";
+			case GoDecl.GoFuncDecl(name, receiver, _, _, _): name == "New_sys__net__UdpSocket" || name == "hxrt__udp_socket_conn" || (receiver != null
+					&& receiver.typeName == "*sys__net__UdpSocket");
+			case _:
+				false;
+		};
 	}
 }
 #end

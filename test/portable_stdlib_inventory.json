@@ -2095,19 +2095,17 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "sys_net_ssl",
-      "blocker_issue": "haxe.go-14as.18",
-      "closure_target": "2026-05-21",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "snapshot"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.net.UdpSocket",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.18 (sys_net_ssl); closure target 2026-05-21.",
-      "owner": "mixed",
+      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.net.UdpSocket` usage now has deterministic snapshot/runtime coverage through `stdlib/sys_net_udp_socket_direct`, covering loopback `bind` / `host` / `sendTo` / `readFrom` plus peer address round-tripping. Ownership stays compiler-owned inside the `net_socket` shim group because UDP deadline/blocking/address translation behavior is still target-sensitive. Broadcast socket-option semantics remain a follow-up rather than part of the current promotion evidence.",
+      "owner": "compiler_shim",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "snapshot"
     },
     {
       "coverage_evidence": [

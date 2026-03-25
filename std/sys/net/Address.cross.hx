@@ -18,13 +18,17 @@ class Address {
 	public var host:Int;
 	public var port:Int;
 
+	static inline function octet(value:Int, shift:Int):String {
+		return Std.string((value >>> shift) & 0xFF);
+	}
+
 	public function new() {
 		host = 0;
 		port = 0;
 	}
 
 	public function getHost():Host {
-		var h = new Host("127.0.0.1");
+		var h = new Host(octet(host, 24) + "." + octet(host, 16) + "." + octet(host, 8) + "." + octet(host, 0));
 		untyped h.ip = host;
 		return h;
 	}

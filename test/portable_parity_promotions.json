@@ -5,6 +5,7 @@
       "haxe.CallStack",
       "haxe.NativeStackTrace",
       "haxe.Ucs2",
+      "sys.net.UdpSocket",
       "sys.ssl.Certificate",
       "sys.ssl.Digest",
       "sys.ssl.Key"

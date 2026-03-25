@@ -172,7 +172,7 @@ Current execution order:
 4. `haxe.go-14as.55.4` - make ownership/parity governance release-blocking
 5. remaining portable stdlib blocker families in owner-driven order:
    - `haxe.go-14as.17` (`sys.db` + `sys.io`)
-   - `haxe.go-14as.18` (`sys.net` + `sys.ssl`)
+   - `haxe.go-14as.18` (`sys.ssl.Socket` remaining; `sys.net.UdpSocket` direct loopback baseline promoted to snapshot coverage)
    - `haxe.go-14as.19` (`sys.thread`)
    - `haxe.go-14as.42` (`haxe.Utf8` deprecated optional-size constructor)
 

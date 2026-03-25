@@ -103,6 +103,7 @@ OWNER_OVERRIDES = {
     "sys.db.ResultSet": "staged_std",
     "sys.db.Sqlite": "staged_std",
     "sys.net.Address": "staged_std",
+    "sys.net.UdpSocket": "compiler_shim",
     "sys.ssl.Certificate": "mixed",
     "sys.ssl.Digest": "mixed",
     "sys.ssl.DigestAlgorithm": "staged_std",
@@ -397,6 +398,13 @@ MODULE_NOTES_OVERRIDES = {
         "surface is just the upstream `{host, port}` carrier and helper methods, expressed without growing "
         "the compiler-owned socket runtime."
     ),
+    "sys.net.UdpSocket": (
+        "Direct `sys.net.UdpSocket` usage now has deterministic snapshot/runtime coverage through "
+        "`stdlib/sys_net_udp_socket_direct`, covering loopback `bind` / `host` / `sendTo` / `readFrom` "
+        "plus peer address round-tripping. Ownership stays compiler-owned inside the `net_socket` shim "
+        "group because UDP deadline/blocking/address translation behavior is still target-sensitive. "
+        "Broadcast socket-option semantics remain a follow-up rather than part of the current promotion evidence."
+    ),
     "sys.ssl.Certificate": (
         "Direct `sys.ssl.Certificate` leaf usage now has snapshot runtime coverage through "
         "`stdlib/sys_ssl_leaf_direct`. Ownership stays mixed: the public Haxe-facing wrapper lives in "
@@ -549,7 +557,6 @@ BLOCKER_FAMILY_SPECS = (
         "closure_target": "2026-05-21",
         "modules": {
             "sys.net.Address",
-            "sys.net.UdpSocket",
             "sys.ssl.Certificate",
             "sys.ssl.Digest",
             "sys.ssl.DigestAlgorithm",

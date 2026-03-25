@@ -1428,6 +1428,23 @@ func hxrt__host_empty() *sys__net__Host {
 	return &sys__net__Host{host: hxrt.StringFromLiteral(""), ip: 0, resolved: hxrt.StringFromLiteral("")}
 }
 
+func hxrt__host_ipv4Int(ip net.IP) int {
+	if ip == nil {
+		return 0
+	}
+	v4 := ip.To4()
+	if v4 == nil {
+		return 0
+	}
+	return int(v4[0])<<24 | int(v4[1])<<16 | int(v4[2])<<8 | int(v4[3])
+}
+
+func hxrt__host_ipv4String(value int) *string {
+	u := uint32(value)
+	rendered := net.IPv4(byte((u>>24)&0xff), byte((u>>16)&0xff), byte((u>>8)&0xff), byte(u&0xff)).String()
+	return hxrt.StringFromLiteral(rendered)
+}
+
 func New_sys__net__Host(name *string) *sys__net__Host {
 	if name == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("Could not resolve host"))
@@ -1447,12 +1464,19 @@ func New_sys__net__Host(name *string) *sys__net__Host {
 		}
 	}
 	resolved := hxrt.StringFromLiteral(selected.String())
-	return &sys__net__Host{host: name, ip: 0, resolved: resolved}
+	ip := hxrt__host_ipv4Int(selected)
+	return &sys__net__Host{host: name, ip: ip, resolved: resolved}
 }
 
 func (self *sys__net__Host) toString() *string {
-	if self == nil || self.resolved == nil {
+	if self == nil {
 		return hxrt.StringFromLiteral("")
+	}
+	if self.resolved != nil && *self.resolved != "" {
+		return self.resolved
+	}
+	if self.ip != 0 {
+		return hxrt__host_ipv4String(self.ip)
 	}
 	return self.resolved
 }

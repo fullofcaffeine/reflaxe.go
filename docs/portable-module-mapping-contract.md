@@ -51,7 +51,8 @@ Contract inputs:
 | `sys.FileSystem` | `mixed` (`compiler_intrinsic` + runtime helper calls) | `src/reflaxe/go/GoCompiler.hx` (`lowerFileSystemShimDecls`) | `runtime/hxrt/string.go`, `runtime/hxrt/exception.go` | `filesystem_contract` |
 | `sys.io.File` | `runtime_binding` | `src/reflaxe/go/GoCompiler.hx` (`lowerSysStdlibShimDecls` forwarding wrappers) | `runtime/hxrt/sys.go` (`FileSaveContent`, `FileGetContent`, `FileGetBytes`, `FileSaveBytes`, `FileCopy`, `OpenFile*Output`, `OpenFileInput`) | `file_read_write_contract`, `semantic_diff/sys_db_io_contract`, `stdlib/sys_db_io_direct` |
 | `sys.io.Process` | `runtime_binding` | `src/reflaxe/go/GoCompiler.hx` (`lowerSysStdlibShimDecls` forwarding wrappers) | `runtime/hxrt/process.go` (`NewProcess`, `ProcessOutput`) | `process_echo_contract` |
-| `sys.net.Socket` | `compiler_intrinsic` | `src/reflaxe/go/GoCompiler.hx` (`lowerNetSocketShimDecls`) | Uses core runtime helpers (`Throw`, string conversion) where needed | `socket_advanced_contract`, `socket_loopback_contract` |
+| `sys.net.Socket` | `compiler_intrinsic` | `src/reflaxe/go/compiler/emit/GoNetSocketEmitter.hx` (wired from `src/reflaxe/go/GoCompiler.hx`) | Uses core runtime helpers (`Throw`, string conversion) where needed | `socket_advanced_contract`, `socket_loopback_contract` |
+| `sys.net.UdpSocket` | `compiler_intrinsic` | `src/reflaxe/go/compiler/emit/GoNetSocketEmitter.hx` (wired from `src/reflaxe/go/GoCompiler.hx`) | Uses core runtime helpers (`Throw`, string conversion) where needed | `stdlib/sys_net_udp_socket_direct` |
 
 ## Additional Mixed-Ownership Rows
 
