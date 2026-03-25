@@ -3,10 +3,40 @@ package hxrt
 import (
 	"bytes"
 	"runtime"
+	"sort"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 )
+
+type ThreadState struct {
+	queueMu   sync.Mutex
+	queueCond *sync.Cond
+	queue     []any
+	eventLoop *EventLoopHandle
+}
+
+type EventLoopHandle struct {
+	mu        sync.Mutex
+	cond      *sync.Cond
+	oneTime   []func()
+	promised  int
+	regular   []*RegularEvent
+	cancelled map[int]bool
+}
+
+type RegularEvent struct {
+	ID       int
+	NextRun  float64
+	Interval float64
+	Run      func()
+}
+
+type EventLoopProgress struct {
+	Kind int
+	Time float64
+}
 
 type LockHandle struct {
 	mu    sync.Mutex
@@ -37,8 +67,453 @@ type SemaphoreHandle struct {
 	count int
 }
 
+const (
+	threadEventLoopNow = iota
+	threadEventLoopNever
+	threadEventLoopAnyTime
+	threadEventLoopAt
+)
+
+var (
+	threadRuntimeOnce  sync.Once
+	threadRuntimeMu    sync.Mutex
+	threadStates       map[int]*ThreadState
+	goroutineThreadIDs map[int64]int
+	nextThreadID       int
+	nextEventID        atomic.Int64
+	threadStartTime    time.Time
+)
+
+func initThreadRuntime() {
+	threadStates = make(map[int]*ThreadState)
+	goroutineThreadIDs = make(map[int64]int)
+	nextThreadID = 1
+	threadStartTime = time.Now()
+	mainState := newThreadState()
+	mainState.eventLoop = newEventLoopHandle()
+	threadStates[0] = mainState
+	goroutineThreadIDs[currentGoroutineID()] = 0
+}
+
+func ensureThreadRuntime() {
+	threadRuntimeOnce.Do(initThreadRuntime)
+}
+
+func newThreadState() *ThreadState {
+	state := &ThreadState{}
+	state.queueCond = sync.NewCond(&state.queueMu)
+	return state
+}
+
+func newEventLoopHandle() *EventLoopHandle {
+	h := &EventLoopHandle{
+		cancelled: make(map[int]bool),
+	}
+	h.cond = sync.NewCond(&h.mu)
+	return h
+}
+
+func allocateThreadState(eventLoop *EventLoopHandle) int {
+	ensureThreadRuntime()
+	threadRuntimeMu.Lock()
+	defer threadRuntimeMu.Unlock()
+	id := nextThreadID
+	nextThreadID++
+	state := newThreadState()
+	state.eventLoop = eventLoop
+	threadStates[id] = state
+	return id
+}
+
+func registerCurrentGoroutineThreadID(id int) {
+	ensureThreadRuntime()
+	threadRuntimeMu.Lock()
+	goroutineThreadIDs[currentGoroutineID()] = id
+	threadRuntimeMu.Unlock()
+}
+
+func unregisterCurrentGoroutineThreadID(id int) {
+	ensureThreadRuntime()
+	threadRuntimeMu.Lock()
+	delete(goroutineThreadIDs, currentGoroutineID())
+	delete(threadStates, id)
+	threadRuntimeMu.Unlock()
+}
+
+func currentLogicalThreadID() int {
+	ensureThreadRuntime()
+	gid := currentGoroutineID()
+	threadRuntimeMu.Lock()
+	defer threadRuntimeMu.Unlock()
+	if id, ok := goroutineThreadIDs[gid]; ok {
+		return id
+	}
+	id := nextThreadID
+	nextThreadID++
+	goroutineThreadIDs[gid] = id
+	threadStates[id] = newThreadState()
+	return id
+}
+
+func withThreadState(threadID int, fn func(*ThreadState)) bool {
+	ensureThreadRuntime()
+	threadRuntimeMu.Lock()
+	state, ok := threadStates[threadID]
+	threadRuntimeMu.Unlock()
+	if !ok || state == nil {
+		return false
+	}
+	fn(state)
+	return true
+}
+
+func currentThreadState() *ThreadState {
+	id := currentLogicalThreadID()
+	var state *ThreadState
+	withThreadState(id, func(found *ThreadState) {
+		state = found
+	})
+	return state
+}
+
+func threadNowSeconds() float64 {
+	ensureThreadRuntime()
+	return time.Since(threadStartTime).Seconds()
+}
+
 func ThreadCurrentId() int {
-	return int(currentGoroutineID())
+	return currentLogicalThreadID()
+}
+
+func ThreadSpawn(job func()) int {
+	if job == nil {
+		return 0
+	}
+	id := allocateThreadState(nil)
+	go func() {
+		registerCurrentGoroutineThreadID(id)
+		defer unregisterCurrentGoroutineThreadID(id)
+		job()
+	}()
+	return id
+}
+
+func ThreadSpawnWithEventLoop(job func()) int {
+	if job == nil {
+		return 0
+	}
+	id := allocateThreadState(newEventLoopHandle())
+	go func() {
+		registerCurrentGoroutineThreadID(id)
+		defer unregisterCurrentGoroutineThreadID(id)
+		job()
+		withThreadState(id, func(state *ThreadState) {
+			ThreadEventLoopLoop(state.eventLoop)
+		})
+	}()
+	return id
+}
+
+func ThreadHasEventLoop(threadID int) bool {
+	available := false
+	withThreadState(threadID, func(state *ThreadState) {
+		available = state.eventLoop != nil
+	})
+	return available
+}
+
+func ThreadEvents(threadID int) *EventLoopHandle {
+	var handle *EventLoopHandle
+	withThreadState(threadID, func(state *ThreadState) {
+		handle = state.eventLoop
+	})
+	return handle
+}
+
+func ThreadRunWithEventLoop(job func()) {
+	if job == nil {
+		return
+	}
+	state := currentThreadState()
+	if state == nil {
+		job()
+		return
+	}
+	if state.eventLoop != nil {
+		job()
+		return
+	}
+	loop := newEventLoopHandle()
+	state.eventLoop = loop
+	defer func() {
+		state.eventLoop = nil
+	}()
+	job()
+	ThreadEventLoopLoop(loop)
+}
+
+func ThreadSendMessage(threadID int, message any) {
+	withThreadState(threadID, func(state *ThreadState) {
+		state.queueMu.Lock()
+		state.queue = append(state.queue, message)
+		state.queueCond.Signal()
+		state.queueMu.Unlock()
+	})
+}
+
+func ThreadReadMessage(block bool) any {
+	state := currentThreadState()
+	if state == nil {
+		return nil
+	}
+	state.queueMu.Lock()
+	defer state.queueMu.Unlock()
+	for len(state.queue) == 0 {
+		if !block {
+			return nil
+		}
+		state.queueCond.Wait()
+	}
+	value := state.queue[0]
+	state.queue[0] = nil
+	state.queue = state.queue[1:]
+	return value
+}
+
+func ThreadEventLoopNew() *EventLoopHandle {
+	return newEventLoopHandle()
+}
+
+func ThreadEventLoopPromise(handle *EventLoopHandle) {
+	if handle == nil {
+		return
+	}
+	handle.mu.Lock()
+	handle.promised++
+	handle.mu.Unlock()
+}
+
+func ThreadEventLoopRun(handle *EventLoopHandle, event func()) {
+	if handle == nil || event == nil {
+		return
+	}
+	handle.mu.Lock()
+	handle.oneTime = append(handle.oneTime, event)
+	handle.cond.Signal()
+	handle.mu.Unlock()
+}
+
+func ThreadEventLoopRunPromised(handle *EventLoopHandle, event func()) {
+	if handle == nil || event == nil {
+		return
+	}
+	handle.mu.Lock()
+	handle.oneTime = append(handle.oneTime, event)
+	if handle.promised > 0 {
+		handle.promised--
+	}
+	handle.cond.Signal()
+	handle.mu.Unlock()
+}
+
+func ThreadEventLoopRepeat(handle *EventLoopHandle, event func(), intervalMs int) int {
+	if handle == nil || event == nil {
+		return 0
+	}
+	if intervalMs < 1 {
+		intervalMs = 1
+	}
+	id := int(nextEventID.Add(1))
+	interval := float64(intervalMs) / 1000.0
+	regular := &RegularEvent{
+		ID:       id,
+		NextRun:  threadNowSeconds() + interval,
+		Interval: interval,
+		Run:      event,
+	}
+	handle.mu.Lock()
+	handle.regular = append(handle.regular, regular)
+	sort.Slice(handle.regular, func(i, j int) bool {
+		return handle.regular[i].NextRun < handle.regular[j].NextRun
+	})
+	handle.cond.Signal()
+	handle.mu.Unlock()
+	return id
+}
+
+func ThreadEventLoopCancel(handle *EventLoopHandle, eventID int) {
+	if handle == nil {
+		return
+	}
+	handle.mu.Lock()
+	handle.cancelled[eventID] = true
+	filtered := handle.regular[:0]
+	for _, event := range handle.regular {
+		if event.ID != eventID {
+			filtered = append(filtered, event)
+		}
+	}
+	handle.regular = filtered
+	handle.mu.Unlock()
+}
+
+func ThreadEventLoopProgress(handle *EventLoopHandle) *EventLoopProgress {
+	if handle == nil {
+		return &EventLoopProgress{Kind: threadEventLoopNever, Time: -1}
+	}
+	now := threadNowSeconds()
+	var callbacks []func()
+	var reschedule []*RegularEvent
+	nextAt := -1.0
+	promised := 0
+
+	handle.mu.Lock()
+	for len(handle.regular) > 0 && handle.regular[0].NextRun <= now {
+		event := handle.regular[0]
+		handle.regular = handle.regular[1:]
+		callbacks = append(callbacks, event.Run)
+		reschedule = append(reschedule, event)
+	}
+	if len(handle.oneTime) > 0 {
+		callbacks = append(callbacks, handle.oneTime...)
+		handle.oneTime = handle.oneTime[:0]
+	}
+	promised = handle.promised
+	if len(handle.regular) > 0 {
+		nextAt = handle.regular[0].NextRun
+	}
+	handle.mu.Unlock()
+
+	for _, callback := range callbacks {
+		if callback != nil {
+			callback()
+		}
+	}
+
+	if len(reschedule) > 0 {
+		handle.mu.Lock()
+		rescheduleAt := threadNowSeconds()
+		for _, event := range reschedule {
+			if handle.cancelled[event.ID] {
+				delete(handle.cancelled, event.ID)
+				continue
+			}
+			event.NextRun = rescheduleAt + event.Interval
+			handle.regular = append(handle.regular, event)
+		}
+		sort.Slice(handle.regular, func(i, j int) bool {
+			return handle.regular[i].NextRun < handle.regular[j].NextRun
+		})
+		if len(handle.regular) > 0 {
+			nextAt = handle.regular[0].NextRun
+		} else {
+			nextAt = -1.0
+		}
+		handle.mu.Unlock()
+	}
+
+	if len(callbacks) > 0 {
+		return &EventLoopProgress{Kind: threadEventLoopNow, Time: -1}
+	}
+	if promised > 0 {
+		if nextAt >= 0 {
+			return &EventLoopProgress{Kind: threadEventLoopAnyTime, Time: nextAt}
+		}
+		return &EventLoopProgress{Kind: threadEventLoopAnyTime, Time: -1}
+	}
+	if nextAt >= 0 {
+		return &EventLoopProgress{Kind: threadEventLoopAt, Time: nextAt}
+	}
+	return &EventLoopProgress{Kind: threadEventLoopNever, Time: -1}
+}
+
+func ThreadEventLoopWait(handle *EventLoopHandle) bool {
+	return ThreadEventLoopWaitTimeout(handle, -1)
+}
+
+func ThreadEventLoopWaitTimeout(handle *EventLoopHandle, timeout float64) bool {
+	if handle == nil {
+		return false
+	}
+	handle.mu.Lock()
+	defer handle.mu.Unlock()
+	if eventLoopHasPendingLocked(handle) == false {
+		return false
+	}
+	if eventLoopHasReadyLocked(handle) {
+		return true
+	}
+	if timeout < 0 {
+		handle.cond.Wait()
+		return eventLoopHasPendingLocked(handle)
+	}
+	if timeout == 0 {
+		return eventLoopHasPendingLocked(handle)
+	}
+	var timedOut bool
+	timer := time.AfterFunc(time.Duration(timeout*float64(time.Second)), func() {
+		handle.mu.Lock()
+		timedOut = true
+		handle.cond.Broadcast()
+		handle.mu.Unlock()
+	})
+	defer timer.Stop()
+	for !timedOut {
+		handle.cond.Wait()
+		if eventLoopHasReadyLocked(handle) {
+			return true
+		}
+	}
+	return eventLoopHasPendingLocked(handle)
+}
+
+func ThreadEventLoopWaitTimeoutAny(handle *EventLoopHandle, timeout any) bool {
+	return ThreadEventLoopWaitTimeout(handle, threadTimeoutSeconds(timeout))
+}
+
+func ThreadEventLoopLoop(handle *EventLoopHandle) {
+	if handle == nil {
+		return
+	}
+	for {
+		progress := ThreadEventLoopProgress(handle)
+		switch progress.Kind {
+		case threadEventLoopNow:
+			continue
+		case threadEventLoopNever:
+			return
+		case threadEventLoopAnyTime:
+			if progress.Time >= 0 {
+				timeout := progress.Time - threadNowSeconds()
+				if timeout < 0 {
+					timeout = 0
+				}
+				ThreadEventLoopWaitTimeout(handle, timeout)
+			} else {
+				ThreadEventLoopWait(handle)
+			}
+		case threadEventLoopAt:
+			timeout := progress.Time - threadNowSeconds()
+			if timeout < 0 {
+				timeout = 0
+			}
+			ThreadEventLoopWaitTimeout(handle, timeout)
+		}
+	}
+}
+
+func eventLoopHasPendingLocked(handle *EventLoopHandle) bool {
+	return len(handle.oneTime) > 0 || len(handle.regular) > 0 || handle.promised > 0
+}
+
+func eventLoopHasReadyLocked(handle *EventLoopHandle) bool {
+	if len(handle.oneTime) > 0 {
+		return true
+	}
+	if len(handle.regular) > 0 && handle.regular[0].NextRun <= threadNowSeconds() {
+		return true
+	}
+	return false
 }
 
 func ThreadLockNew() *LockHandle {

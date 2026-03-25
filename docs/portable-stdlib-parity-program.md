@@ -131,7 +131,7 @@ Closed root-surface follow-up:
 - `haxe.go-14as.27` promoted `haxe.EnumFlags` and `haxe.EnumTools` to semantic-diff coverage via `haxe_enum_helpers_contract` and `stdlib/haxe_enum_helpers_direct`, closing the enum-helper tranche without adding a target-owned std override.
 - `haxe.go-14as.28` closed the stack-fallback half of the old stack/main-loop tranche. `haxe.CallStack` and `haxe.NativeStackTrace` stay under explicit target-sensitive snapshot coverage through `stdlib/haxe_stack_loop_target_sensitive`.
 - `haxe.go-14as.29` closed the legacy text tranche. `haxe.Utf8` now lives in staged std through `std/haxe/Utf8.cross.hx` with semantic-diff coverage in `haxe_utf8_contract` plus snapshot coverage in `stdlib/haxe_utf8_basic`, while `haxe.Ucs2` stays under explicit target-sensitive snapshot coverage through `stdlib/haxe_ucs2_platform_exclusion`.
-- Direct `haxe.EntryPoint`, `haxe.MainLoop`, and `haxe.Timer` are now classified as explicit unsupported surfaces on Go. The compiler fails early because the backend does not yet have a real runtime-backed event-loop contract through `sys.thread.EventLoop` / `sys.thread.Thread`, and the previous source-owned inclusion path generated broken Go. Future work belongs with the `sys.thread` tranche (`haxe.go-14as.19`) rather than pretending the direct Haxe event-loop surface is nearly supported.
+- Direct `haxe.EntryPoint`, `haxe.MainLoop`, and `haxe.Timer` are now classified as explicit unsupported surfaces on Go. `sys.thread.Thread` / `sys.thread.EventLoop` are runtime-backed now, but direct Haxe loop surfaces still need `haxe.MainLoop` integration on top of that runtime contract. Follow-up work is tracked in `haxe.go-14as.69` rather than pretending the direct Haxe event-loop surface is nearly supported.
 
 Update sequence when std override files change:
 
@@ -183,18 +183,20 @@ Recently closed direct portable tranches:
   behavior now lives in staged overrides under `std/haxe/io/*.cross.hx`, while storage still rides on the
   compiler-owned `haxe.io.Bytes` / `ArrayBufferViewImpl` carrier.
 
-Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage is no longer an active portable blocker tranche.
-It is an explicit unsupported surface on Go today, and any future real support is folded into
-`haxe.go-14as.19` because it requires a runtime-backed `sys.thread.EventLoop` / `sys.thread.Thread`
-contract rather than another source-owned or compiler-only patch.
+Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage is still not an active portable blocker tranche.
+It is an explicit unsupported surface on Go today, but the reason changed:
+`sys.thread.Thread` / `sys.thread.EventLoop` are now real runtime-backed surfaces,
+and the remaining gap is `haxe.MainLoop` integration above them. That follow-up
+is tracked in `haxe.go-14as.69`.
 
-`haxe.go-14as.19` already has a first landed wave. Direct `sys.thread` primitives
+`haxe.go-14as.19` is now fully closed. Direct `sys.thread` primitives
 (`Condition`, `Deque`, `IThreadPool`, `Lock`, `Mutex`, `NoEventLoopException`,
-`Semaphore`, `ThreadPoolException`, and `Tls`) are now promoted with parity
-evidence in `semantic_diff/sys_thread_primitives_contract` and
-`snapshot/stdlib/sys_thread_primitives_direct`. The bead remains open only for
-the second-wave runtime surfaces: `Thread`, `EventLoop`, `ElasticThreadPool`,
-and `FixedThreadPool`.
+`Semaphore`, `ThreadPoolException`, and `Tls`) keep parity evidence in
+`semantic_diff/sys_thread_primitives_contract` and
+`snapshot/stdlib/sys_thread_primitives_direct`. The second-wave runtime
+surfaces (`Thread`, `EventLoop`, `ElasticThreadPool`, `FixedThreadPool`) now
+have matching evidence in `semantic_diff/sys_thread_runtime_contract` and
+`snapshot/stdlib/sys_thread_runtime_direct`.
 
 The old `haxe.go-cgk.*` planning work is historical context now, not the active execution tracker.
 

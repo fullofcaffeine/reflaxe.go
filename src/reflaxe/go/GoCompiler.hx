@@ -13591,6 +13591,8 @@ class GoCompiler {
 		switch (fullEnumName(enumType)) {
 			case "haxe.ds.Either":
 				requireSourceOwnedStdlibEnum("haxe.ds.Either");
+			case "sys.thread.NextEventTime":
+				requireSourceOwnedStdlibEnum("sys.thread.NextEventTime");
 			case _:
 		}
 		for (group in GoStdlibShimClassifier.requiredGroupsForEnum(enumType)) {

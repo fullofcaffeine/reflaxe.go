@@ -193,6 +193,86 @@
       "notes": "Go staged portable override for the public sys.ssl.Socket API, reusing the compiler-owned sys.net.Socket carrier while runtime/hxrt/ssl.go owns TLS dial/listen/handshake and peer-certificate behavior."
     },
     {
+      "path": "std/sys/thread/Condition.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.thread.Condition, keeping the public wait/signal API in std while runtime/hxrt/thread.go owns the native condition state and timeout behavior."
+    },
+    {
+      "path": "std/sys/thread/Deque.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.thread.Deque, keeping the Haxe-facing queue API in std while runtime/hxrt/thread.go owns the synchronized queue carrier and blocking semantics."
+    },
+    {
+      "path": "std/sys/thread/IThreadPool.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for the sys.thread.IThreadPool contract, keeping the public pool interface in std while concrete pool scheduling stays in staged implementations."
+    },
+    {
+      "path": "std/sys/thread/Lock.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.thread.Lock, keeping the Haxe-facing lock API in std while runtime/hxrt/thread.go owns the native lock state and wait semantics."
+    },
+    {
+      "path": "std/sys/thread/Mutex.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.thread.Mutex, keeping the public mutex API in std while runtime/hxrt/thread.go owns the native mutex carrier."
+    },
+    {
+      "path": "std/sys/thread/NoEventLoopException.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.thread.NoEventLoopException, keeping the public exception surface in std while Thread/EventLoop runtime ownership lives under runtime/hxrt/thread.go."
+    },
+    {
+      "path": "std/sys/thread/Semaphore.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.thread.Semaphore, keeping the public semaphore API in std while runtime/hxrt/thread.go owns token accounting and timeout behavior."
+    },
+    {
+      "path": "std/sys/thread/ThreadPoolException.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.thread.ThreadPoolException, keeping the public exception surface for thread pools in std."
+    },
+    {
+      "path": "std/sys/thread/Tls.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.thread.Tls, keeping the Haxe-facing thread-local API in std while runtime/hxrt/thread.go owns logical thread identity and per-thread storage."
+    },
+    {
+      "path": "std/sys/thread/EventLoop.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.thread.EventLoop, keeping the public loop API and enum surface in std while runtime/hxrt/thread.go owns the queue/timer handle state."
+    },
+    {
+      "path": "std/sys/thread/Thread.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.thread.Thread, keeping the public Haxe-facing thread/message API in std while runtime/hxrt/thread.go owns logical thread identity, queues, and per-thread loop handles."
+    },
+    {
+      "path": "std/sys/thread/ElasticThreadPool.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.thread.ElasticThreadPool, keeping worker-pool policy in Haxe code once Thread/Lock/Deque are runtime-backed."
+    },
+    {
+      "path": "std/sys/thread/ElasticThreadPoolWorker.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go repo-authored helper worker type for sys.thread.ElasticThreadPool, split into its own file so staged std emission stays explicit and import-safe."
+    },
+    {
+      "path": "std/sys/thread/FixedThreadPool.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for sys.thread.FixedThreadPool, keeping fixed-worker scheduling policy in Haxe code instead of compiler-owned shims."
+    },
+    {
+      "path": "std/sys/thread/FixedThreadPoolWorker.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go repo-authored helper worker type for sys.thread.FixedThreadPool, split into its own file so staged std emission stays explicit and import-safe."
+    },
+    {
+      "path": "std/sys/thread/FixedThreadPoolShutdownException.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go repo-authored private shutdown sentinel for sys.thread.FixedThreadPool worker termination semantics."
+    },
+    {
       "path": "std/haxe/SysTools.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged portable override for direct haxe.SysTools quoting helpers, keeping command-line quoting semantics out of GoCompiler while upstream string/array lowerings remain incomplete."
@@ -281,6 +361,41 @@
       "path": "std/_std/haxe/iterators/StringKeyValueIteratorUnicode.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged portable override for Unicode-aware string key/value iterator semantics."
+    },
+    {
+      "path": "std/_std/hxrt/thread/ConditionHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go typed extern bridge for the runtime/hxrt/thread.go condition carrier, kept under std/_std so staged sys.thread overrides can call into the runtime without growing compiler-owned shims."
+    },
+    {
+      "path": "std/_std/hxrt/thread/EventLoopHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go typed extern bridge for the runtime/hxrt/thread.go event-loop handle, kept under std/_std so sys.thread.EventLoop stays source-owned while the runtime owns queue and timer state."
+    },
+    {
+      "path": "std/_std/hxrt/thread/EventLoopProgress.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go typed extern bridge for the runtime/hxrt/thread.go event-loop progress carrier used by the staged sys.thread.EventLoop override."
+    },
+    {
+      "path": "std/_std/hxrt/thread/LockHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go typed extern bridge for the runtime/hxrt/thread.go lock carrier, kept under std/_std so staged sys.thread overrides can use runtime-backed locks without compiler-owned wrappers."
+    },
+    {
+      "path": "std/_std/hxrt/thread/MutexHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go typed extern bridge for the runtime/hxrt/thread.go mutex carrier, keeping the public sys.thread.Mutex API in staged std."
+    },
+    {
+      "path": "std/_std/hxrt/thread/NativeThread.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go typed extern bridge for the runtime/hxrt/thread.go logical-thread, message-queue, and event-loop entry points used by the staged sys.thread overrides."
+    },
+    {
+      "path": "std/_std/hxrt/thread/SemaphoreHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go typed extern bridge for the runtime/hxrt/thread.go semaphore carrier, keeping token accounting in the runtime while the public semaphore API stays source-owned."
     }
   ]
 }

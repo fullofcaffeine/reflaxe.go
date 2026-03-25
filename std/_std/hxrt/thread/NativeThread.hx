@@ -19,6 +19,44 @@ extern class NativeThread {
 	@:go.name("ThreadCurrentId")
 	public static function currentId():Int;
 
+	@:go.name("ThreadSpawn")
+	public static function spawn(job:() -> Void):Int;
+	@:go.name("ThreadSpawnWithEventLoop")
+	public static function spawnWithEventLoop(job:() -> Void):Int;
+	@:go.name("ThreadHasEventLoop")
+	public static function hasEventLoop(threadId:Int):Bool;
+	@:go.name("ThreadEvents")
+	public static function events(threadId:Int):EventLoopHandle;
+	@:go.name("ThreadRunWithEventLoop")
+	public static function runWithEventLoop(job:() -> Void):Void;
+	@:go.name("ThreadSendMessage")
+	public static function sendMessage(threadId:Int, message:Dynamic):Void;
+	@:go.name("ThreadReadMessage")
+	public static function readMessage(block:Bool):Dynamic;
+
+	@:go.name("ThreadEventLoopNew")
+	public static function eventLoopNew():EventLoopHandle;
+	@:go.name("ThreadEventLoopPromise")
+	public static function eventLoopPromise(handle:EventLoopHandle):Void;
+	@:go.name("ThreadEventLoopRun")
+	public static function eventLoopRun(handle:EventLoopHandle, event:() -> Void):Void;
+	@:go.name("ThreadEventLoopRunPromised")
+	public static function eventLoopRunPromised(handle:EventLoopHandle, event:() -> Void):Void;
+	@:go.name("ThreadEventLoopRepeat")
+	public static function eventLoopRepeat(handle:EventLoopHandle, event:() -> Void, intervalMs:Int):Int;
+	@:go.name("ThreadEventLoopCancel")
+	public static function eventLoopCancel(handle:EventLoopHandle, eventId:Int):Void;
+	@:go.name("ThreadEventLoopProgress")
+	public static function eventLoopProgress(handle:EventLoopHandle):EventLoopProgress;
+	@:go.name("ThreadEventLoopWait")
+	public static function eventLoopWait(handle:EventLoopHandle):Bool;
+	@:go.name("ThreadEventLoopWaitTimeout")
+	public static function eventLoopWaitTimeout(handle:EventLoopHandle, timeout:Float):Bool;
+	@:go.name("ThreadEventLoopWaitTimeoutAny")
+	public static function eventLoopWaitTimeoutDynamic(handle:EventLoopHandle, timeout:Dynamic):Bool;
+	@:go.name("ThreadEventLoopLoop")
+	public static function eventLoopLoop(handle:EventLoopHandle):Void;
+
 	@:go.name("ThreadLockNew")
 	public static function lockNew():LockHandle;
 	@:go.name("ThreadLockWait")

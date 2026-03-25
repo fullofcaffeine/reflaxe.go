@@ -210,6 +210,24 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("sys.thread.ThreadPoolException");
 			case "sys.thread.IThreadPool":
 				requireSourceOwnedStdlibClass("sys.thread.IThreadPool");
+			case "sys.thread.EventLoop":
+				requireSourceOwnedStdlibModule("sys.thread.EventLoop");
+			case "sys.thread.Thread":
+				requireSourceOwnedStdlibClass("sys.thread.Thread");
+				requireSourceOwnedStdlibModule("sys.thread.EventLoop");
+				requireSourceOwnedStdlibClass("sys.thread.NoEventLoopException");
+			case "sys.thread.ElasticThreadPool":
+				requireSourceOwnedStdlibClass("sys.thread.ElasticThreadPool");
+				requireSourceOwnedStdlibClass("sys.thread.ElasticThreadPoolWorker");
+				requireSourceOwnedStdlibClass("sys.thread.Thread");
+				requireSourceOwnedStdlibModule("sys.thread.EventLoop");
+				requireSourceOwnedStdlibClass("sys.thread.ThreadPoolException");
+			case "sys.thread.FixedThreadPool":
+				requireSourceOwnedStdlibClass("sys.thread.FixedThreadPool");
+				requireSourceOwnedStdlibClass("sys.thread.FixedThreadPoolWorker");
+				requireSourceOwnedStdlibClass("sys.thread.FixedThreadPoolShutdownException");
+				requireSourceOwnedStdlibClass("sys.thread.Thread");
+				requireSourceOwnedStdlibClass("sys.thread.ThreadPoolException");
 			case "haxe.Template":
 				requireSourceOwnedStdlibModule("haxe.Template");
 				requireStdlibShimGroup("stdlib_symbols");
