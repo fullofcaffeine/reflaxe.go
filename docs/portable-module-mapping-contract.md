@@ -53,6 +53,15 @@ Contract inputs:
 | `sys.io.Process` | `runtime_binding` | `src/reflaxe/go/GoCompiler.hx` (`lowerSysStdlibShimDecls` forwarding wrappers) | `runtime/hxrt/process.go` (`NewProcess`, `ProcessOutput`) | `process_echo_contract` |
 | `sys.net.Socket` | `compiler_intrinsic` | `src/reflaxe/go/GoCompiler.hx` (`lowerNetSocketShimDecls`) | Uses core runtime helpers (`Throw`, string conversion) where needed | `socket_advanced_contract`, `socket_loopback_contract` |
 
+## Additional Mixed-Ownership Rows
+
+These modules are outside the Tier1 seed table above, but they are important enough to record explicitly because
+their ownership split is easy to misunderstand.
+
+| Module family | Ownership class | Public implementation location | Backend-owned support beneath it | Evidence |
+| --- | --- | --- | --- | --- |
+| `haxe.rtti.*` (`CType`, `Meta`, `Rtti`, `XmlParser`) | `mixed` | `std/haxe/rtti/*.cross.hx` | class-token `__meta__` / `__rtti` lookup contract plus anonymous-record array-field mutation lowering in the compiler | `semantic_diff/haxe_rtti_direct_contract`, `stdlib/haxe_rtti_direct` |
+
 ## Notes on Staged Source Injection
 
 Staged portable overrides are injected first for Go builds by:

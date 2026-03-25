@@ -95,6 +95,15 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("haxe.NativeStackTrace");
 			case "haxe.http.HttpBase":
 				requireSourceOwnedStdlibClass("haxe.http.HttpBase");
+			case "haxe.rtti.Meta":
+				requireSourceOwnedStdlibClass("haxe.rtti.Meta");
+			case "haxe.rtti.Rtti":
+				requireSourceOwnedStdlibClass("haxe.rtti.Rtti");
+			case "haxe.rtti.XmlParser":
+				requireSourceOwnedStdlibClass("haxe.rtti.XmlParser");
+				requireSourceOwnedStdlibModule("haxe.rtti.CType");
+			case "haxe.rtti.TypeApi", "haxe.rtti.CTypeTools":
+				requireSourceOwnedStdlibModule("haxe.rtti.CType");
 			case "haxe.EntryPoint":
 				failDirectEventLoopSurface("haxe.EntryPoint", classType.pos);
 			case "haxe.MainLoop":

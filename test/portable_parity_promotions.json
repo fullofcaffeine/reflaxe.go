@@ -50,6 +50,10 @@
       "haxe.iterators.StringIteratorUnicode",
       "haxe.iterators.StringKeyValueIterator",
       "haxe.iterators.StringKeyValueIteratorUnicode",
+      "haxe.rtti.CType",
+      "haxe.rtti.Meta",
+      "haxe.rtti.Rtti",
+      "haxe.rtti.XmlParser",
       "sys.FileStat"
     ]
   }

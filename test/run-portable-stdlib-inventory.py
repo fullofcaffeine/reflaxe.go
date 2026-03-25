@@ -103,6 +103,10 @@ OWNER_OVERRIDES = {
     "haxe.Template": "staged_std",
     "haxe.Timer": "mixed",
     "haxe.Utf8": "staged_std",
+    "haxe.rtti.CType": "mixed",
+    "haxe.rtti.Meta": "mixed",
+    "haxe.rtti.Rtti": "mixed",
+    "haxe.rtti.XmlParser": "mixed",
     "haxe.ds.WeakMap": "staged_std",
     "EReg": "compiler_shim",
     "haxe.Serializer": "compiler_shim",
@@ -206,6 +210,28 @@ MODULE_NOTES_OVERRIDES = {
         "on Go, `new haxe.ds.WeakMap()` preserves the generic Haxe stdlib contract and throws "
         "`haxe.exceptions.NotImplementedException` instead of pretending to expose real weak references. "
         "Evidence: semantic_diff/haxe_ds_weakmap_contract and stdlib/haxe_ds_weakmap_platform."
+    ),
+    "haxe.rtti.CType": (
+        "Direct RTTI typedefs, enums, `TypeApi`, and `CTypeTools` now have semantic-diff coverage through "
+        "`semantic_diff/haxe_rtti_direct_contract` and snapshot coverage in `stdlib/haxe_rtti_direct`. "
+        "Ownership stays mixed: the public Haxe-facing API lives in staged std overrides under `std/haxe/rtti/**`, "
+        "while the backend still owns the narrow class-token `__meta__` / `__rtti` contract and anonymous-record "
+        "array-field mutation lowering that those overrides rely on."
+    ),
+    "haxe.rtti.Meta": (
+        "Direct `haxe.rtti.Meta` access now has semantic-diff coverage through `semantic_diff/haxe_rtti_direct_contract` "
+        "and snapshot coverage in `stdlib/haxe_rtti_direct`. The staged override keeps the public API source-owned "
+        "while routing metadata lookup through the backend-owned class-token `__meta__` contract."
+    ),
+    "haxe.rtti.Rtti": (
+        "Direct `haxe.rtti.Rtti` access now has semantic-diff coverage through `semantic_diff/haxe_rtti_direct_contract` "
+        "and snapshot coverage in `stdlib/haxe_rtti_direct`. The staged override keeps the public API source-owned "
+        "while routing RTTI lookup through the backend-owned class-token `__rtti` contract."
+    ),
+    "haxe.rtti.XmlParser": (
+        "Direct `haxe.rtti.XmlParser` parsing now has semantic-diff coverage through `semantic_diff/haxe_rtti_direct_contract` "
+        "and snapshot coverage in `stdlib/haxe_rtti_direct`. Ownership stays mixed: parser logic is staged std, while the "
+        "backend still owns the anonymous-record array-field mutation fix that makes RTTI record merging lower honestly on Go."
     ),
 }
 

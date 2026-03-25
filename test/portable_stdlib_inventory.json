@@ -1687,64 +1687,56 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_rtti_direct",
-      "blocker_issue": "haxe.go-14as.57",
-      "closure_target": "2026-04-28",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.rtti.CType",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.57 (haxe_rtti_direct); closure target 2026-04-28.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct RTTI typedefs, enums, `TypeApi`, and `CTypeTools` now have semantic-diff coverage through `semantic_diff/haxe_rtti_direct_contract` and snapshot coverage in `stdlib/haxe_rtti_direct`. Ownership stays mixed: the public Haxe-facing API lives in staged std overrides under `std/haxe/rtti/**`, while the backend still owns the narrow class-token `__meta__` / `__rtti` contract and anonymous-record array-field mutation lowering that those overrides rely on.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_rtti_direct",
-      "blocker_issue": "haxe.go-14as.57",
-      "closure_target": "2026-04-28",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.rtti.Meta",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.57 (haxe_rtti_direct); closure target 2026-04-28.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.rtti.Meta` access now has semantic-diff coverage through `semantic_diff/haxe_rtti_direct_contract` and snapshot coverage in `stdlib/haxe_rtti_direct`. The staged override keeps the public API source-owned while routing metadata lookup through the backend-owned class-token `__meta__` contract.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_rtti_direct",
-      "blocker_issue": "haxe.go-14as.57",
-      "closure_target": "2026-04-28",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.rtti.Rtti",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.57 (haxe_rtti_direct); closure target 2026-04-28.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.rtti.Rtti` access now has semantic-diff coverage through `semantic_diff/haxe_rtti_direct_contract` and snapshot coverage in `stdlib/haxe_rtti_direct`. The staged override keeps the public API source-owned while routing RTTI lookup through the backend-owned class-token `__rtti` contract.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
-      "blocker_family": "haxe_rtti_direct",
-      "blocker_issue": "haxe.go-14as.57",
-      "closure_target": "2026-04-28",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.rtti.XmlParser",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.57 (haxe_rtti_direct); closure target 2026-04-28.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.rtti.XmlParser` parsing now has semantic-diff coverage through `semantic_diff/haxe_rtti_direct_contract` and snapshot coverage in `stdlib/haxe_rtti_direct`. Ownership stays mixed: parser logic is staged std, while the backend still owns the anonymous-record array-field mutation fix that makes RTTI record merging lower honestly on Go.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [

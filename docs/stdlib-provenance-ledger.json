@@ -53,6 +53,31 @@
       "notes": "Go staged portable override for haxe.Template execution semantics, keeping template parsing and macro-default behavior out of GoCompiler."
     },
     {
+      "path": "std/haxe/http/HttpBase.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for direct haxe.http.HttpBase baseline ownership, keeping the public HTTP base surface in std while compiler-owned request choreography stays below it."
+    },
+    {
+      "path": "std/haxe/rtti/CType.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override bundle for haxe.rtti.CType typedefs, enums, TypeApi, and CTypeTools, keeping public RTTI type logic out of GoCompiler."
+    },
+    {
+      "path": "std/haxe/rtti/Meta.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.rtti.Meta, routing public metadata access through the backend-owned class-token __meta__ contract."
+    },
+    {
+      "path": "std/haxe/rtti/Rtti.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.rtti.Rtti, routing public RTTI lookup through the backend-owned class-token __rtti contract."
+    },
+    {
+      "path": "std/haxe/rtti/XmlParser.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for haxe.rtti.XmlParser, keeping parser logic in std while relying on the backend-owned anonymous-record mutation and RTTI metadata contracts underneath."
+    },
+    {
       "path": "std/haxe/exceptions/PosException.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged portable override for direct haxe.exceptions.PosException construction/toString ownership, keeping subclass parity out of GoCompiler."
