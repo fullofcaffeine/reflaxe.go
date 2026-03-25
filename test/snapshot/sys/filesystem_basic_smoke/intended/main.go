@@ -92,6 +92,20 @@ type haxe__io__Input interface {
 	readByte() int
 	readBytes(buf *haxe__io__Bytes, pos int, len int) int
 	close()
+	readAll(bufsize ...int) *haxe__io__Bytes
+	readFullBytes(s *haxe__io__Bytes, pos int, len int)
+	read(nbytes int) *haxe__io__Bytes
+	readUntil(end int) *string
+	readLine() *string
+	readFloat() float64
+	readDouble() float64
+	readInt8() int
+	readInt16() int
+	readUInt16() int
+	readInt24() int
+	readUInt24() int
+	readInt32() int
+	readString(len int, encoding ...*haxe__io__Encoding) *string
 }
 
 type haxe__io__Output interface {
@@ -101,6 +115,19 @@ type haxe__io__Output interface {
 	writeBytes(s *haxe__io__Bytes, pos int, len int) int
 	flush()
 	close()
+	write(s *haxe__io__Bytes)
+	writeFullBytes(s *haxe__io__Bytes, pos int, len int)
+	writeFloat(x float64)
+	writeDouble(x float64)
+	writeInt8(x int)
+	writeInt16(x int)
+	writeUInt16(x int)
+	writeInt24(x int)
+	writeUInt24(x int)
+	writeInt32(x int)
+	prepare(nbytes int)
+	writeInput(i haxe__io__Input, bufsize ...int)
+	writeString(s *string, encoding ...*haxe__io__Encoding)
 }
 
 type haxe__io__Eof struct {
@@ -145,6 +172,11 @@ func New_haxe__io__Output() haxe__io__Output {
 
 func New_haxe__io__Eof() *haxe__io__Eof {
 	return &haxe__io__Eof{}
+}
+
+func (self *haxe__io__Eof) String() string {
+	_ = self
+	return "Eof"
 }
 
 var haxe__io__Encoding_UTF8 *haxe__io__Encoding = &haxe__io__Encoding{tag: 0}
@@ -424,6 +456,233 @@ func (self *haxe__io__BytesBuffer) get_length() int {
 	return hxrt.BytesBufferLength(self.b)
 }
 
+func haxe__io__input_isEof(value any) bool {
+	_, ok := value.(*haxe__io__Eof)
+	return ok
+}
+
+func haxe__io__input_readAll(self haxe__io__Input, bufsize ...int) *haxe__io__Bytes {
+	resolved := 1 << 14
+	if len(bufsize) > 0 {
+		resolved = bufsize[0]
+	}
+	return haxe__io__GoIoHelpers_inputReadAll(self, resolved)
+}
+
+func haxe__io__input_readFullBytes(self haxe__io__Input, s *haxe__io__Bytes, pos int, len int) {
+	haxe__io__GoIoHelpers_inputReadFullBytes(self, s, pos, len)
+}
+
+func haxe__io__input_read(self haxe__io__Input, nbytes int) *haxe__io__Bytes {
+	return haxe__io__GoIoHelpers_inputRead(self, nbytes)
+}
+
+func haxe__io__input_readUntil(self haxe__io__Input, end int) *string {
+	return haxe__io__GoIoHelpers_inputReadUntil(self, end)
+}
+
+func haxe__io__input_readLine(self haxe__io__Input) *string {
+	return haxe__io__GoIoHelpers_inputReadLine(self)
+}
+
+func haxe__io__input_readFloat(self haxe__io__Input) float64 {
+	bits := uint32(self.readInt32())
+	return float64(math.Float32frombits(bits))
+}
+
+func haxe__io__input_readDouble(self haxe__io__Input) float64 {
+	i1 := self.readInt32()
+	i2 := self.readInt32()
+	if self.get_bigEndian() {
+		return math.Float64frombits((uint64(uint32(i1)) << 32) | uint64(uint32(i2)))
+	}
+	return math.Float64frombits((uint64(uint32(i2)) << 32) | uint64(uint32(i1)))
+}
+
+func haxe__io__input_readInt8(self haxe__io__Input) int {
+	n := self.readByte()
+	if n >= 128 {
+		return n - 256
+	}
+	return n
+}
+
+func haxe__io__input_readInt16(self haxe__io__Input) int {
+	ch1 := self.readByte()
+	ch2 := self.readByte()
+	n := 0
+	if self.get_bigEndian() {
+		n = ch2 | (ch1 << 8)
+	} else {
+		n = ch1 | (ch2 << 8)
+	}
+	if (n & 0x8000) != 0 {
+		return n - 0x10000
+	}
+	return n
+}
+
+func haxe__io__input_readUInt16(self haxe__io__Input) int {
+	ch1 := self.readByte()
+	ch2 := self.readByte()
+	if self.get_bigEndian() {
+		return ch2 | (ch1 << 8)
+	}
+	return ch1 | (ch2 << 8)
+}
+
+func haxe__io__input_readInt24(self haxe__io__Input) int {
+	ch1 := self.readByte()
+	ch2 := self.readByte()
+	ch3 := self.readByte()
+	n := 0
+	if self.get_bigEndian() {
+		n = ch3 | (ch2 << 8) | (ch1 << 16)
+	} else {
+		n = ch1 | (ch2 << 8) | (ch3 << 16)
+	}
+	if (n & 0x800000) != 0 {
+		return n - 0x1000000
+	}
+	return n
+}
+
+func haxe__io__input_readUInt24(self haxe__io__Input) int {
+	ch1 := self.readByte()
+	ch2 := self.readByte()
+	ch3 := self.readByte()
+	if self.get_bigEndian() {
+		return ch3 | (ch2 << 8) | (ch1 << 16)
+	}
+	return ch1 | (ch2 << 8) | (ch3 << 16)
+}
+
+func haxe__io__input_readInt32(self haxe__io__Input) int {
+	ch1 := self.readByte()
+	ch2 := self.readByte()
+	ch3 := self.readByte()
+	ch4 := self.readByte()
+	if self.get_bigEndian() {
+		return ch4 | (ch3 << 8) | (ch2 << 16) | (ch1 << 24)
+	}
+	return ch1 | (ch2 << 8) | (ch3 << 16) | (ch4 << 24)
+}
+
+func haxe__io__input_readString(self haxe__io__Input, len int, encoding ...*haxe__io__Encoding) *string {
+	b := haxe__io__Bytes_alloc(len)
+	haxe__io__input_readFullBytes(self, b, 0, len)
+	return b.getString(0, len, encoding...)
+}
+
+func haxe__io__output_write(self haxe__io__Output, s *haxe__io__Bytes) {
+	haxe__io__GoIoHelpers_outputWrite(self, s)
+}
+
+func haxe__io__output_writeFullBytes(self haxe__io__Output, s *haxe__io__Bytes, pos int, len int) {
+	haxe__io__GoIoHelpers_outputWriteFullBytes(self, s, pos, len)
+}
+
+func haxe__io__output_writeFloat(self haxe__io__Output, x float64) {
+	self.writeInt32(int(math.Float32bits(float32(x))))
+}
+
+func haxe__io__output_writeDouble(self haxe__io__Output, x float64) {
+	bits := math.Float64bits(x)
+	low := int(uint32(bits))
+	high := int(uint32(bits >> 32))
+	if self.get_bigEndian() {
+		self.writeInt32(high)
+		self.writeInt32(low)
+		return
+	}
+	self.writeInt32(low)
+	self.writeInt32(high)
+}
+
+func haxe__io__output_writeInt8(self haxe__io__Output, x int) {
+	if x < -0x80 || x >= 0x80 {
+		hxrt.Throw(haxe__io__Error_Overflow)
+		return
+	}
+	self.writeByte(x & 0xFF)
+}
+
+func haxe__io__output_writeInt16(self haxe__io__Output, x int) {
+	if x < -0x8000 || x >= 0x8000 {
+		hxrt.Throw(haxe__io__Error_Overflow)
+		return
+	}
+	self.writeUInt16(x & 0xFFFF)
+}
+
+func haxe__io__output_writeUInt16(self haxe__io__Output, x int) {
+	if x < 0 || x >= 0x10000 {
+		hxrt.Throw(haxe__io__Error_Overflow)
+		return
+	}
+	if self.get_bigEndian() {
+		self.writeByte(x >> 8)
+		self.writeByte(x & 0xFF)
+		return
+	}
+	self.writeByte(x & 0xFF)
+	self.writeByte(x >> 8)
+}
+
+func haxe__io__output_writeInt24(self haxe__io__Output, x int) {
+	if x < -0x800000 || x >= 0x800000 {
+		hxrt.Throw(haxe__io__Error_Overflow)
+		return
+	}
+	self.writeUInt24(x & 0xFFFFFF)
+}
+
+func haxe__io__output_writeUInt24(self haxe__io__Output, x int) {
+	if x < 0 || x >= 0x1000000 {
+		hxrt.Throw(haxe__io__Error_Overflow)
+		return
+	}
+	if self.get_bigEndian() {
+		self.writeByte(x >> 16)
+		self.writeByte((x >> 8) & 0xFF)
+		self.writeByte(x & 0xFF)
+		return
+	}
+	self.writeByte(x & 0xFF)
+	self.writeByte((x >> 8) & 0xFF)
+	self.writeByte(x >> 16)
+}
+
+func haxe__io__output_writeInt32(self haxe__io__Output, x int) {
+	if self.get_bigEndian() {
+		self.writeByte(int(uint(x) >> 24))
+		self.writeByte((x >> 16) & 0xFF)
+		self.writeByte((x >> 8) & 0xFF)
+		self.writeByte(x & 0xFF)
+		return
+	}
+	self.writeByte(x & 0xFF)
+	self.writeByte((x >> 8) & 0xFF)
+	self.writeByte((x >> 16) & 0xFF)
+	self.writeByte(int(uint(x) >> 24))
+}
+
+func haxe__io__output_writeInput(self haxe__io__Output, i haxe__io__Input, bufsize ...int) {
+	resolved := 4096
+	if len(bufsize) > 0 {
+		resolved = bufsize[0]
+	}
+	haxe__io__GoIoHelpers_outputWriteInput(self, i, resolved)
+}
+
+func haxe__io__output_writeString(self haxe__io__Output, s *string, encoding ...*haxe__io__Encoding) {
+	var resolved *haxe__io__Encoding
+	if len(encoding) > 0 {
+		resolved = encoding[0]
+	}
+	haxe__io__GoIoHelpers_outputWriteString(self, s, resolved)
+}
+
 func New_haxe__io__BytesInput(b *haxe__io__Bytes, opts ...int) *haxe__io__BytesInput {
 	if b == nil {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
@@ -517,6 +776,62 @@ func (self *haxe__io__BytesInput) close() {
 	_ = self
 }
 
+func (self *haxe__io__BytesInput) readAll(bufsize ...int) *haxe__io__Bytes {
+	return haxe__io__input_readAll(self, bufsize...)
+}
+
+func (self *haxe__io__BytesInput) readFullBytes(s *haxe__io__Bytes, pos int, len int) {
+	haxe__io__input_readFullBytes(self, s, pos, len)
+}
+
+func (self *haxe__io__BytesInput) read(nbytes int) *haxe__io__Bytes {
+	return haxe__io__input_read(self, nbytes)
+}
+
+func (self *haxe__io__BytesInput) readUntil(end int) *string {
+	return haxe__io__input_readUntil(self, end)
+}
+
+func (self *haxe__io__BytesInput) readLine() *string {
+	return haxe__io__input_readLine(self)
+}
+
+func (self *haxe__io__BytesInput) readFloat() float64 {
+	return haxe__io__input_readFloat(self)
+}
+
+func (self *haxe__io__BytesInput) readDouble() float64 {
+	return haxe__io__input_readDouble(self)
+}
+
+func (self *haxe__io__BytesInput) readInt8() int {
+	return haxe__io__input_readInt8(self)
+}
+
+func (self *haxe__io__BytesInput) readInt16() int {
+	return haxe__io__input_readInt16(self)
+}
+
+func (self *haxe__io__BytesInput) readUInt16() int {
+	return haxe__io__input_readUInt16(self)
+}
+
+func (self *haxe__io__BytesInput) readInt24() int {
+	return haxe__io__input_readInt24(self)
+}
+
+func (self *haxe__io__BytesInput) readUInt24() int {
+	return haxe__io__input_readUInt24(self)
+}
+
+func (self *haxe__io__BytesInput) readInt32() int {
+	return haxe__io__input_readInt32(self)
+}
+
+func (self *haxe__io__BytesInput) readString(len int, encoding ...*haxe__io__Encoding) *string {
+	return haxe__io__input_readString(self, len, encoding...)
+}
+
 func New_haxe__io__BytesOutput() *haxe__io__BytesOutput {
 	return &haxe__io__BytesOutput{b: &haxe__io__BytesBuffer{b: []int{}}}
 }
@@ -569,6 +884,59 @@ func (self *haxe__io__BytesOutput) close() {
 	_ = self
 }
 
+func (self *haxe__io__BytesOutput) write(s *haxe__io__Bytes) {
+	haxe__io__output_write(self, s)
+}
+
+func (self *haxe__io__BytesOutput) writeFullBytes(s *haxe__io__Bytes, pos int, len int) {
+	haxe__io__output_writeFullBytes(self, s, pos, len)
+}
+
+func (self *haxe__io__BytesOutput) writeFloat(x float64) {
+	haxe__io__output_writeFloat(self, x)
+}
+
+func (self *haxe__io__BytesOutput) writeDouble(x float64) {
+	haxe__io__output_writeDouble(self, x)
+}
+
+func (self *haxe__io__BytesOutput) writeInt8(x int) {
+	haxe__io__output_writeInt8(self, x)
+}
+
+func (self *haxe__io__BytesOutput) writeInt16(x int) {
+	haxe__io__output_writeInt16(self, x)
+}
+
+func (self *haxe__io__BytesOutput) writeUInt16(x int) {
+	haxe__io__output_writeUInt16(self, x)
+}
+
+func (self *haxe__io__BytesOutput) writeInt24(x int) {
+	haxe__io__output_writeInt24(self, x)
+}
+
+func (self *haxe__io__BytesOutput) writeUInt24(x int) {
+	haxe__io__output_writeUInt24(self, x)
+}
+
+func (self *haxe__io__BytesOutput) writeInt32(x int) {
+	haxe__io__output_writeInt32(self, x)
+}
+
+func (self *haxe__io__BytesOutput) prepare(nbytes int) {
+	_ = self
+	_ = nbytes
+}
+
+func (self *haxe__io__BytesOutput) writeInput(i haxe__io__Input, bufsize ...int) {
+	haxe__io__output_writeInput(self, i, bufsize...)
+}
+
+func (self *haxe__io__BytesOutput) writeString(s *string, encoding ...*haxe__io__Encoding) {
+	haxe__io__output_writeString(self, s, encoding...)
+}
+
 func (self *haxe__io__BytesOutput) getBytes() *haxe__io__Bytes {
 	if self == nil || self.b == nil {
 		return &haxe__io__Bytes{b: []int{}, length: 0}
@@ -582,6 +950,45 @@ type Sys struct {
 type sys__io__File struct {
 }
 
+type I_sys__io__FileInput interface {
+}
+
+type sys__io__FileInput struct {
+	__hx_this         I_sys__io__FileInput
+	__hx_io_bigEndian bool
+}
+
+func New_sys__io__FileInput() *sys__io__FileInput {
+	self := &sys__io__FileInput{}
+	self.__hx_this = self
+	return self
+}
+
+type I_sys__io__FileOutput interface {
+}
+
+type sys__io__FileOutput struct {
+	__hx_this         I_sys__io__FileOutput
+	__hx_io_bigEndian bool
+}
+
+func New_sys__io__FileOutput() *sys__io__FileOutput {
+	self := &sys__io__FileOutput{}
+	self.__hx_this = self
+	return self
+}
+
+type sys__io__FileSeek struct {
+	tag    int
+	params []any
+}
+
+var sys__io__FileSeek_SeekBegin *sys__io__FileSeek = &sys__io__FileSeek{tag: 0}
+
+var sys__io__FileSeek_SeekCur *sys__io__FileSeek = &sys__io__FileSeek{tag: 1}
+
+var sys__io__FileSeek_SeekEnd *sys__io__FileSeek = &sys__io__FileSeek{tag: 2}
+
 type sys__io__ProcessOutput struct {
 	impl *hxrt.ProcessOutput
 }
@@ -589,6 +996,24 @@ type sys__io__ProcessOutput struct {
 type sys__io__Process struct {
 	impl   *hxrt.Process
 	stdout *sys__io__ProcessOutput
+}
+
+var sys__io__fileInputHandles map[*sys__io__FileInput]*hxrt.FileInput = map[*sys__io__FileInput]*hxrt.FileInput{}
+
+var sys__io__fileOutputHandles map[*sys__io__FileOutput]*hxrt.FileOutput = map[*sys__io__FileOutput]*hxrt.FileOutput{}
+
+func sys__io__fileSeekWhence(pos *sys__io__FileSeek) int {
+	if pos == nil {
+		return 0
+	}
+	switch pos.tag {
+	case 1:
+		return 1
+	case 2:
+		return 2
+	default:
+		return 0
+	}
 }
 
 func Sys_getCwd() *string {
@@ -619,6 +1044,134 @@ func sys__io__File_getContent(path *string) *string {
 	return hxrt.FileGetContent(path)
 }
 
+func sys__io__File_getBytes(path *string) *haxe__io__Bytes {
+	raw, err := hxrt.FileGetBytes(path)
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		return &haxe__io__Bytes{b: []int{}, length: 0}
+	}
+	return hxrt_rawToHaxeBytes(raw)
+}
+
+func sys__io__File_saveBytes(path *string, bytes *haxe__io__Bytes) {
+	if err := hxrt.FileSaveBytes(path, hxrt_haxeBytesToRaw(bytes)); err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+	}
+}
+
+func sys__io__File_copy(srcPath *string, dstPath *string) {
+	if err := hxrt.FileCopy(srcPath, dstPath); err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+	}
+}
+
+func sys__io__File_read(path *string, binary bool) *sys__io__FileInput {
+	_ = binary
+	impl, err := hxrt.OpenFileInput(path)
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		return New_sys__io__FileInput()
+	}
+	self := New_sys__io__FileInput()
+	sys__io__fileInputHandles[self] = impl
+	return self
+}
+
+func sys__io__File_write(path *string, binary bool) *sys__io__FileOutput {
+	_ = binary
+	impl, err := hxrt.OpenFileWriteOutput(path)
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		return New_sys__io__FileOutput()
+	}
+	self := New_sys__io__FileOutput()
+	sys__io__fileOutputHandles[self] = impl
+	return self
+}
+
+func sys__io__File_append(path *string, binary bool) *sys__io__FileOutput {
+	_ = binary
+	impl, err := hxrt.OpenFileAppendOutput(path)
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		return New_sys__io__FileOutput()
+	}
+	self := New_sys__io__FileOutput()
+	sys__io__fileOutputHandles[self] = impl
+	return self
+}
+
+func sys__io__File_update(path *string, binary bool) *sys__io__FileOutput {
+	_ = binary
+	impl, err := hxrt.OpenFileUpdateOutput(path)
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		return New_sys__io__FileOutput()
+	}
+	self := New_sys__io__FileOutput()
+	sys__io__fileOutputHandles[self] = impl
+	return self
+}
+
+func (self *sys__io__FileInput) tell() int {
+	impl := sys__io__fileInputHandles[self]
+	if impl == nil {
+		return 0
+	}
+	pos, err := impl.Tell()
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		return 0
+	}
+	return pos
+}
+
+func (self *sys__io__FileInput) seek(p int, pos *sys__io__FileSeek) {
+	impl := sys__io__fileInputHandles[self]
+	if impl == nil {
+		return
+	}
+	if err := impl.Seek(p, sys__io__fileSeekWhence(pos)); err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+	}
+}
+
+func (self *sys__io__FileInput) eof() bool {
+	impl := sys__io__fileInputHandles[self]
+	if impl == nil {
+		return true
+	}
+	eof, err := impl.Eof()
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		return true
+	}
+	return eof
+}
+
+func (self *sys__io__FileOutput) tell() int {
+	impl := sys__io__fileOutputHandles[self]
+	if impl == nil {
+		return 0
+	}
+	pos, err := impl.Tell()
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		return 0
+	}
+	return pos
+}
+
+func (self *sys__io__FileOutput) seek(p int, pos *sys__io__FileSeek) {
+	impl := sys__io__fileOutputHandles[self]
+	if impl == nil {
+		return
+	}
+	if err := impl.Seek(p, sys__io__fileSeekWhence(pos)); err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+	}
+}
+
 func New_sys__io__Process(command *string, args []*string) *sys__io__Process {
 	impl := hxrt.NewProcess(command, args)
 	stdout := &sys__io__ProcessOutput{}
@@ -640,6 +1193,258 @@ func (self *sys__io__Process) close() {
 		return
 	}
 	self.impl.Close()
+}
+
+func (self *sys__io__FileInput) get_bigEndian() bool {
+	if self == nil {
+		return false
+	}
+	return self.__hx_io_bigEndian
+}
+
+func (self *sys__io__FileInput) set_bigEndian(e bool) bool {
+	if self != nil {
+		self.__hx_io_bigEndian = e
+	}
+	return e
+}
+
+func (self *sys__io__FileInput) close() {
+	impl := sys__io__fileInputHandles[self]
+	if impl == nil {
+		return
+	}
+	if err := impl.Close(); err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		return
+	}
+	delete(sys__io__fileInputHandles, self)
+}
+
+func (self *sys__io__FileInput) readByte() int {
+	impl := sys__io__fileInputHandles[self]
+	if impl == nil {
+		hxrt.Throw(&haxe__io__Eof{})
+		return 0
+	}
+	value, eof, err := impl.ReadByte()
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		return 0
+	}
+	if eof {
+		hxrt.Throw(&haxe__io__Eof{})
+		return 0
+	}
+	return value
+}
+
+func (self *sys__io__FileInput) readBytes(buf *haxe__io__Bytes, pos int, len int) int {
+	if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {
+		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		return 0
+	}
+	if self == nil {
+		hxrt.Throw(haxe__io__Error_Blocked)
+		return 0
+	}
+	k := 0
+	for k < len {
+		value := 0
+		threw := false
+		var thrown any
+		func() {
+			defer func() {
+				if recovered := recover(); recovered != nil {
+					threw = true
+					thrown = hxrt.UnwrapException(recovered)
+				}
+			}()
+			value = self.readByte()
+		}()
+		if threw {
+			if haxe__io__input_isEof(thrown) {
+				if k > 0 {
+					return k
+				}
+			}
+			hxrt.Throw(thrown)
+			return 0
+		}
+		buf.b[pos+k] = value
+		k++
+	}
+	return len
+}
+
+func (self *sys__io__FileOutput) get_bigEndian() bool {
+	if self == nil {
+		return false
+	}
+	return self.__hx_io_bigEndian
+}
+
+func (self *sys__io__FileOutput) set_bigEndian(e bool) bool {
+	if self != nil {
+		self.__hx_io_bigEndian = e
+	}
+	return e
+}
+
+func (self *sys__io__FileOutput) flush() {
+	impl := sys__io__fileOutputHandles[self]
+	if impl == nil {
+		return
+	}
+	if err := impl.Flush(); err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+	}
+}
+
+func (self *sys__io__FileOutput) close() {
+	impl := sys__io__fileOutputHandles[self]
+	if impl == nil {
+		return
+	}
+	if err := impl.Close(); err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		return
+	}
+	delete(sys__io__fileOutputHandles, self)
+}
+
+func (self *sys__io__FileOutput) prepare(nbytes int) {
+	_ = self
+	_ = nbytes
+}
+
+func (self *sys__io__FileOutput) writeByte(c int) {
+	impl := sys__io__fileOutputHandles[self]
+	if impl == nil {
+		hxrt.Throw(hxrt.StringFromLiteral("FileOutput is closed"))
+		return
+	}
+	if err := impl.WriteByte(c); err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+	}
+}
+
+func (self *sys__io__FileOutput) writeBytes(s *haxe__io__Bytes, pos int, len int) int {
+	if s == nil || pos < 0 || len < 0 || pos+len > s.length {
+		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		return 0
+	}
+	n := len
+	for len > 0 {
+		self.writeByte(s.b[pos])
+		pos++
+		len--
+	}
+	return n
+}
+
+func (self *sys__io__FileInput) readAll(bufsize ...int) *haxe__io__Bytes {
+	return haxe__io__input_readAll(self, bufsize...)
+}
+
+func (self *sys__io__FileInput) readFullBytes(s *haxe__io__Bytes, pos int, len int) {
+	haxe__io__input_readFullBytes(self, s, pos, len)
+}
+
+func (self *sys__io__FileInput) read(nbytes int) *haxe__io__Bytes {
+	return haxe__io__input_read(self, nbytes)
+}
+
+func (self *sys__io__FileInput) readUntil(end int) *string {
+	return haxe__io__input_readUntil(self, end)
+}
+
+func (self *sys__io__FileInput) readLine() *string {
+	return haxe__io__input_readLine(self)
+}
+
+func (self *sys__io__FileInput) readFloat() float64 {
+	return haxe__io__input_readFloat(self)
+}
+
+func (self *sys__io__FileInput) readDouble() float64 {
+	return haxe__io__input_readDouble(self)
+}
+
+func (self *sys__io__FileInput) readInt8() int {
+	return haxe__io__input_readInt8(self)
+}
+
+func (self *sys__io__FileInput) readInt16() int {
+	return haxe__io__input_readInt16(self)
+}
+
+func (self *sys__io__FileInput) readUInt16() int {
+	return haxe__io__input_readUInt16(self)
+}
+
+func (self *sys__io__FileInput) readInt24() int {
+	return haxe__io__input_readInt24(self)
+}
+
+func (self *sys__io__FileInput) readUInt24() int {
+	return haxe__io__input_readUInt24(self)
+}
+
+func (self *sys__io__FileInput) readInt32() int {
+	return haxe__io__input_readInt32(self)
+}
+
+func (self *sys__io__FileInput) readString(len int, encoding ...*haxe__io__Encoding) *string {
+	return haxe__io__input_readString(self, len, encoding...)
+}
+
+func (self *sys__io__FileOutput) write(s *haxe__io__Bytes) {
+	haxe__io__output_write(self, s)
+}
+
+func (self *sys__io__FileOutput) writeFullBytes(s *haxe__io__Bytes, pos int, len int) {
+	haxe__io__output_writeFullBytes(self, s, pos, len)
+}
+
+func (self *sys__io__FileOutput) writeFloat(x float64) {
+	haxe__io__output_writeFloat(self, x)
+}
+
+func (self *sys__io__FileOutput) writeDouble(x float64) {
+	haxe__io__output_writeDouble(self, x)
+}
+
+func (self *sys__io__FileOutput) writeInt8(x int) {
+	haxe__io__output_writeInt8(self, x)
+}
+
+func (self *sys__io__FileOutput) writeInt16(x int) {
+	haxe__io__output_writeInt16(self, x)
+}
+
+func (self *sys__io__FileOutput) writeUInt16(x int) {
+	haxe__io__output_writeUInt16(self, x)
+}
+
+func (self *sys__io__FileOutput) writeInt24(x int) {
+	haxe__io__output_writeInt24(self, x)
+}
+
+func (self *sys__io__FileOutput) writeUInt24(x int) {
+	haxe__io__output_writeUInt24(self, x)
+}
+
+func (self *sys__io__FileOutput) writeInt32(x int) {
+	haxe__io__output_writeInt32(self, x)
+}
+
+func (self *sys__io__FileOutput) writeInput(i haxe__io__Input, bufsize ...int) {
+	haxe__io__output_writeInput(self, i, bufsize...)
+}
+
+func (self *sys__io__FileOutput) writeString(s *string, encoding ...*haxe__io__Encoding) {
+	haxe__io__output_writeString(self, s, encoding...)
 }
 
 func sys__FileSystem_exists(path *string) bool {
@@ -2050,6 +2855,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return nil, false
 	case "haxe._Int64.___Int64":
 		return hxrt_typeCallAny(New_haxe___Int64_____Int64, args)
+	case "haxe.io.GoIoHelpers":
+		return nil, false
 	default:
 		return nil, false
 	}
@@ -2234,6 +3041,8 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "haxe._Int64.___Int64":
 		return nil
+	case "haxe.io.GoIoHelpers":
+		return nil
 	default:
 		return nil
 	}
@@ -2263,6 +3072,8 @@ func Type_getClassFields(c any) []*string {
 		return []*string{}
 	case "haxe._Int64.___Int64":
 		return []*string{}
+	case "haxe.io.GoIoHelpers":
+		return []*string{hxrt.StringFromLiteral("bytesOutputGetBytes"), hxrt.StringFromLiteral("inputRead"), hxrt.StringFromLiteral("inputReadAll"), hxrt.StringFromLiteral("inputReadBytes"), hxrt.StringFromLiteral("inputReadFullBytes"), hxrt.StringFromLiteral("inputReadLine"), hxrt.StringFromLiteral("inputReadUntil"), hxrt.StringFromLiteral("outputWrite"), hxrt.StringFromLiteral("outputWriteBytes"), hxrt.StringFromLiteral("outputWriteFullBytes"), hxrt.StringFromLiteral("outputWriteInput"), hxrt.StringFromLiteral("outputWriteString")}
 	default:
 		return []*string{}
 	}
@@ -2284,6 +3095,8 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{}
 	case "haxe._Int64.___Int64":
 		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
+	case "haxe.io.GoIoHelpers":
+		return []*string{}
 	default:
 		return []*string{}
 	}
@@ -2312,6 +3125,8 @@ func Type_resolveClass(name *string) any {
 	case "haxe._Int64.Int64_Impl_":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe._Int64.___Int64":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.io.GoIoHelpers":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil

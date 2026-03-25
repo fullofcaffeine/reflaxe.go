@@ -131,6 +131,22 @@ class GoSourceOwnedStdlibPlanner {
 				failDirectEventLoopSurface("haxe.Timer", classType.pos);
 			case "haxe.Log", "haxe.Resource", "haxe.SysTools":
 				requireSourceOwnedStdlibClass(fullClassName(classType));
+			case "sys.db.Connection":
+				requireSourceOwnedStdlibClass("sys.db.Connection");
+				requireSourceOwnedStdlibClass("sys.db.ResultSet");
+				requireSourceOwnedStdlibClass("StringBuf");
+			case "sys.db.ResultSet":
+				requireSourceOwnedStdlibClass("sys.db.ResultSet");
+			case "sys.db.Mysql":
+				requireSourceOwnedStdlibClass("sys.db.Mysql");
+				requireSourceOwnedStdlibClass("sys.db.Connection");
+				requireSourceOwnedStdlibClass("sys.db.ResultSet");
+				requireSourceOwnedStdlibClass("StringBuf");
+			case "sys.db.Sqlite":
+				requireSourceOwnedStdlibClass("sys.db.Sqlite");
+				requireSourceOwnedStdlibClass("sys.db.Connection");
+				requireSourceOwnedStdlibClass("sys.db.ResultSet");
+				requireSourceOwnedStdlibClass("StringBuf");
 			case "haxe.ds.ArraySort":
 				requireSourceOwnedStdlibClass("haxe.ds.ArraySort");
 			case "haxe.ds.BalancedTree":

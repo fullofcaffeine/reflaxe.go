@@ -304,23 +304,7 @@ class GoCompiler {
 		for (classType in classes) {
 			queuedClassNames.set(fullClassName(classType), true);
 		}
-		while (classQueue.length > 0) {
-			var classType = classQueue.shift();
-			appendModuleDecls(moduleDecls, classType.module, lowerClassDecls(classType));
-			for (requiredName in pendingRequiredClassesByName.keys()) {
-				if (queuedClassNames.exists(requiredName)) {
-					continue;
-				}
-				var requiredClass = pendingRequiredClassesByName.get(requiredName);
-				if (requiredClass == null) {
-					continue;
-				}
-				queuedClassNames.set(requiredName, true);
-				classQueue.push(requiredClass);
-				projectClasses.push(requiredClass);
-			}
-			clearClassMap(pendingRequiredClassesByName);
-		}
+		drainPendingClassQueue(moduleDecls, classQueue, queuedClassNames, projectClasses);
 		var queuedEnumNames = new Map<String, Bool>();
 		for (enumType in enums) {
 			queuedEnumNames.set(fullEnumName(enumType), true);
@@ -339,24 +323,10 @@ class GoCompiler {
 			projectEnums.push(requiredEnum);
 		}
 		clearEnumMap(pendingRequiredEnumsByName);
-		while (enumQueue.length > 0) {
-			var enumType = enumQueue.shift();
-			appendModuleDecls(moduleDecls, enumType.module, lowerEnumDecls(enumType));
-			for (requiredName in pendingRequiredEnumsByName.keys()) {
-				if (queuedEnumNames.exists(requiredName)) {
-					continue;
-				}
-				var requiredEnum = pendingRequiredEnumsByName.get(requiredName);
-				if (requiredEnum == null) {
-					continue;
-				}
-				queuedEnumNames.set(requiredName, true);
-				enumQueue.push(requiredEnum);
-				projectEnums.push(requiredEnum);
-			}
-			clearEnumMap(pendingRequiredEnumsByName);
-		}
+		drainPendingEnumQueue(moduleDecls, enumQueue, queuedEnumNames, projectEnums);
 		applyStdlibShimGroupDependencies();
+		drainPendingClassQueue(moduleDecls, classQueue, queuedClassNames, projectClasses);
+		drainPendingEnumQueue(moduleDecls, enumQueue, queuedEnumNames, projectEnums);
 
 		// Type reflection shims emitted with stdlib symbols rely on the same runtime
 		// class/enum marker structs used by TTypeExpr lowering.
@@ -1454,6 +1424,9 @@ class GoCompiler {
 	}
 
 	function lowerEnumDecls(enumType:EnumType):Array<GoDecl> {
+		if (GoStdlibOwnership.isCompilerOwnedAuthority(fullEnumName(enumType))) {
+			return [];
+		}
 		var decls = new Array<GoDecl>();
 		var enumName = enumTypeName(enumType);
 		decls.push(GoDecl.GoStructDecl(enumName, [{name: "tag", typeName: "int"}, {name: "params", typeName: "[]any"}]));
@@ -1505,6 +1478,74 @@ class GoCompiler {
 			decls = decls.concat(lowerClassDecls(classType));
 		}
 		return decls;
+	}
+
+	function drainPendingClassQueue(moduleDecls:Map<String, Array<GoDecl>>, classQueue:Array<ClassType>, queuedClassNames:Map<String, Bool>,
+			projectClasses:Array<ClassType>):Void {
+		for (requiredName in pendingRequiredClassesByName.keys()) {
+			if (queuedClassNames.exists(requiredName)) {
+				continue;
+			}
+			var requiredClass = pendingRequiredClassesByName.get(requiredName);
+			if (requiredClass == null) {
+				continue;
+			}
+			queuedClassNames.set(requiredName, true);
+			classQueue.push(requiredClass);
+			projectClasses.push(requiredClass);
+		}
+		clearClassMap(pendingRequiredClassesByName);
+		while (classQueue.length > 0) {
+			var classType = classQueue.shift();
+			appendModuleDecls(moduleDecls, classType.module, lowerClassDecls(classType));
+			for (requiredName in pendingRequiredClassesByName.keys()) {
+				if (queuedClassNames.exists(requiredName)) {
+					continue;
+				}
+				var requiredClass = pendingRequiredClassesByName.get(requiredName);
+				if (requiredClass == null) {
+					continue;
+				}
+				queuedClassNames.set(requiredName, true);
+				classQueue.push(requiredClass);
+				projectClasses.push(requiredClass);
+			}
+			clearClassMap(pendingRequiredClassesByName);
+		}
+	}
+
+	function drainPendingEnumQueue(moduleDecls:Map<String, Array<GoDecl>>, enumQueue:Array<EnumType>, queuedEnumNames:Map<String, Bool>,
+			projectEnums:Array<EnumType>):Void {
+		for (requiredName in pendingRequiredEnumsByName.keys()) {
+			if (queuedEnumNames.exists(requiredName)) {
+				continue;
+			}
+			var requiredEnum = pendingRequiredEnumsByName.get(requiredName);
+			if (requiredEnum == null) {
+				continue;
+			}
+			queuedEnumNames.set(requiredName, true);
+			enumQueue.push(requiredEnum);
+			projectEnums.push(requiredEnum);
+		}
+		clearEnumMap(pendingRequiredEnumsByName);
+		while (enumQueue.length > 0) {
+			var enumType = enumQueue.shift();
+			appendModuleDecls(moduleDecls, enumType.module, lowerEnumDecls(enumType));
+			for (requiredName in pendingRequiredEnumsByName.keys()) {
+				if (queuedEnumNames.exists(requiredName)) {
+					continue;
+				}
+				var requiredEnum = pendingRequiredEnumsByName.get(requiredName);
+				if (requiredEnum == null) {
+					continue;
+				}
+				queuedEnumNames.set(requiredName, true);
+				enumQueue.push(requiredEnum);
+				projectEnums.push(requiredEnum);
+			}
+			clearEnumMap(pendingRequiredEnumsByName);
+		}
 	}
 
 	function lowerTypeValueDecls():Array<GoDecl> {
@@ -1569,10 +1610,21 @@ class GoCompiler {
 			requireStdlibShimGroup("stdlib_symbols");
 			requireStdlibShimGroup("io");
 		}
+		if (requiredStdlibShimGroups.exists("sys")) {
+			// sys.io.File handles and byte helpers build on haxe.io surfaces and
+			// reuse the stdlib-symbol raw-byte bridge.
+			requireStdlibShimGroup("stdlib_symbols");
+			requireStdlibShimGroup("io");
+			requireIoSourceOwnedHelperSurface();
+		}
 		if (requiredStdlibShimGroups.exists("http")) {
 			// Http request shims expose and consume haxe.io.Bytes payloads.
 			requireStdlibShimGroup("io");
 			requireStdlibShimGroup("ds");
+		}
+		if (requiredStdlibShimGroups.exists("ds")) {
+			// DS shim declarations expose haxe.IMap, which is staged std.
+			requireSourceOwnedStdlibModule("haxe.Constraints");
 		}
 		if (requiredStdlibShimGroups.exists("regex_serializer")) {
 			// Serializer token support includes haxe.ds.List/StringMap/IntMap/ObjectMap families.
@@ -5013,10 +5065,75 @@ class GoCompiler {
 		var decls = [
 			GoDecl.GoStructDecl("Sys", []),
 			GoDecl.GoStructDecl("sys__io__File", []),
-			GoDecl.GoStructDecl("sys__io__ProcessOutput", [{name: "impl", typeName: "*hxrt.ProcessOutput"}]),
-			GoDecl.GoStructDecl("sys__io__Process", [
-				{name: "impl", typeName: "*hxrt.Process"},
-				{name: "stdout", typeName: "*sys__io__ProcessOutput"}
+			GoDecl.GoInterfaceDecl("I_sys__io__FileInput", []),
+			GoDecl.GoStructDecl("sys__io__FileInput", [
+				{
+					name: "__hx_this",
+					typeName: "I_sys__io__FileInput"
+				},
+				{name: "__hx_io_bigEndian", typeName: "bool"}
+			]),
+			GoDecl.GoFuncDecl("New_sys__io__FileInput", null, [], ["*sys__io__FileInput"], [
+				GoStmt.GoRaw("self := &sys__io__FileInput{}"),
+				GoStmt.GoRaw("self.__hx_this = self"),
+				GoStmt.GoReturn(GoExpr.GoIdent("self"))
+			]),
+			GoDecl.GoInterfaceDecl("I_sys__io__FileOutput", []),
+			GoDecl.GoStructDecl("sys__io__FileOutput", [
+				{
+					name: "__hx_this",
+					typeName: "I_sys__io__FileOutput"
+				},
+				{name: "__hx_io_bigEndian", typeName: "bool"}
+			]),
+			GoDecl.GoFuncDecl("New_sys__io__FileOutput", null, [], ["*sys__io__FileOutput"], [
+				GoStmt.GoRaw("self := &sys__io__FileOutput{}"),
+				GoStmt.GoRaw("self.__hx_this = self"),
+				GoStmt.GoReturn(GoExpr.GoIdent("self"))
+			]),
+			GoDecl.GoStructDecl("sys__io__FileSeek",
+				[
+					{
+						name: "tag",
+						typeName: "int"
+					},
+					{name: "params", typeName: "[]any"}
+				]),
+			GoDecl.GoGlobalVarDecl("sys__io__FileSeek_SeekBegin", "*sys__io__FileSeek", GoExpr.GoRaw("&sys__io__FileSeek{tag: 0}")),
+			GoDecl.GoGlobalVarDecl("sys__io__FileSeek_SeekCur", "*sys__io__FileSeek", GoExpr.GoRaw("&sys__io__FileSeek{tag: 1}")),
+			GoDecl.GoGlobalVarDecl("sys__io__FileSeek_SeekEnd", "*sys__io__FileSeek", GoExpr.GoRaw("&sys__io__FileSeek{tag: 2}")),
+			GoDecl.GoStructDecl("sys__io__ProcessOutput", [
+				{
+					name: "impl",
+					typeName: "*hxrt.ProcessOutput"
+				}
+			]),
+			GoDecl.GoStructDecl("sys__io__Process",
+				[
+					{name: "impl", typeName: "*hxrt.Process"},
+					{name: "stdout", typeName: "*sys__io__ProcessOutput"}
+				]),
+			GoDecl.GoGlobalVarDecl("sys__io__fileInputHandles", "map[*sys__io__FileInput]*hxrt.FileInput",
+				GoExpr.GoRaw("map[*sys__io__FileInput]*hxrt.FileInput{}")),
+			GoDecl.GoGlobalVarDecl("sys__io__fileOutputHandles", "map[*sys__io__FileOutput]*hxrt.FileOutput",
+				GoExpr.GoRaw("map[*sys__io__FileOutput]*hxrt.FileOutput{}")),
+			GoDecl.GoFuncDecl("sys__io__fileSeekWhence", null, [
+				{
+					name: "pos",
+					typeName: "*sys__io__FileSeek"
+				}
+			], ["int"], [
+				GoStmt.GoRaw("if pos == nil {"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("switch pos.tag {"),
+				GoStmt.GoRaw("case 1:"),
+				GoStmt.GoRaw("\treturn 1"),
+				GoStmt.GoRaw("case 2:"),
+				GoStmt.GoRaw("\treturn 2"),
+				GoStmt.GoRaw("default:"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}")
 			]),
 			GoDecl.GoFuncDecl("Sys_getCwd", null, [], ["*string"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysGetCwd"), []))
@@ -5062,6 +5179,180 @@ class GoCompiler {
 			], ["*string"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "FileGetContent"), [GoExpr.GoIdent("path")]))
 			]),
+			GoDecl.GoFuncDecl("sys__io__File_getBytes", null, [
+				{
+					name: "path",
+					typeName: "*string"
+				}
+			], ["*haxe__io__Bytes"], [
+				GoStmt.GoRaw("raw, err := hxrt.FileGetBytes(path)"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn &haxe__io__Bytes{b: []int{}, length: 0}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt_rawToHaxeBytes"), [GoExpr.GoIdent("raw")]))
+			]),
+			GoDecl.GoFuncDecl("sys__io__File_saveBytes", null, [
+				{
+					name: "path",
+					typeName: "*string"
+				},
+				{name: "bytes", typeName: "*haxe__io__Bytes"}
+			], [], [
+				GoStmt.GoRaw("if err := hxrt.FileSaveBytes(path, hxrt_haxeBytesToRaw(bytes)); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("sys__io__File_copy", null, [
+				{
+					name: "srcPath",
+					typeName: "*string"
+				},
+				{name: "dstPath", typeName: "*string"}
+			], [], [
+				GoStmt.GoRaw("if err := hxrt.FileCopy(srcPath, dstPath); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("sys__io__File_read", null, [
+				{
+					name: "path",
+					typeName: "*string"
+				},
+				{name: "binary", typeName: "bool"}
+			], ["*sys__io__FileInput"], [
+				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("binary")),
+				GoStmt.GoRaw("impl, err := hxrt.OpenFileInput(path)"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn New_sys__io__FileInput()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self := New_sys__io__FileInput()"),
+				GoStmt.GoRaw("sys__io__fileInputHandles[self] = impl"),
+				GoStmt.GoReturn(GoExpr.GoIdent("self"))
+			]),
+			GoDecl.GoFuncDecl("sys__io__File_write", null, [
+				{
+					name: "path",
+					typeName: "*string"
+				},
+				{name: "binary", typeName: "bool"}
+			], ["*sys__io__FileOutput"], [
+				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("binary")),
+				GoStmt.GoRaw("impl, err := hxrt.OpenFileWriteOutput(path)"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn New_sys__io__FileOutput()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self := New_sys__io__FileOutput()"),
+				GoStmt.GoRaw("sys__io__fileOutputHandles[self] = impl"),
+				GoStmt.GoReturn(GoExpr.GoIdent("self"))
+			]),
+			GoDecl.GoFuncDecl("sys__io__File_append", null, [
+				{
+					name: "path",
+					typeName: "*string"
+				},
+				{name: "binary", typeName: "bool"}
+			], ["*sys__io__FileOutput"], [
+				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("binary")),
+				GoStmt.GoRaw("impl, err := hxrt.OpenFileAppendOutput(path)"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn New_sys__io__FileOutput()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self := New_sys__io__FileOutput()"),
+				GoStmt.GoRaw("sys__io__fileOutputHandles[self] = impl"),
+				GoStmt.GoReturn(GoExpr.GoIdent("self"))
+			]),
+			GoDecl.GoFuncDecl("sys__io__File_update", null, [
+				{
+					name: "path",
+					typeName: "*string"
+				},
+				{name: "binary", typeName: "bool"}
+			], ["*sys__io__FileOutput"], [
+				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("binary")),
+				GoStmt.GoRaw("impl, err := hxrt.OpenFileUpdateOutput(path)"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn New_sys__io__FileOutput()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self := New_sys__io__FileOutput()"),
+				GoStmt.GoRaw("sys__io__fileOutputHandles[self] = impl"),
+				GoStmt.GoReturn(GoExpr.GoIdent("self"))
+			]),
+			GoDecl.GoFuncDecl("tell", {
+				name: "self",
+				typeName: "*sys__io__FileInput"
+			}, [], ["int"], [
+				GoStmt.GoRaw("impl := sys__io__fileInputHandles[self]"),
+				GoStmt.GoRaw("if impl == nil {"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("pos, err := impl.Tell()"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("pos"))
+			]),
+			GoDecl.GoFuncDecl("seek", {
+				name: "self",
+				typeName: "*sys__io__FileInput"
+			},
+				[{name: "p", typeName: "int"}, {name: "pos", typeName: "*sys__io__FileSeek"}], [], [
+					GoStmt.GoRaw("impl := sys__io__fileInputHandles[self]"),
+					GoStmt.GoRaw("if impl == nil {"),
+					GoStmt.GoRaw("\treturn"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("if err := impl.Seek(p, sys__io__fileSeekWhence(pos)); err != nil {"),
+					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+					GoStmt.GoRaw("}")
+				]),
+			GoDecl.GoFuncDecl("eof", {
+				name: "self",
+				typeName: "*sys__io__FileInput"
+			}, [], ["bool"], [
+				GoStmt.GoRaw("impl := sys__io__fileInputHandles[self]"),
+				GoStmt.GoRaw("if impl == nil {"),
+				GoStmt.GoRaw("\treturn true"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("eof, err := impl.Eof()"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn true"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("eof"))
+			]),
+			GoDecl.GoFuncDecl("tell", {
+				name: "self",
+				typeName: "*sys__io__FileOutput"
+			}, [], ["int"], [
+				GoStmt.GoRaw("impl := sys__io__fileOutputHandles[self]"),
+				GoStmt.GoRaw("if impl == nil {"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("pos, err := impl.Tell()"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("pos"))
+			]),
+			GoDecl.GoFuncDecl("seek", {
+				name: "self",
+				typeName: "*sys__io__FileOutput"
+			},
+				[{name: "p", typeName: "int"}, {name: "pos", typeName: "*sys__io__FileSeek"}], [], [
+					GoStmt.GoRaw("impl := sys__io__fileOutputHandles[self]"),
+					GoStmt.GoRaw("if impl == nil {"),
+					GoStmt.GoRaw("\treturn"),
+					GoStmt.GoRaw("}"),
+					GoStmt.GoRaw("if err := impl.Seek(p, sys__io__fileSeekWhence(pos)); err != nil {"),
+					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+					GoStmt.GoRaw("}")
+				]),
 			GoDecl.GoFuncDecl("New_sys__io__Process", null, [
 				{
 					name: "command",
@@ -5095,6 +5386,221 @@ class GoCompiler {
 				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "impl"), "Close"), []))
 			])
 		];
+
+		decls = decls.concat([
+			GoDecl.GoFuncDecl("get_bigEndian", {
+				name: "self",
+				typeName: "*sys__io__FileInput"
+			}, [], ["bool"], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null),
+				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_io_bigEndian"))
+			]),
+			GoDecl.GoFuncDecl("set_bigEndian", {
+				name: "self",
+				typeName: "*sys__io__FileInput"
+			}, [{name: "e", typeName: "bool"}], ["bool"], [
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("self"), GoExpr.GoNil), [
+					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_io_bigEndian"), GoExpr.GoIdent("e"))
+				], null),
+				GoStmt.GoReturn(GoExpr.GoIdent("e"))
+			]),
+			GoDecl.GoFuncDecl("close", {
+				name: "self",
+				typeName: "*sys__io__FileInput"
+			}, [], [], [
+				GoStmt.GoRaw("impl := sys__io__fileInputHandles[self]"),
+				GoStmt.GoRaw("if impl == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if err := impl.Close(); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("delete(sys__io__fileInputHandles, self)")
+			]),
+			GoDecl.GoFuncDecl("readByte", {
+				name: "self",
+				typeName: "*sys__io__FileInput"
+			}, [], ["int"], [
+				GoStmt.GoRaw("impl := sys__io__fileInputHandles[self]"),
+				GoStmt.GoRaw("if impl == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("value, eof, err := impl.ReadByte()"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if eof {"),
+				GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("value"))
+			]),
+			GoDecl.GoFuncDecl("readBytes", {
+				name: "self",
+				typeName: "*sys__io__FileInput"
+			}, [
+				{name: "buf", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoRaw("if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_Blocked)"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("k := 0"),
+				GoStmt.GoRaw("for k < len {"),
+				GoStmt.GoRaw("\tvalue := 0"),
+				GoStmt.GoRaw("\tthrew := false"),
+				GoStmt.GoRaw("\tvar thrown any"),
+				GoStmt.GoRaw("\tfunc() {"),
+				GoStmt.GoRaw("\t\tdefer func() {"),
+				GoStmt.GoRaw("\t\t\tif recovered := recover(); recovered != nil {"),
+				GoStmt.GoRaw("\t\t\t\tthrew = true"),
+				GoStmt.GoRaw("\t\t\t\tthrown = hxrt.UnwrapException(recovered)"),
+				GoStmt.GoRaw("\t\t\t}"),
+				GoStmt.GoRaw("\t\t}()"),
+				GoStmt.GoRaw("\t\tvalue = self.readByte()"),
+				GoStmt.GoRaw("\t}()"),
+				GoStmt.GoRaw("\tif threw {"),
+				GoStmt.GoRaw("\t\tif haxe__io__input_isEof(thrown) {"),
+				GoStmt.GoRaw("\t\t\tif k > 0 {"),
+				GoStmt.GoRaw("\t\t\t\treturn k"),
+				GoStmt.GoRaw("\t\t\t}"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\thxrt.Throw(thrown)"),
+				GoStmt.GoRaw("\t\treturn 0"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tbuf.b[pos+k] = value"),
+				GoStmt.GoRaw("\tk++"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return len")
+			]),
+			GoDecl.GoFuncDecl("get_bigEndian", {
+				name: "self",
+				typeName: "*sys__io__FileOutput"
+			}, [], ["bool"], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null),
+				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_io_bigEndian"))
+			]),
+			GoDecl.GoFuncDecl("set_bigEndian", {
+				name: "self",
+				typeName: "*sys__io__FileOutput"
+			}, [{name: "e", typeName: "bool"}], ["bool"], [
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("self"), GoExpr.GoNil), [
+					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_io_bigEndian"), GoExpr.GoIdent("e"))
+				], null),
+				GoStmt.GoReturn(GoExpr.GoIdent("e"))
+			]),
+			GoDecl.GoFuncDecl("flush", {
+				name: "self",
+				typeName: "*sys__io__FileOutput"
+			}, [], [], [
+				GoStmt.GoRaw("impl := sys__io__fileOutputHandles[self]"),
+				GoStmt.GoRaw("if impl == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if err := impl.Flush(); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("close", {
+				name: "self",
+				typeName: "*sys__io__FileOutput"
+			}, [], [], [
+				GoStmt.GoRaw("impl := sys__io__fileOutputHandles[self]"),
+				GoStmt.GoRaw("if impl == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if err := impl.Close(); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("delete(sys__io__fileOutputHandles, self)")
+			]),
+			GoDecl.GoFuncDecl("prepare", {
+				name: "self",
+				typeName: "*sys__io__FileOutput"
+			}, [{name: "nbytes", typeName: "int"}], [], [
+				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self")),
+				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("nbytes"))
+			]),
+			GoDecl.GoFuncDecl("writeByte", {
+				name: "self",
+				typeName: "*sys__io__FileOutput"
+			}, [{name: "c", typeName: "int"}], [], [
+				GoStmt.GoRaw("impl := sys__io__fileOutputHandles[self]"),
+				GoStmt.GoRaw("if impl == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"FileOutput is closed\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if err := impl.WriteByte(c); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("writeBytes", {
+				name: "self",
+				typeName: "*sys__io__FileOutput"
+			}, [
+				{name: "s", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoRaw("if s == nil || pos < 0 || len < 0 || pos+len > s.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("n := len"),
+				GoStmt.GoRaw("for len > 0 {"),
+				GoStmt.GoRaw("\tself.writeByte(s.b[pos])"),
+				GoStmt.GoRaw("\tpos++"),
+				GoStmt.GoRaw("\tlen--"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return n")
+			])
+		]);
+
+		for (methodName in [
+			"readAll",
+			"readFullBytes",
+			"read",
+			"readUntil",
+			"readLine",
+			"readFloat",
+			"readDouble",
+			"readInt8",
+			"readInt16",
+			"readUInt16",
+			"readInt24",
+			"readUInt24",
+			"readInt32",
+			"readString"
+		]) {
+			decls.push(lowerIoInputSyntheticHelper("*sys__io__FileInput", methodName));
+		}
+
+		for (methodName in [
+			"write",
+			"writeFullBytes",
+			"writeFloat",
+			"writeDouble",
+			"writeInt8",
+			"writeInt16",
+			"writeUInt16",
+			"writeInt24",
+			"writeUInt24",
+			"writeInt32",
+			"writeInput",
+			"writeString"
+		]) {
+			decls.push(lowerIoOutputSyntheticHelper("*sys__io__FileOutput", methodName));
+		}
 
 		if (requiredStdlibShimGroups.exists("ds")) {
 			decls.push(GoDecl.GoFuncDecl("Sys_environment", null, [], ["*haxe__ds__StringMap"], [
@@ -6861,6 +7367,9 @@ class GoCompiler {
 	}
 
 	function lowerClassDecls(classType:ClassType):Array<GoDecl> {
+		if (GoStdlibOwnership.isCompilerOwnedAuthority(fullClassName(classType))) {
+			return [];
+		}
 		if (classType.isInterface) {
 			return lowerInterfaceDecls(classType);
 		}
@@ -7261,6 +7770,9 @@ class GoCompiler {
 
 		var out = new Array<GoDecl>();
 		var receiverType = "*" + classTypeName(classType);
+		var fullName = fullClassName(classType);
+		var isSysFileInput = fullName == "sys.io.FileInput";
+		var isSysFileOutput = fullName == "sys.io.FileOutput";
 		var methodNames = new Map<String, Bool>();
 		for (method in instanceMethods) {
 			methodNames.set(normalizeIdent(method.name), true);
@@ -7291,15 +7803,49 @@ class GoCompiler {
 				]), "set_bigEndian");
 			}
 			if (!hasMethod("close")) {
-				addMethod(ioSyntheticMethod(receiverType, "close", [], [], [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self"))]), "close");
+				if (isSysFileInput) {
+					addMethod(ioSyntheticMethod(receiverType, "close", [], [], [
+						GoStmt.GoRaw("impl := sys__io__fileInputHandles[self]"),
+						GoStmt.GoRaw("if impl == nil {"),
+						GoStmt.GoRaw("\treturn"),
+						GoStmt.GoRaw("}"),
+						GoStmt.GoRaw("if err := impl.Close(); err != nil {"),
+						GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+						GoStmt.GoRaw("\treturn"),
+						GoStmt.GoRaw("}"),
+						GoStmt.GoRaw("delete(sys__io__fileInputHandles, self)")
+					]), "close");
+				} else {
+					addMethod(ioSyntheticMethod(receiverType, "close", [], [], [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self"))]), "close");
+				}
 			}
 			if (!hasMethod("readByte")) {
-				addMethod(ioSyntheticMethod(receiverType, "readByte", [], ["int"], [
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [
-						GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Not implemented")])
-					])),
-					GoStmt.GoReturn(GoExpr.GoIntLiteral(0))
-				]), "readByte");
+				if (isSysFileInput) {
+					addMethod(ioSyntheticMethod(receiverType, "readByte", [], ["int"], [
+						GoStmt.GoRaw("impl := sys__io__fileInputHandles[self]"),
+						GoStmt.GoRaw("if impl == nil {"),
+						GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+						GoStmt.GoRaw("\treturn 0"),
+						GoStmt.GoRaw("}"),
+						GoStmt.GoRaw("value, eof, err := impl.ReadByte()"),
+						GoStmt.GoRaw("if err != nil {"),
+						GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+						GoStmt.GoRaw("\treturn 0"),
+						GoStmt.GoRaw("}"),
+						GoStmt.GoRaw("if eof {"),
+						GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+						GoStmt.GoRaw("\treturn 0"),
+						GoStmt.GoRaw("}"),
+						GoStmt.GoReturn(GoExpr.GoIdent("value"))
+					]), "readByte");
+				} else {
+					addMethod(ioSyntheticMethod(receiverType, "readByte", [], ["int"], [
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [
+							GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Not implemented")])
+						])),
+						GoStmt.GoReturn(GoExpr.GoIntLiteral(0))
+					]), "readByte");
+				}
 			}
 			if (!hasMethod("readBytes")) {
 				addMethod(ioSyntheticMethod(receiverType, "readBytes", [
@@ -7382,10 +7928,36 @@ class GoCompiler {
 				]), "set_bigEndian");
 			}
 			if (!hasMethod("flush")) {
-				addMethod(ioSyntheticMethod(receiverType, "flush", [], [], [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self"))]), "flush");
+				if (isSysFileOutput) {
+					addMethod(ioSyntheticMethod(receiverType, "flush", [], [], [
+						GoStmt.GoRaw("impl := sys__io__fileOutputHandles[self]"),
+						GoStmt.GoRaw("if impl == nil {"),
+						GoStmt.GoRaw("\treturn"),
+						GoStmt.GoRaw("}"),
+						GoStmt.GoRaw("if err := impl.Flush(); err != nil {"),
+						GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+						GoStmt.GoRaw("}")
+					]), "flush");
+				} else {
+					addMethod(ioSyntheticMethod(receiverType, "flush", [], [], [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self"))]), "flush");
+				}
 			}
 			if (!hasMethod("close")) {
-				addMethod(ioSyntheticMethod(receiverType, "close", [], [], [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self"))]), "close");
+				if (isSysFileOutput) {
+					addMethod(ioSyntheticMethod(receiverType, "close", [], [], [
+						GoStmt.GoRaw("impl := sys__io__fileOutputHandles[self]"),
+						GoStmt.GoRaw("if impl == nil {"),
+						GoStmt.GoRaw("\treturn"),
+						GoStmt.GoRaw("}"),
+						GoStmt.GoRaw("if err := impl.Close(); err != nil {"),
+						GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+						GoStmt.GoRaw("\treturn"),
+						GoStmt.GoRaw("}"),
+						GoStmt.GoRaw("delete(sys__io__fileOutputHandles, self)")
+					]), "close");
+				} else {
+					addMethod(ioSyntheticMethod(receiverType, "close", [], [], [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self"))]), "close");
+				}
 			}
 			if (!hasMethod("prepare")) {
 				addMethod(ioSyntheticMethod(receiverType, "prepare", [{name: "nbytes", typeName: "int"}], [], [
@@ -7394,12 +7966,25 @@ class GoCompiler {
 				]), "prepare");
 			}
 			if (!hasMethod("writeByte")) {
-				addMethod(ioSyntheticMethod(receiverType, "writeByte", [{name: "c", typeName: "int"}], [], [
-					GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("c")),
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [
-						GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Not implemented")])
-					]))
-				]), "writeByte");
+				if (isSysFileOutput) {
+					addMethod(ioSyntheticMethod(receiverType, "writeByte", [{name: "c", typeName: "int"}], [], [
+						GoStmt.GoRaw("impl := sys__io__fileOutputHandles[self]"),
+						GoStmt.GoRaw("if impl == nil {"),
+						GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"FileOutput is closed\"))"),
+						GoStmt.GoRaw("\treturn"),
+						GoStmt.GoRaw("}"),
+						GoStmt.GoRaw("if err := impl.WriteByte(c); err != nil {"),
+						GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+						GoStmt.GoRaw("}")
+					]), "writeByte");
+				} else {
+					addMethod(ioSyntheticMethod(receiverType, "writeByte", [{name: "c", typeName: "int"}], [], [
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("c")),
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [
+							GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Not implemented")])
+						]))
+					]), "writeByte");
+				}
 			}
 			if (!hasMethod("writeBytes")) {
 				addMethod(ioSyntheticMethod(receiverType, "writeBytes", [
@@ -12815,6 +13400,8 @@ class GoCompiler {
 		requiredStdlibShimGroups.set(group, true);
 		if (group == "http") {
 			sourceOwnedStdlibPlanner.requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
+		} else if (group == "ds") {
+			sourceOwnedStdlibPlanner.requireSourceOwnedStdlibModule("haxe.Constraints");
 		}
 	}
 

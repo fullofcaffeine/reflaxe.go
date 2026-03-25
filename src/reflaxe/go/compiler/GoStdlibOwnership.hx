@@ -21,7 +21,8 @@ class GoStdlibOwnership {
 	public static function isCompilerOwnedAuthority(name:String):Bool {
 		return switch (name) {
 			case "EReg", "haxe.ds.EnumValueMap", "haxe.io.BufferInput", "haxe.io.Bytes", "haxe.io.BytesBuffer", "haxe.io.BytesInput", "haxe.io.BytesOutput",
-				"haxe.io.Eof", "haxe.io.Error", "haxe.io.Input", "haxe.io.Output", "haxe.io.StringInput", "sys.Http":
+				"haxe.io.Eof", "haxe.io.Error", "haxe.io.Input", "haxe.io.Output", "haxe.io.StringInput", "sys.Http", "sys.io.File", "sys.io.FileInput",
+				"sys.io.FileOutput", "sys.io.FileSeek":
 				true;
 			case _:
 				false;

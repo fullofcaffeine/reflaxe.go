@@ -93,8 +93,15 @@ OWNER_OVERRIDES = {
     "haxe.atomic.AtomicInt": "runtime_hxrt",
     "haxe.atomic.AtomicObject": "runtime_hxrt",
     "sys.io.File": "runtime_hxrt",
+    "sys.io.FileInput": "runtime_hxrt",
+    "sys.io.FileOutput": "runtime_hxrt",
+    "sys.io.FileSeek": "runtime_hxrt",
     "sys.io.Process": "runtime_hxrt",
     "sys.FileSystem": "runtime_hxrt",
+    "sys.db.Connection": "staged_std",
+    "sys.db.Mysql": "staged_std",
+    "sys.db.ResultSet": "staged_std",
+    "sys.db.Sqlite": "staged_std",
     "DateTools": "staged_std",
     "StringTools": "staged_std",
     "haxe.SysTools": "staged_std",
@@ -357,6 +364,42 @@ MODULE_NOTES_OVERRIDES = {
         "and snapshot coverage in `stdlib/haxe_rtti_direct`. Ownership stays mixed: parser logic is staged std, while the "
         "backend still owns the anonymous-record array-field mutation fix that makes RTTI record merging lower honestly on Go."
     ),
+    "sys.db.Connection": (
+        "Direct `sys.db.Connection` interface usage now has semantic-diff coverage through "
+        "`semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`. "
+        "Ownership is explicit instead of vague: the public DB contract stays in upstream Haxe std source, while Go-specific "
+        "runtime binding only begins at the file-handle side of the same tranche."
+    ),
+    "sys.db.Mysql": (
+        "Direct `sys.db.Mysql.connect` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` "
+        "and snapshot coverage in `stdlib/sys_db_io_direct`, preserving the upstream Go-platform contract that this API "
+        "throws `haxe.exceptions.NotImplementedException` instead of pretending to expose a fake database runtime."
+    ),
+    "sys.db.ResultSet": (
+        "Direct `sys.db.ResultSet` interface usage now has semantic-diff coverage through "
+        "`semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`, including length/field-name/"
+        "cursor access through user-defined result-set implementations."
+    ),
+    "sys.db.Sqlite": (
+        "Direct `sys.db.Sqlite.open` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` "
+        "and snapshot coverage in `stdlib/sys_db_io_direct`, preserving the upstream Go-platform contract that this API "
+        "throws `Not implemented for this platform` instead of claiming a nonexistent SQLite binding."
+    ),
+    "sys.io.FileInput": (
+        "Direct `sys.io.FileInput` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` "
+        "and snapshot coverage in `stdlib/sys_db_io_direct`. Ownership is runtime-backed on purpose: the public Haxe file-handle "
+        "surface now forwards through `lowerSysStdlibShimDecls` into `runtime/hxrt/sys.go` for open/read/seek/tell/eof."
+    ),
+    "sys.io.FileOutput": (
+        "Direct `sys.io.FileOutput` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` "
+        "and snapshot coverage in `stdlib/sys_db_io_direct`. Ownership is runtime-backed on purpose: the public Haxe file-handle "
+        "surface now forwards through `lowerSysStdlibShimDecls` into `runtime/hxrt/sys.go` for open/write/seek/tell/flush/close."
+    ),
+    "sys.io.FileSeek": (
+        "Direct `sys.io.FileSeek` enum usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` "
+        "and snapshot coverage in `stdlib/sys_db_io_direct`, with compiler-owned enum tags bridged to runtime seek whence values "
+        "through the sys shim layer instead of relying on accidental source-owned extern emission."
+    ),
 }
 
 PROMOTION_LEVEL_KEYS = ("snapshot", "semantic_diff")
@@ -462,20 +505,6 @@ BLOCKER_FAMILY_SPECS = (
             "haxe.io.UInt16Array",
             "haxe.io.UInt32Array",
             "haxe.io.UInt8Array",
-        },
-    },
-    {
-        "issue": "haxe.go-14as.17",
-        "family": "sys_db_io",
-        "closure_target": "2026-05-14",
-        "modules": {
-            "sys.db.Connection",
-            "sys.db.Mysql",
-            "sys.db.ResultSet",
-            "sys.db.Sqlite",
-            "sys.io.FileInput",
-            "sys.io.FileOutput",
-            "sys.io.FileSeek",
         },
     },
     {

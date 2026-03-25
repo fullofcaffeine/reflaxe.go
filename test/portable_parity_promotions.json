@@ -70,7 +70,14 @@
       "haxe.rtti.Meta",
       "haxe.rtti.Rtti",
       "haxe.rtti.XmlParser",
-      "sys.FileStat"
+      "sys.FileStat",
+      "sys.db.Connection",
+      "sys.db.Mysql",
+      "sys.db.ResultSet",
+      "sys.db.Sqlite",
+      "sys.io.FileInput",
+      "sys.io.FileOutput",
+      "sys.io.FileSeek"
     ]
   }
 }
