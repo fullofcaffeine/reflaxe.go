@@ -28,6 +28,7 @@ class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_PROCESS = "process";
 	public static inline final FEATURE_BYTES = "bytes";
 	public static inline final FEATURE_SSL = "ssl";
+	public static inline final FEATURE_THREAD = "thread";
 	public static inline final FEATURE_ATOMIC_INT = "atomic_int";
 	public static inline final FEATURE_ATOMIC_OBJECT = "atomic_object";
 
@@ -41,6 +42,7 @@ class GoHxrtFeatureAnalyzer {
 		FEATURE_PROCESS,
 		FEATURE_BYTES,
 		FEATURE_SSL,
+		FEATURE_THREAD,
 		FEATURE_ATOMIC_INT,
 		FEATURE_ATOMIC_OBJECT
 	];
@@ -91,6 +93,10 @@ class GoHxrtFeatureAnalyzer {
 
 			if (StringTools.startsWith(path, "sys.ssl.")) {
 				add(FEATURE_SSL, "class_usage", path);
+			}
+
+			if (StringTools.startsWith(path, "sys.thread.")) {
+				add(FEATURE_THREAD, "class_usage", path);
 			}
 
 			if (StringTools.startsWith(path, "haxe.io.")) {
@@ -210,6 +216,8 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_CORE];
 			case FEATURE_SSL:
 				[FEATURE_STRING, FEATURE_EXCEPTION, FEATURE_BYTES];
+			case FEATURE_THREAD:
+				[FEATURE_CORE];
 			case _:
 				[];
 		};
@@ -235,6 +243,8 @@ class GoHxrtFeatureAnalyzer {
 				["bytes.go"];
 			case FEATURE_SSL:
 				["ssl.go"];
+			case FEATURE_THREAD:
+				["thread.go"];
 			case FEATURE_ATOMIC_INT:
 				["atomic_int.go"];
 			case FEATURE_ATOMIC_OBJECT:

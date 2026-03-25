@@ -84,7 +84,16 @@
       "sys.io.FileOutput",
       "sys.io.FileSeek",
       "sys.net.Address",
-      "sys.ssl.DigestAlgorithm"
+      "sys.ssl.DigestAlgorithm",
+      "sys.thread.Condition",
+      "sys.thread.Deque",
+      "sys.thread.IThreadPool",
+      "sys.thread.Lock",
+      "sys.thread.Mutex",
+      "sys.thread.NoEventLoopException",
+      "sys.thread.Semaphore",
+      "sys.thread.ThreadPoolException",
+      "sys.thread.Tls"
     ]
   }
 }

@@ -17,8 +17,8 @@ func New_sys__ssl__Key(handle any) *sys__ssl__Key {
 	return self
 }
 
-func sys__ssl__Key_loadFile(file *string, isPublic bool, pass *string) *sys__ssl__Key {
-	return New_sys__ssl__Key(hxrt.SslKeyLoadFile(file, (isPublic == true), pass))
+func sys__ssl__Key_loadFile(file *string, isPublic any, pass *string) *sys__ssl__Key {
+	return New_sys__ssl__Key(hxrt.SslKeyLoadFile(file, (isPublic.(bool) == true), pass))
 }
 
 func sys__ssl__Key_readDER(data *haxe__io__Bytes, isPublic bool) *sys__ssl__Key {

@@ -188,6 +188,14 @@ It is an explicit unsupported surface on Go today, and any future real support i
 `haxe.go-14as.19` because it requires a runtime-backed `sys.thread.EventLoop` / `sys.thread.Thread`
 contract rather than another source-owned or compiler-only patch.
 
+`haxe.go-14as.19` already has a first landed wave. Direct `sys.thread` primitives
+(`Condition`, `Deque`, `IThreadPool`, `Lock`, `Mutex`, `NoEventLoopException`,
+`Semaphore`, `ThreadPoolException`, and `Tls`) are now promoted with parity
+evidence in `semantic_diff/sys_thread_primitives_contract` and
+`snapshot/stdlib/sys_thread_primitives_direct`. The bead remains open only for
+the second-wave runtime surfaces: `Thread`, `EventLoop`, `ElasticThreadPool`,
+and `FixedThreadPool`.
+
 The old `haxe.go-cgk.*` planning work is historical context now, not the active execution tracker.
 
 Language hard-fail proof is already locked:

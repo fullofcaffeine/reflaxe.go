@@ -36,6 +36,7 @@ Current architecture status:
 - The main remaining portable stdlib blockers are now the explicit compile-only families, not the basic exception surface.
 - Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage is currently an explicit unsupported surface on Go.
 - Reason: the backend does not yet provide a real runtime-backed event-loop contract through `sys.thread.EventLoop` / `sys.thread.Thread`, and the previous source-owned inclusion path generated broken Go instead of a trustworthy partial implementation.
+- This does not mean the whole `sys.thread` family is still blocked. The first wave of direct thread primitives (`Condition`, `Deque`, `IThreadPool`, `Lock`, `Mutex`, `NoEventLoopException`, `Semaphore`, `ThreadPoolException`, `Tls`) is already promoted; the remaining gap is the second-wave event-loop/thread/pool runtime surface.
 
 ## Interop caveats
 

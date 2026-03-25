@@ -192,6 +192,24 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("sys.ssl.Key");
 				requireStdlibShimGroup("net_socket");
 				requireStdlibShimGroup("stdlib_symbols");
+			case "sys.thread.Lock":
+				requireSourceOwnedStdlibClass("sys.thread.Lock");
+			case "sys.thread.Mutex":
+				requireSourceOwnedStdlibClass("sys.thread.Mutex");
+			case "sys.thread.Condition":
+				requireSourceOwnedStdlibClass("sys.thread.Condition");
+			case "sys.thread.Semaphore":
+				requireSourceOwnedStdlibClass("sys.thread.Semaphore");
+			case "sys.thread.Deque":
+				requireSourceOwnedStdlibClass("sys.thread.Deque");
+			case "sys.thread.Tls":
+				requireSourceOwnedStdlibClass("sys.thread.Tls");
+			case "sys.thread.NoEventLoopException":
+				requireSourceOwnedStdlibClass("sys.thread.NoEventLoopException");
+			case "sys.thread.ThreadPoolException":
+				requireSourceOwnedStdlibClass("sys.thread.ThreadPoolException");
+			case "sys.thread.IThreadPool":
+				requireSourceOwnedStdlibClass("sys.thread.IThreadPool");
 			case "haxe.Template":
 				requireSourceOwnedStdlibModule("haxe.Template");
 				requireStdlibShimGroup("stdlib_symbols");

@@ -185,7 +185,7 @@ class GoCompiler {
 	final sourceOwnedStdlibPlanner:GoSourceOwnedStdlibPlanner;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
-	final optionalPrimitiveParamScopes:Array<Map<Int, Bool>>;
+	final optionalPrimitiveParamScopes:Array<Map<Int, String>>;
 	final functionReturnTypeScopes:Array<Type>;
 	final returnRedirectScopes:Array<Null<ReturnRedirect>>;
 	var cachedVoidType:Null<Type>;
@@ -7386,7 +7386,7 @@ class GoCompiler {
 		var ioSubclassKind = ioStdlibSubclassKind(classType);
 
 		var instanceDataFields = new Array<GoParam>();
-		var instanceMethods = new Array<{name:String, func:TFunc}>();
+		var instanceMethods = new Array<{name:String, func:TFunc, fieldType:Type}>();
 		for (field in classType.fields.get()) {
 			switch (field.kind) {
 				case FVar(_, _):
@@ -7398,7 +7398,7 @@ class GoCompiler {
 					if (field.name != "new") {
 						var methodFunc = unwrapFunction(field.expr());
 						if (methodFunc != null) {
-							instanceMethods.push({name: field.name, func: methodFunc});
+							instanceMethods.push({name: field.name, func: methodFunc, fieldType: field.type});
 						}
 					}
 			}
@@ -7442,20 +7442,20 @@ class GoCompiler {
 			for (method in dispatchMethods) {
 				interfaceMethods.push({
 					name: method.name,
-					params: lowerFunctionParams(method.func),
+					params: lowerFunctionParams(method.func, typedFunctionArgs(method.fieldType)),
 					results: lowerFunctionResults(method.func.t)
 				});
 			}
 			decls.push(GoDecl.GoInterfaceDecl(interfaceSymbol(classType), interfaceMethods));
 			decls.push(GoDecl.GoStructDecl(typeName, instanceFields));
-			decls.push(lowerConstructorDecl(classType, ctorFunc, superClass));
+			decls.push(lowerConstructorDecl(classType, ctorFunc, ctorRef == null ? null : ctorRef.get().type, superClass));
 			if (directHaxeExceptionSuper) {
 				decls.push(lowerHaxeExceptionCarrierDecl(classType));
 			}
 		}
 
 		for (method in instanceMethods) {
-			decls.push(lowerInstanceMethodDecl(classType, method.name, method.func));
+			decls.push(lowerInstanceMethodDecl(classType, method.name, method.func, method.fieldType));
 		}
 		decls = decls.concat(lowerIoSubclassSyntheticDecls(classType, ioSubclassKind, instanceMethods));
 
@@ -7478,7 +7478,7 @@ class GoCompiler {
 				case FMethod(_):
 					var func = unwrapFunction(field.expr());
 					if (func != null) {
-						decls.push(lowerFunctionDecl(symbol, func, null, classType.module));
+						decls.push(lowerFunctionDecl(symbol, func, null, classType.module, field.type));
 					}
 			}
 		}
@@ -7523,7 +7523,7 @@ class GoCompiler {
 				} else {
 					{
 						name: methodName,
-						params: lowerFunctionParams(methodFunc),
+						params: lowerFunctionParams(methodFunc, typedFunctionArgs(field.type)),
 						results: lowerFunctionResults(methodFunc.t)
 					};
 				}
@@ -7551,9 +7551,9 @@ class GoCompiler {
 		return out;
 	}
 
-	function lowerFunctionDecl(name:String, func:TFunc, receiver:Null<GoParam>, ?sourceModule:String):GoDecl {
+	function lowerFunctionDecl(name:String, func:TFunc, receiver:Null<GoParam>, ?sourceModule:String, ?functionType:Type):GoDecl {
 		pushFunctionVarNameScope();
-		var params = lowerFunctionParams(func);
+		var params = lowerFunctionParams(func, typedFunctionArgs(functionType == null ? func.t : functionType));
 		var results = lowerFunctionResults(func.t);
 		pushFunctionReturnType(func.t);
 		var body = lowerFunctionBody(func.expr);
@@ -7563,10 +7563,10 @@ class GoCompiler {
 		return GoDecl.GoFuncDecl(name, receiver, params, results, body);
 	}
 
-	function lowerConstructorDecl(classType:ClassType, ctorFunc:Null<TFunc>, superClass:Null<ClassType>):GoDecl {
+	function lowerConstructorDecl(classType:ClassType, ctorFunc:Null<TFunc>, ctorType:Null<Type>, superClass:Null<ClassType>):GoDecl {
 		pushFunctionVarNameScope();
 		var typeName = classTypeName(classType);
-		var params = ctorFunc == null ? [] : lowerFunctionParams(ctorFunc);
+		var params = ctorFunc == null ? [] : lowerFunctionParams(ctorFunc, typedFunctionArgs(ctorType == null ? ctorFunc.t : ctorType));
 		var body = new Array<GoStmt>();
 		body.push(GoStmt.GoVarDecl("self", null, GoExpr.GoRaw("&" + typeName + "{}"), true));
 
@@ -7604,11 +7604,11 @@ class GoCompiler {
 		return GoDecl.GoFuncDecl(constructorSymbol(classType), null, params, ["*" + typeName], body);
 	}
 
-	function lowerInstanceMethodDecl(classType:ClassType, fieldName:String, func:TFunc):GoDecl {
+	function lowerInstanceMethodDecl(classType:ClassType, fieldName:String, func:TFunc, fieldType:Type):GoDecl {
 		return lowerFunctionDecl(normalizeIdent(fieldName), func, {
 			name: "self",
 			typeName: "*" + classTypeName(classType)
-		}, classType.module);
+		}, classType.module, fieldType);
 	}
 
 	function lowerHaxeExceptionCarrierDecl(classType:ClassType):GoDecl {
@@ -8080,9 +8080,9 @@ class GoCompiler {
 		};
 	}
 
-	function collectDispatchMethods(classType:ClassType):Array<{name:String, func:TFunc}> {
+	function collectDispatchMethods(classType:ClassType):Array<{name:String, func:TFunc, fieldType:Type}> {
 		var orderedNames = new Array<String>();
-		var methods = new Map<String, TFunc>();
+		var methods = new Map<String, {func:TFunc, fieldType:Type}>();
 
 		function collect(current:ClassType):Void {
 			var superClass = projectSuperClass(current);
@@ -8104,7 +8104,7 @@ class GoCompiler {
 						if (!methods.exists(methodName)) {
 							orderedNames.push(methodName);
 						}
-						methods.set(methodName, methodFunc);
+						methods.set(methodName, {func: methodFunc, fieldType: field.type});
 					case _:
 				}
 			}
@@ -8112,11 +8112,13 @@ class GoCompiler {
 
 		collect(classType);
 
-		var out = new Array<{name:String, func:TFunc}>();
+		var out = new Array<{name:String, func:TFunc, fieldType:Type}>();
 		for (name in orderedNames) {
+			var method = methods.get(name);
 			out.push({
 				name: name,
-				func: methods.get(name)
+				func: method.func,
+				fieldType: method.fieldType
 			});
 		}
 		return out;
@@ -8141,13 +8143,28 @@ class GoCompiler {
 		};
 	}
 
-	function lowerFunctionParams(func:TFunc):Array<GoParam> {
+	function typedFunctionArgs(functionType:Type):Array<{name:String, opt:Bool, t:Type}> {
+		return switch (Context.follow(functionType)) {
+			case TFun(args, _):
+				args;
+			case _:
+				[];
+		};
+	}
+
+	function lowerFunctionParams(func:TFunc, ?typedArgs:Array<{name:String, opt:Bool, t:Type}>):Array<GoParam> {
+		if (typedArgs == null) {
+			typedArgs = typedFunctionArgs(func.t);
+		}
 		var params = new Array<GoParam>();
-		for (arg in func.args) {
-			registerOptionalPrimitiveParam(arg.v, arg.value != null);
+		for (index in 0...func.args.length) {
+			var arg = func.args[index];
+			var typedArg = index < typedArgs.length ? typedArgs[index] : null;
+			var isOptionalPrimitive = isOptionalPrimitiveFunctionArg(arg, typedArg);
+			registerOptionalPrimitiveParam(arg.v, isOptionalPrimitive);
 			params.push({
 				name: localVarName(arg.v),
-				typeName: scalarGoType(arg.v.t)
+				typeName: isOptionalPrimitive ? "any" : scalarGoType(arg.v.t)
 			});
 		}
 		return params;
@@ -8898,7 +8915,7 @@ class GoCompiler {
 	function pushFunctionVarNameScope():Void {
 		functionVarNameScopes.push(new Map<Int, String>());
 		functionVarNameCountScopes.push(new Map<String, Int>());
-		optionalPrimitiveParamScopes.push(new Map<Int, Bool>());
+		optionalPrimitiveParamScopes.push(new Map<Int, String>());
 	}
 
 	function popFunctionVarNameScope():Void {
@@ -9023,8 +9040,37 @@ class GoCompiler {
 		return assigned;
 	}
 
-	function registerOptionalPrimitiveParam(variable:TVar, hasDefaultExpr:Bool):Void {
-		if (!hasDefaultExpr) {
+	function isOptionalPrimitiveFunctionArg(arg:{v:TVar, value:Null<TypedExpr>}, typedArg:Null<{name:String, opt:Bool, t:Type}>):Bool {
+		if (typedArg == null || !typedArg.opt) {
+			return false;
+		}
+		if (!isGoNilDefaultValue(arg.value)) {
+			return false;
+		}
+		var goType = typeToGoType(arg.v.t);
+		return goType == "int" || goType == "float64" || goType == "bool";
+	}
+
+	function isGoNilDefaultValue(expr:Null<TypedExpr>):Bool {
+		if (expr == null) {
+			return false;
+		}
+		return switch (expr.expr) {
+			case TConst(TNull):
+				true;
+			case TMeta(_, inner):
+				isGoNilDefaultValue(inner);
+			case TParenthesis(inner):
+				isGoNilDefaultValue(inner);
+			case TCast(inner, _):
+				isGoNilDefaultValue(inner);
+			case _:
+				false;
+		};
+	}
+
+	function registerOptionalPrimitiveParam(variable:TVar, isOptionalPrimitive:Bool):Void {
+		if (!isOptionalPrimitive) {
 			return;
 		}
 		var goType = typeToGoType(variable.t);
@@ -9035,10 +9081,10 @@ class GoCompiler {
 		if (scope == null) {
 			return;
 		}
-		scope.set(variable.id, true);
+		scope.set(variable.id, goType);
 	}
 
-	function currentOptionalPrimitiveParamScope():Null<Map<Int, Bool>> {
+	function currentOptionalPrimitiveParamScope():Null<Map<Int, String>> {
 		if (optionalPrimitiveParamScopes.length == 0) {
 			return null;
 		}
@@ -9046,15 +9092,19 @@ class GoCompiler {
 	}
 
 	function isRegisteredOptionalPrimitiveParam(variable:TVar):Bool {
+		return registeredOptionalPrimitiveParamGoType(variable) != null;
+	}
+
+	function registeredOptionalPrimitiveParamGoType(variable:TVar):Null<String> {
 		var index = optionalPrimitiveParamScopes.length - 1;
 		while (index >= 0) {
 			var scope = optionalPrimitiveParamScopes[index];
 			if (scope.exists(variable.id)) {
-				return true;
+				return scope.get(variable.id);
 			}
 			index--;
 		}
-		return false;
+		return null;
 	}
 
 	function registerLocalFunction(name:String, func:TFunc):Void {
@@ -9477,7 +9527,10 @@ class GoCompiler {
 				var localExpr:GoExpr = GoExpr.GoIdent(localVarName(variable));
 				var variableGoType = typeToGoType(variable.t);
 				var exprGoType = typeToGoType(expr.t);
-				if (variableGoType == "any" && exprGoType != "any") {
+				var optionalPrimitiveGoType = registeredOptionalPrimitiveParamGoType(variable);
+				if (optionalPrimitiveGoType != null) {
+					localExpr = GoExpr.GoTypeAssert(localExpr, optionalPrimitiveGoType);
+				} else if (variableGoType == "any" && exprGoType != "any") {
 					localExpr = GoExpr.GoTypeAssert(localExpr, exprGoType);
 				}
 				{
@@ -12851,7 +12904,20 @@ class GoCompiler {
 		var optionalPrimitiveLocalNullComparison = nullComparison
 			&& ((isNullLiteralExpr(left) && isOptionalPrimitiveLocalExpr(right))
 				|| (isNullLiteralExpr(right) && isOptionalPrimitiveLocalExpr(left)));
-		impossiblePrimitiveNullComparison = impossiblePrimitiveNullComparison || optionalPrimitiveLocalNullComparison;
+		if (optionalPrimitiveLocalNullComparison) {
+			if (isNullLiteralExpr(left)) {
+				var rawRight = lowerOptionalPrimitiveNilComparisonExpr(right);
+				if (rawRight != null) {
+					rightLowered = {expr: rawRight, isStringLike: rightLowered.isStringLike};
+				}
+			}
+			if (isNullLiteralExpr(right)) {
+				var rawLeft = lowerOptionalPrimitiveNilComparisonExpr(left);
+				if (rawLeft != null) {
+					leftLowered = {expr: rawLeft, isStringLike: leftLowered.isStringLike};
+				}
+			}
+		}
 		var useStringEquality = stringMode && (!nullComparison || isStringType(left.t) || isStringType(right.t));
 		var typedStringOps = isStringType(left.t) && isStringType(right.t);
 		var anyNullComparison = nullComparison && (isAnyLikeType(left.t) || isAnyLikeType(right.t));
@@ -13228,6 +13294,21 @@ class GoCompiler {
 				isOptionalPrimitiveLocalExpr(inner);
 			case _:
 				false;
+		};
+	}
+
+	function lowerOptionalPrimitiveNilComparisonExpr(expr:TypedExpr):Null<GoExpr> {
+		return switch (expr.expr) {
+			case TLocal(variable):
+				isRegisteredOptionalPrimitiveParam(variable) ? GoExpr.GoIdent(localVarName(variable)) : null;
+			case TMeta(_, inner):
+				lowerOptionalPrimitiveNilComparisonExpr(inner);
+			case TParenthesis(inner):
+				lowerOptionalPrimitiveNilComparisonExpr(inner);
+			case TCast(inner, _):
+				lowerOptionalPrimitiveNilComparisonExpr(inner);
+			case _:
+				null;
 		};
 	}
 

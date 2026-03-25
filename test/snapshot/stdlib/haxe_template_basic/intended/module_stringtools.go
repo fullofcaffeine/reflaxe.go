@@ -48,7 +48,7 @@ func StringTools_fastCodeAt(s *string, index int) int {
 	return hx_if_230
 }
 
-func StringTools_hex(n int, digits int) *string {
+func StringTools_hex(n int, digits any) *string {
 	hexChars := hxrt.StringFromLiteral("0123456789ABCDEF")
 	value := n
 	out := hxrt.StringFromLiteral("")
@@ -59,10 +59,10 @@ func StringTools_hex(n int, digits int) *string {
 		value = int(int32(int32((uint32(hxrt.Int32Wrap(value)) >> uint(4)))))
 	}
 	var hx_if_232 int
-	if false {
+	if digits == nil {
 		hx_if_232 = 0
 	} else {
-		hx_if_232 = digits
+		hx_if_232 = digits.(int)
 	}
 	resolvedDigits := hx_if_232
 	for (resolvedDigits != 0) && (hxrt.StringLengthStringPtr(out) < resolvedDigits) {
@@ -98,11 +98,11 @@ func StringTools_hexDigitValue(value *string) int {
 	return -1
 }
 
-func StringTools_htmlEscape(s *string, quotes bool) *string {
+func StringTools_htmlEscape(s *string, quotes any) *string {
 	s = StringTools_replace(s, hxrt.StringFromLiteral("&"), hxrt.StringFromLiteral("&amp;"))
 	s = StringTools_replace(s, hxrt.StringFromLiteral("<"), hxrt.StringFromLiteral("&lt;"))
 	s = StringTools_replace(s, hxrt.StringFromLiteral(">"), hxrt.StringFromLiteral("&gt;"))
-	if quotes {
+	if quotes.(bool) {
 		s = StringTools_replace(s, hxrt.StringFromLiteral("\""), hxrt.StringFromLiteral("&quot;"))
 		s = StringTools_replace(s, hxrt.StringFromLiteral("'"), hxrt.StringFromLiteral("&#039;"))
 	}

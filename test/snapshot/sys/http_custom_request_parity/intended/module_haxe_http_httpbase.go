@@ -9,7 +9,7 @@ type I_haxe__http__HttpBase interface {
 	addParameter(name *string, value *string)
 	setPostData(data *string)
 	setPostBytes(data *haxe__io__Bytes)
-	request(post bool)
+	request(post any)
 	onData(data *string)
 	onBytes(data *haxe__io__Bytes)
 	onError(msg *string)
@@ -138,7 +138,7 @@ func (self *haxe__http__HttpBase) setPostBytes(data *haxe__io__Bytes) {
 	self.postData = nil
 }
 
-func (self *haxe__http__HttpBase) request(post bool) {
+func (self *haxe__http__HttpBase) request(post any) {
 	hxrt.Throw(New_haxe__exceptions__NotImplementedException(nil, nil, func() map[string]any {
 		hx_obj_32 := map[string]any{}
 		hx_obj_32["fileName"] = hxrt.StringFromLiteral("../../../../std/haxe/http/HttpBase.cross.hx")
