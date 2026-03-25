@@ -171,6 +171,21 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("haxe.exceptions.NotImplementedException");
 			case "sys.Http":
 				requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
+			case "sys.net.Address":
+				requireSourceOwnedStdlibClass("sys.net.Address");
+			case "sys.ssl.Certificate":
+				requireSourceOwnedStdlibClass("sys.ssl.Certificate");
+				requireStdlibShimGroup("stdlib_symbols");
+			case "sys.ssl.Digest":
+				requireSourceOwnedStdlibClass("sys.ssl.Digest");
+				requireSourceOwnedStdlibModule("sys.ssl.DigestAlgorithm");
+				requireSourceOwnedStdlibClass("sys.ssl.Key");
+				requireStdlibShimGroup("stdlib_symbols");
+			case "sys.ssl.DigestAlgorithm":
+				requireSourceOwnedStdlibModule("sys.ssl.DigestAlgorithm");
+			case "sys.ssl.Key":
+				requireSourceOwnedStdlibClass("sys.ssl.Key");
+				requireStdlibShimGroup("stdlib_symbols");
 			case "haxe.Template":
 				requireSourceOwnedStdlibModule("haxe.Template");
 				requireStdlibShimGroup("stdlib_symbols");

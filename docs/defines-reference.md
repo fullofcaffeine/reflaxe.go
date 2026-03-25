@@ -49,7 +49,7 @@ Design note:
   - Force legacy full runtime copy (`runtime/hxrt/**`) into output.
   - Takes precedence over selective runtime defines.
 - `reflaxe_go_hxrt_features=<csv>`
-  - Enable selective runtime mode and add manual feature names (for example `core,string,sys`).
+  - Enable selective runtime mode and add manual feature names (for example `core,string,sys` or `core,string,exception,bytes,ssl` for SSL leaf helpers).
   - Unknown feature names fail compilation.
   - Empty value is allowed (`-D reflaxe_go_hxrt_features=`) and means "manual list empty; use inference unless disabled."
 - `reflaxe_go_hxrt_no_feature_infer`

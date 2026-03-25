@@ -1,0 +1,8 @@
+cert.cn=default.local
+cert.subject.cn=default.local
+cert.issuer.cn=default.local
+cert.altNames=0
+cert.next=true
+digest.sha256=dbfab800d71a9d82369e9ed46b83c55195f23ea36829b63c679d099e2ffdbba0
+digest.sha512=b4a81fd853cb30b4ea2e768142244f706048bb32ddd03a668e7b442cb6f4d58d23c443743fc1cdc916695ed6b72d88cb0b4c932eb754ea6a8c32c4b36a01b61c
+digest.verify=true

@@ -2054,19 +2054,17 @@
       "status": "semantic-diff"
     },
     {
-      "blocker_family": "sys_net_ssl",
-      "blocker_issue": "haxe.go-14as.18",
-      "closure_target": "2026-05-21",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.net.Address",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.18 (sys_net_ssl); closure target 2026-05-21.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.net.Address` usage now has semantic-diff coverage through `semantic_diff/sys_net_address_ssl_digest_algorithm_contract` and snapshot coverage in `stdlib/sys_net_address_ssl_digest_algorithm_direct`. Ownership stays source-owned because this surface is just the upstream `{host, port}` carrier and helper methods, expressed without growing the compiler-owned socket runtime.",
+      "owner": "staged_std",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
       "coverage_evidence": [
@@ -2112,64 +2110,56 @@
       "status": "compile-only"
     },
     {
-      "blocker_family": "sys_net_ssl",
-      "blocker_issue": "haxe.go-14as.18",
-      "closure_target": "2026-05-21",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "snapshot"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.ssl.Certificate",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.18 (sys_net_ssl); closure target 2026-05-21.",
+      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Certificate` leaf usage now has snapshot runtime coverage through `stdlib/sys_ssl_leaf_direct`. Ownership stays mixed: the public Haxe-facing wrapper lives in `std/sys/ssl/Certificate.cross.hx`, while certificate parsing and trust-root handling live in `runtime/hxrt/ssl.go`.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "snapshot"
     },
     {
-      "blocker_family": "sys_net_ssl",
-      "blocker_issue": "haxe.go-14as.18",
-      "closure_target": "2026-05-21",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "snapshot"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.ssl.Digest",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.18 (sys_net_ssl); closure target 2026-05-21.",
+      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Digest` leaf usage now has snapshot runtime coverage through `stdlib/sys_ssl_leaf_direct`, including deterministic SHA-256/SHA-512 digests plus sign/verify with a parsed private key. Ownership stays mixed: the public Haxe API lives in `std/sys/ssl/Digest.cross.hx`, while the actual cryptographic work lives in `runtime/hxrt/ssl.go`.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "snapshot"
     },
     {
-      "blocker_family": "sys_net_ssl",
-      "blocker_issue": "haxe.go-14as.18",
-      "closure_target": "2026-05-21",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "semantic_diff"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.ssl.DigestAlgorithm",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.18 (sys_net_ssl); closure target 2026-05-21.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.ssl.DigestAlgorithm` usage now has semantic-diff coverage through `semantic_diff/sys_net_address_ssl_digest_algorithm_contract` and snapshot coverage in `stdlib/sys_net_address_ssl_digest_algorithm_direct`. Ownership stays source-owned because this surface is the upstream string-backed algorithm enum, independent of the target-owned TLS and digest machinery underneath.",
+      "owner": "staged_std",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "semantic-diff"
     },
     {
-      "blocker_family": "sys_net_ssl",
-      "blocker_issue": "haxe.go-14as.18",
-      "closure_target": "2026-05-21",
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "snapshot"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.ssl.Key",
-      "notes": "Covered by full portable-eligible upstream stdlib sweep compile checks (test/upstream_std_modules_full.txt); runtime parity contracts are not yet promoted. Tracked by haxe.go-14as.18 (sys_net_ssl); closure target 2026-05-21.",
+      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Key` leaf usage now has snapshot runtime coverage through `stdlib/sys_ssl_leaf_direct`. Ownership stays mixed: the public Haxe constructors live in `std/sys/ssl/Key.cross.hx`, while PEM/DER parsing and native key storage live in `runtime/hxrt/ssl.go`. Omitted optional pass arguments still depend on the broader source-owned static optional-argument lowering follow-up.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "compile-only"
+      "status": "snapshot"
     },
     {
       "blocker_family": "sys_net_ssl",

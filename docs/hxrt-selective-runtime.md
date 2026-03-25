@@ -43,7 +43,7 @@ These are orthogonal concerns and should evolve together, not collapse into one 
 - `reflaxe_go_hxrt_default_features`
   - Force full runtime copy (compat mode).
   - Takes precedence over selective runtime flags.
-- `reflaxe_go_hxrt_features=core,json,sys,...`
+- `reflaxe_go_hxrt_features=core,json,sys,ssl,...`
   - Enables selective runtime mode and adds manual feature list.
   - Use empty value (`-D reflaxe_go_hxrt_features=`) to enable selective mode with inferred-only features.
 - `reflaxe_go_hxrt_no_feature_infer`

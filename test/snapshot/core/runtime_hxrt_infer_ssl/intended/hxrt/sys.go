@@ -1,0 +1,240 @@
+package hxrt
+
+import (
+	"io"
+	"os"
+	"runtime"
+	"strings"
+)
+
+type FileInput struct {
+	file *os.File
+}
+
+type FileOutput struct {
+	file *os.File
+}
+
+func SysGetCwd() *string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return StringFromLiteral("")
+	}
+	return StringFromLiteral(cwd)
+}
+
+func SysArgs() []*string {
+	args := os.Args
+	if len(args) <= 1 {
+		return []*string{}
+	}
+	out := make([]*string, 0, len(args)-1)
+	for _, arg := range args[1:] {
+		out = append(out, StringFromLiteral(arg))
+	}
+	return out
+}
+
+func SysGetEnv(key *string) *string {
+	if key == nil {
+		return nil
+	}
+	value, ok := os.LookupEnv(*key)
+	if !ok {
+		return nil
+	}
+	return StringFromLiteral(value)
+}
+
+func SysPutEnv(key *string, value *string) {
+	if key == nil {
+		return
+	}
+	if value == nil {
+		_ = os.Unsetenv(*key)
+		return
+	}
+	_ = os.Setenv(*key, *value)
+}
+
+func SysEnvironment() map[string]string {
+	out := map[string]string{}
+	for _, entry := range os.Environ() {
+		key, value, ok := strings.Cut(entry, "=")
+		if !ok {
+			out[entry] = ""
+			continue
+		}
+		out[key] = value
+	}
+	return out
+}
+
+func SysSystemName() *string {
+	switch runtime.GOOS {
+	case "darwin":
+		return StringFromLiteral("Mac")
+	case "linux":
+		return StringFromLiteral("Linux")
+	case "windows":
+		return StringFromLiteral("Windows")
+	case "freebsd", "openbsd", "netbsd", "dragonfly":
+		return StringFromLiteral("BSD")
+	default:
+		return StringFromLiteral(runtime.GOOS)
+	}
+}
+
+func FileSaveContent(path *string, content *string) {
+	_ = os.WriteFile(*StdString(path), []byte(*StdString(content)), 0o644)
+}
+
+func FileGetContent(path *string) *string {
+	raw, err := os.ReadFile(*StdString(path))
+	if err != nil {
+		return StringFromLiteral("")
+	}
+	return StringFromLiteral(string(raw))
+}
+
+func OpenFileInput(path *string) (*FileInput, error) {
+	file, err := os.Open(*StdString(path))
+	if err != nil {
+		return nil, err
+	}
+	return &FileInput{file: file}, nil
+}
+
+func openFileOutput(path *string, flags int) (*FileOutput, error) {
+	file, err := os.OpenFile(*StdString(path), flags, 0o644)
+	if err != nil {
+		return nil, err
+	}
+	return &FileOutput{file: file}, nil
+}
+
+func OpenFileWriteOutput(path *string) (*FileOutput, error) {
+	return openFileOutput(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC)
+}
+
+func OpenFileAppendOutput(path *string) (*FileOutput, error) {
+	return openFileOutput(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND)
+}
+
+func OpenFileUpdateOutput(path *string) (*FileOutput, error) {
+	return openFileOutput(path, os.O_CREATE|os.O_RDWR)
+}
+
+func FileGetBytes(path *string) ([]byte, error) {
+	return os.ReadFile(*StdString(path))
+}
+
+func FileSaveBytes(path *string, raw []byte) error {
+	return os.WriteFile(*StdString(path), raw, 0o644)
+}
+
+func FileCopy(srcPath *string, dstPath *string) error {
+	raw, err := os.ReadFile(*StdString(srcPath))
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(*StdString(dstPath), raw, 0o644)
+}
+
+func (self *FileInput) ReadByte() (int, bool, error) {
+	if self == nil || self.file == nil {
+		return 0, true, io.EOF
+	}
+	var one [1]byte
+	n, err := self.file.Read(one[:])
+	if err != nil {
+		if err == io.EOF {
+			return 0, true, nil
+		}
+		return 0, false, err
+	}
+	if n == 0 {
+		return 0, true, nil
+	}
+	return int(one[0]), false, nil
+}
+
+func (self *FileInput) Tell() (int, error) {
+	if self == nil || self.file == nil {
+		return 0, os.ErrInvalid
+	}
+	offset, err := self.file.Seek(0, io.SeekCurrent)
+	return int(offset), err
+}
+
+func (self *FileInput) Seek(offset int, whence int) error {
+	if self == nil || self.file == nil {
+		return os.ErrInvalid
+	}
+	_, err := self.file.Seek(int64(offset), whence)
+	return err
+}
+
+func (self *FileInput) Eof() (bool, error) {
+	if self == nil || self.file == nil {
+		return true, os.ErrInvalid
+	}
+	offset, err := self.file.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return true, err
+	}
+	info, err := self.file.Stat()
+	if err != nil {
+		return true, err
+	}
+	return offset >= info.Size(), nil
+}
+
+func (self *FileInput) Close() error {
+	if self == nil || self.file == nil {
+		return nil
+	}
+	err := self.file.Close()
+	self.file = nil
+	return err
+}
+
+func (self *FileOutput) WriteByte(value int) error {
+	if self == nil || self.file == nil {
+		return os.ErrInvalid
+	}
+	_, err := self.file.Write([]byte{byte(value)})
+	return err
+}
+
+func (self *FileOutput) Tell() (int, error) {
+	if self == nil || self.file == nil {
+		return 0, os.ErrInvalid
+	}
+	offset, err := self.file.Seek(0, io.SeekCurrent)
+	return int(offset), err
+}
+
+func (self *FileOutput) Seek(offset int, whence int) error {
+	if self == nil || self.file == nil {
+		return os.ErrInvalid
+	}
+	_, err := self.file.Seek(int64(offset), whence)
+	return err
+}
+
+func (self *FileOutput) Flush() error {
+	if self == nil || self.file == nil {
+		return nil
+	}
+	return self.file.Sync()
+}
+
+func (self *FileOutput) Close() error {
+	if self == nil || self.file == nil {
+		return nil
+	}
+	err := self.file.Close()
+	self.file = nil
+	return err
+}

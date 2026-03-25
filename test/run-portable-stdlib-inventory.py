@@ -102,6 +102,11 @@ OWNER_OVERRIDES = {
     "sys.db.Mysql": "staged_std",
     "sys.db.ResultSet": "staged_std",
     "sys.db.Sqlite": "staged_std",
+    "sys.net.Address": "staged_std",
+    "sys.ssl.Certificate": "mixed",
+    "sys.ssl.Digest": "mixed",
+    "sys.ssl.DigestAlgorithm": "staged_std",
+    "sys.ssl.Key": "mixed",
     "DateTools": "staged_std",
     "StringTools": "staged_std",
     "haxe.SysTools": "staged_std",
@@ -385,6 +390,25 @@ MODULE_NOTES_OVERRIDES = {
         "and snapshot coverage in `stdlib/sys_db_io_direct`, preserving the upstream Go-platform contract that this API "
         "throws `Not implemented for this platform` instead of claiming a nonexistent SQLite binding."
     ),
+    "sys.net.Address": (
+        "Direct `sys.net.Address` usage now has semantic-diff coverage through "
+        "`semantic_diff/sys_net_address_ssl_digest_algorithm_contract` and snapshot coverage in "
+        "`stdlib/sys_net_address_ssl_digest_algorithm_direct`. Ownership stays source-owned because this "
+        "surface is just the upstream `{host, port}` carrier and helper methods, expressed without growing "
+        "the compiler-owned socket runtime."
+    ),
+    "sys.ssl.Certificate": (
+        "Direct `sys.ssl.Certificate` leaf usage now has snapshot runtime coverage through "
+        "`stdlib/sys_ssl_leaf_direct`. Ownership stays mixed: the public Haxe-facing wrapper lives in "
+        "`std/sys/ssl/Certificate.cross.hx`, while certificate parsing and trust-root handling live in "
+        "`runtime/hxrt/ssl.go`."
+    ),
+    "sys.ssl.Digest": (
+        "Direct `sys.ssl.Digest` leaf usage now has snapshot runtime coverage through "
+        "`stdlib/sys_ssl_leaf_direct`, including deterministic SHA-256/SHA-512 digests plus sign/verify "
+        "with a parsed private key. Ownership stays mixed: the public Haxe API lives in "
+        "`std/sys/ssl/Digest.cross.hx`, while the actual cryptographic work lives in `runtime/hxrt/ssl.go`."
+    ),
     "sys.io.FileInput": (
         "Direct `sys.io.FileInput` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` "
         "and snapshot coverage in `stdlib/sys_db_io_direct`. Ownership is runtime-backed on purpose: the public Haxe file-handle "
@@ -399,6 +423,18 @@ MODULE_NOTES_OVERRIDES = {
         "Direct `sys.io.FileSeek` enum usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` "
         "and snapshot coverage in `stdlib/sys_db_io_direct`, with compiler-owned enum tags bridged to runtime seek whence values "
         "through the sys shim layer instead of relying on accidental source-owned extern emission."
+    ),
+    "sys.ssl.DigestAlgorithm": (
+        "Direct `sys.ssl.DigestAlgorithm` usage now has semantic-diff coverage through "
+        "`semantic_diff/sys_net_address_ssl_digest_algorithm_contract` and snapshot coverage in "
+        "`stdlib/sys_net_address_ssl_digest_algorithm_direct`. Ownership stays source-owned because this surface "
+        "is the upstream string-backed algorithm enum, independent of the target-owned TLS and digest machinery underneath."
+    ),
+    "sys.ssl.Key": (
+        "Direct `sys.ssl.Key` leaf usage now has snapshot runtime coverage through `stdlib/sys_ssl_leaf_direct`. "
+        "Ownership stays mixed: the public Haxe constructors live in `std/sys/ssl/Key.cross.hx`, while PEM/DER "
+        "parsing and native key storage live in `runtime/hxrt/ssl.go`. Omitted optional pass arguments still depend "
+        "on the broader source-owned static optional-argument lowering follow-up."
     ),
 }
 

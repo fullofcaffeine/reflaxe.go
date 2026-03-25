@@ -4,7 +4,10 @@
     "snapshot": [
       "haxe.CallStack",
       "haxe.NativeStackTrace",
-      "haxe.Ucs2"
+      "haxe.Ucs2",
+      "sys.ssl.Certificate",
+      "sys.ssl.Digest",
+      "sys.ssl.Key"
     ],
     "semantic_diff": [
       "Any",
@@ -77,7 +80,9 @@
       "sys.db.Sqlite",
       "sys.io.FileInput",
       "sys.io.FileOutput",
-      "sys.io.FileSeek"
+      "sys.io.FileSeek",
+      "sys.net.Address",
+      "sys.ssl.DigestAlgorithm"
     ]
   }
 }
