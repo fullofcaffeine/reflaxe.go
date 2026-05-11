@@ -59,6 +59,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.io.Bytes` / `haxe.io.BytesBuffer` / `haxe.io.BytesInput` / `haxe.io.BytesOutput` (core ops + Input/Output helper subset) | `semantic-diff` | `bytes_normalization_contract`, `bytes_ops_contract`, `bytes_of_data_contract`, `bytes_hex_contract`, `bytes_io_stream_contract`, `io_input_output_helpers_contract`, `io_input_output_edge_contract`, `stdlib/bytes_basic` |
 | `haxe.io` typed arrays (`ArrayBufferView`, `UInt8Array`, `UInt16Array`, `UInt32Array`, `Int32Array`, `Float32Array`, `Float64Array`) | `semantic-diff` | `haxe_io_typed_arrays_contract`, `stdlib/haxe_io_typed_arrays_direct` |
 | `sys.io.Process` | `semantic-diff` | `process_echo_contract`, `sys/process_echo_smoke` |
+| `Sys.command` / `Sys.exit` wrapper delegation | `semantic-diff` + `snapshot` | `sys_command_contract`, `sys/sys_command_exit_wrapper` |
 | `sys.io.File` | `semantic-diff` | `file_read_write_contract`, `sys/file_read_write_smoke` |
 | `sys.FileSystem` | `semantic-diff` | `filesystem_contract`, `sys/filesystem_basic_smoke` |
 | `sys.net.Address` | `semantic-diff` | `sys_net_address_ssl_digest_algorithm_contract`, `stdlib/sys_net_address_ssl_digest_algorithm_direct` |
@@ -253,12 +254,12 @@ Shim strategy and alternatives are documented in:
 
 ### `Sys` / `sys.io.File` / `sys.io.Process` ownership contract
 
-- Runtime behavior now lives in `runtime/hxrt/hxrt.go`:
-  - `hxrt.SysGetCwd`, `hxrt.SysArgs`
+- Runtime behavior now lives in `runtime/hxrt/sys.go` and `runtime/hxrt/process.go`:
+  - `hxrt.SysGetCwd`, `hxrt.SysArgs`, `hxrt.SysCommand`, `hxrt.SysExit`
   - `hxrt.FileSaveContent`, `hxrt.FileGetContent`
   - `hxrt.NewProcess`, `Process.Stdout`, `ProcessOutput.ReadLine`, `Process.Close`
 - Compiler-generated `sys` declarations remain as thin wrappers to preserve Haxe type shape and call signatures.
-- `lowerSysStdlibShimDecls` is forwarding-only for this surface; behavior changes must be implemented in runtime and verified by `sys/file_read_write_smoke`, `test/semantic_diff/file_read_write_contract`, `sys/process_echo_smoke`, and `test/semantic_diff/process_echo_contract`.
+- `lowerSysStdlibShimDecls` is forwarding-only for this surface; behavior changes must be implemented in runtime and verified by `sys/file_read_write_smoke`, `test/semantic_diff/file_read_write_contract`, `sys/process_echo_smoke`, `test/semantic_diff/process_echo_contract`, `test/semantic_diff/sys_command_contract`, and `sys/sys_command_exit_wrapper`.
 
 ### `sys.FileSystem` shim contract and tradeoffs
 

@@ -148,7 +148,7 @@ This matches sibling-target practice:
 
 ## Ownership Boundary (Post `haxe.go-7zy.11`)
 
-- `runtime/hxrt/hxrt.go` owns `Sys`/`sys.io.File`/`sys.io.Process` behavior (OS args/cwd, file reads/writes, process launch/stdout/close).
+- `runtime/hxrt/sys.go` and `runtime/hxrt/process.go` own `Sys`/`sys.io.File`/`sys.io.Process` behavior (OS args/cwd, command delegation/exit, file reads/writes, process launch/stdout/close).
 - `src/reflaxe/go/GoCompiler.hx` owns lowering and generated type-shape wrappers only for this surface.
 - `lowerSysStdlibShimDecls` must remain forwarding-only unless a behavior change is intentionally re-centralized and justified with parity/perf evidence.
 

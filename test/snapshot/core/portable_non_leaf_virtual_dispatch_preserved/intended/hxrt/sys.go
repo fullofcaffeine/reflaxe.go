@@ -3,6 +3,7 @@ package hxrt
 import (
 	"io"
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
 )
@@ -55,6 +56,27 @@ func SysPutEnv(key *string, value *string) {
 		return
 	}
 	_ = os.Setenv(*key, *value)
+}
+
+func SysCommand(command *string, args []*string) int {
+	if command == nil {
+		return -1
+	}
+	cmd := exec.Command(*StdString(command), StringSlice(args)...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			return exitErr.ExitCode()
+		}
+		return -1
+	}
+	return 0
+}
+
+func SysExit(code int) {
+	os.Exit(code)
 }
 
 func SysEnvironment() map[string]string {

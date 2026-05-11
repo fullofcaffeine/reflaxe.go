@@ -190,6 +190,7 @@ class GoCompiler {
 	final returnRedirectScopes:Array<Null<ReturnRedirect>>;
 	var cachedVoidType:Null<Type>;
 	var requiresIoHelperSurface:Bool;
+	var requiresSysCommandSurface:Bool;
 	var requiresIoStringInputSurface:Bool;
 	var requiresIoBufferInputSurface:Bool;
 	var requiresIoEofStringSurface:Bool;
@@ -228,6 +229,7 @@ class GoCompiler {
 		returnRedirectScopes = [];
 		cachedVoidType = null;
 		requiresIoHelperSurface = false;
+		requiresSysCommandSurface = false;
 		requiresIoStringInputSurface = false;
 		requiresIoBufferInputSurface = false;
 		requiresIoEofStringSurface = false;
@@ -285,6 +287,7 @@ class GoCompiler {
 		syncCompilationContextLeafReceivers();
 		clearBoolMap(compilationContext.leafReturningFunctions);
 		requiresIoHelperSurface = false;
+		requiresSysCommandSurface = false;
 		requiresIoStringInputSurface = false;
 		requiresIoBufferInputSurface = false;
 		requiresIoEofStringSurface = false;
@@ -5391,6 +5394,28 @@ class GoCompiler {
 				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "impl"), "Close"), []))
 			])
 		];
+
+		if (requiresSysCommandSurface) {
+			decls = decls.concat([
+				GoDecl.GoFuncDecl("Sys_command", null, [
+					{
+						name: "command",
+						typeName: "*string"
+					},
+					{name: "args", typeName: "[]*string"}
+				], ["int"], [
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysCommand"), [GoExpr.GoIdent("command"), GoExpr.GoIdent("args")]))
+				]),
+				GoDecl.GoFuncDecl("Sys_exit", null, [
+					{
+						name: "code",
+						typeName: "int"
+					}
+				], [], [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysExit"), [GoExpr.GoIdent("code")]))
+				])
+			]);
+		}
 
 		decls = decls.concat([
 			GoDecl.GoFuncDecl("get_bigEndian", {
@@ -13500,6 +13525,9 @@ class GoCompiler {
 	}
 
 	function noteStaticStdlibFieldUsage(classType:ClassType, fieldName:String):Void {
+		if (classType.pack.length == 0 && classType.name == "Sys" && (fieldName == "command" || fieldName == "exit")) {
+			requiresSysCommandSurface = true;
+		}
 		if (classType.pack.length == 0 && classType.name == "Sys" && fieldName == "environment") {
 			requireStdlibShimGroup("ds");
 		}

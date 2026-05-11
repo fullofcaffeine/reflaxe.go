@@ -391,6 +391,38 @@ def read_text_or_none(path: Path) -> str | None:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
+def expected_runtime_exit(case: SnapshotCase) -> int:
+    expected_exit = case.case_path / "expected.exit"
+    if not expected_exit.exists():
+        return 0
+    raw = expected_exit.read_text(encoding="utf-8").strip()
+    if not raw:
+        return 0
+    try:
+        return int(raw)
+    except ValueError as exc:
+        raise SystemExit(f"{expected_exit} must contain an integer exit code") from exc
+
+
+def run_runtime_smoke(case: SnapshotCase, out_dir: Path, expected_exit: int, timeout_s: int) -> subprocess.CompletedProcess[str]:
+    if expected_exit == 0:
+        return run_command(["go", "run", "."], cwd=out_dir, timeout_s=timeout_s)
+
+    CACHE_ROOT.mkdir(parents=True, exist_ok=True)
+    safe_case_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", case.case_id)
+    binary = CACHE_ROOT / f"snapshot-runtime-{safe_case_id}"
+    build_proc = run_command(["go", "build", "-o", str(binary), "."], cwd=out_dir, timeout_s=timeout_s)
+    if build_proc.returncode != 0:
+        return build_proc
+    try:
+        return run_command([str(binary)], cwd=out_dir, timeout_s=timeout_s)
+    finally:
+        try:
+            binary.unlink()
+        except FileNotFoundError:
+            pass
+
+
 def collapse_whitespace(text: str) -> str:
     return "".join(text.split())
 
@@ -552,10 +584,15 @@ def run_case(case: SnapshotCase, args: argparse.Namespace) -> CaseResult:
         if args.runtime:
             expected_stdout = case.case_path / "expected.stdout"
             if expected_stdout.exists():
-                run_proc = run_command(["go", "run", "."], cwd=out_dir, timeout_s=args.timeout)
-                if run_proc.returncode != 0:
+                expected_exit = expected_runtime_exit(case)
+                run_proc = run_runtime_smoke(case, out_dir, expected_exit, args.timeout)
+                if run_proc.returncode != expected_exit:
                     duration = time.monotonic() - started
-                    return CaseResult(case.case_id, False, duration, "runtime", command_output(run_proc))
+                    output = command_output(run_proc)
+                    message = f"exit code mismatch: expected {expected_exit}, got {run_proc.returncode}"
+                    if output:
+                        message += "\n" + output
+                    return CaseResult(case.case_id, False, duration, "runtime", message)
 
                 expected = expected_stdout.read_text(encoding="utf-8").replace("\r\n", "\n")
                 actual = run_proc.stdout.replace("\r\n", "\n")

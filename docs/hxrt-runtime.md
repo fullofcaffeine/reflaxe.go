@@ -78,7 +78,7 @@ Key implementation points:
 - JSON wrappers:
   - `JsonParse`, `JsonStringify`
 - System/file/process wrappers:
-  - `SysGetCwd`, `SysArgs`
+  - `SysGetCwd`, `SysArgs`, `SysCommand`, `SysExit`
   - `FileSaveContent`, `FileGetContent`
   - `NewProcess`, `Process.Stdout`, `ProcessOutput.ReadLine`, `Process.Close`
 - Byte representation helpers:

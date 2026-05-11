@@ -70,6 +70,8 @@ Implementation:
 - Reworked `lowerSysStdlibShimDecls` to forwarding wrappers only:
   - `Sys_getCwd` -> `hxrt.SysGetCwd`
   - `Sys_args` -> `hxrt.SysArgs`
+  - `Sys_command` -> `hxrt.SysCommand`
+  - `Sys_exit` -> `hxrt.SysExit`
   - `sys__io__File_saveContent` -> `hxrt.FileSaveContent`
   - `sys__io__File_getContent` -> `hxrt.FileGetContent`
   - `New_sys__io__Process` -> `hxrt.NewProcess`
@@ -77,6 +79,7 @@ Implementation:
   - `sys__io__Process.close` -> `hxrt.Process.Close`
 - Added runtime-owned behavior to `runtime/hxrt/hxrt.go`:
   - `SysGetCwd`, `SysArgs`, `FileSaveContent`, `FileGetContent`
+  - `SysCommand`, `SysExit`
   - `ProcessOutput` and `Process` runtime types
   - `NewProcess`, `Stdout`, `ReadLine`, `Close`
 - Preserved generated Haxe type-shape parity by keeping compiler-side wrapper structs that now delegate all behavior.
@@ -97,6 +100,24 @@ Observed result:
   - strict stdlib sweep: `55/55`
   - semantic diff: `27/27`
   - examples: `6/6`
+
+### 2026-05-11: `Sys.command` / `Sys.exit` wrapper delegation (`haxe.go-14as.49`)
+
+Implementation:
+
+- Added runtime-owned `hxrt.SysCommand` that runs a child process with inherited stdin/stdout/stderr and returns the child exit code.
+- Added runtime-owned `hxrt.SysExit` so emitted CLI wrappers can terminate with the delegated command status.
+- Added thin compiler forwarding declarations for generated `Sys_command` and `Sys_exit`.
+- Extended the snapshot runtime harness with `expected.exit` support so nonzero CLI wrapper exits are verified against a built binary rather than hidden behind `go run` exit wrapping.
+
+Validation evidence:
+
+- `python3 test/run-semantic-diff.py --case sys_command_contract --timeout 120`
+- `python3 test/run-snapshots.py --case sys/sys_command_exit_wrapper --runtime --timeout 120`
+
+Observed result:
+
+- Emitted Go can use the canonical `Sys.command(...)` + `Sys.exit(...)` wrapper shape without undefined symbols, while preserving child stdout/stderr inheritance and propagated exit code.
 
 ### 2026-02-19: `stdlib_symbols` bytes-conversion optimization (`haxe.go-7zy.12`)
 
