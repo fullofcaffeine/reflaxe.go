@@ -2,7 +2,6 @@ package hxrt
 
 import (
 	"crypto"
-	"crypto/tls"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/md5"
@@ -11,6 +10,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -492,6 +492,37 @@ func sslKeyPair(certHandle any, keyHandle any) (tls.Certificate, error) {
 	return pair, nil
 }
 
+type sslSocketSNIEntry struct {
+	match func(*string) bool
+	cert  tls.Certificate
+}
+
+type sslSocketSNIConfig struct {
+	entries []sslSocketSNIEntry
+}
+
+func SslSocketAddSNICertificate(configHandle any, matchHandle any, certHandle any, keyHandle any) any {
+	config, ok := configHandle.(*sslSocketSNIConfig)
+	if !ok || config == nil {
+		config = &sslSocketSNIConfig{}
+	}
+	match, ok := matchHandle.(func(*string) bool)
+	if !ok || match == nil {
+		Throw(StringFromLiteral("sys.ssl.Socket.addSNICertificate callback has unsupported shape"))
+		return config
+	}
+	pair, err := sslKeyPair(certHandle, keyHandle)
+	if err != nil {
+		Throw(err)
+		return config
+	}
+	config.entries = append(config.entries, sslSocketSNIEntry{
+		match: match,
+		cert:  pair,
+	})
+	return config
+}
+
 func SslSocketConnect(host *string, port int, verifyCert bool, caHandle any, serverName *string, certHandle any, keyHandle any) net.Conn {
 	if host == nil {
 		Throw(StringFromLiteral("socket connect requires host"))
@@ -524,7 +555,7 @@ func SslSocketConnect(host *string, port int, verifyCert bool, caHandle any, ser
 	return conn
 }
 
-func SslSocketListen(host *string, port int, certHandle any, keyHandle any) net.Listener {
+func SslSocketListen(host *string, port int, certHandle any, keyHandle any, sniHandle any) net.Listener {
 	if host == nil {
 		Throw(StringFromLiteral("socket bind requires host"))
 		return nil
@@ -534,9 +565,22 @@ func SslSocketListen(host *string, port int, certHandle any, keyHandle any) net.
 		Throw(err)
 		return nil
 	}
-	listener, err := tls.Listen("tcp", net.JoinHostPort(*StdString(host), strconv.Itoa(port)), &tls.Config{
+	config := &tls.Config{
 		Certificates: []tls.Certificate{pair},
-	})
+	}
+	if sniConfig, ok := sniHandle.(*sslSocketSNIConfig); ok && sniConfig != nil && len(sniConfig.entries) > 0 {
+		config.GetCertificate = func(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+			serverName := StringFromLiteral(clientHello.ServerName)
+			for i := range sniConfig.entries {
+				entry := &sniConfig.entries[i]
+				if entry.match != nil && entry.match(serverName) {
+					return &entry.cert, nil
+				}
+			}
+			return &pair, nil
+		}
+	}
+	listener, err := tls.Listen("tcp", net.JoinHostPort(*StdString(host), strconv.Itoa(port)), config)
 	if err != nil {
 		Throw(err)
 		return nil

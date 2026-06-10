@@ -446,12 +446,12 @@ MODULE_NOTES_OVERRIDES = {
         "on the broader source-owned static optional-argument lowering follow-up."
     ),
     "sys.ssl.Socket": (
-        "Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct`, "
+        "Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct` "
+        "and SNI selection coverage through `stdlib/sys_ssl_socket_sni_direct`, "
         "covering staged public socket configuration on top of the compiler-owned `sys.net.Socket` carrier plus "
-        "runtime TLS dial/listen/handshake/peer-certificate behavior in `runtime/hxrt/ssl.go`. Ownership stays mixed: "
+        "runtime TLS dial/listen/handshake/peer-certificate/SNI behavior in `runtime/hxrt/ssl.go`. Ownership stays mixed: "
         "the public Haxe API lives in `std/sys/ssl/Socket.cross.hx`, while the underlying connection/listener TLS "
-        "behavior remains runtime-owned. `addSNICertificate` still fails fast with a documented `NotImplementedException` "
-        "until the dedicated SNI callback follow-up lands."
+        "behavior remains runtime-owned."
     ),
 }
 

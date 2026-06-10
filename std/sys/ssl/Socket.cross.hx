@@ -1,6 +1,5 @@
 package sys.ssl;
 
-import haxe.exceptions.NotImplementedException;
 import sys.net.Host;
 
 /**
@@ -34,6 +33,20 @@ class Socket extends sys.net.Socket {
 	var ownCert:Null<Certificate>;
 	var ownKey:Null<Key>;
 
+	/**
+		What
+		Opaque handle for Go's TLS SNI certificate table.
+
+		Why
+		The actual certificate selector must be installed on Go's `tls.Config`,
+		so the state lives in `hxrt` rather than in ordinary Haxe collections.
+
+		How
+		`addSNICertificate` creates or extends this handle through a typed hxrt
+		helper, and `bind` passes it to the TLS listener helper.
+	**/
+	var sniConfig:Dynamic;
+
 	public function new() {
 		super();
 		if (DEFAULT_VERIFY_CERT == true && DEFAULT_CA == null) {
@@ -64,21 +77,22 @@ class Socket extends sys.net.Socket {
 
 	/**
 		What
-		Register additional SNI certificate selection logic.
+		Register a certificate/key pair for Server Name Indication (SNI).
 
 		Why
-		- The baseline `haxe.go` TLS socket support currently covers one active
-		  certificate/key pair for direct portable usage.
-		- Multi-certificate SNI callback dispatch needs a second slice so the
-		  callback bridge stays typed and testable instead of landing as an ad hoc
-		  raw closure.
+		SNI is the hostname a TLS client sends during handshake. Servers use it
+		to choose the right certificate when one listener serves multiple names.
 
 		How
-		- Fail fast with an explicit `NotImplementedException` until that follow-up
-		  lands.
+		The Haxe callback remains the public API. `haxe.go` stores the callback
+		and parsed certificate in an `hxrt` table, then Go's TLS listener asks that
+		table for a matching certificate during handshake.
 	**/
 	public function addSNICertificate(cbServernameMatch:String->Bool, cert:Certificate, key:Key):Void {
-		throw new NotImplementedException("sys.ssl.Socket.addSNICertificate is not implemented on haxe.go yet");
+		if (cbServernameMatch == null || cert == null || key == null) {
+			throw "sys.ssl.Socket.addSNICertificate requires callback, certificate, and key";
+		}
+		sniConfig = untyped __go__("hxrt.SslSocketAddSNICertificate({0}, {1}, {2}, {3})", sniConfig, cbServernameMatch, cert.handle, key.handle);
 	}
 
 	override public function connect(host:Host, port:Int):Void {
@@ -102,8 +116,8 @@ class Socket extends sys.net.Socket {
 		if (resolvedHost == null) {
 			throw "socket bind requires host";
 		}
-		untyped __go__("func() int { listener := hxrt.SslSocketListen({1}, {2}, {3}, {4}); if {0}.listener != nil { _ = {0}.listener.Close() }; {0}.listener = listener; {0}.hxrt__socket_applyListenerDeadline(); return 0 }()",
-			this, resolvedHost, port, ownCert == null ? null : ownCert.handle, ownKey == null ? null : ownKey.handle);
+		untyped __go__("func() int { listener := hxrt.SslSocketListen({1}, {2}, {3}, {4}, {5}); if {0}.listener != nil { _ = {0}.listener.Close() }; {0}.listener = listener; {0}.hxrt__socket_applyListenerDeadline(); return 0 }()",
+			this, resolvedHost, port, ownCert == null ? null : ownCert.handle, ownKey == null ? null : ownKey.handle, sniConfig);
 	}
 
 	override public function accept():sys.net.Socket {

@@ -2167,7 +2167,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.ssl.Socket",
-      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct`, covering staged public socket configuration on top of the compiler-owned `sys.net.Socket` carrier plus runtime TLS dial/listen/handshake/peer-certificate behavior in `runtime/hxrt/ssl.go`. Ownership stays mixed: the public Haxe API lives in `std/sys/ssl/Socket.cross.hx`, while the underlying connection/listener TLS behavior remains runtime-owned. `addSNICertificate` still fails fast with a documented `NotImplementedException` until the dedicated SNI callback follow-up lands.",
+      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct` and SNI selection coverage through `stdlib/sys_ssl_socket_sni_direct`, covering staged public socket configuration on top of the compiler-owned `sys.net.Socket` carrier plus runtime TLS dial/listen/handshake/peer-certificate/SNI behavior in `runtime/hxrt/ssl.go`. Ownership stays mixed: the public Haxe API lives in `std/sys/ssl/Socket.cross.hx`, while the underlying connection/listener TLS behavior remains runtime-owned.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "snapshot"

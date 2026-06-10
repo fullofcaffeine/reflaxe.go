@@ -18,12 +18,12 @@ func New_sys__ssl__Key(handle any) *sys__ssl__Key {
 }
 
 func sys__ssl__Key_loadFile(file *string, isPublic any, pass *string) *sys__ssl__Key {
-	return New_sys__ssl__Key(hxrt.SslKeyLoadFile(file, (func(hx_value_13 any) bool {
-		if hx_value_13 == nil {
-			var hx_zero_14 bool
-			return hx_zero_14
+	return New_sys__ssl__Key(hxrt.SslKeyLoadFile(file, (func(hx_value_12 any) bool {
+		if hx_value_12 == nil {
+			var hx_zero_13 bool
+			return hx_zero_13
 		}
-		return hx_value_13.(bool)
+		return hx_value_12.(bool)
 	}(isPublic.(bool)) == true), pass))
 }
 

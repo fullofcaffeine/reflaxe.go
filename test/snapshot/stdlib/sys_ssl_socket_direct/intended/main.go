@@ -2270,10 +2270,6 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return nil, false
 	case "haxe._Int64.___Int64":
 		return hxrt_typeCallAny(New_haxe___Int64_____Int64, args)
-	case "haxe.exceptions.NotImplementedException":
-		return hxrt_typeCallAny(New_haxe__exceptions__NotImplementedException, args)
-	case "haxe.exceptions.PosException":
-		return hxrt_typeCallAny(New_haxe__exceptions__PosException, args)
 	case "haxe.io.GoIoHelpers":
 		return nil, false
 	case "sys.ssl.Certificate":
@@ -2291,10 +2287,6 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
 	case "haxe._Int64.___Int64":
 		return &haxe___Int64_____Int64{}, true
-	case "haxe.exceptions.NotImplementedException":
-		return &haxe__exceptions__NotImplementedException{}, true
-	case "haxe.exceptions.PosException":
-		return &haxe__exceptions__PosException{}, true
 	case "sys.ssl.Certificate":
 		return &sys__ssl__Certificate{}, true
 	case "sys.ssl.Key":
@@ -2432,16 +2424,6 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe._Int64.___Int64")}
-	case *haxe__exceptions__NotImplementedException:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.exceptions.NotImplementedException")}
-	case *haxe__exceptions__PosException:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.exceptions.PosException")}
 	case *sys__ssl__Certificate:
 		if value == nil {
 			return nil
@@ -2501,10 +2483,6 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "haxe._Int64.___Int64":
 		return nil
-	case "haxe.exceptions.NotImplementedException":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.exceptions.PosException")}
-	case "haxe.exceptions.PosException":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.Exception")}
 	case "haxe.io.GoIoHelpers":
 		return nil
 	case "sys.ssl.Certificate":
@@ -2542,10 +2520,6 @@ func Type_getClassFields(c any) []*string {
 		return []*string{}
 	case "haxe._Int64.___Int64":
 		return []*string{}
-	case "haxe.exceptions.NotImplementedException":
-		return []*string{}
-	case "haxe.exceptions.PosException":
-		return []*string{}
 	case "haxe.io.GoIoHelpers":
 		return []*string{hxrt.StringFromLiteral("bytesOutputGetBytes"), hxrt.StringFromLiteral("inputRead"), hxrt.StringFromLiteral("inputReadAll"), hxrt.StringFromLiteral("inputReadBytes"), hxrt.StringFromLiteral("inputReadFullBytes"), hxrt.StringFromLiteral("inputReadLine"), hxrt.StringFromLiteral("inputReadUntil"), hxrt.StringFromLiteral("outputWrite"), hxrt.StringFromLiteral("outputWriteBytes"), hxrt.StringFromLiteral("outputWriteFullBytes"), hxrt.StringFromLiteral("outputWriteInput"), hxrt.StringFromLiteral("outputWriteString")}
 	case "sys.ssl.Certificate":
@@ -2575,10 +2549,6 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{}
 	case "haxe._Int64.___Int64":
 		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
-	case "haxe.exceptions.NotImplementedException":
-		return []*string{hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("posInfos"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap")}
-	case "haxe.exceptions.PosException":
-		return []*string{hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("posInfos"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap")}
 	case "haxe.io.GoIoHelpers":
 		return []*string{}
 	case "sys.ssl.Certificate":
@@ -2586,7 +2556,7 @@ func Type_getInstanceFields(c any) []*string {
 	case "sys.ssl.Key":
 		return []*string{hxrt.StringFromLiteral("handle")}
 	case "sys.ssl.Socket":
-		return []*string{hxrt.StringFromLiteral("accept"), hxrt.StringFromLiteral("addSNICertificate"), hxrt.StringFromLiteral("bind"), hxrt.StringFromLiteral("caCert"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("connect"), hxrt.StringFromLiteral("custom"), hxrt.StringFromLiteral("handshake"), hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("hostname"), hxrt.StringFromLiteral("input"), hxrt.StringFromLiteral("listen"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("ownCert"), hxrt.StringFromLiteral("ownKey"), hxrt.StringFromLiteral("peer"), hxrt.StringFromLiteral("peerCertificate"), hxrt.StringFromLiteral("read"), hxrt.StringFromLiteral("setBlocking"), hxrt.StringFromLiteral("setCA"), hxrt.StringFromLiteral("setCertificate"), hxrt.StringFromLiteral("setFastSend"), hxrt.StringFromLiteral("setHostname"), hxrt.StringFromLiteral("setTimeout"), hxrt.StringFromLiteral("shutdown"), hxrt.StringFromLiteral("verifyCert"), hxrt.StringFromLiteral("waitForRead"), hxrt.StringFromLiteral("write")}
+		return []*string{hxrt.StringFromLiteral("accept"), hxrt.StringFromLiteral("addSNICertificate"), hxrt.StringFromLiteral("bind"), hxrt.StringFromLiteral("caCert"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("connect"), hxrt.StringFromLiteral("custom"), hxrt.StringFromLiteral("handshake"), hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("hostname"), hxrt.StringFromLiteral("input"), hxrt.StringFromLiteral("listen"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("ownCert"), hxrt.StringFromLiteral("ownKey"), hxrt.StringFromLiteral("peer"), hxrt.StringFromLiteral("peerCertificate"), hxrt.StringFromLiteral("read"), hxrt.StringFromLiteral("setBlocking"), hxrt.StringFromLiteral("setCA"), hxrt.StringFromLiteral("setCertificate"), hxrt.StringFromLiteral("setFastSend"), hxrt.StringFromLiteral("setHostname"), hxrt.StringFromLiteral("setTimeout"), hxrt.StringFromLiteral("shutdown"), hxrt.StringFromLiteral("sniConfig"), hxrt.StringFromLiteral("verifyCert"), hxrt.StringFromLiteral("waitForRead"), hxrt.StringFromLiteral("write")}
 	default:
 		return []*string{}
 	}
@@ -2615,10 +2585,6 @@ func Type_resolveClass(name *string) any {
 	case "haxe._Int64.Int64_Impl_":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe._Int64.___Int64":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "haxe.exceptions.NotImplementedException":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "haxe.exceptions.PosException":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.io.GoIoHelpers":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
