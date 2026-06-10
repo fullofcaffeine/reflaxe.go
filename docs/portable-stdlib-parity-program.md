@@ -172,10 +172,9 @@ Current execution order:
 2. `haxe.go-14as.55.1` - canonical ownership rubric (`compiler` vs `staged std` vs `hxrt` vs `go.*`)
 3. `haxe.go-14as.55.2` - split compiler-owned stdlib emitters out of `GoCompiler.hx`
 4. `haxe.go-14as.55.4` - make ownership/parity governance release-blocking
-5. remaining portable stdlib blocker families in owner-driven order:
-   - `haxe.go-14as.17` (`sys.db` + `sys.io`)
-   - `haxe.go-14as.18` (closed: `sys.ssl.Socket` promoted to snapshot coverage; `sys.net.UdpSocket` direct loopback baseline already promoted)
-   - `haxe.go-14as.19` (`sys.thread`)
+5. live non-semantic-diff surfaces are generated from the inventory instead of hand-maintained in this roadmap.
+   - No compile-only portable blocker families remain.
+   - Snapshot-only and explicitly unsupported surfaces stay visible through `test/.test-cache/portable_parity_closure_summary.md`.
 
 Recently closed direct portable tranches:
 

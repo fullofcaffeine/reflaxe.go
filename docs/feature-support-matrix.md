@@ -384,7 +384,7 @@ sys.net.UdpSocket
 
 Source list: `test/upstream_std_modules_full.txt` (175 modules).
 
-As of **2026-02-19**:
+Current generated sweep contract:
 
 - Compile-only strict sweep:
   - `python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_full.txt --strict`
@@ -411,9 +411,9 @@ As of **2026-03-24**, the hard-fail inventory count remains **4**, with named fi
 | Catch-all `lowerExpr` default | Fatal: `Unsupported expression` | Node-family closure map: `semantic-diff/type_expr_contract`, `semantic-diff/throw_expr_contract`, `core/untyped_ident_nil`, and `core/const_kinds_contract`; new reachable node families must add a dedicated contract fixture in the same change. | Continue replacing reachable typed-node gaps with explicit lowering and keep dedicated coverage as each newly reachable node is supported. | `haxe.go-14as.56` |
 | Unsupported `Std.isOfType` target kind | No compiler hard-fail for unresolved runtime-value abstract targets; falls back to conservative `false`/type-switch check | `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract`, `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic`, `core/type_switch_no_binding_std_is_of_type` lock current fallback semantics. | Keep adding explicit lowering for newly important target families and lock behavior with semantic diff coverage. | `haxe.go-14as.56` |
 
-## Known stdlib parity gaps (probe inventory)
+## Known non-semantic-diff stdlib surfaces
 
-As of **2026-02-19**, the broader probe list:
+The broader probe list:
 
 ```bash
 python3 test/run-upstream-stdlib-sweep.py --modules-file test/upstream_std_modules_gap_probe.txt --strict --go-test
@@ -423,7 +423,18 @@ reports:
 
 - `53 passed / 0 expected policy / 0 failed / 0 unexpected present`
 
-There are currently no active expected-policy rules in the full inventory.
+There are currently no active expected-policy rules in the full inventory, and no modules remain in `compile-only` status.
+
+The portable parity closure summary is still useful after compile-only debt reaches zero. It tracks the smaller set of modules that are not semantic-diff surfaces yet:
+
+- `snapshot`: implemented enough for generated Go/runtime smoke evidence, but not promoted to interpreter-vs-Go semantic-diff evidence.
+- `unsupported`: explicit target-conditional exclusions, not hidden missing work.
+
+Generate the live list with:
+
+```bash
+python3 test/run-portable-parity-closure.py --list-blockers
+```
 
 ## Tracking
 
@@ -467,4 +478,4 @@ There are currently no active expected-policy rules in the full inventory.
 - `haxe.go-14as.17`: closed the direct `sys.db` + `sys.io` tranche. `sys.db.Connection`, `sys.db.ResultSet`, `sys.db.Mysql`, `sys.db.Sqlite`, `sys.io.FileInput`, `sys.io.FileOutput`, and `sys.io.FileSeek` now have parity evidence through `sys_db_io_contract` and `stdlib/sys_db_io_direct`. Ownership is explicit: `sys.db` stays upstream/public source-owned, while `sys.io.File*` is now a compiler-owned wrapper layer over the real `runtime/hxrt/sys.go` file-handle runtime.
 - `haxe.go-14as.19` is now closed end-to-end. The first wave (`Condition`, `Deque`, `IThreadPool`, `Lock`, `Mutex`, `NoEventLoopException`, `Semaphore`, `ThreadPoolException`, `Tls`) stays covered by `sys_thread_primitives_contract` and `stdlib/sys_thread_primitives_direct`, and the second wave (`Thread`, `EventLoop`, `ElasticThreadPool`, `FixedThreadPool`) is now covered by `sys_thread_runtime_contract` and `stdlib/sys_thread_runtime_direct`.
 - `haxe.go-14as.69`: direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage now has staged-stdlib baseline support over the runtime-backed `sys.thread.EventLoop` contract. Evidence: `stdlib/haxe_main_loop_runtime_direct`. This stays snapshot/runtime coverage for now because asynchronous timing is target-sensitive rather than a clean semantic-diff comparison.
-- Remaining compile-only portable blocker families are inventory-backed, not hand-maintained here. Use `test/portable_stdlib_inventory.json` plus `test/.test-cache/portable_parity_closure_summary.md` as the authoritative current list.
+- No compile-only portable blocker families remain in the generated inventory. Use `test/portable_stdlib_inventory.json` plus `test/.test-cache/portable_parity_closure_summary.md` as the authoritative current list for snapshot-only and explicitly unsupported surfaces.

@@ -12,7 +12,7 @@ Current architecture status:
 
 - `GoBuildContext` and `GoBuildContextResolver` are already in place for centralized contract/capability resolution.
 - Deterministic contract/runtime/optimizer reports (`profile_contract`, `hxrt_plan`, `optimizer_plan`) are already emitted when enabled.
-- Remaining work is primarily language/stdlib parity closure, not profile-model replacement.
+- Remaining work is primarily production hardening and target-sensitive parity promotion, not profile-model replacement.
 
 ## Compiler/output caveats
 
@@ -33,7 +33,7 @@ Current architecture status:
 - `go.*` APIs are target-specific. They compile to real Go behavior on this target, but they are not portability-safe across non-Go Haxe targets.
 - Direct `haxe.ValueException` constructor/message/value parity is covered.
 - Direct `haxe.exceptions` subclass construction for `PosException`, `ArgumentException`, and `NotImplementedException` is covered too.
-- The main remaining portable stdlib blockers are now the explicit compile-only families, not the basic exception surface.
+- There is currently no compile-only portable stdlib debt in the generated inventory. Remaining stdlib follow-up is about promoting target-sensitive snapshot surfaces where possible and keeping explicit exclusions honest.
 - Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage now has snapshot/runtime smoke coverage through `stdlib/haxe_main_loop_runtime_direct`.
 - The implementation is intentionally staged std over the runtime-backed `sys.thread.EventLoop` contract: public Haxe APIs live in `std/haxe/*.cross.hx`, while `runtime/hxrt/thread.go` owns scheduling, timers, and main-thread wakeups.
 - This is not yet semantic-diff coverage because event-loop timing is target-sensitive; keep using runtime snapshots for this surface until the harness has a stable asynchronous comparison mode.

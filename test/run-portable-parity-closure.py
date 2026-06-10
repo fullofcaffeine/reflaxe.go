@@ -78,7 +78,7 @@ def extract_conformance_modules(conformance: dict[str, Any]) -> dict[str, list[s
 
 def next_promotion_step(status: str) -> str:
     if status == "unsupported":
-        return "promote to compile-only (add upstream sweep policy coverage + module probe)"
+        return "keep explicit exclusion policy, or promote only if the module becomes portable-eligible on Go"
     if status == "compile-only":
         return "promote to snapshot (add deterministic generated/runtime smoke contract)"
     if status == "snapshot":
