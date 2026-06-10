@@ -7589,7 +7589,7 @@ class GoCompiler {
 			var finalName = count == 0 ? baseName : baseName + "_" + count;
 			out.push({
 				name: finalName,
-				typeName: scalarGoType(arg.t)
+				typeName: nilCapablePrimitiveParamType(arg.t)
 			});
 		}
 		return out;
@@ -8205,10 +8205,11 @@ class GoCompiler {
 			var arg = func.args[index];
 			var typedArg = index < typedArgs.length ? typedArgs[index] : null;
 			var isOptionalPrimitive = isOptionalPrimitiveFunctionArg(arg, typedArg);
-			registerOptionalPrimitiveParam(arg.v, isOptionalPrimitive);
+			var isNilCapablePrimitive = isOptionalPrimitive || isNullablePrimitiveParamType(arg.v.t, typedArg);
+			registerOptionalPrimitiveParam(arg.v, isNilCapablePrimitive);
 			params.push({
 				name: localVarName(arg.v),
-				typeName: isOptionalPrimitive ? "any" : scalarGoType(arg.v.t)
+				typeName: isNilCapablePrimitive ? "any" : scalarGoType(arg.v.t)
 			});
 		}
 		return params;
@@ -9240,6 +9241,17 @@ class GoCompiler {
 		}
 		var goType = typeToGoType(arg.v.t);
 		return goType == "int" || goType == "float64" || goType == "bool";
+	}
+
+	function isNullablePrimitiveParamType(variableType:Type, typedArg:Null<{name:String, opt:Bool, t:Type}>):Bool {
+		if (typedArg != null && typedArg.opt) {
+			return false;
+		}
+		return isNullablePrimitiveType(variableType) || (typedArg != null && !typedArg.opt && isNullablePrimitiveType(typedArg.t));
+	}
+
+	function nilCapablePrimitiveParamType(type:Type):String {
+		return isNullablePrimitiveType(type) ? "any" : scalarGoType(type);
 	}
 
 	function isGoNilDefaultValue(expr:Null<TypedExpr>):Bool {
@@ -13332,7 +13344,7 @@ class GoCompiler {
 		if (!isNullableIntType(operandType)) {
 			return expr;
 		}
-		if (operand != null && exprUsesNarrowedPrimitiveStorage(operand)) {
+		if (operand != null && (exprUsesNarrowedPrimitiveStorage(operand) || nonNullPrimitiveExprGoType(operand) != null)) {
 			return expr;
 		}
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [expr]);
@@ -13349,7 +13361,7 @@ class GoCompiler {
 		if (!isNullableFloatType(operandType)) {
 			return expr;
 		}
-		if (operand != null && exprUsesNarrowedPrimitiveStorage(operand)) {
+		if (operand != null && (exprUsesNarrowedPrimitiveStorage(operand) || nonNullPrimitiveExprGoType(operand) != null)) {
 			return expr;
 		}
 		return lowerNilSafeTypeAssertExpr(expr, "float64");
