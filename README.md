@@ -35,9 +35,27 @@ If you are new, read these first:
 
 ```bash
 npm install
-npm test
-python3 test/run-ci.py
+npm run hooks:install
 npm run dev:hx -- --project examples/tui_todo --profile portable --action run
+```
+
+That gets a fresh checkout to a running generated-Go example. Use `portable`
+first unless you specifically need Go-native authoring constraints from
+`metal`.
+
+## Validation commands
+
+After the first example runs, use these commands to validate changes:
+
+```bash
+# full snapshot suite
+npm test
+
+# examples matrix
+python3 test/run-examples.py
+
+# full local CI harness
+python3 test/run-ci.py
 ```
 
 ## Which profile should I choose?

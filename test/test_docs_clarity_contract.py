@@ -26,6 +26,21 @@ class DocsClarityContractTest(unittest.TestCase):
         self.assertIn("docs/index.md", readme)
         self.assertIn("docs/glossary.md", readme)
 
+    def test_readme_quick_start_separates_first_run_from_validation(self) -> None:
+        readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+        quick_start = self.section_text(readme, "## Quick start")
+        validation = self.section_text(readme, "## Validation commands")
+
+        self.assertIn("npm install", quick_start)
+        self.assertIn("npm run hooks:install", quick_start)
+        self.assertIn("npm run dev:hx -- --project examples/tui_todo --profile portable --action run", quick_start)
+        self.assertNotIn("npm test", quick_start)
+        self.assertNotIn("python3 test/run-ci.py", quick_start)
+
+        self.assertIn("npm test", validation)
+        self.assertIn("python3 test/run-ci.py", validation)
+        self.assertIn("python3 test/run-examples.py", validation)
+
     def test_readme_no_longer_claims_portable_only_examples_are_dual_profile(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         self.assertNotIn("examples/tui_todo --profile metal", readme)
