@@ -178,7 +178,9 @@ class PortableGovernanceContractTest(unittest.TestCase):
         self.assertIn("Target-sensitive parity surfaces", known_gaps)
         self.assertIn("Performance budget drift", known_gaps)
         self.assertIn("Strict production boundary policy", known_gaps)
-        self.assertIn("haxe.go-hm3p", known_gaps)
+        self.assertIn("file a new scoped Bead", known_gaps)
+        self.assertIn("Historical hardening bead", known_gaps)
+        self.assertNotIn("Tracked by `haxe.go-hm3p", known_gaps)
 
         self.assertIn("Production caveat scoreboard", release_checklist)
         self.assertIn("docs/known-gaps.md#production-hardening-scoreboard", release_checklist)
