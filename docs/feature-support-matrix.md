@@ -438,28 +438,32 @@ Generate the live list with:
 python3 test/run-portable-parity-closure.py --list-blockers
 ```
 
-## Tracking
+## Completed Tracking History
 
-- `haxe.go-d5u`: publish and maintain this matrix/inventory.
-- `haxe.go-61w`: reduce compiler hard-fail unsupported expression surface.
-- `haxe.go-19u`: expand stdlib parity from the documented probe gap list.
-- `haxe.go-ab2`: add semantic differential regression harness.
-- `haxe.go-3d4`: reduce unsupported expression surface by lowering `TTypeExpr` class/enum value nodes.
-- `haxe.go-8zt`: lower `TThrow` in expression positions and lock with semantic diff coverage.
-- `haxe.go-888`: promote `sys.FileSystem` with deterministic snapshot + semantic parity contracts.
-- `haxe.go-uz4.10`: enable typed `go.Chan<T>` recv/recvOr assertions in `portable`.
+All entries below are closed provenance. They explain how this matrix reached its
+current state; they are not the active task queue. Use the generated inventory
+and closure artifacts above for the current live status.
+
+- `haxe.go-d5u`: published and maintained this matrix/inventory baseline.
+- `haxe.go-61w`: reduced the compiler hard-fail unsupported expression surface.
+- `haxe.go-19u`: expanded stdlib parity from the documented probe gap list.
+- `haxe.go-ab2`: added the semantic differential regression harness.
+- `haxe.go-3d4`: reduced unsupported expression surface by lowering `TTypeExpr` class/enum value nodes.
+- `haxe.go-8zt`: lowered `TThrow` in expression positions and locked it with semantic diff coverage.
+- `haxe.go-888`: promoted `sys.FileSystem` with deterministic snapshot + semantic parity contracts.
+- `haxe.go-uz4.10`: enabled typed `go.Chan<T>` recv/recvOr assertions in `portable`.
 - `haxe.go-6fc`: completed `haxe.ds` map/list core-ops semantic parity coverage and `List.push` parity alignment.
 - `haxe.go-rlj`: completed nil-safe typed-read null semantics for `haxe.ds` map/list generic call results.
 - `haxe.go-aiy`: completed `haxe.io.Encoding` constructor parity and `Bytes.getString` coverage (`io_encoding_contract`).
-- `haxe.go-dq2`: evaluate and guard RawNative compatibility policy with explicit mode controls.
-- `haxe.go-rcv`: add `haxe.io.Bytes.ofData` shim and lock `getData` alias semantics (`bytes_of_data_contract`).
-- `haxe.go-nmg`: add `haxe.io.Bytes.toHex` / `haxe.io.Bytes.ofHex` shim parity (`bytes_hex_contract`).
-- `haxe.go-9v6`: promote `haxe.ds.ReadOnlyArray` from compile-only to semantic-diff coverage (`readonly_array_contract`).
-- `haxe.go-8hs`: add serializer global default flag semantic coverage (`serializer_global_flags_contract`).
-- `haxe.go-14as.6`: promote iterator-family parity (`haxe.iterators.ArrayIterator`, `ArrayKeyValueIterator`, `DynamicAccessIterator`, `DynamicAccessKeyValueIterator`, `RestIterator`, `RestKeyValueIterator`, `StringIterator`, `StringIteratorUnicode`, `StringKeyValueIterator`, `StringKeyValueIteratorUnicode`) via `iterators_family_contract` and staged std overrides.
-- `haxe.go-14as.7`: add portable-vs-metal invariance coverage for iterator/list/map/string portable surfaces (`portable_surfaces_metal_invariance_contract`, `portable_surfaces_lane_invariance_contract`) and snapshot fallback-report attribution lock (`core/report_artifacts_lane_fallback_portable_surfaces`).
-- `haxe.go-14as.8`: close unsupported-expression inventory with explicit invariant fixture strategy mapping (`negative/non_lvalue_assignment_invariant`, `negative/postfix_non_inc_dec_invariant`, plus node-family closure fixtures for `lowerExpr` and `Std.isOfType` fallback behavior).
-- `haxe.go-14as.9`: add deterministic hxrt feature reason provenance to runtime reports (`core/report_artifacts_runtime_reason_provenance`, `test/run-auto-planner-schema.py`) without changing runtime semantics.
+- `haxe.go-dq2`: evaluated and guarded RawNative compatibility policy with explicit mode controls.
+- `haxe.go-rcv`: added the `haxe.io.Bytes.ofData` shim and locked `getData` alias semantics (`bytes_of_data_contract`).
+- `haxe.go-nmg`: added `haxe.io.Bytes.toHex` / `haxe.io.Bytes.ofHex` shim parity (`bytes_hex_contract`).
+- `haxe.go-9v6`: promoted `haxe.ds.ReadOnlyArray` from compile-only to semantic-diff coverage (`readonly_array_contract`).
+- `haxe.go-8hs`: added serializer global default flag semantic coverage (`serializer_global_flags_contract`).
+- `haxe.go-14as.6`: promoted iterator-family parity (`haxe.iterators.ArrayIterator`, `ArrayKeyValueIterator`, `DynamicAccessIterator`, `DynamicAccessKeyValueIterator`, `RestIterator`, `RestKeyValueIterator`, `StringIterator`, `StringIteratorUnicode`, `StringKeyValueIterator`, `StringKeyValueIteratorUnicode`) via `iterators_family_contract` and staged std overrides.
+- `haxe.go-14as.7`: added portable-vs-metal invariance coverage for iterator/list/map/string portable surfaces (`portable_surfaces_metal_invariance_contract`, `portable_surfaces_lane_invariance_contract`) and snapshot fallback-report attribution lock (`core/report_artifacts_lane_fallback_portable_surfaces`).
+- `haxe.go-14as.8`: closed unsupported-expression inventory with explicit invariant fixture strategy mapping (`negative/non_lvalue_assignment_invariant`, `negative/postfix_non_inc_dec_invariant`, plus node-family closure fixtures for `lowerExpr` and `Std.isOfType` fallback behavior).
+- `haxe.go-14as.9`: added deterministic hxrt feature reason provenance to runtime reports (`core/report_artifacts_runtime_reason_provenance`, `test/run-auto-planner-schema.py`) without changing runtime semantics.
 - `haxe.go-14as.10`: final closure sync task; inventory/closure artifacts now require explicit blocker metadata for remaining compile-only modules, and release readiness docs include portable parity + family sync gates.
 - `haxe.go-14as.11`: root/core tranche triage closure. Direct semantic-diff contracts promoted `Any`, `StdTypes`, and `sys.FileStat`; remaining root blockers were split into dedicated tasks for `Sys`, `Xml`, and `UnicodeString`.
 - `haxe.go-14as.20`: closed root `Sys` surface split. Added direct semantic-diff coverage in `root_sys_contract` and wired `Sys.getEnv`, `Sys.putEnv`, `Sys.environment`, and `Sys.systemName` through new hxrt/compiler shims.
