@@ -30,7 +30,7 @@ class Lock {
 		if (timeout == null) {
 			return NativeThread.lockWait(__h);
 		}
-		return NativeThread.lockWaitTimeoutDynamic(__h, timeout);
+		return NativeThread.lockWaitTimeout(__h, timeout);
 	}
 
 	public function release():Void {

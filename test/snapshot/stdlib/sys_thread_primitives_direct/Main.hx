@@ -1,5 +1,6 @@
 import sys.thread.Condition;
 import sys.thread.Deque;
+import sys.thread.EventLoop;
 import sys.thread.IThreadPool;
 import sys.thread.Lock;
 import sys.thread.Mutex;
@@ -71,6 +72,9 @@ class Main {
 		sem.release();
 		sem.acquire();
 		Sys.println("sem.try_after_acquire=" + sem.tryAcquire(0.0));
+
+		var loop = new EventLoop();
+		Sys.println("loop.wait_empty=" + loop.wait(0.0));
 
 		var deque = new Deque<String>();
 		deque.add("tail");

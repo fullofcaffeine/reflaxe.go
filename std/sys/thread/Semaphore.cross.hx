@@ -33,7 +33,7 @@ class Semaphore {
 		if (timeout == null) {
 			return NativeThread.semaphoreTryAcquire(__h);
 		}
-		return NativeThread.semaphoreTryAcquireTimeoutDynamic(__h, timeout);
+		return NativeThread.semaphoreTryAcquireTimeout(__h, timeout);
 	}
 
 	public function release():Void {

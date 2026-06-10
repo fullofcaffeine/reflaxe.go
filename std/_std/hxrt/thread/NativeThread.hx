@@ -55,8 +55,6 @@ extern class NativeThread {
 	public static function eventLoopWait(handle:EventLoopHandle):Bool;
 	@:go.name("ThreadEventLoopWaitTimeout")
 	public static function eventLoopWaitTimeout(handle:EventLoopHandle, timeout:Float):Bool;
-	@:go.name("ThreadEventLoopWaitTimeoutAny")
-	public static function eventLoopWaitTimeoutDynamic(handle:EventLoopHandle, timeout:Dynamic):Bool;
 	@:go.name("ThreadEventLoopLoop")
 	public static function eventLoopLoop(handle:EventLoopHandle):Void;
 
@@ -66,23 +64,6 @@ extern class NativeThread {
 	public static function lockWait(handle:LockHandle):Bool;
 	@:go.name("ThreadLockWaitTimeout")
 	public static function lockWaitTimeout(handle:LockHandle, timeout:Float):Bool;
-
-	/**
-		What
-		Optional-timeout bridge for staged std wrappers whose omitted primitive
-		arguments lower as `any` at the Haxe/Go boundary.
-
-		Why
-		The compiler must preserve omitted optional primitive arguments honestly.
-		This keeps the `Dynamic` bridge localized to the runtime boundary instead of
-		leaking it into the public `sys.thread` surface.
-
-		How
-		The Go runtime asserts the timeout payload back to `float64` before
-		delegating to the typed timeout helper.
-	**/
-	@:go.name("ThreadLockWaitTimeoutAny")
-	public static function lockWaitTimeoutDynamic(handle:LockHandle, timeout:Dynamic):Bool;
 
 	@:go.name("ThreadLockRelease")
 	public static function lockRelease(handle:LockHandle):Void;
@@ -119,8 +100,6 @@ extern class NativeThread {
 	public static function semaphoreTryAcquire(handle:SemaphoreHandle):Bool;
 	@:go.name("ThreadSemaphoreTryAcquireTimeout")
 	public static function semaphoreTryAcquireTimeout(handle:SemaphoreHandle, timeout:Float):Bool;
-	@:go.name("ThreadSemaphoreTryAcquireTimeoutAny")
-	public static function semaphoreTryAcquireTimeoutDynamic(handle:SemaphoreHandle, timeout:Dynamic):Bool;
 	@:go.name("ThreadSemaphoreRelease")
 	public static function semaphoreRelease(handle:SemaphoreHandle):Void;
 }

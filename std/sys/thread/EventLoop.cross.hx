@@ -82,7 +82,7 @@ class EventLoop {
 		if (timeout == null) {
 			return NativeThread.eventLoopWait(__h);
 		}
-		return NativeThread.eventLoopWaitTimeoutDynamic(__h, timeout);
+		return NativeThread.eventLoopWaitTimeout(__h, timeout);
 	}
 
 	public function loop():Void {

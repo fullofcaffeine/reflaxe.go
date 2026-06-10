@@ -28,7 +28,13 @@ func (self *sys__thread__Semaphore) tryAcquire(timeout any) bool {
 	if timeout == nil {
 		return hxrt.ThreadSemaphoreTryAcquire(self.__h)
 	}
-	return hxrt.ThreadSemaphoreTryAcquireTimeoutAny(self.__h, timeout.(float64))
+	return hxrt.ThreadSemaphoreTryAcquireTimeout(self.__h, func(hx_value_21 any) float64 {
+		if hx_value_21 == nil {
+			var hx_zero_22 float64
+			return hx_zero_22
+		}
+		return hx_value_21.(float64)
+	}(timeout.(float64)))
 }
 
 func (self *sys__thread__Semaphore) release() {

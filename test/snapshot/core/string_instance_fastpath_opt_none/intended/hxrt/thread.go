@@ -471,10 +471,6 @@ func ThreadEventLoopWaitTimeout(handle *EventLoopHandle, timeout float64) bool {
 	return eventLoopHasPendingLocked(handle)
 }
 
-func ThreadEventLoopWaitTimeoutAny(handle *EventLoopHandle, timeout any) bool {
-	return ThreadEventLoopWaitTimeout(handle, threadTimeoutSeconds(timeout))
-}
-
 func ThreadEventLoopLoop(handle *EventLoopHandle) {
 	if handle == nil {
 		return
@@ -559,10 +555,6 @@ func ThreadLockWaitTimeout(handle *LockHandle, timeout float64) bool {
 		}
 		return false
 	})
-}
-
-func ThreadLockWaitTimeoutAny(handle *LockHandle, timeout any) bool {
-	return ThreadLockWaitTimeout(handle, threadTimeoutSeconds(timeout))
 }
 
 func ThreadLockRelease(handle *LockHandle) {
@@ -787,10 +779,6 @@ func ThreadSemaphoreTryAcquireTimeout(handle *SemaphoreHandle, timeout float64) 
 	})
 }
 
-func ThreadSemaphoreTryAcquireTimeoutAny(handle *SemaphoreHandle, timeout any) bool {
-	return ThreadSemaphoreTryAcquireTimeout(handle, threadTimeoutSeconds(timeout))
-}
-
 func ThreadSemaphoreRelease(handle *SemaphoreHandle) {
 	if handle == nil {
 		return
@@ -814,23 +802,6 @@ func currentGoroutineID() int64 {
 		return 0
 	}
 	return id
-}
-
-func threadTimeoutSeconds(timeout any) float64 {
-	switch value := timeout.(type) {
-	case float64:
-		return value
-	case float32:
-		return float64(value)
-	case int:
-		return float64(value)
-	case int32:
-		return float64(value)
-	case int64:
-		return float64(value)
-	default:
-		return 0
-	}
 }
 
 func waitForConditionWithTimeout(mu *sync.Mutex, cond *sync.Cond, timeoutSeconds float64, consumeReady func() bool) bool {

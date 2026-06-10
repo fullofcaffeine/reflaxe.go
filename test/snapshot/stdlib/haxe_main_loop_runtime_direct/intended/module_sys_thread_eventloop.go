@@ -80,7 +80,13 @@ func (self *sys__thread__EventLoop) wait(timeout any) bool {
 	if timeout == nil {
 		return hxrt.ThreadEventLoopWait(self.__h)
 	}
-	return hxrt.ThreadEventLoopWaitTimeoutAny(self.__h, timeout.(float64))
+	return hxrt.ThreadEventLoopWaitTimeout(self.__h, func(hx_value_6 any) float64 {
+		if hx_value_6 == nil {
+			var hx_zero_7 float64
+			return hx_zero_7
+		}
+		return hx_value_6.(float64)
+	}(timeout.(float64)))
 }
 
 func (self *sys__thread__EventLoop) loop() {

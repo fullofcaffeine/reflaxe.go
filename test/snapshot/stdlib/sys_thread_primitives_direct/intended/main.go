@@ -27,6 +27,8 @@ func main() {
 	sem.release()
 	sem.acquire()
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sem.try_after_acquire="), hxrt.StdString(sem.tryAcquire(0.0))))
+	loop := New_sys__thread__EventLoop()
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("loop.wait_empty="), hxrt.StdString(loop.wait(0.0))))
 	deque := New_sys__thread__Deque()
 	deque.add(hxrt.StringFromLiteral("tail"))
 	deque.push(hxrt.StringFromLiteral("head"))
