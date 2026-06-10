@@ -56,7 +56,7 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 
 - `python3 test/run-ci.py` exits `0` with no failed stages.
 - `python3 test/run-portable-stdlib-inventory.py` exits `0` and every remaining `compile-only` module carries blocker issue + target metadata.
-- `python3 test/run-portable-parity-closure.py` exits `0` and reports only explicit blocker-backed remaining modules.
+- `python3 test/run-portable-parity-closure.py` exits `0`, reports `0 actionable blockers`, and keeps any remaining non-semantic-diff surfaces policy-locked as target-sensitive snapshots or explicit exclusions.
 - `npm run test:stdlib:governance` exits `0` and confirms provenance/boundary discipline for staged std ownership.
 - `npm run test:release-contracts` exits `0` and confirms ownership mapping plus release docs still match the live inventory/tracker state.
 - `npm run test:family-stdlib-sync` and `npm run test:family-stdlib-bootstrap` exit `0`.

@@ -27,6 +27,12 @@ class ReleaseReadinessChecklistContractTest(unittest.TestCase):
         self.assertIn("npm run test:perf:hxrt-selective", checklist)
         self.assertIn("npm run test:perf:apps", checklist)
 
+    def test_checklist_uses_current_parity_closure_wording(self) -> None:
+        checklist = (REPO_ROOT / "docs" / "release-readiness-checklist.md").read_text(encoding="utf-8")
+        self.assertNotIn("explicit blocker-backed remaining modules", checklist)
+        self.assertIn("0 actionable blockers", checklist)
+        self.assertIn("policy-locked", checklist)
+
     def test_checklist_links_to_release_visibility_and_run_ci(self) -> None:
         checklist = (REPO_ROOT / "docs" / "release-readiness-checklist.md").read_text(encoding="utf-8")
         self.assertIn("docs/release-visibility.md", checklist)
