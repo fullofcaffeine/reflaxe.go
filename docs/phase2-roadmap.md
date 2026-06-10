@@ -1,8 +1,9 @@
-# Phase 2 Roadmap (Canonical)
+# Phase 2 Roadmap (Historical Summary)
 
 ## Status
 
-- This file is the active Phase-2 roadmap.
+- This file is a historical Phase-2 roadmap summary.
+- Current release readiness is governed by `docs/release-readiness-checklist.md`, `docs/feature-support-matrix.md`, and generated parity artifacts under `test/.test-cache/`.
 - `prd.md` is retained as Phase-1 historical context.
 
 ## North Star
@@ -22,7 +23,7 @@
 Selective runtime slicing is tracked separately and does not replace profile contracts.
 See `docs/hxrt-selective-runtime.md`.
 
-## Milestones And Dependencies
+## Completed Milestones And Dependencies
 
 ### M0 - Baseline Alignment
 
@@ -120,9 +121,11 @@ Depends on: M6 (and cross-cuts M2-M4.5)
 - Consolidate duplicate native facade authorities (`src/go/*` vs `std/go/*`) under one canonical path.
 - Track family-shared portable stdlib extraction path once Go parity program stabilizes.
 
-Execution tracker: `haxe.go-14as` and `haxe.go-14as.55` (`docs/portable-stdlib-parity-program.md`).
+The Phase-2 execution trackers `haxe.go-14as` and `haxe.go-14as.55` are closed.
+Use `docs/portable-stdlib-parity-program.md` and `test/.test-cache/portable_parity_closure_summary.md` for current parity status.
 
-Approach-C closure follow-up tracker: `haxe.go-qhv` (lane enforcement depth + lane semantic gates).
+The Approach-C closure tracker `haxe.go-qhv` is closed.
+Lane guarantees and gates are documented in `docs/profiles.md` and `docs/profile-semantics-guide.md`.
 
 ## Execution Rules
 

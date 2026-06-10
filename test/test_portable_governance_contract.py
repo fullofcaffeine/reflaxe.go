@@ -13,6 +13,7 @@ ALLOWLIST_FILE = REPO_ROOT / "test" / "portable_allowlist.json"
 BEADS_FILE = REPO_ROOT / ".beads" / "issues.jsonl"
 MAPPING_DOC = REPO_ROOT / "docs" / "portable-module-mapping-contract.md"
 FEATURE_MATRIX_DOC = REPO_ROOT / "docs" / "feature-support-matrix.md"
+PHASE2_ROADMAP_DOC = REPO_ROOT / "docs" / "phase2-roadmap.md"
 PARITY_PROGRAM_DOC = REPO_ROOT / "docs" / "portable-stdlib-parity-program.md"
 RELEASE_CHECKLIST_DOC = REPO_ROOT / "docs" / "release-readiness-checklist.md"
 
@@ -122,6 +123,12 @@ class PortableGovernanceContractTest(unittest.TestCase):
         self.assertNotIn("haxe.go-14as.25` to `haxe.go-14as.27", feature_matrix)
         self.assertNotIn("Active follow-up tracking", feature_matrix)
         self.assertIn("Completed follow-up evidence", feature_matrix)
+
+        phase2_roadmap = PHASE2_ROADMAP_DOC.read_text(encoding="utf-8")
+        self.assertNotIn("This file is the active Phase-2 roadmap", phase2_roadmap)
+        self.assertNotIn("Execution tracker:", phase2_roadmap)
+        self.assertNotIn("Approach-C closure follow-up tracker:", phase2_roadmap)
+        self.assertIn("historical Phase-2 roadmap summary", phase2_roadmap)
 
         self.assertIn("test/.test-cache/portable_parity_closure_summary.json", parity_program)
         self.assertIn("authoritative live list", parity_program)
