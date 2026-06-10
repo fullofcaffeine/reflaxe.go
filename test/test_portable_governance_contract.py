@@ -144,7 +144,9 @@ class PortableGovernanceContractTest(unittest.TestCase):
 
         stdlib_migration_log = STDLIB_MIGRATION_LOG_DOC.read_text(encoding="utf-8")
         self.assertNotIn("Staged stdlib migration follow-ups continue under `haxe.go-cgk.*`", stdlib_migration_log)
+        self.assertNotIn("event-loop surfaces are explicitly unsupported on Go today", stdlib_migration_log)
         self.assertIn("`haxe.go-cgk.*` planning work is historical context", stdlib_migration_log)
+        self.assertIn("At that point, direct Haxe event-loop surfaces were explicitly unsupported", stdlib_migration_log)
 
         self.assertIn("test/.test-cache/portable_parity_closure_summary.json", parity_program)
         self.assertIn("authoritative live list", parity_program)

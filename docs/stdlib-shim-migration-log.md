@@ -713,9 +713,10 @@ Validation evidence:
 Observed result:
 
 - The compiler no longer accepts these modules and then emits broken Go later.
-- The repo now states one consistent thing across planner, tests, and docs:
-  direct Haxe event-loop surfaces are explicitly unsupported on Go today.
-- Future real support is deferred to the `sys.thread` runtime tranche (`haxe.go-14as.19`), which is where a runtime-backed event-loop contract would belong.
+- At that point, direct Haxe event-loop surfaces were explicitly unsupported instead
+  of compiling through a broken temporary route.
+- That support was deferred to the `sys.thread` runtime tranche (`haxe.go-14as.19`),
+  which is where a runtime-backed event-loop contract belonged.
 
 ### 2026-06-10: direct Haxe event-loop surfaces bridged to `sys.thread.EventLoop` (`haxe.go-14as.69`)
 
