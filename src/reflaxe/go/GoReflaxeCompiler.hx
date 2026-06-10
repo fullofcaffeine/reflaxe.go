@@ -318,7 +318,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		}
 
 		if (plan.fullCopy) {
-			writeRuntimeDir(outputManager, runtimeSource, "hxrt");
+			writeRuntimeDir(outputManager, runtimeSource, "hxrt", buildContext);
 			return;
 		}
 
@@ -332,17 +332,28 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		}
 	}
 
-	function writeRuntimeDir(outputManager:reflaxe.output.OutputManager, sourceDir:String, targetDir:String):Void {
+	function writeRuntimeDir(outputManager:reflaxe.output.OutputManager, sourceDir:String, targetDir:String, buildContext:GoBuildContext):Void {
 		for (entry in FileSystem.readDirectory(sourceDir)) {
 			var sourcePath = Path.join([sourceDir, entry]);
 			var targetPath = Path.join([targetDir, entry]);
 
 			if (FileSystem.isDirectory(sourcePath)) {
-				writeRuntimeDir(outputManager, sourcePath, targetPath);
-			} else {
+				writeRuntimeDir(outputManager, sourcePath, targetPath, buildContext);
+			} else if (shouldCopyRuntimeFileInFullMode(entry, buildContext)) {
 				outputManager.saveFile(targetPath, File.getContent(sourcePath));
 			}
 		}
+	}
+
+	function shouldCopyRuntimeFileInFullMode(fileName:String, buildContext:GoBuildContext):Bool {
+		return switch (fileName) {
+			case "stack.go":
+				// Native stack capture pulls in Go runtime frame machinery and must remain
+				// footprint-explicit even when users request the broad hxrt runtime bundle.
+				buildContext.nativeStackTraceEnabled;
+			case _:
+				true;
+		};
 	}
 
 	function findLibraryRoot():String {
@@ -1088,7 +1099,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("");
 		lines.push("## runtime files");
 		if (snapshot.files.length == 0) {
-			lines.push("- full copy (`runtime/hxrt/**`)");
+			lines.push("- full copy (`runtime/hxrt/**`, excluding footprint-explicit diagnostic files unless their define is enabled)");
 		} else {
 			for (fileName in snapshot.files) {
 				lines.push("- `" + fileName + "`");

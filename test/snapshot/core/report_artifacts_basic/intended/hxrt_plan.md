@@ -20,7 +20,7 @@
 - none
 
 ## runtime files
-- full copy (`runtime/hxrt/**`)
+- full copy (`runtime/hxrt/**`, excluding footprint-explicit diagnostic files unless their define is enabled)
 
 ## selection reasons
 - none

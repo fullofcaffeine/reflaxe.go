@@ -55,6 +55,8 @@ Design note:
 
 - `reflaxe_go_hxrt_default_features`
   - Force legacy full runtime copy (`runtime/hxrt/**`) into output.
+  - Footprint-explicit diagnostic files, such as native stack capture, still
+    require their own define before they are copied.
   - Takes precedence over selective runtime defines.
 - `reflaxe_go_hxrt_features=<csv>`
   - Enable selective runtime mode and add manual feature names (for example `core,string,sys` or `core,string,exception,bytes,ssl` for SSL leaf helpers).
