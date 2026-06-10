@@ -418,9 +418,7 @@ func (self *haxe__ds__BalancedTree) keysLoop(node *haxe__ds__TreeNode, acc []any
 			}
 			return hx_value_74.([]any)
 		}(self.keysLoop(node.left, acc))
-		hx_arr_76 := acc
-		hx_arr_76 = append(hx_arr_76, node.key)
-		acc = hx_arr_76
+		acc = append(acc, node.key)
 		acc = func(hx_value_77 any) []any {
 			if hx_value_77 == nil {
 				var hx_zero_78 []any
@@ -622,9 +620,7 @@ func (self *haxe__ds__BalancedTree) clear() {
 func haxe__ds__BalancedTree_iteratorLoop(node *haxe__ds__TreeNode, acc []any) []any {
 	if node != nil {
 		acc = haxe__ds__BalancedTree_iteratorLoop(node.left, acc)
-		hx_arr_109 := acc
-		hx_arr_109 = append(hx_arr_109, node.value)
-		acc = hx_arr_109
+		acc = append(acc, node.value)
 		acc = haxe__ds__BalancedTree_iteratorLoop(node.right, acc)
 	}
 	return acc

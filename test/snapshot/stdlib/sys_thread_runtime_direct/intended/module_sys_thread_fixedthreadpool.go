@@ -34,9 +34,7 @@ func New_sys__thread__FixedThreadPool(threadsCount int) *sys__thread__FixedThrea
 		_g = int(int32((_g + 1)))
 		hx_tmp := hx_post_32
 		_ = hx_tmp
-		hx_arr_33 := workers
-		hx_arr_33 = append(hx_arr_33, New_sys__thread__FixedThreadPoolWorker(self.queue))
-		workers = hx_arr_33
+		workers = append(workers, New_sys__thread__FixedThreadPoolWorker(self.queue))
 	}
 	self.pool = workers
 	return self

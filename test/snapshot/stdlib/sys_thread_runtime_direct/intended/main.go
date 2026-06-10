@@ -143,9 +143,7 @@ func sortedMessages(count int) *string {
 		_g = int(int32((_g + 1)))
 		hx_tmp := hx_post_7
 		_ = hx_tmp
-		hx_arr_8 := values
-		hx_arr_8 = append(hx_arr_8, hxrt.StdString(sys__thread__Thread_readMessage(true)))
-		values = hx_arr_8
+		values = append(values, hxrt.StdString(sys__thread__Thread_readMessage(true)))
 	}
 	func(hx_sort_src_10 []*string) {
 		hx_sort_raw_9 := func(hx_sort_src_11 []*string) []any {

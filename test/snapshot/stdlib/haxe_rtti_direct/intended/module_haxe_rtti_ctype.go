@@ -654,9 +654,7 @@ func haxe__rtti__CTypeTools_joinClassFields(fields []map[string]any) *string {
 	for _g < len(fields) {
 		field := fields[_g]
 		_g = int(int32((_g + 1)))
-		hx_arr_685 := parts
-		hx_arr_685 = append(hx_arr_685, haxe__rtti__CTypeTools_classField(field))
-		parts = hx_arr_685
+		parts = append(parts, haxe__rtti__CTypeTools_classField(field))
 	}
 	return haxe__rtti__CTypeTools_joinStringArray(parts, hxrt.StringFromLiteral(", "))
 }
@@ -667,9 +665,7 @@ func haxe__rtti__CTypeTools_joinFunctionArguments(args []map[string]any) *string
 	for _g < len(args) {
 		arg := args[_g]
 		_g = int(int32((_g + 1)))
-		hx_arr_686 := parts
-		hx_arr_686 = append(hx_arr_686, haxe__rtti__CTypeTools_functionArgumentName(arg))
-		parts = hx_arr_686
+		parts = append(parts, haxe__rtti__CTypeTools_functionArgumentName(arg))
 	}
 	return haxe__rtti__CTypeTools_joinStringArray(parts, hxrt.StringFromLiteral(" -> "))
 }
@@ -700,9 +696,7 @@ func haxe__rtti__CTypeTools_nameWithParams(name *string, params []*haxe__rtti__C
 	for _g < len(params) {
 		param := params[_g]
 		_g = int(int32((_g + 1)))
-		hx_arr_688 := parts
-		hx_arr_688 = append(hx_arr_688, haxe__rtti__CTypeTools_toString(param))
-		parts = hx_arr_688
+		parts = append(parts, haxe__rtti__CTypeTools_toString(param))
 	}
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(name, hxrt.StringFromLiteral("<")), haxe__rtti__CTypeTools_joinStringArray(parts, hxrt.StringFromLiteral(", "))), hxrt.StringFromLiteral(">"))
 }

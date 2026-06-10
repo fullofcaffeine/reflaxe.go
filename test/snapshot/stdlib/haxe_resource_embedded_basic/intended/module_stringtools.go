@@ -261,9 +261,7 @@ func StringTools_urlDecode(s *string) *string {
 			hi := StringTools_hexDigitValue(hxrt.StringSubstrStringPtr(input, int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1)))), 1, true))
 			lo := StringTools_hexDigitValue(hxrt.StringSubstrStringPtr(input, int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(2)))), 1, true))
 			if (hi >= 0) && (lo >= 0) {
-				hx_arr_42 := bytes
-				hx_arr_42 = append(hx_arr_42, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(hi) << uint(4))))) | hxrt.Int32Wrap(lo)))))
-				bytes = hx_arr_42
+				bytes = append(bytes, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(hi) << uint(4))))) | hxrt.Int32Wrap(lo)))))
 				index = int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(3))))
 				continue
 			}
@@ -275,9 +273,7 @@ func StringTools_urlDecode(s *string) *string {
 			hx_post_43 := _g
 			_g = int(int32((_g + 1)))
 			chunkIndex := hx_post_43
-			hx_arr_44 := bytes
-			hx_arr_44 = append(hx_arr_44, chunk.b[chunkIndex])
-			bytes = hx_arr_44
+			bytes = append(bytes, chunk.b[chunkIndex])
 		}
 		index = int(int32((index + 1)))
 	}

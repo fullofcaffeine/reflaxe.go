@@ -131,8 +131,7 @@ func (self *haxe__Template) parseTokens(data *string) []map[string]any {
 			}
 			return hx_field_11.(int)
 		}(p) > 0 {
-			hx_arr_13 := tokens
-			hx_arr_13 = append(hx_arr_13, func() map[string]any {
+			tokens = append(tokens, func() map[string]any {
 				hx_obj_14 := map[string]any{}
 				hx_obj_14["p"] = hxrt.StringSubstrStringPtr(data, 0, func(hx_obj_15 map[string]any) int {
 					hx_field_16 := hx_obj_15["pos"]
@@ -146,7 +145,6 @@ func (self *haxe__Template) parseTokens(data *string) []map[string]any {
 				hx_obj_14["l"] = nil
 				return hx_obj_14
 			}())
-			tokens = hx_arr_13
 		}
 		if hxrt.StringCharCodeAtAnyStringPtr(data, func(hx_obj_18 map[string]any) int {
 			hx_field_19 := hx_obj_18["pos"]
@@ -156,8 +154,7 @@ func (self *haxe__Template) parseTokens(data *string) []map[string]any {
 			}
 			return hx_field_19.(int)
 		}(p)) == 58 {
-			hx_arr_21 := tokens
-			hx_arr_21 = append(hx_arr_21, func() map[string]any {
+			tokens = append(tokens, func() map[string]any {
 				hx_obj_22 := map[string]any{}
 				hx_obj_22["p"] = hxrt.StringSubstrStringPtr(data, int(int32((hxrt.Int32Wrap(func(hx_obj_23 map[string]any) int {
 					hx_field_24 := hx_obj_23["pos"]
@@ -178,7 +175,6 @@ func (self *haxe__Template) parseTokens(data *string) []map[string]any {
 				hx_obj_22["l"] = nil
 				return hx_obj_22
 			}())
-			tokens = hx_arr_21
 			data = haxe__Template_splitter.matchedRight()
 			continue
 		}
@@ -221,38 +217,30 @@ func (self *haxe__Template) parseTokens(data *string) []map[string]any {
 			}
 			chunk := hxrt.StringSubstrStringPtr(data, int(int32((hxrt.Int32Wrap(parp) - hxrt.Int32Wrap(1)))), 1, true)
 			if (c == 44) && (npar == 1) {
-				hx_arr_36 := params
-				hx_arr_36 = append(hx_arr_36, part)
-				params = hx_arr_36
+				params = append(params, part)
 				part = hxrt.StringFromLiteral("")
 			} else {
 				part = hxrt.StringConcatStringPtr(part, chunk)
 			}
 		}
-		hx_arr_37 := params
-		hx_arr_37 = append(hx_arr_37, part)
-		params = hx_arr_37
-		hx_arr_38 := tokens
-		hx_arr_38 = append(hx_arr_38, func() map[string]any {
+		params = append(params, part)
+		tokens = append(tokens, func() map[string]any {
 			hx_obj_39 := map[string]any{}
 			hx_obj_39["p"] = haxe__Template_splitter.matched(2)
 			hx_obj_39["s"] = false
 			hx_obj_39["l"] = params
 			return hx_obj_39
 		}())
-		tokens = hx_arr_38
 		data = hxrt.StringSubstrStringPtr(data, parp, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(data)) - hxrt.Int32Wrap(parp)))), true)
 	}
 	if hxrt.StringLengthStringPtr(data) > 0 {
-		hx_arr_40 := tokens
-		hx_arr_40 = append(hx_arr_40, func() map[string]any {
+		tokens = append(tokens, func() map[string]any {
 			hx_obj_41 := map[string]any{}
 			hx_obj_41["p"] = data
 			hx_obj_41["s"] = true
 			hx_obj_41["l"] = nil
 			return hx_obj_41
 		}())
-		tokens = hx_arr_40
 	}
 	return tokens
 }
@@ -292,9 +280,7 @@ func (self *haxe__Template) parseBlock(cursor *haxe___Template__TokenCursor) *ha
 		}(t), 0, 7, true), hxrt.StringFromLiteral("elseif "))) {
 			break
 		}
-		hx_arr_54 := items
-		hx_arr_54 = append(hx_arr_54, self.parse(cursor))
-		items = hx_arr_54
+		items = append(items, self.parse(cursor))
 	}
 	if len(items) == 1 {
 		return items[0]
@@ -356,9 +342,7 @@ func (self *haxe__Template) parse(cursor *haxe___Template__TokenCursor) *haxe___
 		for _g < len(_g1) {
 			param := _g1[_g]
 			_g = int(int32((_g + 1)))
-			hx_arr_70 := parsedParams
-			hx_arr_70 = append(hx_arr_70, self.parseBlock(New_haxe___Template__TokenCursor(self.parseTokens(param))))
-			parsedParams = hx_arr_70
+			parsedParams = append(parsedParams, self.parseBlock(New_haxe___Template__TokenCursor(self.parseTokens(param))))
 		}
 		return haxe___Template__TemplateExpr_OpMacro(p, parsedParams)
 	}
@@ -503,8 +487,7 @@ func (self *haxe__Template) parseExpr(data *string) func() any {
 			}
 			return hx_field_100.(int)
 		}(p) != 0 {
-			hx_arr_102 := tokens
-			hx_arr_102 = append(hx_arr_102, func() map[string]any {
+			tokens = append(tokens, func() map[string]any {
 				hx_obj_103 := map[string]any{}
 				hx_obj_103["p"] = hxrt.StringSubstrStringPtr(data, 0, func(hx_obj_104 map[string]any) int {
 					hx_field_105 := hx_obj_104["pos"]
@@ -517,17 +500,14 @@ func (self *haxe__Template) parseExpr(data *string) func() any {
 				hx_obj_103["s"] = true
 				return hx_obj_103
 			}())
-			tokens = hx_arr_102
 		}
 		token := haxe__Template_expr_splitter.matched(0)
-		hx_arr_107 := tokens
-		hx_arr_107 = append(hx_arr_107, func() map[string]any {
+		tokens = append(tokens, func() map[string]any {
 			hx_obj_108 := map[string]any{}
 			hx_obj_108["p"] = token
 			hx_obj_108["s"] = StringTools_contains(token, hxrt.StringFromLiteral("\""))
 			return hx_obj_108
 		}())
-		tokens = hx_arr_107
 		data = haxe__Template_expr_splitter.matchedRight()
 	}
 	if hxrt.StringLengthStringPtr(data) != 0 {
@@ -547,14 +527,12 @@ func (self *haxe__Template) parseExpr(data *string) func() any {
 			c := _g_value
 			if c == 32 {
 			} else {
-				hx_arr_109 := tokens
-				hx_arr_109 = append(hx_arr_109, func() map[string]any {
+				tokens = append(tokens, func() map[string]any {
 					hx_obj_110 := map[string]any{}
 					hx_obj_110["p"] = hxrt.StringSubstrStringPtr(data, i, 0, false)
 					hx_obj_110["s"] = true
 					return hx_obj_110
 				}())
-				tokens = hx_arr_109
 				break
 			}
 		}
@@ -1082,9 +1060,7 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 		params := _g1_2
 		var fn any = Reflect_field(self.macros, name)
 		callArgs := []any{}
-		hx_arr_202 := callArgs
-		hx_arr_202 = append(hx_arr_202, self.resolve)
-		callArgs = hx_arr_202
+		callArgs = append(callArgs, self.resolve)
 		_g_9 := 0
 		for _g_9 < len(params) {
 			param := params[_g_9]
@@ -1092,16 +1068,12 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 			if param.tag == 0 {
 				_g_10 := param.params[0].(*string)
 				value_2 := _g_10
-				hx_arr_203 := callArgs
-				hx_arr_203 = append(hx_arr_203, self.resolve(value_2))
-				callArgs = hx_arr_203
+				callArgs = append(callArgs, self.resolve(value_2))
 			} else {
 				previous := self.output
 				self.output = hxrt.StringFromLiteral("")
 				self.run(param)
-				hx_arr_204 := callArgs
-				hx_arr_204 = append(hx_arr_204, self.output)
-				callArgs = hx_arr_204
+				callArgs = append(callArgs, self.output)
 				self.output = previous
 			}
 		}
@@ -1133,9 +1105,7 @@ func (self *haxe__Template) popStackValue() any {
 		hx_post_210 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_210
-		hx_arr_211 := remaining
-		hx_arr_211 = append(hx_arr_211, self.stack[index])
-		remaining = hx_arr_211
+		remaining = append(remaining, self.stack[index])
 	}
 	self.stack = remaining
 	return value

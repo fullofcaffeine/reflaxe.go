@@ -153,9 +153,7 @@ func haxe__io__Path_join(paths []*string) *string {
 		segment := paths[_g]
 		_g = int(int32((_g + 1)))
 		if !hxrt.StringEqualStringPtr(segment, nil) && !hxrt.StringEqualStringPtr(segment, hxrt.StringFromLiteral("")) {
-			hx_arr_10 := filtered
-			hx_arr_10 = append(hx_arr_10, segment)
-			filtered = hx_arr_10
+			filtered = append(filtered, segment)
 		}
 	}
 	if len(filtered) == 0 {
@@ -237,23 +235,17 @@ func haxe__io__Path_normalize(path *string) *string {
 		token := _g1[_g]
 		_g = int(int32((_g + 1)))
 		if (hxrt.StringEqualStringPtr(token, hxrt.StringFromLiteral("..")) && (len(target) > 0)) && !hxrt.StringEqualStringPtr(target[int(int32((hxrt.Int32Wrap(len(target))-hxrt.Int32Wrap(1))))], hxrt.StringFromLiteral("..")) {
-			hx_arr_16 := target
-			if len(hx_arr_16) > 0 {
-				hx_arr_16 = hx_arr_16[:(len(hx_arr_16) - 1)]
+			if len(target) > 0 {
+				target = target[:(len(target) - 1)]
 			}
-			target = hx_arr_16
 		} else {
 			if hxrt.StringEqualStringPtr(token, hxrt.StringFromLiteral("")) {
 				if (len(target) > 0) || absolute {
-					hx_arr_17 := target
-					hx_arr_17 = append(hx_arr_17, token)
-					target = hx_arr_17
+					target = append(target, token)
 				}
 			} else {
 				if !hxrt.StringEqualStringPtr(token, hxrt.StringFromLiteral(".")) {
-					hx_arr_18 := target
-					hx_arr_18 = append(hx_arr_18, token)
-					target = hx_arr_18
+					target = append(target, token)
 				}
 			}
 		}
@@ -337,15 +329,11 @@ func haxe__io__Path_splitOnSlash(path *string) []*string {
 			}
 			return hx_if_23
 		}() == 47 {
-			hx_arr_24 := tokens
-			hx_arr_24 = append(hx_arr_24, hxrt.StringSubstrStringPtr(path, start, int(int32((hxrt.Int32Wrap(index)-hxrt.Int32Wrap(start)))), true))
-			tokens = hx_arr_24
+			tokens = append(tokens, hxrt.StringSubstrStringPtr(path, start, int(int32((hxrt.Int32Wrap(index)-hxrt.Int32Wrap(start)))), true))
 			start = int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1))))
 		}
 	}
-	hx_arr_25 := tokens
-	hx_arr_25 = append(hx_arr_25, hxrt.StringSubstrStringPtr(path, start, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(path))-hxrt.Int32Wrap(start)))), true))
-	tokens = hx_arr_25
+	tokens = append(tokens, hxrt.StringSubstrStringPtr(path, start, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(path))-hxrt.Int32Wrap(start)))), true))
 	return tokens
 }
 

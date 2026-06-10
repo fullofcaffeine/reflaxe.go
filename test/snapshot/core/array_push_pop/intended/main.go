@@ -4,17 +4,27 @@ import "snapshot/hxrt"
 
 func main() {
 	values := []int{}
-	hx_arr_1 := values
-	hx_arr_1 = append(hx_arr_1, 4)
-	values = hx_arr_1
-	hx_arr_2 := values
-	hx_arr_2 = append(hx_arr_2, 9)
-	values = hx_arr_2
-	hx_arr_3 := values
-	if len(hx_arr_3) > 0 {
-		hx_arr_3 = hx_arr_3[:(len(hx_arr_3) - 1)]
+	values = append(values, 4)
+	values = append(values, 9)
+	if len(values) > 0 {
+		values = values[:(len(values) - 1)]
 	}
-	values = hx_arr_3
+	pushLen := func() int {
+		values = append(values, 12)
+		return len(values)
+	}()
+	removed := func() int {
+		hx_len_6 := len(values)
+		if hx_len_6 == 0 {
+			var hx_zero_8 int
+			return hx_zero_8
+		}
+		hx_value_7 := values[(hx_len_6 - 1)]
+		values = values[:(hx_len_6 - 1)]
+		return hx_value_7
+	}()
 	hxrt.Println(len(values))
 	hxrt.Println(values[0])
+	hxrt.Println(pushLen)
+	hxrt.Println(removed)
 }

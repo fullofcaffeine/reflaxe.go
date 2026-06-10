@@ -75,9 +75,7 @@ func main() {
 		for _g1 < len(_g2) {
 			var value any = _g2[_g1]
 			_g1 = int(int32((_g1 + 1)))
-			hx_arr_2 := _g
-			hx_arr_2 = append(hx_arr_2, Type_enumConstructor(value))
-			_g = hx_arr_2
+			_g = append(_g, Type_enumConstructor(value))
 		}
 		return _g
 	}())))

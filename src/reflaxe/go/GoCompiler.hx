@@ -146,12 +146,14 @@ private typedef ReturnRedirect = {
 	Some targets, especially anonymous-object fields lowered onto the current
 	`map[string]any` carrier, cannot be mutated safely with a raw `append(...)`
 	against the original lvalue. We need a read -> mutate temp -> write-back plan
-	that still evaluates the target expression only once.
+	that still evaluates the target expression only once. Plain local array
+	variables do not need that extra plan because assigning the local directly is
+	already single-evaluation-safe.
 
 	How:
 	`lowerArrayMutationSite()` computes any required prefix statements, exposes the
-	temp slice expression that later push/pop code mutates, and returns a
-	write-back closure that stores the final slice back into the original target.
+	slice expression that later push/pop code mutates, and returns a write-back
+	closure when the final slice must be stored back into another carrier.
 **/
 private typedef ArrayMutationSite = {
 	final prefix:Array<GoStmt>;
@@ -9386,14 +9388,14 @@ class GoCompiler {
 
 		Why:
 		Anonymous-record field lvalues need a temporary slice plus explicit
-		write-back to stay correct on Go. Reusing the same plan for all array
-		push/pop targets keeps single-evaluation semantics consistent across direct
-		lvalues and anonymous-object fields.
+		write-back to stay correct on Go. Plain local array lvalues can mutate the
+		local directly, which keeps generated Go readable without weakening the
+		anonymous-field safety fix.
 
 		How:
-		Returns prefix statements that capture the target once, the temporary slice
+		Returns prefix statements that capture the target once when needed, the slice
 		expression to mutate, and a write-back closure that stores the final slice in
-		the right place after mutation.
+		the right place after mutation when direct assignment is not enough.
 	**/
 	function lowerArrayMutationSite(target:TypedExpr):ArrayMutationSite {
 		var sliceType = typeToGoType(target.t);
@@ -9401,6 +9403,15 @@ class GoCompiler {
 		var tempExpr = GoExpr.GoIdent(tempName);
 
 		return switch (target.expr) {
+			case TLocal(_):
+				{
+					prefix: [],
+					tempExpr: lowerLValue(target),
+					sliceType: sliceType,
+					writeBack: function(_value:GoExpr):Array<GoStmt> {
+						return [];
+					}
+				};
 			case TField(parent, FAnon(field)) if (isAnonymousObjectType(parent.t)):
 				var objectName = freshTempName("hx_obj");
 				var objectExpr = GoExpr.GoIdent(objectName);

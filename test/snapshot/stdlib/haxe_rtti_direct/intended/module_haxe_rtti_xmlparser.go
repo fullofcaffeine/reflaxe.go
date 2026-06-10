@@ -883,11 +883,9 @@ func (self *haxe__rtti__XmlParser) merge(t *haxe__rtti__TypeTree) {
 	}(inf), hxrt.StringFromLiteral("."))
 	cur := self.root
 	curpack := []*string{}
-	hx_arr_269 := pack
-	if len(hx_arr_269) > 0 {
-		hx_arr_269 = hx_arr_269[:(len(hx_arr_269) - 1)]
+	if len(pack) > 0 {
+		pack = pack[:(len(pack) - 1)]
 	}
-	pack = hx_arr_269
 	_g := 0
 	for _g < len(pack) {
 		p := pack[_g]
@@ -912,14 +910,10 @@ func (self *haxe__rtti__XmlParser) merge(t *haxe__rtti__TypeTree) {
 			} else {
 			}
 		}
-		hx_arr_270 := curpack
-		hx_arr_270 = append(hx_arr_270, p)
-		curpack = hx_arr_270
+		curpack = append(curpack, p)
 		if !found {
 			pk_1 := []*haxe__rtti__TypeTree{}
-			hx_arr_271 := cur
-			hx_arr_271 = append(hx_arr_271, haxe__rtti__TypeTree_TPackage(p, self.joinStringArray(curpack, hxrt.StringFromLiteral(".")), pk_1))
-			cur = hx_arr_271
+			cur = append(cur, haxe__rtti__TypeTree_TPackage(p, self.joinStringArray(curpack, hxrt.StringFromLiteral(".")), pk_1))
 			cur = pk_1
 		}
 	}
@@ -1212,9 +1206,7 @@ func (self *haxe__rtti__XmlParser) merge(t *haxe__rtti__TypeTree) {
 			}(tinf), hxrt.StringFromLiteral(","))), hxrt.StringFromLiteral(" and ")), self.curplatform), hxrt.StringFromLiteral(" (")), msg), hxrt.StringFromLiteral(")")))
 		}
 	}
-	hx_arr_349 := cur
-	hx_arr_349 = append(hx_arr_349, t)
-	cur = hx_arr_349
+	cur = append(cur, t)
 }
 
 func (self *haxe__rtti__XmlParser) mkPath(p *string) *string {
@@ -1334,18 +1326,14 @@ func (self *haxe__rtti__XmlParser) xmeta(x *Xml) []map[string]any {
 				}
 				return hx_field_369.(func() *Xml)
 			}(p)()
-			hx_arr_371 := pl
-			hx_arr_371 = append(hx_arr_371, self.innerHTML(p_1))
-			pl = hx_arr_371
+			pl = append(pl, self.innerHTML(p_1))
 		}
-		hx_arr_372 := ml
-		hx_arr_372 = append(hx_arr_372, func() map[string]any {
+		ml = append(ml, func() map[string]any {
 			hx_obj_373 := map[string]any{}
 			hx_obj_373["name"] = self.requireAttr(m_1, hxrt.StringFromLiteral("n"))
 			hx_obj_373["params"] = pl
 			return hx_obj_373
 		}())
-		ml = hx_arr_372
 	}
 	return ml
 }
@@ -1369,9 +1357,7 @@ func (self *haxe__rtti__XmlParser) xoverloads(x *Xml) []map[string]any {
 			}
 			return hx_field_378.(func() *Xml)
 		}(m)()
-		hx_arr_380 := l
-		hx_arr_380 = append(hx_arr_380, self.xclassfield(m_1, false))
-		l = hx_arr_380
+		l = append(l, self.xclassfield(m_1, false))
 	}
 	return l
 }
@@ -1396,9 +1382,7 @@ func (self *haxe__rtti__XmlParser) xpath(x *Xml) map[string]any {
 			}
 			return hx_field_385.(func() *Xml)
 		}(c)()
-		hx_arr_387 := params
-		hx_arr_387 = append(hx_arr_387, self.xtype(c_1))
-		params = hx_arr_387
+		params = append(params, self.xtype(c_1))
 	}
 	hx_obj_388 := map[string]any{}
 	hx_obj_388["path"] = path
@@ -1438,17 +1422,13 @@ func (self *haxe__rtti__XmlParser) xclass(x *Xml) map[string]any {
 		} else {
 			if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("extends")) {
 				if isInterface {
-					hx_arr_395 := interfaces
-					hx_arr_395 = append(hx_arr_395, self.xpath(c_1))
-					interfaces = hx_arr_395
+					interfaces = append(interfaces, self.xpath(c_1))
 				} else {
 					csuper = self.xpath(c_1)
 				}
 			} else {
 				if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("implements")) {
-					hx_arr_396 := interfaces
-					hx_arr_396 = append(hx_arr_396, self.xpath(c_1))
-					interfaces = hx_arr_396
+					interfaces = append(interfaces, self.xpath(c_1))
 				} else {
 					if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("haxe_dynamic")) {
 						tdynamic = self.xtype(self.requireFirstElement(c_1))
@@ -1457,13 +1437,9 @@ func (self *haxe__rtti__XmlParser) xclass(x *Xml) map[string]any {
 							meta = self.xmeta(c_1)
 						} else {
 							if c_1.exists(hxrt.StringFromLiteral("static")) {
-								hx_arr_397 := statics
-								hx_arr_397 = append(hx_arr_397, self.xclassfield(c_1, false))
-								statics = hx_arr_397
+								statics = append(statics, self.xclassfield(c_1, false))
 							} else {
-								hx_arr_398 := fields
-								hx_arr_398 = append(hx_arr_398, self.xclassfield(c_1, false))
-								fields = hx_arr_398
+								fields = append(fields, self.xclassfield(c_1, false))
 							}
 						}
 					}
@@ -1622,9 +1598,7 @@ func (self *haxe__rtti__XmlParser) xenum(x *Xml) map[string]any {
 			if hxrt.StringEqualStringPtr(self.elementName(c_1), hxrt.StringFromLiteral("meta")) {
 				meta = self.xmeta(c_1)
 			} else {
-				hx_arr_423 := cl
-				hx_arr_423 = append(hx_arr_423, self.xenumfield(c_1))
-				cl = hx_arr_423
+				cl = append(cl, self.xenumfield(c_1))
 			}
 		}
 	}
@@ -1692,8 +1666,7 @@ func (self *haxe__rtti__XmlParser) xenumfield(x *Xml) map[string]any {
 				opt = true
 				c = hxrt.StringSubstrStringPtr(c, 1, 0, false)
 			}
-			hx_arr_434 := args
-			hx_arr_434 = append(hx_arr_434, func() map[string]any {
+			args = append(args, func() map[string]any {
 				hx_obj_435 := map[string]any{}
 				hx_obj_435["name"] = c
 				hx_obj_435["opt"] = opt
@@ -1707,7 +1680,6 @@ func (self *haxe__rtti__XmlParser) xenumfield(x *Xml) map[string]any {
 				}(elts)())
 				return hx_obj_435
 			}())
-			args = hx_arr_434
 		}
 	}
 	hx_obj_439 := map[string]any{}
@@ -1774,14 +1746,12 @@ func (self *haxe__rtti__XmlParser) xabstract(x *Xml) map[string]any {
 							}
 							return hx_field_451.(func() *Xml)
 						}(t)()
-						hx_arr_453 := to
-						hx_arr_453 = append(hx_arr_453, func() map[string]any {
+						to = append(to, func() map[string]any {
 							hx_obj_454 := map[string]any{}
 							hx_obj_454["t"] = self.xtype(self.requireFirstElement(t_1))
 							hx_obj_454["field"] = t_1.get(hxrt.StringFromLiteral("field"))
 							return hx_obj_454
 						}())
-						to = hx_arr_453
 					}
 				} else {
 					if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("from")) {
@@ -1802,14 +1772,12 @@ func (self *haxe__rtti__XmlParser) xabstract(x *Xml) map[string]any {
 								}
 								return hx_field_459.(func() *Xml)
 							}(t_2)()
-							hx_arr_461 := from
-							hx_arr_461 = append(hx_arr_461, func() map[string]any {
+							from = append(from, func() map[string]any {
 								hx_obj_462 := map[string]any{}
 								hx_obj_462["t"] = self.xtype(self.requireFirstElement(t_3))
 								hx_obj_462["field"] = t_3.get(hxrt.StringFromLiteral("field"))
 								return hx_obj_462
 							}())
-							from = hx_arr_461
 						}
 					} else {
 						if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("impl")) {
@@ -1976,8 +1944,7 @@ func (self *haxe__rtti__XmlParser) xtype(x *Xml) *haxe__rtti__CType {
 				hx_if_483 = evalues[hx_post_482]
 			}
 			v := hx_if_483
-			hx_arr_484 := args
-			hx_arr_484 = append(hx_arr_484, func() map[string]any {
+			args = append(args, func() map[string]any {
 				hx_obj_485 := map[string]any{}
 				hx_obj_485["name"] = a
 				hx_obj_485["opt"] = opt
@@ -1991,7 +1958,6 @@ func (self *haxe__rtti__XmlParser) xtype(x *Xml) *haxe__rtti__CType {
 				hx_obj_485["value"] = hx_if_486
 				return hx_obj_485
 			}())
-			args = hx_arr_484
 		}
 		ret := args[int(int32((hxrt.Int32Wrap(len(args)) - hxrt.Int32Wrap(1))))]
 		callArgs := []map[string]any{}
@@ -2001,9 +1967,7 @@ func (self *haxe__rtti__XmlParser) xtype(x *Xml) *haxe__rtti__CType {
 			hx_post_487 := _g
 			_g = int(int32((_g + 1)))
 			i := hx_post_487
-			hx_arr_488 := callArgs
-			hx_arr_488 = append(hx_arr_488, args[i])
-			callArgs = hx_arr_488
+			callArgs = append(callArgs, args[i])
 		}
 		return haxe__rtti__CType_CFunction(callArgs, func(hx_obj_489 map[string]any) *haxe__rtti__CType {
 			hx_field_490 := hx_obj_489["t"]
@@ -2035,9 +1999,7 @@ func (self *haxe__rtti__XmlParser) xtype(x *Xml) *haxe__rtti__CType {
 			}(f)()
 			f_2 := self.xclassfield(f_1, true)
 			f_2["platforms"] = []*string{}
-			hx_arr_498 := fields
-			hx_arr_498 = append(hx_arr_498, f_2)
-			fields = hx_arr_498
+			fields = append(fields, f_2)
 		}
 		return haxe__rtti__CType_CAnonymous(fields)
 	}
@@ -2073,9 +2035,7 @@ func (self *haxe__rtti__XmlParser) xtypeparams(x *Xml) []*haxe__rtti__CType {
 			}
 			return hx_field_504.(func() *Xml)
 		}(c)()
-		hx_arr_506 := p
-		hx_arr_506 = append(hx_arr_506, self.xtype(c_1))
-		p = hx_arr_506
+		p = append(p, self.xtype(c_1))
 	}
 	return p
 }
@@ -2083,9 +2043,7 @@ func (self *haxe__rtti__XmlParser) xtypeparams(x *Xml) []*haxe__rtti__CType {
 func (self *haxe__rtti__XmlParser) defplat() []*string {
 	l := []*string{}
 	if !hxrt.StringEqualStringPtr(self.curplatform, nil) {
-		hx_arr_507 := l
-		hx_arr_507 = append(hx_arr_507, self.curplatform)
-		l = hx_arr_507
+		l = append(l, self.curplatform)
 	}
 	return l
 }
@@ -2116,14 +2074,10 @@ func (self *haxe__rtti__XmlParser) splitString(value *string, separator *string)
 	for true {
 		index := self.findSeparator(value, separator, start)
 		if index == -1 {
-			hx_arr_509 := parts
-			hx_arr_509 = append(hx_arr_509, hxrt.StringSubstrStringPtr(value, start, 0, false))
-			parts = hx_arr_509
+			parts = append(parts, hxrt.StringSubstrStringPtr(value, start, 0, false))
 			break
 		}
-		hx_arr_510 := parts
-		hx_arr_510 = append(hx_arr_510, hxrt.StringSubstrStringPtr(value, start, int(int32((hxrt.Int32Wrap(index)-hxrt.Int32Wrap(start)))), true))
-		parts = hx_arr_510
+		parts = append(parts, hxrt.StringSubstrStringPtr(value, start, int(int32((hxrt.Int32Wrap(index)-hxrt.Int32Wrap(start)))), true))
 		start = int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(hxrt.StringLengthStringPtr(separator)))))
 	}
 	return parts

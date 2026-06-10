@@ -5,22 +5,14 @@ import "snapshot/hxrt"
 func main() {
 	names := []*string{}
 	hxrt.Println(len(names))
-	hx_arr_1 := names
-	hx_arr_1 = append(hx_arr_1, hxrt.StringFromLiteral("go"))
-	names = hx_arr_1
-	hx_arr_2 := names
-	hx_arr_2 = append(hx_arr_2, hxrt.StringFromLiteral("haxe"))
-	names = hx_arr_2
+	names = append(names, hxrt.StringFromLiteral("go"))
+	names = append(names, hxrt.StringFromLiteral("haxe"))
 	hxrt.Println(len(names))
 	hxrt.Println(names[0])
 	hxrt.Println(names[1])
 	nums := []int{}
-	hx_arr_3 := nums
-	hx_arr_3 = append(hx_arr_3, 3)
-	nums = hx_arr_3
-	hx_arr_4 := nums
-	hx_arr_4 = append(hx_arr_4, 5)
-	nums = hx_arr_4
+	nums = append(nums, 3)
+	nums = append(nums, 5)
 	sum := 0
 	_g := 0
 	for _g < len(nums) {
