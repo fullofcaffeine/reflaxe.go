@@ -373,6 +373,16 @@
       "notes": "Go staged portable override for Unicode-aware string key/value iterator semantics."
     },
     {
+      "path": "std/_std/hxrt/stack/NativeStack.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go typed extern bridge for runtime/hxrt/stack.go native stack capture entry points, kept under std/_std so staged haxe.CallStack and haxe.NativeStackTrace can opt into diagnostics without compiler-owned stack shims."
+    },
+    {
+      "path": "std/_std/hxrt/stack/NativeStackFrame.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go typed extern bridge for the runtime/hxrt/stack.go frame carrier used by the explicit reflaxe_go_native_stack_trace diagnostic capability."
+    },
+    {
       "path": "std/_std/hxrt/thread/ConditionHandle.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go typed extern bridge for the runtime/hxrt/thread.go condition carrier, kept under std/_std so staged sys.thread overrides can call into the runtime without growing compiler-owned shims."
