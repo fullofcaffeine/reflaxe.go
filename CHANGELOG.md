@@ -1,3 +1,46 @@
+## [0.49.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.48.0...v0.49.0) (2026-06-10)
+
+### Features
+
+* close legacy text parity tranche ([1115976](https://github.com/fullofcaffeine/reflaxe.go/commit/1115976a88c2ae4fa4f3b8009e39bac512d932c4))
+* move bytes helper algorithms into hxrt ([bd2ff22](https://github.com/fullofcaffeine/reflaxe.go/commit/bd2ff2292829d509fadc898f896e5ec35749afed))
+* move io helper loops into staged std ([1d0bc89](https://github.com/fullofcaffeine/reflaxe.go/commit/1d0bc89fd0db3eba12a844e75dd0919737337d61))
+* move sys http leaf helpers into staged std ([06984b0](https://github.com/fullofcaffeine/reflaxe.go/commit/06984b0d0cbfe8f19643adb690eed88b65e12bbc))
+* promote haxe ds hashmap parity surface ([9ec0071](https://github.com/fullofcaffeine/reflaxe.go/commit/9ec00719659c035ef94d0ee67eab941d9c687411))
+* promote haxe ds sort helper parity ([94f66fb](https://github.com/fullofcaffeine/reflaxe.go/commit/94f66fba233c3d20fa866dacaa5622e1d879ca1c))
+* restore scoped raw go injection support ([16f794a](https://github.com/fullofcaffeine/reflaxe.go/commit/16f794a62c7880e80b4959c69031ad9e7d755c32))
+* **rtti:** promote direct haxe.rtti parity ([5f24da3](https://github.com/fullofcaffeine/reflaxe.go/commit/5f24da388457b123a46766fd56d4202e08f5ca35))
+* **rtti:** stabilize anonymous carrier mutation and class metadata lookup ([2c13cf2](https://github.com/fullofcaffeine/reflaxe.go/commit/2c13cf296d8f33f0248485e7a9b65c30a599856f))
+* **std:** close sys.thread runtime parity tranche ([867624c](https://github.com/fullofcaffeine/reflaxe.go/commit/867624c4eb44b75e7511084ebef49beeb9dda099))
+* **stdlib:** add opt-in native stack diagnostics ([8d3199a](https://github.com/fullofcaffeine/reflaxe.go/commit/8d3199a31f21127282b778f27da2eb130aa7317f))
+* **stdlib:** close haxe.io misc direct parity tranche ([42240cd](https://github.com/fullofcaffeine/reflaxe.go/commit/42240cd84a8dfd6a1c95b5ecc654adef04d4ed08))
+* **stdlib:** close sys db and io parity tranche ([0d9f947](https://github.com/fullofcaffeine/reflaxe.go/commit/0d9f947e67e1a4c0f5ef0dfccbcdb04ec31b59f1))
+* **stdlib:** promote sys ssl leafs and net address ([20bf41c](https://github.com/fullofcaffeine/reflaxe.go/commit/20bf41c73432c20687467ec88ba3f787ea1050c3))
+* **stdlib:** promote sys.net.UdpSocket direct baseline ([88f4f1c](https://github.com/fullofcaffeine/reflaxe.go/commit/88f4f1c2a2d2ce1f00b01598f9e5093cd7b2161a))
+* **stdlib:** promote WeakMap platform contract on Go ([8cc8bff](https://github.com/fullofcaffeine/reflaxe.go/commit/8cc8bff90fa2f4eec65b4a9dcf89e533ed906217))
+* **stdlib:** support direct haxe event loop surfaces ([582463b](https://github.com/fullofcaffeine/reflaxe.go/commit/582463b97e584a07c35eb842f29cfdf08f609561))
+* **stdlib:** support direct haxe.http.HttpBase baseline ([be458c9](https://github.com/fullofcaffeine/reflaxe.go/commit/be458c977fb51ef94776688adb6ac4eeafbbe7ae))
+* **std:** promote first-wave sys.thread primitives ([796b3d7](https://github.com/fullofcaffeine/reflaxe.go/commit/796b3d75529845840114670777636798a99a3961))
+* **std:** promote haxe io typed arrays parity ([c724c74](https://github.com/fullofcaffeine/reflaxe.go/commit/c724c740b7c90d5057ea7a86bc30853e52605981))
+* **std:** promote sys.ssl.Socket baseline support ([05dad56](https://github.com/fullofcaffeine/reflaxe.go/commit/05dad56be481c9eda5e3ec6efb4b40376f6c8039))
+* wire embedded haxe.Resource payloads ([8404bb6](https://github.com/fullofcaffeine/reflaxe.go/commit/8404bb694ac93bae5119a01163c21ef9ffab0591))
+
+### Bug Fixes
+
+* **ci:** benchmark go profiles with selective hxrt ([7307c7c](https://github.com/fullofcaffeine/reflaxe.go/commit/7307c7cb9b28faf4a1f7710c7b768584a9595f1f))
+* **compiler:** elide guarded nullable primitive casts ([c110fa0](https://github.com/fullofcaffeine/reflaxe.go/commit/c110fa01e23363075de201f21df4dc328850eed2))
+* **compiler:** narrow nullable primitive locals ([ec2ba2d](https://github.com/fullofcaffeine/reflaxe.go/commit/ec2ba2dcfc601d8ec11b434982a44938805563a9))
+* **compiler:** preserve nullable enum primitive payloads ([b514e9f](https://github.com/fullofcaffeine/reflaxe.go/commit/b514e9fac3dad5b0dafc4bea84c5869e7bb27fc7))
+* **compiler:** support nullable primitive params ([689979f](https://github.com/fullofcaffeine/reflaxe.go/commit/689979f62cb6c2981ffa41e74b9121ac1071f7b0))
+* **event-loop:** classify direct haxe loop surfaces as unsupported ([35d93fa](https://github.com/fullofcaffeine/reflaxe.go/commit/35d93fa622be05425fd9f746ff4b7625ff68bbb0))
+* **go:** restore direct haxe.ValueException parity ([7648462](https://github.com/fullofcaffeine/reflaxe.go/commit/7648462dbf22a92e1e82285b30d8359f399fe9b1))
+* **go:** restore safe instance default-arg padding ([34178a7](https://github.com/fullofcaffeine/reflaxe.go/commit/34178a7e843a4d8abe2ac293a2d46d95a7e6c367))
+* **parity:** restore direct std exceptions and collections ([ed495f1](https://github.com/fullofcaffeine/reflaxe.go/commit/ed495f1e8675a87e9708287ecb32b591b938d167))
+* **runtime:** keep native stack capture footprint explicit ([554e8a3](https://github.com/fullofcaffeine/reflaxe.go/commit/554e8a34e143961c988c3e704fa5e6c5c3aad5af))
+* **runtime:** remove sys thread timeout dynamic bridge ([b275f7f](https://github.com/fullofcaffeine/reflaxe.go/commit/b275f7f297e0bea3c595db42a522c833a13b673b))
+* **stdlib:** restore haxe Utf8 size constructor ([059f054](https://github.com/fullofcaffeine/reflaxe.go/commit/059f0540d077b23ad736d41b8fe293d81505f8dc))
+* **stdlib:** use upstream haxe io path ([9f97fd6](https://github.com/fullofcaffeine/reflaxe.go/commit/9f97fd6cb970442cb72f7c08646c56113ef8d8c9))
+
 ## [0.48.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.47.1...v0.48.0) (2026-03-07)
 
 ### Features
