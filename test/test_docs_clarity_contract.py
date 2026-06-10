@@ -90,6 +90,16 @@ class DocsClarityContractTest(unittest.TestCase):
         self.assertIn("python3 test/run-examples.py", validation)
         self.assertIn("python3 test/run-ci.py", validation)
 
+    def test_start_here_explains_first_run_output_artifacts(self) -> None:
+        start_here = (REPO_ROOT / "docs" / "start-here.md").read_text(encoding="utf-8")
+        artifacts = self.section_text(start_here, "## Generated output and local artifacts")
+
+        self.assertIn("examples/tui_todo/out_portable", artifacts)
+        self.assertIn("-D go_output=out_portable", artifacts)
+        self.assertIn("--out", artifacts)
+        self.assertIn("safe to delete", artifacts)
+        self.assertIn("regenerated", artifacts)
+
     def test_docs_internal_links_do_not_use_docs_relative_prefix(self) -> None:
         targets = [
             "docs/index.md",

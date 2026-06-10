@@ -33,6 +33,30 @@ That command runs the portable TUI todo example. `portable` is the default
 starting point because it keeps the code closest to normal Haxe semantics and
 cross-target-friendly APIs.
 
+## Generated output and local artifacts
+
+The first run creates generated Go under:
+
+```text
+examples/tui_todo/out_portable/
+```
+
+That path comes from `examples/tui_todo/compile.portable.hxml`:
+
+```text
+-D go_output=out_portable
+```
+
+The generated directory contains `go.mod`, generated `.go` files, and the
+copied `hxrt/` runtime package. It is safe to delete because it is regenerated
+the next time you run the compile/run wrapper.
+
+If you want generated output somewhere else, pass `--out`:
+
+```bash
+npm run dev:hx -- --project examples/tui_todo --profile portable --out /tmp/tui_todo_go --action run
+```
+
 ## Validation after first run
 
 After the first example works, use these checks depending on what you changed:
