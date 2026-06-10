@@ -18,6 +18,7 @@ PHASE2_ROADMAP_DOC = REPO_ROOT / "docs" / "phase2-roadmap.md"
 PARITY_PROGRAM_DOC = REPO_ROOT / "docs" / "portable-stdlib-parity-program.md"
 RELEASE_CHECKLIST_DOC = REPO_ROOT / "docs" / "release-readiness-checklist.md"
 APPROACH_C_BASELINE_DOC = REPO_ROOT / "docs" / "spikes" / "approach-c-baseline-freeze.md"
+STDLIB_MIGRATION_LOG_DOC = REPO_ROOT / "docs" / "stdlib-shim-migration-log.md"
 
 OWNER_COMPATIBILITY = {
     "staged_std": {"haxe_source", "mixed"},
@@ -140,6 +141,10 @@ class PortableGovernanceContractTest(unittest.TestCase):
         approach_c_baseline = APPROACH_C_BASELINE_DOC.read_text(encoding="utf-8")
         self.assertNotIn("compile-only stdlib promotion", approach_c_baseline)
         self.assertIn("current parity evidence", approach_c_baseline)
+
+        stdlib_migration_log = STDLIB_MIGRATION_LOG_DOC.read_text(encoding="utf-8")
+        self.assertNotIn("Staged stdlib migration follow-ups continue under `haxe.go-cgk.*`", stdlib_migration_log)
+        self.assertIn("`haxe.go-cgk.*` planning work is historical context", stdlib_migration_log)
 
         self.assertIn("test/.test-cache/portable_parity_closure_summary.json", parity_program)
         self.assertIn("authoritative live list", parity_program)

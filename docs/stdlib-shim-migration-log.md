@@ -682,7 +682,10 @@ Observed result:
 ## Open migration track
 
 - Legacy `haxe.go-7zy.*` shim migration sequence is closed.
-- Staged stdlib migration follow-ups continue under `haxe.go-cgk.*` (portable parity program).
+- The `haxe.go-cgk.*` planning work is historical context now, not the active execution tracker.
+- Current stdlib parity status is governed by `docs/portable-stdlib-parity-program.md`,
+  `test/portable_stdlib_inventory.json`, and the generated parity closure summaries
+  under `test/.test-cache/`.
 
 ### 2026-03-24: direct Haxe event-loop surfaces reclassified as explicit unsupported usage (`haxe.go-dt4s`)
 
