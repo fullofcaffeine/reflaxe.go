@@ -131,7 +131,10 @@ class PortableGovernanceContractTest(unittest.TestCase):
         self.assertNotIn("This file is the active Phase-2 roadmap", phase2_roadmap)
         self.assertNotIn("Execution tracker:", phase2_roadmap)
         self.assertNotIn("Approach-C closure follow-up tracker:", phase2_roadmap)
+        self.assertNotIn("Latest follow-up:", phase2_roadmap)
+        self.assertNotIn("Continue unsupported-expression inventory reduction", phase2_roadmap)
         self.assertIn("historical Phase-2 roadmap summary", phase2_roadmap)
+        self.assertIn("Historical landed follow-up:", phase2_roadmap)
 
         known_gaps = KNOWN_GAPS_DOC.read_text(encoding="utf-8")
         self.assertNotIn("Remaining stdlib follow-up", known_gaps)

@@ -55,9 +55,9 @@ Depends on: M1, M1.5
 - Implement unified `go.Go` / `go.Chan` authority in `src/go/*` with target-conditional lowering hooks (Go-native on `go` builds, deterministic simulation for non-Go harness paths).
 - Allow `std/go/*` override classes through compiler project-class filtering.
 - Add deterministic go-native concurrency contracts (no sleep-based race tests).
-- Latest follow-up: typed `go.Chan<T>` `recv`/`recvOr` call results now route through generic assertion bridging in `portable`, so typed channel reads compile without forcing `Dynamic` callsites.
-- Latest follow-up: `go.Chan<T>.tryRecv():go.Result<T>` now lowers through select-backed concurrency shims across `portable`/`metal`, with dedicated go_native snapshot coverage.
-- Latest follow-up: typed `go.Select` helpers (`recv`, `recv2`, `send`, `send2`) now provide a deterministic Haxe-level select API with explicit branch-priority semantics.
+- Historical landed follow-up: typed `go.Chan<T>` `recv`/`recvOr` call results were routed through generic assertion bridging in `portable`, so typed channel reads compile without forcing `Dynamic` callsites.
+- Historical landed follow-up: `go.Chan<T>.tryRecv():go.Result<T>` was lowered through select-backed concurrency shims across `portable`/`metal`, with dedicated go_native snapshot coverage.
+- Historical landed follow-up: typed `go.Select` helpers (`recv`, `recv2`, `send`, `send2`) provided a deterministic Haxe-level select API with explicit branch-priority semantics.
 
 ### M3 - Typed Interop Foundation
 
@@ -65,7 +65,7 @@ Depends on: M2
 
 - Implement typed interop metadata and import resolution (`@:go.import`, symbol mapping).
 - Add smoke examples for `fmt`, `time`, and `context`.
-- Latest follow-up: extern calls typed as Haxe `String` now normalize return values through `hxrt.StdString` (covers static/instance/receiver interop forms without `Dynamic` callsite workarounds).
+- Historical landed follow-up: extern calls typed as Haxe `String` normalized return values through `hxrt.StdString` (covers static/instance/receiver interop forms without `Dynamic` callsite workarounds).
 
 ### M3.5 - Interop Autopilot
 
@@ -80,8 +80,8 @@ Depends on: M3, M3.5
 - Start with monomorphization-first typed lane for hot generic surfaces.
   - Prototype landed: `go.Chan<T>` metal call-site specialization with typed channel shims per concrete element type.
   - Extended prototype landed: `go.Slice<T>` + `go.Map<K,V>` metal call-site specialization with typed collection shims per concrete type set.
-- `go.Result<T>` metal lowering now includes typed call-site shims with internal `(T, error)` helpers; continue iterating toward broader direct idiom emission.
-- Perf harness now covers channel/map/generic microbench lanes with metal budget enforcement.
+- `go.Result<T>` metal lowering landed typed call-site shims with internal `(T, error)` helpers; historical follow-up area was broader direct idiom emission.
+- Perf harness coverage landed for channel/map/generic microbench lanes with metal budget enforcement.
 
 ### M4.5 - Selective `hxrt` Runtime Slicing
 
@@ -104,11 +104,11 @@ Depends on: M3
 Depends on: M2 (with task-level dependencies on M3+ lanes where needed)
 
 - Promote high-value compile-only surfaces to semantic-diff contracts.
-  - Latest promotion: `haxe.Exception` (`caught`/`thrown`/`message`) via `test/semantic_diff/exception_api_contract`.
-- Continue unsupported-expression inventory reduction.
-  - Latest reduction: explicit `TIdent` lowering for untyped identifiers with snapshot coverage in `test/snapshot/core/untyped_ident_nil`.
+  - Historical landed promotion: `haxe.Exception` (`caught`/`thrown`/`message`) via `test/semantic_diff/exception_api_contract`.
+- Historical unsupported-expression inventory reduction landed as invariant proof coverage.
+  - Historical landed reduction: explicit `TIdent` lowering for untyped identifiers with snapshot coverage in `test/snapshot/core/untyped_ident_nil`.
 - Publish concrete onboarding docs and showcase examples.
-  - Latest docs/examples pass: added `examples/worker_pool_select`, expanded `examples/interop_smoke` with `net/http`, and published `docs/go-concurrency-interop-guide.md` + `docs/known-gaps.md`.
+  - Historical landed docs/examples pass: added `examples/worker_pool_select`, expanded `examples/interop_smoke` with `net/http`, and published `docs/go-concurrency-interop-guide.md` + `docs/known-gaps.md`.
 
 ### M7 - Portable Stdlib 100% Parity Program
 
