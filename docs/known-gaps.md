@@ -33,7 +33,8 @@ Current architecture status:
 - `go.*` APIs are target-specific. They compile to real Go behavior on this target, but they are not portability-safe across non-Go Haxe targets.
 - Direct `haxe.ValueException` constructor/message/value parity is covered.
 - Direct `haxe.exceptions` subclass construction for `PosException`, `ArgumentException`, and `NotImplementedException` is covered too.
-- There is currently no compile-only portable stdlib debt in the generated inventory. Remaining stdlib follow-up is about promoting target-sensitive snapshot surfaces where possible and keeping explicit exclusions honest.
+- There is currently no compile-only portable stdlib debt in the generated inventory.
+- The portable parity closure summary reports `0 actionable portable stdlib blockers`; remaining non-semantic-diff surfaces are policy-locked as target-sensitive snapshots or explicit target-conditional exclusions.
 - Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage now has snapshot/runtime smoke coverage through `stdlib/haxe_main_loop_runtime_direct`.
 - The implementation is intentionally staged std over the runtime-backed `sys.thread.EventLoop` contract: public Haxe APIs live in `std/haxe/*.cross.hx`, while `runtime/hxrt/thread.go` owns scheduling, timers, and main-thread wakeups.
 - This is not yet semantic-diff coverage because event-loop timing is target-sensitive; keep using runtime snapshots for this surface until the harness has a stable asynchronous comparison mode.
