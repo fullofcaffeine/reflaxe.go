@@ -52,58 +52,11 @@ jobs:
       - name: Install npm dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
 
-      - name: Setup Haxe (linux, primary)
-        id: setup_haxe_linux
-        continue-on-error: true
-        uses: krdlab/setup-haxe@v1
+      - name: Setup Haxe (linux)
+        uses: ./.github/actions/setup-haxe-linux
         with:
           haxe-version: ${{ env.HAXE_VERSION }}
-
-      - name: Ensure Haxe toolchain (linux)
-        shell: bash
-        env:
-          SETUP_HAXE_OUTCOME: ${{ steps.setup_haxe_linux.outcome }}
-        run: |
-          set -euo pipefail
-          warmup_attempts="${HAXE_SETUP_WARMUP_ATTEMPTS:-3}"
-          if ! [[ "$warmup_attempts" =~ ^[1-9][0-9]*$ ]]; then
-            echo "[haxe-setup] error: HAXE_SETUP_WARMUP_ATTEMPTS must be a positive integer" >&2
-            exit 2
-          fi
-
-          warmup_haxe() {
-            local attempt=1
-            while (( attempt <= warmup_attempts )); do
-              if command -v haxe >/dev/null 2>&1 && command -v haxelib >/dev/null 2>&1; then
-                if haxe -version >/tmp/haxe-version.out 2>/tmp/haxe-version.err && haxelib version >/tmp/haxelib-version.out 2>/tmp/haxelib-version.err; then
-                  echo "[haxe-setup] warmup success on attempt ${attempt}/${warmup_attempts}"
-                  cat /tmp/haxe-version.out
-                  cat /tmp/haxelib-version.out
-                  return 0
-                fi
-                cat /tmp/haxe-version.err >&2 || true
-                cat /tmp/haxelib-version.err >&2 || true
-              fi
-              if (( attempt < warmup_attempts )); then
-                local delay=$((attempt * 2))
-                echo "[haxe-setup] warmup failed on attempt ${attempt}; retrying in ${delay}s"
-                sleep "$delay"
-              fi
-              attempt=$((attempt + 1))
-            done
-            return 1
-          }
-
-          if [[ "${SETUP_HAXE_OUTCOME:-success}" != "success" ]]; then
-            echo "[haxe-setup] primary setup action outcome=${SETUP_HAXE_OUTCOME}; running fallback installer"
-            bash scripts/ci/setup-haxe-linux-fallback.sh
-          fi
-
-          if ! warmup_haxe; then
-            echo "[haxe-setup] warmup failed after primary setup; running fallback installer"
-            bash scripts/ci/setup-haxe-linux-fallback.sh
-            warmup_haxe
-          fi
+          warmup-attempts: ${{ env.HAXE_SETUP_WARMUP_ATTEMPTS }}
 
       - name: Run stable CI surface
         run: npm run test:ci
@@ -191,58 +144,11 @@ jobs:
       - name: Install npm dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
 
-      - name: Setup Haxe (linux, primary)
-        id: setup_haxe_linux
-        continue-on-error: true
-        uses: krdlab/setup-haxe@v1
+      - name: Setup Haxe (linux)
+        uses: ./.github/actions/setup-haxe-linux
         with:
           haxe-version: ${{ env.HAXE_VERSION }}
-
-      - name: Ensure Haxe toolchain (linux)
-        shell: bash
-        env:
-          SETUP_HAXE_OUTCOME: ${{ steps.setup_haxe_linux.outcome }}
-        run: |
-          set -euo pipefail
-          warmup_attempts="${HAXE_SETUP_WARMUP_ATTEMPTS:-3}"
-          if ! [[ "$warmup_attempts" =~ ^[1-9][0-9]*$ ]]; then
-            echo "[haxe-setup] error: HAXE_SETUP_WARMUP_ATTEMPTS must be a positive integer" >&2
-            exit 2
-          fi
-
-          warmup_haxe() {
-            local attempt=1
-            while (( attempt <= warmup_attempts )); do
-              if command -v haxe >/dev/null 2>&1 && command -v haxelib >/dev/null 2>&1; then
-                if haxe -version >/tmp/haxe-version.out 2>/tmp/haxe-version.err && haxelib version >/tmp/haxelib-version.out 2>/tmp/haxelib-version.err; then
-                  echo "[haxe-setup] warmup success on attempt ${attempt}/${warmup_attempts}"
-                  cat /tmp/haxe-version.out
-                  cat /tmp/haxelib-version.out
-                  return 0
-                fi
-                cat /tmp/haxe-version.err >&2 || true
-                cat /tmp/haxelib-version.err >&2 || true
-              fi
-              if (( attempt < warmup_attempts )); then
-                local delay=$((attempt * 2))
-                echo "[haxe-setup] warmup failed on attempt ${attempt}; retrying in ${delay}s"
-                sleep "$delay"
-              fi
-              attempt=$((attempt + 1))
-            done
-            return 1
-          }
-
-          if [[ "${SETUP_HAXE_OUTCOME:-success}" != "success" ]]; then
-            echo "[haxe-setup] primary setup action outcome=${SETUP_HAXE_OUTCOME}; running fallback installer"
-            bash scripts/ci/setup-haxe-linux-fallback.sh
-          fi
-
-          if ! warmup_haxe; then
-            echo "[haxe-setup] warmup failed after primary setup; running fallback installer"
-            bash scripts/ci/setup-haxe-linux-fallback.sh
-            warmup_haxe
-          fi
+          warmup-attempts: ${{ env.HAXE_SETUP_WARMUP_ATTEMPTS }}
 
       - name: Run Go profile benchmarks (metal budget enforced)
         run: npm run test:perf:go
@@ -300,58 +206,11 @@ jobs:
       - name: Install npm dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
 
-      - name: Setup Haxe (linux, primary)
-        id: setup_haxe_linux
-        continue-on-error: true
-        uses: krdlab/setup-haxe@v1
+      - name: Setup Haxe (linux)
+        uses: ./.github/actions/setup-haxe-linux
         with:
           haxe-version: ${{ env.HAXE_VERSION }}
-
-      - name: Ensure Haxe toolchain (linux)
-        shell: bash
-        env:
-          SETUP_HAXE_OUTCOME: ${{ steps.setup_haxe_linux.outcome }}
-        run: |
-          set -euo pipefail
-          warmup_attempts="${HAXE_SETUP_WARMUP_ATTEMPTS:-3}"
-          if ! [[ "$warmup_attempts" =~ ^[1-9][0-9]*$ ]]; then
-            echo "[haxe-setup] error: HAXE_SETUP_WARMUP_ATTEMPTS must be a positive integer" >&2
-            exit 2
-          fi
-
-          warmup_haxe() {
-            local attempt=1
-            while (( attempt <= warmup_attempts )); do
-              if command -v haxe >/dev/null 2>&1 && command -v haxelib >/dev/null 2>&1; then
-                if haxe -version >/tmp/haxe-version.out 2>/tmp/haxe-version.err && haxelib version >/tmp/haxelib-version.out 2>/tmp/haxelib-version.err; then
-                  echo "[haxe-setup] warmup success on attempt ${attempt}/${warmup_attempts}"
-                  cat /tmp/haxe-version.out
-                  cat /tmp/haxelib-version.out
-                  return 0
-                fi
-                cat /tmp/haxe-version.err >&2 || true
-                cat /tmp/haxelib-version.err >&2 || true
-              fi
-              if (( attempt < warmup_attempts )); then
-                local delay=$((attempt * 2))
-                echo "[haxe-setup] warmup failed on attempt ${attempt}; retrying in ${delay}s"
-                sleep "$delay"
-              fi
-              attempt=$((attempt + 1))
-            done
-            return 1
-          }
-
-          if [[ "${SETUP_HAXE_OUTCOME:-success}" != "success" ]]; then
-            echo "[haxe-setup] primary setup action outcome=${SETUP_HAXE_OUTCOME}; running fallback installer"
-            bash scripts/ci/setup-haxe-linux-fallback.sh
-          fi
-
-          if ! warmup_haxe; then
-            echo "[haxe-setup] warmup failed after primary setup; running fallback installer"
-            bash scripts/ci/setup-haxe-linux-fallback.sh
-            warmup_haxe
-          fi
+          warmup-attempts: ${{ env.HAXE_SETUP_WARMUP_ATTEMPTS }}
 
       - name: Run flagship app benchmark harness
         run: npm run test:perf:apps

@@ -17,6 +17,7 @@ def run(cmd: list[str]) -> int:
 
 def main() -> int:
     commands = [
+        ["python3", "test/test_ci_haxe_setup_action.py"],
         ["python3", "test/test_language_hard_fail_inventory_contract.py"],
         ["python3", "test/test_lambda_iterable_lowering_ownership_contract.py"],
         ["python3", "test/test_metal_graduation_contract.py"],
