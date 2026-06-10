@@ -70,9 +70,9 @@ func (self *sys__thread__ElasticThreadPool) run(task func()) {
 		} else {
 			if len(self.pool) < self.maxThreadsCount {
 				worker_1 := New_sys__thread__ElasticThreadPoolWorker(self.queue, self.threadTimeout)
-				hx_arr_44 := self.pool
-				hx_arr_44 = append(hx_arr_44, worker_1)
-				self.pool = hx_arr_44
+				hx_arr_42 := self.pool
+				hx_arr_42 = append(hx_arr_42, worker_1)
+				self.pool = hx_arr_42
 				worker_1.wakeup(task)
 			} else {
 				self.queue.add(task)

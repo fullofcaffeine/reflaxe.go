@@ -30,12 +30,12 @@ func (self *sys__thread__EventLoop) repeat(event func(), intervalMs int) any {
 }
 
 func (self *sys__thread__EventLoop) cancel(eventHandler any) {
-	hxrt.ThreadEventLoopCancel(self.__h, hxrt.IntFromNullableAny(func(hx_value_25 any) int {
-		if hx_value_25 == nil {
-			var hx_zero_26 int
-			return hx_zero_26
+	hxrt.ThreadEventLoopCancel(self.__h, hxrt.IntFromNullableAny(func(hx_value_21 any) int {
+		if hx_value_21 == nil {
+			var hx_zero_22 int
+			return hx_zero_22
 		}
-		return hx_value_25.(int)
+		return hx_value_21.(int)
 	}(eventHandler)))
 }
 
@@ -54,39 +54,33 @@ func (self *sys__thread__EventLoop) runPromised(event func()) {
 func (self *sys__thread__EventLoop) progress() *sys__thread__NextEventTime {
 	result := hxrt.ThreadEventLoopProgress(self.__h)
 	_g := result.Kind
-	var hx_switch_27 *sys__thread__NextEventTime
+	var hx_switch_23 *sys__thread__NextEventTime
 	switch _g {
 	case 0:
-		hx_switch_27 = sys__thread__NextEventTime_Now
+		hx_switch_23 = sys__thread__NextEventTime_Now
 	case 1:
-		hx_switch_27 = sys__thread__NextEventTime_Never
+		hx_switch_23 = sys__thread__NextEventTime_Never
 	case 2:
-		var hx_if_28 *sys__thread__NextEventTime
+		var hx_if_24 *sys__thread__NextEventTime
 		if result.Time < 0 {
-			hx_if_28 = sys__thread__NextEventTime_AnyTime(-1.0)
+			hx_if_24 = sys__thread__NextEventTime_AnyTime(-1.0)
 		} else {
-			hx_if_28 = sys__thread__NextEventTime_AnyTime(result.Time)
+			hx_if_24 = sys__thread__NextEventTime_AnyTime(result.Time)
 		}
-		hx_switch_27 = hx_if_28
+		hx_switch_23 = hx_if_24
 	case 3:
-		hx_switch_27 = sys__thread__NextEventTime_At(result.Time)
+		hx_switch_23 = sys__thread__NextEventTime_At(result.Time)
 	default:
-		hx_switch_27 = sys__thread__NextEventTime_Never
+		hx_switch_23 = sys__thread__NextEventTime_Never
 	}
-	return hx_switch_27
+	return hx_switch_23
 }
 
 func (self *sys__thread__EventLoop) wait(timeout any) bool {
 	if timeout == nil {
 		return hxrt.ThreadEventLoopWait(self.__h)
 	}
-	return hxrt.ThreadEventLoopWaitTimeout(self.__h, func(hx_value_29 any) float64 {
-		if hx_value_29 == nil {
-			var hx_zero_30 float64
-			return hx_zero_30
-		}
-		return hx_value_29.(float64)
-	}(timeout.(float64)))
+	return hxrt.ThreadEventLoopWaitTimeout(self.__h, timeout.(float64))
 }
 
 func (self *sys__thread__EventLoop) loop() {

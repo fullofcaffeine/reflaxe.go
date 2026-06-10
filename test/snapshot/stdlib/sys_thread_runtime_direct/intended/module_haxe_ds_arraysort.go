@@ -69,9 +69,9 @@ func haxe__ds__ArraySort_rec(a []any, cmp func(any, any) int, from int, to int) 
 		_g := int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(1))))
 		_g1 := to
 		for _g < _g1 {
-			hx_post_45 := _g
+			hx_post_43 := _g
 			_g = int(int32((_g + 1)))
-			i := hx_post_45
+			i := hx_post_43
 			j := i
 			for j > from {
 				if cmp(a[j], a[int(int32((hxrt.Int32Wrap(j)-hxrt.Int32Wrap(1))))]) < 0 {
@@ -96,9 +96,9 @@ func haxe__ds__ArraySort_rotate(a []any, cmp func(any, any) int, from int, mid i
 	}
 	n = haxe__ds__ArraySort_gcd(int(int32((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from)))), int(int32((hxrt.Int32Wrap(mid) - hxrt.Int32Wrap(from)))))
 	for func() int {
-		hx_post_46 := n
+		hx_post_44 := n
 		n = int(int32((n - 1)))
-		return hx_post_46
+		return hx_post_44
 	}() != 0 {
 		var val any = a[int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n))))]
 		shift := int(int32((hxrt.Int32Wrap(mid) - hxrt.Int32Wrap(from))))

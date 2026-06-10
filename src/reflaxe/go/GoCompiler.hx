@@ -8945,13 +8945,73 @@ class GoCompiler {
 	function lowerBlock(exprs:Array<TypedExpr>):Array<GoStmt> {
 		pushLocalScope();
 		var out = new Array<GoStmt>();
+		var appliedNonNullFacts = new Map<Int, Null<String>>();
 		for (index in 0...exprs.length) {
 			var inner = exprs[index];
 			registerBlockLocalReassignmentInfo(inner, exprs, index);
 			out = out.concat(lowerToStatements(inner));
+			var continuingFacts = continuingNonNullPrimitiveFactsAfterGuard(inner, exprs, index);
+			for (fact in continuingFacts) {
+				var scope = currentNonNullPrimitiveLocalScope();
+				if (scope != null) {
+					if (!appliedNonNullFacts.exists(fact.variable.id)) {
+						appliedNonNullFacts.set(fact.variable.id, scope.exists(fact.variable.id) ? scope.get(fact.variable.id) : null);
+					}
+					scope.set(fact.variable.id, fact.goType);
+				}
+			}
 		}
+		restoreBlockNonNullPrimitiveFacts(appliedNonNullFacts);
 		popLocalScope();
 		return out;
+	}
+
+	function restoreBlockNonNullPrimitiveFacts(previous:Map<Int, Null<String>>):Void {
+		var scope = currentNonNullPrimitiveLocalScope();
+		if (scope == null) {
+			return;
+		}
+		for (variableId => old in previous) {
+			if (old == null) {
+				scope.remove(variableId);
+			} else {
+				scope.set(variableId, old);
+			}
+		}
+	}
+
+	function continuingNonNullPrimitiveFactsAfterGuard(expr:TypedExpr, block:Array<TypedExpr>, index:Int):Array<{variable:TVar, goType:String}> {
+		return switch (expr.expr) {
+			case TIf(condition, thenBranch, elseBranch):
+				var facts = conditionNonNullFacts(condition);
+				var continuingFacts = new Array<{variable:TVar, goType:String}>();
+				if (exprAlwaysTerminates(thenBranch)) {
+					continuingFacts = facts.elseFacts;
+				} else if (elseBranch != null && exprAlwaysTerminates(elseBranch)) {
+					continuingFacts = facts.thenFacts;
+				}
+				[
+					for (fact in continuingFacts)
+						if (!blockAssignsToVariableAfter(block, index, fact.variable)) fact
+				];
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				continuingNonNullPrimitiveFactsAfterGuard(inner, block, index);
+			case _:
+				[];
+		};
+	}
+
+	function exprAlwaysTerminates(expr:TypedExpr):Bool {
+		return switch (expr.expr) {
+			case TReturn(_) | TThrow(_):
+				true;
+			case TBlock(exprs): exprs.length > 0 && exprAlwaysTerminates(exprs[exprs.length - 1]);
+			case TIf(_, thenBranch, elseBranch): elseBranch != null && exprAlwaysTerminates(thenBranch) && exprAlwaysTerminates(elseBranch);
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				exprAlwaysTerminates(inner);
+			case _:
+				false;
+		};
 	}
 
 	function pushLocalScope():Void {
@@ -10977,7 +11037,9 @@ class GoCompiler {
 			if (paramType != null) {
 				loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType);
 				if (!isNullablePrimitiveType(paramType)) {
-					loweredArg = coerceAnyExprToType(loweredArg, arg.t, paramType, exprBackedByAny(arg) || shouldForceAnyCoerce(arg.t, paramType));
+					var argKnownNonNullPrimitive = nonNullPrimitiveExprGoType(arg) != null;
+					loweredArg = coerceAnyExprToType(loweredArg, arg.t, paramType, !argKnownNonNullPrimitive && (exprBackedByAny(arg)
+						|| shouldForceAnyCoerce(arg.t, paramType)));
 				}
 			}
 			loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, returnType);

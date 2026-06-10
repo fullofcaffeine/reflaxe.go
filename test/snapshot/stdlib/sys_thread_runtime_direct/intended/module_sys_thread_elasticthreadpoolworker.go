@@ -65,12 +65,12 @@ func (self *sys__thread__ElasticThreadPoolWorker) loop() {
 				fn := _g
 				fn()
 				for true {
-					_g_1 := func(hx_value_42 any) func() {
-						if hx_value_42 == nil {
-							var hx_zero_43 func()
-							return hx_zero_43
+					_g_1 := func(hx_value_40 any) func() {
+						if hx_value_40 == nil {
+							var hx_zero_41 func()
+							return hx_zero_41
 						}
-						return hx_value_42.(func())
+						return hx_value_40.(func())
 					}(self.queue.pop(false))
 					if _g_1 == nil {
 						break
@@ -89,8 +89,8 @@ func (self *sys__thread__ElasticThreadPoolWorker) loop() {
 			self.dead = true
 		}
 		self.deathMutex.release()
-	}, func(hx_caught_40 any) {
-		err := hx_caught_40
+	}, func(hx_caught_38 any) {
+		err := hx_caught_38
 		self.task = nil
 		self.start()
 		hxrt.Throw(err)

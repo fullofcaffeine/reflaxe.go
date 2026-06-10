@@ -23,13 +23,7 @@ func (self *sys__thread__Lock) wait(timeout any) bool {
 	if timeout == nil {
 		return hxrt.ThreadLockWait(self.__h)
 	}
-	return hxrt.ThreadLockWaitTimeout(self.__h, func(hx_value_23 any) float64 {
-		if hx_value_23 == nil {
-			var hx_zero_24 float64
-			return hx_zero_24
-		}
-		return hx_value_23.(float64)
-	}(timeout.(float64)))
+	return hxrt.ThreadLockWaitTimeout(self.__h, timeout.(float64))
 }
 
 func (self *sys__thread__Lock) release() {
