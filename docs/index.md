@@ -41,6 +41,7 @@ This page helps you find the right docs quickly.
 - [Selective `hxrt` runtime](hxrt-selective-runtime.md)
 - [Stdlib shim rationale](stdlib-shim-rationale.md)
 - [Cross overrides and hardening](cross-overrides-and-hardening.md)
+- [Family raw-injection authority alignment](spikes/family-raw-injection-authority-alignment.md)
 - [Portable stdlib parity program](portable-stdlib-parity-program.md)
 - [Portable module mapping contract](portable-module-mapping-contract.md)
 

@@ -134,6 +134,11 @@ This matches sibling-target practice:
 - `reflaxe.rust` already treats `__rust__` as a framework-only escape hatch and uses typed wrappers or `std/` helper layers before growing compiler-owned raw lowering;
 - `haxe.ocaml` already documents `__ocaml__` as a controlled target-layer escape hatch instead of a default application coding style.
 
+Sibling rollout note: `docs/spikes/family-raw-injection-authority-alignment.md`
+captures the cross-repo handoff. It explicitly names `haxe.rust` and
+`haxe.ocaml`, and tells sibling agents to compare against each compiler's own
+architecture instead of copying Go-specific metadata names or helper shapes.
+
 ### Candidate List
 
 | Candidate | Current owner | Recommended owner | Why | Follow-up |

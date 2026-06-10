@@ -302,6 +302,10 @@ Implementation:
 - Recorded sibling-family alignment context already in flight:
   - `haxe.rust-oo3.19`
   - `haxe.ocaml-x0r2`
+- Added the sibling handoff note in
+  `docs/spikes/family-raw-injection-authority-alignment.md`, which preserves the
+  Go reasoning while requiring `haxe.rust` and `haxe.ocaml` agents to compare
+  against their own local architecture before adopting any allow-tag mechanism.
 
 Validation evidence:
 
