@@ -25,6 +25,9 @@ Run these checks from repo root on a clean branch before a release cut.
    - `npm run test:perf:go`
    - `npm run test:perf:hxrt-selective`
    - `npm run test:perf:apps`
+8. Production caveat scoreboard review:
+   - Read `docs/known-gaps.md#production-hardening-scoreboard`
+   - Confirm each row still has an owner, current decision, evidence, and reopen trigger.
 
 ## Reproducible command set
 
@@ -62,6 +65,7 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 - `npm run test:family-stdlib-sync` and `npm run test:family-stdlib-bootstrap` exit `0`.
 - `npm run release:status` exits `0` and reports release wiring as healthy.
 - Perf runs complete and budgets are within expected thresholds for the current baseline policy.
+- The Production caveat scoreboard in `docs/known-gaps.md#production-hardening-scoreboard` still matches the live tracker and does not hide target-sensitive or warning-only caveats as full semantic guarantees.
 
 ## Related references
 

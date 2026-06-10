@@ -167,6 +167,22 @@ class PortableGovernanceContractTest(unittest.TestCase):
         self.assertIn("npm run test:stdlib:governance", release_checklist)
         self.assertIn("npm run test:release-contracts", release_checklist)
 
+    def test_known_gaps_has_release_checkable_production_scoreboard(self) -> None:
+        known_gaps = KNOWN_GAPS_DOC.read_text(encoding="utf-8")
+        release_checklist = RELEASE_CHECKLIST_DOC.read_text(encoding="utf-8")
+
+        self.assertIn("## Production hardening scoreboard", known_gaps)
+        self.assertIn("| Caveat class | Owner | Current decision | Evidence | Reopen trigger |", known_gaps)
+        self.assertIn("Multi-package output", known_gaps)
+        self.assertIn("Advanced Go extern interop", known_gaps)
+        self.assertIn("Target-sensitive parity surfaces", known_gaps)
+        self.assertIn("Performance budget drift", known_gaps)
+        self.assertIn("Strict production boundary policy", known_gaps)
+        self.assertIn("haxe.go-hm3p", known_gaps)
+
+        self.assertIn("Production caveat scoreboard", release_checklist)
+        self.assertIn("docs/known-gaps.md#production-hardening-scoreboard", release_checklist)
+
 
 if __name__ == "__main__":
     unittest.main()

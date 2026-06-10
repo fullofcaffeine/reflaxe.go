@@ -14,6 +14,25 @@ Current architecture status:
 - Deterministic contract/runtime/optimizer reports (`profile_contract`, `hxrt_plan`, `optimizer_plan`) are already emitted when enabled.
 - Remaining work is primarily production hardening and target-sensitive parity promotion, not profile-model replacement.
 
+## Production hardening scoreboard
+
+This table separates "safe to ship with a known caveat" from "needs new engineering before we should promise more."
+
+Terms:
+
+- **Owner** means the layer responsible for the next decision or implementation.
+- **Current decision** says whether the caveat is acceptable for a production release, needs watch-only tracking, or should be reopened.
+- **Evidence** is the command, doc, or tracker that proves the decision is not just an opinion.
+- **Reopen trigger** is the concrete signal that should create or unblock a Bead.
+
+| Caveat class | Owner | Current decision | Evidence | Reopen trigger |
+| --- | --- | --- | --- | --- |
+| Multi-package output | compiler/output | Ship as single Go package for GA; reopen only if production-scale projects hit concrete Go tooling limits. | `docs/multi-package-output-evaluation.md`, `python3 test/run-ci.py` | Generated file size, compile time, package-private boundary needs, or Go tooling limits become measurable user blockers. Tracked by `haxe.go-hm3p.5`. |
+| Advanced Go extern interop | typed native facade | Ship current `@:go.import` / `@:go.name` / `@:go.receiver` plus single `(T, error)` support; design richer multi-return support before promising more. | `docs/goextern.md`, `docs/known-gaps.md`, `test/run-goextern-fixtures.py` | Users need direct typed bindings for multi-return-heavy Go APIs without writing facade wrappers. Tracked by `haxe.go-hm3p.2`. |
+| Target-sensitive parity surfaces | harness/runtime | Ship with snapshot/runtime evidence where deterministic interpreter-vs-Go comparison would be misleading. | `python3 test/run-portable-parity-closure.py --list-blockers`, `test/.test-cache/portable_parity_closure_summary.json` | A stable async/network/stack comparison harness becomes possible, or a snapshot-only surface starts hiding user-visible behavior drift. Tracked by `haxe.go-hm3p.3`. |
+| Performance budget drift | perf/CI | Ship with perf visibility gates and warning annotations; decide separately which warning-only drifts should become release-blocking. | `npm run test:perf:go`, `npm run test:perf:hxrt-selective`, `npm run test:perf:apps` | A warning repeats across stable CI runs, affects a flagship app, or hides a portable-vs-metal regression users would notice. Tracked by `haxe.go-hm3p.4`. |
+| Strict production boundary policy | profiles/governance | Ship with strict mode recommended for production; do not allow app-side raw `__go__` to become the default escape hatch. | `docs/profiles.md`, `docs/defines-reference.md`, `npm run test:release-contracts` | Examples, docs, or generated reports make raw app-side injection look normal instead of exceptional. Tracked by `haxe.go-hm3p`. |
+
 ## Compiler/output caveats
 
 - Output remains a single Go package (multi-file, single package); multi-package emission is not implemented yet.
