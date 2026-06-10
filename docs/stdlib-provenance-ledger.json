@@ -98,6 +98,21 @@
       "notes": "Go staged target-sensitive override for haxe.NativeStackTrace, exposing deterministic empty-stack behavior instead of pretending native stack parity."
     },
     {
+      "path": "std/haxe/EntryPoint.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for direct haxe.EntryPoint, connecting runInMainThread/addThread/run to the runtime-backed sys.thread.EventLoop main-thread loop."
+    },
+    {
+      "path": "std/haxe/MainLoop.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for direct haxe.MainLoop/MainEvent, preserving the Haxe-facing event facade while scheduling callbacks through haxe.EntryPoint and sys.thread.EventLoop."
+    },
+    {
+      "path": "std/haxe/Timer.cross.hx",
+      "provenanceKind": "repo_authored_override",
+      "notes": "Go staged portable override for direct haxe.Timer, registering timers on Thread.current().events and using the hxrt monotonic thread clock for Timer.stamp()."
+    },
+    {
       "path": "std/haxe/ds/BalancedTree.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged portable override for direct haxe.ds.BalancedTree runtime ownership, keeping source-owned collection logic out of GoCompiler while preserving ordered map semantics."

@@ -1,1 +1,0 @@
-Direct haxe.Timer usage is explicitly unsupported on haxe.go. A real runtime-backed event-loop contract (sys.thread.EventLoop / sys.thread.Thread) does not exist yet, and the previous source-owned inclusion path generated broken Go. Future runtime work is tracked under haxe.go-14as.19.

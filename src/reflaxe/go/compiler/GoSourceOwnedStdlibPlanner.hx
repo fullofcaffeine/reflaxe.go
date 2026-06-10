@@ -122,13 +122,24 @@ class GoSourceOwnedStdlibPlanner {
 			case "haxe.rtti.TypeApi", "haxe.rtti.CTypeTools":
 				requireSourceOwnedStdlibModule("haxe.rtti.CType");
 			case "haxe.EntryPoint":
-				failDirectEventLoopSurface("haxe.EntryPoint", classType.pos);
-			case "haxe.MainLoop":
-				failDirectEventLoopSurface("haxe.MainLoop", classType.pos);
-			case "haxe.MainEvent":
-				failDirectEventLoopSurface("haxe.MainEvent", classType.pos);
+				requireSourceOwnedStdlibClass("haxe.EntryPoint");
+				requireSourceOwnedStdlibModule("sys.thread.EventLoop");
+				requireSourceOwnedStdlibClass("sys.thread.Thread");
+				requireSourceOwnedStdlibClass("sys.thread.Mutex");
+				requireSourceOwnedStdlibClass("sys.thread.NoEventLoopException");
+			case "haxe.MainLoop", "haxe.MainEvent":
+				requireSourceOwnedStdlibModule("haxe.MainLoop");
+				requireSourceOwnedStdlibClass("haxe.EntryPoint");
+				requireSourceOwnedStdlibClass("haxe.Timer");
+				requireSourceOwnedStdlibModule("sys.thread.EventLoop");
+				requireSourceOwnedStdlibClass("sys.thread.Thread");
+				requireSourceOwnedStdlibClass("sys.thread.Mutex");
+				requireSourceOwnedStdlibClass("sys.thread.NoEventLoopException");
 			case "haxe.Timer":
-				failDirectEventLoopSurface("haxe.Timer", classType.pos);
+				requireSourceOwnedStdlibClass("haxe.Timer");
+				requireSourceOwnedStdlibModule("sys.thread.EventLoop");
+				requireSourceOwnedStdlibClass("sys.thread.Thread");
+				requireSourceOwnedStdlibClass("sys.thread.NoEventLoopException");
 			case "haxe.Log", "haxe.Resource", "haxe.SysTools":
 				requireSourceOwnedStdlibClass(fullClassName(classType));
 			case "sys.db.Connection":
@@ -359,16 +370,6 @@ class GoSourceOwnedStdlibPlanner {
 			case _:
 				false;
 		};
-	}
-
-	function failDirectEventLoopSurface(surfaceName:String, pos:haxe.macro.Expr.Position):Void {
-		Context.fatalError("Direct "
-			+ surfaceName
-			+ " usage is explicitly unsupported on haxe.go. "
-			+ "A real runtime-backed event-loop contract (sys.thread.EventLoop / sys.thread.Thread) "
-			+ "does not exist yet, and the previous source-owned inclusion path generated broken Go. "
-			+ "Future runtime work is tracked under haxe.go-14as.19.",
-			pos);
 	}
 
 	static function clearClassMap(map:Map<String, ClassType>):Void {

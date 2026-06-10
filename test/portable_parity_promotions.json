@@ -3,7 +3,10 @@
   "levels": {
     "snapshot": [
       "haxe.CallStack",
+      "haxe.EntryPoint",
+      "haxe.MainLoop",
       "haxe.NativeStackTrace",
+      "haxe.Timer",
       "haxe.Ucs2",
       "sys.net.UdpSocket",
       "sys.ssl.Certificate",

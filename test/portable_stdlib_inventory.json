@@ -379,15 +379,16 @@
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "snapshot"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.EntryPoint",
-      "notes": "Direct haxe.EntryPoint usage is explicitly unsupported on Go for now. The previous source-owned inclusion path generated broken Go, and the backend does not yet provide a real runtime-backed event-loop contract through sys.thread.EventLoop / sys.thread.Thread. This surface is guarded by compile-time failure rather than pretending support.",
+      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct haxe.EntryPoint usage is covered by snapshot/runtime smoke contract stdlib/haxe_main_loop_runtime_direct. The staged override connects the public EntryPoint API to the runtime-backed sys.thread.EventLoop main-thread loop.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "snapshot"
     },
     {
       "coverage_evidence": [
@@ -513,15 +514,16 @@
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "snapshot"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.MainLoop",
-      "notes": "Direct haxe.MainLoop usage is explicitly unsupported on Go for now. The previous source-owned inclusion path generated broken Go, and the backend does not yet provide a real runtime-backed event-loop contract through sys.thread.EventLoop / sys.thread.Thread. This surface is guarded by compile-time failure rather than pretending support.",
+      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct haxe.MainLoop usage is covered by snapshot/runtime smoke contract stdlib/haxe_main_loop_runtime_direct. The staged override keeps the Haxe-facing MainEvent facade while scheduling callbacks through haxe.EntryPoint and sys.thread.EventLoop.",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "snapshot"
     },
     {
       "coverage_evidence": [
@@ -618,15 +620,16 @@
     },
     {
       "coverage_evidence": [
-        "upstream_sweep:full_compile"
+        "upstream_sweep:full_compile",
+        "snapshot"
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Timer",
-      "notes": "Direct haxe.Timer usage is explicitly unsupported on Go for now. The previous source-owned inclusion path generated broken Go, and the backend does not yet provide a real runtime-backed event-loop contract through sys.thread.EventLoop / sys.thread.Thread. This surface is guarded by compile-time failure rather than pretending support.",
+      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct haxe.Timer usage is covered by snapshot/runtime smoke contract stdlib/haxe_main_loop_runtime_direct. The staged override registers timers on Thread.current().events and uses the hxrt monotonic thread clock for Timer.stamp().",
       "owner": "mixed",
       "portable_eligible": true,
-      "status": "unsupported"
+      "status": "snapshot"
     },
     {
       "coverage_evidence": [

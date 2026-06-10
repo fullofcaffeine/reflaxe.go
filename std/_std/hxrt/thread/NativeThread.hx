@@ -16,6 +16,9 @@ package hxrt.thread;
 @:go.import("hxrt")
 @:go.package("hxrt")
 extern class NativeThread {
+	@:go.name("ThreadNowSeconds")
+	public static function nowSeconds():Float;
+
 	@:go.name("ThreadCurrentId")
 	public static function currentId():Int;
 

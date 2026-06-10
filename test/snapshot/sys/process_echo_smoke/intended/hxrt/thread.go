@@ -181,6 +181,10 @@ func threadNowSeconds() float64 {
 	return time.Since(threadStartTime).Seconds()
 }
 
+func ThreadNowSeconds() float64 {
+	return threadNowSeconds()
+}
+
 func ThreadCurrentId() int {
 	return currentLogicalThreadID()
 }

@@ -697,6 +697,33 @@ Observed result:
   direct Haxe event-loop surfaces are explicitly unsupported on Go today.
 - Future real support is deferred to the `sys.thread` runtime tranche (`haxe.go-14as.19`), which is where a runtime-backed event-loop contract would belong.
 
+### 2026-06-10: direct Haxe event-loop surfaces bridged to `sys.thread.EventLoop` (`haxe.go-14as.69`)
+
+Implementation:
+
+- Added staged std overrides:
+  - `std/haxe/EntryPoint.cross.hx`
+  - `std/haxe/MainLoop.cross.hx`
+  - `std/haxe/Timer.cross.hx`
+- Routed direct `haxe.EntryPoint`, `haxe.MainLoop`, `haxe.MainEvent`, and `haxe.Timer`
+  usage through `GoSourceOwnedStdlibPlanner`.
+- Added `hxrt.ThreadNowSeconds()` plus a typed `NativeThread.nowSeconds()` bridge so
+  `Timer.stamp()` uses the same monotonic clock as the event-loop runtime.
+- Removed the obsolete negative fixtures for direct event-loop usage.
+
+Validation evidence:
+
+- `python3 test/run-snapshots.py --case stdlib/haxe_main_loop_runtime_direct --runtime`
+- `python3 test/run-portable-stdlib-inventory.py --update`
+
+Observed result:
+
+- Direct `haxe.EntryPoint.run()`, `haxe.MainLoop.add(...)`, and `haxe.Timer.delay(...)`
+  now compile and run through the runtime-backed main event loop.
+- Coverage is intentionally snapshot/runtime smoke rather than semantic-diff because
+  event-loop timing is target-sensitive.
+- The old `haxe.go-dt4s` unsupported classification is superseded by this bridge.
+
 ### 2026-03-24: direct `haxe.http` baseline promoted and RTTI blocker split (`haxe.go-14as.14`)
 
 Implementation:

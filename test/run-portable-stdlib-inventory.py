@@ -153,11 +153,8 @@ OWNER_OVERRIDES = {
 }
 
 UNSUPPORTED_EXPLICIT = {
-    "haxe.EntryPoint",
     "haxe.http.HttpJs",
     "haxe.http.HttpNodeJs",
-    "haxe.MainLoop",
-    "haxe.Timer",
 }
 
 MODULE_NOTES_OVERRIDES = {
@@ -167,10 +164,9 @@ MODULE_NOTES_OVERRIDES = {
         "native stack parity."
     ),
     "haxe.EntryPoint": (
-        "Direct haxe.EntryPoint usage is explicitly unsupported on Go for now. "
-        "The previous source-owned inclusion path generated broken Go, and the backend does not yet "
-        "provide a real runtime-backed event-loop contract through sys.thread.EventLoop / sys.thread.Thread. "
-        "This surface is guarded by compile-time failure rather than pretending support."
+        "Direct haxe.EntryPoint usage is covered by snapshot/runtime smoke contract "
+        "stdlib/haxe_main_loop_runtime_direct. The staged override connects the public "
+        "EntryPoint API to the runtime-backed sys.thread.EventLoop main-thread loop."
     ),
     "haxe.http.HttpBase": (
         "Direct haxe.http.HttpBase constructor/base-field/request baseline now has semantic-diff coverage "
@@ -196,10 +192,9 @@ MODULE_NOTES_OVERRIDES = {
         "haxe_http_base_contract and stdlib/haxe_http_base_direct."
     ),
     "haxe.MainLoop": (
-        "Direct haxe.MainLoop usage is explicitly unsupported on Go for now. "
-        "The previous source-owned inclusion path generated broken Go, and the backend does not yet "
-        "provide a real runtime-backed event-loop contract through sys.thread.EventLoop / sys.thread.Thread. "
-        "This surface is guarded by compile-time failure rather than pretending support."
+        "Direct haxe.MainLoop usage is covered by snapshot/runtime smoke contract "
+        "stdlib/haxe_main_loop_runtime_direct. The staged override keeps the Haxe-facing "
+        "MainEvent facade while scheduling callbacks through haxe.EntryPoint and sys.thread.EventLoop."
     ),
     "haxe.NativeStackTrace": (
         "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
@@ -217,10 +212,9 @@ MODULE_NOTES_OVERRIDES = {
         "and follow-up haxe.go-14as.42."
     ),
     "haxe.Timer": (
-        "Direct haxe.Timer usage is explicitly unsupported on Go for now. "
-        "The previous source-owned inclusion path generated broken Go, and the backend does not yet "
-        "provide a real runtime-backed event-loop contract through sys.thread.EventLoop / sys.thread.Thread. "
-        "This surface is guarded by compile-time failure rather than pretending support."
+        "Direct haxe.Timer usage is covered by snapshot/runtime smoke contract "
+        "stdlib/haxe_main_loop_runtime_direct. The staged override registers timers on "
+        "Thread.current().events and uses the hxrt monotonic thread clock for Timer.stamp()."
     ),
     "Xml": (
         "Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic, "
