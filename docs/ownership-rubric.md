@@ -176,6 +176,7 @@ Good mixed examples:
 - `Sys`
 - `haxe.Json`
 - `haxe.io.Bytes`
+- `Lambda` / generic `Iterable<T>` calls, where public stdlib behavior stays source-owned and the compiler owns only the representation bridge for Go arrays, lists, and manual iterators
 
 Bad mixed ownership looks like:
 
