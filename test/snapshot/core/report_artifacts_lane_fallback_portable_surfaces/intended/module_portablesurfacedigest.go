@@ -7,7 +7,7 @@ func PortableSurfaceDigest_compute(seed int) *string {
 	list.add(seed)
 	list.push(int(int32((hxrt.Int32Wrap(seed) + hxrt.Int32Wrap(1)))))
 	list.push(int(int32((hxrt.Int32Wrap(seed) + hxrt.Int32Wrap(3)))))
-	popValue := func(hx_value_1 any) any {
+	var popValue any = func(hx_value_1 any) any {
 		if hx_value_1 == nil {
 			return nil
 		}
@@ -55,7 +55,7 @@ func PortableSurfaceDigest_compute(seed int) *string {
 				}
 				return hx_field_9.(func() *string)
 			}(entry_keys)()
-			value := func(hx_value_11 any) any {
+			var value any = func(hx_value_11 any) any {
 				if hx_value_11 == nil {
 					return nil
 				}

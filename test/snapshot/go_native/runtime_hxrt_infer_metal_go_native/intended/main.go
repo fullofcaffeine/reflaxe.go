@@ -10,7 +10,7 @@ func main() {
 	go___Go_spawn(func() {
 		go__concurrency_send__int_95e97e5e(channel.__hx_native, 1)
 	})
-	value := go__concurrency_recv__int_95e97e5e(channel.__hx_native)
+	var value any = go__concurrency_recv__int_95e97e5e(channel.__hx_native)
 	hxrt.Println(value)
 }
 

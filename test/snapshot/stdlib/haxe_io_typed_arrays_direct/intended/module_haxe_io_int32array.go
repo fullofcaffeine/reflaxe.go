@@ -15,23 +15,17 @@ func haxe__io___Int32Array__Int32Array_Impl___new(elements int) *haxe__io__Array
 }
 
 func haxe__io___Int32Array__Int32Array_Impl__fromArray(a []int, pos int, length any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_63 int
-	if hxrt.AnyEqualsNull(length) {
-		hx_if_63 = int(int32((hxrt.Int32Wrap(len(a)) - hxrt.Int32Wrap(pos))))
+	var hx_if_24 int
+	if length == nil {
+		hx_if_24 = int(int32((hxrt.Int32Wrap(len(a)) - hxrt.Int32Wrap(pos))))
 	} else {
-		hx_if_63 = hxrt.IntFromNullableAny(func(hx_value_61 any) int {
-			if hx_value_61 == nil {
-				var hx_zero_62 int
-				return hx_zero_62
-			}
-			return hx_value_61.(int)
-		}(length))
+		hx_if_24 = hxrt.IntFromNullableAny(length.(int))
 	}
-	resolvedLength := hx_if_63
+	resolvedLength := hx_if_24
 	if ((pos < 0) || (resolvedLength < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength)))) > len(a)) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		var hx_throw_zero_64 *haxe__io__ArrayBufferViewImpl
-		return hx_throw_zero_64
+		var hx_throw_zero_25 *haxe__io__ArrayBufferViewImpl
+		return hx_throw_zero_25
 	}
 	var this1 *haxe__io__ArrayBufferViewImpl
 	size := int(int32((hxrt.Int32Wrap(resolvedLength) * hxrt.Int32Wrap(4))))
@@ -43,9 +37,9 @@ func haxe__io___Int32Array__Int32Array_Impl__fromArray(a []int, pos int, length 
 	_g := 0
 	_g1 := resolvedLength
 	for _g < _g1 {
-		hx_post_65 := _g
+		hx_post_26 := _g
 		_g = int(int32((_g + 1)))
-		idx := hx_post_65
+		idx := hx_post_26
 		value := a[int(int32((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(pos))))]
 		if (idx >= 0) && (idx < int(int32((hxrt.Int32Wrap(out.byteLength) >> uint(2))))) {
 			_this := out.bytes
@@ -62,19 +56,13 @@ func haxe__io___Int32Array__Int32Array_Impl__fromArray(a []int, pos int, length 
 }
 
 func haxe__io___Int32Array__Int32Array_Impl__fromBytes(bytes *haxe__io__Bytes, bytePos int, length any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_68 any
-	if hxrt.AnyEqualsNull(length) {
-		hx_if_68 = nil
+	var hx_if_27 any
+	if length == nil {
+		hx_if_27 = nil
 	} else {
-		hx_if_68 = int(int32((hxrt.Int32Wrap(func(hx_value_66 any) int {
-			if hx_value_66 == nil {
-				var hx_zero_67 int
-				return hx_zero_67
-			}
-			return hx_value_66.(int)
-		}(length)) << uint(2))))
+		hx_if_27 = int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(length.(int))) << uint(2))))
 	}
-	var resolvedLength any = hx_if_68
+	var resolvedLength any = hx_if_27
 	return haxe__io___Int32Array__Int32Array_Impl__fromData(func() *haxe__io__ArrayBufferViewImpl {
 		this1 := haxe__io___ArrayBufferView__ArrayBufferView_Impl__fromBytes(bytes, bytePos, resolvedLength)
 		return this1
@@ -119,49 +107,31 @@ func haxe__io___Int32Array__Int32Array_Impl__set(this1 *haxe__io__ArrayBufferVie
 }
 
 func haxe__io___Int32Array__Int32Array_Impl__sub(this1 *haxe__io__ArrayBufferViewImpl, begin int, length any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_71 any
-	if hxrt.AnyEqualsNull(length) {
-		hx_if_71 = nil
+	var hx_if_28 any
+	if length == nil {
+		hx_if_28 = nil
 	} else {
-		hx_if_71 = int(int32((hxrt.Int32Wrap(func(hx_value_69 any) int {
-			if hx_value_69 == nil {
-				var hx_zero_70 int
-				return hx_zero_70
-			}
-			return hx_value_69.(int)
-		}(length)) << uint(2))))
+		hx_if_28 = int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(length.(int))) << uint(2))))
 	}
-	var scaledLength any = hx_if_71
+	var scaledLength any = hx_if_28
 	return haxe__io___Int32Array__Int32Array_Impl__fromData(this1.sub(int(int32((hxrt.Int32Wrap(begin) << uint(2)))), scaledLength))
 }
 
 func haxe__io___Int32Array__Int32Array_Impl__subarray(this1 *haxe__io__ArrayBufferViewImpl, begin any, end any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_74 any
-	if hxrt.AnyEqualsNull(begin) {
-		hx_if_74 = nil
+	var hx_if_29 any
+	if begin == nil {
+		hx_if_29 = nil
 	} else {
-		hx_if_74 = int(int32((hxrt.Int32Wrap(func(hx_value_72 any) int {
-			if hx_value_72 == nil {
-				var hx_zero_73 int
-				return hx_zero_73
-			}
-			return hx_value_72.(int)
-		}(begin)) << uint(2))))
+		hx_if_29 = int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(begin.(int))) << uint(2))))
 	}
-	var scaledBegin any = hx_if_74
-	var hx_if_77 any
-	if hxrt.AnyEqualsNull(end) {
-		hx_if_77 = nil
+	var scaledBegin any = hx_if_29
+	var hx_if_30 any
+	if end == nil {
+		hx_if_30 = nil
 	} else {
-		hx_if_77 = int(int32((hxrt.Int32Wrap(func(hx_value_75 any) int {
-			if hx_value_75 == nil {
-				var hx_zero_76 int
-				return hx_zero_76
-			}
-			return hx_value_75.(int)
-		}(end)) << uint(2))))
+		hx_if_30 = int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(end.(int))) << uint(2))))
 	}
-	var scaledEnd any = hx_if_77
+	var scaledEnd any = hx_if_30
 	return haxe__io___Int32Array__Int32Array_Impl__fromData(this1.subarray(scaledBegin, scaledEnd))
 }
 

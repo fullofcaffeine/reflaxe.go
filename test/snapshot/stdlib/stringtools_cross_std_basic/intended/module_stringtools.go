@@ -38,7 +38,7 @@ func StringTools_endsWithImpl(s *string, end *string) bool {
 }
 
 func StringTools_fastCodeAt(s *string, index int) int {
-	c := hxrt.StringCharCodeAtAnyStringPtr(s, index)
+	var c any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
 	var hx_if_3 int
 	if c == nil {
 		hx_if_3 = -1
@@ -62,7 +62,7 @@ func StringTools_hex(n int, digits any) *string {
 	if digits == nil {
 		hx_if_5 = 0
 	} else {
-		hx_if_5 = digits.(int)
+		hx_if_5 = hxrt.IntFromNullableAny(digits.(int))
 	}
 	resolvedDigits := hx_if_5
 	for (resolvedDigits != 0) && (hxrt.StringLengthStringPtr(out) < resolvedDigits) {
@@ -75,7 +75,7 @@ func StringTools_hexDigitValue(value *string) int {
 	if hxrt.StringEqualStringPtr(value, nil) || (hxrt.StringLengthStringPtr(value) == 0) {
 		return -1
 	}
-	c := hxrt.StringCharCodeAtAnyStringPtr(value, 0)
+	var c any = hxrt.StringCharCodeAtAnyStringPtr(value, 0)
 	var hx_if_6 int
 	if c == nil {
 		hx_if_6 = -1
@@ -126,7 +126,7 @@ func StringTools_isSpace(s *string, pos int) bool {
 	if ((hxrt.StringLengthStringPtr(s) == 0) || (pos < 0)) || (pos >= hxrt.StringLengthStringPtr(s)) {
 		return false
 	}
-	c_1 := hxrt.StringCharCodeAtAnyStringPtr(s, pos)
+	var c_1 any = hxrt.StringCharCodeAtAnyStringPtr(s, pos)
 	var hx_if_7 int
 	if c_1 == nil {
 		hx_if_7 = -1
@@ -241,7 +241,7 @@ func StringTools_trim(s *string) *string {
 }
 
 func StringTools_unsafeCodeAt(s *string, index int) int {
-	c := hxrt.StringCharCodeAtAnyStringPtr(s, index)
+	var c any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
 	var hx_if_11 int
 	if c == nil {
 		hx_if_11 = -1
@@ -320,7 +320,7 @@ func StringTools_urlEncode(s *string) *string {
 }
 
 func StringTools_utf16CodePointAt(s *string, index int) int {
-	c_1 := hxrt.StringCharCodeAtAnyStringPtr(s, index)
+	var c_1 any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
 	var hx_if_17 int
 	if c_1 == nil {
 		hx_if_17 = -1
@@ -330,7 +330,7 @@ func StringTools_utf16CodePointAt(s *string, index int) int {
 	c := hx_if_17
 	if (c >= 55296) && (c <= 56319) {
 		c = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(c) - hxrt.Int32Wrap(55232))))) << uint(10))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(func() int {
-			c_2 := hxrt.StringCharCodeAtAnyStringPtr(s, int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1)))))
+			var c_2 any = hxrt.StringCharCodeAtAnyStringPtr(s, int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1)))))
 			var hx_if_18 int
 			if c_2 == nil {
 				hx_if_18 = -1

@@ -187,7 +187,7 @@ class StringTools {
 			value = value >>> 4;
 		} while (value > 0);
 
-		var resolvedDigits = digits == null ? 0 : digits;
+		var resolvedDigits:Int = digits == null ? 0 : digits;
 		while (resolvedDigits != 0 && out.length < resolvedDigits) {
 			out = "0" + out;
 		}

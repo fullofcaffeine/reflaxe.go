@@ -58,9 +58,9 @@ func main() {
 	}
 	view := haxe__io___ArrayBufferView__ArrayBufferView_Impl__fromBytes(bytes, 2, 6)
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("view="), view.byteOffset), hxrt.StringFromLiteral(",")), view.byteLength), hxrt.StringFromLiteral(",")), view.bytes.length))
-	a := view.sub(1, any(3))
+	a := view.sub(1, 3)
 	sub := a
-	a_1 := view.subarray(any(2), any(5))
+	a_1 := view.subarray(2, 5)
 	subarray := a_1
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("view.sub="), sub.byteOffset), hxrt.StringFromLiteral(",")), sub.byteLength))
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("view.subarray="), subarray.byteOffset), hxrt.StringFromLiteral(",")), subarray.byteLength))
@@ -75,20 +75,7 @@ func main() {
 	}
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("u8="), u8.byteLength), hxrt.StringFromLiteral(",")), u8.bytes.b[u8.byteOffset]), hxrt.StringFromLiteral(",")), u8.bytes.b[int(int32((hxrt.Int32Wrap(1)+hxrt.Int32Wrap(u8.byteOffset))))]), hxrt.StringFromLiteral(",")), bytes.b[2]))
 	u16 := haxe__io___UInt16Array__UInt16Array_Impl__fromArray([]int{4660, 255, 51966}, 0, 3)
-	var length any = any(2)
-	var hx_if_5 any
-	if hxrt.AnyEqualsNull(length) {
-		hx_if_5 = nil
-	} else {
-		hx_if_5 = int(int32((hxrt.Int32Wrap(func(hx_value_3 any) int {
-			if hx_value_3 == nil {
-				var hx_zero_4 int
-				return hx_zero_4
-			}
-			return hx_value_3.(int)
-		}(length)) << uint(1))))
-	}
-	var scaledLength any = hx_if_5
+	var scaledLength any = 4
 	u16sub := haxe__io___UInt16Array__UInt16Array_Impl__fromData(u16.sub(2, scaledLength))
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("u16="), int(int32((hxrt.Int32Wrap(u16.byteLength)>>uint(1))))), hxrt.StringFromLiteral(",")), func() int {
 		_this_1 := u16.bytes
@@ -100,34 +87,8 @@ func main() {
 		return int(int32((hxrt.Int32Wrap(_this_2.b[pos_2]) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(_this_2.b[int(int32((hxrt.Int32Wrap(pos_2)+hxrt.Int32Wrap(1))))]) << uint(8))))))))
 	}()))
 	u32 := haxe__io___UInt32Array__UInt32Array_Impl__fromArray([]int{1, 2, 3}, 0, 3)
-	var begin any = any(1)
-	var end any = any(3)
-	var hx_if_8 any
-	if hxrt.AnyEqualsNull(begin) {
-		hx_if_8 = nil
-	} else {
-		hx_if_8 = int(int32((hxrt.Int32Wrap(func(hx_value_6 any) int {
-			if hx_value_6 == nil {
-				var hx_zero_7 int
-				return hx_zero_7
-			}
-			return hx_value_6.(int)
-		}(begin)) << uint(2))))
-	}
-	var scaledBegin any = hx_if_8
-	var hx_if_11 any
-	if hxrt.AnyEqualsNull(end) {
-		hx_if_11 = nil
-	} else {
-		hx_if_11 = int(int32((hxrt.Int32Wrap(func(hx_value_9 any) int {
-			if hx_value_9 == nil {
-				var hx_zero_10 int
-				return hx_zero_10
-			}
-			return hx_value_9.(int)
-		}(end)) << uint(2))))
-	}
-	var scaledEnd any = hx_if_11
+	var scaledBegin any = 4
+	var scaledEnd any = 12
 	u32view := haxe__io___UInt32Array__UInt32Array_Impl__fromData(u32.subarray(scaledBegin, scaledEnd))
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("u32="), int(int32((hxrt.Int32Wrap(u32.byteLength)>>uint(2))))), hxrt.StringFromLiteral(",")), func() *string {
 		this1 := func() int {
@@ -137,13 +98,13 @@ func main() {
 		}()
 		return hxrt.StdString(func() float64 {
 			int := this1
-			var hx_if_12 float64
+			var hx_if_3 float64
 			if int < 0 {
-				hx_if_12 = (4294967296.0 + float64(int))
+				hx_if_3 = (4294967296.0 + float64(int))
 			} else {
-				hx_if_12 = (float64(int) + 0.0)
+				hx_if_3 = (float64(int) + 0.0)
 			}
-			return hx_if_12
+			return hx_if_3
 		}())
 	}()), hxrt.StringFromLiteral(",")), int(int32((hxrt.Int32Wrap(u32view.byteLength)>>uint(2))))), hxrt.StringFromLiteral(",")), func() *string {
 		this1_1 := func() int {
@@ -153,13 +114,13 @@ func main() {
 		}()
 		return hxrt.StdString(func() float64 {
 			int_1 := this1_1
-			var hx_if_13 float64
+			var hx_if_4 float64
 			if int_1 < 0 {
-				hx_if_13 = (4294967296.0 + float64(int_1))
+				hx_if_4 = (4294967296.0 + float64(int_1))
 			} else {
-				hx_if_13 = (float64(int_1) + 0.0)
+				hx_if_4 = (float64(int_1) + 0.0)
 			}
-			return hx_if_13
+			return hx_if_4
 		}())
 	}()))
 	i32 := haxe__io___Int32Array__Int32Array_Impl__fromArray([]int{-7, 42}, 0, 2)
@@ -214,34 +175,8 @@ func main() {
 	} else {
 		_ = 0
 	}
-	var begin_1 any = any(1)
-	var end_1 any = any(2)
-	var hx_if_16 any
-	if hxrt.AnyEqualsNull(begin_1) {
-		hx_if_16 = nil
-	} else {
-		hx_if_16 = int(int32((hxrt.Int32Wrap(func(hx_value_14 any) int {
-			if hx_value_14 == nil {
-				var hx_zero_15 int
-				return hx_zero_15
-			}
-			return hx_value_14.(int)
-		}(begin_1)) << uint(2))))
-	}
-	var scaledBegin_1 any = hx_if_16
-	var hx_if_19 any
-	if hxrt.AnyEqualsNull(end_1) {
-		hx_if_19 = nil
-	} else {
-		hx_if_19 = int(int32((hxrt.Int32Wrap(func(hx_value_17 any) int {
-			if hx_value_17 == nil {
-				var hx_zero_18 int
-				return hx_zero_18
-			}
-			return hx_value_17.(int)
-		}(end_1)) << uint(2))))
-	}
-	var scaledEnd_1 any = hx_if_19
+	var scaledBegin_1 any = 4
+	var scaledEnd_1 any = 8
 	f32sub := haxe__io___Float32Array__Float32Array_Impl__fromData(f32.subarray(scaledBegin_1, scaledEnd_1))
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("f32="), int(int32((hxrt.Int32Wrap(f32.byteLength)>>uint(2))))), hxrt.StringFromLiteral(",")), fmtFloat(haxe__io__FPHelper_i32ToFloat(func() int {
 		_this_10 := f32.bytes
@@ -273,13 +208,13 @@ func main() {
 	hxrt.TryCatch(func() {
 		haxe__io___ArrayBufferView__ArrayBufferView_Impl__fromBytes(bytes, 9, 4)
 		hxrt.Println(hxrt.StringFromLiteral("bounds=miss"))
-	}, func(hx_caught_20 any) {
-		switch hx_typed_21 := hx_caught_20.(type) {
+	}, func(hx_caught_5 any) {
+		switch hx_typed_6 := hx_caught_5.(type) {
 		case *haxe__io__Error:
-			err := hx_typed_21
+			err := hx_typed_6
 			hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("bounds="), errTag(err)))
 		default:
-			hxrt.Throw(hx_caught_20)
+			hxrt.Throw(hx_caught_5)
 		}
 	})
 }

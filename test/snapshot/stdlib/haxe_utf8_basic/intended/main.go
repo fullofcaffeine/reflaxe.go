@@ -35,7 +35,7 @@ func main() {
 	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("length="), haxe__io__Bytes_ofString(value).length))
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sub="), func() *string {
 		var unicode any = value
-		return _UnicodeString__UnicodeString_Impl__substr(unicode, 1, 2)
+		return _UnicodeString__UnicodeString_Impl__substr(hxrt.StdString(unicode), 1, 2)
 	}()))
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("encode="), haxe__Utf8_encode(hxrt.StringFromLiteral("é"))))
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("decode="), haxe__Utf8_decode(haxe__Utf8_encode(hxrt.StringFromLiteral("é")))))

@@ -36,13 +36,13 @@ func main() {
 	hxrt.Println(haxe__xml__Printer_print(doc))
 	hxrt.Println(parsed.firstElement().firstElement().get(hxrt.StringFromLiteral("a")))
 	hxrt.Println(haxe__xml__Printer_print(parsed))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("type="), _Xml__XmlType_Impl__toString(func() *Xml {
+	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("type="), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(func() *Xml {
 		_this := parsedCData.firstElement()
 		if (_this.nodeType != Xml_Document) && (_this.nodeType != Xml_Element) {
-			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element or Document but found "), _Xml__XmlType_Impl__toString(_this.nodeType)))
+			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element or Document but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(_this.nodeType))))
 		}
 		return _this.children[0]
-	}().nodeType)))
+	}().nodeType))))
 	hxrt.Println(haxe__xml__Printer_print(parsedCData))
 }
 

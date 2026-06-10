@@ -45,11 +45,11 @@ abstract UInt8Array(UInt8ArrayData) {
 		return 0;
 	}
 
-	public inline function sub(begin:Int, length:Dynamic = null):UInt8Array {
+	public inline function sub(begin:Int, length:Null<Int> = null):UInt8Array {
 		return fromData(this.sub(begin, length));
 	}
 
-	public inline function subarray(begin:Dynamic = null, end:Dynamic = null):UInt8Array {
+	public inline function subarray(begin:Null<Int> = null, end:Null<Int> = null):UInt8Array {
 		return fromData(this.subarray(begin, end));
 	}
 
@@ -61,8 +61,8 @@ abstract UInt8Array(UInt8ArrayData) {
 		return cast d;
 	}
 
-	public static function fromArray(a:Array<Int>, pos:Int = 0, length:Dynamic = null):UInt8Array {
-		var resolvedLength:Int = length == null ? a.length - pos : cast(length, Int);
+	public static function fromArray(a:Array<Int>, pos:Int = 0, length:Null<Int> = null):UInt8Array {
+		var resolvedLength:Int = length == null ? a.length - pos : length;
 		if (pos < 0 || resolvedLength < 0 || pos + resolvedLength > a.length) {
 			throw Error.OutsideBounds;
 		}
@@ -73,7 +73,7 @@ abstract UInt8Array(UInt8ArrayData) {
 		return out;
 	}
 
-	public static function fromBytes(bytes:haxe.io.Bytes, bytePos:Int = 0, length:Dynamic = null):UInt8Array {
+	public static function fromBytes(bytes:haxe.io.Bytes, bytePos:Int = 0, length:Null<Int> = null):UInt8Array {
 		return fromData(ArrayBufferView.fromBytes(bytes, bytePos, length).getData());
 	}
 }

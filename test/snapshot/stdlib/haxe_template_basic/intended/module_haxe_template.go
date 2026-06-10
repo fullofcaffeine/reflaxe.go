@@ -197,12 +197,12 @@ func (self *haxe__Template) parseTokens(data *string) []map[string]any {
 		params := []*string{}
 		part := hxrt.StringFromLiteral("")
 		for true {
-			c := hxrt.StringCharCodeAtAnyStringPtr(data, parp)
+			var c any = hxrt.StringCharCodeAtAnyStringPtr(data, parp)
 			parp = int(int32((parp + 1)))
-			if c == 40 {
+			if hxrt.IntFromNullableAny(c) == 40 {
 				npar = int(int32((npar + 1)))
 			} else {
-				if c == 41 {
+				if hxrt.IntFromNullableAny(c) == 41 {
 					npar = int(int32((npar - 1)))
 					if npar <= 0 {
 						break
@@ -216,7 +216,7 @@ func (self *haxe__Template) parseTokens(data *string) []map[string]any {
 				}
 			}
 			chunk := hxrt.StringSubstrStringPtr(data, int(int32((hxrt.Int32Wrap(parp) - hxrt.Int32Wrap(1)))), 1, true)
-			if (c == 44) && (npar == 1) {
+			if (hxrt.IntFromNullableAny(c) == 44) && (npar == 1) {
 				params = append(params, part)
 				part = hxrt.StringFromLiteral("")
 			} else {
@@ -1397,8 +1397,8 @@ func haxe__Template_parseFloatLiteral(value *string) float64 {
 	}
 	result := (intPart + (fracPart / divisor))
 	if index < hxrt.StringLengthStringPtr(normalized) {
-		exponentCode := hxrt.StringCharCodeAtAnyStringPtr(normalized, index)
-		if (exponentCode == 101) || (exponentCode == 69) {
+		var exponentCode any = hxrt.StringCharCodeAtAnyStringPtr(normalized, index)
+		if (hxrt.IntFromNullableAny(exponentCode) == 101) || (hxrt.IntFromNullableAny(exponentCode) == 69) {
 			index = int(int32((index + 1)))
 			exponentSign := 1
 			if hxrt.StringCharCodeAtAnyStringPtr(normalized, index) == 45 {
@@ -1575,13 +1575,13 @@ func haxe__Template_valueAsFloat(value any) float64 {
 			return false
 		}
 	}(any(value)) {
-		return haxe__Template_parseFloatLiteral(func(hx_value_225 any) *string {
+		return haxe__Template_parseFloatLiteral(hxrt.StdString(func(hx_value_225 any) *string {
 			if hx_value_225 == nil {
 				var hx_zero_226 *string
 				return hx_zero_226
 			}
 			return hx_value_225.(*string)
-		}(value))
+		}(value)))
 	}
 	hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Expected numeric expression value, got "), hxrt.StdString(value)))
 	var hx_throw_zero_227 float64

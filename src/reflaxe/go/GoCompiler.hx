@@ -8262,7 +8262,7 @@ class GoCompiler {
 					loweredValue = coerceAnyExprToType(loweredValue, value.t, variable.t, exprBackedByAny(value)
 						|| shouldForceAnyCoerce(value.t, variable.t));
 				}
-				var goType = typeToGoType(variable.t);
+				var goType = valueStorageGoType(variable.t);
 				var useShort = loweredValue != null && !isNilExpr(loweredValue) && goType != "any" && !isInterfaceType(variable.t);
 				var decl = GoStmt.GoVarDecl(variableName, goType, loweredValue, useShort);
 				var consume = GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(variableName));
@@ -8537,7 +8537,7 @@ class GoCompiler {
 
 		return {
 			prefix: [
-				GoStmt.GoVarDecl(temp, typeToGoType(resultType), null, false),
+				GoStmt.GoVarDecl(temp, valueStorageGoType(resultType), null, false),
 				GoStmt.GoSwitch(lowerExpr(value).expr, loweredCases, defaultBody)
 			],
 			expr: GoExpr.GoIdent(temp),
@@ -8562,7 +8562,7 @@ class GoCompiler {
 		loweredElseValue = coerceAnyExprToType(loweredElseValue, elseExpr.t, resultType, exprBackedByAny(elseExpr) || shouldForceAnyCoerce(elseExpr.t,
 			resultType));
 
-		var prefix = [GoStmt.GoVarDecl(temp, typeToGoType(resultType), null, false)].concat(loweredCondition.prefix);
+		var prefix = [GoStmt.GoVarDecl(temp, valueStorageGoType(resultType), null, false)].concat(loweredCondition.prefix);
 
 		prefix.push(GoStmt.GoIf(loweredCondition.expr, loweredThen.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredThenValue)]),
 			loweredElse.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredElseValue)])));
@@ -8824,7 +8824,7 @@ class GoCompiler {
 		if (catches.length == 0) {
 			return {
 				prefix: [
-					GoStmt.GoVarDecl(temp, typeToGoType(resultType), null, false),
+					GoStmt.GoVarDecl(temp, valueStorageGoType(resultType), null, false),
 					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], loweredTry.prefix.concat([GoStmt.GoAssign(tempExpr, loweredTryValue)])), []))
 				],
 				expr: tempExpr,
@@ -8885,7 +8885,7 @@ class GoCompiler {
 
 		return {
 			prefix: [
-				GoStmt.GoVarDecl(temp, typeToGoType(resultType), null, false),
+				GoStmt.GoVarDecl(temp, valueStorageGoType(resultType), null, false),
 				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.TryCatch"), [
 					GoExpr.GoFuncLiteral([], [], loweredTry.prefix.concat([GoStmt.GoAssign(tempExpr, loweredTryValue)])),
 					GoExpr.GoFuncLiteral([
@@ -9228,7 +9228,25 @@ class GoCompiler {
 	function resolveFunctionInfo(callee:TypedExpr):Null<FunctionInfo> {
 		return switch (callee.expr) {
 			case TField(_, FStatic(classRef, field)):
-				staticFunctionInfos.get(staticSymbol(classRef.get(), field.get().name));
+				var classType = classRef.get();
+				var resolved = field.get();
+				var symbol = staticSymbol(classType, resolved.name);
+				if (staticFunctionInfos.exists(symbol)) {
+					staticFunctionInfos.get(symbol);
+				} else if (GoStdlibOwnership.isCompilerOwnedAuthority(fullClassName(classType))) {
+					null;
+				} else {
+					// Source-owned std classes can be queued after the initial static-info pass;
+					// resolve their defaults lazily without changing compiler-owned vararg shims.
+					var func = unwrapFunction(resolved.expr());
+					if (func == null) {
+						null;
+					} else {
+						var info = buildFunctionInfo(func);
+						staticFunctionInfos.set(symbol, info);
+						info;
+					}
+				}
 			case TField(_, FInstance(_, _, field)) | TField(_, FAnon(field)) | TField(_, FClosure(_, field)):
 				var func = unwrapFunction(field.get().expr());
 				func == null ? null : buildFunctionInfo(func);
@@ -9291,10 +9309,24 @@ class GoCompiler {
 		};
 	}
 
+	function shouldSkipStaticDefaultArgPadding(classType:ClassType, fieldName:String):Bool {
+		var pack = classType.pack.join(".");
+		return switch (pack) {
+			case "_UnicodeString":
+				classType.name == "UnicodeString_Impl_";
+			case "haxe.crypto":
+				classType.name == "Base64";
+			case "haxe.xml": classType.name == "Parser" || classType.name == "Printer";
+			case "haxe.zip": classType.name == "Compress" || classType.name == "Uncompress";
+			case _:
+				false;
+		};
+	}
+
 	function shouldApplySourceDefaultArgPadding(callee:TypedExpr):Bool {
 		return switch (callee.expr) {
-			case TField(_, FStatic(_, _)):
-				true;
+			case TField(_, FStatic(classRef, field)):
+				!shouldSkipStaticDefaultArgPadding(classRef.get(), field.get().name);
 			case TField(target, FInstance(classRef, _, field)):
 				!shouldSkipInstanceDefaultArgPadding(classRef.get(), field.get().name);
 			case TField(target, FAnon(field)) | TField(target, FClosure(_, field)):
@@ -9569,8 +9601,8 @@ class GoCompiler {
 				};
 			case TLocal(variable):
 				var localExpr:GoExpr = GoExpr.GoIdent(localVarName(variable));
-				var variableGoType = typeToGoType(variable.t);
-				var exprGoType = typeToGoType(expr.t);
+				var variableGoType = valueStorageGoType(variable.t);
+				var exprGoType = valueStorageGoType(expr.t);
 				var optionalPrimitiveGoType = registeredOptionalPrimitiveParamGoType(variable);
 				if (optionalPrimitiveGoType != null) {
 					localExpr = GoExpr.GoTypeAssert(localExpr, optionalPrimitiveGoType);
@@ -9910,7 +9942,7 @@ class GoCompiler {
 		}
 
 		return {
-			expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(resultType)], lowered.prefix.concat([GoStmt.GoReturn(lowered.expr)])), []),
+			expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [valueStorageGoType(resultType)], lowered.prefix.concat([GoStmt.GoReturn(lowered.expr)])), []),
 			isStringLike: lowered.isStringLike
 		};
 	}
@@ -10580,10 +10612,15 @@ class GoCompiler {
 		var loweredArgs = new Array<GoExpr>();
 		for (index in 0...args.length) {
 			var arg = args[index];
-			var loweredArg = lowerCallArgExpr(arg);
 			var paramType = callParamType(callee.t, index);
+			var nullablePrimitiveArg = paramType != null
+				&& isNullablePrimitiveType(paramType) ? lowerNullablePrimitiveCallArgExpr(arg) : null;
+			var loweredArg = nullablePrimitiveArg == null ? lowerCallArgExpr(arg) : nullablePrimitiveArg;
 			if (paramType != null) {
 				loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType);
+				if (!isNullablePrimitiveType(paramType)) {
+					loweredArg = coerceAnyExprToType(loweredArg, arg.t, paramType, exprBackedByAny(arg) || shouldForceAnyCoerce(arg.t, paramType));
+				}
 			}
 			loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, returnType);
 			loweredArgs.push(loweredArg);
@@ -10820,12 +10857,18 @@ class GoCompiler {
 		switch (methodCall.methodName) {
 			case "send":
 				var value = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+				if (args.length > 0 && elementGoType != "any" && exprBackedByAny(args[0])) {
+					value = GoExpr.GoTypeAssert(value, elementGoType);
+				}
 				return {
 					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_send", elementGoType)), [channelNative, value]),
 					isStringLike: false
 				};
 			case "trySend":
 				var value = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+				if (args.length > 0 && elementGoType != "any" && exprBackedByAny(args[0])) {
+					value = GoExpr.GoTypeAssert(value, elementGoType);
+				}
 				return {
 					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_trySend", elementGoType)), [channelNative, value]),
 					isStringLike: false
@@ -10837,6 +10880,9 @@ class GoCompiler {
 				};
 			case "recvOr":
 				var defaultValue = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+				if (args.length > 0 && elementGoType != "any" && exprBackedByAny(args[0])) {
+					defaultValue = GoExpr.GoTypeAssert(defaultValue, elementGoType);
+				}
 				return {
 					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_recvOr", elementGoType)), [channelNative, defaultValue]),
 					isStringLike: isStringType(returnType)
@@ -11247,6 +11293,22 @@ class GoCompiler {
 		}
 		body.push(GoStmt.GoReturn(GoExpr.GoNil));
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["any"], body), []);
+	}
+
+	function lowerNullablePrimitiveCallArgExpr(expr:TypedExpr):Null<GoExpr> {
+		return switch (expr.expr) {
+			case TLocal(variable):
+				(registeredOptionalPrimitiveParamGoType(variable) != null
+					|| valueStorageGoType(variable.t) == "any") ? GoExpr.GoIdent(localVarName(variable)) : null;
+			case TMeta(_, inner):
+				lowerNullablePrimitiveCallArgExpr(inner);
+			case TParenthesis(inner):
+				lowerNullablePrimitiveCallArgExpr(inner);
+			case TCast(inner, _):
+				lowerNullablePrimitiveCallArgExpr(inner);
+			case _:
+				null;
+		};
 	}
 
 	function haxeDsListElementType(type:Type):Null<Type> {
@@ -12746,27 +12808,29 @@ class GoCompiler {
 		var leftLowered = lowerExpr(left);
 		var rightLowered = lowerExpr(right);
 		var stringMode = leftLowered.isStringLike || rightLowered.isStringLike || isStringType(left.t) || isStringType(right.t);
-		var nullComparison = isNullLiteralExpr(left) || isNullLiteralExpr(right);
+		var leftIsNull = isNullLiteralExpr(left) || isNilExpr(leftLowered.expr);
+		var rightIsNull = isNullLiteralExpr(right) || isNilExpr(rightLowered.expr);
+		var nullComparison = leftIsNull || rightIsNull;
 		var impossiblePrimitiveNullComparison = nullComparison
-			&& ((isNullLiteralExpr(left) && isDefinitelyNonNullableType(right.t))
-				|| (isNullLiteralExpr(right) && isDefinitelyNonNullableType(left.t)));
+			&& ((leftIsNull && isDefinitelyNonNullableType(right.t)) || (rightIsNull && isDefinitelyNonNullableType(left.t)));
 		var optionalPrimitiveLocalNullComparison = nullComparison
-			&& ((isNullLiteralExpr(left) && isOptionalPrimitiveLocalExpr(right))
-				|| (isNullLiteralExpr(right) && isOptionalPrimitiveLocalExpr(left)));
+			&& ((leftIsNull && isOptionalPrimitiveLocalExpr(right)) || (rightIsNull && isOptionalPrimitiveLocalExpr(left)));
 		if (optionalPrimitiveLocalNullComparison) {
-			if (isNullLiteralExpr(left)) {
+			if (leftIsNull) {
 				var rawRight = lowerOptionalPrimitiveNilComparisonExpr(right);
 				if (rawRight != null) {
 					rightLowered = {expr: rawRight, isStringLike: rightLowered.isStringLike};
 				}
 			}
-			if (isNullLiteralExpr(right)) {
+			if (rightIsNull) {
 				var rawLeft = lowerOptionalPrimitiveNilComparisonExpr(left);
 				if (rawLeft != null) {
 					leftLowered = {expr: rawLeft, isStringLike: leftLowered.isStringLike};
 				}
 			}
 		}
+		var leftExprForOperator = nullComparison ? leftLowered.expr : coerceNullablePrimitiveOperandForUse(leftLowered.expr, left);
+		var rightExprForOperator = nullComparison ? rightLowered.expr : coerceNullablePrimitiveOperandForUse(rightLowered.expr, right);
 		var useStringEquality = stringMode && (!nullComparison || isStringType(left.t) || isStringType(right.t));
 		var typedStringOps = isStringType(left.t) && isStringType(right.t);
 		var anyNullComparison = nullComparison && (isAnyLikeType(left.t) || isAnyLikeType(right.t));
@@ -12810,26 +12874,26 @@ class GoCompiler {
 					isStringLike: false
 				};
 			case OpEq if (anyNullComparison):
-				if (isNullLiteralExpr(left) && isNullLiteralExpr(right)) {
+				if (leftIsNull && rightIsNull) {
 					{
 						expr: GoExpr.GoBoolLiteral(true),
 						isStringLike: false
 					};
 				} else {
-					var targetExpr = isNullLiteralExpr(left) ? rightLowered.expr : leftLowered.expr;
+					var targetExpr = leftIsNull ? rightLowered.expr : leftLowered.expr;
 					{
 						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnyEqualsNull"), [targetExpr]),
 						isStringLike: false
 					};
 				}
 			case OpNotEq if (anyNullComparison):
-				if (isNullLiteralExpr(left) && isNullLiteralExpr(right)) {
+				if (leftIsNull && rightIsNull) {
 					{
 						expr: GoExpr.GoBoolLiteral(false),
 						isStringLike: false
 					};
 				} else {
-					var targetExpr = isNullLiteralExpr(left) ? rightLowered.expr : leftLowered.expr;
+					var targetExpr = leftIsNull ? rightLowered.expr : leftLowered.expr;
 					{
 						expr: GoExpr.GoUnary("!", GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnyEqualsNull"), [targetExpr])),
 						isStringLike: false
@@ -12872,7 +12936,7 @@ class GoCompiler {
 				};
 			case _:
 				{
-					expr: GoExpr.GoBinary(binopSymbol(op), leftLowered.expr, rightLowered.expr),
+					expr: GoExpr.GoBinary(binopSymbol(op), leftExprForOperator, rightExprForOperator),
 					isStringLike: isStringType(resultType)
 				};
 		};
@@ -12922,6 +12986,13 @@ class GoCompiler {
 			return expr;
 		}
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [expr]);
+	}
+
+	function coerceNullablePrimitiveOperandForUse(expr:GoExpr, operand:TypedExpr):GoExpr {
+		if (!isNullablePrimitiveType(operand.t)) {
+			return expr;
+		}
+		return coerceAnyExprToType(expr, operand.t, operand.t, exprBackedByAny(operand));
 	}
 
 	function coerceNullableFloatOperandExpr(expr:GoExpr, operandType:Type):GoExpr {
@@ -13040,6 +13111,12 @@ class GoCompiler {
 		return GoTypeMapper.typeToGoType(type, classTypeName, enumTypeName);
 	}
 
+	function valueStorageGoType(type:Type):String {
+		// Nullable primitive expression temps must be able to hold Go nil; keep the
+		// broader type mapper unchanged so signatures and eligibility stay stable.
+		return isNullablePrimitiveType(type) ? "any" : typeToGoType(type);
+	}
+
 	function isStringType(type:Type):Bool {
 		return GoTypeMapper.isStringType(type);
 	}
@@ -13133,8 +13210,7 @@ class GoCompiler {
 
 	function isOptionalPrimitiveLocalExpr(expr:TypedExpr):Bool {
 		return switch (expr.expr) {
-			case TLocal(variable):
-				isRegisteredOptionalPrimitiveParam(variable);
+			case TLocal(variable): isRegisteredOptionalPrimitiveParam(variable) || valueStorageGoType(variable.t) == "any";
 			case TMeta(_, inner):
 				isOptionalPrimitiveLocalExpr(inner);
 			case TParenthesis(inner):
@@ -13149,7 +13225,8 @@ class GoCompiler {
 	function lowerOptionalPrimitiveNilComparisonExpr(expr:TypedExpr):Null<GoExpr> {
 		return switch (expr.expr) {
 			case TLocal(variable):
-				isRegisteredOptionalPrimitiveParam(variable) ? GoExpr.GoIdent(localVarName(variable)) : null;
+				(isRegisteredOptionalPrimitiveParam(variable)
+					|| valueStorageGoType(variable.t) == "any") ? GoExpr.GoIdent(localVarName(variable)) : null;
 			case TMeta(_, inner):
 				lowerOptionalPrimitiveNilComparisonExpr(inner);
 			case TParenthesis(inner):
@@ -13164,7 +13241,7 @@ class GoCompiler {
 	function exprBackedByAny(expr:TypedExpr):Bool {
 		return switch (expr.expr) {
 			case TLocal(variable):
-				typeToGoType(variable.t) == "any";
+				valueStorageGoType(variable.t) == "any";
 			case TMeta(_, inner):
 				exprBackedByAny(inner);
 			case TParenthesis(inner):

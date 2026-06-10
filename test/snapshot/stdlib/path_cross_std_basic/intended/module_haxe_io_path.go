@@ -129,7 +129,7 @@ func haxe__io__Path_isAbsolute(path *string) bool {
 		return true
 	}
 	if (hxrt.StringLengthStringPtr(path) > 1) && (func() int {
-		c := hxrt.StringCharCodeAtAnyStringPtr(path, 1)
+		var c any = hxrt.StringCharCodeAtAnyStringPtr(path, 1)
 		var hx_if_9 int
 		if c == nil {
 			hx_if_9 = -1
@@ -198,7 +198,7 @@ func haxe__io__Path_lastIndexOfCode(path *string, code int) int {
 		_g = int(int32((_g + 1)))
 		index := hx_post_13
 		if func() int {
-			c := hxrt.StringCharCodeAtAnyStringPtr(path, index)
+			var c any = hxrt.StringCharCodeAtAnyStringPtr(path, index)
 			var hx_if_14 int
 			if c == nil {
 				hx_if_14 = -1
@@ -220,7 +220,7 @@ func haxe__io__Path_normalize(path *string) *string {
 	}
 	target := []*string{}
 	absolute := ((hxrt.StringLengthStringPtr(path) > 0) && (func() int {
-		c := hxrt.StringCharCodeAtAnyStringPtr(path, 0)
+		var c any = hxrt.StringCharCodeAtAnyStringPtr(path, 0)
 		var hx_if_15 int
 		if c == nil {
 			hx_if_15 = -1
@@ -261,7 +261,7 @@ func haxe__io__Path_normalize(path *string) *string {
 		hx_post_19 := _g_1
 		_g_1 = int(int32((_g_1 + 1)))
 		index := hx_post_19
-		c_1 := hxrt.StringCharCodeAtAnyStringPtr(compact, index)
+		var c_1 any = hxrt.StringCharCodeAtAnyStringPtr(compact, index)
 		var hx_if_20 int
 		if c_1 == nil {
 			hx_if_20 = -1
@@ -293,7 +293,7 @@ func haxe__io__Path_normalize(path *string) *string {
 func haxe__io__Path_removeTrailingSlashes(path *string) *string {
 	for hxrt.StringLengthStringPtr(path) > 0 {
 		index := int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(path)) - hxrt.Int32Wrap(1))))
-		c := hxrt.StringCharCodeAtAnyStringPtr(path, index)
+		var c any = hxrt.StringCharCodeAtAnyStringPtr(path, index)
 		var hx_if_21 int
 		if c == nil {
 			hx_if_21 = -1
@@ -320,7 +320,7 @@ func haxe__io__Path_splitOnSlash(path *string) []*string {
 		_g = int(int32((_g + 1)))
 		index := hx_post_22
 		if func() int {
-			c := hxrt.StringCharCodeAtAnyStringPtr(path, index)
+			var c any = hxrt.StringCharCodeAtAnyStringPtr(path, index)
 			var hx_if_23 int
 			if c == nil {
 				hx_if_23 = -1

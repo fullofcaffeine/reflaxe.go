@@ -46,11 +46,11 @@ func haxe___CallStack__CallStack_Impl__itemToString(item *haxe__StackItem) *stri
 		_g_1 := item.params[0].(*haxe__StackItem)
 		_g1 := item.params[1].(*string)
 		_g2 := item.params[2].(int)
-		_g3 := item.params[3].(int)
+		var _g3 any = item.params[3].(int)
 		inner := _g_1
 		file := _g1
 		line := _g2
-		column := _g3
+		var column any = hxrt.IntFromNullableAny(_g3)
 		var hx_if_4 *string
 		if inner == nil {
 			hx_if_4 = file
@@ -59,7 +59,7 @@ func haxe___CallStack__CallStack_Impl__itemToString(item *haxe__StackItem) *stri
 		}
 		rendered := hx_if_4
 		rendered = hxrt.StringConcatStringPtr(rendered, hxrt.StringConcatAny(hxrt.StringFromLiteral(" line "), line))
-		if column > 0 {
+		if hxrt.IntFromNullableAny(column) > 0 {
 			rendered = hxrt.StringConcatStringPtr(rendered, hxrt.StringConcatAny(hxrt.StringFromLiteral(" column "), column))
 		}
 		if inner != nil {
@@ -81,8 +81,8 @@ func haxe___CallStack__CallStack_Impl__itemToString(item *haxe__StackItem) *stri
 			return hx_if_5
 		}(), hxrt.StringFromLiteral(".")), method)
 	case 4:
-		_g_3 := item.params[0].(int)
-		v := _g_3
+		var _g_3 any = item.params[0].(int)
+		var v any = hxrt.IntFromNullableAny(_g_3)
 		hx_switch_3 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("local function #"), hxrt.StdString(v))
 	}
 	return hx_switch_3

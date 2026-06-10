@@ -13,7 +13,7 @@ func main() {
 		values = append(values, 12)
 		return len(values)
 	}()
-	removed := func() int {
+	var removed any = func() int {
 		hx_len_6 := len(values)
 		if hx_len_6 == 0 {
 			var hx_zero_8 int

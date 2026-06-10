@@ -9,8 +9,8 @@ func main() {
 	requests := go__concurrency_newChan__int_95e97e5e(0)
 	responses := go__concurrency_newChan__int_95e97e5e(0)
 	go___Go_spawn(func() {
-		value := go__concurrency_recv__int_95e97e5e(requests.__hx_native)
-		go__concurrency_send__int_95e97e5e(responses.__hx_native, value)
+		var value any = go__concurrency_recv__int_95e97e5e(requests.__hx_native)
+		go__concurrency_send__int_95e97e5e(responses.__hx_native, value.(int))
 	})
 	go__concurrency_send__int_95e97e5e(requests.__hx_native, 41)
 	hxrt.Println(go__concurrency_recv__int_95e97e5e(responses.__hx_native))

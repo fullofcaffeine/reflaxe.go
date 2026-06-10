@@ -54,14 +54,14 @@ abstract Float64Array(Float64ArrayData) {
 		return 0;
 	}
 
-	public inline function sub(begin:Int, length:Dynamic = null):Float64Array {
-		var scaledLength:Dynamic = length == null ? null : cast(length, Int) << 3;
+	public inline function sub(begin:Int, length:Null<Int> = null):Float64Array {
+		var scaledLength:Null<Int> = length == null ? null : length << 3;
 		return fromData(this.sub(begin << 3, scaledLength));
 	}
 
-	public inline function subarray(begin:Dynamic = null, end:Dynamic = null):Float64Array {
-		var scaledBegin:Dynamic = begin == null ? null : cast(begin, Int) << 3;
-		var scaledEnd:Dynamic = end == null ? null : cast(end, Int) << 3;
+	public inline function subarray(begin:Null<Int> = null, end:Null<Int> = null):Float64Array {
+		var scaledBegin:Null<Int> = begin == null ? null : begin << 3;
+		var scaledEnd:Null<Int> = end == null ? null : end << 3;
 		return fromData(this.subarray(scaledBegin, scaledEnd));
 	}
 
@@ -73,8 +73,8 @@ abstract Float64Array(Float64ArrayData) {
 		return cast d;
 	}
 
-	public static function fromArray(a:Array<Float>, pos:Int = 0, length:Dynamic = null):Float64Array {
-		var resolvedLength:Int = length == null ? a.length - pos : cast(length, Int);
+	public static function fromArray(a:Array<Float>, pos:Int = 0, length:Null<Int> = null):Float64Array {
+		var resolvedLength:Int = length == null ? a.length - pos : length;
 		if (pos < 0 || resolvedLength < 0 || pos + resolvedLength > a.length) {
 			throw Error.OutsideBounds;
 		}
@@ -85,8 +85,8 @@ abstract Float64Array(Float64ArrayData) {
 		return out;
 	}
 
-	public static function fromBytes(bytes:haxe.io.Bytes, bytePos:Int = 0, length:Dynamic = null):Float64Array {
-		var resolvedLength:Dynamic = length == null ? null : cast(length, Int) << 3;
+	public static function fromBytes(bytes:haxe.io.Bytes, bytePos:Int = 0, length:Null<Int> = null):Float64Array {
+		var resolvedLength:Null<Int> = length == null ? null : length << 3;
 		return fromData(ArrayBufferView.fromBytes(bytes, bytePos, resolvedLength).getData());
 	}
 }

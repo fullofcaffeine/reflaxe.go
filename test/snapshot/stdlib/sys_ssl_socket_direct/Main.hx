@@ -9,7 +9,7 @@ class Main {
 
 	static function main() {
 		var cert = Certificate.fromString(CERT_PEM);
-		var key = Key.readPEM(KEY_PEM, false, null);
+		var key = Key.readPEM(KEY_PEM, false);
 		var server:Socket = new Socket();
 		server.setCertificate(cert, key);
 		server.bind(new Host("127.0.0.1"), 0);

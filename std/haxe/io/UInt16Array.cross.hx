@@ -6,8 +6,8 @@ package haxe.io;
 
 	Why
 	- This keeps the typed-array surface in staged std.
-	- Explicit nullable optional lengths avoid the current source-owned optional
-	  primitive lowering gap on `haxe.go`.
+		- Explicit nullable optional lengths keep the source API honest while the
+		  compiler preserves omitted primitive arguments at Go boundaries.
 
 	How
 	- Preserve the upstream `ArrayBufferView` carrier and little-endian indexing.
@@ -46,14 +46,14 @@ abstract UInt16Array(UInt16ArrayData) {
 		return 0;
 	}
 
-	public inline function sub(begin:Int, length:Dynamic = null):UInt16Array {
-		var scaledLength:Dynamic = length == null ? null : cast(length, Int) << 1;
+	public inline function sub(begin:Int, length:Null<Int> = null):UInt16Array {
+		var scaledLength:Null<Int> = length == null ? null : length << 1;
 		return fromData(this.sub(begin << 1, scaledLength));
 	}
 
-	public inline function subarray(begin:Dynamic = null, end:Dynamic = null):UInt16Array {
-		var scaledBegin:Dynamic = begin == null ? null : cast(begin, Int) << 1;
-		var scaledEnd:Dynamic = end == null ? null : cast(end, Int) << 1;
+	public inline function subarray(begin:Null<Int> = null, end:Null<Int> = null):UInt16Array {
+		var scaledBegin:Null<Int> = begin == null ? null : begin << 1;
+		var scaledEnd:Null<Int> = end == null ? null : end << 1;
 		return fromData(this.subarray(scaledBegin, scaledEnd));
 	}
 
@@ -65,8 +65,8 @@ abstract UInt16Array(UInt16ArrayData) {
 		return cast d;
 	}
 
-	public static function fromArray(a:Array<Int>, pos:Int = 0, length:Dynamic = null):UInt16Array {
-		var resolvedLength:Int = length == null ? a.length - pos : cast(length, Int);
+	public static function fromArray(a:Array<Int>, pos:Int = 0, length:Null<Int> = null):UInt16Array {
+		var resolvedLength:Int = length == null ? a.length - pos : length;
 		if (pos < 0 || resolvedLength < 0 || pos + resolvedLength > a.length) {
 			throw Error.OutsideBounds;
 		}
@@ -77,8 +77,8 @@ abstract UInt16Array(UInt16ArrayData) {
 		return out;
 	}
 
-	public static function fromBytes(bytes:haxe.io.Bytes, bytePos:Int = 0, length:Dynamic = null):UInt16Array {
-		var resolvedLength:Dynamic = length == null ? null : cast(length, Int) << 1;
+	public static function fromBytes(bytes:haxe.io.Bytes, bytePos:Int = 0, length:Null<Int> = null):UInt16Array {
+		var resolvedLength:Null<Int> = length == null ? null : length << 1;
 		return fromData(ArrayBufferView.fromBytes(bytes, bytePos, resolvedLength).getData());
 	}
 }

@@ -105,7 +105,7 @@ func haxe__Utf8_decode(s *string) *string {
 		hx_post_7 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_7
-		c := hxrt.StringCharCodeAtAnyStringPtr(s, index)
+		var c any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
 		var hx_if_8 int
 		if c == nil {
 			hx_if_8 = -1
@@ -143,7 +143,7 @@ func haxe__Utf8_encode(s *string) *string {
 func haxe__Utf8_iter(s *string, chars func(int)) {
 	var unicode any = s
 	_g := 0
-	_g1 := _UnicodeString__UnicodeString_Impl__get_length(unicode)
+	_g1 := _UnicodeString__UnicodeString_Impl__get_length(hxrt.StdString(unicode))
 	for _g < _g1 {
 		hx_post_11 := _g
 		_g = int(int32((_g + 1)))
@@ -158,7 +158,7 @@ func haxe__Utf8_length(s *string) int {
 
 func haxe__Utf8_sub(s *string, pos int, len int) *string {
 	var unicode any = s
-	return _UnicodeString__UnicodeString_Impl__substr(unicode, pos, len)
+	return _UnicodeString__UnicodeString_Impl__substr(hxrt.StdString(unicode), pos, len)
 }
 
 func haxe__Utf8_validate(s *string) bool {

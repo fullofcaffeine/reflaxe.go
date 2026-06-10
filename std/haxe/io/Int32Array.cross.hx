@@ -44,14 +44,14 @@ abstract Int32Array(Int32ArrayData) {
 		return 0;
 	}
 
-	public inline function sub(begin:Int, length:Dynamic = null):Int32Array {
-		var scaledLength:Dynamic = length == null ? null : cast(length, Int) << 2;
+	public inline function sub(begin:Int, length:Null<Int> = null):Int32Array {
+		var scaledLength:Null<Int> = length == null ? null : length << 2;
 		return fromData(this.sub(begin << 2, scaledLength));
 	}
 
-	public inline function subarray(begin:Dynamic = null, end:Dynamic = null):Int32Array {
-		var scaledBegin:Dynamic = begin == null ? null : cast(begin, Int) << 2;
-		var scaledEnd:Dynamic = end == null ? null : cast(end, Int) << 2;
+	public inline function subarray(begin:Null<Int> = null, end:Null<Int> = null):Int32Array {
+		var scaledBegin:Null<Int> = begin == null ? null : begin << 2;
+		var scaledEnd:Null<Int> = end == null ? null : end << 2;
 		return fromData(this.subarray(scaledBegin, scaledEnd));
 	}
 
@@ -63,8 +63,8 @@ abstract Int32Array(Int32ArrayData) {
 		return cast d;
 	}
 
-	public static function fromArray(a:Array<Int>, pos:Int = 0, length:Dynamic = null):Int32Array {
-		var resolvedLength:Int = length == null ? a.length - pos : cast(length, Int);
+	public static function fromArray(a:Array<Int>, pos:Int = 0, length:Null<Int> = null):Int32Array {
+		var resolvedLength:Int = length == null ? a.length - pos : length;
 		if (pos < 0 || resolvedLength < 0 || pos + resolvedLength > a.length) {
 			throw Error.OutsideBounds;
 		}
@@ -75,8 +75,8 @@ abstract Int32Array(Int32ArrayData) {
 		return out;
 	}
 
-	public static function fromBytes(bytes:haxe.io.Bytes, bytePos:Int = 0, length:Dynamic = null):Int32Array {
-		var resolvedLength:Dynamic = length == null ? null : cast(length, Int) << 2;
+	public static function fromBytes(bytes:haxe.io.Bytes, bytePos:Int = 0, length:Null<Int> = null):Int32Array {
+		var resolvedLength:Null<Int> = length == null ? null : length << 2;
 		return fromData(ArrayBufferView.fromBytes(bytes, bytePos, resolvedLength).getData());
 	}
 }

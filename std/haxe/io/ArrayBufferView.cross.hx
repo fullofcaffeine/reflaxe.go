@@ -7,8 +7,8 @@ package haxe.io;
 	Why
 	- The public typed-array surface is library-level portable behavior and should
 	  stay in staged std.
-	- The upstream implementation relies on optional primitive arguments that
-	  currently lower poorly for source-owned abstract static methods on `haxe.go`.
+		- The upstream implementation relies on optional primitive arguments; `haxe.go`
+		  now preserves those as nullable values at source-owned boundaries.
 
 	How
 	- Keep the same public API and carrier shape.
@@ -29,17 +29,17 @@ class ArrayBufferViewImpl {
 		this.byteLength = length;
 	}
 
-	public function sub(begin:Int, length:Dynamic = null) {
-		var resolvedLength:Int = length == null ? byteLength - begin : cast(length, Int);
+	public function sub(begin:Int, length:Null<Int> = null) {
+		var resolvedLength:Int = length == null ? byteLength - begin : length;
 		if (begin < 0 || resolvedLength < 0 || begin + resolvedLength > byteLength) {
 			throw Error.OutsideBounds;
 		}
 		return new ArrayBufferViewImpl(bytes, byteOffset + begin, resolvedLength);
 	}
 
-	public function subarray(begin:Dynamic = null, end:Dynamic = null) {
-		var resolvedBegin:Int = begin == null ? 0 : cast(begin, Int);
-		var resolvedEnd:Int = end == null ? byteLength - resolvedBegin : cast(end, Int);
+	public function subarray(begin:Null<Int> = null, end:Null<Int> = null) {
+		var resolvedBegin:Int = begin == null ? 0 : begin;
+		var resolvedEnd:Int = end == null ? byteLength - resolvedBegin : end;
 		return sub(resolvedBegin, resolvedEnd - resolvedBegin);
 	}
 }
@@ -62,11 +62,11 @@ abstract ArrayBufferView(ArrayBufferViewData) {
 	inline function get_buffer():haxe.io.Bytes
 		return this.bytes;
 
-	public inline function sub(begin:Int, length:Dynamic = null):ArrayBufferView {
+	public inline function sub(begin:Int, length:Null<Int> = null):ArrayBufferView {
 		return fromData(this.sub(begin, length));
 	}
 
-	public inline function subarray(begin:Dynamic = null, end:Dynamic = null):ArrayBufferView {
+	public inline function subarray(begin:Null<Int> = null, end:Null<Int> = null):ArrayBufferView {
 		return fromData(this.subarray(begin, end));
 	}
 
@@ -78,8 +78,8 @@ abstract ArrayBufferView(ArrayBufferViewData) {
 		return cast a;
 	}
 
-	public static function fromBytes(bytes:haxe.io.Bytes, pos:Int = 0, length:Dynamic = null):ArrayBufferView {
-		var resolvedLength:Int = length == null ? bytes.length - pos : cast(length, Int);
+	public static function fromBytes(bytes:haxe.io.Bytes, pos:Int = 0, length:Null<Int> = null):ArrayBufferView {
+		var resolvedLength:Int = length == null ? bytes.length - pos : length;
 		if (pos < 0 || resolvedLength < 0 || pos + resolvedLength > bytes.length) {
 			throw Error.OutsideBounds;
 		}
