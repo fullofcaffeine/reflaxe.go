@@ -125,6 +125,8 @@ class PortableGovernanceContractTest(unittest.TestCase):
         self.assertIn("test/.test-cache/portable_parity_closure_summary.md", feature_matrix)
         self.assertNotIn("haxe.go-14as.25` to `haxe.go-14as.27", feature_matrix)
         self.assertNotIn("Active follow-up tracking", feature_matrix)
+        self.assertNotIn("Continue replacing reachable typed-node gaps", feature_matrix)
+        self.assertIn("Invariant guard strategy", feature_matrix)
         self.assertIn("Completed follow-up evidence", feature_matrix)
 
         phase2_roadmap = PHASE2_ROADMAP_DOC.read_text(encoding="utf-8")
