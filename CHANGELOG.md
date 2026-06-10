@@ -1,3 +1,9 @@
+## [0.50.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.49.0...v0.50.0) (2026-06-10)
+
+### Features
+
+* **goextern:** generate typed tuple return carriers ([ddac688](https://github.com/fullofcaffeine/reflaxe.go/commit/ddac688bf417300aa822ce7e1783777315e3b9b2))
+
 ## [0.49.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.48.0...v0.49.0) (2026-06-10)
 
 ### Features
