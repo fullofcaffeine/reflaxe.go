@@ -86,20 +86,20 @@ Current staged Tier1 coverage includes the JSON family and `StringTools`, with a
   - The first post-`__go__` extraction already moved pure hex and `BytesBuffer` leaf helpers into `runtime/hxrt/bytes.go`, leaving thin compiler wrappers in place.
   - The remaining compiler-owned subset is the RawNative/cache-coupled string path (`ofString`, `getString`, UTF16/raw-native conversion helpers) because it still co-owns `__hx_raw` cache validity and encoding-tag behavior.
   - The ownership lock is `stdlib/bytes_raw_native_compiler_ownership`, which proves RawNative `Bytes.set(...)` still needs to invalidate the cached raw-byte view seen by downstream consumers such as Base64.
-  - Tracking: `haxe.go-14as.51`, `haxe.go-14as.54`
+  - Closed evidence: `haxe.go-14as.51`, `haxe.go-14as.54`
 - `haxe.io.Input` / `haxe.io.Output`
   - These surfaces are not listed as separate Tier1 rows here, but their inherited helper loops no longer live as raw loop bodies in `GoCompiler`.
   - `readAll`, `readLine`, `readUntil`, `readFullBytes`, `write`, `writeFullBytes`, `writeInput`, and `writeString` now route through `std/haxe/io/GoIoHelpers.cross.hx`, with `GoCompiler` keeping only the public wrapper functions and the representation-sensitive base IO types.
-  - Tracking: `haxe.go-14as.52`
+  - Closed evidence: `haxe.go-14as.52`
 - `haxe.io` misc direct tranche
   - `haxe.io.FPHelper` is now the model staged-std slice for this family: public bit-conversion behavior lives in `std/haxe/io/FPHelper.cross.hx` on top of the existing little-endian `BytesInput` / `BytesOutput` contract.
   - `haxe.io.Mime` and `haxe.io.Scheme` remain plain upstream source-owned string abstracts.
   - `haxe.io.StringInput`, `haxe.io.BufferInput`, `haxe.io.Encoding`, `haxe.io.Eof`, and `haxe.io.Error` stay compiler-owned with the base IO hierarchy because their type shapes and inherited helper wiring are still representation-sensitive on Go.
-  - Tracking: `haxe.go-14as.15`
+  - Closed evidence: `haxe.go-14as.15`
 - `sys.Http`
   - Tier1 mapping still treats the surface as compiler-owned because request/callback choreography remains one semantic contract.
   - The audit narrowed extraction to leaf payload/proxy helpers only; `getResponseHeaderValues` and payload capture now live in `std/sys/GoHttpHelpers.cross.hx`, while core request sequencing and proxy URL construction stay in compiler scope unless parity evidence proves otherwise.
-  - Tracking: `haxe.go-14as.53`
+  - Closed evidence: `haxe.go-14as.53`
 
 ## Governance Rule
 

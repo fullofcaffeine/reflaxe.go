@@ -149,6 +149,10 @@ class PortableGovernanceContractTest(unittest.TestCase):
         self.assertNotIn("compile-only stdlib promotion", approach_c_baseline)
         self.assertIn("current parity evidence", approach_c_baseline)
 
+        mapping_contract = MAPPING_DOC.read_text(encoding="utf-8")
+        self.assertNotIn("  - Tracking:", mapping_contract)
+        self.assertIn("  - Closed evidence:", mapping_contract)
+
         stdlib_migration_log = STDLIB_MIGRATION_LOG_DOC.read_text(encoding="utf-8")
         self.assertNotIn("Staged stdlib migration follow-ups continue under `haxe.go-cgk.*`", stdlib_migration_log)
         self.assertNotIn("event-loop surfaces are explicitly unsupported on Go today", stdlib_migration_log)
