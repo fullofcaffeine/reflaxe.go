@@ -8549,7 +8549,8 @@ class GoCompiler {
 		for (caseEntry in cases) {
 			loweredCases.push({
 				values: [
-					for (caseValue in caseEntry.values) stringSwitch ? lowerStringComparableExpr(caseValue) : lowerExpr(caseValue).expr
+					for (caseValue in caseEntry.values)
+						stringSwitch ? lowerStringComparableExpr(caseValue) : lowerExpr(caseValue).expr
 				],
 				body: lowerInSwitchContext(function() return lowerToStatements(caseEntry.expr))
 			});
@@ -8570,7 +8571,8 @@ class GoCompiler {
 			var caseBody = loweredCase.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredCase.expr)]);
 			loweredCases.push({
 				values: [
-					for (caseValue in caseEntry.values) stringSwitch ? lowerStringComparableExpr(caseValue) : lowerExpr(caseValue).expr
+					for (caseValue in caseEntry.values)
+						stringSwitch ? lowerStringComparableExpr(caseValue) : lowerExpr(caseValue).expr
 				],
 				body: caseBody
 			});
@@ -11173,6 +11175,13 @@ class GoCompiler {
 				isStringLike: false
 			};
 		}
+		var tupleReturnExpr = lowerExternTupleReturnExpr(callee, returnType, callExpr);
+		if (tupleReturnExpr != null) {
+			return {
+				expr: tupleReturnExpr,
+				isStringLike: false
+			};
+		}
 		if (shouldAssertGenericCallResult(callee, returnType)) {
 			callExpr = lowerNullableAwareTypeAssertExpr(callExpr, returnType);
 		}
@@ -11704,6 +11713,13 @@ class GoCompiler {
 						callExpr = GoExpr.GoCall(GoExpr.GoIdent("go__result_fromValueError"), [callExpr]);
 						return {
 							expr: callExpr,
+							isStringLike: false
+						};
+					}
+					var tupleReturnExpr = lowerExternTupleReturnExpr(callee, returnType, callExpr);
+					if (tupleReturnExpr != null) {
+						return {
+							expr: tupleReturnExpr,
 							isStringLike: false
 						};
 					}
@@ -13253,13 +13269,78 @@ class GoCompiler {
 	}
 
 	function normalizeExternCallArg(callee:TypedExpr, argExpr:GoExpr, paramType:Null<Type>, returnType:Type):GoExpr {
-		if (paramType == null || !isExternValueErrorCall(callee, returnType)) {
+		if (paramType == null || (!isExternValueErrorCall(callee, returnType) && !isExternTupleReturnCall(callee, returnType))) {
 			return argExpr;
 		}
 		if (isStringType(paramType)) {
 			return GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [argExpr]));
 		}
 		return argExpr;
+	}
+
+	function lowerExternTupleReturnExpr(callee:TypedExpr, returnType:Type, callExpr:GoExpr):Null<GoExpr> {
+		if (!isExternTupleReturnCall(callee, returnType)) {
+			return null;
+		}
+		var carrier = tupleReturnCarrierClass(returnType);
+		if (carrier == null) {
+			Context.fatalError("@:go.tupleReturn extern calls must return a concrete Haxe carrier class", callee.pos);
+			return null;
+		}
+		var constructorArgs = tupleReturnCarrierConstructorArgTypes(carrier, returnType, callee.pos);
+		if (constructorArgs == null || constructorArgs.length == 0) {
+			Context.fatalError("@:go.tupleReturn carrier must have a constructor with one parameter per Go result value", callee.pos);
+			return null;
+		}
+
+		var tempNames = [for (_ in constructorArgs) freshTempName("hx_tuple")];
+		var body = new Array<GoStmt>();
+		body.push(GoStmt.GoRaw(tempNames.join(", ") + " := " + GoASTPrinter.printExprForInjection(callExpr)));
+
+		var loweredArgs = new Array<GoExpr>();
+		for (index in 0...constructorArgs.length) {
+			loweredArgs.push(coerceExternTupleReturnValue(GoExpr.GoIdent(tempNames[index]), constructorArgs[index]));
+		}
+		body.push(GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(carrier)), loweredArgs)));
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(returnType)], body), []);
+	}
+
+	function tupleReturnCarrierClass(returnType:Type):Null<ClassType> {
+		return switch (Context.follow(returnType)) {
+			case TInst(classRef, _):
+				classRef.get();
+			case _:
+				null;
+		};
+	}
+
+	function tupleReturnCarrierConstructorArgTypes(carrier:ClassType, returnType:Type, pos:haxe.macro.Expr.Position):Null<Array<Type>> {
+		if (carrier.constructor == null) {
+			return [];
+		}
+		var ctor = carrier.constructor.get();
+		return switch (Context.follow(ctor.type)) {
+			case TFun(args, _):
+				[for (arg in args) arg.t];
+			case _:
+				Context.fatalError("@:go.tupleReturn carrier constructor must be a function", pos);
+				null;
+		};
+	}
+
+	function coerceExternTupleReturnValue(value:GoExpr, targetType:Type):GoExpr {
+		if (isStringType(targetType)) {
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [value]);
+		}
+		if (isGoErrorType(targetType)) {
+			return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "err", typeName: "error"}], ["*go___Error"], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("err"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Error"), [
+					GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("err"), "Error"), [])])
+				]))
+			]), [value]);
+		}
+		return value;
 	}
 
 	function isExternValueErrorCall(callee:TypedExpr, returnType:Type):Bool {
@@ -13275,6 +13356,24 @@ class GoCompiler {
 				isExternValueErrorCall(inner, returnType);
 			case TCast(inner, _):
 				isExternValueErrorCall(inner, returnType);
+			case _:
+				false;
+		};
+	}
+
+	function isExternTupleReturnCall(callee:TypedExpr, returnType:Type):Bool {
+		if (tupleReturnCarrierClass(returnType) == null) {
+			return false;
+		}
+		return switch (callee.expr) {
+			case TField(_, FStatic(classRef, fieldRef)): var classType = classRef.get(); classType.isExtern && externClassImportPath(classType) != null && hasExternTupleReturnMeta(fieldRef.get());
+			case TField(_, FInstance(classRef, _, fieldRef)): var classType = classRef.get(); classType.isExtern && externClassImportPath(classType) != null && hasExternTupleReturnMeta(fieldRef.get());
+			case TMeta(_, inner):
+				isExternTupleReturnCall(inner, returnType);
+			case TParenthesis(inner):
+				isExternTupleReturnCall(inner, returnType);
+			case TCast(inner, _):
+				isExternTupleReturnCall(inner, returnType);
 			case _:
 				false;
 		};
@@ -13708,6 +13807,34 @@ class GoCompiler {
 
 	function isStringType(type:Type):Bool {
 		return GoTypeMapper.isStringType(type);
+	}
+
+	function isGoErrorType(type:Type):Bool {
+		var inner = nullableInnerType(type);
+		if (inner != null) {
+			return isGoErrorType(inner);
+		}
+		return switch (Context.follow(type)) {
+			case TInst(classRef, _): var classType = classRef.get(); classType.pack.length == 1 && classType.pack[0] == "go" && classType.name == "Error";
+			case _:
+				false;
+		};
+	}
+
+	function nullableInnerType(type:Type):Null<Type> {
+		return switch (type) {
+			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 ? params[0] : null;
+			case TMono(ref):
+				var resolved = ref.get();
+				resolved == null ? null : nullableInnerType(resolved);
+			case TType(_, _):
+				var followed = haxe.macro.TypeTools.follow(type, true);
+				followed != type ? nullableInnerType(followed) : null;
+			case TLazy(f):
+				nullableInnerType(f());
+			case _:
+				null;
+		};
 	}
 
 	function isInterfaceType(type:Type):Bool {
@@ -14406,6 +14533,10 @@ class GoCompiler {
 
 	function hasExternValueErrorMeta(field:ClassField):Bool {
 		return hasMetadata(field.meta, ["go.valueError", "go.value_error"]);
+	}
+
+	function hasExternTupleReturnMeta(field:ClassField):Bool {
+		return hasMetadata(field.meta, ["go.tupleReturn", "go.tuple_return"]);
 	}
 
 	function classTypeName(classType:ClassType):String {

@@ -5,11 +5,13 @@ package goextern.fmt;
 @:go.import("fmt")
 @:go.name("ScanState")
 extern interface ScanState {
+	@:go.tupleReturn
 	@:go.name("Read")
-	public function read(buf:Array<Int>):Dynamic;
+	public function read(buf:Array<Int>):ScanStateReadResult;
 
+	@:go.tupleReturn
 	@:go.name("ReadRune")
-	public function readRune():Dynamic;
+	public function readRune():ScanStateReadRuneResult;
 
 	@:go.name("SkipSpace")
 	public function skipSpace():Void;
@@ -20,6 +22,7 @@ extern interface ScanState {
 	@:go.name("UnreadRune")
 	public function unreadRune():go.Error;
 
+	@:go.tupleReturn
 	@:go.name("Width")
-	public function width():Dynamic;
+	public function width():ScanStateWidthResult;
 }

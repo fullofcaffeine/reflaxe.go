@@ -20,8 +20,9 @@ extern class Time {
 	@:go.name("Before")
 	public function before(u:Time):Bool;
 
+	@:go.tupleReturn
 	@:go.name("Clock")
-	public function clock():Dynamic;
+	public function clock():TimeClockResult;
 
 	@:go.name("Compare")
 	public function compare(u:Time):Int;
@@ -50,8 +51,9 @@ extern class Time {
 	@:go.name("Hour")
 	public function hour():Int;
 
+	@:go.tupleReturn
 	@:go.name("ISOWeek")
-	public function iSOWeek():Dynamic;
+	public function iSOWeek():TimeISOWeekResult;
 
 	@:go.name("In")
 	public function in_(loc:Location):Time;
@@ -134,8 +136,9 @@ extern class Time {
 	@:go.name("YearDay")
 	public function yearDay():Int;
 
+	@:go.tupleReturn
 	@:go.name("Zone")
-	public function zone():Dynamic;
+	public function zone():TimeZoneResult;
 
 	@:go.name("ZoneBounds")
 	public function zoneBounds():Dynamic;

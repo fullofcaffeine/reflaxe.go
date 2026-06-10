@@ -73,6 +73,8 @@ class DocsClarityContractTest(unittest.TestCase):
         self.assertIn("ordinary typed extern metadata", goextern)
         self.assertIn("single `(T,error)`", goextern)
         self.assertIn("typed facade wrapper", goextern)
+        self.assertIn("tuple carrier", goextern)
+        self.assertIn("@:go.tupleReturn", goextern)
         self.assertIn("must not use raw `__go__`", goextern)
         self.assertIn("tools/goextern/main_test.go", goextern)
 

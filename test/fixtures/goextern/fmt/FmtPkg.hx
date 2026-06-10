@@ -19,41 +19,53 @@ extern class FmtPkg {
 	@:go.name("FormatString")
 	public static function formatString(state:State, verb:Int):String;
 
+	@:go.tupleReturn
 	@:go.name("Fprint")
-	public static function fprint(w:Dynamic, a:haxe.Rest<Dynamic>):Dynamic;
+	public static function fprint(w:Dynamic, a:haxe.Rest<Dynamic>):FprintResult;
 
+	@:go.tupleReturn
 	@:go.name("Fprintf")
-	public static function fprintf(w:Dynamic, format:String, a:haxe.Rest<Dynamic>):Dynamic;
+	public static function fprintf(w:Dynamic, format:String, a:haxe.Rest<Dynamic>):FprintfResult;
 
+	@:go.tupleReturn
 	@:go.name("Fprintln")
-	public static function fprintln(w:Dynamic, a:haxe.Rest<Dynamic>):Dynamic;
+	public static function fprintln(w:Dynamic, a:haxe.Rest<Dynamic>):FprintlnResult;
 
+	@:go.tupleReturn
 	@:go.name("Fscan")
-	public static function fscan(r:Dynamic, a:haxe.Rest<Dynamic>):Dynamic;
+	public static function fscan(r:Dynamic, a:haxe.Rest<Dynamic>):FscanResult;
 
+	@:go.tupleReturn
 	@:go.name("Fscanf")
-	public static function fscanf(r:Dynamic, format:String, a:haxe.Rest<Dynamic>):Dynamic;
+	public static function fscanf(r:Dynamic, format:String, a:haxe.Rest<Dynamic>):FscanfResult;
 
+	@:go.tupleReturn
 	@:go.name("Fscanln")
-	public static function fscanln(r:Dynamic, a:haxe.Rest<Dynamic>):Dynamic;
+	public static function fscanln(r:Dynamic, a:haxe.Rest<Dynamic>):FscanlnResult;
 
+	@:go.tupleReturn
 	@:go.name("Print")
-	public static function print(a:haxe.Rest<Dynamic>):Dynamic;
+	public static function print(a:haxe.Rest<Dynamic>):PrintResult;
 
+	@:go.tupleReturn
 	@:go.name("Printf")
-	public static function printf(format:String, a:haxe.Rest<Dynamic>):Dynamic;
+	public static function printf(format:String, a:haxe.Rest<Dynamic>):PrintfResult;
 
+	@:go.tupleReturn
 	@:go.name("Println")
-	public static function println(a:haxe.Rest<Dynamic>):Dynamic;
+	public static function println(a:haxe.Rest<Dynamic>):PrintlnResult;
 
+	@:go.tupleReturn
 	@:go.name("Scan")
-	public static function scan(a:haxe.Rest<Dynamic>):Dynamic;
+	public static function scan(a:haxe.Rest<Dynamic>):ScanResult;
 
+	@:go.tupleReturn
 	@:go.name("Scanf")
-	public static function scanf(format:String, a:haxe.Rest<Dynamic>):Dynamic;
+	public static function scanf(format:String, a:haxe.Rest<Dynamic>):ScanfResult;
 
+	@:go.tupleReturn
 	@:go.name("Scanln")
-	public static function scanln(a:haxe.Rest<Dynamic>):Dynamic;
+	public static function scanln(a:haxe.Rest<Dynamic>):ScanlnResult;
 
 	@:go.name("Sprint")
 	public static function sprint(a:haxe.Rest<Dynamic>):String;
@@ -64,12 +76,15 @@ extern class FmtPkg {
 	@:go.name("Sprintln")
 	public static function sprintln(a:haxe.Rest<Dynamic>):String;
 
+	@:go.tupleReturn
 	@:go.name("Sscan")
-	public static function sscan(str:String, a:haxe.Rest<Dynamic>):Dynamic;
+	public static function sscan(str:String, a:haxe.Rest<Dynamic>):SscanResult;
 
+	@:go.tupleReturn
 	@:go.name("Sscanf")
-	public static function sscanf(str:String, format:String, a:haxe.Rest<Dynamic>):Dynamic;
+	public static function sscanf(str:String, format:String, a:haxe.Rest<Dynamic>):SscanfResult;
 
+	@:go.tupleReturn
 	@:go.name("Sscanln")
-	public static function sscanln(str:String, a:haxe.Rest<Dynamic>):Dynamic;
+	public static function sscanln(str:String, a:haxe.Rest<Dynamic>):SscanlnResult;
 }

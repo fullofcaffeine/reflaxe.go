@@ -8,12 +8,15 @@ extern interface State {
 	@:go.name("Flag")
 	public function flag(c:Int):Bool;
 
+	@:go.tupleReturn
 	@:go.name("Precision")
-	public function precision():Dynamic;
+	public function precision():StatePrecisionResult;
 
+	@:go.tupleReturn
 	@:go.name("Width")
-	public function width():Dynamic;
+	public function width():StateWidthResult;
 
+	@:go.tupleReturn
 	@:go.name("Write")
-	public function write(b:Array<Int>):Dynamic;
+	public function write(b:Array<Int>):StateWriteResult;
 }

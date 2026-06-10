@@ -82,16 +82,57 @@ func TestBuildEmissionFmtMultiReturnBoundary(t *testing.T) {
 		t.Fatalf("single-return fmt.Sprintf should stay strongly typed")
 	}
 	for _, signature := range []string{
-		"public static function fprint(w:Dynamic, a:haxe.Rest<Dynamic>):Dynamic;",
-		"public static function fscan(r:Dynamic, a:haxe.Rest<Dynamic>):Dynamic;",
-		"public static function sscanf(str:String, format:String, a:haxe.Rest<Dynamic>):Dynamic;",
+		"@:go.tupleReturn\n\t@:go.name(\"Fprint\")\n\tpublic static function fprint(w:Dynamic, a:haxe.Rest<Dynamic>):FprintResult;",
+		"@:go.tupleReturn\n\t@:go.name(\"Fscan\")\n\tpublic static function fscan(r:Dynamic, a:haxe.Rest<Dynamic>):FscanResult;",
+		"@:go.tupleReturn\n\t@:go.name(\"Sscanf\")\n\tpublic static function sscanf(str:String, format:String, a:haxe.Rest<Dynamic>):SscanfResult;",
 	} {
 		if !strings.Contains(pkgFile, signature) {
-			t.Fatalf("advanced multi-return signature should stay Dynamic until facade policy changes: %s", signature)
+			t.Fatalf("supported multi-return signature should use a generated typed carrier: %s", signature)
+		}
+	}
+	fprintResult := fileContentsByName(t, emission, "FprintResult.hx")
+	for _, snippet := range []string{
+		"class FprintResult",
+		"public var n(default, null):Int;",
+		"public var err(default, null):Null<go.Error>;",
+		"public function new(n:Int, err:Null<go.Error>)",
+	} {
+		if !strings.Contains(fprintResult, snippet) {
+			t.Fatalf("FprintResult.hx missing generated carrier snippet %q\n%s", snippet, fprintResult)
 		}
 	}
 	if strings.Contains(pkgFile, "@:go.valueError\n\t@:go.name(\"Fprint\")") {
 		t.Fatalf("fmt.Fprint returns (int, error), but goextern must not apply @:go.valueError without an explicit go.Result<T> facade")
+	}
+}
+
+func TestBuildEmissionTimeTupleReturnCarrierUsesNamedFields(t *testing.T) {
+	cfg := Config{
+		GoImportPath:      "time",
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	}
+
+	emission, err := BuildEmission(cfg)
+	if err != nil {
+		t.Fatalf("BuildEmission failed: %v", err)
+	}
+
+	timeFile := fileContentsByName(t, emission, "Time.hx")
+	if !strings.Contains(timeFile, "@:go.tupleReturn\n\t@:go.name(\"Zone\")\n\tpublic function zone():TimeZoneResult;") {
+		t.Fatalf("Time.Zone should use a typed tuple carrier")
+	}
+
+	zoneResult := fileContentsByName(t, emission, "TimeZoneResult.hx")
+	for _, snippet := range []string{
+		"class TimeZoneResult",
+		"public var name(default, null):String;",
+		"public var offset(default, null):Int;",
+		"public function new(name:String, offset:Int)",
+	} {
+		if !strings.Contains(zoneResult, snippet) {
+			t.Fatalf("TimeZoneResult.hx missing generated carrier snippet %q\n%s", snippet, zoneResult)
+		}
 	}
 }
 

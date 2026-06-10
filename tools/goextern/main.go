@@ -45,16 +45,22 @@ type declaration struct {
 }
 
 type methodDecl struct {
-	GoName     string
-	HaxeName   string
-	Params     []paramDecl
-	ReturnType string
-	Static     bool
+	GoName      string
+	HaxeName    string
+	Params      []paramDecl
+	ReturnType  string
+	Static      bool
+	TupleReturn bool
 }
 
 type paramDecl struct {
 	Name string
 	Type string
+}
+
+type tupleCarrierDecl struct {
+	ClassName string
+	Fields    []paramDecl
 }
 
 type mappingContext struct {
@@ -185,7 +191,7 @@ func BuildEmission(cfg Config) (*Emission, error) {
 		return nil, err
 	}
 
-	decls, err := collectDeclarations(pkg, cfg.PackageClassName)
+	decls, carriers, err := collectDeclarations(pkg, cfg.PackageClassName)
 	if err != nil {
 		return nil, err
 	}
@@ -199,6 +205,12 @@ func BuildEmission(cfg Config) (*Emission, error) {
 		files = append(files, EmittedFile{
 			Name:     decl.ClassName + ".hx",
 			Contents: renderDeclaration(haxePackage, pkg.Types.Path(), decl),
+		})
+	}
+	for _, carrier := range carriers {
+		files = append(files, EmittedFile{
+			Name:     carrier.ClassName + ".hx",
+			Contents: renderTupleCarrier(haxePackage, carrier),
 		})
 	}
 
@@ -247,10 +259,10 @@ func loadPackage(goImportPath string) (*packages.Package, error) {
 	return nil, fmt.Errorf("loaded package %q without type information", goImportPath)
 }
 
-func collectDeclarations(pkg *packages.Package, packageClassOverride string) ([]declaration, error) {
+func collectDeclarations(pkg *packages.Package, packageClassOverride string) ([]declaration, []tupleCarrierDecl, error) {
 	scope := pkg.Types.Scope()
 	if scope == nil {
-		return nil, fmt.Errorf("package %q has no scope", pkg.Types.Path())
+		return nil, nil, fmt.Errorf("package %q has no scope", pkg.Types.Path())
 	}
 
 	names := scope.Names()
@@ -293,17 +305,30 @@ func collectDeclarations(pkg *packages.Package, packageClassOverride string) ([]
 		currentPackagePath: pkg.Types.Path(),
 		exportedTypeNames:  exportedTypeNames,
 	}
+	usedCarrierNames := make(map[string]bool)
+	for name := range exportedTypeNames {
+		usedCarrierNames[name] = true
+	}
 
 	decls := make([]declaration, 0, len(namedTypes)+1)
+	carriers := make([]tupleCarrierDecl, 0)
 	for _, named := range namedTypes {
-		decls = append(decls, buildTypeDeclaration(named, ctx))
+		decl, typeCarriers := buildTypeDeclaration(named, ctx, usedCarrierNames)
+		decls = append(decls, decl)
+		carriers = append(carriers, typeCarriers...)
 	}
 
 	if len(packageFuncs) > 0 {
-		decls = append(decls, buildPackageDeclaration(pkg.Types, packageClassOverride, packageFuncs, exportedTypeNames, ctx))
+		decl, packageCarriers := buildPackageDeclaration(pkg.Types, packageClassOverride, packageFuncs, exportedTypeNames, ctx, usedCarrierNames)
+		decls = append(decls, decl)
+		carriers = append(carriers, packageCarriers...)
 	}
 
-	return decls, nil
+	sort.Slice(carriers, func(i, j int) bool {
+		return carriers[i].ClassName < carriers[j].ClassName
+	})
+
+	return decls, carriers, nil
 }
 
 func asNamedType(typeName *types.TypeName) *types.Named {
@@ -321,10 +346,10 @@ func asNamedType(typeName *types.TypeName) *types.Named {
 	return named
 }
 
-func buildTypeDeclaration(named *types.Named, ctx mappingContext) declaration {
+func buildTypeDeclaration(named *types.Named, ctx mappingContext, usedCarrierNames map[string]bool) (declaration, []tupleCarrierDecl) {
 	goName := named.Obj().Name()
 	_, isInterface := named.Underlying().(*types.Interface)
-	methods := collectMethods(named, false, ctx)
+	methods, carriers := collectMethods(named, false, ctx, goName, usedCarrierNames)
 
 	return declaration{
 		ClassName:       goName,
@@ -333,10 +358,10 @@ func buildTypeDeclaration(named *types.Named, ctx mappingContext) declaration {
 		PackageClass:    false,
 		StaticMethods:   nil,
 		InstanceMethods: methods,
-	}
+	}, carriers
 }
 
-func buildPackageDeclaration(pkg *types.Package, classOverride string, funcs []*types.Func, exportedTypes map[string]bool, ctx mappingContext) declaration {
+func buildPackageDeclaration(pkg *types.Package, classOverride string, funcs []*types.Func, exportedTypes map[string]bool, ctx mappingContext, usedCarrierNames map[string]bool) (declaration, []tupleCarrierDecl) {
 	className := ""
 	if strings.TrimSpace(classOverride) != "" {
 		className = sanitizeClassName(classOverride)
@@ -347,8 +372,10 @@ func buildPackageDeclaration(pkg *types.Package, classOverride string, funcs []*
 	for exportedTypes[className] {
 		className += "Api"
 	}
+	usedCarrierNames[className] = true
 
 	methods := make([]methodDecl, 0, len(funcs))
+	carriers := make([]tupleCarrierDecl, 0)
 	for _, fn := range funcs {
 		if fn == nil || !fn.Exported() {
 			continue
@@ -357,7 +384,11 @@ func buildPackageDeclaration(pkg *types.Package, classOverride string, funcs []*
 		if !ok {
 			continue
 		}
-		methods = append(methods, signatureToMethod(fn.Name(), sig, true, ctx))
+		method, carrier := signatureToMethod(fn.Name(), sig, true, ctx, "", usedCarrierNames)
+		methods = append(methods, method)
+		if carrier != nil {
+			carriers = append(carriers, *carrier)
+		}
 	}
 
 	sortMethodDecls(methods)
@@ -369,11 +400,12 @@ func buildPackageDeclaration(pkg *types.Package, classOverride string, funcs []*
 		PackageClass:    true,
 		StaticMethods:   methods,
 		InstanceMethods: nil,
-	}
+	}, carriers
 }
 
-func collectMethods(named *types.Named, static bool, ctx mappingContext) []methodDecl {
+func collectMethods(named *types.Named, static bool, ctx mappingContext, ownerName string, usedCarrierNames map[string]bool) ([]methodDecl, []tupleCarrierDecl) {
 	seen := make(map[string]methodDecl)
+	carrierByName := make(map[string]tupleCarrierDecl)
 
 	methodSets := []types.Type{
 		named,
@@ -393,10 +425,13 @@ func collectMethods(named *types.Named, static bool, ctx mappingContext) []metho
 				continue
 			}
 
-			method := signatureToMethod(fn.Name(), sig, static, ctx)
+			method, carrier := signatureToMethod(fn.Name(), sig, static, ctx, ownerName, usedCarrierNames)
 			key := fn.Name() + "|" + types.TypeString(sig, qualifierByPath)
 			if _, exists := seen[key]; !exists {
 				seen[key] = method
+				if carrier != nil {
+					carrierByName[carrier.ClassName] = *carrier
+				}
 			}
 		}
 	}
@@ -407,10 +442,17 @@ func collectMethods(named *types.Named, static bool, ctx mappingContext) []metho
 	}
 
 	sortMethodDecls(out)
-	return out
+	carriers := make([]tupleCarrierDecl, 0, len(carrierByName))
+	for _, carrier := range carrierByName {
+		carriers = append(carriers, carrier)
+	}
+	sort.Slice(carriers, func(i, j int) bool {
+		return carriers[i].ClassName < carriers[j].ClassName
+	})
+	return out, carriers
 }
 
-func signatureToMethod(goName string, sig *types.Signature, static bool, ctx mappingContext) methodDecl {
+func signatureToMethod(goName string, sig *types.Signature, static bool, ctx mappingContext, ownerName string, usedCarrierNames map[string]bool) (methodDecl, *tupleCarrierDecl) {
 	params := make([]paramDecl, 0, sig.Params().Len())
 	usedNames := make(map[string]int)
 
@@ -438,13 +480,21 @@ func signatureToMethod(goName string, sig *types.Signature, static bool, ctx map
 	}
 
 	returnType := "Void"
+	var carrier *tupleCarrierDecl
+	tupleReturn := false
 	switch sig.Results().Len() {
 	case 0:
 		returnType = "Void"
 	case 1:
 		returnType = mapType(sig.Results().At(0).Type(), ctx)
 	default:
-		returnType = "Dynamic"
+		if generatedCarrier, ok := buildTupleCarrier(goName, sig.Results(), ctx, ownerName, usedCarrierNames); ok {
+			returnType = generatedCarrier.ClassName
+			carrier = &generatedCarrier
+			tupleReturn = true
+		} else {
+			returnType = "Dynamic"
+		}
 	}
 
 	haxeName := sanitizeMethodName(lowerCamel(goName))
@@ -453,11 +503,87 @@ func signatureToMethod(goName string, sig *types.Signature, static bool, ctx map
 	}
 
 	return methodDecl{
-		GoName:     goName,
-		HaxeName:   haxeName,
-		Params:     params,
-		ReturnType: returnType,
-		Static:     static,
+		GoName:      goName,
+		HaxeName:    haxeName,
+		Params:      params,
+		ReturnType:  returnType,
+		Static:      static,
+		TupleReturn: tupleReturn,
+	}, carrier
+}
+
+func buildTupleCarrier(goName string, results *types.Tuple, ctx mappingContext, ownerName string, usedCarrierNames map[string]bool) (tupleCarrierDecl, bool) {
+	if results == nil || results.Len() < 2 {
+		return tupleCarrierDecl{}, false
+	}
+
+	fields := make([]paramDecl, 0, results.Len())
+	usedNames := make(map[string]int)
+	for i := 0; i < results.Len(); i++ {
+		result := results.At(i)
+		fieldType, ok := tupleResultType(result.Type())
+		if !ok {
+			return tupleCarrierDecl{}, false
+		}
+		rawName := result.Name()
+		if rawName == "" {
+			rawName = "value" + strconv.Itoa(i+1)
+		}
+		fields = append(fields, paramDecl{
+			Name: sanitizeParamName(rawName, i, usedNames),
+			Type: fieldType,
+		})
+	}
+
+	return tupleCarrierDecl{
+		ClassName: uniqueTupleCarrierName(ownerName, goName, usedCarrierNames),
+		Fields:    fields,
+	}, true
+}
+
+func tupleResultType(t types.Type) (string, bool) {
+	if isBuiltinErrorType(t) {
+		return "Null<go.Error>", true
+	}
+	basic, ok := types.Unalias(t).(*types.Basic)
+	if !ok {
+		return "", false
+	}
+	mapped := mapBasicType(basic)
+	if mapped == "Dynamic" {
+		return "", false
+	}
+	return mapped, true
+}
+
+func isBuiltinErrorType(t types.Type) bool {
+	named, ok := types.Unalias(t).(*types.Named)
+	if !ok || named.Obj() == nil {
+		return false
+	}
+	obj := named.Obj()
+	return obj.Pkg() == nil && obj.Name() == "error"
+}
+
+func uniqueTupleCarrierName(ownerName string, goName string, used map[string]bool) string {
+	baseName := goName + "Result"
+	if strings.TrimSpace(ownerName) != "" {
+		baseName = ownerName + goName + "Result"
+	}
+	base := sanitizeClassName(baseName)
+	if used == nil {
+		return base
+	}
+	if !used[base] {
+		used[base] = true
+		return base
+	}
+	for index := 2; ; index++ {
+		candidate := base + strconv.Itoa(index)
+		if !used[candidate] {
+			used[candidate] = true
+			return candidate
+		}
 	}
 }
 
@@ -598,6 +724,9 @@ func renderDeclaration(haxePackage string, goImportPath string, decl declaration
 		if idx > 0 {
 			b.WriteString("\n")
 		}
+		if method.TupleReturn {
+			b.WriteString("\t@:go.tupleReturn\n")
+		}
 		b.WriteString("\t@:go.name(\"")
 		b.WriteString(method.GoName)
 		b.WriteString("\")\n")
@@ -621,6 +750,59 @@ func renderDeclaration(haxePackage string, goImportPath string, decl declaration
 		b.WriteString(";\n")
 	}
 
+	b.WriteString("}\n")
+	return b.String()
+}
+
+func renderTupleCarrier(haxePackage string, carrier tupleCarrierDecl) string {
+	var b strings.Builder
+	b.WriteString("// Code generated by tools/goextern; DO NOT EDIT.\n")
+	b.WriteString("// Tuple carrier for Go multi-return extern calls.\n")
+
+	if haxePackage == "" {
+		b.WriteString("package;\n\n")
+	} else {
+		b.WriteString("package ")
+		b.WriteString(haxePackage)
+		b.WriteString(";\n\n")
+	}
+
+	b.WriteString("/**\n")
+	b.WriteString("\tWhat: typed Haxe carrier for a Go function that returns more than one value.\n")
+	b.WriteString("\tWhy: Haxe functions return one value, while Go can return multiple values directly.\n")
+	b.WriteString("\tHow: haxe.go lowers the matching `@:go.tupleReturn` extern call into this carrier.\n")
+	b.WriteString("**/\n")
+	b.WriteString("class ")
+	b.WriteString(carrier.ClassName)
+	b.WriteString(" {\n")
+	for _, field := range carrier.Fields {
+		b.WriteString("\tpublic var ")
+		b.WriteString(field.Name)
+		b.WriteString("(default, null):")
+		b.WriteString(field.Type)
+		b.WriteString(";\n")
+	}
+	if len(carrier.Fields) > 0 {
+		b.WriteString("\n")
+	}
+	b.WriteString("\tpublic function new(")
+	for i, field := range carrier.Fields {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		b.WriteString(field.Name)
+		b.WriteString(":")
+		b.WriteString(field.Type)
+	}
+	b.WriteString(") {\n")
+	for _, field := range carrier.Fields {
+		b.WriteString("\t\tthis.")
+		b.WriteString(field.Name)
+		b.WriteString(" = ")
+		b.WriteString(field.Name)
+		b.WriteString(";\n")
+	}
+	b.WriteString("\t}\n")
 	b.WriteString("}\n")
 	return b.String()
 }
