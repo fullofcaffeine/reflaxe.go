@@ -199,10 +199,10 @@ func (self *haxe__Template) parseTokens(data *string) []map[string]any {
 		for true {
 			var c any = hxrt.StringCharCodeAtAnyStringPtr(data, parp)
 			parp = int(int32((parp + 1)))
-			if hxrt.IntFromNullableAny(c) == 40 {
+			if c == 40 {
 				npar = int(int32((npar + 1)))
 			} else {
-				if hxrt.IntFromNullableAny(c) == 41 {
+				if c == 41 {
 					npar = int(int32((npar - 1)))
 					if npar <= 0 {
 						break
@@ -216,7 +216,7 @@ func (self *haxe__Template) parseTokens(data *string) []map[string]any {
 				}
 			}
 			chunk := hxrt.StringSubstrStringPtr(data, int(int32((hxrt.Int32Wrap(parp) - hxrt.Int32Wrap(1)))), 1, true)
-			if (hxrt.IntFromNullableAny(c) == 44) && (npar == 1) {
+			if (c == 44) && (npar == 1) {
 				params = append(params, part)
 				part = hxrt.StringFromLiteral("")
 			} else {
@@ -1398,7 +1398,7 @@ func haxe__Template_parseFloatLiteral(value *string) float64 {
 	result := (intPart + (fracPart / divisor))
 	if index < hxrt.StringLengthStringPtr(normalized) {
 		var exponentCode any = hxrt.StringCharCodeAtAnyStringPtr(normalized, index)
-		if (hxrt.IntFromNullableAny(exponentCode) == 101) || (hxrt.IntFromNullableAny(exponentCode) == 69) {
+		if (exponentCode == 101) || (exponentCode == 69) {
 			index = int(int32((index + 1)))
 			exponentSign := 1
 			if hxrt.StringCharCodeAtAnyStringPtr(normalized, index) == 45 {

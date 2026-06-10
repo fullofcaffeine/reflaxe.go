@@ -23,11 +23,13 @@ class NativeStackTrace {
 	static public function saveStack(_exception:Any):Void {}
 
 	static public function callStack():Any {
-		return [];
+		var stack:Array<StackItem> = [];
+		return stack;
 	}
 
 	static public function exceptionStack():Any {
-		return [];
+		var stack:Array<StackItem> = [];
+		return stack;
 	}
 
 	static public function toHaxe(nativeStackTrace:Any, skip:Int = 0):Array<StackItem> {

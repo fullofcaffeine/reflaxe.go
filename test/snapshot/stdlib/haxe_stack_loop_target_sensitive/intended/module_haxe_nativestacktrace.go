@@ -1,11 +1,13 @@
 package main
 
 func haxe__NativeStackTrace_callStack() any {
-	return []any{}
+	stack := []*haxe__StackItem{}
+	return stack
 }
 
 func haxe__NativeStackTrace_exceptionStack() any {
-	return []any{}
+	stack := []*haxe__StackItem{}
+	return stack
 }
 
 func haxe__NativeStackTrace_saveStack(_exception any) {

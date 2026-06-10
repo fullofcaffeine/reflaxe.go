@@ -46,11 +46,11 @@ func haxe___CallStack__CallStack_Impl__itemToString(item *haxe__StackItem) *stri
 		_g_1 := item.params[0].(*haxe__StackItem)
 		_g1 := item.params[1].(*string)
 		_g2 := item.params[2].(int)
-		var _g3 any = item.params[3].(int)
+		var _g3 any = item.params[3]
 		inner := _g_1
 		file := _g1
 		line := _g2
-		var column any = hxrt.IntFromNullableAny(_g3)
+		var column any = _g3
 		var hx_if_4 *string
 		if inner == nil {
 			hx_if_4 = file
@@ -81,8 +81,8 @@ func haxe___CallStack__CallStack_Impl__itemToString(item *haxe__StackItem) *stri
 			return hx_if_5
 		}(), hxrt.StringFromLiteral(".")), method)
 	case 4:
-		var _g_3 any = item.params[0].(int)
-		var v any = hxrt.IntFromNullableAny(_g_3)
+		var _g_3 any = item.params[0]
+		var v any = _g_3
 		hx_switch_3 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("local function #"), hxrt.StdString(v))
 	}
 	return hx_switch_3
@@ -125,7 +125,7 @@ func haxe__StackItem_Module(m *string) *haxe__StackItem {
 	return enumValue
 }
 
-func haxe__StackItem_FilePos(s *haxe__StackItem, file *string, line int, column int) *haxe__StackItem {
+func haxe__StackItem_FilePos(s *haxe__StackItem, file *string, line int, column any) *haxe__StackItem {
 	enumValue := &haxe__StackItem{tag: 2}
 	enumValue.params = []any{s, file, line, column}
 	return enumValue
@@ -137,7 +137,7 @@ func haxe__StackItem_Method(classname *string, method *string) *haxe__StackItem 
 	return enumValue
 }
 
-func haxe__StackItem_LocalFunction(v int) *haxe__StackItem {
+func haxe__StackItem_LocalFunction(v any) *haxe__StackItem {
 	enumValue := &haxe__StackItem{tag: 4}
 	enumValue.params = []any{v}
 	return enumValue

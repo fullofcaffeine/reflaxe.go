@@ -1474,7 +1474,7 @@ class GoCompiler {
 					var argName = normalizeIdent(arg.name == "" ? ("arg" + index) : arg.name);
 					params.push({
 						name: argName,
-						typeName: scalarGoType(arg.t)
+						typeName: nilCapablePrimitiveParamType(arg.t)
 					});
 					payloadExprs.push(GoExpr.GoIdent(argName));
 				}
@@ -9314,6 +9314,32 @@ class GoCompiler {
 		return isNullablePrimitiveType(type) ? "any" : scalarGoType(type);
 	}
 
+	/**
+		What:
+		Returns the Go storage type for an enum constructor payload.
+
+		Why:
+		`TEnumParameter` can appear with a narrowed expression type, but the
+		constructor declaration is the source of truth for whether the payload was
+		`Null<Int>`, `Null<Float>`, or `Null<Bool>`. Those payloads must stay `any`
+		until a null guard proves they contain the primitive value.
+
+		How:
+		Look up the constructor argument type by index and use `any` only for
+		declared nullable primitives. For generic payload constructors, prefer the
+		concrete expression type so `Either<String, Int>` still extracts `*string`
+		and `int` from the enum payload array.
+	**/
+	function enumPayloadStorageGoType(constructor:EnumField, index:Int, fallback:Type):String {
+		var ctorArgs = enumConstructorArgs(constructor.type);
+		var payloadType = index >= 0 && index < ctorArgs.length ? ctorArgs[index].t : fallback;
+		if (isNullablePrimitiveType(payloadType)) {
+			return "any";
+		}
+		var fallbackType = scalarGoType(fallback);
+		return fallbackType != "any" ? fallbackType : scalarGoType(payloadType);
+	}
+
 	function isGoNilDefaultValue(expr:Null<TypedExpr>):Bool {
 		if (expr == null) {
 			return false;
@@ -9934,9 +9960,9 @@ class GoCompiler {
 					expr: GoExpr.GoSelector(lowerExpr(inner).expr, "tag"),
 					isStringLike: false
 				};
-			case TEnumParameter(target, _, index):
+			case TEnumParameter(target, constructor, index):
 				var payload = GoExpr.GoIndex(GoExpr.GoSelector(lowerExpr(target).expr, "params"), GoExpr.GoIntLiteral(index));
-				var payloadType = scalarGoType(expr.t);
+				var payloadType = enumPayloadStorageGoType(constructor, index, expr.t);
 				{
 					expr: payloadType == "any" ? payload : GoExpr.GoTypeAssert(payload, payloadType),
 					isStringLike: isStringType(expr.t)
@@ -13249,8 +13275,14 @@ class GoCompiler {
 				}
 			}
 		}
-		var leftExprForOperator = nullComparison ? leftLowered.expr : coerceNullablePrimitiveOperandForUse(leftLowered.expr, left);
-		var rightExprForOperator = nullComparison ? rightLowered.expr : coerceNullablePrimitiveOperandForUse(rightLowered.expr, right);
+		var coerceNullableOperands = switch (op) {
+			case OpEq | OpNotEq:
+				false;
+			case _:
+				!nullComparison;
+		};
+		var leftExprForOperator = coerceNullableOperands ? coerceNullablePrimitiveOperandForUse(leftLowered.expr, left) : leftLowered.expr;
+		var rightExprForOperator = coerceNullableOperands ? coerceNullablePrimitiveOperandForUse(rightLowered.expr, right) : rightLowered.expr;
 		var useStringEquality = stringMode && (!nullComparison || isStringType(left.t) || isStringType(right.t));
 		var typedStringOps = isStringType(left.t) && isStringType(right.t);
 		var anyNullComparison = nullComparison && (isAnyLikeType(left.t) || isAnyLikeType(right.t));
@@ -13416,7 +13448,19 @@ class GoCompiler {
 		if (!isNullablePrimitiveType(operand.t)) {
 			return expr;
 		}
-		return coerceAnyExprToType(expr, operand.t, operand.t, exprBackedByAny(operand));
+		if (isNullableIntType(operand.t)) {
+			return coerceNullableIntOperandExpr(expr, operand.t, operand);
+		}
+		if (isNullableFloatType(operand.t)) {
+			return coerceNullableFloatOperandExpr(expr, operand.t, operand);
+		}
+		if (isNullableBoolType(operand.t)) {
+			if (exprUsesNarrowedPrimitiveStorage(operand) || nonNullPrimitiveExprGoType(operand) != null) {
+				return expr;
+			}
+			return lowerNilSafeTypeAssertExpr(expr, "bool");
+		}
+		return expr;
 	}
 
 	function coerceNullableFloatOperandExpr(expr:GoExpr, operandType:Type, ?operand:TypedExpr):GoExpr {
@@ -13440,6 +13484,11 @@ class GoCompiler {
 		var fromGoType = typeToGoType(fromType);
 		var toGoType = typeToGoType(toType);
 		if ((!fromAnyOverride && fromGoType != "any") || toGoType == "any") {
+			return expr;
+		}
+		// A nullable primitive destination uses `any` storage so Go nil can survive.
+		// Non-null primitive destinations still use nil-safe coercion below.
+		if (isNullablePrimitiveType(toType)) {
 			return expr;
 		}
 		if (isIntType(toType) || isHaxeInt32Type(toType)) {

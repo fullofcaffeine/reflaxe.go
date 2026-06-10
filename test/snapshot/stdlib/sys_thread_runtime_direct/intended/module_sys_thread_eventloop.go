@@ -63,7 +63,7 @@ func (self *sys__thread__EventLoop) progress() *sys__thread__NextEventTime {
 	case 2:
 		var hx_if_37 *sys__thread__NextEventTime
 		if result.Time < 0 {
-			hx_if_37 = sys__thread__NextEventTime_AnyTime(-1.0)
+			hx_if_37 = sys__thread__NextEventTime_AnyTime(nil)
 		} else {
 			hx_if_37 = sys__thread__NextEventTime_AnyTime(result.Time)
 		}
@@ -102,7 +102,7 @@ var sys__thread__NextEventTime_Now *sys__thread__NextEventTime = &sys__thread__N
 
 var sys__thread__NextEventTime_Never *sys__thread__NextEventTime = &sys__thread__NextEventTime{tag: 1}
 
-func sys__thread__NextEventTime_AnyTime(time float64) *sys__thread__NextEventTime {
+func sys__thread__NextEventTime_AnyTime(time any) *sys__thread__NextEventTime {
 	enumValue := &sys__thread__NextEventTime{tag: 2}
 	enumValue.params = []any{time}
 	return enumValue

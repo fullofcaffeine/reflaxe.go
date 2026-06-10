@@ -40,13 +40,13 @@ func (self *sys__ssl__Certificate) issuer(field *string) *string {
 
 func (self *sys__ssl__Certificate) next() *sys__ssl__Certificate {
 	var nextHandle any = hxrt.SslCertNext(self.handle)
-	var hx_if_14 *sys__ssl__Certificate
+	var hx_if_12 *sys__ssl__Certificate
 	if hxrt.AnyEqualsNull(nextHandle) {
-		hx_if_14 = nil
+		hx_if_12 = nil
 	} else {
-		hx_if_14 = New_sys__ssl__Certificate(nextHandle)
+		hx_if_12 = New_sys__ssl__Certificate(nextHandle)
 	}
-	return hx_if_14
+	return hx_if_12
 }
 
 func (self *sys__ssl__Certificate) add(pem *string) {

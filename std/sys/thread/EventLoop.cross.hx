@@ -72,7 +72,7 @@ class EventLoop {
 			case 0: Now;
 			case 1: Never;
 			case 2:
-				if (result.time < 0) AnyTime(-1.0) else AnyTime(result.time);
+				if (result.time < 0) AnyTime(null) else AnyTime(result.time);
 			case 3: At(result.time);
 			case _: Never;
 		};
