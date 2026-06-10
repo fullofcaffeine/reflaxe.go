@@ -93,15 +93,28 @@ Full matrix: [docs/examples-matrix.md](docs/examples-matrix.md)
 
 ## Output model
 
-A typical compile emits:
+The generated Go directory is controlled by `-D go_output=<dir>` in the
+selected `.hxml` file. Example projects usually write to `out_<profile>` or
+`out_<profile>_ci` so portable and metal builds do not overwrite each other.
+
+The quick-start command above uses the portable TUI todo config, so it emits:
 
 ```text
-out/
+examples/tui_todo/out_portable/
   go.mod
   main.go
   module_<haxe_module>.go
   hxrt/
     *.go
+```
+
+Generated output directories are safe to delete. They are regenerated on the
+next compile or run.
+
+You can override the generated output directory through the dev wrapper:
+
+```bash
+npm run dev:hx -- --project examples/tui_todo --profile portable --out /tmp/tui_todo_go --action run
 ```
 
 By default the backend runs `go build` after codegen. Use `-D go_no_build` for codegen-only workflows.

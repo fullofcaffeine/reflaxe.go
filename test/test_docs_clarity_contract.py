@@ -47,6 +47,16 @@ class DocsClarityContractTest(unittest.TestCase):
         self.assertNotIn("complex single-codebase app compiled across both profiles", readme)
         self.assertNotIn("compact profile adapter/storyboard reference", readme)
 
+    def test_readme_output_model_names_first_run_and_override_paths(self) -> None:
+        readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+        output_model = self.section_text(readme, "## Output model")
+
+        self.assertIn("examples/tui_todo/out_portable", output_model)
+        self.assertIn("out_<profile>", output_model)
+        self.assertIn("go_output", output_model)
+        self.assertIn("--out", output_model)
+        self.assertIn("safe to delete", output_model)
+
     def test_core_docs_have_terms_and_related_sections(self) -> None:
         targets = [
             "docs/start-here.md",
