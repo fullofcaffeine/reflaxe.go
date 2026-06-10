@@ -309,12 +309,12 @@ Shim strategy and alternatives are documented in:
 
 - `EReg` parity now covers: `g/i/m/s/u` option handling, global vs non-global `replace`/`map`, `matched`/`matchedPos`/`matchedLeft`/`matchedRight` error semantics, and group/null behavior via semantic diff fixtures (`ereg_behavior_contract`, `ereg_edge_contract`).
 - `haxe.Serializer`/`haxe.Unserializer` now cover a wire-format-compatible baseline for core tokens used by fixtures (`n/t/f/z/i/d/k/p/m/v/s/y/a/o/l/b/q/M/c/w/j/C/x/A/B/g/u/h/r/R`) plus sequential `Unserializer` cursor behavior (`serializer_wire_contract`), resolver paths (`serializer_custom_resolver_contract`), resolver method-shape polymorphism (`serializer_resolver_polymorphism_contract`), cache/reference graph parity (`serializer_cache_reference_contract`), global serializer default flag behavior (`Serializer.USE_CACHE`/`Serializer.USE_ENUM_INDEX`) with `serializeException` interaction (`serializer_global_flags_contract`), and mixed string/object reference stress (`serializer_reference_stress_contract`).
-- Remaining gap: full Haxe serializer surface is still in progress (mainly exotic/uncommon resolver payload shapes and less-common cross-target edge combinations outside current fixtures).
-- Active follow-up tracking:
+- Current scope note: serializer/unserializer coverage is broad, but the fixtures still focus on deterministic, portable payload shapes rather than claiming every obscure cross-target edge combination.
+- Completed follow-up evidence:
   - `haxe.go-7zy.10` (migrate `haxe.Json` shim out of compiler core, completed 2026-02-19)
   - `haxe.go-7zy.11` (migrate `Sys`/`sys.io.File`/`sys.io.Process` shim path out of compiler core, completed 2026-02-19)
   - `haxe.go-7zy.12` (reduce `stdlib_symbols` bytes-conversion overhead, completed 2026-02-19)
-  - `haxe.go-re8` (support resolver-returned type-value markers for class/enum name extraction + serialization)
+  - `haxe.go-re8` (support resolver-returned type-value markers for class/enum name extraction + serialization, completed 2026-02-20)
 
 ### Upstream module sweep (strict CI-gated)
 
