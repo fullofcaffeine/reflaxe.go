@@ -27,8 +27,8 @@ func (self *haxe__iterators__StringIterator) hasNext() bool {
 
 func (self *haxe__iterators__StringIterator) next() int {
 	return hxrt.StringCharCodeAtStringPtr(self.s, func() int {
-		hx_post_27 := self.offset
+		hx_post_22 := self.offset
 		self.offset = int(int32((self.offset + 1)))
-		return hx_post_27
+		return hx_post_22
 	}())
 }

@@ -193,6 +193,8 @@ class GoASTPrinter {
 				}
 				out.add("}");
 				out.toString();
+			case GoLabeled(label, stmt):
+				label + ":\n" + printStmt(stmt);
 			case GoRangeStmt(keyName, valueName, source, useShort, body):
 				var out = new StringBuf();
 				out.add("for ");
@@ -296,8 +298,8 @@ class GoASTPrinter {
 				}
 				out.add("}");
 				out.toString();
-			case GoBreak:
-				"break";
+			case GoBreak(label):
+				label == null ? "break" : "break " + label;
 			case GoContinue:
 				"continue";
 			case GoReturn(expr): expr == null ? "return" : "return " + printExpr(expr);

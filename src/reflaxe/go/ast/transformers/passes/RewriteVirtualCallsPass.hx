@@ -103,6 +103,8 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 				var rewrittenBody = rewriteStmtList(body, receiverName, canDevirtualizeSelf, loopCandidates, leafReceivers, leafReturnCallTargets);
 				clearCandidates(localLeafVars);
 				GoStmt.GoWhile(rewriteExpr(cond, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets), rewrittenBody);
+			case GoStmt.GoLabeled(label, child):
+				GoStmt.GoLabeled(label, rewriteStmt(child, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
 			case GoStmt.GoRangeStmt(keyName, valueName, source, useShort, body):
 				var rangeCandidates = cloneCandidates(localLeafVars);
 				var rewrittenBody = rewriteStmtList(body, receiverName, canDevirtualizeSelf, rangeCandidates, leafReceivers, leafReturnCallTargets);

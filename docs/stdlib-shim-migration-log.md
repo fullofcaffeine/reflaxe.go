@@ -581,7 +581,7 @@ Validation evidence:
 
 Observed result:
 
-- `haxe.io.Path` no longer bloats `GoCompiler` with library semantics.
+- `haxe.io.Path` later graduated back to the upstream Haxe stdlib implementation once the reusable string/array lowerings landed (`haxe.go-14as.37`).
 
 ### 2026-03-06: legacy text tranche closure (`haxe.go-14as.29`)
 

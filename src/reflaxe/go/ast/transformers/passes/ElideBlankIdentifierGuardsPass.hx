@@ -190,6 +190,8 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				pushScope();
 				collectStmtList(body);
 				popScope();
+			case GoStmt.GoLabeled(_, child):
+				collectStmt(child);
 			case GoStmt.GoRangeStmt(keyName, valueName, source, useShort, body):
 				collectExprReads(source);
 				pushScope();
@@ -253,7 +255,7 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 					collectStmtList(entry.body);
 					popScope();
 				}
-			case GoStmt.GoBreak:
+			case GoStmt.GoBreak(_):
 			case GoStmt.GoContinue:
 			case GoStmt.GoReturn(expr):
 				if (expr != null) {
@@ -435,6 +437,9 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				var rewrittenBody = rewriteStmtList(body);
 				popScope();
 				GoStmt.GoWhile(rewrittenCond, rewrittenBody);
+			case GoStmt.GoLabeled(label, child):
+				var rewrittenChild = rewriteStmt(child, new Map<Int, Bool>());
+				rewrittenChild == null ? null : GoStmt.GoLabeled(label, rewrittenChild);
 			case GoStmt.GoRangeStmt(keyName, valueName, source, useShort, body):
 				var rewrittenSource = rewriteExpr(source);
 				pushScope();
@@ -525,7 +530,7 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 					});
 				}
 				GoStmt.GoSelect(rewrittenCases);
-			case GoStmt.GoBreak:
+			case GoStmt.GoBreak(_):
 				stmt;
 			case GoStmt.GoContinue:
 				stmt;

@@ -57,6 +57,8 @@ class RewriteStringOpsPass implements IGoASTPass {
 				GoStmt.GoSendStmt(rewriteExpr(channel), rewriteExpr(value));
 			case GoStmt.GoWhile(cond, body):
 				GoStmt.GoWhile(rewriteExpr(cond), [for (inner in body) rewriteStmt(inner)]);
+			case GoStmt.GoLabeled(label, child):
+				GoStmt.GoLabeled(label, rewriteStmt(child));
 			case GoStmt.GoRangeStmt(keyName, valueName, source, useShort, body):
 				GoStmt.GoRangeStmt(keyName, valueName, rewriteExpr(source), useShort, [for (inner in body) rewriteStmt(inner)]);
 			case GoStmt.GoIf(cond, thenBody, elseBody):

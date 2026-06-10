@@ -2137,7 +2137,7 @@ func Type_getClassFields(c any) []*string {
 	case "haxe._Int64.___Int64":
 		return []*string{}
 	case "haxe.io.Path":
-		return []*string{hxrt.StringFromLiteral("addTrailingSlash"), hxrt.StringFromLiteral("directory"), hxrt.StringFromLiteral("extension"), hxrt.StringFromLiteral("isAbsolute"), hxrt.StringFromLiteral("join"), hxrt.StringFromLiteral("joinWithSlash"), hxrt.StringFromLiteral("lastIndexOfCode"), hxrt.StringFromLiteral("normalize"), hxrt.StringFromLiteral("removeTrailingSlashes"), hxrt.StringFromLiteral("splitOnSlash"), hxrt.StringFromLiteral("withExtension"), hxrt.StringFromLiteral("withoutDirectory"), hxrt.StringFromLiteral("withoutExtension")}
+		return []*string{hxrt.StringFromLiteral("addTrailingSlash"), hxrt.StringFromLiteral("directory"), hxrt.StringFromLiteral("extension"), hxrt.StringFromLiteral("isAbsolute"), hxrt.StringFromLiteral("join"), hxrt.StringFromLiteral("normalize"), hxrt.StringFromLiteral("removeTrailingSlashes"), hxrt.StringFromLiteral("withExtension"), hxrt.StringFromLiteral("withoutDirectory"), hxrt.StringFromLiteral("withoutExtension")}
 	case "haxe.iterators.StringIterator":
 		return []*string{}
 	case "haxe.iterators.StringKeyValueIterator":

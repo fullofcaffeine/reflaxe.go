@@ -320,6 +320,12 @@ MODULE_NOTES_OVERRIDES = {
         "Ownership stays source-owned because this surface is just the upstream string-backed abstract "
         "running on the normal string lowering contract."
     ),
+    "haxe.io.Path": (
+        "Direct `haxe.io.Path` usage now has semantic-diff coverage through "
+        "`semantic_diff/path_cross_std_contract` and snapshot coverage in `stdlib/path_cross_std_basic`. "
+        "Ownership has graduated back to the upstream Haxe stdlib implementation; Go only owns the reusable "
+        "string and array lowerings that upstream `Path.hx` depends on."
+    ),
     "haxe.io.Scheme": (
         "Direct `haxe.io.Scheme` abstract usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "

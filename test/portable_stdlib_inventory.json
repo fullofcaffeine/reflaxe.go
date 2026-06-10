@@ -1430,7 +1430,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.Path",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Path` usage now has semantic-diff coverage through `semantic_diff/path_cross_std_contract` and snapshot coverage in `stdlib/path_cross_std_basic`. Ownership has graduated back to the upstream Haxe stdlib implementation; Go only owns the reusable string and array lowerings that upstream `Path.hx` depends on.",
       "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"

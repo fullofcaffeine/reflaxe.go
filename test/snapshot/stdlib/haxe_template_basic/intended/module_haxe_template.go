@@ -747,14 +747,14 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func(
 		}
 		return hx_field_151.(*string)
 	}(token)
-	switch _g {
-	case hxrt.StringFromLiteral("!"):
+	switch *hxrt.StdString(_g) {
+	case *hxrt.StdString(hxrt.StringFromLiteral("!")):
 		inner := self.makeExpr(cursor)
 		return func() any {
 			var value any = inner()
 			return (hxrt.AnyEqualsNull(value) || (value == false))
 		}
-	case hxrt.StringFromLiteral("("):
+	case *hxrt.StdString(hxrt.StringFromLiteral("(")):
 		self.skipSpaces(cursor)
 		e1 := self.makeExpr(cursor)
 		self.skipSpaces(cursor)
@@ -849,58 +849,58 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func(
 			return hx_field_177.(*string)
 		}(op)
 		var hx_switch_179 func() any
-		switch _g_1 {
-		case hxrt.StringFromLiteral("!="):
+		switch *hxrt.StdString(_g_1) {
+		case *hxrt.StdString(hxrt.StringFromLiteral("!=")):
 			hx_switch_179 = func() any {
 				return (e1() != e2())
 			}
-		case hxrt.StringFromLiteral("&&"):
+		case *hxrt.StdString(hxrt.StringFromLiteral("&&")):
 			hx_switch_179 = func() any {
 				return (haxe__Template_valueAsBool(e1()) && haxe__Template_valueAsBool(e2()))
 			}
-		case hxrt.StringFromLiteral("*"):
+		case *hxrt.StdString(hxrt.StringFromLiteral("*")):
 			hx_switch_179 = func() any {
 				var left any = e1()
 				var right any = e2()
 				return (haxe__Template_valueAsFloat(left) * haxe__Template_valueAsFloat(right))
 			}
-		case hxrt.StringFromLiteral("+"):
+		case *hxrt.StdString(hxrt.StringFromLiteral("+")):
 			hx_switch_179 = func() any {
 				return haxe__Template_addValues(e1(), e2())
 			}
-		case hxrt.StringFromLiteral("-"):
+		case *hxrt.StdString(hxrt.StringFromLiteral("-")):
 			hx_switch_179 = func() any {
 				var left any = e1()
 				var right any = e2()
 				return (haxe__Template_valueAsFloat(left) - haxe__Template_valueAsFloat(right))
 			}
-		case hxrt.StringFromLiteral("/"):
+		case *hxrt.StdString(hxrt.StringFromLiteral("/")):
 			hx_switch_179 = func() any {
 				var left any = e1()
 				var right any = e2()
 				return (haxe__Template_valueAsFloat(left) / haxe__Template_valueAsFloat(right))
 			}
-		case hxrt.StringFromLiteral("<"):
+		case *hxrt.StdString(hxrt.StringFromLiteral("<")):
 			hx_switch_179 = func() any {
 				return (haxe__Template_compareValues(e1(), e2()) < 0)
 			}
-		case hxrt.StringFromLiteral("<="):
+		case *hxrt.StdString(hxrt.StringFromLiteral("<=")):
 			hx_switch_179 = func() any {
 				return (haxe__Template_compareValues(e1(), e2()) <= 0)
 			}
-		case hxrt.StringFromLiteral("=="):
+		case *hxrt.StdString(hxrt.StringFromLiteral("==")):
 			hx_switch_179 = func() any {
 				return (e1() == e2())
 			}
-		case hxrt.StringFromLiteral(">"):
+		case *hxrt.StdString(hxrt.StringFromLiteral(">")):
 			hx_switch_179 = func() any {
 				return (haxe__Template_compareValues(e1(), e2()) > 0)
 			}
-		case hxrt.StringFromLiteral(">="):
+		case *hxrt.StdString(hxrt.StringFromLiteral(">=")):
 			hx_switch_179 = func() any {
 				return (haxe__Template_compareValues(e1(), e2()) >= 0)
 			}
-		case hxrt.StringFromLiteral("||"):
+		case *hxrt.StdString(hxrt.StringFromLiteral("||")):
 			hx_switch_179 = func() any {
 				return (haxe__Template_valueAsBool(e1()) || haxe__Template_valueAsBool(e2()))
 			}
@@ -919,7 +919,7 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func(
 			}()
 		}
 		return hx_switch_179
-	case hxrt.StringFromLiteral("-"):
+	case *hxrt.StdString(hxrt.StringFromLiteral("-")):
 		inner_1 := self.makeExpr(cursor)
 		return func() any {
 			return -haxe__Template_valueAsFloat(inner_1())

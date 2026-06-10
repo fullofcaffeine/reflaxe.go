@@ -137,6 +137,10 @@ private typedef ReturnRedirect = {
 	final valueType:Null<Type>;
 }
 
+private typedef LoopBreakTarget = {
+	var label:Null<String>;
+}
+
 /**
 	What:
 	Represents the lowered write site for mutating an `Array` through a target
@@ -188,6 +192,9 @@ class GoCompiler {
 	final localNeverReassignedScopes:Array<Map<Int, Bool>>;
 	final functionReturnTypeScopes:Array<Type>;
 	final returnRedirectScopes:Array<Null<ReturnRedirect>>;
+	final constructorReturnScopes:Array<Bool>;
+	final loopBreakTargetScopes:Array<LoopBreakTarget>;
+	var switchDepth:Int;
 	var cachedVoidType:Null<Type>;
 	var requiresIoHelperSurface:Bool;
 	var requiresSysCommandSurface:Bool;
@@ -230,6 +237,9 @@ class GoCompiler {
 		localNeverReassignedScopes = [];
 		functionReturnTypeScopes = [];
 		returnRedirectScopes = [];
+		constructorReturnScopes = [];
+		loopBreakTargetScopes = [];
+		switchDepth = 0;
 		cachedVoidType = null;
 		requiresIoHelperSurface = false;
 		requiresSysCommandSurface = false;
@@ -691,6 +701,8 @@ class GoCompiler {
 					}
 					used;
 				}
+			case GoLabeled(_, child):
+				stmtUsesImportAlias(child, alias);
 			case GoRangeStmt(_, _, source, _, body):
 				if (exprUsesImportAlias(source, alias)) {
 					true;
@@ -808,7 +820,7 @@ class GoCompiler {
 					}
 				}
 				used;
-			case GoBreak, GoContinue:
+			case GoBreak(_), GoContinue:
 				false;
 			case GoReturn(expr): expr != null && exprUsesImportAlias(expr, alias);
 		};
@@ -7619,7 +7631,9 @@ class GoCompiler {
 			body: []
 		};
 		if (ctorFunc != null) {
+			pushConstructorReturnScope();
 			loweredCtorBody = lowerConstructorBody(ctorFunc.expr);
+			popConstructorReturnScope();
 		}
 
 		if (superClass != null) {
@@ -8330,19 +8344,23 @@ class GoCompiler {
 					[GoStmt.GoIf(lowerExpr(condition).expr, thenBody, elseBody)];
 			case TWhile(condition, body, normalWhile):
 				if (normalWhile) {
-					[GoStmt.GoWhile(lowerExpr(condition).expr, lowerToStatements(body))];
+					[lowerLoopStmt(lowerExpr(condition).expr, body)];
 				} else {
 					var firstPassVar = freshTempName("hx_do_first");
 					var loweredCondition = lowerExpr(condition).expr;
 					var loopCondition = GoExpr.GoBinary("||", GoExpr.GoIdent(firstPassVar), loweredCondition);
+					var target:LoopBreakTarget = {label: null};
+					loopBreakTargetScopes.push(target);
 					var loopBody = [GoStmt.GoAssign(GoExpr.GoIdent(firstPassVar), GoExpr.GoBoolLiteral(false))].concat(lowerToStatements(body));
-					[
-						GoStmt.GoVarDecl(firstPassVar, null, GoExpr.GoBoolLiteral(true), true),
-						GoStmt.GoWhile(loopCondition, loopBody)
-					];
+					loopBreakTargetScopes.pop();
+					var loopStmt:GoStmt = GoStmt.GoWhile(loopCondition, loopBody);
+					if (target.label != null) {
+						loopStmt = GoStmt.GoLabeled(target.label, loopStmt);
+					}
+					[GoStmt.GoVarDecl(firstPassVar, null, GoExpr.GoBoolLiteral(true), true), loopStmt];
 				}
 			case TBreak:
-				[GoStmt.GoBreak];
+				[GoStmt.GoBreak(switchDepth > 0 ? currentLoopBreakLabel() : null)];
 			case TContinue:
 				[GoStmt.GoContinue];
 			case TUnop(op, _, value):
@@ -8384,7 +8402,9 @@ class GoCompiler {
 					redirected.push(GoStmt.GoReturn(null));
 					redirected;
 				} else if (value == null) {
-					[GoStmt.GoReturn(null)];
+					[
+						GoStmt.GoReturn(inConstructorReturnScope() && currentFunctionReturnType() == null ? GoExpr.GoIdent("self") : null)
+					];
 				} else {
 					var loweredReturn = lowerExprWithPrefix(value);
 					var returnExpr = loweredReturn.expr;
@@ -8524,45 +8544,86 @@ class GoCompiler {
 	}
 
 	function lowerSwitchStmt(value:TypedExpr, cases:Array<{values:Array<TypedExpr>, expr:TypedExpr}>, defaultExpr:Null<TypedExpr>):GoStmt {
+		var stringSwitch = isStringType(value.t);
 		var loweredCases = new Array<GoSwitchCase>();
 		for (caseEntry in cases) {
 			loweredCases.push({
-				values: [for (caseValue in caseEntry.values) lowerExpr(caseValue).expr],
-				body: lowerToStatements(caseEntry.expr)
+				values: [
+					for (caseValue in caseEntry.values) stringSwitch ? lowerStringComparableExpr(caseValue) : lowerExpr(caseValue).expr
+				],
+				body: lowerInSwitchContext(function() return lowerToStatements(caseEntry.expr))
 			});
 		}
 
-		return GoStmt.GoSwitch(lowerExpr(value).expr, loweredCases, defaultExpr == null ? null : lowerToStatements(defaultExpr));
+		return GoStmt.GoSwitch(stringSwitch ? lowerStringComparableExpr(value) : lowerExpr(value).expr, loweredCases,
+			defaultExpr == null ? null : lowerInSwitchContext(function() return lowerToStatements(defaultExpr)));
 	}
 
 	function lowerSwitchExpr(value:TypedExpr, cases:Array<{values:Array<TypedExpr>, expr:TypedExpr}>, defaultExpr:Null<TypedExpr>,
 			resultType:Type):LoweredExprWithPrefix {
 		var temp = freshTempName("hx_switch");
+		var stringSwitch = isStringType(value.t);
 		var loweredCases = new Array<GoSwitchCase>();
 
 		for (caseEntry in cases) {
-			var loweredCase = lowerExprWithPrefix(caseEntry.expr);
+			var loweredCase = lowerInSwitchContext(function() return lowerExprWithPrefix(caseEntry.expr));
 			var caseBody = loweredCase.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredCase.expr)]);
 			loweredCases.push({
-				values: [for (caseValue in caseEntry.values) lowerExpr(caseValue).expr],
+				values: [
+					for (caseValue in caseEntry.values) stringSwitch ? lowerStringComparableExpr(caseValue) : lowerExpr(caseValue).expr
+				],
 				body: caseBody
 			});
 		}
 
 		var defaultBody:Null<Array<GoStmt>> = null;
 		if (defaultExpr != null) {
-			var loweredDefault = lowerExprWithPrefix(defaultExpr);
+			var loweredDefault = lowerInSwitchContext(function() return lowerExprWithPrefix(defaultExpr));
 			defaultBody = loweredDefault.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredDefault.expr)]);
 		}
 
 		return {
 			prefix: [
 				GoStmt.GoVarDecl(temp, valueStorageGoType(resultType), null, false),
-				GoStmt.GoSwitch(lowerExpr(value).expr, loweredCases, defaultBody)
+				GoStmt.GoSwitch(stringSwitch ? lowerStringComparableExpr(value) : lowerExpr(value).expr, loweredCases, defaultBody)
 			],
 			expr: GoExpr.GoIdent(temp),
 			isStringLike: isStringType(resultType)
 		};
+	}
+
+	function lowerStringComparableExpr(expr:TypedExpr):GoExpr {
+		return GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [lowerExpr(expr).expr]));
+	}
+
+	function lowerLoopStmt(condition:GoExpr, body:TypedExpr):GoStmt {
+		var target:LoopBreakTarget = {label: null};
+		loopBreakTargetScopes.push(target);
+		var bodyStmts = lowerToStatements(body);
+		loopBreakTargetScopes.pop();
+		var loopStmt:GoStmt = GoStmt.GoWhile(condition, bodyStmts);
+		if (target.label != null) {
+			return GoStmt.GoLabeled(target.label, loopStmt);
+		}
+		return loopStmt;
+	}
+
+	function lowerInSwitchContext<T>(lower:Void->T):T {
+		switchDepth++;
+		var out = lower();
+		switchDepth--;
+		return out;
+	}
+
+	function currentLoopBreakLabel():Null<String> {
+		if (loopBreakTargetScopes.length == 0) {
+			return null;
+		}
+		var target = loopBreakTargetScopes[loopBreakTargetScopes.length - 1];
+		if (target.label == null) {
+			target.label = freshTempName("hx_loop");
+		}
+		return target.label;
 	}
 
 	function lowerIfExpr(condition:TypedExpr, thenBranch:TypedExpr, elseBranch:Null<TypedExpr>, resultType:Type):LoweredExprWithPrefix {
@@ -9197,6 +9258,20 @@ class GoCompiler {
 			return null;
 		}
 		return functionReturnTypeScopes[functionReturnTypeScopes.length - 1];
+	}
+
+	function pushConstructorReturnScope():Void {
+		constructorReturnScopes.push(true);
+	}
+
+	function popConstructorReturnScope():Void {
+		if (constructorReturnScopes.length > 0) {
+			constructorReturnScopes.pop();
+		}
+	}
+
+	function inConstructorReturnScope():Bool {
+		return constructorReturnScopes.length > 0;
 	}
 
 	function pushReturnRedirectMask():Void {
@@ -10961,6 +11036,14 @@ class GoCompiler {
 			};
 		}
 
+		if (isStaticCall(callee, "String", [], "fromCharCode")) {
+			var code = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromCharCode"), [code]),
+				isStringLike: true
+			};
+		}
+
 		if (isStaticCall(callee, "Std", [], "isOfType")) {
 			return lowerStdIsOfTypeCall(args);
 		}
@@ -11711,6 +11794,36 @@ class GoCompiler {
 							{
 								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, posExpr, lenExpr, hasLenExpr]),
 								isStringLike: true
+							};
+						case "lastIndexOf":
+							var searchExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
+								[GoExpr.GoStringLiteral("")]);
+							var startExpr = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoIntLiteral(0);
+							var hasStartExpr = GoExpr.GoBoolLiteral(args.length > 1);
+							var helper = if (useTypedHelpers) {
+								compilationContext.optimizerStringInstanceTypedLowerings++;
+								"hxrt.StringLastIndexOfStringPtr";
+							} else {
+								compilationContext.optimizerStringInstanceLegacyLowerings++;
+								"hxrt.StringLastIndexOf";
+							};
+							{
+								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, searchExpr, startExpr, hasStartExpr]),
+								isStringLike: false
+							};
+						case "split":
+							var delimiterExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
+								[GoExpr.GoStringLiteral("")]);
+							var helper = if (useTypedHelpers) {
+								compilationContext.optimizerStringInstanceTypedLowerings++;
+								"hxrt.StringSplitStringPtr";
+							} else {
+								compilationContext.optimizerStringInstanceLegacyLowerings++;
+								"hxrt.StringSplit";
+							};
+							{
+								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, delimiterExpr]),
+								isStringLike: false
 							};
 						case _:
 							null;
@@ -14209,6 +14322,14 @@ class GoCompiler {
 				{
 					expr: cloneArrayExpr(lowerExpr(methodCall.target).expr, methodCall.target.t),
 					isStringLike: false
+				};
+			case "join":
+				var delimiterExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
+					[GoExpr.GoStringLiteral("")]);
+				var sourceExpr = lowerTypedArrayToAnyCoerce(lowerExpr(methodCall.target).expr, methodCall.target.t);
+				{
+					expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringJoinAny"), [sourceExpr, delimiterExpr]),
+					isStringLike: true
 				};
 			case "push":
 				var site = lowerArrayMutationSite(methodCall.target);

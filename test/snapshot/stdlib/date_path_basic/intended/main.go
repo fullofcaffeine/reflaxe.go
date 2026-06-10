@@ -1862,8 +1862,6 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	switch className {
 	case "Main":
 		return nil, false
-	case "StringTools":
-		return nil, false
 	case "haxe.Int64Helper":
 		return nil, false
 	case "haxe._Int32.Int32_Impl_":
@@ -1874,10 +1872,6 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return hxrt_typeCallAny(New_haxe___Int64_____Int64, args)
 	case "haxe.io.Path":
 		return hxrt_typeCallAny(New_haxe__io__Path, args)
-	case "haxe.iterators.StringIterator":
-		return hxrt_typeCallAny(New_haxe__iterators__StringIterator, args)
-	case "haxe.iterators.StringKeyValueIterator":
-		return hxrt_typeCallAny(New_haxe__iterators__StringKeyValueIterator, args)
 	default:
 		return nil, false
 	}
@@ -1889,10 +1883,6 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 		return &haxe___Int64_____Int64{}, true
 	case "haxe.io.Path":
 		return &haxe__io__Path{}, true
-	case "haxe.iterators.StringIterator":
-		return &haxe__iterators__StringIterator{}, true
-	case "haxe.iterators.StringKeyValueIterator":
-		return &haxe__iterators__StringKeyValueIterator{}, true
 	default:
 		return nil, false
 	}
@@ -2029,16 +2019,6 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Path")}
-	case *haxe__iterators__StringIterator:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.StringIterator")}
-	case *haxe__iterators__StringKeyValueIterator:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.StringKeyValueIterator")}
 	default:
 		return nil
 	}
@@ -2075,8 +2055,6 @@ func Type_getSuperClass(c any) any {
 	switch className {
 	case "Main":
 		return nil
-	case "StringTools":
-		return nil
 	case "haxe.Int64Helper":
 		return nil
 	case "haxe._Int32.Int32_Impl_":
@@ -2086,10 +2064,6 @@ func Type_getSuperClass(c any) any {
 	case "haxe._Int64.___Int64":
 		return nil
 	case "haxe.io.Path":
-		return nil
-	case "haxe.iterators.StringIterator":
-		return nil
-	case "haxe.iterators.StringKeyValueIterator":
 		return nil
 	default:
 		return nil
@@ -2112,8 +2086,6 @@ func Type_getClassFields(c any) []*string {
 	switch className {
 	case "Main":
 		return []*string{hxrt.StringFromLiteral("main")}
-	case "StringTools":
-		return []*string{hxrt.StringFromLiteral("MAX_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("contains"), hxrt.StringFromLiteral("containsImpl"), hxrt.StringFromLiteral("endsWith"), hxrt.StringFromLiteral("endsWithImpl"), hxrt.StringFromLiteral("fastCodeAt"), hxrt.StringFromLiteral("hex"), hxrt.StringFromLiteral("hexDigitValue"), hxrt.StringFromLiteral("htmlEscape"), hxrt.StringFromLiteral("htmlUnescape"), hxrt.StringFromLiteral("isEof"), hxrt.StringFromLiteral("isSpace"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("lpad"), hxrt.StringFromLiteral("ltrim"), hxrt.StringFromLiteral("replace"), hxrt.StringFromLiteral("rpad"), hxrt.StringFromLiteral("rtrim"), hxrt.StringFromLiteral("startsWith"), hxrt.StringFromLiteral("startsWithImpl"), hxrt.StringFromLiteral("trim"), hxrt.StringFromLiteral("unsafeCodeAt"), hxrt.StringFromLiteral("urlDecode"), hxrt.StringFromLiteral("urlEncode"), hxrt.StringFromLiteral("utf16CodePointAt")}
 	case "haxe.Int64Helper":
 		return []*string{}
 	case "haxe._Int32.Int32_Impl_":
@@ -2123,11 +2095,7 @@ func Type_getClassFields(c any) []*string {
 	case "haxe._Int64.___Int64":
 		return []*string{}
 	case "haxe.io.Path":
-		return []*string{hxrt.StringFromLiteral("addTrailingSlash"), hxrt.StringFromLiteral("directory"), hxrt.StringFromLiteral("extension"), hxrt.StringFromLiteral("isAbsolute"), hxrt.StringFromLiteral("join"), hxrt.StringFromLiteral("joinWithSlash"), hxrt.StringFromLiteral("lastIndexOfCode"), hxrt.StringFromLiteral("normalize"), hxrt.StringFromLiteral("removeTrailingSlashes"), hxrt.StringFromLiteral("splitOnSlash"), hxrt.StringFromLiteral("withExtension"), hxrt.StringFromLiteral("withoutDirectory"), hxrt.StringFromLiteral("withoutExtension")}
-	case "haxe.iterators.StringIterator":
-		return []*string{}
-	case "haxe.iterators.StringKeyValueIterator":
-		return []*string{}
+		return []*string{hxrt.StringFromLiteral("addTrailingSlash"), hxrt.StringFromLiteral("join"), hxrt.StringFromLiteral("normalize")}
 	default:
 		return []*string{}
 	}
@@ -2141,8 +2109,6 @@ func Type_getInstanceFields(c any) []*string {
 	switch className {
 	case "Main":
 		return []*string{}
-	case "StringTools":
-		return []*string{}
 	case "haxe.Int64Helper":
 		return []*string{}
 	case "haxe._Int32.Int32_Impl_":
@@ -2152,11 +2118,7 @@ func Type_getInstanceFields(c any) []*string {
 	case "haxe._Int64.___Int64":
 		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
 	case "haxe.io.Path":
-		return []*string{hxrt.StringFromLiteral("backslash"), hxrt.StringFromLiteral("dir"), hxrt.StringFromLiteral("ext"), hxrt.StringFromLiteral("file"), hxrt.StringFromLiteral("toString")}
-	case "haxe.iterators.StringIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
-	case "haxe.iterators.StringKeyValueIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
+		return []*string{hxrt.StringFromLiteral("backslash"), hxrt.StringFromLiteral("dir"), hxrt.StringFromLiteral("ext"), hxrt.StringFromLiteral("file")}
 	default:
 		return []*string{}
 	}
@@ -2178,8 +2140,6 @@ func Type_resolveClass(name *string) any {
 	switch rawName {
 	case "Main":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "StringTools":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.Int64Helper":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe._Int32.Int32_Impl_":
@@ -2189,10 +2149,6 @@ func Type_resolveClass(name *string) any {
 	case "haxe._Int64.___Int64":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.io.Path":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "haxe.iterators.StringIterator":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "haxe.iterators.StringKeyValueIterator":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil

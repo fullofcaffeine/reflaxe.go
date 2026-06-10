@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -174,10 +175,11 @@ func StringSubstrStringPtr(value *string, pos int, length int, hasLength bool) *
 
 	end := total
 	if hasLength {
-		if length <= 0 {
-			return StringFromLiteral("")
+		if length < 0 {
+			end = total + length
+		} else {
+			end = start + length
 		}
-		end = start + length
 		if end > total {
 			end = total
 		}
@@ -186,6 +188,76 @@ func StringSubstrStringPtr(value *string, pos int, length int, hasLength bool) *
 		end = start
 	}
 	return StringFromLiteral(sliceStringByRuneRange(raw, start, end))
+}
+
+func StringLastIndexOfStringPtr(value *string, search *string, startIndex int, hasStart bool) int {
+	raw := stringValueOrNullToken(value)
+	needle := stringValueOrNullToken(search)
+	total := utf8.RuneCountInString(raw)
+
+	start := total
+	if hasStart {
+		start = startIndex
+		if start < 0 {
+			return -1
+		}
+		if start > total {
+			start = total
+		}
+	}
+
+	if needle == "" {
+		return start
+	}
+
+	needleLen := utf8.RuneCountInString(needle)
+	if needleLen > total || start < 0 {
+		return -1
+	}
+	maxStart := start
+	if maxStart > total-needleLen {
+		maxStart = total - needleLen
+	}
+	for index := maxStart; index >= 0; index-- {
+		if sliceStringByRuneRange(raw, index, index+needleLen) == needle {
+			return index
+		}
+	}
+	return -1
+}
+
+func StringSplitStringPtr(value *string, delimiter *string) []*string {
+	raw := stringValueOrNullToken(value)
+	sep := stringValueOrNullToken(delimiter)
+	if raw == "" {
+		return []*string{}
+	}
+	if sep == "" {
+		out := make([]*string, 0, utf8.RuneCountInString(raw))
+		for _, runeValue := range raw {
+			out = append(out, StringFromLiteral(string(runeValue)))
+		}
+		return out
+	}
+	parts := strings.Split(raw, sep)
+	out := make([]*string, 0, len(parts))
+	for _, part := range parts {
+		out = append(out, StringFromLiteral(part))
+	}
+	return out
+}
+
+func StringJoinAny(values []any, delimiter *string) *string {
+	sep := stringValueOrNullToken(delimiter)
+	parts := make([]string, 0, len(values))
+	for _, value := range values {
+		parts = append(parts, *StdString(value))
+	}
+	return StringFromLiteral(strings.Join(parts, sep))
+}
+
+func StringFromCharCode(code int) *string {
+	return StringFromLiteral(string(rune(code)))
 }
 
 func clampSubstringRange(start int, end int, total int) (int, int) {
@@ -267,4 +339,12 @@ func StringSubstring(value any, start int, end int) *string {
 
 func StringSubstr(value any, pos int, length int, hasLength bool) *string {
 	return StringSubstrStringPtr(StdString(value), pos, length, hasLength)
+}
+
+func StringLastIndexOf(value any, search any, startIndex int, hasStart bool) int {
+	return StringLastIndexOfStringPtr(StdString(value), StdString(search), startIndex, hasStart)
+}
+
+func StringSplit(value any, delimiter any) []*string {
+	return StringSplitStringPtr(StdString(value), StdString(delimiter))
 }

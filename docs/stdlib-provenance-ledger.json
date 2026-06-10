@@ -123,11 +123,6 @@
       "notes": "Go staged portable override for direct haxe.ds.GenericStack runtime ownership, including localized erased-generic equality recovery."
     },
     {
-      "path": "std/haxe/io/Path.cross.hx",
-      "provenanceKind": "repo_authored_override",
-      "notes": "Go staged portable override for haxe.io.Path helper ownership, keeping path parsing and normalization semantics out of GoCompiler while upstream lowerings remain incomplete."
-    },
-    {
       "path": "std/haxe/io/GoIoHelpers.cross.hx",
       "provenanceKind": "repo_authored_override",
       "notes": "Go staged portable helper surface for inherited haxe.io.Input and haxe.io.Output loop semantics, keeping generic stream-control helpers out of GoCompiler while the backend still owns the base IO type shapes."
