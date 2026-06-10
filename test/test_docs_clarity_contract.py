@@ -67,6 +67,15 @@ class DocsClarityContractTest(unittest.TestCase):
             text = (REPO_ROOT / rel).read_text(encoding="utf-8")
             self.assertNotIn("](docs/", text, f"{rel} should use root-relative /docs/ links")
 
+    def test_goextern_explains_advanced_signature_boundaries(self) -> None:
+        goextern = (REPO_ROOT / "docs" / "goextern.md").read_text(encoding="utf-8")
+        self.assertIn("## Advanced Signature Boundary Policy", goextern)
+        self.assertIn("ordinary typed extern metadata", goextern)
+        self.assertIn("single `(T,error)`", goextern)
+        self.assertIn("typed facade wrapper", goextern)
+        self.assertIn("must not use raw `__go__`", goextern)
+        self.assertIn("tools/goextern/main_test.go", goextern)
+
 
 if __name__ == "__main__":
     unittest.main()

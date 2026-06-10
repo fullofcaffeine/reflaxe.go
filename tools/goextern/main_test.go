@@ -65,6 +65,36 @@ func TestBuildEmissionFmtIsDeterministic(t *testing.T) {
 	}
 }
 
+func TestBuildEmissionFmtMultiReturnBoundary(t *testing.T) {
+	cfg := Config{
+		GoImportPath:      "fmt",
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	}
+
+	emission, err := BuildEmission(cfg)
+	if err != nil {
+		t.Fatalf("BuildEmission failed: %v", err)
+	}
+
+	pkgFile := fileContentsByName(t, emission, "FmtPkg.hx")
+	if !strings.Contains(pkgFile, "public static function sprintf(format:String, a:haxe.Rest<Dynamic>):String;") {
+		t.Fatalf("single-return fmt.Sprintf should stay strongly typed")
+	}
+	for _, signature := range []string{
+		"public static function fprint(w:Dynamic, a:haxe.Rest<Dynamic>):Dynamic;",
+		"public static function fscan(r:Dynamic, a:haxe.Rest<Dynamic>):Dynamic;",
+		"public static function sscanf(str:String, format:String, a:haxe.Rest<Dynamic>):Dynamic;",
+	} {
+		if !strings.Contains(pkgFile, signature) {
+			t.Fatalf("advanced multi-return signature should stay Dynamic until facade policy changes: %s", signature)
+		}
+	}
+	if strings.Contains(pkgFile, "@:go.valueError\n\t@:go.name(\"Fprint\")") {
+		t.Fatalf("fmt.Fprint returns (int, error), but goextern must not apply @:go.valueError without an explicit go.Result<T> facade")
+	}
+}
+
 func TestBuildEmissionContextIncludesInterfaceAndPackageClass(t *testing.T) {
 	cfg := Config{
 		GoImportPath:      "context",

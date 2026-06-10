@@ -92,6 +92,44 @@ First-class `(T,error)` interop pattern:
 This keeps generated externs broadly usable while avoiding unsafe precision claims.
 You can refine generated files manually where stronger typing is needed.
 
+## Advanced Signature Boundary Policy
+
+Most Go APIs fit into one of three interop paths.
+
+Terms:
+
+- **Ordinary typed extern metadata** means `@:go.import`, `@:go.name`, and
+  optionally `@:go.receiver`. Use this when a Go function has zero or one return
+  value that maps cleanly to a Haxe type.
+- A **single `(T,error)`** signature means a Go function returns one value plus an `error`,
+  such as `strconv.Atoi(s) (int, error)`.
+- **Typed facade wrapper** means a small Go-facing Haxe extern or helper that
+  presents a simpler shape to application code. Use this when the raw Go
+  signature is too complex for the generator to type honestly.
+
+| Go signature shape | What `goextern` does today | Recommended user path |
+| --- | --- | --- |
+| `func Name()` or `func Name(T) U` | Emits ordinary typed extern metadata when the types map cleanly. | Use the generated extern directly. |
+| `func Name(T) (U, error)` | Can be represented as `go.Result<U>` when the extern is explicitly authored with `@:go.valueError`. | Prefer a typed extern or facade that returns `go.Result<U>`. See `examples/interop_smoke` and `test/semantic_diff/go_value_error_result_contract`. |
+| `func Name(...) (A, B)` where the second value is not `error` | Emits `Dynamic` for now. | Add a typed facade wrapper that converts the pair into a Haxe-friendly class, enum, or `go.Result<T>`-style abstraction. |
+| `func Name(...) (A, B, C...)` | Emits `Dynamic` for now. | Add a typed facade wrapper. Do not pretend the generated `Dynamic` value is portable or fully typed. |
+| callbacks, channels, generics, unsafe pointers, structs from another package | Usually emits `Dynamic` at the boundary. | Wrap the API behind a smaller typed facade first, then expose that facade to Haxe. |
+
+The next implementation step belongs in typed extern metadata or generated
+facade helpers, not in application-side raw injection. App code and examples
+must not use raw `__go__` to bypass these boundaries. Raw injection is reserved
+for controlled framework/runtime layers; see `docs/profiles.md` and
+`docs/stdlib-shim-rationale.md`.
+
+The current boundary is locked by:
+
+- `tools/goextern/main_test.go`, especially the `fmt` multi-return boundary test.
+- `npm run test:goextern`
+- `npm run test:goextern:fixtures`
+
+If this policy changes, update the generator, fixtures, and this section in the
+same change.
+
 ## Validation
 
 Run generator unit/integration tests:
