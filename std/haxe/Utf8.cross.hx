@@ -6,8 +6,9 @@ import haxe.iterators.GoStringRuntime;
 /**
 	What
 	- Go-target staged override for `haxe.Utf8`.
-	- Preserves the deprecated legacy UTF-8 helper surface without pushing more
-	  text-library behavior into `GoCompiler`.
+	- Preserves the deprecated legacy UTF-8 helper surface, including the
+	  optional constructor size hint, without pushing more text-library behavior
+	  into `GoCompiler`.
 
 	Why
 	- The upstream Haxe stdlib implementation is the right public API, but
@@ -31,7 +32,23 @@ import haxe.iterators.GoStringRuntime;
 class Utf8 {
 	var __b:String;
 
-	public function new():Void {
+	/**
+		What
+		Constructs an empty legacy UTF-8 buffer. The `size` argument is a
+		deprecated capacity hint with a default value and does not affect the
+		visible buffer contents.
+
+		Why
+		Upstream Haxe accepts `new haxe.Utf8(size)` and `new haxe.Utf8()` for old
+		code even though the class itself is deprecated. A default `Int` keeps the
+		generated Go constructor typed instead of widening the ignored hint to
+		`any`.
+
+		How
+		The Go target stores the buffer as a `String`; capacity preallocation would
+		not change public behavior, so the hint is intentionally ignored.
+	**/
+	public function new(size:Int = 0):Void {
 		__b = "";
 	}
 

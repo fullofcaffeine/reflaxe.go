@@ -12,7 +12,7 @@ type haxe__Utf8 struct {
 	__b       *string
 }
 
-func New_haxe__Utf8() *haxe__Utf8 {
+func New_haxe__Utf8(size int) *haxe__Utf8 {
 	self := &haxe__Utf8{}
 	self.__hx_this = self
 	self.__b = hxrt.StringFromLiteral("")

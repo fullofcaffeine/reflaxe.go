@@ -206,10 +206,10 @@ MODULE_NOTES_OVERRIDES = {
     ),
     "haxe.Utf8": (
         "Covered by staged-std semantic-diff contract haxe_utf8_contract plus snapshot "
-        "stdlib/haxe_utf8_basic. Go preserves the deprecated no-size constructor and helper subset "
-        "through std/haxe/Utf8.cross.hx while keeping the optional size constructor explicitly out of "
-        "scope until optional-constructor lowering is fixed. See negative/direct_haxe_utf8_size_ctor_unsupported "
-        "and follow-up haxe.go-14as.42."
+        "stdlib/haxe_utf8_basic. Go preserves the deprecated buffer constructor with and without "
+        "the optional size hint plus the helper subset through std/haxe/Utf8.cross.hx. The size "
+        "hint is ignored because it is only a deprecated capacity hint and has no visible buffer "
+        "semantics."
     ),
     "haxe.Timer": (
         "Direct haxe.Timer usage is covered by snapshot/runtime smoke contract "

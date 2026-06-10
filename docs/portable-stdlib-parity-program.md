@@ -131,6 +131,7 @@ Closed root-surface follow-up:
 - `haxe.go-14as.27` promoted `haxe.EnumFlags` and `haxe.EnumTools` to semantic-diff coverage via `haxe_enum_helpers_contract` and `stdlib/haxe_enum_helpers_direct`, closing the enum-helper tranche without adding a target-owned std override.
 - `haxe.go-14as.28` closed the stack-fallback half of the old stack/main-loop tranche. `haxe.CallStack` and `haxe.NativeStackTrace` stay under explicit target-sensitive snapshot coverage through `stdlib/haxe_stack_loop_target_sensitive`.
 - `haxe.go-14as.29` closed the legacy text tranche. `haxe.Utf8` now lives in staged std through `std/haxe/Utf8.cross.hx` with semantic-diff coverage in `haxe_utf8_contract` plus snapshot coverage in `stdlib/haxe_utf8_basic`, while `haxe.Ucs2` stays under explicit target-sensitive snapshot coverage through `stdlib/haxe_ucs2_platform_exclusion`.
+- `haxe.go-14as.42` closed the deprecated `haxe.Utf8` optional-size constructor follow-up. `new haxe.Utf8(size)` now compiles through the staged std override, keeps the constructor parameter typed as `Int`, and ignores the deprecated capacity hint because it has no visible runtime semantics.
 - `haxe.go-14as.69` promoted direct `haxe.EntryPoint`, `haxe.MainLoop`, and `haxe.Timer` to snapshot/runtime smoke coverage through `stdlib/haxe_main_loop_runtime_direct`. Ownership is mixed: public APIs live in staged std overrides under `std/haxe/*.cross.hx`, while `runtime/hxrt/thread.go` continues to own the scheduler beneath `sys.thread.EventLoop`.
 
 Update sequence when std override files change:
@@ -174,7 +175,6 @@ Current execution order:
    - `haxe.go-14as.17` (`sys.db` + `sys.io`)
    - `haxe.go-14as.18` (closed: `sys.ssl.Socket` promoted to snapshot coverage; `sys.net.UdpSocket` direct loopback baseline already promoted)
    - `haxe.go-14as.19` (`sys.thread`)
-   - `haxe.go-14as.42` (`haxe.Utf8` deprecated optional-size constructor)
 
 Recently closed direct portable tranches:
 

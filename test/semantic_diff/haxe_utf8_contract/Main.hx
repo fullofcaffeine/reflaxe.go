@@ -25,10 +25,13 @@ class Main {
 		utf8.addChar(0x1F600);
 		utf8.addChar('é'.code);
 		var value = utf8.toString();
+		var sized = new haxe.Utf8(4);
+		sized.addChar('z'.code);
 		var iterated = [];
 		haxe.Utf8.iter(value, function(code) iterated.push(Std.string(code)));
 
 		Sys.println("string=" + value);
+		Sys.println("sized=" + sized.toString());
 		Sys.println("iter=" + join(iterated));
 		Sys.println("charCodeAt.0=" + haxe.Utf8.charCodeAt(value, 0));
 		Sys.println("charCodeAt.1=" + haxe.Utf8.charCodeAt(value, 1));

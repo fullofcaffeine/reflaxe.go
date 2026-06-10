@@ -609,6 +609,19 @@ Observed result:
 - `haxe.Ucs2` is no longer anonymous compile-only debt; its Go behavior is an explicit platform exclusion with a named snapshot contract.
 - The staged override preserves the upstream helper surface while making the current lowering gaps explicit and local to `std/`.
 
+### 2026-06-10: `haxe.Utf8` optional size constructor restored (`haxe.go-14as.42`)
+
+Implementation:
+
+- Updated `std/haxe/Utf8.cross.hx` so `new haxe.Utf8(size)` is accepted again through a typed default `Int` constructor argument.
+- Removed the old negative fixture for `direct_haxe_utf8_size_ctor_unsupported`.
+- Extended `haxe_utf8_contract` and `stdlib/haxe_utf8_basic` to cover both constructor forms.
+
+Observed result:
+
+- The deprecated size hint remains a capacity hint only and is intentionally ignored.
+- Generated Go keeps the constructor typed instead of widening the ignored argument to `any`.
+
 ### 2026-03-06: stack/main-loop `haxe.misc` tranche moved from compile-only debt to explicit snapshot scope (`haxe.go-14as.28`)
 
 Implementation:

@@ -5,8 +5,11 @@ class Main {
 		utf8.addChar(0x1F600);
 		utf8.addChar('é'.code);
 		var value = utf8.toString();
+		var sized = new haxe.Utf8(4);
+		sized.addChar('z'.code);
 
 		Sys.println("string=" + value);
+		Sys.println("sized=" + sized.toString());
 		Sys.println("length=" + haxe.Utf8.length(value));
 		Sys.println("sub=" + haxe.Utf8.sub(value, 1, 2));
 		Sys.println("encode=" + haxe.Utf8.encode("é"));

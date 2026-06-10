@@ -70,7 +70,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `Reflect` (compare + dynamic field ops subset) | `semantic-diff` | `reflect_compare`, `reflect_field_ops` |
 | `Date` + `haxe.ds.Option` + `haxe.io.Path` subset | `semantic-diff` | `option_date_path`, `path_cross_std_contract`, `stdlib/date_path_basic`, `stdlib/path_cross_std_basic` |
 | `haxe.Log` + `haxe.Resource` + `haxe.SysTools` direct helper subset | `semantic-diff` | `direct_haxe_helpers_contract`, `direct_haxe_resource_contract`, `stdlib/haxe_resource_embedded_basic` |
-| `haxe.Utf8` deprecated helper subset (no-size buffer ctor, `addChar`, `toString`, `iter`, `charCodeAt`, `validate`, byte-length `length`, byte-compare `compare`, UTF-8 character-position `sub`, `encode`, `decode`; optional size ctor stays excluded) | `semantic-diff` | `haxe_utf8_contract`, `stdlib/haxe_utf8_basic`, `negative/direct_haxe_utf8_size_ctor_unsupported` |
+| `haxe.Utf8` deprecated helper subset (buffer ctor with or without optional size hint, `addChar`, `toString`, `iter`, `charCodeAt`, `validate`, byte-length `length`, byte-compare `compare`, UTF-8 character-position `sub`, `encode`, `decode`) | `semantic-diff` | `haxe_utf8_contract`, `stdlib/haxe_utf8_basic` |
 | `haxe.Ucs2` platform exclusion | `snapshot` | `stdlib/haxe_ucs2_platform_exclusion` |
 | `haxe.http.HttpJs` / `haxe.http.HttpNodeJs` target-conditional exclusion on Go | `snapshot` | `negative/direct_haxe_httpjs_unsupported`, `negative/direct_haxe_httpnodejs_unsupported` |
 | `Array` + `IntIterator` core subset (`push`/`pop` statement-form, length/index access, array iteration, `0...N` range iteration) | `semantic-diff` | `array_string_intiterator_contract` |
