@@ -23,6 +23,11 @@ class PerfGoProfilesContractTest(unittest.TestCase):
         self.assertIn('metric.case === "tui"', text)
         self.assertIn('ratioTable("TUI Profile Spread', text)
 
+    def test_microbench_compiles_use_selective_hxrt_runtime(self) -> None:
+        text = SCRIPT_PATH.read_text(encoding="utf-8")
+        self.assertIn('GO_PERF_HXRT_FEATURES', text)
+        self.assertIn('-D "reflaxe_go_hxrt_features=$hxrt_features"', text)
+
 
 if __name__ == "__main__":
-    unittest.main()
+	unittest.main()

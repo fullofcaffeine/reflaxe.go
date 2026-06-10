@@ -31,6 +31,8 @@ Environment:
   GO_PERF_PORTABLE_CONCURRENCY_FASTPATH
                             Sets -D reflaxe_go_opt_go_concurrency_fastpath for portable builds in this harness
                             (default: 1/on).
+  GO_PERF_HXRT_FEATURES     Base selective hxrt feature list for microbench builds
+                            (default: core,string,print; inference still adds case-specific features).
   GO_PERF_DELTA_WARN_PCT    Soft warning threshold for portable-vs-metal startup delta drift vs baseline
                             for selected cases (default: 15).
   GO_PERF_ENFORCE_DELTA_BUDGET
@@ -456,6 +458,7 @@ compile_haxe_case() {
       -D reflaxe.dont_output_metadata_id
       -D no-traces
       -D no_traces
+      -D "reflaxe_go_hxrt_features=$hxrt_features"
       -main Main
     )
     if [[ "$profile" == "portable" ]]; then
@@ -875,6 +878,7 @@ enforce_metal_budget="${GO_PERF_ENFORCE_METAL_BUDGET:-0}"
 metal_size_fail_pct="${GO_PERF_METAL_SIZE_FAIL_PCT:-25}"
 metal_runtime_fail_pct="${GO_PERF_METAL_RUNTIME_FAIL_PCT:-100}"
 portable_concurrency_fastpath="${GO_PERF_PORTABLE_CONCURRENCY_FASTPATH:-1}"
+hxrt_features="${GO_PERF_HXRT_FEATURES:-core,string,print}"
 delta_warn_pct="${GO_PERF_DELTA_WARN_PCT:-15}"
 enforce_delta_budget="${GO_PERF_ENFORCE_DELTA_BUDGET:-0}"
 delta_fail_pct="${GO_PERF_DELTA_FAIL_PCT:-25}"
@@ -1242,6 +1246,7 @@ GO_PERF_ENFORCE_METAL_BUDGET="$enforce_metal_budget" \
 GO_PERF_METAL_SIZE_FAIL_PCT="$metal_size_fail_pct" \
 GO_PERF_METAL_RUNTIME_FAIL_PCT="$metal_runtime_fail_pct" \
 GO_PERF_PORTABLE_CONCURRENCY_FASTPATH="$portable_concurrency_fastpath_bool" \
+GO_PERF_HXRT_FEATURES="$hxrt_features" \
 GO_PERF_DELTA_WARN_PCT="$delta_warn_pct" \
 GO_PERF_ENFORCE_DELTA_BUDGET="$enforce_delta_budget" \
 GO_PERF_DELTA_FAIL_PCT="$delta_fail_pct" \
@@ -1286,6 +1291,7 @@ const enforceMetalBudget = /^(1|true|yes|on)$/i.test(process.env.GO_PERF_ENFORCE
 const metalSizeFailPct = Number(process.env.GO_PERF_METAL_SIZE_FAIL_PCT || "25");
 const metalRuntimeFailPct = Number(process.env.GO_PERF_METAL_RUNTIME_FAIL_PCT || "100");
 const portableConcurrencyFastpathEnabled = /^(1|true|yes|on)$/i.test(process.env.GO_PERF_PORTABLE_CONCURRENCY_FASTPATH || "1");
+const hxrtFeatures = process.env.GO_PERF_HXRT_FEATURES || "core,string,print";
 const deltaWarnPct = Number(process.env.GO_PERF_DELTA_WARN_PCT || "15");
 const enforceDeltaBudget = /^(1|true|yes|on)$/i.test(process.env.GO_PERF_ENFORCE_DELTA_BUDGET || "0");
 const deltaFailPct = Number(process.env.GO_PERF_DELTA_FAIL_PCT || "25");
@@ -1506,6 +1512,7 @@ const current = {
   metrics,
   options: {
     portableConcurrencyFastpathEnabled,
+    hxrtFeatures,
     enforceMetalBudget,
     enforceDeltaBudget,
     deltaCases: uniqueDeltaCases,
@@ -1774,6 +1781,7 @@ summaryLines.push(`- Delta enforcement: \`${enforceDeltaBudget ? "on" : "off"}\`
 summaryLines.push(`- Metal hard budgets: size=\`+${metalSizeFailPct}%\`, runtime=\`+${metalRuntimeFailPct}%\``);
 summaryLines.push(`- Delta hard budget: startup=\`+${deltaFailPct}%\` for cases=\`${uniqueDeltaCases.join(",") || "none"}\``);
 summaryLines.push(`- Portable concurrency fastpath: \`${portableConcurrencyFastpathEnabled ? "on" : "off"}\``);
+summaryLines.push(`- Microbench hxrt features: \`${hxrtFeatures}\``);
 summaryLines.push(`- Startup loops: hello=${helloIters}, array=${arrayIters}, atomic=${atomicIters}, channel=${channelIters}, map=${mapIters}, generic=${genericIters}, string=${stringIters}, string_instance=${stringInstanceIters}, virtual=${virtualIters}, select=${selectIters}, tui=${tuiIters}`);
 summaryLines.push(`- Workload params: atomic_ops=${atomicWork}, channel_ops=${channelWork}, map_ops=${mapWork}, generic_ops=${genericWork}, string_ops=${stringWork}, string_instance_ops=${stringInstanceWork}, virtual_ops=${virtualWork}, select_ops=${selectWork}`);
 if (haxeVersion.length > 0 || goVersion.length > 0) {

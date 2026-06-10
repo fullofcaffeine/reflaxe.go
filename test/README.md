@@ -560,6 +560,18 @@ Disable portable concurrency fastpath for A/B perf checks:
 GO_PERF_PORTABLE_CONCURRENCY_FASTPATH=0 bash scripts/ci/perf-go-profiles.sh
 ```
 
+Change the base `hxrt` runtime slice used by microbench builds:
+
+```bash
+GO_PERF_HXRT_FEATURES=core,string,print bash scripts/ci/perf-go-profiles.sh
+```
+
+`GO_PERF_HXRT_FEATURES` enables selective runtime copying for the microbench
+cases. The default keeps the common print/string helpers in the measured
+output, while the compiler can still infer extra case-specific files such as
+atomic or concurrency helpers. This prevents unrelated runtime subsystems from
+making every microbench binary look slower or larger.
+
 Tune atomic workload/loop stability if needed:
 
 ```bash
