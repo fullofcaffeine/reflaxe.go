@@ -22,13 +22,13 @@ func app__core__FluxCodec_proxy(request *app__core__FluxRequest, timeoutMs int) 
 		latency = 0
 	}
 	status := request.status
-	var hx_if_13 int
+	var hx_if_15 int
 	if status >= 500 {
-		hx_if_13 = 2
+		hx_if_15 = 2
 	} else {
-		hx_if_13 = 1
+		hx_if_15 = 1
 	}
-	attempts := hx_if_13
+	attempts := hx_if_15
 	if latency > timeoutMs {
 		status = 504
 		attempts = 2

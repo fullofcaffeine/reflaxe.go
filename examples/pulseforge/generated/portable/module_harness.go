@@ -34,21 +34,21 @@ func Harness_assertContract(runtime app__runtime__PulseRuntime) *string {
 		var hx_throw_zero_6 *string
 		return hx_throw_zero_6
 	}
-	if report.alertCount != 2 {
+	if report.alertCount != 3 {
 		hxrt.Throw(hxrt.StringFromLiteral("alert.count drift"))
 		var hx_throw_zero_7 *string
 		return hx_throw_zero_7
 	}
-	if !hxrt.StringEqualStringPtr(report.alertDigest, hxrt.StringFromLiteral("3,5")) {
+	if !hxrt.StringEqualStringPtr(report.alertDigest, hxrt.StringFromLiteral("3,5,7")) {
 		hxrt.Throw(hxrt.StringFromLiteral("alert.events drift"))
 		var hx_throw_zero_8 *string
 		return hx_throw_zero_8
 	}
 	var hx_if_9 int
 	if hxrt.StringEqualStringPtr(runtime.variantId(), hxrt.StringFromLiteral("go_native")) {
-		hx_if_9 = 123
+		hx_if_9 = 146
 	} else {
-		hx_if_9 = 108
+		hx_if_9 = 129
 	}
 	expectedScore := hx_if_9
 	if report.runtimeScore != expectedScore {

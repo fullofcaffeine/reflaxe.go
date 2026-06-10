@@ -262,13 +262,13 @@ func Harness_render(runtime profile__StoryboardRuntime) *string {
 	highRisk := Harness_openHighRisk(cards, riskThreshold)
 	releaseOpen := Harness_releaseTaggedOpen(cards)
 	signalMetrics := Harness_buildSignalMetrics(cards)
-	var hx_if_4 *string
+	var hx_if_13 *string
 	if runtime.supportsVelocityHint() {
-		hx_if_4 = hxrt.StringFromLiteral("adaptive")
+		hx_if_13 = hxrt.StringFromLiteral("adaptive")
 	} else {
-		hx_if_4 = hxrt.StringFromLiteral("baseline")
+		hx_if_13 = hxrt.StringFromLiteral("baseline")
 	}
-	velocityHint := hx_if_4
+	velocityHint := hx_if_13
 	bar := Harness_progressBar(done, total, 24)
 	action := hxrt.StringFromLiteral("ready to cut release")
 	if highRisk > 0 {

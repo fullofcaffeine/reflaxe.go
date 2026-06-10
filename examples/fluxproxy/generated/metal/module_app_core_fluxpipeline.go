@@ -32,65 +32,65 @@ func New_app__core__FluxPipeline(runtime app__runtime__FluxRuntime) *app__core__
 func (self *app__core__FluxPipeline) run(requests []*app__core__FluxRequest) *app__core__FluxReport {
 	ingest := self.ingest(requests, 3)
 	planned := self.applyRoutePolicies(ingest.acceptedRequests, 2, 2, 50)
-	dispatched := self.runtime.dispatch(func(hx_obj_14 map[string]any) []*app__core__FluxRequest {
-		hx_field_15 := hx_obj_14["dispatchable"]
-		if hx_field_15 == nil {
-			var hx_zero_16 []*app__core__FluxRequest
-			return hx_zero_16
+	dispatched := self.runtime.dispatch(func(hx_obj_16 map[string]any) []*app__core__FluxRequest {
+		hx_field_17 := hx_obj_16["dispatchable"]
+		if hx_field_17 == nil {
+			var hx_zero_18 []*app__core__FluxRequest
+			return hx_zero_18
 		}
-		return hx_field_15.([]*app__core__FluxRequest)
+		return hx_field_17.([]*app__core__FluxRequest)
 	}(planned), 1)
-	responses := self.orderedResponses(func(hx_obj_17 map[string]any) []*app__core__FluxProxyResponse {
-		hx_field_18 := hx_obj_17["synthetic"]
-		if hx_field_18 == nil {
-			var hx_zero_19 []*app__core__FluxProxyResponse
-			return hx_zero_19
+	responses := self.orderedResponses(func(hx_obj_19 map[string]any) []*app__core__FluxProxyResponse {
+		hx_field_20 := hx_obj_19["synthetic"]
+		if hx_field_20 == nil {
+			var hx_zero_21 []*app__core__FluxProxyResponse
+			return hx_zero_21
 		}
-		return hx_field_18.([]*app__core__FluxProxyResponse)
+		return hx_field_20.([]*app__core__FluxProxyResponse)
 	}(planned), dispatched, ingest.acceptedRequests)
 	aggregates := self.aggregate(responses)
 	retryCount := self.retries(responses)
 	errorCount := self.errors(responses)
 	score := self.runtime.stageScore(responses, retryCount, ingest.backpressureEvents)
-	return New_app__core__FluxReport(self.runtime.profileId(), self.runtime.variantId(), self.runtime.capabilityId(), ingest.receivedCount, len(ingest.acceptedRequests), ingest.backpressureEvents, len(responses), retryCount, func(hx_obj_20 map[string]any) int {
-		hx_field_21 := hx_obj_20["rateLimited"]
-		if hx_field_21 == nil {
-			var hx_zero_22 int
-			return hx_zero_22
+	return New_app__core__FluxReport(self.runtime.profileId(), self.runtime.variantId(), self.runtime.capabilityId(), ingest.receivedCount, len(ingest.acceptedRequests), ingest.backpressureEvents, len(responses), retryCount, func(hx_obj_22 map[string]any) int {
+		hx_field_23 := hx_obj_22["rateLimited"]
+		if hx_field_23 == nil {
+			var hx_zero_24 int
+			return hx_zero_24
 		}
-		return hx_field_21.(int)
-	}(planned), func(hx_obj_23 map[string]any) int {
-		hx_field_24 := hx_obj_23["breakerOpen"]
-		if hx_field_24 == nil {
-			var hx_zero_25 int
-			return hx_zero_25
+		return hx_field_23.(int)
+	}(planned), func(hx_obj_25 map[string]any) int {
+		hx_field_26 := hx_obj_25["breakerOpen"]
+		if hx_field_26 == nil {
+			var hx_zero_27 int
+			return hx_zero_27
 		}
-		return hx_field_24.(int)
-	}(planned), len(func(hx_obj_26 map[string]any) []*app__core__FluxRouteAggregate {
-		hx_field_27 := hx_obj_26["routes"]
-		if hx_field_27 == nil {
-			var hx_zero_28 []*app__core__FluxRouteAggregate
-			return hx_zero_28
+		return hx_field_26.(int)
+	}(planned), len(func(hx_obj_28 map[string]any) []*app__core__FluxRouteAggregate {
+		hx_field_29 := hx_obj_28["routes"]
+		if hx_field_29 == nil {
+			var hx_zero_30 []*app__core__FluxRouteAggregate
+			return hx_zero_30
 		}
-		return hx_field_27.([]*app__core__FluxRouteAggregate)
-	}(aggregates)), func(hx_obj_29 map[string]any) *string {
-		hx_field_30 := hx_obj_29["summary"]
-		if hx_field_30 == nil {
-			var hx_zero_31 *string
-			return hx_zero_31
+		return hx_field_29.([]*app__core__FluxRouteAggregate)
+	}(aggregates)), func(hx_obj_31 map[string]any) *string {
+		hx_field_32 := hx_obj_31["summary"]
+		if hx_field_32 == nil {
+			var hx_zero_33 *string
+			return hx_zero_33
 		}
-		return hx_field_30.(*string)
+		return hx_field_32.(*string)
 	}(aggregates), errorCount, score)
 }
 
 func (self *app__core__FluxPipeline) ingest(requests []*app__core__FluxRequest, capacity int) *app__core__FluxIngestResult {
-	var hx_if_32 int
+	var hx_if_34 int
 	if capacity <= 0 {
-		hx_if_32 = 1
+		hx_if_34 = 1
 	} else {
-		hx_if_32 = capacity
+		hx_if_34 = capacity
 	}
-	boundedCapacity := hx_if_32
+	boundedCapacity := hx_if_34
 	queue := []*app__core__FluxRequest{}
 	queueHead := 0
 	accepted := []*app__core__FluxRequest{}
@@ -137,10 +137,10 @@ func (self *app__core__FluxPipeline) aggregate(responses []*app__core__FluxProxy
 		}
 		digest = hxrt.StringConcatStringPtr(digest, item.summaryToken())
 	}
-	hx_obj_33 := map[string]any{}
-	hx_obj_33["routes"] = routes
-	hx_obj_33["summary"] = digest
-	return hx_obj_33
+	hx_obj_39 := map[string]any{}
+	hx_obj_39["routes"] = routes
+	hx_obj_39["summary"] = digest
+	return hx_obj_39
 }
 
 func (self *app__core__FluxPipeline) retries(responses []*app__core__FluxProxyResponse) int {
@@ -168,20 +168,20 @@ func (self *app__core__FluxPipeline) errors(responses []*app__core__FluxProxyRes
 }
 
 func (self *app__core__FluxPipeline) applyRoutePolicies(requests []*app__core__FluxRequest, perRouteLimit int, breakerFailureThreshold int, timeoutMs int) map[string]any {
-	var hx_if_34 int
+	var hx_if_40 int
 	if perRouteLimit <= 0 {
-		hx_if_34 = 1
+		hx_if_40 = 1
 	} else {
-		hx_if_34 = perRouteLimit
+		hx_if_40 = perRouteLimit
 	}
-	normalizedLimit := hx_if_34
-	var hx_if_35 int
+	normalizedLimit := hx_if_40
+	var hx_if_41 int
 	if breakerFailureThreshold <= 0 {
-		hx_if_35 = 1
+		hx_if_41 = 1
 	} else {
-		hx_if_35 = breakerFailureThreshold
+		hx_if_41 = breakerFailureThreshold
 	}
-	normalizedBreaker := hx_if_35
+	normalizedBreaker := hx_if_41
 	routeCounts := []map[string]any{}
 	failureStreak := []map[string]any{}
 	dispatchable := []*app__core__FluxRequest{}
@@ -214,12 +214,12 @@ func (self *app__core__FluxPipeline) applyRoutePolicies(requests []*app__core__F
 			failureStreak = self.setStringIntStateValue(failureStreak, route, 0)
 		}
 	}
-	hx_obj_36 := map[string]any{}
-	hx_obj_36["dispatchable"] = dispatchable
-	hx_obj_36["synthetic"] = synthetic
-	hx_obj_36["rateLimited"] = rateLimited
-	hx_obj_36["breakerOpen"] = breakerOpen
-	return hx_obj_36
+	hx_obj_45 := map[string]any{}
+	hx_obj_45["dispatchable"] = dispatchable
+	hx_obj_45["synthetic"] = synthetic
+	hx_obj_45["rateLimited"] = rateLimited
+	hx_obj_45["breakerOpen"] = breakerOpen
+	return hx_obj_45
 }
 
 func (self *app__core__FluxPipeline) orderedResponses(synthetic []*app__core__FluxProxyResponse, dispatched []*app__core__FluxProxyResponse, acceptedRequests []*app__core__FluxRequest) []*app__core__FluxProxyResponse {
@@ -266,21 +266,21 @@ func (self *app__core__FluxPipeline) getStringIntStateValue(states []map[string]
 	for _g < len(states) {
 		state := states[_g]
 		_g = int(int32((_g + 1)))
-		if hxrt.StringEqualStringPtr(func(hx_obj_37 map[string]any) *string {
-			hx_field_38 := hx_obj_37["key"]
-			if hx_field_38 == nil {
-				var hx_zero_39 *string
-				return hx_zero_39
+		if hxrt.StringEqualStringPtr(func(hx_obj_50 map[string]any) *string {
+			hx_field_51 := hx_obj_50["key"]
+			if hx_field_51 == nil {
+				var hx_zero_52 *string
+				return hx_zero_52
 			}
-			return hx_field_38.(*string)
+			return hx_field_51.(*string)
 		}(state), key) {
-			return func(hx_obj_40 map[string]any) int {
-				hx_field_41 := hx_obj_40["value"]
-				if hx_field_41 == nil {
-					var hx_zero_42 int
-					return hx_zero_42
+			return func(hx_obj_47 map[string]any) int {
+				hx_field_48 := hx_obj_47["value"]
+				if hx_field_48 == nil {
+					var hx_zero_49 int
+					return hx_zero_49
 				}
-				return hx_field_41.(int)
+				return hx_field_48.(int)
 			}(state)
 		}
 	}
@@ -292,23 +292,23 @@ func (self *app__core__FluxPipeline) setStringIntStateValue(states []map[string]
 	for _g < len(states) {
 		state := states[_g]
 		_g = int(int32((_g + 1)))
-		if hxrt.StringEqualStringPtr(func(hx_obj_43 map[string]any) *string {
-			hx_field_44 := hx_obj_43["key"]
-			if hx_field_44 == nil {
-				var hx_zero_45 *string
-				return hx_zero_45
+		if hxrt.StringEqualStringPtr(func(hx_obj_53 map[string]any) *string {
+			hx_field_54 := hx_obj_53["key"]
+			if hx_field_54 == nil {
+				var hx_zero_55 *string
+				return hx_zero_55
 			}
-			return hx_field_44.(*string)
+			return hx_field_54.(*string)
 		}(state), key) {
 			state["value"] = value
 			return states
 		}
 	}
 	states = append(states, func() map[string]any {
-		hx_obj_46 := map[string]any{}
-		hx_obj_46["key"] = key
-		hx_obj_46["value"] = value
-		return hx_obj_46
+		hx_obj_57 := map[string]any{}
+		hx_obj_57["key"] = key
+		hx_obj_57["value"] = value
+		return hx_obj_57
 	}())
 	return states
 }
@@ -318,21 +318,21 @@ func (self *app__core__FluxPipeline) getResponseById(states []map[string]any, re
 	for _g < len(states) {
 		state := states[_g]
 		_g = int(int32((_g + 1)))
-		if func(hx_obj_47 map[string]any) int {
-			hx_field_48 := hx_obj_47["requestId"]
-			if hx_field_48 == nil {
-				var hx_zero_49 int
-				return hx_zero_49
+		if func(hx_obj_61 map[string]any) int {
+			hx_field_62 := hx_obj_61["requestId"]
+			if hx_field_62 == nil {
+				var hx_zero_63 int
+				return hx_zero_63
 			}
-			return hx_field_48.(int)
+			return hx_field_62.(int)
 		}(state) == requestId {
-			return func(hx_obj_50 map[string]any) *app__core__FluxProxyResponse {
-				hx_field_51 := hx_obj_50["response"]
-				if hx_field_51 == nil {
-					var hx_zero_52 *app__core__FluxProxyResponse
-					return hx_zero_52
+			return func(hx_obj_58 map[string]any) *app__core__FluxProxyResponse {
+				hx_field_59 := hx_obj_58["response"]
+				if hx_field_59 == nil {
+					var hx_zero_60 *app__core__FluxProxyResponse
+					return hx_zero_60
 				}
-				return hx_field_51.(*app__core__FluxProxyResponse)
+				return hx_field_59.(*app__core__FluxProxyResponse)
 			}(state)
 		}
 	}
@@ -344,23 +344,23 @@ func (self *app__core__FluxPipeline) setResponseById(states []map[string]any, re
 	for _g < len(states) {
 		state := states[_g]
 		_g = int(int32((_g + 1)))
-		if func(hx_obj_53 map[string]any) int {
-			hx_field_54 := hx_obj_53["requestId"]
-			if hx_field_54 == nil {
-				var hx_zero_55 int
-				return hx_zero_55
+		if func(hx_obj_64 map[string]any) int {
+			hx_field_65 := hx_obj_64["requestId"]
+			if hx_field_65 == nil {
+				var hx_zero_66 int
+				return hx_zero_66
 			}
-			return hx_field_54.(int)
+			return hx_field_65.(int)
 		}(state) == requestId {
 			state["response"] = response
 			return states
 		}
 	}
 	states = append(states, func() map[string]any {
-		hx_obj_56 := map[string]any{}
-		hx_obj_56["requestId"] = requestId
-		hx_obj_56["response"] = response
-		return hx_obj_56
+		hx_obj_68 := map[string]any{}
+		hx_obj_68["requestId"] = requestId
+		hx_obj_68["response"] = response
+		return hx_obj_68
 	}())
 	return states
 }

@@ -59,14 +59,14 @@ class Harness {
 		if (report.ingestBackpressureCount() != 5) {
 			throw "ingest.backpressure drift";
 		}
-		if (report.alertEventCount() != 2) {
+		if (report.alertEventCount() != 3) {
 			throw "alert.count drift";
 		}
-		if (report.alertEventDigest() != "3,5") {
+		if (report.alertEventDigest() != "3,5,7") {
 			throw "alert.events drift";
 		}
 
-		var expectedScore = runtime.variantId() == "go_native" ? 123 : 108;
+		var expectedScore = runtime.variantId() == "go_native" ? 146 : 129;
 		if (report.score() != expectedScore) {
 			throw "runtime.score drift";
 		}
