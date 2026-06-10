@@ -122,7 +122,9 @@ class PortableGovernanceContractTest(unittest.TestCase):
         self.assertNotIn("haxe.go-14as.25` to `haxe.go-14as.27", feature_matrix)
 
         self.assertIn("test/.test-cache/portable_parity_closure_summary.json", parity_program)
-        self.assertIn("authoritative live blocker list", parity_program)
+        self.assertIn("authoritative live list", parity_program)
+        self.assertIn("closure_policy", parity_program)
+        self.assertIn("actionable", parity_program)
 
         self.assertIn("npm run test:stdlib:governance", release_checklist)
         self.assertIn("npm run test:release-contracts", release_checklist)

@@ -88,12 +88,14 @@ Full CI runs (`python3 test/run-ci.py` with no focused flags) include:
 2. full portable-eligible sweep (`test/upstream_std_modules_full.txt`),
 3. portable parity closure summary generation (`test/.test-cache/portable_parity_closure_summary.*`).
 
-Automated promotion workflow (`compile-only -> snapshot -> semantic-diff`) is produced by:
+Automated closure workflow (`compile-only -> snapshot -> semantic-diff`, or explicit policy lock) is produced by:
 
 - `python3 test/run-portable-parity-closure.py`
 - `test/portable_parity_promotions.json` (deterministic promotion registry consumed by inventory generation)
 
-The summary artifact includes module-level `next_step` guidance for every remaining blocker.
+The summary artifact includes module-level `next_step`, `closure_policy`, and `actionable` guidance for every remaining non-semantic-diff surface.
+`actionable: true` means there is still hidden parity work to do.
+`actionable: false` means the module is intentionally held at snapshot coverage or explicit exclusion policy.
 For every remaining `compile-only` module, the generated inventory and closure summary must also carry:
 
 - `blocker_issue`
@@ -102,12 +104,12 @@ For every remaining `compile-only` module, the generated inventory and closure s
 
 That metadata is the repo-level proof that no portable-eligible module is still implicit/unknown.
 
-Current blocker families are generated from `test/portable_stdlib_inventory.json` and summarized in:
+Current non-semantic-diff surfaces are generated from `test/portable_stdlib_inventory.json` and summarized in:
 
 - `test/.test-cache/portable_parity_closure_summary.json`
 - `test/.test-cache/portable_parity_closure_summary.md`
 
-That generated summary is the authoritative live blocker list. This document should describe the workflow and closure rules, not duplicate per-module blocker bookkeeping by hand.
+That generated summary is the authoritative live list. This document should describe the workflow and closure rules, not duplicate per-module blocker bookkeeping by hand.
 
 Closed root-surface follow-up:
 

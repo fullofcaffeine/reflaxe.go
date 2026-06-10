@@ -411,20 +411,22 @@ test/.test-cache/portable_conformance_tier1_summary.md
 
 ## Portable parity closure summary
 
-Generate full-module parity closure summary (remaining blockers + promotion queue):
+Generate full-module parity closure summary (remaining non-semantic-diff surfaces + promotion/policy queue):
 
 ```bash
 python3 test/run-portable-parity-closure.py
 npm run test:portable-parity-closure
 ```
 
-List blocker modules with next promotion step:
+List non-semantic-diff modules with next promotion or policy step:
 
 ```bash
 python3 test/run-portable-parity-closure.py --list-blockers
 ```
 
-`--list-blockers` prints the automated promotion queue (`compile-only -> snapshot -> semantic-diff`) with module-level `next_step` guidance.
+`--list-blockers` prints the automated promotion/policy queue with module-level `next_step`, `closure_policy`, and `actionable` guidance.
+`actionable: true` means there is still hidden parity work.
+`actionable: false` means the surface is intentionally policy-locked, such as target-sensitive snapshot evidence or an explicit target-conditional exclusion.
 
 Primary artifacts:
 

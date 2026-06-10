@@ -429,6 +429,8 @@ The portable parity closure summary is still useful after compile-only debt reac
 
 - `snapshot`: implemented enough for generated Go/runtime smoke evidence, but not promoted to interpreter-vs-Go semantic-diff evidence.
 - `unsupported`: explicit target-conditional exclusions, not hidden missing work.
+- `closure_policy`: why the module is still non-semantic-diff, such as `target_sensitive_snapshot` or `explicit_exclusion`.
+- `actionable`: whether the remaining item is real follow-up work (`true`) or an intentionally locked policy (`false`).
 
 Generate the live list with:
 

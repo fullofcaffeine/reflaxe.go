@@ -16,6 +16,23 @@ SUMMARY_JSON = CACHE_ROOT / "portable_parity_closure_summary.json"
 SUMMARY_MD = CACHE_ROOT / "portable_parity_closure_summary.md"
 
 VALID_STATUS = {"unsupported", "compile-only", "snapshot", "semantic-diff"}
+TARGET_SENSITIVE_SNAPSHOT_MODULES = {
+    "haxe.CallStack",
+    "haxe.EntryPoint",
+    "haxe.MainLoop",
+    "haxe.NativeStackTrace",
+    "haxe.Timer",
+    "haxe.Ucs2",
+    "sys.net.UdpSocket",
+    "sys.ssl.Certificate",
+    "sys.ssl.Digest",
+    "sys.ssl.Key",
+    "sys.ssl.Socket",
+}
+EXPLICIT_EXCLUSION_MODULES = {
+    "haxe.http.HttpJs",
+    "haxe.http.HttpNodeJs",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -76,9 +93,33 @@ def extract_conformance_modules(conformance: dict[str, Any]) -> dict[str, list[s
     return out
 
 
-def next_promotion_step(status: str) -> str:
+def closure_policy(module: str, status: str) -> str:
+    if module in EXPLICIT_EXCLUSION_MODULES and status == "unsupported":
+        return "explicit_exclusion"
+    if module in TARGET_SENSITIVE_SNAPSHOT_MODULES and status == "snapshot":
+        return "target_sensitive_snapshot"
+    if status == "compile-only":
+        return "promote"
+    if status == "snapshot":
+        return "promote"
     if status == "unsupported":
+        return "review_exclusion"
+    if status == "semantic-diff":
+        return "closed"
+    return "unknown"
+
+
+def is_actionable_blocker(policy: str) -> bool:
+    return policy not in {"closed", "explicit_exclusion", "target_sensitive_snapshot"}
+
+
+def next_promotion_step(status: str, policy: str) -> str:
+    if policy == "explicit_exclusion":
         return "keep explicit exclusion policy, or promote only if the module becomes portable-eligible on Go"
+    if policy == "target_sensitive_snapshot":
+        return "keep target-sensitive snapshot evidence unless a deterministic semantic-diff harness becomes meaningful"
+    if status == "unsupported":
+        return "review unsupported policy; promote only if the module becomes portable-eligible on Go"
     if status == "compile-only":
         return "promote to snapshot (add deterministic generated/runtime smoke contract)"
     if status == "snapshot":
@@ -128,19 +169,27 @@ def main() -> int:
 
     status_counts: dict[str, int] = {key: 0 for key in sorted(VALID_STATUS)}
     owner_counts: dict[str, int] = {}
-    blockers: list[dict[str, str]] = []
+    blockers: list[dict[str, Any]] = []
+    actionable_blocker_count = 0
     for row in inventory_rows:
         status = str(row["status"])
         owner = str(row["owner"])
+        module = str(row["module"])
+        policy = closure_policy(module, status)
+        actionable = is_actionable_blocker(policy)
         status_counts[status] = status_counts.get(status, 0) + 1
         owner_counts[owner] = owner_counts.get(owner, 0) + 1
         if status != "semantic-diff":
             blocker = {
-                "module": str(row["module"]),
+                "module": module,
                 "status": status,
                 "owner": owner,
-                "next_step": next_promotion_step(status),
+                "closure_policy": policy,
+                "actionable": actionable,
+                "next_step": next_promotion_step(status, policy),
             }
+            if actionable:
+                actionable_blocker_count += 1
             if status == "compile-only":
                 blocker["blocker_issue"] = str(row["blocker_issue"])
                 blocker["blocker_family"] = str(row["blocker_family"])
@@ -172,6 +221,7 @@ def main() -> int:
         "status_counts": status_counts,
         "owner_counts": dict(sorted(owner_counts.items())),
         "remaining_blocker_count": len(blockers),
+        "actionable_blocker_count": actionable_blocker_count,
         "remaining_blockers": blockers,
         "tier1_module_count": len(tier1_modules),
         "tier1_conformance_case_count": len(conformance_case_set),
@@ -187,6 +237,7 @@ def main() -> int:
         "",
         f"- inventory_module_count: `{summary['inventory_module_count']}`",
         f"- remaining_blocker_count: `{summary['remaining_blocker_count']}`",
+        f"- actionable_blocker_count: `{summary['actionable_blocker_count']}`",
         f"- tier1_module_count: `{summary['tier1_module_count']}`",
         f"- tier1_conformance_case_count: `{summary['tier1_conformance_case_count']}`",
         "",
@@ -199,17 +250,19 @@ def main() -> int:
     for owner in sorted(owner_counts.keys()):
         md_lines.append(f"- `{owner}`: `{owner_counts[owner]}`")
 
-    md_lines.extend(["", "## Remaining blockers (non semantic-diff)"])
+    md_lines.extend(["", "## Remaining non-semantic-diff surfaces"])
     if blockers:
         for blocker in blockers:
             if blocker["status"] == "compile-only":
                 md_lines.append(
                     f"- `{blocker['module']}` ({blocker['status']}, owner `{blocker['owner']}`, "
+                    f"policy `{blocker['closure_policy']}`, actionable `{str(blocker['actionable']).lower()}`, "
                     f"issue `{blocker['blocker_issue']}`, target `{blocker['closure_target']}`) -> {blocker['next_step']}"
                 )
             else:
                 md_lines.append(
-                    f"- `{blocker['module']}` ({blocker['status']}, owner `{blocker['owner']}`) -> {blocker['next_step']}"
+                    f"- `{blocker['module']}` ({blocker['status']}, owner `{blocker['owner']}`, "
+                    f"policy `{blocker['closure_policy']}`, actionable `{str(blocker['actionable']).lower()}`) -> {blocker['next_step']}"
                 )
     else:
         md_lines.append("- none")
@@ -224,14 +277,21 @@ def main() -> int:
             if blocker["status"] == "compile-only":
                 print(
                     f"{blocker['module']} [{blocker['status']}] "
-                    f"[{blocker['blocker_issue']}, target {blocker['closure_target']}] -> {blocker['next_step']}"
+                    f"[{blocker['blocker_issue']}, target {blocker['closure_target']}, "
+                    f"policy {blocker['closure_policy']}, actionable {str(blocker['actionable']).lower()}] "
+                    f"-> {blocker['next_step']}"
                 )
             else:
-                print(f"{blocker['module']} [{blocker['status']}] -> {blocker['next_step']}")
+                print(
+                    f"{blocker['module']} [{blocker['status']}] "
+                    f"[policy {blocker['closure_policy']}, actionable {str(blocker['actionable']).lower()}] "
+                    f"-> {blocker['next_step']}"
+                )
 
     print(
         f"[PASS] portable parity closure summary generated "
-        f"({len(inventory_rows)} modules, {len(blockers)} blockers)"
+        f"({len(inventory_rows)} modules, {len(blockers)} non-semantic-diff surfaces, "
+        f"{actionable_blocker_count} actionable blockers)"
     )
     print(f"[PASS] summary: {SUMMARY_JSON.relative_to(ROOT)}")
     return 0
