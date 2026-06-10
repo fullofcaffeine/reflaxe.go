@@ -33,6 +33,47 @@ Terms:
 | Performance budget drift | perf/CI | Ship with perf visibility gates and warning annotations; decide separately which warning-only drifts should become release-blocking. | `npm run test:perf:go`, `npm run test:perf:hxrt-selective`, `npm run test:perf:apps` | A warning repeats across stable CI runs, affects a flagship app, or hides a portable-vs-metal regression users would notice. Tracked by `haxe.go-hm3p.4`. |
 | Strict production boundary policy | profiles/governance | Ship with strict mode recommended for production; do not allow app-side raw `__go__` to become the default escape hatch. | `docs/profiles.md`, `docs/defines-reference.md`, `npm run test:release-contracts` | Examples, docs, or generated reports make raw app-side injection look normal instead of exceptional. Tracked by `haxe.go-hm3p`. |
 
+## Target-sensitive parity policy
+
+Some APIs depend on the operating system, wall-clock time, Go runtime stack
+frames, socket scheduling, or TLS handshakes. In this document,
+**target-sensitive means** the generated Go behavior is real and tested on Go,
+but the Haxe interpreter is not a stable enough oracle for byte-for-byte
+runtime comparison.
+
+That is why these surfaces use **snapshot/runtime** evidence. A snapshot/runtime
+test proves that the generated Go compiles, runs, and preserves a stable Go-side
+contract. It does not claim that every detail can be compared to Haxe
+`--interp` through `semantic-diff`.
+
+Important rule: a target-sensitive surface **must not be promoted to `semantic-diff`**
+unless the comparison normalizes away the target-specific details that would
+otherwise make the test flaky or dishonest.
+
+Current decisions:
+
+| Surface | Current evidence | Decision | Why this is not semantic-diff yet | Reopen trigger |
+| --- | --- | --- | --- | --- |
+| `haxe.EntryPoint` | `stdlib/haxe_main_loop_runtime_direct` | Keep snapshot/runtime. | Main-thread scheduling depends on Go runtime wakeups and timer behavior. | A deterministic async harness can compare only logical callback order, not wall-clock timing. |
+| `haxe.MainLoop` | `stdlib/haxe_main_loop_runtime_direct` | Keep snapshot/runtime. | Repeating events and queued callbacks are runtime-scheduled. | A stable event-loop comparison harness exists and proves logical behavior without depending on timing jitter. |
+| `haxe.Timer` | `stdlib/haxe_main_loop_runtime_direct` | Keep snapshot/runtime. | Timer delivery depends on elapsed time and scheduler behavior. | A normalized harness can compare "callback eventually ran" semantics without comparing exact timing. |
+| `haxe.CallStack` | `stdlib/haxe_stack_loop_target_sensitive`, `stdlib/haxe_native_stack_trace_opt_in` | Keep snapshot/runtime. | Default portable behavior is deterministic empty stacks; opt-in native stacks expose Go runtime frames. | A future normalized frame format can compare Haxe-level frames without raw Go paths/function names. |
+| `haxe.NativeStackTrace` | `stdlib/haxe_stack_loop_target_sensitive`, `stdlib/haxe_native_stack_trace_opt_in` | Keep snapshot/runtime. | Native stack capture is a Go diagnostic feature, not portable semantic parity. | A stable normalized stack-carrier contract exists across targets. |
+| `sys.net.UdpSocket` | `stdlib/sys_net_udp_socket_direct` | Keep snapshot/runtime. | UDP loopback is stable enough for Go runtime smoke, but packet delivery, broadcast behavior, and socket options are OS/network-policy sensitive. | A deterministic local-network harness exists that avoids LAN broadcast and OS-specific socket-option drift. |
+| `sys.ssl.Certificate` | `stdlib/sys_ssl_leaf_direct` | Keep snapshot/runtime. | Certificate parsing is Go-backed and tied to Go's TLS/x509 behavior. | A semantic contract is narrowed to deterministic fields also guaranteed by the interpreter. |
+| `sys.ssl.Digest` | `stdlib/sys_ssl_leaf_direct` | Keep snapshot/runtime. | Digest/sign/verify behavior touches Go crypto APIs and key parsing. | A deterministic cross-target crypto fixture proves the same supported algorithms and error behavior. |
+| `sys.ssl.Key` | `stdlib/sys_ssl_leaf_direct` | Keep snapshot/runtime. | PEM parsing and private-key handling are Go crypto/runtime behavior. | A normalized key contract can compare only stable public behavior, not backend carrier details. |
+| `sys.ssl.Socket` | `stdlib/sys_ssl_socket_direct`, `stdlib/sys_ssl_socket_sni_direct` | Keep snapshot/runtime. | TLS socket connect/accept/handshake behavior depends on Go networking and TLS state machines. | A deterministic loopback TLS harness can compare portable observable behavior without Go-specific handshake internals. |
+
+The grouped `sys.ssl.Certificate` / `sys.ssl.Digest` / `sys.ssl.Key` leaf
+surface is still useful and production-relevant. It simply remains
+target-sensitive until the test oracle can compare only the portable part of the
+behavior.
+
+The grouped `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` event-loop
+surface follows the same rule: it is supported on Go, but runtime scheduling is
+not the same thing as interpreter-vs-Go semantic parity.
+
 ## Compiler/output caveats
 
 - Output remains a single Go package (multi-file, single package); multi-package emission is not implemented yet.

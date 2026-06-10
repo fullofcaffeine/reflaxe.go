@@ -62,6 +62,23 @@ class PortableParityClosureContractTest(unittest.TestCase):
         summary = json.loads(SUMMARY_JSON.read_text(encoding="utf-8"))
         self.assertEqual(summary["status_counts"]["compile-only"], 0)
 
+    def test_target_sensitive_policy_is_documented_per_surface(self) -> None:
+        known_gaps = (ROOT / "docs" / "known-gaps.md").read_text(encoding="utf-8")
+        feature_matrix = (ROOT / "docs" / "feature-support-matrix.md").read_text(encoding="utf-8")
+
+        self.assertIn("## Target-sensitive parity policy", known_gaps)
+        self.assertIn("| Surface | Current evidence | Decision | Why this is not semantic-diff yet | Reopen trigger |", known_gaps)
+        for module in sorted(POLICY_LOCKED_MODULES):
+            if module.startswith("haxe.http.") or module == "haxe.Ucs2":
+                continue
+            self.assertIn(f"`{module}`", known_gaps)
+        self.assertIn("`sys.ssl.Certificate` / `sys.ssl.Digest` / `sys.ssl.Key`", known_gaps)
+        self.assertIn("`haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer`", known_gaps)
+        self.assertIn("target-sensitive means", known_gaps)
+        self.assertIn("snapshot/runtime", known_gaps)
+        self.assertIn("must not be promoted to `semantic-diff`", known_gaps)
+        self.assertIn("Known non-semantic-diff stdlib surfaces", feature_matrix)
+
     def test_remaining_non_semantic_diff_surfaces_are_policy_locked(self) -> None:
         subprocess.run(
             ["python3", "test/run-portable-parity-closure.py"],
