@@ -21,7 +21,12 @@ The baseline gaps recorded in this spike are now partially or fully superseded:
 4. Lane-specific semantic-diff coverage exists:
    - `python3 test/run-semantic-diff.py --suite lanes`
 
-Remaining work is concentrated in parity closure (iterator semantics, compile-only stdlib promotion, and unsupported-expression inventory cleanup), not in replacing the profile/context model.
+At the time of this snapshot, remaining work was concentrated in parity closure and unsupported-expression cleanup, not in replacing the profile/context model.
+That status has since been superseded by current parity evidence:
+
+- `docs/known-gaps.md` summarizes the live readiness posture.
+- `test/.test-cache/portable_parity_closure_summary.json` is the generated machine-readable parity authority.
+- `test/.test-cache/portable_parity_closure_summary.md` is the generated human-readable parity summary.
 
 ## Historical Baseline Notes (kept for provenance)
 
