@@ -183,6 +183,9 @@ class GoCompiler {
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
 	final optionalPrimitiveParamScopes:Array<Map<Int, String>>;
+	final nonNullPrimitiveLocalScopes:Array<Map<Int, String>>;
+	final narrowedPrimitiveStorageScopes:Array<Map<Int, String>>;
+	final localNeverReassignedScopes:Array<Map<Int, Bool>>;
 	final functionReturnTypeScopes:Array<Type>;
 	final returnRedirectScopes:Array<Null<ReturnRedirect>>;
 	var cachedVoidType:Null<Type>;
@@ -222,6 +225,9 @@ class GoCompiler {
 		functionVarNameScopes = [];
 		functionVarNameCountScopes = [];
 		optionalPrimitiveParamScopes = [];
+		nonNullPrimitiveLocalScopes = [];
+		narrowedPrimitiveStorageScopes = [];
+		localNeverReassignedScopes = [];
 		functionReturnTypeScopes = [];
 		returnRedirectScopes = [];
 		cachedVoidType = null;
@@ -8262,10 +8268,19 @@ class GoCompiler {
 				var loweredValue = lowered == null ? null : lowered.expr;
 				if (value != null && loweredValue != null) {
 					loweredValue = upcastIfNeeded(loweredValue, value.t, variable.t);
-					loweredValue = coerceAnyExprToType(loweredValue, value.t, variable.t, exprBackedByAny(value)
+					var valueKnownNonNullPrimitive = nonNullPrimitiveExprGoType(value) != null;
+					loweredValue = coerceAnyExprToType(loweredValue, value.t, variable.t,
+						(exprBackedByAny(value) && !valueKnownNonNullPrimitive)
 						|| shouldForceAnyCoerce(value.t, variable.t));
 				}
 				var goType = valueStorageGoType(variable.t);
+				var narrowedStorageGoType = value == null ? null : nonNullPrimitiveExprGoType(value);
+				// Keep storage narrowing local to immutable-after-declaration vars; reassigned
+				// nullable primitives still need nil-capable storage for later writes.
+				if (narrowedStorageGoType != null && isNullablePrimitiveType(variable.t) && localNeverReassigned(variable)) {
+					goType = narrowedStorageGoType;
+					registerNarrowedPrimitiveStorage(variable, narrowedStorageGoType);
+				}
 				var useShort = loweredValue != null && !isNilExpr(loweredValue) && goType != "any" && !isInterfaceType(variable.t);
 				var decl = GoStmt.GoVarDecl(variableName, goType, loweredValue, useShort);
 				var consume = GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(variableName));
@@ -8308,9 +8323,10 @@ class GoCompiler {
 						exprStatement(lowerExpr(expr).expr);
 				}
 			case TIf(condition, thenBranch, elseBranch):
-				[
-					GoStmt.GoIf(lowerExpr(condition).expr, lowerToStatements(thenBranch), elseBranch == null ? null : lowerToStatements(elseBranch))
-				];
+				var facts = conditionNonNullFacts(condition);
+				var thenBody = lowerWithNonNullPrimitiveFacts(facts.thenFacts, function() return lowerToStatements(thenBranch));
+				var elseBody = elseBranch == null ? null : lowerWithNonNullPrimitiveFacts(facts.elseFacts, function() return lowerToStatements(elseBranch));
+					[GoStmt.GoIf(lowerExpr(condition).expr, thenBody, elseBody)];
 			case TWhile(condition, body, normalWhile):
 				if (normalWhile) {
 					[GoStmt.GoWhile(lowerExpr(condition).expr, lowerToStatements(body))];
@@ -8555,15 +8571,18 @@ class GoCompiler {
 		}
 
 		var loweredCondition = lowerExprWithPrefix(condition);
-		var loweredThen = lowerExprWithPrefix(thenBranch);
-		var loweredElse = lowerExprWithPrefix(elseExpr);
+		var facts = conditionNonNullFacts(condition);
+		var loweredThen = lowerWithNonNullPrimitiveFacts(facts.thenFacts, function() return lowerExprWithPrefix(thenBranch));
+		var loweredElse = lowerWithNonNullPrimitiveFacts(facts.elseFacts, function() return lowerExprWithPrefix(elseExpr));
 		var temp = freshTempName("hx_if");
 		var loweredThenValue = upcastIfNeeded(loweredThen.expr, thenBranch.t, resultType);
 		var loweredElseValue = upcastIfNeeded(loweredElse.expr, elseExpr.t, resultType);
-		loweredThenValue = coerceAnyExprToType(loweredThenValue, thenBranch.t, resultType, exprBackedByAny(thenBranch) || shouldForceAnyCoerce(thenBranch.t,
-			resultType));
-		loweredElseValue = coerceAnyExprToType(loweredElseValue, elseExpr.t, resultType, exprBackedByAny(elseExpr) || shouldForceAnyCoerce(elseExpr.t,
-			resultType));
+		var thenKnownNonNullPrimitive = nonNullPrimitiveExprGoTypeWithFacts(thenBranch, facts.thenFacts) != null;
+		var elseKnownNonNullPrimitive = nonNullPrimitiveExprGoTypeWithFacts(elseExpr, facts.elseFacts) != null;
+		loweredThenValue = coerceAnyExprToType(loweredThenValue, thenBranch.t, resultType, !thenKnownNonNullPrimitive && (exprBackedByAny(thenBranch)
+			|| shouldForceAnyCoerce(thenBranch.t, resultType)));
+		loweredElseValue = coerceAnyExprToType(loweredElseValue, elseExpr.t, resultType, !elseKnownNonNullPrimitive && (exprBackedByAny(elseExpr)
+			|| shouldForceAnyCoerce(elseExpr.t, resultType)));
 
 		var prefix = [GoStmt.GoVarDecl(temp, valueStorageGoType(resultType), null, false)].concat(loweredCondition.prefix);
 
@@ -8925,7 +8944,9 @@ class GoCompiler {
 	function lowerBlock(exprs:Array<TypedExpr>):Array<GoStmt> {
 		pushLocalScope();
 		var out = new Array<GoStmt>();
-		for (inner in exprs) {
+		for (index in 0...exprs.length) {
+			var inner = exprs[index];
+			registerBlockLocalReassignmentInfo(inner, exprs, index);
 			out = out.concat(lowerToStatements(inner));
 		}
 		popLocalScope();
@@ -8936,6 +8957,7 @@ class GoCompiler {
 		localFunctionScopes.push(new Map<String, FunctionInfo>());
 		localLambdaAliasScopes.push(new Map<String, String>());
 		localRestIteratorScopes.push([]);
+		localNeverReassignedScopes.push(new Map<Int, Bool>());
 	}
 
 	function popLocalScope():Void {
@@ -8948,12 +8970,17 @@ class GoCompiler {
 		if (localRestIteratorScopes.length > 0) {
 			localRestIteratorScopes.pop();
 		}
+		if (localNeverReassignedScopes.length > 0) {
+			localNeverReassignedScopes.pop();
+		}
 	}
 
 	function pushFunctionVarNameScope():Void {
 		functionVarNameScopes.push(new Map<Int, String>());
 		functionVarNameCountScopes.push(new Map<String, Int>());
 		optionalPrimitiveParamScopes.push(new Map<Int, String>());
+		nonNullPrimitiveLocalScopes.push(new Map<Int, String>());
+		narrowedPrimitiveStorageScopes.push(new Map<Int, String>());
 	}
 
 	function popFunctionVarNameScope():Void {
@@ -8966,6 +8993,132 @@ class GoCompiler {
 		if (optionalPrimitiveParamScopes.length > 0) {
 			optionalPrimitiveParamScopes.pop();
 		}
+		if (nonNullPrimitiveLocalScopes.length > 0) {
+			nonNullPrimitiveLocalScopes.pop();
+		}
+		if (narrowedPrimitiveStorageScopes.length > 0) {
+			narrowedPrimitiveStorageScopes.pop();
+		}
+	}
+
+	function currentLocalNeverReassignedScope():Null<Map<Int, Bool>> {
+		if (localNeverReassignedScopes.length == 0) {
+			return null;
+		}
+		return localNeverReassignedScopes[localNeverReassignedScopes.length - 1];
+	}
+
+	function registerBlockLocalReassignmentInfo(expr:TypedExpr, block:Array<TypedExpr>, index:Int):Void {
+		switch (expr.expr) {
+			case TVar(variable, _):
+				var scope = currentLocalNeverReassignedScope();
+				if (scope != null) {
+					scope.set(variable.id, !blockAssignsToVariableAfter(block, index, variable));
+				}
+			case _:
+		}
+	}
+
+	function blockAssignsToVariableAfter(block:Array<TypedExpr>, index:Int, variable:TVar):Bool {
+		var next = index + 1;
+		while (next < block.length) {
+			if (exprAssignsToVariable(block[next], variable)) {
+				return true;
+			}
+			next++;
+		}
+		return false;
+	}
+
+	function exprAssignsToVariable(expr:TypedExpr, variable:TVar):Bool {
+		return switch (expr.expr) {
+			case TBinop(OpAssign, left, right) | TBinop(OpAssignOp(_), left, right): exprTargetsVariable(left,
+					variable) || exprAssignsToVariable(right, variable);
+			case TVar(_, value): value != null && exprAssignsToVariable(value, variable);
+			case TBlock(exprs):
+				var found = false;
+				for (inner in exprs) {
+					if (exprAssignsToVariable(inner, variable)) {
+						found = true;
+						break;
+					}
+				}
+				found;
+			case TIf(condition, thenBranch, elseBranch): exprAssignsToVariable(condition,
+					variable) || exprAssignsToVariable(thenBranch, variable) || (elseBranch != null
+					&& exprAssignsToVariable(elseBranch, variable));
+			case TSwitch(value, cases, defaultExpr):
+				if (exprAssignsToVariable(value, variable)) {
+					true;
+				} else {
+					var found = false;
+					for (caseEntry in cases) {
+						for (caseValue in caseEntry.values) {
+							if (exprAssignsToVariable(caseValue, variable)) {
+								found = true;
+								break;
+							}
+						}
+						if (!found && exprAssignsToVariable(caseEntry.expr, variable)) {
+							found = true;
+						}
+						if (found) {
+							break;
+						}
+					}
+					found || (defaultExpr != null && exprAssignsToVariable(defaultExpr, variable))
+					;
+				}
+			case TTry(tryExpr, catches):
+				if (exprAssignsToVariable(tryExpr, variable)) {
+					true;
+				} else {
+					var found = false;
+					for (catchEntry in catches) {
+						if (exprAssignsToVariable(catchEntry.expr, variable)) {
+							found = true;
+							break;
+						}
+					}
+					found;
+				}
+			case TWhile(condition, body, _): exprAssignsToVariable(condition, variable) || exprAssignsToVariable(body, variable);
+			case TFor(_, iterator, body): exprAssignsToVariable(iterator, variable) || exprAssignsToVariable(body, variable);
+			case TParenthesis(inner) | TMeta(_, inner) | TCast(inner, _):
+				exprAssignsToVariable(inner, variable);
+			case TArray(target, index): exprAssignsToVariable(target, variable) || exprAssignsToVariable(index, variable);
+			case TField(target, _):
+				exprAssignsToVariable(target, variable);
+			case TCall(callee, args):
+				if (exprAssignsToVariable(callee, variable)) {
+					true;
+				} else {
+					var found = false;
+					for (arg in args) {
+						if (exprAssignsToVariable(arg, variable)) {
+							found = true;
+							break;
+						}
+					}
+					found;
+				}
+			case TUnop(_, _, value) | TThrow(value) | TReturn(value): value != null && exprAssignsToVariable(value, variable);
+			case TFunction(func):
+				exprAssignsToVariable(func.expr, variable);
+			case _:
+				false;
+		};
+	}
+
+	function exprTargetsVariable(expr:TypedExpr, variable:TVar):Bool {
+		return switch (expr.expr) {
+			case TLocal(target):
+				target.id == variable.id;
+			case TParenthesis(inner) | TMeta(_, inner) | TCast(inner, _):
+				exprTargetsVariable(inner, variable);
+			case _:
+				false;
+		};
 	}
 
 	function pushFunctionReturnType(returnType:Type):Void {
@@ -9143,6 +9296,190 @@ class GoCompiler {
 			index--;
 		}
 		return null;
+	}
+
+	function nullablePrimitiveValueGoType(type:Type):Null<String> {
+		if (isNullableIntType(type) || isIntType(type) || isHaxeInt32Type(type)) {
+			return "int";
+		}
+		if (isNullableFloatType(type) || isFloatType(type)) {
+			return "float64";
+		}
+		if (isNullableBoolType(type) || isBoolType(type)) {
+			return "bool";
+		}
+		return null;
+	}
+
+	function primitiveNilCapableLocalGoType(variable:TVar):Null<String> {
+		var optionalGoType = registeredOptionalPrimitiveParamGoType(variable);
+		if (optionalGoType != null) {
+			return optionalGoType;
+		}
+		return isNullablePrimitiveType(variable.t) ? nullablePrimitiveValueGoType(variable.t) : null;
+	}
+
+	function currentNonNullPrimitiveLocalScope():Null<Map<Int, String>> {
+		if (nonNullPrimitiveLocalScopes.length == 0) {
+			return null;
+		}
+		return nonNullPrimitiveLocalScopes[nonNullPrimitiveLocalScopes.length - 1];
+	}
+
+	function currentNarrowedPrimitiveStorageScope():Null<Map<Int, String>> {
+		if (narrowedPrimitiveStorageScopes.length == 0) {
+			return null;
+		}
+		return narrowedPrimitiveStorageScopes[narrowedPrimitiveStorageScopes.length - 1];
+	}
+
+	function registerNonNullPrimitiveLocal(variable:TVar, goType:String):Void {
+		var scope = currentNonNullPrimitiveLocalScope();
+		if (scope != null) {
+			scope.set(variable.id, goType);
+		}
+	}
+
+	function registerNarrowedPrimitiveStorage(variable:TVar, goType:String):Void {
+		var scope = currentNarrowedPrimitiveStorageScope();
+		if (scope != null) {
+			scope.set(variable.id, goType);
+		}
+		registerNonNullPrimitiveLocal(variable, goType);
+	}
+
+	function registeredNonNullPrimitiveLocalGoType(variable:TVar):Null<String> {
+		var index = nonNullPrimitiveLocalScopes.length - 1;
+		while (index >= 0) {
+			var scope = nonNullPrimitiveLocalScopes[index];
+			if (scope.exists(variable.id)) {
+				return scope.get(variable.id);
+			}
+			index--;
+		}
+		return null;
+	}
+
+	function registeredNarrowedPrimitiveStorageGoType(variable:TVar):Null<String> {
+		var index = narrowedPrimitiveStorageScopes.length - 1;
+		while (index >= 0) {
+			var scope = narrowedPrimitiveStorageScopes[index];
+			if (scope.exists(variable.id)) {
+				return scope.get(variable.id);
+			}
+			index--;
+		}
+		return null;
+	}
+
+	function localNeverReassigned(variable:TVar):Bool {
+		var index = localNeverReassignedScopes.length - 1;
+		while (index >= 0) {
+			var scope = localNeverReassignedScopes[index];
+			if (scope.exists(variable.id)) {
+				return scope.get(variable.id);
+			}
+			index--;
+		}
+		return false;
+	}
+
+	function nonNullPrimitiveExprGoType(expr:TypedExpr):Null<String> {
+		return switch (expr.expr) {
+			case TLocal(variable):
+				var narrowedStorage = registeredNarrowedPrimitiveStorageGoType(variable);
+				if (narrowedStorage != null) {
+					narrowedStorage;
+				} else {
+					registeredNonNullPrimitiveLocalGoType(variable);
+				}
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				nonNullPrimitiveExprGoType(inner);
+			case _:
+				null;
+		};
+	}
+
+	function nonNullPrimitiveExprGoTypeWithFacts(expr:TypedExpr, facts:Array<{variable:TVar, goType:String}>):Null<String> {
+		var current = nonNullPrimitiveExprGoType(expr);
+		if (current != null) {
+			return current;
+		}
+		var factExpr = nullablePrimitiveLocalFact(expr);
+		if (factExpr == null) {
+			return null;
+		}
+		for (fact in facts) {
+			if (fact.variable.id == factExpr.variable.id) {
+				return fact.goType;
+			}
+		}
+		return null;
+	}
+
+	function nullablePrimitiveLocalFact(expr:TypedExpr):Null<{variable:TVar, goType:String}> {
+		return switch (expr.expr) {
+			case TLocal(variable):
+				var goType = primitiveNilCapableLocalGoType(variable);
+				goType == null ? null : {variable: variable, goType: goType};
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				nullablePrimitiveLocalFact(inner);
+			case _:
+				null;
+		};
+	}
+
+	function conditionNonNullFacts(condition:TypedExpr):{thenFacts:Array<{variable:TVar, goType:String}>, elseFacts:Array<{variable:TVar, goType:String}>} {
+		var empty = {thenFacts: [], elseFacts: []};
+		return switch (condition.expr) {
+			case TBinop(op, left, right):
+				var leftFact = nullablePrimitiveLocalFact(left);
+				var rightFact = nullablePrimitiveLocalFact(right);
+				var fact = null;
+				if (leftFact != null && isNullLiteralExpr(right)) {
+					fact = leftFact;
+				} else if (rightFact != null && isNullLiteralExpr(left)) {
+					fact = rightFact;
+				}
+				if (fact == null) {
+					empty;
+				} else {
+					switch (op) {
+						case OpNotEq:
+							{thenFacts: [fact], elseFacts: []};
+						case OpEq:
+							{thenFacts: [], elseFacts: [fact]};
+						case _:
+							empty;
+					}
+				}
+			case TParenthesis(inner) | TMeta(_, inner) | TCast(inner, _):
+				conditionNonNullFacts(inner);
+			case _:
+				empty;
+		};
+	}
+
+	function lowerWithNonNullPrimitiveFacts<T>(facts:Array<{variable:TVar, goType:String}>, lower:Void->T):T {
+		var scope = currentNonNullPrimitiveLocalScope();
+		if (scope == null || facts.length == 0) {
+			return lower();
+		}
+		var previous = new Map<Int, Null<String>>();
+		for (fact in facts) {
+			previous.set(fact.variable.id, scope.exists(fact.variable.id) ? scope.get(fact.variable.id) : null);
+			scope.set(fact.variable.id, fact.goType);
+		}
+		var result = lower();
+		for (fact in facts) {
+			var old = previous.get(fact.variable.id);
+			if (old == null) {
+				scope.remove(fact.variable.id);
+			} else {
+				scope.set(fact.variable.id, old);
+			}
+		}
+		return result;
 	}
 
 	function registerLocalFunction(name:String, func:TFunc):Void {
@@ -9604,10 +9941,16 @@ class GoCompiler {
 				};
 			case TLocal(variable):
 				var localExpr:GoExpr = GoExpr.GoIdent(localVarName(variable));
-				var variableGoType = valueStorageGoType(variable.t);
+				var narrowedStorageGoType = registeredNarrowedPrimitiveStorageGoType(variable);
+				var variableGoType = narrowedStorageGoType == null ? valueStorageGoType(variable.t) : narrowedStorageGoType;
 				var exprGoType = valueStorageGoType(expr.t);
 				var optionalPrimitiveGoType = registeredOptionalPrimitiveParamGoType(variable);
-				if (optionalPrimitiveGoType != null) {
+				var nonNullPrimitiveGoType = registeredNonNullPrimitiveLocalGoType(variable);
+				if (narrowedStorageGoType != null) {
+					localExpr = GoExpr.GoIdent(localVarName(variable));
+				} else if (nonNullPrimitiveGoType != null && variableGoType == "any") {
+					localExpr = GoExpr.GoTypeAssert(localExpr, nonNullPrimitiveGoType);
+				} else if (optionalPrimitiveGoType != null) {
 					localExpr = GoExpr.GoTypeAssert(localExpr, optionalPrimitiveGoType);
 				} else if (variableGoType == "any" && exprGoType != "any") {
 					localExpr = GoExpr.GoTypeAssert(localExpr, exprGoType);
@@ -12904,27 +13247,28 @@ class GoCompiler {
 				}
 			case OpAdd | OpSub | OpMult | OpDiv if (floatMode):
 				{
-					expr: GoExpr.GoBinary(binopSymbol(op), floatOperandExpr(leftLowered.expr, left.t), floatOperandExpr(rightLowered.expr, right.t)),
+					expr: GoExpr.GoBinary(binopSymbol(op), floatOperandExpr(leftLowered.expr, left.t, left),
+						floatOperandExpr(rightLowered.expr, right.t, right)),
 					isStringLike: false
 				};
 			case OpMod if (floatMode):
 				{
 					expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.FloatMod"), [
-						floatOperandExpr(leftLowered.expr, left.t),
-						floatOperandExpr(rightLowered.expr, right.t)
+						floatOperandExpr(leftLowered.expr, left.t, left),
+						floatOperandExpr(rightLowered.expr, right.t, right)
 					]),
 					isStringLike: false
 				};
 			case OpUShr if (int32Mode):
-				var int32Left = coerceNullableIntOperandExpr(leftLowered.expr, left.t);
-				var int32Right = coerceNullableIntOperandExpr(rightLowered.expr, right.t);
+				var int32Left = coerceNullableIntOperandExpr(leftLowered.expr, left.t, left);
+				var int32Right = coerceNullableIntOperandExpr(rightLowered.expr, right.t, right);
 				{
 					expr: lowerHaxeInt32BinopExpr(op, int32Left, int32Right),
 					isStringLike: false
 				};
 			case OpAdd | OpSub | OpMult | OpMod | OpAnd | OpOr | OpXor | OpShl | OpShr if (int32Mode):
-				var int32Left = coerceNullableIntOperandExpr(leftLowered.expr, left.t);
-				var int32Right = coerceNullableIntOperandExpr(rightLowered.expr, right.t);
+				var int32Left = coerceNullableIntOperandExpr(leftLowered.expr, left.t, left);
+				var int32Right = coerceNullableIntOperandExpr(rightLowered.expr, right.t, right);
 				{
 					expr: lowerHaxeInt32BinopExpr(op, int32Left, int32Right),
 					isStringLike: false
@@ -12984,8 +13328,11 @@ class GoCompiler {
 		return GoExprOperatorOps.lowerHaxeInt32BinopExpr(op, leftExpr, rightExpr);
 	}
 
-	function coerceNullableIntOperandExpr(expr:GoExpr, operandType:Type):GoExpr {
+	function coerceNullableIntOperandExpr(expr:GoExpr, operandType:Type, ?operand:TypedExpr):GoExpr {
 		if (!isNullableIntType(operandType)) {
+			return expr;
+		}
+		if (operand != null && exprUsesNarrowedPrimitiveStorage(operand)) {
 			return expr;
 		}
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [expr]);
@@ -12998,8 +13345,11 @@ class GoCompiler {
 		return coerceAnyExprToType(expr, operand.t, operand.t, exprBackedByAny(operand));
 	}
 
-	function coerceNullableFloatOperandExpr(expr:GoExpr, operandType:Type):GoExpr {
+	function coerceNullableFloatOperandExpr(expr:GoExpr, operandType:Type, ?operand:TypedExpr):GoExpr {
 		if (!isNullableFloatType(operandType)) {
+			return expr;
+		}
+		if (operand != null && exprUsesNarrowedPrimitiveStorage(operand)) {
 			return expr;
 		}
 		return lowerNilSafeTypeAssertExpr(expr, "float64");
@@ -13037,9 +13387,9 @@ class GoCompiler {
 		return GoExprOperatorOps.wrapInt32Expr(expr);
 	}
 
-	function floatOperandExpr(expr:GoExpr, operandType:Type):GoExpr {
+	function floatOperandExpr(expr:GoExpr, operandType:Type, ?operand:TypedExpr):GoExpr {
 		if (isNullableFloatType(operandType)) {
-			return coerceNullableFloatOperandExpr(expr, operandType);
+			return coerceNullableFloatOperandExpr(expr, operandType, operand);
 		}
 		return GoExprOperatorOps.floatOperandExpr(expr, isFloatType(operandType));
 	}
@@ -13243,14 +13593,24 @@ class GoCompiler {
 
 	function exprBackedByAny(expr:TypedExpr):Bool {
 		return switch (expr.expr) {
-			case TLocal(variable):
-				valueStorageGoType(variable.t) == "any";
+			case TLocal(variable): registeredNarrowedPrimitiveStorageGoType(variable) == null && registeredNonNullPrimitiveLocalGoType(variable) == null && valueStorageGoType(variable.t) == "any";
 			case TMeta(_, inner):
 				exprBackedByAny(inner);
 			case TParenthesis(inner):
 				exprBackedByAny(inner);
 			case TCast(inner, _):
 				exprBackedByAny(inner);
+			case _:
+				false;
+		};
+	}
+
+	function exprUsesNarrowedPrimitiveStorage(expr:TypedExpr):Bool {
+		return switch (expr.expr) {
+			case TLocal(variable):
+				registeredNarrowedPrimitiveStorageGoType(variable) != null;
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				exprUsesNarrowedPrimitiveStorage(inner);
 			case _:
 				false;
 		};

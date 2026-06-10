@@ -134,7 +134,7 @@ func haxe__io__Path_isAbsolute(path *string) bool {
 		if c == nil {
 			hx_if_9 = -1
 		} else {
-			hx_if_9 = hxrt.IntFromNullableAny(c)
+			hx_if_9 = c.(int)
 		}
 		return hx_if_9
 	}() == 58) {
@@ -203,7 +203,7 @@ func haxe__io__Path_lastIndexOfCode(path *string, code int) int {
 			if c == nil {
 				hx_if_14 = -1
 			} else {
-				hx_if_14 = hxrt.IntFromNullableAny(c)
+				hx_if_14 = c.(int)
 			}
 			return hx_if_14
 		}() == code {
@@ -225,7 +225,7 @@ func haxe__io__Path_normalize(path *string) *string {
 		if c == nil {
 			hx_if_15 = -1
 		} else {
-			hx_if_15 = hxrt.IntFromNullableAny(c)
+			hx_if_15 = c.(int)
 		}
 		return hx_if_15
 	}() == 47))
@@ -266,7 +266,7 @@ func haxe__io__Path_normalize(path *string) *string {
 		if c_1 == nil {
 			hx_if_20 = -1
 		} else {
-			hx_if_20 = hxrt.IntFromNullableAny(c_1)
+			hx_if_20 = c_1.(int)
 		}
 		code := hx_if_20
 		if code == 58 {
@@ -298,7 +298,7 @@ func haxe__io__Path_removeTrailingSlashes(path *string) *string {
 		if c == nil {
 			hx_if_21 = -1
 		} else {
-			hx_if_21 = hxrt.IntFromNullableAny(c)
+			hx_if_21 = c.(int)
 		}
 		code := hx_if_21
 		if (code == 47) || (code == 92) {
@@ -321,13 +321,13 @@ func haxe__io__Path_splitOnSlash(path *string) []*string {
 		index := hx_post_22
 		if func() int {
 			var c any = hxrt.StringCharCodeAtAnyStringPtr(path, index)
-			var hx_if_23 int
+			var hx_if_24 int
 			if c == nil {
-				hx_if_23 = -1
+				hx_if_24 = -1
 			} else {
-				hx_if_23 = hxrt.IntFromNullableAny(c)
+				hx_if_24 = c.(int)
 			}
-			return hx_if_23
+			return hx_if_24
 		}() == 47 {
 			tokens = append(tokens, hxrt.StringSubstrStringPtr(path, start, int(int32((hxrt.Int32Wrap(index)-hxrt.Int32Wrap(start)))), true))
 			start = int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1))))

@@ -10,13 +10,13 @@ func haxe__Resource_getBytes(name *string) *haxe__io__Bytes {
 	for _g < len(_g1) {
 		x := _g1[_g]
 		_g = int(int32((_g + 1)))
-		if hxrt.StringEqualStringPtr(func(hx_obj_5 map[string]any) *string {
-			hx_field_6 := hx_obj_5["name"]
-			if hx_field_6 == nil {
-				var hx_zero_7 *string
-				return hx_zero_7
+		if hxrt.StringEqualStringPtr(func(hx_obj_14 map[string]any) *string {
+			hx_field_15 := hx_obj_14["name"]
+			if hx_field_15 == nil {
+				var hx_zero_16 *string
+				return hx_zero_16
 			}
-			return hx_field_6.(*string)
+			return hx_field_15.(*string)
 		}(x), name) {
 			if !hxrt.StringEqualStringPtr(func(hx_obj_8 map[string]any) *string {
 				hx_field_9 := hx_obj_8["str"]
@@ -26,22 +26,22 @@ func haxe__Resource_getBytes(name *string) *haxe__io__Bytes {
 				}
 				return hx_field_9.(*string)
 			}(x), nil) {
-				return haxe__io__Bytes_ofString(func(hx_obj_11 map[string]any) *string {
-					hx_field_12 := hx_obj_11["str"]
-					if hx_field_12 == nil {
-						var hx_zero_13 *string
-						return hx_zero_13
+				return haxe__io__Bytes_ofString(func(hx_obj_5 map[string]any) *string {
+					hx_field_6 := hx_obj_5["str"]
+					if hx_field_6 == nil {
+						var hx_zero_7 *string
+						return hx_zero_7
 					}
-					return hx_field_12.(*string)
+					return hx_field_6.(*string)
 				}(x))
 			}
-			return haxe__crypto__Base64_decode(func(hx_obj_14 map[string]any) *string {
-				hx_field_15 := hx_obj_14["data"]
-				if hx_field_15 == nil {
-					var hx_zero_16 *string
-					return hx_zero_16
+			return haxe__crypto__Base64_decode(func(hx_obj_11 map[string]any) *string {
+				hx_field_12 := hx_obj_11["data"]
+				if hx_field_12 == nil {
+					var hx_zero_13 *string
+					return hx_zero_13
 				}
-				return hx_field_15.(*string)
+				return hx_field_12.(*string)
 			}(x))
 		}
 	}
@@ -54,13 +54,13 @@ func haxe__Resource_getString(name *string) *string {
 	for _g < len(_g1) {
 		x := _g1[_g]
 		_g = int(int32((_g + 1)))
-		if hxrt.StringEqualStringPtr(func(hx_obj_17 map[string]any) *string {
-			hx_field_18 := hx_obj_17["name"]
-			if hx_field_18 == nil {
-				var hx_zero_19 *string
-				return hx_zero_19
+		if hxrt.StringEqualStringPtr(func(hx_obj_26 map[string]any) *string {
+			hx_field_27 := hx_obj_26["name"]
+			if hx_field_27 == nil {
+				var hx_zero_28 *string
+				return hx_zero_28
 			}
-			return hx_field_18.(*string)
+			return hx_field_27.(*string)
 		}(x), name) {
 			if !hxrt.StringEqualStringPtr(func(hx_obj_20 map[string]any) *string {
 				hx_field_21 := hx_obj_20["str"]
@@ -70,22 +70,22 @@ func haxe__Resource_getString(name *string) *string {
 				}
 				return hx_field_21.(*string)
 			}(x), nil) {
-				return func(hx_obj_23 map[string]any) *string {
-					hx_field_24 := hx_obj_23["str"]
-					if hx_field_24 == nil {
-						var hx_zero_25 *string
-						return hx_zero_25
+				return func(hx_obj_17 map[string]any) *string {
+					hx_field_18 := hx_obj_17["str"]
+					if hx_field_18 == nil {
+						var hx_zero_19 *string
+						return hx_zero_19
 					}
-					return hx_field_24.(*string)
+					return hx_field_18.(*string)
 				}(x)
 			}
-			b := haxe__crypto__Base64_decode(func(hx_obj_26 map[string]any) *string {
-				hx_field_27 := hx_obj_26["data"]
-				if hx_field_27 == nil {
-					var hx_zero_28 *string
-					return hx_zero_28
+			b := haxe__crypto__Base64_decode(func(hx_obj_23 map[string]any) *string {
+				hx_field_24 := hx_obj_23["data"]
+				if hx_field_24 == nil {
+					var hx_zero_25 *string
+					return hx_zero_25
 				}
-				return hx_field_27.(*string)
+				return hx_field_24.(*string)
 			}(x))
 			return b.toString()
 		}

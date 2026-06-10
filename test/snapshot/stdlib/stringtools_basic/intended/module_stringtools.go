@@ -43,7 +43,7 @@ func StringTools_fastCodeAt(s *string, index int) int {
 	if c == nil {
 		hx_if_3 = -1
 	} else {
-		hx_if_3 = hxrt.IntFromNullableAny(c)
+		hx_if_3 = c.(int)
 	}
 	return hx_if_3
 }
@@ -62,7 +62,7 @@ func StringTools_hex(n int, digits any) *string {
 	if digits == nil {
 		hx_if_5 = 0
 	} else {
-		hx_if_5 = hxrt.IntFromNullableAny(digits.(int))
+		hx_if_5 = digits.(int)
 	}
 	resolvedDigits := hx_if_5
 	for (resolvedDigits != 0) && (hxrt.StringLengthStringPtr(out) < resolvedDigits) {
@@ -80,7 +80,7 @@ func StringTools_hexDigitValue(value *string) int {
 	if c == nil {
 		hx_if_6 = -1
 	} else {
-		hx_if_6 = hxrt.IntFromNullableAny(c)
+		hx_if_6 = c.(int)
 	}
 	code := hx_if_6
 	if code == -1 {
@@ -131,7 +131,7 @@ func StringTools_isSpace(s *string, pos int) bool {
 	if c_1 == nil {
 		hx_if_7 = -1
 	} else {
-		hx_if_7 = hxrt.IntFromNullableAny(c_1)
+		hx_if_7 = c_1.(int)
 	}
 	c := hx_if_7
 	return ((c != -1) && (((c > 8) && (c < 14)) || (c == 32)))
@@ -246,7 +246,7 @@ func StringTools_unsafeCodeAt(s *string, index int) int {
 	if c == nil {
 		hx_if_11 = -1
 	} else {
-		hx_if_11 = hxrt.IntFromNullableAny(c)
+		hx_if_11 = c.(int)
 	}
 	return hx_if_11
 }
@@ -325,7 +325,7 @@ func StringTools_utf16CodePointAt(s *string, index int) int {
 	if c_1 == nil {
 		hx_if_17 = -1
 	} else {
-		hx_if_17 = hxrt.IntFromNullableAny(c_1)
+		hx_if_17 = c_1.(int)
 	}
 	c := hx_if_17
 	if (c >= 55296) && (c <= 56319) {
@@ -335,7 +335,7 @@ func StringTools_utf16CodePointAt(s *string, index int) int {
 			if c_2 == nil {
 				hx_if_18 = -1
 			} else {
-				hx_if_18 = hxrt.IntFromNullableAny(c_2)
+				hx_if_18 = c_2.(int)
 			}
 			return hx_if_18
 		}()) & hxrt.Int32Wrap(1023))))))))

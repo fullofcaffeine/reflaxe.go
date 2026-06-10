@@ -110,7 +110,7 @@ func haxe__Utf8_decode(s *string) *string {
 		if c == nil {
 			hx_if_8 = -1
 		} else {
-			hx_if_8 = hxrt.IntFromNullableAny(c)
+			hx_if_8 = c.(int)
 		}
 		code := hx_if_8
 		bytes.b[index] = int(int32((hxrt.Int32Wrap(func() int {

@@ -19,7 +19,7 @@ func haxe__io___UInt32Array__UInt32Array_Impl__fromArray(a []int, pos int, lengt
 	if length == nil {
 		hx_if_10 = int(int32((hxrt.Int32Wrap(len(a)) - hxrt.Int32Wrap(pos))))
 	} else {
-		hx_if_10 = hxrt.IntFromNullableAny(length.(int))
+		hx_if_10 = length.(int)
 	}
 	resolvedLength := hx_if_10
 	if ((pos < 0) || (resolvedLength < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength)))) > len(a)) {
