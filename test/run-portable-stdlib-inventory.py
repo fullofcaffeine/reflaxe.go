@@ -401,10 +401,10 @@ MODULE_NOTES_OVERRIDES = {
     ),
     "sys.net.UdpSocket": (
         "Direct `sys.net.UdpSocket` usage now has deterministic snapshot/runtime coverage through "
-        "`stdlib/sys_net_udp_socket_direct`, covering loopback `bind` / `host` / `sendTo` / `readFrom` "
+        "`stdlib/sys_net_udp_socket_direct`, covering loopback `bind` / `host` / `sendTo` / `readFrom` / `setBroadcast` "
         "plus peer address round-tripping. Ownership stays compiler-owned inside the `net_socket` shim "
-        "group because UDP deadline/blocking/address translation behavior is still target-sensitive. "
-        "Broadcast socket-option semantics remain a follow-up rather than part of the current promotion evidence."
+        "group because UDP deadline/blocking/address translation and broadcast socket-option behavior are still target-sensitive. "
+        "The evidence covers OS socket-option installation without requiring LAN broadcast packet delivery in CI."
     ),
     "sys.ssl.Certificate": (
         "Direct `sys.ssl.Certificate` leaf usage now has snapshot runtime coverage through "

@@ -505,6 +505,9 @@ class GoCompiler {
 			imports.push("os");
 			imports.push("strconv");
 			imports.push("strings");
+			if (requiresUdpSocketSurface) {
+				imports.push("syscall");
+			}
 			imports.push("time");
 		}
 		if (requiredStdlibShimGroups.exists("go_result")) {

@@ -301,9 +301,9 @@ Shim strategy and alternatives are documented in:
 
 ### `sys.net.UdpSocket` direct baseline and tradeoffs
 
-- Direct UDP parity now has deterministic loopback snapshot/runtime coverage for `bind`, `host`, `sendTo`, `readFrom`, and `Address` round-tripping (`stdlib/sys_net_udp_socket_direct`).
+- Direct UDP parity now has deterministic loopback snapshot/runtime coverage for `bind`, `host`, `sendTo`, `readFrom`, `setBroadcast`, and `Address` round-tripping (`stdlib/sys_net_udp_socket_direct`).
 - `UdpSocket` stays in the compiler-owned `net_socket` slice because the same target-sensitive deadline/blocking/address-translation logic applies there too.
-- Current tradeoff: broadcast socket-option semantics are not part of the promoted evidence yet.
+- `setBroadcast(true)` maps to Go's operating-system socket option path (`SO_BROADCAST`) on the underlying UDP connection. The portable evidence checks that the option is installed and that normal UDP behavior still works; it does not require sending packets to a LAN broadcast address, because CI machines and developer laptops can block that at the network-policy level.
 
 ### `EReg` + `haxe.Serializer` contract and tradeoffs
 

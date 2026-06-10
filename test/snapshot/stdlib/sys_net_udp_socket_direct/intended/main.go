@@ -7,6 +7,7 @@ import (
 	"snapshot/hxrt"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -28,7 +29,7 @@ func main() {
 			hxrt.Throw(hxrt.StringFromLiteral("missing bound udp port"))
 		}
 		server.setBlocking(true)
-		client.setBroadcast(false)
+		client.setBroadcast(true)
 		sent := haxe__io__Bytes_ofString(hxrt.StringFromLiteral("udp-ping"))
 		target := New_sys__net__Address()
 		target.host = New_sys__net__Host(hxrt.StringFromLiteral("127.0.0.1")).ip
@@ -691,6 +692,7 @@ type sys__net__Socket struct {
 
 type sys__net__UdpSocket struct {
 	*sys__net__Socket
+	udpBroadcast bool
 }
 
 func New_sys__net__Socket() *sys__net__Socket {
@@ -793,7 +795,39 @@ func (self *sys__net__UdpSocket) hxrt__udp_socket_conn(create bool) *net.UDPConn
 		return nil
 	}
 	self.hxrt__socket_setConn(conn)
+	self.hxrt__udp_socket_applyBroadcast()
 	return conn
+}
+
+func (self *sys__net__UdpSocket) hxrt__udp_socket_applyBroadcast() {
+	if self == nil || self.sys__net__Socket == nil {
+		hxrt.Throw(hxrt.StringFromLiteral("udp socket is nil"))
+		return
+	}
+	conn := self.hxrt__udp_socket_conn(false)
+	if conn == nil {
+		return
+	}
+	rawConn, err := conn.SyscallConn()
+	if err != nil {
+		hxrt.Throw(err)
+		return
+	}
+	value := 0
+	if self.udpBroadcast {
+		value = 1
+	}
+	var sockErr error
+	controlErr := rawConn.Control(func(fd uintptr) {
+		sockErr = syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_BROADCAST, value)
+	})
+	if controlErr != nil {
+		hxrt.Throw(controlErr)
+		return
+	}
+	if sockErr != nil {
+		hxrt.Throw(sockErr)
+	}
 }
 
 func (self *sys__net__Socket) close() {
@@ -832,11 +866,20 @@ func (self *sys__net__UdpSocket) bind(host *sys__net__Host, port int) {
 	}
 	self.close()
 	self.hxrt__socket_setConn(conn)
+	self.hxrt__udp_socket_applyBroadcast()
 }
 
 func (self *sys__net__UdpSocket) setBroadcast(enabled bool) {
-	_ = self
-	_ = enabled
+	if self == nil || self.sys__net__Socket == nil {
+		hxrt.Throw(hxrt.StringFromLiteral("udp socket is nil"))
+		return
+	}
+	self.udpBroadcast = enabled
+	conn := self.hxrt__udp_socket_conn(true)
+	if conn == nil {
+		return
+	}
+	self.hxrt__udp_socket_applyBroadcast()
 }
 
 func (self *sys__net__UdpSocket) sendTo(buf *haxe__io__Bytes, pos int, length int, addr *sys__net__Address) int {

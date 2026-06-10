@@ -26,7 +26,7 @@ class Main {
 			}
 
 			server.setBlocking(true);
-			client.setBroadcast(false);
+			client.setBroadcast(true);
 
 			var sent = Bytes.ofString("udp-ping");
 			var target = new Address();

@@ -135,19 +135,21 @@ class GoNetSocketEmitter {
 				{name: "writer", typeName: "*bufio.Writer"},
 				{name: "socket", typeName: "*sys__net__Socket"}
 			]),
-			GoDecl.GoStructDecl("sys__net__Socket",
-				[
-					{name: "input", typeName: "*sys__net__SocketInput"},
-					{name: "output", typeName: "*sys__net__SocketOutput"},
-					{name: "custom", typeName: "any"},
-					{name: "conn", typeName: "net.Conn"},
-					{name: "listener", typeName: "net.Listener"},
-					{name: "timeout", typeName: "float64"},
-					{name: "hasTimeout", typeName: "bool"},
-					{name: "blocking", typeName: "bool"},
-					{name: "fastSend", typeName: "bool"}
-				]),
-			GoDecl.GoStructDecl("sys__net__UdpSocket", [{name: "", typeName: "*sys__net__Socket"}]),
+			GoDecl.GoStructDecl("sys__net__Socket", [
+				{name: "input", typeName: "*sys__net__SocketInput"},
+				{name: "output", typeName: "*sys__net__SocketOutput"},
+				{name: "custom", typeName: "any"},
+				{name: "conn", typeName: "net.Conn"},
+				{name: "listener", typeName: "net.Listener"},
+				{name: "timeout", typeName: "float64"},
+				{name: "hasTimeout", typeName: "bool"},
+				{name: "blocking", typeName: "bool"},
+				{name: "fastSend", typeName: "bool"}
+			]),
+			GoDecl.GoStructDecl("sys__net__UdpSocket", [
+				{name: "", typeName: "*sys__net__Socket"},
+				{name: "udpBroadcast", typeName: "bool"}
+			]),
 			GoDecl.GoFuncDecl("New_sys__net__Socket", null, [], ["*sys__net__Socket"], [
 				GoStmt.GoReturn(GoExpr.GoRaw("&sys__net__Socket{input: &sys__net__SocketInput{}, output: &sys__net__SocketOutput{}, blocking: true}"))
 			]),
@@ -261,7 +263,41 @@ class GoNetSocketEmitter {
 				GoStmt.GoRaw("\treturn nil"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("self.hxrt__socket_setConn(conn)"),
+				GoStmt.GoRaw("self.hxrt__udp_socket_applyBroadcast()"),
 				GoStmt.GoRaw("return conn")
+			]),
+			GoDecl.GoFuncDecl("hxrt__udp_socket_applyBroadcast", {
+				name: "self",
+				typeName: "*sys__net__UdpSocket"
+			}, [], [], [
+				GoStmt.GoRaw("if self == nil || self.sys__net__Socket == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"udp socket is nil\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("conn := self.hxrt__udp_socket_conn(false)"),
+				GoStmt.GoRaw("if conn == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("rawConn, err := conn.SyscallConn()"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(err)"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("value := 0"),
+				GoStmt.GoRaw("if self.udpBroadcast {"),
+				GoStmt.GoRaw("\tvalue = 1"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("var sockErr error"),
+				GoStmt.GoRaw("controlErr := rawConn.Control(func(fd uintptr) {"),
+				GoStmt.GoRaw("\tsockErr = syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_BROADCAST, value)"),
+				GoStmt.GoRaw("})"),
+				GoStmt.GoRaw("if controlErr != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(controlErr)"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if sockErr != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(sockErr)"),
+				GoStmt.GoRaw("}")
 			]),
 			GoDecl.GoFuncDecl("close", {
 				name: "self",
@@ -302,13 +338,24 @@ class GoNetSocketEmitter {
 					GoStmt.GoRaw("\treturn"),
 					GoStmt.GoRaw("}"),
 					GoStmt.GoRaw("self.close()"),
-					GoStmt.GoRaw("self.hxrt__socket_setConn(conn)")
+					GoStmt.GoRaw("self.hxrt__socket_setConn(conn)"),
+					GoStmt.GoRaw("self.hxrt__udp_socket_applyBroadcast()")
 				]),
 			GoDecl.GoFuncDecl("setBroadcast", {
 				name: "self",
 				typeName: "*sys__net__UdpSocket"
-			},
-				[{name: "enabled", typeName: "bool"}], [], [GoStmt.GoRaw("_ = self"), GoStmt.GoRaw("_ = enabled")]),
+			}, [{name: "enabled", typeName: "bool"}], [], [
+				GoStmt.GoRaw("if self == nil || self.sys__net__Socket == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"udp socket is nil\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.udpBroadcast = enabled"),
+				GoStmt.GoRaw("conn := self.hxrt__udp_socket_conn(true)"),
+				GoStmt.GoRaw("if conn == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("self.hxrt__udp_socket_applyBroadcast()")
+			]),
 			GoDecl.GoFuncDecl("sendTo", {
 				name: "self",
 				typeName: "*sys__net__UdpSocket"
