@@ -32,6 +32,7 @@ This page helps you find the right docs quickly.
 - [Thinking levels](thinking-levels.md)
 - [Feature support matrix](feature-support-matrix.md)
 - [Release readiness checklist](release-readiness-checklist.md)
+- [Performance budget policy](performance-budget-policy.md)
 - [Release visibility](release-visibility.md)
 
 ## Runtime and stdlib docs

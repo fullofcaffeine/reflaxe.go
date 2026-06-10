@@ -30,7 +30,7 @@ Terms:
 | Multi-package output | compiler/output | Ship as single Go package for GA; reopen only if production-scale projects hit concrete Go tooling limits. | `docs/multi-package-output-evaluation.md`, `python3 test/run-ci.py` | Generated file size, compile time, package-private boundary needs, or Go tooling limits become measurable user blockers. Tracked by `haxe.go-hm3p.5`. |
 | Advanced Go extern interop | typed native facade | Ship current `@:go.import` / `@:go.name` / `@:go.receiver` plus single `(T, error)` support; keep other multi-return-heavy APIs behind typed facade wrappers until generated wrappers exist. | `docs/goextern.md`, `tools/goextern/main_test.go`, `test/run-goextern-fixtures.py` | Users need direct typed bindings for multi-return-heavy Go APIs without writing facade wrappers. `haxe.go-hm3p.2` records the boundary policy; follow-up implementation should add generated wrappers, not raw `__go__` in app code. |
 | Target-sensitive parity surfaces | harness/runtime | Ship with snapshot/runtime evidence where deterministic interpreter-vs-Go comparison would be misleading. | `python3 test/run-portable-parity-closure.py --list-blockers`, `test/.test-cache/portable_parity_closure_summary.json` | A stable async/network/stack comparison harness becomes possible, or a snapshot-only surface starts hiding user-visible behavior drift. Tracked by `haxe.go-hm3p.3`. |
-| Performance budget drift | perf/CI | Ship with perf visibility gates and warning annotations; decide separately which warning-only drifts should become release-blocking. | `npm run test:perf:go`, `npm run test:perf:hxrt-selective`, `npm run test:perf:apps` | A warning repeats across stable CI runs, affects a flagship app, or hides a portable-vs-metal regression users would notice. Tracked by `haxe.go-hm3p.4`. |
+| Performance budget drift | perf/CI | Ship with perf visibility gates and warning annotations; decide separately which warning-only drifts should become release-blocking. | `docs/performance-budget-policy.md`, `npm run test:perf:go`, `npm run test:perf:hxrt-selective`, `npm run test:perf:apps` | A warning repeats across stable CI runs, affects a flagship app, or hides a portable-vs-metal regression users would notice. Tracked by `haxe.go-hm3p.4`. |
 | Strict production boundary policy | profiles/governance | Ship with strict mode recommended for production; do not allow app-side raw `__go__` to become the default escape hatch. | `docs/profiles.md`, `docs/defines-reference.md`, `npm run test:release-contracts` | Examples, docs, or generated reports make raw app-side injection look normal instead of exceptional. Tracked by `haxe.go-hm3p`. |
 
 ## Target-sensitive parity policy
@@ -125,6 +125,7 @@ not the same thing as interpreter-vs-Go semantic parity.
 
 - Generated code aims for predictable shape first, then optimization under harness gates.
 - Shim-heavy paths can still carry conversion overhead versus direct handwritten Go.
+- Current warning-vs-hard-gate decisions are documented in `docs/performance-budget-policy.md`.
 - Track real costs with:
   - `npm run test:perf:go`
   - `npm run test:perf:stdlib-shims`

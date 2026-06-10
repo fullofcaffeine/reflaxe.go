@@ -92,6 +92,7 @@ npm run release:status
 ```
 
 Release checklist: [/docs/release-readiness-checklist.md](/docs/release-readiness-checklist.md)
+Performance budget policy: [/docs/performance-budget-policy.md](/docs/performance-budget-policy.md)
 
 ## Related docs
 
