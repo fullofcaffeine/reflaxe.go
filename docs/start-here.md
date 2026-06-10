@@ -20,13 +20,37 @@ By default it also runs `go build` after code generation.
 
 ## First successful run
 
+Use this path when you want to prove the local checkout works and see generated
+Go run a real example:
+
 ```bash
 npm install
 npm run hooks:install
-python3 test/run-snapshots.py
-python3 test/run-ci.py
 npm run dev:hx -- --project examples/tui_todo --profile portable --action run
 ```
+
+That command runs the portable TUI todo example. `portable` is the default
+starting point because it keeps the code closest to normal Haxe semantics and
+cross-target-friendly APIs.
+
+## Validation after first run
+
+After the first example works, use these checks depending on what you changed:
+
+```bash
+# generated-output contracts
+python3 test/run-snapshots.py
+
+# example apps
+python3 test/run-examples.py
+
+# full local CI harness
+python3 test/run-ci.py
+```
+
+For normal development, start with the narrowest command that covers your
+change. Use the full CI harness before release cuts or broad compiler/runtime
+changes.
 
 ## Choose your first example
 

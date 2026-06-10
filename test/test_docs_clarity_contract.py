@@ -10,6 +10,13 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 class DocsClarityContractTest(unittest.TestCase):
+    def section_text(self, text: str, heading: str) -> str:
+        start = text.index(heading)
+        next_heading = text.find("\n## ", start + len(heading))
+        if next_heading == -1:
+            return text[start:]
+        return text[start:next_heading]
+
     def test_docs_index_and_glossary_exist(self) -> None:
         self.assertTrue((REPO_ROOT / "docs" / "index.md").exists(), "docs/index.md must exist")
         self.assertTrue((REPO_ROOT / "docs" / "glossary.md").exists(), "docs/glossary.md must exist")
@@ -52,6 +59,21 @@ class DocsClarityContractTest(unittest.TestCase):
         self.assertIn("runtime/hxrt", start_here)
         self.assertIn("src/reflaxe/go/GoCompiler.hx", start_here)
         self.assertIn("docs/stdlib-shim-rationale.md", start_here)
+
+    def test_start_here_separates_first_run_from_validation_gates(self) -> None:
+        start_here = (REPO_ROOT / "docs" / "start-here.md").read_text(encoding="utf-8")
+        first_run = self.section_text(start_here, "## First successful run")
+        validation = self.section_text(start_here, "## Validation after first run")
+
+        self.assertIn("npm install", first_run)
+        self.assertIn("npm run hooks:install", first_run)
+        self.assertIn("npm run dev:hx -- --project examples/tui_todo --profile portable --action run", first_run)
+        self.assertNotIn("python3 test/run-ci.py", first_run)
+        self.assertNotIn("python3 test/run-snapshots.py", first_run)
+
+        self.assertIn("python3 test/run-snapshots.py", validation)
+        self.assertIn("python3 test/run-examples.py", validation)
+        self.assertIn("python3 test/run-ci.py", validation)
 
     def test_docs_internal_links_do_not_use_docs_relative_prefix(self) -> None:
         targets = [
