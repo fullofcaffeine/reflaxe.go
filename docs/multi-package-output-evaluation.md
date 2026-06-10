@@ -29,6 +29,24 @@ This is a non-blocking defer, not a rejection of multi-package output.
 4. We add importer/graph tests that assert deterministic package graphs and no-cycle guarantees.
 5. We keep a single-package compatibility mode so existing users are not forced into package-graph migration.
 
+## Measurable production reopen triggers
+
+Single-package output stays the default until a real project produces repeatable
+evidence that the single-package model is the bottleneck. A **trigger** is a
+measured signal that should create or unblock a Bead for multi-package output.
+It is not a hunch that multi-package output would look nicer.
+
+| Trigger | What to measure | Reopen threshold | Trigger evidence |
+| --- | --- | --- | --- |
+| Generated file size | Size of the largest generated `.go` file and total generated Go size for a production workload. | A generated file becomes too large for normal review/tooling, or repeated builds produce a single file that is clearly the source of formatter, editor, or compiler pain. | Attach generated-size numbers, the workload name, and the command that produced them. |
+| Go compile time | Wall-clock time for `go test` / `go build` on generated output, measured on the same machine or CI runner. | Single-package output becomes a repeatable compile-time bottleneck after unrelated runtime/test costs are excluded. | Attach at least three runs, median time, command, Go version, and whether the same workload improves with a prototype package split. |
+| Package-private boundary needs | Need for Go package boundaries to use package-private APIs, generated helper isolation, or separate review/ownership areas. | A production integration cannot be represented honestly through public generated symbols or typed extern facades. | Attach the required boundary, why public wrappers are not enough, and the affected generated modules. |
+| Go tooling limit | A concrete Go tool, editor, linter, formatter, or build system limit caused by single-package output. | The tool fails, times out, or becomes unusably slow only because output is one package. | Attach the tool name/version, failing command, error/log excerpt, and a minimized reproduction if possible. |
+
+If a trigger fires, implementation still starts with the planner-only phase
+below. Do not skip directly to changing output shape; package graphs need their
+own deterministic tests first.
+
 ## If/when implementation starts
 Use staged delivery:
 1. Planner-only phase: build package graph + diagnostics, no output behavior change.
