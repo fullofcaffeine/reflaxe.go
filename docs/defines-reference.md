@@ -43,6 +43,14 @@ Design note:
   - `interp` (default): match Haxe `--interp` behavior (RawNative treated like UTF-8 conversion path).
   - `utf16le`: opt-in compatibility mode that encodes/decodes RawNative as UTF-16LE bytes (useful when aligning with Java/C#-style RawNative expectations).
 
+## Diagnostics
+
+- `reflaxe_go_native_stack_trace`
+  - Enables Go-native stack capture for `haxe.CallStack` / `haxe.NativeStackTrace`.
+  - This is an explicit target-sensitive diagnostic capability, not portable semantic-diff parity.
+  - Default behavior remains deterministic empty stacks.
+  - Runtime details: `docs/spikes/native-stack-capture-contract.md`
+
 ## Runtime slicing
 
 - `reflaxe_go_hxrt_default_features`

@@ -1,0 +1,59 @@
+{
+	"schemaVersion": 1,
+	"contract": "portable",
+	"mode": "selective",
+	"selectiveEnabled": true,
+	"fullCopy": false,
+	"inferenceDisabled": false,
+	"manualFeatures": [
+	],
+	"inferredFeatures": [
+		"core",
+		"exception",
+		"print",
+		"stack",
+		"string"
+	],
+	"selectedFeatures": [
+		"core",
+		"exception",
+		"print",
+		"stack",
+		"string"
+	],
+	"files": [
+		"core.go",
+		"exception.go",
+		"hxrt.go",
+		"print.go",
+		"stack.go",
+		"string.go"
+	],
+	"reasons": [
+		{
+			"feature": "core",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "string",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "print",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "exception",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "stack",
+			"sourceKind": "define",
+			"source": "reflaxe_go_native_stack_trace"
+		}
+	]
+}

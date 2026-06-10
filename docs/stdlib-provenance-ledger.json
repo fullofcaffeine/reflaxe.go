@@ -45,7 +45,7 @@
     {
       "path": "std/haxe/CallStack.cross.hx",
       "provenanceKind": "repo_authored_override",
-      "notes": "Go staged target-sensitive override for haxe.CallStack, providing deterministic empty-stack fallbacks until native stack capture exists."
+      "notes": "Go staged target-sensitive override for haxe.CallStack, providing deterministic empty-stack fallbacks by default plus opt-in native stack diagnostics."
     },
     {
       "path": "std/haxe/Template.cross.hx",
@@ -95,7 +95,7 @@
     {
       "path": "std/haxe/NativeStackTrace.cross.hx",
       "provenanceKind": "repo_authored_override",
-      "notes": "Go staged target-sensitive override for haxe.NativeStackTrace, exposing deterministic empty-stack behavior instead of pretending native stack parity."
+      "notes": "Go staged target-sensitive override for haxe.NativeStackTrace, exposing deterministic empty-stack behavior by default plus opt-in native stack diagnostics without claiming portable stack parity."
     },
     {
       "path": "std/haxe/EntryPoint.cross.hx",

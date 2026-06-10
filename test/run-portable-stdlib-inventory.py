@@ -158,11 +158,12 @@ UNSUPPORTED_EXPLICIT = {
 }
 
 MODULE_NOTES_OVERRIDES = {
-    "haxe.CallStack": (
-        "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
-        "Go currently uses a staged std deterministic empty-stack fallback instead of claiming portable "
-        "native stack parity."
-    ),
+	"haxe.CallStack": (
+		"Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
+		"Go uses a staged std deterministic empty-stack fallback by default; opt-in native Go stack "
+		"diagnostics are covered by stdlib/haxe_native_stack_trace_opt_in and do not claim portable "
+		"semantic-diff stack parity."
+	),
     "haxe.EntryPoint": (
         "Direct haxe.EntryPoint usage is covered by snapshot/runtime smoke contract "
         "stdlib/haxe_main_loop_runtime_direct. The staged override connects the public "
@@ -196,10 +197,11 @@ MODULE_NOTES_OVERRIDES = {
         "stdlib/haxe_main_loop_runtime_direct. The staged override keeps the Haxe-facing "
         "MainEvent facade while scheduling callbacks through haxe.EntryPoint and sys.thread.EventLoop."
     ),
-    "haxe.NativeStackTrace": (
-        "Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
-        "Go currently exposes a deterministic empty-stack fallback instead of native stack capture."
-    ),
+	"haxe.NativeStackTrace": (
+		"Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
+		"Go exposes a deterministic empty-stack fallback by default; opt-in native Go stack diagnostics "
+		"are covered by stdlib/haxe_native_stack_trace_opt_in and do not claim portable semantic-diff stack parity."
+	),
     "haxe.Ucs2": (
         "Covered by target-sensitive snapshot contract stdlib/haxe_ucs2_platform_exclusion. "
         "Go keeps the upstream platform-exclusion behavior and does not claim native UCS2 strings."

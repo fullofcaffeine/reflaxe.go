@@ -1,5 +1,9 @@
 package haxe;
 
+#if reflaxe_go_native_stack_trace
+import haxe.NativeStackTrace;
+#end
+
 /**
 	What
 	A staged `haxe.CallStack` override for `haxe.go`.
@@ -14,8 +18,11 @@ package haxe;
 	How
 	Provide the same public `StackItem`/`CallStack` surface with the conservative
 	behavior `haxe.go` already uses today for these paths: empty captured stacks
-	and deterministic string rendering when explicitly asked. This keeps ownership
-	in staged std code and avoids forcing unrelated stdlib modules into the build.
+	and deterministic string rendering when explicitly asked. When
+	`reflaxe_go_native_stack_trace` is enabled, this staged API converts
+	Go-native diagnostic frames from `hxrt` into `StackItem` values. This keeps
+	ownership in staged std code and avoids forcing unrelated stdlib modules into
+	the build.
 **/
 enum StackItem {
 	CFunction;
@@ -35,11 +42,19 @@ abstract CallStack(Array<StackItem>) from Array<StackItem> {
 	}
 
 	public static function callStack():Array<StackItem> {
+		#if reflaxe_go_native_stack_trace
+		return NativeStackTrace.toHaxe(NativeStackTrace.callStack(), 1);
+		#else
 		return [];
+		#end
 	}
 
 	public static function exceptionStack(fullStack = false):Array<StackItem> {
+		#if reflaxe_go_native_stack_trace
+		return NativeStackTrace.toHaxe(NativeStackTrace.exceptionStack(), fullStack ? 0 : 1);
+		#else
 		return [];
+		#end
 	}
 
 	public static function toString(stack:CallStack):String {

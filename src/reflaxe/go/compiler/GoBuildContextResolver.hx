@@ -23,6 +23,7 @@ class GoBuildContextResolver {
 	public static inline final OPTIMIZER_PLAN_REPORT_DEFINE = "reflaxe_go_optimizer_plan_report";
 	public static inline final OPT_PRESET_DEFINE = "reflaxe_go_opt";
 	public static inline final OPT_PORTABLE_CONCURRENCY_FASTPATH_DEFINE = "reflaxe_go_opt_go_concurrency_fastpath";
+	public static inline final NATIVE_STACK_TRACE_DEFINE = "reflaxe_go_native_stack_trace";
 
 	public static function resolve():GoBuildContext {
 		var profile = ProfileResolver.resolve();
@@ -39,7 +40,8 @@ class GoBuildContextResolver {
 			&& !metalFallbackAllowed, Context.defined(HXRT_DEFAULT_FEATURES_DEFINE), Context.defined(HXRT_FEATURES_DEFINE),
 			Context.defined(HXRT_NO_FEATURE_INFER_DEFINE), parseManualHxrtFeatures(Context.definedValue(HXRT_FEATURES_DEFINE)),
 			Context.defined(CONTRACT_REPORT_DEFINE), Context.defined(RUNTIME_PLAN_REPORT_DEFINE), parseBoolDefine(OPTIMIZER_PLAN_REPORT_DEFINE, false),
-			autoLoweringMode, optimizationPreset, portableStringFastpathEnabled, portableConcurrencyFastpathEnabled, []);
+			autoLoweringMode, optimizationPreset, portableStringFastpathEnabled, portableConcurrencyFastpathEnabled,
+			Context.defined(NATIVE_STACK_TRACE_DEFINE), []);
 	}
 
 	static function parseManualHxrtFeatures(raw:Null<String>):Array<String> {

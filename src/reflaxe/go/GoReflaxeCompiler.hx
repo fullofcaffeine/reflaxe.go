@@ -384,6 +384,15 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			}
 		}
 		inferredFeatures = sortedUniqueStrings(inferredFeatures);
+		if (buildContext.nativeStackTraceEnabled && inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_STACK) == -1) {
+			inferredFeatures.push(GoHxrtFeatureAnalyzer.FEATURE_STACK);
+			inferredFeatures = sortedUniqueStrings(inferredFeatures);
+			inferredReasons.push({
+				feature: GoHxrtFeatureAnalyzer.FEATURE_STACK,
+				sourceKind: "define",
+				source: GoBuildContextResolver.NATIVE_STACK_TRACE_DEFINE
+			});
+		}
 
 		if (forceFullCopy || !selectiveEnabled) {
 			return {

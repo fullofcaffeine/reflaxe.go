@@ -346,7 +346,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.CallStack",
-      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. Go currently uses a staged std deterministic empty-stack fallback instead of claiming portable native stack parity.",
+      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. Go uses a staged std deterministic empty-stack fallback by default; opt-in native Go stack diagnostics are covered by stdlib/haxe_native_stack_trace_opt_in and do not claim portable semantic-diff stack parity.",
       "owner": "staged_std",
       "portable_eligible": true,
       "status": "snapshot"
@@ -533,7 +533,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.NativeStackTrace",
-      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. Go currently exposes a deterministic empty-stack fallback instead of native stack capture.",
+      "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. Go exposes a deterministic empty-stack fallback by default; opt-in native Go stack diagnostics are covered by stdlib/haxe_native_stack_trace_opt_in and do not claim portable semantic-diff stack parity.",
       "owner": "staged_std",
       "portable_eligible": true,
       "status": "snapshot"

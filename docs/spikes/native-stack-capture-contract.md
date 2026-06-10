@@ -13,15 +13,15 @@ Keep the current default behavior for `haxe.CallStack` and `haxe.NativeStackTrac
 - `NativeStackTrace.callStack()` returns an empty stack carrier.
 - `NativeStackTrace.toHaxe(...)` remains deterministic for the carriers it already accepts.
 
-Accept a future Go-only implementation as an explicit target-sensitive diagnostic feature, not as semantic-diff parity.
+Accept Go-native stack capture only as an explicit target-sensitive diagnostic feature, not as semantic-diff parity.
 
-Recommended future knob:
+Opt-in knob:
 
 ```text
 -D reflaxe_go_native_stack_trace
 ```
 
-That define would mean: generated Go may use Go runtime stack inspection to return best-effort call frames for debugging. It would not mean those frames are portable across targets or stable enough for semantic-diff comparison.
+That define means: generated Go may use Go runtime stack inspection to return best-effort call frames for debugging. It does not mean those frames are portable across targets or stable enough for semantic-diff comparison.
 
 ## Terms
 
@@ -74,9 +74,9 @@ Keep public Haxe-facing behavior in staged std:
 - `std/haxe/CallStack.cross.hx` owns the `CallStack` abstract and `StackItem` formatting surface.
 - `std/haxe/NativeStackTrace.cross.hx` owns the `NativeStackTrace` API shape.
 
-Add Go runtime support under `hxrt` only when the opt-in define is enabled:
+Go runtime support lives under `hxrt` and is used only when the opt-in define is enabled:
 
-- new runtime helper, likely `runtime/hxrt/stack.go`, captures Go frames with `runtime.Callers`.
+- `runtime/hxrt/stack.go` captures Go frames with `runtime.Callers`.
 - each runtime frame carries at least function name, file, and line.
 - staged std converts runtime frames into `haxe.CallStack.StackItem` values.
 
@@ -110,10 +110,10 @@ The feature must not:
 
 Use snapshot/runtime tests first.
 
-Required first tests:
+Required tests:
 
 - keep `stdlib/haxe_stack_loop_target_sensitive` for default empty-stack behavior.
-- add a new snapshot fixture for `-D reflaxe_go_native_stack_trace` that checks stable facts, not exact full paths.
+- keep `stdlib/haxe_native_stack_trace_opt_in` for `-D reflaxe_go_native_stack_trace`, checking stable facts, not exact full paths.
 
 Stable facts can include:
 
@@ -128,17 +128,17 @@ Do not add this to semantic-diff until a later design defines a stable normaliza
 
 ## Implementation Tasks
 
-Follow-up implementation should be split into small beads:
+The implementation is split into these ownership slices:
 
-1. Add the explicit define and runtime plan reporting.
-2. Add `hxrt` native frame capture behind that define.
-3. Convert captured Go frames to `StackItem` in staged std.
-4. Add target-sensitive snapshot/runtime coverage.
-5. Revisit whether any normalized semantic-diff subset is possible.
+1. Explicit define and runtime plan reporting.
+2. `hxrt` native frame capture behind that define.
+3. Staged std conversion from Go frames to `StackItem`.
+4. Target-sensitive snapshot/runtime coverage.
+5. Future-only: revisit whether any normalized semantic-diff subset is possible.
 
 ## Non-Goals
 
-Do not replace the current deterministic fallback in this spike.
+Do not replace the current deterministic fallback as the default.
 
 Do not build full Haxe source-map reconstruction in the first implementation.
 
@@ -150,4 +150,4 @@ Do not copy another target's stack model mechanically. `haxe.rust` currently als
 
 The current fallback is retained and documented as the correct default for now.
 
-Native stack capture is worth implementing later as an explicit Go diagnostic capability, with snapshot/runtime coverage first and semantic-diff only if a stable normalized Haxe-level frame contract is designed.
+Native stack capture is implemented as an explicit Go diagnostic capability with snapshot/runtime coverage first. Semantic-diff remains out of scope unless a stable normalized Haxe-level frame contract is designed later.
