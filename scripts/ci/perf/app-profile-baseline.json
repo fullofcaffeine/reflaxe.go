@@ -116,5 +116,44 @@
         "stripped_ratio_vs_pure": 1.1687726173101145
       }
     ]
+  },
+  "toolchain": {
+    "haxe": "unknown",
+    "go": "unknown",
+    "metadata": "legacy baseline generated before toolchain capture was added"
+  },
+  "params": {
+    "workloadRuns": 20,
+    "startupIterations": 50,
+    "benchTime": "200ms",
+    "benchCount": null,
+    "warningThresholds": {
+      "throughputWarnPct": 12.0,
+      "latencyWarnPct": 12.0,
+      "allocWarnPct": 15.0,
+      "memoryWarnPct": 12.0,
+      "startupWarnPct": 15.0,
+      "sizeWarnPct": 8.0
+    },
+    "metalFailThresholds": {
+      "throughputFailPct": 25.0,
+      "latencyFailPct": 25.0,
+      "allocFailPct": 30.0,
+      "memoryFailPct": 20.0,
+      "startupFailPct": 30.0,
+      "sizeFailPct": 15.0
+    },
+    "deltaFailThresholds": {
+      "deltaFailPct": 25.0
+    },
+    "enforceMetalBudget": false,
+    "enforceDeltaBudget": false,
+    "deltaCases": [
+      "fluxproxy:core",
+      "fluxproxy:go_native",
+      "pulseforge:core",
+      "pulseforge:go_native"
+    ],
+    "metadata": "legacy baseline params reconstructed from recorded harness defaults"
   }
 }

@@ -1544,9 +1544,11 @@ fs.writeFileSync(currentJsonPath, `${JSON.stringify(current, null, 2)}\n`);
 const baselinePayload = {
   schemaVersion: 1,
   generatedAt: current.generatedAt,
+  toolchain: current.toolchain,
   thresholds: current.thresholds,
   startupLoops: current.startupLoops,
   caseParams: current.caseParams,
+  options: current.options,
   derivedBaseline: current.derived,
 };
 

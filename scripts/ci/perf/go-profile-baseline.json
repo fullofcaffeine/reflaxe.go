@@ -161,5 +161,26 @@
         "startupRatio": 1
       }
     }
+  },
+  "toolchain": {
+    "haxe": "unknown",
+    "go": "unknown",
+    "metadata": "legacy baseline generated before toolchain capture was added"
+  },
+  "options": {
+    "portableConcurrencyFastpathEnabled": true,
+    "hxrtFeatures": "core,string,print",
+    "enforceMetalBudget": false,
+    "enforceDeltaBudget": false,
+    "deltaCases": [
+      "string",
+      "string_instance",
+      "select",
+      "channel"
+    ],
+    "tuiProfiles": [
+      "portable"
+    ],
+    "metadata": "legacy baseline options reconstructed from recorded harness defaults"
   }
 }

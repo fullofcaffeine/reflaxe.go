@@ -819,6 +819,8 @@ with open(current_json_path, "w", encoding="utf-8") as handle:
 baseline_payload = {
     "schemaVersion": 1,
     "generatedAt": now,
+    "toolchain": current_payload["toolchain"],
+    "params": current_payload["params"],
     "thresholds": warning_thresholds,
     "derivedBaseline": {
         "haxeVsPure": haxe_vs_pure,
