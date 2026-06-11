@@ -28,6 +28,7 @@ Run these checks from repo root on a clean branch before a release cut.
 8. Production caveat scoreboard review:
    - Read `docs/known-gaps.md#production-hardening-scoreboard`
    - Confirm each row still has an owner, current decision, evidence, and reopen trigger.
+   - Confirm the scoreboard references current GA hardening beads, not retired tracker IDs.
    - For multi-package output, check `docs/multi-package-output-evaluation.md#measurable-production-reopen-triggers` before filing implementation work.
 9. Performance budget policy review:
    - Read `docs/performance-budget-policy.md`

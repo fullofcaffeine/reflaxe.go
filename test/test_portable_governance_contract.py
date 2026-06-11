@@ -179,8 +179,10 @@ class PortableGovernanceContractTest(unittest.TestCase):
         self.assertIn("Performance budget drift", known_gaps)
         self.assertIn("Strict production boundary policy", known_gaps)
         self.assertIn("file a new scoped Bead", known_gaps)
-        self.assertIn("Historical hardening bead", known_gaps)
-        self.assertNotIn("Tracked by `haxe.go-hm3p", known_gaps)
+        self.assertIn("Current GA hardening beads", known_gaps)
+        self.assertIn("haxe.go-1bo0.2", known_gaps)
+        self.assertIn("haxe.go-1bo0.7", known_gaps)
+        self.assertNotIn("haxe.go-hm3p", known_gaps)
 
         self.assertIn("Production caveat scoreboard", release_checklist)
         self.assertIn("docs/known-gaps.md#production-hardening-scoreboard", release_checklist)
