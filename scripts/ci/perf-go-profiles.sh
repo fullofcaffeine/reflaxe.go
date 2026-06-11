@@ -44,7 +44,7 @@ Environment:
                             (default: string,string_instance,select,channel).
   GO_PERF_STARTUP_SAMPLES   Startup timing samples per binary; when greater than 1, ratios use
                             the median sample to reduce single-run jitter. Keep this aligned with
-                            the checked-in baseline methodology (default: 1).
+                            the checked-in baseline methodology (default: 3).
   GO_PERF_HELLO_ITERS       Startup loop count for hello case (default: 300)
   GO_PERF_ARRAY_ITERS       Startup loop count for array case (default: 300)
   GO_PERF_ATOMIC_ITERS      Startup loop count for atomic case (default: 120)
@@ -938,7 +938,7 @@ delta_warn_pct="${GO_PERF_DELTA_WARN_PCT:-15}"
 enforce_delta_budget="${GO_PERF_ENFORCE_DELTA_BUDGET:-0}"
 delta_fail_pct="${GO_PERF_DELTA_FAIL_PCT:-25}"
 delta_cases="${GO_PERF_DELTA_CASES:-string,string_instance,select,channel}"
-startup_samples="${GO_PERF_STARTUP_SAMPLES:-1}"
+startup_samples="${GO_PERF_STARTUP_SAMPLES:-3}"
 hello_iters="${GO_PERF_HELLO_ITERS:-300}"
 array_iters="${GO_PERF_ARRAY_ITERS:-300}"
 atomic_iters="${GO_PERF_ATOMIC_ITERS:-120}"
@@ -1366,7 +1366,7 @@ const deltaCases = (process.env.GO_PERF_DELTA_CASES || "string,string_instance,s
   .map((value) => value.trim().toLowerCase())
   .filter((value) => value.length > 0);
 const uniqueDeltaCases = [...new Set(deltaCases)];
-const startupSamples = Number(process.env.GO_PERF_STARTUP_SAMPLES || "1");
+const startupSamples = Number(process.env.GO_PERF_STARTUP_SAMPLES || "3");
 const helloIters = Number(process.env.GO_PERF_HELLO_ITERS || "300");
 const arrayIters = Number(process.env.GO_PERF_ARRAY_ITERS || "300");
 const atomicIters = Number(process.env.GO_PERF_ATOMIC_ITERS || "120");

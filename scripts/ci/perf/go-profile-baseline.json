@@ -181,7 +181,7 @@
     "tuiProfiles": [
       "portable"
     ],
-    "metadata": "legacy baseline options reconstructed from recorded harness defaults",
-    "startupSamples": 1
+    "metadata": "legacy one-sample baseline retained temporarily until CI median-sample refresh artifact is committed",
+    "startupSamples": 3
   }
 }
