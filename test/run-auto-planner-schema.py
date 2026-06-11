@@ -92,6 +92,19 @@ def require_capability(capabilities: Any, capability_id: str, label: str) -> dic
     raise SystemExit(f"{label}: missing capability `{capability_id}`")
 
 
+def require_fallback_reason(capability: dict[str, Any], kind: str, expected: int, label: str) -> None:
+    reasons = capability.get("fallbackReasonCounts")
+    if not isinstance(reasons, list):
+        raise SystemExit(f"{label}.fallbackReasonCounts: expected array")
+    for reason in reasons:
+        if isinstance(reason, dict) and reason.get("kind") == kind:
+            count = require_int(reason.get("count"), f"{label}.fallbackReasonCounts.{kind}")
+            if count != expected:
+                raise SystemExit(f"{label}.fallbackReasonCounts.{kind}: expected {expected}, got {count}")
+            return
+    raise SystemExit(f"{label}.fallbackReasonCounts: missing reason `{kind}`")
+
+
 def require_reason_entries(entries: list[Any], expected_source_prefix: str, label: str) -> None:
     for index, entry in enumerate(entries):
         if not isinstance(entry, dict):
@@ -138,6 +151,12 @@ def main() -> int:
     )
     optimizer_fallback_path = (
         ROOT / "test/snapshot/core/optimizer_plan_auto_collections_result_fallback/intended/optimizer_plan.json"
+    )
+    optimizer_string_fastpath_path = (
+        ROOT / "test/snapshot/core/optimizer_plan_string_fastpath_enabled/intended/optimizer_plan.json"
+    )
+    optimizer_string_legacy_path = (
+        ROOT / "test/snapshot/core/optimizer_plan_string_fastpath_disabled/intended/optimizer_plan.json"
     )
     runtime_path = ROOT / "test/snapshot/core/report_artifacts_runtime_reason_provenance/intended/hxrt_plan.json"
 
@@ -264,6 +283,72 @@ def main() -> int:
     require_counter_eq(optimizer_fallback, "goResultTypedLowerings", 0, str(optimizer_fallback_path))
     require_counter_gt(optimizer_fallback, "goResultTypedFallbacks", 0, str(optimizer_fallback_path))
     require_counter_gt(optimizer_fallback, "loweringFallbackNonLaneCount", 0, str(optimizer_fallback_path))
+
+    optimizer_string_fastpath = load_json(optimizer_string_fastpath_path)
+    require_schema(optimizer_string_fastpath, 5, str(optimizer_string_fastpath_path))
+    require_optimizer_capabilities(
+        optimizer_string_fastpath.get("autoLoweringCapabilities"),
+        str(optimizer_string_fastpath_path) + ".autoLoweringCapabilities",
+    )
+    string_fastpath_capability = require_capability(
+        optimizer_string_fastpath["autoLoweringCapabilities"],
+        "go.string.typed",
+        str(optimizer_string_fastpath_path) + ".autoLoweringCapabilities",
+    )
+    string_fastpath_attempts = (
+        optimizer_string_fastpath["stringInstanceTypedLowerings"]
+        + optimizer_string_fastpath["stringLengthFieldTypedLowerings"]
+    )
+    require_counter_eq(
+        string_fastpath_capability,
+        "attempts",
+        string_fastpath_attempts,
+        str(optimizer_string_fastpath_path) + ".go.string.typed",
+    )
+    require_counter_eq(
+        string_fastpath_capability,
+        "successes",
+        string_fastpath_attempts,
+        str(optimizer_string_fastpath_path) + ".go.string.typed",
+    )
+    require_counter_eq(string_fastpath_capability, "fallbacks", 0, str(optimizer_string_fastpath_path) + ".go.string.typed")
+    if string_fastpath_capability.get("fallbackReasonCounts") != []:
+        raise SystemExit(f"{optimizer_string_fastpath_path}.go.string.typed.fallbackReasonCounts: expected empty")
+
+    optimizer_string_legacy = load_json(optimizer_string_legacy_path)
+    require_schema(optimizer_string_legacy, 5, str(optimizer_string_legacy_path))
+    require_optimizer_capabilities(
+        optimizer_string_legacy.get("autoLoweringCapabilities"),
+        str(optimizer_string_legacy_path) + ".autoLoweringCapabilities",
+    )
+    string_legacy_capability = require_capability(
+        optimizer_string_legacy["autoLoweringCapabilities"],
+        "go.string.typed",
+        str(optimizer_string_legacy_path) + ".autoLoweringCapabilities",
+    )
+    string_legacy_attempts = (
+        optimizer_string_legacy["stringInstanceLegacyLowerings"]
+        + optimizer_string_legacy["stringLengthFieldLegacyLowerings"]
+    )
+    require_counter_eq(
+        string_legacy_capability,
+        "attempts",
+        string_legacy_attempts,
+        str(optimizer_string_legacy_path) + ".go.string.typed",
+    )
+    require_counter_eq(string_legacy_capability, "successes", 0, str(optimizer_string_legacy_path) + ".go.string.typed")
+    require_counter_eq(
+        string_legacy_capability,
+        "fallbacks",
+        string_legacy_attempts,
+        str(optimizer_string_legacy_path) + ".go.string.typed",
+    )
+    require_fallback_reason(
+        string_legacy_capability,
+        "optimizer_preset_disabled",
+        string_legacy_attempts,
+        str(optimizer_string_legacy_path) + ".go.string.typed",
+    )
 
     runtime = load_json(runtime_path)
     require_schema(runtime, 1, str(runtime_path))

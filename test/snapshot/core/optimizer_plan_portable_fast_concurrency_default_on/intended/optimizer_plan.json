@@ -25,6 +25,14 @@
 			"fallbacks": 0,
 			"fallbackReasonCounts": [
 			]
+		},
+		{
+			"id": "go.string.typed",
+			"attempts": 6,
+			"successes": 6,
+			"fallbacks": 0,
+			"fallbackReasonCounts": [
+			]
 		}
 	],
 	"goAstPassSelectionSource": "planner",

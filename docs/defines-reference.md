@@ -165,7 +165,7 @@ Removed:
   - `hxrt_plan` reasons are deterministic per-feature provenance entries (`baseline`, `class_usage`, `enum_usage`, `shim_group`, `io_helper_surface`, `manual_define`, `dependency_edge`) so runtime selection remains auditable in CI.
 - `reflaxe_go_optimizer_plan_report`
   - Emit `optimizer_plan.json` and `optimizer_plan.md` into output root with effective optimizer preset/capabilities and applied lowering counters.
-  - `optimizer_plan.json` schema v5 includes `autoLoweringMode`, pass-plan selection fields (`goAstPassSelectionSource`, `goAstPassSelectionReasons`), typed-lowering counters (`goCollectionsTypedLowerings`, `goCollectionsTypedFallbacks`, `goResultTypedLowerings`, `goResultTypedFallbacks`), lane-scoped fallback counters (`loweringFallbackLaneCount`, `loweringFallbackNonLaneCount`), and deterministic capability-level auto-lowering summaries (`autoLoweringCapabilities` with attempt/success/fallback counts plus fallback reason counts).
+  - `optimizer_plan.json` schema v5 includes `autoLoweringMode`, pass-plan selection fields (`goAstPassSelectionSource`, `goAstPassSelectionReasons`), string fastpath counters (`stringInstanceTypedLowerings`, `stringInstanceLegacyLowerings`, `stringLengthFieldTypedLowerings`, `stringLengthFieldLegacyLowerings`), typed-lowering counters (`goCollectionsTypedLowerings`, `goCollectionsTypedFallbacks`, `goResultTypedLowerings`, `goResultTypedFallbacks`), lane-scoped fallback counters (`loweringFallbackLaneCount`, `loweringFallbackNonLaneCount`), and deterministic capability-level auto-lowering summaries (`autoLoweringCapabilities`, including `go.string.typed`, with attempt/success/fallback counts plus fallback reason counts).
 
 ## Constructor devex
 

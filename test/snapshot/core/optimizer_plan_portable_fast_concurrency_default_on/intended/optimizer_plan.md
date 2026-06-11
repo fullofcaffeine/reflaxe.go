@@ -23,6 +23,8 @@
 ## auto lowering capabilities
 - `go.concurrency.typed` | attempts `5` | success `3` | fallback `0`
   fallback reasons: none
+- `go.string.typed` | attempts `6` | success `6` | fallback `0`
+  fallback reasons: none
 
 ## go ast passes
 - `normalize_names`

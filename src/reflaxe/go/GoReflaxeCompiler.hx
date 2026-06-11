@@ -720,6 +720,29 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			}
 		}
 
+		var stringSuccesses = context.optimizerStringInstanceTypedLowerings + context.optimizerStringLengthFieldTypedLowerings;
+		var stringFallbacks = context.optimizerStringInstanceLegacyLowerings + context.optimizerStringLengthFieldLegacyLowerings;
+		var stringAttempts = stringSuccesses + stringFallbacks;
+		if (stringAttempts > 0) {
+			var stringCapability = "go.string.typed";
+			var accumulator = byCapability.get(stringCapability);
+			if (accumulator == null) {
+				accumulator = {
+					attempts: 0,
+					successes: 0,
+					fallbacks: 0,
+					fallbackReasonCounts: []
+				};
+				byCapability.set(stringCapability, accumulator);
+			}
+			accumulator.attempts += stringAttempts;
+			accumulator.successes += stringSuccesses;
+			accumulator.fallbacks += stringFallbacks;
+			if (stringFallbacks > 0) {
+				incrementIntMapBy(accumulator.fallbackReasonCounts, "optimizer_preset_disabled", stringFallbacks);
+			}
+		}
+
 		var capabilityIds = sortedUniqueStrings([for (id in byCapability.keys()) id]);
 		var summaries:Array<OptimizerCapabilitySummary> = [];
 		for (capability in capabilityIds) {
@@ -1387,8 +1410,12 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 	}
 
 	static function incrementIntMap(map:Map<String, Int>, key:String):Void {
+		incrementIntMapBy(map, key, 1);
+	}
+
+	static function incrementIntMapBy(map:Map<String, Int>, key:String, amount:Int):Void {
 		var existing = map.exists(key) ? map.get(key) : 0;
-		map.set(key, existing + 1);
+		map.set(key, existing + amount);
 	}
 }
 #else

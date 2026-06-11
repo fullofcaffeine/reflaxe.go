@@ -21,7 +21,8 @@
 - go ast pass selection source: `planner`
 
 ## auto lowering capabilities
-- none
+- `go.string.typed` | attempts `6` | success `6` | fallback `0`
+  fallback reasons: none
 
 ## go ast passes
 - `normalize_names`

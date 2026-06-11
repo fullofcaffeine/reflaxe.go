@@ -18,6 +18,14 @@
 	"loweringFallbackLaneCount": 0,
 	"loweringFallbackNonLaneCount": 0,
 	"autoLoweringCapabilities": [
+		{
+			"id": "go.string.typed",
+			"attempts": 6,
+			"successes": 6,
+			"fallbacks": 0,
+			"fallbackReasonCounts": [
+			]
+		}
 	],
 	"goAstPassSelectionSource": "planner",
 	"goAstPasses": [
