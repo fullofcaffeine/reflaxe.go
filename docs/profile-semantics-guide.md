@@ -2,6 +2,14 @@
 
 This guide explains the practical and semantic differences between profiles.
 
+Short version: portable is the default product path; metal is an explicit Go-native authoring contract.
+
+Portable by default, Go-native by opt-in, metal-like generated Go whenever the compiler can prove the lowering preserves portable Haxe semantics.
+
+Use `portable` as the normal way to write Haxe that becomes readable,
+idiomatic Go. Use `metal` only when you intentionally want Go-native authoring
+surfaces, stricter boundaries, or fail-fast native-lane checks.
+
 ## Terms
 
 - [portable](/docs/glossary.md#portable-profile): portability-first profile contract.
@@ -25,6 +33,7 @@ The profile system is explicit and layered:
 
 - Choose `portable` when you want shared, cross-target-friendly Haxe behavior.
 - Choose `metal` when you want stricter Go-first lanes and stronger typed specialization pressure.
+- Do not choose `metal` just because you want good Go output; the portable optimizer should generate Go-shaped fast paths whenever it can do so without changing Haxe semantics.
 
 ## What usually stays the same
 

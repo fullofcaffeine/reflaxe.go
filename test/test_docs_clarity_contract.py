@@ -77,6 +77,16 @@ class DocsClarityContractTest(unittest.TestCase):
         self.assertIn("/docs/glossary.md", profiles)
         self.assertIn("/docs/glossary.md", start_here)
 
+    def test_profiles_document_portable_as_main_product_not_slow_mode(self) -> None:
+        profiles = (REPO_ROOT / "docs" / "profiles.md").read_text(encoding="utf-8")
+        guide = (REPO_ROOT / "docs" / "profile-semantics-guide.md").read_text(encoding="utf-8")
+        agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+
+        for text in [profiles, guide, agents]:
+            self.assertIn("portable is the default product path", text)
+            self.assertIn("metal is an explicit Go-native authoring contract", text)
+            self.assertIn("Portable by default, Go-native by opt-in", text)
+
     def test_start_here_explains_why_std_folder_is_small(self) -> None:
         start_here = (REPO_ROOT / "docs" / "start-here.md").read_text(encoding="utf-8")
         self.assertIn("## Where is the stdlib?", start_here)

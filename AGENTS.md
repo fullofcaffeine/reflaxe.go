@@ -43,6 +43,8 @@ Agent policy:
 ## High-Level Goal
 
 - Make `haxe.go` the best way to write Go without writing raw Go, while preserving first-class portability via Haxe for codebases that need cross-target builds.
+- Profile product rule: portable is the default product path; metal is an explicit Go-native authoring contract. Portable by default, Go-native by opt-in, metal-like generated Go whenever the compiler can prove the lowering preserves portable Haxe semantics.
+- Do not frame `portable` as the slow/basic mode or `metal` as the only "real Go" mode. Compiler optimization work should make portable output idiomatic and performant where semantics allow; metal exists for explicit Go-native APIs, stricter boundaries, and fail-fast native-lane constraints.
 
 ## Landing the Plane (Session Completion)
 

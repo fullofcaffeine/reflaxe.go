@@ -6,6 +6,15 @@ Use profiles to choose the semantic contract for your build.
 -D reflaxe_go_profile=portable|metal
 ```
 
+Short version: portable is the default product path; metal is an explicit Go-native authoring contract.
+
+Portable by default, Go-native by opt-in, metal-like generated Go whenever the compiler can prove the lowering preserves portable Haxe semantics.
+
+That means `portable` is not meant to be the slow/basic mode. It is the main
+way to write productive Haxe that emits readable, idiomatic, performant Go.
+`metal` exists when you deliberately want Go-native APIs, stricter boundaries,
+and fail-fast native-lane constraints.
+
 ## Terms
 
 - [portable](/docs/glossary.md#portable-profile): portability-first profile.
@@ -124,8 +133,9 @@ For most teams:
 
 1. Start with `portable`.
 2. Set `reflaxe_go_portable_native_policy=error` in CI/release.
-3. Promote only performance-critical or native-heavy modules toward metal lanes.
-4. Use `metal` for Go-first deployments that need stricter native policy.
+3. Let the portable optimizer/planner use safe Go-shaped lowerings where reports show they preserve portable semantics.
+4. Promote only explicitly native-heavy modules toward `@:goMetal` lanes.
+5. Use `metal` for Go-first deployments that need stricter native policy.
 
 ## Validation commands
 
