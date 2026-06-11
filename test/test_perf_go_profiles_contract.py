@@ -32,6 +32,15 @@ class PerfGoProfilesContractTest(unittest.TestCase):
         self.assertIn('GO_PERF_HXRT_FEATURES', text)
         self.assertIn('-D "reflaxe_go_hxrt_features=$hxrt_features"', text)
 
+    def test_startup_warning_policy_uses_median_samples(self) -> None:
+        text = SCRIPT_PATH.read_text(encoding="utf-8")
+        self.assertIn("GO_PERF_STARTUP_SAMPLES", text)
+        self.assertIn("startup_sample_count", text)
+        self.assertIn("startup_median_ms", text)
+        self.assertIn("startup_p95_ms", text)
+        self.assertIn("startupMeasurementMs(metric)", text)
+        self.assertIn("startupSamples", text)
+
     def test_checked_in_perf_baselines_keep_toolchain_and_methodology(self) -> None:
         go_profile = SCRIPT_PATH.read_text(encoding="utf-8")
         app_profile = APP_SCRIPT_PATH.read_text(encoding="utf-8")

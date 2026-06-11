@@ -181,6 +181,7 @@
     "tuiProfiles": [
       "portable"
     ],
-    "metadata": "legacy baseline options reconstructed from recorded harness defaults"
+    "metadata": "legacy baseline options reconstructed from recorded harness defaults",
+    "startupSamples": 1
   }
 }

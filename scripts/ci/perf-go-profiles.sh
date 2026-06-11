@@ -42,6 +42,9 @@ Environment:
                             when GO_PERF_ENFORCE_DELTA_BUDGET=1 (default: 25).
   GO_PERF_DELTA_CASES       Comma-separated microcases for delta budget checks
                             (default: string,string_instance,select,channel).
+  GO_PERF_STARTUP_SAMPLES   Startup timing samples per binary; when greater than 1, ratios use
+                            the median sample to reduce single-run jitter. Keep this aligned with
+                            the checked-in baseline methodology (default: 1).
   GO_PERF_HELLO_ITERS       Startup loop count for hello case (default: 300)
   GO_PERF_ARRAY_ITERS       Startup loop count for array case (default: 300)
   GO_PERF_ATOMIC_ITERS      Startup loop count for atomic case (default: 120)
@@ -135,7 +138,7 @@ stripped_size_bytes() {
   printf '%s\n' "$out"
 }
 
-measure_startup_ms() {
+measure_startup_ms_once() {
   local bin="$1"
   local iterations="$2"
   local timing_log="$3"
@@ -155,6 +158,50 @@ measure_startup_ms() {
   fi
 
   awk -v real="$real_seconds" -v count="$iterations" 'BEGIN { printf "%.6f\n", (real * 1000.0) / count }'
+}
+
+measure_startup_stats() {
+  local bin="$1"
+  local iterations="$2"
+  local timing_log="$3"
+  local samples="$4"
+  local samples_file="${timing_log}.samples"
+
+  : > "$timing_log"
+  : > "$samples_file"
+
+  local sample
+  for sample in $(seq 1 "$samples"); do
+    local sample_log="${timing_log}.${sample}"
+    local sample_ms
+    sample_ms="$(measure_startup_ms_once "$bin" "$iterations" "$sample_log")"
+    printf "%s\n" "$sample_ms" >> "$samples_file"
+    {
+      printf "sample %s: %s ms/run\n" "$sample" "$sample_ms"
+      cat "$sample_log"
+      printf "\n"
+    } >> "$timing_log"
+  done
+
+  python3 - "$samples_file" <<'PY'
+import math
+import statistics
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as handle:
+    values = sorted(float(line.strip()) for line in handle if line.strip())
+
+if not values:
+    raise SystemExit("no startup timing samples recorded")
+
+p95_index = max(0, math.ceil(len(values) * 0.95) - 1)
+avg = sum(values) / len(values)
+median = statistics.median(values)
+print(
+    f"{avg:.6f}\t{median:.6f}\t{values[0]:.6f}\t"
+    f"{values[-1]:.6f}\t{values[p95_index]:.6f}"
+)
+PY
 }
 
 write_haxe_hello_case() {
@@ -832,16 +879,24 @@ record_metric() {
     fail "binary not found: $(display_path "$bin_path")"
   fi
 
-  local startup_ms
-  startup_ms="$(measure_startup_ms "$bin_path" "$iterations" "$timing_log")"
+  local startup_stats
+  startup_stats="$(measure_startup_stats "$bin_path" "$iterations" "$timing_log" "$startup_samples")"
+  local startup_avg_ms
+  local startup_median_ms
+  local startup_min_ms
+  local startup_max_ms
+  local startup_p95_ms
+  IFS=$'\t' read -r startup_avg_ms startup_median_ms startup_min_ms startup_max_ms startup_p95_ms <<< "$startup_stats"
   local bin_bytes
   bin_bytes="$(filesize_bytes "$bin_path")"
   local stripped_bytes
   stripped_bytes="$(stripped_size_bytes "$bin_path")"
 
-  printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+  printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
     "$id" "$case_name" "$profile" "$kind" \
-    "$bin_bytes" "$stripped_bytes" "$startup_ms" "$iterations" >> "$metrics_tsv"
+    "$bin_bytes" "$stripped_bytes" "$startup_avg_ms" "$startup_median_ms" \
+    "$startup_min_ms" "$startup_max_ms" "$startup_p95_ms" "$iterations" \
+    "$startup_samples" >> "$metrics_tsv"
 }
 
 update_baseline=0
@@ -883,6 +938,7 @@ delta_warn_pct="${GO_PERF_DELTA_WARN_PCT:-15}"
 enforce_delta_budget="${GO_PERF_ENFORCE_DELTA_BUDGET:-0}"
 delta_fail_pct="${GO_PERF_DELTA_FAIL_PCT:-25}"
 delta_cases="${GO_PERF_DELTA_CASES:-string,string_instance,select,channel}"
+startup_samples="${GO_PERF_STARTUP_SAMPLES:-1}"
 hello_iters="${GO_PERF_HELLO_ITERS:-300}"
 array_iters="${GO_PERF_ARRAY_ITERS:-300}"
 atomic_iters="${GO_PERF_ATOMIC_ITERS:-120}"
@@ -917,6 +973,11 @@ fi
 require_command "$haxe_bin"
 require_command "$go_bin"
 require_command node
+require_command python3
+
+if ! [[ "$startup_samples" =~ ^[0-9]+$ ]] || [[ "$startup_samples" -lt 1 ]]; then
+  fail "GO_PERF_STARTUP_SAMPLES must be a positive integer"
+fi
 
 work_dir="$cache_root/work"
 results_dir="$cache_root/results"
@@ -947,7 +1008,7 @@ rm -rf "$work_dir"
 mkdir -p "$work_dir" "$results_dir"
 mkdir -p "$(dirname "$baseline_file")"
 
-printf "id\tcase\tprofile\tkind\tbinary_bytes\tstripped_bytes\tstartup_avg_ms\tstartup_iterations\n" > "$metrics_tsv"
+printf "id\tcase\tprofile\tkind\tbinary_bytes\tstripped_bytes\tstartup_avg_ms\tstartup_median_ms\tstartup_min_ms\tstartup_max_ms\tstartup_p95_ms\tstartup_iterations\tstartup_sample_count\n" > "$metrics_tsv"
 
 log "collecting metrics (results: $(display_path "$results_dir"))"
 
@@ -1255,6 +1316,7 @@ GO_PERF_DELTA_WARN_PCT="$delta_warn_pct" \
 GO_PERF_ENFORCE_DELTA_BUDGET="$enforce_delta_budget" \
 GO_PERF_DELTA_FAIL_PCT="$delta_fail_pct" \
 GO_PERF_DELTA_CASES="$delta_cases" \
+GO_PERF_STARTUP_SAMPLES="$startup_samples" \
 GO_PERF_HELLO_ITERS="$hello_iters" \
 GO_PERF_ARRAY_ITERS="$array_iters" \
 GO_PERF_ATOMIC_ITERS="$atomic_iters" \
@@ -1304,6 +1366,7 @@ const deltaCases = (process.env.GO_PERF_DELTA_CASES || "string,string_instance,s
   .map((value) => value.trim().toLowerCase())
   .filter((value) => value.length > 0);
 const uniqueDeltaCases = [...new Set(deltaCases)];
+const startupSamples = Number(process.env.GO_PERF_STARTUP_SAMPLES || "1");
 const helloIters = Number(process.env.GO_PERF_HELLO_ITERS || "300");
 const arrayIters = Number(process.env.GO_PERF_ARRAY_ITERS || "300");
 const atomicIters = Number(process.env.GO_PERF_ATOMIC_ITERS || "120");
@@ -1349,7 +1412,12 @@ function parseMetrics(tsvPath) {
         binary_bytes: Number(entry.binary_bytes),
         stripped_bytes: Number(entry.stripped_bytes),
         startup_avg_ms: Number(entry.startup_avg_ms),
+        startup_median_ms: Number(entry.startup_median_ms || entry.startup_avg_ms),
+        startup_min_ms: Number(entry.startup_min_ms || entry.startup_avg_ms),
+        startup_max_ms: Number(entry.startup_max_ms || entry.startup_avg_ms),
+        startup_p95_ms: Number(entry.startup_p95_ms || entry.startup_avg_ms),
         startup_iterations: Number(entry.startup_iterations),
+        startup_sample_count: Number(entry.startup_sample_count || "1"),
       };
     });
 }
@@ -1381,6 +1449,14 @@ function ratio(current, base) {
   return current / base;
 }
 
+function startupMeasurementMs(metric) {
+  const median = Number(metric.startup_median_ms);
+  if (Number.isFinite(median) && median > 0) {
+    return median;
+  }
+  return metric.startup_avg_ms;
+}
+
 function buildCaseOverhead(caseName) {
   const pure = requireMetric(`${caseName}_pure_go`);
   const out = {};
@@ -1389,7 +1465,7 @@ function buildCaseOverhead(caseName) {
     out[profile] = {
       binaryRatio: ratio(metric.binary_bytes, pure.binary_bytes),
       strippedRatio: ratio(metric.stripped_bytes, pure.stripped_bytes),
-      startupRatio: ratio(metric.startup_avg_ms, pure.startup_avg_ms),
+      startupRatio: ratio(startupMeasurementMs(metric), startupMeasurementMs(pure)),
     };
   }
   return out;
@@ -1465,7 +1541,7 @@ const tuiMetrics = Object.fromEntries(
 const tuiMin = {
   binary_bytes: Math.min(...tuiProfiles.map((profile) => tuiMetrics[profile].binary_bytes)),
   stripped_bytes: Math.min(...tuiProfiles.map((profile) => tuiMetrics[profile].stripped_bytes)),
-  startup_avg_ms: Math.min(...tuiProfiles.map((profile) => tuiMetrics[profile].startup_avg_ms)),
+  startup_measurement_ms: Math.min(...tuiProfiles.map((profile) => startupMeasurementMs(tuiMetrics[profile]))),
 };
 const tuiRelativeToMin = {};
 for (const profile of tuiProfiles) {
@@ -1473,7 +1549,7 @@ for (const profile of tuiProfiles) {
   tuiRelativeToMin[profile] = {
     binaryRatio: ratio(metric.binary_bytes, tuiMin.binary_bytes),
     strippedRatio: ratio(metric.stripped_bytes, tuiMin.stripped_bytes),
-    startupRatio: ratio(metric.startup_avg_ms, tuiMin.startup_avg_ms),
+    startupRatio: ratio(startupMeasurementMs(metric), tuiMin.startup_measurement_ms),
   };
 }
 
@@ -1521,6 +1597,7 @@ const current = {
     enforceDeltaBudget,
     deltaCases: uniqueDeltaCases,
     tuiProfiles,
+    startupSamples,
   },
   derived: {
     helloOverheadRatios,
@@ -1788,6 +1865,7 @@ summaryLines.push(`- Metal hard budgets: size=\`+${metalSizeFailPct}%\`, runtime
 summaryLines.push(`- Delta hard budget: startup=\`+${deltaFailPct}%\` for cases=\`${uniqueDeltaCases.join(",") || "none"}\``);
 summaryLines.push(`- Portable concurrency fastpath: \`${portableConcurrencyFastpathEnabled ? "on" : "off"}\``);
 summaryLines.push(`- Microbench hxrt features: \`${hxrtFeatures}\``);
+summaryLines.push(`- Startup samples: \`${startupSamples}\` (startup ratios use the median sample)`);
 summaryLines.push(`- Startup loops: hello=${helloIters}, array=${arrayIters}, atomic=${atomicIters}, channel=${channelIters}, map=${mapIters}, generic=${genericIters}, string=${stringIters}, string_instance=${stringInstanceIters}, virtual=${virtualIters}, select=${selectIters}, tui=${tuiIters}`);
 summaryLines.push(`- Workload params: atomic_ops=${atomicWork}, channel_ops=${channelWork}, map_ops=${mapWork}, generic_ops=${genericWork}, string_ops=${stringWork}, string_instance_ops=${stringInstanceWork}, virtual_ops=${virtualWork}, select_ops=${selectWork}`);
 if (haxeVersion.length > 0 || goVersion.length > 0) {
