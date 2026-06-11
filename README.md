@@ -13,8 +13,12 @@ Haxe 4.3.7 -> Go compiler target built on Reflaxe.
 
 Write Haxe, generate readable Go, and choose between:
 
-- a portability-first build (`portable`), or
-- a Go-first build (`metal`) for stricter native lanes.
+- the default product path (`portable`) for normal Haxe code that should still
+  generate good Go, or
+- an explicit Go-native authoring contract (`metal`) for stricter native lanes.
+
+`metal` is not required for good Go output. Use it when you intentionally want
+Go-native APIs, stricter boundaries, and fail-fast checks around native lanes.
 
 ## Start here
 
@@ -29,6 +33,7 @@ If you are new, read these first:
 - [profile](docs/glossary.md#profile): build contract that controls semantics and policy defaults.
 - [portable](docs/glossary.md#portable-profile): portability-first profile contract.
 - [metal](docs/glossary.md#metal-profile): Go-first profile contract with stricter defaults.
+- [Go-native](docs/glossary.md#go-native): APIs or behavior tied specifically to Go.
 - [`hxrt`](docs/glossary.md#hxrt): runtime support package copied into generated Go output.
 
 ## Quick start
@@ -62,8 +67,8 @@ python3 test/run-ci.py
 
 | If you want... | Choose |
 | --- | --- |
-| Cross-target-friendly Haxe code and safer defaults | `portable` |
-| Go-first native lanes with stricter policy and typed specialization pressure | `metal` |
+| Normal Haxe authoring, cross-target-friendly code, and safe Go output | `portable` |
+| Explicit Go-native APIs, stricter policy, and fail-fast native-lane checks | `metal` |
 
 Detailed behavior and policy knobs: [docs/profiles.md](docs/profiles.md)
 

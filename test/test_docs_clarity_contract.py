@@ -87,6 +87,31 @@ class DocsClarityContractTest(unittest.TestCase):
             self.assertIn("metal is an explicit Go-native authoring contract", text)
             self.assertIn("Portable by default, Go-native by opt-in", text)
 
+    def test_remaining_profile_docs_define_go_native_without_metal_as_fast_only_mode(self) -> None:
+        targets = [
+            "README.md",
+            "docs/start-here.md",
+            "docs/glossary.md",
+            "docs/performance-budget-policy.md",
+            "docs/go-concurrency-interop-guide.md",
+            "docs/examples-matrix.md",
+            "examples/pulseforge/README.md",
+            "examples/fluxproxy/README.md",
+            "examples/worker_pool_select/README.md",
+        ]
+
+        for rel in targets:
+            text = (REPO_ROOT / rel).read_text(encoding="utf-8")
+            plain_text = text.replace("`", "")
+            self.assertIn("metal is not required for good Go output", plain_text, rel)
+            self.assertIn("Go-native", text, rel)
+
+        glossary = (REPO_ROOT / "docs" / "glossary.md").read_text(encoding="utf-8")
+        self.assertIn("## Go-native", glossary)
+        self.assertIn("## Go-first", glossary)
+        self.assertIn("## go_native", glossary)
+        self.assertIn("## Hot path", glossary)
+
     def test_start_here_explains_why_std_folder_is_small(self) -> None:
         start_here = (REPO_ROOT / "docs" / "start-here.md").read_text(encoding="utf-8")
         self.assertIn("## Where is the stdlib?", start_here)

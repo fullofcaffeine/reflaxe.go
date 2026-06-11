@@ -11,14 +11,17 @@
 1. Keep portable Haxe correctness and harness discipline as the baseline.
 2. Make Go-target `go.*` APIs genuinely Go-native.
 3. Provide typed interop so Go ecosystem usage does not depend on raw `__go__`.
-4. Make `metal` a real typed-performance lane with explicit budgets.
+4. Make `metal` a real Go-native authoring contract with explicit budgets.
 5. Add selective `hxrt` runtime slicing so metal can minimize runtime overhead without dropping portability contracts.
 6. Reach full portable-eligible Haxe stdlib parity in `portable`, with explicit portable-vs-native facade boundaries and deterministic parity reporting.
 
 ## Profile Contract
 
-- `portable`: semantics-first output, lowest migration risk.
-- `metal`: `portable` + typed interop/performance lane (strict defaults).
+- `portable`: default product path, semantics-first output, lowest migration risk.
+- `metal`: explicit Go-native authoring contract with strict defaults.
+
+`metal` is not required for good Go output. The portable compiler path should
+still converge toward Go-shaped output wherever it can preserve Haxe semantics.
 
 Selective runtime slicing is tracked separately and does not replace profile contracts.
 See `docs/hxrt-selective-runtime.md`.

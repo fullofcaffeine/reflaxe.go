@@ -32,7 +32,7 @@ The profile system is explicit and layered:
 ## Quick answer
 
 - Choose `portable` when you want shared, cross-target-friendly Haxe behavior.
-- Choose `metal` when you want stricter Go-first lanes and stronger typed specialization pressure.
+- Choose `metal` when you intentionally want explicit Go-native APIs and stricter native-lane checks.
 - Do not choose `metal` just because you want good Go output; the portable optimizer should generate Go-shaped fast paths whenever it can do so without changing Haxe semantics.
 
 ## What usually stays the same

@@ -2,6 +2,9 @@
 
 `reflaxe.go` ships canonical examples designed to show portable-first contracts and metal value where it is technically meaningful.
 
+`metal` is not required for good Go output. The examples use `metal` only where
+there is a real Go-native authoring or enforcement point to teach.
+
 | Example | portable | metal | Purpose |
 | --- | --- | --- | --- |
 | `examples/profile_storyboard` | Yes | No | Portable-first release dashboard reference. |
@@ -16,6 +19,7 @@ Portable-only examples are intentional: if an app does not expose real profile-c
 ## Terms
 
 - `go_native` (app variant): compile-time runtime-adapter lane used by an example app for Go-first execution paths (for example worker/channel/select flows). It is not a compiler profile.
+- `Go-native`: APIs or runtime behavior tied specifically to Go, such as `go.Chan`, `go.Select`, or typed Go extern metadata.
 - `hot path`: the frequently-executed part of an app where optimization has the biggest runtime impact.
 
 ## Metal collection purity gates (examples)

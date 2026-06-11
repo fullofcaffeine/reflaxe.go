@@ -108,7 +108,10 @@ The harness also derives `portable_vs_metal` deltas per app+variant:
 Reading tip:
 
 - Use `haxe_vs_pure` to answer "how close are generated outputs to handwritten Go?"
-- Use `portable_vs_metal` to answer "how much headroom still exists between default portability-first output and Go-first output?"
+- Use `portable_vs_metal` to answer "how much Go-native convergence headroom
+  remains?" `metal` is not required for good Go output; the delta tells us
+  where portable codegen can still become more Go-shaped without changing Haxe
+  semantics.
 
 ## Baselines and Budgets
 

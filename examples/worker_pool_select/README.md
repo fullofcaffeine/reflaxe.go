@@ -17,14 +17,20 @@ Deterministic worker-pool and select-style channel example across `portable` and
 
 ## Portable vs metal diff in this app
 
-- `portable`: semantic baseline and portability-first defaults.
-- `metal`: explicit Go-first/perf lane; typed specialization is prioritized here.
+- `portable`: semantic baseline and portability-first defaults. The compiler can
+  still emit good Go-shaped fast paths when they preserve Haxe semantics.
+- `metal`: explicit Go-native authoring contract; stricter checks and typed
+  specialization are prioritized here.
 - Both profiles preserve the same workload contract and output expectations.
+
+`metal` is not required for good Go output. This example uses `metal` because
+channels/select are an explicit Go-native teaching surface.
 
 ## When to choose each profile here
 
 - Choose `portable` when this worker pattern must remain portable with shared domain code.
-- Choose `metal` when this worker path is a Go hot path and you want stricter metal policy plus stronger typed specialization pressure.
+- Choose `metal` when this worker path is a Go hot path and you want stricter
+  Go-native policy plus fail-fast typed specialization checks.
 
 ## Tradeoffs shown by this example
 

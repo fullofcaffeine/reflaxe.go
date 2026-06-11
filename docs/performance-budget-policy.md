@@ -21,14 +21,18 @@ without pretending that every warning is automatically a release blocker.
   Go?"
 - **portable-vs-metal delta**: the ratio between default `portable` output and
   opt-in `metal` output. It helps answer "how much performance headroom remains
-  between portable code and Go-first code?"
+  between portable code and Go-first code?" `metal` is not required for good Go output;
+  a large delta means the compiler has more portable-convergence work to do, not
+  that users should abandon `portable`.
+- **Go-native**: APIs or runtime behavior tied specifically to Go, such as
+  channel/select helper paths or typed Go extern metadata.
 
 ## Current Release Policy
 
 | Area | Default release decision | Why |
 | --- | --- | --- |
 | Portable regressions | Portable regressions stay warning-only by default. | `portable` is the semantic baseline. A single noisy run should not block a release unless repeated evidence shows user-visible drift. |
-| Metal microbenches | Metal microbench regressions are release-blocking in CI. | `metal` is the Go-first performance lane, so regressions there are higher signal. |
+| Metal microbenches | Metal microbench regressions are release-blocking in CI. | `metal` is the explicit Go-native authoring contract, so regressions there are higher signal for native-lane stability. |
 | Flagship app metal metrics | Flagship app metal regressions stay warning-only by default. | App-level benchmarks include more moving parts and should be promoted to hard gates only after repeated stable drift. |
 | Portable-vs-metal deltas | Delta regressions stay warning-only by default. | Delta gates are useful trend signals, but we should not make them release-blocking until the selected cases are stable across CI runs. |
 | HXRT selective runtime | HXRT selective runtime drift is release-blocking in CI. | Runtime slicing is expected to preserve size/perf wins once enabled, so drift is a concrete release risk. |

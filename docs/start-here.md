@@ -98,7 +98,12 @@ Use:
 ```
 
 - `portable`: best default for shared/cross-target-friendly code.
-- `metal`: opt-in Go-first lanes with stricter defaults and stronger typed specialization pressure.
+- `metal`: opt-in Go-native authoring contract with stricter defaults and
+  fail-fast native-lane checks.
+
+`metal` is not required for good Go output. Start in `portable`; the compiler
+should still emit Go-shaped fast paths whenever it can prove they preserve Haxe
+semantics.
 
 Detailed profile policy: [/docs/profiles.md](/docs/profiles.md)
 

@@ -39,7 +39,7 @@ Current implementation resolves these once in `GoBuildContextResolver.resolve()`
 | Profile | Best for | Practical behavior |
 | --- | --- | --- |
 | `portable` (default) | Cross-target-friendly Haxe code | Keeps portability semantics first; native usage can be warned/blocked by policy. |
-| `metal` | Go-first lanes and strict native policy | Enables stricter defaults and stronger typed specialization pressure in supported native surfaces. |
+| `metal` | Explicit Go-native APIs and strict native policy | Enables stricter defaults and fail-fast native-lane checks in supported native surfaces. |
 
 Profile does not implicitly select runtime slicing or planner mode.
 

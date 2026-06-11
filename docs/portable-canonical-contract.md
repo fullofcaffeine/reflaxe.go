@@ -30,7 +30,7 @@ In scope for canonical portability:
 Out of scope for canonical portability:
 
 - Target-native APIs (`go.*`, Rust-only or Elixir-only native facades)
-- Target-native performance lanes (`metal`)
+- Target-native authoring lanes (`metal`)
 - Target-native interop behavior and ABI details
 
 Related execution program: `docs/portable-stdlib-parity-program.md`.
@@ -40,7 +40,10 @@ Related execution program: `docs/portable-stdlib-parity-program.md`.
 `haxe.go` has two profiles:
 
 - `portable`: canonical semantics baseline
-- `metal`: opt-in low-level/performance lane
+- `metal`: opt-in Go-native authoring contract with stricter native-lane checks
+
+`metal` is not required for good Go output. It exists for explicit native APIs,
+stricter boundaries, and fail-fast native-lane constraints.
 
 Selective `hxrt` runtime slicing is orthogonal to profiles. It optimizes packaging/runtime footprint and must not change portable semantics.
 

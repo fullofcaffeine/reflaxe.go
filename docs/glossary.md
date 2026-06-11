@@ -10,13 +10,17 @@ Reference: [docs/profiles.md](profiles.md)
 
 ## Portable profile
 
-Default profile focused on portability-first behavior and lower migration risk.
+Default profile and normal product path for Haxe code that should keep portable
+semantics while still generating readable, performant Go where the compiler can
+prove the lowering is safe.
 
 Reference: [docs/profiles.md](profiles.md#matrix)
 
 ## Metal profile
 
-Opt-in profile focused on Go-first lanes, stricter defaults, and typed specialization pressure.
+Opt-in profile for explicit Go-native authoring, stricter defaults, and
+fail-fast native-lane checks. `metal` is not required for good Go output; use it
+when you deliberately want Go-specific APIs or constraints.
 
 Reference: [docs/profiles.md](profiles.md#matrix)
 
@@ -38,9 +42,29 @@ References:
 
 ## go_native
 
-An app variant used in flagship examples to run Go-first runtime adapter paths (for example channel/select worker flows). It is not a compiler profile.
+An app variant used in flagship examples to run Go-first runtime adapter paths
+(for example channel/select worker flows). It is not a compiler profile.
 
 Reference: [docs/examples-matrix.md](examples-matrix.md#terms)
+
+## Go-native
+
+APIs or behavior tied specifically to Go, such as `go.Chan`, `go.Select`, typed
+Go extern metadata, or generated goroutine/channel paths. Go-native code can be
+the right choice for a Go-only deployment, but it is not portable across non-Go
+Haxe targets.
+
+References:
+- [docs/profiles.md](profiles.md)
+- [docs/go-concurrency-interop-guide.md](go-concurrency-interop-guide.md)
+
+## Go-first
+
+A design choice that prioritizes Go-specific APIs, constraints, or runtime
+behavior over cross-target portability. In this repo, Go-first does not mean
+"better by default"; it means the code is intentionally closer to Go.
+
+Reference: [docs/profile-semantics-guide.md](profile-semantics-guide.md)
 
 ## Hot path
 

@@ -8,6 +8,9 @@ Quick context:
 - `go.*` APIs (`go.Go`, `go.Chan`, `go.Select`) are Go-native facades. They are powerful, but they are not portability-safe across non-Go targets.
 - `interop` means calling Go packages through typed extern metadata (`@:go.import`, `@:go.name`, `@:go.receiver`) instead of raw string injection.
 
+`metal` is not required for good Go output. Start with `portable` unless this
+module intentionally owns Go-native APIs or stricter native-lane constraints.
+
 Reference glossary: `docs/glossary.md`.
 
 ## 1) Worker pool with channels
@@ -74,7 +77,7 @@ Promotion rule:
 Practical interpretation:
 
 - Start in `portable` when cross-target compatibility and predictable Haxe semantics are primary.
-- Use `metal` when Go-first performance and stricter Go-shaped authoring constraints are primary.
+- Use `metal` when explicit Go-native APIs and stricter Go-shaped authoring constraints are primary.
 
 ## 4) Caveats (important)
 

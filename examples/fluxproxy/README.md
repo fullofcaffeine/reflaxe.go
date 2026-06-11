@@ -63,10 +63,13 @@ Modes:
 
 ## Portable vs metal in practice
 
+`metal` is not required for good Go output. This app includes `metal` lanes so
+you can test explicit Go-native runtime adapters under stricter checks.
+
 | Profile | Choose this when... | What you get | What to watch for |
 | --- | --- | --- | --- |
-| `portable` | You want proxy/domain code to remain cross-target friendly and easy to reuse. | Stable portable behavior and the safest default for shared code. | Frequently-executed `go_native` paths can keep more generic/runtime helper behavior, so top-end Go performance may trail `metal`. |
-| `metal` | This proxy deployment is Go-first and you want stricter compile-time constraints plus stronger typed lowering. | More aggressive typed specialization in `go_native` paths and fail-fast checks when typed specialization is impossible. | You need clearer static types (avoid loose `Dynamic`/`Any` in hot paths), and generated Go can grow due to specialized helpers. |
+| `portable` | You want proxy/domain code to remain cross-target friendly and easy to reuse. | Stable portable behavior and the safest default for shared code, while still allowing safe Go-shaped optimizations. | Frequently-executed `go_native` paths may show remaining portable-vs-metal delta; treat that as compiler convergence signal. |
+| `metal` | This proxy deployment intentionally owns Go-native APIs and you want stricter compile-time constraints. | Typed specialization in `go_native` paths and fail-fast checks when typed specialization is impossible. | You need clearer static types (avoid loose `Dynamic`/`Any` in hot paths), and generated Go can grow due to specialized helpers. |
 
 Both profiles preserve the same proxy/policy behavior and scripted outputs. The practical difference is optimization aggressiveness in Go-native lanes.
 

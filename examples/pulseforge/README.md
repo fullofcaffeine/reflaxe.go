@@ -63,10 +63,13 @@ Modes:
 
 ## Portable vs metal in practice
 
+`metal` is not required for good Go output. This app includes `metal` lanes so
+you can test explicit Go-native runtime adapters under stricter checks.
+
 | Profile | Choose this when... | What you get | What to watch for |
 | --- | --- | --- | --- |
-| `portable` | You want this codebase to stay cross-target friendly and easy to share with other Haxe targets. | Stable portable behavior and the lowest migration risk for shared app/domain code. | In frequently-executed `go_native` paths, generated Go can rely more on generic/runtime helper paths, so peak Go performance may be lower than `metal`. |
-| `metal` | This deployment is Go-first and you want stricter compile-time checks plus stronger typed lowering in hot paths. | More aggressive typed specialization in `go_native` paths (`go.Chan`/`go.Select` style flows) and fail-fast checks for unsupported typed specialization cases. | You may need more explicit typing (avoid loose `Dynamic`/`Any` paths), and generated code can be larger because of specialized helpers. |
+| `portable` | You want this codebase to stay cross-target friendly and easy to share with other Haxe targets. | Stable portable behavior and the lowest migration risk for shared app/domain code, while still allowing safe Go-shaped optimizations. | Frequently-executed `go_native` paths may show remaining portable-vs-metal delta; treat that as compiler convergence signal. |
+| `metal` | This deployment intentionally owns Go-native APIs and you want stricter compile-time checks in hot paths. | Typed specialization in `go_native` paths (`go.Chan`/`go.Select` style flows) plus fail-fast checks for unsupported typed specialization cases. | You may need more explicit typing (avoid loose `Dynamic`/`Any` paths), and generated code can be larger because of specialized helpers. |
 
 Both profiles keep the same app behavior contract and scripted outputs. The main difference is how aggressively the compiler optimizes Go-native paths.
 
