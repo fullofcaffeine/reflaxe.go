@@ -1,6 +1,10 @@
 package main
 
 import (
+	"encoding/json"
+	"go/token"
+	"go/types"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -122,6 +126,12 @@ func TestBuildEmissionTimeTupleReturnCarrierUsesNamedFields(t *testing.T) {
 	if !strings.Contains(timeFile, "@:go.tupleReturn\n\t@:go.name(\"Zone\")\n\tpublic function zone():TimeZoneResult;") {
 		t.Fatalf("Time.Zone should use a typed tuple carrier")
 	}
+	if !strings.Contains(timeFile, "@:go.tupleReturn\n\t@:go.name(\"Date\")\n\tpublic function date():TimeDateResult;") {
+		t.Fatalf("Time.Date should use a typed tuple carrier instead of Dynamic")
+	}
+	if !strings.Contains(timeFile, "@:go.tupleReturn\n\t@:go.name(\"MarshalBinary\")\n\tpublic function marshalBinary():TimeMarshalBinaryResult;") {
+		t.Fatalf("Time.MarshalBinary should use a typed tuple carrier for []byte,error")
+	}
 
 	zoneResult := fileContentsByName(t, emission, "TimeZoneResult.hx")
 	for _, snippet := range []string{
@@ -132,6 +142,31 @@ func TestBuildEmissionTimeTupleReturnCarrierUsesNamedFields(t *testing.T) {
 	} {
 		if !strings.Contains(zoneResult, snippet) {
 			t.Fatalf("TimeZoneResult.hx missing generated carrier snippet %q\n%s", snippet, zoneResult)
+		}
+	}
+
+	dateResult := fileContentsByName(t, emission, "TimeDateResult.hx")
+	for _, snippet := range []string{
+		"class TimeDateResult",
+		"public var year(default, null):Int;",
+		"public var month(default, null):Month;",
+		"public var day(default, null):Int;",
+		"public function new(year:Int, month:Month, day:Int)",
+	} {
+		if !strings.Contains(dateResult, snippet) {
+			t.Fatalf("TimeDateResult.hx missing generated carrier snippet %q\n%s", snippet, dateResult)
+		}
+	}
+
+	marshalBinaryResult := fileContentsByName(t, emission, "TimeMarshalBinaryResult.hx")
+	for _, snippet := range []string{
+		"class TimeMarshalBinaryResult",
+		"public var value1(default, null):Array<Int>;",
+		"public var value2(default, null):Null<go.Error>;",
+		"public function new(value1:Array<Int>, value2:Null<go.Error>)",
+	} {
+		if !strings.Contains(marshalBinaryResult, snippet) {
+			t.Fatalf("TimeMarshalBinaryResult.hx missing generated carrier snippet %q\n%s", snippet, marshalBinaryResult)
 		}
 	}
 }
@@ -191,6 +226,138 @@ func TestBuildEmissionErrorsPackageClass(t *testing.T) {
 		if !strings.Contains(pkgFile, "@:go.name(\""+symbol+"\")") {
 			t.Fatalf("ErrorsPkg.hx missing symbol mapping for %s", symbol)
 		}
+	}
+}
+
+func TestMapTypeWithReasonReportsStableDynamicReasonCodes(t *testing.T) {
+	t.Parallel()
+
+	ctx := mappingContext{
+		currentPackagePath: "example/current",
+		exportedTypeNames:  map[string]bool{"Local": true},
+	}
+
+	externalPkg := types.NewPackage("net/http", "http")
+	externalNamed := types.NewNamed(
+		types.NewTypeName(token.NoPos, externalPkg, "Request", nil),
+		types.NewStruct(nil, nil),
+		nil,
+	)
+	emptyInterface := types.NewInterfaceType(nil, nil)
+	emptyInterface.Complete()
+	readSig := types.NewSignatureType(nil, nil, nil, types.NewTuple(), types.NewTuple(), false)
+	readMethod := types.NewFunc(token.NoPos, nil, "Read", readSig)
+	nonEmptyInterface := types.NewInterfaceType([]*types.Func{readMethod}, nil)
+	nonEmptyInterface.Complete()
+	constraint := types.NewInterfaceType(nil, nil)
+	constraint.Complete()
+	typeParam := types.NewTypeParam(types.NewTypeName(token.NoPos, nil, "T", nil), constraint)
+
+	cases := []struct {
+		name   string
+		typ    types.Type
+		reason string
+	}{
+		{name: "callback", typ: types.NewSignatureType(nil, nil, nil, types.NewTuple(), types.NewTuple(), false), reason: "callback_signature"},
+		{name: "external named type", typ: externalNamed, reason: "external_named_type"},
+		{name: "unsupported map key", typ: types.NewMap(types.Typ[types.Int], types.Typ[types.String]), reason: "unsupported_map_key"},
+		{name: "struct", typ: types.NewStruct(nil, nil), reason: "struct"},
+		{name: "empty interface", typ: emptyInterface, reason: "empty_interface"},
+		{name: "non-empty interface", typ: nonEmptyInterface, reason: "non_empty_interface"},
+		{name: "channel", typ: types.NewChan(types.SendRecv, types.Typ[types.Int]), reason: "channel"},
+		{name: "generic type parameter", typ: typeParam, reason: "type_parameter"},
+		{name: "unsafe pointer", typ: types.Typ[types.UnsafePointer], reason: "unsafe_pointer"},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapped, reason := mapTypeWithReason(tc.typ, ctx)
+			if !containsDynamicType(mapped) {
+				t.Fatalf("expected %s to map to a Dynamic-containing type, got %q", tc.name, mapped)
+			}
+			if reason != tc.reason {
+				t.Fatalf("reason mismatch for %s: got %q, want %q", tc.name, reason, tc.reason)
+			}
+		})
+	}
+}
+
+func TestWriteDynamicFallbackReportIsDeterministic(t *testing.T) {
+	dir := t.TempDir()
+	target := filepath.Join(dir, "reports", "dynamic.json")
+	emission := &Emission{
+		DynamicFallbacks: []DynamicFallback{
+			{Package: "pkg", Symbol: "B", Position: "param:x", GoType: "func()", Reason: "callback_signature"},
+			{Package: "pkg", Symbol: "A", Position: "result:1", GoType: "struct{}", Reason: "struct"},
+			{Package: "pkg", Symbol: "A", Position: "result:1", GoType: "struct{}", Reason: "struct"},
+		},
+	}
+
+	if err := writeDynamicFallbackReport(target, emission); err != nil {
+		t.Fatalf("writeDynamicFallbackReport failed: %v", err)
+	}
+
+	payload, err := os.ReadFile(target)
+	if err != nil {
+		t.Fatalf("read report failed: %v", err)
+	}
+
+	var report dynamicFallbackReport
+	if err := json.Unmarshal(payload, &report); err != nil {
+		t.Fatalf("report is not valid JSON: %v\n%s", err, string(payload))
+	}
+	if report.SchemaVersion != 1 {
+		t.Fatalf("schemaVersion mismatch: got %d", report.SchemaVersion)
+	}
+	if len(report.Fallbacks) != 2 {
+		t.Fatalf("expected sorted/deduplicated fallback list, got %d entries: %+v", len(report.Fallbacks), report.Fallbacks)
+	}
+	if report.Fallbacks[0].Symbol != "A" || report.Fallbacks[1].Symbol != "B" {
+		t.Fatalf("fallback report ordering is not stable: %+v", report.Fallbacks)
+	}
+}
+
+func TestRunWritesDynamicFallbackReport(t *testing.T) {
+	dir := t.TempDir()
+	outDir := filepath.Join(dir, "out")
+	reportPath := filepath.Join(dir, "dynamic.json")
+
+	if err := run([]string{
+		"-package", "fmt",
+		"-out", outDir,
+		"-dynamic-report", reportPath,
+	}, io.Discard, io.Discard); err != nil {
+		t.Fatalf("run failed: %v", err)
+	}
+
+	payload, err := os.ReadFile(reportPath)
+	if err != nil {
+		t.Fatalf("read report failed: %v", err)
+	}
+
+	var report dynamicFallbackReport
+	if err := json.Unmarshal(payload, &report); err != nil {
+		t.Fatalf("report is not valid JSON: %v\n%s", err, string(payload))
+	}
+	if report.SchemaVersion != 1 {
+		t.Fatalf("schemaVersion mismatch: got %d", report.SchemaVersion)
+	}
+	if len(report.Fallbacks) == 0 {
+		t.Fatalf("expected fmt to expose at least one Dynamic boundary")
+	}
+
+	found := false
+	for _, fallback := range report.Fallbacks {
+		if fallback.Package == "fmt" && fallback.Symbol == "Fprint" && fallback.Position == "param:w" && fallback.GoType == "io.Writer" && fallback.Reason == "external_named_type" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected fmt.Fprint writer boundary in report, got %+v", report.Fallbacks)
 	}
 }
 

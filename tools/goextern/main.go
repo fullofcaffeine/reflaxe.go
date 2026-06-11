@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -26,8 +27,9 @@ type Config struct {
 }
 
 type Emission struct {
-	OutputDir string
-	Files     []EmittedFile
+	OutputDir        string
+	Files            []EmittedFile
+	DynamicFallbacks []DynamicFallback
 }
 
 type EmittedFile struct {
@@ -61,6 +63,19 @@ type paramDecl struct {
 type tupleCarrierDecl struct {
 	ClassName string
 	Fields    []paramDecl
+}
+
+type DynamicFallback struct {
+	Package  string `json:"package"`
+	Symbol   string `json:"symbol"`
+	Position string `json:"position"`
+	GoType   string `json:"goType"`
+	Reason   string `json:"reason"`
+}
+
+type dynamicFallbackReport struct {
+	SchemaVersion int               `json:"schemaVersion"`
+	Fallbacks     []DynamicFallback `json:"fallbacks"`
 }
 
 type mappingContext struct {
@@ -134,6 +149,7 @@ func run(args []string, stdout io.Writer, stderr io.Writer) error {
 	haxePackagePrefix := fs.String("haxe-package", "goextern", "Root Haxe package prefix")
 	packageClassName := fs.String("package-class", "", "Override package static extern class name")
 	stdoutOnly := fs.Bool("stdout", false, "Print generated files to stdout instead of writing to disk")
+	dynamicReportPath := fs.String("dynamic-report", "", "Write JSON report of generated Dynamic fallback boundaries")
 
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -157,11 +173,21 @@ func run(args []string, stdout io.Writer, stderr io.Writer) error {
 
 	if *stdoutOnly {
 		printEmission(stdout, emission)
+		if strings.TrimSpace(*dynamicReportPath) != "" {
+			if err := writeDynamicFallbackReport(strings.TrimSpace(*dynamicReportPath), emission); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 
 	if err := writeEmission(emission); err != nil {
 		return err
+	}
+	if strings.TrimSpace(*dynamicReportPath) != "" {
+		if err := writeDynamicFallbackReport(strings.TrimSpace(*dynamicReportPath), emission); err != nil {
+			return err
+		}
 	}
 
 	_, _ = fmt.Fprintf(stdout, "generated %d files in %s\n", len(emission.Files), emission.OutputDir)
@@ -191,7 +217,7 @@ func BuildEmission(cfg Config) (*Emission, error) {
 		return nil, err
 	}
 
-	decls, carriers, err := collectDeclarations(pkg, cfg.PackageClassName)
+	decls, carriers, fallbacks, err := collectDeclarations(pkg, cfg.PackageClassName)
 	if err != nil {
 		return nil, err
 	}
@@ -219,8 +245,9 @@ func BuildEmission(cfg Config) (*Emission, error) {
 	})
 
 	return &Emission{
-		OutputDir: outputDir,
-		Files:     files,
+		OutputDir:        outputDir,
+		Files:            files,
+		DynamicFallbacks: sortedDynamicFallbacks(fallbacks),
 	}, nil
 }
 
@@ -259,10 +286,10 @@ func loadPackage(goImportPath string) (*packages.Package, error) {
 	return nil, fmt.Errorf("loaded package %q without type information", goImportPath)
 }
 
-func collectDeclarations(pkg *packages.Package, packageClassOverride string) ([]declaration, []tupleCarrierDecl, error) {
+func collectDeclarations(pkg *packages.Package, packageClassOverride string) ([]declaration, []tupleCarrierDecl, []DynamicFallback, error) {
 	scope := pkg.Types.Scope()
 	if scope == nil {
-		return nil, nil, fmt.Errorf("package %q has no scope", pkg.Types.Path())
+		return nil, nil, nil, fmt.Errorf("package %q has no scope", pkg.Types.Path())
 	}
 
 	names := scope.Names()
@@ -312,23 +339,26 @@ func collectDeclarations(pkg *packages.Package, packageClassOverride string) ([]
 
 	decls := make([]declaration, 0, len(namedTypes)+1)
 	carriers := make([]tupleCarrierDecl, 0)
+	fallbacks := make([]DynamicFallback, 0)
 	for _, named := range namedTypes {
-		decl, typeCarriers := buildTypeDeclaration(named, ctx, usedCarrierNames)
+		decl, typeCarriers, typeFallbacks := buildTypeDeclaration(named, ctx, usedCarrierNames)
 		decls = append(decls, decl)
 		carriers = append(carriers, typeCarriers...)
+		fallbacks = append(fallbacks, typeFallbacks...)
 	}
 
 	if len(packageFuncs) > 0 {
-		decl, packageCarriers := buildPackageDeclaration(pkg.Types, packageClassOverride, packageFuncs, exportedTypeNames, ctx, usedCarrierNames)
+		decl, packageCarriers, packageFallbacks := buildPackageDeclaration(pkg.Types, packageClassOverride, packageFuncs, exportedTypeNames, ctx, usedCarrierNames)
 		decls = append(decls, decl)
 		carriers = append(carriers, packageCarriers...)
+		fallbacks = append(fallbacks, packageFallbacks...)
 	}
 
 	sort.Slice(carriers, func(i, j int) bool {
 		return carriers[i].ClassName < carriers[j].ClassName
 	})
 
-	return decls, carriers, nil
+	return decls, carriers, fallbacks, nil
 }
 
 func asNamedType(typeName *types.TypeName) *types.Named {
@@ -346,10 +376,10 @@ func asNamedType(typeName *types.TypeName) *types.Named {
 	return named
 }
 
-func buildTypeDeclaration(named *types.Named, ctx mappingContext, usedCarrierNames map[string]bool) (declaration, []tupleCarrierDecl) {
+func buildTypeDeclaration(named *types.Named, ctx mappingContext, usedCarrierNames map[string]bool) (declaration, []tupleCarrierDecl, []DynamicFallback) {
 	goName := named.Obj().Name()
 	_, isInterface := named.Underlying().(*types.Interface)
-	methods, carriers := collectMethods(named, false, ctx, goName, usedCarrierNames)
+	methods, carriers, fallbacks := collectMethods(named, false, ctx, goName, usedCarrierNames)
 
 	return declaration{
 		ClassName:       goName,
@@ -358,10 +388,10 @@ func buildTypeDeclaration(named *types.Named, ctx mappingContext, usedCarrierNam
 		PackageClass:    false,
 		StaticMethods:   nil,
 		InstanceMethods: methods,
-	}, carriers
+	}, carriers, fallbacks
 }
 
-func buildPackageDeclaration(pkg *types.Package, classOverride string, funcs []*types.Func, exportedTypes map[string]bool, ctx mappingContext, usedCarrierNames map[string]bool) (declaration, []tupleCarrierDecl) {
+func buildPackageDeclaration(pkg *types.Package, classOverride string, funcs []*types.Func, exportedTypes map[string]bool, ctx mappingContext, usedCarrierNames map[string]bool) (declaration, []tupleCarrierDecl, []DynamicFallback) {
 	className := ""
 	if strings.TrimSpace(classOverride) != "" {
 		className = sanitizeClassName(classOverride)
@@ -376,6 +406,7 @@ func buildPackageDeclaration(pkg *types.Package, classOverride string, funcs []*
 
 	methods := make([]methodDecl, 0, len(funcs))
 	carriers := make([]tupleCarrierDecl, 0)
+	fallbacks := make([]DynamicFallback, 0)
 	for _, fn := range funcs {
 		if fn == nil || !fn.Exported() {
 			continue
@@ -384,8 +415,9 @@ func buildPackageDeclaration(pkg *types.Package, classOverride string, funcs []*
 		if !ok {
 			continue
 		}
-		method, carrier := signatureToMethod(fn.Name(), sig, true, ctx, "", usedCarrierNames)
+		method, carrier, methodFallbacks := signatureToMethod(fn.Name(), sig, true, ctx, "", usedCarrierNames)
 		methods = append(methods, method)
+		fallbacks = append(fallbacks, methodFallbacks...)
 		if carrier != nil {
 			carriers = append(carriers, *carrier)
 		}
@@ -400,12 +432,13 @@ func buildPackageDeclaration(pkg *types.Package, classOverride string, funcs []*
 		PackageClass:    true,
 		StaticMethods:   methods,
 		InstanceMethods: nil,
-	}, carriers
+	}, carriers, fallbacks
 }
 
-func collectMethods(named *types.Named, static bool, ctx mappingContext, ownerName string, usedCarrierNames map[string]bool) ([]methodDecl, []tupleCarrierDecl) {
+func collectMethods(named *types.Named, static bool, ctx mappingContext, ownerName string, usedCarrierNames map[string]bool) ([]methodDecl, []tupleCarrierDecl, []DynamicFallback) {
 	seen := make(map[string]methodDecl)
 	carrierByName := make(map[string]tupleCarrierDecl)
+	fallbackByKey := make(map[string]DynamicFallback)
 
 	methodSets := []types.Type{
 		named,
@@ -425,12 +458,15 @@ func collectMethods(named *types.Named, static bool, ctx mappingContext, ownerNa
 				continue
 			}
 
-			method, carrier := signatureToMethod(fn.Name(), sig, static, ctx, ownerName, usedCarrierNames)
+			method, carrier, fallbacks := signatureToMethod(fn.Name(), sig, static, ctx, ownerName, usedCarrierNames)
 			key := fn.Name() + "|" + types.TypeString(sig, qualifierByPath)
 			if _, exists := seen[key]; !exists {
 				seen[key] = method
 				if carrier != nil {
 					carrierByName[carrier.ClassName] = *carrier
+				}
+				for _, fallback := range fallbacks {
+					fallbackByKey[dynamicFallbackKey(fallback)] = fallback
 				}
 			}
 		}
@@ -449,12 +485,21 @@ func collectMethods(named *types.Named, static bool, ctx mappingContext, ownerNa
 	sort.Slice(carriers, func(i, j int) bool {
 		return carriers[i].ClassName < carriers[j].ClassName
 	})
-	return out, carriers
+	fallbacks := make([]DynamicFallback, 0, len(fallbackByKey))
+	for _, fallback := range fallbackByKey {
+		fallbacks = append(fallbacks, fallback)
+	}
+	return out, carriers, sortedDynamicFallbacks(fallbacks)
 }
 
-func signatureToMethod(goName string, sig *types.Signature, static bool, ctx mappingContext, ownerName string, usedCarrierNames map[string]bool) (methodDecl, *tupleCarrierDecl) {
+func signatureToMethod(goName string, sig *types.Signature, static bool, ctx mappingContext, ownerName string, usedCarrierNames map[string]bool) (methodDecl, *tupleCarrierDecl, []DynamicFallback) {
 	params := make([]paramDecl, 0, sig.Params().Len())
 	usedNames := make(map[string]int)
+	fallbacks := make([]DynamicFallback, 0)
+	symbol := goName
+	if ownerName != "" {
+		symbol = ownerName + "." + goName
+	}
 
 	for i := 0; i < sig.Params().Len(); i++ {
 		param := sig.Params().At(i)
@@ -463,14 +508,20 @@ func signatureToMethod(goName string, sig *types.Signature, static bool, ctx map
 			rawName = "arg" + strconv.Itoa(i+1)
 		}
 
-		paramType := mapType(param.Type(), ctx)
+		paramType, reason := mapTypeWithReason(param.Type(), ctx)
 		if sig.Variadic() && i == sig.Params().Len()-1 {
 			sliceType, ok := types.Unalias(param.Type()).(*types.Slice)
 			if ok {
-				paramType = "haxe.Rest<" + mapType(sliceType.Elem(), ctx) + ">"
+				elemType, elemReason := mapTypeWithReason(sliceType.Elem(), ctx)
+				paramType = "haxe.Rest<" + elemType + ">"
+				reason = elemReason
 			} else {
 				paramType = "haxe.Rest<Dynamic>"
+				reason = "variadic_not_slice"
 			}
+		}
+		if containsDynamicType(paramType) {
+			fallbacks = append(fallbacks, newDynamicFallback(ctx, symbol, "param:"+rawName, param.Type(), reason))
 		}
 
 		params = append(params, paramDecl{
@@ -486,7 +537,12 @@ func signatureToMethod(goName string, sig *types.Signature, static bool, ctx map
 	case 0:
 		returnType = "Void"
 	case 1:
-		returnType = mapType(sig.Results().At(0).Type(), ctx)
+		result := sig.Results().At(0)
+		reason := ""
+		returnType, reason = mapTypeWithReason(result.Type(), ctx)
+		if containsDynamicType(returnType) {
+			fallbacks = append(fallbacks, newDynamicFallback(ctx, symbol, resultPosition(result, 0), result.Type(), reason))
+		}
 	default:
 		if generatedCarrier, ok := buildTupleCarrier(goName, sig.Results(), ctx, ownerName, usedCarrierNames); ok {
 			returnType = generatedCarrier.ClassName
@@ -494,6 +550,13 @@ func signatureToMethod(goName string, sig *types.Signature, static bool, ctx map
 			tupleReturn = true
 		} else {
 			returnType = "Dynamic"
+			for i := 0; i < sig.Results().Len(); i++ {
+				result := sig.Results().At(i)
+				_, reason, ok := tupleResultType(result.Type(), ctx)
+				if !ok {
+					fallbacks = append(fallbacks, newDynamicFallback(ctx, symbol, resultPosition(result, i), result.Type(), reason))
+				}
+			}
 		}
 	}
 
@@ -509,7 +572,7 @@ func signatureToMethod(goName string, sig *types.Signature, static bool, ctx map
 		ReturnType:  returnType,
 		Static:      static,
 		TupleReturn: tupleReturn,
-	}, carrier
+	}, carrier, fallbacks
 }
 
 func buildTupleCarrier(goName string, results *types.Tuple, ctx mappingContext, ownerName string, usedCarrierNames map[string]bool) (tupleCarrierDecl, bool) {
@@ -521,7 +584,7 @@ func buildTupleCarrier(goName string, results *types.Tuple, ctx mappingContext, 
 	usedNames := make(map[string]int)
 	for i := 0; i < results.Len(); i++ {
 		result := results.At(i)
-		fieldType, ok := tupleResultType(result.Type())
+		fieldType, _, ok := tupleResultType(result.Type(), ctx)
 		if !ok {
 			return tupleCarrierDecl{}, false
 		}
@@ -541,19 +604,82 @@ func buildTupleCarrier(goName string, results *types.Tuple, ctx mappingContext, 
 	}, true
 }
 
-func tupleResultType(t types.Type) (string, bool) {
+func tupleResultType(t types.Type, ctx mappingContext) (string, string, bool) {
 	if isBuiltinErrorType(t) {
-		return "Null<go.Error>", true
+		return "Null<go.Error>", "", true
 	}
-	basic, ok := types.Unalias(t).(*types.Basic)
-	if !ok {
-		return "", false
+
+	mapped, reason := mapTypeWithReason(t, ctx)
+	if containsDynamicType(mapped) {
+		return "", reason, false
 	}
-	mapped := mapBasicType(basic)
+	return mapped, "", true
+}
+
+func containsDynamicType(mapped string) bool {
 	if mapped == "Dynamic" {
-		return "", false
+		return true
 	}
-	return mapped, true
+	return strings.Contains(mapped, "<Dynamic") || strings.Contains(mapped, ", Dynamic") || strings.Contains(mapped, " Dynamic")
+}
+
+func newDynamicFallback(ctx mappingContext, symbol string, position string, t types.Type, reason string) DynamicFallback {
+	if reason == "" {
+		reason = "unknown_type"
+	}
+	return DynamicFallback{
+		Package:  ctx.currentPackagePath,
+		Symbol:   symbol,
+		Position: position,
+		GoType:   stableGoTypeString(t),
+		Reason:   reason,
+	}
+}
+
+func resultPosition(result *types.Var, index int) string {
+	if result != nil && strings.TrimSpace(result.Name()) != "" {
+		return "result:" + result.Name()
+	}
+	return "result:" + strconv.Itoa(index+1)
+}
+
+func stableGoTypeString(t types.Type) string {
+	if t == nil {
+		return "<nil>"
+	}
+	return types.TypeString(t, qualifierByPath)
+}
+
+func dynamicFallbackKey(fallback DynamicFallback) string {
+	return fallback.Package + "\x00" + fallback.Symbol + "\x00" + fallback.Position + "\x00" + fallback.GoType + "\x00" + fallback.Reason
+}
+
+func sortedDynamicFallbacks(fallbacks []DynamicFallback) []DynamicFallback {
+	byKey := make(map[string]DynamicFallback, len(fallbacks))
+	for _, fallback := range fallbacks {
+		byKey[dynamicFallbackKey(fallback)] = fallback
+	}
+
+	out := make([]DynamicFallback, 0, len(byKey))
+	for _, fallback := range byKey {
+		out = append(out, fallback)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Package != out[j].Package {
+			return out[i].Package < out[j].Package
+		}
+		if out[i].Symbol != out[j].Symbol {
+			return out[i].Symbol < out[j].Symbol
+		}
+		if out[i].Position != out[j].Position {
+			return out[i].Position < out[j].Position
+		}
+		if out[i].Reason != out[j].Reason {
+			return out[i].Reason < out[j].Reason
+		}
+		return out[i].GoType < out[j].GoType
+	})
+	return out
 }
 
 func isBuiltinErrorType(t types.Type) bool {
@@ -588,88 +714,100 @@ func uniqueTupleCarrierName(ownerName string, goName string, used map[string]boo
 }
 
 func mapType(t types.Type, ctx mappingContext) string {
+	mapped, _ := mapTypeWithReason(t, ctx)
+	return mapped
+}
+
+func mapTypeWithReason(t types.Type, ctx mappingContext) (string, string) {
 	if t == nil {
-		return "Dynamic"
+		return "Dynamic", "nil_type"
 	}
 
 	switch tt := types.Unalias(t).(type) {
 	case *types.Basic:
-		return mapBasicType(tt)
+		return mapBasicTypeWithReason(tt)
 	case *types.Pointer:
-		return mapType(tt.Elem(), ctx)
+		return mapTypeWithReason(tt.Elem(), ctx)
 	case *types.Slice:
-		return "Array<" + mapType(tt.Elem(), ctx) + ">"
+		elemType, elemReason := mapTypeWithReason(tt.Elem(), ctx)
+		return "Array<" + elemType + ">", elemReason
 	case *types.Array:
-		return "Array<" + mapType(tt.Elem(), ctx) + ">"
+		elemType, elemReason := mapTypeWithReason(tt.Elem(), ctx)
+		return "Array<" + elemType + ">", elemReason
 	case *types.Map:
-		keyType := mapType(tt.Key(), ctx)
-		valueType := mapType(tt.Elem(), ctx)
+		keyType, _ := mapTypeWithReason(tt.Key(), ctx)
+		valueType, valueReason := mapTypeWithReason(tt.Elem(), ctx)
 		if keyType == "String" {
-			return "haxe.DynamicAccess<" + valueType + ">"
+			return "haxe.DynamicAccess<" + valueType + ">", valueReason
 		}
-		return "Dynamic"
+		return "Dynamic", "unsupported_map_key"
 	case *types.Named:
 		obj := tt.Obj()
 		if obj == nil {
-			return "Dynamic"
+			return "Dynamic", "unknown_type"
 		}
 		pkg := obj.Pkg()
 		if pkg == nil {
 			if obj.Name() == "error" {
-				return "go.Error"
+				return "go.Error", ""
 			}
-			return "Dynamic"
+			return "Dynamic", "unsupported_builtin_named"
 		}
 		if pkg.Path() == ctx.currentPackagePath {
 			if ctx.exportedTypeNames[obj.Name()] {
-				return obj.Name()
+				return obj.Name(), ""
 			}
-			return "Dynamic"
+			return "Dynamic", "external_named_type"
 		}
-		return "Dynamic"
+		return "Dynamic", "external_named_type"
 	case *types.Interface:
 		if tt.NumMethods() == 0 {
-			return "Dynamic"
+			return "Dynamic", "empty_interface"
 		}
-		return "Dynamic"
+		return "Dynamic", "non_empty_interface"
 	case *types.Signature:
-		return "Dynamic"
+		return "Dynamic", "callback_signature"
 	case *types.Struct:
-		return "Dynamic"
+		return "Dynamic", "struct"
 	case *types.Tuple:
-		return "Dynamic"
+		return "Dynamic", "tuple"
 	case *types.Chan:
-		return "Dynamic"
+		return "Dynamic", "channel"
 	case *types.TypeParam:
-		return "Dynamic"
+		return "Dynamic", "type_parameter"
 	case *types.Union:
-		return "Dynamic"
+		return "Dynamic", "union"
 	default:
-		return "Dynamic"
+		return "Dynamic", "unknown_type"
 	}
 }
 
 func mapBasicType(basic *types.Basic) string {
+	mapped, _ := mapBasicTypeWithReason(basic)
+	return mapped
+}
+
+func mapBasicTypeWithReason(basic *types.Basic) (string, string) {
 	if basic == nil {
-		return "Dynamic"
+		return "Dynamic", "nil_type"
 	}
 
 	if basic.Kind() == types.String {
-		return "String"
+		return "String", ""
 	}
 	if basic.Info()&types.IsBoolean != 0 {
-		return "Bool"
+		return "Bool", ""
 	}
 	if basic.Info()&types.IsInteger != 0 {
-		return "Int"
+		return "Int", ""
 	}
 	if basic.Info()&types.IsFloat != 0 {
-		return "Float"
+		return "Float", ""
 	}
 	if basic.Kind() == types.UnsafePointer {
-		return "Dynamic"
+		return "Dynamic", "unsafe_pointer"
 	}
-	return "Dynamic"
+	return "Dynamic", "unknown_basic"
 }
 
 func renderDeclaration(haxePackage string, goImportPath string, decl declaration) string {
@@ -848,6 +986,36 @@ func writeEmission(emission *Emission) error {
 		}
 	}
 
+	return nil
+}
+
+func writeDynamicFallbackReport(path string, emission *Emission) error {
+	if strings.TrimSpace(path) == "" {
+		return errors.New("empty dynamic fallback report path")
+	}
+	if emission == nil {
+		return errors.New("nil emission")
+	}
+
+	report := dynamicFallbackReport{
+		SchemaVersion: 1,
+		Fallbacks:     sortedDynamicFallbacks(emission.DynamicFallbacks),
+	}
+	payload, err := json.MarshalIndent(report, "", "\t")
+	if err != nil {
+		return fmt.Errorf("marshal dynamic fallback report: %w", err)
+	}
+	payload = append(payload, '\n')
+
+	dir := filepath.Dir(path)
+	if dir != "." && dir != "" {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return fmt.Errorf("create dynamic fallback report directory %q: %w", dir, err)
+		}
+	}
+	if err := os.WriteFile(path, payload, 0o644); err != nil {
+		return fmt.Errorf("write dynamic fallback report %q: %w", path, err)
+	}
 	return nil
 }
 

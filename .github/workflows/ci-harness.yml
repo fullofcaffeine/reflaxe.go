@@ -78,6 +78,14 @@ jobs:
           path: .cache/metal-example-boundary
           if-no-files-found: warn
 
+      - name: Upload generated output telemetry
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-output-telemetry
+          path: .cache/generated-output-telemetry
+          if-no-files-found: warn
+
       - name: Check release visibility state
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

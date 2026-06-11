@@ -27,8 +27,9 @@ extern class Time {
 	@:go.name("Compare")
 	public function compare(u:Time):Int;
 
+	@:go.tupleReturn
 	@:go.name("Date")
-	public function date():Dynamic;
+	public function date():TimeDateResult;
 
 	@:go.name("Day")
 	public function day():Int;
@@ -45,8 +46,9 @@ extern class Time {
 	@:go.name("GobDecode")
 	public function gobDecode(data:Array<Int>):go.Error;
 
+	@:go.tupleReturn
 	@:go.name("GobEncode")
-	public function gobEncode():Dynamic;
+	public function gobEncode():TimeGobEncodeResult;
 
 	@:go.name("Hour")
 	public function hour():Int;
@@ -70,14 +72,17 @@ extern class Time {
 	@:go.name("Location")
 	public function location():Location;
 
+	@:go.tupleReturn
 	@:go.name("MarshalBinary")
-	public function marshalBinary():Dynamic;
+	public function marshalBinary():TimeMarshalBinaryResult;
 
+	@:go.tupleReturn
 	@:go.name("MarshalJSON")
-	public function marshalJSON():Dynamic;
+	public function marshalJSON():TimeMarshalJSONResult;
 
+	@:go.tupleReturn
 	@:go.name("MarshalText")
-	public function marshalText():Dynamic;
+	public function marshalText():TimeMarshalTextResult;
 
 	@:go.name("Minute")
 	public function minute():Int;
@@ -140,6 +145,7 @@ extern class Time {
 	@:go.name("Zone")
 	public function zone():TimeZoneResult;
 
+	@:go.tupleReturn
 	@:go.name("ZoneBounds")
-	public function zoneBounds():Dynamic;
+	public function zoneBounds():TimeZoneBoundsResult;
 }

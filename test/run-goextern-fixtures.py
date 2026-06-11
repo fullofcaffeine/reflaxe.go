@@ -17,6 +17,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate deterministic goextern fixtures")
     parser.add_argument("--update", action="store_true", help="Refresh committed fixtures from current generator output")
     parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Generate fixtures into test/.test-cache only, without comparing against committed pinned fixtures",
+    )
+    parser.add_argument(
         "--package",
         action="append",
         default=[],
@@ -96,6 +101,10 @@ def main() -> int:
             shutil.rmtree(FIXTURE_ROOT)
         shutil.copytree(CACHE_ROOT, FIXTURE_ROOT)
         print(f"Updated fixtures: {FIXTURE_ROOT}")
+        return 0
+
+    if args.smoke:
+        print(f"[PASS] goextern current-toolchain smoke generated {len(packages)} package(s)")
         return 0
 
     deltas = collect_tree_deltas(FIXTURE_ROOT, CACHE_ROOT)

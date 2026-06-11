@@ -29,6 +29,12 @@ Print generated files without writing to disk:
 npm run dev:goextern -- --package time --stdout
 ```
 
+Write a report that explains every `Dynamic` fallback:
+
+```bash
+npm run dev:goextern -- --package fmt --dynamic-report test/.test-cache/goextern-fmt-dynamic.json
+```
+
 ## Output Layout
 
 By default, output is written under:
@@ -88,6 +94,7 @@ Generated tuple carrier pattern:
 - Haxe functions return one value, so `goextern` generates a small carrier class such as `TimeZoneResult`.
 - The extern method is marked with `@:go.tupleReturn`.
 - `haxe.go` lowers the call into the carrier and converts common native Go values, such as Go `string` and Go `error`, into the Haxe-facing representation.
+- Tuple carriers are generated when every result value maps without `Dynamic`, including scalar values, slices/arrays, `error`, and named types from the same generated package.
 - If any result value cannot be typed honestly yet, the method still returns `Dynamic`.
 
 First-class `(T,error)` interop pattern:
@@ -132,6 +139,64 @@ result names are already meaningful, such as `name` and `offset`. A hand-written
 typed facade is still better when the raw Go shape needs domain-specific names,
 validation, retries, or conversion into a higher-level Haxe API.
 
+## Dynamic Fallback Report
+
+`Dynamic` means "the generator could not honestly describe this Go value with a
+specific Haxe type yet." It is usable, but it is not the ideal authoring
+surface: you lose compile-time type checking at that boundary.
+
+Use `--dynamic-report <path>` when generating externs to see exactly where this
+happened:
+
+```bash
+npm run dev:goextern -- --package fmt --dynamic-report test/.test-cache/goextern-fmt-dynamic.json
+```
+
+The report is deterministic JSON:
+
+```json
+{
+	"schemaVersion": 1,
+	"fallbacks": [
+		{
+			"package": "fmt",
+			"symbol": "Fprint",
+			"position": "param:w",
+			"goType": "io.Writer",
+			"reason": "external_named_type"
+		}
+	]
+}
+```
+
+Field meanings:
+
+- `package`: the Go package being generated.
+- `symbol`: the Go function or method that contains the fallback.
+- `position`: where the fallback happened, such as `param:w` or `result:1`.
+- `goType`: the original Go type at that boundary.
+- `reason`: why `goextern` used `Dynamic`.
+
+Common reason codes:
+
+- `callback_signature`: the boundary is a Go function value, such as `func(rune) bool`.
+- `external_named_type`: the type comes from another Go package that was not generated with this package.
+- `unsupported_map_key`: the Go map key is not a `string`, so it does not map to `haxe.DynamicAccess<T>`.
+- `struct`: the boundary is an anonymous Go struct.
+- `empty_interface`: the boundary is `any` / `interface{}`.
+- `non_empty_interface`: the boundary is an interface with methods.
+- `channel`: the boundary is a Go channel.
+- `type_parameter`: the boundary uses a Go generic type parameter.
+- `unsafe_pointer`: the boundary uses `unsafe.Pointer`.
+
+How to use this report:
+
+1. Generate the externs and the report.
+2. Find fallbacks in the APIs your app actually calls.
+3. For important APIs, write a small typed facade wrapper that converts the raw
+   Go shape into a simpler Haxe-facing shape.
+4. Leave low-value or truly dynamic boundaries as `Dynamic`.
+
 App code and examples must not use raw `__go__` to bypass these boundaries. Raw
 injection is reserved for controlled framework/runtime layers; see
 `docs/profiles.md` and `docs/stdlib-shim-rationale.md`.
@@ -158,3 +223,22 @@ Run deterministic fixture drift checks (used in CI):
 ```bash
 npm run test:goextern:fixtures
 ```
+
+## Fixture Pinning
+
+`goextern` fixtures are checked in so CI can detect accidental generator drift.
+Those committed fixtures are pinned to one Go release because the Go standard
+library surface can change between releases. The default pinned release is Go
+`1.23`, controlled by `GOEXTERN_FIXTURE_GO_VERSION` in `test/run-ci.py`.
+
+Full CI still runs `goextern` confidence checks on other local Go versions:
+
+- `npm run test:goextern` always runs the generator unit tests.
+- If the current Go release matches the fixture pin, CI runs the committed
+  fixture drift check.
+- If the current Go release differs from the fixture pin, CI runs a
+  current-toolchain smoke generation into `test/.test-cache` without comparing
+  that output to the pinned committed fixtures.
+
+Use `python3 test/run-goextern-fixtures.py --update` only when intentionally
+refreshing the committed pinned fixtures under the pinned Go release.

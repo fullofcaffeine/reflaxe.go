@@ -18,11 +18,15 @@ def run(cmd: list[str]) -> int:
 def main() -> int:
     commands = [
         ["python3", "test/test_ci_haxe_setup_action.py"],
+        ["python3", "test/test_generated_output_telemetry.py"],
+        ["python3", "test/test_goextern_ci_gate_contract.py"],
         ["python3", "test/test_language_hard_fail_inventory_contract.py"],
         ["python3", "test/test_lambda_iterable_lowering_ownership_contract.py"],
         ["python3", "test/test_metal_graduation_contract.py"],
         ["python3", "test/test_multi_package_output_decision_contract.py"],
         ["python3", "test/test_perf_budget_policy_contract.py"],
+        ["python3", "test/test_perf_delta_dry_run.py"],
+        ["python3", "test/test_perf_warning_summary.py"],
         ["python3", "test/test_portable_parity_closure_contract.py"],
         ["python3", "test/test_portable_governance_contract.py"],
         ["python3", "test/test_release_readiness_checklist_contract.py"],

@@ -10,12 +10,14 @@ import shlex
 import shutil
 import subprocess
 import time
+import json
 
 ROOT = Path(__file__).resolve().parent.parent
 EXAMPLES_ROOT = ROOT / "examples"
 PROFILES = ("portable", "metal")
 EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json", ".DS_Store"}
 EXCLUDE_DIRS = {".cache"}
+TELEMETRY_DIR = ROOT / ".cache" / "generated-output-telemetry"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -43,6 +45,7 @@ class CaseResult:
     stage: str
     message: str
     duration_s: float
+    telemetry: list[dict] = dataclasses.field(default_factory=list)
 
 
 def parse_args() -> argparse.Namespace:
@@ -236,21 +239,74 @@ def clean_out_dirs(case: ExampleProfileCase) -> None:
         shutil.rmtree(case.out_ci_dir)
 
 
-def run_go_checks(out_dir: Path, timeout_s: int) -> tuple[bool, str, str]:
+def collect_output_telemetry(out_dir: Path) -> dict:
+    go_files = sorted(out_dir.rglob("*.go")) if out_dir.exists() else []
+    total_bytes = 0
+    largest_path: Path | None = None
+    largest_bytes = 0
+    for path in go_files:
+        try:
+            size = path.stat().st_size
+        except OSError:
+            size = 0
+        total_bytes += size
+        if size > largest_bytes or largest_path is None:
+            largest_path = path
+            largest_bytes = size
+
+    return {
+        "outputDir": relpath(out_dir),
+        "goFileCount": len(go_files),
+        "totalGoBytes": total_bytes,
+        "largestGoFile": relpath(largest_path) if largest_path is not None else None,
+        "largestGoFileBytes": largest_bytes if largest_path is not None else 0,
+        "goTestElapsedMs": None,
+        "goTestOk": None,
+        "goTestCommand": "go test ./...",
+    }
+
+
+def relpath(path: Path | None) -> str | None:
+    if path is None:
+        return None
+    try:
+        return path.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def run_go_checks(out_dir: Path, timeout_s: int) -> tuple[bool, str, str, dict]:
+    telemetry = collect_output_telemetry(out_dir)
     go_files = sorted(out_dir.rglob("*.go")) if out_dir.exists() else []
     if not go_files:
-        return False, "go", "no generated .go files"
+        return False, "go", "no generated .go files", telemetry
 
     gofmt_cmd = ["gofmt", "-w"] + [str(path) for path in go_files]
     gofmt_proc = run_command(gofmt_cmd, cwd=out_dir, timeout_s=timeout_s)
     if gofmt_proc.returncode != 0:
-        return False, "gofmt", command_output(gofmt_proc)
+        return False, "gofmt", command_output(gofmt_proc), telemetry
 
+    started = time.monotonic()
     gotest_proc = run_command(["go", "test", "./..."], cwd=out_dir, timeout_s=timeout_s)
+    telemetry["goTestElapsedMs"] = round((time.monotonic() - started) * 1000.0, 3)
+    telemetry["goTestOk"] = gotest_proc.returncode == 0
     if gotest_proc.returncode != 0:
-        return False, "go test", command_output(gotest_proc)
+        return False, "go test", command_output(gotest_proc), telemetry
 
-    return True, "go", ""
+    return True, "go", "", telemetry
+
+
+def annotate_telemetry(case: ExampleProfileCase, lane: str, telemetry: dict) -> dict:
+    out = dict(telemetry)
+    out.update(
+        {
+            "caseId": case.case_id,
+            "example": case.example,
+            "profile": case.profile,
+            "lane": lane,
+        }
+    )
+    return out
 
 
 def compare_stdout(expected_file: Path, actual: str) -> tuple[bool, str]:
@@ -267,6 +323,7 @@ def compare_stdout(expected_file: Path, actual: str) -> tuple[bool, str]:
 
 def run_case(case: ExampleProfileCase, args: argparse.Namespace) -> CaseResult:
     started = time.monotonic()
+    telemetry_entries: list[dict] = []
     try:
         run_ci_args = read_run_args(case.example_dir / "run.ci.args")
         run_args = read_run_args(case.example_dir / "run.args")
@@ -279,19 +336,20 @@ def run_case(case: ExampleProfileCase, args: argparse.Namespace) -> CaseResult:
             env={"HAXE_NO_SERVER": "1"},
         )
         if compile_ci_proc.returncode != 0:
-            return CaseResult(case.case_id, False, "compile_ci", command_output(compile_ci_proc), time.monotonic() - started)
+            return CaseResult(case.case_id, False, "compile_ci", command_output(compile_ci_proc), time.monotonic() - started, telemetry_entries)
 
-        ok, stage, msg = run_go_checks(case.out_ci_dir, args.timeout)
+        ok, stage, msg, telemetry = run_go_checks(case.out_ci_dir, args.timeout)
+        telemetry_entries.append(annotate_telemetry(case, "ci", telemetry))
         if not ok:
-            return CaseResult(case.case_id, False, stage + "_ci", msg, time.monotonic() - started)
+            return CaseResult(case.case_id, False, stage + "_ci", msg, time.monotonic() - started, telemetry_entries)
 
         if not args.compile_only:
             run_ci_proc = run_command(["go", "run", ".", *run_ci_args], cwd=case.out_ci_dir, timeout_s=args.timeout)
             if run_ci_proc.returncode != 0:
-                return CaseResult(case.case_id, False, "runtime_ci", command_output(run_ci_proc), time.monotonic() - started)
+                return CaseResult(case.case_id, False, "runtime_ci", command_output(run_ci_proc), time.monotonic() - started, telemetry_entries)
             ok_stdout, msg_stdout = compare_stdout(case.expected_ci_stdout, run_ci_proc.stdout)
             if not ok_stdout:
-                return CaseResult(case.case_id, False, "stdout_ci", msg_stdout, time.monotonic() - started)
+                return CaseResult(case.case_id, False, "stdout_ci", msg_stdout, time.monotonic() - started, telemetry_entries)
 
         compile_proc = run_command(
             ["haxe", case.compile_hxml.name, "-D", "go_no_build"],
@@ -300,41 +358,95 @@ def run_case(case: ExampleProfileCase, args: argparse.Namespace) -> CaseResult:
             env={"HAXE_NO_SERVER": "1"},
         )
         if compile_proc.returncode != 0:
-            return CaseResult(case.case_id, False, "compile", command_output(compile_proc), time.monotonic() - started)
+            return CaseResult(case.case_id, False, "compile", command_output(compile_proc), time.monotonic() - started, telemetry_entries)
 
-        ok, stage, msg = run_go_checks(case.out_dir, args.timeout)
+        ok, stage, msg, telemetry = run_go_checks(case.out_dir, args.timeout)
+        telemetry_entries.append(annotate_telemetry(case, "default", telemetry))
         if not ok:
-            return CaseResult(case.case_id, False, stage, msg, time.monotonic() - started)
+            return CaseResult(case.case_id, False, stage, msg, time.monotonic() - started, telemetry_entries)
 
         if not args.compile_only:
             run_proc = run_command(["go", "run", ".", *run_args], cwd=case.out_dir, timeout_s=args.timeout)
             if run_proc.returncode != 0:
-                return CaseResult(case.case_id, False, "runtime", command_output(run_proc), time.monotonic() - started)
+                return CaseResult(case.case_id, False, "runtime", command_output(run_proc), time.monotonic() - started, telemetry_entries)
             ok_stdout, msg_stdout = compare_stdout(case.expected_stdout, run_proc.stdout)
             if not ok_stdout:
-                return CaseResult(case.case_id, False, "stdout", msg_stdout, time.monotonic() - started)
+                return CaseResult(case.case_id, False, "stdout", msg_stdout, time.monotonic() - started, telemetry_entries)
 
         if args.bless_generated:
             copy_tree(case.out_dir, case.generated_dir)
 
         if not case.generated_dir.exists():
-            return CaseResult(case.case_id, False, "generated", f"missing generated directory: {case.generated_dir} (use --bless-generated)", time.monotonic() - started)
+            return CaseResult(case.case_id, False, "generated", f"missing generated directory: {case.generated_dir} (use --bless-generated)", time.monotonic() - started, telemetry_entries)
 
         deltas = collect_tree_deltas(case.generated_dir, case.out_dir)
         if deltas:
             preview = "\n".join(deltas[:20])
             if len(deltas) > 20:
                 preview += f"\n... and {len(deltas) - 20} more"
-            return CaseResult(case.case_id, False, "generated", preview, time.monotonic() - started)
+            return CaseResult(case.case_id, False, "generated", preview, time.monotonic() - started, telemetry_entries)
 
-        return CaseResult(case.case_id, True, "done", "ok", time.monotonic() - started)
+        return CaseResult(case.case_id, True, "done", "ok", time.monotonic() - started, telemetry_entries)
 
     except subprocess.TimeoutExpired as exc:
-        return CaseResult(case.case_id, False, "timeout", f"command timed out after {args.timeout}s: {exc.cmd}", time.monotonic() - started)
+        return CaseResult(case.case_id, False, "timeout", f"command timed out after {args.timeout}s: {exc.cmd}", time.monotonic() - started, telemetry_entries)
     except FileNotFoundError as exc:
-        return CaseResult(case.case_id, False, "tool", f"missing tool: {exc}", time.monotonic() - started)
+        return CaseResult(case.case_id, False, "tool", f"missing tool: {exc}", time.monotonic() - started, telemetry_entries)
     except RuntimeError as exc:
-        return CaseResult(case.case_id, False, "config", str(exc), time.monotonic() - started)
+        return CaseResult(case.case_id, False, "config", str(exc), time.monotonic() - started, telemetry_entries)
+
+
+def build_telemetry_report(results: list[CaseResult]) -> dict:
+    entries: list[dict] = []
+    for result in results:
+        entries.extend(result.telemetry)
+    entries.sort(key=lambda item: (item["caseId"], item["lane"]))
+    return {
+        "schemaVersion": 1,
+        "scope": "examples",
+        "entryCount": len(entries),
+        "entries": entries,
+    }
+
+
+def render_telemetry_markdown(report: dict) -> str:
+    lines = [
+        "# Generated Output Telemetry",
+        "",
+        f"- Scope: `{report['scope']}`",
+        f"- Entry count: `{report['entryCount']}`",
+        "",
+        "| Case | Lane | Go files | Total Go bytes | Largest Go file | Largest bytes | go test ms |",
+        "| --- | --- | ---: | ---: | --- | ---: | ---: |",
+    ]
+    for entry in report["entries"]:
+        elapsed = entry["goTestElapsedMs"]
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    entry["caseId"],
+                    entry["lane"],
+                    str(entry["goFileCount"]),
+                    str(entry["totalGoBytes"]),
+                    entry["largestGoFile"] or "-",
+                    str(entry["largestGoFileBytes"]),
+                    "-" if elapsed is None else f"{elapsed:.3f}",
+                ]
+            )
+            + " |"
+        )
+    if not report["entries"]:
+        lines.append("| - | - | 0 | 0 | - | 0 | - |")
+    lines.append("")
+    return "\n".join(lines) + "\n"
+
+
+def write_telemetry_report(results: list[CaseResult]) -> None:
+    report = build_telemetry_report(results)
+    TELEMETRY_DIR.mkdir(parents=True, exist_ok=True)
+    (TELEMETRY_DIR / "examples.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (TELEMETRY_DIR / "examples.md").write_text(render_telemetry_markdown(report), encoding="utf-8")
 
 
 def main() -> int:
@@ -363,6 +475,7 @@ def main() -> int:
 
     passed = sum(1 for result in results if result.ok)
     failed = len(results) - passed
+    write_telemetry_report(results)
     print(f"\nSummary: {passed} passed, {failed} failed, {len(results)} total")
 
     return 1 if failed else 0

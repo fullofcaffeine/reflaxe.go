@@ -16,11 +16,13 @@ extern class TimePkg {
 	@:go.name("FixedZone")
 	public static function fixedZone(name:String, offset:Int):Location;
 
+	@:go.tupleReturn
 	@:go.name("LoadLocation")
-	public static function loadLocation(name:String):Dynamic;
+	public static function loadLocation(name:String):LoadLocationResult;
 
+	@:go.tupleReturn
 	@:go.name("LoadLocationFromTZData")
-	public static function loadLocationFromTZData(name:String, data:Array<Int>):Dynamic;
+	public static function loadLocationFromTZData(name:String, data:Array<Int>):LoadLocationFromTZDataResult;
 
 	@:go.name("NewTicker")
 	public static function newTicker(d:Duration):Ticker;
@@ -31,14 +33,17 @@ extern class TimePkg {
 	@:go.name("Now")
 	public static function now():Time;
 
+	@:go.tupleReturn
 	@:go.name("Parse")
-	public static function parse(layout:String, value:String):Dynamic;
+	public static function parse(layout:String, value:String):ParseResult;
 
+	@:go.tupleReturn
 	@:go.name("ParseDuration")
-	public static function parseDuration(s:String):Dynamic;
+	public static function parseDuration(s:String):ParseDurationResult;
 
+	@:go.tupleReturn
 	@:go.name("ParseInLocation")
-	public static function parseInLocation(layout:String, value:String, loc:Location):Dynamic;
+	public static function parseInLocation(layout:String, value:String, loc:Location):ParseInLocationResult;
 
 	@:go.name("Since")
 	public static function since(t:Time):Duration;

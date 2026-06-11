@@ -516,6 +516,10 @@ comparison_json="$results_dir/comparison.json"
 summary_md="$results_dir/summary.md"
 warnings_txt="$results_dir/warnings.txt"
 hard_failures_txt="$results_dir/hard_failures.txt"
+warning_history_json="$results_dir/warning_history.json"
+warning_history_md="$results_dir/warning_history.md"
+delta_dry_run_json="$results_dir/delta_hard_gate_dry_run.json"
+delta_dry_run_md="$results_dir/delta_hard_gate_dry_run.md"
 
 cleanup() {
   local original_exit="${1:-0}"
@@ -1153,6 +1157,18 @@ with open(hard_failures_txt_path, "w", encoding="utf-8") as handle:
     if hard_failures:
         handle.write("\n".join(hard_failures) + "\n")
 PY
+
+python3 scripts/ci/perf-warning-summary.py \
+  --harness app-profile \
+  --comparison "$comparison_json" \
+  --out-json "$warning_history_json" \
+  --out-md "$warning_history_md"
+
+python3 scripts/ci/perf-delta-dry-run.py \
+  --harness app-profile \
+  --comparison "$comparison_json" \
+  --out-json "$delta_dry_run_json" \
+  --out-md "$delta_dry_run_md"
 
 warning_count=0
 baseline_warning_count=0

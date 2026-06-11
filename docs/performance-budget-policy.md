@@ -50,6 +50,25 @@ right comparison point.
 | Flagship app perf | `npm run test:perf:apps` | `scripts/ci/perf/app-profile-baseline.json` | none by default; emits warning and hard-candidate artifacts |
 | HXRT selective runtime | `npm run test:perf:hxrt-selective` | `scripts/ci/perf/hxrt-selective-baseline.json` | `GO_HXRT_SLICE_ENFORCE=1` in CI |
 
+The warning-only harnesses also write deterministic warning-history artifacts:
+
+- Go profile microbench: `.cache/perf-go/results/warning_history.json` and `.cache/perf-go/results/warning_history.md`
+- Flagship app perf: `.cache/perf-apps/results/warning_history.json` and `.cache/perf-apps/results/warning_history.md`
+
+These files group warnings by harness, case/app, variant, profile, metric, and
+threshold. They do not change pass/fail behavior. They exist so repeated warning
+patterns can be compared across CI runs before turning a soft warning into a
+hard gate.
+
+Portable-vs-metal delta gates also write non-blocking dry-run artifacts:
+
+- Go profile microbench: `.cache/perf-go/results/delta_hard_gate_dry_run.json` and `.cache/perf-go/results/delta_hard_gate_dry_run.md`
+- Flagship app perf: `.cache/perf-apps/results/delta_hard_gate_dry_run.json` and `.cache/perf-apps/results/delta_hard_gate_dry_run.md`
+
+These files answer "what would fail if the delta hard gate were enabled?" They
+are intentionally non-blocking unless `GO_PERF_ENFORCE_DELTA_BUDGET=1` or
+`GO_APP_PERF_ENFORCE_DELTA_BUDGET=1` is explicitly set.
+
 Important knobs:
 
 - `GO_PERF_ENFORCE_METAL_BUDGET`: fail Go profile microbench CI when metal
@@ -71,7 +90,12 @@ Promote a warning-only budget to a hard gate only when all of these are true:
 2. The affected metric maps to user-visible behavior, such as startup time,
    binary size, throughput, latency, or allocation pressure.
 3. The selected case has low enough variance that a hard gate will not be flaky.
-4. The new threshold and selected cases are documented in this file and in the
+4. The repeated warning is visible in the relevant `warning_history.json` or
+   `warning_history.md` artifact from the perf harness.
+5. If the proposed gate is a portable-vs-metal delta gate, the matching
+   `delta_hard_gate_dry_run.json` or `delta_hard_gate_dry_run.md` artifact
+   shows the exact candidate failures under the proposed threshold.
+6. The new threshold and selected cases are documented in this file and in the
    harness configuration.
 
 This keeps the project honest: warnings stay useful signals, hard gates stay

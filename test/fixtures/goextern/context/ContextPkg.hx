@@ -16,23 +16,29 @@ extern class ContextPkg {
 	@:go.name("TODO")
 	public static function todo():Context;
 
+	@:go.tupleReturn
 	@:go.name("WithCancel")
-	public static function withCancel(parent:Context):Dynamic;
+	public static function withCancel(parent:Context):WithCancelResult;
 
+	@:go.tupleReturn
 	@:go.name("WithCancelCause")
-	public static function withCancelCause(parent:Context):Dynamic;
+	public static function withCancelCause(parent:Context):WithCancelCauseResult;
 
+	@:go.tupleReturn
 	@:go.name("WithDeadline")
-	public static function withDeadline(parent:Context, d:Dynamic):Dynamic;
+	public static function withDeadline(parent:Context, d:Dynamic):WithDeadlineResult;
 
+	@:go.tupleReturn
 	@:go.name("WithDeadlineCause")
-	public static function withDeadlineCause(parent:Context, d:Dynamic, cause:go.Error):Dynamic;
+	public static function withDeadlineCause(parent:Context, d:Dynamic, cause:go.Error):WithDeadlineCauseResult;
 
+	@:go.tupleReturn
 	@:go.name("WithTimeout")
-	public static function withTimeout(parent:Context, timeout:Dynamic):Dynamic;
+	public static function withTimeout(parent:Context, timeout:Dynamic):WithTimeoutResult;
 
+	@:go.tupleReturn
 	@:go.name("WithTimeoutCause")
-	public static function withTimeoutCause(parent:Context, timeout:Dynamic, cause:go.Error):Dynamic;
+	public static function withTimeoutCause(parent:Context, timeout:Dynamic, cause:go.Error):WithTimeoutCauseResult;
 
 	@:go.name("WithValue")
 	public static function withValue(parent:Context, key:Dynamic, val:Dynamic):Context;

@@ -16,8 +16,9 @@ extern interface ScanState {
 	@:go.name("SkipSpace")
 	public function skipSpace():Void;
 
+	@:go.tupleReturn
 	@:go.name("Token")
-	public function token(skipSpace:Bool, f:Dynamic):Dynamic;
+	public function token(skipSpace:Bool, f:Dynamic):ScanStateTokenResult;
 
 	@:go.name("UnreadRune")
 	public function unreadRune():go.Error;

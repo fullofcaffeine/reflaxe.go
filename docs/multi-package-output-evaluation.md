@@ -43,6 +43,18 @@ It is not a hunch that multi-package output would look nicer.
 | Package-private boundary needs | Need for Go package boundaries to use package-private APIs, generated helper isolation, or separate review/ownership areas. | A production integration cannot be represented honestly through public generated symbols or typed extern facades. | Attach the required boundary, why public wrappers are not enough, and the affected generated modules. |
 | Go tooling limit | A concrete Go tool, editor, linter, formatter, or build system limit caused by single-package output. | The tool fails, times out, or becomes unusably slow only because output is one package. | Attach the tool name/version, failing command, error/log excerpt, and a minimized reproduction if possible. |
 
+CI records the first two trigger categories automatically for the examples and
+flagship apps that run through `test/run-examples.py`:
+
+- `.cache/generated-output-telemetry/examples.json`
+- `.cache/generated-output-telemetry/examples.md`
+
+The artifact records largest generated Go file size, total generated Go size,
+and `go test ./...` elapsed time for each generated example output tree. Use
+that artifact as the starting evidence before reopening multi-package output.
+If it points to a real bottleneck, confirm with repeated runs on the same runner
+class before changing output architecture.
+
 If a trigger fires, implementation still starts with the planner-only phase
 below. Do not skip directly to changing output shape; package graphs need their
 own deterministic tests first.

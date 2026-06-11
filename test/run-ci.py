@@ -5,9 +5,17 @@ from __future__ import annotations
 import argparse
 import os
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+@dataclass(frozen=True)
+class GoexternFixtureStage:
+    kind: str
+    reason: str
+    command: list[str]
 
 
 def parse_args() -> argparse.Namespace:
@@ -368,6 +376,14 @@ def build_goextern_fixtures_command() -> list[str]:
     return ["python3", "test/run-goextern-fixtures.py"]
 
 
+def build_goextern_fixture_smoke_command() -> list[str]:
+    return ["python3", "test/run-goextern-fixtures.py", "--smoke"]
+
+
+def build_goextern_unit_command() -> list[str]:
+    return ["bash", "-lc", "cd tools/goextern && go test ./..."]
+
+
 def current_go_release() -> str | None:
     proc = subprocess.run(
         ["go", "env", "GOVERSION"],
@@ -392,25 +408,32 @@ def current_go_release() -> str | None:
     return f"{int(parts[0])}.{int(parts[1])}"
 
 
-def should_run_goextern_fixtures(args: argparse.Namespace) -> tuple[bool, str]:
-    if args.skip_goextern_fixtures:
-        return (False, "explicitly skipped via --skip-goextern-fixtures")
-
+def goextern_fixture_target_release() -> str:
     target_release = os.environ.get("GOEXTERN_FIXTURE_GO_VERSION", "1.23").strip()
     if not target_release:
         target_release = "1.23"
+    return target_release
 
-    current_release = current_go_release()
+
+def resolve_goextern_fixture_stage(skip: bool, current_release: str | None, target_release: str) -> GoexternFixtureStage:
+    if skip:
+        return GoexternFixtureStage("skipped", "explicitly skipped via --skip-goextern-fixtures", [])
+
     if current_release is None:
-        return (False, "unable to detect current Go release for fixture gate")
+        return GoexternFixtureStage("smoke", "unable to detect current Go release; running current toolchain smoke", build_goextern_fixture_smoke_command())
 
     if current_release != target_release:
-        return (
-            False,
-            f"fixtures are pinned to Go {target_release}; current toolchain is Go {current_release}",
+        return GoexternFixtureStage(
+            "smoke",
+            f"fixtures are pinned to Go {target_release}; current toolchain is Go {current_release}; running current toolchain smoke",
+            build_goextern_fixture_smoke_command(),
         )
 
-    return (True, f"Go {current_release} matches pinned fixture toolchain")
+    return GoexternFixtureStage(
+        "fixtures",
+        f"Go {current_release} matches pinned fixture toolchain",
+        build_goextern_fixtures_command(),
+    )
 
 
 def main() -> int:
@@ -549,12 +572,26 @@ def main() -> int:
     else:
         print("==> Skipping metal example boundary stage")
 
-    run_goextern_fixtures, goextern_reason = should_run_goextern_fixtures(args)
-    if not run_goextern_fixtures:
-        print(f"==> Skipping goextern fixtures stage ({goextern_reason})")
+    print("==> goextern unit stage")
+    goextern_unit_code = run(build_goextern_unit_command())
+    if goextern_unit_code != 0:
+        return goextern_unit_code
+
+    goextern_stage = resolve_goextern_fixture_stage(
+        skip=args.skip_goextern_fixtures,
+        current_release=current_go_release(),
+        target_release=goextern_fixture_target_release(),
+    )
+    if goextern_stage.kind == "skipped":
+        print(f"==> Skipping goextern fixtures stage ({goextern_stage.reason})")
+    elif goextern_stage.kind == "smoke":
+        print(f"==> goextern current-toolchain smoke stage ({goextern_stage.reason})")
+        goextern_smoke_code = run(goextern_stage.command)
+        if goextern_smoke_code != 0:
+            return goextern_smoke_code
     else:
-        print("==> goextern fixtures stage")
-        goextern_code = run(build_goextern_fixtures_command())
+        print(f"==> goextern fixtures stage ({goextern_stage.reason})")
+        goextern_code = run(goextern_stage.command)
         if goextern_code != 0:
             return goextern_code
 
