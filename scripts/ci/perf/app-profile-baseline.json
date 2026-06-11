@@ -1,126 +1,9 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-02-24T23:45:38.534502+00:00",
-  "thresholds": {
-    "throughputWarnPct": 12.0,
-    "latencyWarnPct": 12.0,
-    "allocWarnPct": 15.0,
-    "memoryWarnPct": 12.0,
-    "startupWarnPct": 15.0,
-    "sizeWarnPct": 8.0
-  },
-  "derivedBaseline": {
-    "haxeVsPure": [
-      {
-        "app": "fluxproxy",
-        "variant": "core",
-        "profile": "metal",
-        "throughput_ratio_vs_pure": 1.116323973775201,
-        "latency_avg_ratio_vs_pure": 0.8957973050826877,
-        "alloc_bytes_ratio_vs_pure": 2.592816708959594,
-        "allocs_ratio_vs_pure": 7.191489361702128,
-        "rss_ratio_vs_pure": 0.9960159362549801,
-        "startup_ratio_vs_pure": 0.9988036662951417,
-        "binary_ratio_vs_pure": 1.1303213996651802,
-        "stripped_ratio_vs_pure": 1.1279015527523013
-      },
-      {
-        "app": "fluxproxy",
-        "variant": "core",
-        "profile": "portable",
-        "throughput_ratio_vs_pure": 1.2828393187494438,
-        "latency_avg_ratio_vs_pure": 0.7795208469597361,
-        "alloc_bytes_ratio_vs_pure": 2.63302752293578,
-        "allocs_ratio_vs_pure": 7.191489361702128,
-        "rss_ratio_vs_pure": 0.9960159362549801,
-        "startup_ratio_vs_pure": 1.0960798854398153,
-        "binary_ratio_vs_pure": 1.1303213996651802,
-        "stripped_ratio_vs_pure": 1.1279015527523013
-      },
-      {
-        "app": "fluxproxy",
-        "variant": "go_native",
-        "profile": "metal",
-        "throughput_ratio_vs_pure": 1.5129500451537592,
-        "latency_avg_ratio_vs_pure": 0.6609603184336986,
-        "alloc_bytes_ratio_vs_pure": 2.32385243593354,
-        "allocs_ratio_vs_pure": 7.087719298245614,
-        "rss_ratio_vs_pure": 1.0158102766798418,
-        "startup_ratio_vs_pure": 0.5553791635036127,
-        "binary_ratio_vs_pure": 1.144394416676493,
-        "stripped_ratio_vs_pure": 1.1420527001087293
-      },
-      {
-        "app": "fluxproxy",
-        "variant": "go_native",
-        "profile": "portable",
-        "throughput_ratio_vs_pure": 1.4003412825677566,
-        "latency_avg_ratio_vs_pure": 0.7141116524880421,
-        "alloc_bytes_ratio_vs_pure": 2.55040833568009,
-        "allocs_ratio_vs_pure": 8.421052631578947,
-        "rss_ratio_vs_pure": 1.0434782608695652,
-        "startup_ratio_vs_pure": 0.6592760213693837,
-        "binary_ratio_vs_pure": 1.1790154503180947,
-        "stripped_ratio_vs_pure": 1.1769299434876572
-      },
-      {
-        "app": "pulseforge",
-        "variant": "core",
-        "profile": "metal",
-        "throughput_ratio_vs_pure": 1.1865988236790066,
-        "latency_avg_ratio_vs_pure": 0.8427448774117825,
-        "alloc_bytes_ratio_vs_pure": 2.888982515272804,
-        "allocs_ratio_vs_pure": 7.571428571428571,
-        "rss_ratio_vs_pure": 0.9920634920634921,
-        "startup_ratio_vs_pure": 1.4637515613517424,
-        "binary_ratio_vs_pure": 1.1161223200565284,
-        "stripped_ratio_vs_pure": 1.1131519055251398
-      },
-      {
-        "app": "pulseforge",
-        "variant": "core",
-        "profile": "portable",
-        "throughput_ratio_vs_pure": 0.7183401394146687,
-        "latency_avg_ratio_vs_pure": 1.3920982381409028,
-        "alloc_bytes_ratio_vs_pure": 2.9210027385717297,
-        "allocs_ratio_vs_pure": 7.571428571428571,
-        "rss_ratio_vs_pure": 1.0277777777777777,
-        "startup_ratio_vs_pure": 0.9862972575938725,
-        "binary_ratio_vs_pure": 1.1161223200565284,
-        "stripped_ratio_vs_pure": 1.1131519055251398
-      },
-      {
-        "app": "pulseforge",
-        "variant": "go_native",
-        "profile": "metal",
-        "throughput_ratio_vs_pure": 1.2207993961688253,
-        "latency_avg_ratio_vs_pure": 0.8191354148165603,
-        "alloc_bytes_ratio_vs_pure": 2.257626310772164,
-        "allocs_ratio_vs_pure": 7.17910447761194,
-        "rss_ratio_vs_pure": 1.0745098039215686,
-        "startup_ratio_vs_pure": 1.0089361973808688,
-        "binary_ratio_vs_pure": 1.1369365178121194,
-        "stripped_ratio_vs_pure": 1.1341477231074768
-      },
-      {
-        "app": "pulseforge",
-        "variant": "go_native",
-        "profile": "portable",
-        "throughput_ratio_vs_pure": 1.3370915030109536,
-        "latency_avg_ratio_vs_pure": 0.7478919600585656,
-        "alloc_bytes_ratio_vs_pure": 2.600214489990467,
-        "allocs_ratio_vs_pure": 9.149253731343284,
-        "rss_ratio_vs_pure": 1.035294117647059,
-        "startup_ratio_vs_pure": 0.6754427594619912,
-        "binary_ratio_vs_pure": 1.17121685147021,
-        "stripped_ratio_vs_pure": 1.1687726173101145
-      }
-    ]
-  },
+  "generatedAt": "2026-06-11T22:55:32.046342+00:00",
   "toolchain": {
-    "haxe": "unknown",
-    "go": "unknown",
-    "metadata": "legacy baseline generated before toolchain capture was added"
+    "haxe": "4.3.7",
+    "go": "go version go1.23.12 linux/amd64"
   },
   "params": {
     "workloadRuns": 20,
@@ -133,7 +16,8 @@
       "allocWarnPct": 15.0,
       "memoryWarnPct": 12.0,
       "startupWarnPct": 15.0,
-      "sizeWarnPct": 8.0
+      "sizeWarnPct": 8.0,
+      "deltaWarnPct": 15.0
     },
     "metalFailThresholds": {
       "throughputFailPct": 25.0,
@@ -153,7 +37,173 @@
       "fluxproxy:go_native",
       "pulseforge:core",
       "pulseforge:go_native"
+    ]
+  },
+  "thresholds": {
+    "throughputWarnPct": 12.0,
+    "latencyWarnPct": 12.0,
+    "allocWarnPct": 15.0,
+    "memoryWarnPct": 12.0,
+    "startupWarnPct": 15.0,
+    "sizeWarnPct": 8.0,
+    "deltaWarnPct": 15.0
+  },
+  "derivedBaseline": {
+    "haxeVsPure": [
+      {
+        "app": "fluxproxy",
+        "variant": "core",
+        "profile": "metal",
+        "throughput_ratio_vs_pure": 0.590789302821072,
+        "latency_avg_ratio_vs_pure": 1.6926511070807573,
+        "alloc_bytes_ratio_vs_pure": 3.792813903534466,
+        "allocs_ratio_vs_pure": 7.851063829787234,
+        "rss_ratio_vs_pure": 1.5767955801104971,
+        "startup_ratio_vs_pure": 1.7731842927275867,
+        "binary_ratio_vs_pure": 1.3618768166361415,
+        "stripped_ratio_vs_pure": 1.3995925583474735
+      },
+      {
+        "app": "fluxproxy",
+        "variant": "core",
+        "profile": "portable",
+        "throughput_ratio_vs_pure": 0.5884429854235336,
+        "latency_avg_ratio_vs_pure": 1.699399870469113,
+        "alloc_bytes_ratio_vs_pure": 3.8330404217926186,
+        "allocs_ratio_vs_pure": 7.851063829787234,
+        "rss_ratio_vs_pure": 1.5790055248618784,
+        "startup_ratio_vs_pure": 1.7749737384029671,
+        "binary_ratio_vs_pure": 1.363764045569848,
+        "stripped_ratio_vs_pure": 1.4022038427539398
+      },
+      {
+        "app": "fluxproxy",
+        "variant": "go_native",
+        "profile": "metal",
+        "throughput_ratio_vs_pure": 0.5632306372385024,
+        "latency_avg_ratio_vs_pure": 1.7754718823904212,
+        "alloc_bytes_ratio_vs_pure": 3.229422561061697,
+        "allocs_ratio_vs_pure": 7.719298245614035,
+        "rss_ratio_vs_pure": 1.6028761061946903,
+        "startup_ratio_vs_pure": 1.8019397755547657,
+        "binary_ratio_vs_pure": 1.3769011023396023,
+        "stripped_ratio_vs_pure": 1.4161747223605199
+      },
+      {
+        "app": "fluxproxy",
+        "variant": "go_native",
+        "profile": "portable",
+        "throughput_ratio_vs_pure": 0.569860624134448,
+        "latency_avg_ratio_vs_pure": 1.754815328125981,
+        "alloc_bytes_ratio_vs_pure": 3.2407172102216575,
+        "allocs_ratio_vs_pure": 7.719298245614035,
+        "rss_ratio_vs_pure": 1.6028761061946903,
+        "startup_ratio_vs_pure": 1.7867427512314022,
+        "binary_ratio_vs_pure": 1.3768057157095093,
+        "stripped_ratio_vs_pure": 1.41599183084567
+      },
+      {
+        "app": "pulseforge",
+        "variant": "core",
+        "profile": "metal",
+        "throughput_ratio_vs_pure": 0.5452943452218545,
+        "latency_avg_ratio_vs_pure": 1.8338725562441076,
+        "alloc_bytes_ratio_vs_pure": 2.9212895122461795,
+        "allocs_ratio_vs_pure": 7.6,
+        "rss_ratio_vs_pure": 1.6278538812785388,
+        "startup_ratio_vs_pure": 1.8336529218186535,
+        "binary_ratio_vs_pure": 1.3527354065053279,
+        "stripped_ratio_vs_pure": 1.3894025748297258
+      },
+      {
+        "app": "pulseforge",
+        "variant": "core",
+        "profile": "portable",
+        "throughput_ratio_vs_pure": 0.5746907857548599,
+        "latency_avg_ratio_vs_pure": 1.7400664846643132,
+        "alloc_bytes_ratio_vs_pure": 2.9531086455934688,
+        "allocs_ratio_vs_pure": 7.6,
+        "rss_ratio_vs_pure": 1.6255707762557077,
+        "startup_ratio_vs_pure": 1.7834715956196878,
+        "binary_ratio_vs_pure": 1.3527433950373464,
+        "stripped_ratio_vs_pure": 1.3894126801269224
+      },
+      {
+        "app": "pulseforge",
+        "variant": "go_native",
+        "profile": "metal",
+        "throughput_ratio_vs_pure": 0.569478483373477,
+        "latency_avg_ratio_vs_pure": 1.7559932861437288,
+        "alloc_bytes_ratio_vs_pure": 2.343924788765917,
+        "allocs_ratio_vs_pure": 7.352941176470588,
+        "rss_ratio_vs_pure": 1.6402714932126696,
+        "startup_ratio_vs_pure": 1.7804025627768825,
+        "binary_ratio_vs_pure": 1.3706763640495034,
+        "stripped_ratio_vs_pure": 1.4088300086905556
+      },
+      {
+        "app": "pulseforge",
+        "variant": "go_native",
+        "profile": "portable",
+        "throughput_ratio_vs_pure": 0.5714833462340888,
+        "latency_avg_ratio_vs_pure": 1.749833185435885,
+        "alloc_bytes_ratio_vs_pure": 2.361894561466143,
+        "allocs_ratio_vs_pure": 7.352941176470588,
+        "rss_ratio_vs_pure": 1.6391402714932126,
+        "startup_ratio_vs_pure": 1.7923838995164383,
+        "binary_ratio_vs_pure": 1.3703017946489833,
+        "stripped_ratio_vs_pure": 1.4085470603690455
+      }
     ],
-    "metadata": "legacy baseline params reconstructed from recorded harness defaults"
+    "portableVsMetal": [
+      {
+        "app": "fluxproxy",
+        "variant": "core",
+        "throughput_delta": 0.9960285039246064,
+        "latency_delta": 1.0039870965493858,
+        "alloc_bytes_delta": 1.0106059825979508,
+        "allocs_delta": 1.0,
+        "rss_delta": 1.0014015416958655,
+        "startup_delta": 1.0010091707233815,
+        "binary_delta": 1.0013857559734134,
+        "stripped_delta": 1.0018657461351106
+      },
+      {
+        "app": "fluxproxy",
+        "variant": "go_native",
+        "throughput_delta": 1.0117713534342738,
+        "latency_delta": 0.9883655976367088,
+        "alloc_bytes_delta": 1.0034974206522689,
+        "allocs_delta": 1.0,
+        "rss_delta": 1.0,
+        "startup_delta": 0.9915662973149673,
+        "binary_delta": 0.999930723688193,
+        "stripped_delta": 0.9998708552610337
+      },
+      {
+        "app": "pulseforge",
+        "variant": "core",
+        "throughput_delta": 1.0539093074971195,
+        "latency_delta": 0.9488480967445658,
+        "alloc_bytes_delta": 1.010892153350054,
+        "allocs_delta": 1.0,
+        "rss_delta": 0.9985974754558204,
+        "startup_delta": 0.972633138146343,
+        "binary_delta": 1.0000059054653114,
+        "stripped_delta": 1.0000072731239884
+      },
+      {
+        "app": "pulseforge",
+        "variant": "go_native",
+        "throughput_delta": 1.003520524337874,
+        "latency_delta": 0.9964919565715585,
+        "alloc_bytes_delta": 1.0076665312753859,
+        "allocs_delta": 1.0,
+        "rss_delta": 0.9993103448275862,
+        "startup_delta": 1.0067295661049087,
+        "binary_delta": 0.9997267265925462,
+        "stripped_delta": 0.9997991607789692
+      }
+    ]
   }
 }
