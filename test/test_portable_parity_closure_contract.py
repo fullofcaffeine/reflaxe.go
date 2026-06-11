@@ -79,6 +79,9 @@ class PortableParityClosureContractTest(unittest.TestCase):
         self.assertIn("must not be promoted to `semantic-diff`", known_gaps)
         self.assertIn("event-loop-semantic-diff-spike.md", known_gaps)
         self.assertIn("Haxe `--interp` does not execute `EntryPoint.runInMainThread` callbacks", known_gaps)
+        self.assertIn("ssl-udp-semantic-diff-spike.md", known_gaps)
+        self.assertIn("`sys.ssl.Digest.make` is not available as an interpreter reference", known_gaps)
+        self.assertIn("`sys.net.UdpSocket` is not available on Haxe `--interp`", known_gaps)
         self.assertIn("Known non-semantic-diff stdlib surfaces", feature_matrix)
 
     def test_remaining_non_semantic_diff_surfaces_are_policy_locked(self) -> None:

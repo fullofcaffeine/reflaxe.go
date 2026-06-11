@@ -68,7 +68,10 @@ Current decisions:
 The grouped `sys.ssl.Certificate` / `sys.ssl.Digest` / `sys.ssl.Key` leaf
 surface is still useful and production-relevant. It simply remains
 target-sensitive until the test oracle can compare only the portable part of the
-behavior.
+behavior. A focused spike in `docs/spikes/ssl-udp-semantic-diff-spike.md` found
+that `sys.ssl.Digest.make` is not available as an interpreter reference and that
+`sys.net.UdpSocket` is not available on Haxe `--interp`, so the current honest
+contract remains snapshot/runtime evidence for SSL leaf and UDP socket behavior.
 
 The grouped `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` event-loop
 surface follows the same rule: it is supported on Go, but runtime scheduling is
