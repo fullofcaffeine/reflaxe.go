@@ -1,3 +1,9 @@
+## [0.51.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.50.0...v0.51.0) (2026-06-11)
+
+### Features
+
+* **reports:** summarize string fastpaths ([f036250](https://github.com/fullofcaffeine/reflaxe.go/commit/f0362506fc7a6183d0c95c25c5b77e66664b589a))
+
 ## [0.50.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.49.0...v0.50.0) (2026-06-10)
 
 ### Features
