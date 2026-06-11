@@ -77,6 +77,8 @@ class PortableParityClosureContractTest(unittest.TestCase):
         self.assertIn("target-sensitive means", known_gaps)
         self.assertIn("snapshot/runtime", known_gaps)
         self.assertIn("must not be promoted to `semantic-diff`", known_gaps)
+        self.assertIn("event-loop-semantic-diff-spike.md", known_gaps)
+        self.assertIn("Haxe `--interp` does not execute `EntryPoint.runInMainThread` callbacks", known_gaps)
         self.assertIn("Known non-semantic-diff stdlib surfaces", feature_matrix)
 
     def test_remaining_non_semantic_diff_surfaces_are_policy_locked(self) -> None:

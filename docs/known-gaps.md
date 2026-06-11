@@ -72,7 +72,10 @@ behavior.
 
 The grouped `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` event-loop
 surface follows the same rule: it is supported on Go, but runtime scheduling is
-not the same thing as interpreter-vs-Go semantic parity.
+not the same thing as interpreter-vs-Go semantic parity. A focused spike in
+`docs/spikes/event-loop-semantic-diff-spike.md` tried a narrow
+`EntryPoint.runInMainThread` probe and found that Haxe `--interp` does not execute `EntryPoint.runInMainThread` callbacks in that direct comparison, so the
+current honest contract remains snapshot/runtime evidence.
 
 ## Compiler/output caveats
 
