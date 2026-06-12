@@ -4,9 +4,9 @@ This is the shortest path from clone -> running app -> understanding profile cho
 
 ## Terms
 
-- [profile](/docs/glossary.md#profile): build contract (`portable` or `metal`).
-- [`hxrt`](/docs/glossary.md#hxrt): runtime package copied into generated output.
-- [semantic diff](/docs/glossary.md#semantic-diff): behavior parity test versus Haxe `--interp`.
+- [profile](glossary.md#profile): build contract (`portable` or `metal`).
+- [`hxrt`](glossary.md#hxrt): runtime package copied into generated output.
+- [semantic diff](glossary.md#semantic-diff): behavior parity test versus Haxe `--interp`.
 
 ## What this target does
 
@@ -105,7 +105,7 @@ Use:
 should still emit Go-shaped fast paths whenever it can prove they preserve Haxe
 semantics.
 
-Detailed profile policy: [/docs/profiles.md](/docs/profiles.md)
+Detailed profile policy: [docs/profiles.md](profiles.md)
 
 ## Strict policy knobs
 
@@ -132,8 +132,8 @@ Why this is done:
 - it lets parity work land incrementally with tests,
 - and it keeps target-specific behavior isolated.
 
-Deep dive and ownership rule: [/docs/ownership-rubric.md](/docs/ownership-rubric.md).
-Current shim-by-shim decisions: [/docs/stdlib-shim-rationale.md](/docs/stdlib-shim-rationale.md).
+Deep dive and ownership rule: [docs/ownership-rubric.md](ownership-rubric.md).
+Current shim-by-shim decisions: [docs/stdlib-shim-rationale.md](stdlib-shim-rationale.md).
 
 ## Performance and release checks
 
@@ -144,8 +144,8 @@ npm run test:perf:apps
 npm run release:status
 ```
 
-Release checklist: [/docs/release-readiness-checklist.md](/docs/release-readiness-checklist.md)
-Performance budget policy: [/docs/performance-budget-policy.md](/docs/performance-budget-policy.md)
+Release checklist: [docs/release-readiness-checklist.md](release-readiness-checklist.md)
+Performance budget policy: [docs/performance-budget-policy.md](performance-budget-policy.md)
 
 ## Related docs
 

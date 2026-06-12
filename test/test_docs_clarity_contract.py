@@ -74,8 +74,8 @@ class DocsClarityContractTest(unittest.TestCase):
     def test_profile_and_start_here_reference_glossary(self) -> None:
         profiles = (REPO_ROOT / "docs" / "profiles.md").read_text(encoding="utf-8")
         start_here = (REPO_ROOT / "docs" / "start-here.md").read_text(encoding="utf-8")
-        self.assertIn("/docs/glossary.md", profiles)
-        self.assertIn("/docs/glossary.md", start_here)
+        self.assertIn("glossary.md", profiles)
+        self.assertIn("glossary.md", start_here)
 
     def test_profiles_document_portable_as_main_product_not_slow_mode(self) -> None:
         profiles = (REPO_ROOT / "docs" / "profiles.md").read_text(encoding="utf-8")
@@ -145,7 +145,7 @@ class DocsClarityContractTest(unittest.TestCase):
         self.assertIn("safe to delete", artifacts)
         self.assertIn("regenerated", artifacts)
 
-    def test_docs_internal_links_do_not_use_docs_relative_prefix(self) -> None:
+    def test_docs_internal_links_do_not_use_root_docs_prefix(self) -> None:
         targets = [
             "docs/index.md",
             "docs/start-here.md",
@@ -157,7 +157,7 @@ class DocsClarityContractTest(unittest.TestCase):
         ]
         for rel in targets:
             text = (REPO_ROOT / rel).read_text(encoding="utf-8")
-            self.assertNotIn("](docs/", text, f"{rel} should use root-relative /docs/ links")
+            self.assertNotIn("](/docs/", text, f"{rel} should use relative docs links")
 
     def test_goextern_explains_advanced_signature_boundaries(self) -> None:
         goextern = (REPO_ROOT / "docs" / "goextern.md").read_text(encoding="utf-8")

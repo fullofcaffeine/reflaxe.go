@@ -17,10 +17,10 @@ and fail-fast native-lane constraints.
 
 ## Terms
 
-- [portable](/docs/glossary.md#portable-profile): portability-first profile.
-- [metal](/docs/glossary.md#metal-profile): Go-first profile with stricter defaults.
-- [lane](/docs/glossary.md#lane): scoped enforcement zone (for example `@:goMetal` modules).
-- [fallback](/docs/glossary.md#fallback): safe path when strict typed lowering cannot apply.
+- [portable](glossary.md#portable-profile): portability-first profile.
+- [metal](glossary.md#metal-profile): Go-first profile with stricter defaults.
+- [lane](glossary.md#lane): scoped enforcement zone (for example `@:goMetal` modules).
+- [fallback](glossary.md#fallback): safe path when strict typed lowering cannot apply.
 
 ## Model (`contracts + capabilities + planner + lanes`)
 

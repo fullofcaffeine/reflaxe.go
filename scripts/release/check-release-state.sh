@@ -71,6 +71,7 @@ log "latest reachable semver tag: $LATEST_TAG"
 
 PACKAGE_VERSION="$(node -p "require('./package.json').version")"
 HAXELIB_VERSION="$(node -p "require('./haxelib.json').version")"
+HAXELIB_URL="$(node -p "require('./haxelib.json').url || ''")"
 EXPECTED_TAG="v${PACKAGE_VERSION}"
 
 if [[ "$PACKAGE_VERSION" != "$HAXELIB_VERSION" ]]; then
@@ -103,6 +104,11 @@ log "ci harness semantic-release wiring: OK"
 if ORIGIN_URL="$(git remote get-url origin 2>/dev/null || true)" && [[ -n "$ORIGIN_URL" ]]; then
   if REPO_SLUG="$(parse_repo_slug "$ORIGIN_URL" 2>/dev/null)"; then
     log "origin repository: ${REPO_SLUG}"
+    EXPECTED_HAXELIB_URL="https://github.com/${REPO_SLUG}"
+    if [[ "$HAXELIB_URL" != "$EXPECTED_HAXELIB_URL" ]]; then
+      fail "haxelib.json url (${HAXELIB_URL}) does not match origin repository (${EXPECTED_HAXELIB_URL})"
+    fi
+    log "haxelib url: ${HAXELIB_URL}"
     if command -v gh >/dev/null 2>&1; then
       if RELEASE_JSON="$(gh release view "$LATEST_TAG" --repo "$REPO_SLUG" --json tagName,isDraft,isPrerelease,url,publishedAt 2>/dev/null)" && [[ -n "$RELEASE_JSON" ]]; then
         RELEASE_URL="$(printf '%s\n' "$RELEASE_JSON" | node -p "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); d.url || ''")"

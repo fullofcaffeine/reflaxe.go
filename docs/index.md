@@ -4,10 +4,10 @@ This page helps you find the right docs quickly.
 
 ## Terms
 
-- [portable](/docs/glossary.md#portable-profile): portability-first profile.
-- [metal](/docs/glossary.md#metal-profile): Go-first profile with stricter defaults.
-- [semantic diff](/docs/glossary.md#semantic-diff): behavior comparison between Haxe `--interp` and generated Go.
-- [`hxrt`](/docs/glossary.md#hxrt): runtime support package copied into generated output.
+- [portable](glossary.md#portable-profile): portability-first profile.
+- [metal](glossary.md#metal-profile): Go-first profile with stricter defaults.
+- [semantic diff](glossary.md#semantic-diff): behavior comparison between Haxe `--interp` and generated Go.
+- [`hxrt`](glossary.md#hxrt): runtime support package copied into generated output.
 
 ## If you are new
 

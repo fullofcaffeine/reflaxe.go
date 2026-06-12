@@ -12,10 +12,10 @@ surfaces, stricter boundaries, or fail-fast native-lane checks.
 
 ## Terms
 
-- [portable](/docs/glossary.md#portable-profile): portability-first profile contract.
-- [metal](/docs/glossary.md#metal-profile): Go-first profile contract.
-- [fallback](/docs/glossary.md#fallback): safe path used when strict typed lowering cannot apply.
-- [semantic diff](/docs/glossary.md#semantic-diff): runtime behavior parity test against Haxe `--interp`.
+- [portable](glossary.md#portable-profile): portability-first profile contract.
+- [metal](glossary.md#metal-profile): Go-first profile contract.
+- [fallback](glossary.md#fallback): safe path used when strict typed lowering cannot apply.
+- [semantic diff](glossary.md#semantic-diff): runtime behavior parity test against Haxe `--interp`.
 
 ## Architecture model (current)
 
