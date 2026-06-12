@@ -65,10 +65,30 @@ python3 test/run-ci.py
 
 ## Which profile should I choose?
 
-| If you want... | Choose |
+Choose one profile per build. You can still design one codebase with mostly
+portable modules plus explicit Go-native adapters or `@:goMetal` lanes.
+
+| If most of this build wants... | Choose |
 | --- | --- |
 | Normal Haxe authoring, cross-target-friendly code, and safe Go output | `portable` |
 | Explicit Go-native APIs, stricter policy, and fail-fast native-lane checks | `metal` |
+
+### Can I mix portable and metal-style code?
+
+Yes, with one important distinction:
+
+- A single compiler invocation selects one profile: `portable` or `metal`.
+- A codebase can mix layers. Keep shared/domain code portable, then isolate
+  Go-specific code behind typed adapters, `go.*` APIs, or `@:goMetal` lanes.
+- In a `portable` build, those native islands can be warned about or rejected
+  by policy. The compiler can also lower portable code to metal-like Go when it
+  can prove the faster lowering preserves portable semantics.
+- In a `metal` build, the whole build opts into stricter Go-native defaults and
+  fail-fast checks for supported native surfaces.
+
+So `portable` is the default for most projects, including projects that contain
+small Go-specific islands. Use `metal` when the build itself is intentionally a
+Go-first artifact.
 
 Detailed behavior and policy knobs: [docs/profiles.md](docs/profiles.md)
 

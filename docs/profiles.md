@@ -43,6 +43,23 @@ Current implementation resolves these once in `GoBuildContextResolver.resolve()`
 
 Profile does not implicitly select runtime slicing or planner mode.
 
+## Can one project mix portable and metal-style code?
+
+Yes. The mix happens at the codebase/module level, not by selecting two
+profiles in one compiler invocation.
+
+- One build chooses one profile: `portable` or `metal`.
+- Shared/domain modules should usually stay portable.
+- Go-specific modules can live behind typed adapters, `go.*` APIs, or
+  `@:goMetal` lanes.
+- A `portable` build may still contain explicit native islands, depending on
+  `reflaxe_go_portable_native_policy`.
+- A `metal` build applies stricter Go-native defaults to the whole build.
+
+This is why the docs talk about profiles and lanes separately. A profile is the
+build-wide semantic contract. A lane is a smaller enforcement zone inside that
+codebase.
+
 ## Practical policy difference
 
 ### Raw `__go__` policy
