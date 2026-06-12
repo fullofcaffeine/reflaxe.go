@@ -17,7 +17,7 @@ WORKFLOW_PATHS = [
 class CiHaxeSetupActionTest(unittest.TestCase):
     def test_linux_haxe_setup_is_centralized_in_composite_action(self) -> None:
         action = ACTION_PATH.read_text(encoding="utf-8")
-        self.assertIn("uses: krdlab/setup-haxe@v1", action)
+        self.assertIn("uses: krdlab/setup-haxe@v2", action)
         self.assertIn("bash scripts/ci/setup-haxe-linux-fallback.sh", action)
         self.assertIn("warmup_attempts=", action)
         self.assertIn("SETUP_HAXE_OUTCOME", action)
@@ -25,7 +25,7 @@ class CiHaxeSetupActionTest(unittest.TestCase):
         for path in WORKFLOW_PATHS:
             workflow = path.read_text(encoding="utf-8")
             self.assertIn("uses: ./.github/actions/setup-haxe-linux", workflow)
-            self.assertNotIn("uses: krdlab/setup-haxe@v1", workflow)
+            self.assertNotIn("uses: krdlab/setup-haxe@v2", workflow)
             self.assertNotIn("bash scripts/ci/setup-haxe-linux-fallback.sh", workflow)
             self.assertNotIn("id: setup_haxe_linux", workflow)
 
