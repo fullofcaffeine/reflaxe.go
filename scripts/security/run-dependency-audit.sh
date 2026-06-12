@@ -5,7 +5,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
-govulncheck_version="${GOVULNCHECK_VERSION:-latest}"
+# Keep the default aligned with the repository's Go 1.22/1.23 CI lanes.
+# golang.org/x/vuln v1.2.0+ currently requires Go 1.25+, so `latest` is not
+# reproducible for this repo until the supported Go floor is raised.
+govulncheck_version="${GOVULNCHECK_VERSION:-v1.1.4}"
 govulncheck_install_attempts="${GOVULNCHECK_INSTALL_ATTEMPTS:-3}"
 govulncheck_retry_delay_sec="${GOVULNCHECK_INSTALL_RETRY_DELAY_SEC:-2}"
 govulncheck_allow_install_failure="${GOVULNCHECK_ALLOW_INSTALL_FAILURE:-0}"
