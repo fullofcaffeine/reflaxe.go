@@ -21,6 +21,9 @@ class DependencyAuditToolchainPolicyTest(unittest.TestCase):
     def test_govulncheck_annotations_are_repo_classified(self) -> None:
         script = DEPENDENCY_AUDIT.read_text(encoding="utf-8")
         self.assertIn("env -u GITHUB_ACTIONS", script)
+        self.assertIn("print_classified_govulncheck_report", script)
+        self.assertIn("avoid GitHub problem matchers", script)
+        self.assertIn("s#([[:alnum:]_./-]+\\.go):([0-9]+):([0-9]+):#\\1 line \\2 col \\3:#g", script)
         self.assertIn("[deps][govulncheck-stdlib-reachability]", script)
         self.assertIn("classified audit evidence", script)
         self.assertIn("continuing after classified audit annotation", script)

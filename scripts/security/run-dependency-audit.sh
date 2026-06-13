@@ -96,6 +96,17 @@ classify_govulncheck_output() {
   fi
 }
 
+print_classified_govulncheck_report() {
+  local log_file="$1"
+
+  # Keep the upstream report visible, but avoid GitHub problem matchers and raw
+  # workflow commands turning classified traces into unclassified annotations.
+  sed -E \
+    -e 's/^::/: :/' \
+    -e 's#([[:alnum:]_./-]+\.go):([0-9]+):([0-9]+):#\1 line \2 col \3:#g' \
+    "$log_file"
+}
+
 if ! ensure_govulncheck; then
   if [[ "${CI:-}" == "true" ]]; then
     echo "[deps] error: govulncheck install failed after $govulncheck_install_attempts attempts (CI mode)" >&2
@@ -134,9 +145,7 @@ set +e
 govuln_status=$?
 set -e
 
-# Print the upstream report for security visibility, but prevent accidental raw
-# GitHub Actions commands from becoming unclassified annotations.
-sed -E 's/^::/: :/' "$govuln_log"
+print_classified_govulncheck_report "$govuln_log"
 classify_govulncheck_output "$govuln_log"
 
 if [[ "$govuln_status" -ne 0 ]]; then
