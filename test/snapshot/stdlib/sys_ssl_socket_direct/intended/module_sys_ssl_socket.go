@@ -33,7 +33,7 @@ func New_sys__ssl__Socket() *sys__ssl__Socket {
 		hxrt.TryCatch(func() {
 			sys__ssl__Socket_DEFAULT_CA = sys__ssl__Certificate_loadDefaults()
 		}, func(hx_caught_4 any) {
-			hx_tmp := hx_caught_4
+			hx_tmp := hxrt.ExceptionCaught(hx_caught_4)
 			_ = hx_tmp
 		})
 	}
