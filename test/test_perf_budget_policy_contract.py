@@ -11,6 +11,8 @@ POLICY_DOC = REPO_ROOT / "docs" / "performance-budget-policy.md"
 KNOWN_GAPS_DOC = REPO_ROOT / "docs" / "known-gaps.md"
 RELEASE_CHECKLIST_DOC = REPO_ROOT / "docs" / "release-readiness-checklist.md"
 CI_HARNESS = REPO_ROOT / ".github" / "workflows" / "ci-harness.yml"
+GO_PERF_SCRIPT = REPO_ROOT / "scripts" / "ci" / "perf-go-profiles.sh"
+APP_PERF_SCRIPT = REPO_ROOT / "scripts" / "ci" / "perf-apps.sh"
 
 
 class PerfBudgetPolicyContractTest(unittest.TestCase):
@@ -29,6 +31,8 @@ class PerfBudgetPolicyContractTest(unittest.TestCase):
         self.assertIn("Flagship app metal regressions stay warning-only by default", policy)
         self.assertIn("HXRT selective runtime drift is release-blocking in CI", policy)
         self.assertIn("Do not update perf baselines just to make warnings disappear", policy)
+        self.assertIn("[soft-budget-signal]", policy)
+        self.assertIn("[not-enforced]", policy)
 
     def test_policy_doc_lists_harnesses_and_enforcement_knobs(self) -> None:
         policy = POLICY_DOC.read_text(encoding="utf-8")
@@ -61,6 +65,13 @@ class PerfBudgetPolicyContractTest(unittest.TestCase):
         self.assertIn("GO_HXRT_SLICE_ENFORCE: \"1\"", workflow)
         self.assertIn("GO_APP_PERF_ENFORCE_METAL_BUDGET: \"0\"", workflow)
         self.assertIn("GO_APP_PERF_ENFORCE_DELTA_BUDGET: \"0\"", workflow)
+
+    def test_perf_ci_annotations_explain_warning_only_policy(self) -> None:
+        scripts = GO_PERF_SCRIPT.read_text(encoding="utf-8") + "\n" + APP_PERF_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("soft-budget-signal", scripts)
+        self.assertIn("warning-only; see docs/performance-budget-policy.md", scripts)
+        self.assertIn("not-enforced", scripts)
+        self.assertIn("hard gate is disabled", scripts)
 
 
 if __name__ == "__main__":

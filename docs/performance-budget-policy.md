@@ -60,6 +60,15 @@ threshold. They do not change pass/fail behavior. They exist so repeated warning
 patterns can be compared across CI runs before turning a soft warning into a
 hard gate.
 
+In GitHub Actions, these warnings are labeled to make the pass/fail policy clear:
+
+- `[soft-budget-signal]`: a warning-only drift signal. CI stays green, but the
+  warning should be checked against the warning-history artifacts before release
+  decisions.
+- `[not-enforced]`: a hard-gate candidate emitted while that hard gate is
+  disabled. It shows what would fail if the corresponding enforcement knob were
+  turned on.
+
 Portable-vs-metal delta gates also write non-blocking dry-run artifacts:
 
 - Go profile microbench: `.cache/perf-go/results/delta_hard_gate_dry_run.json` and `.cache/perf-go/results/delta_hard_gate_dry_run.md`

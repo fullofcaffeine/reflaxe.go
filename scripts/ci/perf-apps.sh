@@ -1188,7 +1188,7 @@ if [[ -s "$warnings_txt" ]]; then
     if [[ "$warning" == baseline* ]]; then
       baseline_warning_count=$((baseline_warning_count + 1))
     fi
-    echo "::warning::[app-perf] $warning"
+    echo "::warning::[app-perf][soft-budget-signal] $warning (warning-only; see docs/performance-budget-policy.md and warning_history artifacts)"
   done < "$warnings_txt"
 fi
 
@@ -1201,14 +1201,14 @@ if [[ -s "$hard_failures_txt" ]]; then
       if is_truthy "$enforce_delta_budget"; then
         echo "::error::[app-perf] $hard_failure"
       else
-        echo "::warning::[app-perf][delta-hard-candidate] $hard_failure"
+        echo "::warning::[app-perf][delta-hard-candidate][not-enforced] $hard_failure (hard gate is disabled; see docs/performance-budget-policy.md and delta_hard_gate_dry_run artifacts)"
       fi
     else
       metal_hard_failure_count=$((metal_hard_failure_count + 1))
       if is_truthy "$enforce_metal_budget"; then
         echo "::error::[app-perf] $hard_failure"
       else
-        echo "::warning::[app-perf][metal-hard-candidate] $hard_failure"
+        echo "::warning::[app-perf][metal-hard-candidate][not-enforced] $hard_failure (hard gate is disabled; see docs/performance-budget-policy.md and delta_hard_gate_dry_run artifacts)"
       fi
     fi
   done < "$hard_failures_txt"
