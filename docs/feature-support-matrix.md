@@ -53,7 +53,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `EReg` | `semantic-diff` | `ereg_behavior_contract`, `ereg_edge_contract` |
 | `haxe.Http` / `sys.Http` | `semantic-diff` | `http_proxy_custom_request`, `http_request_callbacks_contract` |
 | Direct `haxe.http.HttpBase` baseline plus direct `haxe.http.HttpMethod` / `haxe.http.HttpStatus` use | `semantic-diff` | `haxe_http_base_contract`, `stdlib/haxe_http_base_direct` |
-| `sys.net.Socket` | `semantic-diff` | `socket_loopback_contract`, `socket_advanced_contract` |
+| `sys.net.Socket` | `semantic-diff` + `snapshot` | `socket_loopback_contract`, `socket_advanced_contract`, `sys/socket_input_service_surface` |
 | `haxe.crypto.*` + `haxe.xml.*` + `haxe.zip.*` subset | `semantic-diff` | `crypto_xml_zip` |
 | `haxe.Json` | `semantic-diff` | `json_parse_stringify_contract`, `stdlib/json_parse_stringify` |
 | `haxe.io.Bytes` / `haxe.io.BytesBuffer` / `haxe.io.BytesInput` / `haxe.io.BytesOutput` (core ops + Input/Output helper subset) | `semantic-diff` | `bytes_normalization_contract`, `bytes_ops_contract`, `bytes_of_data_contract`, `bytes_hex_contract`, `bytes_io_stream_contract`, `io_input_output_helpers_contract`, `io_input_output_edge_contract`, `stdlib/bytes_basic` |
@@ -74,7 +74,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.Ucs2` platform exclusion | `snapshot` | `stdlib/haxe_ucs2_platform_exclusion` |
 | `haxe.http.HttpJs` / `haxe.http.HttpNodeJs` target-conditional exclusion on Go | `snapshot` | `negative/direct_haxe_httpjs_unsupported`, `negative/direct_haxe_httpnodejs_unsupported` |
 | `Array` + `IntIterator` core subset (`push`/`pop` statement-form, length/index access, array iteration, `0...N` range iteration) | `semantic-diff` | `array_string_intiterator_contract` |
-| `String` core subset (`length`, `charAt`, `charCodeAt` with null on out-of-range, `substring`, `fromCharCode`) | `semantic-diff` | `array_string_intiterator_contract`, `string_charcodeat_bounds_contract` |
+| `String` core subset (`length`, `charAt`, `charCodeAt` with null on out-of-range, `substring`, `fromCharCode`, `toLowerCase`, `toUpperCase`) | `semantic-diff` + `snapshot` | `array_string_intiterator_contract`, `string_charcodeat_bounds_contract`, `sys/socket_input_service_surface` |
 | `StringBuf` + `DateTools` + `Lambda` core subset (`add`/`addChar`/`addSub`, `DateTools.delta` with duration helpers, staged-std `DateTools.format` strftime subset plus `getMonthDays`/`parse`/`make`, `Lambda.filter`/`map`/`fold`/`has`/`exists`/`iter` over `Array<T>`/`haxe.ds.List<T>`, generic-`Iterable<T>` support for `Lambda.count`/`Lambda.empty`/`Lambda.exists`/`Lambda.has`/`Lambda.filter`/`Lambda.map`/`Lambda.fold`/`Lambda.iter` including function-value `Lambda.map` call-sites) | `semantic-diff` | `stringbuf_datetools_lambda_contract`, `datetools_cross_std_contract`, `lambda_list_contract`, `lambda_generic_iterable_count_empty_contract`, `lambda_iter_array_list_contract`, `lambda_iter_generic_iterable_contract` |
 | Core `Class`/`Enum`/`EnumValue` type-value subset | `semantic-diff` | `type_expr_contract` |
 | `Type` reflection subset (`getClass`, `getSuperClass`, `getClassFields`, `getInstanceFields`, `resolveClass`, `createInstance`, `createEmptyInstance`, `getEnum`, `getEnumConstructs`, `resolveEnum`, `allEnums`, enum constructor/index/parameters/equality) | `semantic-diff` | `type_reflection_contract`, `type_reflection_extended_contract` |
@@ -87,7 +87,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.PosInfos` | `semantic-diff` | `posinfos_contract`, `stdlib/posinfos_basic` |
 | `haxe.Int32` | `semantic-diff` | `int32_contract` |
 | `haxe.Int64` / `haxe.Int64Helper` | `semantic-diff` | `int64_contract`, `stdlib/int64_parity` |
-| `Std.isOfType` | `semantic-diff` | `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract`, `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic` |
+| `Std.parseInt` / `Std.isOfType` | `semantic-diff` + `snapshot` | `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract`, `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic`, `sys/socket_input_service_surface` |
 | `haxe.atomic.AtomicInt` / `haxe.atomic.AtomicBool` | `semantic-diff` | `atomic_int_bool_contract`, `stdlib/atomic_int_bool_basic` |
 | `haxe.atomic.AtomicObject` | `semantic-diff` | `atomic_object_contract`, `stdlib/atomic_object_basic` |
 
@@ -296,6 +296,7 @@ Shim strategy and alternatives are documented in:
 ### `sys.net.Socket` shim contract and tradeoffs
 
 - Socket parity now covers deterministic loopback contracts (`bind`/`listen`/`connect`/`accept`/`read`/`write`/`close`) plus advanced methods: `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, and `shutdown` (`socket_loopback_contract`, `socket_advanced_contract`).
+- `sys.net.Socket.input` now satisfies the generated `haxe.io.Input` stream contract for service-style code paths (`readByte`, `readBytes`, `readAll`, typed numeric/string helper forwarding, and endian control). The focused snapshot is `sys/socket_input_service_surface`.
 - `select` now returns readiness-filtered arrays for read/write groups under timeout control, and `waitForRead` delegates to this readiness path.
 - Current tradeoff: `setBlocking` is implemented through deadline behavior rather than true OS-level non-blocking file descriptor mode.
 

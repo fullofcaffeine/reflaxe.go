@@ -70,6 +70,55 @@ func StdString(value any) *string {
 	}
 }
 
+func StdParseInt(value any) any {
+	raw := strings.TrimSpace(*StdString(value))
+	if raw == "" {
+		return nil
+	}
+
+	sign := ""
+	if raw[0] == '+' || raw[0] == '-' {
+		sign = raw[:1]
+		raw = raw[1:]
+		if raw == "" {
+			return nil
+		}
+	}
+
+	base := 10
+	if len(raw) >= 2 && raw[0] == '0' && (raw[1] == 'x' || raw[1] == 'X') {
+		base = 16
+		raw = raw[2:]
+	}
+
+	end := 0
+	for end < len(raw) && isParseIntDigit(raw[end], base) {
+		end++
+	}
+	if end == 0 {
+		return nil
+	}
+
+	parsed, err := strconv.ParseInt(sign+raw[:end], base, 0)
+	if err != nil {
+		return nil
+	}
+	return int(parsed)
+}
+
+func isParseIntDigit(ch byte, base int) bool {
+	if ch >= '0' && ch <= '9' {
+		return int(ch-'0') < base
+	}
+	if base <= 10 {
+		return false
+	}
+	if ch >= 'a' && ch <= 'f' {
+		return true
+	}
+	return ch >= 'A' && ch <= 'F'
+}
+
 func StringSlice(values []*string) []string {
 	out := make([]string, len(values))
 	for i := 0; i < len(values); i++ {
@@ -247,6 +296,14 @@ func StringSplitStringPtr(value *string, delimiter *string) []*string {
 	return out
 }
 
+func StringToLowerCaseStringPtr(value *string) *string {
+	return StringFromLiteral(strings.ToLower(stringValueOrNullToken(value)))
+}
+
+func StringToUpperCaseStringPtr(value *string) *string {
+	return StringFromLiteral(strings.ToUpper(stringValueOrNullToken(value)))
+}
+
 func StringJoinAny(values []any, delimiter *string) *string {
 	sep := stringValueOrNullToken(delimiter)
 	parts := make([]string, 0, len(values))
@@ -347,4 +404,12 @@ func StringLastIndexOf(value any, search any, startIndex int, hasStart bool) int
 
 func StringSplit(value any, delimiter any) []*string {
 	return StringSplitStringPtr(StdString(value), StdString(delimiter))
+}
+
+func StringToLowerCase(value any) *string {
+	return StringToLowerCaseStringPtr(StdString(value))
+}
+
+func StringToUpperCase(value any) *string {
+	return StringToUpperCaseStringPtr(StdString(value))
 }

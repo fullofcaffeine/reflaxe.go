@@ -79,6 +79,7 @@ changes.
 ## Choose your first example
 
 - Portable baseline: `examples/tui_todo`
+- Real Haxe stdlib service: `examples/incident_api`
 - Profile-neutral interop: `examples/interop_smoke`
 - Clear portable vs metal comparison: `examples/worker_pool_select`
 - Full app benchmark lanes: `examples/pulseforge`, `examples/fluxproxy`

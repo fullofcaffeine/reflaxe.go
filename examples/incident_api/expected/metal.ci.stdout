@@ -1,0 +1,9 @@
+config={"serviceName":"incident-api","host":"127.0.0.1","port":0,"statePath":".incident_api_state.json"}
+listen=127.0.0.1:<ephemeral>
+health=HTTP/1.1 200 OK body={"ok":true,"service":"incident-api"}
+create=HTTP/1.1 201 Created body={"incident":{"id":1,"title":"Database lag","severity":"high","acknowledged":false,"resolved":false,"createdAt":"2026-06-12T00:00:00Z"}}
+list=HTTP/1.1 200 OK body={"incidents":[{"id":1,"title":"Database lag","severity":"high","acknowledged":false,"resolved":false,"createdAt":"2026-06-12T00:00:00Z"}]}
+ack=HTTP/1.1 200 OK body={"incident":{"id":1,"title":"Database lag","severity":"high","acknowledged":true,"resolved":false,"createdAt":"2026-06-12T00:00:00Z"}}
+resolve=HTTP/1.1 200 OK body={"incident":{"id":1,"title":"Database lag","severity":"high","acknowledged":true,"resolved":true,"createdAt":"2026-06-12T00:00:00Z"}}
+metrics=HTTP/1.1 200 OK body={"service":"incident-api","requests":6,"open":0,"acknowledged":1,"resolved":1}
+state={"nextId":2,"incidents":[{"id":1,"title":"Database lag","severity":"high","acknowledged":true,"resolved":true,"createdAt":"2026-06-12T00:00:00Z"}]}

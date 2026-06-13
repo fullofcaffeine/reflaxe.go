@@ -9,6 +9,7 @@ there is a real Go-native authoring or enforcement point to teach.
 | --- | --- | --- | --- |
 | `examples/profile_storyboard` | Yes | No | Portable-first release dashboard reference. |
 | `examples/tui_todo` | Yes | No | Portable-first deterministic CLI app reference. |
+| `examples/incident_api` | Yes | Yes | Runnable loopback HTTP service using Haxe stdlib sockets, JSON, config files, and file-backed state. It intentionally avoids `go.*`, Go externs, and raw `__go__`; `metal` is an audit lane, not a different app implementation. |
 | `examples/interop_smoke` | Yes | Yes | Typed interop smoke reference for `@:go.import`, `@:go.name`, `@:go.receiver`, `@:go.valueError` (`(T,error)` -> `go.Result<T>`), and package APIs (`fmt`/`time`/`context`/`net/http`/`strconv`). This app is intentionally profile-neutral, so generated Go is expected to be near-identical across profiles. |
 | `examples/worker_pool_select` | Yes | Yes | Deterministic worker pool with channel fan-out plus typed `go.Select` helper flows (`recv`/`recv2`/`send`/`send2`). |
 | `examples/pulseforge` | Yes | Yes | Flagship app scaffold proving profile matrix + explicit variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
@@ -68,7 +69,7 @@ Examples intentionally show two valid outcomes:
 
 Use these anchors:
 
-- parity-focused: `examples/interop_smoke`, `core` lanes in `examples/pulseforge` and `examples/fluxproxy`, plus portable-only references (`examples/tui_todo`, `examples/profile_storyboard`).
+- parity-focused: `examples/incident_api`, `examples/interop_smoke`, `core` lanes in `examples/pulseforge` and `examples/fluxproxy`, plus portable-only references (`examples/tui_todo`, `examples/profile_storyboard`).
 - metal-advantage-focused: `examples/worker_pool_select`, `go_native` lanes in `examples/pulseforge` and `examples/fluxproxy`.
 
 Evidence sources:
@@ -79,6 +80,7 @@ Evidence sources:
 
 ## Flagship app behavior docs
 
+- Incident API service: `examples/incident_api/README.md`
 - PulseForge: `examples/pulseforge/README.md`
 - FluxProxy: `examples/fluxproxy/README.md`
 - Planning + scope contract: `docs/flagship-apps-plan.md`

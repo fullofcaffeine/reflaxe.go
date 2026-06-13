@@ -1669,6 +1669,11 @@ class GoCompiler {
 			// Serializer token support includes haxe.ds.List/StringMap/IntMap/ObjectMap families.
 			requireStdlibShimGroup("ds");
 		}
+		if (requiredStdlibShimGroups.exists("net_socket")) {
+			// Socket input/output is part of the haxe.io stream contract.
+			requireStdlibShimGroup("io");
+			requireIoSourceOwnedHelperSurface();
+		}
 	}
 
 	function lowerIoStdlibShimDecls():Array<GoDecl> {
@@ -11038,6 +11043,14 @@ class GoCompiler {
 			};
 		}
 
+		if (isStaticCall(callee, "Std", [], "parseInt")) {
+			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdParseInt"), [arg]),
+				isStringLike: false
+			};
+		}
+
 		if (isStaticCall(callee, "String", [], "fromCharCode")) {
 			var code = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
 			return {
@@ -11840,6 +11853,30 @@ class GoCompiler {
 							{
 								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, delimiterExpr]),
 								isStringLike: false
+							};
+						case "toLowerCase":
+							var helper = if (useTypedHelpers) {
+								compilationContext.optimizerStringInstanceTypedLowerings++;
+								"hxrt.StringToLowerCaseStringPtr";
+							} else {
+								compilationContext.optimizerStringInstanceLegacyLowerings++;
+								"hxrt.StringToLowerCase";
+							};
+							{
+								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget]),
+								isStringLike: true
+							};
+						case "toUpperCase":
+							var helper = if (useTypedHelpers) {
+								compilationContext.optimizerStringInstanceTypedLowerings++;
+								"hxrt.StringToUpperCaseStringPtr";
+							} else {
+								compilationContext.optimizerStringInstanceLegacyLowerings++;
+								"hxrt.StringToUpperCase";
+							};
+							{
+								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget]),
+								isStringLike: true
 							};
 						case _:
 							null;

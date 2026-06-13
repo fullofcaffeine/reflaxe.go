@@ -6,6 +6,7 @@ This repository ships canonical app examples for portable and metal contract tea
 | --- | --- | --- | --- |
 | `profile_storyboard` | Renders a release-planning command-center dashboard from deterministic card data. | portable only | N/A (portable reference only; no meaningful metal delta). |
 | `tui_todo` | Interactive + scripted todo CLI with local state persistence and deterministic contract output. | portable only | N/A (portable reference only; no meaningful metal delta). |
+| `incident_api` | Runnable loopback HTTP incident service using Haxe stdlib sockets, JSON, config, and file-backed state. | portable + metal | Same user behavior; portable is the main demo, metal is a stricter audit lane proving no Go-native shortcuts were required. |
 | `interop_smoke` | Typed Go interop smoke (`@:go.import`, `@:go.name`, `@:go.receiver`, `@:go.valueError`). | portable + metal | Intentionally near-identical output; validates contract consistency, not divergence. |
 | `worker_pool_select` | Deterministic worker pool using `go.Chan` + typed `go.Select` helpers. | portable + metal | Same behavior contract; metal emphasizes typed specialization/readability in Go-native paths. |
 | `pulseforge` | Flagship observability pipeline with `core` and `go_native` runtime variants. | portable + metal | Largest practical delta appears in `go_native` lanes (typed channel/select specialization pressure). |
@@ -18,6 +19,7 @@ Dual-profile examples are useful only when they show real compiler/runtime value
 ## Start here by goal
 
 - Portable-first app reference: `examples/tui_todo`, `examples/profile_storyboard`.
+- Real stdlib service reference: `examples/incident_api`.
 - Typed interop surface: `examples/interop_smoke`.
 - Concurrency/select profile value: `examples/worker_pool_select`.
 - Large app + perf lanes: `examples/pulseforge`, `examples/fluxproxy`.

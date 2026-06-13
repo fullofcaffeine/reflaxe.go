@@ -129,7 +129,8 @@ class GoNetSocketEmitter {
 					name: "reader",
 					typeName: "*bufio.Reader"
 				},
-				{name: "socket", typeName: "*sys__net__Socket"}
+				{name: "socket", typeName: "*sys__net__Socket"},
+				{name: "bigEndian", typeName: "bool"}
 			]),
 			GoDecl.GoStructDecl("sys__net__SocketOutput", [
 				{name: "writer", typeName: "*bufio.Writer"},
@@ -777,6 +778,155 @@ class GoNetSocketEmitter {
 					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "TrimRight"), [GoExpr.GoIdent("line"), GoExpr.GoStringLiteral("\r\n")])
 				]))
 			]),
+			GoDecl.GoFuncDecl("readByte", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [], ["int"], [
+				GoStmt.GoRaw("if self == nil || self.reader == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self.socket != nil {"),
+				GoStmt.GoRaw("\tself.socket.hxrt__socket_applyConnDeadline()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("value, err := self.reader.ReadByte()"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoRaw("int(value)"))
+			]),
+			GoDecl.GoFuncDecl("readBytes", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [
+				{name: "buf", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoRaw("if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if len == 0 {"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self == nil || self.reader == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if self.socket != nil {"),
+				GoStmt.GoRaw("\tself.socket.hxrt__socket_applyConnDeadline()"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("tmp := make([]byte, len)"),
+				GoStmt.GoRaw("read, err := self.reader.Read(tmp)"),
+				GoStmt.GoRaw("if err != nil && read == 0 {"),
+				GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("for i := 0; i < read; i++ {"),
+				GoStmt.GoRaw("\tbuf.b[pos+i] = int(tmp[i])"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("read"))
+			]),
+			GoDecl.GoFuncDecl("readAll", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			},
+				[{name: "bufsize", typeName: "...int"}], ["*haxe__io__Bytes"], [GoStmt.GoRaw("return haxe__io__input_readAll(self, bufsize...)")]),
+			GoDecl.GoFuncDecl("get_bigEndian", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [], ["bool"], [
+				GoStmt.GoRaw("if self == nil {"),
+				GoStmt.GoRaw("\treturn false"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "bigEndian"))
+			]),
+			GoDecl.GoFuncDecl("set_bigEndian", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [{name: "e", typeName: "bool"}], ["bool"], [
+				GoStmt.GoRaw("if self != nil {"),
+				GoStmt.GoRaw("\tself.bigEndian = e"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("e"))
+			]),
+			GoDecl.GoFuncDecl("close", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [], [], [
+				GoStmt.GoRaw("if self != nil && self.socket != nil {"),
+				GoStmt.GoRaw("\tself.socket.close()"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("readFullBytes", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [
+				{name: "s", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], [],
+				[GoStmt.GoRaw("haxe__io__input_readFullBytes(self, s, pos, len)")]),
+			GoDecl.GoFuncDecl("read", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			},
+				[{name: "nbytes", typeName: "int"}], ["*haxe__io__Bytes"], [GoStmt.GoRaw("return haxe__io__input_read(self, nbytes)")]),
+			GoDecl.GoFuncDecl("readUntil", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			},
+				[{name: "end", typeName: "int"}], ["*string"], [GoStmt.GoRaw("return haxe__io__input_readUntil(self, end)")]),
+			GoDecl.GoFuncDecl("readFloat", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [], ["float64"],
+				[GoStmt.GoRaw("return haxe__io__input_readFloat(self)")]),
+			GoDecl.GoFuncDecl("readDouble", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [], ["float64"],
+				[GoStmt.GoRaw("return haxe__io__input_readDouble(self)")]),
+			GoDecl.GoFuncDecl("readInt8", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [], ["int"],
+				[GoStmt.GoRaw("return haxe__io__input_readInt8(self)")]),
+			GoDecl.GoFuncDecl("readInt16", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [], ["int"],
+				[GoStmt.GoRaw("return haxe__io__input_readInt16(self)")]),
+			GoDecl.GoFuncDecl("readUInt16", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [], ["int"],
+				[GoStmt.GoRaw("return haxe__io__input_readUInt16(self)")]),
+			GoDecl.GoFuncDecl("readInt24", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [], ["int"],
+				[GoStmt.GoRaw("return haxe__io__input_readInt24(self)")]),
+			GoDecl.GoFuncDecl("readUInt24", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [], ["int"],
+				[GoStmt.GoRaw("return haxe__io__input_readUInt24(self)")]),
+			GoDecl.GoFuncDecl("readInt32", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [], ["int"],
+				[GoStmt.GoRaw("return haxe__io__input_readInt32(self)")]),
+			GoDecl.GoFuncDecl("readString", {
+				name: "self",
+				typeName: "*sys__net__SocketInput"
+			}, [
+				{name: "len", typeName: "int"},
+				{name: "encoding", typeName: "...*haxe__io__Encoding"}
+			], ["*string"],
+				[GoStmt.GoRaw("return haxe__io__input_readString(self, len, encoding...)")]),
 			GoDecl.GoFuncDecl("writeString", {
 				name: "self",
 				typeName: "*sys__net__SocketOutput"
