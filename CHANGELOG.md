@@ -1,3 +1,13 @@
+## [0.52.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.51.0...v0.52.0) (2026-06-13)
+
+### Features
+
+* **examples:** add stdlib incident api service ([f7a8ccf](https://github.com/fullofcaffeine/reflaxe.go/commit/f7a8ccfbbeea215751553a4964bc6fef77a31375))
+
+### Bug Fixes
+
+* **family:** sync module mapping contract ([2f20955](https://github.com/fullofcaffeine/reflaxe.go/commit/2f209555d0b42dd58764e510f0f248c900b40389))
+
 ## [0.51.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.50.0...v0.51.0) (2026-06-11)
 
 ### Features
