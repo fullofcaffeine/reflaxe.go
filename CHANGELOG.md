@@ -1,3 +1,9 @@
+## [0.53.1](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.53.0...v0.53.1) (2026-06-13)
+
+### Bug Fixes
+
+* **security:** neutralize govulncheck problem matcher traces ([a253b20](https://github.com/fullofcaffeine/reflaxe.go/commit/a253b2074cc67a2f2f3110f0d2d2912b641fea8b))
+
 ## [0.53.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.52.0...v0.53.0) (2026-06-13)
 
 ### Features
