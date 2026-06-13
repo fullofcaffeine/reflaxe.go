@@ -1,3 +1,13 @@
+## [0.53.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.52.0...v0.53.0) (2026-06-13)
+
+### Features
+
+* **examples:** tighten typed exception handling ([a4337ca](https://github.com/fullofcaffeine/reflaxe.go/commit/a4337ca0e35e7b40a6af5fff9cf43a99f4ddc284))
+
+### Bug Fixes
+
+* **snapshot:** refresh ssl typed catch output ([2f4dda6](https://github.com/fullofcaffeine/reflaxe.go/commit/2f4dda6e4e85c88eac196bd543517c28120140ce))
+
 ## [0.52.0](https://github.com/fullofcaffeine/reflaxe.go/compare/v0.51.0...v0.52.0) (2026-06-13)
 
 ### Features
