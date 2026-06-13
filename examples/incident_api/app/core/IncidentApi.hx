@@ -51,20 +51,28 @@ class IncidentApi {
 	function createIncident(body:String):HttpResponse {
 		var response = HttpResponse.json(400, "{\"error\":\"invalid_json\"}");
 		try {
-			// Json.parse returns Dynamic by design. Keep it localized at the HTTP boundary.
-			var raw:Dynamic = Json.parse(body == "" ? "{}" : body);
+			var raw = parseJsonBody(body);
 			var title = fieldString(raw, "title", "");
 			if (title == "") {
-				response = HttpResponse.json(400, "{\"error\":\"missing_title\"}");
-			} else {
-				var severity = fieldString(raw, "severity", "low");
-				var incident = store.create(title, severity);
-				response = HttpResponse.json(201, "{\"incident\":" + incident.toJson() + "}");
+				throw new IncidentRequestException("missing_title");
 			}
-		} catch (_:Dynamic) {
-			response = HttpResponse.json(400, "{\"error\":\"invalid_json\"}");
+			var severity = fieldString(raw, "severity", "low");
+			var incident = store.create(title, severity);
+			response = HttpResponse.json(201, "{\"incident\":" + incident.toJson() + "}");
+		} catch (error:IncidentRequestException) {
+			response = HttpResponse.json(400, "{\"error\":\"" + error.code + "\"}");
 		}
 		return response;
+	}
+
+	static function parseJsonBody(body:String):Dynamic {
+		try {
+			// Json.parse returns Dynamic by design. Keep it localized at the HTTP boundary.
+			return Json.parse(body == "" ? "{}" : body);
+		} catch (_:haxe.Exception) {
+			throw new IncidentRequestException("invalid_json");
+		}
+		return null;
 	}
 
 	function updateIncident(path:String, action:String):HttpResponse {

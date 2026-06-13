@@ -8,7 +8,7 @@ func InteractiveCli_clearState() {
 	hxrt.TryCatch(func() {
 		sys__io__File_saveContent(hxrt.StringFromLiteral(".tui_todo_state.txt"), hxrt.StringFromLiteral(""))
 	}, func(hx_caught_6 any) {
-		hx_tmp := hx_caught_6
+		hx_tmp := hxrt.ExceptionCaught(hx_caught_6)
 		_ = hx_tmp
 	})
 }
@@ -148,7 +148,7 @@ func InteractiveCli_loadState(app *app__TodoApp) {
 			}
 		}
 	}, func(hx_caught_19 any) {
-		hx_tmp := hx_caught_19
+		hx_tmp := hxrt.ExceptionCaught(hx_caught_19)
 		_ = hx_tmp
 		hx_try_return_18 = true
 		return

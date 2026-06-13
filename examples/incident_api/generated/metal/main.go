@@ -2868,6 +2868,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return hxrt_typeCallAny(New_app__core__IncidentApi, args)
 	case "app.core.IncidentConfig":
 		return hxrt_typeCallAny(New_app__core__IncidentConfig, args)
+	case "app.core.IncidentRequestException":
+		return hxrt_typeCallAny(New_app__core__IncidentRequestException, args)
 	case "app.core.IncidentStore":
 		return hxrt_typeCallAny(New_app__core__IncidentStore, args)
 	case "app.http.HttpRequest":
@@ -2905,6 +2907,8 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 		return &app__core__IncidentApi{}, true
 	case "app.core.IncidentConfig":
 		return &app__core__IncidentConfig{}, true
+	case "app.core.IncidentRequestException":
+		return &app__core__IncidentRequestException{}, true
 	case "app.core.IncidentStore":
 		return &app__core__IncidentStore{}, true
 	case "app.http.HttpRequest":
@@ -3060,6 +3064,11 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("app.core.IncidentConfig")}
+	case *app__core__IncidentRequestException:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("app.core.IncidentRequestException")}
 	case *app__core__IncidentStore:
 		if value == nil {
 			return nil
@@ -3141,6 +3150,8 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "app.core.IncidentConfig":
 		return nil
+	case "app.core.IncidentRequestException":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.Exception")}
 	case "app.core.IncidentStore":
 		return nil
 	case "app.http.HttpRequest":
@@ -3193,9 +3204,11 @@ func Type_getClassFields(c any) []*string {
 	case "app.core.Incident":
 		return []*string{hxrt.StringFromLiteral("boolJson"), hxrt.StringFromLiteral("jsonEscape")}
 	case "app.core.IncidentApi":
-		return []*string{hxrt.StringFromLiteral("fieldString")}
+		return []*string{hxrt.StringFromLiteral("fieldString"), hxrt.StringFromLiteral("parseJsonBody")}
 	case "app.core.IncidentConfig":
 		return []*string{hxrt.StringFromLiteral("defaults"), hxrt.StringFromLiteral("intField"), hxrt.StringFromLiteral("load"), hxrt.StringFromLiteral("saveExample"), hxrt.StringFromLiteral("stringField")}
+	case "app.core.IncidentRequestException":
+		return []*string{}
 	case "app.core.IncidentStore":
 		return []*string{hxrt.StringFromLiteral("boolField"), hxrt.StringFromLiteral("intField"), hxrt.StringFromLiteral("normalizeSeverity"), hxrt.StringFromLiteral("stringField")}
 	case "app.http.HttpRequest":
@@ -3243,6 +3256,8 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{hxrt.StringFromLiteral("config"), hxrt.StringFromLiteral("createIncident"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("requests"), hxrt.StringFromLiteral("store"), hxrt.StringFromLiteral("updateIncident")}
 	case "app.core.IncidentConfig":
 		return []*string{hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("port"), hxrt.StringFromLiteral("serviceName"), hxrt.StringFromLiteral("statePath")}
+	case "app.core.IncidentRequestException":
+		return []*string{hxrt.StringFromLiteral("code"), hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap")}
 	case "app.core.IncidentStore":
 		return []*string{hxrt.StringFromLiteral("acknowledge"), hxrt.StringFromLiteral("create"), hxrt.StringFromLiteral("find"), hxrt.StringFromLiteral("incidents"), hxrt.StringFromLiteral("listJson"), hxrt.StringFromLiteral("load"), hxrt.StringFromLiteral("metricsJson"), hxrt.StringFromLiteral("nextId"), hxrt.StringFromLiteral("resolve"), hxrt.StringFromLiteral("save"), hxrt.StringFromLiteral("statePath")}
 	case "app.http.HttpRequest":
@@ -3297,6 +3312,8 @@ func Type_resolveClass(name *string) any {
 	case "app.core.IncidentApi":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "app.core.IncidentConfig":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "app.core.IncidentRequestException":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "app.core.IncidentStore":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}

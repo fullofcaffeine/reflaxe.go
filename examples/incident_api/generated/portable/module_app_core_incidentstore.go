@@ -33,9 +33,9 @@ func New_app__core__IncidentStore(statePath *string) *app__core__IncidentStore {
 func (self *app__core__IncidentStore) create(title *string, severity *string) *app__core__Incident {
 	incident := New_app__core__Incident(self.nextId, title, app__core__IncidentStore_normalizeSeverity(severity), false, false, hxrt.StringFromLiteral("2026-06-12T00:00:00Z"))
 	self.nextId = int(int32((self.nextId + 1)))
-	hx_arr_34 := self.incidents
-	hx_arr_34 = append(hx_arr_34, incident)
-	self.incidents = hx_arr_34
+	hx_arr_38 := self.incidents
+	hx_arr_38 = append(hx_arr_38, incident)
+	self.incidents = hx_arr_38
 	self.save()
 	return incident
 }
@@ -124,12 +124,12 @@ func (self *app__core__IncidentStore) load() {
 	self.nextId = app__core__IncidentStore_intField(raw, hxrt.StringFromLiteral("nextId"), 1)
 	loaded := []*app__core__Incident{}
 	if !hxrt.AnyEqualsNull(raw) && Reflect_hasField(raw, hxrt.StringFromLiteral("incidents")) {
-		values := func(hx_value_35 any) []any {
-			if hx_value_35 == nil {
-				var hx_zero_36 []any
-				return hx_zero_36
+		values := func(hx_value_39 any) []any {
+			if hx_value_39 == nil {
+				var hx_zero_40 []any
+				return hx_zero_40
 			}
-			return hx_value_35.([]any)
+			return hx_value_39.([]any)
 		}(Reflect_field(raw, hxrt.StringFromLiteral("incidents")))
 		_g := 0
 		for _g < len(values) {
@@ -157,13 +157,13 @@ func app__core__IncidentStore_intField(raw any, name *string, fallback int) int 
 		return fallback
 	}
 	var parsed any = hxrt.StdParseInt(hxrt.StdString(Reflect_field(raw, name)))
-	var hx_if_38 int
+	var hx_if_42 int
 	if parsed == nil {
-		hx_if_38 = fallback
+		hx_if_42 = fallback
 	} else {
-		hx_if_38 = parsed.(int)
+		hx_if_42 = parsed.(int)
 	}
-	return hx_if_38
+	return hx_if_42
 }
 
 func app__core__IncidentStore_normalizeSeverity(raw *string) *string {
@@ -179,11 +179,11 @@ func app__core__IncidentStore_stringField(raw any, name *string, fallback *strin
 		return fallback
 	}
 	var value any = Reflect_field(raw, name)
-	var hx_if_39 *string
+	var hx_if_43 *string
 	if hxrt.AnyEqualsNull(value) {
-		hx_if_39 = fallback
+		hx_if_43 = fallback
 	} else {
-		hx_if_39 = hxrt.StdString(value)
+		hx_if_43 = hxrt.StdString(value)
 	}
-	return hx_if_39
+	return hx_if_43
 }

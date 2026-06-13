@@ -66,7 +66,7 @@ class InteractiveCli {
 	static function clearState():Void {
 		try {
 			File.saveContent(STATE_FILE, "");
-		} catch (_:Dynamic) {}
+		} catch (_:haxe.Exception) {}
 	}
 
 	static function encodeField(raw:String):String {
@@ -227,7 +227,7 @@ class InteractiveCli {
 					app.tag(id, tag);
 				}
 			}
-		} catch (_:Dynamic) {
+		} catch (_:haxe.Exception) {
 			return;
 		}
 	}

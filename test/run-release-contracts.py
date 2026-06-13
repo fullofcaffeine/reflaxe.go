@@ -32,6 +32,7 @@ def main() -> int:
         ["python3", "test/test_portable_governance_contract.py"],
         ["python3", "test/test_release_readiness_checklist_contract.py"],
         ["python3", "test/test_release_package_metadata_contract.py"],
+        ["python3", "test/test_typed_exception_hygiene_contract.py"],
     ]
     for command in commands:
         exit_code = run(command)

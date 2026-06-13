@@ -68,6 +68,8 @@ class ElasticThreadPoolWorker {
 			}
 			deathMutex.release();
 		} catch (err:Dynamic) {
+			// Dynamic catch is intentional: worker tasks may throw any Haxe value, and
+			// the pool must restart the worker before rethrowing that value unchanged.
 			task = null;
 			start();
 			throw err;

@@ -279,6 +279,8 @@ class Template {
 			try {
 				return built();
 			} catch (exc:Dynamic) {
+				// Dynamic catch is intentional: template expressions can call user
+				// resolvers/macros that may throw any Haxe value.
 				throw "Error : " + Std.string(exc) + " in " + expr;
 			}
 			return null;
@@ -456,12 +458,16 @@ class Template {
 					}
 					iterator = candidate;
 				} catch (_:Dynamic) {
+					// Dynamic catch is intentional: reflective iterator probing must tolerate
+					// arbitrary failures before trying the direct iterator shape.
 					try {
 						if (value == null || !Reflect.hasField(value, "hasNext")) {
 							throw null;
 						}
 						iterator = value;
 					} catch (_:Dynamic) {
+						// Dynamic catch is intentional: this is the second reflective probe, and
+						// failure becomes the template's public "Cannot iter" error.
 						throw "Cannot iter on " + value;
 					}
 				}
@@ -491,6 +497,9 @@ class Template {
 				try {
 					output += Std.string(Reflect.callMethod(macros, cast fn, callArgs));
 				} catch (err:Dynamic) {
+					// Dynamic catch is intentional: template macros are user callbacks and
+					// may throw arbitrary Haxe values.
+					// Dynamic catch is intentional: argument formatting is best-effort only.
 					var argsText = try joinDynamicArgs(callArgs) catch (_:Dynamic) "???";
 					throw "Macro call " + name + "(" + argsText + ") failed (" + Std.string(err) + ")";
 				}

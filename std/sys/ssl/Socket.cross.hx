@@ -52,7 +52,7 @@ class Socket extends sys.net.Socket {
 		if (DEFAULT_VERIFY_CERT == true && DEFAULT_CA == null) {
 			try {
 				DEFAULT_CA = Certificate.loadDefaults();
-			} catch (_:Dynamic) {}
+			} catch (_:haxe.Exception) {}
 		}
 		verifyCert = DEFAULT_VERIFY_CERT;
 		caCert = DEFAULT_CA;
