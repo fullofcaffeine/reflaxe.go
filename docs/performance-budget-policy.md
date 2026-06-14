@@ -118,3 +118,8 @@ The June 13, 2026 triage for `haxe.go-nhh2.3` decided not to update baselines
 or promote flagship app warnings to hard gates. The sampled runs showed clean
 Go profile microbench results and moving flagship app startup warnings rather
 than one stable repeated regression.
+
+Follow-up `haxe.go-nhh2.4` changed the flagship app harness to collect multiple
+startup samples per binary and compare startup ratios with the median sample.
+This makes startup warnings better promotion candidates only when the median
+also drifts, while average and p95 remain visible for variance review.

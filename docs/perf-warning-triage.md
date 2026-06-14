@@ -18,7 +18,7 @@ Decision:
 - Do not update baselines.
 - Do not promote app perf warnings to hard gates.
 - Keep Go profile metal microbench hard gating as-is.
-- File follow-up `haxe.go-nhh2.4` for multi-run startup variance handling.
+- Implement follow-up `haxe.go-nhh2.4` for multi-run startup variance handling.
 
 Why:
 
@@ -53,6 +53,14 @@ Interpretation:
 - The next useful improvement is better variance handling: collect more than one
   sample, report median and p95, and promote only warnings that repeat under
   that stronger evidence model.
+
+Follow-up result:
+
+- `haxe.go-nhh2.4` makes the flagship app harness collect multiple startup
+  samples per binary.
+- Startup ratios now use the median sample.
+- Raw artifacts still report startup average and p95 so reviewers can see
+  whether a warning is a stable median drift or just noisy startup variance.
 
 ## How To Triage The Next Warning
 

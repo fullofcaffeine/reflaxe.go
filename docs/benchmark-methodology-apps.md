@@ -92,7 +92,10 @@ Per-lane metrics:
 - latency: `avg`, `p95`, `p99` (ms) from repeated scripted runs
 - allocation: `B/op`, `allocs/op` from `go test -benchmem`
 - memory: max RSS (`KB`) from `/usr/bin/time`
-- startup: avg ms from repeated `help` command runs
+- startup: repeated `help` command timing. The harness collects multiple
+  startup samples per binary, reports average/median/p95, and uses the median
+  sample for startup ratios so one noisy process launch does not dominate the
+  comparison.
 - size: raw + stripped binary bytes
 
 Derived comparison uses `haxe_vs_pure` ratios (same app + variant):
@@ -135,6 +138,17 @@ Default warning budgets (configurable via env):
 - memory rise: `GO_APP_PERF_MEMORY_WARN_PCT` (default `12`)
 - startup rise: `GO_APP_PERF_STARTUP_WARN_PCT` (default `15`)
 - size rise: `GO_APP_PERF_SIZE_WARN_PCT` (default `8`)
+
+Startup sampling knobs:
+
+- `GO_APP_PERF_STARTUP_ITERS`: process launches inside each startup sample
+  (default `50`)
+- `GO_APP_PERF_STARTUP_SAMPLES`: number of startup samples per binary
+  (default `3`)
+
+The checked ratios use startup median. The raw metrics still include startup
+average and p95 so reviewers can spot high variance before promoting a warning
+to a hard gate.
 
 Optional metal hard-gate:
 

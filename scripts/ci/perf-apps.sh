@@ -22,6 +22,8 @@ Environment:
   GO_APP_PERF_BASELINE_FILE Baseline JSON path (default: scripts/ci/perf/app-profile-baseline.json)
   GO_APP_PERF_WORKLOAD_RUNS Scripted run count for latency distribution (default: 20)
   GO_APP_PERF_STARTUP_ITERS Startup loop count for help-mode startup timing (default: 50)
+  GO_APP_PERF_STARTUP_SAMPLES Startup timing samples per binary; startup ratios use
+                                         the median sample to reduce single-run jitter (default: 3)
   GO_APP_PERF_BENCH_TIME    go test bench time (default: 200ms)
   GO_APP_PERF_BENCH_COUNT   Optional go test bench count (default: unset)
   GO_APP_PERF_THROUGHPUT_WARN_PCT  Warn if throughput ratio regresses beyond this pct (default: 12)
@@ -121,33 +123,60 @@ go_quote() {
   printf '"%s"' "$value"
 }
 
-measure_avg_ms() {
+measure_startup_stats() {
   local iterations="$1"
-  shift
-  python3 - "$iterations" "$@" <<'PY'
+  local samples="$2"
+  shift 2
+  python3 - "$iterations" "$samples" "$@" <<'PY'
+import math
+import statistics
 import subprocess
 import sys
 import time
 
 iters = int(sys.argv[1])
-cmd = sys.argv[2:]
+samples = int(sys.argv[2])
+cmd = sys.argv[3:]
 if iters <= 0:
     sys.stderr.write("iterations must be > 0\n")
+    sys.exit(2)
+if samples <= 0:
+    sys.stderr.write("startup samples must be > 0\n")
     sys.exit(2)
 if not cmd:
     sys.stderr.write("missing command\n")
     sys.exit(2)
 
-values = []
-for _ in range(iters):
-    start = time.perf_counter()
-    proc = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    if proc.returncode != 0:
-        sys.stderr.write(f"command failed for startup timing: {' '.join(cmd)}\n")
-        sys.exit(2)
-    values.append((time.perf_counter() - start) * 1000.0)
+def percentile(values, p):
+    ordered = sorted(values)
+    if not ordered:
+        return 0.0
+    if len(ordered) == 1:
+        return ordered[0]
+    rank = (len(ordered) - 1) * p
+    lo = int(math.floor(rank))
+    hi = int(math.ceil(rank))
+    if lo == hi:
+        return ordered[lo]
+    return ordered[lo] + (ordered[hi] - ordered[lo]) * (rank - lo)
 
-print(f"{sum(values) / len(values):.6f}")
+sample_values = []
+for _ in range(samples):
+    values = []
+    for _ in range(iters):
+        start = time.perf_counter()
+        proc = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if proc.returncode != 0:
+            sys.stderr.write(f"command failed for startup timing: {' '.join(cmd)}\n")
+            sys.exit(2)
+        values.append((time.perf_counter() - start) * 1000.0)
+    sample_values.append(sum(values) / len(values))
+
+ordered = sorted(sample_values)
+avg = sum(sample_values) / len(sample_values)
+median = statistics.median(sample_values)
+p95 = percentile(sample_values, 0.95)
+print(f"{avg:.6f}\t{median:.6f}\t{ordered[0]:.6f}\t{ordered[-1]:.6f}\t{p95:.6f}\t{len(sample_values)}")
 PY
 }
 
@@ -414,8 +443,10 @@ collect_lane_metrics() {
 
   log "metrics lane=$lane_id"
 
-  local startup_ms
-  startup_ms="$(measure_avg_ms "$startup_iters" "$bin_path" help)"
+  local startup_stats
+  startup_stats="$(measure_startup_stats "$startup_iters" "$startup_samples" "$bin_path" help)"
+  local startup_avg_ms startup_median_ms startup_min_ms startup_max_ms startup_p95_ms startup_sample_count
+  IFS=$'\t' read -r startup_avg_ms startup_median_ms startup_min_ms startup_max_ms startup_p95_ms startup_sample_count <<<"$startup_stats"
 
   local workload_stats
   workload_stats="$(measure_workload_stats "$workload_key" "$workload_runs" "$bin_path" "${workload_args[@]}")"
@@ -435,12 +466,14 @@ collect_lane_metrics() {
   binary_bytes="$(filesize_bytes "$bin_path")"
   stripped_bytes="$(stripped_size_bytes "$bin_path")"
 
-  printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+  printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
     "$lane_id" "$app" "$kind" "$profile" "$variant" \
     "$workload_count" "$throughput_ops_per_sec" \
     "$latency_avg_ms" "$latency_p95_ms" "$latency_p99_ms" \
     "$alloc_bytes_per_op" "$allocs_per_op" \
-    "$rss_max_kb" "$startup_ms" "$binary_bytes" "$stripped_bytes" >> "$metrics_tsv"
+    "$rss_max_kb" "$startup_avg_ms" "$startup_median_ms" \
+    "$startup_min_ms" "$startup_max_ms" "$startup_p95_ms" "$startup_sample_count" \
+    "$binary_bytes" "$stripped_bytes" >> "$metrics_tsv"
 }
 
 update_baseline=0
@@ -471,6 +504,7 @@ cache_root="${GO_APP_PERF_CACHE_DIR:-$root_dir/.cache/perf-apps}"
 baseline_file="${GO_APP_PERF_BASELINE_FILE:-$root_dir/scripts/ci/perf/app-profile-baseline.json}"
 workload_runs="${GO_APP_PERF_WORKLOAD_RUNS:-20}"
 startup_iters="${GO_APP_PERF_STARTUP_ITERS:-50}"
+startup_samples="${GO_APP_PERF_STARTUP_SAMPLES:-3}"
 bench_time="${GO_APP_PERF_BENCH_TIME:-200ms}"
 bench_count="${GO_APP_PERF_BENCH_COUNT:-}"
 throughput_warn_pct="${GO_APP_PERF_THROUGHPUT_WARN_PCT:-12}"
@@ -508,6 +542,10 @@ else
   fail "required timing command not found: /usr/bin/time"
 fi
 
+if ! [[ "$startup_samples" =~ ^[0-9]+$ ]] || [[ "$startup_samples" -lt 1 ]]; then
+  fail "GO_APP_PERF_STARTUP_SAMPLES must be an integer >= 1"
+fi
+
 work_dir="$cache_root/work"
 results_dir="$cache_root/results"
 metrics_tsv="$results_dir/raw_metrics.tsv"
@@ -535,7 +573,7 @@ trap 'cleanup $?' EXIT
 rm -rf "$work_dir"
 mkdir -p "$work_dir" "$results_dir" "$(dirname "$baseline_file")"
 
-printf "id\tapp\tkind\tprofile\tvariant\tworkload_count\tthroughput_ops_per_sec\tlatency_avg_ms\tlatency_p95_ms\tlatency_p99_ms\talloc_bytes_per_op\tallocs_per_op\trss_max_kb\tstartup_avg_ms\tbinary_bytes\tstripped_bytes\n" > "$metrics_tsv"
+printf "id\tapp\tkind\tprofile\tvariant\tworkload_count\tthroughput_ops_per_sec\tlatency_avg_ms\tlatency_p95_ms\tlatency_p99_ms\talloc_bytes_per_op\tallocs_per_op\trss_max_kb\tstartup_avg_ms\tstartup_median_ms\tstartup_min_ms\tstartup_max_ms\tstartup_p95_ms\tstartup_sample_count\tbinary_bytes\tstripped_bytes\n" > "$metrics_tsv"
 
 declare -a apps=(pulseforge fluxproxy)
 declare -a profiles=(portable metal)
@@ -589,6 +627,7 @@ GO_APP_PERF_HAXE_VERSION="$haxe_version" \
 GO_APP_PERF_GO_VERSION="$go_version" \
 GO_APP_PERF_WORKLOAD_RUNS="$workload_runs" \
 GO_APP_PERF_STARTUP_ITERS="$startup_iters" \
+GO_APP_PERF_STARTUP_SAMPLES="$startup_samples" \
 GO_APP_PERF_BENCH_TIME="$bench_time" \
 GO_APP_PERF_BENCH_COUNT="$bench_count" \
 GO_APP_PERF_THROUGHPUT_WARN_PCT="$throughput_warn_pct" \
@@ -629,6 +668,7 @@ haxe_version = os.environ.get("GO_APP_PERF_HAXE_VERSION", "")
 go_version = os.environ.get("GO_APP_PERF_GO_VERSION", "")
 workload_runs = int(os.environ.get("GO_APP_PERF_WORKLOAD_RUNS", "20"))
 startup_iters = int(os.environ.get("GO_APP_PERF_STARTUP_ITERS", "50"))
+startup_samples = int(os.environ.get("GO_APP_PERF_STARTUP_SAMPLES", "3"))
 bench_time = os.environ.get("GO_APP_PERF_BENCH_TIME", "200ms")
 bench_count = os.environ.get("GO_APP_PERF_BENCH_COUNT", "")
 throughput_warn_pct = float(os.environ.get("GO_APP_PERF_THROUGHPUT_WARN_PCT", "12"))
@@ -657,6 +697,7 @@ numeric_int_fields = {
     "alloc_bytes_per_op",
     "allocs_per_op",
     "rss_max_kb",
+    "startup_sample_count",
     "binary_bytes",
     "stripped_bytes",
 }
@@ -666,6 +707,10 @@ numeric_float_fields = {
     "latency_p95_ms",
     "latency_p99_ms",
     "startup_avg_ms",
+    "startup_median_ms",
+    "startup_min_ms",
+    "startup_max_ms",
+    "startup_p95_ms",
 }
 
 with open(metrics_path, "r", encoding="utf-8") as handle:
@@ -702,6 +747,16 @@ def ratio(current: float, baseline: float) -> float:
         return 0.0
     return current / baseline
 
+def startup_measurement_ms(metric: Dict[str, object]) -> float:
+    value = metric.get("startup_median_ms", metric.get("startup_avg_ms", 0.0))
+    try:
+        numeric_value = float(value)
+    except (TypeError, ValueError):
+        return 0.0
+    if numeric_value > 0:
+        return numeric_value
+    return float(metric.get("startup_avg_ms", 0.0))
+
 pure_index: Dict[str, Dict[str, object]] = {}
 for metric in metrics:
     if metric["kind"] == "pure_go":
@@ -724,7 +779,9 @@ for metric in metrics:
             "alloc_bytes_ratio_vs_pure": ratio(metric["alloc_bytes_per_op"], pure["alloc_bytes_per_op"]),
             "allocs_ratio_vs_pure": ratio(metric["allocs_per_op"], pure["allocs_per_op"]),
             "rss_ratio_vs_pure": ratio(metric["rss_max_kb"], pure["rss_max_kb"]),
-            "startup_ratio_vs_pure": ratio(metric["startup_avg_ms"], pure["startup_avg_ms"]),
+            "startup_ratio_vs_pure": ratio(startup_measurement_ms(metric), startup_measurement_ms(pure)),
+            "startup_measurement_ms": startup_measurement_ms(metric),
+            "startup_measurement_note": "median of startup samples",
             "binary_ratio_vs_pure": ratio(metric["binary_bytes"], pure["binary_bytes"]),
             "stripped_ratio_vs_pure": ratio(metric["stripped_bytes"], pure["stripped_bytes"]),
         }
@@ -795,6 +852,8 @@ current_payload = {
     "params": {
         "workloadRuns": workload_runs,
         "startupIterations": startup_iters,
+        "startupSamples": startup_samples,
+        "startupMeasurement": "median",
         "benchTime": bench_time,
         "benchCount": bench_count if bench_count else None,
         "warningThresholds": warning_thresholds,
@@ -1052,6 +1111,8 @@ lines.append(f"- Baseline: `{baseline_display}`")
 lines.append("- Lanes: `haxe/portable`, `haxe/metal`, `pure_go` across `core` and `go_native` variants")
 lines.append(f"- Workload runs: `{workload_runs}`")
 lines.append(f"- Startup iterations: `{startup_iters}`")
+lines.append(f"- Startup samples: `{startup_samples}`")
+lines.append("- Startup ratios: median sample, with average and p95 still reported for variance checks")
 lines.append(f"- Bench time: `{bench_time}`")
 if bench_count:
     lines.append(f"- Bench count: `{bench_count}`")
@@ -1063,13 +1124,14 @@ if haxe_version or go_version:
     lines.append(f"- Toolchain: {haxe_version or 'haxe:unknown'} | {go_version or 'go:unknown'}")
 lines.append("")
 lines.append("### Raw Metrics")
-lines.append("| App | Kind | Profile | Variant | Throughput ops/s | Lat avg ms | Lat p95 ms | Lat p99 ms | B/op | allocs/op | RSS KB | Startup ms | Binary KB | Stripped KB |")
-lines.append("| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+lines.append("| App | Kind | Profile | Variant | Throughput ops/s | Lat avg ms | Lat p95 ms | Lat p99 ms | B/op | allocs/op | RSS KB | Startup avg ms | Startup median ms | Startup p95 ms | Startup samples | Binary KB | Stripped KB |")
+lines.append("| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
 for metric in metrics:
     lines.append(
         f"| {metric['app']} | {metric['kind']} | {metric['profile']} | {metric['variant']} | "
         f"{metric['throughput_ops_per_sec']:.2f} | {metric['latency_avg_ms']:.3f} | {metric['latency_p95_ms']:.3f} | {metric['latency_p99_ms']:.3f} | "
-        f"{metric['alloc_bytes_per_op']} | {metric['allocs_per_op']} | {metric['rss_max_kb']} | {metric['startup_avg_ms']:.3f} | "
+        f"{metric['alloc_bytes_per_op']} | {metric['allocs_per_op']} | {metric['rss_max_kb']} | "
+        f"{metric['startup_avg_ms']:.3f} | {metric['startup_median_ms']:.3f} | {metric['startup_p95_ms']:.3f} | {metric['startup_sample_count']} | "
         f"{metric['binary_bytes'] / 1024.0:.1f} | {metric['stripped_bytes'] / 1024.0:.1f} |"
     )
 lines.append("")
