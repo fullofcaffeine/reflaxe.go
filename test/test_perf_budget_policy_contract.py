@@ -8,8 +8,10 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 POLICY_DOC = REPO_ROOT / "docs" / "performance-budget-policy.md"
+TRIAGE_DOC = REPO_ROOT / "docs" / "perf-warning-triage.md"
 KNOWN_GAPS_DOC = REPO_ROOT / "docs" / "known-gaps.md"
 RELEASE_CHECKLIST_DOC = REPO_ROOT / "docs" / "release-readiness-checklist.md"
+DOC_INDEX = REPO_ROOT / "docs" / "index.md"
 CI_HARNESS = REPO_ROOT / ".github" / "workflows" / "ci-harness.yml"
 GO_PERF_SCRIPT = REPO_ROOT / "scripts" / "ci" / "perf-go-profiles.sh"
 APP_PERF_SCRIPT = REPO_ROOT / "scripts" / "ci" / "perf-apps.sh"
@@ -33,6 +35,7 @@ class PerfBudgetPolicyContractTest(unittest.TestCase):
         self.assertIn("Do not update perf baselines just to make warnings disappear", policy)
         self.assertIn("[soft-budget-signal]", policy)
         self.assertIn("[not-enforced]", policy)
+        self.assertIn("docs/perf-warning-triage.md", policy)
 
     def test_policy_doc_lists_harnesses_and_enforcement_knobs(self) -> None:
         policy = POLICY_DOC.read_text(encoding="utf-8")
@@ -54,9 +57,11 @@ class PerfBudgetPolicyContractTest(unittest.TestCase):
     def test_release_docs_link_perf_policy(self) -> None:
         known_gaps = KNOWN_GAPS_DOC.read_text(encoding="utf-8")
         checklist = RELEASE_CHECKLIST_DOC.read_text(encoding="utf-8")
+        index = DOC_INDEX.read_text(encoding="utf-8")
         self.assertIn("docs/performance-budget-policy.md", known_gaps)
         self.assertIn("docs/performance-budget-policy.md", checklist)
         self.assertIn("Performance budget policy", checklist)
+        self.assertIn("perf-warning-triage.md", index)
 
     def test_ci_enforcement_posture_is_explicit(self) -> None:
         workflow = CI_HARNESS.read_text(encoding="utf-8")
@@ -72,6 +77,18 @@ class PerfBudgetPolicyContractTest(unittest.TestCase):
         self.assertIn("warning-only; see docs/performance-budget-policy.md", scripts)
         self.assertIn("not-enforced", scripts)
         self.assertIn("hard gate is disabled", scripts)
+
+    def test_perf_warning_triage_records_current_decision(self) -> None:
+        triage = TRIAGE_DOC.read_text(encoding="utf-8")
+        self.assertIn("# Perf Warning Triage", triage)
+        self.assertIn("June 13, 2026", triage)
+        self.assertIn("Do not update baselines", triage)
+        self.assertIn("Do not promote app perf warnings to hard gates", triage)
+        self.assertIn("Go profile microbench", triage)
+        self.assertIn("warnings=0", triage)
+        self.assertIn("FluxProxy", triage)
+        self.assertIn("multi-run startup variance", triage)
+        self.assertIn("haxe.go-nhh2.4", triage)
 
 
 if __name__ == "__main__":

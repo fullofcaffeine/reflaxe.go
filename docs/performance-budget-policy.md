@@ -109,3 +109,12 @@ Promote a warning-only budget to a hard gate only when all of these are true:
 
 This keeps the project honest: warnings stay useful signals, hard gates stay
 trustworthy, and baseline updates remain explicit engineering decisions.
+
+## Recent Triage Decisions
+
+Current warning triage records live in `docs/perf-warning-triage.md`.
+
+The June 13, 2026 triage for `haxe.go-nhh2.3` decided not to update baselines
+or promote flagship app warnings to hard gates. The sampled runs showed clean
+Go profile microbench results and moving flagship app startup warnings rather
+than one stable repeated regression.

@@ -34,6 +34,7 @@ This page helps you find the right docs quickly.
 - [Release readiness checklist](release-readiness-checklist.md)
 - [Security dependency audit](security-dependency-audit.md)
 - [Performance budget policy](performance-budget-policy.md)
+- [Perf warning triage](perf-warning-triage.md)
 - [Release visibility](release-visibility.md)
 
 ## Runtime and stdlib docs
