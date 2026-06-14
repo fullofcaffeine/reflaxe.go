@@ -63,6 +63,17 @@ python3 test/run-examples.py
 python3 test/run-ci.py
 ```
 
+## Current status and caveats
+
+The project is intended to be usable with documented production caveats. Before
+using it as a release dependency, read:
+
+- [docs/release-readiness-checklist.md](docs/release-readiness-checklist.md) for
+  the required validation gates.
+- [docs/known-gaps.md](docs/known-gaps.md) for target-sensitive APIs,
+  advanced Go extern interop limits, performance warning policy, and the
+  current single-package output decision.
+
 ## Which profile should I choose?
 
 Choose one profile per build. You can still design one codebase with mostly

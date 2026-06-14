@@ -102,7 +102,7 @@ Scripted outputs are validated by:
 
 ## Related docs
 
-- `docs/examples-matrix.md`
-- `docs/profiles.md`
-- `docs/profile-semantics-guide.md`
-- `docs/feature-support-matrix.md`
+- [`docs/examples-matrix.md`](../../docs/examples-matrix.md)
+- [`docs/profiles.md`](../../docs/profiles.md)
+- [`docs/profile-semantics-guide.md`](../../docs/profile-semantics-guide.md)
+- [`docs/feature-support-matrix.md`](../../docs/feature-support-matrix.md)

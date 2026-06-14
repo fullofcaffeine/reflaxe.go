@@ -7,7 +7,7 @@ Short version: portable is the default product path; metal is an explicit Go-nat
 Portable by default, Go-native by opt-in, metal-like generated Go whenever the compiler can prove the lowering preserves portable Haxe semantics.
 
 Use `portable` as the normal way to write Haxe that becomes readable,
-idiomatic Go. Use `metal` only when you intentionally want Go-native authoring
+performant Go. Use `metal` only when you intentionally want Go-native authoring
 surfaces, stricter boundaries, or fail-fast native-lane checks.
 
 ## Terms

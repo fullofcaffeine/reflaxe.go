@@ -76,6 +76,6 @@ High-signal files:
 
 ## Related docs
 
-- `docs/profiles.md`
-- `docs/profile-semantics-guide.md`
-- `docs/go-concurrency-interop-guide.md`
+- [`docs/profiles.md`](../../docs/profiles.md)
+- [`docs/profile-semantics-guide.md`](../../docs/profile-semantics-guide.md)
+- [`docs/go-concurrency-interop-guide.md`](../../docs/go-concurrency-interop-guide.md)

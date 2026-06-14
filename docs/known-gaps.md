@@ -4,9 +4,9 @@ This page is the blunt status view for current limitations so teams can plan mig
 
 Before reading:
 
-- `portable` and `metal` are compiler profiles (contracts), not app variants. See `docs/profiles.md`.
+- `portable` and `metal` are compiler profiles (contracts), not app variants. See [profiles](profiles.md).
 - `go.*` is the Go-native facade surface. It is intentionally outside the cross-target portable contract.
-- `semantic-diff` is the runtime parity harness against Haxe `--interp`. See `docs/semantic-diff-guide.md`.
+- `semantic-diff` is the runtime parity harness against Haxe `--interp`. See [semantic diff guide](semantic-diff-guide.md).
 
 Current architecture status:
 
@@ -27,11 +27,11 @@ Terms:
 
 | Caveat class | Owner | Current decision | Evidence | Reopen trigger |
 | --- | --- | --- | --- | --- |
-| Multi-package output | compiler/output | Ship as single Go package for GA; reopen only if production-scale projects hit concrete Go tooling limits. | `docs/multi-package-output-evaluation.md#measurable-production-reopen-triggers`, `python3 test/run-ci.py`, generated-output telemetry artifacts. Current GA hardening beads: `haxe.go-1bo0.8`. | Generated file size, compile time, package-private boundary needs, or Go tooling limits become measurable user blockers. If this happens, file a new scoped Bead with the trigger evidence. |
-| Advanced Go extern interop | typed native facade | Ship `@:go.import` / `@:go.name` / `@:go.receiver`, single `(T, error)` support through `go.Result<T>`, and generated tuple carrier wrappers for supported multi-return APIs. Keep complex/unsupported result shapes behind typed facade wrappers. | `docs/goextern.md`, `tools/goextern/main_test.go`, `test/run-goextern-fixtures.py`, `test/snapshot/go_native/extern_tuple_return`, `--dynamic-report` output. Current GA hardening beads: `haxe.go-1bo0.1`, `haxe.go-1bo0.2`, `haxe.go-1bo0.3`. | Users hit common Go APIs whose callback/generic/unsafe or cross-package result shapes still fall back to `Dynamic`; file a new scoped Bead for a typed generator rule or documented facade pattern, not raw `__go__` in app code. |
-| Target-sensitive parity surfaces | harness/runtime | Ship with snapshot/runtime evidence where deterministic interpreter-vs-Go comparison would be misleading. | `python3 test/run-portable-parity-closure.py --list-blockers`, `test/.test-cache/portable_parity_closure_summary.json`, `docs/spikes/event-loop-semantic-diff-spike.md`, `docs/spikes/ssl-udp-semantic-diff-spike.md`. Current GA hardening beads: `haxe.go-1bo0.6`, `haxe.go-1bo0.7`. | A stable async/network/stack comparison harness becomes possible, or a snapshot-only surface starts hiding user-visible behavior drift. If this happens, file a new scoped Bead for that surface. |
-| Performance budget drift | perf/CI | Ship with perf visibility gates and warning annotations; decide separately which warning-only drifts should become release-blocking. | `docs/performance-budget-policy.md`, `npm run test:perf:go`, `npm run test:perf:hxrt-selective`, `npm run test:perf:apps`, warning-history artifacts, delta hard-gate dry-run artifacts. Current GA hardening beads: `haxe.go-1bo0.4`, `haxe.go-1bo0.5`. | A warning repeats across stable CI runs, affects a flagship app, or hides a portable-vs-metal regression users would notice. If this happens, file a new scoped Bead with the run history. |
-| Strict production boundary policy | profiles/governance | Ship with strict mode recommended for production; do not allow app-side raw `__go__` to become the default escape hatch. | `docs/profiles.md`, `docs/defines-reference.md`, `npm run test:release-contracts`. Current GA hardening bead: `haxe.go-1bo0.9`. | Examples, docs, or generated reports make raw app-side injection look normal instead of exceptional. If this happens, file a new scoped Bead for the drift. |
+| Multi-package output | compiler/output | Ship as single Go package for GA; reopen only if production-scale projects hit concrete Go tooling limits. | [`docs/multi-package-output-evaluation.md#measurable-production-reopen-triggers`](multi-package-output-evaluation.md#measurable-production-reopen-triggers), `python3 test/run-ci.py`, generated-output telemetry artifacts. | Generated file size, compile time, package-private boundary needs, or Go tooling limits become measurable user blockers. If this happens, file a new scoped Bead with the trigger evidence. |
+| Advanced Go extern interop | typed native facade | Ship `@:go.import` / `@:go.name` / `@:go.receiver`, single `(T, error)` support through `go.Result<T>`, and generated tuple carrier wrappers for supported multi-return APIs. Keep complex/unsupported result shapes behind typed facade wrappers. | [Go extern generator](goextern.md), `tools/goextern/main_test.go`, `test/run-goextern-fixtures.py`, `test/snapshot/go_native/extern_tuple_return`, `--dynamic-report` output. | Users hit common Go APIs whose callback/generic/unsafe or cross-package result shapes still fall back to `Dynamic`; file a new scoped Bead for a typed generator rule or documented facade pattern, not raw `__go__` in app code. |
+| Target-sensitive parity surfaces | harness/runtime | Ship with snapshot/runtime evidence where deterministic interpreter-vs-Go comparison would be misleading. | `python3 test/run-portable-parity-closure.py --list-blockers`, `test/.test-cache/portable_parity_closure_summary.json`, [event-loop semantic-diff spike](spikes/event-loop-semantic-diff-spike.md), [SSL/UDP semantic-diff spike](spikes/ssl-udp-semantic-diff-spike.md). | A stable async/network/stack comparison harness becomes possible, or a snapshot-only surface starts hiding user-visible behavior drift. If this happens, file a new scoped Bead for that surface. |
+| Performance budget drift | perf/CI | Ship with perf visibility gates and warning annotations; decide separately which warning-only drifts should become release-blocking. | [`docs/performance-budget-policy.md`](performance-budget-policy.md), `npm run test:perf:go`, `npm run test:perf:hxrt-selective`, `npm run test:perf:apps`, warning-history artifacts, delta hard-gate dry-run artifacts. | A warning repeats across stable CI runs, affects a flagship app, or hides a portable-vs-metal regression users would notice. If this happens, file a new scoped Bead with the run history. |
+| Strict production boundary policy | profiles/governance | Ship with strict mode recommended for production; do not allow app-side raw `__go__` to become the default escape hatch. | [Profiles](profiles.md), [defines reference](defines-reference.md), `npm run test:release-contracts`. | Examples, docs, or generated reports make raw app-side injection look normal instead of exceptional. If this happens, file a new scoped Bead for the drift. |
 
 ## Target-sensitive parity policy
 
@@ -83,10 +83,10 @@ current honest contract remains snapshot/runtime evidence.
 ## Compiler/output caveats
 
 - Output remains a single Go package (multi-file, single package); multi-package emission is not implemented yet.
-- Multi-package output is currently deferred as non-blocking for production GA; explicit boundary conditions for re-opening are documented in `docs/multi-package-output-evaluation.md`.
+- Multi-package output is currently deferred as non-blocking for production GA; explicit boundary conditions for re-opening are documented in [`docs/multi-package-output-evaluation.md`](multi-package-output-evaluation.md).
 - These remaining lowering guards are invariant checks, not open supported-language gaps.
 - No currently supported Haxe source construct is expected to hit them in normal typed lowering.
-- Current invariant inventory (`docs/feature-support-matrix.md`, owned by `haxe.go-14as.56`):
+- Current invariant inventory is summarized in the [feature support matrix](feature-support-matrix.md):
   - `Unsupported assignment target` (`lowerLValue`)
   - `Unsupported postfix unary operator` (`lowerExpr` / `lowerExprWithPrefix`)
   - `Unsupported expression` (catch-all `lowerExpr` fallback)
@@ -104,7 +104,7 @@ current honest contract remains snapshot/runtime evidence.
 - Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage now has snapshot/runtime smoke coverage through `stdlib/haxe_main_loop_runtime_direct`.
 - The implementation is intentionally staged std over the runtime-backed `sys.thread.EventLoop` contract: public Haxe APIs live in `std/haxe/*.cross.hx`, while `runtime/hxrt/thread.go` owns scheduling, timers, and main-thread wakeups.
 - This is not yet semantic-diff coverage because event-loop timing is target-sensitive; keep using runtime snapshots for this surface until the harness has a stable asynchronous comparison mode.
-- `haxe.CallStack` and `haxe.NativeStackTrace` use deterministic empty-stack fallbacks by default. Native Go stack capture is available only with `-D reflaxe_go_native_stack_trace` as an explicit target-sensitive diagnostic capability, not as portable semantic-diff behavior. See `docs/spikes/native-stack-capture-contract.md`.
+- `haxe.CallStack` and `haxe.NativeStackTrace` use deterministic empty-stack fallbacks by default. Native Go stack capture is available only with `-D reflaxe_go_native_stack_trace` as an explicit target-sensitive diagnostic capability, not as portable semantic-diff behavior. See [native stack capture contract](spikes/native-stack-capture-contract.md).
 
 ## Interop caveats
 
@@ -131,14 +131,14 @@ current honest contract remains snapshot/runtime evidence.
 
 - Generated code aims for predictable shape first, then optimization under harness gates.
 - Shim-heavy paths can still carry conversion overhead versus direct handwritten Go.
-- Current warning-vs-hard-gate decisions are documented in `docs/performance-budget-policy.md`.
+- Current warning-vs-hard-gate decisions are documented in [`docs/performance-budget-policy.md`](performance-budget-policy.md).
 - Track real costs with:
   - `npm run test:perf:go`
   - `npm run test:perf:stdlib-shims`
 
 ## Source of truth links
 
-- Feature/support inventory: `docs/feature-support-matrix.md`
-- Ownership decision rule: `docs/ownership-rubric.md`
-- Shim ownership decisions: `docs/stdlib-shim-rationale.md`
-- Phase roadmap: `docs/phase2-roadmap.md`
+- Feature/support inventory: [feature support matrix](feature-support-matrix.md)
+- Ownership decision rule: [ownership rubric](ownership-rubric.md)
+- Shim ownership decisions: [stdlib shim rationale](stdlib-shim-rationale.md)
+- Phase roadmap: [phase 2 roadmap](phase2-roadmap.md)

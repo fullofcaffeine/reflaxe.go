@@ -46,6 +46,6 @@ bash scripts/examples/build-binaries.sh
 
 ## Canonical references
 
-- Profile contract matrix: `docs/profiles.md`
-- Profile semantics guide: `docs/profile-semantics-guide.md`
-- Example/perf matrix: `docs/examples-matrix.md`
+- Profile contract matrix: [`docs/profiles.md`](../docs/profiles.md)
+- Profile semantics guide: [`docs/profile-semantics-guide.md`](../docs/profile-semantics-guide.md)
+- Example/perf matrix: [`docs/examples-matrix.md`](../docs/examples-matrix.md)

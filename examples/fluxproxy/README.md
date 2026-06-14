@@ -139,7 +139,7 @@ Harness artifacts:
 - `.cache/perf-apps/results/warnings.txt`
 - `.cache/perf-apps/results/hard_failures.txt`
 
-Methodology and fairness constraints: `docs/benchmark-methodology-apps.md`.
+Methodology and fairness constraints: [`docs/benchmark-methodology-apps.md`](../../docs/benchmark-methodology-apps.md).
 
 ## Known Tradeoffs
 
@@ -150,7 +150,7 @@ Methodology and fairness constraints: `docs/benchmark-methodology-apps.md`.
 
 ## Related docs
 
-- `docs/profiles.md`
-- `docs/profile-semantics-guide.md`
-- `docs/examples-matrix.md`
-- `docs/benchmark-methodology-apps.md`
+- [`docs/profiles.md`](../../docs/profiles.md)
+- [`docs/profile-semantics-guide.md`](../../docs/profile-semantics-guide.md)
+- [`docs/examples-matrix.md`](../../docs/examples-matrix.md)
+- [`docs/benchmark-methodology-apps.md`](../../docs/benchmark-methodology-apps.md)

@@ -28,7 +28,7 @@ Run these checks from repo root on a clean branch before a release cut.
 8. Production caveat scoreboard review:
    - Read `docs/known-gaps.md#production-hardening-scoreboard`
    - Confirm each row still has an owner, current decision, evidence, and reopen trigger.
-   - Confirm the scoreboard references current GA hardening beads, not retired tracker IDs.
+   - Confirm the scoreboard references durable evidence links and commands, not retired tracker IDs.
    - For multi-package output, check `docs/multi-package-output-evaluation.md#measurable-production-reopen-triggers` before filing implementation work.
 9. Performance budget policy review:
    - Read `docs/performance-budget-policy.md`
@@ -71,7 +71,7 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 - `npm run release:status` exits `0` and reports release wiring as healthy.
 - Perf runs complete and budgets are within expected thresholds for the current baseline policy.
 - Performance budget policy in `docs/performance-budget-policy.md` still matches CI enforcement settings and any warning-only drift has an explicit follow-up decision.
-- The Production caveat scoreboard in `docs/known-gaps.md#production-hardening-scoreboard` still matches the live tracker and does not hide target-sensitive or warning-only caveats as full semantic guarantees.
+- The Production caveat scoreboard in `docs/known-gaps.md#production-hardening-scoreboard` still matches current evidence and does not hide target-sensitive or warning-only caveats as full semantic guarantees.
 - Multi-package output remains deferred unless a trigger in `docs/multi-package-output-evaluation.md#measurable-production-reopen-triggers` has repeatable evidence attached.
 
 ## Related references
