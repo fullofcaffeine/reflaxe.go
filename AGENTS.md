@@ -105,6 +105,7 @@ Agent policy:
   - targeted: `npm run test:changed` (and `npm run test:examples:changed` when examples changed),
   - full: `npm test`,
   - add `npm run test:semantic-diff` and `npm run test:stdlib-sweep:go-test` when runtime/semantics/profile code is touched,
+  - run `npm run test:examples` for compiler, runtime, staged std, profile/strictness, or example changes that can affect generated app behavior,
   - run relevant perf harness (`npm run test:perf:go`, `npm run test:perf:hxrt-selective`) when optimization/runtime-slicing work changes.
 
 ## Snapshot Workflow
@@ -129,6 +130,12 @@ Agent policy:
 
 ## Session Lessons (Interop + Std)
 
+- Examples are QA contracts.
+  - Every shipped example must be visible to `python3 test/run-examples.py`.
+  - Every runnable example/profile lane must compile, pass `go test ./...`, run through `go run .`, and match `expected/*.stdout` unless there is an explicit documented reason it is compile-only.
+  - If compiler/runtime/std/profile changes can affect examples, run `npm run test:examples`, not only `npm run test:examples:changed`.
+  - When an example behavior changes intentionally, update `expected/*.stdout` and committed `generated/<profile>` trees in the same change.
+  - Do not add example directories that are invisible to the examples harness.
 - Higher-level rule: preserve **layered DX contracts** in canonical examples.
   - Show the default safe/productive layer (framework-owned wrappers).
   - Also show the explicit power layer (user-owned typed externs), without forcing users into it for common cases.

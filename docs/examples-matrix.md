@@ -151,6 +151,8 @@ Execution plan and acceptance gates for flagship examples: `docs/flagship-apps-p
 python3 test/run-examples.py
 ```
 
+QA contract: [docs/examples-qa-contract.md](examples-qa-contract.md).
+
 This runs discovered profile cases per example:
 
 - `compile.<profile>.ci.hxml` + `go test` + `go run` expected output checks

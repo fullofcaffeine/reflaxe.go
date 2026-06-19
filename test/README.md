@@ -718,6 +718,9 @@ Result artifacts:
 
 ## Examples matrix
 
+Examples are QA contracts, not loose demos. Full policy:
+`docs/examples-qa-contract.md`.
+
 Run all example/profile cases:
 
 ```bash
