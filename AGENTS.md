@@ -127,6 +127,9 @@ Agent policy:
 
 - App/test/example code must not use raw `__go__` escapes.
 - `__go__` usage is reserved for controlled target layers (e.g. std/runtime shims), not business logic.
+- Examples must not use raw `__go__`, `GoInjection`, or `@:goAllowRaw`; teach staged std, `hxrt`, `go.*` facades, or typed externs instead.
+- Intentional boundary fixtures that exercise raw-injection enforcement must live in explicit allowlisted test locations, not ordinary examples or app-style fixtures.
+- Run `python3 test/test_raw_injection_hygiene_contract.py` when changing example/test interop surfaces or raw-injection policy.
 
 ## Session Lessons (Interop + Std)
 
