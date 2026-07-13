@@ -1,0 +1,1 @@
+{"id":"int-bc63552e","kind":"field_change","created_at":"2026-07-13T23:17:59.236017Z","actor":"Marcelo Serpa","issue_id":"haxe_go-vfp.1","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Completed detailed audit-to-Beads translation and explicit second-pass xhigh scope review; implementation remains under the open parent epic."}}
