@@ -1,16 +1,19 @@
 # Agent Instructions
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+This project uses **bd** (Beads) for issue tracking. Run `bd prime` to load the current workflow and persistent project memories.
 
 ## Quick Reference
 
 ```bash
+bd dolt pull          # Pull issue history from refs/dolt/data
 bd ready              # Find available work
 bd show <id>          # View issue details
-bd update <id> --status in_progress  # Claim work
+bd update <id> --claim  # Claim work
 bd close <id>         # Complete work
-bd sync               # Sync with git
+bd dolt push          # Push issue history to refs/dolt/data
 ```
+
+Source Git history and Beads Dolt history are separate synchronization channels. See `.beads/README.md` before changing tracker storage, export, or recovery configuration.
 
 ## Thinking Levels (Bead Labels)
 
@@ -57,8 +60,9 @@ Agent policy:
 3. **Update issue status** - Close finished work, update in-progress items
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
+   bd dolt pull
    git pull --rebase
-   bd sync
+   bd dolt push
    git push
    git status  # MUST show "up to date with origin"
    ```
@@ -156,10 +160,12 @@ This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full 
 ### Quick Reference
 
 ```bash
+bd dolt pull          # Pull issue history from refs/dolt/data
 bd ready              # Find available work
 bd show <id>          # View issue details
 bd update <id> --claim  # Claim work
 bd close <id>         # Complete work
+bd dolt push          # Push issue history to refs/dolt/data
 ```
 
 ### Rules
@@ -168,7 +174,7 @@ bd close <id>         # Complete work
 - Run `bd prime` for detailed command reference and session close protocol
 - Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
 
-**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md for details and anti-patterns.
+**Architecture in one line:** active issues live in a local Dolt DB and synchronize through `refs/dolt/data`; this repository's tracked `.beads/issues.jsonl` is the canonical legacy provenance archive and must not be overwritten by auto-export. See `.beads/README.md` and https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md.
 
 ## Session Completion
 
@@ -181,7 +187,9 @@ bd close <id>         # Complete work
 3. **Update issue status** - Close finished work, update in-progress items
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
+   bd dolt pull
    git pull --rebase
+   bd dolt push
    git push
    git status  # MUST show "up to date with origin"
    ```

@@ -1,81 +1,106 @@
-# Beads - AI-Native Issue Tracking
+# Beads workflow for haxe.go
 
-Welcome to Beads! This repository uses **Beads** for issue tracking - a modern, AI-native tool designed to live directly in your codebase alongside your code.
+## What it is
 
-## What is Beads?
+Beads is the repository's issue tracker. The local Dolt database is the operational source of truth for `bd list`, `bd show`, `bd ready`, and all issue writes. Its off-machine history is stored separately from source branches under `refs/dolt/data` on the Git origin.
 
-Beads is issue tracking that lives in your repo, making it perfect for AI coding agents and developers who want their issues close to their code. No web UI required - everything works through the CLI and integrates seamlessly with git.
+The Git checkout and the Beads database therefore have separate pull and push operations. A successful `git push` does not imply that a pending Dolt issue update was pushed, and a successful `bd dolt push` does not publish source commits.
 
-**Learn more:** [github.com/steveyegge/beads](https://github.com/steveyegge/beads)
+## Why it exists
 
-## Quick Start
+The tracker preserves the dependency graph, review decisions, acceptance evidence, and persistent memories needed for the long-running Haxe.Go Next program. Keeping issue history in Dolt allows cell-level history and clean bootstrap without turning issue updates into source commits.
 
-### Essential Commands
+This repository also predates the Dolt migration. Its tracked `.beads/issues.jsonl` is the canonical legacy provenance archive, not the active database and not a routine export target. The archive is immutable at:
 
-```bash
-# Create new issues
-bd create "Add user authentication"
+- SHA-256: `0e34e32cb1ac25fdc8592aea85aa5630ca31ab59076b3e33faa6611a4e51911c`
+- 579 unique records: 578 live legacy issues and tombstone `haxe.go-dsn`
 
-# View all issues
-bd list
+The imported Dolt issues preserve live issue IDs, semantic fields, labels, dependency relationships, and comment content. The importer rounded some timestamps, lost the original timezone offset on legacy `closed_at` and dependency timestamps, and regenerated legacy comment IDs. Consult the canonical legacy provenance archive when exact historical metadata matters.
 
-# View issue details
-bd show <issue-id>
+To prevent accidental replacement of that archive, `.beads/config.yaml` intentionally contains:
 
-# Update issue status
-bd update <issue-id> --status in_progress
-bd update <issue-id> --status done
-
-# Sync with git remote
-bd sync
+```yaml
+export.auto: false
+export.git-add: false
+sync.require_confirmation_on_mass_delete: true
 ```
 
-### Working with Issues
+Do not re-enable auto-export until a reviewed migration gives current operational exports a different path and preserves the archive unchanged.
 
-Issues in Beads are:
-- **Git-native**: Stored in `.beads/issues.jsonl` and synced like code
-- **AI-friendly**: CLI-first design works perfectly with AI coding agents
-- **Branch-aware**: Issues can follow your branch workflow
-- **Always in sync**: Auto-syncs with your commits
+## How it works
 
-## Why Beads?
-
-✨ **AI-Native Design**
-- Built specifically for AI-assisted development workflows
-- CLI-first interface works seamlessly with AI coding agents
-- No context switching to web UIs
-
-🚀 **Developer Focused**
-- Issues live in your repo, right next to your code
-- Works offline, syncs when you push
-- Fast, lightweight, and stays out of your way
-
-🔧 **Git Integration**
-- Automatic sync with git commits
-- Branch-aware issue tracking
-- Intelligent JSONL merge resolution
-
-## Get Started with Beads
-
-Try Beads in your own projects:
+At the start of a session:
 
 ```bash
-# Install Beads
-curl -sSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
-
-# Initialize in your repo
-bd init
-
-# Create your first issue
-bd create "Try out Beads"
+bd prime
+bd dolt pull
+bd ready
+bd show <id>
+bd update <id> --claim
 ```
 
-## Learn More
+Use Beads for all work tracking. Add follow-up issues as they are discovered, attach evidence in comments or issue fields, and use `bd remember` for cross-session architectural knowledge. Do not create markdown task lists or `MEMORY.md` substitutes.
 
-- **Documentation**: [github.com/steveyegge/beads/docs](https://github.com/steveyegge/beads/tree/main/docs)
-- **Quick Start Guide**: Run `bd quickstart`
-- **Examples**: [github.com/steveyegge/beads/examples](https://github.com/steveyegge/beads/tree/main/examples)
+Before ending a session:
 
----
+```bash
+# Update or close the active bead first.
+bd dolt pull
+git pull --rebase
+bd dolt push
+git push
+git status --short --branch
+```
 
-*Beads: Issue tracking that moves at the speed of thought* ⚡
+Both histories must be current. `git status` should report the source branch up to date with origin; `bd dolt push` must succeed for issue changes. Preserve unrelated user files and never force-push either history as a routine conflict workaround.
+
+Useful health checks:
+
+```bash
+scripts/beads/check-health.sh
+
+# After bd dolt push and git push, verify both remote histories exactly:
+scripts/beads/check-health.sh --session-close
+
+# Compare local and remote Dolt exports without enforcing Git cleanliness:
+scripts/beads/check-health.sh --verify-remote
+```
+
+The script uses supported read-only commands: `bd config validate`, `bd dep cycles`, `bd lint`, `bd orphans`, `bd vc status --json`, and `bd stats`. Exact remote verification creates a disposable Dolt clone, exports both databases with memories, and compares them byte-for-byte.
+
+`bd doctor` is not supported in embedded mode in bd 1.0.4. `bd config validate` plus the graph/lint/orphan checks are the explicit substitute. `bd preflight --check` currently describes the upstream Beads repository's generic Go/Nix checklist rather than haxe.go's gates, so it is not used as tracker-health evidence here.
+
+## Recovery
+
+For a fresh clone or a missing/stale local database, bootstrap from the Git-hosted Dolt ref:
+
+```bash
+bd bootstrap --yes
+bd stats
+```
+
+If bootstrap warns that tracker files are too broadly readable, run:
+
+```bash
+chmod 700 .beads
+```
+
+For an operator-owned point-in-time backup, use a path outside the repository or a separately administered DoltHub destination. Never commit credentials or a machine-local absolute backup path:
+
+```bash
+bd backup init <external-path-or-DoltHub-url>
+bd backup sync
+
+# In an initialized disposable recovery checkout:
+bd backup restore <backup-path> --force
+bd stats
+```
+
+The validated recovery hierarchy is:
+
+1. `bd dolt pull` for normal collaboration;
+2. `bd bootstrap --yes` for a fresh or missing database;
+3. `bd backup restore` for an explicit point-in-time backup;
+4. `.beads/issues.jsonl` only for exact pre-Dolt legacy provenance.
+
+See the upstream [Beads sync concepts](https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md) for the distinction between Dolt synchronization and JSONL interchange.
