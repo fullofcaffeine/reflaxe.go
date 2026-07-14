@@ -50,7 +50,9 @@ Compilation wiring:
    - `go.mod`
    - generated `.go` files
    - copied runtime directory `hxrt/` from `runtime/hxrt`
-5. Backend runs `go build` by default (unless `-D go_no_build` or `-D go_codegen_only`).
+5. Backend runs `go build` by default and fails compilation if it cannot
+   launch or exits nonzero. `-D go_no_build` and `-D go_codegen_only` are
+   explicit opt-outs for callers that own a separate Go build/test gate.
 
 Key implementation points:
 

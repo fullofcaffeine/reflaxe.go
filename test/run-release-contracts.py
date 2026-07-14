@@ -40,6 +40,7 @@ def main() -> int:
         ["python3", "test/test_perf_warning_summary.py"],
         ["python3", "test/test_portable_parity_closure_contract.py"],
         ["python3", "test/test_portable_governance_contract.py"],
+        ["python3", "test/test_post_generation_build_runner.py"],
         ["python3", "test/test_raw_injection_hygiene_contract.py"],
         ["python3", "test/test_release_readiness_checklist_contract.py"],
         ["python3", "test/test_release_identity_contract.py"],

@@ -17,6 +17,7 @@ import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureInference;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureReason;
 import reflaxe.go.compiler.GoAutoLoweringModeTools;
 import reflaxe.go.compiler.GoBuildContextResolver;
+import reflaxe.go.compiler.GoPostBuildRunner;
 import reflaxe.output.DataAndFileInfo;
 import reflaxe.output.StringOrBytes;
 import sys.FileSystem;
@@ -260,25 +261,11 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		}
 		args.push(".");
 
-		var originalCwd = Sys.getCwd();
-		var code = -1;
-		var commandLabel = goCmd + " " + args.join(" ");
-		try {
-			Sys.setCwd(outDir);
-			code = Sys.command(goCmd, args);
-			Sys.setCwd(originalCwd);
-		} catch (err:Dynamic) {
-			Sys.setCwd(originalCwd);
-			#if eval
-			Context.warning("`" + commandLabel + "` failed with exception: " + Std.string(err), Context.currentPos());
-			#end
-			return;
-		}
-
-		if (code != 0) {
-			#if eval
-			Context.warning("`" + commandLabel + "` failed (exit " + code + ") for output: " + outDir, Context.currentPos());
-			#end
+		var result = GoPostBuildRunner.run(outDir, goCmd, args);
+		switch (result) {
+			case BuildSucceeded:
+			case BuildFailed(_):
+				Context.fatalError(GoPostBuildRunner.failureMessage(goCmd, args, result), Context.currentPos());
 		}
 	}
 

@@ -14,11 +14,17 @@
 ## Build controls
 
 - `go_no_build` or `go_codegen_only`
-  - Codegen only; skip backend `go build` step.
+  - Explicit codegen-only mode; skip the backend-owned `go build` step.
+  - The caller must run its own Go build/test gate before treating the output
+    as successful.
 - `go_cmd=<binary>`
   - Override Go CLI used by backend build step (default: `go`).
 - `go_build_output=<path>`
   - Optional output path passed as `go build -o <path>`.
+- Without a codegen-only define, failure to launch `go build` or any nonzero
+  exit is a fatal Haxe compiler outcome. Child stderr remains visible, while
+  the compiler diagnostic omits generated-output and machine-local command
+  paths.
 - `reflaxe_go_line_directives`
   - Emit `//line <module>.hx:<line>` directives for user functions/constructors so panics and traces resolve to Haxe source locations.
 

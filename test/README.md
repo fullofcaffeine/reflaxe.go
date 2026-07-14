@@ -786,7 +786,11 @@ python3 scripts/examples/sync-generated.py
 ## Strict examples mode
 
 Snapshots compile with `-D reflaxe_go_strict_examples` so app/test code cannot rely on raw `__go__` escape hatches.
-Harness compile steps also force `-D go_no_build`, then run explicit `go test`/`go run` checks to keep stage ownership deterministic.
+Harness compile steps normally force `-D go_no_build`, then run explicit
+`go test`/`go run` checks to keep stage ownership deterministic. A negative
+fixture may include a `backend-build` marker when its contract specifically
+tests the backend-owned build phase; such a fixture must expect compilation to
+fail and must use a deterministic local command.
 
 ## Profile contract checks
 

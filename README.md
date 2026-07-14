@@ -156,7 +156,9 @@ You can override the generated output directory through the dev wrapper:
 npm run dev:hx -- --project examples/tui_todo --profile portable --out /tmp/tui_todo_go --action run
 ```
 
-By default the backend runs `go build` after codegen. Use `-D go_no_build` for codegen-only workflows.
+By default the backend runs `go build` after codegen and fails the Haxe
+invocation if that build cannot launch or exits nonzero. Use `-D go_no_build`
+only for explicit codegen-only workflows that own their Go build/test stage.
 
 ## Related docs
 

@@ -1,0 +1,1 @@
+Post-generation Go build failed: `fail-go-command.sh build .` exited with status 7.

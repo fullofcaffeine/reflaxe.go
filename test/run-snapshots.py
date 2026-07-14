@@ -243,6 +243,10 @@ def should_expect_compile_failure(case: SnapshotCase) -> bool:
     return (case.case_path / "expected.error.txt").exists() or case.case_id.startswith("negative/")
 
 
+def should_run_backend_build(case: SnapshotCase) -> bool:
+    return (case.case_path / "backend-build").is_file()
+
+
 def validate_expected_error(case: SnapshotCase, output: str) -> tuple[bool, str]:
     expected_file = case.case_path / "expected.error.txt"
     if not expected_file.exists():
@@ -522,8 +526,12 @@ def run_case(case: SnapshotCase, args: argparse.Namespace) -> CaseResult:
     try:
         clean_out_dir(case)
 
+        compile_command = ["haxe", "compile.hxml"]
+        if not should_run_backend_build(case):
+            compile_command.extend(["-D", "go_no_build"])
+
         compile_proc = run_command(
-            ["haxe", "compile.hxml", "-D", "go_no_build"],
+            compile_command,
             cwd=case.case_path,
             timeout_s=args.timeout,
             env={"HAXE_NO_SERVER": "1"},
