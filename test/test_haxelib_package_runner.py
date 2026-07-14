@@ -95,6 +95,10 @@ def write_synthetic_source(root: Path) -> None:
         "class Override {}\n",
     )
     write_text(root / "runtime" / "hxrt" / "core.go", "package hxrt\n")
+    write_text(
+        root / "runtime" / "hxrt" / "core_test.go",
+        "package hxrt\n\n// Repository-only runtime test.\n",
+    )
     write_text(root / "runtime" / "hxrt" / "scratch.tmp", "untracked runtime debris\n")
     write_text(
         root / "vendor" / "reflaxe" / "src" / "reflaxe" / "ReflectCompiler.hx",
@@ -191,6 +195,7 @@ class HaxelibPackageRunnerContractTest(unittest.TestCase):
             self.assertFalse((package_root / "std").exists())
             self.assertFalse((package_root / "src" / ".cache").exists())
             self.assertFalse((package_root / "runtime" / "hxrt" / "scratch.tmp").exists())
+            self.assertFalse((package_root / "runtime" / "hxrt" / "core_test.go").exists())
             self.assertFalse(
                 (
                     package_root

@@ -58,9 +58,9 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.Json` | `semantic-diff` | `json_parse_stringify_contract`, `stdlib/json_parse_stringify` |
 | `haxe.io.Bytes` / `haxe.io.BytesBuffer` / `haxe.io.BytesInput` / `haxe.io.BytesOutput` (core ops + Input/Output helper subset) | `semantic-diff` | `bytes_normalization_contract`, `bytes_ops_contract`, `bytes_of_data_contract`, `bytes_hex_contract`, `bytes_io_stream_contract`, `io_input_output_helpers_contract`, `io_input_output_edge_contract`, `stdlib/bytes_basic` |
 | `haxe.io` typed arrays (`ArrayBufferView`, `UInt8Array`, `UInt16Array`, `UInt32Array`, `Int32Array`, `Float32Array`, `Float64Array`) | `semantic-diff` | `haxe_io_typed_arrays_contract`, `stdlib/haxe_io_typed_arrays_direct` |
-| `sys.io.Process` | `semantic-diff` | `process_echo_contract`, `sys/process_echo_smoke` |
+| `sys.io.Process` | `semantic-diff` + `snapshot` | `process_echo_contract`, `process_error_semantics_contract`, `sys/process_echo_smoke`, `sys/process_error_semantics` |
 | `Sys.command` / `Sys.exit` wrapper delegation | `semantic-diff` + `snapshot` | `sys_command_contract`, `sys/sys_command_exit_wrapper` |
-| `sys.io.File` | `semantic-diff` | `file_read_write_contract`, `sys/file_read_write_smoke` |
+| `sys.io.File` | `semantic-diff` + `snapshot` | `file_read_write_contract`, `file_error_semantics_contract`, `sys/file_read_write_smoke`, `sys/file_error_semantics` |
 | `sys.FileSystem` | `semantic-diff` | `filesystem_contract`, `sys/filesystem_basic_smoke` |
 | `sys.net.Address` | `semantic-diff` | `sys_net_address_ssl_digest_algorithm_contract`, `stdlib/sys_net_address_ssl_digest_algorithm_direct` |
 | `sys.net.UdpSocket` | `snapshot` | `stdlib/sys_net_udp_socket_direct` |
@@ -255,11 +255,14 @@ Shim strategy and alternatives are documented in:
 ### `Sys` / `sys.io.File` / `sys.io.Process` ownership contract
 
 - Runtime behavior now lives in `runtime/hxrt/sys.go` and `runtime/hxrt/process.go`:
-  - `hxrt.SysGetCwd`, `hxrt.SysArgs`, `hxrt.SysCommand`, `hxrt.SysExit`
+  - `hxrt.SysGetCwd`, `hxrt.SysArgs`, `hxrt.SysGetEnv`, `hxrt.SysPutEnv`, `hxrt.SysCommand`, `hxrt.SysExit`
   - `hxrt.FileSaveContent`, `hxrt.FileGetContent`
-  - `hxrt.NewProcess`, `Process.Stdout`, `ProcessOutput.ReadLine`, `Process.Close`
-- Compiler-generated `sys` declarations remain as thin wrappers to preserve Haxe type shape and call signatures.
-- `lowerSysStdlibShimDecls` is forwarding-only for this surface; behavior changes must be implemented in runtime and verified by `sys/file_read_write_smoke`, `test/semantic_diff/file_read_write_contract`, `sys/process_echo_smoke`, `test/semantic_diff/process_echo_contract`, `test/semantic_diff/sys_command_contract`, and `sys/sys_command_exit_wrapper`.
+  - `hxrt.NewProcess`; process stdin/stdout/stderr; byte I/O; PID, blocking/non-blocking exit status, kill, and close
+- Compiler-generated `sys` declarations preserve Haxe type shape and call signatures, adapt typed runtime status into Haxe exceptions/EOF/nullable results, and attach the shared `haxe.io.Input`/`Output` helper surface. OS and process behavior remains runtime-owned.
+- Portable `File.getContent` and `File.saveContent` propagate missing-path, permission, directory, and other OS failures through Haxe exceptions; an error is never converted to empty content or apparent success.
+- Process startup and pipe failures throw instead of returning partial objects. Normal EOF is represented by `haxe.io.Eof`, non-EOF read failures remain errors, nonzero child exits remain ordinary exit codes, and `close()` releases/reaps without implicitly killing the child.
+- Portable `Sys.putEnv` deliberately discards the runtime error to match Haxe 4.3.7 eval's `Void`, non-throwing contract. `hxrt.SysPutEnv` still returns the native `os.Setenv`/`os.Unsetenv` error so Go-native facades can preserve it.
+- `lowerSysStdlibShimDecls` is adapter-only for this surface: OS/process behavior changes belong in runtime, while generated type-shape and Haxe error/stream translation remain in the compiler. Verify both sides with `sys/file_read_write_smoke`, `test/semantic_diff/file_read_write_contract`, `sys/file_error_semantics`, `test/semantic_diff/file_error_semantics_contract`, `sys/process_echo_smoke`, `test/semantic_diff/process_echo_contract`, `sys/process_error_semantics`, `test/semantic_diff/process_error_semantics_contract`, `test/semantic_diff/sys_command_contract`, and `sys/sys_command_exit_wrapper`.
 
 ### `sys.FileSystem` shim contract and tradeoffs
 

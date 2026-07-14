@@ -47,15 +47,20 @@ func SysGetEnv(key *string) *string {
 	return StringFromLiteral(value)
 }
 
-func SysPutEnv(key *string, value *string) {
+// SysPutEnv changes one environment entry and reports the native OS failure.
+//
+// Portable Sys.putEnv deliberately ignores this error because the upstream
+// Haxe 4.3.7 eval contract exposes a Void operation that does not throw for an
+// invalid key. Keeping the error in this helper lets native facades preserve Go
+// os.Setenv/os.Unsetenv behavior instead of inheriting that portable contract.
+func SysPutEnv(key *string, value *string) error {
 	if key == nil {
-		return
+		return nil
 	}
 	if value == nil {
-		_ = os.Unsetenv(*key)
-		return
+		return os.Unsetenv(*key)
 	}
-	_ = os.Setenv(*key, *value)
+	return os.Setenv(*key, *value)
 }
 
 func SysCommand(command *string, args []*string) int {
@@ -107,16 +112,18 @@ func SysSystemName() *string {
 	}
 }
 
-func FileSaveContent(path *string, content *string) {
-	_ = os.WriteFile(*StdString(path), []byte(*StdString(content)), 0o644)
+// FileSaveContent stores text without collapsing write failures into success.
+func FileSaveContent(path *string, content *string) error {
+	return os.WriteFile(*StdString(path), []byte(*StdString(content)), 0o644)
 }
 
-func FileGetContent(path *string) *string {
+// FileGetContent returns text and preserves missing, permission, and I/O errors.
+func FileGetContent(path *string) (*string, error) {
 	raw, err := os.ReadFile(*StdString(path))
 	if err != nil {
-		return StringFromLiteral("")
+		return nil, err
 	}
-	return StringFromLiteral(string(raw))
+	return StringFromLiteral(string(raw)), nil
 }
 
 func OpenFileInput(path *string) (*FileInput, error) {

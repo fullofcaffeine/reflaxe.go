@@ -90,7 +90,7 @@ The repo-wide rule for deciding ownership lives in `docs/ownership-rubric.md`.
 | Shim group | Primary surfaces | Compiler LOC | Highest CI tier | Decision | Reason | Follow-up |
 | --- | --- | ---: | --- | --- | --- | --- |
 | `json` | `haxe.Json`, `haxe.format.JsonParser/JsonPrinter` | 38 | Snapshot | Migrated (canonical staged std + runtime-owned behavior) | Staged std source under `std/go/_std/**` owns JSON API surfaces; behavior delegates to `hxrt.JsonParse`/`hxrt.JsonStringify`. | `haxe.go-7zy.10`, `haxe.go-cgk.5` |
-| `sys` | `Sys`, `sys.io.File`, `sys.io.Process` | 89 | Snapshot | Migrated (runtime-owned wrappers) | Behavior now lives in `hxrt.Sys*`/`hxrt.File*`/`hxrt.Process*`; compiler shim generation is reduced to thin wrapper/type-shape forwarding. Direct `sys.io.FileInput` / `FileOutput` / `FileSeek` parity now also rides on this layer through runtime-backed open/read/write/seek/tell/eof helpers. | `haxe.go-7zy.11` (completed 2026-02-19), `haxe.go-14as.17` |
+| `sys` | `Sys`, `sys.io.File`, `sys.io.Process` | 89 | Snapshot | Migrated (runtime-owned behavior) | Behavior now lives in `hxrt.Sys*`/`hxrt.File*`/`hxrt.Process*`; compiler shim generation retains type shape, Haxe error/EOF translation, and shared IO-helper adapters. Direct `sys.io.FileInput` / `FileOutput` / `FileSeek` parity also rides on this layer through runtime-backed open/read/write/seek/tell/eof helpers. | `haxe.go-7zy.11` (completed 2026-02-19), `haxe.go-14as.17` |
 | `io` | `haxe.io.Bytes`, buffers, input/output base wiring | 108 | Snapshot + semantic-diff dependency | Split: keep representation-sensitive core, migrate algorithmic helpers when parity is proven | Shared representation boundary still matters for bytes shape and inherited IO types, but the generic helper loops no longer need to stay in `GoCompiler`. `Bytes.ofHex`, `Bytes.toHex`, and `BytesBuffer` leaf operations now live in `hxrt`; inherited `Input` / `Output` loop helpers now live in staged source (`std/haxe/io/GoIoHelpers.hx`); RawNative/cache-coupled string helpers and numeric IO primitives remain compiler-owned because they co-own raw-native mode dispatch plus `__hx_raw` cache validity used by downstream raw-byte consumers. | `haxe.go-czm`, `haxe.go-14as.50`, `haxe.go-14as.51`, `haxe.go-14as.52`, `haxe.go-14as.54` |
 | `ds` | `haxe.ds.*Map`, `List`, enum maps | 149 | Snapshot + semantic-diff dependency | Keep (for now) | Serializer and HTTP contracts rely on deterministic generated map/list shapes. | - |
 | `http` | `sys.Http` request/callback/proxy contract | 542 | Semantic-diff | Keep core choreography; extract source-owned leaf helpers cautiously | Request sequencing, callback timing, and response/body normalization are still one semantic contract. `getResponseHeaderValues` and payload capture now live in a staged helper (`std/sys/GoHttpHelpers.hx`) via framework-owned `__go__`, while request lifecycle and proxy URL construction remain compiler-owned. | `haxe.go-14as.50`, `haxe.go-14as.53` |
@@ -153,9 +153,10 @@ architecture instead of copying Go-specific metadata names or helper shapes.
 
 ## Ownership Boundary (Post `haxe.go-7zy.11`)
 
-- `runtime/hxrt/sys.go` and `runtime/hxrt/process.go` own `Sys`/`sys.io.File`/`sys.io.Process` behavior (OS args/cwd, command delegation/exit, file reads/writes, process launch/stdout/close).
-- `src/reflaxe/go/GoCompiler.hx` owns lowering and generated type-shape wrappers only for this surface.
-- `lowerSysStdlibShimDecls` must remain forwarding-only unless a behavior change is intentionally re-centralized and justified with parity/perf evidence.
+- `runtime/hxrt/sys.go` and `runtime/hxrt/process.go` own `Sys`/`sys.io.File`/`sys.io.Process` behavior (OS args/environment/cwd, command delegation/exit, fallible file reads/writes, process launch and all three streams, PID/exit status, kill, and non-killing close/reap).
+- `src/reflaxe/go/GoCompiler.hx` owns lowering, generated type shape, and translation from typed runtime status into Haxe exception/EOF/nullable stream contracts for this surface.
+- `lowerSysStdlibShimDecls` must remain adapter-only: OS/process behavior belongs in `hxrt` unless a change is intentionally re-centralized and justified with parity/perf evidence.
+- Portable `Sys.putEnv` explicitly discards the error retained by `hxrt.SysPutEnv` because Haxe 4.3.7 eval exposes a non-throwing `Void` contract; native Go-facing APIs may consume that error directly.
 
 ## Measured Tradeoff: Shim vs Simpler Path
 

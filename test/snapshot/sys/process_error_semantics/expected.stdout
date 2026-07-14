@@ -1,0 +1,17 @@
+startup.throws=true
+empty.line=true
+empty.eof=true
+empty.code=0
+shell.line=shell-form
+shell.code=0
+pid.positive=true
+stdin.stdout=out:hello
+stderr.line=err:hello
+exit.code=7
+long.length=70000
+long.code=0
+nonblock.running=true
+nonblock.code=9
+kill.nonzero=true
+close.keeps.running=true
+detached.throws=true

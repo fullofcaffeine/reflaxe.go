@@ -177,6 +177,8 @@ def validate_layout(files: dict[str, bytes]) -> None:
             raise ArtifactVerificationError(f"unexpected package root: {parts[0]}")
         if any(segment in FORBIDDEN_SEGMENTS for segment in parts) or ".DS_Store" in parts:
             raise ArtifactVerificationError(f"development debris is not allowed: {name}")
+        if parts[0] == "runtime" and name.endswith("_test.go"):
+            raise ArtifactVerificationError(f"repository-only runtime test is not allowed: {name}")
 
 
 def parse_json(files: dict[str, bytes], name: str) -> dict[str, object]:

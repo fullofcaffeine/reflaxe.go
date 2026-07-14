@@ -480,7 +480,11 @@ class CanonicalStdSelectionBehaviorTest(unittest.TestCase):
             write_canonical_package(package_root, source_root)
             shutil.copytree(source_root / "src", package_root / "src", dirs_exist_ok=True)
             shutil.copytree(source_root / "vendor" / "reflaxe", package_root / "vendor" / "reflaxe")
-            shutil.copytree(source_root / "runtime", package_root / "runtime")
+            shutil.copytree(
+                source_root / "runtime",
+                package_root / "runtime",
+                ignore=shutil.ignore_patterns("*_test.go"),
+            )
             write_package_manifest(package_root, source_root)
             self.assertEqual([], audit_source_layout(source_root))
             self.assertEqual([], audit_package_layout(package_root, source_root))

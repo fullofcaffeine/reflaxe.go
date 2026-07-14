@@ -5150,12 +5150,22 @@ class GoCompiler {
 				{
 					name: "impl",
 					typeName: "*hxrt.ProcessOutput"
-				}
+				},
+				{name: "__hx_io_bigEndian", typeName: "bool"}
+			]),
+			GoDecl.GoStructDecl("sys__io__ProcessInput", [
+				{
+					name: "impl",
+					typeName: "*hxrt.ProcessInput"
+				},
+				{name: "__hx_io_bigEndian", typeName: "bool"}
 			]),
 			GoDecl.GoStructDecl("sys__io__Process",
 				[
 					{name: "impl", typeName: "*hxrt.Process"},
-					{name: "stdout", typeName: "*sys__io__ProcessOutput"}
+					{name: "stdout", typeName: "*sys__io__ProcessOutput"},
+					{name: "stderr", typeName: "*sys__io__ProcessOutput"},
+					{name: "stdin", typeName: "*sys__io__ProcessInput"}
 				]),
 			GoDecl.GoGlobalVarDecl("sys__io__fileInputHandles", "map[*sys__io__FileInput]*hxrt.FileInput",
 				GoExpr.GoRaw("map[*sys__io__FileInput]*hxrt.FileInput{}")),
@@ -5193,6 +5203,9 @@ class GoCompiler {
 			], ["*string"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysGetEnv"), [GoExpr.GoIdent("key")]))
 			]),
+			// Haxe 4.3.7's eval target exposes putEnv as a Void operation and does not
+			// throw for invalid environment keys. Discard the hxrt error explicitly for
+			// portable parity; native Go facades can consume the same helper's error.
 			GoDecl.GoFuncDecl("Sys_putEnv", null, [
 				{
 					name: "key",
@@ -5200,7 +5213,8 @@ class GoCompiler {
 				},
 				{name: "value", typeName: "*string"}
 			], [], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysPutEnv"), [GoExpr.GoIdent("key"), GoExpr.GoIdent("value")]))
+				GoStmt.GoAssign(GoExpr.GoIdent("_"),
+					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysPutEnv"), [GoExpr.GoIdent("key"), GoExpr.GoIdent("value")]))
 			]),
 			GoDecl.GoFuncDecl("Sys_systemName", null, [], ["*string"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysSystemName"), []))
@@ -5212,8 +5226,9 @@ class GoCompiler {
 				},
 				{name: "content", typeName: "*string"}
 			], [], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "FileSaveContent"),
-					[GoExpr.GoIdent("path"), GoExpr.GoIdent("content")]))
+				GoStmt.GoRaw("if err := hxrt.FileSaveContent(path, content); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("}")
 			]),
 			GoDecl.GoFuncDecl("sys__io__File_getContent", null, [
 				{
@@ -5221,7 +5236,12 @@ class GoCompiler {
 					typeName: "*string"
 				}
 			], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "FileGetContent"), [GoExpr.GoIdent("path")]))
+				GoStmt.GoRaw("content, err := hxrt.FileGetContent(path)"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"\")"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("content"))
 			]),
 			GoDecl.GoFuncDecl("sys__io__File_getBytes", null, [
 				{
@@ -5397,37 +5417,262 @@ class GoCompiler {
 					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
 					GoStmt.GoRaw("}")
 				]),
+			// Haxe emits optional constructor arguments at call-site arity. The small
+			// `...any` island is therefore localized to decoding the typed Array<String>
+			// and Bool optionals before the runtime boundary.
 			GoDecl.GoFuncDecl("New_sys__io__Process", null, [
 				{
 					name: "command",
 					typeName: "*string"
 				},
-				{name: "args", typeName: "[]*string"}
+				{name: "optional", typeName: "...any"}
 			], ["*sys__io__Process"], [
-				GoStmt.GoVarDecl("impl", null,
-					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "NewProcess"), [GoExpr.GoIdent("command"), GoExpr.GoIdent("args")]), true),
-				GoStmt.GoVarDecl("stdout", null, GoExpr.GoRaw("&sys__io__ProcessOutput{}"), true),
-				GoStmt.GoRaw("if impl != nil {"),
-				GoStmt.GoRaw("\tstdout.impl = impl.Stdout()"),
+				GoStmt.GoRaw("var args []*string"),
+				GoStmt.GoRaw("detached := false"),
+				GoStmt.GoRaw("if len(optional) > 0 && optional[0] != nil {"),
+				GoStmt.GoRaw("\targs = optional[0].([]*string)"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoRaw("&sys__io__Process{impl: impl, stdout: stdout}"))
+				GoStmt.GoRaw("if len(optional) > 1 && optional[1] != nil {"),
+				GoStmt.GoRaw("\tdetached = optional[1].(bool)"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if detached {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Detached process is not supported on this platform\"))"),
+				GoStmt.GoRaw("\treturn &sys__io__Process{}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("impl, err := hxrt.NewProcess(command, args)"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn &sys__io__Process{}"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoRaw("&sys__io__Process{impl: impl, stdout: &sys__io__ProcessOutput{impl: impl.Stdout()}, stderr: &sys__io__ProcessOutput{impl: impl.Stderr()}, stdin: &sys__io__ProcessInput{impl: impl.Stdin()}}"))
 			]),
-			GoDecl.GoFuncDecl("readLine", {
+			GoDecl.GoFuncDecl("get_bigEndian", {
 				name: "self",
 				typeName: "*sys__io__ProcessOutput"
-			}, [], ["*string"], [
-				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.impl == nil"), [
-					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
-				],
-					null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "impl"), "ReadLine"), []))
+			}, [], ["bool"], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null),
+				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_io_bigEndian"))
+			]),
+			GoDecl.GoFuncDecl("set_bigEndian", {
+				name: "self",
+				typeName: "*sys__io__ProcessOutput"
+			}, [{name: "e", typeName: "bool"}], ["bool"], [
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("self"), GoExpr.GoNil), [
+					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_io_bigEndian"), GoExpr.GoIdent("e"))
+				], null),
+				GoStmt.GoReturn(GoExpr.GoIdent("e"))
+			]),
+			GoDecl.GoFuncDecl("readByte", {
+				name: "self",
+				typeName: "*sys__io__ProcessOutput"
+			}, [], ["int"], [
+				GoStmt.GoRaw("if self == nil || self.impl == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Process output is closed\"))"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("value, eof, err := self.impl.ReadByte()"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if eof {"),
+				GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("value"))
+			]),
+			GoDecl.GoFuncDecl("readBytes", {
+				name: "self",
+				typeName: "*sys__io__ProcessOutput"
+			}, [
+				{name: "buf", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoRaw("if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("k := 0"),
+				GoStmt.GoRaw("for k < len {"),
+				GoStmt.GoRaw("\tvalue := 0"),
+				GoStmt.GoRaw("\tthrew := false"),
+				GoStmt.GoRaw("\tvar thrown any"),
+				GoStmt.GoRaw("\tfunc() {"),
+				GoStmt.GoRaw("\t\tdefer func() {"),
+				GoStmt.GoRaw("\t\t\tif recovered := recover(); recovered != nil {"),
+				GoStmt.GoRaw("\t\t\t\tthrew = true"),
+				GoStmt.GoRaw("\t\t\t\tthrown = hxrt.UnwrapException(recovered)"),
+				GoStmt.GoRaw("\t\t\t}"),
+				GoStmt.GoRaw("\t\t}()"),
+				GoStmt.GoRaw("\t\tvalue = self.readByte()"),
+				GoStmt.GoRaw("\t}()"),
+				GoStmt.GoRaw("\tif threw {"),
+				GoStmt.GoRaw("\t\tif haxe__io__input_isEof(thrown) && k > 0 {"),
+				GoStmt.GoRaw("\t\t\treturn k"),
+				GoStmt.GoRaw("\t\t}"),
+				GoStmt.GoRaw("\t\thxrt.Throw(thrown)"),
+				GoStmt.GoRaw("\t\treturn 0"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\tbuf.b[pos+k] = value"),
+				GoStmt.GoRaw("\tk++"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("return len")
+			]),
+			GoDecl.GoFuncDecl("close", {
+				name: "self",
+				typeName: "*sys__io__ProcessOutput"
+			}, [], [], [
+				GoStmt.GoRaw("if self == nil || self.impl == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if err := self.impl.Close(); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "impl"), GoExpr.GoNil)
+			]),
+			GoDecl.GoFuncDecl("get_bigEndian", {
+				name: "self",
+				typeName: "*sys__io__ProcessInput"
+			}, [], ["bool"], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null),
+				GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_io_bigEndian"))
+			]),
+			GoDecl.GoFuncDecl("set_bigEndian", {
+				name: "self",
+				typeName: "*sys__io__ProcessInput"
+			}, [{name: "e", typeName: "bool"}], ["bool"], [
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("self"), GoExpr.GoNil), [
+					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_io_bigEndian"), GoExpr.GoIdent("e"))
+				], null),
+				GoStmt.GoReturn(GoExpr.GoIdent("e"))
+			]),
+			GoDecl.GoFuncDecl("writeByte", {
+				name: "self",
+				typeName: "*sys__io__ProcessInput"
+			}, [{name: "c", typeName: "int"}], [], [
+				GoStmt.GoRaw("if self == nil || self.impl == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if err := self.impl.WriteByte(c); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(&haxe__io__Eof{})"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("writeBytes", {
+				name: "self",
+				typeName: "*sys__io__ProcessInput"
+			}, [
+				{name: "s", typeName: "*haxe__io__Bytes"},
+				{name: "pos", typeName: "int"},
+				{name: "len", typeName: "int"}
+			], ["int"], [
+				GoStmt.GoRaw("if s == nil || pos < 0 || len < 0 || pos+len > s.length {"),
+				GoStmt.GoRaw("\thxrt.Throw(haxe__io__Error_OutsideBounds)"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("written := len"),
+				GoStmt.GoRaw("for len > 0 {"),
+				GoStmt.GoRaw("\tself.writeByte(s.b[pos])"),
+				GoStmt.GoRaw("\tpos++"),
+				GoStmt.GoRaw("\tlen--"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("written"))
+			]),
+			GoDecl.GoFuncDecl("flush", {
+				name: "self",
+				typeName: "*sys__io__ProcessInput"
+			}, [], [], [
+				GoStmt.GoRaw("if self == nil || self.impl == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if err := self.impl.Flush(); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("}")
+			]),
+			GoDecl.GoFuncDecl("prepare", {
+				name: "self",
+				typeName: "*sys__io__ProcessInput"
+			}, [{name: "nbytes", typeName: "int"}], [], [
+				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("self")),
+				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("nbytes"))
+			]),
+			GoDecl.GoFuncDecl("close", {
+				name: "self",
+				typeName: "*sys__io__ProcessInput"
+			}, [], [], [
+				GoStmt.GoRaw("if self == nil || self.impl == nil {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if err := self.impl.Close(); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "impl"), GoExpr.GoNil)
+			]),
+			GoDecl.GoFuncDecl("getPid", {
+				name: "self",
+				typeName: "*sys__io__Process"
+			}, [], ["int"], [
+				GoStmt.GoRaw("if self == nil || self.impl == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Process is closed\"))"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("pid, err := self.impl.GetPid()"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn 0"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("pid"))
+			]),
+			// Null<Int> has to carry either an available Go int or nil. Keep `any`
+			// confined to this generated return boundary; hxrt itself returns typed
+			// (code, available, error) values.
+			GoDecl.GoFuncDecl("exitCode", {
+				name: "self",
+				typeName: "*sys__io__Process"
+			}, [{name: "block", typeName: "...bool"}], ["any"], [
+				GoStmt.GoRaw("if self == nil || self.impl == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Process is closed\"))"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("shouldBlock := true"),
+				GoStmt.GoRaw("if len(block) > 0 {"),
+				GoStmt.GoRaw("\tshouldBlock = block[0]"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("code, available, err := self.impl.ExitCode(shouldBlock)"),
+				GoStmt.GoRaw("if err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if !available {"),
+				GoStmt.GoRaw("\treturn nil"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoReturn(GoExpr.GoIdent("code"))
+			]),
+			GoDecl.GoFuncDecl("kill", {
+				name: "self",
+				typeName: "*sys__io__Process"
+			}, [], [], [
+				GoStmt.GoRaw("if self == nil || self.impl == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Process is closed\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if err := self.impl.Kill(); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("}")
 			]),
 			GoDecl.GoFuncDecl("close", {
 				name: "self",
 				typeName: "*sys__io__Process"
 			}, [], [], [
 				GoStmt.GoIf(GoExpr.GoRaw("self == nil || self.impl == nil"), [GoStmt.GoReturn(null)], null),
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "impl"), "Close"), []))
+				GoStmt.GoRaw("if err := self.impl.Close(); err != nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(err.Error()))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "impl"), GoExpr.GoNil)
 			])
 		];
 
@@ -5649,6 +5894,7 @@ class GoCompiler {
 			"readString"
 		]) {
 			decls.push(lowerIoInputSyntheticHelper("*sys__io__FileInput", methodName));
+			decls.push(lowerIoInputSyntheticHelper("*sys__io__ProcessOutput", methodName));
 		}
 
 		for (methodName in [
@@ -5666,6 +5912,7 @@ class GoCompiler {
 			"writeString"
 		]) {
 			decls.push(lowerIoOutputSyntheticHelper("*sys__io__FileOutput", methodName));
+			decls.push(lowerIoOutputSyntheticHelper("*sys__io__ProcessInput", methodName));
 		}
 
 		if (requiredStdlibShimGroups.exists("ds")) {

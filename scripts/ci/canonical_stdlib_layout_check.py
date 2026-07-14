@@ -448,6 +448,8 @@ def audit_package_map_manifest(package_root: Path, source_root: Path) -> list[Vi
     runtime_root = source_root / "runtime"
     if runtime_root.is_dir():
         for source in sorted(runtime_root.rglob("*.go")):
+            if source.name.endswith("_test.go"):
+                continue
             source_path = relative_display(source, source_root)
             expected_source_mappings[source_path] = (source_path, "runtime")
     vendored_source_root = source_root / "vendor" / "reflaxe" / "src"

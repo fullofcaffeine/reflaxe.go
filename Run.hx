@@ -461,12 +461,28 @@ private class PackageBuilder {
 			if (requiredSuffix != null && !StringTools.endsWith(sourceRelative, requiredSuffix)) {
 				continue;
 			}
+			if (isRepositoryOnlyRuntimeTest(sourceRelative, kind)) {
+				continue;
+			}
 			if ((kind == PackageEntryKind.ClassPath || kind == PackageEntryKind.Stdlib)
 				&& StringTools.endsWith(sourceRelative, ".cross.hx")) {
 				throw new PackageBuildError('source class paths must not contain generated .cross.hx files: ${source}');
 			}
 			copyMappedFile(source, Path.join([packagePrefix, sourceRelative]), kind);
 		}
+	}
+
+	/**
+		What: identifies Go tests that belong only to this compiler repository.
+
+		Why: Haxelib consumers need the runtime implementation, but shipping hxrt's
+		unit tests would add development-only processes and fixtures to every install.
+
+		How: exclude only conventional `_test.go` files while walking the explicitly
+		classified runtime tree; ordinary runtime `.go` files remain packaged.
+	**/
+	function isRepositoryOnlyRuntimeTest(sourceRelative:String, kind:PackageEntryKind):Bool {
+		return kind == PackageEntryKind.Runtime && StringTools.endsWith(sourceRelative, "_test.go");
 	}
 
 	function collectFiles(root:String, excludedRoots:Array<String>):Array<String> {

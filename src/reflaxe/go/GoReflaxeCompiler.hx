@@ -333,6 +333,11 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 	}
 
 	function shouldCopyRuntimeFileInFullMode(fileName:String, buildContext:GoBuildContext):Bool {
+		if (StringTools.endsWith(fileName, "_test.go")) {
+			// Runtime unit tests validate hxrt in the compiler repository; they are not
+			// dependencies of generated user modules.
+			return false;
+		}
 		return switch (fileName) {
 			case "stack.go":
 				// Native stack capture pulls in Go runtime frame machinery and must remain

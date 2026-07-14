@@ -1,0 +1,6 @@
+missing.read.throws=true
+directory.read.throws=true
+directory.write.throws=true
+environment.invalid.throws=false
+permission.read.throws=true
+permission.write.throws=true

@@ -80,9 +80,11 @@ Key implementation points:
 - JSON wrappers:
   - `JsonParse`, `JsonStringify`
 - System/file/process wrappers:
-  - `SysGetCwd`, `SysArgs`, `SysCommand`, `SysExit`
+  - `SysGetCwd`, `SysArgs`, `SysGetEnv`, `SysPutEnv`, `SysCommand`, `SysExit`
   - `FileSaveContent`, `FileGetContent`
-  - `NewProcess`, `Process.Stdout`, `ProcessOutput.ReadLine`, `Process.Close`
+  - `NewProcess`; process stdin/stdout/stderr; byte I/O; PID, blocking/non-blocking exit status, kill, and close
+
+These helpers preserve native failures at the runtime boundary. Portable file wrappers turn read/write failures into Haxe exceptions, while process startup and non-EOF read failures remain distinct from normal EOF and child exit codes. Portable `Sys.putEnv` is the intentional exception: its compiler wrapper discards `SysPutEnv`'s returned error to match the upstream Haxe 4.3.7 eval contract, leaving the error available to typed Go-native bindings.
 - Byte representation helpers:
   - `BytesFromString`, `BytesToString`, `BytesClone`
 
