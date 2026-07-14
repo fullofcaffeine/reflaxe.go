@@ -56,4 +56,11 @@ Repeat `--ci-run` for the quality, compiler harness, generated-example, static-a
 
 If Repomix's heuristic scanner omits a tracked test fixture, the builder records the exact path and copies the raw file into a separate `repomix-security-exclusions` payload after the full bundle passes Gitleaks. Reviewers must treat that as an upload-view limitation, not infer that the source file is missing.
 
-The resulting ZIP lives under ignored `dist/review/`; its small, auditable evidence record belongs in this directory. The review prompt and final adjudication will be committed alongside that record in later Beads slices.
+The resulting ZIP lives under ignored `dist/review/`; its small, auditable evidence record belongs in this directory.
+
+Review entrypoints:
+
+- [canonical evidence identity and audit record](evidence-cd79624f.md);
+- [evidence-bound GPT-5.6 Pro review prompt](review-prompt-cd79624f.md).
+
+The final review and local finding-by-finding adjudication will be committed here by the next Beads slice.

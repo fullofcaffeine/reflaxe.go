@@ -16,6 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 BUILDER = REPO_ROOT / "scripts" / "review" / "build_gpt56_evidence.py"
 REVIEW_README = REPO_ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "README.md"
 EVIDENCE_RECORD = REPO_ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "evidence-cd79624f.json"
+REVIEW_PROMPT = REPO_ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "review-prompt-cd79624f.md"
 RELEASE_CONTRACT_RUNNER = REPO_ROOT / "test" / "run-release-contracts.py"
 
 
@@ -186,6 +187,80 @@ class ReviewEvidenceBundleContractTest(unittest.TestCase):
         self.assertTrue(record["repomix"]["raw_companions_included"])
         self.assertEqual(record["roadmap"]["total_issues"], 663)
         self.assertEqual(record["roadmap"]["dependency_cycle_count"], 0)
+
+    def test_review_prompt_is_evidence_bound_go_specific_and_adjudicable(self) -> None:
+        text = REVIEW_PROMPT.read_text(encoding="utf-8")
+
+        for exact_identity in [
+            "cd79624f855521dbf320ac2b7524d889ca388c0e",
+            "ab4b0a1097229ad2202ca7da6c092b2b85cba537522951fb625f6b1312c4b511",
+            "haxe-go-gpt56-evidence-cd79624f.zip",
+            "5b8c9416f963e541229e633a2bb655a93e3e9c16",
+            "08faba040457165b883ae5327315581979ea07db",
+            "68625fa91ffff48c5ffb269bff01c6f3e716128c",
+        ]:
+            self.assertIn(exact_identity, text)
+
+        for verdict in [
+            "bounded production use now",
+            "stable 1.x compatibility promise",
+            "compiler architecture",
+            "portable-specialization direction",
+            "Go-native authoring experience",
+            "generated-Go output quality",
+            "release and distribution integrity",
+        ]:
+            self.assertIn(verdict, text)
+
+        for product_rule in [
+            "Portable is the default product path",
+            "Go-native by opt-in",
+            "metal-like generated Go whenever",
+            "typed externs/facades",
+            "macros only for genuine Haxe syntax gaps",
+            "AST-first",
+            "staged target `_std`",
+        ]:
+            self.assertIn(product_rule, text)
+
+        for audit_term in [
+            "## Known facts",
+            "## Open hypotheses",
+            "canonical `_std`",
+            "GoRaw",
+            "Haxe 4.3.7",
+            "Go memory model",
+            "panic/recover",
+            "go.Select",
+            "go.Result",
+            "gofmt",
+            "go vet",
+            "staticcheck",
+            "race detector",
+            "govulncheck",
+            "SemVer",
+            "false positive",
+            "accepted / rejected / duplicate / deferred / evidence-gap",
+        ]:
+            self.assertIn(audit_term, text)
+
+        for finding_field in [
+            "violated invariant",
+            "repository-relative file and exact line range",
+            "concrete failure scenario",
+            "minimal root-cause fix or scope disposition",
+            "exact regression or empirical evidence required",
+            "existing Bead or milestone placement",
+        ]:
+            self.assertIn(finding_field, text)
+
+        for epic in range(4, 13):
+            self.assertIn(f"`haxe_go-vfp.{epic}`", text)
+
+        self.assertIn("The Git archive is the source authority", text)
+        self.assertIn("Do not implement changes", text)
+        self.assertIn("Do not write “add more tests”", text)
+        self.assertIn("precedent, not proof", text)
 
     def test_contract_is_registered_in_release_checks(self) -> None:
         runner = RELEASE_CONTRACT_RUNNER.read_text(encoding="utf-8")
