@@ -12,8 +12,9 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+import hashlib
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 from typing import Iterable
 
@@ -26,6 +27,23 @@ EXPECTED_SOURCE_CLASS_PATHS = [
 ]
 LEGACY_SUPPORT_CLASS_PATH = "${SCOPE_DIR}/std/_std"
 EXPECTED_REFLAXE_CLASS_PATH = "${SCOPE_DIR}/vendor/reflaxe/src"
+PACKAGE_MAP_MANIFEST = "reflaxe-package-manifest.json"
+EXPECTED_ARCHIVE_POLICY = {
+    "compression": "stored",
+    "fileMode": "0644",
+    "ordering": "utf8-bytewise",
+    "timestamp": "2000-01-01T00:00:00Z",
+}
+EXPECTED_PACKAGE_ENTRY_KINDS = {
+    "class-path",
+    "metadata",
+    "package-runner",
+    "runtime",
+    "stdlib",
+    "stdlib-override",
+    "vendored-reflaxe",
+}
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
 TEXT_SUFFIXES = {
     ".go",
     ".hxml",
@@ -110,6 +128,28 @@ def read_json_object(path: Path) -> dict[str, object] | None:
     except (OSError, json.JSONDecodeError):
         return None
     return value if isinstance(value, dict) else None
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def safe_manifest_path(value: object) -> str | None:
+    if not isinstance(value, str) or not value or "\\" in value or "\0" in value:
+        return None
+    path = PurePosixPath(value)
+    if (
+        path.is_absolute()
+        or path.as_posix() != value
+        or any(segment in {"", ".", ".."} for segment in path.parts)
+        or (len(value) >= 2 and value[0].isalpha() and value[1] == ":")
+    ):
+        return None
+    return value
 
 
 def text_files(root: Path) -> Iterable[Path]:
@@ -299,6 +339,156 @@ def expected_packaged_ordinary_files(source_root: Path) -> set[str]:
     return expected
 
 
+def audit_package_map_manifest(package_root: Path, source_root: Path) -> list[Violation]:
+    manifest_path = package_root / PACKAGE_MAP_MANIFEST
+    manifest = read_json_object(manifest_path)
+    if manifest is None:
+        return [
+            Violation(
+                "package-map-manifest",
+                PACKAGE_MAP_MANIFEST,
+                "package must contain a valid deterministic source-to-package manifest",
+            )
+        ]
+
+    problems: list[str] = []
+    if (
+        manifest.get("schemaVersion") != 1
+        or manifest.get("format") != "reflaxe.go-haxelib-package"
+        or manifest.get("classPath") != "src"
+        or manifest.get("archive") != EXPECTED_ARCHIVE_POLICY
+    ):
+        problems.append("header or archive policy is not canonical")
+
+    raw_entries = manifest.get("entries")
+    if not isinstance(raw_entries, list):
+        problems.append("entries must be an array")
+        raw_entries = []
+
+    package_paths: list[str] = []
+    entries_by_source: dict[str, dict[str, object]] = {}
+    for index, raw_entry in enumerate(raw_entries):
+        if not isinstance(raw_entry, dict):
+            problems.append(f"entry {index} is not an object")
+            continue
+        source_path = safe_manifest_path(raw_entry.get("sourcePath"))
+        package_path = safe_manifest_path(raw_entry.get("packagePath"))
+        kind = raw_entry.get("kind")
+        source_digest = raw_entry.get("sourceSha256")
+        package_digest = raw_entry.get("packageSha256")
+        size = raw_entry.get("size")
+        if source_path is None or package_path is None:
+            problems.append(f"entry {index} contains an unsafe path")
+            continue
+        package_paths.append(package_path)
+        if source_path in entries_by_source:
+            problems.append(f"duplicate source mapping: {source_path}")
+        entries_by_source[source_path] = raw_entry
+        if kind not in EXPECTED_PACKAGE_ENTRY_KINDS:
+            problems.append(f"entry {package_path} has an unknown kind")
+        if not isinstance(source_digest, str) or not SHA256.fullmatch(source_digest):
+            problems.append(f"entry {package_path} has an invalid source hash")
+        if not isinstance(package_digest, str) or not SHA256.fullmatch(package_digest):
+            problems.append(f"entry {package_path} has an invalid package hash")
+        if not isinstance(size, int) or isinstance(size, bool) or size < 0:
+            problems.append(f"entry {package_path} has an invalid size")
+
+        source_file = source_root.joinpath(*PurePosixPath(source_path).parts)
+        package_file = package_root.joinpath(*PurePosixPath(package_path).parts)
+        if not source_file.is_file():
+            problems.append(f"entry source is missing: {source_path}")
+        elif isinstance(source_digest, str) and sha256(source_file) != source_digest:
+            problems.append(f"entry source hash differs: {source_path}")
+        if not package_file.is_file():
+            problems.append(f"entry package file is missing: {package_path}")
+        else:
+            if isinstance(package_digest, str) and sha256(package_file) != package_digest:
+                problems.append(f"entry package hash differs: {package_path}")
+            if isinstance(size, int) and not isinstance(size, bool) and package_file.stat().st_size != size:
+                problems.append(f"entry package size differs: {package_path}")
+
+    expected_order = sorted(package_paths, key=lambda value: value.encode("utf-8"))
+    if package_paths != expected_order:
+        problems.append("entries are not sorted by UTF-8 package path")
+    if len(package_paths) != len(set(package_paths)):
+        problems.append("package paths are not unique")
+
+    actual_package_files = {
+        relative_display(path, package_root)
+        for path in package_root.rglob("*")
+        if path.is_file() and path != manifest_path
+    }
+    if set(package_paths) != actual_package_files:
+        missing = sorted(actual_package_files - set(package_paths))
+        stale = sorted(set(package_paths) - actual_package_files)
+        problems.append(f"file coverage differs (unmapped={missing!r}, stale={stale!r})")
+
+    expected_source_mappings: dict[str, tuple[str, str]] = {}
+    class_path_root = source_root / "src"
+    if class_path_root.is_dir():
+        for source in sorted(class_path_root.rglob("*.hx")):
+            source_path = relative_display(source, source_root)
+            expected_source_mappings[source_path] = (source_path, "class-path")
+    canonical_root = source_root / "std" / "go" / "_std"
+    if canonical_root.is_dir():
+        for source in sorted(canonical_root.rglob("*.hx")):
+            source_path = relative_display(source, source_root)
+            package_path = (
+                Path("src") / source.relative_to(canonical_root).with_suffix(".cross.hx")
+            ).as_posix()
+            expected_source_mappings[source_path] = (package_path, "stdlib-override")
+    std_root = source_root / "std"
+    if std_root.is_dir():
+        for source in sorted(std_root.rglob("*.hx")):
+            if source.is_relative_to(canonical_root):
+                continue
+            source_path = relative_display(source, source_root)
+            package_path = (Path("src") / source.relative_to(std_root)).as_posix()
+            expected_source_mappings[source_path] = (package_path, "stdlib")
+    runtime_root = source_root / "runtime"
+    if runtime_root.is_dir():
+        for source in sorted(runtime_root.rglob("*.go")):
+            source_path = relative_display(source, source_root)
+            expected_source_mappings[source_path] = (source_path, "runtime")
+    vendored_source_root = source_root / "vendor" / "reflaxe" / "src"
+    if vendored_source_root.is_dir():
+        for source in sorted(vendored_source_root.rglob("*.hx")):
+            source_path = relative_display(source, source_root)
+            expected_source_mappings[source_path] = (source_path, "vendored-reflaxe")
+    for source_path in (
+        "vendor/reflaxe/FUTURE_MODIFICATIONS.md",
+        "vendor/reflaxe/PATCHES.md",
+        "vendor/reflaxe/haxelib.json",
+    ):
+        if (source_root / source_path).is_file():
+            expected_source_mappings[source_path] = (source_path, "vendored-reflaxe")
+    for source_path, kind in (
+        ("LICENSE", "metadata"),
+        ("README.md", "metadata"),
+        ("Run.hx", "package-runner"),
+        ("extraParams.hxml", "metadata"),
+        ("haxelib.json", "metadata"),
+    ):
+        if (source_root / source_path).is_file():
+            expected_source_mappings[source_path] = (source_path, kind)
+    for source_path, (package_path, kind) in expected_source_mappings.items():
+        entry = entries_by_source.get(source_path)
+        if entry is None:
+            problems.append(f"manifest omits declared source mapping: {source_path}")
+        elif entry.get("packagePath") != package_path or entry.get("kind") != kind:
+            problems.append(f"manifest misclassifies declared source mapping: {source_path}")
+    unexpected_sources = sorted(set(entries_by_source) - set(expected_source_mappings))
+    if unexpected_sources:
+        problems.append(f"manifest includes undeclared source mappings: {unexpected_sources!r}")
+
+    if not problems:
+        return []
+    displayed = "; ".join(problems[:6])
+    if len(problems) > 6:
+        displayed += f"; ... ({len(problems) - 6} more)"
+    return [Violation("package-map-manifest", PACKAGE_MAP_MANIFEST, displayed)]
+
+
 def audit_package_layout(package_root: Path, source_root: Path) -> list[Violation]:
     package_root = package_root.resolve()
     source_root = source_root.resolve()
@@ -376,6 +566,8 @@ def audit_package_layout(package_root: Path, source_root: Path) -> list[Violatio
                 f"package contains absolute machine-local paths in {len(leaks)} file(s)",
             )
         )
+
+    violations.extend(audit_package_map_manifest(package_root, source_root))
 
     return sorted(violations)
 

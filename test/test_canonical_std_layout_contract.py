@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -71,6 +72,69 @@ def write_canonical_source(root: Path) -> None:
         shutil.copyfile(facade, destination)
 
 
+def write_package_manifest(package_root: Path, source_root: Path) -> None:
+    entries: list[dict[str, object]] = []
+    for package_file in sorted(
+        (
+            path
+            for path in package_root.rglob("*")
+            if path.is_file() and path.name != "reflaxe-package-manifest.json"
+        ),
+        key=lambda path: path.relative_to(package_root).as_posix().encode("utf-8"),
+    ):
+        package_path = package_file.relative_to(package_root).as_posix()
+        if package_path == "haxelib.json":
+            source_file = source_root / "haxelib.json"
+            kind = "metadata"
+        elif package_path == "src/Lambda.cross.hx":
+            source_file = source_root / "std" / "go" / "_std" / "Lambda.hx"
+            kind = "stdlib-override"
+        elif package_path.startswith("src/"):
+            relative = package_file.relative_to(package_root / "src")
+            std_source = source_root / "std" / relative
+            class_path_source = source_root / "src" / relative
+            if std_source.is_file():
+                source_file = std_source
+                kind = "stdlib"
+            else:
+                source_file = class_path_source
+                kind = "class-path"
+        elif package_path.startswith("runtime/"):
+            source_file = source_root / package_path
+            kind = "runtime"
+        elif package_path.startswith("vendor/reflaxe/"):
+            source_file = source_root / package_path
+            kind = "vendored-reflaxe"
+        else:
+            raise AssertionError(f"synthetic package has no source mapping for {package_path}")
+        assert source_file.is_file(), source_file
+        entries.append(
+            {
+                "sourcePath": source_file.relative_to(source_root).as_posix(),
+                "packagePath": package_path,
+                "kind": kind,
+                "sourceSha256": hashlib.sha256(source_file.read_bytes()).hexdigest(),
+                "packageSha256": hashlib.sha256(package_file.read_bytes()).hexdigest(),
+                "size": package_file.stat().st_size,
+            }
+        )
+    write_json(
+        package_root / "reflaxe-package-manifest.json",
+        {
+            "schemaVersion": 1,
+            "format": "reflaxe.go-haxelib-package",
+            "archive": {
+                "compression": "stored",
+                "fileMode": "0644",
+                "ordering": "utf8-bytewise",
+                "timestamp": "2000-01-01T00:00:00Z",
+            },
+            "classPath": "src",
+            "entries": entries,
+        },
+    )
+
+
 def write_canonical_package(package_root: Path, source_root: Path) -> None:
     write_json(
         package_root / "haxelib.json",
@@ -90,6 +154,7 @@ def write_canonical_package(package_root: Path, source_root: Path) -> None:
 
     # The mapping assertion needs the ordinary source authority as its input.
     assert (source_root / "std" / "go" / "_std" / "Lambda.hx").is_file()
+    write_package_manifest(package_root, source_root)
 
 
 class CanonicalStdLayoutAuditTest(unittest.TestCase):
@@ -409,10 +474,14 @@ class CanonicalStdSelectionBehaviorTest(unittest.TestCase):
             shutil.copyfile(FIXTURE_ROOT / "Main.hx", app / "Main.hx")
             shutil.copyfile(FIXTURE_ROOT / "UpstreamProbe.hx.fixture", upstream / "Lambda.hx")
             write_canonical_source(source_root)
+            shutil.copytree(ROOT / "src", source_root / "src")
+            shutil.copytree(ROOT / "vendor" / "reflaxe", source_root / "vendor" / "reflaxe")
+            shutil.copytree(ROOT / "runtime", source_root / "runtime")
             write_canonical_package(package_root, source_root)
-            shutil.copytree(ROOT / "src", package_root / "src", dirs_exist_ok=True)
-            shutil.copytree(ROOT / "vendor" / "reflaxe", package_root / "vendor" / "reflaxe")
-            shutil.copytree(ROOT / "runtime", package_root / "runtime")
+            shutil.copytree(source_root / "src", package_root / "src", dirs_exist_ok=True)
+            shutil.copytree(source_root / "vendor" / "reflaxe", package_root / "vendor" / "reflaxe")
+            shutil.copytree(source_root / "runtime", package_root / "runtime")
+            write_package_manifest(package_root, source_root)
             self.assertEqual([], audit_source_layout(source_root))
             self.assertEqual([], audit_package_layout(package_root, source_root))
 
