@@ -1,56 +1,80 @@
 # Security Dependency Audit
 
-This page explains the dependency audit job in CI and why it can show Go standard-library vulnerability warnings even when the job succeeds.
+This page explains what the dependency audit proves, why Go standard-library
+findings can originate in the selected toolchain, and how CI handles every exit
+path.
 
 ## What It Checks
 
-The audit has two parts:
+The audit has two independent parts:
 
 - `npm audit` checks production Node dependencies at high severity or above.
-- `govulncheck` checks the Go runtime package under `runtime/hxrt` for reachable
-  Go vulnerability database entries.
+- `govulncheck` uses call-graph analysis to check `runtime/hxrt` for
+  reachable entries in the Go vulnerability database.
 
-`govulncheck` means "Go vulnerability check". It follows actual call paths in Go
-code and reports vulnerabilities that are reachable from the package being
-scanned.
+The scanner version is pinned for reproducibility and runs on the supported Go
+toolchain from [the toolchain policy](toolchain-policy.md). CI uses
+`govulncheck` text format with full traces because the official command exit
+code is nonzero when reachable vulnerabilities are found. JSON, SARIF, and VEX
+formats are useful interchange artifacts but are not used as this gate because
+those formats can exit successfully even when they contain findings.
 
-## Why SSL And Network Warnings Appear
+## Why SSL And Network Findings Can Appear
 
-`runtime/hxrt` implements Haxe standard-library features such as SSL and network support. Those helpers intentionally call Go packages like `crypto/tls`,
-`crypto/x509`, `net`, `encoding/pem`, and `encoding/asn1`.
+`runtime/hxrt` implements Haxe standard-library SSL and network support.
+Those helpers intentionally call Go packages including
+`crypto/tls`, `crypto/x509`, `net`, `encoding/pem`, and
+`encoding/asn1`.
 
-When the CI Go toolchain has known standard-library vulnerabilities in those
-packages, `govulncheck` reports the call paths. That is useful classified audit
-evidence: it tells us which runtime helpers could reach the vulnerable standard
-library code.
+If a selected Go patch contains a known vulnerable implementation in one of
+those packages and an `hxrt` call path reaches the affected symbol,
+`govulncheck` reports a Go standard-library vulnerability. That is a
+toolchain vulnerability with project release impact: it is not automatically a
+logic defect in the Haxe.Go helper, but the project must not ship a green
+release gate while the vulnerable path remains reachable.
 
-It is not a dependency install failure, and it is not the same thing as a broken
-npm dependency. It means the runtime uses Go standard-library functionality that
-must be reviewed against the active Go toolchain and the affected generated-code
-surface.
+This is not a dependency install failure. A project defect, such as discarding
+an error or mishandling TLS state, is a separate root cause. Both kinds of
+problem can block a release.
 
-## How CI Reports It
+## How CI Fails Closed
 
-The audit script disables raw `govulncheck` GitHub error annotations and emits a
-repo-owned annotation instead:
+The CI gate fails closed: only a completed scan with zero reachable findings
+passes.
 
-- `[deps][govulncheck-stdlib-reachability]`: reachable Go standard-library
-  vulnerability reports were found in `runtime/hxrt`.
+The audit has three terminal states:
 
-The full upstream `govulncheck` report is still printed in the job log. The
-single classified annotation exists so CI readers can tell that the finding is
-tracked security evidence, not an unexplained failing dependency step.
+| Result | CI outcome | Required response |
+| --- | --- | --- |
+| No reachable finding | pass | Retain the report as evidence for the exact Go patch. |
+| One or more reachable findings | fail | Upgrade to a fixed supported Go patch, remove the reachable path without breaking Haxe semantics, or keep the release blocked. |
+| Scanner install, load, database, or execution error | fail | Repair the audit; absence of a completed scan is not evidence of safety. |
 
-## What To Do With A Finding
+`SKIP_GOVULNCHECK=1` is rejected in CI. A local-only skip or explicitly
+enabled local install soft-fail can help offline development, but neither path
+is available to a release job.
 
-Review the reported call paths and decide which response fits:
+The report is sanitized before printing so raw workflow commands and
+source-position problem matchers do not create misleading annotations. The
+upstream trace, gate result, configured scanner version, scanner exit code, and
+Go version are retained under `.cache/security/dependency-audit`. Both
+dependency-audit workflows upload `.cache/security` with `if: always()`, so
+reports are uploaded even when findings or tool errors fail the job.
 
-1. Upgrade the CI Go version when the vulnerability is fixed by a newer supported
-   Go release.
-2. Patch or narrow the `hxrt` helper if the generated-code surface can avoid the
-   vulnerable path without breaking Haxe semantics.
-3. Keep the finding as classified audit evidence when the call path is expected
-   and the project accepts the current toolchain risk until the next Go update.
+## Interpreting A Failure
 
-Do not delete the warning just to make CI quieter. Security warnings are allowed
-to be non-blocking only when they remain visible and classified.
+Use the trace and metadata in this order:
+
+1. Confirm the exact Go patch and pinned `govulncheck` version.
+2. Identify whether the affected module is `stdlib` or a third-party module.
+3. For `stdlib`, check whether a newer patch in the supported Go line fixes
+   the advisory.
+4. If no fixed supported patch exists, determine whether the affected
+   capability can be removed from the packaged runtime and proven unreachable.
+5. For a third-party module, update or remove the dependency and rerun the same
+   call-graph scan.
+6. If the scanner itself failed, repair the tool or database access and rerun;
+   never classify the missing result as clean.
+
+Do not downgrade a reachable finding to a warning because the path is expected.
+Expected reachability explains the trace; it does not make vulnerable code safe.

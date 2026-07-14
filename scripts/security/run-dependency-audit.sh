@@ -8,10 +8,37 @@ cd "$ROOT"
 # This explicit tool version makes audit output reproducible. It does not define
 # supported Go build lines; docs/toolchain-policy.md is authoritative for those.
 # The fail-closed vulnerability-policy slice owns future govulncheck upgrades.
-govulncheck_version="${GOVULNCHECK_VERSION:-v1.1.4}"
+govulncheck_version="${GOVULNCHECK_VERSION:-v1.6.0}"
+govulncheck_bin="${GOVULNCHECK_BIN:-}"
 govulncheck_install_attempts="${GOVULNCHECK_INSTALL_ATTEMPTS:-3}"
 govulncheck_retry_delay_sec="${GOVULNCHECK_INSTALL_RETRY_DELAY_SEC:-2}"
 govulncheck_allow_install_failure="${GOVULNCHECK_ALLOW_INSTALL_FAILURE:-0}"
+govulncheck_report_dir="${GOVULNCHECK_REPORT_DIR:-$ROOT/.cache/security/dependency-audit}"
+govulncheck_report="$govulncheck_report_dir/govulncheck.txt"
+govulncheck_metadata="$govulncheck_report_dir/metadata.txt"
+npm_audit_report="$govulncheck_report_dir/npm-audit.txt"
+
+mkdir -p "$govulncheck_report_dir"
+: >"$govulncheck_report"
+: >"$npm_audit_report"
+
+detected_go_version="unavailable"
+if command -v go >/dev/null 2>&1; then
+  detected_go_version="$(go version 2>/dev/null || printf 'unavailable')"
+fi
+
+write_govulncheck_metadata() {
+  local result="$1"
+  local exit_code="$2"
+  {
+    printf 'result=%s\n' "$result"
+    printf 'govulncheck_exit=%s\n' "$exit_code"
+    printf 'govulncheck_version=%s\n' "$govulncheck_version"
+    printf 'go_version=%s\n' "$detected_go_version"
+  } >"$govulncheck_metadata"
+}
+
+write_govulncheck_metadata "not_run" "-"
 
 if ! [[ "$govulncheck_install_attempts" =~ ^[1-9][0-9]*$ ]]; then
   echo "[deps] error: GOVULNCHECK_INSTALL_ATTEMPTS must be a positive integer" >&2
@@ -35,24 +62,39 @@ if [[ -f package.json ]]; then
     cd "$npm_audit_tmp_dir"
     npm install --ignore-scripts --package-lock-only --no-audit --no-fund
     npm audit --omit=dev --audit-level=high
-  )
+  ) 2>&1 | tee "$npm_audit_report"
 fi
 
 if [[ "${SKIP_GOVULNCHECK:-0}" == "1" ]]; then
+  if [[ "${CI:-}" == "true" ]]; then
+    write_govulncheck_metadata "ci_skip_rejected" "1"
+    echo "[deps] error: SKIP_GOVULNCHECK=1 is not permitted in CI" >&2
+    exit 1
+  fi
+  write_govulncheck_metadata "locally_skipped" "0"
   echo "[deps] SKIP_GOVULNCHECK=1, skipping govulncheck"
   echo "[deps] dependency audit passed"
   exit 0
 fi
 
 if ! command -v go >/dev/null 2>&1; then
+  write_govulncheck_metadata "tool_error" "1"
   echo "[deps] error: go toolchain is required for govulncheck" >&2
   echo "[deps] hint: install Go or run local-only bypass with SKIP_GOVULNCHECK=1" >&2
   exit 1
 fi
 
 ensure_govulncheck() {
-  if command -v govulncheck >/dev/null 2>&1; then
-    return 0
+  if [[ -n "$govulncheck_bin" ]]; then
+    if [[ "$govulncheck_bin" == */* ]]; then
+      [[ -x "$govulncheck_bin" ]]
+      return
+    fi
+    if command -v "$govulncheck_bin" >/dev/null 2>&1; then
+      govulncheck_bin="$(command -v "$govulncheck_bin")"
+      return 0
+    fi
+    return 1
   fi
 
   local install_ref="golang.org/x/vuln/cmd/govulncheck@$govulncheck_version"
@@ -71,36 +113,15 @@ ensure_govulncheck() {
     attempt=$((attempt + 1))
   done
 
-  export PATH="$(go env GOPATH)/bin:$PATH"
-  command -v govulncheck >/dev/null 2>&1
+  govulncheck_bin="$(go env GOPATH)/bin/govulncheck"
+  [[ -x "$govulncheck_bin" ]]
 }
 
-classify_govulncheck_output() {
-  local log_file="$1"
-  local vuln_count
-  vuln_count="$(grep -c '^Vulnerability #' "$log_file" || true)"
-
-  if [[ "$vuln_count" -eq 0 ]]; then
-    return 0
-  fi
-
-  local ssl_network_trace_count
-  ssl_network_trace_count="$(grep -Ec 'Ssl(Socket|Cert)|tls\.|net\.|x509\.|pem\.|asn1\.|parse(Certificates|PrivateDER|PublicDER)|SslDigestVerify|StdString calls fmt\.Sprint' "$log_file" || true)"
-
-  echo "[deps] govulncheck classified $vuln_count reachable Go standard-library vulnerability reports"
-  echo "[deps] classification: expected SSL/network/crypto helper reachability lines=$ssl_network_trace_count"
-  echo "[deps] details: docs/security-dependency-audit.md"
-
-  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-    echo "::warning::[deps][govulncheck-stdlib-reachability] govulncheck found $vuln_count reachable Go standard-library vulnerability reports in runtime/hxrt; $ssl_network_trace_count trace lines match expected SSL/network/crypto helper reachability. This is classified audit evidence, not a dependency install failure; see docs/security-dependency-audit.md."
-  fi
-}
-
-print_classified_govulncheck_report() {
+print_sanitized_govulncheck_report() {
   local log_file="$1"
 
   # Keep the upstream report visible, but avoid GitHub problem matchers and raw
-  # workflow commands turning classified traces into unclassified annotations.
+  # workflow commands turning report traces into unowned annotations.
   sed -E \
     -e 's/^::/: :/' \
     -e 's#([[:alnum:]_./-]+\.go):([0-9]+):([0-9]+):#\1 line \2 col \3:#g' \
@@ -108,12 +129,14 @@ print_classified_govulncheck_report() {
 }
 
 if ! ensure_govulncheck; then
+  write_govulncheck_metadata "install_error" "1"
   if [[ "${CI:-}" == "true" ]]; then
     echo "[deps] error: govulncheck install failed after $govulncheck_install_attempts attempts (CI mode)" >&2
     exit 1
   fi
 
   if [[ "$govulncheck_allow_install_failure" == "1" ]]; then
+    write_govulncheck_metadata "local_install_soft_fail" "0"
     echo "[deps] warning: govulncheck unavailable after $govulncheck_install_attempts attempts; continuing (local soft-fail enabled)"
     echo "[deps] warning: set GOVULNCHECK_ALLOW_INSTALL_FAILURE=0 to enforce hard-fail locally"
     echo "[deps] dependency audit passed (partial: npm audit only)"
@@ -133,34 +156,39 @@ cp -R runtime/hxrt/. "$govuln_tmp_dir/"
 cat >"$govuln_tmp_dir/go.mod" <<'EOF'
 module reflaxe_go_hxrt_audit
 
-go 1.23
+go 1.22
 EOF
 
 govuln_log="$govuln_tmp_dir/govulncheck.log"
 set +e
 (
   cd "$govuln_tmp_dir"
-  env -u GITHUB_ACTIONS govulncheck -format=text ./...
+  env -u GITHUB_ACTIONS "$govulncheck_bin" -show traces -format=text ./...
 ) >"$govuln_log" 2>&1
 govuln_status=$?
 set -e
 
-print_classified_govulncheck_report "$govuln_log"
-classify_govulncheck_output "$govuln_log"
+print_sanitized_govulncheck_report "$govuln_log" | tee "$govulncheck_report"
 
 if [[ "$govuln_status" -ne 0 ]]; then
-  if grep -q '^Your code is affected by' "$govuln_log"; then
-    echo "[deps] govulncheck reported reachable vulnerabilities; continuing after classified audit annotation"
-    echo "[deps] policy: reachable Go standard-library reports remain visible but non-blocking until explicitly promoted"
+  if grep -Eq '^Vulnerability #|^Your code is affected by' "$govuln_log"; then
+    write_govulncheck_metadata "reachable_vulnerabilities" "$govuln_status"
+    echo "[deps] error: govulncheck reported reachable vulnerabilities; reachable vulnerabilities are release-blocking" >&2
+    echo "[deps] details: docs/security-dependency-audit.md" >&2
+    if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+      echo "::error title=Reachable Go vulnerabilities::govulncheck found reachable vulnerabilities in runtime/hxrt; see the uploaded dependency-audit report and docs/security-dependency-audit.md."
+    fi
     rm -rf "$govuln_tmp_dir"
-    echo "[deps] dependency audit passed"
-    exit 0
+    exit 1
   fi
 
+  write_govulncheck_metadata "tool_error" "$govuln_status"
+  echo "[deps] error: govulncheck failed before producing a clean scan; see $govulncheck_report" >&2
   rm -rf "$govuln_tmp_dir"
   exit "$govuln_status"
 fi
 
+write_govulncheck_metadata "clean" "0"
 rm -rf "$govuln_tmp_dir"
 
 echo "[deps] dependency audit passed"
