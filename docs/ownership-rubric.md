@@ -49,7 +49,7 @@ In practice:
 
 ## The Ownership Layers
 
-## 1. Staged Std (`std/**`, `std/_std/**`, `.cross.hx`)
+## 1. Staged Std (`std/go/_std/**/*.hx` source)
 
 Default owner for library-expressible behavior.
 
@@ -65,6 +65,12 @@ Good current examples:
 - `std/haxe/exceptions/PosException.cross.hx`
 - `std/haxe/ds/BalancedTree.cross.hx`
 - `std/haxe/io/GoIoHelpers.cross.hx`
+
+The paths above are pre-migration source locations. The canonical source
+contract keeps upstream overrides as ordinary `.hx` files under
+`std/go/_std`; package staging alone flattens that root and renames those files
+to `.cross.hx`. Repo-authored support, typed `hxrt` bindings, and public
+`go.*` facades do not become override artifacts.
 
 ## 2. `hxrt` Runtime (`runtime/hxrt/**`)
 
@@ -186,6 +192,25 @@ Bad mixed ownership looks like:
 - and no explanation of why the split exists
 
 That is not mixed ownership. That is drift.
+
+## Canonical Migration Ledger
+
+`docs/stdlib-provenance-ledger.json` is the executable per-file decision
+record. It distinguishes six ownership classes:
+
+1. `upstream_std_override` migrates to ordinary source under
+   `std/go/_std` and becomes `.cross.hx` only in a staged package.
+2. `staged_support` remains an ordinary `.hx` module under its Haxe package.
+3. `hxrt_binding` moves under `std/hxrt` and models a real Go runtime API.
+4. `public_go_facade` remains under `std/go`, outside `_std`.
+5. `obsolete` requires an explicit removal owner and evidence.
+6. `intentional_boundary_fixture` requires an explicit policy-fixture owner.
+
+Each ledger entry has one exact destination and migration Bead. Its
+`compilerShimGroups` list is also exact: an empty list means the adjacent shim
+audit found no directly selected compiler group, not that the audit was
+skipped. Any unresolved classification must appear in the ledger's
+`ambiguities` list with a follow-up Bead.
 
 ## What Not To Do
 

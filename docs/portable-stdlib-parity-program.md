@@ -55,7 +55,9 @@ This parity program is therefore about semantic closure and coverage promotion, 
 1. Portable contract code must not depend on `go.*` APIs.
 2. Native facade code must be explicit (`go.*`) and documented as non-portable.
 3. Compiler-owned shims remain only where compiler context is required (for example metadata-dependent lowering).
-4. Library-expressible behavior should migrate to staged stdlib sources (`.cross.hx` and approved override paths).
+4. Library-expressible behavior should migrate to ordinary source under the
+   canonical `std/go/_std` override root; `.cross.hx` is generated only in the
+   staged package.
 5. Upstream sync must be provenance-tracked and boundary-checked in CI.
 6. `go.*` core authority is singular: `src/go/*` owns `go.Go`/`go.Chan` with target-conditional behavior; `std/go/*` stays focused on package extern facades (`Fmt`, `Time`, `ContextPkg`, `Http`, ...).
 
@@ -66,9 +68,17 @@ This document tracks closure state and blocker families, not the full decision t
 
 Governance artifacts:
 
-- `docs/stdlib-provenance-ledger.json`: baseline upstream tag + per-file provenance records for tracked std override files.
-- `scripts/ci/upstream-stdlib-boundary-check.js`: prevents tracked upstream vendor roots and enforces the approved staged std layout (`std/*.hx`, `std/*.cross.hx`, `std/haxe/**`, `std/go/**`, `std/_std/**`).
-- `scripts/ci/stdlib-provenance-ledger-check.js`: validates ledger schema and ensures ledger coverage exactly matches tracked std override files.
+- `docs/stdlib-provenance-ledger.json`: baseline upstream tag plus per-file
+  provenance, migration ownership, exact destination, and compiler-shim audit
+  for every tracked std/support source.
+- `scripts/ci/upstream-stdlib-boundary-check.js`: prevents tracked upstream
+  vendor roots and enforces the approved staged std layout (`std/*.hx`,
+  `std/*.cross.hx`, `std/haxe/**`, `std/sys/**`, `std/go/**`, `std/hxrt/**`,
+  `std/_std/**`).
+- `scripts/ci/stdlib-provenance-ledger-check.js`: validates the ledger schema
+  and exact tracked-file coverage.
+- `test/test_stdlib_migration_ledger_contract.py`: locks ownership and target
+  paths for the canonical migration and cross-checks the compiler-shim audit.
 
 Required commands:
 
@@ -139,7 +149,9 @@ Closed root-surface follow-up:
 
 Update sequence when std override files change:
 
-1. Update tracked std override files under the approved staged layout (`std/*.hx`, `std/*.cross.hx`, `std/haxe/**`, `std/sys/**`, `std/go/**`, `std/_std/**`).
+1. Update tracked std/support files under the approved staged layout
+   (`std/*.hx`, `std/*.cross.hx`, `std/haxe/**`, `std/sys/**`, `std/go/**`,
+   `std/hxrt/**`, `std/_std/**`).
 2. Add/update matching entries in `docs/stdlib-provenance-ledger.json`.
 3. Run `npm run test:stdlib:governance`.
 4. Run `python3 test/run-ci.py` (or `npm run test:ci`) before merging.

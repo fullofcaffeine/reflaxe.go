@@ -498,9 +498,10 @@ test/.test-cache/family_std_dual_run_report.json
 test/.test-cache/family_std_dual_run_report.md
 ```
 
-## Stdlib governance guards (provenance + boundary)
+## Stdlib governance guards (boundary + provenance + migration ownership)
 
-Validate upstream-boundary and provenance-ledger policy:
+Validate the upstream boundary plus the per-file provenance, ownership,
+destination, and compiler-shim audit:
 
 ```bash
 npm run test:stdlib:governance
@@ -511,6 +512,7 @@ Run checks individually:
 ```bash
 npm run test:stdlib:boundary
 npm run test:stdlib:provenance
+npm run test:stdlib:migration-ledger
 ```
 
 Primary policy artifacts:
@@ -519,6 +521,7 @@ Primary policy artifacts:
 docs/stdlib-provenance-ledger.json
 scripts/ci/upstream-stdlib-boundary-check.js
 scripts/ci/stdlib-provenance-ledger-check.js
+test/test_stdlib_migration_ledger_contract.py
 ```
 
 ## Semantic differential harness

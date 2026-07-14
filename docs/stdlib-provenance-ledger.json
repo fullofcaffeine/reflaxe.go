@@ -1,420 +1,884 @@
 {
-  "schemaVersion": 1,
-  "description": "Provenance ledger for tracked haxe.go std override files.",
+  "schemaVersion": 2,
+  "description": "Provenance and migration-ownership ledger for every tracked haxe.go std, support, runtime-binding, and public native-facade source.",
   "baselineUpstream": {
     "repository": "https://github.com/HaxeFoundation/haxe",
     "tag": "4.3.7",
     "license": "MIT"
   },
+  "migrationContract": {
+    "canonicalOverrideRoot": "std/go/_std",
+    "targetSupportRoot": "std/hxrt",
+    "ownershipClasses": {
+      "upstream_std_override": "Target-specific implementation of an upstream Haxe std module that must package as .cross.hx.",
+      "staged_support": "Repo-authored Haxe support used by an override but not itself an upstream module; it stays an ordinary .hx module.",
+      "hxrt_binding": "Typed Haxe extern or carrier binding for a real runtime/hxrt Go API; it stays outside the override-only tree.",
+      "public_go_facade": "Public typed go.* native facade; it remains importable under std/go and never enters _std.",
+      "obsolete": "Tracked source proven unnecessary; removal requires a named migration bead and evidence.",
+      "intentional_boundary_fixture": "Deliberate policy fixture retained only to exercise a target boundary; it requires a named migration bead."
+    },
+    "migrationBeads": {
+      "upstream_std_override": "haxe_go-vfp.5.3",
+      "staged_support": "haxe_go-vfp.5.4",
+      "hxrt_binding": "haxe_go-vfp.5.4",
+      "public_go_facade": "haxe_go-vfp.5.4",
+      "obsolete": "haxe_go-vfp.5.4",
+      "intentional_boundary_fixture": "haxe_go-vfp.5.4"
+    },
+    "ambiguities": [],
+    "compilerShimAudit": [
+      {
+        "group": "ds",
+        "decision": "retain_representation_bridge",
+        "sourcePaths": [
+          "std/_std/haxe/ds/IntMap.cross.hx",
+          "std/_std/haxe/ds/ObjectMap.cross.hx",
+          "std/_std/haxe/ds/StringMap.cross.hx",
+          "std/haxe/Constraints.cross.hx"
+        ],
+        "references": [
+          "src/reflaxe/go/GoCompiler.hx",
+          "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx"
+        ],
+        "notes": "Keep compiler-owned map representation and haxe.Constraints bridges while collection algorithms remain staged source."
+      },
+      {
+        "group": "http",
+        "decision": "retain_request_choreography",
+        "sourcePaths": [
+          "std/sys/GoHttpHelpers.cross.hx"
+        ],
+        "references": [
+          "src/reflaxe/go/GoCompiler.hx",
+          "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
+          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ],
+        "notes": "Keep sys.Http request/callback choreography compiler-owned; GoHttpHelpers remains a source-owned leaf helper."
+      },
+      {
+        "group": "io",
+        "decision": "retain_type_shape_forwarders",
+        "sourcePaths": [
+          "std/haxe/io/GoIoHelpers.cross.hx"
+        ],
+        "references": [
+          "src/reflaxe/go/GoCompiler.hx",
+          "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
+          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ],
+        "notes": "Keep representation-sensitive Input/Output shapes and thin calls into GoIoHelpers; generic loop behavior stays in staged source."
+      },
+      {
+        "group": "net_socket",
+        "decision": "retain_socket_semantics",
+        "sourcePaths": [
+          "std/sys/ssl/Socket.cross.hx"
+        ],
+        "references": [
+          "src/reflaxe/go/GoCompiler.hx",
+          "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
+          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ],
+        "notes": "Keep deadline, readiness, and socket carrier semantics compiler-owned beneath the staged sys.ssl.Socket surface."
+      },
+      {
+        "group": "stdlib_symbols",
+        "decision": "retain_compile_context_bridges",
+        "sourcePaths": [
+          "std/haxe/Template.cross.hx",
+          "std/haxe/ds/BalancedTree.cross.hx",
+          "std/haxe/io/FPHelper.cross.hx",
+          "std/sys/ssl/Certificate.cross.hx",
+          "std/sys/ssl/Digest.cross.hx",
+          "std/sys/ssl/Key.cross.hx",
+          "std/sys/ssl/Socket.cross.hx"
+        ],
+        "references": [
+          "src/reflaxe/go/GoCompiler.hx",
+          "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
+          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ],
+        "notes": "Retain only the representation- or compile-context-sensitive bridges explicitly selected beside source-owned modules."
+      },
+      {
+        "group": "template_support",
+        "decision": "retain_template_bridge",
+        "sourcePaths": [
+          "std/haxe/Template.cross.hx"
+        ],
+        "references": [
+          "src/reflaxe/go/GoCompiler.hx",
+          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ],
+        "notes": "Keep the narrow template execution bridge while parser and public template semantics remain source-owned."
+      }
+    ]
+  },
   "entries": [
     {
       "path": "std/go/Context.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "public_go_facade",
+      "destination": "std/go/Context.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go native facade type definitions for context.Context wrappers."
     },
     {
       "path": "std/go/ContextPkg.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "public_go_facade",
+      "destination": "std/go/ContextPkg.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go native facade package helpers for context package entrypoints."
     },
     {
       "path": "std/go/Fmt.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "public_go_facade",
+      "destination": "std/go/Fmt.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go native facade for fmt package interoperability surfaces."
     },
     {
       "path": "std/go/Http.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "public_go_facade",
+      "destination": "std/go/Http.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go native facade for net/http interoperability helpers."
     },
     {
       "path": "std/go/Time.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "public_go_facade",
+      "destination": "std/go/Time.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go native facade for time package interoperability helpers."
     },
     {
       "path": "std/DateTools.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/DateTools.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for DateTools helper ownership, keeping formatting and date-helper semantics out of GoCompiler."
     },
     {
       "path": "std/haxe/Constraints.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/Constraints.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [
+        "ds"
+      ],
       "notes": "Go staged portable override for haxe.Constraints constraint aliases plus the IMap copyIMap bridge contract, keeping Haxe-facing typing in std while the backend satisfies Go interface exactness."
     },
     {
       "path": "std/haxe/CallStack.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/CallStack.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged target-sensitive override for haxe.CallStack, providing deterministic empty-stack fallbacks by default plus opt-in native stack diagnostics."
     },
     {
       "path": "std/haxe/Template.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/Template.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [
+        "stdlib_symbols",
+        "template_support"
+      ],
       "notes": "Go staged portable override for haxe.Template execution semantics, keeping template parsing and macro-default behavior out of GoCompiler."
     },
     {
       "path": "std/haxe/http/HttpBase.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/http/HttpBase.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for direct haxe.http.HttpBase baseline ownership, keeping the public HTTP base surface in std while compiler-owned request choreography stays below it."
     },
     {
       "path": "std/haxe/rtti/CType.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/rtti/CType.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override bundle for haxe.rtti.CType typedefs, enums, TypeApi, and CTypeTools, keeping public RTTI type logic out of GoCompiler."
     },
     {
       "path": "std/haxe/rtti/Meta.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/rtti/Meta.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.rtti.Meta, routing public metadata access through the backend-owned class-token __meta__ contract."
     },
     {
       "path": "std/haxe/rtti/Rtti.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/rtti/Rtti.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.rtti.Rtti, routing public RTTI lookup through the backend-owned class-token __rtti contract."
     },
     {
       "path": "std/haxe/rtti/XmlParser.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/rtti/XmlParser.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.rtti.XmlParser, keeping parser logic in std while relying on the backend-owned anonymous-record mutation and RTTI metadata contracts underneath."
     },
     {
       "path": "std/haxe/exceptions/PosException.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/exceptions/PosException.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for direct haxe.exceptions.PosException construction/toString ownership, keeping subclass parity out of GoCompiler."
     },
     {
       "path": "std/haxe/exceptions/ArgumentException.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/exceptions/ArgumentException.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for direct haxe.exceptions.ArgumentException constructor/message ownership."
     },
     {
       "path": "std/haxe/exceptions/NotImplementedException.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/exceptions/NotImplementedException.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for direct haxe.exceptions.NotImplementedException default-message ownership."
     },
     {
       "path": "std/haxe/NativeStackTrace.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/NativeStackTrace.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged target-sensitive override for haxe.NativeStackTrace, exposing deterministic empty-stack behavior by default plus opt-in native stack diagnostics without claiming portable stack parity."
     },
     {
       "path": "std/haxe/EntryPoint.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/EntryPoint.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for direct haxe.EntryPoint, connecting runInMainThread/addThread/run to the runtime-backed sys.thread.EventLoop main-thread loop."
     },
     {
       "path": "std/haxe/MainLoop.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/MainLoop.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for direct haxe.MainLoop/MainEvent, preserving the Haxe-facing event facade while scheduling callbacks through haxe.EntryPoint and sys.thread.EventLoop."
     },
     {
       "path": "std/haxe/Timer.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/Timer.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for direct haxe.Timer, registering timers on Thread.current().events and using the hxrt monotonic thread clock for Timer.stamp()."
     },
     {
       "path": "std/haxe/ds/BalancedTree.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/ds/BalancedTree.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [
+        "stdlib_symbols"
+      ],
       "notes": "Go staged portable override for direct haxe.ds.BalancedTree runtime ownership, keeping source-owned collection logic out of GoCompiler while preserving ordered map semantics."
     },
     {
       "path": "std/haxe/ds/GenericStack.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/ds/GenericStack.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for direct haxe.ds.GenericStack runtime ownership, including localized erased-generic equality recovery."
     },
     {
       "path": "std/haxe/io/GoIoHelpers.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "staged_support",
+      "destination": "std/haxe/io/GoIoHelpers.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [
+        "io"
+      ],
       "notes": "Go staged portable helper surface for inherited haxe.io.Input and haxe.io.Output loop semantics, keeping generic stream-control helpers out of GoCompiler while the backend still owns the base IO type shapes."
     },
     {
       "path": "std/haxe/io/FPHelper.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/FPHelper.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [
+        "stdlib_symbols"
+      ],
       "notes": "Go staged portable override for haxe.io.FPHelper bit-conversion helpers, expressed on top of the existing little-endian BytesInput/BytesOutput contract instead of more compiler-owned raw Go."
     },
     {
       "path": "std/haxe/io/ArrayBufferView.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/ArrayBufferView.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.io.ArrayBufferView and the shared typed-array carrier API, keeping public typed-array behavior in std while the backend continues to own the underlying Bytes/ArrayBufferViewImpl representation."
     },
     {
       "path": "std/haxe/io/UInt8Array.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/UInt8Array.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.io.UInt8Array, keeping the public typed-array API in std on top of the existing ArrayBufferViewImpl carrier."
     },
     {
       "path": "std/haxe/io/UInt16Array.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/UInt16Array.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.io.UInt16Array, keeping the public typed-array API in std on top of the existing ArrayBufferViewImpl carrier."
     },
     {
       "path": "std/haxe/io/UInt32Array.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/UInt32Array.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.io.UInt32Array, keeping the public typed-array API in std on top of the existing ArrayBufferViewImpl carrier."
     },
     {
       "path": "std/haxe/io/Int32Array.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/Int32Array.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.io.Int32Array, keeping the public typed-array API in std on top of the existing ArrayBufferViewImpl carrier."
     },
     {
       "path": "std/haxe/io/Float32Array.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/Float32Array.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.io.Float32Array, reusing staged FPHelper bit-conversion helpers instead of expanding compiler-owned Bytes float logic."
     },
     {
       "path": "std/haxe/io/Float64Array.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/Float64Array.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.io.Float64Array, reusing staged FPHelper bit-conversion helpers instead of expanding compiler-owned Bytes double logic."
     },
     {
       "path": "std/sys/GoHttpHelpers.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "staged_support",
+      "destination": "std/sys/GoHttpHelpers.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [
+        "http"
+      ],
       "notes": "Go staged helper surface for sys.Http leaf helpers, keeping response-header lookup glue and payload capture fan-out out of GoCompiler while request choreography stays compiler-owned."
     },
     {
       "path": "std/sys/net/Address.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/net/Address.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.net.Address, keeping the public {host, port} carrier and IPv4 helper methods in std while the backend-owned socket shim translates addresses underneath."
     },
     {
       "path": "std/sys/ssl/Certificate.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/ssl/Certificate.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [
+        "stdlib_symbols"
+      ],
       "notes": "Go staged portable override for the public sys.ssl.Certificate API, keeping certificate-facing methods in std while runtime/hxrt/ssl.go owns parsing and trust-root behavior."
     },
     {
       "path": "std/sys/ssl/Digest.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/ssl/Digest.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [
+        "stdlib_symbols"
+      ],
       "notes": "Go staged portable override for the public sys.ssl.Digest API, keeping the Haxe-facing helpers in std while runtime/hxrt/ssl.go owns the cryptographic implementation."
     },
     {
       "path": "std/sys/ssl/DigestAlgorithm.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/ssl/DigestAlgorithm.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.ssl.DigestAlgorithm enum/abstract ownership, keeping the public algorithm surface out of compiler shims."
     },
     {
       "path": "std/sys/ssl/Key.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/ssl/Key.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [
+        "stdlib_symbols"
+      ],
       "notes": "Go staged portable override for the public sys.ssl.Key API, keeping Haxe-facing key helpers in std while runtime/hxrt/ssl.go owns PEM parsing and native key handling."
     },
     {
       "path": "std/sys/ssl/Socket.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/ssl/Socket.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [
+        "net_socket",
+        "stdlib_symbols"
+      ],
       "notes": "Go staged portable override for the public sys.ssl.Socket API, reusing the compiler-owned sys.net.Socket carrier while runtime/hxrt/ssl.go owns TLS dial/listen/handshake and peer-certificate behavior."
     },
     {
       "path": "std/sys/thread/Condition.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/thread/Condition.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.thread.Condition, keeping the public wait/signal API in std while runtime/hxrt/thread.go owns the native condition state and timeout behavior."
     },
     {
       "path": "std/sys/thread/Deque.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/thread/Deque.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.thread.Deque, keeping the Haxe-facing queue API in std while runtime/hxrt/thread.go owns the synchronized queue carrier and blocking semantics."
     },
     {
       "path": "std/sys/thread/IThreadPool.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/thread/IThreadPool.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for the sys.thread.IThreadPool contract, keeping the public pool interface in std while concrete pool scheduling stays in staged implementations."
     },
     {
       "path": "std/sys/thread/Lock.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/thread/Lock.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.thread.Lock, keeping the Haxe-facing lock API in std while runtime/hxrt/thread.go owns the native lock state and wait semantics."
     },
     {
       "path": "std/sys/thread/Mutex.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/thread/Mutex.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.thread.Mutex, keeping the public mutex API in std while runtime/hxrt/thread.go owns the native mutex carrier."
     },
     {
       "path": "std/sys/thread/NoEventLoopException.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/thread/NoEventLoopException.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.thread.NoEventLoopException, keeping the public exception surface in std while Thread/EventLoop runtime ownership lives under runtime/hxrt/thread.go."
     },
     {
       "path": "std/sys/thread/Semaphore.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/thread/Semaphore.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.thread.Semaphore, keeping the public semaphore API in std while runtime/hxrt/thread.go owns token accounting and timeout behavior."
     },
     {
       "path": "std/sys/thread/ThreadPoolException.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/thread/ThreadPoolException.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.thread.ThreadPoolException, keeping the public exception surface for thread pools in std."
     },
     {
       "path": "std/sys/thread/Tls.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/thread/Tls.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.thread.Tls, keeping the Haxe-facing thread-local API in std while runtime/hxrt/thread.go owns logical thread identity and per-thread storage."
     },
     {
       "path": "std/sys/thread/EventLoop.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/thread/EventLoop.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.thread.EventLoop, keeping the public loop API and enum surface in std while runtime/hxrt/thread.go owns the queue/timer handle state."
     },
     {
       "path": "std/sys/thread/Thread.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/thread/Thread.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.thread.Thread, keeping the public Haxe-facing thread/message API in std while runtime/hxrt/thread.go owns logical thread identity, queues, and per-thread loop handles."
     },
     {
       "path": "std/sys/thread/ElasticThreadPool.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/thread/ElasticThreadPool.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.thread.ElasticThreadPool, keeping worker-pool policy in Haxe code once Thread/Lock/Deque are runtime-backed."
     },
     {
       "path": "std/sys/thread/ElasticThreadPoolWorker.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "staged_support",
+      "destination": "std/sys/thread/ElasticThreadPoolWorker.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go repo-authored helper worker type for sys.thread.ElasticThreadPool, split into its own file so staged std emission stays explicit and import-safe."
     },
     {
       "path": "std/sys/thread/FixedThreadPool.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/thread/FixedThreadPool.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for sys.thread.FixedThreadPool, keeping fixed-worker scheduling policy in Haxe code instead of compiler-owned shims."
     },
     {
       "path": "std/sys/thread/FixedThreadPoolWorker.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "staged_support",
+      "destination": "std/sys/thread/FixedThreadPoolWorker.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go repo-authored helper worker type for sys.thread.FixedThreadPool, split into its own file so staged std emission stays explicit and import-safe."
     },
     {
       "path": "std/sys/thread/FixedThreadPoolShutdownException.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "staged_support",
+      "destination": "std/sys/thread/FixedThreadPoolShutdownException.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go repo-authored private shutdown sentinel for sys.thread.FixedThreadPool worker termination semantics."
     },
     {
       "path": "std/haxe/SysTools.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/SysTools.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for direct haxe.SysTools quoting helpers, keeping command-line quoting semantics out of GoCompiler while upstream string/array lowerings remain incomplete."
     },
     {
       "path": "std/haxe/Utf8.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/Utf8.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for deprecated haxe.Utf8 helper ownership, keeping legacy UTF-8 buffer and encode/decode semantics out of GoCompiler while upstream lowerings remain incomplete."
     },
     {
       "path": "std/StringTools.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/StringTools.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for StringTools helper ownership, keeping basic string helpers out of GoCompiler."
     },
     {
       "path": "std/_std/haxe/Json.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/Json.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.Json, delegating behavior to hxrt runtime helpers."
     },
     {
       "path": "std/_std/haxe/ds/HashMap.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/ds/HashMap.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.ds.HashMap entrypoint behavior and owned iterator surfaces, including direct lowercase hashCode parity without target-specific aliases."
     },
     {
       "path": "std/_std/haxe/ds/IntMap.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/ds/IntMap.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [
+        "ds"
+      ],
       "notes": "Go staged portable override for haxe.ds.IntMap entrypoint behavior and owned iterator surfaces."
     },
     {
       "path": "std/_std/haxe/ds/ObjectMap.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/ds/ObjectMap.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [
+        "ds"
+      ],
       "notes": "Go staged portable override for haxe.ds.ObjectMap entrypoint behavior and owned iterator surfaces."
     },
     {
       "path": "std/_std/haxe/ds/StringMap.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/ds/StringMap.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [
+        "ds"
+      ],
       "notes": "Go staged portable override for haxe.ds.StringMap entrypoint behavior and owned iterator surfaces."
     },
     {
       "path": "std/_std/haxe/format/JsonParser.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/format/JsonParser.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.format.JsonParser, delegating parse path to haxe.Json."
     },
     {
       "path": "std/_std/haxe/format/JsonPrinter.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/format/JsonPrinter.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.format.JsonPrinter, delegating print path to haxe.Json."
     },
     {
       "path": "std/_std/haxe/iterators/DynamicAccessKeyValueIterator.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/iterators/DynamicAccessKeyValueIterator.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for DynamicAccess key/value iterator semantics."
     },
     {
       "path": "std/_std/haxe/iterators/GoStringRuntime.cross.hx",
       "provenanceKind": "repo_authored_override",
-      "notes": "Go staged portable helper module for shared string iterator runtime behavior."
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/string/GoStringRuntime.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
+      "notes": "Typed extern for runtime/hxrt/string.go used by staged string iterators; move the Haxe module to hxrt.string while keeping its Go import/package metadata pointed at hxrt."
     },
     {
       "path": "std/_std/haxe/iterators/HashMapKeyValueIterator.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/iterators/HashMapKeyValueIterator.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for HashMap key/value iterator semantics."
     },
     {
       "path": "std/_std/haxe/iterators/MapKeyValueIterator.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/iterators/MapKeyValueIterator.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for Map key/value iterator semantics."
     },
     {
       "path": "std/_std/haxe/iterators/StringIterator.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/iterators/StringIterator.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for string iterator semantics."
     },
     {
       "path": "std/_std/haxe/iterators/StringIteratorUnicode.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/iterators/StringIteratorUnicode.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for Unicode-aware string iterator semantics."
     },
     {
       "path": "std/_std/haxe/iterators/StringKeyValueIterator.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/iterators/StringKeyValueIterator.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for string key/value iterator semantics."
     },
     {
       "path": "std/_std/haxe/iterators/StringKeyValueIteratorUnicode.cross.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/iterators/StringKeyValueIteratorUnicode.hx",
+      "migrationBead": "haxe_go-vfp.5.3",
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for Unicode-aware string key/value iterator semantics."
     },
     {
       "path": "std/_std/hxrt/stack/NativeStack.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/stack/NativeStack.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go typed extern bridge for runtime/hxrt/stack.go native stack capture entry points, kept under std/_std so staged haxe.CallStack and haxe.NativeStackTrace can opt into diagnostics without compiler-owned stack shims."
     },
     {
       "path": "std/_std/hxrt/stack/NativeStackFrame.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/stack/NativeStackFrame.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go typed extern bridge for the runtime/hxrt/stack.go frame carrier used by the explicit reflaxe_go_native_stack_trace diagnostic capability."
     },
     {
       "path": "std/_std/hxrt/thread/ConditionHandle.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/thread/ConditionHandle.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go typed extern bridge for the runtime/hxrt/thread.go condition carrier, kept under std/_std so staged sys.thread overrides can call into the runtime without growing compiler-owned shims."
     },
     {
       "path": "std/_std/hxrt/thread/EventLoopHandle.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/thread/EventLoopHandle.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go typed extern bridge for the runtime/hxrt/thread.go event-loop handle, kept under std/_std so sys.thread.EventLoop stays source-owned while the runtime owns queue and timer state."
     },
     {
       "path": "std/_std/hxrt/thread/EventLoopProgress.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/thread/EventLoopProgress.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go typed extern bridge for the runtime/hxrt/thread.go event-loop progress carrier used by the staged sys.thread.EventLoop override."
     },
     {
       "path": "std/_std/hxrt/thread/LockHandle.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/thread/LockHandle.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go typed extern bridge for the runtime/hxrt/thread.go lock carrier, kept under std/_std so staged sys.thread overrides can use runtime-backed locks without compiler-owned wrappers."
     },
     {
       "path": "std/_std/hxrt/thread/MutexHandle.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/thread/MutexHandle.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go typed extern bridge for the runtime/hxrt/thread.go mutex carrier, keeping the public sys.thread.Mutex API in staged std."
     },
     {
       "path": "std/_std/hxrt/thread/NativeThread.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/thread/NativeThread.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go typed extern bridge for the runtime/hxrt/thread.go logical-thread, message-queue, and event-loop entry points used by the staged sys.thread overrides."
     },
     {
       "path": "std/_std/hxrt/thread/SemaphoreHandle.hx",
       "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/thread/SemaphoreHandle.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
       "notes": "Go typed extern bridge for the runtime/hxrt/thread.go semaphore carrier, keeping token accounting in the runtime while the public semaphore API stays source-owned."
     }
   ]
