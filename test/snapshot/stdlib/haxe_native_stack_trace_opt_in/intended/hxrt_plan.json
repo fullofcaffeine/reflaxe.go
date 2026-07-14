@@ -1,6 +1,8 @@
 {
-	"schemaVersion": 1,
+	"schemaVersion": 2,
 	"contract": "portable",
+	"policyPreset": "portable_default",
+	"semanticBoundarySource": "typed_api_or_module",
 	"mode": "selective",
 	"selectiveEnabled": true,
 	"fullCopy": false,

@@ -1,6 +1,9 @@
 {
-	"schemaVersion": 5,
+	"schemaVersion": 6,
 	"contract": "portable",
+	"policyPreset": "portable_default",
+	"nativeSpecializationPolicy": "proven",
+	"nativeSpecializationPolicySource": "policy_preset",
 	"autoLoweringMode": "off",
 	"optimizationPreset": "portable_fast",
 	"portableStringFastpathEnabled": true,
@@ -15,6 +18,8 @@
 	"goCollectionsTypedFallbacks": 0,
 	"goResultTypedLowerings": 0,
 	"goResultTypedFallbacks": 0,
+	"loweringFallbackBoundaryCount": 0,
+	"loweringFallbackNonBoundaryCount": 0,
 	"loweringFallbackLaneCount": 0,
 	"loweringFallbackNonLaneCount": 0,
 	"autoLoweringCapabilities": [

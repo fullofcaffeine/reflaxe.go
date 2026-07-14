@@ -1,6 +1,14 @@
 {
-	"schemaVersion": 7,
+	"schemaVersion": 8,
 	"contract": "portable",
+	"policyPreset": "portable_default",
+	"semanticBoundarySource": "typed_api_or_module",
+	"nativeAuthorityPolicy": "guarded",
+	"nativeAuthorityPolicySource": "policy_preset",
+	"nativeSpecializationPolicy": "proven",
+	"nativeSpecializationPolicySource": "policy_preset",
+	"nativeFallbackPolicy": "allow",
+	"nativeFallbackPolicySource": "policy_preset",
 	"autoLoweringMode": "off",
 	"strictExamples": false,
 	"strictUserBoundaryPolicy": "auto",
@@ -16,6 +24,9 @@
 	"loweringDecisionAttemptCount": 4,
 	"loweringDecisionSuccessCount": 2,
 	"loweringDecisionFallbackCount": 0,
+	"nativeFallbackEventCount": 0,
+	"nativeFallbackBoundaryEventCount": 0,
+	"nativeFallbackNonBoundaryEventCount": 0,
 	"metalFallbackViolationCount": 0,
 	"metalFallbackLaneViolationCount": 0,
 	"metalFallbackNonLaneViolationCount": 0,
@@ -25,6 +36,8 @@
 	"portableNativeImportScannerHitCount": 0,
 	"contractDiagnosticCount": 0,
 	"hxrtManualFeatures": [
+	],
+	"nativeBoundaryModules": [
 	],
 	"metalLaneModules": [
 	],
@@ -40,6 +53,7 @@
 	"loweringDecisions": [
 		{
 			"module": "Main",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_method_close",
@@ -49,6 +63,7 @@
 		},
 		{
 			"module": "Main",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_method_close",
@@ -58,6 +73,7 @@
 		},
 		{
 			"module": "Main",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_new",
@@ -67,6 +83,7 @@
 		},
 		{
 			"module": "Main",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_new",
@@ -76,6 +93,7 @@
 		},
 		{
 			"module": "go.Go",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_method___hx_setBuffer",
@@ -85,6 +103,7 @@
 		},
 		{
 			"module": "go.Go",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_new",
@@ -92,6 +111,10 @@
 			"location": "go.Go:17",
 			"detail": "Attempt typed go.Chan constructor specialization."
 		}
+	],
+	"nativeFallbackEventsByModule": [
+	],
+	"nativeFallbackEvents": [
 	],
 	"metalFallbackViolationsByModule": [
 	],

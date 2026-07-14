@@ -1,6 +1,14 @@
 {
-	"schemaVersion": 7,
+	"schemaVersion": 8,
 	"contract": "portable",
+	"policyPreset": "portable_default",
+	"semanticBoundarySource": "typed_api_or_module",
+	"nativeAuthorityPolicy": "guarded",
+	"nativeAuthorityPolicySource": "policy_preset",
+	"nativeSpecializationPolicy": "proven",
+	"nativeSpecializationPolicySource": "policy_preset",
+	"nativeFallbackPolicy": "allow",
+	"nativeFallbackPolicySource": "policy_preset",
 	"autoLoweringMode": "auto",
 	"strictExamples": false,
 	"strictUserBoundaryPolicy": "auto",
@@ -16,6 +24,9 @@
 	"loweringDecisionAttemptCount": 0,
 	"loweringDecisionSuccessCount": 0,
 	"loweringDecisionFallbackCount": 0,
+	"nativeFallbackEventCount": 0,
+	"nativeFallbackBoundaryEventCount": 0,
+	"nativeFallbackNonBoundaryEventCount": 0,
 	"metalFallbackViolationCount": 0,
 	"metalFallbackLaneViolationCount": 0,
 	"metalFallbackNonLaneViolationCount": 0,
@@ -25,6 +36,8 @@
 	"portableNativeImportScannerHitCount": 0,
 	"contractDiagnosticCount": 0,
 	"hxrtManualFeatures": [
+	],
+	"nativeBoundaryModules": [
 	],
 	"metalLaneModules": [
 	],
@@ -37,6 +50,10 @@
 	"contractDiagnostics": [
 	],
 	"loweringDecisions": [
+	],
+	"nativeFallbackEventsByModule": [
+	],
+	"nativeFallbackEvents": [
 	],
 	"metalFallbackViolationsByModule": [
 	],

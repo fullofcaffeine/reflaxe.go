@@ -10,7 +10,7 @@ import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
 import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.analyze.GoProfileContractAnalyzer.PortableNativeScanMode;
-import reflaxe.go.analyze.MetalLaneAnalyzer;
+import reflaxe.go.analyze.GoNativeBoundaryAnalyzer;
 import reflaxe.go.compiler.GoBuildContext;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureInference;
@@ -36,6 +36,14 @@ private typedef RuntimeCopyPlan = {
 private typedef ContractReportSnapshot = {
 	final schemaVersion:Int;
 	final contract:String;
+	final policyPreset:String;
+	final semanticBoundarySource:String;
+	final nativeAuthorityPolicy:String;
+	final nativeAuthorityPolicySource:String;
+	final nativeSpecializationPolicy:String;
+	final nativeSpecializationPolicySource:String;
+	final nativeFallbackPolicy:String;
+	final nativeFallbackPolicySource:String;
 	final autoLoweringMode:String;
 	final strictExamples:Bool;
 	final strictUserBoundaryPolicy:String;
@@ -48,7 +56,11 @@ private typedef ContractReportSnapshot = {
 	final hxrtForceFullCopy:Bool;
 	final hxrtNoFeatureInfer:Bool;
 	final hxrtManualFeatures:Array<String>;
+	final nativeBoundaryModules:Array<String>;
 	final metalLaneModules:Array<String>;
+	final nativeFallbackEventCount:Int;
+	final nativeFallbackBoundaryEventCount:Int;
+	final nativeFallbackNonBoundaryEventCount:Int;
 	final metalFallbackViolationCount:Int;
 	final metalFallbackLaneViolationCount:Int;
 	final metalFallbackNonLaneViolationCount:Int;
@@ -66,8 +78,10 @@ private typedef ContractReportSnapshot = {
 	final loweringDecisionSuccessCount:Int;
 	final loweringDecisionFallbackCount:Int;
 	final loweringDecisions:Array<ContractLoweringDecision>;
+	final nativeFallbackEventsByModule:Array<ContractFallbackModuleSummary>;
+	final nativeFallbackEvents:Array<ContractFallbackEvent>;
 	final metalFallbackViolationsByModule:Array<ContractFallbackModuleSummary>;
-	final metalFallbackViolations:Array<ContractFallbackViolation>;
+	final metalFallbackViolations:Array<ContractFallbackEvent>;
 }
 
 private typedef ContractLoweringDecision = {
@@ -77,7 +91,7 @@ private typedef ContractLoweringDecision = {
 	final detail:String;
 	final location:String;
 	final module:String;
-	final inMetalLane:Bool;
+	final inNativeBoundary:Bool;
 }
 
 private typedef ContractDiagnosticEntry = {
@@ -88,17 +102,17 @@ private typedef ContractDiagnosticEntry = {
 	final message:String;
 }
 
-private typedef ContractFallbackViolation = {
+private typedef ContractFallbackEvent = {
 	final kind:String;
 	final detail:String;
 	final location:String;
 	final module:String;
-	final inMetalLane:Bool;
+	final inNativeBoundary:Bool;
 }
 
 private typedef ContractFallbackModuleSummary = {
 	final module:String;
-	final inMetalLane:Bool;
+	final inNativeBoundary:Bool;
 	final count:Int;
 }
 
@@ -111,6 +125,8 @@ private typedef RuntimeFeatureReason = {
 private typedef RuntimePlanReportSnapshot = {
 	final schemaVersion:Int;
 	final contract:String;
+	final policyPreset:String;
+	final semanticBoundarySource:String;
 	final mode:String;
 	final selectiveEnabled:Bool;
 	final fullCopy:Bool;
@@ -125,6 +141,9 @@ private typedef RuntimePlanReportSnapshot = {
 private typedef OptimizerPlanReportSnapshot = {
 	final schemaVersion:Int;
 	final contract:String;
+	final policyPreset:String;
+	final nativeSpecializationPolicy:String;
+	final nativeSpecializationPolicySource:String;
 	final autoLoweringMode:String;
 	final optimizationPreset:String;
 	final portableStringFastpathEnabled:Bool;
@@ -142,6 +161,8 @@ private typedef OptimizerPlanReportSnapshot = {
 	final goCollectionsTypedFallbacks:Int;
 	final goResultTypedLowerings:Int;
 	final goResultTypedFallbacks:Int;
+	final loweringFallbackBoundaryCount:Int;
+	final loweringFallbackNonBoundaryCount:Int;
 	final loweringFallbackLaneCount:Int;
 	final loweringFallbackNonLaneCount:Int;
 	final autoLoweringCapabilities:Array<OptimizerCapabilitySummary>;
@@ -202,8 +223,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 
 	override public function onCompileEnd():Void {
 		var resolvedBuildContext = effectiveBuildContext();
-		var laneSnapshot = MetalLaneAnalyzer.collect(allModules);
-		resolvedBuildContext = resolvedBuildContext.withMetalLaneModules(laneSnapshot.modules);
+		var boundarySnapshot = GoNativeBoundaryAnalyzer.collect(allModules);
+		resolvedBuildContext = resolvedBuildContext.withNativeBoundaryModules(boundarySnapshot.modules);
 		buildContext = resolvedBuildContext;
 		var context = CompilationContext.fromBuildContext(resolvedBuildContext);
 		compilationContext = context;
@@ -447,7 +468,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 	function buildContractReportSnapshot(buildContext:GoBuildContext, context:Null<CompilationContext>):ContractReportSnapshot {
 		var contractLabel = buildContext.profile == GoProfile.Metal ? "metal" : "portable";
 		var manualFeatures = sortedUniqueStrings(buildContext.hxrtManualFeatures.copy());
-		var laneModules = sortedUniqueStrings(buildContext.metalLaneModules.copy());
+		var boundaryModules = sortedUniqueStrings(buildContext.nativeBoundaryModules.copy());
 		var contractDiagnostics = new Array<ContractDiagnosticEntry>();
 		var portableNativeImportHits = new Array<String>();
 		var portableNativeImportTypedHits = new Array<String>();
@@ -472,12 +493,12 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			});
 		}
 		contractDiagnostics.sort(compareContractDiagnostics);
-		var fallbackViolations = new Array<ContractFallbackViolation>();
+		var fallbackEvents = new Array<ContractFallbackEvent>();
 		var loweringDecisions = new Array<ContractLoweringDecision>();
-		var laneViolationCount = 0;
-		var nonLaneViolationCount = 0;
-		var laneCountsByModule = new Map<String, Int>();
-		var nonLaneCountsByModule = new Map<String, Int>();
+		var boundaryEventCount = 0;
+		var nonBoundaryEventCount = 0;
+		var boundaryCountsByModule = new Map<String, Int>();
+		var nonBoundaryCountsByModule = new Map<String, Int>();
 		var loweringAttemptCount = 0;
 		var loweringSuccessCount = 0;
 		var loweringFallbackCount = 0;
@@ -502,35 +523,47 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 					detail: entry.detail,
 					location: entry.location,
 					module: entry.module,
-					inMetalLane: entry.inMetalLane
+					inNativeBoundary: entry.inNativeBoundary
 				});
 			}
-			for (violation in context.metalFallbackViolations) {
-				if (violation == null) {
+			for (event in context.nativeFallbackEvents) {
+				if (event == null) {
 					continue;
 				}
-				if (violation.inMetalLane) {
-					laneViolationCount++;
-					incrementIntMap(laneCountsByModule, violation.module);
+				if (event.inNativeBoundary) {
+					boundaryEventCount++;
+					incrementIntMap(boundaryCountsByModule, event.module);
 				} else {
-					nonLaneViolationCount++;
-					incrementIntMap(nonLaneCountsByModule, violation.module);
+					nonBoundaryEventCount++;
+					incrementIntMap(nonBoundaryCountsByModule, event.module);
 				}
-				fallbackViolations.push({
-					kind: violation.kind,
-					detail: violation.detail,
-					location: violation.location,
-					module: violation.module,
-					inMetalLane: violation.inMetalLane
+				fallbackEvents.push({
+					kind: event.kind,
+					detail: event.detail,
+					location: event.location,
+					module: event.module,
+					inNativeBoundary: event.inNativeBoundary
 				});
 			}
 		}
 		loweringDecisions.sort(compareContractLoweringDecision);
-		fallbackViolations.sort(compareContractFallbackViolations);
-		var fallbackSummary = buildContractFallbackModuleSummary(laneCountsByModule, nonLaneCountsByModule);
+		fallbackEvents.sort(compareContractFallbackEvents);
+		var fallbackSummary = buildContractFallbackModuleSummary(boundaryCountsByModule, nonBoundaryCountsByModule);
+		var legacyMetalFallbackViolations:Array<ContractFallbackEvent> = buildContext.usesMetalCompatibilityPreset() ? fallbackEvents.copy() : [];
+		var legacyMetalFallbackSummary:Array<ContractFallbackModuleSummary> = buildContext.usesMetalCompatibilityPreset() ? fallbackSummary.copy() : [];
+		var legacyMetalBoundaryViolationCount = buildContext.usesMetalCompatibilityPreset() ? boundaryEventCount : 0;
+		var legacyMetalNonBoundaryViolationCount = buildContext.usesMetalCompatibilityPreset() ? nonBoundaryEventCount : 0;
 		return {
-			schemaVersion: 7,
+			schemaVersion: 8,
 			contract: contractLabel,
+			policyPreset: buildContext.policyPreset.label(),
+			semanticBoundarySource: buildContext.semanticBoundarySource.label(),
+			nativeAuthorityPolicy: buildContext.nativeAuthorityPolicy.label(),
+			nativeAuthorityPolicySource: buildContext.nativeAuthorityPolicySource.label(),
+			nativeSpecializationPolicy: buildContext.nativeSpecializationPolicy.label(),
+			nativeSpecializationPolicySource: buildContext.nativeSpecializationPolicySource.label(),
+			nativeFallbackPolicy: buildContext.nativeFallbackPolicy.label(),
+			nativeFallbackPolicySource: buildContext.nativeFallbackPolicySource.label(),
 			autoLoweringMode: GoAutoLoweringModeTools.label(buildContext.autoLoweringMode),
 			strictExamples: buildContext.strictExamples,
 			strictUserBoundaryPolicy: buildContext.strictUserBoundaryPolicy,
@@ -543,15 +576,19 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			hxrtForceFullCopy: buildContext.hxrtForceFullCopy,
 			hxrtNoFeatureInfer: buildContext.hxrtNoFeatureInfer,
 			hxrtManualFeatures: manualFeatures,
-			metalLaneModules: laneModules,
+			nativeBoundaryModules: boundaryModules,
+			metalLaneModules: boundaryModules.copy(),
 			loweringDecisionCount: loweringDecisions.length,
 			loweringDecisionAttemptCount: loweringAttemptCount,
 			loweringDecisionSuccessCount: loweringSuccessCount,
 			loweringDecisionFallbackCount: loweringFallbackCount,
 			loweringDecisions: loweringDecisions,
-			metalFallbackViolationCount: fallbackViolations.length,
-			metalFallbackLaneViolationCount: laneViolationCount,
-			metalFallbackNonLaneViolationCount: nonLaneViolationCount,
+			nativeFallbackEventCount: fallbackEvents.length,
+			nativeFallbackBoundaryEventCount: boundaryEventCount,
+			nativeFallbackNonBoundaryEventCount: nonBoundaryEventCount,
+			metalFallbackViolationCount: legacyMetalFallbackViolations.length,
+			metalFallbackLaneViolationCount: legacyMetalBoundaryViolationCount,
+			metalFallbackNonLaneViolationCount: legacyMetalNonBoundaryViolationCount,
 			portableNativeImportScanMode: portableNativeScanModeLabel(nativeScanMode),
 			portableNativeImportHitCount: portableNativeImportHits.length,
 			portableNativeImportTypedHitCount: portableNativeImportTypedHits.length,
@@ -561,8 +598,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			portableNativeImportScannerHits: portableNativeImportScannerHits,
 			contractDiagnosticCount: contractDiagnostics.length,
 			contractDiagnostics: contractDiagnostics,
-			metalFallbackViolationsByModule: fallbackSummary,
-			metalFallbackViolations: fallbackViolations
+			nativeFallbackEventsByModule: fallbackSummary,
+			nativeFallbackEvents: fallbackEvents,
+			metalFallbackViolationsByModule: legacyMetalFallbackSummary,
+			metalFallbackViolations: legacyMetalFallbackViolations
 		};
 	}
 
@@ -574,8 +613,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		var inferredFeatures = sortedUniqueStrings(plan.inferredFeatures.copy());
 		var files = sortedUniqueStrings(plan.files.copy());
 		return {
-			schemaVersion: 1,
+			schemaVersion: 2,
 			contract: contractLabel,
+			policyPreset: buildContext.policyPreset.label(),
+			semanticBoundarySource: buildContext.semanticBoundarySource.label(),
 			mode: plan.fullCopy ? "full_copy" : "selective",
 			selectiveEnabled: plan.selectiveEnabled,
 			fullCopy: plan.fullCopy,
@@ -593,8 +634,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		var goAstPasses:Array<String> = [];
 		var goAstPassSelectionSource = "planner";
 		var goAstPassSelectionReasons:Array<OptimizerPassSelectionReason> = [];
-		var loweringFallbackLaneCount = 0;
-		var loweringFallbackNonLaneCount = 0;
+		var loweringFallbackBoundaryCount = 0;
+		var loweringFallbackNonBoundaryCount = 0;
 		var autoLoweringCapabilities:Array<OptimizerCapabilitySummary> = [];
 		if (context != null) {
 			goAstPasses = context.appliedGoAstPassNames.copy();
@@ -613,17 +654,20 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 				if (entry == null || entry.outcome != "fallback") {
 					continue;
 				}
-				if (entry.inMetalLane) {
-					loweringFallbackLaneCount++;
+				if (entry.inNativeBoundary) {
+					loweringFallbackBoundaryCount++;
 				} else {
-					loweringFallbackNonLaneCount++;
+					loweringFallbackNonBoundaryCount++;
 				}
 			}
 			autoLoweringCapabilities = buildOptimizerCapabilitySummaries(context);
 		}
 		return {
-			schemaVersion: 5,
+			schemaVersion: 6,
 			contract: contractLabel,
+			policyPreset: buildContext.policyPreset.label(),
+			nativeSpecializationPolicy: buildContext.nativeSpecializationPolicy.label(),
+			nativeSpecializationPolicySource: buildContext.nativeSpecializationPolicySource.label(),
 			autoLoweringMode: GoAutoLoweringModeTools.label(buildContext.autoLoweringMode),
 			optimizationPreset: buildContext.optimizationPreset,
 			portableStringFastpathEnabled: buildContext.portableStringFastpathEnabled,
@@ -641,8 +685,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			goCollectionsTypedFallbacks: context == null ? 0 : context.optimizerGoCollectionsTypedFallbacks,
 			goResultTypedLowerings: context == null ? 0 : context.optimizerGoResultTypedLowerings,
 			goResultTypedFallbacks: context == null ? 0 : context.optimizerGoResultTypedFallbacks,
-			loweringFallbackLaneCount: loweringFallbackLaneCount,
-			loweringFallbackNonLaneCount: loweringFallbackNonLaneCount,
+			loweringFallbackBoundaryCount: loweringFallbackBoundaryCount,
+			loweringFallbackNonBoundaryCount: loweringFallbackNonBoundaryCount,
+			loweringFallbackLaneCount: loweringFallbackBoundaryCount,
+			loweringFallbackNonLaneCount: loweringFallbackNonBoundaryCount,
 			autoLoweringCapabilities: autoLoweringCapabilities
 		};
 	}
@@ -761,12 +807,12 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		return summaries;
 	}
 
-	static function compareContractFallbackViolations(a:ContractFallbackViolation, b:ContractFallbackViolation):Int {
+	static function compareContractFallbackEvents(a:ContractFallbackEvent, b:ContractFallbackEvent):Int {
 		var moduleOrder = Reflect.compare(a.module, b.module);
 		if (moduleOrder != 0) {
 			return moduleOrder;
 		}
-		var laneOrder = Reflect.compare(a.inMetalLane ? 1 : 0, b.inMetalLane ? 1 : 0);
+		var laneOrder = Reflect.compare(a.inNativeBoundary ? 1 : 0, b.inNativeBoundary ? 1 : 0);
 		if (laneOrder != 0) {
 			return laneOrder;
 		}
@@ -786,7 +832,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		if (moduleOrder != 0) {
 			return moduleOrder;
 		}
-		var laneOrder = Reflect.compare(a.inMetalLane ? 1 : 0, b.inMetalLane ? 1 : 0);
+		var laneOrder = Reflect.compare(a.inNativeBoundary ? 1 : 0, b.inNativeBoundary ? 1 : 0);
 		if (laneOrder != 0) {
 			return laneOrder;
 		}
@@ -829,21 +875,21 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		return Reflect.compare(a.message, b.message);
 	}
 
-	static function buildContractFallbackModuleSummary(laneCountsByModule:Map<String, Int>,
-			nonLaneCountsByModule:Map<String, Int>):Array<ContractFallbackModuleSummary> {
+	static function buildContractFallbackModuleSummary(boundaryCountsByModule:Map<String, Int>,
+			nonBoundaryCountsByModule:Map<String, Int>):Array<ContractFallbackModuleSummary> {
 		var summary = new Array<ContractFallbackModuleSummary>();
-		for (moduleName in laneCountsByModule.keys()) {
+		for (moduleName in boundaryCountsByModule.keys()) {
 			summary.push({
 				module: moduleName,
-				inMetalLane: true,
-				count: laneCountsByModule.get(moduleName)
+				inNativeBoundary: true,
+				count: boundaryCountsByModule.get(moduleName)
 			});
 		}
-		for (moduleName in nonLaneCountsByModule.keys()) {
+		for (moduleName in nonBoundaryCountsByModule.keys()) {
 			summary.push({
 				module: moduleName,
-				inMetalLane: false,
-				count: nonLaneCountsByModule.get(moduleName)
+				inNativeBoundary: false,
+				count: nonBoundaryCountsByModule.get(moduleName)
 			});
 		}
 		summary.sort(compareContractFallbackModuleSummary);
@@ -855,7 +901,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		if (moduleOrder != 0) {
 			return moduleOrder;
 		}
-		var laneOrder = Reflect.compare(a.inMetalLane ? 1 : 0, b.inMetalLane ? 1 : 0);
+		var laneOrder = Reflect.compare(a.inNativeBoundary ? 1 : 0, b.inNativeBoundary ? 1 : 0);
 		if (laneOrder != 0) {
 			return laneOrder;
 		}
@@ -867,6 +913,14 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("{");
 		lines.push('\t"schemaVersion": ' + snapshot.schemaVersion + ",");
 		lines.push('\t"contract": "' + jsonEscape(snapshot.contract) + '",');
+		lines.push('\t"policyPreset": "' + jsonEscape(snapshot.policyPreset) + '",');
+		lines.push('\t"semanticBoundarySource": "' + jsonEscape(snapshot.semanticBoundarySource) + '",');
+		lines.push('\t"nativeAuthorityPolicy": "' + jsonEscape(snapshot.nativeAuthorityPolicy) + '",');
+		lines.push('\t"nativeAuthorityPolicySource": "' + jsonEscape(snapshot.nativeAuthorityPolicySource) + '",');
+		lines.push('\t"nativeSpecializationPolicy": "' + jsonEscape(snapshot.nativeSpecializationPolicy) + '",');
+		lines.push('\t"nativeSpecializationPolicySource": "' + jsonEscape(snapshot.nativeSpecializationPolicySource) + '",');
+		lines.push('\t"nativeFallbackPolicy": "' + jsonEscape(snapshot.nativeFallbackPolicy) + '",');
+		lines.push('\t"nativeFallbackPolicySource": "' + jsonEscape(snapshot.nativeFallbackPolicySource) + '",');
 		lines.push('\t"autoLoweringMode": "' + jsonEscape(snapshot.autoLoweringMode) + '",');
 		lines.push('\t"strictExamples": ' + boolString(snapshot.strictExamples) + ",");
 		lines.push('\t"strictUserBoundaryPolicy": "' + jsonEscape(snapshot.strictUserBoundaryPolicy) + '",');
@@ -882,6 +936,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push('\t"loweringDecisionAttemptCount": ' + snapshot.loweringDecisionAttemptCount + ",");
 		lines.push('\t"loweringDecisionSuccessCount": ' + snapshot.loweringDecisionSuccessCount + ",");
 		lines.push('\t"loweringDecisionFallbackCount": ' + snapshot.loweringDecisionFallbackCount + ",");
+		lines.push('\t"nativeFallbackEventCount": ' + snapshot.nativeFallbackEventCount + ",");
+		lines.push('\t"nativeFallbackBoundaryEventCount": ' + snapshot.nativeFallbackBoundaryEventCount + ",");
+		lines.push('\t"nativeFallbackNonBoundaryEventCount": ' + snapshot.nativeFallbackNonBoundaryEventCount + ",");
 		lines.push('\t"metalFallbackViolationCount": ' + snapshot.metalFallbackViolationCount + ",");
 		lines.push('\t"metalFallbackLaneViolationCount": ' + snapshot.metalFallbackLaneViolationCount + ",");
 		lines.push('\t"metalFallbackNonLaneViolationCount": ' + snapshot.metalFallbackNonLaneViolationCount + ",");
@@ -892,6 +949,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push('\t"contractDiagnosticCount": ' + snapshot.contractDiagnosticCount + ",");
 		lines.push('\t"hxrtManualFeatures": [');
 		appendJsonStringArray(lines, snapshot.hxrtManualFeatures, 2);
+		lines.push("\t],");
+		lines.push('\t"nativeBoundaryModules": [');
+		appendJsonStringArray(lines, snapshot.nativeBoundaryModules, 2);
 		lines.push("\t],");
 		lines.push('\t"metalLaneModules": [');
 		appendJsonStringArray(lines, snapshot.metalLaneModules, 2);
@@ -911,6 +971,12 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push('\t"loweringDecisions": [');
 		appendJsonContractLoweringDecisionArray(lines, snapshot.loweringDecisions, 2);
 		lines.push("\t],");
+		lines.push('\t"nativeFallbackEventsByModule": [');
+		appendJsonContractFallbackSummaryArray(lines, snapshot.nativeFallbackEventsByModule, 2);
+		lines.push("\t],");
+		lines.push('\t"nativeFallbackEvents": [');
+		appendJsonContractFallbackArray(lines, snapshot.nativeFallbackEvents, 2);
+		lines.push("\t],");
 		lines.push('\t"metalFallbackViolationsByModule": [');
 		appendJsonContractFallbackSummaryArray(lines, snapshot.metalFallbackViolationsByModule, 2);
 		lines.push("\t],");
@@ -927,6 +993,20 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("");
 		lines.push("- schema version: `" + snapshot.schemaVersion + "`");
 		lines.push("- contract: `" + snapshot.contract + "`");
+		lines.push("- policy preset: `" + snapshot.policyPreset + "`");
+		lines.push("- semantic boundary source: `" + snapshot.semanticBoundarySource + "`");
+		lines.push("- native authority policy: `"
+			+ snapshot.nativeAuthorityPolicy
+			+ "` (source `"
+			+ snapshot.nativeAuthorityPolicySource
+			+ "`)");
+		lines.push("- native specialization policy: `" + snapshot.nativeSpecializationPolicy + "` (source `" + snapshot.nativeSpecializationPolicySource +
+			"`)");
+		lines.push("- native fallback policy: `"
+			+ snapshot.nativeFallbackPolicy
+			+ "` (source `"
+			+ snapshot.nativeFallbackPolicySource
+			+ "`)");
 		lines.push("- auto lowering mode: `" + snapshot.autoLoweringMode + "`");
 		lines.push("- strict examples: `" + boolLabel(snapshot.strictExamples) + "`");
 		lines.push("- strict user boundary policy: `" + snapshot.strictUserBoundaryPolicy + "`");
@@ -938,6 +1018,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("- hxrt selective enabled: `" + boolLabel(snapshot.hxrtSelectiveEnabled) + "`");
 		lines.push("- hxrt force full copy: `" + boolLabel(snapshot.hxrtForceFullCopy) + "`");
 		lines.push("- hxrt no feature infer: `" + boolLabel(snapshot.hxrtNoFeatureInfer) + "`");
+		lines.push("- native fallback events: `" + snapshot.nativeFallbackEventCount + "`");
+		lines.push("- native fallback boundary events: `" + snapshot.nativeFallbackBoundaryEventCount + "`");
+		lines.push("- native fallback non-boundary events: `" + snapshot.nativeFallbackNonBoundaryEventCount + "`");
 		lines.push("- metal fallback violations: `" + snapshot.metalFallbackViolationCount + "`");
 		lines.push("- metal fallback lane violations: `" + snapshot.metalFallbackLaneViolationCount + "`");
 		lines.push("- metal fallback non-lane violations: `" + snapshot.metalFallbackNonLaneViolationCount + "`");
@@ -955,6 +1038,15 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		} else {
 			for (feature in snapshot.hxrtManualFeatures) {
 				lines.push("- `" + feature + "`");
+			}
+		}
+		lines.push("");
+		lines.push("## native boundary modules");
+		if (snapshot.nativeBoundaryModules.length == 0) {
+			lines.push("- none");
+		} else {
+			for (moduleName in snapshot.nativeBoundaryModules) {
+				lines.push("- `" + moduleName + "`");
 			}
 		}
 		lines.push("");
@@ -1017,9 +1109,29 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			lines.push("- none");
 		} else {
 			for (entry in snapshot.loweringDecisions) {
-				var laneLabel = entry.inMetalLane ? "lane" : "non-lane";
+				var laneLabel = entry.inNativeBoundary ? "native-boundary" : "non-boundary";
 				lines.push("- `" + entry.module + "` (" + laneLabel + ") | `" + entry.feature + "` | `" + entry.kind + "` | `" + entry.outcome + "` | `"
 					+ entry.location + "` | " + entry.detail);
+			}
+		}
+		lines.push("");
+		lines.push("## native fallback event summary by module");
+		if (snapshot.nativeFallbackEventsByModule.length == 0) {
+			lines.push("- none");
+		} else {
+			for (entry in snapshot.nativeFallbackEventsByModule) {
+				var boundaryLabel = entry.inNativeBoundary ? "native-boundary" : "non-boundary";
+				lines.push("- `" + entry.module + "` (" + boundaryLabel + "): `" + entry.count + "`");
+			}
+		}
+		lines.push("");
+		lines.push("## native fallback events");
+		if (snapshot.nativeFallbackEvents.length == 0) {
+			lines.push("- none");
+		} else {
+			for (entry in snapshot.nativeFallbackEvents) {
+				var boundaryLabel = entry.inNativeBoundary ? "native-boundary" : "non-boundary";
+				lines.push("- `" + entry.module + "` (" + boundaryLabel + ") | `" + entry.kind + "` | `" + entry.location + "` | " + entry.detail);
 			}
 		}
 		lines.push("");
@@ -1028,7 +1140,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			lines.push("- none");
 		} else {
 			for (entry in snapshot.metalFallbackViolationsByModule) {
-				var laneLabel = entry.inMetalLane ? "lane" : "non-lane";
+				var laneLabel = entry.inNativeBoundary ? "lane" : "non-lane";
 				lines.push("- `" + entry.module + "` (" + laneLabel + "): `" + entry.count + "`");
 			}
 		}
@@ -1038,7 +1150,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			lines.push("- none");
 		} else {
 			for (entry in snapshot.metalFallbackViolations) {
-				var laneLabel = entry.inMetalLane ? "lane" : "non-lane";
+				var laneLabel = entry.inNativeBoundary ? "lane" : "non-lane";
 				lines.push("- `" + entry.module + "` (" + laneLabel + ") | `" + entry.kind + "` | `" + entry.location + "` | " + entry.detail);
 			}
 		}
@@ -1051,6 +1163,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("{");
 		lines.push('\t"schemaVersion": ' + snapshot.schemaVersion + ",");
 		lines.push('\t"contract": "' + jsonEscape(snapshot.contract) + '",');
+		lines.push('\t"policyPreset": "' + jsonEscape(snapshot.policyPreset) + '",');
+		lines.push('\t"semanticBoundarySource": "' + jsonEscape(snapshot.semanticBoundarySource) + '",');
 		lines.push('\t"mode": "' + jsonEscape(snapshot.mode) + '",');
 		lines.push('\t"selectiveEnabled": ' + boolString(snapshot.selectiveEnabled) + ",");
 		lines.push('\t"fullCopy": ' + boolString(snapshot.fullCopy) + ",");
@@ -1080,6 +1194,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("");
 		lines.push("- schema version: `" + snapshot.schemaVersion + "`");
 		lines.push("- contract: `" + snapshot.contract + "`");
+		lines.push("- policy preset: `" + snapshot.policyPreset + "`");
+		lines.push("- semantic boundary source: `" + snapshot.semanticBoundarySource + "`");
 		lines.push("- mode: `" + snapshot.mode + "`");
 		lines.push("- selective enabled: `" + boolLabel(snapshot.selectiveEnabled) + "`");
 		lines.push("- full copy: `" + boolLabel(snapshot.fullCopy) + "`");
@@ -1138,6 +1254,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("{");
 		lines.push('\t"schemaVersion": ' + snapshot.schemaVersion + ",");
 		lines.push('\t"contract": "' + jsonEscape(snapshot.contract) + '",');
+		lines.push('\t"policyPreset": "' + jsonEscape(snapshot.policyPreset) + '",');
+		lines.push('\t"nativeSpecializationPolicy": "' + jsonEscape(snapshot.nativeSpecializationPolicy) + '",');
+		lines.push('\t"nativeSpecializationPolicySource": "' + jsonEscape(snapshot.nativeSpecializationPolicySource) + '",');
 		lines.push('\t"autoLoweringMode": "' + jsonEscape(snapshot.autoLoweringMode) + '",');
 		lines.push('\t"optimizationPreset": "' + jsonEscape(snapshot.optimizationPreset) + '",');
 		lines.push('\t"portableStringFastpathEnabled": ' + boolString(snapshot.portableStringFastpathEnabled) + ",");
@@ -1152,6 +1271,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push('\t"goCollectionsTypedFallbacks": ' + snapshot.goCollectionsTypedFallbacks + ",");
 		lines.push('\t"goResultTypedLowerings": ' + snapshot.goResultTypedLowerings + ",");
 		lines.push('\t"goResultTypedFallbacks": ' + snapshot.goResultTypedFallbacks + ",");
+		lines.push('\t"loweringFallbackBoundaryCount": ' + snapshot.loweringFallbackBoundaryCount + ",");
+		lines.push('\t"loweringFallbackNonBoundaryCount": ' + snapshot.loweringFallbackNonBoundaryCount + ",");
 		lines.push('\t"loweringFallbackLaneCount": ' + snapshot.loweringFallbackLaneCount + ",");
 		lines.push('\t"loweringFallbackNonLaneCount": ' + snapshot.loweringFallbackNonLaneCount + ",");
 		lines.push('\t"autoLoweringCapabilities": [');
@@ -1174,6 +1295,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("");
 		lines.push("- schema version: `" + snapshot.schemaVersion + "`");
 		lines.push("- contract: `" + snapshot.contract + "`");
+		lines.push("- policy preset: `" + snapshot.policyPreset + "`");
+		lines.push("- native specialization policy: `" + snapshot.nativeSpecializationPolicy + "` (source `" + snapshot.nativeSpecializationPolicySource +
+			"`)");
 		lines.push("- auto lowering mode: `" + snapshot.autoLoweringMode + "`");
 		lines.push("- optimization preset: `" + snapshot.optimizationPreset + "`");
 		lines.push("- portable string fastpath enabled: `" + boolLabel(snapshot.portableStringFastpathEnabled) + "`");
@@ -1188,6 +1312,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("- go collections typed fallbacks: `" + snapshot.goCollectionsTypedFallbacks + "`");
 		lines.push("- go result typed lowerings: `" + snapshot.goResultTypedLowerings + "`");
 		lines.push("- go result typed fallbacks: `" + snapshot.goResultTypedFallbacks + "`");
+		lines.push("- lowering fallback boundary count: `" + snapshot.loweringFallbackBoundaryCount + "`");
+		lines.push("- lowering fallback non-boundary count: `" + snapshot.loweringFallbackNonBoundaryCount + "`");
 		lines.push("- lowering fallback lane count: `" + snapshot.loweringFallbackLaneCount + "`");
 		lines.push("- lowering fallback non-lane count: `" + snapshot.loweringFallbackNonLaneCount + "`");
 		lines.push("- go ast pass selection source: `" + snapshot.goAstPassSelectionSource + "`");
@@ -1240,17 +1366,18 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		}
 	}
 
-	static function appendJsonContractFallbackArray(lines:Array<String>, violations:Array<ContractFallbackViolation>, indentLevel:Int):Void {
+	static function appendJsonContractFallbackArray(lines:Array<String>, events:Array<ContractFallbackEvent>, indentLevel:Int):Void {
 		var indent = [for (_ in 0...indentLevel) "\t"].join("");
-		for (index in 0...violations.length) {
-			var violation = violations[index];
-			var suffix = index == violations.length - 1 ? "" : ",";
+		for (index in 0...events.length) {
+			var event = events[index];
+			var suffix = index == events.length - 1 ? "" : ",";
 			lines.push(indent + "{");
-			lines.push(indent + '\t"module": "' + jsonEscape(violation.module) + '",');
-			lines.push(indent + '\t"inMetalLane": ' + boolString(violation.inMetalLane) + ",");
-			lines.push(indent + '\t"kind": "' + jsonEscape(violation.kind) + '",');
-			lines.push(indent + '\t"location": "' + jsonEscape(violation.location) + '",');
-			lines.push(indent + '\t"detail": "' + jsonEscape(violation.detail) + '"');
+			lines.push(indent + '\t"module": "' + jsonEscape(event.module) + '",');
+			lines.push(indent + '\t"inNativeBoundary": ' + boolString(event.inNativeBoundary) + ",");
+			lines.push(indent + '\t"inMetalLane": ' + boolString(event.inNativeBoundary) + ",");
+			lines.push(indent + '\t"kind": "' + jsonEscape(event.kind) + '",');
+			lines.push(indent + '\t"location": "' + jsonEscape(event.location) + '",');
+			lines.push(indent + '\t"detail": "' + jsonEscape(event.detail) + '"');
 			lines.push(indent + "}" + suffix);
 		}
 	}
@@ -1262,7 +1389,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			var suffix = index == decisions.length - 1 ? "" : ",";
 			lines.push(indent + "{");
 			lines.push(indent + '\t"module": "' + jsonEscape(entry.module) + '",');
-			lines.push(indent + '\t"inMetalLane": ' + boolString(entry.inMetalLane) + ",");
+			lines.push(indent + '\t"inNativeBoundary": ' + boolString(entry.inNativeBoundary) + ",");
+			lines.push(indent + '\t"inMetalLane": ' + boolString(entry.inNativeBoundary) + ",");
 			lines.push(indent + '\t"feature": "' + jsonEscape(entry.feature) + '",');
 			lines.push(indent + '\t"kind": "' + jsonEscape(entry.kind) + '",');
 			lines.push(indent + '\t"outcome": "' + jsonEscape(entry.outcome) + '",');
@@ -1294,7 +1422,8 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			var suffix = index == summary.length - 1 ? "" : ",";
 			lines.push(indent + "{");
 			lines.push(indent + '\t"module": "' + jsonEscape(entry.module) + '",');
-			lines.push(indent + '\t"inMetalLane": ' + boolString(entry.inMetalLane) + ",");
+			lines.push(indent + '\t"inNativeBoundary": ' + boolString(entry.inNativeBoundary) + ",");
+			lines.push(indent + '\t"inMetalLane": ' + boolString(entry.inNativeBoundary) + ",");
 			lines.push(indent + '\t"count": ' + entry.count);
 			lines.push(indent + "}" + suffix);
 		}

@@ -6,7 +6,7 @@ A small HTTP incident-management service written in Haxe stdlib code and compile
 
 - Shows a real local network service without using `go.*`, Go externs, or raw `__go__`.
 - Demonstrates config files, file-backed state, JSON payloads, and loopback sockets.
-- Proves the same Haxe source can compile under `portable` and `metal` profiles.
+- Proves the same portable Haxe source keeps its behavior under both policy presets.
 
 ## What it does
 
@@ -25,16 +25,18 @@ The implementation uses Haxe-facing APIs only:
 - `sys.io.File` and `sys.FileSystem` for config/state files
 - `haxe.Json` for request/config/state parsing
 
-## Profile support
+## Preset support
 
-| Profile | Supported | Practical meaning |
+| Preset | Supported | Practical meaning |
 | --- | --- | --- |
 | `portable` | Yes | Default showcase: ordinary Haxe stdlib code becomes a runnable Go service. |
-| `metal` | Yes | Stricter profile lane proving the same service avoids raw/native shortcuts. |
+| `metal` | Yes | Compatibility audit proving stricter defaults do not change portable source behavior. |
 
 `metal` is not required for good Go output. This example uses `metal` as an audit lane, not as permission to write Go-native app code.
 
-If you want an example where `metal` unlocks more visible Go-native authoring choices, use `examples/worker_pool_select`. This service is intentionally different: it proves a useful network app can stay on Haxe-facing APIs.
+For explicit Go-native APIs under both presets, use
+`examples/worker_pool_select`. This service intentionally proves a useful
+network app can stay on Haxe-facing APIs.
 
 ## Compile
 

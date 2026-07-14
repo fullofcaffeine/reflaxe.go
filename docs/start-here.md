@@ -1,10 +1,14 @@
 # Start Here
 
-This is the shortest path from clone -> running app -> understanding profile choices.
+This is the shortest path from clone -> running app -> understanding policy
+presets and explicit native boundaries.
 
 ## Terms
 
-- [profile](glossary.md#profile): build contract (`portable` or `metal`).
+- [policy preset](glossary.md#policy-preset): compatible defaults selected by
+  `portable` or `metal`.
+- [native boundary](glossary.md#native-boundary): module-level Go authority
+  declared with `@:goNative`.
 - [`hxrt`](glossary.md#hxrt): runtime package copied into generated output.
 - [semantic diff](glossary.md#semantic-diff): behavior parity test versus Haxe `--interp`.
 
@@ -80,8 +84,8 @@ changes.
 
 - Portable baseline: `examples/tui_todo`
 - Real Haxe stdlib service: `examples/incident_api`
-- Profile-neutral interop: `examples/interop_smoke`
-- Clear portable vs metal comparison: `examples/worker_pool_select`
+- Preset-neutral interop: `examples/interop_smoke`
+- Clear specialization-policy comparison: `examples/worker_pool_select`
 - Full app benchmark lanes: `examples/pulseforge`, `examples/fluxproxy`
 
 Run all examples:
@@ -90,7 +94,7 @@ Run all examples:
 python3 test/run-examples.py
 ```
 
-## Profile choice (practical)
+## Preset choice (practical)
 
 Use:
 
@@ -98,21 +102,23 @@ Use:
 -D reflaxe_go_profile=portable|metal
 ```
 
-- `portable`: best default for shared/cross-target-friendly code.
-- `metal`: opt-in Go-native authoring contract with stricter defaults and
-  fail-fast native-lane checks.
+- `portable`: default policy bundle for portable Haxe source.
+- `metal`: supported compatibility bundle for explicit native authority, eager
+  specialization, strict raw boundaries, and fail-fast fallback.
 
 `metal` is not required for good Go output. Start in `portable`; the compiler
 should still emit Go-shaped fast paths whenever it can prove they preserve Haxe
-semantics.
+semantics. Use typed `go.*`/extern APIs or `@:goNative` when source itself is
+Go-specific.
 
-Detailed profile policy: [docs/profiles.md](profiles.md)
+Detailed contract: [Native policy presets and semantic boundaries](native-policy-presets.md)
 
 ## Strict policy knobs
 
 - `-D reflaxe_go_strict_examples`: forbids raw `__go__` in repo examples/snapshots.
 - `-D reflaxe_go_strict`: forbids raw `__go__` in app code.
-- `-D reflaxe_go_strict_policy=auto|on|off`: app strictness policy (`auto` default: strict in `metal`, relaxed in `portable`).
+- `-D reflaxe_go_strict_policy=auto|on|off`: app strictness policy (`auto`
+  follows the selected compatibility preset).
 
 ## Where is the stdlib?
 
@@ -169,6 +175,7 @@ Supply-chain policy: [docs/supply-chain-policy.md](supply-chain-policy.md)
 - Docs map: [docs/index.md](index.md)
 - Glossary: [docs/glossary.md](glossary.md)
 - Profiles: [docs/profiles.md](profiles.md)
+- Native policy presets: [docs/native-policy-presets.md](native-policy-presets.md)
 - Profile semantics guide: [docs/profile-semantics-guide.md](profile-semantics-guide.md)
 - Examples matrix: [docs/examples-matrix.md](examples-matrix.md)
 - Semantic diff guide: [docs/semantic-diff-guide.md](semantic-diff-guide.md)

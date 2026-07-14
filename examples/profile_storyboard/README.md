@@ -13,9 +13,11 @@ Portable-first release-dashboard renderer for a small planning board.
 - portable: Yes
 - metal: No
 
-This example is intentionally portable-only. The previous metal lane in this app changed adapter strings/thresholds for demonstration, not because metal generated materially better behavior or meaningful Go-hot-path benefits.
+This example is intentionally portable-only. The previous metal lane changed
+app strings/thresholds merely to fabricate a distinction; a policy preset must
+not change portable application semantics.
 
-For real portable-vs-metal differences, use:
+For real native-policy differences, use:
 
 - `examples/worker_pool_select`
 - `examples/pulseforge` (`go_native` lanes)

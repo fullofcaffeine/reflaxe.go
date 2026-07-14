@@ -12,6 +12,9 @@ class GoBuildContextResolver {
 	public static inline final STRICT_DEFINE = "reflaxe_go_strict";
 	public static inline final STRICT_POLICY_DEFINE = "reflaxe_go_strict_policy";
 	public static inline final METAL_ALLOW_FALLBACK_DEFINE = "reflaxe_go_metal_allow_fallback";
+	public static inline final NATIVE_AUTHORITY_DEFINE = "reflaxe_go_native_authority";
+	public static inline final NATIVE_SPECIALIZATION_DEFINE = "reflaxe_go_native_specialization";
+	public static inline final NATIVE_FALLBACK_DEFINE = "reflaxe_go_native_fallback";
 	public static inline final AUTO_MODE_DEFINE = "reflaxe_go_auto";
 	public static inline final GO_MODULE_DEFINE = "go_module";
 	public static inline final LINE_DIRECTIVES_DEFINE = "reflaxe_go_line_directives";
@@ -28,20 +31,109 @@ class GoBuildContextResolver {
 	public static function resolve():GoBuildContext {
 		var profile = ProfileResolver.resolve();
 		var metalFallbackAllowed = Context.defined(METAL_ALLOW_FALLBACK_DEFINE);
+		var policyResolution = resolvePolicy(profile, metalFallbackAllowed);
 		var strictPolicy = parseStrictUserBoundaryPolicy(Context.definedValue(STRICT_POLICY_DEFINE));
-		var strictUserBoundaries = resolveStrictUserBoundaries(profile, strictPolicy, Context.defined(STRICT_DEFINE));
+		var strictUserBoundaries = resolveStrictUserBoundaries(policyResolution.preset, strictPolicy, Context.defined(STRICT_DEFINE));
 		var autoLoweringMode = parseAutoLoweringMode(Context.definedValue(AUTO_MODE_DEFINE));
 		var optimizationPreset = parseOptimizationPreset(Context.definedValue(OPT_PRESET_DEFINE));
 		var portableStringFastpathEnabled = optimizationPreset == "portable_fast";
 		var portableConcurrencyFastpathEnabled = parseBoolDefine(OPT_PORTABLE_CONCURRENCY_FASTPATH_DEFINE, portableStringFastpathEnabled);
-		return new GoBuildContext(profile, normalizeGoModuleName(Context.definedValue(GO_MODULE_DEFINE)), RawNativeModeResolver.resolve(),
-			Context.defined(LINE_DIRECTIVES_DEFINE), Context.defined(STRICT_EXAMPLES_DEFINE), strictPolicy, strictUserBoundaries,
-			metalFallbackAllowed, profile == GoProfile.Metal
-			&& !metalFallbackAllowed, Context.defined(HXRT_DEFAULT_FEATURES_DEFINE), Context.defined(HXRT_FEATURES_DEFINE),
-			Context.defined(HXRT_NO_FEATURE_INFER_DEFINE), parseManualHxrtFeatures(Context.definedValue(HXRT_FEATURES_DEFINE)),
-			Context.defined(CONTRACT_REPORT_DEFINE), Context.defined(RUNTIME_PLAN_REPORT_DEFINE), parseBoolDefine(OPTIMIZER_PLAN_REPORT_DEFINE, false),
-			autoLoweringMode, optimizationPreset, portableStringFastpathEnabled, portableConcurrencyFastpathEnabled,
-			Context.defined(NATIVE_STACK_TRACE_DEFINE), []);
+		return new GoBuildContext(profile, policyResolution, normalizeGoModuleName(Context.definedValue(GO_MODULE_DEFINE)), RawNativeModeResolver.resolve(),
+			Context.defined(LINE_DIRECTIVES_DEFINE), Context.defined(STRICT_EXAMPLES_DEFINE), strictPolicy, strictUserBoundaries, metalFallbackAllowed,
+			policyResolution.preset == GoPolicyPreset.MetalCompatibility
+			&& policyResolution.nativeFallback == GoNativeFallbackPolicy.Error,
+			Context.defined(HXRT_DEFAULT_FEATURES_DEFINE), Context.defined(HXRT_FEATURES_DEFINE), Context.defined(HXRT_NO_FEATURE_INFER_DEFINE),
+			parseManualHxrtFeatures(Context.definedValue(HXRT_FEATURES_DEFINE)), Context.defined(CONTRACT_REPORT_DEFINE),
+			Context.defined(RUNTIME_PLAN_REPORT_DEFINE), parseBoolDefine(OPTIMIZER_PLAN_REPORT_DEFINE, false), autoLoweringMode, optimizationPreset,
+			portableStringFastpathEnabled, portableConcurrencyFastpathEnabled, Context.defined(NATIVE_STACK_TRACE_DEFINE), []);
+	}
+
+	/**
+		Why
+		The compatibility preset must be only a default bundle; explicit axes need
+		deterministic precedence and provenance.
+
+		What
+		Resolves native authority, specialization, and fallback as typed values.
+
+		How
+		Canonical axis defines win, the legacy metal fallback define is honored
+		when non-contradictory, and preset defaults fill every remaining value.
+	**/
+	static function resolvePolicy(profile:GoProfile, legacyMetalFallbackAllowed:Bool):GoPolicyResolution {
+		var preset = GoPolicyPreset.fromLegacyProfile(profile);
+		var authorityRaw = Context.definedValue(NATIVE_AUTHORITY_DEFINE);
+		var authority = authorityRaw == null ? GoNativeAuthorityPolicy.defaultFor(preset) : parseNativeAuthorityPolicy(authorityRaw);
+		var authoritySource = authorityRaw == null ? GoPolicyResolutionSource.PolicyPreset : GoPolicyResolutionSource.NativeAuthorityDefine;
+
+		var specializationRaw = Context.definedValue(NATIVE_SPECIALIZATION_DEFINE);
+		var specialization = specializationRaw == null ? GoNativeSpecializationPolicy.defaultFor(preset) : parseNativeSpecializationPolicy(specializationRaw);
+		var specializationSource = specializationRaw == null ? GoPolicyResolutionSource.PolicyPreset : GoPolicyResolutionSource.NativeSpecializationDefine;
+
+		var fallbackRaw = Context.definedValue(NATIVE_FALLBACK_DEFINE);
+		var fallback = fallbackRaw == null ? GoNativeFallbackPolicy.defaultFor(preset) : parseNativeFallbackPolicy(fallbackRaw);
+		var fallbackSource = fallbackRaw == null ? GoPolicyResolutionSource.PolicyPreset : GoPolicyResolutionSource.NativeFallbackDefine;
+		if (legacyMetalFallbackAllowed) {
+			if (fallbackRaw != null && fallback != GoNativeFallbackPolicy.Allow) {
+				Context.fatalError('Conflicting native fallback settings: `-D ' + METAL_ALLOW_FALLBACK_DEFINE + '` requires `-D ' + NATIVE_FALLBACK_DEFINE
+					+ '=allow`, but the canonical axis selected `error`.',
+					Context.currentPos());
+			}
+			if (fallbackRaw == null) {
+				fallback = GoNativeFallbackPolicy.Allow;
+				fallbackSource = GoPolicyResolutionSource.LegacyMetalFallbackDefine;
+			}
+		}
+
+		return {
+			preset: preset,
+			semanticBoundarySource: GoSemanticBoundarySource.TypedApiOrModule,
+			nativeAuthority: authority,
+			nativeAuthoritySource: authoritySource,
+			nativeSpecialization: specialization,
+			nativeSpecializationSource: specializationSource,
+			nativeFallback: fallback,
+			nativeFallbackSource: fallbackSource
+		};
+	}
+
+	static function parseNativeAuthorityPolicy(raw:String):GoNativeAuthorityPolicy {
+		var normalized = StringTools.trim(raw).toLowerCase();
+		return switch (normalized) {
+			case "guarded":
+				GoNativeAuthorityPolicy.Guarded;
+			case "explicit":
+				GoNativeAuthorityPolicy.Explicit;
+			case _:
+				Context.fatalError('Unknown `' + NATIVE_AUTHORITY_DEFINE + '` value "' + raw + '" (expected: guarded, explicit)', Context.currentPos());
+				GoNativeAuthorityPolicy.Guarded;
+		};
+	}
+
+	static function parseNativeSpecializationPolicy(raw:String):GoNativeSpecializationPolicy {
+		var normalized = StringTools.trim(raw).toLowerCase();
+		return switch (normalized) {
+			case "proven":
+				GoNativeSpecializationPolicy.Proven;
+			case "eager":
+				GoNativeSpecializationPolicy.Eager;
+			case _:
+				Context.fatalError('Unknown `' + NATIVE_SPECIALIZATION_DEFINE + '` value "' + raw + '" (expected: proven, eager)', Context.currentPos());
+				GoNativeSpecializationPolicy.Proven;
+		};
+	}
+
+	static function parseNativeFallbackPolicy(raw:String):GoNativeFallbackPolicy {
+		var normalized = StringTools.trim(raw).toLowerCase();
+		return switch (normalized) {
+			case "allow":
+				GoNativeFallbackPolicy.Allow;
+			case "error":
+				GoNativeFallbackPolicy.Error;
+			case _:
+				Context.fatalError('Unknown `' + NATIVE_FALLBACK_DEFINE + '` value "' + raw + '" (expected: allow, error)', Context.currentPos());
+				GoNativeFallbackPolicy.Allow;
+		};
 	}
 
 	static function parseManualHxrtFeatures(raw:Null<String>):Array<String> {
@@ -107,7 +199,7 @@ class GoBuildContextResolver {
 		};
 	}
 
-	static function resolveStrictUserBoundaries(profile:GoProfile, strictPolicy:String, strictDefineEnabled:Bool):Bool {
+	static function resolveStrictUserBoundaries(preset:GoPolicyPreset, strictPolicy:String, strictDefineEnabled:Bool):Bool {
 		if (strictDefineEnabled) {
 			return true;
 		}
@@ -117,7 +209,7 @@ class GoBuildContextResolver {
 			case "off":
 				false;
 			case _:
-				profile == GoProfile.Metal;
+				preset == GoPolicyPreset.MetalCompatibility;
 		};
 	}
 

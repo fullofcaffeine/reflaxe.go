@@ -1,6 +1,14 @@
 {
-	"schemaVersion": 7,
+	"schemaVersion": 8,
 	"contract": "metal",
+	"policyPreset": "metal_compatibility",
+	"semanticBoundarySource": "typed_api_or_module",
+	"nativeAuthorityPolicy": "explicit",
+	"nativeAuthorityPolicySource": "policy_preset",
+	"nativeSpecializationPolicy": "eager",
+	"nativeSpecializationPolicySource": "policy_preset",
+	"nativeFallbackPolicy": "allow",
+	"nativeFallbackPolicySource": "reflaxe_go_metal_allow_fallback",
 	"autoLoweringMode": "off",
 	"strictExamples": false,
 	"strictUserBoundaryPolicy": "auto",
@@ -16,6 +24,9 @@
 	"loweringDecisionAttemptCount": 4,
 	"loweringDecisionSuccessCount": 0,
 	"loweringDecisionFallbackCount": 4,
+	"nativeFallbackEventCount": 4,
+	"nativeFallbackBoundaryEventCount": 1,
+	"nativeFallbackNonBoundaryEventCount": 3,
 	"metalFallbackViolationCount": 4,
 	"metalFallbackLaneViolationCount": 1,
 	"metalFallbackNonLaneViolationCount": 3,
@@ -25,6 +36,9 @@
 	"portableNativeImportScannerHitCount": 0,
 	"contractDiagnosticCount": 0,
 	"hxrtManualFeatures": [
+	],
+	"nativeBoundaryModules": [
+		"LaneWorker"
 	],
 	"metalLaneModules": [
 		"LaneWorker"
@@ -40,6 +54,7 @@
 	"loweringDecisions": [
 		{
 			"module": "LaneWorker",
+			"inNativeBoundary": true,
 			"inMetalLane": true,
 			"feature": "go.result.typed",
 			"kind": "go_result_static_failure",
@@ -49,15 +64,17 @@
 		},
 		{
 			"module": "LaneWorker",
+			"inNativeBoundary": true,
 			"inMetalLane": true,
 			"feature": "go.result.typed",
 			"kind": "go_result_static_failure_unmorphable",
 			"outcome": "fallback",
 			"location": "LaneWorker:4",
-			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+			"detail": "Could not monomorphize go.Result<T>.failure return type for native specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		},
 		{
 			"module": "NonLaneWorker",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"feature": "go.result.typed",
 			"kind": "go_result_static_failure",
@@ -67,15 +84,17 @@
 		},
 		{
 			"module": "NonLaneWorker",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"feature": "go.result.typed",
 			"kind": "go_result_static_failure_unmorphable",
 			"outcome": "fallback",
 			"location": "NonLaneWorker:3",
-			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+			"detail": "Could not monomorphize go.Result<T>.failure return type for native specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		},
 		{
 			"module": "go.Go",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_method___hx_setBuffer",
@@ -85,15 +104,17 @@
 		},
 		{
 			"module": "go.Go",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_method_unmorphable",
 			"outcome": "fallback",
 			"location": "go.Go:19",
-			"detail": "Could not monomorphize go.Chan method call for metal specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+			"detail": "Could not monomorphize go.Chan method call for native specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		},
 		{
 			"module": "go.Go",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_new",
@@ -103,6 +124,7 @@
 		},
 		{
 			"module": "go.Go",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"feature": "go.concurrency.typed",
 			"kind": "go_chan_new_unmorphable",
@@ -111,19 +133,76 @@
 			"detail": "Could not monomorphize go.Chan element type for constructor specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		}
 	],
-	"metalFallbackViolationsByModule": [
+	"nativeFallbackEventsByModule": [
 		{
 			"module": "LaneWorker",
+			"inNativeBoundary": true,
 			"inMetalLane": true,
 			"count": 1
 		},
 		{
 			"module": "NonLaneWorker",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"count": 1
 		},
 		{
 			"module": "go.Go",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"count": 2
+		}
+	],
+	"nativeFallbackEvents": [
+		{
+			"module": "LaneWorker",
+			"inNativeBoundary": true,
+			"inMetalLane": true,
+			"kind": "go_result_static_failure_unmorphable",
+			"location": "LaneWorker:4",
+			"detail": "Could not monomorphize go.Result<T>.failure return type for native specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+		},
+		{
+			"module": "NonLaneWorker",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"kind": "go_result_static_failure_unmorphable",
+			"location": "NonLaneWorker:3",
+			"detail": "Could not monomorphize go.Result<T>.failure return type for native specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+		},
+		{
+			"module": "go.Go",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"kind": "go_chan_method_unmorphable",
+			"location": "go.Go:19",
+			"detail": "Could not monomorphize go.Chan method call for native specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+		},
+		{
+			"module": "go.Go",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"kind": "go_chan_new_unmorphable",
+			"location": "go.Go:17",
+			"detail": "Could not monomorphize go.Chan element type for constructor specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+		}
+	],
+	"metalFallbackViolationsByModule": [
+		{
+			"module": "LaneWorker",
+			"inNativeBoundary": true,
+			"inMetalLane": true,
+			"count": 1
+		},
+		{
+			"module": "NonLaneWorker",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"count": 1
+		},
+		{
+			"module": "go.Go",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"count": 2
 		}
@@ -131,27 +210,31 @@
 	"metalFallbackViolations": [
 		{
 			"module": "LaneWorker",
+			"inNativeBoundary": true,
 			"inMetalLane": true,
 			"kind": "go_result_static_failure_unmorphable",
 			"location": "LaneWorker:4",
-			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+			"detail": "Could not monomorphize go.Result<T>.failure return type for native specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		},
 		{
 			"module": "NonLaneWorker",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"kind": "go_result_static_failure_unmorphable",
 			"location": "NonLaneWorker:3",
-			"detail": "Could not monomorphize go.Result<T>.failure return type for metal specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+			"detail": "Could not monomorphize go.Result<T>.failure return type for native specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		},
 		{
 			"module": "go.Go",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"kind": "go_chan_method_unmorphable",
 			"location": "go.Go:19",
-			"detail": "Could not monomorphize go.Chan method call for metal specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+			"detail": "Could not monomorphize go.Chan method call for native specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
 		},
 		{
 			"module": "go.Go",
+			"inNativeBoundary": false,
 			"inMetalLane": false,
 			"kind": "go_chan_new_unmorphable",
 			"location": "go.Go:17",

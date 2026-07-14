@@ -13,9 +13,9 @@ import reflaxe.go.compiler.GoExprOperatorOps;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureInference;
 import reflaxe.go.compiler.GoLambdaIterableLowering;
-import reflaxe.go.compiler.GoMetalTypeEligibility;
-import reflaxe.go.compiler.GoMetalTypeEligibility.GoMetalEligibilityRole;
-import reflaxe.go.compiler.GoMetalTypeEligibility.GoMetalTypeEligibilityResult;
+import reflaxe.go.compiler.GoNativeTypeEligibility;
+import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeEligibilityRole;
+import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeTypeEligibilityResult;
 import reflaxe.go.compiler.GoSourceModuleRegistry;
 import reflaxe.go.compiler.GoSourceOwnedStdlibPlanner;
 import reflaxe.go.compiler.GoStdlibShimClassifier;
@@ -82,7 +82,7 @@ private typedef GoMapMethodCall = {
 	final valueType:Type;
 }
 
-private typedef MetalMapTypePair = {
+private typedef NativeMapTypePair = {
 	final keyGoType:String;
 	final valueGoType:String;
 }
@@ -175,10 +175,10 @@ class GoCompiler {
 	final localLambdaAliasScopes:Array<Map<String, String>>;
 	final localRestIteratorScopes:Array<Array<String>>;
 	final requiredStdlibShimGroups:Map<String, Bool>;
-	final requiredMetalChanElementTypes:Map<String, Bool>;
-	final requiredMetalSliceElementTypes:Map<String, Bool>;
-	final requiredMetalMapTypePairs:Map<String, MetalMapTypePair>;
-	final requiredMetalResultElementTypes:Map<String, Bool>;
+	final requiredNativeChanElementTypes:Map<String, Bool>;
+	final requiredNativeSliceElementTypes:Map<String, Bool>;
+	final requiredNativeMapTypePairs:Map<String, NativeMapTypePair>;
+	final requiredNativeResultElementTypes:Map<String, Bool>;
 	final externImportPaths:Map<String, Bool>;
 	final externImportPackages:Map<String, String>;
 	final sourceModuleRegistry:GoSourceModuleRegistry;
@@ -223,10 +223,10 @@ class GoCompiler {
 		localLambdaAliasScopes = [];
 		localRestIteratorScopes = [];
 		requiredStdlibShimGroups = new Map<String, Bool>();
-		requiredMetalChanElementTypes = new Map<String, Bool>();
-		requiredMetalSliceElementTypes = new Map<String, Bool>();
-		requiredMetalMapTypePairs = new Map<String, MetalMapTypePair>();
-		requiredMetalResultElementTypes = new Map<String, Bool>();
+		requiredNativeChanElementTypes = new Map<String, Bool>();
+		requiredNativeSliceElementTypes = new Map<String, Bool>();
+		requiredNativeMapTypePairs = new Map<String, NativeMapTypePair>();
+		requiredNativeResultElementTypes = new Map<String, Bool>();
 		externImportPaths = new Map<String, Bool>();
 		externImportPackages = new Map<String, String>();
 		functionVarNameScopes = [];
@@ -319,10 +319,10 @@ class GoCompiler {
 		requiresIoEofStringSurface = false;
 		requiresUdpSocketSurface = false;
 		requiresReflectFieldsShim = false;
-		resetRequiredMetalChanElementTypes();
-		resetRequiredMetalSliceElementTypes();
-		resetRequiredMetalMapTypePairs();
-		resetRequiredMetalResultElementTypes();
+		resetRequiredNativeChanElementTypes();
+		resetRequiredNativeSliceElementTypes();
+		resetRequiredNativeMapTypePairs();
+		resetRequiredNativeResultElementTypes();
 		resetExternImportPaths();
 		buildStaticFunctionInfoTable(classes);
 		requiresTypeValueSupport = false;
@@ -1664,7 +1664,7 @@ class GoCompiler {
 			decls = decls.concat(lowerGoConcurrencyShimDecls());
 		}
 		if (requiredStdlibShimGroups.exists("go_collections")) {
-			decls = decls.concat(lowerMetalGoCollectionShimDecls());
+			decls = decls.concat(lowerTypedGoCollectionShimDecls());
 		}
 		if (requiredStdlibShimGroups.exists("go_result")) {
 			decls = decls.concat(lowerGoResultShimDecls());
@@ -3818,13 +3818,13 @@ class GoCompiler {
 			], [], [GoStmt.GoGoStmt(GoExpr.GoCall(GoExpr.GoIdent("fn"), []))])
 		];
 		if (useTypedGoConcurrencySpecialization()) {
-			decls = decls.concat(lowerMetalGoConcurrencyShimDecls());
+			decls = decls.concat(lowerTypedGoConcurrencyShimDecls());
 		}
 		return decls;
 	}
 
-	function lowerMetalGoConcurrencyShimDecls():Array<GoDecl> {
-		var elementTypes = [for (elementType in requiredMetalChanElementTypes.keys()) elementType];
+	function lowerTypedGoConcurrencyShimDecls():Array<GoDecl> {
+		var elementTypes = [for (elementType in requiredNativeChanElementTypes.keys()) elementType];
 		if (elementTypes.length == 0) {
 			return [];
 		}
@@ -3838,15 +3838,15 @@ class GoCompiler {
 
 		for (elementType in elementTypes) {
 			var chanType = "chan " + elementType;
-			var makeName = metalChanShimName("go__concurrency_makeChan", elementType);
-			var setBufferName = metalChanShimName("go__concurrency_setBuffer", elementType);
-			var newChanName = metalChanShimName("go__concurrency_newChan", elementType);
-			var sendName = metalChanShimName("go__concurrency_send", elementType);
-			var trySendName = metalChanShimName("go__concurrency_trySend", elementType);
-			var recvName = metalChanShimName("go__concurrency_recv", elementType);
-			var recvOrName = metalChanShimName("go__concurrency_recvOr", elementType);
-			var tryRecvName = metalChanShimName("go__concurrency_tryRecv", elementType);
-			var closeName = metalChanShimName("go__concurrency_close", elementType);
+			var makeName = nativeChanShimName("go__concurrency_makeChan", elementType);
+			var setBufferName = nativeChanShimName("go__concurrency_setBuffer", elementType);
+			var newChanName = nativeChanShimName("go__concurrency_newChan", elementType);
+			var sendName = nativeChanShimName("go__concurrency_send", elementType);
+			var trySendName = nativeChanShimName("go__concurrency_trySend", elementType);
+			var recvName = nativeChanShimName("go__concurrency_recv", elementType);
+			var recvOrName = nativeChanShimName("go__concurrency_recvOr", elementType);
+			var tryRecvName = nativeChanShimName("go__concurrency_tryRecv", elementType);
+			var closeName = nativeChanShimName("go__concurrency_close", elementType);
 
 			decls.push(GoDecl.GoFuncDecl(makeName, null, [{name: "buffer", typeName: "int"}], ["any"], [
 				GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoIdent("buffer"), GoExpr.GoIntLiteral(0)),
@@ -3934,22 +3934,22 @@ class GoCompiler {
 		return decls;
 	}
 
-	function lowerMetalGoCollectionShimDecls():Array<GoDecl> {
+	function lowerTypedGoCollectionShimDecls():Array<GoDecl> {
 		if (!useTypedGoCollectionsSpecialization()) {
 			return [];
 		}
 
 		var decls = new Array<GoDecl>();
-		var sliceElementTypes = [for (elementType in requiredMetalSliceElementTypes.keys()) elementType];
+		var sliceElementTypes = [for (elementType in requiredNativeSliceElementTypes.keys()) elementType];
 		sliceElementTypes.sort(function(a, b) return Reflect.compare(a, b));
 		var sliceTypeName = GoNaming.typeSymbol(["go"], "Slice");
 		var slicePointerType = "*" + sliceTypeName;
 		for (elementType in sliceElementTypes) {
-			var pushName = metalSliceShimName("go__slice_push", elementType);
-			var setName = metalSliceShimName("go__slice_set", elementType);
-			var getName = metalSliceShimName("go__slice_get", elementType);
-			var lengthName = metalSliceShimName("go__slice_length", elementType);
-			var toArrayName = metalSliceShimName("go__slice_toArray", elementType);
+			var pushName = nativeSliceShimName("go__slice_push", elementType);
+			var setName = nativeSliceShimName("go__slice_set", elementType);
+			var getName = nativeSliceShimName("go__slice_get", elementType);
+			var lengthName = nativeSliceShimName("go__slice_length", elementType);
+			var toArrayName = nativeSliceShimName("go__slice_toArray", elementType);
 
 			decls.push(GoDecl.GoFuncDecl(pushName, null, [
 				{
@@ -4013,20 +4013,20 @@ class GoCompiler {
 			]));
 		}
 
-		var mapSignatures = [for (signature in requiredMetalMapTypePairs.keys()) signature];
+		var mapSignatures = [for (signature in requiredNativeMapTypePairs.keys()) signature];
 		mapSignatures.sort(function(a, b) return Reflect.compare(a, b));
 		var mapTypeName = GoNaming.typeSymbol(["go"], "Map");
 		var mapPointerType = "*" + mapTypeName;
 		for (signature in mapSignatures) {
-			var pair = requiredMetalMapTypePairs.get(signature);
+			var pair = requiredNativeMapTypePairs.get(signature);
 			if (pair == null) {
 				continue;
 			}
 			var keyType = pair.keyGoType;
 			var valueType = pair.valueGoType;
-			var setName = metalMapShimName("go__map_set", keyType, valueType);
-			var getName = metalMapShimName("go__map_get", keyType, valueType);
-			var existsName = metalMapShimName("go__map_exists", keyType, valueType);
+			var setName = nativeMapShimName("go__map_set", keyType, valueType);
+			var getName = nativeMapShimName("go__map_get", keyType, valueType);
+			var existsName = nativeMapShimName("go__map_exists", keyType, valueType);
 
 			decls.push(GoDecl.GoFuncDecl(setName, null, [
 				{
@@ -4086,15 +4086,15 @@ class GoCompiler {
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [GoExpr.GoIdent("value"), GoExpr.GoNil]))
 			])
 		];
-		return decls.concat(lowerMetalGoResultShimDecls());
+		return decls.concat(lowerTypedGoResultShimDecls());
 	}
 
-	function lowerMetalGoResultShimDecls():Array<GoDecl> {
+	function lowerTypedGoResultShimDecls():Array<GoDecl> {
 		if (!useTypedGoResultSpecialization()) {
 			return [];
 		}
 
-		var elementTypes = [for (elementType in requiredMetalResultElementTypes.keys()) elementType];
+		var elementTypes = [for (elementType in requiredNativeResultElementTypes.keys()) elementType];
 		if (elementTypes.length == 0) {
 			return [];
 		}
@@ -4105,13 +4105,13 @@ class GoCompiler {
 		var decls = new Array<GoDecl>();
 
 		for (elementType in elementTypes) {
-			var okName = metalResultShimName("go__result_ok", elementType);
-			var failureName = metalResultShimName("go__result_failure", elementType);
-			var valueErrorName = metalResultShimName("go__result_valueError", elementType);
-			var isOkName = metalResultShimName("go__result_isOk", elementType);
-			var isErrName = metalResultShimName("go__result_isErr", elementType);
-			var unwrapName = metalResultShimName("go__result_unwrap", elementType);
-			var errorName = metalResultShimName("go__result_error", elementType);
+			var okName = nativeResultShimName("go__result_ok", elementType);
+			var failureName = nativeResultShimName("go__result_failure", elementType);
+			var valueErrorName = nativeResultShimName("go__result_valueError", elementType);
+			var isOkName = nativeResultShimName("go__result_isOk", elementType);
+			var isErrName = nativeResultShimName("go__result_isErr", elementType);
+			var unwrapName = nativeResultShimName("go__result_unwrap", elementType);
+			var errorName = nativeResultShimName("go__result_error", elementType);
 
 			decls.push(GoDecl.GoFuncDecl(okName, null, [{name: "value", typeName: elementType}], [resultPointerType], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [GoExpr.GoIdent("value"), GoExpr.GoNil]))
@@ -10359,16 +10359,16 @@ class GoCompiler {
 					if (elementEligibility.eligible) {
 						var elementGoType = elementEligibility.goType;
 						requireStdlibShimGroup("go_concurrency");
-						registerMetalChanElementGoType(elementGoType);
-						notePortableConcurrencyFastpathHit(expr.pos);
+						registerNativeChanElementGoType(elementGoType);
+						noteProvenConcurrencyFastpathHit(expr.pos);
 						noteLoweringSuccess("go.concurrency.typed", "go_chan_new", expr.pos,
 							'Applied typed go.Chan constructor specialization (element type: ' + elementGoType + ").");
 						{
-							expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_newChan", elementGoType)), [GoExpr.GoIntLiteral(0)]),
+							expr: GoExpr.GoCall(GoExpr.GoIdent(nativeChanShimName("go__concurrency_newChan", elementGoType)), [GoExpr.GoIntLiteral(0)]),
 							isStringLike: false
 						};
 					} else {
-						notePortableConcurrencyFastpathFallback(expr.pos);
+						noteProvenConcurrencyFastpathFallback(expr.pos);
 						noteLoweringFallback("go.concurrency.typed", "go_chan_new_unmorphable", expr.pos,
 							withEligibilityReason("Could not monomorphize go.Chan element type for constructor specialization.", elementEligibility));
 						{
@@ -11202,24 +11202,24 @@ class GoCompiler {
 			return dsSortHelperCall;
 		}
 
-		var metalChanCall = lowerMetalGoChanCall(callee, args, returnType);
-		if (metalChanCall != null) {
-			return metalChanCall;
+		var nativeChanCall = lowerTypedGoChanCall(callee, args, returnType);
+		if (nativeChanCall != null) {
+			return nativeChanCall;
 		}
 
-		var metalSliceCall = lowerMetalGoSliceCall(callee, args, returnType);
-		if (metalSliceCall != null) {
-			return metalSliceCall;
+		var nativeSliceCall = lowerTypedGoSliceCall(callee, args, returnType);
+		if (nativeSliceCall != null) {
+			return nativeSliceCall;
 		}
 
-		var metalMapCall = lowerMetalGoMapCall(callee, args, returnType);
-		if (metalMapCall != null) {
-			return metalMapCall;
+		var nativeMapCall = lowerTypedGoMapCall(callee, args, returnType);
+		if (nativeMapCall != null) {
+			return nativeMapCall;
 		}
 
-		var metalResultCall = lowerMetalGoResultCall(callee, args, returnType);
-		if (metalResultCall != null) {
-			return metalResultCall;
+		var nativeResultCall = lowerTypedGoResultCall(callee, args, returnType);
+		if (nativeResultCall != null) {
+			return nativeResultCall;
 		}
 
 		if (isStaticCall(callee, "Go", ["go"], "__chanMake")) {
@@ -11620,35 +11620,35 @@ class GoCompiler {
 			[GoStmt.GoReturn(GoExpr.GoCall(comparatorExpr, [leftExpr, rightExpr]))]);
 	}
 
-	function lowerMetalGoChanCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+	function lowerTypedGoChanCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		if (!useTypedGoConcurrencySpecialization()) {
 			return null;
 		}
 
 		if (isStaticCall(callee, "Go", ["go"], "newChan")) {
 			noteLoweringAttempt("go.concurrency.typed", "go_chan_new", callee.pos, "Attempt typed go.Go.newChan specialization.");
-			var elementEligibility = goChanElementEligibility(returnType, "Could not resolve go.Go.newChan return type for metal specialization.");
+			var elementEligibility = goChanElementEligibility(returnType, "Could not resolve go.Go.newChan return type for native specialization.");
 			if (!elementEligibility.eligible) {
-				notePortableConcurrencyFastpathFallback(callee.pos);
+				noteProvenConcurrencyFastpathFallback(callee.pos);
 				noteLoweringFallback("go.concurrency.typed", "go_chan_new_unmorphable", callee.pos,
-					withEligibilityReason("Could not monomorphize go.Go.newChan return type for metal specialization.", elementEligibility));
+					withEligibilityReason("Could not monomorphize go.Go.newChan return type for native specialization.", elementEligibility));
 				return null;
 			}
 			var elementGoType = elementEligibility.goType;
 			if (elementGoType == null) {
-				notePortableConcurrencyFastpathFallback(callee.pos);
+				noteProvenConcurrencyFastpathFallback(callee.pos);
 				noteLoweringFallback("go.concurrency.typed", "go_chan_new_unmorphable", callee.pos,
-					"Could not monomorphize go.Go.newChan return type for metal specialization.");
+					"Could not monomorphize go.Go.newChan return type for native specialization.");
 				return null;
 			}
 			requireStdlibShimGroup("go_concurrency");
-			registerMetalChanElementGoType(elementGoType);
-			notePortableConcurrencyFastpathHit(callee.pos);
+			registerNativeChanElementGoType(elementGoType);
+			noteProvenConcurrencyFastpathHit(callee.pos);
 			noteLoweringSuccess("go.concurrency.typed", "go_chan_new", callee.pos,
 				'Applied typed go.Go.newChan specialization (element type: ' + elementGoType + ").");
 			var buffer = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
 			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_newChan", elementGoType)), [buffer]),
+				expr: GoExpr.GoCall(GoExpr.GoIdent(nativeChanShimName("go__concurrency_newChan", elementGoType)), [buffer]),
 				isStringLike: false
 			};
 		}
@@ -11660,25 +11660,25 @@ class GoCompiler {
 		var methodKind = "go_chan_method_" + methodCall.methodName;
 		noteLoweringAttempt("go.concurrency.typed", methodKind, callee.pos, "Attempt typed go.Chan method specialization.");
 
-		var elementEligibility = metalTypeEligibility(methodCall.elementType, GoMetalEligibilityRole.ChanElement,
-			"Could not resolve go.Chan method element type for metal specialization.");
+		var elementEligibility = nativeTypeEligibility(methodCall.elementType, GoNativeEligibilityRole.ChanElement,
+			"Could not resolve go.Chan method element type for native specialization.");
 		if (!elementEligibility.eligible) {
-			notePortableConcurrencyFastpathFallback(callee.pos);
+			noteProvenConcurrencyFastpathFallback(callee.pos);
 			noteLoweringFallback("go.concurrency.typed", "go_chan_method_unmorphable", callee.pos,
-				withEligibilityReason("Could not monomorphize go.Chan method call for metal specialization.", elementEligibility));
+				withEligibilityReason("Could not monomorphize go.Chan method call for native specialization.", elementEligibility));
 			return null;
 		}
 		var elementGoType = elementEligibility.goType;
 		if (elementGoType == null) {
-			notePortableConcurrencyFastpathFallback(callee.pos);
+			noteProvenConcurrencyFastpathFallback(callee.pos);
 			noteLoweringFallback("go.concurrency.typed", "go_chan_method_unmorphable", callee.pos,
-				"Could not monomorphize go.Chan method call for metal specialization.");
+				"Could not monomorphize go.Chan method call for native specialization.");
 			return null;
 		}
 
 		requireStdlibShimGroup("go_concurrency");
-		registerMetalChanElementGoType(elementGoType);
-		notePortableConcurrencyFastpathHit(callee.pos);
+		registerNativeChanElementGoType(elementGoType);
+		noteProvenConcurrencyFastpathHit(callee.pos);
 		noteLoweringSuccess("go.concurrency.typed", methodKind, callee.pos,
 			'Applied typed go.Chan method specialization (element type: ' + elementGoType + ").");
 
@@ -11692,7 +11692,7 @@ class GoCompiler {
 					value = GoExpr.GoTypeAssert(value, elementGoType);
 				}
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_send", elementGoType)), [channelNative, value]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeChanShimName("go__concurrency_send", elementGoType)), [channelNative, value]),
 					isStringLike: false
 				};
 			case "trySend":
@@ -11701,12 +11701,12 @@ class GoCompiler {
 					value = GoExpr.GoTypeAssert(value, elementGoType);
 				}
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_trySend", elementGoType)), [channelNative, value]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeChanShimName("go__concurrency_trySend", elementGoType)), [channelNative, value]),
 					isStringLike: false
 				};
 			case "recv":
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_recv", elementGoType)), [channelNative]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeChanShimName("go__concurrency_recv", elementGoType)), [channelNative]),
 					isStringLike: isStringType(returnType)
 				};
 			case "recvOr":
@@ -11715,23 +11715,23 @@ class GoCompiler {
 					defaultValue = GoExpr.GoTypeAssert(defaultValue, elementGoType);
 				}
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_recvOr", elementGoType)), [channelNative, defaultValue]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeChanShimName("go__concurrency_recvOr", elementGoType)), [channelNative, defaultValue]),
 					isStringLike: isStringType(returnType)
 				};
 			case "tryRecv":
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_tryRecv", elementGoType)), [channelNative]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeChanShimName("go__concurrency_tryRecv", elementGoType)), [channelNative]),
 					isStringLike: false
 				};
 			case "close":
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_close", elementGoType)), [channelNative]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeChanShimName("go__concurrency_close", elementGoType)), [channelNative]),
 					isStringLike: false
 				};
 			case "__hx_setBuffer":
 				var buffer = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalChanShimName("go__concurrency_setBuffer", elementGoType)), [channel, buffer]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeChanShimName("go__concurrency_setBuffer", elementGoType)), [channel, buffer]),
 					isStringLike: false
 				};
 			case _:
@@ -11739,7 +11739,7 @@ class GoCompiler {
 		}
 	}
 
-	function lowerMetalGoSliceCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+	function lowerTypedGoSliceCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		if (!useTypedGoCollectionsSpecialization()) {
 			return null;
 		}
@@ -11751,21 +11751,21 @@ class GoCompiler {
 		var methodKind = "go_slice_method_" + methodCall.methodName;
 		noteLoweringAttempt("go.collections.typed", methodKind, callee.pos, "Attempt typed go.Slice method specialization.");
 
-		var elementEligibility = goSliceElementEligibility(methodCall.target.t, "Could not resolve go.Slice element type for metal specialization.");
+		var elementEligibility = goSliceElementEligibility(methodCall.target.t, "Could not resolve go.Slice element type for native specialization.");
 		if (!elementEligibility.eligible) {
 			noteLoweringFallback("go.collections.typed", "go_slice_method_unmorphable", callee.pos,
-				withEligibilityReason("Could not monomorphize go.Slice element type for metal specialization.", elementEligibility));
+				withEligibilityReason("Could not monomorphize go.Slice element type for native specialization.", elementEligibility));
 			return null;
 		}
 		var elementGoType = elementEligibility.goType;
 		if (elementGoType == null) {
 			noteLoweringFallback("go.collections.typed", "go_slice_method_unmorphable", callee.pos,
-				"Could not monomorphize go.Slice element type for metal specialization.");
+				"Could not monomorphize go.Slice element type for native specialization.");
 			return null;
 		}
 
 		requireStdlibShimGroup("go_collections");
-		registerMetalSliceElementGoType(elementGoType);
+		registerNativeSliceElementGoType(elementGoType);
 		noteLoweringSuccess("go.collections.typed", methodKind, callee.pos,
 			'Applied typed go.Slice method specialization (element type: ' + elementGoType + ").");
 		var sliceExpr = lowerExpr(methodCall.target).expr;
@@ -11774,30 +11774,30 @@ class GoCompiler {
 			case "push":
 				var value = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalSliceShimName("go__slice_push", elementGoType)), [sliceExpr, value]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeSliceShimName("go__slice_push", elementGoType)), [sliceExpr, value]),
 					isStringLike: false
 				};
 			case "set":
 				var index = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
 				var value = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoNil;
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalSliceShimName("go__slice_set", elementGoType)), [sliceExpr, index, value]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeSliceShimName("go__slice_set", elementGoType)), [sliceExpr, index, value]),
 					isStringLike: false
 				};
 			case "get":
 				var index = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalSliceShimName("go__slice_get", elementGoType)), [sliceExpr, index]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeSliceShimName("go__slice_get", elementGoType)), [sliceExpr, index]),
 					isStringLike: isStringType(returnType)
 				};
 			case "get_length":
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalSliceShimName("go__slice_length", elementGoType)), [sliceExpr]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeSliceShimName("go__slice_length", elementGoType)), [sliceExpr]),
 					isStringLike: false
 				};
 			case "toArray":
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalSliceShimName("go__slice_toArray", elementGoType)), [sliceExpr]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeSliceShimName("go__slice_toArray", elementGoType)), [sliceExpr]),
 					isStringLike: false
 				};
 			case _:
@@ -11805,7 +11805,7 @@ class GoCompiler {
 		}
 	}
 
-	function lowerMetalGoMapCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+	function lowerTypedGoMapCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		if (!useTypedGoCollectionsSpecialization()) {
 			return null;
 		}
@@ -11820,32 +11820,33 @@ class GoCompiler {
 		var pair = goMapTypePair(methodCall.target.t);
 		if (pair == null) {
 			noteLoweringFallback("go.collections.typed", "go_map_method_unmorphable", callee.pos,
-				"Could not monomorphize go.Map key/value types for metal specialization.");
+				"Could not monomorphize go.Map key/value types for native specialization.");
 			return null;
 		}
-		var keyEligibility = metalTypeEligibility(pair.keyType, GoMetalEligibilityRole.MapKey, "Could not resolve go.Map key type for metal specialization.");
+		var keyEligibility = nativeTypeEligibility(pair.keyType, GoNativeEligibilityRole.MapKey,
+			"Could not resolve go.Map key type for native specialization.");
 		if (!keyEligibility.eligible) {
 			noteLoweringFallback("go.collections.typed", "go_map_method_unmorphable", callee.pos,
-				withEligibilityReason("Could not monomorphize go.Map key/value types for metal specialization.", keyEligibility));
+				withEligibilityReason("Could not monomorphize go.Map key/value types for native specialization.", keyEligibility));
 			return null;
 		}
-		var valueEligibility = metalTypeEligibility(pair.valueType, GoMetalEligibilityRole.MapValue,
-			"Could not resolve go.Map value type for metal specialization.");
+		var valueEligibility = nativeTypeEligibility(pair.valueType, GoNativeEligibilityRole.MapValue,
+			"Could not resolve go.Map value type for native specialization.");
 		if (!valueEligibility.eligible) {
 			noteLoweringFallback("go.collections.typed", "go_map_method_unmorphable", callee.pos,
-				withEligibilityReason("Could not monomorphize go.Map key/value types for metal specialization.", valueEligibility));
+				withEligibilityReason("Could not monomorphize go.Map key/value types for native specialization.", valueEligibility));
 			return null;
 		}
 		var keyGoType = keyEligibility.goType;
 		var valueGoType = valueEligibility.goType;
 		if (keyGoType == null || valueGoType == null) {
 			noteLoweringFallback("go.collections.typed", "go_map_method_unmorphable", callee.pos,
-				"Could not monomorphize go.Map key/value types for metal specialization.");
+				"Could not monomorphize go.Map key/value types for native specialization.");
 			return null;
 		}
 
 		requireStdlibShimGroup("go_collections");
-		registerMetalMapTypePair(keyGoType, valueGoType);
+		registerNativeMapTypePair(keyGoType, valueGoType);
 		noteLoweringSuccess("go.collections.typed", methodKind, callee.pos,
 			'Applied typed go.Map method specialization (key: '
 			+ keyGoType
@@ -11859,12 +11860,12 @@ class GoCompiler {
 				var keyExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 				var valueExpr = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoNil;
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalMapShimName("go__map_set", keyGoType, valueGoType)), [mapExpr, keyExpr, valueExpr]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeMapShimName("go__map_set", keyGoType, valueGoType)), [mapExpr, keyExpr, valueExpr]),
 					isStringLike: false
 				};
 			case "get":
 				var keyExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
-				var rawCall = GoExpr.GoCall(GoExpr.GoIdent(metalMapShimName("go__map_get", keyGoType, valueGoType)), [mapExpr, keyExpr]);
+				var rawCall = GoExpr.GoCall(GoExpr.GoIdent(nativeMapShimName("go__map_get", keyGoType, valueGoType)), [mapExpr, keyExpr]);
 				return {
 					expr: lowerNullableAwareTypeAssertExpr(rawCall, returnType),
 					isStringLike: isStringType(returnType)
@@ -11872,7 +11873,7 @@ class GoCompiler {
 			case "exists":
 				var keyExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalMapShimName("go__map_exists", keyGoType, valueGoType)), [mapExpr, keyExpr]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeMapShimName("go__map_exists", keyGoType, valueGoType)), [mapExpr, keyExpr]),
 					isStringLike: false
 				};
 			case _:
@@ -11880,28 +11881,28 @@ class GoCompiler {
 		}
 	}
 
-	function lowerMetalGoResultCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+	function lowerTypedGoResultCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		if (!useTypedGoResultSpecialization()) {
 			return null;
 		}
 
-		var returnElementEligibility = goResultElementEligibility(returnType, "Could not resolve go.Result<T> return type for metal specialization.");
+		var returnElementEligibility = goResultElementEligibility(returnType, "Could not resolve go.Result<T> return type for native specialization.");
 
 		if (isStaticCall(callee, "Result", ["go"], "ok") || isStaticCall(callee, "Go", ["go"], "ok")) {
 			noteLoweringAttempt("go.result.typed", "go_result_static_ok", callee.pos, "Attempt typed go.Result.ok specialization.");
 			if (!returnElementEligibility.eligible || returnElementEligibility.goType == null) {
 				noteLoweringFallback("go.result.typed", "go_result_static_ok_unmorphable", callee.pos,
-					withEligibilityReason("Could not monomorphize go.Result<T>.ok return type for metal specialization.", returnElementEligibility));
+					withEligibilityReason("Could not monomorphize go.Result<T>.ok return type for native specialization.", returnElementEligibility));
 				return null;
 			}
 			var returnElementGoType = returnElementEligibility.goType;
 			requireStdlibShimGroup("go_result");
-			registerMetalResultElementGoType(returnElementGoType);
+			registerNativeResultElementGoType(returnElementGoType);
 			noteLoweringSuccess("go.result.typed", "go_result_static_ok", callee.pos,
 				'Applied typed go.Result.ok specialization (element type: ' + returnElementGoType + ").");
 			var value = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_ok", returnElementGoType)), [value]),
+				expr: GoExpr.GoCall(GoExpr.GoIdent(nativeResultShimName("go__result_ok", returnElementGoType)), [value]),
 				isStringLike: false
 			};
 		}
@@ -11910,17 +11911,17 @@ class GoCompiler {
 			noteLoweringAttempt("go.result.typed", "go_result_static_failure", callee.pos, "Attempt typed go.Result.failure specialization.");
 			if (!returnElementEligibility.eligible || returnElementEligibility.goType == null) {
 				noteLoweringFallback("go.result.typed", "go_result_static_failure_unmorphable", callee.pos,
-					withEligibilityReason("Could not monomorphize go.Result<T>.failure return type for metal specialization.", returnElementEligibility));
+					withEligibilityReason("Could not monomorphize go.Result<T>.failure return type for native specialization.", returnElementEligibility));
 				return null;
 			}
 			var returnElementGoType = returnElementEligibility.goType;
 			requireStdlibShimGroup("go_result");
-			registerMetalResultElementGoType(returnElementGoType);
+			registerNativeResultElementGoType(returnElementGoType);
 			noteLoweringSuccess("go.result.typed", "go_result_static_failure", callee.pos,
 				'Applied typed go.Result.failure specialization (element type: ' + returnElementGoType + ").");
 			var message = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_failure", returnElementGoType)), [message]),
+				expr: GoExpr.GoCall(GoExpr.GoIdent(nativeResultShimName("go__result_failure", returnElementGoType)), [message]),
 				isStringLike: false
 			};
 		}
@@ -11933,38 +11934,38 @@ class GoCompiler {
 		noteLoweringAttempt("go.result.typed", methodKind, callee.pos, "Attempt typed go.Result method specialization.");
 
 		var receiverEligibility = goResultElementEligibility(methodCall.target.t,
-			"Could not resolve go.Result<T> method receiver type for metal specialization.");
+			"Could not resolve go.Result<T> method receiver type for native specialization.");
 		if (!receiverEligibility.eligible || receiverEligibility.goType == null) {
 			noteLoweringFallback("go.result.typed", "go_result_method_unmorphable", callee.pos,
-				withEligibilityReason("Could not monomorphize go.Result<T> method receiver for metal specialization.", receiverEligibility));
+				withEligibilityReason("Could not monomorphize go.Result<T> method receiver for native specialization.", receiverEligibility));
 			return null;
 		}
 		var elementGoType = receiverEligibility.goType;
 
 		requireStdlibShimGroup("go_result");
-		registerMetalResultElementGoType(elementGoType);
+		registerNativeResultElementGoType(elementGoType);
 		noteLoweringSuccess("go.result.typed", methodKind, callee.pos, 'Applied typed go.Result method specialization (element type: ' + elementGoType + ").");
 		var resultExpr = lowerExpr(methodCall.target).expr;
 
 		switch (methodCall.methodName) {
 			case "isOk":
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_isOk", elementGoType)), [resultExpr]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeResultShimName("go__result_isOk", elementGoType)), [resultExpr]),
 					isStringLike: false
 				};
 			case "isErr":
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_isErr", elementGoType)), [resultExpr]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeResultShimName("go__result_isErr", elementGoType)), [resultExpr]),
 					isStringLike: false
 				};
 			case "unwrap":
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_unwrap", elementGoType)), [resultExpr]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeResultShimName("go__result_unwrap", elementGoType)), [resultExpr]),
 					isStringLike: isStringType(returnType)
 				};
 			case "error":
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(metalResultShimName("go__result_error", elementGoType)), [resultExpr]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeResultShimName("go__result_error", elementGoType)), [resultExpr]),
 					isStringLike: true
 				};
 			case _:
@@ -13087,40 +13088,34 @@ class GoCompiler {
 		};
 	}
 
-	function isMetalProfile():Bool {
-		return compilationContext.profile == GoProfile.Metal;
-	}
-
-	function isPortableProfile():Bool {
-		return compilationContext.profile == GoProfile.Portable;
-	}
-
 	function useStringFastpath():Bool {
 		return compilationContext.buildContext.portableStringFastpathEnabled;
 	}
 
-	function usePortableConcurrencyFastpath():Bool {
-		return isPortableProfile() && compilationContext.buildContext.portableConcurrencyFastpathEnabled;
+	function useProvenConcurrencyFastpath():Bool {
+		return !compilationContext.buildContext.usesEagerNativeSpecialization()
+			&& compilationContext.buildContext.portableConcurrencyFastpathEnabled;
 	}
 
-	function useAutoLoweringPlannerMode():Bool {
-		return isPortableProfile() && compilationContext.buildContext.autoLoweringMode != GoAutoLoweringMode.Off;
+	function useProvenAutoLoweringPlannerMode():Bool {
+		return !compilationContext.buildContext.usesEagerNativeSpecialization()
+			&& compilationContext.buildContext.autoLoweringMode != GoAutoLoweringMode.Off;
 	}
 
 	function useTypedGoConcurrencySpecialization():Bool {
-		return isMetalProfile() || usePortableConcurrencyFastpath();
+		return compilationContext.buildContext.usesEagerNativeSpecialization() || useProvenConcurrencyFastpath();
 	}
 
 	function useTypedGoCollectionsSpecialization():Bool {
-		return isMetalProfile() || useAutoLoweringPlannerMode();
+		return compilationContext.buildContext.usesEagerNativeSpecialization() || useProvenAutoLoweringPlannerMode();
 	}
 
 	function useTypedGoResultSpecialization():Bool {
-		return isMetalProfile() || useAutoLoweringPlannerMode();
+		return compilationContext.buildContext.usesEagerNativeSpecialization() || useProvenAutoLoweringPlannerMode();
 	}
 
-	function notePortableConcurrencyFastpathHit(pos:haxe.macro.Expr.Position):Void {
-		if (!usePortableConcurrencyFastpath()) {
+	function noteProvenConcurrencyFastpathHit(pos:haxe.macro.Expr.Position):Void {
+		if (!useProvenConcurrencyFastpath()) {
 			return;
 		}
 		if (isFrameworkInternalPos(pos)) {
@@ -13129,8 +13124,8 @@ class GoCompiler {
 		compilationContext.optimizerPortableConcurrencyTypedFastpathHits++;
 	}
 
-	function notePortableConcurrencyFastpathFallback(pos:haxe.macro.Expr.Position):Void {
-		if (!usePortableConcurrencyFastpath()) {
+	function noteProvenConcurrencyFastpathFallback(pos:haxe.macro.Expr.Position):Void {
+		if (!useProvenConcurrencyFastpath()) {
 			return;
 		}
 		if (isFrameworkInternalPos(pos)) {
@@ -13149,12 +13144,12 @@ class GoCompiler {
 	}
 
 	function noteLoweringFallback(feature:String, kind:String, pos:haxe.macro.Expr.Position, detail:String):Void {
-		if (shouldSuppressPortableInternalFallbackReport(feature, pos)) {
+		if (shouldSuppressProvenInternalFallbackReport(feature, pos)) {
 			return;
 		}
 		noteLoweringDecision(feature, kind, "fallback", pos, detail);
 		noteOptimizerTypedLoweringFallback(feature);
-		noteMetalFallback(kind, pos, detail);
+		noteNativeFallback(kind, pos, detail);
 	}
 
 	function noteOptimizerTypedLoweringSuccess(feature:String):Void {
@@ -13177,11 +13172,8 @@ class GoCompiler {
 		}
 	}
 
-	function shouldSuppressPortableInternalFallbackReport(feature:String, pos:haxe.macro.Expr.Position):Bool {
-		if (!isPortableProfile()) {
-			return false;
-		}
-		if (!usePortableConcurrencyFastpath()) {
+	function shouldSuppressProvenInternalFallbackReport(feature:String, pos:haxe.macro.Expr.Position):Bool {
+		if (!useProvenConcurrencyFastpath()) {
 			return false;
 		}
 		if (feature != "go.concurrency.typed") {
@@ -13199,38 +13191,37 @@ class GoCompiler {
 			detail: detail,
 			location: metadata.location,
 			module: metadata.moduleName,
-			inMetalLane: metadata.inMetalLane
+			inNativeBoundary: metadata.inNativeBoundary
 		});
 	}
 
-	function noteMetalFallback(kind:String, pos:haxe.macro.Expr.Position, detail:String):Void {
-		if (!isMetalProfile()) {
-			return;
-		}
+	function noteNativeFallback(kind:String, pos:haxe.macro.Expr.Position, detail:String):Void {
 		var metadata = loweringDecisionMetadata(pos);
 		var violation = {
 			kind: kind,
 			detail: detail,
 			location: metadata.location,
 			module: metadata.moduleName,
-			inMetalLane: metadata.inMetalLane
+			inNativeBoundary: metadata.inNativeBoundary
 		};
-		compilationContext.metalFallbackViolations.push(violation);
-		var hardError = compilationContext.buildContext.metalContractHardError && !isFrameworkInternalPos(pos);
+		compilationContext.nativeFallbackEvents.push(violation);
+		var hardError = compilationContext.buildContext.requiresNativeFallbackError() && !isFrameworkInternalPos(pos);
 		if (hardError) {
-			Context.error("Metal contract fallback is not allowed: "
+			Context.error("Native specialization fallback is not allowed by `-D reflaxe_go_native_fallback=error`: "
 				+ detail
-				+ " Use `-D reflaxe_go_metal_allow_fallback` to permit fallback for this build.", pos);
+				+ " Use `-D reflaxe_go_native_fallback=allow` to permit the semantics-safe fallback. "
+				+ "The legacy `-D reflaxe_go_metal_allow_fallback` alias remains available for metal compatibility builds.",
+				pos);
 		}
 	}
 
-	function loweringDecisionMetadata(pos:haxe.macro.Expr.Position):{moduleName:String, inMetalLane:Bool, location:String} {
+	function loweringDecisionMetadata(pos:haxe.macro.Expr.Position):{moduleName:String, inNativeBoundary:Bool, location:String} {
 		var moduleName = sourceModuleRegistry.sourceModuleForPos(pos);
-		var inMetalLane = compilationContext.buildContext.metalLaneModules.indexOf(moduleName) != -1;
+		var inNativeBoundary = compilationContext.buildContext.nativeBoundaryModules.indexOf(moduleName) != -1;
 		var location = fallbackLocationLabel(pos, moduleName);
 		return {
 			moduleName: moduleName,
-			inMetalLane: inMetalLane,
+			inNativeBoundary: inNativeBoundary,
 			location: location
 		};
 	}
@@ -13385,43 +13376,44 @@ class GoCompiler {
 		};
 	}
 
-	function isMonomorphizableMetalElementType(elementGoType:String):Bool {
+	function isMonomorphizableNativeElementType(elementGoType:String):Bool {
 		return elementGoType != null && elementGoType != "" && elementGoType != "any";
 	}
 
-	function isMonomorphizableMetalChanElementType(elementGoType:String):Bool {
-		return isMonomorphizableMetalElementType(elementGoType);
+	function isMonomorphizableNativeChanElementType(elementGoType:String):Bool {
+		return isMonomorphizableNativeElementType(elementGoType);
 	}
 
-	function goChanElementEligibility(type:Type, missingMessage:String):GoMetalTypeEligibilityResult {
-		return metalTypeEligibility(goChanElementType(type), GoMetalEligibilityRole.ChanElement, missingMessage);
+	function goChanElementEligibility(type:Type, missingMessage:String):GoNativeTypeEligibilityResult {
+		return nativeTypeEligibility(goChanElementType(type), GoNativeEligibilityRole.ChanElement, missingMessage);
 	}
 
 	function goChanElementGoType(type:Type):Null<String> {
-		var eligibility = goChanElementEligibility(type, "Could not resolve go.Chan element type for metal specialization.");
+		var eligibility = goChanElementEligibility(type, "Could not resolve go.Chan element type for native specialization.");
 		return eligibility.eligible ? eligibility.goType : null;
 	}
 
-	function goSliceElementEligibility(type:Type, missingMessage:String):GoMetalTypeEligibilityResult {
-		return metalTypeEligibility(goSliceElementType(type), GoMetalEligibilityRole.SliceElement, missingMessage);
+	function goSliceElementEligibility(type:Type, missingMessage:String):GoNativeTypeEligibilityResult {
+		return nativeTypeEligibility(goSliceElementType(type), GoNativeEligibilityRole.SliceElement, missingMessage);
 	}
 
 	function goSliceElementGoType(type:Type):Null<String> {
-		var eligibility = goSliceElementEligibility(type, "Could not resolve go.Slice element type for metal specialization.");
+		var eligibility = goSliceElementEligibility(type, "Could not resolve go.Slice element type for native specialization.");
 		return eligibility.eligible ? eligibility.goType : null;
 	}
 
-	function goMapTypePairGoTypes(type:Type):Null<MetalMapTypePair> {
+	function goMapTypePairGoTypes(type:Type):Null<NativeMapTypePair> {
 		var pair = goMapTypePair(type);
 		if (pair == null) {
 			return null;
 		}
-		var keyEligibility = metalTypeEligibility(pair.keyType, GoMetalEligibilityRole.MapKey, "Could not resolve go.Map key type for metal specialization.");
+		var keyEligibility = nativeTypeEligibility(pair.keyType, GoNativeEligibilityRole.MapKey,
+			"Could not resolve go.Map key type for native specialization.");
 		if (!keyEligibility.eligible || keyEligibility.goType == null) {
 			return null;
 		}
-		var valueEligibility = metalTypeEligibility(pair.valueType, GoMetalEligibilityRole.MapValue,
-			"Could not resolve go.Map value type for metal specialization.");
+		var valueEligibility = nativeTypeEligibility(pair.valueType, GoNativeEligibilityRole.MapValue,
+			"Could not resolve go.Map value type for native specialization.");
 		if (!valueEligibility.eligible || valueEligibility.goType == null) {
 			return null;
 		}
@@ -13431,16 +13423,16 @@ class GoCompiler {
 		};
 	}
 
-	function goResultElementEligibility(type:Type, missingMessage:String):GoMetalTypeEligibilityResult {
-		return metalTypeEligibility(goResultElementType(type), GoMetalEligibilityRole.ResultElement, missingMessage);
+	function goResultElementEligibility(type:Type, missingMessage:String):GoNativeTypeEligibilityResult {
+		return nativeTypeEligibility(goResultElementType(type), GoNativeEligibilityRole.ResultElement, missingMessage);
 	}
 
 	function goResultElementGoType(type:Type):Null<String> {
-		var eligibility = goResultElementEligibility(type, "Could not resolve go.Result<T> element type for metal specialization.");
+		var eligibility = goResultElementEligibility(type, "Could not resolve go.Result<T> element type for native specialization.");
 		return eligibility.eligible ? eligibility.goType : null;
 	}
 
-	function metalTypeEligibility(type:Null<Type>, role:GoMetalEligibilityRole, missingMessage:String):GoMetalTypeEligibilityResult {
+	function nativeTypeEligibility(type:Null<Type>, role:GoNativeEligibilityRole, missingMessage:String):GoNativeTypeEligibilityResult {
 		if (type == null) {
 			return {
 				eligible: false,
@@ -13449,10 +13441,10 @@ class GoCompiler {
 				reason: missingMessage
 			};
 		}
-		return GoMetalTypeEligibility.resolve(type, role, classTypeName, enumTypeName);
+		return GoNativeTypeEligibility.resolve(type, role, classTypeName, enumTypeName);
 	}
 
-	function withEligibilityReason(base:String, eligibility:GoMetalTypeEligibilityResult):String {
+	function withEligibilityReason(base:String, eligibility:GoNativeTypeEligibilityResult):String {
 		var reason = eligibility.reason;
 		if (reason == null || StringTools.trim(reason) == "") {
 			return base;
@@ -13461,51 +13453,51 @@ class GoCompiler {
 		return prefix + ": " + reason;
 	}
 
-	function registerMetalChanElementGoType(elementGoType:String):Void {
+	function registerNativeChanElementGoType(elementGoType:String):Void {
 		if (!useTypedGoConcurrencySpecialization()) {
 			return;
 		}
-		if (!isMonomorphizableMetalChanElementType(elementGoType)) {
+		if (!isMonomorphizableNativeChanElementType(elementGoType)) {
 			return;
 		}
-		requiredMetalChanElementTypes.set(elementGoType, true);
+		requiredNativeChanElementTypes.set(elementGoType, true);
 	}
 
-	function registerMetalSliceElementGoType(elementGoType:String):Void {
+	function registerNativeSliceElementGoType(elementGoType:String):Void {
 		if (!useTypedGoCollectionsSpecialization()) {
 			return;
 		}
-		if (!isMonomorphizableMetalElementType(elementGoType)) {
+		if (!isMonomorphizableNativeElementType(elementGoType)) {
 			return;
 		}
-		requiredMetalSliceElementTypes.set(elementGoType, true);
+		requiredNativeSliceElementTypes.set(elementGoType, true);
 	}
 
-	function registerMetalMapTypePair(keyGoType:String, valueGoType:String):Void {
+	function registerNativeMapTypePair(keyGoType:String, valueGoType:String):Void {
 		if (!useTypedGoCollectionsSpecialization()) {
 			return;
 		}
-		if (!isMonomorphizableMetalElementType(keyGoType) || !isMonomorphizableMetalElementType(valueGoType)) {
+		if (!isMonomorphizableNativeElementType(keyGoType) || !isMonomorphizableNativeElementType(valueGoType)) {
 			return;
 		}
-		var signature = metalMapTypeSignature(keyGoType, valueGoType);
-		requiredMetalMapTypePairs.set(signature, {
+		var signature = nativeMapTypeSignature(keyGoType, valueGoType);
+		requiredNativeMapTypePairs.set(signature, {
 			keyGoType: keyGoType,
 			valueGoType: valueGoType
 		});
 	}
 
-	function registerMetalResultElementGoType(elementGoType:String):Void {
+	function registerNativeResultElementGoType(elementGoType:String):Void {
 		if (!useTypedGoResultSpecialization()) {
 			return;
 		}
-		if (!isMonomorphizableMetalElementType(elementGoType)) {
+		if (!isMonomorphizableNativeElementType(elementGoType)) {
 			return;
 		}
-		requiredMetalResultElementTypes.set(elementGoType, true);
+		requiredNativeResultElementTypes.set(elementGoType, true);
 	}
 
-	function metalTypeHash(value:String):String {
+	function nativeTypeHash(value:String):String {
 		var hash = 0x811C9DC5;
 		for (index in 0...value.length) {
 			hash ^= value.charCodeAt(index);
@@ -13514,32 +13506,32 @@ class GoCompiler {
 		return StringTools.hex(hash, 8).toLowerCase();
 	}
 
-	function metalTypeSuffix(typeKey:String):String {
+	function nativeTypeSuffix(typeKey:String):String {
 		var normalized = GoNaming.normalizeIdent(typeKey);
 		if (normalized == "" || normalized == "hx_tmp") {
 			normalized = "t";
 		}
-		return normalized + "_" + metalTypeHash(typeKey);
+		return normalized + "_" + nativeTypeHash(typeKey);
 	}
 
-	function metalMapTypeSignature(keyGoType:String, valueGoType:String):String {
+	function nativeMapTypeSignature(keyGoType:String, valueGoType:String):String {
 		return keyGoType + "__" + valueGoType;
 	}
 
-	function metalChanShimName(base:String, elementGoType:String):String {
-		return base + "__" + metalTypeSuffix(elementGoType);
+	function nativeChanShimName(base:String, elementGoType:String):String {
+		return base + "__" + nativeTypeSuffix(elementGoType);
 	}
 
-	function metalSliceShimName(base:String, elementGoType:String):String {
-		return base + "__" + metalTypeSuffix(elementGoType);
+	function nativeSliceShimName(base:String, elementGoType:String):String {
+		return base + "__" + nativeTypeSuffix(elementGoType);
 	}
 
-	function metalMapShimName(base:String, keyGoType:String, valueGoType:String):String {
-		return base + "__" + metalTypeSuffix(metalMapTypeSignature(keyGoType, valueGoType));
+	function nativeMapShimName(base:String, keyGoType:String, valueGoType:String):String {
+		return base + "__" + nativeTypeSuffix(nativeMapTypeSignature(keyGoType, valueGoType));
 	}
 
-	function metalResultShimName(base:String, elementGoType:String):String {
-		return base + "__" + metalTypeSuffix(elementGoType);
+	function nativeResultShimName(base:String, elementGoType:String):String {
+		return base + "__" + nativeTypeSuffix(elementGoType);
 	}
 
 	function shouldAssertGenericCallResult(callee:TypedExpr, returnType:Type):Bool {
@@ -14595,27 +14587,27 @@ class GoCompiler {
 		}
 	}
 
-	function resetRequiredMetalChanElementTypes():Void {
-		for (elementType in requiredMetalChanElementTypes.keys()) {
-			requiredMetalChanElementTypes.remove(elementType);
+	function resetRequiredNativeChanElementTypes():Void {
+		for (elementType in requiredNativeChanElementTypes.keys()) {
+			requiredNativeChanElementTypes.remove(elementType);
 		}
 	}
 
-	function resetRequiredMetalSliceElementTypes():Void {
-		for (elementType in requiredMetalSliceElementTypes.keys()) {
-			requiredMetalSliceElementTypes.remove(elementType);
+	function resetRequiredNativeSliceElementTypes():Void {
+		for (elementType in requiredNativeSliceElementTypes.keys()) {
+			requiredNativeSliceElementTypes.remove(elementType);
 		}
 	}
 
-	function resetRequiredMetalMapTypePairs():Void {
-		for (signature in requiredMetalMapTypePairs.keys()) {
-			requiredMetalMapTypePairs.remove(signature);
+	function resetRequiredNativeMapTypePairs():Void {
+		for (signature in requiredNativeMapTypePairs.keys()) {
+			requiredNativeMapTypePairs.remove(signature);
 		}
 	}
 
-	function resetRequiredMetalResultElementTypes():Void {
-		for (elementType in requiredMetalResultElementTypes.keys()) {
-			requiredMetalResultElementTypes.remove(elementType);
+	function resetRequiredNativeResultElementTypes():Void {
+		for (elementType in requiredNativeResultElementTypes.keys()) {
+			requiredNativeResultElementTypes.remove(elementType);
 		}
 	}
 

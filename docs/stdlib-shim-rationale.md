@@ -49,22 +49,26 @@ Short answer:
    - Pointer-string conventions and `Std.string`-compatible behavior need centralized helpers.
 3. Reflection and resolver edge cases
    - Serializer/unserializer contracts require typed metadata-aware lowering plus runtime behavior.
-4. Profile-dependent output policy
-   - `portable|metal` profile guarantees are compile-time policy decisions, not runtime-only toggles.
+4. Build-policy-dependent output decisions
+   - Authority, specialization, fallback, strictness, and runtime choices are
+     typed compile-time policies; source semantics come from portable or
+     explicit native APIs/boundaries.
 
 ### Design rule in this repo
 
 Use the simplest ownership that preserves parity and maintainability:
 
 - runtime (`hxrt`) for reusable target-runtime behavior,
-- compiler shims for compile-time metadata/profile-sensitive contracts,
+- compiler shims for compile-time metadata or policy-sensitive contracts,
 - staged `std/go/_std` as the source migration destination once parity is proven.
 
 Family precedent matters here:
 
 - `haxe.rust` keeps library-style surfaces like `StringTools` in staged std/runtime layers (`std/StringTools.cross.hx`, `std/hxrt/string/NativeString.hx`) instead of compiler-emitted decl blobs.
 - `haxe.elixir` keeps library-style surfaces like `StringTools` and `DateTools` in target-gated std overrides (`std/*.cross.hx`, `std/_std/**`) instead of compiler-core shims.
-- `haxe.go` should follow the same default. Compiler ownership needs a concrete reason such as compile-time metadata coupling, profile-sensitive lowering, or a representation boundary that staged std/runtime cannot express cleanly.
+- `haxe.go` should follow the same default. Compiler ownership needs a concrete
+  reason such as compile-time metadata coupling, policy-sensitive lowering, or
+  a representation boundary that staged std/runtime cannot express cleanly.
 
 Portable and native surfaces are distinct:
 
@@ -198,5 +202,6 @@ Interpretation:
 Re-open keep decisions when one of these becomes true:
 
 1. A canonical `std/go/_std` path reaches equal or better parity for the same fixtures.
-2. Runtime package extraction can preserve profile/lowering policy without semantic drift.
+2. Runtime package extraction can preserve source semantics and typed lowering
+   policy without drift.
 3. A compiler shim becomes pure forwarding with no compiler-context decisions.

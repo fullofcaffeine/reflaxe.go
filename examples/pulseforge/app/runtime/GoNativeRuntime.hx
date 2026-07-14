@@ -19,6 +19,7 @@ import go.Select;
 
 	Use this lane when benchmarking/tuning Go-native execution behavior.
 **/
+@:goNative
 class GoNativeRuntime implements PulseRuntime {
 	public function profileId():String {
 		return BuildConfig.PROFILE;

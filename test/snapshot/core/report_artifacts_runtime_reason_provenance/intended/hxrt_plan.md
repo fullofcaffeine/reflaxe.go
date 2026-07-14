@@ -1,7 +1,9 @@
 # Runtime Plan Report
 
-- schema version: `1`
+- schema version: `2`
 - contract: `portable`
+- policy preset: `portable_default`
+- semantic boundary source: `typed_api_or_module`
 - mode: `selective`
 - selective enabled: `yes`
 - full copy: `no`

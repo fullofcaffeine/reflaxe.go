@@ -1,4 +1,4 @@
-@:goMetal
+@:goNative
 class LaneWorker {
 	private static function unresolvedFail<T>(message:String):go.Result<T> {
 		return go.Go.fail(message);

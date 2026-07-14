@@ -1,15 +1,17 @@
 # Go Concurrency + Interop Guide
 
-Practical patterns for using `reflaxe.go` as a production-grade Go-target lane without dropping to raw `__go__`.
+Practical patterns for using `reflaxe.go` as a production-grade Go target
+without dropping to raw `__go__`.
 
 Quick context:
 
-- `portable` and `metal` are compiler profiles (contracts). See `docs/profiles.md`.
+- `portable` and `metal` are compatible policy presets. See
+  `docs/native-policy-presets.md`.
 - `go.*` APIs (`go.Go`, `go.Chan`, `go.Select`) are Go-native facades. They are powerful, but they are not portability-safe across non-Go targets.
 - `interop` means calling Go packages through typed extern metadata (`@:go.import`, `@:go.name`, `@:go.receiver`) instead of raw string injection.
 
-`metal` is not required for good Go output. Start with `portable` unless this
-module intentionally owns Go-native APIs or stricter native-lane constraints.
+`metal` is not required for good Go output. Start with `portable`; use typed
+Go APIs and `@:goNative` when a module intentionally owns Go semantics.
 
 Reference glossary: `docs/glossary.md`.
 
@@ -29,7 +31,8 @@ Core pattern:
 Why this is recommended:
 
 - Maps to real goroutine/channel/select behavior in generated Go output.
-- Still runs in `portable`/`metal` from one codebase, so you can keep one app and compare both contracts directly.
+- Still runs with either compatibility preset from one codebase, so preset
+  defaults can be compared without changing the API-scoped native contract.
 
 This is an explicit Go-native lifecycle contract. `go.Go.spawn(fn)` emits a
 bare goroutine: returning from `main` does not wait for it, and a panic inside
@@ -46,16 +49,16 @@ converted into Haxe catch values in either model.
 
 Reference app: `examples/interop_smoke`.
 
-Note: this reference is intentionally profile-neutral for interop parity. For visible
-portable-vs-metal value, use `examples/worker_pool_select` and the `go_native`
-lanes in `examples/pulseforge` / `examples/fluxproxy`.
+Note: this reference is intentionally preset-neutral for interop parity. For
+visible specialization-policy deltas, use `examples/worker_pool_select` and the
+`go_native` variants in `examples/pulseforge` / `examples/fluxproxy`.
 
 The reference app (`examples/interop_smoke`) demonstrates both:
 
 - framework-owned wrapper surfaces from `std/go/*`, and
 - app-level extern metadata declarations for user-owned package bindings.
 
-Shared package surfaces in both lanes:
+Shared package surfaces under both presets:
 
 - `fmt.Println`
 - `time.Now` + receiver/static `Unix`
@@ -70,25 +73,27 @@ Compiler metadata support (`@:go.import`, `@:go.name`, `@:go.receiver`) is cover
 - `test/snapshot/go_native/extern_value_error_result`
 - `test/semantic_diff/go_value_error_result_contract`
 
-## 3) Metal subset guidance
+## 3) Native-policy guidance
 
-Use `metal` when you need typed low-level lanes that are already contract-covered:
+These typed low-level APIs are already contract-covered under either preset:
 
 - `go.Chan<T>`
 - `go.Slice<T>`
 - `go.Map<K,V>`
 - `go.Result<T>`
 
-Promotion rule:
+Boundary rule:
 
 1. Keep semantic baseline in `portable`.
-2. Move hot paths to `metal` only with benchmark evidence.
-3. Keep strict boundary enforcement enabled (`reflaxe_go_strict`).
+2. Declare Go-owned modules with `@:goNative` and typed APIs.
+3. Select eager/error/strict policy only when the build needs those guarantees.
+4. Require benchmark evidence for performance-driven lowering work.
 
 Practical interpretation:
 
 - Start in `portable` when cross-target compatibility and predictable Haxe semantics are primary.
-- Use `metal` when explicit Go-native APIs and stricter Go-shaped authoring constraints are primary.
+- Use the `metal` compatibility preset when its bundled defaults are convenient;
+  it does not itself grant a different semantic product.
 
 ## 4) Caveats (important)
 
@@ -99,7 +104,7 @@ Practical interpretation:
 - Haxe `try`/`catch` catches only values raised with Haxe `throw`. A panic from a
   typed Go extern remains native and fatal unless user-owned Go code explicitly
   recovers it inside the same goroutine.
-- Complex Go extern signatures may need façade wrappers until broader mapping lanes land.
+- Complex Go extern signatures may need façade wrappers until broader mapping support lands.
 - For current limitations and planning guidance, use `docs/known-gaps.md`.
 
 ## 5) Planned portable channel facade
@@ -124,5 +129,5 @@ Design rule:
 Why this shape:
 
 - portable users get a stable cross-target API.
-- Go users still keep direct access to native `go.*` lanes when needed.
+- Go users still keep direct access to native `go.*` surfaces when needed.
 - semantic-diff tests can validate portable behavior independently from native optimizations.

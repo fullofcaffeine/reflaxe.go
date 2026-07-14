@@ -4,7 +4,8 @@ This page is the blunt status view for current limitations so teams can plan mig
 
 Before reading:
 
-- `portable` and `metal` are compiler profiles (contracts), not app variants. See [profiles](profiles.md).
+- `portable` and `metal` are compatible policy presets, not app variants or
+  separate semantic products. See [native policy presets](native-policy-presets.md).
 - `go.*` is the Go-native facade surface. It is intentionally outside the cross-target portable contract.
 - `semantic-diff` is the runtime parity harness against Haxe `--interp`. See [semantic diff guide](semantic-diff-guide.md).
 
@@ -12,7 +13,10 @@ Current architecture status:
 
 - `GoBuildContext` and `GoBuildContextResolver` are already in place for centralized contract/capability resolution.
 - Deterministic contract/runtime/optimizer reports (`profile_contract`, `hxrt_plan`, `optimizer_plan`) are already emitted when enabled.
-- Remaining work is primarily production hardening and target-sensitive parity promotion, not profile-model replacement.
+- The preset model is now decomposed into typed authority, specialization,
+  fallback, strictness, planner, optimizer, and runtime axes. Whether the global
+  `metal` selector should ever be deprecated remains a separately reviewed
+  compatibility decision.
 
 ## Production hardening scoreboard
 
@@ -123,14 +127,17 @@ current honest contract remains snapshot/runtime evidence.
 - `go.Select` exposes typed deterministic helpers (`recv`, `recv2`, `send`, `send2`) built on non-blocking channel operations.
 - Multi-branch helper priority is explicit and deterministic (`first` branch checked before `second`); it does not model Go runtime pseudo-random ready-case selection.
 
-## Metal profile caveats
+## Native specialization caveats
 
-- Current "metal-ready" high-value lane:
+- Current high-value typed native surfaces:
   - `go.Chan<T>`
   - `go.Slice<T>`
   - `go.Map<K,V>`
   - `go.Result<T>`
-- Use `portable` as semantic baseline, then promote hot paths to `metal` only when benchmark evidence justifies it.
+- Use portable Haxe as the semantic baseline. Use typed Go APIs or
+  `@:goNative` when source is intentionally Go-specific. Select eager
+  specialization only when its output/performance evidence justifies it; do not
+  use a preset name as the evidence.
 
 ## Performance caveats
 

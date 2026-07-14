@@ -48,7 +48,8 @@ Excluded from this parity objective:
 - `GoReflaxeCompiler` consumes that context during compile start/end and runtime plan emission.
 - Optional report artifacts (`profile_contract.*`, `hxrt_plan.*`, `optimizer_plan.*`) provide deterministic audit output for contract/runtime/planner decisions.
 
-This parity program is therefore about semantic closure and coverage promotion, not about replacing the profile architecture.
+This parity program is therefore about semantic closure and coverage promotion,
+not about the compatibility-preset lifecycle.
 
 ## Architecture Rules
 

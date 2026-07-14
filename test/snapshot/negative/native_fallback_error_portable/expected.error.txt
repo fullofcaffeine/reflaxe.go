@@ -1,0 +1,1 @@
+Native specialization fallback is not allowed by `-D reflaxe_go_native_fallback=error`

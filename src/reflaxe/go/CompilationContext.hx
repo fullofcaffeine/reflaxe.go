@@ -3,14 +3,38 @@ package reflaxe.go;
 import reflaxe.go.compiler.GoBuildContext;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureReason;
 
-typedef MetalFallbackViolation = {
+/**
+	Why
+	A failed typed representation can be observable under either compatibility
+	preset, so the ledger must not describe it as a metal-only violation.
+
+	What
+	Records one native specialization fallback with stable source attribution.
+
+	How
+	Lowering appends the event before applying fallback policy; reports then split
+	it by explicit native boundary without changing the fallback decision.
+**/
+typedef NativeFallbackEvent = {
 	var kind:String;
 	var detail:String;
 	var location:String;
 	var module:String;
-	var inMetalLane:Bool;
+	var inNativeBoundary:Bool;
 }
 
+/**
+	Why
+	Reports and optimizer gates need deterministic evidence for every attempted
+	typed lowering, including whether source owned explicit native authority.
+
+	What
+	Stores one attempted, successful, or fallback lowering decision.
+
+	How
+	The compiler resolves the source module and `@:goNative` membership at the
+	call site, then report renderers preserve canonical and compatibility fields.
+**/
 typedef LoweringDecisionLedgerEntry = {
 	var feature:String;
 	var kind:String;
@@ -18,7 +42,7 @@ typedef LoweringDecisionLedgerEntry = {
 	var detail:String;
 	var location:String;
 	var module:String;
-	var inMetalLane:Bool;
+	var inNativeBoundary:Bool;
 }
 
 typedef GoAstPassSelectionReasonEntry = {
@@ -41,7 +65,7 @@ class CompilationContext {
 	public var selectedHxrtFeatures:Array<String>;
 	public var requiredStdlibShimGroups:Array<String>;
 	public var requiresIoHelperSurface:Bool;
-	public var metalFallbackViolations:Array<MetalFallbackViolation>;
+	public var nativeFallbackEvents:Array<NativeFallbackEvent>;
 	public var loweringDecisionLedger:Array<LoweringDecisionLedgerEntry>;
 	public var appliedGoAstPassNames:Array<String>;
 	public var selectedGoAstPassSource:String;
@@ -73,7 +97,7 @@ class CompilationContext {
 		this.selectedHxrtFeatures = [];
 		this.requiredStdlibShimGroups = [];
 		this.requiresIoHelperSurface = false;
-		this.metalFallbackViolations = [];
+		this.nativeFallbackEvents = [];
 		this.loweringDecisionLedger = [];
 		this.appliedGoAstPassNames = [];
 		this.selectedGoAstPassSource = "legacy_lean_bundle";

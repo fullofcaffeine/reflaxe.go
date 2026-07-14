@@ -13,9 +13,11 @@ Portable-first todo CLI reference with deterministic scripted output and interac
 - portable: Yes
 - metal: No
 
-This example is intentionally portable-only. Its behavior is stdlib-heavy and there is no meaningful compiler-profile benefit to demonstrate here; keeping a metal lane in this app created synthetic runtime differences instead of real profile value.
+This example is intentionally portable-only. Its behavior is stdlib-heavy and
+there is no meaningful second-preset lesson; a metal lane previously created
+synthetic runtime differences instead of exercising real policy value.
 
-For concrete metal value examples, use:
+For concrete native-policy examples, use:
 
 - `examples/worker_pool_select`
 - `examples/pulseforge` (`go_native` lanes)

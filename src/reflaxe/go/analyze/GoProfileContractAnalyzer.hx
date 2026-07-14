@@ -6,11 +6,11 @@ import haxe.macro.Context;
 import haxe.macro.PositionTools;
 import haxe.macro.Type;
 import haxe.macro.TypedExprTools;
-import reflaxe.go.GoProfile;
 import reflaxe.go.compiler.GoBuildContext;
-import reflaxe.go.compiler.GoMetalTypeEligibility;
-import reflaxe.go.compiler.GoMetalTypeEligibility.GoMetalEligibilityRole;
-import reflaxe.go.compiler.GoMetalTypeEligibility.GoMetalTypeEligibilityResult;
+import reflaxe.go.compiler.GoNativeAuthorityPolicy;
+import reflaxe.go.compiler.GoNativeTypeEligibility;
+import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeEligibilityRole;
+import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeTypeEligibilityResult;
 
 private typedef AnalyzerElementMethodCall = {
 	final methodName:String;
@@ -42,9 +42,21 @@ class GoProfileContractAnalyzer {
 		var portableNativeImportTypedHits:Array<String> = [];
 		var portableNativeImportScannerHits:Array<String> = [];
 
-		if (buildContext.profile == GoProfile.Portable && portableNativePolicy != PortableNativePolicyMode.Off) {
-			var typedHits = collectPortableNativeImportTypedHits(types, projectRoot, portableNativeAllowPrefixes);
-			var scannerHits = collectPortableNativeImportScannerHits(types, projectRoot, portableNativeAllowPrefixes);
+		if (buildContext.nativeAuthorityPolicy == GoNativeAuthorityPolicy.Guarded
+			&& portableNativePolicy != PortableNativePolicyMode.Off) {
+			var nativeBoundaryModules:Map<String, Bool> = [];
+			for (moduleName in buildContext.nativeBoundaryModules) {
+				nativeBoundaryModules.set(moduleName, true);
+			}
+			#if macro
+			for (moduleName in GoNativeBoundaryAnalyzer.collect(types).modules) {
+				nativeBoundaryModules.set(moduleName, true);
+			}
+			#end
+			var typedHits = excludeNativeBoundaryHits(collectPortableNativeImportTypedHits(types, projectRoot, portableNativeAllowPrefixes),
+				nativeBoundaryModules);
+			var scannerHits = excludeNativeBoundaryHits(collectPortableNativeImportScannerHits(types, projectRoot, portableNativeAllowPrefixes),
+				nativeBoundaryModules);
 			portableNativeImportTypedHits = [for (hit in typedHits) hit.module];
 			portableNativeImportScannerHits = [for (hit in scannerHits) hit.module];
 			var hits = switch (portableNativeScanMode) {
@@ -62,7 +74,7 @@ class GoProfileContractAnalyzer {
 					severity: portableNativePolicy == PortableNativePolicyMode.Error ? "error" : "warning",
 					module: hit.module,
 					location: hit.location,
-					message: portableNativeImportMessage(hit.module),
+					message: nativeAuthorityMessage(hit.module),
 					pos: hit.pos
 				});
 			}
@@ -102,8 +114,7 @@ class GoProfileContractAnalyzer {
 			case "off":
 				PortableNativePolicyMode.Off;
 			case _:
-				Context.fatalError("PortableNativeImportGate: invalid " + PORTABLE_NATIVE_POLICY_DEFINE + " `" + rawValue
-					+ "`. Expected `warn`, `error`, or `off`.",
+				Context.fatalError("NativeAuthorityGate: invalid " + PORTABLE_NATIVE_POLICY_DEFINE + " `" + rawValue + "`. Expected `warn`, `error`, or `off`.",
 					Context.currentPos());
 				PortableNativePolicyMode.Warn;
 		};
@@ -137,7 +148,7 @@ class GoProfileContractAnalyzer {
 			case "hybrid":
 				PortableNativeScanMode.Hybrid;
 			case _:
-				Context.fatalError("PortableNativeImportGate: invalid " + PORTABLE_NATIVE_SCAN_MODE_DEFINE + " `" + rawValue
+				Context.fatalError("NativeAuthorityGate: invalid " + PORTABLE_NATIVE_SCAN_MODE_DEFINE + " `" + rawValue
 					+ "`. Expected `typed`, `scanner`, or `hybrid`.",
 					Context.currentPos());
 				PortableNativeScanMode.Typed;
@@ -239,12 +250,12 @@ class GoProfileContractAnalyzer {
 		};
 	}
 
-	public static function detectLaneTypedFallbackViolation(expr:TypedExpr):Null<String> {
+	public static function detectNativeBoundaryTypedFallbackViolation(expr:TypedExpr):Null<String> {
 		return switch (expr.expr) {
 			case TNew(classRef, _, _):
 				var classType = classRef.get();
 				if (isGoClass(classType, "Chan")) {
-					var eligibility = metalTypeEligibility(goChanElementType(expr.t), GoMetalEligibilityRole.ChanElement,
+					var eligibility = nativeTypeEligibility(goChanElementType(expr.t), GoNativeEligibilityRole.ChanElement,
 						"Could not resolve go.Chan element type for constructor specialization.");
 					if (!eligibility.eligible) {
 						withEligibilityReason("Could not monomorphize go.Chan element type for constructor specialization.", eligibility);
@@ -255,75 +266,80 @@ class GoProfileContractAnalyzer {
 					null;
 				}
 			case TCall(callee, _):
-				detectLaneTypedFallbackViolationFromCall(callee, expr.t);
+				detectNativeBoundaryTypedFallbackViolationFromCall(callee, expr.t);
 			case _:
 				null;
 		};
 	}
 
-	static function detectLaneTypedFallbackViolationFromCall(callee:TypedExpr, returnType:Type):Null<String> {
+	/** Compatibility alias for macro integrations using the old lane name. */
+	public static inline function detectLaneTypedFallbackViolation(expr:TypedExpr):Null<String> {
+		return detectNativeBoundaryTypedFallbackViolation(expr);
+	}
+
+	static function detectNativeBoundaryTypedFallbackViolationFromCall(callee:TypedExpr, returnType:Type):Null<String> {
 		if (isGoStaticCall(callee, "Go", "newChan")) {
-			var eligibility = metalTypeEligibility(goChanElementType(returnType), GoMetalEligibilityRole.ChanElement,
-				"Could not resolve go.Go.newChan return type for metal specialization.");
+			var eligibility = nativeTypeEligibility(goChanElementType(returnType), GoNativeEligibilityRole.ChanElement,
+				"Could not resolve go.Go.newChan return type for native specialization.");
 			if (!eligibility.eligible) {
-				return withEligibilityReason("Could not monomorphize go.Go.newChan return type for metal specialization.", eligibility);
+				return withEligibilityReason("Could not monomorphize go.Go.newChan return type for native specialization.", eligibility);
 			}
 		}
 
 		if (isGoStaticCall(callee, "Result", "ok") || isGoStaticCall(callee, "Go", "ok")) {
-			var eligibility = metalTypeEligibility(goResultElementType(returnType), GoMetalEligibilityRole.ResultElement,
-				"Could not resolve go.Result<T>.ok return type for metal specialization.");
+			var eligibility = nativeTypeEligibility(goResultElementType(returnType), GoNativeEligibilityRole.ResultElement,
+				"Could not resolve go.Result<T>.ok return type for native specialization.");
 			if (!eligibility.eligible) {
-				return withEligibilityReason("Could not monomorphize go.Result<T>.ok return type for metal specialization.", eligibility);
+				return withEligibilityReason("Could not monomorphize go.Result<T>.ok return type for native specialization.", eligibility);
 			}
 		}
 
 		if (isGoStaticCall(callee, "Result", "failure") || isGoStaticCall(callee, "Go", "fail")) {
-			var eligibility = metalTypeEligibility(goResultElementType(returnType), GoMetalEligibilityRole.ResultElement,
-				"Could not resolve go.Result<T>.failure return type for metal specialization.");
+			var eligibility = nativeTypeEligibility(goResultElementType(returnType), GoNativeEligibilityRole.ResultElement,
+				"Could not resolve go.Result<T>.failure return type for native specialization.");
 			if (!eligibility.eligible) {
-				return withEligibilityReason("Could not monomorphize go.Result<T>.failure return type for metal specialization.", eligibility);
+				return withEligibilityReason("Could not monomorphize go.Result<T>.failure return type for native specialization.", eligibility);
 			}
 		}
 
 		var chanMethod = asGoChanMethodCall(callee);
 		if (chanMethod != null) {
-			var eligibility = metalTypeEligibility(chanMethod.elementType, GoMetalEligibilityRole.ChanElement,
-				"Could not resolve go.Chan method element type for metal specialization.");
+			var eligibility = nativeTypeEligibility(chanMethod.elementType, GoNativeEligibilityRole.ChanElement,
+				"Could not resolve go.Chan method element type for native specialization.");
 			if (!eligibility.eligible) {
-				return withEligibilityReason("Could not monomorphize go.Chan method call for metal specialization.", eligibility);
+				return withEligibilityReason("Could not monomorphize go.Chan method call for native specialization.", eligibility);
 			}
 		}
 
 		var sliceMethod = asGoSliceMethodCall(callee);
 		if (sliceMethod != null) {
-			var eligibility = metalTypeEligibility(sliceMethod.elementType, GoMetalEligibilityRole.SliceElement,
-				"Could not resolve go.Slice element type for metal specialization.");
+			var eligibility = nativeTypeEligibility(sliceMethod.elementType, GoNativeEligibilityRole.SliceElement,
+				"Could not resolve go.Slice element type for native specialization.");
 			if (!eligibility.eligible) {
-				return withEligibilityReason("Could not monomorphize go.Slice element type for metal specialization.", eligibility);
+				return withEligibilityReason("Could not monomorphize go.Slice element type for native specialization.", eligibility);
 			}
 		}
 
 		var mapMethod = asGoMapMethodCall(callee);
 		if (mapMethod != null) {
-			var keyEligibility = metalTypeEligibility(mapMethod.keyType, GoMetalEligibilityRole.MapKey,
-				"Could not resolve go.Map key type for metal specialization.");
+			var keyEligibility = nativeTypeEligibility(mapMethod.keyType, GoNativeEligibilityRole.MapKey,
+				"Could not resolve go.Map key type for native specialization.");
 			if (!keyEligibility.eligible) {
-				return withEligibilityReason("Could not monomorphize go.Map key/value types for metal specialization.", keyEligibility);
+				return withEligibilityReason("Could not monomorphize go.Map key/value types for native specialization.", keyEligibility);
 			}
-			var valueEligibility = metalTypeEligibility(mapMethod.valueType, GoMetalEligibilityRole.MapValue,
-				"Could not resolve go.Map value type for metal specialization.");
+			var valueEligibility = nativeTypeEligibility(mapMethod.valueType, GoNativeEligibilityRole.MapValue,
+				"Could not resolve go.Map value type for native specialization.");
 			if (!valueEligibility.eligible) {
-				return withEligibilityReason("Could not monomorphize go.Map key/value types for metal specialization.", valueEligibility);
+				return withEligibilityReason("Could not monomorphize go.Map key/value types for native specialization.", valueEligibility);
 			}
 		}
 
 		var resultMethod = asGoResultMethodCall(callee);
 		if (resultMethod != null) {
-			var eligibility = metalTypeEligibility(resultMethod.elementType, GoMetalEligibilityRole.ResultElement,
-				"Could not resolve go.Result<T> method receiver type for metal specialization.");
+			var eligibility = nativeTypeEligibility(resultMethod.elementType, GoNativeEligibilityRole.ResultElement,
+				"Could not resolve go.Result<T> method receiver type for native specialization.");
 			if (!eligibility.eligible) {
-				return withEligibilityReason("Could not monomorphize go.Result<T> method receiver for metal specialization.", eligibility);
+				return withEligibilityReason("Could not monomorphize go.Result<T> method receiver for native specialization.", eligibility);
 			}
 		}
 
@@ -502,12 +518,18 @@ class GoProfileContractAnalyzer {
 		return out;
 	}
 
-	static function portableNativeImportMessage(moduleName:String):String {
-		return "PortableNativeImportGate: module `"
+	static function nativeAuthorityMessage(moduleName:String):String {
+		return "NativeAuthorityGate: module `"
 			+ moduleName
-			+ "` uses target-native `go.*` surfaces while "
-			+ "`reflaxe_go_profile=portable` is active. Move native usage behind adapters, "
-			+ "or use `-D reflaxe_go_portable_native_policy=off|warn|error`.";
+			+ "` uses typed `go.*` APIs outside an explicit `@:goNative` module while "
+			+ "`reflaxe_go_native_authority=guarded` is active. Move native usage behind an adapter or `@:goNative` boundary, "
+			+ "select `-D reflaxe_go_native_authority=explicit`, or configure `-D reflaxe_go_portable_native_policy=off|warn|error`.";
+	}
+
+	static function excludeNativeBoundaryHits(hits:Array<GoPortableNativeImportHit>, nativeBoundaryModules:Map<String, Bool>):Array<GoPortableNativeImportHit> {
+		return [
+			for (hit in hits) if (hit != null && !nativeBoundaryModules.exists(hit.module)) hit
+		];
 	}
 
 	static function isPortableContractSource(pos:haxe.macro.Expr.Position, projectRoot:String):Bool {
@@ -904,7 +926,7 @@ class GoProfileContractAnalyzer {
 		};
 	}
 
-	static function metalTypeEligibility(type:Null<Type>, role:GoMetalEligibilityRole, missingMessage:String):GoMetalTypeEligibilityResult {
+	static function nativeTypeEligibility(type:Null<Type>, role:GoNativeEligibilityRole, missingMessage:String):GoNativeTypeEligibilityResult {
 		if (type == null) {
 			return {
 				eligible: false,
@@ -913,10 +935,10 @@ class GoProfileContractAnalyzer {
 				reason: missingMessage
 			};
 		}
-		return GoMetalTypeEligibility.resolve(type, role, _ -> "_", _ -> "_");
+		return GoNativeTypeEligibility.resolve(type, role, _ -> "_", _ -> "_");
 	}
 
-	static function withEligibilityReason(base:String, eligibility:GoMetalTypeEligibilityResult):String {
+	static function withEligibilityReason(base:String, eligibility:GoNativeTypeEligibilityResult):String {
 		var reason = eligibility.reason;
 		if (reason == null || StringTools.trim(reason) == "") {
 			return base;

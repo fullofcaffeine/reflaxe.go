@@ -2,8 +2,10 @@
 
 Terms used in this plan:
 
-- **Profile**: compiler contract (`portable` or `metal`), documented in `docs/profiles.md`.
-- **Variant**: app runtime adapter path (`core` or `go_native`) inside one shared app codebase. This is not a compiler profile.
+- **Compatibility selector**: `portable` or `metal`, each expanding to a policy
+  preset documented in `docs/profiles.md`.
+- **Variant**: app runtime adapter path (`core` or `go_native`) inside one shared
+  app codebase. This is a source/API choice, not a compiler profile.
 - **core variant**: lowest-risk implementation path that avoids target-specific `go.*` API dependence where possible.
 - **go_native variant**: Go-first runtime adapter path that intentionally uses typed `go.*` surfaces.
 
@@ -22,52 +24,60 @@ Both must be usable and runnable, not design-only artifacts.
 
 Each app must ship with:
 
-- `app/` Haxe source that compiles in `portable` and `metal`.
+- `app/` Haxe source that compiles with both compatibility selectors.
 - `compile.portable.hxml`, `compile.metal.hxml`.
 - `compile.portable.ci.hxml`, `compile.metal.ci.hxml`.
 - deterministic scripted mode used by CI (`expected/<profile>.stdout`).
 - interactive mode for local demo.
 - generated Go trees committed under `generated/<profile>/`.
 - profile run outputs committed under `out_<profile>/` (from harness runs).
-- app README with profile behavior matrix and benchmark commands.
+- app README with preset/variant behavior matrix and benchmark commands.
 
-This keeps both examples visible in `python3 test/run-examples.py` and prevents profile drift.
+This keeps both examples visible in `python3 test/run-examples.py` and prevents
+preset or source-boundary drift. The `<profile>` path token is retained by the
+existing harness as a compatibility name for the selector dimension.
 
 ## Variant Strategy (per app)
 
 Use one shared codebase per app, with explicit runtime variants instead of separate forks:
 
 - `core` variant:
-  - must run on all profiles (`portable`, `metal`)
-  - profile differences should be mostly code-shape/perf, not feature removals
+  - must run under both presets (`portable`, `metal`)
+  - preset differences may affect diagnostics, specialization attempts, and
+    code shape, not application features or portable semantics
 - `go_native` variant:
   - still one codebase, but enables Go-first lanes through typed adapters
-  - can expose additional capability in `metal` (for example richer concurrency or interop paths)
+  - declares its Go-specific contract through typed `go.*` APIs and
+    `@:goNative`, under either preset
 
 Implementation mechanism:
 
 - Keep shared domain logic in `app/core/*`.
-- Keep profile/variant adapters in `app/runtime/*`.
+- Keep variant adapters in `app/runtime/*` and mark Go-owning modules
+  `@:goNative`.
 - Select variant through explicit compile define (for example `-D app_variant=core|go_native`).
 
-This gives "portable vs metal versions" in practice without fragmenting into multiple unrelated apps.
+This gives one app across two compatibility presets and two explicit source
+variants without fragmenting into unrelated implementations.
 
-## How Profiles Are Showcased
+## How Presets Are Showcased
 
-Use one shared app core and profile runtime adapters:
+Use one shared app core and explicit runtime variants:
 
-- Keep business logic profile-agnostic where possible.
-- Isolate profile-sensitive behavior behind a small runtime adapter layer.
+- Keep business logic on portable source surfaces.
+- Isolate Go-native behavior behind a small typed runtime adapter layer.
 - Document behavior contracts explicitly:
-  - `portable`: semantics-first fallback paths.
-  - `metal`: typed low-level interop/perf lane.
+  - `portable`: guarded/proven/allow defaults;
+  - `metal`: explicit/eager/error/strict compatibility defaults;
+  - `go_native`: the source/API boundary that actually opts into Go-specific
+    behavior.
 
 For each app README, include:
 
-- one table showing feature behavior per profile.
-- one table showing variant behavior (`core` vs `go_native`) per profile.
+- one table showing policy behavior per preset.
+- one table showing variant behavior (`core` vs `go_native`) per preset.
 - one section showing generated Go differences (code-shape highlights).
-- one section showing binary/runtime benchmark deltas by profile.
+- one section showing binary/runtime benchmark deltas by preset and variant.
 
 ## App Scope
 
@@ -152,9 +162,9 @@ Benchmark both apps with the same workload generator and data:
 
 Before calling either app complete:
 
-- examples matrix passes for all profiles.
+- examples matrix passes for all declared presets.
 - generated-tree drift checks pass.
-- documented profile behavior table exists.
+- documented preset/variant behavior table exists.
 - benchmark run produces machine-readable results.
 - README links to benchmark summary and known tradeoffs.
 

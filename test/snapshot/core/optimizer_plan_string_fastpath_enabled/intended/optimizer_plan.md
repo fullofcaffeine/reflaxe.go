@@ -1,7 +1,9 @@
 # Optimizer Plan Report
 
-- schema version: `5`
+- schema version: `6`
 - contract: `portable`
+- policy preset: `portable_default`
+- native specialization policy: `proven` (source `policy_preset`)
 - auto lowering mode: `off`
 - optimization preset: `portable_fast`
 - portable string fastpath enabled: `yes`
@@ -16,6 +18,8 @@
 - go collections typed fallbacks: `0`
 - go result typed lowerings: `0`
 - go result typed fallbacks: `0`
+- lowering fallback boundary count: `0`
+- lowering fallback non-boundary count: `0`
 - lowering fallback lane count: `0`
 - lowering fallback non-lane count: `0`
 - go ast pass selection source: `planner`
@@ -33,9 +37,9 @@
 - `collect_imports`
 
 ## go ast pass selection reasons
-- `normalize_names` | `planner(contract=portable, auto=off, opt=portable_fast)` | Canonicalize generated identifiers before rewrite passes.
-- `rewrite_string_ops` | `planner(contract=portable, auto=off, opt=portable_fast)` | Apply planner-selected string rewrite/folding pass for deterministic code shape.
-- `rewrite_virtual_calls` | `planner(contract=portable, auto=off, opt=portable_fast)` | Apply planner-selected safe virtual-call rewrite pass.
-- `insert_runtime_prelude` | `planner(contract=portable, auto=off, opt=portable_fast)` | Inject runtime prelude declarations before cleanup/import collection.
-- `elide_blank_identifier_guards` | `planner(contract=portable, auto=off, opt=portable_fast)` | Remove redundant blank-identifier consume guards after lowering.
-- `collect_imports` | `planner(contract=portable, auto=off, opt=portable_fast)` | Collect final deterministic import set after all rewrites.
+- `normalize_names` | `planner(preset=portable_default, auto=off, opt=portable_fast)` | Canonicalize generated identifiers before rewrite passes.
+- `rewrite_string_ops` | `planner(preset=portable_default, auto=off, opt=portable_fast)` | Apply planner-selected string rewrite/folding pass for deterministic code shape.
+- `rewrite_virtual_calls` | `planner(preset=portable_default, auto=off, opt=portable_fast)` | Apply planner-selected safe virtual-call rewrite pass.
+- `insert_runtime_prelude` | `planner(preset=portable_default, auto=off, opt=portable_fast)` | Inject runtime prelude declarations before cleanup/import collection.
+- `elide_blank_identifier_guards` | `planner(preset=portable_default, auto=off, opt=portable_fast)` | Remove redundant blank-identifier consume guards after lowering.
+- `collect_imports` | `planner(preset=portable_default, auto=off, opt=portable_fast)` | Collect final deterministic import set after all rewrites.

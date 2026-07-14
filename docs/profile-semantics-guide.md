@@ -1,161 +1,190 @@
-# Profile Semantics Guide (`portable` vs `metal`)
+# Profile Semantics and Migration Guide
 
-This guide explains the practical and semantic differences between profiles.
+`portable` and `metal` are accepted compatibility selectors for policy presets.
+They are not separate compiler engines, and `metal` is not a second semantic
+product.
 
-Short version: portable is the default product path; metal is an explicit Go-native authoring contract.
+Read the full normative contract in [Native policy presets and semantic
+boundaries](native-policy-presets.md).
 
-Portable by default, Go-native by opt-in, metal-like generated Go whenever the compiler can prove the lowering preserves portable Haxe semantics.
+## The practical rule
 
-Use `portable` as the normal way to write Haxe that becomes readable,
-performant Go. Use `metal` only when you intentionally want Go-native authoring
-surfaces, stricter boundaries, or fail-fast native-lane checks.
+Start portable. Let the source API state when code becomes Go-native.
 
-## Terms
+- Portable source surfaces preserve Haxe behavior under either preset.
+- `go.*`, typed Go externs, and `@:goNative` explicitly choose Go-native
+  semantics for their boundary.
+- Optimized or Go-shaped output does not by itself make source Go-native.
 
-- [portable](glossary.md#portable-profile): portability-first profile contract.
-- [metal](glossary.md#metal-profile): Go-first profile contract.
-- [fallback](glossary.md#fallback): safe path used when strict typed lowering cannot apply.
-- [semantic diff](glossary.md#semantic-diff): runtime behavior parity test against Haxe `--interp`.
+This distinction keeps output quality independent from portability. Portable is
+not the slow/basic mode, and metal is not the only real-Go mode.
 
-## Architecture model (current)
+## What the selectors currently change
 
-The profile system is explicit and layered:
+Only defaults:
 
-1. semantic contract: `portable|metal`
-2. boundary policy: strict mode + portable native-import policy
-3. runtime policy: full vs selective hxrt copy
-4. planner policy: `off|auto|auto_strict`
-5. lane scope: `@:goMetal` modules
+| Policy | `portable_default` | `metal_compatibility` |
+| --- | --- | --- |
+| Native authority | guarded | explicit |
+| Native specialization | proven | eager |
+| Native fallback | allow | error |
+| Strict raw-boundary policy when set to `auto` | off | on |
 
-`GoBuildContextResolver.resolve()` computes these axes once, and `GoReflaxeCompiler` uses the resolved context to drive compile behavior and report emission.
+Explicit policy defines override these defaults. Runtime slicing, planner mode,
+optimizer selection, and diagnostic capabilities are independent.
 
-## Quick answer
+## What must stay invariant
 
-- Choose `portable` when you want shared, cross-target-friendly Haxe behavior.
-- Choose `metal` when you intentionally want explicit Go-native APIs and stricter native-lane checks.
-- Do not choose `metal` just because you want good Go output; the portable optimizer should generate Go-shaped fast paths whenever it can do so without changing Haxe semantics.
+If a module uses only portable surfaces, changing the selector alone must not
+change its observable Haxe behavior.
 
-## What usually stays the same
+Examples include:
 
-If code remains on portable surfaces (Haxe stdlib/app-level APIs, no target-native shortcuts), runtime behavior should stay equivalent across profiles.
+- null and equality behavior;
+- Haxe exception and portable-thread lifecycle behavior;
+- staged stdlib results;
+- portable collection and string behavior;
+- portable module APIs and cross-target intent.
 
-Examples:
+Native representation is still allowed when a capability proof shows the same
+behavior. A profile-shaped implementation branch is not proof.
 
-- `Std.string(null)` should still behave as portable `"null"` semantics.
-- portable null/equality paths should not silently flip just because profile changed.
+## Mixed codebases
 
-When this does not hold, treat it as a regression or an explicitly documented exception.
+One project can combine portable domain code with explicit Go adapters.
 
-## What usually changes
+```text
+domain/                 portable Haxe semantics
+application/            portable orchestration
+platform/go/            typed externs and @:goNative adapters
+```
 
-1. **Boundary strictness**
-   - `metal` defaults to stricter app-side injection policy.
-2. **Typed specialization pressure**
-   - `metal` is where typed native lowering is expected first.
-3. **Portability posture**
-   - `portable` optimizes for cross-target stability.
-   - `metal` accepts lower portability in native-first paths.
+The directory names are only organization. The compiler recognizes typed API
+usage and `@:goNative`, not a magic folder convention.
 
-## Real-world examples
-
-### Example A: portable code in metal build
-
-Portable-style code can compile under `metal` and keep behavior parity.
-This is useful for “metal-readiness” checks before fully adopting native-first lanes.
-
-### Example B: native-first code in portable build
-
-Native facades (`go.*`) may still compile in portable depending on policy, but they are outside the portable compatibility contract by design.
-Use:
-
-- `reflaxe_go_portable_native_policy=error` to fail fast in CI
-- `reflaxe_go_portable_native_policy=warn` for local migration visibility
-
-### Example C: typed lowering fallback
-
-When typed specialization is not possible, the compiler can use a fallback path.
-
-- in `metal`: fallback is a hard error by default unless explicitly allowed.
-- in `portable`: fallback is allowed by default, with report visibility.
-
-## `@:goMetal` lanes inside portable
-
-`@:goMetal` lets you harden selected modules while keeping the whole build portable.
-
-Under `-D reflaxe_go_auto=auto_strict`, lane modules fail if typed specialization for go-native collections/concurrency/result paths cannot be applied.
-
-This supports incremental migration:
-
-1. keep shared code portable
-2. mark hot/native modules as lane modules
-3. enforce stricter rules only where needed
-
-## Why explicit profiles (not inferred semantics)
-
-The repo keeps explicit profile selection because semantic intent must stay visible in CI and code review.
-
-If semantics were inferred from usage:
-
-- small dependency changes could silently alter behavior,
-- teams would lose reviewable contract intent,
-- debugging profile-related behavior drift would become harder.
-
-Inference is still used for additive planning (runtime feature selection, optimizer plans), not for hidden semantic profile switching.
-
-## What profiles do not do
-
-- They do not infer semantic contract from imports or optimizer outcomes.
-- They do not collapse runtime slicing into contract selection.
-- They do not replace lane metadata (`@:goMetal`) with implicit module inference.
-
-## Portable to metal migration checklist
-
-1. Keep semantic-diff green in portable.
-2. Enable metal in one app lane.
-3. Resolve strict-boundary violations using typed wrappers/facades.
-4. Benchmark before/after.
-5. Keep portable shared modules untouched unless evidence justifies native-only tradeoffs.
-
-## Portable to metal admission criteria (pass/fail)
-
-### Pass criteria
-
-1. Lane and boundary checks are green:
-   - `python3 test/run-semantic-diff.py --suite lanes`
-   - `python3 test/run-snapshots.py`
-2. Strict policy is enforced as intended for the promoted lane.
-3. Contract reports show deterministic fallback diagnostics.
-4. Perf evidence exists for promoted modules.
-
-### Fail criteria
-
-1. Lane semantic-diff or boundary checks fail.
-2. Promotion depends on raw app-side `__go__` injection.
-3. Fallback diagnostics are missing or unstable.
-4. Profile switch is made without benchmark evidence or explicit tradeoff documentation.
-
-## Metal back to portable checklist
-
-1. Remove target-native-only usage in shared modules.
-2. Re-run snapshots + semantic diff in portable.
-3. Re-check examples/support matrix expectations.
-4. Document any remaining native-only islands.
-
-## Command set for profile-sensitive changes
+Recommended CI configuration:
 
 ```bash
-python3 test/run-snapshots.py
-python3 test/run-semantic-diff.py
-python3 test/run-semantic-diff.py --suite lanes
-python3 test/run-ci.py
+-D reflaxe_go_profile=portable
+-D reflaxe_go_native_authority=guarded
+-D reflaxe_go_portable_native_policy=error
 ```
+
+Approved adapter modules use `@:goNative`. Accidental `go.*` usage elsewhere
+then fails early.
+
+## Migrating an existing metal build
+
+There is no requirement to migrate today; `metal` remains supported. To make a
+build's intent more explicit without changing behavior:
+
+1. Keep `reflaxe_go_profile=metal` while adding contract reports.
+2. Identify modules that actually consume `go.*` or typed Go externs.
+3. Mark module-owned native boundaries with `@:goNative`.
+4. Confirm raw `__go__` is absent from app and boundary code.
+5. Reproduce the preset through explicit axes in a portable build:
+
+   ```bash
+   -D reflaxe_go_profile=portable
+   -D reflaxe_go_native_authority=explicit
+   -D reflaxe_go_native_specialization=eager
+   -D reflaxe_go_native_fallback=error
+   -D reflaxe_go_strict_policy=on
+   ```
+
+6. Compare snapshots, semantic-diff output, runtime output, reports, and
+   performance.
+7. If desired, move from global `explicit` authority to `guarded` plus
+   `@:goNative` modules.
+
+That exercise proves whether the global preset has any remaining value for the
+application. It is not a deprecation requirement.
+
+## Migrating source metadata
+
+Existing source:
+
+```haxe
+@:goMetal
+class NativeAdapter {}
+```
+
+Canonical source:
+
+```haxe
+@:goNative
+class NativeAdapter {}
+```
+
+Both compile with identical boundary behavior. The old spelling remains a
+silent compatibility alias; the rename can happen on the application's normal
+schedule.
+
+## Fallback strategy
+
+Fallback means a typed native representation was attempted but could not be
+proven safe.
+
+- Use `allow` while measuring capability gaps or when the semantics-safe
+  representation is acceptable.
+- Use `error` when every user-owned attempted native representation must be
+  concrete.
+- Use `auto_strict` when explicit native modules must also reject unresolved
+  fallback.
+
+Fallback events are not automatically semantic failures. Reports intentionally
+record framework-template attempts even when the error policy excludes
+framework internals.
+
+## Why the semantic boundary is explicit
+
+Inferring a native contract from generated output would be unstable: optimizer
+changes could silently change source meaning. The compiler instead reads stable
+source evidence—APIs, extern metadata, and `@:goNative`—then chooses a lowering
+that preserves that evidence.
+
+This differs from inferring a global profile. A build-wide policy can change
+which diagnostics or representations are attempted, but it cannot silently
+reclassify ordinary Haxe source as Go-native.
+
+## Sibling-target interpretation
+
+- Reflaxe.Elixir demonstrates one pipeline with authoring intent carried by
+  typed APIs and metadata.
+- haxe.ruby keeps one pipeline and treats its profiles as real semantic
+  guardrails; it explicitly avoids inventing a metal/performance profile.
+- haxe.rust retains a meaningful metal contract because ownership, nullability,
+  string representation, borrowing, and no-runtime behavior create genuine
+  semantic differences.
+
+Go's current profile-only effects decompose cleanly into policy axes, so Go
+follows the first two precedents unless future evidence demonstrates an
+irreducible semantic distinction.
+
+## Review boundary
+
+The compatibility-preserving refactor can land with the repository's xhigh
+written second-pass fallback and full test evidence. Any decision to deprecate
+or remove `metal` is broader: it needs a genuine independent deep review,
+commit-pinned evidence, a SemVer migration plan, and separate approval.
+
+## Validation
+
+```bash
+npm run test:changed
+npm test
+npm run test:semantic-diff
+npm run test:examples
+npm run test:stdlib-sweep:go-test
+```
+
+For optimization or runtime changes, also run the relevant performance and
+security gates documented in the repository instructions.
 
 ## Related docs
 
-- Docs map: [docs/index.md](index.md)
-- Glossary: [docs/glossary.md](glossary.md)
-- Profiles reference: [docs/profiles.md](profiles.md)
-- Portable contract: [docs/portable-canonical-contract.md](portable-canonical-contract.md)
-- Versioned semantics spec: [docs/portable-semantics-v1.md](portable-semantics-v1.md)
-- Semantic diff guide: [docs/semantic-diff-guide.md](semantic-diff-guide.md)
-- Examples matrix: [docs/examples-matrix.md](examples-matrix.md)
+- [Profiles reference](profiles.md)
+- [Defines reference](defines-reference.md)
+- [Portable canonical contract](portable-canonical-contract.md)
+- [Semantic diff guide](semantic-diff-guide.md)
+- [Examples matrix](examples-matrix.md)

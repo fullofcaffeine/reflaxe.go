@@ -5,7 +5,8 @@ Flagship observability-stream pipeline demo with one Haxe codebase compiled acro
 ## Why this example exists
 
 - Demonstrates a production-shaped app architecture, not just a toy program.
-- Shows profile contract (`portable` vs `metal`) and app variant (`core` vs `go_native`) as separate axes.
+- Shows policy preset (`portable` vs `metal`) and app variant (`core` vs
+  `go_native`) as separate axes.
 - Provides benchmark-ready lanes against handwritten Go baselines.
 
 ## Terms used in this README
@@ -21,7 +22,7 @@ Flagship observability-stream pipeline demo with one Haxe codebase compiled acro
 | Contract harness | `Harness.hx` | Deterministic baseline workload + assertable output contract |
 | Domain core | `app/core/*` | Parse, enrich, aggregate, alert pipeline and report rendering |
 | Runtime adapters | `app/runtime/CoreRuntime.hx`, `app/runtime/GoNativeRuntime.hx` | Variant-specific execution strategy (`core` vs `go_native`) |
-| Build selectors | `app/runtime/BuildConfig.hx`, `app/runtime/RuntimeFactory.hx` | Compile-time profile/variant constants and adapter selection |
+| Build selectors | `app/runtime/BuildConfig.hx`, `app/runtime/RuntimeFactory.hx` | Compile-time preset/variant constants and adapter selection |
 
 ## Compile Matrix
 
@@ -61,23 +62,25 @@ Modes:
 - scripted: deterministic contract output (`--scripted`)
 - interactive: command session (`help`, `profile`, `status`, `ingest`, `reset`, `scripted`)
 
-## Portable vs metal in practice
+## Portable vs metal presets in practice
 
 `metal` is not required for good Go output. This app includes `metal` lanes so
-you can test explicit Go-native runtime adapters under stricter checks.
+you can test explicit Go-native runtime adapters under the compatibility bundle.
 
-| Profile | Choose this when... | What you get | What to watch for |
+| Preset | Choose this when... | What you get | What to watch for |
 | --- | --- | --- | --- |
 | `portable` | You want this codebase to stay cross-target friendly and easy to share with other Haxe targets. | Stable portable behavior and the lowest migration risk for shared app/domain code, while still allowing safe Go-shaped optimizations. | Frequently-executed `go_native` paths may show remaining portable-vs-metal delta; treat that as compiler convergence signal. |
-| `metal` | This deployment intentionally owns Go-native APIs and you want stricter compile-time checks in hot paths. | Typed specialization in `go_native` paths (`go.Chan`/`go.Select` style flows) plus fail-fast checks for unsupported typed specialization cases. | You may need more explicit typing (avoid loose `Dynamic`/`Any` paths), and generated code can be larger because of specialized helpers. |
+| `metal` | You want the explicit/eager/error/strict compatibility bundle. | Eager typed specialization in `go_native` paths plus fail-fast fallback checks. | Generated code can be larger because of specialized helpers; this is policy, not a different app semantic contract. |
 
-Both profiles keep the same app behavior contract and scripted outputs. The main difference is how aggressively the compiler optimizes Go-native paths.
+Both presets keep the same app behavior contract and scripted outputs. The main difference is native policy defaults.
 
 Practical rule for this app:
 
 - Start with `portable` for shared domain logic.
-- Use `metal` when this service is Go-only and benchmark data shows the `go_native` lane is a bottleneck.
-- Expect the biggest profile differences in `go_native`, not `core`.
+- Keep `go_native` as an explicit typed API boundary.
+- Use eager specialization when benchmark data justifies it; `metal` is one
+  convenient way to select that plus stricter policies.
+- Expect the biggest preset differences in `go_native`, not `core`.
 
 ## Variant choices in plain terms
 
@@ -86,7 +89,7 @@ Practical rule for this app:
 | `core` | Uses simple loop-based processing for parse/enrich stages. | You want the most straightforward, portable reference behavior. |
 | `go_native` | Uses worker fanout with channels/select helpers in runtime adapters. | You are testing/tuning Go-first execution paths and want to benchmark that lane. |
 
-`go_native` is a compile-time app variant (`-D pulseforge_variant_go_native`), not a compiler profile.
+`go_native` is a compile-time app variant (`-D pulseforge_variant_go_native`), not a compiler preset.
 
 ## Generated Go Highlights
 
@@ -149,5 +152,6 @@ Methodology and fairness constraints: [`docs/benchmark-methodology-apps.md`](../
 
 - [`docs/profiles.md`](../../docs/profiles.md)
 - [`docs/profile-semantics-guide.md`](../../docs/profile-semantics-guide.md)
+- [`docs/native-policy-presets.md`](../../docs/native-policy-presets.md)
 - [`docs/examples-matrix.md`](../../docs/examples-matrix.md)
 - [`docs/benchmark-methodology-apps.md`](../../docs/benchmark-methodology-apps.md)

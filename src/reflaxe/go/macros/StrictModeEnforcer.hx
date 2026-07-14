@@ -5,10 +5,9 @@ import haxe.io.Path;
 import haxe.macro.Context;
 import haxe.macro.Type;
 import haxe.macro.TypedExprTools;
-import reflaxe.go.GoProfile;
-import reflaxe.go.ProfileResolver;
 import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.analyze.GoRawInjectionAuthorityAnalyzer;
+import reflaxe.go.compiler.GoBuildContextResolver;
 import sys.FileSystem;
 import sys.io.File;
 #end
@@ -29,7 +28,7 @@ class StrictModeEnforcer {
 		}
 
 		var projectRoot = normalizePath(Sys.getCwd());
-		var allowFrameworkTypedInjections = ProfileResolver.resolve() == GoProfile.Metal;
+		var allowFrameworkTypedInjections = GoBuildContextResolver.resolve().hasExplicitNativeAuthority();
 		var preflightFindings = preflightScanForGoInjections(projectRoot);
 		if (preflightFindings.length > 0) {
 			Context.fatalError("StrictModeEnforcer: __go__ is not allowed in strict mode (" + preflightFindings[0] + ")", Context.currentPos());

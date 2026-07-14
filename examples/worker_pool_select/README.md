@@ -1,11 +1,12 @@
 # worker_pool_select
 
-Deterministic worker-pool and select-style channel example across `portable` and `metal`.
+Deterministic worker-pool and select-style channel example across the
+`portable` and `metal` compatibility presets.
 
 ## Why this example exists
 
 - Demonstrates Go concurrency abstractions in a compact deterministic workload.
-- Shows how one Haxe codebase can target both profile contracts.
+- Shows one explicit Go-native API contract under both policy presets.
 - Serves as a high-signal reference for typed `go.Select` helper usage.
 
 ## What it demonstrates
@@ -13,28 +14,29 @@ Deterministic worker-pool and select-style channel example across `portable` and
 - `go.Go.spawn` worker fan-out from one Haxe codebase.
 - `go.Chan<T>` buffered queues and deterministic work collection.
 - Typed `go.Select` helpers (`recv`, `recv2`, `send`, `send2`) layered on select-backed non-blocking channel operations.
-- Same source compiled to all profiles with stable output.
+- Same source compiled with both presets and stable output.
 
 ## Portable vs metal diff in this app
 
-- `portable`: semantic baseline and portability-first defaults. The compiler can
-  still emit good Go-shaped fast paths when they preserve Haxe semantics.
-- `metal`: explicit Go-native authoring contract; stricter checks and typed
-  specialization are prioritized here.
-- Both profiles preserve the same workload contract and output expectations.
+- `portable`: guarded/proven/allow defaults. The `go.*` calls themselves state
+  that this example is Go-native.
+- `metal`: explicit/eager/error/strict compatibility defaults.
+- Both presets preserve the same typed Go API contract and output expectations.
 
-`metal` is not required for good Go output. This example uses `metal` because
-channels/select are an explicit Go-native teaching surface.
+`metal` is not required for good Go output or for channels/select. This example
+keeps a metal preset run to test the compatibility bundle against the same
+source.
 
-## When to choose each profile here
+## When to choose each preset here
 
-- Choose `portable` when this worker pattern must remain portable with shared domain code.
-- Choose `metal` when this worker path is a Go hot path and you want stricter
-  Go-native policy plus fail-fast typed specialization checks.
+- Choose `portable` as the default preset and isolate this Go-specific adapter
+  from portable domain code.
+- Choose `metal` when its eager/error/strict bundle is convenient, or select
+  those policies individually under portable.
 
 ## Tradeoffs shown by this example
 
-- Profile outputs can stay behavior-equivalent while generated helper shape differs.
+- Preset outputs can stay behavior-equivalent while generated helper shape differs.
 - `metal` is not guaranteed to be fewer lines; it may emit extra typed helpers for hot-path stability/perf.
 
 ## Compile
@@ -77,5 +79,6 @@ High-signal files:
 ## Related docs
 
 - [`docs/profiles.md`](../../docs/profiles.md)
+- [`docs/native-policy-presets.md`](../../docs/native-policy-presets.md)
 - [`docs/profile-semantics-guide.md`](../../docs/profile-semantics-guide.md)
 - [`docs/go-concurrency-interop-guide.md`](../../docs/go-concurrency-interop-guide.md)

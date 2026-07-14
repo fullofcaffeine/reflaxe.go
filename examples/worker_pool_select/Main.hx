@@ -2,6 +2,7 @@ import go.Chan;
 import go.Go;
 import go.Select;
 
+@:goNative
 class Main {
 	static inline var STOP_TOKEN = "__stop__";
 	static inline var EMPTY_TOKEN = "__empty__";

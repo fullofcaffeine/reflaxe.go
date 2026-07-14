@@ -2,31 +2,43 @@
 
 Plain-language definitions for terms that appear across `reflaxe.go` docs.
 
-## Profile
+## Policy preset
 
-A named build contract (`portable` or `metal`) that controls semantics and policy defaults.
+A named bundle of policy defaults. `reflaxe_go_profile=portable|metal` is the
+compatible public selector, but the selected preset does not create another
+compiler engine or silently choose source semantics.
 
-Reference: [docs/profiles.md](profiles.md)
+Reference: [Native policy presets and semantic boundaries](native-policy-presets.md)
 
-## Portable profile
+## Portable
 
-Default profile and normal product path for Haxe code that should keep portable
-semantics while still generating readable, performant Go where the compiler can
-prove the lowering is safe.
+The default product path and `portable_default` policy preset. Ordinary Haxe
+source keeps portable semantics while the compiler may emit direct,
+performant Go where it can prove equivalence.
 
-Reference: [docs/profiles.md](profiles.md#matrix)
+Reference: [Profiles](profiles.md)
 
-## Metal profile
+## Metal compatibility preset
 
-Opt-in profile for explicit Go-native authoring, stricter defaults, and
-fail-fast native-lane checks. `metal` is not required for good Go output; use it
-when you deliberately want Go-specific APIs or constraints.
+The supported `metal_compatibility` bundle: explicit native authority, eager
+specialization, fail-fast fallback, and strict raw-boundary defaults. It is not
+a second semantic product and is not required for good Go output.
 
-Reference: [docs/profiles.md](profiles.md#matrix)
+Reference: [Profiles](profiles.md)
+
+## Native boundary
+
+An owning Haxe module explicitly declared with `@:goNative`, or native intent
+expressed through typed `go.*`/extern APIs. `@:goMetal` is the compatibility
+metadata alias.
+
+Reference: [Native policy presets and semantic boundaries](native-policy-presets.md#gonative-module-boundaries)
 
 ## Contract
 
-A behavior promise the compiler enforces (for example profile rules, portable semantics, lane policy).
+A behavior promise the compiler enforces, such as portable semantics or a
+typed Go-native API contract. Policy presets choose defaults around a contract;
+they are not contracts by themselves.
 
 References:
 - [docs/portable-canonical-contract.md](portable-canonical-contract.md)
@@ -34,11 +46,13 @@ References:
 
 ## Lane
 
-A constrained subset of code or behavior in a build. In examples, `go_native` is a runtime adapter variant lane. In compiler policy, `@:goMetal` marks metal-clean enforcement islands.
+A constrained subset of code or behavior in a build. In examples, `go_native`
+is a runtime adapter variant lane. Compiler policy now calls module-level
+authority a native boundary and uses canonical `@:goNative`.
 
 References:
 - [docs/examples-matrix.md](examples-matrix.md)
-- [docs/profiles.md](profiles.md#goMetal-lanes-portable-builds)
+- [docs/native-policy-presets.md](native-policy-presets.md#gonative-module-boundaries)
 
 ## go_native
 
@@ -90,13 +104,13 @@ References:
 
 Lowering a generic/native facade call into a concrete typed Go path when the compiler can prove types safely.
 
-Reference: [docs/profiles.md](profiles.md#portable-convergence-optimizer-controls)
+Reference: [Native specialization](native-policy-presets.md#native-specialization)
 
 ## Fallback
 
 A safe alternative path used when a stricter typed/native lowering cannot be applied.
 
-Reference: [docs/profiles.md](profiles.md#portable-convergence-optimizer-controls)
+Reference: [Native fallback](native-policy-presets.md#native-fallback)
 
 ## Semantic diff
 

@@ -17,6 +17,7 @@ import go.Select;
 
 	Use this lane when benchmarking or tuning Go-native execution behavior.
 **/
+@:goNative
 class GoNativeRuntime implements FluxRuntime {
 	public function profileId():String {
 		return BuildConfig.PROFILE;

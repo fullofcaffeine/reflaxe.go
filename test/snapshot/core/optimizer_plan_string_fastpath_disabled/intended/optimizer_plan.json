@@ -1,6 +1,9 @@
 {
-	"schemaVersion": 5,
+	"schemaVersion": 6,
 	"contract": "portable",
+	"policyPreset": "portable_default",
+	"nativeSpecializationPolicy": "proven",
+	"nativeSpecializationPolicySource": "policy_preset",
 	"autoLoweringMode": "off",
 	"optimizationPreset": "none",
 	"portableStringFastpathEnabled": false,
@@ -15,6 +18,8 @@
 	"goCollectionsTypedFallbacks": 0,
 	"goResultTypedLowerings": 0,
 	"goResultTypedFallbacks": 0,
+	"loweringFallbackBoundaryCount": 0,
+	"loweringFallbackNonBoundaryCount": 0,
 	"loweringFallbackLaneCount": 0,
 	"loweringFallbackNonLaneCount": 0,
 	"autoLoweringCapabilities": [
@@ -43,32 +48,32 @@
 	"goAstPassSelectionReasons": [
 		{
 			"pass": "normalize_names",
-			"source": "planner(contract=portable, auto=off, opt=none)",
+			"source": "planner(preset=portable_default, auto=off, opt=none)",
 			"reason": "Canonicalize generated identifiers before rewrite passes."
 		},
 		{
 			"pass": "rewrite_string_ops",
-			"source": "planner(contract=portable, auto=off, opt=none)",
+			"source": "planner(preset=portable_default, auto=off, opt=none)",
 			"reason": "Apply planner-selected string rewrite/folding pass for deterministic code shape."
 		},
 		{
 			"pass": "rewrite_virtual_calls",
-			"source": "planner(contract=portable, auto=off, opt=none)",
+			"source": "planner(preset=portable_default, auto=off, opt=none)",
 			"reason": "Apply planner-selected safe virtual-call rewrite pass."
 		},
 		{
 			"pass": "insert_runtime_prelude",
-			"source": "planner(contract=portable, auto=off, opt=none)",
+			"source": "planner(preset=portable_default, auto=off, opt=none)",
 			"reason": "Inject runtime prelude declarations before cleanup/import collection."
 		},
 		{
 			"pass": "elide_blank_identifier_guards",
-			"source": "planner(contract=portable, auto=off, opt=none)",
+			"source": "planner(preset=portable_default, auto=off, opt=none)",
 			"reason": "Remove redundant blank-identifier consume guards after lowering."
 		},
 		{
 			"pass": "collect_imports",
-			"source": "planner(contract=portable, auto=off, opt=none)",
+			"source": "planner(preset=portable_default, auto=off, opt=none)",
 			"reason": "Collect final deterministic import set after all rewrites."
 		}
 	]

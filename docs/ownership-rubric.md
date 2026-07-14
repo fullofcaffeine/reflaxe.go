@@ -1,6 +1,7 @@
 # Ownership Rubric
 
-This document is the canonical rulebook for deciding where portable- and metal-contract behavior is allowed to live in `haxe.go`.
+This document is the canonical rulebook for deciding where portable semantics
+and explicit Go-native behavior are allowed to live in `haxe.go`.
 
 Read this before adding:
 
@@ -11,7 +12,7 @@ Read this before adding:
 
 Related documents:
 
-- `docs/profiles.md` for semantic contracts (`portable`, `metal`)
+- `docs/native-policy-presets.md` for the source semantic boundary and policy presets
 - `docs/portable-stdlib-parity-program.md` for parity goals and blocker tranches
 - `docs/portable-module-mapping-contract.md` for per-module ownership mapping
 - `docs/stdlib-shim-rationale.md` for current shim-by-shim decisions
@@ -37,8 +38,10 @@ If this choice is not made up front, parity work tends to drift into `GoCompiler
 
 These rules are fixed:
 
-1. `portable` and `metal` are the only semantic contracts.
-2. Planner/runtime/lane controls are additive capabilities, not replacement contracts.
+1. Portable Haxe is the default semantic contract; typed native APIs/externs
+   and `@:goNative` are explicit native boundaries.
+2. The compatible presets and planner/runtime/policy controls are additive
+   defaults/capabilities, not replacement contracts.
 3. Portable parity work lands against the `portable` contract first.
 4. `go.*` is always a typed native facade, never the answer to a portable parity gap.
 
@@ -216,7 +219,8 @@ skipped. Any unresolved classification must appear in the ledger's
 
 Do not:
 
-1. add a third semantic profile
+1. add a semantic profile where explicit source boundaries and orthogonal
+   policies express the distinction
 2. solve portable parity gaps by routing users to `go.*`
 3. grow behavior-heavy raw Go blobs inside `GoCompiler.hx` when staged std or `hxrt` would work
 4. leave mixed ownership implicit

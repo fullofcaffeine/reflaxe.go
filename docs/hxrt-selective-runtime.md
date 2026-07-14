@@ -2,28 +2,32 @@
 
 ## Decision Summary
 
-We are **not** replacing profiles with a single `metal` mode.
+Selective `hxrt` is a runtime-packaging policy. It is orthogonal to source
+semantics and to the compatible `portable|metal` policy presets.
 
-- Profiles (`portable`, `metal`) define compilation contract and lowering policy.
-- Selective `hxrt` defines runtime packaging minimization.
+- Portable semantics remain the default product contract.
+- Typed APIs/externs and `@:goNative` declare Go-native source boundaries.
+- Selective `hxrt` minimizes copied runtime support.
 
-These are orthogonal concerns and should evolve together, not collapse into one toggle.
+These concerns should evolve together without collapsing into one toggle.
 
-## Why Profiles Still Exist
+## Why runtime slicing is separate
 
-`metal + selective hxrt` would reduce emitted runtime footprint, but it does not answer:
+`metal + selective hxrt` reduces emitted runtime footprint, but it does not answer:
 
 - what semantic compatibility baseline we guarantee,
 - what strict-boundary behavior is enforced by default,
 - what optimization/interoperability behaviors are opt-in vs guaranteed.
 
-`portable` remains the semantic baseline and migration-safe lane.
-`metal` remains the typed performance/interoperability lane.
+Portable Haxe remains the semantic baseline. Typed native APIs and modules
+remain the interoperability boundary. `metal` remains a supported compatibility
+preset for stricter/eager defaults.
 
 ## Goals
 
 1. Keep Haxe source portability guarantees explicit (`portable` baseline).
-2. Make `metal` outputs as close as possible to handwritten Go for supported lanes.
+2. Make generated output as close as possible to handwritten Go wherever the
+   selected source semantics permit it.
 3. Trim runtime footprint via deterministic feature inference + override controls.
 
 ## Implementation Tracks
@@ -56,7 +60,8 @@ Phase 1:
 - Add selective mode behind defines + tests (`reflaxe_go_hxrt_features` and/or `reflaxe_go_hxrt_no_feature_infer`).
 
 Phase 2:
-- Promote selective mode as recommended for `metal` after coverage/perf evidence.
+- Promote selective mode based on coverage/perf evidence, independently of the
+  selected compatibility preset.
 - Keep explicit full-copy fallback for debugging and migrations.
 
 ## Perf/Size Harness

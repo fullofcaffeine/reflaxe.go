@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import re
 import sys
 import unittest
 
@@ -95,6 +96,30 @@ class ExamplesQaContractTest(unittest.TestCase):
 
         self.assertEqual([], failures)
 
+    def test_go_native_example_modules_declare_their_boundary(self) -> None:
+        missing: list[str] = []
+        for path in EXAMPLES_ROOT.rglob("*.hx"):
+            relative = path.relative_to(REPO_ROOT)
+            if "generated" in relative.parts or any(
+                part.startswith("out_") for part in relative.parts
+            ):
+                continue
+
+            text = path.read_text(encoding="utf-8")
+            owns_native_api = bool(
+                re.search(r"^\s*import\s+go\.", text, flags=re.MULTILINE)
+                or re.search(r"\bgo\.[A-Z][A-Za-z0-9_]*", text)
+                or "@:go.import" in text
+            )
+            if owns_native_api and "@:goNative" not in text:
+                missing.append(relative.as_posix())
+
+        self.assertEqual(
+            [],
+            missing,
+            "example modules that own typed Go APIs must declare @:goNative",
+        )
+
     def test_ci_and_agent_docs_treat_examples_as_qa_contracts(self) -> None:
         package_json = PACKAGE_JSON.read_text(encoding="utf-8")
         run_ci = RUN_CI.read_text(encoding="utf-8")
@@ -113,6 +138,7 @@ class ExamplesQaContractTest(unittest.TestCase):
         self.assertIn("What the harness checks", doc)
         self.assertIn("Every example profile lane must compile", doc)
         self.assertIn("expected/*.stdout", doc)
+        self.assertIn("Modules that own typed Go APIs declare `@:goNative`", doc)
 
 
 if __name__ == "__main__":

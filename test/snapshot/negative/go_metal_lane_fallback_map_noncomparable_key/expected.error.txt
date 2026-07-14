@@ -1,1 +1,1 @@
-MetalLaneEnforcer: typed metal fallback is not allowed in @:goMetal module "Main" when contract=portable and `-D reflaxe_go_auto=auto_strict`. Could not monomorphize go.Map key/value types for metal specialization: Go map keys must be comparable (key type resolved to []int).
+NativeBoundaryEnforcer: typed native fallback is not allowed in native-boundary module "Main" with `-D reflaxe_go_auto=auto_strict`. Could not monomorphize go.Map key/value types for native specialization: Go map keys must be comparable (key type resolved to []int).

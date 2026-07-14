@@ -11,14 +11,16 @@
 
 Haxe 4.3.7 -> Go compiler target built on Reflaxe.
 
-Write Haxe, generate readable Go, and choose between:
+Write Haxe, generate readable Go, and keep semantics visible in source:
 
-- the default product path (`portable`) for normal Haxe code that should still
-  generate good Go, or
-- an explicit Go-native authoring contract (`metal`) for stricter native lanes.
+- portable Haxe is the default product path;
+- typed `go.*`/extern APIs and `@:goNative` mark explicit Go-native boundaries;
+- `portable|metal` remains a compatible build selector, with `metal` defined as
+  a convenience policy preset rather than a second semantic product.
 
-`metal` is not required for good Go output. Use it when you intentionally want
-Go-native APIs, stricter boundaries, and fail-fast checks around native lanes.
+`metal` is not required for good Go output. It currently bundles explicit
+native authority, eager specialization, fail-fast fallback, and strict raw
+boundaries. Each policy can also be selected independently.
 
 ## Start here
 
@@ -30,9 +32,10 @@ If you are new, read these first:
 
 ## Terms
 
-- [profile](docs/glossary.md#profile): build contract that controls semantics and policy defaults.
-- [portable](docs/glossary.md#portable-profile): portability-first profile contract.
-- [metal](docs/glossary.md#metal-profile): Go-first profile contract with stricter defaults.
+- [policy preset](docs/glossary.md#policy-preset): compatible bundle of build-policy defaults.
+- [portable](docs/glossary.md#portable): default portable Haxe semantics and policy preset.
+- [metal](docs/glossary.md#metal-compatibility-preset): compatible Go-first policy preset.
+- [native boundary](docs/glossary.md#native-boundary): explicit `@:goNative` module authority.
 - [Go-native](docs/glossary.md#go-native): APIs or behavior tied specifically to Go.
 - [`hxrt`](docs/glossary.md#hxrt): runtime support package copied into generated Go output.
 
@@ -45,8 +48,7 @@ npm run dev:hx -- --project examples/tui_todo --profile portable --action run
 ```
 
 That gets a fresh checkout to a running generated-Go example. Use `portable`
-first unless you specifically need Go-native authoring constraints from
-`metal`.
+first and declare Go-specific modules with typed APIs and `@:goNative`.
 
 ## Validation commands
 
@@ -77,43 +79,43 @@ using it as a release dependency, read:
   advanced Go extern interop limits, performance warning policy, and the
   current single-package output decision.
 
-## Which profile should I choose?
+## Which preset should I choose?
 
-Choose one profile per build. You can still design one codebase with mostly
-portable modules plus explicit Go-native adapters or `@:goMetal` lanes.
+Choose one compatibility preset per build. Source APIs and `@:goNative`, not
+the preset, define where semantics become Go-native.
 
 | If most of this build wants... | Choose |
 | --- | --- |
 | Normal Haxe authoring, cross-target-friendly code, and safe Go output | `portable` |
-| Explicit Go-native APIs, stricter policy, and fail-fast native-lane checks | `metal` |
+| Compatibility bundle for explicit authority, eager specialization, strict raw boundaries, and fail-fast fallback | `metal` |
 
-### Can I mix portable and metal-style code?
+### Can I mix portable and Go-native code?
 
 Yes, with one important distinction:
 
-- A single compiler invocation selects one profile: `portable` or `metal`.
+- A single compiler invocation selects one preset: `portable` or `metal`.
 - A codebase can mix layers. Keep shared/domain code portable, then isolate
-  Go-specific code behind typed adapters, `go.*` APIs, or `@:goMetal` lanes.
-- In a `portable` build, those native islands can be warned about or rejected
-  by policy. The compiler can also lower portable code to metal-like Go when it
+  Go-specific code behind typed adapters, `go.*` APIs, or `@:goNative` modules.
+- Under guarded native authority, unscoped native usage can be warned about or
+  rejected. The compiler can also lower portable code to Go-shaped output when it
   can prove the faster lowering preserves portable semantics.
-- In a `metal` build, the whole build opts into stricter Go-native defaults and
-  fail-fast checks for supported native surfaces.
+- The `metal` selector supplies stricter Go-native defaults but does not
+  reclassify ordinary Haxe APIs or create another semantic backend.
 
 So `portable` is the default for most projects, including projects that contain
-small Go-specific islands. Use `metal` when the build itself is intentionally a
-Go-first artifact.
+small Go-specific islands. Existing `metal` builds remain supported; new code
+should make native ownership explicit at API/module boundaries.
 
-Detailed behavior and policy knobs: [docs/profiles.md](docs/profiles.md)
+Detailed behavior and policy knobs: [docs/native-policy-presets.md](docs/native-policy-presets.md)
 
 ## Example apps
 
-| Example | Profile support | Why run it |
+| Example | Preset support | Why run it |
 | --- | --- | --- |
 | [examples/tui_todo](examples/tui_todo/README.md) | portable only | Portable CLI baseline and deterministic output contract. |
 | [examples/profile_storyboard](examples/profile_storyboard/README.md) | portable only | Portable dashboard/reporting baseline. |
 | [examples/interop_smoke](examples/interop_smoke/README.md) | portable + metal | Typed interop patterns (`@:go.import`, receiver/name metadata). |
-| [examples/worker_pool_select](examples/worker_pool_select/README.md) | portable + metal | Go channel/select usage and profile comparison. |
+| [examples/worker_pool_select](examples/worker_pool_select/README.md) | portable + metal | Go channel/select usage and specialization-policy comparison. |
 | [examples/pulseforge](examples/pulseforge/README.md) | portable + metal | Flagship app with `core` and `go_native` variants. |
 | [examples/fluxproxy](examples/fluxproxy/README.md) | portable + metal | Flagship proxy app with `core` and `go_native` variants. |
 
@@ -166,6 +168,7 @@ only for explicit codegen-only workflows that own their Go build/test stage.
 - Glossary: [docs/glossary.md](docs/glossary.md)
 - Start guide: [docs/start-here.md](docs/start-here.md)
 - Profiles and policy: [docs/profiles.md](docs/profiles.md)
+- Native policy presets and semantic boundaries: [docs/native-policy-presets.md](docs/native-policy-presets.md)
 - Profile semantics guide: [docs/profile-semantics-guide.md](docs/profile-semantics-guide.md)
 - Portable contract: [docs/portable-canonical-contract.md](docs/portable-canonical-contract.md)
 - Versioned semantics: [docs/portable-semantics-v1.md](docs/portable-semantics-v1.md)

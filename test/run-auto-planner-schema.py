@@ -7,6 +7,9 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
+CONTRACT_SCHEMA = 8
+OPTIMIZER_SCHEMA = 6
+RUNTIME_SCHEMA = 2
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -161,10 +164,18 @@ def main() -> int:
     runtime_path = ROOT / "test/snapshot/core/report_artifacts_runtime_reason_provenance/intended/hxrt_plan.json"
 
     contract = load_json(contract_path)
-    require_schema(contract, 7, str(contract_path))
+    require_schema(contract, CONTRACT_SCHEMA, str(contract_path))
     require_keys(
         contract,
         [
+            "policyPreset",
+            "semanticBoundarySource",
+            "nativeAuthorityPolicy",
+            "nativeAuthorityPolicySource",
+            "nativeSpecializationPolicy",
+            "nativeSpecializationPolicySource",
+            "nativeFallbackPolicy",
+            "nativeFallbackPolicySource",
             "autoLoweringMode",
             "portableNativeImportScanMode",
             "portableNativeImportHitCount",
@@ -178,15 +189,24 @@ def main() -> int:
             "loweringDecisionSuccessCount",
             "loweringDecisionFallbackCount",
             "loweringDecisions",
+            "nativeBoundaryModules",
+            "nativeFallbackEventCount",
+            "nativeFallbackBoundaryEventCount",
+            "nativeFallbackNonBoundaryEventCount",
+            "nativeFallbackEventsByModule",
+            "nativeFallbackEvents",
         ],
         str(contract_path),
     )
 
     optimizer = load_json(optimizer_path)
-    require_schema(optimizer, 5, str(optimizer_path))
+    require_schema(optimizer, OPTIMIZER_SCHEMA, str(optimizer_path))
     require_keys(
         optimizer,
         [
+            "policyPreset",
+            "nativeSpecializationPolicy",
+            "nativeSpecializationPolicySource",
             "autoLoweringMode",
             "optimizationPreset",
             "goAstPassSelectionSource",
@@ -198,6 +218,8 @@ def main() -> int:
             "goResultTypedFallbacks",
             "loweringFallbackLaneCount",
             "loweringFallbackNonLaneCount",
+            "loweringFallbackBoundaryCount",
+            "loweringFallbackNonBoundaryCount",
             "autoLoweringCapabilities",
         ],
         str(optimizer_path),
@@ -212,7 +234,7 @@ def main() -> int:
     require_optimizer_capabilities(optimizer["autoLoweringCapabilities"], str(optimizer_path) + ".autoLoweringCapabilities")
 
     optimizer_legacy = load_json(optimizer_legacy_path)
-    require_schema(optimizer_legacy, 5, str(optimizer_legacy_path))
+    require_schema(optimizer_legacy, OPTIMIZER_SCHEMA, str(optimizer_legacy_path))
     if optimizer_legacy.get("goAstPassSelectionSource") != "legacy_granular_bundle":
         raise SystemExit(
             f"{optimizer_legacy_path}: goAstPassSelectionSource expected `legacy_granular_bundle`, got `{optimizer_legacy.get('goAstPassSelectionSource')}`"
@@ -225,7 +247,7 @@ def main() -> int:
     )
 
     optimizer_typed = load_json(optimizer_typed_path)
-    require_schema(optimizer_typed, 5, str(optimizer_typed_path))
+    require_schema(optimizer_typed, OPTIMIZER_SCHEMA, str(optimizer_typed_path))
     require_optimizer_capabilities(
         optimizer_typed.get("autoLoweringCapabilities"),
         str(optimizer_typed_path) + ".autoLoweringCapabilities",
@@ -256,7 +278,7 @@ def main() -> int:
     require_counter_eq(optimizer_typed, "loweringFallbackNonLaneCount", 0, str(optimizer_typed_path))
 
     optimizer_fallback = load_json(optimizer_fallback_path)
-    require_schema(optimizer_fallback, 5, str(optimizer_fallback_path))
+    require_schema(optimizer_fallback, OPTIMIZER_SCHEMA, str(optimizer_fallback_path))
     require_optimizer_capabilities(
         optimizer_fallback.get("autoLoweringCapabilities"),
         str(optimizer_fallback_path) + ".autoLoweringCapabilities",
@@ -285,7 +307,7 @@ def main() -> int:
     require_counter_gt(optimizer_fallback, "loweringFallbackNonLaneCount", 0, str(optimizer_fallback_path))
 
     optimizer_string_fastpath = load_json(optimizer_string_fastpath_path)
-    require_schema(optimizer_string_fastpath, 5, str(optimizer_string_fastpath_path))
+    require_schema(optimizer_string_fastpath, OPTIMIZER_SCHEMA, str(optimizer_string_fastpath_path))
     require_optimizer_capabilities(
         optimizer_string_fastpath.get("autoLoweringCapabilities"),
         str(optimizer_string_fastpath_path) + ".autoLoweringCapabilities",
@@ -316,7 +338,7 @@ def main() -> int:
         raise SystemExit(f"{optimizer_string_fastpath_path}.go.string.typed.fallbackReasonCounts: expected empty")
 
     optimizer_string_legacy = load_json(optimizer_string_legacy_path)
-    require_schema(optimizer_string_legacy, 5, str(optimizer_string_legacy_path))
+    require_schema(optimizer_string_legacy, OPTIMIZER_SCHEMA, str(optimizer_string_legacy_path))
     require_optimizer_capabilities(
         optimizer_string_legacy.get("autoLoweringCapabilities"),
         str(optimizer_string_legacy_path) + ".autoLoweringCapabilities",
@@ -351,11 +373,13 @@ def main() -> int:
     )
 
     runtime = load_json(runtime_path)
-    require_schema(runtime, 1, str(runtime_path))
+    require_schema(runtime, RUNTIME_SCHEMA, str(runtime_path))
     require_keys(
         runtime,
         [
             "contract",
+            "policyPreset",
+            "semanticBoundarySource",
             "mode",
             "selectiveEnabled",
             "fullCopy",

@@ -1,21 +1,25 @@
 # Examples Matrix
 
-`reflaxe.go` ships canonical examples designed to show portable-first contracts and metal value where it is technically meaningful.
+`reflaxe.go` ships canonical examples designed to show portable-first semantics,
+explicit Go-native source boundaries, and policy-preset differences where they
+are technically meaningful.
 
-`metal` is not required for good Go output. The examples use `metal` only where
-there is a real Go-native authoring or enforcement point to teach.
+`metal` is not required for good Go output or Go-native APIs. Dual-preset
+examples exist where comparing guarded/proven/allow with
+explicit/eager/error/strict defaults produces useful policy evidence.
 
 | Example | portable | metal | Purpose |
 | --- | --- | --- | --- |
 | `examples/profile_storyboard` | Yes | No | Portable-first release dashboard reference. |
 | `examples/tui_todo` | Yes | No | Portable-first deterministic CLI app reference. |
-| `examples/incident_api` | Yes | Yes | Runnable loopback HTTP service using Haxe stdlib sockets, JSON, config files, and file-backed state. It intentionally avoids `go.*`, Go externs, and raw `__go__`; `metal` is an audit lane, not a different app implementation. |
-| `examples/interop_smoke` | Yes | Yes | Typed interop smoke reference for `@:go.import`, `@:go.name`, `@:go.receiver`, `@:go.valueError` (`(T,error)` -> `go.Result<T>`), and package APIs (`fmt`/`time`/`context`/`net/http`/`strconv`). This app is intentionally profile-neutral, so generated Go is expected to be near-identical across profiles. |
+| `examples/incident_api` | Yes | Yes | Runnable loopback HTTP service using Haxe stdlib sockets, JSON, config files, and file-backed state. It intentionally avoids `go.*`, Go externs, and raw `__go__`; `metal` is a preset-audit run, not a different app implementation. |
+| `examples/interop_smoke` | Yes | Yes | Typed interop smoke reference for `@:go.import`, `@:go.name`, `@:go.receiver`, `@:go.valueError` (`(T,error)` -> `go.Result<T>`), and package APIs (`fmt`/`time`/`context`/`net/http`/`strconv`). This app is intentionally preset-neutral, so generated Go is expected to be near-identical across presets. |
 | `examples/worker_pool_select` | Yes | Yes | Deterministic worker pool with channel fan-out plus typed `go.Select` helper flows (`recv`/`recv2`/`send`/`send2`). |
 | `examples/pulseforge` | Yes | Yes | Flagship app scaffold proving profile matrix + explicit variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
 | `examples/fluxproxy` | Yes | Yes | Flagship proxy scaffold with profile matrix + variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
 
-Portable-only examples are intentional: if an app does not expose real profile-contract/perf value, we keep it portable-only to avoid synthetic deltas.
+Portable-only examples are intentional: if a second preset adds no useful
+policy or benchmark evidence, we avoid synthetic duplication.
 
 ## Terms
 
@@ -23,7 +27,7 @@ Portable-only examples are intentional: if an app does not expose real profile-c
 - `Go-native`: APIs or runtime behavior tied specifically to Go, such as `go.Chan`, `go.Select`, or typed Go extern metadata.
 - `hot path`: the frequently-executed part of an app where optimization has the biggest runtime impact.
 
-## Metal collection purity gates (examples)
+## Native-adapter collection purity gates (legacy command names)
 
 Dual-profile examples use two collection-purity gates:
 
@@ -60,17 +64,21 @@ Allowlist rule:
 Policy spike:
 - `docs/spikes/metal-build-collection-purity-policy.md`
 
-## Profile performance teaching contract
+## Preset performance teaching contract
 
 Examples intentionally show two valid outcomes:
 
-- parity cases: when code stays on portable-facing surfaces, `portable` and `metal` can be near-identical in behavior and sometimes code shape.
-- advantage cases: Go-native hot paths should show measurable profile deltas where `metal`-oriented specialization is expected to help.
+- parity cases: when code stays on portable-facing surfaces, `portable` and
+  `metal` must match behavior and can be near-identical in code shape;
+- specialization-delta cases: typed Go-native hot paths measure the effect of
+  proven versus eager specialization without promising that one preset is
+  always faster.
 
 Use these anchors:
 
 - parity-focused: `examples/incident_api`, `examples/interop_smoke`, `core` lanes in `examples/pulseforge` and `examples/fluxproxy`, plus portable-only references (`examples/tui_todo`, `examples/profile_storyboard`).
-- metal-advantage-focused: `examples/worker_pool_select`, `go_native` lanes in `examples/pulseforge` and `examples/fluxproxy`.
+- policy-delta-focused: `examples/worker_pool_select`, `go_native` variants in
+  `examples/pulseforge` and `examples/fluxproxy`.
 
 Evidence sources:
 
@@ -134,7 +142,8 @@ Outputs:
 - `.cache/perf-apps/results/hard_failures.txt`
 - `scripts/ci/perf/app-profile-baseline.json`
 
-Metrics reported per app/profile/variant lane:
+Metrics reported per app/preset/variant lane (the artifact schema retains the
+legacy `profile` field name):
 
 - throughput (`ops/s`)
 - latency (`avg`, `p95`, `p99`, milliseconds)

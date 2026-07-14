@@ -21,7 +21,8 @@ Use this checklist when building new `reflaxe.<target>` compilers.
 ## 2) Init + registration
 
 - Keep one registration entrypoint: `CompilerInit.Start()`.
-- Resolve profile exactly once in init.
+- Resolve any compatibility selector into typed policy axes exactly once in
+  init.
 - Initialize strict/boundary macro policy here.
 - Prefer Reflaxe-native registration flow (`ReflectCompiler.Start` + `AddCompiler`) unless there is a documented blocker.
 
@@ -43,7 +44,7 @@ Use this checklist when building new `reflaxe.<target>` compilers.
 - Treat this as target-agnostic architecture, then document target-specific pressure points.
 - For each surface, choose ownership by evidence:
   - runtime when behavior is reusable target-runtime logic
-  - compiler when behavior depends on typed metadata/profile lowering
+  - compiler when behavior depends on typed metadata or lowering evidence
   - staged stdlib when parity is proven and maintenance cost drops
 - Add migration criteria up front (tests/perf/complexity thresholds) before moving ownership.
 
@@ -52,13 +53,14 @@ Use this checklist when building new `reflaxe.<target>` compilers.
 - Enforce strict examples policy in repo examples/snapshots.
 - Enforce user strict mode in app sources.
 - Implement enforcers on typed AST, not raw file scanning.
-- If experimental low-level profile exists, allow only framework-owned typed facades.
+- If experimental low-level policy exists, expose it through typed axes and
+  allow only framework-owned facades or explicit source boundaries.
 
 ## 5) Docs + tests parity
 
-- Every public profile/define must be documented.
-- Every profile/define must be validated by snapshot tests.
-- Add positive and negative cases for profile conflicts and invalid values.
+- Every public selector, preset, and define must be documented.
+- Every selector, preset, and define must be validated by snapshot tests.
+- Add positive and negative cases for selector conflicts and invalid values.
 - Keep an examples/snapshot matrix that proves behavioral contract.
 
 ## 6) Decision record
@@ -84,10 +86,10 @@ Every major architecture or policy decision should include:
 
 ## 8) Profile documentation contract
 
-- Ship a dedicated profile semantics guide (`portable` vs `metal`).
+- Ship a dedicated source-semantics, native-boundary, and policy-preset guide.
 - Explicitly document:
   - semantic guarantees
   - codegen expectations
-  - migration rules (`portable` -> `metal`, `metal` -> `portable`)
+  - migration rules between compatibility presets and explicit policy axes
   - cross-target interoperability guidance
 - Keep this guide linked from `README`, `start-here`, and `profiles` reference docs.

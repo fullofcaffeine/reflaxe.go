@@ -147,8 +147,8 @@ The release-blocking consumer matrix is:
 npm run test:haxelib-release-install
 ```
 
-It builds the exact-commit artifact above, then tests the same ZIP in portable
-and metal profiles. Each profile runs in a fresh local Haxelib repository with
+It builds the exact-commit artifact above, then tests the same ZIP with portable
+and metal compatibility presets. Each preset runs in a fresh local Haxelib repository with
 no development link or checkout classpath. The portable fixture covers a
 canonical std override and an `hxrt` capability; the metal fixture covers a
 typed `go.*` facade. Both generated modules must pass `go test ./...`, execute,

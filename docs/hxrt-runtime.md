@@ -4,7 +4,8 @@
 
 - `hxrt`: the runtime helper package copied into each generated Go module (`<go_module>/hxrt`).
 - `compiler shim`: helper declarations emitted by the compiler at build time (not copied from `runtime/hxrt` files).
-- `semantic contract`: the behavior rules we keep stable for a profile, especially `portable`.
+- `semantic contract`: the source behavior rules we keep stable, especially
+  portable Haxe semantics and explicit typed native API contracts.
 
 ## What `hxrt` is
 
@@ -125,7 +126,9 @@ in `runtime/hxrt/exception_test.go` and `runtime/hxrt/thread_test.go`.
 
 ## What `hxrt` does not own
 
-`hxrt` is not the whole Haxe stdlib implementation. Behavior-heavy stdlib surfaces still live in compiler-emitted shims where they depend on compile-time context or profile-sensitive lowering.
+`hxrt` is not the whole Haxe stdlib implementation. Behavior-heavy stdlib
+surfaces still live in compiler-emitted shims where they depend on compile-time
+context or policy-sensitive lowering.
 
 Examples that are currently compiler-owned (not `hxrt`-owned):
 
@@ -160,6 +163,6 @@ And if ownership boundaries move, update:
 - `docs/start-here.md` - first-run commands and how generated output is produced.
 - `docs/hxrt-selective-runtime.md` - runtime feature slicing policy and controls.
 - `docs/stdlib-shim-rationale.md` - ownership split between runtime, compiler shims, and staged stdlib overrides.
-- `docs/profiles.md` - profile contracts and boundary behavior.
+- `docs/native-policy-presets.md` - policy presets and native-boundary behavior.
 - `docs/portable-canonical-contract.md` - portable semantics baseline used by tests.
 - `docs/glossary.md` - shared definitions used across docs.

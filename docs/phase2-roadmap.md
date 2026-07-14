@@ -11,19 +11,24 @@
 1. Keep portable Haxe correctness and harness discipline as the baseline.
 2. Make Go-target `go.*` APIs genuinely Go-native.
 3. Provide typed interop so Go ecosystem usage does not depend on raw `__go__`.
-4. Make `metal` a real Go-native authoring contract with explicit budgets.
-5. Add selective `hxrt` runtime slicing so metal can minimize runtime overhead without dropping portability contracts.
+4. Keep Go-native authoring explicit through typed APIs and module boundaries;
+   retain `metal` only as a compatibility policy preset.
+5. Keep selective `hxrt` runtime slicing orthogonal to source semantics and
+   compatibility presets.
 6. Reach full portable-eligible Haxe stdlib parity in `portable`, with explicit portable-vs-native facade boundaries and deterministic parity reporting.
 
-## Profile Contract
+## Policy Contract Outcome
 
-- `portable`: default product path, semantics-first output, lowest migration risk.
-- `metal`: explicit Go-native authoring contract with strict defaults.
+- portable Haxe semantics are the default product path;
+- typed `go.*`/extern APIs and `@:goNative` define Go-native source boundaries;
+- `portable` and `metal` remain accepted selectors for `portable_default` and
+  `metal_compatibility` policy bundles.
 
 `metal` is not required for good Go output. The portable compiler path should
 still converge toward Go-shaped output wherever it can preserve Haxe semantics.
 
-Selective runtime slicing is tracked separately and does not replace profile contracts.
+Selective runtime slicing is tracked separately from source semantics and
+compatibility presets.
 See `docs/hxrt-selective-runtime.md`.
 
 ## Completed Milestones And Dependencies
@@ -128,10 +133,12 @@ The Phase-2 execution trackers `haxe.go-14as` and `haxe.go-14as.55` are closed.
 Use `docs/portable-stdlib-parity-program.md` and `test/.test-cache/portable_parity_closure_summary.md` for current parity status.
 
 The Approach-C closure tracker `haxe.go-qhv` is closed.
-Lane guarantees and gates are documented in `docs/profiles.md` and `docs/profile-semantics-guide.md`.
+Native-boundary guarantees and gates are documented in
+`docs/native-policy-presets.md` and `docs/profile-semantics-guide.md`.
 
 ## Execution Rules
 
 - Harness is the source of truth: snapshots, stdlib sweep, semantic diff, examples, perf.
 - Every milestone must land with deterministic tests and docs updates.
-- Profile semantics must be explicit; no implicit drift between profiles.
+- Source semantics must be explicit; preset changes must not drift portable
+  behavior.

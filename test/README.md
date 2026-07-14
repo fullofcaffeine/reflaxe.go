@@ -562,15 +562,19 @@ Run semantic diff with fail-fast lock behavior:
 python3 test/run-semantic-diff.py --lock-timeout 0
 ```
 
-## Go profile perf harness
+## Go policy-preset perf harness
 
-Collect soft-budget benchmark ratios for `portable|metal` vs pure-Go microcases (`hello`, `array`, `atomic`, `channel`, `map`, `generic`, `string`, `string_instance`, `virtual`, `select`) plus `examples/tui_todo` profile spread:
+Collect soft-budget benchmark ratios for the `portable|metal` compatibility
+presets versus pure-Go microcases (`hello`, `array`, `atomic`, `channel`, `map`,
+`generic`, `string`, `string_instance`, `virtual`, `select`) plus the historical
+`examples/tui_todo` preset spread:
 
 ```bash
 bash scripts/ci/perf-go-profiles.sh
 ```
 
-Enforce metal profile budget regressions as hard failures (portable remains soft warnings):
+Enforce metal-compatibility-preset budget regressions as hard failures (the
+portable-default preset remains warning-only):
 
 ```bash
 GO_PERF_ENFORCE_METAL_BUDGET=1 bash scripts/ci/perf-go-profiles.sh

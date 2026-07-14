@@ -40,6 +40,7 @@ extern class UserGoStrconv {
 	public static function atoi(value:String):go.Result<Int>;
 }
 
+@:goNative
 class Main {
 	static function main() {
 		var wrappedNow = Time.now();

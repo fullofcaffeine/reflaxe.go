@@ -5,7 +5,6 @@ import haxe.macro.Context;
 #end
 import reflaxe.go.CompilationContext;
 import reflaxe.go.compiler.GoAutoLoweringModeTools;
-import reflaxe.go.GoProfile;
 import reflaxe.go.ast.transformers.passes.CollectImportsPass;
 import reflaxe.go.ast.transformers.passes.CyclicAlphaPass;
 import reflaxe.go.ast.transformers.passes.CyclicBetaPass;
@@ -60,15 +59,15 @@ class GoASTPassRegistry {
 	}
 
 	static function buildPlannerSelection(context:Null<CompilationContext>):GoASTPassSelection {
-		var contractLabel = "portable";
+		var presetLabel = "portable_default";
 		var autoModeLabel = "off";
 		var optimizationPreset = "portable_fast";
 		if (context != null && context.buildContext != null) {
-			contractLabel = context.profile == GoProfile.Metal ? "metal" : "portable";
+			presetLabel = context.buildContext.policyPreset.label();
 			autoModeLabel = GoAutoLoweringModeTools.label(context.buildContext.autoLoweringMode);
 			optimizationPreset = context.buildContext.optimizationPreset;
 		}
-		var plannerTag = "planner(contract=" + contractLabel + ", auto=" + autoModeLabel + ", opt=" + optimizationPreset + ")";
+		var plannerTag = "planner(preset=" + presetLabel + ", auto=" + autoModeLabel + ", opt=" + optimizationPreset + ")";
 		var passNormalize = new NormalizeNamesPass();
 		var passRewriteStrings = new RewriteStringOpsPass();
 		var passRewriteVirtualCalls = new RewriteVirtualCallsPass();

@@ -1,174 +1,186 @@
-# Profiles (`-D reflaxe_go_profile=...`)
+# `portable` and `metal` Policy Presets
 
-Use profiles to choose the semantic contract for your build.
+Use `portable` by default. Use explicit Go-native APIs or `@:goNative` when a
+module intentionally owns Go semantics.
 
 ```bash
 -D reflaxe_go_profile=portable|metal
 ```
 
-Short version: portable is the default product path; metal is an explicit Go-native authoring contract.
+The selector is retained for compatibility. It chooses defaults for independent
+policies; it does not choose a second compiler backend or a second semantic
+product.
 
-Portable by default, Go-native by opt-in, metal-like generated Go whenever the compiler can prove the lowering preserves portable Haxe semantics.
+The canonical detailed contract is [Native policy presets and semantic
+boundaries](native-policy-presets.md).
 
-That means `portable` is not meant to be the slow/basic mode. It is the main
-way to write productive Haxe that emits readable, performant Go.
-`metal` exists when you deliberately want Go-native APIs, stricter boundaries,
-and fail-fast native-lane constraints.
+## Short model
 
-## Terms
+Semantics come from source surfaces:
 
-- [portable](glossary.md#portable-profile): portability-first profile.
-- [metal](glossary.md#metal-profile): Go-first profile with stricter defaults.
-- [lane](glossary.md#lane): scoped enforcement zone (for example `@:goMetal` modules).
-- [fallback](glossary.md#fallback): safe path when strict typed lowering cannot apply.
+- ordinary Haxe, staged stdlib, `haxe.*`, and `sys.*` keep portable Haxe
+  semantics;
+- typed `go.*`, typed Go externs, and `@:goNative` declare Go-native intent;
+- compiler optimization may use Go-shaped representations whenever it proves
+  the selected source semantics are preserved.
 
-## Model (`contracts + capabilities + planner + lanes`)
+The build-wide selector only supplies policy defaults:
 
-`reflaxe.go` treats profile selection as one axis, not the whole build policy:
+| Selector | Internal preset | Authority | Specialization | Fallback | Strict raw boundary (`auto`) |
+| --- | --- | --- | --- | --- | --- |
+| `portable` (default) | `portable_default` | guarded | proven | allow | off |
+| `metal` | `metal_compatibility` | explicit | eager | error | on |
 
-- contract axis: `portable|metal` (semantic contract)
-- boundary axis: strict policy + portable native-import policy
-- runtime axis: full copy vs selective feature copy
-- planner axis: `reflaxe_go_auto=off|auto|auto_strict`
-- lane axis: `@:goMetal` scoped enforcement inside portable builds
+`metal` remains supported without a deprecation warning. Its possible future
+deprecation is a separate SemVer and independent-review decision.
 
-Current implementation resolves these once in `GoBuildContextResolver.resolve()`, then `GoReflaxeCompiler` consumes that context at compile start/end and emits deterministic report artifacts when enabled.
-
-## Matrix
-
-| Profile | Best for | Practical behavior |
-| --- | --- | --- |
-| `portable` (default) | Cross-target-friendly Haxe code | Keeps portability semantics first; native usage can be warned/blocked by policy. |
-| `metal` | Explicit Go-native APIs and strict native policy | Enables stricter defaults and fail-fast native-lane checks in supported native surfaces. |
-
-Profile does not implicitly select runtime slicing or planner mode.
-
-## Can one project mix portable and metal-style code?
-
-Yes. The mix happens at the codebase/module level, not by selecting two
-profiles in one compiler invocation.
-
-- One build chooses one profile: `portable` or `metal`.
-- Shared/domain modules should usually stay portable.
-- Go-specific modules can live behind typed adapters, `go.*` APIs, or
-  `@:goMetal` lanes.
-- A `portable` build may still contain explicit native islands, depending on
-  `reflaxe_go_portable_native_policy`.
-- A `metal` build applies stricter Go-native defaults to the whole build.
-
-This is why the docs talk about profiles and lanes separately. A profile is the
-build-wide semantic contract. A lane is a smaller enforcement zone inside that
-codebase.
-
-## Practical policy difference
-
-### Raw `__go__` policy
-
-- `portable`: allowed unless strict policy is enabled.
-- `metal`: strict by default (`auto` policy), so raw app-side `__go__` is rejected.
-
-Control flags:
-
-- `-D reflaxe_go_strict`
-- `-D reflaxe_go_strict_policy=auto|on|off`
-- `-D reflaxe_go_strict_examples`
-
-Scoped authority:
-
-- `@:goAllowRaw`
-  - Explicitly authorizes raw `__go__` inside the tagged module/type even when
-    `reflaxe_go_strict` or `reflaxe_go_strict_examples` is enabled.
-  - Intended for framework-owned low-level abstraction layers, not app business logic.
-  - Does not weaken portable `@:goMetal` lane policy; `@:goMetal` modules still reject raw
-    `__go__`.
-  - Prefer typed package interop (`@:go.import`, `@:go.name`, `@:go.receiver`) for imports
-    and symbol binding; `__go__` only injects the expression body and does not auto-add Go
-    package imports.
-  - Framework code can use either `untyped __go__("...")` directly or the macro shim
-    `reflaxe.go.macros.GoInjection.__go__("...{0}...", arg0)`.
-
-### Native facade usage (`go.*`) in portable
-
-Portable builds can warn or error when `go.*` is used:
-
-- `-D reflaxe_go_portable_native_policy=warn|error|off`
-- `-D reflaxe_go_portable_native_scan_mode=typed|scanner|hybrid`
-- `-D reflaxe_go_portable_native_allow=<csv>`
-
-## `@:goMetal` lanes (portable builds)
-
-`@:goMetal` marks modules that must obey metal-clean restrictions even in a portable build.
-
-Current enforced rules:
-
-1. Raw `__go__` is disallowed in `@:goMetal` modules.
-2. Under `-D reflaxe_go_auto=auto_strict`, typed-lowering fallback in these modules is disallowed for:
-   - `go.Chan`
-   - `go.Slice`
-   - `go.Map`
-   - `go.Result`
-
-This supports incremental migration: you can keep the full app portable while hardening specific modules.
-
-## Runtime policy (additive, not a semantic switch)
-
-Runtime copy planning is orthogonal to profile selection:
-
-- default: full runtime copy
-- selective: `-D reflaxe_go_hxrt_features=<csv>` (manual + inferred feature set)
-- selective locked: `-D reflaxe_go_hxrt_features=<csv> -D reflaxe_go_hxrt_no_feature_infer` (manual-only, inference off)
-
-Planning is resolved in `GoReflaxeCompiler.resolveRuntimeCopyPlan` using the already-resolved `GoBuildContext`.
-
-## Planner and optimizer controls (additive, not profile switches)
-
-- `-D reflaxe_go_auto=off|auto|auto_strict`
-- `-D reflaxe_go_opt=portable_fast|none`
-- `-D reflaxe_go_opt_go_concurrency_fastpath=0|1|off|on|false|true`
-
-These flags tune lowering behavior but do not silently change profile semantics.
-
-## Report artifacts
-
-Optional report defines:
-
-- `-D reflaxe_go_contract_report` -> `profile_contract.json`, `profile_contract.md`
-- `-D reflaxe_go_runtime_plan_report` -> `hxrt_plan.json`, `hxrt_plan.md`
-- `-D reflaxe_go_optimizer_plan_report` -> `optimizer_plan.json`, `optimizer_plan.md`
-
-Use these reports to audit:
-
-- active profile and strictness
-- runtime feature provenance (`manual_define`, inferred usage, dependency edges)
-- fallback counts and reasons
-- lane vs non-lane fallback attribution
-- optimizer capability outcomes
-
-## Recommended defaults
-
-For most teams:
-
-1. Start with `portable`.
-2. Set `reflaxe_go_portable_native_policy=error` in CI/release.
-3. Let the portable optimizer/planner use safe Go-shaped lowerings where reports show they preserve portable semantics.
-4. Promote only explicitly native-heavy modules toward `@:goMetal` lanes.
-5. Use `metal` for Go-first deployments that need stricter native policy.
-
-## Validation commands
+## Independent policy axes
 
 ```bash
-python3 test/run-snapshots.py
-python3 test/run-semantic-diff.py
-python3 test/run-semantic-diff.py --suite lanes
-python3 test/run-ci.py
+-D reflaxe_go_native_authority=guarded|explicit
+-D reflaxe_go_native_specialization=proven|eager
+-D reflaxe_go_native_fallback=allow|error
+-D reflaxe_go_strict_policy=auto|on|off
+```
+
+Canonical defines override preset defaults. The legacy
+`reflaxe_go_metal_allow_fallback` alias remains accepted when the canonical
+fallback axis is absent. Contradictory `allow`/`error` inputs fail compilation.
+
+Planner, optimizer, runtime packaging, and diagnostic controls remain
+orthogonal:
+
+- `reflaxe_go_auto=off|auto|auto_strict`;
+- `reflaxe_go_opt=portable_fast|none`;
+- selective `hxrt` feature defines;
+- native stack capture and other target-sensitive capabilities.
+
+## Explicit native modules
+
+Use canonical `@:goNative` to declare an owning module as a Go-native boundary:
+
+```haxe
+@:goNative
+class Worker {
+  public static function run():Void {
+    var channel:go.Chan<Int> = go.Go.newChan(1);
+    channel.send(1);
+  }
+}
+```
+
+The boundary works under either preset. It is exempt from guarded `go.*`
+diagnostics, rejects raw `__go__`, participates in `auto_strict` fallback checks,
+and is visible in reports.
+
+`@:goMetal` is a silent compatibility alias. New source and docs should use
+`@:goNative`. `@:haxeMetal` is removed and remains an error.
+
+## Raw `__go__` policy
+
+Raw injection is not normal application interop.
+
+- `reflaxe_go_strict` or `reflaxe_go_strict_policy=on` rejects app-side raw
+  injection.
+- The `metal_compatibility` preset turns strictness on when strict policy is
+  `auto`.
+- `@:goNative` always rejects raw injection, regardless of preset.
+- `@:goAllowRaw` is reserved for narrow framework-owned std/runtime abstraction
+  modules and cannot bypass a `@:goNative` boundary.
+
+Prefer typed extern metadata (`@:go.import`, `@:go.name`, `@:go.receiver`) and
+framework facades. Raw snippets do not infer Go package imports.
+
+## Guarded native usage
+
+When authority is `guarded`, these compatibility-named controls govern native
+usage outside `@:goNative` modules:
+
+```bash
+-D reflaxe_go_portable_native_policy=warn|error|off
+-D reflaxe_go_portable_native_scan_mode=typed|scanner|hybrid
+-D reflaxe_go_portable_native_allow=<csv>
+```
+
+For CI, `native_authority=guarded` plus
+`reflaxe_go_portable_native_policy=error` is the clearest way to prevent
+accidental Go coupling.
+
+## Typed fallback
+
+When typed specialization cannot use a concrete safe Go representation:
+
+- `native_fallback=allow` uses the semantics-safe representation and records a
+  fallback event;
+- `native_fallback=error` rejects user-owned fallback sites.
+
+`auto_strict` additionally rejects fallback inside `@:goNative` modules.
+
+Do not select `metal` merely to request performance. Keep source portable when
+its semantics are portable, measure the output, and improve proven lowering.
+Select typed Go APIs or an explicit native module only when the source contract
+itself is Go-specific.
+
+## Reports
+
+```bash
+-D reflaxe_go_contract_report
+-D reflaxe_go_runtime_plan_report
+-D reflaxe_go_optimizer_plan_report
+```
+
+Reports expose the preset, every native policy and provenance, native-boundary
+modules, lowering decisions, fallback events, runtime selection, and optimizer
+selection. Historical metal/lane fields remain compatibility aliases; use the
+canonical `native*` fields for new automation.
+
+## Recommended configurations
+
+Normal portable application:
+
+```bash
+-D reflaxe_go_profile=portable
+```
+
+Portable application with explicit native adapters:
+
+```bash
+-D reflaxe_go_profile=portable
+-D reflaxe_go_native_authority=guarded
+-D reflaxe_go_portable_native_policy=error
+```
+
+Mark each approved adapter `@:goNative`.
+
+Legacy Go-first build with preserved defaults:
+
+```bash
+-D reflaxe_go_profile=metal
+```
+
+Equivalent explicit policy bundle:
+
+```bash
+-D reflaxe_go_profile=portable
+-D reflaxe_go_native_authority=explicit
+-D reflaxe_go_native_specialization=eager
+-D reflaxe_go_native_fallback=error
+-D reflaxe_go_strict_policy=on
+```
+
+## Validation
+
+```bash
+npm test
+npm run test:semantic-diff
+npm run test:examples
 ```
 
 ## Related docs
 
-- Docs map: [docs/index.md](index.md)
-- Glossary: [docs/glossary.md](glossary.md)
-- Profile semantics deep guide: [docs/profile-semantics-guide.md](profile-semantics-guide.md)
-- Portable contract: [docs/portable-canonical-contract.md](portable-canonical-contract.md)
-- Versioned semantics spec: [docs/portable-semantics-v1.md](portable-semantics-v1.md)
-- Defines reference: [docs/defines-reference.md](defines-reference.md)
-- Examples matrix: [docs/examples-matrix.md](examples-matrix.md)
+- [Native policy presets and semantic boundaries](native-policy-presets.md)
+- [Profile semantics and migration guide](profile-semantics-guide.md)
+- [Defines reference](defines-reference.md)
+- [Portable canonical contract](portable-canonical-contract.md)
+- [Go concurrency and interop](go-concurrency-interop-guide.md)
+- [Glossary](glossary.md)

@@ -42,9 +42,9 @@ leaks.
 - 62 canonical override sources under `std/go/_std`;
 - 82 ledger entries: 62 upstream overrides, 5 staged support modules, 10 typed
   `hxrt` bindings, and 5 public `go.*` facades;
-- 229 source-to-package manifest entries in the Haxelib ZIP, including the
-  later licensing-policy and third-party notice material;
-- 230 ZIP members after adding the embedded package manifest itself.
+- 240 source-to-package manifest entries in the Haxelib ZIP, including the
+  native-policy types and contract documentation added after closeout;
+- 241 ZIP members after adding the embedded package manifest itself.
 
 The closeout contract compares every canonical override path with the
 `upstream_std_override` ledger set. A new, removed, or reclassified file must

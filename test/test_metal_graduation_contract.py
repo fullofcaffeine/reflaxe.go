@@ -24,11 +24,13 @@ class MetalGraduationContractTest(unittest.TestCase):
         self.assertIn("def build_metal_fallback_diagnostics_command", ci_runner)
         self.assertIn("core/report_artifacts_lane_fallback", ci_runner)
 
-    def test_profile_guide_has_portable_to_metal_pass_fail_criteria(self) -> None:
+    def test_profile_guide_has_compatibility_migration_and_deprecation_gate(self) -> None:
         semantics_guide = (REPO_ROOT / "docs" / "profile-semantics-guide.md").read_text(encoding="utf-8")
-        self.assertIn("## Portable to metal admission criteria (pass/fail)", semantics_guide)
-        self.assertIn("### Pass criteria", semantics_guide)
-        self.assertIn("### Fail criteria", semantics_guide)
+        self.assertIn("## Migrating an existing metal build", semantics_guide)
+        self.assertIn("There is no requirement to migrate today", semantics_guide)
+        self.assertIn("## Review boundary", semantics_guide)
+        self.assertIn("genuine independent deep review", semantics_guide)
+        self.assertIn("SemVer migration plan", semantics_guide)
 
 
 if __name__ == "__main__":

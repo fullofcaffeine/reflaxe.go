@@ -1,7 +1,9 @@
 # Optimizer Plan Report
 
-- schema version: `5`
+- schema version: `6`
 - contract: `portable`
+- policy preset: `portable_default`
+- native specialization policy: `proven` (source `policy_preset`)
 - auto lowering mode: `off`
 - optimization preset: `portable_fast`
 - portable string fastpath enabled: `yes`
@@ -16,6 +18,8 @@
 - go collections typed fallbacks: `0`
 - go result typed lowerings: `0`
 - go result typed fallbacks: `0`
+- lowering fallback boundary count: `0`
+- lowering fallback non-boundary count: `0`
 - lowering fallback lane count: `0`
 - lowering fallback non-lane count: `0`
 - go ast pass selection source: `legacy_granular_bundle`

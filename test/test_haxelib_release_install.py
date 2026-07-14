@@ -102,7 +102,7 @@ class HaxelibReleaseInstallContractTest(unittest.TestCase):
 
         policy = " ".join(POLICY_DOC.read_text(encoding="utf-8").split())
         for phrase in (
-            "Each profile runs in a fresh local Haxelib repository",
+            "Each preset runs in a fresh local Haxelib repository",
             "canonical std override and an `hxrt` capability",
             "typed `go.*` facade",
             "test:haxelib-release-install",

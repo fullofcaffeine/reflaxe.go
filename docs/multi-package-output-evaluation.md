@@ -13,7 +13,9 @@ Issue `haxe.go-l3qt.4` evaluates whether output should move from the current sin
 
 ## Findings
 - A direct Haxe-package-to-Go-package split introduces import-cycle risk across inheritance, enum wiring, and helper/shim dependencies.
-- Existing single-package output already satisfies current production-readiness goals (portable contract, metal contract, runtime/report artifacts, and CI reproducibility).
+- Existing single-package output already satisfies current production-readiness
+  goals (portable semantics, explicit native boundaries, policy presets,
+  runtime/report artifacts, and CI reproducibility).
 - There is no proven production blocker in current workloads that requires multi-package emission today.
 - Safe multi-package support needs new compiler stages (package graph planner + cycle strategy) and dedicated graph-focused tests.
 

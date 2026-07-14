@@ -1,0 +1,164 @@
+{
+	"schemaVersion": 8,
+	"contract": "portable",
+	"policyPreset": "portable_default",
+	"semanticBoundarySource": "typed_api_or_module",
+	"nativeAuthorityPolicy": "guarded",
+	"nativeAuthorityPolicySource": "reflaxe_go_native_authority",
+	"nativeSpecializationPolicy": "proven",
+	"nativeSpecializationPolicySource": "policy_preset",
+	"nativeFallbackPolicy": "allow",
+	"nativeFallbackPolicySource": "policy_preset",
+	"autoLoweringMode": "off",
+	"strictExamples": false,
+	"strictUserBoundaryPolicy": "auto",
+	"strictUserBoundaries": false,
+	"metalFallbackAllowed": false,
+	"metalContractHardError": false,
+	"emitLineDirectives": false,
+	"rawNativeMode": "interp",
+	"hxrtSelectiveEnabled": false,
+	"hxrtForceFullCopy": false,
+	"hxrtNoFeatureInfer": false,
+	"loweringDecisionCount": 10,
+	"loweringDecisionAttemptCount": 6,
+	"loweringDecisionSuccessCount": 4,
+	"loweringDecisionFallbackCount": 0,
+	"nativeFallbackEventCount": 0,
+	"nativeFallbackBoundaryEventCount": 0,
+	"nativeFallbackNonBoundaryEventCount": 0,
+	"metalFallbackViolationCount": 0,
+	"metalFallbackLaneViolationCount": 0,
+	"metalFallbackNonLaneViolationCount": 0,
+	"portableNativeImportScanMode": "typed",
+	"portableNativeImportHitCount": 0,
+	"portableNativeImportTypedHitCount": 0,
+	"portableNativeImportScannerHitCount": 0,
+	"contractDiagnosticCount": 0,
+	"hxrtManualFeatures": [
+	],
+	"nativeBoundaryModules": [
+		"Main"
+	],
+	"metalLaneModules": [
+		"Main"
+	],
+	"portableNativeImportHits": [
+	],
+	"portableNativeImportTypedHits": [
+	],
+	"portableNativeImportScannerHits": [
+	],
+	"contractDiagnostics": [
+	],
+	"loweringDecisions": [
+		{
+			"module": "Main",
+			"inNativeBoundary": true,
+			"inMetalLane": true,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method_close",
+			"outcome": "attempted",
+			"location": "Main:22",
+			"detail": "Attempt typed go.Chan method specialization."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": true,
+			"inMetalLane": true,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method_close",
+			"outcome": "succeeded",
+			"location": "Main:22",
+			"detail": "Applied typed go.Chan method specialization (element type: int)."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": true,
+			"inMetalLane": true,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method_recv",
+			"outcome": "attempted",
+			"location": "Main:21",
+			"detail": "Attempt typed go.Chan method specialization."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": true,
+			"inMetalLane": true,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method_recv",
+			"outcome": "succeeded",
+			"location": "Main:21",
+			"detail": "Applied typed go.Chan method specialization (element type: int)."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": true,
+			"inMetalLane": true,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method_send",
+			"outcome": "attempted",
+			"location": "Main:20",
+			"detail": "Attempt typed go.Chan method specialization."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": true,
+			"inMetalLane": true,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method_send",
+			"outcome": "succeeded",
+			"location": "Main:20",
+			"detail": "Applied typed go.Chan method specialization (element type: int)."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": true,
+			"inMetalLane": true,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_new",
+			"outcome": "attempted",
+			"location": "Main:19",
+			"detail": "Attempt typed go.Go.newChan specialization."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": true,
+			"inMetalLane": true,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_new",
+			"outcome": "succeeded",
+			"location": "Main:19",
+			"detail": "Applied typed go.Go.newChan specialization (element type: int)."
+		},
+		{
+			"module": "go.Go",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method___hx_setBuffer",
+			"outcome": "attempted",
+			"location": "go.Go:19",
+			"detail": "Attempt typed go.Chan method specialization."
+		},
+		{
+			"module": "go.Go",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_new",
+			"outcome": "attempted",
+			"location": "go.Go:17",
+			"detail": "Attempt typed go.Chan constructor specialization."
+		}
+	],
+	"nativeFallbackEventsByModule": [
+	],
+	"nativeFallbackEvents": [
+	],
+	"metalFallbackViolationsByModule": [
+	],
+	"metalFallbackViolations": [
+	]
+}

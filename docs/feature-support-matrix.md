@@ -10,7 +10,8 @@ Key terms:
 
 - `snapshot`: checks generated Go code shape/text (`docs/snapshot-policy.md`).
 - `semantic-diff`: compares runtime behavior of generated Go vs Haxe `--interp` (`docs/semantic-diff-guide.md`).
-- `portable` / `metal`: compiler profiles (contracts), documented in `docs/profiles.md`.
+- `portable` / `metal`: compatible policy presets, documented in
+  `docs/native-policy-presets.md`.
 
 ## Support contract
 
@@ -189,24 +190,26 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/go_chan_nonblocking_contract`
 - `test/semantic_diff/go_select_contract`
 
-## Profile matrix
+## Policy preset and native-boundary matrix
 
 | Surface | Status | Evidence (snapshot IDs) |
 | --- | --- | --- |
 | `portable` safe devirtualization path | Supported | `core/portable_leaf_virtual_devirtualization`, `core/portable_leaf_virtual_alias_devirtualization`, `core/portable_leaf_virtual_inline_ctor_devirtualization`, `core/portable_leaf_virtual_function_return_devirtualization`, `core/portable_non_leaf_virtual_dispatch_preserved` |
 | `portable` string helper optimizations | Supported | `core/portable_string_ptr_helpers`, `core/portable_string_literal_folding` |
-| Profile policy enforcement | Supported | `negative/profile_conflict`, `negative/profile_invalid` |
-| Strict examples/app boundary policy + portable native-import policy modes | Supported | `negative/strict_examples_injection`, `negative/strict_mode_injection`, `negative/metal_profile_injection`, `negative/go_metal_lane_injection`, `negative/portable_native_import_error`, `core/portable_native_import_warn_policy` |
+| Compatibility selector enforcement | Supported | `negative/profile_conflict`, `negative/profile_invalid` |
+| Native policy axes, precedence, and invalid/conflicting inputs | Supported | `core/report_artifacts_native_policy_overrides`, `core/report_artifacts_metal_proven_override`, `core/report_artifacts_lane_fallback_portable_surfaces`, `negative/native_authority_invalid`, `negative/native_specialization_invalid`, `negative/native_fallback_invalid`, `negative/native_fallback_conflict`, `negative/native_authority_guarded_metal`, `negative/native_fallback_error_portable` |
+| Canonical `@:goNative` boundary plus `@:goMetal` compatibility | Supported | `core/native_boundary_guarded_authority`, `negative/go_metal_lane_injection`, existing `go_metal_lane_*` fixtures |
+| Strict examples/app boundary policy + guarded native-usage policy modes | Supported | `negative/strict_examples_injection`, `negative/strict_mode_injection`, `negative/metal_profile_injection`, `negative/go_metal_lane_injection`, `negative/portable_native_import_error`, `core/portable_native_import_warn_policy` |
 | RawNative encoding policy define (`reflaxe_go_raw_native_mode`) | Supported | `core/raw_native_utf16_mode`, `negative/raw_native_mode_invalid` |
 
 ## Go-native abstraction matrix
 
 | Surface | Status | Evidence (snapshot IDs) |
 | --- | --- | --- |
-| Channels and goroutines | Supported (real goroutine/channel/select lowering; `go.Go.spawn` retains native fatal-panic and non-joined shutdown behavior; non-metal applies typed recv/recvOr/tryRecv assertion bridging for `go.Chan<T>` reads; typed deterministic `go.Select` helper API is available for receive/send branching; `metal` adds concrete typed shim lanes, including specialized `go.Select` helper routing) | `go_native/channel_basic`, `go_native/channel_try_recv`, `go_native/channel_select_handshake`, `go_native/channel_metal_monomorph`, `go_native/goroutine_smoke`, `go_native/goroutine_native_panic`, `go_native/goroutine_native_shutdown`, `go_native/select_helpers`, `go_native/select_metal_monomorph` |
+| Channels and goroutines | Supported (real goroutine/channel/select lowering; `go.Go.spawn` retains native fatal-panic and non-joined shutdown behavior; typed deterministic `go.Select` helpers are available; concrete typed shims are selected by eager specialization or the proven concurrency fastpath, not by a separate semantic backend) | `go_native/channel_basic`, `go_native/channel_try_recv`, `go_native/channel_select_handshake`, `go_native/channel_metal_monomorph`, `core/native_boundary_guarded_authority`, `core/report_artifacts_metal_proven_override`, `go_native/goroutine_smoke`, `go_native/goroutine_native_panic`, `go_native/goroutine_native_shutdown`, `go_native/select_helpers`, `go_native/select_metal_monomorph` |
 | Extern metadata mapping | Supported (`@:go.import`/`@:go.name`/`@:go.receiver`, extern `String` return normalization via `hxrt.StdString`, `@:go.valueError` mapping for `(T,error)` extern calls to `go.Result<T>`, and `@:go.tupleReturn` mapping for generated multi-return carrier classes) | `go_native/extern_metadata_mapping`, `go_native/extern_value_error_result`, `go_native/extern_tuple_return` |
-| Result/Error mapping | Supported (`metal` adds typed `go.Result<T>` shim lowering with internal `(T,error)` helper emission) | `go_native/result_basic`, `go_native/error_result_mapping`, `go_native/result_metal_monomorph` |
-| Slice/Map wrappers | Supported (`metal` adds typed shim specialization for concrete `go.Slice<T>` and `go.Map<K,V>` call-sites) | `go_native/slice_map_basic`, `go_native/slice_map_metal_monomorph` |
+| Result/Error mapping | Supported (eager or proven specialization adds typed `go.Result<T>` shim lowering with internal `(T,error)` helper emission) | `go_native/result_basic`, `go_native/error_result_mapping`, `go_native/result_metal_monomorph`, `core/report_artifacts_native_policy_overrides` |
+| Slice/Map wrappers | Supported (eager or proven specialization adds typed shims for concrete `go.Slice<T>` and `go.Map<K,V>` call-sites) | `go_native/slice_map_basic`, `go_native/slice_map_metal_monomorph` |
 
 ## Stdlib matrix
 

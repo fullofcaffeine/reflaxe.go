@@ -4,8 +4,9 @@ This page helps you find the right docs quickly.
 
 ## Terms
 
-- [portable](glossary.md#portable-profile): portability-first profile.
-- [metal](glossary.md#metal-profile): Go-first profile with stricter defaults.
+- [portable](glossary.md#portable): default portable policy preset and semantic baseline.
+- [metal](glossary.md#metal-compatibility-preset): supported compatibility policy preset.
+- [native boundary](glossary.md#native-boundary): explicit Go-native module authority.
 - [semantic diff](glossary.md#semantic-diff): behavior comparison between Haxe `--interp` and generated Go.
 - [`hxrt`](glossary.md#hxrt): runtime support package copied into generated output.
 
@@ -20,6 +21,7 @@ This page helps you find the right docs quickly.
 
 - [Start here](start-here.md)
 - [Profiles](profiles.md)
+- [Native policy presets and semantic boundaries](native-policy-presets.md)
 - [Profile semantics guide](profile-semantics-guide.md)
 - [Defines reference](defines-reference.md)
 - [Examples matrix](examples-matrix.md)
@@ -60,6 +62,7 @@ This page helps you find the right docs quickly.
 
 - [Portable canonical contract](portable-canonical-contract.md)
 - [Portable semantics v1](portable-semantics-v1.md)
+- [Native policy presets and semantic boundaries](native-policy-presets.md)
 - [Profile admission criteria](profile-admission-criteria.md)
 
 ## Deep technical references

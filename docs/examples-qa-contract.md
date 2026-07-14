@@ -3,7 +3,7 @@
 Examples are part of the compiler test surface. They are not loose demos.
 
 This contract keeps examples useful for external users and useful for compiler
-maintenance: if compiler, runtime, stdlib, or profile behavior changes, the
+maintenance: if compiler, runtime, stdlib, preset, or source-boundary behavior changes, the
 examples should tell us whether the user-facing story still compiles and still
 behaves as documented.
 
@@ -54,6 +54,13 @@ directly.
 If an example has a `README.md`, it must have at least one discovered profile
 lane. This prevents new example directories from being accidentally invisible to
 CI.
+
+Modules that own typed Go APIs declare `@:goNative`. The examples contract
+scans Haxe sources with `go.*` imports, qualified `go.*` API references, or
+`@:go.import` extern metadata and fails if their owning module omits the
+explicit native boundary. This keeps examples aligned with the
+portable-by-default product model and prevents a guarded-authority warning from
+becoming the teaching path.
 
 ## Runtime behavior tests
 
