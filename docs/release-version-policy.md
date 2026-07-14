@@ -139,6 +139,35 @@ npm run release:verify-haxelib -- \
   --source-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 ```
 
+## Isolated release-ZIP execution
+
+The release-blocking consumer matrix is:
+
+```bash
+npm run test:haxelib-release-install
+```
+
+It builds the exact-commit artifact above, then tests the same ZIP in portable
+and metal profiles. Each profile runs in a fresh local Haxelib repository with
+no development link or checkout classpath. The portable fixture covers a
+canonical std override and an `hxrt` capability; the metal fixture covers a
+typed `go.*` facade. Both generated modules must pass `go test ./...`, execute,
+and match exact stdout.
+
+For focused diagnosis of one already-built artifact, run:
+
+```bash
+python3 scripts/ci/run-isolated-haxelib-smoke.py \
+  --archive /tmp/haxe-go-haxelib-artifact/reflaxe.go-0.54.0.zip \
+  --fixture-root test/fixtures/haxelib_release_install/portable \
+  --profile portable
+```
+
+The smoke runner classifies failures as package, install, compile, Go test,
+execution, stdout, or path-scan errors. A structurally invalid archive therefore
+cannot be reported as a compiler regression, and a consumer compile failure
+cannot be mistaken for package construction drift.
+
 ## Executable evidence
 
 Run the focused version and source-identity contracts with:

@@ -229,6 +229,7 @@ def run_installed_smoke(
     archive: Path,
     source_root: Path,
     fixture_root: Path,
+    profile: str,
     sandbox: Path,
     environment: dict[str, str],
 ) -> dict[str, object]:
@@ -283,7 +284,7 @@ def run_installed_smoke(
             "-D",
             f"go_output={output}",
             "-D",
-            "reflaxe_go_profile=portable",
+            f"reflaxe_go_profile={profile}",
             "-D",
             "reflaxe_go_strict_examples",
             "-D",
@@ -339,7 +340,7 @@ def run_installed_smoke(
         },
         "fixture": {
             "name": fixture_name(fixture_root),
-            "profile": "portable",
+            "profile": profile,
         },
     }
 
@@ -349,6 +350,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--archive", type=Path)
     parser.add_argument("--source-root", type=Path, default=ROOT)
     parser.add_argument("--fixture-root", type=Path, default=DEFAULT_FIXTURE)
+    parser.add_argument("--profile", choices=("portable", "metal"), default="portable")
     return parser.parse_args()
 
 
@@ -372,6 +374,7 @@ def main() -> int:
                 archive=archive,
                 source_root=source_root,
                 fixture_root=fixture_root,
+                profile=args.profile,
                 sandbox=sandbox,
                 environment=environment,
             )

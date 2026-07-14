@@ -31,6 +31,7 @@
     "test:release-contracts": "python3 test/run-release-contracts.py",
     "test:canonical-std-closeout": "python3 test/test_canonical_std_closeout_contract.py",
     "test:haxelib-artifact": "python3 test/test_haxelib_release_artifact.py",
+    "test:haxelib-release-install": "python3 test/test_haxelib_release_install.py",
     "test:release-version-policy": "node test/test_release_version_policy.mjs",
     "test:examples:metal-boundary": "python3 test/run-metal-example-boundary.py",
     "test:goextern:fixtures": "python3 test/run-goextern-fixtures.py",
