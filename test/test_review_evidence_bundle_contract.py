@@ -10,6 +10,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest import mock
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -71,6 +72,24 @@ class ReviewEvidenceBundleContractTest(unittest.TestCase):
         self.assertIn("<local-workspace>/src/Main.hx:12", redacted)
         self.assertIn("<github-workspace>/test/run-ci.py:9", redacted)
         self.assertIn("src/reflaxe/go/GoCompiler.hx:42", redacted)
+
+    def test_github_workspace_redaction_precedes_nested_runner_home(self) -> None:
+        builder = load_builder()
+        runner_home = "/" + "home" + "/runner"
+        raw = "\n".join(
+            [
+                runner_home + "/work/reflaxe.go/reflaxe.go/test/run-ci.py:9",
+                runner_home + "/.config/review/token.json",
+            ]
+        )
+
+        with mock.patch.object(builder.Path, "home", return_value=Path(runner_home)):
+            redacted = builder.redact_machine_paths(raw)
+
+        self.assertEqual(
+            redacted,
+            "<github-workspace>/test/run-ci.py:9\n<local-home>/.config/review/token.json",
+        )
 
     def test_deterministic_zip_is_sorted_and_timestamp_independent(self) -> None:
         builder = load_builder()

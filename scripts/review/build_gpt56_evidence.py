@@ -220,14 +220,16 @@ def write_deterministic_zip(source_dir: Path, output_path: Path) -> None:
 
 def redact_machine_paths(text: str) -> str:
     text = ANSI_ESCAPE.sub("", text)
-    home = Path.home().as_posix().rstrip("/")
-    if home and home != "/":
-        text = text.replace(home + "/", "<local-home>/")
+    # Preserve safe repository-relative provenance by replacing known workspace
+    # roots before a runner home directory that may contain those roots.
     text = MACHINE_PATH_PATTERNS[0].sub("<local-workspace>/", text)
     text = MACHINE_PATH_PATTERNS[1].sub("<github-workspace>/", text)
     text = re.sub(re.escape(GITHUB_RUNNER_WORK_ROOT) + r"[^\s\"'<>]+", "<github-runner-work>", text)
     text = MACHINE_PATH_PATTERNS[2].sub("<github-workspace>/", text)
     text = MACHINE_PATH_PATTERNS[3].sub("<temporary-path>", text)
+    home = Path.home().as_posix().rstrip("/")
+    if home and home != "/":
+        text = text.replace(home + "/", "<local-home>/")
     text = text.replace("\\", "/") if "<github-workspace>/" in text else text
     return text
 
