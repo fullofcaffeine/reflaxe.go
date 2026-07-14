@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+import re
 import subprocess
 import unittest
+from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -132,6 +133,36 @@ def tracked_std_sources() -> set[str]:
     }
 
 class StdlibMigrationLedgerContractTest(unittest.TestCase):
+    def test_upstream_overrides_are_canonical_documented_source(self) -> None:
+        failures: list[str] = []
+        for entry in load_ledger()["entries"]:
+            if entry["ownershipClass"] != "upstream_std_override":
+                continue
+            source_path = entry["path"]
+            destination = entry["destination"]
+            if source_path != destination:
+                failures.append(f"{source_path}: not migrated to {destination}")
+                continue
+
+            content = (ROOT / source_path).read_text(encoding="utf-8")
+            haxedocs = re.findall(r"/\*\*(.*?)\*/", content, flags=re.DOTALL)
+            contract_doc = next(
+                (
+                    doc
+                    for doc in haxedocs
+                    if re.search(r"\bWhat\s*:?(?:\s|$)", doc)
+                    and re.search(r"\bWhy\s*:?(?:\s|$)", doc)
+                    and re.search(r"\bHow\s*:?(?:\s|$)", doc)
+                    and "mainstream Haxe stdlib implementation cannot be used unchanged on `haxe.go`"
+                    in " ".join(doc.split())
+                ),
+                None,
+            )
+            if contract_doc is None:
+                failures.append(f"{source_path}: missing What/Why/How override HaxeDoc")
+
+        self.assertFalse(failures, "canonical override migration is incomplete:\n" + "\n".join(failures))
+
     def test_every_tracked_std_source_has_one_resolved_owner_and_destination(self) -> None:
         ledger = load_ledger()
         self.assertEqual(2, ledger.get("schemaVersion"))

@@ -11,7 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DYNAMIC_CATCH_RE = re.compile(r"catch\s*\([^)]*:\s*Dynamic\s*\)")
 
 STD_DYNAMIC_CATCH_ALLOWLIST = {
-    Path("std/haxe/Template.cross.hx"),
+    Path("std/go/_std/haxe/Template.hx"),
     Path("std/sys/thread/ElasticThreadPoolWorker.cross.hx"),
 }
 

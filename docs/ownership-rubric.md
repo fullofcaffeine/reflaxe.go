@@ -26,7 +26,7 @@ That question matters because the repo now has several valid implementation laye
 
 1. compiler lowering in `src/reflaxe/go/GoCompiler.hx`
 2. dedicated compiler-owned emitter modules under `src/reflaxe/go/compiler/**`
-3. staged std overrides under `std/**` and `std/_std/**`
+3. staged std overrides under the canonical `std/go/_std/**` source root
 4. Go runtime helpers under `runtime/hxrt/**`
 5. explicit Go-native facade modules under `go.*`
 6. explicit exclusions when a portable claim would be dishonest
@@ -61,16 +61,16 @@ Use staged std when:
 
 Good current examples:
 
-- `std/haxe/Template.cross.hx`
-- `std/haxe/exceptions/PosException.cross.hx`
-- `std/haxe/ds/BalancedTree.cross.hx`
+- `std/go/_std/haxe/Template.hx`
+- `std/go/_std/haxe/exceptions/PosException.hx`
+- `std/go/_std/haxe/ds/BalancedTree.hx`
 - `std/haxe/io/GoIoHelpers.cross.hx`
 
-The paths above are pre-migration source locations. The canonical source
-contract keeps upstream overrides as ordinary `.hx` files under
-`std/go/_std`; package staging alone flattens that root and renames those files
-to `.cross.hx`. Repo-authored support, typed `hxrt` bindings, and public
-`go.*` facades do not become override artifacts.
+The first three are canonical upstream overrides. `GoIoHelpers` is a
+repo-authored staged-support module awaiting its separate support-path move.
+Package staging flattens only the canonical override root and renames those
+files to `.cross.hx`; support, typed `hxrt` bindings, and public `go.*` facades
+remain ordinary modules.
 
 ## 2. `hxrt` Runtime (`runtime/hxrt/**`)
 

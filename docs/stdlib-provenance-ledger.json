@@ -31,10 +31,10 @@
         "group": "ds",
         "decision": "retain_representation_bridge",
         "sourcePaths": [
-          "std/_std/haxe/ds/IntMap.cross.hx",
-          "std/_std/haxe/ds/ObjectMap.cross.hx",
-          "std/_std/haxe/ds/StringMap.cross.hx",
-          "std/haxe/Constraints.cross.hx"
+          "std/go/_std/haxe/Constraints.hx",
+          "std/go/_std/haxe/ds/IntMap.hx",
+          "std/go/_std/haxe/ds/ObjectMap.hx",
+          "std/go/_std/haxe/ds/StringMap.hx"
         ],
         "references": [
           "src/reflaxe/go/GoCompiler.hx",
@@ -72,7 +72,7 @@
         "group": "net_socket",
         "decision": "retain_socket_semantics",
         "sourcePaths": [
-          "std/sys/ssl/Socket.cross.hx"
+          "std/go/_std/sys/ssl/Socket.hx"
         ],
         "references": [
           "src/reflaxe/go/GoCompiler.hx",
@@ -85,13 +85,13 @@
         "group": "stdlib_symbols",
         "decision": "retain_compile_context_bridges",
         "sourcePaths": [
-          "std/haxe/Template.cross.hx",
-          "std/haxe/ds/BalancedTree.cross.hx",
-          "std/haxe/io/FPHelper.cross.hx",
-          "std/sys/ssl/Certificate.cross.hx",
-          "std/sys/ssl/Digest.cross.hx",
-          "std/sys/ssl/Key.cross.hx",
-          "std/sys/ssl/Socket.cross.hx"
+          "std/go/_std/haxe/Template.hx",
+          "std/go/_std/haxe/ds/BalancedTree.hx",
+          "std/go/_std/haxe/io/FPHelper.hx",
+          "std/go/_std/sys/ssl/Certificate.hx",
+          "std/go/_std/sys/ssl/Digest.hx",
+          "std/go/_std/sys/ssl/Key.hx",
+          "std/go/_std/sys/ssl/Socket.hx"
         ],
         "references": [
           "src/reflaxe/go/GoCompiler.hx",
@@ -104,7 +104,7 @@
         "group": "template_support",
         "decision": "retain_template_bridge",
         "sourcePaths": [
-          "std/haxe/Template.cross.hx"
+          "std/go/_std/haxe/Template.hx"
         ],
         "references": [
           "src/reflaxe/go/GoCompiler.hx",
@@ -161,7 +161,7 @@
       "notes": "Go native facade for time package interoperability helpers."
     },
     {
-      "path": "std/DateTools.cross.hx",
+      "path": "std/go/_std/DateTools.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/DateTools.hx",
@@ -170,7 +170,7 @@
       "notes": "Go staged portable override for DateTools helper ownership, keeping formatting and date-helper semantics out of GoCompiler."
     },
     {
-      "path": "std/haxe/Constraints.cross.hx",
+      "path": "std/go/_std/haxe/Constraints.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/Constraints.hx",
@@ -181,7 +181,7 @@
       "notes": "Go staged portable override for haxe.Constraints constraint aliases plus the IMap copyIMap bridge contract, keeping Haxe-facing typing in std while the backend satisfies Go interface exactness."
     },
     {
-      "path": "std/haxe/CallStack.cross.hx",
+      "path": "std/go/_std/haxe/CallStack.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/CallStack.hx",
@@ -190,7 +190,7 @@
       "notes": "Go staged target-sensitive override for haxe.CallStack, providing deterministic empty-stack fallbacks by default plus opt-in native stack diagnostics."
     },
     {
-      "path": "std/haxe/Template.cross.hx",
+      "path": "std/go/_std/haxe/Template.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/Template.hx",
@@ -202,7 +202,7 @@
       "notes": "Go staged portable override for haxe.Template execution semantics, keeping template parsing and macro-default behavior out of GoCompiler."
     },
     {
-      "path": "std/haxe/http/HttpBase.cross.hx",
+      "path": "std/go/_std/haxe/http/HttpBase.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/http/HttpBase.hx",
@@ -211,7 +211,7 @@
       "notes": "Go staged portable override for direct haxe.http.HttpBase baseline ownership, keeping the public HTTP base surface in std while compiler-owned request choreography stays below it."
     },
     {
-      "path": "std/haxe/rtti/CType.cross.hx",
+      "path": "std/go/_std/haxe/rtti/CType.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/rtti/CType.hx",
@@ -220,7 +220,7 @@
       "notes": "Go staged portable override bundle for haxe.rtti.CType typedefs, enums, TypeApi, and CTypeTools, keeping public RTTI type logic out of GoCompiler."
     },
     {
-      "path": "std/haxe/rtti/Meta.cross.hx",
+      "path": "std/go/_std/haxe/rtti/Meta.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/rtti/Meta.hx",
@@ -229,7 +229,7 @@
       "notes": "Go staged portable override for haxe.rtti.Meta, routing public metadata access through the backend-owned class-token __meta__ contract."
     },
     {
-      "path": "std/haxe/rtti/Rtti.cross.hx",
+      "path": "std/go/_std/haxe/rtti/Rtti.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/rtti/Rtti.hx",
@@ -238,7 +238,7 @@
       "notes": "Go staged portable override for haxe.rtti.Rtti, routing public RTTI lookup through the backend-owned class-token __rtti contract."
     },
     {
-      "path": "std/haxe/rtti/XmlParser.cross.hx",
+      "path": "std/go/_std/haxe/rtti/XmlParser.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/rtti/XmlParser.hx",
@@ -247,7 +247,7 @@
       "notes": "Go staged portable override for haxe.rtti.XmlParser, keeping parser logic in std while relying on the backend-owned anonymous-record mutation and RTTI metadata contracts underneath."
     },
     {
-      "path": "std/haxe/exceptions/PosException.cross.hx",
+      "path": "std/go/_std/haxe/exceptions/PosException.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/exceptions/PosException.hx",
@@ -256,7 +256,7 @@
       "notes": "Go staged portable override for direct haxe.exceptions.PosException construction/toString ownership, keeping subclass parity out of GoCompiler."
     },
     {
-      "path": "std/haxe/exceptions/ArgumentException.cross.hx",
+      "path": "std/go/_std/haxe/exceptions/ArgumentException.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/exceptions/ArgumentException.hx",
@@ -265,7 +265,7 @@
       "notes": "Go staged portable override for direct haxe.exceptions.ArgumentException constructor/message ownership."
     },
     {
-      "path": "std/haxe/exceptions/NotImplementedException.cross.hx",
+      "path": "std/go/_std/haxe/exceptions/NotImplementedException.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/exceptions/NotImplementedException.hx",
@@ -274,7 +274,7 @@
       "notes": "Go staged portable override for direct haxe.exceptions.NotImplementedException default-message ownership."
     },
     {
-      "path": "std/haxe/NativeStackTrace.cross.hx",
+      "path": "std/go/_std/haxe/NativeStackTrace.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/NativeStackTrace.hx",
@@ -283,7 +283,7 @@
       "notes": "Go staged target-sensitive override for haxe.NativeStackTrace, exposing deterministic empty-stack behavior by default plus opt-in native stack diagnostics without claiming portable stack parity."
     },
     {
-      "path": "std/haxe/EntryPoint.cross.hx",
+      "path": "std/go/_std/haxe/EntryPoint.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/EntryPoint.hx",
@@ -292,7 +292,7 @@
       "notes": "Go staged portable override for direct haxe.EntryPoint, connecting runInMainThread/addThread/run to the runtime-backed sys.thread.EventLoop main-thread loop."
     },
     {
-      "path": "std/haxe/MainLoop.cross.hx",
+      "path": "std/go/_std/haxe/MainLoop.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/MainLoop.hx",
@@ -301,7 +301,7 @@
       "notes": "Go staged portable override for direct haxe.MainLoop/MainEvent, preserving the Haxe-facing event facade while scheduling callbacks through haxe.EntryPoint and sys.thread.EventLoop."
     },
     {
-      "path": "std/haxe/Timer.cross.hx",
+      "path": "std/go/_std/haxe/Timer.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/Timer.hx",
@@ -310,7 +310,7 @@
       "notes": "Go staged portable override for direct haxe.Timer, registering timers on Thread.current().events and using the hxrt monotonic thread clock for Timer.stamp()."
     },
     {
-      "path": "std/haxe/ds/BalancedTree.cross.hx",
+      "path": "std/go/_std/haxe/ds/BalancedTree.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/ds/BalancedTree.hx",
@@ -321,7 +321,7 @@
       "notes": "Go staged portable override for direct haxe.ds.BalancedTree runtime ownership, keeping source-owned collection logic out of GoCompiler while preserving ordered map semantics."
     },
     {
-      "path": "std/haxe/ds/GenericStack.cross.hx",
+      "path": "std/go/_std/haxe/ds/GenericStack.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/ds/GenericStack.hx",
@@ -341,7 +341,7 @@
       "notes": "Go staged portable helper surface for inherited haxe.io.Input and haxe.io.Output loop semantics, keeping generic stream-control helpers out of GoCompiler while the backend still owns the base IO type shapes."
     },
     {
-      "path": "std/haxe/io/FPHelper.cross.hx",
+      "path": "std/go/_std/haxe/io/FPHelper.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/io/FPHelper.hx",
@@ -352,7 +352,7 @@
       "notes": "Go staged portable override for haxe.io.FPHelper bit-conversion helpers, expressed on top of the existing little-endian BytesInput/BytesOutput contract instead of more compiler-owned raw Go."
     },
     {
-      "path": "std/haxe/io/ArrayBufferView.cross.hx",
+      "path": "std/go/_std/haxe/io/ArrayBufferView.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/io/ArrayBufferView.hx",
@@ -361,7 +361,7 @@
       "notes": "Go staged portable override for haxe.io.ArrayBufferView and the shared typed-array carrier API, keeping public typed-array behavior in std while the backend continues to own the underlying Bytes/ArrayBufferViewImpl representation."
     },
     {
-      "path": "std/haxe/io/UInt8Array.cross.hx",
+      "path": "std/go/_std/haxe/io/UInt8Array.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/io/UInt8Array.hx",
@@ -370,7 +370,7 @@
       "notes": "Go staged portable override for haxe.io.UInt8Array, keeping the public typed-array API in std on top of the existing ArrayBufferViewImpl carrier."
     },
     {
-      "path": "std/haxe/io/UInt16Array.cross.hx",
+      "path": "std/go/_std/haxe/io/UInt16Array.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/io/UInt16Array.hx",
@@ -379,7 +379,7 @@
       "notes": "Go staged portable override for haxe.io.UInt16Array, keeping the public typed-array API in std on top of the existing ArrayBufferViewImpl carrier."
     },
     {
-      "path": "std/haxe/io/UInt32Array.cross.hx",
+      "path": "std/go/_std/haxe/io/UInt32Array.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/io/UInt32Array.hx",
@@ -388,7 +388,7 @@
       "notes": "Go staged portable override for haxe.io.UInt32Array, keeping the public typed-array API in std on top of the existing ArrayBufferViewImpl carrier."
     },
     {
-      "path": "std/haxe/io/Int32Array.cross.hx",
+      "path": "std/go/_std/haxe/io/Int32Array.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/io/Int32Array.hx",
@@ -397,7 +397,7 @@
       "notes": "Go staged portable override for haxe.io.Int32Array, keeping the public typed-array API in std on top of the existing ArrayBufferViewImpl carrier."
     },
     {
-      "path": "std/haxe/io/Float32Array.cross.hx",
+      "path": "std/go/_std/haxe/io/Float32Array.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/io/Float32Array.hx",
@@ -406,7 +406,7 @@
       "notes": "Go staged portable override for haxe.io.Float32Array, reusing staged FPHelper bit-conversion helpers instead of expanding compiler-owned Bytes float logic."
     },
     {
-      "path": "std/haxe/io/Float64Array.cross.hx",
+      "path": "std/go/_std/haxe/io/Float64Array.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/io/Float64Array.hx",
@@ -426,7 +426,7 @@
       "notes": "Go staged helper surface for sys.Http leaf helpers, keeping response-header lookup glue and payload capture fan-out out of GoCompiler while request choreography stays compiler-owned."
     },
     {
-      "path": "std/sys/net/Address.cross.hx",
+      "path": "std/go/_std/sys/net/Address.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/net/Address.hx",
@@ -435,7 +435,7 @@
       "notes": "Go staged portable override for sys.net.Address, keeping the public {host, port} carrier and IPv4 helper methods in std while the backend-owned socket shim translates addresses underneath."
     },
     {
-      "path": "std/sys/ssl/Certificate.cross.hx",
+      "path": "std/go/_std/sys/ssl/Certificate.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/ssl/Certificate.hx",
@@ -446,7 +446,7 @@
       "notes": "Go staged portable override for the public sys.ssl.Certificate API, keeping certificate-facing methods in std while runtime/hxrt/ssl.go owns parsing and trust-root behavior."
     },
     {
-      "path": "std/sys/ssl/Digest.cross.hx",
+      "path": "std/go/_std/sys/ssl/Digest.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/ssl/Digest.hx",
@@ -457,7 +457,7 @@
       "notes": "Go staged portable override for the public sys.ssl.Digest API, keeping the Haxe-facing helpers in std while runtime/hxrt/ssl.go owns the cryptographic implementation."
     },
     {
-      "path": "std/sys/ssl/DigestAlgorithm.cross.hx",
+      "path": "std/go/_std/sys/ssl/DigestAlgorithm.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/ssl/DigestAlgorithm.hx",
@@ -466,7 +466,7 @@
       "notes": "Go staged portable override for sys.ssl.DigestAlgorithm enum/abstract ownership, keeping the public algorithm surface out of compiler shims."
     },
     {
-      "path": "std/sys/ssl/Key.cross.hx",
+      "path": "std/go/_std/sys/ssl/Key.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/ssl/Key.hx",
@@ -477,7 +477,7 @@
       "notes": "Go staged portable override for the public sys.ssl.Key API, keeping Haxe-facing key helpers in std while runtime/hxrt/ssl.go owns PEM parsing and native key handling."
     },
     {
-      "path": "std/sys/ssl/Socket.cross.hx",
+      "path": "std/go/_std/sys/ssl/Socket.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/ssl/Socket.hx",
@@ -489,7 +489,7 @@
       "notes": "Go staged portable override for the public sys.ssl.Socket API, reusing the compiler-owned sys.net.Socket carrier while runtime/hxrt/ssl.go owns TLS dial/listen/handshake and peer-certificate behavior."
     },
     {
-      "path": "std/sys/thread/Condition.cross.hx",
+      "path": "std/go/_std/sys/thread/Condition.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/thread/Condition.hx",
@@ -498,7 +498,7 @@
       "notes": "Go staged portable override for sys.thread.Condition, keeping the public wait/signal API in std while runtime/hxrt/thread.go owns the native condition state and timeout behavior."
     },
     {
-      "path": "std/sys/thread/Deque.cross.hx",
+      "path": "std/go/_std/sys/thread/Deque.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/thread/Deque.hx",
@@ -507,7 +507,7 @@
       "notes": "Go staged portable override for sys.thread.Deque, keeping the Haxe-facing queue API in std while runtime/hxrt/thread.go owns the synchronized queue carrier and blocking semantics."
     },
     {
-      "path": "std/sys/thread/IThreadPool.cross.hx",
+      "path": "std/go/_std/sys/thread/IThreadPool.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/thread/IThreadPool.hx",
@@ -516,7 +516,7 @@
       "notes": "Go staged portable override for the sys.thread.IThreadPool contract, keeping the public pool interface in std while concrete pool scheduling stays in staged implementations."
     },
     {
-      "path": "std/sys/thread/Lock.cross.hx",
+      "path": "std/go/_std/sys/thread/Lock.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/thread/Lock.hx",
@@ -525,7 +525,7 @@
       "notes": "Go staged portable override for sys.thread.Lock, keeping the Haxe-facing lock API in std while runtime/hxrt/thread.go owns the native lock state and wait semantics."
     },
     {
-      "path": "std/sys/thread/Mutex.cross.hx",
+      "path": "std/go/_std/sys/thread/Mutex.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/thread/Mutex.hx",
@@ -534,7 +534,7 @@
       "notes": "Go staged portable override for sys.thread.Mutex, keeping the public mutex API in std while runtime/hxrt/thread.go owns the native mutex carrier."
     },
     {
-      "path": "std/sys/thread/NoEventLoopException.cross.hx",
+      "path": "std/go/_std/sys/thread/NoEventLoopException.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/thread/NoEventLoopException.hx",
@@ -543,7 +543,7 @@
       "notes": "Go staged portable override for sys.thread.NoEventLoopException, keeping the public exception surface in std while Thread/EventLoop runtime ownership lives under runtime/hxrt/thread.go."
     },
     {
-      "path": "std/sys/thread/Semaphore.cross.hx",
+      "path": "std/go/_std/sys/thread/Semaphore.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/thread/Semaphore.hx",
@@ -552,7 +552,7 @@
       "notes": "Go staged portable override for sys.thread.Semaphore, keeping the public semaphore API in std while runtime/hxrt/thread.go owns token accounting and timeout behavior."
     },
     {
-      "path": "std/sys/thread/ThreadPoolException.cross.hx",
+      "path": "std/go/_std/sys/thread/ThreadPoolException.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/thread/ThreadPoolException.hx",
@@ -561,7 +561,7 @@
       "notes": "Go staged portable override for sys.thread.ThreadPoolException, keeping the public exception surface for thread pools in std."
     },
     {
-      "path": "std/sys/thread/Tls.cross.hx",
+      "path": "std/go/_std/sys/thread/Tls.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/thread/Tls.hx",
@@ -570,7 +570,7 @@
       "notes": "Go staged portable override for sys.thread.Tls, keeping the Haxe-facing thread-local API in std while runtime/hxrt/thread.go owns logical thread identity and per-thread storage."
     },
     {
-      "path": "std/sys/thread/EventLoop.cross.hx",
+      "path": "std/go/_std/sys/thread/EventLoop.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/thread/EventLoop.hx",
@@ -579,7 +579,7 @@
       "notes": "Go staged portable override for sys.thread.EventLoop, keeping the public loop API and enum surface in std while runtime/hxrt/thread.go owns the queue/timer handle state."
     },
     {
-      "path": "std/sys/thread/Thread.cross.hx",
+      "path": "std/go/_std/sys/thread/Thread.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/thread/Thread.hx",
@@ -588,7 +588,7 @@
       "notes": "Go staged portable override for sys.thread.Thread, keeping the public Haxe-facing thread/message API in std while runtime/hxrt/thread.go owns logical thread identity, queues, and per-thread loop handles."
     },
     {
-      "path": "std/sys/thread/ElasticThreadPool.cross.hx",
+      "path": "std/go/_std/sys/thread/ElasticThreadPool.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/thread/ElasticThreadPool.hx",
@@ -606,7 +606,7 @@
       "notes": "Go repo-authored helper worker type for sys.thread.ElasticThreadPool, split into its own file so staged std emission stays explicit and import-safe."
     },
     {
-      "path": "std/sys/thread/FixedThreadPool.cross.hx",
+      "path": "std/go/_std/sys/thread/FixedThreadPool.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/thread/FixedThreadPool.hx",
@@ -633,7 +633,7 @@
       "notes": "Go repo-authored private shutdown sentinel for sys.thread.FixedThreadPool worker termination semantics."
     },
     {
-      "path": "std/haxe/SysTools.cross.hx",
+      "path": "std/go/_std/haxe/SysTools.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/SysTools.hx",
@@ -642,7 +642,7 @@
       "notes": "Go staged portable override for direct haxe.SysTools quoting helpers, keeping command-line quoting semantics out of GoCompiler while upstream string/array lowerings remain incomplete."
     },
     {
-      "path": "std/haxe/Utf8.cross.hx",
+      "path": "std/go/_std/haxe/Utf8.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/Utf8.hx",
@@ -651,7 +651,7 @@
       "notes": "Go staged portable override for deprecated haxe.Utf8 helper ownership, keeping legacy UTF-8 buffer and encode/decode semantics out of GoCompiler while upstream lowerings remain incomplete."
     },
     {
-      "path": "std/StringTools.cross.hx",
+      "path": "std/go/_std/StringTools.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/StringTools.hx",
@@ -660,7 +660,7 @@
       "notes": "Go staged portable override for StringTools helper ownership, keeping basic string helpers out of GoCompiler."
     },
     {
-      "path": "std/_std/haxe/Json.cross.hx",
+      "path": "std/go/_std/haxe/Json.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/Json.hx",
@@ -669,7 +669,7 @@
       "notes": "Go staged portable override for haxe.Json, delegating behavior to hxrt runtime helpers."
     },
     {
-      "path": "std/_std/haxe/ds/HashMap.cross.hx",
+      "path": "std/go/_std/haxe/ds/HashMap.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/ds/HashMap.hx",
@@ -678,7 +678,7 @@
       "notes": "Go staged portable override for haxe.ds.HashMap entrypoint behavior and owned iterator surfaces, including direct lowercase hashCode parity without target-specific aliases."
     },
     {
-      "path": "std/_std/haxe/ds/IntMap.cross.hx",
+      "path": "std/go/_std/haxe/ds/IntMap.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/ds/IntMap.hx",
@@ -689,7 +689,7 @@
       "notes": "Go staged portable override for haxe.ds.IntMap entrypoint behavior and owned iterator surfaces."
     },
     {
-      "path": "std/_std/haxe/ds/ObjectMap.cross.hx",
+      "path": "std/go/_std/haxe/ds/ObjectMap.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/ds/ObjectMap.hx",
@@ -700,7 +700,7 @@
       "notes": "Go staged portable override for haxe.ds.ObjectMap entrypoint behavior and owned iterator surfaces."
     },
     {
-      "path": "std/_std/haxe/ds/StringMap.cross.hx",
+      "path": "std/go/_std/haxe/ds/StringMap.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/ds/StringMap.hx",
@@ -711,7 +711,7 @@
       "notes": "Go staged portable override for haxe.ds.StringMap entrypoint behavior and owned iterator surfaces."
     },
     {
-      "path": "std/_std/haxe/format/JsonParser.cross.hx",
+      "path": "std/go/_std/haxe/format/JsonParser.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/format/JsonParser.hx",
@@ -720,7 +720,7 @@
       "notes": "Go staged portable override for haxe.format.JsonParser, delegating parse path to haxe.Json."
     },
     {
-      "path": "std/_std/haxe/format/JsonPrinter.cross.hx",
+      "path": "std/go/_std/haxe/format/JsonPrinter.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/format/JsonPrinter.hx",
@@ -729,7 +729,7 @@
       "notes": "Go staged portable override for haxe.format.JsonPrinter, delegating print path to haxe.Json."
     },
     {
-      "path": "std/_std/haxe/iterators/DynamicAccessKeyValueIterator.cross.hx",
+      "path": "std/go/_std/haxe/iterators/DynamicAccessKeyValueIterator.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/iterators/DynamicAccessKeyValueIterator.hx",
@@ -747,7 +747,7 @@
       "notes": "Typed extern for runtime/hxrt/string.go used by staged string iterators; move the Haxe module to hxrt.string while keeping its Go import/package metadata pointed at hxrt."
     },
     {
-      "path": "std/_std/haxe/iterators/HashMapKeyValueIterator.cross.hx",
+      "path": "std/go/_std/haxe/iterators/HashMapKeyValueIterator.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/iterators/HashMapKeyValueIterator.hx",
@@ -756,7 +756,7 @@
       "notes": "Go staged portable override for HashMap key/value iterator semantics."
     },
     {
-      "path": "std/_std/haxe/iterators/MapKeyValueIterator.cross.hx",
+      "path": "std/go/_std/haxe/iterators/MapKeyValueIterator.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/iterators/MapKeyValueIterator.hx",
@@ -765,7 +765,7 @@
       "notes": "Go staged portable override for Map key/value iterator semantics."
     },
     {
-      "path": "std/_std/haxe/iterators/StringIterator.cross.hx",
+      "path": "std/go/_std/haxe/iterators/StringIterator.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/iterators/StringIterator.hx",
@@ -774,7 +774,7 @@
       "notes": "Go staged portable override for string iterator semantics."
     },
     {
-      "path": "std/_std/haxe/iterators/StringIteratorUnicode.cross.hx",
+      "path": "std/go/_std/haxe/iterators/StringIteratorUnicode.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/iterators/StringIteratorUnicode.hx",
@@ -783,7 +783,7 @@
       "notes": "Go staged portable override for Unicode-aware string iterator semantics."
     },
     {
-      "path": "std/_std/haxe/iterators/StringKeyValueIterator.cross.hx",
+      "path": "std/go/_std/haxe/iterators/StringKeyValueIterator.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/iterators/StringKeyValueIterator.hx",
@@ -792,7 +792,7 @@
       "notes": "Go staged portable override for string key/value iterator semantics."
     },
     {
-      "path": "std/_std/haxe/iterators/StringKeyValueIteratorUnicode.cross.hx",
+      "path": "std/go/_std/haxe/iterators/StringKeyValueIteratorUnicode.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/iterators/StringKeyValueIteratorUnicode.hx",

@@ -141,8 +141,8 @@ func (self *haxe__http__HttpBase) setPostBytes(data *haxe__io__Bytes) {
 func (self *haxe__http__HttpBase) request(post any) {
 	hxrt.Throw(New_haxe__exceptions__NotImplementedException(nil, nil, func() map[string]any {
 		hx_obj_21 := map[string]any{}
-		hx_obj_21["fileName"] = hxrt.StringFromLiteral("../../../../std/haxe/http/HttpBase.cross.hx")
-		hx_obj_21["lineNumber"] = 105
+		hx_obj_21["fileName"] = hxrt.StringFromLiteral("../../../../std/go/_std/haxe/http/HttpBase.hx")
+		hx_obj_21["lineNumber"] = 106
 		hx_obj_21["className"] = hxrt.StringFromLiteral("haxe.http.HttpBase")
 		hx_obj_21["methodName"] = hxrt.StringFromLiteral("request")
 		return hx_obj_21

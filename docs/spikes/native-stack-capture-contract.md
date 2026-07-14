@@ -41,8 +41,8 @@ Semantic-diff coverage means we run the same Haxe program through Haxe `--interp
 
 The current Go implementation is staged std code:
 
-- `std/haxe/CallStack.cross.hx`
-- `std/haxe/NativeStackTrace.cross.hx`
+- `std/go/_std/haxe/CallStack.hx`
+- `std/go/_std/haxe/NativeStackTrace.hx`
 
 Those files intentionally expose the Haxe API surface with deterministic empty-stack behavior. The current fixture is:
 
@@ -71,8 +71,8 @@ If we compared those frames directly against Haxe `--interp`, we would either ge
 
 Keep public Haxe-facing behavior in staged std:
 
-- `std/haxe/CallStack.cross.hx` owns the `CallStack` abstract and `StackItem` formatting surface.
-- `std/haxe/NativeStackTrace.cross.hx` owns the `NativeStackTrace` API shape.
+- `std/go/_std/haxe/CallStack.hx` owns the `CallStack` abstract and `StackItem` formatting surface.
+- `std/go/_std/haxe/NativeStackTrace.hx` owns the `NativeStackTrace` API shape.
 
 Go runtime support lives under `hxrt` and is used only when the opt-in define is enabled:
 

@@ -102,7 +102,7 @@ current honest contract remains snapshot/runtime evidence.
 - There is currently no compile-only portable stdlib debt in the generated inventory.
 - The portable parity closure summary reports `0 actionable portable stdlib blockers`; remaining non-semantic-diff surfaces are policy-locked as target-sensitive snapshots or explicit target-conditional exclusions.
 - Direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage now has snapshot/runtime smoke coverage through `stdlib/haxe_main_loop_runtime_direct`.
-- The implementation is intentionally staged std over the runtime-backed `sys.thread.EventLoop` contract: public Haxe APIs live in `std/haxe/*.cross.hx`, while `runtime/hxrt/thread.go` owns scheduling, timers, and main-thread wakeups.
+- The implementation is intentionally staged std over the runtime-backed `sys.thread.EventLoop` contract: public Haxe APIs live in `std/go/_std/haxe/*.hx`, while `runtime/hxrt/thread.go` owns scheduling, timers, and main-thread wakeups.
 - This is not yet semantic-diff coverage because event-loop timing is target-sensitive; keep using runtime snapshots for this surface until the harness has a stable asynchronous comparison mode.
 - `haxe.CallStack` and `haxe.NativeStackTrace` use deterministic empty-stack fallbacks by default. Native Go stack capture is available only with `-D reflaxe_go_native_stack_trace` as an explicit target-sensitive diagnostic capability, not as portable semantic-diff behavior. See [native stack capture contract](spikes/native-stack-capture-contract.md).
 

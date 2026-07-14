@@ -1,102 +1,108 @@
-# `.cross.hx`, `_std`, and Family Hardening Notes
+# Canonical `_std`, `.cross.hx`, and Family Hardening Notes
 
-This document records how `reflaxe.go` currently uses `.cross.hx` and `_std`, and what that means for coexistence with sibling Reflaxe targets.
+This document records how `reflaxe.go` separates canonical source ownership
+from packaged Reflaxe overrides, and what that means for coexistence with
+sibling targets.
 
-## Current model in this repo
+## Current Model in This Repo
 
-`reflaxe.go` uses `.cross.hx` broadly.
+Upstream Haxe std overrides are ordinary `.hx` source under:
 
-That includes both:
+```text
+std/go/_std/**
+```
 
-- plain `std/*.cross.hx` files such as `std/StringTools.cross.hx`
-- staged `_std/*.cross.hx` files such as `std/_std/haxe/Json.cross.hx`
+The ownership ledger currently classifies 62 files in that override lane.
+They are not checked in as `.cross.hx`; the package runner owns the later,
+deterministic conversion to flattened `src/**/*.cross.hx` artifacts.
 
-This repo does **not** currently have an early `src/haxe/*.cross.hx` set.
+Six checked-in `.cross.hx` files remain temporarily. They are classified as
+target support or a typed runtime binding, not upstream overrides, and are
+owned by the separate support migration:
 
-That matters because it lowers the risk of early module-path collisions compared with `reflaxe.ocaml` and `reflaxe.elixir`.
+- `std/haxe/io/GoIoHelpers.cross.hx`
+- `std/sys/GoHttpHelpers.cross.hx`
+- three `sys.thread` worker/sentinel companions
+- `std/_std/haxe/iterators/GoStringRuntime.cross.hx`
 
-## Quick matrix
+The nine ordinary `std/_std/hxrt/**` modules are likewise typed runtime
+bindings awaiting that support migration. Exact source and destination paths
+live in `docs/stdlib-provenance-ledger.json`.
+
+## Quick Matrix
 
 | Question | Answer for this repo |
 | --- | --- |
-| Main override style | broad `.cross.hx` usage, including `_std/*.cross.hx` |
-| Is `_std` used? | yes |
-| Is `.cross.hx` used broadly? | yes |
+| Canonical override source | ordinary `.hx` under `std/go/_std/**` |
+| Packaged override shape | flattened `src/**/*.cross.hx`, generated during package staging |
+| Checked-in upstream override `.cross.hx` files | none |
+| Transitional support/runtime `.cross.hx` files | six |
+| Public Go facades | ordinary modules under `std/go/**`, outside `_std` |
 | Does this repo own early `src/haxe/*` modules? | no |
-| Bootstrap activation currently keys off raw Haxe 4 `Cross`? | no |
+| Bootstrap activation keys off raw Haxe 4 `Cross`? | no |
 | Same-compilation sibling-target coexistence safe today? | not guaranteed |
-| Highest-priority hardening item | add mixed-target fail-fast while preserving narrow target detection |
 
-## What `.cross.hx` means here
+## What `.cross.hx` Means Here
 
-In this repo, `.cross.hx` is mostly the normal target-conditional stdlib ownership mechanism.
+A `.cross.hx` file is a package artifact that lets Haxe select a
+target-specific replacement for an upstream module. It is not the source
+authority for an upstream override.
 
-It is not mainly an early-bootstrap exception mechanism.
+Keeping the two shapes separate matters:
 
-That matches the current bootstrap flow:
+1. source review, HaxeDoc, and migration history stay on ordinary Haxe modules;
+2. only declared canonical overrides become `.cross.hx`;
+3. support modules and public native facades retain ordinary `.hx` paths;
+4. package generation can prove a deterministic source-to-artifact manifest.
 
-- inject `std`, `std/_std`, and vendored Reflaxe only when `BuildDetection.isGoBuild()` says the build is really a Go build
-- do not activate on raw generic `Cross` alone
+The remaining checked-in support/runtime `.cross.hx` files are transitional,
+not precedent for new overrides.
 
-That narrower activation model is a good property and should be preserved.
+## What `_std` Means Here
 
-## What `_std` means here
+The canonical target root is `std/go/_std`. Its directory structure mirrors
+upstream Haxe module paths, so `std/go/_std/haxe/Json.hx` owns the Go-target
+replacement for `haxe.Json`.
 
-`_std` is still useful, but it is not the only override lane.
+During the transition, `CompilerBootstrap` injects the canonical root first,
+then the legacy `std/_std` support root, ordinary `std`, and vendored
+Reflaxe—but only when `BuildDetection.isGoBuild()` identifies a Go build.
+The typed initial-classpath task will replace that reflective transition
+without broadening activation to generic `Cross`.
 
-This repo combines:
+## Current Coexistence Risk
 
-- target-conditional `.cross.hx` selection
-- staged `_std` ownership
-- runtime/compiler intrinsic lowering where needed
+The risk is lower than in a layout that places target modules directly under
+`src/haxe`:
 
-So the key rule here is not "always prefer `_std`".
+- activation remains Go-target-specific;
+- canonical source is isolated under `std/go/_std`;
+- the ledger distinguishes upstream overrides from support and public facades.
 
-The key rule is:
-
-- keep bootstrap gating narrow,
-- keep ownership explicit,
-- and avoid same-module collisions becoming accidental.
-
-## Current coexistence risk
-
-The risk here is lower than in `reflaxe.elixir`, because:
-
-- bootstrap activation is target-specific
-- there is no early `src/haxe/*.cross.hx` ownership set
-
-But the risk is not zero.
-
-This repo still shares module names with siblings under `std/**/*.cross.hx`, including overlaps such as:
-
-- `DateTools`
-- `StringTools`
-- `haxe.CallStack`
-- `haxe.Constraints`
-- `haxe.NativeStackTrace`
-
-The most important one from a sibling-collision perspective is `haxe.NativeStackTrace`, because `reflaxe.ocaml` currently owns an early `src/haxe/NativeStackTrace.cross.hx`.
-
-If both libraries are loaded into one `cross` compilation, the early sibling file can win resolution first.
-
-## Risk level
+The risk is not zero. Canonical overrides still share logical module names
+with sibling targets, including `DateTools`, `StringTools`,
+`haxe.CallStack`, `haxe.Constraints`, and `haxe.NativeStackTrace`.
+If multiple target libraries mutate or declare competing classpaths in one
+compilation, selection can still depend on ordering.
 
 Current status:
 
-- default one-target-at-a-time use: acceptable
-- same-compilation multi-target coexistence: still risky enough to harden
+- default one-target-at-a-time use: acceptable;
+- same-compilation multi-target coexistence: must fail clearly rather than rely
+  on classpath luck.
 
-This repo is not the highest-risk member of the family, but it should still fail clearly instead of relying on classpath luck.
+## Hardening Direction
 
-## Hardening direction
+The remaining sequence is explicit:
 
-Recommended next steps:
+1. move support and typed runtime bindings to their ledger destinations;
+2. declare target classpaths before typing without reflective configuration
+   surgery;
+3. generate `.cross.hx` only while staging a package;
+4. keep mixed-target detection narrow and fail fast when sibling targets
+   conflict.
 
-1. Keep target detection narrow; do not broaden it to raw generic `Cross`.
-2. Add explicit mixed-target detection/fail-fast behavior when conflicting sibling target libraries are active.
-3. Document which `std/**/*.cross.hx` modules overlap with sibling targets and why that overlap is currently acceptable only in one-target-at-a-time builds.
-
-## Local sibling references
+## Local Sibling References
 
 Workspace-local companion docs:
 
@@ -105,13 +111,14 @@ Workspace-local companion docs:
 - `../haxe.elixir.codex/docs/05-architecture/CROSS_OVERRIDES_AND_MULTI_TARGET_HARDENING.md`
 - `../haxe.rust/docs/cross-overrides-and-hardening.md`
 
-These sibling-relative paths are intended for local multi-repo work, not for a single published docs site.
+These sibling-relative paths are intended for local multi-repo work, not for a
+single published docs site.
 
-## Absolute-path protection
+## Absolute-Path Protection
 
-This repo already has staged local-path leak protection in pre-commit via:
+This repo has staged local-path leak protection in pre-commit through:
 
 - `scripts/hooks/pre-commit`
 - `scripts/lint/local_path_guard_staged.sh`
 
-So the hardening gap here is mixed-target clarity, not hook absence.
+The remaining hardening gap is mixed-target clarity, not hook absence.

@@ -83,7 +83,7 @@ Agent policy:
 - **Hard rule:** use test-first development (TDD) for all code changes (compiler, runtime, std/shims, examples, docs-with-contracts).
 - If `Dynamic`/`Any` is truly unavoidable, keep it localized behind runtime/shim boundaries and include a short justification in code/docs.
 - If a change starts re-implementing Haxe stdlib library semantics as large `GoStmt.GoRaw` blocks inside `GoCompiler`, stop and reconsider ownership before proceeding.
-- Prefer staged std overrides under `std/_std` for library-expressible behavior, then thin `hxrt` helpers when Go-side runtime support is actually needed; keep compiler shims as the last resort.
+- Prefer staged std overrides as ordinary source under `std/go/_std` for library-expressible behavior, then thin `hxrt` helpers when Go-side runtime support is actually needed; keep compiler shims as the last resort. Package staging—not source control—owns the `.cross.hx` conversion.
 - Use externs only to model real Go-native APIs. Do not use externs to smuggle Haxe stdlib behavior into the target layer when staged std or `hxrt` is the correct ownership.
 - Framework-owned `__go__` is a valid middle layer now: prefer typed externs first, then narrow `reflaxe.go.macros.GoInjection.__go__` / `@:goAllowRaw` abstraction islands in `std/` or runtime helpers, before growing compiler-owned `GoRaw` emitters.
 - Raw `__go__` still does not carry package imports by itself. When a snippet needs external Go packages, keep imports typed and explicit through extern metadata (`@:go.import`, `@:go.name`, `@:go.receiver`) or existing framework wrappers.

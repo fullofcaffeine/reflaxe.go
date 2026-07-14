@@ -171,7 +171,7 @@ MODULE_NOTES_OVERRIDES = {
     ),
     "haxe.http.HttpBase": (
         "Direct haxe.http.HttpBase constructor/base-field/request baseline now has semantic-diff coverage "
-        "through the staged override in std/haxe/http/HttpBase.cross.hx. Evidence: "
+        "through the staged override in std/go/_std/haxe/http/HttpBase.hx. Evidence: "
         "semantic_diff/haxe_http_base_contract and stdlib/haxe_http_base_direct."
     ),
     "haxe.http.HttpJs": (
@@ -209,7 +209,7 @@ MODULE_NOTES_OVERRIDES = {
     "haxe.Utf8": (
         "Covered by staged-std semantic-diff contract haxe_utf8_contract plus snapshot "
         "stdlib/haxe_utf8_basic. Go preserves the deprecated buffer constructor with and without "
-        "the optional size hint plus the helper subset through std/haxe/Utf8.cross.hx. The size "
+        "the optional size hint plus the helper subset through std/go/_std/haxe/Utf8.hx. The size "
         "hint is ignored because it is only a deprecated capacity hint and has no visible buffer "
         "semantics."
     ),
@@ -224,7 +224,7 @@ MODULE_NOTES_OVERRIDES = {
     ),
     "haxe.Template": (
         "Direct haxe.Template constructor/execute usage now has semantic-diff coverage through "
-        "a staged std override in std/haxe/Template.cross.hx. Evidence: "
+        "a staged std override in std/go/_std/haxe/Template.hx. Evidence: "
         "semantic_diff/haxe_template_contract and stdlib/haxe_template_basic."
     ),
     "haxe.io.BufferInput": (
@@ -262,14 +262,14 @@ MODULE_NOTES_OVERRIDES = {
     "haxe.io.FPHelper": (
         "Direct `haxe.io.FPHelper` bit-conversion helpers now have semantic-diff coverage through "
         "`semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
-        "The public API now lives in the staged override `std/haxe/io/FPHelper.cross.hx`, expressed on "
+        "The public API now lives in the staged override `std/go/_std/haxe/io/FPHelper.hx`, expressed on "
         "top of the existing little-endian `BytesInput` / `BytesOutput` contract instead of more raw Go."
     ),
     "haxe.io.ArrayBufferView": (
         "Direct `haxe.io.ArrayBufferView` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: the public typed-array API now lives "
-        "in staged overrides under `std/haxe/io/*.cross.hx`, while the underlying carrier still rides on "
+        "in staged overrides under `std/go/_std/haxe/io/*.hx`, while the underlying carrier still rides on "
         "the compiler-owned `haxe.io.Bytes` / `ArrayBufferViewImpl` representation."
     ),
     "haxe.io.UInt8Array": (
@@ -411,14 +411,14 @@ MODULE_NOTES_OVERRIDES = {
     "sys.ssl.Certificate": (
         "Direct `sys.ssl.Certificate` leaf usage now has snapshot runtime coverage through "
         "`stdlib/sys_ssl_leaf_direct`. Ownership stays mixed: the public Haxe-facing wrapper lives in "
-        "`std/sys/ssl/Certificate.cross.hx`, while certificate parsing and trust-root handling live in "
+        "`std/go/_std/sys/ssl/Certificate.hx`, while certificate parsing and trust-root handling live in "
         "`runtime/hxrt/ssl.go`."
     ),
     "sys.ssl.Digest": (
         "Direct `sys.ssl.Digest` leaf usage now has snapshot runtime coverage through "
         "`stdlib/sys_ssl_leaf_direct`, including deterministic SHA-256/SHA-512 digests plus sign/verify "
         "with a parsed private key. Ownership stays mixed: the public Haxe API lives in "
-        "`std/sys/ssl/Digest.cross.hx`, while the actual cryptographic work lives in `runtime/hxrt/ssl.go`."
+        "`std/go/_std/sys/ssl/Digest.hx`, while the actual cryptographic work lives in `runtime/hxrt/ssl.go`."
     ),
     "sys.io.FileInput": (
         "Direct `sys.io.FileInput` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` "
@@ -443,7 +443,7 @@ MODULE_NOTES_OVERRIDES = {
     ),
     "sys.ssl.Key": (
         "Direct `sys.ssl.Key` leaf usage now has snapshot runtime coverage through `stdlib/sys_ssl_leaf_direct`. "
-        "Ownership stays mixed: the public Haxe constructors live in `std/sys/ssl/Key.cross.hx`, while PEM/DER "
+        "Ownership stays mixed: the public Haxe constructors live in `std/go/_std/sys/ssl/Key.hx`, while PEM/DER "
         "parsing and native key storage live in `runtime/hxrt/ssl.go`. Omitted optional pass arguments still depend "
         "on the broader source-owned static optional-argument lowering follow-up."
     ),
@@ -452,7 +452,7 @@ MODULE_NOTES_OVERRIDES = {
         "and SNI selection coverage through `stdlib/sys_ssl_socket_sni_direct`, "
         "covering staged public socket configuration on top of the compiler-owned `sys.net.Socket` carrier plus "
         "runtime TLS dial/listen/handshake/peer-certificate/SNI behavior in `runtime/hxrt/ssl.go`. Ownership stays mixed: "
-        "the public Haxe API lives in `std/sys/ssl/Socket.cross.hx`, while the underlying connection/listener TLS "
+        "the public Haxe API lives in `std/go/_std/sys/ssl/Socket.hx`, while the underlying connection/listener TLS "
         "behavior remains runtime-owned."
     ),
 }

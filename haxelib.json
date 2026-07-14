@@ -20,7 +20,8 @@
     "name": "Go",
     "abbv": "go",
     "stdPaths": [
-      "std"
+      "std",
+      "std/go/_std"
     ]
   }
 }

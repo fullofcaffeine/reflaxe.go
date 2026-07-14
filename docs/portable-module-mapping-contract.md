@@ -23,7 +23,7 @@ Contract inputs:
 ## Ownership Class Definitions
 
 1. `haxe_source`
-   - Behavior lives in Haxe std sources (`std/_std` overrides or upstream std implementation).
+   - Behavior lives in Haxe std sources (`std/go/_std` overrides or the upstream std implementation).
 2. `runtime_binding`
    - Haxe surface delegates behavior to runtime package functions in `runtime/hxrt/*.go`.
 3. `compiler_intrinsic`
@@ -37,15 +37,15 @@ Contract inputs:
 | --- | --- | --- | --- | --- |
 | `Math` | `compiler_intrinsic` | `src/reflaxe/go/GoCompiler.hx` (`lowerStdlibSymbolShimDecls`) | Indirect via core helpers where needed | `numeric_edge_cases`, `stringtools_math` |
 | `Std` | `mixed` (`compiler_intrinsic` + runtime helper calls) | `src/reflaxe/go/GoCompiler.hx` (`lowerStdlibSymbolShimDecls`, core lowering paths) | `runtime/hxrt/string.go`, `runtime/hxrt/exception.go`, core helpers | `exception_api_contract`, `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract`, `typed_nil_dynamic_string_contract` |
-| `DateTools` | `haxe_source` | `std/DateTools.cross.hx` | None beyond core `Date` and string primitives already owned elsewhere | `stringbuf_datetools_lambda_contract`, `datetools_cross_std_contract` |
-| `StringTools` | `haxe_source` | `std/StringTools.cross.hx` | None beyond core string/runtime primitives used by normal lowering | `stringtools_math`, `stringtools_cross_std_contract` |
+| `DateTools` | `haxe_source` | `std/go/_std/DateTools.hx` | None beyond core `Date` and string primitives already owned elsewhere | `stringbuf_datetools_lambda_contract`, `datetools_cross_std_contract` |
+| `StringTools` | `haxe_source` | `std/go/_std/StringTools.hx` | None beyond core string/runtime primitives used by normal lowering | `stringtools_math`, `stringtools_cross_std_contract` |
 | `Sys` | `mixed` (`compiler wrapper` + `runtime_binding`) | `src/reflaxe/go/GoCompiler.hx` (`lowerSysStdlibShimDecls`) | `runtime/hxrt/sys.go` | `sys_io_roundtrip` |
-| `haxe.Utf8` | `haxe_source` | `std/haxe/Utf8.cross.hx` | None beyond `haxe.io.Bytes`, `UnicodeString`, and shared Go string runtime helpers already owned elsewhere | `haxe_utf8_contract`, `stdlib/haxe_utf8_basic` |
-| `haxe.Json` | `mixed` (`haxe_source` + `runtime_binding`) | `std/_std/haxe/Json.cross.hx` | `runtime/hxrt/json.go` | `json_parse_stringify_contract` |
+| `haxe.Utf8` | `haxe_source` | `std/go/_std/haxe/Utf8.hx` | None beyond `haxe.io.Bytes`, `UnicodeString`, and shared Go string runtime helpers already owned elsewhere | `haxe_utf8_contract`, `stdlib/haxe_utf8_basic` |
+| `haxe.Json` | `mixed` (`haxe_source` + `runtime_binding`) | `std/go/_std/haxe/Json.hx` | `runtime/hxrt/json.go` | `json_parse_stringify_contract` |
 | `haxe.ds.EnumValueMap` | `compiler_intrinsic` | `src/reflaxe/go/GoCompiler.hx` (`lowerDsStdlibShimDecls`) | Uses core runtime helpers for dynamic/null pathways | `ds_maps_list_contract` |
-| `haxe.ds.IntMap` | `compiler_intrinsic` | `src/reflaxe/go/GoCompiler.hx` (`lowerDsStdlibShimDecls`) | Uses core runtime helpers for dynamic/null pathways | `ds_maps_list_contract` |
-| `haxe.ds.ObjectMap` | `compiler_intrinsic` | `src/reflaxe/go/GoCompiler.hx` (`lowerDsStdlibShimDecls`) | Uses core runtime helpers for dynamic/null pathways | `ds_maps_list_contract` |
-| `haxe.ds.StringMap` | `compiler_intrinsic` | `src/reflaxe/go/GoCompiler.hx` (`lowerDsStdlibShimDecls`) | Uses core runtime helpers for dynamic/null pathways | `ds_maps_list_contract` |
+| `haxe.ds.IntMap` | `mixed` (`haxe_source` + `compiler_intrinsic`) | `std/go/_std/haxe/ds/IntMap.hx` public extern/API over `lowerDsStdlibShimDecls` | Compiler-owned native map carrier and core dynamic/null helpers | `ds_maps_list_contract` |
+| `haxe.ds.ObjectMap` | `mixed` (`haxe_source` + `compiler_intrinsic`) | `std/go/_std/haxe/ds/ObjectMap.hx` public extern/API over `lowerDsStdlibShimDecls` | Compiler-owned native map carrier and core dynamic/null helpers | `ds_maps_list_contract` |
+| `haxe.ds.StringMap` | `mixed` (`haxe_source` + `compiler_intrinsic`) | `std/go/_std/haxe/ds/StringMap.hx` public extern/API over `lowerDsStdlibShimDecls` | Compiler-owned native map carrier and core dynamic/null helpers | `ds_maps_list_contract` |
 | `haxe.io.Bytes` | `mixed` (`compiler_intrinsic` + runtime helper calls) | `src/reflaxe/go/GoCompiler.hx` (`lowerIoStdlibShimDecls`) | `runtime/hxrt/bytes.go`, `runtime/hxrt/string.go` | `bytes_hex_contract`, `bytes_io_stream_contract`, `bytes_normalization_contract`, `bytes_of_data_contract`, `bytes_ops_contract`, `io_encoding_contract` |
 | `haxe.io.Path` | `haxe_source` | upstream Haxe stdlib `haxe/io/Path.hx` | Core string and array helpers lowered by the target (`lastIndexOf`, `split`, `Array.join`, `String.fromCharCode`) | `option_date_path`, `path_cross_std_contract` |
 | `sys.FileSystem` | `mixed` (`compiler_intrinsic` + runtime helper calls) | `src/reflaxe/go/GoCompiler.hx` (`lowerFileSystemShimDecls`) | `runtime/hxrt/string.go`, `runtime/hxrt/exception.go` | `filesystem_contract` |
@@ -61,15 +61,15 @@ their ownership split is easy to misunderstand.
 
 | Module family | Ownership class | Public implementation location | Backend-owned support beneath it | Evidence |
 | --- | --- | --- | --- | --- |
-| `haxe.io` misc direct surfaces (`BufferInput`, `BytesData`, `Encoding`, `Eof`, `Error`, `FPHelper`, `Mime`, `Scheme`, `StringInput`) | `mixed` | upstream `std/haxe/io/**` plus `std/haxe/io/FPHelper.cross.hx` | compiler-owned base IO/encoding/error/input hierarchy for `BufferInput` / `StringInput` / `Encoding` / `Eof` / `Error`, plus the `haxe.io.Bytes` carrier beneath `BytesData` | `semantic_diff/haxe_io_misc_contract`, `stdlib/haxe_io_misc_direct` |
-| `haxe.io` typed arrays (`ArrayBufferView`, `UInt8Array`, `UInt16Array`, `UInt32Array`, `Int32Array`, `Float32Array`, `Float64Array`) | `mixed` | `std/haxe/io/*.cross.hx` | compiler-owned `haxe.io.Bytes` / `ArrayBufferViewImpl` carrier plus source-owned abstract static-method/default-arg routing in the compiler; float arrays reuse staged `haxe.io.FPHelper` instead of adding more compiler-owned bytes logic | `semantic_diff/haxe_io_typed_arrays_contract`, `stdlib/haxe_io_typed_arrays_direct` |
+| `haxe.io` misc direct surfaces (`BufferInput`, `BytesData`, `Encoding`, `Eof`, `Error`, `FPHelper`, `Mime`, `Scheme`, `StringInput`) | `mixed` | upstream `std/haxe/io/**` plus `std/go/_std/haxe/io/FPHelper.hx` | compiler-owned base IO/encoding/error/input hierarchy for `BufferInput` / `StringInput` / `Encoding` / `Eof` / `Error`, plus the `haxe.io.Bytes` carrier beneath `BytesData` | `semantic_diff/haxe_io_misc_contract`, `stdlib/haxe_io_misc_direct` |
+| `haxe.io` typed arrays (`ArrayBufferView`, `UInt8Array`, `UInt16Array`, `UInt32Array`, `Int32Array`, `Float32Array`, `Float64Array`) | `mixed` | `std/go/_std/haxe/io/*.hx` | compiler-owned `haxe.io.Bytes` / `ArrayBufferViewImpl` carrier plus source-owned abstract static-method/default-arg routing in the compiler; float arrays reuse staged `haxe.io.FPHelper` instead of adding more compiler-owned bytes logic | `semantic_diff/haxe_io_typed_arrays_contract`, `stdlib/haxe_io_typed_arrays_direct` |
 | `sys.db` direct surfaces (`Connection`, `ResultSet`, `Mysql`, `Sqlite`) | `mixed` | upstream `std/sys/db/**` interfaces and platform stubs | no fake DB runtime; Go keeps the upstream platform contract where `Mysql.connect` / `Sqlite.open` remain explicit unsupported runtime stubs instead of inventing target-owned behavior | `semantic_diff/sys_db_io_contract`, `stdlib/sys_db_io_direct` |
 | `sys.io` direct handle surfaces (`FileInput`, `FileOutput`, `FileSeek`) | `mixed` | compiler-owned `lowerSysStdlibShimDecls` type/wrapper layer | `runtime/hxrt/sys.go` file-handle runtime (`OpenFileInput`, `OpenFile*Output`, seek/tell/eof/write/read`) beneath the public Haxe file-handle API | `semantic_diff/sys_db_io_contract`, `stdlib/sys_db_io_direct` |
-| `sys.ssl` direct surfaces (`Certificate`, `Digest`, `DigestAlgorithm`, `Key`, `Socket`) | `mixed` | `std/sys/ssl/*.cross.hx` for the public API; `DigestAlgorithm` is fully source-owned | `runtime/hxrt/ssl.go` for certificate parsing, key parsing, digest/sign/verify, and TLS socket dial/listen/handshake/SNI selection helpers beneath the public wrappers | `stdlib/sys_ssl_leaf_direct`, `stdlib/sys_ssl_socket_direct`, `stdlib/sys_ssl_socket_sni_direct`, `semantic_diff/sys_net_address_ssl_digest_algorithm_contract`, `stdlib/sys_net_address_ssl_digest_algorithm_direct`; policy spike: `docs/spikes/ssl-udp-semantic-diff-spike.md` |
-| `sys.thread` direct surfaces (`Condition`, `Deque`, `EventLoop`, `ElasticThreadPool`, `FixedThreadPool`, `IThreadPool`, `Lock`, `Mutex`, `NoEventLoopException`, `Semaphore`, `Thread`, `ThreadPoolException`, `Tls`) | `mixed` | `std/sys/thread/*.cross.hx` for the public API, queue/storage helpers, and pool policies | `runtime/hxrt/thread.go` for blocking primitives, logical thread identity, message queues, and event-loop handles beneath the staged wrappers | `semantic_diff/sys_thread_primitives_contract`, `semantic_diff/sys_thread_runtime_contract`, `stdlib/sys_thread_primitives_direct`, `stdlib/sys_thread_runtime_direct` |
-| `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` direct event-loop surfaces | `mixed` | `std/haxe/EntryPoint.cross.hx`, `std/haxe/MainLoop.cross.hx`, `std/haxe/Timer.cross.hx` for the public API | `runtime/hxrt/thread.go` through `sys.thread.EventLoop` for main-thread callback queues, worker promises, repeating timers, and monotonic timer stamps | `stdlib/haxe_main_loop_runtime_direct`; policy spike: `docs/spikes/event-loop-semantic-diff-spike.md` |
-| `haxe.rtti.*` (`CType`, `Meta`, `Rtti`, `XmlParser`) | `mixed` | `std/haxe/rtti/*.cross.hx` | class-token `__meta__` / `__rtti` lookup contract plus anonymous-record array-field mutation lowering in the compiler | `semantic_diff/haxe_rtti_direct_contract`, `stdlib/haxe_rtti_direct` |
-| `Lambda` and generic `Iterable<T>` call sites | `mixed` | source-owned `Lambda` plus staged iterator overrides under `std/_std/haxe/iterators/*.cross.hx` | `src/reflaxe/go/compiler/GoLambdaIterableLowering.hx` owns the small representation bridge for arrays, `haxe.ds.List`, and unknown manual-iterator carriers; `GoCompiler.hx` keeps only the direct optimized call lowering around that bridge | `lambda_generic_iterable_count_empty_contract`, `lambda_iter_generic_iterable_contract`, `stringbuf_datetools_lambda_contract` |
+| `sys.ssl` direct surfaces (`Certificate`, `Digest`, `DigestAlgorithm`, `Key`, `Socket`) | `mixed` | `std/go/_std/sys/ssl/*.hx` for the public API; `DigestAlgorithm` is fully source-owned | `runtime/hxrt/ssl.go` for certificate parsing, key parsing, digest/sign/verify, and TLS socket dial/listen/handshake/SNI selection helpers beneath the public wrappers | `stdlib/sys_ssl_leaf_direct`, `stdlib/sys_ssl_socket_direct`, `stdlib/sys_ssl_socket_sni_direct`, `semantic_diff/sys_net_address_ssl_digest_algorithm_contract`, `stdlib/sys_net_address_ssl_digest_algorithm_direct`; policy spike: `docs/spikes/ssl-udp-semantic-diff-spike.md` |
+| `sys.thread` direct surfaces (`Condition`, `Deque`, `EventLoop`, `ElasticThreadPool`, `FixedThreadPool`, `IThreadPool`, `Lock`, `Mutex`, `NoEventLoopException`, `Semaphore`, `Thread`, `ThreadPoolException`, `Tls`) | `mixed` | `std/go/_std/sys/thread/*.hx` for the public API and pool policies; target-only worker companions remain staged support | `runtime/hxrt/thread.go` for blocking primitives, logical thread identity, message queues, and event-loop handles beneath the staged wrappers | `semantic_diff/sys_thread_primitives_contract`, `semantic_diff/sys_thread_runtime_contract`, `stdlib/sys_thread_primitives_direct`, `stdlib/sys_thread_runtime_direct` |
+| `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` direct event-loop surfaces | `mixed` | `std/go/_std/haxe/EntryPoint.hx`, `std/go/_std/haxe/MainLoop.hx`, `std/go/_std/haxe/Timer.hx` for the public API | `runtime/hxrt/thread.go` through `sys.thread.EventLoop` for main-thread callback queues, worker promises, repeating timers, and monotonic timer stamps | `stdlib/haxe_main_loop_runtime_direct`; policy spike: `docs/spikes/event-loop-semantic-diff-spike.md` |
+| `haxe.rtti.*` (`CType`, `Meta`, `Rtti`, `XmlParser`) | `mixed` | `std/go/_std/haxe/rtti/*.hx` | class-token `__meta__` / `__rtti` lookup contract plus anonymous-record array-field mutation lowering in the compiler | `semantic_diff/haxe_rtti_direct_contract`, `stdlib/haxe_rtti_direct` |
+| `Lambda` and generic `Iterable<T>` call sites | `mixed` | source-owned `Lambda` plus staged iterator overrides under `std/go/_std/haxe/iterators/*.hx` | `src/reflaxe/go/compiler/GoLambdaIterableLowering.hx` owns the small representation bridge for arrays, `haxe.ds.List`, and unknown manual-iterator carriers; `GoCompiler.hx` keeps only the direct optimized call lowering around that bridge | `lambda_generic_iterable_count_empty_contract`, `lambda_iter_generic_iterable_contract`, `stringbuf_datetools_lambda_contract` |
 
 ## Notes on Staged Source Injection
 
@@ -77,7 +77,9 @@ Staged portable overrides are injected first for Go builds by:
 
 - `src/reflaxe/go/CompilerBootstrap.hx`
 
-Current staged Tier1 coverage includes the JSON family and `StringTools`, with additional migrations gated by semantic-diff and Tier1 conformance coverage.
+The canonical override inventory and its compiler-shim splits are locked by
+`docs/stdlib-provenance-ledger.json`; Tier1 rows above record the corresponding
+public ownership view.
 
 ## Transition Notes (Post-`__go__` Audit)
 
@@ -92,7 +94,7 @@ Current staged Tier1 coverage includes the JSON family and `StringTools`, with a
   - `readAll`, `readLine`, `readUntil`, `readFullBytes`, `write`, `writeFullBytes`, `writeInput`, and `writeString` now route through `std/haxe/io/GoIoHelpers.cross.hx`, with `GoCompiler` keeping only the public wrapper functions and the representation-sensitive base IO types.
   - Closed evidence: `haxe.go-14as.52`
 - `haxe.io` misc direct tranche
-  - `haxe.io.FPHelper` is now the model staged-std slice for this family: public bit-conversion behavior lives in `std/haxe/io/FPHelper.cross.hx` on top of the existing little-endian `BytesInput` / `BytesOutput` contract.
+  - `haxe.io.FPHelper` is now the model staged-std slice for this family: public bit-conversion behavior lives in `std/go/_std/haxe/io/FPHelper.hx` on top of the existing little-endian `BytesInput` / `BytesOutput` contract.
   - `haxe.io.Mime` and `haxe.io.Scheme` remain plain upstream source-owned string abstracts.
   - `haxe.io.StringInput`, `haxe.io.BufferInput`, `haxe.io.Encoding`, `haxe.io.Eof`, and `haxe.io.Error` stay compiler-owned with the base IO hierarchy because their type shapes and inherited helper wiring are still representation-sensitive on Go.
   - Closed evidence: `haxe.go-14as.15`
