@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import re
 import subprocess
 import tempfile
 import unittest
@@ -13,6 +15,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BUILDER = REPO_ROOT / "scripts" / "review" / "build_gpt56_evidence.py"
 REVIEW_README = REPO_ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "README.md"
+EVIDENCE_RECORD = REPO_ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "evidence-cd79624f.json"
 RELEASE_CONTRACT_RUNNER = REPO_ROOT / "test" / "run-release-contracts.py"
 
 
@@ -151,6 +154,38 @@ class ReviewEvidenceBundleContractTest(unittest.TestCase):
             "SHA-256",
         ]:
             self.assertIn(phrase, text)
+
+    def test_committed_evidence_record_preserves_the_audited_bundle_identity(self) -> None:
+        record = json.loads(EVIDENCE_RECORD.read_text(encoding="utf-8"))
+        sha256 = re.compile(r"^[0-9a-f]{64}$")
+
+        self.assertEqual(record["schema_version"], 1)
+        self.assertEqual(record["kind"], "haxe.go-gpt-5.6-pro-evidence-record")
+        self.assertEqual(
+            record["source"]["commit"],
+            "cd79624f855521dbf320ac2b7524d889ca388c0e",
+        )
+        self.assertEqual(record["source"]["tracked_file_count"], 5368)
+        self.assertEqual(record["artifact"]["bytes"], 13502320)
+        self.assertRegex(record["artifact"]["sha256"], sha256)
+        self.assertRegex(record["builder"]["file_sha256"], sha256)
+        self.assertEqual(record["validation"]["deterministic_build_count"], 2)
+        self.assertTrue(record["validation"]["outer_zip_byte_identical"])
+        self.assertEqual(record["validation"]["internal_sha256_entries_verified"], 379)
+        self.assertTrue(record["validation"]["gitleaks_passed"])
+        self.assertTrue(record["validation"]["machine_local_path_check_passed"])
+        self.assertEqual(len(record["ci_runs"]), 5)
+        self.assertTrue(
+            all(
+                run["head_sha"] == record["source"]["commit"]
+                and run["conclusion"] == "success"
+                for run in record["ci_runs"]
+            )
+        )
+        self.assertEqual(len(record["repomix"]["security_excluded_paths"]), 8)
+        self.assertTrue(record["repomix"]["raw_companions_included"])
+        self.assertEqual(record["roadmap"]["total_issues"], 663)
+        self.assertEqual(record["roadmap"]["dependency_cycle_count"], 0)
 
     def test_contract_is_registered_in_release_checks(self) -> None:
         runner = RELEASE_CONTRACT_RUNNER.read_text(encoding="utf-8")

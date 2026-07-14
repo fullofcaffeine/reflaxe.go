@@ -1,0 +1,208 @@
+{
+  "artifact": {
+    "bytes": 13502320,
+    "filename": "haxe-go-gpt56-evidence-cd79624f.zip",
+    "ignored_workspace_path": "dist/review/haxe-go-gpt56-evidence-cd79624f.zip",
+    "internal_manifest_payload_count": 378,
+    "sha256": "ab4b0a1097229ad2202ca7da6c092b2b85cba537522951fb625f6b1312c4b511"
+  },
+  "builder": {
+    "commit": "531e5bc1368c2b72a41cd5b46fc2449e7ed90393",
+    "file_sha256": "447be705cb2a4ad73116f83256dcac125d2b4e745d195584b5819a8dd4272a78",
+    "gitleaks_version": "8.30.0",
+    "path": "scripts/review/build_gpt56_evidence.py",
+    "python_version": "3.14.5",
+    "repomix_package": "repomix@1.14.0"
+  },
+  "ci_runs": [
+    {
+      "conclusion": "success",
+      "database_id": 29294117737,
+      "head_sha": "cd79624f855521dbf320ac2b7524d889ca388c0e",
+      "url": "https://github.com/fullofcaffeine/reflaxe.go/actions/runs/29294117737",
+      "workflow": "Security - Static Analysis"
+    },
+    {
+      "conclusion": "success",
+      "database_id": 29294117742,
+      "head_sha": "cd79624f855521dbf320ac2b7524d889ca388c0e",
+      "url": "https://github.com/fullofcaffeine/reflaxe.go/actions/runs/29294117742",
+      "workflow": "Examples Artifacts"
+    },
+    {
+      "conclusion": "success",
+      "database_id": 29294117743,
+      "head_sha": "cd79624f855521dbf320ac2b7524d889ca388c0e",
+      "url": "https://github.com/fullofcaffeine/reflaxe.go/actions/runs/29294117743",
+      "workflow": "CI - Quality"
+    },
+    {
+      "conclusion": "success",
+      "database_id": 29294117745,
+      "head_sha": "cd79624f855521dbf320ac2b7524d889ca388c0e",
+      "url": "https://github.com/fullofcaffeine/reflaxe.go/actions/runs/29294117745",
+      "workflow": "Security - Gitleaks"
+    },
+    {
+      "conclusion": "success",
+      "database_id": 29294117785,
+      "head_sha": "cd79624f855521dbf320ac2b7524d889ca388c0e",
+      "url": "https://github.com/fullofcaffeine/reflaxe.go/actions/runs/29294117785",
+      "workflow": "CI Harness"
+    }
+  ],
+  "host_controls": {
+    "default_branch": "master",
+    "default_branch_protected": false,
+    "default_branch_protection_api_status": 404,
+    "repository_rulesets": []
+  },
+  "intentional_exclusions": [
+    {
+      "paths": [
+        ".beads/issues.jsonl"
+      ],
+      "reason": "This is the immutable legacy provenance archive, not current compiler or roadmap evidence."
+    },
+    {
+      "paths": [
+        ".beads/interactions.jsonl"
+      ],
+      "reason": "Operational interaction history is replaced by the read-only Dolt roadmap snapshot in the bundle."
+    },
+    {
+      "paths": [
+        ".git/**",
+        "dist/**",
+        "node_modules/**",
+        "ignored caches",
+        "untracked files"
+      ],
+      "reason": "The source authority is an exact git archive, independent of the local working tree."
+    },
+    {
+      "paths": [
+        "existing untracked Repomix outputs"
+      ],
+      "reason": "Their source commit and security-exclusion set are not independently provable."
+    }
+  ],
+  "kind": "haxe.go-gpt-5.6-pro-evidence-record",
+  "recorded_at_utc": "2026-07-14T00:27:35Z",
+  "references": [
+    {
+      "commit": "5b8c9416f963e541229e633a2bb655a93e3e9c16",
+      "name": "haxe.rust",
+      "remote_branch": "origin/main",
+      "selected_file_count": 181
+    },
+    {
+      "commit": "08faba040457165b883ae5327315581979ea07db",
+      "name": "haxe.ruby",
+      "remote_branch": "origin/main",
+      "selected_file_count": 23
+    },
+    {
+      "commit": "68625fa91ffff48c5ffb269bff01c6f3e716128c",
+      "name": "haxe.elixir.codex",
+      "remote_branch": "origin/main",
+      "selected_file_count": 139
+    }
+  ],
+  "release_state": {
+    "asset_count": 0,
+    "immutable": false,
+    "release_id": 339046297,
+    "tag": "v0.53.1",
+    "tag_commit": "4adb9ae8209c24850495110e79ba6c5a8e1fa2bd"
+  },
+  "repomix": {
+    "raw_companions_included": true,
+    "security_excluded_paths": [
+      "test/snapshot/stdlib/sys_ssl_leaf_direct/intended/main.go",
+      "test/snapshot/stdlib/sys_ssl_leaf_direct/Main.hx",
+      "test/snapshot/stdlib/sys_ssl_socket_direct/intended/main.go",
+      "test/snapshot/stdlib/sys_ssl_socket_direct/Main.hx",
+      "test/snapshot/stdlib/sys_ssl_socket_sni_direct/intended/main.go",
+      "test/snapshot/stdlib/sys_ssl_socket_sni_direct/Main.hx",
+      "test/snapshot/sys/http_helper_source_owned_ownership/expected.stdout",
+      "test/snapshot/sys/http_proxy_socket_contract/expected.stdout"
+    ],
+    "version": "1.14.0"
+  },
+  "reproduction": {
+    "command": [
+      "python3",
+      "scripts/review/build_gpt56_evidence.py",
+      "--source-ref",
+      "cd79624f855521dbf320ac2b7524d889ca388c0e",
+      "--rust-ref",
+      "5b8c9416f963e541229e633a2bb655a93e3e9c16",
+      "--ruby-ref",
+      "08faba040457165b883ae5327315581979ea07db",
+      "--elixir-ref",
+      "68625fa91ffff48c5ffb269bff01c6f3e716128c",
+      "--ci-run",
+      "29294117737",
+      "--ci-run",
+      "29294117742",
+      "--ci-run",
+      "29294117743",
+      "--ci-run",
+      "29294117745",
+      "--ci-run",
+      "29294117785",
+      "--release-tag",
+      "v0.53.1",
+      "--output",
+      "dist/review/haxe-go-gpt56-evidence-cd79624f.zip"
+    ],
+    "note": "Exact source and reference archives are commit-deterministic. GitHub release, host-control, and CI metadata are live capture-at-build evidence and can change later."
+  },
+  "roadmap": {
+    "dependency_cycle_count": 0,
+    "dolt_commit": "d4n7bp04tc9k1srifgn0ipbb8thkgld9",
+    "root_issue": "haxe_go-vfp",
+    "total_issues": 663
+  },
+  "schema_version": 1,
+  "source": {
+    "branch": "origin/master",
+    "commit": "cd79624f855521dbf320ac2b7524d889ca388c0e",
+    "inventory": {
+      "checked_in_cross_hx_files": 68,
+      "generated_metal_files": 142,
+      "generated_portable_files": 195,
+      "haxe_source_files": 712,
+      "snapshot_intended_files": 3624,
+      "workflow_files": 5
+    },
+    "payloads": {
+      "archive": {
+        "bytes": 25845760,
+        "path": "primary/haxe.go-source-cd79624f.tar",
+        "sha256": "12710c4ee3f4320da83f985d1c06d20dd3d8b659059f02412567275714557748"
+      },
+      "inventory": {
+        "bytes": 1093359,
+        "path": "primary/source-inventory.json",
+        "sha256": "6ad352539331382bd69d7d18ebc1cc6c9cf06f81091eb8c16b4d7d75872bf4dd"
+      },
+      "repomix": {
+        "bytes": 25873721,
+        "path": "primary/haxe.go-source-cd79624f.xml",
+        "sha256": "83865b21e75f3b7e119be096898e6a9d9f0805cfc4610a9752e91ae4ee9f3b27"
+      }
+    },
+    "tracked_file_count": 5368
+  },
+  "validation": {
+    "deterministic_build_count": 2,
+    "gitleaks_passed": true,
+    "internal_sha256_entries_verified": 379,
+    "machine_local_path_check_passed": true,
+    "machine_local_text_files_checked": 375,
+    "outer_zip_byte_identical": true,
+    "zip_integrity_passed": true
+  }
+}
