@@ -177,12 +177,16 @@ npm run test:release-version-policy
 python3 test/test_release_identity_contract.py
 python3 test/test_same_sha_release_wrapper.py
 npm run release:policy
+npm run release:license-policy
 ```
 
 The JavaScript test drives both the custom analyzer and the installed
 semantic-release engine against temporary Git history. The Python tests prove
 metadata staging, checkout immutability, no-release behavior, correct-tag
 behavior, and rejection of mismatched commits or mutated tracked files.
+The licensing command is a separate fail-closed publication gate: it validates
+the source/component inventory and refuses release unless the accountable
+decision in `license-policy.json` covers the current scope digest.
 
 `npm run release:status` composes this policy with the supported
 toolchain, supply-chain, tag visibility, and release asset-path checks. Artifact

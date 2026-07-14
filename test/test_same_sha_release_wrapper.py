@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -12,6 +14,26 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 WRAPPER = ROOT / "scripts" / "release" / "run-same-sha-release.sh"
+LICENSE_POLICY_VERIFIER = ROOT / "scripts" / "release" / "verify-license-policy.py"
+
+
+def sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def scope_digest(policy: dict[str, object]) -> str:
+    scope = {
+        key: policy[key]
+        for key in (
+            "shippedSourcePatterns",
+            "components",
+            "generatedOutputClasses",
+            "releasePackage",
+        )
+    }
+    return hashlib.sha256(
+        json.dumps(scope, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    ).hexdigest()
 
 
 class SameShaReleaseWrapperTest(unittest.TestCase):
@@ -36,12 +58,18 @@ class SameShaReleaseWrapperTest(unittest.TestCase):
         )
         (self.repo / "scripts" / "release").mkdir(parents=True)
         shutil.copy2(WRAPPER, self.repo / "scripts" / "release" / WRAPPER.name)
+        shutil.copy2(
+            LICENSE_POLICY_VERIFIER,
+            self.repo / "scripts" / "release" / LICENSE_POLICY_VERIFIER.name,
+        )
         (self.repo / "tracked.txt").write_text("baseline\n", encoding="utf-8")
+        (self.repo / "LICENSE").write_text("fixture license\n", encoding="utf-8")
         (self.repo / "fake-release.sh").write_text(
             "#!/usr/bin/env bash\nexit 0\n",
             encoding="utf-8",
         )
         (self.repo / "fake-release.sh").chmod(0o755)
+        self.write_license_policy("approved")
         subprocess.run(["git", "add", "."], cwd=self.repo, check=True)
         subprocess.run(
             ["git", "commit", "-qm", "chore: baseline"],
@@ -85,6 +113,67 @@ class SameShaReleaseWrapperTest(unittest.TestCase):
         )
         self.tested_sha = self.git("rev-parse", "HEAD")
 
+    def write_license_policy(self, status: str) -> None:
+        approved = status == "approved"
+        policy: dict[str, object] = {
+            "schemaVersion": 1,
+            "kind": "haxe.go-license-policy",
+            "status": status,
+            "approval": {
+                "decidedBy": None,
+                "authority": None,
+                "decisionDate": None,
+                "decisionRecord": None,
+                "scopeSha256": None,
+            },
+            "shippedSourcePatterns": ["tracked.txt"],
+            "components": [
+                {
+                    "id": "fixture",
+                    "provenance": "repository-authored",
+                    "sourcePatterns": ["tracked.txt"],
+                    "declaredLicenses": ["MIT"],
+                    "generatedOutputTreatment": (
+                        "not-in-generated-output" if approved else "unresolved"
+                    ),
+                }
+            ],
+            "generatedOutputClasses": [
+                {
+                    "id": "fixture-output",
+                    "origin": "fixture",
+                    "licenseTreatment": (
+                        "project-does-not-assert-ownership"
+                        if approved
+                        else "unresolved"
+                    ),
+                    "requiredArtifacts": [] if approved else None,
+                }
+            ],
+            "releasePackage": {
+                "requiredFiles": [
+                    {
+                        "sourcePath": "LICENSE",
+                        "packagePath": "LICENSE",
+                        "sha256": sha256(self.repo / "LICENSE"),
+                    }
+                ]
+            },
+            "unresolvedQuestions": [] if approved else ["fixture decision"],
+        }
+        if approved:
+            policy["approval"] = {
+                "decidedBy": "Fixture Owner",
+                "authority": "project-copyright-owner",
+                "decisionDate": "2026-07-14",
+                "decisionRecord": "fixture-decision",
+                "scopeSha256": scope_digest(policy),
+            }
+        (self.repo / "license-policy.json").write_text(
+            json.dumps(policy, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
     def run_wrapper(
         self,
         *,
@@ -112,6 +201,22 @@ class SameShaReleaseWrapperTest(unittest.TestCase):
             proc.stdout,
         )
         self.assertEqual(self.git("rev-parse", "HEAD"), self.tested_sha)
+
+    def test_unapproved_license_policy_fails_before_release(self) -> None:
+        self.write_license_policy("unresolved")
+        subprocess.run(
+            ["git", "add", "license-policy.json"], cwd=self.repo, check=True
+        )
+        subprocess.run(
+            ["git", "commit", "-qm", "test: revoke fixture license approval"],
+            cwd=self.repo,
+            check=True,
+        )
+        self.tested_sha = self.git("rev-parse", "HEAD")
+        proc = self.run_wrapper()
+        self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("license policy is unresolved", proc.stderr)
+        self.assertNotIn("same-tested-SHA release contract", proc.stdout)
 
     def test_new_tag_must_point_at_tested_sha(self) -> None:
         self.set_fake_release("git tag v0.54.0\n")

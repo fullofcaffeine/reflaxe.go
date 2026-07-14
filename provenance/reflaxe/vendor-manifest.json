@@ -19,14 +19,27 @@
     "source_file_count": 59,
     "source_tree_sha256": "18aceb1f013198a54e503f7ad08384ef7f769bf2f993db4b69c35edb32396e35"
   },
+  "shipped_overlays": [
+    {
+      "kind": "license-restoration",
+      "sourceAuthority": "official_upstream",
+      "sourcePath": "LICENSE",
+      "path": "LICENSE",
+      "sha256": "68f17b4096da082538e5a6e2c050cd510f47fe33574522f3dc397750da600e79"
+    }
+  ],
   "shipped_tree": {
     "path": "vendor/reflaxe",
-    "file_count": 62,
-    "sha256": "b22af13d3a98c381b0d6283974cc08e9f7cff5cc0086ea839465a428633ccfe6",
+    "file_count": 63,
+    "sha256": "29437d3bddaefab9cfb1213b2b7911e758794048d535eb01c68f7c88fdaca454",
     "files": [
       {
         "path": "FUTURE_MODIFICATIONS.md",
         "sha256": "78f26ab1efb7bfb8422b34a8dcaff25db6f66de891fb38f0cce6f01257514b60"
+      },
+      {
+        "path": "LICENSE",
+        "sha256": "68f17b4096da082538e5a6e2c050cd510f47fe33574522f3dc397750da600e79"
       },
       {
         "path": "PATCHES.md",

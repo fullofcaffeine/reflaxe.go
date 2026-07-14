@@ -102,6 +102,25 @@ def expected_inventory(manifest: dict[str, object]) -> dict[str, str]:
     return expected
 
 
+def shipped_overlays(manifest: dict[str, object]) -> dict[str, dict[str, str]]:
+    raw_overlays = manifest.get("shipped_overlays")
+    if not isinstance(raw_overlays, list):
+        raise VerificationError("manifest shipped_overlays must be a list")
+
+    overlays: dict[str, dict[str, str]] = {}
+    required = ("kind", "sourceAuthority", "sourcePath", "path", "sha256")
+    for raw_overlay in raw_overlays:
+        if not isinstance(raw_overlay, dict):
+            raise VerificationError("manifest shipped overlay must be an object")
+        if any(not isinstance(raw_overlay.get(key), str) for key in required):
+            raise VerificationError("manifest shipped overlay fields must be strings")
+        path = str(raw_overlay["path"])
+        if path in overlays:
+            raise VerificationError(f"duplicate shipped overlay path: {path}")
+        overlays[path] = {key: str(raw_overlay[key]) for key in required}
+    return overlays
+
+
 def compare_inventory(
     expected: dict[str, str],
     actual: dict[str, str],
@@ -206,6 +225,12 @@ def verify_network_reconstruction(
     supplier = manifest["supplier_snapshot"]
     assert isinstance(official, dict)
     assert isinstance(supplier, dict)
+    overlays = shipped_overlays(manifest)
+    expected_supplier = {
+        path: digest
+        for path, digest in expected_vendor.items()
+        if path not in overlays
+    }
 
     with tempfile.TemporaryDirectory(prefix="reflaxe-reconstruct-") as temp_name:
         temp = Path(temp_name)
@@ -237,7 +262,7 @@ def verify_network_reconstruction(
 
         fetched_vendor = supplier_checkout / str(supplier["path"])
         compare_inventory(
-            expected_vendor,
+            expected_supplier,
             inventory(fetched_vendor),
             label="supplier snapshot",
         )
@@ -252,6 +277,20 @@ def verify_network_reconstruction(
             "license_sha256"
         ]:
             raise VerificationError("official checkout license digest mismatch")
+        for destination, overlay in overlays.items():
+            if overlay["sourceAuthority"] != "official_upstream":
+                raise VerificationError(
+                    f"unsupported shipped overlay authority: {overlay['sourceAuthority']}"
+                )
+            source = official_checkout / overlay["sourcePath"]
+            if sha256_file(source) != overlay["sha256"]:
+                raise VerificationError(
+                    f"official overlay source digest mismatch: {overlay['sourcePath']}"
+                )
+            if expected_vendor.get(destination) != overlay["sha256"]:
+                raise VerificationError(
+                    f"shipped overlay digest mismatch: {destination}"
+                )
 
         shutil.copy2(PATCH_PATH, official_checkout / "change.patch")
         run_git(["apply", "--check", "change.patch"], cwd=official_checkout)
@@ -296,6 +335,12 @@ def main() -> int:
         expected = expected_inventory(manifest)
         actual = inventory(vendor_dir)
         compare_inventory(expected, actual, label="shipped vendor tree")
+        overlays = shipped_overlays(manifest)
+        for destination, overlay in overlays.items():
+            if actual.get(destination) != overlay["sha256"]:
+                raise VerificationError(
+                    f"shipped overlay digest mismatch: {destination}"
+                )
 
         shipped = manifest["shipped_tree"]
         assert isinstance(shipped, dict)
@@ -309,15 +354,26 @@ def main() -> int:
             )
         supplier = manifest["supplier_snapshot"]
         assert isinstance(supplier, dict)
-        actual_git_tree = git_tree_sha1(vendor_dir)
-        if actual_git_tree != supplier["git_tree_sha1"]:
+        with tempfile.TemporaryDirectory(prefix="reflaxe-supplier-tree-") as temp_name:
+            supplier_tree_root = Path(temp_name) / "reflaxe"
+            shutil.copytree(vendor_dir, supplier_tree_root)
+            for destination in overlays:
+                overlay_path = supplier_tree_root / destination
+                if not overlay_path.is_file():
+                    raise VerificationError(
+                        f"shipped overlay is not a regular file: {destination}"
+                    )
+                overlay_path.unlink()
+            supplier_git_tree = git_tree_sha1(supplier_tree_root)
+        if supplier_git_tree != supplier["git_tree_sha1"]:
             raise VerificationError(
-                f"shipped vendor Git tree mismatch: expected "
-                f"{supplier['git_tree_sha1']}, got {actual_git_tree}"
+                f"supplier base Git tree mismatch: expected "
+                f"{supplier['git_tree_sha1']}, got {supplier_git_tree}"
             )
         print(
             "[vendor-provenance] shipped tree: OK "
-            f"({len(actual)} files, sha256 {actual_tree}, git {actual_git_tree})"
+            f"({len(actual)} files, sha256 {actual_tree}, "
+            f"supplier git {supplier_git_tree}, {len(overlays)} overlay)"
         )
 
         verify_patch(manifest, vendor_dir)

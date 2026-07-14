@@ -34,6 +34,7 @@ This page helps you find the right docs quickly.
 - [Feature support matrix](feature-support-matrix.md)
 - [Supported toolchain policy](toolchain-policy.md)
 - [Release version and source-identity policy](release-version-policy.md)
+- [Licensing and generated-output policy](../LICENSING.md)
 - [Release readiness checklist](release-readiness-checklist.md)
 - [Security dependency audit](security-dependency-audit.md)
 - [Go tooling release gates](go-tooling-gates.md)

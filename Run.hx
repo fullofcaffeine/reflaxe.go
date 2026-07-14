@@ -204,10 +204,18 @@ private class PackageBuildConfig {
 			throw new PackageBuildError('package output must not contain the source root: ${packageRoot}');
 		}
 
-		for (required in ["LICENSE", "README.md", "extraParams.hxml", "Run.hx"]) {
+		for (required in [
+			"LICENSE",
+			"LICENSING.md",
+			"README.md",
+			"extraParams.hxml",
+			"license-policy.json",
+			"licenses/HAXE-STDLIB-MIT.txt",
+			"Run.hx"
+		]) {
 			PackagePathTools.requireFile(Path.join([sourceRoot, required]), 'required package file "${required}"');
 		}
-		for (required in ["haxelib.json", "PATCHES.md", "FUTURE_MODIFICATIONS.md"]) {
+		for (required in ["haxelib.json", "LICENSE", "PATCHES.md", "FUTURE_MODIFICATIONS.md"]) {
 			PackagePathTools.requireFile(Path.join([vendoredReflaxeRoot, required]), 'required vendored Reflaxe file "${required}"');
 		}
 
@@ -399,11 +407,15 @@ private class PackageBuilder {
 		copyTree(config.runtimeRoot, "runtime", PackageEntryKind.Runtime, [], ".go");
 		copyTree(Path.join([config.vendoredReflaxeRoot, "src"]), "vendor/reflaxe/src", PackageEntryKind.VendoredReflaxe, [], ".hx");
 		copyVendoredReflaxeFile("haxelib.json");
+		copyVendoredReflaxeFile("LICENSE");
 		copyVendoredReflaxeFile("PATCHES.md");
 		copyVendoredReflaxeFile("FUTURE_MODIFICATIONS.md");
 		copyRequiredFile("LICENSE", PackageEntryKind.Metadata);
+		copyRequiredFile("LICENSING.md", PackageEntryKind.Metadata);
 		copyRequiredFile("README.md", PackageEntryKind.Metadata);
 		copyRequiredFile("extraParams.hxml", PackageEntryKind.Metadata);
+		copyRequiredFile("license-policy.json", PackageEntryKind.Metadata);
+		copyRequiredFile("licenses/HAXE-STDLIB-MIT.txt", PackageEntryKind.Metadata);
 		copyRequiredFile("Run.hx", PackageEntryKind.PackageRunner);
 		writePackagedHaxelib();
 		writePackageManifest();

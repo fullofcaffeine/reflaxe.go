@@ -105,6 +105,7 @@ def write_synthetic_source(root: Path) -> None:
         "untracked vendor debris\n",
     )
     write_text(root / "vendor" / "reflaxe" / "PATCHES.md", "# Fixture provenance\n")
+    write_text(root / "vendor" / "reflaxe" / "LICENSE", "fixture vendor license\n")
     write_text(
         root / "vendor" / "reflaxe" / "FUTURE_MODIFICATIONS.md",
         "# Fixture future modifications\n",
@@ -114,8 +115,14 @@ def write_synthetic_source(root: Path) -> None:
         {"name": "reflaxe", "version": "4.0.0-beta"},
     )
     write_text(root / "LICENSE", "fixture license\n")
+    write_text(root / "LICENSING.md", "# Fixture licensing policy\n")
     write_text(root / "README.md", "# Fixture\n")
     write_text(root / "extraParams.hxml", "--macro fixture.Start()\n")
+    write_json(root / "license-policy.json", {"fixture": True})
+    write_text(
+        root / "licenses" / "HAXE-STDLIB-MIT.txt",
+        "fixture Haxe standard library license\n",
+    )
     shutil.copyfile(RUNNER, root / "Run.hx")
 
 

@@ -320,6 +320,9 @@ jobs:
       - name: Verify release identity policy
         run: npm run release:policy
 
+      - name: Verify approved licensing policy
+        run: npm run release:license-policy
+
       - name: Publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

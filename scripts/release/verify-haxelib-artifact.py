@@ -28,13 +28,15 @@ EXPECTED_ARCHIVE_POLICY = {
 }
 ALLOWED_ROOT_FILES = {
     "LICENSE",
+    "LICENSING.md",
     "README.md",
     "Run.hx",
     "extraParams.hxml",
     "haxelib.json",
+    "license-policy.json",
     PACKAGE_MANIFEST,
 }
-ALLOWED_ROOT_DIRECTORIES = {"runtime", "src", "vendor"}
+ALLOWED_ROOT_DIRECTORIES = {"licenses", "runtime", "src", "vendor"}
 FORBIDDEN_SEGMENTS = {
     ".cache",
     ".git",
@@ -152,10 +154,15 @@ def read_archive(archive_path: Path) -> tuple[bytes, list[zipfile.ZipInfo], dict
 def validate_layout(files: dict[str, bytes]) -> None:
     names = set(files)
     for required in (
+        "LICENSE",
+        "LICENSING.md",
         "haxelib.json",
+        "license-policy.json",
+        "licenses/HAXE-STDLIB-MIT.txt",
         PACKAGE_MANIFEST,
         "runtime/hxrt/core.go",
         "src/reflaxe/go/CompilerInit.hx",
+        "vendor/reflaxe/LICENSE",
         "vendor/reflaxe/src/reflaxe/ReflectCompiler.hx",
     ):
         if required not in names:
@@ -202,6 +209,73 @@ def validate_haxelib(
     ):
         raise ArtifactVerificationError(
             "packaged Haxelib release note does not bind the tag and tested source commit"
+        )
+
+
+def validate_license_material(files: dict[str, bytes]) -> None:
+    policy = parse_json(files, "license-policy.json")
+    if (
+        policy.get("schemaVersion") != 1
+        or policy.get("kind") != "haxe.go-license-policy"
+        or policy.get("status") not in {"unresolved", "approved"}
+    ):
+        raise ArtifactVerificationError(
+            "embedded license policy header is invalid"
+        )
+    release_package = policy.get("releasePackage")
+    if not isinstance(release_package, dict):
+        raise ArtifactVerificationError(
+            "embedded license policy has no releasePackage object"
+        )
+    required_files = release_package.get("requiredFiles")
+    if not isinstance(required_files, list):
+        raise ArtifactVerificationError(
+            "embedded license policy requiredFiles must be an array"
+        )
+
+    expected_paths = {
+        "LICENSE",
+        "LICENSING.md",
+        "license-policy.json",
+        "licenses/HAXE-STDLIB-MIT.txt",
+        "vendor/reflaxe/LICENSE",
+    }
+    observed_paths: set[str] = set()
+    for index, raw_record in enumerate(required_files):
+        if not isinstance(raw_record, dict):
+            raise ArtifactVerificationError(
+                f"embedded license policy requiredFiles[{index}] is not an object"
+            )
+        package_path = safe_relative_path(
+            raw_record.get("packagePath"), "license package path"
+        )
+        if package_path in observed_paths:
+            raise ArtifactVerificationError(
+                f"embedded license package path is duplicated: {package_path}"
+            )
+        observed_paths.add(package_path)
+        content = files.get(package_path)
+        if content is None:
+            raise ArtifactVerificationError(
+                f"required package license material is missing: {package_path}"
+            )
+        expected_hash = raw_record.get("sha256")
+        if expected_hash is None:
+            if package_path != "license-policy.json":
+                raise ArtifactVerificationError(
+                    "only the embedded license policy may use a null notice hash"
+                )
+        elif (
+            not isinstance(expected_hash, str)
+            or SHA256_PATTERN.fullmatch(expected_hash) is None
+            or sha256_bytes(content) != expected_hash
+        ):
+            raise ArtifactVerificationError(
+                f"required package license material is stale: {package_path}"
+            )
+    if observed_paths != expected_paths:
+        raise ArtifactVerificationError(
+            "embedded license policy requiredFiles set differs from release policy"
         )
 
 
@@ -326,6 +400,7 @@ def verify_artifact(
     archive_bytes, infos, files = read_archive(archive_path)
     validate_layout(files)
     validate_haxelib(files, version, tag, source_sha)
+    validate_license_material(files)
     manifest = validate_package_manifest(files)
     validate_no_local_paths(files)
     validate_canonical_bytes(archive_path, archive_bytes, files)

@@ -22,6 +22,7 @@ require_command() {
 
 require_command git
 require_command comm
+require_command python3
 require_command sort
 
 TESTED_SHA="${RELEASE_TESTED_SHA:-}"
@@ -43,6 +44,9 @@ fi
 if [[ -n "$(git status --porcelain=v1 --untracked-files=no)" ]]; then
   fail "tracked checkout is not clean before semantic-release"
 fi
+
+python3 scripts/release/verify-license-policy.py --mode release
+log "approved licensing policy: OK"
 
 RELEASE_BIN="${SEMANTIC_RELEASE_BIN:-$ROOT_DIR/node_modules/.bin/semantic-release}"
 if [[ ! -x "$RELEASE_BIN" ]]; then

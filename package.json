@@ -76,6 +76,7 @@
     "verify:vendor-reflaxe": "python3 scripts/vendor/verify-reflaxe-provenance.py",
     "verify:vendor-reflaxe:reconstruct": "python3 scripts/vendor/verify-reflaxe-provenance.py --reconstruct",
     "release:status": "bash scripts/release/check-release-state.sh",
+    "release:license-policy": "python3 scripts/release/verify-license-policy.py --mode release",
     "release:policy": "python3 scripts/release/verify-release-policy.py",
     "release:stage-metadata": "python3 scripts/release/stage-release-metadata.py",
     "release:build-haxelib": "python3 scripts/release/build-haxelib-artifact.py",

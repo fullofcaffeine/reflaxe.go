@@ -110,6 +110,7 @@ def verify_release_config() -> None:
         "release": "bash scripts/release/run-same-sha-release.sh",
         "release:dry-run": "bash scripts/release/run-same-sha-release.sh --dry-run",
         "release:stage-metadata": "python3 scripts/release/stage-release-metadata.py",
+        "release:license-policy": "python3 scripts/release/verify-license-policy.py --mode release",
         "release:policy": "python3 scripts/release/verify-release-policy.py",
         "test:release-version-policy": "node test/test_release_version_policy.mjs",
     }
@@ -150,6 +151,7 @@ def verify_same_sha_workflow() -> None:
         "fetch-depth: 0",
         "ref: " + github_sha,
         "run: npm run release:policy",
+        "run: npm run release:license-policy",
         "RELEASE_TESTED_SHA: " + github_sha,
         "run: npm run release",
     )
@@ -181,12 +183,20 @@ def main() -> int:
             "scripts/release/analyze-commits.mjs",
             "scripts/release/run-same-sha-release.sh",
             "scripts/release/stage-release-metadata.py",
+            "scripts/release/verify-license-policy.py",
             "test/test_release_identity_contract.py",
             "test/test_release_version_policy.mjs",
             "test/test_same_sha_release_wrapper.py",
             "docs/release-version-policy.md",
+            "LICENSING.md",
+            "license-policy.json",
         ):
             require_file(path)
+        wrapper = (ROOT / "scripts" / "release" / "run-same-sha-release.sh").read_text(
+            encoding="utf-8"
+        )
+        if "verify-license-policy.py --mode release" not in wrapper:
+            fail("same-SHA release wrapper does not enforce the licensing gate")
         verify_source_manifests()
         verify_release_config()
         verify_same_sha_workflow()

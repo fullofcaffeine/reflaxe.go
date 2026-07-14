@@ -65,6 +65,9 @@ log "supply-chain provenance: OK"
 python3 scripts/release/verify-release-policy.py
 log "release identity policy: OK"
 
+python3 scripts/release/verify-license-policy.py --mode audit
+log "license inventory policy: audited (approval is checked only by publication entrypoints)"
+
 require_file "docs/toolchain-policy.json"
 POLICY_HAXE_SELECTOR="$(node -p "require('./docs/toolchain-policy.json').haxe.ci_selector")"
 POLICY_GO_FLOOR="$(node -p "require('./docs/toolchain-policy.json').go.generated_language_floor")"

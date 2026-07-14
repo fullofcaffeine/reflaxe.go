@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "kind": "haxe.go-license-policy",
+  "status": "unresolved",
+  "approval": {
+    "decidedBy": null,
+    "authority": null,
+    "decisionDate": null,
+    "decisionRecord": null,
+    "scopeSha256": null
+  },
+  "shippedSourcePatterns": [
+    "LICENSE",
+    "LICENSING.md",
+    "README.md",
+    "Run.hx",
+    "extraParams.hxml",
+    "haxelib.json",
+    "license-policy.json",
+    "licenses/HAXE-STDLIB-MIT.txt",
+    "runtime/**/*.go",
+    "src/**/*.hx",
+    "std/**/*.hx",
+    "vendor/reflaxe/FUTURE_MODIFICATIONS.md",
+    "vendor/reflaxe/LICENSE",
+    "vendor/reflaxe/PATCHES.md",
+    "vendor/reflaxe/haxelib.json",
+    "vendor/reflaxe/src/**/*.hx"
+  ],
+  "components": [
+    {
+      "id": "reflaxe-go-compiler-and-library",
+      "provenance": "repository-authored",
+      "sourcePatterns": [
+        "Run.hx",
+        "LICENSE",
+        "LICENSING.md",
+        "README.md",
+        "extraParams.hxml",
+        "haxelib.json",
+        "license-policy.json",
+        "src/**/*.hx",
+        "std/go/*.hx",
+        "std/haxe/**/*.hx",
+        "std/hxrt/**/*.hx",
+        "std/sys/**/*.hx"
+      ],
+      "declaredLicenses": [
+        "GPL-3.0-only"
+      ],
+      "licenseEvidence": [
+        {
+          "path": "LICENSE",
+          "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+        }
+      ],
+      "generatedOutputTreatment": "unresolved"
+    },
+    {
+      "id": "reflaxe-go-hxrt",
+      "provenance": "repository-authored",
+      "sourcePatterns": [
+        "runtime/hxrt/*.go"
+      ],
+      "declaredLicenses": [
+        "GPL-3.0-only"
+      ],
+      "licenseEvidence": [
+        {
+          "path": "LICENSE",
+          "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+        }
+      ],
+      "generatedOutputTreatment": "unresolved"
+    },
+    {
+      "id": "reflaxe-framework",
+      "provenance": "official-upstream-plus-recorded-patch-chain",
+      "sourcePatterns": [
+        "vendor/reflaxe/FUTURE_MODIFICATIONS.md",
+        "vendor/reflaxe/LICENSE",
+        "vendor/reflaxe/PATCHES.md",
+        "vendor/reflaxe/haxelib.json",
+        "vendor/reflaxe/src/**/*.hx"
+      ],
+      "declaredLicenses": [
+        "MIT"
+      ],
+      "licenseEvidence": [
+        {
+          "path": "vendor/reflaxe/LICENSE",
+          "sha256": "68f17b4096da082538e5a6e2c050cd510f47fe33574522f3dc397750da600e79"
+        }
+      ],
+      "generatedOutputTreatment": "not-copied-or-lowered-into-generated-tree"
+    },
+    {
+      "id": "haxe-standard-library-overrides",
+      "provenance": "mixed-repository-authored-and-haxe-standard-library-derived",
+      "sourcePatterns": [
+        "licenses/HAXE-STDLIB-MIT.txt",
+        "std/go/_std/**/*.hx"
+      ],
+      "declaredLicenses": [
+        "GPL-3.0-only",
+        "MIT"
+      ],
+      "licenseEvidence": [
+        {
+          "path": "LICENSE",
+          "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+        },
+        {
+          "path": "licenses/HAXE-STDLIB-MIT.txt",
+          "sha256": "61c9e5c8ca48e1f6e27f66cc6fb2eb11865a08672e1c793a13cfdaa89ad1bb74"
+        }
+      ],
+      "generatedOutputTreatment": "unresolved"
+    }
+  ],
+  "generatedOutputClasses": [
+    {
+      "id": "lowered-user-program",
+      "origin": "user-authored Haxe input lowered to Go",
+      "licenseTreatment": "unresolved",
+      "requiredArtifacts": null
+    },
+    {
+      "id": "compiler-emitted-framework-support",
+      "origin": "repository-authored compiler templates and support declarations",
+      "licenseTreatment": "unresolved",
+      "requiredArtifacts": null
+    },
+    {
+      "id": "copied-hxrt-source",
+      "origin": "runtime/hxrt Go files copied verbatim into generated modules",
+      "licenseTreatment": "unresolved",
+      "requiredArtifacts": null
+    },
+    {
+      "id": "lowered-haxe-standard-library",
+      "origin": "selected upstream or staged Haxe standard-library source lowered to Go",
+      "licenseTreatment": "unresolved",
+      "requiredArtifacts": null
+    }
+  ],
+  "releasePackage": {
+    "requiredFiles": [
+      {
+        "sourcePath": "LICENSE",
+        "packagePath": "LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      {
+        "sourcePath": "LICENSING.md",
+        "packagePath": "LICENSING.md",
+        "sha256": "371c4dcd7cbe44c30cf074c09943d714f9caf6f2feac7c20f7da7b956540b995"
+      },
+      {
+        "sourcePath": "license-policy.json",
+        "packagePath": "license-policy.json",
+        "sha256": null
+      },
+      {
+        "sourcePath": "licenses/HAXE-STDLIB-MIT.txt",
+        "packagePath": "licenses/HAXE-STDLIB-MIT.txt",
+        "sha256": "61c9e5c8ca48e1f6e27f66cc6fb2eb11865a08672e1c793a13cfdaa89ad1bb74"
+      },
+      {
+        "sourcePath": "vendor/reflaxe/LICENSE",
+        "packagePath": "vendor/reflaxe/LICENSE",
+        "sha256": "68f17b4096da082538e5a6e2c050cd510f47fe33574522f3dc397750da600e79"
+      }
+    ]
+  },
+  "unresolvedQuestions": [
+    "What license treatment applies to lowered user-authored Haxe input?",
+    "What license treatment applies to compiler-emitted framework support?",
+    "What outbound license and notice treatment applies to copied runtime/hxrt source?",
+    "What outbound treatment applies to Go lowered from upstream or staged Haxe standard-library source?",
+    "Which license, notice, source, or source-offer artifacts must be emitted into every generated Go tree?",
+    "Has an authorized project owner or qualified legal reviewer approved the exact recorded scope?"
+  ]
+}

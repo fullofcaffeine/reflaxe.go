@@ -80,6 +80,10 @@ class ReleaseIdentityContractTest(unittest.TestCase):
             scripts["release:policy"],
             "python3 scripts/release/verify-release-policy.py",
         )
+        self.assertEqual(
+            scripts["release:license-policy"],
+            "python3 scripts/release/verify-license-policy.py --mode release",
+        )
 
         workflow = WORKFLOW.read_text(encoding="utf-8")
         release_job = workflow.split("\n  semantic-release:", 1)[1]
@@ -93,6 +97,7 @@ class ReleaseIdentityContractTest(unittest.TestCase):
         self.assertNotIn("github.event_name == 'push'", release_job)
         self.assertIn("ref: " + github_sha, release_job)
         self.assertIn("RELEASE_TESTED_SHA: " + github_sha, release_job)
+        self.assertIn("run: npm run release:license-policy", release_job)
         self.assertIn("run: npm run release", release_job)
         self.assertNotIn("issues: write", release_job)
         self.assertNotIn("pull-requests: write", release_job)

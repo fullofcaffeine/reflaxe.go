@@ -15,11 +15,13 @@ The shipped snapshot comes from
 commit f53bec2adae8ef000467e488b974f6514c1af98f, path vendor/reflaxe. Its Git
 tree is a26137d0af5f297eb12e3750a62d0544a4755b76.
 
-The repository copy matches that supplier tree exactly: 62 files with canonical
-SHA-256 tree digest
-b22af13d3a98c381b0d6283974cc08e9f7cff5cc0086ea839465a428633ccfe6.
+The repository copy contains the supplier tree's 62 files plus one explicit
+license-restoration overlay: the exact `LICENSE` bytes from the pinned official
+upstream commit. The resulting 63-file tree has canonical SHA-256 digest
+29437d3bddaefab9cfb1213b2b7911e758794048d535eb01c68f7c88fdaca454.
+Removing the declared overlay recreates the supplier Git tree object exactly.
 The canonical digest is SHA-256 over path-sorted records of each file's SHA-256
-and POSIX-relative path; the exact definition and every file digest live in
+and POSIX-relative path; the overlay declaration and every file digest live in
 [provenance/reflaxe/vendor-manifest.json](../provenance/reflaxe/vendor-manifest.json).
 
 The patch from official source to supplier source contains 14 modified framework source files.
@@ -30,7 +32,8 @@ Git's binary-patch encoding because the inherited source contains
 absolute-path-shaped examples; this keeps the provenance artifact free of
 machine-local-looking paths without changing reconstructed bytes.
 
-The official upstream LICENSE file digest is also recorded in the manifest.
+The official upstream LICENSE file digest is recorded in the manifest and is
+the authority for the shipped `vendor/reflaxe/LICENSE` overlay.
 This technical provenance record does not decide redistribution obligations;
 license and release-distribution review remains a separate policy decision.
 
@@ -49,7 +52,8 @@ npm run verify:vendor-reflaxe
 The verifier:
 
 1. rejects missing, added, changed, or symlinked vendor entries;
-2. verifies all 62 file hashes and the canonical tree digest;
+2. verifies all 63 file hashes, the canonical tree digest, the license overlay,
+   and the supplier Git tree after removing only that declared overlay;
 3. verifies the patch digest and its 14-file inventory;
 4. reverse-applies the patch to the shipped source and checks the exact official
    source digest; and
