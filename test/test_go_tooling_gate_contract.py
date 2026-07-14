@@ -14,6 +14,7 @@ FLAGSHIP_FIXTURE = REPO_ROOT / "test" / "go_tooling" / "flagship_gate_test.go"
 THREAD_POOL_FIXTURE = REPO_ROOT / "test" / "go_tooling" / "thread_pool_gate_test.go"
 CHANNEL_FIXTURE = REPO_ROOT / "test" / "go_tooling" / "channel_gate_test.go"
 POLICY_DOC = REPO_ROOT / "docs" / "go-tooling-gates.md"
+TOOLCHAIN_POLICY = REPO_ROOT / "docs" / "toolchain-policy.json"
 CI_HARNESS = REPO_ROOT / ".github" / "workflows" / "ci-harness.yml"
 PACKAGE_JSON = REPO_ROOT / "package.json"
 RELEASE_CHECKLIST = REPO_ROOT / "docs" / "release-readiness-checklist.md"
@@ -76,10 +77,12 @@ class GoToolingGateContractTest(unittest.TestCase):
         self.assertIn("nil channel", channels)
 
     def test_ci_matrix_blocks_release_and_always_uploads_reports(self) -> None:
+        policy = json.loads(TOOLCHAIN_POLICY.read_text(encoding="utf-8"))
+        expected_matrix = f'go: {json.dumps(policy["go"]["ci_versions"])}'
         workflow = CI_HARNESS.read_text(encoding="utf-8")
 
         self.assertIn("go-tooling:", workflow)
-        self.assertIn('go: ["1.25.x", "1.26.x"]', workflow)
+        self.assertIn(expected_matrix, workflow)
         self.assertIn("go-version: ${{ matrix.go }}", workflow)
         self.assertIn("python3 scripts/security/run-go-tooling-gates.py", workflow)
         self.assertIn("Upload Go tooling gate reports", workflow)

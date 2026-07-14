@@ -26,22 +26,46 @@ class ToolchainPolicyContractTest(unittest.TestCase):
     def test_machine_policy_names_language_floor_and_supported_build_lines(self) -> None:
         policy = self.load_policy()
 
-        self.assertEqual(policy["schema_version"], 1)
+        self.assertEqual(policy["schema_version"], 2)
         self.assertEqual(policy["haxe"]["supported_versions"], ["4.3.7"])
         self.assertEqual(policy["haxe"]["recommended_version"], "4.3.7")
         self.assertEqual(policy["go"]["generated_language_floor"], "1.22")
         self.assertEqual(policy["go"]["supported_build_lines"], ["1.25", "1.26"])
         self.assertEqual(policy["go"]["recommended_build_line"], "1.26")
-        self.assertEqual(policy["go"]["ci_selectors"], ["1.25.x", "1.26.x"])
+        self.assertEqual(policy["go"]["ci_versions"], ["1.25.12", "1.26.5"])
+        self.assertEqual(policy["go"]["recommended_build_version"], "1.26.5")
         self.assertEqual(policy["node"]["supported_tooling_lines"], ["24"])
         self.assertEqual(policy["node"]["recommended_tooling_line"], "24")
         self.assertTrue(policy["release"]["require_exact_patch_evidence"])
 
-    def test_quality_matrix_covers_both_supported_go_lines(self) -> None:
-        workflow = (WORKFLOW_DIR / "ci-quality.yml").read_text(encoding="utf-8")
-        matrix_lines = re.findall(r'^\s+go: "([0-9]+\.[0-9]+\.x)"$', workflow, flags=re.MULTILINE)
+        ci_versions = policy["go"]["ci_versions"]
+        supported_lines = policy["go"]["supported_build_lines"]
+        self.assertEqual(
+            [version.rsplit(".", 1)[0] for version in ci_versions],
+            supported_lines,
+        )
+        for version in ci_versions:
+            self.assertRegex(version, r"^[0-9]+\.[0-9]+\.[0-9]+$")
+        self.assertIn(policy["go"]["recommended_build_version"], ci_versions)
+        self.assertTrue(
+            policy["go"]["recommended_build_version"].startswith(
+                policy["go"]["recommended_build_line"] + "."
+            )
+        )
 
-        self.assertEqual(matrix_lines, ["1.25.x", "1.26.x", "1.26.x"])
+    def test_quality_matrix_covers_both_supported_go_lines(self) -> None:
+        policy = self.load_policy()
+        workflow = (WORKFLOW_DIR / "ci-quality.yml").read_text(encoding="utf-8")
+        matrix_versions = re.findall(
+            r'^\s+go: "([0-9]+\.[0-9]+\.[0-9]+)"$',
+            workflow,
+            flags=re.MULTILINE,
+        )
+
+        self.assertEqual(
+            matrix_versions,
+            [*policy["go"]["ci_versions"], policy["go"]["recommended_build_version"]],
+        )
         self.assertIn('NODE_VERSION: "24"', workflow)
         self.assertIn('HAXE_VERSION: "4.3.7"', workflow)
         self.assertIn(HAXE_ACTION_REF, workflow)
@@ -49,14 +73,16 @@ class ToolchainPolicyContractTest(unittest.TestCase):
         self.assertNotIn("brew install haxe", workflow)
 
     def test_other_product_workflows_use_recommended_toolchains(self) -> None:
+        policy = self.load_policy()
         harness = (WORKFLOW_DIR / "ci-harness.yml").read_text(encoding="utf-8")
         security = (WORKFLOW_DIR / "security-static-analysis.yml").read_text(encoding="utf-8")
         examples = (WORKFLOW_DIR / "examples-artifacts.yml").read_text(encoding="utf-8")
+        recommended_go = policy["go"]["recommended_build_version"]
 
         for workflow in (harness, security):
             self.assertIn('NODE_VERSION: "24"', workflow)
-            self.assertIn('GO_VERSION: "1.26.x"', workflow)
-        self.assertIn('GO_VERSION: "1.26.x"', examples)
+            self.assertIn(f'GO_VERSION: "{recommended_go}"', workflow)
+        self.assertIn(f'GO_VERSION: "{recommended_go}"', examples)
         self.assertIn("go-version: ${{ env.GO_VERSION }}", examples)
 
         for path in sorted(WORKFLOW_DIR.glob("*.yml")):
@@ -66,6 +92,7 @@ class ToolchainPolicyContractTest(unittest.TestCase):
                 self.assertNotIn('go-version: "1.22.x"', text)
                 self.assertNotIn('go-version: "1.23.x"', text)
                 self.assertNotIn('GO_VERSION: "1.23.x"', text)
+                self.assertNotRegex(text, r"\b(?:1\.25|1\.26)\.x\b")
 
     def test_generated_go_language_floor_is_deliberate_and_unchanged(self) -> None:
         policy = self.load_policy()
@@ -106,6 +133,14 @@ class ToolchainPolicyContractTest(unittest.TestCase):
         self.assertIn("exact resolved patch versions", checklist)
         self.assertIn("does not make an old compatibility fixture production-supported", checklist)
         self.assertIn('require_file "docs/toolchain-policy.json"', release_status)
+        self.assertIn(".go.ci_versions", release_status)
+        self.assertIn(".go.recommended_build_version", release_status)
+        self.assertIn("POLICY_GO_MATRIX", release_status)
+        self.assertIn(
+            'require_contains "$workflow" "go: ${POLICY_GO_MATRIX}"',
+            release_status,
+        )
+        self.assertNotIn("recommended_build_line + '.x'", release_status)
         self.assertIn("toolchain policy wiring", release_status)
 
 

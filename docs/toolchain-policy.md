@@ -34,11 +34,11 @@ does not establish production or security support.
 
 ## Supported Versions
 
-| Role | Supported | Recommended | CI selector | Meaning |
+| Role | Supported | Recommended | CI version | Meaning |
 | --- | --- | --- | --- | --- |
 | Haxe compiler | `4.3.7` | `4.3.7` | `4.3.7` | Exact current stable Haxe compiler used by the target and semantic baselines. |
 | Generated Go language floor | `1.22` | n/a | n/a | Language and module semantics permitted in generated `go.mod`; not a patched build-toolchain claim. |
-| Go build and test toolchain | latest patch of `1.25` and `1.26` | latest patch of `1.26` | `1.25.x`, `1.26.x` | The two current upstream-supported Go release lines. |
+| Go build and test toolchain | `1.25.12` and `1.26.5` | `1.26.5` | `1.25.12`, `1.26.5` | Exact approved patches from the two current upstream-supported Go release lines. |
 | Node repository tooling | latest patch of `24` | latest patch of `24` | `24` | Active LTS line for npm and release tooling. |
 
 The upstream authorities checked for this policy are:
@@ -50,14 +50,35 @@ The upstream authorities checked for this policy are:
 - [Haxe download list](https://haxe.org/download/list/): Haxe 4.3.7 is the
   current stable release.
 
-Selectors ending in `.x` intentionally resolve the latest patch available in
-that supported Go line. Release evidence must record the concrete version
-reported by `go version`; the selector alone is not sufficient provenance.
+Go versions are exact pins, not `.x` wildcards. This is deliberate: a wildcard
+can be satisfied by a stale patch already present in a CI runner's tool cache,
+so it does not prove that CI used the latest patched toolchain. The
+fail-closed dependency audit exposed this on 2026-07-14 when `1.25.x` resolved
+to 1.25.11 and `1.26.x` resolved to 1.26.4 even though Go 1.25.12 and 1.26.5
+were available. Both older patches were affected by
+[GO-2026-5856](https://pkg.go.dev/vuln/GO-2026-5856).
+
+Schema version 2 therefore replaces `go.ci_selectors` with exact
+`go.ci_versions` and adds `go.recommended_build_version`. The separate
+`supported_build_lines` and `recommended_build_line` fields still express the
+long-lived support policy; the exact-version fields identify the toolchains
+that produced current CI and release evidence. A later patch is adopted by an
+intentional policy change, not silently during an unrelated build.
+
+Setting `check-latest: true` on a wildcard was considered and rejected for
+release evidence. It would avoid preferring an older matching cache entry, but
+it would also let the concrete toolchain change without a repository change.
+[The `setup-go` resolution contract](https://github.com/actions/setup-go#usage)
+checks the local tool cache first by default, then its version manifest, then
+the official Go distribution. An exact pin keeps that fallback path while
+allowing only the reviewed patch to satisfy the request.
 
 ## How CI Applies It
 
-1. The quality matrix runs Linux on the latest Go 1.25 and 1.26 patches.
-2. The recommended lane runs Linux and macOS on the latest Go 1.26 patch.
+1. The quality matrix runs Linux on the exact approved Go 1.25 and 1.26
+   patches.
+2. The recommended lane runs Linux and macOS on the exact approved Go 1.26
+   patch.
 3. Harness, security, performance, example-artifact, and release jobs use the
    recommended supported line unless a separate matrix is the subject of the
    test.
@@ -83,12 +104,18 @@ supported for production.
 
 ## Updating The Policy
 
-1. Check the official Go, Node, and Haxe sources above.
-2. Change the machine-readable policy first.
-3. Add or update a failing contract for the intended transition.
+1. Check the official Go, Node, and Haxe sources above. For Go, verify the
+   concrete patches in the release history and review current vulnerability
+   advisories.
+2. Add or update a failing contract for the intended transition.
+3. Change `ci_versions`, `recommended_build_version`, and the effective date in
+   the machine-readable policy. Change the line fields only when support moves
+   to a different release line.
 4. Align workflow matrices, release-status wiring, and this explanation.
-5. Run the targeted policy contract, release contracts, snapshots, and full CI.
-6. Remove an old lane or label it explicitly as compatibility-only with
+5. Regenerate the compatibility support manifest and its generated docs.
+6. Run the targeted policy contract, release contracts, security gates,
+   snapshots, and full CI. Preserve `go version` output in release evidence.
+7. Remove an old lane or label it explicitly as compatibility-only with
    `production_supported=false` and `security_supported=false`.
 
 Do not retain an end-of-life production lane merely to preserve a green

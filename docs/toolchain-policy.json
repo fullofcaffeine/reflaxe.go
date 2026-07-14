@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "effective_date": "2026-07-14",
   "haxe": {
     "supported_versions": [
@@ -17,11 +17,12 @@
       "1.26"
     ],
     "recommended_build_line": "1.26",
-    "ci_selectors": [
-      "1.25.x",
-      "1.26.x"
+    "recommended_build_version": "1.26.5",
+    "ci_versions": [
+      "1.25.12",
+      "1.26.5"
     ],
-    "patch_policy": "latest available patch in each supported line",
+    "patch_policy": "exact latest available patch pins, refreshed deliberately from the official Go release history",
     "source": "https://go.dev/doc/devel/release"
   },
   "node": {

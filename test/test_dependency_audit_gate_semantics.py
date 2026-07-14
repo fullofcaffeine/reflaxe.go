@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import tempfile
@@ -13,6 +14,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 AUDIT_SCRIPT = REPO_ROOT / "scripts" / "security" / "run-dependency-audit.sh"
 CI_HARNESS = REPO_ROOT / ".github" / "workflows" / "ci-harness.yml"
 SECURITY_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "security-static-analysis.yml"
+TOOLCHAIN_POLICY = REPO_ROOT / "docs" / "toolchain-policy.json"
 
 
 class DependencyAuditGateSemanticsTest(unittest.TestCase):
@@ -120,10 +122,12 @@ class DependencyAuditGateSemanticsTest(unittest.TestCase):
         self.assertIn("result=ci_skip_rejected", metadata)
 
     def test_ci_uploads_dependency_audit_reports_even_on_failure(self) -> None:
+        policy = json.loads(TOOLCHAIN_POLICY.read_text(encoding="utf-8"))
+        expected_matrix = f'go: {json.dumps(policy["go"]["ci_versions"])}'
         for workflow_path in (CI_HARNESS, SECURITY_WORKFLOW):
             workflow = workflow_path.read_text(encoding="utf-8")
             with self.subTest(workflow=workflow_path.name):
-                self.assertIn('go: ["1.25.x", "1.26.x"]', workflow)
+                self.assertIn(expected_matrix, workflow)
                 self.assertIn("go-version: ${{ matrix.go }}", workflow)
                 self.assertIn("Upload dependency audit reports", workflow)
                 self.assertIn("if: always()", workflow)
