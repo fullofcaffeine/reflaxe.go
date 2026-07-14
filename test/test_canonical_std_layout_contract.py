@@ -172,7 +172,7 @@ class CanonicalStdLayoutAuditTest(unittest.TestCase):
 
     def test_current_source_layout_is_explicitly_red_until_migrated(self) -> None:
         status = json.loads(STATUS_PATH.read_text(encoding="utf-8"))
-        self.assertEqual(status.get("schemaVersion"), 1)
+        self.assertEqual(status.get("schemaVersion"), 2)
 
         violations = audit_source_layout(ROOT)
         codes = {violation.code for violation in violations}

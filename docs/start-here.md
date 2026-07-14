@@ -128,6 +128,12 @@ Beginner mental model:
    - runtime helper files in `runtime/hxrt`
    - compiler-emitted shims in `src/reflaxe/go/GoCompiler.hx`
 
+Those are source-checkout paths. In an installed Haxelib package, the package
+runner flattens only canonical `std/go/_std/**/*.hx` overrides into
+`src/**/*.cross.hx`; support, bindings, and facades remain ordinary `.hx`
+modules. The [canonical `_std` migration closeout](canonical-std-migration-closeout.md)
+explains the mapping and its isolated install proof.
+
 Why this is done:
 
 - it avoids maintaining a full stdlib fork in this repository,

@@ -88,15 +88,20 @@ Current status:
 - same-compilation multi-target coexistence: must fail clearly rather than rely
   on classpath luck.
 
-## Hardening Direction
+## Hardening Status
 
-The remaining sequence is explicit:
+Package generation and isolated installed-package selection are now enforced:
 
-1. generate `.cross.hx` only while staging a package;
-2. prove source and installed-package imports resolve through the same declared
-   module ownership;
-3. keep mixed-target detection narrow and fail fast when sibling targets
-   conflict.
+1. `.cross.hx` files are generated only while staging a package;
+2. source and installed-package imports are behavior-tested against the same
+   declared module ownership;
+3. the installed ZIP compiles and runs in a fresh local Haxelib repository
+   without checkout classpaths.
+
+The remaining hardening item is mixed-target clarity: keep conflict detection
+narrow and fail fast when sibling targets compete in one compilation. The
+inventory and installed-package closeout evidence are recorded in
+`docs/canonical-std-migration-closeout.md`.
 
 ## Local Sibling References
 

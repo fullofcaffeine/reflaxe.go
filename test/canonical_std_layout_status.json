@@ -1,5 +1,19 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "sourceLayout": "required-green",
-  "expectedViolationCodes": []
+  "expectedViolationCodes": [],
+  "snapshotChangePolicy": "packaging-only-no-generated-output-change",
+  "closeoutEvidence": {
+    "canonicalOverrideSources": 62,
+    "ledgerEntries": 82,
+    "ownershipClasses": {
+      "hxrt_binding": 10,
+      "public_go_facade": 5,
+      "staged_support": 5,
+      "upstream_std_override": 62
+    },
+    "packagedArchiveMembers": 225,
+    "packagedManifestEntries": 224,
+    "trackedCrossHxFiles": 0
+  }
 }
