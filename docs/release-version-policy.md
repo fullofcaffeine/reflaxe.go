@@ -94,6 +94,51 @@ The output directory must not already exist. Versions must be canonical stable
 SemVer and source identities must be full lowercase 40-character commit
 hashes. The source checkout remains byte-identical.
 
+## Deterministic Haxelib artifacts
+
+Build release-ready package evidence from an exact tested commit with:
+
+```bash
+npm run release:build-haxelib -- \
+  --version 0.54.0 \
+  --tag v0.54.0 \
+  --source-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+  --output-dir /tmp/haxe-go-haxelib-artifact
+```
+
+The builder makes two independent `git archive` exports of the supplied
+commit. In each fresh tree it stages versioned metadata, runs the canonical
+Reflaxe package adapter, and independently verifies package paths, hashes,
+fixed ZIP metadata, generated `.cross.hx` ownership, and the absence of local
+paths or development debris. The two ZIPs and their embedded manifests must be
+byte-identical before any output directory is created.
+
+The output directory contains exactly:
+
+- `reflaxe.go-<version>.zip`
+- `reflaxe.go-<version>.zip.sha256`
+- `reflaxe.go-<version>.manifest.json`
+
+The JSON manifest binds the artifact digest and complete embedded
+source-to-package map to the version, proposed tag, and source commit. Artifact
+construction happens before publication, so the proposed tag may not exist
+yet. If an existing tag has that name, the builder fails unless it already
+resolves to the supplied source SHA. The later publication transaction remains
+responsible for creating or verifying that same tag without moving it.
+Successful construction is not publication approval by itself: isolated
+package execution, licensing/notices, hosted provenance, and release-state
+checks remain separate fail-closed gates.
+
+Verify a candidate ZIP independently with:
+
+```bash
+npm run release:verify-haxelib -- \
+  --zip /tmp/haxe-go-haxelib-artifact/reflaxe.go-0.54.0.zip \
+  --version 0.54.0 \
+  --tag v0.54.0 \
+  --source-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+```
+
 ## Executable evidence
 
 Run the focused version and source-identity contracts with:

@@ -29,6 +29,7 @@
     "test:semantic-diff:lanes": "python3 test/run-semantic-diff.py --suite lanes",
     "test:auto-planner:schema": "python3 test/run-auto-planner-schema.py",
     "test:release-contracts": "python3 test/run-release-contracts.py",
+    "test:haxelib-artifact": "python3 test/test_haxelib_release_artifact.py",
     "test:release-version-policy": "node test/test_release_version_policy.mjs",
     "test:examples:metal-boundary": "python3 test/run-metal-example-boundary.py",
     "test:goextern:fixtures": "python3 test/run-goextern-fixtures.py",
@@ -75,6 +76,8 @@
     "release:status": "bash scripts/release/check-release-state.sh",
     "release:policy": "python3 scripts/release/verify-release-policy.py",
     "release:stage-metadata": "python3 scripts/release/stage-release-metadata.py",
+    "release:build-haxelib": "python3 scripts/release/build-haxelib-artifact.py",
+    "release:verify-haxelib": "python3 scripts/release/verify-haxelib-artifact.py",
     "package:haxelib": "bash scripts/release/package-haxelib.sh",
     "release": "bash scripts/release/run-same-sha-release.sh",
     "release:dry-run": "bash scripts/release/run-same-sha-release.sh --dry-run"
