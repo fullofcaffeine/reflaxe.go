@@ -265,6 +265,28 @@ def normalize_repomix_log(log: str) -> str:
     return "\n".join(stable_lines).strip() + "\n"
 
 
+def parse_repomix_security_exclusions(log: str) -> list[str]:
+    exclusions: list[str] = []
+    in_exclusion_section = False
+    for line in log.splitlines():
+        stripped = line.strip()
+        if re.fullmatch(r"\d+ suspicious file\(s\) detected and excluded from the output:", stripped):
+            in_exclusion_section = True
+            continue
+        if not in_exclusion_section:
+            continue
+        if stripped.startswith("These files have been excluded") or stripped.startswith("📊 Pack Summary"):
+            break
+        match = re.fullmatch(r"\d+\.\s+(.+)", stripped)
+        if match:
+            path = match.group(1)
+            posix_path = PurePosixPath(path)
+            if posix_path.is_absolute() or ".." in posix_path.parts:
+                raise EvidenceError(f"unsafe Repomix security-exclusion path: {path}")
+            exclusions.append(path)
+    return exclusions
+
+
 def normalize_gitleaks_log(log: str) -> str:
     if "no leaks found" not in log.lower():
         raise EvidenceError("Gitleaks completed without its expected no-leaks confirmation")
@@ -411,8 +433,31 @@ def run_repomix(repomix_command: Sequence[str], input_dir: Path, output_path: Pa
             "--output-show-line-numbers",
             "--no-default-patterns",
         ],
+        "security_excluded_paths": parse_repomix_security_exclusions(log),
         "log": log,
     }
+
+
+def copy_repomix_security_exclusions(source_root: Path, primary_dir: Path, paths: Sequence[str]) -> None:
+    destination_root = primary_dir / "repomix-security-exclusions"
+    for relative in paths:
+        source = source_root / relative
+        if not source.is_file():
+            raise EvidenceError(f"Repomix reported an exclusion that is not a source file: {relative}")
+        destination = destination_root / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, destination)
+    write_json(
+        primary_dir / "repomix-security-exclusions.json",
+        {
+            "reason": (
+                "Repomix omitted these tracked test fixtures during its security scan. "
+                "They remain in the canonical git archive and are copied here for reviewer completeness; "
+                "the complete bundle passes Gitleaks."
+            ),
+            "paths": list(paths),
+        },
+    )
 
 
 def parse_json_output(command: Sequence[str], *, cwd: Path = ROOT) -> Any:
@@ -731,7 +776,8 @@ This bundle is an evidence snapshot, not a source checkout and not a release art
 - `.beads/interactions.jsonl` is excluded because the operational roadmap snapshot is supplied separately;
 - secret-bearing path classes (`*.pem`, `*.key`, `infra/secrets/**`) fail the build;
 - local home and hosted-runner workspace paths in captured logs are replaced with `<local-home>`, `<local-workspace>`, or `<github-workspace>`;
-- Repomix security scanning and a final Gitleaks scan run before packaging.
+- Repomix security scanning and a final Gitleaks scan run before packaging;
+- tracked fixtures omitted by Repomix's heuristic scanner are listed and copied under `primary/repomix-security-exclusions/` so an upload omission cannot be misreported as a source defect.
 
 ## Integrity
 
@@ -831,6 +877,12 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
                 "See bundle MANIFEST.json for exclusions and live evidence authorities."
             ),
         )
+        source_repomix_exclusions = source_repomix_meta["security_excluded_paths"]
+        copy_repomix_security_exclusions(
+            extracted_source / "haxe.go",
+            primary_dir,
+            source_repomix_exclusions,
+        )
         (primary_dir / "repomix.log").write_text(source_repomix_meta.pop("log"), encoding="utf-8")
 
         references_root = bundle_root / "references"
@@ -906,6 +958,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
                 "remote_branches_containing_commit": source_branches,
                 "source_archive": source_archive.relative_to(bundle_root).as_posix(),
                 "source_repomix": source_repomix.relative_to(bundle_root).as_posix(),
+                "source_repomix_security_exclusions": source_repomix_exclusions,
                 "tracked_file_count": primary_inventory["file_count"],
                 "excluded_tracked_files": list(PRIMARY_EXCLUSIONS),
             },

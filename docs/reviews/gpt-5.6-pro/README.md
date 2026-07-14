@@ -54,4 +54,6 @@ Repeat `--ci-run` for the quality, compiler harness, generated-example, static-a
 - Machine-local home/workspace paths in captured logs are replaced with stable placeholders. Repository-relative file and line evidence is preserved.
 - Existing untracked Repomix files are never reused because their source commit and exclusion set are not independently provable.
 
+If Repomix's heuristic scanner omits a tracked test fixture, the builder records the exact path and copies the raw file into a separate `repomix-security-exclusions` payload after the full bundle passes Gitleaks. Reviewers must treat that as an upload-view limitation, not infer that the source file is missing.
+
 The resulting ZIP lives under ignored `dist/review/`; its small, auditable evidence record belongs in this directory. The review prompt and final adjudication will be committed alongside that record in later Beads slices.

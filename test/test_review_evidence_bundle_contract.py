@@ -106,6 +106,7 @@ class ReviewEvidenceBundleContractTest(unittest.TestCase):
         self.assertNotIn(private_temp_root, normalized_repomix)
         self.assertIn("test/fixture.pem", normalized_repomix)
         self.assertIn("Output: <bundle-output>", normalized_repomix)
+        self.assertEqual(builder.parse_repomix_security_exclusions(normalized_repomix), ["test/fixture.pem"])
 
         gitleaks_log = "6:12PM INF scanned ~123 bytes in 0.42s\n6:12PM INF no leaks found\n"
         normalized_gitleaks = builder.normalize_gitleaks_log(gitleaks_log)
