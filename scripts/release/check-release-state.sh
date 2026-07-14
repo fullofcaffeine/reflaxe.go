@@ -28,7 +28,7 @@ require_contains() {
   local path="$1"
   local pattern="$2"
   local label="$3"
-  if ! grep -Fq "$pattern" "$path"; then
+  if ! grep -Fq -- "$pattern" "$path"; then
     fail "missing ${label} in ${path}: ${pattern}"
   fi
 }
@@ -125,6 +125,7 @@ log "examples release asset path normalization wiring: OK"
 require_file ".github/workflows/ci-harness.yml"
 require_contains ".github/workflows/ci-harness.yml" "semantic-release:" "semantic-release job declaration"
 require_contains ".github/workflows/ci-harness.yml" "npm run release" "semantic-release publish command"
+require_contains ".github/workflows/ci-harness.yml" "- go-tooling" "release-blocking Go tooling gate"
 log "ci harness semantic-release wiring: OK"
 
 if ORIGIN_URL="$(git remote get-url origin 2>/dev/null || true)" && [[ -n "$ORIGIN_URL" ]]; then

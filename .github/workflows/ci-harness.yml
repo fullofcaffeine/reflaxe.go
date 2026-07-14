@@ -141,6 +141,35 @@ jobs:
           path: .cache/security
           if-no-files-found: warn
 
+  go-tooling:
+    name: Go Tooling Gates (Go ${{ matrix.go }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ["1.25.x", "1.26.x"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+
+      - name: Run release-blocking Go tooling gates
+        run: python3 scripts/security/run-go-tooling-gates.py
+
+      - name: Upload Go tooling gate reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: go-tooling-${{ matrix.go }}
+          path: .cache/security/go-tooling
+          if-no-files-found: warn
+
   perf-go:
     name: Go Profile Perf (metal gated)
     runs-on: ubuntu-latest
@@ -257,6 +286,7 @@ jobs:
       - quality
       - gitleaks
       - dependency-audit
+      - go-tooling
       - perf-go
       - perf-apps
     runs-on: ubuntu-latest

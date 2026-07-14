@@ -35,6 +35,7 @@ This page helps you find the right docs quickly.
 - [Supported toolchain policy](toolchain-policy.md)
 - [Release readiness checklist](release-readiness-checklist.md)
 - [Security dependency audit](security-dependency-audit.md)
+- [Go tooling release gates](go-tooling-gates.md)
 - [Performance budget policy](performance-budget-policy.md)
 - [Perf warning triage](perf-warning-triage.md)
 - [Release visibility](release-visibility.md)

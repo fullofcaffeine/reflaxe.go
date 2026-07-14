@@ -26,16 +26,20 @@ Run these checks from repo root on a clean branch before a release cut.
    - `npm run test:family-stdlib-bootstrap`
 7. Release visibility contract:
    - `npm run release:status`
-8. Performance visibility gates:
+8. Go dynamic and static tooling gates:
+   - `npm run security:go-tooling`
+   - Confirm the race detector, strict checkptr, vet, and pinned Staticcheck
+     reports pass on both supported Go lines.
+9. Performance visibility gates:
    - `npm run test:perf:go`
    - `npm run test:perf:hxrt-selective`
    - `npm run test:perf:apps`
-9. Production caveat scoreboard review:
+10. Production caveat scoreboard review:
    - Read `docs/known-gaps.md#production-hardening-scoreboard`
    - Confirm each row still has an owner, current decision, evidence, and reopen trigger.
    - Confirm the scoreboard references durable evidence links and commands, not retired tracker IDs.
    - For multi-package output, check `docs/multi-package-output-evaluation.md#measurable-production-reopen-triggers` before filing implementation work.
-10. Performance budget policy review:
+11. Performance budget policy review:
    - Read `docs/performance-budget-policy.md`
    - Confirm warning-only perf drift is not being treated as release-blocking without the promotion criteria in that policy.
 
@@ -52,6 +56,7 @@ npm run test:release-contracts
 npm run test:family-stdlib-sync
 npm run test:family-stdlib-bootstrap
 npm run release:status
+npm run security:go-tooling
 npm run test:perf:go
 npm run test:perf:hxrt-selective
 npm run test:perf:apps
@@ -79,6 +84,9 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 - `npm run test:release-contracts` exits `0` and confirms ownership mapping plus release docs still match the live inventory/tracker state.
 - `npm run test:family-stdlib-sync` and `npm run test:family-stdlib-bootstrap` exit `0`.
 - `npm run release:status` exits `0` and reports release wiring as healthy.
+- `npm run security:go-tooling` exits `0`; race detector, strict checkptr,
+  vet, and pinned Staticcheck reports contain no blocking findings on every
+  supported Go line.
 - Perf runs complete and budgets are within expected thresholds for the current baseline policy.
 - Performance budget policy in `docs/performance-budget-policy.md` still matches CI enforcement settings and any warning-only drift has an explicit follow-up decision.
 - The Production caveat scoreboard in `docs/known-gaps.md#production-hardening-scoreboard` still matches current evidence and does not hide target-sensitive or warning-only caveats as full semantic guarantees.

@@ -142,11 +142,13 @@ Current shim-by-shim decisions: [docs/stdlib-shim-rationale.md](stdlib-shim-rati
 npm run test:perf:go
 npm run test:perf:hxrt-selective
 npm run test:perf:apps
+npm run security:go-tooling
 npm run release:status
 ```
 
 Release checklist: [docs/release-readiness-checklist.md](release-readiness-checklist.md)
 Performance budget policy: [docs/performance-budget-policy.md](performance-budget-policy.md)
+Go tooling gate policy: [docs/go-tooling-gates.md](go-tooling-gates.md)
 
 ## Related docs
 
@@ -157,4 +159,5 @@ Performance budget policy: [docs/performance-budget-policy.md](performance-budge
 - Examples matrix: [docs/examples-matrix.md](examples-matrix.md)
 - Semantic diff guide: [docs/semantic-diff-guide.md](semantic-diff-guide.md)
 - `hxrt` runtime: [docs/hxrt-runtime.md](hxrt-runtime.md)
+- Go tooling release gates: [docs/go-tooling-gates.md](go-tooling-gates.md)
 - Release readiness checklist: [docs/release-readiness-checklist.md](release-readiness-checklist.md)

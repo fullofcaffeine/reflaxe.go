@@ -63,6 +63,7 @@
     "hooks:install": "bash scripts/install-git-hooks.sh",
     "security:gitleaks": "bash scripts/security/run-gitleaks.sh",
     "security:deps": "bash scripts/security/run-dependency-audit.sh",
+    "security:go-tooling": "python3 scripts/security/run-go-tooling-gates.py",
     "release:status": "bash scripts/release/check-release-state.sh",
     "release": "semantic-release",
     "release:dry-run": "semantic-release --dry-run"
