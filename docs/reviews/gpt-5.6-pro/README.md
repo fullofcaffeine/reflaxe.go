@@ -65,4 +65,15 @@ Review entrypoints:
 - [repository-normalized independent review output](review-cd79624f.md);
 - [review invocation and output provenance](review-cd79624f.provenance.json).
 
+The later policy-preset refactor has a smaller commit-pinned review package:
+
+- [metal compatibility-preset evidence and written second pass](evidence-6b570a7f.md);
+- [prepared independent policy-preset review prompt](review-prompt-6b570a7f.md).
+
+No independent GPT-5.6 output exists for that later package: the configured
+reviewer reached the account usage limit before producing output, and an older
+model was not accepted as a provenance substitute. The current refactor uses
+the documented written `thinking:xhigh` fallback; any decision to deprecate the
+global selector still requires a genuine independent review.
+
 The local finding-by-finding disposition is recorded on Bead `haxe_go-vfp.3.3`; accepted findings remain owned by their dependency-ordered implementation beads rather than by this evidence directory.
