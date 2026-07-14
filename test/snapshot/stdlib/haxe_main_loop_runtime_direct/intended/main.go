@@ -26,6 +26,7 @@ type hxrt__TypeEnumValue struct {
 }
 
 func main() {
+	defer hxrt.ThreadWaitForAll()
 	ran := false
 	var event *haxe__MainEvent = nil
 	event = haxe__MainLoop_add(func() {

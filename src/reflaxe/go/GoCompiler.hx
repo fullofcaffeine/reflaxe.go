@@ -380,6 +380,9 @@ class GoCompiler {
 		var inferredRuntimeFeatures = inferRuntimeFeatures(requiredShimGroups);
 		compilationContext.inferredHxrtFeatures = inferredRuntimeFeatures.features;
 		compilationContext.inferredHxrtFeatureReasons = inferredRuntimeFeatures.reasons;
+		if (inferredRuntimeFeatures.features.indexOf(GoHxrtFeatureAnalyzer.FEATURE_THREAD) >= 0) {
+			prependPortableThreadDrain(moduleDecls);
+		}
 
 		var supportImports = buildSupportImports();
 		var moduleImports = buildModuleImports();
@@ -412,6 +415,36 @@ class GoCompiler {
 		}
 
 		return generated;
+	}
+
+	/**
+		Why
+		Go exits when `main` returns even if goroutines are still running, while
+		portable Haxe threads are foreground threads that finish before shutdown.
+
+		What
+		Adds one deferred runtime drain to the generated Go entrypoint, but only
+		when runtime feature inference proves the program uses `sys.thread`.
+
+		How
+		Rewrites the already-lowered `main` declaration through the typed Go AST.
+		The runtime counter includes nested portable threads and deliberately excludes
+		bare goroutines launched through `go.Go.spawn`.
+	**/
+	function prependPortableThreadDrain(moduleDecls:Map<String, Array<GoDecl>>):Void {
+		var mainDecls = moduleDecls.get("Main");
+		if (mainDecls == null) {
+			return;
+		}
+		for (index in 0...mainDecls.length) {
+			switch (mainDecls[index]) {
+				case GoDecl.GoFuncDecl("main", null, params, results, body):
+					mainDecls[index] = GoDecl.GoFuncDecl("main", null, params, results,
+						[GoStmt.GoDeferStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ThreadWaitForAll"), []))].concat(body));
+					return;
+				case _:
+			}
+		}
 	}
 
 	function appendModuleDecls(bucket:Map<String, Array<GoDecl>>, moduleName:String, decls:Array<GoDecl>):Void {

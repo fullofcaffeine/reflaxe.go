@@ -1,8 +1,9 @@
 package hxrt
 
-type HaxeException struct {
-	Value any
-}
+import (
+	"fmt"
+	"os"
+)
 
 type ExceptionValue struct {
 	Value   any
@@ -36,19 +37,26 @@ func BindException(value any, message *string, previous *ExceptionValue, native 
 	}
 }
 
-func Throw(value any) {
-	panic(HaxeException{Value: value})
-}
-
-func UnwrapException(recovered any) any {
+func unwrapHaxeException(recovered any) (any, bool) {
 	switch v := recovered.(type) {
 	case HaxeException:
-		return v.Value
+		return v.Value, true
 	case *HaxeException:
-		return v.Value
+		return v.Value, true
 	default:
-		return v
+		return nil, false
 	}
+}
+
+// UnwrapException converts only the carrier created by Throw. A foreign Go
+// panic is a backend/native failure, not a Haxe value, so it resumes unwinding
+// unchanged instead of entering a Haxe catch clause.
+func UnwrapException(recovered any) any {
+	value, ok := unwrapHaxeException(recovered)
+	if !ok {
+		panic(recovered)
+	}
+	return value
 }
 
 func TryCatch(tryFn func(), catchFn func(any)) {
@@ -58,6 +66,14 @@ func TryCatch(tryFn func(), catchFn func(any)) {
 		}
 	}()
 	tryFn()
+}
+
+// ReportUncaughtException is the stable portable-thread failure report. Native
+// Go panics never reach this function; their ordinary Go panic output remains
+// intact for explicit Go-native boundaries.
+func ReportUncaughtException(value any) {
+	message := ExceptionMessage(value)
+	fmt.Fprintf(os.Stderr, "Uncaught exception %s\n", *StdString(message))
 }
 
 func ExceptionCaught(value any) *ExceptionValue {

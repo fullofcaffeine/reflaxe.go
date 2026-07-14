@@ -109,7 +109,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Super calls | Supported | `core/super_calls` |
 | Enums and switch pattern bindings | Supported | `core/enum_constructors`, `core/switch_enum_basic`, `core/enum_switch_bindings` |
 | Anonymous object literals and structural field mutation | Supported | `core/object_literal_fields` |
-| Exception subset (`throw`, typed/dynamic catch, rethrow, throw-as-expression, return-forwarding in statement-form try/catch, `haxe.Exception` API mapping) | Supported | `core/haxe_exception_subset`, `core/try_catch_typed`, `core/try_catch_dynamic`, `core/try_catch_rethrow`, `core/try_catch_return_forwarding`, `throw_expr_contract`, `try_catch_return_forwarding_contract`, `exception_api_contract` |
+| Exception subset (`throw`, typed/dynamic catch, rethrow, throw-as-expression, return-forwarding in statement-form try/catch, `haxe.Exception` API mapping, Haxe-catchable portable runtime validation failures, and carrier-only separation from native Go panics) | Supported | `core/haxe_exception_subset`, `core/try_catch_typed`, `core/try_catch_dynamic`, `core/try_catch_rethrow`, `core/try_catch_return_forwarding`, `core/portable_runtime_failure_haxe_catch`, `throw_expr_contract`, `try_catch_return_forwarding_contract`, `exception_api_contract`, `go_native/native_panic_not_haxe_catch` |
 | `Std.isOfType` behavior | Supported | `core/std_is_of_type_basic`, `core/std_is_of_type_dynamic`, `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract` |
 | Type-value expressions (`TTypeExpr`) for class/enum refs | Supported | `type_expr_contract` |
 | `Type` reflection subset (`getClass`, `getSuperClass`, `getClassFields`, `getInstanceFields`, `resolveClass`, `createInstance`, `createEmptyInstance`, `getEnum`, `getEnumConstructs`, `resolveEnum`, `createEnum`, `createEnumIndex`, `allEnums`, `enumConstructor`, `enumIndex`, `enumParameters`, `enumEq`) | Supported | `type_reflection_contract`, `type_reflection_extended_contract` |
@@ -203,7 +203,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 
 | Surface | Status | Evidence (snapshot IDs) |
 | --- | --- | --- |
-| Channels and goroutines | Supported (real goroutine/channel/select lowering; non-metal applies typed recv/recvOr/tryRecv assertion bridging for `go.Chan<T>` reads; typed deterministic `go.Select` helper API is available for receive/send branching; `metal` adds concrete typed shim lanes, including specialized `go.Select` helper routing) | `go_native/channel_basic`, `go_native/channel_try_recv`, `go_native/channel_select_handshake`, `go_native/channel_metal_monomorph`, `go_native/goroutine_smoke`, `go_native/select_helpers`, `go_native/select_metal_monomorph` |
+| Channels and goroutines | Supported (real goroutine/channel/select lowering; `go.Go.spawn` retains native fatal-panic and non-joined shutdown behavior; non-metal applies typed recv/recvOr/tryRecv assertion bridging for `go.Chan<T>` reads; typed deterministic `go.Select` helper API is available for receive/send branching; `metal` adds concrete typed shim lanes, including specialized `go.Select` helper routing) | `go_native/channel_basic`, `go_native/channel_try_recv`, `go_native/channel_select_handshake`, `go_native/channel_metal_monomorph`, `go_native/goroutine_smoke`, `go_native/goroutine_native_panic`, `go_native/goroutine_native_shutdown`, `go_native/select_helpers`, `go_native/select_metal_monomorph` |
 | Extern metadata mapping | Supported (`@:go.import`/`@:go.name`/`@:go.receiver`, extern `String` return normalization via `hxrt.StdString`, `@:go.valueError` mapping for `(T,error)` extern calls to `go.Result<T>`, and `@:go.tupleReturn` mapping for generated multi-return carrier classes) | `go_native/extern_metadata_mapping`, `go_native/extern_value_error_result`, `go_native/extern_tuple_return` |
 | Result/Error mapping | Supported (`metal` adds typed `go.Result<T>` shim lowering with internal `(T,error)` helper emission) | `go_native/result_basic`, `go_native/error_result_mapping`, `go_native/result_metal_monomorph` |
 | Slice/Map wrappers | Supported (`metal` adds typed shim specialization for concrete `go.Slice<T>` and `go.Map<K,V>` call-sites) | `go_native/slice_map_basic`, `go_native/slice_map_metal_monomorph` |
@@ -263,6 +263,20 @@ Shim strategy and alternatives are documented in:
 - Process startup and pipe failures throw instead of returning partial objects. Normal EOF is represented by `haxe.io.Eof`, non-EOF read failures remain errors, nonzero child exits remain ordinary exit codes, and `close()` releases/reaps without implicitly killing the child.
 - Portable `Sys.putEnv` deliberately discards the runtime error to match Haxe 4.3.7 eval's `Void`, non-throwing contract. `hxrt.SysPutEnv` still returns the native `os.Setenv`/`os.Unsetenv` error so Go-native facades can preserve it.
 - `lowerSysStdlibShimDecls` is adapter-only for this surface: OS/process behavior changes belong in runtime, while generated type-shape and Haxe error/stream translation remain in the compiler. Verify both sides with `sys/file_read_write_smoke`, `test/semantic_diff/file_read_write_contract`, `sys/file_error_semantics`, `test/semantic_diff/file_error_semantics_contract`, `sys/process_echo_smoke`, `test/semantic_diff/process_echo_contract`, `sys/process_error_semantics`, `test/semantic_diff/process_error_semantics_contract`, `test/semantic_diff/sys_command_contract`, and `sys/sys_command_exit_wrapper`.
+
+### `sys.thread` failure and shutdown contract
+
+- `sys.thread.Thread.create` and `createWithEventLoop` create portable foreground
+  workers. Generated `main` waits for all such workers and their nested portable
+  workers before returning.
+- An uncaught Haxe throw writes `Uncaught exception <message>` to stderr and ends
+  only that worker, matching the observed Haxe 4.3.7 interpreter contract.
+- A foreign Go panic is never accepted by Haxe `try`/`catch` or by the portable
+  worker reporter; it remains fatal native behavior.
+- `go.Go.spawn` is outside the foreground count and keeps normal Go shutdown
+  semantics. Evidence: `stdlib/sys_thread_uncaught_exception`,
+  `go_native/native_panic_not_haxe_catch`, `go_native/goroutine_native_panic`,
+  `go_native/goroutine_native_shutdown`, and the direct `runtime/hxrt` tests.
 
 ### `sys.FileSystem` shim contract and tradeoffs
 

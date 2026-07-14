@@ -2,6 +2,18 @@ package hxrt
 
 import "math"
 
+// HaxeException is the foundational panic carrier shared by core validation
+// failures and the optional exception helpers. Keeping the carrier in core
+// lets selectively copied runtimes preserve Haxe failures without importing
+// the broader catch/message surface.
+type HaxeException struct {
+	Value any
+}
+
+func Throw(value any) {
+	panic(HaxeException{Value: value})
+}
+
 func StringFromLiteral(value string) *string {
 	copy := value
 	return &copy
@@ -15,9 +27,13 @@ func Int32Wrap(value int) int32 {
 	return int32(value)
 }
 
+// IntFromNullableAny is a portable dynamic-to-Int boundary. Conversion
+// failures use Throw so generated Haxe try/catch can handle them; raw Go panics
+// are reserved for failures originating in explicit native Go authority.
 func IntFromNullableAny(value any) int {
 	if value == nil {
-		panic("Invalid operation: null")
+		Throw(StringFromLiteral("Invalid operation: null"))
+		return 0
 	}
 	switch v := value.(type) {
 	case int:
@@ -45,6 +61,7 @@ func IntFromNullableAny(value any) int {
 	case float64:
 		return int(v)
 	default:
-		panic("Invalid operation: expected Int-compatible value")
+		Throw(StringFromLiteral("Invalid operation: expected Int-compatible value"))
+		return 0
 	}
 }

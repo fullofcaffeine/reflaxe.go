@@ -75,18 +75,22 @@ const (
 )
 
 var (
-	threadRuntimeOnce  sync.Once
-	threadRuntimeMu    sync.Mutex
-	threadStates       map[int]*ThreadState
-	goroutineThreadIDs map[int64]int
-	nextThreadID       int
-	nextEventID        atomic.Int64
-	threadStartTime    time.Time
+	threadRuntimeOnce     sync.Once
+	threadRuntimeMu       sync.Mutex
+	threadRuntimeCond     *sync.Cond
+	threadStates          map[int]*ThreadState
+	goroutineThreadIDs    map[int64]int
+	activePortableThreads int
+	nextThreadID          int
+	nextEventID           atomic.Int64
+	threadStartTime       time.Time
 )
 
 func initThreadRuntime() {
 	threadStates = make(map[int]*ThreadState)
 	goroutineThreadIDs = make(map[int64]int)
+	threadRuntimeCond = sync.NewCond(&threadRuntimeMu)
+	activePortableThreads = 0
 	nextThreadID = 1
 	threadStartTime = time.Now()
 	mainState := newThreadState()
@@ -122,6 +126,7 @@ func allocateThreadState(eventLoop *EventLoopHandle) int {
 	state := newThreadState()
 	state.eventLoop = eventLoop
 	threadStates[id] = state
+	activePortableThreads++
 	return id
 }
 
@@ -132,11 +137,19 @@ func registerCurrentGoroutineThreadID(id int) {
 	threadRuntimeMu.Unlock()
 }
 
-func unregisterCurrentGoroutineThreadID(id int) {
+func unregisterCurrentGoroutineThreadID(id int, completed bool) {
 	ensureThreadRuntime()
 	threadRuntimeMu.Lock()
 	delete(goroutineThreadIDs, currentGoroutineID())
-	delete(threadStates, id)
+	if _, exists := threadStates[id]; exists {
+		delete(threadStates, id)
+		if completed {
+			activePortableThreads--
+			if activePortableThreads == 0 {
+				threadRuntimeCond.Broadcast()
+			}
+		}
+	}
 	threadRuntimeMu.Unlock()
 }
 
@@ -189,15 +202,44 @@ func ThreadCurrentId() int {
 	return currentLogicalThreadID()
 }
 
+// ThreadWaitForAll drains foreground portable threads, including descendants
+// created by a running portable thread. Explicit go.Go.spawn goroutines are not
+// counted and retain Go's native process-shutdown behavior.
+func ThreadWaitForAll() {
+	ensureThreadRuntime()
+	threadRuntimeMu.Lock()
+	for activePortableThreads > 0 {
+		threadRuntimeCond.Wait()
+	}
+	threadRuntimeMu.Unlock()
+}
+
+func runPortableThreadJob(id int, job func()) {
+	registerCurrentGoroutineThreadID(id)
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			value, ok := unwrapHaxeException(recovered)
+			if !ok {
+				// Remove lookup state but keep the foreground count nonzero until
+				// the re-panic terminates the process. Waking generated main here
+				// would let normal process exit race with the fatal native panic.
+				unregisterCurrentGoroutineThreadID(id, false)
+				panic(recovered)
+			}
+			ReportUncaughtException(value)
+		}
+		unregisterCurrentGoroutineThreadID(id, true)
+	}()
+	job()
+}
+
 func ThreadSpawn(job func()) int {
 	if job == nil {
 		return 0
 	}
 	id := allocateThreadState(nil)
 	go func() {
-		registerCurrentGoroutineThreadID(id)
-		defer unregisterCurrentGoroutineThreadID(id)
-		job()
+		runPortableThreadJob(id, job)
 	}()
 	return id
 }
@@ -208,11 +250,11 @@ func ThreadSpawnWithEventLoop(job func()) int {
 	}
 	id := allocateThreadState(newEventLoopHandle())
 	go func() {
-		registerCurrentGoroutineThreadID(id)
-		defer unregisterCurrentGoroutineThreadID(id)
-		job()
-		withThreadState(id, func(state *ThreadState) {
-			ThreadEventLoopLoop(state.eventLoop)
+		runPortableThreadJob(id, func() {
+			job()
+			withThreadState(id, func(state *ThreadState) {
+				ThreadEventLoopLoop(state.eventLoop)
+			})
 		})
 	}()
 	return id

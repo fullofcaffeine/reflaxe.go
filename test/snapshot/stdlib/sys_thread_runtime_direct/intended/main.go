@@ -26,6 +26,7 @@ type hxrt__TypeEnumValue struct {
 }
 
 func main() {
+	defer hxrt.ThreadWaitForAll()
 	mainThread := sys__thread__Thread_current()
 	worker := sys__thread__Thread_create(func() {
 		mainThread.sendMessage(hxrt.StringFromLiteral("worker-ready"))

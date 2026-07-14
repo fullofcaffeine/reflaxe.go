@@ -115,6 +115,11 @@ current honest contract remains snapshot/runtime evidence.
 ## Concurrency caveats
 
 - `go.Go.spawn` and `go.Chan<T>` map to real goroutine/channel behavior on Go output.
+- `go.Go.spawn` is intentionally not a portable foreground-thread API: generated
+  `main` does not wait for those goroutines, and an uncaught panic is fatal.
+- `sys.thread.Thread.create` and `createWithEventLoop` use the portable contract:
+  generated `main` drains nested foreground workers, uncaught Haxe throws are
+  reported and terminate only their worker, and foreign Go panics remain fatal.
 - `go.Select` exposes typed deterministic helpers (`recv`, `recv2`, `send`, `send2`) built on non-blocking channel operations.
 - Multi-branch helper priority is explicit and deterministic (`first` branch checked before `second`); it does not model Go runtime pseudo-random ready-case selection.
 

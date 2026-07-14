@@ -31,6 +31,17 @@ Why this is recommended:
 - Maps to real goroutine/channel/select behavior in generated Go output.
 - Still runs in `portable`/`metal` from one codebase, so you can keep one app and compare both contracts directly.
 
+This is an explicit Go-native lifecycle contract. `go.Go.spawn(fn)` emits a
+bare goroutine: returning from `main` does not wait for it, and a panic inside
+it is a normal fatal Go panic. Coordinate completion through channels or other
+typed Go synchronization when work must finish before shutdown.
+
+For portable Haxe thread semantics, use `sys.thread.Thread.create` or
+`createWithEventLoop`. Those workers are foreground threads, meaning generated
+`main` waits for them (including nested portable workers). An uncaught Haxe
+throw is reported on stderr and ends only that worker. Native panics are never
+converted into Haxe catch values in either model.
+
 ## 2) Typed interop wrappers + user externs
 
 Reference app: `examples/interop_smoke`.
@@ -82,6 +93,12 @@ Practical interpretation:
 ## 4) Caveats (important)
 
 - `go.Select` multi-branch helpers are deterministic and branch-priority ordered; they do not mirror Go runtime pseudo-random ready-case selection.
+- `go.Go.spawn` goroutines are not joined automatically. Use an explicit channel,
+  wait-group façade, or another typed Go synchronization boundary when shutdown
+  must wait for them.
+- Haxe `try`/`catch` catches only values raised with Haxe `throw`. A panic from a
+  typed Go extern remains native and fatal unless user-owned Go code explicitly
+  recovers it inside the same goroutine.
 - Complex Go extern signatures may need façade wrappers until broader mapping lanes land.
 - For current limitations and planning guidance, use `docs/known-gaps.md`.
 

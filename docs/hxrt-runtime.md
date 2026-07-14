@@ -75,8 +75,11 @@ Key implementation points:
   - `AtomicInt*` helpers
   - `AtomicObject*` helpers
 - Exception bridging:
-  - `Throw`, `TryCatch`, `UnwrapException`
+  - `Throw`, `TryCatch`, `UnwrapException`, `ReportUncaughtException`
   - `ExceptionCaught`, `ExceptionThrown`, `ExceptionMessage`
+- Portable thread lifecycle:
+  - `ThreadSpawn`, `ThreadSpawnWithEventLoop`, `ThreadWaitForAll`
+  - logical thread identity, message queues, synchronization, and event-loop state
 - JSON wrappers:
   - `JsonParse`, `JsonStringify`
 - System/file/process wrappers:
@@ -87,6 +90,38 @@ Key implementation points:
 These helpers preserve native failures at the runtime boundary. Portable file wrappers turn read/write failures into Haxe exceptions, while process startup and non-EOF read failures remain distinct from normal EOF and child exit codes. Portable `Sys.putEnv` is the intentional exception: its compiler wrapper discards `SysPutEnv`'s returned error to match the upstream Haxe 4.3.7 eval contract, leaving the error available to typed Go-native bindings.
 - Byte representation helpers:
   - `BytesFromString`, `BytesToString`, `BytesClone`
+
+## Exception and concurrency boundaries
+
+Portable Haxe exceptions and native Go panics are deliberately different
+failure domains:
+
+1. `throw value` creates an `hxrt.HaxeException` carrier.
+   The carrier and `Throw` live in the `core` runtime feature so even a
+   core-only selective runtime can represent portable validation failures;
+   catch/message helpers remain in the additive `exception` feature.
+2. Generated Haxe `try`/`catch` unwraps only that carrier. A panic originating
+   in a typed Go extern, the Go runtime, or malformed generated code continues
+   unwinding as a native panic and cannot be mistaken for a Haxe value.
+   Portable runtime validation failures, such as a failed dynamic-to-`Int`
+   conversion, must call `Throw` and therefore remain Haxe-catchable; they must
+   never use a raw Go panic as a shortcut.
+3. An uncaught Haxe throw in `sys.thread.Thread.create` or
+   `createWithEventLoop` ends that worker, writes
+   `Uncaught exception <message>` to stderr, and does not crash the process.
+4. Portable Haxe workers are foreground threads: a foreground thread keeps the
+   generated program alive until it finishes. When the inferred runtime plan
+   includes `thread`, generated `main` defers `ThreadWaitForAll`, which also
+   drains portable workers created by other portable workers.
+5. `go.Go.spawn` remains an explicit Go-native boundary. It emits a bare
+   goroutine, is not included in the portable foreground count, and preserves
+   Go's normal fatal-panic and process-shutdown behavior.
+
+The split is covered by `stdlib/sys_thread_uncaught_exception`,
+`go_native/native_panic_not_haxe_catch`,
+`go_native/goroutine_native_panic`, and
+`go_native/goroutine_native_shutdown`, plus direct race-capable runtime tests
+in `runtime/hxrt/exception_test.go` and `runtime/hxrt/thread_test.go`.
 
 ## What `hxrt` does not own
 

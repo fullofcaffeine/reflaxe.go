@@ -3,6 +3,7 @@ package main
 import "snapshot/hxrt"
 
 func main() {
+	defer hxrt.ThreadWaitForAll()
 	lock := New_sys__thread__Lock()
 	lock.release()
 	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("lock.release_before_wait="), hxrt.StdString(lock.wait(nil))))

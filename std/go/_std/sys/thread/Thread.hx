@@ -13,12 +13,17 @@ import hxrt.thread.NativeThread;
 	What
 	`create` spawns a worker without an event loop, `createWithEventLoop` spawns a
 	worker that drains its loop after `job`, and `sendMessage` / `readMessage`
-	implement the upstream dynamic message queue contract.
+	implement the upstream dynamic message queue contract. Portable workers are
+	foreground threads: generated `main` waits for them and for nested workers.
+	An uncaught Haxe throw ends only that worker and is reported as an uncaught
+	exception; a foreign Go panic remains a fatal native panic.
 
 	How
 	Thread identity and queues live in `hxrt.thread.NativeThread`. Event-loop
 	availability is checked explicitly so `Thread.events` still throws
 	`NoEventLoopException` for threads that were not created with loop support.
+	The compiler adds the foreground drain only when the thread runtime feature is
+	selected, so explicit `go.Go.spawn` goroutines keep ordinary Go lifecycle rules.
 **/
 class Thread {
 	final __id:Int;
