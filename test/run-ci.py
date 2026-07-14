@@ -100,6 +100,10 @@ def run(cmd: list[str]) -> int:
     return proc.returncode
 
 
+def build_canonical_std_layout_command() -> list[str]:
+    return ["python3", "test/test_canonical_std_layout_contract.py"]
+
+
 def build_snapshot_command(args: argparse.Namespace) -> list[str]:
     cmd = [
         "python3",
@@ -438,6 +442,11 @@ def resolve_goextern_fixture_stage(skip: bool, current_release: str | None, targ
 
 def main() -> int:
     args = parse_args()
+
+    print("==> Canonical std layout contract stage")
+    canonical_std_layout_code = run(build_canonical_std_layout_command())
+    if canonical_std_layout_code != 0:
+        return canonical_std_layout_code
 
     print("==> Snapshot stage")
     snapshot_code = run(build_snapshot_command(args))

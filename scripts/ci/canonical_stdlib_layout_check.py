@@ -1,0 +1,307 @@
+#!/usr/bin/env python3
+
+"""Validate canonical Reflaxe source and packaged standard-library layouts.
+
+Source checkouts own target overrides as ordinary ``.hx`` files under
+``std/go/_std``. Reflaxe package staging flattens that root into ``src`` and
+renames those files to ``.cross.hx``. Keeping both shapes explicit prevents a
+checkout-only bootstrap from hiding a broken installed package.
+"""
+
+from __future__ import annotations
+
+import argparse
+from dataclasses import dataclass
+import json
+from pathlib import Path
+import re
+from typing import Iterable
+
+
+EXPECTED_STD_PATHS = ["std", "std/go/_std"]
+EXPECTED_SOURCE_CLASS_PATHS = [
+    "${SCOPE_DIR}/src",
+    "${SCOPE_DIR}/std",
+    "${SCOPE_DIR}/std/go/_std",
+]
+TEXT_SUFFIXES = {
+    ".go",
+    ".hxml",
+    ".hx",
+    ".json",
+    ".md",
+    ".mjs",
+    ".py",
+    ".sh",
+    ".txt",
+}
+POSIX_HOME_PATH = re.compile(r"(?<![A-Za-z0-9])/(?:Users|home)/[^\s\"'`]+")
+WINDOWS_HOME_PATH = re.compile(r"(?i)(?<![A-Za-z0-9])[A-Z]:[\\/]+Users[\\/]+[^\s\"'`]+")
+
+
+@dataclass(frozen=True, order=True)
+class Violation:
+    code: str
+    path: str
+    message: str
+
+    def render(self) -> str:
+        location = f" [{self.path}]" if self.path else ""
+        return f"{self.code}{location}: {self.message}"
+
+
+def relative_display(path: Path, root: Path) -> str:
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return path.name
+
+
+def normalized_hxml_class_paths(path: Path) -> list[str]:
+    if not path.is_file():
+        return []
+
+    class_paths: list[str] = []
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if not line:
+            continue
+        if line.startswith("-cp "):
+            value = line[4:].strip()
+        elif line.startswith("-p "):
+            value = line[3:].strip()
+        elif line.startswith("--class-path "):
+            value = line[len("--class-path ") :].strip()
+        else:
+            continue
+        class_paths.append(value.rstrip("/\\"))
+    return class_paths
+
+
+def has_ordered_subsequence(values: list[str], expected: list[str]) -> bool:
+    cursor = 0
+    for value in values:
+        if cursor < len(expected) and value == expected[cursor]:
+            cursor += 1
+    return cursor == len(expected)
+
+
+def read_json_object(path: Path) -> dict[str, object] | None:
+    if not path.is_file():
+        return None
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def text_files(root: Path) -> Iterable[Path]:
+    if not root.exists():
+        return []
+    return (
+        path
+        for path in sorted(root.rglob("*"))
+        if path.is_file() and path.suffix.lower() in TEXT_SUFFIXES
+    )
+
+
+def find_absolute_path_leaks(root: Path, forbidden_roots: Iterable[Path]) -> list[str]:
+    exact_needles = {
+        str(path.resolve())
+        for path in forbidden_roots
+        if str(path) not in {"", "."} and path.exists()
+    }
+    leaks: list[str] = []
+    for path in text_files(root):
+        relative = relative_display(path, root)
+        content = path.read_text(encoding="utf-8", errors="replace")
+        if any(needle and needle in content for needle in exact_needles):
+            leaks.append(relative)
+            continue
+        # Vendored Reflaxe documents generic absolute-path examples as part of
+        # its path-normalization implementation. Exact checkout/build roots are
+        # still rejected there; only generic examples receive this exemption.
+        if not relative.startswith("vendor/") and (
+            POSIX_HOME_PATH.search(content) or WINDOWS_HOME_PATH.search(content)
+        ):
+            leaks.append(relative)
+    return leaks
+
+
+def audit_source_layout(root: Path) -> list[Violation]:
+    root = root.resolve()
+    violations: list[Violation] = []
+    manifest_path = root / "haxelib.json"
+    manifest = read_json_object(manifest_path)
+    reflaxe = manifest.get("reflaxe") if manifest else None
+    std_paths = reflaxe.get("stdPaths") if isinstance(reflaxe, dict) else None
+    if std_paths != EXPECTED_STD_PATHS:
+        violations.append(
+            Violation(
+                "source-std-paths",
+                "haxelib.json",
+                f"reflaxe.stdPaths must be {EXPECTED_STD_PATHS!r}; found {std_paths!r}",
+            )
+        )
+
+    canonical_root = root / "std" / "go" / "_std"
+    canonical_haxe = sorted(canonical_root.rglob("*.hx")) if canonical_root.is_dir() else []
+    if not canonical_haxe:
+        violations.append(
+            Violation(
+                "source-canonical-root-missing",
+                "std/go/_std",
+                "canonical source override root must contain ordinary .hx files",
+            )
+        )
+
+    cross_files = sorted(
+        path
+        for base in (root / "src", root / "std")
+        if base.exists()
+        for path in base.rglob("*.cross.hx")
+        if path.is_file()
+    )
+    if cross_files:
+        sample = ", ".join(relative_display(path, root) for path in cross_files[:5])
+        suffix = f", ... ({len(cross_files) - 5} more)" if len(cross_files) > 5 else ""
+        violations.append(
+            Violation(
+                "source-cross-files",
+                "std",
+                f"source authority must not contain .cross.hx files; found {len(cross_files)}: {sample}{suffix}",
+            )
+        )
+
+    hxml_path = root / "haxe_libraries" / "reflaxe.go.hxml"
+    class_paths = normalized_hxml_class_paths(hxml_path)
+    if not has_ordered_subsequence(class_paths, EXPECTED_SOURCE_CLASS_PATHS):
+        violations.append(
+            Violation(
+                "source-classpath-precedence",
+                "haxe_libraries/reflaxe.go.hxml",
+                "initial classpaths must declare ${SCOPE_DIR}/src, then std, then std/go/_std "
+                f"so the target override has effective precedence; found {class_paths!r}",
+            )
+        )
+
+    config_paths = [manifest_path, root / "extraParams.hxml", hxml_path]
+    leaked_configs: list[str] = []
+    for path in config_paths:
+        if not path.is_file():
+            continue
+        content = path.read_text(encoding="utf-8", errors="replace")
+        if str(root) in content or POSIX_HOME_PATH.search(content) or WINDOWS_HOME_PATH.search(content):
+            leaked_configs.append(relative_display(path, root))
+    leaked_configs.extend(
+        f"std/go/_std/{path}"
+        for path in find_absolute_path_leaks(canonical_root, [root])
+    )
+    if leaked_configs:
+        violations.append(
+            Violation(
+                "absolute-path-leak",
+                ", ".join(leaked_configs),
+                "source configuration contains an absolute machine-local path",
+            )
+        )
+
+    return sorted(violations)
+
+
+def expected_packaged_cross_files(source_root: Path) -> set[str]:
+    canonical_root = source_root / "std" / "go" / "_std"
+    if not canonical_root.is_dir():
+        return set()
+    expected: set[str] = set()
+    for source in canonical_root.rglob("*.hx"):
+        relative = source.relative_to(canonical_root)
+        expected.add((Path("src") / relative.with_suffix(".cross.hx")).as_posix())
+    return expected
+
+
+def audit_package_layout(package_root: Path, source_root: Path) -> list[Violation]:
+    package_root = package_root.resolve()
+    source_root = source_root.resolve()
+    violations: list[Violation] = []
+    manifest = read_json_object(package_root / "haxelib.json")
+    if manifest is None or manifest.get("classPath") != "src" or "reflaxe" in manifest:
+        violations.append(
+            Violation(
+                "package-manifest",
+                "haxelib.json",
+                "packaged manifest must use classPath=src and omit source-only reflaxe metadata",
+            )
+        )
+
+    if (package_root / "std").exists() or (package_root / "src" / "go" / "_std").exists():
+        violations.append(
+            Violation(
+                "package-unflattened-std",
+                "std",
+                "package must flatten std paths into src and must not retain std/go/_std",
+            )
+        )
+
+    expected = expected_packaged_cross_files(source_root)
+    actual = {
+        relative_display(path, package_root)
+        for path in (package_root / "src").rglob("*.cross.hx")
+        if path.is_file()
+    } if (package_root / "src").is_dir() else set()
+    plain_counterparts = {
+        path.removesuffix(".cross.hx") + ".hx"
+        for path in expected
+        if (package_root / (path.removesuffix(".cross.hx") + ".hx")).exists()
+    }
+    if actual != expected or plain_counterparts:
+        missing = sorted(expected - actual)
+        unexpected = sorted(actual - expected)
+        violations.append(
+            Violation(
+                "package-cross-mapping",
+                "src",
+                "packaged .cross.hx set must exactly map ordinary std/go/_std sources; "
+                f"missing={missing!r}, unexpected={unexpected!r}, plain={sorted(plain_counterparts)!r}",
+            )
+        )
+
+    leaks = find_absolute_path_leaks(package_root, [source_root, package_root])
+    if leaks:
+        violations.append(
+            Violation(
+                "absolute-path-leak",
+                ", ".join(leaks[:5]),
+                f"package contains absolute machine-local paths in {len(leaks)} file(s)",
+            )
+        )
+
+    return sorted(violations)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source-root", type=Path, default=Path.cwd())
+    parser.add_argument("--package-root", type=Path)
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    violations = audit_source_layout(args.source_root)
+    if args.package_root is not None:
+        violations.extend(audit_package_layout(args.package_root, args.source_root))
+
+    if violations:
+        for violation in sorted(violations):
+            print(f"[canonical-std] ERROR: {violation.render()}")
+        return 1
+
+    scope = "source/package" if args.package_root is not None else "source"
+    print(f"[canonical-std] OK: canonical {scope} layout")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

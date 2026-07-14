@@ -1,5 +1,40 @@
 # Snapshot Harness
 
+## Canonical `_std` layout contract
+
+What it is: a source/package layout audit plus a behavior test for Reflaxe
+standard-library override selection.
+
+Why it exists: a source checkout can appear healthy while reflective classpath
+mutation hides a broken installed package. The contract separately models
+ordinary source overrides under `std/go/_std/**/*.hx` and package-generated
+`src/**/*.cross.hx`, then compiles and runs both against an upstream shadow.
+
+How it works:
+
+1. `scripts/ci/canonical_stdlib_layout_check.py` returns nonzero until the live
+   source tree has the canonical layout.
+2. `test/canonical_std_layout_status.json` temporarily allowlists only the
+   known migration violations, so normal development remains usable while the
+   contract itself stays red.
+3. `test/test_canonical_std_layout_contract.py` rejects new violation classes,
+   exercises canonical and adversarial synthetic layouts, and proves source
+   and staged-package precedence through runtime output.
+4. The migration must change `sourceLayout` to `required-green` when the final
+   allowlisted violation disappears.
+
+Run the integrated contract:
+
+```bash
+npm run test:canonical-std-layout
+```
+
+Inspect the intentionally failing live source audit directly:
+
+```bash
+python3 scripts/ci/canonical_stdlib_layout_check.py --source-root .
+```
+
 ## Run all snapshots
 
 ```bash
