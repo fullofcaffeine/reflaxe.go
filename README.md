@@ -172,4 +172,5 @@ By default the backend runs `go build` after codegen. Use `-D go_no_build` for c
 - Supported toolchains: [docs/toolchain-policy.md](docs/toolchain-policy.md)
 - Defines reference: [docs/defines-reference.md](docs/defines-reference.md)
 - Semantic diff guide: [docs/semantic-diff-guide.md](docs/semantic-diff-guide.md)
+- Release version and source identity: [docs/release-version-policy.md](docs/release-version-policy.md)
 - Release readiness checklist: [docs/release-readiness-checklist.md](docs/release-readiness-checklist.md)

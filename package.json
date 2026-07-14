@@ -1,7 +1,7 @@
 {
   "name": "reflaxe.go",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.0.0",
   "packageManager": "npm@11.16.0",
   "license": "GPL-3.0-only",
   "description": "Reflaxe-based Go target for Haxe",
@@ -27,6 +27,7 @@
     "test:semantic-diff:lanes": "python3 test/run-semantic-diff.py --suite lanes",
     "test:auto-planner:schema": "python3 test/run-auto-planner-schema.py",
     "test:release-contracts": "python3 test/run-release-contracts.py",
+    "test:release-version-policy": "node test/test_release_version_policy.mjs",
     "test:examples:metal-boundary": "python3 test/run-metal-example-boundary.py",
     "test:goextern:fixtures": "python3 test/run-goextern-fixtures.py",
     "test:stdlib-sweep": "python3 test/run-upstream-stdlib-sweep.py",
@@ -69,17 +70,18 @@
     "verify:vendor-reflaxe": "python3 scripts/vendor/verify-reflaxe-provenance.py",
     "verify:vendor-reflaxe:reconstruct": "python3 scripts/vendor/verify-reflaxe-provenance.py --reconstruct",
     "release:status": "bash scripts/release/check-release-state.sh",
-    "release": "semantic-release",
-    "release:dry-run": "semantic-release --dry-run"
+    "release:policy": "python3 scripts/release/verify-release-policy.py",
+    "release:stage-metadata": "python3 scripts/release/stage-release-metadata.py",
+    "release": "bash scripts/release/run-same-sha-release.sh",
+    "release:dry-run": "bash scripts/release/run-same-sha-release.sh --dry-run"
   },
   "devDependencies": {
-    "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
-    "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^11.0.6",
     "@semantic-release/release-notes-generator": "^14.1.0",
     "conventional-changelog-conventionalcommits": "^8.0.0",
     "lix": "^15.0.0",
-    "semantic-release": "^24.2.2"
+    "semantic-release": "^24.2.2",
+    "semver": "^7.7.4"
   }
 }

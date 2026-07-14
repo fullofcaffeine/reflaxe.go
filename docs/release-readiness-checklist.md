@@ -25,7 +25,13 @@ Run these checks from repo root on a clean branch before a release cut.
    - `npm run test:family-stdlib-sync`
    - `npm run test:family-stdlib-bootstrap`
 7. Release visibility contract:
+   - Read the [release version and source-identity
+     policy](release-version-policy.md).
+   - `npm run release:policy`
+   - `npm run test:release-version-policy`
    - `npm run release:status`
+   - Publish only through a manual `CI Harness` run on `master`
+     with `publish_release` enabled; normal pushes must not publish.
 8. Go dynamic and static tooling gates:
    - `npm run security:go-tooling`
    - Confirm the race detector, strict checkptr, vet, and pinned Staticcheck
@@ -59,6 +65,8 @@ npm run test:stdlib:governance
 npm run test:release-contracts
 npm run test:family-stdlib-sync
 npm run test:family-stdlib-bootstrap
+npm run release:policy
+npm run test:release-version-policy
 npm run release:status
 npm run security:go-tooling
 npm run security:supply-chain
@@ -88,6 +96,10 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 - `npm run test:stdlib:governance` exits `0` and confirms provenance/boundary discipline for staged std ownership.
 - `npm run test:release-contracts` exits `0` and confirms ownership mapping plus release docs still match the live inventory/tracker state.
 - `npm run test:family-stdlib-sync` and `npm run test:family-stdlib-bootstrap` exit `0`.
+- `npm run release:policy` and
+  `npm run test:release-version-policy` exit `0`; Git tags remain the
+  only released-version authority, source manifests remain development
+  sentinels, and any new tag is bound to the exact tested SHA.
 - `npm run release:status` exits `0` and reports release wiring as healthy.
 - `npm run security:go-tooling` exits `0`; race detector, strict checkptr,
   vet, and pinned Staticcheck reports contain no blocking findings on every
@@ -104,6 +116,7 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 
 - [Supply-chain policy](supply-chain-policy.md)
 - [Vendored Reflaxe provenance](vendor-reflaxe-provenance.md)
+- [Release version and source-identity policy](release-version-policy.md)
 
 - CI stage contract source: `test/run-ci.py`
 - Supported toolchain policy: `docs/toolchain-policy.md`

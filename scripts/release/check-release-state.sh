@@ -62,6 +62,9 @@ require_command python3
 python3 scripts/security/verify-supply-chain.py
 log "supply-chain provenance: OK"
 
+python3 scripts/release/verify-release-policy.py
+log "release identity policy: OK"
+
 require_file "docs/toolchain-policy.json"
 POLICY_HAXE_SELECTOR="$(node -p "require('./docs/toolchain-policy.json').haxe.ci_selector")"
 POLICY_GO_FLOOR="$(node -p "require('./docs/toolchain-policy.json').go.generated_language_floor")"
@@ -102,16 +105,15 @@ log "latest reachable semver tag: $LATEST_TAG"
 PACKAGE_VERSION="$(node -p "require('./package.json').version")"
 HAXELIB_VERSION="$(node -p "require('./haxelib.json').version")"
 HAXELIB_URL="$(node -p "require('./haxelib.json').url || ''")"
-EXPECTED_TAG="v${PACKAGE_VERSION}"
+DEVELOPMENT_VERSION="0.0.0"
 
 if [[ "$PACKAGE_VERSION" != "$HAXELIB_VERSION" ]]; then
   fail "package.json (${PACKAGE_VERSION}) and haxelib.json (${HAXELIB_VERSION}) versions differ"
 fi
-log "package/haxelib version parity: ${PACKAGE_VERSION}"
-
-if [[ "$LATEST_TAG" != "$EXPECTED_TAG" ]]; then
-  warn "latest tag (${LATEST_TAG}) differs from package version tag (${EXPECTED_TAG}); this can be normal between releases"
+if [[ "$PACKAGE_VERSION" != "$DEVELOPMENT_VERSION" ]]; then
+  fail "source manifests must use the ${DEVELOPMENT_VERSION} development sentinel (package=${PACKAGE_VERSION}, haxelib=${HAXELIB_VERSION})"
 fi
+log "package/haxelib development sentinel parity: ${DEVELOPMENT_VERSION}; Git tags own released versions"
 
 RELEASE_TAG_FORMAT="$(node -p "(require('./.releaserc.json').tagFormat || '')")"
 if [[ "$RELEASE_TAG_FORMAT" != "v\${version}" ]]; then

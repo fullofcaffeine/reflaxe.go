@@ -9,8 +9,8 @@
     "backend"
   ],
   "description": "Reflaxe-based Go target",
-  "version": "0.1.0",
-  "releasenote": "Reset release baseline to pre-1.0 track",
+  "version": "0.0.0",
+  "releasenote": "Development checkout; release versions are staged from Git tags.",
   "contributors": [
     "fullofcaffeine"
   ],
