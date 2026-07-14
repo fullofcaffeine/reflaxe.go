@@ -5,7 +5,7 @@
 What it is: a source/package layout audit plus a behavior test for Reflaxe
 standard-library override selection.
 
-Why it exists: a source checkout can appear healthy while reflective classpath
+Why it exists: a source checkout can appear healthy while late macro classpath
 mutation hides a broken installed package. The contract separately models
 ordinary source overrides under `std/go/_std/**/*.hx` and package-generated
 `src/**/*.cross.hx`, then compiles and runs both against an upstream shadow.

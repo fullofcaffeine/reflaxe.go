@@ -4,11 +4,19 @@ Use this checklist when building new `reflaxe.<target>` compilers.
 
 ## 1) Bootstrap
 
-- Provide `CompilerBootstrap.Start()` and call it from `extraParams.hxml`.
-- Inject vendored Reflaxe (`vendor/reflaxe/src`) when present.
-- Inject target std overrides only when target build is active.
-- Inject classpaths at the front when override precedence matters.
-- Include robust target detection (defines + args + nested hxml fallback).
+- Declare compiler source, target support, and target `_std` roots in the
+  library HXML before any bootstrap/init macro. Put the target `_std` root
+  after ordinary std so it has effective Haxe override precedence.
+- Resolve source-checkout paths through `${SCOPE_DIR}` so nested project and
+  example builds use the same initial configuration.
+- Expose vendored Reflaxe (`vendor/reflaxe/src`) through a companion library
+  HXML instead of discovering it through compiler internals.
+- Provide `CompilerBootstrap.Start()` through `extraParams.hxml` only for
+  typed validation or a non-conflicting vendored-framework fallback.
+- Never reorder classpaths through `Dynamic`/`Reflect` access to
+  `Compiler.getConfiguration()`.
+- Keep robust target detection (defines + args + nested HXML fallback) in
+  compiler initialization and policy macros, not in std override selection.
 
 ## 2) Init + registration
 

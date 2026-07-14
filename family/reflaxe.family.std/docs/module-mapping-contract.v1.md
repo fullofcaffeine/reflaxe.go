@@ -71,11 +71,15 @@ their ownership split is easy to misunderstand.
 | `haxe.rtti.*` (`CType`, `Meta`, `Rtti`, `XmlParser`) | `mixed` | `std/go/_std/haxe/rtti/*.hx` | class-token `__meta__` / `__rtti` lookup contract plus anonymous-record array-field mutation lowering in the compiler | `semantic_diff/haxe_rtti_direct_contract`, `stdlib/haxe_rtti_direct` |
 | `Lambda` and generic `Iterable<T>` call sites | `mixed` | source-owned `Lambda` plus staged iterator overrides under `std/go/_std/haxe/iterators/*.hx` | `src/reflaxe/go/compiler/GoLambdaIterableLowering.hx` owns the small representation bridge for arrays, `haxe.ds.List`, and unknown manual-iterator carriers; `GoCompiler.hx` keeps only the direct optimized call lowering around that bridge | `lambda_generic_iterable_count_empty_contract`, `lambda_iter_generic_iterable_contract`, `stringbuf_datetools_lambda_contract` |
 
-## Notes on Staged Source Injection
+## Notes on Staged Source Selection
 
-Staged portable overrides are injected first for Go builds by:
+Source-checkout builds put staged portable overrides on the initial classpath
+before any macro is typed through:
 
-- `src/reflaxe/go/CompilerBootstrap.hx`
+- `haxe_libraries/reflaxe.go.hxml`
+
+`CompilerBootstrap` does not own override precedence; installed packages use
+the corresponding flattened `src/**/*.cross.hx` artifacts.
 
 The canonical override inventory and its compiler-shim splits are locked by
 `docs/stdlib-provenance-ledger.json`; Tier1 rows above record the corresponding

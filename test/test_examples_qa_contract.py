@@ -74,6 +74,27 @@ class ExamplesQaContractTest(unittest.TestCase):
         self.assertIn("compare_stdout(case.expected_stdout", text)
         self.assertIn("collect_tree_deltas(case.generated_dir, case.out_dir)", text)
 
+    def test_example_builds_use_canonical_library_classpaths(self) -> None:
+        module = load_run_examples_module()
+        failures: list[str] = []
+        for case in module.discover_cases():
+            for path in (case.compile_hxml, case.compile_ci_hxml):
+                text = path.read_text(encoding="utf-8")
+                relative = path.relative_to(REPO_ROOT).as_posix()
+                classpath_directives = [
+                    line.strip()
+                    for line in text.splitlines()
+                    if line.strip().startswith(("-cp ", "-p ", "--class-path ", "-lib ", "--library "))
+                ]
+                if classpath_directives != ["-cp .", "-lib reflaxe.go"]:
+                    failures.append(
+                        f"{relative}: unexpected source classpath directives {classpath_directives!r}"
+                    )
+                if "CompilerBootstrap.Start" in text or "CompilerInit.Start" in text:
+                    failures.append(f"{relative}: duplicates library-owned compiler macros")
+
+        self.assertEqual([], failures)
+
     def test_ci_and_agent_docs_treat_examples_as_qa_contracts(self) -> None:
         package_json = PACKAGE_JSON.read_text(encoding="utf-8")
         run_ci = RUN_CI.read_text(encoding="utf-8")

@@ -64,11 +64,16 @@ The canonical target root is `std/go/_std`. Its directory structure mirrors
 upstream Haxe module paths, so `std/go/_std/haxe/Json.hx` owns the Go-target
 replacement for `haxe.Json`.
 
-During the transition, `CompilerBootstrap` injects the canonical root first,
-then the legacy `std/_std` support root, ordinary `std`, and vendored
-Reflaxe—but only when `BuildDetection.isGoBuild()` identifies a Go build.
-The typed initial-classpath task will replace that reflective transition
-without broadening activation to generic `Cross`.
+Source builds declare `src`, ordinary `std`, the transitional `std/_std`
+support root, and canonical `std/go/_std` in
+`haxe_libraries/reflaxe.go.hxml` before any macro is typed. The canonical root
+comes last, which gives it effective Haxe override precedence. A companion
+`haxe_libraries/reflaxe.hxml` supplies vendored Reflaxe at the same initial
+configuration stage.
+
+`CompilerBootstrap` no longer changes classpath order. It only provides a
+typed, non-conflicting vendored-Reflaxe fallback for direct
+`extraParams.hxml` consumers and diagnoses an invalid source/package layout.
 
 ## Current Coexistence Risk
 
@@ -96,8 +101,8 @@ Current status:
 The remaining sequence is explicit:
 
 1. move support and typed runtime bindings to their ledger destinations;
-2. declare target classpaths before typing without reflective configuration
-   surgery;
+2. keep target classpaths declared before typing without reflective
+   configuration surgery;
 3. generate `.cross.hx` only while staging a package;
 4. keep mixed-target detection narrow and fail fast when sibling targets
    conflict.

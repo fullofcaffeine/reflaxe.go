@@ -17,7 +17,7 @@ Canonical ownership rule: `docs/ownership-rubric.md`.
 
 - runtime helpers in `runtime/hxrt/hxrt.go`
 - compiler-emitted stdlib shims in `src/reflaxe/go/GoCompiler.hx`
-- staged stdlib sources under `std/go/_std` (wired by `src/reflaxe/go/CompilerBootstrap.hx`)
+- staged stdlib sources under `std/go/_std` (selected before typing by `haxe_libraries/reflaxe.go.hxml`)
 
 This document records which compiler-core shims should stay, which should migrate, and why.
 For runtime package internals and call-flow wiring, see `docs/hxrt-runtime.md`.

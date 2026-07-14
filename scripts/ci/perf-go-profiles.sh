@@ -497,6 +497,10 @@ compile_haxe_case() {
     local -a haxe_args=(
       -cp .
       -cp "$root_dir/src"
+      -cp "$root_dir/vendor/reflaxe/src"
+      -cp "$root_dir/std"
+      -cp "$root_dir/std/_std"
+      -cp "$root_dir/std/go/_std"
       --macro "reflaxe.go.CompilerBootstrap.Start()"
       --macro "reflaxe.go.CompilerInit.Start()"
       -D "go_output=$out_dir"

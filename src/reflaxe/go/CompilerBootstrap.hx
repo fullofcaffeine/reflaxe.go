@@ -7,9 +7,21 @@ import haxe.macro.Context;
 import sys.FileSystem;
 #end
 
+/**
+	What: validates or supplies the vendored Reflaxe framework before compiler initialization.
+
+	Why: source builds declare std override precedence in `haxe_libraries/reflaxe.go.hxml`,
+	so changing compiler configuration after macro startup would be too late and unsupported.
+	Direct `extraParams.hxml` consumers still need a typed fallback for the vendored framework.
+
+	How: source-checkout library HXML places every precedence-sensitive path on the initial
+	classpath. This bootstrap only appends the non-conflicting vendored Reflaxe path when the
+	local `reflaxe` library was not loaded, accepts a release package where Reflaxe is already
+	flattened into `src`, and otherwise emits a typed fatal diagnostic.
+**/
 class CompilerBootstrap {
 	#if macro
-	static var bootstrapped = false;
+	static var bootstrapped:Bool = false;
 
 	public static function Start():Void {
 		if (bootstrapped) {
@@ -19,80 +31,20 @@ class CompilerBootstrap {
 
 		var root = findLibraryRoot();
 		var vendoredReflaxe = Path.normalize(Path.join([root, "vendor", "reflaxe", "src"]));
-		var standardLibrary = Path.normalize(Path.join([root, "std"]));
-		var canonicalStd = Path.normalize(Path.join([root, "std", "go", "_std"]));
-		var legacyTargetSupport = Path.normalize(Path.join([root, "std", "_std"]));
-
-		if (BuildDetection.isGoBuild()) {
-			injectClassPathsFirst(filterExistingPaths([canonicalStd, legacyTargetSupport, standardLibrary, vendoredReflaxe]));
-			return;
-		}
-
-		injectClassPathsFirst(filterExistingPaths([vendoredReflaxe]));
-	}
-
-	static function filterExistingPaths(paths:Array<String>):Array<String> {
-		var out = new Array<String>();
-		for (path in paths) {
-			var normalized = Path.normalize(path);
-			if (!FileSystem.exists(normalized) || !FileSystem.isDirectory(normalized)) {
-				continue;
-			}
-			out.push(normalized);
-		}
-		return out;
-	}
-
-	static function injectClassPathsFirst(paths:Array<String>):Void {
-		if (paths == null || paths.length == 0) {
-			return;
-		}
-
-		var config = Compiler.getConfiguration();
-		if (config == null) {
-			for (path in paths) {
-				Compiler.addClassPath(path);
+		if (FileSystem.exists(vendoredReflaxe) && FileSystem.isDirectory(vendoredReflaxe)) {
+			if (!Context.defined("reflaxe")) {
+				Compiler.addClassPath(vendoredReflaxe);
 			}
 			return;
 		}
 
-		var classPathField = "classPath";
-		var existingDynamic:Dynamic = null;
-		if (Reflect.hasField(config, "classPath")) {
-			existingDynamic = Reflect.field(config, "classPath");
-		} else if (Reflect.hasField(config, "classPaths")) {
-			classPathField = "classPaths";
-			existingDynamic = Reflect.field(config, "classPaths");
-		}
-
-		if (existingDynamic == null || !Std.isOfType(existingDynamic, Array)) {
-			for (path in paths) {
-				Compiler.addClassPath(path);
-			}
+		var packagedReflaxe = Path.normalize(Path.join([root, "src", "reflaxe", "ReflectCompiler.hx"]));
+		if (FileSystem.exists(packagedReflaxe) && !FileSystem.isDirectory(packagedReflaxe)) {
 			return;
 		}
 
-		var existing:Array<String> = cast existingDynamic;
-		var injected = new Map<String, Bool>();
-		var dedupedPaths = new Array<String>();
-		for (path in paths) {
-			var normalized = Path.normalize(path);
-			if (injected.exists(normalized)) {
-				continue;
-			}
-			injected.set(normalized, true);
-			dedupedPaths.push(path);
-		}
-
-		var keep = new Array<String>();
-		for (path in existing) {
-			var normalized = Path.normalize(path);
-			if (!injected.exists(normalized)) {
-				keep.push(path);
-			}
-		}
-
-		Reflect.setField(config, classPathField, dedupedPaths.concat(keep));
+		Context.fatalError("Reflaxe.Go could not resolve its vendored Reflaxe framework. Use the checked-in library HXML or a package staged with vendored Reflaxe sources.",
+			Context.currentPos());
 	}
 
 	static function findLibraryRoot():String {

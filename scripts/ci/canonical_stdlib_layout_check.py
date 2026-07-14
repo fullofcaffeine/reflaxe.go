@@ -24,6 +24,7 @@ EXPECTED_SOURCE_CLASS_PATHS = [
     "${SCOPE_DIR}/std",
     "${SCOPE_DIR}/std/go/_std",
 ]
+EXPECTED_REFLAXE_CLASS_PATH = "${SCOPE_DIR}/vendor/reflaxe/src"
 TEXT_SUFFIXES = {
     ".go",
     ".hxml",
@@ -76,6 +77,20 @@ def normalized_hxml_class_paths(path: Path) -> list[str]:
             continue
         class_paths.append(value.rstrip("/\\"))
     return class_paths
+
+
+def hxml_libraries(path: Path) -> list[str]:
+    if not path.is_file():
+        return []
+
+    libraries: list[str] = []
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if line.startswith("-lib "):
+            libraries.append(line[5:].strip())
+        elif line.startswith("--library "):
+            libraries.append(line[len("--library ") :].strip())
+    return libraries
 
 
 def has_ordered_subsequence(values: list[str], expected: list[str]) -> bool:
@@ -186,7 +201,22 @@ def audit_source_layout(root: Path) -> list[Violation]:
             )
         )
 
-    config_paths = [manifest_path, root / "extraParams.hxml", hxml_path]
+    reflaxe_hxml_path = root / "haxe_libraries" / "reflaxe.hxml"
+    reflaxe_class_paths = normalized_hxml_class_paths(reflaxe_hxml_path)
+    if (
+        "reflaxe" not in hxml_libraries(hxml_path)
+        or EXPECTED_REFLAXE_CLASS_PATH not in reflaxe_class_paths
+    ):
+        violations.append(
+            Violation(
+                "source-vendored-reflaxe-pretyping",
+                "haxe_libraries/reflaxe.go.hxml, haxe_libraries/reflaxe.hxml",
+                "source builds must load vendored Reflaxe through an explicit initial library "
+                f"classpath ({EXPECTED_REFLAXE_CLASS_PATH})",
+            )
+        )
+
+    config_paths = [manifest_path, root / "extraParams.hxml", hxml_path, reflaxe_hxml_path]
     leaked_configs: list[str] = []
     for path in config_paths:
         if not path.is_file():

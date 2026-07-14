@@ -330,10 +330,7 @@ compile_haxe_lane() {
     cd "$root_dir/examples/$app"
     "$haxe_bin" \
       -cp . \
-      -cp ../../src \
-      -cp ../../vendor/reflaxe/src \
-      --macro reflaxe.go.CompilerBootstrap.Start\(\) \
-      --macro reflaxe.go.CompilerInit.Start\(\) \
+      -lib reflaxe.go \
       -D "go_output=$out_dir" \
       -D "go_module=perf_${app}_${profile}_${variant}" \
       -D "reflaxe_go_profile=$profile" \

@@ -46,8 +46,13 @@ def write_canonical_source(root: Path) -> None:
         "-cp ${SCOPE_DIR}/src/\n"
         "-cp ${SCOPE_DIR}/std/\n"
         "-cp ${SCOPE_DIR}/std/go/_std/\n"
+        "-lib reflaxe\n"
         "--macro reflaxe.go.CompilerBootstrap.Start()\n"
         "--macro reflaxe.go.CompilerInit.Start()\n",
+        encoding="utf-8",
+    )
+    (root / "haxe_libraries" / "reflaxe.hxml").write_text(
+        "-cp ${SCOPE_DIR}/vendor/reflaxe/src/\n",
         encoding="utf-8",
     )
     override = root / "std" / "go" / "_std" / "Lambda.hx"
@@ -129,7 +134,7 @@ class CanonicalStdLayoutAuditTest(unittest.TestCase):
                 hxml.read_text(encoding="utf-8").replace(
                     "-cp ${SCOPE_DIR}/std/\n-cp ${SCOPE_DIR}/std/go/_std/\n",
                     "-cp ${SCOPE_DIR}/std/go/_std/\n-cp ${SCOPE_DIR}/std/\n",
-                ),
+                ).replace("-lib reflaxe\n", ""),
                 encoding="utf-8",
             )
             override = source_root / "std" / "go" / "_std" / "Lambda.hx"
@@ -142,7 +147,18 @@ class CanonicalStdLayoutAuditTest(unittest.TestCase):
             codes = {violation.code for violation in audit_source_layout(source_root)}
             self.assertIn("source-cross-files", codes)
             self.assertIn("source-classpath-precedence", codes)
+            self.assertIn("source-vendored-reflaxe-pretyping", codes)
             self.assertIn("absolute-path-leak", codes)
+
+    def test_live_bootstrap_avoids_reflective_classpath_surgery(self) -> None:
+        bootstrap = (ROOT / "src" / "reflaxe" / "go" / "CompilerBootstrap.hx").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("Compiler.getConfiguration", bootstrap)
+        self.assertNotIn("injectClassPathsFirst", bootstrap)
+        self.assertNotRegex(bootstrap, r"\b(?:Dynamic|Reflect)\b")
+        self.assertIn("Compiler.addClassPath(vendoredReflaxe)", bootstrap)
+        self.assertIn("Context.fatalError", bootstrap)
 
     def test_package_contract_rejects_unflattened_or_path_leaking_layout(self) -> None:
         with tempfile.TemporaryDirectory(prefix="haxe-go-canonical-std-bad-package-") as raw:
@@ -167,6 +183,103 @@ class CanonicalStdLayoutAuditTest(unittest.TestCase):
 @unittest.skipUnless(shutil.which("haxe") and shutil.which("go"), "requires Haxe and Go")
 class CanonicalStdSelectionBehaviorTest(unittest.TestCase):
     maxDiff = None
+
+    def test_bootstrap_diagnoses_missing_reflaxe_and_accepts_flattened_package(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-bootstrap-layout-") as raw:
+            package_root = Path(raw)
+            compiler_src = package_root / "src"
+            app = package_root / "app"
+            bootstrap = compiler_src / "reflaxe" / "go" / "CompilerBootstrap.hx"
+            bootstrap.parent.mkdir(parents=True)
+            app.mkdir()
+            shutil.copyfile(ROOT / "src" / "reflaxe" / "go" / "CompilerBootstrap.hx", bootstrap)
+            (app / "Main.hx").write_text(
+                "class Main { static function main():Void {} }\n",
+                encoding="utf-8",
+            )
+            command = [
+                shutil.which("haxe") or "haxe",
+                "-cp",
+                str(app),
+                "-cp",
+                str(compiler_src),
+                "--macro",
+                "reflaxe.go.CompilerBootstrap.Start()",
+                "-main",
+                "Main",
+                "--interp",
+            ]
+
+            missing = subprocess.run(
+                command,
+                cwd=app,
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+            self.assertNotEqual(0, missing.returncode)
+            self.assertIn("could not resolve its vendored Reflaxe framework", missing.stderr)
+
+            flattened_reflaxe = compiler_src / "reflaxe" / "ReflectCompiler.hx"
+            flattened_reflaxe.write_text(
+                "package reflaxe; class ReflectCompiler {}\n",
+                encoding="utf-8",
+            )
+            packaged = subprocess.run(
+                command,
+                cwd=app,
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+            self.assertEqual(
+                0,
+                packaged.returncode,
+                "flattened package bootstrap failed:\n" + packaged.stdout + packaged.stderr,
+            )
+
+    def test_non_go_bootstrap_resolves_vendored_reflaxe(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-non-go-bootstrap-") as raw:
+            app = Path(raw)
+            (app / "Main.hx").write_text(
+                "class Main { static function main():Void {} }\n",
+                encoding="utf-8",
+            )
+            (app / "VendoredReflaxeProbe.hx").write_text(
+                "#if macro\n"
+                "class VendoredReflaxeProbe {\n"
+                "  public static function run():Void {\n"
+                '    haxe.macro.Context.resolvePath("reflaxe/ReflectCompiler.hx");\n'
+                "  }\n"
+                "}\n"
+                "#end\n",
+                encoding="utf-8",
+            )
+            process = subprocess.run(
+                [
+                    shutil.which("haxe") or "haxe",
+                    "-cp",
+                    str(app),
+                    "-cp",
+                    str(ROOT / "src"),
+                    "--macro",
+                    "reflaxe.go.CompilerBootstrap.Start()",
+                    "--macro",
+                    "VendoredReflaxeProbe.run()",
+                    "-main",
+                    "Main",
+                    "--interp",
+                ],
+                cwd=app,
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+            self.assertEqual(
+                0,
+                process.returncode,
+                "non-Go bootstrap failed:\n" + process.stdout + process.stderr,
+            )
 
     def run_haxe_go(
         self,

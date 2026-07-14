@@ -2,9 +2,6 @@
   "schemaVersion": 1,
   "sourceLayout": "expected-red",
   "expectedViolationCodes": [
-    "source-canonical-root-missing",
-    "source-classpath-precedence",
-    "source-cross-files",
-    "source-std-paths"
+    "source-cross-files"
   ]
 }

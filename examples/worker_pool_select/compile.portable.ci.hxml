@@ -1,8 +1,5 @@
 -cp .
--cp ../../src
--cp ../../vendor/reflaxe/src
---macro reflaxe.go.CompilerBootstrap.Start()
---macro reflaxe.go.CompilerInit.Start()
+-lib reflaxe.go
 -D go_output=out_portable_ci
 -D go_module=examples_worker_pool_select_portable_ci
 -D reflaxe_go_profile=portable

@@ -1,3 +1,18 @@
--cp ../../../../src
+# Reflaxe.Go source-checkout configuration.
+#
+# Haxe gives later classpaths effective override precedence, so ordinary target
+# overrides must follow the shared std/support roots before any macro is typed.
+# Package staging flattens std/go/_std into src/**/*.cross.hx instead.
+
+-cp ${SCOPE_DIR}/src/
+-cp ${SCOPE_DIR}/std/
+# Transitional support root; haxe_go-vfp.5.4 removes it after relocating the
+# remaining target-support and typed runtime modules.
+-cp ${SCOPE_DIR}/std/_std/
+-cp ${SCOPE_DIR}/std/go/_std/
+
+-lib reflaxe
+
+-D reflaxe.go=0.0.0-development
 --macro reflaxe.go.CompilerBootstrap.Start()
 --macro reflaxe.go.CompilerInit.Start()

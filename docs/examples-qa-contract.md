@@ -46,6 +46,11 @@ For each discovered lane, the example must also provide:
 - `expected/<profile>.ci.stdout`
 - `generated/<profile>/`
 
+Each example HXML loads `-lib reflaxe.go`. The source library HXML owns the
+initial compiler, vendored Reflaxe, support, and canonical `_std` classpath
+order; examples must not duplicate those paths or invoke compiler macros
+directly.
+
 If an example has a `README.md`, it must have at least one discovered profile
 lane. This prevents new example directories from being accidentally invisible to
 CI.
