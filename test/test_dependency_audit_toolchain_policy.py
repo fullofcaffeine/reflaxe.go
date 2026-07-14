@@ -12,10 +12,11 @@ AUDIT_DOC = REPO_ROOT / "docs" / "security-dependency-audit.md"
 
 
 class DependencyAuditToolchainPolicyTest(unittest.TestCase):
-    def test_govulncheck_default_is_pinned_to_go_123_compatible_release(self) -> None:
+    def test_govulncheck_default_pin_is_not_mistaken_for_build_support(self) -> None:
         script = DEPENDENCY_AUDIT.read_text(encoding="utf-8")
         self.assertIn('govulncheck_version="${GOVULNCHECK_VERSION:-v1.1.4}"', script)
-        self.assertIn("v1.2.0+ currently requires Go 1.25+", script)
+        self.assertIn("docs/toolchain-policy.md is authoritative", script)
+        self.assertNotIn("Go 1.22/1.23 CI lanes", script)
         self.assertNotIn('govulncheck_version="${GOVULNCHECK_VERSION:-latest}"', script)
 
     def test_govulncheck_annotations_are_repo_classified(self) -> None:

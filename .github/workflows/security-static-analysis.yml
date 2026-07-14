@@ -18,8 +18,8 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  NODE_VERSION: "20"
-  GO_VERSION: "1.23.x"
+  NODE_VERSION: "24"
+  GO_VERSION: "1.26.x"
 
 jobs:
   dependency-review:

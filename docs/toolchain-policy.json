@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "effective_date": "2026-07-14",
+  "haxe": {
+    "supported_versions": [
+      "4.3.7"
+    ],
+    "recommended_version": "4.3.7",
+    "ci_selector": "4.3.7",
+    "upstream_status": "current stable",
+    "source": "https://haxe.org/download/list/"
+  },
+  "go": {
+    "generated_language_floor": "1.22",
+    "supported_build_lines": [
+      "1.25",
+      "1.26"
+    ],
+    "recommended_build_line": "1.26",
+    "ci_selectors": [
+      "1.25.x",
+      "1.26.x"
+    ],
+    "patch_policy": "latest available patch in each supported line",
+    "source": "https://go.dev/doc/devel/release"
+  },
+  "node": {
+    "supported_tooling_lines": [
+      "24"
+    ],
+    "recommended_tooling_line": "24",
+    "ci_selector": "24",
+    "upstream_status": "Active LTS",
+    "source": "https://github.com/nodejs/Release"
+  },
+  "compatibility_probes": [
+    {
+      "id": "goextern-fixtures-go1.23",
+      "toolchain_line": "1.23",
+      "purpose": "committed generator-drift fixture",
+      "production_supported": false,
+      "security_supported": false
+    }
+  ],
+  "release": {
+    "require_exact_patch_evidence": true,
+    "require_supported_lines": true,
+    "allow_compatibility_probe_as_support_evidence": false
+  }
+}

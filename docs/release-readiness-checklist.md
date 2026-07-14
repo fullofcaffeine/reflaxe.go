@@ -5,32 +5,37 @@ Run these checks from repo root on a clean branch before a release cut.
 
 ## Required GA gates
 
-1. Full CI harness contract:
+1. Supported toolchain contract:
+   - Read the [supported toolchain policy](toolchain-policy.md).
+   - Confirm the candidate jobs use supported Haxe, Go, and Node lines.
+   - Record the exact resolved patch versions; a floating CI selector is not
+     release provenance.
+2. Full CI harness contract:
    - `python3 test/run-ci.py`
-2. Snapshot + semantic baseline (already included in CI harness, can be run directly for debugging):
+3. Snapshot + semantic baseline (already included in CI harness, can be run directly for debugging):
    - `python3 test/run-snapshots.py`
    - `python3 test/run-semantic-diff.py`
-3. Portable parity closure visibility:
+4. Portable parity closure visibility:
    - `python3 test/run-portable-stdlib-inventory.py`
    - `python3 test/run-portable-parity-closure.py`
-4. Ownership and stdlib governance gates:
+5. Ownership and stdlib governance gates:
    - `npm run test:stdlib:governance`
    - `npm run test:release-contracts`
-5. Family stdlib sync gates:
+6. Family stdlib sync gates:
    - `npm run test:family-stdlib-sync`
    - `npm run test:family-stdlib-bootstrap`
-6. Release visibility contract:
+7. Release visibility contract:
    - `npm run release:status`
-7. Performance visibility gates:
+8. Performance visibility gates:
    - `npm run test:perf:go`
    - `npm run test:perf:hxrt-selective`
    - `npm run test:perf:apps`
-8. Production caveat scoreboard review:
+9. Production caveat scoreboard review:
    - Read `docs/known-gaps.md#production-hardening-scoreboard`
    - Confirm each row still has an owner, current decision, evidence, and reopen trigger.
    - Confirm the scoreboard references durable evidence links and commands, not retired tracker IDs.
    - For multi-package output, check `docs/multi-package-output-evaluation.md#measurable-production-reopen-triggers` before filing implementation work.
-9. Performance budget policy review:
+10. Performance budget policy review:
    - Read `docs/performance-budget-policy.md`
    - Confirm warning-only perf drift is not being treated as release-blocking without the promotion criteria in that policy.
 
@@ -62,6 +67,11 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 
 ## Pass criteria
 
+- Candidate Haxe, Go, and Node versions match
+  [`toolchain-policy.json`](toolchain-policy.json), and the evidence index
+  records exact resolved patch versions.
+- The generated `go 1.22` directive remains a language-floor contract; it
+  does not make an old compatibility fixture production-supported.
 - `python3 test/run-ci.py` exits `0` with no failed stages.
 - `python3 test/run-portable-stdlib-inventory.py` exits `0` and every remaining `compile-only` module carries blocker issue + target metadata.
 - `python3 test/run-portable-parity-closure.py` exits `0`, reports `0 actionable blockers`, and keeps any remaining non-semantic-diff surfaces policy-locked as target-sensitive snapshots or explicit exclusions.
@@ -77,6 +87,7 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 ## Related references
 
 - CI stage contract source: `test/run-ci.py`
+- Supported toolchain policy: `docs/toolchain-policy.md`
 - Release automation visibility checks: `docs/release-visibility.md`
 - Snapshot policy: `docs/snapshot-policy.md`
 - Semantic differential guide: `docs/semantic-diff-guide.md`

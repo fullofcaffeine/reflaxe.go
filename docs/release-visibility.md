@@ -8,6 +8,8 @@ npm run release:status
 
 This runs `scripts/release/check-release-state.sh` and verifies:
 
+- supported Haxe, Go, and Node workflow wiring matches
+  [`toolchain-policy.json`](toolchain-policy.json)
 - a reachable semver baseline tag exists from current `HEAD`
 - `package.json` and `haxelib.json` versions match
 - semantic-release `tagFormat` is `v${version}`
@@ -28,5 +30,6 @@ The status script makes those assumptions explicit and machine-checkable before 
 
 - `.github/workflows/ci-harness.yml`
 - `.github/workflows/examples-artifacts.yml`
+- `docs/toolchain-policy.json`
 - `.releaserc.json`
 - `scripts/release/check-release-state.sh`

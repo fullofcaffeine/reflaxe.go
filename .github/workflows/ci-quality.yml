@@ -16,7 +16,7 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  NODE_VERSION: "20"
+  NODE_VERSION: "24"
   HAXE_VERSION: "4.3.7"
   HAXE_SETUP_RETRY_ATTEMPTS: "4"
   HAXE_SETUP_RETRY_DELAY_SEC: "5"
@@ -33,11 +33,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            go: "1.22.x"
+            go: "1.25.x"
           - os: ubuntu-latest
-            go: "1.23.x"
+            go: "1.26.x"
           - os: macos-latest
-            go: "1.23.x"
+            go: "1.26.x"
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -67,18 +67,9 @@ jobs:
 
       - name: Setup Haxe (macOS)
         if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          set -euo pipefail
-          brew update
-          brew install haxe neko
-          BREW_PREFIX="$(brew --prefix)"
-          echo "${BREW_PREFIX}/bin" >> "$GITHUB_PATH"
-          echo "DYLD_LIBRARY_PATH=$(brew --prefix neko)/lib:${DYLD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
-          echo "HAXE_STD_PATH=$(brew --prefix haxe)/lib/haxe/std" >> "$GITHUB_ENV"
-          command -v haxe
-          command -v haxelib
-          haxe -version
+        uses: krdlab/setup-haxe@v2
+        with:
+          haxe-version: ${{ env.HAXE_VERSION }}
 
       - name: Run stable CI surface
         run: npm run test:ci

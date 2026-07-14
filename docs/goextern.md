@@ -230,6 +230,9 @@ npm run test:goextern:fixtures
 Those committed fixtures are pinned to one Go release because the Go standard
 library surface can change between releases. The default pinned release is Go
 `1.23`, controlled by `GOEXTERN_FIXTURE_GO_VERSION` in `test/run-ci.py`.
+This non-production compatibility fixture does not establish security support.
+The supported build lines are governed separately by
+[`toolchain-policy.json`](toolchain-policy.json).
 
 Full CI still runs `goextern` confidence checks on other local Go versions:
 

@@ -68,6 +68,9 @@ python3 test/run-ci.py
 The project is intended to be usable with documented production caveats. Before
 using it as a release dependency, read:
 
+- [docs/toolchain-policy.md](docs/toolchain-policy.md) for supported Haxe, Go,
+  and Node versions and the distinction between the generated Go language floor
+  and patched build toolchains.
 - [docs/release-readiness-checklist.md](docs/release-readiness-checklist.md) for
   the required validation gates.
 - [docs/known-gaps.md](docs/known-gaps.md) for target-sensitive APIs,
@@ -166,6 +169,7 @@ By default the backend runs `go build` after codegen. Use `-D go_no_build` for c
 - Versioned semantics: [docs/portable-semantics-v1.md](docs/portable-semantics-v1.md)
 - `hxrt` runtime: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
 - Feature support matrix: [docs/feature-support-matrix.md](docs/feature-support-matrix.md)
+- Supported toolchains: [docs/toolchain-policy.md](docs/toolchain-policy.md)
 - Defines reference: [docs/defines-reference.md](docs/defines-reference.md)
 - Semantic diff guide: [docs/semantic-diff-guide.md](docs/semantic-diff-guide.md)
 - Release readiness checklist: [docs/release-readiness-checklist.md](docs/release-readiness-checklist.md)

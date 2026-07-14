@@ -14,6 +14,7 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  GO_VERSION: "1.26.x"
 
 jobs:
   build:
@@ -27,7 +28,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: "1.22.x"
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Build examples binary matrix
         run: bash scripts/examples/build-binaries.sh

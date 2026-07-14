@@ -58,6 +58,32 @@ parse_repo_slug() {
 require_command git
 require_command node
 
+require_file "docs/toolchain-policy.json"
+POLICY_HAXE_SELECTOR="$(node -p "require('./docs/toolchain-policy.json').haxe.ci_selector")"
+POLICY_GO_FLOOR="$(node -p "require('./docs/toolchain-policy.json').go.generated_language_floor")"
+POLICY_GO_SELECTORS="$(node -p "require('./docs/toolchain-policy.json').go.ci_selectors.join(' ')")"
+POLICY_GO_RECOMMENDED_SELECTOR="$(node -p "require('./docs/toolchain-policy.json').go.recommended_build_line + '.x'")"
+POLICY_NODE_SELECTOR="$(node -p "require('./docs/toolchain-policy.json').node.ci_selector")"
+
+require_file ".github/workflows/ci-quality.yml"
+require_contains ".github/workflows/ci-quality.yml" "HAXE_VERSION: \"${POLICY_HAXE_SELECTOR}\"" "supported Haxe selector"
+require_contains ".github/workflows/ci-quality.yml" "NODE_VERSION: \"${POLICY_NODE_SELECTOR}\"" "supported Node selector"
+for selector in $POLICY_GO_SELECTORS; do
+  require_contains ".github/workflows/ci-quality.yml" "go: \"${selector}\"" "supported Go matrix selector ${selector}"
+done
+
+for workflow in .github/workflows/ci-harness.yml .github/workflows/security-static-analysis.yml; do
+  require_file "$workflow"
+  require_contains "$workflow" "NODE_VERSION: \"${POLICY_NODE_SELECTOR}\"" "recommended Node selector"
+  require_contains "$workflow" "GO_VERSION: \"${POLICY_GO_RECOMMENDED_SELECTOR}\"" "recommended Go selector"
+done
+
+require_file ".github/workflows/examples-artifacts.yml"
+require_contains ".github/workflows/examples-artifacts.yml" "GO_VERSION: \"${POLICY_GO_RECOMMENDED_SELECTOR}\"" "recommended example-build Go selector"
+require_contains "src/reflaxe/go/GoReflaxeCompiler.hx" "\"go ${POLICY_GO_FLOOR}\"" "generated Go language floor"
+require_contains "src/reflaxe/go/GoOutputIterator.hx" "\"go ${POLICY_GO_FLOOR}\"" "iterator Go language floor"
+log "toolchain policy wiring: Haxe ${POLICY_HAXE_SELECTOR}, Go ${POLICY_GO_SELECTORS} (recommended ${POLICY_GO_RECOMMENDED_SELECTOR}), Node ${POLICY_NODE_SELECTOR}, generated floor ${POLICY_GO_FLOOR}"
+
 TAG_REGEX='^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'
 SEMVERS="$(git tag --merged HEAD | grep -E "$TAG_REGEX" || true)"
 if [[ -z "$SEMVERS" ]]; then

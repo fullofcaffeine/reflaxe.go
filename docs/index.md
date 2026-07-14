@@ -32,6 +32,7 @@ This page helps you find the right docs quickly.
 - [Examples QA contract](examples-qa-contract.md)
 - [Thinking levels](thinking-levels.md)
 - [Feature support matrix](feature-support-matrix.md)
+- [Supported toolchain policy](toolchain-policy.md)
 - [Release readiness checklist](release-readiness-checklist.md)
 - [Security dependency audit](security-dependency-audit.md)
 - [Performance budget policy](performance-budget-policy.md)

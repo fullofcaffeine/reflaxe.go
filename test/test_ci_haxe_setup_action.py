@@ -25,9 +25,11 @@ class CiHaxeSetupActionTest(unittest.TestCase):
         for path in WORKFLOW_PATHS:
             workflow = path.read_text(encoding="utf-8")
             self.assertIn("uses: ./.github/actions/setup-haxe-linux", workflow)
-            self.assertNotIn("uses: krdlab/setup-haxe@v2", workflow)
             self.assertNotIn("bash scripts/ci/setup-haxe-linux-fallback.sh", workflow)
             self.assertNotIn("id: setup_haxe_linux", workflow)
+
+        harness = WORKFLOW_PATHS[1].read_text(encoding="utf-8")
+        self.assertNotIn("uses: krdlab/setup-haxe@v2", harness)
 
     def test_ci_harness_uses_shared_haxe_setup_for_each_linux_job(self) -> None:
         workflow = (REPO_ROOT / ".github" / "workflows" / "ci-harness.yml").read_text(encoding="utf-8")
@@ -37,7 +39,9 @@ class CiHaxeSetupActionTest(unittest.TestCase):
         workflow = (REPO_ROOT / ".github" / "workflows" / "ci-quality.yml").read_text(encoding="utf-8")
         self.assertEqual(workflow.count("uses: ./.github/actions/setup-haxe-linux"), 1)
         self.assertIn("Setup Haxe (macOS)", workflow)
-        self.assertIn("brew install haxe neko", workflow)
+        self.assertIn("uses: krdlab/setup-haxe@v2", workflow)
+        self.assertIn("haxe-version: ${{ env.HAXE_VERSION }}", workflow)
+        self.assertNotIn("brew install haxe neko", workflow)
 
 
 if __name__ == "__main__":

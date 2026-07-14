@@ -5,9 +5,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
-# Keep the default aligned with the repository's Go 1.22/1.23 CI lanes.
-# golang.org/x/vuln v1.2.0+ currently requires Go 1.25+, so `latest` is not
-# reproducible for this repo until the supported Go floor is raised.
+# This explicit tool version makes audit output reproducible. It does not define
+# supported Go build lines; docs/toolchain-policy.md is authoritative for those.
+# The fail-closed vulnerability-policy slice owns future govulncheck upgrades.
 govulncheck_version="${GOVULNCHECK_VERSION:-v1.1.4}"
 govulncheck_install_attempts="${GOVULNCHECK_INSTALL_ATTEMPTS:-3}"
 govulncheck_retry_delay_sec="${GOVULNCHECK_INSTALL_RETRY_DELAY_SEC:-2}"
