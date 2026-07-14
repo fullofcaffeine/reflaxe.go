@@ -351,6 +351,14 @@ class GoASTPrinter {
 				out.add(useShort ? " := " : " = ");
 				out.add(printExpr(recv));
 				out.add(":\n");
+			case GoSelectClause.GoSelectRecvAssignOk(target, okTarget, recv, useShort):
+				out.add("case ");
+				out.add(printExpr(target));
+				out.add(", ");
+				out.add(printExpr(okTarget));
+				out.add(useShort ? " := " : " = ");
+				out.add(printExpr(recv));
+				out.add(":\n");
 			case GoSelectClause.GoSelectDefault:
 				out.add("default:\n");
 		}

@@ -12,7 +12,9 @@ package sys.thread;
 
 	How
 	- The worker blocks on the shared deque, executes each task, and exits only when
-	  `FixedThreadPoolShutdownException` is raised by the pool shutdown path.
+	  `FixedThreadPoolShutdownException` is raised by the pool shutdown path. Any
+	  other Haxe throw starts a replacement worker before the original value is
+	  rethrown for normal portable-thread reporting, so queued accepted work drains.
 **/
 class FixedThreadPoolWorker {
 	final queue:Deque<() -> Void>;
@@ -30,6 +32,13 @@ class FixedThreadPoolWorker {
 					task();
 				}
 			}
-		} catch (_:FixedThreadPoolShutdownException) {}
+		} catch (_:FixedThreadPoolShutdownException) {
+			return;
+		} catch (err:Dynamic) {
+			// Dynamic catch is intentional: Haxe tasks may throw any Haxe value. Replace
+			// this worker before preserving that value for the thread-level reporter.
+			Thread.create(loop);
+			throw err;
+		}
 	}
 }

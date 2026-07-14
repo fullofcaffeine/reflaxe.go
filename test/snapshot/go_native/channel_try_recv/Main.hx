@@ -15,5 +15,15 @@ class Main {
 
 		var emptyAgain = ch.tryRecv();
 		Sys.println(emptyAgain.isErr());
+
+		ch.send(12);
+		ch.close();
+		var bufferedBeforeClose = ch.tryRecv();
+		Sys.println(bufferedBeforeClose.isOk());
+		Sys.println(bufferedBeforeClose.unwrap());
+		var closed = ch.tryRecv();
+		Sys.println(closed.isErr());
+		Sys.println(closed.error());
+		Sys.println(ch.recvOr(-1));
 	}
 }

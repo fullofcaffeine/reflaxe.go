@@ -36,6 +36,16 @@ enum GoSelectClause {
 	GoSelectSend(channel:GoExpr, value:GoExpr);
 	GoSelectRecv(recv:GoExpr);
 	GoSelectRecvAssign(target:GoExpr, recv:GoExpr, useShort:Bool);
+
+	/**
+		Why: non-blocking channel lowering must distinguish a temporarily empty
+		channel from a selected receive on a drained closed channel.
+		What: a select receive assignment with both value and comma-ok targets.
+		How: the printer emits `case value, received := <-channel:` (or `=` when
+		`useShort` is false), and every AST transform rewrites both targets.
+	**/
+	GoSelectRecvAssignOk(target:GoExpr, okTarget:GoExpr, recv:GoExpr, useShort:Bool);
+
 	GoSelectDefault;
 }
 

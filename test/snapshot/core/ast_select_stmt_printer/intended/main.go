@@ -14,6 +14,9 @@ func hxrt__test_ast_select_stmt_smoke() {
 		_ = 11
 	case value := <-in:
 		_ = value
+	case value, received := <-in:
+		_ = value
+		_ = received
 	case <-in:
 		_ = 22
 	default:

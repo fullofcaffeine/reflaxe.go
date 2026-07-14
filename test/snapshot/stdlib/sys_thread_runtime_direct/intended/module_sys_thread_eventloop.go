@@ -30,12 +30,12 @@ func (self *sys__thread__EventLoop) repeat(event func(), intervalMs int) any {
 }
 
 func (self *sys__thread__EventLoop) cancel(eventHandler any) {
-	hxrt.ThreadEventLoopCancel(self.__h, hxrt.IntFromNullableAny(func(hx_value_34 any) int {
-		if hx_value_34 == nil {
-			var hx_zero_35 int
-			return hx_zero_35
+	hxrt.ThreadEventLoopCancel(self.__h, hxrt.IntFromNullableAny(func(hx_value_35 any) int {
+		if hx_value_35 == nil {
+			var hx_zero_36 int
+			return hx_zero_36
 		}
-		return hx_value_34.(int)
+		return hx_value_35.(int)
 	}(eventHandler)))
 }
 
@@ -54,26 +54,26 @@ func (self *sys__thread__EventLoop) runPromised(event func()) {
 func (self *sys__thread__EventLoop) progress() *sys__thread__NextEventTime {
 	result := hxrt.ThreadEventLoopProgress(self.__h)
 	_g := result.Kind
-	var hx_switch_36 *sys__thread__NextEventTime
+	var hx_switch_37 *sys__thread__NextEventTime
 	switch _g {
 	case 0:
-		hx_switch_36 = sys__thread__NextEventTime_Now
+		hx_switch_37 = sys__thread__NextEventTime_Now
 	case 1:
-		hx_switch_36 = sys__thread__NextEventTime_Never
+		hx_switch_37 = sys__thread__NextEventTime_Never
 	case 2:
-		var hx_if_37 *sys__thread__NextEventTime
+		var hx_if_38 *sys__thread__NextEventTime
 		if result.Time < 0 {
-			hx_if_37 = sys__thread__NextEventTime_AnyTime(nil)
+			hx_if_38 = sys__thread__NextEventTime_AnyTime(nil)
 		} else {
-			hx_if_37 = sys__thread__NextEventTime_AnyTime(result.Time)
+			hx_if_38 = sys__thread__NextEventTime_AnyTime(result.Time)
 		}
-		hx_switch_36 = hx_if_37
+		hx_switch_37 = hx_if_38
 	case 3:
-		hx_switch_36 = sys__thread__NextEventTime_At(result.Time)
+		hx_switch_37 = sys__thread__NextEventTime_At(result.Time)
 	default:
-		hx_switch_36 = sys__thread__NextEventTime_Never
+		hx_switch_37 = sys__thread__NextEventTime_Never
 	}
-	return hx_switch_36
+	return hx_switch_37
 }
 
 func (self *sys__thread__EventLoop) wait(timeout any) bool {

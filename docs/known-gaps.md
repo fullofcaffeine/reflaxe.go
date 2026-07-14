@@ -133,6 +133,18 @@ current honest contract remains snapshot/runtime evidence.
   reported and terminate only their worker, and foreign Go panics remain fatal.
 - `go.Select` exposes typed deterministic helpers (`recv`, `recv2`, `send`, `send2`) built on non-blocking channel operations.
 - Multi-branch helper priority is explicit and deterministic (`first` branch checked before `second`); it does not model Go runtime pseudo-random ready-case selection.
+- `go.Chan<T>` now distinguishes `"empty"` from drained `"closed"` in
+  `tryRecv`; send-after-close and invalid close retain native Go panics. Channel
+  direction types, range syntax, and native multi-case select remain broader
+  Go-native capability work. See [the concurrency contract](concurrency-contract.md).
+- Re-entrant portable synchronization uses a bounded 64-byte `runtime.Stack`
+  header parse because Go has no supported goroutine-local identity API. The
+  parser is strict, zero-allocation in steady state, and lifecycle-tested; a Go
+  runtime header-format change fails closed rather than corrupting ownership.
+- `sys.thread.Tls` get/set/clear works, but completed-thread value reclamation
+  and detached `go.Go.spawn` identity cleanup are not release-admitted yet.
+  This is tracked by `haxe_go-vfp.10.7`; see the explicit exclusion in the
+  [compatibility matrix](compatibility-support-matrix.md#portable-concurrency).
 
 ## Native specialization caveats
 

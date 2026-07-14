@@ -4,17 +4,17 @@ import (
 	"bytes"
 	"runtime"
 	"sort"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
 )
 
 type ThreadState struct {
-	queueMu   sync.Mutex
-	queueCond *sync.Cond
-	queue     []any
-	eventLoop *EventLoopHandle
+	queueMu     sync.Mutex
+	queueCond   *sync.Cond
+	queue       []any
+	eventLoopMu sync.RWMutex
+	eventLoop   *EventLoopHandle
 }
 
 type EventLoopHandle struct {
@@ -23,6 +23,7 @@ type EventLoopHandle struct {
 	oneTime   []func()
 	promised  int
 	regular   []*RegularEvent
+	running   map[int]bool
 	cancelled map[int]bool
 }
 
@@ -52,13 +53,12 @@ type MutexHandle struct {
 }
 
 type ConditionHandle struct {
-	mu         sync.Mutex
-	mutexCond  *sync.Cond
-	signalCond *sync.Cond
-	owner      int64
-	depth      int
-	waiters    int
-	signaled   int
+	mu           sync.Mutex
+	mutexCond    *sync.Cond
+	owner        int64
+	depth        int
+	nextWaiterID uint64
+	waiters      map[uint64]chan struct{}
 }
 
 type SemaphoreHandle struct {
@@ -94,7 +94,7 @@ func initThreadRuntime() {
 	nextThreadID = 1
 	threadStartTime = time.Now()
 	mainState := newThreadState()
-	mainState.eventLoop = newEventLoopHandle()
+	setThreadEventLoop(mainState, newEventLoopHandle())
 	threadStates[0] = mainState
 	goroutineThreadIDs[currentGoroutineID()] = 0
 }
@@ -109,8 +109,31 @@ func newThreadState() *ThreadState {
 	return state
 }
 
+// threadEventLoop reads the loop ownership of a logical thread.
+//
+// What: it is the single read path for ThreadState.eventLoop.
+// Why: loop ownership is observable from other goroutines while the owning
+// thread can install or remove a temporary loop.
+// How: a dedicated RWMutex keeps that small ownership field race-free without
+// serializing message-queue or event-loop callback work.
+func threadEventLoop(state *ThreadState) *EventLoopHandle {
+	state.eventLoopMu.RLock()
+	handle := state.eventLoop
+	state.eventLoopMu.RUnlock()
+	return handle
+}
+
+// setThreadEventLoop publishes loop ownership. Callers that need a
+// compare-and-install transition must hold eventLoopMu directly instead.
+func setThreadEventLoop(state *ThreadState, handle *EventLoopHandle) {
+	state.eventLoopMu.Lock()
+	state.eventLoop = handle
+	state.eventLoopMu.Unlock()
+}
+
 func newEventLoopHandle() *EventLoopHandle {
 	h := &EventLoopHandle{
+		running:   make(map[int]bool),
 		cancelled: make(map[int]bool),
 	}
 	h.cond = sync.NewCond(&h.mu)
@@ -124,7 +147,7 @@ func allocateThreadState(eventLoop *EventLoopHandle) int {
 	id := nextThreadID
 	nextThreadID++
 	state := newThreadState()
-	state.eventLoop = eventLoop
+	setThreadEventLoop(state, eventLoop)
 	threadStates[id] = state
 	activePortableThreads++
 	return id
@@ -253,7 +276,7 @@ func ThreadSpawnWithEventLoop(job func()) int {
 		runPortableThreadJob(id, func() {
 			job()
 			withThreadState(id, func(state *ThreadState) {
-				ThreadEventLoopLoop(state.eventLoop)
+				ThreadEventLoopLoop(threadEventLoop(state))
 			})
 		})
 	}()
@@ -263,7 +286,7 @@ func ThreadSpawnWithEventLoop(job func()) int {
 func ThreadHasEventLoop(threadID int) bool {
 	available := false
 	withThreadState(threadID, func(state *ThreadState) {
-		available = state.eventLoop != nil
+		available = threadEventLoop(state) != nil
 	})
 	return available
 }
@@ -271,7 +294,7 @@ func ThreadHasEventLoop(threadID int) bool {
 func ThreadEvents(threadID int) *EventLoopHandle {
 	var handle *EventLoopHandle
 	withThreadState(threadID, func(state *ThreadState) {
-		handle = state.eventLoop
+		handle = threadEventLoop(state)
 	})
 	return handle
 }
@@ -285,14 +308,21 @@ func ThreadRunWithEventLoop(job func()) {
 		job()
 		return
 	}
+	state.eventLoopMu.Lock()
 	if state.eventLoop != nil {
+		state.eventLoopMu.Unlock()
 		job()
 		return
 	}
 	loop := newEventLoopHandle()
 	state.eventLoop = loop
+	state.eventLoopMu.Unlock()
 	defer func() {
-		state.eventLoop = nil
+		state.eventLoopMu.Lock()
+		if state.eventLoop == loop {
+			state.eventLoop = nil
+		}
+		state.eventLoopMu.Unlock()
 	}()
 	job()
 	ThreadEventLoopLoop(loop)
@@ -392,14 +422,28 @@ func ThreadEventLoopCancel(handle *EventLoopHandle, eventID int) {
 		return
 	}
 	handle.mu.Lock()
-	handle.cancelled[eventID] = true
+	removed := false
 	filtered := handle.regular[:0]
 	for _, event := range handle.regular {
-		if event.ID != eventID {
-			filtered = append(filtered, event)
+		if event.ID == eventID {
+			removed = true
+			continue
 		}
+		filtered = append(filtered, event)
+	}
+	for index := len(filtered); index < len(handle.regular); index++ {
+		handle.regular[index] = nil
 	}
 	handle.regular = filtered
+	if handle.running[eventID] {
+		// A repeating callback is run without the event-loop lock. Remember a
+		// cancellation only for that bounded interval so progress can suppress
+		// its reschedule. Queued and unknown identifiers need no tombstone.
+		handle.cancelled[eventID] = true
+	}
+	if removed || handle.running[eventID] {
+		handle.cond.Broadcast()
+	}
 	handle.mu.Unlock()
 }
 
@@ -417,6 +461,7 @@ func ThreadEventLoopProgress(handle *EventLoopHandle) *EventLoopProgress {
 	for len(handle.regular) > 0 && handle.regular[0].NextRun <= now {
 		event := handle.regular[0]
 		handle.regular = handle.regular[1:]
+		handle.running[event.ID] = true
 		callbacks = append(callbacks, event.Run)
 		reschedule = append(reschedule, event)
 	}
@@ -440,6 +485,7 @@ func ThreadEventLoopProgress(handle *EventLoopHandle) *EventLoopProgress {
 		handle.mu.Lock()
 		rescheduleAt := threadNowSeconds()
 		for _, event := range reschedule {
+			delete(handle.running, event.ID)
 			if handle.cancelled[event.ID] {
 				delete(handle.cancelled, event.ID)
 				continue
@@ -477,6 +523,14 @@ func ThreadEventLoopWait(handle *EventLoopHandle) bool {
 	return ThreadEventLoopWaitTimeout(handle, -1)
 }
 
+// ThreadEventLoopWaitTimeout blocks for one scheduler-state transition.
+//
+// What: it returns whether work remains after an event insertion, cancellation,
+// or timeout wakes the loop.
+// Why: waiting until the old deadline after a wake would delay a newly inserted
+// earlier timer and would strand a loop whose final timer was cancelled.
+// How: every producer signals handle.cond, and a timed wait returns after that
+// single signal so ThreadEventLoopLoop can recompute the complete schedule.
 func ThreadEventLoopWaitTimeout(handle *EventLoopHandle, timeout float64) bool {
 	if handle == nil {
 		return false
@@ -496,20 +550,13 @@ func ThreadEventLoopWaitTimeout(handle *EventLoopHandle, timeout float64) bool {
 	if timeout == 0 {
 		return eventLoopHasPendingLocked(handle)
 	}
-	var timedOut bool
 	timer := time.AfterFunc(time.Duration(timeout*float64(time.Second)), func() {
 		handle.mu.Lock()
-		timedOut = true
 		handle.cond.Broadcast()
 		handle.mu.Unlock()
 	})
 	defer timer.Stop()
-	for !timedOut {
-		handle.cond.Wait()
-		if eventLoopHasReadyLocked(handle) {
-			return true
-		}
-	}
+	handle.cond.Wait()
 	return eventLoopHasPendingLocked(handle)
 }
 
@@ -663,10 +710,64 @@ func ThreadMutexRelease(handle *MutexHandle) {
 }
 
 func ThreadConditionNew() *ConditionHandle {
-	h := &ConditionHandle{}
+	h := &ConditionHandle{waiters: make(map[uint64]chan struct{})}
 	h.mutexCond = sync.NewCond(&h.mu)
-	h.signalCond = sync.NewCond(&h.mu)
 	return h
+}
+
+// registerConditionWaiterLocked creates one non-transferable wakeup target.
+//
+// What: each active waiter owns a distinct channel while registered.
+// Why: a shared signal-credit counter lets late waiters consume an earlier
+// broadcast and lets duplicate signals leak into a later generation.
+// How: signal/broadcast close only channels that already exist; a late waiter
+// receives a new open channel and therefore cannot inherit an earlier wakeup.
+// The caller must hold handle.mu.
+func registerConditionWaiterLocked(handle *ConditionHandle) uint64 {
+	for {
+		handle.nextWaiterID++
+		waiterID := handle.nextWaiterID
+		if _, exists := handle.waiters[waiterID]; exists {
+			continue
+		}
+		handle.waiters[waiterID] = make(chan struct{})
+		return waiterID
+	}
+}
+
+// conditionWaiterSignaledLocked reports whether one registered waiter's
+// channel is closed. The caller must hold handle.mu.
+func conditionWaiterSignaledLocked(handle *ConditionHandle, waiterID uint64) bool {
+	waiter, exists := handle.waiters[waiterID]
+	if !exists {
+		return false
+	}
+	select {
+	case <-waiter:
+		return true
+	default:
+		return false
+	}
+}
+
+// signalConditionWaiterLocked closes an open waiter channel exactly once. The
+// caller must hold handle.mu.
+func signalConditionWaiterLocked(handle *ConditionHandle, waiterID uint64) bool {
+	if conditionWaiterSignaledLocked(handle, waiterID) {
+		return false
+	}
+	waiter, exists := handle.waiters[waiterID]
+	if !exists {
+		return false
+	}
+	close(waiter)
+	return true
+}
+
+// removeConditionWaiterLocked retires a wakeup target after its waiter has
+// observed the signal. The caller must hold handle.mu.
+func removeConditionWaiterLocked(handle *ConditionHandle, waiterID uint64) {
+	delete(handle.waiters, waiterID)
 }
 
 func ThreadConditionAcquire(handle *ConditionHandle) {
@@ -729,13 +830,16 @@ func ThreadConditionWait(handle *ConditionHandle) {
 	savedDepth := handle.depth
 	handle.owner = 0
 	handle.depth = 0
-	handle.waiters++
-	handle.mutexCond.Signal()
-	for handle.signaled == 0 {
-		handle.signalCond.Wait()
-	}
-	handle.signaled--
-	handle.waiters--
+	waiterID := registerConditionWaiterLocked(handle)
+	waiter := handle.waiters[waiterID]
+	handle.mutexCond.Broadcast()
+	handle.mu.Unlock()
+
+	<-waiter
+
+	handle.mu.Lock()
+	removeConditionWaiterLocked(handle, waiterID)
+	handle.mutexCond.Broadcast()
 	for handle.owner != 0 && handle.owner != gid {
 		handle.mutexCond.Wait()
 	}
@@ -749,9 +853,19 @@ func ThreadConditionSignal(handle *ConditionHandle) {
 		return
 	}
 	handle.mu.Lock()
-	if handle.waiters > 0 {
-		handle.signaled++
-		handle.signalCond.Signal()
+	var selected uint64
+	found := false
+	for waiterID := range handle.waiters {
+		if conditionWaiterSignaledLocked(handle, waiterID) {
+			continue
+		}
+		if !found || waiterID < selected {
+			selected = waiterID
+			found = true
+		}
+	}
+	if found {
+		signalConditionWaiterLocked(handle, selected)
 	}
 	handle.mu.Unlock()
 }
@@ -761,9 +875,8 @@ func ThreadConditionBroadcast(handle *ConditionHandle) {
 		return
 	}
 	handle.mu.Lock()
-	if handle.waiters > 0 {
-		handle.signaled += handle.waiters
-		handle.signalCond.Broadcast()
+	for waiterID := range handle.waiters {
+		signalConditionWaiterLocked(handle, waiterID)
 	}
 	handle.mu.Unlock()
 }
@@ -831,17 +944,61 @@ func ThreadSemaphoreRelease(handle *SemaphoreHandle) {
 	handle.mu.Unlock()
 }
 
-func currentGoroutineID() int64 {
-	var buf [64]byte
-	n := runtime.Stack(buf[:], false)
-	line := bytes.TrimPrefix(buf[:n], []byte("goroutine "))
-	idx := bytes.IndexByte(line, ' ')
-	if idx < 0 {
-		return 0
+const goroutineIDStackBytes = 64
+const maximumGoroutineID = int64(1<<63 - 1)
+
+var goroutineIDStackPrefix = []byte("goroutine ")
+var goroutineIDStackBuffers = sync.Pool{
+	New: func() any {
+		return new([goroutineIDStackBytes]byte)
+	},
+}
+
+// parseGoroutineID parses only the bounded runtime.Stack header used for
+// logical-thread and re-entrant-mutex ownership.
+//
+// What: it accepts the leading "goroutine <positive-id> " header and rejects
+// every malformed, reserved-zero, negative, or overflowing identity.
+// Why: Go has no supported goroutine-local key, but Haxe's re-entrant Mutex,
+// Condition, Tls, and Thread.current contracts require stable caller identity.
+// How: callers provide a fixed-size stack prefix; this function never scans or
+// retains a complete stack trace.
+func parseGoroutineID(stackPrefix []byte) (int64, bool) {
+	if !bytes.HasPrefix(stackPrefix, goroutineIDStackPrefix) {
+		return 0, false
 	}
-	id, err := strconv.ParseInt(string(line[:idx]), 10, 64)
-	if err != nil {
-		return 0
+	identifier := stackPrefix[len(goroutineIDStackPrefix):]
+	delimiter := bytes.IndexByte(identifier, ' ')
+	if delimiter <= 0 {
+		return 0, false
+	}
+	var id int64
+	for _, digitByte := range identifier[:delimiter] {
+		if digitByte < '0' || digitByte > '9' {
+			return 0, false
+		}
+		digit := int64(digitByte - '0')
+		if id > (maximumGoroutineID-digit)/10 {
+			return 0, false
+		}
+		id = id*10 + digit
+	}
+	if id == 0 {
+		return 0, false
+	}
+	return id, true
+}
+
+// currentGoroutineID returns a stable positive ownership key for the current
+// goroutine. A runtime header-format mismatch is fatal: silently returning the
+// reserved zero value would make a locked re-entrant mutex appear unlocked.
+func currentGoroutineID() int64 {
+	stackPrefix := goroutineIDStackBuffers.Get().(*[goroutineIDStackBytes]byte)
+	written := runtime.Stack(stackPrefix[:], false)
+	id, ok := parseGoroutineID(stackPrefix[:written])
+	goroutineIDStackBuffers.Put(stackPrefix)
+	if !ok {
+		panic("hxrt: unable to determine current goroutine identity from runtime.Stack")
 	}
 	return id
 }

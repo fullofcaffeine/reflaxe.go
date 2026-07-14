@@ -192,6 +192,10 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 			case GoSelectClause.GoSelectRecvAssign(target, recv, useShort):
 				GoSelectClause.GoSelectRecvAssign(rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets),
 					rewriteExpr(recv, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets), useShort);
+			case GoSelectClause.GoSelectRecvAssignOk(target, okTarget, recv, useShort):
+				GoSelectClause.GoSelectRecvAssignOk(rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets),
+					rewriteExpr(okTarget, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets),
+					rewriteExpr(recv, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets), useShort);
 			case GoSelectClause.GoSelectDefault:
 				GoSelectClause.GoSelectDefault;
 		};

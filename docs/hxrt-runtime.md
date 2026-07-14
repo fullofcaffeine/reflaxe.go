@@ -118,6 +118,10 @@ failure domains:
    goroutine, is not included in the portable foreground count, and preserves
    Go's normal fatal-panic and process-shutdown behavior.
 
+Synchronization, pool linearization, event-loop cancellation, condition
+generations, channel close behavior, and the bounded `runtime.Stack` identity
+fallback are specified in [`docs/concurrency-contract.md`](concurrency-contract.md).
+
 The split is covered by `stdlib/sys_thread_uncaught_exception`,
 `go_native/native_panic_not_haxe_catch`,
 `go_native/goroutine_native_panic`, and
@@ -164,5 +168,6 @@ And if ownership boundaries move, update:
 - `docs/hxrt-selective-runtime.md` - runtime feature slicing policy and controls.
 - `docs/stdlib-shim-rationale.md` - ownership split between runtime, compiler shims, and staged stdlib overrides.
 - `docs/native-policy-presets.md` - policy presets and native-boundary behavior.
+- `docs/concurrency-contract.md` - portable and Go-native concurrency invariants and evidence.
 - `docs/portable-canonical-contract.md` - portable semantics baseline used by tests.
 - `docs/glossary.md` - shared definitions used across docs.

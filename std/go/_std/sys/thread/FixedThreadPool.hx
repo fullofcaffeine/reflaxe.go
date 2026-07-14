@@ -10,11 +10,14 @@ import haxe.Exception;
 	This is ordinary upstream library behavior once `Thread` and `Deque` are real.
 
 	What
-	A fixed number of workers block on the shared queue until shutdown.
+	A fixed number of workers block on the shared queue until shutdown. A task
+	is accepted only when its queue insertion completes before shutdown's single
+	serialized state transition.
 
 	How
-	Shutdown is implemented by enqueueing a private task that throws a private
-	exception caught inside the worker loop.
+	A pool mutex linearizes `run`, `isShutdown`, and `shutdown`. Shutdown holds the
+	mutex while enqueueing the private worker sentinels, so every accepted task is
+	ahead of every sentinel and therefore executes exactly once before workers exit.
 **/
 @:coreApi
 class FixedThreadPool implements IThreadPool {
@@ -24,13 +27,17 @@ class FixedThreadPool implements IThreadPool {
 	var _isShutdown = false;
 	final pool:Array<FixedThreadPoolWorker>;
 	final queue = new Deque<() -> Void>();
+	final mutex = new Mutex();
 
 	function get_threadsCount():Int {
 		return pool.length;
 	}
 
 	function get_isShutdown():Bool {
-		return _isShutdown;
+		mutex.acquire();
+		var result = _isShutdown;
+		mutex.release();
+		return result;
 	}
 
 	public function new(threadsCount:Int):Void {
@@ -45,23 +52,30 @@ class FixedThreadPool implements IThreadPool {
 	}
 
 	public function run(task:() -> Void):Void {
+		mutex.acquire();
 		if (_isShutdown) {
+			mutex.release();
 			throw new ThreadPoolException("Task is rejected. Thread pool is shut down.");
 		}
 		if (task == null) {
+			mutex.release();
 			throw new ThreadPoolException("Task to run must not be null.");
 		}
 		queue.add(task);
+		mutex.release();
 	}
 
 	public function shutdown():Void {
+		mutex.acquire();
 		if (_isShutdown) {
+			mutex.release();
 			return;
 		}
 		_isShutdown = true;
 		for (_ in pool) {
 			queue.add(shutdownTask);
 		}
+		mutex.release();
 	}
 
 	static function shutdownTask():Void {

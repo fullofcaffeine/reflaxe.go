@@ -28,6 +28,18 @@ Core pattern:
 - `Chan.recvOr(default)` + sentinel values for deterministic loop shutdown loops.
 - `Chan.trySend(value)` / `Chan.tryRecv()` for low-level non-blocking operations.
 
+Channel lifecycle is explicit:
+
+- `tryRecv()` returns an error result with `"empty"` when no value is ready and
+  `"closed"` after a closed channel is drained.
+- `recvOr(default)` returns the default for both empty/nil and drained-closed
+  channels; `recv()` retains Go's zero-value-after-close behavior.
+- sending (including `trySend`) after close and closing a nil/already-closed
+  channel are native Go panics, not Haxe catch values.
+- close is producer-owned; synchronize send and close in application code.
+
+The full operation table is in [the concurrency contract](concurrency-contract.md).
+
 Why this is recommended:
 
 - Maps to real goroutine/channel/select behavior in generated Go output.
@@ -105,6 +117,10 @@ Practical interpretation:
   typed Go extern remains native and fatal unless user-owned Go code explicitly
   recovers it inside the same goroutine.
 - Complex Go extern signatures may need façade wrappers until broader mapping support lands.
+- `sys.thread.ElasticThreadPool.maxThreadsCount` is a core-API writable field;
+  synchronize application code if it mutates that field concurrently with pool use.
+- `sys.thread.Tls` lifecycle reclamation is still experimental; do not use it
+  for unbounded short-lived-thread churn until `haxe_go-vfp.10.7` closes.
 - For current limitations and planning guidance, use `docs/known-gaps.md`.
 
 ## 5) Planned portable channel facade

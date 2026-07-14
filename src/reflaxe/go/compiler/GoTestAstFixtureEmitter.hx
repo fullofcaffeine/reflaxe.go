@@ -40,6 +40,14 @@ class GoTestAstFixtureEmitter {
 								body: [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("value"))]
 							},
 							{
+								clause: GoSelectClause.GoSelectRecvAssignOk(GoExpr.GoIdent("value"), GoExpr.GoIdent("received"),
+									GoExpr.GoRecvExpr(GoExpr.GoIdent("in")), true),
+								body: [
+									GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("value")),
+									GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("received"))
+								]
+							},
+							{
 								clause: GoSelectClause.GoSelectRecv(GoExpr.GoRecvExpr(GoExpr.GoIdent("in"))),
 								body: [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIntLiteral(22))]
 							},

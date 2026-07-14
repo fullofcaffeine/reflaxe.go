@@ -865,6 +865,8 @@ class GoCompiler {
 			case GoSelectRecv(recv):
 				exprUsesImportAlias(recv, alias);
 			case GoSelectRecvAssign(target, recv, _): exprUsesImportAlias(target, alias) || exprUsesImportAlias(recv, alias);
+			case GoSelectRecvAssignOk(target, okTarget, recv, _): exprUsesImportAlias(target,
+					alias) || exprUsesImportAlias(okTarget, alias) || exprUsesImportAlias(recv, alias);
 			case GoSelectDefault:
 				false;
 		};
@@ -3766,9 +3768,9 @@ class GoCompiler {
 				GoStmt.GoRaw("\t{Dir: reflect.SelectRecv, Chan: chanValue},"),
 				GoStmt.GoRaw("\t{Dir: reflect.SelectDefault},"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("chosen, recvValue, _ := reflect.Select(cases)"),
+				GoStmt.GoRaw("chosen, recvValue, received := reflect.Select(cases)"),
 				GoStmt.GoRaw("if chosen == 0 {"),
-				GoStmt.GoRaw("\tif !recvValue.IsValid() {"),
+				GoStmt.GoRaw("\tif !received {"),
 				GoStmt.GoRaw("\t\treturn defaultValue"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\treturn recvValue.Interface()"),
@@ -3789,10 +3791,10 @@ class GoCompiler {
 				GoStmt.GoRaw("\t{Dir: reflect.SelectRecv, Chan: chanValue},"),
 				GoStmt.GoRaw("\t{Dir: reflect.SelectDefault},"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("chosen, recvValue, _ := reflect.Select(cases)"),
+				GoStmt.GoRaw("chosen, recvValue, received := reflect.Select(cases)"),
 				GoStmt.GoRaw("if chosen == 0 {"),
-				GoStmt.GoRaw("\tif !recvValue.IsValid() {"),
-				GoStmt.GoRaw("\t\treturn New_go___Result(nil, nil)"),
+				GoStmt.GoRaw("\tif !received {"),
+				GoStmt.GoRaw("\t\treturn New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral(\"closed\")))"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\treturn New_go___Result(recvValue.Interface(), nil)"),
 				GoStmt.GoRaw("}"),
@@ -3893,9 +3895,12 @@ class GoCompiler {
 			], [elementType], [
 				GoStmt.GoSelect([
 					{
-						clause: GoSelectClause.GoSelectRecvAssign(GoExpr.GoIdent("value"),
+						clause: GoSelectClause.GoSelectRecvAssignOk(GoExpr.GoIdent("value"), GoExpr.GoIdent("received"),
 							GoExpr.GoRecvExpr(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), chanType)), true),
-						body: [GoStmt.GoReturn(GoExpr.GoIdent("value"))]
+						body: [
+							GoStmt.GoIf(GoExpr.GoUnary("!", GoExpr.GoIdent("received")), [GoStmt.GoReturn(GoExpr.GoIdent("defaultValue"))], null),
+							GoStmt.GoReturn(GoExpr.GoIdent("value"))
+						]
 					},
 					{
 						clause: GoSelectClause.GoSelectDefault,
@@ -3907,9 +3912,17 @@ class GoCompiler {
 			decls.push(GoDecl.GoFuncDecl(tryRecvName, null, [{name: "channel", typeName: "any"}], ["*go___Result"], [
 				GoStmt.GoSelect([
 					{
-						clause: GoSelectClause.GoSelectRecvAssign(GoExpr.GoIdent("value"),
+						clause: GoSelectClause.GoSelectRecvAssignOk(GoExpr.GoIdent("value"), GoExpr.GoIdent("received"),
 							GoExpr.GoRecvExpr(GoExpr.GoTypeAssert(GoExpr.GoIdent("channel"), chanType)), true),
 						body: [
+							GoStmt.GoIf(GoExpr.GoUnary("!", GoExpr.GoIdent("received")), [
+								GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [
+									GoExpr.GoNil,
+									GoExpr.GoCall(GoExpr.GoIdent("New_go___Error"), [
+										GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("closed")])
+									])
+								]))
+							], null),
 							GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [GoExpr.GoIdent("value"), GoExpr.GoNil]))
 						]
 					},

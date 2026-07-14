@@ -107,6 +107,8 @@ class RewriteStringOpsPass implements IGoASTPass {
 				GoSelectClause.GoSelectRecv(rewriteExpr(recv));
 			case GoSelectClause.GoSelectRecvAssign(target, recv, useShort):
 				GoSelectClause.GoSelectRecvAssign(rewriteExpr(target), rewriteExpr(recv), useShort);
+			case GoSelectClause.GoSelectRecvAssignOk(target, okTarget, recv, useShort):
+				GoSelectClause.GoSelectRecvAssignOk(rewriteExpr(target), rewriteExpr(okTarget), rewriteExpr(recv), useShort);
 			case GoSelectClause.GoSelectDefault:
 				GoSelectClause.GoSelectDefault;
 		};

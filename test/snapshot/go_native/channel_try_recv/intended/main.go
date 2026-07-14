@@ -39,6 +39,39 @@ func main() {
 		}
 		return hx_value_7.(bool)
 	}(emptyAgain.isErr()))
+	go__concurrency_send__int_95e97e5e(ch.__hx_native, 12)
+	go__concurrency_close__int_95e97e5e(ch.__hx_native)
+	bufferedBeforeClose := go__concurrency_tryRecv__int_95e97e5e(ch.__hx_native)
+	hxrt.Println(func(hx_value_9 any) bool {
+		if hx_value_9 == nil {
+			var hx_zero_10 bool
+			return hx_zero_10
+		}
+		return hx_value_9.(bool)
+	}(bufferedBeforeClose.isOk()))
+	hxrt.Println(func(hx_value_11 any) int {
+		if hx_value_11 == nil {
+			var hx_zero_12 int
+			return hx_zero_12
+		}
+		return hx_value_11.(int)
+	}(bufferedBeforeClose.unwrap()))
+	closed := go__concurrency_tryRecv__int_95e97e5e(ch.__hx_native)
+	hxrt.Println(func(hx_value_13 any) bool {
+		if hx_value_13 == nil {
+			var hx_zero_14 bool
+			return hx_zero_14
+		}
+		return hx_value_13.(bool)
+	}(closed.isErr()))
+	hxrt.Println(func(hx_value_15 any) *string {
+		if hx_value_15 == nil {
+			var hx_zero_16 *string
+			return hx_zero_16
+		}
+		return hx_value_15.(*string)
+	}(closed.error()))
+	hxrt.Println(go__concurrency_recvOr__int_95e97e5e(ch.__hx_native, -1))
 }
 
 type haxe__ds__IntMap struct {
@@ -492,9 +525,9 @@ func go__concurrency_recvOr(channel any, defaultValue any) any {
 		{Dir: reflect.SelectRecv, Chan: chanValue},
 		{Dir: reflect.SelectDefault},
 	}
-	chosen, recvValue, _ := reflect.Select(cases)
+	chosen, recvValue, received := reflect.Select(cases)
 	if chosen == 0 {
-		if !recvValue.IsValid() {
+		if !received {
 			return defaultValue
 		}
 		return recvValue.Interface()
@@ -511,10 +544,10 @@ func go__concurrency_tryRecv(channel any) *go___Result {
 		{Dir: reflect.SelectRecv, Chan: chanValue},
 		{Dir: reflect.SelectDefault},
 	}
-	chosen, recvValue, _ := reflect.Select(cases)
+	chosen, recvValue, received := reflect.Select(cases)
 	if chosen == 0 {
-		if !recvValue.IsValid() {
-			return New_go___Result(nil, nil)
+		if !received {
+			return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("closed")))
 		}
 		return New_go___Result(recvValue.Interface(), nil)
 	}
@@ -572,7 +605,10 @@ func go__concurrency_recv__int_95e97e5e(channel any) int {
 
 func go__concurrency_recvOr__int_95e97e5e(channel any, defaultValue int) int {
 	select {
-	case value := <-channel.(chan int):
+	case value, received := <-channel.(chan int):
+		if !received {
+			return defaultValue
+		}
 		return value
 	default:
 		return defaultValue
@@ -581,7 +617,10 @@ func go__concurrency_recvOr__int_95e97e5e(channel any, defaultValue int) int {
 
 func go__concurrency_tryRecv__int_95e97e5e(channel any) *go___Result {
 	select {
-	case value := <-channel.(chan int):
+	case value, received := <-channel.(chan int):
+		if !received {
+			return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("closed")))
+		}
 		return New_go___Result(value, nil)
 	default:
 		return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("empty")))

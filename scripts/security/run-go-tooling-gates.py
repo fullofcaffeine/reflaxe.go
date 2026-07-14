@@ -53,6 +53,16 @@ TARGETS = (
         module="reflaxe_go_hxrt_tooling_gate",
     ),
     Target(
+        name="sys-thread-runtime",
+        source="test/snapshot/stdlib/sys_thread_runtime_direct/intended",
+        fixture="test/go_tooling/thread_pool_gate_test.go",
+    ),
+    Target(
+        name="go-channel-runtime",
+        source="test/snapshot/go_native/channel_try_recv/intended",
+        fixture="test/go_tooling/channel_gate_test.go",
+    ),
+    Target(
         name="pulseforge-portable",
         source="examples/pulseforge/generated/portable",
         fixture="test/go_tooling/flagship_gate_test.go",

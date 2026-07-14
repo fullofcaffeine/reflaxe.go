@@ -122,8 +122,15 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
         self.assertTrue(process_ops["sys.io.Process.exitCode"]["release_admitted"])
         self.assertFalse(process_ops["new sys.io.Process(..., detached=true)"]["release_admitted"])
 
+        concurrency_ops = {
+            entry["id"]: entry for entry in surfaces["portable-concurrency"]["operations"]
+        }
+        self.assertTrue(concurrency_ops["primitives"]["release_admitted"])
+        self.assertTrue(concurrency_ops["threads-event-loops-pools"]["release_admitted"])
+        self.assertFalse(concurrency_ops["tls-lifecycle"]["release_admitted"])
+        self.assertIn("haxe_go-vfp.10.7", concurrency_ops["tls-lifecycle"]["blockers"])
+
         expected_blockers = {
-            "portable-concurrency": "haxe_go-vfp.10.2",
             "portable-networking": "haxe_go-vfp.10.4",
             "go-native": "haxe_go-vfp.9.1",
         }

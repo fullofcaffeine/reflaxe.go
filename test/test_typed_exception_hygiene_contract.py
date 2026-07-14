@@ -13,6 +13,7 @@ DYNAMIC_CATCH_RE = re.compile(r"catch\s*\([^)]*:\s*Dynamic\s*\)")
 STD_DYNAMIC_CATCH_ALLOWLIST = {
     Path("std/go/_std/haxe/Template.hx"),
     Path("std/sys/thread/ElasticThreadPoolWorker.hx"),
+    Path("std/sys/thread/FixedThreadPoolWorker.hx"),
 }
 
 

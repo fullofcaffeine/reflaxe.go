@@ -5,7 +5,7 @@
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "ba9c9f2c3045754bb1be1e321fa6c40633afb189323410182de998c85bf2d5ab",
+    "compatibility_source_sha256": "031f9a0493868f26acf3d6442edfb43f209330e758475abe804a42003aafe77b",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "43183c55c522ac8c82616666a401276a84da1fb5c576bb35cedb3a8480f48f75",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
@@ -285,6 +285,30 @@
       "id": "npm:security-go-tooling",
       "kind": "npm-script",
       "script": "security:go-tooling",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "contract:concurrency",
+      "kind": "path",
+      "path": "docs/concurrency-contract.md",
+      "level": "policy"
+    },
+    {
+      "id": "runtime:thread-regressions",
+      "kind": "path",
+      "path": "runtime/hxrt/thread_test.go",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "fixture:thread-pool-gate",
+      "kind": "path",
+      "path": "test/go_tooling/thread_pool_gate_test.go",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "fixture:channel-gate",
+      "kind": "path",
+      "path": "test/go_tooling/channel_gate_test.go",
       "level": "compile-go-test-run"
     },
     {
@@ -966,7 +990,7 @@
     {
       "id": "portable-concurrency",
       "kind": "portable-system",
-      "scope": "Threading and synchronization surfaces pending lifecycle audit",
+      "scope": "Admitted portable synchronization, foreground-thread, event-loop, and pool operations",
       "operations": [
         {
           "id": "primitives",
@@ -975,22 +999,42 @@
             "sys.thread.Mutex",
             "sys.thread.Condition",
             "sys.thread.Semaphore",
-            "sys.thread.Deque",
+            "sys.thread.Deque"
+          ],
+          "granularity": "surface",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Named primitive behavior has interpreter parity; supported Go race evidence covers ownership, visibility, per-waiter condition generations, and missed/duplicate wakeup regressions.",
+          "evidence_ids": [
+            "semantic:thread-primitives",
+            "runtime:thread-regressions",
+            "npm:security-go-tooling",
+            "contract:concurrency",
+            "bead:concurrency-audit"
+          ],
+          "exclusions": [
+            "Scheduler fairness, arbitrary foreign-goroutine attachment, and operations not named by the contract"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "tls-lifecycle",
+          "symbols": [
             "sys.thread.Tls"
           ],
           "granularity": "surface",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Deterministic primitive tests exist, but race, visibility, generation, and wakeup closure remains open.",
+          "qualification": "Get, set, clear, and synchronization behavior is tested, but completed-thread value reclamation and detached-goroutine attachment are not yet bounded.",
           "evidence_ids": [
             "semantic:thread-primitives",
-            "bead:concurrency-audit"
+            "contract:concurrency"
           ],
           "exclusions": [
-            "Release-level happens-before and race guarantees"
+            "Thread-exit TLS reclamation and compiler-owned detached-goroutine cleanup"
           ],
           "blockers": [
-            "haxe_go-vfp.10.2"
+            "haxe_go-vfp.10.7"
           ]
         },
         {
@@ -1002,19 +1046,21 @@
             "sys.thread.ElasticThreadPool"
           ],
           "granularity": "surface",
-          "state": "experimental",
-          "release_admitted": false,
-          "qualification": "Schedule/run/shutdown and lifecycle smokes exist; stress, leak, missed-wakeup, and identity evidence remains open.",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Named foreground-thread and event-loop behavior has interpreter parity; deterministic supported-Go stress proves pool admission/shutdown exactly once, failed-worker replacement, cancellation cleanup, wakeup deadline recomputation, and bounded portable identity state.",
           "evidence_ids": [
             "semantic:thread-runtime",
+            "runtime:thread-regressions",
+            "fixture:thread-pool-gate",
+            "npm:security-go-tooling",
+            "contract:concurrency",
             "bead:concurrency-audit"
           ],
           "exclusions": [
-            "Broad production concurrency support"
+            "Exact scheduler fairness, concurrent ElasticThreadPool.maxThreadsCount mutation, arbitrary foreign-goroutine lifecycle discovery, and sys.thread.Tls lifecycle admission"
           ],
-          "blockers": [
-            "haxe_go-vfp.10.2"
-          ]
+          "blockers": []
         }
       ]
     },
@@ -1106,9 +1152,12 @@
           "granularity": "surface",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Go-specific behavior is tested, but true native select and the public native capability contract remain open.",
+          "qualification": "Go-specific goroutine and channel lifecycle behavior, including closed-versus-empty receive and native close/send panics, is tested; true native select and the complete public native capability contract remain open.",
           "evidence_ids": [
             "snapshot:native-concurrency",
+            "fixture:channel-gate",
+            "npm:security-go-tooling",
+            "contract:concurrency",
             "bead:native-matrix"
           ],
           "exclusions": [
@@ -3424,9 +3473,9 @@
   ],
   "known_blockers": [
     {
-      "id": "haxe_go-vfp.10.2",
-      "scope": "Concurrency race, visibility, wakeup, pool, cancellation, and goroutine-identity closure",
-      "release_blocker_for": "portable-concurrency"
+      "id": "haxe_go-vfp.10.7",
+      "scope": "Completed-thread TLS reclamation and compiler-owned detached-goroutine identity cleanup",
+      "release_blocker_for": "portable-concurrency/tls-lifecycle"
     },
     {
       "id": "haxe_go-vfp.10.4",

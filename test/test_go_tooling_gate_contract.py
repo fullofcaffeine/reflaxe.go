@@ -11,6 +11,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 RUNNER = REPO_ROOT / "scripts" / "security" / "run-go-tooling-gates.py"
 RUNTIME_FIXTURE = REPO_ROOT / "test" / "go_tooling" / "hxrt_gate_test.go"
 FLAGSHIP_FIXTURE = REPO_ROOT / "test" / "go_tooling" / "flagship_gate_test.go"
+THREAD_POOL_FIXTURE = REPO_ROOT / "test" / "go_tooling" / "thread_pool_gate_test.go"
+CHANNEL_FIXTURE = REPO_ROOT / "test" / "go_tooling" / "channel_gate_test.go"
 POLICY_DOC = REPO_ROOT / "docs" / "go-tooling-gates.md"
 CI_HARNESS = REPO_ROOT / ".github" / "workflows" / "ci-harness.yml"
 PACKAGE_JSON = REPO_ROOT / "package.json"
@@ -25,6 +27,8 @@ class GoToolingGateContractTest(unittest.TestCase):
 
         self.assertIn('STATICCHECK_VERSION = "v0.7.0"', runner)
         self.assertIn("runtime/hxrt", runner)
+        self.assertIn("test/snapshot/stdlib/sys_thread_runtime_direct/intended", runner)
+        self.assertIn("test/snapshot/go_native/channel_try_recv/intended", runner)
         for app in ("pulseforge", "fluxproxy"):
             for profile in ("portable", "metal"):
                 self.assertIn(f"examples/{app}/generated/{profile}", runner)
@@ -55,6 +59,21 @@ class GoToolingGateContractTest(unittest.TestCase):
         self.assertIn("TestScriptedEntrypoint", fixture)
         self.assertIn('"--scripted"', fixture)
         self.assertIn("main()", fixture)
+
+    def test_generated_concurrency_fixtures_cover_failure_and_race_paths(self) -> None:
+        pools = THREAD_POOL_FIXTURE.read_text(encoding="utf-8")
+        self.assertIn("submissions = 10_000", pools)
+        self.assertIn("[]int{1, 2, 8}", pools)
+        self.assertIn("ThreadWaitForAll", pools)
+        self.assertIn("accepted tasks", pools)
+        self.assertIn("TestGeneratedThreadPoolsReplaceWorkerAfterHaxeThrow", pools)
+        self.assertIn("expected worker failure", pools)
+
+        channels = CHANNEL_FIXTURE.read_text(encoding="utf-8")
+        self.assertIn("tryRecv after close", channels)
+        self.assertIn("send after close", channels)
+        self.assertIn("double close", channels)
+        self.assertIn("nil channel", channels)
 
     def test_ci_matrix_blocks_release_and_always_uploads_reports(self) -> None:
         workflow = CI_HARNESS.read_text(encoding="utf-8")

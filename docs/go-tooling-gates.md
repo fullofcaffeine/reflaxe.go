@@ -3,9 +3,12 @@
 ## What It Is
 
 The Go tooling lane runs dynamic and static checks against the copied `hxrt`
-runtime and four committed flagship application modules:
+runtime, two generated concurrency contract modules, and four committed
+flagship application modules:
 
 - `runtime/hxrt`, with a native concurrency and reflection fixture;
+- generated `sys.thread` output, with fixed/elastic pool admission and shutdown stress;
+- generated `go.Chan<T>` output, with close/nil/native-panic contracts;
 - PulseForge portable and metal generated output; and
 - FluxProxy portable and metal generated output.
 
@@ -58,6 +61,14 @@ The `hxrt` fixture concurrently exercises logical thread creation and message
 delivery, integer and reference atomics, and the reflection branches for maps,
 slices, functions, channels, pointers, and `unsafe.Pointer`. The checkptr run
 executes those same paths with strict pointer checking enabled.
+
+The generated thread-pool fixture races 10,000 submissions against repeated
+shutdown at `GOMAXPROCS=1,2,8` and requires each accepted task to execute
+exactly once. It also requires fixed and elastic pools to replace a worker after
+a task's Haxe throw so later accepted work still drains. The generated channel
+fixture covers both reflective and typed helpers, including buffered drain,
+closed versus empty receive, nil channels, send-after-close, and double-close.
+Neither contract uses retries.
 
 ## Failure And Flake Policy
 

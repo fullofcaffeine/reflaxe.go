@@ -283,6 +283,20 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				} else {
 					collectLValueReads(target);
 				}
+			case GoSelectClause.GoSelectRecvAssignOk(target, okTarget, recv, useShort):
+				collectExprReads(recv);
+				for (binding in [target, okTarget]) {
+					if (useShort) {
+						switch (binding) {
+							case GoExpr.GoIdent(name):
+								declareBinding(name);
+							case _:
+								collectLValueReads(binding);
+						}
+					} else {
+						collectLValueReads(binding);
+					}
+				}
 			case GoSelectClause.GoSelectDefault:
 		}
 	}
@@ -556,6 +570,20 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 					}
 				}
 				GoSelectClause.GoSelectRecvAssign(rewrittenTarget, rewrittenRecv, useShort);
+			case GoSelectClause.GoSelectRecvAssignOk(target, okTarget, recv, useShort):
+				var rewrittenTarget = rewriteExpr(target);
+				var rewrittenOkTarget = rewriteExpr(okTarget);
+				var rewrittenRecv = rewriteExpr(recv);
+				if (useShort) {
+					for (binding in [rewrittenTarget, rewrittenOkTarget]) {
+						switch (binding) {
+							case GoExpr.GoIdent(name):
+								declareBinding(name);
+							case _:
+						}
+					}
+				}
+				GoSelectClause.GoSelectRecvAssignOk(rewrittenTarget, rewrittenOkTarget, rewrittenRecv, useShort);
 			case GoSelectClause.GoSelectDefault:
 				GoSelectClause.GoSelectDefault;
 		};

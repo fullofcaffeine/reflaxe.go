@@ -474,9 +474,9 @@ func go__concurrency_recvOr(channel any, defaultValue any) any {
 		{Dir: reflect.SelectRecv, Chan: chanValue},
 		{Dir: reflect.SelectDefault},
 	}
-	chosen, recvValue, _ := reflect.Select(cases)
+	chosen, recvValue, received := reflect.Select(cases)
 	if chosen == 0 {
-		if !recvValue.IsValid() {
+		if !received {
 			return defaultValue
 		}
 		return recvValue.Interface()
@@ -493,10 +493,10 @@ func go__concurrency_tryRecv(channel any) *go___Result {
 		{Dir: reflect.SelectRecv, Chan: chanValue},
 		{Dir: reflect.SelectDefault},
 	}
-	chosen, recvValue, _ := reflect.Select(cases)
+	chosen, recvValue, received := reflect.Select(cases)
 	if chosen == 0 {
-		if !recvValue.IsValid() {
-			return New_go___Result(nil, nil)
+		if !received {
+			return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral("closed")))
 		}
 		return New_go___Result(recvValue.Interface(), nil)
 	}

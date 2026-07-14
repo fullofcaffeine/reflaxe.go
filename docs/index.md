@@ -26,6 +26,7 @@ This page helps you find the right docs quickly.
 - [Defines reference](defines-reference.md)
 - [Examples matrix](examples-matrix.md)
 - [Go concurrency + interop guide](go-concurrency-interop-guide.md)
+- [Concurrency contract](concurrency-contract.md)
 
 ## Testing and quality docs
 
@@ -53,6 +54,7 @@ This page helps you find the right docs quickly.
 
 - [Ownership rubric](ownership-rubric.md)
 - [`hxrt` runtime](hxrt-runtime.md)
+- [Concurrency contract](concurrency-contract.md)
 - [Selective `hxrt` runtime](hxrt-selective-runtime.md)
 - [Stdlib shim rationale](stdlib-shim-rationale.md)
 - [Cross overrides and hardening](cross-overrides-and-hardening.md)
