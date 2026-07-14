@@ -1,0 +1,299 @@
+{
+  "schema_version": 1,
+  "digest_algorithm": "sha256 of concatenated, path-sorted '<file-sha256>  <POSIX-relative-path>\\n' records",
+  "official_upstream": {
+    "repository": "https://github.com/SomeRanDev/reflaxe.git",
+    "commit": "430b4187a6bf4813cf618fc3a73ccf494a2ab9f5",
+    "source_path": "src/reflaxe",
+    "source_file_count": 59,
+    "source_tree_sha256": "85b98bffc4925fd320e8a917bd9920b56d05c0cfb5262e50e3d9e763e2ebb037",
+    "license_path": "LICENSE",
+    "license_sha256": "68f17b4096da082538e5a6e2c050cd510f47fe33574522f3dc397750da600e79"
+  },
+  "supplier_snapshot": {
+    "repository": "https://github.com/fullofcaffeine/reflaxe.rust.git",
+    "commit": "f53bec2adae8ef000467e488b974f6514c1af98f",
+    "path": "vendor/reflaxe",
+    "git_tree_sha1": "a26137d0af5f297eb12e3750a62d0544a4755b76",
+    "source_path": "vendor/reflaxe/src/reflaxe",
+    "source_file_count": 59,
+    "source_tree_sha256": "18aceb1f013198a54e503f7ad08384ef7f769bf2f993db4b69c35edb32396e35"
+  },
+  "shipped_tree": {
+    "path": "vendor/reflaxe",
+    "file_count": 62,
+    "sha256": "b22af13d3a98c381b0d6283974cc08e9f7cff5cc0086ea839465a428633ccfe6",
+    "files": [
+      {
+        "path": "FUTURE_MODIFICATIONS.md",
+        "sha256": "78f26ab1efb7bfb8422b34a8dcaff25db6f66de891fb38f0cce6f01257514b60"
+      },
+      {
+        "path": "PATCHES.md",
+        "sha256": "d4b1aad9a9220bee8988fec09236450b8d06cb900ee8f3b9dc1ada783e1ff49f"
+      },
+      {
+        "path": "haxelib.json",
+        "sha256": "f57714e9ec3041638eb483cae474d0fff10411108c0e46d0b1578ba6bdf07bac"
+      },
+      {
+        "path": "src/reflaxe/BaseCompiler.hx",
+        "sha256": "a3efd1ccdf7926bca946de57473b07e10c27feae17ded8f6acf3a8b7fcd167aa"
+      },
+      {
+        "path": "src/reflaxe/DirectToStringCompiler.hx",
+        "sha256": "cb31283776e55347bc386f163f3fc8a99ef7079dbbded71dc110be263c72a3c6"
+      },
+      {
+        "path": "src/reflaxe/GenericCompiler.hx",
+        "sha256": "697c8789d2cfb171fc5f84b7d6e29f9d65d8fd84c5f4c1f8a3c199e2cec57104"
+      },
+      {
+        "path": "src/reflaxe/ReflectCompiler.hx",
+        "sha256": "5817dd99c3a49ed846af8592b7ee6ae1f81a6df66945153817b1f50ebc43564d"
+      },
+      {
+        "path": "src/reflaxe/compiler/MetadataCompiler.hx",
+        "sha256": "ecb4ef029af8936af660247cdcd1b699342abb943d8b06030cc1ddb8f1520cd9"
+      },
+      {
+        "path": "src/reflaxe/compiler/NullTypeEnforcer.hx",
+        "sha256": "909ed0d8d082fec32dcecc1b01cc8e73aaeea5c664b8e6366c16bfc974a0e692"
+      },
+      {
+        "path": "src/reflaxe/compiler/TargetCodeInjection.hx",
+        "sha256": "4093dda04bd7d15f7936209e1197cb694db42fff6db3a3544346467dcc7420c6"
+      },
+      {
+        "path": "src/reflaxe/compiler/TypeUsageTracker.hx",
+        "sha256": "f28663470d8a1ba84d45cb8423ab63f61a2146f5c46e2c1daa54063335cb71e8"
+      },
+      {
+        "path": "src/reflaxe/config/Define.hx",
+        "sha256": "d839535292c62bcdac52257086cb4e91226560f7d1e9d7e64784d6e825b66b9f"
+      },
+      {
+        "path": "src/reflaxe/config/Meta.hx",
+        "sha256": "8738da69de95ef14d738a804507a42cb93d956760fb90423f923bad94949a53a"
+      },
+      {
+        "path": "src/reflaxe/data/ClassFuncArg.hx",
+        "sha256": "e4f8bbec8d28a3d41cf60f8464f570353c59da8b072cafce524d66baaff8a97f"
+      },
+      {
+        "path": "src/reflaxe/data/ClassFuncData.hx",
+        "sha256": "396588f9797f256fb78d74214116311be84e9a82fd1f1efc00022a5a4532b78f"
+      },
+      {
+        "path": "src/reflaxe/data/ClassVarData.hx",
+        "sha256": "8828c6eedf2dc99e011bd4150cc8f3201b03650d8f2a7595eb18359c79159d28"
+      },
+      {
+        "path": "src/reflaxe/data/EnumOptionArg.hx",
+        "sha256": "559e3906e39e06adfe964c2fe6fea8ff103849d7073742897bc5f5b48f791977"
+      },
+      {
+        "path": "src/reflaxe/data/EnumOptionData.hx",
+        "sha256": "975a0df851ce540e8f9f01d7b920d7b18eecac2ad17dd38d34c16aa9c01f731f"
+      },
+      {
+        "path": "src/reflaxe/data/TypedExprOrString.hx",
+        "sha256": "c88785dc5c4d3bfd82dc8b6867b71feeb5e68750910009511164beb2bd74c66c"
+      },
+      {
+        "path": "src/reflaxe/debug/MeasurePerformance.hx",
+        "sha256": "7163dced46595034ff16d04127e3b8018b69be0cc41c4f98b2545db4f80e317b"
+      },
+      {
+        "path": "src/reflaxe/helpers/ArrayHelper.hx",
+        "sha256": "bfb6114f9350802d190a38260f09f7b9013dfc59f155c72a8b94db599ceeda02"
+      },
+      {
+        "path": "src/reflaxe/helpers/BaseTypeHelper.hx",
+        "sha256": "b108686a551c8dd7975032898e07ac9eced31fffe2fc8973282b727c79d0afb0"
+      },
+      {
+        "path": "src/reflaxe/helpers/ClassFieldHelper.hx",
+        "sha256": "6be47175472732b31bd55e2100b2e3039e63f117d177ff70c90c3c10552bbae1"
+      },
+      {
+        "path": "src/reflaxe/helpers/ClassTypeHelper.hx",
+        "sha256": "486b552410587679e9d651e8b6cf6c0841b8e383a492f3b8195b915f601a04de"
+      },
+      {
+        "path": "src/reflaxe/helpers/Context.hx",
+        "sha256": "a1ee9a5f044dac1f0ae5492afe5bdbda682e1c21d43f9ab4bd2c52f0d8c2fb17"
+      },
+      {
+        "path": "src/reflaxe/helpers/DynamicHelper.hx",
+        "sha256": "1d0ceaed8aa857bf22359b55778ed6fad721201063c5c266bb8fba4020715de6"
+      },
+      {
+        "path": "src/reflaxe/helpers/ExprHelper.hx",
+        "sha256": "675218ca9fe11330a4f77a52106b1724ee59ab2e3d352040524b874b8dc356fd"
+      },
+      {
+        "path": "src/reflaxe/helpers/FieldAccessHelper.hx",
+        "sha256": "b20cd949ff67686c70313dcaae9393481ccc382d94052756f4690208688d4e34"
+      },
+      {
+        "path": "src/reflaxe/helpers/ModuleTypeHelper.hx",
+        "sha256": "c912f43e4fc61a59ed574fdff2973d9b45389982d9813256f160434437af873c"
+      },
+      {
+        "path": "src/reflaxe/helpers/NameMetaHelper.hx",
+        "sha256": "e20b59b9830a363df7d020230fcdf324465d1238479257fca818062664df2566"
+      },
+      {
+        "path": "src/reflaxe/helpers/NullHelper.hx",
+        "sha256": "550aa09708c1f653c2e70e40ee2145e1b2e1ae4e9b4313da246ac86d23a4fce7"
+      },
+      {
+        "path": "src/reflaxe/helpers/NullableMetaAccessHelper.hx",
+        "sha256": "90ff34a3809c25093f5fad1e8ebda0a5211d99b593d7fcd033bb791973e95484"
+      },
+      {
+        "path": "src/reflaxe/helpers/OperatorHelper.hx",
+        "sha256": "51b2692c18ad4b991f6a8dd0f63109983979bcd08be9cb8c2ba5df7b3ac36a57"
+      },
+      {
+        "path": "src/reflaxe/helpers/PositionHelper.hx",
+        "sha256": "8e3dfcbd314cb82004f0fec53435bc580be1302725e588cf5878a968a485ac7d"
+      },
+      {
+        "path": "src/reflaxe/helpers/StringBufHelper.hx",
+        "sha256": "8829f43c46df9fa302a6e7fc18ab7ebcc03b187fb5635a40378c8ecf2f72028d"
+      },
+      {
+        "path": "src/reflaxe/helpers/SyntaxHelper.hx",
+        "sha256": "b4f9a0bfc875e54a7e62649bba80abb065c2af74acbc2fb728c9b41083514fa3"
+      },
+      {
+        "path": "src/reflaxe/helpers/TVarHelper.hx",
+        "sha256": "3a25d53ecf678ea89e98b18a657343ccd7165365b14aa849527022dd8df1f573"
+      },
+      {
+        "path": "src/reflaxe/helpers/TypeHelper.hx",
+        "sha256": "27e6bbc8b059e9f491fd36e07e094def03d098825d1e3b0157d1dbe5e673b927"
+      },
+      {
+        "path": "src/reflaxe/helpers/TypedExprHelper.hx",
+        "sha256": "cd195bca18b07392b30692fc42a27091efb083ed51a89464bb93dc36551235f6"
+      },
+      {
+        "path": "src/reflaxe/input/ClassHierarchyTracker.hx",
+        "sha256": "2effcf050a4f88edd9c5d3cf5e8aefefbadba821bb9c88acea992e6cc7c1adc3"
+      },
+      {
+        "path": "src/reflaxe/input/ClassModifier.hx",
+        "sha256": "c3aea1360297be07c64a29bee71a2acfaa20b1d31aebe4dcb1b5b69622dc45f9"
+      },
+      {
+        "path": "src/reflaxe/input/ExpressionModifier.hx",
+        "sha256": "7db46d5824624c61b1a481c136369bf4b0e01e1220615aeac720fd467056b840"
+      },
+      {
+        "path": "src/reflaxe/input/ModuleUsageTracker.hx",
+        "sha256": "16c183e8d22377cbc64694e23fe51c3c5e7623346279dbc83927a45db86505d5"
+      },
+      {
+        "path": "src/reflaxe/output/DataAndFileInfo.hx",
+        "sha256": "15f5e6610eedc5c27583789d96f6659dbc21389c7bc8a0a95a8393b650e81113"
+      },
+      {
+        "path": "src/reflaxe/output/OutputManager.hx",
+        "sha256": "6c3117db38c2cbd61bb7390b7bf10997ab76cf24693ea8555f98555022a2919c"
+      },
+      {
+        "path": "src/reflaxe/output/OutputPath.hx",
+        "sha256": "d1a6f232e508aa07d9ee9c13f3eb35a6c1da300ad7904abab902686fe4633def"
+      },
+      {
+        "path": "src/reflaxe/output/PluginHook.hx",
+        "sha256": "1adf09d9489edb7ed6f3f0457ad57741e9b80b7c4918f891ceb95f8a81540071"
+      },
+      {
+        "path": "src/reflaxe/output/StringOrBytes.hx",
+        "sha256": "72e4b3872057df63fe31c8d34da2a0d4e94c759fb8bdc0275b1e7cce77a473a8"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/BasePreprocessor.hx",
+        "sha256": "c50115183b4f0a604c33033c5b203f3f7d6460cbd77853f7949af5e0f821d084"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/ExpressionPreprocessor.hx",
+        "sha256": "6548aab749de17ad05672b60c9f35602cd9380e493fd08fb527e94fb64592f68"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/implementations/MarkUnusedVariablesImpl.hx",
+        "sha256": "9c01e5be392dc81fe47aee63abe5da7cbaa759a14701d1d9dbbc7a847d34b542"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/implementations/PreventRepeatVariablesImpl.hx",
+        "sha256": "ec066689677f16f790e58083fea9e73d415c29cc2a1615980d8a502def5dce62"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/implementations/RemoveConstantBoolIfsImpl.hx",
+        "sha256": "278b9f970dd09bbe32cda83eb51fb02b1eec2a1442abd45c67218cc13895167a"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/implementations/RemoveLocalVariableAliasesImpl.hx",
+        "sha256": "23dd3e1cb66864d3541933a304dbbf46547d789b0dbd5c05680532bda49a223d"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/implementations/RemoveReassignedVariableDeclarationsImpl.hx",
+        "sha256": "76a1fc0a91a48b38a755d19fde80fc00c10e892ddc0b74f92f2134eb06430304"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/implementations/RemoveSingleExpressionBlocksImpl.hx",
+        "sha256": "e053228124623febd0df21836af75800ce3d160a65a29851fb0940a09c69f7c5"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/implementations/RemoveTemporaryVariablesImpl.hx",
+        "sha256": "0547edf8bfbbb878b7a6cf78bda95ee9955e7d51ee04258bbc75edb6dd78f8b9"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/implementations/RemoveUnnecessaryBlocksImpl.hx",
+        "sha256": "4f1ce39e43da61ca02a3fbd78eca0925ccacc5f17e86a2b8af98cc79b91982f5"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/implementations/WrapLambdaCaptureVariablesInArrayImpl.hx",
+        "sha256": "6f31c5c69284a9621cddf65118fff9be934f3743fa727d8a524f74d3cd7fc68d"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/implementations/everything_is_expr/EverythingIsExprSanitizer.hx",
+        "sha256": "f5da78e9a9cdcd35ddac94081602e81d39e95ffc200a909ad168489898884b3a"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/implementations/everything_is_expr/ReassignOnSubfieldEdit.hx",
+        "sha256": "a12a574033936e09a513b2d4784cbd29bfcca4881f585c06b7f209ef89042621"
+      },
+      {
+        "path": "src/reflaxe/preprocessors/implementations/everything_is_expr/TempVarNameGenerator.hx",
+        "sha256": "8e31a8ece323b09b1d2a4115d45fe09b547c58ca6ccce56818470bce2a8645cf"
+      }
+    ]
+  },
+  "patch_set": {
+    "path": "provenance/reflaxe/upstream-to-supplier.patch",
+    "sha256": "b8f1ee58f7f9fb2685970529c638fb71fae961b010388976568337e25af7612b",
+    "base": "official_upstream.source_path",
+    "result": "supplier_snapshot.source_path",
+    "modified_source_files": [
+      "ReflectCompiler.hx",
+      "compiler/TargetCodeInjection.hx",
+      "compiler/TypeUsageTracker.hx",
+      "data/ClassVarData.hx",
+      "helpers/BaseTypeHelper.hx",
+      "helpers/TypeHelper.hx",
+      "input/ClassModifier.hx",
+      "input/ModuleUsageTracker.hx",
+      "output/OutputManager.hx",
+      "preprocessors/ExpressionPreprocessor.hx",
+      "preprocessors/implementations/MarkUnusedVariablesImpl.hx",
+      "preprocessors/implementations/RemoveTemporaryVariablesImpl.hx",
+      "preprocessors/implementations/RemoveUnnecessaryBlocksImpl.hx",
+      "preprocessors/implementations/everything_is_expr/EverythingIsExprSanitizer.hx"
+    ]
+  }
+}

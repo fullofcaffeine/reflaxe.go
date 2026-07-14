@@ -30,16 +30,20 @@ Run these checks from repo root on a clean branch before a release cut.
    - `npm run security:go-tooling`
    - Confirm the race detector, strict checkptr, vet, and pinned Staticcheck
      reports pass on both supported Go lines.
-9. Performance visibility gates:
+9. Locked supply-chain provenance:
+   - `npm run security:supply-chain`
+   - Confirm clean npm lock installation, immutable action pins, and vendored
+     Reflaxe patch reconstruction all pass.
+10. Performance visibility gates:
    - `npm run test:perf:go`
    - `npm run test:perf:hxrt-selective`
    - `npm run test:perf:apps`
-10. Production caveat scoreboard review:
+11. Production caveat scoreboard review:
    - Read `docs/known-gaps.md#production-hardening-scoreboard`
    - Confirm each row still has an owner, current decision, evidence, and reopen trigger.
    - Confirm the scoreboard references durable evidence links and commands, not retired tracker IDs.
    - For multi-package output, check `docs/multi-package-output-evaluation.md#measurable-production-reopen-triggers` before filing implementation work.
-11. Performance budget policy review:
+12. Performance budget policy review:
    - Read `docs/performance-budget-policy.md`
    - Confirm warning-only perf drift is not being treated as release-blocking without the promotion criteria in that policy.
 
@@ -57,6 +61,7 @@ npm run test:family-stdlib-sync
 npm run test:family-stdlib-bootstrap
 npm run release:status
 npm run security:go-tooling
+npm run security:supply-chain
 npm run test:perf:go
 npm run test:perf:hxrt-selective
 npm run test:perf:apps
@@ -87,12 +92,18 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 - `npm run security:go-tooling` exits `0`; race detector, strict checkptr,
   vet, and pinned Staticcheck reports contain no blocking findings on every
   supported Go line.
+- `npm run security:supply-chain` exits `0`; the npm lock matches
+  declared dependencies, every external action matches the immutable action
+  manifest, and vendored Reflaxe passes its offline patch round-trip.
 - Perf runs complete and budgets are within expected thresholds for the current baseline policy.
 - Performance budget policy in `docs/performance-budget-policy.md` still matches CI enforcement settings and any warning-only drift has an explicit follow-up decision.
 - The Production caveat scoreboard in `docs/known-gaps.md#production-hardening-scoreboard` still matches current evidence and does not hide target-sensitive or warning-only caveats as full semantic guarantees.
 - Multi-package output remains deferred unless a trigger in `docs/multi-package-output-evaluation.md#measurable-production-reopen-triggers` has repeatable evidence attached.
 
 ## Related references
+
+- [Supply-chain policy](supply-chain-policy.md)
+- [Vendored Reflaxe provenance](vendor-reflaxe-provenance.md)
 
 - CI stage contract source: `test/run-ci.py`
 - Supported toolchain policy: `docs/toolchain-policy.md`

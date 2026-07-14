@@ -1,0 +1,546 @@
+diff --git a/src/reflaxe/ReflectCompiler.hx b/src/reflaxe/ReflectCompiler.hx
+index 0e580a0dd7821ad4410208e1fa882c9e9f56b5de..eb916cbea93428e2221516206a4d659faf872122 100644
+--- a/src/reflaxe/ReflectCompiler.hx
++++ b/src/reflaxe/ReflectCompiler.hx
+@@ -511,6 +511,31 @@ class ReflectCompiler {
+ 	// * transpileClass
+ 	// =======================================================
+ 	static function transpileClass(cls: ClassType, compiler: BaseCompiler) {
++		#if debug_function_collection
++		trace("[XRay ReflectCompiler] transpileClass called for: " + cls.name);
++		trace("[XRay ReflectCompiler]   isExtern: " + cls.isExtern);
++		trace("[XRay ReflectCompiler]   fields count: " + cls.fields.get().length);
++		trace("[XRay ReflectCompiler]   statics count: " + cls.statics.get().length);
++		
++		// Special debug for TodoLive
++		if (cls.name == "TodoLive") {
++			trace("[XRay ReflectCompiler] TodoLive special debug:");
++			trace("[XRay ReflectCompiler]   module: " + cls.module);
++			trace("[XRay ReflectCompiler]   pack: " + cls.pack);
++			trace("[XRay ReflectCompiler]   pos: " + cls.pos);
++			// Check if statics are being added after initial typing
++			var statics = cls.statics.get();
++			trace("[XRay ReflectCompiler]   statics.get() result: " + statics);
++			if (statics != null && statics.length == 0) {
++				// Check class metadata
++				trace("[XRay ReflectCompiler]   class metadata:");
++				for (meta in cls.meta.get()) {
++					trace("[XRay ReflectCompiler]     @" + meta.name + " with params: " + meta.params);
++				}
++			}
++		}
++		#end
++		
+ 		final varFields: Array<ClassVarData> = [];
+ 		final funcFields: Array<ClassFuncData> = [];
+ 
+@@ -539,11 +564,26 @@ class ReflectCompiler {
+ 					}
+ 				}
+ 				case FMethod(methodKind): {
++					#if debug_function_collection
++					if (cls.name == "TodoLive") {
++						trace("[XRay ReflectCompiler] TodoLive method: " + field.name + " shouldGenerate: " + shouldGenerateFunc(field, compiler, isStatic, methodKind));
++					}
++					#end
+ 					if(shouldGenerateFunc(field, compiler, isStatic, methodKind)) {
+ 						final data = field.findFuncData(cls, isStatic);
++						#if debug_function_collection
++						if (cls.name == "TodoLive") {
++							trace("[XRay ReflectCompiler]   findFuncData returned: " + (data != null ? "data" : "null"));
++						}
++						#end
+ 						if(data != null) {
+ 							funcFields.push(preprocessFunction(compiler, field, data));
+ 						} else {
++							#if debug_function_collection
++							if (cls.name == "TodoLive") {
++								trace("[XRay ReflectCompiler]   WARNING: Function info not found for " + field.name);
++							}
++							#end
+ 							if(!compiler.options.ignoreBodilessFunctions) {
+ 								#if eval
+ 								Context.warning("Function information not found.", field.pos);
+@@ -565,10 +605,24 @@ class ReflectCompiler {
+ 		}
+ 
+ 		for(field in cls.statics.get()) {
++			#if debug_function_collection
++			if (cls.name == "TodoLive") {
++				trace("[XRay ReflectCompiler] TodoLive static field: " + field.name);
++				trace("[XRay ReflectCompiler]   kind: " + field.kind);
++				trace("[XRay ReflectCompiler]   isExtern: " + field.isExtern);
++				trace("[XRay ReflectCompiler]   has expr: " + (field.expr() != null));
++			}
++			#end
+ 			addField(field, true);
+ 		}
+ 	
+-		compiler.compileClass(cls, varFields, funcFields);
++		#if debug_function_collection
++	if (cls.name == "TodoLive") {
++		trace("[XRay ReflectCompiler] TodoLive final counts - varFields: " + varFields.length + ", funcFields: " + funcFields.length);
++	}
++	#end
++	
++	compiler.compileClass(cls, varFields, funcFields);
+ 	}
+ 
+ 	static function preprocessFunction(compiler: BaseCompiler, field: ClassField, data: ClassFuncData): ClassFuncData {
+@@ -578,7 +632,14 @@ class ReflectCompiler {
+ 		if(compiler.options.enforceNullTyping) {
+ 			NullTypeEnforcer.modifyExpression(data.expr);
+ 		}
++		#if debug_preprocessor
++		trace("[XRay ReflectCompiler] Processing preprocessors for function");
++		trace("[XRay ReflectCompiler] Number of preprocessors: " + compiler.expressionPreprocessors.length);
++		#end
+ 		for(preprocessor in compiler.expressionPreprocessors) {
++			#if debug_preprocessor
++			trace("[XRay ReflectCompiler] Processing preprocessor: " + preprocessor);
++			#end
+ 			preprocessor.process(data, compiler);
+ 		}
+ 		return data;
+diff --git a/src/reflaxe/compiler/TargetCodeInjection.hx b/src/reflaxe/compiler/TargetCodeInjection.hx
+index d267779d5751a8fe56262470373d16fb3c27fca1..671153560165265a508b73d50171bf86ec063712 100644
+--- a/src/reflaxe/compiler/TargetCodeInjection.hx
++++ b/src/reflaxe/compiler/TargetCodeInjection.hx
+@@ -24,6 +24,11 @@ class TargetCodeInjection {
+ 						arguments = el;
+ 						id;
+ 					}
++					// Also check for TLocal with the injection name (for when it's a local variable)
++					case TLocal(v) if (v.name == injectFunctionName): {
++						arguments = el;
++						v.name;
++					}
+ 					case _: null;
+ 				}
+ 			}
+@@ -94,6 +99,11 @@ class TargetCodeInjection {
+ 						arguments = el;
+ 						id;
+ 					}
++					// Also check for TLocal with the injection name (for when it's a local variable)
++					case TLocal(v) if (v.name == injectFunctionName): {
++						arguments = el;
++						v.name;
++					}
+ 					case _: null;
+ 				}
+ 			}
+diff --git a/src/reflaxe/compiler/TypeUsageTracker.hx b/src/reflaxe/compiler/TypeUsageTracker.hx
+index 72830f8063f058286f45d44aab8cf02bc0113c61..09a35e235ecaba8f89319170067066c470499ca6 100644
+--- a/src/reflaxe/compiler/TypeUsageTracker.hx
++++ b/src/reflaxe/compiler/TypeUsageTracker.hx
+@@ -280,8 +280,14 @@ class TypeUsageTracker {
+ 			case TEnumDecl(e): {
+ 				final enm = e.get();
+ 
+-				for(name => field in enm.constructs) {
+-					addFunction(field.type);
++				// Avoid key/value iteration (`for (k => v in map)`) here to prevent the compiler from
++				// pulling in `haxe.iterators.MapKeyValueIterator` via `@:ifFeature`, which some targets
++				// (including reflaxe.rust) do not currently emit.
++				for(name in enm.constructs.keys()) {
++					final field = enm.constructs.get(name);
++					if(field != null) {
++						addFunction(field.type);
++					}
+ 				}
+ 			}
+ 
+@@ -302,7 +308,12 @@ class TypeUsageTracker {
+ 			final level = Std.int(Math.pow(2, i));
+ 			result.set(cast level, []);
+ 		}
+-		for(id => moduleData in modules) {
++		// Avoid key/value iteration (`for (k => v in map)`) here to prevent the compiler from
++		// pulling in `haxe.iterators.MapKeyValueIterator` via `@:ifFeature`, which some targets
++		// (including reflaxe.rust) do not currently emit.
++		for(id in modules.keys()) {
++			final moduleData = modules.get(id);
++			if(moduleData == null) continue;
+ 			for(i in 0...TypeUsageLevel.LevelCount()) {
+ 				final level = Std.int(Math.pow(2, i));
+ 				if((moduleData.level & level) != 0) {
+diff --git a/src/reflaxe/data/ClassVarData.hx b/src/reflaxe/data/ClassVarData.hx
+index cb57c150272428ee720a1c063dcf8175f1906616..bcfb326d4ceadfc65ee3342ecacba00ef004b4ad 100644
+--- a/src/reflaxe/data/ClassVarData.hx
++++ b/src/reflaxe/data/ClassVarData.hx
+@@ -75,8 +75,12 @@ class ClassVarData {
+ 		if(hasDefaultValue()) {
+ 			final data = classType.extractPreconstructorFieldAssignments();
+ 			if(data != null) {
+-				for(assignField => expr in data.assignments) {
+-					if(field.name == assignField.name) {
++				// Avoid key/value iteration (`for (k => v in map)`) here to prevent the compiler from
++				// pulling in `haxe.iterators.MapKeyValueIterator` via `@:ifFeature`, which some targets
++				// (including reflaxe.rust) do not currently emit.
++				for(assignField in data.assignments.keys()) {
++					final expr = data.assignments.get(assignField);
++					if(expr != null && field.name == assignField.name) {
+ 						return expr;
+ 					}
+ 				}
+diff --git a/src/reflaxe/helpers/BaseTypeHelper.hx b/src/reflaxe/helpers/BaseTypeHelper.hx
+index d5f5f4e303dde4e08a28defe5a51a6dab5f7e6e6..6d767558b1a416c49b8bac6c17b4113599407096 100644
+--- a/src/reflaxe/helpers/BaseTypeHelper.hx
++++ b/src/reflaxe/helpers/BaseTypeHelper.hx
+@@ -60,7 +60,60 @@ class BaseTypeHelper {
+ 	}
+ 
+ 	public static function moduleId(self: BaseType): String {
+-		return StringTools.replace(self.module, ".", "_");
++		var module = self.module;
++		
++		/**
++		 * REFLAXE BUG FIX: Sanitize malformed EReg module path from Haxe
++		 * 
++		 * PROBLEM - EReg-Specific Module Corruption:
++		 * EReg is the ONLY standard library class with compiler-integrated literal
++		 * syntax (~/pattern/). When Haxe encounters regex literals, it goes through
++		 * a special resolution path that corrupts the module name:
++		 * - Expected: self.module = "EReg"
++		 * - Actual: self.module = "/e_reg" (snake_case + leading slash)
++		 * - Result: Attempts to write "/e_reg.ex" to filesystem root
++		 * 
++		 * WHY ONLY REFLAXE.ELIXIR HAS THIS BUG:
++		 * We checked all other Reflaxe targets and found:
++		 * - Reflaxe.CPP: Provides custom EReg in std/cxx/_std/EReg.hx → No bug
++		 * - Reflaxe.Go: Provides custom EReg in src/EReg.cross.hx → No bug
++		 * - Reflaxe.GDScript: Doesn't support EReg at all → No bug
++		 * - Reflaxe.CSharp: Doesn't support EReg at all → No bug
++		 * - Reflaxe.Elixir: Uses Haxe's standard EReg → HAS THE BUG!
++		 * 
++		 * We're uniquely vulnerable because we inherit Haxe's problematic EReg
++		 * resolution without providing our own override.
++		 * 
++		 * THIS FIX - Primary Defense Layer:
++		 * Remove leading "/" from module names at the earliest point in Reflaxe's
++		 * pipeline. This sanitizes the corrupted module name from Haxe before it
++		 * can cause filesystem errors.
++		 * 
++		 * WHY THIS IS THE RIGHT SOLUTION:
++		 * 1. We can't fix Haxe compiler's EReg handling (out of scope)
++		 * 2. Creating custom EReg would require maintaining regex implementation
++		 * 3. This minimal fix solves the problem with zero side effects
++		 * 4. OutputManager provides secondary defense for robustness
++		 * 
++		 * IMPACT:
++		 * - Fixes "Read-only file system" errors when using ~/pattern/ syntax
++		 * - Enables regex literals to work in Reflaxe.Elixir
++		 * - No impact on any other types or correct module names
++		 * 
++		 * UPSTREAM STATUS:
++		 * This handles a Haxe→Reflaxe interaction issue. Could be removed if:
++		 * 1. Haxe fixes EReg's special resolution path
++		 * 2. Reflaxe.Elixir provides custom EReg implementation
++		 * 3. Reflaxe framework adds general module name sanitization
++		 * 
++		 * Applied by: reflaxe.elixir project
++		 * Date: 2025-01-18
++		 */
++		if (StringTools.startsWith(module, "/")) {
++			module = module.substring(1); // Remove leading slash
++		}
++		
++		return StringTools.replace(module, ".", "_");
+ 	}
+ 
+ 	public static function matchesDotPath(self: BaseType, path: String): Bool {
+diff --git a/src/reflaxe/helpers/TypeHelper.hx b/src/reflaxe/helpers/TypeHelper.hx
+index 7bf83ffe738286bfd549e09c09138f296408f24c..313c39e82c02d648eec161afd6d374752cd9ce23 100644
+--- a/src/reflaxe/helpers/TypeHelper.hx
++++ b/src/reflaxe/helpers/TypeHelper.hx
+@@ -35,12 +35,21 @@ class TypeHelper {
+ 		final resolvedTypes = getSubTypeList(t);
+ 		final cfSubTypes = getSubTypeList(cf.type);
+ 
+-		for(key => subType in cfSubTypes) {
++		// Avoid key/value iteration (`for (k => v in map)`) here to prevent the compiler from
++		// pulling in `haxe.iterators.MapKeyValueIterator` via `@:ifFeature`, which some targets
++		// (including reflaxe.rust) do not currently emit.
++		for(key in cfSubTypes.keys()) {
++			final subType = cfSubTypes.get(key);
++			if(subType == null) continue;
++
+ 			final typeParamName = getTypeParameterName(subType);
+ 			if(typeParamName != null && paramNameIndexMap.exists(typeParamName)) {
+ 				final index = paramNameIndexMap.get(typeParamName);
+ 				if(index != null && result[index] == null) {
+-					result[index] = resolvedTypes[key];
++					final resolved = resolvedTypes.get(key);
++					if(resolved != null) {
++						result[index] = resolved;
++					}
+ 				}
+ 			}
+ 		}
+@@ -69,8 +78,12 @@ class TypeHelper {
+ 			if(subType != null) {
+ 				final si = Std.string(index);
+ 				result.set(si, subType);
+-				for(id => subSubType in getSubTypeList(subType)) {
+-					result.set(si + "_" + id, subSubType);
++				final subSubs = getSubTypeList(subType);
++				for(id in subSubs.keys()) {
++					final subSubType = subSubs.get(id);
++					if(subSubType != null) {
++						result.set(si + "_" + id, subSubType);
++					}
+ 				}
+ 			}
+ 			index++;
+diff --git a/src/reflaxe/input/ClassModifier.hx b/src/reflaxe/input/ClassModifier.hx
+index b6543572a7e1c94a9dd816769bde484fc573da49..7cbf39f6ffc13c1e15e9f611d1957901fa3627b1 100644
+--- a/src/reflaxe/input/ClassModifier.hx
++++ b/src/reflaxe/input/ClassModifier.hx
+@@ -25,7 +25,12 @@ class ClassModifier {
+ 			modifications.set(classPath, []);
+ 
+ 			#if eval
++			// Haxe 4.3.x does not have Compiler.addMetadata; fall back to addGlobalMetadata
++			#if (haxe_ver >= 4.4)
+ 			Compiler.addMetadata("@:build(reflaxe.input.ClassModifier.applyMod(\"" + classPath + "\"))", classPath);
++			#else
++			Compiler.addGlobalMetadata("@:build(reflaxe.input.ClassModifier.applyMod(\"" + classPath + "\"))", classPath);
++			#end
+ 			#end
+ 		}
+ 
+diff --git a/src/reflaxe/input/ModuleUsageTracker.hx b/src/reflaxe/input/ModuleUsageTracker.hx
+index bac93270796cfef6387b649c357178c2bacfb275..1306e19a60945b9e23481d8c09992131631b3901 100644
+--- a/src/reflaxe/input/ModuleUsageTracker.hx
++++ b/src/reflaxe/input/ModuleUsageTracker.hx
+@@ -81,8 +81,14 @@ class ModuleUsageTracker {
+ 			}
+ 			case TEnumDecl(enumRef): {
+ 				final enm = enumRef.get();
+-				for(_ => f in enm.constructs) {
+-					addUsedType(f.type);
++				// Avoid key/value iteration (`for (k => v in map)`) here to prevent the compiler from
++				// pulling in `haxe.iterators.MapKeyValueIterator` via `@:ifFeature`, which some targets
++				// (including reflaxe.rust) do not currently emit.
++				for(name in enm.constructs.keys()) {
++					final f = enm.constructs.get(name);
++					if(f != null) {
++						addUsedType(f.type);
++					}
+ 				}
+ 			}
+ 			case TTypeDecl(defTypeRef) if(compiler.options.unwrapTypedefs): {
+diff --git a/src/reflaxe/output/OutputManager.hx b/src/reflaxe/output/OutputManager.hx
+index 72cf346b3cad179b90f7d43db350d774f6507d8b..2292a1de9d7b853c32d68fad50667e504ebe7ab3 100644
+GIT binary patch
+literal 17049
+zcmb_k?RFc-k^K!mMT_={K$!$2C)wRYMe;%<C^6yJA*skdwhuJ`2E<r{8Jw8`DXyaY
+z%meHr?vw1jRn<KM5RhcYK3NJFbXQkbSKa#Pn(cPov)}gLMz`x8xzl+yn^(tC7G1{$
+zAN@9B&o(w@(eNFJxFQ~>(fhcQ3+1O98($@3*PcehB6t7zhyVGim}gZojkh*7lIbij
+zDmUSzB=5YqtK#y-d_0berwhLciOyc0Rq^`@bZwqr??qI`d--&hq@2jD?Ck7pY|P6f
+zyLLy>bTEqWSikx?lQ^BlMcLup%ez_pO1?i`GwNiXrhddmh2f)k>;)KC(I~1S_so6R
+zXmuYw+Gw>dC$YN$^(4<+K6Vwps!ZI}j~?g6G^!l_apxwsjn<<_-Hnz_+;xXpwY^c3
+zOiFhXrSsU~Ly`@Pcp5_<BNt=BoufoOB{x)IlrC~rR9weZ2Tbiv;^8|=1cy>h0<}q0
+zy5S_su0d)TW%!I?9Aj+ZbTB{(jzC9vOh!xW9gf}Gs+h-bw`I4}ysU8ELvUzwql&_~
+z1ucl3o5ymuNj1TmSaIa0`DmWTrC$I8_vD9N_ae{JS`IyzCZG+ej&a;>7FCndRk@4O
+zR95EG(p|?{Ttt-40HT5T{bqtVWE(R0r60TNdPNc4{pF%6Ag1Tr8y}%dJkPx}Dk+1k
+zijs^H<YL2oM2$~n6)<2+@@Fi#(Xs<qe#S*U6+XNm-H<f7Uos+JygsQxiZY2JLzjQ`
+zf6$sP87`|RtICbmY(7YnAw-r%se9Q!>7Vy5`}<c%hZmPu2Zu-fliqP33cPt0gmFMQ
+zc77@IY!kLaa=)4hogj0^Nt}*qK5nAI)FLk0Fr{doR@*Lvk!|6;7p&Q{&M7L={p9`}
+z+NVD^?1PlZbv;S8vvj~1_~Xw{o1>1+I(MBAJXM6WhtC^?)y$#vQFf<_2z!DGC)ns{
+z+rc=g7TXTiJ&My<K8wwjlYE{+D`Qv274=rF#;d&u#*Fcq8%Jpwi}VAkq<J)=q2|C)
+zg9Fj6<%6r<)8-XVAUP;obvVKXcAoqWrwKr*fNmza87;eP;~|caV6=3Gr#b+F9?!F(
+zzyQWx<u-5iXjoP?FMvh{>m3{ZJ8+-Hx3xidj_|PU*IHD;Em~rWhu84~AV>cZy8=r5
+zyXNsro@8f4vW*rjwxXqa#==i+Lfw;Hr|7gT$oH-P3L)xqVb)~l-6|<}NT>ay(6G5b
+zZ~Z>ZLy^@`V3_v>+x)d14A`^V5N`Ml(hZ-%VM`p+L0+7uBeCLk;9IN$kG*px*1D<S
+zCw-$gfFR5Jltf&~xUFWnFQy8Dx}WxzvS(24!2$dQ_aY1(!66A#tyZuz-GQIdNk;Cw
+z@5K08&=*mez}1?yn<r_?-{A(8H-;?k!83OOf0M>!!~Nk8&W}^f2^+C<4lAx=f7iPo
+zAE11I=+$3PY3^;BN~N2o`0mOMdAPVMt9aUp-$Np$D6AKusbqyng@jwJwrJ;H;a@tl
+zs3>Ehff$fvI=}}B_Oi+oS!Rzq08t`(sD_jFl^s;ed`a+P`v}bJXdrfqzGa-O9Z7Qz
+zl3G1#nVIHM$?if3_hg%FGFo~ppBiC}fV({8sg{A|T{tDOiVZHXvUq4J{^r6pPz3Ag
+z<VAaPb8CB@$M=R5wi{>Vyf6)eHTU%#Rk%3jK$x0GA4{Eku=?=BSg!#~!_-A$k$70;
+z#a&HXPS$Kh-K-Z4;=DSL7NL0y_u-8PO)o1dQ`uJjOGKMc6>lP(Uz?KY&k&)9Lq;@@
+z(p}S25A@JU4Jn1Dj!Ewty48}&wLN+QeqQ~{y-6f_78l170x!>7_;KA-iBQ+fl;0W?
+zsa14Xy_+1c^e(>ZT3P|0u2FjXEz^?rJNN9lyFso2Or34L-Exz-h#9lY3b=X1A3P2(
+zAIC663D2Mz41+Q8t@<FLoFm&hj%I(0@BYp-=FlF#bvH@m-v0M)GCn}m1pPw}aXU$d
+z6IbTQX*6PoXC%*UBtGeUMCv|~E9Paj<wm*7a^xEGq5x;<or|Z5WIfo4U<kSKyaJ%A
+zB9epbVE@n%JAcJH2KwAy?d6*jfK3WYf<Ul}FkEe73(FwC&E^uhc?{(;ASm%Bo{^~{
+z$%~}AQ^sV)MP>|rhqIY*q9bH=o2eMs0t@Q<FOevf9V9Q)HYRO#(m1;YazA&EZF{X2
+z+33vX<s>X`M2L)nH#Vk3Ufym;+itMscAg`T+`%UXUo8o$i?~F{zPKSIjTzOc^sAXP
+zm$-jdvpsC$$o)O6+<~sFdl=qlzKm|f8_E%FLrKV|20xoWWj|$`TQWy%fR0PT@pXQG
+z$&HG_m>~hS@?z9WQ^gSP==Ik%=oL8@B;cvXu=fsSdC4@qP6?s`euRBh(YqMxEFs=D
+zWY6*T<@6liM;<lhp$EZ$;;Rrx(2UsyY0-J$RK!)msF21eT03>zNNP}3$VR0m=$x?w
+zi-B`Mpug>siWLaYg|I-iSmz&BAa36i^D6r6nS0C%QBw!Vz#9|@YR`alN^^!r927`x
+zc^fvfA=f_2#9kL-Vb&e6<8{ubWdR?4U!EBxUvp(T$n^vf#F8iwNcI#6S==UNyeu_%
+zJdyGo{)Q-OafY6B7EMt<XtiQwf98e!#%-J`-2s;5*s!eEYCTP|-|*Anp%;3M3v1jy
+z=?Y0T<fx!H6u}5!`2wVRrBl{CxCdm#WVPA6!(y2kVXGDFmGYxrZaW4tstBirR0P|Y
+zEM`k)?rAxt5S*v^`n4Ovj&w6zuH1#MpIO;pd!hJaD?ew>U+;MMYj&*bOyOeTM>+#5
+zGj_DjbvQB{skz}vVrY)ou}DS&Vkdai1_cxpRLfXT9mRwB^_8CHl_on#yO5z4(J*d5
+z{80}80Se2yKfALcAI2qtM@vppaa1PE>USS1@ihdTmF5l+#D4t&+<g4p_~k8d-mtU$
+z^oz*^GhL(;9)Fe)-Ts`lKpr~9OhW#%pG|C}W*)^EPQil3p(v~T37Twip4152B@*w_
+z3`)#Ue^s>|;KxDpN5=GP56a2%PMtP6G;TbDUjYy~9XR_ywAZIuekTn8gl_-nAO9Rw
+zSkfP_|9C1?>T$vxsE<8r1V3)xwzgcMB+&2)ja;Ko2edp!lyJ_`=&s}Td|etbSCOFT
+z*y*T-5o9E&5Jne+Bek0wzYAuJZHp|hg`4Fqtl{Ojcjo@q|AEqe_tCYD0e-!)bNjeu
+z+D=&K|E;0)2B92nOj-3iuruREyxkK**6v5Gn)QT*jrqB1r@_(cxcgBjl;jh~vUUgO
+zhnIbB9irqJDfmcAayZ&r*1~|>D@U&a@p^AQ1QX}7s@}DT{;c;eR&G5yhpLx75ND~H
+zQHp)mA-6sq@PaAWLvUhT!Ia%+iJ!B1C9j52>bcxAeJ-XW7&_xrREO{hM`#Q-oH3JW
+zVX*PcxT+>ae(N^(qKrw-G<ol<eT>uuYz)gwfp>b)&L)=>8?}nZ%0>OQZ9h^av_M(r
+zI|)KCbq!}G*8zlz5~}i|H+bH`LH7q#dLgjo27^vC8nsO#_yz@%9a!kB3x1%uHf;;C
+zi*<hAvRgU&wQgTCuHWFkX{qZRbHk}$r}-dC#bQux`R&fSi6YCU=vfJ-xCV)w3$aGc
+z7KyFl*IV{la?6feX)QnfVlu&RFVYE*KTAke&WnRo{AWMayULXy<p=YiYL5ofq^%?w
+zDi=u5d?9Ihm;SPfNA0r<q$OH;k=v%_@XaFjaJ$vKsiK87Cj}Y!W!BC5sAg-1-OfXB
+z6)1QI=)QBSe*MO6b~oLwLv_%7;~E4G4Eb5EHrBaU;@492T{{UcQ7@1H%VLzqq#uOk
+zd@{pF8m)#b&X%$3HIzIGURdf~eSInbZilm#nAU1F$eJUcipr&Ia-*qqqhgq+qqy+d
+z@^Z;A=*kR9h~EiRMCtnn=4e#>$|X7}&ie;Pz3=<(#p{>u;PCrhw;zw0ErSJ81FspP
+zga6Uu8kwI)DgNOVxJBY#IxKU6p#D8OKYel3Ki<`Em)MC<vJN1*X3jH>k<jY(Jult4
+zaJ@vJ?Mrl6V5Qea)r|!{A8p9qapBEeKSiiUahJH@m~@=fEwqAb948ryh{$!g7%IKE
+z1(2<?WQ#6`2=|54ncR2YB2Wq^V<U?^ms(xe`T6PTrQ7ShzUaH&N$==~i^B^Ppx(Ut
+z!5#OG4o=UH`}+{IURz(d)4jdd=M5<(Wr;2c6xXhC-A#utH>4AI&{t?QLG@BHB0L|)
+z1#k2nZ^=hdF+yv>porK^f!h_^*l5mX04p8J3G(`^z#ZK@jS3VRA+*f--jeJ1J&3Tf
+znU?r~GR{A{Pyy<3*ErPEeA01`9tk_=F()1Aq(-{-=+UlwL)tPb&g9A$x2_F}tSTru
+z=ip-1TEG%Yqd3S6d7l&)`dGpzf4&c4dCN-XTXH2=OXqQ!r*pZieKEf#FZ(J8X~o%*
+zZWBt06*e2Vt@T<@IWV>$R0P@OEFLE4pty5nY>T=`Hc_qM%|BPSBpJ$tt^tU?DCRTd
+zZ%Xlx<ndVIQb%ZVd-^+SQ)KfHJr7V;Hi&GJ{-$q8VS5Sg-H{AJESuf<s=$v*@=qj*
+zM0plntBqbF-kM)eeAfu+iptkUm2qWgl1vdf%M3eX9LG-BjrI*S690w<dOqC${p)`N
+zQ)d1`WSzwiAwagd)F|vpZ8d2jN3=Z(wE%KkI5)wGAPSCj=+5zIp_0+R7q2hQ`g>>?
+zajyt-d#A@|FurqlcyftGlD*5r)01F+C=F8Yak}{s)%enlV2f35zwd}PKV$=wVY>mK
+z$TMS4RO*2e&^t!cilkN2DP%o7m>s`|4)LNKjR(r&j@wVzH^#a>`X@$m0RbKG+89jx
+zri8J^#SWYsJpD*b9ZZUqYpWWlM^fwbq|eagL%iM*)g9w{USK_}gSL-gaDWpr*gtjt
+z*m(~WX78Igk@se*O4P8ucX_zy4vtRWn0x>Wufd%Yltg`s(E+P&|Lg+Cs_s+Q2J@vD
+zjzbe1#FOB%V@qkmdSz*`ONCZ#WoX(IntV+6omIctjH0GubYNlL67TD-y7Qnmn=okH
+z1-WR9^F$I-K)I7CF?5`~H+nFy)rz`AOH@#|^5@QC#WpE>1HqZNZR~R}wU}KZfH}0D
+z>CFG=Ff`CRfGr+18qVm0qjCqTNi&lo1Iz5{iW>Cbr<x9oZb^y$X9rNgn*>Bmud`tU
+zY^b1w!&vIkP6Y~%b}=j(?c^EMpN8c06wCyb7QNW%>&vs(m&fpJFJVT#ql;5_((mtI
+zxXV}YbPOSMtbh*KW{LQszju1Fk4~OD3Yv95#u#zO^(lWAv;kOa&rRuBAYvK>Luyzb
+zF5O~>)C{DsqEcrdAx#qm&IrP+)l^E`&}=lpQNAFRP$+}D8GGe?4AHJt^I*=qJ=IXV
+zANP|C;a!e>7G{xUGEKz6D(BG2{W_>B^6Mg+PU)EKE>eNZ;t5nxaoNbzq~O?-0fyKS
+zqO_oom$&(jO47uL`wm`xm#)YMxKPYcGS$KQcfWtoKe;&kd*5ALvUTp|4<?Cyln%hg
+zJSiuTQFR;REYkQI;U2m>Ay3m<lM&PP+J}TVRRm}Rcid5!4sGia4$AH?`6TPY-TVUB
+z>r%6*{@eJun$Eh?LFpe%u+c6~s_1ILh0k>lJE(SB*h#|T0R1f9v|bT6_`tOxHe5YK
+zIIiG)o2pXUsVd$6_r2q@qdwxW19#TDeC76zdKVXm2Zwt=x8NCenoBy`Vc-T<41f*M
+zvbe&)9Z*W6=XhkRl9KSNN+ukCmfrG&232SNmUJ7^_EHvJVb<y5Vansx6L7Z*@f9}<
+z9P^;+6ZtgJrLn8%sjIwNVDd!V=PGF~k8UHs)h@$@lk6S6JVh1ol}|a~jc_+8@CiR!
+zRCXcA)Uih>^7qS6On2dcq?pU@VcZg?dH&9#;0RpZlVID#z3oJe@ekZxciY9)uw#6|
+z?7_havVm0;c)vSEimqmEDGIq$#iX4R%iw+iIN-iEy@vX0Lqm?PWVac#P6_DW!{al=
+zIKe#6wE1BHa4>m_tOMbQGwivaHYl+j*EgVH53!H#EN^nxxckNb09uTXGIn~Z&eT`F
+zp3DiZ-==81M=SIv5NG9R)rLhqSwOp^-VgnAM0<*QecQUo@-{DUrU-H%)L(p+M4~ft
+zz1ICO8fZu`L<q>M&AJ!xh0t9hm>8N<-*FcR+?k_ET+x^%URE8@$omI4Una7C?=Rq1
+zxIVzW$`Odr$0*tx*z1{vuu<pf-`8ir`+n~ju;06UebJNz6bpCYeoZcbgCpPY#M<G@
+zu&+o4a`iO8D-t|gi(yfPV4i;onK8;h8yg^-UcFY)hHDNz0>~<JhHJ>S5e_EER(w{3
+z6X5|!{O8+T*nM2b%n}t^?hB7)94H^X8A3@Y+u&{&YN0Q2#A)&#Ihi>f9fx*0l)b)v
+z{OzB29zWT6@?Y{4uPjIvE8z4Q<E>|c8?0~v4BA@J*9H}Z61m#v!O@E$l0)&E-|E`;
+z6Dv*Q8a;rDgeD^RT271319kNpsJafqM{7`AW)BsPG$&t$B?KJVMp6>&eYk0R`3(Q+
+zHn0oyFp!S^_nApV`CmDO`1mWQNIW2OzL+u8=dcQoPR{PZeTmr7;Pze$Tk)uI<ehRp
+z(94bXldY!?$9JwEy--8anoNC)JbNzaui5Y!Ghd=KFlL`2f3_k^SQA!&Yh4V~f-t+J
+za8EI@cZtYRr;#><Y5c)ol`cHwhChb;4#i#6Q+*}X_PnCa5`~YZ97J+P=mYn(@T;uC
+z-XCmFT|vNh+<j^XPT123%P;k=;E{Dq&SW8Mc})i<MuvSZ_UA75UUFoUuL~qllD~iv
+zpG+Mh+icH5L6qYc3c`!yAY)%L4O9Gs#TshY?Q82E37{wD4mOUk9-u)y6L^nO1P>#$
+z^hrCa^v&>{q>?2VVyp)C>jgpO5z~BNqdSPrk=B$42&8?3v7D6uoxC)f{QT=t&m_-O
+zNzpbw(>|s>VyE&FNxhU!r|`6Zd@ikI^d_R^tPfkum-rLDG8N(kqP7np5MkXWunk@b
+z!Y6368eXbm&5*J~5GwCU@iR)_=1@hXSPZef22bIgu5jtGl5c-{Y6jSQZ6N60Vl%MM
+z#<@W?Nmbt_46bVG68Oh8g~(|i8o!GRiSR{kDnvV#rv5^4(vV>tP4Y!NOW6fOL2lEo
+z;9L~R>S=Z*TR$KjEC8;<u6#S+lI`<W{ekz7qohO#m)~9u=1Drbk|gX(l4VdLDY{;m
+z>YjgtC9yZ!&e6bw86HD{1N%As6C8drzH@J>^L0D;Tbcqhb0%YaBM!$V^Ua4FWN}To
+z_TmSS{LL?G$?P}K7=+BXMb271V`wsEVZE3kUv5Gy0><#ppsi`aIP_8q?$kNi3r0Nz
+z_c)qN-kw7kq{>QdzAtp??yCiWw{GOUyV8`xAHB!6rMEMdXDd_7bE%`=*VLByCVmJE
+zGP8gukT)!`cP*MT?%?}@b|AzEmZT%O_!jwuI9Q-bl`seicr|8O6y=e*^!G6VP&=L4
+zYlUG&9<~>spaL>4#<RD0n~zas5TCxq=;QF!{i<>c_vNbl#hR<NH;;y1`PSNyyq^-x
+z+8Pth2!MHQ)iAs-D`UI`E*+;g8pQ%mF%($omifCthl2H@6I5>^%L)Q`(&&%z@2J50
+zEzVH^AAoE<PgIGKgT9Iq2RhP(6XRNpx`zMu=&JBq-fdLS4B8L(BvBxID_u1*q!625
+z`<-oee#*X%A8zB4Lnm8<`&rJWbz52uU)Eswq>A0t?j>aJ-S1i!9l_B(@MQsc(7Ir^
+zI4a{+nzc8Pagr_6&u3^&i$@(rR+>+3#FUM1h;x5ITd#?usVo@Z#BzVs_ui_p4rMDA
+z?z;MAnni7fXhJ`vy}fjWt4Mnn>l^pPeI;EikMVCdT7C~_k=9yJcb|cCTSMOJsn-#K
+zy{um_{_$rnk3K;B{kKpWlMn4RZpnw#HHc%7LM~9bp;#VE_<A+h^_OI!+-p?_HbVJV
+zs~b^=0>4i6*_4<M$$g>xF!GC$g>X>&XI2~PZ{h6%YU?MlVwK|vPUACPLtc@n7d1;0
+z>ykeUhH=VrKZ7Ru|3ENuo9uBA6kD(cL^5JP{JF8cU@d^eCurB$EbGRMO>bk8mQdK*
+z1o{CVKfMD4MhzAeq%nzj=3la-0~1)mTXrG96po39ZS==TE+wz%X+nqa#2EKBi}>oN
+OO5dsY$k*kCzyAjn<tTap
+
+delta 189
+zcmbQ)%6KMVgDszMT7Hp6L1IaUf~}oGa(-S(YF^1?J$`X!O@->oi}_VWK*9wD3YmE@
+zS)jybW`Pf^lfR4iseyFo=BJeAq<W@+Ovo=SDJU)R$t*4b=}61WNi7B$BquMqd6E<#
+z^JXRa1SWoc1^3hvg|yO~90icgli5r)ctH$Jpi(YQPR@eKzNU6!U=eE|zg8hNr#KZV
+KwRyAYGadjw3_Lsl
+
+diff --git a/src/reflaxe/preprocessors/ExpressionPreprocessor.hx b/src/reflaxe/preprocessors/ExpressionPreprocessor.hx
+index 12ba3cf69d3b733f4fd0cf5dc2013da369807359..0cfa68491638cd81bbef7ba3c5c91757147d36ca 100644
+--- a/src/reflaxe/preprocessors/ExpressionPreprocessor.hx
++++ b/src/reflaxe/preprocessors/ExpressionPreprocessor.hx
+@@ -219,7 +219,14 @@ class ExpressionPreprocessorHelper {
+ 				data.setExprList(MarkUnusedVariablesImpl.mark(data.expr.unwrapBlock()));
+ 			}
+ 			case Custom(preprocessor): {
++				#if debug_preprocessor
++				trace("[XRay ExpressionPreprocessor] Custom preprocessor being called");
++				trace("[XRay ExpressionPreprocessor] Preprocessor type: " + Type.getClassName(Type.getClass(preprocessor)));
++				#end
+ 				preprocessor.process(data, compiler);
++				#if debug_preprocessor
++				trace("[XRay ExpressionPreprocessor] Custom preprocessor completed");
++				#end
+ 			}
+ 		}
+ 	}
+diff --git a/src/reflaxe/preprocessors/implementations/MarkUnusedVariablesImpl.hx b/src/reflaxe/preprocessors/implementations/MarkUnusedVariablesImpl.hx
+index 805f42fa422f311de2269cf2c9e6bc63216b07e7..7b25942453477e59e620e3091f90b482c9df2472 100644
+--- a/src/reflaxe/preprocessors/implementations/MarkUnusedVariablesImpl.hx
++++ b/src/reflaxe/preprocessors/implementations/MarkUnusedVariablesImpl.hx
+@@ -51,7 +51,11 @@ class MarkUnusedVariablesImpl {
+ 			iter(e);
+ 		}
+ 
+-		for(id => tvar in tvarMap) {
++		// Avoid key/value iteration (`for (k => v in map)`) here to prevent the compiler from
++		// pulling in `haxe.iterators.MapKeyValueIterator` via `@:ifFeature`, which some targets
++		// (including reflaxe.rust) do not currently emit.
++		for(id in tvarMap.keys()) {
++			final tvar = tvarMap.get(id);
+ 			if(tvar != null) {
+ 				if(!tvar.meta.maybeHas("-reflaxe.unused")) {
+ 					tvar.meta.maybeAdd("-reflaxe.unused", [], tvarPos.get(id).trustMe());
+diff --git a/src/reflaxe/preprocessors/implementations/RemoveTemporaryVariablesImpl.hx b/src/reflaxe/preprocessors/implementations/RemoveTemporaryVariablesImpl.hx
+index 243bd0c023113d105817f7a0c9bad3d1e0e00827..124600e547887d0e0aa539cb9a0c9465f58fa247 100644
+--- a/src/reflaxe/preprocessors/implementations/RemoveTemporaryVariablesImpl.hx
++++ b/src/reflaxe/preprocessors/implementations/RemoveTemporaryVariablesImpl.hx
+@@ -178,7 +178,7 @@ class RemoveTemporaryVariablesImpl {
+ 			if(i < exprList.length - 1) {
+ 				switch(exprList[i].expr) {
+ 					case TVar(tvar, maybeExpr): {
+-						if(shouldRemoveVariable(tvar, maybeExpr)) {
++						if(maybeExpr != null && shouldRemoveVariable(tvar, maybeExpr)) {
+ 							tvarMap.set(tvar.id, mapTypedExpr(maybeExpr.trustMe(), false));
+ 							hasOverload = true;
+ 							continue;
+diff --git a/src/reflaxe/preprocessors/implementations/RemoveUnnecessaryBlocksImpl.hx b/src/reflaxe/preprocessors/implementations/RemoveUnnecessaryBlocksImpl.hx
+index 7c472a70deb0452417c1d17ab97e8bb02ac7b454..2d0250d84a17b5bbb8cf208ffdf6c545e3fea2c7 100644
+--- a/src/reflaxe/preprocessors/implementations/RemoveUnnecessaryBlocksImpl.hx
++++ b/src/reflaxe/preprocessors/implementations/RemoveUnnecessaryBlocksImpl.hx
+@@ -178,8 +178,12 @@ class RemoveUnnecessaryBlocksImpl {
+ 		}
+ 		
+ 		final result = [];
+-		for(name => useCount in varInstanceCount) {
+-			if(useCount.length > 1) {
++		// Avoid key/value iteration (`for (k => v in map)`) here to prevent the compiler from
++		// pulling in `haxe.iterators.MapKeyValueIterator` via `@:ifFeature`, which some targets
++		// (including reflaxe.rust) do not currently emit.
++		for(name in varInstanceCount.keys()) {
++			final useCount = varInstanceCount.get(name);
++			if(useCount != null && useCount.length > 1) {
+ 				result.push(name);
+ 			}
+ 		}
+diff --git a/src/reflaxe/preprocessors/implementations/everything_is_expr/EverythingIsExprSanitizer.hx b/src/reflaxe/preprocessors/implementations/everything_is_expr/EverythingIsExprSanitizer.hx
+index 6f4a55e9959b5c52e9490bbcc3b9696921af7988..a01581b9ac8f34b6386d49108efdb7232d0c73eb 100644
+--- a/src/reflaxe/preprocessors/implementations/everything_is_expr/EverythingIsExprSanitizer.hx
++++ b/src/reflaxe/preprocessors/implementations/everything_is_expr/EverythingIsExprSanitizer.hx
+@@ -731,7 +731,7 @@ class EverythingIsExprSanitizer {
+ 		};
+ 
+ 		final eiec = new EverythingIsExprSanitizer(e, options, this, idExpr, nameGenerator);
+-		
++
+ 		final initNull = options.setUninitializedVariablesToNull;
+ 
+ 		// Wrap `e.t` with `Null<T>` if initializing with `null`.

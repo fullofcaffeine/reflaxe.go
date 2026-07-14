@@ -14,7 +14,7 @@ runs:
     - name: Setup Haxe (linux, primary)
       id: setup_haxe_linux
       continue-on-error: true
-      uses: krdlab/setup-haxe@v2
+      uses: krdlab/setup-haxe@d93667502be3b4f31a94a3308a74388f2e178a8d # v2.1.0
       with:
         haxe-version: ${{ inputs.haxe-version }}
 

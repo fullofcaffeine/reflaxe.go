@@ -143,12 +143,14 @@ npm run test:perf:go
 npm run test:perf:hxrt-selective
 npm run test:perf:apps
 npm run security:go-tooling
+npm run security:supply-chain
 npm run release:status
 ```
 
 Release checklist: [docs/release-readiness-checklist.md](release-readiness-checklist.md)
 Performance budget policy: [docs/performance-budget-policy.md](performance-budget-policy.md)
 Go tooling gate policy: [docs/go-tooling-gates.md](go-tooling-gates.md)
+Supply-chain policy: [docs/supply-chain-policy.md](supply-chain-policy.md)
 
 ## Related docs
 
@@ -160,4 +162,6 @@ Go tooling gate policy: [docs/go-tooling-gates.md](go-tooling-gates.md)
 - Semantic diff guide: [docs/semantic-diff-guide.md](semantic-diff-guide.md)
 - `hxrt` runtime: [docs/hxrt-runtime.md](hxrt-runtime.md)
 - Go tooling release gates: [docs/go-tooling-gates.md](go-tooling-gates.md)
+- Supply-chain policy: [docs/supply-chain-policy.md](supply-chain-policy.md)
+- Vendored Reflaxe provenance: [docs/vendor-reflaxe-provenance.md](vendor-reflaxe-provenance.md)
 - Release readiness checklist: [docs/release-readiness-checklist.md](release-readiness-checklist.md)

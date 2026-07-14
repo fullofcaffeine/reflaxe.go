@@ -1,0 +1,2 @@
+# Provenance patches must preserve exact upstream whitespace for reconstruction.
+provenance/reflaxe/*.patch -whitespace

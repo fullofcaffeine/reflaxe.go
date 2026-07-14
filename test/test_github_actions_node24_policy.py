@@ -9,6 +9,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 WORKFLOW_DIR = REPO_ROOT / ".github" / "workflows"
 HAXE_ACTION = REPO_ROOT / ".github" / "actions" / "setup-haxe-linux" / "action.yml"
+HAXE_ACTION_REF = (
+    "uses: krdlab/setup-haxe@d93667502be3b4f31a94a3308a74388f2e178a8d"
+    " # v2.1.0"
+)
 
 
 class GithubActionsNode24PolicyTest(unittest.TestCase):
@@ -39,7 +43,8 @@ class GithubActionsNode24PolicyTest(unittest.TestCase):
 
     def test_haxe_setup_wrapper_uses_node24_ready_upstream_action(self) -> None:
         text = HAXE_ACTION.read_text(encoding="utf-8")
-        self.assertIn("uses: krdlab/setup-haxe@v2", text)
+        self.assertIn(HAXE_ACTION_REF, text)
+        self.assertNotIn("uses: krdlab/setup-haxe@v2", text)
         self.assertNotIn("uses: krdlab/setup-haxe@v1", text)
 
 

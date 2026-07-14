@@ -12,12 +12,16 @@ WORKFLOW_PATHS = [
     REPO_ROOT / ".github" / "workflows" / "ci-quality.yml",
     REPO_ROOT / ".github" / "workflows" / "ci-harness.yml",
 ]
+HAXE_ACTION_REF = (
+    "uses: krdlab/setup-haxe@d93667502be3b4f31a94a3308a74388f2e178a8d"
+    " # v2.1.0"
+)
 
 
 class CiHaxeSetupActionTest(unittest.TestCase):
     def test_linux_haxe_setup_is_centralized_in_composite_action(self) -> None:
         action = ACTION_PATH.read_text(encoding="utf-8")
-        self.assertIn("uses: krdlab/setup-haxe@v2", action)
+        self.assertIn(HAXE_ACTION_REF, action)
         self.assertIn("bash scripts/ci/setup-haxe-linux-fallback.sh", action)
         self.assertIn("warmup_attempts=", action)
         self.assertIn("SETUP_HAXE_OUTCOME", action)
@@ -29,7 +33,7 @@ class CiHaxeSetupActionTest(unittest.TestCase):
             self.assertNotIn("id: setup_haxe_linux", workflow)
 
         harness = WORKFLOW_PATHS[1].read_text(encoding="utf-8")
-        self.assertNotIn("uses: krdlab/setup-haxe@v2", harness)
+        self.assertNotIn("uses: krdlab/setup-haxe@", harness)
 
     def test_ci_harness_uses_shared_haxe_setup_for_each_linux_job(self) -> None:
         workflow = (REPO_ROOT / ".github" / "workflows" / "ci-harness.yml").read_text(encoding="utf-8")
@@ -39,7 +43,7 @@ class CiHaxeSetupActionTest(unittest.TestCase):
         workflow = (REPO_ROOT / ".github" / "workflows" / "ci-quality.yml").read_text(encoding="utf-8")
         self.assertEqual(workflow.count("uses: ./.github/actions/setup-haxe-linux"), 1)
         self.assertIn("Setup Haxe (macOS)", workflow)
-        self.assertIn("uses: krdlab/setup-haxe@v2", workflow)
+        self.assertIn(HAXE_ACTION_REF, workflow)
         self.assertIn("haxe-version: ${{ env.HAXE_VERSION }}", workflow)
         self.assertNotIn("brew install haxe neko", workflow)
 

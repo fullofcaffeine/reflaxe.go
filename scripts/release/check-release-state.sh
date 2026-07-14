@@ -57,6 +57,10 @@ parse_repo_slug() {
 
 require_command git
 require_command node
+require_command python3
+
+python3 scripts/security/verify-supply-chain.py
+log "supply-chain provenance: OK"
 
 require_file "docs/toolchain-policy.json"
 POLICY_HAXE_SELECTOR="$(node -p "require('./docs/toolchain-policy.json').haxe.ci_selector")"

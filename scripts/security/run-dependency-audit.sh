@@ -55,12 +55,13 @@ if [[ -f package.json ]]; then
   npm_audit_tmp_dir="$(mktemp -d)"
   trap 'rm -rf "$npm_audit_tmp_dir"' EXIT
   cp package.json "$npm_audit_tmp_dir/package.json"
+  cp package-lock.json "$npm_audit_tmp_dir/package-lock.json"
   if [[ -f .npmrc ]]; then
     cp .npmrc "$npm_audit_tmp_dir/.npmrc"
   fi
   (
     cd "$npm_audit_tmp_dir"
-    npm install --ignore-scripts --package-lock-only --no-audit --no-fund
+    npm ci --ignore-scripts --omit=dev --no-audit --no-fund
     npm audit --omit=dev --audit-level=high
   ) 2>&1 | tee "$npm_audit_report"
 fi

@@ -2,6 +2,7 @@
   "name": "reflaxe.go",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "npm@11.16.0",
   "license": "GPL-3.0-only",
   "description": "Reflaxe-based Go target for Haxe",
   "scripts": {
@@ -64,6 +65,9 @@
     "security:gitleaks": "bash scripts/security/run-gitleaks.sh",
     "security:deps": "bash scripts/security/run-dependency-audit.sh",
     "security:go-tooling": "python3 scripts/security/run-go-tooling-gates.py",
+    "security:supply-chain": "python3 scripts/security/verify-supply-chain.py",
+    "verify:vendor-reflaxe": "python3 scripts/vendor/verify-reflaxe-provenance.py",
+    "verify:vendor-reflaxe:reconstruct": "python3 scripts/vendor/verify-reflaxe-provenance.py --reconstruct",
     "release:status": "bash scripts/release/check-release-state.sh",
     "release": "semantic-release",
     "release:dry-run": "semantic-release --dry-run"

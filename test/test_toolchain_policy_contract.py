@@ -13,6 +13,10 @@ POLICY_JSON = REPO_ROOT / "docs" / "toolchain-policy.json"
 POLICY_DOC = REPO_ROOT / "docs" / "toolchain-policy.md"
 RELEASE_STATUS = REPO_ROOT / "scripts" / "release" / "check-release-state.sh"
 WORKFLOW_DIR = REPO_ROOT / ".github" / "workflows"
+HAXE_ACTION_REF = (
+    "uses: krdlab/setup-haxe@d93667502be3b4f31a94a3308a74388f2e178a8d"
+    " # v2.1.0"
+)
 
 
 class ToolchainPolicyContractTest(unittest.TestCase):
@@ -40,7 +44,7 @@ class ToolchainPolicyContractTest(unittest.TestCase):
         self.assertEqual(matrix_lines, ["1.25.x", "1.26.x", "1.26.x"])
         self.assertIn('NODE_VERSION: "24"', workflow)
         self.assertIn('HAXE_VERSION: "4.3.7"', workflow)
-        self.assertIn("uses: krdlab/setup-haxe@v2", workflow)
+        self.assertIn(HAXE_ACTION_REF, workflow)
         self.assertIn("haxe-version: ${{ env.HAXE_VERSION }}", workflow)
         self.assertNotIn("brew install haxe", workflow)
 
