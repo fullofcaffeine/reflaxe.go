@@ -13,6 +13,16 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 RUNNER = REPO_ROOT / "scripts" / "security" / "run-go-tooling-gates.py"
+EXPECTED_TARGETS = {
+    "hxrt",
+    "sys-thread-runtime",
+    "go-channel-runtime",
+    "pulseforge-portable",
+    "pulseforge-metal",
+    "fluxproxy-portable",
+    "fluxproxy-metal",
+}
+EXPECTED_GATES = {"race", "checkptr", "vet", "staticcheck"}
 
 
 class GoToolingGateSemanticsTest(unittest.TestCase):
@@ -104,27 +114,41 @@ printf 'synthetic staticcheck success\\n'
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         go_calls = go_log.read_text(encoding="utf-8")
         staticcheck_calls = staticcheck_log.read_text(encoding="utf-8")
-        self.assertEqual(go_calls.count("test -race"), 5)
-        self.assertEqual(go_calls.count("test -gcflags=all=-d=checkptr=2"), 5)
-        self.assertEqual(go_calls.count("vet -stdmethods=false"), 5)
-        self.assertEqual(staticcheck_calls.count("-checks=SA*"), 5)
+        target_count = len(EXPECTED_TARGETS)
+        self.assertEqual(go_calls.count("test -race"), target_count)
+        self.assertEqual(go_calls.count("test -gcflags=all=-d=checkptr=2"), target_count)
+        self.assertEqual(go_calls.count("vet -stdmethods=false"), target_count)
+        self.assertEqual(staticcheck_calls.count("-checks=SA*"), target_count)
 
         manifest = json.loads((report_dir / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["result"], "pass")
-        self.assertEqual(len(manifest["runs"]), 20)
+        expected_runs = {
+            (target, gate)
+            for target in EXPECTED_TARGETS
+            for gate in EXPECTED_GATES
+        }
+        self.assertEqual(len(manifest["runs"]), len(expected_runs))
+        self.assertEqual(
+            {(run["target"], run["gate"]) for run in manifest["runs"]},
+            expected_runs,
+        )
         self.assertTrue(all(run["result"] == "pass" for run in manifest["runs"]))
         self.assertIn("PASS", (report_dir / "summary.md").read_text(encoding="utf-8"))
-        self.assertEqual(len(list((report_dir / "reports").glob("*.txt"))), 20)
+        self.assertEqual(len(list((report_dir / "reports").glob("*.txt"))), len(expected_runs))
 
     def test_race_failure_is_not_retried_or_downgraded(self) -> None:
         proc, report_dir, go_log, _ = self.run_with_fake_tools(go_fail_match="-race")
 
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
         self.assertNotIn("all gates passed", proc.stdout)
-        self.assertEqual(go_log.read_text(encoding="utf-8").count("test -race"), 5)
+        self.assertEqual(
+            go_log.read_text(encoding="utf-8").count("test -race"),
+            len(EXPECTED_TARGETS),
+        )
         manifest = json.loads((report_dir / "manifest.json").read_text(encoding="utf-8"))
         failures = [run for run in manifest["runs"] if run["result"] == "fail"]
-        self.assertEqual(len(failures), 5)
+        self.assertEqual(len(failures), len(EXPECTED_TARGETS))
+        self.assertEqual({run["target"] for run in failures}, EXPECTED_TARGETS)
         self.assertTrue(all(run["gate"] == "race" for run in failures))
         self.assertIn(
             "synthetic go tooling failure",
@@ -135,10 +159,14 @@ printf 'synthetic staticcheck success\\n'
         proc, report_dir, _, staticcheck_log = self.run_with_fake_tools(staticcheck_fail=True)
 
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
-        self.assertEqual(staticcheck_log.read_text(encoding="utf-8").count("-checks=SA*"), 5)
+        self.assertEqual(
+            staticcheck_log.read_text(encoding="utf-8").count("-checks=SA*"),
+            len(EXPECTED_TARGETS),
+        )
         manifest = json.loads((report_dir / "manifest.json").read_text(encoding="utf-8"))
         failures = [run for run in manifest["runs"] if run["result"] == "fail"]
-        self.assertEqual(len(failures), 5)
+        self.assertEqual(len(failures), len(EXPECTED_TARGETS))
+        self.assertEqual({run["target"] for run in failures}, EXPECTED_TARGETS)
         self.assertTrue(all(run["gate"] == "staticcheck" for run in failures))
 
     def test_timeout_fails_closed_without_retry(self) -> None:
@@ -148,10 +176,14 @@ printf 'synthetic staticcheck success\\n'
         )
 
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
-        self.assertEqual(go_log.read_text(encoding="utf-8").count("test -race"), 5)
+        self.assertEqual(
+            go_log.read_text(encoding="utf-8").count("test -race"),
+            len(EXPECTED_TARGETS),
+        )
         manifest = json.loads((report_dir / "manifest.json").read_text(encoding="utf-8"))
         timeouts = [run for run in manifest["runs"] if run["result"] == "timeout"]
-        self.assertEqual(len(timeouts), 5)
+        self.assertEqual(len(timeouts), len(EXPECTED_TARGETS))
+        self.assertEqual({run["target"] for run in timeouts}, EXPECTED_TARGETS)
         self.assertTrue(all(run["gate"] == "race" for run in timeouts))
 
     def test_report_output_rejects_repository_root(self) -> None:
