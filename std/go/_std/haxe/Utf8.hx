@@ -1,7 +1,7 @@
 package haxe;
 
 import haxe.io.Bytes;
-import haxe.iterators.GoStringRuntime;
+import hxrt.string.GoStringRuntime;
 
 /**
 	What

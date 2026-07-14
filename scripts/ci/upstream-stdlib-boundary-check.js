@@ -30,17 +30,15 @@ function summarize(paths, limit) {
 
 const approvedStdOverrideLayout = [
   "std/*.hx",
-  "std/*.cross.hx",
   "std/haxe/**",
   "std/sys/**",
   "std/go/**",
   "std/hxrt/**",
-  "std/_std/**",
 ];
 const stdPathAllowlist = new Set(["std/AGENTS.md"]);
 
 function hasSupportedStdExtension(path) {
-  return path.endsWith(".hx") || path.endsWith(".cross.hx");
+  return path.endsWith(".hx") && !path.endsWith(".cross.hx");
 }
 
 function isApprovedStdOverridePath(path) {
@@ -53,7 +51,6 @@ function isApprovedStdOverridePath(path) {
     || path.startsWith("std/sys/")
     || path.startsWith("std/go/")
     || path.startsWith("std/hxrt/")
-    || path.startsWith("std/_std/")
   ) {
     return true;
   }
@@ -83,7 +80,7 @@ for (const path of trackedStd) {
 
 if (disallowedStdFiles.length > 0) {
   fail(
-    "stdlib override policy allows only .hx/.cross.hx files (plus std/AGENTS.md) in the approved staged layout ("
+    "stdlib override policy allows only ordinary .hx files (plus std/AGENTS.md) in the approved staged layout ("
       + approvedStdOverrideLayout.join(", ")
       + "). Found:\n"
       + summarize(disallowedStdFiles, 20)

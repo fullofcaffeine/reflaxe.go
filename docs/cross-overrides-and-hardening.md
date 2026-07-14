@@ -16,18 +16,10 @@ The ownership ledger currently classifies 62 files in that override lane.
 They are not checked in as `.cross.hx`; the package runner owns the later,
 deterministic conversion to flattened `src/**/*.cross.hx` artifacts.
 
-Six checked-in `.cross.hx` files remain temporarily. They are classified as
-target support or a typed runtime binding, not upstream overrides, and are
-owned by the separate support migration:
-
-- `std/haxe/io/GoIoHelpers.cross.hx`
-- `std/sys/GoHttpHelpers.cross.hx`
-- three `sys.thread` worker/sentinel companions
-- `std/_std/haxe/iterators/GoStringRuntime.cross.hx`
-
-The nine ordinary `std/_std/hxrt/**` modules are likewise typed runtime
-bindings awaiting that support migration. Exact source and destination paths
-live in `docs/stdlib-provenance-ledger.json`.
+No `.cross.hx` files are checked in. Repo-authored target support remains
+ordinary `.hx` source under `std/haxe/**` and `std/sys/**`; typed bindings for
+real Go runtime APIs live under `std/hxrt/**`. Exact ownership and canonical
+paths live in `docs/stdlib-provenance-ledger.json`.
 
 ## Quick Matrix
 
@@ -36,7 +28,7 @@ live in `docs/stdlib-provenance-ledger.json`.
 | Canonical override source | ordinary `.hx` under `std/go/_std/**` |
 | Packaged override shape | flattened `src/**/*.cross.hx`, generated during package staging |
 | Checked-in upstream override `.cross.hx` files | none |
-| Transitional support/runtime `.cross.hx` files | six |
+| Checked-in support/runtime `.cross.hx` files | none |
 | Public Go facades | ordinary modules under `std/go/**`, outside `_std` |
 | Does this repo own early `src/haxe/*` modules? | no |
 | Bootstrap activation keys off raw Haxe 4 `Cross`? | no |
@@ -55,8 +47,8 @@ Keeping the two shapes separate matters:
 3. support modules and public native facades retain ordinary `.hx` paths;
 4. package generation can prove a deterministic source-to-artifact manifest.
 
-The remaining checked-in support/runtime `.cross.hx` files are transitional,
-not precedent for new overrides.
+Support/runtime modules never enter that conversion because they do not
+replace upstream Haxe modules.
 
 ## What `_std` Means Here
 
@@ -64,12 +56,12 @@ The canonical target root is `std/go/_std`. Its directory structure mirrors
 upstream Haxe module paths, so `std/go/_std/haxe/Json.hx` owns the Go-target
 replacement for `haxe.Json`.
 
-Source builds declare `src`, ordinary `std`, the transitional `std/_std`
-support root, and canonical `std/go/_std` in
+Source builds declare `src`, ordinary `std`, and canonical `std/go/_std` in
 `haxe_libraries/reflaxe.go.hxml` before any macro is typed. The canonical root
-comes last, which gives it effective Haxe override precedence. A companion
-`haxe_libraries/reflaxe.hxml` supplies vendored Reflaxe at the same initial
-configuration stage.
+comes last, which gives it effective Haxe override precedence. Ordinary `std`
+exposes support, typed `hxrt` bindings, and public `go.*` facades without an
+extra override root. A companion `haxe_libraries/reflaxe.hxml` supplies
+vendored Reflaxe at the same initial configuration stage.
 
 `CompilerBootstrap` no longer changes classpath order. It only provides a
 typed, non-conflicting vendored-Reflaxe fallback for direct
@@ -100,11 +92,10 @@ Current status:
 
 The remaining sequence is explicit:
 
-1. move support and typed runtime bindings to their ledger destinations;
-2. keep target classpaths declared before typing without reflective
-   configuration surgery;
-3. generate `.cross.hx` only while staging a package;
-4. keep mixed-target detection narrow and fail fast when sibling targets
+1. generate `.cross.hx` only while staging a package;
+2. prove source and installed-package imports resolve through the same declared
+   module ownership;
+3. keep mixed-target detection narrow and fail fast when sibling targets
    conflict.
 
 ## Local Sibling References

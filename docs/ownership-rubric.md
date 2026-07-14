@@ -64,13 +64,13 @@ Good current examples:
 - `std/go/_std/haxe/Template.hx`
 - `std/go/_std/haxe/exceptions/PosException.hx`
 - `std/go/_std/haxe/ds/BalancedTree.hx`
-- `std/haxe/io/GoIoHelpers.cross.hx`
+- `std/haxe/io/GoIoHelpers.hx`
 
 The first three are canonical upstream overrides. `GoIoHelpers` is a
-repo-authored staged-support module awaiting its separate support-path move.
-Package staging flattens only the canonical override root and renames those
-files to `.cross.hx`; support, typed `hxrt` bindings, and public `go.*` facades
-remain ordinary modules.
+repo-authored staged-support module in its ordinary source location. Package
+staging flattens only the canonical override root and renames those files to
+`.cross.hx`; support, typed `hxrt` bindings, and public `go.*` facades remain
+ordinary modules.
 
 ## 2. `hxrt` Runtime (`runtime/hxrt/**`)
 

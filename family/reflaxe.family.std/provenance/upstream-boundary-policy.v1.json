@@ -5,8 +5,10 @@
     "vendor/haxe/"
   ],
   "approved_override_roots": [
-    "std/_std/",
-    "std/go/"
+    "std/go/",
+    "std/haxe/",
+    "std/hxrt/",
+    "std/sys/"
   ],
   "notes": [
     "Portable family extraction must not commit vendored upstream stdlib trees directly.",

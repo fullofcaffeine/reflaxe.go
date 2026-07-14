@@ -6,7 +6,9 @@ package hxrt.stack;
 
 	Why
 	Stack capture needs Go runtime APIs, so the implementation belongs in `hxrt`,
-	not in app code or compiler-owned raw emitters.
+	not in app code, the override-only stdlib tree, or compiler-owned raw emitters.
+	`isFrameSlice` accepts `Any` only at this runtime boundary because it must
+	classify an unchecked caught Haxe value before the public API can type it.
 
 	How
 	`capture(skip)` returns Go runtime frames after skipping this helper and the

@@ -1,7 +1,20 @@
 package sys.thread;
 
 /**
-	Internal worker used by `ElasticThreadPool`.
+	What
+	- Repo-authored worker support for the staged `sys.thread.ElasticThreadPool`
+	  implementation.
+
+	Why
+	- The worker is a target support type rather than an upstream Haxe stdlib module,
+	  so packaging it as an override-only `.cross.hx` file gave it the wrong
+	  ownership. Its restart and timeout behavior still belongs in ordinary Haxe
+	  beside the public pool override.
+
+	How
+	- A lock wakes one assigned task, the shared deque drains queued work, and the
+	  worker either marks itself dead after the timeout or restarts before propagating
+	  a task failure.
 **/
 class ElasticThreadPoolWorker {
 	public var task(default, null):Null<() -> Void>;

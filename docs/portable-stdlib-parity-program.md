@@ -72,9 +72,8 @@ Governance artifacts:
   provenance, migration ownership, exact destination, and compiler-shim audit
   for every tracked std/support source.
 - `scripts/ci/upstream-stdlib-boundary-check.js`: prevents tracked upstream
-  vendor roots and enforces the approved staged std layout (`std/*.hx`,
-  `std/*.cross.hx`, `std/haxe/**`, `std/sys/**`, `std/go/**`, `std/hxrt/**`,
-  `std/_std/**`).
+  vendor roots and enforces the approved ordinary-source layout (`std/*.hx`,
+  `std/haxe/**`, `std/sys/**`, `std/go/**`, `std/hxrt/**`).
 - `scripts/ci/stdlib-provenance-ledger-check.js`: validates the ledger schema
   and exact tracked-file coverage.
 - `test/test_stdlib_migration_ledger_contract.py`: locks ownership and target
@@ -150,8 +149,7 @@ Closed root-surface follow-up:
 Update sequence when std override files change:
 
 1. Update tracked std/support files under the approved staged layout
-   (`std/*.hx`, `std/*.cross.hx`, `std/haxe/**`, `std/sys/**`, `std/go/**`,
-   `std/hxrt/**`, `std/_std/**`).
+   (`std/*.hx`, `std/haxe/**`, `std/sys/**`, `std/go/**`, `std/hxrt/**`).
 2. Add/update matching entries in `docs/stdlib-provenance-ledger.json`.
 3. Run `npm run test:stdlib:governance`.
 4. Run `python3 test/run-ci.py` (or `npm run test:ci`) before merging.

@@ -1,5 +1,7 @@
 package haxe.iterators;
 
+import hxrt.string.GoStringRuntime;
+
 /**
 	What:
 	- Owns indexed code-unit iteration for the Go target string representation.

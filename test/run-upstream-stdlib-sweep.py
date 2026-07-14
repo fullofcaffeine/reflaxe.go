@@ -496,14 +496,12 @@ def write_case(case_dir: Path, module: str, probe_spec: ProbeSpec) -> None:
     compiler_src = (ROOT / "src").as_posix()
     reflaxe_src = (ROOT / "vendor" / "reflaxe" / "src").as_posix()
     standard_library = (ROOT / "std").as_posix()
-    legacy_target_support = (ROOT / "std" / "_std").as_posix()
     canonical_std = (ROOT / "std" / "go" / "_std").as_posix()
     compile_hxml = (
         "-cp .\n"
         f"-cp {compiler_src}\n"
         f"-cp {reflaxe_src}\n"
         f"-cp {standard_library}\n"
-        f"-cp {legacy_target_support}\n"
         f"-cp {canonical_std}\n"
         "--macro reflaxe.go.CompilerBootstrap.Start()\n"
         "--macro reflaxe.go.CompilerInit.Start()\n"

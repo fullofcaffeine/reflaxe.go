@@ -44,12 +44,10 @@ function isRepoRelative(path) {
 const ledgerPath = "docs/stdlib-provenance-ledger.json";
 const approvedGovernedStdLayout = [
   "std/*.hx",
-  "std/*.cross.hx",
   "std/haxe/**",
   "std/sys/**",
   "std/go/**",
   "std/hxrt/**",
-  "std/_std/**",
 ];
 const stdPathAllowlist = new Set(["std/AGENTS.md"]);
 const allowedOwnershipClasses = new Set([
@@ -62,7 +60,7 @@ const allowedOwnershipClasses = new Set([
 ]);
 
 function hasSupportedStdExtension(path) {
-  return path.endsWith(".hx") || path.endsWith(".cross.hx");
+  return path.endsWith(".hx") && !path.endsWith(".cross.hx");
 }
 
 function isGovernedStdSourcePath(path) {
@@ -75,7 +73,6 @@ function isGovernedStdSourcePath(path) {
     || path.startsWith("std/sys/")
     || path.startsWith("std/go/")
     || path.startsWith("std/hxrt/")
-    || path.startsWith("std/_std/")
   ) {
     return true;
   }

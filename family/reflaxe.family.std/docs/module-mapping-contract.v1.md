@@ -95,7 +95,7 @@ public ownership view.
   - Closed evidence: `haxe.go-14as.51`, `haxe.go-14as.54`
 - `haxe.io.Input` / `haxe.io.Output`
   - These surfaces are not listed as separate Tier1 rows here, but their inherited helper loops no longer live as raw loop bodies in `GoCompiler`.
-  - `readAll`, `readLine`, `readUntil`, `readFullBytes`, `write`, `writeFullBytes`, `writeInput`, and `writeString` now route through `std/haxe/io/GoIoHelpers.cross.hx`, with `GoCompiler` keeping only the public wrapper functions and the representation-sensitive base IO types.
+  - `readAll`, `readLine`, `readUntil`, `readFullBytes`, `write`, `writeFullBytes`, `writeInput`, and `writeString` now route through `std/haxe/io/GoIoHelpers.hx`, with `GoCompiler` keeping only the public wrapper functions and the representation-sensitive base IO types.
   - Closed evidence: `haxe.go-14as.52`
 - `haxe.io` misc direct tranche
   - `haxe.io.FPHelper` is now the model staged-std slice for this family: public bit-conversion behavior lives in `std/go/_std/haxe/io/FPHelper.hx` on top of the existing little-endian `BytesInput` / `BytesOutput` contract.
@@ -104,7 +104,7 @@ public ownership view.
   - Closed evidence: `haxe.go-14as.15`
 - `sys.Http`
   - Tier1 mapping still treats the surface as compiler-owned because request/callback choreography remains one semantic contract.
-  - The audit narrowed extraction to leaf payload/proxy helpers only; `getResponseHeaderValues` and payload capture now live in `std/sys/GoHttpHelpers.cross.hx`, while core request sequencing and proxy URL construction stay in compiler scope unless parity evidence proves otherwise.
+  - The audit narrowed extraction to leaf payload/proxy helpers only; `getResponseHeaderValues` and payload capture now live in `std/sys/GoHttpHelpers.hx`, while core request sequencing and proxy URL construction stay in compiler scope unless parity evidence proves otherwise.
   - Closed evidence: `haxe.go-14as.53`
 
 ## Governance Rule

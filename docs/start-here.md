@@ -122,7 +122,8 @@ Beginner mental model:
 
 1. You still start from the upstream Haxe stdlib.
 2. `reflaxe.go` adds only the target-specific parts it needs:
-   - staged overrides in `std/_std`
+   - canonical override source in `std/go/_std`
+   - target support and typed runtime bindings in ordinary `std` modules
    - Go facade modules in `std/go`
    - runtime helper files in `runtime/hxrt`
    - compiler-emitted shims in `src/reflaxe/go/GoCompiler.hx`

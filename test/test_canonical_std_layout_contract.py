@@ -59,6 +59,17 @@ def write_canonical_source(root: Path) -> None:
     override.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(FIXTURE_ROOT / "SourceProbe.hx.fixture", override)
 
+    for support_root in ("haxe", "hxrt", "sys"):
+        shutil.copytree(
+            ROOT / "std" / support_root,
+            root / "std" / support_root,
+            dirs_exist_ok=True,
+        )
+    for facade in (ROOT / "std" / "go").glob("*.hx"):
+        destination = root / "std" / "go" / facade.name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(facade, destination)
+
 
 def write_canonical_package(package_root: Path, source_root: Path) -> None:
     write_json(
@@ -68,6 +79,14 @@ def write_canonical_package(package_root: Path, source_root: Path) -> None:
     packaged_override = package_root / "src" / "Lambda.cross.hx"
     packaged_override.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(FIXTURE_ROOT / "PackageProbe.hx.fixture", packaged_override)
+
+    canonical_root = source_root / "std" / "go" / "_std"
+    for source in (source_root / "std").rglob("*.hx"):
+        if source.is_relative_to(canonical_root):
+            continue
+        destination = package_root / "src" / source.relative_to(source_root / "std")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
 
     # The mapping assertion needs the ordinary source authority as its input.
     assert (source_root / "std" / "go" / "_std" / "Lambda.hx").is_file()
@@ -150,6 +169,32 @@ class CanonicalStdLayoutAuditTest(unittest.TestCase):
             self.assertIn("source-vendored-reflaxe-pretyping", codes)
             self.assertIn("absolute-path-leak", codes)
 
+    def test_source_contract_rejects_legacy_support_root_and_classpath(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-canonical-std-legacy-root-") as raw:
+            source_root = Path(raw)
+            write_canonical_source(source_root)
+            legacy_support = source_root / "std" / "_std" / "LegacySupport.hx"
+            legacy_support.parent.mkdir(parents=True)
+            legacy_support.write_text("class LegacySupport {}\n", encoding="utf-8")
+
+            codes = {violation.code for violation in audit_source_layout(source_root)}
+            self.assertIn("source-legacy-support-root", codes)
+
+        with tempfile.TemporaryDirectory(prefix="haxe-go-canonical-std-legacy-classpath-") as raw:
+            source_root = Path(raw)
+            write_canonical_source(source_root)
+            hxml = source_root / "haxe_libraries" / "reflaxe.go.hxml"
+            hxml.write_text(
+                hxml.read_text(encoding="utf-8").replace(
+                    "-cp ${SCOPE_DIR}/std/go/_std/\n",
+                    "-cp ${SCOPE_DIR}/std/_std/\n-cp ${SCOPE_DIR}/std/go/_std/\n",
+                ),
+                encoding="utf-8",
+            )
+
+            codes = {violation.code for violation in audit_source_layout(source_root)}
+            self.assertIn("source-legacy-support-classpath", codes)
+
     def test_live_bootstrap_avoids_reflective_classpath_surgery(self) -> None:
         bootstrap = (ROOT / "src" / "reflaxe" / "go" / "CompilerBootstrap.hx").read_text(
             encoding="utf-8"
@@ -167,6 +212,7 @@ class CanonicalStdLayoutAuditTest(unittest.TestCase):
             package_root = temp / "package"
             write_canonical_source(source_root)
             write_canonical_package(package_root, source_root)
+            (package_root / "src" / "hxrt" / "string" / "GoStringRuntime.hx").unlink()
             (package_root / "std" / "go" / "_std").mkdir(parents=True)
             packaged_override = package_root / "src" / "Lambda.cross.hx"
             packaged_override.write_text(
@@ -177,6 +223,7 @@ class CanonicalStdLayoutAuditTest(unittest.TestCase):
 
             codes = {violation.code for violation in audit_package_layout(package_root, source_root)}
             self.assertIn("package-unflattened-std", codes)
+            self.assertIn("package-ordinary-support-mapping", codes)
             self.assertIn("absolute-path-leak", codes)
 
 
@@ -286,7 +333,7 @@ class CanonicalStdSelectionBehaviorTest(unittest.TestCase):
         *,
         app: Path,
         upstream: Path,
-        target_root: Path,
+        target_roots: list[Path],
         compiler_src: Path,
         reflaxe_src: Path,
         output: Path,
@@ -297,23 +344,27 @@ class CanonicalStdSelectionBehaviorTest(unittest.TestCase):
             str(app),
             "-cp",
             str(upstream),
-            "-cp",
-            str(target_root),
-            "-cp",
-            str(compiler_src),
-            "-cp",
-            str(reflaxe_src),
-            "--macro",
-            "reflaxe.go.CompilerBootstrap.Start()",
-            "--macro",
-            "reflaxe.go.CompilerInit.Start()",
-            "-D",
-            f"go_output={output}",
-            "-D",
-            "reflaxe.dont_output_metadata_id",
-            "-main",
-            "Main",
         ]
+        for target_root in target_roots:
+            command.extend(["-cp", str(target_root)])
+        command.extend(
+            [
+                "-cp",
+                str(compiler_src),
+                "-cp",
+                str(reflaxe_src),
+                "--macro",
+                "reflaxe.go.CompilerBootstrap.Start()",
+                "--macro",
+                "reflaxe.go.CompilerInit.Start()",
+                "-D",
+                f"go_output={output}",
+                "-D",
+                "reflaxe.dont_output_metadata_id",
+                "-main",
+                "Main",
+            ]
+        )
         compile_process = subprocess.run(
             command,
             cwd=app,
@@ -370,7 +421,7 @@ class CanonicalStdSelectionBehaviorTest(unittest.TestCase):
             source_stdout = self.run_haxe_go(
                 app=app,
                 upstream=upstream,
-                target_root=source_root / "std" / "go" / "_std",
+                target_roots=[source_root / "std", source_root / "std" / "go" / "_std"],
                 compiler_src=ROOT / "src",
                 reflaxe_src=ROOT / "vendor" / "reflaxe" / "src",
                 output=source_output,
@@ -378,14 +429,14 @@ class CanonicalStdSelectionBehaviorTest(unittest.TestCase):
             package_stdout = self.run_haxe_go(
                 app=app,
                 upstream=upstream,
-                target_root=package_root / "src",
+                target_roots=[package_root / "src"],
                 compiler_src=package_root / "src",
                 reflaxe_src=package_root / "vendor" / "reflaxe" / "src",
                 output=package_output,
             )
 
-            self.assertEqual("source-override\n", source_stdout)
-            self.assertEqual("package-override\n", package_stdout)
+            self.assertEqual("source-override\n65\nOK\nsupport-ok\n", source_stdout)
+            self.assertEqual("package-override\n65\nOK\nsupport-ok\n", package_stdout)
 
             for output in (source_output, package_output):
                 for path in output.rglob("*"):

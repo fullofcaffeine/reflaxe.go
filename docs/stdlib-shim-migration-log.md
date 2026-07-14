@@ -12,14 +12,16 @@ Terms:
 
 - **shim**: compatibility glue between Haxe std APIs and Go output behavior.
 - **semantic-diff**: runtime parity harness comparing generated Go output against Haxe `--interp`.
-- **staged stdlib**: target-specific overrides under `std/_std`.
+- **staged stdlib**: target-specific override source under `std/go/_std`,
+  converted to package-only `.cross.hx` artifacts during staging.
 
 ## Process Template
 
 For each shim surface:
 
 1. Scope and classify the surface in `docs/stdlib-shim-rationale.md`.
-2. Pick target ownership (`compiler core`, `runtime-lowered`, or `std/_std`).
+2. Pick target ownership (`compiler core`, `runtime-lowered`, canonical staged
+   std, or ordinary target support).
 3. Implement the migration in a minimal step.
 4. Validate with focused harnesses first, then strict sweeps.
 5. Record results and open/close follow-up beads.

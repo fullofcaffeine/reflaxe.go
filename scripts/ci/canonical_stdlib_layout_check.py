@@ -24,6 +24,7 @@ EXPECTED_SOURCE_CLASS_PATHS = [
     "${SCOPE_DIR}/std",
     "${SCOPE_DIR}/std/go/_std",
 ]
+LEGACY_SUPPORT_CLASS_PATH = "${SCOPE_DIR}/std/_std"
 EXPECTED_REFLAXE_CLASS_PATH = "${SCOPE_DIR}/vendor/reflaxe/src"
 TEXT_SUFFIXES = {
     ".go",
@@ -189,6 +190,30 @@ def audit_source_layout(root: Path) -> list[Violation]:
             )
         )
 
+    legacy_support_root = root / "std" / "_std"
+    legacy_support_sources = (
+        sorted(path for path in legacy_support_root.rglob("*.hx") if path.is_file())
+        if legacy_support_root.is_dir()
+        else []
+    )
+    if legacy_support_sources:
+        sample = ", ".join(
+            relative_display(path, root) for path in legacy_support_sources[:5]
+        )
+        suffix = (
+            f", ... ({len(legacy_support_sources) - 5} more)"
+            if len(legacy_support_sources) > 5
+            else ""
+        )
+        violations.append(
+            Violation(
+                "source-legacy-support-root",
+                "std/_std",
+                "target support must live in ordinary std or std/hxrt modules; "
+                f"found {len(legacy_support_sources)} legacy source file(s): {sample}{suffix}",
+            )
+        )
+
     hxml_path = root / "haxe_libraries" / "reflaxe.go.hxml"
     class_paths = normalized_hxml_class_paths(hxml_path)
     if not has_ordered_subsequence(class_paths, EXPECTED_SOURCE_CLASS_PATHS):
@@ -198,6 +223,14 @@ def audit_source_layout(root: Path) -> list[Violation]:
                 "haxe_libraries/reflaxe.go.hxml",
                 "initial classpaths must declare ${SCOPE_DIR}/src, then std, then std/go/_std "
                 f"so the target override has effective precedence; found {class_paths!r}",
+            )
+        )
+    if LEGACY_SUPPORT_CLASS_PATH in class_paths:
+        violations.append(
+            Violation(
+                "source-legacy-support-classpath",
+                "haxe_libraries/reflaxe.go.hxml",
+                "initial classpaths must not declare the retired ${SCOPE_DIR}/std/_std support root",
             )
         )
 
@@ -251,6 +284,21 @@ def expected_packaged_cross_files(source_root: Path) -> set[str]:
     return expected
 
 
+def expected_packaged_ordinary_files(source_root: Path) -> set[str]:
+    std_root = source_root / "std"
+    canonical_root = std_root / "go" / "_std"
+    if not std_root.is_dir():
+        return set()
+
+    expected: set[str] = set()
+    for source in std_root.rglob("*.hx"):
+        if source.is_relative_to(canonical_root):
+            continue
+        relative = source.relative_to(std_root)
+        expected.add((Path("src") / relative).as_posix())
+    return expected
+
+
 def audit_package_layout(package_root: Path, source_root: Path) -> list[Violation]:
     package_root = package_root.resolve()
     source_root = source_root.resolve()
@@ -294,6 +342,28 @@ def audit_package_layout(package_root: Path, source_root: Path) -> list[Violatio
                 "src",
                 "packaged .cross.hx set must exactly map ordinary std/go/_std sources; "
                 f"missing={missing!r}, unexpected={unexpected!r}, plain={sorted(plain_counterparts)!r}",
+            )
+        )
+
+    expected_ordinary = expected_packaged_ordinary_files(source_root)
+    actual_ordinary = {
+        relative_display(path, package_root)
+        for path in (package_root / "src").rglob("*.hx")
+        if path.is_file() and not path.name.endswith(".cross.hx")
+    } if (package_root / "src").is_dir() else set()
+    missing_ordinary = sorted(expected_ordinary - actual_ordinary)
+    cross_ordinary = sorted(
+        path.removesuffix(".hx") + ".cross.hx"
+        for path in expected_ordinary
+        if (package_root / (path.removesuffix(".hx") + ".cross.hx")).is_file()
+    )
+    if missing_ordinary or cross_ordinary:
+        violations.append(
+            Violation(
+                "package-ordinary-support-mapping",
+                "src",
+                "public facades and target support must remain ordinary .hx package modules; "
+                f"missing={missing_ordinary!r}, converted={cross_ordinary!r}",
             )
         )
 

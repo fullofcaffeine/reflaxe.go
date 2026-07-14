@@ -24,6 +24,12 @@ OWNERSHIP_CLASSES = {
     "intentional_boundary_fixture",
 }
 
+TARGET_SUPPORT_OWNERS = {
+    "staged_support",
+    "hxrt_binding",
+    "public_go_facade",
+}
+
 
 def canonical_override_destination(source_path: str) -> str:
     if source_path.startswith("std/go/_std/"):
@@ -162,6 +168,50 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
                 failures.append(f"{source_path}: missing What/Why/How override HaxeDoc")
 
         self.assertFalse(failures, "canonical override migration is incomplete:\n" + "\n".join(failures))
+
+    def test_target_support_and_public_facades_are_canonical_documented_source(self) -> None:
+        failures: list[str] = []
+        for entry in load_ledger()["entries"]:
+            ownership = entry["ownershipClass"]
+            if ownership not in TARGET_SUPPORT_OWNERS:
+                continue
+
+            source_path = entry["path"]
+            destination = entry["destination"]
+            if source_path != destination:
+                failures.append(f"{source_path}: not migrated to {destination}")
+
+            destination_path = ROOT / destination
+            if not destination_path.is_file():
+                failures.append(f"{destination}: canonical source is missing")
+                continue
+            if destination.endswith(".cross.hx"):
+                failures.append(f"{destination}: target support must remain ordinary .hx source")
+
+            content = destination_path.read_text(encoding="utf-8")
+            haxedocs = re.findall(r"/\*\*(.*?)\*/", content, flags=re.DOTALL)
+            if not any(
+                re.search(r"\bWhat\s*:?(?:\s|$)", doc)
+                and re.search(r"\bWhy\s*:?(?:\s|$)", doc)
+                and re.search(r"\bHow\s*:?(?:\s|$)", doc)
+                for doc in haxedocs
+            ):
+                failures.append(f"{destination}: missing What/Why/How ownership HaxeDoc")
+
+            if ownership == "public_go_facade":
+                primary_types = re.findall(
+                    r"(?m)^(?:extern\s+)?(?:class|interface|enum|abstract|typedef)\s+([A-Za-z_]\w*)",
+                    content,
+                )
+                if primary_types != [destination_path.stem]:
+                    failures.append(
+                        f"{destination}: expected one matching primary type; found {primary_types!r}"
+                    )
+
+        self.assertFalse(
+            failures,
+            "target-support migration is incomplete:\n" + "\n".join(failures),
+        )
 
     def test_every_tracked_std_source_has_one_resolved_owner_and_destination(self) -> None:
         ledger = load_ledger()

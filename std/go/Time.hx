@@ -1,7 +1,16 @@
 package go;
 
 /**
-	Typed wrapper for the Go `time` package `Time` API used by baseline interop examples.
+	What
+	- Typed facade for the Go `time.Time` API used by baseline interop examples.
+
+	Why
+	- `time.Time` is a real Go-native type, not an upstream Haxe stdlib override.
+	  The facade therefore stays publicly importable from ordinary `std/go`.
+
+	How
+	- Type, member, and receiver metadata map construction and Unix timestamp
+	  access directly to the native Go API.
 **/
 @:go.import("time")
 @:go.name("Time")

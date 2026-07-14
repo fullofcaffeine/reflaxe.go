@@ -1,7 +1,5 @@
 {
   "schemaVersion": 1,
-  "sourceLayout": "expected-red",
-  "expectedViolationCodes": [
-    "source-cross-files"
-  ]
+  "sourceLayout": "required-green",
+  "expectedViolationCodes": []
 }

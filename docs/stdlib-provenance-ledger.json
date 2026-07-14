@@ -46,7 +46,7 @@
         "group": "http",
         "decision": "retain_request_choreography",
         "sourcePaths": [
-          "std/sys/GoHttpHelpers.cross.hx"
+          "std/sys/GoHttpHelpers.hx"
         ],
         "references": [
           "src/reflaxe/go/GoCompiler.hx",
@@ -59,7 +59,7 @@
         "group": "io",
         "decision": "retain_type_shape_forwarders",
         "sourcePaths": [
-          "std/haxe/io/GoIoHelpers.cross.hx"
+          "std/haxe/io/GoIoHelpers.hx"
         ],
         "references": [
           "src/reflaxe/go/GoCompiler.hx",
@@ -330,7 +330,7 @@
       "notes": "Go staged portable override for direct haxe.ds.GenericStack runtime ownership, including localized erased-generic equality recovery."
     },
     {
-      "path": "std/haxe/io/GoIoHelpers.cross.hx",
+      "path": "std/haxe/io/GoIoHelpers.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "staged_support",
       "destination": "std/haxe/io/GoIoHelpers.hx",
@@ -415,7 +415,7 @@
       "notes": "Go staged portable override for haxe.io.Float64Array, reusing staged FPHelper bit-conversion helpers instead of expanding compiler-owned Bytes double logic."
     },
     {
-      "path": "std/sys/GoHttpHelpers.cross.hx",
+      "path": "std/sys/GoHttpHelpers.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "staged_support",
       "destination": "std/sys/GoHttpHelpers.hx",
@@ -597,7 +597,7 @@
       "notes": "Go staged portable override for sys.thread.ElasticThreadPool, keeping worker-pool policy in Haxe code once Thread/Lock/Deque are runtime-backed."
     },
     {
-      "path": "std/sys/thread/ElasticThreadPoolWorker.cross.hx",
+      "path": "std/sys/thread/ElasticThreadPoolWorker.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "staged_support",
       "destination": "std/sys/thread/ElasticThreadPoolWorker.hx",
@@ -615,7 +615,7 @@
       "notes": "Go staged portable override for sys.thread.FixedThreadPool, keeping fixed-worker scheduling policy in Haxe code instead of compiler-owned shims."
     },
     {
-      "path": "std/sys/thread/FixedThreadPoolWorker.cross.hx",
+      "path": "std/sys/thread/FixedThreadPoolWorker.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "staged_support",
       "destination": "std/sys/thread/FixedThreadPoolWorker.hx",
@@ -624,7 +624,7 @@
       "notes": "Go repo-authored helper worker type for sys.thread.FixedThreadPool, split into its own file so staged std emission stays explicit and import-safe."
     },
     {
-      "path": "std/sys/thread/FixedThreadPoolShutdownException.cross.hx",
+      "path": "std/sys/thread/FixedThreadPoolShutdownException.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "staged_support",
       "destination": "std/sys/thread/FixedThreadPoolShutdownException.hx",
@@ -738,13 +738,13 @@
       "notes": "Go staged portable override for DynamicAccess key/value iterator semantics."
     },
     {
-      "path": "std/_std/haxe/iterators/GoStringRuntime.cross.hx",
+      "path": "std/hxrt/string/GoStringRuntime.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/string/GoStringRuntime.hx",
       "migrationBead": "haxe_go-vfp.5.4",
       "compilerShimGroups": [],
-      "notes": "Typed extern for runtime/hxrt/string.go used by staged string iterators; move the Haxe module to hxrt.string while keeping its Go import/package metadata pointed at hxrt."
+      "notes": "Typed extern for runtime/hxrt/string.go used by staged string iterators; the Haxe module lives in hxrt.string while its Go import/package metadata points at hxrt."
     },
     {
       "path": "std/go/_std/haxe/iterators/HashMapKeyValueIterator.hx",
@@ -801,16 +801,16 @@
       "notes": "Go staged portable override for Unicode-aware string key/value iterator semantics."
     },
     {
-      "path": "std/_std/hxrt/stack/NativeStack.hx",
+      "path": "std/hxrt/stack/NativeStack.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/stack/NativeStack.hx",
       "migrationBead": "haxe_go-vfp.5.4",
       "compilerShimGroups": [],
-      "notes": "Go typed extern bridge for runtime/hxrt/stack.go native stack capture entry points, kept under std/_std so staged haxe.CallStack and haxe.NativeStackTrace can opt into diagnostics without compiler-owned stack shims."
+      "notes": "Go typed extern bridge under std/hxrt for runtime/hxrt/stack.go native stack capture entry points, allowing staged haxe.CallStack and haxe.NativeStackTrace to opt into diagnostics without compiler-owned stack shims."
     },
     {
-      "path": "std/_std/hxrt/stack/NativeStackFrame.hx",
+      "path": "std/hxrt/stack/NativeStackFrame.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/stack/NativeStackFrame.hx",
@@ -819,25 +819,25 @@
       "notes": "Go typed extern bridge for the runtime/hxrt/stack.go frame carrier used by the explicit reflaxe_go_native_stack_trace diagnostic capability."
     },
     {
-      "path": "std/_std/hxrt/thread/ConditionHandle.hx",
+      "path": "std/hxrt/thread/ConditionHandle.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/thread/ConditionHandle.hx",
       "migrationBead": "haxe_go-vfp.5.4",
       "compilerShimGroups": [],
-      "notes": "Go typed extern bridge for the runtime/hxrt/thread.go condition carrier, kept under std/_std so staged sys.thread overrides can call into the runtime without growing compiler-owned shims."
+      "notes": "Go typed extern bridge under std/hxrt for the runtime/hxrt/thread.go condition carrier, allowing staged sys.thread overrides to call into the runtime without compiler-owned shims."
     },
     {
-      "path": "std/_std/hxrt/thread/EventLoopHandle.hx",
+      "path": "std/hxrt/thread/EventLoopHandle.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/thread/EventLoopHandle.hx",
       "migrationBead": "haxe_go-vfp.5.4",
       "compilerShimGroups": [],
-      "notes": "Go typed extern bridge for the runtime/hxrt/thread.go event-loop handle, kept under std/_std so sys.thread.EventLoop stays source-owned while the runtime owns queue and timer state."
+      "notes": "Go typed extern bridge under std/hxrt for the runtime/hxrt/thread.go event-loop handle, keeping sys.thread.EventLoop source-owned while the runtime owns queue and timer state."
     },
     {
-      "path": "std/_std/hxrt/thread/EventLoopProgress.hx",
+      "path": "std/hxrt/thread/EventLoopProgress.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/thread/EventLoopProgress.hx",
@@ -846,16 +846,16 @@
       "notes": "Go typed extern bridge for the runtime/hxrt/thread.go event-loop progress carrier used by the staged sys.thread.EventLoop override."
     },
     {
-      "path": "std/_std/hxrt/thread/LockHandle.hx",
+      "path": "std/hxrt/thread/LockHandle.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/thread/LockHandle.hx",
       "migrationBead": "haxe_go-vfp.5.4",
       "compilerShimGroups": [],
-      "notes": "Go typed extern bridge for the runtime/hxrt/thread.go lock carrier, kept under std/_std so staged sys.thread overrides can use runtime-backed locks without compiler-owned wrappers."
+      "notes": "Go typed extern bridge under std/hxrt for the runtime/hxrt/thread.go lock carrier, allowing staged sys.thread overrides to use runtime-backed locks without compiler-owned wrappers."
     },
     {
-      "path": "std/_std/hxrt/thread/MutexHandle.hx",
+      "path": "std/hxrt/thread/MutexHandle.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/thread/MutexHandle.hx",
@@ -864,7 +864,7 @@
       "notes": "Go typed extern bridge for the runtime/hxrt/thread.go mutex carrier, keeping the public sys.thread.Mutex API in staged std."
     },
     {
-      "path": "std/_std/hxrt/thread/NativeThread.hx",
+      "path": "std/hxrt/thread/NativeThread.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/thread/NativeThread.hx",
@@ -873,7 +873,7 @@
       "notes": "Go typed extern bridge for the runtime/hxrt/thread.go logical-thread, message-queue, and event-loop entry points used by the staged sys.thread overrides."
     },
     {
-      "path": "std/_std/hxrt/thread/SemaphoreHandle.hx",
+      "path": "std/hxrt/thread/SemaphoreHandle.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/thread/SemaphoreHandle.hx",

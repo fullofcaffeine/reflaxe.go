@@ -332,7 +332,7 @@ Copy Elixir’s robustness:
 
     Inject vendor/reflaxe/src.
 
-    If Go build: inject std/ (and optional staged std/_std if you choose to use it).
+    If Go build: inject std/, then std/go/_std so canonical overrides win.
 
     Inject at the front of classpath list so overrides win.
 

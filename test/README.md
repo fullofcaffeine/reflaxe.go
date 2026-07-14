@@ -12,16 +12,16 @@ ordinary source overrides under `std/go/_std/**/*.hx` and package-generated
 
 How it works:
 
-1. `scripts/ci/canonical_stdlib_layout_check.py` returns nonzero until the live
-   source tree has the canonical layout.
-2. `test/canonical_std_layout_status.json` temporarily allowlists only the
-   known migration violations, so normal development remains usable while the
-   contract itself stays red.
-3. `test/test_canonical_std_layout_contract.py` rejects new violation classes,
-   exercises canonical and adversarial synthetic layouts, and proves source
-   and staged-package precedence through runtime output.
-4. The migration must change `sourceLayout` to `required-green` when the final
-   allowlisted violation disappears.
+1. `scripts/ci/canonical_stdlib_layout_check.py` requires the live source tree
+   to keep the canonical layout.
+2. `test/canonical_std_layout_status.json` declares that source layout
+   `required-green`; legacy support roots, source `.cross.hx`, or classpath
+   regressions fail immediately.
+3. `test/test_canonical_std_layout_contract.py` rejects adversarial source and
+   package layouts, then proves override, support, runtime-binding, and public
+   facade resolution through source and staged-package runtime output.
+4. Ordinary support/facade modules must remain `.hx` in a package; only
+   canonical `std/go/_std` overrides map to `.cross.hx`.
 
 Run the integrated contract:
 
@@ -29,7 +29,7 @@ Run the integrated contract:
 npm run test:canonical-std-layout
 ```
 
-Inspect the intentionally failing live source audit directly:
+Inspect the live source audit directly:
 
 ```bash
 python3 scripts/ci/canonical_stdlib_layout_check.py --source-root .

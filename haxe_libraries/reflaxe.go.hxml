@@ -6,9 +6,6 @@
 
 -cp ${SCOPE_DIR}/src/
 -cp ${SCOPE_DIR}/std/
-# Transitional support root; haxe_go-vfp.5.4 removes it after relocating the
-# remaining target-support and typed runtime modules.
--cp ${SCOPE_DIR}/std/_std/
 -cp ${SCOPE_DIR}/std/go/_std/
 
 -lib reflaxe

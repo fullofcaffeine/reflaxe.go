@@ -40,8 +40,8 @@ In Go, the helper-island mechanism is:
 - Typed extern metadata for imports and symbol binding. Raw `__go__` snippets do
   not add Go package imports by themselves.
 
-This is why `std/sys/GoHttpHelpers.cross.hx` and
-`std/haxe/io/GoIoHelpers.cross.hx` are acceptable framework helper islands, but
+This is why `std/sys/GoHttpHelpers.hx` and
+`std/haxe/io/GoIoHelpers.hx` are acceptable framework helper islands, but
 app code and examples should not teach raw `__go__` as normal business logic.
 
 ## Sibling Review Instructions

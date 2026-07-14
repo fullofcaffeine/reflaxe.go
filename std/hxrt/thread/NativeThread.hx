@@ -32,8 +32,15 @@ extern class NativeThread {
 	public static function events(threadId:Int):EventLoopHandle;
 	@:go.name("ThreadRunWithEventLoop")
 	public static function runWithEventLoop(job:() -> Void):Void;
+
+	/**
+		Haxe thread messages may contain any Haxe value, so `Dynamic` is intentionally
+		localized to the runtime queue boundary and preserved unchanged in both
+		directions.
+	**/
 	@:go.name("ThreadSendMessage")
 	public static function sendMessage(threadId:Int, message:Dynamic):Void;
+
 	@:go.name("ThreadReadMessage")
 	public static function readMessage(block:Bool):Dynamic;
 
