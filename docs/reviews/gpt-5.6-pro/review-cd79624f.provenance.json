@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "review_class": "GPT-5.6 Pro independent architecture and production-readiness review",
+  "actual_model_route": "gpt-5.6-sol",
+  "provider": "openai",
+  "reasoning_effort": "max",
+  "codex_cli_version": "0.144.3",
+  "session_id": "019f5f29-dfa4-77c2-9038-fc0cab8523fc",
+  "ephemeral": true,
+  "sandbox": "read-only",
+  "approval_policy": "never",
+  "completed_at": "2026-07-14T00:24:22-06:00",
+  "reviewed_source_commit": "cd79624f855521dbf320ac2b7524d889ca388c0e",
+  "prompt": {
+    "path": "docs/reviews/gpt-5.6-pro/review-prompt-cd79624f.md",
+    "bytes": 57731,
+    "sha256": "c9b331c2f954e0af2708ad0aaaba522eeaf913ee59d816e5922f44fb8b532f09"
+  },
+  "evidence": {
+    "path": "dist/review/haxe-go-gpt56-evidence-cd79624f.zip",
+    "bytes": 13502320,
+    "sha256": "ab4b0a1097229ad2202ca7da6c092b2b85cba537522951fb625f6b1312c4b511"
+  },
+  "raw_capture": {
+    "bytes": 76050,
+    "sha256": "1043d74e0af1aaa2a46af90d37319149d16b55e885fa994b9e184ed110283263"
+  },
+  "review_output": {
+    "path": "docs/reviews/gpt-5.6-pro/review-cd79624f.md",
+    "bytes": 75967,
+    "sha256": "e31920c1eb8a642325e2d0b6e0328900f5b9a5c7ae203a497a58571de4dfad58"
+  },
+  "normalization": {
+    "reason": "Repository policy forbids committed absolute machine-local paths.",
+    "change": "Replaced one absolute Markdown evidence-bundle link with its repository-relative artifact path.",
+    "substantive_review_content_changed": false
+  },
+  "provenance_note": "The invocation reported gpt-5.6-sol directly. No Oracle alias, gpt-5-pro fallback, or other model substitution was used."
+}

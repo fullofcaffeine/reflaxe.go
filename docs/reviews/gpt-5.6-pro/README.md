@@ -61,6 +61,8 @@ The resulting ZIP lives under ignored `dist/review/`; its small, auditable evide
 Review entrypoints:
 
 - [canonical evidence identity and audit record](evidence-cd79624f.md);
-- [evidence-bound GPT-5.6 Pro review prompt](review-prompt-cd79624f.md).
+- [evidence-bound GPT-5.6 Pro review prompt](review-prompt-cd79624f.md);
+- [repository-normalized independent review output](review-cd79624f.md);
+- [review invocation and output provenance](review-cd79624f.provenance.json).
 
-The final review and local finding-by-finding adjudication will be committed here by the next Beads slice.
+The local finding-by-finding disposition is recorded on Bead `haxe_go-vfp.3.3`; accepted findings remain owned by their dependency-ordered implementation beads rather than by this evidence directory.
