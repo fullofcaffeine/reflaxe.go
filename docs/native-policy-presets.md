@@ -17,6 +17,12 @@ compatibility, but it now selects a convenience policy preset. It does not
 select a second backend or silently rewrite portable Haxe APIs to different
 semantics.
 
+Here, "supported for compatibility" means existing `metal` build input remains
+accepted and tested. It is not release-scope admission: the generated
+[compatibility matrix](compatibility-support-matrix.md) classifies `metal` as
+`compatibility-only`, while the current pre-1.0 beta claim admits only the
+named portable operation/member surface.
+
 The product rule is:
 
 > Portable by default, Go-native by explicit source boundary, and Go-shaped

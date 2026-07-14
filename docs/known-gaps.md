@@ -2,6 +2,13 @@
 
 This page is the blunt status view for current limitations so teams can plan migrations with clear tradeoffs.
 
+The current release claim is bounded by the generated
+[compatibility and support matrix](compatibility-support-matrix.md) and its
+[machine manifest](compatibility-support-manifest.json). Implementation or test
+evidence in this page does not expand that scope. In particular, concurrency,
+networking, Go-native APIs, non-canonical platforms, and untrusted-source
+compilation are not admitted by the current pre-1.0 beta claim.
+
 Before reading:
 
 - `portable` and `metal` are compatible policy presets, not app variants or
@@ -150,7 +157,10 @@ current honest contract remains snapshot/runtime evidence.
 
 ## Source of truth links
 
-- Feature/support inventory: [feature support matrix](feature-support-matrix.md)
+- Release admission authority: [compatibility support manifest](compatibility-support-manifest.json)
+- Human release scope: [compatibility and support matrix](compatibility-support-matrix.md)
+- Generated release wording: [compatibility release status](compatibility-release-status.md)
+- Implementation evidence inventory: [feature support matrix](feature-support-matrix.md)
 - Ownership decision rule: [ownership rubric](ownership-rubric.md)
 - Shim ownership decisions: [stdlib shim rationale](stdlib-shim-rationale.md)
 - Phase roadmap: [phase 2 roadmap](phase2-roadmap.md)

@@ -1,0 +1,3467 @@
+{
+  "schema_version": 1,
+  "kind": "haxe.go-compatibility-support-manifest",
+  "as_of": "2026-07-14",
+  "generated_by": "scripts/compatibility/generate_support_manifest.py",
+  "inputs": {
+    "compatibility_source": "docs/compatibility-support-source.json",
+    "compatibility_source_sha256": "ba9c9f2c3045754bb1be1e321fa6c40633afb189323410182de998c85bf2d5ab",
+    "toolchain_policy": "docs/toolchain-policy.json",
+    "toolchain_policy_sha256": "43183c55c522ac8c82616666a401276a84da1fb5c576bb35cedb3a8480f48f75",
+    "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
+    "portable_stdlib_inventory_sha256": "5460a8793c376b20d1d6fb53ee50ecad040fa559ff184ad5cb9bd8df924e836f"
+  },
+  "release_claim": {
+    "lifecycle": "pre-1.0 beta",
+    "statement": "Haxe.Go is a pre-1.0 beta for pinned, application-qualified portable workloads on the admitted toolchain, platform, and operation/member surface.",
+    "default_disposition": "Any unlisted module operation, member, platform, architecture, native API, error path, or trust model is excluded from the admitted release scope.",
+    "admitted_preset": "portable",
+    "admitted_platform": "linux-amd64",
+    "forbidden_phrases": [
+      "beta-stable"
+    ]
+  },
+  "evidence_states": {
+    "semantic-diff-supported": {
+      "meaning": "Named deterministic behavior is compared between Haxe --interp and generated Go, which also compiles, passes go test, and runs.",
+      "release_eligible": true
+    },
+    "compile-go-test-run-supported": {
+      "meaning": "The named target-sensitive behavior compiles, passes go test, runs on Go, and matches an explicit expected contract without claiming interpreter parity.",
+      "release_eligible": true
+    },
+    "compile-only": {
+      "meaning": "The named surface compiles or cross-builds, but runtime and semantic support are not admitted.",
+      "release_eligible": false
+    },
+    "experimental": {
+      "meaning": "The named surface is implemented and tested in some lanes but remains outside the admitted release contract.",
+      "release_eligible": false
+    },
+    "compatibility-only": {
+      "meaning": "The input or behavior is retained for compatibility and does not define a separate semantic product or release admission.",
+      "release_eligible": false
+    },
+    "excluded": {
+      "meaning": "The named surface is deliberately unsupported by the admitted release scope.",
+      "release_eligible": false
+    }
+  },
+  "toolchains": {
+    "schema_version": 1,
+    "effective_date": "2026-07-14",
+    "haxe": {
+      "supported_versions": [
+        "4.3.7"
+      ],
+      "recommended_version": "4.3.7",
+      "ci_selector": "4.3.7",
+      "upstream_status": "current stable",
+      "source": "https://haxe.org/download/list/"
+    },
+    "go": {
+      "generated_language_floor": "1.22",
+      "supported_build_lines": [
+        "1.25",
+        "1.26"
+      ],
+      "recommended_build_line": "1.26",
+      "ci_selectors": [
+        "1.25.x",
+        "1.26.x"
+      ],
+      "patch_policy": "latest available patch in each supported line",
+      "source": "https://go.dev/doc/devel/release"
+    },
+    "node": {
+      "supported_tooling_lines": [
+        "24"
+      ],
+      "recommended_tooling_line": "24",
+      "ci_selector": "24",
+      "upstream_status": "Active LTS",
+      "source": "https://github.com/nodejs/Release"
+    },
+    "compatibility_probes": [
+      {
+        "id": "goextern-fixtures-go1.23",
+        "toolchain_line": "1.23",
+        "purpose": "committed generator-drift fixture",
+        "production_supported": false,
+        "security_supported": false
+      }
+    ],
+    "release": {
+      "require_exact_patch_evidence": true,
+      "require_supported_lines": true,
+      "allow_compatibility_probe_as_support_evidence": false
+    }
+  },
+  "platforms": [
+    {
+      "id": "linux-amd64",
+      "os": "linux",
+      "architecture": "amd64",
+      "state": "compile-go-test-run-supported",
+      "release_admitted": true,
+      "qualification": "Canonical beta evidence platform; release evidence must record the exact hosted runner image and resolved toolchain patches.",
+      "evidence_ids": [
+        "workflow:quality",
+        "npm:test-ci",
+        "npm:security-go-tooling"
+      ],
+      "exclusions": []
+    },
+    {
+      "id": "darwin-runner-default",
+      "os": "darwin",
+      "architecture": "runner-default-unfrozen",
+      "state": "experimental",
+      "release_admitted": false,
+      "qualification": "The quality workflow runs macos-latest, but the architecture and image are not frozen as a release compatibility promise.",
+      "evidence_ids": [
+        "workflow:quality"
+      ],
+      "exclusions": [
+        "No stable runner-image or architecture compatibility promise"
+      ]
+    },
+    {
+      "id": "linux-arm64",
+      "os": "linux",
+      "architecture": "arm64",
+      "state": "compile-only",
+      "release_admitted": false,
+      "qualification": "Representative examples cross-build; no release runtime, race, or security matrix is admitted.",
+      "evidence_ids": [
+        "script:cross-binaries"
+      ],
+      "exclusions": [
+        "Runtime and security evidence"
+      ]
+    },
+    {
+      "id": "darwin-arm64",
+      "os": "darwin",
+      "architecture": "arm64",
+      "state": "compile-only",
+      "release_admitted": false,
+      "qualification": "Representative examples cross-build; the moving macos-latest lane is tracked separately.",
+      "evidence_ids": [
+        "script:cross-binaries"
+      ],
+      "exclusions": [
+        "Pinned runtime and security evidence"
+      ]
+    },
+    {
+      "id": "windows-amd64",
+      "os": "windows",
+      "architecture": "amd64",
+      "state": "compile-only",
+      "release_admitted": false,
+      "qualification": "Representative examples cross-build; Windows runtime behavior is not in the admitted beta matrix.",
+      "evidence_ids": [
+        "script:cross-binaries"
+      ],
+      "exclusions": [
+        "Runtime, path, process, race, and security evidence"
+      ]
+    },
+    {
+      "id": "other-os-architecture",
+      "os": "other",
+      "architecture": "other",
+      "state": "excluded",
+      "release_admitted": false,
+      "qualification": "No implicit operating-system or architecture support is inferred.",
+      "evidence_ids": [
+        "policy:known-gaps"
+      ],
+      "exclusions": [
+        "All combinations not named above"
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "id": "portable",
+      "selector": "reflaxe_go_profile=portable",
+      "state": "semantic-diff-supported",
+      "release_admitted": true,
+      "qualification": "Default product path. Only operations and members explicitly admitted below are part of the beta claim.",
+      "evidence_ids": [
+        "policy:native-presets",
+        "npm:test-semantic-diff",
+        "npm:test-examples"
+      ],
+      "exclusions": [
+        "Unlisted portable operations and members"
+      ]
+    },
+    {
+      "id": "metal",
+      "selector": "reflaxe_go_profile=metal",
+      "state": "compatibility-only",
+      "release_admitted": false,
+      "qualification": "Supported compatibility policy preset, not a second semantic product and not an independent native-authority claim.",
+      "evidence_ids": [
+        "policy:native-presets",
+        "npm:test-examples"
+      ],
+      "exclusions": [
+        "Independent semantic-product or stable native-API admission"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "policy:toolchains",
+      "kind": "path",
+      "path": "docs/toolchain-policy.json",
+      "level": "policy"
+    },
+    {
+      "id": "policy:native-presets",
+      "kind": "path",
+      "path": "docs/native-policy-presets.md",
+      "level": "policy"
+    },
+    {
+      "id": "policy:known-gaps",
+      "kind": "path",
+      "path": "docs/known-gaps.md",
+      "level": "policy"
+    },
+    {
+      "id": "workflow:quality",
+      "kind": "path",
+      "path": ".github/workflows/ci-quality.yml",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "workflow:release",
+      "kind": "path",
+      "path": ".github/workflows/ci-harness.yml",
+      "level": "policy"
+    },
+    {
+      "id": "script:cross-binaries",
+      "kind": "path",
+      "path": "scripts/examples/build-binaries.sh",
+      "level": "compile-only"
+    },
+    {
+      "id": "npm:test-ci",
+      "kind": "npm-script",
+      "script": "test:ci",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "npm:test-examples",
+      "kind": "npm-script",
+      "script": "test:examples",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "npm:test-semantic-diff",
+      "kind": "npm-script",
+      "script": "test:semantic-diff",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "npm:test-stdlib-sweep-go-test",
+      "kind": "npm-script",
+      "script": "test:stdlib-sweep:go-test",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "npm:test-haxelib-release-install",
+      "kind": "npm-script",
+      "script": "test:haxelib-release-install",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "npm:security-go-tooling",
+      "kind": "npm-script",
+      "script": "security:go-tooling",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "semantic:array-string",
+      "kind": "path",
+      "path": "test/semantic_diff/array_string_intiterator_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:string-edge",
+      "kind": "path",
+      "path": "test/semantic_diff/string_charcodeat_bounds_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:stringtools",
+      "kind": "path",
+      "path": "test/semantic_diff/stringtools_cross_std_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:json",
+      "kind": "path",
+      "path": "test/semantic_diff/json_parse_stringify_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:bytes",
+      "kind": "path",
+      "path": "test/semantic_diff/bytes_ops_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:collections",
+      "kind": "path",
+      "path": "test/semantic_diff/ds_maps_list_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:date-option-path",
+      "kind": "path",
+      "path": "test/semantic_diff/option_date_path",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:exceptions",
+      "kind": "path",
+      "path": "test/semantic_diff/exception_api_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:type-reflection",
+      "kind": "path",
+      "path": "test/semantic_diff/type_reflection_extended_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:reflect-fields",
+      "kind": "path",
+      "path": "test/semantic_diff/reflect_field_ops",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:file-content",
+      "kind": "path",
+      "path": "test/semantic_diff/file_read_write_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:file-errors",
+      "kind": "path",
+      "path": "test/semantic_diff/file_error_semantics_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:process",
+      "kind": "path",
+      "path": "test/semantic_diff/process_echo_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:process-errors",
+      "kind": "path",
+      "path": "test/semantic_diff/process_error_semantics_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:filesystem",
+      "kind": "path",
+      "path": "test/semantic_diff/filesystem_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:thread-primitives",
+      "kind": "path",
+      "path": "test/semantic_diff/sys_thread_primitives_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:thread-runtime",
+      "kind": "path",
+      "path": "test/semantic_diff/sys_thread_runtime_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:http",
+      "kind": "path",
+      "path": "test/semantic_diff/http_request_callbacks_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:socket",
+      "kind": "path",
+      "path": "test/semantic_diff/socket_advanced_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "snapshot:native-extern",
+      "kind": "path",
+      "path": "test/snapshot/go_native/extern_metadata_mapping",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "snapshot:native-collections",
+      "kind": "path",
+      "path": "test/snapshot/go_native/slice_map_basic",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "snapshot:native-concurrency",
+      "kind": "path",
+      "path": "test/snapshot/go_native/goroutine_native_shutdown",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "bead:concurrency-audit",
+      "kind": "bead",
+      "bead": "haxe_go-vfp.10.2",
+      "level": "blocker"
+    },
+    {
+      "id": "bead:network-audit",
+      "kind": "bead",
+      "bead": "haxe_go-vfp.10.4",
+      "level": "blocker"
+    },
+    {
+      "id": "bead:native-matrix",
+      "kind": "bead",
+      "bead": "haxe_go-vfp.9.1",
+      "level": "blocker"
+    },
+    {
+      "id": "bead:output-confinement",
+      "kind": "bead",
+      "bead": "haxe_go-vfp.8.10",
+      "level": "blocker"
+    },
+    {
+      "id": "bead:release-assets",
+      "kind": "bead",
+      "bead": "haxe_go-vfp.4.8",
+      "level": "blocker"
+    },
+    {
+      "id": "bead:stable-admission",
+      "kind": "bead",
+      "bead": "haxe_go-vfp.12.7",
+      "level": "blocker"
+    }
+  ],
+  "surfaces": [
+    {
+      "id": "portable-language-core",
+      "kind": "portable",
+      "scope": "Named Haxe language operations",
+      "operations": [
+        {
+          "id": "control-flow",
+          "symbols": [
+            "Haxe if control flow",
+            "Haxe switch control flow",
+            "Haxe numeric for control flow",
+            "Haxe while control flow",
+            "Haxe try/catch control flow"
+          ],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Deterministic typed control flow within the snapshot and semantic-diff corpus.",
+          "evidence_ids": [
+            "npm:test-semantic-diff",
+            "npm:test-ci"
+          ],
+          "exclusions": [
+            "Unlisted compiler AST forms"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "classes-enums-closures",
+          "symbols": [
+            "Haxe class construction and instance dispatch",
+            "Haxe interface dispatch",
+            "Haxe enum construction and pattern matching",
+            "Haxe closure capture and invocation"
+          ],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Covered typed construction, dispatch, pattern matching, capture, and function-value behavior only.",
+          "evidence_ids": [
+            "npm:test-semantic-diff",
+            "npm:test-ci"
+          ],
+          "exclusions": [
+            "Unlisted reflection or dynamic construction behavior"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "exceptions",
+          "symbols": [
+            "throw Dynamic -> catch haxe.Exception.message"
+          ],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Haxe-thrown exception carrier behavior; foreign Go panic behavior remains a separate native contract.",
+          "evidence_ids": [
+            "semantic:exceptions"
+          ],
+          "exclusions": [
+            "Blanket native Go panic normalization"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-collections-and-text",
+      "kind": "portable",
+      "scope": "Named core collection and text members",
+      "operations": [
+        {
+          "id": "array-core",
+          "symbols": [
+            "Array.length",
+            "Array[index] read",
+            "Array.push",
+            "Array.pop"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Core indexed and iterator behavior exercised by the named contract.",
+          "evidence_ids": [
+            "semantic:array-string"
+          ],
+          "exclusions": [
+            "Array members not named by the operation inventory"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "string-core",
+          "symbols": [
+            "String.length",
+            "String.charAt",
+            "String.charCodeAt",
+            "String.substring",
+            "String.fromCharCode"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Named string members including out-of-range charCodeAt behavior.",
+          "evidence_ids": [
+            "semantic:array-string",
+            "semantic:string-edge"
+          ],
+          "exclusions": [
+            "Unlisted Unicode normalization or locale behavior"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "stringtools-core",
+          "symbols": [
+            "StringTools.trim",
+            "StringTools.startsWith",
+            "StringTools.replace",
+            "StringTools.contains",
+            "StringTools.endsWith"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Only members exercised by the cross-stdlib contract.",
+          "evidence_ids": [
+            "semantic:stringtools"
+          ],
+          "exclusions": [
+            "Unlisted StringTools members"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-data",
+      "kind": "portable",
+      "scope": "Named data, serialization, and standard collection members",
+      "operations": [
+        {
+          "id": "json",
+          "symbols": [
+            "haxe.Json.parse",
+            "haxe.Json.stringify"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Deterministic parse/stringify shapes in the named JSON contract.",
+          "evidence_ids": [
+            "semantic:json"
+          ],
+          "exclusions": [
+            "Backend-specific Dynamic carrier representation"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "bytes",
+          "symbols": [
+            "haxe.io.Bytes.ofString",
+            "haxe.io.Bytes.blit",
+            "haxe.io.Bytes.fill",
+            "haxe.io.Bytes.sub",
+            "haxe.io.Bytes.compare",
+            "haxe.io.Bytes.toString"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Named byte-buffer operations and bounds behavior.",
+          "evidence_ids": [
+            "semantic:bytes"
+          ],
+          "exclusions": [
+            "Unlisted encoding and streaming members"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "maps-list",
+          "symbols": [
+            "haxe.ds.StringMap.set",
+            "haxe.ds.StringMap.get",
+            "haxe.ds.StringMap.exists",
+            "haxe.ds.StringMap.remove",
+            "haxe.ds.IntMap.set",
+            "haxe.ds.IntMap.get",
+            "haxe.ds.IntMap.exists",
+            "haxe.ds.IntMap.remove",
+            "haxe.ds.ObjectMap.set",
+            "haxe.ds.ObjectMap.get",
+            "haxe.ds.ObjectMap.exists",
+            "haxe.ds.ObjectMap.remove",
+            "haxe.ds.EnumValueMap.set",
+            "haxe.ds.EnumValueMap.get",
+            "haxe.ds.EnumValueMap.exists",
+            "haxe.ds.EnumValueMap.remove",
+            "haxe.ds.List.add",
+            "haxe.ds.List.push",
+            "haxe.ds.List.length",
+            "haxe.ds.List.first",
+            "haxe.ds.List.last",
+            "haxe.ds.List.pop"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Core operations for the map/list shapes exercised by the contract.",
+          "evidence_ids": [
+            "semantic:collections"
+          ],
+          "exclusions": [
+            "Blanket admission of every haxe.ds member"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "date-members",
+          "symbols": [
+            "Date.fromString",
+            "Date.getFullYear",
+            "Date.getMonth",
+            "Date.getDate",
+            "Date.getHours"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Only operations exercised by option_date_path and linked direct contracts.",
+          "evidence_ids": [
+            "semantic:date-option-path"
+          ],
+          "exclusions": [
+            "Unlisted timezone, locale, and filesystem normalization behavior"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "option-pattern-matching",
+          "symbols": [
+            "haxe.ds.Option Some/None pattern matching"
+          ],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Some and None construction plus exhaustive switch matching exercised by option_date_path.",
+          "evidence_ids": [
+            "semantic:date-option-path"
+          ],
+          "exclusions": [
+            "Unlisted enum reflection or Dynamic carrier behavior"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "path-members",
+          "symbols": [
+            "haxe.io.Path.join",
+            "haxe.io.Path.dir",
+            "haxe.io.Path.file",
+            "haxe.io.Path.ext"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Path joining and parsed dir/file/ext fields exercised by option_date_path.",
+          "evidence_ids": [
+            "semantic:date-option-path"
+          ],
+          "exclusions": [
+            "Unlisted platform-specific path normalization behavior"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "path-construction",
+          "symbols": [
+            "new haxe.io.Path"
+          ],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Construction from the literal POSIX path shape exercised by option_date_path.",
+          "evidence_ids": [
+            "semantic:date-option-path"
+          ],
+          "exclusions": [
+            "Unlisted platform-specific path normalization behavior"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-reflection",
+      "kind": "portable",
+      "scope": "Closed-world named reflection subset",
+      "operations": [
+        {
+          "id": "type-reflection",
+          "symbols": [
+            "Type.getClass",
+            "Type.getSuperClass",
+            "Type.getClassName",
+            "Type.getClassFields",
+            "Type.getInstanceFields",
+            "Type.getEnum",
+            "Type.getEnumConstructs",
+            "Type.createEmptyInstance",
+            "Type.allEnums",
+            "Type.enumConstructor",
+            "Type.typeof",
+            "Type.enumParameters",
+            "Type.getEnumName"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Closed-world public declarations and the exact Type members exercised by the extended contract.",
+          "evidence_ids": [
+            "semantic:type-reflection"
+          ],
+          "exclusions": [
+            "Open-world registration and unlisted Type members"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "reflect-fields",
+          "symbols": [
+            "Reflect.hasField",
+            "Reflect.field",
+            "Reflect.setField"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Named dynamic-field operations on covered runtime shapes.",
+          "evidence_ids": [
+            "semantic:reflect-fields"
+          ],
+          "exclusions": [
+            "Unlisted reflection and carrier representations"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-file-io",
+      "kind": "portable-system",
+      "scope": "Narrow file-content contract",
+      "operations": [
+        {
+          "id": "get-content",
+          "symbols": [
+            "sys.io.File.getContent"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Text content reads plus missing, directory, and permission failure categories on the admitted platform.",
+          "evidence_ids": [
+            "semantic:file-content",
+            "semantic:file-errors"
+          ],
+          "exclusions": [
+            "Unlisted encoding, special-file, and platform-specific behavior"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "save-content",
+          "symbols": [
+            "sys.io.File.saveContent"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Text content writes plus directory and permission failure categories on the admitted platform.",
+          "evidence_ids": [
+            "semantic:file-content",
+            "semantic:file-errors"
+          ],
+          "exclusions": [
+            "Atomic replacement, durability, locking, and unlisted encodings"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-process",
+      "kind": "portable-system",
+      "scope": "Narrow child-process lifecycle contract",
+      "operations": [
+        {
+          "id": "stdout-line",
+          "symbols": [
+            "sys.io.Process.stdout.readLine"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Line, empty-line, long-line, and EOF separation for admitted local commands.",
+          "evidence_ids": [
+            "semantic:process",
+            "semantic:process-errors"
+          ],
+          "exclusions": [
+            "Arbitrary binary streaming and hostile child protocols"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "stdin-stderr-pid",
+          "symbols": [
+            "sys.io.Process.stdin.writeString",
+            "sys.io.Process.stdin.close",
+            "sys.io.Process.stderr.readLine",
+            "sys.io.Process.getPid",
+            "sys.io.Process.close"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Named pipe write/read, positive pid, and close behavior from the error-semantics contract.",
+          "evidence_ids": [
+            "semantic:process-errors"
+          ],
+          "exclusions": [
+            "Signals, process groups, and platform-specific handles"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "exit-code",
+          "symbols": [
+            "sys.io.Process.exitCode"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Zero and nonzero exit state remains distinct from EOF and launch failure.",
+          "evidence_ids": [
+            "semantic:process",
+            "semantic:process-errors"
+          ],
+          "exclusions": [
+            "Signal-to-exit-code portability outside the admitted platform"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "detached",
+          "symbols": [
+            "new sys.io.Process(..., detached=true)"
+          ],
+          "granularity": "operation",
+          "state": "excluded",
+          "release_admitted": false,
+          "qualification": "Detached process construction intentionally throws on this target.",
+          "evidence_ids": [
+            "semantic:process-errors"
+          ],
+          "exclusions": [
+            "Detached child processes"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-filesystem",
+      "kind": "portable-system",
+      "scope": "Named filesystem operations",
+      "operations": [
+        {
+          "id": "filesystem-core",
+          "symbols": [
+            "sys.FileSystem.exists",
+            "sys.FileSystem.createDirectory",
+            "sys.FileSystem.isDirectory",
+            "sys.FileSystem.rename",
+            "sys.FileSystem.readDirectory",
+            "sys.FileSystem.deleteFile",
+            "sys.FileSystem.deleteDirectory"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Local temporary-tree behavior on the admitted platform.",
+          "evidence_ids": [
+            "semantic:filesystem"
+          ],
+          "exclusions": [
+            "Symlink races, network filesystems, permissions beyond named cases, and watcher APIs"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-concurrency",
+      "kind": "portable-system",
+      "scope": "Threading and synchronization surfaces pending lifecycle audit",
+      "operations": [
+        {
+          "id": "primitives",
+          "symbols": [
+            "sys.thread.Lock",
+            "sys.thread.Mutex",
+            "sys.thread.Condition",
+            "sys.thread.Semaphore",
+            "sys.thread.Deque",
+            "sys.thread.Tls"
+          ],
+          "granularity": "surface",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Deterministic primitive tests exist, but race, visibility, generation, and wakeup closure remains open.",
+          "evidence_ids": [
+            "semantic:thread-primitives",
+            "bead:concurrency-audit"
+          ],
+          "exclusions": [
+            "Release-level happens-before and race guarantees"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.2"
+          ]
+        },
+        {
+          "id": "threads-event-loops-pools",
+          "symbols": [
+            "sys.thread.Thread",
+            "sys.thread.EventLoop",
+            "sys.thread.FixedThreadPool",
+            "sys.thread.ElasticThreadPool"
+          ],
+          "granularity": "surface",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Schedule/run/shutdown and lifecycle smokes exist; stress, leak, missed-wakeup, and identity evidence remains open.",
+          "evidence_ids": [
+            "semantic:thread-runtime",
+            "bead:concurrency-audit"
+          ],
+          "exclusions": [
+            "Broad production concurrency support"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "portable-networking",
+      "kind": "portable-system",
+      "scope": "HTTP, TCP, UDP, TLS, timeout, and cleanup surfaces pending network audit",
+      "operations": [
+        {
+          "id": "http-callbacks",
+          "symbols": [
+            "haxe.Http request callbacks",
+            "sys.Http request callbacks"
+          ],
+          "granularity": "operation",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Loopback semantic contracts exist; cancellation, timeout, cleanup, proxy, and hostile-peer closure remains open.",
+          "evidence_ids": [
+            "semantic:http",
+            "bead:network-audit"
+          ],
+          "exclusions": [
+            "Broad production HTTP client support"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.4"
+          ]
+        },
+        {
+          "id": "socket-stack",
+          "symbols": [
+            "sys.net.Socket",
+            "sys.net.UdpSocket",
+            "sys.net.Host",
+            "sys.ssl.Socket"
+          ],
+          "granularity": "surface",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Loopback and target-sensitive smokes exist; cross-platform timeout, cancellation, TLS, and cleanup evidence remains open.",
+          "evidence_ids": [
+            "semantic:socket",
+            "bead:network-audit"
+          ],
+          "exclusions": [
+            "Broad production network and TLS support"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.4"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "go-native",
+      "kind": "go-native",
+      "scope": "Typed target-native authoring surfaces",
+      "operations": [
+        {
+          "id": "collections-results",
+          "symbols": [
+            "go.Slice<T>",
+            "go.Map<K,V>",
+            "go.Result<T>"
+          ],
+          "granularity": "surface",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Typed snapshots and runtime smokes exist, but the governed native capability matrix is not complete.",
+          "evidence_ids": [
+            "snapshot:native-collections",
+            "bead:native-matrix"
+          ],
+          "exclusions": [
+            "Stable or complete Go-native collection/error API admission"
+          ],
+          "blockers": [
+            "haxe_go-vfp.9.1"
+          ]
+        },
+        {
+          "id": "goroutines-channels-select",
+          "symbols": [
+            "go.Go",
+            "go.Chan<T>",
+            "go.Select"
+          ],
+          "granularity": "surface",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Go-specific behavior is tested, but true native select and the public native capability contract remain open.",
+          "evidence_ids": [
+            "snapshot:native-concurrency",
+            "bead:native-matrix"
+          ],
+          "exclusions": [
+            "Stable Go concurrency authoring contract"
+          ],
+          "blockers": [
+            "haxe_go-vfp.9.1"
+          ]
+        },
+        {
+          "id": "extern-metadata",
+          "symbols": [
+            "@:go.import",
+            "@:go.name",
+            "@:go.receiver",
+            "@:go.valueError"
+          ],
+          "granularity": "surface",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "The named typed extern forms work for covered fixtures; broad callbacks, generics, unsafe shapes, and public API stability remain open.",
+          "evidence_ids": [
+            "snapshot:native-extern",
+            "bead:native-matrix"
+          ],
+          "exclusions": [
+            "Stable admission of the full extern grammar"
+          ],
+          "blockers": [
+            "haxe_go-vfp.9.1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "compiler-input-trust",
+      "kind": "trust",
+      "scope": "Compiler and generator trust boundary",
+      "operations": [
+        {
+          "id": "trusted-source",
+          "symbols": [
+            "Compiler use with trusted Haxe source and locked dependencies"
+          ],
+          "granularity": "operation",
+          "state": "compile-go-test-run-supported",
+          "release_admitted": true,
+          "qualification": "The admitted beta assumes reviewed source and repository-controlled or otherwise trusted dependencies.",
+          "evidence_ids": [
+            "npm:test-ci",
+            "workflow:release"
+          ],
+          "exclusions": [
+            "Treating the compiler as a sandbox"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "untrusted-source",
+          "symbols": [
+            "Compiler use as a sandbox for untrusted Haxe source"
+          ],
+          "granularity": "operation",
+          "state": "excluded",
+          "release_admitted": false,
+          "qualification": "Generated-output confinement and path-escape rejection are not yet sufficient for an untrusted-code claim.",
+          "evidence_ids": [
+            "bead:output-confinement",
+            "policy:known-gaps"
+          ],
+          "exclusions": [
+            "Untrusted or adversarial source compilation"
+          ],
+          "blockers": [
+            "haxe_go-vfp.8.10"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "distribution",
+      "kind": "distribution",
+      "scope": "Package and hosted release evidence",
+      "operations": [
+        {
+          "id": "local-package-install",
+          "symbols": [
+            "Deterministic local Haxelib package and isolated install"
+          ],
+          "granularity": "operation",
+          "state": "compile-go-test-run-supported",
+          "release_admitted": false,
+          "qualification": "Local deterministic construction and isolated install are gated, but hosted same-SHA assets are a separate release prerequisite.",
+          "evidence_ids": [
+            "npm:test-haxelib-release-install",
+            "bead:release-assets"
+          ],
+          "exclusions": [
+            "Published artifact availability and immutability"
+          ],
+          "blockers": [
+            "haxe_go-vfp.4.8"
+          ]
+        },
+        {
+          "id": "hosted-assets",
+          "symbols": [
+            "Published checksummed same-SHA Haxelib release assets"
+          ],
+          "granularity": "operation",
+          "state": "excluded",
+          "release_admitted": false,
+          "qualification": "The current beta-baseline publication gate is not complete.",
+          "evidence_ids": [
+            "bead:release-assets",
+            "workflow:release"
+          ],
+          "exclusions": [
+            "Claiming a validated published beta artifact before its release Beads close"
+          ],
+          "blockers": [
+            "haxe_go-vfp.4.8"
+          ]
+        }
+      ]
+    }
+  ],
+  "portable_stdlib": {
+    "source": "test/portable_stdlib_inventory.json",
+    "rule": "Module evidence never admits every member. Release admission comes only from the operation/member inventory in surfaces.",
+    "status_counts": {
+      "compile-go-test-run-supported": 11,
+      "excluded": 2,
+      "semantic-diff-supported": 162
+    },
+    "modules": [
+      {
+        "module": "Any",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "Array",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "Class",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "Date",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "DateTools",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "EReg",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "Enum",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "EnumValue",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "IntIterator",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "Lambda",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "List",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "Map",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "Math",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "Reflect",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "Std",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "StdTypes",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "String",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "StringBuf",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "StringTools",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "Sys",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "Type",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "UInt",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "UnicodeString",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "Xml",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic, including parsed CDATA node-type preservation."
+      },
+      {
+        "module": "haxe.CallStack",
+        "source_evidence_tier": "snapshot",
+        "state": "compile-go-test-run-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "snapshot"
+        ],
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. Go uses a staged std deterministic empty-stack fallback by default; opt-in native Go stack diagnostics are covered by stdlib/haxe_native_stack_trace_opt_in and do not claim portable semantic-diff stack parity."
+      },
+      {
+        "module": "haxe.Constraints",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.DynamicAccess",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.EntryPoint",
+        "source_evidence_tier": "snapshot",
+        "state": "compile-go-test-run-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "snapshot"
+        ],
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct haxe.EntryPoint usage is covered by snapshot/runtime smoke contract stdlib/haxe_main_loop_runtime_direct. The staged override connects the public EntryPoint API to the runtime-backed sys.thread.EventLoop main-thread loop."
+      },
+      {
+        "module": "haxe.EnumFlags",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.EnumTools",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.Exception",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.Http",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.Int32",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.Int64",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.Int64Helper",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.Json",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.Log",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.MainLoop",
+        "source_evidence_tier": "snapshot",
+        "state": "compile-go-test-run-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "snapshot"
+        ],
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct haxe.MainLoop usage is covered by snapshot/runtime smoke contract stdlib/haxe_main_loop_runtime_direct. The staged override keeps the Haxe-facing MainEvent facade while scheduling callbacks through haxe.EntryPoint and sys.thread.EventLoop."
+      },
+      {
+        "module": "haxe.NativeStackTrace",
+        "source_evidence_tier": "snapshot",
+        "state": "compile-go-test-run-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "snapshot"
+        ],
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. Go exposes a deterministic empty-stack fallback by default; opt-in native Go stack diagnostics are covered by stdlib/haxe_native_stack_trace_opt_in and do not claim portable semantic-diff stack parity."
+      },
+      {
+        "module": "haxe.PosInfos",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.Resource",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.Rest",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.Serializer",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.SysTools",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.Template",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.Template constructor/execute usage now has semantic-diff coverage through a staged std override in std/go/_std/haxe/Template.hx. Evidence: semantic_diff/haxe_template_contract and stdlib/haxe_template_basic."
+      },
+      {
+        "module": "haxe.Timer",
+        "source_evidence_tier": "snapshot",
+        "state": "compile-go-test-run-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "snapshot"
+        ],
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct haxe.Timer usage is covered by snapshot/runtime smoke contract stdlib/haxe_main_loop_runtime_direct. The staged override registers timers on Thread.current().events and uses the hxrt monotonic thread clock for Timer.stamp()."
+      },
+      {
+        "module": "haxe.Ucs2",
+        "source_evidence_tier": "snapshot",
+        "state": "compile-go-test-run-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "snapshot"
+        ],
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Covered by target-sensitive snapshot contract stdlib/haxe_ucs2_platform_exclusion. Go keeps the upstream platform-exclusion behavior and does not claim native UCS2 strings."
+      },
+      {
+        "module": "haxe.Unserializer",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.Utf8",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Covered by staged-std semantic-diff contract haxe_utf8_contract plus snapshot stdlib/haxe_utf8_basic. Go preserves the deprecated buffer constructor with and without the optional size hint plus the helper subset through std/go/_std/haxe/Utf8.hx. The size hint is ignored because it is only a deprecated capacity hint and has no visible buffer semantics."
+      },
+      {
+        "module": "haxe.ValueException",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.ValueException constructor/message/value parity now has semantic-diff coverage. Evidence: semantic_diff/haxe_value_exception_contract and stdlib/haxe_value_exception_basic."
+      },
+      {
+        "module": "haxe.atomic.AtomicBool",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.atomic.AtomicInt",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.atomic.AtomicObject",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.crypto.Adler32",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.crypto.Base64",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.crypto.BaseCode",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.crypto.Crc32",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.crypto.Hmac",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.crypto.Md5",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.crypto.Sha1",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.crypto.Sha224",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.crypto.Sha256",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.ArraySort",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.BalancedTree",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.Either",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.EnumValueMap",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.GenericStack",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.HashMap",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.IntMap",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.List",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.ListSort",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.Map",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.ObjectMap",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.Option",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.ReadOnlyArray",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.StringMap",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.Vector",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.ds.WeakMap",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct WeakMap usage now has semantic-diff coverage for the upstream platform behavior: on Go, `new haxe.ds.WeakMap()` preserves the generic Haxe stdlib contract and throws `haxe.exceptions.NotImplementedException` instead of pretending to expose real weak references. Evidence: semantic_diff/haxe_ds_weakmap_contract and stdlib/haxe_ds_weakmap_platform."
+      },
+      {
+        "module": "haxe.exceptions.ArgumentException",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.exceptions.NotImplementedException",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.exceptions.PosException",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.format.JsonParser",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.format.JsonPrinter",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.http.HttpBase",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.http.HttpBase constructor/base-field/request baseline now has semantic-diff coverage through the staged override in std/go/_std/haxe/http/HttpBase.hx. Evidence: semantic_diff/haxe_http_base_contract and stdlib/haxe_http_base_direct."
+      },
+      {
+        "module": "haxe.http.HttpJs",
+        "source_evidence_tier": "unsupported",
+        "state": "excluded",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile"
+        ],
+        "notes": "Direct haxe.http.HttpJs usage is explicitly unsupported on Go. This is a JS-only target-conditional std module and the Haxe frontend already rejects it on non-JS targets. Evidence: negative/direct_haxe_httpjs_unsupported."
+      },
+      {
+        "module": "haxe.http.HttpMethod",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.http.HttpMethod abstract usage now has semantic-diff coverage through haxe_http_base_contract and stdlib/haxe_http_base_direct."
+      },
+      {
+        "module": "haxe.http.HttpNodeJs",
+        "source_evidence_tier": "unsupported",
+        "state": "excluded",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile"
+        ],
+        "notes": "Direct haxe.http.HttpNodeJs usage is explicitly unsupported on Go. This is a Node-only target-conditional std module and the Haxe frontend already rejects it on non-Node targets. Evidence: negative/direct_haxe_httpnodejs_unsupported."
+      },
+      {
+        "module": "haxe.http.HttpStatus",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.http.HttpStatus abstract usage now has semantic-diff coverage through haxe_http_base_contract and stdlib/haxe_http_base_direct."
+      },
+      {
+        "module": "haxe.io.ArrayBufferView",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.ArrayBufferView` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: the public typed-array API now lives in staged overrides under `std/go/_std/haxe/io/*.hx`, while the underlying carrier still rides on the compiler-owned `haxe.io.Bytes` / `ArrayBufferViewImpl` representation."
+      },
+      {
+        "module": "haxe.io.BufferInput",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.BufferInput` constructor and buffered-read baseline now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy because this backend still owns the representation-sensitive `Input` / `BytesInput` / `BufferInput` type shapes and inherited helper wiring."
+      },
+      {
+        "module": "haxe.io.Bytes",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.io.BytesBuffer",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.io.BytesData",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.BytesData` alias semantics now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`, including `Bytes.getData()` / `Bytes.ofData()` alias mutation behavior. Ownership stays mixed because the public alias is source-level, while the actual behavior still rides on the compiler-owned `haxe.io.Bytes` carrier."
+      },
+      {
+        "module": "haxe.io.BytesInput",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.io.BytesOutput",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.io.Encoding",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Encoding` constructor and pattern-match parity now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy because the backend still emits the encoding tag values used by `Bytes`, `Input`, and `Output` shims."
+      },
+      {
+        "module": "haxe.io.Eof",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Eof` construction and string parity now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy because the backend still emits the `Eof` carrier used by IO shims and exception matching."
+      },
+      {
+        "module": "haxe.io.Error",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Error` constructor and pattern-match parity now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy because the backend still emits the error-tag carrier used by the public IO shims."
+      },
+      {
+        "module": "haxe.io.FPHelper",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.FPHelper` bit-conversion helpers now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. The public API now lives in the staged override `std/go/_std/haxe/io/FPHelper.hx`, expressed on top of the existing little-endian `BytesInput` / `BytesOutput` contract instead of more raw Go."
+      },
+      {
+        "module": "haxe.io.Float32Array",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Float32Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, the actual storage still rides on the compiler-owned `haxe.io.Bytes` carrier, and the float bit conversions are expressed through staged `haxe.io.FPHelper` helpers instead of new raw compiler bytes logic."
+      },
+      {
+        "module": "haxe.io.Float64Array",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Float64Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, the actual storage still rides on the compiler-owned `haxe.io.Bytes` carrier, and the float bit conversions are expressed through staged `haxe.io.FPHelper` helpers instead of new raw compiler bytes logic."
+      },
+      {
+        "module": "haxe.io.Input",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.io.Int32Array",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Int32Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, while the actual storage and byte normalization still ride on the compiler-owned `haxe.io.Bytes` carrier."
+      },
+      {
+        "module": "haxe.io.Mime",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Mime` abstract usage now has semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays source-owned because this surface is just the upstream string-backed abstract running on the normal string lowering contract."
+      },
+      {
+        "module": "haxe.io.Output",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.io.Path",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Path` usage now has semantic-diff coverage through `semantic_diff/path_cross_std_contract` and snapshot coverage in `stdlib/path_cross_std_basic`. Ownership has graduated back to the upstream Haxe stdlib implementation; Go only owns the reusable string and array lowerings that upstream `Path.hx` depends on."
+      },
+      {
+        "module": "haxe.io.Scheme",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Scheme` abstract usage now has semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays source-owned because this surface is just the upstream string-backed abstract running on the normal string lowering contract."
+      },
+      {
+        "module": "haxe.io.StringInput",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.StringInput` constructor and inherited-read baseline now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy because this backend still owns the representation-sensitive `BytesInput` / `StringInput` type shapes and inherited helper wiring."
+      },
+      {
+        "module": "haxe.io.UInt16Array",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.UInt16Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, while the actual storage and byte normalization still ride on the compiler-owned `haxe.io.Bytes` carrier."
+      },
+      {
+        "module": "haxe.io.UInt32Array",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.UInt32Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, while the actual storage and byte normalization still ride on the compiler-owned `haxe.io.Bytes` carrier."
+      },
+      {
+        "module": "haxe.io.UInt8Array",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.UInt8Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, while the actual storage and byte normalization still ride on the compiler-owned `haxe.io.Bytes` carrier."
+      },
+      {
+        "module": "haxe.iterators.ArrayIterator",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.iterators.ArrayKeyValueIterator",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.iterators.DynamicAccessIterator",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.iterators.DynamicAccessKeyValueIterator",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.iterators.HashMapKeyValueIterator",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.iterators.MapKeyValueIterator",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.iterators.RestIterator",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.iterators.RestKeyValueIterator",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.iterators.StringIterator",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.iterators.StringIteratorUnicode",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.iterators.StringKeyValueIterator",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.iterators.StringKeyValueIteratorUnicode",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.rtti.CType",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct RTTI typedefs, enums, `TypeApi`, and `CTypeTools` now have semantic-diff coverage through `semantic_diff/haxe_rtti_direct_contract` and snapshot coverage in `stdlib/haxe_rtti_direct`. Ownership stays mixed: the public Haxe-facing API lives in staged std overrides under `std/haxe/rtti/**`, while the backend still owns the narrow class-token `__meta__` / `__rtti` contract and anonymous-record array-field mutation lowering that those overrides rely on."
+      },
+      {
+        "module": "haxe.rtti.Meta",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.rtti.Meta` access now has semantic-diff coverage through `semantic_diff/haxe_rtti_direct_contract` and snapshot coverage in `stdlib/haxe_rtti_direct`. The staged override keeps the public API source-owned while routing metadata lookup through the backend-owned class-token `__meta__` contract."
+      },
+      {
+        "module": "haxe.rtti.Rtti",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.rtti.Rtti` access now has semantic-diff coverage through `semantic_diff/haxe_rtti_direct_contract` and snapshot coverage in `stdlib/haxe_rtti_direct`. The staged override keeps the public API source-owned while routing RTTI lookup through the backend-owned class-token `__rtti` contract."
+      },
+      {
+        "module": "haxe.rtti.XmlParser",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.rtti.XmlParser` parsing now has semantic-diff coverage through `semantic_diff/haxe_rtti_direct_contract` and snapshot coverage in `stdlib/haxe_rtti_direct`. Ownership stays mixed: parser logic is staged std, while the backend still owns the anonymous-record array-field mutation fix that makes RTTI record merging lower honestly on Go."
+      },
+      {
+        "module": "haxe.xml.Access",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.xml.Check",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.xml.Fast",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.xml.Parser",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.xml.Printer",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.zip.Compress",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.zip.Entry",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.zip.FlushMode",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.zip.Huffman",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.zip.InflateImpl",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.zip.Reader",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.zip.Tools",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.zip.Uncompress",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "haxe.zip.Writer",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.FileStat",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.FileSystem",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.Http",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.db.Connection",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.db.Connection` interface usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`. Ownership is explicit instead of vague: the public DB contract stays in upstream Haxe std source, while Go-specific runtime binding only begins at the file-handle side of the same tranche."
+      },
+      {
+        "module": "sys.db.Mysql",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.db.Mysql.connect` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`, preserving the upstream Go-platform contract that this API throws `haxe.exceptions.NotImplementedException` instead of pretending to expose a fake database runtime."
+      },
+      {
+        "module": "sys.db.ResultSet",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.db.ResultSet` interface usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`, including length/field-name/cursor access through user-defined result-set implementations."
+      },
+      {
+        "module": "sys.db.Sqlite",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.db.Sqlite.open` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`, preserving the upstream Go-platform contract that this API throws `Not implemented for this platform` instead of claiming a nonexistent SQLite binding."
+      },
+      {
+        "module": "sys.io.File",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.io.FileInput",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.io.FileInput` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`. Ownership is runtime-backed on purpose: the public Haxe file-handle surface now forwards through `lowerSysStdlibShimDecls` into `runtime/hxrt/sys.go` for open/read/seek/tell/eof."
+      },
+      {
+        "module": "sys.io.FileOutput",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.io.FileOutput` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`. Ownership is runtime-backed on purpose: the public Haxe file-handle surface now forwards through `lowerSysStdlibShimDecls` into `runtime/hxrt/sys.go` for open/write/seek/tell/flush/close."
+      },
+      {
+        "module": "sys.io.FileSeek",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.io.FileSeek` enum usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`, with compiler-owned enum tags bridged to runtime seek whence values through the sys shim layer instead of relying on accidental source-owned extern emission."
+      },
+      {
+        "module": "sys.io.Process",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.net.Address",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.net.Address` usage now has semantic-diff coverage through `semantic_diff/sys_net_address_ssl_digest_algorithm_contract` and snapshot coverage in `stdlib/sys_net_address_ssl_digest_algorithm_direct`. Ownership stays source-owned because this surface is just the upstream `{host, port}` carrier and helper methods, expressed without growing the compiler-owned socket runtime."
+      },
+      {
+        "module": "sys.net.Host",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.net.Socket",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "upstream_sweep:strict_go_test",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.net.UdpSocket",
+        "source_evidence_tier": "snapshot",
+        "state": "compile-go-test-run-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "snapshot"
+        ],
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.net.UdpSocket` usage now has deterministic snapshot/runtime coverage through `stdlib/sys_net_udp_socket_direct`, covering loopback `bind` / `host` / `sendTo` / `readFrom` / `setBroadcast` plus peer address round-tripping. Ownership stays compiler-owned inside the `net_socket` shim group because UDP deadline/blocking/address translation and broadcast socket-option behavior are still target-sensitive. The evidence covers OS socket-option installation without requiring LAN broadcast packet delivery in CI."
+      },
+      {
+        "module": "sys.ssl.Certificate",
+        "source_evidence_tier": "snapshot",
+        "state": "compile-go-test-run-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "snapshot"
+        ],
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Certificate` leaf usage now has snapshot runtime coverage through `stdlib/sys_ssl_leaf_direct`. Ownership stays mixed: the public Haxe-facing wrapper lives in `std/go/_std/sys/ssl/Certificate.hx`, while certificate parsing and trust-root handling live in `runtime/hxrt/ssl.go`."
+      },
+      {
+        "module": "sys.ssl.Digest",
+        "source_evidence_tier": "snapshot",
+        "state": "compile-go-test-run-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "snapshot"
+        ],
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Digest` leaf usage now has snapshot runtime coverage through `stdlib/sys_ssl_leaf_direct`, including deterministic SHA-256/SHA-512 digests plus sign/verify with a parsed private key. Ownership stays mixed: the public Haxe API lives in `std/go/_std/sys/ssl/Digest.hx`, while the actual cryptographic work lives in `runtime/hxrt/ssl.go`."
+      },
+      {
+        "module": "sys.ssl.DigestAlgorithm",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.ssl.DigestAlgorithm` usage now has semantic-diff coverage through `semantic_diff/sys_net_address_ssl_digest_algorithm_contract` and snapshot coverage in `stdlib/sys_net_address_ssl_digest_algorithm_direct`. Ownership stays source-owned because this surface is the upstream string-backed algorithm enum, independent of the target-owned TLS and digest machinery underneath."
+      },
+      {
+        "module": "sys.ssl.Key",
+        "source_evidence_tier": "snapshot",
+        "state": "compile-go-test-run-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "snapshot"
+        ],
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Key` leaf usage now has snapshot runtime coverage through `stdlib/sys_ssl_leaf_direct`. Ownership stays mixed: the public Haxe constructors live in `std/go/_std/sys/ssl/Key.hx`, while PEM/DER parsing and native key storage live in `runtime/hxrt/ssl.go`. Omitted optional pass arguments still depend on the broader source-owned static optional-argument lowering follow-up."
+      },
+      {
+        "module": "sys.ssl.Socket",
+        "source_evidence_tier": "snapshot",
+        "state": "compile-go-test-run-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "snapshot"
+        ],
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct` and SNI selection coverage through `stdlib/sys_ssl_socket_sni_direct`, covering staged public socket configuration on top of the compiler-owned `sys.net.Socket` carrier plus runtime TLS dial/listen/handshake/peer-certificate/SNI behavior in `runtime/hxrt/ssl.go`. Ownership stays mixed: the public Haxe API lives in `std/go/_std/sys/ssl/Socket.hx`, while the underlying connection/listener TLS behavior remains runtime-owned."
+      },
+      {
+        "module": "sys.thread.Condition",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.thread.Deque",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.thread.ElasticThreadPool",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.thread.EventLoop",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.thread.FixedThreadPool",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.thread.IThreadPool",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.thread.Lock",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.thread.Mutex",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.thread.NoEventLoopException",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.thread.Semaphore",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.thread.Thread",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.thread.ThreadPoolException",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      },
+      {
+        "module": "sys.thread.Tls",
+        "source_evidence_tier": "semantic-diff",
+        "state": "semantic-diff-supported",
+        "admission": "module-evidence-only",
+        "release_admitted": false,
+        "coverage_evidence": [
+          "upstream_sweep:full_compile",
+          "semantic_diff"
+        ],
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+      }
+    ]
+  },
+  "trust_assumptions": [
+    {
+      "id": "trusted-source",
+      "statement": "Application Haxe source, build metadata, extern metadata, and dependency source are reviewed or otherwise trusted.",
+      "release_required": true
+    },
+    {
+      "id": "locked-tooling",
+      "statement": "Repository tooling is installed from the committed npm lock and vendored Reflaxe provenance passes its offline verification.",
+      "release_required": true
+    },
+    {
+      "id": "local-system-boundaries",
+      "statement": "Admitted file and process operations run on the canonical platform against application-controlled paths and child commands.",
+      "release_required": true
+    },
+    {
+      "id": "no-network-admission",
+      "statement": "Network, HTTP, TLS, cancellation, and hostile-peer behavior are not part of the admitted beta operation surface.",
+      "release_required": true
+    }
+  ],
+  "known_blockers": [
+    {
+      "id": "haxe_go-vfp.10.2",
+      "scope": "Concurrency race, visibility, wakeup, pool, cancellation, and goroutine-identity closure",
+      "release_blocker_for": "portable-concurrency"
+    },
+    {
+      "id": "haxe_go-vfp.10.4",
+      "scope": "Network, HTTP, socket, timeout, cancellation, and cleanup closure",
+      "release_blocker_for": "portable-networking"
+    },
+    {
+      "id": "haxe_go-vfp.9.1",
+      "scope": "Governed Go-native capability matrix",
+      "release_blocker_for": "go-native"
+    },
+    {
+      "id": "haxe_go-vfp.8.10",
+      "scope": "Generated-output confinement and path-escape rejection",
+      "release_blocker_for": "untrusted-source builds"
+    },
+    {
+      "id": "haxe_go-vfp.4.8",
+      "scope": "Checksummed same-SHA hosted release assets and provenance",
+      "release_blocker_for": "published beta-baseline artifact"
+    },
+    {
+      "id": "haxe_go-vfp.6.3",
+      "scope": "Generated public API manifest",
+      "release_blocker_for": "public API admission"
+    },
+    {
+      "id": "haxe_go-vfp.6.4",
+      "scope": "Pre-1.0 SemVer, deprecation, and stable-1.x admission policy",
+      "release_blocker_for": "compatibility policy closure"
+    },
+    {
+      "id": "haxe_go-vfp.12.7",
+      "scope": "Separate stable-1.x admission decision",
+      "release_blocker_for": "any stable 1.x claim"
+    }
+  ]
+}

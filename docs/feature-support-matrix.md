@@ -1,10 +1,19 @@
 # Feature Support Matrix and Unsupported Inventory
 
+This page is an implementation and evidence inventory. It is not the release
+support authority. The authoritative release scope is the generated
+[compatibility and support matrix](compatibility-support-matrix.md), backed by
+the [machine manifest](compatibility-support-manifest.json). A `Supported` row
+here proves the covered case; it does not admit every member, error path,
+platform, or trust model.
+
 How to read this page:
 
-1. Start with the support contract below to understand what "Supported" means in this repo.
-2. Use the coverage tiers table to understand the strength of evidence behind each surface.
-3. Use linked fixtures to inspect exact expected behavior.
+1. Start with the generated compatibility matrix to learn what the current
+   release claim admits.
+2. Read the evidence contract below to understand what `Supported` means in
+   this implementation inventory.
+3. Use the coverage tiers table and linked fixtures to inspect exact evidence.
 
 Key terms:
 
@@ -13,7 +22,7 @@ Key terms:
 - `portable` / `metal`: compatible policy presets, documented in
   `docs/native-policy-presets.md`.
 
-## Support contract
+## Evidence support contract
 
 `reflaxe.go` treats a surface area as **supported** when all of the following are true:
 
@@ -22,6 +31,11 @@ Key terms:
 3. Generated Go passes `go test ./...` for the covered case(s).
 
 Anything outside that bar is either **partial** (implemented but not fully gated) or **unsupported**.
+
+This label is intentionally evidence-scoped. Release admission requires a
+separate explicit operation/member entry in
+`compatibility-support-manifest.json`; unknown or unlisted surfaces are
+excluded by default.
 
 Portable semantic rulebook for high-risk behavior classes is versioned in `docs/portable-semantics-v1.md`.
 Tier1 ownership mapping for portable modules is tracked in `docs/portable-module-mapping-contract.md`.

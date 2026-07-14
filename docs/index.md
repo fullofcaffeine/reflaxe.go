@@ -29,11 +29,14 @@ This page helps you find the right docs quickly.
 
 ## Testing and quality docs
 
+- [Compatibility and support matrix](compatibility-support-matrix.md)
+- [Machine-readable compatibility manifest](compatibility-support-manifest.json)
+- [Generated compatibility release status](compatibility-release-status.md)
 - [Semantic diff guide](semantic-diff-guide.md)
 - [Snapshot policy](snapshot-policy.md)
 - [Examples QA contract](examples-qa-contract.md)
 - [Thinking levels](thinking-levels.md)
-- [Feature support matrix](feature-support-matrix.md)
+- [Implementation evidence inventory](feature-support-matrix.md)
 - [Supported toolchain policy](toolchain-policy.md)
 - [Release version and source-identity policy](release-version-policy.md)
 - [Licensing and generated-output policy](../LICENSING.md)

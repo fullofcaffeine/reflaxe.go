@@ -10,21 +10,27 @@ Run these checks from repo root on a clean branch before a release cut.
    - Confirm the candidate jobs use supported Haxe, Go, and Node lines.
    - Record the exact resolved patch versions; a floating CI selector is not
      release provenance.
-2. Full CI harness contract:
+2. Compatibility and release-scope contract:
+   - Read `docs/compatibility-support-manifest.json` and the generated
+     `docs/compatibility-release-status.md`.
+   - Confirm the candidate claims only the admitted portable preset,
+     platform, and named operation/member surface.
+   - `npm run compatibility:verify`
+3. Full CI harness contract:
    - `python3 test/run-ci.py`
-3. Snapshot + semantic baseline (already included in CI harness, can be run directly for debugging):
+4. Snapshot + semantic baseline (already included in CI harness, can be run directly for debugging):
    - `python3 test/run-snapshots.py`
    - `python3 test/run-semantic-diff.py`
-4. Portable parity closure visibility:
+5. Portable parity closure visibility:
    - `python3 test/run-portable-stdlib-inventory.py`
    - `python3 test/run-portable-parity-closure.py`
-5. Ownership and stdlib governance gates:
+6. Ownership and stdlib governance gates:
    - `npm run test:stdlib:governance`
    - `npm run test:release-contracts`
-6. Family stdlib sync gates:
+7. Family stdlib sync gates:
    - `npm run test:family-stdlib-sync`
    - `npm run test:family-stdlib-bootstrap`
-7. Release visibility contract:
+8. Release visibility contract:
    - Read the [release version and source-identity
      policy](release-version-policy.md).
    - Read the [licensing and generated-output policy](../LICENSING.md), and
@@ -36,24 +42,24 @@ Run these checks from repo root on a clean branch before a release cut.
    - `npm run release:status`
    - Publish only through a manual `CI Harness` run on `master`
      with `publish_release` enabled; normal pushes must not publish.
-8. Go dynamic and static tooling gates:
+9. Go dynamic and static tooling gates:
    - `npm run security:go-tooling`
    - Confirm the race detector, strict checkptr, vet, and pinned Staticcheck
      reports pass on both supported Go lines.
-9. Locked supply-chain provenance:
+10. Locked supply-chain provenance:
    - `npm run security:supply-chain`
    - Confirm clean npm lock installation, immutable action pins, and vendored
      Reflaxe patch reconstruction all pass.
-10. Performance visibility gates:
+11. Performance visibility gates:
    - `npm run test:perf:go`
    - `npm run test:perf:hxrt-selective`
    - `npm run test:perf:apps`
-11. Production caveat scoreboard review:
+12. Production caveat scoreboard review:
    - Read `docs/known-gaps.md#production-hardening-scoreboard`
    - Confirm each row still has an owner, current decision, evidence, and reopen trigger.
    - Confirm the scoreboard references durable evidence links and commands, not retired tracker IDs.
    - For multi-package output, check `docs/multi-package-output-evaluation.md#measurable-production-reopen-triggers` before filing implementation work.
-12. Performance budget policy review:
+13. Performance budget policy review:
    - Read `docs/performance-budget-policy.md`
    - Confirm warning-only perf drift is not being treated as release-blocking without the promotion criteria in that policy.
 
@@ -62,6 +68,7 @@ Run these checks from repo root on a clean branch before a release cut.
 Use this exact command order when validating a release candidate locally:
 
 ```bash
+npm run compatibility:verify
 python3 test/run-ci.py
 python3 test/run-portable-stdlib-inventory.py
 python3 test/run-portable-parity-closure.py
@@ -90,6 +97,10 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 
 ## Pass criteria
 
+- `npm run compatibility:verify` exits `0`; the generated manifest, human
+  matrix, and release status match their governed inputs. Release notes use the
+  exact generated compatibility claim and do not infer support from a module
+  inventory row.
 - Candidate Haxe, Go, and Node versions match
   [`toolchain-policy.json`](toolchain-policy.json), and the evidence index
   records exact resolved patch versions.
@@ -124,8 +135,11 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 - [Vendored Reflaxe provenance](vendor-reflaxe-provenance.md)
 - [Release version and source-identity policy](release-version-policy.md)
 - [Licensing and generated-output policy](../LICENSING.md)
+- [Compatibility and support matrix](compatibility-support-matrix.md)
+- [Compatibility release status](compatibility-release-status.md)
 
 - CI stage contract source: `test/run-ci.py`
+- Compatibility manifest: `docs/compatibility-support-manifest.json`
 - Supported toolchain policy: `docs/toolchain-policy.md`
 - Release automation visibility checks: `docs/release-visibility.md`
 - Snapshot policy: `docs/snapshot-policy.md`

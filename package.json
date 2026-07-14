@@ -10,6 +10,8 @@
     "dev:new-project": "bash scripts/dev/new-project.sh",
     "dev:hx": "bash scripts/dev/go-hx.sh",
     "dev:goextern": "bash scripts/dev/goextern.sh",
+    "compatibility:generate": "python3 scripts/compatibility/generate_support_manifest.py",
+    "compatibility:verify": "python3 scripts/compatibility/generate_support_manifest.py --check",
     "test": "npm run test:canonical-std-layout && npm run test:haxelib-package && npm run test:canonical-std-closeout && python3 test/run-snapshots.py",
     "test:ci": "python3 test/run-ci.py",
     "test:examples": "python3 test/run-examples.py",

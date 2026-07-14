@@ -1,0 +1,1244 @@
+{
+  "schema_version": 1,
+  "manifest_schema_version": 1,
+  "as_of": "2026-07-14",
+  "release_claim": {
+    "lifecycle": "pre-1.0 beta",
+    "statement": "Haxe.Go is a pre-1.0 beta for pinned, application-qualified portable workloads on the admitted toolchain, platform, and operation/member surface.",
+    "default_disposition": "Any unlisted module operation, member, platform, architecture, native API, error path, or trust model is excluded from the admitted release scope.",
+    "admitted_preset": "portable",
+    "admitted_platform": "linux-amd64",
+    "forbidden_phrases": [
+      "beta-stable"
+    ]
+  },
+  "evidence_states": {
+    "semantic-diff-supported": {
+      "meaning": "Named deterministic behavior is compared between Haxe --interp and generated Go, which also compiles, passes go test, and runs.",
+      "release_eligible": true
+    },
+    "compile-go-test-run-supported": {
+      "meaning": "The named target-sensitive behavior compiles, passes go test, runs on Go, and matches an explicit expected contract without claiming interpreter parity.",
+      "release_eligible": true
+    },
+    "compile-only": {
+      "meaning": "The named surface compiles or cross-builds, but runtime and semantic support are not admitted.",
+      "release_eligible": false
+    },
+    "experimental": {
+      "meaning": "The named surface is implemented and tested in some lanes but remains outside the admitted release contract.",
+      "release_eligible": false
+    },
+    "compatibility-only": {
+      "meaning": "The input or behavior is retained for compatibility and does not define a separate semantic product or release admission.",
+      "release_eligible": false
+    },
+    "excluded": {
+      "meaning": "The named surface is deliberately unsupported by the admitted release scope.",
+      "release_eligible": false
+    }
+  },
+  "evidence": [
+    {
+      "id": "policy:toolchains",
+      "kind": "path",
+      "path": "docs/toolchain-policy.json",
+      "level": "policy"
+    },
+    {
+      "id": "policy:native-presets",
+      "kind": "path",
+      "path": "docs/native-policy-presets.md",
+      "level": "policy"
+    },
+    {
+      "id": "policy:known-gaps",
+      "kind": "path",
+      "path": "docs/known-gaps.md",
+      "level": "policy"
+    },
+    {
+      "id": "workflow:quality",
+      "kind": "path",
+      "path": ".github/workflows/ci-quality.yml",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "workflow:release",
+      "kind": "path",
+      "path": ".github/workflows/ci-harness.yml",
+      "level": "policy"
+    },
+    {
+      "id": "script:cross-binaries",
+      "kind": "path",
+      "path": "scripts/examples/build-binaries.sh",
+      "level": "compile-only"
+    },
+    {
+      "id": "npm:test-ci",
+      "kind": "npm-script",
+      "script": "test:ci",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "npm:test-examples",
+      "kind": "npm-script",
+      "script": "test:examples",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "npm:test-semantic-diff",
+      "kind": "npm-script",
+      "script": "test:semantic-diff",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "npm:test-stdlib-sweep-go-test",
+      "kind": "npm-script",
+      "script": "test:stdlib-sweep:go-test",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "npm:test-haxelib-release-install",
+      "kind": "npm-script",
+      "script": "test:haxelib-release-install",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "npm:security-go-tooling",
+      "kind": "npm-script",
+      "script": "security:go-tooling",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "semantic:array-string",
+      "kind": "path",
+      "path": "test/semantic_diff/array_string_intiterator_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:string-edge",
+      "kind": "path",
+      "path": "test/semantic_diff/string_charcodeat_bounds_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:stringtools",
+      "kind": "path",
+      "path": "test/semantic_diff/stringtools_cross_std_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:json",
+      "kind": "path",
+      "path": "test/semantic_diff/json_parse_stringify_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:bytes",
+      "kind": "path",
+      "path": "test/semantic_diff/bytes_ops_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:collections",
+      "kind": "path",
+      "path": "test/semantic_diff/ds_maps_list_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:date-option-path",
+      "kind": "path",
+      "path": "test/semantic_diff/option_date_path",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:exceptions",
+      "kind": "path",
+      "path": "test/semantic_diff/exception_api_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:type-reflection",
+      "kind": "path",
+      "path": "test/semantic_diff/type_reflection_extended_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:reflect-fields",
+      "kind": "path",
+      "path": "test/semantic_diff/reflect_field_ops",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:file-content",
+      "kind": "path",
+      "path": "test/semantic_diff/file_read_write_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:file-errors",
+      "kind": "path",
+      "path": "test/semantic_diff/file_error_semantics_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:process",
+      "kind": "path",
+      "path": "test/semantic_diff/process_echo_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:process-errors",
+      "kind": "path",
+      "path": "test/semantic_diff/process_error_semantics_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:filesystem",
+      "kind": "path",
+      "path": "test/semantic_diff/filesystem_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:thread-primitives",
+      "kind": "path",
+      "path": "test/semantic_diff/sys_thread_primitives_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:thread-runtime",
+      "kind": "path",
+      "path": "test/semantic_diff/sys_thread_runtime_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:http",
+      "kind": "path",
+      "path": "test/semantic_diff/http_request_callbacks_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:socket",
+      "kind": "path",
+      "path": "test/semantic_diff/socket_advanced_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "snapshot:native-extern",
+      "kind": "path",
+      "path": "test/snapshot/go_native/extern_metadata_mapping",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "snapshot:native-collections",
+      "kind": "path",
+      "path": "test/snapshot/go_native/slice_map_basic",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "snapshot:native-concurrency",
+      "kind": "path",
+      "path": "test/snapshot/go_native/goroutine_native_shutdown",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "bead:concurrency-audit",
+      "kind": "bead",
+      "bead": "haxe_go-vfp.10.2",
+      "level": "blocker"
+    },
+    {
+      "id": "bead:network-audit",
+      "kind": "bead",
+      "bead": "haxe_go-vfp.10.4",
+      "level": "blocker"
+    },
+    {
+      "id": "bead:native-matrix",
+      "kind": "bead",
+      "bead": "haxe_go-vfp.9.1",
+      "level": "blocker"
+    },
+    {
+      "id": "bead:output-confinement",
+      "kind": "bead",
+      "bead": "haxe_go-vfp.8.10",
+      "level": "blocker"
+    },
+    {
+      "id": "bead:release-assets",
+      "kind": "bead",
+      "bead": "haxe_go-vfp.4.8",
+      "level": "blocker"
+    },
+    {
+      "id": "bead:stable-admission",
+      "kind": "bead",
+      "bead": "haxe_go-vfp.12.7",
+      "level": "blocker"
+    }
+  ],
+  "platforms": [
+    {
+      "id": "linux-amd64",
+      "os": "linux",
+      "architecture": "amd64",
+      "state": "compile-go-test-run-supported",
+      "release_admitted": true,
+      "qualification": "Canonical beta evidence platform; release evidence must record the exact hosted runner image and resolved toolchain patches.",
+      "evidence_ids": [
+        "workflow:quality",
+        "npm:test-ci",
+        "npm:security-go-tooling"
+      ],
+      "exclusions": []
+    },
+    {
+      "id": "darwin-runner-default",
+      "os": "darwin",
+      "architecture": "runner-default-unfrozen",
+      "state": "experimental",
+      "release_admitted": false,
+      "qualification": "The quality workflow runs macos-latest, but the architecture and image are not frozen as a release compatibility promise.",
+      "evidence_ids": [
+        "workflow:quality"
+      ],
+      "exclusions": [
+        "No stable runner-image or architecture compatibility promise"
+      ]
+    },
+    {
+      "id": "linux-arm64",
+      "os": "linux",
+      "architecture": "arm64",
+      "state": "compile-only",
+      "release_admitted": false,
+      "qualification": "Representative examples cross-build; no release runtime, race, or security matrix is admitted.",
+      "evidence_ids": [
+        "script:cross-binaries"
+      ],
+      "exclusions": [
+        "Runtime and security evidence"
+      ]
+    },
+    {
+      "id": "darwin-arm64",
+      "os": "darwin",
+      "architecture": "arm64",
+      "state": "compile-only",
+      "release_admitted": false,
+      "qualification": "Representative examples cross-build; the moving macos-latest lane is tracked separately.",
+      "evidence_ids": [
+        "script:cross-binaries"
+      ],
+      "exclusions": [
+        "Pinned runtime and security evidence"
+      ]
+    },
+    {
+      "id": "windows-amd64",
+      "os": "windows",
+      "architecture": "amd64",
+      "state": "compile-only",
+      "release_admitted": false,
+      "qualification": "Representative examples cross-build; Windows runtime behavior is not in the admitted beta matrix.",
+      "evidence_ids": [
+        "script:cross-binaries"
+      ],
+      "exclusions": [
+        "Runtime, path, process, race, and security evidence"
+      ]
+    },
+    {
+      "id": "other-os-architecture",
+      "os": "other",
+      "architecture": "other",
+      "state": "excluded",
+      "release_admitted": false,
+      "qualification": "No implicit operating-system or architecture support is inferred.",
+      "evidence_ids": [
+        "policy:known-gaps"
+      ],
+      "exclusions": [
+        "All combinations not named above"
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "id": "portable",
+      "selector": "reflaxe_go_profile=portable",
+      "state": "semantic-diff-supported",
+      "release_admitted": true,
+      "qualification": "Default product path. Only operations and members explicitly admitted below are part of the beta claim.",
+      "evidence_ids": [
+        "policy:native-presets",
+        "npm:test-semantic-diff",
+        "npm:test-examples"
+      ],
+      "exclusions": [
+        "Unlisted portable operations and members"
+      ]
+    },
+    {
+      "id": "metal",
+      "selector": "reflaxe_go_profile=metal",
+      "state": "compatibility-only",
+      "release_admitted": false,
+      "qualification": "Supported compatibility policy preset, not a second semantic product and not an independent native-authority claim.",
+      "evidence_ids": [
+        "policy:native-presets",
+        "npm:test-examples"
+      ],
+      "exclusions": [
+        "Independent semantic-product or stable native-API admission"
+      ]
+    }
+  ],
+  "surfaces": [
+    {
+      "id": "portable-language-core",
+      "kind": "portable",
+      "scope": "Named Haxe language operations",
+      "operations": [
+        {
+          "id": "control-flow",
+          "symbols": [
+            "Haxe if control flow",
+            "Haxe switch control flow",
+            "Haxe numeric for control flow",
+            "Haxe while control flow",
+            "Haxe try/catch control flow"
+          ],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Deterministic typed control flow within the snapshot and semantic-diff corpus.",
+          "evidence_ids": [
+            "npm:test-semantic-diff",
+            "npm:test-ci"
+          ],
+          "exclusions": [
+            "Unlisted compiler AST forms"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "classes-enums-closures",
+          "symbols": [
+            "Haxe class construction and instance dispatch",
+            "Haxe interface dispatch",
+            "Haxe enum construction and pattern matching",
+            "Haxe closure capture and invocation"
+          ],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Covered typed construction, dispatch, pattern matching, capture, and function-value behavior only.",
+          "evidence_ids": [
+            "npm:test-semantic-diff",
+            "npm:test-ci"
+          ],
+          "exclusions": [
+            "Unlisted reflection or dynamic construction behavior"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "exceptions",
+          "symbols": [
+            "throw Dynamic -> catch haxe.Exception.message"
+          ],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Haxe-thrown exception carrier behavior; foreign Go panic behavior remains a separate native contract.",
+          "evidence_ids": [
+            "semantic:exceptions"
+          ],
+          "exclusions": [
+            "Blanket native Go panic normalization"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-collections-and-text",
+      "kind": "portable",
+      "scope": "Named core collection and text members",
+      "operations": [
+        {
+          "id": "array-core",
+          "symbols": [
+            "Array.length",
+            "Array[index] read",
+            "Array.push",
+            "Array.pop"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Core indexed and iterator behavior exercised by the named contract.",
+          "evidence_ids": [
+            "semantic:array-string"
+          ],
+          "exclusions": [
+            "Array members not named by the operation inventory"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "string-core",
+          "symbols": [
+            "String.length",
+            "String.charAt",
+            "String.charCodeAt",
+            "String.substring",
+            "String.fromCharCode"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Named string members including out-of-range charCodeAt behavior.",
+          "evidence_ids": [
+            "semantic:array-string",
+            "semantic:string-edge"
+          ],
+          "exclusions": [
+            "Unlisted Unicode normalization or locale behavior"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "stringtools-core",
+          "symbols": [
+            "StringTools.trim",
+            "StringTools.startsWith",
+            "StringTools.replace",
+            "StringTools.contains",
+            "StringTools.endsWith"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Only members exercised by the cross-stdlib contract.",
+          "evidence_ids": [
+            "semantic:stringtools"
+          ],
+          "exclusions": [
+            "Unlisted StringTools members"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-data",
+      "kind": "portable",
+      "scope": "Named data, serialization, and standard collection members",
+      "operations": [
+        {
+          "id": "json",
+          "symbols": [
+            "haxe.Json.parse",
+            "haxe.Json.stringify"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Deterministic parse/stringify shapes in the named JSON contract.",
+          "evidence_ids": [
+            "semantic:json"
+          ],
+          "exclusions": [
+            "Backend-specific Dynamic carrier representation"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "bytes",
+          "symbols": [
+            "haxe.io.Bytes.ofString",
+            "haxe.io.Bytes.blit",
+            "haxe.io.Bytes.fill",
+            "haxe.io.Bytes.sub",
+            "haxe.io.Bytes.compare",
+            "haxe.io.Bytes.toString"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Named byte-buffer operations and bounds behavior.",
+          "evidence_ids": [
+            "semantic:bytes"
+          ],
+          "exclusions": [
+            "Unlisted encoding and streaming members"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "maps-list",
+          "symbols": [
+            "haxe.ds.StringMap.set",
+            "haxe.ds.StringMap.get",
+            "haxe.ds.StringMap.exists",
+            "haxe.ds.StringMap.remove",
+            "haxe.ds.IntMap.set",
+            "haxe.ds.IntMap.get",
+            "haxe.ds.IntMap.exists",
+            "haxe.ds.IntMap.remove",
+            "haxe.ds.ObjectMap.set",
+            "haxe.ds.ObjectMap.get",
+            "haxe.ds.ObjectMap.exists",
+            "haxe.ds.ObjectMap.remove",
+            "haxe.ds.EnumValueMap.set",
+            "haxe.ds.EnumValueMap.get",
+            "haxe.ds.EnumValueMap.exists",
+            "haxe.ds.EnumValueMap.remove",
+            "haxe.ds.List.add",
+            "haxe.ds.List.push",
+            "haxe.ds.List.length",
+            "haxe.ds.List.first",
+            "haxe.ds.List.last",
+            "haxe.ds.List.pop"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Core operations for the map/list shapes exercised by the contract.",
+          "evidence_ids": [
+            "semantic:collections"
+          ],
+          "exclusions": [
+            "Blanket admission of every haxe.ds member"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "date-members",
+          "symbols": [
+            "Date.fromString",
+            "Date.getFullYear",
+            "Date.getMonth",
+            "Date.getDate",
+            "Date.getHours"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Only operations exercised by option_date_path and linked direct contracts.",
+          "evidence_ids": [
+            "semantic:date-option-path"
+          ],
+          "exclusions": [
+            "Unlisted timezone, locale, and filesystem normalization behavior"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "option-pattern-matching",
+          "symbols": [
+            "haxe.ds.Option Some/None pattern matching"
+          ],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Some and None construction plus exhaustive switch matching exercised by option_date_path.",
+          "evidence_ids": [
+            "semantic:date-option-path"
+          ],
+          "exclusions": [
+            "Unlisted enum reflection or Dynamic carrier behavior"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "path-members",
+          "symbols": [
+            "haxe.io.Path.join",
+            "haxe.io.Path.dir",
+            "haxe.io.Path.file",
+            "haxe.io.Path.ext"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Path joining and parsed dir/file/ext fields exercised by option_date_path.",
+          "evidence_ids": [
+            "semantic:date-option-path"
+          ],
+          "exclusions": [
+            "Unlisted platform-specific path normalization behavior"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "path-construction",
+          "symbols": [
+            "new haxe.io.Path"
+          ],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Construction from the literal POSIX path shape exercised by option_date_path.",
+          "evidence_ids": [
+            "semantic:date-option-path"
+          ],
+          "exclusions": [
+            "Unlisted platform-specific path normalization behavior"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-reflection",
+      "kind": "portable",
+      "scope": "Closed-world named reflection subset",
+      "operations": [
+        {
+          "id": "type-reflection",
+          "symbols": [
+            "Type.getClass",
+            "Type.getSuperClass",
+            "Type.getClassName",
+            "Type.getClassFields",
+            "Type.getInstanceFields",
+            "Type.getEnum",
+            "Type.getEnumConstructs",
+            "Type.createEmptyInstance",
+            "Type.allEnums",
+            "Type.enumConstructor",
+            "Type.typeof",
+            "Type.enumParameters",
+            "Type.getEnumName"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Closed-world public declarations and the exact Type members exercised by the extended contract.",
+          "evidence_ids": [
+            "semantic:type-reflection"
+          ],
+          "exclusions": [
+            "Open-world registration and unlisted Type members"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "reflect-fields",
+          "symbols": [
+            "Reflect.hasField",
+            "Reflect.field",
+            "Reflect.setField"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Named dynamic-field operations on covered runtime shapes.",
+          "evidence_ids": [
+            "semantic:reflect-fields"
+          ],
+          "exclusions": [
+            "Unlisted reflection and carrier representations"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-file-io",
+      "kind": "portable-system",
+      "scope": "Narrow file-content contract",
+      "operations": [
+        {
+          "id": "get-content",
+          "symbols": [
+            "sys.io.File.getContent"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Text content reads plus missing, directory, and permission failure categories on the admitted platform.",
+          "evidence_ids": [
+            "semantic:file-content",
+            "semantic:file-errors"
+          ],
+          "exclusions": [
+            "Unlisted encoding, special-file, and platform-specific behavior"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "save-content",
+          "symbols": [
+            "sys.io.File.saveContent"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Text content writes plus directory and permission failure categories on the admitted platform.",
+          "evidence_ids": [
+            "semantic:file-content",
+            "semantic:file-errors"
+          ],
+          "exclusions": [
+            "Atomic replacement, durability, locking, and unlisted encodings"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-process",
+      "kind": "portable-system",
+      "scope": "Narrow child-process lifecycle contract",
+      "operations": [
+        {
+          "id": "stdout-line",
+          "symbols": [
+            "sys.io.Process.stdout.readLine"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Line, empty-line, long-line, and EOF separation for admitted local commands.",
+          "evidence_ids": [
+            "semantic:process",
+            "semantic:process-errors"
+          ],
+          "exclusions": [
+            "Arbitrary binary streaming and hostile child protocols"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "stdin-stderr-pid",
+          "symbols": [
+            "sys.io.Process.stdin.writeString",
+            "sys.io.Process.stdin.close",
+            "sys.io.Process.stderr.readLine",
+            "sys.io.Process.getPid",
+            "sys.io.Process.close"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Named pipe write/read, positive pid, and close behavior from the error-semantics contract.",
+          "evidence_ids": [
+            "semantic:process-errors"
+          ],
+          "exclusions": [
+            "Signals, process groups, and platform-specific handles"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "exit-code",
+          "symbols": [
+            "sys.io.Process.exitCode"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Zero and nonzero exit state remains distinct from EOF and launch failure.",
+          "evidence_ids": [
+            "semantic:process",
+            "semantic:process-errors"
+          ],
+          "exclusions": [
+            "Signal-to-exit-code portability outside the admitted platform"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "detached",
+          "symbols": [
+            "new sys.io.Process(..., detached=true)"
+          ],
+          "granularity": "operation",
+          "state": "excluded",
+          "release_admitted": false,
+          "qualification": "Detached process construction intentionally throws on this target.",
+          "evidence_ids": [
+            "semantic:process-errors"
+          ],
+          "exclusions": [
+            "Detached child processes"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-filesystem",
+      "kind": "portable-system",
+      "scope": "Named filesystem operations",
+      "operations": [
+        {
+          "id": "filesystem-core",
+          "symbols": [
+            "sys.FileSystem.exists",
+            "sys.FileSystem.createDirectory",
+            "sys.FileSystem.isDirectory",
+            "sys.FileSystem.rename",
+            "sys.FileSystem.readDirectory",
+            "sys.FileSystem.deleteFile",
+            "sys.FileSystem.deleteDirectory"
+          ],
+          "granularity": "member",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Local temporary-tree behavior on the admitted platform.",
+          "evidence_ids": [
+            "semantic:filesystem"
+          ],
+          "exclusions": [
+            "Symlink races, network filesystems, permissions beyond named cases, and watcher APIs"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-concurrency",
+      "kind": "portable-system",
+      "scope": "Threading and synchronization surfaces pending lifecycle audit",
+      "operations": [
+        {
+          "id": "primitives",
+          "symbols": [
+            "sys.thread.Lock",
+            "sys.thread.Mutex",
+            "sys.thread.Condition",
+            "sys.thread.Semaphore",
+            "sys.thread.Deque",
+            "sys.thread.Tls"
+          ],
+          "granularity": "surface",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Deterministic primitive tests exist, but race, visibility, generation, and wakeup closure remains open.",
+          "evidence_ids": [
+            "semantic:thread-primitives",
+            "bead:concurrency-audit"
+          ],
+          "exclusions": [
+            "Release-level happens-before and race guarantees"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.2"
+          ]
+        },
+        {
+          "id": "threads-event-loops-pools",
+          "symbols": [
+            "sys.thread.Thread",
+            "sys.thread.EventLoop",
+            "sys.thread.FixedThreadPool",
+            "sys.thread.ElasticThreadPool"
+          ],
+          "granularity": "surface",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Schedule/run/shutdown and lifecycle smokes exist; stress, leak, missed-wakeup, and identity evidence remains open.",
+          "evidence_ids": [
+            "semantic:thread-runtime",
+            "bead:concurrency-audit"
+          ],
+          "exclusions": [
+            "Broad production concurrency support"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "portable-networking",
+      "kind": "portable-system",
+      "scope": "HTTP, TCP, UDP, TLS, timeout, and cleanup surfaces pending network audit",
+      "operations": [
+        {
+          "id": "http-callbacks",
+          "symbols": [
+            "haxe.Http request callbacks",
+            "sys.Http request callbacks"
+          ],
+          "granularity": "operation",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Loopback semantic contracts exist; cancellation, timeout, cleanup, proxy, and hostile-peer closure remains open.",
+          "evidence_ids": [
+            "semantic:http",
+            "bead:network-audit"
+          ],
+          "exclusions": [
+            "Broad production HTTP client support"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.4"
+          ]
+        },
+        {
+          "id": "socket-stack",
+          "symbols": [
+            "sys.net.Socket",
+            "sys.net.UdpSocket",
+            "sys.net.Host",
+            "sys.ssl.Socket"
+          ],
+          "granularity": "surface",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Loopback and target-sensitive smokes exist; cross-platform timeout, cancellation, TLS, and cleanup evidence remains open.",
+          "evidence_ids": [
+            "semantic:socket",
+            "bead:network-audit"
+          ],
+          "exclusions": [
+            "Broad production network and TLS support"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.4"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "go-native",
+      "kind": "go-native",
+      "scope": "Typed target-native authoring surfaces",
+      "operations": [
+        {
+          "id": "collections-results",
+          "symbols": [
+            "go.Slice<T>",
+            "go.Map<K,V>",
+            "go.Result<T>"
+          ],
+          "granularity": "surface",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Typed snapshots and runtime smokes exist, but the governed native capability matrix is not complete.",
+          "evidence_ids": [
+            "snapshot:native-collections",
+            "bead:native-matrix"
+          ],
+          "exclusions": [
+            "Stable or complete Go-native collection/error API admission"
+          ],
+          "blockers": [
+            "haxe_go-vfp.9.1"
+          ]
+        },
+        {
+          "id": "goroutines-channels-select",
+          "symbols": [
+            "go.Go",
+            "go.Chan<T>",
+            "go.Select"
+          ],
+          "granularity": "surface",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Go-specific behavior is tested, but true native select and the public native capability contract remain open.",
+          "evidence_ids": [
+            "snapshot:native-concurrency",
+            "bead:native-matrix"
+          ],
+          "exclusions": [
+            "Stable Go concurrency authoring contract"
+          ],
+          "blockers": [
+            "haxe_go-vfp.9.1"
+          ]
+        },
+        {
+          "id": "extern-metadata",
+          "symbols": [
+            "@:go.import",
+            "@:go.name",
+            "@:go.receiver",
+            "@:go.valueError"
+          ],
+          "granularity": "surface",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "The named typed extern forms work for covered fixtures; broad callbacks, generics, unsafe shapes, and public API stability remain open.",
+          "evidence_ids": [
+            "snapshot:native-extern",
+            "bead:native-matrix"
+          ],
+          "exclusions": [
+            "Stable admission of the full extern grammar"
+          ],
+          "blockers": [
+            "haxe_go-vfp.9.1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "compiler-input-trust",
+      "kind": "trust",
+      "scope": "Compiler and generator trust boundary",
+      "operations": [
+        {
+          "id": "trusted-source",
+          "symbols": [
+            "Compiler use with trusted Haxe source and locked dependencies"
+          ],
+          "granularity": "operation",
+          "state": "compile-go-test-run-supported",
+          "release_admitted": true,
+          "qualification": "The admitted beta assumes reviewed source and repository-controlled or otherwise trusted dependencies.",
+          "evidence_ids": [
+            "npm:test-ci",
+            "workflow:release"
+          ],
+          "exclusions": [
+            "Treating the compiler as a sandbox"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "untrusted-source",
+          "symbols": [
+            "Compiler use as a sandbox for untrusted Haxe source"
+          ],
+          "granularity": "operation",
+          "state": "excluded",
+          "release_admitted": false,
+          "qualification": "Generated-output confinement and path-escape rejection are not yet sufficient for an untrusted-code claim.",
+          "evidence_ids": [
+            "bead:output-confinement",
+            "policy:known-gaps"
+          ],
+          "exclusions": [
+            "Untrusted or adversarial source compilation"
+          ],
+          "blockers": [
+            "haxe_go-vfp.8.10"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "distribution",
+      "kind": "distribution",
+      "scope": "Package and hosted release evidence",
+      "operations": [
+        {
+          "id": "local-package-install",
+          "symbols": [
+            "Deterministic local Haxelib package and isolated install"
+          ],
+          "granularity": "operation",
+          "state": "compile-go-test-run-supported",
+          "release_admitted": false,
+          "qualification": "Local deterministic construction and isolated install are gated, but hosted same-SHA assets are a separate release prerequisite.",
+          "evidence_ids": [
+            "npm:test-haxelib-release-install",
+            "bead:release-assets"
+          ],
+          "exclusions": [
+            "Published artifact availability and immutability"
+          ],
+          "blockers": [
+            "haxe_go-vfp.4.8"
+          ]
+        },
+        {
+          "id": "hosted-assets",
+          "symbols": [
+            "Published checksummed same-SHA Haxelib release assets"
+          ],
+          "granularity": "operation",
+          "state": "excluded",
+          "release_admitted": false,
+          "qualification": "The current beta-baseline publication gate is not complete.",
+          "evidence_ids": [
+            "bead:release-assets",
+            "workflow:release"
+          ],
+          "exclusions": [
+            "Claiming a validated published beta artifact before its release Beads close"
+          ],
+          "blockers": [
+            "haxe_go-vfp.4.8"
+          ]
+        }
+      ]
+    }
+  ],
+  "trust_assumptions": [
+    {
+      "id": "trusted-source",
+      "statement": "Application Haxe source, build metadata, extern metadata, and dependency source are reviewed or otherwise trusted.",
+      "release_required": true
+    },
+    {
+      "id": "locked-tooling",
+      "statement": "Repository tooling is installed from the committed npm lock and vendored Reflaxe provenance passes its offline verification.",
+      "release_required": true
+    },
+    {
+      "id": "local-system-boundaries",
+      "statement": "Admitted file and process operations run on the canonical platform against application-controlled paths and child commands.",
+      "release_required": true
+    },
+    {
+      "id": "no-network-admission",
+      "statement": "Network, HTTP, TLS, cancellation, and hostile-peer behavior are not part of the admitted beta operation surface.",
+      "release_required": true
+    }
+  ],
+  "known_blockers": [
+    {
+      "id": "haxe_go-vfp.10.2",
+      "scope": "Concurrency race, visibility, wakeup, pool, cancellation, and goroutine-identity closure",
+      "release_blocker_for": "portable-concurrency"
+    },
+    {
+      "id": "haxe_go-vfp.10.4",
+      "scope": "Network, HTTP, socket, timeout, cancellation, and cleanup closure",
+      "release_blocker_for": "portable-networking"
+    },
+    {
+      "id": "haxe_go-vfp.9.1",
+      "scope": "Governed Go-native capability matrix",
+      "release_blocker_for": "go-native"
+    },
+    {
+      "id": "haxe_go-vfp.8.10",
+      "scope": "Generated-output confinement and path-escape rejection",
+      "release_blocker_for": "untrusted-source builds"
+    },
+    {
+      "id": "haxe_go-vfp.4.8",
+      "scope": "Checksummed same-SHA hosted release assets and provenance",
+      "release_blocker_for": "published beta-baseline artifact"
+    },
+    {
+      "id": "haxe_go-vfp.6.3",
+      "scope": "Generated public API manifest",
+      "release_blocker_for": "public API admission"
+    },
+    {
+      "id": "haxe_go-vfp.6.4",
+      "scope": "Pre-1.0 SemVer, deprecation, and stable-1.x admission policy",
+      "release_blocker_for": "compatibility policy closure"
+    },
+    {
+      "id": "haxe_go-vfp.12.7",
+      "scope": "Separate stable-1.x admission decision",
+      "release_blocker_for": "any stable 1.x claim"
+    }
+  ]
+}

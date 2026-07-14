@@ -4,6 +4,10 @@ Effective date: 2026-07-14
 
 Machine-readable source: [toolchain-policy.json](toolchain-policy.json)
 
+The generated [compatibility support manifest](compatibility-support-manifest.json)
+embeds this policy verbatim and combines it with the admitted platform and
+operation/member scope. Toolchain support alone does not admit a workload.
+
 ## What It Is
 
 This policy separates three things that are easy to conflate:

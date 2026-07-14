@@ -4,6 +4,11 @@
 They are not separate compiler engines, and `metal` is not a second semantic
 product.
 
+Accepted compatibility input does not imply release admission. See the
+[generated compatibility matrix](compatibility-support-matrix.md): the current
+pre-1.0 beta scope admits the named portable surface and records `metal` as
+`compatibility-only`.
+
 Read the full normative contract in [Native policy presets and semantic
 boundaries](native-policy-presets.md).
 

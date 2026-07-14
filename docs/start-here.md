@@ -103,8 +103,8 @@ Use:
 ```
 
 - `portable`: default policy bundle for portable Haxe source.
-- `metal`: supported compatibility bundle for explicit native authority, eager
-  specialization, strict raw boundaries, and fail-fast fallback.
+- `metal`: supported compatibility bundle for the `explicit` native-authority
+  policy, eager specialization, strict raw boundaries, and fail-fast fallback.
 
 `metal` is not required for good Go output. Start in `portable`; the compiler
 should still emit Go-shaped fast paths whenever it can prove they preserve Haxe
@@ -112,6 +112,22 @@ semantics. Use typed `go.*`/extern APIs or `@:goNative` when source itself is
 Go-specific.
 
 Detailed contract: [Native policy presets and semantic boundaries](native-policy-presets.md)
+
+## Current release scope
+
+Haxe.Go's current claim is a pre-1.0 beta for the exact portable workload,
+toolchain, platform, operation/member, and trust boundaries listed in the
+[generated compatibility matrix](compatibility-support-matrix.md). The
+[machine manifest](compatibility-support-manifest.json) is authoritative, and
+the [generated release status](compatibility-release-status.md) supplies the
+wording used in release notes. Module-level evidence and the `metal`
+compatibility preset do not widen that admission.
+
+Verify the generated artifacts before release work:
+
+```bash
+npm run compatibility:verify
+```
 
 ## Strict policy knobs
 
@@ -159,6 +175,7 @@ npm run security:go-tooling
 npm run security:supply-chain
 npm run release:policy
 npm run release:license-policy
+npm run compatibility:verify
 npm run release:status
 ```
 
@@ -179,6 +196,9 @@ Supply-chain policy: [docs/supply-chain-policy.md](supply-chain-policy.md)
 - Profile semantics guide: [docs/profile-semantics-guide.md](profile-semantics-guide.md)
 - Examples matrix: [docs/examples-matrix.md](examples-matrix.md)
 - Semantic diff guide: [docs/semantic-diff-guide.md](semantic-diff-guide.md)
+- Compatibility and support matrix: [docs/compatibility-support-matrix.md](compatibility-support-matrix.md)
+- Machine compatibility manifest: [docs/compatibility-support-manifest.json](compatibility-support-manifest.json)
+- Generated compatibility release status: [docs/compatibility-release-status.md](compatibility-release-status.md)
 - `hxrt` runtime: [docs/hxrt-runtime.md](hxrt-runtime.md)
 - Go tooling release gates: [docs/go-tooling-gates.md](go-tooling-gates.md)
 - Supply-chain policy: [docs/supply-chain-policy.md](supply-chain-policy.md)

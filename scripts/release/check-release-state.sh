@@ -59,6 +59,17 @@ require_command git
 require_command node
 require_command python3
 
+require_file "docs/compatibility-support-source.json"
+require_file "docs/compatibility-support-manifest.json"
+require_file "docs/compatibility-support-matrix.md"
+require_file "docs/compatibility-release-status.md"
+python3 scripts/compatibility/generate_support_manifest.py --check
+COMPATIBILITY_RELEASE_CLAIM="$(node -p "require('./docs/compatibility-support-manifest.json').release_claim.statement")"
+COMPATIBILITY_PRESET="$(node -p "require('./docs/compatibility-support-manifest.json').release_claim.admitted_preset")"
+COMPATIBILITY_PLATFORM="$(node -p "require('./docs/compatibility-support-manifest.json').release_claim.admitted_platform")"
+log "compatibility support manifest: preset=${COMPATIBILITY_PRESET}, platform=${COMPATIBILITY_PLATFORM}"
+log "compatibility release claim: ${COMPATIBILITY_RELEASE_CLAIM}"
+
 python3 scripts/security/verify-supply-chain.py
 log "supply-chain provenance: OK"
 

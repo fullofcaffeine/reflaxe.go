@@ -11,6 +11,11 @@ The selector is retained for compatibility. It chooses defaults for independent
 policies; it does not choose a second compiler backend or a second semantic
 product.
 
+Compatibility support is narrower than release admission. The current
+[compatibility matrix](compatibility-support-matrix.md) retains `metal` as a
+`compatibility-only` input and admits only its named portable operation/member
+surface for the pre-1.0 beta claim.
+
 The canonical detailed contract is [Native policy presets and semantic
 boundaries](native-policy-presets.md).
 

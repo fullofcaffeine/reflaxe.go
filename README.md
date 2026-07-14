@@ -18,9 +18,9 @@ Write Haxe, generate readable Go, and keep semantics visible in source:
 - `portable|metal` remains a compatible build selector, with `metal` defined as
   a convenience policy preset rather than a second semantic product.
 
-`metal` is not required for good Go output. It currently bundles explicit
-native authority, eager specialization, fail-fast fallback, and strict raw
-boundaries. Each policy can also be selected independently.
+`metal` is not required for good Go output. It currently bundles the `explicit`
+native-authority policy, eager specialization, fail-fast fallback, and strict
+raw boundaries. Each policy can also be selected independently.
 
 ## Start here
 
@@ -67,8 +67,18 @@ python3 test/run-ci.py
 
 ## Current status and caveats
 
-The project is intended to be usable with documented production caveats. Before
-using it as a release dependency, read:
+Haxe.Go is a pre-1.0 beta for pinned, application-qualified portable workloads on the admitted toolchain, platform, and operation/member surface.
+
+That sentence is deliberately narrower than "all green modules are supported."
+The authoritative [machine manifest](docs/compatibility-support-manifest.json),
+its [human support matrix](docs/compatibility-support-matrix.md), and the
+[generated release status](docs/compatibility-release-status.md) name the exact
+admitted scope. Anything unlisted is excluded; `metal`, Go-native APIs,
+concurrency, networking, non-canonical platforms, and untrusted-source builds
+remain outside the current release claim even when implementation evidence
+exists.
+
+Before using the compiler as a release dependency, also read:
 
 - [docs/toolchain-policy.md](docs/toolchain-policy.md) for supported Haxe, Go,
   and Node versions and the distinction between the generated Go language floor
@@ -87,7 +97,7 @@ the preset, define where semantics become Go-native.
 | If most of this build wants... | Choose |
 | --- | --- |
 | Normal Haxe authoring, cross-target-friendly code, and safe Go output | `portable` |
-| Compatibility bundle for explicit authority, eager specialization, strict raw boundaries, and fail-fast fallback | `metal` |
+| Compatibility bundle for the `explicit` authority policy, eager specialization, strict raw boundaries, and fail-fast fallback | `metal` |
 
 ### Can I mix portable and Go-native code?
 
@@ -173,7 +183,10 @@ only for explicit codegen-only workflows that own their Go build/test stage.
 - Portable contract: [docs/portable-canonical-contract.md](docs/portable-canonical-contract.md)
 - Versioned semantics: [docs/portable-semantics-v1.md](docs/portable-semantics-v1.md)
 - `hxrt` runtime: [docs/hxrt-runtime.md](docs/hxrt-runtime.md)
-- Feature support matrix: [docs/feature-support-matrix.md](docs/feature-support-matrix.md)
+- Admitted compatibility scope: [docs/compatibility-support-matrix.md](docs/compatibility-support-matrix.md)
+- Machine-readable compatibility authority: [docs/compatibility-support-manifest.json](docs/compatibility-support-manifest.json)
+- Generated release compatibility status: [docs/compatibility-release-status.md](docs/compatibility-release-status.md)
+- Implementation evidence inventory: [docs/feature-support-matrix.md](docs/feature-support-matrix.md)
 - Supported toolchains: [docs/toolchain-policy.md](docs/toolchain-policy.md)
 - Defines reference: [docs/defines-reference.md](docs/defines-reference.md)
 - Semantic diff guide: [docs/semantic-diff-guide.md](docs/semantic-diff-guide.md)

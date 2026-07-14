@@ -22,9 +22,11 @@ Reference: [Profiles](profiles.md)
 
 The supported `metal_compatibility` bundle: explicit native authority, eager
 specialization, fail-fast fallback, and strict raw-boundary defaults. It is not
-a second semantic product and is not required for good Go output.
+a second semantic product and is not required for good Go output. "Supported"
+here means the selector remains accepted for compatibility; the current
+release manifest classifies it as `compatibility-only`, not release-admitted.
 
-Reference: [Profiles](profiles.md)
+References: [Profiles](profiles.md), [Compatibility matrix](compatibility-support-matrix.md)
 
 ## Native boundary
 
