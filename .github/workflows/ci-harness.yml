@@ -96,6 +96,14 @@ jobs:
           path: .cache/generated-output-telemetry
           if-no-files-found: warn
 
+      - name: Upload compiler debt report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: compiler-debt-report
+          path: .cache/compiler-debt
+          if-no-files-found: warn
+
       - name: Check release visibility state
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

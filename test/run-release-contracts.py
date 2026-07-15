@@ -21,6 +21,7 @@ def main() -> int:
         ["python3", "test/test_canonical_std_closeout_contract.py"],
         ["python3", "test/test_ci_haxe_setup_action.py"],
         ["python3", "test/test_compatibility_support_manifest.py"],
+        ["python3", "test/test_compiler_debt_ratchet.py"],
         ["python3", "test/test_dependency_audit_gate_semantics.py"],
         ["python3", "test/test_examples_qa_contract.py"],
         ["python3", "test/test_generated_output_telemetry.py"],

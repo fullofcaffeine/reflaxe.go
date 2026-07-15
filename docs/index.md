@@ -48,6 +48,7 @@ This page helps you find the right docs quickly.
 - [Generated-output confinement](generated-output-confinement.md)
 - [Vendored Reflaxe provenance](vendor-reflaxe-provenance.md)
 - [Performance budget policy](performance-budget-policy.md)
+- [Compiler debt baseline and ratchet](compiler-debt-ratchet.md)
 - [Perf warning triage](perf-warning-triage.md)
 - [Release visibility](release-visibility.md)
 

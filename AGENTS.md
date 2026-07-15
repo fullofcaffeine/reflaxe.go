@@ -92,6 +92,7 @@ Agent policy:
 - Documentation threshold rule: do not reserve HaxeDoc only for obviously "big" constructs or artifacts. If a type/function/abstract/macro/extern override/metadata pattern is even slightly non-obvious, surprising, or easy to misuse, document it with `Why / What / How` HaxeDoc where it is declared.
 - Bias toward documenting earlier rather than later, especially for abstracts, compiler helpers, runtime bindings, lowering hooks, and `std/` compatibility shims.
 - For each staged std/runtime compatibility override you add, include `What / Why / How` HaxeDoc at the declaration and make the `Why` explicit about why the mainstream Haxe stdlib implementation could not be used unchanged on `haxe.go`.
+- Run `npm run test:compiler-debt` when compiler, staged std, `hxrt`, or committed generated examples change. Do not raise a ceiling without reviewing and updating its owner plus Why / What / How rationale; when a count falls, regenerate the baseline so the reduction becomes permanent.
 - Never emit absolute machine-local paths in generated output or snapshots.
 - When fixing a bug, always add or update a regression test in `test/snapshot`.
 

@@ -524,6 +524,43 @@ scripts/ci/stdlib-provenance-ledger-check.js
 test/test_stdlib_migration_ledger_contract.py
 ```
 
+## Compiler debt baseline and ratchet
+
+What it is: a deterministic inventory of target-owned raw Go AST construction,
+Haxe `Dynamic` / `Any`, Go `reflect` / `unsafe` imports and selectors, and named compiler shim
+boundaries.
+
+Why it exists: some dynamic or reflective behavior is required by Haxe
+semantics, while raw string emission is migration debt. A single global count
+would hide ownership transfers and profile-specific generated-output growth.
+
+How it works:
+
+1. `test/run-compiler-debt-ratchet.py` scans source, runtime, and committed
+   portable/metal example output without recording absolute paths.
+2. `test/compiler_debt_policy.json` classifies every current location as
+   `required` or `avoidable`, links it to a Why / What / How exception, and
+   sets a per-file/per-context ceiling.
+3. Reductions pass. A new location or an increase fails until the underlying
+   debt is removed or the reviewed policy and baseline are intentionally
+   updated.
+4. Current reports are written to `.cache/compiler-debt/report.json` and
+   `.cache/compiler-debt/report.md`.
+
+Run the gate:
+
+```bash
+npm run test:compiler-debt
+```
+
+After an intentional, reviewed boundary change, regenerate ceilings and
+inspect the full diff:
+
+```bash
+python3 test/run-compiler-debt-ratchet.py --update-baseline
+git diff -- test/compiler_debt_policy.json
+```
+
 ## Semantic differential harness
 
 Compare runtime behavior between Haxe reference execution (`--interp`) and `reflaxe.go` generated output (`portable` profile):

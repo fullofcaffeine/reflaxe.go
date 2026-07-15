@@ -26,6 +26,7 @@ Run these checks from repo root on a clean branch before a release cut.
    - `python3 test/run-portable-parity-closure.py`
 6. Ownership and stdlib governance gates:
    - `npm run test:stdlib:governance`
+   - `npm run test:compiler-debt`
    - `npm run test:release-contracts`
 7. Family stdlib sync gates:
    - `npm run test:family-stdlib-sync`
@@ -73,6 +74,7 @@ python3 test/run-ci.py
 python3 test/run-portable-stdlib-inventory.py
 python3 test/run-portable-parity-closure.py
 npm run test:stdlib:governance
+npm run test:compiler-debt
 npm run test:release-contracts
 npm run test:family-stdlib-sync
 npm run test:family-stdlib-bootstrap
@@ -110,6 +112,9 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 - `python3 test/run-portable-stdlib-inventory.py` exits `0` and every remaining `compile-only` module carries blocker issue + target metadata.
 - `python3 test/run-portable-parity-closure.py` exits `0`, reports `0 actionable blockers`, and keeps any remaining non-semantic-diff surfaces policy-locked as target-sensitive snapshots or explicit exclusions.
 - `npm run test:stdlib:governance` exits `0` and confirms provenance/boundary discipline for staged std ownership.
+- `npm run test:compiler-debt` exits `0`; no guarded compiler, staged-std,
+  runtime, or generated-output location exceeds its reviewed ceiling, and the
+  report contains no machine-local paths.
 - `npm run test:release-contracts` exits `0` and confirms ownership mapping plus release docs still match the live inventory/tracker state.
 - `npm run test:family-stdlib-sync` and `npm run test:family-stdlib-bootstrap` exit `0`.
 - `npm run release:policy`, `npm run release:license-policy`, and
@@ -145,4 +150,5 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 - Snapshot policy: `docs/snapshot-policy.md`
 - Semantic differential guide: `docs/semantic-diff-guide.md`
 - Performance budget policy: `docs/performance-budget-policy.md`
+- Compiler debt baseline and ratchet: `docs/compiler-debt-ratchet.md`
 - Multi-package output reopen triggers: `docs/multi-package-output-evaluation.md#measurable-production-reopen-triggers`
