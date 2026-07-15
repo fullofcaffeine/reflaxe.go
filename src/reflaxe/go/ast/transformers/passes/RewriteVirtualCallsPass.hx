@@ -73,6 +73,12 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 					localLeafVars.remove(name);
 				}
 				GoStmt.GoVarDecl(name, typeName, rewrittenValue, useShort);
+			case GoStmt.GoMultiAssign(names, value, useShort):
+				var rewrittenValue = rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets);
+				for (name in names) {
+					localLeafVars.remove(name);
+				}
+				GoStmt.GoMultiAssign(names, rewrittenValue, useShort);
 			case GoStmt.GoAssign(left, right):
 				var rewrittenLeft = rewriteExpr(left, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets);
 				var rewrittenRight = rewriteExpr(right, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets);

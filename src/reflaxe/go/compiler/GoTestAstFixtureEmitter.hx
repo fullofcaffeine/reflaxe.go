@@ -72,6 +72,19 @@ class GoTestAstFixtureEmitter {
 						GoStmt.GoRangeStmt("index", null, GoExpr.GoRaw("[]int{1, 2, 3}"), true, [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("index"))])
 					])
 				];
+			case "multi_assign":
+				[
+					GoDecl.GoFuncDecl("hxrt__test_ast_multi_assign_stmt_smoke", null, [], [], [
+						GoStmt.GoVarDecl("items", "map[string]int", null, false),
+						GoStmt.GoMultiAssign(["value", "found"], GoExpr.GoIndex(GoExpr.GoIdent("items"), GoExpr.GoStringLiteral("present")), true),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("value")),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("found")),
+						GoStmt.GoVarDecl("missing", "int", null, false),
+						GoStmt.GoMultiAssign(["missing", "found"], GoExpr.GoIndex(GoExpr.GoIdent("items"), GoExpr.GoStringLiteral("missing")), false),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("missing")),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("found"))
+					])
+				];
 			case _:
 				null;
 		};

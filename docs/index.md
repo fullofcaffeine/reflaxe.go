@@ -56,6 +56,7 @@ This page helps you find the right docs quickly.
 
 - [Ownership rubric](ownership-rubric.md)
 - [`hxrt` runtime](hxrt-runtime.md)
+- [Portable root `Sys` contract](portable-sys-contract.md)
 - [Concurrency contract](concurrency-contract.md)
 - [Selective `hxrt` runtime](hxrt-selective-runtime.md)
 - [Stdlib shim rationale](stdlib-shim-rationale.md)

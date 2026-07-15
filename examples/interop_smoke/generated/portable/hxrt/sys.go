@@ -10,11 +10,14 @@ import (
 )
 
 type FileInput struct {
-	file *os.File
+	file     *os.File
+	ownsFile bool
 }
 
 type FileOutput struct {
-	file *os.File
+	file        *os.File
+	ownsFile    bool
+	syncOnFlush bool
 }
 
 func SysGetCwd() *string {
@@ -128,6 +131,102 @@ func SysSleep(seconds float64) {
 	time.Sleep(time.Duration(seconds * float64(time.Second)))
 }
 
+// SysSetTimeLocale reports that haxe.go cannot mutate the process time locale.
+//
+// What: Implements the boolean failure branch of Sys.setTimeLocale.
+// Why: Go intentionally has no process-global C locale switch, so claiming
+// success would make DateTools behavior depend on a change that never occurred.
+// How: Accept the portable API input and return false without global mutation,
+// matching the explicit fallback used by the Python and haxe.rust targets.
+func SysSetTimeLocale(_ *string) bool {
+	return false
+}
+
+// SysSetCwd changes the process working directory and preserves native errors.
+//
+// What: Implements Sys.setCwd through os.Chdir.
+// Why: Missing and inaccessible directories are recoverable Haxe failures, not
+// successful no-ops or Go panics.
+// How: Return the typed Go error so the generated adapter can throw it through
+// the Haxe exception boundary.
+func SysSetCwd(path *string) error {
+	return os.Chdir(*StdString(path))
+}
+
+// SysTime returns wall-clock epoch time in fractional seconds.
+//
+// What: Implements the precise timestamp contract of Sys.time.
+// Why: The thread runtime clock is process-relative and therefore cannot stand
+// in for the system timestamp required by the root Sys API.
+// How: Convert Unix nanoseconds to seconds at the typed runtime boundary.
+func SysTime() float64 {
+	return float64(time.Now().UnixNano()) / float64(time.Second)
+}
+
+// SysProgramPath returns the path of the executable running this program.
+//
+// What: Implements Sys.programPath for compiled Go programs.
+// Why: The upstream method describes the current program artifact; os.Args[0]
+// may be relative, PATH-resolved, or unrelated after argument mutation.
+// How: Delegate to os.Executable and retain its error for Haxe translation.
+func SysProgramPath() (*string, error) {
+	path, err := os.Executable()
+	if err != nil {
+		return nil, err
+	}
+	return StringFromLiteral(path), nil
+}
+
+// SysStdin returns a non-owning runtime view of the process standard input.
+//
+// What: Supplies the file-backed carrier used by Sys.stdin.
+// Why: Closing a Haxe standard-stream wrapper must not close os.Stdin for the
+// entire process, while ordinary sys.io.File handles must remain owning.
+// How: Capture the current os.Stdin pointer with ownsFile left false.
+func SysStdin() *FileInput {
+	return &FileInput{file: os.Stdin}
+}
+
+// SysStdout returns a non-owning, unbuffered view of standard output.
+//
+// What: Supplies the file-backed carrier used by Sys.stdout.
+// Why: Go's os.File writes are already unbuffered and Sync can fail for pipes or
+// terminals, so portable flush is a successful no-op for this process stream.
+// How: Leave ownership and syncOnFlush disabled on the wrapper.
+func SysStdout() *FileOutput {
+	return &FileOutput{file: os.Stdout}
+}
+
+// SysStderr returns a non-owning, unbuffered view of standard error.
+//
+// What: Supplies the file-backed carrier used by Sys.stderr.
+// Why: It has the same lifetime and flush constraints as standard output.
+// How: Leave ownership and syncOnFlush disabled on the wrapper.
+func SysStderr() *FileOutput {
+	return &FileOutput{file: os.Stderr}
+}
+
+// SysGetChar reads one standard-input byte and optionally echoes that byte.
+//
+// What: Implements the byte-level portable behavior used by Sys.getChar.
+// Why: Reusing the standard-stream carriers keeps EOF and write failures typed
+// instead of collapsing them into a sentinel integer.
+// How: Read exactly one byte, return EOF separately for Haxe translation, and
+// perform one explicit stdout write only when echo is true. Terminal raw-mode
+// policy remains outside this stream-level helper.
+func SysGetChar(echo bool) (int, bool, error) {
+	value, eof, err := SysStdin().ReadByte()
+	if err != nil || eof {
+		return 0, eof, err
+	}
+	if echo {
+		if err := SysStdout().WriteByte(value); err != nil {
+			return 0, false, err
+		}
+	}
+	return value, false, nil
+}
+
 // FileSaveContent stores text without collapsing write failures into success.
 func FileSaveContent(path *string, content *string) error {
 	return os.WriteFile(*StdString(path), []byte(*StdString(content)), 0o644)
@@ -147,7 +246,7 @@ func OpenFileInput(path *string) (*FileInput, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &FileInput{file: file}, nil
+	return &FileInput{file: file, ownsFile: true}, nil
 }
 
 func openFileOutput(path *string, flags int) (*FileOutput, error) {
@@ -155,7 +254,7 @@ func openFileOutput(path *string, flags int) (*FileOutput, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &FileOutput{file: file}, nil
+	return &FileOutput{file: file, ownsFile: true, syncOnFlush: true}, nil
 }
 
 func OpenFileWriteOutput(path *string) (*FileOutput, error) {
@@ -239,6 +338,10 @@ func (self *FileInput) Close() error {
 	if self == nil || self.file == nil {
 		return nil
 	}
+	if !self.ownsFile {
+		self.file = nil
+		return nil
+	}
 	err := self.file.Close()
 	self.file = nil
 	return err
@@ -272,11 +375,18 @@ func (self *FileOutput) Flush() error {
 	if self == nil || self.file == nil {
 		return nil
 	}
+	if !self.syncOnFlush {
+		return nil
+	}
 	return self.file.Sync()
 }
 
 func (self *FileOutput) Close() error {
 	if self == nil || self.file == nil {
+		return nil
+	}
+	if !self.ownsFile {
+		self.file = nil
 		return nil
 	}
 	err := self.file.Close()

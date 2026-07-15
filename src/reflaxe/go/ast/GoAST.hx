@@ -58,6 +58,19 @@ enum GoDecl {
 
 enum GoStmt {
 	GoVarDecl(name:String, typeName:Null<String>, value:Null<GoExpr>, useShort:Bool);
+
+	/**
+		What: Assign one multi-result Go expression to two or more named targets.
+		Why: Typed runtime boundaries commonly return `(value, error)` or
+		`(value, eof, error)`; representing that syntax as `GoRaw` hides expressions
+		from import analysis and transform passes.
+		How: `useShort` selects `:=` when every name is new in the current scope or
+		`=` when every name already exists. The printer emits the comma-separated
+		names before the typed value expression; mixed new/existing short declarations
+		are intentionally outside this node's contract.
+	**/
+	GoMultiAssign(names:Array<String>, value:GoExpr, useShort:Bool);
+
 	GoAssign(left:GoExpr, right:GoExpr);
 	GoExprStmt(expr:GoExpr);
 	GoGoStmt(call:GoExpr);

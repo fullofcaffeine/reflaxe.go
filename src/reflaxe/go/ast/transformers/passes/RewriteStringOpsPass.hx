@@ -45,6 +45,8 @@ class RewriteStringOpsPass implements IGoASTPass {
 		return switch (stmt) {
 			case GoStmt.GoVarDecl(name, typeName, value, useShort):
 				GoStmt.GoVarDecl(name, typeName, value == null ? null : rewriteExpr(value), useShort);
+			case GoStmt.GoMultiAssign(names, value, useShort):
+				GoStmt.GoMultiAssign(names, rewriteExpr(value), useShort);
 			case GoStmt.GoAssign(left, right):
 				GoStmt.GoAssign(rewriteExpr(left), rewriteExpr(right));
 			case GoStmt.GoExprStmt(expr):

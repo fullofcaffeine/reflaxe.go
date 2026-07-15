@@ -169,6 +169,13 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 					collectExprReads(value);
 				}
 				declareBinding(name);
+			case GoStmt.GoMultiAssign(names, value, useShort):
+				collectExprReads(value);
+				if (useShort) {
+					for (name in names) {
+						declareBinding(name);
+					}
+				}
 			case GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(_)):
 				// Ignore blank-identifier guards while counting real reads.
 			case GoStmt.GoAssign(left, right):
@@ -418,6 +425,14 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				var rewrittenValue = value == null ? null : rewriteExpr(value);
 				declareBinding(name);
 				GoStmt.GoVarDecl(name, typeName, rewrittenValue, useShort);
+			case GoStmt.GoMultiAssign(names, value, useShort):
+				var rewrittenValue = rewriteExpr(value);
+				if (useShort) {
+					for (name in names) {
+						declareBinding(name);
+					}
+				}
+				GoStmt.GoMultiAssign(names, rewrittenValue, useShort);
 			case GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(name)):
 				var bindingId = resolveBinding(name);
 				if (bindingId == null || unsafeBindings.exists(bindingId)) {

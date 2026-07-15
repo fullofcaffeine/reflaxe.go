@@ -1,0 +1,1 @@
+Sys.cpuTime is unsupported on haxe.go: Go's standard library does not expose portable process CPU time

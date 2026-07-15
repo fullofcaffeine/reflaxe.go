@@ -1,0 +1,9 @@
+print=ok
+locale=true
+cwd=true
+time=true
+programPath=true
+executableAlias=true
+inputFunctions=true
+stdout=ok
+stdoutAfterClose=ok

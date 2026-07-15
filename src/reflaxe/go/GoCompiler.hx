@@ -736,6 +736,7 @@ class GoCompiler {
 		return switch (stmt) {
 			case GoVarDecl(_, typeName, value, _): typeName != null && typeNameUsesImportAlias(typeName,
 					alias) || (value != null && exprUsesImportAlias(value, alias));
+			case GoMultiAssign(_, value, _): exprUsesImportAlias(value, alias);
 			case GoAssign(left, right): exprUsesImportAlias(left, alias) || exprUsesImportAlias(right, alias);
 			case GoExprStmt(expr):
 				exprUsesImportAlias(expr, alias);
@@ -5221,6 +5222,19 @@ class GoCompiler {
 		];
 	}
 
+	/**
+		What: Emit the root `Sys` and `sys.io` target adapters required by the
+		mainstream Haxe declarations.
+
+		Why: haxe.go keeps the upstream root `Sys` extern instead of duplicating the
+		whole class in staged std, while the generated Go still needs concrete,
+		typed symbols and Haxe exception/EOF translation. OS behavior does not belong
+		in compiler-owned raw statements.
+
+		How: Preserve Haxe carrier shapes here and forward clocks, paths, cwd,
+		standard streams, and process/file operations into typed `hxrt` helpers.
+		Only boundary adaptation remains in this compiler shim.
+	**/
 	function lowerSysStdlibShimDecls():Array<GoDecl> {
 		var decls = [
 			GoDecl.GoStructDecl("Sys", []),
@@ -5305,6 +5319,19 @@ class GoCompiler {
 				GoStmt.GoRaw("\treturn 0"),
 				GoStmt.GoRaw("}")
 			]),
+			// Dynamic is required by the upstream print signature. Keep it confined to
+			// this public display adapter and the matching hxrt formatting boundary.
+			GoDecl.GoFuncDecl("Sys_print", null, [{name: "value", typeName: "any"}], [], [
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "Print"), [GoExpr.GoIdent("value")]))
+			]),
+			GoDecl.GoFuncDecl("Sys_println", null, [
+				{
+					name: "value",
+					typeName: "any"
+				}
+			], [], [
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "Println"), [GoExpr.GoIdent("value")]))
+			]),
 			GoDecl.GoFuncDecl("Sys_getCwd", null, [], ["*string"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysGetCwd"), []))
 			]),
@@ -5344,6 +5371,86 @@ class GoCompiler {
 			**/
 			GoDecl.GoFuncDecl("Sys_sleep", null, [{name: "seconds", typeName: "float64"}], [], [
 				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysSleep"), [GoExpr.GoIdent("seconds")]))
+			]),
+			GoDecl.GoFuncDecl("Sys_setTimeLocale", null, [
+				{
+					name: "locale",
+					typeName: "*string"
+				}
+			], ["bool"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysSetTimeLocale"), [GoExpr.GoIdent("locale")]))
+			]),
+			GoDecl.GoFuncDecl("Sys_setCwd", null, [
+				{
+					name: "path",
+					typeName: "*string"
+				}
+			], [], [
+				GoStmt.GoVarDecl("err", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysSetCwd"), [GoExpr.GoIdent("path")]), true),
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "Throw"), [
+						GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "StringFromLiteral"),
+							[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("err"), "Error"), [])])
+					]))
+				], null)
+			]),
+			GoDecl.GoFuncDecl("Sys_time", null, [], ["float64"], [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysTime"), []))
+			]),
+			GoDecl.GoFuncDecl("Sys_programPath", null, [], ["*string"],
+				[
+					GoStmt.GoMultiAssign(["path", "err"], GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysProgramPath"), []), true),
+					GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "Throw"),
+							[
+								GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "StringFromLiteral"),
+									[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("err"), "Error"), [])])
+							])),
+						GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
+					],
+						null),
+					GoStmt.GoReturn(GoExpr.GoIdent("path"))
+				]),
+			GoDecl.GoFuncDecl("Sys_executablePath", null, [], ["*string"], [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("Sys_programPath"), []))]),
+			GoDecl.GoFuncDecl("Sys_getChar", null, [
+				{
+					name: "echo",
+					typeName: "bool"
+				}
+			], ["int"], [
+				GoStmt.GoMultiAssign(["value", "eof", "err"],
+					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysGetChar"), [GoExpr.GoIdent("echo")]), true),
+				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "Throw"), [
+						GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "StringFromLiteral"),
+							[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("err"), "Error"), [])])
+					])),
+					GoStmt.GoReturn(GoExpr.GoIntLiteral(0))
+				], null),
+				GoStmt.GoIf(GoExpr.GoIdent("eof"), [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "Throw"),
+						[GoExpr.GoCall(GoExpr.GoIdent("New_haxe__io__Eof"), [])])),
+					GoStmt.GoReturn(GoExpr.GoIntLiteral(0))
+				], null),
+				GoStmt.GoReturn(GoExpr.GoIdent("value"))
+			]),
+			GoDecl.GoFuncDecl("Sys_stdin", null, [], ["haxe__io__Input"], [
+				GoStmt.GoVarDecl("self", null, GoExpr.GoCall(GoExpr.GoIdent("New_sys__io__FileInput"), []), true),
+				GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent("sys__io__fileInputHandles"), GoExpr.GoIdent("self")),
+					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysStdin"), [])),
+				GoStmt.GoReturn(GoExpr.GoIdent("self"))
+			]),
+			GoDecl.GoFuncDecl("Sys_stdout", null, [], ["haxe__io__Output"], [
+				GoStmt.GoVarDecl("self", null, GoExpr.GoCall(GoExpr.GoIdent("New_sys__io__FileOutput"), []), true),
+				GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent("sys__io__fileOutputHandles"), GoExpr.GoIdent("self")),
+					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysStdout"), [])),
+				GoStmt.GoReturn(GoExpr.GoIdent("self"))
+			]),
+			GoDecl.GoFuncDecl("Sys_stderr", null, [], ["haxe__io__Output"], [
+				GoStmt.GoVarDecl("self", null, GoExpr.GoCall(GoExpr.GoIdent("New_sys__io__FileOutput"), []), true),
+				GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent("sys__io__fileOutputHandles"), GoExpr.GoIdent("self")),
+					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysStderr"), [])),
+				GoStmt.GoReturn(GoExpr.GoIdent("self"))
 			]),
 			GoDecl.GoFuncDecl("sys__io__File_saveContent", null, [
 				{
@@ -11015,7 +11122,7 @@ class GoCompiler {
 			case FStatic(classRef, field):
 				var resolved = field.get();
 				var classType = classRef.get();
-				noteStaticStdlibFieldUsage(classType, resolved.name);
+				noteStaticStdlibFieldUsage(classType, resolved.name, resolved.pos);
 				if (classType.isExtern) {
 					var externPackage = externClassPackageName(classType);
 					if (externPackage != null) {
@@ -11396,6 +11503,14 @@ class GoCompiler {
 			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.Println"), [arg]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Sys", [], "print")) {
+			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.Print"), [arg]),
 				isStringLike: false
 			};
 		}
@@ -14553,7 +14668,12 @@ class GoCompiler {
 		}
 	}
 
-	function noteStaticStdlibFieldUsage(classType:ClassType, fieldName:String):Void {
+	function noteStaticStdlibFieldUsage(classType:ClassType, fieldName:String, pos:Position):Void {
+		if (classType.pack.length == 0 && classType.name == "Sys" && fieldName == "cpuTime") {
+			Context.error("Sys.cpuTime is unsupported on haxe.go: Go's standard library does not expose portable process CPU time. "
+				+ "Use an explicit Go-native module/API boundary for platform-specific process accounting.",
+				pos);
+		}
 		if (classType.pack.length == 0 && classType.name == "Sys" && (fieldName == "command" || fieldName == "exit")) {
 			requiresSysCommandSurface = true;
 		}

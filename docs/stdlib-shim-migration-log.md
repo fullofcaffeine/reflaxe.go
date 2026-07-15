@@ -146,6 +146,49 @@ Validation evidence:
 - `npm run test:stdlib-sweep:go-test` (`55/55` modules)
 - `npm run test:examples` (`12/12` lanes)
 
+### 2026-07-14: complete portable root `Sys` surface (`haxe_go-vfp.8.7.2`)
+
+Implementation:
+
+- Added typed generated adapters for first-class and direct `Sys.print`,
+  `setTimeLocale`, `setCwd`, `time`, `programPath`, deprecated
+  `executablePath`, `getChar`, `stdin`, `stdout`, and `stderr` usage.
+- Added runtime-owned wall-clock, cwd, executable-path, byte-input, and
+  standard-stream helpers. Standard streams are non-owning and avoid invalid
+  `Sync` calls; ordinary file handles remain owning and sync on flush.
+- Added an explicit Haxe compile-time error for `Sys.cpuTime`. Go's standard
+  library has no portable process CPU clock, and wall-clock substitution would
+  falsify the public contract.
+- Kept `lowerSysStdlibShimDecls` adapter-only. Its raw statements translate
+  typed error/EOF status and attach existing Haxe IO carriers; they do not own
+  OS behavior. A typed `GoMultiAssign` AST statement now represents hxrt's
+  `(value, error)` / `(value, eof, error)` results, so this work adds no
+  compiler `GoRaw` debt.
+
+Sibling and review decision:
+
+- `haxe.rust` confirms the semantic split: typed runtime helpers own OS
+  behavior, `setTimeLocale` reports false, standard streams are explicit, and
+  CPU time is rejected rather than faked. Go retains generated adapters instead
+  of copying Rust's whole staged root class because Go's file/process carriers
+  already share that generated boundary.
+- The local `haxe.elixir` tree has no production root `Sys` override, and the
+  `haxe.ruby` placeholder is not parity evidence.
+- This bounded `thinking:high` choice had one honest design after local tracing,
+  so no Oracle escalation was needed. Global `metal` selector deprecation
+  remains the independent `thinking:xhigh` decision in `haxe_go-vfp.6.6`.
+
+Validation evidence:
+
+- `GO111MODULE=off go test ./runtime/hxrt`
+- `python3 test/run-snapshots.py --case sys/root_sys_portable --case negative/sys_cpu_time_unsupported`
+- `python3 test/run-snapshots.py --case core/ast_multi_assign_stmt_printer`
+- `python3 test/run-semantic-diff.py --case root_sys_portable_contract`
+- `npm test` (`254/254` snapshots; compiler debt unchanged)
+- `npm run test:semantic-diff` (`131/131` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` modules)
+- `npm run test:examples` (`12/12` lanes)
+
 ### 2026-02-19: `stdlib_symbols` bytes-conversion optimization (`haxe.go-7zy.12`)
 
 Implementation:

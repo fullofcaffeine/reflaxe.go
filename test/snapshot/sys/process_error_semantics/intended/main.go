@@ -1077,6 +1077,14 @@ func sys__io__fileSeekWhence(pos *sys__io__FileSeek) int {
 	}
 }
 
+func Sys_print(value any) {
+	hxrt.Print(value)
+}
+
+func Sys_println(value any) {
+	hxrt.Println(value)
+}
+
 func Sys_getCwd() *string {
 	return hxrt.SysGetCwd()
 }
@@ -1099,6 +1107,65 @@ func Sys_systemName() *string {
 
 func Sys_sleep(seconds float64) {
 	hxrt.SysSleep(seconds)
+}
+
+func Sys_setTimeLocale(locale *string) bool {
+	return hxrt.SysSetTimeLocale(locale)
+}
+
+func Sys_setCwd(path *string) {
+	err := hxrt.SysSetCwd(path)
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+	}
+}
+
+func Sys_time() float64 {
+	return hxrt.SysTime()
+}
+
+func Sys_programPath() *string {
+	path, err := hxrt.SysProgramPath()
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		return hxrt.StringFromLiteral("")
+	}
+	return path
+}
+
+func Sys_executablePath() *string {
+	return Sys_programPath()
+}
+
+func Sys_getChar(echo bool) int {
+	value, eof, err := hxrt.SysGetChar(echo)
+	if err != nil {
+		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
+		return 0
+	}
+	if eof {
+		hxrt.Throw(New_haxe__io__Eof())
+		return 0
+	}
+	return value
+}
+
+func Sys_stdin() haxe__io__Input {
+	self := New_sys__io__FileInput()
+	sys__io__fileInputHandles[self] = hxrt.SysStdin()
+	return self
+}
+
+func Sys_stdout() haxe__io__Output {
+	self := New_sys__io__FileOutput()
+	sys__io__fileOutputHandles[self] = hxrt.SysStdout()
+	return self
+}
+
+func Sys_stderr() haxe__io__Output {
+	self := New_sys__io__FileOutput()
+	sys__io__fileOutputHandles[self] = hxrt.SysStderr()
+	return self
 }
 
 func sys__io__File_saveContent(path *string, content *string) {

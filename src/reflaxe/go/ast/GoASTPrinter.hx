@@ -171,6 +171,8 @@ class GoASTPrinter {
 				} else {
 					"var " + name + " " + typeName + " = " + printExpr(value);
 				}
+			case GoMultiAssign(names, value, useShort):
+				names.join(", ") + (useShort ? " := " : " = ") + printExpr(value);
 			case GoAssign(left, right):
 				printExpr(left) + " = " + printExpr(right);
 			case GoExprStmt(expr): printExpr(expr);
