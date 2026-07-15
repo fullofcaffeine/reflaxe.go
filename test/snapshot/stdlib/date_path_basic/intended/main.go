@@ -27,15 +27,23 @@ type hxrt__TypeEnumValue struct {
 
 func main() {
 	d := Date_fromString(hxrt.StringFromLiteral("2024-02-03 04:05:06"))
-	hxrt.Println(d.getFullYear())
-	hxrt.Println(d.getMonth())
-	hxrt.Println(d.getDate())
-	hxrt.Println(d.getHours())
-	hxrt.Println(haxe__io__Path_join([]*string{hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("c.txt")}))
+	var v any = any(d.getFullYear())
+	hxrt.Println(v)
+	var v_1 any = any(d.getMonth())
+	hxrt.Println(v_1)
+	var v_2 any = any(d.getDate())
+	hxrt.Println(v_2)
+	var v_3 any = any(d.getHours())
+	hxrt.Println(v_3)
+	var v_4 any = any(haxe__io__Path_join([]*string{hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("c.txt")}))
+	hxrt.Println(v_4)
 	p := New_haxe__io__Path(hxrt.StringFromLiteral("/tmp/demo.txt"))
-	hxrt.Println(p.dir)
-	hxrt.Println(p.file)
-	hxrt.Println(p.ext)
+	var v_5 any = any(p.dir)
+	hxrt.Println(v_5)
+	var v_6 any = any(p.file)
+	hxrt.Println(v_6)
+	var v_7 any = any(p.ext)
+	hxrt.Println(v_7)
 }
 
 type haxe__io__Encoding struct {

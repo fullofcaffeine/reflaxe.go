@@ -35,9 +35,10 @@ func main() {
 	http := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,hello%20from%20haxe.go"))
 	sink := New_haxe__io__BytesBuffer()
 	http.customRequest(false, sink)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("custom="), sink.getBytes().toString()))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("custom="), sink.getBytes().toString()))
+	hxrt.Println(v)
 	values := http.getResponseHeaderValues(hxrt.StringFromLiteral("Content-Type"))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("headers="), func() int {
+	var v_1 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("headers="), func() int {
 		var hx_if_10 int
 		if values == nil {
 			hx_if_10 = -1
@@ -46,7 +47,8 @@ func main() {
 		}
 		return hx_if_10
 	}()))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("header0="), func() *string {
+	hxrt.Println(v_1)
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("header0="), func() *string {
 		var hx_if_11 *string
 		if (values != nil) && (len(values) > 0) {
 			hx_if_11 = values[0]
@@ -55,9 +57,11 @@ func main() {
 		}
 		return hx_if_11
 	}()))
+	hxrt.Println(v_2)
 	putSink := New_haxe__io__BytesBuffer()
 	http.customRequest(false, putSink, nil, hxrt.StringFromLiteral("PUT"))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("method="), putSink.getBytes().toString()))
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("method="), putSink.getBytes().toString()))
+	hxrt.Println(v_3)
 	upload := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,ignored"))
 	upload.setParameter(hxrt.StringFromLiteral("token"), hxrt.StringFromLiteral("42"))
 	upload.fileTransfer(hxrt.StringFromLiteral("asset"), hxrt.StringFromLiteral("demo.txt"), func(hx_value_12 any) haxe__io__Input {
@@ -69,7 +73,8 @@ func main() {
 	}(nil), 4, hxrt.StringFromLiteral("text/plain"))
 	uploadSink := New_haxe__io__BytesBuffer()
 	upload.customRequest(true, uploadSink)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("upload="), uploadSink.getBytes().toString()))
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("upload="), uploadSink.getBytes().toString()))
+	hxrt.Println(v_4)
 }
 
 type haxe__io__Encoding struct {

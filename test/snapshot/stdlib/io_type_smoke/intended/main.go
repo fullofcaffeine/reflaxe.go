@@ -5,8 +5,8 @@ import "snapshot/hxrt"
 func main() {
 	var input haxe__io__Input = nil
 	var output haxe__io__Output = nil
-	hxrt.Println(input)
-	hxrt.Println(output)
+	hxrt.Println(any(input))
+	hxrt.Println(any(output))
 }
 
 type haxe__io__Encoding struct {

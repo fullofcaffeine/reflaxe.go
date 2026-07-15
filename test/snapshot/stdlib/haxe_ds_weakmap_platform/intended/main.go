@@ -5,13 +5,15 @@ import "snapshot/hxrt"
 func main() {
 	hxrt.TryCatch(func() {
 		New_haxe__ds__WeakMap()
-		hxrt.Println(hxrt.StringFromLiteral("constructed"))
+		hxrt.Println(any(hxrt.StringFromLiteral("constructed")))
 	}, func(hx_caught_1 any) {
 		switch hx_typed_2 := hx_caught_1.(type) {
 		case *haxe__exceptions__NotImplementedException:
 			err := hx_typed_2
-			hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("not_impl="), hxrt.ExceptionMessage(err)))
-			hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed="), hxrt.StdString((err != nil))))
+			var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("not_impl="), hxrt.ExceptionMessage(err)))
+			hxrt.Println(v)
+			var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed="), hxrt.StdString((err != nil))))
+			hxrt.Println(v_1)
 		default:
 			hxrt.Throw(hx_caught_1)
 		}

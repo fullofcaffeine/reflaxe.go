@@ -8,8 +8,11 @@ func main() {
 		i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))
 		return i
 	}()
-	hxrt.Println(hxrt.StdString(now))
-	hxrt.Println(hxrt.StdString(i))
+	var v any = any(hxrt.StdString(now))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StdString(i))
+	hxrt.Println(v_1)
 	i = int(int32((hxrt.Int32Wrap(i) * hxrt.Int32Wrap(4))))
-	hxrt.Println(hxrt.StdString(i))
+	var v_2 any = any(hxrt.StdString(i))
+	hxrt.Println(v_2)
 }

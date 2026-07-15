@@ -62,7 +62,7 @@ func main() {
 		}
 		return hx_value_1.(int)
 	}(sm.get(hxrt.StringFromLiteral("a"))))
-	hxrt.Println(av)
+	hxrt.Println(any(av))
 	om := New_haxe__ds__ObjectMap()
 	box := New_Box(7)
 	om.set(box, hxrt.StringFromLiteral("box"))
@@ -73,7 +73,7 @@ func main() {
 		}
 		return hx_value_2.(*string)
 	}(om.get(box))
-	hxrt.Println(ov)
+	hxrt.Println(any(ov))
 	em := New_haxe__ds__EnumValueMap()
 	em.set(EKey_A, hxrt.StringFromLiteral("enum"))
 	ev := func(hx_value_4 any) *string {
@@ -83,30 +83,35 @@ func main() {
 		}
 		return hx_value_4.(*string)
 	}(em.get(EKey_A))
-	hxrt.Println(ev)
+	hxrt.Println(any(ev))
 	list := New_haxe__ds__List()
 	list.add(4)
 	list.add(5)
-	hxrt.Println(list.length)
-	hxrt.Println(func(hx_value_6 any) any {
+	var v any = any(list.length)
+	hxrt.Println(v)
+	var v_1 any = any(func(hx_value_6 any) any {
 		if hx_value_6 == nil {
 			return nil
 		}
 		return hx_value_6.(int)
 	}(list.first()))
-	hxrt.Println(func(hx_value_7 any) any {
+	hxrt.Println(v_1)
+	var v_2 any = any(func(hx_value_7 any) any {
 		if hx_value_7 == nil {
 			return nil
 		}
 		return hx_value_7.(int)
 	}(list.last()))
-	hxrt.Println(func(hx_value_8 any) any {
+	hxrt.Println(v_2)
+	var v_3 any = any(func(hx_value_8 any) any {
 		if hx_value_8 == nil {
 			return nil
 		}
 		return hx_value_8.(int)
 	}(list.pop()))
-	hxrt.Println(list.length)
+	hxrt.Println(v_3)
+	var v_4 any = any(list.length)
+	hxrt.Println(v_4)
 }
 
 type haxe__io__Encoding struct {

@@ -26,39 +26,53 @@ type hxrt__TypeEnumValue struct {
 }
 
 func main() {
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("startup.throws="), hxrt.StdString(throws(func() {
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("startup.throws="), hxrt.StdString(throws(func() {
 		New_sys__io__Process(hxrt.StringFromLiteral("__haxe_go_missing_process__"), []*string{})
 	}))))
+	hxrt.Println(v)
 	empty := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("printf '\\n'")})
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("empty.line="), hxrt.StdString(hxrt.StringEqualStringPtr(empty.stdout.readLine(), hxrt.StringFromLiteral("")))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("empty.eof="), hxrt.StdString(reachesEof(empty))))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("empty.code="), empty.exitCode()))
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("empty.line="), hxrt.StdString(hxrt.StringEqualStringPtr(empty.stdout.readLine(), hxrt.StringFromLiteral("")))))
+	hxrt.Println(v_1)
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("empty.eof="), hxrt.StdString(reachesEof(empty))))
+	hxrt.Println(v_2)
+	var v_3 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("empty.code="), empty.exitCode()))
+	hxrt.Println(v_3)
 	empty.close()
 	shell := New_sys__io__Process(hxrt.StringFromLiteral("printf 'shell-form\\n'"))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("shell.line="), shell.stdout.readLine()))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("shell.code="), shell.exitCode()))
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("shell.line="), shell.stdout.readLine()))
+	hxrt.Println(v_4)
+	var v_5 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("shell.code="), shell.exitCode()))
+	hxrt.Println(v_5)
 	shell.close()
 	piped := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("IFS= read -r line; printf 'out:%s\\n' \"$line\"; printf 'err:%s\\n' \"$line\" >&2; exit 7")})
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pid.positive="), hxrt.StdString((piped.getPid() > 0))))
+	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pid.positive="), hxrt.StdString((piped.getPid() > 0))))
+	hxrt.Println(v_6)
 	piped.stdin.writeString(hxrt.StringFromLiteral("hello\n"))
 	piped.stdin.close()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("stdin.stdout="), piped.stdout.readLine()))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("stderr.line="), piped.stderr.readLine()))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("exit.code="), piped.exitCode()))
+	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("stdin.stdout="), piped.stdout.readLine()))
+	hxrt.Println(v_7)
+	var v_8 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("stderr.line="), piped.stderr.readLine()))
+	hxrt.Println(v_8)
+	var v_9 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("exit.code="), piped.exitCode()))
+	hxrt.Println(v_9)
 	piped.close()
 	longOutput := New_sys__io__Process(hxrt.StringFromLiteral("python3"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("print('x' * 70000)")})
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("long.length="), hxrt.StringLengthStringPtr(longOutput.stdout.readLine())))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("long.code="), longOutput.exitCode()))
+	var v_10 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("long.length="), hxrt.StringLengthStringPtr(longOutput.stdout.readLine())))
+	hxrt.Println(v_10)
+	var v_11 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("long.code="), longOutput.exitCode()))
+	hxrt.Println(v_11)
 	longOutput.close()
 	nonblocking := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("sleep 0.2; exit 9")})
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("nonblock.running="), hxrt.StdString((nonblocking.exitCode(false) == nil))))
+	var v_12 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("nonblock.running="), hxrt.StdString((nonblocking.exitCode(false) == nil))))
+	hxrt.Println(v_12)
 	waitForChild(hxrt.StringFromLiteral("0.3"))
 	var nonblockingCode any = nonblocking.exitCode(false)
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("nonblock.code="), nonblockingCode))
+	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("nonblock.code="), nonblockingCode)))
 	nonblocking.close()
 	killed := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("sleep 5")})
 	killed.kill()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("kill.nonzero="), hxrt.StdString((killed.exitCode() != 0))))
+	var v_13 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("kill.nonzero="), hxrt.StdString((killed.exitCode() != 0))))
+	hxrt.Println(v_13)
 	killed.close()
 	marker := hxrt.StringFromLiteral("tmp_process_close_marker.txt")
 	if sys__FileSystem_exists(marker) {
@@ -67,13 +81,15 @@ func main() {
 	closing := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sleep 0.2; printf done > "), marker)})
 	closing.close()
 	waitForChild(hxrt.StringFromLiteral("0.5"))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("close.keeps.running="), hxrt.StdString(sys__FileSystem_exists(marker))))
+	var v_14 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("close.keeps.running="), hxrt.StdString(sys__FileSystem_exists(marker))))
+	hxrt.Println(v_14)
 	if sys__FileSystem_exists(marker) {
 		sys__FileSystem_deleteFile(marker)
 	}
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("detached.throws="), hxrt.StdString(throws(func() {
+	var v_15 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("detached.throws="), hxrt.StdString(throws(func() {
 		New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("exit 0")}, true)
 	}))))
+	hxrt.Println(v_15)
 }
 
 func reachesEof(process *sys__io__Process) bool {
@@ -995,9 +1011,6 @@ func (self *haxe__io__BytesOutput) getBytes() *haxe__io__Bytes {
 	return self.b.getBytes()
 }
 
-type Sys struct {
-}
-
 type sys__io__ProcessOutput struct {
 	impl              *hxrt.ProcessOutput
 	__hx_io_bigEndian bool
@@ -1013,91 +1026,6 @@ type sys__io__Process struct {
 	stdout *sys__io__ProcessOutput
 	stderr *sys__io__ProcessOutput
 	stdin  *sys__io__ProcessInput
-}
-
-func Sys_print(value any) {
-	hxrt.Print(value)
-}
-
-func Sys_println(value any) {
-	hxrt.Println(value)
-}
-
-func Sys_getCwd() *string {
-	return hxrt.SysGetCwd()
-}
-
-func Sys_args() []*string {
-	return hxrt.SysArgs()
-}
-
-func Sys_getEnv(key *string) *string {
-	return hxrt.SysGetEnv(key)
-}
-
-func Sys_putEnv(key *string, value *string) {
-	_ = hxrt.SysPutEnv(key, value)
-}
-
-func Sys_systemName() *string {
-	return hxrt.SysSystemName()
-}
-
-func Sys_sleep(seconds float64) {
-	hxrt.SysSleep(seconds)
-}
-
-func Sys_setTimeLocale(locale *string) bool {
-	return hxrt.SysSetTimeLocale(locale)
-}
-
-func Sys_setCwd(path *string) {
-	err := hxrt.SysSetCwd(path)
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-	}
-}
-
-func Sys_time() float64 {
-	return hxrt.SysTime()
-}
-
-func Sys_programPath() *string {
-	path, err := hxrt.SysProgramPath()
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return hxrt.StringFromLiteral("")
-	}
-	return path
-}
-
-func Sys_executablePath() *string {
-	return Sys_programPath()
-}
-
-func Sys_getChar(echo bool) int {
-	value, eof, err := hxrt.SysGetChar(echo)
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return 0
-	}
-	if eof {
-		hxrt.Throw(New_haxe__io__Eof())
-		return 0
-	}
-	return value
-}
-
-func Sys_stdin() haxe__io__Input {
-	return New_sys__io__FileInput(hxrt.SysStdin())
-}
-
-func Sys_stdout() haxe__io__Output {
-	return New_sys__io__FileOutput(hxrt.SysStdout())
-}
-
-func Sys_stderr() haxe__io__Output {
-	return New_sys__io__FileOutput(hxrt.SysStderr())
 }
 
 func New_sys__io__Process(command *string, optional ...any) *sys__io__Process {
@@ -2755,10 +2683,6 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return nil, false
 	case "sys.FileSystem":
 		return nil, false
-	case "sys.io.FileInput":
-		return hxrt_typeCallAny(New_sys__io__FileInput, args)
-	case "sys.io.FileOutput":
-		return hxrt_typeCallAny(New_sys__io__FileOutput, args)
 	default:
 		return nil, false
 	}
@@ -2768,10 +2692,6 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
 	case "haxe._Int64.___Int64":
 		return &haxe___Int64_____Int64{}, true
-	case "sys.io.FileInput":
-		return &sys__io__FileInput{}, true
-	case "sys.io.FileOutput":
-		return &sys__io__FileOutput{}, true
 	default:
 		return nil, false
 	}
@@ -2880,47 +2800,6 @@ func hxrt_typeCreateEnumInstance(enumName string, constructorName string, constr
 		default:
 			return nil, false
 		}
-	case "sys.io.FileSeek":
-		if useIndex {
-			switch constructorIndex {
-			case 0:
-				if len(args) != 0 {
-					return nil, false
-				}
-				return sys__io__FileSeek_SeekBegin, true
-			case 1:
-				if len(args) != 0 {
-					return nil, false
-				}
-				return sys__io__FileSeek_SeekCur, true
-			case 2:
-				if len(args) != 0 {
-					return nil, false
-				}
-				return sys__io__FileSeek_SeekEnd, true
-			default:
-				return nil, false
-			}
-		}
-		switch constructorName {
-		case "SeekBegin":
-			if len(args) != 0 {
-				return nil, false
-			}
-			return sys__io__FileSeek_SeekBegin, true
-		case "SeekCur":
-			if len(args) != 0 {
-				return nil, false
-			}
-			return sys__io__FileSeek_SeekCur, true
-		case "SeekEnd":
-			if len(args) != 0 {
-				return nil, false
-			}
-			return sys__io__FileSeek_SeekEnd, true
-		default:
-			return nil, false
-		}
 	default:
 		return nil, false
 	}
@@ -2944,16 +2823,6 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe._Int64.___Int64")}
-	case *sys__io__FileInput:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.io.FileInput")}
-	case *sys__io__FileOutput:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.io.FileOutput")}
 	default:
 		return nil
 	}
@@ -2977,11 +2846,6 @@ func Type_getEnum(o any) any {
 			return nil
 		}
 		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("ValueType")}
-	case *sys__io__FileSeek:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("sys.io.FileSeek")}
 	default:
 		return nil
 	}
@@ -3007,10 +2871,6 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "sys.FileSystem":
 		return nil
-	case "sys.io.FileInput":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Input")}
-	case "sys.io.FileOutput":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Output")}
 	default:
 		return nil
 	}
@@ -3044,10 +2904,6 @@ func Type_getClassFields(c any) []*string {
 		return []*string{hxrt.StringFromLiteral("bytesOutputGetBytes"), hxrt.StringFromLiteral("inputRead"), hxrt.StringFromLiteral("inputReadAll"), hxrt.StringFromLiteral("inputReadBytes"), hxrt.StringFromLiteral("inputReadFullBytes"), hxrt.StringFromLiteral("inputReadLine"), hxrt.StringFromLiteral("inputReadUntil"), hxrt.StringFromLiteral("outputWrite"), hxrt.StringFromLiteral("outputWriteBytes"), hxrt.StringFromLiteral("outputWriteFullBytes"), hxrt.StringFromLiteral("outputWriteInput"), hxrt.StringFromLiteral("outputWriteString")}
 	case "sys.FileSystem":
 		return []*string{hxrt.StringFromLiteral("absolutePath"), hxrt.StringFromLiteral("createDirectory"), hxrt.StringFromLiteral("deleteDirectory"), hxrt.StringFromLiteral("deleteFile"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("fullPath"), hxrt.StringFromLiteral("isDirectory"), hxrt.StringFromLiteral("readDirectory"), hxrt.StringFromLiteral("rename"), hxrt.StringFromLiteral("stat")}
-	case "sys.io.FileInput":
-		return []*string{}
-	case "sys.io.FileOutput":
-		return []*string{}
 	default:
 		return []*string{}
 	}
@@ -3073,10 +2929,6 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{}
 	case "sys.FileSystem":
 		return []*string{}
-	case "sys.io.FileInput":
-		return []*string{hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("eof"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("readByte"), hxrt.StringFromLiteral("readBytes"), hxrt.StringFromLiteral("readDouble"), hxrt.StringFromLiteral("readFloat"), hxrt.StringFromLiteral("readInt32"), hxrt.StringFromLiteral("readLine"), hxrt.StringFromLiteral("seek"), hxrt.StringFromLiteral("set_bigEndian"), hxrt.StringFromLiteral("tell")}
-	case "sys.io.FileOutput":
-		return []*string{hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("flush"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("seek"), hxrt.StringFromLiteral("set_bigEndian"), hxrt.StringFromLiteral("tell"), hxrt.StringFromLiteral("writeByte"), hxrt.StringFromLiteral("writeBytes"), hxrt.StringFromLiteral("writeDouble"), hxrt.StringFromLiteral("writeFloat"), hxrt.StringFromLiteral("writeFullBytes"), hxrt.StringFromLiteral("writeInt32"), hxrt.StringFromLiteral("writeString")}
 	default:
 		return []*string{}
 	}
@@ -3110,10 +2962,6 @@ func Type_resolveClass(name *string) any {
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "sys.FileSystem":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.io.FileInput":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.io.FileOutput":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
 	}
@@ -3126,8 +2974,6 @@ func Type_resolveEnum(name *string) any {
 	rawName := *hxrt.StdString(name)
 	switch rawName {
 	case "ValueType":
-		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.io.FileSeek":
 		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
@@ -3217,20 +3063,6 @@ func Type_enumConstructor(e any) *string {
 		default:
 			return nil
 		}
-	case *sys__io__FileSeek:
-		if value == nil {
-			return nil
-		}
-		switch value.tag {
-		case 0:
-			return hxrt.StringFromLiteral("SeekBegin")
-		case 1:
-			return hxrt.StringFromLiteral("SeekCur")
-		case 2:
-			return hxrt.StringFromLiteral("SeekEnd")
-		default:
-			return nil
-		}
 	default:
 		return nil
 	}
@@ -3242,11 +3074,6 @@ func Type_enumIndex(e any) int {
 	}
 	switch value := e.(type) {
 	case *ValueType:
-		if value == nil {
-			return -1
-		}
-		return value.tag
-	case *sys__io__FileSeek:
 		if value == nil {
 			return -1
 		}
@@ -3264,8 +3091,6 @@ func Type_getEnumConstructs(e any) []*string {
 	switch enumName {
 	case "ValueType":
 		return []*string{hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown")}
-	case "sys.io.FileSeek":
-		return []*string{hxrt.StringFromLiteral("SeekBegin"), hxrt.StringFromLiteral("SeekCur"), hxrt.StringFromLiteral("SeekEnd")}
 	default:
 		return []*string{}
 	}
@@ -3277,13 +3102,6 @@ func Type_enumParameters(e any) []any {
 	}
 	switch value := e.(type) {
 	case *ValueType:
-		if value == nil || value.params == nil {
-			return []any{}
-		}
-		out := make([]any, len(value.params))
-		copy(out, value.params)
-		return out
-	case *sys__io__FileSeek:
 		if value == nil || value.params == nil {
 			return []any{}
 		}
@@ -3303,8 +3121,6 @@ func Type_allEnums(e any) []any {
 	switch enumName {
 	case "ValueType":
 		return []any{ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown}
-	case "sys.io.FileSeek":
-		return []any{sys__io__FileSeek_SeekBegin, sys__io__FileSeek_SeekCur, sys__io__FileSeek_SeekEnd}
 	default:
 		return []any{}
 	}

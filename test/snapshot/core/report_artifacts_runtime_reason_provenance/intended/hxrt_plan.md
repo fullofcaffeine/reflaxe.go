@@ -26,7 +26,6 @@
 - `print`
 - `process`
 - `string`
-- `sys`
 
 ## runtime files
 - `core.go`
@@ -36,7 +35,6 @@
 - `print.go`
 - `process.go`
 - `string.go`
-- `sys.go`
 
 ## selection reasons
 - `core` <- `baseline` (`compiler_baseline`)
@@ -44,5 +42,4 @@
 - `print` <- `baseline` (`compiler_baseline`)
 - `exception` <- `baseline` (`compiler_baseline`)
 - `json` <- `class_usage` (`haxe.Json`)
-- `sys` <- `dependency_edge` (`process->sys`)
 - `process` <- `manual_define` (`reflaxe_go_hxrt_features`)

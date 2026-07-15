@@ -3,8 +3,10 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	hxrt.Println(withTry(true))
-	hxrt.Println(withTry(false))
+	var v any = any(withTry(true))
+	hxrt.Println(v)
+	var v_1 any = any(withTry(false))
+	hxrt.Println(v_1)
 }
 
 func withTry(flag bool) *string {

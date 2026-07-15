@@ -7,8 +7,8 @@ func InteractiveCli_decodeToken(raw *string) *string {
 }
 
 func InteractiveCli_failUsage(message *string) {
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error: "), message))
-	hxrt.Println(hxrt.StringFromLiteral("run `help` for command syntax"))
+	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error: "), message)))
+	hxrt.Println(any(hxrt.StringFromLiteral("run `help` for command syntax")))
 }
 
 func InteractiveCli_liveLine(report *app__core__PulseReport) *string {
@@ -47,33 +47,35 @@ func InteractiveCli_parsePositiveInt(raw *string) int {
 }
 
 func InteractiveCli_printHelp(runtime app__runtime__PulseRuntime) {
-	hxrt.Println(hxrt.StringFromLiteral("commands:"))
-	hxrt.Println(hxrt.StringFromLiteral("  help"))
-	hxrt.Println(hxrt.StringFromLiteral("  profile"))
-	hxrt.Println(hxrt.StringFromLiteral("  reset"))
-	hxrt.Println(hxrt.StringFromLiteral("  status"))
-	hxrt.Println(hxrt.StringFromLiteral("  scripted"))
-	hxrt.Println(hxrt.StringFromLiteral("  ingest <source_token> <value> <region_token>"))
-	hxrt.Println(hxrt.StringFromLiteral("token note: use '_' for spaces"))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("runtime="), runtime.profileId()), hxrt.StringFromLiteral("/")), runtime.variantId()), hxrt.StringFromLiteral("/")), runtime.capabilityId()))
+	hxrt.Println(any(hxrt.StringFromLiteral("commands:")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  help")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  profile")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  reset")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  status")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  scripted")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  ingest <source_token> <value> <region_token>")))
+	hxrt.Println(any(hxrt.StringFromLiteral("token note: use '_' for spaces")))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("runtime="), runtime.profileId()), hxrt.StringFromLiteral("/")), runtime.variantId()), hxrt.StringFromLiteral("/")), runtime.capabilityId()))
+	hxrt.Println(v)
 }
 
 func InteractiveCli_printUsage(runtime app__runtime__PulseRuntime) {
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pulseforge interactive command session ("), runtime.profileId()), hxrt.StringFromLiteral(")")))
-	hxrt.Println(hxrt.StringFromLiteral("run scripted contract mode with: --scripted"))
-	hxrt.Println(hxrt.StringFromLiteral("commands:"))
-	hxrt.Println(hxrt.StringFromLiteral("  pulseforge help"))
-	hxrt.Println(hxrt.StringFromLiteral("  pulseforge profile"))
-	hxrt.Println(hxrt.StringFromLiteral("  pulseforge status"))
-	hxrt.Println(hxrt.StringFromLiteral("  pulseforge ingest edge 8 iad status"))
-	hxrt.Println(hxrt.StringFromLiteral("generated-source invocation:"))
-	hxrt.Println(hxrt.StringFromLiteral("  go run . --scripted"))
-	hxrt.Println(hxrt.StringFromLiteral("  go run . status"))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pulseforge interactive command session ("), runtime.profileId()), hxrt.StringFromLiteral(")")))
+	hxrt.Println(v)
+	hxrt.Println(any(hxrt.StringFromLiteral("run scripted contract mode with: --scripted")))
+	hxrt.Println(any(hxrt.StringFromLiteral("commands:")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  pulseforge help")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  pulseforge profile")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  pulseforge status")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  pulseforge ingest edge 8 iad status")))
+	hxrt.Println(any(hxrt.StringFromLiteral("generated-source invocation:")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  go run . --scripted")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  go run . status")))
 }
 
 func InteractiveCli_run(runtime app__runtime__PulseRuntime) {
 	frames := Harness_baselineFrames()
-	args := Sys_args()
+	args := hxrt.SysArgs()
 	if len(args) == 0 {
 		InteractiveCli_printUsage(runtime)
 		return
@@ -87,26 +89,30 @@ func InteractiveCli_run(runtime app__runtime__PulseRuntime) {
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("profile")) {
-			hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("profile="), runtime.profileId()), hxrt.StringFromLiteral(",variant=")), runtime.variantId()), hxrt.StringFromLiteral(",capability=")), runtime.capabilityId()))
+			var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("profile="), runtime.profileId()), hxrt.StringFromLiteral(",variant=")), runtime.variantId()), hxrt.StringFromLiteral(",capability=")), runtime.capabilityId()))
+			hxrt.Println(v)
 			i = int(int32((i + 1)))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("reset")) {
 			frames = Harness_baselineFrames()
 			resetReport := InteractiveCli_runReport(runtime, frames)
-			hxrt.Println(hxrt.StringFromLiteral("ok reset"))
-			hxrt.Println(InteractiveCli_liveLine(resetReport))
+			hxrt.Println(any(hxrt.StringFromLiteral("ok reset")))
+			var v_1 any = any(InteractiveCli_liveLine(resetReport))
+			hxrt.Println(v_1)
 			i = int(int32((i + 1)))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("status")) {
 			statusReport := InteractiveCli_runReport(runtime, frames)
-			hxrt.Println(statusReport.render())
+			var v_2 any = any(statusReport.render())
+			hxrt.Println(v_2)
 			i = int(int32((i + 1)))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("scripted")) {
-			hxrt.Println(Harness_runWithFrames(runtime, frames))
+			var v_3 any = any(Harness_runWithFrames(runtime, frames))
+			hxrt.Println(v_3)
 			i = int(int32((i + 1)))
 			continue
 		}
@@ -125,8 +131,9 @@ func InteractiveCli_run(runtime app__runtime__PulseRuntime) {
 			sequence := InteractiveCli_nextSequence(frames)
 			frames = append(frames, New_app__core__PulseIngressFrame(sequence, source, value, region))
 			ingestReport := InteractiveCli_runReport(runtime, frames)
-			hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok ingest seq="), sequence))
-			hxrt.Println(InteractiveCli_liveLine(ingestReport))
+			hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok ingest seq="), sequence)))
+			var v_4 any = any(InteractiveCli_liveLine(ingestReport))
+			hxrt.Println(v_4)
 			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(4))))
 			continue
 		}

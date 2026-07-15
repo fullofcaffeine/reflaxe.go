@@ -902,3 +902,40 @@ Observed result:
 - Text and arbitrary binary content, copy, write/append/update modes, seek/tell, bounds, EOF, native errors, owning ordinary handles, and non-owning standard streams are preserved through reviewable Haxe source plus typed native capabilities.
 - Direct File use selects `file.go` without the broad root `sys.go` / `process.go` slices; the still-monolithic Sys/Process shim group selects the same staged wrappers and file runtime explicitly.
 - `GoCompiler` is no longer a semantic or representation owner for `sys.io.File`, `FileInput`, `FileOutput`, or `FileSeek`.
+
+### 2026-07-15: root `Sys` moved to canonical staged std (`haxe_go-vfp.8.7.6`)
+
+Implementation:
+
+- Added `std/go/_std/Sys.hx` as the authority for the supported Haxe 4.3.7 root surface. Environment-map construction, locale fallback, deprecated aliases, `getChar`, and standard-stream wrapping are ordinary typed Haxe source.
+- Added narrow typed `std/hxrt/sys` bindings. Display keeps its unavoidable upstream `Dynamic` contract in `NativeConsole`; process state, environment, clocks, commands, cwd, and program paths remain typed in `NativeSys`; standard handles reuse `hxrt.fs.NativeFile`.
+- Made one-step source methods inline so direct calls keep compact Go-shaped output while first-class references still materialize the source-owned API.
+- Removed every root `Sys` struct/function and print/println semantic branch from `GoCompiler`. Renamed the remaining child-process group to `lowerProcessStdlibShimDecls` and reduced its raw debt ceiling from the former combined 138 sites to 134 Process-only sites.
+- Fixed selective inference for surviving typed extern calls after source inlining. Sys-only output copies `sys.go` without `file.go`/`process.go`; Process-only output copies `process.go` without `sys.go`/`file.go`.
+- Retained nominal types for DCE-reached static-only staged classes through the generic type mapper, so `var probe:Sys = null` emits an empty source-owned carrier without restoring a compiler `Sys` declaration or constructor.
+- Preserved explicit compile-time rejection for `Sys.cpuTime`; Go's standard library still has no portable process CPU clock.
+
+Validation evidence:
+
+- `test/semantic_diff/root_sys_contract`
+- `test/semantic_diff/root_sys_portable_contract`
+- `test/semantic_diff/sys_command_contract`
+- `test/semantic_diff/sys_sleep_contract`
+- `test/snapshot/sys/root_sys_portable`
+- `test/snapshot/core/runtime_hxrt_infer_sys`
+- `test/snapshot/core/runtime_hxrt_infer_process`
+- `test/snapshot/negative/sys_cpu_time_unsupported`
+- `runtime/hxrt/sys_test.go`
+- `test/test_stdlib_migration_ledger_contract.py`
+- `npm run test:compiler-debt`
+- `npm test` (`263/263` snapshots)
+- `npm run test:semantic-diff` (`131/131` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` modules)
+- `npm run test:examples` (`12/12` lanes)
+- `npm run test:perf:hxrt-selective`
+- `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates)
+
+Observed result:
+
+- Root `Sys` now follows the same source-ownership rule as File/FileSystem and the sibling `haxe.rust` target: Haxe library behavior stays in Haxe source, while only genuine OS capabilities cross typed runtime bindings.
+- Compiler shims are no longer the default implementation mechanism for root stdlib behavior. The remaining `sys.io.Process` adapters are isolated and explicitly tracked by `haxe_go-vfp.8.7.7`.

@@ -81,10 +81,7 @@ class GoSourceOwnedStdlibPlanner {
 	public function noteSourceOwnedStdlibUsage(classType:ClassType):Void {
 		switch (fullClassName(classType)) {
 			case "Sys":
-				// Root Sys remains compiler-owned for now, but its standard streams
-				// construct the canonical staged file wrappers.
-				requireSourceOwnedStdlibClass("sys.io.FileInput");
-				requireSourceOwnedStdlibClass("sys.io.FileOutput");
+				requireSourceOwnedStdlibClass("Sys");
 			case "StringTools":
 				requireSourceOwnedStdlibClass("StringTools");
 				requireSourceOwnedStdlibClass("haxe.iterators.StringIterator");

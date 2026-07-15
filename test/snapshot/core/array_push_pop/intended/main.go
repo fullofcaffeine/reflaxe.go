@@ -23,8 +23,9 @@ func main() {
 		values = values[:(hx_len_6 - 1)]
 		return hx_value_7
 	}()
-	hxrt.Println(len(values))
-	hxrt.Println(values[0])
-	hxrt.Println(pushLen)
-	hxrt.Println(removed)
+	var v any = any(len(values))
+	hxrt.Println(v)
+	hxrt.Println(any(values[0]))
+	hxrt.Println(any(pushLen))
+	hxrt.Println(any(removed))
 }

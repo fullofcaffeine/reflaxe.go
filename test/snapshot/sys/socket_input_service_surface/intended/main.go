@@ -23,7 +23,7 @@ func consume(socket *sys__net__Socket) *string {
 }
 
 func main() {
-	hxrt.Println(hxrt.StringFromLiteral("socket-input-service-surface"))
+	hxrt.Println(any(hxrt.StringFromLiteral("socket-input-service-surface")))
 }
 
 type haxe__io__Encoding struct {

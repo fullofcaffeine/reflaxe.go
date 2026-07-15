@@ -33,44 +33,47 @@ func main() {
 		var payload any = sys__thread__Thread_readMessage(true)
 		mainThread.sendMessage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("worker-echo="), hxrt.StdString(payload)))
 	})
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.msg1="), hxrt.StdString(sys__thread__Thread_readMessage(true))))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.msg1="), hxrt.StdString(sys__thread__Thread_readMessage(true))))
+	hxrt.Println(v)
 	worker.sendMessage(hxrt.StringFromLiteral("ping"))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.msg2="), hxrt.StdString(sys__thread__Thread_readMessage(true))))
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.msg2="), hxrt.StdString(sys__thread__Thread_readMessage(true))))
+	hxrt.Println(v_1)
 	hxrt.TryCatch(func() {
 		worker.get_events().progress()
-		hxrt.Println(hxrt.StringFromLiteral("thread.worker_events=available"))
+		hxrt.Println(any(hxrt.StringFromLiteral("thread.worker_events=available")))
 	}, func(hx_caught_1 any) {
 		switch hx_typed_2 := hx_caught_1.(type) {
 		case *sys__thread__NoEventLoopException:
 			err := hx_typed_2
-			hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.worker_events="), hxrt.ExceptionMessage(err)))
+			var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.worker_events="), hxrt.ExceptionMessage(err)))
+			hxrt.Println(v_2)
 		default:
 			hxrt.Throw(hx_caught_1)
 		}
 	})
 	runLoop := New_sys__thread__EventLoop()
 	runLoop.run(func() {
-		hxrt.Println(hxrt.StringFromLiteral("loop.run=once"))
+		hxrt.Println(any(hxrt.StringFromLiteral("loop.run=once")))
 	})
 	runLoop.loop()
-	hxrt.Println(hxrt.StringFromLiteral("loop.loop_after=done"))
+	hxrt.Println(any(hxrt.StringFromLiteral("loop.loop_after=done")))
 	promisedLoop := New_sys__thread__EventLoop()
 	promisedLoop.promise()
 	promisedLoop.runPromised(func() {
-		hxrt.Println(hxrt.StringFromLiteral("loop.runPromised=ok"))
+		hxrt.Println(any(hxrt.StringFromLiteral("loop.runPromised=ok")))
 	})
 	promisedLoop.loop()
-	hxrt.Println(hxrt.StringFromLiteral("loop.promised_after=done"))
+	hxrt.Println(any(hxrt.StringFromLiteral("loop.promised_after=done")))
 	loop := New_sys__thread__EventLoop()
 	repeats := 0
 	var handler any = any(0)
 	handler = loop.repeat(func() {
 		repeats = int(int32((repeats + 1)))
-		hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("loop.repeat="), repeats))
+		hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("loop.repeat="), repeats)))
 		loop.cancel(handler)
 	}, 10)
 	loop.loop()
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("loop.repeat_after="), repeats))
+	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("loop.repeat_after="), repeats)))
 	sys__thread__Thread_create(func() {
 		sys__thread__Thread_runWithEventLoop(func() {
 			sys__thread__Thread_current().get_events().promise()
@@ -80,7 +83,8 @@ func main() {
 		})
 		mainThread.sendMessage(hxrt.StringFromLiteral("runWithEventLoop=after"))
 	})
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.runWithEventLoop="), sortedMessages(2)))
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.runWithEventLoop="), sortedMessages(2)))
+	hxrt.Println(v_3)
 	sys__thread__Thread_createWithEventLoop(func() {
 		sys__thread__Thread_current().get_events().promise()
 		sys__thread__Thread_current().get_events().runPromised(func() {
@@ -88,7 +92,8 @@ func main() {
 		})
 		mainThread.sendMessage(hxrt.StringFromLiteral("createWithEventLoop=after-job"))
 	})
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.createWithEventLoop="), sortedMessages(2)))
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.createWithEventLoop="), sortedMessages(2)))
+	hxrt.Println(v_4)
 	fixed := New_sys__thread__FixedThreadPool(2)
 	fixed.run(func() {
 		mainThread.sendMessage(hxrt.StringFromLiteral("fixed:b"))
@@ -96,9 +101,11 @@ func main() {
 	fixed.run(func() {
 		mainThread.sendMessage(hxrt.StringFromLiteral("fixed:a"))
 	})
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fixed.msgs="), sortedMessages(2)))
+	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fixed.msgs="), sortedMessages(2)))
+	hxrt.Println(v_5)
 	fixed.shutdown()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fixed.shutdown="), hxrt.StdString(fixed.get_isShutdown())))
+	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fixed.shutdown="), hxrt.StdString(fixed.get_isShutdown())))
+	hxrt.Println(v_6)
 	hxrt.TryCatch(func() {
 		fixed.run(func() {
 		})
@@ -106,7 +113,8 @@ func main() {
 		switch hx_typed_4 := hx_caught_3.(type) {
 		case *sys__thread__ThreadPoolException:
 			err_1 := hx_typed_4
-			hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fixed.error="), hxrt.ExceptionMessage(err_1)))
+			var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fixed.error="), hxrt.ExceptionMessage(err_1)))
+			hxrt.Println(v_7)
 		default:
 			hxrt.Throw(hx_caught_3)
 		}
@@ -118,9 +126,11 @@ func main() {
 	elastic.run(func() {
 		mainThread.sendMessage(hxrt.StringFromLiteral("elastic:b"))
 	})
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("elastic.msgs="), sortedMessages(2)))
+	var v_8 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("elastic.msgs="), sortedMessages(2)))
+	hxrt.Println(v_8)
 	elastic.shutdown()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("elastic.shutdown="), hxrt.StdString(elastic.get_isShutdown())))
+	var v_9 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("elastic.shutdown="), hxrt.StdString(elastic.get_isShutdown())))
+	hxrt.Println(v_9)
 	hxrt.TryCatch(func() {
 		elastic.run(func() {
 		})
@@ -128,7 +138,8 @@ func main() {
 		switch hx_typed_6 := hx_caught_5.(type) {
 		case *sys__thread__ThreadPoolException:
 			err_2 := hx_typed_6
-			hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("elastic.error="), hxrt.ExceptionMessage(err_2)))
+			var v_10 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("elastic.error="), hxrt.ExceptionMessage(err_2)))
+			hxrt.Println(v_10)
 		default:
 			hxrt.Throw(hx_caught_5)
 		}

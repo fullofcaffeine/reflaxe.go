@@ -30,7 +30,7 @@ type hxrt__TypeEnumValue struct {
 }
 
 func argValue(name *string, fallback *string) *string {
-	args := Sys_args()
+	args := hxrt.SysArgs()
 	i := 0
 	for i < int(int32((hxrt.Int32Wrap(len(args)) - hxrt.Int32Wrap(1)))) {
 		if hxrt.StringEqualStringPtr(args[i], name) {
@@ -43,7 +43,7 @@ func argValue(name *string, fallback *string) *string {
 
 func hasArg(name *string) bool {
 	_g := 0
-	_g1 := Sys_args()
+	_g1 := hxrt.SysArgs()
 	for _g < len(_g1) {
 		arg := _g1[_g]
 		_g = int(int32((_g + 1)))
@@ -56,13 +56,14 @@ func hasArg(name *string) bool {
 
 func main() {
 	if hasArg(hxrt.StringFromLiteral("--scripted")) {
-		hxrt.Println(Harness_run())
+		var v any = any(Harness_run())
+		hxrt.Println(v)
 		return
 	}
 	if hasArg(hxrt.StringFromLiteral("init-config")) {
 		configPath := argValue(hxrt.StringFromLiteral("--config"), hxrt.StringFromLiteral("config.json"))
 		app__core__IncidentConfig_saveExample(configPath)
-		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("wrote "), configPath))
+		hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("wrote "), configPath)))
 		return
 	}
 	if hasArg(hxrt.StringFromLiteral("serve")) {
@@ -73,20 +74,21 @@ func main() {
 }
 
 func printHelp() {
-	hxrt.Println(hxrt.StringFromLiteral("incident_api commands:"))
-	hxrt.Println(hxrt.StringFromLiteral("  --scripted"))
-	hxrt.Println(hxrt.StringFromLiteral("  init-config --config <path>"))
-	hxrt.Println(hxrt.StringFromLiteral("  serve --config <path>"))
-	hxrt.Println(hxrt.StringFromLiteral("curl examples:"))
-	hxrt.Println(hxrt.StringFromLiteral("  curl http://127.0.0.1:8080/health"))
-	hxrt.Println(hxrt.StringFromLiteral("  curl -X POST -d '{\"title\":\"Database lag\",\"severity\":\"high\"}' http://127.0.0.1:8080/incidents"))
+	hxrt.Println(any(hxrt.StringFromLiteral("incident_api commands:")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  --scripted")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  init-config --config <path>")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  serve --config <path>")))
+	hxrt.Println(any(hxrt.StringFromLiteral("curl examples:")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  curl http://127.0.0.1:8080/health")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  curl -X POST -d '{\"title\":\"Database lag\",\"severity\":\"high\"}' http://127.0.0.1:8080/incidents")))
 }
 
 func serve(configPath *string) {
 	config := app__core__IncidentConfig_load(configPath)
 	api := New_app__core__IncidentApi(config, New_app__core__IncidentStore(config.statePath))
 	server := New_app__http__TinyHttpServer(api, config.host, config.port)
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("incident_api listening on http://"), server.host), hxrt.StringFromLiteral(":")), server.port))
+	var v any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("incident_api listening on http://"), server.host), hxrt.StringFromLiteral(":")), server.port))
+	hxrt.Println(v)
 	for true {
 		server.serveOnce()
 	}
@@ -952,427 +954,6 @@ func (self *haxe__io__BytesOutput) getBytes() *haxe__io__Bytes {
 		return &haxe__io__Bytes{b: []int{}, length: 0}
 	}
 	return self.b.getBytes()
-}
-
-type Sys struct {
-}
-
-type sys__io__ProcessOutput struct {
-	impl              *hxrt.ProcessOutput
-	__hx_io_bigEndian bool
-}
-
-type sys__io__ProcessInput struct {
-	impl              *hxrt.ProcessInput
-	__hx_io_bigEndian bool
-}
-
-type sys__io__Process struct {
-	impl   *hxrt.Process
-	stdout *sys__io__ProcessOutput
-	stderr *sys__io__ProcessOutput
-	stdin  *sys__io__ProcessInput
-}
-
-func Sys_print(value any) {
-	hxrt.Print(value)
-}
-
-func Sys_println(value any) {
-	hxrt.Println(value)
-}
-
-func Sys_getCwd() *string {
-	return hxrt.SysGetCwd()
-}
-
-func Sys_args() []*string {
-	return hxrt.SysArgs()
-}
-
-func Sys_getEnv(key *string) *string {
-	return hxrt.SysGetEnv(key)
-}
-
-func Sys_putEnv(key *string, value *string) {
-	_ = hxrt.SysPutEnv(key, value)
-}
-
-func Sys_systemName() *string {
-	return hxrt.SysSystemName()
-}
-
-func Sys_sleep(seconds float64) {
-	hxrt.SysSleep(seconds)
-}
-
-func Sys_setTimeLocale(locale *string) bool {
-	return hxrt.SysSetTimeLocale(locale)
-}
-
-func Sys_setCwd(path *string) {
-	err := hxrt.SysSetCwd(path)
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-	}
-}
-
-func Sys_time() float64 {
-	return hxrt.SysTime()
-}
-
-func Sys_programPath() *string {
-	path, err := hxrt.SysProgramPath()
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return hxrt.StringFromLiteral("")
-	}
-	return path
-}
-
-func Sys_executablePath() *string {
-	return Sys_programPath()
-}
-
-func Sys_getChar(echo bool) int {
-	value, eof, err := hxrt.SysGetChar(echo)
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return 0
-	}
-	if eof {
-		hxrt.Throw(New_haxe__io__Eof())
-		return 0
-	}
-	return value
-}
-
-func Sys_stdin() haxe__io__Input {
-	return New_sys__io__FileInput(hxrt.SysStdin())
-}
-
-func Sys_stdout() haxe__io__Output {
-	return New_sys__io__FileOutput(hxrt.SysStdout())
-}
-
-func Sys_stderr() haxe__io__Output {
-	return New_sys__io__FileOutput(hxrt.SysStderr())
-}
-
-func New_sys__io__Process(command *string, optional ...any) *sys__io__Process {
-	var args []*string
-	detached := false
-	if len(optional) > 0 && optional[0] != nil {
-		args = optional[0].([]*string)
-	}
-	if len(optional) > 1 && optional[1] != nil {
-		detached = optional[1].(bool)
-	}
-	if detached {
-		hxrt.Throw(hxrt.StringFromLiteral("Detached process is not supported on this platform"))
-		return &sys__io__Process{}
-	}
-	impl, err := hxrt.NewProcess(command, args)
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return &sys__io__Process{}
-	}
-	return &sys__io__Process{impl: impl, stdout: &sys__io__ProcessOutput{impl: impl.Stdout()}, stderr: &sys__io__ProcessOutput{impl: impl.Stderr()}, stdin: &sys__io__ProcessInput{impl: impl.Stdin()}}
-}
-
-func (self *sys__io__ProcessOutput) get_bigEndian() bool {
-	if self == nil {
-		return false
-	}
-	return self.__hx_io_bigEndian
-}
-
-func (self *sys__io__ProcessOutput) set_bigEndian(e bool) bool {
-	if self != nil {
-		self.__hx_io_bigEndian = e
-	}
-	return e
-}
-
-func (self *sys__io__ProcessOutput) readByte() int {
-	if self == nil || self.impl == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Process output is closed"))
-		return 0
-	}
-	value, eof, err := self.impl.ReadByte()
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return 0
-	}
-	if eof {
-		hxrt.Throw(&haxe__io__Eof{})
-		return 0
-	}
-	return value
-}
-
-func (self *sys__io__ProcessOutput) readBytes(buf *haxe__io__Bytes, pos int, len int) int {
-	if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return 0
-	}
-	k := 0
-	for k < len {
-		value := 0
-		threw := false
-		var thrown any
-		func() {
-			defer func() {
-				if recovered := recover(); recovered != nil {
-					threw = true
-					thrown = hxrt.UnwrapException(recovered)
-				}
-			}()
-			value = self.readByte()
-		}()
-		if threw {
-			if haxe__io__input_isEof(thrown) && k > 0 {
-				return k
-			}
-			hxrt.Throw(thrown)
-			return 0
-		}
-		buf.b[pos+k] = value
-		k++
-	}
-	return len
-}
-
-func (self *sys__io__ProcessOutput) close() {
-	if self == nil || self.impl == nil {
-		return
-	}
-	if err := self.impl.Close(); err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return
-	}
-	self.impl = nil
-}
-
-func (self *sys__io__ProcessInput) get_bigEndian() bool {
-	if self == nil {
-		return false
-	}
-	return self.__hx_io_bigEndian
-}
-
-func (self *sys__io__ProcessInput) set_bigEndian(e bool) bool {
-	if self != nil {
-		self.__hx_io_bigEndian = e
-	}
-	return e
-}
-
-func (self *sys__io__ProcessInput) writeByte(c int) {
-	if self == nil || self.impl == nil {
-		hxrt.Throw(&haxe__io__Eof{})
-		return
-	}
-	if err := self.impl.WriteByte(c); err != nil {
-		hxrt.Throw(&haxe__io__Eof{})
-	}
-}
-
-func (self *sys__io__ProcessInput) writeBytes(s *haxe__io__Bytes, pos int, len int) int {
-	if s == nil || pos < 0 || len < 0 || pos+len > s.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return 0
-	}
-	written := len
-	for len > 0 {
-		self.writeByte(s.b[pos])
-		pos++
-		len--
-	}
-	return written
-}
-
-func (self *sys__io__ProcessInput) flush() {
-	if self == nil || self.impl == nil {
-		return
-	}
-	if err := self.impl.Flush(); err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-	}
-}
-
-func (self *sys__io__ProcessInput) prepare(nbytes int) {
-	_ = self
-	_ = nbytes
-}
-
-func (self *sys__io__ProcessInput) close() {
-	if self == nil || self.impl == nil {
-		return
-	}
-	if err := self.impl.Close(); err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return
-	}
-	self.impl = nil
-}
-
-func (self *sys__io__Process) getPid() int {
-	if self == nil || self.impl == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Process is closed"))
-		return 0
-	}
-	pid, err := self.impl.GetPid()
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return 0
-	}
-	return pid
-}
-
-func (self *sys__io__Process) exitCode(block ...bool) any {
-	if self == nil || self.impl == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Process is closed"))
-		return nil
-	}
-	shouldBlock := true
-	if len(block) > 0 {
-		shouldBlock = block[0]
-	}
-	code, available, err := self.impl.ExitCode(shouldBlock)
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return nil
-	}
-	if !available {
-		return nil
-	}
-	return code
-}
-
-func (self *sys__io__Process) kill() {
-	if self == nil || self.impl == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Process is closed"))
-		return
-	}
-	if err := self.impl.Kill(); err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-	}
-}
-
-func (self *sys__io__Process) close() {
-	if self == nil || self.impl == nil {
-		return
-	}
-	if err := self.impl.Close(); err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return
-	}
-	self.impl = nil
-}
-
-func (self *sys__io__ProcessOutput) readAll(bufsize ...int) *haxe__io__Bytes {
-	return haxe__io__input_readAll(self, bufsize...)
-}
-
-func (self *sys__io__ProcessOutput) readFullBytes(s *haxe__io__Bytes, pos int, len int) {
-	haxe__io__input_readFullBytes(self, s, pos, len)
-}
-
-func (self *sys__io__ProcessOutput) read(nbytes int) *haxe__io__Bytes {
-	return haxe__io__input_read(self, nbytes)
-}
-
-func (self *sys__io__ProcessOutput) readUntil(end int) *string {
-	return haxe__io__input_readUntil(self, end)
-}
-
-func (self *sys__io__ProcessOutput) readLine() *string {
-	return haxe__io__input_readLine(self)
-}
-
-func (self *sys__io__ProcessOutput) readFloat() float64 {
-	return haxe__io__input_readFloat(self)
-}
-
-func (self *sys__io__ProcessOutput) readDouble() float64 {
-	return haxe__io__input_readDouble(self)
-}
-
-func (self *sys__io__ProcessOutput) readInt8() int {
-	return haxe__io__input_readInt8(self)
-}
-
-func (self *sys__io__ProcessOutput) readInt16() int {
-	return haxe__io__input_readInt16(self)
-}
-
-func (self *sys__io__ProcessOutput) readUInt16() int {
-	return haxe__io__input_readUInt16(self)
-}
-
-func (self *sys__io__ProcessOutput) readInt24() int {
-	return haxe__io__input_readInt24(self)
-}
-
-func (self *sys__io__ProcessOutput) readUInt24() int {
-	return haxe__io__input_readUInt24(self)
-}
-
-func (self *sys__io__ProcessOutput) readInt32() int {
-	return haxe__io__input_readInt32(self)
-}
-
-func (self *sys__io__ProcessOutput) readString(len int, encoding ...*haxe__io__Encoding) *string {
-	return haxe__io__input_readString(self, len, encoding...)
-}
-
-func (self *sys__io__ProcessInput) write(s *haxe__io__Bytes) {
-	haxe__io__output_write(self, s)
-}
-
-func (self *sys__io__ProcessInput) writeFullBytes(s *haxe__io__Bytes, pos int, len int) {
-	haxe__io__output_writeFullBytes(self, s, pos, len)
-}
-
-func (self *sys__io__ProcessInput) writeFloat(x float64) {
-	haxe__io__output_writeFloat(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeDouble(x float64) {
-	haxe__io__output_writeDouble(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeInt8(x int) {
-	haxe__io__output_writeInt8(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeInt16(x int) {
-	haxe__io__output_writeInt16(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeUInt16(x int) {
-	haxe__io__output_writeUInt16(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeInt24(x int) {
-	haxe__io__output_writeInt24(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeUInt24(x int) {
-	haxe__io__output_writeUInt24(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeInt32(x int) {
-	haxe__io__output_writeInt32(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeInput(i haxe__io__Input, bufsize ...int) {
-	haxe__io__output_writeInput(self, i, bufsize...)
-}
-
-func (self *sys__io__ProcessInput) writeString(s *string, encoding ...*haxe__io__Encoding) {
-	haxe__io__output_writeString(self, s, encoding...)
 }
 
 type Std struct {

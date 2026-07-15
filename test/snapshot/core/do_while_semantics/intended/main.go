@@ -20,6 +20,8 @@ func main() {
 		}
 		hit = i
 	}
-	hxrt.Println(hxrt.StdString(once))
-	hxrt.Println(hxrt.StdString(hit))
+	var v any = any(hxrt.StdString(once))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StdString(hit))
+	hxrt.Println(v_1)
 }

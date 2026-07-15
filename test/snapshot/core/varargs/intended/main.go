@@ -3,8 +3,10 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	hxrt.Println(sum([]int{1, 2, 3}))
-	hxrt.Println(sum([]int{4}))
+	var v any = any(sum([]int{1, 2, 3}))
+	hxrt.Println(v)
+	var v_1 any = any(sum([]int{4}))
+	hxrt.Println(v_1)
 }
 
 func sum(values []int) int {

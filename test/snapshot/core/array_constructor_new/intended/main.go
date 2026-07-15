@@ -4,12 +4,14 @@ import "snapshot/hxrt"
 
 func main() {
 	names := []*string{}
-	hxrt.Println(len(names))
+	var v any = any(len(names))
+	hxrt.Println(v)
 	names = append(names, hxrt.StringFromLiteral("go"))
 	names = append(names, hxrt.StringFromLiteral("haxe"))
-	hxrt.Println(len(names))
-	hxrt.Println(names[0])
-	hxrt.Println(names[1])
+	var v_1 any = any(len(names))
+	hxrt.Println(v_1)
+	hxrt.Println(any(names[0]))
+	hxrt.Println(any(names[1]))
 	nums := []int{}
 	nums = append(nums, 3)
 	nums = append(nums, 5)
@@ -20,5 +22,5 @@ func main() {
 		_g = int(int32((_g + 1)))
 		sum = int(int32((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(n))))
 	}
-	hxrt.Println(sum)
+	hxrt.Println(any(sum))
 }

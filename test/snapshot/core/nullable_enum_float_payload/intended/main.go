@@ -26,6 +26,8 @@ func describe(value *MaybeFloat) *string {
 }
 
 func main() {
-	hxrt.Println(describe(MaybeFloat_Some(nil)))
-	hxrt.Println(describe(MaybeFloat_Some(1.5)))
+	var v any = any(describe(MaybeFloat_Some(nil)))
+	hxrt.Println(v)
+	var v_1 any = any(describe(MaybeFloat_Some(1.5)))
+	hxrt.Println(v_1)
 }

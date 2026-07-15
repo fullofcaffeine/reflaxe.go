@@ -8,7 +8,7 @@ func main() {
 	joined := hxrt.StringConcatStringPtr(left, right)
 	eq := hxrt.StringEqualStringPtr(left, right)
 	neq := !hxrt.StringEqualStringPtr(left, right)
-	hxrt.Println(joined)
-	hxrt.Println(eq)
-	hxrt.Println(neq)
+	hxrt.Println(any(joined))
+	hxrt.Println(any(eq))
+	hxrt.Println(any(neq))
 }

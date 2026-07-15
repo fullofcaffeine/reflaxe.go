@@ -8,7 +8,7 @@ func id(value int) int {
 
 func main() {
 	cond := true
-	hxrt.Println(hxrt.StdString(id(func() int {
+	var v any = any(hxrt.StdString(id(func() int {
 		var hx_if_1 int
 		if cond {
 			hx_if_1 = 7
@@ -17,8 +17,9 @@ func main() {
 		}
 		return hx_if_1
 	}())))
+	hxrt.Println(v)
 	cond = false
-	hxrt.Println(hxrt.StdString(id(func() int {
+	var v_1 any = any(hxrt.StdString(id(func() int {
 		var hx_if_2 int
 		if cond {
 			hx_if_2 = 7
@@ -27,4 +28,5 @@ func main() {
 		}
 		return hx_if_2
 	}())))
+	hxrt.Println(v_1)
 }

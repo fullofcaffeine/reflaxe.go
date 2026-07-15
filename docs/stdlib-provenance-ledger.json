@@ -21,7 +21,8 @@
       "upstream_std_override": [
         "haxe_go-vfp.5.3",
         "haxe_go-vfp.8.7.4",
-        "haxe_go-vfp.8.7.5"
+        "haxe_go-vfp.8.7.5",
+        "haxe_go-vfp.8.7.6"
       ],
       "staged_support": [
         "haxe_go-vfp.5.4"
@@ -29,7 +30,8 @@
       "hxrt_binding": [
         "haxe_go-vfp.5.4",
         "haxe_go-vfp.8.7.4",
-        "haxe_go-vfp.8.7.5"
+        "haxe_go-vfp.8.7.5",
+        "haxe_go-vfp.8.7.6"
       ],
       "public_go_facade": [
         "haxe_go-vfp.5.4"
@@ -184,6 +186,15 @@
       "migrationBead": "haxe_go-vfp.5.3",
       "compilerShimGroups": [],
       "notes": "Go staged portable override for DateTools helper ownership, keeping formatting and date-helper semantics out of GoCompiler."
+    },
+    {
+      "path": "std/go/_std/Sys.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/Sys.hx",
+      "migrationBead": "haxe_go-vfp.8.7.6",
+      "compilerShimGroups": [],
+      "notes": "Canonical source-owned implementation of the supported Haxe 4.3.7 root Sys API; map construction, fallbacks, aliases, and standard-stream wrapping stay in Haxe while typed std/hxrt bindings expose native process, display, and file capabilities."
     },
     {
       "path": "std/go/_std/haxe/Constraints.hx",
@@ -905,6 +916,33 @@
       "migrationBead": "haxe_go-vfp.8.7.4",
       "compilerShimGroups": [],
       "notes": "Typed extern bridge to the narrow runtime/hxrt filesystem capability surface used by canonical staged sys.FileSystem source."
+    },
+    {
+      "path": "std/hxrt/sys/NativeConsole.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/sys/NativeConsole.hx",
+      "migrationBead": "haxe_go-vfp.8.7.6",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge for the two Dynamic display signatures required by staged Sys.print and Sys.println, isolated on the baseline hxrt print slice."
+    },
+    {
+      "path": "std/hxrt/sys/NativeSys.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/sys/NativeSys.hx",
+      "migrationBead": "haxe_go-vfp.8.7.6",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge to the narrow runtime/hxrt process-state, environment, clock, command, and path capabilities used by canonical staged root Sys source."
+    },
+    {
+      "path": "std/hxrt/sys/SysEnvironmentEntry.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/sys/SysEnvironmentEntry.hx",
+      "migrationBead": "haxe_go-vfp.8.7.6",
+      "compilerShimGroups": [],
+      "notes": "Typed extern carrier for one runtime/hxrt environment entry, allowing staged root Sys to construct the public StringMap without Dynamic or generated-map coupling."
     },
     {
       "path": "std/hxrt/stack/NativeStack.hx",

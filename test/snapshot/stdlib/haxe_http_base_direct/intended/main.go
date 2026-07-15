@@ -28,16 +28,18 @@ type hxrt__TypeEnumValue struct {
 func main() {
 	var method any = any(hxrt.StringFromLiteral("POST"))
 	var status any = any(200)
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("method="), method))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("status="), status))
+	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("method="), method)))
+	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("status="), status)))
 	base := New_haxe__http__HttpBase(hxrt.StringFromLiteral("http://example.com"))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("responseData="), hxrt.StdString(base.get_responseData())))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("responseData="), hxrt.StdString(base.get_responseData())))
+	hxrt.Println(v)
 	hxrt.TryCatch(func() {
 		base.request(false)
-		hxrt.Println(hxrt.StringFromLiteral("request=no_throw"))
+		hxrt.Println(any(hxrt.StringFromLiteral("request=no_throw")))
 	}, func(hx_caught_1 any) {
 		e := hx_caught_1
-		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("requestType="), Type_getClassName(Type_getClass(e))))
+		var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("requestType="), Type_getClassName(Type_getClass(e))))
+		hxrt.Println(v_1)
 	})
 }
 

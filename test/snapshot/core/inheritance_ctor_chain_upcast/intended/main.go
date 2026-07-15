@@ -43,9 +43,11 @@ func main() {
 	child := New_Child(4)
 	base := child.Base
 	show(child.Base)
-	hxrt.Println(base.__hx_this.read())
+	var v any = any(base.__hx_this.read())
+	hxrt.Println(v)
 }
 
 func show(base *Base) {
-	hxrt.Println(base.__hx_this.read())
+	var v any = any(base.__hx_this.read())
+	hxrt.Println(v)
 }

@@ -26,8 +26,10 @@ type hxrt__TypeEnumValue struct {
 }
 
 func main() {
-	hxrt.Println(render(haxe__ds__Option_Some(7)))
-	hxrt.Println(render(haxe__ds__Option_None))
+	var v any = any(render(haxe__ds__Option_Some(7)))
+	hxrt.Println(v)
+	var v_1 any = any(render(haxe__ds__Option_None))
+	hxrt.Println(v_1)
 }
 
 func render(opt *haxe__ds__Option) *string {

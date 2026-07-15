@@ -3,9 +3,11 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	hxrt.Println(MathBox_mul(4))
+	var v any = any(MathBox_mul(4))
+	hxrt.Println(v)
 	MathBox_factor = 5
-	hxrt.Println(MathBox_mul(4))
+	var v_1 any = any(MathBox_mul(4))
+	hxrt.Println(v_1)
 }
 
 var MathBox_factor int = 3

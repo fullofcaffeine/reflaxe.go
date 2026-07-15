@@ -9,9 +9,12 @@ func main() {
 	mul := func(v int) int {
 		return int(int32((hxrt.Int32Wrap(v) * hxrt.Int32Wrap(3))))
 	}
-	hxrt.Println(twice(5))
-	hxrt.Println(add(2, 7))
-	hxrt.Println(mul(4))
+	var v any = any(twice(5))
+	hxrt.Println(v)
+	var v_1 any = any(add(2, 7))
+	hxrt.Println(v_1)
+	var v_2 any = any(mul(4))
+	hxrt.Println(v_2)
 }
 
 func twice(value int) int {

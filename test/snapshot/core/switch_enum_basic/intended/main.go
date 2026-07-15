@@ -15,12 +15,14 @@ func main() {
 	current := Flag_On
 	switch current.tag {
 	case 0:
-		hxrt.Println(0)
+		hxrt.Println(any(0))
 	case 1:
-		hxrt.Println(1)
+		hxrt.Println(any(1))
 	}
-	hxrt.Println(toInt(Flag_Off))
-	hxrt.Println(toInt(Flag_On))
+	var v any = any(toInt(Flag_Off))
+	hxrt.Println(v)
+	var v_1 any = any(toInt(Flag_On))
+	hxrt.Println(v_1)
 }
 
 func toInt(flag *Flag) int {

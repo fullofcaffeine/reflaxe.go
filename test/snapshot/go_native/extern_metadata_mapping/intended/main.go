@@ -15,6 +15,6 @@ func main() {
 	if ((direct == viaReceiver) && (direct > 0)) && statusOk {
 		fmt.Println(321)
 	} else {
-		hxrt.Println(-1)
+		hxrt.Println(any(-1))
 	}
 }

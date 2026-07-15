@@ -34,22 +34,25 @@ func New_Child() *Child {
 func main() {
 	child := New_Child().Base
 	base := New_Base()
-	hxrt.Println(func(hx_value *Base) bool {
+	var v any = any(func(hx_value *Base) bool {
 		if hx_value == nil {
 			return false
 		}
 		_, ok := hx_value.__hx_this.(*Child)
 		return ok
 	}(child))
-	hxrt.Println((child != nil))
-	hxrt.Println(func(hx_value *Base) bool {
+	hxrt.Println(v)
+	var v_1 any = any((child != nil))
+	hxrt.Println(v_1)
+	var v_2 any = any(func(hx_value *Base) bool {
 		if hx_value == nil {
 			return false
 		}
 		_, ok := hx_value.__hx_this.(*Child)
 		return ok
 	}(base))
-	hxrt.Println(func(hx_value any) bool {
+	hxrt.Println(v_2)
+	var v_3 any = any(func(hx_value any) bool {
 		switch hx_value.(type) {
 		case *Child:
 			return true
@@ -57,10 +60,17 @@ func main() {
 			return false
 		}
 	}(any(nil)))
-	hxrt.Println(true)
-	hxrt.Println(true)
-	hxrt.Println(false)
-	hxrt.Println((hxrt.StringFromLiteral("x") != nil))
-	hxrt.Println(true)
-	hxrt.Println(false)
+	hxrt.Println(v_3)
+	var v_4 any = any(true)
+	hxrt.Println(v_4)
+	var v_5 any = any(true)
+	hxrt.Println(v_5)
+	var v_6 any = any(false)
+	hxrt.Println(v_6)
+	var v_7 any = any((hxrt.StringFromLiteral("x") != nil))
+	hxrt.Println(v_7)
+	var v_8 any = any(true)
+	hxrt.Println(v_8)
+	var v_9 any = any(false)
+	hxrt.Println(v_9)
 }

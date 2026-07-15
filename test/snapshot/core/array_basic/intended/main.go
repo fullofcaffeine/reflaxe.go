@@ -11,6 +11,7 @@ func main() {
 	values_0 = 10
 	values_1 = 20
 	values_2 = 30
-	hxrt.Println(values_0)
-	hxrt.Println(3)
+	hxrt.Println(any(values_0))
+	var v any = any(3)
+	hxrt.Println(v)
 }

@@ -27,7 +27,8 @@ type hxrt__TypeEnumValue struct {
 
 func main() {
 	out := sys__ssl__Digest_make(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("ssl")), any(hxrt.StringFromLiteral("SHA256")))
-	hxrt.Println(out.toHex())
+	var v any = any(out.toHex())
+	hxrt.Println(v)
 }
 
 type haxe__io__Encoding struct {

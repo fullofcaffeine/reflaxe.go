@@ -61,7 +61,7 @@ SHIM_CAPABILITIES = {
     "lowerTypedGoResultShimDecls": "go_result",
     "lowerDsStdlibShimDecls": "collections",
     "lowerHttpStdlibShimDecls": "http",
-    "lowerSysStdlibShimDecls": "sys",
+    "lowerProcessStdlibShimDecls": "process",
     "lowerFileSystemShimDecls": "filesystem",
     "lowerStdlibSymbolShimDecls": "stdlib_symbols",
     "reflectFieldsShimDecl": "reflection",
@@ -156,6 +156,8 @@ def shim_capability(context: str) -> str:
 
 
 def source_capability(file: str) -> str:
+    if file.endswith("/Sys.hx") or "/hxrt/sys/" in file:
+        return "sys"
     if file.endswith("atomic_object.go"):
         return "atomic"
     if "/thread/" in file or file.endswith("Thread.hx"):

@@ -8,70 +8,79 @@ import (
 func main() {
 	ch := go__concurrency_newChan__int_95e97e5e(1)
 	empty := go__concurrency_tryRecv__int_95e97e5e(ch.__hx_native)
-	hxrt.Println(func(hx_value_1 any) bool {
+	var v any = any(func(hx_value_1 any) bool {
 		if hx_value_1 == nil {
 			var hx_zero_2 bool
 			return hx_zero_2
 		}
 		return hx_value_1.(bool)
 	}(empty.isErr()))
+	hxrt.Println(v)
 	go__concurrency_send__int_95e97e5e(ch.__hx_native, 9)
 	got := go__concurrency_tryRecv__int_95e97e5e(ch.__hx_native)
-	hxrt.Println(func(hx_value_3 any) bool {
+	var v_1 any = any(func(hx_value_3 any) bool {
 		if hx_value_3 == nil {
 			var hx_zero_4 bool
 			return hx_zero_4
 		}
 		return hx_value_3.(bool)
 	}(got.isOk()))
-	hxrt.Println(func(hx_value_5 any) int {
+	hxrt.Println(v_1)
+	var v_2 any = any(func(hx_value_5 any) int {
 		if hx_value_5 == nil {
 			var hx_zero_6 int
 			return hx_zero_6
 		}
 		return hx_value_5.(int)
 	}(got.unwrap()))
+	hxrt.Println(v_2)
 	emptyAgain := go__concurrency_tryRecv__int_95e97e5e(ch.__hx_native)
-	hxrt.Println(func(hx_value_7 any) bool {
+	var v_3 any = any(func(hx_value_7 any) bool {
 		if hx_value_7 == nil {
 			var hx_zero_8 bool
 			return hx_zero_8
 		}
 		return hx_value_7.(bool)
 	}(emptyAgain.isErr()))
+	hxrt.Println(v_3)
 	go__concurrency_send__int_95e97e5e(ch.__hx_native, 12)
 	go__concurrency_close__int_95e97e5e(ch.__hx_native)
 	bufferedBeforeClose := go__concurrency_tryRecv__int_95e97e5e(ch.__hx_native)
-	hxrt.Println(func(hx_value_9 any) bool {
+	var v_4 any = any(func(hx_value_9 any) bool {
 		if hx_value_9 == nil {
 			var hx_zero_10 bool
 			return hx_zero_10
 		}
 		return hx_value_9.(bool)
 	}(bufferedBeforeClose.isOk()))
-	hxrt.Println(func(hx_value_11 any) int {
+	hxrt.Println(v_4)
+	var v_5 any = any(func(hx_value_11 any) int {
 		if hx_value_11 == nil {
 			var hx_zero_12 int
 			return hx_zero_12
 		}
 		return hx_value_11.(int)
 	}(bufferedBeforeClose.unwrap()))
+	hxrt.Println(v_5)
 	closed := go__concurrency_tryRecv__int_95e97e5e(ch.__hx_native)
-	hxrt.Println(func(hx_value_13 any) bool {
+	var v_6 any = any(func(hx_value_13 any) bool {
 		if hx_value_13 == nil {
 			var hx_zero_14 bool
 			return hx_zero_14
 		}
 		return hx_value_13.(bool)
 	}(closed.isErr()))
-	hxrt.Println(func(hx_value_15 any) *string {
+	hxrt.Println(v_6)
+	var v_7 any = any(func(hx_value_15 any) *string {
 		if hx_value_15 == nil {
 			var hx_zero_16 *string
 			return hx_zero_16
 		}
 		return hx_value_15.(*string)
 	}(closed.error()))
-	hxrt.Println(go__concurrency_recvOr__int_95e97e5e(ch.__hx_native, -1))
+	hxrt.Println(v_7)
+	var v_8 any = any(go__concurrency_recvOr__int_95e97e5e(ch.__hx_native, -1))
+	hxrt.Println(v_8)
 }
 
 type haxe__ds__IntMap struct {

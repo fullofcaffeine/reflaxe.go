@@ -43,8 +43,10 @@ func main() {
 		}
 		return hx_value_3.(int)
 	}(Reflect_field(values, hxrt.StringFromLiteral("right"))))))))
-	hxrt.Println(hxrt.StdString(sum))
-	hxrt.Println(hxrt.StdString(Reflect_hasField(values, hxrt.StringFromLiteral("missing"))))
+	var v any = any(hxrt.StdString(sum))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StdString(Reflect_hasField(values, hxrt.StringFromLiteral("missing"))))
+	hxrt.Println(v_1)
 }
 
 type haxe__io__Encoding struct {

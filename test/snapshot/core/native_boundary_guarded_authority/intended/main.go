@@ -8,7 +8,8 @@ import (
 func main() {
 	channel := go__concurrency_newChan__int_95e97e5e(1)
 	go__concurrency_send__int_95e97e5e(channel.__hx_native, 11)
-	hxrt.Println(go__concurrency_recv__int_95e97e5e(channel.__hx_native))
+	var v any = any(go__concurrency_recv__int_95e97e5e(channel.__hx_native))
+	hxrt.Println(v)
 	go__concurrency_close__int_95e97e5e(channel.__hx_native)
 }
 

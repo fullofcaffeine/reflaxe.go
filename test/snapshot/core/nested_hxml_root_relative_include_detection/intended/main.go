@@ -3,5 +3,5 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	hxrt.Println(hxrt.StringFromLiteral("nested-hxml-root-relative-ok"))
+	hxrt.Println(any(hxrt.StringFromLiteral("nested-hxml-root-relative-ok")))
 }

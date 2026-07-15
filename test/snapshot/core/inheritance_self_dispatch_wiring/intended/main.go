@@ -43,5 +43,6 @@ func (self *Child) ping() int {
 
 func main() {
 	child := New_Child()
-	hxrt.Println(child.ping())
+	var v any = any(child.ping())
+	hxrt.Println(v)
 }

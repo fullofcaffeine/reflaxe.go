@@ -9,18 +9,20 @@ func main() {
 	ch := New_go___Chan()
 	ch.send(10)
 	ch.send(20)
-	hxrt.Println(func(hx_value_1 any) any {
+	var v any = any(func(hx_value_1 any) any {
 		if hx_value_1 == nil {
 			return nil
 		}
 		return hx_value_1.(int)
 	}(ch.recv()))
-	hxrt.Println(func(hx_value_2 any) any {
+	hxrt.Println(v)
+	var v_1 any = any(func(hx_value_2 any) any {
 		if hx_value_2 == nil {
 			return nil
 		}
 		return hx_value_2.(int)
 	}(ch.recv()))
+	hxrt.Println(v_1)
 }
 
 type haxe__ds__IntMap struct {

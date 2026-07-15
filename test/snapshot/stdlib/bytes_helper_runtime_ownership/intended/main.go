@@ -4,7 +4,8 @@ import "snapshot/hxrt"
 
 func main() {
 	parsed := haxe__io__Bytes_ofHex(hxrt.StringFromLiteral("0fDA"))
-	hxrt.Println(parsed.toHex())
+	var v any = any(parsed.toHex())
+	hxrt.Println(v)
 	buffer := New_haxe__io__BytesBuffer()
 	hx_arr_1 := buffer.b
 	hx_arr_1 = append(hx_arr_1, (260 & 255))
@@ -41,7 +42,8 @@ func main() {
 		buffer.b = hx_arr_5
 	}
 	out := buffer.getBytes()
-	hxrt.Println(out.toHex())
+	var v_1 any = any(out.toHex())
+	hxrt.Println(v_1)
 }
 
 type haxe__io__Encoding struct {

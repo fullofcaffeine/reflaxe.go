@@ -21,8 +21,10 @@ func main() {
 		hx_try_4 = 11
 	})
 	b := hx_try_4
-	hxrt.Println(hxrt.StdString(a))
-	hxrt.Println(hxrt.StdString(b))
+	var v any = any(hxrt.StdString(a))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StdString(b))
+	hxrt.Println(v_1)
 }
 
 func risky(v int) int {

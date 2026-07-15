@@ -27,13 +27,20 @@ type hxrt__TypeEnumValue struct {
 
 func main() {
 	x := 3.8
-	hxrt.Println(Math_floor(x))
-	hxrt.Println(Math_ceil(x))
-	hxrt.Println(Math_round(x))
-	hxrt.Println(Math_round(x))
-	hxrt.Println(Math_abs(x))
-	hxrt.Println(Math_min(x, 2.1))
-	hxrt.Println(Math_max(x, 2.1))
+	var v any = any(Math_floor(x))
+	hxrt.Println(v)
+	var v_1 any = any(Math_ceil(x))
+	hxrt.Println(v_1)
+	var v_2 any = any(Math_round(x))
+	hxrt.Println(v_2)
+	var v_3 any = any(Math_round(x))
+	hxrt.Println(v_3)
+	var v_4 any = any(Math_abs(x))
+	hxrt.Println(v_4)
+	var v_5 any = any(Math_min(x, 2.1))
+	hxrt.Println(v_5)
+	var v_6 any = any(Math_max(x, 2.1))
+	hxrt.Println(v_6)
 }
 
 type haxe__io__Encoding struct {

@@ -9,7 +9,8 @@ func main() {
 }
 
 func printNamed(value Named) {
-	hxrt.Println(value.name())
+	var v any = any(value.name())
+	hxrt.Println(v)
 }
 
 type Named interface {

@@ -33,20 +33,22 @@ func main() {
 	stack := New_haxe__ds__GenericStack()
 	stack.head = New_haxe__ds__GenericCell(hxrt.StringFromLiteral("alpha"), stack.head)
 	stack.head = New_haxe__ds__GenericCell(hxrt.StringFromLiteral("beta"), stack.head)
-	hxrt.Println(func(hx_value_1 any) *string {
+	var v any = any(func(hx_value_1 any) *string {
 		if hx_value_1 == nil {
 			var hx_zero_2 *string
 			return hx_zero_2
 		}
 		return hx_value_1.(*string)
 	}(tree.get(1)))
-	hxrt.Println(func(hx_value_3 any) *string {
+	hxrt.Println(v)
+	var v_1 any = any(func(hx_value_3 any) *string {
 		if hx_value_3 == nil {
 			var hx_zero_4 *string
 			return hx_zero_4
 		}
 		return hx_value_3.(*string)
 	}(stack.toString()))
+	hxrt.Println(v_1)
 }
 
 type haxe__io__Encoding struct {

@@ -166,6 +166,18 @@
       "surface": "compiler"
     },
     {
+      "capability": "process",
+      "classification": "required",
+      "context": "lowerProcessStdlibShimDecls",
+      "exception_id": "compiler_shim_boundary",
+      "file": "src/reflaxe/go/GoCompiler.hx",
+      "max_count": 1,
+      "metric": "compiler_shim",
+      "owner": "compiler_shim",
+      "profile": "shared",
+      "surface": "compiler"
+    },
+    {
       "capability": "regex_serializer",
       "classification": "required",
       "context": "lowerRegexSerializerShimDecls",
@@ -193,18 +205,6 @@
       "capability": "stdlib_symbols",
       "classification": "required",
       "context": "lowerStdlibSymbolShimDecls",
-      "exception_id": "compiler_shim_boundary",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "compiler_shim",
-      "owner": "compiler_shim",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
-      "capability": "sys",
-      "classification": "required",
-      "context": "lowerSysStdlibShimDecls",
       "exception_id": "compiler_shim_boundary",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
@@ -490,24 +490,24 @@
       "surface": "compiler"
     },
     {
-      "capability": "stdlib_symbols",
+      "capability": "process",
       "classification": "avoidable",
-      "context": "lowerStdlibSymbolShimDecls",
+      "context": "lowerProcessStdlibShimDecls",
       "exception_id": "typed_ast_gap",
       "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 764,
+      "max_count": 134,
       "metric": "go_raw",
       "owner": "compiler_shim",
       "profile": "shared",
       "surface": "compiler"
     },
     {
-      "capability": "sys",
+      "capability": "stdlib_symbols",
       "classification": "avoidable",
-      "context": "lowerSysStdlibShimDecls",
+      "context": "lowerStdlibSymbolShimDecls",
       "exception_id": "typed_ast_gap",
       "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 138,
+      "max_count": 764,
       "metric": "go_raw",
       "owner": "compiler_shim",
       "profile": "shared",
@@ -838,30 +838,6 @@
       "surface": "generated_runtime"
     },
     {
-      "capability": "dynamic_semantics",
-      "classification": "required",
-      "context": "<import>",
-      "exception_id": "generated_reflection_boundary",
-      "file": "examples/fluxproxy/generated/metal/main.go",
-      "max_count": 1,
-      "metric": "go_reflection",
-      "owner": "generated_output",
-      "profile": "metal",
-      "surface": "generated_program"
-    },
-    {
-      "capability": "dynamic_semantics",
-      "classification": "required",
-      "context": "<module>",
-      "exception_id": "generated_reflection_boundary",
-      "file": "examples/fluxproxy/generated/metal/main.go",
-      "max_count": 34,
-      "metric": "go_reflection",
-      "owner": "generated_output",
-      "profile": "metal",
-      "surface": "generated_program"
-    },
-    {
       "capability": "runtime_support",
       "classification": "required",
       "context": "<import>",
@@ -908,30 +884,6 @@
       "owner": "runtime_hxrt",
       "profile": "portable",
       "surface": "generated_runtime"
-    },
-    {
-      "capability": "dynamic_semantics",
-      "classification": "required",
-      "context": "<import>",
-      "exception_id": "generated_reflection_boundary",
-      "file": "examples/fluxproxy/generated/portable/main.go",
-      "max_count": 1,
-      "metric": "go_reflection",
-      "owner": "generated_output",
-      "profile": "portable",
-      "surface": "generated_program"
-    },
-    {
-      "capability": "dynamic_semantics",
-      "classification": "required",
-      "context": "<module>",
-      "exception_id": "generated_reflection_boundary",
-      "file": "examples/fluxproxy/generated/portable/main.go",
-      "max_count": 34,
-      "metric": "go_reflection",
-      "owner": "generated_output",
-      "profile": "portable",
-      "surface": "generated_program"
     },
     {
       "capability": "runtime_support",
@@ -1270,30 +1222,6 @@
       "surface": "generated_runtime"
     },
     {
-      "capability": "dynamic_semantics",
-      "classification": "required",
-      "context": "<import>",
-      "exception_id": "generated_reflection_boundary",
-      "file": "examples/pulseforge/generated/metal/main.go",
-      "max_count": 1,
-      "metric": "go_reflection",
-      "owner": "generated_output",
-      "profile": "metal",
-      "surface": "generated_program"
-    },
-    {
-      "capability": "dynamic_semantics",
-      "classification": "required",
-      "context": "<module>",
-      "exception_id": "generated_reflection_boundary",
-      "file": "examples/pulseforge/generated/metal/main.go",
-      "max_count": 34,
-      "metric": "go_reflection",
-      "owner": "generated_output",
-      "profile": "metal",
-      "surface": "generated_program"
-    },
-    {
       "capability": "runtime_support",
       "classification": "required",
       "context": "<import>",
@@ -1342,30 +1270,6 @@
       "surface": "generated_runtime"
     },
     {
-      "capability": "dynamic_semantics",
-      "classification": "required",
-      "context": "<import>",
-      "exception_id": "generated_reflection_boundary",
-      "file": "examples/pulseforge/generated/portable/main.go",
-      "max_count": 1,
-      "metric": "go_reflection",
-      "owner": "generated_output",
-      "profile": "portable",
-      "surface": "generated_program"
-    },
-    {
-      "capability": "dynamic_semantics",
-      "classification": "required",
-      "context": "<module>",
-      "exception_id": "generated_reflection_boundary",
-      "file": "examples/pulseforge/generated/portable/main.go",
-      "max_count": 34,
-      "metric": "go_reflection",
-      "owner": "generated_output",
-      "profile": "portable",
-      "surface": "generated_program"
-    },
-    {
       "capability": "runtime_support",
       "classification": "required",
       "context": "<import>",
@@ -1412,30 +1316,6 @@
       "owner": "runtime_hxrt",
       "profile": "portable",
       "surface": "generated_runtime"
-    },
-    {
-      "capability": "dynamic_semantics",
-      "classification": "required",
-      "context": "<import>",
-      "exception_id": "generated_reflection_boundary",
-      "file": "examples/tui_todo/generated/portable/main.go",
-      "max_count": 1,
-      "metric": "go_reflection",
-      "owner": "generated_output",
-      "profile": "portable",
-      "surface": "generated_program"
-    },
-    {
-      "capability": "dynamic_semantics",
-      "classification": "required",
-      "context": "<module>",
-      "exception_id": "generated_reflection_boundary",
-      "file": "examples/tui_todo/generated/portable/main.go",
-      "max_count": 34,
-      "metric": "go_reflection",
-      "owner": "generated_output",
-      "profile": "portable",
-      "surface": "generated_program"
     },
     {
       "capability": "runtime_support",
@@ -1784,6 +1664,30 @@
       "owner": "compiler_adapter",
       "profile": "shared",
       "surface": "compiler"
+    },
+    {
+      "capability": "sys",
+      "classification": "required",
+      "context": "print",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/Sys.hx",
+      "max_count": 1,
+      "metric": "haxe_dynamic",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "sys",
+      "classification": "required",
+      "context": "println",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/Sys.hx",
+      "max_count": 1,
+      "metric": "haxe_dynamic",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
     },
     {
       "capability": "dynamic_values",
@@ -2334,6 +2238,30 @@
       "max_count": 1,
       "metric": "haxe_dynamic",
       "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "sys",
+      "classification": "required",
+      "context": "print",
+      "exception_id": "runtime_facade_dynamic_contract",
+      "file": "std/hxrt/sys/NativeConsole.hx",
+      "max_count": 1,
+      "metric": "haxe_dynamic",
+      "owner": "runtime_facade",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "sys",
+      "classification": "required",
+      "context": "println",
+      "exception_id": "runtime_facade_dynamic_contract",
+      "file": "std/hxrt/sys/NativeConsole.hx",
+      "max_count": 1,
+      "metric": "haxe_dynamic",
+      "owner": "runtime_facade",
       "profile": "shared",
       "surface": "staged_std"
     },

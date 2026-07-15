@@ -9,9 +9,9 @@ func main() {
 	blocked := go__concurrency_newChan__bool_c894953d(0)
 	go___Go_spawn(func() {
 		go__concurrency_recv__bool_c894953d(blocked.__hx_native)
-		hxrt.Println(hxrt.StringFromLiteral("late-native-goroutine"))
+		hxrt.Println(any(hxrt.StringFromLiteral("late-native-goroutine")))
 	})
-	hxrt.Println(hxrt.StringFromLiteral("main-only"))
+	hxrt.Println(any(hxrt.StringFromLiteral("main-only")))
 }
 
 type haxe__ds__IntMap struct {

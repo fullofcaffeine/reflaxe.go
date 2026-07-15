@@ -33,10 +33,16 @@ func intBranch(value any) int {
 }
 
 func main() {
-	hxrt.Println(intBranch(4))
-	hxrt.Println(intBranch(nil))
-	hxrt.Println(floatBranch(5.0))
-	hxrt.Println(floatBranch(nil))
-	hxrt.Println(boolBranch(true))
-	hxrt.Println(boolBranch(nil))
+	var v any = any(intBranch(4))
+	hxrt.Println(v)
+	var v_1 any = any(intBranch(nil))
+	hxrt.Println(v_1)
+	var v_2 any = any(floatBranch(5.0))
+	hxrt.Println(v_2)
+	var v_3 any = any(floatBranch(nil))
+	hxrt.Println(v_3)
+	var v_4 any = any(boolBranch(true))
+	hxrt.Println(v_4)
+	var v_5 any = any(boolBranch(nil))
+	hxrt.Println(v_5)
 }

@@ -46,9 +46,12 @@ func main() {
 		hx_tuple_5, hx_tuple_6 := time.Now().Zone()
 		return New_TimeZoneResult(hxrt.StdString(hx_tuple_5), hx_tuple_6)
 	}()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("atoi.ok="), ok.n), hxrt.StringFromLiteral(":")), hxrt.StdString((ok.err == nil))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("atoi.err="), hxrt.StdString((bad.err != nil))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("zone.typed="), hxrt.StdString((hxrt.StringLengthStringPtr(zone.name) >= 0))), hxrt.StringFromLiteral(":")), hxrt.StdString((zone.offset >= -86400))))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("atoi.ok="), ok.n), hxrt.StringFromLiteral(":")), hxrt.StdString((ok.err == nil))))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("atoi.err="), hxrt.StdString((bad.err != nil))))
+	hxrt.Println(v_1)
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("zone.typed="), hxrt.StdString((hxrt.StringLengthStringPtr(zone.name) >= 0))), hxrt.StringFromLiteral(":")), hxrt.StdString((zone.offset >= -86400))))
+	hxrt.Println(v_2)
 }
 
 type I_TimeZoneResult interface {

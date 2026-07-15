@@ -33,17 +33,22 @@ func main() {
 	doc.addChild(root)
 	parsed := Xml_parse(hxrt.StringFromLiteral("<outer><inner a=\"1\">v</inner></outer>"))
 	parsedCData := Xml_parse(hxrt.StringFromLiteral("<outer><![CDATA[x]]></outer>"))
-	hxrt.Println(haxe__xml__Printer_print(doc))
-	hxrt.Println(parsed.firstElement().firstElement().get(hxrt.StringFromLiteral("a")))
-	hxrt.Println(haxe__xml__Printer_print(parsed))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("type="), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(func() *Xml {
+	var v any = any(haxe__xml__Printer_print(doc))
+	hxrt.Println(v)
+	var v_1 any = any(parsed.firstElement().firstElement().get(hxrt.StringFromLiteral("a")))
+	hxrt.Println(v_1)
+	var v_2 any = any(haxe__xml__Printer_print(parsed))
+	hxrt.Println(v_2)
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("type="), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(func() *Xml {
 		_this := parsedCData.firstElement()
 		if (_this.nodeType != Xml_Document) && (_this.nodeType != Xml_Element) {
 			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element or Document but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(_this.nodeType))))
 		}
 		return _this.children[0]
 	}().nodeType))))
-	hxrt.Println(haxe__xml__Printer_print(parsedCData))
+	hxrt.Println(v_3)
+	var v_4 any = any(haxe__xml__Printer_print(parsedCData))
+	hxrt.Println(v_4)
 }
 
 type haxe__io__Encoding struct {

@@ -3,7 +3,7 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	hxrt.Println(hxrt.StringFromLiteral("ok"))
+	hxrt.Println(any(hxrt.StringFromLiteral("ok")))
 }
 
 func hxrt__test_ast_select_stmt_smoke() {

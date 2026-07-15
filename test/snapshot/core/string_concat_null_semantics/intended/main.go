@@ -8,7 +8,7 @@ func main() {
 	a := hxrt.StringConcatStringPtr(left, hxrt.StringFromLiteral("x"))
 	b := hxrt.StringConcatStringPtr(right, nil)
 	c := hxrt.StringFromLiteral("p12")
-	hxrt.Println(a)
-	hxrt.Println(b)
-	hxrt.Println(c)
+	hxrt.Println(any(a))
+	hxrt.Println(any(b))
+	hxrt.Println(any(c))
 }

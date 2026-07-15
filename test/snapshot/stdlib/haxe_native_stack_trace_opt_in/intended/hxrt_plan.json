@@ -54,8 +54,13 @@
 		},
 		{
 			"feature": "stack",
-			"sourceKind": "define",
-			"source": "reflaxe_go_native_stack_trace"
+			"sourceKind": "class_usage",
+			"source": "hxrt.stack.NativeStack"
+		},
+		{
+			"feature": "stack",
+			"sourceKind": "class_usage",
+			"source": "hxrt.stack.NativeStackFrame"
 		}
 	]
 }

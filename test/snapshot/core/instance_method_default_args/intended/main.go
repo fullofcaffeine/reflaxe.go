@@ -27,10 +27,16 @@ func (self *Greeter) wrap(prefix *string, suffix *string) *string {
 
 func main() {
 	greeter := New_Greeter()
-	hxrt.Println(greeter.greet(hxrt.StringFromLiteral("world"), hxrt.StringFromLiteral("!")))
-	hxrt.Println(greeter.greet(hxrt.StringFromLiteral("Go"), hxrt.StringFromLiteral("!")))
-	hxrt.Println(greeter.greet(hxrt.StringFromLiteral("Go"), hxrt.StringFromLiteral("?")))
-	hxrt.Println(greeter.wrap(hxrt.StringFromLiteral("["), hxrt.StringFromLiteral("]")))
-	hxrt.Println(greeter.wrap(hxrt.StringFromLiteral("<"), hxrt.StringFromLiteral("]")))
-	hxrt.Println(greeter.wrap(hxrt.StringFromLiteral("<"), hxrt.StringFromLiteral(">")))
+	var v any = any(greeter.greet(hxrt.StringFromLiteral("world"), hxrt.StringFromLiteral("!")))
+	hxrt.Println(v)
+	var v_1 any = any(greeter.greet(hxrt.StringFromLiteral("Go"), hxrt.StringFromLiteral("!")))
+	hxrt.Println(v_1)
+	var v_2 any = any(greeter.greet(hxrt.StringFromLiteral("Go"), hxrt.StringFromLiteral("?")))
+	hxrt.Println(v_2)
+	var v_3 any = any(greeter.wrap(hxrt.StringFromLiteral("["), hxrt.StringFromLiteral("]")))
+	hxrt.Println(v_3)
+	var v_4 any = any(greeter.wrap(hxrt.StringFromLiteral("<"), hxrt.StringFromLiteral("]")))
+	hxrt.Println(v_4)
+	var v_5 any = any(greeter.wrap(hxrt.StringFromLiteral("<"), hxrt.StringFromLiteral(">")))
+	hxrt.Println(v_5)
 }

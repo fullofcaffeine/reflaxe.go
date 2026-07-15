@@ -9,7 +9,7 @@ func main() {
 	path := hxrt.StringFromLiteral("./tmp_sys_file_smoke.txt")
 	sys__io__File_saveContent(path, hxrt.StringFromLiteral("hello"))
 	content := sys__io__File_getContent(path)
-	hxrt.Println(content)
+	hxrt.Println(any(content))
 }
 
 type haxe__io__Encoding struct {

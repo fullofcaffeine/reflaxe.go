@@ -93,7 +93,11 @@ class GoHxrtFeatureAnalyzer {
 				add(FEATURE_PROCESS, "class_usage", path);
 			}
 
-			if (path == "Sys" || path == "sys.io.Process" || path == "sys.io.File" || path == "sys.io.FileInput" || path == "sys.io.FileOutput") {
+			if (path == "hxrt.sys.NativeSys") {
+				add(FEATURE_SYS, "class_usage", path);
+			}
+
+			if (path == "hxrt.fs.NativeFile" || path == "sys.io.File" || path == "sys.io.FileInput" || path == "sys.io.FileOutput") {
 				add(FEATURE_FILE_IO, "class_usage", path);
 			}
 
@@ -101,8 +105,8 @@ class GoHxrtFeatureAnalyzer {
 				add(FEATURE_FILESYSTEM, "class_usage", path);
 			}
 
-			var isFileIoPath = path == "sys.io.File" || path == "sys.io.FileInput" || path == "sys.io.FileOutput";
-			if (!isFileIoPath && (path == "Sys" || path == "sys.FileSystem" || StringTools.startsWith(path, "sys."))) {
+			var hasDedicatedRuntimeSlice = path == "sys.io.Process" || path == "sys.io.File" || path == "sys.io.FileInput" || path == "sys.io.FileOutput";
+			if (!hasDedicatedRuntimeSlice && (path == "sys.FileSystem" || StringTools.startsWith(path, "sys."))) {
 				add(FEATURE_SYS, "class_usage", path);
 			}
 
@@ -142,10 +146,8 @@ class GoHxrtFeatureAnalyzer {
 					add(FEATURE_ATOMIC_OBJECT, "shim_group", group);
 				case "io":
 					add(FEATURE_BYTES, "shim_group", group);
-				case "sys":
-					add(FEATURE_SYS, "shim_group", group);
+				case "process":
 					add(FEATURE_PROCESS, "shim_group", group);
-					add(FEATURE_FILE_IO, "shim_group", group);
 				case "http", "net_socket":
 					add(FEATURE_SYS, "shim_group", group);
 					add(FEATURE_PROCESS, "shim_group", group);
@@ -238,7 +240,7 @@ class GoHxrtFeatureAnalyzer {
 			case FEATURE_FILESYSTEM:
 				[FEATURE_STRING];
 			case FEATURE_PROCESS:
-				[FEATURE_SYS];
+				[FEATURE_STRING];
 			case FEATURE_BYTES:
 				[FEATURE_CORE];
 			case FEATURE_SSL:

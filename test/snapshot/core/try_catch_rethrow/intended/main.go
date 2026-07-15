@@ -10,7 +10,7 @@ func main() {
 			switch hx_typed_4 := hx_caught_3.(type) {
 			case int:
 				i := hx_typed_4
-				hxrt.Println(i)
+				hxrt.Println(any(i))
 			default:
 				hxrt.Throw(hx_caught_3)
 			}
@@ -18,6 +18,6 @@ func main() {
 	}, func(hx_caught_1 any) {
 		e := hx_caught_1
 		_ = e
-		hxrt.Println(hxrt.StringFromLiteral("outer"))
+		hxrt.Println(any(hxrt.StringFromLiteral("outer")))
 	})
 }

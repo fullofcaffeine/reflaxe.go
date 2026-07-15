@@ -1,4 +1,6 @@
 class Main {
+	static var sysTypeProbe:Sys = null;
+
 	static function main() {
 		var printFn:Dynamic->Void = Sys.print;
 		var printlnFn:Dynamic->Void = Sys.println;

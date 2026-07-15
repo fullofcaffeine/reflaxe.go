@@ -7,49 +7,55 @@ import (
 
 func main() {
 	ok := go__result_fromValueError(strconv.Atoi(*hxrt.StdString(hxrt.StringFromLiteral("42"))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ok.isOk="), hxrt.StdString(func(hx_value_1 any) bool {
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ok.isOk="), hxrt.StdString(func(hx_value_1 any) bool {
 		if hx_value_1 == nil {
 			var hx_zero_2 bool
 			return hx_zero_2
 		}
 		return hx_value_1.(bool)
 	}(ok.isOk()))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ok.isErr="), hxrt.StdString(func(hx_value_3 any) bool {
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ok.isErr="), hxrt.StdString(func(hx_value_3 any) bool {
 		if hx_value_3 == nil {
 			var hx_zero_4 bool
 			return hx_zero_4
 		}
 		return hx_value_3.(bool)
 	}(ok.isErr()))))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok.unwrap="), func(hx_value_5 any) int {
+	hxrt.Println(v_1)
+	var v_2 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok.unwrap="), func(hx_value_5 any) int {
 		if hx_value_5 == nil {
 			var hx_zero_6 int
 			return hx_zero_6
 		}
 		return hx_value_5.(int)
 	}(ok.unwrap())))
+	hxrt.Println(v_2)
 	err := go__result_fromValueError(strconv.Atoi(*hxrt.StdString(hxrt.StringFromLiteral("x"))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("err.isOk="), hxrt.StdString(func(hx_value_7 any) bool {
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("err.isOk="), hxrt.StdString(func(hx_value_7 any) bool {
 		if hx_value_7 == nil {
 			var hx_zero_8 bool
 			return hx_zero_8
 		}
 		return hx_value_7.(bool)
 	}(err.isOk()))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("err.isErr="), hxrt.StdString(func(hx_value_9 any) bool {
+	hxrt.Println(v_3)
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("err.isErr="), hxrt.StdString(func(hx_value_9 any) bool {
 		if hx_value_9 == nil {
 			var hx_zero_10 bool
 			return hx_zero_10
 		}
 		return hx_value_9.(bool)
 	}(err.isErr()))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("err.hasError="), hxrt.StdString(!hxrt.StringEqualStringPtr(func(hx_value_11 any) *string {
+	hxrt.Println(v_4)
+	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("err.hasError="), hxrt.StdString(!hxrt.StringEqualStringPtr(func(hx_value_11 any) *string {
 		if hx_value_11 == nil {
 			var hx_zero_12 *string
 			return hx_zero_12
 		}
 		return hx_value_11.(*string)
 	}(err.error()), nil))))
+	hxrt.Println(v_5)
 }
 
 func go__result_fromValueError(value any, err error) *go___Result {

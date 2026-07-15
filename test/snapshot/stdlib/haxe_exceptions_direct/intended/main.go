@@ -12,7 +12,10 @@ func main() {
 	posError := New_haxe__exceptions__PosException(hxrt.StringFromLiteral("boom"), nil, pos)
 	argError := New_haxe__exceptions__ArgumentException(hxrt.StringFromLiteral("count"), nil, nil, pos)
 	notImpl := New_haxe__exceptions__NotImplementedException(nil, nil, pos)
-	hxrt.Println(hxrt.ExceptionMessage(posError))
-	hxrt.Println(argError.argument)
-	hxrt.Println(hxrt.ExceptionMessage(notImpl))
+	var v any = any(hxrt.ExceptionMessage(posError))
+	hxrt.Println(v)
+	var v_1 any = any(argError.argument)
+	hxrt.Println(v_1)
+	var v_2 any = any(hxrt.ExceptionMessage(notImpl))
+	hxrt.Println(v_2)
 }

@@ -8,15 +8,17 @@ import (
 func main() {
 	s := hxrt.StringFromLiteral("héllo")
 	out := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringCharAtStringPtr(s, 1), hxrt.StdString(hxrt.StringCharCodeAtAnyStringPtr(s, 1))), hxrt.StringSubstringStringPtr(s, 0, 3)), hxrt.StringSubstrStringPtr(s, -2, 0, false))
-	hxrt.Println(int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(s)) + hxrt.Int32Wrap(hxrt.StringLengthStringPtr(out))))))
+	var v any = any(int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(s)) + hxrt.Int32Wrap(hxrt.StringLengthStringPtr(out))))))
+	hxrt.Println(v)
 	ch := New_go___Chan()
 	ch.send(7)
-	hxrt.Println(func(hx_value_1 any) any {
+	var v_1 any = any(func(hx_value_1 any) any {
 		if hx_value_1 == nil {
 			return nil
 		}
 		return hx_value_1.(int)
 	}(ch.recv()))
+	hxrt.Println(v_1)
 }
 
 type haxe__ds__IntMap struct {

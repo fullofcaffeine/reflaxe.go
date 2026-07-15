@@ -31,28 +31,32 @@ type hxrt__TypeEnumValue struct {
 
 func main() {
 	basic := New_haxe__Template(hxrt.StringFromLiteral("::name::"))
-	hxrt.Println(basic.execute(func() map[string]any {
+	var v any = any(basic.execute(func() map[string]any {
 		hx_obj_1 := map[string]any{}
 		hx_obj_1["name"] = hxrt.StringFromLiteral("ok")
 		return hx_obj_1
 	}(), nil))
+	hxrt.Println(v)
 	cond := New_haxe__Template(hxrt.StringFromLiteral("::if enabled::yes::else::no::end::"))
-	hxrt.Println(cond.execute(func() map[string]any {
+	var v_1 any = any(cond.execute(func() map[string]any {
 		hx_obj_2 := map[string]any{}
 		hx_obj_2["enabled"] = true
 		return hx_obj_2
 	}(), nil))
-	hxrt.Println(cond.execute(func() map[string]any {
+	hxrt.Println(v_1)
+	var v_2 any = any(cond.execute(func() map[string]any {
 		hx_obj_3 := map[string]any{}
 		hx_obj_3["enabled"] = false
 		return hx_obj_3
 	}(), nil))
+	hxrt.Println(v_2)
 	loop := New_haxe__Template(hxrt.StringFromLiteral("::foreach items::::__current__::::end::"))
-	hxrt.Println(loop.execute(func() map[string]any {
+	var v_3 any = any(loop.execute(func() map[string]any {
 		hx_obj_4 := map[string]any{}
 		hx_obj_4["items"] = []*string{hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("c")}
 		return hx_obj_4
 	}(), nil))
+	hxrt.Println(v_3)
 }
 
 type haxe__io__Encoding struct {

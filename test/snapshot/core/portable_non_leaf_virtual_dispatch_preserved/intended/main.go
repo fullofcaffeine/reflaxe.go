@@ -50,5 +50,6 @@ func (self *Child) who() int {
 func main() {
 	child := New_Child()
 	base := child.Base
-	hxrt.Println(base.__hx_this.callWho())
+	var v any = any(base.__hx_this.callWho())
+	hxrt.Println(v)
 }

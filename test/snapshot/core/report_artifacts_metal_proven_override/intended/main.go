@@ -8,12 +8,13 @@ import (
 func main() {
 	channel := go___Go_newChan(1)
 	channel.send(13)
-	hxrt.Println(func(hx_value_1 any) any {
+	var v any = any(func(hx_value_1 any) any {
 		if hx_value_1 == nil {
 			return nil
 		}
 		return hx_value_1.(int)
 	}(channel.recv()))
+	hxrt.Println(v)
 	channel.close()
 }
 

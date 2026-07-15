@@ -38,8 +38,10 @@ func eval(expr *Expr) int {
 
 func main() {
 	writeOnly()
-	hxrt.Println(eval(Expr_Lit(3)))
-	hxrt.Println(eval(Expr_Pair(2, 5)))
+	var v any = any(eval(Expr_Lit(3)))
+	hxrt.Println(v)
+	var v_1 any = any(eval(Expr_Pair(2, 5)))
+	hxrt.Println(v_1)
 }
 
 func writeOnly() {

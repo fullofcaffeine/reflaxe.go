@@ -44,7 +44,8 @@ func connectAndPrint(port int, hostname *string) {
 	client.connect(New_sys__net__Host(hxrt.StringFromLiteral("127.0.0.1")), port)
 	client.handshake()
 	peer := client.peerCertificate()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hostname, hxrt.StringFromLiteral("=")), peer.get_commonName()))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hostname, hxrt.StringFromLiteral("=")), peer.get_commonName()))
+	hxrt.Println(v)
 	client.close()
 }
 

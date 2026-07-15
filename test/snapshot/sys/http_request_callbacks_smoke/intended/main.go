@@ -52,11 +52,12 @@ func main() {
 	http.setParameter(hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("1"))
 	http.addParameter(hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("2"))
 	http.request()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("data="), dataLog))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("bytes="), byteCount))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("status="), statusLog))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("response="), http.get_responseData()))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error="), errLog))
+	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("data="), dataLog)))
+	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("bytes="), byteCount)))
+	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("status="), statusLog)))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("response="), http.get_responseData()))
+	hxrt.Println(v)
+	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error="), errLog)))
 	post := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,ignored"))
 	post.setPostData(hxrt.StringFromLiteral("post-body"))
 	postData := hxrt.StringFromLiteral("")
@@ -64,15 +65,16 @@ func main() {
 		postData = data
 	}
 	post.request(true)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("post="), postData))
+	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("post="), postData)))
 	bad := New_sys__Http(hxrt.StringFromLiteral("://bad"))
 	badErr := hxrt.StringFromLiteral("")
 	bad.onError = func(msg *string) {
 		badErr = msg
 	}
 	bad.request()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("bad="), badErr))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("direct="), sys__Http_requestUrl(hxrt.StringFromLiteral("data:text/plain,direct%20ok"))))
+	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("bad="), badErr)))
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("direct="), sys__Http_requestUrl(hxrt.StringFromLiteral("data:text/plain,direct%20ok"))))
+	hxrt.Println(v_1)
 }
 
 type haxe__io__Encoding struct {

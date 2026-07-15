@@ -101,8 +101,8 @@ func InteractiveCli_encodeTags(tags []*string) *string {
 }
 
 func InteractiveCli_failUsage(message *string) {
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error: "), message))
-	hxrt.Println(hxrt.StringFromLiteral("run `help` for command syntax"))
+	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error: "), message)))
+	hxrt.Println(any(hxrt.StringFromLiteral("run `help` for command syntax")))
 }
 
 func InteractiveCli_listIndex(values []*string, index int) *string {
@@ -177,37 +177,38 @@ func InteractiveCli_parsePositiveInt(raw *string) int {
 }
 
 func InteractiveCli_printHelp(runtime profile__TodoRuntime) {
-	hxrt.Println(hxrt.StringFromLiteral("commands:"))
-	hxrt.Println(hxrt.StringFromLiteral("  help"))
-	hxrt.Println(hxrt.StringFromLiteral("  reset"))
-	hxrt.Println(hxrt.StringFromLiteral("  list"))
-	hxrt.Println(hxrt.StringFromLiteral("  summary"))
-	hxrt.Println(hxrt.StringFromLiteral("  diag"))
-	hxrt.Println(hxrt.StringFromLiteral("  add <priority> <title_token>"))
-	hxrt.Println(hxrt.StringFromLiteral("  toggle <id>"))
-	hxrt.Println(hxrt.StringFromLiteral("  tag <id> <tag_token>"))
-	hxrt.Println(hxrt.StringFromLiteral("  batch <priority> <title1_token> <title2_token>"))
-	hxrt.Println(hxrt.StringFromLiteral("token note: use '_' instead of spaces (example: Wire_release_artifacts)"))
-	hxrt.Println(hxrt.StringFromLiteral("state file: .tui_todo_state.txt (current directory)"))
+	hxrt.Println(any(hxrt.StringFromLiteral("commands:")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  help")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  reset")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  list")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  summary")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  diag")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  add <priority> <title_token>")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  toggle <id>")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  tag <id> <tag_token>")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  batch <priority> <title1_token> <title2_token>")))
+	hxrt.Println(any(hxrt.StringFromLiteral("token note: use '_' instead of spaces (example: Wire_release_artifacts)")))
+	hxrt.Println(any(hxrt.StringFromLiteral("state file: .tui_todo_state.txt (current directory)")))
 }
 
 func InteractiveCli_printUsage(runtime profile__TodoRuntime) {
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("tui_todo command session ("), runtime.profileId()), hxrt.StringFromLiteral(")")))
-	hxrt.Println(hxrt.StringFromLiteral("run scripted contract mode with: --scripted"))
-	hxrt.Println(hxrt.StringFromLiteral("commands:"))
-	hxrt.Println(hxrt.StringFromLiteral("  tui_todo reset"))
-	hxrt.Println(hxrt.StringFromLiteral("  tui_todo help"))
-	hxrt.Println(hxrt.StringFromLiteral("  tui_todo add 2 Write_profile_docs tag 1 docs list"))
-	hxrt.Println(hxrt.StringFromLiteral("  tui_todo batch 3 Ship_generated_go_sync Add_binary_matrix list"))
-	hxrt.Println(hxrt.StringFromLiteral("generated-source invocation:"))
-	hxrt.Println(hxrt.StringFromLiteral("  go run . <command...>"))
-	hxrt.Println(hxrt.StringFromLiteral("state file: .tui_todo_state.txt (current directory)"))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("tui_todo command session ("), runtime.profileId()), hxrt.StringFromLiteral(")")))
+	hxrt.Println(v)
+	hxrt.Println(any(hxrt.StringFromLiteral("run scripted contract mode with: --scripted")))
+	hxrt.Println(any(hxrt.StringFromLiteral("commands:")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  tui_todo reset")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  tui_todo help")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  tui_todo add 2 Write_profile_docs tag 1 docs list")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  tui_todo batch 3 Ship_generated_go_sync Add_binary_matrix list")))
+	hxrt.Println(any(hxrt.StringFromLiteral("generated-source invocation:")))
+	hxrt.Println(any(hxrt.StringFromLiteral("  go run . <command...>")))
+	hxrt.Println(any(hxrt.StringFromLiteral("state file: .tui_todo_state.txt (current directory)")))
 }
 
 func InteractiveCli_run(runtime profile__TodoRuntime) {
 	app := New_app__TodoApp(runtime)
 	InteractiveCli_loadState(app)
-	args := Sys_args()
+	args := hxrt.SysArgs()
 	if len(args) == 0 {
 		InteractiveCli_printUsage(runtime)
 		return
@@ -218,7 +219,7 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("reset")) {
 			app = New_app__TodoApp(runtime)
 			InteractiveCli_clearState()
-			hxrt.Println(hxrt.StringFromLiteral("ok reset"))
+			hxrt.Println(any(hxrt.StringFromLiteral("ok reset")))
 			i = int(int32((i + 1)))
 			continue
 		}
@@ -228,17 +229,20 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("list")) {
-			hxrt.Println(app.render())
+			var v any = any(app.render())
+			hxrt.Println(v)
 			i = int(int32((i + 1)))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("summary")) {
-			hxrt.Println(app.baselineSignature())
+			var v_1 any = any(app.baselineSignature())
+			hxrt.Println(v_1)
 			i = int(int32((i + 1)))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("diag")) {
-			hxrt.Println(app.diagnostics())
+			var v_2 any = any(app.diagnostics())
+			hxrt.Println(v_2)
 			i = int(int32((i + 1)))
 			continue
 		}
@@ -255,7 +259,7 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			title := InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))])
 			app.add(title, priority)
 			InteractiveCli_saveState(app)
-			hxrt.Println(hxrt.StringFromLiteral("ok add"))
+			hxrt.Println(any(hxrt.StringFromLiteral("ok add")))
 			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))
 			continue
 		}
@@ -271,9 +275,9 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			}
 			if app.toggle(id) {
 				InteractiveCli_saveState(app)
-				hxrt.Println(hxrt.StringFromLiteral("ok toggle"))
+				hxrt.Println(any(hxrt.StringFromLiteral("ok toggle")))
 			} else {
-				hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id))
+				hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id)))
 			}
 			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))
 			continue
@@ -291,9 +295,9 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			tag := InteractiveCli_decodeToken(args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))])
 			if app.tag(id_1, tag) {
 				InteractiveCli_saveState(app)
-				hxrt.Println(hxrt.StringFromLiteral("ok tag"))
+				hxrt.Println(any(hxrt.StringFromLiteral("ok tag")))
 			} else {
-				hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id_1))
+				hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id_1)))
 			}
 			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))
 			continue
@@ -315,7 +319,7 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			if added > 0 {
 				InteractiveCli_saveState(app)
 			}
-			hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok batch added="), added))
+			hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok batch added="), added)))
 			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(4))))
 			continue
 		}

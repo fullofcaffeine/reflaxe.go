@@ -31,13 +31,14 @@ func main() {
 	var event *haxe__MainEvent = nil
 	event = haxe__MainLoop_add(func() {
 		ran = true
-		hxrt.Println(hxrt.StringFromLiteral("mainloop.add=ran"))
+		hxrt.Println(any(hxrt.StringFromLiteral("mainloop.add=ran")))
 		event.stop()
 	}, 0)
 	haxe__EntryPoint_run()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("mainloop.after="), hxrt.StdString(ran)))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("mainloop.after="), hxrt.StdString(ran)))
+	hxrt.Println(v)
 	haxe__Timer_delay(func() {
-		hxrt.Println(hxrt.StringFromLiteral("timer.delay=ran"))
+		hxrt.Println(any(hxrt.StringFromLiteral("timer.delay=ran")))
 	}, 1)
 	haxe__EntryPoint_run()
 }

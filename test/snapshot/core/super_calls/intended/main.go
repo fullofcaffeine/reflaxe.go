@@ -60,8 +60,12 @@ func (self *Child) callSuperCallWho() int {
 func main() {
 	child := New_Child()
 	base := child.Base
-	hxrt.Println(child.callWho())
-	hxrt.Println(child.callSuperWho())
-	hxrt.Println(child.callSuperCallWho())
-	hxrt.Println(base.__hx_this.callWho())
+	var v any = any(child.callWho())
+	hxrt.Println(v)
+	var v_1 any = any(child.callSuperWho())
+	hxrt.Println(v_1)
+	var v_2 any = any(child.callSuperCallWho())
+	hxrt.Println(v_2)
+	var v_3 any = any(base.__hx_this.callWho())
+	hxrt.Println(v_3)
 }

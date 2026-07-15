@@ -13,7 +13,7 @@ func main() {
 		return hx_value_1.(haxe__IMap)
 	}(map_.copyIMap())
 	copied.set(hxrt.StringFromLiteral("copied"), 7)
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("imap="), hxrt.StdString(func(hx_value_3 any) bool {
+	var v any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("imap="), hxrt.StdString(func(hx_value_3 any) bool {
 		if hx_value_3 == nil {
 			var hx_zero_4 bool
 			return hx_zero_4
@@ -31,8 +31,11 @@ func main() {
 		}
 		return hx_value_7.(int)
 	}(copied.get(hxrt.StringFromLiteral("copied")))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("rest="), restDigest([]int{3, 1, 4})))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("rest.empty="), restDigest([]int{})))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("rest="), restDigest([]int{3, 1, 4})))
+	hxrt.Println(v_1)
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("rest.empty="), restDigest([]int{})))
+	hxrt.Println(v_2)
 }
 
 func restDigest(args []int) *string {

@@ -30,5 +30,6 @@ func (self *Leaf) pong() int {
 }
 
 func main() {
-	hxrt.Println(Factory_makeLeaf().ping())
+	var v any = any(Factory_makeLeaf().ping())
+	hxrt.Println(v)
 }

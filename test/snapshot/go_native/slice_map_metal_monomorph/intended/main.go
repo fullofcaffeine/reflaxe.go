@@ -10,26 +10,32 @@ func main() {
 	go__slice_push__int_95e97e5e(ints, 3)
 	go__slice_push__int_95e97e5e(ints, 5)
 	go__slice_set__int_95e97e5e(ints, 1, 8)
-	hxrt.Println(go__slice_length__int_95e97e5e(ints))
-	hxrt.Println(go__slice_get__int_95e97e5e(ints, 1))
+	var v any = any(go__slice_length__int_95e97e5e(ints))
+	hxrt.Println(v)
+	var v_1 any = any(go__slice_get__int_95e97e5e(ints, 1))
+	hxrt.Println(v_1)
 	intsArray := go__slice_toArray__int_95e97e5e(ints)
-	hxrt.Println(intsArray[0])
+	hxrt.Println(any(intsArray[0]))
 	words := go___Go_newSlice()
 	go__slice_push___string_f613ccd0(words, hxrt.StringFromLiteral("go"))
 	go__slice_push___string_f613ccd0(words, hxrt.StringFromLiteral("haxe"))
-	hxrt.Println(go__slice_get___string_f613ccd0(words, 0))
+	var v_2 any = any(go__slice_get___string_f613ccd0(words, 0))
+	hxrt.Println(v_2)
 	wordsArray := go__slice_toArray___string_f613ccd0(words)
-	hxrt.Println(len(wordsArray))
+	var v_3 any = any(len(wordsArray))
+	hxrt.Println(v_3)
 	scores := New_go___Map()
 	go__map_set__int___string_d6952de3(scores, 7, hxrt.StringFromLiteral("seven"))
-	hxrt.Println(go__map_exists__int___string_d6952de3(scores, 7))
-	hxrt.Println(func(hx_value_1 any) *string {
+	var v_4 any = any(go__map_exists__int___string_d6952de3(scores, 7))
+	hxrt.Println(v_4)
+	var v_5 any = any(func(hx_value_1 any) *string {
 		if hx_value_1 == nil {
 			var hx_zero_2 *string
 			return hx_zero_2
 		}
 		return hx_value_1.(*string)
 	}(go__map_get__int___string_d6952de3(scores, 7)))
+	hxrt.Println(v_5)
 	missing := func(hx_value_3 any) *string {
 		if hx_value_3 == nil {
 			var hx_zero_4 *string
@@ -48,13 +54,15 @@ func main() {
 	}())
 	byName := go___Go_newMap()
 	go__map_set___string__int_e8ed7ec7(byName, hxrt.StringFromLiteral("alice"), 11)
-	hxrt.Println(go__map_exists___string__int_e8ed7ec7(byName, hxrt.StringFromLiteral("alice")))
-	hxrt.Println(func(hx_value_6 any) any {
+	var v_6 any = any(go__map_exists___string__int_e8ed7ec7(byName, hxrt.StringFromLiteral("alice")))
+	hxrt.Println(v_6)
+	var v_7 any = any(func(hx_value_6 any) any {
 		if hx_value_6 == nil {
 			return nil
 		}
 		return hx_value_6.(int)
 	}(go__map_get___string__int_e8ed7ec7(byName, hxrt.StringFromLiteral("alice"))))
+	hxrt.Println(v_7)
 }
 
 type haxe__ds__IntMap struct {

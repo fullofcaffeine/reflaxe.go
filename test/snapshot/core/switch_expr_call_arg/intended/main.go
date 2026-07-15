@@ -35,6 +35,8 @@ func id(value int) int {
 }
 
 func main() {
-	hxrt.Println(hxrt.StdString(asInt(Kind_A)))
-	hxrt.Println(hxrt.StdString(asInt(Kind_B(6))))
+	var v any = any(hxrt.StdString(asInt(Kind_A)))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StdString(asInt(Kind_B(6))))
+	hxrt.Println(v_1)
 }

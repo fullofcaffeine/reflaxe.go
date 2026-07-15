@@ -15,6 +15,12 @@ import unittest
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_ROOT = ROOT / "test" / "fixtures" / "canonical_std_selection"
 STATUS_PATH = ROOT / "test" / "canonical_std_layout_status.json"
+SYS_OVERRIDE_DEPENDENCIES = (
+    "Sys.hx",
+    "sys/io/FileInput.hx",
+    "sys/io/FileOutput.hx",
+    "sys/io/FileSeek.hx",
+)
 sys.path.insert(0, str(ROOT / "scripts" / "ci"))
 
 from canonical_stdlib_layout_check import (  # noqa: E402
@@ -59,6 +65,11 @@ def write_canonical_source(root: Path) -> None:
     override = root / "std" / "go" / "_std" / "Lambda.hx"
     override.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(FIXTURE_ROOT / "SourceProbe.hx.fixture", override)
+    for relative in SYS_OVERRIDE_DEPENDENCIES:
+        source = ROOT / "std" / "go" / "_std" / relative
+        destination = override.parent / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
 
     for support_root in ("haxe", "hxrt", "sys"):
         shutil.copytree(
@@ -86,8 +97,10 @@ def write_package_manifest(package_root: Path, source_root: Path) -> None:
         if package_path == "haxelib.json":
             source_file = source_root / "haxelib.json"
             kind = "metadata"
-        elif package_path == "src/Lambda.cross.hx":
-            source_file = source_root / "std" / "go" / "_std" / "Lambda.hx"
+        elif package_path.startswith("src/") and package_path.endswith(".cross.hx"):
+            relative = Path(package_path).relative_to("src")
+            source_name = relative.name.removesuffix(".cross.hx") + ".hx"
+            source_file = source_root / "std" / "go" / "_std" / relative.parent / source_name
             kind = "stdlib-override"
         elif package_path.startswith("src/"):
             relative = package_file.relative_to(package_root / "src")
@@ -143,6 +156,12 @@ def write_canonical_package(package_root: Path, source_root: Path) -> None:
     packaged_override = package_root / "src" / "Lambda.cross.hx"
     packaged_override.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(FIXTURE_ROOT / "PackageProbe.hx.fixture", packaged_override)
+    for relative in SYS_OVERRIDE_DEPENDENCIES:
+        source = source_root / "std" / "go" / "_std" / relative
+        destination = package_root / "src" / relative
+        destination = destination.with_name(destination.stem + ".cross.hx")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
 
     canonical_root = source_root / "std" / "go" / "_std"
     for source in (source_root / "std").rglob("*.hx"):

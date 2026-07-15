@@ -26,7 +26,8 @@ type hxrt__TypeEnumValue struct {
 }
 
 func emit(label *string, value *haxe___Int64_____Int64) {
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("=")), haxe___Int64__Int64_Impl__toString(value)))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("=")), haxe___Int64__Int64_Impl__toString(value)))
+	hxrt.Println(v)
 }
 
 func main() {
@@ -49,7 +50,8 @@ func main() {
 	var this1 *haxe___Int64_____Int64
 	this1 = x
 	value := this1
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("wrap_add="), haxe___Int64__Int64_Impl__toString(value)))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("wrap_add="), haxe___Int64__Int64_Impl__toString(value)))
+	hxrt.Println(v)
 	var b_low_1 int
 	var b_high_1 int
 	b_high_1 = 0
@@ -67,7 +69,8 @@ func main() {
 	var this1_1 *haxe___Int64_____Int64
 	this1_1 = x_1
 	value_1 := this1_1
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("wrap_sub="), haxe___Int64__Int64_Impl__toString(value_1)))
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("wrap_sub="), haxe___Int64__Int64_Impl__toString(value_1)))
+	hxrt.Println(v_1)
 	a := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("1234567890123"))
 	b := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("-987654321"))
 	high_2 := int(int32((hxrt.Int32Wrap(a.high) + hxrt.Int32Wrap(b.high))))
@@ -83,7 +86,8 @@ func main() {
 	var this1_2 *haxe___Int64_____Int64
 	this1_2 = x_2
 	value_2 := this1_2
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sum="), haxe___Int64__Int64_Impl__toString(value_2)))
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sum="), haxe___Int64__Int64_Impl__toString(value_2)))
+	hxrt.Println(v_2)
 	high_3 := int(int32((hxrt.Int32Wrap(a.high) - hxrt.Int32Wrap(b.high))))
 	low_3 := int(int32((hxrt.Int32Wrap(a.low) - hxrt.Int32Wrap(b.low))))
 	if haxe___Int32__Int32_Impl__ucompare(a.low, b.low) < 0 {
@@ -97,7 +101,8 @@ func main() {
 	var this1_3 *haxe___Int64_____Int64
 	this1_3 = x_3
 	value_3 := this1_3
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("diff="), haxe___Int64__Int64_Impl__toString(value_3)))
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("diff="), haxe___Int64__Int64_Impl__toString(value_3)))
+	hxrt.Println(v_3)
 	var a_low int
 	var a_high int
 	a_high = 0
@@ -140,7 +145,8 @@ func main() {
 	var this1_4 *haxe___Int64_____Int64
 	this1_4 = x_4
 	value_4 := this1_4
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("mul="), haxe___Int64__Int64_Impl__toString(value_4)))
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("mul="), haxe___Int64__Int64_Impl__toString(value_4)))
+	hxrt.Println(v_4)
 	positive := haxe___Int64__Int64_Impl__divMod(haxe__Int64Helper_parseString(hxrt.StringFromLiteral("123456789")), func() *haxe___Int64_____Int64 {
 		x_5 := New_haxe___Int64_____Int64(0, 97)
 		var this1_5 *haxe___Int64_____Int64
@@ -155,7 +161,8 @@ func main() {
 		}
 		return hx_field_8.(*haxe___Int64_____Int64)
 	}(positive)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("div_q="), haxe___Int64__Int64_Impl__toString(value_5)))
+	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("div_q="), haxe___Int64__Int64_Impl__toString(value_5)))
+	hxrt.Println(v_5)
 	value_6 := func(hx_obj_10 map[string]any) *haxe___Int64_____Int64 {
 		hx_field_11 := hx_obj_10["modulus"]
 		if hx_field_11 == nil {
@@ -164,7 +171,8 @@ func main() {
 		}
 		return hx_field_11.(*haxe___Int64_____Int64)
 	}(positive)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("div_r="), haxe___Int64__Int64_Impl__toString(value_6)))
+	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("div_r="), haxe___Int64__Int64_Impl__toString(value_6)))
+	hxrt.Println(v_6)
 	negative := haxe___Int64__Int64_Impl__divMod(haxe__Int64Helper_parseString(hxrt.StringFromLiteral("-123456789")), func() *haxe___Int64_____Int64 {
 		x_6 := New_haxe___Int64_____Int64(0, 97)
 		var this1_6 *haxe___Int64_____Int64
@@ -179,7 +187,8 @@ func main() {
 		}
 		return hx_field_14.(*haxe___Int64_____Int64)
 	}(negative)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("div_neg_q="), haxe___Int64__Int64_Impl__toString(value_7)))
+	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("div_neg_q="), haxe___Int64__Int64_Impl__toString(value_7)))
+	hxrt.Println(v_7)
 	value_8 := func(hx_obj_16 map[string]any) *haxe___Int64_____Int64 {
 		hx_field_17 := hx_obj_16["modulus"]
 		if hx_field_17 == nil {
@@ -188,8 +197,9 @@ func main() {
 		}
 		return hx_field_17.(*haxe___Int64_____Int64)
 	}(negative)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("div_neg_r="), haxe___Int64__Int64_Impl__toString(value_8)))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("cmp="), func() int {
+	var v_8 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("div_neg_r="), haxe___Int64__Int64_Impl__toString(value_8)))
+	hxrt.Println(v_8)
+	var v_9 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("cmp="), func() int {
 		var a_low_1 int
 		var a_high_1 int
 		a_high_1 = -1
@@ -198,19 +208,19 @@ func main() {
 		var b_high_3 int
 		b_high_3 = 0
 		b_low_3 = 1
-		v := int(int32((hxrt.Int32Wrap(a_high_1) - hxrt.Int32Wrap(b_high_3))))
+		v_10 := int(int32((hxrt.Int32Wrap(a_high_1) - hxrt.Int32Wrap(b_high_3))))
 		var hx_if_19 int
-		if v != 0 {
-			hx_if_19 = v
+		if v_10 != 0 {
+			hx_if_19 = v_10
 		} else {
 			hx_if_19 = haxe___Int32__Int32_Impl__ucompare(a_low_1, b_low_3)
 		}
-		v = hx_if_19
+		v_10 = hx_if_19
 		var hx_if_22 int
 		if a_high_1 < 0 {
 			var hx_if_20 int
 			if b_high_3 < 0 {
-				hx_if_20 = v
+				hx_if_20 = v_10
 			} else {
 				hx_if_20 = -1
 			}
@@ -218,7 +228,7 @@ func main() {
 		} else {
 			var hx_if_21 int
 			if b_high_3 >= 0 {
-				hx_if_21 = v
+				hx_if_21 = v_10
 			} else {
 				hx_if_21 = 1
 			}
@@ -226,7 +236,8 @@ func main() {
 		}
 		return hx_if_22
 	}()))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("ucmp="), func() int {
+	hxrt.Println(v_9)
+	var v_11 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("ucmp="), func() int {
 		var a_low_2 int
 		var a_high_2 int
 		a_high_2 = -1
@@ -235,15 +246,16 @@ func main() {
 		var b_high_4 int
 		b_high_4 = 0
 		b_low_4 = 1
-		v_1 := haxe___Int32__Int32_Impl__ucompare(a_high_2, b_high_4)
+		v_12 := haxe___Int32__Int32_Impl__ucompare(a_high_2, b_high_4)
 		var hx_if_23 int
-		if v_1 != 0 {
-			hx_if_23 = v_1
+		if v_12 != 0 {
+			hx_if_23 = v_12
 		} else {
 			hx_if_23 = haxe___Int32__Int32_Impl__ucompare(a_low_2, b_low_4)
 		}
 		return hx_if_23
 	}()))
+	hxrt.Println(v_11)
 	var a_low_3 int
 	var a_high_3 int
 	a_high_3 = 0
@@ -277,7 +289,8 @@ func main() {
 		hx_if_25 = hx_if_24
 	}
 	value_9 := hx_if_25
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("shl="), haxe___Int64__Int64_Impl__toString(value_9)))
+	var v_13 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("shl="), haxe___Int64__Int64_Impl__toString(value_9)))
+	hxrt.Println(v_13)
 	a_1 := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("-8"))
 	b_2 := 1
 	b_2 = int(int32((hxrt.Int32Wrap(b_2) & hxrt.Int32Wrap(63))))
@@ -309,7 +322,8 @@ func main() {
 		hx_if_27 = hx_if_26
 	}
 	value_10 := hx_if_27
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("shr="), haxe___Int64__Int64_Impl__toString(value_10)))
+	var v_14 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("shr="), haxe___Int64__Int64_Impl__toString(value_10)))
+	hxrt.Println(v_14)
 	a_2 := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("-1"))
 	b_3 := 1
 	b_3 = int(int32((hxrt.Int32Wrap(b_3) & hxrt.Int32Wrap(63))))
@@ -340,10 +354,12 @@ func main() {
 		hx_if_29 = hx_if_28
 	}
 	value_11 := hx_if_29
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ushr="), haxe___Int64__Int64_Impl__toString(value_11)))
+	var v_15 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ushr="), haxe___Int64__Int64_Impl__toString(value_11)))
+	hxrt.Println(v_15)
 	value_12 := haxe__Int64Helper_fromFloat(9007199254740991.0)
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("from_float="), haxe___Int64__Int64_Impl__toString(value_12)))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("to_int_ok="), func() int {
+	var v_16 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("from_float="), haxe___Int64__Int64_Impl__toString(value_12)))
+	hxrt.Println(v_16)
+	var v_17 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("to_int_ok="), func() int {
 		var x_low int
 		var x_high int
 		x_high = 0
@@ -353,23 +369,27 @@ func main() {
 		}
 		return x_low
 	}()))
+	hxrt.Println(v_17)
 	hxrt.TryCatch(func() {
 		x_16 := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("2147483648"))
 		if x_16.high != int(int32((hxrt.Int32Wrap(x_16.low) >> uint(31)))) {
 			hxrt.Throw(hxrt.StringFromLiteral("Overflow"))
 		}
 		_ = x_16.low
-		hxrt.Println(hxrt.StringFromLiteral("to_int_overflow=missing"))
+		hxrt.Println(any(hxrt.StringFromLiteral("to_int_overflow=missing")))
 	}, func(hx_caught_30 any) {
 		e := hx_caught_30
-		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("to_int_overflow="), hxrt.StdString(e)))
+		var v_18 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("to_int_overflow="), hxrt.StdString(e)))
+		hxrt.Println(v_18)
 	})
 	var round_low int
 	var round_high int
 	round_high = 2147483647
 	round_low = -12345
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("round_high="), round_high))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("round_low="), round_low))
+	var v_19 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("round_high="), round_high))
+	hxrt.Println(v_19)
+	var v_20 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("round_low="), round_low))
+	hxrt.Println(v_20)
 }
 
 type haxe__io__Encoding struct {

@@ -46,7 +46,7 @@ func main() {
 		recv := haxe__io__Bytes_alloc(32)
 		remote := New_sys__net__Address()
 		read := server.readFrom(recv, 0, recv.length, remote)
-		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("bound.host="), func(hx_obj_9 map[string]any) *sys__net__Host {
+		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("bound.host="), func(hx_obj_9 map[string]any) *sys__net__Host {
 			hx_field_10 := hx_obj_9["host"]
 			if hx_field_10 == nil {
 				var hx_zero_11 *sys__net__Host
@@ -54,7 +54,8 @@ func main() {
 			}
 			return hx_field_10.(*sys__net__Host)
 		}(bound).toString()))
-		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("bound.port.positive="), hxrt.StdString((func(hx_obj_12 map[string]any) int {
+		hxrt.Println(v)
+		var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("bound.port.positive="), hxrt.StdString((func(hx_obj_12 map[string]any) int {
 			hx_field_13 := hx_obj_12["port"]
 			if hx_field_13 == nil {
 				var hx_zero_14 int
@@ -62,11 +63,15 @@ func main() {
 			}
 			return hx_field_13.(int)
 		}(bound) > 0))))
-		hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("wrote="), wrote))
-		hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("read="), read))
-		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("payload="), recv.sub(0, read).toString()))
-		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("remote.port.positive="), hxrt.StdString((remote.port > 0))))
-		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("remote.host="), remote.getHost().toString()))
+		hxrt.Println(v_1)
+		hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("wrote="), wrote)))
+		hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("read="), read)))
+		var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("payload="), recv.sub(0, read).toString()))
+		hxrt.Println(v_2)
+		var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("remote.port.positive="), hxrt.StdString((remote.port > 0))))
+		hxrt.Println(v_3)
+		var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("remote.host="), remote.getHost().toString()))
+		hxrt.Println(v_4)
 	}, func(hx_caught_1 any) {
 		error := hx_caught_1
 		failure = error

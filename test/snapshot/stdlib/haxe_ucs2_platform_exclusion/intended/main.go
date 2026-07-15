@@ -17,9 +17,11 @@ func main() {
 
 func safe(label *string, fn func() *string) {
 	hxrt.TryCatch(func() {
-		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("=")), fn()))
+		var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("=")), fn()))
+		hxrt.Println(v_1)
 	}, func(hx_caught_2 any) {
 		error := hx_caught_2
-		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("=!")), hxrt.StdString(error)))
+		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("=!")), hxrt.StdString(error)))
+		hxrt.Println(v)
 	})
 }

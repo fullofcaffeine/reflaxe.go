@@ -82,6 +82,7 @@ SEMANTIC_DIFF_PREFIXES = (
 )
 
 OWNER_OVERRIDES = {
+	"Sys": "mixed",
     "haxe.http.HttpBase": "staged_std",
     "haxe.EntryPoint": "mixed",
     "haxe.CallStack": "staged_std",
@@ -158,6 +159,15 @@ UNSUPPORTED_EXPLICIT = {
 }
 
 MODULE_NOTES_OVERRIDES = {
+	"Sys": (
+		"The supported Haxe 4.3.7 root API is canonical staged source in "
+		"std/go/_std/Sys.hx over typed std/hxrt bindings. Public map construction, "
+		"fallbacks, aliases, and standard-stream wrappers stay in Haxe; native process "
+		"capabilities live in runtime/hxrt/sys.go and standard handles in file.go. "
+		"Evidence: root_sys_contract, root_sys_portable_contract, sys_command_contract, "
+		"sys_sleep_contract, sys/root_sys_portable, core/runtime_hxrt_infer_sys, and "
+		"negative/sys_cpu_time_unsupported."
+	),
 	"haxe.CallStack": (
 		"Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
 		"Go uses a staged std deterministic empty-stack fallback by default; opt-in native Go stack "

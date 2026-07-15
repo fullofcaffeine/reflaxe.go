@@ -6,15 +6,18 @@ func main() {
 	v := 1
 	switch v {
 	case 0:
-		hxrt.Println(0)
+		hxrt.Println(any(0))
 	case 1:
-		hxrt.Println(1)
+		hxrt.Println(any(1))
 	default:
-		hxrt.Println(9)
+		hxrt.Println(any(9))
 	}
-	hxrt.Println(pick(0))
-	hxrt.Println(pick(2))
-	hxrt.Println(pick(7))
+	var v_1 any = any(pick(0))
+	hxrt.Println(v_1)
+	var v_2 any = any(pick(2))
+	hxrt.Println(v_2)
+	var v_3 any = any(pick(7))
+	hxrt.Println(v_3)
 }
 
 func pick(v int) int {

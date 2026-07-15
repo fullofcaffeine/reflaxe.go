@@ -10,7 +10,8 @@ func main() {
 	go___Go_spawn(func() {
 		go__concurrency_send__int_95e97e5e(ch.__hx_native, 5)
 	})
-	hxrt.Println(go__concurrency_recv__int_95e97e5e(ch.__hx_native))
+	var v any = any(go__concurrency_recv__int_95e97e5e(ch.__hx_native))
+	hxrt.Println(v)
 }
 
 type haxe__ds__IntMap struct {

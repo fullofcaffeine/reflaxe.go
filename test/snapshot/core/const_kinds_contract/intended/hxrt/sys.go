@@ -8,6 +8,17 @@ import (
 	"time"
 )
 
+// SysEnvironmentEntry is one typed environment key/value pair for staged Sys.
+//
+// What: Carries process environment data across the typed Haxe/runtime boundary.
+// Why: A native Go map is not the public Haxe Map representation, and constructing
+// generated StringMap internals in hxrt would couple the runtime to compiler output.
+// How: Export pointer-backed strings; staged Sys builds the public StringMap.
+type SysEnvironmentEntry struct {
+	Key   *string
+	Value *string
+}
+
 func SysGetCwd() *string {
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -55,11 +66,30 @@ func SysPutEnv(key *string, value *string) error {
 	return os.Setenv(*key, *value)
 }
 
+// SysSetEnvironment applies the non-throwing Haxe 4.3.7 putEnv contract.
+//
+// What: Sets or removes one environment variable for staged Sys.putEnv.
+// Why: The eval reference surface exposes Void and ignores malformed-key errors,
+// while SysPutEnv intentionally retains the native error for Go-native callers.
+// How: Delegate to SysPutEnv and deliberately discard its result at this boundary.
+func SysSetEnvironment(key *string, value *string) {
+	_ = SysPutEnv(key, value)
+}
+
 func SysCommand(command *string, args []*string) int {
 	if command == nil {
 		return -1
 	}
-	cmd := exec.Command(*StdString(command), StringSlice(args)...)
+	var cmd *exec.Cmd
+	if args == nil {
+		if runtime.GOOS == "windows" {
+			cmd = exec.Command("cmd", "/C", *StdString(command))
+		} else {
+			cmd = exec.Command("/bin/sh", "-c", *StdString(command))
+		}
+	} else {
+		cmd = exec.Command(*StdString(command), StringSlice(args)...)
+	}
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -76,15 +106,22 @@ func SysExit(code int) {
 	os.Exit(code)
 }
 
-func SysEnvironment() map[string]string {
-	out := map[string]string{}
+// SysEnvironmentEntries snapshots the process environment as typed pairs.
+func SysEnvironmentEntries() []*SysEnvironmentEntry {
+	out := make([]*SysEnvironmentEntry, 0)
 	for _, entry := range os.Environ() {
 		key, value, ok := strings.Cut(entry, "=")
 		if !ok {
-			out[entry] = ""
+			out = append(out, &SysEnvironmentEntry{
+				Key:   StringFromLiteral(entry),
+				Value: StringFromLiteral(""),
+			})
 			continue
 		}
-		out[key] = value
+		out = append(out, &SysEnvironmentEntry{
+			Key:   StringFromLiteral(key),
+			Value: StringFromLiteral(value),
+		})
 	}
 	return out
 }
@@ -119,17 +156,6 @@ func SysSleep(seconds float64) {
 	time.Sleep(time.Duration(seconds * float64(time.Second)))
 }
 
-// SysSetTimeLocale reports that haxe.go cannot mutate the process time locale.
-//
-// What: Implements the boolean failure branch of Sys.setTimeLocale.
-// Why: Go intentionally has no process-global C locale switch, so claiming
-// success would make DateTools behavior depend on a change that never occurred.
-// How: Accept the portable API input and return false without global mutation,
-// matching the explicit fallback used by the Python and haxe.rust targets.
-func SysSetTimeLocale(_ *string) bool {
-	return false
-}
-
 // SysSetCwd changes the process working directory and preserves native errors.
 //
 // What: Implements Sys.setCwd through os.Chdir.
@@ -139,6 +165,13 @@ func SysSetTimeLocale(_ *string) bool {
 // the Haxe exception boundary.
 func SysSetCwd(path *string) error {
 	return os.Chdir(*StdString(path))
+}
+
+// SysChangeCwd is the Haxe-shaped working-directory capability.
+func SysChangeCwd(path *string) {
+	if err := SysSetCwd(path); err != nil {
+		Throw(StringFromLiteral(err.Error()))
+	}
 }
 
 // SysTime returns wall-clock epoch time in fractional seconds.
@@ -163,4 +196,14 @@ func SysProgramPath() (*string, error) {
 		return nil, err
 	}
 	return StringFromLiteral(path), nil
+}
+
+// SysCurrentProgramPath is the Haxe-shaped executable-path capability.
+func SysCurrentProgramPath() *string {
+	path, err := SysProgramPath()
+	if err != nil {
+		Throw(StringFromLiteral(err.Error()))
+		return StringFromLiteral("")
+	}
+	return path
 }

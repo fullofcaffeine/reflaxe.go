@@ -26,8 +26,8 @@ func read(pos map[string]any) {
 	if custom != nil {
 		count = len(custom)
 	}
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("count="), count))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("line="), func(hx_obj_5 map[string]any) int {
+	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("count="), count)))
+	var v any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("line="), func(hx_obj_5 map[string]any) int {
 		hx_field_6 := hx_obj_5["lineNumber"]
 		if hx_field_6 == nil {
 			var hx_zero_7 int
@@ -35,4 +35,5 @@ func read(pos map[string]any) {
 		}
 		return hx_field_6.(int)
 	}(pos)))
+	hxrt.Println(v)
 }

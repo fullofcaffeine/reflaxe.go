@@ -4,9 +4,12 @@ import "snapshot/hxrt"
 
 func main() {
 	s := hxrt.StringFromLiteral("  hi  ")
-	hxrt.Println(StringTools_trim(s))
-	hxrt.Println(StringTools_startsWith(hxrt.StringFromLiteral("hello"), hxrt.StringFromLiteral("he")))
-	hxrt.Println(StringTools_replace(hxrt.StringFromLiteral("a-b-c"), hxrt.StringFromLiteral("-"), hxrt.StringFromLiteral(":")))
+	var v any = any(StringTools_trim(s))
+	hxrt.Println(v)
+	var v_1 any = any(StringTools_startsWith(hxrt.StringFromLiteral("hello"), hxrt.StringFromLiteral("he")))
+	hxrt.Println(v_1)
+	var v_2 any = any(StringTools_replace(hxrt.StringFromLiteral("a-b-c"), hxrt.StringFromLiteral("-"), hxrt.StringFromLiteral(":")))
+	hxrt.Println(v_2)
 }
 
 type haxe__io__Encoding struct {

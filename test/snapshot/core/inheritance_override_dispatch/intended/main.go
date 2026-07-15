@@ -54,6 +54,8 @@ func (self *Child) callSuperWho() int {
 
 func main() {
 	child := New_Child()
-	hxrt.Println(child.callWho())
-	hxrt.Println(child.callSuperWho())
+	var v any = any(child.callWho())
+	hxrt.Println(v)
+	var v_1 any = any(child.callSuperWho())
+	hxrt.Println(v_1)
 }

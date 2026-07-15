@@ -10,16 +10,19 @@ root `Sys` call means.
 
 The implementation is deliberately split:
 
-1. Haxe 4.3.7's mainstream `Sys` extern remains the source-facing API.
-2. `lowerSysStdlibShimDecls` emits typed target symbols and translates Go
-   errors/EOF into Haxe exceptions.
+1. `std/go/_std/Sys.hx` owns the supported Haxe 4.3.7 public API, map
+   construction, fallbacks, aliases, and stream wrapping.
+2. Typed externs under `std/hxrt/sys` and `std/hxrt/fs` expose only real native
+   capabilities; they do not reimplement the Haxe library contract.
 3. `runtime/hxrt/sys.go` owns root OS calls, clocks, paths, and blocking;
-   `runtime/hxrt/file.go` owns standard-stream handles.
+   `runtime/hxrt/file.go` owns standard-stream handles. The compiler retains
+   only the compile-time `cpuTime` rejection and generic runtime-feature
+   planning required by generated output.
 
-The root adapters construct canonical staged `sys.io.FileInput` / `FileOutput`
-classes from typed opaque handles. File stream shape and behavior therefore stay
-in `std/go/_std/sys/io`, rather than turning compiler-owned `GoRaw` into a
-second standard library.
+The staged root class constructs canonical staged `sys.io.FileInput` /
+`FileOutput` classes from typed opaque handles. File stream shape and behavior
+therefore stay in `std/go/_std/sys/io`, rather than turning compiler-owned
+`GoRaw` into a second standard library.
 
 ## Method matrix
 
@@ -33,7 +36,7 @@ second standard library.
 | `setTimeLocale` | Explicitly unavailable | Returns `false`. Go has no process-global C time-locale switch, so success must not be reported. |
 | `getCwd`, `setCwd` | Supported | `setCwd` preserves `os.Chdir` failure as a catchable Haxe value. |
 | `systemName` | Supported | Maps admitted Go hosts to Haxe's `Windows`, `Linux`, `BSD`, or `Mac` names. |
-| `command`, `exit` | Supported | Child streams are inherited; command exit status and process exit remain runtime-owned. |
+| `command`, `exit` | Supported | Child streams are inherited. A missing argument array uses host-shell parsing; a non-null array launches the executable directly. Command exit status and process exit remain runtime-owned. |
 | `time` | Supported | Returns wall-clock Unix epoch time in fractional seconds. It is not the process-relative thread clock. |
 | `cpuTime` | Compile-time unsupported | Compilation fails with an actionable diagnostic. Wall-clock substitution would violate the process/thread CPU-time contract. |
 | `programPath` | Supported | Uses `os.Executable` and converts lookup failures through the Haxe exception boundary. |
@@ -78,8 +81,9 @@ The local sibling audit found one strong precedent and two non-precedents:
   `haxe.io.Input` / `Output` subclasses, `setTimeLocale` returns `false`, and
   `cpuTime` is explicitly rejected instead of being replaced with wall time.
 - `haxe.go` follows the same semantic ownership rule. `sys.io.File*` is now
-  canonical staged source like the sibling target; only root `Sys` and Process
-  retain thin generated adapters while their separate migrations remain open.
+  canonical staged source like the sibling target, and root `Sys` now follows
+  it. Only `sys.io.Process` retains compiler-generated adapters under the
+  separate `haxe_go-vfp.8.7.7` migration.
 - The audited `haxe.elixir` tree has no production root `Sys` override to copy.
   The `haxe.ruby` root surface is placeholder/incomplete and uses no-op or zero
   results, so it is not acceptable parity evidence.
@@ -94,9 +98,14 @@ independent review, usage evidence, and SemVer migration plan.
 
 - Snapshot and generated-symbol contract:
   `test/snapshot/sys/root_sys_portable`
+- Source-ownership and selective-runtime contracts:
+  `test/test_stdlib_migration_ledger_contract.py`,
+  `test/snapshot/core/runtime_hxrt_infer_sys`, and
+  `test/snapshot/core/runtime_hxrt_infer_process`
 - Compile-time unsupported contract:
   `test/snapshot/negative/sys_cpu_time_unsupported`
 - Haxe 4.3.7 eval differential contract:
+  `test/semantic_diff/root_sys_contract` and
   `test/semantic_diff/root_sys_portable_contract`
 - Direct runtime and standard-stream lifetime tests:
   `runtime/hxrt/sys_test.go`

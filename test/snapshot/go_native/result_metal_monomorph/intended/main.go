@@ -12,23 +12,30 @@ func errResult() *go___Result {
 
 func main() {
 	ok := okResult()
-	hxrt.Println(go__result_isOk__int_95e97e5e(ok))
-	hxrt.Println(go__result_unwrap__int_95e97e5e(ok))
+	var v any = any(go__result_isOk__int_95e97e5e(ok))
+	hxrt.Println(v)
+	var v_1 any = any(go__result_unwrap__int_95e97e5e(ok))
+	hxrt.Println(v_1)
 	err := errResult()
-	hxrt.Println(go__result_isErr__int_95e97e5e(err))
-	hxrt.Println(go__result_error__int_95e97e5e(err))
+	var v_2 any = any(go__result_isErr__int_95e97e5e(err))
+	hxrt.Println(v_2)
+	var v_3 any = any(go__result_error__int_95e97e5e(err))
+	hxrt.Println(v_3)
 	hxrt.TryCatch(func() {
 		go__result_unwrap__int_95e97e5e(err)
-		hxrt.Println(hxrt.StringFromLiteral("unexpected"))
+		hxrt.Println(any(hxrt.StringFromLiteral("unexpected")))
 	}, func(hx_caught_1 any) {
 		e := hx_caught_1
-		hxrt.Println(hxrt.StringFromLiteral("caught"))
-		hxrt.Println(hxrt.StdString(e))
+		hxrt.Println(any(hxrt.StringFromLiteral("caught")))
+		var v_4 any = any(hxrt.StdString(e))
+		hxrt.Println(v_4)
 	})
 	okViaGo := go__result_ok___string_f613ccd0(hxrt.StringFromLiteral("done"))
-	hxrt.Println(go__result_unwrap___string_f613ccd0(okViaGo))
+	var v_5 any = any(go__result_unwrap___string_f613ccd0(okViaGo))
+	hxrt.Println(v_5)
 	errViaGo := go__result_failure___string_f613ccd0(hxrt.StringFromLiteral("bad"))
-	hxrt.Println(go__result_error___string_f613ccd0(errViaGo))
+	var v_6 any = any(go__result_error___string_f613ccd0(errViaGo))
+	hxrt.Println(v_6)
 }
 
 func okResult() *go___Result {

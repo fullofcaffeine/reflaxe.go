@@ -33,7 +33,7 @@ func New_Child() *Child {
 
 func main() {
 	var d any = New_Child()
-	hxrt.Println(func(hx_value any) bool {
+	var v any = any(func(hx_value any) bool {
 		switch hx_value.(type) {
 		case *Base:
 			return true
@@ -43,7 +43,8 @@ func main() {
 			return false
 		}
 	}(any(d)))
-	hxrt.Println(func(hx_value any) bool {
+	hxrt.Println(v)
+	var v_1 any = any(func(hx_value any) bool {
 		switch hx_value.(type) {
 		case *Child:
 			return true
@@ -51,8 +52,9 @@ func main() {
 			return false
 		}
 	}(any(d)))
+	hxrt.Println(v_1)
 	d = New_Base()
-	hxrt.Println(func(hx_value any) bool {
+	var v_2 any = any(func(hx_value any) bool {
 		switch hx_value.(type) {
 		case *Child:
 			return true
@@ -60,8 +62,9 @@ func main() {
 			return false
 		}
 	}(any(d)))
+	hxrt.Println(v_2)
 	d = []any{1, 2}
-	hxrt.Println(func(hx_value any) bool {
+	var v_3 any = any(func(hx_value any) bool {
 		switch hx_value.(type) {
 		case []*Base:
 			return true
@@ -83,8 +86,9 @@ func main() {
 			return false
 		}
 	}(any(d)))
+	hxrt.Println(v_3)
 	d = 1
-	hxrt.Println(func(hx_value any) bool {
+	var v_4 any = any(func(hx_value any) bool {
 		switch hx_value.(type) {
 		case []*Base:
 			return true
@@ -106,6 +110,8 @@ func main() {
 			return false
 		}
 	}(any(d)))
+	hxrt.Println(v_4)
 	d = nil
-	hxrt.Println((d != nil))
+	var v_5 any = any((d != nil))
+	hxrt.Println(v_5)
 }

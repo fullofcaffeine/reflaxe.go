@@ -7,16 +7,21 @@ import (
 
 func main() {
 	buffered := go__concurrency_newChan__int_95e97e5e(1)
-	hxrt.Println(go__concurrency_trySend__int_95e97e5e(buffered.__hx_native, 10))
-	hxrt.Println(go__concurrency_trySend__int_95e97e5e(buffered.__hx_native, 11))
-	hxrt.Println(go__concurrency_recvOr__int_95e97e5e(buffered.__hx_native, -1))
-	hxrt.Println(go__concurrency_recvOr__int_95e97e5e(buffered.__hx_native, -1))
+	var v any = any(go__concurrency_trySend__int_95e97e5e(buffered.__hx_native, 10))
+	hxrt.Println(v)
+	var v_1 any = any(go__concurrency_trySend__int_95e97e5e(buffered.__hx_native, 11))
+	hxrt.Println(v_1)
+	var v_2 any = any(go__concurrency_recvOr__int_95e97e5e(buffered.__hx_native, -1))
+	hxrt.Println(v_2)
+	var v_3 any = any(go__concurrency_recvOr__int_95e97e5e(buffered.__hx_native, -1))
+	hxrt.Println(v_3)
 	go__concurrency_close__int_95e97e5e(buffered.__hx_native)
 	direct := go__concurrency_newChan__int_95e97e5e(0)
 	go___Go_spawn(func() {
 		go__concurrency_send__int_95e97e5e(direct.__hx_native, 42)
 	})
-	hxrt.Println(go__concurrency_recv__int_95e97e5e(direct.__hx_native))
+	var v_4 any = any(go__concurrency_recv__int_95e97e5e(direct.__hx_native))
+	hxrt.Println(v_4)
 	go__concurrency_close__int_95e97e5e(direct.__hx_native)
 }
 

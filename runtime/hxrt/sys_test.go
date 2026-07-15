@@ -262,11 +262,54 @@ func TestSysPutEnvPreservesNativeError(t *testing.T) {
 	}
 }
 
-func TestPortableSysClockLocaleCwdAndProgramPath(t *testing.T) {
-	if SysSetTimeLocale(StringFromLiteral("__haxe_go_missing_locale__")) {
-		t.Fatal("unsupported process locale unexpectedly reported success")
+func TestStagedSysCapabilitiesPreserveEnvironmentPathsAndShellCommands(t *testing.T) {
+	key := StringFromLiteral("HAXE_GO_STAGED_SYS_TEST")
+	value := StringFromLiteral("typed")
+	SysSetEnvironment(key, value)
+	t.Cleanup(func() { SysSetEnvironment(key, nil) })
+	if got := SysGetEnv(key); got == nil || *got != "typed" {
+		t.Fatalf("SysGetEnv() = %v, want typed", got)
+	}
+	found := false
+	for _, entry := range SysEnvironmentEntries() {
+		if entry != nil && entry.Key != nil && *entry.Key == *key {
+			found = entry.Value != nil && *entry.Value == "typed"
+		}
+	}
+	if !found {
+		t.Fatal("SysEnvironmentEntries() omitted the staged environment value")
 	}
 
+	original, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	temporary := t.TempDir()
+	t.Cleanup(func() {
+		if err := os.Chdir(original); err != nil {
+			t.Error(err)
+		}
+	})
+	SysChangeCwd(StringFromLiteral(temporary))
+	if cwd := SysGetCwd(); cwd == nil || *cwd == "" {
+		t.Fatalf("SysGetCwd() = %v after SysChangeCwd", cwd)
+	}
+
+	programPath := SysCurrentProgramPath()
+	if programPath == nil || *programPath == "" || !filepath.IsAbs(*programPath) {
+		t.Fatalf("SysCurrentProgramPath() = %v, want an absolute path", programPath)
+	}
+
+	shellCommand := "exit 7"
+	if runtime.GOOS == "windows" {
+		shellCommand = "exit /B 7"
+	}
+	if code := SysCommand(StringFromLiteral(shellCommand), nil); code != 7 {
+		t.Fatalf("SysCommand(%q, nil) = %d, want 7", shellCommand, code)
+	}
+}
+
+func TestPortableSysClockCwdAndProgramPath(t *testing.T) {
 	started := SysTime()
 	time.Sleep(2 * time.Millisecond)
 	finished := SysTime()

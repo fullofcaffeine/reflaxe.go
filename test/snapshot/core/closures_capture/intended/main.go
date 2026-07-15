@@ -8,5 +8,6 @@ func main() {
 		return int(int32((hxrt.Int32Wrap(v) * hxrt.Int32Wrap(factor))))
 	}
 	factor = 4
-	hxrt.Println(mul(2))
+	var v any = any(mul(2))
+	hxrt.Println(v)
 }

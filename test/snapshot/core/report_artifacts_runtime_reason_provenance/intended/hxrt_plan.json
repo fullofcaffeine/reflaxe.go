@@ -23,8 +23,7 @@
 		"json",
 		"print",
 		"process",
-		"string",
-		"sys"
+		"string"
 	],
 	"files": [
 		"core.go",
@@ -33,8 +32,7 @@
 		"json.go",
 		"print.go",
 		"process.go",
-		"string.go",
-		"sys.go"
+		"string.go"
 	],
 	"reasons": [
 		{
@@ -61,11 +59,6 @@
 			"feature": "json",
 			"sourceKind": "class_usage",
 			"source": "haxe.Json"
-		},
-		{
-			"feature": "sys",
-			"sourceKind": "dependency_edge",
-			"source": "process->sys"
 		},
 		{
 			"feature": "process",

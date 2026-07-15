@@ -7,17 +7,22 @@ import (
 
 func main() {
 	lines := New_haxe__io__BytesInput(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("first\r\nsecond")))
-	hxrt.Println(lines.readLine())
-	hxrt.Println(lines.readLine())
+	var v any = any(lines.readLine())
+	hxrt.Println(v)
+	var v_1 any = any(lines.readLine())
+	hxrt.Println(v_1)
 	replay := New_haxe__io__BytesInput(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("012345")))
 	buf := haxe__io__Bytes_alloc(4)
 	replay.readFullBytes(buf, 0, 4)
-	hxrt.Println(buf.toString())
+	var v_2 any = any(buf.toString())
+	hxrt.Println(v_2)
 	copyOut := New_haxe__io__BytesOutput()
 	copyOut.writeInput(New_haxe__io__BytesInput(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("xy"))))
-	hxrt.Println(copyOut.getBytes().toString())
+	var v_3 any = any(copyOut.getBytes().toString())
+	hxrt.Println(v_3)
 	all := New_haxe__io__BytesInput(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("zz"))).readAll()
-	hxrt.Println(all.toString())
+	var v_4 any = any(all.toString())
+	hxrt.Println(v_4)
 }
 
 type haxe__io__Encoding struct {

@@ -15,6 +15,8 @@ func main() {
 		}
 		sum = int(int32((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(i))))
 	}
-	hxrt.Println(hxrt.StdString(sum))
-	hxrt.Println(hxrt.StdString(i))
+	var v any = any(hxrt.StdString(sum))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StdString(i))
+	hxrt.Println(v_1)
 }

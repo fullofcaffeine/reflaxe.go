@@ -204,6 +204,7 @@ class GoCompiler {
 	final requiredNativeResultElementTypes:Map<String, Bool>;
 	final externImportPaths:Map<String, Bool>;
 	final externImportPackages:Map<String, String>;
+	final usedExternClassPaths:Map<String, Bool>;
 	final sourceModuleRegistry:GoSourceModuleRegistry;
 	final sourceOwnedStdlibPlanner:GoSourceOwnedStdlibPlanner;
 	final lambdaIterableLowering:GoLambdaIterableLowering;
@@ -220,7 +221,6 @@ class GoCompiler {
 	var switchDepth:Int;
 	var cachedVoidType:Null<Type>;
 	var requiresIoHelperSurface:Bool;
-	var requiresSysCommandSurface:Bool;
 	var requiresIoStringInputSurface:Bool;
 	var requiresIoBufferInputSurface:Bool;
 	var requiresIoEofStringSurface:Bool;
@@ -233,6 +233,7 @@ class GoCompiler {
 	final availableEnumsByName:Map<String, EnumType>;
 	final pendingRequiredEnumsByName:Map<String, EnumType>;
 	final requiredSourceOwnedClassNames:Map<String, Bool>;
+	final requiredNominalClassTypeNames:Map<String, Bool>;
 	var globalLeafReceiverTypes:Map<String, Bool>;
 	var tempVarCounter:Int;
 	var requiresTypeValueSupport:Bool;
@@ -258,6 +259,7 @@ class GoCompiler {
 		requiredNativeResultElementTypes = new Map<String, Bool>();
 		externImportPaths = new Map<String, Bool>();
 		externImportPackages = new Map<String, String>();
+		usedExternClassPaths = new Map<String, Bool>();
 		functionVarNameScopes = [];
 		functionVarNameCountScopes = [];
 		optionalPrimitiveParamScopes = [];
@@ -271,7 +273,6 @@ class GoCompiler {
 		switchDepth = 0;
 		cachedVoidType = null;
 		requiresIoHelperSurface = false;
-		requiresSysCommandSurface = false;
 		requiresIoStringInputSurface = false;
 		requiresIoBufferInputSurface = false;
 		requiresIoEofStringSurface = false;
@@ -284,6 +285,7 @@ class GoCompiler {
 		availableEnumsByName = new Map<String, EnumType>();
 		pendingRequiredEnumsByName = new Map<String, EnumType>();
 		requiredSourceOwnedClassNames = new Map<String, Bool>();
+		requiredNominalClassTypeNames = new Map<String, Bool>();
 		sourceModuleRegistry = new GoSourceModuleRegistry(normalizeModuleLabel, normalizeSourcePath, sourceModuleToFilePath);
 		sourceOwnedStdlibPlanner = new GoSourceOwnedStdlibPlanner({
 			availableClassesByName: availableClassesByName,
@@ -337,12 +339,12 @@ class GoCompiler {
 		clearClassMap(pendingRequiredClassesByName);
 		clearEnumMap(pendingRequiredEnumsByName);
 		clearBoolMap(requiredSourceOwnedClassNames);
+		clearBoolMap(requiredNominalClassTypeNames);
 		sourceModuleRegistry.rebuild(classes, enums);
 		globalLeafReceiverTypes = buildGlobalLeafReceiverTypes(projectClasses);
 		syncCompilationContextLeafReceivers();
 		clearBoolMap(compilationContext.leafReturningFunctions);
 		requiresIoHelperSurface = false;
-		requiresSysCommandSurface = false;
 		requiresIoStringInputSurface = false;
 		requiresIoBufferInputSurface = false;
 		requiresIoEofStringSurface = false;
@@ -1685,8 +1687,8 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("http")) {
 			decls = decls.concat(lowerHttpStdlibShimDecls());
 		}
-		if (requiredStdlibShimGroups.exists("sys")) {
-			decls = decls.concat(lowerSysStdlibShimDecls());
+		if (requiredStdlibShimGroups.exists("process")) {
+			decls = decls.concat(lowerProcessStdlibShimDecls());
 		}
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			decls = decls.concat(lowerStdlibSymbolShimDecls());
@@ -1720,10 +1722,9 @@ class GoCompiler {
 			// Symbol shims include crypto/xml/zip helpers that depend on haxe.io.Bytes.
 			requireStdlibShimGroup("io");
 		}
-		if (requiredStdlibShimGroups.exists("sys")) {
-			// Remaining root Sys and Process adapters build on haxe.io interfaces.
-			// File streams themselves are canonical staged source.
-			requireStdlibShimGroup("stdlib_symbols");
+		if (requiredStdlibShimGroups.exists("process")) {
+			// The remaining Process adapter exposes haxe.io streams and their
+			// source-owned inherited helper surface.
 			requireStdlibShimGroup("io");
 			requireIoSourceOwnedHelperSurface();
 		}
@@ -5218,20 +5219,17 @@ class GoCompiler {
 	}
 
 	/**
-		What: Emit the remaining root `Sys` and `sys.io.Process` target adapters required by the
-		mainstream Haxe declarations.
+		What: Emit the remaining `sys.io.Process` target adapter required by the
+		mainstream Haxe declaration.
 
-		Why: haxe.go still keeps the upstream root `Sys` and `Process` externs while
-		their separate source-ownership migrations remain open. The file API and stream
-		types are staged source and must not be redefined here.
+		Why: Process is still an upstream extern while its separate source-ownership
+		migration remains open. Root `Sys`, file streams, and filesystem behavior are
+		canonical staged source and must not be redefined here.
 
-		How: Preserve only the remaining process carriers and root adapters. Standard
-		streams construct the staged FileInput/FileOutput wrappers around typed hxrt
-		handles; all file behavior stays outside this compiler shim.
+		How: Preserve only the process carriers, stream adapters, and typed hxrt calls.
 	**/
-	function lowerSysStdlibShimDecls():Array<GoDecl> {
+	function lowerProcessStdlibShimDecls():Array<GoDecl> {
 		var decls = [
-			GoDecl.GoStructDecl("Sys", []),
 			GoDecl.GoStructDecl("sys__io__ProcessOutput", [
 				{
 					name: "impl",
@@ -5251,133 +5249,6 @@ class GoCompiler {
 				{name: "stdout", typeName: "*sys__io__ProcessOutput"},
 				{name: "stderr", typeName: "*sys__io__ProcessOutput"},
 				{name: "stdin", typeName: "*sys__io__ProcessInput"}
-			]),
-			// Dynamic is required by the upstream print signature. Keep it confined to
-			// this public display adapter and the matching hxrt formatting boundary.
-			GoDecl.GoFuncDecl("Sys_print", null, [{name: "value", typeName: "any"}], [], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "Print"), [GoExpr.GoIdent("value")]))
-			]),
-			GoDecl.GoFuncDecl("Sys_println", null, [
-				{
-					name: "value",
-					typeName: "any"
-				}
-			], [], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "Println"), [GoExpr.GoIdent("value")]))
-			]),
-			GoDecl.GoFuncDecl("Sys_getCwd", null, [], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysGetCwd"), []))
-			]),
-			GoDecl.GoFuncDecl("Sys_args", null, [], ["[]*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysArgs"), []))
-			]),
-			GoDecl.GoFuncDecl("Sys_getEnv", null, [
-				{
-					name: "key",
-					typeName: "*string"
-				}
-			], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysGetEnv"), [GoExpr.GoIdent("key")]))
-			]),
-			// Haxe 4.3.7's eval target exposes putEnv as a Void operation and does not
-			// throw for invalid environment keys. Discard the hxrt error explicitly for
-			// portable parity; native Go facades can consume the same helper's error.
-			GoDecl.GoFuncDecl("Sys_putEnv", null, [
-				{
-					name: "key",
-					typeName: "*string"
-				},
-				{name: "value", typeName: "*string"}
-			], [], [
-				GoStmt.GoAssign(GoExpr.GoIdent("_"),
-					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysPutEnv"), [GoExpr.GoIdent("key"), GoExpr.GoIdent("value")]))
-			]),
-			GoDecl.GoFuncDecl("Sys_systemName", null, [], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysSystemName"), []))
-			]),
-			/**
-				What: Emit the target symbol expected by the mainstream Sys.sleep declaration.
-				Why: Replacing the entire root Sys class with a staged override would duplicate
-				adjacent compiler-owned carrier wiring; only seconds-to-Duration behavior belongs
-				in the runtime boundary.
-				How: Keep this adapter typed and forward the Float seconds value to hxrt.SysSleep.
-			**/
-			GoDecl.GoFuncDecl("Sys_sleep", null, [{name: "seconds", typeName: "float64"}], [], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysSleep"), [GoExpr.GoIdent("seconds")]))
-			]),
-			GoDecl.GoFuncDecl("Sys_setTimeLocale", null, [
-				{
-					name: "locale",
-					typeName: "*string"
-				}
-			], ["bool"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysSetTimeLocale"), [GoExpr.GoIdent("locale")]))
-			]),
-			GoDecl.GoFuncDecl("Sys_setCwd", null, [
-				{
-					name: "path",
-					typeName: "*string"
-				}
-			], [], [
-				GoStmt.GoVarDecl("err", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysSetCwd"), [GoExpr.GoIdent("path")]), true),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "Throw"), [
-						GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "StringFromLiteral"),
-							[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("err"), "Error"), [])])
-					]))
-				], null)
-			]),
-			GoDecl.GoFuncDecl("Sys_time", null, [], ["float64"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysTime"), []))
-			]),
-			GoDecl.GoFuncDecl("Sys_programPath", null, [], ["*string"],
-				[
-					GoStmt.GoMultiAssign(["path", "err"], GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysProgramPath"), []), true),
-					GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "Throw"),
-							[
-								GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "StringFromLiteral"),
-									[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("err"), "Error"), [])])
-							])),
-						GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
-					],
-						null),
-					GoStmt.GoReturn(GoExpr.GoIdent("path"))
-				]),
-			GoDecl.GoFuncDecl("Sys_executablePath", null, [], ["*string"], [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("Sys_programPath"), []))]),
-			GoDecl.GoFuncDecl("Sys_getChar", null, [
-				{
-					name: "echo",
-					typeName: "bool"
-				}
-			], ["int"], [
-				GoStmt.GoMultiAssign(["value", "eof", "err"],
-					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysGetChar"), [GoExpr.GoIdent("echo")]), true),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "Throw"), [
-						GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "StringFromLiteral"),
-							[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("err"), "Error"), [])])
-					])),
-					GoStmt.GoReturn(GoExpr.GoIntLiteral(0))
-				], null),
-				GoStmt.GoIf(GoExpr.GoIdent("eof"), [
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "Throw"),
-						[GoExpr.GoCall(GoExpr.GoIdent("New_haxe__io__Eof"), [])])),
-					GoStmt.GoReturn(GoExpr.GoIntLiteral(0))
-				], null),
-				GoStmt.GoReturn(GoExpr.GoIdent("value"))
-			]),
-			GoDecl.GoFuncDecl("Sys_stdin", null, [], ["haxe__io__Input"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_sys__io__FileInput"),
-					[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysStdin"), [])]))
-			]),
-			GoDecl.GoFuncDecl("Sys_stdout", null, [], ["haxe__io__Output"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_sys__io__FileOutput"),
-					[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysStdout"), [])]))
-			]),
-			GoDecl.GoFuncDecl("Sys_stderr", null, [], ["haxe__io__Output"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_sys__io__FileOutput"),
-					[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysStderr"), [])]))
 			]),
 			// Haxe emits optional constructor arguments at call-site arity. The small
 			// `...any` island is therefore localized to decoding the typed Array<String>
@@ -5638,28 +5509,6 @@ class GoCompiler {
 			])
 		];
 
-		if (requiresSysCommandSurface) {
-			decls = decls.concat([
-				GoDecl.GoFuncDecl("Sys_command", null, [
-					{
-						name: "command",
-						typeName: "*string"
-					},
-					{name: "args", typeName: "[]*string"}
-				], ["int"], [
-					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysCommand"), [GoExpr.GoIdent("command"), GoExpr.GoIdent("args")]))
-				]),
-				GoDecl.GoFuncDecl("Sys_exit", null, [
-					{
-						name: "code",
-						typeName: "int"
-					}
-				], [], [
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysExit"), [GoExpr.GoIdent("code")]))
-				])
-			]);
-		}
-
 		for (methodName in [
 			"readAll",
 			"readFullBytes",
@@ -5694,16 +5543,6 @@ class GoCompiler {
 			"writeString"
 		]) {
 			decls.push(lowerIoOutputSyntheticHelper("*sys__io__ProcessInput", methodName));
-		}
-
-		if (requiredStdlibShimGroups.exists("ds")) {
-			decls.push(GoDecl.GoFuncDecl("Sys_environment", null, [], ["*haxe__ds__StringMap"], [
-				GoStmt.GoRaw("env := New_haxe__ds__StringMap()"),
-				GoStmt.GoRaw("for key, value := range hxrt.SysEnvironment() {"),
-				GoStmt.GoRaw("\tenv.h[key] = hxrt.StringFromLiteral(value)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoIdent("env"))
-			]));
 		}
 
 		return decls;
@@ -7431,6 +7270,13 @@ class GoCompiler {
 			if (directHaxeExceptionSuper) {
 				decls.push(lowerHaxeExceptionCarrierDecl(classType));
 			}
+		} else if (requiredNominalClassTypeNames.exists(fullClassName(classType))) {
+			// What: retain the nominal Go type for a static-only Haxe class.
+			// Why: Haxe still permits that class in type positions (for example
+			// `var probe:Sys = null`) even though it has no instance layout to lower.
+			// How: emit only the empty carrier; no constructor or instance interface is
+			// invented for a class whose staged source declares only static members.
+			decls.push(GoDecl.GoStructDecl(typeName, []));
 		}
 
 		for (method in instanceMethods) {
@@ -10865,22 +10711,6 @@ class GoCompiler {
 			};
 		}
 
-		if (isStaticCall(callee, "Sys", [], "println")) {
-			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
-			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.Println"), [arg]),
-				isStringLike: false
-			};
-		}
-
-		if (isStaticCall(callee, "Sys", [], "print")) {
-			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
-			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.Print"), [arg]),
-				isStringLike: false
-			};
-		}
-
 		if (isStaticCall(callee, "Log", ["haxe"], "trace")) {
 			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 			return {
@@ -13871,15 +13701,31 @@ class GoCompiler {
 	}
 
 	function arrayElementGoType(type:Type):String {
-		return GoTypeMapper.arrayElementGoType(type, classTypeName, enumTypeName);
+		return GoTypeMapper.arrayElementGoType(type, classTypeNameForMappedType, enumTypeName);
 	}
 
 	function scalarGoType(type:Type):String {
-		return GoTypeMapper.scalarGoType(type, classTypeName, enumTypeName);
+		return GoTypeMapper.scalarGoType(type, classTypeNameForMappedType, enumTypeName);
 	}
 
 	function goFunctionType(args:Array<{name:String, opt:Bool, t:Type}>, returnType:Type):String {
-		return GoTypeMapper.goFunctionType(args, returnType, classTypeName, enumTypeName);
+		return GoTypeMapper.goFunctionType(args, returnType, classTypeNameForMappedType, enumTypeName);
+	}
+
+	/**
+		What: record a Haxe class whose nominal type is rendered into generated Go.
+
+		Why: static-only classes have no instance layout, but Haxe still permits them
+		in type positions. Source-owned std classes may also have been removed by DCE,
+		so observing the type must enqueue their staged declaration before emission.
+
+		How: mark the nominal carrier, route known staged std dependencies through the
+		existing source-owned planner, then return the ordinary normalized Go name.
+	**/
+	function classTypeNameForMappedType(classType:ClassType):String {
+		requiredNominalClassTypeNames.set(fullClassName(classType), true);
+		noteSourceOwnedStdlibUsage(classType);
+		return classTypeName(classType);
 	}
 
 	function restElementType(type:Type):Null<Type> {
@@ -14025,13 +13871,6 @@ class GoCompiler {
 			sourceOwnedStdlibPlanner.requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
 		} else if (group == "ds") {
 			sourceOwnedStdlibPlanner.requireSourceOwnedStdlibModule("haxe.Constraints");
-		} else if (group == "sys") {
-			// The remaining monolithic Sys/Process shim group emits the root Sys
-			// standard-stream adapters even when only Process triggered the group.
-			// Keep those adapters pointed at the canonical staged file wrappers.
-			sourceOwnedStdlibPlanner.requireSourceOwnedStdlibClass("sys.io.FileInput");
-			sourceOwnedStdlibPlanner.requireSourceOwnedStdlibClass("sys.io.FileOutput");
-			sourceOwnedStdlibPlanner.requireSourceOwnedStdlibEnum("sys.io.FileSeek");
 		}
 	}
 
@@ -14046,12 +13885,6 @@ class GoCompiler {
 			Context.error("Sys.cpuTime is unsupported on haxe.go: Go's standard library does not expose portable process CPU time. "
 				+ "Use an explicit Go-native module/API boundary for platform-specific process accounting.",
 				pos);
-		}
-		if (classType.pack.length == 0 && classType.name == "Sys" && (fieldName == "command" || fieldName == "exit")) {
-			requiresSysCommandSurface = true;
-		}
-		if (classType.pack.length == 0 && classType.name == "Sys" && fieldName == "environment") {
-			requireStdlibShimGroup("ds");
 		}
 		sourceOwnedStdlibPlanner.noteSourceOwnedStdlibUsage(classType);
 	}
@@ -14157,7 +13990,12 @@ class GoCompiler {
 	}
 
 	function inferRuntimeFeatures(requiredShimGroups:Array<String>):GoHxrtFeatureInference {
-		var classPaths = [for (classType in projectClasses) fullClassName(classType)];
+		var classPathSet = new Map<String, Bool>();
+		for (classType in projectClasses)
+			classPathSet.set(fullClassName(classType), true);
+		for (classPath in usedExternClassPaths.keys())
+			classPathSet.set(classPath, true);
+		var classPaths = [for (classPath in classPathSet.keys()) classPath];
 		classPaths.sort(Reflect.compare);
 		var enumPaths = [for (enumType in projectEnums) fullEnumName(enumType)];
 		enumPaths.sort(Reflect.compare);
@@ -14170,6 +14008,9 @@ class GoCompiler {
 		}
 		for (path in externImportPackages.keys()) {
 			externImportPackages.remove(path);
+		}
+		for (classPath in usedExternClassPaths.keys()) {
+			usedExternClassPaths.remove(classPath);
 		}
 	}
 
@@ -14197,12 +14038,23 @@ class GoCompiler {
 		}
 	}
 
+	/**
+		What: Record one typed extern import and the class whose lowered use required it.
+
+		Why: staged inline methods can disappear from emitted class output while their
+		typed runtime extern call remains. Selective runtime inference must still see
+		that surviving authority or it can omit the runtime file that defines the call.
+
+		How: retain the existing import-path/package mapping and a deduplicated Haxe
+		class path consumed by `GoHxrtFeatureAnalyzer` after lowering completes.
+	**/
 	function noteExternImportPath(classType:ClassType, packageName:String):Void {
 		var path = externClassImportPath(classType);
 		if (path == null || path == "") {
 			return;
 		}
 		externImportPaths.set(path, true);
+		usedExternClassPaths.set(fullClassName(classType), true);
 		if (packageName != null && packageName != "") {
 			externImportPackages.set(path, packageName);
 		}

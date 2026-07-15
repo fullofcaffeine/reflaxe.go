@@ -31,7 +31,7 @@ var Demo_field *string = hxrt.StringFromLiteral("value")
 
 func main() {
 	info := haxe__rtti__Rtti_getRtti(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")})
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("path="), func(hx_obj_1 map[string]any) *string {
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("path="), func(hx_obj_1 map[string]any) *string {
 		hx_field_2 := hx_obj_1["path"]
 		if hx_field_2 == nil {
 			var hx_zero_3 *string
@@ -39,7 +39,8 @@ func main() {
 		}
 		return hx_field_2.(*string)
 	}(info)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("staticType="), haxe__rtti__CTypeTools_toString(func(hx_obj_7 map[string]any) *haxe__rtti__CType {
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("staticType="), haxe__rtti__CTypeTools_toString(func(hx_obj_7 map[string]any) *haxe__rtti__CType {
 		hx_field_8 := hx_obj_7["type"]
 		if hx_field_8 == nil {
 			var hx_zero_9 *haxe__rtti__CType
@@ -54,12 +55,13 @@ func main() {
 		}
 		return hx_field_5.([]map[string]any)
 	}(info)[0]))))
+	hxrt.Println(v_1)
 	var rawRtti any = Reflect_field(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")}, hxrt.StringFromLiteral("__rtti"))
 	parsed := New_haxe__rtti__XmlParser().processElement(Xml_parse(hxrt.StdString(rawRtti)).firstElement())
 	if parsed.tag == 1 {
 		_g := parsed.params[0].(map[string]any)
 		c := _g
-		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("parsedPath="), func(hx_obj_10 map[string]any) *string {
+		var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("parsedPath="), func(hx_obj_10 map[string]any) *string {
 			hx_field_11 := hx_obj_10["path"]
 			if hx_field_11 == nil {
 				var hx_zero_12 *string
@@ -67,8 +69,9 @@ func main() {
 			}
 			return hx_field_11.(*string)
 		}(c)))
+		hxrt.Println(v_2)
 	} else {
-		hxrt.Println(hxrt.StringFromLiteral("parsed=unexpected"))
+		hxrt.Println(any(hxrt.StringFromLiteral("parsed=unexpected")))
 	}
 }
 

@@ -48,10 +48,10 @@ func main() {
 		hx_switch_4 = hxrt.StringFromLiteral("empty")
 	}
 	recvSecond := hx_switch_4
-	hxrt.Println(sendFirst)
-	hxrt.Println(sendSecond)
-	hxrt.Println(recvFirst)
-	hxrt.Println(recvSecond)
+	hxrt.Println(any(sendFirst))
+	hxrt.Println(any(sendSecond))
+	hxrt.Println(any(recvFirst))
+	hxrt.Println(any(recvSecond))
 	left := go__concurrency_newChan___string_f613ccd0(1)
 	right := go__concurrency_newChan___string_f613ccd0(1)
 	go__concurrency_send___string_f613ccd0(right.__hx_native, hxrt.StringFromLiteral("beta"))
@@ -70,7 +70,7 @@ func main() {
 		hx_switch_5 = hxrt.StringFromLiteral("none")
 	}
 	recvTwo := hx_switch_5
-	hxrt.Println(recvTwo)
+	hxrt.Println(any(recvTwo))
 	sendTwoA := go__concurrency_newChan__int_95e97e5e(1)
 	sendTwoB := go__concurrency_newChan__int_95e97e5e(1)
 	_g_9 := go___Select_send2_Int_Int(sendTwoA, 11, sendTwoB, 22)
@@ -85,8 +85,8 @@ func main() {
 	}
 	sendTwo := hx_switch_6
 	sendTwoValues := hxrt.StringConcatAny(hxrt.StringConcatAny(go__concurrency_recvOr__int_95e97e5e(sendTwoA.__hx_native, -1), hxrt.StringFromLiteral(",")), go__concurrency_recvOr__int_95e97e5e(sendTwoB.__hx_native, -1))
-	hxrt.Println(sendTwo)
-	hxrt.Println(sendTwoValues)
+	hxrt.Println(any(sendTwo))
+	hxrt.Println(any(sendTwoValues))
 }
 
 type haxe__ds__IntMap struct {

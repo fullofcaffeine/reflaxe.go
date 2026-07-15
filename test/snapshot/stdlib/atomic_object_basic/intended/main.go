@@ -40,7 +40,8 @@ func nodeId(value *Node) *string {
 }
 
 func out(label *string, value any) {
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("=")), hxrt.StdString(value)))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("=")), hxrt.StdString(value)))
+	hxrt.Println(v)
 }
 
 type I_Node interface {

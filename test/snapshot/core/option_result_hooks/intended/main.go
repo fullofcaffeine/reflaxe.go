@@ -33,10 +33,14 @@ func Res_Err(error any) *Res {
 }
 
 func main() {
-	hxrt.Println(unwrapOr(Maybe_Some(7), 0))
-	hxrt.Println(unwrapOr(Maybe_None, 5))
-	hxrt.Println(render(Res_Ok(9)))
-	hxrt.Println(render(Res_Err(hxrt.StringFromLiteral("bad"))))
+	var v any = any(unwrapOr(Maybe_Some(7), 0))
+	hxrt.Println(v)
+	var v_1 any = any(unwrapOr(Maybe_None, 5))
+	hxrt.Println(v_1)
+	var v_2 any = any(render(Res_Ok(9)))
+	hxrt.Println(v_2)
+	var v_3 any = any(render(Res_Err(hxrt.StringFromLiteral("bad"))))
+	hxrt.Println(v_3)
 }
 
 func render(res *Res) *string {

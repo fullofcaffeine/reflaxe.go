@@ -7,8 +7,8 @@ func main() {
 	b := hxrt.StringFromLiteral("nullx")
 	c := true
 	d := true
-	hxrt.Println(a)
-	hxrt.Println(b)
-	hxrt.Println(c)
-	hxrt.Println(d)
+	hxrt.Println(any(a))
+	hxrt.Println(any(b))
+	hxrt.Println(any(c))
+	hxrt.Println(any(d))
 }

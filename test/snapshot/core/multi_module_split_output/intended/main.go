@@ -4,5 +4,6 @@ import "snapshot/hxrt"
 
 func main() {
 	greeter := New_helper__Greeter()
-	hxrt.Println(greeter.hello(hxrt.StringFromLiteral("go")))
+	var v any = any(greeter.hello(hxrt.StringFromLiteral("go")))
+	hxrt.Println(v)
 }

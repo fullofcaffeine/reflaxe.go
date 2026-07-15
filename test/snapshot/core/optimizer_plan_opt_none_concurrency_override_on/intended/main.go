@@ -8,10 +8,12 @@ import (
 func main() {
 	s := hxrt.StringFromLiteral("héllo")
 	out := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringCharAt(s, 1), hxrt.StdString(hxrt.StringCharCodeAtAny(s, 1))), hxrt.StringSubstring(s, 0, 3)), hxrt.StringSubstr(s, -2, 0, false))
-	hxrt.Println(int(int32((hxrt.Int32Wrap(hxrt.StringLength(s)) + hxrt.Int32Wrap(hxrt.StringLength(out))))))
+	var v any = any(int(int32((hxrt.Int32Wrap(hxrt.StringLength(s)) + hxrt.Int32Wrap(hxrt.StringLength(out))))))
+	hxrt.Println(v)
 	ch := go__concurrency_newChan__int_95e97e5e(0)
 	go__concurrency_send__int_95e97e5e(ch.__hx_native, 7)
-	hxrt.Println(go__concurrency_recv__int_95e97e5e(ch.__hx_native))
+	var v_1 any = any(go__concurrency_recv__int_95e97e5e(ch.__hx_native))
+	hxrt.Println(v_1)
 }
 
 type haxe__ds__IntMap struct {

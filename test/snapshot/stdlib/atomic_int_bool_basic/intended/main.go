@@ -65,7 +65,8 @@ func main() {
 }
 
 func out(label *string, value any) {
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("=")), hxrt.StdString(value)))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("=")), hxrt.StdString(value)))
+	hxrt.Println(v)
 }
 
 func haxe__atomic___AtomicInt__AtomicInt_Impl___new(value int) any {

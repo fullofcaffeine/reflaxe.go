@@ -4,7 +4,7 @@ import "snapshot/hxrt"
 
 func main() {
 	var d any = 1
-	hxrt.Println(func(hx_value any) bool {
+	var v any = any(func(hx_value any) bool {
 		switch hx_value.(type) {
 		case int:
 			return true
@@ -32,7 +32,8 @@ func main() {
 			return false
 		}
 	}(any(d)))
-	hxrt.Println(func(hx_value any) bool {
+	hxrt.Println(v)
+	var v_1 any = any(func(hx_value any) bool {
 		switch hx_value.(type) {
 		case *string:
 			return true
@@ -42,4 +43,5 @@ func main() {
 			return false
 		}
 	}(any(d)))
+	hxrt.Println(v_1)
 }

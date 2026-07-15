@@ -43,5 +43,5 @@ func main() {
 			}
 		}(hx_sort_raw_1, hx_sort_src_2)
 	}(values)
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatAny(values[0], hxrt.StringFromLiteral(",")), values[1]), hxrt.StringFromLiteral(",")), values[2]), hxrt.StringFromLiteral(",")), values[3]), hxrt.StringFromLiteral(",")), values[4]))
+	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatAny(values[0], hxrt.StringFromLiteral(",")), values[1]), hxrt.StringFromLiteral(",")), values[2]), hxrt.StringFromLiteral(",")), values[3]), hxrt.StringFromLiteral(",")), values[4])))
 }

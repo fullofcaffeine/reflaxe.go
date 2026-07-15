@@ -92,7 +92,9 @@ Key implementation points:
 - JSON wrappers:
   - `JsonParse`, `JsonStringify`
 - System wrappers (`runtime/hxrt/sys.go`):
-  - `SysGetCwd`, `SysArgs`, `SysGetEnv`, `SysPutEnv`, `SysCommand`, `SysExit`
+  - `SysGetCwd`, `SysChangeCwd`, `SysArgs`, `SysGetEnv`, `SysPutEnv`,
+    `SysSetEnvironment`, typed environment entries, `SysSleep`, `SysTime`,
+    `SysCurrentProgramPath`, `SysCommand`, and `SysExit`
 - File capabilities (`runtime/hxrt/file.go`):
   - typed `FileReadContent`, `FileWriteContent`, `FileReadByteValues`, `FileWriteByteValues`, and `FileCopyContents`
   - opaque `FileInput` / `FileOutput` handles plus `FileOpen*`, read/write, seek/tell/eof, flush, and close operations
@@ -100,7 +102,7 @@ Key implementation points:
 - Process wrappers (`runtime/hxrt/process.go`):
   - `NewProcess`; process stdin/stdout/stderr; byte I/O; PID, blocking/non-blocking exit status, kill, and close
 
-These helpers preserve native failures at the runtime boundary. Canonical staged file wrappers turn read/write failures into Haxe exceptions and construct `haxe.io.Eof` in Haxe source, while process startup and non-EOF read failures remain distinct from normal EOF and child exit codes. Arbitrary file bytes cross the typed boundary as `Array<Int>` / `[]int`, so `hxrt` does not depend on generated `haxe.io.Bytes` internals. Portable `Sys.putEnv` is the intentional exception: its compiler wrapper discards `SysPutEnv`'s returned error to match the upstream Haxe 4.3.7 eval contract, leaving the error available to typed Go-native bindings.
+These helpers preserve native failures at the runtime boundary. Canonical staged file wrappers turn read/write failures into Haxe exceptions and construct `haxe.io.Eof` in Haxe source, while process startup and non-EOF read failures remain distinct from normal EOF and child exit codes. Arbitrary file bytes cross the typed boundary as `Array<Int>` / `[]int`, so `hxrt` does not depend on generated `haxe.io.Bytes` internals. Portable `Sys.putEnv` is the intentional exception: staged `Sys.hx` calls the non-throwing `SysSetEnvironment` capability to match the upstream Haxe 4.3.7 eval contract, while `SysPutEnv` retains the native error for typed Go-native bindings.
 - Byte representation helpers:
   - `BytesFromString`, `BytesToString`, `BytesClone`
 
@@ -159,6 +161,12 @@ context or representation-sensitive lowering.
 owns its public API and `FileStat` construction, while typed `std/hxrt/fs`
 bindings reach the selectively copied native capabilities in
 `runtime/hxrt/filesystem.go`.
+
+Root `Sys` follows the same rule: `std/go/_std/Sys.hx` owns the public Haxe
+contract, typed `std/hxrt/sys` and `std/hxrt/fs` externs expose narrow native
+capabilities, and `runtime/hxrt/sys.go` / `file.go` own only OS state and
+handles. `hxrt` does not construct the public environment map, aliases,
+fallbacks, or Haxe stream wrappers.
 
 Examples that are currently compiler-owned (not `hxrt`-owned):
 

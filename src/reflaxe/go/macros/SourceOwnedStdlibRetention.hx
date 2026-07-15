@@ -13,8 +13,9 @@ import haxe.macro.Compiler as MacroCompiler;
 	- Reflaxe discovers indirect staged-stdlib dependencies while lowering typed
 	  code, after Haxe dead-code elimination has already pruned unused base fields.
 	  Without type-only retention, a source-owned stream reached indirectly through
-	  compiler-owned `Sys` cannot be type-checked even though the methods are part of
-	  Haxe's public `Input`, `Output`, and `Bytes` contracts.
+	  staged `Sys` or the remaining compiler-owned `Process` adapter cannot be
+	  type-checked even though the methods are part of Haxe's public `Input`,
+	  `Output`, and `Bytes` contracts.
 
 	How
 	- Attach `@:keep` to exact public fields during compiler initialization, before

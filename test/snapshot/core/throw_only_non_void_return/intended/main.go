@@ -33,6 +33,7 @@ func main() {
 		hx_try_6 = hxrt.StringFromLiteral("ok")
 	})
 	b := hx_try_6
-	hxrt.Println(hxrt.StdString(a))
-	hxrt.Println(b)
+	var v any = any(hxrt.StdString(a))
+	hxrt.Println(v)
+	hxrt.Println(any(b))
 }

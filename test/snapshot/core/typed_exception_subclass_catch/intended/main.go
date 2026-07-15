@@ -30,10 +30,12 @@ func main() {
 		switch hx_typed_2 := hx_caught_1.(type) {
 		case *DomainError:
 			error := hx_typed_2
-			hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed:"), error.code))
+			var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed:"), error.code))
+			hxrt.Println(v)
 		default:
 			error_1 := hxrt.ExceptionCaught(hx_caught_1)
-			hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("base:"), hxrt.ExceptionMessage(error_1)))
+			var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("base:"), hxrt.ExceptionMessage(error_1)))
+			hxrt.Println(v_1)
 		}
 	})
 	hxrt.TryCatch(func() {
@@ -42,10 +44,12 @@ func main() {
 		switch hx_typed_4 := hx_caught_3.(type) {
 		case *DomainError:
 			error_2 := hx_typed_4
-			hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed:"), error_2.code))
+			var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed:"), error_2.code))
+			hxrt.Println(v_2)
 		default:
 			error_3 := hxrt.ExceptionCaught(hx_caught_3)
-			hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("base:"), hxrt.ExceptionMessage(error_3)))
+			var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("base:"), hxrt.ExceptionMessage(error_3)))
+			hxrt.Println(v_3)
 		}
 	})
 }

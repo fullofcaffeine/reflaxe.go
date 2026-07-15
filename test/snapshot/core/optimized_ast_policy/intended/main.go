@@ -6,8 +6,8 @@ func main() {
 	x := 17
 	value := 3
 	if value == 3 {
-		hxrt.Println(x)
+		hxrt.Println(any(x))
 	} else {
-		hxrt.Println(0)
+		hxrt.Println(any(0))
 	}
 }

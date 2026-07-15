@@ -39,4 +39,5 @@
 - `string` <- `baseline` (`compiler_baseline`)
 - `print` <- `baseline` (`compiler_baseline`)
 - `exception` <- `baseline` (`compiler_baseline`)
-- `stack` <- `define` (`reflaxe_go_native_stack_trace`)
+- `stack` <- `class_usage` (`hxrt.stack.NativeStack`)
+- `stack` <- `class_usage` (`hxrt.stack.NativeStackFrame`)

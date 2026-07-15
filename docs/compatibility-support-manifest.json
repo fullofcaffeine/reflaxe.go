@@ -9,7 +9,7 @@
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "eb1eafd6b98bea5d73243ad964a8ae7385a4148b34cae27842cb6f1412bd4097"
+    "portable_stdlib_inventory_sha256": "a2d23b385c8ba9c7968c7789a237ffa1a939f7f544047a4d00356c8fda62c97e"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -1557,7 +1557,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. The supported Haxe 4.3.7 root API is canonical staged source in std/go/_std/Sys.hx over typed std/hxrt bindings. Public map construction, fallbacks, aliases, and standard-stream wrappers stay in Haxe; native process capabilities live in runtime/hxrt/sys.go and standard handles in file.go. Evidence: root_sys_contract, root_sys_portable_contract, sys_command_contract, sys_sleep_contract, sys/root_sys_portable, core/runtime_hxrt_infer_sys, and negative/sys_cpu_time_unsupported."
       },
       {
         "module": "Type",

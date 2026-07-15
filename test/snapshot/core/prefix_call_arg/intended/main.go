@@ -12,6 +12,8 @@ func main() {
 		i = int(int32((i + 1)))
 		return i
 	}())
-	hxrt.Println(hxrt.StdString(now))
-	hxrt.Println(hxrt.StdString(i))
+	var v any = any(hxrt.StdString(now))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StdString(i))
+	hxrt.Println(v_1)
 }

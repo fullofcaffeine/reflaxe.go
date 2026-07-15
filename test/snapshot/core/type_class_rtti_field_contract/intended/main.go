@@ -31,8 +31,9 @@ var Demo_value int = 1
 
 func main() {
 	fields := Type_getClassFields(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")})
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("fields.len="), len(fields)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fields.has_rtti="), hxrt.StdString(func(hx_lambda_items_10 []*string, hx_lambda_needle_11 any) bool {
+	var v any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("fields.len="), len(fields)))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fields.has_rtti="), hxrt.StdString(func(hx_lambda_items_10 []*string, hx_lambda_needle_11 any) bool {
 		for _, hx_lambda_item_12 := range hx_lambda_items_10 {
 			if reflect.DeepEqual(hx_lambda_item_12, hx_lambda_needle_11) {
 				return true
@@ -40,8 +41,11 @@ func main() {
 		}
 		return false
 	}(fields, hxrt.StringFromLiteral("__rtti")))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("raw.rtti.null="), hxrt.StdString(hxrt.AnyEqualsNull(Reflect_field(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")}, hxrt.StringFromLiteral("__rtti"))))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("raw.meta.null="), hxrt.StdString(hxrt.AnyEqualsNull(Reflect_field(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")}, hxrt.StringFromLiteral("__meta__"))))))
+	hxrt.Println(v_1)
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("raw.rtti.null="), hxrt.StdString(hxrt.AnyEqualsNull(Reflect_field(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")}, hxrt.StringFromLiteral("__rtti"))))))
+	hxrt.Println(v_2)
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("raw.meta.null="), hxrt.StdString(hxrt.AnyEqualsNull(Reflect_field(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")}, hxrt.StringFromLiteral("__meta__"))))))
+	hxrt.Println(v_3)
 }
 
 type haxe__io__Encoding struct {

@@ -13,14 +13,15 @@ func main() {
 		}
 		return hx_value_1.(*string)
 	}(m.get(1))
-	hxrt.Println(one)
-	hxrt.Println(func(hx_value_3 any) bool {
+	hxrt.Println(any(one))
+	var v any = any(func(hx_value_3 any) bool {
 		if hx_value_3 == nil {
 			var hx_zero_4 bool
 			return hx_zero_4
 		}
 		return hx_value_3.(bool)
 	}(m.exists(3)))
+	hxrt.Println(v)
 }
 
 type haxe__ds__IntMap struct {

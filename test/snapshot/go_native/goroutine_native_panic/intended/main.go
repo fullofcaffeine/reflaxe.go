@@ -8,7 +8,7 @@ import (
 
 func main() {
 	defer hxrt.ThreadWaitForAll()
-	hxrt.Println(hxrt.StringFromLiteral("native-goroutine-start"))
+	hxrt.Println(any(hxrt.StringFromLiteral("native-goroutine-start")))
 	started := go__concurrency_newChan__bool_c894953d(0)
 	never := go__concurrency_newChan__bool_c894953d(0)
 	go___Go_spawn(func() {

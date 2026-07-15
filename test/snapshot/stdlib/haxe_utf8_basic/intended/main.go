@@ -33,15 +33,20 @@ func main() {
 	value := utf8.__b
 	sized := New_haxe__Utf8(4)
 	sized.__b = hxrt.StringConcatStringPtr(sized.__b, haxe__Utf8_codePointToString(122))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("string="), value))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sized="), sized.__b))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("length="), haxe__io__Bytes_ofString(value).length))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sub="), func() *string {
+	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("string="), value)))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sized="), sized.__b))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("length="), haxe__io__Bytes_ofString(value).length))
+	hxrt.Println(v_1)
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sub="), func() *string {
 		var unicode any = value
 		return _UnicodeString__UnicodeString_Impl__substr(hxrt.StdString(unicode), 1, 2)
 	}()))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("encode="), haxe__Utf8_encode(hxrt.StringFromLiteral("é"))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("decode="), haxe__Utf8_decode(haxe__Utf8_encode(hxrt.StringFromLiteral("é")))))
+	hxrt.Println(v_2)
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("encode="), haxe__Utf8_encode(hxrt.StringFromLiteral("é"))))
+	hxrt.Println(v_3)
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("decode="), haxe__Utf8_decode(haxe__Utf8_encode(hxrt.StringFromLiteral("é")))))
+	hxrt.Println(v_4)
 }
 
 type haxe__io__Encoding struct {

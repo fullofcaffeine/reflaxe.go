@@ -4,22 +4,28 @@ import "snapshot/hxrt"
 
 func main() {
 	stack := haxe___CallStack__CallStack_Impl__callStack()
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("call.len="), len(stack)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("call.str="), haxe___CallStack__CallStack_Impl__toString(stack)))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("call.copy.len="), len(func(src []*haxe__StackItem) []*haxe__StackItem {
+	var v any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("call.len="), len(stack)))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("call.str="), haxe___CallStack__CallStack_Impl__toString(stack)))
+	hxrt.Println(v_1)
+	var v_2 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("call.copy.len="), len(func(src []*haxe__StackItem) []*haxe__StackItem {
 		out := append([]*haxe__StackItem{}, src...)
 		return out
 	}(stack))))
+	hxrt.Println(v_2)
 	hxrt.TryCatch(func() {
 		hxrt.Throw(hxrt.StringFromLiteral("boom"))
 	}, func(hx_caught_1 any) {
 		error := hx_caught_1
 		_ = error
 		exceptionStack := haxe___CallStack__CallStack_Impl__exceptionStack(false)
-		hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("exc.len="), len(exceptionStack)))
-		hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("exc.str="), haxe___CallStack__CallStack_Impl__toString(exceptionStack)))
+		var v_3 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("exc.len="), len(exceptionStack)))
+		hxrt.Println(v_3)
+		var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("exc.str="), haxe___CallStack__CallStack_Impl__toString(exceptionStack)))
+		hxrt.Println(v_4)
 	})
 	var nativeCall any = haxe__NativeStackTrace_callStack()
 	nativeHaxe := haxe__NativeStackTrace_toHaxe(nativeCall, 0)
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("native.len="), len(nativeHaxe)))
+	var v_5 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("native.len="), len(nativeHaxe)))
+	hxrt.Println(v_5)
 }

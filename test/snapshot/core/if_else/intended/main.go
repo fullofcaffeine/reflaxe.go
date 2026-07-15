@@ -5,13 +5,13 @@ import "snapshot/hxrt"
 func main() {
 	value := 3
 	if value > 2 {
-		hxrt.Println(hxrt.StringFromLiteral("gt"))
+		hxrt.Println(any(hxrt.StringFromLiteral("gt")))
 	} else {
-		hxrt.Println(hxrt.StringFromLiteral("lte"))
+		hxrt.Println(any(hxrt.StringFromLiteral("lte")))
 	}
 	if value == 3 {
-		hxrt.Println(hxrt.StringFromLiteral("yes"))
+		hxrt.Println(any(hxrt.StringFromLiteral("yes")))
 	} else {
-		hxrt.Println(hxrt.StringFromLiteral("no"))
+		hxrt.Println(any(hxrt.StringFromLiteral("no")))
 	}
 }

@@ -16,7 +16,8 @@ import (
 )
 
 func main() {
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy0="), sys__Http_hxrt_proxyDescriptor()))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy0="), sys__Http_hxrt_proxyDescriptor()))
+	hxrt.Println(v)
 	sys__Http_PROXY = func() map[string]any {
 		hx_obj_10 := map[string]any{}
 		hx_obj_10["host"] = hxrt.StringFromLiteral("proxy.local")
@@ -27,7 +28,8 @@ func main() {
 		hx_obj_10["auth"] = hx_obj_11
 		return hx_obj_10
 	}()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy1="), sys__Http_hxrt_proxyDescriptor()))
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy1="), sys__Http_hxrt_proxyDescriptor()))
+	hxrt.Println(v_1)
 	sys__Http_PROXY = func() map[string]any {
 		hx_obj_12 := map[string]any{}
 		hx_obj_12["host"] = hxrt.StringFromLiteral("proxy.local")
@@ -38,7 +40,8 @@ func main() {
 		hx_obj_12["auth"] = hx_obj_13
 		return hx_obj_12
 	}()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy2="), sys__Http_hxrt_proxyDescriptor()))
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy2="), sys__Http_hxrt_proxyDescriptor()))
+	hxrt.Println(v_2)
 	sys__Http_PROXY = func() map[string]any {
 		hx_obj_14 := map[string]any{}
 		hx_obj_14["host"] = hxrt.StringFromLiteral("proxy.local:9000")
@@ -46,7 +49,8 @@ func main() {
 		hx_obj_14["auth"] = nil
 		return hx_obj_14
 	}()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy3="), sys__Http_hxrt_proxyDescriptor()))
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy3="), sys__Http_hxrt_proxyDescriptor()))
+	hxrt.Println(v_3)
 	sys__Http_PROXY = func() map[string]any {
 		hx_obj_15 := map[string]any{}
 		hx_obj_15["host"] = nil
@@ -54,7 +58,8 @@ func main() {
 		hx_obj_15["auth"] = nil
 		return hx_obj_15
 	}()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy4="), sys__Http_hxrt_proxyDescriptor()))
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy4="), sys__Http_hxrt_proxyDescriptor()))
+	hxrt.Println(v_4)
 	sys__Http_PROXY = nil
 	http := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,body"))
 	sink := New_haxe__io__BytesBuffer()
@@ -63,7 +68,8 @@ func main() {
 		hx_obj_16["marker"] = hxrt.StringFromLiteral("sock")
 		return hx_obj_16
 	}(), hxrt.StringFromLiteral("PATCH"))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("methodSock="), sink.getBytes().toString()))
+	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("methodSock="), sink.getBytes().toString()))
+	hxrt.Println(v_5)
 }
 
 type haxe__io__Encoding struct {

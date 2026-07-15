@@ -27,29 +27,31 @@ type hxrt__TypeEnumValue struct {
 
 func main() {
 	names := haxe__Resource_listNames()
-	hxrt.Println(len(names))
-	hxrt.Println(func() any {
-		var hx_if_1 any
-		if len(names) > 0 {
-			hx_if_1 = names[0]
-		} else {
-			hx_if_1 = hxrt.StringFromLiteral("<none>")
-		}
-		return hx_if_1
-	}())
-	hxrt.Println(StringTools_replace(haxe__Resource_getString(hxrt.StringFromLiteral("greet")), hxrt.StringFromLiteral("\n"), hxrt.StringFromLiteral("\\n")))
+	var v any = any(len(names))
+	hxrt.Println(v)
+	var hx_if_1 any
+	if len(names) > 0 {
+		hx_if_1 = names[0]
+	} else {
+		hx_if_1 = hxrt.StringFromLiteral("<none>")
+	}
+	var v_1 any = hx_if_1
+	hxrt.Println(v_1)
+	var v_2 any = any(StringTools_replace(haxe__Resource_getString(hxrt.StringFromLiteral("greet")), hxrt.StringFromLiteral("\n"), hxrt.StringFromLiteral("\\n")))
+	hxrt.Println(v_2)
 	bytes := haxe__Resource_getBytes(hxrt.StringFromLiteral("greet"))
-	hxrt.Println(func() any {
-		var hx_if_2 any
-		if bytes == nil {
-			hx_if_2 = hxrt.StringFromLiteral("null")
-		} else {
-			hx_if_2 = bytes.length
-		}
-		return hx_if_2
-	}())
-	hxrt.Println(hxrt.StringEqualStringPtr(haxe__Resource_getString(hxrt.StringFromLiteral("missing")), nil))
-	hxrt.Println((haxe__Resource_getBytes(hxrt.StringFromLiteral("missing")) == nil))
+	var hx_if_2 any
+	if bytes == nil {
+		hx_if_2 = hxrt.StringFromLiteral("null")
+	} else {
+		hx_if_2 = bytes.length
+	}
+	var v_3 any = hx_if_2
+	hxrt.Println(v_3)
+	var v_4 any = any(hxrt.StringEqualStringPtr(haxe__Resource_getString(hxrt.StringFromLiteral("missing")), nil))
+	hxrt.Println(v_4)
+	var v_5 any = any((haxe__Resource_getBytes(hxrt.StringFromLiteral("missing")) == nil))
+	hxrt.Println(v_5)
 }
 
 type haxe__io__Encoding struct {

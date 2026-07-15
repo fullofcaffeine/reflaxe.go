@@ -22,10 +22,12 @@ func main() {
 	v[1] = 1
 	v[2] = 4
 	v[3] = 1
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("len:"), len(v)))
+	var v1 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("len:"), len(v)))
+	hxrt.Println(v1)
 	render(hxrt.StringFromLiteral("base"), v)
 	v[1] = 9
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("len_after_set:"), len(v)))
+	var v1_1 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("len_after_set:"), len(v)))
+	hxrt.Println(v1_1)
 	render(hxrt.StringFromLiteral("mut"), v)
 	var this1_1 []int
 	this1_1 = []int{}
@@ -50,7 +52,8 @@ func main() {
 		i := hx_post_5
 		w[i] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))) * hxrt.Int32Wrap(2))))
 	}
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("w_len:"), len(w)))
+	var v_1 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("w_len:"), len(w)))
+	hxrt.Println(v_1)
 	render(hxrt.StringFromLiteral("w"), w)
 }
 
@@ -69,6 +72,6 @@ func render(label *string, v []int) {
 		out = hxrt.StringConcatStringPtr(out, hxrt.StdString(v[i]))
 		sum = int(int32((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(v[i]))))
 	}
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral(":")), out))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("_sum:")), sum))
+	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral(":")), out)))
+	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("_sum:")), sum)))
 }

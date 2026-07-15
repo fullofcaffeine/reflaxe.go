@@ -16,6 +16,15 @@ package hxrt.fs;
 @:go.import("hxrt")
 @:go.package("hxrt")
 extern class NativeFile {
+	@:go.name("SysStdin")
+	public static function stdin():FileInputHandle;
+
+	@:go.name("SysStdout")
+	public static function stdout():FileOutputHandle;
+
+	@:go.name("SysStderr")
+	public static function stderr():FileOutputHandle;
+
 	@:go.name("FileReadContent")
 	public static function readContent(path:String):String;
 

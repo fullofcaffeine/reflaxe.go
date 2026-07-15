@@ -16,7 +16,7 @@ func main() {
 	sink := New_haxe__io__BytesBuffer()
 	http.customRequest(false, sink)
 	values := http.getResponseHeaderValues(hxrt.StringFromLiteral("Content-Type"))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("headers="), func() *string {
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("headers="), func() *string {
 		var hx_if_10 *string
 		if (values != nil) && (len(values) > 0) {
 			hx_if_10 = values[0]
@@ -25,8 +25,11 @@ func main() {
 		}
 		return hx_if_10
 	}()))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("direct="), sys__Http_requestUrl(hxrt.StringFromLiteral("data:text/plain,direct%20ok"))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy0="), sys__Http_hxrt_proxyDescriptor()))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("direct="), sys__Http_requestUrl(hxrt.StringFromLiteral("data:text/plain,direct%20ok"))))
+	hxrt.Println(v_1)
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy0="), sys__Http_hxrt_proxyDescriptor()))
+	hxrt.Println(v_2)
 	sys__Http_PROXY = func() map[string]any {
 		hx_obj_11 := map[string]any{}
 		hx_obj_11["host"] = hxrt.StringFromLiteral("proxy.local")
@@ -37,7 +40,8 @@ func main() {
 		hx_obj_11["auth"] = hx_obj_12
 		return hx_obj_11
 	}()
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy1="), sys__Http_hxrt_proxyDescriptor()))
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy1="), sys__Http_hxrt_proxyDescriptor()))
+	hxrt.Println(v_3)
 }
 
 type haxe__io__Encoding struct {

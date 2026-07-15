@@ -35,20 +35,22 @@ func main() {
 	hash_1 := key4.hashCode()
 	map_keysByHash.set(hash_1, key4)
 	map_valuesByHash.set(hash_1, hxrt.StringFromLiteral("four"))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("three="), func(hx_value_1 any) *string {
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("three="), func(hx_value_1 any) *string {
 		if hx_value_1 == nil {
 			var hx_zero_2 *string
 			return hx_zero_2
 		}
 		return hx_value_1.(*string)
 	}(map_valuesByHash.get(key3.hashCode()))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("four="), func(hx_value_3 any) *string {
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("four="), func(hx_value_3 any) *string {
 		if hx_value_3 == nil {
 			var hx_zero_4 *string
 			return hx_zero_4
 		}
 		return hx_value_3.(*string)
 	}(map_valuesByHash.get(key4.hashCode()))))
+	hxrt.Println(v_1)
 }
 
 type haxe__ds__IntMap struct {

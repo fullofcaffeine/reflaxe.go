@@ -19,6 +19,6 @@ func main() {
 		}
 		return hx_value_3.(int)
 	}(base + 2)
-	hxrt.Println(direct)
-	hxrt.Println(interpolated)
+	hxrt.Println(any(direct))
+	hxrt.Println(any(interpolated))
 }

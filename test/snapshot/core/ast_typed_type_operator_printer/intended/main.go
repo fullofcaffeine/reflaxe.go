@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	hxrt.Println(hxrt.StringFromLiteral("ok"))
+	hxrt.Println(any(hxrt.StringFromLiteral("ok")))
 }
 
 type hxrt__test_ast_Local struct {

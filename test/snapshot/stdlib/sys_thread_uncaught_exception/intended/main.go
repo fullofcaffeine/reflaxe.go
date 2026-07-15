@@ -8,9 +8,9 @@ func main() {
 	sys__thread__Thread_create(func() {
 		started.release()
 		New_sys__thread__Lock().wait(0.02)
-		hxrt.Println(hxrt.StringFromLiteral("child-before-throw"))
+		hxrt.Println(any(hxrt.StringFromLiteral("child-before-throw")))
 		hxrt.Throw(hxrt.StringFromLiteral("child-failure"))
 	})
 	started.wait(nil)
-	hxrt.Println(hxrt.StringFromLiteral("main-survived"))
+	hxrt.Println(any(hxrt.StringFromLiteral("main-survived")))
 }

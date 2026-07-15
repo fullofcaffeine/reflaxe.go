@@ -11,5 +11,5 @@ func main() {
 		_g = int(int32((_g + 1)))
 		sum = int(int32((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(value))))
 	}
-	hxrt.Println(sum)
+	hxrt.Println(any(sum))
 }

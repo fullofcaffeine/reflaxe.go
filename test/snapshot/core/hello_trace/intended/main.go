@@ -3,5 +3,5 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	hxrt.Println(hxrt.StringFromLiteral("hi"))
+	hxrt.Println(any(hxrt.StringFromLiteral("hi")))
 }

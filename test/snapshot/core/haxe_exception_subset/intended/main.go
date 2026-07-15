@@ -11,6 +11,7 @@ func main() {
 		fail()
 	}, func(hx_caught_1 any) {
 		e := hxrt.ExceptionCaught(hx_caught_1)
-		hxrt.Println(hxrt.ExceptionMessage(e))
+		var v any = any(hxrt.ExceptionMessage(e))
+		hxrt.Println(v)
 	})
 }

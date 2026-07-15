@@ -25,7 +25,10 @@ func (self *Counter) inc(step int) int {
 
 func main() {
 	counter := New_Counter(5)
-	hxrt.Println(counter.value)
-	hxrt.Println(counter.inc(2))
-	hxrt.Println(counter.value)
+	var v any = any(counter.value)
+	hxrt.Println(v)
+	var v_1 any = any(counter.inc(2))
+	hxrt.Println(v_1)
+	var v_2 any = any(counter.value)
+	hxrt.Println(v_2)
 }

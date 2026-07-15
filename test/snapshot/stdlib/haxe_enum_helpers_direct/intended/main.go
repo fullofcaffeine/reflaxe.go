@@ -60,15 +60,20 @@ func main() {
 	flags := haxe___EnumFlags__EnumFlags_Impl__from(Mode_Alpha)
 	flags = int(int32((hxrt.Int32Wrap(flags) | hxrt.Int32Wrap(4))))
 	flags = int(int32((hxrt.Int32Wrap(flags) & hxrt.Int32Wrap(-2))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("flags.alpha="), hxrt.StdString((int(int32((hxrt.Int32Wrap(flags) & hxrt.Int32Wrap(1)))) != 0))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("flags.gamma="), hxrt.StdString((int(int32((hxrt.Int32Wrap(flags) & hxrt.Int32Wrap(4)))) != 0))))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("flags.int="), flags))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("flags.alpha="), hxrt.StdString((int(int32((hxrt.Int32Wrap(flags) & hxrt.Int32Wrap(1)))) != 0))))
+	hxrt.Println(v)
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("flags.gamma="), hxrt.StdString((int(int32((hxrt.Int32Wrap(flags) & hxrt.Int32Wrap(4)))) != 0))))
+	hxrt.Println(v_1)
+	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("flags.int="), flags)))
 	var enumType any = Type_getEnum(Mode_Alpha)
 	created := Type_createEnumIndex(enumType, 1, []any{7})
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("created.name="), Type_enumConstructor(created)))
-	hxrt.Println(hxrt.StringConcatAny(hxrt.StringFromLiteral("created.index="), Type_enumIndex(created)))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ctors="), join(Type_getEnumConstructs(enumType))))
-	hxrt.Println(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("all="), join(func() []*string {
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("created.name="), Type_enumConstructor(created)))
+	hxrt.Println(v_2)
+	var v_3 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("created.index="), Type_enumIndex(created)))
+	hxrt.Println(v_3)
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ctors="), join(Type_getEnumConstructs(enumType))))
+	hxrt.Println(v_4)
+	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("all="), join(func() []*string {
 		_g := []*string{}
 		_g1 := 0
 		_g2 := Type_allEnums(enumType)
@@ -79,6 +84,7 @@ func main() {
 		}
 		return _g
 	}())))
+	hxrt.Println(v_5)
 }
 
 type haxe__io__Encoding struct {
