@@ -47,7 +47,7 @@ class GoStdlibShimClassifier {
 			return ["http"];
 		}
 
-		if ((pack == "" && classType.name == "Sys") || (pack == "sys.io" && (classType.name == "File" || classType.name == "Process"))) {
+		if ((pack == "" && classType.name == "Sys") || (pack == "sys.io" && classType.name == "Process")) {
 			return ["sys"];
 		}
 

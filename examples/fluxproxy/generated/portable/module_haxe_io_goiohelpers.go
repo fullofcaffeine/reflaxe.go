@@ -29,14 +29,14 @@ func haxe__io__GoIoHelpers_inputReadAll(self haxe__io__Input, bufsize int) *haxe
 				hxrt.Throw(haxe__io__Error_Blocked)
 			}
 			_ = func() int { total.writeFullBytes(buf, 0, chunk); return 0 }()
-		}, func(hx_caught_88 any) {
-			switch hx_typed_89 := hx_caught_88.(type) {
+		}, func(hx_caught_79 any) {
+			switch hx_typed_80 := hx_caught_79.(type) {
 			case *haxe__io__Eof:
-				hx_tmp := hx_typed_89
+				hx_tmp := hx_typed_80
 				_ = hx_tmp
 				done = true
 			default:
-				hxrt.Throw(hx_caught_88)
+				hxrt.Throw(hx_caught_79)
 			}
 		})
 		if done {
@@ -71,8 +71,8 @@ func haxe__io__GoIoHelpers_inputReadLine(self haxe__io__Input) *string {
 		last := 0
 		_ = last
 		ended := false
-		hx_try_return_90 := false
-		var hx_try_value_91 *string
+		hx_try_return_81 := false
+		var hx_try_value_82 *string
 		hxrt.TryCatch(func() {
 			last = self.readByte()
 			if last == 10 {
@@ -80,23 +80,23 @@ func haxe__io__GoIoHelpers_inputReadLine(self haxe__io__Input) *string {
 			} else {
 				_ = func() int { buf.writeByte(last); return 0 }()
 			}
-		}, func(hx_caught_92 any) {
-			switch hx_typed_93 := hx_caught_92.(type) {
+		}, func(hx_caught_83 any) {
+			switch hx_typed_84 := hx_caught_83.(type) {
 			case *haxe__io__Eof:
-				e := hx_typed_93
+				e := hx_typed_84
 				partial := buf.getBytes().toString()
 				if hxrt.StringLengthStringPtr(partial) == 0 {
 					hxrt.Throw(e)
 				}
-				hx_try_value_91 = partial
-				hx_try_return_90 = true
+				hx_try_value_82 = partial
+				hx_try_return_81 = true
 				return
 			default:
-				hxrt.Throw(hx_caught_92)
+				hxrt.Throw(hx_caught_83)
 			}
 		})
-		if hx_try_return_90 {
-			return hx_try_value_91
+		if hx_try_return_81 {
+			return hx_try_value_82
 		}
 		if ended {
 			break
@@ -170,14 +170,14 @@ func haxe__io__GoIoHelpers_outputWriteInput(self haxe__io__Output, i haxe__io__I
 				hxrt.Throw(haxe__io__Error_Blocked)
 			}
 			haxe__io__GoIoHelpers_outputWriteFullBytes(self, buf, 0, lenRead)
-		}, func(hx_caught_94 any) {
-			switch hx_typed_95 := hx_caught_94.(type) {
+		}, func(hx_caught_85 any) {
+			switch hx_typed_86 := hx_caught_85.(type) {
 			case *haxe__io__Eof:
-				hx_tmp := hx_typed_95
+				hx_tmp := hx_typed_86
 				_ = hx_tmp
 				done = true
 			default:
-				hxrt.Throw(hx_caught_94)
+				hxrt.Throw(hx_caught_85)
 			}
 		})
 		if done {
@@ -190,12 +190,12 @@ func haxe__io__GoIoHelpers_outputWriteString(self haxe__io__Output, s *string, e
 	if hxrt.StringEqualStringPtr(s, nil) {
 		s = hxrt.StringFromLiteral("")
 	}
-	var hx_if_96 *haxe__io__Bytes
+	var hx_if_87 *haxe__io__Bytes
 	if encoding == nil {
-		hx_if_96 = haxe__io__Bytes_ofString(s)
+		hx_if_87 = haxe__io__Bytes_ofString(s)
 	} else {
-		hx_if_96 = haxe__io__Bytes_ofString(s, encoding)
+		hx_if_87 = haxe__io__Bytes_ofString(s, encoding)
 	}
-	bytes := hx_if_96
+	bytes := hx_if_87
 	haxe__io__GoIoHelpers_outputWriteFullBytes(self, bytes, 0, bytes.length)
 }

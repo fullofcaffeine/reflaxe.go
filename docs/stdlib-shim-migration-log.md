@@ -868,3 +868,37 @@ Observed result:
 - The Haxe stdlib surface is now reviewable source under the canonical target `_std` tree, while Go-native I/O stays behind a typed runtime boundary.
 - `absolutePath` accepts paths that do not exist, `fullPath` resolves existing paths and symlinks, and `isDirectory` preserves Haxe 4.3.7 interpreter behavior by returning `false` for a missing path despite the upstream API documentation describing an exception.
 - Filesystem behavior no longer adds library algorithms, raw statements, support imports, or synthetic declarations to `GoCompiler`.
+
+### 2026-07-15: `sys.io.File*` moved from compiler shims to canonical staged std (`haxe_go-vfp.8.7.5`)
+
+Implementation:
+
+- Added canonical `std/go/_std/sys/io/File.hx`, `FileInput.hx`, `FileOutput.hx`, and `FileSeek.hx` implementations of the Haxe 4.3.7 target extern surface.
+- Added typed `std/hxrt/fs` handle/capability bindings over a dedicated, selectively copied `runtime/hxrt/file.go` slice. Arbitrary bytes cross as `Array<Int>` / `[]int`, not generated `Bytes` internals.
+- Added type-only retention for exact public `Input`, `Output`, and `Bytes` fields needed when compiler-owned root `Sys` discovers staged stream subclasses after Haxe dead-code elimination.
+- Removed File structs, handle maps, seek mapping, static APIs, stream methods, File ownership/classification, and File-specific subclass branches from `GoCompiler`; root `Sys` standard streams now construct the staged wrappers.
+- Lowered the permanent debt ceilings from 339 to 138 `GoRaw` sites in `lowerSysStdlibShimDecls` and from 93 to 46 in generic I/O subclass synthesis.
+
+Validation evidence:
+
+- `python3 test/run-semantic-diff.py --case file_read_write_contract`
+- `python3 test/run-semantic-diff.py --case file_error_semantics_contract`
+- `python3 test/run-semantic-diff.py --case sys_db_io_contract`
+- `python3 test/run-snapshots.py --case sys/root_sys_portable --runtime`
+- `python3 test/run-snapshots.py --case sys/process_echo_smoke --runtime`
+- `python3 test/run-snapshots.py --case stdlib/sys_db_io_direct --runtime`
+- `python3 test/run-snapshots.py --case core/runtime_hxrt_infer_file --runtime`
+- `python3 test/test_stdlib_migration_ledger_contract.py`
+- `npm run test:compiler-debt`
+- `npm test` (`261/261` snapshots)
+- `npm run test:semantic-diff` (`131/131` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` modules)
+- `npm run test:examples` (`12/12` lanes)
+- `npm run security:go-tooling`
+- `npm run test:perf:hxrt-selective`
+
+Observed result:
+
+- Text and arbitrary binary content, copy, write/append/update modes, seek/tell, bounds, EOF, native errors, owning ordinary handles, and non-owning standard streams are preserved through reviewable Haxe source plus typed native capabilities.
+- Direct File use selects `file.go` without the broad root `sys.go` / `process.go` slices; the still-monolithic Sys/Process shim group selects the same staged wrappers and file runtime explicitly.
+- `GoCompiler` is no longer a semantic or representation owner for `sys.io.File`, `FileInput`, `FileOutput`, or `FileSeek`.

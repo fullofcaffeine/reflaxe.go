@@ -91,12 +91,16 @@ Key implementation points:
     synchronization, and event-loop state
 - JSON wrappers:
   - `JsonParse`, `JsonStringify`
-- System/file/process wrappers:
+- System wrappers (`runtime/hxrt/sys.go`):
   - `SysGetCwd`, `SysArgs`, `SysGetEnv`, `SysPutEnv`, `SysCommand`, `SysExit`
-  - `FileSaveContent`, `FileGetContent`
+- File capabilities (`runtime/hxrt/file.go`):
+  - typed `FileReadContent`, `FileWriteContent`, `FileReadByteValues`, `FileWriteByteValues`, and `FileCopyContents`
+  - opaque `FileInput` / `FileOutput` handles plus `FileOpen*`, read/write, seek/tell/eof, flush, and close operations
+  - non-owning `SysStdin`, `SysStdout`, and `SysStderr` handles used by the staged file-stream classes
+- Process wrappers (`runtime/hxrt/process.go`):
   - `NewProcess`; process stdin/stdout/stderr; byte I/O; PID, blocking/non-blocking exit status, kill, and close
 
-These helpers preserve native failures at the runtime boundary. Portable file wrappers turn read/write failures into Haxe exceptions, while process startup and non-EOF read failures remain distinct from normal EOF and child exit codes. Portable `Sys.putEnv` is the intentional exception: its compiler wrapper discards `SysPutEnv`'s returned error to match the upstream Haxe 4.3.7 eval contract, leaving the error available to typed Go-native bindings.
+These helpers preserve native failures at the runtime boundary. Canonical staged file wrappers turn read/write failures into Haxe exceptions and construct `haxe.io.Eof` in Haxe source, while process startup and non-EOF read failures remain distinct from normal EOF and child exit codes. Arbitrary file bytes cross the typed boundary as `Array<Int>` / `[]int`, so `hxrt` does not depend on generated `haxe.io.Bytes` internals. Portable `Sys.putEnv` is the intentional exception: its compiler wrapper discards `SysPutEnv`'s returned error to match the upstream Haxe 4.3.7 eval contract, leaving the error available to typed Go-native bindings.
 - Byte representation helpers:
   - `BytesFromString`, `BytesToString`, `BytesClone`
 

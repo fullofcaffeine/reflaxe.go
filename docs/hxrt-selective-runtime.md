@@ -47,13 +47,18 @@ preset for stricter/eager defaults.
 - `reflaxe_go_hxrt_default_features`
   - Force full runtime copy (compat mode).
   - Takes precedence over selective runtime flags.
-- `reflaxe_go_hxrt_features=core,json,sys,filesystem,ssl,...`
+- `reflaxe_go_hxrt_features=core,json,sys,file_io,filesystem,ssl,...`
   - Enables selective runtime mode and adds manual feature list.
   - Use empty value (`-D reflaxe_go_hxrt_features=`) to enable selective mode with inferred-only features.
 
 `sys.FileSystem` usage infers the dedicated `filesystem` feature, which copies
 `runtime/hxrt/filesystem.go`. Keeping it separate prevents unrelated `sys.*`
 programs from inheriting native filesystem support in selective mode.
+
+`sys.io.File`, its stream classes, root `Sys` standard streams, and the current
+monolithic Sys/Process adapter group infer the dedicated `file_io` feature,
+which copies `runtime/hxrt/file.go`. Direct File use does not require the broad
+`sys.go` or `process.go` slices.
 - `reflaxe_go_hxrt_no_feature_infer`
   - Enables selective runtime mode and disables inference (use core + manual only).
 

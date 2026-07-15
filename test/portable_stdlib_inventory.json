@@ -1998,8 +1998,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "sys.io.File",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "runtime_hxrt",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. The complete Haxe 4.3.7 `sys.io.File` API is canonical staged source in `std/go/_std/sys/io/File.hx`, with typed `std/hxrt/fs` bindings to native capabilities in selectively copied `runtime/hxrt/file.go`. Semantic coverage includes binary save/read/copy, write/append/update modes, seek/tell, bounds, and EOF through `file_read_write_contract`, `file_error_semantics_contract`, and `sys_db_io_contract`; snapshot shape coverage lives in `sys/file_read_write_smoke`, `sys/file_error_semantics`, and `stdlib/sys_db_io_direct`.",
+      "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -2011,8 +2011,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.io.FileInput",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.io.FileInput` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`. Ownership is runtime-backed on purpose: the public Haxe file-handle surface now forwards through `lowerSysStdlibShimDecls` into `runtime/hxrt/sys.go` for open/read/seek/tell/eof.",
-      "owner": "runtime_hxrt",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.io.FileInput` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`. The public stream implementation, bounds checks, EOF translation, and seek-origin mapping live in `std/go/_std/sys/io/FileInput.hx`; only its opaque OS handle and native operations live in `runtime/hxrt/file.go`.",
+      "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -2024,8 +2024,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.io.FileOutput",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.io.FileOutput` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`. Ownership is runtime-backed on purpose: the public Haxe file-handle surface now forwards through `lowerSysStdlibShimDecls` into `runtime/hxrt/sys.go` for open/write/seek/tell/flush/close.",
-      "owner": "runtime_hxrt",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.io.FileOutput` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`. The public stream implementation, bounds checks, byte conversion, and seek-origin mapping live in `std/go/_std/sys/io/FileOutput.hx`; only its opaque OS handle and native operations live in `runtime/hxrt/file.go`.",
+      "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -2037,8 +2037,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "sys.io.FileSeek",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.io.FileSeek` enum usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`, with compiler-owned enum tags bridged to runtime seek whence values through the sys shim layer instead of relying on accidental source-owned extern emission.",
-      "owner": "runtime_hxrt",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.io.FileSeek` enum usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` and snapshot coverage in `stdlib/sys_db_io_direct`. The enum is canonical staged source, and the staged stream methods select native seek origins explicitly without a compiler-synthesized carrier or mapper.",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },

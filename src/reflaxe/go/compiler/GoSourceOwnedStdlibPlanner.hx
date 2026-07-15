@@ -80,6 +80,11 @@ class GoSourceOwnedStdlibPlanner {
 
 	public function noteSourceOwnedStdlibUsage(classType:ClassType):Void {
 		switch (fullClassName(classType)) {
+			case "Sys":
+				// Root Sys remains compiler-owned for now, but its standard streams
+				// construct the canonical staged file wrappers.
+				requireSourceOwnedStdlibClass("sys.io.FileInput");
+				requireSourceOwnedStdlibClass("sys.io.FileOutput");
 			case "StringTools":
 				requireSourceOwnedStdlibClass("StringTools");
 				requireSourceOwnedStdlibClass("haxe.iterators.StringIterator");
@@ -184,6 +189,17 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
 			case "sys.FileSystem":
 				requireSourceOwnedStdlibClass("sys.FileSystem");
+			case "sys.io.File":
+				requireSourceOwnedStdlibModule("sys.io.File");
+				requireSourceOwnedStdlibClass("sys.io.FileInput");
+				requireSourceOwnedStdlibClass("sys.io.FileOutput");
+				requireSourceOwnedStdlibEnum("sys.io.FileSeek");
+			case "sys.io.FileInput":
+				requireSourceOwnedStdlibClass("sys.io.FileInput");
+				requireSourceOwnedStdlibEnum("sys.io.FileSeek");
+			case "sys.io.FileOutput":
+				requireSourceOwnedStdlibClass("sys.io.FileOutput");
+				requireSourceOwnedStdlibEnum("sys.io.FileSeek");
 			case "sys.net.Address":
 				requireSourceOwnedStdlibClass("sys.net.Address");
 			case "sys.ssl.Certificate":
@@ -258,6 +274,11 @@ class GoSourceOwnedStdlibPlanner {
 	}
 
 	public function requireSourceOwnedStdlibClass(className:String):Void {
+		if (className == "sys.io.FileInput" || className == "sys.io.FileOutput") {
+			// Source-owned subclasses still inherit the compiler-owned Input/Output
+			// method surface, whose ordinary Haxe algorithms live in GoIoHelpers.
+			requireIoSourceOwnedHelperClass();
+		}
 		if (isCompilerOwnedAuthority(className)) {
 			return;
 		}

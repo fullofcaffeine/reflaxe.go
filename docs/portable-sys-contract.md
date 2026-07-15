@@ -13,11 +13,13 @@ The implementation is deliberately split:
 1. Haxe 4.3.7's mainstream `Sys` extern remains the source-facing API.
 2. `lowerSysStdlibShimDecls` emits typed target symbols and translates Go
    errors/EOF into Haxe exceptions.
-3. `runtime/hxrt/sys.go` owns OS calls, clocks, paths, blocking, and standard
-   stream handles.
+3. `runtime/hxrt/sys.go` owns root OS calls, clocks, paths, and blocking;
+   `runtime/hxrt/file.go` owns standard-stream handles.
 
-This keeps the existing generated `sys.io.FileInput` / `FileOutput` carriers
-without turning compiler-owned `GoRaw` into a second standard library.
+The root adapters construct canonical staged `sys.io.FileInput` / `FileOutput`
+classes from typed opaque handles. File stream shape and behavior therefore stay
+in `std/go/_std/sys/io`, rather than turning compiler-owned `GoRaw` into a
+second standard library.
 
 ## Method matrix
 
@@ -62,9 +64,10 @@ individual Haxe wrapper while leaving the process descriptor open, so code can
 reacquire a fresh wrapper without allowing a library to close a descriptor
 needed by the rest of the process.
 
-Reads distinguish EOF from other OS errors. Generated adapters translate EOF
-to `haxe.io.Eof` and translate other failures through the Haxe exception
-boundary. Writes and cwd/path failures likewise never become apparent success.
+Reads distinguish EOF from other OS errors. The staged `FileInput` translates
+the runtime EOF sentinel to `haxe.io.Eof`; typed runtime capabilities translate
+other failures through the Haxe exception boundary. Writes and cwd/path
+failures likewise never become apparent success.
 
 ## Sibling-target comparison
 
@@ -74,11 +77,9 @@ The local sibling audit found one strong precedent and two non-precedents:
   to typed `hxrt.sys.NativeSys` helpers. Its standard streams are staged
   `haxe.io.Input` / `Output` subclasses, `setTimeLocale` returns `false`, and
   `cpuTime` is explicitly rejected instead of being replaced with wall time.
-- `haxe.go` follows the same semantic ownership rule but retains thin generated
-  adapters because its `Sys`, `sys.io.File`, and process carriers already share
-  one compiler-emitted type boundary. Copying Rust's whole-class source layout
-  would duplicate those carriers without moving more behavior out of the
-  compiler.
+- `haxe.go` follows the same semantic ownership rule. `sys.io.File*` is now
+  canonical staged source like the sibling target; only root `Sys` and Process
+  retain thin generated adapters while their separate migrations remain open.
 - The audited `haxe.elixir` tree has no production root `Sys` override to copy.
   The `haxe.ruby` root surface is placeholder/incomplete and uses no-op or zero
   results, so it is not acceptable parity evidence.

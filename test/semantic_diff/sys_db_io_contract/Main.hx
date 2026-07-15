@@ -1,6 +1,7 @@
 package;
 
 import haxe.ds.List;
+import haxe.io.Bytes;
 import StringBuf;
 import sys.db.Connection;
 import sys.db.Mysql;
@@ -96,6 +97,21 @@ private class FakeConnection implements Connection {
 }
 
 class Main {
+	static function byteValues(bytes:Bytes, ?length:Int):String {
+		var resolvedLength = length == null ? bytes.length : length;
+		return [for (index in 0...resolvedLength) bytes.get(index)].join(',');
+	}
+
+	static function throws(action:() -> Void):Bool {
+		try {
+			action();
+			return false;
+		} catch (_:Dynamic) {
+			return true;
+		}
+		return false;
+	}
+
 	static function main() {
 		var path = "sys_db_io_contract.txt";
 		var output:FileOutput = File.write(path, true);
@@ -116,6 +132,45 @@ class Main {
 		input.close();
 		trace('content=' + File.getContent(path));
 		sys.FileSystem.deleteFile(path);
+
+		var binaryPath = "sys_db_io_binary.bin";
+		var copiedPath = "sys_db_io_binary_copy.bin";
+		File.saveBytes(binaryPath, Bytes.ofHex("00ff8041"));
+		File.copy(binaryPath, copiedPath);
+		var appended = File.append(copiedPath, true);
+		appended.writeByte(66);
+		appended.close();
+		var updated = File.update(copiedPath, true);
+		updated.seek(1, SeekBegin);
+		trace('binary.written=' + updated.writeBytes(Bytes.ofHex("0708"), 0, 2));
+		trace('binary.out.tell=' + updated.tell());
+		updated.close();
+		trace('binary.content=' + byteValues(File.getBytes(copiedPath)));
+
+		var binaryInput = File.read(copiedPath, true);
+		var buffer = Bytes.alloc(8);
+		var read = binaryInput.readBytes(buffer, 0, buffer.length);
+		trace('binary.read=' + read + ':' + byteValues(buffer, read));
+		trace('binary.eof=' + binaryInput.eof());
+		trace('binary.eof.throws=' + throws(() -> {
+			binaryInput.readByte();
+		}));
+		binaryInput.seek(-1, SeekEnd);
+		trace('binary.tail=' + binaryInput.readByte());
+		binaryInput.close();
+
+		var boundsOutput = File.update(copiedPath, true);
+		trace('binary.write.bounds=' + throws(() -> {
+			boundsOutput.writeBytes(buffer, buffer.length, 1);
+		}));
+		boundsOutput.close();
+		var boundsInput = File.read(copiedPath, true);
+		trace('binary.read.bounds=' + throws(() -> {
+			boundsInput.readBytes(buffer, buffer.length, 1);
+		}));
+		boundsInput.close();
+		sys.FileSystem.deleteFile(binaryPath);
+		sys.FileSystem.deleteFile(copiedPath);
 
 		var seeks = [SeekBegin, SeekCur, SeekEnd];
 		trace('seek.tags=' + [for (s in seeks) Type.enumConstructor(s)].join(','));

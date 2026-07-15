@@ -20,14 +20,16 @@
     "migrationBeads": {
       "upstream_std_override": [
         "haxe_go-vfp.5.3",
-        "haxe_go-vfp.8.7.4"
+        "haxe_go-vfp.8.7.4",
+        "haxe_go-vfp.8.7.5"
       ],
       "staged_support": [
         "haxe_go-vfp.5.4"
       ],
       "hxrt_binding": [
         "haxe_go-vfp.5.4",
-        "haxe_go-vfp.8.7.4"
+        "haxe_go-vfp.8.7.4",
+        "haxe_go-vfp.8.7.5"
       ],
       "public_go_facade": [
         "haxe_go-vfp.5.4"
@@ -449,6 +451,42 @@
       "notes": "Canonical source-owned implementation of the complete Haxe 4.3.7 sys.FileSystem API; public record construction stays in Haxe while typed std/hxrt bindings expose native filesystem capabilities."
     },
     {
+      "path": "std/go/_std/sys/io/File.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/io/File.hx",
+      "migrationBead": "haxe_go-vfp.8.7.5",
+      "compilerShimGroups": [],
+      "notes": "Canonical source-owned implementation of the complete Haxe 4.3.7 sys.io.File static API; byte conversion and stream construction stay in Haxe while typed std/hxrt capabilities own native file operations."
+    },
+    {
+      "path": "std/go/_std/sys/io/FileInput.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/io/FileInput.hx",
+      "migrationBead": "haxe_go-vfp.8.7.5",
+      "compilerShimGroups": [],
+      "notes": "Canonical source-owned Haxe 4.3.7 FileInput stream over an opaque typed hxrt handle; bounds checks, EOF translation, and seek-origin selection no longer live in GoCompiler."
+    },
+    {
+      "path": "std/go/_std/sys/io/FileOutput.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/io/FileOutput.hx",
+      "migrationBead": "haxe_go-vfp.8.7.5",
+      "compilerShimGroups": [],
+      "notes": "Canonical source-owned Haxe 4.3.7 FileOutput stream over an opaque typed hxrt handle; bounds checks, byte conversion, and seek-origin selection no longer live in GoCompiler."
+    },
+    {
+      "path": "std/go/_std/sys/io/FileSeek.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/io/FileSeek.hx",
+      "migrationBead": "haxe_go-vfp.8.7.5",
+      "compilerShimGroups": [],
+      "notes": "Canonical source-owned Haxe 4.3.7 seek-origin enum used by staged file streams instead of a compiler-synthesized carrier."
+    },
+    {
       "path": "std/go/_std/sys/net/Address.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
@@ -831,6 +869,33 @@
       "migrationBead": "haxe_go-vfp.8.7.4",
       "compilerShimGroups": [],
       "notes": "Typed extern carrier for runtime/hxrt FileSystemStat metadata, allowing staged sys.FileSystem to construct the unchanged upstream FileStat record without Dynamic or compiler shims."
+    },
+    {
+      "path": "std/hxrt/fs/FileInputHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/fs/FileInputHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.5",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for one runtime/hxrt readable file handle; staged sys.io.FileInput owns the public stream contract."
+    },
+    {
+      "path": "std/hxrt/fs/FileOutputHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/fs/FileOutputHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.5",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for one runtime/hxrt writable file handle and its native ownership/flush policy; staged sys.io.FileOutput owns the public stream contract."
+    },
+    {
+      "path": "std/hxrt/fs/NativeFile.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/fs/NativeFile.hx",
+      "migrationBead": "haxe_go-vfp.8.7.5",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge to the narrow runtime/hxrt file capability surface used by canonical staged sys.io.File, FileInput, and FileOutput source."
     },
     {
       "path": "std/hxrt/fs/NativeFileSystem.hx",

@@ -10,6 +10,7 @@ import reflaxe.go.macros.AutoEmptyConstructor;
 import reflaxe.go.macros.BoundaryEnforcer;
 import reflaxe.go.macros.NativeBoundaryEnforcer;
 import reflaxe.go.macros.NativeAuthorityGate;
+import reflaxe.go.macros.SourceOwnedStdlibRetention;
 import reflaxe.go.macros.StrictModeEnforcer;
 #end
 
@@ -28,6 +29,7 @@ class CompilerInit {
 		initialized = true;
 
 		var buildContext = GoBuildContextResolver.resolve();
+		SourceOwnedStdlibRetention.init();
 		AutoEmptyConstructor.init();
 		if (buildContext.strictExamples) {
 			BoundaryEnforcer.init();

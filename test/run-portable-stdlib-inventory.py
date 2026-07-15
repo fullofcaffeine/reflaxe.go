@@ -92,10 +92,10 @@ OWNER_OVERRIDES = {
     "haxe.atomic.AtomicBool": "runtime_hxrt",
     "haxe.atomic.AtomicInt": "runtime_hxrt",
     "haxe.atomic.AtomicObject": "runtime_hxrt",
-    "sys.io.File": "runtime_hxrt",
-    "sys.io.FileInput": "runtime_hxrt",
-    "sys.io.FileOutput": "runtime_hxrt",
-    "sys.io.FileSeek": "runtime_hxrt",
+    "sys.io.File": "mixed",
+    "sys.io.FileInput": "mixed",
+    "sys.io.FileOutput": "mixed",
+    "sys.io.FileSeek": "staged_std",
     "sys.io.Process": "runtime_hxrt",
     "sys.FileSystem": "mixed",
     "sys.db.Connection": "staged_std",
@@ -420,20 +420,29 @@ MODULE_NOTES_OVERRIDES = {
         "with a parsed private key. Ownership stays mixed: the public Haxe API lives in "
         "`std/go/_std/sys/ssl/Digest.hx`, while the actual cryptographic work lives in `runtime/hxrt/ssl.go`."
     ),
+    "sys.io.File": (
+        "The complete Haxe 4.3.7 `sys.io.File` API is canonical staged source in `std/go/_std/sys/io/File.hx`, "
+        "with typed `std/hxrt/fs` bindings to native capabilities in selectively copied `runtime/hxrt/file.go`. "
+        "Semantic coverage includes binary save/read/copy, write/append/update modes, seek/tell, bounds, and EOF "
+        "through `file_read_write_contract`, `file_error_semantics_contract`, and `sys_db_io_contract`; snapshot "
+        "shape coverage lives in `sys/file_read_write_smoke`, `sys/file_error_semantics`, and `stdlib/sys_db_io_direct`."
+    ),
     "sys.io.FileInput": (
         "Direct `sys.io.FileInput` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` "
-        "and snapshot coverage in `stdlib/sys_db_io_direct`. Ownership is runtime-backed on purpose: the public Haxe file-handle "
-        "surface now forwards through `lowerSysStdlibShimDecls` into `runtime/hxrt/sys.go` for open/read/seek/tell/eof."
+        "and snapshot coverage in `stdlib/sys_db_io_direct`. The public stream implementation, bounds checks, EOF translation, "
+        "and seek-origin mapping live in `std/go/_std/sys/io/FileInput.hx`; only its opaque OS handle and native operations live "
+        "in `runtime/hxrt/file.go`."
     ),
     "sys.io.FileOutput": (
         "Direct `sys.io.FileOutput` usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` "
-        "and snapshot coverage in `stdlib/sys_db_io_direct`. Ownership is runtime-backed on purpose: the public Haxe file-handle "
-        "surface now forwards through `lowerSysStdlibShimDecls` into `runtime/hxrt/sys.go` for open/write/seek/tell/flush/close."
+        "and snapshot coverage in `stdlib/sys_db_io_direct`. The public stream implementation, bounds checks, byte conversion, "
+        "and seek-origin mapping live in `std/go/_std/sys/io/FileOutput.hx`; only its opaque OS handle and native operations live "
+        "in `runtime/hxrt/file.go`."
     ),
     "sys.io.FileSeek": (
         "Direct `sys.io.FileSeek` enum usage now has semantic-diff coverage through `semantic_diff/sys_db_io_contract` "
-        "and snapshot coverage in `stdlib/sys_db_io_direct`, with compiler-owned enum tags bridged to runtime seek whence values "
-        "through the sys shim layer instead of relying on accidental source-owned extern emission."
+        "and snapshot coverage in `stdlib/sys_db_io_direct`. The enum is canonical staged source, and the staged stream methods "
+        "select native seek origins explicitly without a compiler-synthesized carrier or mapper."
     ),
     "sys.ssl.DigestAlgorithm": (
         "Direct `sys.ssl.DigestAlgorithm` usage now has semantic-diff coverage through "

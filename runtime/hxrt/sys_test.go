@@ -1,9 +1,11 @@
 package hxrt
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"testing"
 	"time"
 )
@@ -99,6 +101,43 @@ func TestFileTextHelpersPreserveNativeErrors(t *testing.T) {
 	if err := FileSaveContent(&root, &content); err == nil {
 		t.Fatal("writing content to a directory returned success")
 	}
+}
+
+func TestTypedFileCapabilitiesPreserveBinaryStreamsAndSeek(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "typed-file.bin")
+	pathValue := StringFromLiteral(path)
+	values := []int{0, 255, 128, 65}
+	FileWriteByteValues(pathValue, values)
+	if got := FileReadByteValues(pathValue); !slices.Equal(got, values) {
+		t.Fatalf("FileReadByteValues() = %v, want %v", got, values)
+	}
+
+	output := FileOpenUpdate(pathValue)
+	if pos := FileOutputTell(output); pos != 0 {
+		t.Fatalf("FileOutputTell() = %d, want 0", pos)
+	}
+	FileOutputSeek(output, 1, io.SeekStart)
+	if written := FileOutputWriteValues(output, []int{7, 8, 9}, 1, 2); written != 2 {
+		t.Fatalf("FileOutputWriteValues() = %d, want 2", written)
+	}
+	FileOutputFlush(output)
+	FileOutputClose(output)
+
+	input := FileOpenInput(pathValue)
+	if value := FileInputReadByteValue(input); value != 0 {
+		t.Fatalf("FileInputReadByteValue() = %d, want 0", value)
+	}
+	if got := FileInputReadValues(input, 8); !slices.Equal(got, []int{8, 9, 65}) {
+		t.Fatalf("FileInputReadValues() = %v, want [8 9 65]", got)
+	}
+	if !FileInputEof(input) {
+		t.Fatal("FileInputEof() = false at end of file")
+	}
+	FileInputSeek(input, 1, io.SeekStart)
+	if pos := FileInputTell(input); pos != 1 {
+		t.Fatalf("FileInputTell() = %d, want 1", pos)
+	}
+	FileInputClose(input)
 }
 
 func TestFileSystemCapabilitiesPreservePathsMetadataAndMutation(t *testing.T) {

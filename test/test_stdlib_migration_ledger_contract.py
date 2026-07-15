@@ -73,6 +73,18 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/fs/NativeFileSystem.hx",
     ),
+    "std/hxrt/fs/FileInputHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/fs/FileInputHandle.hx",
+    ),
+    "std/hxrt/fs/FileOutputHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/fs/FileOutputHandle.hx",
+    ),
+    "std/hxrt/fs/NativeFile.hx": (
+        "hxrt_binding",
+        "std/hxrt/fs/NativeFile.hx",
+    ),
     "std/_std/hxrt/stack/NativeStack.hx": ("hxrt_binding", "std/hxrt/stack/NativeStack.hx"),
     "std/_std/hxrt/stack/NativeStackFrame.hx": (
         "hxrt_binding",
@@ -360,6 +372,71 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             ),
             "source-owned sys.FileSystem must not retain a compiler-shim debt allowance",
         )
+
+    def test_file_io_is_source_owned_instead_of_a_compiler_shim(self) -> None:
+        ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
+        expected_owners = {
+            "std/go/_std/sys/io/File.hx": "upstream_std_override",
+            "std/go/_std/sys/io/FileInput.hx": "upstream_std_override",
+            "std/go/_std/sys/io/FileOutput.hx": "upstream_std_override",
+            "std/go/_std/sys/io/FileSeek.hx": "upstream_std_override",
+            "std/hxrt/fs/FileInputHandle.hx": "hxrt_binding",
+            "std/hxrt/fs/FileOutputHandle.hx": "hxrt_binding",
+            "std/hxrt/fs/NativeFile.hx": "hxrt_binding",
+        }
+        for source_path, expected_owner in expected_owners.items():
+            self.assertTrue((ROOT / source_path).is_file(), source_path)
+            entry = ledger_entries.get(source_path)
+            self.assertIsNotNone(entry, source_path)
+            self.assertEqual(expected_owner, entry.get("ownershipClass"), source_path)
+            self.assertEqual("haxe_go-vfp.8.7.5", entry.get("migrationBead"), source_path)
+            self.assertEqual([], entry.get("compilerShimGroups"), source_path)
+
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")
+        ownership = (ROOT / "src/reflaxe/go/compiler/GoStdlibOwnership.hx").read_text(
+            encoding="utf-8"
+        )
+        classifier = (ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx").read_text(
+            encoding="utf-8"
+        )
+        feature_analyzer = (ROOT / "src/reflaxe/go/compiler/GoHxrtFeatureAnalyzer.hx").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertTrue((ROOT / "runtime/hxrt/file.go").is_file())
+        sys_runtime = (ROOT / "runtime/hxrt/sys.go").read_text(encoding="utf-8")
+        self.assertNotIn("type FileInput struct", sys_runtime)
+        self.assertNotIn("type FileOutput struct", sys_runtime)
+        self.assertNotIn("func File", sys_runtime)
+        self.assertNotIn("func OpenFile", sys_runtime)
+        self.assertIn("FEATURE_FILE_IO", feature_analyzer)
+        self.assertIn('["file.go"]', feature_analyzer)
+
+        forbidden_compiler_fragments = [
+            'GoStructDecl("sys__io__File"',
+            'GoStructDecl("sys__io__FileInput"',
+            'GoStructDecl("sys__io__FileOutput"',
+            'GoStructDecl("sys__io__FileSeek"',
+            'GoGlobalVarDecl("sys__io__fileInputHandles"',
+            'GoGlobalVarDecl("sys__io__fileOutputHandles"',
+            'GoFuncDecl("sys__io__fileSeekWhence"',
+            'GoFuncDecl("sys__io__File_',
+            'lowerIoInputSyntheticHelper("*sys__io__FileInput"',
+            'lowerIoOutputSyntheticHelper("*sys__io__FileOutput"',
+            'isSysFileInput',
+            'isSysFileOutput',
+        ]
+        for fragment in forbidden_compiler_fragments:
+            self.assertNotIn(fragment, compiler, fragment)
+
+        for source_owned_name in (
+            '"sys.io.File"',
+            '"sys.io.FileInput"',
+            '"sys.io.FileOutput"',
+            '"sys.io.FileSeek"',
+        ):
+            self.assertNotIn(source_owned_name, ownership, source_owned_name)
+        self.assertNotIn('classType.name == "File"', classifier)
 
     def test_ambiguities_cannot_exist_without_a_follow_up_bead(self) -> None:
         ledger = load_ledger()
