@@ -268,6 +268,12 @@
       "level": "compile-go-test-run"
     },
     {
+      "id": "snapshot:detached-thread-lifecycle",
+      "kind": "path",
+      "path": "test/snapshot/go_native/goroutine_native_panic",
+      "level": "compile-go-test-run"
+    },
+    {
       "id": "bead:concurrency-audit",
       "kind": "bead",
       "bead": "haxe_go-vfp.10.2",
@@ -964,19 +970,20 @@
             "sys.thread.Tls"
           ],
           "granularity": "surface",
-          "state": "experimental",
-          "release_admitted": false,
-          "qualification": "Get, set, clear, and synchronization behavior is tested, but completed-thread value reclamation and detached-goroutine attachment are not yet bounded.",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "Get, set, clear, and main/worker isolation have interpreter parity. Runtime churn proves completed portable workers and compiler-owned detached go.Go.spawn callbacks release logical identity and TLS values on return and native-panic unwind; supported Go race, checkptr, vet, and staticcheck lanes exercise the boundary.",
           "evidence_ids": [
             "semantic:thread-primitives",
+            "runtime:thread-regressions",
+            "snapshot:detached-thread-lifecycle",
+            "npm:security-go-tooling",
             "contract:concurrency"
           ],
           "exclusions": [
-            "Thread-exit TLS reclamation and compiler-owned detached-goroutine cleanup"
+            "Automatic lifecycle discovery for goroutines created outside portable Thread and compiler-owned go.Go.spawn boundaries"
           ],
-          "blockers": [
-            "haxe_go-vfp.10.7"
-          ]
+          "blockers": []
         },
         {
           "id": "threads-event-loops-pools",
@@ -999,7 +1006,7 @@
             "bead:concurrency-audit"
           ],
           "exclusions": [
-            "Exact scheduler fairness, concurrent ElasticThreadPool.maxThreadsCount mutation, arbitrary foreign-goroutine lifecycle discovery, and sys.thread.Tls lifecycle admission"
+            "Exact scheduler fairness, concurrent ElasticThreadPool.maxThreadsCount mutation, and arbitrary foreign-goroutine lifecycle discovery"
           ],
           "blockers": []
         }
@@ -1249,11 +1256,6 @@
     }
   ],
   "known_blockers": [
-    {
-      "id": "haxe_go-vfp.10.7",
-      "scope": "Completed-thread TLS reclamation and compiler-owned detached-goroutine identity cleanup",
-      "release_blocker_for": "portable-concurrency/tls-lifecycle"
-    },
     {
       "id": "haxe_go-vfp.10.4",
       "scope": "Network, HTTP, socket, timeout, cancellation, and cleanup closure",

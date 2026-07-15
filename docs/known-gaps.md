@@ -141,10 +141,13 @@ current honest contract remains snapshot/runtime evidence.
   header parse because Go has no supported goroutine-local identity API. The
   parser is strict, zero-allocation in steady state, and lifecycle-tested; a Go
   runtime header-format change fails closed rather than corrupting ownership.
-- `sys.thread.Tls` get/set/clear works, but completed-thread value reclamation
-  and detached `go.Go.spawn` identity cleanup are not release-admitted yet.
-  This is tracked by `haxe_go-vfp.10.7`; see the explicit exclusion in the
-  [compatibility matrix](compatibility-support-matrix.md#portable-concurrency).
+- `sys.thread.Tls` get/set/clear and worker isolation have semantic-diff
+  coverage. Completed portable threads and compiler-owned `go.Go.spawn`
+  callbacks release their identity and TLS state on return or panic unwind.
+  Arbitrary goroutines created by handwritten Go, typed extern callbacks, or
+  other foreign code still have no automatic detach signal; using
+  `Thread.current()` or `Tls` there remains outside the admitted boundary. See
+  the [compatibility matrix](compatibility-support-matrix.md#portable-concurrency).
 
 ## Native specialization caveats
 

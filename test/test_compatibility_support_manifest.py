@@ -127,8 +127,15 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
         }
         self.assertTrue(concurrency_ops["primitives"]["release_admitted"])
         self.assertTrue(concurrency_ops["threads-event-loops-pools"]["release_admitted"])
-        self.assertFalse(concurrency_ops["tls-lifecycle"]["release_admitted"])
-        self.assertIn("haxe_go-vfp.10.7", concurrency_ops["tls-lifecycle"]["blockers"])
+        tls_lifecycle = concurrency_ops["tls-lifecycle"]
+        self.assertTrue(tls_lifecycle["release_admitted"])
+        self.assertEqual(tls_lifecycle["state"], "semantic-diff-supported")
+        self.assertFalse(tls_lifecycle["blockers"])
+        self.assertIn("runtime:thread-regressions", tls_lifecycle["evidence_ids"])
+        self.assertIn("snapshot:detached-thread-lifecycle", tls_lifecycle["evidence_ids"])
+        self.assertTrue(
+            any("outside portable Thread" in exclusion for exclusion in tls_lifecycle["exclusions"])
+        )
 
         expected_blockers = {
             "portable-networking": "haxe_go-vfp.10.4",

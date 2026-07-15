@@ -27,6 +27,8 @@ compatibility preset is neither necessary nor sufficient to opt into them.
 | Repeating-event cancellation | Queued cancellation removes the event without a tombstone. Only an executing callback can hold a temporary cancellation marker, which is removed when progress decides whether to reschedule. Unknown IDs are bounded no-ops. |
 | Timed event-loop waits | An insertion, cancellation, or timeout ends one wait generation. The loop then recomputes the full schedule, so an earlier timer is not delayed to the old deadline and cancelling the last timer cannot strand the worker. |
 | Portable thread identity state | Spawned portable workers register before executing and remove both their logical state and goroutine mapping on normal/Haxe-throw completion. Native panics remain fatal. |
+| `sys.thread.Tls` ownership | Each `Tls<T>` has an opaque slot, while values live in the current `ThreadState`. Completing a portable worker drops its identity, every TLS slot, and every stored payload together. Null assignment clears the slot immediately. |
+| Compiler-owned detached identity | When a program uses both `go.Go.spawn` and `sys.thread`, the generated spawn helper initializes the thread runtime on the caller before launch, then scopes only lazily-created thread identity/TLS state to that detached callback. Return and native-panic unwind both remove it; the callback is still non-joined, a nil callback still panics natively, and no native panic is recovered. |
 
 The elastic pool's public `maxThreadsCount` remains a plain writable field
 because that is Haxe's core API shape. Concurrently mutating that field while
@@ -47,27 +49,34 @@ caller identity, so `hxrt` uses a deliberately bounded fallback:
 4. Fail with a native runtime panic if the header format is invalid. Identity
    zero is reserved for “unowned,” so silently returning zero would corrupt
    mutex ownership.
-5. Remove mappings for every supported portable worker lifecycle.
+5. Remove mappings for every supported portable worker lifecycle and every
+   compiler-owned detached `go.Go.spawn` scope that can request `sys.thread`.
 
-The direct regression test drains 10,000 portable workers in batches and
-requires identity maps to return to their original size after every batch. On
+The direct regression suite drains 10,000 portable workers in batches and also
+churns 1,000 portable and 1,000 compiler-scoped detached workers with TLS
+values. Identity mappings, thread states, TLS slots, and foreground counts must
+return to their original size. A fresh-process probe requires the spawning
+caller—not the new detached goroutine—to retain reserved logical identity zero,
+and a nil-callback probe requires native panic behavior. On
 2026-07-14, an Apple M2 Pro / Darwin arm64 benchmark measured
 `BenchmarkCurrentGoroutineID` at 1.72–1.77 microseconds per operation with
 `0 B/op` and `0 allocs/op`. This is characterization evidence, not a
 hardware-dependent release threshold.
 
-Bare goroutines, including those created by `go.Go.spawn`, are not portable
-foreground threads. `go.Go.spawn` deliberately owns only native non-joined
-shutdown and panic behavior; the runtime does not promise portable lifecycle
-discovery for arbitrary user-created Go goroutines.
+Native goroutines, including those created by `go.Go.spawn`, are not portable
+foreground threads. `go.Go.spawn` deliberately keeps native non-joined shutdown
+and panic behavior. If the finalized program contains a `sys.thread` surface,
+the compiler routes the callback through `hxrt.ThreadSpawnDetached` solely to
+bound any lazily-created `Thread.current()` identity or TLS values. The wrapper
+does not wait, recover, or translate a panic.
 
-`sys.thread.Tls` is not part of the admitted portable concurrency surface yet.
-Its get/set/clear behavior and synchronization are tested, but the current
-per-instance ID map does not prove value reclamation when a thread exits, and a
-`go.Go.spawn` callback that asks for `Thread.current()` has no explicit detached
-identity cleanup transition. [`haxe_go-vfp.10.7`](compatibility-support-matrix.md#known-blockers)
-owns that narrower lifecycle design; the admitted `Thread`, synchronization,
-event-loop, and pool contracts do not depend on claiming it complete.
+Automatic detach is guaranteed only at compiler-owned portable `Thread` and
+`go.Go.spawn` boundaries. A goroutine created by a typed extern, handwritten Go,
+or another foreign callback can call `Thread.current()` or `Tls`, but `hxrt`
+cannot discover when that arbitrary goroutine exits. Such calls allocate state
+without automatic reclamation and remain outside the admitted lifecycle
+contract; foreign code must avoid them or provide its own bounded integration
+boundary.
 
 ## Go-native channel lifecycle
 
@@ -97,13 +106,15 @@ The release tooling runs these contracts without flaky-test retries:
 
 - direct `hxrt` normal and race tests, including condition generations,
   cancellation boundedness, event-loop ownership and timed-wakeup
-  recalculation, and identity churn;
+  recalculation, identity churn, TLS reclamation, and detached native-panic
+  cleanup;
 - generated fixed/elastic pool tests with 10,000 concurrent submissions,
   repeated shutdown at `GOMAXPROCS=1,2,8`, and replacement after a task's Haxe
   throw;
 - generated generic and specialized channel tests for buffered close, nil
   channels, closed/empty comma-ok behavior, send-after-close, and double-close;
 - snapshot and runtime contracts in `stdlib/sys_thread_runtime_direct`,
+  `stdlib/sys_thread_primitives_direct`, `go_native/goroutine_native_panic`,
   `go_native/channel_try_recv`, and `core/ast_select_stmt_printer`.
 
 Run the release-facing race/static-analysis lane with:

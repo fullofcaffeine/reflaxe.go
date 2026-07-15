@@ -46,10 +46,14 @@ Why this is recommended:
 - Still runs with either compatibility preset from one codebase, so preset
   defaults can be compared without changing the API-scoped native contract.
 
-This is an explicit Go-native lifecycle contract. `go.Go.spawn(fn)` emits a
-bare goroutine: returning from `main` does not wait for it, and a panic inside
-it is a normal fatal Go panic. Coordinate completion through channels or other
-typed Go synchronization when work must finish before shutdown.
+This is an explicit Go-native lifecycle contract. `go.Go.spawn(fn)` starts a
+native detached goroutine: returning from `main` does not wait for it, and a
+panic inside it is a normal fatal Go panic. When the program also uses
+`sys.thread`, the compiler adds an internal scope that releases any
+`Thread.current()` identity or `Tls` state created by the callback; that scope
+does not join the goroutine or recover its panic. Coordinate completion through
+channels or other typed Go synchronization when work must finish before
+shutdown.
 
 For portable Haxe thread semantics, use `sys.thread.Thread.create` or
 `createWithEventLoop`. Those workers are foreground threads, meaning generated
@@ -119,8 +123,11 @@ Practical interpretation:
 - Complex Go extern signatures may need façade wrappers until broader mapping support lands.
 - `sys.thread.ElasticThreadPool.maxThreadsCount` is a core-API writable field;
   synchronize application code if it mutates that field concurrently with pool use.
-- `sys.thread.Tls` lifecycle reclamation is still experimental; do not use it
-  for unbounded short-lived-thread churn until `haxe_go-vfp.10.7` closes.
+- `sys.thread.Tls` values are reclaimed with completed portable workers and
+  compiler-owned `go.Go.spawn` callbacks. Goroutines created outside those
+  boundaries—through handwritten Go, typed extern callbacks, or other foreign
+  code—have no automatic detach signal, so calling `Thread.current()` or `Tls`
+  from them remains outside the supported lifecycle contract.
 - For current limitations and planning guidance, use `docs/known-gaps.md`.
 
 ## 5) Planned portable channel facade

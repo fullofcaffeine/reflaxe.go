@@ -23,7 +23,9 @@ import hxrt.thread.NativeThread;
 	availability is checked explicitly so `Thread.events` still throws
 	`NoEventLoopException` for threads that were not created with loop support.
 	The compiler adds the foreground drain only when the thread runtime feature is
-	selected, so explicit `go.Go.spawn` goroutines keep ordinary Go lifecycle rules.
+	selected. In that same feature-gated case, explicit `go.Go.spawn` callbacks get
+	only a detached identity-cleanup scope: they remain non-joined and native panics
+	remain fatal.
 **/
 class Thread {
 	final __id:Int;

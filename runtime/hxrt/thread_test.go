@@ -14,7 +14,10 @@ import (
 	"time"
 )
 
-const threadFailureProbeEnv = "HAXE_GO_THREAD_FAILURE_PROBE"
+const (
+	threadFailureProbeEnv    = "HAXE_GO_THREAD_FAILURE_PROBE"
+	detachedFirstUseProbeEnv = "HAXE_GO_DETACHED_FIRST_USE_PROBE"
+)
 
 type notifyingLocker struct {
 	sync.Locker
@@ -535,6 +538,246 @@ func TestPortableThreadIdentityStateReturnsToBaselineAfterChurn(t *testing.T) {
 
 	if got, want := completed.Load(), int64(batches*threadsPerBatch); got != want {
 		t.Fatalf("completed portable threads = %d, want %d", got, want)
+	}
+}
+
+func threadRuntimeStateCounts() (states int, mappings int, localValues int, active int) {
+	ensureThreadRuntime()
+	threadRuntimeMu.Lock()
+	stateSnapshot := make([]*ThreadState, 0, len(threadStates))
+	for _, state := range threadStates {
+		stateSnapshot = append(stateSnapshot, state)
+	}
+	states = len(threadStates)
+	mappings = len(goroutineThreadIDs)
+	active = activePortableThreads
+	threadRuntimeMu.Unlock()
+
+	for _, state := range stateSnapshot {
+		state.threadLocalMu.RLock()
+		localValues += len(state.threadLocalValues)
+		state.threadLocalMu.RUnlock()
+	}
+	return states, mappings, localValues, active
+}
+
+func TestDetachedFirstUseInitializesRuntimeOnCaller(t *testing.T) {
+	if os.Getenv(detachedFirstUseProbeEnv) == "1" {
+		callerGoroutineID := currentGoroutineID()
+		handle := ThreadLocalNew()
+		callbackGoroutineID := make(chan int64, 1)
+		ThreadSpawnDetached(func() {
+			callbackGoroutineID <- currentGoroutineID()
+			ThreadLocalSet(handle, "detached-first-use")
+		})
+		detachedGoroutineID := <-callbackGoroutineID
+
+		deadline := time.Now().Add(5 * time.Second)
+		for time.Now().Before(deadline) {
+			states, mappings, values, active := threadRuntimeStateCounts()
+			threadRuntimeMu.Lock()
+			callerID, callerExists := goroutineThreadIDs[callerGoroutineID]
+			_, detachedExists := goroutineThreadIDs[detachedGoroutineID]
+			threadRuntimeMu.Unlock()
+			if callerExists && callerID == 0 && !detachedExists && states == 1 && mappings == 1 && values == 0 && active == 0 {
+				return
+			}
+			runtime.Gosched()
+		}
+
+		states, mappings, values, active := threadRuntimeStateCounts()
+		threadRuntimeMu.Lock()
+		callerID, callerExists := goroutineThreadIDs[callerGoroutineID]
+		_, detachedExists := goroutineThreadIDs[detachedGoroutineID]
+		threadRuntimeMu.Unlock()
+		t.Fatalf(
+			"detached first-use state = (%d states, %d mappings, %d values, %d active, caller=%d/%t, detached=%t), want (1, 1, 0, 0, caller=0/true, detached=false)",
+			states,
+			mappings,
+			values,
+			active,
+			callerID,
+			callerExists,
+			detachedExists,
+		)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestDetachedFirstUseInitializesRuntimeOnCaller$")
+	cmd.Env = append(os.Environ(), detachedFirstUseProbeEnv+"=1")
+	output, err := cmd.CombinedOutput()
+	if ctx.Err() != nil {
+		t.Fatalf("detached first-use probe timed out: %v", ctx.Err())
+	}
+	if err != nil {
+		t.Fatalf("detached first-use probe failed: %v\n%s", err, output)
+	}
+}
+
+func TestDetachedNilJobRetainsNativePanic(t *testing.T) {
+	baselineStates, baselineMappings, baselineValues, baselineActive := threadRuntimeStateCounts()
+	recovered := make(chan any, 1)
+
+	go func() {
+		defer func() {
+			recovered <- recover()
+		}()
+		runDetachedThreadJob(nil)
+	}()
+
+	select {
+	case got := <-recovered:
+		if got == nil {
+			t.Fatal("nil detached callback returned instead of preserving native panic behavior")
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("nil detached callback panic timed out")
+	}
+
+	gotStates, gotMappings, gotValues, gotActive := threadRuntimeStateCounts()
+	if gotStates != baselineStates || gotMappings != baselineMappings || gotValues != baselineValues || gotActive != baselineActive {
+		t.Fatalf(
+			"thread-local runtime state after nil callback panic = (%d states, %d mappings, %d values, %d active), want baseline (%d, %d, %d, %d)",
+			gotStates,
+			gotMappings,
+			gotValues,
+			gotActive,
+			baselineStates,
+			baselineMappings,
+			baselineValues,
+			baselineActive,
+		)
+	}
+}
+
+func TestThreadLocalStateReturnsToBaselineAfterPortableThreadChurn(t *testing.T) {
+	baselineStates, baselineMappings, baselineValues, baselineActive := threadRuntimeStateCounts()
+	handle := ThreadLocalNew()
+
+	const workers = 1_000
+	failures := make(chan string, workers*2)
+	for worker := 0; worker < workers; worker++ {
+		worker := worker
+		ThreadSpawn(func() {
+			if got := ThreadLocalGet(handle); got != nil {
+				failures <- fmt.Sprintf("worker %d inherited thread-local value %v", worker, got)
+			}
+			value := fmt.Sprintf("portable-%d", worker)
+			ThreadLocalSet(handle, value)
+			if got := ThreadLocalGet(handle); got != value {
+				failures <- fmt.Sprintf("worker %d thread-local value = %v, want %q", worker, got, value)
+			}
+		})
+	}
+	ThreadWaitForAll()
+	close(failures)
+	for failure := range failures {
+		t.Error(failure)
+	}
+
+	gotStates, gotMappings, gotValues, gotActive := threadRuntimeStateCounts()
+	if gotStates != baselineStates || gotMappings != baselineMappings || gotValues != baselineValues || gotActive != baselineActive {
+		t.Fatalf(
+			"thread-local runtime state after portable churn = (%d states, %d mappings, %d values, %d active), want baseline (%d, %d, %d, %d)",
+			gotStates,
+			gotMappings,
+			gotValues,
+			gotActive,
+			baselineStates,
+			baselineMappings,
+			baselineValues,
+			baselineActive,
+		)
+	}
+}
+
+func TestDetachedThreadIdentityAndLocalStateReturnsToBaseline(t *testing.T) {
+	baselineStates, baselineMappings, baselineValues, baselineActive := threadRuntimeStateCounts()
+	handle := ThreadLocalNew()
+
+	const workers = 1_000
+	var completed sync.WaitGroup
+	completed.Add(workers)
+	failures := make(chan string, workers*2)
+	for worker := 0; worker < workers; worker++ {
+		worker := worker
+		go func() {
+			defer completed.Done()
+			runDetachedThreadJob(func() {
+				if id := ThreadCurrentId(); id == 0 {
+					failures <- fmt.Sprintf("worker %d received reserved thread id", worker)
+				}
+				if got := ThreadLocalGet(handle); got != nil {
+					failures <- fmt.Sprintf("worker %d inherited detached thread-local value %v", worker, got)
+				}
+				ThreadLocalSet(handle, worker)
+				if got := ThreadLocalGet(handle); got != worker {
+					failures <- fmt.Sprintf("worker %d detached thread-local value = %v", worker, got)
+				}
+			})
+		}()
+	}
+	completed.Wait()
+	close(failures)
+	for failure := range failures {
+		t.Error(failure)
+	}
+
+	gotStates, gotMappings, gotValues, gotActive := threadRuntimeStateCounts()
+	if gotStates != baselineStates || gotMappings != baselineMappings || gotValues != baselineValues || gotActive != baselineActive {
+		t.Fatalf(
+			"thread-local runtime state after detached churn = (%d states, %d mappings, %d values, %d active), want baseline (%d, %d, %d, %d)",
+			gotStates,
+			gotMappings,
+			gotValues,
+			gotActive,
+			baselineStates,
+			baselineMappings,
+			baselineValues,
+			baselineActive,
+		)
+	}
+}
+
+func TestDetachedThreadCleanupRunsDuringNativePanicUnwind(t *testing.T) {
+	baselineStates, baselineMappings, baselineValues, baselineActive := threadRuntimeStateCounts()
+	handle := ThreadLocalNew()
+	panicMarker := &struct{}{}
+	recovered := make(chan any, 1)
+
+	go func() {
+		defer func() {
+			recovered <- recover()
+		}()
+		runDetachedThreadJob(func() {
+			ThreadLocalSet(handle, panicMarker)
+			panic(panicMarker)
+		})
+	}()
+
+	select {
+	case got := <-recovered:
+		if got != panicMarker {
+			t.Fatalf("detached native panic = %v, want original marker", got)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("detached native panic cleanup timed out")
+	}
+
+	gotStates, gotMappings, gotValues, gotActive := threadRuntimeStateCounts()
+	if gotStates != baselineStates || gotMappings != baselineMappings || gotValues != baselineValues || gotActive != baselineActive {
+		t.Fatalf(
+			"thread-local runtime state after native panic = (%d states, %d mappings, %d values, %d active), want baseline (%d, %d, %d, %d)",
+			gotStates,
+			gotMappings,
+			gotValues,
+			gotActive,
+			baselineStates,
+			baselineMappings,
+			baselineValues,
+			baselineActive,
+		)
 	}
 }
 

@@ -870,7 +870,7 @@
       "destination": "std/hxrt/thread/NativeThread.hx",
       "migrationBead": "haxe_go-vfp.5.4",
       "compilerShimGroups": [],
-      "notes": "Go typed extern bridge for the runtime/hxrt/thread.go logical-thread, message-queue, and event-loop entry points used by the staged sys.thread overrides."
+      "notes": "Go typed extern bridge for the runtime/hxrt/thread.go logical-thread, lifecycle-owned TLS, message-queue, and event-loop entry points used by the staged sys.thread overrides."
     },
     {
       "path": "std/hxrt/thread/SemaphoreHandle.hx",
@@ -880,6 +880,15 @@
       "migrationBead": "haxe_go-vfp.5.4",
       "compilerShimGroups": [],
       "notes": "Go typed extern bridge for the runtime/hxrt/thread.go semaphore carrier, keeping token accounting in the runtime while the public semaphore API stays source-owned."
+    },
+    {
+      "path": "std/hxrt/thread/ThreadLocalHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/thread/ThreadLocalHandle.hx",
+      "migrationBead": "haxe_go-vfp.5.4",
+      "compilerShimGroups": [],
+      "notes": "Go typed opaque carrier for one runtime/hxrt/thread.go TLS slot, preventing staged sys.thread.Tls code from forging or reusing raw slot identities."
     }
   ]
 }

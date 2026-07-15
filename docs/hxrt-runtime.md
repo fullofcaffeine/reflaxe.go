@@ -80,7 +80,11 @@ Key implementation points:
   - `ExceptionCaught`, `ExceptionThrown`, `ExceptionMessage`
 - Portable thread lifecycle:
   - `ThreadSpawn`, `ThreadSpawnWithEventLoop`, `ThreadWaitForAll`
-  - logical thread identity, message queues, synchronization, and event-loop state
+  - `ThreadLocalNew`, `ThreadLocalGet`, `ThreadLocalSet`
+  - `ThreadSpawnDetached` for lifecycle-only scoping of compiler-owned
+    `go.Go.spawn` callbacks when portable thread identity is reachable
+  - logical thread identity, thread-local values, message queues,
+    synchronization, and event-loop state
 - JSON wrappers:
   - `JsonParse`, `JsonStringify`
 - System/file/process wrappers:
@@ -114,9 +118,17 @@ failure domains:
    generated program alive until it finishes. When the inferred runtime plan
    includes `thread`, generated `main` defers `ThreadWaitForAll`, which also
    drains portable workers created by other portable workers.
-5. `go.Go.spawn` remains an explicit Go-native boundary. It emits a bare
-   goroutine, is not included in the portable foreground count, and preserves
-   Go's normal fatal-panic and process-shutdown behavior.
+5. `go.Go.spawn` remains an explicit Go-native boundary. It is not included in
+   the portable foreground count and preserves Go's normal fatal-panic and
+   process-shutdown behavior. If `sys.thread` is reachable, the compiler uses
+   `ThreadSpawnDetached` to initialize the runtime on the caller before launch
+   and release only callback-owned logical identity and TLS state on return or
+   panic unwind; it neither joins nor recovers the goroutine, and a nil callback
+   retains native panic behavior.
+6. Arbitrary goroutines created outside compiler-owned `Thread` and
+   `go.Go.spawn` boundaries have no observable exit hook. Calling
+   `Thread.current()` or `Tls` from such a foreign goroutine is therefore
+   outside the automatic lifecycle-reclamation contract.
 
 Synchronization, pool linearization, event-loop cancellation, condition
 generations, channel close behavior, and the bounded `runtime.Stack` identity

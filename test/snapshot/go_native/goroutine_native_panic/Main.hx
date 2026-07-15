@@ -1,5 +1,6 @@
 import go.Chan;
 import go.Go;
+import sys.thread.Thread;
 
 @:go.import("log")
 extern class GoLog {
@@ -13,6 +14,7 @@ class Main {
 		var started:Chan<Bool> = Go.newChan();
 		var never:Chan<Bool> = Go.newChan();
 		Go.spawn(() -> {
+			Thread.current();
 			started.send(true);
 			GoLog.panic("native-goroutine-failure");
 		});

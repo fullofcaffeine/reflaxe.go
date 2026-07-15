@@ -89,6 +89,10 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/thread/SemaphoreHandle.hx",
     ),
+    "std/_std/hxrt/thread/ThreadLocalHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/thread/ThreadLocalHandle.hx",
+    ),
 }
 
 SPECIAL_DESTINATIONS = dict(SOURCE_SPECIAL_DESTINATIONS)

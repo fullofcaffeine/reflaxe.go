@@ -7,10 +7,12 @@ import (
 )
 
 func main() {
+	defer hxrt.ThreadWaitForAll()
 	hxrt.Println(hxrt.StringFromLiteral("native-goroutine-start"))
 	started := go__concurrency_newChan__bool_c894953d(0)
 	never := go__concurrency_newChan__bool_c894953d(0)
 	go___Go_spawn(func() {
+		sys__thread__Thread_current()
 		go__concurrency_send__bool_c894953d(started.__hx_native, true)
 		log.Panic(hxrt.StringFromLiteral("native-goroutine-failure"))
 	})
@@ -507,7 +509,7 @@ func go__concurrency_close(channel any) {
 }
 
 func go__concurrency_spawn(fn func()) {
-	go fn()
+	hxrt.ThreadSpawnDetached(fn)
 }
 
 func go__concurrency_makeChan__bool_c894953d(buffer int) any {

@@ -7,6 +7,7 @@ import sys.thread.NoEventLoopException;
 import sys.thread.Semaphore;
 import sys.thread.ThreadPoolException;
 import sys.thread.Tls;
+import sys.thread.Thread;
 
 private class DummyPool implements IThreadPool {
 	public var threadsCount(get, never):Int;
@@ -85,6 +86,17 @@ class Main {
 		Sys.println("tls.after_set=" + Std.string(tls.value));
 		tls.value = null;
 		Sys.println("tls.after_clear=" + Std.string(tls.value));
+		tls.value = "main";
+		var tlsDone = new Lock();
+		Thread.create(function() {
+			Sys.println("tls.worker_initial=" + Std.string(tls.value));
+			tls.value = "child";
+			Sys.println("tls.worker_set=" + Std.string(tls.value));
+			tlsDone.release();
+		});
+		tlsDone.wait();
+		Sys.println("tls.main_after_worker=" + Std.string(tls.value));
+		tls.value = null;
 
 		var noLoop = new NoEventLoopException();
 		Sys.println("noLoop.msg=" + noLoop.message);

@@ -220,7 +220,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 
 | Surface | Status | Evidence (snapshot IDs) |
 | --- | --- | --- |
-| Channels and goroutines | Supported (real goroutine/channel/select lowering; closed/empty receive is comma-ok aware; send-after-close and double-close preserve native panics; `go.Go.spawn` retains native fatal-panic and non-joined shutdown behavior; typed deterministic `go.Select` helpers are available; concrete typed shims are selected by eager specialization or the proven concurrency fastpath, not by a separate semantic backend) | `go_native/channel_basic`, `go_native/channel_try_recv`, generated `go-channel-runtime` tooling gate, `go_native/channel_select_handshake`, `go_native/channel_metal_monomorph`, `core/native_boundary_guarded_authority`, `core/report_artifacts_metal_proven_override`, `go_native/goroutine_smoke`, `go_native/goroutine_native_panic`, `go_native/goroutine_native_shutdown`, `go_native/select_helpers`, `go_native/select_metal_monomorph` |
+| Channels and goroutines | Supported (real goroutine/channel/select lowering; closed/empty receive is comma-ok aware; send-after-close and double-close preserve native panics; `go.Go.spawn` retains native fatal-panic and non-joined shutdown behavior while a feature-gated scope releases lazily-created portable thread identity/TLS state; typed deterministic `go.Select` helpers are available; concrete typed shims are selected by eager specialization or the proven concurrency fastpath, not by a separate semantic backend) | `go_native/channel_basic`, `go_native/channel_try_recv`, generated `go-channel-runtime` tooling gate, `go_native/channel_select_handshake`, `go_native/channel_metal_monomorph`, `core/native_boundary_guarded_authority`, `core/report_artifacts_metal_proven_override`, `go_native/goroutine_smoke`, `go_native/goroutine_native_panic`, `go_native/goroutine_native_shutdown`, `go_native/select_helpers`, `go_native/select_metal_monomorph` |
 | Extern metadata mapping | Supported (`@:go.import`/`@:go.name`/`@:go.receiver`, extern `String` return normalization via `hxrt.StdString`, `@:go.valueError` mapping for `(T,error)` extern calls to `go.Result<T>`, and `@:go.tupleReturn` mapping for generated multi-return carrier classes) | `go_native/extern_metadata_mapping`, `go_native/extern_value_error_result`, `go_native/extern_tuple_return` |
 | Result/Error mapping | Supported (eager or proven specialization adds typed `go.Result<T>` shim lowering with internal `(T,error)` helper emission) | `go_native/result_basic`, `go_native/error_result_mapping`, `go_native/result_metal_monomorph`, `core/report_artifacts_native_policy_overrides` |
 | Slice/Map wrappers | Supported (eager or proven specialization adds typed shims for concrete `go.Slice<T>` and `go.Map<K,V>` call-sites) | `go_native/slice_map_basic`, `go_native/slice_map_metal_monomorph` |
@@ -291,7 +291,9 @@ Shim strategy and alternatives are documented in:
 - A foreign Go panic is never accepted by Haxe `try`/`catch` or by the portable
   worker reporter; it remains fatal native behavior.
 - `go.Go.spawn` is outside the foreground count and keeps normal Go shutdown
-  semantics. Evidence: `stdlib/sys_thread_uncaught_exception`,
+  semantics. When `sys.thread` is reachable, its compiler-owned callback scope
+  releases only logical identity and TLS state on return or native-panic unwind;
+  it does not join or recover. Evidence: `stdlib/sys_thread_uncaught_exception`,
   `go_native/native_panic_not_haxe_catch`, `go_native/goroutine_native_panic`,
   `go_native/goroutine_native_shutdown`, and the direct `runtime/hxrt` tests.
 - Fixed and elastic pool admission is linearized with shutdown: every `run`
@@ -302,8 +304,9 @@ Shim strategy and alternatives are documented in:
 - Condition wakeups are per waiter rather than global credits, event-loop
   ownership is synchronized, timed waits recompute after insert/cancel wakeups,
   and repeating-event cancellation state returns to baseline after 100,000
-  cancellations. `sys.thread.Tls` lifecycle reclamation remains explicitly
-  experimental under `haxe_go-vfp.10.7`. See
+  cancellations. `sys.thread.Tls` stores values in the owning `ThreadState`, and
+  portable/detached lifecycle churn must return identities and TLS payloads to
+  baseline. Arbitrary foreign goroutines still have no automatic detach hook. See
   [`docs/concurrency-contract.md`](concurrency-contract.md).
 
 ### `sys.FileSystem` shim contract and tradeoffs

@@ -22,6 +22,51 @@ extern class NativeThread {
 	@:go.name("ThreadCurrentId")
 	public static function currentId():Int;
 
+	/**
+		What
+		Allocates one opaque runtime slot for a staged `sys.thread.Tls<T>` instance.
+
+		Why
+		Slot identity must not be forgeable or reused while an older value could
+		still be observable.
+
+		How
+		The runtime returns a process-unique `ThreadLocalHandle`; values themselves
+		remain owned by the current logical thread state.
+	**/
+	@:go.name("ThreadLocalNew")
+	public static function localNew():ThreadLocalHandle;
+
+	/**
+		What
+		Reads the current logical thread's value for one TLS handle.
+
+		Why
+		One `sys.thread.Tls<T>` handle can carry any Haxe `T`, so this is an
+		unavoidable representation boundary.
+
+		How
+		`Dynamic` is localized here; the staged generic wrapper restores the
+		declared source type immediately after the call.
+	**/
+	@:go.name("ThreadLocalGet")
+	public static function localGet(handle:ThreadLocalHandle):Dynamic;
+
+	/**
+		What
+		Writes or clears the current logical thread's value for one TLS handle.
+
+		Why
+		The value must share the owning thread state's cleanup boundary instead of
+		living in an unbounded staged-Haxe map.
+
+		How
+		The runtime stores non-null values in `ThreadState` and removes the slot when
+		the staged wrapper passes `null`; `Dynamic` remains confined to this bridge.
+	**/
+	@:go.name("ThreadLocalSet")
+	public static function localSet(handle:ThreadLocalHandle, value:Dynamic):Void;
+
 	@:go.name("ThreadSpawn")
 	public static function spawn(job:() -> Void):Int;
 	@:go.name("ThreadSpawnWithEventLoop")

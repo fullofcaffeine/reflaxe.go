@@ -10,11 +10,13 @@ import (
 )
 
 type ThreadState struct {
-	queueMu     sync.Mutex
-	queueCond   *sync.Cond
-	queue       []any
-	eventLoopMu sync.RWMutex
-	eventLoop   *EventLoopHandle
+	queueMu           sync.Mutex
+	queueCond         *sync.Cond
+	queue             []any
+	eventLoopMu       sync.RWMutex
+	eventLoop         *EventLoopHandle
+	threadLocalMu     sync.RWMutex
+	threadLocalValues map[uint64]any
 }
 
 type EventLoopHandle struct {
@@ -67,6 +69,12 @@ type SemaphoreHandle struct {
 	count int
 }
 
+// ThreadLocalHandle identifies one staged sys.thread.Tls instance without
+// exposing raw slot identifiers to generated Haxe code.
+type ThreadLocalHandle struct {
+	id uint64
+}
+
 const (
 	threadEventLoopNow = iota
 	threadEventLoopNever
@@ -83,6 +91,7 @@ var (
 	activePortableThreads int
 	nextThreadID          int
 	nextEventID           atomic.Int64
+	nextThreadLocalID     atomic.Uint64
 	threadStartTime       time.Time
 )
 
@@ -225,6 +234,73 @@ func ThreadCurrentId() int {
 	return currentLogicalThreadID()
 }
 
+// ThreadLocalNew allocates a process-unique TLS slot handle.
+//
+// What: the handle names one sys.thread.Tls instance.
+// Why: values belong to ThreadState so deleting a completed thread state drops
+// every value it owned, while a monotonically increasing handle prevents one
+// Tls instance from observing another instance's values.
+// How: zero is reserved and wraparound fails natively rather than reusing a
+// live or historical slot identifier.
+func ThreadLocalNew() *ThreadLocalHandle {
+	id := nextThreadLocalID.Add(1)
+	if id == 0 {
+		panic("hxrt: thread-local handle space exhausted")
+	}
+	return &ThreadLocalHandle{id: id}
+}
+
+// ThreadLocalGet reads the current logical thread's value for one TLS handle.
+//
+// What: it returns the value stored in the caller's ThreadState.
+// Why: sys.thread.Tls<T> must isolate values without retaining them after the
+// owning supported thread lifecycle ends.
+// How: the ThreadState lock protects the slot map. The any boundary is
+// intentional because T can be every Haxe value; staged Tls restores the type.
+func ThreadLocalGet(handle *ThreadLocalHandle) any {
+	if handle == nil {
+		return nil
+	}
+	state := currentThreadState()
+	if state == nil {
+		return nil
+	}
+	state.threadLocalMu.RLock()
+	value := state.threadLocalValues[handle.id]
+	state.threadLocalMu.RUnlock()
+	return value
+}
+
+// ThreadLocalSet writes or clears the current logical thread's TLS slot.
+//
+// What: non-null values populate the caller's ThreadState; null deletes a slot.
+// Why: TLS payloads must share the lifecycle of their logical thread instead of
+// remaining in a global or per-Tls registry after that thread completes.
+// How: the ThreadState lock protects mutation, and clearing the last value also
+// releases the map allocation.
+func ThreadLocalSet(handle *ThreadLocalHandle, value any) {
+	if handle == nil {
+		return
+	}
+	state := currentThreadState()
+	if state == nil {
+		return
+	}
+	state.threadLocalMu.Lock()
+	if AnyEqualsNull(value) {
+		delete(state.threadLocalValues, handle.id)
+		if len(state.threadLocalValues) == 0 {
+			state.threadLocalValues = nil
+		}
+	} else {
+		if state.threadLocalValues == nil {
+			state.threadLocalValues = make(map[uint64]any)
+		}
+		state.threadLocalValues[handle.id] = value
+	}
+	state.threadLocalMu.Unlock()
+}
+
 // ThreadWaitForAll drains foreground portable threads, including descendants
 // created by a running portable thread. Explicit go.Go.spawn goroutines are not
 // counted and retain Go's native process-shutdown behavior.
@@ -235,6 +311,45 @@ func ThreadWaitForAll() {
 		threadRuntimeCond.Wait()
 	}
 	threadRuntimeMu.Unlock()
+}
+
+// clearDetachedThreadState removes only lazily-created identity owned by a
+// compiler-scoped detached goroutine. Detached goroutines never contribute to
+// activePortableThreads, so this transition must not touch the foreground
+// counter.
+func clearDetachedThreadState(goroutineID int64) {
+	ensureThreadRuntime()
+	threadRuntimeMu.Lock()
+	if id, exists := goroutineThreadIDs[goroutineID]; exists && id != 0 {
+		delete(goroutineThreadIDs, goroutineID)
+		delete(threadStates, id)
+	}
+	threadRuntimeMu.Unlock()
+}
+
+// runDetachedThreadJob owns identity cleanup for one fresh Go goroutine.
+// Capturing the runtime identity before the callback keeps the deferred cleanup
+// non-panicking during native panic unwinding; the panic itself is never
+// recovered or converted into a Haxe exception.
+func runDetachedThreadJob(job func()) {
+	goroutineID := currentGoroutineID()
+	clearDetachedThreadState(goroutineID)
+	defer clearDetachedThreadState(goroutineID)
+	job()
+}
+
+// ThreadSpawnDetached starts a compiler-owned go.Go.spawn callback.
+//
+// What: it launches one unjoined native goroutine with an identity cleanup
+// scope around its callback.
+// Why: synchronous initialization keeps reserved logical identity zero owned by
+// the caller even when this is the program's first hxrt thread operation.
+// How: initialize before go, then let runDetachedThreadJob remove callback state
+// during return or panic unwind. A nil callback is deliberately invoked so its
+// native panic is preserved rather than silently ignored.
+func ThreadSpawnDetached(job func()) {
+	ensureThreadRuntime()
+	go runDetachedThreadJob(job)
 }
 
 func runPortableThreadJob(id int, job func()) {

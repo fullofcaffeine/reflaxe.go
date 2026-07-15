@@ -10,7 +10,7 @@ must be used as the compatibility paragraph in release notes.
 
 - preset: `portable` (`semantic-diff-supported`);
 - platform: `linux/amd64`;
-- named operations/members: 107;
+- named operations/members: 108;
 - toolchains: exact Haxe version and latest patched supported Go/Node lines from `toolchain-policy.json`;
 - trust: reviewed application source, locked tooling, and application-controlled local file/process boundaries.
 
@@ -20,7 +20,6 @@ take the default excluded disposition.
 ## Not admitted by this release scope
 
 - `portable-process` / `new sys.io.Process(..., detached=true)`: `excluded`.
-- `portable-concurrency` / `sys.thread.Tls`: `experimental`; blockers: haxe_go-vfp.10.7.
 - `portable-networking` / `haxe.Http request callbacks`, `sys.Http request callbacks`: `experimental`; blockers: haxe_go-vfp.10.4.
 - `portable-networking` / `sys.net.Socket`, `sys.net.UdpSocket`, `sys.net.Host`, `sys.ssl.Socket`: `experimental`; blockers: haxe_go-vfp.10.4.
 - `go-native` / `go.Slice<T>`, `go.Map<K,V>`, `go.Result<T>`: `experimental`; blockers: haxe_go-vfp.9.1.
@@ -34,7 +33,6 @@ take the default excluded disposition.
 
 ## Known blockers
 
-- `haxe_go-vfp.10.7`: Completed-thread TLS reclamation and compiler-owned detached-goroutine identity cleanup (blocks portable-concurrency/tls-lifecycle).
 - `haxe_go-vfp.10.4`: Network, HTTP, socket, timeout, cancellation, and cleanup closure (blocks portable-networking).
 - `haxe_go-vfp.9.1`: Governed Go-native capability matrix (blocks go-native).
 - `haxe_go-vfp.8.10`: Generated-output confinement and path-escape rejection (blocks untrusted-source builds).

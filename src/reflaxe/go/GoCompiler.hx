@@ -429,7 +429,7 @@ class GoCompiler {
 		How
 		Rewrites the already-lowered `main` declaration through the typed Go AST.
 		The runtime counter includes nested portable threads and deliberately excludes
-		bare goroutines launched through `go.Go.spawn`.
+		detached goroutines launched through `go.Go.spawn`.
 	**/
 	function prependPortableThreadDrain(moduleDecls:Map<String, Array<GoDecl>>):Void {
 		var mainDecls = moduleDecls.get("Main");
@@ -3680,6 +3680,9 @@ class GoCompiler {
 	}
 
 	function lowerGoConcurrencyShimDecls():Array<GoDecl> {
+		var spawnBody = shouldScopeDetachedGoroutineIdentity() ? [
+			GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ThreadSpawnDetached"), [GoExpr.GoIdent("fn")]))
+		] : [GoStmt.GoGoStmt(GoExpr.GoCall(GoExpr.GoIdent("fn"), []))];
 		var decls = [
 			GoDecl.GoFuncDecl("go__concurrency_makeChan", null, [{name: "buffer", typeName: "int"}], ["any"], [
 				GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoIdent("buffer"), GoExpr.GoIntLiteral(0)), [GoStmt.GoReturn(GoExpr.GoRaw("make(chan any, buffer)"))],
@@ -3817,12 +3820,36 @@ class GoCompiler {
 					name: "fn",
 					typeName: "func()"
 				}
-			], [], [GoStmt.GoGoStmt(GoExpr.GoCall(GoExpr.GoIdent("fn"), []))])
+			], [], spawnBody)
 		];
 		if (useTypedGoConcurrencySpecialization()) {
 			decls = decls.concat(lowerTypedGoConcurrencyShimDecls());
 		}
 		return decls;
+	}
+
+	/**
+		Why
+		`go.Go.spawn` must remain a bare native goroutine unless the program can
+		actually request portable thread identity. When `sys.thread` is present,
+		callbacks can call `Thread.current()` or `Tls`, so the compiler-owned spawn
+		boundary must release that lazily-created state on return or panic.
+
+		What
+		Detects whether the finalized project class graph contains a portable
+		`sys.thread` surface.
+
+		How
+		Uses the same class-path condition as HXRT thread feature inference. The
+		generated wrapper still does not join or recover the goroutine.
+	**/
+	function shouldScopeDetachedGoroutineIdentity():Bool {
+		for (classType in projectClasses) {
+			if (StringTools.startsWith(fullClassName(classType), "sys.thread.")) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	function lowerTypedGoConcurrencyShimDecls():Array<GoDecl> {
