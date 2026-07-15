@@ -4,6 +4,9 @@
 
 - `go_output=<dir>`
   - Required signal for Go generation.
+  - Compiler-managed source, reports, metadata, and copied runtime files are
+    confined below this canonical root. See
+    [generated-output confinement](generated-output-confinement.md).
 - `go_module=<module/path>`
   - Optional Go module path for generated `go.mod` and runtime imports (`<module/path>/hxrt`).
   - Defaults to `snapshot` when omitted.
@@ -21,6 +24,8 @@
   - Override Go CLI used by backend build step (default: `go`).
 - `go_build_output=<path>`
   - Optional output path passed as `go build -o <path>`.
+  - This is an explicit caller-authorized binary sink, not a compiler-managed
+    generated-source path; it may intentionally be outside `go_output`.
 - Without a codegen-only define, failure to launch `go build` or any nonzero
   exit is a fatal Haxe compiler outcome. Child stderr remains visible, while
   the compiler diagnostic omits generated-output and machine-local command

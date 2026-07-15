@@ -18,11 +18,12 @@ import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureInference;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureReason;
 import reflaxe.go.compiler.GoAutoLoweringModeTools;
 import reflaxe.go.compiler.GoBuildContextResolver;
+import reflaxe.go.compiler.GoGeneratedOutputBoundary;
+import reflaxe.go.compiler.GoGeneratedOutputBoundary.GoOutputPathError;
 import reflaxe.go.compiler.GoPostBuildRunner;
 import reflaxe.output.DataAndFileInfo;
 import reflaxe.output.StringOrBytes;
 import sys.FileSystem;
-import sys.io.File;
 
 private typedef RuntimeCopyPlan = {
 	final fullCopy:Bool;
@@ -203,6 +204,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 	var buildContext:Null<GoBuildContext> = null;
 	var compilationContext:Null<CompilationContext> = null;
 	var lastRuntimePlan:Null<RuntimeCopyPlan> = null;
+	var outputBoundary:Null<GoGeneratedOutputBoundary> = null;
 
 	public function new() {
 		super();
@@ -220,6 +222,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		selectedEnums = [];
 		generatedFiles = [];
 		lastRuntimePlan = null;
+		outputBoundary = null;
 	}
 
 	override public function onCompileEnd():Void {
@@ -293,20 +296,87 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		};
 	}
 
-	override public function generateFilesManually():Void {
+	/**
+		What: Establishes output confinement before Reflaxe starts any write or
+		managed-file deletion.
+
+		Why: The generic output manager accepts arbitrary strings and trusts its old
+		generated-file inventory. Both sources must be proven safe before generation.
+
+		How: Resolve the configured root, preflight metadata and extra-file keys, then
+		run the normal Reflaxe lifecycle while translating only typed path failures to
+		a stable, machine-path-free compiler diagnostic.
+	**/
+	override public function generateFiles():Void {
 		if (output == null) {
 			Context.fatalError("GoReflaxeCompiler output manager is not initialized", Context.currentPos());
 			return;
 		}
+		var configuredRoot = output.outputDir;
+		if (configuredRoot == null) {
+			Context.fatalError("GoReflaxeCompiler output directory is not initialized", Context.currentPos());
+			return;
+		}
+
+		try {
+			var boundary = new GoGeneratedOutputBoundary(configuredRoot);
+			boundary.validateManagedFileMetadata();
+			for (path in extraFiles.keys()) {
+				boundary.validateDestination(path);
+			}
+			outputBoundary = boundary;
+			super.generateFiles();
+		} catch (error:GoOutputPathError) {
+			Context.fatalError(error.message, Context.currentPos());
+		}
+	}
+
+	override public function generateFilesManually():Void {
+		if (output == null || outputBoundary == null) {
+			Context.fatalError("GoReflaxeCompiler output boundary is not initialized", Context.currentPos());
+			return;
+		}
 
 		for (file in generatedFiles) {
-			output.saveFile(file.relativePath, file.contents);
+			saveGeneratedFile(file.relativePath, file.contents);
 		}
 
 		var resolvedBuildContext = effectiveBuildContext();
-		output.saveFile("go.mod", buildGoMod(resolvedBuildContext.goModuleName));
-		writeRuntime(output, compilationContext, resolvedBuildContext);
-		emitBuildReports(output, compilationContext, resolvedBuildContext);
+		saveGeneratedFile("go.mod", buildGoMod(resolvedBuildContext.goModuleName));
+		writeRuntime(compilationContext, resolvedBuildContext);
+		emitBuildReports(compilationContext, resolvedBuildContext);
+	}
+
+	/**
+		What: Saves one compiler-generated artifact through the established boundary.
+
+		Why: Code, module metadata, and reports must not call Reflaxe's permissive
+		writer directly.
+
+		How: Require the initialized manager and boundary, then pass the untrusted
+		relative spelling to the typed validator immediately before the managed write.
+	**/
+	function saveGeneratedFile(path:String, content:StringOrBytes):Void {
+		if (output == null || outputBoundary == null) {
+			throw new GoOutputPathError(InvalidRoot, "the compiler output boundary is unavailable");
+		}
+		outputBoundary.saveFile(output, path, content);
+	}
+
+	/**
+		What: Copies one packaged runtime file through the established boundary.
+
+		Why: Directory-entry names and feature-plan paths are output-path inputs even
+		when the runtime source tree is repository controlled.
+
+		How: Let the boundary validate and prepare the destination before it reads and
+		saves the support file through Reflaxe's managed writer.
+	**/
+	function copyGeneratedFile(sourcePath:String, targetPath:String):Void {
+		if (output == null || outputBoundary == null) {
+			throw new GoOutputPathError(InvalidRoot, "the compiler output boundary is unavailable");
+		}
+		outputBoundary.copyManagedFile(output, sourcePath, targetPath);
 	}
 
 	override public function onOutputComplete():Void {
@@ -370,10 +440,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		return ["module " + moduleName, "", "go 1.22", ""].join("\n");
 	}
 
-	function writeRuntime(outputManager:reflaxe.output.OutputManager, context:Null<CompilationContext>, buildContext:GoBuildContext):Void {
+	function writeRuntime(context:Null<CompilationContext>, buildContext:GoBuildContext):Void {
 		var runtimeSource = Path.join([findLibraryRoot(), "runtime", "hxrt"]);
 		if (!FileSystem.exists(runtimeSource) || !FileSystem.isDirectory(runtimeSource)) {
-			Context.fatalError('Missing runtime directory at "' + runtimeSource + '"', Context.currentPos());
+			Context.fatalError("Missing packaged hxrt runtime directory", Context.currentPos());
 		}
 
 		var plan = resolveRuntimeCopyPlan(context, buildContext);
@@ -383,29 +453,29 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		}
 
 		if (plan.fullCopy) {
-			writeRuntimeDir(outputManager, runtimeSource, "hxrt", buildContext);
+			writeRuntimeDir(runtimeSource, "hxrt", buildContext);
 			return;
 		}
 
 		for (fileName in plan.files) {
 			var sourcePath = Path.join([runtimeSource, fileName]);
 			if (!FileSystem.exists(sourcePath) || FileSystem.isDirectory(sourcePath)) {
-				Context.fatalError('Missing runtime file for feature plan: "' + sourcePath + '"', Context.currentPos());
+				Context.fatalError('Missing packaged hxrt file required by the feature plan: "' + fileName + '"', Context.currentPos());
 			}
 			var targetPath = Path.join(["hxrt", fileName]);
-			outputManager.saveFile(targetPath, File.getContent(sourcePath));
+			copyGeneratedFile(sourcePath, targetPath);
 		}
 	}
 
-	function writeRuntimeDir(outputManager:reflaxe.output.OutputManager, sourceDir:String, targetDir:String, buildContext:GoBuildContext):Void {
+	function writeRuntimeDir(sourceDir:String, targetDir:String, buildContext:GoBuildContext):Void {
 		for (entry in FileSystem.readDirectory(sourceDir)) {
 			var sourcePath = Path.join([sourceDir, entry]);
 			var targetPath = Path.join([targetDir, entry]);
 
 			if (FileSystem.isDirectory(sourcePath)) {
-				writeRuntimeDir(outputManager, sourcePath, targetPath, buildContext);
+				writeRuntimeDir(sourcePath, targetPath, buildContext);
 			} else if (shouldCopyRuntimeFileInFullMode(entry, buildContext)) {
-				outputManager.saveFile(targetPath, File.getContent(sourcePath));
+				copyGeneratedFile(sourcePath, targetPath);
 			}
 		}
 	}
@@ -502,23 +572,23 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		};
 	}
 
-	function emitBuildReports(outputManager:reflaxe.output.OutputManager, context:Null<CompilationContext>, buildContext:GoBuildContext):Void {
+	function emitBuildReports(context:Null<CompilationContext>, buildContext:GoBuildContext):Void {
 		if (buildContext.contractReportEnabled) {
 			var contractSnapshot = buildContractReportSnapshot(buildContext, context);
-			outputManager.saveFile("profile_contract.json", renderContractReportJson(contractSnapshot));
-			outputManager.saveFile("profile_contract.md", renderContractReportMarkdown(contractSnapshot));
+			saveGeneratedFile("profile_contract.json", renderContractReportJson(contractSnapshot));
+			saveGeneratedFile("profile_contract.md", renderContractReportMarkdown(contractSnapshot));
 		}
 
 		if (buildContext.runtimePlanReportEnabled) {
 			var runtimeSnapshot = buildRuntimePlanReportSnapshot(buildContext, context);
-			outputManager.saveFile("hxrt_plan.json", renderRuntimePlanJson(runtimeSnapshot));
-			outputManager.saveFile("hxrt_plan.md", renderRuntimePlanMarkdown(runtimeSnapshot));
+			saveGeneratedFile("hxrt_plan.json", renderRuntimePlanJson(runtimeSnapshot));
+			saveGeneratedFile("hxrt_plan.md", renderRuntimePlanMarkdown(runtimeSnapshot));
 		}
 
 		if (buildContext.optimizerPlanReportEnabled) {
 			var optimizerSnapshot = buildOptimizerPlanReportSnapshot(buildContext, context);
-			outputManager.saveFile("optimizer_plan.json", renderOptimizerPlanJson(optimizerSnapshot));
-			outputManager.saveFile("optimizer_plan.md", renderOptimizerPlanMarkdown(optimizerSnapshot));
+			saveGeneratedFile("optimizer_plan.json", renderOptimizerPlanJson(optimizerSnapshot));
+			saveGeneratedFile("optimizer_plan.md", renderOptimizerPlanMarkdown(optimizerSnapshot));
 		}
 	}
 

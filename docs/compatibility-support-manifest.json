@@ -5,7 +5,7 @@
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "37e5a6dfa8668628a49634fb6d82e4e0d255954a517b5077ec050a573f95f6bc",
+    "compatibility_source_sha256": "34f289249770a05429e554254f4684289ca2b7dc4c9603d3cb550d73ecdcf53a",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
@@ -235,6 +235,12 @@
       "level": "policy"
     },
     {
+      "id": "policy:output-confinement",
+      "kind": "path",
+      "path": "docs/generated-output-confinement.md",
+      "level": "policy"
+    },
+    {
       "id": "workflow:quality",
       "kind": "path",
       "path": ".github/workflows/ci-quality.yml",
@@ -280,6 +286,12 @@
       "id": "npm:test-haxelib-release-install",
       "kind": "npm-script",
       "script": "test:haxelib-release-install",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "contract:output-confinement",
+      "kind": "npm-script",
+      "script": "test:output-confinement",
       "level": "compile-go-test-run"
     },
     {
@@ -466,12 +478,6 @@
       "id": "bead:native-matrix",
       "kind": "bead",
       "bead": "haxe_go-vfp.9.1",
-      "level": "blocker"
-    },
-    {
-      "id": "bead:output-confinement",
-      "kind": "bead",
-      "bead": "haxe_go-vfp.8.10",
       "level": "blocker"
     },
     {
@@ -1216,7 +1222,8 @@
           "qualification": "The admitted beta assumes reviewed source and repository-controlled or otherwise trusted dependencies.",
           "evidence_ids": [
             "npm:test-ci",
-            "workflow:release"
+            "workflow:release",
+            "contract:output-confinement"
           ],
           "exclusions": [
             "Treating the compiler as a sandbox"
@@ -1231,17 +1238,17 @@
           "granularity": "operation",
           "state": "excluded",
           "release_admitted": false,
-          "qualification": "Generated-output confinement and path-escape rejection are not yet sufficient for an untrusted-code claim.",
+          "qualification": "Compiler-managed source, runtime, report, metadata, extra-file, and package-staging destinations are confined, but Haxe macros, dependencies, plugins, and explicitly selected child tools execute with host authority; the compiler is not a sandbox for adversarial source.",
           "evidence_ids": [
-            "bead:output-confinement",
+            "contract:output-confinement",
+            "policy:output-confinement",
             "policy:known-gaps"
           ],
           "exclusions": [
-            "Untrusted or adversarial source compilation"
+            "Untrusted or adversarial source compilation",
+            "Concurrent hostile mutation of the output filesystem"
           ],
-          "blockers": [
-            "haxe_go-vfp.8.10"
-          ]
+          "blockers": []
         }
       ]
     },
@@ -3489,11 +3496,6 @@
       "id": "haxe_go-vfp.9.1",
       "scope": "Governed Go-native capability matrix",
       "release_blocker_for": "go-native"
-    },
-    {
-      "id": "haxe_go-vfp.8.10",
-      "scope": "Generated-output confinement and path-escape rejection",
-      "release_blocker_for": "untrusted-source builds"
     },
     {
       "id": "haxe_go-vfp.4.8",

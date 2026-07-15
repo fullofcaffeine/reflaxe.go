@@ -2,6 +2,8 @@ import haxe.Json;
 import haxe.crypto.Sha256;
 import haxe.io.Bytes;
 import haxe.io.Path;
+import eval.luv.File.FileSync;
+import eval.luv.Result;
 import sys.FileSystem;
 import sys.io.File;
 
@@ -197,11 +199,11 @@ private class PackageBuildConfig {
 		}
 		for (inputRoot in inputRoots) {
 			if (PackagePathTools.isWithin(packageRoot, inputRoot)) {
-				throw new PackageBuildError('package output must not overlap an input tree: ${packageRoot} is inside ${inputRoot}');
+				throw new PackageBuildError("package output must not overlap an input tree");
 			}
 		}
 		if (PackagePathTools.isWithin(sourceRoot, packageRoot)) {
-			throw new PackageBuildError('package output must not contain the source root: ${packageRoot}');
+			throw new PackageBuildError("package output must not contain the source root");
 		}
 
 		for (required in [
@@ -240,8 +242,8 @@ private class PackageBuildConfig {
 		try {
 			final parsed:SourceHaxelibManifest = Json.parse(File.getContent(path));
 			return parsed;
-		} catch (error:haxe.Exception) {
-			throw new PackageBuildError('could not parse haxelib.json: ${error.message}');
+		} catch (_:haxe.Exception) {
+			throw new PackageBuildError("could not read or parse haxelib.json");
 		}
 	}
 
@@ -294,39 +296,51 @@ private class PackagePathTools {
 		}
 		final portable = StringTools.replace(value, "\\", "/");
 		final normalized = StringTools.replace(Path.normalize(portable), "\\", "/");
-		final driveAbsolute = ~/^[A-Za-z]:\//.match(portable);
+		final driveAbsolute = ~/^[A-Za-z]:/.match(portable);
 		if (Path.isAbsolute(portable)
 			|| driveAbsolute
+			|| portable.indexOf(":") != -1
 			|| normalized == "."
 			|| normalized == ".."
 			|| StringTools.startsWith(normalized, "../")
 			|| normalized != portable
 			|| portable.split("/").contains("")) {
-			throw new PackageBuildError('${label} must be a safe repository-relative path; found "${value}"');
+			throw new PackageBuildError('${label} must be a safe repository-relative path');
 		}
 		for (segment in normalized.split("/")) {
-			if (segment == "." || segment == "..") {
-				throw new PackageBuildError('${label} must be a safe repository-relative path; found "${value}"');
+			if (segment == "." || segment == ".." || StringTools.endsWith(segment, ".") || StringTools.endsWith(segment, " ")
+				|| isWindowsDeviceName(segment) || containsControlCharacter(segment)) {
+				throw new PackageBuildError('${label} must be a safe repository-relative path');
 			}
 		}
 		return normalized;
 	}
 
 	public static function requireDirectory(path:String, label:String):Void {
-		if (!FileSystem.exists(path) || !FileSystem.isDirectory(path)) {
-			throw new PackageBuildError('${label} is not a directory: ${path}');
-		}
+		try {
+			if (FileSystem.exists(path) && FileSystem.isDirectory(path) && !isSymbolicLink(path)) {
+				return;
+			}
+		} catch (_:haxe.Exception) {}
+		throw new PackageBuildError('${label} is not a directory');
 	}
 
 	public static function requireFile(path:String, label:String):Void {
-		if (!FileSystem.exists(path) || FileSystem.isDirectory(path)) {
-			throw new PackageBuildError('${label} is not a file: ${path}');
-		}
+		try {
+			if (FileSystem.exists(path) && !FileSystem.isDirectory(path) && !isSymbolicLink(path)) {
+				return;
+			}
+		} catch (_:haxe.Exception) {}
+		throw new PackageBuildError('${label} is not a file');
 	}
 
 	public static function isWithin(candidate:String, parent:String):Bool {
-		final normalizedCandidate = StringTools.replace(Path.normalize(candidate), "\\", "/");
-		final normalizedParent = Path.removeTrailingSlashes(StringTools.replace(Path.normalize(parent), "\\", "/"));
+		var normalizedCandidate = StringTools.replace(Path.normalize(candidate), "\\", "/");
+		var normalizedParent = Path.removeTrailingSlashes(StringTools.replace(Path.normalize(parent), "\\", "/"));
+		if (Sys.systemName() == "Windows") {
+			normalizedCandidate = normalizedCandidate.toLowerCase();
+			normalizedParent = normalizedParent.toLowerCase();
+		}
 		return normalizedCandidate == normalizedParent || StringTools.startsWith(normalizedCandidate, normalizedParent + "/");
 	}
 
@@ -334,7 +348,7 @@ private class PackagePathTools {
 		final normalizedPath = StringTools.replace(Path.normalize(path), "\\", "/");
 		final normalizedRoot = Path.removeTrailingSlashes(StringTools.replace(Path.normalize(root), "\\", "/"));
 		if (!StringTools.startsWith(normalizedPath, normalizedRoot + "/")) {
-			throw new PackageBuildError('${normalizedPath} is not inside ${normalizedRoot}');
+			throw new PackageBuildError("package source path is outside its declared root");
 		}
 		return safeRelative(normalizedPath.substr(normalizedRoot.length + 1), "generated package path");
 	}
@@ -361,10 +375,104 @@ private class PackagePathTools {
 		FileSystem.createDirectory(parent);
 	}
 
+	/**
+		What: Resolves one package member below a freshly prepared staging root.
+
+		Why: A validated archive name is insufficient if an existing destination
+		component is a symlink or canonically resolves outside the staging tree.
+
+		How: Revalidate the relative spelling, reject all destination symlinks,
+		prove existing components against the canonical root, prepare parents, and
+		repeat the proof immediately before the caller writes.
+	**/
+	public static function confinedDestination(root:String, relative:String):String {
+		final safe = safeRelative(StringTools.replace(relative, "\\", "/"), "package path");
+		if (!FileSystem.exists(root) || !FileSystem.isDirectory(root) || isSymbolicLink(root)) {
+			throw new PackageBuildError("package output root is not a plain directory");
+		}
+		final canonicalRoot = canonicalExisting(root);
+		validateDestinationComponents(root, safe, canonicalRoot);
+		final destination = Path.join([root, safe]);
+		try {
+			ensureParent(destination);
+		} catch (_:haxe.Exception) {
+			throw new PackageBuildError("package output parent could not be prepared");
+		}
+		validateDestinationComponents(root, safe, canonicalRoot);
+		return destination;
+	}
+
+	static function validateDestinationComponents(root:String, relative:String, canonicalRoot:String):Void {
+		try {
+			var current = root;
+			final segments = relative.split("/");
+			for (index in 0...segments.length) {
+				current = Path.join([current, segments[index]]);
+				if (isSymbolicLink(current)) {
+					throw new PackageBuildError("package output contains a path outside its canonical root");
+				}
+				if (!FileSystem.exists(current)) {
+					continue;
+				}
+				if (!isWithin(canonicalExisting(current), canonicalRoot)) {
+					throw new PackageBuildError("package output contains a path outside its canonical root");
+				}
+				if (index < segments.length - 1 && !FileSystem.isDirectory(current)) {
+					throw new PackageBuildError("package output parent is not a directory");
+				}
+				if (index == segments.length - 1 && FileSystem.isDirectory(current)) {
+					throw new PackageBuildError("package file destination is already a directory");
+				}
+			}
+		} catch (error:PackageBuildError) {
+			throw error;
+		} catch (_:haxe.Exception) {
+			throw new PackageBuildError("package output destination could not be validated");
+		}
+	}
+
+	/**
+		What: Deletes a package staging tree only after a complete confinement pass.
+
+		Why: Recursive deletion through a directory symlink can mutate files outside
+		the user-selected package root before the builder has written anything.
+
+		How: Resolve the canonical root, reject every symlink or escaped descendant
+		in a read-only preflight, then perform the already-proven recursive deletion.
+	**/
 	public static function deleteTree(path:String):Void {
+		if (isSymbolicLink(path)) {
+			throw new PackageBuildError("package output contains a path outside its canonical root");
+		}
 		if (!FileSystem.exists(path)) {
 			return;
 		}
+		try {
+			final canonicalRoot = canonicalExisting(path);
+			validateDeleteTree(path, canonicalRoot);
+			deleteValidatedTree(path);
+		} catch (error:PackageBuildError) {
+			throw error;
+		} catch (_:haxe.Exception) {
+			throw new PackageBuildError("package output tree could not be cleaned");
+		}
+	}
+
+	static function validateDeleteTree(path:String, canonicalRoot:String):Void {
+		if (isSymbolicLink(path) || !isWithin(canonicalExisting(path), canonicalRoot)) {
+			throw new PackageBuildError("package output contains a path outside its canonical root");
+		}
+		if (!FileSystem.isDirectory(path)) {
+			return;
+		}
+		final entries = FileSystem.readDirectory(path);
+		entries.sort(compareUtf8);
+		for (entry in entries) {
+			validateDeleteTree(Path.join([path, entry]), canonicalRoot);
+		}
+	}
+
+	static function deleteValidatedTree(path:String):Void {
 		if (!FileSystem.isDirectory(path)) {
 			FileSystem.deleteFile(path);
 			return;
@@ -372,9 +480,38 @@ private class PackagePathTools {
 		final entries = FileSystem.readDirectory(path);
 		entries.sort(compareUtf8);
 		for (entry in entries) {
-			deleteTree(Path.join([path, entry]));
+			deleteValidatedTree(Path.join([path, entry]));
 		}
 		FileSystem.deleteDirectory(path);
+	}
+
+	public static function isSymbolicLink(path:String):Bool {
+		return switch (FileSync.readLink(path)) {
+			case Ok(_): true;
+			case Error(_): false;
+		};
+	}
+
+	static function canonicalExisting(path:String):String {
+		try {
+			return StringTools.replace(Path.normalize(FileSystem.fullPath(path)), "\\", "/");
+		} catch (_:haxe.Exception) {
+			throw new PackageBuildError("package path could not be canonically resolved");
+		}
+	}
+
+	static function containsControlCharacter(value:String):Bool {
+		for (index in 0...value.length) {
+			final code = value.charCodeAt(index);
+			if (code != null && (code < 32 || code == 127)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	static function isWindowsDeviceName(segment:String):Bool {
+		return ~/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i.match(segment);
 	}
 }
 
@@ -422,17 +559,26 @@ private class PackageBuilder {
 	}
 
 	function prepareOutput():Void {
-		if (FileSystem.exists(config.packageRoot)) {
-			if (!FileSystem.isDirectory(config.packageRoot)) {
-				throw new PackageBuildError('package output already exists as a file: ${config.packageRoot}');
+		try {
+			if (PackagePathTools.isSymbolicLink(config.packageRoot)) {
+				throw new PackageBuildError("package output contains a path outside its canonical root");
 			}
-			if (!config.clean) {
-				throw new PackageBuildError('package output already exists; pass --clean to replace it: ${config.packageRoot}');
+			if (FileSystem.exists(config.packageRoot)) {
+				if (!FileSystem.isDirectory(config.packageRoot)) {
+					throw new PackageBuildError("package output already exists as a file");
+				}
+				if (!config.clean) {
+					throw new PackageBuildError("package output already exists; pass --clean to replace it");
+				}
+				PackagePathTools.deleteTree(config.packageRoot);
 			}
-			PackagePathTools.deleteTree(config.packageRoot);
+			PackagePathTools.ensureParent(config.packageRoot);
+			FileSystem.createDirectory(config.packageRoot);
+		} catch (error:PackageBuildError) {
+			throw error;
+		} catch (_:haxe.Exception) {
+			throw new PackageBuildError("package output root could not be prepared");
 		}
-		PackagePathTools.ensureParent(config.packageRoot);
-		FileSystem.createDirectory(config.packageRoot);
 	}
 
 	function copyStdPath(stdPath:DeclaredStdPath):Void {
@@ -443,7 +589,7 @@ private class PackageBuilder {
 				continue;
 			}
 			if (StringTools.endsWith(sourceRelative, ".cross.hx")) {
-				throw new PackageBuildError('source std paths must contain ordinary .hx authority, not .cross.hx: ${source}');
+				throw new PackageBuildError('source std paths must contain ordinary .hx authority, not .cross.hx: ${sourceRelative}');
 			}
 			final packageRelative = if (stdPath.convertsOverrides) {
 				Path.withoutExtension(sourceRelative) + ".cross.hx";
@@ -466,7 +612,7 @@ private class PackageBuilder {
 			}
 			if ((kind == PackageEntryKind.ClassPath || kind == PackageEntryKind.Stdlib)
 				&& StringTools.endsWith(sourceRelative, ".cross.hx")) {
-				throw new PackageBuildError('source class paths must not contain generated .cross.hx files: ${source}');
+				throw new PackageBuildError('source class paths must not contain generated .cross.hx files: ${sourceRelative}');
 			}
 			copyMappedFile(source, Path.join([packagePrefix, sourceRelative]), kind);
 		}
@@ -497,6 +643,9 @@ private class PackageBuilder {
 		children.sort(PackagePathTools.compareUtf8);
 		for (child in children) {
 			final path = Path.normalize(Path.join([directory, child]));
+			if (PackagePathTools.isSymbolicLink(path)) {
+				throw new PackageBuildError("package source trees must not contain symbolic links");
+			}
 			if (excludedRoots.contains(path)) {
 				continue;
 			}
@@ -519,9 +668,12 @@ private class PackageBuilder {
 	function copyMappedFile(source:String, packageRelative:String, kind:PackageEntryKind):Void {
 		final safePackagePath = PackagePathTools.safeRelative(StringTools.replace(packageRelative, "\\", "/"), "package path");
 		reservePath(safePackagePath, PackagePathTools.relativeTo(source, config.sourceRoot));
-		final destination = Path.join([config.packageRoot, safePackagePath]);
-		PackagePathTools.ensureParent(destination);
-		File.copy(source, destination);
+		final destination = PackagePathTools.confinedDestination(config.packageRoot, safePackagePath);
+		try {
+			File.copy(source, destination);
+		} catch (_:haxe.Exception) {
+			throw new PackageBuildError("package file could not be copied");
+		}
 		recordEntry(source, destination, safePackagePath, kind);
 	}
 
@@ -571,8 +723,12 @@ private class PackageBuilder {
 		final packagePath = "haxelib.json";
 		final source = Path.join([config.sourceRoot, packagePath]);
 		reservePath(packagePath, packagePath);
-		final destination = Path.join([config.packageRoot, packagePath]);
-		File.saveContent(destination, Json.stringify(packaged, null, "  ") + "\n");
+		final destination = PackagePathTools.confinedDestination(config.packageRoot, packagePath);
+		try {
+			File.saveContent(destination, Json.stringify(packaged, null, "  ") + "\n");
+		} catch (_:haxe.Exception) {
+			throw new PackageBuildError("package metadata could not be written");
+		}
 		recordEntry(source, destination, packagePath, PackageEntryKind.Metadata);
 	}
 
@@ -593,8 +749,12 @@ private class PackageBuilder {
 			classPath: config.classPath,
 			entries: entries
 		};
-		final destination = Path.join([config.packageRoot, PACKAGE_MANIFEST]);
-		File.saveContent(destination, Json.stringify(manifest, null, "  ") + "\n");
+		final destination = PackagePathTools.confinedDestination(config.packageRoot, PACKAGE_MANIFEST);
+		try {
+			File.saveContent(destination, Json.stringify(manifest, null, "  ") + "\n");
+		} catch (_:haxe.Exception) {
+			throw new PackageBuildError("package manifest could not be written");
+		}
 	}
 
 	static function digest(path:String):String {
@@ -646,7 +806,7 @@ class Run {
 				case "--clean" | "--deleteOldFolder":
 					clean = true;
 				case _:
-					throw new PackageBuildError('unknown package runner option: ${option}');
+					throw new PackageBuildError("unknown package runner option");
 			}
 		}
 		return {

@@ -25,7 +25,7 @@ take the default excluded disposition.
 - `go-native` / `go.Slice<T>`, `go.Map<K,V>`, `go.Result<T>`: `experimental`; blockers: haxe_go-vfp.9.1.
 - `go-native` / `go.Go`, `go.Chan<T>`, `go.Select`: `experimental`; blockers: haxe_go-vfp.9.1.
 - `go-native` / `@:go.import`, `@:go.name`, `@:go.receiver`, `@:go.valueError`: `experimental`; blockers: haxe_go-vfp.9.1.
-- `compiler-input-trust` / `Compiler use as a sandbox for untrusted Haxe source`: `excluded`; blockers: haxe_go-vfp.8.10.
+- `compiler-input-trust` / `Compiler use as a sandbox for untrusted Haxe source`: `excluded`.
 - `distribution` / `Deterministic local Haxelib package and isolated install`: `compile-go-test-run-supported`; blockers: haxe_go-vfp.4.8.
 - `distribution` / `Published checksummed same-SHA Haxelib release assets`: `excluded`; blockers: haxe_go-vfp.4.8.
 - non-canonical operating-system/architecture combinations and moving runner identities;
@@ -35,7 +35,6 @@ take the default excluded disposition.
 
 - `haxe_go-vfp.10.4`: Network, HTTP, socket, timeout, cancellation, and cleanup closure (blocks portable-networking).
 - `haxe_go-vfp.9.1`: Governed Go-native capability matrix (blocks go-native).
-- `haxe_go-vfp.8.10`: Generated-output confinement and path-escape rejection (blocks untrusted-source builds).
 - `haxe_go-vfp.4.8`: Checksummed same-SHA hosted release assets and provenance (blocks published beta-baseline artifact).
 - `haxe_go-vfp.6.3`: Generated public API manifest (blocks public API admission).
 - `haxe_go-vfp.6.4`: Pre-1.0 SemVer, deprecation, and stable-1.x admission policy (blocks compatibility policy closure).

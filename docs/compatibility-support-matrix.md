@@ -240,8 +240,8 @@ Compiler and generator trust boundary
 
 | Symbol | Granularity | State | Release admitted | Evidence | Qualification |
 | --- | --- | --- | --- | --- | --- |
-| `Compiler use with trusted Haxe source and locked dependencies` | `operation` | `compile-go-test-run-supported` | yes | `npm:test-ci`, `workflow:release` | The admitted beta assumes reviewed source and repository-controlled or otherwise trusted dependencies. |
-| `Compiler use as a sandbox for untrusted Haxe source` | `operation` | `excluded` | no | `bead:output-confinement`, `policy:known-gaps` | Generated-output confinement and path-escape rejection are not yet sufficient for an untrusted-code claim. |
+| `Compiler use with trusted Haxe source and locked dependencies` | `operation` | `compile-go-test-run-supported` | yes | `npm:test-ci`, `workflow:release`, `contract:output-confinement` | The admitted beta assumes reviewed source and repository-controlled or otherwise trusted dependencies. |
+| `Compiler use as a sandbox for untrusted Haxe source` | `operation` | `excluded` | no | `contract:output-confinement`, `policy:output-confinement`, `policy:known-gaps` | Compiler-managed source, runtime, report, metadata, extra-file, and package-staging destinations are confined, but Haxe macros, dependencies, plugins, and explicitly selected child tools execute with host authority; the compiler is not a sandbox for adversarial source. |
 ### `distribution`
 
 Package and hosted release evidence
@@ -274,7 +274,6 @@ Module evidence never admits every member. Release admission comes only from the
 | --- | --- | --- |
 | `haxe_go-vfp.10.4` | Network, HTTP, socket, timeout, cancellation, and cleanup closure | portable-networking |
 | `haxe_go-vfp.9.1` | Governed Go-native capability matrix | go-native |
-| `haxe_go-vfp.8.10` | Generated-output confinement and path-escape rejection | untrusted-source builds |
 | `haxe_go-vfp.4.8` | Checksummed same-SHA hosted release assets and provenance | published beta-baseline artifact |
 | `haxe_go-vfp.6.3` | Generated public API manifest | public API admission |
 | `haxe_go-vfp.6.4` | Pre-1.0 SemVer, deprecation, and stable-1.x admission policy | compatibility policy closure |

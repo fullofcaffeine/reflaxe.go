@@ -45,6 +45,7 @@ This page helps you find the right docs quickly.
 - [Security dependency audit](security-dependency-audit.md)
 - [Go tooling release gates](go-tooling-gates.md)
 - [Supply-chain policy](supply-chain-policy.md)
+- [Generated-output confinement](generated-output-confinement.md)
 - [Vendored Reflaxe provenance](vendor-reflaxe-provenance.md)
 - [Performance budget policy](performance-budget-policy.md)
 - [Perf warning triage](perf-warning-triage.md)

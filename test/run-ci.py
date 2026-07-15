@@ -104,6 +104,10 @@ def build_canonical_std_layout_command() -> list[str]:
     return ["python3", "test/test_canonical_std_layout_contract.py"]
 
 
+def build_output_confinement_command() -> list[str]:
+    return ["python3", "test/test_generated_output_confinement.py"]
+
+
 def build_snapshot_command(args: argparse.Namespace) -> list[str]:
     cmd = [
         "python3",
@@ -447,6 +451,11 @@ def main() -> int:
     canonical_std_layout_code = run(build_canonical_std_layout_command())
     if canonical_std_layout_code != 0:
         return canonical_std_layout_code
+
+    print("==> Generated-output confinement stage")
+    output_confinement_code = run(build_output_confinement_command())
+    if output_confinement_code != 0:
+        return output_confinement_code
 
     print("==> Snapshot stage")
     snapshot_code = run(build_snapshot_command(args))

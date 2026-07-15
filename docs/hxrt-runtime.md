@@ -51,6 +51,10 @@ Compilation wiring:
    - `go.mod`
    - generated `.go` files
    - copied runtime directory `hxrt/` from `runtime/hxrt`
+   Every destination is validated by the
+   [generated-output confinement boundary](generated-output-confinement.md)
+   immediately before the managed write; an existing or broken output symlink
+   is rejected rather than followed.
 5. Backend runs `go build` by default and fails compilation if it cannot
    launch or exits nonzero. `-D go_no_build` and `-D go_codegen_only` are
    explicit opt-outs for callers that own a separate Go build/test gate.

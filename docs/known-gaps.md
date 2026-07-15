@@ -9,6 +9,13 @@ evidence in this page does not expand that scope. In particular, concurrency,
 networking, Go-native APIs, non-canonical platforms, and untrusted-source
 compilation are not admitted by the current pre-1.0 beta claim.
 
+Generated files are now protected by the
+[output-confinement contract](generated-output-confinement.md), including stale
+metadata deletion and package-clean symlink cases. That defense does not admit
+adversarial source: Haxe macros, dependencies, plugins, and explicitly selected
+child tools execute with compiler-process authority. `reflaxe.go` is not a
+sandbox for untrusted Haxe programs.
+
 Before reading:
 
 - `portable` and `metal` are compatible policy presets, not app variants or

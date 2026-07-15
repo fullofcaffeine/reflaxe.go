@@ -4,72 +4,61 @@ package reflaxe.go;
 import haxe.io.Path;
 import haxe.macro.Context;
 import reflaxe.go.GoCompiler.GoGeneratedFile;
+import reflaxe.go.compiler.GoGeneratedOutputBoundary;
 import sys.FileSystem;
-import sys.io.File;
 #end
 
+/**
+	What: Compatibility helpers for legacy iterator-driven Go output.
+
+	Why: The registered compiler now uses `GoReflaxeCompiler`, but external macro
+	callers may still invoke these public helpers and must receive the same output
+	confinement guarantees.
+
+	How: Every generated file, module file, and runtime copy is delegated to
+	`GoGeneratedOutputBoundary`; this class performs no direct filesystem write.
+**/
 class GoOutputIterator {
-  public function new() {}
+	public function new() {}
 
-  #if macro
-  public static function writeFiles(outputDir:String, files:Array<GoGeneratedFile>):Void {
-    ensureDirectory(outputDir);
-    for (file in files) {
-      var path = Path.join([outputDir, file.relativePath]);
-      ensureDirectory(Path.directory(path));
-      File.saveContent(path, file.contents);
-    }
-  }
+	#if macro
+	public static function writeFiles(outputDir:String, files:Array<GoGeneratedFile>):Void {
+		var boundary = new GoGeneratedOutputBoundary(outputDir);
+		for (file in files) {
+			boundary.saveContent(file.relativePath, file.contents);
+		}
+	}
 
-  public static function writeGoMod(outputDir:String, moduleName:String):Void {
-    var goMod = [
-      "module " + moduleName,
-      "",
-      "go 1.22",
-      ""
-    ].join("\n");
-    var path = Path.join([outputDir, "go.mod"]);
-    ensureDirectory(Path.directory(path));
-    File.saveContent(path, goMod);
-  }
+	public static function writeGoMod(outputDir:String, moduleName:String):Void {
+		var goMod = ["module " + moduleName, "", "go 1.22", ""].join("\n");
+		new GoGeneratedOutputBoundary(outputDir).saveContent("go.mod", goMod);
+	}
 
-  public static function copyRuntime(outputDir:String):Void {
-    var runtimeSource = Path.join([findLibraryRoot(), "runtime", "hxrt"]);
-    if (!FileSystem.exists(runtimeSource) || !FileSystem.isDirectory(runtimeSource)) {
-      Context.fatalError('Missing runtime directory at "' + runtimeSource + '"', Context.currentPos());
-    }
+	public static function copyRuntime(outputDir:String):Void {
+		var runtimeSource = Path.join([findLibraryRoot(), "runtime", "hxrt"]);
+		if (!FileSystem.exists(runtimeSource) || !FileSystem.isDirectory(runtimeSource)) {
+			Context.fatalError("Missing packaged hxrt runtime directory", Context.currentPos());
+		}
 
-    var runtimeTarget = Path.join([outputDir, "hxrt"]);
-    copyDirectory(runtimeSource, runtimeTarget);
-  }
+		copyDirectory(new GoGeneratedOutputBoundary(outputDir), runtimeSource, "hxrt");
+	}
 
-  static function copyDirectory(source:String, target:String):Void {
-    ensureDirectory(target);
-    for (entry in FileSystem.readDirectory(source)) {
-      var sourcePath = Path.join([source, entry]);
-      var targetPath = Path.join([target, entry]);
-      if (FileSystem.isDirectory(sourcePath)) {
-        copyDirectory(sourcePath, targetPath);
-      } else {
-        ensureDirectory(Path.directory(targetPath));
-        File.copy(sourcePath, targetPath);
-      }
-    }
-  }
+	static function copyDirectory(boundary:GoGeneratedOutputBoundary, source:String, targetRelative:String):Void {
+		for (entry in FileSystem.readDirectory(source)) {
+			var sourcePath = Path.join([source, entry]);
+			var targetPath = Path.join([targetRelative, entry]);
+			if (FileSystem.isDirectory(sourcePath)) {
+				copyDirectory(boundary, sourcePath, targetPath);
+			} else {
+				boundary.copyFile(sourcePath, targetPath);
+			}
+		}
+	}
 
-  static function ensureDirectory(path:String):Void {
-    if (path == null || path == "") {
-      return;
-    }
-    if (!FileSystem.exists(path)) {
-      FileSystem.createDirectory(path);
-    }
-  }
-
-  static function findLibraryRoot():String {
-    var thisFile = Context.resolvePath("reflaxe/go/GoOutputIterator.hx");
-    var srcDir = Path.normalize(Path.directory(thisFile));
-    return Path.normalize(Path.join([srcDir, "..", "..", ".."]));
-  }
-  #end
+	static function findLibraryRoot():String {
+		var thisFile = Context.resolvePath("reflaxe/go/GoOutputIterator.hx");
+		var srcDir = Path.normalize(Path.directory(thisFile));
+		return Path.normalize(Path.join([srcDir, "..", "..", ".."]));
+	}
+	#end
 }

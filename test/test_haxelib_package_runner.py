@@ -43,18 +43,22 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def run_package_runner(source_root: Path, package_root: Path) -> subprocess.CompletedProcess[str]:
+def run_package_runner(
+    source_root: Path, package_root: Path, *, clean: bool = True
+) -> subprocess.CompletedProcess[str]:
+    command = [
+        shutil.which("haxe") or "haxe",
+        "--run",
+        "Run",
+        "build",
+        str(package_root),
+        "--source-root",
+        str(source_root),
+    ]
+    if clean:
+        command.append("--clean")
     return subprocess.run(
-        [
-            shutil.which("haxe") or "haxe",
-            "--run",
-            "Run",
-            "build",
-            str(package_root),
-            "--source-root",
-            str(source_root),
-            "--clean",
-        ],
+        command,
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -234,6 +238,106 @@ class HaxelibPackageRunnerContractTest(unittest.TestCase):
             self.assertNotEqual(0, collision.returncode)
             self.assertIn("package path collision", collision.stderr)
             self.assertIn("src/Support.hx", collision.stderr)
+
+    @unittest.skipUnless(shutil.which("haxe"), "requires Haxe")
+    def test_runner_rejects_cross_host_path_forms_and_output_symlink_escape(self) -> None:
+        unsafe_paths = [
+            "/private/outside",
+            "//server/share/outside",
+            "C:/outside",
+            "C:outside",
+            r"C:\outside",
+            r"\\server\share\outside",
+            "std//nested",
+            "std/../outside",
+            "NUL",
+            "std:stream",
+        ]
+        for unsafe_path in unsafe_paths:
+            with self.subTest(path=unsafe_path), tempfile.TemporaryDirectory(
+                prefix="haxe-go-package-path-reject-"
+            ) as raw:
+                temp = Path(raw)
+                source_root = temp / "source"
+                write_synthetic_source(source_root)
+                manifest_path = source_root / "haxelib.json"
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                manifest["reflaxe"]["stdPaths"] = [unsafe_path]
+                write_json(manifest_path, manifest)
+
+                proc = run_package_runner(source_root, temp / "package")
+                self.assertNotEqual(0, proc.returncode, proc.stdout + proc.stderr)
+                self.assertIn("safe repository-relative path", proc.stderr)
+                self.assertNotIn(str(temp), proc.stdout + proc.stderr)
+
+        with tempfile.TemporaryDirectory(prefix="haxe-go-package-symlink-reject-") as raw:
+            temp = Path(raw)
+            source_root = temp / "source"
+            package_root = temp / "package"
+            outside = temp / "outside"
+            write_synthetic_source(source_root)
+            package_root.mkdir()
+            outside.mkdir()
+            sentinel = outside / "must-survive.txt"
+            sentinel.write_text("sentinel\n", encoding="utf-8")
+            (package_root / "escape").symlink_to(outside, target_is_directory=True)
+
+            proc = run_package_runner(source_root, package_root)
+
+            self.assertNotEqual(0, proc.returncode, proc.stdout + proc.stderr)
+            self.assertIn("package output contains a path outside its canonical root", proc.stderr)
+            self.assertEqual("sentinel\n", sentinel.read_text(encoding="utf-8"))
+            self.assertNotIn(str(temp), proc.stdout + proc.stderr)
+
+        with tempfile.TemporaryDirectory(prefix="haxe-go-package-root-link-reject-") as raw:
+            temp = Path(raw)
+            source_root = temp / "source"
+            package_root = temp / "package"
+            outside = temp / "outside"
+            write_synthetic_source(source_root)
+            outside.mkdir()
+            sentinel = outside / "must-survive.txt"
+            sentinel.write_text("sentinel\n", encoding="utf-8")
+            package_root.symlink_to(outside, target_is_directory=True)
+
+            proc = run_package_runner(source_root, package_root)
+
+            self.assertNotEqual(0, proc.returncode, proc.stdout + proc.stderr)
+            self.assertIn("package output contains a path outside its canonical root", proc.stderr)
+            self.assertEqual("sentinel\n", sentinel.read_text(encoding="utf-8"))
+            self.assertNotIn(str(temp), proc.stdout + proc.stderr)
+
+        with tempfile.TemporaryDirectory(prefix="haxe-go-package-source-link-reject-") as raw:
+            temp = Path(raw)
+            source_root = temp / "source"
+            package_root = temp / "package"
+            outside = temp / "outside.go"
+            write_synthetic_source(source_root)
+            outside.write_text("package outside\n", encoding="utf-8")
+            runtime_file = source_root / "runtime" / "hxrt" / "core.go"
+            runtime_file.unlink()
+            runtime_file.symlink_to(outside)
+
+            proc = run_package_runner(source_root, package_root)
+
+            self.assertNotEqual(0, proc.returncode, proc.stdout + proc.stderr)
+            self.assertIn("package source trees must not contain symbolic links", proc.stderr)
+            self.assertEqual("package outside\n", outside.read_text(encoding="utf-8"))
+            self.assertFalse((package_root / "runtime" / "hxrt" / "core.go").exists())
+            self.assertNotIn(str(temp), proc.stdout + proc.stderr)
+
+        with tempfile.TemporaryDirectory(prefix="haxe-go-package-existing-reject-") as raw:
+            temp = Path(raw)
+            source_root = temp / "source"
+            package_root = temp / "package"
+            write_synthetic_source(source_root)
+            package_root.mkdir()
+
+            proc = run_package_runner(source_root, package_root, clean=False)
+
+            self.assertNotEqual(0, proc.returncode, proc.stdout + proc.stderr)
+            self.assertIn("pass --clean to replace it", proc.stderr)
+            self.assertNotIn(str(temp), proc.stdout + proc.stderr)
 
     @unittest.skipUnless(shutil.which("haxe"), "requires Haxe")
     def test_canonical_audit_rejects_tampered_package_manifest(self) -> None:

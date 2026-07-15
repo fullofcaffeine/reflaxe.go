@@ -149,7 +149,9 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
         trust_ops = {entry["id"]: entry for entry in surfaces["compiler-input-trust"]["operations"]}
         self.assertTrue(trust_ops["trusted-source"]["release_admitted"])
         self.assertFalse(trust_ops["untrusted-source"]["release_admitted"])
-        self.assertIn("haxe_go-vfp.8.10", trust_ops["untrusted-source"]["blockers"])
+        self.assertEqual([], trust_ops["untrusted-source"]["blockers"])
+        self.assertIn("contract:output-confinement", trust_ops["untrusted-source"]["evidence_ids"])
+        self.assertIn("not a sandbox", trust_ops["untrusted-source"]["qualification"])
 
     def test_admitted_symbols_match_the_named_fixture_contracts(self) -> None:
         manifest = self.load_manifest()
