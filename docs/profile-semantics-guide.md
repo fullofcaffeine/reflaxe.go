@@ -12,6 +12,21 @@ pre-1.0 beta scope admits the named portable surface and records `metal` as
 Read the full normative contract in [Native policy presets and semantic
 boundaries](native-policy-presets.md).
 
+## Terms
+
+- [policy preset](glossary.md#policy-preset): compatible defaults selected by
+  the `portable|metal` build selector.
+- [Go-native](glossary.md#go-native): source that intentionally adopts Go API
+  or runtime semantics.
+- [native boundary](glossary.md#native-boundary): module-level Go-native
+  authority declared with `@:goNative` or a typed Go API.
+
+The product rule is: portable Haxe semantics are the default product path;
+typed `go.*`/extern APIs and `@:goNative` modules are explicit Go-native source
+boundaries. The `metal` selector is defined as a convenience policy preset
+rather than a second semantic product. Portable by default, Go-native by
+explicit source boundary.
+
 ## The practical rule
 
 Start portable. Let the source API state when code becomes Go-native.

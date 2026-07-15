@@ -109,7 +109,7 @@ Use:
 `metal` is not required for good Go output. Start in `portable`; the compiler
 should still emit Go-shaped fast paths whenever it can prove they preserve Haxe
 semantics. Use typed `go.*`/extern APIs or `@:goNative` when source itself is
-Go-specific.
+Go-native.
 
 Detailed contract: [Native policy presets and semantic boundaries](native-policy-presets.md)
 

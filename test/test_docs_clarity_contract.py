@@ -77,15 +77,18 @@ class DocsClarityContractTest(unittest.TestCase):
         self.assertIn("glossary.md", profiles)
         self.assertIn("glossary.md", start_here)
 
-    def test_profiles_document_portable_as_main_product_not_slow_mode(self) -> None:
+    def test_profiles_document_portable_default_and_source_owned_native_boundaries(self) -> None:
         profiles = (REPO_ROOT / "docs" / "profiles.md").read_text(encoding="utf-8")
         guide = (REPO_ROOT / "docs" / "profile-semantics-guide.md").read_text(encoding="utf-8")
         agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
 
         for text in [profiles, guide, agents]:
-            self.assertIn("portable is the default product path", text)
-            self.assertIn("metal is an explicit Go-native authoring contract", text)
-            self.assertIn("Portable by default, Go-native by opt-in", text)
+            plain_text = " ".join(text.replace("`", "").split())
+            self.assertIn("portable Haxe semantics are the default product path", plain_text)
+            self.assertIn("metal", plain_text)
+            self.assertIn("convenience policy preset", plain_text)
+            self.assertIn("rather than a second semantic product", plain_text)
+            self.assertIn("Portable by default, Go-native by explicit source boundary", plain_text)
 
     def test_remaining_profile_docs_define_go_native_without_metal_as_fast_only_mode(self) -> None:
         targets = [
@@ -102,8 +105,8 @@ class DocsClarityContractTest(unittest.TestCase):
 
         for rel in targets:
             text = (REPO_ROOT / rel).read_text(encoding="utf-8")
-            plain_text = text.replace("`", "")
-            self.assertIn("metal is not required for good Go output", plain_text, rel)
+            plain_text = " ".join(text.replace("`", "").split())
+            self.assertIn("not required for good Go output", plain_text, rel)
             self.assertIn("Go-native", text, rel)
 
         glossary = (REPO_ROOT / "docs" / "glossary.md").read_text(encoding="utf-8")

@@ -19,6 +19,21 @@ surface for the pre-1.0 beta claim.
 The canonical detailed contract is [Native policy presets and semantic
 boundaries](native-policy-presets.md).
 
+## Terms
+
+- [policy preset](glossary.md#policy-preset): a compatibility selector that
+  supplies defaults for independent compiler policies.
+- [Go-native](glossary.md#go-native): source that intentionally adopts Go API
+  or runtime semantics.
+- [native boundary](glossary.md#native-boundary): a module-level declaration of
+  Go-native authority, normally written as `@:goNative`.
+
+The product rule is: portable Haxe semantics are the default product path;
+typed `go.*`/extern APIs and `@:goNative` modules are explicit Go-native source
+boundaries. The `metal` selector is defined as a convenience policy preset
+rather than a second semantic product. Portable by default, Go-native by
+explicit source boundary.
+
 ## Short model
 
 Semantics come from source surfaces:
