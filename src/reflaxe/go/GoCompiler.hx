@@ -5335,6 +5335,16 @@ class GoCompiler {
 			GoDecl.GoFuncDecl("Sys_systemName", null, [], ["*string"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysSystemName"), []))
 			]),
+			/**
+				What: Emit the target symbol expected by the mainstream Sys.sleep declaration.
+				Why: Replacing the entire root Sys class with a staged override would duplicate
+				adjacent compiler-owned carrier wiring; only seconds-to-Duration behavior belongs
+				in the runtime boundary.
+				How: Keep this adapter typed and forward the Float seconds value to hxrt.SysSleep.
+			**/
+			GoDecl.GoFuncDecl("Sys_sleep", null, [{name: "seconds", typeName: "float64"}], [], [
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hxrt"), "SysSleep"), [GoExpr.GoIdent("seconds")]))
+			]),
 			GoDecl.GoFuncDecl("sys__io__File_saveContent", null, [
 				{
 					name: "path",

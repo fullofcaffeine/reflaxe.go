@@ -121,6 +121,31 @@ Observed result:
 
 - Emitted Go can use the canonical `Sys.command(...)` + `Sys.exit(...)` wrapper shape without undefined symbols, while preserving child stdout/stderr inheritance and propagated exit code.
 
+### 2026-07-14: portable `Sys.sleep` runtime delegation (`haxe_go-vfp.8.7.1`)
+
+Implementation:
+
+- Added the missing typed `Sys_sleep(Float)` generated adapter and delegated it to runtime-owned `hxrt.SysSleep`.
+- Kept the mainstream Haxe 4.3.7 root `Sys` declaration instead of duplicating the compiler-owned carrier surface in a whole-class staged override.
+- Converted Haxe seconds to Go `time.Duration` in `runtime/hxrt/sys.go`; non-positive and NaN values return immediately.
+- Added a direct runtime unit contract plus snapshot and semantic-diff timing contracts with broad lower/upper bounds.
+- Compared the adjacent root `Sys` surface with the upstream declaration. The remaining missing APIs are isolated in `haxe_go-vfp.8.7.2` rather than being folded into this regression fix.
+
+Ownership decision:
+
+- This follows the sibling `haxe.rust` shape: the source-facing `Sys.sleep` adapter is thin and target runtime code owns the platform duration conversion and blocking primitive.
+- `lowerSysStdlibShimDecls` remains adapter-only and gains no behavior-heavy `GoRaw`.
+
+Validation evidence:
+
+- `GO111MODULE=off go test ./runtime/hxrt`
+- `python3 test/run-snapshots.py --case sys/sys_sleep_portable --runtime`
+- `python3 test/run-semantic-diff.py --case sys_sleep_contract`
+- `npm test` (`251/251` snapshots)
+- `npm run test:semantic-diff` (`130/130` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` modules)
+- `npm run test:examples` (`12/12` lanes)
+
 ### 2026-02-19: `stdlib_symbols` bytes-conversion optimization (`haxe.go-7zy.12`)
 
 Implementation:

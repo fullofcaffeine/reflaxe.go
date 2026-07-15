@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"time"
 )
 
 type FileInput struct {
@@ -110,6 +111,21 @@ func SysSystemName() *string {
 	default:
 		return StringFromLiteral(runtime.GOOS)
 	}
+}
+
+// SysSleep suspends the current goroutine for a Haxe seconds-based duration.
+//
+// What: Implements the portable Sys.sleep(Float) blocking contract.
+// Why: The mainstream Haxe declaration lowers to a target-owned Sys_sleep
+// symbol, while Go's time.Sleep accepts a nanosecond Duration instead of
+// seconds. Keeping conversion here avoids library behavior in compiler GoRaw.
+// How: Clamp non-positive and NaN inputs to an immediate return, convert
+// positive seconds through time.Second, and delegate scheduling to time.Sleep.
+func SysSleep(seconds float64) {
+	if !(seconds > 0) {
+		return
+	}
+	time.Sleep(time.Duration(seconds * float64(time.Second)))
 }
 
 // FileSaveContent stores text without collapsing write failures into success.

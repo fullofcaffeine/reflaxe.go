@@ -272,14 +272,15 @@ Shim strategy and alternatives are documented in:
 ### `Sys` / `sys.io.File` / `sys.io.Process` ownership contract
 
 - Runtime behavior now lives in `runtime/hxrt/sys.go` and `runtime/hxrt/process.go`:
-  - `hxrt.SysGetCwd`, `hxrt.SysArgs`, `hxrt.SysGetEnv`, `hxrt.SysPutEnv`, `hxrt.SysCommand`, `hxrt.SysExit`
+  - `hxrt.SysGetCwd`, `hxrt.SysArgs`, `hxrt.SysGetEnv`, `hxrt.SysPutEnv`, `hxrt.SysSleep`, `hxrt.SysCommand`, `hxrt.SysExit`
   - `hxrt.FileSaveContent`, `hxrt.FileGetContent`
   - `hxrt.NewProcess`; process stdin/stdout/stderr; byte I/O; PID, blocking/non-blocking exit status, kill, and close
 - Compiler-generated `sys` declarations preserve Haxe type shape and call signatures, adapt typed runtime status into Haxe exceptions/EOF/nullable results, and attach the shared `haxe.io.Input`/`Output` helper surface. OS and process behavior remains runtime-owned.
 - Portable `File.getContent` and `File.saveContent` propagate missing-path, permission, directory, and other OS failures through Haxe exceptions; an error is never converted to empty content or apparent success.
 - Process startup and pipe failures throw instead of returning partial objects. Normal EOF is represented by `haxe.io.Eof`, non-EOF read failures remain errors, nonzero child exits remain ordinary exit codes, and `close()` releases/reaps without implicitly killing the child.
 - Portable `Sys.putEnv` deliberately discards the runtime error to match Haxe 4.3.7 eval's `Void`, non-throwing contract. `hxrt.SysPutEnv` still returns the native `os.Setenv`/`os.Unsetenv` error so Go-native facades can preserve it.
-- `lowerSysStdlibShimDecls` is adapter-only for this surface: OS/process behavior changes belong in runtime, while generated type-shape and Haxe error/stream translation remain in the compiler. Verify both sides with `sys/file_read_write_smoke`, `test/semantic_diff/file_read_write_contract`, `sys/file_error_semantics`, `test/semantic_diff/file_error_semantics_contract`, `sys/process_echo_smoke`, `test/semantic_diff/process_echo_contract`, `sys/process_error_semantics`, `test/semantic_diff/process_error_semantics_contract`, `test/semantic_diff/sys_command_contract`, and `sys/sys_command_exit_wrapper`.
+- Portable `Sys.sleep(seconds)` blocks for a seconds-based duration through a typed `Sys_sleep` adapter and runtime-owned `hxrt.SysSleep`; non-positive and NaN durations return immediately. Its bounded timing contract avoids exact scheduler assertions.
+- `lowerSysStdlibShimDecls` is adapter-only for this surface: OS/process behavior changes belong in runtime, while generated type-shape and Haxe error/stream translation remain in the compiler. Verify both sides with `sys/file_read_write_smoke`, `test/semantic_diff/file_read_write_contract`, `sys/file_error_semantics`, `test/semantic_diff/file_error_semantics_contract`, `sys/process_echo_smoke`, `test/semantic_diff/process_echo_contract`, `sys/process_error_semantics`, `test/semantic_diff/process_error_semantics_contract`, `test/semantic_diff/sys_command_contract`, `sys/sys_command_exit_wrapper`, `test/semantic_diff/sys_sleep_contract`, and `sys/sys_sleep_portable`.
 
 ### `sys.thread` failure and shutdown contract
 

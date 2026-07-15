@@ -4,7 +4,20 @@ import (
 	"os"
 	"runtime"
 	"testing"
+	"time"
 )
+
+func TestSysSleepUsesSecondsAndReturnsWithinBound(t *testing.T) {
+	started := time.Now()
+	SysSleep(0.02)
+	elapsed := time.Since(started)
+	if elapsed < 5*time.Millisecond {
+		t.Fatalf("SysSleep(0.02) elapsed %s, want at least 5ms", elapsed)
+	}
+	if elapsed > 5*time.Second {
+		t.Fatalf("SysSleep(0.02) elapsed %s, want less than 5s", elapsed)
+	}
+}
 
 func TestFileTextHelpersPreserveNativeErrors(t *testing.T) {
 	root := t.TempDir()

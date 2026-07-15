@@ -1044,6 +1044,10 @@ func Sys_systemName() *string {
 	return hxrt.SysSystemName()
 }
 
+func Sys_sleep(seconds float64) {
+	hxrt.SysSleep(seconds)
+}
+
 func sys__io__File_saveContent(path *string, content *string) {
 	if err := hxrt.FileSaveContent(path, content); err != nil {
 		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
