@@ -1,5 +1,10 @@
 exists0=false
+missing.throws=false
 dir1=true
+paths=true
+absolute.missing=true
+delete.file.directory.throws=true
+delete.directory.file.throws=true
 entry=b.txt
 size=5
 content=hello

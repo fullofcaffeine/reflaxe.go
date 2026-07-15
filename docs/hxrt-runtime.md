@@ -146,9 +146,15 @@ in `runtime/hxrt/exception_test.go` and `runtime/hxrt/thread_test.go`.
 
 ## What `hxrt` does not own
 
-`hxrt` is not the whole Haxe stdlib implementation. Behavior-heavy stdlib
-surfaces still live in compiler-emitted shims where they depend on compile-time
-context or policy-sensitive lowering.
+`hxrt` is not the whole Haxe stdlib implementation. Public library semantics
+belong in upstream or canonical staged Haxe source. The remaining audited
+compiler exceptions are limited to surfaces that still depend on compile-time
+context or representation-sensitive lowering.
+
+`sys.FileSystem` follows the preferred split: `std/go/_std/sys/FileSystem.hx`
+owns its public API and `FileStat` construction, while typed `std/hxrt/fs`
+bindings reach the selectively copied native capabilities in
+`runtime/hxrt/filesystem.go`.
 
 Examples that are currently compiler-owned (not `hxrt`-owned):
 

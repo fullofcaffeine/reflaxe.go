@@ -59,6 +59,24 @@ func withStandardFiles(t *testing.T, stdinContent string, run func(stdoutPath st
 	}
 }
 
+// expectFileSystemThrow verifies that a runtime filesystem capability preserves
+// the catchable Haxe exception boundary for invalid native operations.
+func expectFileSystemThrow(t *testing.T, run func()) {
+	t.Helper()
+	didThrow := false
+	func() {
+		defer func() {
+			if _, ok := recover().(HaxeException); ok {
+				didThrow = true
+			}
+		}()
+		run()
+	}()
+	if !didThrow {
+		t.Fatal("filesystem operation did not throw a HaxeException")
+	}
+}
+
 func TestSysSleepUsesSecondsAndReturnsWithinBound(t *testing.T) {
 	started := time.Now()
 	SysSleep(0.02)
@@ -80,6 +98,90 @@ func TestFileTextHelpersPreserveNativeErrors(t *testing.T) {
 	content := "not a directory replacement"
 	if err := FileSaveContent(&root, &content); err == nil {
 		t.Fatal("writing content to a directory returned success")
+	}
+}
+
+func TestFileSystemCapabilitiesPreservePathsMetadataAndMutation(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "nested", "filesystem")
+	rootPtr := StringFromLiteral(root)
+	if FileSystemExists(rootPtr) {
+		t.Fatalf("FileSystemExists(%q) = true before creation", root)
+	}
+
+	FileSystemCreateDirectory(rootPtr)
+	if !FileSystemExists(rootPtr) || !FileSystemIsDirectory(rootPtr) {
+		t.Fatalf("created directory %q is not visible as a directory", root)
+	}
+
+	missing := filepath.Join(root, "missing", "child.txt")
+	if FileSystemIsDirectory(StringFromLiteral(missing)) {
+		t.Fatalf("FileSystemIsDirectory(%q) = true for a missing path", missing)
+	}
+	absolute := FileSystemAbsolutePath(StringFromLiteral(missing))
+	if absolute == nil || !filepath.IsAbs(*absolute) {
+		t.Fatalf("FileSystemAbsolutePath(%q) = %v, want an absolute path", missing, absolute)
+	}
+
+	canonical := FileSystemFullPath(rootPtr)
+	if canonical == nil || !filepath.IsAbs(*canonical) {
+		t.Fatalf("FileSystemFullPath(%q) = %v, want an absolute path", root, canonical)
+	}
+	if runtime.GOOS != "windows" {
+		link := filepath.Join(filepath.Dir(root), "filesystem-link")
+		if err := os.Symlink(root, link); err != nil {
+			t.Fatal(err)
+		}
+		resolvedLink := FileSystemFullPath(StringFromLiteral(link))
+		expectedRoot, err := filepath.EvalSymlinks(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resolvedLink == nil || filepath.Clean(*resolvedLink) != filepath.Clean(expectedRoot) {
+			t.Fatalf("FileSystemFullPath(%q) = %v, want %q", link, resolvedLink, expectedRoot)
+		}
+	}
+
+	from := filepath.Join(root, "from.txt")
+	to := filepath.Join(root, "to.txt")
+	if err := os.WriteFile(from, []byte("hello"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	FileSystemRename(StringFromLiteral(from), StringFromLiteral(to))
+	if FileSystemExists(StringFromLiteral(from)) || !FileSystemExists(StringFromLiteral(to)) {
+		t.Fatal("FileSystemRename did not move the file")
+	}
+
+	stat := FileSystemStatPath(StringFromLiteral(to))
+	if stat == nil || stat.Size != 5 || stat.Nlink < 1 || stat.Mode == 0 || stat.MtimeMs <= 0 {
+		t.Fatalf("FileSystemStatPath(%q) = %#v", to, stat)
+	}
+
+	entries := FileSystemReadDirectory(rootPtr)
+	if len(entries) != 1 || entries[0] == nil || *entries[0] != "to.txt" {
+		t.Fatalf("FileSystemReadDirectory(%q) = %v", root, entries)
+	}
+
+	wrongDirectory := filepath.Join(root, "not-a-file")
+	FileSystemCreateDirectory(StringFromLiteral(wrongDirectory))
+	expectFileSystemThrow(t, func() {
+		FileSystemDeleteFile(StringFromLiteral(wrongDirectory))
+	})
+	if !FileSystemIsDirectory(StringFromLiteral(wrongDirectory)) {
+		t.Fatal("FileSystemDeleteFile removed a directory")
+	}
+	FileSystemDeleteDirectory(StringFromLiteral(wrongDirectory))
+
+	expectFileSystemThrow(t, func() {
+		FileSystemDeleteDirectory(StringFromLiteral(to))
+	})
+	if !FileSystemExists(StringFromLiteral(to)) {
+		t.Fatal("FileSystemDeleteDirectory removed a file")
+	}
+
+	FileSystemDeleteFile(StringFromLiteral(to))
+	FileSystemDeleteDirectory(rootPtr)
+	if FileSystemExists(rootPtr) {
+		t.Fatalf("FileSystemDeleteDirectory(%q) left the directory behind", root)
 	}
 }
 

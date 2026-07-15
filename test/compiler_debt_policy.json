@@ -106,18 +106,6 @@
       "surface": "compiler"
     },
     {
-      "capability": "filesystem",
-      "classification": "required",
-      "context": "lowerFileSystemShimDecls",
-      "exception_id": "compiler_shim_boundary",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "compiler_shim",
-      "owner": "compiler_shim",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
       "capability": "go_concurrency",
       "classification": "required",
       "context": "lowerGoConcurrencyShimDecls",
@@ -402,18 +390,6 @@
       "max_count": 1,
       "metric": "go_raw",
       "owner": "compiler_core",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
-      "capability": "filesystem",
-      "classification": "avoidable",
-      "context": "lowerFileSystemShimDecls",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 26,
-      "metric": "go_raw",
-      "owner": "compiler_shim",
       "profile": "shared",
       "surface": "compiler"
     },

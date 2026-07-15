@@ -97,8 +97,8 @@ if (ledger == null || typeof ledger !== "object") {
   fail(`${ledgerPath} must contain a JSON object`);
 }
 
-if (ledger.schemaVersion !== 2) {
-  fail(`${ledgerPath} schemaVersion must be 2`);
+if (ledger.schemaVersion !== 3) {
+  fail(`${ledgerPath} schemaVersion must be 3`);
 }
 
 if (!ledger.baselineUpstream || typeof ledger.baselineUpstream !== "object") {
@@ -140,9 +140,19 @@ if (migrationBeads == null || typeof migrationBeads !== "object" || Array.isArra
   fail(`${ledgerPath} migrationContract must define migrationBeads`);
 } else {
   for (const ownershipClass of allowedOwnershipClasses) {
-    const bead = migrationBeads[ownershipClass];
-    if (typeof bead !== "string" || !/^haxe_go-[a-z0-9.-]+$/.test(bead)) {
-      fail(`${ledgerPath} migrationBeads.${ownershipClass} must name a Bead`);
+    const beads = migrationBeads[ownershipClass];
+    if (!Array.isArray(beads) || beads.length === 0) {
+      fail(`${ledgerPath} migrationBeads.${ownershipClass} must name at least one Bead`);
+      continue;
+    }
+    const normalizedBeads = [...new Set(beads)].sort();
+    if (!sameStringArray(beads, normalizedBeads)) {
+      fail(`${ledgerPath} migrationBeads.${ownershipClass} must be sorted and unique`);
+    }
+    for (const bead of beads) {
+      if (typeof bead !== "string" || !/^haxe_go-[a-z0-9.-]+$/.test(bead)) {
+        fail(`${ledgerPath} migrationBeads.${ownershipClass} contains an invalid Bead`);
+      }
     }
   }
 }
@@ -279,9 +289,9 @@ for (const entry of ledger.entries) {
     }
   }
 
-  const expectedMigrationBead = migrationBeads && migrationBeads[ownershipClass];
-  if (migrationBead !== expectedMigrationBead) {
-    fail(`${ledgerPath} entry migrationBead must be ${expectedMigrationBead} for ${path}`);
+  const allowedMigrationBeads = migrationBeads && migrationBeads[ownershipClass];
+  if (!Array.isArray(allowedMigrationBeads) || !allowedMigrationBeads.includes(migrationBead)) {
+    fail(`${ledgerPath} entry migrationBead must be one of ${(allowedMigrationBeads || []).join(", ")} for ${path}`);
   }
 
   if (!Array.isArray(compilerShimGroups)) {

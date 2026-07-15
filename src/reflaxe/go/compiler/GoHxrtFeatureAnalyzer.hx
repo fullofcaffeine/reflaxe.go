@@ -25,6 +25,7 @@ class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_EXCEPTION = "exception";
 	public static inline final FEATURE_JSON = "json";
 	public static inline final FEATURE_SYS = "sys";
+	public static inline final FEATURE_FILESYSTEM = "filesystem";
 	public static inline final FEATURE_PROCESS = "process";
 	public static inline final FEATURE_BYTES = "bytes";
 	public static inline final FEATURE_SSL = "ssl";
@@ -40,6 +41,7 @@ class GoHxrtFeatureAnalyzer {
 		FEATURE_EXCEPTION,
 		FEATURE_JSON,
 		FEATURE_SYS,
+		FEATURE_FILESYSTEM,
 		FEATURE_PROCESS,
 		FEATURE_BYTES,
 		FEATURE_SSL,
@@ -89,6 +91,10 @@ class GoHxrtFeatureAnalyzer {
 				add(FEATURE_PROCESS, "class_usage", path);
 			}
 
+			if (path == "sys.FileSystem") {
+				add(FEATURE_FILESYSTEM, "class_usage", path);
+			}
+
 			if (path == "Sys" || path == "sys.io.File" || path == "sys.FileSystem" || StringTools.startsWith(path, "sys.")) {
 				add(FEATURE_SYS, "class_usage", path);
 			}
@@ -129,7 +135,7 @@ class GoHxrtFeatureAnalyzer {
 					add(FEATURE_ATOMIC_OBJECT, "shim_group", group);
 				case "io":
 					add(FEATURE_BYTES, "shim_group", group);
-				case "sys", "filesystem", "http", "net_socket":
+				case "sys", "http", "net_socket":
 					add(FEATURE_SYS, "shim_group", group);
 					add(FEATURE_PROCESS, "shim_group", group);
 				case _:
@@ -216,6 +222,8 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_CORE];
 			case FEATURE_SYS:
 				[FEATURE_STRING];
+			case FEATURE_FILESYSTEM:
+				[FEATURE_STRING];
 			case FEATURE_PROCESS:
 				[FEATURE_SYS];
 			case FEATURE_BYTES:
@@ -245,6 +253,8 @@ class GoHxrtFeatureAnalyzer {
 				["json.go"];
 			case FEATURE_SYS:
 				["sys.go"];
+			case FEATURE_FILESYSTEM:
+				["filesystem.go"];
 			case FEATURE_PROCESS:
 				["process.go"];
 			case FEATURE_BYTES:

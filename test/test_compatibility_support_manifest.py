@@ -192,16 +192,18 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
         self.assertTrue(
             {
                 "sys.FileSystem.exists",
+                "sys.FileSystem.rename",
+                "sys.FileSystem.stat",
+                "sys.FileSystem.fullPath",
+                "sys.FileSystem.absolutePath",
                 "sys.FileSystem.createDirectory",
                 "sys.FileSystem.isDirectory",
-                "sys.FileSystem.rename",
                 "sys.FileSystem.readDirectory",
                 "sys.FileSystem.deleteFile",
                 "sys.FileSystem.deleteDirectory",
             }
             <= filesystem
         )
-        self.assertNotIn("sys.FileSystem.stat", filesystem)
 
     def test_portable_is_the_only_release_admitted_preset_semantics(self) -> None:
         presets = {entry["id"]: entry for entry in self.load_manifest()["presets"]}

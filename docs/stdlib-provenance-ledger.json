@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "description": "Provenance and migration-ownership ledger for every tracked haxe.go std, support, runtime-binding, and public native-facade source.",
   "baselineUpstream": {
     "repository": "https://github.com/HaxeFoundation/haxe",
@@ -18,12 +18,26 @@
       "intentional_boundary_fixture": "Deliberate policy fixture retained only to exercise a target boundary; it requires a named migration bead."
     },
     "migrationBeads": {
-      "upstream_std_override": "haxe_go-vfp.5.3",
-      "staged_support": "haxe_go-vfp.5.4",
-      "hxrt_binding": "haxe_go-vfp.5.4",
-      "public_go_facade": "haxe_go-vfp.5.4",
-      "obsolete": "haxe_go-vfp.5.4",
-      "intentional_boundary_fixture": "haxe_go-vfp.5.4"
+      "upstream_std_override": [
+        "haxe_go-vfp.5.3",
+        "haxe_go-vfp.8.7.4"
+      ],
+      "staged_support": [
+        "haxe_go-vfp.5.4"
+      ],
+      "hxrt_binding": [
+        "haxe_go-vfp.5.4",
+        "haxe_go-vfp.8.7.4"
+      ],
+      "public_go_facade": [
+        "haxe_go-vfp.5.4"
+      ],
+      "obsolete": [
+        "haxe_go-vfp.5.4"
+      ],
+      "intentional_boundary_fixture": [
+        "haxe_go-vfp.5.4"
+      ]
     },
     "ambiguities": [],
     "compilerShimAudit": [
@@ -426,6 +440,15 @@
       "notes": "Go staged helper surface for sys.Http leaf helpers, keeping response-header lookup glue and payload capture fan-out out of GoCompiler while request choreography stays compiler-owned."
     },
     {
+      "path": "std/go/_std/sys/FileSystem.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/FileSystem.hx",
+      "migrationBead": "haxe_go-vfp.8.7.4",
+      "compilerShimGroups": [],
+      "notes": "Canonical source-owned implementation of the complete Haxe 4.3.7 sys.FileSystem API; public record construction stays in Haxe while typed std/hxrt bindings expose native filesystem capabilities."
+    },
+    {
       "path": "std/go/_std/sys/net/Address.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
@@ -799,6 +822,24 @@
       "migrationBead": "haxe_go-vfp.5.3",
       "compilerShimGroups": [],
       "notes": "Go staged portable override for Unicode-aware string key/value iterator semantics."
+    },
+    {
+      "path": "std/hxrt/fs/FileSystemStat.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/fs/FileSystemStat.hx",
+      "migrationBead": "haxe_go-vfp.8.7.4",
+      "compilerShimGroups": [],
+      "notes": "Typed extern carrier for runtime/hxrt FileSystemStat metadata, allowing staged sys.FileSystem to construct the unchanged upstream FileStat record without Dynamic or compiler shims."
+    },
+    {
+      "path": "std/hxrt/fs/NativeFileSystem.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/fs/NativeFileSystem.hx",
+      "migrationBead": "haxe_go-vfp.8.7.4",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge to the narrow runtime/hxrt filesystem capability surface used by canonical staged sys.FileSystem source."
     },
     {
       "path": "std/hxrt/stack/NativeStack.hx",

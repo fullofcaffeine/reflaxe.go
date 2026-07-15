@@ -65,6 +65,14 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/string/GoStringRuntime.hx",
     ),
+    "std/hxrt/fs/FileSystemStat.hx": (
+        "hxrt_binding",
+        "std/hxrt/fs/FileSystemStat.hx",
+    ),
+    "std/hxrt/fs/NativeFileSystem.hx": (
+        "hxrt_binding",
+        "std/hxrt/fs/NativeFileSystem.hx",
+    ),
     "std/_std/hxrt/stack/NativeStack.hx": ("hxrt_binding", "std/hxrt/stack/NativeStack.hx"),
     "std/_std/hxrt/stack/NativeStackFrame.hx": (
         "hxrt_binding",
@@ -219,9 +227,18 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
 
     def test_every_tracked_std_source_has_one_resolved_owner_and_destination(self) -> None:
         ledger = load_ledger()
-        self.assertEqual(2, ledger.get("schemaVersion"))
+        self.assertEqual(3, ledger.get("schemaVersion"))
         entries = ledger.get("entries")
         self.assertIsInstance(entries, list)
+        migration_beads = ledger.get("migrationContract", {}).get("migrationBeads")
+        self.assertIsInstance(migration_beads, dict)
+        for ownership in OWNERSHIP_CLASSES:
+            allowed_beads = migration_beads.get(ownership)
+            self.assertIsInstance(allowed_beads, list, ownership)
+            self.assertTrue(allowed_beads, ownership)
+            self.assertEqual(sorted(set(allowed_beads)), allowed_beads, ownership)
+            for bead in allowed_beads:
+                self.assertRegex(bead, r"^haxe_go-[a-z0-9.-]+$", ownership)
 
         by_path = {entry["path"]: entry for entry in entries}
         self.assertEqual(len(entries), len(by_path), "migration ledger paths must be unique")
@@ -244,10 +261,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             self.assertEqual(expected_owner, ownership, source_path)
             self.assertEqual(expected_destination, destination, source_path)
 
-            expected_bead = (
-                "haxe_go-vfp.5.3" if ownership == "upstream_std_override" else "haxe_go-vfp.5.4"
-            )
-            self.assertEqual(expected_bead, entry.get("migrationBead"), source_path)
+            self.assertIn(entry.get("migrationBead"), migration_beads[ownership], source_path)
 
         self.assertEqual(len(destinations), len(set(destinations)), "migration destinations must be unique")
 
@@ -299,6 +313,53 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             self.assertTrue(references, group)
             for reference in references:
                 self.assertTrue((ROOT / reference).is_file(), f"{group}: missing audit reference {reference}")
+
+    def test_filesystem_is_source_owned_instead_of_a_compiler_shim(self) -> None:
+        ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
+        expected_owners = {
+            "std/go/_std/sys/FileSystem.hx": "upstream_std_override",
+            "std/hxrt/fs/FileSystemStat.hx": "hxrt_binding",
+            "std/hxrt/fs/NativeFileSystem.hx": "hxrt_binding",
+        }
+        for source_path, expected_owner in expected_owners.items():
+            self.assertTrue((ROOT / source_path).is_file(), source_path)
+            entry = ledger_entries.get(source_path)
+            self.assertIsNotNone(entry, source_path)
+            self.assertEqual(expected_owner, entry.get("ownershipClass"), source_path)
+            self.assertEqual("haxe_go-vfp.8.7.4", entry.get("migrationBead"), source_path)
+            self.assertEqual([], entry.get("compilerShimGroups"), source_path)
+
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")
+        classifier = (ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx").read_text(
+            encoding="utf-8"
+        )
+        feature_analyzer = (ROOT / "src/reflaxe/go/compiler/GoHxrtFeatureAnalyzer.hx").read_text(
+            encoding="utf-8"
+        )
+        filesystem_runtime = ROOT / "runtime/hxrt/filesystem.go"
+        self.assertTrue(filesystem_runtime.is_file())
+        self.assertNotIn(
+            "func FileSystem",
+            (ROOT / "runtime/hxrt/sys.go").read_text(encoding="utf-8"),
+        )
+        self.assertIn('case FEATURE_FILESYSTEM:', feature_analyzer)
+        self.assertIn('["filesystem.go"]', feature_analyzer)
+        debt_policy = json.loads(
+            (ROOT / "test/compiler_debt_policy.json").read_text(encoding="utf-8")
+        )
+
+        self.assertNotIn("lowerFileSystemShimDecls", compiler)
+        self.assertNotIn('requiredStdlibShimGroups.exists("filesystem")', compiler)
+        self.assertNotIn('GoStructDecl("sys__FileSystem"', compiler)
+        self.assertNotIn('return ["filesystem"]', classifier)
+        self.assertFalse(
+            any(
+                limit.get("metric") == "compiler_shim"
+                and limit.get("capability") == "filesystem"
+                for limit in debt_policy["limits"]
+            ),
+            "source-owned sys.FileSystem must not retain a compiler-shim debt allowance",
+        )
 
     def test_ambiguities_cannot_exist_without_a_follow_up_bead(self) -> None:
         ledger = load_ledger()

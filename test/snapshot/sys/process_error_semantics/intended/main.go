@@ -11,8 +11,6 @@ import (
 	"encoding/xml"
 	"io"
 	"math"
-	"os"
-	"path/filepath"
 	"reflect"
 	"snapshot/hxrt"
 	"strings"
@@ -1879,76 +1877,6 @@ func (self *sys__io__ProcessInput) writeString(s *string, encoding ...*haxe__io_
 	haxe__io__output_writeString(self, s, encoding...)
 }
 
-func sys__FileSystem_exists(path *string) bool {
-	_, err := os.Stat(*hxrt.StdString(path))
-	return err == nil
-}
-
-func sys__FileSystem_rename(path *string, newPath *string) {
-	if err := os.Rename(*hxrt.StdString(path), *hxrt.StdString(newPath)); err != nil {
-		hxrt.Throw(err)
-	}
-}
-
-func sys__FileSystem_stat(path *string) map[string]any {
-	info, err := os.Stat(*hxrt.StdString(path))
-	if err != nil {
-		hxrt.Throw(err)
-		return map[string]any{}
-	}
-	modTime := info.ModTime()
-	timeValue := &Date{value: modTime}
-	return map[string]any{"gid": 0, "uid": 0, "atime": timeValue, "mtime": timeValue, "ctime": timeValue, "dev": 0, "ino": 0, "nlink": 1, "rdev": 0, "size": int(info.Size()), "mode": int(info.Mode())}
-}
-
-func sys__FileSystem_fullPath(path *string) *string {
-	resolved, err := filepath.Abs(*hxrt.StdString(path))
-	if err != nil {
-		hxrt.Throw(err)
-		return hxrt.StringFromLiteral("")
-	}
-	return hxrt.StringFromLiteral(filepath.ToSlash(resolved))
-}
-
-func sys__FileSystem_isDirectory(path *string) bool {
-	info, err := os.Stat(*hxrt.StdString(path))
-	if err != nil {
-		return false
-	}
-	return info.IsDir()
-}
-
-func sys__FileSystem_createDirectory(path *string) {
-	if err := os.MkdirAll(*hxrt.StdString(path), 0o755); err != nil {
-		hxrt.Throw(err)
-	}
-}
-
-func sys__FileSystem_deleteFile(path *string) {
-	if err := os.Remove(*hxrt.StdString(path)); err != nil {
-		hxrt.Throw(err)
-	}
-}
-
-func sys__FileSystem_deleteDirectory(path *string) {
-	if err := os.Remove(*hxrt.StdString(path)); err != nil {
-		hxrt.Throw(err)
-	}
-}
-
-func sys__FileSystem_readDirectory(path *string) []*string {
-	entries, err := os.ReadDir(*hxrt.StdString(path))
-	if err != nil {
-		hxrt.Throw(err)
-		return []*string{}
-	}
-	out := make([]*string, 0, len(entries))
-	for _, entry := range entries {
-		out = append(out, hxrt.StringFromLiteral(entry.Name()))
-	}
-	return out
-}
-
 type Std struct {
 }
 
@@ -3141,9 +3069,6 @@ func haxe__zip__Uncompress_run(src *haxe__io__Bytes, bufsize ...int) *haxe__io__
 	return hxrt_rawToHaxeBytes(decoded)
 }
 
-type sys__FileSystem struct {
-}
-
 type ValueType struct {
 	tag    int
 	params []any
@@ -3288,6 +3213,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	case "haxe._Int64.___Int64":
 		return hxrt_typeCallAny(New_haxe___Int64_____Int64, args)
 	case "haxe.io.GoIoHelpers":
+		return nil, false
+	case "sys.FileSystem":
 		return nil, false
 	default:
 		return nil, false
@@ -3475,6 +3402,8 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "haxe.io.GoIoHelpers":
 		return nil
+	case "sys.FileSystem":
+		return nil
 	default:
 		return nil
 	}
@@ -3506,6 +3435,8 @@ func Type_getClassFields(c any) []*string {
 		return []*string{}
 	case "haxe.io.GoIoHelpers":
 		return []*string{hxrt.StringFromLiteral("bytesOutputGetBytes"), hxrt.StringFromLiteral("inputRead"), hxrt.StringFromLiteral("inputReadAll"), hxrt.StringFromLiteral("inputReadBytes"), hxrt.StringFromLiteral("inputReadFullBytes"), hxrt.StringFromLiteral("inputReadLine"), hxrt.StringFromLiteral("inputReadUntil"), hxrt.StringFromLiteral("outputWrite"), hxrt.StringFromLiteral("outputWriteBytes"), hxrt.StringFromLiteral("outputWriteFullBytes"), hxrt.StringFromLiteral("outputWriteInput"), hxrt.StringFromLiteral("outputWriteString")}
+	case "sys.FileSystem":
+		return []*string{hxrt.StringFromLiteral("absolutePath"), hxrt.StringFromLiteral("createDirectory"), hxrt.StringFromLiteral("deleteDirectory"), hxrt.StringFromLiteral("deleteFile"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("fullPath"), hxrt.StringFromLiteral("isDirectory"), hxrt.StringFromLiteral("readDirectory"), hxrt.StringFromLiteral("rename"), hxrt.StringFromLiteral("stat")}
 	default:
 		return []*string{}
 	}
@@ -3528,6 +3459,8 @@ func Type_getInstanceFields(c any) []*string {
 	case "haxe._Int64.___Int64":
 		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
 	case "haxe.io.GoIoHelpers":
+		return []*string{}
+	case "sys.FileSystem":
 		return []*string{}
 	default:
 		return []*string{}
@@ -3559,6 +3492,8 @@ func Type_resolveClass(name *string) any {
 	case "haxe._Int64.___Int64":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.io.GoIoHelpers":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.FileSystem":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil

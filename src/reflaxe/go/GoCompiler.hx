@@ -558,17 +558,12 @@ class GoCompiler {
 			imports.push("encoding/xml");
 			imports.push("io");
 			imports.push("math");
-			imports.push("path/filepath");
 			imports.push("reflect");
 			imports.push("strings");
 			imports.push("time");
 		}
 		if (requiredStdlibShimGroups.exists("template_support")) {
 			imports.push("reflect");
-		}
-		if (requiredStdlibShimGroups.exists("filesystem")) {
-			imports.push("os");
-			imports.push("path/filepath");
 		}
 		if (requiredStdlibShimGroups.exists("regex_serializer")) {
 			imports.push("encoding/base64");
@@ -1693,9 +1688,6 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("sys")) {
 			decls = decls.concat(lowerSysStdlibShimDecls());
 		}
-		if (requiredStdlibShimGroups.exists("filesystem")) {
-			decls = decls.concat(lowerFileSystemShimDecls());
-		}
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			decls = decls.concat(lowerStdlibSymbolShimDecls());
 		}
@@ -1726,11 +1718,6 @@ class GoCompiler {
 	function applyStdlibShimGroupDependencies():Void {
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			// Symbol shims include crypto/xml/zip helpers that depend on haxe.io.Bytes.
-			requireStdlibShimGroup("io");
-		}
-		if (requiredStdlibShimGroups.exists("filesystem")) {
-			// FileSystem stat/date fields rely on Date symbol declarations.
-			requireStdlibShimGroup("stdlib_symbols");
 			requireStdlibShimGroup("io");
 		}
 		if (requiredStdlibShimGroups.exists("sys")) {
@@ -6169,115 +6156,6 @@ class GoCompiler {
 		return decls;
 	}
 
-	function lowerFileSystemShimDecls():Array<GoDecl> {
-		return [
-			GoDecl.GoFuncDecl("sys__FileSystem_exists", null, [{name: "path", typeName: "*string"}], ["bool"], [
-				GoStmt.GoRaw("_, err := os.Stat(*hxrt.StdString(path))"),
-				GoStmt.GoReturn(GoExpr.GoRaw("err == nil"))
-			]),
-			GoDecl.GoFuncDecl("sys__FileSystem_rename", null, [
-				{
-					name: "path",
-					typeName: "*string"
-				},
-				{name: "newPath", typeName: "*string"}
-			], [], [
-				GoStmt.GoRaw("if err := os.Rename(*hxrt.StdString(path), *hxrt.StdString(newPath)); err != nil {"),
-				GoStmt.GoRaw("\thxrt.Throw(err)"),
-				GoStmt.GoRaw("}")
-			]),
-			GoDecl.GoFuncDecl("sys__FileSystem_stat", null, [
-				{
-					name: "path",
-					typeName: "*string"
-				}
-			], ["map[string]any"], [
-				GoStmt.GoRaw("info, err := os.Stat(*hxrt.StdString(path))"),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent("err")])),
-					GoStmt.GoReturn(GoExpr.GoRaw("map[string]any{}"))
-				],
-					null),
-				GoStmt.GoVarDecl("modTime", null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("info"), "ModTime"), []), true),
-				GoStmt.GoVarDecl("timeValue", null, GoExpr.GoRaw("&Date{value: modTime}"), true),
-				GoStmt.GoReturn(GoExpr.GoRaw("map[string]any{\"gid\": 0, \"uid\": 0, \"atime\": timeValue, \"mtime\": timeValue, \"ctime\": timeValue, \"dev\": 0, \"ino\": 0, \"nlink\": 1, \"rdev\": 0, \"size\": int(info.Size()), \"mode\": int(info.Mode())}"))
-			]),
-			GoDecl.GoFuncDecl("sys__FileSystem_fullPath", null, [
-				{
-					name: "path",
-					typeName: "*string"
-				}
-			], ["*string"], [
-				GoStmt.GoRaw("resolved, err := filepath.Abs(*hxrt.StdString(path))"),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent("err")])),
-					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
-				], null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [
-					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("filepath"), "ToSlash"), [GoExpr.GoIdent("resolved")])
-				]))
-			]),
-			GoDecl.GoFuncDecl("sys__FileSystem_isDirectory", null, [
-				{
-					name: "path",
-					typeName: "*string"
-				}
-			], ["bool"], [
-				GoStmt.GoRaw("info, err := os.Stat(*hxrt.StdString(path))"),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("info"), "IsDir"), []))
-			]),
-			GoDecl.GoFuncDecl("sys__FileSystem_createDirectory", null, [
-				{
-					name: "path",
-					typeName: "*string"
-				}
-			], [], [
-				GoStmt.GoRaw("if err := os.MkdirAll(*hxrt.StdString(path), 0o755); err != nil {"),
-				GoStmt.GoRaw("\thxrt.Throw(err)"),
-				GoStmt.GoRaw("}")
-			]),
-			GoDecl.GoFuncDecl("sys__FileSystem_deleteFile", null, [
-				{
-					name: "path",
-					typeName: "*string"
-				}
-			], [], [
-				GoStmt.GoRaw("if err := os.Remove(*hxrt.StdString(path)); err != nil {"),
-				GoStmt.GoRaw("\thxrt.Throw(err)"),
-				GoStmt.GoRaw("}")
-			]),
-			GoDecl.GoFuncDecl("sys__FileSystem_deleteDirectory", null, [
-				{
-					name: "path",
-					typeName: "*string"
-				}
-			], [], [
-				GoStmt.GoRaw("if err := os.Remove(*hxrt.StdString(path)); err != nil {"),
-				GoStmt.GoRaw("\thxrt.Throw(err)"),
-				GoStmt.GoRaw("}")
-			]),
-			GoDecl.GoFuncDecl("sys__FileSystem_readDirectory", null, [
-				{
-					name: "path",
-					typeName: "*string"
-				}
-			], ["[]*string"], [
-				GoStmt.GoRaw("entries, err := os.ReadDir(*hxrt.StdString(path))"),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent("err")])),
-					GoStmt.GoReturn(GoExpr.GoRaw("[]*string{}"))
-				],
-					null),
-				GoStmt.GoVarDecl("out", null, GoExpr.GoRaw("make([]*string, 0, len(entries))"), true),
-				GoStmt.GoRaw("for _, entry := range entries {"),
-				GoStmt.GoRaw("\tout = append(out, hxrt.StringFromLiteral(entry.Name()))"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoIdent("out"))
-			])
-		];
-	}
-
 	function lowerStdlibSymbolShimDecls():Array<GoDecl> {
 		var decls = [
 			GoDecl.GoStructDecl("Std", []),
@@ -7738,8 +7616,7 @@ class GoCompiler {
 					GoStmt.GoReturn(GoExpr.GoNil)
 				], null),
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt_rawToHaxeBytes"), [GoExpr.GoIdent("decoded")]))
-			]),
-			GoDecl.GoStructDecl("sys__FileSystem", [])
+			])
 		];
 		if (requiresReflectFieldsShim) {
 			decls.push(reflectFieldsShimDecl());

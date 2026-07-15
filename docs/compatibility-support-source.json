@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "manifest_schema_version": 1,
-  "as_of": "2026-07-14",
+  "as_of": "2026-07-15",
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
     "statement": "Haxe.Go is a pre-1.0 beta for pinned, application-qualified portable workloads on the admitted toolchain, platform, and operation/member surface.",
@@ -919,9 +919,12 @@
           "id": "filesystem-core",
           "symbols": [
             "sys.FileSystem.exists",
+            "sys.FileSystem.rename",
+            "sys.FileSystem.stat",
+            "sys.FileSystem.fullPath",
+            "sys.FileSystem.absolutePath",
             "sys.FileSystem.createDirectory",
             "sys.FileSystem.isDirectory",
-            "sys.FileSystem.rename",
             "sys.FileSystem.readDirectory",
             "sys.FileSystem.deleteFile",
             "sys.FileSystem.deleteDirectory"
@@ -929,7 +932,7 @@
           "granularity": "member",
           "state": "semantic-diff-supported",
           "release_admitted": true,
-          "qualification": "Local temporary-tree behavior on the admitted platform.",
+          "qualification": "Complete Haxe 4.3.7 surface over a local temporary tree, including metadata size, canonical existing paths, and absolute paths that need not exist.",
           "evidence_ids": [
             "semantic:filesystem"
           ],

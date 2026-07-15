@@ -97,7 +97,7 @@ OWNER_OVERRIDES = {
     "sys.io.FileOutput": "runtime_hxrt",
     "sys.io.FileSeek": "runtime_hxrt",
     "sys.io.Process": "runtime_hxrt",
-    "sys.FileSystem": "runtime_hxrt",
+    "sys.FileSystem": "mixed",
     "sys.db.Connection": "staged_std",
     "sys.db.Mysql": "staged_std",
     "sys.db.ResultSet": "staged_std",

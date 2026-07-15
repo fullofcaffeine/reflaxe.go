@@ -846,3 +846,25 @@ Observed result:
 - Direct `haxe.http.HttpMethod` and `haxe.http.HttpStatus` now ride the same parity evidence instead of staying compile-only by omission.
 - `haxe.http.HttpJs` and `haxe.http.HttpNodeJs` are now documented honestly as explicit unsupported target-conditional modules on Go.
 - The remaining direct `haxe.rtti.*` reflection debt is tracked separately instead of being hidden inside the HTTP tranche.
+
+### 2026-07-15: `sys.FileSystem` moved from compiler shims to canonical staged std (`haxe_go-vfp.8.7.4`)
+
+Implementation:
+
+- Added `std/go/_std/sys/FileSystem.hx` as the source authority for all ten Haxe 4.3.7 methods, including the previously missing `absolutePath`.
+- Reused the unchanged upstream `sys.FileStat` typedef and constructed its anonymous record in Haxe source.
+- Added typed `std/hxrt/fs/NativeFileSystem.hx` and `FileSystemStat.hx` bindings over native capabilities in selectively copied `runtime/hxrt/filesystem.go`.
+- Removed `lowerFileSystemShimDecls`, filesystem shim classification/dependencies/imports, the synthetic `sys__FileSystem` declaration, and the corresponding compiler-debt allowances.
+
+Validation evidence:
+
+- `python3 test/run-snapshots.py --case sys/filesystem_basic_smoke --runtime`
+- `python3 test/run-semantic-diff.py --case filesystem_contract`
+- `python3 test/test_stdlib_migration_ledger_contract.py`
+- `npm run test:compiler-debt`
+
+Observed result:
+
+- The Haxe stdlib surface is now reviewable source under the canonical target `_std` tree, while Go-native I/O stays behind a typed runtime boundary.
+- `absolutePath` accepts paths that do not exist, `fullPath` resolves existing paths and symlinks, and `isDirectory` preserves Haxe 4.3.7 interpreter behavior by returning `false` for a missing path despite the upstream API documentation describing an exception.
+- Filesystem behavior no longer adds library algorithms, raw statements, support imports, or synthetic declarations to `GoCompiler`.

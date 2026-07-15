@@ -198,7 +198,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                 manifest.get("stagedReleaseIdentitySha256", ""),
                 r"^[0-9a-f]{64}$",
             )
-            self.assertEqual(249, len(manifest["contents"]["entries"]))
+            self.assertEqual(253, len(manifest["contents"]["entries"]))
 
             manifest_text = manifest_path.read_text(encoding="utf-8")
             self.assertNotIn(str(ROOT), manifest_text)
@@ -236,7 +236,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                     for entry in embedded["entries"]
                     if entry["packagePath"].endswith(".cross.hx")
                 ]
-                self.assertEqual(62, len(cross_entries))
+                self.assertEqual(63, len(cross_entries))
                 self.assertTrue(
                     all(
                         entry["kind"] == "stdlib-override"
@@ -264,7 +264,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
             self.assertEqual(0, verify.returncode, verify.stdout + verify.stderr)
             summary = json.loads(verify.stdout)
             self.assertEqual(sha256(archive), summary["sha256"])
-            self.assertEqual(250, summary["entries"])
+            self.assertEqual(254, summary["entries"])
 
             wrong_version = run_verifier(
                 archive,

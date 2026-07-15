@@ -183,13 +183,16 @@ Named filesystem operations
 
 | Symbol | Granularity | State | Release admitted | Evidence | Qualification |
 | --- | --- | --- | --- | --- | --- |
-| `sys.FileSystem.exists` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Local temporary-tree behavior on the admitted platform. |
-| `sys.FileSystem.createDirectory` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Local temporary-tree behavior on the admitted platform. |
-| `sys.FileSystem.isDirectory` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Local temporary-tree behavior on the admitted platform. |
-| `sys.FileSystem.rename` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Local temporary-tree behavior on the admitted platform. |
-| `sys.FileSystem.readDirectory` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Local temporary-tree behavior on the admitted platform. |
-| `sys.FileSystem.deleteFile` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Local temporary-tree behavior on the admitted platform. |
-| `sys.FileSystem.deleteDirectory` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Local temporary-tree behavior on the admitted platform. |
+| `sys.FileSystem.exists` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Complete Haxe 4.3.7 surface over a local temporary tree, including metadata size, canonical existing paths, and absolute paths that need not exist. |
+| `sys.FileSystem.rename` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Complete Haxe 4.3.7 surface over a local temporary tree, including metadata size, canonical existing paths, and absolute paths that need not exist. |
+| `sys.FileSystem.stat` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Complete Haxe 4.3.7 surface over a local temporary tree, including metadata size, canonical existing paths, and absolute paths that need not exist. |
+| `sys.FileSystem.fullPath` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Complete Haxe 4.3.7 surface over a local temporary tree, including metadata size, canonical existing paths, and absolute paths that need not exist. |
+| `sys.FileSystem.absolutePath` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Complete Haxe 4.3.7 surface over a local temporary tree, including metadata size, canonical existing paths, and absolute paths that need not exist. |
+| `sys.FileSystem.createDirectory` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Complete Haxe 4.3.7 surface over a local temporary tree, including metadata size, canonical existing paths, and absolute paths that need not exist. |
+| `sys.FileSystem.isDirectory` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Complete Haxe 4.3.7 surface over a local temporary tree, including metadata size, canonical existing paths, and absolute paths that need not exist. |
+| `sys.FileSystem.readDirectory` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Complete Haxe 4.3.7 surface over a local temporary tree, including metadata size, canonical existing paths, and absolute paths that need not exist. |
+| `sys.FileSystem.deleteFile` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Complete Haxe 4.3.7 surface over a local temporary tree, including metadata size, canonical existing paths, and absolute paths that need not exist. |
+| `sys.FileSystem.deleteDirectory` | `member` | `semantic-diff-supported` | yes | `semantic:filesystem` | Complete Haxe 4.3.7 surface over a local temporary tree, including metadata size, canonical existing paths, and absolute paths that need not exist. |
 ### `portable-concurrency`
 
 Admitted portable synchronization, foreground-thread, event-loop, and pool operations

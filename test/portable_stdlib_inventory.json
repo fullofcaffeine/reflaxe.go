@@ -1919,7 +1919,7 @@
       "in_strict_sweep": true,
       "module": "sys.FileSystem",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "runtime_hxrt",
+      "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
     },

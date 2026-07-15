@@ -182,6 +182,8 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("haxe.exceptions.NotImplementedException");
 			case "sys.Http":
 				requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
+			case "sys.FileSystem":
+				requireSourceOwnedStdlibClass("sys.FileSystem");
 			case "sys.net.Address":
 				requireSourceOwnedStdlibClass("sys.net.Address");
 			case "sys.ssl.Certificate":

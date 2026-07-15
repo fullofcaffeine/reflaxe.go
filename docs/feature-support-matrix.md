@@ -312,12 +312,12 @@ Shim strategy and alternatives are documented in:
   baseline. Arbitrary foreign goroutines still have no automatic detach hook. See
   [`docs/concurrency-contract.md`](concurrency-contract.md).
 
-### `sys.FileSystem` shim contract and tradeoffs
+### `sys.FileSystem` source/runtime contract and tradeoffs
 
-- `sys.FileSystem` static calls now lower to compiler-emitted wrappers in `lowerFileSystemShimDecls`:
-  - `sys__FileSystem_exists`, `rename`, `stat`, `fullPath`, `isDirectory`, `createDirectory`, `deleteFile`, `deleteDirectory`, `readDirectory`.
-- Coverage now includes `sys/filesystem_basic_smoke` and `test/semantic_diff/filesystem_contract` (deterministic create/read/rename/delete/stat-size behavior).
-- Current tradeoff: `stat` currently maps non-portable fields (`uid/gid/dev/ino/nlink/rdev`) to stable fallback values when unavailable from portable Go APIs.
+- Canonical staged source in `std/go/_std/sys/FileSystem.hx` owns the complete Haxe 4.3.7 API: `exists`, `rename`, `stat`, `fullPath`, `absolutePath`, `isDirectory`, `createDirectory`, `deleteFile`, `deleteDirectory`, and `readDirectory`.
+- Typed bindings under `std/hxrt/fs` delegate only native filesystem capabilities to the selectively copied `runtime/hxrt/filesystem.go`; `GoCompiler` has no filesystem shim group, synthetic `sys__FileSystem` declaration, or filesystem imports.
+- Coverage includes `sys/filesystem_basic_smoke`, `test/semantic_diff/filesystem_contract`, and direct `runtime/hxrt` tests for deterministic create/read/rename/delete/stat-size behavior, canonical existing paths, and absolute paths that need not exist.
+- Current tradeoff: `stat` maps metadata not exposed portably by Go's `os.FileInfo` (`uid/gid/dev/ino/rdev`, and platform-specific time distinctions) to stable fallback values behind the typed carrier. The staged Haxe source still constructs the unchanged upstream `sys.FileStat` record.
 
 ### `haxe.ds.*Map` / `haxe.ds.List` shim contract and tradeoffs
 

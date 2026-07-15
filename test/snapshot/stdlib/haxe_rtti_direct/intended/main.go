@@ -2140,9 +2140,6 @@ func haxe__zip__Uncompress_run(src *haxe__io__Bytes, bufsize ...int) *haxe__io__
 	return hxrt_rawToHaxeBytes(decoded)
 }
 
-type sys__FileSystem struct {
-}
-
 type ValueType struct {
 	tag    int
 	params []any
