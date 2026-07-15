@@ -42,7 +42,11 @@ release:status runs it again before reporting healthy release wiring.
 
 The dependency vulnerability audit copies both package.json and
 package-lock.json into an isolated directory and performs npm ci
---ignore-scripts --omit=dev. It never resolves a new lock during an audit.
+--ignore-scripts --include=dev. This is intentional: npm classifies the
+repository's CI and release executables as development dependencies, but they
+are operational supply-chain dependencies because they decide versions,
+generate release notes, and publish releases. The audit never resolves a new
+lock.
 
 ## Updating JavaScript dependencies
 

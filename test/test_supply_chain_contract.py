@@ -18,6 +18,7 @@ CI_HARNESS = ROOT / ".github" / "workflows" / "ci-harness.yml"
 DEPENDENCY_AUDIT = ROOT / "scripts" / "security" / "run-dependency-audit.sh"
 SUPPLY_CHAIN_RUNNER = ROOT / "scripts" / "security" / "verify-supply-chain.py"
 SUPPLY_CHAIN_DOC = ROOT / "docs" / "supply-chain-policy.md"
+OPERATIONAL_AUDIT_REVIEW = ROOT / "docs" / "reviews" / "npm-operational-dependency-audit-vfp-4.12.md"
 RELEASE_STATUS = ROOT / "scripts" / "release" / "check-release-state.sh"
 RELEASE_CONTRACTS = ROOT / "test" / "run-release-contracts.py"
 
@@ -36,6 +37,28 @@ EXPECTED_ACTIONS = {
 }
 
 USES_RE = re.compile(r"^\s*uses:\s*([^\s#]+)(?:\s+#\s*(\S+))?\s*$")
+
+EXPECTED_OPERATIONAL_AUDIT_BASELINE = {
+    "@sigstore/core": "moderate",
+    "@sigstore/sign": "moderate",
+    "@sigstore/verify": "moderate",
+    "brace-expansion": "moderate",
+    "diff": "low",
+    "glob": "high",
+    "handlebars": "critical",
+    "ip-address": "moderate",
+    "js-yaml": "moderate",
+    "libnpmdiff": "high",
+    "libnpmpublish": "high",
+    "lodash-es": "high",
+    "minimatch": "high",
+    "npm": "high",
+    "pacote": "high",
+    "picomatch": "high",
+    "sigstore": "high",
+    "socks": "moderate",
+    "tar": "high",
+}
 
 
 class SupplyChainContractTest(unittest.TestCase):
@@ -68,7 +91,9 @@ class SupplyChainContractTest(unittest.TestCase):
 
         dependency_audit = DEPENDENCY_AUDIT.read_text(encoding="utf-8")
         self.assertIn('cp package-lock.json "$npm_audit_tmp_dir/package-lock.json"', dependency_audit)
-        self.assertIn("npm ci --ignore-scripts --omit=dev", dependency_audit)
+        self.assertIn("npm ci --ignore-scripts --include=dev", dependency_audit)
+        self.assertIn("npm audit --include=dev --audit-level=high", dependency_audit)
+        self.assertNotIn("--omit=dev", dependency_audit)
         self.assertNotIn("npm install --ignore-scripts --package-lock-only", dependency_audit)
 
     def test_every_external_action_is_manifested_and_commit_pinned(self) -> None:
@@ -104,6 +129,21 @@ class SupplyChainContractTest(unittest.TestCase):
         self.assertIn('package-ecosystem: "github-actions"', dependabot)
         self.assertIn('package-ecosystem: "npm"', dependabot)
         self.assertGreaterEqual(dependabot.count('interval: "weekly"'), 2)
+
+    def test_operational_dependency_audit_records_complete_baseline_triage(self) -> None:
+        review = OPERATIONAL_AUDIT_REVIEW.read_text(encoding="utf-8")
+        rows = re.findall(
+            r"^\| `([^`]+)` \| `(critical|high|moderate|low)` \|",
+            review,
+            flags=re.MULTILINE,
+        )
+
+        self.assertEqual(dict(rows), EXPECTED_OPERATIONAL_AUDIT_BASELINE)
+        self.assertEqual(len(rows), 19)
+        self.assertIn("configured execution path", review)
+        self.assertIn("installed but inactive", review)
+        self.assertIn("npm audit --include=dev --audit-level=high", review)
+        self.assertIn("found 0 vulnerabilities", review)
 
     def test_supply_chain_gate_is_release_blocking_and_documented(self) -> None:
         package = json.loads(PACKAGE_JSON.read_text(encoding="utf-8"))

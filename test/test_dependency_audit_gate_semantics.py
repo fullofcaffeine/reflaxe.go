@@ -33,7 +33,16 @@ class DependencyAuditGateSemanticsTest(unittest.TestCase):
         bin_dir.mkdir()
 
         fake_npm = bin_dir / "npm"
-        fake_npm.write_text("#!/usr/bin/env bash\nexit 0\n", encoding="utf-8")
+        fake_npm.write_text(
+            "#!/usr/bin/env bash\n"
+            "printf '%s\\n' \"$*\" >>\"$FAKE_NPM_LOG\"\n"
+            "if [[ \"${1:-}\" == \"audit\" ]]; then\n"
+            "  printf '%s\\n' \"$FAKE_NPM_OUTPUT\"\n"
+            "  exit \"$FAKE_NPM_EXIT\"\n"
+            "fi\n"
+            "exit 0\n",
+            encoding="utf-8",
+        )
         fake_npm.chmod(0o755)
 
         fake_govulncheck = bin_dir / "govulncheck"
@@ -49,6 +58,9 @@ class DependencyAuditGateSemanticsTest(unittest.TestCase):
                 "CI": "true",
                 "FAKE_GOVULN_OUTPUT": output,
                 "FAKE_GOVULN_EXIT": str(exit_code),
+                "FAKE_NPM_OUTPUT": "",
+                "FAKE_NPM_EXIT": "0",
+                "FAKE_NPM_LOG": str(report_dir / "npm-invocations.txt"),
                 "GOVULNCHECK_BIN": str(fake_govulncheck),
                 "GOVULNCHECK_REPORT_DIR": str(report_dir),
                 "PATH": f"{bin_dir}{os.pathsep}{env['PATH']}",
@@ -64,6 +76,41 @@ class DependencyAuditGateSemanticsTest(unittest.TestCase):
             timeout=30,
         )
         return proc, report_dir
+
+    def test_npm_audit_includes_operational_dev_dependencies(self) -> None:
+        proc, report_dir = self.run_with_fake_govulncheck(
+            output="No vulnerabilities found.",
+            exit_code=0,
+        )
+
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        invocations = (report_dir / "npm-invocations.txt").read_text(encoding="utf-8")
+        self.assertIn("ci --ignore-scripts --include=dev --no-audit --no-fund", invocations)
+        self.assertIn("audit --include=dev --audit-level=high", invocations)
+        self.assertNotIn("--omit=dev", invocations)
+        self.assertIn("operational Node dependencies", proc.stdout)
+
+    def test_high_severity_operational_npm_finding_fails_before_go_scan(self) -> None:
+        proc, report_dir = self.run_with_fake_govulncheck(
+            output="govulncheck must not run",
+            exit_code=0,
+            extra_env={
+                "FAKE_NPM_OUTPUT": "high severity finding in release tooling",
+                "FAKE_NPM_EXIT": "1",
+            },
+        )
+
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn(
+            "high severity finding in release tooling",
+            (report_dir / "npm-audit.txt").read_text(encoding="utf-8"),
+        )
+        self.assertNotIn("govulncheck (runtime/hxrt package)", proc.stdout)
+        self.assertNotIn("dependency audit passed", proc.stdout)
+        self.assertIn(
+            "result=not_run",
+            (report_dir / "metadata.txt").read_text(encoding="utf-8"),
+        )
 
     def test_zero_finding_scan_passes_and_records_clean_report(self) -> None:
         proc, report_dir = self.run_with_fake_govulncheck(

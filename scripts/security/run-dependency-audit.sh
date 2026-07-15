@@ -51,7 +51,7 @@ if ! [[ "$govulncheck_retry_delay_sec" =~ ^[0-9]+$ ]]; then
 fi
 
 if [[ -f package.json ]]; then
-  echo "[deps] npm audit (production dependencies, high+ severity)"
+  echo "[deps] npm audit (operational Node dependencies, including dev-scoped release tooling; high+ severity)"
   npm_audit_tmp_dir="$(mktemp -d)"
   trap 'rm -rf "$npm_audit_tmp_dir"' EXIT
   cp package.json "$npm_audit_tmp_dir/package.json"
@@ -61,8 +61,8 @@ if [[ -f package.json ]]; then
   fi
   (
     cd "$npm_audit_tmp_dir"
-    npm ci --ignore-scripts --omit=dev --no-audit --no-fund
-    npm audit --omit=dev --audit-level=high
+    npm ci --ignore-scripts --include=dev --no-audit --no-fund
+    npm audit --include=dev --audit-level=high
   ) 2>&1 | tee "$npm_audit_report"
 fi
 

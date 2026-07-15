@@ -8,7 +8,8 @@ path.
 
 The audit has two independent parts:
 
-- `npm audit` checks production Node dependencies at high severity or above.
+- `npm audit` checks the complete locked Node tree, including dev-scoped CI and
+  release tooling, at high severity or above.
 - `govulncheck` uses call-graph analysis to check `runtime/hxrt` for
   reachable entries in the Go vulnerability database.
 
@@ -18,6 +19,18 @@ toolchain from [the toolchain policy](toolchain-policy.md). CI uses
 code is nonzero when reachable vulnerabilities are found. JSON, SARIF, and VEX
 formats are useful interchange artifacts but are not used as this gate because
 those formats can exit successfully even when they contain findings.
+
+All repository Node dependencies are currently declared under
+`devDependencies`, but that npm installation category is not the security
+boundary. Tools that analyze commits, choose a release version, render release
+notes, or publish a GitHub release execute with repository or release
+authority. The isolated install therefore uses `--include=dev` explicitly so
+an inherited `NODE_ENV=production` cannot silently remove the operational
+tooling from the audit.
+
+The initial full-tree finding inventory, configured-plugin reachability map,
+and all 19 remediations are recorded in
+[the operational npm dependency audit](reviews/npm-operational-dependency-audit-vfp-4.12.md).
 
 ## Why SSL And Network Findings Can Appear
 
