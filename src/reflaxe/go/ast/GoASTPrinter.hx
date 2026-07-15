@@ -15,18 +15,18 @@ class GoASTPrinter {
 	public static function printFile(file:GoFile):String {
 		var out = new StringBuf();
 		out.add("package ");
-		out.add(file.packageName);
+		out.add(file.packageName.value());
 		out.add("\n\n");
 
 		if (file.imports.length == 1) {
 			out.add('import "');
-			out.add(file.imports[0]);
+			out.add(file.imports[0].value());
 			out.add('"\n\n');
 		} else if (file.imports.length > 1) {
 			out.add("import (\n");
 			for (path in file.imports) {
 				out.add('\t"');
-				out.add(path);
+				out.add(path.value());
 				out.add('"\n');
 			}
 			out.add(")\n\n");
@@ -88,16 +88,16 @@ class GoASTPrinter {
 						out.add(field.name);
 						out.add(" ");
 					}
-					out.add(field.typeName);
+					out.add(field.typeName.render());
 					out.add("\n");
 				}
 				out.add("}\n");
 				out.toString();
 			case GoGlobalVarDecl(name, typeName, value):
 				if (value == null) {
-					"var " + name + " " + typeName + "\n";
+					"var " + name + " " + typeName.render() + "\n";
 				} else {
-					"var " + name + " " + typeName + " = " + printExpr(value) + "\n";
+					"var " + name + " " + typeName.render() + " = " + printExpr(value) + "\n";
 				}
 			case GoFuncDecl(name, receiver, params, results, body):
 				var out = new StringBuf();
@@ -106,7 +106,7 @@ class GoASTPrinter {
 					out.add("(");
 					out.add(receiver.name);
 					out.add(" ");
-					out.add(receiver.typeName);
+					out.add(receiver.typeName.render());
 					out.add(") ");
 				}
 				out.add(name);
@@ -116,10 +116,10 @@ class GoASTPrinter {
 
 				if (results.length == 1) {
 					out.add(" ");
-					out.add(results[0]);
+					out.add(results[0].render());
 				} else if (results.length > 1) {
 					out.add(" (");
-					out.add(results.join(", "));
+					out.add(renderTypes(results));
 					out.add(")");
 				}
 
@@ -137,7 +137,7 @@ class GoASTPrinter {
 	static function printParams(params:Array<GoParam>):String {
 		var rendered = new Array<String>();
 		for (param in params) {
-			rendered.push(param.name + " " + param.typeName);
+			rendered.push(param.name + " " + param.typeName.render());
 		}
 		return rendered.join(", ");
 	}
@@ -150,10 +150,10 @@ class GoASTPrinter {
 		out.add(")");
 		if (method.results.length == 1) {
 			out.add(" ");
-			out.add(method.results[0]);
+			out.add(method.results[0].render());
 		} else if (method.results.length > 1) {
 			out.add(" (");
-			out.add(method.results.join(", "));
+			out.add(renderTypes(method.results));
 			out.add(")");
 		}
 		return out.toString();
@@ -165,11 +165,11 @@ class GoASTPrinter {
 				if (useShort && value != null) {
 					name + " := " + printExpr(value);
 				} else if (value == null) {
-					typeName == null ? "var " + name : "var " + name + " " + typeName;
+					typeName == null ? "var " + name : "var " + name + " " + typeName.render();
 				} else if (typeName == null) {
 					"var " + name + " = " + printExpr(value);
 				} else {
-					"var " + name + " " + typeName + " = " + printExpr(value);
+					"var " + name + " " + typeName.render() + " = " + printExpr(value);
 				}
 			case GoMultiAssign(names, value, useShort):
 				names.join(", ") + (useShort ? " := " : " = ") + printExpr(value);
@@ -324,7 +324,7 @@ class GoASTPrinter {
 	static function printTypeSwitchCase(caseEntry:GoTypeSwitchCase):String {
 		var out = new StringBuf();
 		out.add("case ");
-		out.add(caseEntry.typeName);
+		out.add(caseEntry.typeName.render());
 		out.add(":\n");
 		for (stmt in caseEntry.body) {
 			out.add("\t\t");
@@ -388,7 +388,7 @@ class GoASTPrinter {
 				printExpr(target) + "[" + startCode + ":" + endCode + "]";
 			case GoArrayLiteral(elementType, elements):
 				"[]"
-				+ elementType
+				+ elementType.render()
 				+ "{"
 				+ [for (element in elements) printExpr(element)].join(", ") + "}";
 			case GoFuncLiteral(params, results, body):
@@ -398,10 +398,10 @@ class GoASTPrinter {
 				out.add(")");
 				if (results.length == 1) {
 					out.add(" ");
-					out.add(results[0]);
+					out.add(results[0].render());
 				} else if (results.length > 1) {
 					out.add(" (");
-					out.add(results.join(", "));
+					out.add(renderTypes(results));
 					out.add(")");
 				}
 				out.add(" {\n");
@@ -414,15 +414,19 @@ class GoASTPrinter {
 				out.toString();
 			case GoRaw(code): code;
 			case GoTypeAssert(inner, typeName):
-				printExpr(inner) + ".(" + typeName + ")";
+				printExpr(inner) + ".(" + typeName.render() + ")";
 			case GoRecvExpr(channel):
 				"<-" + printExpr(channel);
-			case GoUnary(op, inner): op + printExpr(inner);
-			case GoBinary(op, left, right): "(" + printExpr(left) + " " + op + " " + printExpr(right) + ")";
+			case GoUnary(op, inner): op.token() + printExpr(inner);
+			case GoBinary(op, left, right): "(" + printExpr(left) + " " + op.token() + " " + printExpr(right) + ")";
 			case GoCall(callee, args):
 				var renderedArgs = [for (arg in args) printExpr(arg)].join(", ");
 				printExpr(callee) + "(" + renderedArgs + ")";
 		}
+	}
+
+	static function renderTypes(types:Array<GoType>):String {
+		return [for (type in types) type.render()].join(", ");
 	}
 
 	static function escapeString(value:String):String {

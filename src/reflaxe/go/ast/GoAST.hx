@@ -1,20 +1,40 @@
 package reflaxe.go.ast;
 
+/**
+	What: One generated Go source file before target printing.
+	Why: Package and import identity must remain validated and traversable through
+	all AST passes, rather than becoming trusted target text at file assembly.
+	How: Lowering supplies typed names/paths, transforms preserve them, and the
+	printer owns package/import syntax.
+**/
 typedef GoFile = {
-	final packageName:String;
-	final imports:Array<String>;
+	final packageName:GoPackageName;
+	final imports:Array<GoImportPath>;
 	final decls:Array<GoDecl>;
 }
 
+/**
+	What: A named structural Go type slot reused by parameters, receivers, and
+	struct fields.
+	Why: Those positions share printing/import behavior even though an empty name
+	is meaningful only for embedded fields.
+	How: The containing declaration supplies the context; `typeName` is always a
+	validated `GoType`.
+**/
 typedef GoParam = {
 	final name:String;
-	final typeName:String;
+	final typeName:GoType;
 }
 
+/**
+	What: One method signature carried by a declared Go interface.
+	Why: Structural parameter/result types keep method-set imports visible.
+	How: The interface printer renders the typed lists in declaration context.
+**/
 typedef GoInterfaceMethod = {
 	final name:String;
 	final params:Array<GoParam>;
-	final results:Array<String>;
+	final results:Array<GoType>;
 }
 
 typedef GoSwitchCase = {
@@ -22,8 +42,13 @@ typedef GoSwitchCase = {
 	final body:Array<GoStmt>;
 }
 
+/**
+	What: One typed case arm in a Go type switch.
+	Why: Case types can reference imports and must not bypass type validation.
+	How: Transforms preserve the `GoType`; the switch printer owns case syntax.
+**/
 typedef GoTypeSwitchCase = {
-	final typeName:String;
+	final typeName:GoType;
 	final body:Array<GoStmt>;
 }
 
@@ -52,12 +77,12 @@ enum GoSelectClause {
 enum GoDecl {
 	GoInterfaceDecl(name:String, methods:Array<GoInterfaceMethod>);
 	GoStructDecl(name:String, fields:Array<GoParam>);
-	GoGlobalVarDecl(name:String, typeName:String, value:Null<GoExpr>);
-	GoFuncDecl(name:String, receiver:Null<GoParam>, params:Array<GoParam>, results:Array<String>, body:Array<GoStmt>);
+	GoGlobalVarDecl(name:String, typeName:GoType, value:Null<GoExpr>);
+	GoFuncDecl(name:String, receiver:Null<GoParam>, params:Array<GoParam>, results:Array<GoType>, body:Array<GoStmt>);
 }
 
 enum GoStmt {
-	GoVarDecl(name:String, typeName:Null<String>, value:Null<GoExpr>, useShort:Bool);
+	GoVarDecl(name:String, typeName:Null<GoType>, value:Null<GoExpr>, useShort:Bool);
 
 	/**
 		What: Assign one multi-result Go expression to two or more named targets.
@@ -99,12 +124,12 @@ enum GoExpr {
 	GoSelector(target:GoExpr, field:String);
 	GoIndex(target:GoExpr, index:GoExpr);
 	GoSlice(target:GoExpr, start:Null<GoExpr>, end:Null<GoExpr>);
-	GoArrayLiteral(elementType:String, elements:Array<GoExpr>);
-	GoFuncLiteral(params:Array<GoParam>, results:Array<String>, body:Array<GoStmt>);
+	GoArrayLiteral(elementType:GoType, elements:Array<GoExpr>);
+	GoFuncLiteral(params:Array<GoParam>, results:Array<GoType>, body:Array<GoStmt>);
 	GoRaw(code:String);
-	GoTypeAssert(expr:GoExpr, typeName:String);
+	GoTypeAssert(expr:GoExpr, typeName:GoType);
 	GoRecvExpr(channel:GoExpr);
-	GoUnary(op:String, expr:GoExpr);
-	GoBinary(op:String, left:GoExpr, right:GoExpr);
+	GoUnary(op:GoUnaryOperator, expr:GoExpr);
+	GoBinary(op:GoBinaryOperator, left:GoExpr, right:GoExpr);
 	GoCall(callee:GoExpr, args:Array<GoExpr>);
 }

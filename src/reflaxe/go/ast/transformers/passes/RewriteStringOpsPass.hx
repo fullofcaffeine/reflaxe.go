@@ -9,6 +9,7 @@ import reflaxe.go.ast.GoAST.GoSelectClause;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
+import reflaxe.go.ast.GoUnaryOperator;
 import reflaxe.go.ast.transformers.registry.RegistryCore.IGoASTPass;
 
 class RewriteStringOpsPass implements IGoASTPass {
@@ -195,7 +196,7 @@ class RewriteStringOpsPass implements IGoASTPass {
 				} else {
 					expr;
 				}
-			case GoExpr.GoUnary("!", inner):
+			case GoExpr.GoUnary(op, inner) if (op == GoUnaryOperator.LogicalNot):
 				switch (inner) {
 					case GoExpr.GoBoolLiteral(value):
 						GoExpr.GoBoolLiteral(!value);

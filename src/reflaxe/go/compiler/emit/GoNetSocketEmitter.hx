@@ -967,7 +967,7 @@ class GoNetSocketEmitter {
 			case GoDecl.GoStructDecl(name, _):
 				name == "sys__net__UdpSocket";
 			case GoDecl.GoFuncDecl(name, receiver, _, _, _): name == "New_sys__net__UdpSocket" || name == "hxrt__udp_socket_conn" || (receiver != null
-					&& receiver.typeName == "*sys__net__UdpSocket");
+					&& receiver.typeName.render() == "*sys__net__UdpSocket");
 			case _:
 				false;
 		};

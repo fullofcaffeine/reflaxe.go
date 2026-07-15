@@ -38,6 +38,10 @@ import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
 import reflaxe.go.ast.GoASTPrinter;
 import reflaxe.go.ast.GoASTTransformer;
+import reflaxe.go.ast.GoBinaryOperator;
+import reflaxe.go.ast.GoImportPath;
+import reflaxe.go.ast.GoType;
+import reflaxe.go.ast.GoUnaryOperator;
 import reflaxe.go.naming.GoNaming;
 #end
 
@@ -410,6 +414,10 @@ class GoCompiler {
 		}
 
 		var supportImports = buildSupportImports();
+		var testAstCase = Context.definedValue("reflaxe_go_test_ast_stmt_case");
+		if (testAstCase != null && testAstCase != "") {
+			supportImports = GoTestAstFixtureEmitter.imports(testAstCase).concat(supportImports);
+		}
 		var moduleImports = buildModuleImports();
 
 		var moduleNames = [for (moduleName in moduleDecls.keys()) moduleName];
@@ -604,7 +612,7 @@ class GoCompiler {
 	function renderGeneratedFile(relativePath:String, decls:Array<GoDecl>, candidateImports:Array<String>):GoGeneratedFile {
 		var file:GoFile = {
 			packageName: "main",
-			imports: candidateImports,
+			imports: [for (path in candidateImports) GoImportPath.parse(path)],
 			decls: decls
 		};
 		var transformed = GoASTTransformer.transform(file, compilationContext);
@@ -617,15 +625,12 @@ class GoCompiler {
 
 	function filterImportsByUsage(file:GoFile):GoFile {
 		var dedup = new Map<String, Bool>();
-		var filtered = new Array<String>();
+		var filtered = new Array<GoImportPath>();
 		for (path in file.imports) {
 			if (path == null) {
 				continue;
 			}
-			var trimmed = StringTools.trim(path);
-			if (trimmed == "") {
-				continue;
-			}
+			var trimmed = path.value();
 			if (dedup.exists(trimmed)) {
 				continue;
 			}
@@ -970,11 +975,11 @@ class GoCompiler {
 		};
 	}
 
-	function typeNameUsesImportAlias(typeName:String, alias:String):Bool {
-		if (typeName == null || typeName == "") {
+	function typeNameUsesImportAlias(typeName:GoType, alias:String):Bool {
+		if (typeName == null) {
 			return false;
 		}
-		return rawCodeUsesImportAlias(typeName, alias);
+		return typeName.usesPackage(alias);
 	}
 
 	function rawCodeUsesImportAlias(code:String, alias:String):Bool {
@@ -1482,7 +1487,7 @@ class GoCompiler {
 	function noteLeafReturningFunctionDecl(decl:GoDecl):Void {
 		switch (decl) {
 			case GoDecl.GoFuncDecl(name, receiver, _, results, _):
-				if (receiver == null && results.length == 1 && globalLeafReceiverTypes.exists(results[0])) {
+				if (receiver == null && results.length == 1 && globalLeafReceiverTypes.exists(results[0].render())) {
 					compilationContext.leafReturningFunctions.set(name, true);
 				}
 			case _:
@@ -3482,13 +3487,16 @@ class GoCompiler {
 					if (!requiresIoBufferInputSurface && receiver == null && name == "New_haxe__io__BufferInput") {
 						continue;
 					}
-					if (!requiresIoStringInputSurface && receiver != null && receiver.typeName == "*haxe__io__StringInput") {
+					if (!requiresIoStringInputSurface && receiver != null && receiver.typeName.render() == "*haxe__io__StringInput") {
 						continue;
 					}
-					if (!requiresIoBufferInputSurface && receiver != null && receiver.typeName == "*haxe__io__BufferInput") {
+					if (!requiresIoBufferInputSurface && receiver != null && receiver.typeName.render() == "*haxe__io__BufferInput") {
 						continue;
 					}
-					if (!requiresIoEofStringSurface && receiver != null && receiver.typeName == "*haxe__io__Eof" && name == "String") {
+					if (!requiresIoEofStringSurface
+						&& receiver != null
+						&& receiver.typeName.render() == "*haxe__io__Eof"
+						&& name == "String") {
 						continue;
 					}
 					out.push(decl);
@@ -3515,10 +3523,10 @@ class GoCompiler {
 					if (receiver == null && isIoHelperFunctionDecl(name)) {
 						continue;
 					}
-					if (receiver != null && isIoInputHelperReceiverType(receiver.typeName) && isIoInputHelperMethodName(name)) {
+					if (receiver != null && isIoInputHelperReceiverType(receiver.typeName.render()) && isIoInputHelperMethodName(name)) {
 						continue;
 					}
-					if (receiver != null && isIoOutputHelperReceiverType(receiver.typeName) && isIoOutputHelperMethodName(name)) {
+					if (receiver != null && isIoOutputHelperReceiverType(receiver.typeName.render()) && isIoOutputHelperMethodName(name)) {
 						continue;
 					}
 					out.push(decl);
@@ -8222,7 +8230,7 @@ class GoCompiler {
 		return ioStdlibSubclassKind(classType);
 	}
 
-	function ioSyntheticMethod(receiverType:String, name:String, params:Array<GoParam>, results:Array<String>, body:Array<GoStmt>):GoDecl {
+	function ioSyntheticMethod(receiverType:String, name:String, params:Array<GoParam>, results:Array<GoType>, body:Array<GoStmt>):GoDecl {
 		return GoDecl.GoFuncDecl(name, {name: "self", typeName: receiverType}, params, results, body);
 	}
 
@@ -8729,11 +8737,11 @@ class GoCompiler {
 		return ctorFunc == null ? null : buildFunctionInfo(ctorFunc);
 	}
 
-	function lowerFunctionResults(returnType:Type):Array<String> {
+	function lowerFunctionResults(returnType:Type):Array<GoType> {
 		if (isVoidType(returnType)) {
 			return [];
 		}
-		return [scalarGoType(returnType)];
+		return [GoType.parse(scalarGoType(returnType))];
 	}
 
 	function lowerToStatements(expr:TypedExpr):Array<GoStmt> {
@@ -8852,10 +8860,14 @@ class GoCompiler {
 				switch (op) {
 					case OpIncrement:
 						var target = lowerLValue(value);
-						[GoStmt.GoAssign(target, unitStepExpr(target, "+", value.t, expr.pos))];
+						[
+							GoStmt.GoAssign(target, unitStepExpr(target, GoBinaryOperator.Add, value.t, expr.pos))
+						];
 					case OpDecrement:
 						var target = lowerLValue(value);
-						[GoStmt.GoAssign(target, unitStepExpr(target, "-", value.t, expr.pos))];
+						[
+							GoStmt.GoAssign(target, unitStepExpr(target, GoBinaryOperator.Subtract, value.t, expr.pos))
+						];
 					case _:
 						exprStatement(lowerExpr(expr).expr);
 				}
@@ -10710,7 +10722,7 @@ class GoCompiler {
 						case OpIncrement, OpDecrement:
 							var target = lowerLValue(value);
 							var temp = freshTempName("hx_post");
-							var opSymbol = op == OpIncrement ? "+" : "-";
+							var opSymbol = op == OpIncrement ? GoBinaryOperator.Add : GoBinaryOperator.Subtract;
 							{
 								expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(value.t)], [
 									GoStmt.GoVarDecl(temp, null, target, true),
@@ -10726,7 +10738,7 @@ class GoCompiler {
 				return switch (op) {
 					case OpIncrement, OpDecrement:
 						var target = lowerLValue(value);
-						var opSymbol = op == OpIncrement ? "+" : "-";
+						var opSymbol = op == OpIncrement ? GoBinaryOperator.Add : GoBinaryOperator.Subtract;
 						{
 							expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(value.t)], [
 								GoStmt.GoAssign(target, unitStepExpr(target, opSymbol, value.t, expr.pos)),
@@ -10993,7 +11005,7 @@ class GoCompiler {
 						case OpIncrement, OpDecrement:
 							var target = lowerLValue(value);
 							var temp = freshTempName("hx_post");
-							var opSymbol = op == OpIncrement ? "+" : "-";
+							var opSymbol = op == OpIncrement ? GoBinaryOperator.Add : GoBinaryOperator.Subtract;
 							{
 								prefix: [
 									GoStmt.GoVarDecl(temp, null, target, true),
@@ -14246,15 +14258,15 @@ class GoCompiler {
 		return GoExprOperatorOps.floatOperandExpr(expr, isFloatType(operandType));
 	}
 
-	function unitStepExpr(target:GoExpr, opSymbol:String, valueType:Type, ?sourcePos:haxe.macro.Expr.Position):GoExpr {
+	function unitStepExpr(target:GoExpr, opSymbol:GoBinaryOperator, valueType:Type, ?sourcePos:haxe.macro.Expr.Position):GoExpr {
 		return GoExprOperatorOps.unitStepExpr(target, opSymbol, isInt32SemanticType(valueType, sourcePos));
 	}
 
-	function binopSymbol(op:Binop):String {
+	function binopSymbol(op:Binop):GoBinaryOperator {
 		return GoExprOperatorOps.binopSymbol(op);
 	}
 
-	function unopSymbol(op:Unop):String {
+	function unopSymbol(op:Unop):GoUnaryOperator {
 		return GoExprOperatorOps.unopSymbol(op);
 	}
 
@@ -14724,8 +14736,8 @@ class GoCompiler {
 		return switch (decl) {
 			case GoDecl.GoStructDecl(name, _):
 				name == "haxe__io__Bytes";
-			case GoDecl.GoFuncDecl(name, receiver, _, _, _): (receiver != null && receiver.typeName == "*haxe__io__Bytes") || name == "New_haxe__io__Bytes" || StringTools.startsWith(name,
-					"haxe__io__Bytes_");
+			case GoDecl.GoFuncDecl(name, receiver, _, _, _): (receiver != null
+					&& receiver.typeName.render() == "*haxe__io__Bytes") || name == "New_haxe__io__Bytes" || StringTools.startsWith(name, "haxe__io__Bytes_");
 			case _:
 				false;
 		};
@@ -14736,7 +14748,7 @@ class GoCompiler {
 			case GoDecl.GoStructDecl(name, _):
 				name == "haxe__ds__EnumValueMap";
 			case GoDecl.GoFuncDecl(name, receiver, _, _, _): (receiver != null
-					&& receiver.typeName == "*haxe__ds__EnumValueMap") || name == "New_haxe__ds__EnumValueMap";
+					&& receiver.typeName.render() == "*haxe__ds__EnumValueMap") || name == "New_haxe__ds__EnumValueMap";
 			case _:
 				false;
 		};

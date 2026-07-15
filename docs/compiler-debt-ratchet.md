@@ -39,6 +39,9 @@ Every exception records an owner and explicit What / Why / How rationale. A
 baseline entry references one of those exceptions and sets a ceiling for its
 exact file, function context, ownership class, capability, profile, and surface.
 
+The target type/operator migration and its validated legacy-string boundary are
+documented in [`typed-go-ir.md`](typed-go-ir.md).
+
 ## How it works
 
 Run:

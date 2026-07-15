@@ -40,7 +40,7 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 		return switch (decl) {
 			case GoDecl.GoFuncDecl(name, receiver, params, results, body):
 				var receiverName = receiver == null ? null : receiver.name;
-				var canDevirtualizeSelf = receiver != null && leafReceivers.exists(receiver.typeName);
+				var canDevirtualizeSelf = receiver != null && leafReceivers.exists(receiver.typeName.render());
 				var localLeafVars = new Map<String, Bool>();
 				GoDecl.GoFuncDecl(name, receiver, params, results,
 					rewriteStmtList(body, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));

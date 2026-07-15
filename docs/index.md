@@ -75,6 +75,7 @@ This page helps you find the right docs quickly.
 
 ## Deep technical references
 
+- [Typed Go IR contract](typed-go-ir.md)
 - [Multi-package output evaluation](multi-package-output-evaluation.md)
 - [Compiler target template](compiler-target-template.md)
 - [Go extern generator](goextern.md)

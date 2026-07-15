@@ -1,0 +1,1 @@
+Invalid Go type: map key "[]int" is not comparable

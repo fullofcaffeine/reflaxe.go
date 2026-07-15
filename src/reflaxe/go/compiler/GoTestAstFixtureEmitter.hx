@@ -5,8 +5,29 @@ import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoSelectClause;
 import reflaxe.go.ast.GoAST.GoStmt;
+import reflaxe.go.ast.GoBinaryOperator;
+import reflaxe.go.ast.GoBuiltinType;
+import reflaxe.go.ast.GoChannelDirection;
+import reflaxe.go.ast.GoImportPath;
+import reflaxe.go.ast.GoPackageName;
+import reflaxe.go.ast.GoType;
+import reflaxe.go.ast.GoUnaryOperator;
 
 class GoTestAstFixtureEmitter {
+	/**
+		What: Candidate package imports required only by synthetic typed-AST fixtures.
+		Why: Import filtering must prove package use from structural `GoType` nodes;
+		the fixture should exercise that production path instead of embedding raw Go.
+		How: The compiler adds these paths to the normal candidate set, after which
+		structural usage analysis keeps or removes them exactly like real extern imports.
+	**/
+	public static function imports(testCase:String):Array<String> {
+		return switch (testCase) {
+			case "typed_types": ["sync/atomic"];
+			case _: [];
+		};
+	}
+
 	public static function emit(testCase:String):Null<Array<GoDecl>> {
 		return switch (testCase) {
 			case "go_defer":
@@ -85,6 +106,66 @@ class GoTestAstFixtureEmitter {
 						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("found"))
 					])
 				];
+			case "typed_types":
+				var intType = GoType.builtin(GoBuiltinType.Int);
+				var stringType = GoType.builtin(GoBuiltinType.StringType);
+				var localType = GoType.named("hxrt__test_ast_Local");
+				var constraintType = GoType.interfaceType([
+					GoType.interfaceMethod("Apply", [intType], [stringType, GoType.builtin(GoBuiltinType.Error)])
+				]);
+				[
+					GoDecl.GoStructDecl("hxrt__test_ast_Local", []),
+					GoDecl.GoStructDecl("hxrt__test_ast_type_shapes", [
+						{name: "Builtin", typeName: GoType.builtin(GoBuiltinType.Bool)},
+						{name: "Named", typeName: localType},
+						{name: "Pointer", typeName: GoType.pointer(stringType)},
+						{name: "Slice", typeName: GoType.slice(GoType.pointer(localType))},
+						{name: "Array", typeName: GoType.array(3, GoType.builtin(GoBuiltinType.Byte))},
+						{name: "Map", typeName: GoType.map(stringType, GoType.slice(intType))},
+						{name: "Channel", typeName: GoType.channel(GoChannelDirection.Bidirectional, intType)},
+						{name: "Receive", typeName: GoType.channel(GoChannelDirection.ReceiveOnly, stringType)},
+						{name: "Send", typeName: GoType.channel(GoChannelDirection.SendOnly, GoType.builtin(GoBuiltinType.Bool))},
+						{
+							name: "Callback",
+							typeName: GoType.functionType([intType, GoType.variadic(stringType)],
+								[GoType.builtin(GoBuiltinType.Bool), GoType.builtin(GoBuiltinType.Error)])
+						},
+						{name: "Constraint", typeName: constraintType},
+						{name: "Empty", typeName: GoType.emptyInterface()},
+						{
+							name: "Generic",
+							typeName: GoType.generic(GoType.qualified(GoPackageName.named("atomic"), "Pointer"), [intType])
+						}
+					]),
+					GoDecl.GoFuncDecl("hxrt__test_ast_typed_operator_smoke", null, [
+						{name: "left", typeName: intType},
+						{name: "right", typeName: intType},
+						{name: "boxed", typeName: GoType.builtin(GoBuiltinType.AnyType)}
+					], [GoType.builtin(GoBuiltinType.Bool)], [
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoUnary(GoUnaryOperator.Negate, GoExpr.GoIdent("left"))),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoUnary(GoUnaryOperator.BitwiseNot, GoExpr.GoIdent("right"))),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoArrayLiteral(intType, [GoExpr.GoIdent("left"), GoExpr.GoIdent("right")])),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoTypeAssert(GoExpr.GoIdent("boxed"), constraintType)),
+						GoStmt.GoReturn(GoExpr.GoBinary(GoBinaryOperator.LogicalAnd,
+							GoExpr.GoBinary(GoBinaryOperator.LessThan, GoExpr.GoIdent("left"), GoExpr.GoIdent("right")),
+							GoExpr.GoBinary(GoBinaryOperator.NotEqual, GoExpr.GoIdent("left"), GoExpr.GoIdent("right"))))
+					])
+				];
+			case "invalid_type":
+				GoType.parse("map[string");
+				[];
+			case "invalid_type_combination":
+				GoType.map(GoType.slice(GoType.builtin(GoBuiltinType.Int)), GoType.builtin(GoBuiltinType.StringType));
+				[];
+			case "invalid_operator":
+				GoBinaryOperator.parse("=>");
+				[];
+			case "invalid_import_path":
+				GoImportPath.parse("bad import path");
+				[];
+			case "invalid_import_path_character":
+				GoImportPath.parse("example.com/bad?path");
+				[];
 			case _:
 				null;
 		};

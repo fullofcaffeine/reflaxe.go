@@ -5,6 +5,8 @@ import haxe.macro.Context;
 import haxe.macro.Expr.Binop;
 import haxe.macro.Expr.Unop;
 import reflaxe.go.ast.GoAST.GoExpr;
+import reflaxe.go.ast.GoBinaryOperator;
+import reflaxe.go.ast.GoUnaryOperator;
 
 class GoExprOperatorOps {
 	public static function lowerHaxeInt32BinopExpr(op:Binop, leftExpr:GoExpr, rightExpr:GoExpr):GoExpr {
@@ -33,51 +35,51 @@ class GoExprOperatorOps {
 		return shouldKeepFloat ? expr : GoExpr.GoCall(GoExpr.GoIdent("float64"), [expr]);
 	}
 
-	public static function unitStepExpr(target:GoExpr, opSymbol:String, wrapInt32:Bool):GoExpr {
+	public static function unitStepExpr(target:GoExpr, opSymbol:GoBinaryOperator, wrapInt32:Bool):GoExpr {
 		var stepped = GoExpr.GoBinary(opSymbol, target, GoExpr.GoIntLiteral(1));
 		return wrapInt32 ? wrapInt32Expr(stepped) : stepped;
 	}
 
-	public static function binopSymbol(op:Binop):String {
+	public static function binopSymbol(op:Binop):GoBinaryOperator {
 		return switch (op) {
 			case OpAdd:
-				"+";
+				GoBinaryOperator.Add;
 			case OpMult:
-				"*";
+				GoBinaryOperator.Multiply;
 			case OpDiv:
-				"/";
+				GoBinaryOperator.Divide;
 			case OpSub:
-				"-";
+				GoBinaryOperator.Subtract;
 			case OpMod:
-				"%";
+				GoBinaryOperator.Remainder;
 			case OpEq:
-				"==";
+				GoBinaryOperator.Equal;
 			case OpNotEq:
-				"!=";
+				GoBinaryOperator.NotEqual;
 			case OpGt:
-				">";
+				GoBinaryOperator.GreaterThan;
 			case OpGte:
-				">=";
+				GoBinaryOperator.GreaterThanOrEqual;
 			case OpLt:
-				"<";
+				GoBinaryOperator.LessThan;
 			case OpLte:
-				"<=";
+				GoBinaryOperator.LessThanOrEqual;
 			case OpBoolAnd:
-				"&&";
+				GoBinaryOperator.LogicalAnd;
 			case OpBoolOr:
-				"||";
+				GoBinaryOperator.LogicalOr;
 			case OpAnd:
-				"&";
+				GoBinaryOperator.BitwiseAnd;
 			case OpOr:
-				"|";
+				GoBinaryOperator.BitwiseOr;
 			case OpXor:
-				"^";
+				GoBinaryOperator.BitwiseXor;
 			case OpShl:
-				"<<";
+				GoBinaryOperator.ShiftLeft;
 			case OpShr:
-				">>";
+				GoBinaryOperator.ShiftRight;
 			case OpUShr:
-				">>";
+				GoBinaryOperator.ShiftRight;
 			case OpAssign:
 				Context.fatalError("Assignment is handled at statement level", Context.currentPos());
 			case _:
@@ -85,14 +87,14 @@ class GoExprOperatorOps {
 		};
 	}
 
-	public static function unopSymbol(op:Unop):String {
+	public static function unopSymbol(op:Unop):GoUnaryOperator {
 		return switch (op) {
 			case OpNot:
-				"!";
+				GoUnaryOperator.LogicalNot;
 			case OpNeg:
-				"-";
+				GoUnaryOperator.Negate;
 			case OpNegBits:
-				"^";
+				GoUnaryOperator.BitwiseNot;
 			case OpIncrement:
 				Context.fatalError("Increment operator is not supported yet", Context.currentPos());
 			case OpDecrement:
