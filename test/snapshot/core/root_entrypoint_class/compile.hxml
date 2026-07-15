@@ -1,0 +1,10 @@
+-cp .
+-lib reflaxe.go
+-D go_output=out
+-D reflaxe_go_line_directives
+-D reflaxe_go_strict_examples
+-D reflaxe_go_hxrt_features=
+-D reflaxe.dont_output_metadata_id
+-D no-traces
+-D no_traces
+-main Entry

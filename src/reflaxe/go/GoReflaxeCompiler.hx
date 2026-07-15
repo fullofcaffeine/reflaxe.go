@@ -4,6 +4,7 @@ package reflaxe.go;
 import haxe.io.Path;
 import haxe.macro.Context;
 import haxe.macro.Type;
+import haxe.macro.TypedExprTools;
 import reflaxe.GenericCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
@@ -228,12 +229,68 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		buildContext = resolvedBuildContext;
 		var context = CompilationContext.fromBuildContext(resolvedBuildContext);
 		compilationContext = context;
-		var compiler = new GoCompiler(context);
+		var compiler = new GoCompiler(context, resolveSelectedMainIdentity());
 		if (selectedClasses.length == 0 && selectedEnums.length == 0) {
 			generatedFiles = compiler.compileModule(allModules);
 		} else {
 			generatedFiles = compiler.compileSelectedTypes(selectedClasses, selectedEnums);
 		}
+	}
+
+	/**
+		Why
+		The Go backend must not infer its executable entrypoint from a class naming
+		convention or from unrelated static methods named `main`. Thread-aware Haxe
+		programs can also wrap the direct selected-main call in the typed main
+		expression.
+
+		What
+		Resolves the exact Haxe-selected main class into the stable class/module
+		identity consumed by Go lowering and file layout.
+
+		How
+		Uses Reflaxe's direct `getMainModule()` result first. If Haxe wrapped the main
+		expression, walks only that authoritative expression for its referenced static
+		`main`; it never scans arbitrary project classes for candidates.
+	**/
+	function resolveSelectedMainIdentity():GoCompiler.GoMainIdentity {
+		var directMain = getMainModule();
+		switch (directMain) {
+			case TClassDecl(classRef):
+				return mainIdentityForClass(classRef.get());
+			case _:
+		}
+
+		var mainExpr = getMainExpr();
+		var selectedClass:Null<ClassType> = null;
+		if (mainExpr != null) {
+			function visit(expr:TypedExpr):Void {
+				if (selectedClass != null) {
+					return;
+				}
+				switch (expr.expr) {
+					case TField(_, FStatic(classRef, fieldRef)) if (fieldRef.get().name == "main"):
+						selectedClass = classRef.get();
+					case _:
+				}
+				TypedExprTools.iter(expr, visit);
+			}
+			visit(mainExpr);
+		}
+
+		if (selectedClass == null) {
+			Context.fatalError("Haxe-selected main class could not be resolved from the typed main expression", Context.currentPos());
+			return {className: "", moduleName: ""};
+		}
+		return mainIdentityForClass(selectedClass);
+	}
+
+	function mainIdentityForClass(classType:ClassType):GoCompiler.GoMainIdentity {
+		var packageName = classType.pack.join(".");
+		return {
+			className: packageName == "" ? classType.name : packageName + "." + classType.name,
+			moduleName: classType.module
+		};
 	}
 
 	override public function generateFilesManually():Void {

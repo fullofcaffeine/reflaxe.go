@@ -46,6 +46,24 @@ typedef GoGeneratedFile = {
 	final contents:String;
 }
 
+/**
+	Why
+	Go entrypoint naming, support placement, and lifecycle transforms must all use
+	the same Haxe-selected class instead of independently assuming root-level
+	`Main`.
+
+	What
+	Carries the selected Haxe class and source-module identities into Go lowering.
+
+	How
+	`GoReflaxeCompiler` derives both values from the authoritative typed main
+	expression before constructing `GoCompiler`.
+**/
+typedef GoMainIdentity = {
+	final className:String;
+	final moduleName:String;
+}
+
 #if macro
 private typedef LoweredExpr = {
 	final expr:GoExpr;
@@ -170,6 +188,7 @@ private typedef ArrayMutationSite = {
 class GoCompiler {
 	#if macro
 	final compilationContext:CompilationContext;
+	final mainIdentity:GoMainIdentity;
 	final staticFunctionInfos:Map<String, FunctionInfo>;
 	final localFunctionScopes:Array<Map<String, FunctionInfo>>;
 	final localLambdaAliasScopes:Array<Map<String, String>>;
@@ -215,9 +234,15 @@ class GoCompiler {
 	var requiresTypeValueSupport:Bool;
 	#end
 
-	public function new(?compilationContext:CompilationContext) {
+	public function new(?compilationContext:CompilationContext, ?mainIdentity:GoMainIdentity) {
 		#if macro
 		this.compilationContext = compilationContext == null ? new CompilationContext(GoProfile.Portable, "snapshot") : compilationContext;
+		this.mainIdentity = if (mainIdentity == null || mainIdentity.className == "" || mainIdentity.moduleName == "") {
+			Context.fatalError("GoCompiler requires the Haxe-selected main class identity", Context.currentPos());
+			{className: "", moduleName: ""};
+		} else {
+			mainIdentity;
+		};
 		staticFunctionInfos = new Map<String, FunctionInfo>();
 		localFunctionScopes = [];
 		localLambdaAliasScopes = [];
@@ -401,7 +426,7 @@ class GoCompiler {
 			var fileDecls = moduleFileDecls.copy();
 			var candidateImports = moduleImports.copy();
 			var relativePath = moduleFilePath(moduleName, usedFileNames);
-			if (moduleName == "Main") {
+			if (moduleName == mainIdentity.moduleName) {
 				fileDecls = preludeDecls.concat(fileDecls).concat(supportDecls);
 				candidateImports = supportImports.concat(candidateImports);
 				preludeDecls = [];
@@ -432,7 +457,7 @@ class GoCompiler {
 		detached goroutines launched through `go.Go.spawn`.
 	**/
 	function prependPortableThreadDrain(moduleDecls:Map<String, Array<GoDecl>>):Void {
-		var mainDecls = moduleDecls.get("Main");
+		var mainDecls = moduleDecls.get(mainIdentity.moduleName);
 		if (mainDecls == null) {
 			return;
 		}
@@ -451,7 +476,7 @@ class GoCompiler {
 		if (decls.length == 0) {
 			return;
 		}
-		var key = moduleName == null || moduleName == "" ? "Main" : moduleName;
+		var key = moduleName == null || moduleName == "" ? mainIdentity.moduleName : moduleName;
 		if (GoStdlibOwnership.isCompilerOwnedModule(key)) {
 			return;
 		}
@@ -466,7 +491,7 @@ class GoCompiler {
 	}
 
 	function moduleFilePath(moduleName:String, usedFileNames:Map<String, Int>):String {
-		if (moduleName == "Main") {
+		if (moduleName == mainIdentity.moduleName) {
 			return nextGoFileName("main", usedFileNames);
 		}
 		var sanitized = sanitizeFileToken(moduleName).toLowerCase();
@@ -996,17 +1021,35 @@ class GoCompiler {
 
 		var normalized = [for (classType in dedup) classType];
 		normalized.sort(function(a, b) return Reflect.compare(fullClassName(a), fullClassName(b)));
-		ensureMainClass(normalized);
+		ensureSelectedMainClass(normalized);
 		return normalized;
 	}
 
-	function ensureMainClass(classes:Array<ClassType>):Void {
+	/**
+		Why
+		Manual DCE may pass only selected project types into this compiler, so a stale
+		or missing selected-main identity must fail before codegen can silently emit a
+		library-shaped Go package.
+
+		What
+		Confirms that the Haxe-selected entry class is present in the normalized
+		project class set.
+
+		How
+		Matches both class and module identities; no other static `main` method can
+		satisfy this contract.
+	**/
+	function ensureSelectedMainClass(classes:Array<ClassType>):Void {
 		for (classType in classes) {
-			if (fullClassName(classType) == "Main") {
+			if (isSelectedMainClass(classType)) {
 				return;
 			}
 		}
-		Context.fatalError("Main class was not found among project modules", Context.currentPos());
+		Context.fatalError('Haxe-selected main class "' + mainIdentity.className + '" was not found among project modules', Context.currentPos());
+	}
+
+	function isSelectedMainClass(classType:ClassType):Bool {
+		return classType.module == mainIdentity.moduleName && fullClassName(classType) == mainIdentity.className;
 	}
 
 	function collectProjectEnums(types:Array<ModuleType>):Array<EnumType> {
@@ -14916,7 +14959,7 @@ class GoCompiler {
 
 	function staticSymbol(classType:ClassType, fieldName:String):String {
 		noteStdlibClass(classType);
-		return GoNaming.staticSymbol(classType.pack, classType.name, fieldName, fullClassName(classType) == "Main");
+		return GoNaming.staticSymbol(classType.pack, classType.name, fieldName, isSelectedMainClass(classType));
 	}
 
 	function normalizeIdent(name:String):String {
