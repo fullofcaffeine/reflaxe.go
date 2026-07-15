@@ -2051,8 +2051,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "sys.io.Process",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "runtime_hxrt",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. The complete public API, stream wrappers, bounds and EOF translation, detached rejection, nullable exit status, and closed-state policy are canonical staged source in std/go/_std/sys/io/Process.hx. Typed opaque handles and native spawn, pipe, wait, signal, and close capabilities remain in std/hxrt/process plus runtime/hxrt/process.go.",
+      "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
     },

@@ -9,7 +9,7 @@
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "a2d23b385c8ba9c7968c7789a237ffa1a939f7f544047a4d00356c8fda62c97e"
+    "portable_stdlib_inventory_sha256": "b895789e9983aa5c411fc970501f37f0aad5638c8ec928fb6ba31329b75dce94"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -3197,7 +3197,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. The complete public API, stream wrappers, bounds and EOF translation, detached rejection, nullable exit status, and closed-state policy are canonical staged source in std/go/_std/sys/io/Process.hx. Typed opaque handles and native spawn, pipe, wait, signal, and close capabilities remain in std/hxrt/process plus runtime/hxrt/process.go."
       },
       {
         "module": "sys.net.Address",

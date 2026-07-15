@@ -197,6 +197,9 @@ class GoSourceOwnedStdlibPlanner {
 			case "sys.io.FileOutput":
 				requireSourceOwnedStdlibClass("sys.io.FileOutput");
 				requireSourceOwnedStdlibEnum("sys.io.FileSeek");
+			case "sys.io.Process":
+				requireSourceOwnedStdlibModule("sys.io.Process");
+				requireIoSourceOwnedHelperClass();
 			case "sys.net.Address":
 				requireSourceOwnedStdlibClass("sys.net.Address");
 			case "sys.ssl.Certificate":

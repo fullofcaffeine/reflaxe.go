@@ -116,6 +116,18 @@ type Process struct {
 	closeErr  error
 }
 
+// ProcessExitStatus is the typed nonblocking status returned to staged Process.
+//
+// What: Carries an exit code together with whether that code is available.
+// Why: Haxe exposes Null<Int>, but using any at the native boundary would erase
+// the distinction between a running process and a completed process with code 0.
+// How: Keep availability explicit in Go; staged Haxe performs the final Null<Int>
+// conversion at the public API boundary.
+type ProcessExitStatus struct {
+	Code      int
+	Available bool
+}
+
 func processCommand(command string, args []*string) *exec.Cmd {
 	if args != nil {
 		return exec.Command(command, StringSlice(args)...)
@@ -261,4 +273,164 @@ func (self *Process) Close() error {
 		self.closeErr = errors.Join(closeErrors...)
 	})
 	return self.closeErr
+}
+
+// ProcessCreate starts one child process for the staged Haxe Process wrapper.
+//
+// What: Exposes process construction as a typed capability.
+// Why: Native startup and pipe failures belong in hxrt, while the public Haxe
+// constructor and stream objects belong in canonical staged source.
+// How: Delegate to NewProcess and translate its typed Go error into the portable
+// Haxe exception carrier before returning the opaque process handle.
+func ProcessCreate(command *string, args []*string) *Process {
+	process, err := NewProcess(command, args)
+	if err != nil {
+		Throw(StringFromLiteral(err.Error()))
+		return nil
+	}
+	return process
+}
+
+// ProcessStdout returns the typed stdout pipe owned by process.
+func ProcessStdout(process *Process) *ProcessOutput {
+	if process == nil {
+		return nil
+	}
+	return process.Stdout()
+}
+
+// ProcessStderr returns the typed stderr pipe owned by process.
+func ProcessStderr(process *Process) *ProcessOutput {
+	if process == nil {
+		return nil
+	}
+	return process.Stderr()
+}
+
+// ProcessStdin returns the typed stdin pipe owned by process.
+func ProcessStdin(process *Process) *ProcessInput {
+	if process == nil {
+		return nil
+	}
+	return process.Stdin()
+}
+
+// ProcessOutputReadByteValue reads one byte and uses -1 only for ordinary EOF.
+func ProcessOutputReadByteValue(output *ProcessOutput) int {
+	if output == nil {
+		Throw(StringFromLiteral("Process output is closed"))
+		return 0
+	}
+	value, eof, err := output.ReadByte()
+	if err != nil {
+		Throw(StringFromLiteral(err.Error()))
+		return 0
+	}
+	if eof {
+		return -1
+	}
+	return value
+}
+
+// ProcessOutputReadValues reads up to length byte values and returns an empty
+// slice only when the stream has reached ordinary EOF.
+func ProcessOutputReadValues(output *ProcessOutput, length int) []int {
+	if length <= 0 {
+		return []int{}
+	}
+	values := make([]int, 0, length)
+	for len(values) < length {
+		value := ProcessOutputReadByteValue(output)
+		if value < 0 {
+			break
+		}
+		values = append(values, value)
+	}
+	return values
+}
+
+// ProcessOutputClose releases one readable process pipe.
+func ProcessOutputClose(output *ProcessOutput) {
+	if output == nil {
+		return
+	}
+	if err := output.Close(); err != nil {
+		Throw(StringFromLiteral(err.Error()))
+	}
+}
+
+// ProcessInputWriteByteValue writes one byte and reports whether the staged
+// wrapper should preserve success or translate the native failure to Eof.
+func ProcessInputWriteByteValue(input *ProcessInput, value int) bool {
+	return input != nil && input.WriteByte(value) == nil
+}
+
+// ProcessInputWriteValues writes all values or reports one pipe failure.
+func ProcessInputWriteValues(input *ProcessInput, values []int) bool {
+	if input == nil {
+		return false
+	}
+	for _, value := range values {
+		if err := input.WriteByte(value); err != nil {
+			return false
+		}
+	}
+	return true
+}
+
+// ProcessInputFlush flushes the writable process pipe.
+func ProcessInputFlush(input *ProcessInput) {
+	if input == nil {
+		return
+	}
+	if err := input.Flush(); err != nil {
+		Throw(StringFromLiteral(err.Error()))
+	}
+}
+
+// ProcessInputClose releases one writable process pipe.
+func ProcessInputClose(input *ProcessInput) {
+	if input == nil {
+		return
+	}
+	if err := input.Close(); err != nil {
+		Throw(StringFromLiteral(err.Error()))
+	}
+}
+
+// ProcessPid returns the native child process identifier.
+func ProcessPid(process *Process) int {
+	pid, err := process.GetPid()
+	if err != nil {
+		Throw(StringFromLiteral(err.Error()))
+		return 0
+	}
+	return pid
+}
+
+// ProcessExitStatusValue waits or polls for one typed child exit status.
+func ProcessExitStatusValue(process *Process, block bool) *ProcessExitStatus {
+	code, available, err := process.ExitCode(block)
+	if err != nil {
+		Throw(StringFromLiteral(err.Error()))
+		return &ProcessExitStatus{}
+	}
+	return &ProcessExitStatus{Code: code, Available: available}
+}
+
+// ProcessKill terminates one child process and preserves native failure details.
+func ProcessKill(process *Process) {
+	if err := process.Kill(); err != nil {
+		Throw(StringFromLiteral(err.Error()))
+	}
+}
+
+// ProcessClose releases process resources without killing the child.
+func ProcessClose(process *Process) {
+	if process == nil {
+		return
+	}
+	if err := process.Close(); err != nil {
+		Throw(StringFromLiteral(err.Error()))
+	}
 }

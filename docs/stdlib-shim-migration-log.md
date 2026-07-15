@@ -939,3 +939,38 @@ Observed result:
 
 - Root `Sys` now follows the same source-ownership rule as File/FileSystem and the sibling `haxe.rust` target: Haxe library behavior stays in Haxe source, while only genuine OS capabilities cross typed runtime bindings.
 - Compiler shims are no longer the default implementation mechanism for root stdlib behavior. The remaining `sys.io.Process` adapters are isolated and explicitly tracked by `haxe_go-vfp.8.7.7`.
+
+### 2026-07-15: `sys.io.Process` moved to canonical staged std (`haxe_go-vfp.8.7.7`)
+
+Implementation:
+
+- Added `std/go/_std/sys/io/Process.hx` as the authority for the complete Haxe 4.3.7 surface. Its ordinary Haxe source owns public stream construction, bounds and EOF translation, detached rejection, nullable exit status, and closed-state/lifecycle policy.
+- Added five narrow `std/hxrt/process` modules: opaque process/input/output handles, a typed `{Available, Code}` exit-status carrier, and the `NativeProcess` capability bridge. The native boundary contains no `Dynamic`, `Any`, or raw injection.
+- Extended `runtime/hxrt/process.go` with typed Haxe-shaped spawn, pipe, byte-transfer, PID, wait/poll, kill, and close functions while retaining the lower-level native API for direct runtime callers.
+- Routed `sys.io.Process` through the source-owned planner and inferred selective `process.go` retention from the surviving typed `hxrt.process.NativeProcess` authority.
+- Removed the Process classifier group, dependency branch, carrier/stream declarations, public API bodies, and inherited-helper synthesis from `GoCompiler`. No Process-specific compiler emitter remains.
+- Preserved `Null<Int>` method results through the compiler's generic nil-capable primitive result mapping. This is language-level return storage, not a Process shim; the typed runtime boundary still uses an explicit status carrier.
+- Removed the Process compiler-debt allowances. The measured compiler totals fell from 4,943 to 4,809 `GoRaw` sites and from 17 to 16 shim emitters.
+
+Validation evidence:
+
+- `runtime/hxrt/process_test.go`
+- `test/semantic_diff/process_echo_contract`
+- `test/semantic_diff/process_error_semantics_contract`
+- `test/snapshot/sys/process_echo_smoke`
+- `test/snapshot/sys/process_error_semantics`
+- `test/snapshot/core/runtime_hxrt_infer_process`
+- `test/test_stdlib_migration_ledger_contract.py`
+- `npm run test:compiler-debt`
+- `npm test` (`263/263` snapshots)
+- `npm run test:semantic-diff` (`131/131` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` modules)
+- `npm run test:examples` (`12/12` lanes)
+- `npm run test:perf:hxrt-selective`
+- `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates)
+
+Observed result:
+
+- The last compiler-owned member of the former Sys/File/Process shim family is now reviewable Haxe stdlib source over a typed native capability boundary.
+- Process-only selective output keeps `process.go` without `sys.go` or `file.go`; root Sys and direct File likewise remain independent.
+- Startup failure, stdin/stdout/stderr behavior, normal EOF, nonblocking `null`, nonzero exits, kill, detached rejection, large output, and close-without-kill semantics remain covered by existing runtime and semantic contracts.

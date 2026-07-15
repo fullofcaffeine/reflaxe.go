@@ -100,9 +100,9 @@ Key implementation points:
   - opaque `FileInput` / `FileOutput` handles plus `FileOpen*`, read/write, seek/tell/eof, flush, and close operations
   - non-owning `SysStdin`, `SysStdout`, and `SysStderr` handles used by the staged file-stream classes
 - Process wrappers (`runtime/hxrt/process.go`):
-  - `NewProcess`; process stdin/stdout/stderr; byte I/O; PID, blocking/non-blocking exit status, kill, and close
+  - native `NewProcess` handles plus the typed `ProcessCreate`, pipe, byte-transfer, PID, status, kill, and close capabilities consumed by `std/hxrt/process`
 
-These helpers preserve native failures at the runtime boundary. Canonical staged file wrappers turn read/write failures into Haxe exceptions and construct `haxe.io.Eof` in Haxe source, while process startup and non-EOF read failures remain distinct from normal EOF and child exit codes. Arbitrary file bytes cross the typed boundary as `Array<Int>` / `[]int`, so `hxrt` does not depend on generated `haxe.io.Bytes` internals. Portable `Sys.putEnv` is the intentional exception: staged `Sys.hx` calls the non-throwing `SysSetEnvironment` capability to match the upstream Haxe 4.3.7 eval contract, while `SysPutEnv` retains the native error for typed Go-native bindings.
+These helpers preserve native failures at the runtime boundary. Canonical staged file and Process wrappers translate bounds, EOF, nullable exit availability, and public lifecycle policy in Haxe source; process startup and non-EOF read failures remain distinct from normal EOF and child exit codes. Arbitrary file/process bytes cross the typed boundary as `Array<Int>` / `[]int`, so `hxrt` does not depend on generated `haxe.io.Bytes` internals. Portable `Sys.putEnv` is the intentional exception: staged `Sys.hx` calls the non-throwing `SysSetEnvironment` capability to match the upstream Haxe 4.3.7 eval contract, while `SysPutEnv` retains the native error for typed Go-native bindings.
 - Byte representation helpers:
   - `BytesFromString`, `BytesToString`, `BytesClone`
 

@@ -27,6 +27,41 @@ func TestNewProcessPreservesStartupFailure(t *testing.T) {
 	}
 }
 
+func TestStagedProcessCapabilitiesExposeTypedHandles(t *testing.T) {
+	command := "sh"
+	process := ProcessCreate(&command, processTestArgs("-c", "printf typed; exit 7"))
+	if pid := ProcessPid(process); pid <= 0 {
+		t.Fatalf("ProcessPid() = %d, want a positive pid", pid)
+	}
+	stdout := ProcessStdout(process)
+	values := ProcessOutputReadValues(stdout, 5)
+	if len(values) != 5 || string([]byte{byte(values[0]), byte(values[1]), byte(values[2]), byte(values[3]), byte(values[4])}) != "typed" {
+		t.Fatalf("ProcessOutputReadValues() = %v, want typed", values)
+	}
+	status := ProcessExitStatusValue(process, true)
+	if status == nil || !status.Available || status.Code != 7 {
+		t.Fatalf("ProcessExitStatusValue() = %#v, want available exit code 7", status)
+	}
+	ProcessOutputClose(stdout)
+	ProcessClose(process)
+}
+
+func TestProcessCreateTranslatesStartupFailure(t *testing.T) {
+	command := "__haxe_go_missing_staged_process__"
+	didThrow := false
+	func() {
+		defer func() {
+			if _, ok := recover().(HaxeException); ok {
+				didThrow = true
+			}
+		}()
+		ProcessCreate(&command, []*string{})
+	}()
+	if !didThrow {
+		t.Fatal("ProcessCreate() startup failure did not throw a HaxeException")
+	}
+}
+
 func TestProcessOutputSeparatesDataFromEOF(t *testing.T) {
 	command := "sh"
 	process, err := NewProcess(&command, processTestArgs("-c", "printf '\\n'"))

@@ -57,9 +57,9 @@ programs from inheriting native filesystem support in selective mode.
 
 `sys.io.File`, its stream classes, and root `Sys` standard streams infer the
 dedicated `file_io` feature, which copies `runtime/hxrt/file.go`. Other staged
-root `Sys` capabilities infer `sys`, while the isolated Process adapter group
-infers `process`. Direct File, root Sys, and Process use therefore do not pull
-one another's native slices. `core/runtime_hxrt_infer_sys` and
+root `Sys` capabilities infer `sys`, while typed `hxrt.process.NativeProcess`
+usage under staged `sys.io.Process` infers `process`. Direct File, root Sys, and
+Process use therefore do not pull one another's native slices. `core/runtime_hxrt_infer_sys` and
 `core/runtime_hxrt_infer_process` lock both positive and negative file sets.
 - `reflaxe_go_hxrt_no_feature_infer`
   - Enables selective runtime mode and disables inference (use core + manual only).

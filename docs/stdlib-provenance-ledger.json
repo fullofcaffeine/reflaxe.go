@@ -22,7 +22,8 @@
         "haxe_go-vfp.5.3",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
-        "haxe_go-vfp.8.7.6"
+        "haxe_go-vfp.8.7.6",
+        "haxe_go-vfp.8.7.7"
       ],
       "staged_support": [
         "haxe_go-vfp.5.4"
@@ -31,7 +32,8 @@
         "haxe_go-vfp.5.4",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
-        "haxe_go-vfp.8.7.6"
+        "haxe_go-vfp.8.7.6",
+        "haxe_go-vfp.8.7.7"
       ],
       "public_go_facade": [
         "haxe_go-vfp.5.4"
@@ -498,6 +500,15 @@
       "notes": "Canonical source-owned Haxe 4.3.7 seek-origin enum used by staged file streams instead of a compiler-synthesized carrier."
     },
     {
+      "path": "std/go/_std/sys/io/Process.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/io/Process.hx",
+      "migrationBead": "haxe_go-vfp.8.7.7",
+      "compilerShimGroups": [],
+      "notes": "Canonical source-owned implementation of the complete Haxe 4.3.7 sys.io.Process API; public streams, bounds and EOF translation, nullable exit status, detached rejection, and closed-state policy stay in Haxe over typed hxrt process capabilities."
+    },
+    {
       "path": "std/go/_std/sys/net/Address.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
@@ -916,6 +927,51 @@
       "migrationBead": "haxe_go-vfp.8.7.4",
       "compilerShimGroups": [],
       "notes": "Typed extern bridge to the narrow runtime/hxrt filesystem capability surface used by canonical staged sys.FileSystem source."
+    },
+    {
+      "path": "std/hxrt/process/NativeProcess.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/process/NativeProcess.hx",
+      "migrationBead": "haxe_go-vfp.8.7.7",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge to the narrow runtime/hxrt child-process and pipe capability surface used by canonical staged sys.io.Process source."
+    },
+    {
+      "path": "std/hxrt/process/ProcessExitStatus.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/process/ProcessExitStatus.hx",
+      "migrationBead": "haxe_go-vfp.8.7.7",
+      "compilerShimGroups": [],
+      "notes": "Typed exit-code availability carrier that lets staged sys.io.Process implement Null<Int> without Dynamic or Any at the native boundary."
+    },
+    {
+      "path": "std/hxrt/process/ProcessHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/process/ProcessHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.7",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for one native child process owned by staged sys.io.Process."
+    },
+    {
+      "path": "std/hxrt/process/ProcessInputHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/process/ProcessInputHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.7",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for a child stdin pipe wrapped by the staged haxe.io.Output implementation."
+    },
+    {
+      "path": "std/hxrt/process/ProcessOutputHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/process/ProcessOutputHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.7",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for a child stdout or stderr pipe wrapped by the staged haxe.io.Input implementation."
     },
     {
       "path": "std/hxrt/sys/NativeConsole.hx",

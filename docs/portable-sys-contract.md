@@ -80,10 +80,10 @@ The local sibling audit found one strong precedent and two non-precedents:
   to typed `hxrt.sys.NativeSys` helpers. Its standard streams are staged
   `haxe.io.Input` / `Output` subclasses, `setTimeLocale` returns `false`, and
   `cpuTime` is explicitly rejected instead of being replaced with wall time.
-- `haxe.go` follows the same semantic ownership rule. `sys.io.File*` is now
-  canonical staged source like the sibling target, and root `Sys` now follows
-  it. Only `sys.io.Process` retains compiler-generated adapters under the
-  separate `haxe_go-vfp.8.7.7` migration.
+- `haxe.go` follows the same semantic ownership rule. `sys.io.File*`, root `Sys`,
+  and `sys.io.Process` are canonical staged source like the sibling target.
+  Child-process handles and OS operations cross only the typed
+  `std/hxrt/process` boundary; no Process-specific compiler adapter remains.
 - The audited `haxe.elixir` tree has no production root `Sys` override to copy.
   The `haxe.ruby` root surface is placeholder/incomplete and uses no-op or zero
   results, so it is not acceptable parity evidence.

@@ -20,6 +20,7 @@ SYS_OVERRIDE_DEPENDENCIES = (
     "sys/io/FileInput.hx",
     "sys/io/FileOutput.hx",
     "sys/io/FileSeek.hx",
+    "sys/io/Process.hx",
 )
 sys.path.insert(0, str(ROOT / "scripts" / "ci"))
 

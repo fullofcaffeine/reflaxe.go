@@ -85,11 +85,15 @@ class GoHxrtFeatureAnalyzer {
 		add(FEATURE_EXCEPTION, "baseline", "compiler_baseline");
 
 		for (path in classPaths) {
+			var isProcessSurface = path == "sys.io.Process" || StringTools.startsWith(path, "sys.io._Process.");
 			if (path == "haxe.Json" || StringTools.startsWith(path, "haxe.json.")) {
 				add(FEATURE_JSON, "class_usage", path);
 			}
 
-			if (path == "sys.io.Process") {
+			if (isProcessSurface) {
+				add(FEATURE_PROCESS, "class_usage", path);
+			}
+			if (path == "hxrt.process.NativeProcess") {
 				add(FEATURE_PROCESS, "class_usage", path);
 			}
 
@@ -105,7 +109,7 @@ class GoHxrtFeatureAnalyzer {
 				add(FEATURE_FILESYSTEM, "class_usage", path);
 			}
 
-			var hasDedicatedRuntimeSlice = path == "sys.io.Process" || path == "sys.io.File" || path == "sys.io.FileInput" || path == "sys.io.FileOutput";
+			var hasDedicatedRuntimeSlice = isProcessSurface || path == "sys.io.File" || path == "sys.io.FileInput" || path == "sys.io.FileOutput";
 			if (!hasDedicatedRuntimeSlice && (path == "sys.FileSystem" || StringTools.startsWith(path, "sys."))) {
 				add(FEATURE_SYS, "class_usage", path);
 			}
@@ -146,8 +150,6 @@ class GoHxrtFeatureAnalyzer {
 					add(FEATURE_ATOMIC_OBJECT, "shim_group", group);
 				case "io":
 					add(FEATURE_BYTES, "shim_group", group);
-				case "process":
-					add(FEATURE_PROCESS, "shim_group", group);
 				case "http", "net_socket":
 					add(FEATURE_SYS, "shim_group", group);
 					add(FEATURE_PROCESS, "shim_group", group);

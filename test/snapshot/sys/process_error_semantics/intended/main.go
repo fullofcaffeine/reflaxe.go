@@ -27,24 +27,24 @@ type hxrt__TypeEnumValue struct {
 
 func main() {
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("startup.throws="), hxrt.StdString(throws(func() {
-		New_sys__io__Process(hxrt.StringFromLiteral("__haxe_go_missing_process__"), []*string{})
+		New_sys__io__Process(hxrt.StringFromLiteral("__haxe_go_missing_process__"), []*string{}, false)
 	}))))
 	hxrt.Println(v)
-	empty := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("printf '\\n'")})
+	empty := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("printf '\\n'")}, false)
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("empty.line="), hxrt.StdString(hxrt.StringEqualStringPtr(empty.stdout.readLine(), hxrt.StringFromLiteral("")))))
 	hxrt.Println(v_1)
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("empty.eof="), hxrt.StdString(reachesEof(empty))))
 	hxrt.Println(v_2)
-	var v_3 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("empty.code="), empty.exitCode()))
+	var v_3 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("empty.code="), empty.exitCode(true)))
 	hxrt.Println(v_3)
 	empty.close()
-	shell := New_sys__io__Process(hxrt.StringFromLiteral("printf 'shell-form\\n'"))
+	shell := New_sys__io__Process(hxrt.StringFromLiteral("printf 'shell-form\\n'"), nil, false)
 	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("shell.line="), shell.stdout.readLine()))
 	hxrt.Println(v_4)
-	var v_5 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("shell.code="), shell.exitCode()))
+	var v_5 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("shell.code="), shell.exitCode(true)))
 	hxrt.Println(v_5)
 	shell.close()
-	piped := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("IFS= read -r line; printf 'out:%s\\n' \"$line\"; printf 'err:%s\\n' \"$line\" >&2; exit 7")})
+	piped := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("IFS= read -r line; printf 'out:%s\\n' \"$line\"; printf 'err:%s\\n' \"$line\" >&2; exit 7")}, false)
 	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pid.positive="), hxrt.StdString((piped.getPid() > 0))))
 	hxrt.Println(v_6)
 	piped.stdin.writeString(hxrt.StringFromLiteral("hello\n"))
@@ -53,32 +53,32 @@ func main() {
 	hxrt.Println(v_7)
 	var v_8 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("stderr.line="), piped.stderr.readLine()))
 	hxrt.Println(v_8)
-	var v_9 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("exit.code="), piped.exitCode()))
+	var v_9 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("exit.code="), piped.exitCode(true)))
 	hxrt.Println(v_9)
 	piped.close()
-	longOutput := New_sys__io__Process(hxrt.StringFromLiteral("python3"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("print('x' * 70000)")})
+	longOutput := New_sys__io__Process(hxrt.StringFromLiteral("python3"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("print('x' * 70000)")}, false)
 	var v_10 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("long.length="), hxrt.StringLengthStringPtr(longOutput.stdout.readLine())))
 	hxrt.Println(v_10)
-	var v_11 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("long.code="), longOutput.exitCode()))
+	var v_11 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("long.code="), longOutput.exitCode(true)))
 	hxrt.Println(v_11)
 	longOutput.close()
-	nonblocking := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("sleep 0.2; exit 9")})
+	nonblocking := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("sleep 0.2; exit 9")}, false)
 	var v_12 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("nonblock.running="), hxrt.StdString((nonblocking.exitCode(false) == nil))))
 	hxrt.Println(v_12)
 	waitForChild(hxrt.StringFromLiteral("0.3"))
 	var nonblockingCode any = nonblocking.exitCode(false)
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("nonblock.code="), nonblockingCode)))
 	nonblocking.close()
-	killed := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("sleep 5")})
+	killed := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("sleep 5")}, false)
 	killed.kill()
-	var v_13 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("kill.nonzero="), hxrt.StdString((killed.exitCode() != 0))))
+	var v_13 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("kill.nonzero="), hxrt.StdString((killed.exitCode(true) != 0))))
 	hxrt.Println(v_13)
 	killed.close()
 	marker := hxrt.StringFromLiteral("tmp_process_close_marker.txt")
 	if sys__FileSystem_exists(marker) {
 		sys__FileSystem_deleteFile(marker)
 	}
-	closing := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sleep 0.2; printf done > "), marker)})
+	closing := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sleep 0.2; printf done > "), marker)}, false)
 	closing.close()
 	waitForChild(hxrt.StringFromLiteral("0.5"))
 	var v_14 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("close.keeps.running="), hxrt.StdString(sys__FileSystem_exists(marker))))
@@ -144,8 +144,8 @@ func throws(action func()) bool {
 }
 
 func waitForChild(seconds *string) {
-	waiter := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sleep "), seconds)})
-	waiter.exitCode()
+	waiter := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sleep "), seconds)}, false)
+	waiter.exitCode(true)
 	waiter.close()
 }
 
@@ -1009,339 +1009,6 @@ func (self *haxe__io__BytesOutput) getBytes() *haxe__io__Bytes {
 		return &haxe__io__Bytes{b: []int{}, length: 0}
 	}
 	return self.b.getBytes()
-}
-
-type sys__io__ProcessOutput struct {
-	impl              *hxrt.ProcessOutput
-	__hx_io_bigEndian bool
-}
-
-type sys__io__ProcessInput struct {
-	impl              *hxrt.ProcessInput
-	__hx_io_bigEndian bool
-}
-
-type sys__io__Process struct {
-	impl   *hxrt.Process
-	stdout *sys__io__ProcessOutput
-	stderr *sys__io__ProcessOutput
-	stdin  *sys__io__ProcessInput
-}
-
-func New_sys__io__Process(command *string, optional ...any) *sys__io__Process {
-	var args []*string
-	detached := false
-	if len(optional) > 0 && optional[0] != nil {
-		args = optional[0].([]*string)
-	}
-	if len(optional) > 1 && optional[1] != nil {
-		detached = optional[1].(bool)
-	}
-	if detached {
-		hxrt.Throw(hxrt.StringFromLiteral("Detached process is not supported on this platform"))
-		return &sys__io__Process{}
-	}
-	impl, err := hxrt.NewProcess(command, args)
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return &sys__io__Process{}
-	}
-	return &sys__io__Process{impl: impl, stdout: &sys__io__ProcessOutput{impl: impl.Stdout()}, stderr: &sys__io__ProcessOutput{impl: impl.Stderr()}, stdin: &sys__io__ProcessInput{impl: impl.Stdin()}}
-}
-
-func (self *sys__io__ProcessOutput) get_bigEndian() bool {
-	if self == nil {
-		return false
-	}
-	return self.__hx_io_bigEndian
-}
-
-func (self *sys__io__ProcessOutput) set_bigEndian(e bool) bool {
-	if self != nil {
-		self.__hx_io_bigEndian = e
-	}
-	return e
-}
-
-func (self *sys__io__ProcessOutput) readByte() int {
-	if self == nil || self.impl == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Process output is closed"))
-		return 0
-	}
-	value, eof, err := self.impl.ReadByte()
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return 0
-	}
-	if eof {
-		hxrt.Throw(&haxe__io__Eof{})
-		return 0
-	}
-	return value
-}
-
-func (self *sys__io__ProcessOutput) readBytes(buf *haxe__io__Bytes, pos int, len int) int {
-	if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return 0
-	}
-	k := 0
-	for k < len {
-		value := 0
-		threw := false
-		var thrown any
-		func() {
-			defer func() {
-				if recovered := recover(); recovered != nil {
-					threw = true
-					thrown = hxrt.UnwrapException(recovered)
-				}
-			}()
-			value = self.readByte()
-		}()
-		if threw {
-			if haxe__io__input_isEof(thrown) && k > 0 {
-				return k
-			}
-			hxrt.Throw(thrown)
-			return 0
-		}
-		buf.b[pos+k] = value
-		k++
-	}
-	return len
-}
-
-func (self *sys__io__ProcessOutput) close() {
-	if self == nil || self.impl == nil {
-		return
-	}
-	if err := self.impl.Close(); err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return
-	}
-	self.impl = nil
-}
-
-func (self *sys__io__ProcessInput) get_bigEndian() bool {
-	if self == nil {
-		return false
-	}
-	return self.__hx_io_bigEndian
-}
-
-func (self *sys__io__ProcessInput) set_bigEndian(e bool) bool {
-	if self != nil {
-		self.__hx_io_bigEndian = e
-	}
-	return e
-}
-
-func (self *sys__io__ProcessInput) writeByte(c int) {
-	if self == nil || self.impl == nil {
-		hxrt.Throw(&haxe__io__Eof{})
-		return
-	}
-	if err := self.impl.WriteByte(c); err != nil {
-		hxrt.Throw(&haxe__io__Eof{})
-	}
-}
-
-func (self *sys__io__ProcessInput) writeBytes(s *haxe__io__Bytes, pos int, len int) int {
-	if s == nil || pos < 0 || len < 0 || pos+len > s.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return 0
-	}
-	written := len
-	for len > 0 {
-		self.writeByte(s.b[pos])
-		pos++
-		len--
-	}
-	return written
-}
-
-func (self *sys__io__ProcessInput) flush() {
-	if self == nil || self.impl == nil {
-		return
-	}
-	if err := self.impl.Flush(); err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-	}
-}
-
-func (self *sys__io__ProcessInput) prepare(nbytes int) {
-	_ = self
-	_ = nbytes
-}
-
-func (self *sys__io__ProcessInput) close() {
-	if self == nil || self.impl == nil {
-		return
-	}
-	if err := self.impl.Close(); err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return
-	}
-	self.impl = nil
-}
-
-func (self *sys__io__Process) getPid() int {
-	if self == nil || self.impl == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Process is closed"))
-		return 0
-	}
-	pid, err := self.impl.GetPid()
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return 0
-	}
-	return pid
-}
-
-func (self *sys__io__Process) exitCode(block ...bool) any {
-	if self == nil || self.impl == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Process is closed"))
-		return nil
-	}
-	shouldBlock := true
-	if len(block) > 0 {
-		shouldBlock = block[0]
-	}
-	code, available, err := self.impl.ExitCode(shouldBlock)
-	if err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return nil
-	}
-	if !available {
-		return nil
-	}
-	return code
-}
-
-func (self *sys__io__Process) kill() {
-	if self == nil || self.impl == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Process is closed"))
-		return
-	}
-	if err := self.impl.Kill(); err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-	}
-}
-
-func (self *sys__io__Process) close() {
-	if self == nil || self.impl == nil {
-		return
-	}
-	if err := self.impl.Close(); err != nil {
-		hxrt.Throw(hxrt.StringFromLiteral(err.Error()))
-		return
-	}
-	self.impl = nil
-}
-
-func (self *sys__io__ProcessOutput) readAll(bufsize ...int) *haxe__io__Bytes {
-	return haxe__io__input_readAll(self, bufsize...)
-}
-
-func (self *sys__io__ProcessOutput) readFullBytes(s *haxe__io__Bytes, pos int, len int) {
-	haxe__io__input_readFullBytes(self, s, pos, len)
-}
-
-func (self *sys__io__ProcessOutput) read(nbytes int) *haxe__io__Bytes {
-	return haxe__io__input_read(self, nbytes)
-}
-
-func (self *sys__io__ProcessOutput) readUntil(end int) *string {
-	return haxe__io__input_readUntil(self, end)
-}
-
-func (self *sys__io__ProcessOutput) readLine() *string {
-	return haxe__io__input_readLine(self)
-}
-
-func (self *sys__io__ProcessOutput) readFloat() float64 {
-	return haxe__io__input_readFloat(self)
-}
-
-func (self *sys__io__ProcessOutput) readDouble() float64 {
-	return haxe__io__input_readDouble(self)
-}
-
-func (self *sys__io__ProcessOutput) readInt8() int {
-	return haxe__io__input_readInt8(self)
-}
-
-func (self *sys__io__ProcessOutput) readInt16() int {
-	return haxe__io__input_readInt16(self)
-}
-
-func (self *sys__io__ProcessOutput) readUInt16() int {
-	return haxe__io__input_readUInt16(self)
-}
-
-func (self *sys__io__ProcessOutput) readInt24() int {
-	return haxe__io__input_readInt24(self)
-}
-
-func (self *sys__io__ProcessOutput) readUInt24() int {
-	return haxe__io__input_readUInt24(self)
-}
-
-func (self *sys__io__ProcessOutput) readInt32() int {
-	return haxe__io__input_readInt32(self)
-}
-
-func (self *sys__io__ProcessOutput) readString(len int, encoding ...*haxe__io__Encoding) *string {
-	return haxe__io__input_readString(self, len, encoding...)
-}
-
-func (self *sys__io__ProcessInput) write(s *haxe__io__Bytes) {
-	haxe__io__output_write(self, s)
-}
-
-func (self *sys__io__ProcessInput) writeFullBytes(s *haxe__io__Bytes, pos int, len int) {
-	haxe__io__output_writeFullBytes(self, s, pos, len)
-}
-
-func (self *sys__io__ProcessInput) writeFloat(x float64) {
-	haxe__io__output_writeFloat(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeDouble(x float64) {
-	haxe__io__output_writeDouble(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeInt8(x int) {
-	haxe__io__output_writeInt8(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeInt16(x int) {
-	haxe__io__output_writeInt16(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeUInt16(x int) {
-	haxe__io__output_writeUInt16(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeInt24(x int) {
-	haxe__io__output_writeInt24(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeUInt24(x int) {
-	haxe__io__output_writeUInt24(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeInt32(x int) {
-	haxe__io__output_writeInt32(self, x)
-}
-
-func (self *sys__io__ProcessInput) writeInput(i haxe__io__Input, bufsize ...int) {
-	haxe__io__output_writeInput(self, i, bufsize...)
-}
-
-func (self *sys__io__ProcessInput) writeString(s *string, encoding ...*haxe__io__Encoding) {
-	haxe__io__output_writeString(self, s, encoding...)
 }
 
 type Std struct {
@@ -2683,6 +2350,12 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return nil, false
 	case "sys.FileSystem":
 		return nil, false
+	case "sys.io.Process":
+		return hxrt_typeCallAny(New_sys__io__Process, args)
+	case "sys.io._Process.ProcessInput":
+		return hxrt_typeCallAny(New_sys__io___Process__ProcessInput, args)
+	case "sys.io._Process.ProcessOutput":
+		return hxrt_typeCallAny(New_sys__io___Process__ProcessOutput, args)
 	default:
 		return nil, false
 	}
@@ -2692,6 +2365,12 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
 	case "haxe._Int64.___Int64":
 		return &haxe___Int64_____Int64{}, true
+	case "sys.io.Process":
+		return &sys__io__Process{}, true
+	case "sys.io._Process.ProcessInput":
+		return &sys__io___Process__ProcessInput{}, true
+	case "sys.io._Process.ProcessOutput":
+		return &sys__io___Process__ProcessOutput{}, true
 	default:
 		return nil, false
 	}
@@ -2823,6 +2502,21 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe._Int64.___Int64")}
+	case *sys__io__Process:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.io.Process")}
+	case *sys__io___Process__ProcessInput:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.io._Process.ProcessInput")}
+	case *sys__io___Process__ProcessOutput:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.io._Process.ProcessOutput")}
 	default:
 		return nil
 	}
@@ -2871,6 +2565,12 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "sys.FileSystem":
 		return nil
+	case "sys.io.Process":
+		return nil
+	case "sys.io._Process.ProcessInput":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Output")}
+	case "sys.io._Process.ProcessOutput":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Input")}
 	default:
 		return nil
 	}
@@ -2904,6 +2604,12 @@ func Type_getClassFields(c any) []*string {
 		return []*string{hxrt.StringFromLiteral("bytesOutputGetBytes"), hxrt.StringFromLiteral("inputRead"), hxrt.StringFromLiteral("inputReadAll"), hxrt.StringFromLiteral("inputReadBytes"), hxrt.StringFromLiteral("inputReadFullBytes"), hxrt.StringFromLiteral("inputReadLine"), hxrt.StringFromLiteral("inputReadUntil"), hxrt.StringFromLiteral("outputWrite"), hxrt.StringFromLiteral("outputWriteBytes"), hxrt.StringFromLiteral("outputWriteFullBytes"), hxrt.StringFromLiteral("outputWriteInput"), hxrt.StringFromLiteral("outputWriteString")}
 	case "sys.FileSystem":
 		return []*string{hxrt.StringFromLiteral("absolutePath"), hxrt.StringFromLiteral("createDirectory"), hxrt.StringFromLiteral("deleteDirectory"), hxrt.StringFromLiteral("deleteFile"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("fullPath"), hxrt.StringFromLiteral("isDirectory"), hxrt.StringFromLiteral("readDirectory"), hxrt.StringFromLiteral("rename"), hxrt.StringFromLiteral("stat")}
+	case "sys.io.Process":
+		return []*string{}
+	case "sys.io._Process.ProcessInput":
+		return []*string{}
+	case "sys.io._Process.ProcessOutput":
+		return []*string{}
 	default:
 		return []*string{}
 	}
@@ -2929,6 +2635,12 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{}
 	case "sys.FileSystem":
 		return []*string{}
+	case "sys.io.Process":
+		return []*string{hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("exitCode"), hxrt.StringFromLiteral("getPid"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("kill"), hxrt.StringFromLiteral("requireHandle"), hxrt.StringFromLiteral("stderr"), hxrt.StringFromLiteral("stdin"), hxrt.StringFromLiteral("stdout")}
+	case "sys.io._Process.ProcessInput":
+		return []*string{hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("flush"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("set_bigEndian"), hxrt.StringFromLiteral("writeByte"), hxrt.StringFromLiteral("writeBytes"), hxrt.StringFromLiteral("writeDouble"), hxrt.StringFromLiteral("writeFloat"), hxrt.StringFromLiteral("writeFullBytes"), hxrt.StringFromLiteral("writeInt32"), hxrt.StringFromLiteral("writeString")}
+	case "sys.io._Process.ProcessOutput":
+		return []*string{hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("readByte"), hxrt.StringFromLiteral("readBytes"), hxrt.StringFromLiteral("readDouble"), hxrt.StringFromLiteral("readFloat"), hxrt.StringFromLiteral("readInt32"), hxrt.StringFromLiteral("readLine"), hxrt.StringFromLiteral("set_bigEndian")}
 	default:
 		return []*string{}
 	}
@@ -2961,6 +2673,12 @@ func Type_resolveClass(name *string) any {
 	case "haxe.io.GoIoHelpers":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "sys.FileSystem":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.io.Process":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.io._Process.ProcessInput":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.io._Process.ProcessOutput":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
