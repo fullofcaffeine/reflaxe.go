@@ -9,15 +9,14 @@ package haxe;
 	The mainstream Haxe stdlib implementation cannot be used unchanged on `haxe.go`.
 	- `haxe.go` cannot rely on upstream std source being emitted automatically for
 	  these constraint aliases.
-	- `IMap<K, V>` needs one Go-specific bridge on `copy()`: Haxe allows concrete
-	  map implementations to return their own map type, but Go interfaces require
-	  an exact method signature match.
+	- `IMap<K, V>` needs Go-specific erased bridges for key operations and `copy()`:
+	  Haxe permits concrete maps to specialize key parameters and return their own
+	  type, while Go interfaces require exact parameter and result signatures.
 
 	How
 	- Keep the compile-time constraint aliases local to this staged std module.
-	- Bind `IMap.copy()` to the native selector `copyIMap` so concrete maps can
-	  expose an interface-typed bridge for Go while staged std wrappers keep the
-	  user-facing `copy()` return type precise.
+	- Bind the affected methods to `*IMap` selectors. Concrete staged maps expose
+	  narrow, kept bridge methods while their public Haxe signatures remain precise.
 **/
 @:callable
 abstract Function(Dynamic) {}
@@ -27,14 +26,18 @@ abstract NotVoid(Dynamic) {}
 abstract Constructible<T>(Dynamic) {}
 
 interface IMap<K, V> {
+	@:go.name("getIMap")
 	function get(k:K):Null<V>;
+	@:go.name("setIMap")
 	function set(k:K, v:V):Void;
+	@:go.name("existsIMap")
 	function exists(k:K):Bool;
+	@:go.name("removeIMap")
 	function remove(k:K):Bool;
 	function keys():Iterator<K>;
 	function iterator():Iterator<V>;
 	function keyValueIterator():KeyValueIterator<K, V>;
-	@:native("copyIMap") function copy():IMap<K, V>;
+	@:go.name("copyIMap") function copy():IMap<K, V>;
 	function toString():String;
 	function clear():Void;
 }

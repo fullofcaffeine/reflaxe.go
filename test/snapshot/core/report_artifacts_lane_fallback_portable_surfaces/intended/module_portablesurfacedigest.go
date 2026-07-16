@@ -27,17 +27,13 @@ func PortableSurfaceDigest_compute(seed int) *string {
 	mapCount := 0
 	mapKeyLen := 0
 	mapValueSum := 0
-	var entry_map haxe__IMap
-	var entry_keys map[string]any
-	var map__1 haxe__IMap = map_
-	entry_map = map__1
-	entry_keys = func(hx_value_3 any) map[string]any {
+	entry := func(hx_value_3 any) map[string]any {
 		if hx_value_3 == nil {
 			var hx_zero_4 map[string]any
 			return hx_zero_4
 		}
 		return hx_value_3.(map[string]any)
-	}(map__1.keys())
+	}(map_.keyValueIterator())
 	for func(hx_obj_5 map[string]any) func() bool {
 		hx_field_6 := hx_obj_5["hasNext"]
 		if hx_field_6 == nil {
@@ -45,46 +41,34 @@ func PortableSurfaceDigest_compute(seed int) *string {
 			return hx_zero_7
 		}
 		return hx_field_6.(func() bool)
-	}(entry_keys)() {
-		entry := func() map[string]any {
-			key := func(hx_obj_8 map[string]any) func() *string {
-				hx_field_9 := hx_obj_8["next"]
-				if hx_field_9 == nil {
-					var hx_zero_10 func() *string
-					return hx_zero_10
-				}
-				return hx_field_9.(func() *string)
-			}(entry_keys)()
-			var value any = func(hx_value_11 any) any {
-				if hx_value_11 == nil {
-					return nil
-				}
-				return hx_value_11.(int)
-			}(entry_map.get(key))
-			hx_obj_12 := map[string]any{}
-			hx_obj_12["key"] = any(key)
-			hx_obj_12["value"] = any(value)
-			return hx_obj_12
-		}()
-		key_1 := func(hx_obj_13 map[string]any) *string {
-			hx_field_14 := hx_obj_13["key"]
-			if hx_field_14 == nil {
-				var hx_zero_15 *string
-				return hx_zero_15
+	}(entry)() {
+		entry_1 := func(hx_obj_8 map[string]any) func() map[string]any {
+			hx_field_9 := hx_obj_8["next"]
+			if hx_field_9 == nil {
+				var hx_zero_10 func() map[string]any
+				return hx_zero_10
 			}
-			return hx_field_14.(*string)
-		}(entry)
-		value_1 := func(hx_obj_16 map[string]any) int {
-			hx_field_17 := hx_obj_16["value"]
-			if hx_field_17 == nil {
-				var hx_zero_18 int
-				return hx_zero_18
+			return hx_field_9.(func() map[string]any)
+		}(entry)()
+		key := func(hx_obj_11 map[string]any) *string {
+			hx_field_12 := hx_obj_11["key"]
+			if hx_field_12 == nil {
+				var hx_zero_13 *string
+				return hx_zero_13
 			}
-			return hx_field_17.(int)
-		}(entry)
+			return hx_field_12.(*string)
+		}(entry_1)
+		value := func(hx_obj_14 map[string]any) int {
+			hx_field_15 := hx_obj_14["value"]
+			if hx_field_15 == nil {
+				var hx_zero_16 int
+				return hx_zero_16
+			}
+			return hx_field_15.(int)
+		}(entry_1)
 		mapCount = int(int32((mapCount + 1)))
-		mapKeyLen = int(int32((hxrt.Int32Wrap(mapKeyLen) + hxrt.Int32Wrap(hxrt.StringLengthStringPtr(key_1)))))
-		mapValueSum = int(int32((hxrt.Int32Wrap(mapValueSum) + hxrt.Int32Wrap(value_1))))
+		mapKeyLen = int(int32((hxrt.Int32Wrap(mapKeyLen) + hxrt.Int32Wrap(hxrt.StringLengthStringPtr(key)))))
+		mapValueSum = int(int32((hxrt.Int32Wrap(mapValueSum) + hxrt.Int32Wrap(value))))
 	}
 	unicode := hxrt.StringFromLiteral("A☺B")
 	var unicodeIter_s *string
@@ -95,18 +79,18 @@ func PortableSurfaceDigest_compute(seed int) *string {
 	unicodeSum := 0
 	for unicodeIter_offset < hxrt.StringLengthStringPtr(unicodeIter_s) {
 		unicodeCount = int(int32((unicodeCount + 1)))
-		value_2 := unicodeIter_s
-		hx_post_19 := unicodeIter_offset
+		value_1 := unicodeIter_s
+		hx_post_17 := unicodeIter_offset
 		unicodeIter_offset = int(int32((unicodeIter_offset + 1)))
-		index := hx_post_19
-		c := hxrt.StringCharCodeAtStringPtr(value_2, index)
+		index := hx_post_17
+		c := hxrt.StringCharCodeAtStringPtr(value_1, index)
 		if ((c >= 55296) && (c <= 56319)) && (unicodeIter_offset < hxrt.StringLengthStringPtr(unicodeIter_s)) {
 			c = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(c) - hxrt.Int32Wrap(55232))))) << uint(10))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(func() int {
-				value_3 := unicodeIter_s
-				hx_post_20 := unicodeIter_offset
+				value_2 := unicodeIter_s
+				hx_post_18 := unicodeIter_offset
 				unicodeIter_offset = int(int32((unicodeIter_offset + 1)))
-				index_1 := hx_post_20
-				return hxrt.StringCharCodeAtStringPtr(value_3, index_1)
+				index_1 := hx_post_18
+				return hxrt.StringCharCodeAtStringPtr(value_2, index_1)
 			}()) & hxrt.Int32Wrap(1023))))))))
 		}
 		unicodeSum = int(int32((hxrt.Int32Wrap(unicodeSum) + hxrt.Int32Wrap(c))))

@@ -1,5 +1,7 @@
 package main
 
+import "snapshot/hxrt"
+
 type I_haxe__ds__HashMap interface {
 	set(k interface{ hashCode() int }, v any)
 	get(k interface{ hashCode() int }) any
@@ -178,8 +180,10 @@ func (self *haxe__ds__HashMap) copy() *haxe__ds__HashMap {
 }
 
 func (self *haxe__ds__HashMap) clear() {
-	self.keysByHash.clear()
-	self.valuesByHash.clear()
+	_this := self.keysByHash
+	hxrt.IntMapClear(_this.h)
+	_this_1 := self.valuesByHash
+	hxrt.IntMapClear(_this_1.h)
 }
 
 func haxe__ds__HashMap_hashOf(key map[string]any) int {

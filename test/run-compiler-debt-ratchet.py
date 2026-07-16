@@ -60,7 +60,6 @@ SHIM_CAPABILITIES = {
     "lowerTypedGoCollectionShimDecls": "go_collections",
     "lowerGoResultShimDecls": "go_result",
     "lowerTypedGoResultShimDecls": "go_result",
-    "lowerDsStdlibShimDecls": "collections",
     "lowerHttpStdlibShimDecls": "http",
     "lowerFileSystemShimDecls": "filesystem",
     "lowerStdlibSymbolShimDecls": "stdlib_symbols",
@@ -212,6 +211,10 @@ def source_capability(file: str) -> str:
         return "atomic"
     if "/atomic/" in file:
         return "atomic"
+    if file.endswith(("/enum_value.go", "/map_int.go", "/map_object.go", "/map_string.go")):
+        return "collections"
+    if "/collections/" in file:
+        return "collections"
     if "/thread/" in file or file.endswith("Thread.hx"):
         return "threading"
     if "/ssl/" in file:

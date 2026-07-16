@@ -33,6 +33,10 @@ class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_SSL = "ssl";
 	public static inline final FEATURE_THREAD = "thread";
 	public static inline final FEATURE_STACK = "stack";
+	public static inline final FEATURE_ENUM_VALUE = "enum_value";
+	public static inline final FEATURE_MAP_INT = "map_int";
+	public static inline final FEATURE_MAP_STRING = "map_string";
+	public static inline final FEATURE_MAP_OBJECT = "map_object";
 	public static inline final FEATURE_ATOMIC_INT = "atomic_int";
 	public static inline final FEATURE_ATOMIC_OBJECT = "atomic_object";
 
@@ -51,6 +55,10 @@ class GoHxrtFeatureAnalyzer {
 		FEATURE_SSL,
 		FEATURE_THREAD,
 		FEATURE_STACK,
+		FEATURE_ENUM_VALUE,
+		FEATURE_MAP_INT,
+		FEATURE_MAP_STRING,
+		FEATURE_MAP_OBJECT,
 		FEATURE_ATOMIC_INT,
 		FEATURE_ATOMIC_OBJECT
 	];
@@ -133,6 +141,31 @@ class GoHxrtFeatureAnalyzer {
 
 			if (StringTools.startsWith(path, "haxe.io.")) {
 				add(FEATURE_BYTES, "class_usage", path);
+			}
+
+			var isIntMapSurface = path == "haxe.ds.IntMap"
+				|| path == "hxrt.collections.IntMapHandle"
+				|| path == "hxrt.collections.NativeIntMap";
+			if (isIntMapSurface) {
+				add(FEATURE_MAP_INT, "class_usage", path);
+			}
+
+			var isStringMapSurface = path == "haxe.ds.StringMap"
+				|| path == "hxrt.collections.StringMapHandle"
+				|| path == "hxrt.collections.NativeStringMap";
+			if (isStringMapSurface) {
+				add(FEATURE_MAP_STRING, "class_usage", path);
+			}
+
+			var isObjectMapSurface = path == "haxe.ds.ObjectMap"
+				|| path == "hxrt.collections.ObjectMapHandle"
+				|| path == "hxrt.collections.NativeObjectMap";
+			if (isObjectMapSurface) {
+				add(FEATURE_MAP_OBJECT, "class_usage", path);
+			}
+
+			if (path == "haxe.ds.EnumValueMap" || path == "hxrt.collections.NativeEnumValue") {
+				add(FEATURE_ENUM_VALUE, "class_usage", path);
 			}
 
 			var isAtomicIntSurface = path == "haxe.atomic.AtomicBool"
@@ -268,6 +301,10 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_CORE, FEATURE_EXCEPTION];
 			case FEATURE_STACK:
 				[FEATURE_STRING];
+			case FEATURE_MAP_STRING:
+				[FEATURE_STRING];
+			case FEATURE_MAP_OBJECT:
+				[FEATURE_EXCEPTION];
 			case _:
 				[];
 		};
@@ -310,6 +347,14 @@ class GoHxrtFeatureAnalyzer {
 				["thread.go"];
 			case FEATURE_STACK:
 				["stack.go"];
+			case FEATURE_ENUM_VALUE:
+				["enum_value.go"];
+			case FEATURE_MAP_INT:
+				["map_int.go"];
+			case FEATURE_MAP_STRING:
+				["map_string.go"];
+			case FEATURE_MAP_OBJECT:
+				["map_object.go"];
 			case FEATURE_ATOMIC_INT:
 				["atomic_int.go"];
 			case FEATURE_ATOMIC_OBJECT:

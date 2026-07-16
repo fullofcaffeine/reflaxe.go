@@ -704,7 +704,7 @@ func (self *haxe__rtti__XmlParser) mergeTypedefs(t map[string]any, t2 map[string
 		}
 		return hx_field_206.(*haxe__rtti__CType)
 	}(t2)
-	this1.set(key, value)
+	this1.(*haxe__ds__StringMap).set(key, value)
 	return true
 }
 

@@ -26,7 +26,6 @@ private typedef GoLambdaIterableLoweringConfig = {
 	final arrayElementGoType:Type->String;
 	final haxeDsListElementType:Type->Null<Type>;
 	final scalarGoType:Type->String;
-	final requireStdlibShimGroup:String->Void;
 	final lowerNullableAwareTypeAssertExpr:(GoExpr, Type) -> GoExpr;
 	final localVarName:TVar->String;
 	final lookupLocalLambdaAlias:String->Null<String>;
@@ -61,7 +60,6 @@ class GoLambdaIterableLowering {
 	final arrayElementGoType:Type->String;
 	final haxeDsListElementType:Type->Null<Type>;
 	final scalarGoType:Type->String;
-	final requireStdlibShimGroup:String->Void;
 	final lowerNullableAwareTypeAssertExpr:(GoExpr, Type) -> GoExpr;
 	final localVarName:TVar->String;
 	final lookupLocalLambdaAlias:String->Null<String>;
@@ -74,7 +72,6 @@ class GoLambdaIterableLowering {
 		arrayElementGoType = config.arrayElementGoType;
 		haxeDsListElementType = config.haxeDsListElementType;
 		scalarGoType = config.scalarGoType;
-		requireStdlibShimGroup = config.requireStdlibShimGroup;
 		lowerNullableAwareTypeAssertExpr = config.lowerNullableAwareTypeAssertExpr;
 		localVarName = config.localVarName;
 		this.lookupLocalLambdaAlias = config.lookupLocalLambdaAlias;
@@ -94,7 +91,6 @@ class GoLambdaIterableLowering {
 
 		var listElement = haxeDsListElementType(sourceExpr.t);
 		if (listElement != null) {
-			requireStdlibShimGroup("ds");
 			var loweredSourceExpr = lowerExpr(sourceExpr).expr;
 			return {
 				domain: "list",
@@ -122,13 +118,11 @@ class GoLambdaIterableLowering {
 					GoStmt.GoReturn(GoExpr.GoRaw(iteratorMapLiteral))
 				];
 			case "list":
-				var indexName = freshTempName("hx_lambda_index");
-				var valueName = freshTempName("hx_lambda_value");
-				var iteratorMapLiteral = "map[string]any{\"hasNext\": func() bool { return " + indexName + " < len(" + sourceName
-					+ ".items) }, \"next\": func() any { " + valueName + " := " + sourceName + ".items[" + indexName + "]; " + indexName + "++; return "
-					+ valueName + " }}";
+				var iteratorName = freshTempName("hx_lambda_iterator");
+				var iteratorMapLiteral = "map[string]any{\"hasNext\": func() bool { return " + iteratorName + ".hasNext() }, \"next\": func() any { return "
+					+ iteratorName + ".next() }}";
 				[
-					GoStmt.GoVarDecl(indexName, "int", GoExpr.GoIntLiteral(0), true),
+					GoStmt.GoVarDecl(iteratorName, null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "iterator"), []), true),
 					GoStmt.GoReturn(GoExpr.GoRaw(iteratorMapLiteral))
 				];
 			case _:

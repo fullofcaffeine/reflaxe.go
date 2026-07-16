@@ -307,7 +307,6 @@ class GoCompiler {
 			arrayElementGoType: arrayElementGoType,
 			haxeDsListElementType: haxeDsListElementType,
 			scalarGoType: scalarGoType,
-			requireStdlibShimGroup: requireStdlibShimGroup,
 			lowerNullableAwareTypeAssertExpr: lowerNullableAwareTypeAssertExpr,
 			localVarName: localVarName,
 			lookupLocalLambdaAlias: lookupLocalLambdaAlias
@@ -1681,9 +1680,6 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("io")) {
 			decls = decls.concat(lowerIoStdlibShimDecls());
 		}
-		if (requiredStdlibShimGroups.exists("ds")) {
-			decls = decls.concat(lowerDsStdlibShimDecls());
-		}
 		if (requiredStdlibShimGroups.exists("http")) {
 			decls = decls.concat(lowerHttpStdlibShimDecls());
 		}
@@ -1719,15 +1715,15 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("http")) {
 			// Http request shims expose and consume haxe.io.Bytes payloads.
 			requireStdlibShimGroup("io");
-			requireStdlibShimGroup("ds");
-		}
-		if (requiredStdlibShimGroups.exists("ds")) {
-			// DS shim declarations expose haxe.IMap, which is staged std.
-			requireSourceOwnedStdlibModule("haxe.Constraints");
+			requireSourceOwnedStdlibClass("haxe.ds.StringMap");
 		}
 		if (requiredStdlibShimGroups.exists("regex_serializer")) {
-			// Serializer token support includes haxe.ds.List/StringMap/IntMap/ObjectMap families.
-			requireStdlibShimGroup("ds");
+			// The transitional serializer emitter consumes ordinary source-owned
+			// collection APIs and typed runtime handles; it does not own collections.
+			requireSourceOwnedStdlibModule("haxe.ds.List");
+			requireSourceOwnedStdlibClass("haxe.ds.StringMap");
+			requireSourceOwnedStdlibClass("haxe.ds.IntMap");
+			requireSourceOwnedStdlibClass("haxe.ds.ObjectMap");
 		}
 		if (requiredStdlibShimGroups.exists("net_socket")) {
 			// Socket input/output is part of the haxe.io stream contract.
@@ -4092,418 +4088,6 @@ class GoCompiler {
 			]));
 		}
 
-		return decls;
-	}
-
-	function lowerDsStdlibShimDecls():Array<GoDecl> {
-		var decls = [
-			GoDecl.GoStructDecl("haxe__ds__IntMap", [{name: "h", typeName: "map[int]any"}]),
-			GoDecl.GoStructDecl("haxe__ds__StringMap", [{name: "h", typeName: "map[string]any"}]),
-			GoDecl.GoStructDecl("haxe__ds__ObjectMap", [{name: "h", typeName: "map[any]any"}]),
-			GoDecl.GoStructDecl("haxe__ds__EnumValueMap", [{name: "h", typeName: "map[any]any"}]),
-			GoDecl.GoStructDecl("haxe__ds__List", [{name: "items", typeName: "[]any"}, {name: "length", typeName: "int"}]),
-			GoDecl.GoFuncDecl("New_haxe__ds__IntMap", null, [], ["*haxe__ds__IntMap"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__IntMap{h: map[int]any{}}"))]),
-			GoDecl.GoFuncDecl("set", {
-				name: "self",
-				typeName: "*haxe__ds__IntMap"
-			}, [{name: "key", typeName: "any"}, {name: "value", typeName: "any"}], [], [
-				GoStmt.GoVarDecl("resolvedKey", "int", GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [GoExpr.GoIdent("key")]), true),
-				GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("resolvedKey")), GoExpr.GoIdent("value"))
-			]),
-			GoDecl.GoFuncDecl("get", {
-				name: "self",
-				typeName: "*haxe__ds__IntMap"
-			}, [{name: "key", typeName: "any"}], ["any"], [
-				GoStmt.GoVarDecl("resolvedKey", "int", GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [GoExpr.GoIdent("key")]), true),
-				GoStmt.GoVarDecl("value", null, GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("resolvedKey")), true),
-				GoStmt.GoReturn(GoExpr.GoIdent("value"))
-			]),
-			GoDecl.GoFuncDecl("exists", {
-				name: "self",
-				typeName: "*haxe__ds__IntMap"
-			}, [{name: "key", typeName: "any"}], ["bool"], [
-				GoStmt.GoVarDecl("resolvedKey", "int", GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [GoExpr.GoIdent("key")]), true),
-				GoStmt.GoRaw("_, ok := self.h[resolvedKey]"),
-				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
-			]),
-			GoDecl.GoFuncDecl("remove", {
-				name: "self",
-				typeName: "*haxe__ds__IntMap"
-			}, [{name: "key", typeName: "any"}], ["bool"], [
-				GoStmt.GoVarDecl("resolvedKey", "int", GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [GoExpr.GoIdent("key")]), true),
-				GoStmt.GoRaw("_, ok := self.h[resolvedKey]"),
-				GoStmt.GoRaw("delete(self.h, resolvedKey)"),
-				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
-			]),
-			GoDecl.GoFuncDecl("keys", {
-				name: "self",
-				typeName: "*haxe__ds__IntMap"
-			}, [], ["map[string]any"], [
-				GoStmt.GoRaw("keys := make([]int, 0, len(self.h))"),
-				GoStmt.GoRaw("for key := range self.h {"),
-				GoStmt.GoRaw("\tkeys = append(keys, key)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() int { key := keys[index]; index++; return key }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("iterator", {
-				name: "self",
-				typeName: "*haxe__ds__IntMap"
-			}, [], ["map[string]any"], [
-				GoStmt.GoRaw("keys := make([]int, 0, len(self.h))"),
-				GoStmt.GoRaw("for key := range self.h {"),
-				GoStmt.GoRaw("\tkeys = append(keys, key)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() any { key := keys[index]; index++; return self.h[key] }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("keyValueIterator", {
-				name: "self",
-				typeName: "*haxe__ds__IntMap"
-			}, [], ["map[string]any"], [
-				GoStmt.GoRaw("keys := make([]int, 0, len(self.h))"),
-				GoStmt.GoRaw("for key := range self.h {"),
-				GoStmt.GoRaw("\tkeys = append(keys, key)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() map[string]any { key := keys[index]; index++; return map[string]any{\"key\": key, \"value\": self.h[key]} }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("copyIMap", {
-				name: "self",
-				typeName: "*haxe__ds__IntMap"
-			}, [], ["haxe__IMap"], [
-				GoStmt.GoRaw("copied := New_haxe__ds__IntMap()"),
-				GoStmt.GoRaw("for key, value := range self.h {"),
-				GoStmt.GoRaw("\tcopied.h[key] = value"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoIdent("copied"))
-			]),
-			GoDecl.GoFuncDecl("toString", {
-				name: "self",
-				typeName: "*haxe__ds__IntMap"
-			}, [], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("{}")]))
-			]),
-			GoDecl.GoFuncDecl("clear", {
-				name: "self",
-				typeName: "*haxe__ds__IntMap"
-			},
-				[], [], [GoStmt.GoRaw("self.h = map[int]any{}")]),
-			GoDecl.GoFuncDecl("New_haxe__ds__StringMap", null, [], ["*haxe__ds__StringMap"],
-				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__StringMap{h: map[string]any{}}"))]),
-			GoDecl.GoFuncDecl("set", {
-				name: "self",
-				typeName: "*haxe__ds__StringMap"
-			}, [{name: "key", typeName: "any"}, {name: "value", typeName: "any"}], [], [
-				GoStmt.GoAssign(GoExpr.GoRaw("self.h[*hxrt.StdString(key)]"), GoExpr.GoIdent("value"))
-			]),
-			GoDecl.GoFuncDecl("get", {name: "self", typeName: "*haxe__ds__StringMap"}, [{name: "key", typeName: "any"}], ["any"], [
-				GoStmt.GoRaw("value := self.h[*hxrt.StdString(key)]"),
-				GoStmt.GoReturn(GoExpr.GoIdent("value"))
-			]),
-			GoDecl.GoFuncDecl("exists", {name: "self", typeName: "*haxe__ds__StringMap"}, [{name: "key", typeName: "any"}], ["bool"], [
-				GoStmt.GoRaw("_, ok := self.h[*hxrt.StdString(key)]"),
-				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
-			]),
-			GoDecl.GoFuncDecl("remove", {name: "self", typeName: "*haxe__ds__StringMap"}, [{name: "key", typeName: "any"}], ["bool"], [
-				GoStmt.GoRaw("_, ok := self.h[*hxrt.StdString(key)]"),
-				GoStmt.GoRaw("delete(self.h, *hxrt.StdString(key))"),
-				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
-			]),
-			GoDecl.GoFuncDecl("keys", {
-				name: "self",
-				typeName: "*haxe__ds__StringMap"
-			}, [], ["map[string]any"], [
-				GoStmt.GoRaw("keys := make([]string, 0, len(self.h))"),
-				GoStmt.GoRaw("for key := range self.h {"),
-				GoStmt.GoRaw("\tkeys = append(keys, key)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() *string { key := keys[index]; index++; return hxrt.StringFromLiteral(key) }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("iterator", {
-				name: "self",
-				typeName: "*haxe__ds__StringMap"
-			}, [], ["map[string]any"], [
-				GoStmt.GoRaw("keys := make([]string, 0, len(self.h))"),
-				GoStmt.GoRaw("for key := range self.h {"),
-				GoStmt.GoRaw("\tkeys = append(keys, key)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() any { key := keys[index]; index++; return self.h[key] }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("keyValueIterator", {
-				name: "self",
-				typeName: "*haxe__ds__StringMap"
-			}, [], ["map[string]any"], [
-				GoStmt.GoRaw("keys := make([]string, 0, len(self.h))"),
-				GoStmt.GoRaw("for key := range self.h {"),
-				GoStmt.GoRaw("\tkeys = append(keys, key)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() map[string]any { key := keys[index]; index++; return map[string]any{\"key\": hxrt.StringFromLiteral(key), \"value\": self.h[key]} }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("copyIMap", {
-				name: "self",
-				typeName: "*haxe__ds__StringMap"
-			}, [], ["haxe__IMap"], [
-				GoStmt.GoRaw("copied := New_haxe__ds__StringMap()"),
-				GoStmt.GoRaw("for key, value := range self.h {"),
-				GoStmt.GoRaw("\tcopied.h[key] = value"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoIdent("copied"))
-			]),
-			GoDecl.GoFuncDecl("toString", {
-				name: "self",
-				typeName: "*haxe__ds__StringMap"
-			}, [], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("{}")]))
-			]),
-			GoDecl.GoFuncDecl("clear", {
-				name: "self",
-				typeName: "*haxe__ds__StringMap"
-			},
-				[], [], [GoStmt.GoRaw("self.h = map[string]any{}")]),
-			GoDecl.GoFuncDecl("New_haxe__ds__ObjectMap", null, [], ["*haxe__ds__ObjectMap"],
-				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__ObjectMap{h: map[any]any{}}"))]),
-			GoDecl.GoFuncDecl("set", {
-				name: "self",
-				typeName: "*haxe__ds__ObjectMap"
-			}, [{name: "key", typeName: "any"}, {name: "value", typeName: "any"}], [], [
-				GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("key")), GoExpr.GoIdent("value"))
-			]),
-			GoDecl.GoFuncDecl("get", {
-				name: "self",
-				typeName: "*haxe__ds__ObjectMap"
-			}, [{name: "key", typeName: "any"}], ["any"],
-				[
-					GoStmt.GoReturn(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("key")))
-				]),
-			GoDecl.GoFuncDecl("exists", {name: "self", typeName: "*haxe__ds__ObjectMap"}, [{name: "key", typeName: "any"}], ["bool"],
-				[GoStmt.GoRaw("_, ok := self.h[key]"), GoStmt.GoReturn(GoExpr.GoIdent("ok"))]),
-			GoDecl.GoFuncDecl("remove", {name: "self", typeName: "*haxe__ds__ObjectMap"}, [{name: "key", typeName: "any"}], ["bool"], [
-				GoStmt.GoRaw("_, ok := self.h[key]"),
-				GoStmt.GoRaw("delete(self.h, key)"),
-				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
-			]),
-			GoDecl.GoFuncDecl("keys", {
-				name: "self",
-				typeName: "*haxe__ds__ObjectMap"
-			}, [], ["map[string]any"], [
-				GoStmt.GoRaw("keys := make([]any, 0, len(self.h))"),
-				GoStmt.GoRaw("for key := range self.h {"),
-				GoStmt.GoRaw("\tkeys = append(keys, key)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() any { key := keys[index]; index++; return key }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("iterator", {
-				name: "self",
-				typeName: "*haxe__ds__ObjectMap"
-			}, [], ["map[string]any"], [
-				GoStmt.GoRaw("keys := make([]any, 0, len(self.h))"),
-				GoStmt.GoRaw("for key := range self.h {"),
-				GoStmt.GoRaw("\tkeys = append(keys, key)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() any { key := keys[index]; index++; return self.h[key] }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("keyValueIterator", {
-				name: "self",
-				typeName: "*haxe__ds__ObjectMap"
-			}, [], ["map[string]any"], [
-				GoStmt.GoRaw("keys := make([]any, 0, len(self.h))"),
-				GoStmt.GoRaw("for key := range self.h {"),
-				GoStmt.GoRaw("\tkeys = append(keys, key)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() map[string]any { key := keys[index]; index++; return map[string]any{\"key\": key, \"value\": self.h[key]} }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("copyIMap", {
-				name: "self",
-				typeName: "*haxe__ds__ObjectMap"
-			}, [], ["haxe__IMap"], [
-				GoStmt.GoRaw("copied := New_haxe__ds__ObjectMap()"),
-				GoStmt.GoRaw("for key, value := range self.h {"),
-				GoStmt.GoRaw("\tcopied.h[key] = value"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoIdent("copied"))
-			]),
-			GoDecl.GoFuncDecl("toString", {
-				name: "self",
-				typeName: "*haxe__ds__ObjectMap"
-			}, [], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("{}")]))
-			]),
-			GoDecl.GoFuncDecl("clear", {
-				name: "self",
-				typeName: "*haxe__ds__ObjectMap"
-			},
-				[], [], [GoStmt.GoRaw("self.h = map[any]any{}")]),
-			GoDecl.GoFuncDecl("New_haxe__ds__EnumValueMap", null, [], ["*haxe__ds__EnumValueMap"],
-				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__EnumValueMap{h: map[any]any{}}"))]),
-			GoDecl.GoFuncDecl("set", {
-				name: "self",
-				typeName: "*haxe__ds__EnumValueMap"
-			}, [{name: "key", typeName: "any"}, {name: "value", typeName: "any"}], [], [
-				GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("key")), GoExpr.GoIdent("value"))
-			]),
-			GoDecl.GoFuncDecl("get", {
-				name: "self",
-				typeName: "*haxe__ds__EnumValueMap"
-			}, [{name: "key", typeName: "any"}], ["any"],
-				[
-					GoStmt.GoReturn(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "h"), GoExpr.GoIdent("key")))
-				]),
-			GoDecl.GoFuncDecl("exists", {name: "self", typeName: "*haxe__ds__EnumValueMap"}, [{name: "key", typeName: "any"}], ["bool"],
-				[GoStmt.GoRaw("_, ok := self.h[key]"), GoStmt.GoReturn(GoExpr.GoIdent("ok"))]),
-			GoDecl.GoFuncDecl("remove", {name: "self", typeName: "*haxe__ds__EnumValueMap"}, [{name: "key", typeName: "any"}], ["bool"], [
-				GoStmt.GoRaw("_, ok := self.h[key]"),
-				GoStmt.GoRaw("delete(self.h, key)"),
-				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
-			]),
-			GoDecl.GoFuncDecl("keys", {
-				name: "self",
-				typeName: "*haxe__ds__EnumValueMap"
-			}, [], ["map[string]any"], [
-				GoStmt.GoRaw("keys := make([]any, 0, len(self.h))"),
-				GoStmt.GoRaw("for key := range self.h {"),
-				GoStmt.GoRaw("\tkeys = append(keys, key)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() any { key := keys[index]; index++; return key }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("iterator", {
-				name: "self",
-				typeName: "*haxe__ds__EnumValueMap"
-			}, [], ["map[string]any"], [
-				GoStmt.GoRaw("keys := make([]any, 0, len(self.h))"),
-				GoStmt.GoRaw("for key := range self.h {"),
-				GoStmt.GoRaw("\tkeys = append(keys, key)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() any { key := keys[index]; index++; return self.h[key] }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("keyValueIterator", {
-				name: "self",
-				typeName: "*haxe__ds__EnumValueMap"
-			}, [], ["map[string]any"], [
-				GoStmt.GoRaw("keys := make([]any, 0, len(self.h))"),
-				GoStmt.GoRaw("for key := range self.h {"),
-				GoStmt.GoRaw("\tkeys = append(keys, key)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(keys) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() map[string]any { key := keys[index]; index++; return map[string]any{\"key\": key, \"value\": self.h[key]} }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("copyIMap", {
-				name: "self",
-				typeName: "*haxe__ds__EnumValueMap"
-			}, [], ["haxe__IMap"], [
-				GoStmt.GoRaw("copied := New_haxe__ds__EnumValueMap()"),
-				GoStmt.GoRaw("for key, value := range self.h {"),
-				GoStmt.GoRaw("\tcopied.h[key] = value"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoIdent("copied"))
-			]),
-			GoDecl.GoFuncDecl("toString", {
-				name: "self",
-				typeName: "*haxe__ds__EnumValueMap"
-			}, [], ["*string"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("{}")]))
-			]),
-			GoDecl.GoFuncDecl("clear", {
-				name: "self",
-				typeName: "*haxe__ds__EnumValueMap"
-			},
-				[], [], [GoStmt.GoRaw("self.h = map[any]any{}")]),
-			GoDecl.GoFuncDecl("New_haxe__ds__List", null, [], ["*haxe__ds__List"],
-				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__List{items: []any{}, length: 0}"))]),
-			GoDecl.GoFuncDecl("add", {
-				name: "self",
-				typeName: "*haxe__ds__List"
-			}, [{name: "item", typeName: "any"}], [], [
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"),
-					GoExpr.GoCall(GoExpr.GoIdent("append"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"), GoExpr.GoIdent("item")])),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "length"),
-					GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items")]))
-			]),
-			GoDecl.GoFuncDecl("push", {
-				name: "self",
-				typeName: "*haxe__ds__List"
-			}, [{name: "item", typeName: "any"}], [], [
-				GoStmt.GoRaw("self.items = append([]any{item}, self.items...)"),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "length"),
-					GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items")]))
-			]),
-			GoDecl.GoFuncDecl("pop", {
-				name: "self",
-				typeName: "*haxe__ds__List"
-			}, [], ["any"], [
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items")]),
-					GoExpr.GoIntLiteral(0)),
-					[GoStmt.GoReturn(GoExpr.GoNil)], null),
-				GoStmt.GoVarDecl("head", null, GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"), GoExpr.GoIntLiteral(0)), true),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"),
-					GoExpr.GoSlice(GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"), GoExpr.GoIntLiteral(1), null)),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "length"),
-					GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items")])),
-				GoStmt.GoReturn(GoExpr.GoIdent("head"))
-			]),
-			GoDecl.GoFuncDecl("first", {
-				name: "self",
-				typeName: "*haxe__ds__List"
-			}, [], ["any"], [
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items")]),
-					GoExpr.GoIntLiteral(0)),
-					[GoStmt.GoReturn(GoExpr.GoNil)], null),
-				GoStmt.GoReturn(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"), GoExpr.GoIntLiteral(0)))
-			]),
-			GoDecl.GoFuncDecl("last", {
-				name: "self",
-				typeName: "*haxe__ds__List"
-			}, [], ["any"], [
-				GoStmt.GoVarDecl("size", null, GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoSelector(GoExpr.GoIdent("self"), "items")]), true),
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("size"), GoExpr.GoIntLiteral(0)), [GoStmt.GoReturn(GoExpr.GoNil)], null),
-				GoStmt.GoReturn(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "items"),
-					GoExpr.GoBinary("-", GoExpr.GoIdent("size"), GoExpr.GoIntLiteral(1))))
-			])
-		];
 		return decls;
 	}
 
@@ -9372,6 +8956,13 @@ class GoCompiler {
 						castExpr = lowerNullableAwareTypeAssertExpr(castExpr, expr.t);
 					} else if (castGoType == "any" && innerGoType != "any") {
 						castExpr = GoExpr.GoCall(GoExpr.GoIdent("any"), [castExpr]);
+					} else if (isInterfaceType(inner.t) && !isInterfaceType(expr.t)) {
+						// What: retain Haxe's proven interface-to-concrete nominal cast in Go.
+						// Why: multi-type abstracts such as Map store IMap but inline calls through
+						// their selected concrete implementation; dropping the cast leaves an
+						// interface receiver with a concrete-only method selector.
+						// How: use the ordinary Go type assertion for the concrete target type.
+						castExpr = GoExpr.GoTypeAssert(castExpr, castGoType);
 					}
 				}
 				{
@@ -9877,6 +9468,7 @@ class GoCompiler {
 				noteSourceOwnedStdlibUsage(classType);
 				noteIoHelperFieldUsage(classType, resolved.name);
 				var loweredTarget = lowerExpr(target).expr;
+				var staticInterfaceSelector = interfaceSelectorForStaticReceiver(target.t, resolved.name);
 
 				if (isSuperTarget(target) && isMethodField(resolved)) {
 					var baseSelector = GoExpr.GoSelector(GoExpr.GoIdent("self"), classTypeName(classType));
@@ -9886,9 +9478,16 @@ class GoCompiler {
 					};
 				}
 
+				if (staticInterfaceSelector != null) {
+					return {
+						expr: GoExpr.GoSelector(loweredTarget, staticInterfaceSelector),
+						isStringLike: isStringType(resolved.type)
+					};
+				}
+
 				if (classType.isInterface) {
 					return {
-						expr: GoExpr.GoSelector(loweredTarget, normalizeIdent(resolved.name)),
+						expr: GoExpr.GoSelector(loweredTarget, interfaceFieldName(classType, resolved)),
 						isStringLike: isStringType(resolved.type)
 					};
 				}
@@ -10313,6 +9912,7 @@ class GoCompiler {
 		for (index in 0...args.length) {
 			var arg = args[index];
 			var paramType = callParamType(callee.t, index);
+			var emittedParamType = emittedCallParamType(callee, index);
 			var nullablePrimitiveArg = paramType != null
 				&& isNullablePrimitiveType(paramType) ? lowerNullablePrimitiveCallArgExpr(arg) : null;
 			var loweredArg = nullablePrimitiveArg == null ? lowerCallArgExpr(arg) : nullablePrimitiveArg;
@@ -10323,6 +9923,9 @@ class GoCompiler {
 					loweredArg = coerceAnyExprToType(loweredArg, arg.t, paramType, !argKnownNonNullPrimitive && (exprBackedByAny(arg)
 						|| shouldForceAnyCoerce(arg.t, paramType)));
 				}
+			}
+			if (emittedParamType != null) {
+				loweredArg = adaptErasedFunctionCallArg(loweredArg, arg.t, emittedParamType);
 			}
 			loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, returnType);
 			loweredArgs.push(loweredArg);
@@ -12649,6 +12252,81 @@ class GoCompiler {
 		};
 	}
 
+	/**
+		What
+		- Finds the parameter type used by the emitted class method declaration before
+		  Haxe substitutes concrete receiver type arguments at the call site.
+
+		Why
+		- Haxe permits `List<Int>.filter(Int -> Bool)`, while the shared Go method is
+		  emitted as `filter(func(any) bool)`. Go function types are invariant, so the
+		  otherwise valid typed callback needs a small representation bridge.
+
+		How
+		- Read the original instance or static field signature and leave anonymous or
+		  dynamic calls alone because they do not have a shared nominal declaration.
+	**/
+	function emittedCallParamType(callee:TypedExpr, index:Int):Null<Type> {
+		return switch (callee.expr) {
+			case TField(_, FInstance(_, _, fieldRef)) | TField(_, FStatic(_, fieldRef)):
+				callParamType(fieldRef.get().type, index);
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				emittedCallParamType(inner, index);
+			case _:
+				null;
+		};
+	}
+
+	/**
+		What
+		- Adapts a concrete Haxe function value to the erased function signature used
+		  by a shared generated Go method.
+
+		Why
+		- A value such as `func(int) bool` cannot be passed directly where Go expects
+		  `func(any) bool`, even though Haxe has already proved the generic call safe.
+
+		How
+		- Wrap only differing function signatures with matching arity, assert erased
+		  inputs back to their concrete Haxe types, and keep the erased return value.
+		  Ordinary values and already-compatible function types pass through unchanged.
+	**/
+	function adaptErasedFunctionCallArg(expr:GoExpr, concreteType:Type, emittedType:Type):GoExpr {
+		if (typeToGoType(concreteType) == typeToGoType(emittedType)) {
+			return expr;
+		}
+
+		return switch ([Context.follow(concreteType), Context.follow(emittedType)]) {
+			case [TFun(concreteArgs, concreteReturn), TFun(emittedArgs, emittedReturn)] if (concreteArgs.length == emittedArgs.length):
+				var params = new Array<GoParam>();
+				var callArgs = new Array<GoExpr>();
+				for (index in 0...emittedArgs.length) {
+					var name = freshTempName("hx_erased_callback_arg");
+					params.push({name: name, typeName: GoType.parse(typeToGoType(emittedArgs[index].t))});
+					var callArg:GoExpr = GoExpr.GoIdent(name);
+					if (typeToGoType(emittedArgs[index].t) == "any" && typeToGoType(concreteArgs[index].t) != "any") {
+						callArg = lowerNullableAwareTypeAssertExpr(callArg, concreteArgs[index].t);
+					}
+					callArgs.push(callArg);
+				}
+
+				var callbackCall = GoExpr.GoCall(expr, callArgs);
+				var adapter:GoExpr;
+				if (isVoidType(emittedReturn)) {
+					adapter = GoExpr.GoFuncLiteral(params, [], [GoStmt.GoExprStmt(callbackCall)]);
+				} else {
+					var returnExpr = callbackCall;
+					if (typeToGoType(concreteReturn) == "any" && typeToGoType(emittedReturn) != "any") {
+						returnExpr = lowerNullableAwareTypeAssertExpr(returnExpr, emittedReturn);
+					}
+					adapter = GoExpr.GoFuncLiteral(params, [GoType.parse(typeToGoType(emittedReturn))], [GoStmt.GoReturn(returnExpr)]);
+				}
+				adapter;
+			case _:
+				expr;
+		};
+	}
+
 	function lowerBinop(op:Binop, left:TypedExpr, right:TypedExpr, resultType:Type):LoweredExpr {
 		var leftLowered = lowerExpr(left);
 		var rightLowered = lowerExpr(right);
@@ -12936,6 +12614,33 @@ class GoCompiler {
 			case _:
 				null;
 		};
+	}
+
+	/**
+		What
+		- Resolves the Go selector declared by an interface receiver's field metadata.
+
+		Why
+		- Haxe may retain the concrete implementation in `FInstance` while the
+		  receiver expression is statically typed as an interface. Selecting the
+		  concrete method name bypasses bridges such as `IMap.setIMap` and produces
+		  invalid Go.
+
+		How
+		- Inspect the receiver's static class, require an interface, and look up the
+		  matching interface field before applying `@:go.name`/`@:native` metadata.
+	**/
+	function interfaceSelectorForStaticReceiver(receiverType:Type, fieldName:String):Null<String> {
+		var receiverClass = classFromType(receiverType);
+		if (receiverClass == null || !receiverClass.isInterface) {
+			return null;
+		}
+		for (field in receiverClass.fields.get()) {
+			if (field.name == fieldName) {
+				return interfaceFieldName(receiverClass, field);
+			}
+		}
+		return null;
 	}
 
 	function inheritancePath(fromClass:ClassType, toClass:ClassType):Null<Array<ClassType>> {
@@ -13343,8 +13048,6 @@ class GoCompiler {
 		requiredStdlibShimGroups.set(group, true);
 		if (group == "http") {
 			sourceOwnedStdlibPlanner.requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
-		} else if (group == "ds") {
-			sourceOwnedStdlibPlanner.requireSourceOwnedStdlibModule("haxe.Constraints");
 		}
 	}
 
@@ -13406,17 +13109,6 @@ class GoCompiler {
 				name == "haxe__io__Bytes";
 			case GoDecl.GoFuncDecl(name, receiver, _, _, _): (receiver != null
 					&& receiver.typeName.render() == "*haxe__io__Bytes") || name == "New_haxe__io__Bytes" || StringTools.startsWith(name, "haxe__io__Bytes_");
-			case _:
-				false;
-		};
-	}
-
-	function isEnumValueMapOwnedBySourceStdDecl(decl:GoDecl):Bool {
-		return switch (decl) {
-			case GoDecl.GoStructDecl(name, _):
-				name == "haxe__ds__EnumValueMap";
-			case GoDecl.GoFuncDecl(name, receiver, _, _, _): (receiver != null
-					&& receiver.typeName.render() == "*haxe__ds__EnumValueMap") || name == "New_haxe__ds__EnumValueMap";
 			case _:
 				false;
 		};

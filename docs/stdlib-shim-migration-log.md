@@ -1037,3 +1037,58 @@ Validation evidence:
 - `npm run test:stdlib-sweep:go-test` (`55` strict modules)
 - `npm run test:examples` (`12` example/profile lanes)
 - `npm run test:release-contracts`
+
+### 2026-07-15: core `haxe.ds` maps and `List` moved to canonical staged std (`haxe_go-vfp.8.7.10`)
+
+Implementation:
+
+- Replaced compiler-generated `IntMap`, `StringMap`, `ObjectMap`, `EnumValueMap`,
+  and `List` behavior with ordinary Haxe source under `std/go/_std/haxe/ds`.
+  Public mutation, lookup, copy, iteration, ordering, filtering, mapping, joining,
+  and tree-balancing algorithms are now reviewable as Haxe library code.
+- Added narrow typed `std/hxrt/collections` bindings over four runtime features.
+  The Go boundary owns only native hash storage, object-key identity, deterministic
+  key snapshots, and recognition of generated enum carriers. Generic erased values
+  use `Dynamic` only at those documented bindings and are cast back immediately.
+- Added exact `IMap` bridge methods because Go requires identical interface method
+  signatures, while Haxe permits concrete key types and covariant `copy()` results.
+  The compiler now preserves interface-to-concrete casts used by the `Map` abstract,
+  honors interface selector metadata, and adapts typed callbacks to shared erased Go
+  method signatures without moving collection behavior back into the compiler.
+- Routed serializer and Lambda integration through staged collection APIs and typed
+  snapshots. Removed the complete compiler `ds` declaration group, its classifier,
+  dependency wiring, ownership exception, and reflection-based collection probes.
+- Added selective-runtime inference and isolated snapshots for `enum_value`,
+  `map_int`, `map_object`, and `map_string`. Ordinary full-runtime output includes
+  all four files; inferred output includes only features proven by typed use.
+- Kept the temporary array-backed private `List` carrier while the representation
+  adapters tracked by `haxe_go-vfp.8.7.17` still exist. That deferred work does not
+  retain public list behavior or a compiler-owned `List` declaration.
+
+Validation evidence:
+
+- `npm test` (`270/270` snapshots)
+- `npm run test:semantic-diff` (`131/131` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance` (`119` tracked sources: `36` typed runtime
+  bindings, `73` upstream overrides, `5` staged support modules, and `5` public
+  Go facades)
+- `npm run test:compiler-debt` (`4,583` `GoRaw` sites and `14` compiler shim
+  entry points; generated example copies of reviewed reflection boundaries are
+  recorded separately from their source owners)
+- `npm run test:perf:hxrt-selective`
+- `npm run security:go-tooling` (all `28` race/checkptr/vet/staticcheck gates)
+- `npm run test:release-contracts`
+
+Observed result:
+
+- Haxe stdlib collection semantics now live in staged Haxe, matching the project
+  ownership rule and sibling-target precedent. The runtime is a typed capability
+  layer rather than a second implementation of the public library.
+- Null-valued entries, stable repeated iteration, insertion order, object identity,
+  recursive enum-key comparison, independent copies, serializer round trips, and
+  the complete supported `List` API remain covered by behavioral contracts.
+- `GoCompiler` no longer owns the five collection declarations or their algorithms.
+  The remaining collection-lowering work is explicitly limited to the separately
+  tracked adapter cleanup and does not weaken this ownership boundary.

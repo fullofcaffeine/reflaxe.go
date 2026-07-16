@@ -121,6 +121,11 @@ type I_haxe__ds__BalancedTree interface {
 	compare(k1 any, k2 any) int
 	toString() *string
 	clear()
+	getIMap(key any) any
+	setIMap(key any, value any)
+	existsIMap(key any) bool
+	removeIMap(key any) bool
+	copyIMap() haxe__IMap
 }
 
 type haxe__ds__BalancedTree struct {
@@ -615,6 +620,44 @@ func (self *haxe__ds__BalancedTree) toString() *string {
 
 func (self *haxe__ds__BalancedTree) clear() {
 	self.root = nil
+}
+
+func (self *haxe__ds__BalancedTree) getIMap(key any) any {
+	return self.get(key)
+}
+
+func (self *haxe__ds__BalancedTree) setIMap(key any, value any) {
+	self.set(key, value)
+}
+
+func (self *haxe__ds__BalancedTree) existsIMap(key any) bool {
+	return func(hx_value_107 any) bool {
+		if hx_value_107 == nil {
+			var hx_zero_108 bool
+			return hx_zero_108
+		}
+		return hx_value_107.(bool)
+	}(self.exists(key))
+}
+
+func (self *haxe__ds__BalancedTree) removeIMap(key any) bool {
+	return func(hx_value_109 any) bool {
+		if hx_value_109 == nil {
+			var hx_zero_110 bool
+			return hx_zero_110
+		}
+		return hx_value_109.(bool)
+	}(self.remove(key))
+}
+
+func (self *haxe__ds__BalancedTree) copyIMap() haxe__IMap {
+	return func(hx_value_111 any) *haxe__ds__BalancedTree {
+		if hx_value_111 == nil {
+			var hx_zero_112 *haxe__ds__BalancedTree
+			return hx_zero_112
+		}
+		return hx_value_111.(*haxe__ds__BalancedTree)
+	}(self.copy())
 }
 
 func haxe__ds__BalancedTree_iteratorLoop(node *haxe__ds__TreeNode, acc []any) []any {

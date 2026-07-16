@@ -166,6 +166,17 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibModule("haxe.ds.BalancedTree");
 			case "haxe.ds.GenericStack":
 				requireSourceOwnedStdlibModule("haxe.ds.GenericStack");
+			case "haxe.ds.IntMap", "haxe.ds.ObjectMap", "haxe.ds.StringMap":
+				requireSourceOwnedStdlibClass(fullClassName(classType));
+				requireSourceOwnedStdlibModule("haxe.Constraints");
+				requireSourceOwnedStdlibClass("haxe.iterators.MapKeyValueIterator");
+			case "haxe.ds.EnumValueMap":
+				requireSourceOwnedStdlibModule("haxe.ds.EnumValueMap");
+				requireSourceOwnedStdlibModule("haxe.Constraints");
+			case "haxe.ds.List":
+				requireSourceOwnedStdlibModule("haxe.ds.List");
+			case "haxe.iterators.MapKeyValueIterator":
+				requireSourceOwnedStdlibClass("haxe.iterators.MapKeyValueIterator");
 			case "haxe.ds.WeakMap":
 				requireSourceOwnedStdlibClass("haxe.ds.WeakMap");
 				requireSourceOwnedStdlibClass("haxe.exceptions.PosException");

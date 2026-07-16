@@ -17,6 +17,9 @@ FIXTURE_ROOT = ROOT / "test" / "fixtures" / "canonical_std_selection"
 STATUS_PATH = ROOT / "test" / "canonical_std_layout_status.json"
 SYS_OVERRIDE_DEPENDENCIES = (
     "Sys.hx",
+    "haxe/Constraints.hx",
+    "haxe/ds/StringMap.hx",
+    "haxe/iterators/MapKeyValueIterator.hx",
     "sys/io/FileInput.hx",
     "sys/io/FileOutput.hx",
     "sys/io/FileSeek.hx",

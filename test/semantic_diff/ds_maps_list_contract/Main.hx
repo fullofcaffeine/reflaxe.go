@@ -1,5 +1,7 @@
 enum EKey {
 	A;
+	Pair(number:Int, label:String);
+	Nested(value:EKey);
 }
 
 class Box {
@@ -11,6 +13,12 @@ class Box {
 }
 
 class Main {
+	static function exerciseIMap(map:haxe.Constraints.IMap<String, Int>):String {
+		map.set("interface", 9);
+		var copied = map.copy();
+		return map.exists("interface") + ":" + Std.string(copied.get("interface"));
+	}
+
 	static function main() {
 		var sm = new haxe.ds.StringMap<Int>();
 		sm.set("a", 1);
@@ -19,6 +27,7 @@ class Main {
 		Sys.println("sm.exists.b0=" + sm.exists("b"));
 		Sys.println("sm.remove.b=" + sm.remove("b"));
 		Sys.println("sm.exists.b1=" + sm.exists("b"));
+		Sys.println("sm.imap=" + exerciseIMap(sm));
 
 		var im = new haxe.ds.IntMap<String>();
 		im.set(7, "seven");
@@ -72,5 +81,46 @@ class Main {
 		Sys.println("stringList.first.null=" + (slFirst == null));
 		Sys.println("stringList.last.null=" + (slLast == null));
 		Sys.println("stringList.pop.null=" + (slPop == null));
+
+		var nullable = new haxe.ds.StringMap<Null<Int>>();
+		nullable.set("first", null);
+		nullable.set("second", 2);
+		var nullableKeysA = [for (key in nullable.keys()) key].join(",");
+		var nullableKeysB = [for (key in nullable.keys()) key].join(",");
+		var nullableCopy = nullable.copy();
+		Sys.println("nullable.exists.first=" + nullable.exists("first"));
+		Sys.println("nullable.first.null=" + (nullable.get("first") == null));
+		Sys.println("nullable.iter.stable=" + (nullableKeysA == nullableKeysB));
+		Sys.println("nullable.copy.first=" + nullableCopy.exists("first") + ":" + (nullableCopy.get("first") == null));
+		nullable.clear();
+		Sys.println("nullable.clear=" + nullable.exists("first") + ":" + nullable.keys().hasNext());
+
+		var objectCopySource = new haxe.ds.ObjectMap<Box, Null<String>>();
+		var copyKey = new Box(3);
+		objectCopySource.set(copyKey, null);
+		var objectCopy = objectCopySource.copy();
+		Sys.println("object.copy.identity=" + objectCopy.exists(copyKey) + ":" + (objectCopy.get(copyKey) == null));
+
+		var nestedMap = new haxe.ds.EnumValueMap<EKey, String>();
+		nestedMap.set(EKey.Nested(EKey.Pair(3, "three")), "nested");
+		Sys.println("enum.structural=" + Std.string(nestedMap.get(EKey.Nested(EKey.Pair(3, "three")))));
+		var nestedCopy = nestedMap.copy();
+		Sys.println("enum.copy=" + Std.string(nestedCopy.get(EKey.Nested(EKey.Pair(3, "three")))));
+
+		var listApi = new haxe.ds.List<Int>();
+		listApi.add(1);
+		listApi.add(2);
+		listApi.add(3);
+		var filtered = listApi.filter(value -> value % 2 == 1);
+		var mapped = listApi.map(value -> value * 10);
+		var indexed = [for (entry in listApi.keyValueIterator()) entry.key + ":" + entry.value].join(",");
+		Sys.println("list.api=" + listApi.remove(2) + ":" + listApi.join("|") + ":" + listApi.toString());
+		Sys.println("list.filter=" + filtered.join("|") + ":map=" + mapped.join("|") + ":indexed=" + indexed);
+		listApi.clear();
+		Sys.println("list.clear=" + listApi.isEmpty() + ":" + listApi.length);
+
+		var stringRemove = new haxe.ds.List<String>();
+		stringRemove.add("prefix" + 3);
+		Sys.println("list.remove.string=" + stringRemove.remove("prefix3") + ":" + stringRemove.length);
 	}
 }

@@ -939,388 +939,6 @@ func (self *haxe__io__BytesOutput) getBytes() *haxe__io__Bytes {
 	return self.b.getBytes()
 }
 
-type haxe__ds__IntMap struct {
-	h map[int]any
-}
-
-type haxe__ds__StringMap struct {
-	h map[string]any
-}
-
-type haxe__ds__ObjectMap struct {
-	h map[any]any
-}
-
-type haxe__ds__EnumValueMap struct {
-	h map[any]any
-}
-
-type haxe__ds__List struct {
-	items  []any
-	length int
-}
-
-func New_haxe__ds__IntMap() *haxe__ds__IntMap {
-	return &haxe__ds__IntMap{h: map[int]any{}}
-}
-
-func (self *haxe__ds__IntMap) set(key any, value any) {
-	resolvedKey := hxrt.IntFromNullableAny(key)
-	self.h[resolvedKey] = value
-}
-
-func (self *haxe__ds__IntMap) get(key any) any {
-	resolvedKey := hxrt.IntFromNullableAny(key)
-	value := self.h[resolvedKey]
-	return value
-}
-
-func (self *haxe__ds__IntMap) exists(key any) bool {
-	resolvedKey := hxrt.IntFromNullableAny(key)
-	_, ok := self.h[resolvedKey]
-	return ok
-}
-
-func (self *haxe__ds__IntMap) remove(key any) bool {
-	resolvedKey := hxrt.IntFromNullableAny(key)
-	_, ok := self.h[resolvedKey]
-	delete(self.h, resolvedKey)
-	return ok
-}
-
-func (self *haxe__ds__IntMap) keys() map[string]any {
-	keys := make([]int, 0, len(self.h))
-	for key := range self.h {
-		keys = append(keys, key)
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(keys) }
-	iter["next"] = func() int { key := keys[index]; index++; return key }
-	return iter
-}
-
-func (self *haxe__ds__IntMap) iterator() map[string]any {
-	keys := make([]int, 0, len(self.h))
-	for key := range self.h {
-		keys = append(keys, key)
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(keys) }
-	iter["next"] = func() any { key := keys[index]; index++; return self.h[key] }
-	return iter
-}
-
-func (self *haxe__ds__IntMap) keyValueIterator() map[string]any {
-	keys := make([]int, 0, len(self.h))
-	for key := range self.h {
-		keys = append(keys, key)
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(keys) }
-	iter["next"] = func() map[string]any {
-		key := keys[index]
-		index++
-		return map[string]any{"key": key, "value": self.h[key]}
-	}
-	return iter
-}
-
-func (self *haxe__ds__IntMap) copyIMap() haxe__IMap {
-	copied := New_haxe__ds__IntMap()
-	for key, value := range self.h {
-		copied.h[key] = value
-	}
-	return copied
-}
-
-func (self *haxe__ds__IntMap) toString() *string {
-	return hxrt.StringFromLiteral("{}")
-}
-
-func (self *haxe__ds__IntMap) clear() {
-	self.h = map[int]any{}
-}
-
-func New_haxe__ds__StringMap() *haxe__ds__StringMap {
-	return &haxe__ds__StringMap{h: map[string]any{}}
-}
-
-func (self *haxe__ds__StringMap) set(key any, value any) {
-	self.h[*hxrt.StdString(key)] = value
-}
-
-func (self *haxe__ds__StringMap) get(key any) any {
-	value := self.h[*hxrt.StdString(key)]
-	return value
-}
-
-func (self *haxe__ds__StringMap) exists(key any) bool {
-	_, ok := self.h[*hxrt.StdString(key)]
-	return ok
-}
-
-func (self *haxe__ds__StringMap) remove(key any) bool {
-	_, ok := self.h[*hxrt.StdString(key)]
-	delete(self.h, *hxrt.StdString(key))
-	return ok
-}
-
-func (self *haxe__ds__StringMap) keys() map[string]any {
-	keys := make([]string, 0, len(self.h))
-	for key := range self.h {
-		keys = append(keys, key)
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(keys) }
-	iter["next"] = func() *string { key := keys[index]; index++; return hxrt.StringFromLiteral(key) }
-	return iter
-}
-
-func (self *haxe__ds__StringMap) iterator() map[string]any {
-	keys := make([]string, 0, len(self.h))
-	for key := range self.h {
-		keys = append(keys, key)
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(keys) }
-	iter["next"] = func() any { key := keys[index]; index++; return self.h[key] }
-	return iter
-}
-
-func (self *haxe__ds__StringMap) keyValueIterator() map[string]any {
-	keys := make([]string, 0, len(self.h))
-	for key := range self.h {
-		keys = append(keys, key)
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(keys) }
-	iter["next"] = func() map[string]any {
-		key := keys[index]
-		index++
-		return map[string]any{"key": hxrt.StringFromLiteral(key), "value": self.h[key]}
-	}
-	return iter
-}
-
-func (self *haxe__ds__StringMap) copyIMap() haxe__IMap {
-	copied := New_haxe__ds__StringMap()
-	for key, value := range self.h {
-		copied.h[key] = value
-	}
-	return copied
-}
-
-func (self *haxe__ds__StringMap) toString() *string {
-	return hxrt.StringFromLiteral("{}")
-}
-
-func (self *haxe__ds__StringMap) clear() {
-	self.h = map[string]any{}
-}
-
-func New_haxe__ds__ObjectMap() *haxe__ds__ObjectMap {
-	return &haxe__ds__ObjectMap{h: map[any]any{}}
-}
-
-func (self *haxe__ds__ObjectMap) set(key any, value any) {
-	self.h[key] = value
-}
-
-func (self *haxe__ds__ObjectMap) get(key any) any {
-	return self.h[key]
-}
-
-func (self *haxe__ds__ObjectMap) exists(key any) bool {
-	_, ok := self.h[key]
-	return ok
-}
-
-func (self *haxe__ds__ObjectMap) remove(key any) bool {
-	_, ok := self.h[key]
-	delete(self.h, key)
-	return ok
-}
-
-func (self *haxe__ds__ObjectMap) keys() map[string]any {
-	keys := make([]any, 0, len(self.h))
-	for key := range self.h {
-		keys = append(keys, key)
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(keys) }
-	iter["next"] = func() any { key := keys[index]; index++; return key }
-	return iter
-}
-
-func (self *haxe__ds__ObjectMap) iterator() map[string]any {
-	keys := make([]any, 0, len(self.h))
-	for key := range self.h {
-		keys = append(keys, key)
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(keys) }
-	iter["next"] = func() any { key := keys[index]; index++; return self.h[key] }
-	return iter
-}
-
-func (self *haxe__ds__ObjectMap) keyValueIterator() map[string]any {
-	keys := make([]any, 0, len(self.h))
-	for key := range self.h {
-		keys = append(keys, key)
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(keys) }
-	iter["next"] = func() map[string]any {
-		key := keys[index]
-		index++
-		return map[string]any{"key": key, "value": self.h[key]}
-	}
-	return iter
-}
-
-func (self *haxe__ds__ObjectMap) copyIMap() haxe__IMap {
-	copied := New_haxe__ds__ObjectMap()
-	for key, value := range self.h {
-		copied.h[key] = value
-	}
-	return copied
-}
-
-func (self *haxe__ds__ObjectMap) toString() *string {
-	return hxrt.StringFromLiteral("{}")
-}
-
-func (self *haxe__ds__ObjectMap) clear() {
-	self.h = map[any]any{}
-}
-
-func New_haxe__ds__EnumValueMap() *haxe__ds__EnumValueMap {
-	return &haxe__ds__EnumValueMap{h: map[any]any{}}
-}
-
-func (self *haxe__ds__EnumValueMap) set(key any, value any) {
-	self.h[key] = value
-}
-
-func (self *haxe__ds__EnumValueMap) get(key any) any {
-	return self.h[key]
-}
-
-func (self *haxe__ds__EnumValueMap) exists(key any) bool {
-	_, ok := self.h[key]
-	return ok
-}
-
-func (self *haxe__ds__EnumValueMap) remove(key any) bool {
-	_, ok := self.h[key]
-	delete(self.h, key)
-	return ok
-}
-
-func (self *haxe__ds__EnumValueMap) keys() map[string]any {
-	keys := make([]any, 0, len(self.h))
-	for key := range self.h {
-		keys = append(keys, key)
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(keys) }
-	iter["next"] = func() any { key := keys[index]; index++; return key }
-	return iter
-}
-
-func (self *haxe__ds__EnumValueMap) iterator() map[string]any {
-	keys := make([]any, 0, len(self.h))
-	for key := range self.h {
-		keys = append(keys, key)
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(keys) }
-	iter["next"] = func() any { key := keys[index]; index++; return self.h[key] }
-	return iter
-}
-
-func (self *haxe__ds__EnumValueMap) keyValueIterator() map[string]any {
-	keys := make([]any, 0, len(self.h))
-	for key := range self.h {
-		keys = append(keys, key)
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(keys) }
-	iter["next"] = func() map[string]any {
-		key := keys[index]
-		index++
-		return map[string]any{"key": key, "value": self.h[key]}
-	}
-	return iter
-}
-
-func (self *haxe__ds__EnumValueMap) copyIMap() haxe__IMap {
-	copied := New_haxe__ds__EnumValueMap()
-	for key, value := range self.h {
-		copied.h[key] = value
-	}
-	return copied
-}
-
-func (self *haxe__ds__EnumValueMap) toString() *string {
-	return hxrt.StringFromLiteral("{}")
-}
-
-func (self *haxe__ds__EnumValueMap) clear() {
-	self.h = map[any]any{}
-}
-
-func New_haxe__ds__List() *haxe__ds__List {
-	return &haxe__ds__List{items: []any{}, length: 0}
-}
-
-func (self *haxe__ds__List) add(item any) {
-	self.items = append(self.items, item)
-	self.length = len(self.items)
-}
-
-func (self *haxe__ds__List) push(item any) {
-	self.items = append([]any{item}, self.items...)
-	self.length = len(self.items)
-}
-
-func (self *haxe__ds__List) pop() any {
-	if len(self.items) == 0 {
-		return nil
-	}
-	head := self.items[0]
-	self.items = self.items[1:]
-	self.length = len(self.items)
-	return head
-}
-
-func (self *haxe__ds__List) first() any {
-	if len(self.items) == 0 {
-		return nil
-	}
-	return self.items[0]
-}
-
-func (self *haxe__ds__List) last() any {
-	size := len(self.items)
-	if size == 0 {
-		return nil
-	}
-	return self.items[(size - 1)]
-}
-
 type hxrt__http__Pair struct {
 	name  *string
 	value *string
@@ -3135,6 +2753,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return nil, false
 	case "haxe._Int64.___Int64":
 		return hxrt_typeCallAny(New_haxe___Int64_____Int64, args)
+	case "haxe.ds.StringMap":
+		return hxrt_typeCallAny(New_haxe__ds__StringMap, args)
 	case "haxe.exceptions.NotImplementedException":
 		return hxrt_typeCallAny(New_haxe__exceptions__NotImplementedException, args)
 	case "haxe.exceptions.PosException":
@@ -3143,6 +2763,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return hxrt_typeCallAny(New_haxe__http__HttpBase, args)
 	case "haxe.io.GoIoHelpers":
 		return nil, false
+	case "haxe.iterators.MapKeyValueIterator":
+		return hxrt_typeCallAny(New_haxe__iterators__MapKeyValueIterator, args)
 	case "sys.GoHttpHelpers":
 		return nil, false
 	default:
@@ -3154,12 +2776,16 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
 	case "haxe._Int64.___Int64":
 		return &haxe___Int64_____Int64{}, true
+	case "haxe.ds.StringMap":
+		return &haxe__ds__StringMap{}, true
 	case "haxe.exceptions.NotImplementedException":
 		return &haxe__exceptions__NotImplementedException{}, true
 	case "haxe.exceptions.PosException":
 		return &haxe__exceptions__PosException{}, true
 	case "haxe.http.HttpBase":
 		return &haxe__http__HttpBase{}, true
+	case "haxe.iterators.MapKeyValueIterator":
+		return &haxe__iterators__MapKeyValueIterator{}, true
 	default:
 		return nil, false
 	}
@@ -3291,6 +2917,11 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe._Int64.___Int64")}
+	case *haxe__ds__StringMap:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.ds.StringMap")}
 	case *haxe__exceptions__NotImplementedException:
 		if value == nil {
 			return nil
@@ -3306,6 +2937,11 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.http.HttpBase")}
+	case *haxe__iterators__MapKeyValueIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.MapKeyValueIterator")}
 	default:
 		return nil
 	}
@@ -3352,6 +2988,8 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "haxe._Int64.___Int64":
 		return nil
+	case "haxe.ds.StringMap":
+		return nil
 	case "haxe.exceptions.NotImplementedException":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.exceptions.PosException")}
 	case "haxe.exceptions.PosException":
@@ -3359,6 +2997,8 @@ func Type_getSuperClass(c any) any {
 	case "haxe.http.HttpBase":
 		return nil
 	case "haxe.io.GoIoHelpers":
+		return nil
+	case "haxe.iterators.MapKeyValueIterator":
 		return nil
 	case "sys.GoHttpHelpers":
 		return nil
@@ -3393,6 +3033,8 @@ func Type_getClassFields(c any) []*string {
 		return []*string{}
 	case "haxe._Int64.___Int64":
 		return []*string{}
+	case "haxe.ds.StringMap":
+		return []*string{}
 	case "haxe.exceptions.NotImplementedException":
 		return []*string{}
 	case "haxe.exceptions.PosException":
@@ -3401,6 +3043,8 @@ func Type_getClassFields(c any) []*string {
 		return []*string{}
 	case "haxe.io.GoIoHelpers":
 		return []*string{hxrt.StringFromLiteral("bytesOutputGetBytes"), hxrt.StringFromLiteral("inputRead"), hxrt.StringFromLiteral("inputReadAll"), hxrt.StringFromLiteral("inputReadBytes"), hxrt.StringFromLiteral("inputReadFullBytes"), hxrt.StringFromLiteral("inputReadLine"), hxrt.StringFromLiteral("inputReadUntil"), hxrt.StringFromLiteral("outputWrite"), hxrt.StringFromLiteral("outputWriteBytes"), hxrt.StringFromLiteral("outputWriteFullBytes"), hxrt.StringFromLiteral("outputWriteInput"), hxrt.StringFromLiteral("outputWriteString")}
+	case "haxe.iterators.MapKeyValueIterator":
+		return []*string{}
 	case "sys.GoHttpHelpers":
 		return []*string{hxrt.StringFromLiteral("captureApi"), hxrt.StringFromLiteral("getResponseHeaderValues")}
 	default:
@@ -3426,6 +3070,8 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{}
 	case "haxe._Int64.___Int64":
 		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
+	case "haxe.ds.StringMap":
+		return []*string{hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("copyIMap"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("existsIMap"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getIMap"), hxrt.StringFromLiteral("h"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeIMap"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setIMap"), hxrt.StringFromLiteral("toString")}
 	case "haxe.exceptions.NotImplementedException":
 		return []*string{hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("posInfos"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap")}
 	case "haxe.exceptions.PosException":
@@ -3434,6 +3080,8 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{hxrt.StringFromLiteral("addHeader"), hxrt.StringFromLiteral("addParameter"), hxrt.StringFromLiteral("emptyOnData"), hxrt.StringFromLiteral("get_responseData"), hxrt.StringFromLiteral("hasOnData"), hxrt.StringFromLiteral("headers"), hxrt.StringFromLiteral("onBytes"), hxrt.StringFromLiteral("onData"), hxrt.StringFromLiteral("onError"), hxrt.StringFromLiteral("onStatus"), hxrt.StringFromLiteral("params"), hxrt.StringFromLiteral("postBytes"), hxrt.StringFromLiteral("postData"), hxrt.StringFromLiteral("request"), hxrt.StringFromLiteral("responseAsString"), hxrt.StringFromLiteral("responseBytes"), hxrt.StringFromLiteral("responseData"), hxrt.StringFromLiteral("setHeader"), hxrt.StringFromLiteral("setParameter"), hxrt.StringFromLiteral("setPostBytes"), hxrt.StringFromLiteral("setPostData"), hxrt.StringFromLiteral("success"), hxrt.StringFromLiteral("url")}
 	case "haxe.io.GoIoHelpers":
 		return []*string{}
+	case "haxe.iterators.MapKeyValueIterator":
+		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("next")}
 	case "sys.GoHttpHelpers":
 		return []*string{}
 	default:
@@ -3467,6 +3115,8 @@ func Type_resolveClass(name *string) any {
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe._Int64.___Int64":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.ds.StringMap":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.exceptions.NotImplementedException":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.exceptions.PosException":
@@ -3474,6 +3124,8 @@ func Type_resolveClass(name *string) any {
 	case "haxe.http.HttpBase":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.io.GoIoHelpers":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.iterators.MapKeyValueIterator":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "sys.GoHttpHelpers":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}

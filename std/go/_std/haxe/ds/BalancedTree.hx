@@ -201,6 +201,38 @@ class BalancedTree<K, V> implements haxe.Constraints.IMap<K, V> {
 	public function clear():Void {
 		root = null;
 	}
+
+	/**
+		What
+		- Supplies the erased Go method set required by staged `haxe.Constraints.IMap`.
+
+		Why
+		- Go interfaces require exact method signatures after Haxe generics erase,
+		  while the public tree methods retain their precise Haxe generic types.
+
+		How
+		- Keep these methods private and retained, cast only at the `IMap` boundary,
+		  and delegate every operation to the ordinary source-owned implementation.
+	**/
+	@:keep private function getIMap(key:Dynamic):Dynamic {
+		return get(cast key);
+	}
+
+	@:keep private function setIMap(key:Dynamic, value:Dynamic):Void {
+		set(cast key, cast value);
+	}
+
+	@:keep private function existsIMap(key:Dynamic):Bool {
+		return exists(cast key);
+	}
+
+	@:keep private function removeIMap(key:Dynamic):Bool {
+		return remove(cast key);
+	}
+
+	@:keep private function copyIMap():haxe.Constraints.IMap<K, V> {
+		return copy();
+	}
 }
 
 class TreeNode<K, V> {

@@ -39,13 +39,13 @@ leaks.
 `test/canonical_std_layout_status.json` records the fail-closed inventory:
 
 - 0 tracked `.cross.hx` files;
-- 69 canonical override sources under `std/go/_std`;
-- 104 ledger entries: 69 upstream overrides, 5 staged support modules, 25 typed
+- 73 canonical override sources under `std/go/_std`;
+- 119 ledger entries: 73 upstream overrides, 5 staged support modules, 36 typed
   `hxrt` bindings, and 5 public `go.*` facades;
-- 279 source-to-package manifest entries in the Haxelib ZIP, including the
+- 298 source-to-package manifest entries in the Haxelib ZIP, including the
   native-policy types, generated-output boundary, and contract documentation
   added after closeout;
-- 280 ZIP members after adding the embedded package manifest itself.
+- 299 ZIP members after adding the embedded package manifest itself.
 
 The closeout contract compares every canonical override path with the
 `upstream_std_override` ledger set. A new, removed, or reclassified file must

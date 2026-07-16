@@ -81,6 +81,34 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/atomic/NativeAtomicObject.hx",
     ),
+    "std/hxrt/collections/IntMapHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/collections/IntMapHandle.hx",
+    ),
+    "std/hxrt/collections/NativeEnumValue.hx": (
+        "hxrt_binding",
+        "std/hxrt/collections/NativeEnumValue.hx",
+    ),
+    "std/hxrt/collections/NativeIntMap.hx": (
+        "hxrt_binding",
+        "std/hxrt/collections/NativeIntMap.hx",
+    ),
+    "std/hxrt/collections/NativeObjectMap.hx": (
+        "hxrt_binding",
+        "std/hxrt/collections/NativeObjectMap.hx",
+    ),
+    "std/hxrt/collections/NativeStringMap.hx": (
+        "hxrt_binding",
+        "std/hxrt/collections/NativeStringMap.hx",
+    ),
+    "std/hxrt/collections/ObjectMapHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/collections/ObjectMapHandle.hx",
+    ),
+    "std/hxrt/collections/StringMapHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/collections/StringMapHandle.hx",
+    ),
     "std/hxrt/fs/FileSystemStat.hx": (
         "hxrt_binding",
         "std/hxrt/fs/FileSystemStat.hx",
@@ -172,7 +200,6 @@ for special_owner, special_destination in SOURCE_SPECIAL_DESTINATIONS.values():
     SPECIAL_DESTINATIONS[special_destination] = (special_owner, special_destination)
 
 SOURCE_EXPECTED_SHIM_GROUPS = {
-    "std/haxe/Constraints.cross.hx": ["ds"],
     "std/haxe/Template.cross.hx": ["stdlib_symbols", "template_support"],
     "std/haxe/ds/BalancedTree.cross.hx": ["stdlib_symbols"],
     "std/haxe/io/FPHelper.cross.hx": ["stdlib_symbols"],
@@ -182,9 +209,6 @@ SOURCE_EXPECTED_SHIM_GROUPS = {
     "std/sys/ssl/Digest.cross.hx": ["stdlib_symbols"],
     "std/sys/ssl/Key.cross.hx": ["stdlib_symbols"],
     "std/sys/ssl/Socket.cross.hx": ["net_socket", "stdlib_symbols"],
-    "std/_std/haxe/ds/IntMap.cross.hx": ["ds"],
-    "std/_std/haxe/ds/ObjectMap.cross.hx": ["ds"],
-    "std/_std/haxe/ds/StringMap.cross.hx": ["ds"],
 }
 
 EXPECTED_SHIM_GROUPS: dict[str, list[str]] = {}
@@ -197,7 +221,6 @@ for shim_source, shim_groups in SOURCE_EXPECTED_SHIM_GROUPS.items():
     EXPECTED_SHIM_GROUPS[shim_destination] = shim_groups
 
 EXPECTED_SHIM_AUDIT_DECISIONS = {
-    "ds": "migration_required_haxe_go_vfp_8_7_10",
     "http": "migration_required_haxe_go_vfp_8_7_12",
     "io": "migration_required_haxe_go_vfp_8_7_11",
     "net_socket": "migration_required_haxe_go_vfp_8_7_14",
@@ -704,6 +727,100 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "source-owned haxe.atomic must not retain a compiler-shim debt allowance",
         )
         self.assertNotIn('"lowerAtomicStdlibShimDecls": "atomic"', debt_ratchet)
+
+    def test_ds_collections_are_source_owned_instead_of_a_compiler_shim(self) -> None:
+        ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
+        expected_owners = {
+            "std/go/_std/haxe/ds/EnumValueMap.hx": "upstream_std_override",
+            "std/go/_std/haxe/ds/IntMap.hx": "upstream_std_override",
+            "std/go/_std/haxe/ds/List.hx": "upstream_std_override",
+            "std/go/_std/haxe/ds/ObjectMap.hx": "upstream_std_override",
+            "std/go/_std/haxe/ds/StringMap.hx": "upstream_std_override",
+            "std/go/_std/haxe/iterators/MapKeyValueIterator.hx": "upstream_std_override",
+            "std/hxrt/collections/IntMapHandle.hx": "hxrt_binding",
+            "std/hxrt/collections/NativeEnumValue.hx": "hxrt_binding",
+            "std/hxrt/collections/NativeIntMap.hx": "hxrt_binding",
+            "std/hxrt/collections/NativeObjectMap.hx": "hxrt_binding",
+            "std/hxrt/collections/NativeStringMap.hx": "hxrt_binding",
+            "std/hxrt/collections/ObjectMapHandle.hx": "hxrt_binding",
+            "std/hxrt/collections/StringMapHandle.hx": "hxrt_binding",
+        }
+        for source_path, expected_owner in expected_owners.items():
+            self.assertTrue((ROOT / source_path).is_file(), source_path)
+            entry = ledger_entries.get(source_path)
+            self.assertIsNotNone(entry, source_path)
+            self.assertEqual(expected_owner, entry.get("ownershipClass"), source_path)
+            self.assertEqual("haxe_go-vfp.8.7.10", entry.get("migrationBead"), source_path)
+            self.assertEqual([], entry.get("compilerShimGroups"), source_path)
+
+        for source_path in (
+            "std/go/_std/haxe/ds/EnumValueMap.hx",
+            "std/go/_std/haxe/ds/IntMap.hx",
+            "std/go/_std/haxe/ds/List.hx",
+            "std/go/_std/haxe/ds/ObjectMap.hx",
+            "std/go/_std/haxe/ds/StringMap.hx",
+            "std/go/_std/haxe/iterators/MapKeyValueIterator.hx",
+        ):
+            content = (ROOT / source_path).read_text(encoding="utf-8")
+            self.assertNotIn("extern class", content, source_path)
+
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")
+        classifier = (ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx").read_text(
+            encoding="utf-8"
+        )
+        feature_analyzer = (ROOT / "src/reflaxe/go/compiler/GoHxrtFeatureAnalyzer.hx").read_text(
+            encoding="utf-8"
+        )
+        debt_policy = json.loads(
+            (ROOT / "test/compiler_debt_policy.json").read_text(encoding="utf-8")
+        )
+        debt_ratchet = (ROOT / "test/run-compiler-debt-ratchet.py").read_text(
+            encoding="utf-8"
+        )
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
+        )
+
+        for fragment in (
+            "lowerDsStdlibShimDecls",
+            'requiredStdlibShimGroups.exists("ds")',
+            'requireStdlibShimGroup("ds")',
+            'group == "ds"',
+        ):
+            self.assertNotIn(fragment, compiler, fragment)
+
+        self.assertNotIn('groups: ["ds"]', classifier)
+        self.assertIn('path == "hxrt.collections.NativeIntMap"', feature_analyzer)
+        self.assertIn('path == "hxrt.collections.NativeStringMap"', feature_analyzer)
+        self.assertIn('path == "hxrt.collections.NativeObjectMap"', feature_analyzer)
+        self.assertIn('path == "hxrt.collections.NativeEnumValue"', feature_analyzer)
+
+        selective_cases = {
+            "runtime_hxrt_infer_enum_value": "enum_value.go",
+            "runtime_hxrt_infer_map_int": "map_int.go",
+            "runtime_hxrt_infer_map_object": "map_object.go",
+            "runtime_hxrt_infer_map_string": "map_string.go",
+        }
+        collection_runtime_files = set(selective_cases.values())
+        for case_name, selected_file in selective_cases.items():
+            runtime_slice = ROOT / "test/snapshot/core" / case_name / "intended/hxrt"
+            self.assertTrue((runtime_slice / selected_file).is_file(), case_name)
+            for excluded_file in collection_runtime_files - {selected_file}:
+                self.assertFalse((runtime_slice / excluded_file).exists(), case_name)
+
+        self.assertFalse(
+            any(group.get("group") == "ds" for group in registry["groups"]),
+            "source-owned haxe.ds collections must not remain a compiler shim group",
+        )
+        self.assertFalse(
+            any(
+                limit.get("metric") == "compiler_shim"
+                and limit.get("capability") == "ds"
+                for limit in debt_policy["limits"]
+            ),
+            "source-owned haxe.ds collections must not retain a compiler-shim debt allowance",
+        )
+        self.assertNotIn('"lowerDsStdlibShimDecls": "ds"', debt_ratchet)
 
     def test_ambiguities_cannot_exist_without_a_follow_up_bead(self) -> None:
         ledger = load_ledger()

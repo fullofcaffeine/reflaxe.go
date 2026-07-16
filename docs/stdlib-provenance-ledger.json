@@ -20,6 +20,7 @@
     "migrationBeads": {
       "upstream_std_override": [
         "haxe_go-vfp.5.3",
+        "haxe_go-vfp.8.7.10",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
         "haxe_go-vfp.8.7.6",
@@ -31,6 +32,7 @@
       ],
       "hxrt_binding": [
         "haxe_go-vfp.5.4",
+        "haxe_go-vfp.8.7.10",
         "haxe_go-vfp.8.7.3",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
@@ -50,23 +52,6 @@
     },
     "ambiguities": [],
     "compilerShimAudit": [
-      {
-        "group": "ds",
-        "decision": "migration_required_haxe_go_vfp_8_7_10",
-        "sourcePaths": [
-          "std/go/_std/haxe/Constraints.hx",
-          "std/go/_std/haxe/ds/IntMap.hx",
-          "std/go/_std/haxe/ds/ObjectMap.hx",
-          "std/go/_std/haxe/ds/StringMap.hx"
-        ],
-        "references": [
-          "docs/compiler-stdlib-intrinsics.json",
-          "src/reflaxe/go/GoCompiler.hx",
-          "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
-          "test/test_compiler_stdlib_intrinsic_registry.py"
-        ],
-        "notes": "The current map/list carrier is compatibility migration debt. Public collection behavior moves to staged source; only a separately justified typed storage primitive may remain."
-      },
       {
         "group": "http",
         "decision": "migration_required_haxe_go_vfp_8_7_12",
@@ -219,10 +204,8 @@
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/Constraints.hx",
       "migrationBead": "haxe_go-vfp.5.3",
-      "compilerShimGroups": [
-        "ds"
-      ],
-      "notes": "Go staged portable override for haxe.Constraints constraint aliases plus the IMap copyIMap bridge contract, keeping Haxe-facing typing in std while the backend satisfies Go interface exactness."
+      "compilerShimGroups": [],
+      "notes": "Go staged portable override for haxe.Constraints constraint aliases plus named erased IMap bridge methods, keeping Haxe-facing typing in source while generated Go interfaces preserve exact method signatures."
     },
     {
       "path": "std/go/_std/haxe/CallStack.hx",
@@ -785,6 +768,15 @@
       "notes": "Go staged portable override for haxe.Json, delegating behavior to hxrt runtime helpers."
     },
     {
+      "path": "std/go/_std/haxe/ds/EnumValueMap.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/ds/EnumValueMap.hx",
+      "migrationBead": "haxe_go-vfp.8.7.10",
+      "compilerShimGroups": [],
+      "notes": "Source-owned ordered enum map with recursive enum-key comparison; hxrt supplies only the generated enum-carrier predicate."
+    },
+    {
       "path": "std/go/_std/haxe/ds/HashMap.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
@@ -798,33 +790,36 @@
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/ds/IntMap.hx",
-      "migrationBead": "haxe_go-vfp.5.3",
-      "compilerShimGroups": [
-        "ds"
-      ],
-      "notes": "Go staged portable override for haxe.ds.IntMap entrypoint behavior and owned iterator surfaces."
+      "migrationBead": "haxe_go-vfp.8.7.10",
+      "compilerShimGroups": [],
+      "notes": "Source-owned haxe.ds.IntMap API and algorithms over a narrow typed hxrt integer-keyed storage handle with deterministic key snapshots."
+    },
+    {
+      "path": "std/go/_std/haxe/ds/List.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/ds/List.hx",
+      "migrationBead": "haxe_go-vfp.8.7.10",
+      "compilerShimGroups": [],
+      "notes": "Source-owned haxe.ds.List API and algorithms over a temporary private array carrier retained for the collection-adapter follow-up haxe_go-vfp.8.7.17."
     },
     {
       "path": "std/go/_std/haxe/ds/ObjectMap.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/ds/ObjectMap.hx",
-      "migrationBead": "haxe_go-vfp.5.3",
-      "compilerShimGroups": [
-        "ds"
-      ],
-      "notes": "Go staged portable override for haxe.ds.ObjectMap entrypoint behavior and owned iterator surfaces."
+      "migrationBead": "haxe_go-vfp.8.7.10",
+      "compilerShimGroups": [],
+      "notes": "Source-owned haxe.ds.ObjectMap API and algorithms over a narrow typed hxrt identity-storage handle that retains keys and deterministic insertion order."
     },
     {
       "path": "std/go/_std/haxe/ds/StringMap.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/ds/StringMap.hx",
-      "migrationBead": "haxe_go-vfp.5.3",
-      "compilerShimGroups": [
-        "ds"
-      ],
-      "notes": "Go staged portable override for haxe.ds.StringMap entrypoint behavior and owned iterator surfaces."
+      "migrationBead": "haxe_go-vfp.8.7.10",
+      "compilerShimGroups": [],
+      "notes": "Source-owned haxe.ds.StringMap API and algorithms over a narrow typed hxrt string-keyed storage handle with deterministic key snapshots."
     },
     {
       "path": "std/go/_std/haxe/format/JsonParser.hx",
@@ -876,9 +871,9 @@
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/iterators/MapKeyValueIterator.hx",
-      "migrationBead": "haxe_go-vfp.5.3",
+      "migrationBead": "haxe_go-vfp.8.7.10",
       "compilerShimGroups": [],
-      "notes": "Go staged portable override for Map key/value iterator semantics."
+      "notes": "Source-owned Map key/value iterator that localizes erased pair values until typed consumers restore their generic key and value types."
     },
     {
       "path": "std/go/_std/haxe/iterators/StringIterator.hx",
@@ -951,6 +946,69 @@
       "migrationBead": "haxe_go-vfp.8.7.9",
       "compilerShimGroups": [],
       "notes": "Typed-handle extern bridge from staged haxe.atomic.AtomicObject to the narrow runtime/hxrt object atomic capability surface; Dynamic is localized to erased stored values."
+    },
+    {
+      "path": "std/hxrt/collections/IntMapHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/collections/IntMapHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.10",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for one runtime/hxrt integer-keyed map cell; staged haxe.ds.IntMap owns the public collection contract."
+    },
+    {
+      "path": "std/hxrt/collections/NativeEnumValue.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/collections/NativeEnumValue.hx",
+      "migrationBead": "haxe_go-vfp.8.7.10",
+      "compilerShimGroups": [],
+      "notes": "Narrow typed extern predicate for recognizing generated enum carriers; EnumValueMap comparison and balancing remain in staged Haxe."
+    },
+    {
+      "path": "std/hxrt/collections/NativeIntMap.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/collections/NativeIntMap.hx",
+      "migrationBead": "haxe_go-vfp.8.7.10",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge from staged haxe.ds.IntMap to native integer-keyed storage and deterministic key snapshots."
+    },
+    {
+      "path": "std/hxrt/collections/NativeObjectMap.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/collections/NativeObjectMap.hx",
+      "migrationBead": "haxe_go-vfp.8.7.10",
+      "compilerShimGroups": [],
+      "notes": "Typed-handle extern bridge from staged haxe.ds.ObjectMap to native reference-identity storage; erased keys and values are localized to this generic boundary."
+    },
+    {
+      "path": "std/hxrt/collections/NativeStringMap.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/collections/NativeStringMap.hx",
+      "migrationBead": "haxe_go-vfp.8.7.10",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge from staged haxe.ds.StringMap to native string-keyed storage and deterministic key snapshots."
+    },
+    {
+      "path": "std/hxrt/collections/ObjectMapHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/collections/ObjectMapHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.10",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for one runtime/hxrt object-identity map cell; staged haxe.ds.ObjectMap owns the public collection contract."
+    },
+    {
+      "path": "std/hxrt/collections/StringMapHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/collections/StringMapHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.10",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for one runtime/hxrt string-keyed map cell; staged haxe.ds.StringMap owns the public collection contract."
     },
     {
       "path": "std/hxrt/fs/FileSystemStat.hx",
