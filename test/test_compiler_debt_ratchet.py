@@ -25,6 +25,31 @@ def load_runner() -> ModuleType:
     return module
 
 
+def write_test_intrinsic_registry(root: Path, entry_points: list[str]) -> None:
+    registry = root / "docs" / "compiler-stdlib-intrinsics.json"
+    registry.parent.mkdir(parents=True)
+    registry.write_text(
+        json.dumps(
+            {
+                "dispatcher": {
+                    "context": "lowerStdlibShimDecls",
+                    "status": "migration_required",
+                },
+                "groups": [
+                    {
+                        "group": f"fixture_{index}",
+                        "entryPoint": entry_point,
+                        "status": "migration_required",
+                    }
+                    for index, entry_point in enumerate(entry_points)
+                ],
+                "nativeCompilerGroups": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
 class CompilerDebtRatchetTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -52,6 +77,7 @@ class CompilerDebtRatchetTest(unittest.TestCase):
                 """,
                 encoding="utf-8",
             )
+            write_test_intrinsic_registry(root, ["lowerIoStdlibShimDecls"])
             runtime = root / "runtime" / "hxrt" / "value.go"
             runtime.parent.mkdir(parents=True)
             runtime.write_text(
@@ -90,6 +116,23 @@ class CompilerDebtRatchetTest(unittest.TestCase):
         self.assertEqual(2, profiles["portable"])
         self.assertEqual(2, profiles["metal"])
         self.assertGreater(profiles["shared"], 0)
+
+    def test_scanner_rejects_an_unregistered_compiler_shim(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            compiler = root / "src" / "reflaxe" / "go" / "GoCompiler.hx"
+            compiler.parent.mkdir(parents=True)
+            compiler.write_text(
+                "function lowerUnregisteredShimDecls() { return []; }\n",
+                encoding="utf-8",
+            )
+            write_test_intrinsic_registry(root, [])
+
+            with self.assertRaisesRegex(
+                ValueError,
+                "unregistered compiler shim entry point lowerUnregisteredShimDecls",
+            ):
+                self.runner.collect_findings(root)
 
     def test_ratchet_rejects_new_locations_and_increases_but_accepts_reductions(self) -> None:
         key = {

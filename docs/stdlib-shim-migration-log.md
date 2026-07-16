@@ -632,7 +632,7 @@ Validation evidence:
 Observed result:
 
 - `DateTools` helper semantics no longer live in `GoCompiler`.
-- Date formatting now follows the staged std implementation, while core `Date` storage and time conversion remain compiler-owned.
+- Date formatting moved to staged std in this tranche. The core `Date` storage and time conversion emitter remained temporarily and is now explicit migration debt under `haxe_go-vfp.8.7.15` rather than an approved compiler boundary.
 
 ### 2026-03-06: `haxe.io.Path` moved from compiler shims to staged std (`haxe.go-14as.36`)
 
@@ -1000,3 +1000,40 @@ Observed result:
 
 - The admitted `linux-amd64` root `Sys.getChar` contract now reads a terminal byte immediately, suppresses host echo, restores terminal state, and emits requested echo exactly once from staged Haxe.
 - Terminal control remains a narrow typed native capability, not a second Haxe stdlib in `GoCompiler` or `hxrt`.
+
+### 2026-07-15: compiler stdlib ownership became fail-closed (`haxe_go-vfp.8.7.8`)
+
+Implementation:
+
+- Added `docs/compiler-stdlib-intrinsics.json` as the exact registry for portable
+  compiler stdlib groups, generated authorities, class/enum and source-planner
+  selectors, group dependencies, direct call rewrites, special data/diagnostic
+  primitives, evidence, review conditions, and migration beads.
+- Flattened `GoStdlibShimClassifier` into a machine-auditable fully qualified
+  symbol table without changing selection behavior.
+- Split the former generic required compiler-shim debt exception into three
+  truthful categories: avoidable portable stdlib migration debt, exact required
+  compiler stdlib intrinsics, and explicit required `go.*` native emitters.
+- Registered the eight behavior-heavy declaration families and direct
+  collection algorithms as unfinished work under `haxe_go-vfp.8.7.9` through
+  `.17`. The registry does not imply that the parent migration is complete.
+- Admitted only exact current compile-context or representation primitives:
+  generated type/RTTI metadata, `Std.isOfType`, string representation
+  construction/conversion, exception carrier access, `haxe.Rest` slice
+  construction, compile-resource data population, and the honest
+  `Sys.cpuTime` unsupported diagnostic.
+- Wired the bidirectional gate into normal, changed, stdlib-governance, CI, and
+  release-contract paths.
+
+Validation evidence:
+
+- `npm run test:stdlib:intrinsics`
+- `npm run test:stdlib:governance`
+- `npm run test:compiler-debt` (`16` named entry points: `10` portable
+  migration-debt contexts, `1` exact portable intrinsic context, and `5`
+  explicit native `go.*` contexts)
+- `npm test` (`264` snapshots)
+- `npm run test:semantic-diff` (`131` cases)
+- `npm run test:stdlib-sweep:go-test` (`55` strict modules)
+- `npm run test:examples` (`12` example/profile lanes)
+- `npm run test:release-contracts`

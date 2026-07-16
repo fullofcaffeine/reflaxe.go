@@ -10,8 +10,11 @@ six target-owned implementation signals:
 - Go `reflect` and `unsafe` package imports and selectors; and
 - named compiler shim entry points.
 
-The checked-in authority is `test/compiler_debt_policy.json`. The executable
-gate is `test/run-compiler-debt-ratchet.py`.
+The checked-in numeric authority is `test/compiler_debt_policy.json`. Portable
+stdlib shim decisions come from
+[`compiler-stdlib-intrinsics.json`](compiler-stdlib-intrinsics.json), and the
+executable gates are `test/run-compiler-debt-ratchet.py` plus
+`test/test_compiler_stdlib_intrinsic_registry.py`.
 
 Counts are directional evidence, not correctness scores. A required reflective
 runtime boundary can be correct and well-tested while an avoidable raw compiler
@@ -34,6 +37,15 @@ The policy therefore classifies current findings in two ways:
 - `avoidable` means the behavior may be valid but its present representation is
   debt. All raw Go AST strings are in this class because typed AST nodes expose
   more structure to transforms, import analysis, and validation.
+
+For compiler stdlib entry points, “required” is intentionally narrower than
+“currently needed to pass tests”:
+
+- exact compile-time metadata or representation primitives may be required;
+- behavior-heavy portable stdlib groups are avoidable migration debt even while
+  they remain compatibility-critical;
+- explicit `go.*` native emitters use a separate required exception because
+  they are not portable stdlib implementations.
 
 Every exception records an owner and explicit What / Why / How rationale. A
 baseline entry references one of those exceptions and sets a ceiling for its
@@ -59,6 +71,12 @@ relative paths. It covers:
 3. checked-in Go runtime code under `runtime/hxrt`; and
 4. committed example output under `examples/*/generated/portable` and
    `examples/*/generated/metal`.
+
+For named compiler shim entry points, the scanner loads the intrinsic registry.
+An entry point absent from that registry fails immediately. The companion
+registry gate also compares the shim dispatcher, class/enum selectors,
+source-planner selectors, group dependencies, compiler-owned authority list,
+and direct stdlib call rewrites in both directions.
 
 The last two generated lanes are measured separately. `portable` is still the
 default semantic product and `metal` is still a compatibility convenience

@@ -1,0 +1,542 @@
+{
+  "schemaVersion": 1,
+  "inventoryUnit": "exact_haxe_symbols_and_compiler_entry_points",
+  "scope": "portable_haxe_stdlib",
+  "decisions": {
+    "approved_exception_carrier": {
+      "what": "Lower the exact haxe.Exception carrier conversion members directly at typed call sites.",
+      "why": "Caught and thrown Haxe values cross the backend exception representation, so ordinary source cannot safely recover or expose the carrier without knowing that representation.",
+      "how": "Keep only the two exact conversion calls and route them to the typed hxrt exception carrier API.",
+      "evidence": [
+        "semantic_diff/exception_api_contract",
+        "core/haxe_exception_subset"
+      ],
+      "reviewCondition": "Revisit if staged exception source gains a typed carrier abstraction that preserves arbitrary Haxe thrown values."
+    },
+    "approved_native_api": {
+      "what": "Keep compiler emitters used exclusively by explicit typed go.* native APIs outside the portable stdlib ownership registry.",
+      "why": "Native channels, collections, and Go result tuples deliberately expose Go representation and typed specialization decisions rather than portable Haxe stdlib behavior.",
+      "how": "List every excluded group and debt context explicitly so a new native emitter cannot be mistaken for a portable stdlib exception.",
+      "evidence": [
+        "test/snapshot/go_native",
+        "docs/go-native-interop.md"
+      ],
+      "reviewCondition": "Revisit when typed Go IR can express the same native specialization without generated helper declarations."
+    },
+    "approved_resource_table": {
+      "what": "Materialize the exact haxe.Resource.content data table from compile-time embedded resources.",
+      "why": "Ordinary Haxe source can implement the Resource API, but it cannot read the compiler resource table after typing or invent the generated payload bytes.",
+      "how": "Keep only data population in the compiler and let source-owned haxe.Resource methods consume the resulting field.",
+      "evidence": [
+        "resource_content_contract",
+        "haxe.go-14as.30"
+      ],
+      "reviewCondition": "Revisit if resource data is emitted as a typed generated artifact that staged source can import directly."
+    },
+    "approved_rest_representation": {
+      "what": "Lower the two haxe.Rest slice-copy operations directly for the concrete typed element representation.",
+      "why": "The abstract operation must preserve the call-site element type while constructing a native Go slice, which is a typed representation fact unavailable to erased ordinary source.",
+      "how": "Keep only append and prepend as exact call-site representation primitives and preserve copy-on-write behavior.",
+      "evidence": [
+        "haxe_rest_contract",
+        "stdlib/haxe_constraints_rest_direct"
+      ],
+      "reviewCondition": "Revisit when generic typed slice construction is available as an ordinary staged-source primitive."
+    },
+    "approved_rtti_fields": {
+      "what": "Materialize generated __meta__ and __rtti fields from the compiler-known metadata attached to each reachable type.",
+      "why": "The final field contents depend on typed compiler metadata and reachable generated types, which ordinary Haxe source cannot enumerate.",
+      "how": "Generate only the metadata data access protocol; keep public RTTI parsing and traversal in staged source.",
+      "evidence": [
+        "haxe_rtti_direct_contract",
+        "stdlib/haxe_rtti_direct"
+      ],
+      "reviewCondition": "Revisit if the metadata is emitted as typed data consumed by staged RTTI source without compiler-owned access behavior."
+    },
+    "approved_string_representation": {
+      "what": "Lower exact string construction and dynamic string-conversion primitives through typed hxrt helpers.",
+      "why": "Go strings and Haxe nullable strings use a backend-owned representation, so these primitives must construct or inspect that representation consistently.",
+      "how": "Admit only Std.string and String.fromCharCode; library parsing and formatting remain migration work.",
+      "evidence": [
+        "stringtools_cross_std_contract",
+        "core/string_concat_null_semantics"
+      ],
+      "reviewCondition": "Revisit when the string representation is modeled as a typed source-facing abstraction rather than compiler knowledge."
+    },
+    "approved_type_metadata": {
+      "what": "Generate narrow Type and reflection lookup declarations from the compiler's closed typed class and enum metadata tables.",
+      "why": "Ordinary Haxe source cannot enumerate the final reachable generated Go types, constructors, class markers, and enum markers at compile time.",
+      "how": "Keep metadata generation separate from public reflection algorithms and register its exact compiler entry point.",
+      "evidence": [
+        "type_reflection_extended_contract",
+        "haxe_rtti_direct_contract"
+      ],
+      "reviewCondition": "Revisit if the compiler emits a typed metadata data file that staged source can consume without generated behavior."
+    },
+    "approved_type_test": {
+      "what": "Lower Std.isOfType against the compiler-known target type and generated representation.",
+      "why": "The second argument is a typed class, enum, or abstract token whose correct Go check depends on compile-time type and representation information.",
+      "how": "Require a type literal, evaluate the value once, and emit the narrow representation-aware check.",
+      "evidence": [
+        "std_is_of_type_contract",
+        "core/type_switch_no_binding_std_is_of_type"
+      ],
+      "reviewCondition": "Revisit when all portable type tokens share a source-visible runtime descriptor with equivalent semantics."
+    },
+    "approved_unsupported_diagnostic": {
+      "what": "Reject the exact Sys.cpuTime surface at Haxe compile time with an honest target-specific diagnostic.",
+      "why": "Go's supported standard library does not expose portable process CPU time, and substituting wall time would silently violate the Haxe contract.",
+      "how": "Detect only the typed Sys.cpuTime field and report the documented unsupported capability before Go generation.",
+      "evidence": [
+        "negative/sys_cpu_time_unsupported",
+        "docs/portable-sys-contract.md"
+      ],
+      "reviewCondition": "Remove the diagnostic if a supported, portable, dependency-safe process CPU-time capability becomes available."
+    },
+    "migration_atomic": {
+      "what": "Replace compiler-emitted haxe.atomic forwarding functions with staged Haxe APIs over typed hxrt atomic capabilities.",
+      "why": "The current compiler functions only forward runtime operations; they do not need compile-time metadata and therefore are not compiler intrinsics.",
+      "how": "Move the public operation bodies to staged source, keep native ordering and opaque storage in hxrt, and remove the atomic shim group.",
+      "evidence": [
+        "haxe_atomic_contract",
+        "runtime/hxrt/atomic_object.go"
+      ],
+      "reviewCondition": "Close only when haxe_go-vfp.8.7.9 removes the group, classifier selectors, and debt allowance."
+    },
+    "migration_collections": {
+      "what": "Move compiler-owned collection carriers and public algorithms to staged Haxe with only narrow typed representation adapters beneath them.",
+      "why": "Map, list, Lambda, and sort behavior is library-expressible; generic erasure or native storage does not justify owning complete algorithms in GoCompiler.",
+      "how": "Migrate map and list families under haxe_go-vfp.8.7.10 and direct Lambda/sort algorithms under haxe_go-vfp.8.7.17.",
+      "evidence": [
+        "ds_maps_list_contract",
+        "lambda_generic_iterable_count_empty_contract"
+      ],
+      "reviewCondition": "Retain only separately reviewed typed iteration or storage adapters after both collection beads close."
+    },
+    "migration_dispatch": {
+      "what": "Retire the shared portable stdlib shim dispatcher as each behavior-heavy group moves to staged source or hxrt.",
+      "why": "A dispatcher is structural plumbing, not an intrinsic, and its continued existence must not make every child shim appear required.",
+      "how": "Keep its debt avoidable and shrink its exact group set as the linked migrations remove entries.",
+      "evidence": [
+        "test/run-compiler-debt-ratchet.py",
+        "test/test_compiler_stdlib_intrinsic_registry.py"
+      ],
+      "reviewCondition": "Remove the dispatcher when no portable declaration group remains."
+    },
+    "migration_http": {
+      "what": "Move sys.Http public request and callback behavior to staged Haxe over typed native HTTP capabilities.",
+      "why": "Request sequencing, headers, payloads, proxy policy, callbacks, and response normalization are runtime and library semantics rather than compile-time facts.",
+      "how": "Keep Haxe-visible choreography in source and expose transport resources through narrow hxrt handles.",
+      "evidence": [
+        "http_request_callbacks_contract",
+        "sys/http_request_callbacks_smoke"
+      ],
+      "reviewCondition": "Close only when haxe_go-vfp.8.7.12 removes the generated sys.Http authority and shim group."
+    },
+    "migration_io": {
+      "what": "Move the base haxe.io hierarchy, byte policy, stream methods, encoding, EOF, and error behavior out of compiler-emitted declarations.",
+      "why": "Native byte storage can require a representation boundary, but that does not require compiler ownership of complete public types and algorithms.",
+      "how": "Put public semantics in staged Haxe, cross only typed raw-byte capabilities, and individually register any smaller irreducible representation primitive.",
+      "evidence": [
+        "bytes_io_stream_contract",
+        "stdlib/bytes_raw_native_compiler_ownership"
+      ],
+      "reviewCondition": "Close only when haxe_go-vfp.8.7.11 retires the broad io group and adjudicates every residual primitive."
+    },
+    "migration_network": {
+      "what": "Move portable Host, Socket, UdpSocket, and related socket behavior to staged source over typed runtime handles.",
+      "why": "Deadlines, readiness, address translation, shutdown, broadcast, and TLS resources are runtime behavior, not compile-time compiler authority.",
+      "how": "Keep public policy in Haxe and native resource lifecycle in hxrt while preserving deterministic TCP, UDP, and SSL contracts.",
+      "evidence": [
+        "socket_advanced_contract",
+        "stdlib/sys_net_udp_socket_direct"
+      ],
+      "reviewCondition": "Close only when haxe_go-vfp.8.7.14 removes GoNetSocketEmitter from portable stdlib ownership."
+    },
+    "migration_regex_serializer": {
+      "what": "Separate compiler-known serialization metadata from EReg and serialization runtime algorithms.",
+      "why": "Reachable type metadata can be compile-time authority, but regex matching, token streams, resolver policy, traversal, and object identity are not.",
+      "how": "Move public behavior to staged Haxe and typed hxrt, then retain only exact generated metadata data or lookup hooks.",
+      "evidence": [
+        "serializer_roundtrip_contract",
+        "ereg_contract"
+      ],
+      "reviewCondition": "Close only when haxe_go-vfp.8.7.13 replaces the mixed behavior-heavy emitter with source ownership plus narrow metadata primitives."
+    },
+    "migration_runtime_reflection": {
+      "what": "Move runtime-only Reflect helper behavior out of compiler-generated declarations.",
+      "why": "Field enumeration, property lookup, object checks, and method invocation inspect runtime values and do not consume the compiler's closed metadata table.",
+      "how": "Use staged helper islands or narrow hxrt reflection capabilities while keeping generated metadata work separately registered.",
+      "evidence": [
+        "reflect_dynamic_fields_contract",
+        "haxe_template_contract"
+      ],
+      "reviewCondition": "Remove each entry under haxe_go-vfp.8.7.15 or haxe_go-vfp.8.7.16 once equivalent typed runtime behavior lands."
+    },
+    "migration_stdlib_symbols": {
+      "what": "Split the monolithic Date, Math, Unicode, Reflect, Xml, crypto, XML, zip, Option, parsing, logging, and nominal-symbol block by its correct source or runtime owner.",
+      "why": "Most functions in the group are ordinary library or runtime behavior; sharing a file with generated type metadata does not make them compile-context intrinsics.",
+      "how": "Move library code to upstream or staged Haxe, native algorithms to narrow hxrt helpers, and keep only separately registered metadata or representation primitives.",
+      "evidence": [
+        "docs/stdlib-shim-rationale.md",
+        "test/semantic_diff"
+      ],
+      "reviewCondition": "Close only when haxe_go-vfp.8.7.15 retires lowerStdlibSymbolShimDecls and registers any exact residual primitive."
+    },
+    "migration_template": {
+      "what": "Remove the compiler-generated runtime reflection bridge beneath staged haxe.Template.",
+      "why": "The three helpers operate only on runtime values and do not require compiler metadata or target representation policy.",
+      "how": "Replace them with a typed staged helper island or hxrt capability and remove template_support.",
+      "evidence": [
+        "haxe_template_contract",
+        "stdlib/haxe_template_basic"
+      ],
+      "reviewCondition": "Close only when haxe_go-vfp.8.7.16 removes the template group and its debt allowance."
+    }
+  },
+  "dispatcher": {
+    "context": "lowerStdlibShimDecls",
+    "status": "migration_required",
+    "decisionId": "migration_dispatch"
+  },
+  "groups": [
+    {
+      "group": "atomic",
+      "entryPoint": "lowerAtomicStdlibShimDecls",
+      "status": "migration_required",
+      "decisionId": "migration_atomic",
+      "followUpBead": "haxe_go-vfp.8.7.9",
+      "ownedSymbols": [
+        {"symbol": "haxe.atomic.AtomicBool", "scope": "complete_type"},
+        {"symbol": "haxe.atomic.AtomicInt", "scope": "complete_type"},
+        {"symbol": "haxe.atomic.AtomicObject", "scope": "complete_type"}
+      ],
+      "compilerOwnedAuthorities": [],
+      "classifierSelections": [
+        {"kind": "class", "path": "haxe.atomic.AtomicBool"},
+        {"kind": "class", "path": "haxe.atomic.AtomicInt"},
+        {"kind": "class", "path": "haxe.atomic.AtomicObject"},
+        {"kind": "class", "path": "haxe.atomic._AtomicBool.AtomicBool_Impl_"},
+        {"kind": "class", "path": "haxe.atomic._AtomicInt.AtomicInt_Impl_"},
+        {"kind": "class", "path": "haxe.atomic._AtomicObject.AtomicObject_Impl_"}
+      ],
+      "plannerSelections": [],
+      "dependencies": [],
+      "declaresDependencyBlock": false
+    },
+    {
+      "group": "ds",
+      "entryPoint": "lowerDsStdlibShimDecls",
+      "status": "migration_required",
+      "decisionId": "migration_collections",
+      "followUpBead": "haxe_go-vfp.8.7.10",
+      "ownedSymbols": [
+        {"symbol": "haxe.ds.EnumValueMap", "scope": "complete_type"},
+        {"symbol": "haxe.ds.IntMap", "scope": "complete_type"},
+        {"symbol": "haxe.ds.List", "scope": "complete_type"},
+        {"symbol": "haxe.ds.ObjectMap", "scope": "complete_type"},
+        {"symbol": "haxe.ds.StringMap", "scope": "complete_type"}
+      ],
+      "compilerOwnedAuthorities": [
+        "haxe.ds.EnumValueMap"
+      ],
+      "classifierSelections": [
+        {"kind": "class", "path": "haxe.ds.EnumValueMap"},
+        {"kind": "class", "path": "haxe.ds.IntMap"},
+        {"kind": "class", "path": "haxe.ds.List"},
+        {"kind": "class", "path": "haxe.ds.ObjectMap"},
+        {"kind": "class", "path": "haxe.ds.StringMap"}
+      ],
+      "plannerSelections": [],
+      "dependencies": [],
+      "declaresDependencyBlock": true
+    },
+    {
+      "group": "http",
+      "entryPoint": "lowerHttpStdlibShimDecls",
+      "status": "migration_required",
+      "decisionId": "migration_http",
+      "followUpBead": "haxe_go-vfp.8.7.12",
+      "ownedSymbols": [
+        {"symbol": "sys.Http", "scope": "complete_type"}
+      ],
+      "compilerOwnedAuthorities": [
+        "sys.Http"
+      ],
+      "classifierSelections": [
+        {"kind": "class", "path": "sys.Http"}
+      ],
+      "plannerSelections": [],
+      "dependencies": [
+        "ds",
+        "io"
+      ],
+      "declaresDependencyBlock": true
+    },
+    {
+      "group": "io",
+      "entryPoint": "lowerIoStdlibShimDecls",
+      "status": "migration_required",
+      "decisionId": "migration_io",
+      "followUpBead": "haxe_go-vfp.8.7.11",
+      "ownedSymbols": [
+        {"symbol": "haxe.io.BufferInput", "scope": "complete_type"},
+        {"symbol": "haxe.io.Bytes", "scope": "complete_type"},
+        {"symbol": "haxe.io.BytesBuffer", "scope": "complete_type"},
+        {"symbol": "haxe.io.BytesInput", "scope": "complete_type"},
+        {"symbol": "haxe.io.BytesOutput", "scope": "complete_type"},
+        {"symbol": "haxe.io.Encoding", "scope": "complete_type"},
+        {"symbol": "haxe.io.Eof", "scope": "complete_type"},
+        {"symbol": "haxe.io.Error", "scope": "complete_type"},
+        {"symbol": "haxe.io.Input", "scope": "complete_type"},
+        {"symbol": "haxe.io.Output", "scope": "complete_type"},
+        {"symbol": "haxe.io.StringInput", "scope": "complete_type"}
+      ],
+      "compilerOwnedAuthorities": [
+        "haxe.io.BufferInput",
+        "haxe.io.Bytes",
+        "haxe.io.BytesBuffer",
+        "haxe.io.BytesInput",
+        "haxe.io.BytesOutput",
+        "haxe.io.Eof",
+        "haxe.io.Error",
+        "haxe.io.Input",
+        "haxe.io.Output",
+        "haxe.io.StringInput"
+      ],
+      "classifierSelections": [
+        {"kind": "class", "path": "haxe.io.BufferInput"},
+        {"kind": "class", "path": "haxe.io.Bytes"},
+        {"kind": "class", "path": "haxe.io.BytesBuffer"},
+        {"kind": "class", "path": "haxe.io.BytesInput"},
+        {"kind": "class", "path": "haxe.io.BytesOutput"},
+        {"kind": "class", "path": "haxe.io.Encoding"},
+        {"kind": "class", "path": "haxe.io.Eof"},
+        {"kind": "class", "path": "haxe.io.Input"},
+        {"kind": "class", "path": "haxe.io.Output"},
+        {"kind": "class", "path": "haxe.io.StringInput"},
+        {"kind": "enum", "path": "haxe.io.Error"}
+      ],
+      "plannerSelections": [],
+      "dependencies": [],
+      "declaresDependencyBlock": false
+    },
+    {
+      "group": "net_socket",
+      "entryPoint": "lowerNetSocketShimDecls",
+      "status": "migration_required",
+      "decisionId": "migration_network",
+      "followUpBead": "haxe_go-vfp.8.7.14",
+      "ownedSymbols": [
+        {"symbol": "sys.net.Host", "scope": "complete_type"},
+        {"symbol": "sys.net.Socket", "scope": "complete_type"},
+        {"symbol": "sys.net.UdpSocket", "scope": "complete_type"}
+      ],
+      "compilerOwnedAuthorities": [
+        "sys.net.Host",
+        "sys.net.Socket",
+        "sys.net.UdpSocket"
+      ],
+      "classifierSelections": [
+        {"kind": "class", "path": "sys.net.Host"},
+        {"kind": "class", "path": "sys.net.Socket"},
+        {"kind": "class", "path": "sys.net.UdpSocket"},
+        {"kind": "class", "path": "sys.ssl.Socket"},
+        {"kind": "class", "path": "sys.ssl._Socket.Socket_Impl_"}
+      ],
+      "plannerSelections": [
+        "sys.ssl.Socket",
+        "sys.ssl._Socket.Socket_Impl_"
+      ],
+      "dependencies": [
+        "io"
+      ],
+      "declaresDependencyBlock": true
+    },
+    {
+      "group": "regex_serializer",
+      "entryPoint": "lowerRegexSerializerShimDecls",
+      "status": "migration_required",
+      "decisionId": "migration_regex_serializer",
+      "followUpBead": "haxe_go-vfp.8.7.13",
+      "ownedSymbols": [
+        {"symbol": "EReg", "scope": "complete_type"},
+        {"symbol": "haxe.Serializer", "scope": "complete_type"},
+        {"symbol": "haxe.Unserializer", "scope": "complete_type"}
+      ],
+      "compilerOwnedAuthorities": [
+        "EReg"
+      ],
+      "classifierSelections": [
+        {"kind": "class", "path": "EReg"},
+        {"kind": "class", "path": "haxe.Serializer"},
+        {"kind": "class", "path": "haxe.Unserializer"}
+      ],
+      "plannerSelections": [],
+      "dependencies": [
+        "ds"
+      ],
+      "declaresDependencyBlock": true
+    },
+    {
+      "group": "stdlib_symbols",
+      "entryPoint": "lowerStdlibSymbolShimDecls",
+      "status": "migration_required",
+      "decisionId": "migration_stdlib_symbols",
+      "followUpBead": "haxe_go-vfp.8.7.15",
+      "ownedSymbols": [
+        {"symbol": "Date", "scope": "complete_type"},
+        {"symbol": "Math", "scope": "partial_type", "members": ["abs", "ceil", "floor", "isFinite", "isNaN", "max", "min", "round"]},
+        {"symbol": "Reflect", "scope": "partial_type", "members": ["compare", "compareMethods", "field", "hasField", "setField"]},
+        {"symbol": "Std", "scope": "partial_type", "members": ["<nominal type carrier>"]},
+        {"symbol": "Type", "scope": "complete_type"},
+        {"symbol": "UnicodeString", "scope": "partial_type", "members": ["charAt", "charCodeAt", "get_length", "indexOf", "lastIndexOf", "substr", "substring", "validate"]},
+        {"symbol": "Xml", "scope": "complete_type"},
+        {"symbol": "haxe.crypto.Base64", "scope": "complete_type"},
+        {"symbol": "haxe.crypto.Md5", "scope": "complete_type"},
+        {"symbol": "haxe.crypto.Sha1", "scope": "complete_type"},
+        {"symbol": "haxe.crypto.Sha224", "scope": "complete_type"},
+        {"symbol": "haxe.crypto.Sha256", "scope": "complete_type"},
+        {"symbol": "haxe.ds.Option", "scope": "complete_type"},
+        {"symbol": "haxe.xml.Parser", "scope": "complete_type"},
+        {"symbol": "haxe.xml.Printer", "scope": "complete_type"},
+        {"symbol": "haxe.zip.Compress", "scope": "complete_type"},
+        {"symbol": "haxe.zip.Uncompress", "scope": "complete_type"}
+      ],
+      "compilerOwnedAuthorities": [],
+      "classifierSelections": [
+        {"kind": "class", "path": "Date"},
+        {"kind": "class", "path": "Math"},
+        {"kind": "class", "path": "Reflect"},
+        {"kind": "class", "path": "Std"},
+        {"kind": "class", "path": "Type"},
+        {"kind": "class", "path": "UnicodeString"},
+        {"kind": "class", "path": "Xml"},
+        {"kind": "class", "path": "_UnicodeString.UnicodeString_Impl_"},
+        {"kind": "class", "path": "haxe.crypto.Base64"},
+        {"kind": "class", "path": "haxe.crypto.Md5"},
+        {"kind": "class", "path": "haxe.crypto.Sha1"},
+        {"kind": "class", "path": "haxe.crypto.Sha224"},
+        {"kind": "class", "path": "haxe.crypto.Sha256"},
+        {"kind": "class", "path": "haxe.ds.BalancedTree"},
+        {"kind": "class", "path": "haxe.io.Path"},
+        {"kind": "class", "path": "haxe.xml.Parser"},
+        {"kind": "class", "path": "haxe.xml.Printer"},
+        {"kind": "class", "path": "haxe.zip.Compress"},
+        {"kind": "class", "path": "haxe.zip.Uncompress"},
+        {"kind": "enum", "path": "haxe.ds.Option"}
+      ],
+      "plannerSelections": [
+        "haxe.Template",
+        "haxe.io.FPHelper",
+        "sys.ssl.Certificate",
+        "sys.ssl.Digest",
+        "sys.ssl.Key",
+        "sys.ssl.Socket",
+        "sys.ssl._Socket.Socket_Impl_"
+      ],
+      "dependencies": [
+        "io"
+      ],
+      "declaresDependencyBlock": true,
+      "supportEntryPoints": [
+        {
+          "context": "lowerTypeReflectionShimDecls",
+          "status": "approved_intrinsic",
+          "decisionId": "approved_type_metadata"
+        },
+        {
+          "context": "reflectFieldsShimDecl",
+          "status": "migration_required",
+          "decisionId": "migration_runtime_reflection",
+          "followUpBead": "haxe_go-vfp.8.7.15"
+        }
+      ]
+    },
+    {
+      "group": "template_support",
+      "entryPoint": "lowerTemplateSupportShimDecls",
+      "status": "migration_required",
+      "decisionId": "migration_template",
+      "followUpBead": "haxe_go-vfp.8.7.16",
+      "ownedSymbols": [
+        {"symbol": "Reflect.callMethod", "scope": "member"},
+        {"symbol": "Reflect.getProperty", "scope": "member"},
+        {"symbol": "Reflect.isObject", "scope": "member"}
+      ],
+      "compilerOwnedAuthorities": [],
+      "classifierSelections": [],
+      "plannerSelections": [
+        "haxe.Template"
+      ],
+      "dependencies": [],
+      "declaresDependencyBlock": false
+    }
+  ],
+  "directLowerings": [
+    {"symbol": "Lambda.count", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
+    {"symbol": "Lambda.empty", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
+    {"symbol": "Lambda.exists", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
+    {"symbol": "Lambda.filter", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
+    {"symbol": "Lambda.fold", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
+    {"symbol": "Lambda.has", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
+    {"symbol": "Lambda.iter", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
+    {"symbol": "Lambda.map", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
+    {"symbol": "Reflect.fields", "status": "migration_required", "decisionId": "migration_runtime_reflection", "followUpBead": "haxe_go-vfp.8.7.15"},
+    {"symbol": "Std.isOfType", "status": "approved_intrinsic", "decisionId": "approved_type_test"},
+    {"symbol": "Std.parseInt", "status": "migration_required", "decisionId": "migration_stdlib_symbols", "followUpBead": "haxe_go-vfp.8.7.15"},
+    {"symbol": "Std.string", "status": "approved_intrinsic", "decisionId": "approved_string_representation"},
+    {"symbol": "String.fromCharCode", "status": "approved_intrinsic", "decisionId": "approved_string_representation"},
+    {"symbol": "haxe.Exception.caught", "status": "approved_intrinsic", "decisionId": "approved_exception_carrier"},
+    {"symbol": "haxe.Exception.thrown", "status": "approved_intrinsic", "decisionId": "approved_exception_carrier"},
+    {"symbol": "haxe.Log.trace", "status": "migration_required", "decisionId": "migration_stdlib_symbols", "followUpBead": "haxe_go-vfp.8.7.15"},
+    {"symbol": "haxe._Rest.Rest_Impl_.append", "status": "approved_intrinsic", "decisionId": "approved_rest_representation"},
+    {"symbol": "haxe._Rest.Rest_Impl_.prepend", "status": "approved_intrinsic", "decisionId": "approved_rest_representation"},
+    {"symbol": "haxe.atomic._AtomicObject.AtomicObject_Impl_.compareExchange", "status": "migration_required", "decisionId": "migration_atomic", "followUpBead": "haxe_go-vfp.8.7.9"},
+    {"symbol": "haxe.atomic._AtomicObject.AtomicObject_Impl_.exchange", "status": "migration_required", "decisionId": "migration_atomic", "followUpBead": "haxe_go-vfp.8.7.9"},
+    {"symbol": "haxe.atomic._AtomicObject.AtomicObject_Impl_.load", "status": "migration_required", "decisionId": "migration_atomic", "followUpBead": "haxe_go-vfp.8.7.9"},
+    {"symbol": "haxe.atomic._AtomicObject.AtomicObject_Impl_.store", "status": "migration_required", "decisionId": "migration_atomic", "followUpBead": "haxe_go-vfp.8.7.9"},
+    {"symbol": "haxe.ds.ArraySort.sort", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
+    {"symbol": "haxe.ds.ListSort.sort", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
+    {"symbol": "haxe.ds.ListSort.sortSingleLinked", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"}
+  ],
+  "specialIntrinsics": [
+    {"symbol": "Sys.cpuTime", "status": "approved_intrinsic", "decisionId": "approved_unsupported_diagnostic"},
+    {"symbol": "generated_type.__meta__", "status": "approved_intrinsic", "decisionId": "approved_rtti_fields"},
+    {"symbol": "generated_type.__rtti", "status": "approved_intrinsic", "decisionId": "approved_rtti_fields"},
+    {"symbol": "haxe.Exception.message", "status": "approved_intrinsic", "decisionId": "approved_exception_carrier"},
+    {"symbol": "haxe.Exception.toString", "status": "approved_intrinsic", "decisionId": "approved_exception_carrier"},
+    {"symbol": "haxe.Resource.content", "status": "approved_intrinsic", "decisionId": "approved_resource_table"},
+    {"symbol": "haxe.ValueException.value", "status": "approved_intrinsic", "decisionId": "approved_exception_carrier"}
+  ],
+  "nativeCompilerGroups": [
+    {
+      "group": "go_collections",
+      "entryPoint": "lowerTypedGoCollectionShimDecls",
+      "debtContexts": ["lowerTypedGoCollectionShimDecls"],
+      "decisionId": "approved_native_api"
+    },
+    {
+      "group": "go_concurrency",
+      "entryPoint": "lowerGoConcurrencyShimDecls",
+      "debtContexts": ["lowerGoConcurrencyShimDecls", "lowerTypedGoConcurrencyShimDecls"],
+      "decisionId": "approved_native_api"
+    },
+    {
+      "group": "go_result",
+      "entryPoint": "lowerGoResultShimDecls",
+      "debtContexts": ["lowerGoResultShimDecls", "lowerTypedGoResultShimDecls"],
+      "decisionId": "approved_native_api"
+    }
+  ],
+  "nativeDirectLowerings": [
+    "go.Go.__chanClose",
+    "go.Go.__chanMake",
+    "go.Go.__chanRecv",
+    "go.Go.__chanRecvOr",
+    "go.Go.__chanSend",
+    "go.Go.__chanTryRecv",
+    "go.Go.__chanTrySend",
+    "go.Go.__goSpawn"
+  ]
+}

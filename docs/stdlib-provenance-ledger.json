@@ -50,7 +50,7 @@
     "compilerShimAudit": [
       {
         "group": "ds",
-        "decision": "retain_representation_bridge",
+        "decision": "migration_required_haxe_go_vfp_8_7_10",
         "sourcePaths": [
           "std/go/_std/haxe/Constraints.hx",
           "std/go/_std/haxe/ds/IntMap.hx",
@@ -58,53 +58,61 @@
           "std/go/_std/haxe/ds/StringMap.hx"
         ],
         "references": [
+          "docs/compiler-stdlib-intrinsics.json",
           "src/reflaxe/go/GoCompiler.hx",
-          "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx"
+          "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
+          "test/test_compiler_stdlib_intrinsic_registry.py"
         ],
-        "notes": "Keep compiler-owned map representation and haxe.Constraints bridges while collection algorithms remain staged source."
+        "notes": "The current map/list carrier is compatibility migration debt. Public collection behavior moves to staged source; only a separately justified typed storage primitive may remain."
       },
       {
         "group": "http",
-        "decision": "retain_request_choreography",
+        "decision": "migration_required_haxe_go_vfp_8_7_12",
         "sourcePaths": [
           "std/sys/GoHttpHelpers.hx"
         ],
         "references": [
+          "docs/compiler-stdlib-intrinsics.json",
           "src/reflaxe/go/GoCompiler.hx",
           "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
-          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx",
+          "test/test_compiler_stdlib_intrinsic_registry.py"
         ],
-        "notes": "Keep sys.Http request/callback choreography compiler-owned; GoHttpHelpers remains a source-owned leaf helper."
+        "notes": "Compiler-owned request choreography is compatibility migration debt. Staged Haxe will own callbacks and policy over typed hxrt transport capabilities."
       },
       {
         "group": "io",
-        "decision": "retain_type_shape_forwarders",
+        "decision": "migration_required_haxe_go_vfp_8_7_11",
         "sourcePaths": [
           "std/haxe/io/GoIoHelpers.hx"
         ],
         "references": [
+          "docs/compiler-stdlib-intrinsics.json",
           "src/reflaxe/go/GoCompiler.hx",
           "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
-          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx",
+          "test/test_compiler_stdlib_intrinsic_registry.py"
         ],
-        "notes": "Keep representation-sensitive Input/Output shapes and thin calls into GoIoHelpers; generic loop behavior stays in staged source."
+        "notes": "The current base IO types and forwarding bodies are compatibility migration debt. Public behavior moves to staged source over a narrower typed byte representation boundary."
       },
       {
         "group": "net_socket",
-        "decision": "retain_socket_semantics",
+        "decision": "migration_required_haxe_go_vfp_8_7_14",
         "sourcePaths": [
           "std/go/_std/sys/ssl/Socket.hx"
         ],
         "references": [
+          "docs/compiler-stdlib-intrinsics.json",
           "src/reflaxe/go/GoCompiler.hx",
           "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
-          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx",
+          "test/test_compiler_stdlib_intrinsic_registry.py"
         ],
-        "notes": "Keep deadline, readiness, and socket carrier semantics compiler-owned beneath the staged sys.ssl.Socket surface."
+        "notes": "Socket lifecycle, deadlines, readiness, address translation, and carriers are compatibility migration debt targeted for staged APIs over typed runtime handles."
       },
       {
         "group": "stdlib_symbols",
-        "decision": "retain_compile_context_bridges",
+        "decision": "split_migration_debt_from_exact_intrinsics_haxe_go_vfp_8_7_15",
         "sourcePaths": [
           "std/go/_std/haxe/Template.hx",
           "std/go/_std/haxe/ds/BalancedTree.hx",
@@ -115,23 +123,27 @@
           "std/go/_std/sys/ssl/Socket.hx"
         ],
         "references": [
+          "docs/compiler-stdlib-intrinsics.json",
           "src/reflaxe/go/GoCompiler.hx",
           "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
-          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx",
+          "test/test_compiler_stdlib_intrinsic_registry.py"
         ],
-        "notes": "Retain only the representation- or compile-context-sensitive bridges explicitly selected beside source-owned modules."
+        "notes": "The monolithic group is migration debt. Only exact type-metadata and representation primitives separately admitted by the intrinsic registry may remain after the split."
       },
       {
         "group": "template_support",
-        "decision": "retain_template_bridge",
+        "decision": "migration_required_haxe_go_vfp_8_7_16",
         "sourcePaths": [
           "std/go/_std/haxe/Template.hx"
         ],
         "references": [
+          "docs/compiler-stdlib-intrinsics.json",
           "src/reflaxe/go/GoCompiler.hx",
-          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx",
+          "test/test_compiler_stdlib_intrinsic_registry.py"
         ],
-        "notes": "Keep the narrow template execution bridge while parser and public template semantics remain source-owned."
+        "notes": "The three runtime reflection helpers consume no closed compiler metadata and are migration debt beneath the source-owned Template parser and API."
       }
     ]
   },
@@ -238,7 +250,7 @@
       "destination": "std/go/_std/haxe/http/HttpBase.hx",
       "migrationBead": "haxe_go-vfp.5.3",
       "compilerShimGroups": [],
-      "notes": "Go staged portable override for direct haxe.http.HttpBase baseline ownership, keeping the public HTTP base surface in std while compiler-owned request choreography stays below it."
+      "notes": "Go staged portable override for direct haxe.http.HttpBase baseline ownership. The remaining compiler-emitted sys.Http request choreography is compatibility migration debt tracked by haxe_go-vfp.8.7.12."
     },
     {
       "path": "std/go/_std/haxe/rtti/CType.hx",
@@ -368,7 +380,7 @@
       "compilerShimGroups": [
         "io"
       ],
-      "notes": "Go staged portable helper surface for inherited haxe.io.Input and haxe.io.Output loop semantics, keeping generic stream-control helpers out of GoCompiler while the backend still owns the base IO type shapes."
+      "notes": "Go staged portable helper surface for inherited haxe.io.Input and haxe.io.Output loop semantics. The remaining compiler-emitted base IO shapes are compatibility migration debt tracked by haxe_go-vfp.8.7.11."
     },
     {
       "path": "std/go/_std/haxe/io/FPHelper.hx",
@@ -453,7 +465,7 @@
       "compilerShimGroups": [
         "http"
       ],
-      "notes": "Go staged helper surface for sys.Http leaf helpers, keeping response-header lookup glue and payload capture fan-out out of GoCompiler while request choreography stays compiler-owned."
+      "notes": "Go staged helper surface for sys.Http leaf helpers, keeping response-header lookup glue and payload capture fan-out out of GoCompiler. The remaining request choreography is compatibility migration debt tracked by haxe_go-vfp.8.7.12."
     },
     {
       "path": "std/go/_std/sys/FileSystem.hx",
@@ -570,7 +582,7 @@
         "net_socket",
         "stdlib_symbols"
       ],
-      "notes": "Go staged portable override for the public sys.ssl.Socket API, reusing the compiler-owned sys.net.Socket carrier while runtime/hxrt/ssl.go owns TLS dial/listen/handshake and peer-certificate behavior."
+      "notes": "Go staged portable override for the public sys.ssl.Socket API, currently reusing the compiler-emitted sys.net.Socket carrier while runtime/hxrt/ssl.go owns TLS dial/listen/handshake and peer-certificate behavior. The carrier is compatibility migration debt tracked by haxe_go-vfp.8.7.14."
     },
     {
       "path": "std/go/_std/sys/thread/Condition.hx",

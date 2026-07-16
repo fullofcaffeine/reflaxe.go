@@ -23,7 +23,10 @@ Selective runtime strategy and profile interaction are documented in `docs/hxrt-
 
 `hxrt` exists to bridge semantic and representation gaps between Haxe and Go in a deterministic, reusable way.
 
-This is not a Go-only idea; many compiler targets use a runtime package. In `reflaxe.go`, the runtime is intentionally paired with compiler shims and staged stdlib migration to keep parity work incremental and verifiable.
+This is not a Go-only idea; many compiler targets use a runtime package. In
+`reflaxe.go`, the runtime is paired with staged stdlib source. Remaining
+compiler shims are measured compatibility debt during that migration, except
+for exact registered metadata or representation primitives.
 
 1. Haxe semantics do not map 1:1 to native Go primitives.
    - String behavior and nullability need helper semantics (`Std.string` shape, null-safe concat/equality, rune-aware length/indexing).
@@ -153,9 +156,9 @@ in `runtime/hxrt/exception_test.go` and `runtime/hxrt/thread_test.go`.
 ## What `hxrt` does not own
 
 `hxrt` is not the whole Haxe stdlib implementation. Public library semantics
-belong in upstream or canonical staged Haxe source. The remaining audited
-compiler exceptions are limited to surfaces that still depend on compile-time
-context or representation-sensitive lowering.
+belong in upstream or canonical staged Haxe source. Exact admitted compiler
+intrinsics are listed in `docs/compiler-stdlib-intrinsics.json`; the larger
+groups listed there as `migration_required` are not approved exceptions.
 
 `sys.FileSystem` follows the preferred split: `std/go/_std/sys/FileSystem.hx`
 owns its public API and `FileStat` construction, while typed `std/hxrt/fs`
@@ -170,7 +173,8 @@ handles. The typed `std/hxrt/sys/NativeTerminal.hx` binding selects build-tagged
 not construct the public environment map, aliases, fallbacks, Haxe stream
 wrappers, `haxe.io.Eof`, or requested character echo.
 
-Examples that are currently compiler-owned (not `hxrt`-owned):
+Examples that are currently compiler-owned migration debt (not approved
+`hxrt` ownership):
 
 - `sys.Http`
 - `sys.net.Socket` / `sys.net.Host`
@@ -185,7 +189,10 @@ Use `hxrt` when a helper is:
 - reusable across many lowering sites,
 - easier to verify once than duplicated per generated file.
 
-Keep behavior in compiler shims when it depends on compile-time metadata/profile policy or large generated type-shape contracts.
+Keep only an exact primitive in the compiler when correctness needs compile-time
+metadata, policy, or a representation fact that staged source and typed `hxrt`
+cannot express. A large generated type shape is a reason to design a typed
+boundary, not by itself a reason to keep public behavior in a compiler shim.
 
 When changing `hxrt`, update evidence:
 

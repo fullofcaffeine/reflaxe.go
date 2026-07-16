@@ -23,8 +23,14 @@ STDLIB_MIGRATION_LOG_DOC = REPO_ROOT / "docs" / "stdlib-shim-migration-log.md"
 OWNER_COMPATIBILITY = {
     "staged_std": {"haxe_source", "mixed"},
     "runtime_hxrt": {"runtime_binding", "mixed"},
-    "compiler_shim": {"compiler_intrinsic", "mixed"},
-    "mixed": {"haxe_source", "runtime_binding", "compiler_intrinsic", "mixed"},
+    "compiler_shim": {"compiler_intrinsic", "compiler_migration", "mixed"},
+    "mixed": {
+        "haxe_source",
+        "runtime_binding",
+        "compiler_intrinsic",
+        "compiler_migration",
+        "mixed",
+    },
 }
 
 

@@ -180,6 +180,20 @@ for shim_source, shim_groups in SOURCE_EXPECTED_SHIM_GROUPS.items():
     EXPECTED_SHIM_GROUPS[shim_source] = shim_groups
     EXPECTED_SHIM_GROUPS[shim_destination] = shim_groups
 
+EXPECTED_SHIM_AUDIT_DECISIONS = {
+    "ds": "migration_required_haxe_go_vfp_8_7_10",
+    "http": "migration_required_haxe_go_vfp_8_7_12",
+    "io": "migration_required_haxe_go_vfp_8_7_11",
+    "net_socket": "migration_required_haxe_go_vfp_8_7_14",
+    "stdlib_symbols": "split_migration_debt_from_exact_intrinsics_haxe_go_vfp_8_7_15",
+    "template_support": "migration_required_haxe_go_vfp_8_7_16",
+}
+
+SHIM_AUDIT_AUTHORITY_REFERENCES = {
+    "docs/compiler-stdlib-intrinsics.json",
+    "test/test_compiler_stdlib_intrinsic_registry.py",
+}
+
 
 def load_ledger() -> dict[str, object]:
     return json.loads(LEDGER_PATH.read_text(encoding="utf-8"))
@@ -338,7 +352,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertIsInstance(audits, list)
         audit_by_group = {audit["group"]: audit for audit in audits}
         self.assertEqual(
-            {"ds", "http", "io", "net_socket", "stdlib_symbols", "template_support"},
+            set(EXPECTED_SHIM_AUDIT_DECISIONS),
             set(audit_by_group),
         )
 
@@ -354,11 +368,10 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
 
         for group, audit in sorted(audit_by_group.items()):
             self.assertEqual(actual_paths_by_group[group], set(audit.get("sourcePaths", [])), group)
-            self.assertIsInstance(audit.get("decision"), str, group)
-            self.assertTrue(audit["decision"], group)
+            self.assertEqual(EXPECTED_SHIM_AUDIT_DECISIONS[group], audit.get("decision"), group)
             references = audit.get("references")
             self.assertIsInstance(references, list, group)
-            self.assertTrue(references, group)
+            self.assertTrue(SHIM_AUDIT_AUTHORITY_REFERENCES.issubset(references), group)
             for reference in references:
                 self.assertTrue((ROOT / reference).is_file(), f"{group}: missing audit reference {reference}")
 
@@ -594,6 +607,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertEqual(contract_command, scripts.get("test:stdlib:migration-ledger"))
         self.assertIn("npm run test:stdlib:provenance", scripts.get("test:stdlib:governance", ""))
         self.assertIn("npm run test:stdlib:migration-ledger", scripts.get("test:stdlib:governance", ""))
+        self.assertIn("npm run test:stdlib:intrinsics", scripts.get("test:stdlib:governance", ""))
         self.assertIn("test/test_stdlib_migration_ledger_contract.py", RELEASE_RUNNER_PATH.read_text(encoding="utf-8"))
         self.assertIn("stdlib-provenance-ledger.json", CHECKER_PATH.read_text(encoding="utf-8"))
 

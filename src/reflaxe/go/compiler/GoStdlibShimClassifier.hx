@@ -3,7 +3,81 @@ package reflaxe.go.compiler;
 #if macro
 import haxe.macro.Type;
 
+private typedef GoStdlibShimSurface = {
+	final kind:String;
+	final path:String;
+	final groups:Array<String>;
+}
+
+/**
+	What:
+	- Selects the remaining compiler-emitted standard-library groups for exact
+	  typed Haxe class and enum symbols.
+
+	Why:
+	- Broad package/name predicates hid which public symbols still caused compiler
+	  stdlib ownership and made additions difficult to audit bidirectionally.
+
+	How:
+	- Keeps one flat, machine-auditable list of fully qualified symbols.
+	- `test_compiler_stdlib_intrinsic_registry.py` compares every entry with the
+	  canonical ownership decision in `docs/compiler-stdlib-intrinsics.json`.
+**/
 class GoStdlibShimClassifier {
+	static final SURFACES:Array<GoStdlibShimSurface> = [
+		{kind: "class", path: "Date", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "EReg", groups: ["regex_serializer"]},
+		{kind: "class", path: "Math", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "Reflect", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "Std", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "Type", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "UnicodeString", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "Xml", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "_UnicodeString.UnicodeString_Impl_", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "haxe.Serializer", groups: ["regex_serializer"]},
+		{kind: "class", path: "haxe.Unserializer", groups: ["regex_serializer"]},
+		{kind: "class", path: "haxe.atomic.AtomicBool", groups: ["atomic"]},
+		{kind: "class", path: "haxe.atomic.AtomicInt", groups: ["atomic"]},
+		{kind: "class", path: "haxe.atomic.AtomicObject", groups: ["atomic"]},
+		{kind: "class", path: "haxe.atomic._AtomicBool.AtomicBool_Impl_", groups: ["atomic"]},
+		{kind: "class", path: "haxe.atomic._AtomicInt.AtomicInt_Impl_", groups: ["atomic"]},
+		{kind: "class", path: "haxe.atomic._AtomicObject.AtomicObject_Impl_", groups: ["atomic"]},
+		{kind: "class", path: "haxe.crypto.Base64", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "haxe.crypto.Md5", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "haxe.crypto.Sha1", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "haxe.crypto.Sha224", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "haxe.crypto.Sha256", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "haxe.ds.BalancedTree", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "haxe.ds.EnumValueMap", groups: ["ds"]},
+		{kind: "class", path: "haxe.ds.IntMap", groups: ["ds"]},
+		{kind: "class", path: "haxe.ds.List", groups: ["ds"]},
+		{kind: "class", path: "haxe.ds.ObjectMap", groups: ["ds"]},
+		{kind: "class", path: "haxe.ds.StringMap", groups: ["ds"]},
+		{kind: "class", path: "haxe.io.BufferInput", groups: ["io"]},
+		{kind: "class", path: "haxe.io.Bytes", groups: ["io"]},
+		{kind: "class", path: "haxe.io.BytesBuffer", groups: ["io"]},
+		{kind: "class", path: "haxe.io.BytesInput", groups: ["io"]},
+		{kind: "class", path: "haxe.io.BytesOutput", groups: ["io"]},
+		{kind: "class", path: "haxe.io.Encoding", groups: ["io"]},
+		{kind: "class", path: "haxe.io.Eof", groups: ["io"]},
+		{kind: "class", path: "haxe.io.Input", groups: ["io"]},
+		{kind: "class", path: "haxe.io.Output", groups: ["io"]},
+		{kind: "class", path: "haxe.io.Path", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "haxe.io.StringInput", groups: ["io"]},
+		{kind: "class", path: "haxe.xml.Parser", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "haxe.xml.Printer", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "haxe.zip.Compress", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "haxe.zip.Uncompress", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "sys.Http", groups: ["http"]},
+		{kind: "class", path: "sys.net.Host", groups: ["net_socket"]},
+		{kind: "class", path: "sys.net.Socket", groups: ["net_socket"]},
+		{kind: "class", path: "sys.net.UdpSocket", groups: ["net_socket"]},
+		{kind: "class", path: "sys.ssl.Socket", groups: ["net_socket"]},
+		{kind: "class", path: "sys.ssl._Socket.Socket_Impl_", groups: ["net_socket"]},
+		{kind: "enum", path: "haxe.ds.Option", groups: ["stdlib_symbols"]},
+		{kind: "enum", path: "haxe.io.Error", groups: ["io"]}
+	];
+
 	public static function needsIoHelperSurface(classType:ClassType, fieldName:String, isIoInputHelperMethodName:String->Bool,
 			isIoOutputHelperMethodName:String->Bool):Bool {
 		if (classType.pack.join(".") != "haxe.io") {
@@ -20,82 +94,25 @@ class GoStdlibShimClassifier {
 	}
 
 	public static function requiredGroupsForClass(classType:ClassType):Array<String> {
-		var pack = classType.pack.join(".");
-		if (pack == "haxe.io") {
-			return switch (classType.name) {
-				case "BufferInput", "Bytes", "BytesBuffer", "Input", "Output", "Encoding", "BytesInput", "BytesOutput", "Eof", "StringInput":
-					["io"];
-				case "Path":
-					["stdlib_symbols"];
-				case _:
-					[];
-			};
-		}
-
-		if (pack == "haxe.ds") {
-			return switch (classType.name) {
-				case "IntMap", "StringMap", "ObjectMap", "EnumValueMap", "List":
-					["ds"];
-				case "BalancedTree":
-					["stdlib_symbols"];
-				case _:
-					[];
-			};
-		}
-
-		if (pack == "sys" && classType.name == "Http") {
-			return ["http"];
-		}
-
-		if (pack == "sys.net" && (classType.name == "Host" || classType.name == "Socket" || classType.name == "UdpSocket")) {
-			return ["net_socket"];
-		}
-
-		if (pack == "sys.ssl" && classType.name == "Socket") {
-			return ["net_socket"];
-		}
-
-		if (pack == "sys.ssl._Socket" && classType.name == "Socket_Impl_") {
-			return ["net_socket"];
-		}
-
-		if ((pack == "haxe.atomic"
-			&& (classType.name == "AtomicInt" || classType.name == "AtomicBool" || classType.name == "AtomicObject"))
-			|| (pack == "haxe.atomic._AtomicInt" && classType.name == "AtomicInt_Impl_")
-			|| (pack == "haxe.atomic._AtomicBool" && classType.name == "AtomicBool_Impl_")
-			|| (pack == "haxe.atomic._AtomicObject" && classType.name == "AtomicObject_Impl_")) {
-			return ["atomic"];
-		}
-
-		if ((pack == "" && classType.name == "EReg")
-			|| (pack == "haxe" && (classType.name == "Serializer" || classType.name == "Unserializer"))) {
-			return ["regex_serializer"];
-		}
-
-		if (((pack == ""
-			&& (classType.name == "Std" || classType.name == "Date" || classType.name == "Math" || classType.name == "Type" || classType.name == "Reflect"
-				|| classType.name == "Xml" || classType.name == "UnicodeString"))
-			|| (pack == "_UnicodeString" && classType.name == "UnicodeString_Impl_"))
-			|| (pack == "haxe.crypto"
-				&& (classType.name == "Base64" || classType.name == "Md5" || classType.name == "Sha1" || classType.name == "Sha224"
-					|| classType.name == "Sha256"))
-			|| (pack == "haxe.xml" && (classType.name == "Parser" || classType.name == "Printer"))
-			|| (pack == "haxe.zip" && (classType.name == "Compress" || classType.name == "Uncompress"))) {
-			return ["stdlib_symbols"];
-		}
-
-		return [];
+		return requiredGroups("class", qualifiedPath(classType.pack, classType.name));
 	}
 
 	public static function requiredGroupsForEnum(enumType:EnumType):Array<String> {
-		var pack = enumType.pack.join(".");
-		if (pack == "haxe.io" && enumType.name == "Error") {
-			return ["io"];
-		}
-		if (pack == "haxe.ds" && enumType.name == "Option") {
-			return ["stdlib_symbols"];
+		return requiredGroups("enum", qualifiedPath(enumType.pack, enumType.name));
+	}
+
+	static function requiredGroups(kind:String, path:String):Array<String> {
+		for (surface in SURFACES) {
+			if (surface.kind == kind && surface.path == path) {
+				return surface.groups.copy();
+			}
 		}
 		return [];
+	}
+
+	static function qualifiedPath(pack:Array<String>, name:String):String {
+		var packageName = pack.join(".");
+		return packageName == "" ? name : packageName + "." + name;
 	}
 }
 #end

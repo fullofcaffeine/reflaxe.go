@@ -92,9 +92,9 @@ Good current examples:
 - file/process/sys runtime helpers
 - bytes/string helper logic that operates on already-lowered representations
 
-## 3. Compiler-Owned Emitters
+## 3. Compiler-Owned Intrinsics
 
-Owner for irreducible backend-specific behavior that depends on compile-time information.
+Last-resort owner for an exact primitive that depends on compile-time information.
 
 Use compiler-owned emitters when correctness depends on:
 
@@ -102,19 +102,24 @@ Use compiler-owned emitters when correctness depends on:
 - generated type tables,
 - representation-sensitive lowering,
 - profile/boundary policy,
-- or backend-specific orchestration that staged std and `hxrt` cannot express honestly.
+- or a backend representation fact that staged std and `hxrt` cannot express honestly.
 
 Good current examples:
 
-- reflection/type creation metadata
-- serializer/unserializer metadata-driven emission
-- socket/readiness/deadline behavior
-- representation-coupled bytes/string paths
+- reflection/type creation metadata derived from the final reachable type graph
+- `Std.isOfType` checks against a compiler-known type token
+- the exact `haxe.Rest` slice construction bridge
+- exception-carrier conversion at typed catch/throw boundaries
 
 Important rule:
 
-- compiler-owned does **not** mean “leave it in the `GoCompiler.hx` monolith”
-- compiler-owned means it may stay in compiler space, but should live in dedicated emitters/planners when the surface is non-trivial
+- a tested implementation is not automatically an intrinsic
+- runtime behavior such as sockets, HTTP, regex, atomics, parsing, compression,
+  and collection algorithms belongs in staged source or `hxrt`
+- representation sensitivity justifies only the smallest exact primitive, not
+  compiler ownership of the surrounding public API
+- every admitted intrinsic must appear in
+  [`compiler-stdlib-intrinsics.json`](compiler-stdlib-intrinsics.json)
 
 ## 4. `go.*` Native Facade
 
@@ -184,8 +189,11 @@ Good mixed examples:
 - `Std`
 - `Sys`
 - `haxe.Json`
-- `haxe.io.Bytes`
-- `Lambda` / generic `Iterable<T>` calls, where public stdlib behavior stays source-owned and the compiler owns only the representation bridge for Go arrays, lists, and manual iterators
+- staged RTTI source over a narrow generated metadata table
+
+`haxe.io.Bytes`, `Lambda`, and generic collection calls are current mixed
+implementations, but their behavior-heavy compiler ownership is registered
+migration debt. They are not patterns to copy.
 
 Bad mixed ownership looks like:
 
@@ -215,6 +223,13 @@ audit found no directly selected compiler group, not that the audit was
 skipped. Any unresolved classification must appear in the ledger's
 `ambiguities` list with a follow-up Bead.
 
+The file ledger does not approve compiler ownership. The separate
+[`compiler-stdlib-intrinsics.json`](compiler-stdlib-intrinsics.json) registry
+inventories exact Haxe symbols, selector paths, compiler entry points, direct
+call rewrites, debt classification, evidence, review conditions, and migration
+Beads. Its bidirectional test fails when a compiler stdlib symbol or entry point
+is added without an explicit decision.
+
 ## What Not To Do
 
 Do not:
@@ -225,6 +240,7 @@ Do not:
 3. grow behavior-heavy raw Go blobs inside `GoCompiler.hx` when staged std or `hxrt` would work
 4. leave mixed ownership implicit
 5. claim semantic-diff parity for surfaces the repo itself only treats as snapshot-only or compile-only
+6. label a whole shim group “required” because one member consumes compiler metadata
 
 ## Required Update Sequence
 
@@ -246,7 +262,8 @@ These examples represent the intended direction:
 
 - `haxe.Template`
   - semantics in staged std
-  - narrow helper support in compiler/runtime only where necessary
+  - its remaining compiler-generated runtime reflection bridge is migration debt,
+    not an approved pattern
 - direct `haxe.exceptions.*` construction
   - staged std ownership for the subclass surface
   - `hxrt` carrier for runtime exception transport
@@ -255,7 +272,8 @@ These examples represent the intended direction:
 - `BalancedTree` / `GenericStack`
   - staged std ownership, not more compiler-resident collection blobs
 - `sys.Http`
-  - mixed ownership, with core choreography still compiler-owned and leaf helpers extracted cautiously
+  - currently mixed, with compiler-owned choreography explicitly scheduled for
+    staged source plus typed `hxrt` migration
 
 Those examples should be copied as patterns.
 They should not be treated as one-off accidents.

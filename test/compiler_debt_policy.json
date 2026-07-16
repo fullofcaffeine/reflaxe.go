@@ -7,12 +7,29 @@
       "what": "Haxe Dynamic values required by upstream Reflaxe hooks, macro lookup failures, or language-level catch behavior.",
       "why": "The APIs entering the backend expose Dynamic or may throw arbitrary Haxe values, so pretending these inputs are statically narrower would be unsound."
     },
-    "compiler_shim_boundary": {
+    "compiler_stdlib_intrinsic_boundary": {
       "classification": "required",
-      "how": "Keep each boundary in a named shim group or dedicated emitter, retain parity evidence, and refuse new groups without an ownership decision.",
-      "owner": "compiler shims",
-      "what": "Named compiler shim entry points that still own representation-sensitive or compile-context-sensitive generated declarations.",
-      "why": "Serializer metadata, reflection tables, native Go APIs, and selected standard-library carriers still require information unavailable to ordinary staged Haxe source."
+      "evidence": [
+        "docs/compiler-stdlib-intrinsics.json",
+        "test/test_compiler_stdlib_intrinsic_registry.py"
+      ],
+      "how": "Register each exact entry point and Haxe symbol in docs/compiler-stdlib-intrinsics.json, keep generated metadata separate from public library algorithms, and reject unregistered compiler ownership.",
+      "owner": "compiler stdlib intrinsics",
+      "reviewCondition": "Revisit whenever staged source or a typed runtime capability can consume the same representation or generated metadata without compiler-owned behavior.",
+      "what": "Narrow portable stdlib primitives that genuinely need the compiler's closed type metadata or backend representation knowledge.",
+      "why": "Ordinary staged source cannot enumerate the final generated type graph or safely construct a backend-owned carrier without that compile-time information."
+    },
+    "compiler_stdlib_migration_debt": {
+      "classification": "avoidable",
+      "evidence": [
+        "docs/compiler-stdlib-intrinsics.json",
+        "haxe_go-vfp.8.7.9 through haxe_go-vfp.8.7.17"
+      ],
+      "how": "Keep every group and exact Haxe symbol registered with a follow-up bead, prevent count growth, and remove entries as staged Haxe or typed hxrt ownership lands.",
+      "owner": "compiler stdlib migration",
+      "reviewCondition": "This exception expires group by group; it cannot be reused for a new symbol or to approve the current implementation as architecture.",
+      "what": "Named compiler-emitted portable standard-library entry points that still contain library or runtime behavior scheduled for migration.",
+      "why": "The behavior may be correct and tested, but its current compiler ownership violates the staged-source-first ownership rule and is therefore debt rather than a required boundary."
     },
     "generated_reflection_boundary": {
       "classification": "required",
@@ -27,6 +44,18 @@
       "owner": "generated output and copied hxrt",
       "what": "Direct Go unsafe package imports or selectors in committed portable or metal generated example output.",
       "why": "No generated example currently needs the unsafe package, and introducing it would weaken memory-safety evidence and checkptr confidence."
+    },
+    "native_compiler_shim_boundary": {
+      "classification": "required",
+      "evidence": [
+        "docs/compiler-stdlib-intrinsics.json",
+        "test/snapshot/go_native"
+      ],
+      "how": "Keep every explicit go.* emitter and debt context listed in docs/compiler-stdlib-intrinsics.json as a reviewed exclusion from portable stdlib ownership.",
+      "owner": "go-native compiler emitters",
+      "reviewCondition": "Revisit when typed Go IR can express the same native generic specialization without generated helper declarations.",
+      "what": "Compiler emitters used only by explicit typed go.* native APIs for channels, collections, and Go result tuples.",
+      "why": "These APIs deliberately request Go-native representations and compile-time generic specialization; they do not implement portable Haxe standard-library behavior."
     },
     "native_dynamic_contract": {
       "classification": "required",
@@ -83,9 +112,9 @@
   "limits": [
     {
       "capability": "atomic",
-      "classification": "required",
+      "classification": "avoidable",
       "context": "lowerAtomicStdlibShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "compiler_stdlib_migration_debt",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -95,9 +124,9 @@
     },
     {
       "capability": "collections",
-      "classification": "required",
+      "classification": "avoidable",
       "context": "lowerDsStdlibShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "compiler_stdlib_migration_debt",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -109,7 +138,7 @@
       "capability": "go_concurrency",
       "classification": "required",
       "context": "lowerGoConcurrencyShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "native_compiler_shim_boundary",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -121,7 +150,7 @@
       "capability": "go_result",
       "classification": "required",
       "context": "lowerGoResultShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "native_compiler_shim_boundary",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -131,9 +160,9 @@
     },
     {
       "capability": "http",
-      "classification": "required",
+      "classification": "avoidable",
       "context": "lowerHttpStdlibShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "compiler_stdlib_migration_debt",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -143,9 +172,9 @@
     },
     {
       "capability": "io",
-      "classification": "required",
+      "classification": "avoidable",
       "context": "lowerIoStdlibShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "compiler_stdlib_migration_debt",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -155,9 +184,9 @@
     },
     {
       "capability": "net_socket",
-      "classification": "required",
+      "classification": "avoidable",
       "context": "lowerNetSocketShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "compiler_stdlib_migration_debt",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -167,9 +196,9 @@
     },
     {
       "capability": "regex_serializer",
-      "classification": "required",
+      "classification": "avoidable",
       "context": "lowerRegexSerializerShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "compiler_stdlib_migration_debt",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -179,9 +208,9 @@
     },
     {
       "capability": "stdlib_dispatch",
-      "classification": "required",
+      "classification": "avoidable",
       "context": "lowerStdlibShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "compiler_stdlib_migration_debt",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -191,9 +220,9 @@
     },
     {
       "capability": "stdlib_symbols",
-      "classification": "required",
+      "classification": "avoidable",
       "context": "lowerStdlibSymbolShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "compiler_stdlib_migration_debt",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -203,9 +232,9 @@
     },
     {
       "capability": "template",
-      "classification": "required",
+      "classification": "avoidable",
       "context": "lowerTemplateSupportShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "compiler_stdlib_migration_debt",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -217,7 +246,7 @@
       "capability": "reflection",
       "classification": "required",
       "context": "lowerTypeReflectionShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "compiler_stdlib_intrinsic_boundary",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -229,7 +258,7 @@
       "capability": "go_collections",
       "classification": "required",
       "context": "lowerTypedGoCollectionShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "native_compiler_shim_boundary",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -241,7 +270,7 @@
       "capability": "go_concurrency",
       "classification": "required",
       "context": "lowerTypedGoConcurrencyShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "native_compiler_shim_boundary",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -253,7 +282,7 @@
       "capability": "go_result",
       "classification": "required",
       "context": "lowerTypedGoResultShimDecls",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "native_compiler_shim_boundary",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",
@@ -263,9 +292,9 @@
     },
     {
       "capability": "reflection",
-      "classification": "required",
+      "classification": "avoidable",
       "context": "reflectFieldsShimDecl",
-      "exception_id": "compiler_shim_boundary",
+      "exception_id": "compiler_stdlib_migration_debt",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",

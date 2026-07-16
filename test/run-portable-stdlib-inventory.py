@@ -249,34 +249,34 @@ MODULE_NOTES_OVERRIDES = {
     "haxe.io.BufferInput": (
         "Direct `haxe.io.BufferInput` constructor and buffered-read baseline now have semantic-diff "
         "coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in "
-        "`stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy "
-        "because this backend still owns the representation-sensitive `Input` / `BytesInput` / "
-        "`BufferInput` type shapes and inherited helper wiring."
+        "`stdlib/haxe_io_misc_direct`. The backend still emits the `Input` / `BytesInput` / "
+        "`BufferInput` shapes as compatibility migration debt; `haxe_go-vfp.8.7.11` moves the "
+        "public IO hierarchy to staged source over a narrower typed byte boundary."
     ),
     "haxe.io.BytesData": (
         "Direct `haxe.io.BytesData` alias semantics now have semantic-diff coverage through "
         "`semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`, "
         "including `Bytes.getData()` / `Bytes.ofData()` alias mutation behavior. Ownership stays mixed "
-        "because the public alias is source-level, while the actual behavior still rides on the "
-        "compiler-owned `haxe.io.Bytes` carrier."
+        "because the public alias is source-level, while the actual behavior currently rides on the "
+        "compiler-emitted `haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`."
     ),
     "haxe.io.Encoding": (
         "Direct `haxe.io.Encoding` constructor and pattern-match parity now have semantic-diff coverage "
         "through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
-        "Ownership stays compiler-owned with the base IO hierarchy because the backend still emits the "
-        "encoding tag values used by `Bytes`, `Input`, and `Output` shims."
+        "The backend still emits the encoding tags used by the IO shims as compatibility migration "
+        "debt; `haxe_go-vfp.8.7.11` moves that public behavior to staged source."
     ),
     "haxe.io.Eof": (
         "Direct `haxe.io.Eof` construction and string parity now have semantic-diff coverage through "
         "`semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
-        "Ownership stays compiler-owned with the base IO hierarchy because the backend still emits the "
-        "`Eof` carrier used by IO shims and exception matching."
+        "The backend still emits the `Eof` carrier used by IO shims and exception matching as "
+        "compatibility migration debt tracked by `haxe_go-vfp.8.7.11`."
     ),
     "haxe.io.Error": (
         "Direct `haxe.io.Error` constructor and pattern-match parity now have semantic-diff coverage "
         "through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
-        "Ownership stays compiler-owned with the base IO hierarchy because the backend still emits the "
-        "error-tag carrier used by the public IO shims."
+        "The backend still emits the error-tag carrier used by the public IO shims as compatibility "
+        "migration debt tracked by `haxe_go-vfp.8.7.11`."
     ),
     "haxe.io.FPHelper": (
         "Direct `haxe.io.FPHelper` bit-conversion helpers now have semantic-diff coverage through "
@@ -288,42 +288,44 @@ MODULE_NOTES_OVERRIDES = {
         "Direct `haxe.io.ArrayBufferView` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: the public typed-array API now lives "
-        "in staged overrides under `std/go/_std/haxe/io/*.hx`, while the underlying carrier still rides on "
-        "the compiler-owned `haxe.io.Bytes` / `ArrayBufferViewImpl` representation."
+        "in staged overrides under `std/go/_std/haxe/io/*.hx`, while the underlying carrier currently "
+        "rides on the compiler-emitted `haxe.io.Bytes` / `ArrayBufferViewImpl` representation tracked "
+        "as migration debt by `haxe_go-vfp.8.7.11`."
     ),
     "haxe.io.UInt8Array": (
         "Direct `haxe.io.UInt8Array` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
-        "API, while the actual storage and byte normalization still ride on the compiler-owned "
-        "`haxe.io.Bytes` carrier."
+        "API, while the actual storage and byte normalization currently ride on the compiler-emitted "
+        "`haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`."
     ),
     "haxe.io.UInt16Array": (
         "Direct `haxe.io.UInt16Array` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
-        "API, while the actual storage and byte normalization still ride on the compiler-owned "
-        "`haxe.io.Bytes` carrier."
+        "API, while the actual storage and byte normalization currently ride on the compiler-emitted "
+        "`haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`."
     ),
     "haxe.io.UInt32Array": (
         "Direct `haxe.io.UInt32Array` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
-        "API, while the actual storage and byte normalization still ride on the compiler-owned "
-        "`haxe.io.Bytes` carrier."
+        "API, while the actual storage and byte normalization currently ride on the compiler-emitted "
+        "`haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`."
     ),
     "haxe.io.Int32Array": (
         "Direct `haxe.io.Int32Array` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
-        "API, while the actual storage and byte normalization still ride on the compiler-owned "
-        "`haxe.io.Bytes` carrier."
+        "API, while the actual storage and byte normalization currently ride on the compiler-emitted "
+        "`haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`."
     ),
     "haxe.io.Float32Array": (
         "Direct `haxe.io.Float32Array` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
-        "API, the actual storage still rides on the compiler-owned `haxe.io.Bytes` carrier, and the float "
+        "API, the actual storage currently rides on the compiler-emitted `haxe.io.Bytes` carrier tracked "
+        "as migration debt by `haxe_go-vfp.8.7.11`, and the float "
         "bit conversions are expressed through staged `haxe.io.FPHelper` helpers instead of new raw compiler "
         "bytes logic."
     ),
@@ -331,7 +333,8 @@ MODULE_NOTES_OVERRIDES = {
         "Direct `haxe.io.Float64Array` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
-        "API, the actual storage still rides on the compiler-owned `haxe.io.Bytes` carrier, and the float "
+        "API, the actual storage currently rides on the compiler-emitted `haxe.io.Bytes` carrier tracked "
+        "as migration debt by `haxe_go-vfp.8.7.11`, and the float "
         "bit conversions are expressed through staged `haxe.io.FPHelper` helpers instead of new raw compiler "
         "bytes logic."
     ),
@@ -356,9 +359,9 @@ MODULE_NOTES_OVERRIDES = {
     "haxe.io.StringInput": (
         "Direct `haxe.io.StringInput` constructor and inherited-read baseline now have semantic-diff "
         "coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in "
-        "`stdlib/haxe_io_misc_direct`. Ownership stays compiler-owned with the base IO hierarchy because "
-        "this backend still owns the representation-sensitive `BytesInput` / `StringInput` type shapes "
-        "and inherited helper wiring."
+        "`stdlib/haxe_io_misc_direct`. The backend still emits the `BytesInput` / `StringInput` type "
+        "shapes as compatibility migration debt; `haxe_go-vfp.8.7.11` moves the public IO hierarchy "
+        "to staged source over a narrower typed byte boundary."
     ),
     "haxe.ValueException": (
         "Direct haxe.ValueException constructor/message/value parity now has semantic-diff coverage. "
@@ -423,8 +426,9 @@ MODULE_NOTES_OVERRIDES = {
     "sys.net.UdpSocket": (
         "Direct `sys.net.UdpSocket` usage now has deterministic snapshot/runtime coverage through "
         "`stdlib/sys_net_udp_socket_direct`, covering loopback `bind` / `host` / `sendTo` / `readFrom` / `setBroadcast` "
-        "plus peer address round-tripping. Ownership stays compiler-owned inside the `net_socket` shim "
-        "group because UDP deadline/blocking/address translation and broadcast socket-option behavior are still target-sensitive. "
+        "plus peer address round-tripping. The current `net_socket` compiler group is compatibility "
+        "migration debt; `haxe_go-vfp.8.7.14` moves public socket APIs to staged source over typed "
+        "runtime handles for target-sensitive deadlines, blocking, address translation, and socket options. "
         "The evidence covers OS socket-option installation without requiring LAN broadcast packet delivery in CI."
     ),
     "sys.ssl.Certificate": (
@@ -478,7 +482,8 @@ MODULE_NOTES_OVERRIDES = {
     "sys.ssl.Socket": (
         "Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct` "
         "and SNI selection coverage through `stdlib/sys_ssl_socket_sni_direct`, "
-        "covering staged public socket configuration on top of the compiler-owned `sys.net.Socket` carrier plus "
+        "covering staged public socket configuration on top of the compiler-emitted `sys.net.Socket` carrier "
+        "tracked as migration debt by `haxe_go-vfp.8.7.14`, plus "
         "runtime TLS dial/listen/handshake/peer-certificate/SNI behavior in `runtime/hxrt/ssl.go`. Ownership stays mixed: "
         "the public Haxe API lives in `std/go/_std/sys/ssl/Socket.hx`, while the underlying connection/listener TLS "
         "behavior remains runtime-owned."

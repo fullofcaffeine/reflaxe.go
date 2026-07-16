@@ -10,6 +10,7 @@ This document defines ownership mapping for Tier1 portable modules:
 - Haxe-source implementation
 - runtime binding (`hxrt`)
 - compiler intrinsic/shim
+- compiler compatibility migration debt
 - mixed ownership (explicitly split)
 
 It is the canonical Tier1 module-mapping seed for family extraction work.
@@ -27,32 +28,38 @@ Contract inputs:
 2. `runtime_binding`
    - Haxe surface delegates behavior to runtime package functions in `runtime/hxrt/*.go`.
 3. `compiler_intrinsic`
-   - Behavior is emitted directly by compiler lowering/shim generation.
+   - An exact operation is emitted directly because it needs closed compiler
+     metadata or a backend representation fact. Admission is defined by
+     `docs/compiler-stdlib-intrinsics.json`.
 4. `mixed`
    - Surface spans more than one class above; split is explicit and test-gated.
+5. `compiler_migration`
+   - The current implementation is compiler-emitted for compatibility, but its
+     behavior belongs in staged source or `hxrt` and has a concrete migration
+     bead. This is current location, not approved architecture.
 
 ## Tier1 Mapping Table
 
 | Module | Ownership class | Primary implementation location | Runtime dependency | Tier1 conformance cases |
 | --- | --- | --- | --- | --- |
-| `Math` | `compiler_intrinsic` | `src/reflaxe/go/GoCompiler.hx` (`lowerStdlibSymbolShimDecls`) | Indirect via core helpers where needed | `numeric_edge_cases`, `stringtools_math` |
-| `Std` | `mixed` (`compiler_intrinsic` + runtime helper calls) | `src/reflaxe/go/GoCompiler.hx` (`lowerStdlibSymbolShimDecls`, core lowering paths) | `runtime/hxrt/string.go`, `runtime/hxrt/exception.go`, core helpers | `exception_api_contract`, `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract`, `typed_nil_dynamic_string_contract` |
+| `Math` | `compiler_migration` | Current compatibility implementation: `lowerStdlibSymbolShimDecls`; target owner: staged source plus narrow runtime math capabilities | Indirect via core helpers where needed | `numeric_edge_cases`, `stringtools_math`; migration `haxe_go-vfp.8.7.15` |
+| `Std` | `mixed` (exact `compiler_intrinsic` primitives + `compiler_migration` + runtime helpers) | `Std.isOfType` and representation conversion are individually registered; the broad `stdlib_symbols` block is migration debt | `runtime/hxrt/string.go`, `runtime/hxrt/exception.go`, core helpers | `exception_api_contract`, `std_is_of_type_contract`, `std_is_of_type_runtime_core_abstract_contract`, `typed_nil_dynamic_string_contract`; migration `haxe_go-vfp.8.7.15` |
 | `DateTools` | `haxe_source` | `std/go/_std/DateTools.hx` | None beyond core `Date` and string primitives already owned elsewhere | `stringbuf_datetools_lambda_contract`, `datetools_cross_std_contract` |
 | `StringTools` | `haxe_source` | `std/go/_std/StringTools.hx` | None beyond core string/runtime primitives used by normal lowering | `stringtools_math`, `stringtools_cross_std_contract` |
 | `Sys` | `mixed` (`haxe_source` + `runtime_binding`, with one compile-time unsupported diagnostic) | `std/go/_std/Sys.hx` with typed bindings in `std/hxrt/sys` and `std/hxrt/fs` | `runtime/hxrt/sys.go` provides root process capabilities, `runtime/hxrt/file.go` provides non-owning standard-stream handles, and footprint-explicit build-tagged `runtime/hxrt/terminal*.go` provides terminal state plus one-byte input. Staged Haxe retains `getChar` EOF/echo semantics. The complete root surface is specified in [Portable root `Sys` contract](portable-sys-contract.md). Portable `putEnv` discards the retained native error for Haxe 4.3.7 eval parity; `setTimeLocale` reports `false`; `cpuTime` fails at Haxe compile time. | `root_sys_contract`, `root_sys_portable_contract`, `sys_io_roundtrip`, `file_error_semantics_contract`, `sys_sleep_contract`, `sys/root_sys_portable`, `sys/sys_get_char_terminal`, `test_sys_get_char_terminal.py`, `core/runtime_hxrt_infer_sys`, `negative/sys_cpu_time_unsupported` |
 | `haxe.Utf8` | `haxe_source` | `std/go/_std/haxe/Utf8.hx` | None beyond `haxe.io.Bytes`, `UnicodeString`, and shared Go string runtime helpers already owned elsewhere | `haxe_utf8_contract`, `stdlib/haxe_utf8_basic` |
 | `haxe.Json` | `mixed` (`haxe_source` + `runtime_binding`) | `std/go/_std/haxe/Json.hx` | `runtime/hxrt/json.go` | `json_parse_stringify_contract` |
-| `haxe.ds.EnumValueMap` | `compiler_intrinsic` | `src/reflaxe/go/GoCompiler.hx` (`lowerDsStdlibShimDecls`) | Uses core runtime helpers for dynamic/null pathways | `ds_maps_list_contract` |
-| `haxe.ds.IntMap` | `mixed` (`haxe_source` + `compiler_intrinsic`) | `std/go/_std/haxe/ds/IntMap.hx` public extern/API over `lowerDsStdlibShimDecls` | Compiler-owned native map carrier and core dynamic/null helpers | `ds_maps_list_contract` |
-| `haxe.ds.ObjectMap` | `mixed` (`haxe_source` + `compiler_intrinsic`) | `std/go/_std/haxe/ds/ObjectMap.hx` public extern/API over `lowerDsStdlibShimDecls` | Compiler-owned native map carrier and core dynamic/null helpers | `ds_maps_list_contract` |
-| `haxe.ds.StringMap` | `mixed` (`haxe_source` + `compiler_intrinsic`) | `std/go/_std/haxe/ds/StringMap.hx` public extern/API over `lowerDsStdlibShimDecls` | Compiler-owned native map carrier and core dynamic/null helpers | `ds_maps_list_contract` |
-| `haxe.io.Bytes` | `mixed` (`compiler_intrinsic` + runtime helper calls) | `src/reflaxe/go/GoCompiler.hx` (`lowerIoStdlibShimDecls`) | `runtime/hxrt/bytes.go`, `runtime/hxrt/string.go` | `bytes_hex_contract`, `bytes_io_stream_contract`, `bytes_normalization_contract`, `bytes_of_data_contract`, `bytes_ops_contract`, `io_encoding_contract` |
+| `haxe.ds.EnumValueMap` | `compiler_migration` | Current compatibility implementation: `lowerDsStdlibShimDecls`; target owner: staged source over any narrow typed storage capability | Uses core runtime helpers for dynamic/null pathways | `ds_maps_list_contract`; migration `haxe_go-vfp.8.7.10` |
+| `haxe.ds.IntMap` | `mixed` (`haxe_source` + `compiler_migration`) | `std/go/_std/haxe/ds/IntMap.hx` currently fronts the migration-debt `ds` group | Current compiler-owned native map carrier and core dynamic/null helpers | `ds_maps_list_contract`; migration `haxe_go-vfp.8.7.10` |
+| `haxe.ds.ObjectMap` | `mixed` (`haxe_source` + `compiler_migration`) | `std/go/_std/haxe/ds/ObjectMap.hx` currently fronts the migration-debt `ds` group | Current compiler-owned native map carrier and core dynamic/null helpers | `ds_maps_list_contract`; migration `haxe_go-vfp.8.7.10` |
+| `haxe.ds.StringMap` | `mixed` (`haxe_source` + `compiler_migration`) | `std/go/_std/haxe/ds/StringMap.hx` currently fronts the migration-debt `ds` group | Current compiler-owned native map carrier and core dynamic/null helpers | `ds_maps_list_contract`; migration `haxe_go-vfp.8.7.10` |
+| `haxe.io.Bytes` | `mixed` (`compiler_migration` + runtime helper calls) | Current compatibility implementation: `lowerIoStdlibShimDecls`; target owner: staged source over typed raw-byte storage | `runtime/hxrt/bytes.go`, `runtime/hxrt/string.go` | Existing bytes/IO contracts; migration `haxe_go-vfp.8.7.11` |
 | `haxe.io.Path` | `haxe_source` | upstream Haxe stdlib `haxe/io/Path.hx` | Core string and array helpers lowered by the target (`lastIndexOf`, `split`, `Array.join`, `String.fromCharCode`) | `option_date_path`, `path_cross_std_contract` |
 | `sys.FileSystem` | `mixed` (`haxe_source` + `runtime_binding`) | `std/go/_std/sys/FileSystem.hx` with typed carriers in `std/hxrt/fs` | `runtime/hxrt/filesystem.go`, `runtime/hxrt/string.go`, `runtime/hxrt/exception.go` | `filesystem_contract`, `sys/filesystem_basic_smoke` |
 | `sys.io.File` | `mixed` (`haxe_source` + `runtime_binding`) | `std/go/_std/sys/io/File.hx`, `FileInput.hx`, `FileOutput.hx`, and `FileSeek.hx`, with typed carriers in `std/hxrt/fs` | selectively copied `runtime/hxrt/file.go`; native OS failures remain Haxe exceptions, while byte conversion, bounds/EOF semantics, seek mapping, and public stream construction stay in Haxe source | `file_read_write_contract`, `file_error_semantics_contract`, `semantic_diff/sys_db_io_contract`, `sys/file_error_semantics`, `stdlib/sys_db_io_direct` |
 | `sys.io.Process` | `mixed` (`haxe_source` + `runtime_binding`) | `std/go/_std/sys/io/Process.hx` with typed opaque carriers in `std/hxrt/process` | selectively copied `runtime/hxrt/process.go`; native spawn, pipes, waits, signals, and close stay in Go, while stream construction, bounds/EOF translation, detached rejection, `Null<Int>` exit status, and public lifecycle policy stay in Haxe source | `process_echo_contract`, `process_error_semantics_contract`, `sys/process_error_semantics`, `core/runtime_hxrt_infer_process` |
-| `sys.net.Socket` | `compiler_intrinsic` | `src/reflaxe/go/compiler/emit/GoNetSocketEmitter.hx` (wired from `src/reflaxe/go/GoCompiler.hx`) | Uses core runtime helpers (`Throw`, string conversion) and the shared `haxe.io.Input` helper layer for socket input stream methods | `socket_advanced_contract`, `socket_loopback_contract`, `sys/socket_input_service_surface` |
-| `sys.net.UdpSocket` | `compiler_intrinsic` | `src/reflaxe/go/compiler/emit/GoNetSocketEmitter.hx` (wired from `src/reflaxe/go/GoCompiler.hx`) | Uses core runtime helpers (`Throw`, string conversion) where needed | `stdlib/sys_net_udp_socket_direct`; policy spike: `docs/spikes/ssl-udp-semantic-diff-spike.md` |
+| `sys.net.Socket` | `compiler_migration` | Current compatibility implementation: `GoNetSocketEmitter`; target owner: staged API over typed runtime socket handles | Uses core runtime helpers and the shared `haxe.io.Input` helper layer today | Existing TCP contracts; migration `haxe_go-vfp.8.7.14` |
+| `sys.net.UdpSocket` | `compiler_migration` | Current compatibility implementation: `GoNetSocketEmitter`; target owner: staged API over typed runtime UDP handles | Uses core runtime helpers today | `stdlib/sys_net_udp_socket_direct`; migration `haxe_go-vfp.8.7.14` |
 
 ## Additional Mixed-Ownership Rows
 
@@ -61,8 +68,8 @@ their ownership split is easy to misunderstand.
 
 | Module family | Ownership class | Public implementation location | Backend-owned support beneath it | Evidence |
 | --- | --- | --- | --- | --- |
-| `haxe.io` misc direct surfaces (`BufferInput`, `BytesData`, `Encoding`, `Eof`, `Error`, `FPHelper`, `Mime`, `Scheme`, `StringInput`) | `mixed` | upstream `std/haxe/io/**` plus `std/go/_std/haxe/io/FPHelper.hx` | compiler-owned base IO/encoding/error/input hierarchy for `BufferInput` / `StringInput` / `Encoding` / `Eof` / `Error`, plus the `haxe.io.Bytes` carrier beneath `BytesData` | `semantic_diff/haxe_io_misc_contract`, `stdlib/haxe_io_misc_direct` |
-| `haxe.io` typed arrays (`ArrayBufferView`, `UInt8Array`, `UInt16Array`, `UInt32Array`, `Int32Array`, `Float32Array`, `Float64Array`) | `mixed` | `std/go/_std/haxe/io/*.hx` | compiler-owned `haxe.io.Bytes` / `ArrayBufferViewImpl` carrier plus source-owned abstract static-method/default-arg routing in the compiler; float arrays reuse staged `haxe.io.FPHelper` instead of adding more compiler-owned bytes logic | `semantic_diff/haxe_io_typed_arrays_contract`, `stdlib/haxe_io_typed_arrays_direct` |
+| `haxe.io` misc direct surfaces (`BufferInput`, `BytesData`, `Encoding`, `Eof`, `Error`, `FPHelper`, `Mime`, `Scheme`, `StringInput`) | `mixed` with `compiler_migration` | upstream `std/haxe/io/**` plus `std/go/_std/haxe/io/FPHelper.hx` | current migration-debt base IO/encoding/error/input hierarchy plus the Bytes carrier; target ownership is staged source over a narrow typed representation boundary | `semantic_diff/haxe_io_misc_contract`, `stdlib/haxe_io_misc_direct`, `haxe_go-vfp.8.7.11` |
+| `haxe.io` typed arrays (`ArrayBufferView`, `UInt8Array`, `UInt16Array`, `UInt32Array`, `Int32Array`, `Float32Array`, `Float64Array`) | `mixed` with `compiler_migration` | `std/go/_std/haxe/io/*.hx` | current migration-debt `haxe.io.Bytes` / `ArrayBufferViewImpl` carrier plus source-owned abstract behavior; float arrays already reuse staged `haxe.io.FPHelper` | `semantic_diff/haxe_io_typed_arrays_contract`, `stdlib/haxe_io_typed_arrays_direct`, `haxe_go-vfp.8.7.11` |
 | `sys.db` direct surfaces (`Connection`, `ResultSet`, `Mysql`, `Sqlite`) | `mixed` | upstream `std/sys/db/**` interfaces and platform stubs | no fake DB runtime; Go keeps the upstream platform contract where `Mysql.connect` / `Sqlite.open` remain explicit unsupported runtime stubs instead of inventing target-owned behavior | `semantic_diff/sys_db_io_contract`, `stdlib/sys_db_io_direct` |
 | `sys.io` direct handle surfaces (`FileInput`, `FileOutput`, `FileSeek`) | `mixed` (`FileSeek` is fully source-owned) | canonical staged modules under `std/go/_std/sys/io`; no File-specific compiler declarations or branches remain | typed opaque handles and native operations in `std/hxrt/fs` + `runtime/hxrt/file.go` beneath the source-owned public Haxe stream API | `semantic_diff/sys_db_io_contract`, `stdlib/sys_db_io_direct` |
 | `sys.ssl` direct surfaces (`Certificate`, `Digest`, `DigestAlgorithm`, `Key`, `Socket`) | `mixed` | `std/go/_std/sys/ssl/*.hx` for the public API; `DigestAlgorithm` is fully source-owned | `runtime/hxrt/ssl.go` for certificate parsing, key parsing, digest/sign/verify, and TLS socket dial/listen/handshake/SNI selection helpers beneath the public wrappers | `stdlib/sys_ssl_leaf_direct`, `stdlib/sys_ssl_socket_direct`, `stdlib/sys_ssl_socket_sni_direct`, `semantic_diff/sys_net_address_ssl_digest_algorithm_contract`, `stdlib/sys_net_address_ssl_digest_algorithm_direct`; policy spike: `docs/spikes/ssl-udp-semantic-diff-spike.md` |
@@ -88,24 +95,27 @@ public ownership view.
 ## Transition Notes (Post-`__go__` Audit)
 
 - `haxe.io.Bytes`
-  - The current `mixed` classification is still correct for parity today.
+  - The current `mixed` classification describes implementation location today;
+    it is not an approval of the compiler-owned API.
   - The first post-`__go__` extraction already moved pure hex and `BytesBuffer` leaf helpers into `runtime/hxrt/bytes.go`, leaving thin compiler wrappers in place.
-  - The remaining compiler-owned subset is the RawNative/cache-coupled string path (`ofString`, `getString`, UTF16/raw-native conversion helpers) because it still co-owns `__hx_raw` cache validity and encoding-tag behavior.
+  - The remaining compiler-emitted RawNative/cache-coupled string path (`ofString`, `getString`, UTF16/raw-native conversion helpers) is migration debt under `haxe_go-vfp.8.7.11`. Its `__hx_raw` cache validity and encoding-tag behavior are acceptance constraints for the replacement, not reasons to keep public library behavior in the compiler.
   - The ownership lock is `stdlib/bytes_raw_native_compiler_ownership`, which proves RawNative `Bytes.set(...)` still needs to invalidate the cached raw-byte view seen by downstream consumers such as Base64.
   - Closed evidence: `haxe.go-14as.51`, `haxe.go-14as.54`
 - `haxe.io.Input` / `haxe.io.Output`
   - These surfaces are not listed as separate Tier1 rows here, but their inherited helper loops no longer live as raw loop bodies in `GoCompiler`.
-  - `readAll`, `readLine`, `readUntil`, `readFullBytes`, `write`, `writeFullBytes`, `writeInput`, and `writeString` now route through `std/haxe/io/GoIoHelpers.hx`, with `GoCompiler` keeping only the public wrapper functions and the representation-sensitive base IO types.
+  - `readAll`, `readLine`, `readUntil`, `readFullBytes`, `write`, `writeFullBytes`, `writeInput`, and `writeString` now route through `std/haxe/io/GoIoHelpers.hx`; the remaining compiler wrappers and base IO types are migration debt under `haxe_go-vfp.8.7.11`.
   - Closed evidence: `haxe.go-14as.52`
 - `haxe.io` misc direct tranche
   - `haxe.io.FPHelper` is now the model staged-std slice for this family: public bit-conversion behavior lives in `std/go/_std/haxe/io/FPHelper.hx` on top of the existing little-endian `BytesInput` / `BytesOutput` contract.
   - `haxe.io.Mime` and `haxe.io.Scheme` remain plain upstream source-owned string abstracts.
-  - `haxe.io.StringInput`, `haxe.io.BufferInput`, `haxe.io.Encoding`, `haxe.io.Eof`, and `haxe.io.Error` stay compiler-owned with the base IO hierarchy because their type shapes and inherited helper wiring are still representation-sensitive on Go.
-  - Closed evidence: `haxe.go-14as.15`
+  - `haxe.io.StringInput`, `haxe.io.BufferInput`, `haxe.io.Encoding`, `haxe.io.Eof`, and `haxe.io.Error` currently ride on the compiler-emitted compatibility hierarchy. `haxe_go-vfp.8.7.11` must move their public behavior to staged source and isolate any true representation primitive.
+  - Baseline evidence: `haxe.go-14as.15`; migration owner: `haxe_go-vfp.8.7.11`
 - `sys.Http`
-  - Tier1 mapping still treats the surface as compiler-owned because request/callback choreography remains one semantic contract.
-  - The audit narrowed extraction to leaf payload/proxy helpers only; `getResponseHeaderValues` and payload capture now live in `std/sys/GoHttpHelpers.hx`, while core request sequencing and proxy URL construction stay in compiler scope unless parity evidence proves otherwise.
-  - Closed evidence: `haxe.go-14as.53`
+  - Tier1 mapping records current compiler ownership as migration debt. A single
+    request/callback contract requires coherent regression evidence, not compiler
+    ownership.
+  - `getResponseHeaderValues` and payload capture already live in `std/sys/GoHttpHelpers.hx`. The remaining request sequencing and proxy URL construction are migration debt under `haxe_go-vfp.8.7.12`, with the existing parity suite defining the replacement contract.
+  - Baseline evidence: `haxe.go-14as.53`; migration owner: `haxe_go-vfp.8.7.12`
 
 ## Governance Rule
 

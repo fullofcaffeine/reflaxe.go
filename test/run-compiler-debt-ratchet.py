@@ -7,6 +7,7 @@ import json
 import re
 import sys
 from collections import defaultdict
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -14,6 +15,7 @@ from typing import Any, Iterable
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_POLICY = ROOT / "test" / "compiler_debt_policy.json"
 DEFAULT_REPORT_DIR = ROOT / ".cache" / "compiler-debt"
+DEFAULT_STDLIB_INTRINSIC_REGISTRY = ROOT / "docs" / "compiler-stdlib-intrinsics.json"
 
 GUARDED_METRICS = (
     "go_raw",
@@ -152,6 +154,54 @@ def mask_comments_and_strings(text: str, *, preserve_strings: bool = False) -> s
 
 def shim_capability(context: str) -> str:
     return SHIM_CAPABILITIES.get(context, "stdlib_shim")
+
+
+@lru_cache(maxsize=None)
+def compiler_shim_policy_by_context(root_value: str) -> dict[str, tuple[str, str]]:
+    registry_path = Path(root_value) / "docs" / "compiler-stdlib-intrinsics.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    policies: dict[str, tuple[str, str]] = {}
+
+    def register(context: str, status: str, label: str) -> None:
+        if context in policies:
+            raise ValueError(f"duplicate compiler shim registry context {context}: {label}")
+        if status == "migration_required":
+            policies[context] = ("avoidable", "compiler_stdlib_migration_debt")
+        elif status == "approved_intrinsic":
+            policies[context] = ("required", "compiler_stdlib_intrinsic_boundary")
+        elif status == "native_api":
+            policies[context] = ("required", "native_compiler_shim_boundary")
+        else:
+            raise ValueError(f"unknown compiler shim registry status {status}: {label}")
+
+    dispatcher = registry["dispatcher"]
+    register(dispatcher["context"], dispatcher["status"], "dispatcher")
+    for group in registry["groups"]:
+        register(group["entryPoint"], group["status"], group["group"])
+        for support in group.get("supportEntryPoints", []):
+            register(support["context"], support["status"], group["group"])
+    for group in registry["nativeCompilerGroups"]:
+        for context in group["debtContexts"]:
+            register(context, "native_api", group["group"])
+    return policies
+
+
+def compiler_shim_dimensions(root: Path, context: str) -> dict[str, str]:
+    policies = compiler_shim_policy_by_context(str(root.resolve()))
+    if context not in policies:
+        raise ValueError(
+            f"unregistered compiler shim entry point {context}; update "
+            f"{DEFAULT_STDLIB_INTRINSIC_REGISTRY.relative_to(ROOT)} first"
+        )
+    classification, exception_id = policies[context]
+    return {
+        "owner": "compiler_shim",
+        "capability": shim_capability(context),
+        "profile": "shared",
+        "surface": "compiler",
+        "classification": classification,
+        "exception_id": exception_id,
+    }
 
 
 def source_capability(file: str) -> str:
@@ -336,14 +386,7 @@ def collect_haxe_findings(root: Path, path: Path) -> list[dict[str, str]]:
                         "compiler_shim",
                         file,
                         context,
-                        {
-                            "owner": "compiler_shim",
-                            "capability": shim_capability(context),
-                            "profile": "shared",
-                            "surface": "compiler",
-                            "classification": "required",
-                            "exception_id": "compiler_shim_boundary",
-                        },
+                        compiler_shim_dimensions(root, context),
                     )
                 )
     return findings
