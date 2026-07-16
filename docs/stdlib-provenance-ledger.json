@@ -21,6 +21,7 @@
       "upstream_std_override": [
         "haxe_go-vfp.5.3",
         "haxe_go-vfp.8.7.10",
+        "haxe_go-vfp.8.7.17",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
         "haxe_go-vfp.8.7.6",
@@ -188,6 +189,15 @@
       "migrationBead": "haxe_go-vfp.5.3",
       "compilerShimGroups": [],
       "notes": "Go staged portable override for DateTools helper ownership, keeping formatting and date-helper semantics out of GoCompiler."
+    },
+    {
+      "path": "std/go/_std/Lambda.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/Lambda.hx",
+      "migrationBead": "haxe_go-vfp.8.7.17",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged Lambda algorithms over Haxe Iterable, with exact source-call representation adapters registered separately for Go slices, lists, concrete iterator classes, typed callbacks, and erased results."
     },
     {
       "path": "std/go/_std/Sys.hx",
@@ -801,7 +811,7 @@
       "destination": "std/go/_std/haxe/ds/List.hx",
       "migrationBead": "haxe_go-vfp.8.7.10",
       "compilerShimGroups": [],
-      "notes": "Source-owned haxe.ds.List API and algorithms over a temporary private array carrier retained for the collection-adapter follow-up haxe_go-vfp.8.7.17."
+      "notes": "Source-owned haxe.ds.List API and algorithms over a private array carrier; Lambda and serializer integration use only public iterator and API methods after haxe_go-vfp.8.7.17."
     },
     {
       "path": "std/go/_std/haxe/ds/ObjectMap.hx",

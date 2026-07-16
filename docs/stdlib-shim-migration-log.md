@@ -1092,3 +1092,57 @@ Observed result:
 - `GoCompiler` no longer owns the five collection declarations or their algorithms.
   The remaining collection-lowering work is explicitly limited to the separately
   tracked adapter cleanup and does not weaken this ownership boundary.
+
+### 2026-07-15: `Lambda` algorithms moved to canonical staged std (`haxe_go-vfp.8.7.17`)
+
+Implementation:
+
+- Added canonical `std/go/_std/Lambda.hx` with the public collection algorithms as
+  ordinary Haxe source. `@:dce` keeps unused helpers out of generated Go while
+  preserving the upstream `Lambda` API surface.
+- Removed the compiler-owned loops for `count`, `empty`, `exists`, `has`, `iter`,
+  `filter`, `map`, and `fold`. The direct-call lowering now only converts concrete
+  arrays, lists, and manual iterators to the erased structural carrier used by the
+  staged module, adapts typed callbacks at that same boundary, and restores typed
+  array and scalar results.
+- Kept the `ArraySort` and `ListSort` bridges as exact representation intrinsics.
+  They box erased generic elements, preserve the source comparator contract, and
+  copy results back to the original carrier; sorting and linked-list merge behavior
+  remain in upstream Haxe source.
+- Registered each retained bridge separately, updated provenance and package
+  inventories, and removed the old compiler-debt allowance for 95 raw algorithm
+  sites. No new runtime feature or compiler-owned collection behavior was added.
+- Added behavioral coverage for optional `count` predicates, first-class `Lambda`
+  function values over both generic iterables and arrays, generic `fold`, and
+  single-linked `ListSort` input. Preserved the upstream-inline `mapi`, `flatten`,
+  and `flatMap` helpers so staging the module does not create new erased Go entry
+  points; array `mapi` now has explicit semantic coverage.
+
+Validation evidence:
+
+- `npm test` (`270/270` snapshots)
+- `npm run test:semantic-diff` (`131/131` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance` (`120` tracked sources: `36` typed runtime
+  bindings, `74` upstream overrides, `5` staged support modules, and `5` public
+  Go facades)
+- `npm run test:compiler-debt` (`4,488` `GoRaw` sites and `14` compiler shim entry
+  points)
+- `npm run test:perf:go`
+- `npm run test:perf:hxrt-selective`
+- `npm run test:perf:stdlib-shims`
+- `npm run security:go-tooling`
+- `npm run test:release-contracts`
+
+Observed result:
+
+- Public `Lambda`, array-sort, and list-sort algorithms are source-owned. The
+  compiler now knows only enough about Go's erased generic representations to make
+  those source algorithms callable without changing their behavior.
+- The retained adapters are closed, individually governed, and tested as
+  representation boundaries rather than a general escape for compiler-side
+  stdlib implementations.
+- Complete carrier coverage for the other public `Lambda` helpers, including the
+  existing nested-`Iterable` gap in `flatten` and `flatMap`, is intentionally
+  deferred to `haxe_go-vfp.8.7.18`; this closure admits no adapter for them.

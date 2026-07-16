@@ -159,7 +159,7 @@ def direct_call_lowerings(source: str) -> set[str]:
     functions = (
         "lowerCall",
         "lowerDsSortHelperCall",
-        "lowerLambdaStaticCall",
+        "lowerLambdaSourceCallAdapter",
         "lowerRestAbstractCall",
     )
     symbols: set[str] = set()

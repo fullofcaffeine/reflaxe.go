@@ -7,16 +7,14 @@ package haxe.ds;
 
 	Why
 	- The mainstream Haxe stdlib implementation cannot be used unchanged on
-	  `haxe.go` yet because it uses private linked nodes, while the still-open
-	  collection-adapter and serializer lowerings tracked by `haxe_go-vfp.8.7.17`
-	  consume the compact `items` carrier. The public list behavior itself does not
-	  require compiler ownership.
+	  `haxe.go` yet because its private generic linked-node representation does not
+	  match the target's currently supported erased class layout. The public list
+	  behavior itself does not require compiler ownership.
 
 	How
 	- Keep the compatibility carrier private, implement every public algorithm in
-	  Haxe, return concrete source-owned iterators, and retain the class methods needed by the
-	  transitional serializer. Once `haxe_go-vfp.8.7.17` removes representation
-	  reads, this override can be reconsidered against the upstream linked list.
+	  Haxe, and expose concrete source-owned iterators. Lambda and serializer
+	  integration use only these public methods and never read the carrier directly.
 **/
 @:keep
 class List<T> {

@@ -33,14 +33,19 @@ func main() {
 	fields := Type_getClassFields(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")})
 	var v any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("fields.len="), len(fields)))
 	hxrt.Println(v)
-	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fields.has_rtti="), hxrt.StdString(func(hx_lambda_items_10 []*string, hx_lambda_needle_11 any) bool {
-		for _, hx_lambda_item_12 := range hx_lambda_items_10 {
-			if reflect.DeepEqual(hx_lambda_item_12, hx_lambda_needle_11) {
-				return true
-			}
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fields.has_rtti="), hxrt.StdString(Lambda_has(func() map[string]any {
+		hx_lambda_source_10 := fields
+		hx_lambda_wrapped_11 := map[string]any{}
+		hx_lambda_wrapped_11["iterator"] = func() map[string]any {
+			hx_lambda_index_12 := 0
+			return map[string]any{"hasNext": func() bool { return hx_lambda_index_12 < len(hx_lambda_source_10) }, "next": func() any {
+				hx_lambda_value_13 := hx_lambda_source_10[hx_lambda_index_12]
+				hx_lambda_index_12++
+				return hx_lambda_value_13
+			}}
 		}
-		return false
-	}(fields, hxrt.StringFromLiteral("__rtti")))))
+		return hx_lambda_wrapped_11
+	}(), hxrt.StringFromLiteral("__rtti")))))
 	hxrt.Println(v_1)
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("raw.rtti.null="), hxrt.StdString(hxrt.AnyEqualsNull(Reflect_field(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")}, hxrt.StringFromLiteral("__rtti"))))))
 	hxrt.Println(v_2)

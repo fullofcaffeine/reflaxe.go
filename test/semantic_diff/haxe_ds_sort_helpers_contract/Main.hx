@@ -39,5 +39,22 @@ class Main {
 		var head = ListSort.sort(n4, cmpNode);
 		Sys.println("list=" + head.value + "," + head.next.value + "," + head.next.next.value + "," + head.next.next.next.value);
 		Sys.println("tail=" + head.prev.value);
+
+		var s4 = new Node(4);
+		var s1 = new Node(1);
+		var s3 = new Node(3);
+		var s2 = new Node(2);
+		s4.next = s1;
+		s1.next = s3;
+		s3.next = s2;
+		var singleHead = ListSort.sortSingleLinked(s4, cmpNode);
+		Sys.println("single="
+			+ singleHead.value
+			+ ","
+			+ singleHead.next.value
+			+ ","
+			+ singleHead.next.next.value
+			+ ","
+			+ singleHead.next.next.next.value);
 	}
 }

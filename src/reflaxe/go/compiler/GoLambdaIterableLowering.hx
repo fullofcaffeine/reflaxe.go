@@ -144,7 +144,8 @@ class GoLambdaIterableLowering {
 	}
 
 	public function dynamicIterableSource(sourceExpr:TypedExpr):GoExpr {
-		return manualIteratorProtocolSource(lowerExpr(sourceExpr).expr);
+		var sourcePlan = trySourcePlan(sourceExpr);
+		return manualIteratorProtocolSource(sourcePlan == null ? lowerExpr(sourceExpr).expr : sourcePlan.sourceExpr, sourcePlan);
 	}
 
 	public function firstFunctionArgType(type:Type):Null<Type> {

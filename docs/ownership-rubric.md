@@ -110,6 +110,8 @@ Good current examples:
 - `Std.isOfType` checks against a compiler-known type token
 - the exact `haxe.Rest` slice construction bridge
 - exception-carrier conversion at typed catch/throw boundaries
+- exact `Lambda` iterable/callback/result and sort generic-erasure adapters whose
+  algorithms remain in Haxe source
 
 Important rule:
 
@@ -191,9 +193,9 @@ Good mixed examples:
 - `haxe.Json`
 - staged RTTI source over a narrow generated metadata table
 
-`haxe.io.Bytes`, `Lambda`, and generic collection calls are current mixed
-implementations, but their behavior-heavy compiler ownership is registered
-migration debt. They are not patterns to copy.
+`haxe.io.Bytes` remains a mixed migration implementation. `Lambda` and sort
+calls are mixed only at exact registered Go representation adapters; their
+behavior is source-owned. Neither case permits new compiler-owned algorithms.
 
 Bad mixed ownership looks like:
 

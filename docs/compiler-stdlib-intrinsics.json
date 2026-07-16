@@ -13,6 +13,18 @@
       ],
       "reviewCondition": "Revisit if staged exception source gains a typed carrier abstraction that preserves arbitrary Haxe thrown values."
     },
+    "approved_lambda_iterable_representation": {
+      "what": "Adapt exact calls to source-owned Lambda algorithms across Go's erased structural Iterable and invariant function representations.",
+      "why": "The generated Lambda source accepts the erased map-shaped Iterable protocol, while valid Haxe callers can supply native Go slices, staged lists, concrete iterator classes, and typed callbacks that are not assignable to that Go shape.",
+      "how": "Wrap only iterator construction, callback parameters, and erased results at the call site; every traversal, comparison, early exit, allocation, and public algorithm remains in std/go/_std/Lambda.hx.",
+      "evidence": [
+        "lambda_generic_iterable_count_empty_contract",
+        "lambda_iter_array_list_contract",
+        "lambda_list_contract",
+        "test/test_lambda_iterable_lowering_ownership_contract.py"
+      ],
+      "reviewCondition": "Remove when generated Go models Haxe Iterable and generic function variance with one assignable typed representation."
+    },
     "approved_native_api": {
       "what": "Keep compiler emitters used exclusively by explicit typed go.* native APIs outside the portable stdlib ownership registry.",
       "why": "Native channels, collections, and Go result tuples deliberately expose Go representation and typed specialization decisions rather than portable Haxe stdlib behavior.",
@@ -53,6 +65,17 @@
       ],
       "reviewCondition": "Revisit if the metadata is emitted as typed data consumed by staged RTTI source without compiler-owned access behavior."
     },
+    "approved_sort_erasure_representation": {
+      "what": "Adapt exact ArraySort and ListSort calls to their source-owned generic Haxe entrypoints.",
+      "why": "The source algorithms erase generic arrays, linked nodes, and comparators to Go any-based signatures, which are not assignable from concrete typed slices, nodes, or callbacks even though the Haxe calls are valid.",
+      "how": "Box and copy back ArraySort slices, adapt comparator parameters, and assert ListSort heads to the typed node; the stable merge-sort algorithms remain entirely in upstream Haxe source.",
+      "evidence": [
+        "haxe_ds_sort_helpers_contract",
+        "stdlib/haxe_ds_sort_helpers_direct",
+        "test/test_lambda_iterable_lowering_ownership_contract.py"
+      ],
+      "reviewCondition": "Remove when generic source methods retain concrete Go type parameters or the backend provides an equivalent typed generic representation."
+    },
     "approved_string_representation": {
       "what": "Lower exact string construction and dynamic string-conversion primitives through typed hxrt helpers.",
       "why": "Go strings and Haxe nullable strings use a backend-owned representation, so these primitives must construct or inspect that representation consistently.",
@@ -92,18 +115,6 @@
         "docs/portable-sys-contract.md"
       ],
       "reviewCondition": "Remove the diagnostic if a supported, portable, dependency-safe process CPU-time capability becomes available."
-    },
-    "migration_collections": {
-      "what": "Move compiler-owned collection carriers and public algorithms to staged Haxe with only narrow typed representation adapters beneath them.",
-      "why": "Map, list, Lambda, and sort behavior is library-expressible; generic erasure or native storage does not justify owning complete algorithms in GoCompiler.",
-      "how": "Map and list families moved to staged source under haxe_go-vfp.8.7.10; migrate the remaining direct Lambda/sort algorithms under haxe_go-vfp.8.7.17.",
-      "evidence": [
-        "ds_maps_list_contract",
-        "map_keyvalue_iterator_contract",
-        "serializer_extended_tokens_contract",
-        "lambda_generic_iterable_count_empty_contract"
-      ],
-      "reviewCondition": "Retain only separately reviewed typed iteration or storage adapters after both collection beads close."
     },
     "migration_dispatch": {
       "what": "Retire the shared portable stdlib shim dispatcher as each behavior-heavy group moves to staged source or hxrt.",
@@ -412,14 +423,14 @@
     }
   ],
   "directLowerings": [
-    {"symbol": "Lambda.count", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
-    {"symbol": "Lambda.empty", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
-    {"symbol": "Lambda.exists", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
-    {"symbol": "Lambda.filter", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
-    {"symbol": "Lambda.fold", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
-    {"symbol": "Lambda.has", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
-    {"symbol": "Lambda.iter", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
-    {"symbol": "Lambda.map", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
+    {"symbol": "Lambda.count", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.empty", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.exists", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.filter", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.fold", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.has", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.iter", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.map", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
     {"symbol": "Reflect.fields", "status": "migration_required", "decisionId": "migration_runtime_reflection", "followUpBead": "haxe_go-vfp.8.7.15"},
     {"symbol": "Std.isOfType", "status": "approved_intrinsic", "decisionId": "approved_type_test"},
     {"symbol": "Std.parseInt", "status": "migration_required", "decisionId": "migration_stdlib_symbols", "followUpBead": "haxe_go-vfp.8.7.15"},
@@ -430,9 +441,9 @@
     {"symbol": "haxe.Log.trace", "status": "migration_required", "decisionId": "migration_stdlib_symbols", "followUpBead": "haxe_go-vfp.8.7.15"},
     {"symbol": "haxe._Rest.Rest_Impl_.append", "status": "approved_intrinsic", "decisionId": "approved_rest_representation"},
     {"symbol": "haxe._Rest.Rest_Impl_.prepend", "status": "approved_intrinsic", "decisionId": "approved_rest_representation"},
-    {"symbol": "haxe.ds.ArraySort.sort", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
-    {"symbol": "haxe.ds.ListSort.sort", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
-    {"symbol": "haxe.ds.ListSort.sortSingleLinked", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"}
+    {"symbol": "haxe.ds.ArraySort.sort", "status": "approved_intrinsic", "decisionId": "approved_sort_erasure_representation"},
+    {"symbol": "haxe.ds.ListSort.sort", "status": "approved_intrinsic", "decisionId": "approved_sort_erasure_representation"},
+    {"symbol": "haxe.ds.ListSort.sortSingleLinked", "status": "approved_intrinsic", "decisionId": "approved_sort_erasure_representation"}
   ],
   "specialIntrinsics": [
     {"symbol": "Sys.cpuTime", "status": "approved_intrinsic", "decisionId": "approved_unsupported_diagnostic"},

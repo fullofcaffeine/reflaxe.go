@@ -37,6 +37,7 @@ class Main {
 
 		Sys.println("count.values=" + Lambda.count(values));
 		Sys.println("count.empty=" + Lambda.count(emptyValues));
+		Sys.println("count.values.odd=" + Lambda.count(values, function(v:Int):Bool return v % 2 == 1));
 		Sys.println("empty.values=" + Lambda.empty(values));
 		Sys.println("empty.empty=" + Lambda.empty(emptyValues));
 		Sys.println("exists.values.gt2=" + Lambda.exists(values, function(v:Int):Bool return v > 2));
@@ -47,12 +48,19 @@ class Main {
 		var filtered = Lambda.filter(values, function(v:Int):Bool return v % 2 == 1);
 		var mapFn = Lambda.map;
 		var mapped = mapFn(values, function(v:Int):Int return v * 10);
+		var mappedArray = mapFn([4, 5], function(v:Int):Int return v + 1);
 		var folded = Lambda.fold(values, function(v:Int, acc:Int):Int return acc + v, 0);
+		var foldFn = Lambda.fold;
+		var foldedByFunction = foldFn(values, function(v:Int, acc:Int):Int return acc * 10 + v, 0);
+		var mappedWithIndex = Lambda.mapi([1, 2, 3], function(index:Int, v:Int):Int return index + v);
 		Sys.println("filter.values.length=" + filtered.length);
 		Sys.println("filter.values.first=" + filtered[0]);
 		Sys.println("filter.values.last=" + filtered[filtered.length - 1]);
 		Sys.println("map.values.first=" + mapped[0]);
 		Sys.println("map.values.last=" + mapped[mapped.length - 1]);
+		Sys.println("map.array=" + mappedArray[0] + "," + mappedArray[1]);
 		Sys.println("fold.values.sum=" + folded);
+		Sys.println("fold.function=" + foldedByFunction);
+		Sys.println("mapi.values=" + mappedWithIndex.join(","));
 	}
 }
