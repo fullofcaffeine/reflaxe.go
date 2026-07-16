@@ -37,12 +37,17 @@ func main() {
 		hx_lambda_source_10 := fields
 		hx_lambda_wrapped_11 := map[string]any{}
 		hx_lambda_wrapped_11["iterator"] = func() map[string]any {
-			hx_lambda_index_12 := 0
-			return map[string]any{"hasNext": func() bool { return hx_lambda_index_12 < len(hx_lambda_source_10) }, "next": func() any {
-				hx_lambda_value_13 := hx_lambda_source_10[hx_lambda_index_12]
-				hx_lambda_index_12++
+			hx_lambda_index_14 := 0
+			hx_lambda_iterator_map_12 := map[string]any{}
+			hx_lambda_iterator_map_12["hasNext"] = func() bool {
+				return (hx_lambda_index_14 < len(hx_lambda_source_10))
+			}
+			hx_lambda_iterator_map_12["next"] = func() any {
+				hx_lambda_value_13 := hx_lambda_source_10[hx_lambda_index_14]
+				hx_lambda_index_14 = (hx_lambda_index_14 + 1)
 				return hx_lambda_value_13
-			}}
+			}
+			return hx_lambda_iterator_map_12
 		}
 		return hx_lambda_wrapped_11
 	}(), hxrt.StringFromLiteral("__rtti")))))

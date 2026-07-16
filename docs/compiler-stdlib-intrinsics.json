@@ -14,13 +14,16 @@
       "reviewCondition": "Revisit if staged exception source gains a typed carrier abstraction that preserves arbitrary Haxe thrown values."
     },
     "approved_lambda_iterable_representation": {
-      "what": "Adapt exact calls to source-owned Lambda algorithms across Go's erased structural Iterable and invariant function representations.",
-      "why": "The generated Lambda source accepts the erased map-shaped Iterable protocol, while valid Haxe callers can supply native Go slices, staged lists, concrete iterator classes, and typed callbacks that are not assignable to that Go shape.",
-      "how": "Wrap only iterator construction, callback parameters, and erased results at the call site; every traversal, comparison, early exit, allocation, and public algorithm remains in std/go/_std/Lambda.hx.",
+      "what": "Adapt exact calls to all 19 source-owned Lambda algorithms across Go's erased structural Iterable, constrained nested-Iterable, and invariant function representations.",
+      "why": "The generated Lambda source accepts the erased map-shaped Iterable protocol, while valid Haxe callers can supply native Go slices, staged lists, concrete iterator classes, typed callbacks, and nested iterable carriers that are not assignable to the same Go shape. A constrained nested iterable additionally becomes a Go method interface that a structural map cannot implement directly.",
+      "how": "Wrap only iterator construction, callback parameters, nested iterable values, and erased results at the call site. Use the representation-only private LambdaGoIterableCarrier companion where Go requires a nominal iterator method, and reject already-erased nested carriers with a deterministic Haxe diagnostic. Every traversal, comparison, early exit, allocation, and public algorithm remains in std/go/_std/Lambda.hx.",
       "evidence": [
+        "lambda_full_api_contract",
         "lambda_generic_iterable_count_empty_contract",
         "lambda_iter_array_list_contract",
         "lambda_list_contract",
+        "negative/lambda_flat_map_erased_result",
+        "negative/lambda_flatten_erased_nested",
         "test/test_lambda_iterable_lowering_ownership_contract.py"
       ],
       "reviewCondition": "Remove when generated Go models Haxe Iterable and generic function variance with one assignable typed representation."
@@ -423,14 +426,25 @@
     }
   ],
   "directLowerings": [
+    {"symbol": "Lambda.array", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.concat", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
     {"symbol": "Lambda.count", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
     {"symbol": "Lambda.empty", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
     {"symbol": "Lambda.exists", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
     {"symbol": "Lambda.filter", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.find", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.findIndex", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.flatMap", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.flatten", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
     {"symbol": "Lambda.fold", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.foldi", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.foreach", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
     {"symbol": "Lambda.has", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.indexOf", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
     {"symbol": "Lambda.iter", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.list", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
     {"symbol": "Lambda.map", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
+    {"symbol": "Lambda.mapi", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
     {"symbol": "Reflect.fields", "status": "migration_required", "decisionId": "migration_runtime_reflection", "followUpBead": "haxe_go-vfp.8.7.15"},
     {"symbol": "Std.isOfType", "status": "approved_intrinsic", "decisionId": "approved_type_test"},
     {"symbol": "Std.parseInt", "status": "migration_required", "decisionId": "migration_stdlib_symbols", "followUpBead": "haxe_go-vfp.8.7.15"},

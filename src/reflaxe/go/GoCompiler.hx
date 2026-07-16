@@ -10799,6 +10799,64 @@ class GoCompiler {
 		  decision.
 	**/
 	function lowerLambdaSourceCallAdapter(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		if (isStaticCall(callee, "Lambda", [], "array") || lambdaIterableLowering.isGeneratedCall(callee, "array")) {
+			if (args.length != 1) {
+				Context.fatalError("Lambda.array expects exactly 1 argument", callee.pos);
+			}
+			var arrayExpr = GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicIterableSource(args[0])]);
+			return {
+				expr: lambdaIterableLowering.anyArrayCoerce(arrayExpr, returnType),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "list") || lambdaIterableLowering.isGeneratedCall(callee, "list")) {
+			if (args.length != 1) {
+				Context.fatalError("Lambda.list expects exactly 1 argument", callee.pos);
+			}
+			return {
+				expr: GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicIterableSource(args[0])]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "mapi") || lambdaIterableLowering.isGeneratedCall(callee, "mapi")) {
+			if (args.length != 2) {
+				Context.fatalError("Lambda.mapi expects exactly 2 arguments", callee.pos);
+			}
+			var mapperExpr = lambdaIterableLowering.indexedMapperAnyAdapter(lowerExpr(args[1]).expr, args[1].t);
+			var mappedExpr = GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicIterableSource(args[0]), mapperExpr]);
+			return {
+				expr: lambdaIterableLowering.anyArrayCoerce(mappedExpr, returnType),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "flatten") || lambdaIterableLowering.isGeneratedCall(callee, "flatten")) {
+			if (args.length != 1) {
+				Context.fatalError("Lambda.flatten expects exactly 1 argument", callee.pos);
+			}
+			requireSourceOwnedStdlibModule("Lambda");
+			var flattenedExpr = GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicNestedIterableSource(args[0])]);
+			return {
+				expr: lambdaIterableLowering.anyArrayCoerce(flattenedExpr, returnType),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "flatMap") || lambdaIterableLowering.isGeneratedCall(callee, "flatMap")) {
+			if (args.length != 2) {
+				Context.fatalError("Lambda.flatMap expects exactly 2 arguments", callee.pos);
+			}
+			requireSourceOwnedStdlibModule("Lambda");
+			var mapperExpr = lambdaIterableLowering.iterableMapperAnyAdapter(lowerExpr(args[1]).expr, args[1].t);
+			var mappedExpr = GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicIterableSource(args[0]), mapperExpr]);
+			return {
+				expr: lambdaIterableLowering.anyArrayCoerce(mappedExpr, returnType),
+				isStringLike: false
+			};
+		}
+
 		if (isStaticCall(callee, "Lambda", [], "count") || lambdaIterableLowering.isGeneratedCall(callee, "count")) {
 			if (args.length < 1 || args.length > 2) {
 				Context.fatalError("Lambda.count expects 1 or 2 arguments", callee.pos);
@@ -10826,6 +10884,17 @@ class GoCompiler {
 		if (isStaticCall(callee, "Lambda", [], "exists") || lambdaIterableLowering.isGeneratedCall(callee, "exists")) {
 			if (args.length != 2) {
 				Context.fatalError("Lambda.exists expects exactly 2 arguments", callee.pos);
+			}
+			var predicateExpr = lambdaIterableLowering.predicateAnyAdapter(lowerExpr(args[1]).expr, args[1].t);
+			return {
+				expr: GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicIterableSource(args[0]), predicateExpr]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "foreach") || lambdaIterableLowering.isGeneratedCall(callee, "foreach")) {
+			if (args.length != 2) {
+				Context.fatalError("Lambda.foreach expects exactly 2 arguments", callee.pos);
 			}
 			var predicateExpr = lambdaIterableLowering.predicateAnyAdapter(lowerExpr(args[1]).expr, args[1].t);
 			return {
@@ -10891,6 +10960,69 @@ class GoCompiler {
 			]);
 			return {
 				expr: lowerNullableAwareTypeAssertExpr(foldedExpr, returnType),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "foldi") || lambdaIterableLowering.isGeneratedCall(callee, "foldi")) {
+			if (args.length != 3) {
+				Context.fatalError("Lambda.foldi expects exactly 3 arguments", callee.pos);
+			}
+			var folderExpr = lambdaIterableLowering.indexedFolderAnyAdapter(lowerExpr(args[1]).expr, args[1].t);
+			var foldedExpr = GoExpr.GoCall(lowerExpr(callee).expr, [
+				lambdaIterableLowering.dynamicIterableSource(args[0]),
+				folderExpr,
+				lowerExpr(args[2]).expr
+			]);
+			return {
+				expr: lowerNullableAwareTypeAssertExpr(foldedExpr, returnType),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "indexOf") || lambdaIterableLowering.isGeneratedCall(callee, "indexOf")) {
+			if (args.length != 2) {
+				Context.fatalError("Lambda.indexOf expects exactly 2 arguments", callee.pos);
+			}
+			return {
+				expr: GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicIterableSource(args[0]), lowerExpr(args[1]).expr]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "find") || lambdaIterableLowering.isGeneratedCall(callee, "find")) {
+			if (args.length != 2) {
+				Context.fatalError("Lambda.find expects exactly 2 arguments", callee.pos);
+			}
+			var predicateExpr = lambdaIterableLowering.predicateAnyAdapter(lowerExpr(args[1]).expr, args[1].t);
+			var foundExpr = GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicIterableSource(args[0]), predicateExpr]);
+			return {
+				expr: lowerNullableAwareTypeAssertExpr(foundExpr, returnType),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "findIndex") || lambdaIterableLowering.isGeneratedCall(callee, "findIndex")) {
+			if (args.length != 2) {
+				Context.fatalError("Lambda.findIndex expects exactly 2 arguments", callee.pos);
+			}
+			var predicateExpr = lambdaIterableLowering.predicateAnyAdapter(lowerExpr(args[1]).expr, args[1].t);
+			return {
+				expr: GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicIterableSource(args[0]), predicateExpr]),
+				isStringLike: false
+			};
+		}
+
+		if (isStaticCall(callee, "Lambda", [], "concat") || lambdaIterableLowering.isGeneratedCall(callee, "concat")) {
+			if (args.length != 2) {
+				Context.fatalError("Lambda.concat expects exactly 2 arguments", callee.pos);
+			}
+			var concatExpr = GoExpr.GoCall(lowerExpr(callee).expr, [
+				lambdaIterableLowering.dynamicIterableSource(args[0]),
+				lambdaIterableLowering.dynamicIterableSource(args[1])
+			]);
+			return {
+				expr: lambdaIterableLowering.anyArrayCoerce(concatExpr, returnType),
 				isStringLike: false
 			};
 		}

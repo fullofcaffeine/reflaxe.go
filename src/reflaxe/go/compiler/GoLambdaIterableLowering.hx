@@ -3,6 +3,7 @@ package reflaxe.go.compiler;
 #if macro
 import haxe.macro.Context;
 import haxe.macro.Type;
+import haxe.macro.TypeTools;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoStmt;
 
@@ -78,24 +79,29 @@ class GoLambdaIterableLowering {
 	}
 
 	public function trySourcePlan(sourceExpr:TypedExpr):Null<GoLambdaSourcePlan> {
-		if (isArrayType(sourceExpr.t)) {
-			var elementType = arrayElementGoType(sourceExpr.t);
-			var loweredSourceExpr = lowerExpr(sourceExpr).expr;
+		if (!isArrayType(sourceExpr.t) && haxeDsListElementType(sourceExpr.t) == null) {
+			return null;
+		}
+		return tryValuePlan(lowerExpr(sourceExpr).expr, sourceExpr.t);
+	}
+
+	function tryValuePlan(sourceExpr:GoExpr, sourceType:Type):Null<GoLambdaSourcePlan> {
+		if (isArrayType(sourceType)) {
+			var elementType = arrayElementGoType(sourceType);
 			return {
 				domain: "array",
 				elementType: elementType,
-				sourceExpr: loweredSourceExpr,
+				sourceExpr: sourceExpr,
 				sourceType: "[]" + elementType
 			};
 		}
 
-		var listElement = haxeDsListElementType(sourceExpr.t);
+		var listElement = haxeDsListElementType(sourceType);
 		if (listElement != null) {
-			var loweredSourceExpr = lowerExpr(sourceExpr).expr;
 			return {
 				domain: "list",
 				elementType: scalarGoType(listElement),
-				sourceExpr: loweredSourceExpr,
+				sourceExpr: sourceExpr,
 				sourceType: "*haxe__ds__List"
 			};
 		}
@@ -103,37 +109,45 @@ class GoLambdaIterableLowering {
 		return null;
 	}
 
-	public function manualIteratorProtocolSource(sourceExpr:GoExpr, ?sourcePlan:Null<GoLambdaSourcePlan>):GoExpr {
+	public function manualIteratorProtocolSource(sourceExpr:GoExpr, ?sourcePlan:Null<GoLambdaSourcePlan>, ?adaptElement:GoExpr->GoExpr,
+			?adaptedElementType:String):GoExpr {
 		var sourceName = freshTempName("hx_lambda_source");
 		var wrappedName = freshTempName("hx_lambda_wrapped");
-		var iteratorFactoryBody:Array<GoStmt> = switch (sourcePlan == null ? "generic" : sourcePlan.domain) {
-			case "array":
-				var indexName = freshTempName("hx_lambda_index");
-				var valueName = freshTempName("hx_lambda_value");
-				var iteratorMapLiteral = "map[string]any{\"hasNext\": func() bool { return " + indexName + " < len(" + sourceName
-					+ ") }, \"next\": func() any { " + valueName + " := " + sourceName + "[" + indexName + "]; " + indexName + "++; return " + valueName +
-					" }}";
-				[
-					GoStmt.GoVarDecl(indexName, "int", GoExpr.GoIntLiteral(0), true),
-					GoStmt.GoReturn(GoExpr.GoRaw(iteratorMapLiteral))
-				];
-			case "list":
-				var iteratorName = freshTempName("hx_lambda_iterator");
-				var iteratorMapLiteral = "map[string]any{\"hasNext\": func() bool { return " + iteratorName + ".hasNext() }, \"next\": func() any { return "
-					+ iteratorName + ".next() }}";
-				[
-					GoStmt.GoVarDecl(iteratorName, null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "iterator"), []), true),
-					GoStmt.GoReturn(GoExpr.GoRaw(iteratorMapLiteral))
-				];
-			case _:
-				var iteratorName = freshTempName("hx_lambda_iterator");
-				var iteratorMapLiteral = "map[string]any{\"hasNext\": func() bool { return " + iteratorName + ".hasNext() }, \"next\": func() any { return "
-					+ iteratorName + ".next() }}";
-				[
-					GoStmt.GoVarDecl(iteratorName, null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "iterator"), []), true),
-					GoStmt.GoReturn(GoExpr.GoRaw(iteratorMapLiteral))
-				];
-		};
+		var iteratorMapName = freshTempName("hx_lambda_iterator_map");
+		var valueName = freshTempName("hx_lambda_value");
+		var iteratorFactoryBody = new Array<GoStmt>();
+		var hasNextExpr:GoExpr;
+		var nextValueExpr:GoExpr;
+		var nextPrefix = new Array<GoStmt>();
+
+		if (sourcePlan != null && sourcePlan.domain == "array") {
+			var indexName = freshTempName("hx_lambda_index");
+			var indexExpr = GoExpr.GoIdent(indexName);
+			iteratorFactoryBody.push(GoStmt.GoVarDecl(indexName, "int", GoExpr.GoIntLiteral(0), true));
+			hasNextExpr = GoExpr.GoBinary("<", indexExpr, GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent(sourceName)]));
+			nextValueExpr = GoExpr.GoIndex(GoExpr.GoIdent(sourceName), indexExpr);
+			nextPrefix.push(GoStmt.GoAssign(indexExpr, GoExpr.GoBinary("+", indexExpr, GoExpr.GoIntLiteral(1))));
+		} else {
+			var iteratorName = freshTempName("hx_lambda_iterator");
+			var iteratorExpr = GoExpr.GoIdent(iteratorName);
+			iteratorFactoryBody.push(GoStmt.GoVarDecl(iteratorName, null, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "iterator"), []), true));
+			hasNextExpr = GoExpr.GoCall(GoExpr.GoSelector(iteratorExpr, "hasNext"), []);
+			nextValueExpr = GoExpr.GoCall(GoExpr.GoSelector(iteratorExpr, "next"), []);
+		}
+
+		var returnedValue:GoExpr = GoExpr.GoIdent(valueName);
+		if (adaptElement != null) {
+			returnedValue = adaptElement(returnedValue);
+		}
+		var nextBody = [GoStmt.GoVarDecl(valueName, null, nextValueExpr, true)].concat(nextPrefix).concat([GoStmt.GoReturn(returnedValue)]);
+		iteratorFactoryBody = iteratorFactoryBody.concat([
+			GoStmt.GoVarDecl(iteratorMapName, "map[string]any", GoExpr.GoRaw("map[string]any{}"), true),
+			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(iteratorMapName), GoExpr.GoStringLiteral("hasNext")),
+				GoExpr.GoFuncLiteral([], ["bool"], [GoStmt.GoReturn(hasNextExpr)])),
+			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(iteratorMapName), GoExpr.GoStringLiteral("next")),
+				GoExpr.GoFuncLiteral([], [adaptedElementType == null ? "any" : adaptedElementType], nextBody)),
+			GoStmt.GoReturn(GoExpr.GoIdent(iteratorMapName))
+		]);
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["map[string]any"], [
 			GoStmt.GoVarDecl(sourceName, null, sourceExpr, true),
 			GoStmt.GoVarDecl(wrappedName, "map[string]any", GoExpr.GoRaw("map[string]any{}"), true),
@@ -146,6 +160,88 @@ class GoLambdaIterableLowering {
 	public function dynamicIterableSource(sourceExpr:TypedExpr):GoExpr {
 		var sourcePlan = trySourcePlan(sourceExpr);
 		return manualIteratorProtocolSource(sourcePlan == null ? lowerExpr(sourceExpr).expr : sourcePlan.sourceExpr, sourcePlan);
+	}
+
+	function dynamicIterableValue(sourceExpr:GoExpr, sourceType:Type):GoExpr {
+		var sourcePlan = tryValuePlan(sourceExpr, sourceType);
+		return manualIteratorProtocolSource(sourcePlan == null ? sourceExpr : sourcePlan.sourceExpr, sourcePlan);
+	}
+
+	function classInstanceFieldType(classType:ClassType, params:Array<Type>, fieldName:String):Null<Type> {
+		for (field in classType.fields.get()) {
+			if (field.name == fieldName) {
+				return TypeTools.applyTypeParameters(field.type, classType.params, params);
+			}
+		}
+		if (classType.superClass != null) {
+			var superParams = [
+				for (param in classType.superClass.params)
+					TypeTools.applyTypeParameters(param, classType.params, params)
+			];
+			return classInstanceFieldType(classType.superClass.t.get(), superParams, fieldName);
+		}
+		return null;
+	}
+
+	function instanceFieldType(type:Type, fieldName:String):Null<Type> {
+		return switch (Context.follow(type)) {
+			case TInst(classRef, params):
+				classInstanceFieldType(classRef.get(), params, fieldName);
+			case TAnonymous(anonymousRef):
+				var found:Null<Type> = null;
+				for (field in anonymousRef.get().fields) {
+					if (field.name == fieldName) {
+						found = field.type;
+						break;
+					}
+				}
+				found;
+			case _:
+				null;
+		};
+	}
+
+	function functionReturnType(type:Type):Null<Type> {
+		return switch (Context.follow(type)) {
+			case TFun(_, returnType): returnType;
+			case _: null;
+		};
+	}
+
+	function iterableElementType(type:Type):Null<Type> {
+		var arrayElement = arrayElementType(type);
+		if (arrayElement != null) {
+			return arrayElement;
+		}
+		var listElement = haxeDsListElementType(type);
+		if (listElement != null) {
+			return listElement;
+		}
+		var iteratorField = instanceFieldType(type, "iterator");
+		if (iteratorField == null) {
+			return null;
+		}
+		var iteratorType = functionReturnType(iteratorField);
+		if (iteratorType == null) {
+			return null;
+		}
+		var nextField = instanceFieldType(iteratorType, "next");
+		return nextField == null ? null : functionReturnType(nextField);
+	}
+
+	public function dynamicNestedIterableSource(sourceExpr:TypedExpr):GoExpr {
+		var nestedType = iterableElementType(sourceExpr.t);
+		if (nestedType == null || scalarGoType(nestedType) == "any" || scalarGoType(nestedType) == "map[string]any") {
+			Context.fatalError("Lambda.flatten requires a statically concrete nested iterable carrier on Go", sourceExpr.pos);
+		}
+		var sourcePlan = trySourcePlan(sourceExpr);
+		var loweredSource = sourcePlan == null ? lowerExpr(sourceExpr).expr : sourcePlan.sourceExpr;
+		return manualIteratorProtocolSource(loweredSource, sourcePlan, function(rawElement:GoExpr):GoExpr {
+			var boxedElement = GoExpr.GoCall(GoExpr.GoIdent("any"), [rawElement]);
+			var nestedElement = lowerNullableAwareTypeAssertExpr(boxedElement, nestedType);
+			var dynamicNestedElement = dynamicIterableValue(nestedElement, nestedType);
+			return GoExpr.GoCall(GoExpr.GoIdent("Lambda_goIterableCarrierAdapter"), [dynamicNestedElement]);
+		}, "interface{iterator() map[string]any}");
 	}
 
 	public function firstFunctionArgType(type:Type):Null<Type> {
@@ -200,6 +296,43 @@ class GoLambdaIterableLowering {
 		return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["any"], [GoStmt.GoReturn(GoExpr.GoCall(mapperExpr, [adaptedArgExpr]))]);
 	}
 
+	public function indexedMapperAnyAdapter(mapperExpr:GoExpr, mapperType:Type):GoExpr {
+		var rawIndexName = freshTempName("hx_lambda_index");
+		var rawValueName = freshTempName("hx_lambda_value");
+		var adaptedValueExpr:GoExpr = GoExpr.GoIdent(rawValueName);
+		switch (Context.follow(mapperType)) {
+			case TFun(args, _):
+				if (args.length > 1) {
+					adaptedValueExpr = lowerNullableAwareTypeAssertExpr(adaptedValueExpr, args[1].t);
+				}
+			case _:
+		}
+		return GoExpr.GoFuncLiteral([{name: rawIndexName, typeName: "int"}, {name: rawValueName, typeName: "any"}], ["any"], [
+			GoStmt.GoReturn(GoExpr.GoCall(mapperExpr, [GoExpr.GoIdent(rawIndexName), adaptedValueExpr]))
+		]);
+	}
+
+	public function iterableMapperAnyAdapter(mapperExpr:GoExpr, mapperType:Type):GoExpr {
+		var rawArgName = freshTempName("hx_lambda_arg");
+		var adaptedArgExpr:GoExpr = GoExpr.GoIdent(rawArgName);
+		var returnType:Null<Type> = null;
+		switch (Context.follow(mapperType)) {
+			case TFun(args, mappedType):
+				if (args.length > 0) {
+					adaptedArgExpr = lowerNullableAwareTypeAssertExpr(adaptedArgExpr, args[0].t);
+				}
+				returnType = mappedType;
+			case _:
+		}
+		if (returnType == null || scalarGoType(returnType) == "any" || scalarGoType(returnType) == "map[string]any") {
+			Context.fatalError("Lambda.flatMap requires a callback with a statically concrete iterable result on Go", Context.currentPos());
+		}
+		var mappedExpr = GoExpr.GoCall(mapperExpr, [adaptedArgExpr]);
+		var dynamicMappedExpr = dynamicIterableValue(mappedExpr, returnType);
+		var carrierExpr = GoExpr.GoCall(GoExpr.GoIdent("Lambda_goIterableCarrierAdapter"), [dynamicMappedExpr]);
+		return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["interface{iterator() map[string]any}"], [GoStmt.GoReturn(carrierExpr)]);
+	}
+
 	public function consumerAnyAdapter(consumerExpr:GoExpr, consumerType:Type):GoExpr {
 		var rawArgName = freshTempName("hx_lambda_arg");
 		var adaptedArgExpr:GoExpr = GoExpr.GoIdent(rawArgName);
@@ -227,6 +360,31 @@ class GoLambdaIterableLowering {
 		}
 		return GoExpr.GoFuncLiteral([{name: rawValueName, typeName: "any"}, {name: rawAccName, typeName: "any"}], ["any"],
 			[GoStmt.GoReturn(GoExpr.GoCall(folderExpr, [adaptedValueExpr, adaptedAccExpr]))]);
+	}
+
+	public function indexedFolderAnyAdapter(folderExpr:GoExpr, folderType:Type):GoExpr {
+		var rawValueName = freshTempName("hx_lambda_value");
+		var rawAccName = freshTempName("hx_lambda_acc");
+		var rawIndexName = freshTempName("hx_lambda_index");
+		var adaptedValueExpr:GoExpr = GoExpr.GoIdent(rawValueName);
+		var adaptedAccExpr:GoExpr = GoExpr.GoIdent(rawAccName);
+		switch (Context.follow(folderType)) {
+			case TFun(args, _):
+				if (args.length > 0) {
+					adaptedValueExpr = lowerNullableAwareTypeAssertExpr(adaptedValueExpr, args[0].t);
+				}
+				if (args.length > 1) {
+					adaptedAccExpr = lowerNullableAwareTypeAssertExpr(adaptedAccExpr, args[1].t);
+				}
+			case _:
+		}
+		return GoExpr.GoFuncLiteral([
+			{name: rawValueName, typeName: "any"},
+			{name: rawAccName, typeName: "any"},
+			{name: rawIndexName, typeName: "int"}
+		], ["any"], [
+			GoStmt.GoReturn(GoExpr.GoCall(folderExpr, [adaptedValueExpr, adaptedAccExpr, GoExpr.GoIdent(rawIndexName)]))
+		]);
 	}
 
 	public function anyArrayCoerce(anySliceExpr:GoExpr, targetArrayType:Type):GoExpr {

@@ -680,7 +680,7 @@
       "context": "manualIteratorProtocolSource",
       "exception_id": "typed_ast_gap",
       "file": "src/reflaxe/go/compiler/GoLambdaIterableLowering.hx",
-      "max_count": 4,
+      "max_count": 2,
       "metric": "go_raw",
       "owner": "compiler_core",
       "profile": "shared",

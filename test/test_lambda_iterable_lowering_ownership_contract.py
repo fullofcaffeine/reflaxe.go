@@ -24,17 +24,36 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
         for heading in ["What", "Why", "How"]:
             self.assertIn(heading, source, f"Lambda override should document {heading}")
         self.assertIn("@:dce", source, "unused staged Lambda helpers must not bloat generated Go")
-        for method in ["count", "empty", "exists", "has", "filter", "map", "fold", "iter"]:
+        self.assertIn(
+            '@:ifFeature("Lambda.flatten", "Lambda.flatMap")',
+            source,
+            "the private nested carrier should be retained only for the two helpers that use it",
+        )
+        for method in [
+            "array",
+            "list",
+            "map",
+            "mapi",
+            "flatten",
+            "flatMap",
+            "has",
+            "exists",
+            "foreach",
+            "iter",
+            "filter",
+            "fold",
+            "foldi",
+            "count",
+            "empty",
+            "indexOf",
+            "find",
+            "findIndex",
+            "concat",
+        ]:
             self.assertIn(
                 f"public static function {method}",
                 source,
                 f"Lambda.{method} should lower from staged Haxe source",
-            )
-        for method in ["mapi", "flatten", "flatMap"]:
-            self.assertIn(
-                f"public static inline function {method}",
-                source,
-                f"Lambda.{method} should preserve upstream inline representation until full carrier parity",
             )
 
         compiler_source = GO_COMPILER.read_text(encoding="utf-8")
@@ -42,6 +61,28 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
             "function lowerLambdaStaticCall",
             compiler_source,
             "GoCompiler must not reimplement public Lambda algorithms",
+        )
+
+        self.assertIn(
+            "private class LambdaGoIterableCarrier",
+            source,
+            "flatMap's nominal representation carrier should remain private staged source",
+        )
+        carrier_class_index = source.index("private class LambdaGoIterableCarrier")
+        carrier_source = source[source.rfind("/**", 0, carrier_class_index) :]
+        for heading in ["What", "Why", "How"]:
+            self.assertIn(heading, carrier_source, f"flatMap carrier should document {heading}")
+        for forbidden in ["Dynamic", "Any", "__go__", "GoInjection", "for (", "while ("]:
+            self.assertNotIn(
+                forbidden,
+                carrier_source,
+                f"flatMap carrier must stay a representation-only wrapper without {forbidden}",
+            )
+        self.assertIn("return source.iterator();", carrier_source)
+        self.assertGreaterEqual(
+            compiler_source.count('requireSourceOwnedStdlibModule("Lambda")'),
+            2,
+            "flatten and flatMap must retain the private companion without affecting other Lambda calls",
         )
 
         adapter = function_block(
@@ -59,9 +100,13 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
             "dynamicIterableSource",
             "predicateAnyAdapter",
             "mapperAnyAdapter",
+            "indexedMapperAnyAdapter",
+            "iterableMapperAnyAdapter",
             "consumerAnyAdapter",
             "folderAnyAdapter",
+            "indexedFolderAnyAdapter",
             "anyArrayCoerce",
+            "dynamicNestedIterableSource",
         ]:
             self.assertIn(bridge, adapter)
 
@@ -85,6 +130,12 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
     def test_lambda_iterable_adapter_logic_has_dedicated_owner(self):
         compiler_source = GO_COMPILER.read_text(encoding="utf-8")
         self.assertTrue(LOWERING_MODULE.exists(), "Lambda/Iterable lowering policy should live outside GoCompiler.hx")
+        lowering_source = LOWERING_MODULE.read_text(encoding="utf-8")
+        self.assertGreaterEqual(
+            lowering_source.count('GoIdent("Lambda_goIterableCarrierAdapter")'),
+            2,
+            "flatten elements and flatMap callback results should share the staged nominal carrier",
+        )
         for symbol in [
             "function tryLambdaSourcePlan",
             "function lowerLambdaManualIteratorProtocolSource",

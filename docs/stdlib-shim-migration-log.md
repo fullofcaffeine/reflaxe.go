@@ -1146,3 +1146,56 @@ Observed result:
 - Complete carrier coverage for the other public `Lambda` helpers, including the
   existing nested-`Iterable` gap in `flatten` and `flatMap`, is intentionally
   deferred to `haxe_go-vfp.8.7.18`; this closure admits no adapter for them.
+
+### 2026-07-16: complete staged `Lambda` API and carrier closure (`haxe_go-vfp.8.7.18`)
+
+Implementation:
+
+- Completed source-owned entrypoints for `array`, `list`, `mapi`, `flatten`,
+  `flatMap`, `foreach`, `foldi`, `indexOf`, `find`, `findIndex`, and `concat`.
+  Together with the prior tranche, all 19 public `Lambda` algorithms now execute
+  from `std/go/_std/Lambda.hx`; no traversal, comparison, early-exit, allocation,
+  or collection policy moved into the compiler or runtime.
+- Extended the exact call adapters across arrays, staged lists, and concrete
+  manual `Iterable<T>` classes, including typed indexed callbacks, nullable
+  results, and mixed-carrier concatenation. Nested arrays, lists, and concrete
+  iterable classes work for `flatten`; `flatMap` callbacks may return concrete
+  arrays or lists.
+- Added a private, representation-only `LambdaGoIterableCarrier` companion for
+  the Go method interface created by constrained nested iterables. Its factory is
+  retained only when `flatten` or `flatMap` is reachable, so ordinary `Lambda`
+  calls do not add generated declarations or reflection-visible types.
+- Added deterministic compile-time diagnostics for nested sources or callback
+  results that have already been erased to structural `Iterable`. At that point
+  the concrete carrier authority is no longer recoverable, so the compiler stops
+  before emitting an incidental Go type error.
+- Rebuilt the iterator bridge with typed Go AST assignments and function literals,
+  reducing its reviewed `GoRaw` debt from four sites to two. Registered all 19
+  exact intrinsics and documented the complete method/carrier matrix.
+
+Validation evidence:
+
+- `npm test` (`272/272` snapshots)
+- `npm run test:semantic-diff` (`132/132` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:changed`
+- `npm run test:compiler-debt` (`4,486` `GoRaw` sites and `14` compiler shim
+  entry points)
+- `npm run test:perf:go`
+- `npm run test:perf:hxrt-selective`
+- `npm run test:perf:stdlib-shims`
+- `npm run security:go-tooling` (all `28` race/checkptr/vet/staticcheck gates)
+- `npm run test:release-contracts`
+
+Observed result:
+
+- The mainstream Haxe stdlib remains the semantic model, with the Go override
+  differing only where Go's invariant and method-interface representations make
+  the upstream generic shape unassignable.
+- The complete public `Lambda` API is staged source. The compiler boundary is a
+  closed set of registered representation adapters, not an alternate collection
+  implementation, and no new `hxrt` feature or public helper module was added.
+- Concrete carrier authority produces valid Go; genuinely erased nested authority
+  produces a stable Haxe diagnostic. Neither path leaks an incidental Go compiler
+  error to the user.

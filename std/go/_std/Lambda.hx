@@ -36,15 +36,38 @@ import haxe.ds.List;
 
 	How
 	- Keep every algorithm as a self-contained source function over `Iterable<T>`.
-	  Exact call adapters wrap the eight emitted helpers migrated by
-	  `haxe_go-vfp.8.7.17`; they never implement traversal, filtering, mapping,
-	  folding, or early-exit behavior. Preserve upstream-style inlining for
-	  `mapi`, `flatten`, and `flatMap` so the target override does not introduce new
-	  erased entrypoints. Full carrier coverage for the remaining public helpers is
-	  tracked by `haxe_go-vfp.8.7.18`. `@:dce` eliminates unused emitted helpers.
+	  Exact call adapters cover all 19 public helpers after
+	  `haxe_go-vfp.8.7.17` and `haxe_go-vfp.8.7.18`; they never implement traversal,
+	  filtering, mapping, folding, or early-exit behavior. Preserve concrete nested
+	  iterable types with constrained parameters so the Go boundary can build only
+	  the required representation wrapper. `@:dce` eliminates unused emitted
+	  helpers.
 **/
 @:dce
 class Lambda {
+	/**
+		What
+		- Gives compiler-generated `flatMap` callback adapters a nominal value that
+		  implements the erased Go iterator method set.
+
+		Why
+		- Go does not let the map-shaped structural `Iterable<T>` carrier satisfy a
+		  method interface directly, even though both represent the same Haxe
+		  contract. The mainstream implementation therefore cannot receive an
+		  adapted array, list, or concrete iterable callback result unchanged.
+
+		How
+		- Wrap the already-adapted structural iterable in the private source-declared
+		  carrier. Retain this factory only when `flatten` or `flatMap` is reachable;
+		  the exact compiler representation adapter calls it after Haxe dead-code
+		  elimination has run.
+	**/
+	@:ifFeature("Lambda.flatten", "Lambda.flatMap")
+	@:noCompletion
+	public static function goIterableCarrierAdapter<A>(source:Iterable<A>):LambdaGoIterableCarrier<A> {
+		return new LambdaGoIterableCarrier(source);
+	}
+
 	public static function array<A>(it:Iterable<A>):Array<A> {
 		var out:Array<A> = [];
 		for (value in it) {
@@ -69,7 +92,7 @@ class Lambda {
 		return out;
 	}
 
-	public static inline function mapi<A, B>(it:Iterable<A>, transform:(index:Int, item:A) -> B):Array<B> {
+	public static function mapi<A, B>(it:Iterable<A>, transform:(index:Int, item:A) -> B):Array<B> {
 		var out:Array<B> = [];
 		var index = 0;
 		for (value in it) {
@@ -79,7 +102,7 @@ class Lambda {
 		return out;
 	}
 
-	public static inline function flatten<A>(it:Iterable<Iterable<A>>):Array<A> {
+	public static function flatten<A, Nested:Iterable<A>>(it:Iterable<Nested>):Array<A> {
 		var out:Array<A> = [];
 		for (nested in it) {
 			for (value in nested) {
@@ -89,7 +112,7 @@ class Lambda {
 		return out;
 	}
 
-	public static inline function flatMap<A, B>(it:Iterable<A>, transform:(item:A) -> Iterable<B>):Array<B> {
+	public static function flatMap<A, B, Nested:Iterable<B>>(it:Iterable<A>, transform:(item:A) -> Nested):Array<B> {
 		var out:Array<B> = [];
 		for (value in it) {
 			for (mapped in transform(value)) {
@@ -235,5 +258,34 @@ class Lambda {
 			out.push(value);
 		}
 		return out;
+	}
+}
+
+/**
+	What
+	- Provides a nominal Go-target view of the structural `Iterable<T>` value used
+	  by the staged `Lambda.flatten` and `Lambda.flatMap` implementations.
+
+	Why
+	- The mainstream Haxe stdlib implementation cannot be used unchanged on
+	  `haxe.go` because a constrained generic iterable becomes a Go method
+	  interface, while portable Haxe iterables currently use a structural map.
+	  Go does not let that map satisfy the method interface directly even though
+	  both values represent the same Haxe iterator contract.
+
+	How
+	- Store the already-adapted structural iterable and delegate `iterator()` to
+	  it. This private companion performs no traversal and owns no collection
+	  algorithm; `Lambda` retains all public behavior in ordinary staged source.
+**/
+private class LambdaGoIterableCarrier<A> {
+	final source:Iterable<A>;
+
+	public function new(source:Iterable<A>) {
+		this.source = source;
+	}
+
+	public function iterator():Iterator<A> {
+		return source.iterator();
 	}
 }

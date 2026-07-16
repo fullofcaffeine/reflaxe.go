@@ -110,8 +110,9 @@ Good current examples:
 - `Std.isOfType` checks against a compiler-known type token
 - the exact `haxe.Rest` slice construction bridge
 - exception-carrier conversion at typed catch/throw boundaries
-- exact `Lambda` iterable/callback/result and sort generic-erasure adapters whose
-  algorithms remain in Haxe source
+- exact `Lambda` iterable/callback/nested-carrier/result and sort generic-erasure
+  adapters whose algorithms remain in Haxe source; the private nominal Lambda
+  companion only delegates `iterator()`
 
 Important rule:
 

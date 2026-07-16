@@ -1,0 +1,1 @@
+Lambda.flatten requires a statically concrete nested iterable carrier on Go

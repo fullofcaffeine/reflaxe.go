@@ -1,0 +1,1 @@
+Lambda.flatMap requires a callback with a statically concrete iterable result on Go
