@@ -44,20 +44,6 @@ func SysStderr() *FileOutput {
 	return &FileOutput{file: os.Stderr}
 }
 
-// SysGetChar reads one standard-input byte and optionally echoes that byte.
-func SysGetChar(echo bool) (int, bool, error) {
-	value, eof, err := SysStdin().ReadByte()
-	if err != nil || eof {
-		return 0, eof, err
-	}
-	if echo {
-		if err := SysStdout().WriteByte(value); err != nil {
-			return 0, false, err
-		}
-	}
-	return value, false, nil
-}
-
 // FileSaveContent stores text without collapsing write failures into success.
 func FileSaveContent(path *string, content *string) error {
 	return os.WriteFile(*StdString(path), []byte(*StdString(content)), 0o644)

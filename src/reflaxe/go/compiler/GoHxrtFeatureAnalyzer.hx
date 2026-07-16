@@ -25,6 +25,7 @@ class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_EXCEPTION = "exception";
 	public static inline final FEATURE_JSON = "json";
 	public static inline final FEATURE_SYS = "sys";
+	public static inline final FEATURE_TERMINAL = "terminal";
 	public static inline final FEATURE_FILE_IO = "file_io";
 	public static inline final FEATURE_FILESYSTEM = "filesystem";
 	public static inline final FEATURE_PROCESS = "process";
@@ -42,6 +43,7 @@ class GoHxrtFeatureAnalyzer {
 		FEATURE_EXCEPTION,
 		FEATURE_JSON,
 		FEATURE_SYS,
+		FEATURE_TERMINAL,
 		FEATURE_FILE_IO,
 		FEATURE_FILESYSTEM,
 		FEATURE_PROCESS,
@@ -99,6 +101,9 @@ class GoHxrtFeatureAnalyzer {
 
 			if (path == "hxrt.sys.NativeSys") {
 				add(FEATURE_SYS, "class_usage", path);
+			}
+			if (path == "hxrt.sys.NativeTerminal") {
+				add(FEATURE_TERMINAL, "class_usage", path);
 			}
 
 			if (path == "hxrt.fs.NativeFile" || path == "sys.io.File" || path == "sys.io.FileInput" || path == "sys.io.FileOutput") {
@@ -237,6 +242,8 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_CORE];
 			case FEATURE_SYS:
 				[FEATURE_STRING];
+			case FEATURE_TERMINAL:
+				[FEATURE_STRING];
 			case FEATURE_FILE_IO:
 				[FEATURE_STRING];
 			case FEATURE_FILESYSTEM:
@@ -270,6 +277,15 @@ class GoHxrtFeatureAnalyzer {
 				["json.go"];
 			case FEATURE_SYS:
 				["sys.go"];
+			case FEATURE_TERMINAL:
+				[
+					"terminal.go",
+					"terminal_darwin.go",
+					"terminal_linux.go",
+					"terminal_posix.go",
+					"terminal_unsupported.go",
+					"terminal_windows.go"
+				];
 			case FEATURE_FILE_IO:
 				["file.go"];
 			case FEATURE_FILESYSTEM:

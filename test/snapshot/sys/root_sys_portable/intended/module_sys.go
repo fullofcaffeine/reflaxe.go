@@ -40,7 +40,12 @@ func Sys_exit(code int) {
 }
 
 func Sys_getChar(echo bool) int {
-	value := New_sys__io__FileInput(hxrt.SysStdin()).readByte()
+	value := hxrt.SysReadCharValue()
+	if value < 0 {
+		hxrt.Throw(New_haxe__io__Eof())
+		var hx_throw_zero_11 int
+		return hx_throw_zero_11
+	}
 	if echo {
 		New_sys__io__FileOutput(hxrt.SysStdout()).writeByte(value)
 	}

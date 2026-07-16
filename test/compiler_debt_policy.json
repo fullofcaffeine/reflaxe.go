@@ -50,11 +50,11 @@
       "why": "Go interface values can contain typed nils and non-comparable reference values, which cannot be handled correctly by a plain interface comparison."
     },
     "runtime_unsafe_boundary": {
-      "classification": "avoidable",
-      "how": "Keep the ceiling at zero and require an explicit high-risk runtime design review before any unsafe package operation is admitted.",
-      "owner": "hxrt runtime",
-      "what": "Direct Go unsafe package imports or selectors in the checked-in hxrt runtime implementation.",
-      "why": "The runtime currently implements its contracts without the unsafe package, so any future use is new debt rather than inherited compatibility behavior."
+      "classification": "required",
+      "how": "Confine the boundary to terminalIoctlTermios in the POSIX build-tagged terminal file, keep the Termios pointer live through syscall.Syscall, cover it with race/checkptr and real-PTY tests, and ratchet its import and selector independently at one each.",
+      "owner": "hxrt terminal runtime",
+      "what": "One typed syscall.Termios pointer crossing required to read and restore POSIX terminal state for Sys.getChar.",
+      "why": "The frozen Go syscall package exposes Termios and ioctl constants but no safe ioctl wrapper; current x/term releases raise the generated Go floor, while the compatible pin carries a known dependency advisory."
     },
     "staged_std_dynamic_contract": {
       "classification": "required",
@@ -1481,6 +1481,30 @@
       "file": "runtime/hxrt/string.go",
       "max_count": 7,
       "metric": "go_reflection",
+      "owner": "runtime_hxrt",
+      "profile": "shared",
+      "surface": "runtime"
+    },
+    {
+      "capability": "sys",
+      "classification": "required",
+      "context": "<import>",
+      "exception_id": "runtime_unsafe_boundary",
+      "file": "runtime/hxrt/terminal_posix.go",
+      "max_count": 1,
+      "metric": "go_unsafe",
+      "owner": "runtime_hxrt",
+      "profile": "shared",
+      "surface": "runtime"
+    },
+    {
+      "capability": "sys",
+      "classification": "required",
+      "context": "<module>",
+      "exception_id": "runtime_unsafe_boundary",
+      "file": "runtime/hxrt/terminal_posix.go",
+      "max_count": 1,
+      "metric": "go_unsafe",
       "owner": "runtime_hxrt",
       "profile": "shared",
       "surface": "runtime"

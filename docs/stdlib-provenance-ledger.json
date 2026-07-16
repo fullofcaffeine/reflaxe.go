@@ -30,6 +30,7 @@
       ],
       "hxrt_binding": [
         "haxe_go-vfp.5.4",
+        "haxe_go-vfp.8.7.3",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
         "haxe_go-vfp.8.7.6",
@@ -196,7 +197,7 @@
       "destination": "std/go/_std/Sys.hx",
       "migrationBead": "haxe_go-vfp.8.7.6",
       "compilerShimGroups": [],
-      "notes": "Canonical source-owned implementation of the supported Haxe 4.3.7 root Sys API; map construction, fallbacks, aliases, and standard-stream wrapping stay in Haxe while typed std/hxrt bindings expose native process, display, and file capabilities."
+      "notes": "Canonical source-owned implementation of the supported Haxe 4.3.7 root Sys API; map construction, fallbacks, aliases, standard-stream wrapping, getChar EOF construction, and explicit echo stay in Haxe while typed std/hxrt bindings expose native process, display, file, and terminal capabilities."
     },
     {
       "path": "std/go/_std/haxe/Constraints.hx",
@@ -990,6 +991,15 @@
       "migrationBead": "haxe_go-vfp.8.7.6",
       "compilerShimGroups": [],
       "notes": "Typed extern bridge to the narrow runtime/hxrt process-state, environment, clock, command, and path capabilities used by canonical staged root Sys source."
+    },
+    {
+      "path": "std/hxrt/sys/NativeTerminal.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/sys/NativeTerminal.hx",
+      "migrationBead": "haxe_go-vfp.8.7.3",
+      "compilerShimGroups": [],
+      "notes": "Typed footprint-explicit bridge to build-tagged runtime/hxrt terminal state and one-byte input; staged Sys retains EOF and echo semantics."
     },
     {
       "path": "std/hxrt/sys/SysEnvironmentEntry.hx",

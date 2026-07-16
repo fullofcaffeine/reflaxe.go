@@ -139,7 +139,19 @@ class CompilerDebtRatchetTest(unittest.TestCase):
         ratchet_errors = self.runner.compare_report_to_policy(report, policy)
         self.assertEqual([], ratchet_errors)
         self.assertEqual(set(self.runner.GUARDED_METRICS), set(report["totals"]))
-        self.assertEqual(0, report["totals"]["go_unsafe"])
+        self.assertEqual(2, report["totals"]["go_unsafe"])
+        unsafe_locations = {
+            (row["file"], row["context"], row["count"])
+            for row in report["by_file"]
+            if row["metric"] == "go_unsafe"
+        }
+        self.assertEqual(
+            {
+                ("runtime/hxrt/terminal_posix.go", "<import>", 1),
+                ("runtime/hxrt/terminal_posix.go", "<module>", 1),
+            },
+            unsafe_locations,
+        )
 
         rendered = json.dumps(report, sort_keys=True)
         self.assertNotIn(str(ROOT), rendered)

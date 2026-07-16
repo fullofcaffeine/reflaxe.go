@@ -165,8 +165,10 @@ bindings reach the selectively copied native capabilities in
 Root `Sys` follows the same rule: `std/go/_std/Sys.hx` owns the public Haxe
 contract, typed `std/hxrt/sys` and `std/hxrt/fs` externs expose narrow native
 capabilities, and `runtime/hxrt/sys.go` / `file.go` own only OS state and
-handles. `hxrt` does not construct the public environment map, aliases,
-fallbacks, or Haxe stream wrappers.
+handles. The typed `std/hxrt/sys/NativeTerminal.hx` binding selects build-tagged
+`runtime/hxrt/terminal*.go` for terminal state and one-byte input. `hxrt` does
+not construct the public environment map, aliases, fallbacks, Haxe stream
+wrappers, `haxe.io.Eof`, or requested character echo.
 
 Examples that are currently compiler-owned (not `hxrt`-owned):
 

@@ -47,7 +47,7 @@ preset for stricter/eager defaults.
 - `reflaxe_go_hxrt_default_features`
   - Force full runtime copy (compat mode).
   - Takes precedence over selective runtime flags.
-- `reflaxe_go_hxrt_features=core,json,sys,file_io,filesystem,ssl,...`
+- `reflaxe_go_hxrt_features=core,json,sys,terminal,file_io,filesystem,ssl,...`
   - Enables selective runtime mode and adds manual feature list.
   - Use empty value (`-D reflaxe_go_hxrt_features=`) to enable selective mode with inferred-only features.
 
@@ -61,6 +61,12 @@ root `Sys` capabilities infer `sys`, while typed `hxrt.process.NativeProcess`
 usage under staged `sys.io.Process` infers `process`. Direct File, root Sys, and
 Process use therefore do not pull one another's native slices. `core/runtime_hxrt_infer_sys` and
 `core/runtime_hxrt_infer_process` lock both positive and negative file sets.
+
+`Sys.getChar` use selects the dedicated `terminal` feature through typed
+`hxrt.sys.NativeTerminal` authority. Its six platform/build-tag files remain
+footprint-explicit even in ordinary full-copy mode so unrelated output never
+acquires the POSIX unsafe boundary. Explicitly disabling feature inference
+retains the traditional all-files full-copy escape.
 - `reflaxe_go_hxrt_no_feature_infer`
   - Enables selective runtime mode and disables inference (use core + manual only).
 

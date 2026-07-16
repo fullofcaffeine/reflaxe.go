@@ -155,6 +155,8 @@ def shim_capability(context: str) -> str:
 
 
 def source_capability(file: str) -> str:
+    if file.startswith("runtime/hxrt/terminal"):
+        return "sys"
     if file.endswith("/Sys.hx") or "/hxrt/sys/" in file:
         return "sys"
     if file.endswith("atomic_object.go"):
@@ -238,12 +240,19 @@ def haxe_token_dimensions(file: str) -> dict[str, str]:
 def go_selector_dimensions(file: str, metric: str) -> dict[str, str]:
     is_unsafe = metric == "go_unsafe"
     if file.startswith("runtime/hxrt/"):
+        is_admitted_terminal_boundary = (
+            is_unsafe and file == "runtime/hxrt/terminal_posix.go"
+        )
         return {
             "owner": "runtime_hxrt",
             "capability": source_capability(file),
             "profile": "shared",
             "surface": "runtime",
-            "classification": "avoidable" if is_unsafe else "required",
+            "classification": (
+                "required"
+                if is_admitted_terminal_boundary or not is_unsafe
+                else "avoidable"
+            ),
             "exception_id": "runtime_unsafe_boundary" if is_unsafe else "runtime_reflection_boundary",
         }
 

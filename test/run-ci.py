@@ -128,6 +128,10 @@ def build_snapshot_command(args: argparse.Namespace) -> list[str]:
     return cmd
 
 
+def build_sys_get_char_terminal_command() -> list[str]:
+    return ["npm", "run", "test:sys-get-char-terminal"]
+
+
 def should_run_stdlib_sweep(args: argparse.Namespace) -> bool:
     if args.skip_stdlib_sweep:
         return False
@@ -461,6 +465,11 @@ def main() -> int:
     snapshot_code = run(build_snapshot_command(args))
     if snapshot_code != 0:
         return snapshot_code
+
+    print("==> Sys.getChar terminal contract stage")
+    sys_get_char_terminal_code = run(build_sys_get_char_terminal_command())
+    if sys_get_char_terminal_code != 0:
+        return sys_get_char_terminal_code
 
     if should_run_stdlib_sweep(args):
         print("==> Upstream stdlib sweep stage")

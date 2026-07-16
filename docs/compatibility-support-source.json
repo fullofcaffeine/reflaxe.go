@@ -112,6 +112,12 @@
       "level": "compile-go-test-run"
     },
     {
+      "id": "contract:sys-get-char-terminal",
+      "kind": "npm-script",
+      "script": "test:sys-get-char-terminal",
+      "level": "compile-go-test-run"
+    },
+    {
       "id": "contract:output-confinement",
       "kind": "npm-script",
       "script": "test:output-confinement",
@@ -781,6 +787,32 @@
           ],
           "exclusions": [
             "Unlisted reflection and carrier representations"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-root-sys",
+      "kind": "portable-system",
+      "scope": "Interactive standard-input character contract",
+      "operations": [
+        {
+          "id": "get-char-terminal",
+          "symbols": [
+            "Sys.getChar"
+          ],
+          "granularity": "member",
+          "state": "compile-go-test-run-supported",
+          "release_admitted": true,
+          "qualification": "On admitted linux-amd64 terminals, reads one byte without newline, suppresses host echo, restores terminal state, preserves redirected EOF, and performs requested staged echo exactly once.",
+          "evidence_ids": [
+            "contract:sys-get-char-terminal"
+          ],
+          "exclusions": [
+            "Non-admitted runtime hosts",
+            "Unicode codepoint or terminal key-sequence interpretation",
+            "Terminal signal-character policy beyond the exercised byte contract"
           ],
           "blockers": []
         }

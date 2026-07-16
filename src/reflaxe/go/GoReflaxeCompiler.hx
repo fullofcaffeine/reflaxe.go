@@ -453,7 +453,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		}
 
 		if (plan.fullCopy) {
-			writeRuntimeDir(runtimeSource, "hxrt", buildContext);
+			writeRuntimeDir(runtimeSource, "hxrt", buildContext, plan);
 			return;
 		}
 
@@ -467,20 +467,20 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		}
 	}
 
-	function writeRuntimeDir(sourceDir:String, targetDir:String, buildContext:GoBuildContext):Void {
+	function writeRuntimeDir(sourceDir:String, targetDir:String, buildContext:GoBuildContext, plan:RuntimeCopyPlan):Void {
 		for (entry in FileSystem.readDirectory(sourceDir)) {
 			var sourcePath = Path.join([sourceDir, entry]);
 			var targetPath = Path.join([targetDir, entry]);
 
 			if (FileSystem.isDirectory(sourcePath)) {
-				writeRuntimeDir(sourcePath, targetPath, buildContext);
-			} else if (shouldCopyRuntimeFileInFullMode(entry, buildContext)) {
+				writeRuntimeDir(sourcePath, targetPath, buildContext, plan);
+			} else if (shouldCopyRuntimeFileInFullMode(entry, buildContext, plan)) {
 				copyGeneratedFile(sourcePath, targetPath);
 			}
 		}
 	}
 
-	function shouldCopyRuntimeFileInFullMode(fileName:String, buildContext:GoBuildContext):Bool {
+	function shouldCopyRuntimeFileInFullMode(fileName:String, buildContext:GoBuildContext, plan:RuntimeCopyPlan):Bool {
 		if (StringTools.endsWith(fileName, "_test.go")) {
 			// Runtime unit tests validate hxrt in the compiler repository; they are not
 			// dependencies of generated user modules.
@@ -491,6 +491,13 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 				// Native stack capture pulls in Go runtime frame machinery and must remain
 				// footprint-explicit even when users request the broad hxrt runtime bundle.
 				buildContext.nativeStackTraceEnabled;
+			case "terminal.go", "terminal_darwin.go", "terminal_linux.go", "terminal_posix.go", "terminal_unsupported.go", "terminal_windows.go":
+				// Terminal mode contains a platform syscall boundary and should not add
+				// unsafe-bearing code to programs that never call Sys.getChar. Explicitly
+				// disabling inference retains the traditional all-files full-copy escape.
+				buildContext.hxrtNoFeatureInfer
+				|| plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TERMINAL) >= 0
+				|| plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TERMINAL) >= 0;
 			case _:
 				true;
 		};
@@ -1357,7 +1364,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		lines.push("");
 		lines.push("## runtime files");
 		if (snapshot.files.length == 0) {
-			lines.push("- full copy (`runtime/hxrt/**`, excluding footprint-explicit diagnostic files unless their define is enabled)");
+			lines.push("- full copy (`runtime/hxrt/**`, excluding footprint-explicit diagnostic/capability files unless their typed use or define is enabled)");
 		} else {
 			for (fileName in snapshot.files) {
 				lines.push("- `" + fileName + "`");

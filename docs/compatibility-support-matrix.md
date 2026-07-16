@@ -155,6 +155,13 @@ Closed-world named reflection subset
 | `Reflect.hasField` | `member` | `semantic-diff-supported` | yes | `semantic:reflect-fields` | Named dynamic-field operations on covered runtime shapes. |
 | `Reflect.field` | `member` | `semantic-diff-supported` | yes | `semantic:reflect-fields` | Named dynamic-field operations on covered runtime shapes. |
 | `Reflect.setField` | `member` | `semantic-diff-supported` | yes | `semantic:reflect-fields` | Named dynamic-field operations on covered runtime shapes. |
+### `portable-root-sys`
+
+Interactive standard-input character contract
+
+| Symbol | Granularity | State | Release admitted | Evidence | Qualification |
+| --- | --- | --- | --- | --- | --- |
+| `Sys.getChar` | `member` | `compile-go-test-run-supported` | yes | `contract:sys-get-char-terminal` | On admitted linux-amd64 terminals, reads one byte without newline, suppresses host echo, restores terminal state, preserves redirected EOF, and performs requested staged echo exactly once. |
 ### `portable-file-io`
 
 Narrow file-content contract

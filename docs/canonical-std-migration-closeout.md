@@ -40,12 +40,12 @@ leaks.
 
 - 0 tracked `.cross.hx` files;
 - 69 canonical override sources under `std/go/_std`;
-- 103 ledger entries: 69 upstream overrides, 5 staged support modules, 24 typed
+- 104 ledger entries: 69 upstream overrides, 5 staged support modules, 25 typed
   `hxrt` bindings, and 5 public `go.*` facades;
-- 272 source-to-package manifest entries in the Haxelib ZIP, including the
+- 279 source-to-package manifest entries in the Haxelib ZIP, including the
   native-policy types, generated-output boundary, and contract documentation
   added after closeout;
-- 273 ZIP members after adding the embedded package manifest itself.
+- 280 ZIP members after adding the embedded package manifest itself.
 
 The closeout contract compares every canonical override path with the
 `upstream_std_override` ledger set. A new, removed, or reclassified file must

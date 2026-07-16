@@ -1,7 +1,9 @@
 import haxe.ds.StringMap;
+import haxe.io.Eof;
 import hxrt.fs.NativeFile;
 import hxrt.sys.NativeConsole;
 import hxrt.sys.NativeSys;
+import hxrt.sys.NativeTerminal;
 import sys.io.FileInput;
 import sys.io.FileOutput;
 
@@ -119,9 +121,17 @@ class Sys {
 		return NativeSys.programPath();
 	}
 
-	/** Read one staged standard-input byte and optionally echo it through staged standard output. **/
+	/**
+		What: Read one byte immediately from standard input and optionally echo it once.
+		Why: The upstream extern requires interactive character mode; ordinary
+		`FileInput.readByte()` remains host-line-buffered on a terminal.
+		How: Delegate only terminal control and the native byte read to `hxrt`,
+		construct Haxe EOF here, and keep the echo write in staged source.
+	**/
 	public static function getChar(echo:Bool):Int {
-		var value = stdin().readByte();
+		var value = NativeTerminal.readChar();
+		if (value < 0)
+			throw new Eof();
 		if (echo)
 			stdout().writeByte(value);
 		return value;

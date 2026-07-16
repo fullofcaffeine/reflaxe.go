@@ -367,9 +367,12 @@ func TestPortableSysPrintGetCharAndStandardStreams(t *testing.T) {
 		if err := stdin.Close(); err != nil {
 			t.Fatal(err)
 		}
-		second, eof, err := SysGetChar(true)
-		if err != nil || eof || second != 'B' {
-			t.Fatalf("SysGetChar(true) = (%d, %t, %v), want ('B', false, nil)", second, eof, err)
+		second := SysReadCharValue()
+		if second != 'B' {
+			t.Fatalf("SysReadCharValue() = %d, want 'B'", second)
+		}
+		if err := SysStdout().WriteByte(second); err != nil {
+			t.Fatalf("echo redirected character: %v", err)
 		}
 
 		stdout := SysStdout()
@@ -416,9 +419,19 @@ func TestPortableSysPrintGetCharAndStandardStreams(t *testing.T) {
 
 func TestPortableSysGetCharReportsEOF(t *testing.T) {
 	withStandardFiles(t, "", func(_ string, _ string) {
-		_, eof, err := SysGetChar(false)
-		if err != nil || !eof {
-			t.Fatalf("SysGetChar(false) = (eof %t, error %v), want (true, nil)", eof, err)
+		if value := SysReadCharValue(); value != -1 {
+			t.Fatalf("SysReadCharValue() = %d, want -1", value)
+		}
+	})
+}
+
+func TestPortableSysReadCharValuePreservesRedirectedInput(t *testing.T) {
+	withStandardFiles(t, "Q", func(_ string, _ string) {
+		if value := SysReadCharValue(); value != 'Q' {
+			t.Fatalf("SysReadCharValue() = %d, want %d", value, 'Q')
+		}
+		if value := SysReadCharValue(); value != -1 {
+			t.Fatalf("SysReadCharValue() at EOF = %d, want -1", value)
 		}
 	})
 }

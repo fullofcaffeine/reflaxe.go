@@ -974,3 +974,29 @@ Observed result:
 - The last compiler-owned member of the former Sys/File/Process shim family is now reviewable Haxe stdlib source over a typed native capability boundary.
 - Process-only selective output keeps `process.go` without `sys.go` or `file.go`; root Sys and direct File likewise remain independent.
 - Startup failure, stdin/stdout/stderr behavior, normal EOF, nonblocking `null`, nonzero exits, kill, detached rejection, large output, and close-without-kill semantics remain covered by existing runtime and semantic contracts.
+
+### 2026-07-15: `Sys.getChar` gained source-owned terminal semantics (`haxe_go-vfp.8.7.3`)
+
+Implementation:
+
+- Kept `haxe.io.Eof` construction and requested echo in canonical `std/go/_std/Sys.hx`; no compiler declaration, raw emitter, or Haxe injection was added.
+- Added typed `std/hxrt/sys/NativeTerminal.hx` over a dedicated `terminal` runtime feature. Build-tagged Linux, Darwin, Windows, and unsupported-host files own only terminal state and the one-byte native read.
+- Made the terminal feature footprint-explicit even in ordinary full-copy mode. Programs that do not use `Sys.getChar` do not acquire the POSIX boundary; disabling inference explicitly retains the all-files escape.
+- Confined the required POSIX `unsafe.Pointer` to `terminalIoctlTermios`. The debt policy permits exactly one import and one selector, explains why the frozen `syscall` API lacks a safe wrapper, and records why neither a Go-floor-raising current `x/term` nor an advisory-bearing compatible pin was accepted.
+- Serialized terminal transitions and restored the original mode on every return. Redirected input retains byte-stream EOF behavior; character-device hosts without an implementation fail explicitly.
+
+Validation evidence:
+
+- `test/test_sys_get_char_terminal.py` (real PTY no-newline input, echo off/on, state restoration, redirected EOF, Linux/macOS/Windows implementation cross-builds, and an unsupported-FreeBSD cross-build)
+- `test/test_sys_get_char_terminal_contract.py`
+- `test/snapshot/sys/sys_get_char_terminal`
+- `test/snapshot/sys/root_sys_portable`
+- `test/snapshot/core/runtime_hxrt_infer_sys`
+- `runtime/hxrt/sys_test.go`
+- `npm run test:compiler-debt`
+- `npm run security:go-tooling`
+
+Observed result:
+
+- The admitted `linux-amd64` root `Sys.getChar` contract now reads a terminal byte immediately, suppresses host echo, restores terminal state, and emits requested echo exactly once from staged Haxe.
+- Terminal control remains a narrow typed native capability, not a second Haxe stdlib in `GoCompiler` or `hxrt`.

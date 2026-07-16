@@ -1,1 +1,1 @@
-Unknown `reflaxe_go_hxrt_features` feature "wat" (expected one of: core, string, print, exception, json, sys, file_io, filesystem, process, bytes, ssl, thread, stack, atomic_int, atomic_object)
+Unknown `reflaxe_go_hxrt_features` feature "wat" (expected one of: core, string, print, exception, json, sys, terminal, file_io, filesystem, process, bytes, ssl, thread, stack, atomic_int, atomic_object)

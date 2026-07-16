@@ -5,11 +5,11 @@
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "9ab970695d489fce635cca1e03e154f21904d3c14acc018184145e950169c612",
+    "compatibility_source_sha256": "4e11f3bd0112fd2b72d173c07c84d004985dacd5ff721dce2a27f59f1440a03d",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "b895789e9983aa5c411fc970501f37f0aad5638c8ec928fb6ba31329b75dce94"
+    "portable_stdlib_inventory_sha256": "4cb91ef5b4a7b81b2ddf1a1a409bfdc58a000f56b77e90bc0deab146d9c7c9e6"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -286,6 +286,12 @@
       "id": "npm:test-haxelib-release-install",
       "kind": "npm-script",
       "script": "test:haxelib-release-install",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "contract:sys-get-char-terminal",
+      "kind": "npm-script",
+      "script": "test:sys-get-char-terminal",
       "level": "compile-go-test-run"
     },
     {
@@ -841,6 +847,32 @@
           ],
           "exclusions": [
             "Unlisted reflection and carrier representations"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "portable-root-sys",
+      "kind": "portable-system",
+      "scope": "Interactive standard-input character contract",
+      "operations": [
+        {
+          "id": "get-char-terminal",
+          "symbols": [
+            "Sys.getChar"
+          ],
+          "granularity": "member",
+          "state": "compile-go-test-run-supported",
+          "release_admitted": true,
+          "qualification": "On admitted linux-amd64 terminals, reads one byte without newline, suppresses host echo, restores terminal state, preserves redirected EOF, and performs requested staged echo exactly once.",
+          "evidence_ids": [
+            "contract:sys-get-char-terminal"
+          ],
+          "exclusions": [
+            "Non-admitted runtime hosts",
+            "Unicode codepoint or terminal key-sequence interpretation",
+            "Terminal signal-character policy beyond the exercised byte contract"
           ],
           "blockers": []
         }
@@ -1557,7 +1589,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. The supported Haxe 4.3.7 root API is canonical staged source in std/go/_std/Sys.hx over typed std/hxrt bindings. Public map construction, fallbacks, aliases, and standard-stream wrappers stay in Haxe; native process capabilities live in runtime/hxrt/sys.go and standard handles in file.go. Evidence: root_sys_contract, root_sys_portable_contract, sys_command_contract, sys_sleep_contract, sys/root_sys_portable, core/runtime_hxrt_infer_sys, and negative/sys_cpu_time_unsupported."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. The supported Haxe 4.3.7 root API is canonical staged source in std/go/_std/Sys.hx over typed std/hxrt bindings. Public map construction, fallbacks, aliases, standard-stream wrappers, getChar EOF, and requested echo stay in Haxe; native process capabilities live in runtime/hxrt/sys.go, standard handles in file.go, and terminal state in footprint-explicit terminal*.go files. Evidence: root_sys_contract, root_sys_portable_contract, sys_command_contract, sys_sleep_contract, sys/root_sys_portable, sys/sys_get_char_terminal, test_sys_get_char_terminal.py, core/runtime_hxrt_infer_sys, and negative/sys_cpu_time_unsupported."
       },
       {
         "module": "Type",

@@ -11,11 +11,14 @@ root `Sys` call means.
 The implementation is deliberately split:
 
 1. `std/go/_std/Sys.hx` owns the supported Haxe 4.3.7 public API, map
-   construction, fallbacks, aliases, and stream wrapping.
+   construction, fallbacks, aliases, stream wrapping, `getChar` EOF
+   construction, and explicit echo policy.
 2. Typed externs under `std/hxrt/sys` and `std/hxrt/fs` expose only real native
    capabilities; they do not reimplement the Haxe library contract.
 3. `runtime/hxrt/sys.go` owns root OS calls, clocks, paths, and blocking;
-   `runtime/hxrt/file.go` owns standard-stream handles. The compiler retains
+   `runtime/hxrt/file.go` owns standard-stream handles; build-tagged
+   `runtime/hxrt/terminal*.go` files own terminal state and the one-byte native
+   read exposed through `std/hxrt/sys/NativeTerminal.hx`. The compiler retains
    only the compile-time `cpuTime` rejection and generic runtime-feature
    planning required by generated output.
 
@@ -42,11 +45,15 @@ therefore stay in `std/go/_std/sys/io`, rather than turning compiler-owned
 | `programPath` | Supported | Uses `os.Executable` and converts lookup failures through the Haxe exception boundary. |
 | `executablePath` | Supported deprecated alias | Calls the same `programPath` adapter, matching upstream Haxe's migration path. |
 | `stdin`, `stdout`, `stderr` | Supported | Reuse the existing Haxe IO carriers over non-owning process streams. Closing a wrapper detaches that wrapper but does not close the process-wide descriptor; a later `Sys.stdout()`/`stderr()`/`stdin()` call returns a fresh usable wrapper. Stdout/stderr flush is a successful no-op because Go file writes are unbuffered and `Sync` is invalid for some pipes/terminals. |
-| `getChar` | Supported byte-stream core | Reads one byte, reports EOF through `haxe.io.Eof`, and writes that byte once when `echo` is true. Raw/canonical terminal-mode control is the platform-specific follow-up `haxe_go-vfp.8.7.3`; redirected-stream behavior is the admitted deterministic contract. |
+| `getChar` | Supported on admitted `linux-amd64` | On a terminal, temporarily disables canonical input and host echo, reads one byte without waiting for newline, and restores the original terminal state on every return. Redirected input remains an ordinary byte stream. Staged Haxe throws `haxe.io.Eof` and writes the byte exactly once when `echo` is true. |
 
-Platform-specific process CPU accounting or terminal control belongs behind an
-explicit typed Go API or `@:goNative` module boundary. Selecting the `metal`
-compatibility preset does not silently change these root `Sys` semantics.
+The same terminal boundary cross-builds for `darwin-arm64` and `windows-amd64`,
+but cross-build evidence does not promote those hosts into the admitted release
+runtime: macOS remains experimental and Windows remains compile-only. Other
+character-device hosts fail explicitly; redirected non-terminal input retains
+byte-stream behavior. Platform-specific process CPU accounting still belongs
+behind an explicit typed Go API or `@:goNative` module boundary. Selecting the
+`metal` compatibility preset does not change these root `Sys` semantics.
 
 ## Why `cpuTime` fails at compile time
 
@@ -102,6 +109,10 @@ independent review, usage evidence, and SemVer migration plan.
   `test/test_stdlib_migration_ledger_contract.py`,
   `test/snapshot/core/runtime_hxrt_infer_sys`, and
   `test/snapshot/core/runtime_hxrt_infer_process`
+- Interactive terminal, redirected input, restoration, echo, and cross-build
+  contracts: `test/test_sys_get_char_terminal.py`,
+  `test/test_sys_get_char_terminal_contract.py`, and
+  `test/snapshot/sys/sys_get_char_terminal`
 - Compile-time unsupported contract:
   `test/snapshot/negative/sys_cpu_time_unsupported`
 - Haxe 4.3.7 eval differential contract:

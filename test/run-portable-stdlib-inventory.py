@@ -97,7 +97,7 @@ OWNER_OVERRIDES = {
     "sys.io.FileInput": "mixed",
     "sys.io.FileOutput": "mixed",
     "sys.io.FileSeek": "staged_std",
-    "sys.io.Process": "runtime_hxrt",
+    "sys.io.Process": "mixed",
     "sys.FileSystem": "mixed",
     "sys.db.Connection": "staged_std",
     "sys.db.Mysql": "staged_std",
@@ -162,12 +162,21 @@ MODULE_NOTES_OVERRIDES = {
 	"Sys": (
 		"The supported Haxe 4.3.7 root API is canonical staged source in "
 		"std/go/_std/Sys.hx over typed std/hxrt bindings. Public map construction, "
-		"fallbacks, aliases, and standard-stream wrappers stay in Haxe; native process "
-		"capabilities live in runtime/hxrt/sys.go and standard handles in file.go. "
+		"fallbacks, aliases, standard-stream wrappers, getChar EOF, and requested echo "
+		"stay in Haxe; native process capabilities live in runtime/hxrt/sys.go, standard "
+		"handles in file.go, and terminal state in footprint-explicit terminal*.go files. "
 		"Evidence: root_sys_contract, root_sys_portable_contract, sys_command_contract, "
-		"sys_sleep_contract, sys/root_sys_portable, core/runtime_hxrt_infer_sys, and "
+		"sys_sleep_contract, sys/root_sys_portable, sys/sys_get_char_terminal, "
+		"test_sys_get_char_terminal.py, core/runtime_hxrt_infer_sys, and "
 		"negative/sys_cpu_time_unsupported."
 	),
+    "sys.io.Process": (
+        "The complete public API, stream wrappers, bounds and EOF translation, "
+        "detached rejection, nullable exit status, and closed-state policy are "
+        "canonical staged source in std/go/_std/sys/io/Process.hx. Typed opaque "
+        "handles and native spawn, pipe, wait, signal, and close capabilities remain "
+        "in std/hxrt/process plus runtime/hxrt/process.go."
+    ),
 	"haxe.CallStack": (
 		"Covered by target-sensitive snapshot contracts in stdlib/haxe_stack_loop_target_sensitive. "
 		"Go uses a staged std deterministic empty-stack fallback by default; opt-in native Go stack "

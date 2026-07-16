@@ -278,7 +278,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Sys",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. The supported Haxe 4.3.7 root API is canonical staged source in std/go/_std/Sys.hx over typed std/hxrt bindings. Public map construction, fallbacks, aliases, and standard-stream wrappers stay in Haxe; native process capabilities live in runtime/hxrt/sys.go and standard handles in file.go. Evidence: root_sys_contract, root_sys_portable_contract, sys_command_contract, sys_sleep_contract, sys/root_sys_portable, core/runtime_hxrt_infer_sys, and negative/sys_cpu_time_unsupported.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. The supported Haxe 4.3.7 root API is canonical staged source in std/go/_std/Sys.hx over typed std/hxrt bindings. Public map construction, fallbacks, aliases, standard-stream wrappers, getChar EOF, and requested echo stay in Haxe; native process capabilities live in runtime/hxrt/sys.go, standard handles in file.go, and terminal state in footprint-explicit terminal*.go files. Evidence: root_sys_contract, root_sys_portable_contract, sys_command_contract, sys_sleep_contract, sys/root_sys_portable, sys/sys_get_char_terminal, test_sys_get_char_terminal.py, core/runtime_hxrt_infer_sys, and negative/sys_cpu_time_unsupported.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
