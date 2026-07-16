@@ -38,9 +38,9 @@ func haxe__crypto__Base64_fromValues(values []int) *haxe__io__Bytes {
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_13 := _g
+		hx_post_85 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_13
+		index := hx_post_85
 		bytes.b[index] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
 	}
 	return bytes
@@ -60,9 +60,9 @@ func haxe__crypto__Base64_toValues(bytes *haxe__io__Bytes) []int {
 	_g := 0
 	_g1 := bytes.length
 	for _g < _g1 {
-		hx_post_14 := _g
+		hx_post_86 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_14
+		index := hx_post_86
 		values = append(values, bytes.b[index])
 	}
 	return values

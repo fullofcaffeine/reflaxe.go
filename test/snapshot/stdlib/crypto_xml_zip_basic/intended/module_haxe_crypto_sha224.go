@@ -11,9 +11,9 @@ func haxe__crypto__Sha224_fromValues(values []int) *haxe__io__Bytes {
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_4 := _g
+		hx_post_76 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_4
+		index := hx_post_76
 		bytes.b[index] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
 	}
 	return bytes
@@ -28,9 +28,9 @@ func haxe__crypto__Sha224_toValues(bytes *haxe__io__Bytes) []int {
 	_g := 0
 	_g1 := bytes.length
 	for _g < _g1 {
-		hx_post_5 := _g
+		hx_post_77 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_5
+		index := hx_post_77
 		values = append(values, bytes.b[index])
 	}
 	return values

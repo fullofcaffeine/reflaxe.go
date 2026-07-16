@@ -3,12 +3,10 @@ package main
 import (
 	"bytes"
 	"compress/zlib"
-	"encoding/xml"
 	"io"
 	"math"
 	"reflect"
 	"snapshot/hxrt"
-	"strings"
 	"time"
 )
 
@@ -1135,276 +1133,6 @@ func Reflect_setField(obj any, field *string, value any) {
 	}
 }
 
-var Xml_Element int = 0
-
-var Xml_PCData int = 1
-
-var Xml_CData int = 2
-
-var Xml_Comment int = 3
-
-var Xml_DocType int = 4
-
-var Xml_ProcessingInstruction int = 5
-
-var Xml_Document int = 6
-
-type Xml struct {
-	nodeType       int
-	nodeName       *string
-	nodeValue      *string
-	parent         *Xml
-	children       []*Xml
-	attributeMap   map[string]string
-	attributeOrder []string
-}
-
-func _Xml__XmlType_Impl__toString(value int) *string {
-	switch value {
-	case Xml_Element:
-		return hxrt.StringFromLiteral("Element")
-	case Xml_PCData:
-		return hxrt.StringFromLiteral("PCData")
-	case Xml_CData:
-		return hxrt.StringFromLiteral("CData")
-	case Xml_Comment:
-		return hxrt.StringFromLiteral("Comment")
-	case Xml_DocType:
-		return hxrt.StringFromLiteral("DocType")
-	case Xml_ProcessingInstruction:
-		return hxrt.StringFromLiteral("ProcessingInstruction")
-	case Xml_Document:
-		return hxrt.StringFromLiteral("Document")
-	default:
-		return hxrt.StringFromLiteral("XmlType")
-	}
-}
-
-func New_Xml(nodeType int) *Xml {
-	return &Xml{nodeType: nodeType, children: []*Xml{}, attributeMap: map[string]string{}, attributeOrder: []string{}}
-}
-
-func Xml_createElement(name *string) *Xml {
-	xml := New_Xml(Xml_Element)
-	xml.nodeName = name
-	return xml
-}
-
-func Xml_createPCData(data *string) *Xml {
-	xml := New_Xml(Xml_PCData)
-	xml.nodeValue = data
-	return xml
-}
-
-func Xml_createCData(data *string) *Xml {
-	xml := New_Xml(Xml_CData)
-	xml.nodeValue = data
-	return xml
-}
-
-func Xml_createComment(data *string) *Xml {
-	xml := New_Xml(Xml_Comment)
-	xml.nodeValue = data
-	return xml
-}
-
-func Xml_createDocType(data *string) *Xml {
-	xml := New_Xml(Xml_DocType)
-	xml.nodeValue = data
-	return xml
-}
-
-func Xml_createProcessingInstruction(data *string) *Xml {
-	xml := New_Xml(Xml_ProcessingInstruction)
-	xml.nodeValue = data
-	return xml
-}
-
-func Xml_createDocument() *Xml {
-	return New_Xml(Xml_Document)
-}
-
-func Xml_ensureElementType(self *Xml) {
-	if self.nodeType != Xml_Document && self.nodeType != Xml_Element {
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element or Document but found "), _Xml__XmlType_Impl__toString(self.nodeType)))
-	}
-}
-
-func Xml_parse(source *string) *Xml {
-	return haxe__xml__Parser_parse(source)
-}
-
-func (self *Xml) get(att *string) *string {
-	if self.nodeType != Xml_Element {
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(self.nodeType)))
-		return nil
-	}
-	key := *hxrt.StdString(att)
-	value, ok := self.attributeMap[key]
-	if !ok {
-		return nil
-	}
-	return hxrt.StringFromLiteral(value)
-}
-
-func (self *Xml) set(att *string, value *string) {
-	if self.nodeType != Xml_Element {
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(self.nodeType)))
-		return
-	}
-	key := *hxrt.StdString(att)
-	if _, ok := self.attributeMap[key]; !ok {
-		self.attributeOrder = append(self.attributeOrder, key)
-	}
-	self.attributeMap[key] = *hxrt.StdString(value)
-}
-
-func (self *Xml) remove(att *string) {
-	if self.nodeType != Xml_Element {
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(self.nodeType)))
-		return
-	}
-	key := *hxrt.StdString(att)
-	delete(self.attributeMap, key)
-	filtered := make([]string, 0, len(self.attributeOrder))
-	for _, existing := range self.attributeOrder {
-		if existing != key {
-			filtered = append(filtered, existing)
-		}
-	}
-	self.attributeOrder = filtered
-}
-
-func (self *Xml) exists(att *string) bool {
-	if self.nodeType != Xml_Element {
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(self.nodeType)))
-		return false
-	}
-	_, ok := self.attributeMap[*hxrt.StdString(att)]
-	return ok
-}
-
-func (self *Xml) attributes() map[string]any {
-	if self.nodeType != Xml_Element {
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(self.nodeType)))
-		return map[string]any{}
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(self.attributeOrder) }
-	iter["next"] = func() *string { key := self.attributeOrder[index]; index++; return hxrt.StringFromLiteral(key) }
-	return iter
-}
-
-func (self *Xml) iterator() map[string]any {
-	Xml_ensureElementType(self)
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(self.children) }
-	iter["next"] = func() *Xml { child := self.children[index]; index++; return child }
-	return iter
-}
-
-func (self *Xml) elements() map[string]any {
-	Xml_ensureElementType(self)
-	matches := make([]*Xml, 0, len(self.children))
-	for _, child := range self.children {
-		if child.nodeType == Xml_Element {
-			matches = append(matches, child)
-		}
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(matches) }
-	iter["next"] = func() *Xml { child := matches[index]; index++; return child }
-	return iter
-}
-
-func (self *Xml) elementsNamed(name *string) map[string]any {
-	Xml_ensureElementType(self)
-	wanted := *hxrt.StdString(name)
-	matches := make([]*Xml, 0, len(self.children))
-	for _, child := range self.children {
-		if child.nodeType == Xml_Element && *hxrt.StdString(child.nodeName) == wanted {
-			matches = append(matches, child)
-		}
-	}
-	index := 0
-	iter := map[string]any{}
-	iter["hasNext"] = func() bool { return index < len(matches) }
-	iter["next"] = func() *Xml { child := matches[index]; index++; return child }
-	return iter
-}
-
-func (self *Xml) firstChild() *Xml {
-	Xml_ensureElementType(self)
-	if len(self.children) == 0 {
-		return nil
-	}
-	return self.children[0]
-}
-
-func (self *Xml) firstElement() *Xml {
-	Xml_ensureElementType(self)
-	for _, child := range self.children {
-		if child.nodeType == Xml_Element {
-			return child
-		}
-	}
-	return nil
-}
-
-func (self *Xml) addChild(x *Xml) {
-	Xml_ensureElementType(self)
-	if x == nil {
-		return
-	}
-	if x.parent != nil {
-		x.parent.removeChild(x)
-	}
-	self.children = append(self.children, x)
-	x.parent = self
-}
-
-func (self *Xml) removeChild(x *Xml) bool {
-	Xml_ensureElementType(self)
-	for i, child := range self.children {
-		if child == x {
-			self.children = append(self.children[:i], self.children[i+1:]...)
-			x.parent = nil
-			return true
-		}
-	}
-	return false
-}
-
-func (self *Xml) insertChild(x *Xml, pos int) {
-	Xml_ensureElementType(self)
-	if x == nil {
-		return
-	}
-	if x.parent != nil {
-		x.parent.removeChild(x)
-	}
-	if pos < 0 {
-		pos = 0
-	}
-	if pos > len(self.children) {
-		pos = len(self.children)
-	}
-	self.children = append(self.children, nil)
-	copy(self.children[pos+1:], self.children[pos:])
-	self.children[pos] = x
-	x.parent = self
-}
-
-func (self *Xml) toString() *string {
-	if self == nil {
-		return hxrt.StringFromLiteral("")
-	}
-	return haxe__xml__Printer_print(self)
-}
-
 func hxrt_haxeBytesToRaw(value *haxe__io__Bytes) []byte {
 	if value == nil {
 		return []byte{}
@@ -1438,168 +1166,6 @@ var haxe__ds__Option_None *haxe__ds__Option = &haxe__ds__Option{tag: 1, params: 
 
 func haxe__ds__Option_Some(value any) *haxe__ds__Option {
 	return &haxe__ds__Option{tag: 0, params: []any{value}}
-}
-
-type haxe__xml__Parser struct {
-}
-
-type haxe__xml__Printer struct {
-}
-
-func haxe__xml__Parser_parse(source *string, strict ...bool) *Xml {
-	raw := *hxrt.StdString(source)
-	doc := Xml_createDocument()
-	stack := []*Xml{doc}
-	decoder := xml.NewDecoder(strings.NewReader(raw))
-	for {
-		tokenStart := decoder.InputOffset()
-		token, err := decoder.Token()
-		tokenEnd := decoder.InputOffset()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			hxrt.Throw(err)
-			return Xml_createDocument()
-		}
-		current := stack[len(stack)-1]
-		switch value := token.(type) {
-		case xml.StartElement:
-			node := Xml_createElement(hxrt.StringFromLiteral(value.Name.Local))
-			for _, attr := range value.Attr {
-				node.set(hxrt.StringFromLiteral(attr.Name.Local), hxrt.StringFromLiteral(attr.Value))
-			}
-			current.addChild(node)
-			stack = append(stack, node)
-		case xml.EndElement:
-			if len(stack) > 1 {
-				stack = stack[:len(stack)-1]
-			}
-		case xml.CharData:
-			text := string([]byte(value))
-			if len(text) != 0 {
-				tokenSource := raw[tokenStart:tokenEnd]
-				if strings.HasPrefix(tokenSource, "<![CDATA[") && strings.HasSuffix(tokenSource, "]]>") {
-					current.addChild(Xml_createCData(hxrt.StringFromLiteral(text)))
-				} else {
-					current.addChild(Xml_createPCData(hxrt.StringFromLiteral(text)))
-				}
-			}
-		case xml.Comment:
-			current.addChild(Xml_createComment(hxrt.StringFromLiteral(string([]byte(value)))))
-		case xml.Directive:
-			directive := strings.TrimSpace(string([]byte(value)))
-			upper := strings.ToUpper(directive)
-			if strings.HasPrefix(upper, "DOCTYPE") {
-				directive = strings.TrimSpace(directive[len("DOCTYPE"):])
-			}
-			current.addChild(Xml_createDocType(hxrt.StringFromLiteral(directive)))
-		case xml.ProcInst:
-			payload := value.Target
-			if len(value.Inst) != 0 {
-				payload += " " + string(value.Inst)
-			}
-			current.addChild(Xml_createProcessingInstruction(hxrt.StringFromLiteral(strings.TrimSpace(payload))))
-		}
-	}
-	return doc
-}
-
-func haxe__xml__Printer_escapeText(value string) string {
-	return strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;").Replace(value)
-}
-
-func haxe__xml__Printer_escapeAttr(value string) string {
-	return strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;").Replace(value)
-}
-
-func haxe__xml__Printer_hasChildren(value *Xml) bool {
-	for _, child := range value.children {
-		switch child.nodeType {
-		case Xml_Element, Xml_PCData:
-			return true
-		case Xml_CData, Xml_Comment:
-			if len(strings.TrimLeft(*hxrt.StdString(child.nodeValue), " \n\r\t")) != 0 {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func haxe__xml__Printer_writeNode(output *strings.Builder, value *Xml, tabs string, pretty bool) {
-	newline := func() {
-		if pretty {
-			output.WriteString("\n")
-		}
-	}
-	switch value.nodeType {
-	case Xml_CData:
-		output.WriteString(tabs + "<![CDATA[")
-		output.WriteString(*hxrt.StdString(value.nodeValue))
-		output.WriteString("]]>")
-		newline()
-	case Xml_Comment:
-		commentContent := strings.NewReplacer("\n", "", "\r", "", "\t", "").Replace(*hxrt.StdString(value.nodeValue))
-		output.WriteString(tabs)
-		output.WriteString(strings.TrimSpace("<!--" + commentContent + "-->"))
-		newline()
-	case Xml_Document:
-		for _, child := range value.children {
-			haxe__xml__Printer_writeNode(output, child, tabs, pretty)
-		}
-	case Xml_Element:
-		output.WriteString(tabs + "<")
-		output.WriteString(*hxrt.StdString(value.nodeName))
-		for _, attribute := range value.attributeOrder {
-			output.WriteString(" " + attribute + "=\"")
-			output.WriteString(haxe__xml__Printer_escapeAttr(value.attributeMap[attribute]))
-			output.WriteString("\"")
-		}
-		if haxe__xml__Printer_hasChildren(value) {
-			output.WriteString(">")
-			newline()
-			childTabs := tabs
-			if pretty {
-				childTabs = tabs + "\t"
-			}
-			for _, child := range value.children {
-				haxe__xml__Printer_writeNode(output, child, childTabs, pretty)
-			}
-			output.WriteString(tabs + "</")
-			output.WriteString(*hxrt.StdString(value.nodeName))
-			output.WriteString(">")
-			newline()
-		} else {
-			output.WriteString("/>")
-			newline()
-		}
-	case Xml_PCData:
-		nodeValue := *hxrt.StdString(value.nodeValue)
-		if len(nodeValue) != 0 {
-			output.WriteString(tabs + haxe__xml__Printer_escapeText(nodeValue))
-			newline()
-		}
-	case Xml_ProcessingInstruction:
-		output.WriteString("<?" + *hxrt.StdString(value.nodeValue) + "?>")
-		newline()
-	case Xml_DocType:
-		output.WriteString("<!DOCTYPE " + *hxrt.StdString(value.nodeValue) + ">")
-		newline()
-	}
-}
-
-func haxe__xml__Printer_print(value *Xml, pretty ...bool) *string {
-	if value == nil {
-		return hxrt.StringFromLiteral("")
-	}
-	usePretty := false
-	if len(pretty) > 0 {
-		usePretty = pretty[0]
-	}
-	var output strings.Builder
-	haxe__xml__Printer_writeNode(&output, value, "", usePretty)
-	return hxrt.StringFromLiteral(output.String())
 }
 
 type haxe__zip__Compress struct {
@@ -1781,6 +1347,14 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return nil, false
 	case "Main":
 		return nil, false
+	case "StringBuf":
+		return hxrt_typeCallAny(New_StringBuf, args)
+	case "StringTools":
+		return nil, false
+	case "Xml":
+		return hxrt_typeCallAny(New_Xml, args)
+	case "_Xml.XmlType_Impl_":
+		return nil, false
 	case "haxe.Int64Helper":
 		return nil, false
 	case "haxe._Int32.Int32_Impl_":
@@ -1795,6 +1369,10 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return hxrt_typeCallAny(New_haxe__ds__StringMap, args)
 	case "haxe.iterators.MapKeyValueIterator":
 		return hxrt_typeCallAny(New_haxe__iterators__MapKeyValueIterator, args)
+	case "haxe.iterators.StringIterator":
+		return hxrt_typeCallAny(New_haxe__iterators__StringIterator, args)
+	case "haxe.iterators.StringKeyValueIterator":
+		return hxrt_typeCallAny(New_haxe__iterators__StringKeyValueIterator, args)
 	case "haxe.rtti.CTypeTools":
 		return nil, false
 	case "haxe.rtti.Rtti":
@@ -1803,6 +1381,14 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return nil, false
 	case "haxe.rtti.XmlParser":
 		return hxrt_typeCallAny(New_haxe__rtti__XmlParser, args)
+	case "haxe.xml.Parser":
+		return nil, false
+	case "haxe.xml.Printer":
+		return hxrt_typeCallAny(New_haxe__xml__Printer, args)
+	case "haxe.xml.XmlParserException":
+		return hxrt_typeCallAny(New_haxe__xml__XmlParserException, args)
+	case "haxe.xml._Parser.S_Impl_":
+		return nil, false
 	default:
 		return nil, false
 	}
@@ -1810,14 +1396,26 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 
 func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
+	case "StringBuf":
+		return &StringBuf{}, true
+	case "Xml":
+		return &Xml{}, true
 	case "haxe._Int64.___Int64":
 		return &haxe___Int64_____Int64{}, true
 	case "haxe.ds.StringMap":
 		return &haxe__ds__StringMap{}, true
 	case "haxe.iterators.MapKeyValueIterator":
 		return &haxe__iterators__MapKeyValueIterator{}, true
+	case "haxe.iterators.StringIterator":
+		return &haxe__iterators__StringIterator{}, true
+	case "haxe.iterators.StringKeyValueIterator":
+		return &haxe__iterators__StringKeyValueIterator{}, true
 	case "haxe.rtti.XmlParser":
 		return &haxe__rtti__XmlParser{}, true
+	case "haxe.xml.Printer":
+		return &haxe__xml__Printer{}, true
+	case "haxe.xml.XmlParserException":
+		return &haxe__xml__XmlParserException{}, true
 	default:
 		return nil, false
 	}
@@ -2167,6 +1765,16 @@ func Type_getClass(o any) any {
 	case hxrt__TypeClassValue:
 		copyValue := value
 		return &copyValue
+	case *StringBuf:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("StringBuf")}
+	case *Xml:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Xml")}
 	case *haxe___Int64_____Int64:
 		if value == nil {
 			return nil
@@ -2182,11 +1790,31 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.MapKeyValueIterator")}
+	case *haxe__iterators__StringIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.StringIterator")}
+	case *haxe__iterators__StringKeyValueIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.StringKeyValueIterator")}
 	case *haxe__rtti__XmlParser:
 		if value == nil {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.rtti.XmlParser")}
+	case *haxe__xml__Printer:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.xml.Printer")}
+	case *haxe__xml__XmlParserException:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.xml.XmlParserException")}
 	default:
 		return nil
 	}
@@ -2240,6 +1868,14 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "Main":
 		return nil
+	case "StringBuf":
+		return nil
+	case "StringTools":
+		return nil
+	case "Xml":
+		return nil
+	case "_Xml.XmlType_Impl_":
+		return nil
 	case "haxe.Int64Helper":
 		return nil
 	case "haxe._Int32.Int32_Impl_":
@@ -2254,6 +1890,10 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "haxe.iterators.MapKeyValueIterator":
 		return nil
+	case "haxe.iterators.StringIterator":
+		return nil
+	case "haxe.iterators.StringKeyValueIterator":
+		return nil
 	case "haxe.rtti.CTypeTools":
 		return nil
 	case "haxe.rtti.Rtti":
@@ -2261,6 +1901,14 @@ func Type_getSuperClass(c any) any {
 	case "haxe.rtti.TypeApi":
 		return nil
 	case "haxe.rtti.XmlParser":
+		return nil
+	case "haxe.xml.Parser":
+		return nil
+	case "haxe.xml.Printer":
+		return nil
+	case "haxe.xml.XmlParserException":
+		return nil
+	case "haxe.xml._Parser.S_Impl_":
 		return nil
 	default:
 		return nil
@@ -2285,6 +1933,14 @@ func Type_getClassFields(c any) []*string {
 		return []*string{hxrt.StringFromLiteral("__rtti"), hxrt.StringFromLiteral("field")}
 	case "Main":
 		return []*string{hxrt.StringFromLiteral("main")}
+	case "StringBuf":
+		return []*string{}
+	case "StringTools":
+		return []*string{hxrt.StringFromLiteral("MAX_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("contains"), hxrt.StringFromLiteral("containsImpl"), hxrt.StringFromLiteral("endsWith"), hxrt.StringFromLiteral("endsWithImpl"), hxrt.StringFromLiteral("fastCodeAt"), hxrt.StringFromLiteral("hex"), hxrt.StringFromLiteral("hexDigitValue"), hxrt.StringFromLiteral("htmlEscape"), hxrt.StringFromLiteral("htmlUnescape"), hxrt.StringFromLiteral("isEof"), hxrt.StringFromLiteral("isSpace"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("lpad"), hxrt.StringFromLiteral("ltrim"), hxrt.StringFromLiteral("replace"), hxrt.StringFromLiteral("rpad"), hxrt.StringFromLiteral("rtrim"), hxrt.StringFromLiteral("startsWith"), hxrt.StringFromLiteral("startsWithImpl"), hxrt.StringFromLiteral("trim"), hxrt.StringFromLiteral("unsafeCodeAt"), hxrt.StringFromLiteral("urlDecode"), hxrt.StringFromLiteral("urlEncode"), hxrt.StringFromLiteral("utf16CodePointAt")}
+	case "Xml":
+		return []*string{hxrt.StringFromLiteral("CData"), hxrt.StringFromLiteral("Comment"), hxrt.StringFromLiteral("DocType"), hxrt.StringFromLiteral("Document"), hxrt.StringFromLiteral("Element"), hxrt.StringFromLiteral("PCData"), hxrt.StringFromLiteral("ProcessingInstruction"), hxrt.StringFromLiteral("childIterator"), hxrt.StringFromLiteral("createCData"), hxrt.StringFromLiteral("createComment"), hxrt.StringFromLiteral("createDocType"), hxrt.StringFromLiteral("createDocument"), hxrt.StringFromLiteral("createElement"), hxrt.StringFromLiteral("createPCData"), hxrt.StringFromLiteral("createProcessingInstruction"), hxrt.StringFromLiteral("parse")}
+	case "_Xml.XmlType_Impl_":
+		return []*string{hxrt.StringFromLiteral("CData"), hxrt.StringFromLiteral("Comment"), hxrt.StringFromLiteral("DocType"), hxrt.StringFromLiteral("Document"), hxrt.StringFromLiteral("Element"), hxrt.StringFromLiteral("PCData"), hxrt.StringFromLiteral("ProcessingInstruction"), hxrt.StringFromLiteral("toString")}
 	case "haxe.Int64Helper":
 		return []*string{}
 	case "haxe._Int32.Int32_Impl_":
@@ -2299,6 +1955,10 @@ func Type_getClassFields(c any) []*string {
 		return []*string{}
 	case "haxe.iterators.MapKeyValueIterator":
 		return []*string{}
+	case "haxe.iterators.StringIterator":
+		return []*string{}
+	case "haxe.iterators.StringKeyValueIterator":
+		return []*string{}
 	case "haxe.rtti.CTypeTools":
 		return []*string{hxrt.StringFromLiteral("classField"), hxrt.StringFromLiteral("functionArgumentName"), hxrt.StringFromLiteral("joinClassFields"), hxrt.StringFromLiteral("joinFunctionArguments"), hxrt.StringFromLiteral("joinStringArray"), hxrt.StringFromLiteral("nameWithParams"), hxrt.StringFromLiteral("toString")}
 	case "haxe.rtti.Rtti":
@@ -2306,6 +1966,14 @@ func Type_getClassFields(c any) []*string {
 	case "haxe.rtti.TypeApi":
 		return []*string{hxrt.StringFromLiteral("constructorEq"), hxrt.StringFromLiteral("fieldEq"), hxrt.StringFromLiteral("isVar"), hxrt.StringFromLiteral("rightsEq"), hxrt.StringFromLiteral("sameClassFields"), hxrt.StringFromLiteral("sameConstructorArguments"), hxrt.StringFromLiteral("sameFunctionArguments"), hxrt.StringFromLiteral("sameTypeParamNames"), hxrt.StringFromLiteral("sameTypes"), hxrt.StringFromLiteral("typeEq"), hxrt.StringFromLiteral("typeInfos")}
 	case "haxe.rtti.XmlParser":
+		return []*string{}
+	case "haxe.xml.Parser":
+		return []*string{hxrt.StringFromLiteral("doParse"), hxrt.StringFromLiteral("escapes"), hxrt.StringFromLiteral("parse")}
+	case "haxe.xml.Printer":
+		return []*string{hxrt.StringFromLiteral("print")}
+	case "haxe.xml.XmlParserException":
+		return []*string{}
+	case "haxe.xml._Parser.S_Impl_":
 		return []*string{}
 	default:
 		return []*string{}
@@ -2322,6 +1990,14 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{}
 	case "Main":
 		return []*string{}
+	case "StringBuf":
+		return []*string{hxrt.StringFromLiteral("b")}
+	case "StringTools":
+		return []*string{}
+	case "Xml":
+		return []*string{hxrt.StringFromLiteral("addChild"), hxrt.StringFromLiteral("attributeMap"), hxrt.StringFromLiteral("attributes"), hxrt.StringFromLiteral("children"), hxrt.StringFromLiteral("elements"), hxrt.StringFromLiteral("elementsNamed"), hxrt.StringFromLiteral("ensureElementType"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("firstChild"), hxrt.StringFromLiteral("firstElement"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("get_nodeName"), hxrt.StringFromLiteral("get_nodeValue"), hxrt.StringFromLiteral("insertChild"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("nodeName"), hxrt.StringFromLiteral("nodeType"), hxrt.StringFromLiteral("nodeValue"), hxrt.StringFromLiteral("parent"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeChild"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("set_nodeName"), hxrt.StringFromLiteral("set_nodeValue"), hxrt.StringFromLiteral("toString")}
+	case "_Xml.XmlType_Impl_":
+		return []*string{}
 	case "haxe.Int64Helper":
 		return []*string{}
 	case "haxe._Int32.Int32_Impl_":
@@ -2336,6 +2012,10 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("copyIMap"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("existsIMap"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getIMap"), hxrt.StringFromLiteral("h"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeIMap"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setIMap"), hxrt.StringFromLiteral("toString")}
 	case "haxe.iterators.MapKeyValueIterator":
 		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("next")}
+	case "haxe.iterators.StringIterator":
+		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
+	case "haxe.iterators.StringKeyValueIterator":
+		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
 	case "haxe.rtti.CTypeTools":
 		return []*string{}
 	case "haxe.rtti.Rtti":
@@ -2344,6 +2024,14 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{}
 	case "haxe.rtti.XmlParser":
 		return []*string{hxrt.StringFromLiteral("curplatform"), hxrt.StringFromLiteral("defplat"), hxrt.StringFromLiteral("elementName"), hxrt.StringFromLiteral("findSeparator"), hxrt.StringFromLiteral("hasNamedElement"), hxrt.StringFromLiteral("innerData"), hxrt.StringFromLiteral("innerHTML"), hxrt.StringFromLiteral("joinStringArray"), hxrt.StringFromLiteral("merge"), hxrt.StringFromLiteral("mergeAbstracts"), hxrt.StringFromLiteral("mergeClasses"), hxrt.StringFromLiteral("mergeDoc"), hxrt.StringFromLiteral("mergeEnums"), hxrt.StringFromLiteral("mergeFields"), hxrt.StringFromLiteral("mergeRights"), hxrt.StringFromLiteral("mergeTypedefs"), hxrt.StringFromLiteral("mkPath"), hxrt.StringFromLiteral("mkRights"), hxrt.StringFromLiteral("mkTypeParams"), hxrt.StringFromLiteral("newField"), hxrt.StringFromLiteral("nodeDisplayName"), hxrt.StringFromLiteral("parseIntString"), hxrt.StringFromLiteral("process"), hxrt.StringFromLiteral("processElement"), hxrt.StringFromLiteral("requireAttr"), hxrt.StringFromLiteral("requireFirstElement"), hxrt.StringFromLiteral("requireNamedElement"), hxrt.StringFromLiteral("root"), hxrt.StringFromLiteral("sort"), hxrt.StringFromLiteral("sortFields"), hxrt.StringFromLiteral("splitString"), hxrt.StringFromLiteral("xabstract"), hxrt.StringFromLiteral("xclass"), hxrt.StringFromLiteral("xclassfield"), hxrt.StringFromLiteral("xenum"), hxrt.StringFromLiteral("xenumfield"), hxrt.StringFromLiteral("xmeta"), hxrt.StringFromLiteral("xoverloads"), hxrt.StringFromLiteral("xpath"), hxrt.StringFromLiteral("xroot"), hxrt.StringFromLiteral("xtype"), hxrt.StringFromLiteral("xtypedef"), hxrt.StringFromLiteral("xtypeparams")}
+	case "haxe.xml.Parser":
+		return []*string{}
+	case "haxe.xml.Printer":
+		return []*string{hxrt.StringFromLiteral("hasChildren"), hxrt.StringFromLiteral("newline"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("pretty"), hxrt.StringFromLiteral("write"), hxrt.StringFromLiteral("writeNode")}
+	case "haxe.xml.XmlParserException":
+		return []*string{hxrt.StringFromLiteral("lineNumber"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("position"), hxrt.StringFromLiteral("positionAtLine"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("xml")}
+	case "haxe.xml._Parser.S_Impl_":
+		return []*string{}
 	default:
 		return []*string{}
 	}
@@ -2367,6 +2055,14 @@ func Type_resolveClass(name *string) any {
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "Main":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "StringBuf":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "StringTools":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "Xml":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "_Xml.XmlType_Impl_":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.Int64Helper":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe._Int32.Int32_Impl_":
@@ -2381,6 +2077,10 @@ func Type_resolveClass(name *string) any {
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.iterators.MapKeyValueIterator":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.iterators.StringIterator":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.iterators.StringKeyValueIterator":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.rtti.CTypeTools":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.rtti.Rtti":
@@ -2388,6 +2088,14 @@ func Type_resolveClass(name *string) any {
 	case "haxe.rtti.TypeApi":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.rtti.XmlParser":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.xml.Parser":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.xml.Printer":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.xml.XmlParserException":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.xml._Parser.S_Impl_":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil

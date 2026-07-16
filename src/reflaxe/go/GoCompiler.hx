@@ -551,7 +551,6 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			imports.push("bytes");
 			imports.push("compress/zlib");
-			imports.push("encoding/xml");
 			imports.push("io");
 			imports.push("math");
 			imports.push("reflect");
@@ -5237,396 +5236,66 @@ class GoCompiler {
 				},
 				{name: "field", typeName: "*string"},
 				{name: "value", typeName: "any"}
-			], [],
-				[
-					GoStmt.GoRaw("if obj == nil {"),
-					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Null Access\"))"),
-					GoStmt.GoRaw("\treturn"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoRaw("key := *hxrt.StdString(field)"),
-					GoStmt.GoRaw("switch target := obj.(type) {"),
-					GoStmt.GoRaw("case map[string]any:"),
-					GoStmt.GoRaw("\ttarget[key] = value"),
-					GoStmt.GoRaw("\treturn"),
-					GoStmt.GoRaw("case map[any]any:"),
-					GoStmt.GoRaw("\ttarget[key] = value"),
-					GoStmt.GoRaw("\treturn"),
-					GoStmt.GoRaw("case *map[string]any:"),
-					GoStmt.GoRaw("\tif target == nil {"),
-					GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Null Access\"))"),
-					GoStmt.GoRaw("\t\treturn"),
-					GoStmt.GoRaw("\t}"),
-					GoStmt.GoRaw("\t(*target)[key] = value"),
-					GoStmt.GoRaw("\treturn"),
-					GoStmt.GoRaw("case *map[any]any:"),
-					GoStmt.GoRaw("\tif target == nil {"),
-					GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Null Access\"))"),
-					GoStmt.GoRaw("\t\treturn"),
-					GoStmt.GoRaw("\t}"),
-					GoStmt.GoRaw("\t(*target)[key] = value"),
-					GoStmt.GoRaw("\treturn"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoRaw("rv := reflect.ValueOf(obj)"),
-					GoStmt.GoRaw("if !rv.IsValid() || rv.Kind() != reflect.Pointer {"),
-					GoStmt.GoRaw("\treturn"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoRaw("if rv.IsNil() {"),
-					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Null Access\"))"),
-					GoStmt.GoRaw("\treturn"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoRaw("rv = rv.Elem()"),
-					GoStmt.GoRaw("if rv.Kind() != reflect.Struct {"),
-					GoStmt.GoRaw("\treturn"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoRaw("fieldValue := rv.FieldByName(key)"),
-					GoStmt.GoRaw("if !fieldValue.IsValid() || !fieldValue.CanSet() {"),
-					GoStmt.GoRaw("\treturn"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoRaw("if value == nil {"),
-					GoStmt.GoRaw("\tfieldValue.Set(reflect.Zero(fieldValue.Type()))"),
-					GoStmt.GoRaw("\treturn"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoRaw("incoming := reflect.ValueOf(value)"),
-					GoStmt.GoRaw("if incoming.Type().AssignableTo(fieldValue.Type()) {"),
-					GoStmt.GoRaw("\tfieldValue.Set(incoming)"),
-					GoStmt.GoRaw("\treturn"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoRaw("if incoming.Type().ConvertibleTo(fieldValue.Type()) {"),
-					GoStmt.GoRaw("\tfieldValue.Set(incoming.Convert(fieldValue.Type()))"),
-					GoStmt.GoRaw("\treturn"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoRaw("if fieldValue.Kind() == reflect.Interface {"),
-					GoStmt.GoRaw("\tfieldValue.Set(incoming)"),
-					GoStmt.GoRaw("}")
-				]),
-			GoDecl.GoGlobalVarDecl("Xml_Element", "int", GoExpr.GoIntLiteral(0)),
-			GoDecl.GoGlobalVarDecl("Xml_PCData", "int", GoExpr.GoIntLiteral(1)),
-			GoDecl.GoGlobalVarDecl("Xml_CData", "int", GoExpr.GoIntLiteral(2)),
-			GoDecl.GoGlobalVarDecl("Xml_Comment", "int", GoExpr.GoIntLiteral(3)),
-			GoDecl.GoGlobalVarDecl("Xml_DocType", "int", GoExpr.GoIntLiteral(4)),
-			GoDecl.GoGlobalVarDecl("Xml_ProcessingInstruction", "int", GoExpr.GoIntLiteral(5)),
-			GoDecl.GoGlobalVarDecl("Xml_Document", "int", GoExpr.GoIntLiteral(6)),
-			GoDecl.GoStructDecl("Xml", [
-				{
-					name: "nodeType",
-					typeName: "int"
-				},
-				{name: "nodeName", typeName: "*string"},
-				{name: "nodeValue", typeName: "*string"},
-				{name: "parent", typeName: "*Xml"},
-				{name: "children", typeName: "[]*Xml"},
-				{name: "attributeMap", typeName: "map[string]string"},
-				{name: "attributeOrder", typeName: "[]string"}
-			]),
-			GoDecl.GoFuncDecl("_Xml__XmlType_Impl__toString", null, [{name: "value", typeName: "int"}], ["*string"], [
-				GoStmt.GoRaw("switch value {"),
-				GoStmt.GoRaw("case Xml_Element:"),
-				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"Element\")"),
-				GoStmt.GoRaw("case Xml_PCData:"),
-				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"PCData\")"),
-				GoStmt.GoRaw("case Xml_CData:"),
-				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"CData\")"),
-				GoStmt.GoRaw("case Xml_Comment:"),
-				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"Comment\")"),
-				GoStmt.GoRaw("case Xml_DocType:"),
-				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"DocType\")"),
-				GoStmt.GoRaw("case Xml_ProcessingInstruction:"),
-				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"ProcessingInstruction\")"),
-				GoStmt.GoRaw("case Xml_Document:"),
-				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"Document\")"),
-				GoStmt.GoRaw("default:"),
-				GoStmt.GoRaw("\treturn hxrt.StringFromLiteral(\"XmlType\")"),
-				GoStmt.GoRaw("}")
-			]),
-			GoDecl.GoFuncDecl("New_Xml", null, [
-				{
-					name: "nodeType",
-					typeName: "int"
-				}
-			], ["*Xml"], [
-				GoStmt.GoReturn(GoExpr.GoRaw("&Xml{nodeType: nodeType, children: []*Xml{}, attributeMap: map[string]string{}, attributeOrder: []string{}}"))
-			]),
-			GoDecl.GoFuncDecl("Xml_createElement", null, [
-				{
-					name: "name",
-					typeName: "*string"
-				}
-			], ["*Xml"], [
-				GoStmt.GoRaw("xml := New_Xml(Xml_Element)"),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("xml"), "nodeName"), GoExpr.GoIdent("name")),
-				GoStmt.GoReturn(GoExpr.GoIdent("xml"))
-			]),
-			GoDecl.GoFuncDecl("Xml_createPCData", null, [
-				{
-					name: "data",
-					typeName: "*string"
-				}
-			], ["*Xml"], [
-				GoStmt.GoRaw("xml := New_Xml(Xml_PCData)"),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("xml"), "nodeValue"), GoExpr.GoIdent("data")),
-				GoStmt.GoReturn(GoExpr.GoIdent("xml"))
-			]),
-			GoDecl.GoFuncDecl("Xml_createCData", null, [
-				{
-					name: "data",
-					typeName: "*string"
-				}
-			], ["*Xml"], [
-				GoStmt.GoRaw("xml := New_Xml(Xml_CData)"),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("xml"), "nodeValue"), GoExpr.GoIdent("data")),
-				GoStmt.GoReturn(GoExpr.GoIdent("xml"))
-			]),
-			GoDecl.GoFuncDecl("Xml_createComment", null, [
-				{
-					name: "data",
-					typeName: "*string"
-				}
-			], ["*Xml"], [
-				GoStmt.GoRaw("xml := New_Xml(Xml_Comment)"),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("xml"), "nodeValue"), GoExpr.GoIdent("data")),
-				GoStmt.GoReturn(GoExpr.GoIdent("xml"))
-			]),
-			GoDecl.GoFuncDecl("Xml_createDocType", null, [
-				{
-					name: "data",
-					typeName: "*string"
-				}
-			], ["*Xml"], [
-				GoStmt.GoRaw("xml := New_Xml(Xml_DocType)"),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("xml"), "nodeValue"), GoExpr.GoIdent("data")),
-				GoStmt.GoReturn(GoExpr.GoIdent("xml"))
-			]),
-			GoDecl.GoFuncDecl("Xml_createProcessingInstruction", null, [
-				{
-					name: "data",
-					typeName: "*string"
-				}
-			], ["*Xml"], [
-				GoStmt.GoRaw("xml := New_Xml(Xml_ProcessingInstruction)"),
-				GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("xml"), "nodeValue"), GoExpr.GoIdent("data")),
-				GoStmt.GoReturn(GoExpr.GoIdent("xml"))
-			]),
-			GoDecl.GoFuncDecl("Xml_createDocument", null, [], ["*Xml"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_Xml"), [GoExpr.GoIdent("Xml_Document")]))
-			]),
-			GoDecl.GoFuncDecl("Xml_ensureElementType", null, [
-				{
-					name: "self",
-					typeName: "*Xml"
-				}
 			], [], [
-				GoStmt.GoRaw("if self.nodeType != Xml_Document && self.nodeType != Xml_Element {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(\"Bad node type, expected Element or Document but found \"), _Xml__XmlType_Impl__toString(self.nodeType)))"),
+				GoStmt.GoRaw("if obj == nil {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Null Access\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("key := *hxrt.StdString(field)"),
+				GoStmt.GoRaw("switch target := obj.(type) {"),
+				GoStmt.GoRaw("case map[string]any:"),
+				GoStmt.GoRaw("\ttarget[key] = value"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case map[any]any:"),
+				GoStmt.GoRaw("\ttarget[key] = value"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case *map[string]any:"),
+				GoStmt.GoRaw("\tif target == nil {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Null Access\"))"),
+				GoStmt.GoRaw("\t\treturn"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\t(*target)[key] = value"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case *map[any]any:"),
+				GoStmt.GoRaw("\tif target == nil {"),
+				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Null Access\"))"),
+				GoStmt.GoRaw("\t\treturn"),
+				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\t(*target)[key] = value"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("rv := reflect.ValueOf(obj)"),
+				GoStmt.GoRaw("if !rv.IsValid() || rv.Kind() != reflect.Pointer {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if rv.IsNil() {"),
+				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Null Access\"))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("rv = rv.Elem()"),
+				GoStmt.GoRaw("if rv.Kind() != reflect.Struct {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("fieldValue := rv.FieldByName(key)"),
+				GoStmt.GoRaw("if !fieldValue.IsValid() || !fieldValue.CanSet() {"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if value == nil {"),
+				GoStmt.GoRaw("\tfieldValue.Set(reflect.Zero(fieldValue.Type()))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("incoming := reflect.ValueOf(value)"),
+				GoStmt.GoRaw("if incoming.Type().AssignableTo(fieldValue.Type()) {"),
+				GoStmt.GoRaw("\tfieldValue.Set(incoming)"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if incoming.Type().ConvertibleTo(fieldValue.Type()) {"),
+				GoStmt.GoRaw("\tfieldValue.Set(incoming.Convert(fieldValue.Type()))"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("if fieldValue.Kind() == reflect.Interface {"),
+				GoStmt.GoRaw("\tfieldValue.Set(incoming)"),
 				GoStmt.GoRaw("}")
-			]),
-			GoDecl.GoFuncDecl("Xml_parse", null, [
-				{
-					name: "source",
-					typeName: "*string"
-				}
-			], ["*Xml"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("haxe__xml__Parser_parse"), [GoExpr.GoIdent("source")]))
-			]),
-			GoDecl.GoFuncDecl("get", {
-				name: "self",
-				typeName: "*Xml"
-			}, [{name: "att", typeName: "*string"}], ["*string"], [
-				GoStmt.GoRaw("if self.nodeType != Xml_Element {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(\"Bad node type, expected Element but found \"), _Xml__XmlType_Impl__toString(self.nodeType)))"),
-				GoStmt.GoRaw("\treturn nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("key := *hxrt.StdString(att)"),
-				GoStmt.GoRaw("value, ok := self.attributeMap[key]"),
-				GoStmt.GoRaw("if !ok {"),
-				GoStmt.GoRaw("\treturn nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("value")]))
-			]),
-			GoDecl.GoFuncDecl("set", {
-				name: "self",
-				typeName: "*Xml"
-			}, [{name: "att", typeName: "*string"}, {name: "value", typeName: "*string"}],
-				[], [
-					GoStmt.GoRaw("if self.nodeType != Xml_Element {"),
-					GoStmt.GoRaw("\thxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(\"Bad node type, expected Element but found \"), _Xml__XmlType_Impl__toString(self.nodeType)))"),
-					GoStmt.GoRaw("\treturn"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoRaw("key := *hxrt.StdString(att)"),
-					GoStmt.GoRaw("if _, ok := self.attributeMap[key]; !ok {"),
-					GoStmt.GoRaw("\tself.attributeOrder = append(self.attributeOrder, key)"),
-					GoStmt.GoRaw("}"),
-					GoStmt.GoRaw("self.attributeMap[key] = *hxrt.StdString(value)")
-				]),
-			GoDecl.GoFuncDecl("remove", {
-				name: "self",
-				typeName: "*Xml"
-			}, [{name: "att", typeName: "*string"}], [], [
-				GoStmt.GoRaw("if self.nodeType != Xml_Element {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(\"Bad node type, expected Element but found \"), _Xml__XmlType_Impl__toString(self.nodeType)))"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("key := *hxrt.StdString(att)"),
-				GoStmt.GoRaw("delete(self.attributeMap, key)"),
-				GoStmt.GoRaw("filtered := make([]string, 0, len(self.attributeOrder))"),
-				GoStmt.GoRaw("for _, existing := range self.attributeOrder {"),
-				GoStmt.GoRaw("\tif existing != key {"),
-				GoStmt.GoRaw("\t\tfiltered = append(filtered, existing)"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("self.attributeOrder = filtered")
-			]),
-			GoDecl.GoFuncDecl("exists", {
-				name: "self",
-				typeName: "*Xml"
-			}, [{name: "att", typeName: "*string"}], ["bool"], [
-				GoStmt.GoRaw("if self.nodeType != Xml_Element {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(\"Bad node type, expected Element but found \"), _Xml__XmlType_Impl__toString(self.nodeType)))"),
-				GoStmt.GoRaw("\treturn false"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("_, ok := self.attributeMap[*hxrt.StdString(att)]"),
-				GoStmt.GoReturn(GoExpr.GoIdent("ok"))
-			]),
-			GoDecl.GoFuncDecl("attributes", {
-				name: "self",
-				typeName: "*Xml"
-			}, [], ["map[string]any"], [
-				GoStmt.GoRaw("if self.nodeType != Xml_Element {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(\"Bad node type, expected Element but found \"), _Xml__XmlType_Impl__toString(self.nodeType)))"),
-				GoStmt.GoRaw("\treturn map[string]any{}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(self.attributeOrder) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() *string { key := self.attributeOrder[index]; index++; return hxrt.StringFromLiteral(key) }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("iterator", {
-				name: "self",
-				typeName: "*Xml"
-			}, [], ["map[string]any"], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("Xml_ensureElementType"), [GoExpr.GoIdent("self")])),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(self.children) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() *Xml { child := self.children[index]; index++; return child }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("elements", {
-				name: "self",
-				typeName: "*Xml"
-			}, [], ["map[string]any"], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("Xml_ensureElementType"), [GoExpr.GoIdent("self")])),
-				GoStmt.GoRaw("matches := make([]*Xml, 0, len(self.children))"),
-				GoStmt.GoRaw("for _, child := range self.children {"),
-				GoStmt.GoRaw("\tif child.nodeType == Xml_Element {"),
-				GoStmt.GoRaw("\t\tmatches = append(matches, child)"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(matches) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() *Xml { child := matches[index]; index++; return child }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("elementsNamed", {
-				name: "self",
-				typeName: "*Xml"
-			}, [{name: "name", typeName: "*string"}], ["map[string]any"], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("Xml_ensureElementType"), [GoExpr.GoIdent("self")])),
-				GoStmt.GoRaw("wanted := *hxrt.StdString(name)"),
-				GoStmt.GoRaw("matches := make([]*Xml, 0, len(self.children))"),
-				GoStmt.GoRaw("for _, child := range self.children {"),
-				GoStmt.GoRaw("\tif child.nodeType == Xml_Element && *hxrt.StdString(child.nodeName) == wanted {"),
-				GoStmt.GoRaw("\t\tmatches = append(matches, child)"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("index := 0"),
-				GoStmt.GoRaw("iter := map[string]any{}"),
-				GoStmt.GoRaw("iter[\"hasNext\"] = func() bool { return index < len(matches) }"),
-				GoStmt.GoRaw("iter[\"next\"] = func() *Xml { child := matches[index]; index++; return child }"),
-				GoStmt.GoReturn(GoExpr.GoIdent("iter"))
-			]),
-			GoDecl.GoFuncDecl("firstChild", {
-				name: "self",
-				typeName: "*Xml"
-			}, [], ["*Xml"], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("Xml_ensureElementType"), [GoExpr.GoIdent("self")])),
-				GoStmt.GoRaw("if len(self.children) == 0 {"),
-				GoStmt.GoRaw("\treturn nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoIndex(GoExpr.GoSelector(GoExpr.GoIdent("self"), "children"), GoExpr.GoIntLiteral(0)))
-			]),
-			GoDecl.GoFuncDecl("firstElement", {
-				name: "self",
-				typeName: "*Xml"
-			}, [], ["*Xml"], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("Xml_ensureElementType"), [GoExpr.GoIdent("self")])),
-				GoStmt.GoRaw("for _, child := range self.children {"),
-				GoStmt.GoRaw("\tif child.nodeType == Xml_Element {"),
-				GoStmt.GoRaw("\t\treturn child"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoNil)
-			]),
-			GoDecl.GoFuncDecl("addChild", {
-				name: "self",
-				typeName: "*Xml"
-			}, [{name: "x", typeName: "*Xml"}], [], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("Xml_ensureElementType"), [GoExpr.GoIdent("self")])),
-				GoStmt.GoRaw("if x == nil {"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if x.parent != nil {"),
-				GoStmt.GoRaw("\tx.parent.removeChild(x)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("self.children = append(self.children, x)"),
-				GoStmt.GoRaw("x.parent = self")
-			]),
-			GoDecl.GoFuncDecl("removeChild", {
-				name: "self",
-				typeName: "*Xml"
-			}, [{name: "x", typeName: "*Xml"}], ["bool"], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("Xml_ensureElementType"), [GoExpr.GoIdent("self")])),
-				GoStmt.GoRaw("for i, child := range self.children {"),
-				GoStmt.GoRaw("\tif child == x {"),
-				GoStmt.GoRaw("\t\tself.children = append(self.children[:i], self.children[i+1:]...)"),
-				GoStmt.GoRaw("\t\tx.parent = nil"),
-				GoStmt.GoRaw("\t\treturn true"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))
-			]),
-			GoDecl.GoFuncDecl("insertChild", {
-				name: "self",
-				typeName: "*Xml"
-			}, [{name: "x", typeName: "*Xml"}, {name: "pos", typeName: "int"}], [], [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("Xml_ensureElementType"), [GoExpr.GoIdent("self")])),
-				GoStmt.GoRaw("if x == nil {"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if x.parent != nil {"),
-				GoStmt.GoRaw("\tx.parent.removeChild(x)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if pos < 0 {"),
-				GoStmt.GoRaw("\tpos = 0"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if pos > len(self.children) {"),
-				GoStmt.GoRaw("\tpos = len(self.children)"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("self.children = append(self.children, nil)"),
-				GoStmt.GoRaw("copy(self.children[pos+1:], self.children[pos:])"),
-				GoStmt.GoRaw("self.children[pos] = x"),
-				GoStmt.GoRaw("x.parent = self")
-			]),
-			GoDecl.GoFuncDecl("toString", {
-				name: "self",
-				typeName: "*Xml"
-			}, [], ["*string"], [
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [
-					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
-				],
-					null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("haxe__xml__Printer_print"), [GoExpr.GoIdent("self")]))
 			]),
 			GoDecl.GoFuncDecl("hxrt_haxeBytesToRaw", null, [
 				{
@@ -5674,201 +5343,6 @@ class GoCompiler {
 				}
 			],
 				["*haxe__ds__Option"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__Option{tag: 0, params: []any{value}}"))]),
-			GoDecl.GoStructDecl("haxe__xml__Parser", []),
-			GoDecl.GoStructDecl("haxe__xml__Printer", []),
-			GoDecl.GoFuncDecl("haxe__xml__Parser_parse", null, [
-				{
-					name: "source",
-					typeName: "*string"
-				},
-				{name: "strict", typeName: "...bool"}
-			], ["*Xml"], [
-				GoStmt.GoRaw("raw := *hxrt.StdString(source)"),
-				GoStmt.GoRaw("doc := Xml_createDocument()"),
-				GoStmt.GoRaw("stack := []*Xml{doc}"),
-				GoStmt.GoRaw("decoder := xml.NewDecoder(strings.NewReader(raw))"),
-				GoStmt.GoRaw("for {"),
-				GoStmt.GoRaw("\ttokenStart := decoder.InputOffset()"),
-				GoStmt.GoRaw("\ttoken, err := decoder.Token()"),
-				GoStmt.GoRaw("\ttokenEnd := decoder.InputOffset()"),
-				GoStmt.GoRaw("\tif err == io.EOF {"),
-				GoStmt.GoRaw("\t\tbreak"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tif err != nil {"),
-				GoStmt.GoRaw("\t\thxrt.Throw(err)"),
-				GoStmt.GoRaw("\t\treturn Xml_createDocument()"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tcurrent := stack[len(stack)-1]"),
-				GoStmt.GoRaw("\tswitch value := token.(type) {"),
-				GoStmt.GoRaw("\tcase xml.StartElement:"),
-				GoStmt.GoRaw("\t\tnode := Xml_createElement(hxrt.StringFromLiteral(value.Name.Local))"),
-				GoStmt.GoRaw("\t\tfor _, attr := range value.Attr {"),
-				GoStmt.GoRaw("\t\t\tnode.set(hxrt.StringFromLiteral(attr.Name.Local), hxrt.StringFromLiteral(attr.Value))"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\tcurrent.addChild(node)"),
-				GoStmt.GoRaw("\t\tstack = append(stack, node)"),
-				GoStmt.GoRaw("\tcase xml.EndElement:"),
-				GoStmt.GoRaw("\t\tif len(stack) > 1 {"),
-				GoStmt.GoRaw("\t\t\tstack = stack[:len(stack)-1]"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\tcase xml.CharData:"),
-				GoStmt.GoRaw("\t\ttext := string([]byte(value))"),
-				GoStmt.GoRaw("\t\tif len(text) != 0 {"),
-				GoStmt.GoRaw("\t\t\ttokenSource := raw[tokenStart:tokenEnd]"),
-				GoStmt.GoRaw("\t\t\tif strings.HasPrefix(tokenSource, \"<![CDATA[\") && strings.HasSuffix(tokenSource, \"]]>\") {"),
-				GoStmt.GoRaw("\t\t\t\tcurrent.addChild(Xml_createCData(hxrt.StringFromLiteral(text)))"),
-				GoStmt.GoRaw("\t\t\t} else {"),
-				GoStmt.GoRaw("\t\t\t\tcurrent.addChild(Xml_createPCData(hxrt.StringFromLiteral(text)))"),
-				GoStmt.GoRaw("\t\t\t}"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\tcase xml.Comment:"),
-				GoStmt.GoRaw("\t\tcurrent.addChild(Xml_createComment(hxrt.StringFromLiteral(string([]byte(value)))))"),
-				GoStmt.GoRaw("\tcase xml.Directive:"),
-				GoStmt.GoRaw("\t\tdirective := strings.TrimSpace(string([]byte(value)))"),
-				GoStmt.GoRaw("\t\tupper := strings.ToUpper(directive)"),
-				GoStmt.GoRaw("\t\tif strings.HasPrefix(upper, \"DOCTYPE\") {"),
-				GoStmt.GoRaw("\t\t\tdirective = strings.TrimSpace(directive[len(\"DOCTYPE\"):])"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\tcurrent.addChild(Xml_createDocType(hxrt.StringFromLiteral(directive)))"),
-				GoStmt.GoRaw("\tcase xml.ProcInst:"),
-				GoStmt.GoRaw("\t\tpayload := value.Target"),
-				GoStmt.GoRaw("\t\tif len(value.Inst) != 0 {"),
-				GoStmt.GoRaw("\t\t\tpayload += \" \" + string(value.Inst)"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\tcurrent.addChild(Xml_createProcessingInstruction(hxrt.StringFromLiteral(strings.TrimSpace(payload))))"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoIdent("doc"))
-			]),
-			GoDecl.GoFuncDecl("haxe__xml__Printer_escapeText", null, [
-				{
-					name: "value",
-					typeName: "string"
-				}
-			], ["string"], [
-				GoStmt.GoReturn(GoExpr.GoRaw("strings.NewReplacer(\"&\", \"&amp;\", \"<\", \"&lt;\", \">\", \"&gt;\").Replace(value)"))
-			]),
-			GoDecl.GoFuncDecl("haxe__xml__Printer_escapeAttr", null, [
-				{
-					name: "value",
-					typeName: "string"
-				}
-			], ["string"], [
-				GoStmt.GoReturn(GoExpr.GoRaw("strings.NewReplacer(\"&\", \"&amp;\", \"<\", \"&lt;\", \">\", \"&gt;\", \"\\\"\", \"&quot;\").Replace(value)"))
-			]),
-			GoDecl.GoFuncDecl("haxe__xml__Printer_hasChildren", null, [
-				{
-					name: "value",
-					typeName: "*Xml"
-				}
-			], ["bool"], [
-				GoStmt.GoRaw("for _, child := range value.children {"),
-				GoStmt.GoRaw("\tswitch child.nodeType {"),
-				GoStmt.GoRaw("\tcase Xml_Element, Xml_PCData:"),
-				GoStmt.GoRaw("\t\treturn true"),
-				GoStmt.GoRaw("\tcase Xml_CData, Xml_Comment:"),
-				GoStmt.GoRaw("\t\tif len(strings.TrimLeft(*hxrt.StdString(child.nodeValue), \" \\n\\r\\t\")) != 0 {"),
-				GoStmt.GoRaw("\t\t\treturn true"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))
-			]),
-			GoDecl.GoFuncDecl("haxe__xml__Printer_writeNode", null, [
-				{
-					name: "output",
-					typeName: "*strings.Builder"
-				},
-				{name: "value", typeName: "*Xml"},
-				{name: "tabs", typeName: "string"},
-				{name: "pretty", typeName: "bool"}
-			], [], [
-				GoStmt.GoRaw("newline := func() {"),
-				GoStmt.GoRaw("\tif pretty {"),
-				GoStmt.GoRaw("\t\toutput.WriteString(\"\\n\")"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("switch value.nodeType {"),
-				GoStmt.GoRaw("case Xml_CData:"),
-				GoStmt.GoRaw("\toutput.WriteString(tabs + \"<![CDATA[\")"),
-				GoStmt.GoRaw("\toutput.WriteString(*hxrt.StdString(value.nodeValue))"),
-				GoStmt.GoRaw("\toutput.WriteString(\"]]>\")"),
-				GoStmt.GoRaw("\tnewline()"),
-				GoStmt.GoRaw("case Xml_Comment:"),
-				GoStmt.GoRaw("\tcommentContent := strings.NewReplacer(\"\\n\", \"\", \"\\r\", \"\", \"\\t\", \"\").Replace(*hxrt.StdString(value.nodeValue))"),
-				GoStmt.GoRaw("\toutput.WriteString(tabs)"),
-				GoStmt.GoRaw("\toutput.WriteString(strings.TrimSpace(\"<!--\" + commentContent + \"-->\"))"),
-				GoStmt.GoRaw("\tnewline()"),
-				GoStmt.GoRaw("case Xml_Document:"),
-				GoStmt.GoRaw("\tfor _, child := range value.children {"),
-				GoStmt.GoRaw("\t\thaxe__xml__Printer_writeNode(output, child, tabs, pretty)"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("case Xml_Element:"),
-				GoStmt.GoRaw("\toutput.WriteString(tabs + \"<\")"),
-				GoStmt.GoRaw("\toutput.WriteString(*hxrt.StdString(value.nodeName))"),
-				GoStmt.GoRaw("\tfor _, attribute := range value.attributeOrder {"),
-				GoStmt.GoRaw("\t\toutput.WriteString(\" \" + attribute + \"=\\\"\")"),
-				GoStmt.GoRaw("\t\toutput.WriteString(haxe__xml__Printer_escapeAttr(value.attributeMap[attribute]))"),
-				GoStmt.GoRaw("\t\toutput.WriteString(\"\\\"\")"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\tif haxe__xml__Printer_hasChildren(value) {"),
-				GoStmt.GoRaw("\t\toutput.WriteString(\">\")"),
-				GoStmt.GoRaw("\t\tnewline()"),
-				GoStmt.GoRaw("\t\tchildTabs := tabs"),
-				GoStmt.GoRaw("\t\tif pretty {"),
-				GoStmt.GoRaw("\t\t\tchildTabs = tabs + \"\\t\""),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\tfor _, child := range value.children {"),
-				GoStmt.GoRaw("\t\t\thaxe__xml__Printer_writeNode(output, child, childTabs, pretty)"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\toutput.WriteString(tabs + \"</\")"),
-				GoStmt.GoRaw("\t\toutput.WriteString(*hxrt.StdString(value.nodeName))"),
-				GoStmt.GoRaw("\t\toutput.WriteString(\">\")"),
-				GoStmt.GoRaw("\t\tnewline()"),
-				GoStmt.GoRaw("\t} else {"),
-				GoStmt.GoRaw("\t\toutput.WriteString(\"/>\")"),
-				GoStmt.GoRaw("\t\tnewline()"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("case Xml_PCData:"),
-				GoStmt.GoRaw("\tnodeValue := *hxrt.StdString(value.nodeValue)"),
-				GoStmt.GoRaw("\tif len(nodeValue) != 0 {"),
-				GoStmt.GoRaw("\t\toutput.WriteString(tabs + haxe__xml__Printer_escapeText(nodeValue))"),
-				GoStmt.GoRaw("\t\tnewline()"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("case Xml_ProcessingInstruction:"),
-				GoStmt.GoRaw("\toutput.WriteString(\"<?\" + *hxrt.StdString(value.nodeValue) + \"?>\")"),
-				GoStmt.GoRaw("\tnewline()"),
-				GoStmt.GoRaw("case Xml_DocType:"),
-				GoStmt.GoRaw("\toutput.WriteString(\"<!DOCTYPE \" + *hxrt.StdString(value.nodeValue) + \">\")"),
-				GoStmt.GoRaw("\tnewline()"),
-				GoStmt.GoRaw("}"),
-			]),
-			GoDecl.GoFuncDecl("haxe__xml__Printer_print", null, [
-				{
-					name: "value",
-					typeName: "*Xml"
-				},
-				{name: "pretty", typeName: "...bool"}
-			], ["*string"], [
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("value"), GoExpr.GoNil), [
-					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
-				],
-					null),
-				GoStmt.GoRaw("usePretty := false"),
-				GoStmt.GoRaw("if len(pretty) > 0 {"),
-				GoStmt.GoRaw("\tusePretty = pretty[0]"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("var output strings.Builder"),
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("haxe__xml__Printer_writeNode"),
-					[
-						GoExpr.GoRaw("&output"),
-						GoExpr.GoIdent("value"),
-						GoExpr.GoStringLiteral(""),
-						GoExpr.GoIdent("usePretty")
-					])),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
-					[GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("output"), "String"), [])]))
-			]),
 			GoDecl.GoStructDecl("haxe__zip__Compress", []),
 			GoDecl.GoStructDecl("haxe__zip__Uncompress", []),
 			GoDecl.GoFuncDecl("haxe__zip__Compress_run", null, [
@@ -8350,7 +7824,6 @@ class GoCompiler {
 		return switch (pack) {
 			case "_UnicodeString":
 				classType.name == "UnicodeString_Impl_";
-			case "haxe.xml": classType.name == "Parser" || classType.name == "Printer";
 			case "haxe.zip": classType.name == "Compress" || classType.name == "Uncompress";
 			case _:
 				false;

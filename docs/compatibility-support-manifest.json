@@ -9,7 +9,7 @@
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "4f37247635147b7eb2e21db300ca9711fef3f51a88599ac6f1e8bf83941f5fe6"
+    "portable_stdlib_inventory_sha256": "2b6246c7c127d34ddd5f3bf00f9e067a054dd8fc2fdb88f032d204628272b48a"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -1639,7 +1639,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic, including parsed CDATA node-type preservation."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical std/go/_std/Xml.hx owns the complete root DOM API, with only narrow source-level representation adaptations for Go-invariant iterators, non-inline throwing accessors, child array mutation, and nullable empty firstChild reads. Evidence: xml_source_owned, root_xml_contract, and stdlib/xml_root_dom_basic."
       },
       {
         "module": "haxe.CallStack",
@@ -2958,7 +2958,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. The unchanged Haxe 4.3.7 parser state machine remains authoritative source, including strict entities, structured XmlParserException positions, CDATA, comments, doctypes, and processing instructions. Evidence: xml_source_owned, root_xml_contract, crypto_xml_zip, and direct snapshots."
       },
       {
         "module": "haxe.xml.Printer",
@@ -2971,7 +2971,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source preserves the upstream printer algorithm and replaces only its single EReg comment-cleanup dependency with equivalent StringTools replacements, avoiding unrelated regex/serializer compiler output. Evidence: xml_source_owned and direct XML snapshots."
       },
       {
         "module": "haxe.zip.Compress",

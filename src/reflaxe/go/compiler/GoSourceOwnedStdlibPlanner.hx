@@ -189,6 +189,16 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("haxe.crypto.Base64");
 			case "haxe.crypto.Md5", "haxe.crypto.Sha1", "haxe.crypto.Sha224", "haxe.crypto.Sha256":
 				requireSourceOwnedStdlibClass(fullClassName(classType));
+			case "Xml", "_Xml.XmlType_Impl_":
+				requireSourceOwnedStdlibModule("Xml");
+			case "haxe.xml.Parser", "haxe.xml.XmlParserException":
+				requireSourceOwnedStdlibModule("haxe.xml.Parser");
+				requireSourceOwnedStdlibModule("Xml");
+				requireSourceOwnedStdlibClass("StringBuf");
+			case "haxe.xml.Printer":
+				requireSourceOwnedStdlibClass("haxe.xml.Printer");
+				requireSourceOwnedStdlibModule("Xml");
+				requireSourceOwnedStdlibClass("StringBuf");
 			case "haxe.exceptions.PosException":
 				requireSourceOwnedStdlibClass("haxe.exceptions.PosException");
 			case "haxe.exceptions.ArgumentException":

@@ -22,6 +22,7 @@
         "haxe_go-vfp.5.3",
         "haxe_go-vfp.8.7.10",
         "haxe_go-vfp.8.7.15.1",
+        "haxe_go-vfp.8.7.15.2",
         "haxe_go-vfp.8.7.17",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
@@ -198,6 +199,15 @@
       "notes": "Canonical source-owned implementation of the supported Haxe 4.3.7 root Sys API; map construction, fallbacks, aliases, standard-stream wrapping, getChar EOF construction, and explicit echo stay in Haxe while typed std/hxrt bindings expose native process, display, file, and terminal capabilities."
     },
     {
+      "path": "std/go/_std/Xml.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/Xml.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.2",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged root Xml DOM. It preserves the upstream API and algorithms while replacing only Go-incompatible inline throwing accessors, invariant concrete iterators, unsupported array remove/insert calls, and an empty firstChild bounds edge with source-level equivalents."
+    },
+    {
       "path": "std/go/_std/haxe/Constraints.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
@@ -225,6 +235,15 @@
         "stdlib_symbols"
       ],
       "notes": "Go staged portable override for haxe.Template execution semantics. Template parsing, lookup, iteration, macro policy, and rendering remain in Haxe; haxe_go-vfp.8.7.16 moved its three runtime representation operations to a typed hxrt binding."
+    },
+    {
+      "path": "std/go/_std/haxe/xml/Printer.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/xml/Printer.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.2",
+      "compilerShimGroups": [],
+      "notes": "Staged upstream Printer algorithm with equivalent source-level newline removal for comments, avoiding an otherwise unnecessary dependency on the still-migrating compiler regex/serializer group."
     },
     {
       "path": "std/go/_std/haxe/atomic/AtomicInt.hx",

@@ -452,7 +452,7 @@
       "context": "lowerStdlibSymbolShimDecls",
       "exception_id": "typed_ast_gap",
       "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 738,
+      "max_count": 470,
       "metric": "go_raw",
       "owner": "compiler_shim",
       "profile": "shared",

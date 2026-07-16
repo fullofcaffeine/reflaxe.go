@@ -1315,3 +1315,66 @@ Observed result:
 - Runtime slicing includes `crypto.go` only for programs that use the staged
   crypto APIs. XML/zip-only output stays on its existing migration path without
   importing crypto packages or carrying crypto declarations.
+
+### 2026-07-16: move XML DOM, parser, and printer behavior to staged source (`haxe_go-vfp.8.7.15.2`)
+
+Implementation:
+
+- Added a red ownership contract and the `xml_source_owned` semantic-diff
+  fixture before removing the compiler implementation. The fixture covers DOM
+  construction and mutation, parent movement, attributes and iterators,
+  compact/pretty printing, node validation, comments, CDATA, directives,
+  doctypes, entities, strict/loose parsing, and structured parser positions.
+- Tried the unchanged Haxe 4.3.7 sources first. `haxe.xml.Parser` now works
+  unchanged and remains upstream-owned. Root `Xml` needs a narrow staged
+  override because inline throwing accessors, concrete generic iterators,
+  `Array.remove` / `Array.insert`, and empty indexed reads expose general Go
+  lowering gaps. The override preserves the upstream API and algorithms with
+  source-level equivalents while those gaps are tracked separately by
+  `haxe_go-vfp.8.3.1`, `haxe_go-vfp.8.3.2`, and `haxe_go-vfp.8.3.3`.
+- Added a narrow staged `haxe.xml.Printer` override. It retains the upstream
+  printing algorithm but removes comment line breaks with ordinary
+  `StringTools.replace` calls, so XML use does not accidentally select the
+  still-migrating `EReg` and serializer compiler group.
+- Corrected `StringTools.htmlEscape` so its omitted optional `quotes` argument
+  follows Haxe null/false behavior instead of asserting a null Go interface as
+  `bool`. This surfaced when ordinary upstream PCData printing began executing.
+- Removed the complete XML DOM, parser, and printer declaration block, the
+  `encoding/xml` import, and all XML classifier and registry selections from
+  `GoCompiler`. No native XML parser or XML-specific `hxrt` capability was
+  needed; parsing and printing are ordinary staged Haxe behavior.
+- Regenerated source provenance, compatibility and module inventories, package
+  counts, compiler-debt ceilings, snapshots, and committed example output. The
+  governed staged surface now contains 129 sources, including 81 upstream
+  overrides.
+
+Validation evidence:
+
+- `npm run test:changed`
+- `npm test` (`272/272` snapshots)
+- `npm run test:semantic-diff` (`134/134` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance`, `npm run test:stdlib-inventory`, and
+  `npm run compatibility:verify`
+- `npm run test:compiler-debt` (`4,133` `GoRaw` sites and `13` compiler shim
+  entry points)
+- direct `runtime/hxrt` Go tests and raw-injection hygiene
+- `npm run test:perf:hxrt-selective`
+- `npm run test:perf:stdlib-shims`
+- `npm run test:perf:go` (two warning-only startup signals; no hard failures)
+- `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates)
+- `npm run test:release-contracts`
+
+Observed result:
+
+- XML semantics now originate in Haxe source. Strictness, entity decoding,
+  detailed source positions, DOM ordering, mutation rules, and formatting no
+  longer depend on Go's `encoding/xml` behavior or a compiler declaration blob.
+- The 526-line compiler XML block is gone, and the `stdlib_symbols` allowance
+  falls permanently from 738 to 470 raw sites. The repository-wide `GoRaw`
+  ceiling falls by 268 sites, from 4,401 to 4,133.
+- Snapshot regeneration removes 15,291 tracked lines because unrelated
+  `stdlib_symbols` consumers stop carrying the old XML block. XML consumers now
+  receive ordinary `module_xml.go`, `module_haxe_xml_parser.go`, and
+  `module_haxe_xml_printer.go` files only when those sources are reachable.

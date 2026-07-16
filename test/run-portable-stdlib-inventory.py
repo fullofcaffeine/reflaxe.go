@@ -82,7 +82,8 @@ SEMANTIC_DIFF_PREFIXES = (
 )
 
 OWNER_OVERRIDES = {
-	"Sys": "mixed",
+    "Sys": "mixed",
+    "Xml": "staged_std",
     "haxe.http.HttpBase": "staged_std",
     "haxe.EntryPoint": "mixed",
     "haxe.CallStack": "staged_std",
@@ -123,6 +124,8 @@ OWNER_OVERRIDES = {
     "haxe.crypto.Sha1": "mixed",
     "haxe.crypto.Sha224": "mixed",
     "haxe.crypto.Sha256": "mixed",
+    "haxe.xml.Parser": "staged_std",
+    "haxe.xml.Printer": "staged_std",
     "haxe.io.BufferInput": "compiler_shim",
     "haxe.io.BytesData": "mixed",
     "haxe.io.Encoding": "compiler_shim",
@@ -243,8 +246,20 @@ MODULE_NOTES_OVERRIDES = {
         "Thread.current().events and uses the hxrt monotonic thread clock for Timer.stamp()."
     ),
     "Xml": (
-        "Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic, "
-        "including parsed CDATA node-type preservation."
+        "Canonical std/go/_std/Xml.hx owns the complete root DOM API, with only narrow source-level "
+        "representation adaptations for Go-invariant iterators, non-inline throwing accessors, child "
+        "array mutation, and nullable empty firstChild reads. Evidence: xml_source_owned, "
+        "root_xml_contract, and stdlib/xml_root_dom_basic."
+    ),
+    "haxe.xml.Parser": (
+        "The unchanged Haxe 4.3.7 parser state machine remains authoritative source, including strict "
+        "entities, structured XmlParserException positions, CDATA, comments, doctypes, and processing "
+        "instructions. Evidence: xml_source_owned, root_xml_contract, crypto_xml_zip, and direct snapshots."
+    ),
+    "haxe.xml.Printer": (
+        "Canonical staged source preserves the upstream printer algorithm and replaces only its single "
+        "EReg comment-cleanup dependency with equivalent StringTools replacements, avoiding unrelated "
+        "regex/serializer compiler output. Evidence: xml_source_owned and direct XML snapshots."
     ),
     "haxe.Template": (
         "Direct haxe.Template constructor/execute usage has semantic-diff coverage through "

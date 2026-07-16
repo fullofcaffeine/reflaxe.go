@@ -332,8 +332,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Xml",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Root Xml DOM subset is covered by root_xml_contract and stdlib/xml_root_dom_basic, including parsed CDATA node-type preservation.",
-      "owner": "mixed",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical std/go/_std/Xml.hx owns the complete root DOM API, with only narrow source-level representation adaptations for Go-invariant iterators, non-inline throwing accessors, child array mutation, and nullable empty firstChild reads. Evidence: xml_source_owned, root_xml_contract, and stdlib/xml_root_dom_basic.",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1758,8 +1758,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.xml.Parser",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. The unchanged Haxe 4.3.7 parser state machine remains authoritative source, including strict entities, structured XmlParserException positions, CDATA, comments, doctypes, and processing instructions. Evidence: xml_source_owned, root_xml_contract, crypto_xml_zip, and direct snapshots.",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1772,8 +1772,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.xml.Printer",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source preserves the upstream printer algorithm and replaces only its single EReg comment-cleanup dependency with equivalent StringTools replacements, avoiding unrelated regex/serializer compiler output. Evidence: xml_source_owned and direct XML snapshots.",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },

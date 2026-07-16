@@ -73,11 +73,20 @@ class StringTools {
 		return containsImpl(s, value);
 	}
 
+	/**
+		What: preserve the optional `quotes` behavior of `StringTools.htmlEscape`.
+
+		Why: an omitted optional `Bool` is `null` in Haxe and therefore behaves as
+		false, while treating the erased Go value as an unconditional `bool` panics.
+
+		How: guard `null` before testing the Boolean value, so both `null` and
+		`false` take the non-quote-escaping path used by the mainstream Haxe stdlib.
+	**/
 	public static function htmlEscape(s:String, ?quotes:Bool):String {
 		s = replace(s, "&", "&amp;");
 		s = replace(s, "<", "&lt;");
 		s = replace(s, ">", "&gt;");
-		if (quotes) {
+		if (quotes != null && quotes == true) {
 			s = replace(s, "\"", "&quot;");
 			s = replace(s, "'", "&#039;");
 		}
