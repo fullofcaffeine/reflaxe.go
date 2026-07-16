@@ -551,11 +551,6 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			imports.push("bytes");
 			imports.push("compress/zlib");
-			imports.push("crypto/md5");
-			imports.push("crypto/sha1");
-			imports.push("crypto/sha256");
-			imports.push("encoding/base64");
-			imports.push("encoding/hex");
 			imports.push("encoding/xml");
 			imports.push("io");
 			imports.push("math");
@@ -1703,7 +1698,7 @@ class GoCompiler {
 
 	function applyStdlibShimGroupDependencies():Void {
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
-			// Symbol shims include crypto/xml/zip helpers that depend on haxe.io.Bytes.
+			// Remaining Unicode and zip helpers still depend on haxe.io.Bytes.
 			requireStdlibShimGroup("io");
 		}
 		if (requiredStdlibShimGroups.exists("http")) {
@@ -5626,19 +5621,13 @@ class GoCompiler {
 			GoDecl.GoFuncDecl("toString", {
 				name: "self",
 				typeName: "*Xml"
-			}, [], ["*string"],
-				[
-					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [
-						GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
-					],
-						null),
-					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("haxe__xml__Printer_print"), [GoExpr.GoIdent("self")]))
-				]),
-			GoDecl.GoStructDecl("haxe__crypto__Base64", []),
-			GoDecl.GoStructDecl("haxe__crypto__Md5", []),
-			GoDecl.GoStructDecl("haxe__crypto__Sha1", []),
-			GoDecl.GoStructDecl("haxe__crypto__Sha224", []),
-			GoDecl.GoStructDecl("haxe__crypto__Sha256", []),
+			}, [], ["*string"], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil), [
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("")]))
+				],
+					null),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("haxe__xml__Printer_print"), [GoExpr.GoIdent("self")]))
+			]),
 			GoDecl.GoFuncDecl("hxrt_haxeBytesToRaw", null, [
 				{
 					name: "value",
@@ -5668,180 +5657,6 @@ class GoCompiler {
 				GoStmt.GoRaw("\tconverted[i] = int(value[i])"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: value, __hx_rawValid: true}"))
-			]),
-			GoDecl.GoFuncDecl("haxe__crypto__Base64_encode", null, [
-				{
-					name: "bytes",
-					typeName: "*haxe__io__Bytes"
-				},
-				{name: "complement", typeName: "...bool"}
-			], ["*string"], [
-				GoStmt.GoVarDecl("useComplement", null, GoExpr.GoBoolLiteral(true), true),
-				GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent("complement")]), GoExpr.GoIntLiteral(0)), [
-					GoStmt.GoAssign(GoExpr.GoIdent("useComplement"), GoExpr.GoIndex(GoExpr.GoIdent("complement"), GoExpr.GoIntLiteral(0)))
-				],
-					null),
-				GoStmt.GoVarDecl("encoded", null, GoExpr.GoRaw("base64.StdEncoding.EncodeToString(hxrt_haxeBytesToRaw(bytes))"), true),
-				GoStmt.GoIf(GoExpr.GoUnary("!", GoExpr.GoIdent("useComplement")), [
-					GoStmt.GoAssign(GoExpr.GoIdent("encoded"),
-						GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "TrimRight"), [GoExpr.GoIdent("encoded"), GoExpr.GoStringLiteral("=")]))
-				],
-					null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("encoded")]))
-			]),
-			GoDecl.GoFuncDecl("haxe__crypto__Base64_decode", null, [
-				{
-					name: "value",
-					typeName: "*string"
-				},
-				{name: "complement", typeName: "...bool"}
-			], ["*haxe__io__Bytes"], [
-				GoStmt.GoVarDecl("useComplement", null, GoExpr.GoBoolLiteral(true), true),
-				GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent("complement")]), GoExpr.GoIntLiteral(0)), [
-					GoStmt.GoAssign(GoExpr.GoIdent("useComplement"), GoExpr.GoIndex(GoExpr.GoIdent("complement"), GoExpr.GoIntLiteral(0)))
-				], null),
-				GoStmt.GoVarDecl("rawValue", null, GoExpr.GoRaw("*hxrt.StdString(value)"), true),
-				GoStmt.GoIf(GoExpr.GoIdent("useComplement"), [
-					GoStmt.GoAssign(GoExpr.GoIdent("rawValue"),
-						GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "TrimRight"), [GoExpr.GoIdent("rawValue"), GoExpr.GoStringLiteral("=")]))
-				],
-					null),
-				GoStmt.GoRaw("decoded, err := base64.RawStdEncoding.DecodeString(rawValue)"),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoRaw("decoded, err = base64.StdEncoding.DecodeString(*hxrt.StdString(value))"),
-					GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent("err")])),
-						GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: []int{}, length: 0}"))
-					],
-						null)
-				],
-					null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt_rawToHaxeBytes"), [GoExpr.GoIdent("decoded")]))
-			]),
-			GoDecl.GoFuncDecl("haxe__crypto__Base64_urlEncode", null, [
-				{
-					name: "bytes",
-					typeName: "*haxe__io__Bytes"
-				},
-				{name: "complement", typeName: "...bool"}
-			], ["*string"], [
-				GoStmt.GoVarDecl("useComplement", null, GoExpr.GoBoolLiteral(false), true),
-				GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent("complement")]), GoExpr.GoIntLiteral(0)), [
-					GoStmt.GoAssign(GoExpr.GoIdent("useComplement"), GoExpr.GoIndex(GoExpr.GoIdent("complement"), GoExpr.GoIntLiteral(0)))
-				],
-					null),
-				GoStmt.GoVarDecl("encoded", null, GoExpr.GoRaw("base64.RawURLEncoding.EncodeToString(hxrt_haxeBytesToRaw(bytes))"), true),
-				GoStmt.GoIf(GoExpr.GoIdent("useComplement"), [
-					GoStmt.GoVarDecl("missing", null, GoExpr.GoRaw("len(encoded) % 4"), true),
-					GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("missing"), GoExpr.GoIntLiteral(0)), [
-						GoStmt.GoAssign(GoExpr.GoIdent("encoded"),
-							GoExpr.GoBinary("+", GoExpr.GoIdent("encoded"),
-								GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strings"), "Repeat"),
-									[
-										GoExpr.GoStringLiteral("="),
-										GoExpr.GoBinary("-", GoExpr.GoIntLiteral(4), GoExpr.GoIdent("missing"))
-									])))
-					],
-						null)
-				],
-					null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("encoded")]))
-			]),
-			GoDecl.GoFuncDecl("haxe__crypto__Base64_urlDecode", null, [
-				{
-					name: "value",
-					typeName: "*string"
-				},
-				{name: "complement", typeName: "...bool"}
-			], ["*haxe__io__Bytes"], [
-				GoStmt.GoVarDecl("rawValue", null, GoExpr.GoRaw("*hxrt.StdString(value)"), true),
-				GoStmt.GoRaw("decoded, err := base64.RawURLEncoding.DecodeString(strings.TrimRight(rawValue, \"=\"))"),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent("err")])),
-					GoStmt.GoReturn(GoExpr.GoRaw("&haxe__io__Bytes{b: []int{}, length: 0}"))
-				],
-					null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt_rawToHaxeBytes"), [GoExpr.GoIdent("decoded")]))
-			]),
-			GoDecl.GoFuncDecl("haxe__crypto__Md5_encode", null, [
-				{
-					name: "value",
-					typeName: "*string"
-				}
-			], ["*string"], [
-				GoStmt.GoRaw("sum := md5.Sum([]byte(*hxrt.StdString(value)))"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [
-					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hex"), "EncodeToString"), [GoExpr.GoRaw("sum[:]")])
-				]))
-			]),
-			GoDecl.GoFuncDecl("haxe__crypto__Md5_make", null, [
-				{
-					name: "value",
-					typeName: "*haxe__io__Bytes"
-				}
-			], ["*haxe__io__Bytes"], [
-				GoStmt.GoRaw("sum := md5.Sum(hxrt_haxeBytesToRaw(value))"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt_rawToHaxeBytes"), [GoExpr.GoRaw("sum[:]")]))
-			]),
-			GoDecl.GoFuncDecl("haxe__crypto__Sha1_encode", null, [
-				{
-					name: "value",
-					typeName: "*string"
-				}
-			], ["*string"], [
-				GoStmt.GoRaw("sum := sha1.Sum([]byte(*hxrt.StdString(value)))"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [
-					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hex"), "EncodeToString"), [GoExpr.GoRaw("sum[:]")])
-				]))
-			]),
-			GoDecl.GoFuncDecl("haxe__crypto__Sha1_make", null, [
-				{
-					name: "value",
-					typeName: "*haxe__io__Bytes"
-				}
-			], ["*haxe__io__Bytes"], [
-				GoStmt.GoRaw("sum := sha1.Sum(hxrt_haxeBytesToRaw(value))"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt_rawToHaxeBytes"), [GoExpr.GoRaw("sum[:]")]))
-			]),
-			GoDecl.GoFuncDecl("haxe__crypto__Sha224_encode", null, [
-				{
-					name: "value",
-					typeName: "*string"
-				}
-			], ["*string"], [
-				GoStmt.GoRaw("sum := sha256.Sum224([]byte(*hxrt.StdString(value)))"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [
-					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hex"), "EncodeToString"), [GoExpr.GoRaw("sum[:]")])
-				]))
-			]),
-			GoDecl.GoFuncDecl("haxe__crypto__Sha224_make", null, [
-				{
-					name: "value",
-					typeName: "*haxe__io__Bytes"
-				}
-			], ["*haxe__io__Bytes"], [
-				GoStmt.GoRaw("sum := sha256.Sum224(hxrt_haxeBytesToRaw(value))"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt_rawToHaxeBytes"), [GoExpr.GoRaw("sum[:]")]))
-			]),
-			GoDecl.GoFuncDecl("haxe__crypto__Sha256_encode", null, [
-				{
-					name: "value",
-					typeName: "*string"
-				}
-			], ["*string"], [
-				GoStmt.GoRaw("sum := sha256.Sum256([]byte(*hxrt.StdString(value)))"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [
-					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("hex"), "EncodeToString"), [GoExpr.GoRaw("sum[:]")])
-				]))
-			]),
-			GoDecl.GoFuncDecl("haxe__crypto__Sha256_make", null, [
-				{
-					name: "value",
-					typeName: "*haxe__io__Bytes"
-				}
-			], ["*haxe__io__Bytes"], [
-				GoStmt.GoRaw("sum := sha256.Sum256(hxrt_haxeBytesToRaw(value))"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt_rawToHaxeBytes"), [GoExpr.GoRaw("sum[:]")]))
 			]),
 			GoDecl.GoStructDecl("haxe__ds__Option",
 				[
@@ -8535,8 +8350,6 @@ class GoCompiler {
 		return switch (pack) {
 			case "_UnicodeString":
 				classType.name == "UnicodeString_Impl_";
-			case "haxe.crypto":
-				classType.name == "Base64";
 			case "haxe.xml": classType.name == "Parser" || classType.name == "Printer";
 			case "haxe.zip": classType.name == "Compress" || classType.name == "Uncompress";
 			case _:

@@ -1258,3 +1258,60 @@ Observed result:
   boundary instead of being hidden inside compiler-emitted library functions.
 - Template-only reflection support is absent from unrelated output, while direct
   Template use remains portable and matches the staged Haxe reference contract.
+
+### 2026-07-16: move `haxe.crypto` APIs to staged std and typed runtime capabilities (`haxe_go-vfp.8.7.15.1`)
+
+Implementation:
+
+- Tried the unchanged Haxe 4.3.7 crypto sources first. Their shared `BaseCode`
+  helper creates an empty array and fills it with indexed writes; generated Go
+  currently turns those writes into fixed-length slice assignments and panics.
+  The general array-growth fix is tracked separately by `haxe_go-vfp.8.7.20`
+  instead of being hidden behind a crypto-specific compiler exception.
+- Added canonical staged overrides for `Base64`, `Md5`, `Sha1`, `Sha224`, and
+  `Sha256`. Haxe source owns the public APIs, default arguments, Base64 alphabet
+  and padding rules, and conversion to and from `haxe.io.Bytes`.
+- Added the typed `std/hxrt/crypto/NativeCrypto.hx` boundary over
+  `runtime/hxrt/crypto.go`. The Go runtime owns only native Base64 and digest
+  execution over strings and integer byte arrays; generated `Bytes` fields do
+  not cross the boundary.
+- Removed all five crypto declarations, their imports, and their classifier
+  routes from the monolithic `stdlib_symbols` compiler group. Crypto use now
+  selects ordinary staged source, and a footprint-explicit `crypto` feature
+  copies the native runtime file only when one of those APIs is reachable.
+- Updated the provenance ledger, intrinsic registry, inventory, package-layout
+  status, and fail-closed ownership tests. Governance now covers 127 staged
+  sources, including 38 typed `hxrt` bindings and 79 upstream overrides.
+- Modernized the stdlib-boundary performance harness to benchmark the active
+  staged Base64 call path. Its byte-conversion cost is explicit follow-up input
+  for the broader typed `haxe.io.Bytes` migration under `haxe_go-vfp.8.7.11`,
+  not a reason to restore compiler-owned crypto algorithms.
+
+Validation evidence:
+
+- `npm run test:changed`
+- `npm test` (`272/272` snapshots)
+- `npm run test:semantic-diff` (`133/133` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance` and `npm run test:stdlib-inventory`
+- `npm run test:compiler-debt` (`4,401` `GoRaw` sites and `13` compiler shim
+  entry points)
+- direct `runtime/hxrt` Go tests and raw-injection hygiene
+- `npm run test:perf:hxrt-selective`
+- `npm run test:perf:stdlib-shims`
+- `npm run test:perf:go` (five warning-only startup signals; no hard failures)
+- `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates)
+
+Observed result:
+
+- Crypto library behavior is source-owned, while native algorithms remain
+  behind a narrow typed capability. No crypto API body, default, padding rule,
+  or generated `Bytes` layout originates in `GoCompiler` or `hxrt`.
+- Compiler debt falls permanently by 26 raw sites. Snapshot regeneration removes
+  7,602 lines, chiefly because unrelated `stdlib_symbols` users no longer receive
+  the old crypto block; the two `incident_api` profiles each lose another 117
+  unused generated lines.
+- Runtime slicing includes `crypto.go` only for programs that use the staged
+  crypto APIs. XML/zip-only output stays on its existing migration path without
+  importing crypto packages or carrying crypto declarations.

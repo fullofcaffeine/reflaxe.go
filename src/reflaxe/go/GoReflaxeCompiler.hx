@@ -495,6 +495,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 				// not use haxe.Template should not pay for that capability in full-copy
 				// mode. Disabling inference remains the explicit all-files escape hatch.
 				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TEMPLATE) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TEMPLATE) >= 0;
+			case "crypto.go": // Native crypto algorithms are selected only through the staged haxe.crypto
+				// API or its typed hxrt binding. Keep them out of unrelated full-copy builds.
+				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_CRYPTO) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_CRYPTO) >= 0;
 			case "terminal.go", "terminal_darwin.go", "terminal_linux.go", "terminal_posix.go", "terminal_unsupported.go", "terminal_windows.go":
 				// Terminal mode contains a platform syscall boundary and should not add
 				// unsafe-bearing code to programs that never call Sys.getChar. Explicitly

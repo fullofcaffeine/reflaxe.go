@@ -185,6 +185,10 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("haxe.ds.ListSort");
 			case "haxe.Utf8":
 				requireSourceOwnedStdlibClass("haxe.Utf8");
+			case "haxe.crypto.Base64":
+				requireSourceOwnedStdlibClass("haxe.crypto.Base64");
+			case "haxe.crypto.Md5", "haxe.crypto.Sha1", "haxe.crypto.Sha224", "haxe.crypto.Sha256":
+				requireSourceOwnedStdlibClass(fullClassName(classType));
 			case "haxe.exceptions.PosException":
 				requireSourceOwnedStdlibClass("haxe.exceptions.PosException");
 			case "haxe.exceptions.ArgumentException":

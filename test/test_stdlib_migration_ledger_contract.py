@@ -109,6 +109,10 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/collections/StringMapHandle.hx",
     ),
+    "std/hxrt/crypto/NativeCrypto.hx": (
+        "hxrt_binding",
+        "std/hxrt/crypto/NativeCrypto.hx",
+    ),
     "std/hxrt/fs/FileSystemStat.hx": (
         "hxrt_binding",
         "std/hxrt/fs/FileSystemStat.hx",
@@ -759,6 +763,87 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             )
         )
         self.assertNotIn('"lowerTemplateSupportShimDecls": "template"', debt_ratchet)
+
+    def test_crypto_is_source_owned_instead_of_a_compiler_shim(self) -> None:
+        ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")
+        classifier = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx"
+        ).read_text(encoding="utf-8")
+        planner = (
+            ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ).read_text(encoding="utf-8")
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
+        )
+        feature_analyzer = (
+            ROOT / "src/reflaxe/go/compiler/GoHxrtFeatureAnalyzer.hx"
+        ).read_text(encoding="utf-8")
+        reflaxe_compiler = (
+            ROOT / "src/reflaxe/go/GoReflaxeCompiler.hx"
+        ).read_text(encoding="utf-8")
+
+        crypto_paths = (
+            "haxe.crypto.Base64",
+            "haxe.crypto.Md5",
+            "haxe.crypto.Sha1",
+            "haxe.crypto.Sha224",
+            "haxe.crypto.Sha256",
+        )
+        crypto_symbols = (
+            "haxe__crypto__Base64",
+            "haxe__crypto__Md5",
+            "haxe__crypto__Sha1",
+            "haxe__crypto__Sha224",
+            "haxe__crypto__Sha256",
+        )
+
+        stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
+        stdlib_end = compiler.index("function reflectFieldsShimDecl", stdlib_start)
+        stdlib_emitter = compiler[stdlib_start:stdlib_end]
+        for path, symbol in zip(crypto_paths, crypto_symbols):
+            self.assertNotIn(f'path: "{path}"', classifier)
+            self.assertIn(f'"{path}"', planner)
+            self.assertNotIn(symbol, stdlib_emitter)
+
+        stdlib_group = next(
+            group for group in registry["groups"] if group["group"] == "stdlib_symbols"
+        )
+        owned_symbols = {entry["symbol"] for entry in stdlib_group["ownedSymbols"]}
+        selected_paths = {
+            entry["path"] for entry in stdlib_group["classifierSelections"]
+        }
+        for path in crypto_paths:
+            self.assertNotIn(path, owned_symbols)
+            self.assertNotIn(path, selected_paths)
+
+        for source_path in (
+            "std/go/_std/haxe/crypto/Base64.hx",
+            "std/go/_std/haxe/crypto/Md5.hx",
+            "std/go/_std/haxe/crypto/Sha1.hx",
+            "std/go/_std/haxe/crypto/Sha224.hx",
+            "std/go/_std/haxe/crypto/Sha256.hx",
+        ):
+            entry = ledger_entries.get(source_path)
+            self.assertIsNotNone(entry, source_path)
+            self.assertEqual("upstream_std_override", entry.get("ownershipClass"))
+            self.assertEqual("haxe_go-vfp.8.7.15.1", entry.get("migrationBead"))
+            self.assertEqual([], entry.get("compilerShimGroups"))
+
+        native_entry = ledger_entries.get("std/hxrt/crypto/NativeCrypto.hx")
+        self.assertIsNotNone(native_entry)
+        self.assertEqual("hxrt_binding", native_entry.get("ownershipClass"))
+        self.assertEqual("haxe_go-vfp.8.7.15.1", native_entry.get("migrationBead"))
+        self.assertEqual([], native_entry.get("compilerShimGroups"))
+
+        self.assertIn('FEATURE_CRYPTO = "crypto"', feature_analyzer)
+        self.assertIn('["crypto.go"]', feature_analyzer)
+        self.assertIn('case "crypto.go":', reflaxe_compiler)
+        generated_root = ROOT / "test/snapshot/stdlib/crypto_xml_zip_basic/intended"
+        self.assertTrue((generated_root / "hxrt/crypto.go").is_file())
+        self.assertFalse(
+            (ROOT / "test/snapshot/core/const_kinds_contract/intended/hxrt/crypto.go").exists()
+        )
 
     def test_atomic_is_source_owned_instead_of_a_compiler_shim(self) -> None:
         ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}

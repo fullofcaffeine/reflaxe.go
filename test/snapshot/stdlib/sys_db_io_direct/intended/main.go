@@ -3,11 +3,6 @@ package main
 import (
 	"bytes"
 	"compress/zlib"
-	"crypto/md5"
-	"crypto/sha1"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/hex"
 	"encoding/xml"
 	"io"
 	"math"
@@ -1905,21 +1900,6 @@ func (self *Xml) toString() *string {
 	return haxe__xml__Printer_print(self)
 }
 
-type haxe__crypto__Base64 struct {
-}
-
-type haxe__crypto__Md5 struct {
-}
-
-type haxe__crypto__Sha1 struct {
-}
-
-type haxe__crypto__Sha224 struct {
-}
-
-type haxe__crypto__Sha256 struct {
-}
-
 func hxrt_haxeBytesToRaw(value *haxe__io__Bytes) []byte {
 	if value == nil {
 		return []byte{}
@@ -1942,103 +1922,6 @@ func hxrt_rawToHaxeBytes(value []byte) *haxe__io__Bytes {
 		converted[i] = int(value[i])
 	}
 	return &haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: value, __hx_rawValid: true}
-}
-
-func haxe__crypto__Base64_encode(bytes *haxe__io__Bytes, complement ...bool) *string {
-	useComplement := true
-	if len(complement) > 0 {
-		useComplement = complement[0]
-	}
-	encoded := base64.StdEncoding.EncodeToString(hxrt_haxeBytesToRaw(bytes))
-	if !useComplement {
-		encoded = strings.TrimRight(encoded, "=")
-	}
-	return hxrt.StringFromLiteral(encoded)
-}
-
-func haxe__crypto__Base64_decode(value *string, complement ...bool) *haxe__io__Bytes {
-	useComplement := true
-	if len(complement) > 0 {
-		useComplement = complement[0]
-	}
-	rawValue := *hxrt.StdString(value)
-	if useComplement {
-		rawValue = strings.TrimRight(rawValue, "=")
-	}
-	decoded, err := base64.RawStdEncoding.DecodeString(rawValue)
-	if err != nil {
-		decoded, err = base64.StdEncoding.DecodeString(*hxrt.StdString(value))
-		if err != nil {
-			hxrt.Throw(err)
-			return &haxe__io__Bytes{b: []int{}, length: 0}
-		}
-	}
-	return hxrt_rawToHaxeBytes(decoded)
-}
-
-func haxe__crypto__Base64_urlEncode(bytes *haxe__io__Bytes, complement ...bool) *string {
-	useComplement := false
-	if len(complement) > 0 {
-		useComplement = complement[0]
-	}
-	encoded := base64.RawURLEncoding.EncodeToString(hxrt_haxeBytesToRaw(bytes))
-	if useComplement {
-		missing := len(encoded) % 4
-		if missing != 0 {
-			encoded = (encoded + strings.Repeat("=", (4-missing)))
-		}
-	}
-	return hxrt.StringFromLiteral(encoded)
-}
-
-func haxe__crypto__Base64_urlDecode(value *string, complement ...bool) *haxe__io__Bytes {
-	rawValue := *hxrt.StdString(value)
-	decoded, err := base64.RawURLEncoding.DecodeString(strings.TrimRight(rawValue, "="))
-	if err != nil {
-		hxrt.Throw(err)
-		return &haxe__io__Bytes{b: []int{}, length: 0}
-	}
-	return hxrt_rawToHaxeBytes(decoded)
-}
-
-func haxe__crypto__Md5_encode(value *string) *string {
-	sum := md5.Sum([]byte(*hxrt.StdString(value)))
-	return hxrt.StringFromLiteral(hex.EncodeToString(sum[:]))
-}
-
-func haxe__crypto__Md5_make(value *haxe__io__Bytes) *haxe__io__Bytes {
-	sum := md5.Sum(hxrt_haxeBytesToRaw(value))
-	return hxrt_rawToHaxeBytes(sum[:])
-}
-
-func haxe__crypto__Sha1_encode(value *string) *string {
-	sum := sha1.Sum([]byte(*hxrt.StdString(value)))
-	return hxrt.StringFromLiteral(hex.EncodeToString(sum[:]))
-}
-
-func haxe__crypto__Sha1_make(value *haxe__io__Bytes) *haxe__io__Bytes {
-	sum := sha1.Sum(hxrt_haxeBytesToRaw(value))
-	return hxrt_rawToHaxeBytes(sum[:])
-}
-
-func haxe__crypto__Sha224_encode(value *string) *string {
-	sum := sha256.Sum224([]byte(*hxrt.StdString(value)))
-	return hxrt.StringFromLiteral(hex.EncodeToString(sum[:]))
-}
-
-func haxe__crypto__Sha224_make(value *haxe__io__Bytes) *haxe__io__Bytes {
-	sum := sha256.Sum224(hxrt_haxeBytesToRaw(value))
-	return hxrt_rawToHaxeBytes(sum[:])
-}
-
-func haxe__crypto__Sha256_encode(value *string) *string {
-	sum := sha256.Sum256([]byte(*hxrt.StdString(value)))
-	return hxrt.StringFromLiteral(hex.EncodeToString(sum[:]))
-}
-
-func haxe__crypto__Sha256_make(value *haxe__io__Bytes) *haxe__io__Bytes {
-	sum := sha256.Sum256(hxrt_haxeBytesToRaw(value))
-	return hxrt_rawToHaxeBytes(sum[:])
 }
 
 type haxe__ds__Option struct {

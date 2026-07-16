@@ -118,6 +118,11 @@ OWNER_OVERRIDES = {
     "haxe.Template": "staged_std",
     "haxe.Timer": "mixed",
     "haxe.Utf8": "staged_std",
+    "haxe.crypto.Base64": "mixed",
+    "haxe.crypto.Md5": "mixed",
+    "haxe.crypto.Sha1": "mixed",
+    "haxe.crypto.Sha224": "mixed",
+    "haxe.crypto.Sha256": "mixed",
     "haxe.io.BufferInput": "compiler_shim",
     "haxe.io.BytesData": "mixed",
     "haxe.io.Encoding": "compiler_shim",
@@ -248,6 +253,32 @@ MODULE_NOTES_OVERRIDES = {
         "operations use the typed std/hxrt/template binding and footprint-explicit "
         "runtime/hxrt/template.go. Evidence: semantic_diff/haxe_template_contract, "
         "stdlib/haxe_template_basic, and runtime template tests."
+    ),
+    "haxe.crypto.Base64": (
+        "Canonical staged source owns Base64 alphabets, padding defaults, and Bytes conversion; "
+        "typed std/hxrt/crypto delegates only raw native codec execution to footprint-explicit "
+        "runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, "
+        "stdlib/crypto_xml_zip_basic, and direct runtime crypto tests."
+    ),
+    "haxe.crypto.Md5": (
+        "Canonical staged source owns the Md5 API and Bytes conversion; typed std/hxrt/crypto "
+        "delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: "
+        "crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests."
+    ),
+    "haxe.crypto.Sha1": (
+        "Canonical staged source owns the Sha1 API and Bytes conversion; typed std/hxrt/crypto "
+        "delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: "
+        "crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests."
+    ),
+    "haxe.crypto.Sha224": (
+        "Canonical staged source owns the Sha224 API and Bytes conversion; typed std/hxrt/crypto "
+        "delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: "
+        "crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests."
+    ),
+    "haxe.crypto.Sha256": (
+        "Canonical staged source owns the Sha256 API and Bytes conversion; typed std/hxrt/crypto "
+        "delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: "
+        "crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests."
     ),
     "haxe.io.BufferInput": (
         "Direct `haxe.io.BufferInput` constructor and buffered-read baseline now have semantic-diff "

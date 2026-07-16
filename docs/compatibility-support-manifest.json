@@ -9,7 +9,7 @@
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "4646dd37b5a9c5b9b7c71d7d0508e41c41d68646c561017773f42dc591d32db8"
+    "portable_stdlib_inventory_sha256": "4f37247635147b7eb2e21db300ca9711fef3f51a88599ac6f1e8bf83941f5fe6"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -2021,7 +2021,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns Base64 alphabets, padding defaults, and Bytes conversion; typed std/hxrt/crypto delegates only raw native codec execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and direct runtime crypto tests."
       },
       {
         "module": "haxe.crypto.BaseCode",
@@ -2070,7 +2070,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the Md5 API and Bytes conversion; typed std/hxrt/crypto delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests."
       },
       {
         "module": "haxe.crypto.Sha1",
@@ -2083,7 +2083,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the Sha1 API and Bytes conversion; typed std/hxrt/crypto delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests."
       },
       {
         "module": "haxe.crypto.Sha224",
@@ -2096,7 +2096,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the Sha224 API and Bytes conversion; typed std/hxrt/crypto delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests."
       },
       {
         "module": "haxe.crypto.Sha256",
@@ -2109,7 +2109,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the Sha256 API and Bytes conversion; typed std/hxrt/crypto delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests."
       },
       {
         "module": "haxe.ds.ArraySort",

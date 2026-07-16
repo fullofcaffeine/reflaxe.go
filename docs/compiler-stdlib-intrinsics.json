@@ -179,7 +179,7 @@
       "reviewCondition": "Remove under haxe_go-vfp.8.7.15 once equivalent typed runtime behavior lands."
     },
     "migration_stdlib_symbols": {
-      "what": "Split the monolithic Date, Math, Unicode, Reflect, Xml, crypto, XML, zip, Option, parsing, logging, and nominal-symbol block by its correct source or runtime owner.",
+      "what": "Split the remaining Date, Math, Unicode, Reflect, root Xml, haxe.xml parsing/printing, zip, Option, logging, and nominal-symbol block by its correct source or runtime owner; crypto left the group under haxe_go-vfp.8.7.15.1.",
       "why": "Most functions in the group are ordinary library or runtime behavior; sharing a file with generated type metadata does not make them compile-context intrinsics.",
       "how": "Move library code to upstream or staged Haxe, native algorithms to narrow hxrt helpers, and keep only separately registered metadata or representation primitives.",
       "evidence": [
@@ -333,11 +333,6 @@
         {"symbol": "Type", "scope": "complete_type"},
         {"symbol": "UnicodeString", "scope": "partial_type", "members": ["charAt", "charCodeAt", "get_length", "indexOf", "lastIndexOf", "substr", "substring", "validate"]},
         {"symbol": "Xml", "scope": "complete_type"},
-        {"symbol": "haxe.crypto.Base64", "scope": "complete_type"},
-        {"symbol": "haxe.crypto.Md5", "scope": "complete_type"},
-        {"symbol": "haxe.crypto.Sha1", "scope": "complete_type"},
-        {"symbol": "haxe.crypto.Sha224", "scope": "complete_type"},
-        {"symbol": "haxe.crypto.Sha256", "scope": "complete_type"},
         {"symbol": "haxe.ds.Option", "scope": "complete_type"},
         {"symbol": "haxe.xml.Parser", "scope": "complete_type"},
         {"symbol": "haxe.xml.Printer", "scope": "complete_type"},
@@ -354,11 +349,6 @@
         {"kind": "class", "path": "UnicodeString"},
         {"kind": "class", "path": "Xml"},
         {"kind": "class", "path": "_UnicodeString.UnicodeString_Impl_"},
-        {"kind": "class", "path": "haxe.crypto.Base64"},
-        {"kind": "class", "path": "haxe.crypto.Md5"},
-        {"kind": "class", "path": "haxe.crypto.Sha1"},
-        {"kind": "class", "path": "haxe.crypto.Sha224"},
-        {"kind": "class", "path": "haxe.crypto.Sha256"},
         {"kind": "class", "path": "haxe.ds.BalancedTree"},
         {"kind": "class", "path": "haxe.io.Path"},
         {"kind": "class", "path": "haxe.xml.Parser"},

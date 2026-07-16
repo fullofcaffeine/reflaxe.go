@@ -21,6 +21,7 @@
       "upstream_std_override": [
         "haxe_go-vfp.5.3",
         "haxe_go-vfp.8.7.10",
+        "haxe_go-vfp.8.7.15.1",
         "haxe_go-vfp.8.7.17",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
@@ -34,6 +35,7 @@
       "hxrt_binding": [
         "haxe_go-vfp.5.4",
         "haxe_go-vfp.8.7.10",
+        "haxe_go-vfp.8.7.15.1",
         "haxe_go-vfp.8.7.16",
         "haxe_go-vfp.8.7.3",
         "haxe_go-vfp.8.7.4",
@@ -241,6 +243,51 @@
       "migrationBead": "haxe_go-vfp.8.7.9",
       "compilerShimGroups": [],
       "notes": "Canonical staged implementation of the body-less upstream haxe.atomic.AtomicObject core type over an opaque typed hxrt handle; synchronization and reference comparison remain runtime-owned."
+    },
+    {
+      "path": "std/go/_std/haxe/crypto/Base64.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/crypto/Base64.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.1",
+      "compilerShimGroups": [],
+      "notes": "Staged Base64 API, alphabet, padding defaults, and Bytes conversion. Only raw codec execution crosses the typed NativeCrypto runtime boundary because upstream BaseCode currently depends on array-growth semantics unavailable to generated Go slices."
+    },
+    {
+      "path": "std/go/_std/haxe/crypto/Md5.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/crypto/Md5.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.1",
+      "compilerShimGroups": [],
+      "notes": "Staged MD5 public API and Bytes conversion over a typed native digest capability, replacing compiler-emitted library functions."
+    },
+    {
+      "path": "std/go/_std/haxe/crypto/Sha1.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/crypto/Sha1.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.1",
+      "compilerShimGroups": [],
+      "notes": "Staged SHA-1 public API and Bytes conversion over a typed native digest capability, replacing compiler-emitted library functions."
+    },
+    {
+      "path": "std/go/_std/haxe/crypto/Sha224.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/crypto/Sha224.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.1",
+      "compilerShimGroups": [],
+      "notes": "Staged SHA-224 public API and Bytes conversion over a typed native digest capability, replacing compiler-emitted library functions."
+    },
+    {
+      "path": "std/go/_std/haxe/crypto/Sha256.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/crypto/Sha256.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.1",
+      "compilerShimGroups": [],
+      "notes": "Staged SHA-256 public API and Bytes conversion over a typed native digest capability, replacing compiler-emitted library functions."
     },
     {
       "path": "std/go/_std/haxe/http/HttpBase.hx",
@@ -1005,6 +1052,15 @@
       "migrationBead": "haxe_go-vfp.8.7.10",
       "compilerShimGroups": [],
       "notes": "Opaque typed extern carrier for one runtime/hxrt string-keyed map cell; staged haxe.ds.StringMap owns the public collection contract."
+    },
+    {
+      "path": "std/hxrt/crypto/NativeCrypto.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/crypto/NativeCrypto.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.1",
+      "compilerShimGroups": [],
+      "notes": "Typed footprint-explicit bridge from staged haxe.crypto APIs to runtime/hxrt/crypto.go. It accepts only strings and integer byte arrays; public padding, Bytes conversion, and API policy remain Haxe-owned."
     },
     {
       "path": "std/hxrt/fs/FileSystemStat.hx",

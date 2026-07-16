@@ -93,7 +93,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-log "compiling Haxe shim benchmark case"
+log "compiling staged Haxe Base64 benchmark case"
 cat > "$work_dir/haxe_src/Main.hx" <<'HX'
 class Main {
   static function main():Void {
@@ -135,12 +135,12 @@ var shimBenchBytes = haxe__io__Bytes_ofString(hxrt.StringFromLiteral("bench-payl
 func BenchmarkShimBase64Encode(b *testing.B) {
   b.ReportAllocs()
   for i := 0; i < b.N; i++ {
-    _ = haxe__crypto__Base64_encode(shimBenchBytes)
+    _ = haxe__crypto__Base64_encode(shimBenchBytes, true)
   }
 }
 GO
 
-log "running generated-shim benchmark"
+log "running generated staged-stdlib benchmark"
 shim_bench_log="$work_dir/shim.bench.txt"
 (
   cd "$haxe_out"
@@ -230,13 +230,16 @@ raise SystemExit(3)
 PY
 }
 
-shim_main="$haxe_out/main.go"
+staged_base64="$haxe_out/module_haxe_crypto_base64.go"
+staged_crypto_runtime="$haxe_out/hxrt/crypto.go"
 direct_file="$work_dir/direct/base64_test.go"
-loc_shim_encode="$(func_loc "$shim_main" "haxe__crypto__Base64_encode")"
-loc_shim_to_raw="$(func_loc "$shim_main" "hxrt_haxeBytesToRaw")"
-loc_shim_from_raw="$(func_loc "$shim_main" "hxrt_rawToHaxeBytes")"
+loc_staged_encode="$(func_loc "$staged_base64" "haxe__crypto__Base64_encode")"
+loc_staged_to_values="$(func_loc "$staged_base64" "haxe__crypto__Base64_toValues")"
+loc_staged_add_padding="$(func_loc "$staged_base64" "haxe__crypto__Base64_addPadding")"
+loc_runtime_encode="$(func_loc "$staged_crypto_runtime" "CryptoBase64Encode")"
+loc_runtime_to_bytes="$(func_loc "$staged_crypto_runtime" "cryptoValuesToBytes")"
 loc_direct_encode="$(func_loc "$direct_file" "directBase64Encode")"
-loc_shim_path="$((loc_shim_encode + loc_shim_to_raw + loc_shim_from_raw))"
+loc_staged_path="$((loc_staged_encode + loc_staged_to_values + loc_staged_add_padding + loc_runtime_encode + loc_runtime_to_bytes))"
 
 shim_overhead_ns_pct="$(awk -v shim="$shim_ns" -v direct="$direct_ns" 'BEGIN { printf "%.2f", ((shim / direct) - 1.0) * 100.0 }')"
 shim_overhead_bytes="$(awk -v shim="$shim_bytes" -v direct="$direct_bytes" 'BEGIN { printf "%d", shim - direct }')"
@@ -256,15 +259,17 @@ cat > "$report_json" <<JSON
     "cpu": "$cpu_model"
   },
   "surface": "haxe.crypto.Base64.encode",
-  "shimPath": {
+  "stagedPath": {
     "nsPerOp": $shim_ns,
     "bytesPerOp": $shim_bytes,
     "allocsPerOp": $shim_allocs,
     "codeShapeLoc": {
-      "haxe__crypto__Base64_encode": $loc_shim_encode,
-      "hxrt_haxeBytesToRaw": $loc_shim_to_raw,
-      "hxrt_rawToHaxeBytes": $loc_shim_from_raw,
-      "totalPathLoc": $loc_shim_path
+      "haxe__crypto__Base64_encode": $loc_staged_encode,
+      "haxe__crypto__Base64_toValues": $loc_staged_to_values,
+      "haxe__crypto__Base64_addPadding": $loc_staged_add_padding,
+      "hxrt.CryptoBase64Encode": $loc_runtime_encode,
+      "hxrt.cryptoValuesToBytes": $loc_runtime_to_bytes,
+      "totalPathLoc": $loc_staged_path
     }
   },
   "directGoPath": {
@@ -284,7 +289,7 @@ cat > "$report_json" <<JSON
 JSON
 
 cat > "$report_md" <<MD
-# Stdlib Shim Review Benchmark
+# Staged Stdlib Boundary Benchmark
 
 - Run timestamp (UTC): \`$run_date\`
 - Platform: \`$goos/$goarch\`
@@ -295,7 +300,7 @@ cat > "$report_md" <<MD
 
 | Path | ns/op | B/op | allocs/op |
 | --- | ---: | ---: | ---: |
-| Generated shim path | $shim_ns | $shim_bytes | $shim_allocs |
+| Generated staged-stdlib path | $shim_ns | $shim_bytes | $shim_allocs |
 | Direct Go path | $direct_ns | $direct_bytes | $direct_allocs |
 | Delta | ${shim_overhead_ns_pct}% | +$shim_overhead_bytes | +$shim_overhead_allocs |
 
@@ -303,13 +308,15 @@ cat > "$report_md" <<MD
 
 | Function path | LOC |
 | --- | ---: |
-| \`haxe__crypto__Base64_encode\` | $loc_shim_encode |
-| \`hxrt_haxeBytesToRaw\` | $loc_shim_to_raw |
-| \`hxrt_rawToHaxeBytes\` | $loc_shim_from_raw |
-| Shim call-path total | $loc_shim_path |
+| \`haxe__crypto__Base64_encode\` | $loc_staged_encode |
+| \`haxe__crypto__Base64_toValues\` | $loc_staged_to_values |
+| \`haxe__crypto__Base64_addPadding\` | $loc_staged_add_padding |
+| \`hxrt.CryptoBase64Encode\` | $loc_runtime_encode |
+| \`hxrt.cryptoValuesToBytes\` | $loc_runtime_to_bytes |
+| Staged call-path total | $loc_staged_path |
 | \`directBase64Encode\` | $loc_direct_encode |
 MD
 
 log "report written: $(display_path "$report_json")"
 log "report written: $(display_path "$report_md")"
-log "summary: shim ${shim_ns}ns/op vs direct ${direct_ns}ns/op (${shim_overhead_ns_pct}% overhead)"
+log "summary: staged ${shim_ns}ns/op vs direct ${direct_ns}ns/op (${shim_overhead_ns_pct}% overhead)"

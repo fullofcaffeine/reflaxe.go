@@ -42,7 +42,7 @@ func haxe__Resource_getBytes(name *string) *haxe__io__Bytes {
 					return hx_zero_13
 				}
 				return hx_field_12.(*string)
-			}(x))
+			}(x), true)
 		}
 	}
 	return nil
@@ -86,7 +86,7 @@ func haxe__Resource_getString(name *string) *string {
 					return hx_zero_25
 				}
 				return hx_field_24.(*string)
-			}(x))
+			}(x), true)
 			return b.toString()
 		}
 	}

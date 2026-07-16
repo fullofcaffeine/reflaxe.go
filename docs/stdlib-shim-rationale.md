@@ -109,7 +109,8 @@ The repo-wide rule for deciding ownership lives in `docs/ownership-rubric.md`.
 | `ds` | `haxe.ds.*Map`, `List`, enum maps, complete `Lambda` API, sort helpers | 0 declaration shims; exact call adapters only | Snapshot + semantic-diff | Migrated (canonical/upstream Haxe + typed storage and representation capabilities) | Ordinary Haxe owns every public collection API and algorithm. Typed `hxrt` handles retain only native storage facts. Exact registered compiler adapters wrap Go's invariant iterable, callback, nested-carrier, array, comparator, and linked-node shapes without implementing traversal or sorting. `LambdaGoIterableCarrier` is a private representation-only staged companion. | `haxe_go-vfp.8.7.10`, `haxe_go-vfp.8.7.17`, `haxe_go-vfp.8.7.18` |
 | `http` | `sys.Http` request/callback/proxy contract | 542 | Semantic-diff | Migration required | Transport resources belong in `hxrt`; request sequencing and callback policy belong in staged Haxe. Existing staged leaf helpers prove the direction. | `haxe_go-vfp.8.7.12` |
 | `filesystem` | `sys.FileSystem` | 0 (compiler group retired) | Semantic-diff | Migrated (canonical staged std + typed runtime capabilities) | `std/go/_std/sys/FileSystem.hx` owns the complete Haxe API and constructs `sys.FileStat`; `std/hxrt/fs` provides typed bindings to native operations in selectively copied `runtime/hxrt/filesystem.go`. No compiler filesystem declarations or imports remain. | `haxe_go-vfp.8.7.4` |
-| `stdlib_symbols` | `Std`, `Date`, `Math`, `Reflect`, crypto/xml/zip | 706 | Semantic-diff | Migration required except exact registered metadata/representation primitives | Date, Math, DOM, codecs, hashes, parsing, printing, and compression are source/runtime behavior. Only the separately registered type metadata, type-test, string representation, exception carrier, and Rest primitives are admitted. | `haxe_go-vfp.8.7.15` |
+| `crypto` | `haxe.crypto.Base64`, `Md5`, `Sha1`, `Sha224`, `Sha256` | 0 compiler declarations | Semantic-diff + snapshot + direct runtime | Migrated (canonical staged std + typed runtime capabilities) | Staged Haxe owns public APIs, Base64 alphabets/padding, and `Bytes` conversion. Footprint-explicit `runtime/hxrt/crypto.go` owns only native codec and digest execution over strings and integer byte arrays. | `haxe_go-vfp.8.7.15.1` |
+| `stdlib_symbols` | `Std`, `Date`, `Math`, `Reflect`, XML/zip | 738 | Semantic-diff | Migration required except exact registered metadata/representation primitives | Date, Math, DOM, parsing, printing, compression, and runtime reflection are source/runtime behavior. Crypto has already left this group. Only separately registered type metadata, type-test, string representation, exception carrier, and Rest primitives are admitted. | `haxe_go-vfp.8.7.15` |
 | `regex_serializer` | `EReg`, `haxe.Serializer`, `haxe.Unserializer` | 2460 | Semantic-diff | Migration required; split generated metadata from runtime algorithms | Reachable type metadata may remain generated data, but regex matching, token streams, resolver policy, traversal, and identity behavior do not belong in a compiler emitter. | `haxe_go-vfp.8.7.13` |
 | `net_socket` | `sys.net.Host`, `sys.net.Socket`, `sys.net.UdpSocket` | 2958 | Mixed (`semantic-diff` for TCP host/socket, snapshot for direct UDP loopback) | Migration required | Deadline, readiness, address translation, shutdown, broadcast, and TLS composition are typed runtime-handle behavior beneath staged public APIs. | `haxe_go-vfp.8.7.14` |
 | `template_support` | runtime representation beneath `haxe.Template` | 0 compiler helpers (group retired) | Semantic-diff + direct runtime | Migrated (staged Haxe + typed `hxrt`) | Staged `haxe.Template` owns parsing, lookup, iteration, macros, errors, and rendering. Footprint-explicit `runtime/hxrt/template.go` owns only dynamic array inspection, object classification, and invocation through `std/hxrt/template/NativeTemplate.hx`. | `haxe_go-vfp.8.7.16` |
@@ -127,7 +128,7 @@ These are the canonical per-surface decisions for shim ownership and alternative
 | `SDR-005` | `http` (`sys.Http`) | Move Haxe-visible request choreography to staged source and native HTTP resources to typed `hxrt`; existing source-owned leaf helpers are an intermediate step, not the final split. | Keep choreography in compiler, raw app code, staged source plus typed transport handles | HTTP callback/proxy/custom-request contracts; `haxe_go-vfp.8.7.12` |
 | `SDR-006` | `regex_serializer` (`EReg`, serializer/unserializer stack) | Split exact generated metadata from runtime behavior, then move public regex and serialization algorithms to staged Haxe plus typed `hxrt`. | Keep the mixed compiler emitter, runtime-only blob, staged algorithms plus generated metadata data/hooks | Serializer and regex semantic-diff suite; `haxe_go-vfp.8.7.13` |
 | `SDR-007` | `net_socket` (`sys.net.Host`, `sys.net.Socket`, `sys.net.UdpSocket`) | Move public APIs to staged source and OS socket lifecycle/readiness/deadline behavior to typed runtime handles. | Keep compiler classes, extern-only wrappers, staged source plus typed handles | Socket semantic-diff contracts, direct UDP loopback snapshot, and `haxe_go-vfp.8.7.14` |
-| `SDR-008` | `stdlib_symbols` library surfaces | Continue completed staged migrations and retire the remaining monolithic Date/Math/Reflect/Xml/crypto/zip block. Only exact metadata and representation primitives in the intrinsic registry may remain. | Preserve the mixed blob, extern-only wrappers, staged source plus narrow runtime helpers | Sibling-target precedent, existing local migrations, and `haxe_go-vfp.8.7.15` |
+| `SDR-008` | `stdlib_symbols` library surfaces | Continue completed staged migrations and retire the remaining monolithic Date/Math/Reflect/Xml/zip block. Crypto has already moved to staged source plus a narrow typed runtime capability. Only exact metadata and representation primitives in the intrinsic registry may remain. | Preserve the mixed blob, extern-only wrappers, staged source plus narrow runtime helpers | Sibling-target precedent, existing local migrations, and `haxe_go-vfp.8.7.15` |
 | `SDR-009` | `haxe.Constraints` + `haxe.Rest` direct abstraction surfaces | Split ownership: staged std for `haxe.Constraints` typing/native bridge metadata, compiler lowering for native-slice `haxe.Rest` operations | Keep as compile-only debt, full compiler shim blobs, staged std abstract emission | Direct parity contracts (`haxe_constraints_contract`, `haxe_rest_contract`) plus snapshot `stdlib/haxe_constraints_rest_direct` |
 | `SDR-010` | stack/main-loop `haxe.misc` surfaces (`haxe.CallStack`, `haxe.NativeStackTrace`, `haxe.EntryPoint`, `haxe.MainLoop`, `haxe.Timer`) | Split the tranche honestly: keep deterministic stack fallbacks in staged std under target-sensitive snapshot coverage, and support direct event-loop APIs through staged std wrappers over `sys.thread.EventLoop` instead of compiler-owned shims. Native Go stack capture is available only as the explicit `reflaxe_go_native_stack_trace` diagnostic capability, not as portable semantic-diff parity. | Leave as generic compile-only debt, force semantic-diff on target-timed event scheduling prematurely, grow compiler-owned stack/event-loop shims without a runtime ownership decision | Snapshot contracts `stdlib/haxe_stack_loop_target_sensitive`, `stdlib/haxe_native_stack_trace_opt_in`, and `stdlib/haxe_main_loop_runtime_direct`; staged std overrides `std/go/_std/haxe/CallStack.hx`, `std/go/_std/haxe/NativeStackTrace.hx`, `std/go/_std/haxe/EntryPoint.hx`, `std/go/_std/haxe/MainLoop.hx`, `std/go/_std/haxe/Timer.hx`; native stack spike `docs/spikes/native-stack-capture-contract.md`; cross-target precedent from `haxe.rust/std/haxe/CallStack.cross.hx` |
 | `SDR-011` | legacy text surfaces (`haxe.Utf8`, `haxe.Ucs2`) | Use staged std for deprecated `haxe.Utf8` helper semantics; keep `haxe.Ucs2` as explicit target-sensitive platform exclusion under snapshot coverage | Grow compiler-owned text shims, leave both as anonymous compile-only debt | `haxe_utf8_contract`, `stdlib/haxe_utf8_basic`, `stdlib/haxe_ucs2_platform_exclusion`, staged std override `std/go/_std/haxe/Utf8.hx` |
@@ -182,11 +183,12 @@ architecture instead of copying Go-specific metadata names or helper shapes.
 - Simple staged root methods inline to typed capabilities so direct output remains Go-shaped. First-class function references materialize source-owned functions instead of restoring compiler special cases.
 - `Sys.cpuTime` is the explicit compile-context exception: it is rejected at Haxe compile time because no Go-standard-library implementation can satisfy the CPU-time contract. See [Portable root `Sys` contract](portable-sys-contract.md).
 
-## Measured Tradeoff: Shim vs Simpler Path
+## Historical Measured Tradeoff: Shim vs Simpler Path
 
-Representative surface: `haxe.crypto.Base64.encode` in `stdlib_symbols`.
+The following baseline measured `haxe.crypto.Base64.encode` before its compiler
+shim was retired by `haxe_go-vfp.8.7.15.1`.
 
-Repro command:
+The same harness now measures the replacement staged-Haxe + typed-runtime path:
 
 ```bash
 npm run test:perf:stdlib-shims
@@ -196,6 +198,9 @@ Artifacts:
 
 - `.cache/perf-stdlib-shim-review/report.json`
 - `.cache/perf-stdlib-shim-review/report.md`
+
+Those artifacts describe the current staged boundary. The fixed table below is
+the historical compiler-shim baseline retained for comparison.
 
 Measured at `2026-02-24T01:22:42Z` on `darwin/arm64` (`Apple M2 Pro`):
 
@@ -208,9 +213,9 @@ Measured at `2026-02-24T01:22:42Z` on `darwin/arm64` (`Apple M2 Pro`):
 Interpretation:
 
 - overhead is primarily representation conversion (`[]int` <-> `[]byte`) rather than base64 algorithm cost
-- this is a regression baseline for moving public Base64 behavior to staged
-  source over a narrower byte-conversion capability; it does not approve the
-  current `stdlib_symbols` group
+- this remains a regression baseline for the staged Base64 API over the typed
+  `NativeCrypto` boundary; it no longer describes an approved or active compiler
+  implementation
 
 ## Migration Sequence
 
