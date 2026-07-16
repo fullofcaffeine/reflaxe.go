@@ -236,7 +236,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                     for entry in embedded["entries"]
                     if entry["packagePath"].endswith(".cross.hx")
                 ]
-                self.assertEqual(85, len(cross_entries))
+                self.assertEqual(86, len(cross_entries))
                 self.assertTrue(
                     all(
                         entry["kind"] == "stdlib-override"
@@ -264,7 +264,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
             self.assertEqual(0, verify.returncode, verify.stdout + verify.stderr)
             summary = json.loads(verify.stdout)
             self.assertEqual(sha256(archive), summary["sha256"])
-            self.assertEqual(324, summary["entries"])
+            self.assertEqual(325, summary["entries"])
 
             wrong_version = run_verifier(
                 archive,
