@@ -1378,3 +1378,74 @@ Observed result:
   `stdlib_symbols` consumers stop carrying the old XML block. XML consumers now
   receive ordinary `module_xml.go`, `module_haxe_xml_parser.go`, and
   `module_haxe_xml_printer.go` files only when those sources are reachable.
+
+### 2026-07-16: move `haxe.zip` compression to staged std and typed runtime capabilities (`haxe_go-vfp.8.7.15.3`)
+
+Implementation:
+
+- Added red ownership, semantic-diff, snapshot/runtime, and direct Go runtime
+  contracts before changing the compiler. The contracts cover levels `-1`, `0`,
+  `1`, `6`, and `9`; positive buffer-size hints; empty and binary payloads;
+  invalid levels and streams; whole-buffer instance calls; and the raw-DEFLATE
+  path used by `haxe.zip.Tools`.
+- Tried the mainstream Haxe 4.3.7 surfaces first. Its generic `Compress` is an
+  intentional `NotImplementedException` stub, while generic `Uncompress.run`
+  uses the Haxe inflater but cannot provide the target instance/raw-DEFLATE
+  capability needed by `Tools`. The Go target therefore needs two narrow staged
+  overrides rather than compiler declarations.
+- Added canonical staged `Compress` and `Uncompress` overrides. Haxe owns level
+  validation, the 64 KiB default, positive buffer-size policy, `haxe.io.Bytes`
+  conversion, whole-buffer result records, and negative-window raw-DEFLATE
+  selection. The established one-shot target contract retains no native state,
+  so `setFlushMode` and `close` are intentionally no-ops in this slice.
+- Added the typed `std/hxrt/zip/NativeZip.hx` boundary over
+  `runtime/hxrt/zip.go`. Only integer byte arrays, integers, and one raw-stream
+  Boolean cross the package boundary. Go owns zlib/raw-DEFLATE execution and
+  native errors; no generated `haxe.io.Bytes` layout, reflection, unsafe code,
+  or raw source injection is involved.
+- Removed the two compiler structs, both compiler-owned run functions,
+  `bytes` / `compress/zlib` / `io` imports, classifier routes, intrinsic-registry
+  ownership, and the special default-argument exception. Zip calls now select
+  ordinary Haxe modules and a separate footprint-explicit `zip` runtime feature.
+- Corrected the inventory ownership of the adjacent `haxe.zip` modules:
+  `Compress` / `Uncompress` are staged-source plus runtime bindings, while
+  `Entry`, `FlushMode`, `Huffman`, `InflateImpl`, `Reader`, `Tools`, and `Writer`
+  remain unchanged upstream Haxe source.
+- Progressive multi-call source/destination buffers, native codec handles, and
+  stateful flush/close lifecycle semantics are explicitly deferred to
+  `haxe_go-vfp.8.7.21`; this migration does not imply that broader streaming
+  contract is complete.
+
+Validation evidence:
+
+- `npm run test:changed`
+- `npm test` (`272/272` snapshots)
+- `npm run test:semantic-diff` (`135/135` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance`, `npm run test:stdlib-inventory`, and
+  `npm run compatibility:verify`
+- `npm run test:compiler-debt` (`4,118` `GoRaw` sites and `13` compiler shim
+  entry points)
+- direct `runtime/hxrt` Go tests and raw-injection hygiene
+- `npm run test:perf:hxrt-selective`
+- `npm run test:perf:stdlib-shims`
+- `npm run test:perf:go` (four warning-only startup budget signals, zero
+  enforced hard failures, and one explicitly non-enforced hard-gate dry-run
+  candidate)
+- `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates)
+- `npm run test:release-contracts`
+
+Observed result:
+
+- Public zip behavior now originates in Haxe source, and native compression is
+  isolated behind a typed, representation-neutral runtime capability. Invalid
+  streams still cross the ordinary Haxe exception carrier on Go.
+- The `stdlib_symbols` raw allowance falls permanently from 470 to 455 sites,
+  and repository-wide `GoRaw` debt falls by 15 sites, from 4,133 to 4,118.
+- Snapshot regeneration removes 1,942 tracked lines from unrelated
+  `stdlib_symbols` consumers. The actual zip consumer gains ordinary
+  `module_haxe_zip_*` files and selectively copied `hxrt/zip.go`; unrelated
+  runtime slices do not acquire compression code.
+- Package governance covers 132 sources (83 upstream overrides and 39 typed
+  bindings), with 314 manifest entries and 315 archive members.

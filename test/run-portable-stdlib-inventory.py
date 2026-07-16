@@ -126,6 +126,15 @@ OWNER_OVERRIDES = {
     "haxe.crypto.Sha256": "mixed",
     "haxe.xml.Parser": "staged_std",
     "haxe.xml.Printer": "staged_std",
+    "haxe.zip.Compress": "mixed",
+    "haxe.zip.Entry": "staged_std",
+    "haxe.zip.FlushMode": "staged_std",
+    "haxe.zip.Huffman": "staged_std",
+    "haxe.zip.InflateImpl": "staged_std",
+    "haxe.zip.Reader": "staged_std",
+    "haxe.zip.Tools": "staged_std",
+    "haxe.zip.Uncompress": "mixed",
+    "haxe.zip.Writer": "staged_std",
     "haxe.io.BufferInput": "compiler_shim",
     "haxe.io.BytesData": "mixed",
     "haxe.io.Encoding": "compiler_shim",
@@ -260,6 +269,18 @@ MODULE_NOTES_OVERRIDES = {
         "Canonical staged source preserves the upstream printer algorithm and replaces only its single "
         "EReg comment-cleanup dependency with equivalent StringTools replacements, avoiding unrelated "
         "regex/serializer compiler output. Evidence: xml_source_owned and direct XML snapshots."
+    ),
+    "haxe.zip.Compress": (
+        "Canonical staged source owns level validation, Haxe Bytes conversion, and the whole-buffer "
+        "Compress API. Typed std/hxrt/zip delegates only zlib execution over integer byte arrays to "
+        "footprint-explicit runtime/hxrt/zip.go. Evidence: zip_source_owned, crypto_xml_zip, "
+        "stdlib/crypto_xml_zip_basic, and direct runtime zip tests."
+    ),
+    "haxe.zip.Uncompress": (
+        "Canonical staged source owns the 64 KiB default, positive buffer-size policy, Haxe Bytes "
+        "conversion, and negative-window raw-DEFLATE selection. Typed std/hxrt/zip delegates only "
+        "native expansion to footprint-explicit runtime/hxrt/zip.go. Evidence: zip_source_owned, "
+        "crypto_xml_zip, stdlib/crypto_xml_zip_basic, and direct runtime zip tests."
     ),
     "haxe.Template": (
         "Direct haxe.Template constructor/execute usage has semantic-diff coverage through "

@@ -199,6 +199,14 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("haxe.xml.Printer");
 				requireSourceOwnedStdlibModule("Xml");
 				requireSourceOwnedStdlibClass("StringBuf");
+			case "haxe.zip.Compress", "haxe.zip.Uncompress":
+				requireSourceOwnedStdlibClass(fullClassName(classType));
+				requireSourceOwnedStdlibEnum("haxe.zip.FlushMode");
+			case "haxe.zip.Tools":
+				requireSourceOwnedStdlibClass("haxe.zip.Tools");
+				requireSourceOwnedStdlibClass("haxe.zip.Compress");
+				requireSourceOwnedStdlibClass("haxe.zip.Uncompress");
+				requireSourceOwnedStdlibEnum("haxe.zip.FlushMode");
 			case "haxe.exceptions.PosException":
 				requireSourceOwnedStdlibClass("haxe.exceptions.PosException");
 			case "haxe.exceptions.ArgumentException":

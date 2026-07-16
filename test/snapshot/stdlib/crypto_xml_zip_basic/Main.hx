@@ -10,6 +10,15 @@ import haxe.zip.Compress;
 import haxe.zip.Uncompress;
 
 class Main {
+	static function invalidZipThrows():Bool {
+		try {
+			Uncompress.run(Bytes.ofString("not-zlib"));
+		} catch (_:Dynamic) {
+			return true;
+		}
+		return false;
+	}
+
 	static function main() {
 		var payload = "ab";
 		var bytes = Bytes.ofString(payload);
@@ -32,5 +41,6 @@ class Main {
 		var roundtrip = Uncompress.run(compressed);
 		Sys.println(roundtrip.toString());
 		Sys.println(compressed.length > 0);
+		Sys.println(invalidZipThrows());
 	}
 }

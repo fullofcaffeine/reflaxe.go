@@ -549,9 +549,6 @@ class GoCompiler {
 			imports.push("unicode/utf16");
 		}
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
-			imports.push("bytes");
-			imports.push("compress/zlib");
-			imports.push("io");
 			imports.push("math");
 			imports.push("reflect");
 			imports.push("strings");
@@ -5341,58 +5338,8 @@ class GoCompiler {
 					name: "value",
 					typeName: "any"
 				}
-			],
-				["*haxe__ds__Option"], [GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__Option{tag: 0, params: []any{value}}"))]),
-			GoDecl.GoStructDecl("haxe__zip__Compress", []),
-			GoDecl.GoStructDecl("haxe__zip__Uncompress", []),
-			GoDecl.GoFuncDecl("haxe__zip__Compress_run", null, [
-				{
-					name: "src",
-					typeName: "*haxe__io__Bytes"
-				},
-				{name: "level", typeName: "int"}
-			], ["*haxe__io__Bytes"], [
-				GoStmt.GoVarDecl("raw", null, GoExpr.GoCall(GoExpr.GoIdent("hxrt_haxeBytesToRaw"), [GoExpr.GoIdent("src")]), true),
-				GoStmt.GoRaw("var buffer bytes.Buffer"),
-				GoStmt.GoRaw("writer, err := zlib.NewWriterLevel(&buffer, level)"),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent("err")])),
-					GoStmt.GoReturn(GoExpr.GoNil)
-				],
-					null),
-				GoStmt.GoRaw("if _, err := writer.Write(raw); err != nil {"),
-				GoStmt.GoRaw("\t_ = writer.Close()"),
-				GoStmt.GoRaw("\thxrt.Throw(err)"),
-				GoStmt.GoRaw("\treturn nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if err := writer.Close(); err != nil {"),
-				GoStmt.GoRaw("\thxrt.Throw(err)"),
-				GoStmt.GoRaw("\treturn nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt_rawToHaxeBytes"), [GoExpr.GoRaw("buffer.Bytes()")]))
-			]),
-			GoDecl.GoFuncDecl("haxe__zip__Uncompress_run", null, [
-				{
-					name: "src",
-					typeName: "*haxe__io__Bytes"
-				},
-				{name: "bufsize", typeName: "...int"}
-			], ["*haxe__io__Bytes"], [
-				GoStmt.GoVarDecl("raw", null, GoExpr.GoCall(GoExpr.GoIdent("hxrt_haxeBytesToRaw"), [GoExpr.GoIdent("src")]), true),
-				GoStmt.GoRaw("reader, err := zlib.NewReader(bytes.NewReader(raw))"),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent("err")])),
-					GoStmt.GoReturn(GoExpr.GoNil)
-				],
-					null),
-				GoStmt.GoRaw("defer reader.Close()"),
-				GoStmt.GoRaw("decoded, err := io.ReadAll(reader)"),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent("err")])),
-					GoStmt.GoReturn(GoExpr.GoNil)
-				], null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt_rawToHaxeBytes"), [GoExpr.GoIdent("decoded")]))
-			])
+			], ["*haxe__ds__Option"],
+				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__Option{tag: 0, params: []any{value}}"))]),
 		];
 		if (requiresReflectFieldsShim) {
 			decls.push(reflectFieldsShimDecl());
@@ -7824,7 +7771,6 @@ class GoCompiler {
 		return switch (pack) {
 			case "_UnicodeString":
 				classType.name == "UnicodeString_Impl_";
-			case "haxe.zip": classType.name == "Compress" || classType.name == "Uncompress";
 			case _:
 				false;
 		};

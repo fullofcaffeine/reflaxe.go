@@ -11,9 +11,9 @@ func haxe__crypto__Sha1_fromValues(values []int) *haxe__io__Bytes {
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_79 := _g
+		hx_post_94 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_79
+		index := hx_post_94
 		bytes.b[index] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
 	}
 	return bytes
@@ -28,9 +28,9 @@ func haxe__crypto__Sha1_toValues(bytes *haxe__io__Bytes) []int {
 	_g := 0
 	_g1 := bytes.length
 	for _g < _g1 {
-		hx_post_80 := _g
+		hx_post_95 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_80
+		index := hx_post_95
 		values = append(values, bytes.b[index])
 	}
 	return values

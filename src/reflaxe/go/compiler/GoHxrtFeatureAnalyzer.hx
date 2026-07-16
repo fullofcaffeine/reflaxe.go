@@ -31,6 +31,7 @@ class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_PROCESS = "process";
 	public static inline final FEATURE_BYTES = "bytes";
 	public static inline final FEATURE_CRYPTO = "crypto";
+	public static inline final FEATURE_ZIP = "zip";
 	public static inline final FEATURE_SSL = "ssl";
 	public static inline final FEATURE_THREAD = "thread";
 	public static inline final FEATURE_STACK = "stack";
@@ -55,6 +56,7 @@ class GoHxrtFeatureAnalyzer {
 		FEATURE_PROCESS,
 		FEATURE_BYTES,
 		FEATURE_CRYPTO,
+		FEATURE_ZIP,
 		FEATURE_SSL,
 		FEATURE_THREAD,
 		FEATURE_STACK,
@@ -153,6 +155,10 @@ class GoHxrtFeatureAnalyzer {
 
 			if (StringTools.startsWith(path, "haxe.crypto.") || path == "hxrt.crypto.NativeCrypto") {
 				add(FEATURE_CRYPTO, "class_usage", path);
+			}
+
+			if (path == "haxe.zip.Compress" || path == "haxe.zip.Uncompress" || path == "hxrt.zip.NativeZip") {
+				add(FEATURE_ZIP, "class_usage", path);
 			}
 
 			var isIntMapSurface = path == "haxe.ds.IntMap"
@@ -309,6 +315,8 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_CORE];
 			case FEATURE_CRYPTO:
 				[FEATURE_STRING, FEATURE_EXCEPTION];
+			case FEATURE_ZIP:
+				[FEATURE_EXCEPTION];
 			case FEATURE_SSL:
 				[FEATURE_STRING, FEATURE_EXCEPTION, FEATURE_BYTES];
 			case FEATURE_THREAD:
@@ -359,6 +367,8 @@ class GoHxrtFeatureAnalyzer {
 				["bytes.go"];
 			case FEATURE_CRYPTO:
 				["crypto.go"];
+			case FEATURE_ZIP:
+				["zip.go"];
 			case FEATURE_SSL:
 				["ssl.go"];
 			case FEATURE_THREAD:

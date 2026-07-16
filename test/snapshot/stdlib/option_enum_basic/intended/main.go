@@ -1,9 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"compress/zlib"
-	"io"
 	"math"
 	"reflect"
 	"snapshot/hxrt"
@@ -1136,48 +1133,6 @@ var haxe__ds__Option_None *haxe__ds__Option = &haxe__ds__Option{tag: 1, params: 
 
 func haxe__ds__Option_Some(value any) *haxe__ds__Option {
 	return &haxe__ds__Option{tag: 0, params: []any{value}}
-}
-
-type haxe__zip__Compress struct {
-}
-
-type haxe__zip__Uncompress struct {
-}
-
-func haxe__zip__Compress_run(src *haxe__io__Bytes, level int) *haxe__io__Bytes {
-	raw := hxrt_haxeBytesToRaw(src)
-	var buffer bytes.Buffer
-	writer, err := zlib.NewWriterLevel(&buffer, level)
-	if err != nil {
-		hxrt.Throw(err)
-		return nil
-	}
-	if _, err := writer.Write(raw); err != nil {
-		_ = writer.Close()
-		hxrt.Throw(err)
-		return nil
-	}
-	if err := writer.Close(); err != nil {
-		hxrt.Throw(err)
-		return nil
-	}
-	return hxrt_rawToHaxeBytes(buffer.Bytes())
-}
-
-func haxe__zip__Uncompress_run(src *haxe__io__Bytes, bufsize ...int) *haxe__io__Bytes {
-	raw := hxrt_haxeBytesToRaw(src)
-	reader, err := zlib.NewReader(bytes.NewReader(raw))
-	if err != nil {
-		hxrt.Throw(err)
-		return nil
-	}
-	defer reader.Close()
-	decoded, err := io.ReadAll(reader)
-	if err != nil {
-		hxrt.Throw(err)
-		return nil
-	}
-	return hxrt_rawToHaxeBytes(decoded)
 }
 
 type ValueType struct {

@@ -179,7 +179,7 @@
       "reviewCondition": "Remove under haxe_go-vfp.8.7.15 once equivalent typed runtime behavior lands."
     },
     "migration_stdlib_symbols": {
-      "what": "Split the remaining Date, Math, Unicode, Reflect, zip, Option, logging, and nominal-symbol block by its correct source or runtime owner; crypto and XML have already left the group.",
+      "what": "Split the remaining Date, Math, Unicode, Reflect, Option, logging, and nominal-symbol block by its correct source or runtime owner; crypto, XML, and zip have already left the group.",
       "why": "Most functions in the group are ordinary library or runtime behavior; sharing a file with generated type metadata does not make them compile-context intrinsics.",
       "how": "Move library code to upstream or staged Haxe, native algorithms to narrow hxrt helpers, and keep only separately registered metadata or representation primitives.",
       "evidence": [
@@ -332,9 +332,7 @@
         {"symbol": "Std", "scope": "partial_type", "members": ["<nominal type carrier>"]},
         {"symbol": "Type", "scope": "complete_type"},
         {"symbol": "UnicodeString", "scope": "partial_type", "members": ["charAt", "charCodeAt", "get_length", "indexOf", "lastIndexOf", "substr", "substring", "validate"]},
-        {"symbol": "haxe.ds.Option", "scope": "complete_type"},
-        {"symbol": "haxe.zip.Compress", "scope": "complete_type"},
-        {"symbol": "haxe.zip.Uncompress", "scope": "complete_type"}
+        {"symbol": "haxe.ds.Option", "scope": "complete_type"}
       ],
       "compilerOwnedAuthorities": [],
       "classifierSelections": [
@@ -347,8 +345,6 @@
         {"kind": "class", "path": "_UnicodeString.UnicodeString_Impl_"},
         {"kind": "class", "path": "haxe.ds.BalancedTree"},
         {"kind": "class", "path": "haxe.io.Path"},
-        {"kind": "class", "path": "haxe.zip.Compress"},
-        {"kind": "class", "path": "haxe.zip.Uncompress"},
         {"kind": "enum", "path": "haxe.ds.Option"}
       ],
       "plannerSelections": [

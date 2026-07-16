@@ -23,6 +23,7 @@
         "haxe_go-vfp.8.7.10",
         "haxe_go-vfp.8.7.15.1",
         "haxe_go-vfp.8.7.15.2",
+        "haxe_go-vfp.8.7.15.3",
         "haxe_go-vfp.8.7.17",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
@@ -37,6 +38,7 @@
         "haxe_go-vfp.5.4",
         "haxe_go-vfp.8.7.10",
         "haxe_go-vfp.8.7.15.1",
+        "haxe_go-vfp.8.7.15.3",
         "haxe_go-vfp.8.7.16",
         "haxe_go-vfp.8.7.3",
         "haxe_go-vfp.8.7.4",
@@ -244,6 +246,24 @@
       "migrationBead": "haxe_go-vfp.8.7.15.2",
       "compilerShimGroups": [],
       "notes": "Staged upstream Printer algorithm with equivalent source-level newline removal for comments, avoiding an otherwise unnecessary dependency on the still-migrating compiler regex/serializer group."
+    },
+    {
+      "path": "std/go/_std/haxe/zip/Compress.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/zip/Compress.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.3",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged Compress API. Haxe owns level validation, Bytes conversion, and the whole-buffer instance contract; only zlib execution crosses the typed NativeZip boundary."
+    },
+    {
+      "path": "std/go/_std/haxe/zip/Uncompress.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/zip/Uncompress.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.3",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged Uncompress API. Haxe owns the optional buffer default, Bytes conversion, one-shot instance behavior, and negative-window raw-DEFLATE selection over the typed NativeZip boundary."
     },
     {
       "path": "std/go/_std/haxe/atomic/AtomicInt.hx",
@@ -1080,6 +1100,15 @@
       "migrationBead": "haxe_go-vfp.8.7.15.1",
       "compilerShimGroups": [],
       "notes": "Typed footprint-explicit bridge from staged haxe.crypto APIs to runtime/hxrt/crypto.go. It accepts only strings and integer byte arrays; public padding, Bytes conversion, and API policy remain Haxe-owned."
+    },
+    {
+      "path": "std/hxrt/zip/NativeZip.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/zip/NativeZip.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.3",
+      "compilerShimGroups": [],
+      "notes": "Typed footprint-explicit bridge from staged haxe.zip APIs to runtime/hxrt/zip.go. Only integer byte arrays, level and buffer integers, and a raw-DEFLATE selector cross the package boundary."
     },
     {
       "path": "std/hxrt/fs/FileSystemStat.hx",

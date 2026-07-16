@@ -1786,8 +1786,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.zip.Compress",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns level validation, Haxe Bytes conversion, and the whole-buffer Compress API. Typed std/hxrt/zip delegates only zlib execution over integer byte arrays to footprint-explicit runtime/hxrt/zip.go. Evidence: zip_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and direct runtime zip tests.",
+      "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1800,7 +1800,7 @@
       "in_strict_sweep": false,
       "module": "haxe.zip.Entry",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1813,7 +1813,7 @@
       "in_strict_sweep": false,
       "module": "haxe.zip.FlushMode",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1826,7 +1826,7 @@
       "in_strict_sweep": false,
       "module": "haxe.zip.Huffman",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1839,7 +1839,7 @@
       "in_strict_sweep": false,
       "module": "haxe.zip.InflateImpl",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1852,7 +1852,7 @@
       "in_strict_sweep": false,
       "module": "haxe.zip.Reader",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1865,7 +1865,7 @@
       "in_strict_sweep": false,
       "module": "haxe.zip.Tools",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1878,8 +1878,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.zip.Uncompress",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the 64 KiB default, positive buffer-size policy, Haxe Bytes conversion, and negative-window raw-DEFLATE selection. Typed std/hxrt/zip delegates only native expansion to footprint-explicit runtime/hxrt/zip.go. Evidence: zip_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and direct runtime zip tests.",
+      "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1892,7 +1892,7 @@
       "in_strict_sweep": false,
       "module": "haxe.zip.Writer",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },

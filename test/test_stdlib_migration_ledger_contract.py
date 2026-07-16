@@ -113,6 +113,10 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/crypto/NativeCrypto.hx",
     ),
+    "std/hxrt/zip/NativeZip.hx": (
+        "hxrt_binding",
+        "std/hxrt/zip/NativeZip.hx",
+    ),
     "std/hxrt/fs/FileSystemStat.hx": (
         "hxrt_binding",
         "std/hxrt/fs/FileSystemStat.hx",
@@ -902,6 +906,106 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertTrue((generated_root / "module_haxe_xml_parser.go").is_file())
         self.assertTrue((generated_root / "module_haxe_xml_printer.go").is_file())
         self.assertNotIn('"encoding/xml"', (generated_root / "main.go").read_text())
+
+    def test_zip_is_source_owned_over_a_typed_runtime_capability(self) -> None:
+        ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")
+        classifier = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx"
+        ).read_text(encoding="utf-8")
+        planner = (
+            ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ).read_text(encoding="utf-8")
+        feature_analyzer = (
+            ROOT / "src/reflaxe/go/compiler/GoHxrtFeatureAnalyzer.hx"
+        ).read_text(encoding="utf-8")
+        reflaxe_compiler = (
+            ROOT / "src/reflaxe/go/GoReflaxeCompiler.hx"
+        ).read_text(encoding="utf-8")
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
+        )
+
+        zip_paths = ("haxe.zip.Compress", "haxe.zip.Uncompress")
+        for path in zip_paths:
+            self.assertNotIn(f'path: "{path}"', classifier)
+            self.assertIn(f'"{path}"', planner)
+
+        stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
+        stdlib_end = compiler.index("function reflectFieldsShimDecl", stdlib_start)
+        stdlib_emitter = compiler[stdlib_start:stdlib_end]
+        for symbol in (
+            'GoDecl.GoStructDecl("haxe__zip__Compress"',
+            'GoDecl.GoStructDecl("haxe__zip__Uncompress"',
+            'GoDecl.GoFuncDecl("haxe__zip__Compress_run"',
+            'GoDecl.GoFuncDecl("haxe__zip__Uncompress_run"',
+        ):
+            self.assertNotIn(symbol, stdlib_emitter)
+
+        build_imports_start = compiler.index("function buildSupportImports")
+        import_start = compiler.index(
+            'if (requiredStdlibShimGroups.exists("stdlib_symbols"))',
+            build_imports_start,
+        )
+        import_end = compiler.index(
+            'if (requiredStdlibShimGroups.exists("regex_serializer"))', import_start
+        )
+        stdlib_imports = compiler[import_start:import_end]
+        for native_import in ("bytes", "compress/zlib", "io"):
+            self.assertNotIn(f'imports.push("{native_import}")', stdlib_imports)
+
+        stdlib_group = next(
+            group for group in registry["groups"] if group["group"] == "stdlib_symbols"
+        )
+        owned_symbols = {entry["symbol"] for entry in stdlib_group["ownedSymbols"]}
+        selected_paths = {
+            entry["path"] for entry in stdlib_group["classifierSelections"]
+        }
+        for path in zip_paths:
+            self.assertNotIn(path, owned_symbols)
+            self.assertNotIn(path, selected_paths)
+
+        for source_path in (
+            "std/go/_std/haxe/zip/Compress.hx",
+            "std/go/_std/haxe/zip/Uncompress.hx",
+        ):
+            entry = ledger_entries.get(source_path)
+            self.assertIsNotNone(entry, source_path)
+            self.assertEqual("upstream_std_override", entry.get("ownershipClass"))
+            self.assertEqual("haxe_go-vfp.8.7.15.3", entry.get("migrationBead"))
+            self.assertEqual([], entry.get("compilerShimGroups"))
+
+        native_entry = ledger_entries.get("std/hxrt/zip/NativeZip.hx")
+        self.assertIsNotNone(native_entry)
+        self.assertEqual("hxrt_binding", native_entry.get("ownershipClass"))
+        self.assertEqual("haxe_go-vfp.8.7.15.3", native_entry.get("migrationBead"))
+        self.assertEqual([], native_entry.get("compilerShimGroups"))
+
+        runtime_zip = (ROOT / "runtime/hxrt/zip.go").read_text(encoding="utf-8")
+        self.assertIn("func ZipCompress(values []int, level int) []int", runtime_zip)
+        self.assertIn(
+            "func ZipUncompress(values []int, raw bool, bufferSize int) []int",
+            runtime_zip,
+        )
+        self.assertNotIn("haxe__io__Bytes", runtime_zip)
+        self.assertNotIn("reflect.", runtime_zip)
+        self.assertNotIn("unsafe.", runtime_zip)
+
+        self.assertIn('FEATURE_ZIP = "zip"', feature_analyzer)
+        self.assertIn('path == "hxrt.zip.NativeZip"', feature_analyzer)
+        self.assertIn('path == "haxe.zip.Compress"', feature_analyzer)
+        self.assertIn('path == "haxe.zip.Uncompress"', feature_analyzer)
+        self.assertIn("case FEATURE_ZIP:", feature_analyzer)
+        self.assertIn('["zip.go"]', feature_analyzer)
+        self.assertIn('case "zip.go":', reflaxe_compiler)
+
+        generated_root = ROOT / "test/snapshot/stdlib/crypto_xml_zip_basic/intended"
+        self.assertTrue((generated_root / "module_haxe_zip_compress.go").is_file())
+        self.assertTrue((generated_root / "module_haxe_zip_uncompress.go").is_file())
+        self.assertTrue((generated_root / "hxrt/zip.go").is_file())
+        self.assertFalse(
+            (ROOT / "test/snapshot/core/const_kinds_contract/intended/hxrt/zip.go").exists()
+        )
 
     def test_atomic_is_source_owned_instead_of_a_compiler_shim(self) -> None:
         ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}

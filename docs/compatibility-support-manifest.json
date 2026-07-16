@@ -9,7 +9,7 @@
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "2b6246c7c127d34ddd5f3bf00f9e067a054dd8fc2fdb88f032d204628272b48a"
+    "portable_stdlib_inventory_sha256": "51ce113fed7b014509eae363401ef98ebac534f5a6dfdce0ea26188d136a69ff"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -2984,7 +2984,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns level validation, Haxe Bytes conversion, and the whole-buffer Compress API. Typed std/hxrt/zip delegates only zlib execution over integer byte arrays to footprint-explicit runtime/hxrt/zip.go. Evidence: zip_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and direct runtime zip tests."
       },
       {
         "module": "haxe.zip.Entry",
@@ -3069,7 +3069,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the 64 KiB default, positive buffer-size policy, Haxe Bytes conversion, and negative-window raw-DEFLATE selection. Typed std/hxrt/zip delegates only native expansion to footprint-explicit runtime/hxrt/zip.go. Evidence: zip_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and direct runtime zip tests."
       },
       {
         "module": "haxe.zip.Writer",

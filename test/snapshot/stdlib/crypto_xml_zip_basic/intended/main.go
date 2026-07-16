@@ -1,9 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"compress/zlib"
-	"io"
 	"math"
 	"reflect"
 	"snapshot/hxrt"
@@ -16,6 +13,24 @@ type hxrt__TypeClassValue struct {
 
 type hxrt__TypeEnumValue struct {
 	name *string
+}
+
+func invalidZipThrows() bool {
+	hx_try_return_1 := false
+	var hx_try_value_2 bool
+	hxrt.TryCatch(func() {
+		haxe__zip__Uncompress_run(haxe__io__Bytes_ofString(hxrt.StringFromLiteral("not-zlib")), nil)
+	}, func(hx_caught_3 any) {
+		hx_tmp := hx_caught_3
+		_ = hx_tmp
+		hx_try_value_2 = true
+		hx_try_return_1 = true
+		return
+	})
+	if hx_try_return_1 {
+		return hx_try_value_2
+	}
+	return false
 }
 
 func main() {
@@ -43,11 +58,13 @@ func main() {
 	var v_9 any = any(haxe__xml__Printer_print(doc, false))
 	hxrt.Println(v_9)
 	compressed := haxe__zip__Compress_run(bytes, 9)
-	roundtrip := haxe__zip__Uncompress_run(compressed)
+	roundtrip := haxe__zip__Uncompress_run(compressed, nil)
 	var v_10 any = any(roundtrip.toString())
 	hxrt.Println(v_10)
 	var v_11 any = any((compressed.length > 0))
 	hxrt.Println(v_11)
+	var v_12 any = any(invalidZipThrows())
+	hxrt.Println(v_12)
 }
 
 type haxe__io__Encoding struct {
@@ -1150,48 +1167,6 @@ func haxe__ds__Option_Some(value any) *haxe__ds__Option {
 	return &haxe__ds__Option{tag: 0, params: []any{value}}
 }
 
-type haxe__zip__Compress struct {
-}
-
-type haxe__zip__Uncompress struct {
-}
-
-func haxe__zip__Compress_run(src *haxe__io__Bytes, level int) *haxe__io__Bytes {
-	raw := hxrt_haxeBytesToRaw(src)
-	var buffer bytes.Buffer
-	writer, err := zlib.NewWriterLevel(&buffer, level)
-	if err != nil {
-		hxrt.Throw(err)
-		return nil
-	}
-	if _, err := writer.Write(raw); err != nil {
-		_ = writer.Close()
-		hxrt.Throw(err)
-		return nil
-	}
-	if err := writer.Close(); err != nil {
-		hxrt.Throw(err)
-		return nil
-	}
-	return hxrt_rawToHaxeBytes(buffer.Bytes())
-}
-
-func haxe__zip__Uncompress_run(src *haxe__io__Bytes, bufsize ...int) *haxe__io__Bytes {
-	raw := hxrt_haxeBytesToRaw(src)
-	reader, err := zlib.NewReader(bytes.NewReader(raw))
-	if err != nil {
-		hxrt.Throw(err)
-		return nil
-	}
-	defer reader.Close()
-	decoded, err := io.ReadAll(reader)
-	if err != nil {
-		hxrt.Throw(err)
-		return nil
-	}
-	return hxrt_rawToHaxeBytes(decoded)
-}
-
 type ValueType struct {
 	tag    int
 	params []any
@@ -1369,6 +1344,10 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return hxrt_typeCallAny(New_haxe__xml__XmlParserException, args)
 	case "haxe.xml._Parser.S_Impl_":
 		return nil, false
+	case "haxe.zip.Compress":
+		return hxrt_typeCallAny(New_haxe__zip__Compress, args)
+	case "haxe.zip.Uncompress":
+		return hxrt_typeCallAny(New_haxe__zip__Uncompress, args)
 	default:
 		return nil, false
 	}
@@ -1394,6 +1373,10 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 		return &haxe__xml__Printer{}, true
 	case "haxe.xml.XmlParserException":
 		return &haxe__xml__XmlParserException{}, true
+	case "haxe.zip.Compress":
+		return &haxe__zip__Compress{}, true
+	case "haxe.zip.Uncompress":
+		return &haxe__zip__Uncompress{}, true
 	default:
 		return nil, false
 	}
@@ -1502,6 +1485,67 @@ func hxrt_typeCreateEnumInstance(enumName string, constructorName string, constr
 		default:
 			return nil, false
 		}
+	case "haxe.zip.FlushMode":
+		if useIndex {
+			switch constructorIndex {
+			case 0:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return haxe__zip__FlushMode_NO, true
+			case 1:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return haxe__zip__FlushMode_SYNC, true
+			case 2:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return haxe__zip__FlushMode_FULL, true
+			case 3:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return haxe__zip__FlushMode_FINISH, true
+			case 4:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return haxe__zip__FlushMode_BLOCK, true
+			default:
+				return nil, false
+			}
+		}
+		switch constructorName {
+		case "NO":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return haxe__zip__FlushMode_NO, true
+		case "SYNC":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return haxe__zip__FlushMode_SYNC, true
+		case "FULL":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return haxe__zip__FlushMode_FULL, true
+		case "FINISH":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return haxe__zip__FlushMode_FINISH, true
+		case "BLOCK":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return haxe__zip__FlushMode_BLOCK, true
+		default:
+			return nil, false
+		}
 	default:
 		return nil, false
 	}
@@ -1565,6 +1609,16 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.xml.XmlParserException")}
+	case *haxe__zip__Compress:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.zip.Compress")}
+	case *haxe__zip__Uncompress:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.zip.Uncompress")}
 	default:
 		return nil
 	}
@@ -1588,6 +1642,11 @@ func Type_getEnum(o any) any {
 			return nil
 		}
 		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("ValueType")}
+	case *haxe__zip__FlushMode:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("haxe.zip.FlushMode")}
 	default:
 		return nil
 	}
@@ -1643,6 +1702,10 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "haxe.xml._Parser.S_Impl_":
 		return nil
+	case "haxe.zip.Compress":
+		return nil
+	case "haxe.zip.Uncompress":
+		return nil
 	default:
 		return nil
 	}
@@ -1663,7 +1726,7 @@ func Type_getClassFields(c any) []*string {
 	}
 	switch className {
 	case "Main":
-		return []*string{hxrt.StringFromLiteral("main")}
+		return []*string{hxrt.StringFromLiteral("invalidZipThrows"), hxrt.StringFromLiteral("main")}
 	case "StringBuf":
 		return []*string{}
 	case "StringTools":
@@ -1706,6 +1769,10 @@ func Type_getClassFields(c any) []*string {
 		return []*string{}
 	case "haxe.xml._Parser.S_Impl_":
 		return []*string{}
+	case "haxe.zip.Compress":
+		return []*string{hxrt.StringFromLiteral("fromValues"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("toValues"), hxrt.StringFromLiteral("validateLevel")}
+	case "haxe.zip.Uncompress":
+		return []*string{hxrt.StringFromLiteral("fromValues"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("toValues")}
 	default:
 		return []*string{}
 	}
@@ -1761,6 +1828,10 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{hxrt.StringFromLiteral("lineNumber"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("position"), hxrt.StringFromLiteral("positionAtLine"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("xml")}
 	case "haxe.xml._Parser.S_Impl_":
 		return []*string{}
+	case "haxe.zip.Compress":
+		return []*string{hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("execute"), hxrt.StringFromLiteral("level"), hxrt.StringFromLiteral("setFlushMode")}
+	case "haxe.zip.Uncompress":
+		return []*string{hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("execute"), hxrt.StringFromLiteral("raw"), hxrt.StringFromLiteral("setFlushMode")}
 	default:
 		return []*string{}
 	}
@@ -1824,6 +1895,10 @@ func Type_resolveClass(name *string) any {
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.xml._Parser.S_Impl_":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.zip.Compress":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.zip.Uncompress":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
 	}
@@ -1836,6 +1911,8 @@ func Type_resolveEnum(name *string) any {
 	rawName := *hxrt.StdString(name)
 	switch rawName {
 	case "ValueType":
+		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.zip.FlushMode":
 		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
@@ -1925,6 +2002,24 @@ func Type_enumConstructor(e any) *string {
 		default:
 			return nil
 		}
+	case *haxe__zip__FlushMode:
+		if value == nil {
+			return nil
+		}
+		switch value.tag {
+		case 0:
+			return hxrt.StringFromLiteral("NO")
+		case 1:
+			return hxrt.StringFromLiteral("SYNC")
+		case 2:
+			return hxrt.StringFromLiteral("FULL")
+		case 3:
+			return hxrt.StringFromLiteral("FINISH")
+		case 4:
+			return hxrt.StringFromLiteral("BLOCK")
+		default:
+			return nil
+		}
 	default:
 		return nil
 	}
@@ -1936,6 +2031,11 @@ func Type_enumIndex(e any) int {
 	}
 	switch value := e.(type) {
 	case *ValueType:
+		if value == nil {
+			return -1
+		}
+		return value.tag
+	case *haxe__zip__FlushMode:
 		if value == nil {
 			return -1
 		}
@@ -1953,6 +2053,8 @@ func Type_getEnumConstructs(e any) []*string {
 	switch enumName {
 	case "ValueType":
 		return []*string{hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown")}
+	case "haxe.zip.FlushMode":
+		return []*string{hxrt.StringFromLiteral("NO"), hxrt.StringFromLiteral("SYNC"), hxrt.StringFromLiteral("FULL"), hxrt.StringFromLiteral("FINISH"), hxrt.StringFromLiteral("BLOCK")}
 	default:
 		return []*string{}
 	}
@@ -1964,6 +2066,13 @@ func Type_enumParameters(e any) []any {
 	}
 	switch value := e.(type) {
 	case *ValueType:
+		if value == nil || value.params == nil {
+			return []any{}
+		}
+		out := make([]any, len(value.params))
+		copy(out, value.params)
+		return out
+	case *haxe__zip__FlushMode:
 		if value == nil || value.params == nil {
 			return []any{}
 		}
@@ -1983,6 +2092,8 @@ func Type_allEnums(e any) []any {
 	switch enumName {
 	case "ValueType":
 		return []any{ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown}
+	case "haxe.zip.FlushMode":
+		return []any{haxe__zip__FlushMode_NO, haxe__zip__FlushMode_SYNC, haxe__zip__FlushMode_FULL, haxe__zip__FlushMode_FINISH, haxe__zip__FlushMode_BLOCK}
 	default:
 		return []any{}
 	}
