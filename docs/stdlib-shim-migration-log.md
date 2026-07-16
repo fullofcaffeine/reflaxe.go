@@ -1595,3 +1595,64 @@ Observed result:
 - The canonical package now contains 86 staged overrides, 324 manifest entries,
   and 325 archive members. This slice does not claim closure of the remaining
   Reflect/Type, Std/Option, logging, or serializer migration work.
+
+### 2026-07-16: make concrete iterators structurally assignable (`haxe_go-vfp.8.3.3`)
+
+Implementation:
+
+- Added red semantic, positive snapshot/runtime, and negative compile contracts
+  before changing lowering. They cover direct `ArrayIterator<Int>` assignment,
+  indexed array mutation after iterator creation, direct ordinary-call
+  arguments, a user-defined generic iterator, inherited virtual dispatch
+  through a base-typed value, `MapKeyValueIterator`, and a mismatched element
+  type that Haxe must still reject statically.
+- Extended the existing `GoLambdaIterableLowering` representation owner instead
+  of adding a second iterator carrier. It recognizes only the closed anonymous
+  `hasNext():Bool` / `next():T` shape, evaluates a concrete source once, and
+  exposes typed closures through the existing structural map. Generated method
+  calls use `__hx_this` so overrides remain virtual, and erased generic `next`
+  results are asserted back to the Haxe-proven target element type.
+- Added a pre-lowering path for direct and safely inlined array iterators. It
+  captures the live typed Go slice and one cursor, so indexed mutations remain
+  visible; an earlier red semantic run proved that copying elements to `[]any`
+  would incorrectly freeze the original slots.
+- Restored root `Xml` child iteration to the upstream
+  `children.iterator()` / `ret.iterator()` expressions and removed its private
+  hand-written structural closure. `Xml.iterator()` remains non-inline because
+  preserving validation effects across a multi-prefix inline coercion is the
+  separate `haxe_go-vfp.8.3.4` contract.
+- Centralized the one syntax-only empty-map fragment needed until typed Go map
+  composite literals land under `haxe_go-vfp.8.3`. All iterator keys, closures,
+  selectors, calls, and type recovery remain typed AST nodes.
+
+Validation evidence:
+
+- `npm run test:changed`
+- snapshot coverage for all `276` cases; the aggregate replay passed `275` and
+  the sole `stdlib/int64_parity` host-load timeout passed immediately with
+  runtime checking under a wider timeout. The earlier full replay had also
+  passed that unchanged fixture.
+- `npm run test:semantic-diff` (`139/139` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance`, `npm run test:stdlib-inventory`, and
+  `npm run compatibility:verify`
+- `npm run test:compiler-debt` (`3,878` `GoRaw` sites and `13` compiler shim
+  entry points)
+- raw-injection hygiene, terminal-input behavior, and
+  `npm run test:release-contracts`
+- `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates)
+
+Observed result:
+
+- Concrete generated iterator classes now satisfy Haxe's structural
+  `Iterator<T>` contract at declarations, assignments, returns, branches, and
+  ordinary call arguments without reflection, unsafe conversion, a runtime
+  helper, exported method wrappers, or stdlib class-name dispatch.
+- Array-backed iterators retain their live typed slice, user generic iterators
+  recover erased results, and base-typed subclass iterators retain virtual
+  behavior. Mismatched element types still fail in Haxe before Go generation.
+- Root `Xml` no longer owns an iterator protocol shim, and repository-wide
+  `GoRaw` debt falls permanently by one site, from 3,879 to 3,878. This slice
+  intentionally does not claim effect-preserving restoration of the upstream
+  inline modifier; that remains owned by `haxe_go-vfp.8.3.4`.

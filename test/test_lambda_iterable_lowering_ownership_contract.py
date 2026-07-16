@@ -5,7 +5,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 GO_COMPILER = ROOT / "src" / "reflaxe" / "go" / "GoCompiler.hx"
 LOWERING_MODULE = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoLambdaIterableLowering.hx"
+SOURCE_PLANNER = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoSourceOwnedStdlibPlanner.hx"
 LAMBDA_OVERRIDE = ROOT / "std" / "go" / "_std" / "Lambda.hx"
+STRUCTURAL_ITERATOR_SNAPSHOT = ROOT / "test" / "snapshot" / "core" / "structural_iterator_assignment" / "intended"
 
 
 def function_block(source: str, name: str, next_name: str) -> str:
@@ -147,6 +149,82 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
             "function lowerLambdaAnyArrayCoerce",
         ]:
             self.assertNotIn(symbol, compiler_source)
+
+    def test_structural_iterator_assignments_reuse_the_typed_iterable_adapter(self):
+        compiler_source = GO_COMPILER.read_text(encoding="utf-8")
+        lowering_source = LOWERING_MODULE.read_text(encoding="utf-8")
+        planner_source = SOURCE_PLANNER.read_text(encoding="utf-8")
+
+        upcast = function_block(compiler_source, "upcastIfNeeded", "typeToGoType")
+        self.assertIn(
+            "lambdaIterableLowering.structuralIteratorCoerce",
+            upcast,
+            "declarations, returns, assignments, and arguments should share one structural coercion hook",
+        )
+
+        adapter = function_block(lowering_source, "structuralIteratorCoerce", "trySourcePlan")
+        for required in [
+            'GoStringLiteral("hasNext")',
+            'GoStringLiteral("next")',
+            'GoSelector(GoExpr.GoIdent(sourceName), "__hx_this")',
+            "lowerNullableAwareTypeAssertExpr",
+        ]:
+            self.assertIn(required, adapter)
+        for forbidden in [
+            "reflect",
+            "unsafe",
+            "GoStmt.GoRaw",
+            "ArrayIterator",
+            "MapKeyValueIterator",
+            "Xml",
+        ]:
+            self.assertNotIn(
+                forbidden,
+                adapter,
+                f"the structural adapter must be typed and class-agnostic, not coupled through {forbidden}",
+            )
+        native_array_adapter = function_block(
+            lowering_source,
+            "nativeArrayStructuralIteratorCoerce",
+            "structuralIteratorCoerce",
+        )
+        self.assertIn("nativeArrayCursorMap", native_array_adapter)
+        for forbidden in ["lowerTypedArrayToAnyCoerce", "[]any", "reflect", "unsafe"]:
+            self.assertNotIn(
+                forbidden,
+                native_array_adapter,
+                "the native array cursor must retain the live typed slice instead of boxing a copy",
+            )
+
+        self.assertNotIn(
+            'case "haxe.iterators.ArrayIterator", "haxe.iterators.ArrayKeyValueIterator":',
+            planner_source,
+            "a direct structural ArrayIterator conversion should use the live typed array plan without staging an erased class",
+        )
+
+    def test_structural_iterator_generated_shape_stays_private_and_typed(self):
+        main_go = (STRUCTURAL_ITERATOR_SNAPSHOT / "main.go").read_text(encoding="utf-8")
+        for required in [
+            'map[string]any {',
+            '["hasNext"] = func() bool',
+            '["next"] = func()',
+            ".__hx_this.hasNext()",
+            ".__hx_this.next()",
+            ".(*string)",
+        ]:
+            self.assertIn(required, main_go)
+
+        self.assertNotIn("New_haxe__iterators__ArrayIterator", main_go)
+        self.assertNotIn("any(hx_structural_array", main_go)
+        capture_index = main_go.index(" := arrayValues")
+        mutation_index = main_go.index("arrayValues[0] = 8")
+        consume_index = main_go.index('hxrt.StringFromLiteral("array=")')
+        self.assertLess(capture_index, mutation_index)
+        self.assertLess(mutation_index, consume_index)
+        self.assertIn("func (self *SnapshotGenericIterator) hasNext() bool", main_go)
+        self.assertIn("func (self *SnapshotGenericIterator) next() any", main_go)
+        for forbidden in ["reflect.", "unsafe.", ") HasNext(", ") Next("]:
+            self.assertNotIn(forbidden, main_go)
 
 
 if __name__ == "__main__":

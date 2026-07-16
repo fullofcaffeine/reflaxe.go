@@ -82,19 +82,21 @@ enum abstract XmlType(Int) {
 	Why:
 	- The mainstream Haxe stdlib implementation cannot be used unchanged on
 	  `haxe.go`: its inline throwing accessors can be expanded inside expressions
-	  whose Go return type differs from the accessor, and its concrete
-	  `ArrayIterator<Xml>` is not assignable to structural `Iterator<Xml>` under
-	  Go's invariant generic representations. Its `Array.remove` / `insert` calls
-	  also need source-level loops until those methods have typed slice lowering.
+	  whose Go return type differs from the accessor. Its `Array.remove` / `insert`
+	  calls also need source-level loops until those methods have typed slice
+	  lowering. The upstream inline `iterator()` combines node validation and
+	  structural iterator construction at caller sites, so this override keeps that
+	  method non-inline until effectful inline structural coercions are preserved.
 	- DOM storage, validation, mutation, parent ownership, and iteration are Haxe
 	  library behavior and must not be compiler-generated Go declarations.
 
 	How:
 	- Preserve the upstream Haxe 4.3.7 implementation and public API, but keep the
-	  throwing accessors out of inline expression expansion and return a structural
-	  iterator closure over the child array. Rebuild child arrays for removal and
-	  insertion, and guard empty `firstChild()` reads so Go preserves Haxe's
-	  nullable out-of-range result.
+	  throwing accessors and `iterator()` out of inline expression expansion. The
+	  compiler's typed structural iterator adapter now makes the upstream `children.iterator()`
+	  result assignable without an Xml-specific closure. Rebuild child arrays for
+	  removal and insertion, and guard empty `firstChild()` reads so Go preserves
+	  Haxe's nullable out-of-range result.
 
 	@see https://haxe.org/manual/std-Xml.html
 **/
@@ -316,7 +318,7 @@ class Xml {
 	**/
 	public function iterator():Iterator<Xml> {
 		ensureElementType();
-		return childIterator(children);
+		return children.iterator();
 	}
 
 	/**
@@ -326,7 +328,7 @@ class Xml {
 	public function elements():Iterator<Xml> {
 		ensureElementType();
 		var ret = [for (child in children) if (child.nodeType == Element) child];
-		return childIterator(ret);
+		return ret.iterator();
 	}
 
 	/**
@@ -339,7 +341,7 @@ class Xml {
 			for (child in children)
 				if (child.nodeType == Element && child.nodeName == name) child
 		];
-		return childIterator(ret);
+		return ret.iterator();
 	}
 
 	/**
@@ -436,14 +438,6 @@ class Xml {
 	**/
 	public function toString():String {
 		return haxe.xml.Printer.print(this);
-	}
-
-	static function childIterator(values:Array<Xml>):Iterator<Xml> {
-		var index = 0;
-		return {
-			hasNext: function() return index < values.length,
-			next: function() return values[index++]
-		};
 	}
 
 	function new(nodeType:XmlType) {

@@ -307,7 +307,10 @@ class GoCompiler {
 			arrayElementGoType: arrayElementGoType,
 			haxeDsListElementType: haxeDsListElementType,
 			scalarGoType: scalarGoType,
+			functionResultGoType: function(type:Type):String return isNullablePrimitiveType(type) ? "any" : scalarGoType(type),
 			lowerNullableAwareTypeAssertExpr: lowerNullableAwareTypeAssertExpr,
+			interfaceFieldName: interfaceFieldName,
+			noteSourceOwnedStdlibUsage: noteSourceOwnedStdlibUsage,
 			localVarName: localVarName,
 			lookupLocalLambdaAlias: lookupLocalLambdaAlias
 		});
@@ -5809,11 +5812,10 @@ class GoCompiler {
 					registerLocalLambdaAlias(variableName, lambdaAlias);
 				}
 
-				var lowered = value == null ? null : lowerExprWithPrefix(value);
+				var lowered = value == null ? null : lowerExprWithExpectedUpcast(value, variable.t);
 				var prefix = lowered == null ? [] : lowered.prefix;
 				var loweredValue = lowered == null ? null : lowered.expr;
 				if (value != null && loweredValue != null) {
-					loweredValue = upcastIfNeeded(loweredValue, value.t, variable.t);
 					var valueKnownNonNullPrimitive = nonNullPrimitiveExprGoType(value) != null;
 					loweredValue = coerceAnyExprToType(loweredValue, value.t, variable.t,
 						(exprBackedByAny(value) && !valueKnownNonNullPrimitive)
@@ -5841,13 +5843,12 @@ class GoCompiler {
 			case TBinop(op, left, right):
 				switch (op) {
 					case OpAssign:
-						var loweredRight = lowerExprWithPrefix(right);
+						var loweredRight = lowerExprWithExpectedUpcast(right, left.t);
 						var lengthAssignStmts = lowerArrayLengthAssign(left, loweredRight.expr);
 						var assignStmts = if (lengthAssignStmts != null) {
 							lengthAssignStmts;
 						} else {
-							var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t);
-							[GoStmt.GoAssign(lowerLValue(left), rightExpr)];
+							[GoStmt.GoAssign(lowerLValue(left), loweredRight.expr)];
 						};
 						if (loweredRight.prefix.length > 0) {
 							loweredRight.prefix.concat(assignStmts);
@@ -5856,7 +5857,7 @@ class GoCompiler {
 						}
 					case OpAssignOp(assignOp):
 						var loweredRight = lowerExprWithPrefix(right);
-						var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t);
+						var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t, right);
 						var targetExpr = lowerLValue(left);
 						var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t, expr.pos);
 						var assignStmt = GoStmt.GoAssign(targetExpr, assignExpr);
@@ -5923,11 +5924,11 @@ class GoCompiler {
 				if (redirect != null) {
 					var redirected = new Array<GoStmt>();
 					if (value != null) {
-						var loweredReturn = lowerExprWithPrefix(value);
+						var loweredReturn = redirect.valueName != null
+							&& redirect.valueType != null ? lowerExprWithExpectedUpcast(value, redirect.valueType) : lowerExprWithPrefix(value);
 						var returnExpr = loweredReturn.expr;
 						redirected = redirected.concat(loweredReturn.prefix);
 						if (redirect.valueName != null && redirect.valueType != null) {
-							returnExpr = upcastIfNeeded(returnExpr, value.t, redirect.valueType);
 							redirected.push(GoStmt.GoAssign(GoExpr.GoIdent(redirect.valueName), returnExpr));
 						} else {
 							redirected.push(GoStmt.GoExprStmt(returnExpr));
@@ -5941,12 +5942,9 @@ class GoCompiler {
 						GoStmt.GoReturn(inConstructorReturnScope() && currentFunctionReturnType() == null ? GoExpr.GoIdent("self") : null)
 					];
 				} else {
-					var loweredReturn = lowerExprWithPrefix(value);
-					var returnExpr = loweredReturn.expr;
 					var expectedReturnType = currentFunctionReturnType();
-					if (expectedReturnType != null) {
-						returnExpr = upcastIfNeeded(returnExpr, value.t, expectedReturnType);
-					}
+					var loweredReturn = expectedReturnType == null ? lowerExprWithPrefix(value) : lowerExprWithExpectedUpcast(value, expectedReturnType);
+					var returnExpr = loweredReturn.expr;
 					var returnStmt = GoStmt.GoReturn(returnExpr);
 					if (loweredReturn.prefix.length > 0) {
 						loweredReturn.prefix.concat([returnStmt]);
@@ -6171,11 +6169,11 @@ class GoCompiler {
 
 		var loweredCondition = lowerExprWithPrefix(condition);
 		var facts = conditionNonNullFacts(condition);
-		var loweredThen = lowerWithNonNullPrimitiveFacts(facts.thenFacts, function() return lowerExprWithPrefix(thenBranch));
-		var loweredElse = lowerWithNonNullPrimitiveFacts(facts.elseFacts, function() return lowerExprWithPrefix(elseExpr));
+		var loweredThen = lowerWithNonNullPrimitiveFacts(facts.thenFacts, function() return lowerExprWithExpectedUpcast(thenBranch, resultType));
+		var loweredElse = lowerWithNonNullPrimitiveFacts(facts.elseFacts, function() return lowerExprWithExpectedUpcast(elseExpr, resultType));
 		var temp = freshTempName("hx_if");
-		var loweredThenValue = upcastIfNeeded(loweredThen.expr, thenBranch.t, resultType);
-		var loweredElseValue = upcastIfNeeded(loweredElse.expr, elseExpr.t, resultType);
+		var loweredThenValue = loweredThen.expr;
+		var loweredElseValue = loweredElse.expr;
 		var thenKnownNonNullPrimitive = nonNullPrimitiveExprGoTypeWithFacts(thenBranch, facts.thenFacts) != null;
 		var elseKnownNonNullPrimitive = nonNullPrimitiveExprGoTypeWithFacts(elseExpr, facts.elseFacts) != null;
 		loweredThenValue = coerceAnyExprToType(loweredThenValue, thenBranch.t, resultType, !thenKnownNonNullPrimitive && (exprBackedByAny(thenBranch)
@@ -6438,8 +6436,8 @@ class GoCompiler {
 
 	function lowerTryCatchExpr(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>, resultType:Type):LoweredExprWithPrefix {
 		var temp = freshTempName("hx_try");
-		var loweredTry = lowerExprWithPrefix(tryExpr);
-		var loweredTryValue = upcastIfNeeded(loweredTry.expr, tryExpr.t, resultType);
+		var loweredTry = lowerExprWithExpectedUpcast(tryExpr, resultType);
+		var loweredTryValue = loweredTry.expr;
 		var tempExpr = GoExpr.GoIdent(temp);
 
 		if (catches.length == 0) {
@@ -6462,8 +6460,8 @@ class GoCompiler {
 			var catchEntry = catches[index];
 			var catchVarName = localVarName(catchEntry.v);
 			var catchType = typeToGoType(catchEntry.v.t);
-			var loweredCatch = lowerExprWithPrefix(catchEntry.expr);
-			var loweredCatchValue = upcastIfNeeded(loweredCatch.expr, catchEntry.expr.t, resultType);
+			var loweredCatch = lowerExprWithExpectedUpcast(catchEntry.expr, resultType);
+			var loweredCatchValue = loweredCatch.expr;
 			var catchExprBody = loweredCatch.prefix.concat([GoStmt.GoAssign(tempExpr, loweredCatchValue)]);
 			var haxeExceptionCatch = isHaxeExceptionType(catchEntry.v.t);
 			var dynamicCatch = isDynamicCatchType(catchEntry.v.t) || haxeExceptionCatch || catchType == "any";
@@ -7725,8 +7723,8 @@ class GoCompiler {
 				switch (op) {
 					case OpAssign:
 						var targetExpr = lowerLValue(left);
-						var loweredRight = lowerExprWithPrefix(right);
-						var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t);
+						var loweredRight = lowerExprWithExpectedUpcast(right, left.t);
+						var rightExpr = loweredRight.expr;
 						{
 							expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
 								loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, rightExpr), GoStmt.GoReturn(targetExpr)])),
@@ -7736,7 +7734,7 @@ class GoCompiler {
 					case OpAssignOp(assignOp):
 						var targetExpr = lowerLValue(left);
 						var loweredRight = lowerExprWithPrefix(right);
-						var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t);
+						var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t, right);
 						var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t, expr.pos);
 						{
 							expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
@@ -8635,7 +8633,7 @@ class GoCompiler {
 				&& isNullablePrimitiveType(paramType) ? lowerNullablePrimitiveCallArgExpr(arg) : null;
 			var loweredArg = nullablePrimitiveArg == null ? lowerCallArgExpr(arg) : nullablePrimitiveArg;
 			if (paramType != null) {
-				loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType);
+				loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType, arg);
 				if (!isNullablePrimitiveType(paramType)) {
 					var argKnownNonNullPrimitive = nonNullPrimitiveExprGoType(arg) != null;
 					loweredArg = coerceAnyExprToType(loweredArg, arg.t, paramType, !argKnownNonNullPrimitive && (exprBackedByAny(arg)
@@ -9194,7 +9192,7 @@ class GoCompiler {
 						var loweredArg = lowerCallArgExpr(arg);
 						var paramType = callParamType(callee.t, index);
 						if (paramType != null) {
-							loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType);
+							loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType, arg);
 						}
 						loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, returnType);
 						loweredArgs.push(loweredArg);
@@ -11205,7 +11203,53 @@ class GoCompiler {
 		return null;
 	}
 
-	function upcastIfNeeded(expr:GoExpr, fromType:Type, toType:Type):GoExpr {
+	/**
+		What: Lowers a value for a known assignment/return/branch target type.
+		Why: A direct native-array iterator adapter must replace the original inline
+		expression and its prefixes; adapting only the final Go expression can leave
+		behind erased `ArrayIterator` construction state or duplicate cursor locals.
+		How: Ask the iterable owner for the pre-lowering native-array plan first,
+		then fall back to ordinary expression lowering plus nominal or concrete-class
+		structural upcasting.
+	**/
+	function lowerExprWithExpectedUpcast(source:TypedExpr, targetType:Type):LoweredExprWithPrefix {
+		var nativeArrayIterator = lambdaIterableLowering.nativeArrayStructuralIteratorCoerce(source, targetType);
+		if (nativeArrayIterator != null) {
+			return {
+				prefix: [],
+				expr: nativeArrayIterator,
+				isStringLike: isStringType(targetType)
+			};
+		}
+		var lowered = lowerExprWithPrefix(source);
+		return {
+			prefix: lowered.prefix,
+			expr: upcastIfNeeded(lowered.expr, source.t, targetType),
+			isStringLike: lowered.isStringLike
+		};
+	}
+
+	/**
+		What: Adapts one already-lowered value to its Haxe-proven target type.
+		Why: Go does not consider a generated class pointer assignable to Haxe's
+		anonymous iterator map, while ordinary class inheritance still needs its
+		embedded-base selector path.
+		How: Prefer the source-aware live-array plan when typed source is available,
+		then the general concrete iterator adapter, then the existing nominal upcast;
+		leave unrelated values unchanged.
+	**/
+	function upcastIfNeeded(expr:GoExpr, fromType:Type, toType:Type, ?sourceTypedExpr:TypedExpr):GoExpr {
+		if (sourceTypedExpr != null) {
+			var nativeArrayIterator = lambdaIterableLowering.nativeArrayStructuralIteratorCoerce(sourceTypedExpr, toType);
+			if (nativeArrayIterator != null) {
+				return nativeArrayIterator;
+			}
+		}
+		var structuralIterator = lambdaIterableLowering.structuralIteratorCoerce(expr, fromType, toType);
+		if (structuralIterator != null) {
+			return structuralIterator;
+		}
+
 		var fromClass = classFromType(fromType);
 		var toClass = classFromType(toType);
 		if (fromClass == null || toClass == null) {

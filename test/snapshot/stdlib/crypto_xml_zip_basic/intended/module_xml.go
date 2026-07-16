@@ -193,7 +193,20 @@ func (self *Xml) attributes() map[string]any {
 
 func (self *Xml) iterator() map[string]any {
 	self.ensureElementType()
-	return Xml_childIterator(self.children)
+	return func() map[string]any {
+		hx_structural_array_119 := self.children
+		hx_structural_array_index_120 := 0
+		hx_structural_iterator_map_121 := map[string]any{}
+		hx_structural_iterator_map_121["hasNext"] = func() bool {
+			return (hx_structural_array_index_120 < len(hx_structural_array_119))
+		}
+		hx_structural_iterator_map_121["next"] = func() *Xml {
+			hx_structural_array_value_122 := hx_structural_array_119[hx_structural_array_index_120]
+			hx_structural_array_index_120 = (hx_structural_array_index_120 + 1)
+			return hx_structural_array_value_122
+		}
+		return hx_structural_iterator_map_121
+	}()
 }
 
 func (self *Xml) elements() map[string]any {
@@ -209,7 +222,20 @@ func (self *Xml) elements() map[string]any {
 		}
 	}
 	ret := _g
-	return Xml_childIterator(ret)
+	return func() map[string]any {
+		hx_structural_array_124 := ret
+		hx_structural_array_index_125 := 0
+		hx_structural_iterator_map_126 := map[string]any{}
+		hx_structural_iterator_map_126["hasNext"] = func() bool {
+			return (hx_structural_array_index_125 < len(hx_structural_array_124))
+		}
+		hx_structural_iterator_map_126["next"] = func() *Xml {
+			hx_structural_array_value_127 := hx_structural_array_124[hx_structural_array_index_125]
+			hx_structural_array_index_125 = (hx_structural_array_index_125 + 1)
+			return hx_structural_array_value_127
+		}
+		return hx_structural_iterator_map_126
+	}()
 }
 
 func (self *Xml) elementsNamed(name *string) map[string]any {
@@ -225,18 +251,31 @@ func (self *Xml) elementsNamed(name *string) map[string]any {
 		}
 	}
 	ret := _g
-	return Xml_childIterator(ret)
+	return func() map[string]any {
+		hx_structural_array_129 := ret
+		hx_structural_array_index_130 := 0
+		hx_structural_iterator_map_131 := map[string]any{}
+		hx_structural_iterator_map_131["hasNext"] = func() bool {
+			return (hx_structural_array_index_130 < len(hx_structural_array_129))
+		}
+		hx_structural_iterator_map_131["next"] = func() *Xml {
+			hx_structural_array_value_132 := hx_structural_array_129[hx_structural_array_index_130]
+			hx_structural_array_index_130 = (hx_structural_array_index_130 + 1)
+			return hx_structural_array_value_132
+		}
+		return hx_structural_iterator_map_131
+	}()
 }
 
 func (self *Xml) firstChild() *Xml {
 	self.ensureElementType()
-	var hx_if_121 *Xml
+	var hx_if_133 *Xml
 	if len(self.children) == 0 {
-		hx_if_121 = nil
+		hx_if_133 = nil
 	} else {
-		hx_if_121 = self.children[0]
+		hx_if_133 = self.children[0]
 	}
-	return hx_if_121
+	return hx_if_133
 }
 
 func (self *Xml) firstElement() *Xml {
@@ -258,9 +297,9 @@ func (self *Xml) addChild(x *Xml) {
 	if x.parent != nil {
 		x.parent.removeChild(x)
 	}
-	hx_arr_122 := self.children
-	hx_arr_122 = append(hx_arr_122, x)
-	self.children = hx_arr_122
+	hx_arr_134 := self.children
+	hx_arr_134 = append(hx_arr_134, x)
+	self.children = hx_arr_134
 	x.parent = self
 }
 
@@ -306,9 +345,9 @@ func (self *Xml) insertChild(x *Xml, pos int) {
 	_g := 0
 	_g1 := length
 	for _g < _g1 {
-		hx_post_124 := _g
+		hx_post_136 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_124
+		index := hx_post_136
 		if index == pos {
 			inserted = append(inserted, x)
 		}
@@ -344,20 +383,6 @@ var Xml_Element any = any(0)
 var Xml_PCData any = any(1)
 
 var Xml_ProcessingInstruction any = any(5)
-
-func Xml_childIterator(values []*Xml) map[string]any {
-	index := 0
-	hx_obj_128 := map[string]any{}
-	hx_obj_128["hasNext"] = func() bool {
-		return (index < len(values))
-	}
-	hx_obj_128["next"] = func() *Xml {
-		hx_post_129 := index
-		index = int(int32((index + 1)))
-		return values[hx_post_129]
-	}
-	return hx_obj_128
-}
 
 func Xml_createCData(data *string) *Xml {
 	xml := New_Xml(Xml_CData)
