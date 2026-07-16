@@ -9,6 +9,7 @@ SOURCE_PLANNER = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoSourceOwnedSt
 LAMBDA_OVERRIDE = ROOT / "std" / "go" / "_std" / "Lambda.hx"
 STRUCTURAL_ITERATOR_SNAPSHOT = ROOT / "test" / "snapshot" / "core" / "structural_iterator_assignment" / "intended"
 INLINE_EFFECT_SNAPSHOT = ROOT / "test" / "snapshot" / "core" / "inline_structural_iterator_effect" / "intended"
+CONSTRUCTOR_ITERATOR_SNAPSHOT = ROOT / "test" / "snapshot" / "core" / "structural_iterator_constructor_argument" / "intended"
 XML_OVERRIDE = ROOT / "std" / "go" / "_std" / "Xml.hx"
 XML_PRINTER_SNAPSHOT = (
     ROOT / "test" / "snapshot" / "stdlib" / "xml_root_dom_basic" / "intended" / "module_haxe_xml_printer.go"
@@ -274,6 +275,41 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
         self.assertGreaterEqual(xml_printer_go.count("value.ensureElementType()"), 3)
         self.assertIn("value.children", xml_printer_go)
         self.assertNotIn("value.iterator()", xml_printer_go)
+
+    def test_constructor_arguments_reuse_expected_type_coercion_and_emitted_abi(self):
+        compiler_source = GO_COMPILER.read_text(encoding="utf-8")
+        main_go = (CONSTRUCTOR_ITERATOR_SNAPSHOT / "main.go").read_text(encoding="utf-8")
+
+        emitted_type = function_block(compiler_source, "emittedConstructorParamType", "lowerConstructorArg")
+        self.assertIn("classType.constructor.get().type", emitted_type)
+        self.assertNotIn(
+            "applyTypeParameters",
+            emitted_type,
+            "the adapter closure shape must match the erased generated constructor ABI",
+        )
+
+        constructor_arg = function_block(compiler_source, "lowerConstructorArg", "lowerFunctionResults")
+        self.assertIn("lowerExprWithExpectedUpcast", constructor_arg)
+        self.assertIn("materializeExprWithPrefix", constructor_arg)
+        self.assertGreaterEqual(compiler_source.count("lowerConstructorArg(classType"), 3)
+
+        constructor_start = main_go.index("arrayConsumer := New_SnapshotIntConsumer")
+        mutation_index = main_go.index("arrayValues[0] = 9", constructor_start)
+        constructor_call = main_go[constructor_start:mutation_index]
+        before_index = constructor_call.index('StringFromLiteral("before")')
+        effect_index = constructor_call.index('StringFromLiteral("iterator")')
+        after_index = constructor_call.index('StringFromLiteral("after")')
+        capture_index = constructor_call.index(" := arrayValues")
+        self.assertLess(before_index, effect_index)
+        self.assertLess(effect_index, capture_index)
+        self.assertLess(capture_index, after_index)
+
+        self.assertIn("New_SnapshotGenericConsumer(func(hx_structural_iterator_", main_go)
+        self.assertIn('["next"] = func() any', main_go)
+        self.assertIn("any(hx_structural_iterator_", main_go)
+        self.assertIn(".__hx_this.next()", main_go)
+        for forbidden in ["ArrayIterator", "reflect.", "unsafe.", ") HasNext(", ") Next("]:
+            self.assertNotIn(forbidden, main_go)
 
 
 if __name__ == "__main__":

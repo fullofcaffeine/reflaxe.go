@@ -5774,6 +5774,37 @@ class GoCompiler {
 		return ctorFunc == null ? null : buildFunctionInfo(ctorFunc);
 	}
 
+	/**
+		What: Resolves one constructor parameter as emitted by the shared Go class.
+		Why: Haxe has already validated concrete generic arguments, but a generated
+		generic constructor keeps erased method signatures such as `next():any` inside
+		the structural carrier. Adapting to the applied source type would violate that
+		hidden Go ABI even though both outer values are `map[string]any`.
+		How: Read the requested argument from the constructor's declared function type
+		before class-generic substitution.
+	**/
+	function emittedConstructorParamType(classType:ClassType, index:Int):Null<Type> {
+		if (classType.constructor == null) {
+			return null;
+		}
+		return callParamType(classType.constructor.get().type, index);
+	}
+
+	/**
+		What: Lowers one explicit or default constructor argument for its parameter type.
+		Why: Constructors previously bypassed structural and prefix-aware expected-type
+		coercion even though ordinary calls used it.
+		How: Reuse `lowerExprWithExpectedUpcast` and materialize any ordered prefix into
+		one expression suitable for the generated Go constructor call.
+	**/
+	function lowerConstructorArg(classType:ClassType, arg:TypedExpr, index:Int):GoExpr {
+		var paramType = emittedConstructorParamType(classType, index);
+		if (paramType == null) {
+			return lowerExpr(arg).expr;
+		}
+		return materializeExprWithPrefix(lowerExprWithExpectedUpcast(arg, paramType), paramType).expr;
+	}
+
 	function lowerFunctionResults(returnType:Type):Array<GoType> {
 		if (isVoidType(returnType)) {
 			return [];
@@ -7567,7 +7598,10 @@ class GoCompiler {
 			case TNew(classRef, _, args):
 				var classType = classRef.get();
 				noteSourceOwnedStdlibUsage(classType);
-				var loweredArgs = [for (arg in args) lowerExpr(arg).expr];
+				var loweredArgs = [
+					for (index in 0...args.length)
+						lowerConstructorArg(classType, args[index], index)
+				];
 				var ctorInfo = resolveConstructorInfo(classType);
 				if (ctorInfo != null
 					&& !GoStdlibOwnership.isCompilerOwnedAuthority(fullClassName(classType))
@@ -7577,7 +7611,7 @@ class GoCompiler {
 						if (defaultValue == null) {
 							Context.fatalError("Missing required constructor argument at position " + i, expr.pos);
 						}
-						loweredArgs.push(lowerExpr(defaultValue).expr);
+						loweredArgs.push(lowerConstructorArg(classType, defaultValue, i));
 					}
 				}
 				if (isHaxeValueExceptionClass(classType)) {

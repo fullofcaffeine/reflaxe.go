@@ -1713,3 +1713,54 @@ Observed result:
   not syntax debt. Structural coercion for constructor parameters remains the
   separate `haxe_go-vfp.8.3.5` path, while effectful inline blocks ending in a
   non-array concrete iterator remain `haxe_go-vfp.8.3.6`.
+
+### 2026-07-16: coerce structural iterators in constructor arguments (`haxe_go-vfp.8.3.5`)
+
+Implementation:
+
+- Added red semantic-diff, positive snapshot/runtime, and negative compile
+  contracts before changing constructor lowering. They cover direct
+  `ArrayIterator<Int>` input with observable argument ordering and later array
+  mutation, a user-defined generic iterator, inherited virtual dispatch through
+  a base-typed value, and a mismatched element type that Haxe must reject.
+- Routed explicit and default `TNew` arguments through the same expected-type
+  coercion used by declarations, assignments, returns, and ordinary calls.
+  Ordered setup is materialized as one expression for the Go constructor call,
+  so each source argument still evaluates once and from left to right.
+- Resolve the expected parameter from the constructor signature that generated
+  Go actually emits. Generic Haxe constructors erase their structural
+  `next():T` closure to `next():any`; adapting against the applied source type
+  initially produced a more specific closure that looked valid to Haxe but
+  failed at runtime inside the erased Go map. Reading the declared constructor
+  type keeps the adapter and generated constructor on the same ABI.
+- Reused `GoLambdaIterableLowering` without adding a constructor-specific
+  carrier, runtime helper, reflection, unsafe conversion, raw fragment,
+  profile branch, or stdlib class-name dispatch.
+
+Validation evidence:
+
+- `npm run test:changed`
+- `npm test` (`279/279` snapshots)
+- `npm run test:semantic-diff` (`141/141` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance`, `npm run test:stdlib-inventory`, and
+  `npm run compatibility:verify`
+- `npm run test:compiler-debt` (`3,878` `GoRaw` sites and `13` compiler shim
+  entry points)
+- raw-injection hygiene, `npm run test:release-contracts`, and
+  `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates)
+
+Observed result:
+
+- Constructor parameters now accept matching direct array, user-generic, and
+  inherited concrete iterators through the same structural `Iterator<T>` map
+  used everywhere else. Array cursors remain live after indexed mutation,
+  generic closures match the erased constructor ABI, and subclass overrides
+  remain virtual.
+- Side effects in earlier arguments, iterator setup, and later arguments retain
+  source order and run exactly once. Mismatched element types still fail during
+  Haxe compilation rather than escaping into generated Go.
+- Compiler debt stays flat at 3,878 raw sites because this is an expected-type
+  orchestration fix. Effectful inline blocks ending in a non-array concrete
+  iterator remain explicitly deferred to `haxe_go-vfp.8.3.6`.

@@ -1,0 +1,4 @@
+order=before,iterator,after
+array=9,2
+generic=g1,g2
+virtual=special:v
