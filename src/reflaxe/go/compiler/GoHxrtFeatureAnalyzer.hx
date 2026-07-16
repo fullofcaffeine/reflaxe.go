@@ -135,8 +135,21 @@ class GoHxrtFeatureAnalyzer {
 				add(FEATURE_BYTES, "class_usage", path);
 			}
 
-			if (StringTools.startsWith(path, "haxe.atomic.")) {
+			var isAtomicIntSurface = path == "haxe.atomic.AtomicBool"
+				|| path == "haxe.atomic.AtomicInt"
+				|| path == "haxe.atomic._AtomicBool.AtomicBool_Impl_"
+				|| path == "haxe.atomic._AtomicInt.AtomicInt_Impl_"
+				|| path == "hxrt.atomic.AtomicIntHandle"
+				|| path == "hxrt.atomic.NativeAtomicInt";
+			if (isAtomicIntSurface) {
 				add(FEATURE_ATOMIC_INT, "class_usage", path);
+			}
+
+			var isAtomicObjectSurface = path == "haxe.atomic.AtomicObject"
+				|| path == "haxe.atomic._AtomicObject.AtomicObject_Impl_"
+				|| path == "hxrt.atomic.AtomicObjectHandle"
+				|| path == "hxrt.atomic.NativeAtomicObject";
+			if (isAtomicObjectSurface) {
 				add(FEATURE_ATOMIC_OBJECT, "class_usage", path);
 			}
 		}
@@ -150,9 +163,6 @@ class GoHxrtFeatureAnalyzer {
 
 		for (group in shimGroups) {
 			switch (group) {
-				case "atomic":
-					add(FEATURE_ATOMIC_INT, "shim_group", group);
-					add(FEATURE_ATOMIC_OBJECT, "shim_group", group);
 				case "io":
 					add(FEATURE_BYTES, "shim_group", group);
 				case "http", "net_socket":

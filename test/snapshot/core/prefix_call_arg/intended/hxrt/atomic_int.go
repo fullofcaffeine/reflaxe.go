@@ -6,86 +6,77 @@ type AtomicIntCell struct {
 	value atomic.Int64
 }
 
-func AtomicIntNew(value int) any {
+func AtomicIntNew(value int) *AtomicIntCell {
 	cell := &AtomicIntCell{}
 	cell.value.Store(int64(value))
 	return cell
 }
 
-func AtomicIntLoad(cell any) int {
-	typed := cell.(*AtomicIntCell)
-	return int(typed.value.Load())
+func AtomicIntLoad(cell *AtomicIntCell) int {
+	return int(cell.value.Load())
 }
 
-func AtomicIntStore(cell any, value int) int {
-	typed := cell.(*AtomicIntCell)
-	typed.value.Store(int64(value))
+func AtomicIntStore(cell *AtomicIntCell, value int) int {
+	cell.value.Store(int64(value))
 	return value
 }
 
-func AtomicIntExchange(cell any, value int) int {
-	typed := cell.(*AtomicIntCell)
-	return int(typed.value.Swap(int64(value)))
+func AtomicIntExchange(cell *AtomicIntCell, value int) int {
+	return int(cell.value.Swap(int64(value)))
 }
 
-func AtomicIntCompareExchange(cell any, expected int, replacement int) int {
-	typed := cell.(*AtomicIntCell)
+func AtomicIntCompareExchange(cell *AtomicIntCell, expected int, replacement int) int {
 	expectedValue := int64(expected)
 	replacementValue := int64(replacement)
 	for {
-		previous := typed.value.Load()
+		previous := cell.value.Load()
 		if previous != expectedValue {
 			return int(previous)
 		}
-		if typed.value.CompareAndSwap(previous, replacementValue) {
+		if cell.value.CompareAndSwap(previous, replacementValue) {
 			return int(previous)
 		}
 	}
 }
 
-func AtomicIntAdd(cell any, value int) int {
-	typed := cell.(*AtomicIntCell)
+func AtomicIntAdd(cell *AtomicIntCell, value int) int {
 	delta := int64(value)
-	return int(typed.value.Add(delta) - delta)
+	return int(cell.value.Add(delta) - delta)
 }
 
-func AtomicIntSub(cell any, value int) int {
-	typed := cell.(*AtomicIntCell)
+func AtomicIntSub(cell *AtomicIntCell, value int) int {
 	delta := int64(value)
-	return int(typed.value.Add(-delta) + delta)
+	return int(cell.value.Add(-delta) + delta)
 }
 
-func AtomicIntAnd(cell any, value int) int {
-	typed := cell.(*AtomicIntCell)
+func AtomicIntAnd(cell *AtomicIntCell, value int) int {
 	mask := int64(value)
 	for {
-		previous := typed.value.Load()
+		previous := cell.value.Load()
 		next := previous & mask
-		if typed.value.CompareAndSwap(previous, next) {
+		if cell.value.CompareAndSwap(previous, next) {
 			return int(previous)
 		}
 	}
 }
 
-func AtomicIntOr(cell any, value int) int {
-	typed := cell.(*AtomicIntCell)
+func AtomicIntOr(cell *AtomicIntCell, value int) int {
 	mask := int64(value)
 	for {
-		previous := typed.value.Load()
+		previous := cell.value.Load()
 		next := previous | mask
-		if typed.value.CompareAndSwap(previous, next) {
+		if cell.value.CompareAndSwap(previous, next) {
 			return int(previous)
 		}
 	}
 }
 
-func AtomicIntXor(cell any, value int) int {
-	typed := cell.(*AtomicIntCell)
+func AtomicIntXor(cell *AtomicIntCell, value int) int {
 	mask := int64(value)
 	for {
-		previous := typed.value.Load()
+		previous := cell.value.Load()
 		next := previous ^ mask
-		if typed.value.CompareAndSwap(previous, next) {
+		if cell.value.CompareAndSwap(previous, next) {
 			return int(previous)
 		}
 	}

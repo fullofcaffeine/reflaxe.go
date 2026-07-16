@@ -23,7 +23,8 @@
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
         "haxe_go-vfp.8.7.6",
-        "haxe_go-vfp.8.7.7"
+        "haxe_go-vfp.8.7.7",
+        "haxe_go-vfp.8.7.9"
       ],
       "staged_support": [
         "haxe_go-vfp.5.4"
@@ -34,7 +35,8 @@
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
         "haxe_go-vfp.8.7.6",
-        "haxe_go-vfp.8.7.7"
+        "haxe_go-vfp.8.7.7",
+        "haxe_go-vfp.8.7.9"
       ],
       "public_go_facade": [
         "haxe_go-vfp.5.4"
@@ -242,6 +244,24 @@
         "template_support"
       ],
       "notes": "Go staged portable override for haxe.Template execution semantics, keeping template parsing and macro-default behavior out of GoCompiler."
+    },
+    {
+      "path": "std/go/_std/haxe/atomic/AtomicInt.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/atomic/AtomicInt.hx",
+      "migrationBead": "haxe_go-vfp.8.7.9",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged implementation of the body-less upstream haxe.atomic.AtomicInt core type over an opaque typed hxrt handle; native atomic memory operations remain runtime-owned."
+    },
+    {
+      "path": "std/go/_std/haxe/atomic/AtomicObject.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/atomic/AtomicObject.hx",
+      "migrationBead": "haxe_go-vfp.8.7.9",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged implementation of the body-less upstream haxe.atomic.AtomicObject core type over an opaque typed hxrt handle; synchronization and reference comparison remain runtime-owned."
     },
     {
       "path": "std/go/_std/haxe/http/HttpBase.hx",
@@ -895,6 +915,42 @@
       "migrationBead": "haxe_go-vfp.5.3",
       "compilerShimGroups": [],
       "notes": "Go staged portable override for Unicode-aware string key/value iterator semantics."
+    },
+    {
+      "path": "std/hxrt/atomic/AtomicIntHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/atomic/AtomicIntHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.9",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for one runtime/hxrt atomic integer cell; staged haxe.atomic.AtomicInt owns the public API."
+    },
+    {
+      "path": "std/hxrt/atomic/AtomicObjectHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/atomic/AtomicObjectHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.9",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for one runtime/hxrt atomic object cell; staged haxe.atomic.AtomicObject owns the public API."
+    },
+    {
+      "path": "std/hxrt/atomic/NativeAtomicInt.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/atomic/NativeAtomicInt.hx",
+      "migrationBead": "haxe_go-vfp.8.7.9",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge from staged haxe.atomic.AtomicInt to the narrow runtime/hxrt integer atomic capability surface."
+    },
+    {
+      "path": "std/hxrt/atomic/NativeAtomicObject.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/atomic/NativeAtomicObject.hx",
+      "migrationBead": "haxe_go-vfp.8.7.9",
+      "compilerShimGroups": [],
+      "notes": "Typed-handle extern bridge from staged haxe.atomic.AtomicObject to the narrow runtime/hxrt object atomic capability surface; Dynamic is localized to erased stored values."
     },
     {
       "path": "std/hxrt/fs/FileSystemStat.hx",

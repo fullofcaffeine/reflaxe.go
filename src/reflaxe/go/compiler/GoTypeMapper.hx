@@ -304,6 +304,10 @@ class GoTypeMapper {
 	}
 
 	static function abstractGoType(abstractType:AbstractType, params:Array<Type>, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):Null<String> {
+		var externCarrier = externBackedAbstractGoType(abstractType, classTypeName, new Map<String, Bool>());
+		if (externCarrier != null) {
+			return externCarrier;
+		}
 		if (abstractType.pack.length == 0 && abstractType.name == "Int") {
 			return "int";
 		}
@@ -342,6 +346,49 @@ class GoTypeMapper {
 			return "*haxe__io__ArrayBufferViewImpl";
 		}
 		return null;
+	}
+
+	/**
+		What
+		- Preserves the native Go type of an abstract backed by typed extern metadata.
+
+		Why
+		- Falling every non-primitive abstract back to `any` discards a source-declared
+		  opaque carrier and forces generated boxing and type assertions even when the
+		  backend already has exact type authority.
+
+		How
+		- Follow chains of abstracts until they reach an extern class with
+		  `@:go.import`, then render that class through the normal extern type mapper.
+		  Cycles and abstracts without typed native authority keep the existing fallback.
+	**/
+	static function externBackedAbstractGoType(abstractType:AbstractType, classTypeName:GoClassTypeNamer, seen:Map<String, Bool>):Null<String> {
+		var qualifiedName = abstractType.pack.concat([abstractType.name]).join(".");
+		if (seen.exists(qualifiedName)) {
+			return null;
+		}
+		seen.set(qualifiedName, true);
+
+		return switch (Context.follow(abstractType.type)) {
+			case TInst(classRef, _): var classType = classRef.get(); classType.isExtern && hasGoImportMetadata(classType) ? "*" + classTypeName(classType) : null;
+			case TAbstract(innerRef, _):
+				externBackedAbstractGoType(innerRef.get(), classTypeName, seen);
+			case _:
+				null;
+		};
+	}
+
+	static function hasGoImportMetadata(classType:ClassType):Bool {
+		for (entry in classType.meta.get()) {
+			var name = entry.name;
+			while (StringTools.startsWith(name, ":")) {
+				name = name.substr(1);
+			}
+			if (name == "go.import") {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public static function goFunctionType(args:Array<{name:String, opt:Bool, t:Type}>, returnType:Type, classTypeName:GoClassTypeNamer,

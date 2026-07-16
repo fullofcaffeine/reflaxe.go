@@ -65,6 +65,22 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/string/GoStringRuntime.hx",
     ),
+    "std/hxrt/atomic/AtomicIntHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/atomic/AtomicIntHandle.hx",
+    ),
+    "std/hxrt/atomic/AtomicObjectHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/atomic/AtomicObjectHandle.hx",
+    ),
+    "std/hxrt/atomic/NativeAtomicInt.hx": (
+        "hxrt_binding",
+        "std/hxrt/atomic/NativeAtomicInt.hx",
+    ),
+    "std/hxrt/atomic/NativeAtomicObject.hx": (
+        "hxrt_binding",
+        "std/hxrt/atomic/NativeAtomicObject.hx",
+    ),
     "std/hxrt/fs/FileSystemStat.hx": (
         "hxrt_binding",
         "std/hxrt/fs/FileSystemStat.hx",
@@ -585,6 +601,109 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             ),
             "source-owned sys.io.Process must not retain a compiler-shim debt allowance",
         )
+
+    def test_atomic_is_source_owned_instead_of_a_compiler_shim(self) -> None:
+        ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
+        expected_owners = {
+            "std/go/_std/haxe/atomic/AtomicInt.hx": "upstream_std_override",
+            "std/go/_std/haxe/atomic/AtomicObject.hx": "upstream_std_override",
+            "std/hxrt/atomic/AtomicIntHandle.hx": "hxrt_binding",
+            "std/hxrt/atomic/AtomicObjectHandle.hx": "hxrt_binding",
+            "std/hxrt/atomic/NativeAtomicInt.hx": "hxrt_binding",
+            "std/hxrt/atomic/NativeAtomicObject.hx": "hxrt_binding",
+        }
+        for source_path, expected_owner in expected_owners.items():
+            self.assertTrue((ROOT / source_path).is_file(), source_path)
+            entry = ledger_entries.get(source_path)
+            self.assertIsNotNone(entry, source_path)
+            self.assertEqual(expected_owner, entry.get("ownershipClass"), source_path)
+            self.assertEqual("haxe_go-vfp.8.7.9", entry.get("migrationBead"), source_path)
+            self.assertEqual([], entry.get("compilerShimGroups"), source_path)
+
+        self.assertFalse(
+            (ROOT / "std/go/_std/haxe/atomic/AtomicBool.hx").exists(),
+            "the mainstream source-owned AtomicBool already works unchanged over AtomicInt",
+        )
+
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")
+        classifier = (ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx").read_text(
+            encoding="utf-8"
+        )
+        feature_analyzer = (ROOT / "src/reflaxe/go/compiler/GoHxrtFeatureAnalyzer.hx").read_text(
+            encoding="utf-8"
+        )
+        debt_policy = json.loads(
+            (ROOT / "test/compiler_debt_policy.json").read_text(encoding="utf-8")
+        )
+        debt_ratchet = (ROOT / "test/run-compiler-debt-ratchet.py").read_text(
+            encoding="utf-8"
+        )
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
+        )
+        atomic_int_runtime = (ROOT / "runtime/hxrt/atomic_int.go").read_text(
+            encoding="utf-8"
+        )
+        atomic_object_runtime = (ROOT / "runtime/hxrt/atomic_object.go").read_text(
+            encoding="utf-8"
+        )
+        atomic_int_snapshot = (
+            ROOT / "test/snapshot/stdlib/atomic_int_bool_basic/intended/main.go"
+        ).read_text(encoding="utf-8")
+        atomic_object_snapshot = (
+            ROOT / "test/snapshot/stdlib/atomic_object_basic/intended/main.go"
+        ).read_text(encoding="utf-8")
+
+        for fragment in (
+            "lowerAtomicStdlibShimDecls",
+            'requiredStdlibShimGroups.exists("atomic")',
+            'requireStdlibShimGroup("atomic")',
+            "haxe__atomic",
+        ):
+            self.assertNotIn(fragment, compiler, fragment)
+
+        self.assertNotIn('groups: ["atomic"]', classifier)
+        self.assertNotIn('StringTools.startsWith(path, "haxe.atomic.")', feature_analyzer)
+        self.assertNotIn('case "atomic":', feature_analyzer)
+        self.assertIn('path == "hxrt.atomic.NativeAtomicInt"', feature_analyzer)
+        self.assertIn('path == "hxrt.atomic.NativeAtomicObject"', feature_analyzer)
+
+        self.assertIn("func AtomicIntNew(value int) *AtomicIntCell", atomic_int_runtime)
+        self.assertIn("func AtomicIntLoad(cell *AtomicIntCell) int", atomic_int_runtime)
+        self.assertIn("func AtomicObjectNew(value any) *AtomicObjectCell", atomic_object_runtime)
+        self.assertIn("func AtomicObjectLoad(cell *AtomicObjectCell) any", atomic_object_runtime)
+
+        for snapshot in (atomic_int_snapshot, atomic_object_snapshot):
+            self.assertNotIn("haxe__atomic", snapshot)
+        self.assertIn("*hxrt.AtomicIntCell", atomic_int_snapshot)
+        self.assertIn("hxrt.AtomicIntAdd", atomic_int_snapshot)
+        self.assertIn("*hxrt.AtomicObjectCell", atomic_object_snapshot)
+        self.assertIn("hxrt.AtomicObjectCompareExchange", atomic_object_snapshot)
+
+        atomic_int_slice = ROOT / "test/snapshot/core/runtime_hxrt_infer_atomic_int/intended/hxrt"
+        atomic_object_slice = ROOT / "test/snapshot/core/runtime_hxrt_infer_atomic_object/intended/hxrt"
+        self.assertTrue((atomic_int_slice / "atomic_int.go").is_file())
+        self.assertFalse((atomic_int_slice / "atomic_object.go").exists())
+        self.assertTrue((atomic_object_slice / "atomic_object.go").is_file())
+        self.assertFalse((atomic_object_slice / "atomic_int.go").exists())
+
+        self.assertFalse(
+            any(group.get("group") == "atomic" for group in registry["groups"]),
+            "source-owned haxe.atomic must not remain registered as a compiler shim group",
+        )
+        self.assertFalse(
+            any(entry.get("decisionId") == "migration_atomic" for entry in registry["directLowerings"]),
+            "source-owned haxe.atomic must not retain direct compiler lowering entries",
+        )
+        self.assertFalse(
+            any(
+                limit.get("metric") == "compiler_shim"
+                and limit.get("capability") == "atomic"
+                for limit in debt_policy["limits"]
+            ),
+            "source-owned haxe.atomic must not retain a compiler-shim debt allowance",
+        )
+        self.assertNotIn('"lowerAtomicStdlibShimDecls": "atomic"', debt_ratchet)
 
     def test_ambiguities_cannot_exist_without_a_follow_up_bead(self) -> None:
         ledger = load_ledger()

@@ -55,7 +55,6 @@ COMPILER_SHIM_RE = re.compile(
 SHIM_CAPABILITIES = {
     "lowerStdlibShimDecls": "stdlib_dispatch",
     "lowerIoStdlibShimDecls": "io",
-    "lowerAtomicStdlibShimDecls": "atomic",
     "lowerGoConcurrencyShimDecls": "go_concurrency",
     "lowerTypedGoConcurrencyShimDecls": "go_concurrency",
     "lowerTypedGoCollectionShimDecls": "go_collections",
@@ -210,6 +209,8 @@ def source_capability(file: str) -> str:
     if file.endswith("/Sys.hx") or "/hxrt/sys/" in file:
         return "sys"
     if file.endswith("atomic_object.go"):
+        return "atomic"
+    if "/atomic/" in file:
         return "atomic"
     if "/thread/" in file or file.endswith("Thread.hx"):
         return "threading"

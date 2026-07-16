@@ -111,18 +111,6 @@
   ],
   "limits": [
     {
-      "capability": "atomic",
-      "classification": "avoidable",
-      "context": "lowerAtomicStdlibShimDecls",
-      "exception_id": "compiler_stdlib_migration_debt",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "compiler_shim",
-      "owner": "compiler_shim",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
       "capability": "collections",
       "classification": "avoidable",
       "context": "lowerDsStdlibShimDecls",
@@ -2267,6 +2255,66 @@
       "max_count": 1,
       "metric": "haxe_dynamic",
       "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "atomic",
+      "classification": "required",
+      "context": "compareExchange",
+      "exception_id": "runtime_facade_dynamic_contract",
+      "file": "std/hxrt/atomic/NativeAtomicObject.hx",
+      "max_count": 3,
+      "metric": "haxe_dynamic",
+      "owner": "runtime_facade",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "atomic",
+      "classification": "required",
+      "context": "create",
+      "exception_id": "runtime_facade_dynamic_contract",
+      "file": "std/hxrt/atomic/NativeAtomicObject.hx",
+      "max_count": 1,
+      "metric": "haxe_dynamic",
+      "owner": "runtime_facade",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "atomic",
+      "classification": "required",
+      "context": "exchange",
+      "exception_id": "runtime_facade_dynamic_contract",
+      "file": "std/hxrt/atomic/NativeAtomicObject.hx",
+      "max_count": 2,
+      "metric": "haxe_dynamic",
+      "owner": "runtime_facade",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "atomic",
+      "classification": "required",
+      "context": "load",
+      "exception_id": "runtime_facade_dynamic_contract",
+      "file": "std/hxrt/atomic/NativeAtomicObject.hx",
+      "max_count": 1,
+      "metric": "haxe_dynamic",
+      "owner": "runtime_facade",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "atomic",
+      "classification": "required",
+      "context": "store",
+      "exception_id": "runtime_facade_dynamic_contract",
+      "file": "std/hxrt/atomic/NativeAtomicObject.hx",
+      "max_count": 2,
+      "metric": "haxe_dynamic",
+      "owner": "runtime_facade",
       "profile": "shared",
       "surface": "staged_std"
     },

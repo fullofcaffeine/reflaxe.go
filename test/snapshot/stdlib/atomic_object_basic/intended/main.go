@@ -7,36 +7,116 @@ func main() {
 	b := New_Node(hxrt.StringFromLiteral("a"))
 	c := New_Node(hxrt.StringFromLiteral("c"))
 	d := New_Node(hxrt.StringFromLiteral("d"))
-	var atom any = haxe__atomic___AtomicObject__AtomicObject_Impl___new(a)
-	out(hxrt.StringFromLiteral("load.0"), nodeId(haxe__atomic___AtomicObject__AtomicObject_Impl__load(atom).(*Node)))
-	oldMiss := haxe__atomic___AtomicObject__AtomicObject_Impl__compareExchange(atom, b, c).(*Node)
+	var this1 *hxrt.AtomicObjectCell
+	this1 = hxrt.AtomicObjectNew(a)
+	atom := this1
+	out(hxrt.StringFromLiteral("load.0"), nodeId(func(hx_value_1 any) *Node {
+		if hx_value_1 == nil {
+			var hx_zero_2 *Node
+			return hx_zero_2
+		}
+		return hx_value_1.(*Node)
+	}(hxrt.AtomicObjectLoad(atom))))
+	oldMiss := func(hx_value_3 any) *Node {
+		if hx_value_3 == nil {
+			var hx_zero_4 *Node
+			return hx_zero_4
+		}
+		return hx_value_3.(*Node)
+	}(hxrt.AtomicObjectCompareExchange(atom, b, c))
 	out(hxrt.StringFromLiteral("cmp.miss.old"), nodeId(oldMiss))
-	out(hxrt.StringFromLiteral("cmp.miss.now"), nodeId(haxe__atomic___AtomicObject__AtomicObject_Impl__load(atom).(*Node)))
-	oldHit := haxe__atomic___AtomicObject__AtomicObject_Impl__compareExchange(atom, a, c).(*Node)
+	out(hxrt.StringFromLiteral("cmp.miss.now"), nodeId(func(hx_value_5 any) *Node {
+		if hx_value_5 == nil {
+			var hx_zero_6 *Node
+			return hx_zero_6
+		}
+		return hx_value_5.(*Node)
+	}(hxrt.AtomicObjectLoad(atom))))
+	oldHit := func(hx_value_7 any) *Node {
+		if hx_value_7 == nil {
+			var hx_zero_8 *Node
+			return hx_zero_8
+		}
+		return hx_value_7.(*Node)
+	}(hxrt.AtomicObjectCompareExchange(atom, a, c))
 	out(hxrt.StringFromLiteral("cmp.hit.old"), nodeId(oldHit))
-	out(hxrt.StringFromLiteral("cmp.hit.now"), nodeId(haxe__atomic___AtomicObject__AtomicObject_Impl__load(atom).(*Node)))
-	oldExchange := haxe__atomic___AtomicObject__AtomicObject_Impl__exchange(atom, d).(*Node)
+	out(hxrt.StringFromLiteral("cmp.hit.now"), nodeId(func(hx_value_9 any) *Node {
+		if hx_value_9 == nil {
+			var hx_zero_10 *Node
+			return hx_zero_10
+		}
+		return hx_value_9.(*Node)
+	}(hxrt.AtomicObjectLoad(atom))))
+	oldExchange := func(hx_value_11 any) *Node {
+		if hx_value_11 == nil {
+			var hx_zero_12 *Node
+			return hx_zero_12
+		}
+		return hx_value_11.(*Node)
+	}(hxrt.AtomicObjectExchange(atom, d))
 	out(hxrt.StringFromLiteral("xchg.old"), nodeId(oldExchange))
-	out(hxrt.StringFromLiteral("xchg.now"), nodeId(haxe__atomic___AtomicObject__AtomicObject_Impl__load(atom).(*Node)))
-	stored := haxe__atomic___AtomicObject__AtomicObject_Impl__store(atom, a).(*Node)
+	out(hxrt.StringFromLiteral("xchg.now"), nodeId(func(hx_value_13 any) *Node {
+		if hx_value_13 == nil {
+			var hx_zero_14 *Node
+			return hx_zero_14
+		}
+		return hx_value_13.(*Node)
+	}(hxrt.AtomicObjectLoad(atom))))
+	stored := func(hx_value_15 any) *Node {
+		if hx_value_15 == nil {
+			var hx_zero_16 *Node
+			return hx_zero_16
+		}
+		return hx_value_15.(*Node)
+	}(hxrt.AtomicObjectStore(atom, a))
 	out(hxrt.StringFromLiteral("store.ret"), nodeId(stored))
-	out(hxrt.StringFromLiteral("store.now"), nodeId(haxe__atomic___AtomicObject__AtomicObject_Impl__load(atom).(*Node)))
-	alias := haxe__atomic___AtomicObject__AtomicObject_Impl__load(atom).(*Node)
+	out(hxrt.StringFromLiteral("store.now"), nodeId(func(hx_value_17 any) *Node {
+		if hx_value_17 == nil {
+			var hx_zero_18 *Node
+			return hx_zero_18
+		}
+		return hx_value_17.(*Node)
+	}(hxrt.AtomicObjectLoad(atom))))
+	alias := func(hx_value_19 any) *Node {
+		if hx_value_19 == nil {
+			var hx_zero_20 *Node
+			return hx_zero_20
+		}
+		return hx_value_19.(*Node)
+	}(hxrt.AtomicObjectLoad(atom))
 	alias.id = hxrt.StringFromLiteral("a_mut")
-	out(hxrt.StringFromLiteral("alias.now"), nodeId(haxe__atomic___AtomicObject__AtomicObject_Impl__load(atom).(*Node)))
-	oldAlias := haxe__atomic___AtomicObject__AtomicObject_Impl__compareExchange(atom, alias, c).(*Node)
+	out(hxrt.StringFromLiteral("alias.now"), nodeId(func(hx_value_21 any) *Node {
+		if hx_value_21 == nil {
+			var hx_zero_22 *Node
+			return hx_zero_22
+		}
+		return hx_value_21.(*Node)
+	}(hxrt.AtomicObjectLoad(atom))))
+	oldAlias := func(hx_value_23 any) *Node {
+		if hx_value_23 == nil {
+			var hx_zero_24 *Node
+			return hx_zero_24
+		}
+		return hx_value_23.(*Node)
+	}(hxrt.AtomicObjectCompareExchange(atom, alias, c))
 	out(hxrt.StringFromLiteral("cmp.alias.old"), nodeId(oldAlias))
-	out(hxrt.StringFromLiteral("cmp.alias.now"), nodeId(haxe__atomic___AtomicObject__AtomicObject_Impl__load(atom).(*Node)))
+	out(hxrt.StringFromLiteral("cmp.alias.now"), nodeId(func(hx_value_25 any) *Node {
+		if hx_value_25 == nil {
+			var hx_zero_26 *Node
+			return hx_zero_26
+		}
+		return hx_value_25.(*Node)
+	}(hxrt.AtomicObjectLoad(atom))))
 }
 
 func nodeId(value *Node) *string {
-	var hx_if_1 *string
+	var hx_if_27 *string
 	if value == nil {
-		hx_if_1 = hxrt.StringFromLiteral("null")
+		hx_if_27 = hxrt.StringFromLiteral("null")
 	} else {
-		hx_if_1 = value.id
+		hx_if_27 = value.id
 	}
-	return hx_if_1
+	return hx_if_27
 }
 
 func out(label *string, value any) {
@@ -57,64 +137,4 @@ func New_Node(id *string) *Node {
 	self.__hx_this = self
 	self.id = id
 	return self
-}
-
-func haxe__atomic___AtomicInt__AtomicInt_Impl___new(value int) any {
-	return hxrt.AtomicIntNew(value)
-}
-
-func haxe__atomic___AtomicInt__AtomicInt_Impl__add(atom any, value int) int {
-	return hxrt.AtomicIntAdd(atom, value)
-}
-
-func haxe__atomic___AtomicInt__AtomicInt_Impl__sub(atom any, value int) int {
-	return hxrt.AtomicIntSub(atom, value)
-}
-
-func haxe__atomic___AtomicInt__AtomicInt_Impl__and(atom any, value int) int {
-	return hxrt.AtomicIntAnd(atom, value)
-}
-
-func haxe__atomic___AtomicInt__AtomicInt_Impl__or(atom any, value int) int {
-	return hxrt.AtomicIntOr(atom, value)
-}
-
-func haxe__atomic___AtomicInt__AtomicInt_Impl__xor(atom any, value int) int {
-	return hxrt.AtomicIntXor(atom, value)
-}
-
-func haxe__atomic___AtomicInt__AtomicInt_Impl__compareExchange(atom any, expected int, replacement int) int {
-	return hxrt.AtomicIntCompareExchange(atom, expected, replacement)
-}
-
-func haxe__atomic___AtomicInt__AtomicInt_Impl__exchange(atom any, value int) int {
-	return hxrt.AtomicIntExchange(atom, value)
-}
-
-func haxe__atomic___AtomicInt__AtomicInt_Impl__load(atom any) int {
-	return hxrt.AtomicIntLoad(atom)
-}
-
-func haxe__atomic___AtomicInt__AtomicInt_Impl__store(atom any, value int) int {
-	return hxrt.AtomicIntStore(atom, value)
-}
-
-func haxe__atomic___AtomicObject__AtomicObject_Impl___new(value any) any {
-	return hxrt.AtomicObjectNew(value)
-}
-
-func haxe__atomic___AtomicObject__AtomicObject_Impl__load(atom any) any {
-	return hxrt.AtomicObjectLoad(atom)
-}
-
-func haxe__atomic___AtomicObject__AtomicObject_Impl__store(atom any, value any) any {
-	return hxrt.AtomicObjectStore(atom, value)
-}
-
-func haxe__atomic___AtomicObject__AtomicObject_Impl__exchange(atom any, value any) any {
-	return hxrt.AtomicObjectExchange(atom, value)
-}
-
-func haxe__atomic___AtomicObject__AtomicObject_Impl__compareExchange(atom any, expected any, replacement any) any {
-	return hxrt.AtomicObjectCompareExchange(atom, expected, replacement)
 }

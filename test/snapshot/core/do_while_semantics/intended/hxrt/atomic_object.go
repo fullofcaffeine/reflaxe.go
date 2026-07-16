@@ -10,41 +10,37 @@ type AtomicObjectCell struct {
 	value any
 }
 
-func AtomicObjectNew(value any) any {
+func AtomicObjectNew(value any) *AtomicObjectCell {
 	return &AtomicObjectCell{value: value}
 }
 
-func AtomicObjectLoad(cell any) any {
-	typed := cell.(*AtomicObjectCell)
-	typed.mu.Lock()
-	defer typed.mu.Unlock()
-	return typed.value
+func AtomicObjectLoad(cell *AtomicObjectCell) any {
+	cell.mu.Lock()
+	defer cell.mu.Unlock()
+	return cell.value
 }
 
-func AtomicObjectStore(cell any, value any) any {
-	typed := cell.(*AtomicObjectCell)
-	typed.mu.Lock()
-	defer typed.mu.Unlock()
-	typed.value = value
+func AtomicObjectStore(cell *AtomicObjectCell, value any) any {
+	cell.mu.Lock()
+	defer cell.mu.Unlock()
+	cell.value = value
 	return value
 }
 
-func AtomicObjectExchange(cell any, value any) any {
-	typed := cell.(*AtomicObjectCell)
-	typed.mu.Lock()
-	defer typed.mu.Unlock()
-	previous := typed.value
-	typed.value = value
+func AtomicObjectExchange(cell *AtomicObjectCell, value any) any {
+	cell.mu.Lock()
+	defer cell.mu.Unlock()
+	previous := cell.value
+	cell.value = value
 	return previous
 }
 
-func AtomicObjectCompareExchange(cell any, expected any, replacement any) any {
-	typed := cell.(*AtomicObjectCell)
-	typed.mu.Lock()
-	defer typed.mu.Unlock()
-	previous := typed.value
+func AtomicObjectCompareExchange(cell *AtomicObjectCell, expected any, replacement any) any {
+	cell.mu.Lock()
+	defer cell.mu.Unlock()
+	previous := cell.value
 	if atomicReferenceEqual(previous, expected) {
-		typed.value = replacement
+		cell.value = replacement
 	}
 	return previous
 }

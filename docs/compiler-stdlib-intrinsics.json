@@ -93,16 +93,6 @@
       ],
       "reviewCondition": "Remove the diagnostic if a supported, portable, dependency-safe process CPU-time capability becomes available."
     },
-    "migration_atomic": {
-      "what": "Replace compiler-emitted haxe.atomic forwarding functions with staged Haxe APIs over typed hxrt atomic capabilities.",
-      "why": "The current compiler functions only forward runtime operations; they do not need compile-time metadata and therefore are not compiler intrinsics.",
-      "how": "Move the public operation bodies to staged source, keep native ordering and opaque storage in hxrt, and remove the atomic shim group.",
-      "evidence": [
-        "haxe_atomic_contract",
-        "runtime/hxrt/atomic_object.go"
-      ],
-      "reviewCondition": "Close only when haxe_go-vfp.8.7.9 removes the group, classifier selectors, and debt allowance."
-    },
     "migration_collections": {
       "what": "Move compiler-owned collection carriers and public algorithms to staged Haxe with only narrow typed representation adapters beneath them.",
       "why": "Map, list, Lambda, and sort behavior is library-expressible; generic erasure or native storage does not justify owning complete algorithms in GoCompiler.",
@@ -200,30 +190,6 @@
     "decisionId": "migration_dispatch"
   },
   "groups": [
-    {
-      "group": "atomic",
-      "entryPoint": "lowerAtomicStdlibShimDecls",
-      "status": "migration_required",
-      "decisionId": "migration_atomic",
-      "followUpBead": "haxe_go-vfp.8.7.9",
-      "ownedSymbols": [
-        {"symbol": "haxe.atomic.AtomicBool", "scope": "complete_type"},
-        {"symbol": "haxe.atomic.AtomicInt", "scope": "complete_type"},
-        {"symbol": "haxe.atomic.AtomicObject", "scope": "complete_type"}
-      ],
-      "compilerOwnedAuthorities": [],
-      "classifierSelections": [
-        {"kind": "class", "path": "haxe.atomic.AtomicBool"},
-        {"kind": "class", "path": "haxe.atomic.AtomicInt"},
-        {"kind": "class", "path": "haxe.atomic.AtomicObject"},
-        {"kind": "class", "path": "haxe.atomic._AtomicBool.AtomicBool_Impl_"},
-        {"kind": "class", "path": "haxe.atomic._AtomicInt.AtomicInt_Impl_"},
-        {"kind": "class", "path": "haxe.atomic._AtomicObject.AtomicObject_Impl_"}
-      ],
-      "plannerSelections": [],
-      "dependencies": [],
-      "declaresDependencyBlock": false
-    },
     {
       "group": "ds",
       "entryPoint": "lowerDsStdlibShimDecls",
@@ -492,10 +458,6 @@
     {"symbol": "haxe.Log.trace", "status": "migration_required", "decisionId": "migration_stdlib_symbols", "followUpBead": "haxe_go-vfp.8.7.15"},
     {"symbol": "haxe._Rest.Rest_Impl_.append", "status": "approved_intrinsic", "decisionId": "approved_rest_representation"},
     {"symbol": "haxe._Rest.Rest_Impl_.prepend", "status": "approved_intrinsic", "decisionId": "approved_rest_representation"},
-    {"symbol": "haxe.atomic._AtomicObject.AtomicObject_Impl_.compareExchange", "status": "migration_required", "decisionId": "migration_atomic", "followUpBead": "haxe_go-vfp.8.7.9"},
-    {"symbol": "haxe.atomic._AtomicObject.AtomicObject_Impl_.exchange", "status": "migration_required", "decisionId": "migration_atomic", "followUpBead": "haxe_go-vfp.8.7.9"},
-    {"symbol": "haxe.atomic._AtomicObject.AtomicObject_Impl_.load", "status": "migration_required", "decisionId": "migration_atomic", "followUpBead": "haxe_go-vfp.8.7.9"},
-    {"symbol": "haxe.atomic._AtomicObject.AtomicObject_Impl_.store", "status": "migration_required", "decisionId": "migration_atomic", "followUpBead": "haxe_go-vfp.8.7.9"},
     {"symbol": "haxe.ds.ArraySort.sort", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
     {"symbol": "haxe.ds.ListSort.sort", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"},
     {"symbol": "haxe.ds.ListSort.sortSingleLinked", "status": "migration_required", "decisionId": "migration_collections", "followUpBead": "haxe_go-vfp.8.7.17"}
