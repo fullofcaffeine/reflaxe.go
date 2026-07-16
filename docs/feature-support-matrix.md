@@ -262,7 +262,7 @@ Shim strategy and alternatives are documented in:
 
 ### Explicit direct-helper exclusions
 
-- `haxe.Template` direct constructor/execute usage now has direct parity coverage through `test/semantic_diff/haxe_template_contract` and `test/snapshot/stdlib/haxe_template_basic`.
+- `haxe.Template` constructor/execute, nested lookup, array and structural-Dynamic iteration, stack fallback, and macro invocation have direct parity coverage through `test/semantic_diff/haxe_template_contract` and `test/snapshot/stdlib/haxe_template_basic`. Template behavior is staged Haxe; three runtime representation operations cross a typed, footprint-explicit `hxrt` binding. Concrete generated-class iterator discovery remains tracked by `haxe_go-vfp.8.7.19`.
 - `haxe.ValueException` direct constructor/message/value parity now has semantic-diff coverage through `test/semantic_diff/haxe_value_exception_contract` and snapshot coverage in `test/snapshot/stdlib/haxe_value_exception_basic`.
 
 ### `haxe.Json` runtime-lowered contract

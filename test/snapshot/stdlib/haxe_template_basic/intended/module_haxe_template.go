@@ -100,8 +100,8 @@ func (self *haxe__Template) resolve(v *string) any {
 	if hxrt.StringEqualStringPtr(v, hxrt.StringFromLiteral("__current__")) {
 		return self.context
 	}
-	if Reflect_isObject(self.context) {
-		var value any = Reflect_getProperty(self.context, v)
+	if hxrt.TemplateIsObject(self.context) {
+		var value any = Reflect_field(self.context, v)
 		if !hxrt.AnyEqualsNull(value) || Reflect_hasField(self.context, v) {
 			return value
 		}
@@ -111,7 +111,7 @@ func (self *haxe__Template) resolve(v *string) any {
 	for _g < len(_g1) {
 		var ctx any = _g1[_g]
 		_g = int(int32((_g + 1)))
-		var value_1 any = Reflect_getProperty(ctx, v)
+		var value_1 any = Reflect_field(ctx, v)
 		if !hxrt.AnyEqualsNull(value_1) || Reflect_hasField(ctx, v) {
 			return value_1
 		}
@@ -982,7 +982,7 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 		expr_2 := _g_6
 		loop := _g1_1
 		var value_1 any = expr_2()
-		arrayValues := haxe__Template_anyArrayToSlice(value_1)
+		arrayValues := hxrt.TemplateArrayValues(value_1)
 		if arrayValues != nil {
 			hx_arr_188 := self.stack
 			hx_arr_188 = append(hx_arr_188, self.context)
@@ -1003,7 +1003,7 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 			if hxrt.AnyEqualsNull(iteratorField) {
 				hxrt.Throw(nil)
 			}
-			var candidate any = Reflect_callMethod(value_1, iteratorField, []any{})
+			var candidate any = hxrt.TemplateCall(iteratorField, []any{})
 			if !Reflect_hasField(candidate, hxrt.StringFromLiteral("hasNext")) {
 				hxrt.Throw(nil)
 			}
@@ -1078,7 +1078,7 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 			}
 		}
 		hxrt.TryCatch(func() {
-			self.output = hxrt.StringConcatStringPtr(self.output, hxrt.StdString(Reflect_callMethod(self.macros, fn, callArgs)))
+			self.output = hxrt.StringConcatStringPtr(self.output, hxrt.StdString(hxrt.TemplateCall(fn, callArgs)))
 		}, func(hx_caught_205 any) {
 			err := hx_caught_205
 			var hx_try_207 *string
@@ -1134,10 +1134,6 @@ func haxe__Template_addValues(left any, right any) any {
 		return hxrt.StringConcatStringPtr(hxrt.StdString(left), hxrt.StdString(right))
 	}
 	return (haxe__Template_valueAsFloat(left) + haxe__Template_valueAsFloat(right))
-}
-
-func haxe__Template_anyArrayToSlice(value any) []any {
-	return haxe__Template_anyArrayToSlice_runtime(value)
 }
 
 func haxe__Template_compareValues(left any, right any) int {

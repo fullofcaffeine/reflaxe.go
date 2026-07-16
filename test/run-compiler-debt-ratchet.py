@@ -65,7 +65,6 @@ SHIM_CAPABILITIES = {
     "lowerStdlibSymbolShimDecls": "stdlib_symbols",
     "reflectFieldsShimDecl": "reflection",
     "lowerTypeReflectionShimDecls": "reflection",
-    "lowerTemplateSupportShimDecls": "template",
     "lowerRegexSerializerShimDecls": "regex_serializer",
     "lowerNetSocketShimDecls": "net_socket",
 }

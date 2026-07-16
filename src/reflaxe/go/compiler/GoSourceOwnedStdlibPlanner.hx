@@ -271,7 +271,6 @@ class GoSourceOwnedStdlibPlanner {
 			case "haxe.Template":
 				requireSourceOwnedStdlibModule("haxe.Template");
 				requireStdlibShimGroup("stdlib_symbols");
-				requireStdlibShimGroup("template_support");
 			case "haxe.ValueException":
 				// Direct ValueException usage lowers to the existing hxrt exception
 				// carrier rather than emitting a separate source-owned class body.

@@ -563,9 +563,6 @@ class GoCompiler {
 			imports.push("strings");
 			imports.push("time");
 		}
-		if (requiredStdlibShimGroups.exists("template_support")) {
-			imports.push("reflect");
-		}
 		if (requiredStdlibShimGroups.exists("regex_serializer")) {
 			imports.push("encoding/base64");
 			imports.push("math");
@@ -1685,9 +1682,6 @@ class GoCompiler {
 		}
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			decls = decls.concat(lowerStdlibSymbolShimDecls());
-		}
-		if (requiredStdlibShimGroups.exists("template_support")) {
-			decls = decls.concat(lowerTemplateSupportShimDecls());
 		}
 		if (requiredStdlibShimGroups.exists("regex_serializer")) {
 			decls = decls.concat(lowerRegexSerializerShimDecls());
@@ -6189,97 +6183,6 @@ class GoCompiler {
 	function lowerTypeReflectionShimDecls():Array<GoDecl> {
 		return GoTypeReflectionEmitter.emit(typeReflectionClassMetadata(), typeReflectionEnumMetadata(), goRawQuotedString, goStringPointerArrayLiteral)
 			.concat(GoRttiMetadataEmitter.emit(rttiClassMetadata(), goRawQuotedString));
-	}
-
-	function lowerTemplateSupportShimDecls():Array<GoDecl> {
-		return [
-			GoDecl.GoFuncDecl("haxe__Template_anyArrayToSlice_runtime", null, [{name: "value", typeName: "any"}], ["[]any"], [
-				GoStmt.GoRaw("if value == nil {"),
-				GoStmt.GoRaw("\treturn nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("rv := reflect.ValueOf(value)"),
-				GoStmt.GoRaw("if !rv.IsValid() {"),
-				GoStmt.GoRaw("\treturn nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if rv.Kind() == reflect.Pointer {"),
-				GoStmt.GoRaw("\tif rv.IsNil() {"),
-				GoStmt.GoRaw("\t\treturn nil"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\trv = rv.Elem()"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if rv.Kind() != reflect.Slice && rv.Kind() != reflect.Array {"),
-				GoStmt.GoRaw("\treturn nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("out := make([]any, rv.Len())"),
-				GoStmt.GoRaw("for i := 0; i < rv.Len(); i++ {"),
-				GoStmt.GoRaw("\titem := rv.Index(i)"),
-				GoStmt.GoRaw("\tif item.CanInterface() {"),
-				GoStmt.GoRaw("\t\tout[i] = item.Interface()"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("return out")
-			]),
-			GoDecl.GoFuncDecl("Reflect_getProperty", null, [
-				{
-					name: "obj",
-					typeName: "any"
-				},
-				{name: "field", typeName: "*string"}
-			], ["any"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("Reflect_field"), [GoExpr.GoIdent("obj"), GoExpr.GoIdent("field")]))
-			]),
-			GoDecl.GoFuncDecl("Reflect_isObject", null, [
-				{
-					name: "obj",
-					typeName: "any"
-				}
-			], ["bool"], [
-				GoStmt.GoRaw("if obj == nil {"),
-				GoStmt.GoRaw("\treturn false"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("rv := reflect.ValueOf(obj)"),
-				GoStmt.GoRaw("if !rv.IsValid() {"),
-				GoStmt.GoRaw("\treturn false"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("switch rv.Kind() {"),
-				GoStmt.GoRaw("case reflect.Pointer, reflect.Interface:"),
-				GoStmt.GoRaw("\tif rv.IsNil() {"),
-				GoStmt.GoRaw("\t\treturn false"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\treturn Reflect_isObject(rv.Elem().Interface())"),
-				GoStmt.GoRaw("case reflect.Struct, reflect.Map:"),
-				GoStmt.GoRaw("\treturn true"),
-				GoStmt.GoRaw("default:"),
-				GoStmt.GoRaw("\treturn false"),
-				GoStmt.GoRaw("}")
-			]),
-			GoDecl.GoFuncDecl("Reflect_callMethod", null, [
-				{
-					name: "obj",
-					typeName: "any"
-				},
-				{name: "funcValue", typeName: "any"},
-				{name: "args", typeName: "[]any"}
-			], ["any"], [
-				GoStmt.GoRaw("_ = obj"),
-				GoStmt.GoRaw("if funcValue == nil {"),
-				GoStmt.GoRaw("\treturn nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("fn := reflect.ValueOf(funcValue)"),
-				GoStmt.GoRaw("if !fn.IsValid() || fn.Kind() != reflect.Func {"),
-				GoStmt.GoRaw("\treturn nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("callArgs := make([]reflect.Value, 0, len(args))"),
-				GoStmt.GoRaw("for _, arg := range args {"),
-				GoStmt.GoRaw("\tcallArgs = append(callArgs, reflect.ValueOf(arg))"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("results := fn.Call(callArgs)"),
-				GoStmt.GoRaw("if len(results) == 0 {"),
-				GoStmt.GoRaw("\treturn nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("return results[0].Interface()")
-			])
-		];
 	}
 
 	function lowerRegexSerializerShimDecls():Array<GoDecl> {

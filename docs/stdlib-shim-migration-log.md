@@ -1199,3 +1199,62 @@ Observed result:
 - Concrete carrier authority produces valid Go; genuinely erased nested authority
   produces a stable Haxe diagnostic. Neither path leaks an incidental Go compiler
   error to the user.
+
+### 2026-07-16: retire the compiler-owned `haxe.Template` runtime bridge (`haxe_go-vfp.8.7.16`)
+
+Implementation:
+
+- Removed the `template_support` compiler dispatcher branch, reflection import,
+  four generated helper declarations, planner requirement, intrinsic-registry
+  entry, and compiler-debt allowances. `GoCompiler` no longer emits Template
+  array conversion or `Reflect.getProperty` / `isObject` / `callMethod` helpers.
+- Added the typed `std/hxrt/template/NativeTemplate.hx` binding over
+  `runtime/hxrt/template.go`. The runtime owns only three dynamic representation
+  operations: exposing Go slices/arrays, classifying map/struct carriers, and
+  invoking an already-resolved function with runtime arguments.
+- Kept parsing, field lookup and stack fallback, iteration, macro argument
+  construction, errors, and rendering in `std/go/_std/haxe/Template.hx`. The
+  staged override no longer uses raw `__go__`; property reads use the existing
+  `Reflect.field` contract while its broader source/runtime migration remains
+  tracked by `haxe_go-vfp.8.7.15`.
+- Added a footprint-explicit `template` runtime feature. Full and selective
+  runtime plans copy `template.go` only when `haxe.Template` or its typed binding
+  is used, so unrelated generated programs do not acquire reflection support.
+- Expanded Template parity coverage across nested properties, record arrays,
+  primitive stack fallback, structural dynamic iterators, and macros. Added
+  direct runtime tests for slice/array conversion, object classification, and
+  invocation.
+- Filed `haxe_go-vfp.8.7.19` for the separately discovered concrete-class
+  iterable gap: Go reflection cannot discover generated lowercase methods, and
+  solving that requires a general generated-method metadata/adapter design rather
+  than restoring a Template compiler shim.
+
+Validation evidence:
+
+- `npm run test:changed`
+- `npm test` (`272/272` snapshots)
+- `npm run test:semantic-diff` (`132/132` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance` (`121` tracked sources; `37` typed `hxrt`
+  bindings)
+- `npm run test:stdlib-inventory`
+- `npm run test:compiler-debt` (`4,427` `GoRaw` sites, `597` bounded Go
+  reflection sites, and `13` compiler shim entry points)
+- direct `runtime/hxrt` Go tests and raw-injection hygiene
+- `npm run test:perf:hxrt-selective`
+- `npm run test:perf:stdlib-shims`
+- `npm run test:perf:go` (four warning-only startup signals; no hard failures)
+- `npm run security:go-tooling` (all `28` race/checkptr/vet/staticcheck gates)
+- `npm run test:release-contracts`
+
+Observed result:
+
+- `haxe.Template` is now a source-owned public API over a narrow typed runtime
+  capability. No Template algorithm, lookup rule, iteration loop, or macro policy
+  originates in the compiler or `hxrt`.
+- Compiler debt falls permanently by one shim entry point and 59 raw sites. The
+  remaining dynamic and reflection counts are declared at the real runtime
+  boundary instead of being hidden inside compiler-emitted library functions.
+- Template-only reflection support is absent from unrelated output, while direct
+  Template use remains portable and matches the staged Haxe reference contract.

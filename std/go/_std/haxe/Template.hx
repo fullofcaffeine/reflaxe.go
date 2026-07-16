@@ -1,6 +1,7 @@
 package haxe;
 
 import haxe.Constraints.Function;
+import hxrt.template.NativeTemplate;
 
 using StringTools;
 
@@ -61,8 +62,10 @@ private class ExprCursor {
 	How
 	Keep the upstream public API and template syntax model, but adapt the internal
 	parser/runtime to use `Array`-backed cursors and explicit helper functions that
-	already lower cleanly on `haxe.go`. This keeps ownership in staged std code instead
-	of pushing more stdlib semantics into `GoCompiler`.
+	already lower cleanly on `haxe.go`. Three narrow typed `hxrt` calls expose only
+	runtime representation facts for array inspection, object classification, and
+	dynamic function invocation. This keeps all Template policy in staged std code
+	instead of pushing stdlib semantics into `GoCompiler`.
 **/
 class Template {
 	static var splitter = ~/(::[A-Za-z0-9_ ()&|!+=\/><*."-]+::|\$\$([A-Za-z0-9_-]+)\()/;
@@ -101,14 +104,14 @@ class Template {
 		if (v == "__current__") {
 			return context;
 		}
-		if (Reflect.isObject(context)) {
-			var value = Reflect.getProperty(context, v);
+		if (NativeTemplate.isObject(context)) {
+			var value = Reflect.field(context, v);
 			if (value != null || Reflect.hasField(context, v)) {
 				return value;
 			}
 		}
 		for (ctx in stack) {
-			var value = Reflect.getProperty(ctx, v);
+			var value = Reflect.field(ctx, v);
 			if (value != null || Reflect.hasField(ctx, v)) {
 				return value;
 			}
@@ -437,7 +440,7 @@ class Template {
 				}
 			case OpForeach(expr, loop):
 				var value:Dynamic = expr();
-				var arrayValues = anyArrayToSlice(value);
+				var arrayValues = NativeTemplate.arrayValues(value);
 				if (arrayValues != null) {
 					stack.push(context);
 					for (ctx in arrayValues) {
@@ -453,7 +456,7 @@ class Template {
 					if (iteratorField == null) {
 						throw null;
 					}
-					var candidate:Dynamic = Reflect.callMethod(value, cast iteratorField, []);
+					var candidate:Dynamic = NativeTemplate.call(iteratorField, []);
 					if (!Reflect.hasField(candidate, "hasNext")) {
 						throw null;
 					}
@@ -496,7 +499,7 @@ class Template {
 					}
 				}
 				try {
-					output += Std.string(Reflect.callMethod(macros, cast fn, callArgs));
+					output += Std.string(NativeTemplate.call(fn, callArgs));
 				} catch (err:Dynamic) {
 					// Dynamic catch is intentional: template macros are user callbacks and
 					// may throw arbitrary Haxe values.
@@ -701,9 +704,5 @@ class Template {
 			out += Std.string(values[index]);
 		}
 		return out;
-	}
-
-	static function anyArrayToSlice(value:Dynamic):Null<Array<Dynamic>> {
-		return untyped __go__("haxe__Template_anyArrayToSlice_runtime({0})", value);
 	}
 }

@@ -491,6 +491,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 				// Native stack capture pulls in Go runtime frame machinery and must remain
 				// footprint-explicit even when users request the broad hxrt runtime bundle.
 				buildContext.nativeStackTraceEnabled;
+			case "template.go": // Dynamic Template invocation needs Go reflection, but programs that do
+				// not use haxe.Template should not pay for that capability in full-copy
+				// mode. Disabling inference remains the explicit all-files escape hatch.
+				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TEMPLATE) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TEMPLATE) >= 0;
 			case "terminal.go", "terminal_darwin.go", "terminal_linux.go", "terminal_posix.go", "terminal_unsupported.go", "terminal_windows.go":
 				// Terminal mode contains a platform syscall boundary and should not add
 				// unsafe-bearing code to programs that never call Sys.getChar. Explicitly

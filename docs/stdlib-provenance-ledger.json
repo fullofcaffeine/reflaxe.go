@@ -34,6 +34,7 @@
       "hxrt_binding": [
         "haxe_go-vfp.5.4",
         "haxe_go-vfp.8.7.10",
+        "haxe_go-vfp.8.7.16",
         "haxe_go-vfp.8.7.3",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
@@ -118,20 +119,6 @@
           "test/test_compiler_stdlib_intrinsic_registry.py"
         ],
         "notes": "The monolithic group is migration debt. Only exact type-metadata and representation primitives separately admitted by the intrinsic registry may remain after the split."
-      },
-      {
-        "group": "template_support",
-        "decision": "migration_required_haxe_go_vfp_8_7_16",
-        "sourcePaths": [
-          "std/go/_std/haxe/Template.hx"
-        ],
-        "references": [
-          "docs/compiler-stdlib-intrinsics.json",
-          "src/reflaxe/go/GoCompiler.hx",
-          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx",
-          "test/test_compiler_stdlib_intrinsic_registry.py"
-        ],
-        "notes": "The three runtime reflection helpers consume no closed compiler metadata and are migration debt beneath the source-owned Template parser and API."
       }
     ]
   },
@@ -233,10 +220,9 @@
       "destination": "std/go/_std/haxe/Template.hx",
       "migrationBead": "haxe_go-vfp.5.3",
       "compilerShimGroups": [
-        "stdlib_symbols",
-        "template_support"
+        "stdlib_symbols"
       ],
-      "notes": "Go staged portable override for haxe.Template execution semantics, keeping template parsing and macro-default behavior out of GoCompiler."
+      "notes": "Go staged portable override for haxe.Template execution semantics. Template parsing, lookup, iteration, macro policy, and rendering remain in Haxe; haxe_go-vfp.8.7.16 moved its three runtime representation operations to a typed hxrt binding."
     },
     {
       "path": "std/go/_std/haxe/atomic/AtomicInt.hx",
@@ -1163,6 +1149,15 @@
       "migrationBead": "haxe_go-vfp.5.4",
       "compilerShimGroups": [],
       "notes": "Go typed extern bridge for the runtime/hxrt/stack.go frame carrier used by the explicit reflaxe_go_native_stack_trace diagnostic capability."
+    },
+    {
+      "path": "std/hxrt/template/NativeTemplate.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/template/NativeTemplate.hx",
+      "migrationBead": "haxe_go-vfp.8.7.16",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge from staged haxe.Template to runtime/hxrt/template.go for dynamic array inspection, object classification, and invocation. All Template lookup, iteration, macro, error, and rendering policy remains in Haxe source."
     },
     {
       "path": "std/hxrt/thread/ConditionHandle.hx",

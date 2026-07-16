@@ -613,7 +613,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Template",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.Template constructor/execute usage now has semantic-diff coverage through a staged std override in std/go/_std/haxe/Template.hx. Evidence: semantic_diff/haxe_template_contract and stdlib/haxe_template_basic.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.Template constructor/execute usage has semantic-diff coverage through a staged std override in std/go/_std/haxe/Template.hx. Parsing, lookup, iteration, macros, errors, and rendering remain source-owned; three dynamic representation operations use the typed std/hxrt/template binding and footprint-explicit runtime/hxrt/template.go. Evidence: semantic_diff/haxe_template_contract, stdlib/haxe_template_basic, and runtime template tests.",
       "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"

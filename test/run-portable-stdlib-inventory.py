@@ -242,9 +242,12 @@ MODULE_NOTES_OVERRIDES = {
         "including parsed CDATA node-type preservation."
     ),
     "haxe.Template": (
-        "Direct haxe.Template constructor/execute usage now has semantic-diff coverage through "
-        "a staged std override in std/go/_std/haxe/Template.hx. Evidence: "
-        "semantic_diff/haxe_template_contract and stdlib/haxe_template_basic."
+        "Direct haxe.Template constructor/execute usage has semantic-diff coverage through "
+        "a staged std override in std/go/_std/haxe/Template.hx. Parsing, lookup, iteration, "
+        "macros, errors, and rendering remain source-owned; three dynamic representation "
+        "operations use the typed std/hxrt/template binding and footprint-explicit "
+        "runtime/hxrt/template.go. Evidence: semantic_diff/haxe_template_contract, "
+        "stdlib/haxe_template_basic, and runtime template tests."
     ),
     "haxe.io.BufferInput": (
         "Direct `haxe.io.BufferInput` constructor and buffered-read baseline now have semantic-diff "

@@ -9,7 +9,7 @@
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "15f5cc9a16cce2e20a9daaf12253c23ad7773d9ca3b943c34f8849c3e325bf80"
+    "portable_stdlib_inventory_sha256": "4646dd37b5a9c5b9b7c71d7d0508e41c41d68646c561017773f42dc591d32db8"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -1899,7 +1899,7 @@
           "upstream_sweep:full_compile",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.Template constructor/execute usage now has semantic-diff coverage through a staged std override in std/go/_std/haxe/Template.hx. Evidence: semantic_diff/haxe_template_contract and stdlib/haxe_template_basic."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct haxe.Template constructor/execute usage has semantic-diff coverage through a staged std override in std/go/_std/haxe/Template.hx. Parsing, lookup, iteration, macros, errors, and rendering remain source-owned; three dynamic representation operations use the typed std/hxrt/template binding and footprint-explicit runtime/hxrt/template.go. Evidence: semantic_diff/haxe_template_contract, stdlib/haxe_template_basic, and runtime template tests."
       },
       {
         "module": "haxe.Timer",

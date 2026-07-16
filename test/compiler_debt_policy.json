@@ -207,18 +207,6 @@
       "surface": "compiler"
     },
     {
-      "capability": "template",
-      "classification": "avoidable",
-      "context": "lowerTemplateSupportShimDecls",
-      "exception_id": "compiler_stdlib_migration_debt",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "compiler_shim",
-      "owner": "compiler_shim",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
       "capability": "reflection",
       "classification": "required",
       "context": "lowerTypeReflectionShimDecls",
@@ -491,18 +479,6 @@
       "max_count": 1,
       "metric": "go_raw",
       "owner": "compiler_core",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
-      "capability": "template",
-      "classification": "avoidable",
-      "context": "lowerTemplateSupportShimDecls",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 59,
-      "metric": "go_raw",
-      "owner": "compiler_shim",
       "profile": "shared",
       "surface": "compiler"
     },
@@ -2091,6 +2067,30 @@
       "surface": "runtime"
     },
     {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "<import>",
+      "exception_id": "runtime_reflection_boundary",
+      "file": "runtime/hxrt/template.go",
+      "max_count": 1,
+      "metric": "go_reflection",
+      "owner": "runtime_hxrt",
+      "profile": "shared",
+      "surface": "runtime"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "<module>",
+      "exception_id": "runtime_reflection_boundary",
+      "file": "runtime/hxrt/template.go",
+      "max_count": 13,
+      "metric": "go_reflection",
+      "owner": "runtime_hxrt",
+      "profile": "shared",
+      "surface": "runtime"
+    },
+    {
       "capability": "sys",
       "classification": "required",
       "context": "<import>",
@@ -2349,18 +2349,6 @@
       "exception_id": "staged_std_dynamic_contract",
       "file": "std/go/_std/haxe/Template.hx",
       "max_count": 3,
-      "metric": "haxe_dynamic",
-      "owner": "staged_std",
-      "profile": "shared",
-      "surface": "staged_std"
-    },
-    {
-      "capability": "template",
-      "classification": "required",
-      "context": "anyArrayToSlice",
-      "exception_id": "staged_std_dynamic_contract",
-      "file": "std/go/_std/haxe/Template.hx",
-      "max_count": 2,
       "metric": "haxe_dynamic",
       "owner": "staged_std",
       "profile": "shared",
@@ -3332,6 +3320,42 @@
       "context": "println",
       "exception_id": "runtime_facade_dynamic_contract",
       "file": "std/hxrt/sys/NativeConsole.hx",
+      "max_count": 1,
+      "metric": "haxe_dynamic",
+      "owner": "runtime_facade",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "template",
+      "classification": "required",
+      "context": "arrayValues",
+      "exception_id": "runtime_facade_dynamic_contract",
+      "file": "std/hxrt/template/NativeTemplate.hx",
+      "max_count": 2,
+      "metric": "haxe_dynamic",
+      "owner": "runtime_facade",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "template",
+      "classification": "required",
+      "context": "call",
+      "exception_id": "runtime_facade_dynamic_contract",
+      "file": "std/hxrt/template/NativeTemplate.hx",
+      "max_count": 3,
+      "metric": "haxe_dynamic",
+      "owner": "runtime_facade",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "template",
+      "classification": "required",
+      "context": "isObject",
+      "exception_id": "runtime_facade_dynamic_contract",
+      "file": "std/hxrt/template/NativeTemplate.hx",
       "max_count": 1,
       "metric": "haxe_dynamic",
       "owner": "runtime_facade",

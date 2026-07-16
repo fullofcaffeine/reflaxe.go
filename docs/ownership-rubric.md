@@ -264,9 +264,9 @@ When ownership changes for a portable surface, update all relevant artifacts in 
 These examples represent the intended direction:
 
 - `haxe.Template`
-  - semantics in staged std
-  - its remaining compiler-generated runtime reflection bridge is migration debt,
-    not an approved pattern
+  - parsing, lookup, iteration, macro handling, errors, and rendering in staged std
+  - only dynamic array inspection, object classification, and invocation cross the
+    typed, selectively copied `hxrt` runtime boundary
 - direct `haxe.exceptions.*` construction
   - staged std ownership for the subclass surface
   - `hxrt` carrier for runtime exception transport

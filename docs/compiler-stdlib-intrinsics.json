@@ -170,14 +170,13 @@
       "reviewCondition": "Close only when haxe_go-vfp.8.7.13 replaces the mixed behavior-heavy emitter with source ownership plus narrow metadata primitives."
     },
     "migration_runtime_reflection": {
-      "what": "Move runtime-only Reflect helper behavior out of compiler-generated declarations.",
-      "why": "Field enumeration, property lookup, object checks, and method invocation inspect runtime values and do not consume the compiler's closed metadata table.",
-      "how": "Use staged helper islands or narrow hxrt reflection capabilities while keeping generated metadata work separately registered.",
+      "what": "Move runtime-only Reflect.fields behavior out of compiler-generated declarations.",
+      "why": "Field enumeration inspects runtime values and does not consume the compiler's closed metadata table.",
+      "how": "Use a staged helper island or narrow hxrt reflection capability while keeping generated metadata work separately registered.",
       "evidence": [
-        "reflect_dynamic_fields_contract",
-        "haxe_template_contract"
+        "reflect_dynamic_fields_contract"
       ],
-      "reviewCondition": "Remove each entry under haxe_go-vfp.8.7.15 or haxe_go-vfp.8.7.16 once equivalent typed runtime behavior lands."
+      "reviewCondition": "Remove under haxe_go-vfp.8.7.15 once equivalent typed runtime behavior lands."
     },
     "migration_stdlib_symbols": {
       "what": "Split the monolithic Date, Math, Unicode, Reflect, Xml, crypto, XML, zip, Option, parsing, logging, and nominal-symbol block by its correct source or runtime owner.",
@@ -188,16 +187,6 @@
         "test/semantic_diff"
       ],
       "reviewCondition": "Close only when haxe_go-vfp.8.7.15 retires lowerStdlibSymbolShimDecls and registers any exact residual primitive."
-    },
-    "migration_template": {
-      "what": "Remove the compiler-generated runtime reflection bridge beneath staged haxe.Template.",
-      "why": "The three helpers operate only on runtime values and do not require compiler metadata or target representation policy.",
-      "how": "Replace them with a typed staged helper island or hxrt capability and remove template_support.",
-      "evidence": [
-        "haxe_template_contract",
-        "stdlib/haxe_template_basic"
-      ],
-      "reviewCondition": "Close only when haxe_go-vfp.8.7.16 removes the template group and its debt allowance."
     }
   },
   "dispatcher": {
@@ -404,25 +393,6 @@
           "followUpBead": "haxe_go-vfp.8.7.15"
         }
       ]
-    },
-    {
-      "group": "template_support",
-      "entryPoint": "lowerTemplateSupportShimDecls",
-      "status": "migration_required",
-      "decisionId": "migration_template",
-      "followUpBead": "haxe_go-vfp.8.7.16",
-      "ownedSymbols": [
-        {"symbol": "Reflect.callMethod", "scope": "member"},
-        {"symbol": "Reflect.getProperty", "scope": "member"},
-        {"symbol": "Reflect.isObject", "scope": "member"}
-      ],
-      "compilerOwnedAuthorities": [],
-      "classifierSelections": [],
-      "plannerSelections": [
-        "haxe.Template"
-      ],
-      "dependencies": [],
-      "declaresDependencyBlock": false
     }
   ],
   "directLowerings": [

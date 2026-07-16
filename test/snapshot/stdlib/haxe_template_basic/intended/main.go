@@ -2320,7 +2320,7 @@ func Type_getClassFields(c any) []*string {
 	case "haxe.Int64Helper":
 		return []*string{}
 	case "haxe.Template":
-		return []*string{hxrt.StringFromLiteral("addValues"), hxrt.StringFromLiteral("anyArrayToSlice"), hxrt.StringFromLiteral("compareValues"), hxrt.StringFromLiteral("divideValues"), hxrt.StringFromLiteral("expr_float"), hxrt.StringFromLiteral("expr_int"), hxrt.StringFromLiteral("expr_splitter"), hxrt.StringFromLiteral("expr_trim"), hxrt.StringFromLiteral("globals"), hxrt.StringFromLiteral("isSpaceOnly"), hxrt.StringFromLiteral("joinDynamicArgs"), hxrt.StringFromLiteral("kwdEnd"), hxrt.StringFromLiteral("multiplyValues"), hxrt.StringFromLiteral("parseFloatLiteral"), hxrt.StringFromLiteral("parseIntLiteral"), hxrt.StringFromLiteral("peekExprToken"), hxrt.StringFromLiteral("peekToken"), hxrt.StringFromLiteral("popExprToken"), hxrt.StringFromLiteral("popToken"), hxrt.StringFromLiteral("splitter"), hxrt.StringFromLiteral("subtractValues"), hxrt.StringFromLiteral("trimExprToken"), hxrt.StringFromLiteral("valueAsBool"), hxrt.StringFromLiteral("valueAsFloat")}
+		return []*string{hxrt.StringFromLiteral("addValues"), hxrt.StringFromLiteral("compareValues"), hxrt.StringFromLiteral("divideValues"), hxrt.StringFromLiteral("expr_float"), hxrt.StringFromLiteral("expr_int"), hxrt.StringFromLiteral("expr_splitter"), hxrt.StringFromLiteral("expr_trim"), hxrt.StringFromLiteral("globals"), hxrt.StringFromLiteral("isSpaceOnly"), hxrt.StringFromLiteral("joinDynamicArgs"), hxrt.StringFromLiteral("kwdEnd"), hxrt.StringFromLiteral("multiplyValues"), hxrt.StringFromLiteral("parseFloatLiteral"), hxrt.StringFromLiteral("parseIntLiteral"), hxrt.StringFromLiteral("peekExprToken"), hxrt.StringFromLiteral("peekToken"), hxrt.StringFromLiteral("popExprToken"), hxrt.StringFromLiteral("popToken"), hxrt.StringFromLiteral("splitter"), hxrt.StringFromLiteral("subtractValues"), hxrt.StringFromLiteral("trimExprToken"), hxrt.StringFromLiteral("valueAsBool"), hxrt.StringFromLiteral("valueAsFloat")}
 	case "haxe._Int32.Int32_Impl_":
 		return []*string{}
 	case "haxe._Int64.Int64_Impl_":
@@ -2704,78 +2704,6 @@ func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
 	default:
 		return nil, false
 	}
-}
-
-func haxe__Template_anyArrayToSlice_runtime(value any) []any {
-	if value == nil {
-		return nil
-	}
-	rv := reflect.ValueOf(value)
-	if !rv.IsValid() {
-		return nil
-	}
-	if rv.Kind() == reflect.Pointer {
-		if rv.IsNil() {
-			return nil
-		}
-		rv = rv.Elem()
-	}
-	if rv.Kind() != reflect.Slice && rv.Kind() != reflect.Array {
-		return nil
-	}
-	out := make([]any, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		item := rv.Index(i)
-		if item.CanInterface() {
-			out[i] = item.Interface()
-		}
-	}
-	return out
-}
-
-func Reflect_getProperty(obj any, field *string) any {
-	return Reflect_field(obj, field)
-}
-
-func Reflect_isObject(obj any) bool {
-	if obj == nil {
-		return false
-	}
-	rv := reflect.ValueOf(obj)
-	if !rv.IsValid() {
-		return false
-	}
-	switch rv.Kind() {
-	case reflect.Pointer, reflect.Interface:
-		if rv.IsNil() {
-			return false
-		}
-		return Reflect_isObject(rv.Elem().Interface())
-	case reflect.Struct, reflect.Map:
-		return true
-	default:
-		return false
-	}
-}
-
-func Reflect_callMethod(obj any, funcValue any, args []any) any {
-	_ = obj
-	if funcValue == nil {
-		return nil
-	}
-	fn := reflect.ValueOf(funcValue)
-	if !fn.IsValid() || fn.Kind() != reflect.Func {
-		return nil
-	}
-	callArgs := make([]reflect.Value, 0, len(args))
-	for _, arg := range args {
-		callArgs = append(callArgs, reflect.ValueOf(arg))
-	}
-	results := fn.Call(callArgs)
-	if len(results) == 0 {
-		return nil
-	}
-	return results[0].Interface()
 }
 
 type EReg struct {

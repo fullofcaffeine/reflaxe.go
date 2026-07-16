@@ -33,6 +33,7 @@ class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_SSL = "ssl";
 	public static inline final FEATURE_THREAD = "thread";
 	public static inline final FEATURE_STACK = "stack";
+	public static inline final FEATURE_TEMPLATE = "template";
 	public static inline final FEATURE_ENUM_VALUE = "enum_value";
 	public static inline final FEATURE_MAP_INT = "map_int";
 	public static inline final FEATURE_MAP_STRING = "map_string";
@@ -55,6 +56,7 @@ class GoHxrtFeatureAnalyzer {
 		FEATURE_SSL,
 		FEATURE_THREAD,
 		FEATURE_STACK,
+		FEATURE_TEMPLATE,
 		FEATURE_ENUM_VALUE,
 		FEATURE_MAP_INT,
 		FEATURE_MAP_STRING,
@@ -137,6 +139,10 @@ class GoHxrtFeatureAnalyzer {
 
 			if (StringTools.startsWith(path, "hxrt.stack.")) {
 				add(FEATURE_STACK, "class_usage", path);
+			}
+
+			if (path == "haxe.Template" || path == "hxrt.template.NativeTemplate") {
+				add(FEATURE_TEMPLATE, "class_usage", path);
 			}
 
 			if (StringTools.startsWith(path, "haxe.io.")) {
@@ -301,6 +307,8 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_CORE, FEATURE_EXCEPTION];
 			case FEATURE_STACK:
 				[FEATURE_STRING];
+			case FEATURE_TEMPLATE:
+				[FEATURE_CORE];
 			case FEATURE_MAP_STRING:
 				[FEATURE_STRING];
 			case FEATURE_MAP_OBJECT:
@@ -347,6 +355,8 @@ class GoHxrtFeatureAnalyzer {
 				["thread.go"];
 			case FEATURE_STACK:
 				["stack.go"];
+			case FEATURE_TEMPLATE:
+				["template.go"];
 			case FEATURE_ENUM_VALUE:
 				["enum_value.go"];
 			case FEATURE_MAP_INT:

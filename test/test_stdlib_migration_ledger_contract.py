@@ -170,6 +170,10 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/stack/NativeStackFrame.hx",
     ),
+    "std/hxrt/template/NativeTemplate.hx": (
+        "hxrt_binding",
+        "std/hxrt/template/NativeTemplate.hx",
+    ),
     "std/_std/hxrt/thread/ConditionHandle.hx": (
         "hxrt_binding",
         "std/hxrt/thread/ConditionHandle.hx",
@@ -200,7 +204,7 @@ for special_owner, special_destination in SOURCE_SPECIAL_DESTINATIONS.values():
     SPECIAL_DESTINATIONS[special_destination] = (special_owner, special_destination)
 
 SOURCE_EXPECTED_SHIM_GROUPS = {
-    "std/haxe/Template.cross.hx": ["stdlib_symbols", "template_support"],
+    "std/haxe/Template.cross.hx": ["stdlib_symbols"],
     "std/haxe/ds/BalancedTree.cross.hx": ["stdlib_symbols"],
     "std/haxe/io/FPHelper.cross.hx": ["stdlib_symbols"],
     "std/haxe/io/GoIoHelpers.cross.hx": ["io"],
@@ -225,7 +229,6 @@ EXPECTED_SHIM_AUDIT_DECISIONS = {
     "io": "migration_required_haxe_go_vfp_8_7_11",
     "net_socket": "migration_required_haxe_go_vfp_8_7_14",
     "stdlib_symbols": "split_migration_debt_from_exact_intrinsics_haxe_go_vfp_8_7_15",
-    "template_support": "migration_required_haxe_go_vfp_8_7_16",
 }
 
 SHIM_AUDIT_AUTHORITY_REFERENCES = {
@@ -624,6 +627,138 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             ),
             "source-owned sys.io.Process must not retain a compiler-shim debt allowance",
         )
+
+    def test_template_runtime_bridge_is_typed_hxrt_instead_of_a_compiler_shim(self) -> None:
+        ledger = load_ledger()
+        ledger_entries = {entry["path"]: entry for entry in ledger["entries"]}
+        template_entry = ledger_entries.get("std/go/_std/haxe/Template.hx")
+        native_entry = ledger_entries.get("std/hxrt/template/NativeTemplate.hx")
+
+        self.assertIsNotNone(template_entry)
+        self.assertEqual(["stdlib_symbols"], template_entry.get("compilerShimGroups"))
+        self.assertEqual("hxrt_binding", native_entry.get("ownershipClass"))
+        self.assertEqual("haxe_go-vfp.8.7.16", native_entry.get("migrationBead"))
+        self.assertEqual([], native_entry.get("compilerShimGroups"))
+        self.assertIn(
+            "haxe_go-vfp.8.7.16",
+            ledger["migrationContract"]["migrationBeads"]["hxrt_binding"],
+        )
+        self.assertFalse(
+            any(
+                entry.get("group") == "template_support"
+                for entry in ledger["migrationContract"]["compilerShimAudit"]
+            )
+        )
+
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")
+        planner = (
+            ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ).read_text(encoding="utf-8")
+        feature_analyzer = (
+            ROOT / "src/reflaxe/go/compiler/GoHxrtFeatureAnalyzer.hx"
+        ).read_text(encoding="utf-8")
+        reflaxe_compiler = (
+            ROOT / "src/reflaxe/go/GoReflaxeCompiler.hx"
+        ).read_text(encoding="utf-8")
+        debt_policy = json.loads(
+            (ROOT / "test/compiler_debt_policy.json").read_text(encoding="utf-8")
+        )
+        debt_ratchet = (ROOT / "test/run-compiler-debt-ratchet.py").read_text(
+            encoding="utf-8"
+        )
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
+        )
+        staged_template = (ROOT / "std/go/_std/haxe/Template.hx").read_text(
+            encoding="utf-8"
+        )
+        native_template = (
+            ROOT / "std/hxrt/template/NativeTemplate.hx"
+        ).read_text(encoding="utf-8")
+        runtime_template = (ROOT / "runtime/hxrt/template.go").read_text(
+            encoding="utf-8"
+        )
+
+        for fragment in (
+            "lowerTemplateSupportShimDecls",
+            'requiredStdlibShimGroups.exists("template_support")',
+            "haxe__Template_anyArrayToSlice_runtime",
+            'GoFuncDecl("Reflect_getProperty"',
+            'GoFuncDecl("Reflect_isObject"',
+            'GoFuncDecl("Reflect_callMethod"',
+        ):
+            self.assertNotIn(fragment, compiler, fragment)
+        self.assertNotIn('requireStdlibShimGroup("template_support")', planner)
+
+        for fragment in (
+            "import hxrt.template.NativeTemplate",
+            "NativeTemplate.arrayValues",
+            "NativeTemplate.isObject",
+            "NativeTemplate.call",
+        ):
+            self.assertIn(fragment, staged_template, fragment)
+        for fragment in ("__go__", "GoInjection", "@:goAllowRaw"):
+            self.assertNotIn(fragment, staged_template, fragment)
+
+        for heading in ("What", "Why", "How"):
+            self.assertIn(heading, native_template)
+        for fragment in (
+            '@:go.name("TemplateArrayValues")',
+            '@:go.name("TemplateIsObject")',
+            '@:go.name("TemplateCall")',
+        ):
+            self.assertIn(fragment, native_template, fragment)
+        for signature in (
+            "func TemplateArrayValues(value any) []any",
+            "func TemplateIsObject(value any) bool",
+            "func TemplateCall(funcValue any, args []any) any",
+        ):
+            self.assertIn(signature, runtime_template, signature)
+
+        self.assertIn('FEATURE_TEMPLATE = "template"', feature_analyzer)
+        self.assertIn('path == "hxrt.template.NativeTemplate"', feature_analyzer)
+        self.assertIn('["template.go"]', feature_analyzer)
+        self.assertIn('case "template.go":', reflaxe_compiler)
+
+        generated_root = ROOT / "test/snapshot/stdlib/haxe_template_basic/intended"
+        generated_main = (generated_root / "main.go").read_text(encoding="utf-8")
+        generated_template = (generated_root / "module_haxe_template.go").read_text(
+            encoding="utf-8"
+        )
+        for fragment in (
+            "haxe__Template_anyArrayToSlice_runtime",
+            "func Reflect_getProperty",
+            "func Reflect_isObject",
+            "func Reflect_callMethod",
+        ):
+            self.assertNotIn(fragment, generated_main, fragment)
+        for fragment in (
+            "hxrt.TemplateArrayValues",
+            "hxrt.TemplateIsObject",
+            "hxrt.TemplateCall",
+        ):
+            self.assertIn(fragment, generated_template, fragment)
+        self.assertTrue((generated_root / "hxrt/template.go").is_file())
+        self.assertFalse(
+            (
+                ROOT
+                / "test/snapshot/core/const_kinds_contract/intended/hxrt/template.go"
+            ).exists(),
+            "Template-only reflection support must not enter unrelated generated programs",
+        )
+
+        self.assertFalse(
+            any(group.get("group") == "template_support" for group in registry["groups"])
+        )
+        self.assertNotIn("migration_template", registry["decisions"])
+        self.assertFalse(
+            any(
+                limit.get("capability") == "template"
+                and limit.get("metric") in {"compiler_shim", "go_raw"}
+                for limit in debt_policy["limits"]
+            )
+        )
+        self.assertNotIn('"lowerTemplateSupportShimDecls": "template"', debt_ratchet)
 
     def test_atomic_is_source_owned_instead_of_a_compiler_shim(self) -> None:
         ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
