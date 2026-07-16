@@ -76,4 +76,13 @@ model was not accepted as a provenance substitute. The current refactor uses
 the documented written `thinking:xhigh` fallback; any decision to deprecate the
 global selector still requires a genuine independent review.
 
+The concrete generated-iterator gap has a focused pre-refactor checkpoint:
+
+- [generated method access for staged Template and future Reflect](review-prompt-7d5544e7-template-method-adapter.md).
+
+This prompt pins the current source, records both observed failure modes, and
+asks the independent reviewer to choose the metadata/adapter boundary before
+`haxe_go-vfp.8.7.19` changes generated representation. No review response has
+been received yet.
+
 The local finding-by-finding disposition is recorded on Bead `haxe_go-vfp.3.3`; accepted findings remain owned by their dependency-ordered implementation beads rather than by this evidence directory.
