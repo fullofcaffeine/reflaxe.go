@@ -318,8 +318,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "UnicodeString",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "unassigned",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged UnicodeString owns code-point bounds, slicing, searching, comparison, iteration, operators, and UTF-8 validation. Typed GoStringRuntime calls expose only rune length, code-point lookup, and already-normalized slicing over the Go string representation. Evidence: unicode_string_source_owned and stdlib/unicode_string_basic.",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },

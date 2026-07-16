@@ -36,6 +36,7 @@ SEMANTIC_DIFF_EXPLICIT = {
     "Std",
     "StringTools",
     "Type",
+    "UnicodeString",
     "haxe.Exception",
     "haxe.Int32",
     "haxe.Int64",
@@ -115,6 +116,7 @@ OWNER_OVERRIDES = {
     "DateTools": "staged_std",
     "Math": "mixed",
     "StringTools": "staged_std",
+    "UnicodeString": "staged_std",
     "haxe.SysTools": "staged_std",
     "haxe.io.Path": "staged_std",
     "haxe.NativeStackTrace": "staged_std",
@@ -178,6 +180,12 @@ UNSUPPORTED_EXPLICIT = {
 }
 
 MODULE_NOTES_OVERRIDES = {
+	"UnicodeString": (
+		"Canonical staged UnicodeString owns code-point bounds, slicing, searching, comparison, "
+		"iteration, operators, and UTF-8 validation. Typed GoStringRuntime calls expose only rune "
+		"length, code-point lookup, and already-normalized slicing over the Go string representation. "
+		"Evidence: unicode_string_source_owned and stdlib/unicode_string_basic."
+	),
 	"Date": (
 		"Canonical staged Date owns the epoch-millisecond carrier and complete Haxe 4.3.7 API. "
 		"Typed std/hxrt/date delegates only host clock, timezone, parsing, formatting, and calendar "

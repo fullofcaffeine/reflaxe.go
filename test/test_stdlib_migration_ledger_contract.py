@@ -1166,6 +1166,97 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             ).exists()
         )
 
+    def test_unicode_string_algorithms_are_source_owned(self) -> None:
+        ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")
+        classifier = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx"
+        ).read_text(encoding="utf-8")
+        planner = (
+            ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ).read_text(encoding="utf-8")
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
+        )
+
+        for path in ("UnicodeString", "_UnicodeString.UnicodeString_Impl_"):
+            self.assertNotIn(f'path: "{path}"', classifier)
+        self.assertIn(
+            'case "UnicodeString", "_UnicodeString.UnicodeString_Impl_"', planner
+        )
+        self.assertIn(
+            'requireSourceOwnedStdlibClass("haxe.iterators.StringIteratorUnicode")',
+            planner,
+        )
+        self.assertIn(
+            'requireSourceOwnedStdlibClass("haxe.iterators.StringKeyValueIteratorUnicode")',
+            planner,
+        )
+
+        stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
+        stdlib_end = compiler.index("function reflectFieldsShimDecl", stdlib_start)
+        stdlib_emitter = compiler[stdlib_start:stdlib_end]
+        self.assertNotIn("_UnicodeString__UnicodeString_Impl__", stdlib_emitter)
+
+        self.assertNotIn("function shouldSkipStaticDefaultArgPadding", compiler)
+
+        stdlib_group = next(
+            group for group in registry["groups"] if group["group"] == "stdlib_symbols"
+        )
+        owned_symbols = {entry["symbol"] for entry in stdlib_group["ownedSymbols"]}
+        selected_paths = {
+            entry["path"] for entry in stdlib_group["classifierSelections"]
+        }
+        self.assertNotIn("UnicodeString", owned_symbols)
+        self.assertNotIn("UnicodeString", selected_paths)
+        self.assertNotIn("_UnicodeString.UnicodeString_Impl_", selected_paths)
+
+        source_path = "std/go/_std/UnicodeString.hx"
+        entry = ledger_entries.get(source_path)
+        self.assertIsNotNone(entry, source_path)
+        self.assertEqual("upstream_std_override", entry.get("ownershipClass"))
+        self.assertEqual("haxe_go-vfp.8.7.15.5", entry.get("migrationBead"))
+        self.assertEqual([], entry.get("compilerShimGroups"))
+
+        staged_source = (ROOT / source_path).read_text(encoding="utf-8")
+        self.assertIn(
+            "The mainstream Haxe stdlib implementation cannot be used unchanged",
+            staged_source,
+        )
+        for function_name in (
+            "charAt",
+            "charCodeAt",
+            "indexOf",
+            "lastIndexOf",
+            "substr",
+            "substring",
+            "validate",
+        ):
+            self.assertIn(f"function {function_name}(", staged_source)
+        self.assertNotIn("@:op(A += B)", staged_source)
+        self.assertNotIn("GoInjection", staged_source)
+        self.assertNotIn("__go__", staged_source)
+
+        runtime_binding = (ROOT / "std/hxrt/string/GoStringRuntime.hx").read_text(
+            encoding="utf-8"
+        )
+        runtime_string = (ROOT / "runtime/hxrt/string.go").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("function length(value:String):Int", runtime_binding)
+        self.assertIn("function sliceCodePoints(", runtime_binding)
+        self.assertIn("func StringSliceCodePointsStringPtr(", runtime_string)
+
+        generated_root = ROOT / "test/snapshot/stdlib/unicode_string_basic/intended"
+        self.assertTrue((generated_root / "module_unicodestring.go").is_file())
+        self.assertNotIn(
+            "_UnicodeString__UnicodeString_Impl__get_length",
+            (generated_root / "main.go").read_text(encoding="utf-8"),
+        )
+        self.assertFalse(
+            (ROOT / "test/snapshot/core/const_kinds_contract/intended/module_unicodestring.go").exists()
+        )
+
     def test_atomic_is_source_owned_instead_of_a_compiler_shim(self) -> None:
         ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
         expected_owners = {

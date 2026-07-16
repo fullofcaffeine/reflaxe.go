@@ -1525,3 +1525,73 @@ Observed result:
 - The canonical package now contains 85 staged overrides, 323 manifest entries,
   and 324 archive members. This slice does not claim closure of the remaining
   Unicode, Reflect/Type, Std/Option, logging, or serializer migration work.
+
+### 2026-07-16: move root `UnicodeString` algorithms to staged std ownership (`haxe_go-vfp.8.7.15.5`)
+
+Implementation:
+
+- Added red semantic-diff, snapshot/runtime, ownership, and direct runtime
+  contracts before changing the compiler. The cases cover astral code points,
+  negative and out-of-range positions, reversed and omitted ranges, negative
+  substring lengths, overlapping and empty searches, both iterator forms,
+  comparisons, mixed concatenation, compound assignment, valid one- through
+  four-byte UTF-8, malformed continuation/overlong/truncated/surrogate/range
+  sequences, and the required `RawNative` error.
+- Tried the mainstream Haxe 4.3.7 source unchanged first. It cannot run
+  unchanged on this target: the selected UTF-16 branch assumes native code-unit
+  indexing even though pointer-backed Go strings are already rune-indexed, its
+  constructor parameter shadows Go's built-in `string` type, and its
+  declaration-only abstract operators lower without usable string types.
+- Added canonical `std/go/_std/UnicodeString.hx`. Ordinary Haxe now owns every
+  bounds, slicing, search, comparison, iterator, operator, and UTF-8 validation
+  rule. Relational comparison walks typed code points in Haxe, and compound
+  assignment intentionally reuses the typed `+` operators so the returned value
+  is assigned instead of becoming a discarded Go call.
+- Expanded the existing typed `GoStringRuntime` boundary with only rune length
+  and already-normalized code-point slicing. The new Go helper performs the
+  representation conversion and no Haxe range policy; existing typed
+  `charCodeAt` remains the only lookup primitive.
+- Removed all eight UnicodeString compiler declarations, both classifier
+  routes, intrinsic-registry ownership, and the final static default-argument
+  exception. Direct use now plans the staged module plus its two staged Unicode
+  iterator classes on demand.
+- Updated provenance, inventory, compatibility, package-layout, rationale, and
+  fail-closed ownership records. Governance now covers 140 sources: 86
+  upstream/staged overrides, 44 typed `hxrt` bindings, five public Go facades,
+  and five staged support files.
+
+Validation evidence:
+
+- `npm run test:changed`
+- `npm test` (`274/274` snapshots)
+- `npm run test:semantic-diff` (`138/138` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance`, `npm run test:stdlib-inventory`, and
+  `npm run compatibility:verify`
+- `npm run test:compiler-debt` (`3,879` `GoRaw` sites, `225` raw sites in the
+  remaining `stdlib_symbols` group, and `13` compiler shim entry points)
+- direct `runtime/hxrt` Go tests and raw-injection hygiene
+- `npm run test:perf:hxrt-selective`
+- `npm run test:perf:stdlib-shims`
+- `npm run test:perf:go` (seven warning-only startup signals, zero enforced hard
+  failures, and one explicitly non-enforced hard-gate dry-run candidate)
+- `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates)
+- `npm run test:release-contracts`
+
+Observed result:
+
+- Root UnicodeString behavior now originates in documented Haxe source. No
+  algorithm, default, bounds rule, validation state machine, `Dynamic`, `Any`,
+  raw injection, unsafe conversion, or legacy profile branch was added to a
+  compiler or runtime shim.
+- The `stdlib_symbols` raw allowance falls permanently from 441 to 225 sites,
+  and repository-wide `GoRaw` debt falls by 216 sites, from 4,095 to 3,879.
+- Snapshot regeneration changes 254 generated files, removing 7,941 lines and
+  adding 2,849. Only the direct UnicodeString and `haxe.Utf8` consumers gain
+  ordinary Unicode source modules; 25 unrelated `main.go` files lose the old
+  compiler block, while shared string-runtime snapshots gain the seven-line
+  representation primitive.
+- The canonical package now contains 86 staged overrides, 324 manifest entries,
+  and 325 archive members. This slice does not claim closure of the remaining
+  Reflect/Type, Std/Option, logging, or serializer migration work.

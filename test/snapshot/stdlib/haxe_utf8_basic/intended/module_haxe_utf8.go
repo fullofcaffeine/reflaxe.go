@@ -32,32 +32,32 @@ func haxe__Utf8_charCodeAt(s *string, index int) int {
 }
 
 func haxe__Utf8_codePointToString(code int) *string {
-	var hx_if_3 []int
+	var hx_if_9 []int
 	if code < 128 {
-		hx_if_3 = []int{code}
+		hx_if_9 = []int{code}
 	} else {
-		var hx_if_2 []int
+		var hx_if_8 []int
 		if code < 2048 {
-			hx_if_2 = []int{int(int32((hxrt.Int32Wrap(192) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63))))))))}
+			hx_if_8 = []int{int(int32((hxrt.Int32Wrap(192) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63))))))))}
 		} else {
-			var hx_if_1 []int
+			var hx_if_7 []int
 			if code < 65536 {
-				hx_if_1 = []int{int(int32((hxrt.Int32Wrap(224) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(12)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63))))))))}
+				hx_if_7 = []int{int(int32((hxrt.Int32Wrap(224) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(12)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63))))))))}
 			} else {
-				hx_if_1 = []int{int(int32((hxrt.Int32Wrap(240) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(18)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(12))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63))))))))}
+				hx_if_7 = []int{int(int32((hxrt.Int32Wrap(240) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(18)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(12))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63))))))))}
 			}
-			hx_if_2 = hx_if_1
+			hx_if_8 = hx_if_7
 		}
-		hx_if_3 = hx_if_2
+		hx_if_9 = hx_if_8
 	}
-	raw := hx_if_3
+	raw := hx_if_9
 	bytes := haxe__io__Bytes_alloc(len(raw))
 	_g := 0
 	_g1 := len(raw)
 	for _g < _g1 {
-		hx_post_4 := _g
+		hx_post_10 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_4
+		index := hx_post_10
 		bytes.b[index] = int(int32((hxrt.Int32Wrap(raw[index]) & hxrt.Int32Wrap(255))))
 	}
 	return bytes.toString()
@@ -66,19 +66,19 @@ func haxe__Utf8_codePointToString(code int) *string {
 func haxe__Utf8_compare(a *string, b *string) int {
 	left := haxe__io__Bytes_ofString(a)
 	right := haxe__io__Bytes_ofString(b)
-	var hx_if_5 int
+	var hx_if_11 int
 	if left.length < right.length {
-		hx_if_5 = left.length
+		hx_if_11 = left.length
 	} else {
-		hx_if_5 = right.length
+		hx_if_11 = right.length
 	}
-	limit := hx_if_5
+	limit := hx_if_11
 	_g := 0
 	_g1 := limit
 	for _g < _g1 {
-		hx_post_6 := _g
+		hx_post_12 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_6
+		index := hx_post_12
 		l := left.b[index]
 		r := right.b[index]
 		if l > r {
@@ -102,25 +102,25 @@ func haxe__Utf8_decode(s *string) *string {
 	_g := 0
 	_g1 := hxrt.StringLengthStringPtr(s)
 	for _g < _g1 {
-		hx_post_7 := _g
+		hx_post_13 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_7
+		index := hx_post_13
 		var c any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
-		var hx_if_8 int
+		var hx_if_14 int
 		if c == nil {
-			hx_if_8 = -1
+			hx_if_14 = -1
 		} else {
-			hx_if_8 = c.(int)
+			hx_if_14 = c.(int)
 		}
-		code := hx_if_8
+		code := hx_if_14
 		bytes.b[index] = int(int32((hxrt.Int32Wrap(func() int {
-			var hx_if_9 int
+			var hx_if_15 int
 			if code < 0 {
-				hx_if_9 = 0
+				hx_if_15 = 0
 			} else {
-				hx_if_9 = int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(255))))
+				hx_if_15 = int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(255))))
 			}
-			return hx_if_9
+			return hx_if_15
 		}()) & hxrt.Int32Wrap(255))))
 	}
 	return bytes.toString()
@@ -132,9 +132,9 @@ func haxe__Utf8_encode(s *string) *string {
 	_g := 0
 	_g1 := bytes.length
 	for _g < _g1 {
-		hx_post_10 := _g
+		hx_post_16 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_10
+		index := hx_post_16
 		out = hxrt.StringConcatStringPtr(out, haxe__Utf8_codePointToString(bytes.b[index]))
 	}
 	return out
@@ -143,11 +143,17 @@ func haxe__Utf8_encode(s *string) *string {
 func haxe__Utf8_iter(s *string, chars func(int)) {
 	var unicode any = s
 	_g := 0
-	_g1 := _UnicodeString__UnicodeString_Impl__get_length(hxrt.StdString(unicode))
+	_g1 := hxrt.StringLengthStringPtr(hxrt.StdString(func(hx_value_17 any) *string {
+		if hx_value_17 == nil {
+			var hx_zero_18 *string
+			return hx_zero_18
+		}
+		return hx_value_17.(*string)
+	}(unicode)))
 	for _g < _g1 {
-		hx_post_11 := _g
+		hx_post_19 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_11
+		index := hx_post_19
 		chars(hxrt.StringCharCodeAtStringPtr(s, index))
 	}
 }

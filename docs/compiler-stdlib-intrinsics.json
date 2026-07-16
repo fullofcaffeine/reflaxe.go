@@ -329,7 +329,6 @@
         {"symbol": "Reflect", "scope": "partial_type", "members": ["compare", "compareMethods", "field", "hasField", "setField"]},
         {"symbol": "Std", "scope": "partial_type", "members": ["<nominal type carrier>"]},
         {"symbol": "Type", "scope": "complete_type"},
-        {"symbol": "UnicodeString", "scope": "partial_type", "members": ["charAt", "charCodeAt", "get_length", "indexOf", "lastIndexOf", "substr", "substring", "validate"]},
         {"symbol": "haxe.ds.Option", "scope": "complete_type"}
       ],
       "compilerOwnedAuthorities": [],
@@ -337,8 +336,6 @@
         {"kind": "class", "path": "Reflect"},
         {"kind": "class", "path": "Std"},
         {"kind": "class", "path": "Type"},
-        {"kind": "class", "path": "UnicodeString"},
-        {"kind": "class", "path": "_UnicodeString.UnicodeString_Impl_"},
         {"kind": "class", "path": "haxe.ds.BalancedTree"},
         {"kind": "class", "path": "haxe.io.Path"},
         {"kind": "enum", "path": "haxe.ds.Option"}

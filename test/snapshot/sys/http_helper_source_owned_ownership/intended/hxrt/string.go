@@ -192,6 +192,13 @@ func StringCharCodeAtStringPtr(value *string, index int) int {
 	return -1
 }
 
+// StringSliceCodePointsStringPtr exposes Go's rune-aware string representation
+// to typed staged std code. Haxe owns bounds and range policy; this helper only
+// converts an already-normalized half-open code-point range into a string.
+func StringSliceCodePointsStringPtr(value *string, start int, end int) *string {
+	return StringFromLiteral(sliceStringByRuneRange(stringValueOrNullToken(value), start, end))
+}
+
 func StringCharCodeAtAnyStringPtr(value *string, index int) any {
 	code := StringCharCodeAtStringPtr(value, index)
 	if code < 0 {

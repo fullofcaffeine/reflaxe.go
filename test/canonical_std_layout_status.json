@@ -4,16 +4,16 @@
   "expectedViolationCodes": [],
   "snapshotChangePolicy": "packaging-only-no-generated-output-change",
   "closeoutEvidence": {
-    "canonicalOverrideSources": 85,
-    "ledgerEntries": 139,
+    "canonicalOverrideSources": 86,
+    "ledgerEntries": 140,
     "ownershipClasses": {
       "hxrt_binding": 44,
       "public_go_facade": 5,
       "staged_support": 5,
-      "upstream_std_override": 85
+      "upstream_std_override": 86
     },
-    "packagedArchiveMembers": 324,
-    "packagedManifestEntries": 323,
+    "packagedArchiveMembers": 325,
+    "packagedManifestEntries": 324,
     "trackedCrossHxFiles": 0
   }
 }

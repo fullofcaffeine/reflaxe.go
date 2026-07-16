@@ -25,6 +25,7 @@
         "haxe_go-vfp.8.7.15.2",
         "haxe_go-vfp.8.7.15.3",
         "haxe_go-vfp.8.7.15.4",
+        "haxe_go-vfp.8.7.15.5",
         "haxe_go-vfp.8.7.17",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
@@ -219,6 +220,15 @@
       "migrationBead": "haxe_go-vfp.8.7.6",
       "compilerShimGroups": [],
       "notes": "Canonical source-owned implementation of the supported Haxe 4.3.7 root Sys API; map construction, fallbacks, aliases, standard-stream wrapping, getChar EOF construction, and explicit echo stay in Haxe while typed std/hxrt bindings expose native process, display, file, and terminal capabilities."
+    },
+    {
+      "path": "std/go/_std/UnicodeString.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/UnicodeString.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.5",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged UnicodeString API. Haxe owns code-point bounds, slicing, searching, comparison, iteration, operators, and UTF-8 validation; typed GoStringRuntime calls expose only rune length, code-point lookup, and already-normalized slicing over the pointer-backed Go string representation."
     },
     {
       "path": "std/go/_std/Xml.hx",
@@ -957,7 +967,7 @@
       "destination": "std/hxrt/string/GoStringRuntime.hx",
       "migrationBead": "haxe_go-vfp.5.4",
       "compilerShimGroups": [],
-      "notes": "Typed extern for runtime/hxrt/string.go used by staged string iterators; the Haxe module lives in hxrt.string while its Go import/package metadata points at hxrt."
+      "notes": "Typed extern for representation-level runtime/hxrt/string.go operations used by staged string iterators and UnicodeString. It exposes only rune length, code-point lookup, and already-normalized slicing; Haxe source retains all library policy."
     },
     {
       "path": "std/go/_std/haxe/iterators/HashMapKeyValueIterator.hx",

@@ -9,7 +9,7 @@
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "41c8d65e09980139bb342c28c0a2ca05ec3a8593c84f9b530eb5cfe8c4ebbc41"
+    "portable_stdlib_inventory_sha256": "7232d82816b5130d8919cbf43b689c7771d0fe49568cc02b7780b9042ff2050f"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -1626,7 +1626,7 @@
           "upstream_sweep:full_compile",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged UnicodeString owns code-point bounds, slicing, searching, comparison, iteration, operators, and UTF-8 validation. Typed GoStringRuntime calls expose only rune length, code-point lookup, and already-normalized slicing over the Go string representation. Evidence: unicode_string_source_owned and stdlib/unicode_string_basic."
       },
       {
         "module": "Xml",

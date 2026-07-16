@@ -29,8 +29,6 @@ class GoStdlibShimClassifier {
 		{kind: "class", path: "Reflect", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "Std", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "Type", groups: ["stdlib_symbols"]},
-		{kind: "class", path: "UnicodeString", groups: ["stdlib_symbols"]},
-		{kind: "class", path: "_UnicodeString.UnicodeString_Impl_", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "haxe.Serializer", groups: ["regex_serializer"]},
 		{kind: "class", path: "haxe.Unserializer", groups: ["regex_serializer"]},
 		{kind: "class", path: "haxe.ds.BalancedTree", groups: ["stdlib_symbols"]},

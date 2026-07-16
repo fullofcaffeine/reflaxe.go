@@ -198,7 +198,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                 manifest.get("stagedReleaseIdentitySha256", ""),
                 r"^[0-9a-f]{64}$",
             )
-            self.assertEqual(323, len(manifest["contents"]["entries"]))
+            self.assertEqual(324, len(manifest["contents"]["entries"]))
 
             manifest_text = manifest_path.read_text(encoding="utf-8")
             self.assertNotIn(str(ROOT), manifest_text)

@@ -20,6 +20,15 @@ class Main {
 		Sys.println("last=" + s.lastIndexOf("a"));
 		Sys.println("last.empty=" + s.lastIndexOf(""));
 		Sys.println("last.start=" + s.lastIndexOf("bé", 2));
+		var left:UnicodeString = "a😀";
+		var right:UnicodeString = "bé";
+		Sys.println("operators=" + (left < right) + "|" + (left <= right) + "|" + (right > left) + "|" + (right >= left) + "|" + (left == left) + "|"
+			+ (left != right) + "|" + (left + right));
+		Sys.println("mixed=" + (left + "x") + "|" + ("x" + left));
+		var assigned:UnicodeString = left;
+		assigned += right;
+		assigned += "x";
+		Sys.println("assigned=" + assigned);
 		Sys.println("valid.utf8=" + UnicodeString.validate(Bytes.ofString("ok"), Encoding.UTF8));
 		Sys.println("valid.invalid=" + UnicodeString.validate(Bytes.ofHex("ff"), Encoding.UTF8));
 		try {
