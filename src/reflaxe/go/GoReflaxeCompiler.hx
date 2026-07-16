@@ -495,6 +495,12 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 				// not use haxe.Template should not pay for that capability in full-copy
 				// mode. Disabling inference remains the explicit all-files escape hatch.
 				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TEMPLATE) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TEMPLATE) >= 0;
+			case "date.go": // Host calendar and timezone behavior is selected only through staged Date
+				// or its typed hxrt binding. Other programs keep the native time capability out.
+				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_DATE) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_DATE) >= 0;
+			case "math.go": // Haxe's Int-returning rounders need three narrow native conversions.
+				// Float-returning math operations bind directly to Go and do not use this file.
+				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_MATH) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_MATH) >= 0;
 			case "crypto.go": // Native crypto algorithms are selected only through the staged haxe.crypto
 				// API or its typed hxrt binding. Keep them out of unrelated full-copy builds.
 				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_CRYPTO) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_CRYPTO) >= 0;

@@ -1449,3 +1449,79 @@ Observed result:
   runtime slices do not acquire compression code.
 - Package governance covers 132 sources (83 upstream overrides and 39 typed
   bindings), with 314 manifest entries and 315 archive members.
+
+### 2026-07-16: move root `Date` and `Math` to staged std ownership (`haxe_go-vfp.8.7.15.4`)
+
+Implementation:
+
+- Added complete canonical `Date` and `Math` overrides under `std/go/_std`.
+  The mainstream Haxe 4.3.7 declarations are target-supplied extern contracts,
+  so they cannot run unchanged; the Go overrides now provide those target
+  implementations as ordinary documented Haxe source instead of compiler
+  declarations.
+- `Date` owns a portable epoch-millisecond field, constructors, all local and
+  UTC accessors, timezone offset, parsing, formatting, and wall-clock policy.
+  Typed `std/hxrt/date` bindings cross only numbers, strings, and a scalar
+  `DateParts` carrier into footprint-explicit `runtime/hxrt/date.go`; generated
+  `Date` layout and Go `time.Time` never cross that boundary.
+- The Date runtime uses Go's millisecond time APIs rather than converting the
+  entire timestamp through nanoseconds. A red year-2500 regression demonstrated
+  that the previous nanosecond approach wrapped to 1915; the new direct and
+  semantic contracts cover dates on both sides of the roughly 1678–2262
+  `UnixNano` range while preserving fractional `Date.fromTime` values in Haxe.
+- `Math` owns constants, Haxe ties-up rounding policy, finiteness and NaN rules,
+  and the reference runtime's asymmetric operand-order behavior for equal
+  signed zeros. Float operations bind directly through typed Go `math` and
+  `math/rand` externs. Only `floor`, `ceil`, and `round` use
+  `runtime/hxrt/math.go`, because Go's native functions return `float64` while
+  the Haxe 4.3.7 API returns `Int` and the general `Std.int` migration is not
+  complete.
+- Removed Date and Math declarations, `math` / `time` imports, classifier
+  routes, and intrinsic-registry ownership from the monolithic
+  `stdlib_symbols` compiler group. Date and the three integer Math adapters now
+  use separate footprint features, while programs that use neither no longer
+  carry the old declarations.
+- Kept the serializer's temporary Date representation bridge narrow: it probes
+  only the staged millisecond field and no longer assumes a compiler-emitted
+  `time.Time`. Removing the broader reflective serializer representation bridge
+  remains owned by `haxe_go-vfp.8.7.13`.
+- Updated source provenance, compatibility and module inventories, package
+  counts, debt ceilings, examples, and fail-closed ownership/footprint tests.
+  Governance now covers 139 sources: 85 upstream/staged overrides, 44 typed
+  `hxrt` bindings, five public Go facades, and five staged support files.
+
+Validation evidence:
+
+- `npm run test:changed`
+- `npm test` (`274/274` snapshots)
+- `npm run test:semantic-diff` (`137/137` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance`, `npm run test:stdlib-inventory`, and
+  `npm run compatibility:verify`
+- `npm run test:compiler-debt` (`4,095` `GoRaw` sites, `441` raw sites in the
+  remaining `stdlib_symbols` group, and `13` compiler shim entry points)
+- direct `runtime/hxrt` Go tests and raw-injection hygiene
+- `npm run test:perf:hxrt-selective`
+- `npm run test:perf:stdlib-shims`
+- `npm run test:perf:go` (four warning-only startup budget signals and zero
+  enforced hard failures)
+- `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates)
+- `npm run test:release-contracts`
+
+Observed result:
+
+- Root Date and Math behavior now originates in Haxe source. Native time and
+  integer-conversion work is isolated behind typed, representation-neutral
+  capabilities, with no `Dynamic`, `Any`, unsafe conversion, raw injection, or
+  legacy profile branch added.
+- The `stdlib_symbols` raw allowance falls permanently from 455 to 441 sites,
+  and repository-wide `GoRaw` debt falls by 23 sites, from 4,118 to 4,095.
+- Snapshot regeneration removes 14,408 lines and adds 8,320, including two new
+  focused ownership/footprint contracts. Actual Date
+  and integer-rounding consumers receive ordinary source modules plus their
+  narrow runtime files; unrelated `stdlib_symbols` consumers lose the old
+  Date/Math block.
+- The canonical package now contains 85 staged overrides, 323 manifest entries,
+  and 324 archive members. This slice does not claim closure of the remaining
+  Unicode, Reflect/Type, Std/Option, logging, or serializer migration work.

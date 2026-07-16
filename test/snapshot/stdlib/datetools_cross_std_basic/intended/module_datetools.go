@@ -48,7 +48,10 @@ func DateTools___format_get(d *Date, e *string) *string {
 		return DateTools_MONTH_NAMES[d.getMonth()]
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("C")) {
-		return StringTools_lpad(hxrt.StdString(Math_floor((float64(d.getFullYear()) / float64(100)))), hxrt.StringFromLiteral("0"), 2)
+		return StringTools_lpad(hxrt.StdString(func() int {
+			v := (float64(d.getFullYear()) / float64(100))
+			return hxrt.MathFloorInt(v)
+		}()), hxrt.StringFromLiteral("0"), 2)
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("d")) {
 		return StringTools_lpad(hxrt.StdString(d.getDate()), hxrt.StringFromLiteral("0"), 2)
@@ -64,33 +67,33 @@ func DateTools___format_get(d *Date, e *string) *string {
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("H")) || hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("k")) {
 		return StringTools_lpad(hxrt.StdString(d.getHours()), func() *string {
-			var hx_if_17 *string
-			if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("H")) {
-				hx_if_17 = hxrt.StringFromLiteral("0")
-			} else {
-				hx_if_17 = hxrt.StringFromLiteral(" ")
-			}
-			return hx_if_17
-		}(), 2)
-	}
-	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("I")) || hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("l")) {
-		hour := int(int32((hxrt.Int32Wrap(d.getHours()) % hxrt.Int32Wrap(12))))
-		return StringTools_lpad(hxrt.StdString(func() any {
-			var hx_if_18 any
-			if hour == 0 {
-				hx_if_18 = 12
-			} else {
-				hx_if_18 = hour
-			}
-			return hx_if_18
-		}()), func() *string {
 			var hx_if_19 *string
-			if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("I")) {
+			if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("H")) {
 				hx_if_19 = hxrt.StringFromLiteral("0")
 			} else {
 				hx_if_19 = hxrt.StringFromLiteral(" ")
 			}
 			return hx_if_19
+		}(), 2)
+	}
+	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("I")) || hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("l")) {
+		hour := int(int32((hxrt.Int32Wrap(d.getHours()) % hxrt.Int32Wrap(12))))
+		return StringTools_lpad(hxrt.StdString(func() any {
+			var hx_if_20 any
+			if hour == 0 {
+				hx_if_20 = 12
+			} else {
+				hx_if_20 = hour
+			}
+			return hx_if_20
+		}()), func() *string {
+			var hx_if_21 *string
+			if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("I")) {
+				hx_if_21 = hxrt.StringFromLiteral("0")
+			} else {
+				hx_if_21 = hxrt.StringFromLiteral(" ")
+			}
+			return hx_if_21
 		}(), 2)
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("m")) {
@@ -103,13 +106,13 @@ func DateTools___format_get(d *Date, e *string) *string {
 		return hxrt.StringFromLiteral("\n")
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("p")) {
-		var hx_if_20 *string
+		var hx_if_22 *string
 		if d.getHours() > 11 {
-			hx_if_20 = hxrt.StringFromLiteral("PM")
+			hx_if_22 = hxrt.StringFromLiteral("PM")
 		} else {
-			hx_if_20 = hxrt.StringFromLiteral("AM")
+			hx_if_22 = hxrt.StringFromLiteral("AM")
 		}
-		return hx_if_20
+		return hx_if_22
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("r")) {
 		return DateTools___format(d, hxrt.StringFromLiteral("%I:%M:%S %p"))
@@ -118,7 +121,10 @@ func DateTools___format_get(d *Date, e *string) *string {
 		return DateTools___format(d, hxrt.StringFromLiteral("%H:%M"))
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("s")) {
-		return hxrt.StdString(Math_floor((d.getTime() / float64(1000))))
+		return hxrt.StdString(func() int {
+			v_1 := (d.ms / float64(1000))
+			return hxrt.MathFloorInt(v_1)
+		}())
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("S")) {
 		return StringTools_lpad(hxrt.StdString(d.getSeconds()), hxrt.StringFromLiteral("0"), 2)
@@ -131,13 +137,13 @@ func DateTools___format_get(d *Date, e *string) *string {
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("u")) {
 		day := d.getDay()
-		var hx_if_21 *string
+		var hx_if_23 *string
 		if day == 0 {
-			hx_if_21 = hxrt.StringFromLiteral("7")
+			hx_if_23 = hxrt.StringFromLiteral("7")
 		} else {
-			hx_if_21 = hxrt.StdString(day)
+			hx_if_23 = hxrt.StdString(day)
 		}
-		return hx_if_21
+		return hx_if_23
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("w")) {
 		return hxrt.StdString(d.getDay())
@@ -149,8 +155,8 @@ func DateTools___format_get(d *Date, e *string) *string {
 		return hxrt.StdString(d.getFullYear())
 	}
 	hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Date.format %"), e), hxrt.StringFromLiteral(" not implemented yet.")))
-	var hx_throw_zero_22 *string
-	return hx_throw_zero_22
+	var hx_throw_zero_24 *string
+	return hx_throw_zero_24
 }
 
 func DateTools_days(n float64) float64 {
@@ -158,7 +164,7 @@ func DateTools_days(n float64) float64 {
 }
 
 func DateTools_delta(d *Date, t float64) *Date {
-	return Date_fromTime((d.getTime() + t))
+	return Date_fromTime((d.ms + t))
 }
 
 func DateTools_format(d *Date, f *string) *string {
@@ -172,13 +178,13 @@ func DateTools_getMonthDays(d *Date) int {
 		return DateTools_DAYS_OF_MONTH[month]
 	}
 	isLeap := (((int(int32((hxrt.Int32Wrap(year) % hxrt.Int32Wrap(4)))) == 0) && (int(int32((hxrt.Int32Wrap(year) % hxrt.Int32Wrap(100)))) != 0)) || (int(int32((hxrt.Int32Wrap(year) % hxrt.Int32Wrap(400)))) == 0))
-	var hx_if_23 int
+	var hx_if_25 int
 	if isLeap {
-		hx_if_23 = 29
+		hx_if_25 = 29
 	} else {
-		hx_if_23 = 28
+		hx_if_25 = 28
 	}
-	return hx_if_23
+	return hx_if_25
 }
 
 func DateTools_hours(n float64) float64 {
@@ -186,41 +192,41 @@ func DateTools_hours(n float64) float64 {
 }
 
 func DateTools_make(o map[string]any) float64 {
-	return (func(hx_obj_24 map[string]any) float64 {
-		hx_field_25 := hx_obj_24["ms"]
-		if hx_field_25 == nil {
-			var hx_zero_26 float64
-			return hx_zero_26
+	return (func(hx_obj_26 map[string]any) float64 {
+		hx_field_27 := hx_obj_26["ms"]
+		if hx_field_27 == nil {
+			var hx_zero_28 float64
+			return hx_zero_28
 		}
-		return hx_field_25.(float64)
-	}(o) + (1000.0 * (float64(func(hx_obj_27 map[string]any) int {
-		hx_field_28 := hx_obj_27["seconds"]
-		if hx_field_28 == nil {
-			var hx_zero_29 int
-			return hx_zero_29
+		return hx_field_27.(float64)
+	}(o) + (1000.0 * (float64(func(hx_obj_29 map[string]any) int {
+		hx_field_30 := hx_obj_29["seconds"]
+		if hx_field_30 == nil {
+			var hx_zero_31 int
+			return hx_zero_31
 		}
-		return hx_field_28.(int)
-	}(o)) + (60.0 * (float64(func(hx_obj_30 map[string]any) int {
-		hx_field_31 := hx_obj_30["minutes"]
-		if hx_field_31 == nil {
-			var hx_zero_32 int
-			return hx_zero_32
+		return hx_field_30.(int)
+	}(o)) + (60.0 * (float64(func(hx_obj_32 map[string]any) int {
+		hx_field_33 := hx_obj_32["minutes"]
+		if hx_field_33 == nil {
+			var hx_zero_34 int
+			return hx_zero_34
 		}
-		return hx_field_31.(int)
-	}(o)) + (60.0 * (float64(func(hx_obj_33 map[string]any) int {
-		hx_field_34 := hx_obj_33["hours"]
-		if hx_field_34 == nil {
-			var hx_zero_35 int
-			return hx_zero_35
+		return hx_field_33.(int)
+	}(o)) + (60.0 * (float64(func(hx_obj_35 map[string]any) int {
+		hx_field_36 := hx_obj_35["hours"]
+		if hx_field_36 == nil {
+			var hx_zero_37 int
+			return hx_zero_37
 		}
-		return hx_field_34.(int)
-	}(o)) + (24.0 * float64(func(hx_obj_36 map[string]any) int {
-		hx_field_37 := hx_obj_36["days"]
-		if hx_field_37 == nil {
-			var hx_zero_38 int
-			return hx_zero_38
+		return hx_field_36.(int)
+	}(o)) + (24.0 * float64(func(hx_obj_38 map[string]any) int {
+		hx_field_39 := hx_obj_38["days"]
+		if hx_field_39 == nil {
+			var hx_zero_40 int
+			return hx_zero_40
 		}
-		return hx_field_37.(int)
+		return hx_field_39.(int)
 	}(o))))))))))
 }
 
@@ -232,13 +238,13 @@ func DateTools_parse(t float64) map[string]any {
 	s := (t / float64(1000))
 	m := (s / float64(60))
 	h := (m / float64(60))
-	hx_obj_39 := map[string]any{}
-	hx_obj_39["ms"] = hxrt.FloatMod(t, float64(1000))
-	hx_obj_39["seconds"] = Math_floor(hxrt.FloatMod(s, float64(60)))
-	hx_obj_39["minutes"] = Math_floor(hxrt.FloatMod(m, float64(60)))
-	hx_obj_39["hours"] = Math_floor(hxrt.FloatMod(h, float64(24)))
-	hx_obj_39["days"] = Math_floor((h / float64(24)))
-	return hx_obj_39
+	hx_obj_41 := map[string]any{}
+	hx_obj_41["ms"] = hxrt.FloatMod(t, float64(1000))
+	hx_obj_41["seconds"] = hxrt.MathFloorInt(hxrt.FloatMod(s, float64(60)))
+	hx_obj_41["minutes"] = hxrt.MathFloorInt(hxrt.FloatMod(m, float64(60)))
+	hx_obj_41["hours"] = hxrt.MathFloorInt(hxrt.FloatMod(h, float64(24)))
+	hx_obj_41["days"] = hxrt.MathFloorInt((h / float64(24)))
+	return hx_obj_41
 }
 
 func DateTools_seconds(n float64) float64 {

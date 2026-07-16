@@ -30,6 +30,8 @@ class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_FILESYSTEM = "filesystem";
 	public static inline final FEATURE_PROCESS = "process";
 	public static inline final FEATURE_BYTES = "bytes";
+	public static inline final FEATURE_DATE = "date";
+	public static inline final FEATURE_MATH = "math";
 	public static inline final FEATURE_CRYPTO = "crypto";
 	public static inline final FEATURE_ZIP = "zip";
 	public static inline final FEATURE_SSL = "ssl";
@@ -55,6 +57,8 @@ class GoHxrtFeatureAnalyzer {
 		FEATURE_FILESYSTEM,
 		FEATURE_PROCESS,
 		FEATURE_BYTES,
+		FEATURE_DATE,
+		FEATURE_MATH,
 		FEATURE_CRYPTO,
 		FEATURE_ZIP,
 		FEATURE_SSL,
@@ -151,6 +155,14 @@ class GoHxrtFeatureAnalyzer {
 
 			if (StringTools.startsWith(path, "haxe.io.")) {
 				add(FEATURE_BYTES, "class_usage", path);
+			}
+
+			if (path == "Date" || path == "hxrt.date.NativeDate" || path == "hxrt.date.DateParts") {
+				add(FEATURE_DATE, "class_usage", path);
+			}
+
+			if (path == "Math" || path == "hxrt.math.NativeMathInt") {
+				add(FEATURE_MATH, "class_usage", path);
 			}
 
 			if (StringTools.startsWith(path, "haxe.crypto.") || path == "hxrt.crypto.NativeCrypto") {
@@ -313,6 +325,10 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_STRING];
 			case FEATURE_BYTES:
 				[FEATURE_CORE];
+			case FEATURE_DATE:
+				[FEATURE_STRING, FEATURE_EXCEPTION];
+			case FEATURE_MATH:
+				[];
 			case FEATURE_CRYPTO:
 				[FEATURE_STRING, FEATURE_EXCEPTION];
 			case FEATURE_ZIP:
@@ -365,6 +381,10 @@ class GoHxrtFeatureAnalyzer {
 				["process.go"];
 			case FEATURE_BYTES:
 				["bytes.go"];
+			case FEATURE_DATE:
+				["date.go"];
+			case FEATURE_MATH:
+				["math.go"];
 			case FEATURE_CRYPTO:
 				["crypto.go"];
 			case FEATURE_ZIP:

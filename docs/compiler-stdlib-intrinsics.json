@@ -179,7 +179,7 @@
       "reviewCondition": "Remove under haxe_go-vfp.8.7.15 once equivalent typed runtime behavior lands."
     },
     "migration_stdlib_symbols": {
-      "what": "Split the remaining Date, Math, Unicode, Reflect, Option, logging, and nominal-symbol block by its correct source or runtime owner; crypto, XML, and zip have already left the group.",
+      "what": "Split the remaining Unicode, Reflect, Option, logging, and nominal-symbol block by its correct source or runtime owner; crypto, XML, zip, Date, and Math have already left the group.",
       "why": "Most functions in the group are ordinary library or runtime behavior; sharing a file with generated type metadata does not make them compile-context intrinsics.",
       "how": "Move library code to upstream or staged Haxe, native algorithms to narrow hxrt helpers, and keep only separately registered metadata or representation primitives.",
       "evidence": [
@@ -326,8 +326,6 @@
       "decisionId": "migration_stdlib_symbols",
       "followUpBead": "haxe_go-vfp.8.7.15",
       "ownedSymbols": [
-        {"symbol": "Date", "scope": "complete_type"},
-        {"symbol": "Math", "scope": "partial_type", "members": ["abs", "ceil", "floor", "isFinite", "isNaN", "max", "min", "round"]},
         {"symbol": "Reflect", "scope": "partial_type", "members": ["compare", "compareMethods", "field", "hasField", "setField"]},
         {"symbol": "Std", "scope": "partial_type", "members": ["<nominal type carrier>"]},
         {"symbol": "Type", "scope": "complete_type"},
@@ -336,8 +334,6 @@
       ],
       "compilerOwnedAuthorities": [],
       "classifierSelections": [
-        {"kind": "class", "path": "Date"},
-        {"kind": "class", "path": "Math"},
         {"kind": "class", "path": "Reflect"},
         {"kind": "class", "path": "Std"},
         {"kind": "class", "path": "Type"},

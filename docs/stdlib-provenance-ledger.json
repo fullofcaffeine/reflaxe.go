@@ -24,6 +24,7 @@
         "haxe_go-vfp.8.7.15.1",
         "haxe_go-vfp.8.7.15.2",
         "haxe_go-vfp.8.7.15.3",
+        "haxe_go-vfp.8.7.15.4",
         "haxe_go-vfp.8.7.17",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
@@ -39,6 +40,7 @@
         "haxe_go-vfp.8.7.10",
         "haxe_go-vfp.8.7.15.1",
         "haxe_go-vfp.8.7.15.3",
+        "haxe_go-vfp.8.7.15.4",
         "haxe_go-vfp.8.7.16",
         "haxe_go-vfp.8.7.3",
         "haxe_go-vfp.8.7.4",
@@ -174,6 +176,15 @@
       "notes": "Go native facade for time package interoperability helpers."
     },
     {
+      "path": "std/go/_std/Date.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/Date.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.4",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged Date API over a portable epoch-millisecond carrier. Haxe owns constructors and public policy; typed NativeDate delegates only host clock, timezone, parsing, formatting, and calendar conversion to footprint-explicit runtime support."
+    },
+    {
       "path": "std/go/_std/DateTools.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
@@ -190,6 +201,15 @@
       "migrationBead": "haxe_go-vfp.8.7.17",
       "compilerShimGroups": [],
       "notes": "Canonical staged implementation of all 19 Lambda algorithms over Haxe Iterable, with exact source-call representation adapters registered separately for Go slices, lists, concrete iterator classes, typed callbacks, constrained nested carriers, and erased results; full carrier closure completed by haxe_go-vfp.8.7.18."
+    },
+    {
+      "path": "std/go/_std/Math.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/Math.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.4",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged Math API. Haxe owns rounding, finiteness, NaN propagation, and operand-order signed-zero policy; typed externs call Go math and math/rand directly, with three narrow hxrt Int-returning rounders for the native signature mismatch."
     },
     {
       "path": "std/go/_std/Sys.hx",
@@ -1100,6 +1120,51 @@
       "migrationBead": "haxe_go-vfp.8.7.15.1",
       "compilerShimGroups": [],
       "notes": "Typed footprint-explicit bridge from staged haxe.crypto APIs to runtime/hxrt/crypto.go. It accepts only strings and integer byte arrays; public padding, Bytes conversion, and API policy remain Haxe-owned."
+    },
+    {
+      "path": "std/hxrt/date/DateParts.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/date/DateParts.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.4",
+      "compilerShimGroups": [],
+      "notes": "Typed scalar carrier for one local or UTC calendar decomposition; Go time.Time never enters the application-generated Date layout."
+    },
+    {
+      "path": "std/hxrt/date/NativeDate.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/date/NativeDate.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.4",
+      "compilerShimGroups": [],
+      "notes": "Typed footprint-explicit bridge from staged Date to runtime/hxrt/date.go using only scalar components, epoch milliseconds, strings, and DateParts."
+    },
+    {
+      "path": "std/hxrt/math/NativeMath.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/math/NativeMath.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.4",
+      "compilerShimGroups": [],
+      "notes": "Typed direct extern mapping for Float-returning Go math functions and IEEE-754 constructors; Haxe-specific policy remains in staged Math."
+    },
+    {
+      "path": "std/hxrt/math/NativeMathInt.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/math/NativeMathInt.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.4",
+      "compilerShimGroups": [],
+      "notes": "Typed bridge to the three footprint-explicit hxrt rounding functions needed only because Go math returns float64 while Haxe floor, ceil, and round return Int."
+    },
+    {
+      "path": "std/hxrt/math/NativeRandom.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/math/NativeRandom.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.4",
+      "compilerShimGroups": [],
+      "notes": "Typed direct extern mapping from staged Math.random to math/rand.Float64; no compiler rule or Go runtime wrapper is involved."
     },
     {
       "path": "std/hxrt/zip/NativeZip.hx",

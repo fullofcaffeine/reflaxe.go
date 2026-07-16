@@ -1,9 +1,12 @@
 package main
 
-import "snapshot/hxrt"
+import (
+	"math"
+	"snapshot/hxrt"
+)
 
 func haxe__Int64Helper_fromFloat(f float64) *haxe___Int64_____Int64 {
-	if Math_isNaN(f) || !Math_isFinite(f) {
+	if math.IsNaN(f) || !(!math.IsInf(f, 0) && !math.IsNaN(f)) {
 		hxrt.Throw(hxrt.StringFromLiteral("Number is NaN or Infinite"))
 		var hx_throw_zero_32 *haxe___Int64_____Int64
 		return hx_throw_zero_32

@@ -111,7 +111,9 @@ OWNER_OVERRIDES = {
     "sys.ssl.DigestAlgorithm": "staged_std",
     "sys.ssl.Key": "mixed",
     "sys.ssl.Socket": "mixed",
+    "Date": "mixed",
     "DateTools": "staged_std",
+    "Math": "mixed",
     "StringTools": "staged_std",
     "haxe.SysTools": "staged_std",
     "haxe.io.Path": "staged_std",
@@ -176,6 +178,19 @@ UNSUPPORTED_EXPLICIT = {
 }
 
 MODULE_NOTES_OVERRIDES = {
+	"Date": (
+		"Canonical staged Date owns the epoch-millisecond carrier and complete Haxe 4.3.7 API. "
+		"Typed std/hxrt/date delegates only host clock, timezone, parsing, formatting, and calendar "
+		"conversion to footprint-explicit runtime/hxrt/date.go. Evidence: date_source_owned, "
+		"stdlib/date_math_source_owned, and direct runtime date tests."
+	),
+	"Math": (
+		"Canonical staged Math owns Haxe rounding, finiteness, NaN propagation, and operand-order "
+		"signed-zero policy. Float operations bind directly to Go math and math/rand; only the three "
+		"Int-returning rounders use footprint-explicit runtime/hxrt/math.go. Evidence: "
+		"math_source_owned, numeric_edge_cases, stdlib/date_math_source_owned, "
+		"stdlib/math_float_native_no_hxrt, and direct runtime math tests."
+	),
 	"Sys": (
 		"The supported Haxe 4.3.7 root API is canonical staged source in "
 		"std/go/_std/Sys.hx over typed std/hxrt bindings. Public map construction, "

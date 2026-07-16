@@ -134,7 +134,7 @@ func (self *haxe__MainEvent) schedule() {
 	if wait <= 0 {
 		haxe__EntryPoint_runInMainThread(self.dispatch)
 	} else {
-		ms := Math_ceil((wait * float64(1000)))
+		ms := hxrt.MathCeilInt((wait * float64(1000)))
 		if ms < 1 {
 			ms = 1
 		}

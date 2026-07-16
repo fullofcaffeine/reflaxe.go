@@ -25,9 +25,7 @@ private typedef GoStdlibShimSurface = {
 **/
 class GoStdlibShimClassifier {
 	static final SURFACES:Array<GoStdlibShimSurface> = [
-		{kind: "class", path: "Date", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "EReg", groups: ["regex_serializer"]},
-		{kind: "class", path: "Math", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "Reflect", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "Std", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "Type", groups: ["stdlib_symbols"]},

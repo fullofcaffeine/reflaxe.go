@@ -54,6 +54,7 @@ Goal:
   - deterministic `Type` reflection subset parity (`getClass`, `getSuperClass`, `getClassFields`, `getInstanceFields`, `resolveClass`, `createInstance`, `createEmptyInstance`, `getEnum`, `getEnumConstructs`, `resolveEnum`, `allEnums`, enum constructor/index/parameters/equality)
   - deterministic core `Array`/`String`/`IntIterator` subset parity (`push`/`pop` statement-form, length/index/iteration, `0...N` range iteration, `String.length`/`charAt`/`charCodeAt` null-on-out-of-range/`substring`/`fromCharCode`)
   - deterministic `StringBuf`/`DateTools`/`Lambda` subset parity (`add`/`addChar`/`addSub`, `DateTools.delta` with duration helpers and `%Y-%m-%d %H:%M:%S` formatting, `Lambda.filter`/`map`/`fold`/`has`/`exists`/`count`/`empty` over `Array<T>` and `haxe.ds.List<T>`)
+  - complete root `Date` and `Math` API parity, including local/UTC calendar and timezone behavior, all parse forms, wide millisecond ranges, transcendental/domain edges, Haxe rounding, NaN/infinities, random bounds, and operand-order signed-zero behavior
   - deterministic portable-surface invariance under `reflaxe_go_profile=metal` for iterator/list/map/string contracts (`portable_surfaces_metal_invariance_contract`)
   - deterministic `haxe.PosInfos` default-argument injection behavior
   - deterministic `haxe.PosInfos.customParams` missing-field/null-access behavior

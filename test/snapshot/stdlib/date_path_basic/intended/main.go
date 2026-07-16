@@ -1,10 +1,8 @@
 package main
 
 import (
-	"math"
 	"reflect"
 	"snapshot/hxrt"
-	"time"
 )
 
 type hxrt__TypeClassValue struct {
@@ -776,100 +774,6 @@ func _UnicodeString__UnicodeString_Impl__validate(value *haxe__io__Bytes, encodi
 	return true
 }
 
-type Date struct {
-	value time.Time
-}
-
-func Date_fromString(source *string) *Date {
-	raw := *hxrt.StdString(source)
-	parsed, err := time.ParseInLocation("2006-01-02 15:04:05", raw, time.Local)
-	if err != nil {
-		parsedDateOnly, errDateOnly := time.ParseInLocation("2006-01-02", raw, time.Local)
-		if errDateOnly == nil {
-			parsed = parsedDateOnly
-		} else {
-			parsed = time.Unix(0, 0)
-		}
-	}
-	return &Date{value: parsed}
-}
-
-func Date_now() *Date {
-	return &Date{value: time.Now()}
-}
-
-func Date_fromTime(ms float64) *Date {
-	nanos := int64(ms * 1e6)
-	return &Date{value: time.Unix(0, nanos).In(time.Local)}
-}
-
-func (self *Date) getFullYear() int {
-	return self.value.Year()
-}
-
-func (self *Date) getMonth() int {
-	return int(self.value.Month()) - 1
-}
-
-func (self *Date) getDate() int {
-	return self.value.Day()
-}
-
-func (self *Date) getDay() int {
-	return int(self.value.Weekday())
-}
-
-func (self *Date) getHours() int {
-	return self.value.Hour()
-}
-
-func (self *Date) getMinutes() int {
-	return self.value.Minute()
-}
-
-func (self *Date) getSeconds() int {
-	return self.value.Second()
-}
-
-func (self *Date) getTime() float64 {
-	return float64(self.value.UnixNano()) / 1e6
-}
-
-type Math struct {
-}
-
-func Math_floor(value float64) int {
-	return int(math.Floor(value))
-}
-
-func Math_ceil(value float64) int {
-	return int(math.Ceil(value))
-}
-
-func Math_round(value float64) int {
-	return int(math.Floor(value + 0.5))
-}
-
-func Math_abs(value float64) float64 {
-	return math.Abs(value)
-}
-
-func Math_isNaN(value float64) bool {
-	return math.IsNaN(value)
-}
-
-func Math_isFinite(value float64) bool {
-	return !math.IsInf(value, 0)
-}
-
-func Math_min(a float64, b float64) float64 {
-	return math.Min(a, b)
-}
-
-func Math_max(a float64, b float64) float64 {
-	return math.Max(a, b)
-}
-
 type Type struct {
 }
 
@@ -1269,6 +1173,8 @@ func hxrt_typeResolvedEnumName(value any) (string, bool) {
 
 func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	switch className {
+	case "Date":
+		return hxrt_typeCallAny(New_Date, args)
 	case "Main":
 		return nil, false
 	case "haxe.Int64Helper":
@@ -1288,6 +1194,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 
 func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
+	case "Date":
+		return &Date{}, true
 	case "haxe._Int64.___Int64":
 		return &haxe___Int64_____Int64{}, true
 	case "haxe.io.Path":
@@ -1418,6 +1326,11 @@ func Type_getClass(o any) any {
 	case hxrt__TypeClassValue:
 		copyValue := value
 		return &copyValue
+	case *Date:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Date")}
 	case *haxe___Int64_____Int64:
 		if value == nil {
 			return nil
@@ -1462,6 +1375,8 @@ func Type_getSuperClass(c any) any {
 		return nil
 	}
 	switch className {
+	case "Date":
+		return nil
 	case "Main":
 		return nil
 	case "haxe.Int64Helper":
@@ -1493,6 +1408,8 @@ func Type_getClassFields(c any) []*string {
 		return []*string{}
 	}
 	switch className {
+	case "Date":
+		return []*string{hxrt.StringFromLiteral("fromMilliseconds"), hxrt.StringFromLiteral("fromString"), hxrt.StringFromLiteral("fromTime"), hxrt.StringFromLiteral("now")}
 	case "Main":
 		return []*string{hxrt.StringFromLiteral("main")}
 	case "haxe.Int64Helper":
@@ -1516,6 +1433,8 @@ func Type_getInstanceFields(c any) []*string {
 		return []*string{}
 	}
 	switch className {
+	case "Date":
+		return []*string{hxrt.StringFromLiteral("getDate"), hxrt.StringFromLiteral("getDay"), hxrt.StringFromLiteral("getFullYear"), hxrt.StringFromLiteral("getHours"), hxrt.StringFromLiteral("getMinutes"), hxrt.StringFromLiteral("getMonth"), hxrt.StringFromLiteral("getSeconds"), hxrt.StringFromLiteral("getTime"), hxrt.StringFromLiteral("getTimezoneOffset"), hxrt.StringFromLiteral("getUTCDate"), hxrt.StringFromLiteral("getUTCDay"), hxrt.StringFromLiteral("getUTCFullYear"), hxrt.StringFromLiteral("getUTCHours"), hxrt.StringFromLiteral("getUTCMinutes"), hxrt.StringFromLiteral("getUTCMonth"), hxrt.StringFromLiteral("getUTCSeconds"), hxrt.StringFromLiteral("localParts"), hxrt.StringFromLiteral("ms"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("utcParts")}
 	case "Main":
 		return []*string{}
 	case "haxe.Int64Helper":
@@ -1547,6 +1466,8 @@ func Type_resolveClass(name *string) any {
 	}
 	rawName := *hxrt.StdString(name)
 	switch rawName {
+	case "Date":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "Main":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.Int64Helper":

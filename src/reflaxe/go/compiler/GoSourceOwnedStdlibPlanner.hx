@@ -86,8 +86,14 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("StringTools");
 				requireSourceOwnedStdlibClass("haxe.iterators.StringIterator");
 				requireSourceOwnedStdlibClass("haxe.iterators.StringKeyValueIterator");
+			case "Date":
+				requireSourceOwnedStdlibClass("Date");
+			case "Math":
+				requireSourceOwnedStdlibClass("Math");
 			case "DateTools":
 				requireSourceOwnedStdlibClass("DateTools");
+				requireSourceOwnedStdlibClass("Date");
+				requireSourceOwnedStdlibClass("Math");
 			case "haxe.io.Path":
 				requireSourceOwnedStdlibClass("haxe.io.Path");
 			case "haxe.io.FPHelper":

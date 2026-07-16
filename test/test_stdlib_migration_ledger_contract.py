@@ -113,6 +113,26 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/crypto/NativeCrypto.hx",
     ),
+    "std/hxrt/date/DateParts.hx": (
+        "hxrt_binding",
+        "std/hxrt/date/DateParts.hx",
+    ),
+    "std/hxrt/date/NativeDate.hx": (
+        "hxrt_binding",
+        "std/hxrt/date/NativeDate.hx",
+    ),
+    "std/hxrt/math/NativeMath.hx": (
+        "hxrt_binding",
+        "std/hxrt/math/NativeMath.hx",
+    ),
+    "std/hxrt/math/NativeMathInt.hx": (
+        "hxrt_binding",
+        "std/hxrt/math/NativeMathInt.hx",
+    ),
+    "std/hxrt/math/NativeRandom.hx": (
+        "hxrt_binding",
+        "std/hxrt/math/NativeRandom.hx",
+    ),
     "std/hxrt/zip/NativeZip.hx": (
         "hxrt_binding",
         "std/hxrt/zip/NativeZip.hx",
@@ -1005,6 +1025,145 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertTrue((generated_root / "hxrt/zip.go").is_file())
         self.assertFalse(
             (ROOT / "test/snapshot/core/const_kinds_contract/intended/hxrt/zip.go").exists()
+        )
+
+    def test_date_and_math_are_source_owned_over_typed_native_capabilities(self) -> None:
+        ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")
+        classifier = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx"
+        ).read_text(encoding="utf-8")
+        planner = (
+            ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ).read_text(encoding="utf-8")
+        feature_analyzer = (
+            ROOT / "src/reflaxe/go/compiler/GoHxrtFeatureAnalyzer.hx"
+        ).read_text(encoding="utf-8")
+        reflaxe_compiler = (
+            ROOT / "src/reflaxe/go/GoReflaxeCompiler.hx"
+        ).read_text(encoding="utf-8")
+        serializer_emitter = (
+            ROOT / "src/reflaxe/go/compiler/emit/GoRegexSerializerEmitter.hx"
+        ).read_text(encoding="utf-8")
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
+        )
+
+        for path in ("Date", "Math"):
+            self.assertNotIn(f'path: "{path}"', classifier)
+            self.assertIn(f'case "{path}"', planner)
+
+        stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
+        stdlib_end = compiler.index("function reflectFieldsShimDecl", stdlib_start)
+        stdlib_emitter = compiler[stdlib_start:stdlib_end]
+        for symbol in (
+            'GoDecl.GoStructDecl("Date"',
+            'GoDecl.GoFuncDecl("Date_',
+            'GoDecl.GoFuncDecl("getFullYear"',
+            'GoDecl.GoStructDecl("Math"',
+            'GoDecl.GoFuncDecl("Math_',
+        ):
+            self.assertNotIn(symbol, stdlib_emitter)
+
+        build_imports_start = compiler.index("function buildSupportImports")
+        import_start = compiler.index(
+            'if (requiredStdlibShimGroups.exists("stdlib_symbols"))',
+            build_imports_start,
+        )
+        import_end = compiler.index(
+            'if (requiredStdlibShimGroups.exists("regex_serializer"))', import_start
+        )
+        stdlib_imports = compiler[import_start:import_end]
+        self.assertNotIn('imports.push("math")', stdlib_imports)
+        self.assertNotIn('imports.push("time")', stdlib_imports)
+
+        stdlib_group = next(
+            group for group in registry["groups"] if group["group"] == "stdlib_symbols"
+        )
+        owned_symbols = {entry["symbol"] for entry in stdlib_group["ownedSymbols"]}
+        selected_paths = {
+            entry["path"] for entry in stdlib_group["classifierSelections"]
+        }
+        for path in ("Date", "Math"):
+            self.assertNotIn(path, owned_symbols)
+            self.assertNotIn(path, selected_paths)
+
+        for source_path in ("std/go/_std/Date.hx", "std/go/_std/Math.hx"):
+            entry = ledger_entries.get(source_path)
+            self.assertIsNotNone(entry, source_path)
+            self.assertEqual("upstream_std_override", entry.get("ownershipClass"))
+            self.assertEqual("haxe_go-vfp.8.7.15.4", entry.get("migrationBead"))
+            self.assertEqual([], entry.get("compilerShimGroups"))
+
+        for source_path in (
+            "std/hxrt/date/DateParts.hx",
+            "std/hxrt/date/NativeDate.hx",
+            "std/hxrt/math/NativeMath.hx",
+            "std/hxrt/math/NativeMathInt.hx",
+            "std/hxrt/math/NativeRandom.hx",
+        ):
+            entry = ledger_entries.get(source_path)
+            self.assertIsNotNone(entry, source_path)
+            self.assertEqual("hxrt_binding", entry.get("ownershipClass"))
+            self.assertEqual("haxe_go-vfp.8.7.15.4", entry.get("migrationBead"))
+            self.assertEqual([], entry.get("compilerShimGroups"))
+
+        runtime_date = (ROOT / "runtime/hxrt/date.go").read_text(encoding="utf-8")
+        self.assertIn("func DateLocalTime(", runtime_date)
+        self.assertIn("func DateLocalParts(", runtime_date)
+        self.assertIn("func DateUTCParts(", runtime_date)
+        self.assertIn("func DateTimezoneOffset(", runtime_date)
+        self.assertNotIn("type Date struct", runtime_date)
+        self.assertNotIn("reflect.", runtime_date)
+        self.assertNotIn("unsafe.", runtime_date)
+
+        native_math = (ROOT / "std/hxrt/math/NativeMath.hx").read_text(
+            encoding="utf-8"
+        )
+        native_random = (ROOT / "std/hxrt/math/NativeRandom.hx").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('@:go.import("math")', native_math)
+        self.assertIn('@:go.import("math/rand")', native_random)
+        runtime_math = (ROOT / "runtime/hxrt/math.go").read_text(encoding="utf-8")
+        self.assertIn("func MathFloorInt(value float64) int", runtime_math)
+        self.assertIn("func MathCeilInt(value float64) int", runtime_math)
+        self.assertIn("func MathRoundInt(value float64) int", runtime_math)
+        self.assertNotIn("func MathSin", runtime_math)
+        self.assertNotIn("func MathSqrt", runtime_math)
+
+        self.assertIn('FEATURE_DATE = "date"', feature_analyzer)
+        self.assertIn('FEATURE_MATH = "math"', feature_analyzer)
+        self.assertIn('path == "Date"', feature_analyzer)
+        self.assertIn('path == "Math"', feature_analyzer)
+        self.assertIn('path == "hxrt.date.NativeDate"', feature_analyzer)
+        self.assertIn('path == "hxrt.math.NativeMathInt"', feature_analyzer)
+        self.assertIn("case FEATURE_DATE:", feature_analyzer)
+        self.assertIn("case FEATURE_MATH:", feature_analyzer)
+        self.assertIn('["date.go"]', feature_analyzer)
+        self.assertIn('["math.go"]', feature_analyzer)
+        self.assertIn('case "date.go":', reflaxe_compiler)
+        self.assertIn('case "math.go":', reflaxe_compiler)
+
+        self.assertIn('FieldByName(\\"ms\\")', serializer_emitter)
+        self.assertNotIn('fieldType.PkgPath() != "time"', serializer_emitter)
+
+        generated_root = ROOT / "test/snapshot/stdlib/date_math_source_owned/intended"
+        self.assertTrue((generated_root / "module_date.go").is_file())
+        self.assertTrue((generated_root / "module_math.go").is_file())
+        self.assertTrue((generated_root / "hxrt/date.go").is_file())
+        self.assertTrue((generated_root / "hxrt/math.go").is_file())
+        self.assertFalse(
+            (ROOT / "test/snapshot/core/const_kinds_contract/intended/hxrt/date.go").exists()
+        )
+        self.assertFalse(
+            (ROOT / "test/snapshot/core/const_kinds_contract/intended/hxrt/math.go").exists()
+        )
+        self.assertFalse(
+            (
+                ROOT
+                / "test/snapshot/stdlib/math_float_native_no_hxrt/intended/hxrt/math.go"
+            ).exists()
         )
 
     def test_atomic_is_source_owned_instead_of_a_compiler_shim(self) -> None:

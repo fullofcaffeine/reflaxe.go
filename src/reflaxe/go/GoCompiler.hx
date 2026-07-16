@@ -549,10 +549,8 @@ class GoCompiler {
 			imports.push("unicode/utf16");
 		}
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
-			imports.push("math");
 			imports.push("reflect");
 			imports.push("strings");
-			imports.push("time");
 		}
 		if (requiredStdlibShimGroups.exists("regex_serializer")) {
 			imports.push("encoding/base64");
@@ -562,7 +560,6 @@ class GoCompiler {
 			imports.push("sort");
 			imports.push("strconv");
 			imports.push("strings");
-			imports.push("time");
 			imports.push("unsafe");
 		}
 		if (requiredStdlibShimGroups.exists("net_socket")) {
@@ -4921,125 +4918,6 @@ class GoCompiler {
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
-			]),
-			GoDecl.GoStructDecl("Date", [
-				{
-					name: "value",
-					typeName: "time.Time"
-				}
-			]),
-			GoDecl.GoFuncDecl("Date_fromString", null, [{name: "source", typeName: "*string"}], ["*Date"], [
-				GoStmt.GoVarDecl("raw", null, GoExpr.GoRaw("*hxrt.StdString(source)"), true),
-				GoStmt.GoRaw("parsed, err := time.ParseInLocation(\"2006-01-02 15:04:05\", raw, time.Local)"),
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoRaw("parsedDateOnly, errDateOnly := time.ParseInLocation(\"2006-01-02\", raw, time.Local)"),
-					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("errDateOnly"), GoExpr.GoNil),
-						[GoStmt.GoAssign(GoExpr.GoIdent("parsed"), GoExpr.GoIdent("parsedDateOnly"))],
-						[GoStmt.GoAssign(GoExpr.GoIdent("parsed"), GoExpr.GoRaw("time.Unix(0, 0)"))])
-				],
-					null),
-				GoStmt.GoReturn(GoExpr.GoRaw("&Date{value: parsed}"))
-			]),
-			GoDecl.GoFuncDecl("Date_now", null, [], ["*Date"], [GoStmt.GoReturn(GoExpr.GoRaw("&Date{value: time.Now()}"))]),
-			GoDecl.GoFuncDecl("Date_fromTime", null, [
-				{
-					name: "ms",
-					typeName: "float64"
-				}
-			], ["*Date"], [
-				GoStmt.GoRaw("nanos := int64(ms * 1e6)"),
-				GoStmt.GoReturn(GoExpr.GoRaw("&Date{value: time.Unix(0, nanos).In(time.Local)}"))
-			]),
-			GoDecl.GoFuncDecl("getFullYear", {
-				name: "self",
-				typeName: "*Date"
-			}, [], ["int"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "value"), "Year"), []))
-			]),
-			GoDecl.GoFuncDecl("getMonth", {
-				name: "self",
-				typeName: "*Date"
-			},
-				[], ["int"], [GoStmt.GoReturn(GoExpr.GoRaw("int(self.value.Month()) - 1"))]),
-			GoDecl.GoFuncDecl("getDate", {name: "self", typeName: "*Date"}, [], ["int"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "value"), "Day"), []))
-			]),
-			GoDecl.GoFuncDecl("getDay", {
-				name: "self",
-				typeName: "*Date"
-			}, [], ["int"],
-				[GoStmt.GoReturn(GoExpr.GoRaw("int(self.value.Weekday())"))]),
-			GoDecl.GoFuncDecl("getHours", {
-				name: "self",
-				typeName: "*Date"
-			}, [], ["int"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "value"), "Hour"), []))
-			]),
-			GoDecl.GoFuncDecl("getMinutes", {
-				name: "self",
-				typeName: "*Date"
-			}, [], ["int"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "value"), "Minute"), []))
-			]),
-			GoDecl.GoFuncDecl("getSeconds", {
-				name: "self",
-				typeName: "*Date"
-			}, [], ["int"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "value"), "Second"), []))
-			]),
-			GoDecl.GoFuncDecl("getTime", {
-				name: "self",
-				typeName: "*Date"
-			},
-				[], ["float64"], [GoStmt.GoReturn(GoExpr.GoRaw("float64(self.value.UnixNano()) / 1e6"))]),
-			GoDecl.GoStructDecl("Math", []),
-			GoDecl.GoFuncDecl("Math_floor", null, [
-				{
-					name: "value",
-					typeName: "float64"
-				}
-			],
-				["int"], [GoStmt.GoReturn(GoExpr.GoRaw("int(math.Floor(value))"))]),
-			GoDecl.GoFuncDecl("Math_ceil", null, [{name: "value", typeName: "float64"}], ["int"], [GoStmt.GoReturn(GoExpr.GoRaw("int(math.Ceil(value))"))]),
-			GoDecl.GoFuncDecl("Math_round", null, [{name: "value", typeName: "float64"}], ["int"],
-				[GoStmt.GoReturn(GoExpr.GoRaw("int(math.Floor(value + 0.5))"))]),
-			GoDecl.GoFuncDecl("Math_abs", null, [{name: "value", typeName: "float64"}], ["float64"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("math"), "Abs"), [GoExpr.GoIdent("value")]))
-			]),
-			GoDecl.GoFuncDecl("Math_isNaN", null, [
-				{
-					name: "value",
-					typeName: "float64"
-				}
-			], ["bool"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("math"), "IsNaN"), [GoExpr.GoIdent("value")]))
-			]),
-			GoDecl.GoFuncDecl("Math_isFinite", null, [
-				{
-					name: "value",
-					typeName: "float64"
-				}
-			], ["bool"], [
-				GoStmt.GoReturn(GoExpr.GoUnary("!",
-					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("math"), "IsInf"), [GoExpr.GoIdent("value"), GoExpr.GoIntLiteral(0)])))
-			]),
-			GoDecl.GoFuncDecl("Math_min", null, [
-				{
-					name: "a",
-					typeName: "float64"
-				},
-				{name: "b", typeName: "float64"}
-			], ["float64"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("math"), "Min"), [GoExpr.GoIdent("a"), GoExpr.GoIdent("b")]))
-			]),
-			GoDecl.GoFuncDecl("Math_max", null, [
-				{
-					name: "a",
-					typeName: "float64"
-				},
-				{name: "b", typeName: "float64"}
-			], ["float64"], [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("math"), "Max"), [GoExpr.GoIdent("a"), GoExpr.GoIdent("b")]))
 			]),
 			GoDecl.GoStructDecl("Type", []),
 			GoDecl.GoStructDecl("Reflect", []),

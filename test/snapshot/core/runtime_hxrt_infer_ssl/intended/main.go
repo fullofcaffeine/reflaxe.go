@@ -1,10 +1,8 @@
 package main
 
 import (
-	"math"
 	"reflect"
 	"snapshot/hxrt"
-	"time"
 )
 
 type hxrt__TypeClassValue struct {
@@ -759,100 +757,6 @@ func _UnicodeString__UnicodeString_Impl__validate(value *haxe__io__Bytes, encodi
 		}
 	}
 	return true
-}
-
-type Date struct {
-	value time.Time
-}
-
-func Date_fromString(source *string) *Date {
-	raw := *hxrt.StdString(source)
-	parsed, err := time.ParseInLocation("2006-01-02 15:04:05", raw, time.Local)
-	if err != nil {
-		parsedDateOnly, errDateOnly := time.ParseInLocation("2006-01-02", raw, time.Local)
-		if errDateOnly == nil {
-			parsed = parsedDateOnly
-		} else {
-			parsed = time.Unix(0, 0)
-		}
-	}
-	return &Date{value: parsed}
-}
-
-func Date_now() *Date {
-	return &Date{value: time.Now()}
-}
-
-func Date_fromTime(ms float64) *Date {
-	nanos := int64(ms * 1e6)
-	return &Date{value: time.Unix(0, nanos).In(time.Local)}
-}
-
-func (self *Date) getFullYear() int {
-	return self.value.Year()
-}
-
-func (self *Date) getMonth() int {
-	return int(self.value.Month()) - 1
-}
-
-func (self *Date) getDate() int {
-	return self.value.Day()
-}
-
-func (self *Date) getDay() int {
-	return int(self.value.Weekday())
-}
-
-func (self *Date) getHours() int {
-	return self.value.Hour()
-}
-
-func (self *Date) getMinutes() int {
-	return self.value.Minute()
-}
-
-func (self *Date) getSeconds() int {
-	return self.value.Second()
-}
-
-func (self *Date) getTime() float64 {
-	return float64(self.value.UnixNano()) / 1e6
-}
-
-type Math struct {
-}
-
-func Math_floor(value float64) int {
-	return int(math.Floor(value))
-}
-
-func Math_ceil(value float64) int {
-	return int(math.Ceil(value))
-}
-
-func Math_round(value float64) int {
-	return int(math.Floor(value + 0.5))
-}
-
-func Math_abs(value float64) float64 {
-	return math.Abs(value)
-}
-
-func Math_isNaN(value float64) bool {
-	return math.IsNaN(value)
-}
-
-func Math_isFinite(value float64) bool {
-	return !math.IsInf(value, 0)
-}
-
-func Math_min(a float64, b float64) float64 {
-	return math.Min(a, b)
-}
-
-func Math_max(a float64, b float64) float64 {
-	return math.Max(a, b)
 }
 
 type Type struct {
