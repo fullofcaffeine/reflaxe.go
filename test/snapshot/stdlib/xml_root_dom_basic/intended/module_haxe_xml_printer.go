@@ -64,74 +64,67 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 				_this_6 := self.output
 				_this_6.b = hxrt.StringConcatStringPtr(_this_6.b, hxrt.StringFromLiteral("\n"))
 			}
-			child := value.iterator()
-			for func(hx_obj_46 map[string]any) func() bool {
-				hx_field_47 := hx_obj_46["hasNext"]
-				if hx_field_47 == nil {
-					var hx_zero_48 func() bool
-					return hx_zero_48
-				}
-				return hx_field_47.(func() bool)
-			}(child)() {
-				child_1 := func(hx_obj_49 map[string]any) func() *Xml {
-					hx_field_50 := hx_obj_49["next"]
-					if hx_field_50 == nil {
-						var hx_zero_51 func() *Xml
-						return hx_zero_51
-					}
-					return hx_field_50.(func() *Xml)
-				}(child)()
-				self.writeNode(child_1, func() *string {
-					var hx_if_52 *string
+			var _g_current int
+			var _g_array []*Xml
+			value.ensureElementType()
+			_this_7 := value.children
+			_g_current = 0
+			_g_array = _this_7
+			for _g_current < len(_g_array) {
+				hx_post_46 := _g_current
+				_g_current = int(int32((_g_current + 1)))
+				child := _g_array[hx_post_46]
+				self.writeNode(child, func() *string {
+					var hx_if_47 *string
 					if self.pretty {
-						hx_if_52 = hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("\t"))
+						hx_if_47 = hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("\t"))
 					} else {
-						hx_if_52 = tabs
+						hx_if_47 = tabs
 					}
-					return hx_if_52
+					return hx_if_47
 				}())
 			}
-			_this_7 := self.output
-			_this_7.b = hxrt.StringConcatStringPtr(_this_7.b, hxrt.StdString(hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("</"))))
-			input_2 := value.get_nodeName()
 			_this_8 := self.output
-			_this_8.b = hxrt.StringConcatStringPtr(_this_8.b, hxrt.StdString(input_2))
+			_this_8.b = hxrt.StringConcatStringPtr(_this_8.b, hxrt.StdString(hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("</"))))
+			input_2 := value.get_nodeName()
 			_this_9 := self.output
-			_this_9.b = hxrt.StringConcatStringPtr(_this_9.b, hxrt.StringFromLiteral(">"))
+			_this_9.b = hxrt.StringConcatStringPtr(_this_9.b, hxrt.StdString(input_2))
+			_this_10 := self.output
+			_this_10.b = hxrt.StringConcatStringPtr(_this_10.b, hxrt.StringFromLiteral(">"))
 			if self.pretty {
-				_this_10 := self.output
-				_this_10.b = hxrt.StringConcatStringPtr(_this_10.b, hxrt.StringFromLiteral("\n"))
+				_this_11 := self.output
+				_this_11.b = hxrt.StringConcatStringPtr(_this_11.b, hxrt.StringFromLiteral("\n"))
 			}
 		} else {
-			_this_11 := self.output
-			_this_11.b = hxrt.StringConcatStringPtr(_this_11.b, hxrt.StringFromLiteral("/>"))
+			_this_12 := self.output
+			_this_12.b = hxrt.StringConcatStringPtr(_this_12.b, hxrt.StringFromLiteral("/>"))
 			if self.pretty {
-				_this_12 := self.output
-				_this_12.b = hxrt.StringConcatStringPtr(_this_12.b, hxrt.StringFromLiteral("\n"))
+				_this_13 := self.output
+				_this_13.b = hxrt.StringConcatStringPtr(_this_13.b, hxrt.StringFromLiteral("\n"))
 			}
 		}
 	case 1:
 		nodeValue := value.get_nodeValue()
 		if hxrt.StringLengthStringPtr(nodeValue) != 0 {
 			input_3 := hxrt.StringConcatStringPtr(tabs, StringTools_htmlEscape(nodeValue, nil))
-			_this_13 := self.output
-			_this_13.b = hxrt.StringConcatStringPtr(_this_13.b, hxrt.StdString(input_3))
+			_this_14 := self.output
+			_this_14.b = hxrt.StringConcatStringPtr(_this_14.b, hxrt.StdString(input_3))
 			if self.pretty {
-				_this_14 := self.output
-				_this_14.b = hxrt.StringConcatStringPtr(_this_14.b, hxrt.StringFromLiteral("\n"))
+				_this_15 := self.output
+				_this_15.b = hxrt.StringConcatStringPtr(_this_15.b, hxrt.StringFromLiteral("\n"))
 			}
 		}
 	case 2:
-		_this_15 := self.output
-		_this_15.b = hxrt.StringConcatStringPtr(_this_15.b, hxrt.StdString(hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("<![CDATA["))))
-		input_4 := value.get_nodeValue()
 		_this_16 := self.output
-		_this_16.b = hxrt.StringConcatStringPtr(_this_16.b, hxrt.StdString(input_4))
+		_this_16.b = hxrt.StringConcatStringPtr(_this_16.b, hxrt.StdString(hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("<![CDATA["))))
+		input_4 := value.get_nodeValue()
 		_this_17 := self.output
-		_this_17.b = hxrt.StringConcatStringPtr(_this_17.b, hxrt.StringFromLiteral("]]>"))
+		_this_17.b = hxrt.StringConcatStringPtr(_this_17.b, hxrt.StdString(input_4))
+		_this_18 := self.output
+		_this_18.b = hxrt.StringConcatStringPtr(_this_18.b, hxrt.StringFromLiteral("]]>"))
 		if self.pretty {
-			_this_18 := self.output
-			_this_18.b = hxrt.StringConcatStringPtr(_this_18.b, hxrt.StringFromLiteral("\n"))
+			_this_19 := self.output
+			_this_19.b = hxrt.StringConcatStringPtr(_this_19.b, hxrt.StringFromLiteral("\n"))
 		}
 	case 3:
 		commentContent := value.get_nodeValue()
@@ -139,50 +132,43 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 		commentContent = StringTools_replace(commentContent, hxrt.StringFromLiteral("\r"), hxrt.StringFromLiteral(""))
 		commentContent = StringTools_replace(commentContent, hxrt.StringFromLiteral("\t"), hxrt.StringFromLiteral(""))
 		commentContent = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("<!--"), commentContent), hxrt.StringFromLiteral("-->"))
-		_this_19 := self.output
-		_this_19.b = hxrt.StringConcatStringPtr(_this_19.b, hxrt.StdString(tabs))
-		input_5 := StringTools_trim(commentContent)
 		_this_20 := self.output
-		_this_20.b = hxrt.StringConcatStringPtr(_this_20.b, hxrt.StdString(input_5))
+		_this_20.b = hxrt.StringConcatStringPtr(_this_20.b, hxrt.StdString(tabs))
+		input_5 := StringTools_trim(commentContent)
+		_this_21 := self.output
+		_this_21.b = hxrt.StringConcatStringPtr(_this_21.b, hxrt.StdString(input_5))
 		if self.pretty {
-			_this_21 := self.output
-			_this_21.b = hxrt.StringConcatStringPtr(_this_21.b, hxrt.StringFromLiteral("\n"))
+			_this_22 := self.output
+			_this_22.b = hxrt.StringConcatStringPtr(_this_22.b, hxrt.StringFromLiteral("\n"))
 		}
 	case 4:
 		input_6 := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("<!DOCTYPE "), value.get_nodeValue()), hxrt.StringFromLiteral(">"))
-		_this_22 := self.output
-		_this_22.b = hxrt.StringConcatStringPtr(_this_22.b, hxrt.StdString(input_6))
+		_this_23 := self.output
+		_this_23.b = hxrt.StringConcatStringPtr(_this_23.b, hxrt.StdString(input_6))
 		if self.pretty {
-			_this_23 := self.output
-			_this_23.b = hxrt.StringConcatStringPtr(_this_23.b, hxrt.StringFromLiteral("\n"))
+			_this_24 := self.output
+			_this_24.b = hxrt.StringConcatStringPtr(_this_24.b, hxrt.StringFromLiteral("\n"))
 		}
 	case 5:
 		input_7 := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("<?"), value.get_nodeValue()), hxrt.StringFromLiteral("?>"))
-		_this_24 := self.output
-		_this_24.b = hxrt.StringConcatStringPtr(_this_24.b, hxrt.StdString(input_7))
+		_this_25 := self.output
+		_this_25.b = hxrt.StringConcatStringPtr(_this_25.b, hxrt.StdString(input_7))
 		if self.pretty {
-			_this_25 := self.output
-			_this_25.b = hxrt.StringConcatStringPtr(_this_25.b, hxrt.StringFromLiteral("\n"))
+			_this_26 := self.output
+			_this_26.b = hxrt.StringConcatStringPtr(_this_26.b, hxrt.StringFromLiteral("\n"))
 		}
 	case 6:
-		child_2 := value.iterator()
-		for func(hx_obj_53 map[string]any) func() bool {
-			hx_field_54 := hx_obj_53["hasNext"]
-			if hx_field_54 == nil {
-				var hx_zero_55 func() bool
-				return hx_zero_55
-			}
-			return hx_field_54.(func() bool)
-		}(child_2)() {
-			child_3 := func(hx_obj_56 map[string]any) func() *Xml {
-				hx_field_57 := hx_obj_56["next"]
-				if hx_field_57 == nil {
-					var hx_zero_58 func() *Xml
-					return hx_zero_58
-				}
-				return hx_field_57.(func() *Xml)
-			}(child_2)()
-			self.writeNode(child_3, tabs)
+		var _g_current_1 int
+		var _g_array_1 []*Xml
+		value.ensureElementType()
+		_this_27 := value.children
+		_g_current_1 = 0
+		_g_array_1 = _this_27
+		for _g_current_1 < len(_g_array_1) {
+			hx_post_48 := _g_current_1
+			_g_current_1 = int(int32((_g_current_1 + 1)))
+			child_1 := _g_array_1[hx_post_48]
+			self.writeNode(child_1, tabs)
 		}
 	}
 }
@@ -200,29 +186,22 @@ func (self *haxe__xml__Printer) newline() {
 }
 
 func (self *haxe__xml__Printer) hasChildren(value *Xml) bool {
-	child := value.iterator()
-	for func(hx_obj_59 map[string]any) func() bool {
-		hx_field_60 := hx_obj_59["hasNext"]
-		if hx_field_60 == nil {
-			var hx_zero_61 func() bool
-			return hx_zero_61
-		}
-		return hx_field_60.(func() bool)
-	}(child)() {
-		child_1 := func(hx_obj_62 map[string]any) func() *Xml {
-			hx_field_63 := hx_obj_62["next"]
-			if hx_field_63 == nil {
-				var hx_zero_64 func() *Xml
-				return hx_zero_64
-			}
-			return hx_field_63.(func() *Xml)
-		}(child)()
-		var _g any = child_1.nodeType
+	var _g_current int
+	var _g_array []*Xml
+	value.ensureElementType()
+	_this := value.children
+	_g_current = 0
+	_g_array = _this
+	for _g_current < len(_g_array) {
+		hx_post_49 := _g_current
+		_g_current = int(int32((_g_current + 1)))
+		child := _g_array[hx_post_49]
+		var _g any = child.nodeType
 		switch _g {
 		case 0, 1:
 			return true
 		case 2, 3:
-			if hxrt.StringLengthStringPtr(StringTools_ltrim(child_1.get_nodeValue())) != 0 {
+			if hxrt.StringLengthStringPtr(StringTools_ltrim(child.get_nodeValue())) != 0 {
 				return true
 			}
 		default:

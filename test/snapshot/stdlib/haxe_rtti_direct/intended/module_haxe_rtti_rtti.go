@@ -6,8 +6,8 @@ func haxe__rtti__Rtti_getRtti(c any) map[string]any {
 	var rtti any = Reflect_field(c, hxrt.StringFromLiteral("__rtti"))
 	if hxrt.AnyEqualsNull(rtti) {
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class "), Type_getClassName(c)), hxrt.StringFromLiteral(" has no RTTI information, consider adding @:rtti")))
-		var hx_throw_zero_666 map[string]any
-		return hx_throw_zero_666
+		var hx_throw_zero_653 map[string]any
+		return hx_throw_zero_653
 	}
 	x := Xml_parse(hxrt.StdString(rtti)).firstElement()
 	infos := New_haxe__rtti__XmlParser().processElement(x)
@@ -18,8 +18,8 @@ func haxe__rtti__Rtti_getRtti(c any) map[string]any {
 	} else {
 		t := infos
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Enum mismatch: expected TClassDecl but found "), hxrt.StdString(t)))
-		var hx_throw_zero_667 map[string]any
-		return hx_throw_zero_667
+		var hx_throw_zero_654 map[string]any
+		return hx_throw_zero_654
 	}
 }
 

@@ -12,6 +12,19 @@ typedef GoLambdaLoweredExpr = {
 	final isStringLike:Bool;
 }
 
+/**
+	What: One lowered expression plus statements that must execute before it.
+	Why: Inline iterator methods can perform observable work before producing the
+	concrete iterator value that needs structural adaptation.
+	How: The iterable owner returns the ordered prefix to `GoCompiler`, which emits
+	it directly or materializes it inside an expression context.
+**/
+typedef GoLambdaLoweredExprWithPrefix = {
+	final prefix:Array<GoStmt>;
+	final expr:GoExpr;
+	final isStringLike:Bool;
+}
+
 typedef GoLambdaSourcePlan = {
 	final domain:String;
 	final elementType:String;
@@ -42,8 +55,22 @@ private typedef GoConcreteIteratorMethod = {
 	final appliedType:Type;
 }
 
+/**
+	What: The typed array source and ordered setup expressions recovered from an
+	inlined Array iterator.
+	Why: Replacing the final erased iterator constructor must not discard effects
+	that appeared earlier in the inline block.
+	How: `nativeArrayCursorPlan` separates the terminal array from its prefix while
+	retaining every non-alias setup expression.
+**/
+private typedef GoNativeArrayCursorPlan = {
+	final setup:Array<TypedExpr>;
+	final sourceExpr:TypedExpr;
+}
+
 private typedef GoLambdaIterableLoweringConfig = {
 	final lowerExpr:TypedExpr->GoLambdaLoweredExpr;
+	final lowerToStatements:TypedExpr->Array<GoStmt>;
 	final freshTempName:String->String;
 	final isArrayType:Type->Bool;
 	final arrayElementType:Type->Null<Type>;
@@ -73,15 +100,17 @@ private typedef GoLambdaIterableLoweringConfig = {
 
 	How:
 	Consumes typed callbacks from `GoCompiler` for lowering, naming, and type
-	mapping, then builds the small adapter expressions used by Lambda call
-	lowering. This module should not grow general Haxe stdlib behavior; it owns
-	only the bridge between Haxe iterable semantics and current Go carriers.
+	mapping, then builds the small adapter expressions and ordered setup statements
+	used by iterable lowering. This module should not grow general Haxe stdlib
+	behavior; it owns only the bridge between Haxe iterable semantics and current
+	Go carriers.
 	Go `any` stays localized here because unknown `Iterable<T>` values expose
 	their elements through the manual iterator protocol instead of a statically
 	known Go slice type.
 **/
 class GoLambdaIterableLowering {
 	final lowerExpr:TypedExpr->GoLambdaLoweredExpr;
+	final lowerToStatements:TypedExpr->Array<GoStmt>;
 	final freshTempName:String->String;
 	final isArrayType:Type->Bool;
 	final arrayElementType:Type->Null<Type>;
@@ -97,6 +126,7 @@ class GoLambdaIterableLowering {
 
 	public function new(config:GoLambdaIterableLoweringConfig) {
 		lowerExpr = config.lowerExpr;
+		lowerToStatements = config.lowerToStatements;
 		freshTempName = config.freshTempName;
 		isArrayType = config.isArrayType;
 		arrayElementType = config.arrayElementType;
@@ -195,43 +225,51 @@ class GoLambdaIterableLowering {
 	}
 
 	/**
-		What: Resolves the single pure alias introduced by inline `Array.iterator()`.
-		Why: Accepting arbitrary block prefixes could discard observable effects.
-		How: Permit zero setup expressions or exactly one matching initialized local;
-		reject every larger or unrelated block for the prefix-aware follow-up bead.
+		What: Folds trailing local aliases into an array cursor plan.
+		Why: Haxe's inline `Array.iterator()` introduces compile-only aliases that do
+		not need generated locals, while earlier effects must remain in the prefix.
+		How: Remove only a final `var alias = value` referenced by the terminal source;
+		recurse across consecutive trailing aliases and preserve every other statement.
 	**/
-	function resolveInlineBlockAlias(source:TypedExpr, setup:Array<TypedExpr>):Null<TypedExpr> {
-		var current = unwrapStructuralSourceExpr(source);
+	function foldTrailingArrayAliases(sourceExpr:TypedExpr, setup:Array<TypedExpr>):GoNativeArrayCursorPlan {
+		var current = unwrapStructuralSourceExpr(sourceExpr);
 		if (setup.length == 0) {
-			return current;
+			return {setup: setup, sourceExpr: current};
 		}
-		if (setup.length != 1) {
-			return null;
-		}
-		return switch ([current.expr, setup[0].expr]) {
+		var last = setup[setup.length - 1];
+		return switch ([current.expr, last.expr]) {
 			case [TLocal(variable), TVar(candidate, value)] if (candidate.id == variable.id && value != null):
-				unwrapStructuralSourceExpr(value);
-			case _: null;
+				foldTrailingArrayAliases(value, setup.slice(0, setup.length - 1));
+			case _:
+				{setup: setup, sourceExpr: current};
 		};
 	}
 
 	/**
-		What: Recovers the typed array behind direct and safely inlined Array iterators.
-		Why: The array must be captured before its generic iterator class erases `T`.
-		How: Match only the standard constructor/method identities and the safe alias above.
+		What: Recovers the typed array and ordered prefix behind an Array iterator.
+		Why: The array must be captured before its generic iterator class erases `T`,
+		without dropping effects introduced by an inline caller.
+		How: Match only the standard constructor/method identities, recursively collect
+		block setup expressions, and fold only safe trailing aliases.
 	**/
-	function nativeArrayCursorSource(expr:TypedExpr):Null<TypedExpr> {
+	function nativeArrayCursorPlan(expr:TypedExpr):Null<GoNativeArrayCursorPlan> {
 		var source = unwrapStructuralSourceExpr(expr);
 		return switch (source.expr) {
 			case TBlock(exprs) if (exprs.length > 0):
 				var setup = exprs.slice(0, exprs.length - 1);
-				var tailSource = nativeArrayCursorSource(exprs[exprs.length - 1]);
-				tailSource == null ? null : resolveInlineBlockAlias(tailSource, setup);
-			case TNew(classRef, _, args): var classType = classRef.get(); classType.pack.join(".") == "haxe.iterators" && classType.name == "ArrayIterator" && args.length == 1 ? args[0] : null;
+				var tailPlan = nativeArrayCursorPlan(exprs[exprs.length - 1]);
+				tailPlan == null ? null : foldTrailingArrayAliases(tailPlan.sourceExpr, setup.concat(tailPlan.setup));
+			case TNew(classRef, _, args): var classType = classRef.get(); classType.pack.join(".") == "haxe.iterators" && classType.name == "ArrayIterator" && args.length == 1 ? {
+					setup: [],
+					sourceExpr: args[0]
+				} : null;
 			case TCall(callee, args) if (args.length == 0):
 				switch (unwrapStructuralSourceExpr(callee).expr) {
 					case TField(target, FInstance(classRef, _, fieldRef)): var classType = classRef.get(); classType.pack.length == 0 && classType.name == "Array" && fieldRef.get()
-							.name == "iterator" ? target : null;
+							.name == "iterator" ? {
+								setup: [],
+								sourceExpr: target
+							} : null;
 					case _: null;
 				}
 			case _: null;
@@ -276,24 +314,38 @@ class GoLambdaIterableLowering {
 	}
 
 	/**
-		What: Lowers a direct native-array iterator expression to the structural map.
+		What: Lowers a native-array iterator expression and its ordered setup prefix
+		to the structural map.
 		Why: Lowering the erased `ArrayIterator<T>` class first would require copying
 		a typed Go slice to `[]any`, which would hide later indexed mutations from the
-		iterator and violate Haxe's shared-array behavior.
-		How: Recover the typed array before ordinary expression lowering, then capture
-		the original slice and one cursor in typed `hasNext` / `next` closures.
+		iterator and violate Haxe's shared-array behavior; replacing an inline block's
+		final constructor alone would also discard earlier effects.
+		How: Recover the typed array before ordinary expression lowering, lower every
+		retained setup expression to statements, and return that prefix with one typed
+		live-slice cursor for the caller to emit or materialize.
 	**/
-	public function nativeArrayStructuralIteratorCoerce(sourceExpr:TypedExpr, toType:Type):Null<GoExpr> {
+	public function nativeArrayStructuralIteratorCoerce(sourceExpr:TypedExpr, toType:Type):Null<GoLambdaLoweredExprWithPrefix> {
 		var targetShape = structuralIteratorShape(toType);
 		if (targetShape == null) {
 			return null;
 		}
-		var arraySource = nativeArrayCursorSource(sourceExpr);
-		if (arraySource == null) {
+		var cursorPlan = nativeArrayCursorPlan(sourceExpr);
+		if (cursorPlan == null) {
 			return null;
 		}
-		var sourcePlan = trySourcePlan(arraySource);
-		return sourcePlan != null && sourcePlan.domain == "array" ? nativeArrayCursorMap(sourcePlan, targetShape.nextReturnType) : null;
+		var sourcePlan = trySourcePlan(cursorPlan.sourceExpr);
+		if (sourcePlan == null || sourcePlan.domain != "array") {
+			return null;
+		}
+		var prefix = new Array<GoStmt>();
+		for (setupExpr in cursorPlan.setup) {
+			prefix = prefix.concat(lowerToStatements(setupExpr));
+		}
+		return {
+			prefix: prefix,
+			expr: nativeArrayCursorMap(sourcePlan, targetShape.nextReturnType),
+			isStringLike: false
+		};
 	}
 
 	/**

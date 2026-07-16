@@ -2174,43 +2174,31 @@ func (self *haxe__rtti__XmlParser) elementName(x *Xml) *string {
 }
 
 func (self *haxe__rtti__XmlParser) innerData(x *Xml) *string {
-	it := x.iterator()
-	if !func(hx_obj_527 map[string]any) func() bool {
-		hx_field_528 := hx_obj_527["hasNext"]
-		if hx_field_528 == nil {
-			var hx_zero_529 func() bool
-			return hx_zero_529
-		}
-		return hx_field_528.(func() bool)
-	}(it)() {
+	var it_current int
+	var it_array []*Xml
+	x.ensureElementType()
+	_this := x.children
+	it_current = 0
+	it_array = _this
+	if !(it_current < len(it_array)) {
 		hxrt.Throw(hxrt.StringConcatStringPtr(self.nodeDisplayName(x), hxrt.StringFromLiteral(" does not have data")))
 		var hx_throw_zero_526 *string
 		return hx_throw_zero_526
 	}
-	value := func(hx_obj_530 map[string]any) func() *Xml {
-		hx_field_531 := hx_obj_530["next"]
-		if hx_field_531 == nil {
-			var hx_zero_532 func() *Xml
-			return hx_zero_532
-		}
-		return hx_field_531.(func() *Xml)
-	}(it)()
-	if func(hx_obj_534 map[string]any) func() bool {
-		hx_field_535 := hx_obj_534["hasNext"]
-		if hx_field_535 == nil {
-			var hx_zero_536 func() bool
-			return hx_zero_536
-		}
-		return hx_field_535.(func() bool)
-	}(it)() {
+	value := it_array[func() int {
+		hx_post_527 := it_current
+		it_current = int(int32((it_current + 1)))
+		return hx_post_527
+	}()]
+	if it_current < len(it_array) {
 		hxrt.Throw(hxrt.StringConcatStringPtr(self.nodeDisplayName(x), hxrt.StringFromLiteral(" does not only have data")))
-		var hx_throw_zero_533 *string
-		return hx_throw_zero_533
+		var hx_throw_zero_528 *string
+		return hx_throw_zero_528
 	}
 	if (value.nodeType != Xml_PCData) && (value.nodeType != Xml_CData) {
 		hxrt.Throw(hxrt.StringConcatStringPtr(self.nodeDisplayName(x), hxrt.StringFromLiteral(" does not have data")))
-		var hx_throw_zero_537 *string
-		return hx_throw_zero_537
+		var hx_throw_zero_529 *string
+		return hx_throw_zero_529
 	}
 	return value.get_nodeValue()
 }
@@ -2218,24 +2206,17 @@ func (self *haxe__rtti__XmlParser) innerData(x *Xml) *string {
 func (self *haxe__rtti__XmlParser) innerHTML(x *Xml) *string {
 	var buf_b *string
 	buf_b = hxrt.StringFromLiteral("")
-	child := x.iterator()
-	for func(hx_obj_538 map[string]any) func() bool {
-		hx_field_539 := hx_obj_538["hasNext"]
-		if hx_field_539 == nil {
-			var hx_zero_540 func() bool
-			return hx_zero_540
-		}
-		return hx_field_539.(func() bool)
-	}(child)() {
-		child_1 := func(hx_obj_541 map[string]any) func() *Xml {
-			hx_field_542 := hx_obj_541["next"]
-			if hx_field_542 == nil {
-				var hx_zero_543 func() *Xml
-				return hx_zero_543
-			}
-			return hx_field_542.(func() *Xml)
-		}(child)()
-		x_1 := child_1.toString()
+	var _g_current int
+	var _g_array []*Xml
+	x.ensureElementType()
+	_this := x.children
+	_g_current = 0
+	_g_array = _this
+	for _g_current < len(_g_array) {
+		hx_post_530 := _g_current
+		_g_current = int(int32((_g_current + 1)))
+		child := _g_array[hx_post_530]
+		x_1 := child.toString()
 		buf_b = hxrt.StringConcatStringPtr(buf_b, hxrt.StdString(x_1))
 	}
 	return buf_b
@@ -2262,11 +2243,11 @@ func (self *haxe__rtti__XmlParser) parseIntString(value *string) int {
 		result = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(result) * hxrt.Int32Wrap(10))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(zeroCode))))))))
 		index = int(int32((index + 1)))
 	}
-	var hx_if_544 int
+	var hx_if_531 int
 	if negative {
-		hx_if_544 = int(int32(-int32(result)))
+		hx_if_531 = int(int32(-int32(result)))
 	} else {
-		hx_if_544 = result
+		hx_if_531 = result
 	}
-	return hx_if_544
+	return hx_if_531
 }

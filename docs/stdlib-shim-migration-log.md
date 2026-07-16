@@ -1656,3 +1656,60 @@ Observed result:
   `GoRaw` debt falls permanently by one site, from 3,879 to 3,878. This slice
   intentionally does not claim effect-preserving restoration of the upstream
   inline modifier; that remains owned by `haxe_go-vfp.8.3.4`.
+
+### 2026-07-16: preserve inline iterator effects and restore upstream `Xml.iterator()` (`haxe_go-vfp.8.3.4`)
+
+Implementation:
+
+- Added a red semantic-diff and snapshot/runtime contract before changing
+  lowering. An inline method performs one observable effect, returns
+  `Array.iterator()`, and is consumed through both a declaration and an ordinary
+  call argument. The contract also mutates the source array after iterator
+  creation to retain the live-slice guarantee from `haxe_go-vfp.8.3.3`.
+- Changed the existing typed native-array adapter from an expression-only result
+  to an ordered prefix plus expression. It recursively separates an inline
+  block's final array iterator from preceding setup, lowers every retained setup
+  expression through ordinary typed statement lowering, and folds only trailing
+  aliases whose evaluation position is unchanged.
+- Expected-type declaration, assignment, return, and branch contexts emit the
+  prefix directly. Expression-only call arguments materialize the same prefix in
+  an immediately invoked function, so source order and exactly-once effects are
+  preserved without retaining the erased iterator constructor.
+- Restored the upstream `inline` modifier on root `Xml.iterator()`. Its node-type
+  validation now remains ordered before traversal, while inline `for` consumers
+  such as `haxe.xml.Printer` lower to direct typed slice loops instead of
+  structural map lookups.
+- Kept the change inside `GoLambdaIterableLowering` plus expected-type
+  orchestration. It adds no runtime helper, reflection, unsafe conversion, raw
+  fragment, profile branch, XML special case, or library traversal algorithm.
+
+Validation evidence:
+
+- `npm run test:changed`
+- `npm test` (`277/277` snapshots)
+- `npm run test:semantic-diff` (`140/140` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance`, `npm run test:stdlib-inventory`, and
+  `npm run compatibility:verify`
+- `npm run test:compiler-debt` (`3,878` `GoRaw` sites and `13` compiler shim
+  entry points)
+- raw-injection hygiene, `npm run test:release-contracts`, and
+  `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates)
+- `npm run test:perf:go` (three warning-only startup signals and zero enforced
+  hard failures) and `npm run test:perf:stdlib-shims`
+
+Observed result:
+
+- Inline iterator setup now runs once and in order in both statement and call
+  argument contexts. Generated Go contains one typed live-array cursor and no
+  `ArrayIterator` type, constructor, copied `[]any` storage, reflection, or
+  unsafe path.
+- Root `Xml.iterator()` again matches the upstream inline API. Generated XML
+  printer loops validate the node once before walking `value.children` directly,
+  eliminating the prior structural map method lookups without moving XML policy
+  into the compiler.
+- Compiler debt stays flat at 3,878 raw sites; this slice changes orchestration,
+  not syntax debt. Structural coercion for constructor parameters remains the
+  separate `haxe_go-vfp.8.3.5` path, while effectful inline blocks ending in a
+  non-array concrete iterator remain `haxe_go-vfp.8.3.6`.

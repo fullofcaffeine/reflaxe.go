@@ -301,6 +301,7 @@ class GoCompiler {
 		});
 		lambdaIterableLowering = new GoLambdaIterableLowering({
 			lowerExpr: lowerExpr,
+			lowerToStatements: lowerToStatements,
 			freshTempName: freshTempName,
 			isArrayType: isArrayType,
 			arrayElementType: arrayElementType,
@@ -11215,11 +11216,7 @@ class GoCompiler {
 	function lowerExprWithExpectedUpcast(source:TypedExpr, targetType:Type):LoweredExprWithPrefix {
 		var nativeArrayIterator = lambdaIterableLowering.nativeArrayStructuralIteratorCoerce(source, targetType);
 		if (nativeArrayIterator != null) {
-			return {
-				prefix: [],
-				expr: nativeArrayIterator,
-				isStringLike: isStringType(targetType)
-			};
+			return nativeArrayIterator;
 		}
 		var lowered = lowerExprWithPrefix(source);
 		return {
@@ -11242,7 +11239,7 @@ class GoCompiler {
 		if (sourceTypedExpr != null) {
 			var nativeArrayIterator = lambdaIterableLowering.nativeArrayStructuralIteratorCoerce(sourceTypedExpr, toType);
 			if (nativeArrayIterator != null) {
-				return nativeArrayIterator;
+				return materializeExprWithPrefix(nativeArrayIterator, toType).expr;
 			}
 		}
 		var structuralIterator = lambdaIterableLowering.structuralIteratorCoerce(expr, fromType, toType);

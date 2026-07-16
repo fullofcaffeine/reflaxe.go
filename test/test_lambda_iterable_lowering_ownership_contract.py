@@ -8,6 +8,11 @@ LOWERING_MODULE = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoLambdaIterab
 SOURCE_PLANNER = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoSourceOwnedStdlibPlanner.hx"
 LAMBDA_OVERRIDE = ROOT / "std" / "go" / "_std" / "Lambda.hx"
 STRUCTURAL_ITERATOR_SNAPSHOT = ROOT / "test" / "snapshot" / "core" / "structural_iterator_assignment" / "intended"
+INLINE_EFFECT_SNAPSHOT = ROOT / "test" / "snapshot" / "core" / "inline_structural_iterator_effect" / "intended"
+XML_OVERRIDE = ROOT / "std" / "go" / "_std" / "Xml.hx"
+XML_PRINTER_SNAPSHOT = (
+    ROOT / "test" / "snapshot" / "stdlib" / "xml_root_dom_basic" / "intended" / "module_haxe_xml_printer.go"
+)
 
 
 def function_block(source: str, name: str, next_name: str) -> str:
@@ -225,6 +230,50 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
         self.assertIn("func (self *SnapshotGenericIterator) next() any", main_go)
         for forbidden in ["reflect.", "unsafe.", ") HasNext(", ") Next("]:
             self.assertNotIn(forbidden, main_go)
+
+    def test_effectful_inline_iterator_prefix_is_preserved_once(self):
+        compiler_source = GO_COMPILER.read_text(encoding="utf-8")
+        lowering_source = LOWERING_MODULE.read_text(encoding="utf-8")
+        inline_go = (INLINE_EFFECT_SNAPSHOT / "main.go").read_text(encoding="utf-8")
+        xml_source = XML_OVERRIDE.read_text(encoding="utf-8")
+        xml_printer_go = XML_PRINTER_SNAPSHOT.read_text(encoding="utf-8")
+
+        cursor_planner = function_block(lowering_source, "nativeArrayCursorPlan", "nativeArrayCursorMap")
+        self.assertIn("setup.concat(tailPlan.setup)", cursor_planner)
+        self.assertIn("foldTrailingArrayAliases", cursor_planner)
+
+        native_adapter = function_block(
+            lowering_source,
+            "nativeArrayStructuralIteratorCoerce",
+            "structuralIteratorCoerce",
+        )
+        self.assertIn("lowerToStatements(setupExpr)", native_adapter)
+        self.assertIn("prefix: prefix", native_adapter)
+
+        upcast = function_block(compiler_source, "upcastIfNeeded", "typeToGoType")
+        self.assertIn(
+            "materializeExprWithPrefix(nativeArrayIterator, toType)",
+            upcast,
+            "expression-only call arguments must keep an inline iterator's ordered prefix",
+        )
+
+        main_go = inline_go[inline_go.index("func main()") :]
+        effect = "effectCount = int(int32((effectCount + 1)))"
+        self.assertEqual(main_go.count(effect), 1)
+        effect_index = main_go.index(effect)
+        capture_index = main_go.index(" := values", effect_index)
+        mutation_index = main_go.index("values[0] = 9", capture_index)
+        self.assertLess(effect_index, capture_index)
+        self.assertLess(capture_index, mutation_index)
+        argument_effect = "argumentEffectCount = int(int32((argumentEffectCount + 1)))"
+        self.assertEqual(main_go.count(argument_effect), 1)
+        for forbidden in ["ArrayIterator", "reflect.", "unsafe.", "[]any(hx_structural_array"]:
+            self.assertNotIn(forbidden, main_go)
+
+        self.assertIn("public inline function iterator():Iterator<Xml>", xml_source)
+        self.assertGreaterEqual(xml_printer_go.count("value.ensureElementType()"), 3)
+        self.assertIn("value.children", xml_printer_go)
+        self.assertNotIn("value.iterator()", xml_printer_go)
 
 
 if __name__ == "__main__":
