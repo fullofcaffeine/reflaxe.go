@@ -49,6 +49,18 @@ Agent policy:
 - Product rule: portable Haxe semantics are the default product path; typed `go.*`/extern APIs and `@:goNative` modules are explicit Go-native source boundaries. The public `portable|metal` selector remains for compatibility, with `metal` defined as a convenience policy preset rather than a second semantic product. Portable by default, Go-native by explicit source boundary, Go-shaped generated output whenever the compiler can prove the lowering preserves the source contract.
 - Do not frame `portable` as the slow/basic mode or `metal` as the only "real Go" mode. Compiler optimization work should make portable output idiomatic and performant where semantics allow. New behavior must branch on typed authority/specialization/fallback/strictness/runtime policies, not directly on the legacy profile name; `@:goMetal` remains a compatibility alias for canonical `@:goNative`.
 
+## Commit Messages
+
+- Keep the conventional-commit subject concise, then add a useful commit body for every non-trivial
+  change. Write the body in friendly, beginner-readable language so someone who does not already know
+  the compiler internals can understand what problem was solved.
+- Explain what changed, why it matters, and how it was verified. Call out important behavior or output
+  changes and name any intentionally deferred scope so the commit does not imply broader closure than
+  it provides.
+- Prefer concrete descriptions of the old and new behavior over a list of filenames or internal type
+  names. Technical details are welcome, but introduce them in plain language and make the practical
+  outcome clear first.
+
 ## Landing the Plane (Session Completion)
 
 **When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
