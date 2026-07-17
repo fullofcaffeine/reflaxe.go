@@ -1,5 +1,7 @@
 package hxrt.template;
 
+import go.NativeSlice;
+
 /**
 	What
 	- Typed bridge to the three runtime representation operations needed by staged
@@ -23,11 +25,11 @@ package hxrt.template;
 @:go.package("hxrt")
 extern class NativeTemplate {
 	@:go.name("TemplateArrayValues")
-	public static function arrayValues(value:Dynamic):Null<Array<Dynamic>>;
+	public static function arrayValues(value:Dynamic):Null<NativeSlice<Dynamic>>;
 
 	@:go.name("TemplateIsObject")
 	public static function isObject(value:Dynamic):Bool;
 
 	@:go.name("TemplateCall")
-	public static function call(funcValue:Dynamic, args:Array<Dynamic>):Dynamic;
+	public static function call(funcValue:Dynamic, args:NativeSlice<Dynamic>):Dynamic;
 }

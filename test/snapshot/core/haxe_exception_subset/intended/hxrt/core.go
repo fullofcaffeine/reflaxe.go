@@ -2,6 +2,16 @@ package hxrt
 
 import "math"
 
+// portableArrayFromValues is the narrow registration point used by optional
+// runtime features that must construct a Haxe Array without making their Go file
+// uncompilable when array.go is intentionally omitted. array.go replaces this
+// fallback during package initialization; feature dependency planning guarantees
+// that any program which calls such a feature also receives the Array carrier.
+// The erased values remain localized to the runtime representation boundary.
+var portableArrayFromValues = func(values []any) any {
+	return values
+}
+
 // HaxeException is the foundational panic carrier shared by core validation
 // failures and the optional exception helpers. Keeping the carrier in core
 // lets selectively copied runtimes preserve Haxe failures without importing

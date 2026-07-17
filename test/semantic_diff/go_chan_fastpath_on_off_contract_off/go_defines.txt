@@ -1,2 +1,0 @@
-reflaxe_go_opt=portable_fast
-reflaxe_go_opt_go_concurrency_fastpath=0

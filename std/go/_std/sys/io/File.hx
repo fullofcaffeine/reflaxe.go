@@ -1,6 +1,7 @@
 package sys.io;
 
 import haxe.io.Bytes;
+import go.NativeSlice;
 import hxrt.fs.NativeFile;
 
 /**
@@ -39,7 +40,7 @@ class File {
 		var values = new Array<Int>();
 		for (index in 0...bytes.length)
 			values.push(bytes.get(index));
-		NativeFile.writeByteValues(path, values);
+		NativeFile.writeByteValues(path, NativeSlice.fromArray(values));
 	}
 
 	public static function read(path:String, binary:Bool = true):FileInput {

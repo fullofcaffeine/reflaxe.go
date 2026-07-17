@@ -3,7 +3,7 @@ package main
 import "examples_fluxproxy_metal/hxrt"
 
 func Harness_assertBreakerScenario(runtime app__runtime__FluxRuntime) {
-	breakerRequests := []*app__core__FluxRequest{New_app__core__FluxRequest(1, hxrt.StringFromLiteral("/breaker/api"), 60, 503), New_app__core__FluxRequest(2, hxrt.StringFromLiteral("/breaker/api"), 65, 502), New_app__core__FluxRequest(3, hxrt.StringFromLiteral("/breaker/api"), 20, 200), New_app__core__FluxRequest(4, hxrt.StringFromLiteral("/breaker/api"), 18, 200)}
+	breakerRequests := hxrt.NewArray(New_app__core__FluxRequest(1, hxrt.StringFromLiteral("/breaker/api"), 60, 503), New_app__core__FluxRequest(2, hxrt.StringFromLiteral("/breaker/api"), 65, 502), New_app__core__FluxRequest(3, hxrt.StringFromLiteral("/breaker/api"), 20, 200), New_app__core__FluxRequest(4, hxrt.StringFromLiteral("/breaker/api"), 18, 200))
 	report := Harness_runReport(runtime, breakerRequests)
 	if report.breakerOpenCount != 2 {
 		hxrt.Throw(hxrt.StringFromLiteral("policy.breaker_open scenario drift"))
@@ -62,17 +62,23 @@ func Harness_assertContract(runtime app__runtime__FluxRuntime) *string {
 	return report.render()
 }
 
-func Harness_baselineRequests() []*app__core__FluxRequest {
-	return []*app__core__FluxRequest{New_app__core__FluxRequest(1, hxrt.StringFromLiteral("/v1/items"), 30, 200), New_app__core__FluxRequest(2, hxrt.StringFromLiteral("/v1/items"), 70, 503), New_app__core__FluxRequest(3, hxrt.StringFromLiteral("/assets/logo.png"), 12, 200), New_app__core__FluxRequest(4, hxrt.StringFromLiteral("/health"), 4, 200), New_app__core__FluxRequest(5, hxrt.StringFromLiteral("/v1/auth"), 40, 502), New_app__core__FluxRequest(6, hxrt.StringFromLiteral("/v1/items"), 18, 200), New_app__core__FluxRequest(7, hxrt.StringFromLiteral("/assets/main.css"), 9, 200), New_app__core__FluxRequest(8, hxrt.StringFromLiteral("/v1/auth"), 28, 200)}
+func Harness_baselineRequests() *hxrt.Array {
+	return hxrt.NewArray(New_app__core__FluxRequest(1, hxrt.StringFromLiteral("/v1/items"), 30, 200), New_app__core__FluxRequest(2, hxrt.StringFromLiteral("/v1/items"), 70, 503), New_app__core__FluxRequest(3, hxrt.StringFromLiteral("/assets/logo.png"), 12, 200), New_app__core__FluxRequest(4, hxrt.StringFromLiteral("/health"), 4, 200), New_app__core__FluxRequest(5, hxrt.StringFromLiteral("/v1/auth"), 40, 502), New_app__core__FluxRequest(6, hxrt.StringFromLiteral("/v1/items"), 18, 200), New_app__core__FluxRequest(7, hxrt.StringFromLiteral("/assets/main.css"), 9, 200), New_app__core__FluxRequest(8, hxrt.StringFromLiteral("/v1/auth"), 28, 200))
 }
 
-func Harness_cloneRequests(requests []*app__core__FluxRequest) []*app__core__FluxRequest {
-	out := []*app__core__FluxRequest{}
+func Harness_cloneRequests(requests *hxrt.Array) *hxrt.Array {
+	out := hxrt.NewArray()
 	_g := 0
-	for _g < len(requests) {
-		request := requests[_g]
+	for _g < requests.Len() {
+		request := func(hx_value_2 any) *app__core__FluxRequest {
+			if hx_value_2 == nil {
+				var hx_zero_3 *app__core__FluxRequest
+				return hx_zero_3
+			}
+			return hx_value_2.(*app__core__FluxRequest)
+		}(requests.Get(_g))
 		_g = int(int32((_g + 1)))
-		out = append(out, New_app__core__FluxRequest(request.id, request.route, request.latencyMs, request.status))
+		out.Push(New_app__core__FluxRequest(request.id, request.route, request.latencyMs, request.status))
 	}
 	return out
 }
@@ -81,11 +87,11 @@ func Harness_run(runtime app__runtime__FluxRuntime) *string {
 	return Harness_runReport(runtime, Harness_baselineRequests()).render()
 }
 
-func Harness_runReport(runtime app__runtime__FluxRuntime, requests []*app__core__FluxRequest) *app__core__FluxReport {
+func Harness_runReport(runtime app__runtime__FluxRuntime, requests *hxrt.Array) *app__core__FluxReport {
 	pipeline := New_app__core__FluxPipeline(runtime)
 	return pipeline.run(Harness_cloneRequests(requests))
 }
 
-func Harness_runWithRequests(runtime app__runtime__FluxRuntime, requests []*app__core__FluxRequest) *string {
+func Harness_runWithRequests(runtime app__runtime__FluxRuntime, requests *hxrt.Array) *string {
 	return Harness_runReport(runtime, requests).render()
 }

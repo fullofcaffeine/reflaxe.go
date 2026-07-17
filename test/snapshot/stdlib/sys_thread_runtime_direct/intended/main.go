@@ -135,7 +135,7 @@ func main() {
 }
 
 func sortedMessages(count int) *string {
-	values := []*string{}
+	values := hxrt.NewArray()
 	_g := 0
 	_g1 := count
 	for _g < _g1 {
@@ -143,56 +143,42 @@ func sortedMessages(count int) *string {
 		_g = int(int32((_g + 1)))
 		hx_tmp := hx_post_7
 		_ = hx_tmp
-		values = append(values, hxrt.StdString(sys__thread__Thread_readMessage(true)))
+		values.Push(hxrt.StdString(sys__thread__Thread_readMessage(true)))
 	}
-	func(hx_sort_src_10 []*string) {
-		hx_sort_raw_9 := func(hx_sort_src_11 []*string) []any {
-			hx_sort_out_13 := make([]any, 0, len(hx_sort_src_11))
-			for _, hx_sort_item_12 := range hx_sort_src_11 {
-				hx_sort_out_13 = append(hx_sort_out_13, hx_sort_item_12)
+	haxe__ds__ArraySort_sort(values, func(hx_cmp_left_9 any, hx_cmp_right_10 any) int {
+		return Reflect_compare(func(hx_value_11 any) *string {
+			if hx_value_11 == nil {
+				var hx_zero_12 *string
+				return hx_zero_12
 			}
-			return hx_sort_out_13
-		}(hx_sort_src_10)
-		haxe__ds__ArraySort_sort(hx_sort_raw_9, func(hx_cmp_left_14 any, hx_cmp_right_15 any) int {
-			return Reflect_compare(func(hx_value_16 any) *string {
-				if hx_value_16 == nil {
-					var hx_zero_17 *string
-					return hx_zero_17
-				}
-				return hx_value_16.(*string)
-			}(hx_cmp_left_14), func(hx_value_18 any) *string {
-				if hx_value_18 == nil {
-					var hx_zero_19 *string
-					return hx_zero_19
-				}
-				return hx_value_18.(*string)
-			}(hx_cmp_right_15))
-		})
-		func(hx_sort_raw_20 []any, hx_sort_dst_21 []*string) {
-			for hx_sort_i_22, hx_sort_item_23 := range hx_sort_raw_20 {
-				hx_sort_dst_21[hx_sort_i_22] = func(hx_value_24 any) *string {
-					if hx_value_24 == nil {
-						var hx_zero_25 *string
-						return hx_zero_25
-					}
-					return hx_value_24.(*string)
-				}(hx_sort_item_23)
+			return hx_value_11.(*string)
+		}(hx_cmp_left_9), func(hx_value_13 any) *string {
+			if hx_value_13 == nil {
+				var hx_zero_14 *string
+				return hx_zero_14
 			}
-		}(hx_sort_raw_9, hx_sort_src_10)
-	}(values)
+			return hx_value_13.(*string)
+		}(hx_cmp_right_10))
+	})
 	var buf_b *string
 	buf_b = hxrt.StringFromLiteral("")
 	var _g_current int
-	var _g_array []*string
+	var _g_array *hxrt.Array
 	_g_current = 0
 	_g_array = values
-	for _g_current < len(_g_array) {
+	for _g_current < _g_array.Len() {
 		var _g_value *string
 		var _g_key int
-		_g_value = _g_array[_g_current]
-		hx_post_26 := _g_current
+		_g_value = func(hx_value_15 any) *string {
+			if hx_value_15 == nil {
+				var hx_zero_16 *string
+				return hx_zero_16
+			}
+			return hx_value_15.(*string)
+		}(_g_array.Get(_g_current))
+		hx_post_17 := _g_current
 		_g_current = int(int32((_g_current + 1)))
-		_g_key = hx_post_26
+		_g_key = hx_post_17
 		index := _g_key
 		value := _g_value
 		if index > 0 {
@@ -1049,6 +1035,13 @@ func hxrt_typeCallAny(callable any, args []any) (any, bool) {
 	return result, ok
 }
 
+func hxrt_typeArrayValues(value *hxrt.Array) []any {
+	if value == nil {
+		return []any{}
+	}
+	return value.Values()
+}
+
 func hxrt_typeResolvedClassName(value any) (string, bool) {
 	switch current := value.(type) {
 	case *hxrt__TypeClassValue:
@@ -1357,6 +1350,11 @@ func Type_getClass(o any) any {
 	case hxrt__TypeClassValue:
 		copyValue := value
 		return &copyValue
+	case *hxrt.Array:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")}
 	case *haxe___Int64_____Int64:
 		if value == nil {
 			return nil
@@ -1531,109 +1529,109 @@ func Type_getClassName(c any) *string {
 	return hxrt.StringFromLiteral(className)
 }
 
-func Type_getClassFields(c any) []*string {
+func Type_getClassFields(c any) *hxrt.Array {
 	className, ok := hxrt_typeResolvedClassName(c)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch className {
 	case "Main":
-		return []*string{hxrt.StringFromLiteral("main"), hxrt.StringFromLiteral("sortedMessages")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("main"), hxrt.StringFromLiteral("sortedMessages"))
 	case "haxe.Int64Helper":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int32.Int32_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.Int64_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.___Int64":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.ds.ArraySort":
-		return []*string{hxrt.StringFromLiteral("doMerge"), hxrt.StringFromLiteral("gcd"), hxrt.StringFromLiteral("lower"), hxrt.StringFromLiteral("rec"), hxrt.StringFromLiteral("rotate"), hxrt.StringFromLiteral("sort"), hxrt.StringFromLiteral("swap"), hxrt.StringFromLiteral("upper")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("doMerge"), hxrt.StringFromLiteral("gcd"), hxrt.StringFromLiteral("lower"), hxrt.StringFromLiteral("rec"), hxrt.StringFromLiteral("rotate"), hxrt.StringFromLiteral("sort"), hxrt.StringFromLiteral("swap"), hxrt.StringFromLiteral("upper"))
 	case "haxe.ds.List":
-		return []*string{hxrt.StringFromLiteral("sameValue")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("sameValue"))
 	case "haxe.ds._List.GoListIterator":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.ds._List.GoListKeyValueIterator":
-		return []*string{}
+		return hxrt.NewArray()
 	case "sys.thread.Deque":
-		return []*string{}
+		return hxrt.NewArray()
 	case "sys.thread.ElasticThreadPool":
-		return []*string{}
+		return hxrt.NewArray()
 	case "sys.thread.ElasticThreadPoolWorker":
-		return []*string{}
+		return hxrt.NewArray()
 	case "sys.thread.EventLoop":
-		return []*string{hxrt.StringFromLiteral("__fromHandle")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("__fromHandle"))
 	case "sys.thread.FixedThreadPool":
-		return []*string{hxrt.StringFromLiteral("shutdownTask")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("shutdownTask"))
 	case "sys.thread.FixedThreadPoolShutdownException":
-		return []*string{}
+		return hxrt.NewArray()
 	case "sys.thread.FixedThreadPoolWorker":
-		return []*string{}
+		return hxrt.NewArray()
 	case "sys.thread.Lock":
-		return []*string{}
+		return hxrt.NewArray()
 	case "sys.thread.Mutex":
-		return []*string{}
+		return hxrt.NewArray()
 	case "sys.thread.NoEventLoopException":
-		return []*string{}
+		return hxrt.NewArray()
 	case "sys.thread.Thread":
-		return []*string{hxrt.StringFromLiteral("create"), hxrt.StringFromLiteral("createWithEventLoop"), hxrt.StringFromLiteral("current"), hxrt.StringFromLiteral("processEvents"), hxrt.StringFromLiteral("readMessage"), hxrt.StringFromLiteral("runWithEventLoop")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("create"), hxrt.StringFromLiteral("createWithEventLoop"), hxrt.StringFromLiteral("current"), hxrt.StringFromLiteral("processEvents"), hxrt.StringFromLiteral("readMessage"), hxrt.StringFromLiteral("runWithEventLoop"))
 	case "sys.thread.ThreadPoolException":
-		return []*string{}
+		return hxrt.NewArray()
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_getInstanceFields(c any) []*string {
+func Type_getInstanceFields(c any) *hxrt.Array {
 	className, ok := hxrt_typeResolvedClassName(c)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch className {
 	case "Main":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.Int64Helper":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int32.Int32_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.Int64_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.___Int64":
-		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
 	case "haxe.ds.ArraySort":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.ds.List":
-		return []*string{hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("filter"), hxrt.StringFromLiteral("first"), hxrt.StringFromLiteral("isEmpty"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("join"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("last"), hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("pop"), hxrt.StringFromLiteral("push"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("toString")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("filter"), hxrt.StringFromLiteral("first"), hxrt.StringFromLiteral("isEmpty"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("join"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("last"), hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("pop"), hxrt.StringFromLiteral("push"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("toString"))
 	case "haxe.ds._List.GoListIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("next")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("next"))
 	case "haxe.ds._List.GoListKeyValueIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("next")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("next"))
 	case "sys.thread.Deque":
-		return []*string{hxrt.StringFromLiteral("__available"), hxrt.StringFromLiteral("__items"), hxrt.StringFromLiteral("__mutex"), hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("pop"), hxrt.StringFromLiteral("push")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("__available"), hxrt.StringFromLiteral("__items"), hxrt.StringFromLiteral("__mutex"), hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("pop"), hxrt.StringFromLiteral("push"))
 	case "sys.thread.ElasticThreadPool":
-		return []*string{hxrt.StringFromLiteral("_isShutdown"), hxrt.StringFromLiteral("available"), hxrt.StringFromLiteral("get_isShutdown"), hxrt.StringFromLiteral("get_threadsCount"), hxrt.StringFromLiteral("isShutdown"), hxrt.StringFromLiteral("liveWorkers"), hxrt.StringFromLiteral("maxThreadsCount"), hxrt.StringFromLiteral("mutex"), hxrt.StringFromLiteral("pendingTasks"), hxrt.StringFromLiteral("pool"), hxrt.StringFromLiteral("queue"), hxrt.StringFromLiteral("retireWorkerLocked"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("shutdown"), hxrt.StringFromLiteral("startWorkerLocked"), hxrt.StringFromLiteral("threadTimeout"), hxrt.StringFromLiteral("threadsCount"), hxrt.StringFromLiteral("workerResolveWait"), hxrt.StringFromLiteral("workerTaskFailed"), hxrt.StringFromLiteral("workerTaskFinished")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("_isShutdown"), hxrt.StringFromLiteral("available"), hxrt.StringFromLiteral("get_isShutdown"), hxrt.StringFromLiteral("get_threadsCount"), hxrt.StringFromLiteral("isShutdown"), hxrt.StringFromLiteral("liveWorkers"), hxrt.StringFromLiteral("maxThreadsCount"), hxrt.StringFromLiteral("mutex"), hxrt.StringFromLiteral("pendingTasks"), hxrt.StringFromLiteral("pool"), hxrt.StringFromLiteral("queue"), hxrt.StringFromLiteral("retireWorkerLocked"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("shutdown"), hxrt.StringFromLiteral("startWorkerLocked"), hxrt.StringFromLiteral("threadTimeout"), hxrt.StringFromLiteral("threadsCount"), hxrt.StringFromLiteral("workerResolveWait"), hxrt.StringFromLiteral("workerTaskFailed"), hxrt.StringFromLiteral("workerTaskFinished"))
 	case "sys.thread.ElasticThreadPoolWorker":
-		return []*string{hxrt.StringFromLiteral("available"), hxrt.StringFromLiteral("dead"), hxrt.StringFromLiteral("loop"), hxrt.StringFromLiteral("owner"), hxrt.StringFromLiteral("start"), hxrt.StringFromLiteral("task"), hxrt.StringFromLiteral("timeout")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("available"), hxrt.StringFromLiteral("dead"), hxrt.StringFromLiteral("loop"), hxrt.StringFromLiteral("owner"), hxrt.StringFromLiteral("start"), hxrt.StringFromLiteral("task"), hxrt.StringFromLiteral("timeout"))
 	case "sys.thread.EventLoop":
-		return []*string{hxrt.StringFromLiteral("__h"), hxrt.StringFromLiteral("cancel"), hxrt.StringFromLiteral("loop"), hxrt.StringFromLiteral("progress"), hxrt.StringFromLiteral("promise"), hxrt.StringFromLiteral("repeat"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("runPromised"), hxrt.StringFromLiteral("wait")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("__h"), hxrt.StringFromLiteral("cancel"), hxrt.StringFromLiteral("loop"), hxrt.StringFromLiteral("progress"), hxrt.StringFromLiteral("promise"), hxrt.StringFromLiteral("repeat"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("runPromised"), hxrt.StringFromLiteral("wait"))
 	case "sys.thread.FixedThreadPool":
-		return []*string{hxrt.StringFromLiteral("_isShutdown"), hxrt.StringFromLiteral("get_isShutdown"), hxrt.StringFromLiteral("get_threadsCount"), hxrt.StringFromLiteral("isShutdown"), hxrt.StringFromLiteral("mutex"), hxrt.StringFromLiteral("pool"), hxrt.StringFromLiteral("queue"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("shutdown"), hxrt.StringFromLiteral("threadsCount")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("_isShutdown"), hxrt.StringFromLiteral("get_isShutdown"), hxrt.StringFromLiteral("get_threadsCount"), hxrt.StringFromLiteral("isShutdown"), hxrt.StringFromLiteral("mutex"), hxrt.StringFromLiteral("pool"), hxrt.StringFromLiteral("queue"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("shutdown"), hxrt.StringFromLiteral("threadsCount"))
 	case "sys.thread.FixedThreadPoolShutdownException":
-		return []*string{hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap"))
 	case "sys.thread.FixedThreadPoolWorker":
-		return []*string{hxrt.StringFromLiteral("loop"), hxrt.StringFromLiteral("queue")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("loop"), hxrt.StringFromLiteral("queue"))
 	case "sys.thread.Lock":
-		return []*string{hxrt.StringFromLiteral("__h"), hxrt.StringFromLiteral("release"), hxrt.StringFromLiteral("wait")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("__h"), hxrt.StringFromLiteral("release"), hxrt.StringFromLiteral("wait"))
 	case "sys.thread.Mutex":
-		return []*string{hxrt.StringFromLiteral("__h"), hxrt.StringFromLiteral("acquire"), hxrt.StringFromLiteral("release"), hxrt.StringFromLiteral("tryAcquire")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("__h"), hxrt.StringFromLiteral("acquire"), hxrt.StringFromLiteral("release"), hxrt.StringFromLiteral("tryAcquire"))
 	case "sys.thread.NoEventLoopException":
-		return []*string{hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap"))
 	case "sys.thread.Thread":
-		return []*string{hxrt.StringFromLiteral("__id"), hxrt.StringFromLiteral("events"), hxrt.StringFromLiteral("get_events"), hxrt.StringFromLiteral("sendMessage")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("__id"), hxrt.StringFromLiteral("events"), hxrt.StringFromLiteral("get_events"), hxrt.StringFromLiteral("sendMessage"))
 	case "sys.thread.ThreadPoolException":
-		return []*string{hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap"))
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
@@ -1713,12 +1711,12 @@ func Type_resolveEnum(name *string) any {
 	}
 }
 
-func Type_createInstance(cl any, args []any) any {
+func Type_createInstance(cl any, args *hxrt.Array) any {
 	className, ok := hxrt_typeResolvedClassName(cl)
 	if !ok {
 		return nil
 	}
-	instance, ok := hxrt_typeCreateClassInstance(className, args)
+	instance, ok := hxrt_typeCreateClassInstance(className, hxrt_typeArrayValues(args))
 	if !ok {
 		return nil
 	}
@@ -1737,7 +1735,7 @@ func Type_createEmptyInstance(cl any) any {
 	return instance
 }
 
-func Type_createEnum(e any, constr *string, params []any) any {
+func Type_createEnum(e any, constr *string, params *hxrt.Array) any {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
 		return nil
@@ -1746,19 +1744,19 @@ func Type_createEnum(e any, constr *string, params []any) any {
 	if constr != nil {
 		constructorName = *hxrt.StdString(constr)
 	}
-	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, params)
+	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, hxrt_typeArrayValues(params))
 	if !ok {
 		return nil
 	}
 	return enumValue
 }
 
-func Type_createEnumIndex(e any, index int, params []any) any {
+func Type_createEnumIndex(e any, index int, params *hxrt.Array) any {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
 		return nil
 	}
-	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, "", index, true, params)
+	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, "", index, true, hxrt_typeArrayValues(params))
 	if !ok {
 		return nil
 	}
@@ -1837,57 +1835,53 @@ func Type_enumIndex(e any) int {
 	}
 }
 
-func Type_getEnumConstructs(e any) []*string {
+func Type_getEnumConstructs(e any) *hxrt.Array {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch enumName {
 	case "ValueType":
-		return []*string{hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown"))
 	case "sys.thread.NextEventTime":
-		return []*string{hxrt.StringFromLiteral("Now"), hxrt.StringFromLiteral("Never"), hxrt.StringFromLiteral("AnyTime"), hxrt.StringFromLiteral("At")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("Now"), hxrt.StringFromLiteral("Never"), hxrt.StringFromLiteral("AnyTime"), hxrt.StringFromLiteral("At"))
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_enumParameters(e any) []any {
+func Type_enumParameters(e any) *hxrt.Array {
 	if hxrt.AnyEqualsNull(e) {
-		return []any{}
+		return hxrt.NewArray()
 	}
 	switch value := e.(type) {
 	case *ValueType:
 		if value == nil || value.params == nil {
-			return []any{}
+			return hxrt.NewArray()
 		}
-		out := make([]any, len(value.params))
-		copy(out, value.params)
-		return out
+		return hxrt.NewArray(value.params...)
 	case *sys__thread__NextEventTime:
 		if value == nil || value.params == nil {
-			return []any{}
+			return hxrt.NewArray()
 		}
-		out := make([]any, len(value.params))
-		copy(out, value.params)
-		return out
+		return hxrt.NewArray(value.params...)
 	default:
-		return []any{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_allEnums(e any) []any {
+func Type_allEnums(e any) *hxrt.Array {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
-		return []any{}
+		return hxrt.NewArray()
 	}
 	switch enumName {
 	case "ValueType":
-		return []any{ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown}
+		return hxrt.NewArray(ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown)
 	case "sys.thread.NextEventTime":
-		return []any{sys__thread__NextEventTime_Now, sys__thread__NextEventTime_Never}
+		return hxrt.NewArray(sys__thread__NextEventTime_Now, sys__thread__NextEventTime_Never)
 	default:
-		return []any{}
+		return hxrt.NewArray()
 	}
 }
 
@@ -1910,6 +1904,8 @@ func Type_typeof(v any) any {
 		return ValueType_TFloat
 	case string, *string:
 		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("String")})
+	case *hxrt.Array:
+		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")})
 	}
 	ref := reflect.ValueOf(v)
 	if !ref.IsValid() {

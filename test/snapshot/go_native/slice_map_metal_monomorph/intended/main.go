@@ -14,53 +14,65 @@ func main() {
 	hxrt.Println(v)
 	var v_1 any = any(go__slice_get__int_95e97e5e(ints, 1))
 	hxrt.Println(v_1)
-	intsArray := go__slice_toArray__int_95e97e5e(ints)
-	hxrt.Println(any(intsArray[0]))
+	intsArray := hxrt.ArrayFromValues(func(hx_sort_src_1 []int) []any {
+		hx_sort_out_3 := make([]any, 0, len(hx_sort_src_1))
+		for _, hx_sort_item_2 := range hx_sort_src_1 {
+			hx_sort_out_3 = append(hx_sort_out_3, hx_sort_item_2)
+		}
+		return hx_sort_out_3
+	}(go__slice_toArray__int_95e97e5e(ints)))
+	hxrt.Println(any(intsArray.Get(0)))
 	words := go___Go_newSlice()
 	go__slice_push___string_f613ccd0(words, hxrt.StringFromLiteral("go"))
 	go__slice_push___string_f613ccd0(words, hxrt.StringFromLiteral("haxe"))
 	var v_2 any = any(go__slice_get___string_f613ccd0(words, 0))
 	hxrt.Println(v_2)
-	wordsArray := go__slice_toArray___string_f613ccd0(words)
-	var v_3 any = any(len(wordsArray))
+	wordsArray := hxrt.ArrayFromValues(func(hx_sort_src_4 []*string) []any {
+		hx_sort_out_6 := make([]any, 0, len(hx_sort_src_4))
+		for _, hx_sort_item_5 := range hx_sort_src_4 {
+			hx_sort_out_6 = append(hx_sort_out_6, hx_sort_item_5)
+		}
+		return hx_sort_out_6
+	}(go__slice_toArray___string_f613ccd0(words)))
+	var v_3 any = any(wordsArray.Len())
 	hxrt.Println(v_3)
 	scores := New_go___Map()
 	go__map_set__int___string_d6952de3(scores, 7, hxrt.StringFromLiteral("seven"))
 	var v_4 any = any(go__map_exists__int___string_d6952de3(scores, 7))
 	hxrt.Println(v_4)
-	var v_5 any = any(func(hx_value_1 any) *string {
-		if hx_value_1 == nil {
-			var hx_zero_2 *string
-			return hx_zero_2
+	var v_5 any = any(func(hx_value_7 any) *string {
+		if hx_value_7 == nil {
+			var hx_zero_8 *string
+			return hx_zero_8
 		}
-		return hx_value_1.(*string)
+		return hx_value_7.(*string)
 	}(go__map_get__int___string_d6952de3(scores, 7)))
 	hxrt.Println(v_5)
-	missing := func(hx_value_3 any) *string {
-		if hx_value_3 == nil {
-			var hx_zero_4 *string
-			return hx_zero_4
+	missing := func(hx_value_9 any) *string {
+		if hx_value_9 == nil {
+			var hx_zero_10 *string
+			return hx_zero_10
 		}
-		return hx_value_3.(*string)
+		return hx_value_9.(*string)
 	}(go__map_get__int___string_d6952de3(scores, 99))
 	hxrt.Println(func() any {
-		var hx_if_5 any
+		var hx_if_11 any
 		if hxrt.StringEqualStringPtr(missing, nil) {
-			hx_if_5 = hxrt.StringFromLiteral("none")
+			hx_if_11 = hxrt.StringFromLiteral("none")
 		} else {
-			hx_if_5 = missing
+			hx_if_11 = missing
 		}
-		return hx_if_5
+		return hx_if_11
 	}())
 	byName := go___Go_newMap()
 	go__map_set___string__int_e8ed7ec7(byName, hxrt.StringFromLiteral("alice"), 11)
 	var v_6 any = any(go__map_exists___string__int_e8ed7ec7(byName, hxrt.StringFromLiteral("alice")))
 	hxrt.Println(v_6)
-	var v_7 any = any(func(hx_value_6 any) any {
-		if hx_value_6 == nil {
+	var v_7 any = any(func(hx_value_12 any) any {
+		if hx_value_12 == nil {
 			return nil
 		}
-		return hx_value_6.(int)
+		return hx_value_12.(int)
 	}(go__map_get___string__int_e8ed7ec7(byName, hxrt.StringFromLiteral("alice"))))
 	hxrt.Println(v_7)
 }

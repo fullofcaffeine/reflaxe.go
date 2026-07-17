@@ -20,6 +20,7 @@ package reflaxe.go.compiler;
 **/
 class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_CORE = "core";
+	public static inline final FEATURE_ARRAY = "array";
 	public static inline final FEATURE_STRING = "string";
 	public static inline final FEATURE_EQUALITY = "equality";
 	public static inline final FEATURE_PRINT = "print";
@@ -48,6 +49,7 @@ class GoHxrtFeatureAnalyzer {
 
 	static final FEATURE_ORDER = [
 		FEATURE_CORE,
+		FEATURE_ARRAY,
 		FEATURE_STRING,
 		FEATURE_EQUALITY,
 		FEATURE_PRINT,
@@ -310,6 +312,8 @@ class GoHxrtFeatureAnalyzer {
 
 	static function featureDependencies(feature:String):Array<String> {
 		return switch (feature) {
+			case FEATURE_ARRAY:
+				[FEATURE_CORE];
 			case FEATURE_STRING:
 				[FEATURE_CORE];
 			case FEATURE_EQUALITY:
@@ -319,7 +323,7 @@ class GoHxrtFeatureAnalyzer {
 			case FEATURE_EXCEPTION:
 				[FEATURE_STRING];
 			case FEATURE_JSON:
-				[FEATURE_CORE];
+				[FEATURE_CORE, FEATURE_ARRAY];
 			case FEATURE_SYS:
 				[FEATURE_STRING];
 			case FEATURE_TERMINAL:
@@ -347,7 +351,7 @@ class GoHxrtFeatureAnalyzer {
 			case FEATURE_STACK:
 				[FEATURE_STRING];
 			case FEATURE_TEMPLATE:
-				[FEATURE_CORE];
+				[FEATURE_CORE, FEATURE_ARRAY];
 			case FEATURE_MAP_STRING:
 				[FEATURE_STRING];
 			case FEATURE_MAP_OBJECT:
@@ -363,6 +367,8 @@ class GoHxrtFeatureAnalyzer {
 		return switch (feature) {
 			case FEATURE_CORE:
 				["hxrt.go", "core.go"];
+			case FEATURE_ARRAY:
+				["array.go"];
 			case FEATURE_STRING:
 				["string.go"];
 			case FEATURE_EQUALITY:

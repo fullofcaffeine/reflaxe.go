@@ -40,10 +40,16 @@ func main() {
 
 func restDigest(args []int) *string {
 	rest := args
-	copied := func(src []int) []int {
+	copied := hxrt.ArrayFromValues(func(hx_sort_src_8 []int) []any {
+		hx_sort_out_10 := make([]any, 0, len(hx_sort_src_8))
+		for _, hx_sort_item_9 := range hx_sort_src_8 {
+			hx_sort_out_10 = append(hx_sort_out_10, hx_sort_item_9)
+		}
+		return hx_sort_out_10
+	}(func(src []int) []int {
 		out := append([]int{}, src...)
 		return out
-	}(rest)
+	}(rest)))
 	appended := func(src []int, value int) []int {
 		out := append([]int{}, src...)
 		out = append(out, value)
@@ -52,21 +58,21 @@ func restDigest(args []int) *string {
 	prepended := func(src []int, value int) []int {
 		return append([]int{value}, src...)
 	}(rest, -1)
-	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatAny(len(copied), hxrt.StringFromLiteral(":")), func() int {
-		var hx_if_8 int
-		if len(copied) > 0 {
-			hx_if_8 = copied[0]
+	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatAny(copied.Len(), hxrt.StringFromLiteral(":")), func() int {
+		var hx_if_11 int
+		if copied.Len() > 0 {
+			hx_if_11 = hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(copied.Get(0)))
 		} else {
-			hx_if_8 = -99
+			hx_if_11 = -99
 		}
-		return hx_if_8
+		return hx_if_11
 	}()), hxrt.StringFromLiteral(":")), func() int {
-		var hx_if_9 int
-		if len(copied) > 0 {
-			hx_if_9 = copied[int(int32((hxrt.Int32Wrap(len(copied)) - hxrt.Int32Wrap(1))))]
+		var hx_if_12 int
+		if copied.Len() > 0 {
+			hx_if_12 = hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(copied.Get(int(int32((hxrt.Int32Wrap(copied.Len()) - hxrt.Int32Wrap(1)))))))
 		} else {
-			hx_if_9 = -99
+			hx_if_12 = -99
 		}
-		return hx_if_9
+		return hx_if_12
 	}()), hxrt.StringFromLiteral("|append=")), appended[int(int32((hxrt.Int32Wrap(len(appended))-hxrt.Int32Wrap(1))))]), hxrt.StringFromLiteral("|prepend=")), prepended[0])
 }

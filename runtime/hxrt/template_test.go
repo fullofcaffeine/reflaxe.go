@@ -7,6 +7,9 @@ func TestTemplateArrayValues(t *testing.T) {
 	if got := TemplateArrayValues([]int{1, 2, 3}); len(got) != len(want) || got[0] != want[0] || got[1] != want[1] || got[2] != want[2] {
 		t.Fatalf("TemplateArrayValues(slice) = %#v, want %#v", got, want)
 	}
+	if got := TemplateArrayValues(NewArray("portable", 7)); len(got) != 2 || got[0] != "portable" || got[1] != 7 {
+		t.Fatalf("TemplateArrayValues(portable Array) = %#v, want [portable 7]", got)
+	}
 
 	array := [2]string{"a", "b"}
 	if got := TemplateArrayValues(&array); len(got) != 2 || got[0] != "a" || got[1] != "b" {

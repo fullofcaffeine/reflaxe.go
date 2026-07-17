@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	ch := go__concurrency_newChan__int_95e97e5e(0)
+	ch := go__concurrency_newChan__int_95e97e5e(2)
 	go__concurrency_send__int_95e97e5e(ch.__hx_native, 10)
 	go__concurrency_send__int_95e97e5e(ch.__hx_native, 20)
 	var v any = any(go__concurrency_recv__int_95e97e5e(ch.__hx_native))

@@ -1,11 +1,13 @@
 package main
 
+import "examples_worker_pool_select_portable/hxrt"
+
 type I_go___Slice interface {
 	get_length() int
 	push(value any)
 	get(index int) any
 	set(index int, value any)
-	toArray() []any
+	toArray() *hxrt.Array
 }
 
 type go___Slice struct {
@@ -26,9 +28,10 @@ func (self *go___Slice) get_length() int {
 }
 
 func (self *go___Slice) push(value any) {
-	hx_arr_25 := self.data
-	hx_arr_25 = append(hx_arr_25, value)
-	self.data = hx_arr_25
+	self.data = func() []any {
+		hx_native_slice_27 := self.data
+		return append(hx_native_slice_27, value)
+	}()
 }
 
 func (self *go___Slice) get(index int) any {
@@ -39,6 +42,6 @@ func (self *go___Slice) set(index int, value any) {
 	self.data[index] = value
 }
 
-func (self *go___Slice) toArray() []any {
-	return self.data
+func (self *go___Slice) toArray() *hxrt.Array {
+	return hxrt.ArrayFromValues(self.data)
 }

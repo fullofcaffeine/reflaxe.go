@@ -491,6 +491,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 				// Native stack capture pulls in Go runtime frame machinery and must remain
 				// footprint-explicit even when users request the broad hxrt runtime bundle.
 				buildContext.nativeStackTraceEnabled;
+			case "array.go": // The portable shared Array carrier is selected from final generated Go,
+				// after inline native views and DCE have removed non-owning Array types.
+				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_ARRAY) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_ARRAY) >= 0;
 			case "template.go": // Dynamic Template invocation needs Go reflection, but programs that do
 				// not use haxe.Template should not pay for that capability in full-copy
 				// mode. Disabling inference remains the explicit all-files escape hatch.

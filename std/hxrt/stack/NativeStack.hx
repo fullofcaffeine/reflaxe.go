@@ -1,5 +1,7 @@
 package hxrt.stack;
 
+import go.NativeSlice;
+
 /**
 	What
 	Typed bridge to optional Go-native stack capture in `hxrt`.
@@ -19,7 +21,7 @@ package hxrt.stack;
 @:go.package("hxrt")
 extern class NativeStack {
 	@:go.name("NativeStackCapture")
-	public static function capture(skip:Int):Array<NativeStackFrame>;
+	public static function capture(skip:Int):NativeSlice<NativeStackFrame>;
 
 	@:go.name("NativeStackIsFrameSlice")
 	public static function isFrameSlice(value:Any):Bool;

@@ -1,10 +1,12 @@
 package main
 
+import "examples_pulseforge_metal/hxrt"
+
 type app__runtime__PulseRuntime interface {
 	profileId() *string
 	variantId() *string
 	capabilityId() *string
-	parse(frames []*app__core__PulseIngressFrame, workerCount int) []*app__core__PulseEvent
-	enrich(events []*app__core__PulseEvent, workerCount int) []*app__core__PulseEnrichedEvent
-	stageScore(parsed []*app__core__PulseEvent, enriched []*app__core__PulseEnrichedEvent, alerts []*app__core__PulseAlert, backpressureEvents int) int
+	parse(frames *hxrt.Array, workerCount int) *hxrt.Array
+	enrich(events *hxrt.Array, workerCount int) *hxrt.Array
+	stageScore(parsed *hxrt.Array, enriched *hxrt.Array, alerts *hxrt.Array, backpressureEvents int) int
 }

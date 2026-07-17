@@ -14,7 +14,7 @@ type sys__thread__FixedThreadPool struct {
 	threadsCount int
 	isShutdown   bool
 	_isShutdown  bool
-	pool         []*sys__thread__FixedThreadPoolWorker
+	pool         *hxrt.Array
 	queue        *sys__thread__Deque
 	mutex        *sys__thread__Mutex
 }
@@ -28,22 +28,22 @@ func New_sys__thread__FixedThreadPool(threadsCount int) *sys__thread__FixedThrea
 	if threadsCount < 1 {
 		hxrt.Throw(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("FixedThreadPool needs threadsCount to be at least 1."), nil, nil))
 	}
-	workers := []*sys__thread__FixedThreadPoolWorker{}
+	workers := hxrt.NewArray()
 	_g := 0
 	_g1 := threadsCount
 	for _g < _g1 {
-		hx_post_32 := _g
+		hx_post_23 := _g
 		_g = int(int32((_g + 1)))
-		hx_tmp := hx_post_32
+		hx_tmp := hx_post_23
 		_ = hx_tmp
-		workers = append(workers, New_sys__thread__FixedThreadPoolWorker(self.queue))
+		workers.Push(New_sys__thread__FixedThreadPoolWorker(self.queue))
 	}
 	self.pool = workers
 	return self
 }
 
 func (self *sys__thread__FixedThreadPool) get_threadsCount() int {
-	return len(self.pool)
+	return self.pool.Len()
 }
 
 func (self *sys__thread__FixedThreadPool) get_isShutdown() bool {
@@ -76,8 +76,14 @@ func (self *sys__thread__FixedThreadPool) shutdown() {
 	self._isShutdown = true
 	_g := 0
 	_g1 := self.pool
-	for _g < len(_g1) {
-		hx_tmp := _g1[_g]
+	for _g < _g1.Len() {
+		hx_tmp := func(hx_value_25 any) *sys__thread__FixedThreadPoolWorker {
+			if hx_value_25 == nil {
+				var hx_zero_26 *sys__thread__FixedThreadPoolWorker
+				return hx_zero_26
+			}
+			return hx_value_25.(*sys__thread__FixedThreadPoolWorker)
+		}(_g1.Get(_g))
 		_ = hx_tmp
 		_g = int(int32((_g + 1)))
 		self.queue.add(sys__thread__FixedThreadPool_shutdownTask)

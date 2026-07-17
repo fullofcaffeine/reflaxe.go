@@ -32,6 +32,7 @@ func hxrt__test_ast_typed_operator_smoke(left int, right int, boxed any) bool {
 	_ = -left
 	_ = ^right
 	_ = []int{left, right}
+	_ = make([]int, 0, 2)
 	_ = boxed.(interface{ Apply(int) (string, error) })
 	return ((left < right) && (left != right))
 }

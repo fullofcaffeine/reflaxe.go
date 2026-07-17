@@ -125,6 +125,17 @@ enum GoExpr {
 	GoIndex(target:GoExpr, index:GoExpr);
 	GoSlice(target:GoExpr, start:Null<GoExpr>, end:Null<GoExpr>);
 	GoArrayLiteral(elementType:GoType, elements:Array<GoExpr>);
+
+	/**
+		What: A typed Go slice allocation with a required length and optional capacity.
+		Why: Boxing native slices should preserve preallocation without hiding the
+		element type or size expressions inside `GoRaw`.
+		How: The printer emits `make([]T, length)` or `make([]T, length, capacity)`,
+		while transforms traverse both size expressions and import analysis traverses
+		the structural element type.
+	**/
+	GoMakeSlice(elementType:GoType, length:GoExpr, capacity:Null<GoExpr>);
+
 	GoFuncLiteral(params:Array<GoParam>, results:Array<GoType>, body:Array<GoStmt>);
 	GoRaw(code:String);
 	GoTypeAssert(expr:GoExpr, typeName:GoType);

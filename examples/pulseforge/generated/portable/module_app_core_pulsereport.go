@@ -3,7 +3,7 @@ package main
 import "examples_pulseforge_portable/hxrt"
 
 type I_app__core__PulseReport interface {
-	lines() []*string
+	lines() *hxrt.Array
 	profileId() *string
 	variantId() *string
 	capabilityId() *string
@@ -56,8 +56,8 @@ func New_app__core__PulseReport(profile *string, variant *string, capability *st
 	return self
 }
 
-func (self *app__core__PulseReport) lines() []*string {
-	return []*string{hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pulseforge.profile="), self.profile), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pulseforge.variant="), self.variant), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("runtime.capability="), self.capability), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingest.received="), self.ingestReceived), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingest.accepted="), self.ingestAccepted), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingest.backpressure="), self.backpressureEvents), hxrt.StringConcatAny(hxrt.StringFromLiteral("parse.events="), self.parseCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("enrich.events="), self.enrichCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("aggregate.sources="), self.aggregateSourceCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("aggregate.total="), self.aggregateTotalValue), hxrt.StringConcatAny(hxrt.StringFromLiteral("aggregate.weighted_total="), self.aggregateWeightedTotal), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("aggregate.summary="), self.aggregateDigest), hxrt.StringConcatAny(hxrt.StringFromLiteral("alert.count="), self.alertCount), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("alert.events="), self.alertDigest), hxrt.StringConcatAny(hxrt.StringFromLiteral("runtime.score="), self.runtimeScore)}
+func (self *app__core__PulseReport) lines() *hxrt.Array {
+	return hxrt.NewArray(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pulseforge.profile="), self.profile), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pulseforge.variant="), self.variant), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("runtime.capability="), self.capability), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingest.received="), self.ingestReceived), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingest.accepted="), self.ingestAccepted), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingest.backpressure="), self.backpressureEvents), hxrt.StringConcatAny(hxrt.StringFromLiteral("parse.events="), self.parseCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("enrich.events="), self.enrichCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("aggregate.sources="), self.aggregateSourceCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("aggregate.total="), self.aggregateTotalValue), hxrt.StringConcatAny(hxrt.StringFromLiteral("aggregate.weighted_total="), self.aggregateWeightedTotal), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("aggregate.summary="), self.aggregateDigest), hxrt.StringConcatAny(hxrt.StringFromLiteral("alert.count="), self.alertCount), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("alert.events="), self.alertDigest), hxrt.StringConcatAny(hxrt.StringFromLiteral("runtime.score="), self.runtimeScore))
 }
 
 func (self *app__core__PulseReport) profileId() *string {
@@ -100,11 +100,11 @@ func (self *app__core__PulseReport) render() *string {
 	out := hxrt.StringFromLiteral("")
 	values := self.lines()
 	i := 0
-	for i < len(values) {
+	for i < values.Len() {
 		if i > 0 {
 			out = hxrt.StringConcatStringPtr(out, hxrt.StringFromLiteral("\n"))
 		}
-		out = hxrt.StringConcatStringPtr(out, values[i])
+		out = hxrt.StringConcatAny(out, values.Get(i))
 		i = int(int32((i + 1)))
 	}
 	return out

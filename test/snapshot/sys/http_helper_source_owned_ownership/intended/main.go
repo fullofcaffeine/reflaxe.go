@@ -17,13 +17,19 @@ func main() {
 	http.customRequest(false, sink)
 	values := http.getResponseHeaderValues(hxrt.StringFromLiteral("Content-Type"))
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("headers="), func() *string {
-		var hx_if_10 *string
-		if (values != nil) && (len(values) > 0) {
-			hx_if_10 = values[0]
+		var hx_if_12 *string
+		if (values != nil) && (values.Len() > 0) {
+			hx_if_12 = hxrt.StdString(func(hx_value_10 any) *string {
+				if hx_value_10 == nil {
+					var hx_zero_11 *string
+					return hx_zero_11
+				}
+				return hx_value_10.(*string)
+			}(values.Get(0)))
 		} else {
-			hx_if_10 = hxrt.StringFromLiteral("null")
+			hx_if_12 = hxrt.StringFromLiteral("null")
 		}
-		return hx_if_10
+		return hx_if_12
 	}()))
 	hxrt.Println(v)
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("direct="), sys__Http_requestUrl(hxrt.StringFromLiteral("data:text/plain,direct%20ok"))))
@@ -31,14 +37,14 @@ func main() {
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy0="), sys__Http_hxrt_proxyDescriptor()))
 	hxrt.Println(v_2)
 	sys__Http_PROXY = func() map[string]any {
-		hx_obj_11 := map[string]any{}
-		hx_obj_11["host"] = hxrt.StringFromLiteral("proxy.local")
-		hx_obj_11["port"] = 3128
-		hx_obj_12 := map[string]any{}
-		hx_obj_12["user"] = hxrt.StringFromLiteral("scott")
-		hx_obj_12["pass"] = hxrt.StringFromLiteral("tiger")
-		hx_obj_11["auth"] = hx_obj_12
-		return hx_obj_11
+		hx_obj_13 := map[string]any{}
+		hx_obj_13["host"] = hxrt.StringFromLiteral("proxy.local")
+		hx_obj_13["port"] = 3128
+		hx_obj_14 := map[string]any{}
+		hx_obj_14["user"] = hxrt.StringFromLiteral("scott")
+		hx_obj_14["pass"] = hxrt.StringFromLiteral("tiger")
+		hx_obj_13["auth"] = hx_obj_14
+		return hx_obj_13
 	}()
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("proxy1="), sys__Http_hxrt_proxyDescriptor()))
 	hxrt.Println(v_3)
@@ -654,7 +660,7 @@ func (self *sys__Http) fileTransfert(argname *string, filename *string, file any
 	self.fileTransfer(argname, filename, file, size, mimeType...)
 }
 
-func (self *sys__Http) getResponseHeaderValues(key *string) []*string {
+func (self *sys__Http) getResponseHeaderValues(key *string) *hxrt.Array {
 	return sys__GoHttpHelpers_getResponseHeaderValues(self, key)
 }
 

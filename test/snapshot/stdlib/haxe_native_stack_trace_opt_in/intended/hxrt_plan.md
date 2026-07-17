@@ -13,6 +13,7 @@
 - none
 
 ## inferred features
+- `array`
 - `core`
 - `exception`
 - `print`
@@ -20,6 +21,7 @@
 - `string`
 
 ## selected features
+- `array`
 - `core`
 - `exception`
 - `print`
@@ -27,6 +29,7 @@
 - `string`
 
 ## runtime files
+- `array.go`
 - `core.go`
 - `exception.go`
 - `hxrt.go`
@@ -36,6 +39,7 @@
 
 ## selection reasons
 - `core` <- `baseline` (`compiler_baseline`)
+- `array` <- `generated_surface` (`hxrt.Array`)
 - `string` <- `baseline` (`compiler_baseline`)
 - `print` <- `baseline` (`compiler_baseline`)
 - `exception` <- `baseline` (`compiler_baseline`)

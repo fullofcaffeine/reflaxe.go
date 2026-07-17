@@ -21,7 +21,8 @@ The central types are:
 - `GoType` and `GoBuiltinType` for Go target types;
 - `GoPackageName` and `GoImportPath` for package/import identity;
 - `GoBinaryOperator` and `GoUnaryOperator` for expression operators; and
-- `GoAST` nodes whose relevant fields use those types instead of `String`.
+- `GoAST` nodes whose relevant fields use those types instead of `String`,
+  including typed slice allocation through `GoMakeSlice`.
 
 This is an internal compiler contract. It models printable Go syntax; it is not
 a replacement for Haxe's type system and does not decide whether a Haxe value
@@ -112,7 +113,8 @@ AST nodes carry meaning, not assembled target syntax. `GoASTPrinter` owns:
 - package and import quoting;
 - pointer, slice, map, channel, function, interface, and generic punctuation;
 - result-list parentheses;
-- operator tokens; and
+- operator tokens;
+- slice-allocation syntax such as `make([]T, length, capacity)`; and
 - ordinary declaration/expression layout.
 
 Generated files continue through `gofmt` and `go test`, so adopting structural
@@ -149,6 +151,15 @@ and return. Typed comparable elements stay on native Go equality, strings use
 their established value comparator, and only erased, nullable-primitive, or
 non-comparable element shapes cross the narrow `hxrt.HaxeEqual` runtime
 boundary. No library name or raw statement block owns these algorithms.
+
+Collection representation remains a separate semantic decision. Root Haxe
+`Array<T>` lowers to the shared `*hxrt.Array` carrier because a copied Go slice
+header cannot preserve length-changing aliases or sparse null-filled growth.
+Explicit `go.NativeSlice<T>`, `haxe.Rest`, fixed `Vector` storage, and the
+temporary `BytesData` representation retain raw Go slice shapes where their
+contracts require them. `NativeSlice.fromArray` and `toArray` are explicit
+shallow-copy boundaries; typed externs must not declare native `[]T` values as
+portable `Array<T>` merely because both can be indexed.
 
 ## Profile and native-boundary relationship
 

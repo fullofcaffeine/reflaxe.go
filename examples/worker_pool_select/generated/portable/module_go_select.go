@@ -54,35 +54,35 @@ var go___SelectSend2_Defaulted *go___SelectSend2 = &go___SelectSend2{tag: 2}
 
 func go___Select_recv2_String_String(first *go___Chan, second *go___Chan) *go___SelectRecv2 {
 	firstRecv := go__concurrency_tryRecv___string_f613ccd0(first.__hx_native)
-	if func(hx_value_15 any) bool {
-		if hx_value_15 == nil {
-			var hx_zero_16 bool
-			return hx_zero_16
+	if func(hx_value_17 any) bool {
+		if hx_value_17 == nil {
+			var hx_zero_18 bool
+			return hx_zero_18
 		}
-		return hx_value_15.(bool)
+		return hx_value_17.(bool)
 	}(firstRecv.isOk()) {
-		return go___SelectRecv2_First(func(hx_value_13 any) *string {
-			if hx_value_13 == nil {
-				var hx_zero_14 *string
-				return hx_zero_14
+		return go___SelectRecv2_First(func(hx_value_15 any) *string {
+			if hx_value_15 == nil {
+				var hx_zero_16 *string
+				return hx_zero_16
 			}
-			return hx_value_13.(*string)
+			return hx_value_15.(*string)
 		}(firstRecv.unwrap()))
 	}
 	secondRecv := go__concurrency_tryRecv___string_f613ccd0(second.__hx_native)
-	if func(hx_value_19 any) bool {
-		if hx_value_19 == nil {
-			var hx_zero_20 bool
-			return hx_zero_20
+	if func(hx_value_21 any) bool {
+		if hx_value_21 == nil {
+			var hx_zero_22 bool
+			return hx_zero_22
 		}
-		return hx_value_19.(bool)
+		return hx_value_21.(bool)
 	}(secondRecv.isOk()) {
-		return go___SelectRecv2_Second(func(hx_value_17 any) *string {
-			if hx_value_17 == nil {
-				var hx_zero_18 *string
-				return hx_zero_18
+		return go___SelectRecv2_Second(func(hx_value_19 any) *string {
+			if hx_value_19 == nil {
+				var hx_zero_20 *string
+				return hx_zero_20
 			}
-			return hx_value_17.(*string)
+			return hx_value_19.(*string)
 		}(secondRecv.unwrap()))
 	}
 	return go___SelectRecv2_Defaulted
@@ -90,19 +90,19 @@ func go___Select_recv2_String_String(first *go___Chan, second *go___Chan) *go___
 
 func go___Select_recv_Int(channel *go___Chan) *go___SelectRecv {
 	received := go__concurrency_tryRecv__int_95e97e5e(channel.__hx_native)
-	if func(hx_value_23 any) bool {
-		if hx_value_23 == nil {
-			var hx_zero_24 bool
-			return hx_zero_24
+	if func(hx_value_25 any) bool {
+		if hx_value_25 == nil {
+			var hx_zero_26 bool
+			return hx_zero_26
 		}
-		return hx_value_23.(bool)
+		return hx_value_25.(bool)
 	}(received.isOk()) {
-		return go___SelectRecv_Received(func(hx_value_21 any) int {
-			if hx_value_21 == nil {
-				var hx_zero_22 int
-				return hx_zero_22
+		return go___SelectRecv_Received(func(hx_value_23 any) int {
+			if hx_value_23 == nil {
+				var hx_zero_24 int
+				return hx_zero_24
 			}
-			return hx_value_21.(int)
+			return hx_value_23.(int)
 		}(received.unwrap()))
 	}
 	return go___SelectRecv_Defaulted

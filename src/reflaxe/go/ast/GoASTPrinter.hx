@@ -391,6 +391,13 @@ class GoASTPrinter {
 				+ elementType.render()
 				+ "{"
 				+ [for (element in elements) printExpr(element)].join(", ") + "}";
+			case GoMakeSlice(elementType, length, capacity):
+				"make([]"
+				+ elementType.render()
+				+ ", "
+				+ printExpr(length)
+				+ (capacity == null ? "" : ", " + printExpr(capacity))
+				+ ")";
 			case GoFuncLiteral(params, results, body):
 				var out = new StringBuf();
 				out.add("func(");

@@ -674,7 +674,7 @@ class GoNetSocketEmitter {
 				GoStmt.GoRaw("if self == nil {"),
 				GoStmt.GoRaw("\treturn"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("_ = sys__net__Socket_select_([]*sys__net__Socket{self}, []*sys__net__Socket{}, []*sys__net__Socket{}, -1)")
+				GoStmt.GoRaw("_ = sys__net__Socket_select_(hxrt.NewArray(self), hxrt.NewArray(), hxrt.NewArray(), -1)")
 			]),
 			GoDecl.GoFuncDecl("setBlocking", {
 				name: "self",
@@ -700,32 +700,37 @@ class GoNetSocketEmitter {
 			GoDecl.GoFuncDecl("sys__net__Socket_select_", null, [
 				{
 					name: "read",
-					typeName: "[]*sys__net__Socket"
+					typeName: "*hxrt.Array"
 				},
-				{name: "write", typeName: "[]*sys__net__Socket"},
-				{name: "others", typeName: "[]*sys__net__Socket"},
+				{name: "write", typeName: "*hxrt.Array"},
+				{name: "others", typeName: "*hxrt.Array"},
 				{name: "timeout", typeName: "...float64"}
 			], ["map[string]any"], [
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("read"), GoExpr.GoNil),
-					[GoStmt.GoAssign(GoExpr.GoIdent("read"), GoExpr.GoRaw("[]*sys__net__Socket{}"))], null),
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("write"), GoExpr.GoNil),
-					[GoStmt.GoAssign(GoExpr.GoIdent("write"), GoExpr.GoRaw("[]*sys__net__Socket{}"))], null),
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("others"), GoExpr.GoNil),
-					[GoStmt.GoAssign(GoExpr.GoIdent("others"), GoExpr.GoRaw("[]*sys__net__Socket{}"))], null),
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("read"), GoExpr.GoNil), [
+					GoStmt.GoAssign(GoExpr.GoIdent("read"), GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewArray"), []))
+				], null),
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("write"), GoExpr.GoNil), [
+					GoStmt.GoAssign(GoExpr.GoIdent("write"), GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewArray"), []))
+				], null),
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("others"), GoExpr.GoNil), [
+					GoStmt.GoAssign(GoExpr.GoIdent("others"), GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewArray"), []))
+				],
+					null),
 				GoStmt.GoRaw("effectiveTimeout := -1.0"),
 				GoStmt.GoRaw("if len(timeout) > 0 {"),
 				GoStmt.GoRaw("\teffectiveTimeout = timeout[0]"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("readyRead := make([]*sys__net__Socket, 0, len(read))"),
-				GoStmt.GoRaw("readyWrite := make([]*sys__net__Socket, 0, len(write))"),
-				GoStmt.GoRaw("readyOther := make([]*sys__net__Socket, 0, len(others))"),
-				GoStmt.GoRaw("for _, socket := range read {"),
-				GoStmt.GoRaw("\tif socket == nil || socket.conn == nil || socket.input == nil || socket.input.reader == nil {"),
+				GoStmt.GoRaw("readyRead := hxrt.NewArray()"),
+				GoStmt.GoRaw("readyWrite := hxrt.NewArray()"),
+				GoStmt.GoRaw("readyOther := hxrt.NewArray()"),
+				GoStmt.GoRaw("for _, rawSocket := range read.Values() {"),
+				GoStmt.GoRaw("\tsocket, ok := rawSocket.(*sys__net__Socket)"),
+				GoStmt.GoRaw("\tif !ok || socket == nil || socket.conn == nil || socket.input == nil || socket.input.reader == nil {"),
 				GoStmt.GoRaw("\t\tcontinue"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\treader := socket.input.reader"),
 				GoStmt.GoRaw("\tif reader.Buffered() > 0 {"),
-				GoStmt.GoRaw("\t\treadyRead = append(readyRead, socket)"),
+				GoStmt.GoRaw("\t\treadyRead.Push(socket)"),
 				GoStmt.GoRaw("\t\tcontinue"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\tif effectiveTimeout >= 0 {"),
@@ -738,25 +743,27 @@ class GoNetSocketEmitter {
 				GoStmt.GoRaw("\t_, err := reader.Peek(1)"),
 				GoStmt.GoRaw("\tsocket.hxrt__socket_applyConnDeadline()"),
 				GoStmt.GoRaw("\tif err == nil {"),
-				GoStmt.GoRaw("\t\treadyRead = append(readyRead, socket)"),
+				GoStmt.GoRaw("\t\treadyRead.Push(socket)"),
 				GoStmt.GoRaw("\t\tcontinue"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\tif netErr, ok := err.(net.Error); ok && netErr.Timeout() {"),
 				GoStmt.GoRaw("\t\tcontinue"),
 				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\treadyOther = append(readyOther, socket)"),
+				GoStmt.GoRaw("\treadyOther.Push(socket)"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("for _, socket := range write {"),
-				GoStmt.GoRaw("\tif socket == nil || socket.conn == nil {"),
+				GoStmt.GoRaw("for _, rawSocket := range write.Values() {"),
+				GoStmt.GoRaw("\tsocket, ok := rawSocket.(*sys__net__Socket)"),
+				GoStmt.GoRaw("\tif !ok || socket == nil || socket.conn == nil {"),
 				GoStmt.GoRaw("\t\tcontinue"),
 				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\treadyWrite = append(readyWrite, socket)"),
+				GoStmt.GoRaw("\treadyWrite.Push(socket)"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("for _, socket := range others {"),
-				GoStmt.GoRaw("\tif socket == nil {"),
+				GoStmt.GoRaw("for _, rawSocket := range others.Values() {"),
+				GoStmt.GoRaw("\tsocket, ok := rawSocket.(*sys__net__Socket)"),
+				GoStmt.GoRaw("\tif !ok || socket == nil {"),
 				GoStmt.GoRaw("\t\tcontinue"),
 				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\treadyOther = append(readyOther, socket)"),
+				GoStmt.GoRaw("\treadyOther.Push(socket)"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoReturn(GoExpr.GoRaw("map[string]any{\"read\": readyRead, \"write\": readyWrite, \"others\": readyOther}"))
 			]),

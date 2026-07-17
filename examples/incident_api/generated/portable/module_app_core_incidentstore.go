@@ -16,7 +16,7 @@ type I_app__core__IncidentStore interface {
 type app__core__IncidentStore struct {
 	__hx_this I_app__core__IncidentStore
 	statePath *string
-	incidents []*app__core__Incident
+	incidents *hxrt.Array
 	nextId    int
 }
 
@@ -24,7 +24,7 @@ func New_app__core__IncidentStore(statePath *string) *app__core__IncidentStore {
 	self := &app__core__IncidentStore{}
 	self.__hx_this = self
 	self.statePath = statePath
-	self.incidents = []*app__core__Incident{}
+	self.incidents = hxrt.NewArray()
 	self.nextId = 1
 	self.load()
 	return self
@@ -33,9 +33,8 @@ func New_app__core__IncidentStore(statePath *string) *app__core__IncidentStore {
 func (self *app__core__IncidentStore) create(title *string, severity *string) *app__core__Incident {
 	incident := New_app__core__Incident(self.nextId, title, app__core__IncidentStore_normalizeSeverity(severity), false, false, hxrt.StringFromLiteral("2026-06-12T00:00:00Z"))
 	self.nextId = int(int32((self.nextId + 1)))
-	hx_arr_38 := self.incidents
-	hx_arr_38 = append(hx_arr_38, incident)
-	self.incidents = hx_arr_38
+	hx_arr_60 := self.incidents
+	hx_arr_60.Push(incident)
 	self.save()
 	return incident
 }
@@ -66,11 +65,17 @@ func (self *app__core__IncidentStore) listJson() *string {
 	out_b = hxrt.StringFromLiteral("")
 	out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral("["))
 	i := 0
-	for i < len(self.incidents) {
+	for i < self.incidents.Len() {
 		if i > 0 {
 			out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral(","))
 		}
-		x := self.incidents[i].toJson()
+		x := func(hx_value_61 any) *app__core__Incident {
+			if hx_value_61 == nil {
+				var hx_zero_62 *app__core__Incident
+				return hx_zero_62
+			}
+			return hx_value_61.(*app__core__Incident)
+		}(self.incidents.Get(i)).toJson()
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x))
 		i = int(int32((i + 1)))
 	}
@@ -84,8 +89,14 @@ func (self *app__core__IncidentStore) metricsJson(serviceName *string, requests 
 	resolved := 0
 	_g := 0
 	_g1 := self.incidents
-	for _g < len(_g1) {
-		incident := _g1[_g]
+	for _g < _g1.Len() {
+		incident := func(hx_value_63 any) *app__core__Incident {
+			if hx_value_63 == nil {
+				var hx_zero_64 *app__core__Incident
+				return hx_zero_64
+			}
+			return hx_value_63.(*app__core__Incident)
+		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if incident.resolved {
 			resolved = int(int32((resolved + 1)))
@@ -102,8 +113,14 @@ func (self *app__core__IncidentStore) metricsJson(serviceName *string, requests 
 func (self *app__core__IncidentStore) find(id int) *app__core__Incident {
 	_g := 0
 	_g1 := self.incidents
-	for _g < len(_g1) {
-		incident := _g1[_g]
+	for _g < _g1.Len() {
+		incident := func(hx_value_65 any) *app__core__Incident {
+			if hx_value_65 == nil {
+				var hx_zero_66 *app__core__Incident
+				return hx_zero_66
+			}
+			return hx_value_65.(*app__core__Incident)
+		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if incident.id == id {
 			return incident
@@ -122,20 +139,20 @@ func (self *app__core__IncidentStore) load() {
 	}
 	var raw any = hxrt.JsonParse(content)
 	self.nextId = app__core__IncidentStore_intField(raw, hxrt.StringFromLiteral("nextId"), 1)
-	loaded := []*app__core__Incident{}
+	loaded := hxrt.NewArray()
 	if !hxrt.AnyEqualsNull(raw) && Reflect_hasField(raw, hxrt.StringFromLiteral("incidents")) {
-		values := func(hx_value_39 any) []any {
-			if hx_value_39 == nil {
-				var hx_zero_40 []any
-				return hx_zero_40
+		values := func(hx_value_67 any) *hxrt.Array {
+			if hx_value_67 == nil {
+				var hx_zero_68 *hxrt.Array
+				return hx_zero_68
 			}
-			return hx_value_39.([]any)
+			return hx_value_67.(*hxrt.Array)
 		}(Reflect_field(raw, hxrt.StringFromLiteral("incidents")))
 		_g := 0
-		for _g < len(values) {
-			var value any = values[_g]
+		for _g < values.Len() {
+			var value any = values.Get(_g)
 			_g = int(int32((_g + 1)))
-			loaded = append(loaded, New_app__core__Incident(app__core__IncidentStore_intField(value, hxrt.StringFromLiteral("id"), self.nextId), app__core__IncidentStore_stringField(value, hxrt.StringFromLiteral("title"), hxrt.StringFromLiteral("untitled")), app__core__IncidentStore_normalizeSeverity(app__core__IncidentStore_stringField(value, hxrt.StringFromLiteral("severity"), hxrt.StringFromLiteral("low"))), app__core__IncidentStore_boolField(value, hxrt.StringFromLiteral("acknowledged"), false), app__core__IncidentStore_boolField(value, hxrt.StringFromLiteral("resolved"), false), app__core__IncidentStore_stringField(value, hxrt.StringFromLiteral("createdAt"), hxrt.StringFromLiteral("2026-06-12T00:00:00Z"))))
+			loaded.Push(New_app__core__Incident(app__core__IncidentStore_intField(value, hxrt.StringFromLiteral("id"), self.nextId), app__core__IncidentStore_stringField(value, hxrt.StringFromLiteral("title"), hxrt.StringFromLiteral("untitled")), app__core__IncidentStore_normalizeSeverity(app__core__IncidentStore_stringField(value, hxrt.StringFromLiteral("severity"), hxrt.StringFromLiteral("low"))), app__core__IncidentStore_boolField(value, hxrt.StringFromLiteral("acknowledged"), false), app__core__IncidentStore_boolField(value, hxrt.StringFromLiteral("resolved"), false), app__core__IncidentStore_stringField(value, hxrt.StringFromLiteral("createdAt"), hxrt.StringFromLiteral("2026-06-12T00:00:00Z"))))
 		}
 	}
 	self.incidents = loaded
@@ -157,13 +174,13 @@ func app__core__IncidentStore_intField(raw any, name *string, fallback int) int 
 		return fallback
 	}
 	var parsed any = hxrt.StdParseInt(hxrt.StdString(Reflect_field(raw, name)))
-	var hx_if_42 int
+	var hx_if_70 int
 	if parsed == nil {
-		hx_if_42 = fallback
+		hx_if_70 = fallback
 	} else {
-		hx_if_42 = parsed.(int)
+		hx_if_70 = parsed.(int)
 	}
-	return hx_if_42
+	return hx_if_70
 }
 
 func app__core__IncidentStore_normalizeSeverity(raw *string) *string {
@@ -179,11 +196,11 @@ func app__core__IncidentStore_stringField(raw any, name *string, fallback *strin
 		return fallback
 	}
 	var value any = Reflect_field(raw, name)
-	var hx_if_43 *string
+	var hx_if_71 *string
 	if hxrt.AnyEqualsNull(value) {
-		hx_if_43 = fallback
+		hx_if_71 = fallback
 	} else {
-		hx_if_43 = hxrt.StdString(value)
+		hx_if_71 = hxrt.StdString(value)
 	}
-	return hx_if_43
+	return hx_if_71
 }

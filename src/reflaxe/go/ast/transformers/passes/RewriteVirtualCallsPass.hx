@@ -224,6 +224,9 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 					for (element in elements)
 						rewriteExpr(element, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets)
 				]);
+			case GoExpr.GoMakeSlice(elementType, length, capacity):
+				GoExpr.GoMakeSlice(elementType, rewriteExpr(length, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets),
+					capacity == null ? null : rewriteExpr(capacity, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
 			case GoExpr.GoFuncLiteral(params, results, body):
 				// Nested closures may shadow names, so do not apply receiver-specific rewrites inside.
 				GoExpr.GoFuncLiteral(params, results, rewriteStmtList(body, null, false, new Map<String, Bool>(), leafReceivers, leafReturnCallTargets));

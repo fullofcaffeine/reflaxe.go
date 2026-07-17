@@ -3,7 +3,7 @@ package main
 import "snapshot/hxrt"
 
 func collectInts(iterator map[string]any) *string {
-	values := []int{}
+	values := hxrt.NewArray()
 	for func(hx_obj_1 map[string]any) func() bool {
 		hx_field_2 := hx_obj_1["hasNext"]
 		if hx_field_2 == nil {
@@ -12,7 +12,7 @@ func collectInts(iterator map[string]any) *string {
 		}
 		return hx_field_2.(func() bool)
 	}(iterator)() {
-		values = append(values, func(hx_obj_5 map[string]any) func() int {
+		values.Push(func(hx_obj_5 map[string]any) func() int {
 			hx_field_6 := hx_obj_5["next"]
 			if hx_field_6 == nil {
 				var hx_zero_7 func() int
@@ -21,75 +21,77 @@ func collectInts(iterator map[string]any) *string {
 			return hx_field_6.(func() int)
 		}(iterator)())
 	}
-	return hxrt.StringJoinAny(func(hx_sort_src_8 []int) []any {
-		hx_sort_out_10 := make([]any, 0, len(hx_sort_src_8))
-		for _, hx_sort_item_9 := range hx_sort_src_8 {
-			hx_sort_out_10 = append(hx_sort_out_10, hx_sort_item_9)
-		}
-		return hx_sort_out_10
-	}(values), hxrt.StringFromLiteral(","))
+	return hxrt.StringJoinAny(values.Values(), hxrt.StringFromLiteral(","))
 }
 
 func collectStrings(iterator map[string]any) *string {
-	values := []*string{}
-	for func(hx_obj_11 map[string]any) func() bool {
-		hx_field_12 := hx_obj_11["hasNext"]
-		if hx_field_12 == nil {
-			var hx_zero_13 func() bool
-			return hx_zero_13
+	values := hxrt.NewArray()
+	for func(hx_obj_8 map[string]any) func() bool {
+		hx_field_9 := hx_obj_8["hasNext"]
+		if hx_field_9 == nil {
+			var hx_zero_10 func() bool
+			return hx_zero_10
 		}
-		return hx_field_12.(func() bool)
+		return hx_field_9.(func() bool)
 	}(iterator)() {
-		values = append(values, func(hx_obj_15 map[string]any) func() *string {
-			hx_field_16 := hx_obj_15["next"]
-			if hx_field_16 == nil {
-				var hx_zero_17 func() *string
-				return hx_zero_17
+		values.Push(func(hx_obj_12 map[string]any) func() *string {
+			hx_field_13 := hx_obj_12["next"]
+			if hx_field_13 == nil {
+				var hx_zero_14 func() *string
+				return hx_zero_14
 			}
-			return hx_field_16.(func() *string)
+			return hx_field_13.(func() *string)
 		}(iterator)())
 	}
-	return hxrt.StringJoinAny(func(hx_sort_src_18 []*string) []any {
-		hx_sort_out_20 := make([]any, 0, len(hx_sort_src_18))
-		for _, hx_sort_item_19 := range hx_sort_src_18 {
-			hx_sort_out_20 = append(hx_sort_out_20, hx_sort_item_19)
-		}
-		return hx_sort_out_20
-	}(values), hxrt.StringFromLiteral(","))
+	return hxrt.StringJoinAny(values.Values(), hxrt.StringFromLiteral(","))
 }
 
 func main() {
-	arrayValues := []int{4, 5}
+	arrayValues := hxrt.NewArray(4, 5)
 	arrayIterator := func() map[string]any {
-		hx_structural_array_21 := arrayValues
-		hx_structural_array_index_22 := 0
-		hx_structural_iterator_map_23 := map[string]any{}
-		hx_structural_iterator_map_23["hasNext"] = func() bool {
-			return (hx_structural_array_index_22 < len(hx_structural_array_21))
+		hx_structural_array_15 := arrayValues
+		hx_structural_array_index_16 := 0
+		hx_structural_iterator_map_17 := map[string]any{}
+		hx_structural_iterator_map_17["hasNext"] = func() bool {
+			return (hx_structural_array_index_16 < hx_structural_array_15.Len())
 		}
-		hx_structural_iterator_map_23["next"] = func() int {
-			hx_structural_array_value_24 := hx_structural_array_21[hx_structural_array_index_22]
-			hx_structural_array_index_22 = (hx_structural_array_index_22 + 1)
-			return hx_structural_array_value_24
+		hx_structural_iterator_map_17["next"] = func() int {
+			hx_structural_array_value_18 := hx_structural_array_15.Get(hx_structural_array_index_16)
+			hx_structural_array_index_16 = (hx_structural_array_index_16 + 1)
+			return func(hx_value_19 any) int {
+				if hx_value_19 == nil {
+					var hx_zero_20 int
+					return hx_zero_20
+				}
+				return hx_value_19.(int)
+			}(any(hx_structural_array_value_18))
 		}
-		return hx_structural_iterator_map_23
+		return hx_structural_iterator_map_17
 	}()
-	arrayValues[0] = 8
+	hx_array_target_21 := arrayValues
+	hx_array_index_22 := 0
+	hx_array_target_21.Set(hx_array_index_22, 8)
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("array="), collectInts(arrayIterator)))
 	hxrt.Println(v)
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("arrayArgument="), collectInts(func() map[string]any {
-		hx_structural_array_25 := []int{6, 7}
-		hx_structural_array_index_26 := 0
-		hx_structural_iterator_map_27 := map[string]any{}
-		hx_structural_iterator_map_27["hasNext"] = func() bool {
-			return (hx_structural_array_index_26 < len(hx_structural_array_25))
+		hx_structural_array_23 := hxrt.NewArray(6, 7)
+		hx_structural_array_index_24 := 0
+		hx_structural_iterator_map_25 := map[string]any{}
+		hx_structural_iterator_map_25["hasNext"] = func() bool {
+			return (hx_structural_array_index_24 < hx_structural_array_23.Len())
 		}
-		hx_structural_iterator_map_27["next"] = func() int {
-			hx_structural_array_value_28 := hx_structural_array_25[hx_structural_array_index_26]
-			hx_structural_array_index_26 = (hx_structural_array_index_26 + 1)
-			return hx_structural_array_value_28
+		hx_structural_iterator_map_25["next"] = func() int {
+			hx_structural_array_value_26 := hx_structural_array_23.Get(hx_structural_array_index_24)
+			hx_structural_array_index_24 = (hx_structural_array_index_24 + 1)
+			return func(hx_value_27 any) int {
+				if hx_value_27 == nil {
+					var hx_zero_28 int
+					return hx_zero_28
+				}
+				return hx_value_27.(int)
+			}(any(hx_structural_array_value_26))
 		}
-		return hx_structural_iterator_map_27
+		return hx_structural_iterator_map_25
 	}())))
 	hxrt.Println(v_1)
 	genericIterator := makeGenericIterator()
@@ -112,7 +114,7 @@ func main() {
 		return hx_structural_iterator_map_30
 	}(New_SnapshotGenericIterator(hxrt.StringFromLiteral("c"), hxrt.StringFromLiteral("d"))))))
 	hxrt.Println(v_3)
-	baseIterator := New_SnapshotSpecializedIterator([]*string{hxrt.StringFromLiteral("z")}).SnapshotBaseIterator
+	baseIterator := New_SnapshotSpecializedIterator(hxrt.NewArray(hxrt.StringFromLiteral("z"))).SnapshotBaseIterator
 	virtualIterator := func(hx_structural_iterator_33 *SnapshotBaseIterator) map[string]any {
 		hx_structural_iterator_map_34 := map[string]any{}
 		hx_structural_iterator_map_34["hasNext"] = func() bool {
@@ -153,11 +155,11 @@ type I_SnapshotBaseIterator interface {
 
 type SnapshotBaseIterator struct {
 	__hx_this I_SnapshotBaseIterator
-	values    []*string
+	values    *hxrt.Array
 	index     int
 }
 
-func New_SnapshotBaseIterator(values []*string) *SnapshotBaseIterator {
+func New_SnapshotBaseIterator(values *hxrt.Array) *SnapshotBaseIterator {
 	self := &SnapshotBaseIterator{}
 	self.__hx_this = self
 	self.values = values
@@ -166,15 +168,15 @@ func New_SnapshotBaseIterator(values []*string) *SnapshotBaseIterator {
 }
 
 func (self *SnapshotBaseIterator) hasNext() bool {
-	return (self.index < len(self.values))
+	return (self.index < self.values.Len())
 }
 
 func (self *SnapshotBaseIterator) next() *string {
-	return hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("base:"), self.values[func() int {
-		hx_post_39 := self.index
+	return hxrt.StringConcatAny(hxrt.StringFromLiteral("base:"), self.values.Get(func() int {
+		hx_post_42 := self.index
 		self.index = int(int32((self.index + 1)))
-		return hx_post_39
-	}()])
+		return hx_post_42
+	}()))
 }
 
 type I_SnapshotGenericIterator interface {
@@ -203,17 +205,17 @@ func (self *SnapshotGenericIterator) hasNext() bool {
 }
 
 func (self *SnapshotGenericIterator) next() any {
-	var hx_if_41 any
+	var hx_if_44 any
 	if func() int {
-		hx_post_40 := self.index
+		hx_post_43 := self.index
 		self.index = int(int32((self.index + 1)))
-		return hx_post_40
+		return hx_post_43
 	}() == 0 {
-		hx_if_41 = self.first
+		hx_if_44 = self.first
 	} else {
-		hx_if_41 = self.second
+		hx_if_44 = self.second
 	}
-	return hx_if_41
+	return hx_if_44
 }
 
 type I_SnapshotSpecializedIterator interface {
@@ -226,7 +228,7 @@ type SnapshotSpecializedIterator struct {
 	__hx_this I_SnapshotSpecializedIterator
 }
 
-func New_SnapshotSpecializedIterator(values []*string) *SnapshotSpecializedIterator {
+func New_SnapshotSpecializedIterator(values *hxrt.Array) *SnapshotSpecializedIterator {
 	self := &SnapshotSpecializedIterator{}
 	self.SnapshotBaseIterator = New_SnapshotBaseIterator(values)
 	self.SnapshotBaseIterator.__hx_this = self
@@ -235,9 +237,9 @@ func New_SnapshotSpecializedIterator(values []*string) *SnapshotSpecializedItera
 }
 
 func (self *SnapshotSpecializedIterator) next() *string {
-	return hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("special:"), self.values[func() int {
-		hx_post_42 := self.index
+	return hxrt.StringConcatAny(hxrt.StringFromLiteral("special:"), self.values.Get(func() int {
+		hx_post_48 := self.index
 		self.index = int(int32((self.index + 1)))
-		return hx_post_42
-	}()])
+		return hx_post_48
+	}()))
 }

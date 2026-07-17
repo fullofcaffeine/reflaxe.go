@@ -68,6 +68,6 @@ class FileSystem {
 	}
 
 	public static function readDirectory(path:String):Array<String> {
-		return NativeFileSystem.readDirectory(path);
+		return NativeFileSystem.readDirectory(path).toArray();
 	}
 }

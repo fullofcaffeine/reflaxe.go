@@ -1,5 +1,6 @@
 package sys;
 
+import go.NativeSlice;
 import haxe.io.Bytes;
 
 /**
@@ -48,9 +49,9 @@ class GoHttpHelpers {
 		}
 		var normalized:String = untyped __go__("func() *string { raw := *hxrt.StdString({0}); out := make([]byte, len(raw)); for i := 0; i < len(raw); i++ { c := raw[i]; if c >= 'A' && c <= 'Z' { c += 32 }; out[i] = c }; return hxrt.StringFromLiteral(string(out)) }()",
 			key);
-		return
-			untyped __go__("func() []*string { if {0}.responseHeadersSameKey != nil { if values, ok := {0}.responseHeadersSameKey[*hxrt.StdString({1})]; ok { return values }; if values, ok := {0}.responseHeadersSameKey[*hxrt.StdString({2})]; ok { return values } }; if {0}.responseHeaders == nil { return nil }; single := {0}.responseHeaders.get({1}); if single == nil && *hxrt.StdString({1}) != *hxrt.StdString({2}) { single = {0}.responseHeaders.get({2}) }; if single == nil { return nil }; return []*string{hxrt.StdString(single)} }()",
+		var nativeValues:NativeSlice<String> = untyped __go__("func() []*string { if {0}.responseHeadersSameKey != nil { if values, ok := {0}.responseHeadersSameKey[*hxrt.StdString({1})]; ok { return values }; if values, ok := {0}.responseHeadersSameKey[*hxrt.StdString({2})]; ok { return values } }; if {0}.responseHeaders == nil { return nil }; single := {0}.responseHeaders.get({1}); if single == nil && *hxrt.StdString({1}) != *hxrt.StdString({2}) { single = {0}.responseHeaders.get({2}) }; if single == nil { return nil }; return []*string{hxrt.StdString(single)} }()",
 			self, key, normalized);
+		return nativeValues == null ? null : nativeValues.toArray();
 	}
 
 	/**

@@ -193,6 +193,10 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/process/ProcessOutputHandle.hx",
     ),
+    "std/hxrt/ssl/NativeCertificate.hx": (
+        "hxrt_binding",
+        "std/hxrt/ssl/NativeCertificate.hx",
+    ),
     "std/_std/hxrt/stack/NativeStack.hx": ("hxrt_binding", "std/hxrt/stack/NativeStack.hx"),
     "std/_std/hxrt/stack/NativeStackFrame.hx": (
         "hxrt_binding",
@@ -744,6 +748,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             self.assertIn(signature, runtime_template, signature)
 
         self.assertIn('FEATURE_TEMPLATE = "template"', feature_analyzer)
+        self.assertIn('[FEATURE_CORE, FEATURE_ARRAY]', feature_analyzer)
         self.assertIn('path == "hxrt.template.NativeTemplate"', feature_analyzer)
         self.assertIn('["template.go"]', feature_analyzer)
         self.assertIn('case "template.go":', reflaxe_compiler)

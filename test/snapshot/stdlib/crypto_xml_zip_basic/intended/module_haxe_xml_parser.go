@@ -26,17 +26,17 @@ func New_haxe__xml__XmlParserException(message *string, xml *string, position in
 	_g := 0
 	_g1 := position
 	for _g < _g1 {
-		hx_post_15 := _g
+		hx_post_25 := _g
 		_g = int(int32((_g + 1)))
-		i := hx_post_15
+		i := hx_post_25
 		var c_1 any = hxrt.StringCharCodeAtAnyStringPtr(xml, i)
-		var hx_if_16 int
+		var hx_if_26 int
 		if c_1 == nil {
-			hx_if_16 = -1
+			hx_if_26 = -1
 		} else {
-			hx_if_16 = c_1.(int)
+			hx_if_26 = c_1.(int)
 		}
-		c := hx_if_16
+		c := hx_if_26
 		if c == 10 {
 			self.lineNumber = int(int32((self.lineNumber + 1)))
 			self.positionAtLine = 0
@@ -66,13 +66,13 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 	attrValQuote := -1
 	for p < hxrt.StringLengthStringPtr(str) {
 		var c_1 any = hxrt.StringCharCodeAtAnyStringPtr(str, p)
-		var hx_if_27 int
+		var hx_if_43 int
 		if c_1 == nil {
-			hx_if_27 = -1
+			hx_if_43 = -1
 		} else {
-			hx_if_27 = c_1.(int)
+			hx_if_43 = c_1.(int)
 		}
-		c := hx_if_27
+		c := hx_if_43
 		switch state {
 		case 0:
 			switch c {
@@ -95,13 +95,13 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 			case 33:
 				if func() int {
 					var c_6 any = hxrt.StringCharCodeAtAnyStringPtr(str, int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(1)))))
-					var hx_if_32 int
+					var hx_if_48 int
 					if c_6 == nil {
-						hx_if_32 = -1
+						hx_if_48 = -1
 					} else {
-						hx_if_32 = c_6.(int)
+						hx_if_48 = c_6.(int)
 					}
-					return hx_if_32
+					return hx_if_48
 				}() == 91 {
 					p = int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(2))))
 					if !hxrt.StringEqualStringPtr(hxrt.StringToUpperCaseStringPtr(hxrt.StringSubstrStringPtr(str, p, 6, true)), hxrt.StringFromLiteral("CDATA[")) {
@@ -113,22 +113,22 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 				} else {
 					if (func() int {
 						var c_4 any = hxrt.StringCharCodeAtAnyStringPtr(str, int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(1)))))
-						var hx_if_30 int
+						var hx_if_46 int
 						if c_4 == nil {
-							hx_if_30 = -1
+							hx_if_46 = -1
 						} else {
-							hx_if_30 = c_4.(int)
+							hx_if_46 = c_4.(int)
 						}
-						return hx_if_30
+						return hx_if_46
 					}() == 68) || (func() int {
 						var c_5 any = hxrt.StringCharCodeAtAnyStringPtr(str, int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(1)))))
-						var hx_if_31 int
+						var hx_if_47 int
 						if c_5 == nil {
-							hx_if_31 = -1
+							hx_if_47 = -1
 						} else {
-							hx_if_31 = c_5.(int)
+							hx_if_47 = c_5.(int)
 						}
-						return hx_if_31
+						return hx_if_47
 					}() == 100) {
 						if !hxrt.StringEqualStringPtr(hxrt.StringToUpperCaseStringPtr(hxrt.StringSubstrStringPtr(str, int(int32((hxrt.Int32Wrap(p)+hxrt.Int32Wrap(2)))), 6, true)), hxrt.StringFromLiteral("OCTYPE")) {
 							hxrt.Throw(New_haxe__xml__XmlParserException(hxrt.StringFromLiteral("Expected <!DOCTYPE"), str, p))
@@ -139,22 +139,22 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 					} else {
 						if (func() int {
 							var c_2 any = hxrt.StringCharCodeAtAnyStringPtr(str, int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(1)))))
-							var hx_if_28 int
+							var hx_if_44 int
 							if c_2 == nil {
-								hx_if_28 = -1
+								hx_if_44 = -1
 							} else {
-								hx_if_28 = c_2.(int)
+								hx_if_44 = c_2.(int)
 							}
-							return hx_if_28
+							return hx_if_44
 						}() != 45) || (func() int {
 							var c_3 any = hxrt.StringCharCodeAtAnyStringPtr(str, int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(2)))))
-							var hx_if_29 int
+							var hx_if_45 int
 							if c_3 == nil {
-								hx_if_29 = -1
+								hx_if_45 = -1
 							} else {
-								hx_if_29 = c_3.(int)
+								hx_if_45 = c_3.(int)
 							}
-							return hx_if_29
+							return hx_if_45
 						}() != 45) {
 							hxrt.Throw(New_haxe__xml__XmlParserException(hxrt.StringFromLiteral("Expected <!--"), str, p))
 						} else {
@@ -238,13 +238,13 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 			switch c {
 			case 38:
 				var len any = int(int32((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start))))
-				var hx_if_33 *string
+				var hx_if_49 *string
 				if len == nil {
-					hx_if_33 = hxrt.StringSubstrStringPtr(str, start, 0, false)
+					hx_if_49 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 				} else {
-					hx_if_33 = hxrt.StringSubstrStringPtr(str, start, len.(int), true)
+					hx_if_49 = hxrt.StringSubstrStringPtr(str, start, len.(int), true)
 				}
-				buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_33)
+				buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_49)
 				state = any(18)
 				escapeNext = any(8)
 				start = int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(1))))
@@ -254,13 +254,13 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 				} else {
 					if c == attrValQuote {
 						var len_1 any = int(int32((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start))))
-						var hx_if_34 *string
+						var hx_if_50 *string
 						if len_1 == nil {
-							hx_if_34 = hxrt.StringSubstrStringPtr(str, start, 0, false)
+							hx_if_50 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 						} else {
-							hx_if_34 = hxrt.StringSubstrStringPtr(str, start, len_1.(int), true)
+							hx_if_50 = hxrt.StringSubstrStringPtr(str, start, len_1.(int), true)
 						}
-						buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_34)
+						buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_50)
 						val := buf.b
 						buf = New_StringBuf()
 						xml.set(aname, val)
@@ -271,13 +271,13 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 			default:
 				if c == attrValQuote {
 					var len_2 any = int(int32((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start))))
-					var hx_if_35 *string
+					var hx_if_51 *string
 					if len_2 == nil {
-						hx_if_35 = hxrt.StringSubstrStringPtr(str, start, 0, false)
+						hx_if_51 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 					} else {
-						hx_if_35 = hxrt.StringSubstrStringPtr(str, start, len_2.(int), true)
+						hx_if_51 = hxrt.StringSubstrStringPtr(str, start, len_2.(int), true)
 					}
-					buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_35)
+					buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_51)
 					val_1 := buf.b
 					buf = New_StringBuf()
 					xml.set(aname, val_1)
@@ -295,17 +295,17 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 					hxrt.Throw(New_haxe__xml__XmlParserException(hxrt.StringFromLiteral("Expected node name"), str, p))
 				}
 				v := hxrt.StringSubstrStringPtr(str, start, int(int32((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))), true)
-				if (parent == nil) || (parent.nodeType != any(0)) {
+				if (parent == nil) || !hxrt.HaxeEqual(parent.nodeType, any(0)) {
 					hxrt.Throw(New_haxe__xml__XmlParserException(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Unexpected </"), v), hxrt.StringFromLiteral(">, tag is not open")), str, p))
 				}
 				if !hxrt.StringEqualStringPtr(v, func() *string {
-					if parent.nodeType != Xml_Element {
+					if !hxrt.HaxeEqual(parent.nodeType, Xml_Element) {
 						hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(parent.nodeType))))
 					}
 					return parent.nodeName
 				}()) {
 					hxrt.Throw(New_haxe__xml__XmlParserException(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Expected </"), func() *string {
-						if parent.nodeType != Xml_Element {
+						if !hxrt.HaxeEqual(parent.nodeType, Xml_Element) {
 							hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(parent.nodeType))))
 						}
 						return parent.nodeName
@@ -333,13 +333,13 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 		case 13:
 			if c == 60 {
 				var len_3 any = int(int32((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start))))
-				var hx_if_36 *string
+				var hx_if_52 *string
 				if len_3 == nil {
-					hx_if_36 = hxrt.StringSubstrStringPtr(str, start, 0, false)
+					hx_if_52 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 				} else {
-					hx_if_36 = hxrt.StringSubstrStringPtr(str, start, len_3.(int), true)
+					hx_if_52 = hxrt.StringSubstrStringPtr(str, start, len_3.(int), true)
 				}
-				buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_36)
+				buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_52)
 				child := Xml_createPCData(buf.b)
 				buf = New_StringBuf()
 				parent.addChild(child)
@@ -349,13 +349,13 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 			} else {
 				if c == 38 {
 					var len_4 any = int(int32((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start))))
-					var hx_if_37 *string
+					var hx_if_53 *string
 					if len_4 == nil {
-						hx_if_37 = hxrt.StringSubstrStringPtr(str, start, 0, false)
+						hx_if_53 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 					} else {
-						hx_if_37 = hxrt.StringSubstrStringPtr(str, start, len_4.(int), true)
+						hx_if_53 = hxrt.StringSubstrStringPtr(str, start, len_4.(int), true)
 					}
-					buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_37)
+					buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_53)
 					state = any(18)
 					escapeNext = any(13)
 					start = int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(1))))
@@ -364,13 +364,13 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 		case 14:
 			if (c == 63) && (func() int {
 				var c_7 any = hxrt.StringCharCodeAtAnyStringPtr(str, int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(1)))))
-				var hx_if_38 int
+				var hx_if_54 int
 				if c_7 == nil {
-					hx_if_38 = -1
+					hx_if_54 = -1
 				} else {
-					hx_if_38 = c_7.(int)
+					hx_if_54 = c_7.(int)
 				}
-				return hx_if_38
+				return hx_if_54
 			}() == 62) {
 				p = int(int32((p + 1)))
 				str_1 := hxrt.StringSubstrStringPtr(str, int(int32((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(1)))), int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start))))) - hxrt.Int32Wrap(2)))), true)
@@ -382,22 +382,22 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 		case 15:
 			if ((c == 45) && (func() int {
 				var c_8 any = hxrt.StringCharCodeAtAnyStringPtr(str, int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(1)))))
-				var hx_if_39 int
+				var hx_if_55 int
 				if c_8 == nil {
-					hx_if_39 = -1
+					hx_if_55 = -1
 				} else {
-					hx_if_39 = c_8.(int)
+					hx_if_55 = c_8.(int)
 				}
-				return hx_if_39
+				return hx_if_55
 			}() == 45)) && (func() int {
 				var c_9 any = hxrt.StringCharCodeAtAnyStringPtr(str, int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(2)))))
-				var hx_if_40 int
+				var hx_if_56 int
 				if c_9 == nil {
-					hx_if_40 = -1
+					hx_if_56 = -1
 				} else {
-					hx_if_40 = c_9.(int)
+					hx_if_56 = c_9.(int)
 				}
-				return hx_if_40
+				return hx_if_56
 			}() == 62) {
 				xml_2 := Xml_createComment(hxrt.StringSubstrStringPtr(str, start, int(int32((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))), true))
 				parent.addChild(xml_2)
@@ -423,22 +423,22 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 		case 17:
 			if ((c == 93) && (func() int {
 				var c_10 any = hxrt.StringCharCodeAtAnyStringPtr(str, int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(1)))))
-				var hx_if_41 int
+				var hx_if_57 int
 				if c_10 == nil {
-					hx_if_41 = -1
+					hx_if_57 = -1
 				} else {
-					hx_if_41 = c_10.(int)
+					hx_if_57 = c_10.(int)
 				}
-				return hx_if_41
+				return hx_if_57
 			}() == 93)) && (func() int {
 				var c_11 any = hxrt.StringCharCodeAtAnyStringPtr(str, int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(2)))))
-				var hx_if_42 int
+				var hx_if_58 int
 				if c_11 == nil {
-					hx_if_42 = -1
+					hx_if_58 = -1
 				} else {
-					hx_if_42 = c_11.(int)
+					hx_if_58 = c_11.(int)
 				}
-				return hx_if_42
+				return hx_if_58
 			}() == 62) {
 				child_1 := Xml_createCData(hxrt.StringSubstrStringPtr(str, start, int(int32((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))), true))
 				parent.addChild(child_1)
@@ -451,51 +451,51 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 				s := hxrt.StringSubstrStringPtr(str, start, int(int32((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))), true)
 				if func() int {
 					var c_15 any = hxrt.StringCharCodeAtAnyStringPtr(s, 0)
-					var hx_if_49 int
+					var hx_if_65 int
 					if c_15 == nil {
-						hx_if_49 = -1
+						hx_if_65 = -1
 					} else {
-						hx_if_49 = c_15.(int)
+						hx_if_65 = c_15.(int)
 					}
-					return hx_if_49
+					return hx_if_65
 				}() == 35 {
-					var hx_if_44 any
+					var hx_if_60 any
 					if func() int {
 						var c_13 any = hxrt.StringCharCodeAtAnyStringPtr(s, 1)
-						var hx_if_43 int
+						var hx_if_59 int
 						if c_13 == nil {
-							hx_if_43 = -1
+							hx_if_59 = -1
 						} else {
-							hx_if_43 = c_13.(int)
+							hx_if_59 = c_13.(int)
 						}
-						return hx_if_43
+						return hx_if_59
 					}() == 120 {
-						hx_if_44 = hxrt.StdParseInt(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("0"), hxrt.StringSubstrStringPtr(s, 1, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(s))-hxrt.Int32Wrap(1)))), true)))
+						hx_if_60 = hxrt.StdParseInt(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("0"), hxrt.StringSubstrStringPtr(s, 1, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(s))-hxrt.Int32Wrap(1)))), true)))
 					} else {
-						hx_if_44 = hxrt.StdParseInt(hxrt.StringSubstrStringPtr(s, 1, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(s)) - hxrt.Int32Wrap(1)))), true))
+						hx_if_60 = hxrt.StdParseInt(hxrt.StringSubstrStringPtr(s, 1, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(s)) - hxrt.Int32Wrap(1)))), true))
 					}
-					var c_12 any = hx_if_44
+					var c_12 any = hx_if_60
 					c_14 := hxrt.IntFromNullableAny(c_12)
 					buf.b = hxrt.StringConcatStringPtr(buf.b, hxrt.StringFromCharCode(c_14))
 				} else {
-					if !func(hx_value_47 any) bool {
-						if hx_value_47 == nil {
-							var hx_zero_48 bool
-							return hx_zero_48
+					if !func(hx_value_63 any) bool {
+						if hx_value_63 == nil {
+							var hx_zero_64 bool
+							return hx_zero_64
 						}
-						return hx_value_47.(bool)
+						return hx_value_63.(bool)
 					}(haxe__xml__Parser_escapes.exists(s)) {
 						if strict {
 							hxrt.Throw(New_haxe__xml__XmlParserException(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Undefined entity: "), s), str, p))
 						}
 						buf.b = hxrt.StringConcatStringPtr(buf.b, hxrt.StdString(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("&"), s), hxrt.StringFromLiteral(";"))))
 					} else {
-						x := func(hx_value_45 any) *string {
-							if hx_value_45 == nil {
-								var hx_zero_46 *string
-								return hx_zero_46
+						x := func(hx_value_61 any) *string {
+							if hx_value_61 == nil {
+								var hx_zero_62 *string
+								return hx_zero_62
 							}
-							return hx_value_45.(*string)
+							return hx_value_61.(*string)
 						}(haxe__xml__Parser_escapes.get(s))
 						buf.b = hxrt.StringConcatStringPtr(buf.b, hxrt.StdString(x))
 					}
@@ -509,13 +509,13 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 					}
 					buf.b = hxrt.StringConcatStringPtr(buf.b, hxrt.StringFromLiteral("&"))
 					var len_5 any = int(int32((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start))))
-					var hx_if_50 *string
+					var hx_if_66 *string
 					if len_5 == nil {
-						hx_if_50 = hxrt.StringSubstrStringPtr(str, start, 0, false)
+						hx_if_66 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 					} else {
-						hx_if_50 = hxrt.StringSubstrStringPtr(str, start, len_5.(int), true)
+						hx_if_66 = hxrt.StringSubstrStringPtr(str, start, len_5.(int), true)
 					}
-					buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_50)
+					buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_66)
 					p = int(int32((p - 1)))
 					start = int(int32((hxrt.Int32Wrap(p) + hxrt.Int32Wrap(1))))
 					state = escapeNext
@@ -524,14 +524,14 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 		}
 		p = int(int32((p + 1)))
 	}
-	if state == any(1) {
+	if hxrt.HaxeEqual(state, any(1)) {
 		start = p
 		state = any(13)
 	}
-	if state == any(13) {
-		if parent.nodeType == any(0) {
+	if hxrt.HaxeEqual(state, any(13)) {
+		if hxrt.HaxeEqual(parent.nodeType, any(0)) {
 			hxrt.Throw(New_haxe__xml__XmlParserException(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Unclosed node <"), func() *string {
-				if parent.nodeType != Xml_Element {
+				if !hxrt.HaxeEqual(parent.nodeType, Xml_Element) {
 					hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(parent.nodeType))))
 				}
 				return parent.nodeName
@@ -539,37 +539,37 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 		}
 		if (p != start) || (nsubs == 0) {
 			var len_6 any = int(int32((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start))))
-			var hx_if_51 *string
+			var hx_if_67 *string
 			if len_6 == nil {
-				hx_if_51 = hxrt.StringSubstrStringPtr(str, start, 0, false)
+				hx_if_67 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 			} else {
-				hx_if_51 = hxrt.StringSubstrStringPtr(str, start, len_6.(int), true)
+				hx_if_67 = hxrt.StringSubstrStringPtr(str, start, len_6.(int), true)
 			}
-			buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_51)
+			buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_67)
 			xml_4 := Xml_createPCData(buf.b)
 			parent.addChild(xml_4)
 			nsubs = int(int32((nsubs + 1)))
 		}
 		return p
 	}
-	if (!strict && (state == any(18))) && (escapeNext == any(13)) {
+	if (!strict && hxrt.HaxeEqual(state, any(18))) && hxrt.HaxeEqual(escapeNext, any(13)) {
 		buf.b = hxrt.StringConcatStringPtr(buf.b, hxrt.StringFromLiteral("&"))
 		var len_7 any = int(int32((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start))))
-		var hx_if_52 *string
+		var hx_if_68 *string
 		if len_7 == nil {
-			hx_if_52 = hxrt.StringSubstrStringPtr(str, start, 0, false)
+			hx_if_68 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 		} else {
-			hx_if_52 = hxrt.StringSubstrStringPtr(str, start, len_7.(int), true)
+			hx_if_68 = hxrt.StringSubstrStringPtr(str, start, len_7.(int), true)
 		}
-		buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_52)
+		buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_68)
 		xml_5 := Xml_createPCData(buf.b)
 		parent.addChild(xml_5)
 		nsubs = int(int32((nsubs + 1)))
 		return p
 	}
 	hxrt.Throw(New_haxe__xml__XmlParserException(hxrt.StringFromLiteral("Unexpected end"), str, p))
-	var hx_throw_zero_53 int
-	return hx_throw_zero_53
+	var hx_throw_zero_69 int
+	return hx_throw_zero_69
 }
 
 var haxe__xml__Parser_escapes *haxe__ds__StringMap = func() *haxe__ds__StringMap {

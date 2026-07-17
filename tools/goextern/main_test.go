@@ -161,9 +161,9 @@ func TestBuildEmissionTimeTupleReturnCarrierUsesNamedFields(t *testing.T) {
 	marshalBinaryResult := fileContentsByName(t, emission, "TimeMarshalBinaryResult.hx")
 	for _, snippet := range []string{
 		"class TimeMarshalBinaryResult",
-		"public var value1(default, null):Array<Int>;",
+		"public var value1(default, null):go.NativeSlice<Int>;",
 		"public var value2(default, null):Null<go.Error>;",
-		"public function new(value1:Array<Int>, value2:Null<go.Error>)",
+		"public function new(value1:go.NativeSlice<Int>, value2:Null<go.Error>)",
 	} {
 		if !strings.Contains(marshalBinaryResult, snippet) {
 			t.Fatalf("TimeMarshalBinaryResult.hx missing generated carrier snippet %q\n%s", snippet, marshalBinaryResult)
@@ -261,6 +261,7 @@ func TestMapTypeWithReasonReportsStableDynamicReasonCodes(t *testing.T) {
 		{name: "callback", typ: types.NewSignatureType(nil, nil, nil, types.NewTuple(), types.NewTuple(), false), reason: "callback_signature"},
 		{name: "external named type", typ: externalNamed, reason: "external_named_type"},
 		{name: "unsupported map key", typ: types.NewMap(types.Typ[types.Int], types.Typ[types.String]), reason: "unsupported_map_key"},
+		{name: "fixed array", typ: types.NewArray(types.Typ[types.Int], 4), reason: "fixed_array"},
 		{name: "struct", typ: types.NewStruct(nil, nil), reason: "struct"},
 		{name: "empty interface", typ: emptyInterface, reason: "empty_interface"},
 		{name: "non-empty interface", typ: nonEmptyInterface, reason: "non_empty_interface"},

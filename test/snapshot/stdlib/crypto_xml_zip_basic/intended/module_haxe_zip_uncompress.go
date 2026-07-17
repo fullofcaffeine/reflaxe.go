@@ -73,14 +73,26 @@ func haxe__zip__Uncompress_run(src *haxe__io__Bytes, bufsize any) *haxe__io__Byt
 }
 
 func haxe__zip__Uncompress_toValues(bytes *haxe__io__Bytes) []int {
-	values := []int{}
+	values := hxrt.NewArray()
 	_g := 0
 	_g1 := bytes.length
 	for _g < _g1 {
 		hx_post_9 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_9
-		values = append(values, bytes.b[index])
+		values.Push(bytes.b[index])
 	}
-	return values
+	return func(hx_lambda_raw_11 []any) []int {
+		hx_lambda_out_12 := make([]int, 0, len(hx_lambda_raw_11))
+		for _, hx_lambda_item_13 := range hx_lambda_raw_11 {
+			hx_lambda_out_12 = append(hx_lambda_out_12, func(hx_value_14 any) int {
+				if hx_value_14 == nil {
+					var hx_zero_15 int
+					return hx_zero_15
+				}
+				return hx_value_14.(int)
+			}(hx_lambda_item_13))
+		}
+		return hx_lambda_out_12
+	}(values.Values())
 }

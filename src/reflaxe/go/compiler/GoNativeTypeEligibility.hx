@@ -64,6 +64,15 @@ class GoNativeTypeEligibility {
 				"Nullable primitive types currently lower through dynamic/null-boxed representation; typed specialization is disabled for semantic safety.");
 		}
 
+		// A portable Haxe Array is represented by a comparable pointer in generated
+		// Go, but that backend detail is not authority for a Go-native map key. Keep
+		// the shared Haxe carrier out of native map specialization so the boundary
+		// cannot silently depend on compiler/runtime representation identity.
+		if (role == GoNativeEligibilityRole.MapKey && GoTypeMapper.isHaxeArrayType(type)) {
+			return ineligible("map_key_not_comparable",
+				"Portable Haxe Array values are not eligible as Go-native map keys; choose an explicitly comparable Go key type.");
+		}
+
 		var goType = GoTypeMapper.scalarGoType(type, classTypeName, enumTypeName);
 		if (goType == null || goType == "") {
 			return ineligible("empty_go_type", "Could not resolve concrete Go type for typed specialization.");

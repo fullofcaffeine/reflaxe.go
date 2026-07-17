@@ -10,6 +10,7 @@
 	"manualFeatures": [
 	],
 	"inferredFeatures": [
+		"array",
 		"core",
 		"exception",
 		"print",
@@ -17,6 +18,7 @@
 		"string"
 	],
 	"selectedFeatures": [
+		"array",
 		"core",
 		"exception",
 		"print",
@@ -24,6 +26,7 @@
 		"string"
 	],
 	"files": [
+		"array.go",
 		"core.go",
 		"exception.go",
 		"hxrt.go",
@@ -36,6 +39,11 @@
 			"feature": "core",
 			"sourceKind": "baseline",
 			"source": "compiler_baseline"
+		},
+		{
+			"feature": "array",
+			"sourceKind": "generated_surface",
+			"source": "hxrt.Array"
 		},
 		{
 			"feature": "string",

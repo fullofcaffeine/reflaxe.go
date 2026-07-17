@@ -116,7 +116,6 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
             "consumerAnyAdapter",
             "folderAnyAdapter",
             "indexedFolderAnyAdapter",
-            "anyArrayCoerce",
             "dynamicNestedIterableSource",
         ]:
             self.assertIn(bridge, adapter)
@@ -211,7 +210,7 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
             "a direct structural ArrayIterator conversion should use the live typed array plan without staging an erased class",
         )
 
-    def test_structural_iterator_generated_shape_stays_private_and_typed(self):
+    def test_structural_iterator_generated_shape_stays_private_and_carrier_aware(self):
         main_go = (STRUCTURAL_ITERATOR_SNAPSHOT / "main.go").read_text(encoding="utf-8")
         for required in [
             'map[string]any {',
@@ -220,13 +219,15 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
             ".__hx_this.hasNext()",
             ".__hx_this.next()",
             ".(*string)",
+            ".Len()",
+            ".Get(",
+            ".Set(",
         ]:
             self.assertIn(required, main_go)
 
         self.assertNotIn("New_haxe__iterators__ArrayIterator", main_go)
-        self.assertNotIn("any(hx_structural_array", main_go)
         capture_index = main_go.index(" := arrayValues")
-        mutation_index = main_go.index("arrayValues[0] = 8")
+        mutation_index = main_go.index(".Set(hx_array_index_", capture_index)
         consume_index = main_go.index('hxrt.StringFromLiteral("array=")')
         self.assertLess(capture_index, mutation_index)
         self.assertLess(mutation_index, consume_index)
@@ -266,13 +267,15 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
         self.assertEqual(main_go.count(effect), 1)
         effect_index = main_go.index(effect)
         capture_index = main_go.index(" := values", effect_index)
-        mutation_index = main_go.index("values[0] = 9", capture_index)
+        mutation_index = main_go.index(".Set(hx_array_index_", capture_index)
         self.assertLess(effect_index, capture_index)
         self.assertLess(capture_index, mutation_index)
         argument_effect = "argumentEffectCount = int(int32((argumentEffectCount + 1)))"
         self.assertEqual(main_go.count(argument_effect), 1)
         for forbidden in ["ArrayIterator", "reflect.", "unsafe.", "[]any(hx_structural_array"]:
             self.assertNotIn(forbidden, main_go)
+        self.assertIn(".Len()", main_go)
+        self.assertIn(".Get(", main_go)
 
         self.assertIn("public inline function iterator():Iterator<Xml>", xml_source)
         self.assertGreaterEqual(xml_printer_go.count("value.ensureElementType()"), 3)
@@ -363,7 +366,7 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
         self.assertGreaterEqual(compiler_source.count("lowerConstructorArg(classType"), 3)
 
         constructor_start = main_go.index("arrayConsumer := New_SnapshotIntConsumer")
-        mutation_index = main_go.index("arrayValues[0] = 9", constructor_start)
+        mutation_index = main_go.index(".Set(hx_array_index_", constructor_start)
         constructor_call = main_go[constructor_start:mutation_index]
         before_index = constructor_call.index('StringFromLiteral("before")')
         effect_index = constructor_call.index('StringFromLiteral("iterator")')

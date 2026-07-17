@@ -1,5 +1,6 @@
 import haxe.ds.StringMap;
 import haxe.io.Eof;
+import go.NativeSlice;
 import hxrt.fs.NativeFile;
 import hxrt.sys.NativeConsole;
 import hxrt.sys.NativeSys;
@@ -40,7 +41,7 @@ class Sys {
 	}
 
 	public static inline function args():Array<String> {
-		return NativeSys.args();
+		return NativeSys.args().toArray();
 	}
 
 	public static inline function getEnv(s:String):String {
@@ -92,7 +93,7 @@ class Sys {
 		How: Preserve nullability across the typed runtime boundary so `hxrt` can choose the correct launch mode.
 	**/
 	public static inline function command(cmd:String, ?args:Array<String>):Int {
-		return NativeSys.command(cmd, args);
+		return NativeSys.command(cmd, args == null ? null : NativeSlice.fromArray(args));
 	}
 
 	public static inline function exit(code:Int):Void {

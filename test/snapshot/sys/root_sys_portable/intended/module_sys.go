@@ -5,18 +5,44 @@ import "snapshot/hxrt"
 type Sys struct {
 }
 
-func Sys_args() []*string {
-	return hxrt.SysArgs()
+func Sys_args() *hxrt.Array {
+	return hxrt.ArrayFromValues(func(hx_sort_src_10 []*string) []any {
+		hx_sort_out_12 := make([]any, 0, len(hx_sort_src_10))
+		for _, hx_sort_item_11 := range hx_sort_src_10 {
+			hx_sort_out_12 = append(hx_sort_out_12, hx_sort_item_11)
+		}
+		return hx_sort_out_12
+	}(hxrt.SysArgs()))
 }
 
-func Sys_command(cmd *string, args []*string) int {
-	return hxrt.SysCommand(cmd, args)
+func Sys_command(cmd *string, args *hxrt.Array) int {
+	return hxrt.SysCommand(cmd, func() []*string {
+		var hx_if_18 []*string
+		if args == nil {
+			hx_if_18 = nil
+		} else {
+			hx_if_18 = func(hx_lambda_raw_13 []any) []*string {
+				hx_lambda_out_14 := make([]*string, 0, len(hx_lambda_raw_13))
+				for _, hx_lambda_item_15 := range hx_lambda_raw_13 {
+					hx_lambda_out_14 = append(hx_lambda_out_14, func(hx_value_16 any) *string {
+						if hx_value_16 == nil {
+							var hx_zero_17 *string
+							return hx_zero_17
+						}
+						return hx_value_16.(*string)
+					}(hx_lambda_item_15))
+				}
+				return hx_lambda_out_14
+			}(args.Values())
+		}
+		return hx_if_18
+	}())
 }
 
 func Sys_cpuTime() float64 {
 	hxrt.Throw(hxrt.StringFromLiteral("Sys.cpuTime is unsupported on haxe.go: process CPU time is not implemented"))
-	var hx_throw_zero_10 float64
-	return hx_throw_zero_10
+	var hx_throw_zero_19 float64
+	return hx_throw_zero_19
 }
 
 func Sys_environment() *haxe__ds__StringMap {

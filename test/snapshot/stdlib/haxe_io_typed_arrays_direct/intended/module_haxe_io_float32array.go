@@ -14,15 +14,15 @@ func haxe__io___Float32Array__Float32Array_Impl___new(elements int) *haxe__io__A
 	return this1
 }
 
-func haxe__io___Float32Array__Float32Array_Impl__fromArray(a []float64, pos int, length any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_33 int
+func haxe__io___Float32Array__Float32Array_Impl__fromArray(a *hxrt.Array, pos int, length any) *haxe__io__ArrayBufferViewImpl {
+	var hx_if_35 int
 	if length == nil {
-		hx_if_33 = int(int32((hxrt.Int32Wrap(len(a)) - hxrt.Int32Wrap(pos))))
+		hx_if_35 = int(int32((hxrt.Int32Wrap(a.Len()) - hxrt.Int32Wrap(pos))))
 	} else {
-		hx_if_33 = length.(int)
+		hx_if_35 = length.(int)
 	}
-	resolvedLength := hx_if_33
-	if ((pos < 0) || (resolvedLength < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength)))) > len(a)) {
+	resolvedLength := hx_if_35
+	if ((pos < 0) || (resolvedLength < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength)))) > a.Len()) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	var this1 *haxe__io__ArrayBufferViewImpl
@@ -35,10 +35,16 @@ func haxe__io___Float32Array__Float32Array_Impl__fromArray(a []float64, pos int,
 	_g := 0
 	_g1 := resolvedLength
 	for _g < _g1 {
-		hx_post_34 := _g
+		hx_post_36 := _g
 		_g = int(int32((_g + 1)))
-		idx := hx_post_34
-		value := a[int(int32((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(pos))))]
+		idx := hx_post_36
+		value := func(hx_value_37 any) float64 {
+			if hx_value_37 == nil {
+				var hx_zero_38 float64
+				return hx_zero_38
+			}
+			return hx_value_37.(float64)
+		}(a.Get(int(int32((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(pos))))))
 		if (idx >= 0) && (idx < int(int32((hxrt.Int32Wrap(out.byteLength) >> uint(2))))) {
 			_this := out.bytes
 			pos_1 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(idx) << uint(2))))) + hxrt.Int32Wrap(out.byteOffset))))
@@ -55,13 +61,13 @@ func haxe__io___Float32Array__Float32Array_Impl__fromArray(a []float64, pos int,
 }
 
 func haxe__io___Float32Array__Float32Array_Impl__fromBytes(bytes *haxe__io__Bytes, bytePos int, length any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_35 any
+	var hx_if_39 any
 	if length == nil {
-		hx_if_35 = nil
+		hx_if_39 = nil
 	} else {
-		hx_if_35 = int(int32((hxrt.Int32Wrap(length.(int)) << uint(2))))
+		hx_if_39 = int(int32((hxrt.Int32Wrap(length.(int)) << uint(2))))
 	}
-	var resolvedLength any = hx_if_35
+	var resolvedLength any = hx_if_39
 	return haxe__io___Float32Array__Float32Array_Impl__fromData(func() *haxe__io__ArrayBufferViewImpl {
 		this1 := haxe__io___ArrayBufferView__ArrayBufferView_Impl__fromBytes(bytes, bytePos, resolvedLength)
 		return this1
@@ -109,31 +115,31 @@ func haxe__io___Float32Array__Float32Array_Impl__set(this1 *haxe__io__ArrayBuffe
 }
 
 func haxe__io___Float32Array__Float32Array_Impl__sub(this1 *haxe__io__ArrayBufferViewImpl, begin int, length any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_36 any
+	var hx_if_40 any
 	if length == nil {
-		hx_if_36 = nil
+		hx_if_40 = nil
 	} else {
-		hx_if_36 = int(int32((hxrt.Int32Wrap(length.(int)) << uint(2))))
+		hx_if_40 = int(int32((hxrt.Int32Wrap(length.(int)) << uint(2))))
 	}
-	var scaledLength any = hx_if_36
+	var scaledLength any = hx_if_40
 	return haxe__io___Float32Array__Float32Array_Impl__fromData(this1.sub(int(int32((hxrt.Int32Wrap(begin) << uint(2)))), scaledLength))
 }
 
 func haxe__io___Float32Array__Float32Array_Impl__subarray(this1 *haxe__io__ArrayBufferViewImpl, begin any, end any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_37 any
+	var hx_if_41 any
 	if begin == nil {
-		hx_if_37 = nil
+		hx_if_41 = nil
 	} else {
-		hx_if_37 = int(int32((hxrt.Int32Wrap(begin.(int)) << uint(2))))
+		hx_if_41 = int(int32((hxrt.Int32Wrap(begin.(int)) << uint(2))))
 	}
-	var scaledBegin any = hx_if_37
-	var hx_if_38 any
+	var scaledBegin any = hx_if_41
+	var hx_if_42 any
 	if end == nil {
-		hx_if_38 = nil
+		hx_if_42 = nil
 	} else {
-		hx_if_38 = int(int32((hxrt.Int32Wrap(end.(int)) << uint(2))))
+		hx_if_42 = int(int32((hxrt.Int32Wrap(end.(int)) << uint(2))))
 	}
-	var scaledEnd any = hx_if_38
+	var scaledEnd any = hx_if_42
 	return haxe__io___Float32Array__Float32Array_Impl__fromData(this1.subarray(scaledBegin, scaledEnd))
 }
 

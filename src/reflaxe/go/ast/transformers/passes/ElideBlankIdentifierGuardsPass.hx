@@ -329,6 +329,11 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				for (element in elements) {
 					collectExprReads(element);
 				}
+			case GoExpr.GoMakeSlice(_, length, capacity):
+				collectExprReads(length);
+				if (capacity != null) {
+					collectExprReads(capacity);
+				}
 			case GoExpr.GoFuncLiteral(params, _, body):
 				pushScope();
 				for (param in params) {
@@ -614,6 +619,8 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				GoExpr.GoSlice(rewriteExpr(target), start == null ? null : rewriteExpr(start), end == null ? null : rewriteExpr(end));
 			case GoExpr.GoArrayLiteral(elementType, elements):
 				GoExpr.GoArrayLiteral(elementType, [for (element in elements) rewriteExpr(element)]);
+			case GoExpr.GoMakeSlice(elementType, length, capacity):
+				GoExpr.GoMakeSlice(elementType, rewriteExpr(length), capacity == null ? null : rewriteExpr(capacity));
 			case GoExpr.GoFuncLiteral(params, results, body):
 				pushScope();
 				for (param in params) {

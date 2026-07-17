@@ -3,7 +3,7 @@ package main
 import "examples_fluxproxy_metal/hxrt"
 
 type I_app__core__FluxReport interface {
-	lines() []*string
+	lines() *hxrt.Array
 	profileId() *string
 	variantId() *string
 	capabilityId() *string
@@ -56,8 +56,8 @@ func New_app__core__FluxReport(profile *string, variant *string, capability *str
 	return self
 }
 
-func (self *app__core__FluxReport) lines() []*string {
-	return []*string{hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fluxproxy.profile="), self.profile), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fluxproxy.variant="), self.variant), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("runtime.capability="), self.capability), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingress.received="), self.ingressReceived), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingress.accepted="), self.ingressAccepted), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingress.backpressure="), self.ingressBackpressure), hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy.responses="), self.proxyResponses), hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy.retries="), self.proxyRetries), hxrt.StringConcatAny(hxrt.StringFromLiteral("policy.rate_limited="), self.rateLimitedCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("policy.breaker_open="), self.breakerOpenCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("routes.count="), self.routesCount), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("routes.summary="), self.routesSummary), hxrt.StringConcatAny(hxrt.StringFromLiteral("errors.count="), self.errorsCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("runtime.score="), self.runtimeScore)}
+func (self *app__core__FluxReport) lines() *hxrt.Array {
+	return hxrt.NewArray(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fluxproxy.profile="), self.profile), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fluxproxy.variant="), self.variant), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("runtime.capability="), self.capability), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingress.received="), self.ingressReceived), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingress.accepted="), self.ingressAccepted), hxrt.StringConcatAny(hxrt.StringFromLiteral("ingress.backpressure="), self.ingressBackpressure), hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy.responses="), self.proxyResponses), hxrt.StringConcatAny(hxrt.StringFromLiteral("proxy.retries="), self.proxyRetries), hxrt.StringConcatAny(hxrt.StringFromLiteral("policy.rate_limited="), self.rateLimitedCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("policy.breaker_open="), self.breakerOpenCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("routes.count="), self.routesCount), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("routes.summary="), self.routesSummary), hxrt.StringConcatAny(hxrt.StringFromLiteral("errors.count="), self.errorsCount), hxrt.StringConcatAny(hxrt.StringFromLiteral("runtime.score="), self.runtimeScore))
 }
 
 func (self *app__core__FluxReport) profileId() *string {
@@ -108,11 +108,11 @@ func (self *app__core__FluxReport) render() *string {
 	out := hxrt.StringFromLiteral("")
 	values := self.lines()
 	i := 0
-	for i < len(values) {
+	for i < values.Len() {
 		if i > 0 {
 			out = hxrt.StringConcatStringPtr(out, hxrt.StringFromLiteral("\n"))
 		}
-		out = hxrt.StringConcatStringPtr(out, values[i])
+		out = hxrt.StringConcatAny(out, values.Get(i))
 		i = int(int32((i + 1)))
 	}
 	return out

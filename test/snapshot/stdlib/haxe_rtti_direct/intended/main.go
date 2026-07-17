@@ -28,34 +28,40 @@ func main() {
 		return hx_field_2.(*string)
 	}(info)))
 	hxrt.Println(v)
-	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("staticType="), haxe__rtti__CTypeTools_toString(func(hx_obj_7 map[string]any) *haxe__rtti__CType {
-		hx_field_8 := hx_obj_7["type"]
-		if hx_field_8 == nil {
-			var hx_zero_9 *haxe__rtti__CType
-			return hx_zero_9
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("staticType="), haxe__rtti__CTypeTools_toString(func(hx_obj_9 map[string]any) *haxe__rtti__CType {
+		hx_field_10 := hx_obj_9["type"]
+		if hx_field_10 == nil {
+			var hx_zero_11 *haxe__rtti__CType
+			return hx_zero_11
 		}
-		return hx_field_8.(*haxe__rtti__CType)
-	}(func(hx_obj_4 map[string]any) []map[string]any {
+		return hx_field_10.(*haxe__rtti__CType)
+	}(func(hx_value_7 any) map[string]any {
+		if hx_value_7 == nil {
+			var hx_zero_8 map[string]any
+			return hx_zero_8
+		}
+		return hx_value_7.(map[string]any)
+	}(func(hx_obj_4 map[string]any) *hxrt.Array {
 		hx_field_5 := hx_obj_4["statics"]
 		if hx_field_5 == nil {
-			var hx_zero_6 []map[string]any
+			var hx_zero_6 *hxrt.Array
 			return hx_zero_6
 		}
-		return hx_field_5.([]map[string]any)
-	}(info)[0]))))
+		return hx_field_5.(*hxrt.Array)
+	}(info).Get(0))))))
 	hxrt.Println(v_1)
 	var rawRtti any = Reflect_field(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")}, hxrt.StringFromLiteral("__rtti"))
 	parsed := New_haxe__rtti__XmlParser().processElement(Xml_parse(hxrt.StdString(rawRtti)).firstElement())
 	if parsed.tag == 1 {
 		_g := parsed.params[0].(map[string]any)
 		c := _g
-		var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("parsedPath="), func(hx_obj_10 map[string]any) *string {
-			hx_field_11 := hx_obj_10["path"]
-			if hx_field_11 == nil {
-				var hx_zero_12 *string
-				return hx_zero_12
+		var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("parsedPath="), func(hx_obj_12 map[string]any) *string {
+			hx_field_13 := hx_obj_12["path"]
+			if hx_field_13 == nil {
+				var hx_zero_14 *string
+				return hx_zero_14
 			}
-			return hx_field_11.(*string)
+			return hx_field_13.(*string)
 		}(c)))
 		hxrt.Println(v_2)
 	} else {
@@ -909,6 +915,13 @@ func hxrt_typeCallAny(callable any, args []any) (any, bool) {
 	return result, ok
 }
 
+func hxrt_typeArrayValues(value *hxrt.Array) []any {
+	if value == nil {
+		return []any{}
+	}
+	return value.Values()
+}
+
 func hxrt_typeResolvedClassName(value any) (string, bool) {
 	switch current := value.(type) {
 	case *hxrt__TypeClassValue:
@@ -1381,6 +1394,11 @@ func Type_getClass(o any) any {
 	case hxrt__TypeClassValue:
 		copyValue := value
 		return &copyValue
+	case *hxrt.Array:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")}
 	case *StringBuf:
 		if value == nil {
 			return nil
@@ -1539,117 +1557,117 @@ func Type_getClassName(c any) *string {
 	return hxrt.StringFromLiteral(className)
 }
 
-func Type_getClassFields(c any) []*string {
+func Type_getClassFields(c any) *hxrt.Array {
 	className, ok := hxrt_typeResolvedClassName(c)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch className {
 	case "Demo":
-		return []*string{hxrt.StringFromLiteral("__rtti"), hxrt.StringFromLiteral("field")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("__rtti"), hxrt.StringFromLiteral("field"))
 	case "Main":
-		return []*string{hxrt.StringFromLiteral("main")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("main"))
 	case "StringBuf":
-		return []*string{}
+		return hxrt.NewArray()
 	case "StringTools":
-		return []*string{hxrt.StringFromLiteral("MAX_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("contains"), hxrt.StringFromLiteral("containsImpl"), hxrt.StringFromLiteral("endsWith"), hxrt.StringFromLiteral("endsWithImpl"), hxrt.StringFromLiteral("fastCodeAt"), hxrt.StringFromLiteral("hex"), hxrt.StringFromLiteral("hexDigitValue"), hxrt.StringFromLiteral("htmlEscape"), hxrt.StringFromLiteral("htmlUnescape"), hxrt.StringFromLiteral("isEof"), hxrt.StringFromLiteral("isSpace"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("lpad"), hxrt.StringFromLiteral("ltrim"), hxrt.StringFromLiteral("replace"), hxrt.StringFromLiteral("rpad"), hxrt.StringFromLiteral("rtrim"), hxrt.StringFromLiteral("startsWith"), hxrt.StringFromLiteral("startsWithImpl"), hxrt.StringFromLiteral("trim"), hxrt.StringFromLiteral("unsafeCodeAt"), hxrt.StringFromLiteral("urlDecode"), hxrt.StringFromLiteral("urlEncode"), hxrt.StringFromLiteral("utf16CodePointAt")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("MAX_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("contains"), hxrt.StringFromLiteral("containsImpl"), hxrt.StringFromLiteral("endsWith"), hxrt.StringFromLiteral("endsWithImpl"), hxrt.StringFromLiteral("fastCodeAt"), hxrt.StringFromLiteral("hex"), hxrt.StringFromLiteral("hexDigitValue"), hxrt.StringFromLiteral("htmlEscape"), hxrt.StringFromLiteral("htmlUnescape"), hxrt.StringFromLiteral("isEof"), hxrt.StringFromLiteral("isSpace"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("lpad"), hxrt.StringFromLiteral("ltrim"), hxrt.StringFromLiteral("replace"), hxrt.StringFromLiteral("rpad"), hxrt.StringFromLiteral("rtrim"), hxrt.StringFromLiteral("startsWith"), hxrt.StringFromLiteral("startsWithImpl"), hxrt.StringFromLiteral("trim"), hxrt.StringFromLiteral("unsafeCodeAt"), hxrt.StringFromLiteral("urlDecode"), hxrt.StringFromLiteral("urlEncode"), hxrt.StringFromLiteral("utf16CodePointAt"))
 	case "Xml":
-		return []*string{hxrt.StringFromLiteral("CData"), hxrt.StringFromLiteral("Comment"), hxrt.StringFromLiteral("DocType"), hxrt.StringFromLiteral("Document"), hxrt.StringFromLiteral("Element"), hxrt.StringFromLiteral("PCData"), hxrt.StringFromLiteral("ProcessingInstruction"), hxrt.StringFromLiteral("createCData"), hxrt.StringFromLiteral("createComment"), hxrt.StringFromLiteral("createDocType"), hxrt.StringFromLiteral("createDocument"), hxrt.StringFromLiteral("createElement"), hxrt.StringFromLiteral("createPCData"), hxrt.StringFromLiteral("createProcessingInstruction"), hxrt.StringFromLiteral("parse")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("CData"), hxrt.StringFromLiteral("Comment"), hxrt.StringFromLiteral("DocType"), hxrt.StringFromLiteral("Document"), hxrt.StringFromLiteral("Element"), hxrt.StringFromLiteral("PCData"), hxrt.StringFromLiteral("ProcessingInstruction"), hxrt.StringFromLiteral("createCData"), hxrt.StringFromLiteral("createComment"), hxrt.StringFromLiteral("createDocType"), hxrt.StringFromLiteral("createDocument"), hxrt.StringFromLiteral("createElement"), hxrt.StringFromLiteral("createPCData"), hxrt.StringFromLiteral("createProcessingInstruction"), hxrt.StringFromLiteral("parse"))
 	case "_Xml.XmlType_Impl_":
-		return []*string{hxrt.StringFromLiteral("CData"), hxrt.StringFromLiteral("Comment"), hxrt.StringFromLiteral("DocType"), hxrt.StringFromLiteral("Document"), hxrt.StringFromLiteral("Element"), hxrt.StringFromLiteral("PCData"), hxrt.StringFromLiteral("ProcessingInstruction"), hxrt.StringFromLiteral("toString")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("CData"), hxrt.StringFromLiteral("Comment"), hxrt.StringFromLiteral("DocType"), hxrt.StringFromLiteral("Document"), hxrt.StringFromLiteral("Element"), hxrt.StringFromLiteral("PCData"), hxrt.StringFromLiteral("ProcessingInstruction"), hxrt.StringFromLiteral("toString"))
 	case "haxe.Int64Helper":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int32.Int32_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.Int64_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.___Int64":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.ds.ArraySort":
-		return []*string{hxrt.StringFromLiteral("doMerge"), hxrt.StringFromLiteral("gcd"), hxrt.StringFromLiteral("lower"), hxrt.StringFromLiteral("rec"), hxrt.StringFromLiteral("rotate"), hxrt.StringFromLiteral("sort"), hxrt.StringFromLiteral("swap"), hxrt.StringFromLiteral("upper")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("doMerge"), hxrt.StringFromLiteral("gcd"), hxrt.StringFromLiteral("lower"), hxrt.StringFromLiteral("rec"), hxrt.StringFromLiteral("rotate"), hxrt.StringFromLiteral("sort"), hxrt.StringFromLiteral("swap"), hxrt.StringFromLiteral("upper"))
 	case "haxe.ds.StringMap":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.iterators.MapKeyValueIterator":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.iterators.StringIterator":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.iterators.StringKeyValueIterator":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.rtti.CTypeTools":
-		return []*string{hxrt.StringFromLiteral("classField"), hxrt.StringFromLiteral("functionArgumentName"), hxrt.StringFromLiteral("joinClassFields"), hxrt.StringFromLiteral("joinFunctionArguments"), hxrt.StringFromLiteral("joinStringArray"), hxrt.StringFromLiteral("nameWithParams"), hxrt.StringFromLiteral("toString")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("classField"), hxrt.StringFromLiteral("functionArgumentName"), hxrt.StringFromLiteral("joinClassFields"), hxrt.StringFromLiteral("joinFunctionArguments"), hxrt.StringFromLiteral("joinStringArray"), hxrt.StringFromLiteral("nameWithParams"), hxrt.StringFromLiteral("toString"))
 	case "haxe.rtti.Rtti":
-		return []*string{hxrt.StringFromLiteral("getRtti"), hxrt.StringFromLiteral("hasRtti")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("getRtti"), hxrt.StringFromLiteral("hasRtti"))
 	case "haxe.rtti.TypeApi":
-		return []*string{hxrt.StringFromLiteral("constructorEq"), hxrt.StringFromLiteral("fieldEq"), hxrt.StringFromLiteral("isVar"), hxrt.StringFromLiteral("rightsEq"), hxrt.StringFromLiteral("sameClassFields"), hxrt.StringFromLiteral("sameConstructorArguments"), hxrt.StringFromLiteral("sameFunctionArguments"), hxrt.StringFromLiteral("sameTypeParamNames"), hxrt.StringFromLiteral("sameTypes"), hxrt.StringFromLiteral("typeEq"), hxrt.StringFromLiteral("typeInfos")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("constructorEq"), hxrt.StringFromLiteral("fieldEq"), hxrt.StringFromLiteral("isVar"), hxrt.StringFromLiteral("rightsEq"), hxrt.StringFromLiteral("sameClassFields"), hxrt.StringFromLiteral("sameConstructorArguments"), hxrt.StringFromLiteral("sameFunctionArguments"), hxrt.StringFromLiteral("sameTypeParamNames"), hxrt.StringFromLiteral("sameTypes"), hxrt.StringFromLiteral("typeEq"), hxrt.StringFromLiteral("typeInfos"))
 	case "haxe.rtti.XmlParser":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.xml.Parser":
-		return []*string{hxrt.StringFromLiteral("doParse"), hxrt.StringFromLiteral("escapes"), hxrt.StringFromLiteral("parse")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("doParse"), hxrt.StringFromLiteral("escapes"), hxrt.StringFromLiteral("parse"))
 	case "haxe.xml.Printer":
-		return []*string{hxrt.StringFromLiteral("print")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("print"))
 	case "haxe.xml.XmlParserException":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.xml._Parser.S_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_getInstanceFields(c any) []*string {
+func Type_getInstanceFields(c any) *hxrt.Array {
 	className, ok := hxrt_typeResolvedClassName(c)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch className {
 	case "Demo":
-		return []*string{}
+		return hxrt.NewArray()
 	case "Main":
-		return []*string{}
+		return hxrt.NewArray()
 	case "StringBuf":
-		return []*string{hxrt.StringFromLiteral("b")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("b"))
 	case "StringTools":
-		return []*string{}
+		return hxrt.NewArray()
 	case "Xml":
-		return []*string{hxrt.StringFromLiteral("addChild"), hxrt.StringFromLiteral("attributeMap"), hxrt.StringFromLiteral("attributes"), hxrt.StringFromLiteral("children"), hxrt.StringFromLiteral("elements"), hxrt.StringFromLiteral("elementsNamed"), hxrt.StringFromLiteral("ensureElementType"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("firstChild"), hxrt.StringFromLiteral("firstElement"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("get_nodeName"), hxrt.StringFromLiteral("get_nodeValue"), hxrt.StringFromLiteral("insertChild"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("nodeName"), hxrt.StringFromLiteral("nodeType"), hxrt.StringFromLiteral("nodeValue"), hxrt.StringFromLiteral("parent"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeChild"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("set_nodeName"), hxrt.StringFromLiteral("set_nodeValue"), hxrt.StringFromLiteral("toString")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("addChild"), hxrt.StringFromLiteral("attributeMap"), hxrt.StringFromLiteral("attributes"), hxrt.StringFromLiteral("children"), hxrt.StringFromLiteral("elements"), hxrt.StringFromLiteral("elementsNamed"), hxrt.StringFromLiteral("ensureElementType"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("firstChild"), hxrt.StringFromLiteral("firstElement"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("get_nodeName"), hxrt.StringFromLiteral("get_nodeValue"), hxrt.StringFromLiteral("insertChild"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("nodeName"), hxrt.StringFromLiteral("nodeType"), hxrt.StringFromLiteral("nodeValue"), hxrt.StringFromLiteral("parent"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeChild"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("set_nodeName"), hxrt.StringFromLiteral("set_nodeValue"), hxrt.StringFromLiteral("toString"))
 	case "_Xml.XmlType_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.Int64Helper":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int32.Int32_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.Int64_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.___Int64":
-		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
 	case "haxe.ds.ArraySort":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.ds.StringMap":
-		return []*string{hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("copyIMap"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("existsIMap"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getIMap"), hxrt.StringFromLiteral("h"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeIMap"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setIMap"), hxrt.StringFromLiteral("toString")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("copyIMap"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("existsIMap"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getIMap"), hxrt.StringFromLiteral("h"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeIMap"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setIMap"), hxrt.StringFromLiteral("toString"))
 	case "haxe.iterators.MapKeyValueIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("next")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("next"))
 	case "haxe.iterators.StringIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
 	case "haxe.iterators.StringKeyValueIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
 	case "haxe.rtti.CTypeTools":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.rtti.Rtti":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.rtti.TypeApi":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.rtti.XmlParser":
-		return []*string{hxrt.StringFromLiteral("curplatform"), hxrt.StringFromLiteral("defplat"), hxrt.StringFromLiteral("elementName"), hxrt.StringFromLiteral("findSeparator"), hxrt.StringFromLiteral("hasNamedElement"), hxrt.StringFromLiteral("innerData"), hxrt.StringFromLiteral("innerHTML"), hxrt.StringFromLiteral("joinStringArray"), hxrt.StringFromLiteral("merge"), hxrt.StringFromLiteral("mergeAbstracts"), hxrt.StringFromLiteral("mergeClasses"), hxrt.StringFromLiteral("mergeDoc"), hxrt.StringFromLiteral("mergeEnums"), hxrt.StringFromLiteral("mergeFields"), hxrt.StringFromLiteral("mergeRights"), hxrt.StringFromLiteral("mergeTypedefs"), hxrt.StringFromLiteral("mkPath"), hxrt.StringFromLiteral("mkRights"), hxrt.StringFromLiteral("mkTypeParams"), hxrt.StringFromLiteral("newField"), hxrt.StringFromLiteral("nodeDisplayName"), hxrt.StringFromLiteral("parseIntString"), hxrt.StringFromLiteral("process"), hxrt.StringFromLiteral("processElement"), hxrt.StringFromLiteral("requireAttr"), hxrt.StringFromLiteral("requireFirstElement"), hxrt.StringFromLiteral("requireNamedElement"), hxrt.StringFromLiteral("root"), hxrt.StringFromLiteral("sort"), hxrt.StringFromLiteral("sortFields"), hxrt.StringFromLiteral("splitString"), hxrt.StringFromLiteral("xabstract"), hxrt.StringFromLiteral("xclass"), hxrt.StringFromLiteral("xclassfield"), hxrt.StringFromLiteral("xenum"), hxrt.StringFromLiteral("xenumfield"), hxrt.StringFromLiteral("xmeta"), hxrt.StringFromLiteral("xoverloads"), hxrt.StringFromLiteral("xpath"), hxrt.StringFromLiteral("xroot"), hxrt.StringFromLiteral("xtype"), hxrt.StringFromLiteral("xtypedef"), hxrt.StringFromLiteral("xtypeparams")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("curplatform"), hxrt.StringFromLiteral("defplat"), hxrt.StringFromLiteral("elementName"), hxrt.StringFromLiteral("findSeparator"), hxrt.StringFromLiteral("hasNamedElement"), hxrt.StringFromLiteral("innerData"), hxrt.StringFromLiteral("innerHTML"), hxrt.StringFromLiteral("joinStringArray"), hxrt.StringFromLiteral("merge"), hxrt.StringFromLiteral("mergeAbstracts"), hxrt.StringFromLiteral("mergeClasses"), hxrt.StringFromLiteral("mergeDoc"), hxrt.StringFromLiteral("mergeEnums"), hxrt.StringFromLiteral("mergeFields"), hxrt.StringFromLiteral("mergeRights"), hxrt.StringFromLiteral("mergeTypedefs"), hxrt.StringFromLiteral("mkPath"), hxrt.StringFromLiteral("mkRights"), hxrt.StringFromLiteral("mkTypeParams"), hxrt.StringFromLiteral("newField"), hxrt.StringFromLiteral("nodeDisplayName"), hxrt.StringFromLiteral("parseIntString"), hxrt.StringFromLiteral("process"), hxrt.StringFromLiteral("processElement"), hxrt.StringFromLiteral("requireAttr"), hxrt.StringFromLiteral("requireFirstElement"), hxrt.StringFromLiteral("requireNamedElement"), hxrt.StringFromLiteral("root"), hxrt.StringFromLiteral("sort"), hxrt.StringFromLiteral("sortFields"), hxrt.StringFromLiteral("splitString"), hxrt.StringFromLiteral("xabstract"), hxrt.StringFromLiteral("xclass"), hxrt.StringFromLiteral("xclassfield"), hxrt.StringFromLiteral("xenum"), hxrt.StringFromLiteral("xenumfield"), hxrt.StringFromLiteral("xmeta"), hxrt.StringFromLiteral("xoverloads"), hxrt.StringFromLiteral("xpath"), hxrt.StringFromLiteral("xroot"), hxrt.StringFromLiteral("xtype"), hxrt.StringFromLiteral("xtypedef"), hxrt.StringFromLiteral("xtypeparams"))
 	case "haxe.xml.Parser":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.xml.Printer":
-		return []*string{hxrt.StringFromLiteral("hasChildren"), hxrt.StringFromLiteral("newline"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("pretty"), hxrt.StringFromLiteral("write"), hxrt.StringFromLiteral("writeNode")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasChildren"), hxrt.StringFromLiteral("newline"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("pretty"), hxrt.StringFromLiteral("write"), hxrt.StringFromLiteral("writeNode"))
 	case "haxe.xml.XmlParserException":
-		return []*string{hxrt.StringFromLiteral("lineNumber"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("position"), hxrt.StringFromLiteral("positionAtLine"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("xml")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("lineNumber"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("position"), hxrt.StringFromLiteral("positionAtLine"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("xml"))
 	case "haxe.xml._Parser.S_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
@@ -1737,12 +1755,12 @@ func Type_resolveEnum(name *string) any {
 	}
 }
 
-func Type_createInstance(cl any, args []any) any {
+func Type_createInstance(cl any, args *hxrt.Array) any {
 	className, ok := hxrt_typeResolvedClassName(cl)
 	if !ok {
 		return nil
 	}
-	instance, ok := hxrt_typeCreateClassInstance(className, args)
+	instance, ok := hxrt_typeCreateClassInstance(className, hxrt_typeArrayValues(args))
 	if !ok {
 		return nil
 	}
@@ -1761,7 +1779,7 @@ func Type_createEmptyInstance(cl any) any {
 	return instance
 }
 
-func Type_createEnum(e any, constr *string, params []any) any {
+func Type_createEnum(e any, constr *string, params *hxrt.Array) any {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
 		return nil
@@ -1770,19 +1788,19 @@ func Type_createEnum(e any, constr *string, params []any) any {
 	if constr != nil {
 		constructorName = *hxrt.StdString(constr)
 	}
-	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, params)
+	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, hxrt_typeArrayValues(params))
 	if !ok {
 		return nil
 	}
 	return enumValue
 }
 
-func Type_createEnumIndex(e any, index int, params []any) any {
+func Type_createEnumIndex(e any, index int, params *hxrt.Array) any {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
 		return nil
 	}
-	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, "", index, true, params)
+	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, "", index, true, hxrt_typeArrayValues(params))
 	if !ok {
 		return nil
 	}
@@ -1917,79 +1935,71 @@ func Type_enumIndex(e any) int {
 	}
 }
 
-func Type_getEnumConstructs(e any) []*string {
+func Type_getEnumConstructs(e any) *hxrt.Array {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch enumName {
 	case "ValueType":
-		return []*string{hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown"))
 	case "haxe.rtti.CType":
-		return []*string{hxrt.StringFromLiteral("CUnknown"), hxrt.StringFromLiteral("CEnum"), hxrt.StringFromLiteral("CClass"), hxrt.StringFromLiteral("CTypedef"), hxrt.StringFromLiteral("CFunction"), hxrt.StringFromLiteral("CAnonymous"), hxrt.StringFromLiteral("CDynamic"), hxrt.StringFromLiteral("CAbstract")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("CUnknown"), hxrt.StringFromLiteral("CEnum"), hxrt.StringFromLiteral("CClass"), hxrt.StringFromLiteral("CTypedef"), hxrt.StringFromLiteral("CFunction"), hxrt.StringFromLiteral("CAnonymous"), hxrt.StringFromLiteral("CDynamic"), hxrt.StringFromLiteral("CAbstract"))
 	case "haxe.rtti.Rights":
-		return []*string{hxrt.StringFromLiteral("RNormal"), hxrt.StringFromLiteral("RNo"), hxrt.StringFromLiteral("RCall"), hxrt.StringFromLiteral("RMethod"), hxrt.StringFromLiteral("RDynamic"), hxrt.StringFromLiteral("RInline")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("RNormal"), hxrt.StringFromLiteral("RNo"), hxrt.StringFromLiteral("RCall"), hxrt.StringFromLiteral("RMethod"), hxrt.StringFromLiteral("RDynamic"), hxrt.StringFromLiteral("RInline"))
 	case "haxe.rtti.TypeTree":
-		return []*string{hxrt.StringFromLiteral("TPackage"), hxrt.StringFromLiteral("TClassdecl"), hxrt.StringFromLiteral("TEnumdecl"), hxrt.StringFromLiteral("TTypedecl"), hxrt.StringFromLiteral("TAbstractdecl")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("TPackage"), hxrt.StringFromLiteral("TClassdecl"), hxrt.StringFromLiteral("TEnumdecl"), hxrt.StringFromLiteral("TTypedecl"), hxrt.StringFromLiteral("TAbstractdecl"))
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_enumParameters(e any) []any {
+func Type_enumParameters(e any) *hxrt.Array {
 	if hxrt.AnyEqualsNull(e) {
-		return []any{}
+		return hxrt.NewArray()
 	}
 	switch value := e.(type) {
 	case *ValueType:
 		if value == nil || value.params == nil {
-			return []any{}
+			return hxrt.NewArray()
 		}
-		out := make([]any, len(value.params))
-		copy(out, value.params)
-		return out
+		return hxrt.NewArray(value.params...)
 	case *haxe__rtti__CType:
 		if value == nil || value.params == nil {
-			return []any{}
+			return hxrt.NewArray()
 		}
-		out := make([]any, len(value.params))
-		copy(out, value.params)
-		return out
+		return hxrt.NewArray(value.params...)
 	case *haxe__rtti__Rights:
 		if value == nil || value.params == nil {
-			return []any{}
+			return hxrt.NewArray()
 		}
-		out := make([]any, len(value.params))
-		copy(out, value.params)
-		return out
+		return hxrt.NewArray(value.params...)
 	case *haxe__rtti__TypeTree:
 		if value == nil || value.params == nil {
-			return []any{}
+			return hxrt.NewArray()
 		}
-		out := make([]any, len(value.params))
-		copy(out, value.params)
-		return out
+		return hxrt.NewArray(value.params...)
 	default:
-		return []any{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_allEnums(e any) []any {
+func Type_allEnums(e any) *hxrt.Array {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
-		return []any{}
+		return hxrt.NewArray()
 	}
 	switch enumName {
 	case "ValueType":
-		return []any{ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown}
+		return hxrt.NewArray(ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown)
 	case "haxe.rtti.CType":
-		return []any{haxe__rtti__CType_CUnknown}
+		return hxrt.NewArray(haxe__rtti__CType_CUnknown)
 	case "haxe.rtti.Rights":
-		return []any{haxe__rtti__Rights_RNormal, haxe__rtti__Rights_RNo, haxe__rtti__Rights_RMethod, haxe__rtti__Rights_RDynamic, haxe__rtti__Rights_RInline}
+		return hxrt.NewArray(haxe__rtti__Rights_RNormal, haxe__rtti__Rights_RNo, haxe__rtti__Rights_RMethod, haxe__rtti__Rights_RDynamic, haxe__rtti__Rights_RInline)
 	case "haxe.rtti.TypeTree":
-		return []any{}
+		return hxrt.NewArray()
 	default:
-		return []any{}
+		return hxrt.NewArray()
 	}
 }
 
@@ -2012,6 +2022,8 @@ func Type_typeof(v any) any {
 		return ValueType_TFloat
 	case string, *string:
 		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("String")})
+	case *hxrt.Array:
+		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")})
 	}
 	ref := reflect.ValueOf(v)
 	if !ref.IsValid() {

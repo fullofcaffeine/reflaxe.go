@@ -13,6 +13,7 @@
 - `process`
 
 ## inferred features
+- `array`
 - `core`
 - `exception`
 - `json`
@@ -20,6 +21,7 @@
 - `string`
 
 ## selected features
+- `array`
 - `core`
 - `exception`
 - `json`
@@ -28,6 +30,7 @@
 - `string`
 
 ## runtime files
+- `array.go`
 - `core.go`
 - `exception.go`
 - `hxrt.go`
@@ -38,6 +41,7 @@
 
 ## selection reasons
 - `core` <- `baseline` (`compiler_baseline`)
+- `array` <- `dependency_edge` (`json->array`)
 - `string` <- `baseline` (`compiler_baseline`)
 - `print` <- `baseline` (`compiler_baseline`)
 - `exception` <- `baseline` (`compiler_baseline`)

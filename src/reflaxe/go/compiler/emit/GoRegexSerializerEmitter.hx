@@ -122,6 +122,41 @@ class GoRegexSerializerEmitter {
 		enumCreateBody.push(GoStmt.GoRaw("\treturn nil, false"));
 		enumCreateBody.push(GoStmt.GoRaw("}"));
 
+		function serializerArrayAppend(chunk:GoExpr):GoStmt {
+			return GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt_serializerAppend"), [GoExpr.GoIdent("self"), chunk]));
+		}
+
+		function serializerArrayFlushNullRun():GoStmt {
+			return GoStmt.GoIf(GoExpr.GoBinary(">", GoExpr.GoIdent("nullRun"), GoExpr.GoIntLiteral(1)), [
+				serializerArrayAppend(GoExpr.GoBinary("+", GoExpr.GoStringLiteral("u"),
+					GoExpr.GoCall(GoExpr.GoIdent("strconv.Itoa"), [GoExpr.GoIdent("nullRun")])))
+			], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("nullRun"), GoExpr.GoIntLiteral(1)), [serializerArrayAppend(GoExpr.GoStringLiteral("n"))],
+					null)
+			]);
+		}
+
+		var serializerArrayBody:Array<GoStmt> = [
+			GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("current"), GoExpr.GoNil),
+				[serializerArrayAppend(GoExpr.GoStringLiteral("n")), GoStmt.GoReturn(null)], null),
+			GoStmt.GoIf(GoExpr.GoCall(GoExpr.GoIdent("hxrt_serializerTrackRef"), [GoExpr.GoIdent("self"), GoExpr.GoIdent("current")]),
+				[GoStmt.GoReturn(null)], null),
+			serializerArrayAppend(GoExpr.GoStringLiteral("a")),
+			GoStmt.GoVarDecl("nullRun", null, GoExpr.GoIntLiteral(0), true),
+			GoStmt.GoRangeStmt(null, "item", GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("current"), "Values"), []), true, [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("item"), GoExpr.GoNil), [
+					GoStmt.GoAssign(GoExpr.GoIdent("nullRun"), GoExpr.GoBinary("+", GoExpr.GoIdent("nullRun"), GoExpr.GoIntLiteral(1))),
+					GoStmt.GoContinue
+				],
+					null),
+				serializerArrayFlushNullRun(),
+				GoStmt.GoAssign(GoExpr.GoIdent("nullRun"), GoExpr.GoIntLiteral(0)),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt_serializerWriteValue"), [GoExpr.GoIdent("self"), GoExpr.GoIdent("item")]))
+			]),
+			serializerArrayFlushNullRun(),
+			serializerArrayAppend(GoExpr.GoStringLiteral("h"))
+		];
+
 		return [
 			GoDecl.GoStructDecl("EReg", [
 				{name: "regex", typeName: "*regexp.Regexp"},
@@ -328,16 +363,25 @@ class GoRegexSerializerEmitter {
 			GoDecl.GoFuncDecl("split", {
 				name: "self",
 				typeName: "*EReg"
-			}, [{name: "source", typeName: "*string"}], ["[]*string"], [
-				GoStmt.GoRaw("raw := *hxrt.StdString(source)"),
-				GoStmt.GoRaw("if self == nil || self.regex == nil {"),
-				GoStmt.GoRaw("\treturn []*string{hxrt.StringFromLiteral(raw)}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("parts := self.regex.Split(raw, -1)"),
-				GoStmt.GoRaw("out := make([]*string, 0, len(parts))"),
-				GoStmt.GoRaw("for _, part := range parts {"),
-				GoStmt.GoRaw("\tout = append(out, hxrt.StringFromLiteral(part))"),
-				GoStmt.GoRaw("}"),
+			}, [{name: "source", typeName: "*string"}], ["*hxrt.Array"], [
+				GoStmt.GoVarDecl("raw", null, GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [GoExpr.GoIdent("source")])), true),
+				GoStmt.GoIf(GoExpr.GoBinary("||", GoExpr.GoBinary("==", GoExpr.GoIdent("self"), GoExpr.GoNil),
+					GoExpr.GoBinary("==", GoExpr.GoSelector(GoExpr.GoIdent("self"), "regex"), GoExpr.GoNil)),
+					[
+						GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewArray"),
+							[GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("raw")])]))
+					],
+					null),
+				GoStmt.GoVarDecl("parts", null,
+					GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), "regex"), "Split"),
+						[GoExpr.GoIdent("raw"), GoExpr.GoIntLiteral(-1)]),
+					true),
+				GoStmt.GoVarDecl("out", null, GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewArray"), []), true),
+				GoStmt.GoRangeStmt(null, "part", GoExpr.GoIdent("parts"), true, [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("out"), "Push"), [
+						GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoIdent("part")])
+					]))
+				]),
 				GoStmt.GoReturn(GoExpr.GoIdent("out"))
 			]),
 			GoDecl.GoFuncDecl("replace", {
@@ -1474,6 +1518,13 @@ class GoRegexSerializerEmitter {
 				GoStmt.GoRaw("}"),
 				GoStmt.GoRaw("return false")
 			]),
+			GoDecl.GoFuncDecl("hxrt_serializerWriteArray", null, [
+				{
+					name: "self",
+					typeName: "*haxe__Serializer"
+				},
+				{name: "current", typeName: "*hxrt.Array"}
+			], [], serializerArrayBody),
 			GoDecl.GoFuncDecl("haxe__Serializer_run", null, [
 				{
 					name: "value",
@@ -1574,6 +1625,9 @@ class GoRegexSerializerEmitter {
 				GoStmt.GoRaw("\t\thxrt_serializerAppend(self, \"B\")"),
 				GoStmt.GoRaw("\t\thxrt_serializerWriteStringToken(self, current.name)"),
 				GoStmt.GoRaw("\t}"),
+				GoStmt.GoRaw("\treturn"),
+				GoStmt.GoRaw("case *hxrt.Array:"),
+				GoStmt.GoRaw("\thxrt_serializerWriteArray(self, current)"),
 				GoStmt.GoRaw("\treturn"),
 				GoStmt.GoRaw("case *haxe__ds__List:"),
 				GoStmt.GoRaw("\tif current == nil {"),
@@ -2223,7 +2277,7 @@ class GoRegexSerializerEmitter {
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\treturn objectMap"),
 				GoStmt.GoRaw("case 'a':"),
-				GoStmt.GoRaw("\tarr := make([]any, 0)"),
+				GoStmt.GoRaw("\tarr := hxrt.NewArray()"),
 				GoStmt.GoRaw("\tcacheIndex := len(self.cache)"),
 				GoStmt.GoRaw("\tself.cache = append(self.cache, arr)"),
 				GoStmt.GoRaw("\tfor {"),
@@ -2239,12 +2293,12 @@ class GoRegexSerializerEmitter {
 				GoStmt.GoRaw("\t\t\tself.pos++"),
 				GoStmt.GoRaw("\t\t\tskip := haxe__Unserializer_readUInt(self)"),
 				GoStmt.GoRaw("\t\t\tfor i := 0; i < skip; i++ {"),
-				GoStmt.GoRaw("\t\t\t\tarr = append(arr, nil)"),
+				GoStmt.GoRaw("\t\t\t\tarr.Push(nil)"),
 				GoStmt.GoRaw("\t\t\t}"),
 				GoStmt.GoRaw("\t\t\tself.cache[cacheIndex] = arr"),
 				GoStmt.GoRaw("\t\t\tcontinue"),
 				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\tarr = append(arr, haxe__Unserializer_readValue(self))"),
+				GoStmt.GoRaw("\t\tarr.Push(haxe__Unserializer_readValue(self))"),
 				GoStmt.GoRaw("\t\tself.cache[cacheIndex] = arr"),
 				GoStmt.GoRaw("\t}"),
 				GoStmt.GoRaw("\treturn arr"),

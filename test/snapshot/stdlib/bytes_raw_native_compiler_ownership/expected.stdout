@@ -4,6 +4,6 @@ raw.get=hé
 raw.base64.before=aADpAA==
 raw.hex.after=4100e900
 raw.get.after=Aé
-raw.base64.after=aADpAA==
+raw.base64.after=QQDpAA==
 out.hex=6800e900
 in.raw=hé

@@ -83,7 +83,8 @@ The generator intentionally starts conservative:
 - integer scalars -> `Int`
 - floating scalars -> `Float`
 - `string` -> `String`
-- slices/arrays -> `Array<T>`
+- slices -> `go.NativeSlice<T>`
+- fixed-size Go arrays -> `Dynamic` (`fixed_array`) until their length-bearing ABI has a typed facade
 - map with string keys -> `haxe.DynamicAccess<T>`
 - supported multi-return signatures -> generated tuple carrier classes
 - unsupported/complex boundaries -> `Dynamic`
@@ -94,7 +95,7 @@ Generated tuple carrier pattern:
 - Haxe functions return one value, so `goextern` generates a small carrier class such as `TimeZoneResult`.
 - The extern method is marked with `@:go.tupleReturn`.
 - `haxe.go` lowers the call into the carrier and converts common native Go values, such as Go `string` and Go `error`, into the Haxe-facing representation.
-- Tuple carriers are generated when every result value maps without `Dynamic`, including scalar values, slices/arrays, `error`, and named types from the same generated package.
+- Tuple carriers are generated when every result value maps without `Dynamic`, including scalar values, slices, `error`, and named types from the same generated package.
 - If any result value cannot be typed honestly yet, the method still returns `Dynamic`.
 
 First-class `(T,error)` interop pattern:

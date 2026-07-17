@@ -253,7 +253,7 @@ func StringTools_unsafeCodeAt(s *string, index int) int {
 
 func StringTools_urlDecode(s *string) *string {
 	input := StringTools_replace(s, hxrt.StringFromLiteral("+"), hxrt.StringFromLiteral(" "))
-	bytes := []int{}
+	bytes := hxrt.NewArray()
 	index := 0
 	for index < hxrt.StringLengthStringPtr(input) {
 		c := hxrt.StringSubstrStringPtr(input, index, 1, true)
@@ -261,7 +261,7 @@ func StringTools_urlDecode(s *string) *string {
 			hi := StringTools_hexDigitValue(hxrt.StringSubstrStringPtr(input, int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1)))), 1, true))
 			lo := StringTools_hexDigitValue(hxrt.StringSubstrStringPtr(input, int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(2)))), 1, true))
 			if (hi >= 0) && (lo >= 0) {
-				bytes = append(bytes, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(hi) << uint(4))))) | hxrt.Int32Wrap(lo)))))
+				bytes.Push(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(hi) << uint(4))))) | hxrt.Int32Wrap(lo)))))
 				index = int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(3))))
 				continue
 			}
@@ -273,18 +273,18 @@ func StringTools_urlDecode(s *string) *string {
 			hx_post_96 := _g
 			_g = int(int32((_g + 1)))
 			chunkIndex := hx_post_96
-			bytes = append(bytes, chunk.b[chunkIndex])
+			bytes.Push(chunk.b[chunkIndex])
 		}
 		index = int(int32((index + 1)))
 	}
-	out := haxe__io__Bytes_alloc(len(bytes))
+	out := haxe__io__Bytes_alloc(bytes.Len())
 	_g_1 := 0
-	_g1_1 := len(bytes)
+	_g1_1 := bytes.Len()
 	for _g_1 < _g1_1 {
 		hx_post_98 := _g_1
 		_g_1 = int(int32((_g_1 + 1)))
 		byteIndex := hx_post_98
-		out.b[byteIndex] = int(int32((hxrt.Int32Wrap(bytes[byteIndex]) & hxrt.Int32Wrap(255))))
+		out.b[byteIndex] = int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(bytes.Get(byteIndex))) & hxrt.Int32Wrap(255))))
 	}
 	return out.toString()
 }

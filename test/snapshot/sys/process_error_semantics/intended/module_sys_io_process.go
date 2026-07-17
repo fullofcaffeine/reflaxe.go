@@ -168,16 +168,28 @@ func (self *sys__io___Process__ProcessInput) writeBytes(bytes *haxe__io__Bytes, 
 	if length == 0 {
 		return 0
 	}
-	values := []int{}
+	values := hxrt.NewArray()
 	_g := 0
 	_g1 := length
 	for _g < _g1 {
 		hx_post_10 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_10
-		values = append(values, bytes.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(index))))])
+		values.Push(bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))])
 	}
-	if (self.handle == nil) || !hxrt.ProcessInputWriteValues(self.handle, values) {
+	if (self.handle == nil) || !hxrt.ProcessInputWriteValues(self.handle, func(hx_lambda_raw_12 []any) []int {
+		hx_lambda_out_13 := make([]int, 0, len(hx_lambda_raw_12))
+		for _, hx_lambda_item_14 := range hx_lambda_raw_12 {
+			hx_lambda_out_13 = append(hx_lambda_out_13, func(hx_value_15 any) int {
+				if hx_value_15 == nil {
+					var hx_zero_16 int
+					return hx_zero_16
+				}
+				return hx_value_15.(int)
+			}(hx_lambda_item_14))
+		}
+		return hx_lambda_out_13
+	}(values.Values())) {
 		hxrt.Throw(New_haxe__io__Eof())
 	}
 	return length
@@ -280,13 +292,33 @@ type sys__io__Process struct {
 	handle    *hxrt.Process
 }
 
-func New_sys__io__Process(cmd *string, args []*string, detached bool) *sys__io__Process {
+func New_sys__io__Process(cmd *string, args *hxrt.Array, detached bool) *sys__io__Process {
 	self := &sys__io__Process{}
 	self.__hx_this = self
 	if detached {
 		hxrt.Throw(hxrt.StringFromLiteral("Detached process is not supported on this platform"))
 	}
-	self.handle = hxrt.ProcessCreate(cmd, args)
+	self.handle = hxrt.ProcessCreate(cmd, func() []*string {
+		var hx_if_22 []*string
+		if args == nil {
+			hx_if_22 = nil
+		} else {
+			hx_if_22 = func(hx_lambda_raw_17 []any) []*string {
+				hx_lambda_out_18 := make([]*string, 0, len(hx_lambda_raw_17))
+				for _, hx_lambda_item_19 := range hx_lambda_raw_17 {
+					hx_lambda_out_18 = append(hx_lambda_out_18, func(hx_value_20 any) *string {
+						if hx_value_20 == nil {
+							var hx_zero_21 *string
+							return hx_zero_21
+						}
+						return hx_value_20.(*string)
+					}(hx_lambda_item_19))
+				}
+				return hx_lambda_out_18
+			}(args.Values())
+		}
+		return hx_if_22
+	}())
 	self.stdout = New_sys__io___Process__ProcessOutput(hxrt.ProcessStdout(self.handle))
 	self.stderr = New_sys__io___Process__ProcessOutput(hxrt.ProcessStderr(self.handle))
 	self.stdin = New_sys__io___Process__ProcessInput(hxrt.ProcessStdin(self.handle))
@@ -299,13 +331,13 @@ func (self *sys__io__Process) getPid() int {
 
 func (self *sys__io__Process) exitCode(block bool) any {
 	status := hxrt.ProcessExitStatusValue(self.requireHandle(), block)
-	var hx_if_12 any
+	var hx_if_23 any
 	if status.Available {
-		hx_if_12 = status.Code
+		hx_if_23 = status.Code
 	} else {
-		hx_if_12 = nil
+		hx_if_23 = nil
 	}
-	return hx_if_12
+	return hx_if_23
 }
 
 func (self *sys__io__Process) close() {

@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	process := New_sys__io__Process(hxrt.StringFromLiteral("echo"), []*string{hxrt.StringFromLiteral("ok")}, false)
+	process := New_sys__io__Process(hxrt.StringFromLiteral("echo"), hxrt.NewArray(hxrt.StringFromLiteral("ok")), false)
 	process.close()
 }
 

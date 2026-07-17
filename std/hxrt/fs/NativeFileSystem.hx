@@ -1,5 +1,7 @@
 package hxrt.fs;
 
+import go.NativeSlice;
+
 /**
 	What
 	- Typed bridge to the narrow `hxrt` filesystem capability surface used by
@@ -45,5 +47,5 @@ extern class NativeFileSystem {
 	public static function deleteDirectory(path:String):Void;
 
 	@:go.name("FileSystemReadDirectory")
-	public static function readDirectory(path:String):Array<String>;
+	public static function readDirectory(path:String):NativeSlice<String>;
 }

@@ -1,60 +1,49 @@
 package main
 
+import "snapshot/hxrt"
+
 func haxe__NativeStackTrace_callStack() any {
-	stack := []*haxe__StackItem{}
+	stack := hxrt.NewArray()
 	return stack
 }
 
 func haxe__NativeStackTrace_exceptionStack() any {
-	stack := []*haxe__StackItem{}
+	stack := hxrt.NewArray()
 	return stack
 }
 
 func haxe__NativeStackTrace_saveStack(_exception any) {
 }
 
-func haxe__NativeStackTrace_toHaxe(nativeStackTrace any, skip int) []*haxe__StackItem {
+func haxe__NativeStackTrace_toHaxe(nativeStackTrace any, skip int) *hxrt.Array {
 	if !func(hx_value any) bool {
 		switch hx_value.(type) {
-		case []*haxe___Int64_____Int64:
-			return true
-		case []*string:
-			return true
-		case []any:
-			return true
-		case []bool:
-			return true
-		case []float64:
-			return true
-		case []int:
+		case *hxrt.Array:
 			return true
 		default:
 			return false
 		}
 	}(any(nativeStackTrace)) {
-		return []*haxe__StackItem{}
+		return hxrt.NewArray()
 	}
-	stack := func(hx_value_8 any) []*haxe__StackItem {
-		if hx_value_8 == nil {
-			var hx_zero_9 []*haxe__StackItem
-			return hx_zero_9
+	stack := func(hx_value_12 any) *hxrt.Array {
+		if hx_value_12 == nil {
+			var hx_zero_13 *hxrt.Array
+			return hx_zero_13
 		}
-		return hx_value_8.([]*haxe__StackItem)
+		return hx_value_12.(*hxrt.Array)
 	}(nativeStackTrace)
 	if skip <= 0 {
-		return func(src []*haxe__StackItem) []*haxe__StackItem {
-			out := append([]*haxe__StackItem{}, src...)
-			return out
-		}(stack)
+		return stack.Copy()
 	}
-	out := []*haxe__StackItem{}
+	out := hxrt.NewArray()
 	_g := skip
-	_g1 := len(stack)
+	_g1 := stack.Len()
 	for _g < _g1 {
-		hx_post_10 := _g
+		hx_post_14 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_10
-		out = append(out, stack[index])
+		index := hx_post_14
+		out.Push(stack.Get(index))
 	}
 	return out
 }

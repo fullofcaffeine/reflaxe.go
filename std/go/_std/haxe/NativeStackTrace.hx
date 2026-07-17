@@ -2,6 +2,7 @@ package haxe;
 
 import haxe.CallStack.StackItem;
 #if reflaxe_go_native_stack_trace
+import go.NativeSlice;
 import hxrt.stack.NativeStack;
 import hxrt.stack.NativeStackFrame;
 #end
@@ -52,7 +53,7 @@ class NativeStackTrace {
 		if (nativeStackTrace == null || !NativeStack.isFrameSlice(nativeStackTrace)) {
 			return [];
 		}
-		var frames:Array<NativeStackFrame> = cast nativeStackTrace;
+		var frames:NativeSlice<NativeStackFrame> = cast nativeStackTrace;
 		var out:Array<StackItem> = [];
 		var start = skip < 0 ? 0 : skip;
 		for (index in start...frames.length) {

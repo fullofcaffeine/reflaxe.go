@@ -38,6 +38,7 @@
       ],
       "hxrt_binding": [
         "haxe_go-vfp.5.4",
+        "haxe_go-vfp.8.3.8",
         "haxe_go-vfp.8.7.10",
         "haxe_go-vfp.8.7.15.1",
         "haxe_go-vfp.8.7.15.3",
@@ -1274,6 +1275,15 @@
       "migrationBead": "haxe_go-vfp.8.7.7",
       "compilerShimGroups": [],
       "notes": "Opaque typed extern carrier for a child stdout or stderr pipe wrapped by the staged haxe.io.Input implementation."
+    },
+    {
+      "path": "std/hxrt/ssl/NativeCertificate.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/ssl/NativeCertificate.hx",
+      "migrationBead": "haxe_go-vfp.8.3.8",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge for native certificate alternate-name slices. Staged sys.ssl.Certificate explicitly copies the Go slice into the portable shared Array carrier instead of disguising native slice storage as Haxe Array."
     },
     {
       "path": "std/hxrt/sys/NativeConsole.hx",

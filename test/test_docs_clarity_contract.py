@@ -173,6 +173,26 @@ class DocsClarityContractTest(unittest.TestCase):
         self.assertIn("must not use raw `__go__`", goextern)
         self.assertIn("tools/goextern/main_test.go", goextern)
 
+    def test_semantic_diff_docs_enforce_a_valid_portable_reference(self) -> None:
+        guide = (REPO_ROOT / "docs" / "semantic-diff-guide.md").read_text(encoding="utf-8")
+        agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+
+        self.assertIn("## When the Haxe interpreter is a valid reference", guide)
+        self.assertIn("## Choosing the right harness", guide)
+        self.assertIn("## What semantic diff does not prove", guide)
+        self.assertIn("same source program", guide)
+        self.assertIn("Go-only runtime snapshot", guide)
+
+        for text in (guide, agents):
+            self.assertIn("`go.*`", text)
+            self.assertIn("`@:goNative`", text)
+            self.assertIn("typed extern", text)
+            self.assertIn("must not", text)
+            self.assertIn("interpreter fallback", text)
+
+        self.assertNotIn("go_auto_collections_result_typed_contract", guide)
+        self.assertNotIn("go_auto_collections_result_fallback_contract", guide)
+
 
 if __name__ == "__main__":
     unittest.main()

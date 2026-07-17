@@ -43,28 +43,34 @@ class ArrayRemoveInsertLoweringContract(unittest.TestCase):
 
         remove = function_block(compiler, "lowerArrayRemoveExpr", "lowerArrayInsertExpr")
         self.assertIn("lowerArrayMutationSite", remove)
-        self.assertIn("GoStmt.GoRangeStmt", remove)
-        self.assertIn('GoExpr.GoIdent("copy")', remove)
-        self.assertIn("site.writeBack", remove)
+        self.assertIn("GoStmt.GoWhile", remove)
+        self.assertIn('GoExpr.GoSelector(site.tempExpr, "Len")', remove)
+        self.assertIn('GoExpr.GoSelector(site.tempExpr, "Get")', remove)
+        self.assertIn('GoExpr.GoSelector(site.tempExpr, "RemoveAt")', remove)
+        self.assertNotIn("site.writeBack", remove)
 
         insert = function_block(compiler, "lowerArrayInsertExpr", "lowerArrayInstanceCall")
         self.assertIn("lowerArrayMutationSite", insert)
-        self.assertIn('GoExpr.GoIdent("append")', insert)
-        self.assertIn('GoExpr.GoIdent("copy")', insert)
-        self.assertIn("site.writeBack", insert)
+        self.assertIn('GoExpr.GoSelector(site.tempExpr, "Insert")', insert)
+        self.assertNotIn("site.writeBack", insert)
 
         for block in [equality, remove, insert]:
             for forbidden in ["Xml", "GoStmt.GoRaw", "reflect", "unsafe"]:
                 self.assertNotIn(forbidden, block)
 
-    def test_nullable_array_elements_keep_nullable_storage(self) -> None:
+    def test_root_arrays_use_the_shared_carrier_while_native_slices_stay_typed(
+        self,
+    ) -> None:
         mapper = GO_TYPE_MAPPER.read_text(encoding="utf-8")
         storage = function_block(mapper, "arrayElementStorageGoType", "typeToGoType")
         self.assertIn("isNullablePrimitiveType(elementType)", storage)
         self.assertIn('"any"', storage)
 
         type_mapping = function_block(mapper, "typeToGoType", "isStringType")
-        self.assertIn("arrayElementStorageGoType(params[0]", type_mapping)
+        self.assertIn("nativeSliceElementType(type)", type_mapping)
+        self.assertIn('return "[]" + arrayElementStorageGoType', type_mapping)
+        self.assertIn('classType.name == "Array"', type_mapping)
+        self.assertIn('"*hxrt.Array"', type_mapping)
 
         array_element = function_block(
             mapper, "arrayElementGoType", "scalarGoType"
@@ -86,20 +92,23 @@ class ArrayRemoveInsertLoweringContract(unittest.TestCase):
         self.assertIn('case FEATURE_EQUALITY:\n\t\t\t\t["equality.go"]', analyzer)
         self.assertIn('case FEATURE_ATOMIC_OBJECT:\n\t\t\t\t[FEATURE_EQUALITY]', analyzer)
 
-    def test_generated_go_keeps_typed_and_erased_paths_distinct(self) -> None:
+    def test_generated_go_mutates_the_shared_carrier_in_place(self) -> None:
         generated = SNAPSHOT_MAIN.read_text(encoding="utf-8")
         insert_generic = go_function_block(generated, "insertGeneric", "main")
         remove_generic = go_function_block(
             generated, "removeGeneric", "showNullableInts"
         )
 
-        self.assertIn("values := []any", insert_generic)
-        self.assertIn("append(values", insert_generic)
-        self.assertIn("copy(values", insert_generic)
+        self.assertIn("values := hxrt.NewArray", insert_generic)
+        self.assertIn("values.Insert(", insert_generic)
+        self.assertIn("values.Len()", insert_generic)
         self.assertIn("hxrt.HaxeEqual", remove_generic)
-        self.assertIn("nullableInts := []any{nil, 1, nil}", generated)
-        self.assertIn("hxrt.StringEqualStringPtr", generated)
-        self.assertIn('["values"] = hx_arr_', generated)
+        self.assertIn("values.RemoveAt(", remove_generic)
+        self.assertIn("nullableInts := hxrt.NewArray(nil, 1, nil)", generated)
+        self.assertIn('["values"] = hxrt.NewArray', generated)
+        self.assertNotIn('["values"] = hx_arr_', generated)
+        self.assertNotIn("append(values", insert_generic)
+        self.assertNotIn("copy(values", insert_generic)
         self.assertNotIn(".remove(", generated)
         self.assertNotIn(".insert(", generated)
 

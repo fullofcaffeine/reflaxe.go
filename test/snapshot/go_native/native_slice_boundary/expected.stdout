@@ -1,0 +1,6 @@
+source=1,2,3
+native=7,2,3
+portable=7,2,3,9
+dynamic.source=source
+dynamic.native=native
+dynamic.portable=portable

@@ -1,5 +1,7 @@
 package hxrt.process;
 
+import go.NativeSlice;
+
 /**
 	What
 	- Typed bridge to native child-process and pipe capabilities used by staged
@@ -12,14 +14,14 @@ package hxrt.process;
 
 	How
 	- Map one-for-one to exported `runtime/hxrt/process.go` functions. Bytes cross as
-	  `Array<Int>` / `[]int`, and nonblocking status crosses through the typed
+	  `NativeSlice<Int>` / `[]int`, and nonblocking status crosses through the typed
 	  `ProcessExitStatus` carrier rather than `Dynamic` or `Any`.
 **/
 @:go.import("hxrt")
 @:go.package("hxrt")
 extern class NativeProcess {
 	@:go.name("ProcessCreate")
-	public static function create(command:String, args:Array<String>):ProcessHandle;
+	public static function create(command:String, args:NativeSlice<String>):ProcessHandle;
 
 	@:go.name("ProcessStdout")
 	public static function stdout(process:ProcessHandle):ProcessOutputHandle;
@@ -34,7 +36,7 @@ extern class NativeProcess {
 	public static function outputReadByte(handle:ProcessOutputHandle):Int;
 
 	@:go.name("ProcessOutputReadValues")
-	public static function outputReadValues(handle:ProcessOutputHandle, length:Int):Array<Int>;
+	public static function outputReadValues(handle:ProcessOutputHandle, length:Int):NativeSlice<Int>;
 
 	@:go.name("ProcessOutputClose")
 	public static function outputClose(handle:ProcessOutputHandle):Void;
@@ -43,7 +45,7 @@ extern class NativeProcess {
 	public static function inputWriteByte(handle:ProcessInputHandle, value:Int):Bool;
 
 	@:go.name("ProcessInputWriteValues")
-	public static function inputWriteValues(handle:ProcessInputHandle, values:Array<Int>):Bool;
+	public static function inputWriteValues(handle:ProcessInputHandle, values:NativeSlice<Int>):Bool;
 
 	@:go.name("ProcessInputFlush")
 	public static function inputFlush(handle:ProcessInputHandle):Void;

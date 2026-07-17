@@ -38,9 +38,9 @@ func haxe__crypto__Base64_fromValues(values []int) *haxe__io__Bytes {
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_66 := _g
+		hx_post_102 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_66
+		index := hx_post_102
 		bytes.b[index] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
 	}
 	return bytes
@@ -56,16 +56,28 @@ func haxe__crypto__Base64_removePadding(value *string, complement bool) *string 
 }
 
 func haxe__crypto__Base64_toValues(bytes *haxe__io__Bytes) []int {
-	values := []int{}
+	values := hxrt.NewArray()
 	_g := 0
 	_g1 := bytes.length
 	for _g < _g1 {
-		hx_post_67 := _g
+		hx_post_103 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_67
-		values = append(values, bytes.b[index])
+		index := hx_post_103
+		values.Push(bytes.b[index])
 	}
-	return values
+	return func(hx_lambda_raw_105 []any) []int {
+		hx_lambda_out_106 := make([]int, 0, len(hx_lambda_raw_105))
+		for _, hx_lambda_item_107 := range hx_lambda_raw_105 {
+			hx_lambda_out_106 = append(hx_lambda_out_106, func(hx_value_108 any) int {
+				if hx_value_108 == nil {
+					var hx_zero_109 int
+					return hx_zero_109
+				}
+				return hx_value_108.(int)
+			}(hx_lambda_item_107))
+		}
+		return hx_lambda_out_106
+	}(values.Values())
 }
 
 func haxe__crypto__Base64_urlDecode(value *string, complement bool) *haxe__io__Bytes {

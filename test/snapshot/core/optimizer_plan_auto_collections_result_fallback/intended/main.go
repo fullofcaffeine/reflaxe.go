@@ -14,7 +14,7 @@ func main() {
 		return hx_value_1.(int)
 	}(nil))
 	map_ := go___Go_newMap()
-	key := []int{1, 2}
+	key := hxrt.NewArray(1, 2)
 	map_.set(key, 7)
 	exists := func(hx_value_2 any) bool {
 		if hx_value_2 == nil {

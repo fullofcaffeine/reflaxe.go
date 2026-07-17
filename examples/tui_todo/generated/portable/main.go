@@ -7,9 +7,21 @@ import (
 
 func hasArg(flag *string) bool {
 	_g := 0
-	_g1 := hxrt.SysArgs()
-	for _g < len(_g1) {
-		arg := _g1[_g]
+	_g1 := hxrt.ArrayFromValues(func(hx_sort_src_73 []*string) []any {
+		hx_sort_out_75 := make([]any, 0, len(hx_sort_src_73))
+		for _, hx_sort_item_74 := range hx_sort_src_73 {
+			hx_sort_out_75 = append(hx_sort_out_75, hx_sort_item_74)
+		}
+		return hx_sort_out_75
+	}(hxrt.SysArgs()))
+	for _g < _g1.Len() {
+		arg := func(hx_value_76 any) *string {
+			if hx_value_76 == nil {
+				var hx_zero_77 *string
+				return hx_zero_77
+			}
+			return hx_value_76.(*string)
+		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if hxrt.StringEqualStringPtr(arg, flag) {
 			return true

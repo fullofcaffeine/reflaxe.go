@@ -115,6 +115,19 @@ Agent policy:
   - snapshots for generated Go shape/output,
   - semantic-diff tests for portable semantics/behavior,
   - example `expected/*.stdout` and generated-output bless files for end-to-end UX.
+- Treat Haxe `--interp` as an oracle only when the same source program has a
+  meaningful portable Haxe contract and runs unchanged on the interpreter.
+  Target-native behavior through `go.*`, operations inside `@:goNative`
+  boundaries, and typed extern APIs must not be placed in semantic-diff merely
+  to reuse its stdout comparison.
+- Never add a production interpreter fallback, compatibility implementation,
+  conditional facade, or compiler shim solely to make a target-specific API pass
+  semantic-diff. Use a Go-only runtime snapshot, generated-shape snapshot, Go
+  unit test, or runnable example according to the behavior being proved.
+- If one feature has both portable semantics and a target-native specialization,
+  split the evidence: semantic-diff proves the genuinely portable source
+  contract; target-only tests and optimizer/report contracts prove native API
+  behavior and specialization selection.
 - Apply red -> green -> refactor for each task slice.
 - Every bug fix must include a regression test that fails before the fix.
 - If behavior/output intentionally changes, update expected files in the same change and document why in commit/PR notes.

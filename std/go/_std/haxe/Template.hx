@@ -1,6 +1,7 @@
 package haxe;
 
 import haxe.Constraints.Function;
+import go.NativeSlice;
 import hxrt.template.NativeTemplate;
 
 using StringTools;
@@ -456,7 +457,7 @@ class Template {
 					if (iteratorField == null) {
 						throw null;
 					}
-					var candidate:Dynamic = NativeTemplate.call(iteratorField, []);
+					var candidate:Dynamic = NativeTemplate.call(iteratorField, NativeSlice.fromArray([]));
 					if (!Reflect.hasField(candidate, "hasNext")) {
 						throw null;
 					}
@@ -499,7 +500,7 @@ class Template {
 					}
 				}
 				try {
-					output += Std.string(NativeTemplate.call(fn, callArgs));
+					output += Std.string(NativeTemplate.call(fn, NativeSlice.fromArray(callArgs)));
 				} catch (err:Dynamic) {
 					// Dynamic catch is intentional: template macros are user callbacks and
 					// may throw arbitrary Haxe values.

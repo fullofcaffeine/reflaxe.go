@@ -74,75 +74,91 @@ func haxe__io__Path_addTrailingSlash(path *string) *string {
 	return hx_if_3
 }
 
-func haxe__io__Path_join(paths []*string) *string {
-	_g := []*string{}
+func haxe__io__Path_join(paths *hxrt.Array) *string {
+	_g := hxrt.NewArray()
 	_g1 := 0
 	_g2 := paths
-	for _g1 < len(_g2) {
-		v := _g2[_g1]
+	for _g1 < _g2.Len() {
+		v := func(hx_value_4 any) *string {
+			if hx_value_4 == nil {
+				var hx_zero_5 *string
+				return hx_zero_5
+			}
+			return hx_value_4.(*string)
+		}(_g2.Get(_g1))
 		_g1 = int(int32((_g1 + 1)))
 		if !hxrt.StringEqualStringPtr(v, nil) && !hxrt.StringEqualStringPtr(v, hxrt.StringFromLiteral("")) {
-			_g = append(_g, v)
+			_g.Push(v)
 		}
 	}
 	paths_1 := _g
-	if len(paths_1) == 0 {
+	if paths_1.Len() == 0 {
 		return hxrt.StringFromLiteral("")
 	}
-	path := paths_1[0]
+	path := func(hx_value_7 any) *string {
+		if hx_value_7 == nil {
+			var hx_zero_8 *string
+			return hx_zero_8
+		}
+		return hx_value_7.(*string)
+	}(paths_1.Get(0))
 	_g_1 := 1
-	_g1_1 := len(paths_1)
+	_g1_1 := paths_1.Len()
 	for _g_1 < _g1_1 {
-		hx_post_5 := _g_1
+		hx_post_9 := _g_1
 		_g_1 = int(int32((_g_1 + 1)))
-		i := hx_post_5
+		i := hx_post_9
 		path = haxe__io__Path_addTrailingSlash(path)
-		path = hxrt.StringConcatStringPtr(path, paths_1[i])
+		path = hxrt.StringConcatAny(path, paths_1.Get(i))
 	}
 	return haxe__io__Path_normalize(path)
 }
 
 func haxe__io__Path_normalize(path *string) *string {
 	slash := hxrt.StringFromLiteral("/")
-	path = hxrt.StringJoinAny(func(hx_sort_src_6 []*string) []any {
-		hx_sort_out_8 := make([]any, 0, len(hx_sort_src_6))
-		for _, hx_sort_item_7 := range hx_sort_src_6 {
-			hx_sort_out_8 = append(hx_sort_out_8, hx_sort_item_7)
+	path = hxrt.StringJoinAny(hxrt.ArrayFromValues(func(hx_sort_src_10 []*string) []any {
+		hx_sort_out_12 := make([]any, 0, len(hx_sort_src_10))
+		for _, hx_sort_item_11 := range hx_sort_src_10 {
+			hx_sort_out_12 = append(hx_sort_out_12, hx_sort_item_11)
 		}
-		return hx_sort_out_8
-	}(hxrt.StringSplitStringPtr(path, hxrt.StringFromLiteral("\\"))), slash)
+		return hx_sort_out_12
+	}(hxrt.StringSplitStringPtr(path, hxrt.StringFromLiteral("\\")))).Values(), slash)
 	if hxrt.StringEqualStringPtr(path, slash) {
 		return slash
 	}
-	target := []*string{}
+	target := hxrt.NewArray()
 	_g := 0
-	_g1 := hxrt.StringSplitStringPtr(path, slash)
-	for _g < len(_g1) {
-		token := _g1[_g]
-		_g = int(int32((_g + 1)))
-		if (hxrt.StringEqualStringPtr(token, hxrt.StringFromLiteral("..")) && (len(target) > 0)) && !hxrt.StringEqualStringPtr(target[int(int32((hxrt.Int32Wrap(len(target))-hxrt.Int32Wrap(1))))], hxrt.StringFromLiteral("..")) {
-			if len(target) > 0 {
-				target = target[:(len(target) - 1)]
+	_g1 := hxrt.ArrayFromValues(func(hx_sort_src_13 []*string) []any {
+		hx_sort_out_15 := make([]any, 0, len(hx_sort_src_13))
+		for _, hx_sort_item_14 := range hx_sort_src_13 {
+			hx_sort_out_15 = append(hx_sort_out_15, hx_sort_item_14)
+		}
+		return hx_sort_out_15
+	}(hxrt.StringSplitStringPtr(path, slash)))
+	for _g < _g1.Len() {
+		token := func(hx_value_16 any) *string {
+			if hx_value_16 == nil {
+				var hx_zero_17 *string
+				return hx_zero_17
 			}
+			return hx_value_16.(*string)
+		}(_g1.Get(_g))
+		_g = int(int32((_g + 1)))
+		if (hxrt.StringEqualStringPtr(token, hxrt.StringFromLiteral("..")) && (target.Len() > 0)) && !hxrt.StringEqualAny(target.Get(int(int32((hxrt.Int32Wrap(target.Len())-hxrt.Int32Wrap(1))))), hxrt.StringFromLiteral("..")) {
+			target.Pop()
 		} else {
 			if hxrt.StringEqualStringPtr(token, hxrt.StringFromLiteral("")) {
-				if (len(target) > 0) || (hxrt.StringCharCodeAtAnyStringPtr(path, 0) == 47) {
-					target = append(target, token)
+				if (target.Len() > 0) || (hxrt.StringCharCodeAtAnyStringPtr(path, 0) == 47) {
+					target.Push(token)
 				}
 			} else {
 				if !hxrt.StringEqualStringPtr(token, hxrt.StringFromLiteral(".")) {
-					target = append(target, token)
+					target.Push(token)
 				}
 			}
 		}
 	}
-	tmp := hxrt.StringJoinAny(func(hx_sort_src_12 []*string) []any {
-		hx_sort_out_14 := make([]any, 0, len(hx_sort_src_12))
-		for _, hx_sort_item_13 := range hx_sort_src_12 {
-			hx_sort_out_14 = append(hx_sort_out_14, hx_sort_item_13)
-		}
-		return hx_sort_out_14
-	}(target), slash)
+	tmp := hxrt.StringJoinAny(target.Values(), slash)
 	var acc_b *string
 	acc_b = hxrt.StringFromLiteral("")
 	colon := false
@@ -153,16 +169,16 @@ func haxe__io__Path_normalize(path *string) *string {
 	_g_s = tmp
 	for _g_offset < hxrt.StringLengthStringPtr(_g_s) {
 		value := _g_s
-		hx_post_15 := _g_offset
+		hx_post_21 := _g_offset
 		_g_offset = int(int32((_g_offset + 1)))
-		index := hx_post_15
+		index := hx_post_21
 		c_1 := hxrt.StringCharCodeAtStringPtr(value, index)
 		if ((c_1 >= 55296) && (c_1 <= 56319)) && (_g_offset < hxrt.StringLengthStringPtr(_g_s)) {
 			c_1 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(c_1) - hxrt.Int32Wrap(55232))))) << uint(10))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(func() int {
 				value_1 := _g_s
-				hx_post_16 := _g_offset
+				hx_post_22 := _g_offset
 				_g_offset = int(int32((_g_offset + 1)))
-				index_1 := hx_post_16
+				index_1 := hx_post_22
 				return hxrt.StringCharCodeAtStringPtr(value_1, index_1)
 			}()) & hxrt.Int32Wrap(1023))))))))
 		}

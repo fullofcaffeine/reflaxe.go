@@ -14,17 +14,17 @@ func main() {
 }
 
 func read(pos map[string]any) {
-	custom := func(hx_obj_2 map[string]any) []any {
+	custom := func(hx_obj_2 map[string]any) *hxrt.Array {
 		hx_field_3 := hx_obj_2["customParams"]
 		if hx_field_3 == nil {
-			var hx_zero_4 []any
+			var hx_zero_4 *hxrt.Array
 			return hx_zero_4
 		}
-		return hx_field_3.([]any)
+		return hx_field_3.(*hxrt.Array)
 	}(pos)
 	count := 0
 	if custom != nil {
-		count = len(custom)
+		count = custom.Len()
 	}
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("count="), count)))
 	var v any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("line="), func(hx_obj_5 map[string]any) int {

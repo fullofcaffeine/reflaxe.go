@@ -3,6 +3,7 @@ package sys.io;
 import haxe.io.Bytes;
 import haxe.io.Eof;
 import haxe.io.Error;
+import go.NativeSlice;
 import hxrt.process.NativeProcess;
 import hxrt.process.ProcessHandle;
 import hxrt.process.ProcessInputHandle;
@@ -38,7 +39,7 @@ class Process {
 	public function new(cmd:String, ?args:Array<String>, detached:Bool = false) {
 		if (detached)
 			throw "Detached process is not supported on this platform";
-		handle = NativeProcess.create(cmd, args);
+		handle = NativeProcess.create(cmd, args == null ? null : NativeSlice.fromArray(args));
 		stdout = new ProcessOutput(NativeProcess.stdout(handle));
 		stderr = new ProcessOutput(NativeProcess.stderr(handle));
 		stdin = new ProcessInput(NativeProcess.stdin(handle));
@@ -136,7 +137,7 @@ private class ProcessInput extends haxe.io.Output {
 		var values = new Array<Int>();
 		for (index in 0...length)
 			values.push(bytes.get(pos + index));
-		if (handle == null || !NativeProcess.inputWriteValues(handle, values))
+		if (handle == null || !NativeProcess.inputWriteValues(handle, NativeSlice.fromArray(values)))
 			throw new Eof();
 		return length;
 	}

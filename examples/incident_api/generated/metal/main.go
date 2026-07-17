@@ -21,11 +21,23 @@ type hxrt__TypeEnumValue struct {
 }
 
 func argValue(name *string, fallback *string) *string {
-	args := hxrt.SysArgs()
+	args := hxrt.ArrayFromValues(func(hx_sort_src_36 []*string) []any {
+		hx_sort_out_38 := make([]any, 0, len(hx_sort_src_36))
+		for _, hx_sort_item_37 := range hx_sort_src_36 {
+			hx_sort_out_38 = append(hx_sort_out_38, hx_sort_item_37)
+		}
+		return hx_sort_out_38
+	}(hxrt.SysArgs()))
 	i := 0
-	for i < int(int32((hxrt.Int32Wrap(len(args)) - hxrt.Int32Wrap(1)))) {
-		if hxrt.StringEqualStringPtr(args[i], name) {
-			return args[int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))]
+	for i < int(int32((hxrt.Int32Wrap(args.Len()) - hxrt.Int32Wrap(1)))) {
+		if hxrt.StringEqualAny(args.Get(i), name) {
+			return func(hx_value_39 any) *string {
+				if hx_value_39 == nil {
+					var hx_zero_40 *string
+					return hx_zero_40
+				}
+				return hx_value_39.(*string)
+			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 		}
 		i = int(int32((i + 1)))
 	}
@@ -34,9 +46,21 @@ func argValue(name *string, fallback *string) *string {
 
 func hasArg(name *string) bool {
 	_g := 0
-	_g1 := hxrt.SysArgs()
-	for _g < len(_g1) {
-		arg := _g1[_g]
+	_g1 := hxrt.ArrayFromValues(func(hx_sort_src_41 []*string) []any {
+		hx_sort_out_43 := make([]any, 0, len(hx_sort_src_41))
+		for _, hx_sort_item_42 := range hx_sort_src_41 {
+			hx_sort_out_43 = append(hx_sort_out_43, hx_sort_item_42)
+		}
+		return hx_sort_out_43
+	}(hxrt.SysArgs()))
+	for _g < _g1.Len() {
+		arg := func(hx_value_44 any) *string {
+			if hx_value_44 == nil {
+				var hx_zero_45 *string
+				return hx_zero_45
+			}
+			return hx_value_44.(*string)
+		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if hxrt.StringEqualStringPtr(arg, name) {
 			return true
@@ -1299,6 +1323,13 @@ func hxrt_typeCallAny(callable any, args []any) (any, bool) {
 	return result, ok
 }
 
+func hxrt_typeArrayValues(value *hxrt.Array) []any {
+	if value == nil {
+		return []any{}
+	}
+	return value.Values()
+}
+
 func hxrt_typeResolvedClassName(value any) (string, bool) {
 	switch current := value.(type) {
 	case *hxrt__TypeClassValue:
@@ -1599,6 +1630,11 @@ func Type_getClass(o any) any {
 	case hxrt__TypeClassValue:
 		copyValue := value
 		return &copyValue
+	case *hxrt.Array:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")}
 	case *Date:
 		if value == nil {
 			return nil
@@ -1769,121 +1805,121 @@ func Type_getClassName(c any) *string {
 	return hxrt.StringFromLiteral(className)
 }
 
-func Type_getClassFields(c any) []*string {
+func Type_getClassFields(c any) *hxrt.Array {
 	className, ok := hxrt_typeResolvedClassName(c)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch className {
 	case "Date":
-		return []*string{hxrt.StringFromLiteral("fromMilliseconds"), hxrt.StringFromLiteral("fromString"), hxrt.StringFromLiteral("fromTime"), hxrt.StringFromLiteral("now")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("fromMilliseconds"), hxrt.StringFromLiteral("fromString"), hxrt.StringFromLiteral("fromTime"), hxrt.StringFromLiteral("now"))
 	case "Harness":
-		return []*string{hxrt.StringFromLiteral("CONFIG_FILE"), hxrt.StringFromLiteral("STATE_FILE"), hxrt.StringFromLiteral("cleanup"), hxrt.StringFromLiteral("request"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("summarize")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("CONFIG_FILE"), hxrt.StringFromLiteral("STATE_FILE"), hxrt.StringFromLiteral("cleanup"), hxrt.StringFromLiteral("request"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("summarize"))
 	case "Main":
-		return []*string{hxrt.StringFromLiteral("argValue"), hxrt.StringFromLiteral("hasArg"), hxrt.StringFromLiteral("main"), hxrt.StringFromLiteral("printHelp"), hxrt.StringFromLiteral("serve")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("argValue"), hxrt.StringFromLiteral("hasArg"), hxrt.StringFromLiteral("main"), hxrt.StringFromLiteral("printHelp"), hxrt.StringFromLiteral("serve"))
 	case "StringTools":
-		return []*string{hxrt.StringFromLiteral("MAX_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("contains"), hxrt.StringFromLiteral("containsImpl"), hxrt.StringFromLiteral("endsWith"), hxrt.StringFromLiteral("endsWithImpl"), hxrt.StringFromLiteral("fastCodeAt"), hxrt.StringFromLiteral("hex"), hxrt.StringFromLiteral("hexDigitValue"), hxrt.StringFromLiteral("htmlEscape"), hxrt.StringFromLiteral("htmlUnescape"), hxrt.StringFromLiteral("isEof"), hxrt.StringFromLiteral("isSpace"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("lpad"), hxrt.StringFromLiteral("ltrim"), hxrt.StringFromLiteral("replace"), hxrt.StringFromLiteral("rpad"), hxrt.StringFromLiteral("rtrim"), hxrt.StringFromLiteral("startsWith"), hxrt.StringFromLiteral("startsWithImpl"), hxrt.StringFromLiteral("trim"), hxrt.StringFromLiteral("unsafeCodeAt"), hxrt.StringFromLiteral("urlDecode"), hxrt.StringFromLiteral("urlEncode"), hxrt.StringFromLiteral("utf16CodePointAt")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("MAX_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("contains"), hxrt.StringFromLiteral("containsImpl"), hxrt.StringFromLiteral("endsWith"), hxrt.StringFromLiteral("endsWithImpl"), hxrt.StringFromLiteral("fastCodeAt"), hxrt.StringFromLiteral("hex"), hxrt.StringFromLiteral("hexDigitValue"), hxrt.StringFromLiteral("htmlEscape"), hxrt.StringFromLiteral("htmlUnescape"), hxrt.StringFromLiteral("isEof"), hxrt.StringFromLiteral("isSpace"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("lpad"), hxrt.StringFromLiteral("ltrim"), hxrt.StringFromLiteral("replace"), hxrt.StringFromLiteral("rpad"), hxrt.StringFromLiteral("rtrim"), hxrt.StringFromLiteral("startsWith"), hxrt.StringFromLiteral("startsWithImpl"), hxrt.StringFromLiteral("trim"), hxrt.StringFromLiteral("unsafeCodeAt"), hxrt.StringFromLiteral("urlDecode"), hxrt.StringFromLiteral("urlEncode"), hxrt.StringFromLiteral("utf16CodePointAt"))
 	case "app.core.Incident":
-		return []*string{hxrt.StringFromLiteral("boolJson"), hxrt.StringFromLiteral("jsonEscape")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("boolJson"), hxrt.StringFromLiteral("jsonEscape"))
 	case "app.core.IncidentApi":
-		return []*string{hxrt.StringFromLiteral("fieldString"), hxrt.StringFromLiteral("parseJsonBody")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("fieldString"), hxrt.StringFromLiteral("parseJsonBody"))
 	case "app.core.IncidentConfig":
-		return []*string{hxrt.StringFromLiteral("defaults"), hxrt.StringFromLiteral("intField"), hxrt.StringFromLiteral("load"), hxrt.StringFromLiteral("saveExample"), hxrt.StringFromLiteral("stringField")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("defaults"), hxrt.StringFromLiteral("intField"), hxrt.StringFromLiteral("load"), hxrt.StringFromLiteral("saveExample"), hxrt.StringFromLiteral("stringField"))
 	case "app.core.IncidentRequestException":
-		return []*string{}
+		return hxrt.NewArray()
 	case "app.core.IncidentStore":
-		return []*string{hxrt.StringFromLiteral("boolField"), hxrt.StringFromLiteral("intField"), hxrt.StringFromLiteral("normalizeSeverity"), hxrt.StringFromLiteral("stringField")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("boolField"), hxrt.StringFromLiteral("intField"), hxrt.StringFromLiteral("normalizeSeverity"), hxrt.StringFromLiteral("stringField"))
 	case "app.http.HttpRequest":
-		return []*string{}
+		return hxrt.NewArray()
 	case "app.http.HttpResponse":
-		return []*string{hxrt.StringFromLiteral("json")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("json"))
 	case "app.http.TinyHttpServer":
-		return []*string{hxrt.StringFromLiteral("closePeer"), hxrt.StringFromLiteral("reason")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("closePeer"), hxrt.StringFromLiteral("reason"))
 	case "haxe.Int64Helper":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.Json":
-		return []*string{hxrt.StringFromLiteral("parse"), hxrt.StringFromLiteral("stringify")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("parse"), hxrt.StringFromLiteral("stringify"))
 	case "haxe._Int32.Int32_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.Int64_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.___Int64":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.io.GoIoHelpers":
-		return []*string{hxrt.StringFromLiteral("bytesOutputGetBytes"), hxrt.StringFromLiteral("inputRead"), hxrt.StringFromLiteral("inputReadAll"), hxrt.StringFromLiteral("inputReadBytes"), hxrt.StringFromLiteral("inputReadFullBytes"), hxrt.StringFromLiteral("inputReadLine"), hxrt.StringFromLiteral("inputReadUntil"), hxrt.StringFromLiteral("outputWrite"), hxrt.StringFromLiteral("outputWriteBytes"), hxrt.StringFromLiteral("outputWriteFullBytes"), hxrt.StringFromLiteral("outputWriteInput"), hxrt.StringFromLiteral("outputWriteString")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("bytesOutputGetBytes"), hxrt.StringFromLiteral("inputRead"), hxrt.StringFromLiteral("inputReadAll"), hxrt.StringFromLiteral("inputReadBytes"), hxrt.StringFromLiteral("inputReadFullBytes"), hxrt.StringFromLiteral("inputReadLine"), hxrt.StringFromLiteral("inputReadUntil"), hxrt.StringFromLiteral("outputWrite"), hxrt.StringFromLiteral("outputWriteBytes"), hxrt.StringFromLiteral("outputWriteFullBytes"), hxrt.StringFromLiteral("outputWriteInput"), hxrt.StringFromLiteral("outputWriteString"))
 	case "haxe.iterators.StringIterator":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.iterators.StringKeyValueIterator":
-		return []*string{}
+		return hxrt.NewArray()
 	case "sys.FileSystem":
-		return []*string{hxrt.StringFromLiteral("absolutePath"), hxrt.StringFromLiteral("createDirectory"), hxrt.StringFromLiteral("deleteDirectory"), hxrt.StringFromLiteral("deleteFile"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("fullPath"), hxrt.StringFromLiteral("isDirectory"), hxrt.StringFromLiteral("readDirectory"), hxrt.StringFromLiteral("rename"), hxrt.StringFromLiteral("stat")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("absolutePath"), hxrt.StringFromLiteral("createDirectory"), hxrt.StringFromLiteral("deleteDirectory"), hxrt.StringFromLiteral("deleteFile"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("fullPath"), hxrt.StringFromLiteral("isDirectory"), hxrt.StringFromLiteral("readDirectory"), hxrt.StringFromLiteral("rename"), hxrt.StringFromLiteral("stat"))
 	case "sys.io.File":
-		return []*string{hxrt.StringFromLiteral("append"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("getBytes"), hxrt.StringFromLiteral("getContent"), hxrt.StringFromLiteral("read"), hxrt.StringFromLiteral("saveBytes"), hxrt.StringFromLiteral("saveContent"), hxrt.StringFromLiteral("update"), hxrt.StringFromLiteral("write")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("append"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("getBytes"), hxrt.StringFromLiteral("getContent"), hxrt.StringFromLiteral("read"), hxrt.StringFromLiteral("saveBytes"), hxrt.StringFromLiteral("saveContent"), hxrt.StringFromLiteral("update"), hxrt.StringFromLiteral("write"))
 	case "sys.io.FileInput":
-		return []*string{}
+		return hxrt.NewArray()
 	case "sys.io.FileOutput":
-		return []*string{}
+		return hxrt.NewArray()
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_getInstanceFields(c any) []*string {
+func Type_getInstanceFields(c any) *hxrt.Array {
 	className, ok := hxrt_typeResolvedClassName(c)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch className {
 	case "Date":
-		return []*string{hxrt.StringFromLiteral("getDate"), hxrt.StringFromLiteral("getDay"), hxrt.StringFromLiteral("getFullYear"), hxrt.StringFromLiteral("getHours"), hxrt.StringFromLiteral("getMinutes"), hxrt.StringFromLiteral("getMonth"), hxrt.StringFromLiteral("getSeconds"), hxrt.StringFromLiteral("getTime"), hxrt.StringFromLiteral("getTimezoneOffset"), hxrt.StringFromLiteral("getUTCDate"), hxrt.StringFromLiteral("getUTCDay"), hxrt.StringFromLiteral("getUTCFullYear"), hxrt.StringFromLiteral("getUTCHours"), hxrt.StringFromLiteral("getUTCMinutes"), hxrt.StringFromLiteral("getUTCMonth"), hxrt.StringFromLiteral("getUTCSeconds"), hxrt.StringFromLiteral("localParts"), hxrt.StringFromLiteral("ms"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("utcParts")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("getDate"), hxrt.StringFromLiteral("getDay"), hxrt.StringFromLiteral("getFullYear"), hxrt.StringFromLiteral("getHours"), hxrt.StringFromLiteral("getMinutes"), hxrt.StringFromLiteral("getMonth"), hxrt.StringFromLiteral("getSeconds"), hxrt.StringFromLiteral("getTime"), hxrt.StringFromLiteral("getTimezoneOffset"), hxrt.StringFromLiteral("getUTCDate"), hxrt.StringFromLiteral("getUTCDay"), hxrt.StringFromLiteral("getUTCFullYear"), hxrt.StringFromLiteral("getUTCHours"), hxrt.StringFromLiteral("getUTCMinutes"), hxrt.StringFromLiteral("getUTCMonth"), hxrt.StringFromLiteral("getUTCSeconds"), hxrt.StringFromLiteral("localParts"), hxrt.StringFromLiteral("ms"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("utcParts"))
 	case "Harness":
-		return []*string{}
+		return hxrt.NewArray()
 	case "Main":
-		return []*string{}
+		return hxrt.NewArray()
 	case "StringTools":
-		return []*string{}
+		return hxrt.NewArray()
 	case "app.core.Incident":
-		return []*string{hxrt.StringFromLiteral("acknowledged"), hxrt.StringFromLiteral("createdAt"), hxrt.StringFromLiteral("id"), hxrt.StringFromLiteral("resolved"), hxrt.StringFromLiteral("severity"), hxrt.StringFromLiteral("title"), hxrt.StringFromLiteral("toJson")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("acknowledged"), hxrt.StringFromLiteral("createdAt"), hxrt.StringFromLiteral("id"), hxrt.StringFromLiteral("resolved"), hxrt.StringFromLiteral("severity"), hxrt.StringFromLiteral("title"), hxrt.StringFromLiteral("toJson"))
 	case "app.core.IncidentApi":
-		return []*string{hxrt.StringFromLiteral("config"), hxrt.StringFromLiteral("createIncident"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("requests"), hxrt.StringFromLiteral("store"), hxrt.StringFromLiteral("updateIncident")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("config"), hxrt.StringFromLiteral("createIncident"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("requests"), hxrt.StringFromLiteral("store"), hxrt.StringFromLiteral("updateIncident"))
 	case "app.core.IncidentConfig":
-		return []*string{hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("port"), hxrt.StringFromLiteral("serviceName"), hxrt.StringFromLiteral("statePath")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("port"), hxrt.StringFromLiteral("serviceName"), hxrt.StringFromLiteral("statePath"))
 	case "app.core.IncidentRequestException":
-		return []*string{hxrt.StringFromLiteral("code"), hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("code"), hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap"))
 	case "app.core.IncidentStore":
-		return []*string{hxrt.StringFromLiteral("acknowledge"), hxrt.StringFromLiteral("create"), hxrt.StringFromLiteral("find"), hxrt.StringFromLiteral("incidents"), hxrt.StringFromLiteral("listJson"), hxrt.StringFromLiteral("load"), hxrt.StringFromLiteral("metricsJson"), hxrt.StringFromLiteral("nextId"), hxrt.StringFromLiteral("resolve"), hxrt.StringFromLiteral("save"), hxrt.StringFromLiteral("statePath")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("acknowledge"), hxrt.StringFromLiteral("create"), hxrt.StringFromLiteral("find"), hxrt.StringFromLiteral("incidents"), hxrt.StringFromLiteral("listJson"), hxrt.StringFromLiteral("load"), hxrt.StringFromLiteral("metricsJson"), hxrt.StringFromLiteral("nextId"), hxrt.StringFromLiteral("resolve"), hxrt.StringFromLiteral("save"), hxrt.StringFromLiteral("statePath"))
 	case "app.http.HttpRequest":
-		return []*string{hxrt.StringFromLiteral("body"), hxrt.StringFromLiteral("method"), hxrt.StringFromLiteral("path")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("body"), hxrt.StringFromLiteral("method"), hxrt.StringFromLiteral("path"))
 	case "app.http.HttpResponse":
-		return []*string{hxrt.StringFromLiteral("body"), hxrt.StringFromLiteral("status")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("body"), hxrt.StringFromLiteral("status"))
 	case "app.http.TinyHttpServer":
-		return []*string{hxrt.StringFromLiteral("api"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("port"), hxrt.StringFromLiteral("readBody"), hxrt.StringFromLiteral("readRequest"), hxrt.StringFromLiteral("serveOnce"), hxrt.StringFromLiteral("server"), hxrt.StringFromLiteral("writeResponse")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("api"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("port"), hxrt.StringFromLiteral("readBody"), hxrt.StringFromLiteral("readRequest"), hxrt.StringFromLiteral("serveOnce"), hxrt.StringFromLiteral("server"), hxrt.StringFromLiteral("writeResponse"))
 	case "haxe.Int64Helper":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.Json":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int32.Int32_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.Int64_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.___Int64":
-		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
 	case "haxe.io.GoIoHelpers":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.iterators.StringIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
 	case "haxe.iterators.StringKeyValueIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
 	case "sys.FileSystem":
-		return []*string{}
+		return hxrt.NewArray()
 	case "sys.io.File":
-		return []*string{}
+		return hxrt.NewArray()
 	case "sys.io.FileInput":
-		return []*string{hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("eof"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("readAll"), hxrt.StringFromLiteral("readByte"), hxrt.StringFromLiteral("readBytes"), hxrt.StringFromLiteral("readDouble"), hxrt.StringFromLiteral("readFloat"), hxrt.StringFromLiteral("readInt32"), hxrt.StringFromLiteral("readLine"), hxrt.StringFromLiteral("seek"), hxrt.StringFromLiteral("set_bigEndian"), hxrt.StringFromLiteral("tell")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("eof"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("readAll"), hxrt.StringFromLiteral("readByte"), hxrt.StringFromLiteral("readBytes"), hxrt.StringFromLiteral("readDouble"), hxrt.StringFromLiteral("readFloat"), hxrt.StringFromLiteral("readInt32"), hxrt.StringFromLiteral("readLine"), hxrt.StringFromLiteral("seek"), hxrt.StringFromLiteral("set_bigEndian"), hxrt.StringFromLiteral("tell"))
 	case "sys.io.FileOutput":
-		return []*string{hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("flush"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("seek"), hxrt.StringFromLiteral("set_bigEndian"), hxrt.StringFromLiteral("tell"), hxrt.StringFromLiteral("writeByte"), hxrt.StringFromLiteral("writeBytes"), hxrt.StringFromLiteral("writeDouble"), hxrt.StringFromLiteral("writeFloat"), hxrt.StringFromLiteral("writeFullBytes"), hxrt.StringFromLiteral("writeInt32"), hxrt.StringFromLiteral("writeString")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("flush"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("seek"), hxrt.StringFromLiteral("set_bigEndian"), hxrt.StringFromLiteral("tell"), hxrt.StringFromLiteral("writeByte"), hxrt.StringFromLiteral("writeBytes"), hxrt.StringFromLiteral("writeDouble"), hxrt.StringFromLiteral("writeFloat"), hxrt.StringFromLiteral("writeFullBytes"), hxrt.StringFromLiteral("writeInt32"), hxrt.StringFromLiteral("writeString"))
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
@@ -1969,12 +2005,12 @@ func Type_resolveEnum(name *string) any {
 	}
 }
 
-func Type_createInstance(cl any, args []any) any {
+func Type_createInstance(cl any, args *hxrt.Array) any {
 	className, ok := hxrt_typeResolvedClassName(cl)
 	if !ok {
 		return nil
 	}
-	instance, ok := hxrt_typeCreateClassInstance(className, args)
+	instance, ok := hxrt_typeCreateClassInstance(className, hxrt_typeArrayValues(args))
 	if !ok {
 		return nil
 	}
@@ -1993,7 +2029,7 @@ func Type_createEmptyInstance(cl any) any {
 	return instance
 }
 
-func Type_createEnum(e any, constr *string, params []any) any {
+func Type_createEnum(e any, constr *string, params *hxrt.Array) any {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
 		return nil
@@ -2002,19 +2038,19 @@ func Type_createEnum(e any, constr *string, params []any) any {
 	if constr != nil {
 		constructorName = *hxrt.StdString(constr)
 	}
-	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, params)
+	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, hxrt_typeArrayValues(params))
 	if !ok {
 		return nil
 	}
 	return enumValue
 }
 
-func Type_createEnumIndex(e any, index int, params []any) any {
+func Type_createEnumIndex(e any, index int, params *hxrt.Array) any {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
 		return nil
 	}
-	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, "", index, true, params)
+	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, "", index, true, hxrt_typeArrayValues(params))
 	if !ok {
 		return nil
 	}
@@ -2091,57 +2127,53 @@ func Type_enumIndex(e any) int {
 	}
 }
 
-func Type_getEnumConstructs(e any) []*string {
+func Type_getEnumConstructs(e any) *hxrt.Array {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch enumName {
 	case "ValueType":
-		return []*string{hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown"))
 	case "sys.io.FileSeek":
-		return []*string{hxrt.StringFromLiteral("SeekBegin"), hxrt.StringFromLiteral("SeekCur"), hxrt.StringFromLiteral("SeekEnd")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("SeekBegin"), hxrt.StringFromLiteral("SeekCur"), hxrt.StringFromLiteral("SeekEnd"))
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_enumParameters(e any) []any {
+func Type_enumParameters(e any) *hxrt.Array {
 	if hxrt.AnyEqualsNull(e) {
-		return []any{}
+		return hxrt.NewArray()
 	}
 	switch value := e.(type) {
 	case *ValueType:
 		if value == nil || value.params == nil {
-			return []any{}
+			return hxrt.NewArray()
 		}
-		out := make([]any, len(value.params))
-		copy(out, value.params)
-		return out
+		return hxrt.NewArray(value.params...)
 	case *sys__io__FileSeek:
 		if value == nil || value.params == nil {
-			return []any{}
+			return hxrt.NewArray()
 		}
-		out := make([]any, len(value.params))
-		copy(out, value.params)
-		return out
+		return hxrt.NewArray(value.params...)
 	default:
-		return []any{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_allEnums(e any) []any {
+func Type_allEnums(e any) *hxrt.Array {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
-		return []any{}
+		return hxrt.NewArray()
 	}
 	switch enumName {
 	case "ValueType":
-		return []any{ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown}
+		return hxrt.NewArray(ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown)
 	case "sys.io.FileSeek":
-		return []any{sys__io__FileSeek_SeekBegin, sys__io__FileSeek_SeekCur, sys__io__FileSeek_SeekEnd}
+		return hxrt.NewArray(sys__io__FileSeek_SeekBegin, sys__io__FileSeek_SeekCur, sys__io__FileSeek_SeekEnd)
 	default:
-		return []any{}
+		return hxrt.NewArray()
 	}
 }
 
@@ -2164,6 +2196,8 @@ func Type_typeof(v any) any {
 		return ValueType_TFloat
 	case string, *string:
 		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("String")})
+	case *hxrt.Array:
+		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")})
 	}
 	ref := reflect.ValueOf(v)
 	if !ref.IsValid() {
@@ -2553,7 +2587,7 @@ func (self *sys__net__Socket) waitForRead() {
 	if self == nil {
 		return
 	}
-	_ = sys__net__Socket_select_([]*sys__net__Socket{self}, []*sys__net__Socket{}, []*sys__net__Socket{}, -1)
+	_ = sys__net__Socket_select_(hxrt.NewArray(self), hxrt.NewArray(), hxrt.NewArray(), -1)
 }
 
 func (self *sys__net__Socket) setBlocking(b bool) {
@@ -2573,30 +2607,31 @@ func (self *sys__net__Socket) setFastSend(b bool) {
 	self.hxrt__socket_applyFastSend()
 }
 
-func sys__net__Socket_select_(read []*sys__net__Socket, write []*sys__net__Socket, others []*sys__net__Socket, timeout ...float64) map[string]any {
+func sys__net__Socket_select_(read *hxrt.Array, write *hxrt.Array, others *hxrt.Array, timeout ...float64) map[string]any {
 	if read == nil {
-		read = []*sys__net__Socket{}
+		read = hxrt.NewArray()
 	}
 	if write == nil {
-		write = []*sys__net__Socket{}
+		write = hxrt.NewArray()
 	}
 	if others == nil {
-		others = []*sys__net__Socket{}
+		others = hxrt.NewArray()
 	}
 	effectiveTimeout := -1.0
 	if len(timeout) > 0 {
 		effectiveTimeout = timeout[0]
 	}
-	readyRead := make([]*sys__net__Socket, 0, len(read))
-	readyWrite := make([]*sys__net__Socket, 0, len(write))
-	readyOther := make([]*sys__net__Socket, 0, len(others))
-	for _, socket := range read {
-		if socket == nil || socket.conn == nil || socket.input == nil || socket.input.reader == nil {
+	readyRead := hxrt.NewArray()
+	readyWrite := hxrt.NewArray()
+	readyOther := hxrt.NewArray()
+	for _, rawSocket := range read.Values() {
+		socket, ok := rawSocket.(*sys__net__Socket)
+		if !ok || socket == nil || socket.conn == nil || socket.input == nil || socket.input.reader == nil {
 			continue
 		}
 		reader := socket.input.reader
 		if reader.Buffered() > 0 {
-			readyRead = append(readyRead, socket)
+			readyRead.Push(socket)
 			continue
 		}
 		if effectiveTimeout >= 0 {
@@ -2609,25 +2644,27 @@ func sys__net__Socket_select_(read []*sys__net__Socket, write []*sys__net__Socke
 		_, err := reader.Peek(1)
 		socket.hxrt__socket_applyConnDeadline()
 		if err == nil {
-			readyRead = append(readyRead, socket)
+			readyRead.Push(socket)
 			continue
 		}
 		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
 			continue
 		}
-		readyOther = append(readyOther, socket)
+		readyOther.Push(socket)
 	}
-	for _, socket := range write {
-		if socket == nil || socket.conn == nil {
+	for _, rawSocket := range write.Values() {
+		socket, ok := rawSocket.(*sys__net__Socket)
+		if !ok || socket == nil || socket.conn == nil {
 			continue
 		}
-		readyWrite = append(readyWrite, socket)
+		readyWrite.Push(socket)
 	}
-	for _, socket := range others {
-		if socket == nil {
+	for _, rawSocket := range others.Values() {
+		socket, ok := rawSocket.(*sys__net__Socket)
+		if !ok || socket == nil {
 			continue
 		}
-		readyOther = append(readyOther, socket)
+		readyOther.Push(socket)
 	}
 	return map[string]any{"read": readyRead, "write": readyWrite, "others": readyOther}
 }

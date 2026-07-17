@@ -55,6 +55,12 @@ preset for stricter/eager defaults.
 `runtime/hxrt/filesystem.go`. Keeping it separate prevents unrelated `sys.*`
 programs from inheriting native filesystem support in selective mode.
 
+Portable root `Array<T>` usage selects the dedicated `array` feature and copies
+`runtime/hxrt/array.go`. Runtime features that inspect or construct a portable
+Array, including staged `haxe.Template` and `haxe.Json` support, depend on that
+feature explicitly so selective output never references a carrier definition it
+did not copy.
+
 `sys.io.File`, its stream classes, and root `Sys` standard streams infer the
 dedicated `file_io` feature, which copies `runtime/hxrt/file.go`. Other staged
 root `Sys` capabilities infer `sys`, while typed `hxrt.process.NativeProcess`

@@ -877,6 +877,13 @@ func hxrt_typeCallAny(callable any, args []any) (any, bool) {
 	return result, ok
 }
 
+func hxrt_typeArrayValues(value *hxrt.Array) []any {
+	if value == nil {
+		return []any{}
+	}
+	return value.Values()
+}
+
 func hxrt_typeResolvedClassName(value any) (string, bool) {
 	switch current := value.(type) {
 	case *hxrt__TypeClassValue:
@@ -1084,6 +1091,11 @@ func Type_getClass(o any) any {
 	case hxrt__TypeClassValue:
 		copyValue := value
 		return &copyValue
+	case *hxrt.Array:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")}
 	case *haxe___Int64_____Int64:
 		if value == nil {
 			return nil
@@ -1167,57 +1179,57 @@ func Type_getClassName(c any) *string {
 	return hxrt.StringFromLiteral(className)
 }
 
-func Type_getClassFields(c any) []*string {
+func Type_getClassFields(c any) *hxrt.Array {
 	className, ok := hxrt_typeResolvedClassName(c)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch className {
 	case "Main":
-		return []*string{hxrt.StringFromLiteral("main")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("main"))
 	case "haxe.Int64Helper":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int32.Int32_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.Int64_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.___Int64":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.exceptions.NotImplementedException":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.exceptions.PosException":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.http.HttpBase":
-		return []*string{}
+		return hxrt.NewArray()
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_getInstanceFields(c any) []*string {
+func Type_getInstanceFields(c any) *hxrt.Array {
 	className, ok := hxrt_typeResolvedClassName(c)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch className {
 	case "Main":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.Int64Helper":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int32.Int32_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.Int64_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.___Int64":
-		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
 	case "haxe.exceptions.NotImplementedException":
-		return []*string{hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("posInfos"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("posInfos"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap"))
 	case "haxe.exceptions.PosException":
-		return []*string{hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("posInfos"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("posInfos"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap"))
 	case "haxe.http.HttpBase":
-		return []*string{hxrt.StringFromLiteral("addHeader"), hxrt.StringFromLiteral("addParameter"), hxrt.StringFromLiteral("emptyOnData"), hxrt.StringFromLiteral("get_responseData"), hxrt.StringFromLiteral("hasOnData"), hxrt.StringFromLiteral("headers"), hxrt.StringFromLiteral("onBytes"), hxrt.StringFromLiteral("onData"), hxrt.StringFromLiteral("onError"), hxrt.StringFromLiteral("onStatus"), hxrt.StringFromLiteral("params"), hxrt.StringFromLiteral("postBytes"), hxrt.StringFromLiteral("postData"), hxrt.StringFromLiteral("request"), hxrt.StringFromLiteral("responseAsString"), hxrt.StringFromLiteral("responseBytes"), hxrt.StringFromLiteral("responseData"), hxrt.StringFromLiteral("setHeader"), hxrt.StringFromLiteral("setParameter"), hxrt.StringFromLiteral("setPostBytes"), hxrt.StringFromLiteral("setPostData"), hxrt.StringFromLiteral("success"), hxrt.StringFromLiteral("url")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("addHeader"), hxrt.StringFromLiteral("addParameter"), hxrt.StringFromLiteral("emptyOnData"), hxrt.StringFromLiteral("get_responseData"), hxrt.StringFromLiteral("hasOnData"), hxrt.StringFromLiteral("headers"), hxrt.StringFromLiteral("onBytes"), hxrt.StringFromLiteral("onData"), hxrt.StringFromLiteral("onError"), hxrt.StringFromLiteral("onStatus"), hxrt.StringFromLiteral("params"), hxrt.StringFromLiteral("postBytes"), hxrt.StringFromLiteral("postData"), hxrt.StringFromLiteral("request"), hxrt.StringFromLiteral("responseAsString"), hxrt.StringFromLiteral("responseBytes"), hxrt.StringFromLiteral("responseData"), hxrt.StringFromLiteral("setHeader"), hxrt.StringFromLiteral("setParameter"), hxrt.StringFromLiteral("setPostBytes"), hxrt.StringFromLiteral("setPostData"), hxrt.StringFromLiteral("success"), hxrt.StringFromLiteral("url"))
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
@@ -1269,12 +1281,12 @@ func Type_resolveEnum(name *string) any {
 	}
 }
 
-func Type_createInstance(cl any, args []any) any {
+func Type_createInstance(cl any, args *hxrt.Array) any {
 	className, ok := hxrt_typeResolvedClassName(cl)
 	if !ok {
 		return nil
 	}
-	instance, ok := hxrt_typeCreateClassInstance(className, args)
+	instance, ok := hxrt_typeCreateClassInstance(className, hxrt_typeArrayValues(args))
 	if !ok {
 		return nil
 	}
@@ -1293,7 +1305,7 @@ func Type_createEmptyInstance(cl any) any {
 	return instance
 }
 
-func Type_createEnum(e any, constr *string, params []any) any {
+func Type_createEnum(e any, constr *string, params *hxrt.Array) any {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
 		return nil
@@ -1302,19 +1314,19 @@ func Type_createEnum(e any, constr *string, params []any) any {
 	if constr != nil {
 		constructorName = *hxrt.StdString(constr)
 	}
-	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, params)
+	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, hxrt_typeArrayValues(params))
 	if !ok {
 		return nil
 	}
 	return enumValue
 }
 
-func Type_createEnumIndex(e any, index int, params []any) any {
+func Type_createEnumIndex(e any, index int, params *hxrt.Array) any {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
 		return nil
 	}
-	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, "", index, true, params)
+	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, "", index, true, hxrt_typeArrayValues(params))
 	if !ok {
 		return nil
 	}
@@ -1372,46 +1384,44 @@ func Type_enumIndex(e any) int {
 	}
 }
 
-func Type_getEnumConstructs(e any) []*string {
+func Type_getEnumConstructs(e any) *hxrt.Array {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch enumName {
 	case "ValueType":
-		return []*string{hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown"))
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_enumParameters(e any) []any {
+func Type_enumParameters(e any) *hxrt.Array {
 	if hxrt.AnyEqualsNull(e) {
-		return []any{}
+		return hxrt.NewArray()
 	}
 	switch value := e.(type) {
 	case *ValueType:
 		if value == nil || value.params == nil {
-			return []any{}
+			return hxrt.NewArray()
 		}
-		out := make([]any, len(value.params))
-		copy(out, value.params)
-		return out
+		return hxrt.NewArray(value.params...)
 	default:
-		return []any{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_allEnums(e any) []any {
+func Type_allEnums(e any) *hxrt.Array {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
-		return []any{}
+		return hxrt.NewArray()
 	}
 	switch enumName {
 	case "ValueType":
-		return []any{ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown}
+		return hxrt.NewArray(ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown)
 	default:
-		return []any{}
+		return hxrt.NewArray()
 	}
 }
 
@@ -1434,6 +1444,8 @@ func Type_typeof(v any) any {
 		return ValueType_TFloat
 	case string, *string:
 		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("String")})
+	case *hxrt.Array:
+		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")})
 	}
 	ref := reflect.ValueOf(v)
 	if !ref.IsValid() {

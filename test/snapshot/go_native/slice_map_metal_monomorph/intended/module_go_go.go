@@ -19,12 +19,12 @@ func go___Go___chanSend(channel any, value any) {
 }
 
 func go___Go___chanTryRecv(channel any) *go___Result {
-	return func(hx_value_7 any) *go___Result {
-		if hx_value_7 == nil {
-			var hx_zero_8 *go___Result
-			return hx_zero_8
+	return func(hx_value_13 any) *go___Result {
+		if hx_value_13 == nil {
+			var hx_zero_14 *go___Result
+			return hx_zero_14
 		}
-		return hx_value_7.(*go___Result)
+		return hx_value_13.(*go___Result)
 	}(nil)
 }
 

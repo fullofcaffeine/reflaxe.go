@@ -1,6 +1,7 @@
 package haxe.crypto;
 
 import haxe.io.Bytes;
+import go.NativeSlice;
 import hxrt.crypto.NativeCrypto;
 
 /**
@@ -25,14 +26,14 @@ class Sha1 {
 		return fromValues(NativeCrypto.sha1Values(toValues(value)));
 	}
 
-	static function toValues(bytes:Bytes):Array<Int> {
+	static function toValues(bytes:Bytes):NativeSlice<Int> {
 		var values = new Array<Int>();
 		for (index in 0...bytes.length)
 			values.push(bytes.get(index));
-		return values;
+		return NativeSlice.fromArray(values);
 	}
 
-	static function fromValues(values:Array<Int>):Bytes {
+	static function fromValues(values:NativeSlice<Int>):Bytes {
 		var bytes = Bytes.alloc(values.length);
 		for (index in 0...values.length)
 			bytes.set(index, values[index]);

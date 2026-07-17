@@ -35,16 +35,28 @@ func (self *sys__io__FileOutput) writeBytes(bytes *haxe__io__Bytes, pos int, len
 	if length == 0 {
 		return 0
 	}
-	values := []int{}
+	values := hxrt.NewArray()
 	_g := 0
 	_g1 := length
 	for _g < _g1 {
-		hx_post_11 := _g
+		hx_post_15 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_11
-		values = append(values, bytes.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(index))))])
+		index := hx_post_15
+		values.Push(bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))])
 	}
-	return hxrt.FileOutputWriteValues(self.handle, values, 0, length)
+	return hxrt.FileOutputWriteValues(self.handle, func(hx_lambda_raw_17 []any) []int {
+		hx_lambda_out_18 := make([]int, 0, len(hx_lambda_raw_17))
+		for _, hx_lambda_item_19 := range hx_lambda_raw_17 {
+			hx_lambda_out_18 = append(hx_lambda_out_18, func(hx_value_20 any) int {
+				if hx_value_20 == nil {
+					var hx_zero_21 int
+					return hx_zero_21
+				}
+				return hx_value_20.(int)
+			}(hx_lambda_item_19))
+		}
+		return hx_lambda_out_18
+	}(values.Values()), 0, length)
 }
 
 func (self *sys__io__FileOutput) seek(p int, pos *sys__io__FileSeek) {

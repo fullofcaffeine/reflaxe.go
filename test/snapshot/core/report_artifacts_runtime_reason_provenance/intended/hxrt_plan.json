@@ -11,6 +11,7 @@
 		"process"
 	],
 	"inferredFeatures": [
+		"array",
 		"core",
 		"exception",
 		"json",
@@ -18,6 +19,7 @@
 		"string"
 	],
 	"selectedFeatures": [
+		"array",
 		"core",
 		"exception",
 		"json",
@@ -26,6 +28,7 @@
 		"string"
 	],
 	"files": [
+		"array.go",
 		"core.go",
 		"exception.go",
 		"hxrt.go",
@@ -39,6 +42,11 @@
 			"feature": "core",
 			"sourceKind": "baseline",
 			"source": "compiler_baseline"
+		},
+		{
+			"feature": "array",
+			"sourceKind": "dependency_edge",
+			"source": "json->array"
 		},
 		{
 			"feature": "string",

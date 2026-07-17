@@ -46,8 +46,8 @@ func (self *sys__thread__ElasticThreadPoolWorker) loop() {
 			fn := _g
 			hxrt.TryCatch(func() {
 				fn()
-			}, func(hx_caught_38 any) {
-				err := hx_caught_38
+			}, func(hx_caught_31 any) {
+				err := hx_caught_31
 				self.owner.workerTaskFailed(self)
 				hxrt.Throw(err)
 			})

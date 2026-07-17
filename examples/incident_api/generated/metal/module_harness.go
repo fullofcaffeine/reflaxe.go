@@ -65,55 +65,79 @@ func Harness_run() *string {
 	store := New_app__core__IncidentStore(config.statePath)
 	api := New_app__core__IncidentApi(config, store)
 	server := New_app__http__TinyHttpServer(api, config.host, config.port)
-	out := []*string{}
+	out := hxrt.NewArray()
 	hxrt.TryCatch(func() {
-		out = append(out, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("config="), StringTools_trim(rawConfig)))
-		out = append(out, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("listen="), server.host), hxrt.StringFromLiteral(":<ephemeral>")))
-		out = append(out, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("health="), Harness_request(server, hxrt.StringFromLiteral("GET"), hxrt.StringFromLiteral("/health"), hxrt.StringFromLiteral(""))))
-		out = append(out, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("create="), Harness_request(server, hxrt.StringFromLiteral("POST"), hxrt.StringFromLiteral("/incidents"), hxrt.StringFromLiteral("{\"title\":\"Database lag\",\"severity\":\"high\"}"))))
-		out = append(out, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("list="), Harness_request(server, hxrt.StringFromLiteral("GET"), hxrt.StringFromLiteral("/incidents"), hxrt.StringFromLiteral(""))))
-		out = append(out, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ack="), Harness_request(server, hxrt.StringFromLiteral("POST"), hxrt.StringFromLiteral("/incidents/1/ack"), hxrt.StringFromLiteral(""))))
-		out = append(out, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("resolve="), Harness_request(server, hxrt.StringFromLiteral("POST"), hxrt.StringFromLiteral("/incidents/1/resolve"), hxrt.StringFromLiteral(""))))
-		out = append(out, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("metrics="), Harness_request(server, hxrt.StringFromLiteral("GET"), hxrt.StringFromLiteral("/metrics"), hxrt.StringFromLiteral(""))))
-		out = append(out, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("state="), StringTools_trim(sys__io__File_getContent(hxrt.StringFromLiteral(".incident_api_scripted_state.json")))))
+		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("config="), StringTools_trim(rawConfig)))
+		out.Push(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("listen="), server.host), hxrt.StringFromLiteral(":<ephemeral>")))
+		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("health="), Harness_request(server, hxrt.StringFromLiteral("GET"), hxrt.StringFromLiteral("/health"), hxrt.StringFromLiteral(""))))
+		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("create="), Harness_request(server, hxrt.StringFromLiteral("POST"), hxrt.StringFromLiteral("/incidents"), hxrt.StringFromLiteral("{\"title\":\"Database lag\",\"severity\":\"high\"}"))))
+		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("list="), Harness_request(server, hxrt.StringFromLiteral("GET"), hxrt.StringFromLiteral("/incidents"), hxrt.StringFromLiteral(""))))
+		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ack="), Harness_request(server, hxrt.StringFromLiteral("POST"), hxrt.StringFromLiteral("/incidents/1/ack"), hxrt.StringFromLiteral(""))))
+		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("resolve="), Harness_request(server, hxrt.StringFromLiteral("POST"), hxrt.StringFromLiteral("/incidents/1/resolve"), hxrt.StringFromLiteral(""))))
+		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("metrics="), Harness_request(server, hxrt.StringFromLiteral("GET"), hxrt.StringFromLiteral("/metrics"), hxrt.StringFromLiteral(""))))
+		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("state="), StringTools_trim(sys__io__File_getContent(hxrt.StringFromLiteral(".incident_api_scripted_state.json")))))
 	}, func(hx_caught_9 any) {
 		error := hxrt.ExceptionCaught(hx_caught_9)
-		out = append(out, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error="), hxrt.StdString(error)))
+		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error="), hxrt.StdString(error)))
 	})
 	server.close()
 	Harness_cleanup()
-	return hxrt.StringJoinAny(func(hx_sort_src_21 []*string) []any {
+	return hxrt.StringJoinAny(out.Values(), hxrt.StringFromLiteral("\n"))
+}
+
+func Harness_summarize(raw *string) *string {
+	normalized := StringTools_replace(raw, hxrt.StringFromLiteral("\r\n"), hxrt.StringFromLiteral("\n"))
+	sections := hxrt.ArrayFromValues(func(hx_sort_src_21 []*string) []any {
 		hx_sort_out_23 := make([]any, 0, len(hx_sort_src_21))
 		for _, hx_sort_item_22 := range hx_sort_src_21 {
 			hx_sort_out_23 = append(hx_sort_out_23, hx_sort_item_22)
 		}
 		return hx_sort_out_23
-	}(out), hxrt.StringFromLiteral("\n"))
-}
-
-func Harness_summarize(raw *string) *string {
-	normalized := StringTools_replace(raw, hxrt.StringFromLiteral("\r\n"), hxrt.StringFromLiteral("\n"))
-	sections := hxrt.StringSplitStringPtr(normalized, hxrt.StringFromLiteral("\n\n"))
-	var hx_if_24 []*string
-	if len(sections) > 0 {
-		hx_if_24 = hxrt.StringSplitStringPtr(sections[0], hxrt.StringFromLiteral("\n"))
+	}(hxrt.StringSplitStringPtr(normalized, hxrt.StringFromLiteral("\n\n"))))
+	var hx_if_29 *hxrt.Array
+	if sections.Len() > 0 {
+		hx_if_29 = hxrt.ArrayFromValues(func(hx_sort_src_26 []*string) []any {
+			hx_sort_out_28 := make([]any, 0, len(hx_sort_src_26))
+			for _, hx_sort_item_27 := range hx_sort_src_26 {
+				hx_sort_out_28 = append(hx_sort_out_28, hx_sort_item_27)
+			}
+			return hx_sort_out_28
+		}(hxrt.StringSplitStringPtr(func(hx_value_24 any) *string {
+			if hx_value_24 == nil {
+				var hx_zero_25 *string
+				return hx_zero_25
+			}
+			return hx_value_24.(*string)
+		}(sections.Get(0)), hxrt.StringFromLiteral("\n"))))
 	} else {
-		hx_if_24 = []*string{}
+		hx_if_29 = hxrt.NewArray()
 	}
-	headerLines := hx_if_24
-	var hx_if_25 *string
-	if len(headerLines) > 0 {
-		hx_if_25 = headerLines[0]
+	headerLines := hx_if_29
+	var hx_if_32 *string
+	if headerLines.Len() > 0 {
+		hx_if_32 = hxrt.StdString(func(hx_value_30 any) *string {
+			if hx_value_30 == nil {
+				var hx_zero_31 *string
+				return hx_zero_31
+			}
+			return hx_value_30.(*string)
+		}(headerLines.Get(0)))
 	} else {
-		hx_if_25 = hxrt.StringFromLiteral("HTTP/1.1 000 Missing")
+		hx_if_32 = hxrt.StringFromLiteral("HTTP/1.1 000 Missing")
 	}
-	status := hx_if_25
-	var hx_if_26 *string
-	if len(sections) > 1 {
-		hx_if_26 = sections[1]
+	status := hx_if_32
+	var hx_if_35 *string
+	if sections.Len() > 1 {
+		hx_if_35 = hxrt.StdString(func(hx_value_33 any) *string {
+			if hx_value_33 == nil {
+				var hx_zero_34 *string
+				return hx_zero_34
+			}
+			return hx_value_33.(*string)
+		}(sections.Get(1)))
 	} else {
-		hx_if_26 = hxrt.StringFromLiteral("")
+		hx_if_35 = hxrt.StringFromLiteral("")
 	}
-	body := hx_if_26
+	body := hx_if_35
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(status, hxrt.StringFromLiteral(" body=")), body)
 }

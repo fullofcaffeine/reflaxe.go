@@ -27,7 +27,7 @@ func sys__GoHttpHelpers_captureApi(api any, payload *haxe__io__Bytes) {
 	}()
 }
 
-func sys__GoHttpHelpers_getResponseHeaderValues(self *sys__Http, key *string) []*string {
+func sys__GoHttpHelpers_getResponseHeaderValues(self *sys__Http, key *string) *hxrt.Array {
 	if self == nil {
 		return nil
 	}
@@ -44,7 +44,7 @@ func sys__GoHttpHelpers_getResponseHeaderValues(self *sys__Http, key *string) []
 		return hxrt.StringFromLiteral(string(out))
 	}()
 	_ = normalized
-	return func() []*string {
+	nativeValues := func() []*string {
 		if self.responseHeadersSameKey != nil {
 			if values, ok := self.responseHeadersSameKey[*hxrt.StdString(key)]; ok {
 				return values
@@ -65,4 +65,17 @@ func sys__GoHttpHelpers_getResponseHeaderValues(self *sys__Http, key *string) []
 		}
 		return []*string{hxrt.StdString(single)}
 	}()
+	var hx_if_20 *hxrt.Array
+	if nativeValues == nil {
+		hx_if_20 = nil
+	} else {
+		hx_if_20 = hxrt.ArrayFromValues(func(hx_sort_src_17 []*string) []any {
+			hx_sort_out_19 := make([]any, 0, len(hx_sort_src_17))
+			for _, hx_sort_item_18 := range hx_sort_src_17 {
+				hx_sort_out_19 = append(hx_sort_out_19, hx_sort_item_18)
+			}
+			return hx_sort_out_19
+		}(nativeValues))
+	}
+	return hx_if_20
 }

@@ -1050,7 +1050,7 @@ func (self *sys__Http) fileTransfert(argname *string, filename *string, file any
 	self.fileTransfer(argname, filename, file, size, mimeType...)
 }
 
-func (self *sys__Http) getResponseHeaderValues(key *string) []*string {
+func (self *sys__Http) getResponseHeaderValues(key *string) *hxrt.Array {
 	return sys__GoHttpHelpers_getResponseHeaderValues(self, key)
 }
 
@@ -1768,7 +1768,7 @@ func (self *sys__net__Socket) waitForRead() {
 	if self == nil {
 		return
 	}
-	_ = sys__net__Socket_select_([]*sys__net__Socket{self}, []*sys__net__Socket{}, []*sys__net__Socket{}, -1)
+	_ = sys__net__Socket_select_(hxrt.NewArray(self), hxrt.NewArray(), hxrt.NewArray(), -1)
 }
 
 func (self *sys__net__Socket) setBlocking(b bool) {
@@ -1788,30 +1788,31 @@ func (self *sys__net__Socket) setFastSend(b bool) {
 	self.hxrt__socket_applyFastSend()
 }
 
-func sys__net__Socket_select_(read []*sys__net__Socket, write []*sys__net__Socket, others []*sys__net__Socket, timeout ...float64) map[string]any {
+func sys__net__Socket_select_(read *hxrt.Array, write *hxrt.Array, others *hxrt.Array, timeout ...float64) map[string]any {
 	if read == nil {
-		read = []*sys__net__Socket{}
+		read = hxrt.NewArray()
 	}
 	if write == nil {
-		write = []*sys__net__Socket{}
+		write = hxrt.NewArray()
 	}
 	if others == nil {
-		others = []*sys__net__Socket{}
+		others = hxrt.NewArray()
 	}
 	effectiveTimeout := -1.0
 	if len(timeout) > 0 {
 		effectiveTimeout = timeout[0]
 	}
-	readyRead := make([]*sys__net__Socket, 0, len(read))
-	readyWrite := make([]*sys__net__Socket, 0, len(write))
-	readyOther := make([]*sys__net__Socket, 0, len(others))
-	for _, socket := range read {
-		if socket == nil || socket.conn == nil || socket.input == nil || socket.input.reader == nil {
+	readyRead := hxrt.NewArray()
+	readyWrite := hxrt.NewArray()
+	readyOther := hxrt.NewArray()
+	for _, rawSocket := range read.Values() {
+		socket, ok := rawSocket.(*sys__net__Socket)
+		if !ok || socket == nil || socket.conn == nil || socket.input == nil || socket.input.reader == nil {
 			continue
 		}
 		reader := socket.input.reader
 		if reader.Buffered() > 0 {
-			readyRead = append(readyRead, socket)
+			readyRead.Push(socket)
 			continue
 		}
 		if effectiveTimeout >= 0 {
@@ -1824,25 +1825,27 @@ func sys__net__Socket_select_(read []*sys__net__Socket, write []*sys__net__Socke
 		_, err := reader.Peek(1)
 		socket.hxrt__socket_applyConnDeadline()
 		if err == nil {
-			readyRead = append(readyRead, socket)
+			readyRead.Push(socket)
 			continue
 		}
 		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
 			continue
 		}
-		readyOther = append(readyOther, socket)
+		readyOther.Push(socket)
 	}
-	for _, socket := range write {
-		if socket == nil || socket.conn == nil {
+	for _, rawSocket := range write.Values() {
+		socket, ok := rawSocket.(*sys__net__Socket)
+		if !ok || socket == nil || socket.conn == nil {
 			continue
 		}
-		readyWrite = append(readyWrite, socket)
+		readyWrite.Push(socket)
 	}
-	for _, socket := range others {
-		if socket == nil {
+	for _, rawSocket := range others.Values() {
+		socket, ok := rawSocket.(*sys__net__Socket)
+		if !ok || socket == nil {
 			continue
 		}
-		readyOther = append(readyOther, socket)
+		readyOther.Push(socket)
 	}
 	return map[string]any{"read": readyRead, "write": readyWrite, "others": readyOther}
 }

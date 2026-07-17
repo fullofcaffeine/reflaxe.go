@@ -1,11 +1,13 @@
 package main
 
+import "snapshot/hxrt"
+
 type I_go___Slice interface {
 	get_length() int
 	push(value any)
 	get(index int) any
 	set(index int, value any)
-	toArray() []any
+	toArray() *hxrt.Array
 }
 
 type go___Slice struct {
@@ -26,9 +28,10 @@ func (self *go___Slice) get_length() int {
 }
 
 func (self *go___Slice) push(value any) {
-	hx_arr_13 := self.data
-	hx_arr_13 = append(hx_arr_13, value)
-	self.data = hx_arr_13
+	self.data = func() []any {
+		hx_native_slice_13 := self.data
+		return append(hx_native_slice_13, value)
+	}()
 }
 
 func (self *go___Slice) get(index int) any {
@@ -39,6 +42,6 @@ func (self *go___Slice) set(index int, value any) {
 	self.data[index] = value
 }
 
-func (self *go___Slice) toArray() []any {
-	return self.data
+func (self *go___Slice) toArray() *hxrt.Array {
+	return hxrt.ArrayFromValues(self.data)
 }

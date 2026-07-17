@@ -32,33 +32,33 @@ func haxe__Utf8_charCodeAt(s *string, index int) int {
 }
 
 func haxe__Utf8_codePointToString(code int) *string {
-	var hx_if_9 []int
+	var hx_if_9 *hxrt.Array
 	if code < 128 {
-		hx_if_9 = []int{code}
+		hx_if_9 = hxrt.NewArray(code)
 	} else {
-		var hx_if_8 []int
+		var hx_if_8 *hxrt.Array
 		if code < 2048 {
-			hx_if_8 = []int{int(int32((hxrt.Int32Wrap(192) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63))))))))}
+			hx_if_8 = hxrt.NewArray(int(int32((hxrt.Int32Wrap(192) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63)))))))))
 		} else {
-			var hx_if_7 []int
+			var hx_if_7 *hxrt.Array
 			if code < 65536 {
-				hx_if_7 = []int{int(int32((hxrt.Int32Wrap(224) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(12)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63))))))))}
+				hx_if_7 = hxrt.NewArray(int(int32((hxrt.Int32Wrap(224) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(12)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63)))))))))
 			} else {
-				hx_if_7 = []int{int(int32((hxrt.Int32Wrap(240) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(18)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(12))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63))))))))}
+				hx_if_7 = hxrt.NewArray(int(int32((hxrt.Int32Wrap(240) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(18)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(12))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63)))))))))
 			}
 			hx_if_8 = hx_if_7
 		}
 		hx_if_9 = hx_if_8
 	}
 	raw := hx_if_9
-	bytes := haxe__io__Bytes_alloc(len(raw))
+	bytes := haxe__io__Bytes_alloc(raw.Len())
 	_g := 0
-	_g1 := len(raw)
+	_g1 := raw.Len()
 	for _g < _g1 {
 		hx_post_10 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_10
-		bytes.b[index] = int(int32((hxrt.Int32Wrap(raw[index]) & hxrt.Int32Wrap(255))))
+		bytes.b[index] = int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(raw.Get(index))) & hxrt.Int32Wrap(255))))
 	}
 	return bytes.toString()
 }

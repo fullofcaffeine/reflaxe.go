@@ -3,14 +3,20 @@ package main
 import "snapshot/hxrt"
 
 func haxe__MainLoop___remove(event *haxe__MainEvent) {
-	next := []*haxe__MainEvent{}
+	next := hxrt.NewArray()
 	_g := 0
 	_g1 := haxe__MainLoop_pending
-	for _g < len(_g1) {
-		candidate := _g1[_g]
+	for _g < _g1.Len() {
+		candidate := func(hx_value_5 any) *haxe__MainEvent {
+			if hx_value_5 == nil {
+				var hx_zero_6 *haxe__MainEvent
+				return hx_zero_6
+			}
+			return hx_value_5.(*haxe__MainEvent)
+		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if candidate != event {
-			next = append(next, candidate)
+			next.Push(candidate)
 		}
 	}
 	haxe__MainLoop_pending = next
@@ -21,9 +27,8 @@ func haxe__MainLoop_add(f func(), priority int) *haxe__MainEvent {
 		hxrt.Throw(hxrt.StringFromLiteral("Event function is null"))
 	}
 	event := New_haxe__MainEvent(f, priority)
-	hx_arr_6 := haxe__MainLoop_pending
-	hx_arr_6 = append(hx_arr_6, event)
-	haxe__MainLoop_pending = hx_arr_6
+	hx_arr_8 := haxe__MainLoop_pending
+	hx_arr_8.Push(event)
 	event.delayNow()
 	return event
 }
@@ -39,8 +44,14 @@ func haxe__MainLoop_get_threadCount() int {
 func haxe__MainLoop_hasEvents() bool {
 	_g := 0
 	_g1 := haxe__MainLoop_pending
-	for _g < len(_g1) {
-		event := _g1[_g]
+	for _g < _g1.Len() {
+		event := func(hx_value_9 any) *haxe__MainEvent {
+			if hx_value_9 == nil {
+				var hx_zero_10 *haxe__MainEvent
+				return hx_zero_10
+			}
+			return hx_value_9.(*haxe__MainEvent)
+		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if event.isBlocking {
 			return true
@@ -49,7 +60,7 @@ func haxe__MainLoop_hasEvents() bool {
 	return false
 }
 
-var haxe__MainLoop_pending []*haxe__MainEvent = []*haxe__MainEvent{}
+var haxe__MainLoop_pending *hxrt.Array = hxrt.NewArray()
 
 func haxe__MainLoop_runInMainThread(f func()) {
 	haxe__EntryPoint_runInMainThread(f)

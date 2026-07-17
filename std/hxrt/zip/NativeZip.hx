@@ -1,5 +1,7 @@
 package hxrt.zip;
 
+import go.NativeSlice;
+
 /**
 	What:
 	- Provides typed access to Go zlib and raw-DEFLATE execution for the staged
@@ -14,7 +16,7 @@ package hxrt.zip;
 	  boundaries.
 
 	How:
-	- Cross only `Array<Int>`, integers, and a raw-DEFLATE selector into
+	- Cross only explicit `NativeSlice<Int>`, integers, and a raw-DEFLATE selector into
 	  `runtime/hxrt/zip.go`; runtime errors return through the ordinary Haxe
 	  exception carrier.
 **/
@@ -22,8 +24,8 @@ package hxrt.zip;
 @:go.package("hxrt")
 extern class NativeZip {
 	@:go.name("ZipCompress")
-	public static function compress(values:Array<Int>, level:Int):Array<Int>;
+	public static function compress(values:NativeSlice<Int>, level:Int):NativeSlice<Int>;
 
 	@:go.name("ZipUncompress")
-	public static function uncompress(values:Array<Int>, raw:Bool, bufferSize:Int):Array<Int>;
+	public static function uncompress(values:NativeSlice<Int>, raw:Bool, bufferSize:Int):NativeSlice<Int>;
 }

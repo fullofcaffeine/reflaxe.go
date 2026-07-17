@@ -1,5 +1,7 @@
 package main
 
+import "examples_tui_todo_portable/hxrt"
+
 type I_model__TodoItem interface {
 	set_title(value *string) *string
 	set_done(value bool) bool
@@ -12,7 +14,7 @@ type model__TodoItem struct {
 	title     *string
 	done      bool
 	priority  int
-	tags      []*string
+	tags      *hxrt.Array
 }
 
 func New_model__TodoItem(id int, title *string, priority int) *model__TodoItem {
@@ -22,7 +24,7 @@ func New_model__TodoItem(id int, title *string, priority int) *model__TodoItem {
 	self.set_title(title)
 	self.set_done(false)
 	self.set_priority(priority)
-	self.tags = []*string{}
+	self.tags = hxrt.NewArray()
 	return self
 }
 

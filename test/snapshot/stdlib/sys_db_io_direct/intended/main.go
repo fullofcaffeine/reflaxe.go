@@ -61,7 +61,7 @@ func New__Main__SnapConnection() *_Main__SnapConnection {
 }
 
 func (self *_Main__SnapConnection) request(s *string) sys__db__ResultSet {
-	return New__Main__SnapResultSet([]*_Main__SnapRow{New__Main__SnapRow(3)})
+	return New__Main__SnapResultSet(hxrt.NewArray(New__Main__SnapRow(3)))
 }
 
 func (self *_Main__SnapConnection) close() {
@@ -106,18 +106,18 @@ type I__Main__SnapResultSet interface {
 	getResult(n int) *string
 	getIntResult(n int) int
 	getFloatResult(n int) float64
-	getFieldsNames() []*string
+	getFieldsNames() *hxrt.Array
 }
 
 type _Main__SnapResultSet struct {
 	__hx_this I__Main__SnapResultSet
 	length    int
 	nfields   int
-	rows      []*_Main__SnapRow
+	rows      *hxrt.Array
 	index     int
 }
 
-func New__Main__SnapResultSet(rows []*_Main__SnapRow) *_Main__SnapResultSet {
+func New__Main__SnapResultSet(rows *hxrt.Array) *_Main__SnapResultSet {
 	self := &_Main__SnapResultSet{}
 	self.__hx_this = self
 	self.rows = rows
@@ -126,7 +126,7 @@ func New__Main__SnapResultSet(rows []*_Main__SnapRow) *_Main__SnapResultSet {
 }
 
 func (self *_Main__SnapResultSet) get_length() int {
-	return int(int32((hxrt.Int32Wrap(len(self.rows)) - hxrt.Int32Wrap(self.index))))
+	return int(int32((hxrt.Int32Wrap(self.rows.Len()) - hxrt.Int32Wrap(self.index))))
 }
 
 func (self *_Main__SnapResultSet) get_nfields() int {
@@ -134,13 +134,13 @@ func (self *_Main__SnapResultSet) get_nfields() int {
 }
 
 func (self *_Main__SnapResultSet) hasNext() bool {
-	return (self.index < len(self.rows))
+	return (self.index < self.rows.Len())
 }
 
 func (self *_Main__SnapResultSet) next() any {
 	hx_post_6 := self.index
 	self.index = int(int32((self.index + 1)))
-	return self.rows[hx_post_6]
+	return self.rows.Get(hx_post_6)
 }
 
 func (self *_Main__SnapResultSet) results() *haxe__ds__List {
@@ -152,19 +152,37 @@ func (self *_Main__SnapResultSet) results() *haxe__ds__List {
 }
 
 func (self *_Main__SnapResultSet) getResult(n int) *string {
-	return hxrt.StdString(self.rows[int(int32((hxrt.Int32Wrap(self.index) - hxrt.Int32Wrap(1))))].value)
+	return hxrt.StdString(func(hx_value_7 any) *_Main__SnapRow {
+		if hx_value_7 == nil {
+			var hx_zero_8 *_Main__SnapRow
+			return hx_zero_8
+		}
+		return hx_value_7.(*_Main__SnapRow)
+	}(self.rows.Get(int(int32((hxrt.Int32Wrap(self.index) - hxrt.Int32Wrap(1)))))).value)
 }
 
 func (self *_Main__SnapResultSet) getIntResult(n int) int {
-	return self.rows[int(int32((hxrt.Int32Wrap(self.index) - hxrt.Int32Wrap(1))))].value
+	return func(hx_value_9 any) *_Main__SnapRow {
+		if hx_value_9 == nil {
+			var hx_zero_10 *_Main__SnapRow
+			return hx_zero_10
+		}
+		return hx_value_9.(*_Main__SnapRow)
+	}(self.rows.Get(int(int32((hxrt.Int32Wrap(self.index) - hxrt.Int32Wrap(1)))))).value
 }
 
 func (self *_Main__SnapResultSet) getFloatResult(n int) float64 {
-	return (float64(self.rows[int(int32((hxrt.Int32Wrap(self.index)-hxrt.Int32Wrap(1))))].value) + 0.0)
+	return (float64(func(hx_value_11 any) *_Main__SnapRow {
+		if hx_value_11 == nil {
+			var hx_zero_12 *_Main__SnapRow
+			return hx_zero_12
+		}
+		return hx_value_11.(*_Main__SnapRow)
+	}(self.rows.Get(int(int32((hxrt.Int32Wrap(self.index) - hxrt.Int32Wrap(1)))))).value) + 0.0)
 }
 
-func (self *_Main__SnapResultSet) getFieldsNames() []*string {
-	return []*string{hxrt.StringFromLiteral("value")}
+func (self *_Main__SnapResultSet) getFieldsNames() *hxrt.Array {
+	return hxrt.NewArray(hxrt.StringFromLiteral("value"))
 }
 
 type I__Main__SnapRow interface {

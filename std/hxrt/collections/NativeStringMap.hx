@@ -1,5 +1,7 @@
 package hxrt.collections;
 
+import go.NativeSlice;
+
 /**
 	What
 	- Typed bridge to the native string-keyed storage used by staged `StringMap`.
@@ -9,9 +11,9 @@ package hxrt.collections;
 	  directly declare or operate on a Go `map[string]any` value.
 
 	How
-	- Expose only storage primitives and a deterministic key snapshot. Generic map
-	  values use `Dynamic` solely at this erased runtime boundary and are cast back
-	  to `T` immediately by `haxe.ds.StringMap`.
+	- Expose only storage primitives and a deterministic native-slice key snapshot.
+	  Generic map values use `Dynamic` solely at this erased runtime boundary and
+	  are cast back to `T` immediately by `haxe.ds.StringMap`.
 **/
 @:go.import("hxrt")
 @:go.package("hxrt")
@@ -32,7 +34,7 @@ extern class NativeStringMap {
 	public static function remove(handle:StringMapHandle, key:String):Bool;
 
 	@:go.name("StringMapKeys")
-	public static function keys(handle:StringMapHandle):Array<String>;
+	public static function keys(handle:StringMapHandle):NativeSlice<String>;
 
 	@:go.name("StringMapClear")
 	public static function clear(handle:StringMapHandle):Void;

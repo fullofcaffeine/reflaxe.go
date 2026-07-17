@@ -1,5 +1,7 @@
 package hxrt.collections;
 
+import go.NativeSlice;
+
 /**
 	What
 	- Typed bridge to the native integer-keyed storage used by staged `IntMap`.
@@ -9,9 +11,9 @@ package hxrt.collections;
 	  directly declare or operate on a Go `map[int]any` value.
 
 	How
-	- Expose only storage primitives and a deterministic key snapshot. Generic map
-	  values use `Dynamic` solely at this erased runtime boundary and are cast back
-	  to `T` immediately by `haxe.ds.IntMap`.
+	- Expose only storage primitives and a deterministic native-slice key snapshot.
+	  Generic map values use `Dynamic` solely at this erased runtime boundary and
+	  are cast back to `T` immediately by `haxe.ds.IntMap`.
 **/
 @:go.import("hxrt")
 @:go.package("hxrt")
@@ -32,7 +34,7 @@ extern class NativeIntMap {
 	public static function remove(handle:IntMapHandle, key:Int):Bool;
 
 	@:go.name("IntMapKeys")
-	public static function keys(handle:IntMapHandle):Array<Int>;
+	public static function keys(handle:IntMapHandle):NativeSlice<Int>;
 
 	@:go.name("IntMapClear")
 	public static function clear(handle:IntMapHandle):Void;

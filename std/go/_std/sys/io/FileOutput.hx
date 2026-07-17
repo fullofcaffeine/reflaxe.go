@@ -2,6 +2,7 @@ package sys.io;
 
 import haxe.io.Bytes;
 import haxe.io.Error;
+import go.NativeSlice;
 import hxrt.fs.FileOutputHandle;
 import hxrt.fs.NativeFile;
 
@@ -44,7 +45,7 @@ class FileOutput extends haxe.io.Output {
 		var values = new Array<Int>();
 		for (index in 0...length)
 			values.push(bytes.get(pos + index));
-		return NativeFile.outputWriteValues(handle, values, 0, length);
+		return NativeFile.outputWriteValues(handle, NativeSlice.fromArray(values), 0, length);
 	}
 
 	public function seek(p:Int, pos:FileSeek):Void {

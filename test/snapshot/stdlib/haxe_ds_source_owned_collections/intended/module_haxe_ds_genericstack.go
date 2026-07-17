@@ -103,7 +103,7 @@ func (self *haxe__ds__GenericStack) toString() *string {
 
 func haxe__ds__GenericStack_sameValue(left any, right any) bool {
 	if hxrt.AnyEqualsNull(left) || hxrt.AnyEqualsNull(right) {
-		return (left == right)
+		return hxrt.HaxeEqual(left, right)
 	}
 	if func(hx_value any) bool {
 		switch hx_value.(type) {
@@ -126,7 +126,7 @@ func haxe__ds__GenericStack_sameValue(left any, right any) bool {
 	}(any(right)) {
 		return hxrt.StringEqualStringPtr(hxrt.StdString(left), hxrt.StdString(right))
 	}
-	return (left == right)
+	return hxrt.HaxeEqual(left, right)
 }
 
 type I_haxe__ds__GenericCell interface {

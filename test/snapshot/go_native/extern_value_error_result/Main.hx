@@ -1,20 +1,11 @@
 import go.Result;
 
-#if (go || go_output)
 @:go.import("strconv")
 extern class StrconvPkg {
 	@:go.name("Atoi")
 	@:go.valueError
 	static function atoi(value:String):Result<Int>;
 }
-#else
-class StrconvPkg {
-	public static function atoi(value:String):Result<Int> {
-		var parsed = Std.parseInt(value);
-		return parsed == null ? Result.failure("invalid syntax") : Result.ok(parsed);
-	}
-}
-#end
 
 class Main {
 	static function main() {

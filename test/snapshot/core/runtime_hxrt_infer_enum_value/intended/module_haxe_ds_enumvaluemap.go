@@ -101,7 +101,7 @@ type I_haxe__ds__EnumValueMap interface {
 	toString() *string
 	clear()
 	compare(left any, right any) int
-	compareArgs(left []any, right []any) int
+	compareArgs(left *hxrt.Array, right *hxrt.Array) int
 	compareArg(left any, right any) int
 	setLoop(key any, value any, node *haxe__ds___EnumValueMap__EnumValueTreeNode) *haxe__ds___EnumValueMap__EnumValueTreeNode
 	removeLoop(key any, node *haxe__ds___EnumValueMap__EnumValueTreeNode) *haxe__ds___EnumValueMap__EnumValueTreeNode
@@ -209,31 +209,31 @@ func (self *haxe__ds__EnumValueMap) remove(key any) bool {
 }
 
 func (self *haxe__ds__EnumValueMap) keys() map[string]any {
-	values := haxe__ds__EnumValueMap_keysLoop(self.root, []any{})
+	values := haxe__ds__EnumValueMap_keysLoop(self.root, hxrt.NewArray())
 	index := 0
 	hx_obj_24 := map[string]any{}
 	hx_obj_24["hasNext"] = func() bool {
-		return (index < len(values))
+		return (index < values.Len())
 	}
 	hx_obj_24["next"] = func() any {
 		hx_post_25 := index
 		index = int(int32((index + 1)))
-		return values[hx_post_25]
+		return values.Get(hx_post_25)
 	}
 	return hx_obj_24
 }
 
 func (self *haxe__ds__EnumValueMap) iterator() map[string]any {
-	values := haxe__ds__EnumValueMap_valuesLoop(self.root, []any{})
+	values := haxe__ds__EnumValueMap_valuesLoop(self.root, hxrt.NewArray())
 	index := 0
 	hx_obj_26 := map[string]any{}
 	hx_obj_26["hasNext"] = func() bool {
-		return (index < len(values))
+		return (index < values.Len())
 	}
 	hx_obj_26["next"] = func() any {
 		hx_post_27 := index
 		index = int(int32((index + 1)))
-		return values[hx_post_27]
+		return values.Get(hx_post_27)
 	}
 	return hx_obj_26
 }
@@ -315,13 +315,13 @@ func (self *haxe__ds__EnumValueMap) compare(left any, right any) int {
 	}(self.compareArgs(Type_enumParameters(left), Type_enumParameters(right)))
 }
 
-func (self *haxe__ds__EnumValueMap) compareArgs(left []any, right []any) int {
-	result := int(int32((hxrt.Int32Wrap(len(left)) - hxrt.Int32Wrap(len(right)))))
+func (self *haxe__ds__EnumValueMap) compareArgs(left *hxrt.Array, right *hxrt.Array) int {
+	result := int(int32((hxrt.Int32Wrap(left.Len()) - hxrt.Int32Wrap(right.Len()))))
 	if result != 0 {
 		return result
 	}
 	_g := 0
-	_g1 := len(left)
+	_g1 := left.Len()
 	for _g < _g1 {
 		hx_post_43 := _g
 		_g = int(int32((_g + 1)))
@@ -332,7 +332,7 @@ func (self *haxe__ds__EnumValueMap) compareArgs(left []any, right []any) int {
 				return hx_zero_45
 			}
 			return hx_value_44.(int)
-		}(self.compareArg(left[index], right[index]))
+		}(self.compareArg(left.Get(index), right.Get(index)))
 		if result != 0 {
 			return result
 		}
@@ -352,42 +352,14 @@ func (self *haxe__ds__EnumValueMap) compareArg(left any, right any) int {
 	}
 	if func(hx_value any) bool {
 		switch hx_value.(type) {
-		case []*CollectionFeatureKey:
-			return true
-		case []*haxe__ds__EnumValueMap:
-			return true
-		case []*haxe__ds___EnumValueMap__EnumValueTreeNode:
-			return true
-		case []*string:
-			return true
-		case []any:
-			return true
-		case []bool:
-			return true
-		case []float64:
-			return true
-		case []int:
+		case *hxrt.Array:
 			return true
 		default:
 			return false
 		}
 	}(any(left)) && func(hx_value any) bool {
 		switch hx_value.(type) {
-		case []*CollectionFeatureKey:
-			return true
-		case []*haxe__ds__EnumValueMap:
-			return true
-		case []*haxe__ds___EnumValueMap__EnumValueTreeNode:
-			return true
-		case []*string:
-			return true
-		case []any:
-			return true
-		case []bool:
-			return true
-		case []float64:
-			return true
-		case []int:
+		case *hxrt.Array:
 			return true
 		default:
 			return false
@@ -399,18 +371,18 @@ func (self *haxe__ds__EnumValueMap) compareArg(left any, right any) int {
 				return hx_zero_53
 			}
 			return hx_value_52.(int)
-		}(self.compareArgs(func(hx_value_48 any) []any {
+		}(self.compareArgs(func(hx_value_48 any) *hxrt.Array {
 			if hx_value_48 == nil {
-				var hx_zero_49 []any
+				var hx_zero_49 *hxrt.Array
 				return hx_zero_49
 			}
-			return hx_value_48.([]any)
-		}(left), func(hx_value_50 any) []any {
+			return hx_value_48.(*hxrt.Array)
+		}(left), func(hx_value_50 any) *hxrt.Array {
 			if hx_value_50 == nil {
-				var hx_zero_51 []any
+				var hx_zero_51 *hxrt.Array
 				return hx_zero_51
 			}
-			return hx_value_50.([]any)
+			return hx_value_50.(*hxrt.Array)
 		}(right)))
 	}
 	return Reflect_compare(left, right)
@@ -688,19 +660,19 @@ func haxe__ds__EnumValueMap_isEnumValue(value any) bool {
 	return hxrt.IsEnumValue(value)
 }
 
-func haxe__ds__EnumValueMap_keysLoop(node *haxe__ds___EnumValueMap__EnumValueTreeNode, out []any) []any {
+func haxe__ds__EnumValueMap_keysLoop(node *haxe__ds___EnumValueMap__EnumValueTreeNode, out *hxrt.Array) *hxrt.Array {
 	if node != nil {
 		haxe__ds__EnumValueMap_keysLoop(node.left, out)
-		out = append(out, node.key)
+		out.Push(node.key)
 		haxe__ds__EnumValueMap_keysLoop(node.right, out)
 	}
 	return out
 }
 
-func haxe__ds__EnumValueMap_valuesLoop(node *haxe__ds___EnumValueMap__EnumValueTreeNode, out []any) []any {
+func haxe__ds__EnumValueMap_valuesLoop(node *haxe__ds___EnumValueMap__EnumValueTreeNode, out *hxrt.Array) *hxrt.Array {
 	if node != nil {
 		haxe__ds__EnumValueMap_valuesLoop(node.left, out)
-		out = append(out, node.value)
+		out.Push(node.value)
 		haxe__ds__EnumValueMap_valuesLoop(node.right, out)
 	}
 	return out

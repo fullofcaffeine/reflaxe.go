@@ -145,6 +145,7 @@ class GoTestAstFixtureEmitter {
 						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoUnary(GoUnaryOperator.Negate, GoExpr.GoIdent("left"))),
 						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoUnary(GoUnaryOperator.BitwiseNot, GoExpr.GoIdent("right"))),
 						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoArrayLiteral(intType, [GoExpr.GoIdent("left"), GoExpr.GoIdent("right")])),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoMakeSlice(intType, GoExpr.GoIntLiteral(0), GoExpr.GoIntLiteral(2))),
 						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoTypeAssert(GoExpr.GoIdent("boxed"), constraintType)),
 						GoStmt.GoReturn(GoExpr.GoBinary(GoBinaryOperator.LogicalAnd,
 							GoExpr.GoBinary(GoBinaryOperator.LessThan, GoExpr.GoIdent("left"), GoExpr.GoIdent("right")),

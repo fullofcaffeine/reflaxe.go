@@ -22,11 +22,17 @@ func sum(values []int) int {
 		return hx_value_1.([]int)
 	}(any(values))
 	for _g_current < len(_g_args) {
-		this1 := _g_args
-		hx_post_3 := _g_current
+		this1 := hxrt.ArrayFromValues(func(hx_sort_src_3 []int) []any {
+			hx_sort_out_5 := make([]any, 0, len(hx_sort_src_3))
+			for _, hx_sort_item_4 := range hx_sort_src_3 {
+				hx_sort_out_5 = append(hx_sort_out_5, hx_sort_item_4)
+			}
+			return hx_sort_out_5
+		}(_g_args))
+		hx_post_6 := _g_current
 		_g_current = int(int32((_g_current + 1)))
-		index := hx_post_3
-		value := this1[index]
+		index := hx_post_6
+		value := hxrt.IntFromNullableAny(this1.Get(index))
 		total = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(value))))
 	}
 	return total

@@ -7,10 +7,10 @@ import (
 
 func main() {
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("startup.throws="), hxrt.StdString(throws(func() {
-		New_sys__io__Process(hxrt.StringFromLiteral("__haxe_go_missing_process__"), []*string{}, false)
+		New_sys__io__Process(hxrt.StringFromLiteral("__haxe_go_missing_process__"), hxrt.NewArray(), false)
 	}))))
 	hxrt.Println(v)
-	empty := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("printf '\\n'")}, false)
+	empty := New_sys__io__Process(hxrt.StringFromLiteral("sh"), hxrt.NewArray(hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("printf '\\n'")), false)
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("empty.line="), hxrt.StdString(hxrt.StringEqualStringPtr(empty.stdout.readLine(), hxrt.StringFromLiteral("")))))
 	hxrt.Println(v_1)
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("empty.eof="), hxrt.StdString(reachesEof(empty))))
@@ -24,7 +24,7 @@ func main() {
 	var v_5 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("shell.code="), shell.exitCode(true)))
 	hxrt.Println(v_5)
 	shell.close()
-	piped := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("IFS= read -r line; printf 'out:%s\\n' \"$line\"; printf 'err:%s\\n' \"$line\" >&2; exit 7")}, false)
+	piped := New_sys__io__Process(hxrt.StringFromLiteral("sh"), hxrt.NewArray(hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("IFS= read -r line; printf 'out:%s\\n' \"$line\"; printf 'err:%s\\n' \"$line\" >&2; exit 7")), false)
 	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pid.positive="), hxrt.StdString((piped.getPid() > 0))))
 	hxrt.Println(v_6)
 	piped.stdin.writeString(hxrt.StringFromLiteral("hello\n"))
@@ -36,20 +36,20 @@ func main() {
 	var v_9 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("exit.code="), piped.exitCode(true)))
 	hxrt.Println(v_9)
 	piped.close()
-	longOutput := New_sys__io__Process(hxrt.StringFromLiteral("python3"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("print('x' * 70000)")}, false)
+	longOutput := New_sys__io__Process(hxrt.StringFromLiteral("python3"), hxrt.NewArray(hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("print('x' * 70000)")), false)
 	var v_10 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("long.length="), hxrt.StringLengthStringPtr(longOutput.stdout.readLine())))
 	hxrt.Println(v_10)
 	var v_11 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("long.code="), longOutput.exitCode(true)))
 	hxrt.Println(v_11)
 	longOutput.close()
-	nonblocking := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("sleep 0.2; exit 9")}, false)
+	nonblocking := New_sys__io__Process(hxrt.StringFromLiteral("sh"), hxrt.NewArray(hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("sleep 0.2; exit 9")), false)
 	var v_12 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("nonblock.running="), hxrt.StdString((nonblocking.exitCode(false) == nil))))
 	hxrt.Println(v_12)
 	waitForChild(hxrt.StringFromLiteral("0.3"))
 	var nonblockingCode any = nonblocking.exitCode(false)
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("nonblock.code="), nonblockingCode)))
 	nonblocking.close()
-	killed := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("sleep 5")}, false)
+	killed := New_sys__io__Process(hxrt.StringFromLiteral("sh"), hxrt.NewArray(hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("sleep 5")), false)
 	killed.kill()
 	var v_13 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("kill.nonzero="), hxrt.StdString((killed.exitCode(true) != 0))))
 	hxrt.Println(v_13)
@@ -58,7 +58,7 @@ func main() {
 	if sys__FileSystem_exists(marker) {
 		sys__FileSystem_deleteFile(marker)
 	}
-	closing := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sleep 0.2; printf done > "), marker)}, false)
+	closing := New_sys__io__Process(hxrt.StringFromLiteral("sh"), hxrt.NewArray(hxrt.StringFromLiteral("-c"), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sleep 0.2; printf done > "), marker)), false)
 	closing.close()
 	waitForChild(hxrt.StringFromLiteral("0.5"))
 	var v_14 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("close.keeps.running="), hxrt.StdString(sys__FileSystem_exists(marker))))
@@ -67,7 +67,7 @@ func main() {
 		sys__FileSystem_deleteFile(marker)
 	}
 	var v_15 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("detached.throws="), hxrt.StdString(throws(func() {
-		New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("exit 0")}, true)
+		New_sys__io__Process(hxrt.StringFromLiteral("sh"), hxrt.NewArray(hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("exit 0")), true)
 	}))))
 	hxrt.Println(v_15)
 }
@@ -124,7 +124,7 @@ func throws(action func()) bool {
 }
 
 func waitForChild(seconds *string) {
-	waiter := New_sys__io__Process(hxrt.StringFromLiteral("sh"), []*string{hxrt.StringFromLiteral("-c"), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sleep "), seconds)}, false)
+	waiter := New_sys__io__Process(hxrt.StringFromLiteral("sh"), hxrt.NewArray(hxrt.StringFromLiteral("-c"), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sleep "), seconds)), false)
 	waiter.exitCode(true)
 	waiter.close()
 }

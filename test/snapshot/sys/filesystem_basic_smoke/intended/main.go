@@ -5,14 +5,20 @@ import (
 	"snapshot/hxrt"
 )
 
-func firstEntry(items []*string) *string {
-	var hx_if_1 *string
-	if len(items) > 0 {
-		hx_if_1 = items[0]
+func firstEntry(items *hxrt.Array) *string {
+	var hx_if_3 *string
+	if items.Len() > 0 {
+		hx_if_3 = hxrt.StdString(func(hx_value_1 any) *string {
+			if hx_value_1 == nil {
+				var hx_zero_2 *string
+				return hx_zero_2
+			}
+			return hx_value_1.(*string)
+		}(items.Get(0)))
 	} else {
-		hx_if_1 = hxrt.StringFromLiteral("")
+		hx_if_3 = hxrt.StringFromLiteral("")
 	}
-	return hx_if_1
+	return hx_if_3
 }
 
 func main() {
@@ -25,8 +31,8 @@ func main() {
 	missingThrows := false
 	hxrt.TryCatch(func() {
 		sys__FileSystem_isDirectory(root)
-	}, func(hx_caught_2 any) {
-		hx_tmp := hx_caught_2
+	}, func(hx_caught_4 any) {
+		hx_tmp := hx_caught_4
 		_ = hx_tmp
 		missingThrows = true
 	})
@@ -47,8 +53,8 @@ func main() {
 	deleteFileDirectoryThrows := false
 	hxrt.TryCatch(func() {
 		sys__FileSystem_deleteFile(directoryOnly)
-	}, func(hx_caught_4 any) {
-		hx_tmp_1 := hx_caught_4
+	}, func(hx_caught_6 any) {
+		hx_tmp_1 := hx_caught_6
 		_ = hx_tmp_1
 		deleteFileDirectoryThrows = true
 	})
@@ -60,8 +66,8 @@ func main() {
 	deleteDirectoryFileThrows := false
 	hxrt.TryCatch(func() {
 		sys__FileSystem_deleteDirectory(fileB)
-	}, func(hx_caught_6 any) {
-		hx_tmp_2 := hx_caught_6
+	}, func(hx_caught_8 any) {
+		hx_tmp_2 := hx_caught_8
 		_ = hx_tmp_2
 		deleteDirectoryFileThrows = true
 	})
@@ -70,13 +76,13 @@ func main() {
 	names := sys__FileSystem_readDirectory(root)
 	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("entry="), firstEntry(names)))
 	hxrt.Println(v_7)
-	var v_8 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("size="), func(hx_obj_8 map[string]any) int {
-		hx_field_9 := hx_obj_8["size"]
-		if hx_field_9 == nil {
-			var hx_zero_10 int
-			return hx_zero_10
+	var v_8 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("size="), func(hx_obj_10 map[string]any) int {
+		hx_field_11 := hx_obj_10["size"]
+		if hx_field_11 == nil {
+			var hx_zero_12 int
+			return hx_zero_12
 		}
-		return hx_field_9.(int)
+		return hx_field_11.(int)
 	}(sys__FileSystem_stat(fileB))))
 	hxrt.Println(v_8)
 	var v_9 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("content="), sys__io__File_getContent(fileB)))
@@ -93,8 +99,14 @@ func rmDirRecursive(path *string) {
 	}
 	_g := 0
 	_g1 := sys__FileSystem_readDirectory(path)
-	for _g < len(_g1) {
-		entry := _g1[_g]
+	for _g < _g1.Len() {
+		entry := func(hx_value_13 any) *string {
+			if hx_value_13 == nil {
+				var hx_zero_14 *string
+				return hx_zero_14
+			}
+			return hx_value_13.(*string)
+		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		child := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(path, hxrt.StringFromLiteral("/")), entry)
 		if sys__FileSystem_isDirectory(child) {

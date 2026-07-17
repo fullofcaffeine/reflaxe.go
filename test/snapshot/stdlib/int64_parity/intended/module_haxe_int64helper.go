@@ -126,7 +126,7 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 		hx_post_37 := _g
 		_g = int(int32((_g + 1)))
 		i := hx_post_37
-		digitInt := int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(s, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(len)-hxrt.Int32Wrap(1)))))-hxrt.Int32Wrap(i))))))) - hxrt.Int32Wrap(48))))
+		digitInt := int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(s, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(len)-hxrt.Int32Wrap(1)))))-hxrt.Int32Wrap(i)))))))) - hxrt.Int32Wrap(48))))
 		if (digitInt < 0) || (digitInt > 9) {
 			hxrt.Throw(hxrt.StringFromLiteral("NumberFormatError"))
 		}

@@ -2,7 +2,7 @@ package main
 
 import "snapshot/hxrt"
 
-func haxe__ds__ArraySort_doMerge(a []any, cmp func(any, any) int, from int, pivot int, to int, len1 int, len2 int) {
+func haxe__ds__ArraySort_doMerge(a *hxrt.Array, cmp func(any, any) int, from int, pivot int, to int, len1 int, len2 int) {
 	var first_cut int
 	var second_cut int
 	var len11 int
@@ -12,7 +12,7 @@ func haxe__ds__ArraySort_doMerge(a []any, cmp func(any, any) int, from int, pivo
 		return
 	}
 	if int(int32((hxrt.Int32Wrap(len1) + hxrt.Int32Wrap(len2)))) == 2 {
-		if cmp(a[pivot], a[from]) < 0 {
+		if cmp(a.Get(pivot), a.Get(from)) < 0 {
 			haxe__ds__ArraySort_swap(a, pivot, from)
 		}
 		return
@@ -43,14 +43,14 @@ func haxe__ds__ArraySort_gcd(m int, n int) int {
 	return m
 }
 
-func haxe__ds__ArraySort_lower(a []any, cmp func(any, any) int, from int, to int, val int) int {
+func haxe__ds__ArraySort_lower(a *hxrt.Array, cmp func(any, any) int, from int, to int, val int) int {
 	len := int(int32((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from))))
 	var half int
 	var mid int
 	for len > 0 {
 		half = int(int32((hxrt.Int32Wrap(len) >> uint(1))))
 		mid = int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(half))))
-		if cmp(a[mid], a[val]) < 0 {
+		if cmp(a.Get(mid), a.Get(val)) < 0 {
 			from = int(int32((hxrt.Int32Wrap(mid) + hxrt.Int32Wrap(1))))
 			len = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(len) - hxrt.Int32Wrap(half))))) - hxrt.Int32Wrap(1))))
 		} else {
@@ -60,7 +60,7 @@ func haxe__ds__ArraySort_lower(a []any, cmp func(any, any) int, from int, to int
 	return from
 }
 
-func haxe__ds__ArraySort_rec(a []any, cmp func(any, any) int, from int, to int) {
+func haxe__ds__ArraySort_rec(a *hxrt.Array, cmp func(any, any) int, from int, to int) {
 	middle := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(to))))) >> uint(1))))
 	if int(int32((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from)))) < 12 {
 		if to <= from {
@@ -69,12 +69,12 @@ func haxe__ds__ArraySort_rec(a []any, cmp func(any, any) int, from int, to int) 
 		_g := int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(1))))
 		_g1 := to
 		for _g < _g1 {
-			hx_post_18 := _g
+			hx_post_7 := _g
 			_g = int(int32((_g + 1)))
-			i := hx_post_18
+			i := hx_post_7
 			j := i
 			for j > from {
-				if cmp(a[j], a[int(int32((hxrt.Int32Wrap(j)-hxrt.Int32Wrap(1))))]) < 0 {
+				if cmp(a.Get(j), a.Get(int(int32((hxrt.Int32Wrap(j)-hxrt.Int32Wrap(1)))))) < 0 {
 					haxe__ds__ArraySort_swap(a, int(int32((hxrt.Int32Wrap(j) - hxrt.Int32Wrap(1)))), j)
 				} else {
 					break
@@ -89,23 +89,25 @@ func haxe__ds__ArraySort_rec(a []any, cmp func(any, any) int, from int, to int) 
 	haxe__ds__ArraySort_doMerge(a, cmp, from, middle, to, int(int32((hxrt.Int32Wrap(middle) - hxrt.Int32Wrap(from)))), int(int32((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(middle)))))
 }
 
-func haxe__ds__ArraySort_rotate(a []any, cmp func(any, any) int, from int, mid int, to int) {
+func haxe__ds__ArraySort_rotate(a *hxrt.Array, cmp func(any, any) int, from int, mid int, to int) {
 	var n int
 	if (from == mid) || (mid == to) {
 		return
 	}
 	n = haxe__ds__ArraySort_gcd(int(int32((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from)))), int(int32((hxrt.Int32Wrap(mid) - hxrt.Int32Wrap(from)))))
 	for func() int {
-		hx_post_19 := n
+		hx_post_8 := n
 		n = int(int32((n - 1)))
-		return hx_post_19
+		return hx_post_8
 	}() != 0 {
-		var val any = a[int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n))))]
+		var val any = a.Get(int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n)))))
 		shift := int(int32((hxrt.Int32Wrap(mid) - hxrt.Int32Wrap(from))))
 		p1 := int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n))))
 		p2 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n))))) + hxrt.Int32Wrap(shift))))
 		for p2 != int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n)))) {
-			a[p1] = a[p2]
+			hx_array_target_9 := a
+			hx_array_index_10 := p1
+			hx_array_target_9.Set(hx_array_index_10, a.Get(p2))
 			p1 = p2
 			if int(int32((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(p2)))) > shift {
 				p2 = int(int32((hxrt.Int32Wrap(p2) + hxrt.Int32Wrap(shift))))
@@ -113,28 +115,34 @@ func haxe__ds__ArraySort_rotate(a []any, cmp func(any, any) int, from int, mid i
 				p2 = int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(shift) - hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(p2))))))))))))
 			}
 		}
-		a[p1] = val
+		hx_array_target_11 := a
+		hx_array_index_12 := p1
+		hx_array_target_11.Set(hx_array_index_12, val)
 	}
 }
 
-func haxe__ds__ArraySort_sort(a []any, cmp func(any, any) int) {
-	haxe__ds__ArraySort_rec(a, cmp, 0, len(a))
+func haxe__ds__ArraySort_sort(a *hxrt.Array, cmp func(any, any) int) {
+	haxe__ds__ArraySort_rec(a, cmp, 0, a.Len())
 }
 
-func haxe__ds__ArraySort_swap(a []any, i int, j int) {
-	var tmp any = a[i]
-	a[i] = a[j]
-	a[j] = tmp
+func haxe__ds__ArraySort_swap(a *hxrt.Array, i int, j int) {
+	var tmp any = a.Get(i)
+	hx_array_target_13 := a
+	hx_array_index_14 := i
+	hx_array_target_13.Set(hx_array_index_14, a.Get(j))
+	hx_array_target_15 := a
+	hx_array_index_16 := j
+	hx_array_target_15.Set(hx_array_index_16, tmp)
 }
 
-func haxe__ds__ArraySort_upper(a []any, cmp func(any, any) int, from int, to int, val int) int {
+func haxe__ds__ArraySort_upper(a *hxrt.Array, cmp func(any, any) int, from int, to int, val int) int {
 	len := int(int32((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from))))
 	var half int
 	var mid int
 	for len > 0 {
 		half = int(int32((hxrt.Int32Wrap(len) >> uint(1))))
 		mid = int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(half))))
-		if cmp(a[val], a[mid]) < 0 {
+		if cmp(a.Get(val), a.Get(mid)) < 0 {
 			len = half
 		} else {
 			from = int(int32((hxrt.Int32Wrap(mid) + hxrt.Int32Wrap(1))))

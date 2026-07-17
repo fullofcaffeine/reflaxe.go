@@ -30,6 +30,7 @@ typedef GoLambdaSourcePlan = {
 	final elementType:String;
 	final sourceExpr:GoExpr;
 	final sourceType:String;
+	final sharedArray:Bool;
 }
 
 /**
@@ -98,6 +99,7 @@ private typedef GoLambdaIterableLoweringConfig = {
 	final lowerToStatements:TypedExpr->Array<GoStmt>;
 	final freshTempName:String->String;
 	final isArrayType:Type->Bool;
+	final isHaxeArrayType:Type->Bool;
 	final arrayElementType:Type->Null<Type>;
 	final arrayElementGoType:Type->String;
 	final haxeDsListElementType:Type->Null<Type>;
@@ -117,9 +119,10 @@ private typedef GoLambdaIterableLoweringConfig = {
 	Why:
 	`Lambda` itself remains source-owned stdlib code, but generic `Iterable<T>`
 	call sites and structural `Iterator<T>` assignments need backend representation
-	glue: arrays are Go slices, `List` uses the current staged list carrier,
-	concrete iterator classes need typed method adapters, and unknown iterables use
-	the manual `iterator()` protocol. Keeping that policy in one helper keeps
+	glue: portable Arrays use the shared `hxrt.Array` identity, explicit/fixed
+	array-like views may remain native Go slices, `List` uses the current staged
+	list carrier, concrete iterator classes need typed method adapters, and unknown
+	iterables use the manual `iterator()` protocol. Keeping that policy in one helper keeps
 	`GoCompiler` focused on orchestration while still making the
 	representation-sensitive part explicit.
 
@@ -130,14 +133,15 @@ private typedef GoLambdaIterableLoweringConfig = {
 	behavior; it owns only the bridge between Haxe iterable semantics and current
 	Go carriers.
 	Go `any` stays localized here because unknown `Iterable<T>` values expose
-	their elements through the manual iterator protocol instead of a statically
-	known Go slice type.
+	their elements through the manual iterator protocol instead of statically known
+	shared-Array or native-slice storage.
 **/
 class GoLambdaIterableLowering {
 	final lowerExpr:TypedExpr->GoLambdaLoweredExpr;
 	final lowerToStatements:TypedExpr->Array<GoStmt>;
 	final freshTempName:String->String;
 	final isArrayType:Type->Bool;
+	final isHaxeArrayType:Type->Bool;
 	final arrayElementType:Type->Null<Type>;
 	final arrayElementGoType:Type->String;
 	final haxeDsListElementType:Type->Null<Type>;
@@ -154,6 +158,7 @@ class GoLambdaIterableLowering {
 		lowerToStatements = config.lowerToStatements;
 		freshTempName = config.freshTempName;
 		isArrayType = config.isArrayType;
+		isHaxeArrayType = config.isHaxeArrayType;
 		arrayElementType = config.arrayElementType;
 		arrayElementGoType = config.arrayElementGoType;
 		haxeDsListElementType = config.haxeDsListElementType;
@@ -351,10 +356,11 @@ class GoLambdaIterableLowering {
 	}
 
 	/**
-		What: Builds a structural iterator map over one live typed Go slice.
-		Why: Converting the slice to `[]any` would copy its slots and hide later mutation.
-		How: Capture the slice header and cursor once, then emit typed closures through
-		the existing structural carrier.
+		What: Builds a structural iterator map over one live array storage value.
+		Why: Portable Arrays must retain their shared carrier, while copying a native
+		slice to `[]any` would hide later indexed mutation.
+		How: Capture the shared carrier or slice header and cursor once, then emit typed
+		closures through the existing structural iterator carrier.
 	**/
 	function nativeArrayCursorMap(sourcePlan:GoLambdaSourcePlan, targetResultType:Type):GoExpr {
 		var sourceName = freshTempName("hx_structural_array");
@@ -367,19 +373,20 @@ class GoLambdaIterableLowering {
 		var nextValue:GoExpr = GoExpr.GoIdent(valueName);
 		if (targetResultGoType == "any") {
 			nextValue = GoExpr.GoCall(GoExpr.GoIdent("any"), [nextValue]);
-		} else if (sourcePlan.elementType != targetResultGoType) {
+		} else if (sourcePlan.sharedArray || sourcePlan.elementType != targetResultGoType) {
 			nextValue = lowerNullableAwareTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("any"), [nextValue]), targetResultType);
 		}
+		var lengthExpr = sourcePlan.sharedArray ? GoExpr.GoCall(GoExpr.GoSelector(sourceExpr, "Len"), []) : GoExpr.GoCall(GoExpr.GoIdent("len"), [sourceExpr]);
+		var indexedValue = sourcePlan.sharedArray ? GoExpr.GoCall(GoExpr.GoSelector(sourceExpr, "Get"), [indexExpr]) : GoExpr.GoIndex(sourceExpr, indexExpr);
 
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["map[string]any"], [
 			GoStmt.GoVarDecl(sourceName, sourcePlan.sourceType, sourcePlan.sourceExpr, true),
 			GoStmt.GoVarDecl(indexName, "int", GoExpr.GoIntLiteral(0), true),
 			GoStmt.GoVarDecl(mapName, "map[string]any", emptyDynamicFieldMapExpr(), true),
-			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("hasNext")), GoExpr.GoFuncLiteral([], ["bool"], [
-				GoStmt.GoReturn(GoExpr.GoBinary("<", indexExpr, GoExpr.GoCall(GoExpr.GoIdent("len"), [sourceExpr])))
-			])),
+			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("hasNext")),
+				GoExpr.GoFuncLiteral([], ["bool"], [GoStmt.GoReturn(GoExpr.GoBinary("<", indexExpr, lengthExpr))])),
 			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("next")), GoExpr.GoFuncLiteral([], [targetResultGoType], [
-				GoStmt.GoVarDecl(valueName, null, GoExpr.GoIndex(sourceExpr, indexExpr), true),
+				GoStmt.GoVarDecl(valueName, null, indexedValue, true),
 				GoStmt.GoAssign(indexExpr, GoExpr.GoBinary("+", indexExpr, GoExpr.GoIntLiteral(1))),
 				GoStmt.GoReturn(nextValue)
 			])),
@@ -388,15 +395,15 @@ class GoLambdaIterableLowering {
 	}
 
 	/**
-		What: Lowers a native-array iterator expression and its ordered setup prefix
+		What: Lowers an Array iterator expression and its ordered setup prefix
 		to the structural map.
-		Why: Lowering the erased `ArrayIterator<T>` class first would require copying
-		a typed Go slice to `[]any`, which would hide later indexed mutations from the
-		iterator and violate Haxe's shared-array behavior; replacing an inline block's
-		final constructor alone would also discard earlier effects.
+		Why: Lowering the erased `ArrayIterator<T>` class first would either discard the
+		portable shared carrier or copy native slice storage to `[]any`, hiding later
+		mutations from the iterator; replacing an inline block's final constructor alone
+		would also discard earlier effects.
 		How: Recover the typed array before ordinary expression lowering, lower every
-		retained setup expression to statements, and return that prefix with one typed
-		live-slice cursor for the caller to emit or materialize.
+		retained setup expression to statements, and return that prefix with one live
+		carrier/slice cursor for the caller to emit or materialize.
 	**/
 	public function nativeArrayStructuralIteratorCoerce(sourceExpr:TypedExpr, toType:Type):Null<GoLambdaLoweredExprWithPrefix> {
 		var targetShape = structuralIteratorShape(toType);
@@ -451,8 +458,9 @@ class GoLambdaIterableLowering {
 		Why: Lowering the enclosing anonymous block first loses the class authority
 		required by `structuralIteratorCoerce` and leaves an invalid Go pointer-to-map
 		assignment.
-		How: Keep Array on its dedicated live-slice path, lower the retained setup once,
-		then pass the typed terminal value to the existing class-agnostic adapter.
+		How: Keep Array on its dedicated shared-carrier/native-slice path, lower the
+		retained setup once, then pass the typed terminal value to the existing
+		class-agnostic adapter.
 	**/
 	public function inlineConcreteStructuralIteratorCoerce(sourceExpr:TypedExpr, toType:Type):Null<GoLambdaLoweredExprWithPrefix> {
 		var source = unwrapStructuralSourceExpr(sourceExpr);
@@ -559,7 +567,8 @@ class GoLambdaIterableLowering {
 				domain: "array",
 				elementType: elementType,
 				sourceExpr: sourceExpr,
-				sourceType: "[]" + elementType
+				sourceType: isHaxeArrayType(sourceType) ? "*hxrt.Array" : "[]" + elementType,
+				sharedArray: isHaxeArrayType(sourceType)
 			};
 		}
 
@@ -569,7 +578,8 @@ class GoLambdaIterableLowering {
 				domain: "list",
 				elementType: scalarGoType(listElement),
 				sourceExpr: sourceExpr,
-				sourceType: "*haxe__ds__List"
+				sourceType: "*haxe__ds__List",
+				sharedArray: false
 			};
 		}
 
@@ -591,8 +601,11 @@ class GoLambdaIterableLowering {
 			var indexName = freshTempName("hx_lambda_index");
 			var indexExpr = GoExpr.GoIdent(indexName);
 			iteratorFactoryBody.push(GoStmt.GoVarDecl(indexName, "int", GoExpr.GoIntLiteral(0), true));
-			hasNextExpr = GoExpr.GoBinary("<", indexExpr, GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent(sourceName)]));
-			nextValueExpr = GoExpr.GoIndex(GoExpr.GoIdent(sourceName), indexExpr);
+			hasNextExpr = GoExpr.GoBinary("<", indexExpr,
+				sourcePlan.sharedArray ? GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "Len"),
+					[]) : GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent(sourceName)]));
+			nextValueExpr = sourcePlan.sharedArray ? GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "Get"),
+				[indexExpr]) : GoExpr.GoIndex(GoExpr.GoIdent(sourceName), indexExpr);
 			nextPrefix.push(GoStmt.GoAssign(indexExpr, GoExpr.GoBinary("+", indexExpr, GoExpr.GoIntLiteral(1))));
 		} else {
 			var iteratorName = freshTempName("hx_lambda_iterator");
@@ -857,6 +870,9 @@ class GoLambdaIterableLowering {
 	public function anyArrayCoerce(anySliceExpr:GoExpr, targetArrayType:Type):GoExpr {
 		if (!isArrayType(targetArrayType)) {
 			return anySliceExpr;
+		}
+		if (isHaxeArrayType(targetArrayType)) {
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.ArrayFromValues"), [anySliceExpr]);
 		}
 		var targetElementType = arrayElementType(targetArrayType);
 		if (targetElementType == null) {

@@ -165,21 +165,19 @@ private typedef LoopBreakTarget = {
 
 /**
 	What:
-	Represents the lowered write site for mutating an `Array` through a target
-	expression.
+	Represents the lowered write site for mutating a shared Haxe Array carrier or
+	a native slice-shaped collection through a target expression.
 
 	Why:
-	Some targets, especially anonymous-object fields lowered onto the current
-	`map[string]any` carrier, cannot be mutated safely with a raw `append(...)`
-	against the original lvalue. We need a read -> mutate temp -> write-back plan
-	that still evaluates the target expression only once. Plain local array
-	variables do not need that extra plan because assigning the local directly is
-	already single-evaluation-safe.
+	Shared carriers need receiver capture for once-only evaluation, while raw slice
+	fields may still need read -> mutate temp -> write-back when `append` replaces
+	their header. Treating both as an unexamined Go lvalue would duplicate effects
+	or lose a native header update.
 
 	How:
-	`lowerArrayMutationSite()` computes any required prefix statements, exposes the
-	slice expression that later array-method lowering mutates, and returns a write-back
-	closure when the final slice must be stored back into another carrier.
+	`lowerArrayMutationSite()` computes prefix statements, exposes the carrier/slice
+	expression that later method lowering mutates, and returns a write-back closure
+	for the native slice cases that must store a replacement header.
 **/
 private typedef ArrayMutationSite = {
 	final prefix:Array<GoStmt>;
@@ -197,6 +195,7 @@ class GoCompiler {
 	final localFunctionScopes:Array<Map<String, FunctionInfo>>;
 	final localLambdaAliasScopes:Array<Map<String, String>>;
 	final localRestIteratorScopes:Array<Array<String>>;
+	final localArrayStorageOverrides:Map<Int, Type>;
 	final requiredStdlibShimGroups:Map<String, Bool>;
 	final requiredNativeChanElementTypes:Map<String, Bool>;
 	final requiredNativeSliceElementTypes:Map<String, Bool>;
@@ -255,6 +254,7 @@ class GoCompiler {
 		localFunctionScopes = [];
 		localLambdaAliasScopes = [];
 		localRestIteratorScopes = [];
+		localArrayStorageOverrides = new Map<Int, Type>();
 		requiredStdlibShimGroups = new Map<String, Bool>();
 		requiredNativeChanElementTypes = new Map<String, Bool>();
 		requiredNativeSliceElementTypes = new Map<String, Bool>();
@@ -310,6 +310,7 @@ class GoCompiler {
 			lowerToStatements: lowerToStatements,
 			freshTempName: freshTempName,
 			isArrayType: isArrayType,
+			isHaxeArrayType: isHaxeArrayType,
 			arrayElementType: arrayElementType,
 			arrayElementGoType: arrayElementGoType,
 			haxeDsListElementType: haxeDsListElementType,
@@ -459,7 +460,39 @@ class GoCompiler {
 			generated.push(renderGeneratedFile(nextGoFileName("support", usedFileNames), preludeDecls.concat(supportDecls), supportImports));
 		}
 
+		if (generatedUsesSharedArraySurface(generated)) {
+			inferredRuntimeFeatures = GoHxrtFeatureAnalyzer.expandWithReasons(inferredRuntimeFeatures.features.concat([GoHxrtFeatureAnalyzer.FEATURE_ARRAY]),
+				inferredRuntimeFeatures.reasons.concat([
+					{
+						feature: GoHxrtFeatureAnalyzer.FEATURE_ARRAY,
+						sourceKind: "generated_surface",
+						source: "hxrt.Array"
+					}
+				]));
+		}
+		compilationContext.inferredHxrtFeatures = inferredRuntimeFeatures.features;
+		compilationContext.inferredHxrtFeatureReasons = inferredRuntimeFeatures.reasons;
+
 		return generated;
+	}
+
+	/**
+		What: Detects whether final generated Go references the selectively packaged
+		portable Array carrier.
+		Why: The Haxe typer visits unused core Array signatures even in programs that
+		emit no arrays, so class-usage inference would copy `array.go` into every build.
+		How: Inspect only final printer output for the closed carrier constructor/type
+		markers, after DCE and source-owned planning have selected actual declarations.
+	**/
+	function generatedUsesSharedArraySurface(files:Array<GoGeneratedFile>):Bool {
+		for (file in files) {
+			if (file.contents.indexOf("*hxrt.Array") != -1
+				|| file.contents.indexOf("hxrt.NewArray") != -1
+				|| file.contents.indexOf("hxrt.ArrayFromValues") != -1) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -918,6 +951,8 @@ class GoCompiler {
 					}
 					used;
 				}
+			case GoMakeSlice(elementType, length, capacity): typeNameUsesImportAlias(elementType,
+					alias) || exprUsesImportAlias(length, alias) || (capacity != null && exprUsesImportAlias(capacity, alias));
 			case GoFuncLiteral(params, results, body):
 				var used = false;
 				for (param in params) {
@@ -1183,12 +1218,12 @@ class GoCompiler {
 		return "\"" + escaped + "\"";
 	}
 
-	function goStringPointerArrayLiteral(values:Array<String>):String {
+	function goStringArrayCarrierLiteral(values:Array<String>):String {
 		if (values.length == 0) {
-			return "[]*string{}";
+			return "hxrt.NewArray()";
 		}
 		var entries = [for (value in values) "hxrt.StringFromLiteral(" + goRawQuotedString(value) + ")"];
-		return "[]*string{" + entries.join(", ") + "}";
+		return "hxrt.NewArray(" + entries.join(", ") + ")";
 	}
 
 	/**
@@ -1199,17 +1234,17 @@ class GoCompiler {
 		(`Context.getResources()` / `__resources__()`), not reusable Haxe source. If we
 		do nothing, generated Go has the helper methods but an empty content table.
 
-		How: sort resource names for deterministic output and emit the existing
-		`Array<{name,data,str}>` shape as `[]map[string]any`, storing every payload in the
-		`data` field as base64 so both text and binary resources flow through the std
-		`getString` / `getBytes` decode paths unchanged.
+		How: sort resource names for deterministic output and place the existing
+		`{name,data,str}` records in the shared Array carrier, storing every payload in
+		the `data` field as base64 so both text and binary resources flow through the
+		stdlib `getString` / `getBytes` decode paths unchanged.
 	**/
 	function haxeResourceContentLiteral():GoExpr {
 		var resources = Context.getResources();
 		var names = [for (name in resources.keys()) name];
 		names.sort(function(a, b) return Reflect.compare(a, b));
 		if (names.length == 0) {
-			return GoExpr.GoRaw("[]map[string]any{}");
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewArray"), []);
 		}
 
 		var entries = new Array<String>();
@@ -1219,7 +1254,7 @@ class GoCompiler {
 			entries.push('map[string]any{"name": hxrt.StringFromLiteral(' + goRawQuotedString(name) + '), "data": hxrt.StringFromLiteral('
 				+ goRawQuotedString(encoded) + '), "str": nil}');
 		}
-		return GoExpr.GoRaw("[]map[string]any{" + entries.join(", ") + "}");
+		return GoExpr.GoRaw("hxrt.NewArray(" + entries.join(", ") + ")");
 	}
 
 	function classHasInstanceLayout(classType:ClassType):Bool {
@@ -4217,7 +4252,7 @@ class GoCompiler {
 				{name: "mimeType", typeName: "...*string"}
 			],
 				[], [GoStmt.GoRaw("self.fileTransfer(argname, filename, file, size, mimeType...)")]),
-			GoDecl.GoFuncDecl("getResponseHeaderValues", {name: "self", typeName: "*sys__Http"}, [{name: "key", typeName: "*string"}], ["[]*string"], [
+			GoDecl.GoFuncDecl("getResponseHeaderValues", {name: "self", typeName: "*sys__Http"}, [{name: "key", typeName: "*string"}], ["*hxrt.Array"], [
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("sys__GoHttpHelpers_getResponseHeaderValues"), [GoExpr.GoIdent("self"), GoExpr.GoIdent("key")]))
 			]),
 			GoDecl.GoFuncDecl("get_responseData", {
@@ -4958,70 +4993,70 @@ class GoCompiler {
 				name: "obj",
 				typeName: "any"
 			}
-		], ["[]*string"], [
+		], ["*hxrt.Array"], [
 			GoStmt.GoRaw("if obj == nil {"),
-			GoStmt.GoRaw("\treturn []*string{}"),
+			GoStmt.GoRaw("\treturn hxrt.NewArray()"),
 			GoStmt.GoRaw("}"),
 			GoStmt.GoRaw("switch value := obj.(type) {"),
 			GoStmt.GoRaw("case map[string]any:"),
-			GoStmt.GoRaw("\tkeys := make([]*string, 0, len(value))"),
+			GoStmt.GoRaw("\tkeys := hxrt.NewArray()"),
 			GoStmt.GoRaw("\tfor key := range value {"),
-			GoStmt.GoRaw("\t\tkeys = append(keys, hxrt.StringFromLiteral(key))"),
+			GoStmt.GoRaw("\t\tkeys.Push(hxrt.StringFromLiteral(key))"),
 			GoStmt.GoRaw("\t}"),
 			GoStmt.GoRaw("\treturn keys"),
 			GoStmt.GoRaw("case map[any]any:"),
-			GoStmt.GoRaw("\tkeys := make([]*string, 0, len(value))"),
+			GoStmt.GoRaw("\tkeys := hxrt.NewArray()"),
 			GoStmt.GoRaw("\tfor key := range value {"),
-			GoStmt.GoRaw("\t\tkeys = append(keys, hxrt.StdString(key))"),
+			GoStmt.GoRaw("\t\tkeys.Push(hxrt.StdString(key))"),
 			GoStmt.GoRaw("\t}"),
 			GoStmt.GoRaw("\treturn keys"),
 			GoStmt.GoRaw("case *map[string]any:"),
 			GoStmt.GoRaw("\tif value == nil {"),
-			GoStmt.GoRaw("\t\treturn []*string{}"),
+			GoStmt.GoRaw("\t\treturn hxrt.NewArray()"),
 			GoStmt.GoRaw("\t}"),
-			GoStmt.GoRaw("\tkeys := make([]*string, 0, len(*value))"),
+			GoStmt.GoRaw("\tkeys := hxrt.NewArray()"),
 			GoStmt.GoRaw("\tfor key := range *value {"),
-			GoStmt.GoRaw("\t\tkeys = append(keys, hxrt.StringFromLiteral(key))"),
+			GoStmt.GoRaw("\t\tkeys.Push(hxrt.StringFromLiteral(key))"),
 			GoStmt.GoRaw("\t}"),
 			GoStmt.GoRaw("\treturn keys"),
 			GoStmt.GoRaw("case *map[any]any:"),
 			GoStmt.GoRaw("\tif value == nil {"),
-			GoStmt.GoRaw("\t\treturn []*string{}"),
+			GoStmt.GoRaw("\t\treturn hxrt.NewArray()"),
 			GoStmt.GoRaw("\t}"),
-			GoStmt.GoRaw("\tkeys := make([]*string, 0, len(*value))"),
+			GoStmt.GoRaw("\tkeys := hxrt.NewArray()"),
 			GoStmt.GoRaw("\tfor key := range *value {"),
-			GoStmt.GoRaw("\t\tkeys = append(keys, hxrt.StdString(key))"),
+			GoStmt.GoRaw("\t\tkeys.Push(hxrt.StdString(key))"),
 			GoStmt.GoRaw("\t}"),
 			GoStmt.GoRaw("\treturn keys"),
 			GoStmt.GoRaw("}"),
 			GoStmt.GoRaw("rv := reflect.ValueOf(obj)"),
 			GoStmt.GoRaw("if !rv.IsValid() {"),
-			GoStmt.GoRaw("\treturn []*string{}"),
+			GoStmt.GoRaw("\treturn hxrt.NewArray()"),
 			GoStmt.GoRaw("}"),
 			GoStmt.GoRaw("if rv.Kind() == reflect.Pointer {"),
 			GoStmt.GoRaw("\tif rv.IsNil() {"),
-			GoStmt.GoRaw("\t\treturn []*string{}"),
+			GoStmt.GoRaw("\t\treturn hxrt.NewArray()"),
 			GoStmt.GoRaw("\t}"),
 			GoStmt.GoRaw("\trv = rv.Elem()"),
 			GoStmt.GoRaw("}"),
 			GoStmt.GoRaw("if rv.Kind() != reflect.Struct {"),
-			GoStmt.GoRaw("\treturn []*string{}"),
+			GoStmt.GoRaw("\treturn hxrt.NewArray()"),
 			GoStmt.GoRaw("}"),
 			GoStmt.GoRaw("rt := rv.Type()"),
-			GoStmt.GoRaw("keys := make([]*string, 0, rv.NumField())"),
+			GoStmt.GoRaw("keys := hxrt.NewArray()"),
 			GoStmt.GoRaw("for i := 0; i < rv.NumField(); i++ {"),
 			GoStmt.GoRaw("\tfield := rt.Field(i)"),
 			GoStmt.GoRaw("\tif field.PkgPath != \"\" {"),
 			GoStmt.GoRaw("\t\tcontinue"),
 			GoStmt.GoRaw("\t}"),
-			GoStmt.GoRaw("\tkeys = append(keys, hxrt.StringFromLiteral(field.Name))"),
+			GoStmt.GoRaw("\tkeys.Push(hxrt.StringFromLiteral(field.Name))"),
 			GoStmt.GoRaw("}"),
 			GoStmt.GoRaw("return keys")
 		]);
 	}
 
 	function lowerTypeReflectionShimDecls():Array<GoDecl> {
-		return GoTypeReflectionEmitter.emit(typeReflectionClassMetadata(), typeReflectionEnumMetadata(), goRawQuotedString, goStringPointerArrayLiteral)
+		return GoTypeReflectionEmitter.emit(typeReflectionClassMetadata(), typeReflectionEnumMetadata(), goRawQuotedString, goStringArrayCarrierLiteral)
 			.concat(GoRttiMetadataEmitter.emit(rttiClassMetadata(), goRawQuotedString));
 	}
 
@@ -5141,7 +5176,7 @@ class GoCompiler {
 						haxeResourceContentLiteral();
 					} else {
 						var valueExpr = field.expr();
-						valueExpr == null ? null : lowerExpr(valueExpr).expr;
+						valueExpr == null ? null : materializeExprWithPrefix(lowerExprWithExpectedUpcast(valueExpr, field.type), field.type).expr;
 					}
 					decls.push(GoDecl.GoGlobalVarDecl(symbol, scalarGoType(field.type), loweredValue));
 				case FMethod(_):
@@ -5856,11 +5891,12 @@ class GoCompiler {
 				var loweredValue = lowered == null ? null : lowered.expr;
 				if (value != null && loweredValue != null) {
 					var valueKnownNonNullPrimitive = nonNullPrimitiveExprGoType(value) != null;
-					loweredValue = coerceAnyExprToType(loweredValue, value.t, variable.t,
-						(exprBackedByAny(value) && !valueKnownNonNullPrimitive)
-						|| shouldForceAnyCoerce(value.t, variable.t));
+					loweredValue = coerceAnyExprToType(loweredValue, value.t, variable.t, !isSharedArrayElementExpr(value) && ((exprBackedByAny(value)
+						&& !valueKnownNonNullPrimitive)
+						|| shouldForceAnyCoerce(value.t, variable.t)));
 				}
-				var goType = valueStorageGoType(variable.t);
+				var storageOverride = localArrayStorageOverrides.exists(variable.id) ? localArrayStorageOverrides.get(variable.id) : null;
+				var goType = storageOverride == null ? valueStorageGoType(variable.t) : typeToGoType(storageOverride);
 				var narrowedStorageGoType = value == null ? null : nonNullPrimitiveExprGoType(value);
 				// Keep storage narrowing local to immutable-after-declaration vars; reassigned
 				// nullable primitives still need nil-capable storage for later writes.
@@ -5882,28 +5918,45 @@ class GoCompiler {
 			case TBinop(op, left, right):
 				switch (op) {
 					case OpAssign:
-						var loweredRight = lowerExprWithExpectedUpcast(right, left.t);
-						var lengthAssignStmts = lowerArrayLengthAssign(left, loweredRight.expr);
-						var assignStmts = if (lengthAssignStmts != null) {
-							lengthAssignStmts;
+						var indexedArrayAssign = lowerHaxeArrayIndexAssignStatements(left, right);
+						if (indexedArrayAssign != null) {
+							indexedArrayAssign;
 						} else {
-							[GoStmt.GoAssign(lowerLValue(left), loweredRight.expr)];
-						};
-						if (loweredRight.prefix.length > 0) {
-							loweredRight.prefix.concat(assignStmts);
-						} else {
-							assignStmts;
+							var loweredRight = lowerExprWithExpectedUpcast(right, assignmentStorageType(left));
+							var lengthAssignStmts = lowerArrayLengthAssign(left, loweredRight.expr);
+							var assignStmts = if (lengthAssignStmts != null) {
+								lengthAssignStmts;
+							} else {
+								[GoStmt.GoAssign(lowerLValue(left), loweredRight.expr)];
+							};
+							if (loweredRight.prefix.length > 0) {
+								loweredRight.prefix.concat(assignStmts);
+							} else {
+								assignStmts;
+							}
 						}
 					case OpAssignOp(assignOp):
-						var loweredRight = lowerExprWithPrefix(right);
-						var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t, right);
-						var targetExpr = lowerLValue(left);
-						var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t, expr.pos);
-						var assignStmt = GoStmt.GoAssign(targetExpr, assignExpr);
-						if (loweredRight.prefix.length > 0) {
-							loweredRight.prefix.concat([assignStmt]);
+						var sharedArrayAssign = lowerHaxeArrayIndexAssignOpExpr(left, right, assignOp, expr.pos);
+						if (sharedArrayAssign != null) {
+							exprStatement(sharedArrayAssign.expr);
 						} else {
-							[assignStmt];
+							var loweredRight = lowerExprWithPrefix(right);
+							var stringAppendFromSharedArray = assignOp == OpAdd
+								&& (isStringType(left.t) || isStringType(right.t))
+								&& isSharedArrayElementExpr(right);
+							var rightExpr = stringAppendFromSharedArray ? lowerSharedArrayElementStorageExpr(right) : upcastIfNeeded(loweredRight.expr,
+								right.t, left.t, right);
+							if (!stringAppendFromSharedArray && isSharedArrayElementExpr(right)) {
+								rightExpr = coerceStoredArrayElementExpr(rightExpr, left.t);
+							}
+							var targetExpr = lowerLValue(left);
+							var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t, expr.pos, stringAppendFromSharedArray);
+							var assignStmt = GoStmt.GoAssign(targetExpr, assignExpr);
+							if (loweredRight.prefix.length > 0) {
+								loweredRight.prefix.concat([assignStmt]);
+							} else {
+								[assignStmt];
+							}
 						}
 					case _:
 						exprStatement(lowerExpr(expr).expr);
@@ -5934,18 +5987,28 @@ class GoCompiler {
 				[GoStmt.GoBreak(switchDepth > 0 ? currentLoopBreakLabel() : null)];
 			case TContinue:
 				[GoStmt.GoContinue];
-			case TUnop(op, _, value):
+			case TUnop(op, postFix, value):
 				switch (op) {
 					case OpIncrement:
-						var target = lowerLValue(value);
-						[
-							GoStmt.GoAssign(target, unitStepExpr(target, GoBinaryOperator.Add, value.t, expr.pos))
-						];
+						var sharedArrayUnit = lowerHaxeArrayIndexUnitExpr(value, op, postFix, expr.pos);
+						if (sharedArrayUnit != null) {
+							exprStatement(sharedArrayUnit.expr);
+						} else {
+							var target = lowerLValue(value);
+							[
+								GoStmt.GoAssign(target, unitStepExpr(target, GoBinaryOperator.Add, value.t, expr.pos))
+							];
+						}
 					case OpDecrement:
-						var target = lowerLValue(value);
-						[
-							GoStmt.GoAssign(target, unitStepExpr(target, GoBinaryOperator.Subtract, value.t, expr.pos))
-						];
+						var sharedArrayUnit = lowerHaxeArrayIndexUnitExpr(value, op, postFix, expr.pos);
+						if (sharedArrayUnit != null) {
+							exprStatement(sharedArrayUnit.expr);
+						} else {
+							var target = lowerLValue(value);
+							[
+								GoStmt.GoAssign(target, unitStepExpr(target, GoBinaryOperator.Subtract, value.t, expr.pos))
+							];
+						}
 					case _:
 						exprStatement(lowerExpr(expr).expr);
 				}
@@ -5999,25 +6062,38 @@ class GoCompiler {
 					if (arrayCall != null && arrayCall.methodName == "push") {
 						var site = lowerArrayMutationSite(arrayCall.target);
 						var shouldMaskToByte = isBytesBufferStorageArray(arrayCall.target);
-						var appendArgs = [site.tempExpr];
+						var pushArgs = usesSharedArrayCarrier(arrayCall.target) ? [] : [site.tempExpr];
+						var body = site.prefix.copy();
 						for (arg in args) {
-							var appendValue = lowerExpr(arg).expr;
+							var loweredArg = lowerExprWithPrefix(arg);
+							body = body.concat(loweredArg.prefix);
+							var appendValue = loweredArg.expr;
 							if (shouldMaskToByte) {
 								appendValue = GoExpr.GoBinary("&", appendValue, GoExpr.GoIntLiteral(255));
 							}
-							appendArgs.push(appendValue);
+							pushArgs.push(appendValue);
 						}
-						site.prefix.concat([
-							GoStmt.GoAssign(site.tempExpr, GoExpr.GoCall(GoExpr.GoIdent("append"), appendArgs))
-						]).concat(site.writeBack(site.tempExpr));
+						if (usesSharedArrayCarrier(arrayCall.target)) {
+							body.concat([
+								GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(site.tempExpr, "Push"), pushArgs))
+							]);
+						} else {
+							body.concat([
+								GoStmt.GoAssign(site.tempExpr, GoExpr.GoCall(GoExpr.GoIdent("append"), pushArgs))
+							]).concat(site.writeBack(site.tempExpr));
+						}
 					} else if (arrayCall != null && arrayCall.methodName == "pop") {
 						var site = lowerArrayMutationSite(arrayCall.target);
-						var lenExpr = GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]);
-						site.prefix.concat([
-							GoStmt.GoIf(GoExpr.GoBinary(">", lenExpr, GoExpr.GoIntLiteral(0)), [
-								GoStmt.GoAssign(site.tempExpr, GoExpr.GoSlice(site.tempExpr, null, GoExpr.GoBinary("-", lenExpr, GoExpr.GoIntLiteral(1))))
-							], null)
-						]).concat(site.writeBack(site.tempExpr));
+						if (usesSharedArrayCarrier(arrayCall.target)) {
+							site.prefix.concat([GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(site.tempExpr, "Pop"), []))]);
+						} else {
+							var lenExpr = GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]);
+							site.prefix.concat([
+								GoStmt.GoIf(GoExpr.GoBinary(">", lenExpr, GoExpr.GoIntLiteral(0)), [
+									GoStmt.GoAssign(site.tempExpr, GoExpr.GoSlice(site.tempExpr, null, GoExpr.GoBinary("-", lenExpr, GoExpr.GoIntLiteral(1))))
+								], null)
+							]).concat(site.writeBack(site.tempExpr));
+						}
 					} else {
 						exprStatement(lowerCall(callee, args, expr.t).expr);
 					}
@@ -6077,6 +6153,156 @@ class GoCompiler {
 		};
 	}
 
+	/**
+		What: Lowers one indexed write through the shared portable Array carrier.
+		Why: Direct Go indexing cannot grow sparse Haxe arrays and cannot update one
+		shared header across aliases.
+		How: Evaluate receiver, index, and value once in source order, then call the
+		carrier's typed boundary method that owns null-filled growth.
+	**/
+	function lowerHaxeArrayIndexAssignStatements(left:TypedExpr, right:TypedExpr):Null<Array<GoStmt>> {
+		return switch (left.expr) {
+			case TArray(target, index) if (usesSharedArrayCarrier(target)):
+				var loweredTarget = lowerExprWithPrefix(target);
+				var loweredIndex = lowerExprWithPrefix(index);
+				var loweredRight = lowerExprWithExpectedUpcast(right, left.t);
+				var targetName = freshTempName("hx_array_target");
+				var indexName = freshTempName("hx_array_index");
+				var targetExpr = GoExpr.GoIdent(targetName);
+				loweredTarget.prefix.concat([GoStmt.GoVarDecl(targetName, "*hxrt.Array", loweredTarget.expr, true)])
+					.concat(loweredIndex.prefix)
+					.concat([GoStmt.GoVarDecl(indexName, "int", loweredIndex.expr, true)])
+					.concat(loweredRight.prefix)
+					.concat([
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(targetExpr, "Set"), [GoExpr.GoIdent(indexName), loweredRight.expr]))
+					]);
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				lowerHaxeArrayIndexAssignStatements(inner, right);
+			case _:
+				null;
+		};
+	}
+
+	function lowerHaxeArrayIndexAssignExpr(left:TypedExpr, right:TypedExpr):Null<LoweredExpr> {
+		return switch (left.expr) {
+			case TArray(target, index) if (usesSharedArrayCarrier(target)):
+				var loweredTarget = lowerExprWithPrefix(target);
+				var loweredIndex = lowerExprWithPrefix(index);
+				var loweredRight = lowerExprWithExpectedUpcast(right, left.t);
+				var targetName = freshTempName("hx_array_target");
+				var indexName = freshTempName("hx_array_index");
+				var assigned = GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(targetName), "Set"), [GoExpr.GoIdent(indexName), loweredRight.expr]);
+				var result = coerceAnyExprToType(assigned, left.t, left.t, true);
+				var prefix = loweredTarget.prefix.concat([GoStmt.GoVarDecl(targetName, "*hxrt.Array", loweredTarget.expr, true)])
+					.concat(loweredIndex.prefix)
+					.concat([GoStmt.GoVarDecl(indexName, "int", loweredIndex.expr, true)])
+					.concat(loweredRight.prefix);
+				{
+					expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)], prefix.concat([GoStmt.GoReturn(result)])), []),
+					isStringLike: isStringType(left.t)
+				};
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				lowerHaxeArrayIndexAssignExpr(inner, right);
+			case _:
+				null;
+		};
+	}
+
+	/**
+		What: Lowers a compound indexed mutation through the shared Array carrier.
+		Why: A carrier pointer is not a Go indexable lvalue, and expanding the source
+		operation with repeated receiver/index expressions would duplicate side effects.
+		How: Capture receiver, index, and the current typed element in source order,
+		then evaluate the right side once, compute the assigned value, store it through
+		`Set`, and return that same value for expression-form assignments.
+	**/
+	function lowerHaxeArrayIndexAssignOpExpr(left:TypedExpr, right:TypedExpr, op:Binop, sourcePos:haxe.macro.Expr.Position):Null<LoweredExpr> {
+		return switch (left.expr) {
+			case TArray(target, index) if (usesSharedArrayCarrier(target)):
+				var loweredTarget = lowerExprWithPrefix(target);
+				var loweredIndex = lowerExprWithPrefix(index);
+				var loweredRight = lowerExprWithPrefix(right);
+				var targetName = freshTempName("hx_array_target");
+				var indexName = freshTempName("hx_array_index");
+				var currentName = freshTempName("hx_array_current");
+				var assignedName = freshTempName("hx_array_assigned");
+				var targetExpr = GoExpr.GoIdent(targetName);
+				var indexExpr = GoExpr.GoIdent(indexName);
+				var currentExpr = coerceStoredArrayElementExpr(GoExpr.GoCall(GoExpr.GoSelector(targetExpr, "Get"), [indexExpr]), left.t);
+				var stringAppendFromSharedArray = op == OpAdd
+					&& (isStringType(left.t) || isStringType(right.t))
+					&& isSharedArrayElementExpr(right);
+				var rightExpr = stringAppendFromSharedArray ? lowerSharedArrayElementStorageExpr(right) : upcastIfNeeded(loweredRight.expr, right.t, left.t,
+					right);
+				if (!stringAppendFromSharedArray && isSharedArrayElementExpr(right)) {
+					rightExpr = coerceStoredArrayElementExpr(rightExpr, left.t);
+				}
+				var assignedExpr = lowerAssignOpExpr(op, GoExpr.GoIdent(currentName), rightExpr, left.t, right.t, sourcePos, stringAppendFromSharedArray);
+				var resultGoType = valueStorageGoType(left.t);
+				var body = loweredTarget.prefix.concat([GoStmt.GoVarDecl(targetName, "*hxrt.Array", loweredTarget.expr, true)])
+					.concat(loweredIndex.prefix)
+					.concat([
+						GoStmt.GoVarDecl(indexName, "int", loweredIndex.expr, true),
+						GoStmt.GoVarDecl(currentName, resultGoType, currentExpr, false)
+					])
+					.concat(loweredRight.prefix)
+					.concat([
+						GoStmt.GoVarDecl(assignedName, resultGoType, assignedExpr, false),
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(targetExpr, "Set"), [indexExpr, GoExpr.GoIdent(assignedName)])),
+						GoStmt.GoReturn(GoExpr.GoIdent(assignedName))
+					]);
+				{
+					expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [resultGoType], body), []),
+					isStringLike: isStringType(left.t)
+				};
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				lowerHaxeArrayIndexAssignOpExpr(inner, right, op, sourcePos);
+			case _:
+				null;
+		};
+	}
+
+	/**
+		What: Lowers prefix/postfix increment and decrement on one shared Array slot.
+		Why: Unary mutation needs the same once-only receiver/index capture as compound
+		assignment, plus the correct old-vs-new expression result.
+		How: Read the typed element once, compute and store the next value through
+		`Set`, then return the captured old value for postfix or the new value for prefix.
+	**/
+	function lowerHaxeArrayIndexUnitExpr(value:TypedExpr, op:Unop, postFix:Bool, sourcePos:haxe.macro.Expr.Position):Null<LoweredExpr> {
+		return switch (value.expr) {
+			case TArray(target, index) if (usesSharedArrayCarrier(target)):
+				var loweredTarget = lowerExprWithPrefix(target);
+				var loweredIndex = lowerExprWithPrefix(index);
+				var targetName = freshTempName("hx_array_target");
+				var indexName = freshTempName("hx_array_index");
+				var currentName = freshTempName("hx_array_current");
+				var nextName = freshTempName("hx_array_next");
+				var targetExpr = GoExpr.GoIdent(targetName);
+				var indexExpr = GoExpr.GoIdent(indexName);
+				var currentExpr = coerceStoredArrayElementExpr(GoExpr.GoCall(GoExpr.GoSelector(targetExpr, "Get"), [indexExpr]), value.t);
+				var opSymbol = op == OpIncrement ? GoBinaryOperator.Add : GoBinaryOperator.Subtract;
+				var resultGoType = valueStorageGoType(value.t);
+				var body = loweredTarget.prefix.concat([GoStmt.GoVarDecl(targetName, "*hxrt.Array", loweredTarget.expr, true)])
+					.concat(loweredIndex.prefix)
+					.concat([
+						GoStmt.GoVarDecl(indexName, "int", loweredIndex.expr, true),
+						GoStmt.GoVarDecl(currentName, resultGoType, currentExpr, false),
+						GoStmt.GoVarDecl(nextName, resultGoType, unitStepExpr(GoExpr.GoIdent(currentName), opSymbol, value.t, sourcePos), false),
+						GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(targetExpr, "Set"), [indexExpr, GoExpr.GoIdent(nextName)])),
+						GoStmt.GoReturn(GoExpr.GoIdent(postFix ? currentName : nextName))
+					]);
+				{
+					expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [resultGoType], body), []),
+					isStringLike: false
+				};
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				lowerHaxeArrayIndexUnitExpr(inner, op, postFix, sourcePos);
+			case _:
+				null;
+		};
+	}
+
 	function lowerArrayLengthAssign(left:TypedExpr, rightExpr:GoExpr):Null<Array<GoStmt>> {
 		return switch (left.expr) {
 			case TField(target, access):
@@ -6085,6 +6311,11 @@ class GoCompiler {
 					null;
 				} else {
 					var targetExpr = lowerExpr(target).expr;
+					if (usesSharedArrayCarrier(target)) {
+						return [
+							GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(targetExpr, "SetLength"), [rightExpr]))
+						];
+					}
 					var desiredLenName = freshTempName("hx_len");
 					var zeroName = freshTempName("hx_zero");
 					var desiredLen = GoExpr.GoIdent(desiredLenName);
@@ -7591,23 +7822,32 @@ class GoCompiler {
 		};
 	}
 
+	/** Resolves a local's representation-only array type for assignments. */
+	function assignmentStorageType(expr:TypedExpr):Type {
+		return switch (expr.expr) {
+			case TLocal(variable):
+				localArrayStorageOverrides.exists(variable.id) ? localArrayStorageOverrides.get(variable.id) : expr.t;
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				assignmentStorageType(inner);
+			case _:
+				expr.t;
+		};
+	}
+
 	/**
 		What:
-		Builds a safe array mutation plan for length-changing `Array` operations.
+		Builds a safe mutation plan for shared Arrays and raw native slices.
 
 		Why:
-		Anonymous-record field lvalues need a temporary slice plus explicit
-		write-back to stay correct on Go. Plain local array lvalues can mutate the
-		local directly, which keeps generated Go readable without weakening the
-		anonymous-field safety fix.
+		The shared carrier owns header updates internally. Raw Go slices still require
+		explicit write-back when `append` replaces a field or computed lvalue header.
 
 		How:
-		Returns prefix statements that capture the target once when needed, the slice
-		expression to mutate, and a write-back closure that stores the final slice in
-		the right place after push, pop, remove, or insert when direct assignment is
-		not enough.
+		Keep plain locals direct. Capture other receivers once; retain the original
+		raw-slice write-back paths, while shared carriers use a no-op write-back.
 	**/
 	function lowerArrayMutationSite(target:TypedExpr):ArrayMutationSite {
+		var shared = usesSharedArrayCarrier(target);
 		var sliceType = typeToGoType(target.t);
 		var tempName = freshTempName("hx_arr");
 		var tempExpr = GoExpr.GoIdent(tempName);
@@ -7622,7 +7862,7 @@ class GoCompiler {
 						return [];
 					}
 				};
-			case TField(parent, FAnon(field)) if (isAnonymousObjectType(parent.t)):
+			case TField(parent, FAnon(field)) if (!shared && isAnonymousObjectType(parent.t)):
 				var objectName = freshTempName("hx_obj");
 				var objectExpr = GoExpr.GoIdent(objectName);
 				var fieldName = field.get().name;
@@ -7639,7 +7879,7 @@ class GoCompiler {
 						];
 					}
 				};
-			case TField(parent, FDynamic(name)) if (isAnonymousObjectType(parent.t)):
+			case TField(parent, FDynamic(name)) if (!shared && isAnonymousObjectType(parent.t)):
 				var objectName = freshTempName("hx_obj");
 				var objectExpr = GoExpr.GoIdent(objectName);
 				{
@@ -7660,13 +7900,13 @@ class GoCompiler {
 			case TCast(inner, _):
 				lowerArrayMutationSite(inner);
 			case _:
-				var targetExpr = lowerLValue(target);
+				var targetExpr:GoExpr = shared ? GoExpr.GoNil : lowerLValue(target);
 				{
 					prefix: [GoStmt.GoVarDecl(tempName, sliceType, lowerExpr(target).expr, true)],
 					tempExpr: tempExpr,
 					sliceType: sliceType,
 					writeBack: function(value:GoExpr):Array<GoStmt> {
-						return [GoStmt.GoAssign(targetExpr, value)];
+						return shared ? [] : [GoStmt.GoAssign(targetExpr, value)];
 					}
 				};
 		};
@@ -7678,7 +7918,9 @@ class GoCompiler {
 				lowerConst(constant);
 			case TArrayDecl(values):
 				{
-					expr: GoExpr.GoArrayLiteral(arrayElementGoType(expr.t), [for (value in values) lowerExpr(value).expr]),
+					expr: isHaxeArrayType(expr.t) ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewArray"),
+						[for (value in values) lowerExpr(value).expr]) : GoExpr.GoArrayLiteral(arrayElementGoType(expr.t),
+							[for (value in values) lowerExpr(value).expr]),
 					isStringLike: false
 				};
 			case TObjectDecl(fields):
@@ -7692,7 +7934,8 @@ class GoCompiler {
 				}
 			case TArray(target, index):
 				{
-					expr: GoExpr.GoIndex(lowerExpr(target).expr, lowerExpr(index).expr),
+					expr: usesSharedArrayCarrier(target) ? GoExpr.GoCall(GoExpr.GoSelector(lowerExpr(target).expr, "Get"),
+						[lowerExpr(index).expr]) : GoExpr.GoIndex(lowerExpr(target).expr, lowerExpr(index).expr),
 					isStringLike: isStringType(expr.t)
 				};
 			case TEnumIndex(inner):
@@ -7759,7 +8002,7 @@ class GoCompiler {
 					}
 				} else if (classType.pack.length == 0 && classType.name == "Array") {
 					{
-						expr: GoExpr.GoArrayLiteral(arrayElementGoType(expr.t), []),
+						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewArray"), []),
 						isStringLike: false
 					};
 				} else {
@@ -7783,7 +8026,8 @@ class GoCompiler {
 			case TLocal(variable):
 				var localExpr:GoExpr = GoExpr.GoIdent(localVarName(variable));
 				var narrowedStorageGoType = registeredNarrowedPrimitiveStorageGoType(variable);
-				var variableGoType = narrowedStorageGoType == null ? valueStorageGoType(variable.t) : narrowedStorageGoType;
+				var arrayStorageOverride = localArrayStorageOverrides.exists(variable.id) ? localArrayStorageOverrides.get(variable.id) : null;
+				var variableGoType = arrayStorageOverride != null ? typeToGoType(arrayStorageOverride) : (narrowedStorageGoType == null ? valueStorageGoType(variable.t) : narrowedStorageGoType);
 				var exprGoType = valueStorageGoType(expr.t);
 				var optionalPrimitiveGoType = registeredOptionalPrimitiveParamGoType(variable);
 				var nonNullPrimitiveGoType = registeredNonNullPrimitiveLocalGoType(variable);
@@ -7814,7 +8058,11 @@ class GoCompiler {
 				var innerGoType = typeToGoType(inner.t);
 				var castGoType = typeToGoType(expr.t);
 				var castExpr = loweredInner.expr;
-				if (innerGoType != castGoType) {
+				// Array-like casts inside inline abstracts expose their underlying storage.
+				// Convert only when an assignment, call, or return supplies a real expected
+				// type; converting here turns every Vector index/length access into a copy.
+				var storageTransparentArrayCast = isArrayType(inner.t) && isArrayType(expr.t);
+				if (!storageTransparentArrayCast && innerGoType != castGoType) {
 					if (castGoType != "any" && innerGoType == "any") {
 						castExpr = lowerNullableAwareTypeAssertExpr(castExpr, expr.t);
 					} else if (castGoType == "any" && innerGoType != "any") {
@@ -7850,30 +8098,51 @@ class GoCompiler {
 			case TBinop(op, left, right):
 				switch (op) {
 					case OpAssign:
-						var targetExpr = lowerLValue(left);
-						var loweredRight = lowerExprWithExpectedUpcast(right, left.t);
-						var rightExpr = loweredRight.expr;
-						{
-							expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
-								loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, rightExpr), GoStmt.GoReturn(targetExpr)])),
-								[]),
-							isStringLike: isStringType(left.t)
-						};
+						var indexedArrayAssign = lowerHaxeArrayIndexAssignExpr(left, right);
+						if (indexedArrayAssign != null) {
+							indexedArrayAssign;
+						} else {
+							var targetExpr = lowerLValue(left);
+							var loweredRight = lowerExprWithExpectedUpcast(right, assignmentStorageType(left));
+							var rightExpr = loweredRight.expr;
+							{
+								expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
+									loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, rightExpr), GoStmt.GoReturn(targetExpr)])),
+									[]),
+								isStringLike: isStringType(left.t)
+							};
+						}
 					case OpAssignOp(assignOp):
-						var targetExpr = lowerLValue(left);
-						var loweredRight = lowerExprWithPrefix(right);
-						var rightExpr = upcastIfNeeded(loweredRight.expr, right.t, left.t, right);
-						var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t, expr.pos);
-						{
-							expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
-								loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, assignExpr), GoStmt.GoReturn(targetExpr)])),
-								[]),
-							isStringLike: isStringType(left.t)
-						};
+						var sharedArrayAssign = lowerHaxeArrayIndexAssignOpExpr(left, right, assignOp, expr.pos);
+						if (sharedArrayAssign != null) {
+							sharedArrayAssign;
+						} else {
+							var targetExpr = lowerLValue(left);
+							var loweredRight = lowerExprWithPrefix(right);
+							var stringAppendFromSharedArray = assignOp == OpAdd
+								&& (isStringType(left.t) || isStringType(right.t))
+								&& isSharedArrayElementExpr(right);
+							var rightExpr = stringAppendFromSharedArray ? lowerSharedArrayElementStorageExpr(right) : upcastIfNeeded(loweredRight.expr,
+								right.t, left.t, right);
+							if (!stringAppendFromSharedArray && isSharedArrayElementExpr(right)) {
+								rightExpr = coerceStoredArrayElementExpr(rightExpr, left.t);
+							}
+							var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t, expr.pos, stringAppendFromSharedArray);
+							{
+								expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
+									loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, assignExpr), GoStmt.GoReturn(targetExpr)])),
+									[]),
+								isStringLike: isStringType(left.t)
+							};
+						}
 					case _:
 						lowerBinop(op, left, right, expr.t);
 				}
 			case TUnop(op, postFix, value):
+				var sharedArrayUnit = (op == OpIncrement || op == OpDecrement) ? lowerHaxeArrayIndexUnitExpr(value, op, postFix, expr.pos) : null;
+				if (sharedArrayUnit != null) {
+					return sharedArrayUnit;
+				}
 				if (postFix) {
 					return switch (op) {
 						case OpIncrement, OpDecrement:
@@ -8125,7 +8394,11 @@ class GoCompiler {
 	function lowerExprWithPrefix(expr:TypedExpr):LoweredExprWithPrefix {
 		return switch (expr.expr) {
 			case TBlock(exprs):
-				if (exprs.length == 0) {
+				var storageOverride = vectorBlockStorageOverride(expr.t, exprs);
+				if (storageOverride != null) {
+					localArrayStorageOverrides.set(storageOverride.variable.id, storageOverride.storageType);
+				}
+				var result:LoweredExprWithPrefix = if (exprs.length == 0) {
 					{prefix: [], expr: GoExpr.GoNil, isStringLike: false};
 				} else {
 					var prefix = new Array<GoStmt>();
@@ -8138,7 +8411,11 @@ class GoCompiler {
 						expr: tail.expr,
 						isStringLike: tail.isStringLike
 					};
+				};
+				if (storageOverride != null) {
+					localArrayStorageOverrides.remove(storageOverride.variable.id);
 				}
+				result;
 			case TSwitch(value, cases, defaultExpr):
 				lowerSwitchExpr(value, cases, defaultExpr, expr.t);
 			case TIf(condition, thenBranch, elseBranch):
@@ -8152,11 +8429,19 @@ class GoCompiler {
 				var loweredIndex = lowerExprWithPrefix(index);
 				{
 					prefix: loweredTarget.prefix.concat(loweredIndex.prefix),
-					expr: GoExpr.GoIndex(loweredTarget.expr, loweredIndex.expr),
+					expr: usesSharedArrayCarrier(target) ? GoExpr.GoCall(GoExpr.GoSelector(loweredTarget.expr, "Get"),
+						[loweredIndex.expr]) : GoExpr.GoIndex(loweredTarget.expr, loweredIndex.expr),
 					isStringLike: isStringType(expr.t)
 				};
 			case TUnop(op, postFix, value):
-				if (postFix) {
+				var sharedArrayUnit = (op == OpIncrement || op == OpDecrement) ? lowerHaxeArrayIndexUnitExpr(value, op, postFix, expr.pos) : null;
+				if (sharedArrayUnit != null) {
+					{
+						prefix: [],
+						expr: sharedArrayUnit.expr,
+						isStringLike: sharedArrayUnit.isStringLike
+					};
+				} else if (postFix) {
 					switch (op) {
 						case OpIncrement, OpDecrement:
 							var target = lowerLValue(value);
@@ -8311,6 +8596,9 @@ class GoCompiler {
 				noteSourceOwnedStdlibUsage(classType);
 				noteIoHelperFieldUsage(classType, resolved.name);
 				var loweredTarget = lowerExpr(target).expr;
+				if (isSharedArrayElementExpr(target)) {
+					loweredTarget = coerceStoredArrayElementExpr(loweredTarget, target.t);
+				}
 				var staticInterfaceSelector = interfaceSelectorForStaticReceiver(target.t, resolved.name);
 
 				if (isSuperTarget(target) && isMethodField(resolved)) {
@@ -8373,7 +8661,8 @@ class GoCompiler {
 				}
 				if (resolved.name == "length" && isArrayType(target.t)) {
 					{
-						expr: GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]),
+						expr: usesSharedArrayCarrier(target) ? GoExpr.GoCall(GoExpr.GoSelector(loweredTarget, "Len"),
+							[]) : GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]),
 						isStringLike: false
 					};
 				} else if (classType.isInterface) {
@@ -8404,6 +8693,9 @@ class GoCompiler {
 			case FAnon(field):
 				var resolved = field.get();
 				var loweredTarget = lowerExpr(target).expr;
+				if (isSharedArrayElementExpr(target)) {
+					loweredTarget = coerceStoredArrayElementExpr(loweredTarget, target.t);
+				}
 				if (isAnonymousObjectType(target.t)) {
 					return {
 						expr: lowerAnonymousFieldRead(loweredTarget, resolved.name, resolved.type),
@@ -8432,7 +8724,8 @@ class GoCompiler {
 				}
 				if (resolved.name == "length" && isArrayType(target.t)) {
 					{
-						expr: GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]),
+						expr: usesSharedArrayCarrier(target) ? GoExpr.GoCall(GoExpr.GoSelector(loweredTarget, "Len"),
+							[]) : GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]),
 						isStringLike: false
 					};
 				} else {
@@ -8443,6 +8736,9 @@ class GoCompiler {
 				}
 			case FDynamic(name):
 				var loweredTarget = lowerExpr(target).expr;
+				if (isSharedArrayElementExpr(target) && typeToGoType(target.t) != "any") {
+					loweredTarget = coerceStoredArrayElementExpr(loweredTarget, target.t);
+				}
 				if (isAnonymousObjectType(target.t)) {
 					return {
 						expr: GoExpr.GoIndex(loweredTarget, GoExpr.GoStringLiteral(name)),
@@ -8450,7 +8746,8 @@ class GoCompiler {
 					};
 				}
 				var dynamicExpr = if (name == "length" && isArrayType(target.t)) {
-					GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]);
+					usesSharedArrayCarrier(target) ? GoExpr.GoCall(GoExpr.GoSelector(loweredTarget, "Len"),
+						[]) : GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]);
 				} else {
 					GoExpr.GoSelector(loweredTarget, normalizeIdent(name));
 				};
@@ -8461,6 +8758,9 @@ class GoCompiler {
 			case FClosure(_, field):
 				var resolved = field.get();
 				var loweredTarget = lowerExpr(target).expr;
+				if (isSharedArrayElementExpr(target)) {
+					loweredTarget = coerceStoredArrayElementExpr(loweredTarget, target.t);
+				}
 				{
 					expr: GoExpr.GoSelector(loweredTarget, normalizeIdent(resolved.name)),
 					isStringLike: isStringType(resolved.type)
@@ -8541,6 +8841,11 @@ class GoCompiler {
 		if (isStaticCall(callee, "Reflect", [], "fields")) {
 			requireStdlibShimGroup("stdlib_symbols");
 			requiresReflectFieldsShim = true;
+		}
+
+		var nativeSliceBoundaryCall = lowerNativeSliceBoundaryCall(callee, args, returnType);
+		if (nativeSliceBoundaryCall != null) {
+			return nativeSliceBoundaryCall;
 		}
 
 		var arrayInstanceCall = lowerArrayInstanceCall(callee, args, returnType);
@@ -8763,8 +9068,12 @@ class GoCompiler {
 				loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType, arg);
 				if (!isNullablePrimitiveType(paramType)) {
 					var argKnownNonNullPrimitive = nonNullPrimitiveExprGoType(arg) != null;
-					loweredArg = coerceAnyExprToType(loweredArg, arg.t, paramType, !argKnownNonNullPrimitive && (exprBackedByAny(arg)
-						|| shouldForceAnyCoerce(arg.t, paramType)));
+					if (!argKnownNonNullPrimitive && isSharedArrayElementExpr(arg)) {
+						loweredArg = coerceStoredArrayElementExpr(loweredArg, paramType);
+					} else {
+						loweredArg = coerceAnyExprToType(loweredArg, arg.t, paramType, !argKnownNonNullPrimitive && (exprBackedByAny(arg)
+							|| shouldForceAnyCoerce(arg.t, paramType)));
+					}
 				}
 			}
 			if (emittedParamType != null) {
@@ -8822,10 +9131,10 @@ class GoCompiler {
 		sort implementations are valid.
 
 		How
-		For `ArraySort.sort`, box the typed slice to `[]any`, invoke the existing
-		helper, then copy sorted values back into the original slice. For `ListSort`,
-		adapt the comparator to erased `any` parameters and type-assert the returned
-		head back to the expected node type.
+		For a shared Haxe Array, call the staged helper with the carrier directly. For
+		native slice-shaped collections, box to `[]any`, invoke the helper, and copy
+		sorted values back. For `ListSort`, adapt the comparator to erased `any`
+		parameters and type-assert the returned head to the expected node type.
 	**/
 	function lowerDsSortHelperCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		if (isStaticCall(callee, "ArraySort", ["haxe", "ds"], "sort")) {
@@ -8837,9 +9146,15 @@ class GoCompiler {
 			if (!isArrayType(arrayType)) {
 				return null;
 			}
-			var sliceType = typeToGoType(arrayType);
 			var sliceExpr = lowerExpr(args[0]).expr;
 			var comparatorExpr = lowerExpr(args[1]).expr;
+			if (isHaxeArrayType(arrayType)) {
+				return {
+					expr: GoExpr.GoCall(GoExpr.GoIdent("haxe__ds__ArraySort_sort"), [sliceExpr, lowerTypedComparatorToAny(comparatorExpr, arrayType)]),
+					isStringLike: false
+				};
+			}
+			var sliceType = typeToGoType(arrayType);
 			var rawSliceName = freshTempName("hx_sort_raw");
 			var sourceName = freshTempName("hx_sort_src");
 			var body = new Array<GoStmt>();
@@ -8888,23 +9203,88 @@ class GoCompiler {
 	}
 
 	function lowerTypedArrayToAnyCoerce(typedSliceExpr:GoExpr, sourceArrayType:Type):GoExpr {
+		if (isHaxeArrayType(sourceArrayType)) {
+			return GoExpr.GoCall(GoExpr.GoSelector(typedSliceExpr, "Values"), []);
+		}
 		if (!isArrayType(sourceArrayType) || arrayElementGoType(sourceArrayType) == "any") {
+			return typedSliceExpr;
+		}
+		return lowerTypedSliceToAnyByGoType(typedSliceExpr, arrayElementGoType(sourceArrayType));
+	}
+
+	/** Boxes a typed native slice into the carrier's deliberately erased storage. */
+	function lowerTypedSliceToAnyByGoType(typedSliceExpr:GoExpr, elementGoType:String):GoExpr {
+		if (elementGoType == "any") {
 			return typedSliceExpr;
 		}
 		var sourceName = freshTempName("hx_sort_src");
 		var itemName = freshTempName("hx_sort_item");
 		var outName = freshTempName("hx_sort_out");
-		var sourceType = typeToGoType(sourceArrayType);
+		var sourceType = "[]" + elementGoType;
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: sourceType}], ["[]any"], [
-			GoStmt.GoVarDecl(outName, "[]any", GoExpr.GoRaw("make([]any, 0, len(" + sourceName + "))"), true),
-			GoStmt.GoRaw("for _, " + itemName + " := range " + sourceName + " {"),
-			GoStmt.GoAssign(GoExpr.GoIdent(outName), GoExpr.GoCall(GoExpr.GoIdent("append"), [GoExpr.GoIdent(outName), GoExpr.GoIdent(itemName)])),
-			GoStmt.GoRaw("}"),
+			GoStmt.GoVarDecl(outName, "[]any",
+				GoExpr.GoMakeSlice("any", GoExpr.GoIntLiteral(0), GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent(sourceName)])), true),
+			GoStmt.GoRangeStmt(null, itemName, GoExpr.GoIdent(sourceName), true, [
+				GoStmt.GoAssign(GoExpr.GoIdent(outName), GoExpr.GoCall(GoExpr.GoIdent("append"), [GoExpr.GoIdent(outName), GoExpr.GoIdent(itemName)]))
+			]),
 			GoStmt.GoReturn(GoExpr.GoIdent(outName))
 		]), [typedSliceExpr]);
 	}
 
+	/**
+		What: Lowers the two explicit portable/native slice copy operations.
+		Why: A Go slice and a Haxe Array have incompatible identity and growth
+		contracts, so neither direction may be disguised as a no-op cast.
+		How: Reuse the typed expected-value bridge, which copies values and restores
+		the statically known element type at the boundary.
+	**/
+	function lowerNativeSliceBoundaryCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		if (isStaticCall(callee, "NativeSlice", ["go"], "fromArray")) {
+			if (args.length != 1) {
+				Context.fatalError("go.NativeSlice.fromArray expects exactly one Array", callee.pos);
+			}
+			return materializeExprWithPrefix(lowerExprWithExpectedUpcast(args[0], returnType), returnType);
+		}
+		if (isStaticCall(callee, "NativeSlice", ["go"], "append")) {
+			if (args.length != 2) {
+				Context.fatalError("go.NativeSlice.append expects one slice and one value", callee.pos);
+			}
+			var loweredTarget = lowerExprWithPrefix(args[0]);
+			var loweredValue = lowerExprWithPrefix(args[1]);
+			var targetName = freshTempName("hx_native_slice");
+			var appended = GoExpr.GoCall(GoExpr.GoIdent("append"), [GoExpr.GoIdent(targetName), loweredValue.expr]);
+			return materializeExprWithPrefix({
+				prefix: loweredTarget.prefix.concat([GoStmt.GoVarDecl(targetName, typeToGoType(args[0].t), loweredTarget.expr, true)])
+					.concat(loweredValue.prefix),
+				expr: appended,
+				isStringLike: false
+			}, returnType);
+		}
+
+		return switch (callee.expr) {
+			case TField(target, FInstance(classRef, _, field)):
+				var classType = classRef.get();
+				if (classType.pack.join(".") == "go" && classType.name == "NativeSlice" && field.get().name == "toArray") {
+					if (args.length != 0) {
+						Context.fatalError("go.NativeSlice.toArray expects no arguments", callee.pos);
+					}
+					var lowered = lowerExprWithPrefix(target);
+					var adapted = upcastIfNeeded(lowered.expr, target.t, returnType, target);
+					materializeExprWithPrefix({prefix: lowered.prefix, expr: adapted, isStringLike: false}, returnType);
+				} else {
+					null;
+				}
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				lowerNativeSliceBoundaryCall(inner, args, returnType);
+			case _:
+				null;
+		};
+	}
+
 	function lowerAnyArrayCopyBack(rawSliceExpr:GoExpr, targetSliceExpr:GoExpr, targetArrayType:Type):Array<GoStmt> {
+		if (isHaxeArrayType(targetArrayType)) {
+			return [];
+		}
 		var targetElementType = arrayElementType(targetArrayType);
 		var targetElementGoType = arrayElementGoType(targetArrayType);
 		if (targetElementType == null || targetElementGoType == "any") {
@@ -8920,9 +9300,9 @@ class GoCompiler {
 				{name: rawName, typeName: "[]any"},
 				{name: targetName, typeName: typeToGoType(targetArrayType)}
 			], [], [
-				GoStmt.GoRaw("for " + indexName + ", " + itemName + " := range " + rawName + " {"),
-				GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(targetName), GoExpr.GoIdent(indexName)), convertedItemExpr),
-				GoStmt.GoRaw("}")
+				GoStmt.GoRangeStmt(indexName, itemName, GoExpr.GoIdent(rawName), true, [
+					GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(targetName), GoExpr.GoIdent(indexName)), convertedItemExpr)
+				])
 			]), [rawSliceExpr, targetSliceExpr]))
 		];
 	}
@@ -9120,8 +9500,9 @@ class GoCompiler {
 					isStringLike: false
 				};
 			case "toArray":
+				var typedSlice = GoExpr.GoCall(GoExpr.GoIdent(nativeSliceShimName("go__slice_toArray", elementGoType)), [sliceExpr]);
 				return {
-					expr: GoExpr.GoCall(GoExpr.GoIdent(nativeSliceShimName("go__slice_toArray", elementGoType)), [sliceExpr]),
+					expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ArrayFromValues"), [lowerTypedSliceToAnyByGoType(typedSlice, elementGoType)]),
 					isStringLike: false
 				};
 			case _:
@@ -9371,6 +9752,9 @@ class GoCompiler {
 					null;
 				} else {
 					var loweredTarget = lowerExpr(target).expr;
+					if (isSharedArrayElementExpr(target)) {
+						loweredTarget = coerceStoredArrayElementExpr(loweredTarget, target.t);
+					}
 					var useTypedHelpers = useStringFastpath();
 					switch (resolvedField.name) {
 						case "charAt":
@@ -9455,8 +9839,9 @@ class GoCompiler {
 								compilationContext.optimizerStringInstanceLegacyLowerings++;
 								"hxrt.StringSplit";
 							};
+							var nativeParts = GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, delimiterExpr]);
 							{
-								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, delimiterExpr]),
+								expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ArrayFromValues"), [lowerTypedSliceToAnyByGoType(nativeParts, "*string")]),
 								isStringLike: false
 							};
 						case "toLowerCase":
@@ -9554,6 +9939,10 @@ class GoCompiler {
 	}
 
 	function arrayElementType(type:Type):Null<Type> {
+		var nativeSliceElement = nativeSliceElementType(type);
+		if (nativeSliceElement != null) {
+			return nativeSliceElement;
+		}
 		var restElement = restElementType(type);
 		if (restElement != null) {
 			return restElement;
@@ -9599,7 +9988,7 @@ class GoCompiler {
 			var adaptedMapperExpr = lambdaIterableLowering.mapperAnyAdapter(mapperExpr, args[1].t);
 			var mappedAnyExpr = GoExpr.GoCall(calleeExpr, [dynamicSourceExpr, adaptedMapperExpr]);
 			return {
-				expr: lambdaIterableLowering.anyArrayCoerce(mappedAnyExpr, returnType),
+				expr: mappedAnyExpr,
 				isStringLike: false
 			};
 		}
@@ -9636,10 +10025,11 @@ class GoCompiler {
 		  therefore reject valid portable Haxe programs.
 
 		How
-		- Wrap the input in the manual iterator protocol, adapt only callback
-		  parameters, and coerce only erased return values. The staged Haxe function
-		  still owns every loop, comparison, early exit, allocation, and algorithmic
-		  decision.
+		- Wrap the input in the manual iterator protocol and adapt only callback
+		  parameters. Array-producing staged functions already return the shared
+		  Haxe Array carrier, so this bridge preserves that result without an extra
+		  conversion. The staged Haxe function still owns every loop, comparison,
+		  early exit, allocation, and algorithmic decision.
 	**/
 	function lowerLambdaSourceCallAdapter(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		if (isStaticCall(callee, "Lambda", [], "array") || lambdaIterableLowering.isGeneratedCall(callee, "array")) {
@@ -9648,7 +10038,7 @@ class GoCompiler {
 			}
 			var arrayExpr = GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicIterableSource(args[0])]);
 			return {
-				expr: lambdaIterableLowering.anyArrayCoerce(arrayExpr, returnType),
+				expr: arrayExpr,
 				isStringLike: false
 			};
 		}
@@ -9670,7 +10060,7 @@ class GoCompiler {
 			var mapperExpr = lambdaIterableLowering.indexedMapperAnyAdapter(lowerExpr(args[1]).expr, args[1].t);
 			var mappedExpr = GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicIterableSource(args[0]), mapperExpr]);
 			return {
-				expr: lambdaIterableLowering.anyArrayCoerce(mappedExpr, returnType),
+				expr: mappedExpr,
 				isStringLike: false
 			};
 		}
@@ -9682,7 +10072,7 @@ class GoCompiler {
 			requireSourceOwnedStdlibModule("Lambda");
 			var flattenedExpr = GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicNestedIterableSource(args[0])]);
 			return {
-				expr: lambdaIterableLowering.anyArrayCoerce(flattenedExpr, returnType),
+				expr: flattenedExpr,
 				isStringLike: false
 			};
 		}
@@ -9695,7 +10085,7 @@ class GoCompiler {
 			var mapperExpr = lambdaIterableLowering.iterableMapperAnyAdapter(lowerExpr(args[1]).expr, args[1].t);
 			var mappedExpr = GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicIterableSource(args[0]), mapperExpr]);
 			return {
-				expr: lambdaIterableLowering.anyArrayCoerce(mappedExpr, returnType),
+				expr: mappedExpr,
 				isStringLike: false
 			};
 		}
@@ -9774,7 +10164,7 @@ class GoCompiler {
 			var predicateExpr = lambdaIterableLowering.predicateAnyAdapter(lowerExpr(args[1]).expr, args[1].t);
 			var filteredExpr = GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicIterableSource(args[0]), predicateExpr]);
 			return {
-				expr: lambdaIterableLowering.anyArrayCoerce(filteredExpr, returnType),
+				expr: filteredExpr,
 				isStringLike: false
 			};
 		}
@@ -9786,7 +10176,7 @@ class GoCompiler {
 			var mapperExpr = lambdaIterableLowering.mapperAnyAdapter(lowerExpr(args[1]).expr, args[1].t);
 			var mappedExpr = GoExpr.GoCall(lowerExpr(callee).expr, [lambdaIterableLowering.dynamicIterableSource(args[0]), mapperExpr]);
 			return {
-				expr: lambdaIterableLowering.anyArrayCoerce(mappedExpr, returnType),
+				expr: mappedExpr,
 				isStringLike: false
 			};
 		}
@@ -9865,7 +10255,7 @@ class GoCompiler {
 				lambdaIterableLowering.dynamicIterableSource(args[1])
 			]);
 			return {
-				expr: lambdaIterableLowering.anyArrayCoerce(concatExpr, returnType),
+				expr: concatExpr,
 				isStringLike: false
 			};
 		}
@@ -10170,37 +10560,7 @@ class GoCompiler {
 	}
 
 	function stdIsOfTypeArrayTypeNames():Array<String> {
-		var seen = new Map<String, Bool>();
-		var out = new Array<String>();
-		var seed = ["[]any", "[]int", "[]float64", "[]bool", "[]*string"];
-		for (typeName in seed) {
-			if (!seen.exists(typeName)) {
-				seen.set(typeName, true);
-				out.push(typeName);
-			}
-		}
-
-		for (classType in projectClasses) {
-			if (!hasInstanceLayout(classType)) {
-				continue;
-			}
-			var classArray = "[]*" + classTypeName(classType);
-			if (!seen.exists(classArray)) {
-				seen.set(classArray, true);
-				out.push(classArray);
-			}
-		}
-
-		for (enumType in projectEnums) {
-			var enumArray = "[]*" + enumTypeName(enumType);
-			if (!seen.exists(enumArray)) {
-				seen.set(enumArray, true);
-				out.push(enumArray);
-			}
-		}
-
-		out.sort(function(a, b) return Reflect.compare(a, b));
-		return out;
+		return ["*hxrt.Array"];
 	}
 
 	function hasInstanceLayout(classType:ClassType):Bool {
@@ -11005,9 +11365,19 @@ class GoCompiler {
 		};
 	}
 
+	/**
+		What: Lowers one Haxe binary operation with representation-aware operands.
+		Why: Go's operators do not preserve every Haxe rule: erased generic values can
+		contain pointer-backed strings or non-comparable carriers, and direct interface
+		equality can therefore return the wrong answer or panic.
+		How: Keep statically typed operations native, select the established string/null/
+		numeric paths, and route only erased equality through `hxrt.HaxeEqual`.
+	**/
 	function lowerBinop(op:Binop, left:TypedExpr, right:TypedExpr, resultType:Type):LoweredExpr {
 		var leftLowered = lowerExpr(left);
 		var rightLowered = lowerExpr(right);
+		var leftStoredArrayElement = isSharedArrayElementExpr(left);
+		var rightStoredArrayElement = isSharedArrayElementExpr(right);
 		var stringMode = leftLowered.isStringLike || rightLowered.isStringLike || isStringType(left.t) || isStringType(right.t);
 		var leftIsNull = isNullLiteralExpr(left) || isNilExpr(leftLowered.expr);
 		var rightIsNull = isNullLiteralExpr(right) || isNilExpr(rightLowered.expr);
@@ -11036,10 +11406,16 @@ class GoCompiler {
 			case _:
 				!nullComparison;
 		};
-		var leftExprForOperator = coerceNullableOperands ? coerceNullablePrimitiveOperandForUse(leftLowered.expr, left) : leftLowered.expr;
-		var rightExprForOperator = coerceNullableOperands ? coerceNullablePrimitiveOperandForUse(rightLowered.expr, right) : rightLowered.expr;
+		var leftExprForOperator = leftStoredArrayElement
+			&& coerceNullableOperands ? coerceStoredArrayElementExpr(leftLowered.expr,
+				left.t) : (coerceNullableOperands ? coerceNullablePrimitiveOperandForUse(leftLowered.expr, left) : leftLowered.expr);
+		var rightExprForOperator = rightStoredArrayElement
+			&& coerceNullableOperands ? coerceStoredArrayElementExpr(rightLowered.expr,
+				right.t) : (coerceNullableOperands ? coerceNullablePrimitiveOperandForUse(rightLowered.expr, right) : rightLowered.expr);
 		var useStringEquality = stringMode && (!nullComparison || isStringType(left.t) || isStringType(right.t));
-		var typedStringOps = isStringType(left.t) && isStringType(right.t);
+		var typedStringOps = isStringType(left.t) && isStringType(right.t) && !leftStoredArrayElement && !rightStoredArrayElement;
+		var storedArrayEquality = (op == OpEq || op == OpNotEq) && (leftStoredArrayElement || rightStoredArrayElement);
+		var erasedEquality = (op == OpEq || op == OpNotEq) && !nullComparison && (isAnyLikeType(left.t) || isAnyLikeType(right.t));
 		var anyNullComparison = nullComparison && (isAnyLikeType(left.t) || isAnyLikeType(right.t));
 		var floatMode = isFloatType(left.t) || isFloatType(right.t) || isFloatType(resultType) || isNullableFloatType(left.t)
 			|| isNullableFloatType(right.t) || isNullableFloatType(resultType);
@@ -11052,9 +11428,11 @@ class GoCompiler {
 
 		return switch (op) {
 			case OpAdd if (stringMode):
+				var leftStringExpr = leftStoredArrayElement ? lowerSharedArrayElementStorageExpr(left) : leftLowered.expr;
+				var rightStringExpr = rightStoredArrayElement ? lowerSharedArrayElementStorageExpr(right) : rightLowered.expr;
 				{
 					expr: GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringConcatStringPtr" : "hxrt.StringConcatAny"),
-						[leftLowered.expr, rightLowered.expr]),
+						[leftStringExpr, rightStringExpr]),
 					isStringLike: true
 				};
 			case OpEq if (useStringEquality):
@@ -11106,30 +11484,54 @@ class GoCompiler {
 						isStringLike: false
 					};
 				}
+			case OpEq if (erasedEquality):
+				requiresEqualitySurface = true;
+				{
+					expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.HaxeEqual"), [leftLowered.expr, rightLowered.expr]),
+					isStringLike: false
+				};
+			case OpNotEq if (erasedEquality):
+				requiresEqualitySurface = true;
+				{
+					expr: GoExpr.GoUnary("!", GoExpr.GoCall(GoExpr.GoIdent("hxrt.HaxeEqual"), [leftLowered.expr, rightLowered.expr])),
+					isStringLike: false
+				};
+			case OpEq if (storedArrayEquality):
+				requiresEqualitySurface = true;
+				{
+					expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.HaxeEqual"), [leftLowered.expr, rightLowered.expr]),
+					isStringLike: false
+				};
+			case OpNotEq if (storedArrayEquality):
+				requiresEqualitySurface = true;
+				{
+					expr: GoExpr.GoUnary("!", GoExpr.GoCall(GoExpr.GoIdent("hxrt.HaxeEqual"), [leftLowered.expr, rightLowered.expr])),
+					isStringLike: false
+				};
 			case OpAdd | OpSub | OpMult | OpDiv if (floatMode):
 				{
-					expr: GoExpr.GoBinary(binopSymbol(op), floatOperandExpr(leftLowered.expr, left.t, left),
-						floatOperandExpr(rightLowered.expr, right.t, right)),
+					expr: GoExpr.GoBinary(binopSymbol(op), floatOperandExpr(leftExprForOperator, left.t, left),
+						floatOperandExpr(rightExprForOperator, right.t, right)),
 					isStringLike: false
 				};
 			case OpMod if (floatMode):
 				{
 					expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.FloatMod"), [
-						floatOperandExpr(leftLowered.expr, left.t, left),
-						floatOperandExpr(rightLowered.expr, right.t, right)
+						floatOperandExpr(leftExprForOperator, left.t, left),
+						floatOperandExpr(rightExprForOperator, right.t, right)
 					]),
 					isStringLike: false
 				};
 			case OpUShr if (int32Mode):
-				var int32Left = coerceNullableIntOperandExpr(leftLowered.expr, left.t, left);
-				var int32Right = coerceNullableIntOperandExpr(rightLowered.expr, right.t, right);
+				var int32Left = coerceNullableIntOperandExpr(leftExprForOperator, left.t, left);
+				var int32Right = coerceNullableIntOperandExpr(rightExprForOperator, right.t, right);
 				{
 					expr: lowerHaxeInt32BinopExpr(op, int32Left, int32Right),
 					isStringLike: false
 				};
 			case OpAdd | OpSub | OpMult | OpMod | OpAnd | OpOr | OpXor | OpShl | OpShr if (int32Mode):
-				var int32Left = coerceNullableIntOperandExpr(leftLowered.expr, left.t, left);
-				var int32Right = coerceNullableIntOperandExpr(rightLowered.expr, right.t, right);
+				var int32Left = coerceNullableIntOperandExpr(leftExprForOperator, left.t, left);
+				var int32Right = coerceNullableIntOperandExpr(rightExprForOperator, right.t, right);
 				{
 					expr: lowerHaxeInt32BinopExpr(op, int32Left, int32Right),
 					isStringLike: false
@@ -11150,12 +11552,13 @@ class GoCompiler {
 		};
 	}
 
-	function lowerAssignOpExpr(op:Binop, leftExpr:GoExpr, rightExpr:GoExpr, leftType:Type, rightType:Type, ?sourcePos:haxe.macro.Expr.Position):GoExpr {
+	function lowerAssignOpExpr(op:Binop, leftExpr:GoExpr, rightExpr:GoExpr, leftType:Type, rightType:Type, ?sourcePos:haxe.macro.Expr.Position,
+			?rightUsesErasedArrayStorage:Bool = false):GoExpr {
 		if (op == OpAssign) {
 			return rightExpr;
 		}
 		if (op == OpAdd && (isStringType(leftType) || isStringType(rightType))) {
-			var typedStringOps = isStringType(leftType) && isStringType(rightType);
+			var typedStringOps = isStringType(leftType) && isStringType(rightType) && !rightUsesErasedArrayStorage;
 			return GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringConcatStringPtr" : "hxrt.StringConcatAny"), [leftExpr, rightExpr]);
 		}
 		if ((isInt32SemanticType(leftType, sourcePos) || isInt32SemanticType(rightType, sourcePos))
@@ -11261,6 +11664,35 @@ class GoCompiler {
 		return expr;
 	}
 
+	/**
+		What: Recovers one statically known value from the portable Array's erased,
+		nil-capable element storage.
+		Why: Generic `any -> String` conversion would turn a stored nil into the text
+		`"null"`, and leaving class/interface elements erased would produce invalid Go
+		selectors. Array reads need assertions, not general Dynamic conversion.
+		How: Preserve nullable primitives as `any`, use the existing numeric/bool
+		coercions when a concrete scalar is required, and nil-safely assert every other
+		concrete Go type.
+	**/
+	function coerceStoredArrayElementExpr(expr:GoExpr, targetType:Type):GoExpr {
+		if (isNullablePrimitiveType(targetType)) {
+			return expr;
+		}
+		if (isIntType(targetType) || isHaxeInt32Type(targetType)) {
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [expr]);
+		}
+		if (isFloatType(targetType)) {
+			return lowerNilSafeTypeAssertExpr(expr, "float64");
+		}
+		if (isBoolType(targetType)) {
+			return lowerNilSafeTypeAssertExpr(expr, "bool");
+		}
+		if (typeToGoType(targetType) == "any") {
+			return expr;
+		}
+		return lowerNullableAwareTypeAssertExpr(expr, targetType);
+	}
+
 	function wrapInt32Expr(expr:GoExpr):GoExpr {
 		return GoExprOperatorOps.wrapInt32Expr(expr);
 	}
@@ -11344,10 +11776,10 @@ class GoCompiler {
 
 	/**
 		What: Lowers a value for a known assignment/return/branch target type.
-		Why: A direct native-array iterator adapter must replace the original inline
+		Why: A direct array iterator adapter must replace the original inline
 		expression and its prefixes; adapting only the final Go expression can leave
 		behind erased `ArrayIterator` construction state or duplicate cursor locals.
-		How: Ask the iterable owner for the pre-lowering native-array plan first,
+		How: Ask the iterable owner for the pre-lowering array-cursor plan first,
 		then fall back to ordinary expression lowering plus nominal or concrete-class
 		structural upcasting.
 	**/
@@ -11355,6 +11787,10 @@ class GoCompiler {
 		var expectedThrow = lowerExpectedThrowExpr(source, targetType);
 		if (expectedThrow != null) {
 			return expectedThrow;
+		}
+		var directNativeLiteral = lowerArrayLiteralForExpectedStorage(source, targetType);
+		if (directNativeLiteral != null) {
+			return directNativeLiteral;
 		}
 		var nativeArrayIterator = lambdaIterableLowering.nativeArrayStructuralIteratorCoerce(source, targetType);
 		if (nativeArrayIterator != null) {
@@ -11365,10 +11801,40 @@ class GoCompiler {
 			return inlineConcreteIterator;
 		}
 		var lowered = lowerExprWithPrefix(source);
+		var adapted = upcastIfNeeded(lowered.expr, source.t, targetType, source);
+		if (isSharedArrayElementExpr(source)) {
+			adapted = coerceStoredArrayElementExpr(adapted, targetType);
+		}
 		return {
 			prefix: lowered.prefix,
-			expr: upcastIfNeeded(lowered.expr, source.t, targetType),
+			expr: adapted,
 			isStringLike: lowered.isStringLike
+		};
+	}
+
+	/**
+		What: Lowers a fresh Array literal directly into an expected native slice view.
+		Why: Inline abstracts such as `Vector<T>` construct their raw storage through
+		a temporary root-Array-typed node; materializing a shared carrier only to copy
+		it immediately adds runtime footprint without any observable alias.
+		How: Apply this only to a literal with a statically raw array-like destination.
+		Every non-literal conversion retains the explicit copying bridge.
+	**/
+	function lowerArrayLiteralForExpectedStorage(source:TypedExpr, targetType:Type):Null<LoweredExprWithPrefix> {
+		if (!isArrayType(targetType) || isHaxeArrayType(targetType)) {
+			return null;
+		}
+		return switch (source.expr) {
+			case TArrayDecl(values):
+				{
+					prefix: [],
+					expr: GoExpr.GoArrayLiteral(arrayElementGoType(targetType), [for (value in values) lowerExpr(value).expr]),
+					isStringLike: false
+				};
+			case TMeta(_, inner) | TParenthesis(inner):
+				lowerArrayLiteralForExpectedStorage(inner, targetType);
+			case _:
+				null;
 		};
 	}
 
@@ -11377,11 +11843,16 @@ class GoCompiler {
 		Why: Go does not consider a generated class pointer assignable to Haxe's
 		anonymous iterator map, while ordinary class inheritance still needs its
 		embedded-base selector path.
-		How: Prefer source-aware live-array and inline concrete-tail plans when typed
+		How: Prefer source-aware shared-Array/native-slice and inline concrete-tail
+		plans when typed
 		source is available, then the general concrete iterator adapter, then the
 		existing nominal upcast; leave unrelated values unchanged.
 	**/
 	function upcastIfNeeded(expr:GoExpr, fromType:Type, toType:Type, ?sourceTypedExpr:TypedExpr):GoExpr {
+		var arrayRepresentation = adaptArrayRepresentation(expr, fromType, toType, sourceTypedExpr);
+		if (arrayRepresentation != null) {
+			return arrayRepresentation;
+		}
 		if (sourceTypedExpr != null) {
 			var nativeArrayIterator = lambdaIterableLowering.nativeArrayStructuralIteratorCoerce(sourceTypedExpr, toType);
 			if (nativeArrayIterator != null) {
@@ -11417,6 +11888,56 @@ class GoCompiler {
 			out = GoExpr.GoSelector(out, classTypeName(classType));
 		}
 		return out;
+	}
+
+	/**
+		What: Converts explicitly different portable/native array representations at
+		a typed assignment, argument, return, or inline-abstract boundary.
+		Why: Root Haxe Array and ReadOnlyArray now have shared identity, while
+		fixed, Vector, Rest, and explicit native
+		array-like APIs intentionally remain Go slices; allowing Go inference to pick
+		the source representation produces invalid or semantically hidden conversions.
+		How: Copy a shared carrier's erased values into the target typed slice, or copy
+		a typed slice into a new shared carrier. Equal representations pass through.
+	**/
+	function adaptArrayRepresentation(expr:GoExpr, fromType:Type, toType:Type, ?sourceTypedExpr:TypedExpr):Null<GoExpr> {
+		if (!isArrayType(fromType) || !isArrayType(toType)) {
+			return null;
+		}
+		var sourceStorageType = sourceTypedExpr == null ? fromType : arrayStorageType(sourceTypedExpr);
+		var fromShared = sourceTypedExpr != null && isRestPackExpr(sourceTypedExpr) ? false : isHaxeArrayType(sourceStorageType);
+		var toShared = isHaxeArrayType(toType);
+		if (fromShared == toShared) {
+			return null;
+		}
+		if (fromShared) {
+			var valuesMethod = arrayElementGoType(toType) == "any" ? "ValuesCopy" : "Values";
+			return lambdaIterableLowering.anyArrayCoerce(GoExpr.GoCall(GoExpr.GoSelector(expr, valuesMethod), []), toType);
+		}
+		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.ArrayFromValues"), [lowerTypedArrayToAnyCoerce(expr, sourceStorageType)]);
+	}
+
+	/** Recognizes the typer-generated raw slice block used to pack rest arguments. */
+	function isRestPackExpr(expr:TypedExpr):Bool {
+		return switch (expr.expr) {
+			case TBlock(exprs):
+				var found = false;
+				for (entry in exprs) {
+					switch (entry.expr) {
+						case TBinop(OpAssign, _, right):
+							switch (right.expr) {
+								case TArrayDecl(_): found = true;
+								case _:
+							}
+						case _:
+					}
+				}
+				found;
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				isRestPackExpr(inner);
+			case _:
+				false;
+		};
 	}
 
 	function typeToGoType(type:Type):String {
@@ -11581,6 +12102,7 @@ class GoCompiler {
 	function exprBackedByAny(expr:TypedExpr):Bool {
 		return switch (expr.expr) {
 			case TLocal(variable): registeredNarrowedPrimitiveStorageGoType(variable) == null && registeredNonNullPrimitiveLocalGoType(variable) == null && valueStorageGoType(variable.t) == "any";
+			case TArray(target, _): usesSharedArrayCarrier(target);
 			case TMeta(_, inner):
 				exprBackedByAny(inner);
 			case TParenthesis(inner):
@@ -11589,6 +12111,55 @@ class GoCompiler {
 				exprBackedByAny(inner);
 			case _:
 				false;
+		};
+	}
+
+	/**
+		What: Recognizes a value read from the shared Array's erased element storage.
+		Why: Haxe inlines iterator and rest-argument reads inside expression blocks; if
+		the terminal indexed read is hidden by that block, Go receives `any` where the
+		static Haxe element type is required.
+		How: Peel compile-time wrappers and expression blocks only through their final
+		value, leaving unrelated statements and native-slice reads unchanged.
+	**/
+	function isSharedArrayElementExpr(expr:TypedExpr):Bool {
+		return switch (expr.expr) {
+			case TArray(target, _):
+				usesSharedArrayCarrier(target);
+			case TBlock(exprs) if (exprs.length > 0):
+				isSharedArrayElementExpr(exprs[exprs.length - 1]);
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				isSharedArrayElementExpr(inner);
+			case _:
+				false;
+		};
+	}
+
+	/**
+		What: Recovers the carrier's erased value for a shared-Array indexed read.
+		Why: Haxe may wrap a non-string element in a String-typed cast while typing
+		string concatenation. Lowering that wrapper first would assert that an Int or
+		Bool already is `*string`, rather than letting `StringConcatAny` apply Haxe's
+		ordinary string conversion.
+		How: Peel compile-time wrappers, preserve expression-block statements in an
+		`any`-returning closure, and lower the terminal carrier read without a type
+		assertion. This helper is used only after shared-element recognition succeeds.
+	**/
+	function lowerSharedArrayElementStorageExpr(expr:TypedExpr):GoExpr {
+		return switch (expr.expr) {
+			case TArray(target, index) if (usesSharedArrayCarrier(target)):
+				GoExpr.GoCall(GoExpr.GoSelector(lowerExpr(target).expr, "Get"), [lowerExpr(index).expr]);
+			case TBlock(exprs) if (exprs.length > 0):
+				var prefix = new Array<GoStmt>();
+				for (index in 0...exprs.length - 1) {
+					prefix = prefix.concat(withoutThrowFallback(function() return lowerToStatements(exprs[index])));
+				}
+				var value = lowerSharedArrayElementStorageExpr(exprs[exprs.length - 1]);
+				prefix.length == 0 ? value : GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["any"], prefix.concat([GoStmt.GoReturn(value)])), []);
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				lowerSharedArrayElementStorageExpr(inner);
+			case _:
+				lowerExpr(expr).expr;
 		};
 	}
 
@@ -11609,6 +12180,87 @@ class GoCompiler {
 
 	function isArrayType(type:Type):Bool {
 		return GoTypeMapper.isArrayType(type);
+	}
+
+	function isHaxeArrayType(type:Type):Bool {
+		return GoTypeMapper.isHaxeArrayType(type);
+	}
+
+	function arrayFieldDeclaredType(access:FieldAccess):Null<Type> {
+		return switch (access) {
+			case FInstance(_, _, field):
+				field.get().type;
+			case FStatic(_, field):
+				field.get().type;
+			case FAnon(field):
+				field.get().type;
+			case FClosure(_, field):
+				field.get().type;
+			case _:
+				null;
+		};
+	}
+
+	/** What: Resolves the type of the carrier actually held by an array expression.
+		Why: Vector and other inline views expose Array-typed nodes while retaining a
+		raw slice, so the outer expression type alone can request the wrong operations.
+		How: Peel only array-to-array compile-time wrappers and trust the innermost
+		storage-bearing expression. **/
+	function arrayStorageType(expr:TypedExpr):Type {
+		return switch (expr.expr) {
+			case TBlock(exprs) if (exprs.length > 0):
+				arrayStorageType(exprs[exprs.length - 1]);
+			case TMeta(_, inner) | TParenthesis(inner):
+				arrayStorageType(inner);
+			case TCast(inner, _) if (isArrayType(inner.t)):
+				arrayStorageType(inner);
+			case TLocal(variable):
+				localArrayStorageOverrides.exists(variable.id) ? localArrayStorageOverrides.get(variable.id) : variable.t;
+			case TField(_, access): var declared = arrayFieldDeclaredType(access); declared != null && isArrayType(declared) ? declared : expr.t;
+			case _:
+				expr.t;
+		};
+	}
+
+	/**
+		What: Finds the root-Array temporary used by an inlined `Vector<T>` constructor.
+		Why: Haxe exposes the temporary as `Array<T>` even though the enclosing abstract
+		contract retains fixed native-slice storage on this target.
+		How: Require a Vector result, a locally declared Array temporary, and that same
+		local as the block's terminal value before applying the representation override.
+	**/
+	function vectorBlockStorageOverride(blockType:Type, exprs:Array<TypedExpr>):Null<{variable:TVar, storageType:Type}> {
+		if (vectorElementType(blockType) == null || exprs.length == 0) {
+			return null;
+		}
+		var terminal = terminalLocalVariable(exprs[exprs.length - 1]);
+		if (terminal == null || !isHaxeArrayType(terminal.t)) {
+			return null;
+		}
+		for (entry in exprs) {
+			switch (entry.expr) {
+				case TVar(variable, _) if (variable.id == terminal.id):
+					return {variable: variable, storageType: blockType};
+				case _:
+			}
+		}
+		return null;
+	}
+
+	function terminalLocalVariable(expr:TypedExpr):Null<TVar> {
+		return switch (expr.expr) {
+			case TLocal(variable): variable;
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _): terminalLocalVariable(inner);
+			case _: null;
+		};
+	}
+
+	/** True when an array expression's actual storage is the shared carrier. **/
+	function usesSharedArrayCarrier(expr:TypedExpr):Bool {
+		if (isBytesBufferStorageArray(expr)) {
+			return false;
+		}
+		return isHaxeArrayType(arrayStorageType(expr));
 	}
 
 	function arrayElementGoType(type:Type):String {
@@ -11641,6 +12293,10 @@ class GoCompiler {
 
 	function restElementType(type:Type):Null<Type> {
 		return GoTypeMapper.restElementType(type);
+	}
+
+	function nativeSliceElementType(type:Type):Null<Type> {
+		return GoTypeMapper.nativeSliceElementType(type);
 	}
 
 	function vectorElementType(type:Type):Null<Type> {
@@ -12106,45 +12762,34 @@ class GoCompiler {
 	}
 
 	/**
-		What: Lowers `Array.remove(value)` as a typed, first-match slice mutation.
-		Why: Go slices have no remove method, and staged Haxe source must be able to
-		use the portable Array API without rebuilding arrays itself.
+		What: Lowers `Array.remove(value)` as a first-match shared-carrier mutation.
+		Why: The portable carrier deliberately exposes only representation primitives;
+		Haxe equality and first-match policy still need typed compiler lowering.
 		How: Evaluate the receiver and value once, range to the first Haxe-equal
-		element, shift with `copy`, clear the released slot, shrink, and write back.
+		element, then ask the carrier to remove that known slot in place.
 	**/
 	function lowerArrayRemoveExpr(target:TypedExpr, args:Array<TypedExpr>):LoweredExpr {
 		if (args.length != 1) {
 			Context.fatalError("Array.remove expects exactly one value", target.pos);
 		}
 		var site = lowerArrayMutationSite(target);
-		var elementType = arrayElementType(target.t);
-		if (elementType == null) {
-			elementType = args[0].t;
-		}
-		var elementGoType = arrayElementGoType(target.t);
 		var loweredValue = lowerExprWithPrefix(args[0]);
 		var valueName = freshTempName("hx_remove_value");
 		var indexName = freshTempName("hx_remove_index");
 		var elementName = freshTempName("hx_remove_element");
-		var lastName = freshTempName("hx_remove_last");
-		var zeroName = freshTempName("hx_remove_zero");
-		var valueExpr = coerceAnyExprToType(loweredValue.expr, args[0].t, elementType);
-		var lastExpr = GoExpr.GoIdent(lastName);
+		requiresEqualitySurface = true;
+		var indexExpr = GoExpr.GoIdent(indexName);
 		var foundBody = [
-			GoStmt.GoVarDecl(lastName, "int", GoExpr.GoBinary("-", GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]), GoExpr.GoIntLiteral(1)), true),
-			GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("copy"),
-				[
-					GoExpr.GoSlice(site.tempExpr, GoExpr.GoIdent(indexName), null),
-					GoExpr.GoSlice(site.tempExpr, GoExpr.GoBinary("+", GoExpr.GoIdent(indexName), GoExpr.GoIntLiteral(1)), null)
-				])),
-			GoStmt.GoVarDecl(zeroName, elementGoType, null, false),
-			GoStmt.GoAssign(GoExpr.GoIndex(site.tempExpr, lastExpr), GoExpr.GoIdent(zeroName)),
-			GoStmt.GoAssign(site.tempExpr, GoExpr.GoSlice(site.tempExpr, null, lastExpr))
-		].concat(site.writeBack(site.tempExpr)).concat([GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))]);
+			GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(site.tempExpr, "RemoveAt"), [indexExpr])),
+			GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
+		];
 		var body = site.prefix.concat(loweredValue.prefix).concat([
-			GoStmt.GoVarDecl(valueName, elementGoType, valueExpr, false),
-			GoStmt.GoRangeStmt(indexName, elementName, site.tempExpr, true, [
-				GoStmt.GoIf(lowerArrayElementEqualityExpr(GoExpr.GoIdent(elementName), GoExpr.GoIdent(valueName), elementType, elementGoType), foundBody, null)
+			GoStmt.GoVarDecl(valueName, "any", loweredValue.expr, false),
+			GoStmt.GoVarDecl(indexName, "int", GoExpr.GoIntLiteral(0), true),
+			GoStmt.GoWhile(GoExpr.GoBinary("<", indexExpr, GoExpr.GoCall(GoExpr.GoSelector(site.tempExpr, "Len"), [])), [
+				GoStmt.GoVarDecl(elementName, "any", GoExpr.GoCall(GoExpr.GoSelector(site.tempExpr, "Get"), [indexExpr]), true),
+				GoStmt.GoIf(GoExpr.GoCall(GoExpr.GoIdent("hxrt.HaxeEqual"), [GoExpr.GoIdent(elementName), GoExpr.GoIdent(valueName)]), foundBody, null),
+				GoStmt.GoAssign(indexExpr, GoExpr.GoBinary("+", indexExpr, GoExpr.GoIntLiteral(1)))
 			]),
 			GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))
 		]);
@@ -12155,52 +12800,28 @@ class GoCompiler {
 	}
 
 	/**
-		What: Lowers `Array.insert(position, value)` as a typed slice insertion.
+		What: Lowers `Array.insert(position, value)` through the shared carrier.
 		Why: Portable Haxe clamps oversized positions and resolves negative positions
-		from the end, behavior that Go's `append` does not provide by itself.
-		How: Evaluate arguments once in order, normalize the position, grow by one,
-		shift the suffix with overlapping `copy`, assign the value, and write back.
+		from the end, behavior owned by the carrier rather than a copied slice header.
+		How: Evaluate receiver and arguments once in order, then pass the typed position
+		and erased value to the carrier's in-place insertion operation.
 	**/
 	function lowerArrayInsertExpr(target:TypedExpr, args:Array<TypedExpr>):LoweredExpr {
 		if (args.length != 2) {
 			Context.fatalError("Array.insert expects a position and value", target.pos);
 		}
 		var site = lowerArrayMutationSite(target);
-		var elementType = arrayElementType(target.t);
-		if (elementType == null) {
-			elementType = args[1].t;
-		}
-		var elementGoType = arrayElementGoType(target.t);
 		var loweredPosition = lowerExprWithPrefix(args[0]);
 		var loweredValue = lowerExprWithPrefix(args[1]);
 		var positionName = freshTempName("hx_insert_position");
 		var valueName = freshTempName("hx_insert_value");
-		var lengthName = freshTempName("hx_insert_length");
-		var zeroName = freshTempName("hx_insert_zero");
-		var positionExpr = GoExpr.GoIdent(positionName);
-		var lengthExpr = GoExpr.GoIdent(lengthName);
-		var valueExpr = coerceAnyExprToType(loweredValue.expr, args[1].t, elementType);
 		var body = site.prefix.concat(loweredPosition.prefix)
 			.concat([GoStmt.GoVarDecl(positionName, "int", loweredPosition.expr, true)])
 			.concat(loweredValue.prefix)
 			.concat([
-				GoStmt.GoVarDecl(valueName, elementGoType, valueExpr, false),
-				GoStmt.GoVarDecl(lengthName, "int", GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]), true),
-				GoStmt.GoIf(GoExpr.GoBinary("<", positionExpr, GoExpr.GoIntLiteral(0)), [
-					GoStmt.GoAssign(positionExpr, GoExpr.GoBinary("+", lengthExpr, positionExpr)),
-					GoStmt.GoIf(GoExpr.GoBinary("<", positionExpr, GoExpr.GoIntLiteral(0)), [GoStmt.GoAssign(positionExpr, GoExpr.GoIntLiteral(0))], null)
-				],
-					null),
-				GoStmt.GoIf(GoExpr.GoBinary(">", positionExpr, lengthExpr), [GoStmt.GoAssign(positionExpr, lengthExpr)], null),
-				GoStmt.GoVarDecl(zeroName, elementGoType, null, false),
-				GoStmt.GoAssign(site.tempExpr, GoExpr.GoCall(GoExpr.GoIdent("append"), [site.tempExpr, GoExpr.GoIdent(zeroName)])),
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("copy"), [
-					GoExpr.GoSlice(site.tempExpr, GoExpr.GoBinary("+", positionExpr, GoExpr.GoIntLiteral(1)), null),
-					GoExpr.GoSlice(site.tempExpr, positionExpr, null)
-				])),
-				GoStmt.GoAssign(GoExpr.GoIndex(site.tempExpr, positionExpr), GoExpr.GoIdent(valueName))
-			])
-			.concat(site.writeBack(site.tempExpr));
+				GoStmt.GoVarDecl(valueName, "any", loweredValue.expr, false),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(site.tempExpr, "Insert"), [GoExpr.GoIdent(positionName), GoExpr.GoIdent(valueName)]))
+			]);
 		return {
 			expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], body), []),
 			isStringLike: false
@@ -12219,53 +12840,79 @@ class GoCompiler {
 			case "insert":
 				lowerArrayInsertExpr(methodCall.target, args);
 			case "copy" if (args.length == 0):
+				var shared = usesSharedArrayCarrier(methodCall.target);
+				var copied = shared ? GoExpr.GoCall(GoExpr.GoSelector(lowerExpr(methodCall.target).expr, "Copy"),
+					[]) : cloneArrayExpr(lowerExpr(methodCall.target).expr, methodCall.target.t);
+				if (!shared && isHaxeArrayType(returnType)) {
+					copied = GoExpr.GoCall(GoExpr.GoIdent("hxrt.ArrayFromValues"),
+						[lowerTypedSliceToAnyByGoType(copied, arrayElementGoType(methodCall.target.t))]);
+				}
 				{
-					expr: cloneArrayExpr(lowerExpr(methodCall.target).expr, methodCall.target.t),
+					expr: copied,
 					isStringLike: false
 				};
 			case "join":
 				var delimiterExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
 					[GoExpr.GoStringLiteral("")]);
-				var sourceExpr = lowerTypedArrayToAnyCoerce(lowerExpr(methodCall.target).expr, methodCall.target.t);
+				var targetExpr = lowerExpr(methodCall.target).expr;
+				var sourceExpr = usesSharedArrayCarrier(methodCall.target) ? GoExpr.GoCall(GoExpr.GoSelector(targetExpr, "Values"),
+					[]) : lowerTypedArrayToAnyCoerce(targetExpr, methodCall.target.t);
 				{
 					expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringJoinAny"), [sourceExpr, delimiterExpr]),
 					isStringLike: true
 				};
 			case "push":
 				var site = lowerArrayMutationSite(methodCall.target);
-				var appendArgs = [site.tempExpr];
+				var shared = usesSharedArrayCarrier(methodCall.target);
+				var pushArgs = shared ? [] : [site.tempExpr];
 				var shouldMaskToByte = isBytesBufferStorageArray(methodCall.target);
+				var prefix = site.prefix.copy();
 				for (arg in args) {
-					var appendValue = lowerExpr(arg).expr;
+					var loweredArg = lowerExprWithPrefix(arg);
+					prefix = prefix.concat(loweredArg.prefix);
+					var appendValue = loweredArg.expr;
 					if (shouldMaskToByte) {
 						appendValue = GoExpr.GoBinary("&", appendValue, GoExpr.GoIntLiteral(255));
 					}
-					appendArgs.push(appendValue);
+					pushArgs.push(appendValue);
 				}
-				var body = site.prefix.concat([
-					GoStmt.GoAssign(site.tempExpr, GoExpr.GoCall(GoExpr.GoIdent("append"), appendArgs))
-				]).concat(site.writeBack(site.tempExpr)).concat([GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]))]);
+				var body = if (shared) {
+					prefix.concat([
+						GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(site.tempExpr, "Push"), pushArgs))
+					]);
+				} else {
+					prefix.concat([
+						GoStmt.GoAssign(site.tempExpr, GoExpr.GoCall(GoExpr.GoIdent("append"), pushArgs))
+					]).concat(site.writeBack(site.tempExpr)).concat([GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]))]);
+				};
 				{
 					expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["int"], body), []),
 					isStringLike: false
 				};
 			case "pop" if (args.length == 0):
 				var site = lowerArrayMutationSite(methodCall.target);
-				var lenName = freshTempName("hx_len");
-				var valueName = freshTempName("hx_value");
-				var zeroName = freshTempName("hx_zero");
-				var resultType = typeToGoType(returnType);
-				var body = site.prefix.concat([
-					GoStmt.GoVarDecl(lenName, "int", GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]), true),
-					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent(lenName), GoExpr.GoIntLiteral(0)), [
-						GoStmt.GoVarDecl(zeroName, resultType, null, false),
-						GoStmt.GoReturn(GoExpr.GoIdent(zeroName))
-					],
-						null),
-					GoStmt.GoVarDecl(valueName, resultType,
-						GoExpr.GoIndex(site.tempExpr, GoExpr.GoBinary("-", GoExpr.GoIdent(lenName), GoExpr.GoIntLiteral(1))), true),
-					GoStmt.GoAssign(site.tempExpr, GoExpr.GoSlice(site.tempExpr, null, GoExpr.GoBinary("-", GoExpr.GoIdent(lenName), GoExpr.GoIntLiteral(1))))
-				]).concat(site.writeBack(site.tempExpr)).concat([GoStmt.GoReturn(GoExpr.GoIdent(valueName))]);
+				var shared = usesSharedArrayCarrier(methodCall.target);
+				var resultType = shared ? valueStorageGoType(returnType) : typeToGoType(returnType);
+				var body = if (shared) {
+					var popped = coerceStoredArrayElementExpr(GoExpr.GoCall(GoExpr.GoSelector(site.tempExpr, "Pop"), []), returnType);
+					site.prefix.concat([GoStmt.GoReturn(popped)]);
+				} else {
+					var lenName = freshTempName("hx_len");
+					var valueName = freshTempName("hx_value");
+					var zeroName = freshTempName("hx_zero");
+					site.prefix.concat([
+						GoStmt.GoVarDecl(lenName, "int", GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]), true),
+						GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent(lenName), GoExpr.GoIntLiteral(0)), [
+							GoStmt.GoVarDecl(zeroName, resultType, null, false),
+							GoStmt.GoReturn(GoExpr.GoIdent(zeroName))
+						],
+							null),
+						GoStmt.GoVarDecl(valueName, resultType,
+							GoExpr.GoIndex(site.tempExpr, GoExpr.GoBinary("-", GoExpr.GoIdent(lenName), GoExpr.GoIntLiteral(1))), true),
+						GoStmt.GoAssign(site.tempExpr,
+							GoExpr.GoSlice(site.tempExpr, null, GoExpr.GoBinary("-", GoExpr.GoIdent(lenName), GoExpr.GoIntLiteral(1))))
+					]).concat(site.writeBack(site.tempExpr)).concat([GoStmt.GoReturn(GoExpr.GoIdent(valueName))]);
+				};
 				{
 					expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [resultType], body), []),
 					isStringLike: isStringType(returnType)

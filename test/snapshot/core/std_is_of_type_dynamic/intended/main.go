@@ -63,24 +63,10 @@ func main() {
 		}
 	}(any(d)))
 	hxrt.Println(v_2)
-	d = []any{1, 2}
+	d = hxrt.NewArray(1, 2)
 	var v_3 any = any(func(hx_value any) bool {
 		switch hx_value.(type) {
-		case []*Base:
-			return true
-		case []*Child:
-			return true
-		case []*haxe___Int64_____Int64:
-			return true
-		case []*string:
-			return true
-		case []any:
-			return true
-		case []bool:
-			return true
-		case []float64:
-			return true
-		case []int:
+		case *hxrt.Array:
 			return true
 		default:
 			return false
@@ -90,21 +76,7 @@ func main() {
 	d = 1
 	var v_4 any = any(func(hx_value any) bool {
 		switch hx_value.(type) {
-		case []*Base:
-			return true
-		case []*Child:
-			return true
-		case []*haxe___Int64_____Int64:
-			return true
-		case []*string:
-			return true
-		case []any:
-			return true
-		case []bool:
-			return true
-		case []float64:
-			return true
-		case []int:
+		case *hxrt.Array:
 			return true
 		default:
 			return false

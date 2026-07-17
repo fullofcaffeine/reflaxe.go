@@ -21,5 +21,7 @@ class Main {
 		});
 		source[0] = 9;
 		safe("ro.alias", function() return Std.string(ro[0]));
+		source.push(5);
+		safe("ro.alias.length", function() return Std.string(ro.length));
 	}
 }

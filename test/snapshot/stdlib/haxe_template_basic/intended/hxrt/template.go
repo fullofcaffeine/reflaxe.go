@@ -2,12 +2,16 @@ package hxrt
 
 import "reflect"
 
-// TemplateArrayValues exposes a Go slice or array as the erased element slice
-// consumed by staged haxe.Template foreach loops. The runtime owns only this
-// representation inspection; iteration and rendering remain in Haxe source.
+// TemplateArrayValues exposes a portable Array or native Go slice/array as the
+// erased element slice consumed by staged haxe.Template foreach loops. The
+// runtime owns only this representation inspection; iteration and rendering
+// remain in Haxe source.
 func TemplateArrayValues(value any) []any {
 	if value == nil {
 		return nil
+	}
+	if array, ok := value.(*Array); ok {
+		return array.Values()
 	}
 	ref := reflect.ValueOf(value)
 	if !ref.IsValid() {

@@ -14,15 +14,15 @@ func haxe__io___UInt32Array__UInt32Array_Impl___new(elements int) *haxe__io__Arr
 	return this1
 }
 
-func haxe__io___UInt32Array__UInt32Array_Impl__fromArray(a []int, pos int, length any) *haxe__io__ArrayBufferViewImpl {
+func haxe__io___UInt32Array__UInt32Array_Impl__fromArray(a *hxrt.Array, pos int, length any) *haxe__io__ArrayBufferViewImpl {
 	var hx_if_9 int
 	if length == nil {
-		hx_if_9 = int(int32((hxrt.Int32Wrap(len(a)) - hxrt.Int32Wrap(pos))))
+		hx_if_9 = int(int32((hxrt.Int32Wrap(a.Len()) - hxrt.Int32Wrap(pos))))
 	} else {
 		hx_if_9 = length.(int)
 	}
 	resolvedLength := hx_if_9
-	if ((pos < 0) || (resolvedLength < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength)))) > len(a)) {
+	if ((pos < 0) || (resolvedLength < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength)))) > a.Len()) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	var this1 *haxe__io__ArrayBufferViewImpl
@@ -38,7 +38,7 @@ func haxe__io___UInt32Array__UInt32Array_Impl__fromArray(a []int, pos int, lengt
 		hx_post_10 := _g
 		_g = int(int32((_g + 1)))
 		idx := hx_post_10
-		value := a[int(int32((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(pos))))]
+		value := hxrt.IntFromNullableAny(a.Get(int(int32((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(pos))))))
 		if (idx >= 0) && (idx < int(int32((hxrt.Int32Wrap(out.byteLength) >> uint(2))))) {
 			_this := out.bytes
 			pos_1 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(idx) << uint(2))))) + hxrt.Int32Wrap(out.byteOffset))))

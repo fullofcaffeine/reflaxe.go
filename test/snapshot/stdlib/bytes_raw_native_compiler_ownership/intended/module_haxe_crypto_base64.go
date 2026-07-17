@@ -56,16 +56,28 @@ func haxe__crypto__Base64_removePadding(value *string, complement bool) *string 
 }
 
 func haxe__crypto__Base64_toValues(bytes *haxe__io__Bytes) []int {
-	values := []int{}
+	values := hxrt.NewArray()
 	_g := 0
 	_g1 := bytes.length
 	for _g < _g1 {
 		hx_post_11 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_11
-		values = append(values, bytes.b[index])
+		values.Push(bytes.b[index])
 	}
-	return values
+	return func(hx_lambda_raw_13 []any) []int {
+		hx_lambda_out_14 := make([]int, 0, len(hx_lambda_raw_13))
+		for _, hx_lambda_item_15 := range hx_lambda_raw_13 {
+			hx_lambda_out_14 = append(hx_lambda_out_14, func(hx_value_16 any) int {
+				if hx_value_16 == nil {
+					var hx_zero_17 int
+					return hx_zero_17
+				}
+				return hx_value_16.(int)
+			}(hx_lambda_item_15))
+		}
+		return hx_lambda_out_14
+	}(values.Values())
 }
 
 func haxe__crypto__Base64_urlDecode(value *string, complement bool) *haxe__io__Bytes {

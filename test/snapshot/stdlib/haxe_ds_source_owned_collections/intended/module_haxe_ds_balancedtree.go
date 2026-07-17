@@ -113,7 +113,7 @@ type I_haxe__ds__BalancedTree interface {
 	copy() *haxe__ds__BalancedTree
 	setLoop(k any, v any, node *haxe__ds__TreeNode) *haxe__ds__TreeNode
 	removeLoop(k any, node *haxe__ds__TreeNode) *haxe__ds__TreeNode
-	keysLoop(node *haxe__ds__TreeNode, acc []any) []any
+	keysLoop(node *haxe__ds__TreeNode, acc *hxrt.Array) *hxrt.Array
 	merge(t1 *haxe__ds__TreeNode, t2 *haxe__ds__TreeNode) *haxe__ds__TreeNode
 	minBinding(t *haxe__ds__TreeNode) *haxe__ds__TreeNode
 	removeMinBinding(t *haxe__ds__TreeNode) *haxe__ds__TreeNode
@@ -218,37 +218,37 @@ func (self *haxe__ds__BalancedTree) exists(key any) bool {
 }
 
 func (self *haxe__ds__BalancedTree) iterator() map[string]any {
-	ret := haxe__ds__BalancedTree_iteratorLoop(self.root, []any{})
+	ret := haxe__ds__BalancedTree_iteratorLoop(self.root, hxrt.NewArray())
 	index := 0
 	hx_obj_28 := map[string]any{}
 	hx_obj_28["hasNext"] = func() bool {
-		return (index < len(ret))
+		return (index < ret.Len())
 	}
 	hx_obj_28["next"] = func() any {
 		hx_post_29 := index
 		index = int(int32((index + 1)))
-		return ret[hx_post_29]
+		return ret.Get(hx_post_29)
 	}
 	return hx_obj_28
 }
 
 func (self *haxe__ds__BalancedTree) keys() map[string]any {
-	ret := func(hx_value_30 any) []any {
+	ret := func(hx_value_30 any) *hxrt.Array {
 		if hx_value_30 == nil {
-			var hx_zero_31 []any
+			var hx_zero_31 *hxrt.Array
 			return hx_zero_31
 		}
-		return hx_value_30.([]any)
-	}(self.keysLoop(self.root, []any{}))
+		return hx_value_30.(*hxrt.Array)
+	}(self.keysLoop(self.root, hxrt.NewArray()))
 	index := 0
 	hx_obj_32 := map[string]any{}
 	hx_obj_32["hasNext"] = func() bool {
-		return (index < len(ret))
+		return (index < ret.Len())
 	}
 	hx_obj_32["next"] = func() any {
 		hx_post_33 := index
 		index = int(int32((index + 1)))
-		return ret[hx_post_33]
+		return ret.Get(hx_post_33)
 	}
 	return hx_obj_32
 }
@@ -412,22 +412,22 @@ func (self *haxe__ds__BalancedTree) removeLoop(k any, node *haxe__ds__TreeNode) 
 	return hx_if_70
 }
 
-func (self *haxe__ds__BalancedTree) keysLoop(node *haxe__ds__TreeNode, acc []any) []any {
+func (self *haxe__ds__BalancedTree) keysLoop(node *haxe__ds__TreeNode, acc *hxrt.Array) *hxrt.Array {
 	if node != nil {
-		acc = func(hx_value_71 any) []any {
+		acc = func(hx_value_71 any) *hxrt.Array {
 			if hx_value_71 == nil {
-				var hx_zero_72 []any
+				var hx_zero_72 *hxrt.Array
 				return hx_zero_72
 			}
-			return hx_value_71.([]any)
+			return hx_value_71.(*hxrt.Array)
 		}(self.keysLoop(node.left, acc))
-		acc = append(acc, node.key)
-		acc = func(hx_value_74 any) []any {
+		acc.Push(node.key)
+		acc = func(hx_value_74 any) *hxrt.Array {
 			if hx_value_74 == nil {
-				var hx_zero_75 []any
+				var hx_zero_75 *hxrt.Array
 				return hx_zero_75
 			}
-			return hx_value_74.([]any)
+			return hx_value_74.(*hxrt.Array)
 		}(self.keysLoop(node.right, acc))
 	}
 	return acc
@@ -658,10 +658,10 @@ func (self *haxe__ds__BalancedTree) copyIMap() haxe__IMap {
 	}(self.copy())
 }
 
-func haxe__ds__BalancedTree_iteratorLoop(node *haxe__ds__TreeNode, acc []any) []any {
+func haxe__ds__BalancedTree_iteratorLoop(node *haxe__ds__TreeNode, acc *hxrt.Array) *hxrt.Array {
 	if node != nil {
 		acc = haxe__ds__BalancedTree_iteratorLoop(node.left, acc)
-		acc = append(acc, node.value)
+		acc.Push(node.value)
 		acc = haxe__ds__BalancedTree_iteratorLoop(node.right, acc)
 	}
 	return acc

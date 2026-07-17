@@ -27,20 +27,20 @@ func New_app__http__TinyHttpServer(api *app__core__IncidentApi, host *string, po
 	self.server.bind(New_sys__net__Host(host), port)
 	self.server.listen(16)
 	bound := self.server.host()
-	var hx_if_47 int
+	var hx_if_75 int
 	if bound == nil {
-		hx_if_47 = port
+		hx_if_75 = port
 	} else {
-		hx_if_47 = func(hx_obj_44 map[string]any) int {
-			hx_field_45 := hx_obj_44["port"]
-			if hx_field_45 == nil {
-				var hx_zero_46 int
-				return hx_zero_46
+		hx_if_75 = func(hx_obj_72 map[string]any) int {
+			hx_field_73 := hx_obj_72["port"]
+			if hx_field_73 == nil {
+				var hx_zero_74 int
+				return hx_zero_74
 			}
-			return hx_field_45.(int)
+			return hx_field_73.(int)
 		}(bound)
 	}
-	self.port = hx_if_47
+	self.port = hx_if_75
 	return self
 }
 
@@ -51,8 +51,8 @@ func (self *app__http__TinyHttpServer) serveOnce() {
 		request := self.readRequest(peer)
 		response := self.api.handle(request)
 		self.writeResponse(peer, response)
-	}, func(hx_caught_48 any) {
-		error := hxrt.ExceptionCaught(hx_caught_48)
+	}, func(hx_caught_76 any) {
+		error := hxrt.ExceptionCaught(hx_caught_76)
 		_ = error
 		if peer != nil {
 			self.writeResponse(peer, app__http__HttpResponse_json(500, hxrt.StringFromLiteral("{\"error\":\"server_error\"}")))
@@ -64,29 +64,47 @@ func (self *app__http__TinyHttpServer) serveOnce() {
 func (self *app__http__TinyHttpServer) close() {
 	hxrt.TryCatch(func() {
 		self.server.close()
-	}, func(hx_caught_50 any) {
-		hx_tmp := hxrt.ExceptionCaught(hx_caught_50)
+	}, func(hx_caught_78 any) {
+		hx_tmp := hxrt.ExceptionCaught(hx_caught_78)
 		_ = hx_tmp
 	})
 }
 
 func (self *app__http__TinyHttpServer) readRequest(peer *sys__net__Socket) *app__http__HttpRequest {
 	line := peer.input.readLine()
-	first := hxrt.StringSplitStringPtr(line, hxrt.StringFromLiteral(" "))
-	var hx_if_52 *string
-	if len(first) > 0 {
-		hx_if_52 = first[0]
+	first := hxrt.ArrayFromValues(func(hx_sort_src_80 []*string) []any {
+		hx_sort_out_82 := make([]any, 0, len(hx_sort_src_80))
+		for _, hx_sort_item_81 := range hx_sort_src_80 {
+			hx_sort_out_82 = append(hx_sort_out_82, hx_sort_item_81)
+		}
+		return hx_sort_out_82
+	}(hxrt.StringSplitStringPtr(line, hxrt.StringFromLiteral(" "))))
+	var hx_if_85 *string
+	if first.Len() > 0 {
+		hx_if_85 = hxrt.StdString(func(hx_value_83 any) *string {
+			if hx_value_83 == nil {
+				var hx_zero_84 *string
+				return hx_zero_84
+			}
+			return hx_value_83.(*string)
+		}(first.Get(0)))
 	} else {
-		hx_if_52 = hxrt.StringFromLiteral("GET")
+		hx_if_85 = hxrt.StringFromLiteral("GET")
 	}
-	method := hx_if_52
-	var hx_if_53 *string
-	if len(first) > 1 {
-		hx_if_53 = first[1]
+	method := hx_if_85
+	var hx_if_88 *string
+	if first.Len() > 1 {
+		hx_if_88 = hxrt.StdString(func(hx_value_86 any) *string {
+			if hx_value_86 == nil {
+				var hx_zero_87 *string
+				return hx_zero_87
+			}
+			return hx_value_86.(*string)
+		}(first.Get(1)))
 	} else {
-		hx_if_53 = hxrt.StringFromLiteral("/")
+		hx_if_88 = hxrt.StringFromLiteral("/")
 	}
-	path := hx_if_53
+	path := hx_if_88
 	contentLength := 0
 	for true {
 		header := peer.input.readLine()
@@ -97,13 +115,13 @@ func (self *app__http__TinyHttpServer) readRequest(peer *sys__net__Socket) *app_
 		if StringTools_startsWith(lower, hxrt.StringFromLiteral("content-length:")) {
 			rawLength := StringTools_trim(hxrt.StringSubstrStringPtr(header, hxrt.StringLengthStringPtr(hxrt.StringFromLiteral("content-length:")), 0, false))
 			var parsed any = hxrt.StdParseInt(rawLength)
-			var hx_if_54 int
+			var hx_if_89 int
 			if parsed == nil {
-				hx_if_54 = 0
+				hx_if_89 = 0
 			} else {
-				hx_if_54 = parsed.(int)
+				hx_if_89 = parsed.(int)
 			}
-			contentLength = hx_if_54
+			contentLength = hx_if_89
 		}
 	}
 	return New_app__http__HttpRequest(method, path, self.readBody(peer, contentLength))
@@ -117,9 +135,9 @@ func (self *app__http__TinyHttpServer) readBody(peer *sys__net__Socket, length i
 	i := 0
 	for i < length {
 		byte := peer.input.readByte()
-		hx_arr_55 := out.b
-		hx_arr_55 = append(hx_arr_55, (byte & 255))
-		out.b = hx_arr_55
+		hx_arr_90 := out.b
+		hx_arr_90 = append(hx_arr_90, (byte & 255))
+		out.b = hx_arr_90
 		i = int(int32((i + 1)))
 	}
 	return out.getBytes().toString()
@@ -138,27 +156,27 @@ func app__http__TinyHttpServer_closePeer(peer *sys__net__Socket) {
 	}
 	hxrt.TryCatch(func() {
 		peer.close()
-	}, func(hx_caught_56 any) {
-		hx_tmp := hxrt.ExceptionCaught(hx_caught_56)
+	}, func(hx_caught_91 any) {
+		hx_tmp := hxrt.ExceptionCaught(hx_caught_91)
 		_ = hx_tmp
 	})
 }
 
 func app__http__TinyHttpServer_reason(status int) *string {
-	var hx_switch_58 *string
+	var hx_switch_93 *string
 	switch status {
 	case 200:
-		hx_switch_58 = hxrt.StringFromLiteral("OK")
+		hx_switch_93 = hxrt.StringFromLiteral("OK")
 	case 201:
-		hx_switch_58 = hxrt.StringFromLiteral("Created")
+		hx_switch_93 = hxrt.StringFromLiteral("Created")
 	case 400:
-		hx_switch_58 = hxrt.StringFromLiteral("Bad Request")
+		hx_switch_93 = hxrt.StringFromLiteral("Bad Request")
 	case 404:
-		hx_switch_58 = hxrt.StringFromLiteral("Not Found")
+		hx_switch_93 = hxrt.StringFromLiteral("Not Found")
 	case 500:
-		hx_switch_58 = hxrt.StringFromLiteral("Internal Server Error")
+		hx_switch_93 = hxrt.StringFromLiteral("Internal Server Error")
 	default:
-		hx_switch_58 = hxrt.StringFromLiteral("OK")
+		hx_switch_93 = hxrt.StringFromLiteral("OK")
 	}
-	return hx_switch_58
+	return hx_switch_93
 }

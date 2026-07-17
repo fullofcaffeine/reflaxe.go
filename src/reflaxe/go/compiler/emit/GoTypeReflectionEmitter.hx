@@ -41,7 +41,7 @@ class GoTypeReflectionEmitter {
 			final arity:Int;
 		}>;
 	}>, goRawQuotedString:String->String,
-			goStringPointerArrayLiteral:Array<String>->String):Array<GoDecl> {
+			goStringArrayCarrierLiteral:Array<String>->String):Array<GoDecl> {
 		var allEnumMetadata = enumMetadata.copy();
 		allEnumMetadata.push({
 			goTypeName: "ValueType",
@@ -251,30 +251,22 @@ class GoTypeReflectionEmitter {
 
 		var enumParametersBody = new Array<GoStmt>();
 		if (allEnumMetadata.length == 0) {
-			enumParametersBody = [
-				GoStmt.GoRaw("if hxrt.AnyEqualsNull(e) {"),
-				GoStmt.GoRaw("\treturn []any{}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("return []any{}")
-			];
+			enumParametersBody = [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewArray"), []))];
 		} else {
 			enumParametersBody = [
-				GoStmt.GoRaw("if hxrt.AnyEqualsNull(e) {"),
-				GoStmt.GoRaw("\treturn []any{}"),
-				GoStmt.GoRaw("}")
+				GoStmt.GoIf(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnyEqualsNull"), [GoExpr.GoIdent("e")]),
+					[GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewArray"), []))], null)
 			];
 			enumParametersBody.push(GoStmt.GoRaw("switch value := e.(type) {"));
 			for (entry in allEnumMetadata) {
 				enumParametersBody.push(GoStmt.GoRaw("case *" + entry.goTypeName + ":"));
 				enumParametersBody.push(GoStmt.GoRaw("\tif value == nil || value.params == nil {"));
-				enumParametersBody.push(GoStmt.GoRaw("\t\treturn []any{}"));
+				enumParametersBody.push(GoStmt.GoRaw("\t\treturn hxrt.NewArray()"));
 				enumParametersBody.push(GoStmt.GoRaw("\t}"));
-				enumParametersBody.push(GoStmt.GoRaw("\tout := make([]any, len(value.params))"));
-				enumParametersBody.push(GoStmt.GoRaw("\tcopy(out, value.params)"));
-				enumParametersBody.push(GoStmt.GoRaw("\treturn out"));
+				enumParametersBody.push(GoStmt.GoRaw("\treturn hxrt.NewArray(value.params...)"));
 			}
 			enumParametersBody.push(GoStmt.GoRaw("default:"));
-			enumParametersBody.push(GoStmt.GoRaw("\treturn []any{}"));
+			enumParametersBody.push(GoStmt.GoRaw("\treturn hxrt.NewArray()"));
 			enumParametersBody.push(GoStmt.GoRaw("}"));
 		}
 
@@ -292,6 +284,11 @@ class GoTypeReflectionEmitter {
 		getClassBody.push(GoStmt.GoRaw("case hxrt__TypeClassValue:"));
 		getClassBody.push(GoStmt.GoRaw("\tcopyValue := value"));
 		getClassBody.push(GoStmt.GoRaw("\treturn &copyValue"));
+		getClassBody.push(GoStmt.GoRaw("case *hxrt.Array:"));
+		getClassBody.push(GoStmt.GoRaw("\tif value == nil {"));
+		getClassBody.push(GoStmt.GoRaw("\t\treturn nil"));
+		getClassBody.push(GoStmt.GoRaw("\t}"));
+		getClassBody.push(GoStmt.GoRaw("\treturn &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(\"Array\")}"));
 		for (entry in classMetadata) {
 			if (!entry.constructible) {
 				continue;
@@ -355,47 +352,47 @@ class GoTypeReflectionEmitter {
 		var getClassFieldsBody = [
 			GoStmt.GoRaw("className, ok := hxrt_typeResolvedClassName(c)"),
 			GoStmt.GoRaw("if !ok {"),
-			GoStmt.GoRaw("\treturn []*string{}"),
+			GoStmt.GoRaw("\treturn hxrt.NewArray()"),
 			GoStmt.GoRaw("}"),
 			GoStmt.GoRaw("switch className {")
 		];
 		for (entry in classMetadata) {
 			getClassFieldsBody.push(GoStmt.GoRaw("case " + goRawQuotedString(entry.haxeTypeName) + ":"));
-			getClassFieldsBody.push(GoStmt.GoRaw("\treturn " + goStringPointerArrayLiteral(entry.staticFieldNames)));
+			getClassFieldsBody.push(GoStmt.GoRaw("\treturn " + goStringArrayCarrierLiteral(entry.staticFieldNames)));
 		}
 		getClassFieldsBody.push(GoStmt.GoRaw("default:"));
-		getClassFieldsBody.push(GoStmt.GoRaw("\treturn []*string{}"));
+		getClassFieldsBody.push(GoStmt.GoRaw("\treturn hxrt.NewArray()"));
 		getClassFieldsBody.push(GoStmt.GoRaw("}"));
 
 		var getInstanceFieldsBody = [
 			GoStmt.GoRaw("className, ok := hxrt_typeResolvedClassName(c)"),
 			GoStmt.GoRaw("if !ok {"),
-			GoStmt.GoRaw("\treturn []*string{}"),
+			GoStmt.GoRaw("\treturn hxrt.NewArray()"),
 			GoStmt.GoRaw("}"),
 			GoStmt.GoRaw("switch className {")
 		];
 		for (entry in classMetadata) {
 			getInstanceFieldsBody.push(GoStmt.GoRaw("case " + goRawQuotedString(entry.haxeTypeName) + ":"));
-			getInstanceFieldsBody.push(GoStmt.GoRaw("\treturn " + goStringPointerArrayLiteral(entry.instanceFieldNames)));
+			getInstanceFieldsBody.push(GoStmt.GoRaw("\treturn " + goStringArrayCarrierLiteral(entry.instanceFieldNames)));
 		}
 		getInstanceFieldsBody.push(GoStmt.GoRaw("default:"));
-		getInstanceFieldsBody.push(GoStmt.GoRaw("\treturn []*string{}"));
+		getInstanceFieldsBody.push(GoStmt.GoRaw("\treturn hxrt.NewArray()"));
 		getInstanceFieldsBody.push(GoStmt.GoRaw("}"));
 
 		var getEnumConstructsBody = [
 			GoStmt.GoRaw("enumName, ok := hxrt_typeResolvedEnumName(e)"),
 			GoStmt.GoRaw("if !ok {"),
-			GoStmt.GoRaw("\treturn []*string{}"),
+			GoStmt.GoRaw("\treturn hxrt.NewArray()"),
 			GoStmt.GoRaw("}"),
 			GoStmt.GoRaw("switch enumName {")
 		];
 		for (entry in allEnumMetadata) {
 			getEnumConstructsBody.push(GoStmt.GoRaw("case " + goRawQuotedString(entry.haxeTypeName) + ":"));
 			var constructorNames = [for (constructor in entry.constructors) constructor.name];
-			getEnumConstructsBody.push(GoStmt.GoRaw("\treturn " + goStringPointerArrayLiteral(constructorNames)));
+			getEnumConstructsBody.push(GoStmt.GoRaw("\treturn " + goStringArrayCarrierLiteral(constructorNames)));
 		}
 		getEnumConstructsBody.push(GoStmt.GoRaw("default:"));
-		getEnumConstructsBody.push(GoStmt.GoRaw("\treturn []*string{}"));
+		getEnumConstructsBody.push(GoStmt.GoRaw("\treturn hxrt.NewArray()"));
 		getEnumConstructsBody.push(GoStmt.GoRaw("}"));
 
 		var classCreateEmptyBody = [GoStmt.GoRaw("switch className {")];
@@ -416,7 +413,7 @@ class GoTypeReflectionEmitter {
 		var allEnumsBody = [
 			GoStmt.GoRaw("enumName, ok := hxrt_typeResolvedEnumName(e)"),
 			GoStmt.GoRaw("if !ok {"),
-			GoStmt.GoRaw("\treturn []any{}"),
+			GoStmt.GoRaw("\treturn hxrt.NewArray()"),
 			GoStmt.GoRaw("}"),
 			GoStmt.GoRaw("switch enumName {")
 		];
@@ -427,13 +424,13 @@ class GoTypeReflectionEmitter {
 					if (constructor.arity == 0) constructor.symbol
 			];
 			if (zeroAritySymbols.length == 0) {
-				allEnumsBody.push(GoStmt.GoRaw("\treturn []any{}"));
+				allEnumsBody.push(GoStmt.GoRaw("\treturn hxrt.NewArray()"));
 			} else {
-				allEnumsBody.push(GoStmt.GoRaw("\treturn []any{" + zeroAritySymbols.join(", ") + "}"));
+				allEnumsBody.push(GoStmt.GoRaw("\treturn hxrt.NewArray(" + zeroAritySymbols.join(", ") + ")"));
 			}
 		}
 		allEnumsBody.push(GoStmt.GoRaw("default:"));
-		allEnumsBody.push(GoStmt.GoRaw("\treturn []any{}"));
+		allEnumsBody.push(GoStmt.GoRaw("\treturn hxrt.NewArray()"));
 		allEnumsBody.push(GoStmt.GoRaw("}"));
 
 		var typeOfBody = [
@@ -455,6 +452,8 @@ class GoTypeReflectionEmitter {
 			GoStmt.GoRaw("\treturn ValueType_TFloat"),
 			GoStmt.GoRaw("case string, *string:"),
 			GoStmt.GoRaw("\treturn ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral(\"String\")})"),
+			GoStmt.GoRaw("case *hxrt.Array:"),
+			GoStmt.GoRaw("\treturn ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral(\"Array\")})"),
 			GoStmt.GoRaw("}"),
 			GoStmt.GoRaw("ref := reflect.ValueOf(v)"),
 			GoStmt.GoRaw("if !ref.IsValid() {"),
@@ -545,6 +544,15 @@ class GoTypeReflectionEmitter {
 				GoStmt.GoRaw("ok = true"),
 				GoStmt.GoRaw("return result, ok")
 			]),
+			GoDecl.GoFuncDecl("hxrt_typeArrayValues", null, [
+				{
+					name: "value",
+					typeName: "*hxrt.Array"
+				}
+			], ["[]any"], [
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("value"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoArrayLiteral("any", []))], null),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("value"), "Values"), []))
+			]),
 			GoDecl.GoFuncDecl("hxrt_typeResolvedClassName", null, [
 				{
 					name: "value",
@@ -634,8 +642,8 @@ class GoTypeReflectionEmitter {
 					typeName: "any"
 				}
 			],
-				["[]*string"], getClassFieldsBody),
-			GoDecl.GoFuncDecl("Type_getInstanceFields", null, [{name: "c", typeName: "any"}], ["[]*string"], getInstanceFieldsBody),
+				["*hxrt.Array"], getClassFieldsBody),
+			GoDecl.GoFuncDecl("Type_getInstanceFields", null, [{name: "c", typeName: "any"}], ["*hxrt.Array"], getInstanceFieldsBody),
 			GoDecl.GoFuncDecl("Type_getEnumName", null, [{name: "e", typeName: "any"}], ["*string"], [
 				GoStmt.GoRaw("enumName, ok := hxrt_typeResolvedEnumName(e)"),
 				GoStmt.GoRaw("if !ok {"),
@@ -651,12 +659,12 @@ class GoTypeReflectionEmitter {
 			],
 				["any"], classResolveBody),
 			GoDecl.GoFuncDecl("Type_resolveEnum", null, [{name: "name", typeName: "*string"}], ["any"], enumResolveBody),
-			GoDecl.GoFuncDecl("Type_createInstance", null, [{name: "cl", typeName: "any"}, {name: "args", typeName: "[]any"}], ["any"], [
+			GoDecl.GoFuncDecl("Type_createInstance", null, [{name: "cl", typeName: "any"}, {name: "args", typeName: "*hxrt.Array"}], ["any"], [
 				GoStmt.GoRaw("className, ok := hxrt_typeResolvedClassName(cl)"),
 				GoStmt.GoRaw("if !ok {"),
 				GoStmt.GoRaw("\treturn nil"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("instance, ok := hxrt_typeCreateClassInstance(className, args)"),
+				GoStmt.GoRaw("instance, ok := hxrt_typeCreateClassInstance(className, hxrt_typeArrayValues(args))"),
 				GoStmt.GoRaw("if !ok {"),
 				GoStmt.GoRaw("\treturn nil"),
 				GoStmt.GoRaw("}"),
@@ -684,7 +692,7 @@ class GoTypeReflectionEmitter {
 					typeName: "any"
 				},
 				{name: "constr", typeName: "*string"},
-				{name: "params", typeName: "[]any"}
+				{name: "params", typeName: "*hxrt.Array"}
 			], ["any"], [
 				GoStmt.GoRaw("enumName, ok := hxrt_typeResolvedEnumName(e)"),
 				GoStmt.GoRaw("if !ok {"),
@@ -694,7 +702,7 @@ class GoTypeReflectionEmitter {
 				GoStmt.GoRaw("if constr != nil {"),
 				GoStmt.GoRaw("\tconstructorName = *hxrt.StdString(constr)"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, params)"),
+				GoStmt.GoRaw("enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, hxrt_typeArrayValues(params))"),
 				GoStmt.GoRaw("if !ok {"),
 				GoStmt.GoRaw("\treturn nil"),
 				GoStmt.GoRaw("}"),
@@ -706,13 +714,13 @@ class GoTypeReflectionEmitter {
 					typeName: "any"
 				},
 				{name: "index", typeName: "int"},
-				{name: "params", typeName: "[]any"}
+				{name: "params", typeName: "*hxrt.Array"}
 			], ["any"], [
 				GoStmt.GoRaw("enumName, ok := hxrt_typeResolvedEnumName(e)"),
 				GoStmt.GoRaw("if !ok {"),
 				GoStmt.GoRaw("\treturn nil"),
 				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("enumValue, ok := hxrt_typeCreateEnumInstance(enumName, \"\", index, true, params)"),
+				GoStmt.GoRaw("enumValue, ok := hxrt_typeCreateEnumInstance(enumName, \"\", index, true, hxrt_typeArrayValues(params))"),
 				GoStmt.GoRaw("if !ok {"),
 				GoStmt.GoRaw("\treturn nil"),
 				GoStmt.GoRaw("}"),
@@ -726,9 +734,9 @@ class GoTypeReflectionEmitter {
 			],
 				["*string"], enumConstructorBody),
 			GoDecl.GoFuncDecl("Type_enumIndex", null, [{name: "e", typeName: "any"}], ["int"], enumIndexBody),
-			GoDecl.GoFuncDecl("Type_getEnumConstructs", null, [{name: "e", typeName: "any"}], ["[]*string"], getEnumConstructsBody),
-			GoDecl.GoFuncDecl("Type_enumParameters", null, [{name: "e", typeName: "any"}], ["[]any"], enumParametersBody),
-			GoDecl.GoFuncDecl("Type_allEnums", null, [{name: "e", typeName: "any"}], ["[]any"], allEnumsBody),
+			GoDecl.GoFuncDecl("Type_getEnumConstructs", null, [{name: "e", typeName: "any"}], ["*hxrt.Array"], getEnumConstructsBody),
+			GoDecl.GoFuncDecl("Type_enumParameters", null, [{name: "e", typeName: "any"}], ["*hxrt.Array"], enumParametersBody),
+			GoDecl.GoFuncDecl("Type_allEnums", null, [{name: "e", typeName: "any"}], ["*hxrt.Array"], allEnumsBody),
 			GoDecl.GoFuncDecl("Type_typeof", null, [{name: "v", typeName: "any"}], ["any"], typeOfBody),
 			GoDecl.GoFuncDecl("Type_enumEq", null, [{name: "a", typeName: "any"}, {name: "b", typeName: "any"}], ["bool"],
 				[GoStmt.GoReturn(GoExpr.GoRaw("reflect.DeepEqual(a, b)"))])

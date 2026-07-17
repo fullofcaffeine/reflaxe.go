@@ -1,0 +1,13 @@
+local=1,9
+parameter=4,5
+return=6,7
+generic=8,9
+generic.has=true
+string.split=2
+retained=10,11
+callback=12,13
+sparse=null,null,14,15
+identity=true:false
+order=1:target,index,value
+compound=26:1,2,26:target,index,value
+post=6:4,5,7:target,index

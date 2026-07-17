@@ -9,7 +9,7 @@ type I_sys__ssl__Certificate interface {
 	add(pem *string)
 	addDER(der *haxe__io__Bytes)
 	get_commonName() *string
-	get_altNames() []*string
+	get_altNames() *hxrt.Array
 	get_notBefore() *Date
 	get_notAfter() *Date
 }
@@ -18,7 +18,7 @@ type sys__ssl__Certificate struct {
 	__hx_this  I_sys__ssl__Certificate
 	handle     any
 	commonName *string
-	altNames   []*string
+	altNames   *hxrt.Array
 	notBefore  *Date
 	notAfter   *Date
 }
@@ -61,8 +61,14 @@ func (self *sys__ssl__Certificate) get_commonName() *string {
 	return hxrt.SslCertCommonName(self.handle)
 }
 
-func (self *sys__ssl__Certificate) get_altNames() []*string {
-	return hxrt.SslCertAltNames(self.handle)
+func (self *sys__ssl__Certificate) get_altNames() *hxrt.Array {
+	return hxrt.ArrayFromValues(func(hx_sort_src_13 []*string) []any {
+		hx_sort_out_15 := make([]any, 0, len(hx_sort_src_13))
+		for _, hx_sort_item_14 := range hx_sort_src_13 {
+			hx_sort_out_15 = append(hx_sort_out_15, hx_sort_item_14)
+		}
+		return hx_sort_out_15
+	}(hxrt.SslCertAltNames(self.handle)))
 }
 
 func (self *sys__ssl__Certificate) get_notBefore() *Date {

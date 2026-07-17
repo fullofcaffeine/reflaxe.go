@@ -29,8 +29,8 @@ func (self *haxe__iterators__StringKeyValueIterator) next() map[string]any {
 	current := self.offset
 	self.offset = int(int32((self.offset + 1)))
 	code := hxrt.StringCharCodeAtStringPtr(self.s, current)
-	hx_obj_819 := map[string]any{}
-	hx_obj_819["key"] = current
-	hx_obj_819["value"] = code
-	return hx_obj_819
+	hx_obj_875 := map[string]any{}
+	hx_obj_875["key"] = current
+	hx_obj_875["value"] = code
+	return hx_obj_875
 }

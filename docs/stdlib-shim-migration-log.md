@@ -1943,3 +1943,77 @@ Observed result:
   `haxe_go-vfp.8.3.7`; shared identity across length-changing aliases is the
   xhigh representation decision in `haxe_go-vfp.8.3.8`; sparse indexed growth
   remains `haxe_go-vfp.8.7.20`.
+
+### 2026-07-17: preserve portable Array identity and sparse growth (`haxe_go-vfp.8.3.7`, `haxe_go-vfp.8.3.8`, `haxe_go-vfp.8.7.20`)
+
+Implementation:
+
+- Added failing contracts first for aliases crossing locals, fields, parameters,
+  returns, callbacks, erased `Dynamic`, generic functions, and
+  `ReadOnlyArray`. The same contracts cover sparse indexed writes, nil holes,
+  length-changing mutations, detached copies, compound and unary indexed
+  assignments, and once-only receiver/index/value evaluation.
+- Changed portable Haxe `Array<T>` from a copied Go slice header to one shared
+  `*hxrt.Array` identity carrier. The carrier owns erased element storage and the
+  representation primitives needed by compiler lowering: length, indexed read
+  and write, sparse growth, push/pop, insertion/removal, copy, and
+  an explicit values view for controlled runtime bridges. Portable and metal use
+  the same representation decision; no behavior branches on the legacy profile.
+- Added `go.NativeSlice<T>` as the explicit real-Go-slice boundary and migrated
+  slice externs plus `goextern` generation to it. Array-to-slice and
+  slice-to-Array conversions copy deliberately, so a native API cannot silently
+  acquire or sever Haxe alias identity. Fixed-size/vector, rest-argument, and
+  bytes carriers keep their existing specialized representations.
+- Routed array literals, indexing, iteration, mutation, generic boundaries,
+  structural iterators, Lambda, serializers, JSON, reflection, regex, templates,
+  sockets, and staged stdlib helpers through the shared carrier. Full-suite
+  testing also exposed and fixed a string-method receiver loaded from erased
+  Array storage and added the staged SSL native-certificate binding needed by
+  alternative-name access.
+- Added a structural `GoMakeSlice(elementType, length, capacity)` typed-IR node
+  and used typed range statements for slice boxing, copy-back, regex split,
+  type-reflection, and serializer paths. This preserves useful capacity hints
+  while lowering compiler raw-syntax debt from 3,878 to 3,864 sites.
+- Separated portable semantic-oracle cases from Go-target-only integration
+  cases. Target-only `go.*` behavior now lives in Go-native snapshot/runtime
+  fixtures instead of adding interpreter fallbacks to production types. The
+  repository rule and semantic-diff guide now explain what the harness compares,
+  why the interpreter is the oracle, how each phase runs, and when a case belongs
+  outside it.
+
+Validation evidence:
+
+- `npm run test:changed`
+- `npm test` (`287/287` snapshots)
+- `npm run test:semantic-diff` (`135/135` portable oracle cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance` (141 tracked staged sources),
+  `npm run test:stdlib-inventory`, and `npm run compatibility:verify`
+- `npm run test:compiler-debt` (`3,864` `GoRaw`, `215` Haxe `Dynamic`, `5`
+  Haxe `Any`, `2` Go unsafe, `675` reflection, and `13` compiler shim sites)
+- `npm run test:release-contracts`, raw-injection hygiene, semantic-harness and
+  documentation contracts, `hxrt` unit tests, and `goextern` unit tests
+- `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates;
+  Staticcheck cache redirected to writable temporary storage in the sandbox)
+- `npm run test:perf:hxrt-selective` (12–15 fewer copied files and 27.68–32.42%
+  smaller binaries across the four cases) and `npm run test:perf:go` (five
+  warning-only signals, zero metal or portable-vs-metal hard failures)
+
+Observed result:
+
+- Every ordinary Haxe Array alias now observes indexed and length-changing
+  mutations through one identity, including erased and generic crossings.
+  Sparse writes grow to `index + 1` with nil holes, later pushes append after the
+  grown length, and `copy()` remains detached as Haxe requires.
+- Explicit native-slice interop remains Go-shaped without weakening portable
+  semantics. Generated adapters make the copy boundary visible, and ordinary
+  app/test/example code does not need raw injection or compiler-owned stdlib
+  shims to use either side.
+- JSON cycle detection now recognizes shared Array carriers alongside maps and
+  slices; its bounded reflection island is documented and ratcheted in both
+  checked-in runtime and committed generated examples.
+- Go extern interface satisfaction from structural method sets (for example, a
+  buffer accepted where a writer interface is expected) is intentionally not
+  claimed here. That independent interop design remains tracked as
+  `haxe_go-vfp.8.4.1`.

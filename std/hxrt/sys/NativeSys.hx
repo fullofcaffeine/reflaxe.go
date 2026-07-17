@@ -1,5 +1,7 @@
 package hxrt.sys;
 
+import go.NativeSlice;
+
 /**
 	What
 	- Typed bridge to the native process capabilities used by staged root `Sys`.
@@ -18,7 +20,7 @@ package hxrt.sys;
 @:go.package("hxrt")
 extern class NativeSys {
 	@:go.name("SysArgs")
-	public static function args():Array<String>;
+	public static function args():NativeSlice<String>;
 
 	/**
 		What: Return one environment value or `null` when the key is absent.
@@ -34,7 +36,7 @@ extern class NativeSys {
 	public static function putEnv(key:String, value:Null<String>):Void;
 
 	@:go.name("SysEnvironmentEntries")
-	public static function environmentEntries():Array<SysEnvironmentEntry>;
+	public static function environmentEntries():NativeSlice<SysEnvironmentEntry>;
 
 	@:go.name("SysSleep")
 	public static function sleep(seconds:Float):Void;
@@ -49,7 +51,7 @@ extern class NativeSys {
 	public static function systemName():String;
 
 	@:go.name("SysCommand")
-	public static function command(command:String, args:Array<String>):Int;
+	public static function command(command:String, args:NativeSlice<String>):Int;
 
 	@:go.name("SysExit")
 	public static function exit(code:Int):Void;

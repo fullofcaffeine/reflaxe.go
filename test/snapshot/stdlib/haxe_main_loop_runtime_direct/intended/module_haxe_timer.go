@@ -27,7 +27,7 @@ func New_haxe__Timer(time_ms int) *haxe__Timer {
 }
 
 func (self *haxe__Timer) stop() {
-	if self.eventHandler != any(0) {
+	if !hxrt.HaxeEqual(self.eventHandler, any(0)) {
 		self.thread.get_events().cancel(self.eventHandler)
 		self.eventHandler = any(0)
 	}

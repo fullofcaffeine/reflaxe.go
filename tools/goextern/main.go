@@ -730,10 +730,9 @@ func mapTypeWithReason(t types.Type, ctx mappingContext) (string, string) {
 		return mapTypeWithReason(tt.Elem(), ctx)
 	case *types.Slice:
 		elemType, elemReason := mapTypeWithReason(tt.Elem(), ctx)
-		return "Array<" + elemType + ">", elemReason
+		return "go.NativeSlice<" + elemType + ">", elemReason
 	case *types.Array:
-		elemType, elemReason := mapTypeWithReason(tt.Elem(), ctx)
-		return "Array<" + elemType + ">", elemReason
+		return "Dynamic", "fixed_array"
 	case *types.Map:
 		keyType, _ := mapTypeWithReason(tt.Key(), ctx)
 		valueType, valueReason := mapTypeWithReason(tt.Elem(), ctx)

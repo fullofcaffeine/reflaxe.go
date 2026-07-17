@@ -1,6 +1,7 @@
 package sys.ssl;
 
 import haxe.io.Bytes;
+import hxrt.ssl.NativeCertificate;
 
 private typedef CertificateHandle = Dynamic;
 
@@ -77,7 +78,7 @@ class Certificate {
 	}
 
 	function get_altNames():Array<String> {
-		return untyped __go__("hxrt.SslCertAltNames({0})", handle);
+		return NativeCertificate.altNames(handle).toArray();
 	}
 
 	function get_notBefore():Date {

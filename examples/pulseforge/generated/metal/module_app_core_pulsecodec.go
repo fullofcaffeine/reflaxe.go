@@ -27,18 +27,18 @@ func app__core__PulseCodec_parse(frame *app__core__PulseIngressFrame) *app__core
 }
 
 func app__core__PulseCodec_regionBoost(region *string) int {
-	var hx_switch_5 int
+	var hx_switch_27 int
 	switch *hxrt.StdString(region) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("fra")):
-		hx_switch_5 = 3
+		hx_switch_27 = 3
 	case *hxrt.StdString(hxrt.StringFromLiteral("gru")), *hxrt.StdString(hxrt.StringFromLiteral("iad")):
-		hx_switch_5 = 2
+		hx_switch_27 = 2
 	case *hxrt.StdString(hxrt.StringFromLiteral("sfo")):
-		hx_switch_5 = 1
+		hx_switch_27 = 1
 	default:
-		hx_switch_5 = 0
+		hx_switch_27 = 0
 	}
-	return hx_switch_5
+	return hx_switch_27
 }
 
 func app__core__PulseCodec_severityFor(value int) int {

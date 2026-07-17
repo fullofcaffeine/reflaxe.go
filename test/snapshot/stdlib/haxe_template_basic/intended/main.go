@@ -44,7 +44,7 @@ func main() {
 	loop := New_haxe__Template(hxrt.StringFromLiteral("::foreach items::::__current__::::end::"))
 	var v_3 any = any(loop.execute(func() map[string]any {
 		hx_obj_4 := map[string]any{}
-		hx_obj_4["items"] = []*string{hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("c")}
+		hx_obj_4["items"] = hxrt.NewArray(hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("c"))
 		return hx_obj_4
 	}(), nil))
 	hxrt.Println(v_3)
@@ -896,6 +896,13 @@ func hxrt_typeCallAny(callable any, args []any) (any, bool) {
 	return result, ok
 }
 
+func hxrt_typeArrayValues(value *hxrt.Array) []any {
+	if value == nil {
+		return []any{}
+	}
+	return value.Values()
+}
+
 func hxrt_typeResolvedClassName(value any) (string, bool) {
 	switch current := value.(type) {
 	case *hxrt__TypeClassValue:
@@ -1222,6 +1229,11 @@ func Type_getClass(o any) any {
 	case hxrt__TypeClassValue:
 		copyValue := value
 		return &copyValue
+	case *hxrt.Array:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")}
 	case *haxe__Template:
 		if value == nil {
 			return nil
@@ -1375,97 +1387,97 @@ func Type_getClassName(c any) *string {
 	return hxrt.StringFromLiteral(className)
 }
 
-func Type_getClassFields(c any) []*string {
+func Type_getClassFields(c any) *hxrt.Array {
 	className, ok := hxrt_typeResolvedClassName(c)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch className {
 	case "Main":
-		return []*string{hxrt.StringFromLiteral("main")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("main"))
 	case "StringTools":
-		return []*string{hxrt.StringFromLiteral("MAX_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("contains"), hxrt.StringFromLiteral("containsImpl"), hxrt.StringFromLiteral("endsWith"), hxrt.StringFromLiteral("endsWithImpl"), hxrt.StringFromLiteral("fastCodeAt"), hxrt.StringFromLiteral("hex"), hxrt.StringFromLiteral("hexDigitValue"), hxrt.StringFromLiteral("htmlEscape"), hxrt.StringFromLiteral("htmlUnescape"), hxrt.StringFromLiteral("isEof"), hxrt.StringFromLiteral("isSpace"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("lpad"), hxrt.StringFromLiteral("ltrim"), hxrt.StringFromLiteral("replace"), hxrt.StringFromLiteral("rpad"), hxrt.StringFromLiteral("rtrim"), hxrt.StringFromLiteral("startsWith"), hxrt.StringFromLiteral("startsWithImpl"), hxrt.StringFromLiteral("trim"), hxrt.StringFromLiteral("unsafeCodeAt"), hxrt.StringFromLiteral("urlDecode"), hxrt.StringFromLiteral("urlEncode"), hxrt.StringFromLiteral("utf16CodePointAt")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("MAX_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("contains"), hxrt.StringFromLiteral("containsImpl"), hxrt.StringFromLiteral("endsWith"), hxrt.StringFromLiteral("endsWithImpl"), hxrt.StringFromLiteral("fastCodeAt"), hxrt.StringFromLiteral("hex"), hxrt.StringFromLiteral("hexDigitValue"), hxrt.StringFromLiteral("htmlEscape"), hxrt.StringFromLiteral("htmlUnescape"), hxrt.StringFromLiteral("isEof"), hxrt.StringFromLiteral("isSpace"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("lpad"), hxrt.StringFromLiteral("ltrim"), hxrt.StringFromLiteral("replace"), hxrt.StringFromLiteral("rpad"), hxrt.StringFromLiteral("rtrim"), hxrt.StringFromLiteral("startsWith"), hxrt.StringFromLiteral("startsWithImpl"), hxrt.StringFromLiteral("trim"), hxrt.StringFromLiteral("unsafeCodeAt"), hxrt.StringFromLiteral("urlDecode"), hxrt.StringFromLiteral("urlEncode"), hxrt.StringFromLiteral("utf16CodePointAt"))
 	case "haxe.Int64Helper":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.Template":
-		return []*string{hxrt.StringFromLiteral("addValues"), hxrt.StringFromLiteral("compareValues"), hxrt.StringFromLiteral("divideValues"), hxrt.StringFromLiteral("expr_float"), hxrt.StringFromLiteral("expr_int"), hxrt.StringFromLiteral("expr_splitter"), hxrt.StringFromLiteral("expr_trim"), hxrt.StringFromLiteral("globals"), hxrt.StringFromLiteral("isSpaceOnly"), hxrt.StringFromLiteral("joinDynamicArgs"), hxrt.StringFromLiteral("kwdEnd"), hxrt.StringFromLiteral("multiplyValues"), hxrt.StringFromLiteral("parseFloatLiteral"), hxrt.StringFromLiteral("parseIntLiteral"), hxrt.StringFromLiteral("peekExprToken"), hxrt.StringFromLiteral("peekToken"), hxrt.StringFromLiteral("popExprToken"), hxrt.StringFromLiteral("popToken"), hxrt.StringFromLiteral("splitter"), hxrt.StringFromLiteral("subtractValues"), hxrt.StringFromLiteral("trimExprToken"), hxrt.StringFromLiteral("valueAsBool"), hxrt.StringFromLiteral("valueAsFloat")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("addValues"), hxrt.StringFromLiteral("compareValues"), hxrt.StringFromLiteral("divideValues"), hxrt.StringFromLiteral("expr_float"), hxrt.StringFromLiteral("expr_int"), hxrt.StringFromLiteral("expr_splitter"), hxrt.StringFromLiteral("expr_trim"), hxrt.StringFromLiteral("globals"), hxrt.StringFromLiteral("isSpaceOnly"), hxrt.StringFromLiteral("joinDynamicArgs"), hxrt.StringFromLiteral("kwdEnd"), hxrt.StringFromLiteral("multiplyValues"), hxrt.StringFromLiteral("parseFloatLiteral"), hxrt.StringFromLiteral("parseIntLiteral"), hxrt.StringFromLiteral("peekExprToken"), hxrt.StringFromLiteral("peekToken"), hxrt.StringFromLiteral("popExprToken"), hxrt.StringFromLiteral("popToken"), hxrt.StringFromLiteral("splitter"), hxrt.StringFromLiteral("subtractValues"), hxrt.StringFromLiteral("trimExprToken"), hxrt.StringFromLiteral("valueAsBool"), hxrt.StringFromLiteral("valueAsFloat"))
 	case "haxe._Int32.Int32_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.Int64_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.___Int64":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Template.ExprCursor":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Template.TokenCursor":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.ds.IntMap":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.ds.List":
-		return []*string{hxrt.StringFromLiteral("sameValue")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("sameValue"))
 	case "haxe.ds.ObjectMap":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.ds.StringMap":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.ds._List.GoListIterator":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.ds._List.GoListKeyValueIterator":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.iterators.MapKeyValueIterator":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.iterators.StringIterator":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.iterators.StringKeyValueIterator":
-		return []*string{}
+		return hxrt.NewArray()
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_getInstanceFields(c any) []*string {
+func Type_getInstanceFields(c any) *hxrt.Array {
 	className, ok := hxrt_typeResolvedClassName(c)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch className {
 	case "Main":
-		return []*string{}
+		return hxrt.NewArray()
 	case "StringTools":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.Int64Helper":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe.Template":
-		return []*string{hxrt.StringFromLiteral("context"), hxrt.StringFromLiteral("execute"), hxrt.StringFromLiteral("expr"), hxrt.StringFromLiteral("macros"), hxrt.StringFromLiteral("makeConst"), hxrt.StringFromLiteral("makeExpr"), hxrt.StringFromLiteral("makeExpr2"), hxrt.StringFromLiteral("makePath"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("parse"), hxrt.StringFromLiteral("parseBlock"), hxrt.StringFromLiteral("parseExpr"), hxrt.StringFromLiteral("parseTokens"), hxrt.StringFromLiteral("popStackValue"), hxrt.StringFromLiteral("resolve"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("skipSpaces"), hxrt.StringFromLiteral("stack")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("context"), hxrt.StringFromLiteral("execute"), hxrt.StringFromLiteral("expr"), hxrt.StringFromLiteral("macros"), hxrt.StringFromLiteral("makeConst"), hxrt.StringFromLiteral("makeExpr"), hxrt.StringFromLiteral("makeExpr2"), hxrt.StringFromLiteral("makePath"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("parse"), hxrt.StringFromLiteral("parseBlock"), hxrt.StringFromLiteral("parseExpr"), hxrt.StringFromLiteral("parseTokens"), hxrt.StringFromLiteral("popStackValue"), hxrt.StringFromLiteral("resolve"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("skipSpaces"), hxrt.StringFromLiteral("stack"))
 	case "haxe._Int32.Int32_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.Int64_Impl_":
-		return []*string{}
+		return hxrt.NewArray()
 	case "haxe._Int64.___Int64":
-		return []*string{hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
 	case "haxe._Template.ExprCursor":
-		return []*string{hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("tokens")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("tokens"))
 	case "haxe._Template.TokenCursor":
-		return []*string{hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("tokens")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("tokens"))
 	case "haxe.ds.IntMap":
-		return []*string{hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("copyIMap"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("existsIMap"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getIMap"), hxrt.StringFromLiteral("h"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeIMap"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setIMap"), hxrt.StringFromLiteral("toString")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("copyIMap"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("existsIMap"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getIMap"), hxrt.StringFromLiteral("h"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeIMap"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setIMap"), hxrt.StringFromLiteral("toString"))
 	case "haxe.ds.List":
-		return []*string{hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("filter"), hxrt.StringFromLiteral("first"), hxrt.StringFromLiteral("isEmpty"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("join"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("last"), hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("pop"), hxrt.StringFromLiteral("push"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("toString")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("filter"), hxrt.StringFromLiteral("first"), hxrt.StringFromLiteral("isEmpty"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("join"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("last"), hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("pop"), hxrt.StringFromLiteral("push"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("toString"))
 	case "haxe.ds.ObjectMap":
-		return []*string{hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("copyIMap"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("existsIMap"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getIMap"), hxrt.StringFromLiteral("h"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeIMap"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setIMap"), hxrt.StringFromLiteral("toString")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("copyIMap"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("existsIMap"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getIMap"), hxrt.StringFromLiteral("h"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeIMap"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setIMap"), hxrt.StringFromLiteral("toString"))
 	case "haxe.ds.StringMap":
-		return []*string{hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("copyIMap"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("existsIMap"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getIMap"), hxrt.StringFromLiteral("h"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeIMap"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setIMap"), hxrt.StringFromLiteral("toString")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("copyIMap"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("existsIMap"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getIMap"), hxrt.StringFromLiteral("h"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeIMap"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setIMap"), hxrt.StringFromLiteral("toString"))
 	case "haxe.ds._List.GoListIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("next")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("next"))
 	case "haxe.ds._List.GoListKeyValueIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("next")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("next"))
 	case "haxe.iterators.MapKeyValueIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("next")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("next"))
 	case "haxe.iterators.StringIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
 	case "haxe.iterators.StringKeyValueIterator":
-		return []*string{hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
@@ -1539,12 +1551,12 @@ func Type_resolveEnum(name *string) any {
 	}
 }
 
-func Type_createInstance(cl any, args []any) any {
+func Type_createInstance(cl any, args *hxrt.Array) any {
 	className, ok := hxrt_typeResolvedClassName(cl)
 	if !ok {
 		return nil
 	}
-	instance, ok := hxrt_typeCreateClassInstance(className, args)
+	instance, ok := hxrt_typeCreateClassInstance(className, hxrt_typeArrayValues(args))
 	if !ok {
 		return nil
 	}
@@ -1563,7 +1575,7 @@ func Type_createEmptyInstance(cl any) any {
 	return instance
 }
 
-func Type_createEnum(e any, constr *string, params []any) any {
+func Type_createEnum(e any, constr *string, params *hxrt.Array) any {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
 		return nil
@@ -1572,19 +1584,19 @@ func Type_createEnum(e any, constr *string, params []any) any {
 	if constr != nil {
 		constructorName = *hxrt.StdString(constr)
 	}
-	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, params)
+	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, hxrt_typeArrayValues(params))
 	if !ok {
 		return nil
 	}
 	return enumValue
 }
 
-func Type_createEnumIndex(e any, index int, params []any) any {
+func Type_createEnumIndex(e any, index int, params *hxrt.Array) any {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
 		return nil
 	}
-	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, "", index, true, params)
+	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, "", index, true, hxrt_typeArrayValues(params))
 	if !ok {
 		return nil
 	}
@@ -1669,57 +1681,53 @@ func Type_enumIndex(e any) int {
 	}
 }
 
-func Type_getEnumConstructs(e any) []*string {
+func Type_getEnumConstructs(e any) *hxrt.Array {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
-		return []*string{}
+		return hxrt.NewArray()
 	}
 	switch enumName {
 	case "ValueType":
-		return []*string{hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown"))
 	case "haxe._Template.TemplateExpr":
-		return []*string{hxrt.StringFromLiteral("OpVar"), hxrt.StringFromLiteral("OpExpr"), hxrt.StringFromLiteral("OpIf"), hxrt.StringFromLiteral("OpStr"), hxrt.StringFromLiteral("OpBlock"), hxrt.StringFromLiteral("OpForeach"), hxrt.StringFromLiteral("OpMacro")}
+		return hxrt.NewArray(hxrt.StringFromLiteral("OpVar"), hxrt.StringFromLiteral("OpExpr"), hxrt.StringFromLiteral("OpIf"), hxrt.StringFromLiteral("OpStr"), hxrt.StringFromLiteral("OpBlock"), hxrt.StringFromLiteral("OpForeach"), hxrt.StringFromLiteral("OpMacro"))
 	default:
-		return []*string{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_enumParameters(e any) []any {
+func Type_enumParameters(e any) *hxrt.Array {
 	if hxrt.AnyEqualsNull(e) {
-		return []any{}
+		return hxrt.NewArray()
 	}
 	switch value := e.(type) {
 	case *ValueType:
 		if value == nil || value.params == nil {
-			return []any{}
+			return hxrt.NewArray()
 		}
-		out := make([]any, len(value.params))
-		copy(out, value.params)
-		return out
+		return hxrt.NewArray(value.params...)
 	case *haxe___Template__TemplateExpr:
 		if value == nil || value.params == nil {
-			return []any{}
+			return hxrt.NewArray()
 		}
-		out := make([]any, len(value.params))
-		copy(out, value.params)
-		return out
+		return hxrt.NewArray(value.params...)
 	default:
-		return []any{}
+		return hxrt.NewArray()
 	}
 }
 
-func Type_allEnums(e any) []any {
+func Type_allEnums(e any) *hxrt.Array {
 	enumName, ok := hxrt_typeResolvedEnumName(e)
 	if !ok {
-		return []any{}
+		return hxrt.NewArray()
 	}
 	switch enumName {
 	case "ValueType":
-		return []any{ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown}
+		return hxrt.NewArray(ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown)
 	case "haxe._Template.TemplateExpr":
-		return []any{}
+		return hxrt.NewArray()
 	default:
-		return []any{}
+		return hxrt.NewArray()
 	}
 }
 
@@ -1742,6 +1750,8 @@ func Type_typeof(v any) any {
 		return ValueType_TFloat
 	case string, *string:
 		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("String")})
+	case *hxrt.Array:
+		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")})
 	}
 	ref := reflect.ValueOf(v)
 	if !ref.IsValid() {
@@ -1946,15 +1956,15 @@ func (self *EReg) matchedRight() *string {
 	return hxrt.StringFromLiteral(raw[end:])
 }
 
-func (self *EReg) split(source *string) []*string {
+func (self *EReg) split(source *string) *hxrt.Array {
 	raw := *hxrt.StdString(source)
-	if self == nil || self.regex == nil {
-		return []*string{hxrt.StringFromLiteral(raw)}
+	if (self == nil) || (self.regex == nil) {
+		return hxrt.NewArray(hxrt.StringFromLiteral(raw))
 	}
 	parts := self.regex.Split(raw, -1)
-	out := make([]*string, 0, len(parts))
+	out := hxrt.NewArray()
 	for _, part := range parts {
-		out = append(out, hxrt.StringFromLiteral(part))
+		out.Push(hxrt.StringFromLiteral(part))
 	}
 	return out
 }
@@ -3103,6 +3113,41 @@ func hxrt_serializerTrackRef(self *haxe__Serializer, value any) bool {
 	return false
 }
 
+func hxrt_serializerWriteArray(self *haxe__Serializer, current *hxrt.Array) {
+	if current == nil {
+		hxrt_serializerAppend(self, "n")
+		return
+	}
+	if hxrt_serializerTrackRef(self, current) {
+		return
+	}
+	hxrt_serializerAppend(self, "a")
+	nullRun := 0
+	for _, item := range current.Values() {
+		if item == nil {
+			nullRun = (nullRun + 1)
+			continue
+		}
+		if nullRun > 1 {
+			hxrt_serializerAppend(self, ("u" + strconv.Itoa(nullRun)))
+		} else {
+			if nullRun == 1 {
+				hxrt_serializerAppend(self, "n")
+			}
+		}
+		nullRun = 0
+		hxrt_serializerWriteValue(self, item)
+	}
+	if nullRun > 1 {
+		hxrt_serializerAppend(self, ("u" + strconv.Itoa(nullRun)))
+	} else {
+		if nullRun == 1 {
+			hxrt_serializerAppend(self, "n")
+		}
+	}
+	hxrt_serializerAppend(self, "h")
+}
+
 func haxe__Serializer_run(value any) *string {
 	serializer := New_haxe__Serializer()
 	serializer.serialize(value)
@@ -3193,6 +3238,9 @@ func hxrt_serializerWriteValue(self *haxe__Serializer, value any) {
 			hxrt_serializerAppend(self, "B")
 			hxrt_serializerWriteStringToken(self, current.name)
 		}
+		return
+	case *hxrt.Array:
+		hxrt_serializerWriteArray(self, current)
 		return
 	case *haxe__ds__List:
 		if current == nil {
@@ -3805,7 +3853,7 @@ func haxe__Unserializer_readValue(self *haxe__Unserializer) any {
 		}
 		return objectMap
 	case 'a':
-		arr := make([]any, 0)
+		arr := hxrt.NewArray()
 		cacheIndex := len(self.cache)
 		self.cache = append(self.cache, arr)
 		for {
@@ -3821,12 +3869,12 @@ func haxe__Unserializer_readValue(self *haxe__Unserializer) any {
 				self.pos++
 				skip := haxe__Unserializer_readUInt(self)
 				for i := 0; i < skip; i++ {
-					arr = append(arr, nil)
+					arr.Push(nil)
 				}
 				self.cache[cacheIndex] = arr
 				continue
 			}
-			arr = append(arr, haxe__Unserializer_readValue(self))
+			arr.Push(haxe__Unserializer_readValue(self))
 			self.cache[cacheIndex] = arr
 		}
 		return arr

@@ -4,11 +4,11 @@ import "snapshot/hxrt"
 
 func main() {
 	names := haxe__Resource_listNames()
-	var v any = any(len(names))
+	var v any = any(names.Len())
 	hxrt.Println(v)
 	var hx_if_1 any
-	if len(names) > 0 {
-		hx_if_1 = names[0]
+	if names.Len() > 0 {
+		hx_if_1 = names.Get(0)
 	} else {
 		hx_if_1 = hxrt.StringFromLiteral("<none>")
 	}

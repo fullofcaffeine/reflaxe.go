@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	ch := New_go___Chan()
+	ch := go___Go_newChan(2)
 	ch.send(10)
 	ch.send(20)
 	var v any = any(func(hx_value_1 any) any {

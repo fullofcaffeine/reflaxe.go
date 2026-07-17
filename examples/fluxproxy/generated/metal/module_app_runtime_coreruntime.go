@@ -6,8 +6,8 @@ type I_app__runtime__CoreRuntime interface {
 	profileId() *string
 	variantId() *string
 	capabilityId() *string
-	dispatch(requests []*app__core__FluxRequest, workerCount int) []*app__core__FluxProxyResponse
-	stageScore(responses []*app__core__FluxProxyResponse, retryCount int, backpressureEvents int) int
+	dispatch(requests *hxrt.Array, workerCount int) *hxrt.Array
+	stageScore(responses *hxrt.Array, retryCount int, backpressureEvents int) int
 }
 
 type app__runtime__CoreRuntime struct {
@@ -32,23 +32,35 @@ func (self *app__runtime__CoreRuntime) capabilityId() *string {
 	return hxrt.StringFromLiteral("loop_dispatch")
 }
 
-func (self *app__runtime__CoreRuntime) dispatch(requests []*app__core__FluxRequest, workerCount int) []*app__core__FluxProxyResponse {
-	responses := []*app__core__FluxProxyResponse{}
+func (self *app__runtime__CoreRuntime) dispatch(requests *hxrt.Array, workerCount int) *hxrt.Array {
+	responses := hxrt.NewArray()
 	_g := 0
-	for _g < len(requests) {
-		request := requests[_g]
+	for _g < requests.Len() {
+		request := func(hx_value_110 any) *app__core__FluxRequest {
+			if hx_value_110 == nil {
+				var hx_zero_111 *app__core__FluxRequest
+				return hx_zero_111
+			}
+			return hx_value_110.(*app__core__FluxRequest)
+		}(requests.Get(_g))
 		_g = int(int32((_g + 1)))
-		responses = append(responses, app__core__FluxCodec_proxy(request, 50))
+		responses.Push(app__core__FluxCodec_proxy(request, 50))
 	}
 	return responses
 }
 
-func (self *app__runtime__CoreRuntime) stageScore(responses []*app__core__FluxProxyResponse, retryCount int, backpressureEvents int) int {
+func (self *app__runtime__CoreRuntime) stageScore(responses *hxrt.Array, retryCount int, backpressureEvents int) int {
 	successCount := 0
 	errorCount := 0
 	_g := 0
-	for _g < len(responses) {
-		response := responses[_g]
+	for _g < responses.Len() {
+		response := func(hx_value_113 any) *app__core__FluxProxyResponse {
+			if hx_value_113 == nil {
+				var hx_zero_114 *app__core__FluxProxyResponse
+				return hx_zero_114
+			}
+			return hx_value_113.(*app__core__FluxProxyResponse)
+		}(responses.Get(_g))
 		_g = int(int32((_g + 1)))
 		if response.success {
 			successCount = int(int32((successCount + 1)))
@@ -61,6 +73,6 @@ func (self *app__runtime__CoreRuntime) stageScore(responses []*app__core__FluxPr
 	score = int(int32((hxrt.Int32Wrap(score) - hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(errorCount) * hxrt.Int32Wrap(6))))))))
 	score = int(int32((hxrt.Int32Wrap(score) - hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(backpressureEvents) * hxrt.Int32Wrap(2))))))))
 	score = int(int32((hxrt.Int32Wrap(score) - hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(retryCount) * hxrt.Int32Wrap(2))))))))
-	score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(len(responses)))))
+	score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(responses.Len()))))
 	return score
 }

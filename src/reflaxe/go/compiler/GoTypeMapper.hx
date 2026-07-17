@@ -22,6 +22,13 @@ class GoTypeMapper {
 	}
 
 	public static function typeToGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
+		if (isBytesDataType(type)) {
+			return "[]int";
+		}
+		var nativeSliceElement = nativeSliceElementType(type);
+		if (nativeSliceElement != null) {
+			return "[]" + arrayElementStorageGoType(nativeSliceElement, classTypeName, enumTypeName);
+		}
 		var restElement = restElementType(type);
 		if (restElement != null) {
 			return "[]" + arrayElementStorageGoType(restElement, classTypeName, enumTypeName);
@@ -32,7 +39,7 @@ class GoTypeMapper {
 		}
 		var readOnlyElement = readOnlyArrayElementType(type);
 		if (readOnlyElement != null) {
-			return "[]" + arrayElementStorageGoType(readOnlyElement, classTypeName, enumTypeName);
+			return "*hxrt.Array";
 		}
 
 		var followed = Context.follow(type);
@@ -52,7 +59,7 @@ class GoTypeMapper {
 				} else if (classType.pack.length == 0 && classType.name == "String") {
 					"*string";
 				} else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
-					"[]" + arrayElementStorageGoType(params[0], classTypeName, enumTypeName);
+					"*hxrt.Array";
 				} else {
 					"*" + classTypeName(classType);
 				}
@@ -220,6 +227,12 @@ class GoTypeMapper {
 	}
 
 	public static function isArrayType(type:Type):Bool {
+		if (isBytesDataType(type)) {
+			return true;
+		}
+		if (nativeSliceElementType(type) != null) {
+			return true;
+		}
 		if (restElementType(type) != null) {
 			return true;
 		}
@@ -230,6 +243,25 @@ class GoTypeMapper {
 			return true;
 		}
 
+		return isHaxeArrayType(type);
+	}
+
+	/**
+		What: Recognizes types that retain Haxe Array identity in generated Go.
+		Why: Root `Array<T>` owns shared identity and sparse growth, while
+		`ReadOnlyArray<T>` is an aliasing read-only view of that same object. `Rest`,
+		`Vector`, and explicit `go.NativeSlice` values remain native slice-shaped
+		boundaries instead.
+		How: Admit the root nominal Array and the standard ReadOnlyArray abstract, but
+		do not generalize this to every indexable or array-like type.
+	**/
+	public static function isHaxeArrayType(type:Type):Bool {
+		if (isBytesDataType(type)) {
+			return false;
+		}
+		if (readOnlyArrayElementType(type) != null) {
+			return true;
+		}
 		var followed = Context.follow(type);
 		return switch (followed) {
 			case TInst(classRef, _): var classType = classRef.get(); classType.pack.length == 0 && classType.name == "Array";
@@ -239,6 +271,10 @@ class GoTypeMapper {
 	}
 
 	public static function arrayElementGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
+		var nativeSliceElement = nativeSliceElementType(type);
+		if (nativeSliceElement != null) {
+			return arrayElementStorageGoType(nativeSliceElement, classTypeName, enumTypeName);
+		}
 		var restElement = restElementType(type);
 		if (restElement != null) {
 			return arrayElementStorageGoType(restElement, classTypeName, enumTypeName);
@@ -267,6 +303,13 @@ class GoTypeMapper {
 	}
 
 	public static function scalarGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
+		if (isBytesDataType(type)) {
+			return "[]int";
+		}
+		var nativeSliceElement = nativeSliceElementType(type);
+		if (nativeSliceElement != null) {
+			return "[]" + arrayElementStorageGoType(nativeSliceElement, classTypeName, enumTypeName);
+		}
 		var restElement = restElementType(type);
 		if (restElement != null) {
 			return "[]" + arrayElementStorageGoType(restElement, classTypeName, enumTypeName);
@@ -277,7 +320,7 @@ class GoTypeMapper {
 		}
 		var readOnlyElement = readOnlyArrayElementType(type);
 		if (readOnlyElement != null) {
-			return "[]" + arrayElementStorageGoType(readOnlyElement, classTypeName, enumTypeName);
+			return "*hxrt.Array";
 		}
 
 		var followed = Context.follow(type);
@@ -297,7 +340,7 @@ class GoTypeMapper {
 				} else if (classType.pack.length == 0 && classType.name == "String") {
 					"*string";
 				} else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
-					"[]" + arrayElementStorageGoType(params[0], classTypeName, enumTypeName);
+					"*hxrt.Array";
 				} else {
 					"*" + classTypeName(classType);
 				}
@@ -409,6 +452,42 @@ class GoTypeMapper {
 			return "func(" + params + ")";
 		}
 		return "func(" + params + ") " + scalarGoType(returnType, classTypeName, enumTypeName);
+	}
+
+	/** Resolves the element type of the explicit `go.NativeSlice<T>` boundary. */
+	public static function nativeSliceElementType(type:Type):Null<Type> {
+		var followed = Context.follow(type);
+		return switch (followed) {
+			case TInst(classRef, params):
+				var classType = classRef.get();
+				if (classType.pack.join(".") == "go" && classType.name == "NativeSlice" && params.length == 1) {
+					params[0];
+				} else {
+					null;
+				}
+			case _:
+				null;
+		};
+	}
+
+	/**
+		What: Recognizes the upstream byte-storage alias before ordinary alias
+		following turns it into root `Array<Int>`.
+		Why: The compiler-owned Bytes carrier currently stores a native `[]int`, and
+		`BytesData` must remain an aliasing view of that storage rather than a copied
+		portable Array.
+		How: Match only the declared `haxe.io.BytesData` typedef and preserve it as an
+		explicit raw array-like boundary until Bytes ownership migrates separately.
+	**/
+	public static function isBytesDataType(type:Type):Bool {
+		return switch (type) {
+			case TType(typeRef, _): var typeDef = typeRef.get(); typeDef.pack.join(".") == "haxe.io" && typeDef.name == "BytesData";
+			case TMono(ref): var resolved = ref.get(); resolved != null && isBytesDataType(resolved);
+			case TLazy(resolve):
+				isBytesDataType(resolve());
+			case _:
+				false;
+		};
 	}
 
 	public static function restElementType(type:Type):Null<Type> {
