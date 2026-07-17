@@ -20,8 +20,15 @@ extern class NativeSys {
 	@:go.name("SysArgs")
 	public static function args():Array<String>;
 
+	/**
+		What: Return one environment value or `null` when the key is absent.
+		Why: The Go runtime correctly returns a nil string pointer for absence; marking
+		this bridge as non-null would coerce that pointer through `Std.string` and turn
+		absence into the literal text `"null"` before staged `Sys` receives it.
+		How: Preserve explicit `Null<String>` authority across the typed extern boundary.
+	**/
 	@:go.name("SysGetEnv")
-	public static function getEnv(key:String):String;
+	public static function getEnv(key:String):Null<String>;
 
 	@:go.name("SysSetEnvironment")
 	public static function putEnv(key:String, value:Null<String>):Void;

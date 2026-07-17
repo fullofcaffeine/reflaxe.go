@@ -9,3 +9,13 @@ func TestStringSliceCodePointsStringPtrUsesLogicalRuneBounds(t *testing.T) {
 		t.Fatalf("StringSliceCodePointsStringPtr() = %v, want %q", got, "😀b")
 	}
 }
+
+func TestStringEqualStringPtrDistinguishesNullFromLiteral(t *testing.T) {
+	nullLiteral := "null"
+	if StringEqualStringPtr(nil, &nullLiteral) {
+		t.Fatal("StringEqualStringPtr treated null as the literal string \"null\"")
+	}
+	if !StringEqualStringPtr(nil, nil) {
+		t.Fatal("StringEqualStringPtr rejected two null strings")
+	}
+}

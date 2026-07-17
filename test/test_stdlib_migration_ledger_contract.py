@@ -1339,7 +1339,9 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         atomic_object_slice = ROOT / "test/snapshot/core/runtime_hxrt_infer_atomic_object/intended/hxrt"
         self.assertTrue((atomic_int_slice / "atomic_int.go").is_file())
         self.assertFalse((atomic_int_slice / "atomic_object.go").exists())
+        self.assertFalse((atomic_int_slice / "equality.go").exists())
         self.assertTrue((atomic_object_slice / "atomic_object.go").is_file())
+        self.assertTrue((atomic_object_slice / "equality.go").is_file())
         self.assertFalse((atomic_object_slice / "atomic_int.go").exists())
 
         self.assertFalse(

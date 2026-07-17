@@ -178,7 +178,7 @@ private typedef LoopBreakTarget = {
 
 	How:
 	`lowerArrayMutationSite()` computes any required prefix statements, exposes the
-	slice expression that later push/pop code mutates, and returns a write-back
+	slice expression that later array-method lowering mutates, and returns a write-back
 	closure when the final slice must be stored back into another carrier.
 **/
 private typedef ArrayMutationSite = {
@@ -223,6 +223,7 @@ class GoCompiler {
 	final throwFallbackSuppressionDepthScopes:Array<Int>;
 	var cachedVoidType:Null<Type>;
 	var requiresIoHelperSurface:Bool;
+	var requiresEqualitySurface:Bool;
 	var requiresIoStringInputSurface:Bool;
 	var requiresIoBufferInputSurface:Bool;
 	var requiresIoEofStringSurface:Bool;
@@ -277,6 +278,7 @@ class GoCompiler {
 		throwFallbackSuppressionDepthScopes = [];
 		cachedVoidType = null;
 		requiresIoHelperSurface = false;
+		requiresEqualitySurface = false;
 		requiresIoStringInputSurface = false;
 		requiresIoBufferInputSurface = false;
 		requiresIoEofStringSurface = false;
@@ -352,6 +354,7 @@ class GoCompiler {
 		syncCompilationContextLeafReceivers();
 		clearBoolMap(compilationContext.leafReturningFunctions);
 		requiresIoHelperSurface = false;
+		requiresEqualitySurface = false;
 		requiresIoStringInputSurface = false;
 		requiresIoBufferInputSurface = false;
 		requiresIoEofStringSurface = false;
@@ -7590,7 +7593,7 @@ class GoCompiler {
 
 	/**
 		What:
-		Builds a safe array mutation plan for push/pop-style operations.
+		Builds a safe array mutation plan for length-changing `Array` operations.
 
 		Why:
 		Anonymous-record field lvalues need a temporary slice plus explicit
@@ -7601,7 +7604,8 @@ class GoCompiler {
 		How:
 		Returns prefix statements that capture the target once when needed, the slice
 		expression to mutate, and a write-back closure that stores the final slice in
-		the right place after mutation when direct assignment is not enough.
+		the right place after push, pop, remove, or insert when direct assignment is
+		not enough.
 	**/
 	function lowerArrayMutationSite(target:TypedExpr):ArrayMutationSite {
 		var sliceType = typeToGoType(target.t);
@@ -7625,7 +7629,7 @@ class GoCompiler {
 				{
 					prefix: [
 						GoStmt.GoVarDecl(objectName, typeToGoType(parent.t), lowerExpr(parent).expr, true),
-						GoStmt.GoVarDecl(tempName, sliceType, lowerExpr(target).expr, true)
+						GoStmt.GoVarDecl(tempName, sliceType, lowerAnonymousFieldRead(objectExpr, fieldName, target.t), true)
 					],
 					tempExpr: tempExpr,
 					sliceType: sliceType,
@@ -7641,7 +7645,7 @@ class GoCompiler {
 				{
 					prefix: [
 						GoStmt.GoVarDecl(objectName, typeToGoType(parent.t), lowerExpr(parent).expr, true),
-						GoStmt.GoVarDecl(tempName, sliceType, lowerExpr(target).expr, true)
+						GoStmt.GoVarDecl(tempName, sliceType, lowerAnonymousFieldRead(objectExpr, name, target.t), true)
 					],
 					tempExpr: tempExpr,
 					sliceType: sliceType,
@@ -10710,11 +10714,23 @@ class GoCompiler {
 		};
 	}
 
+	/**
+		What: Adapts imported Go string results to haxe.go's pointer-backed string carrier.
+		Why: Ordinary Go APIs return non-nullable string values, but framework externs
+		may explicitly return `Null<String>` as an already pointer-backed value. Passing
+		that nullable result through `Std.string` would turn native nil into `"null"`.
+		How: Preserve explicit nullable-string results unchanged and normalize only the
+		non-nullable imported Go string surface.
+	**/
 	function normalizeExternStringCallResult(callee:TypedExpr, returnType:Type, callExpr:GoExpr):GoExpr {
 		if (!isStringType(returnType)) {
 			return callExpr;
 		}
 		if (!isGoImportExternCall(callee)) {
+			return callExpr;
+		}
+		var nullableInner = nullableInnerType(returnType);
+		if (nullableInner != null && isStringType(nullableInner)) {
 			return callExpr;
 		}
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [callExpr]);
@@ -11881,7 +11897,7 @@ class GoCompiler {
 		classPaths.sort(Reflect.compare);
 		var enumPaths = [for (enumType in projectEnums) fullEnumName(enumType)];
 		enumPaths.sort(Reflect.compare);
-		return GoHxrtFeatureAnalyzer.inferWithReasons(classPaths, enumPaths, requiredShimGroups, requiresIoHelperSurface);
+		return GoHxrtFeatureAnalyzer.inferWithReasons(classPaths, enumPaths, requiredShimGroups, requiresIoHelperSurface, requiresEqualitySurface);
 	}
 
 	function resetExternImportPaths():Void {
@@ -12067,6 +12083,130 @@ class GoCompiler {
 		return normalizeIdent(field.name);
 	}
 
+	/**
+		What: Compares two elements for `Array.remove` using Haxe `==` semantics.
+		Why: Go pointer equality is wrong for Haxe strings, while erased, nullable,
+		and non-comparable carriers cannot safely use Go's `==` operator.
+		How: Keep typed comparable values native, compare strings by contents, and
+		delegate only interface-backed or non-comparable shapes to the narrow runtime
+		helper.
+	**/
+	function lowerArrayElementEqualityExpr(left:GoExpr, right:GoExpr, elementType:Type, elementGoType:String):GoExpr {
+		if (isStringType(elementType)) {
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringEqualStringPtr"), [left, right]);
+		}
+		if (elementGoType == "any"
+			|| StringTools.startsWith(elementGoType, "[]")
+			|| StringTools.startsWith(elementGoType, "map[")
+			|| StringTools.startsWith(elementGoType, "func(")) {
+			requiresEqualitySurface = true;
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.HaxeEqual"), [left, right]);
+		}
+		return GoExpr.GoBinary("==", left, right);
+	}
+
+	/**
+		What: Lowers `Array.remove(value)` as a typed, first-match slice mutation.
+		Why: Go slices have no remove method, and staged Haxe source must be able to
+		use the portable Array API without rebuilding arrays itself.
+		How: Evaluate the receiver and value once, range to the first Haxe-equal
+		element, shift with `copy`, clear the released slot, shrink, and write back.
+	**/
+	function lowerArrayRemoveExpr(target:TypedExpr, args:Array<TypedExpr>):LoweredExpr {
+		if (args.length != 1) {
+			Context.fatalError("Array.remove expects exactly one value", target.pos);
+		}
+		var site = lowerArrayMutationSite(target);
+		var elementType = arrayElementType(target.t);
+		if (elementType == null) {
+			elementType = args[0].t;
+		}
+		var elementGoType = arrayElementGoType(target.t);
+		var loweredValue = lowerExprWithPrefix(args[0]);
+		var valueName = freshTempName("hx_remove_value");
+		var indexName = freshTempName("hx_remove_index");
+		var elementName = freshTempName("hx_remove_element");
+		var lastName = freshTempName("hx_remove_last");
+		var zeroName = freshTempName("hx_remove_zero");
+		var valueExpr = coerceAnyExprToType(loweredValue.expr, args[0].t, elementType);
+		var lastExpr = GoExpr.GoIdent(lastName);
+		var foundBody = [
+			GoStmt.GoVarDecl(lastName, "int", GoExpr.GoBinary("-", GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]), GoExpr.GoIntLiteral(1)), true),
+			GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("copy"),
+				[
+					GoExpr.GoSlice(site.tempExpr, GoExpr.GoIdent(indexName), null),
+					GoExpr.GoSlice(site.tempExpr, GoExpr.GoBinary("+", GoExpr.GoIdent(indexName), GoExpr.GoIntLiteral(1)), null)
+				])),
+			GoStmt.GoVarDecl(zeroName, elementGoType, null, false),
+			GoStmt.GoAssign(GoExpr.GoIndex(site.tempExpr, lastExpr), GoExpr.GoIdent(zeroName)),
+			GoStmt.GoAssign(site.tempExpr, GoExpr.GoSlice(site.tempExpr, null, lastExpr))
+		].concat(site.writeBack(site.tempExpr)).concat([GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))]);
+		var body = site.prefix.concat(loweredValue.prefix).concat([
+			GoStmt.GoVarDecl(valueName, elementGoType, valueExpr, false),
+			GoStmt.GoRangeStmt(indexName, elementName, site.tempExpr, true, [
+				GoStmt.GoIf(lowerArrayElementEqualityExpr(GoExpr.GoIdent(elementName), GoExpr.GoIdent(valueName), elementType, elementGoType), foundBody, null)
+			]),
+			GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))
+		]);
+		return {
+			expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["bool"], body), []),
+			isStringLike: false
+		};
+	}
+
+	/**
+		What: Lowers `Array.insert(position, value)` as a typed slice insertion.
+		Why: Portable Haxe clamps oversized positions and resolves negative positions
+		from the end, behavior that Go's `append` does not provide by itself.
+		How: Evaluate arguments once in order, normalize the position, grow by one,
+		shift the suffix with overlapping `copy`, assign the value, and write back.
+	**/
+	function lowerArrayInsertExpr(target:TypedExpr, args:Array<TypedExpr>):LoweredExpr {
+		if (args.length != 2) {
+			Context.fatalError("Array.insert expects a position and value", target.pos);
+		}
+		var site = lowerArrayMutationSite(target);
+		var elementType = arrayElementType(target.t);
+		if (elementType == null) {
+			elementType = args[1].t;
+		}
+		var elementGoType = arrayElementGoType(target.t);
+		var loweredPosition = lowerExprWithPrefix(args[0]);
+		var loweredValue = lowerExprWithPrefix(args[1]);
+		var positionName = freshTempName("hx_insert_position");
+		var valueName = freshTempName("hx_insert_value");
+		var lengthName = freshTempName("hx_insert_length");
+		var zeroName = freshTempName("hx_insert_zero");
+		var positionExpr = GoExpr.GoIdent(positionName);
+		var lengthExpr = GoExpr.GoIdent(lengthName);
+		var valueExpr = coerceAnyExprToType(loweredValue.expr, args[1].t, elementType);
+		var body = site.prefix.concat(loweredPosition.prefix)
+			.concat([GoStmt.GoVarDecl(positionName, "int", loweredPosition.expr, true)])
+			.concat(loweredValue.prefix)
+			.concat([
+				GoStmt.GoVarDecl(valueName, elementGoType, valueExpr, false),
+				GoStmt.GoVarDecl(lengthName, "int", GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]), true),
+				GoStmt.GoIf(GoExpr.GoBinary("<", positionExpr, GoExpr.GoIntLiteral(0)), [
+					GoStmt.GoAssign(positionExpr, GoExpr.GoBinary("+", lengthExpr, positionExpr)),
+					GoStmt.GoIf(GoExpr.GoBinary("<", positionExpr, GoExpr.GoIntLiteral(0)), [GoStmt.GoAssign(positionExpr, GoExpr.GoIntLiteral(0))], null)
+				],
+					null),
+				GoStmt.GoIf(GoExpr.GoBinary(">", positionExpr, lengthExpr), [GoStmt.GoAssign(positionExpr, lengthExpr)], null),
+				GoStmt.GoVarDecl(zeroName, elementGoType, null, false),
+				GoStmt.GoAssign(site.tempExpr, GoExpr.GoCall(GoExpr.GoIdent("append"), [site.tempExpr, GoExpr.GoIdent(zeroName)])),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("copy"), [
+					GoExpr.GoSlice(site.tempExpr, GoExpr.GoBinary("+", positionExpr, GoExpr.GoIntLiteral(1)), null),
+					GoExpr.GoSlice(site.tempExpr, positionExpr, null)
+				])),
+				GoStmt.GoAssign(GoExpr.GoIndex(site.tempExpr, positionExpr), GoExpr.GoIdent(valueName))
+			])
+			.concat(site.writeBack(site.tempExpr));
+		return {
+			expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], body), []),
+			isStringLike: false
+		};
+	}
+
 	function lowerArrayInstanceCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		var methodCall = asArrayMethodCall(callee);
 		if (methodCall == null || !isArrayType(methodCall.target.t)) {
@@ -12074,6 +12214,10 @@ class GoCompiler {
 		}
 
 		return switch (methodCall.methodName) {
+			case "remove":
+				lowerArrayRemoveExpr(methodCall.target, args);
+			case "insert":
+				lowerArrayInsertExpr(methodCall.target, args);
 			case "copy" if (args.length == 0):
 				{
 					expr: cloneArrayExpr(lowerExpr(methodCall.target).expr, methodCall.target.t),

@@ -438,7 +438,7 @@ func (self *haxe__rtti__XmlParser) mergeClasses(c map[string]any, c2 map[string]
 				return hx_zero_131
 			}
 			return hx_field_130.([]*string)
-		}(c)
+		}(hx_obj_128)
 		hx_arr_127 = append(hx_arr_127, self.curplatform)
 		hx_obj_128["platforms"] = hx_arr_127
 	}
@@ -499,7 +499,7 @@ func (self *haxe__rtti__XmlParser) mergeClasses(c map[string]any, c2 map[string]
 					return hx_zero_148
 				}
 				return hx_field_147.([]map[string]any)
-			}(c)
+			}(hx_obj_145)
 			hx_arr_144 = append(hx_arr_144, f2)
 			hx_obj_145["fields"] = hx_arr_144
 		} else {
@@ -512,7 +512,7 @@ func (self *haxe__rtti__XmlParser) mergeClasses(c map[string]any, c2 map[string]
 						return hx_zero_153
 					}
 					return hx_field_152.([]*string)
-				}(found)
+				}(hx_obj_150)
 				hx_arr_149 = append(hx_arr_149, self.curplatform)
 				hx_obj_150["platforms"] = hx_arr_149
 			}
@@ -558,7 +558,7 @@ func (self *haxe__rtti__XmlParser) mergeClasses(c map[string]any, c2 map[string]
 					return hx_zero_164
 				}
 				return hx_field_163.([]map[string]any)
-			}(c)
+			}(hx_obj_161)
 			hx_arr_160 = append(hx_arr_160, f2_1)
 			hx_obj_161["statics"] = hx_arr_160
 		} else {
@@ -571,7 +571,7 @@ func (self *haxe__rtti__XmlParser) mergeClasses(c map[string]any, c2 map[string]
 						return hx_zero_169
 					}
 					return hx_field_168.([]*string)
-				}(found_1)
+				}(hx_obj_166)
 				hx_arr_165 = append(hx_arr_165, self.curplatform)
 				hx_obj_166["platforms"] = hx_arr_165
 			}
@@ -607,7 +607,7 @@ func (self *haxe__rtti__XmlParser) mergeEnums(e map[string]any, e2 map[string]an
 				return hx_zero_180
 			}
 			return hx_field_179.([]*string)
-		}(e)
+		}(hx_obj_177)
 		hx_arr_176 = append(hx_arr_176, self.curplatform)
 		hx_obj_177["platforms"] = hx_arr_176
 	}
@@ -650,7 +650,7 @@ func (self *haxe__rtti__XmlParser) mergeEnums(e map[string]any, e2 map[string]an
 					return hx_zero_191
 				}
 				return hx_field_190.([]map[string]any)
-			}(e)
+			}(hx_obj_188)
 			hx_arr_187 = append(hx_arr_187, c2)
 			hx_obj_188["constructors"] = hx_arr_187
 		} else {
@@ -663,7 +663,7 @@ func (self *haxe__rtti__XmlParser) mergeEnums(e map[string]any, e2 map[string]an
 						return hx_zero_196
 					}
 					return hx_field_195.([]*string)
-				}(found)
+				}(hx_obj_193)
 				hx_arr_192 = append(hx_arr_192, self.curplatform)
 				hx_obj_193["platforms"] = hx_arr_192
 			}
@@ -684,7 +684,7 @@ func (self *haxe__rtti__XmlParser) mergeTypedefs(t map[string]any, t2 map[string
 			return hx_zero_201
 		}
 		return hx_field_200.([]*string)
-	}(t)
+	}(hx_obj_198)
 	hx_arr_197 = append(hx_arr_197, self.curplatform)
 	hx_obj_198["platforms"] = hx_arr_197
 	var this1 haxe__IMap = func(hx_obj_202 map[string]any) *haxe__ds__StringMap {
@@ -865,7 +865,7 @@ func (self *haxe__rtti__XmlParser) mergeAbstracts(a map[string]any, a2 map[strin
 			return hx_zero_265
 		}
 		return hx_field_264.([]*string)
-	}(a)
+	}(hx_obj_262)
 	hx_arr_261 = append(hx_arr_261, self.curplatform)
 	hx_obj_262["platforms"] = hx_arr_261
 	return true

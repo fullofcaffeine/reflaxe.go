@@ -81,17 +81,16 @@ enum abstract XmlType(Int) {
 
 	Why:
 	- The mainstream Haxe stdlib implementation cannot be used unchanged on
-	  `haxe.go`: its `Array.remove` / `insert` calls need source-level loops until
-	  those methods have typed slice lowering, and an empty indexed `firstChild()`
-	  read needs an explicit nullable guard with the current slice representation.
+	  `haxe.go`: an empty indexed `firstChild()` read needs an explicit nullable
+	  guard with the current slice representation.
 	- DOM storage, validation, mutation, parent ownership, and iteration are Haxe
 	  library behavior and must not be compiler-generated Go declarations.
 
 	How:
 	- Preserve the upstream Haxe 4.3.7 implementation and public API, including its
 	  inline throwing accessors and `iterator()`. Typed expression lowering keeps
-	  accessor fallback types and iterator setup without Xml-specific compiler
-	  routes. Rebuild child arrays for removal and insertion, and guard empty
+	  accessor fallback types, iterator setup, and ordinary `Array.remove` /
+	  `Array.insert` mutations without Xml-specific compiler routes. Guard empty
 	  `firstChild()` reads so Go preserves Haxe's nullable out-of-range result.
 
 	@see https://haxe.org/manual/std-Xml.html
@@ -382,16 +381,7 @@ class Xml {
 	**/
 	public function removeChild(x:Xml):Bool {
 		ensureElementType();
-		var remaining = new Array<Xml>();
-		var removed = false;
-		for (child in children) {
-			if (!removed && child == x)
-				removed = true;
-			else
-				remaining.push(child);
-		}
-		if (removed) {
-			children = remaining;
+		if (children.remove(x)) {
 			x.parent = null;
 			return true;
 		}
@@ -407,25 +397,9 @@ class Xml {
 	public function insertChild(x:Xml, pos:Int):Void {
 		ensureElementType();
 		if (x.parent != null) {
-			x.parent.removeChild(x);
+			x.parent.children.remove(x);
 		}
-		var length = children.length;
-		if (pos < 0) {
-			pos = length + pos;
-			if (pos < 0)
-				pos = 0;
-		}
-		if (pos > length)
-			pos = length;
-		var inserted = new Array<Xml>();
-		for (index in 0...length) {
-			if (index == pos)
-				inserted.push(x);
-			inserted.push(children[index]);
-		}
-		if (pos == length)
-			inserted.push(x);
-		children = inserted;
+		children.insert(pos, x);
 		x.parent = this;
 	}
 

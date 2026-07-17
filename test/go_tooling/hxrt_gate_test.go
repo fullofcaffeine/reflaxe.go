@@ -86,11 +86,11 @@ func TestCheckptrReflectionPaths(t *testing.T) {
 		"channel":  channelValue,
 		"function": functionValue,
 	} {
-		if !atomicReferenceEqual(value, value) {
-			t.Errorf("atomicReferenceEqual rejected identical %s reference", name)
+		if !referenceEqual(value, value) {
+			t.Errorf("referenceEqual rejected identical %s reference", name)
 		}
 	}
-	if atomicReferenceEqual(mapValue, map[string]int{"answer": 42}) {
-		t.Fatal("atomicReferenceEqual treated distinct maps as the same reference")
+	if referenceEqual(mapValue, map[string]int{"answer": 42}) {
+		t.Fatal("referenceEqual treated distinct maps as the same reference")
 	}
 }

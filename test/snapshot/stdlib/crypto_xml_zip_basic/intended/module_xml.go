@@ -296,21 +296,22 @@ func (self *Xml) addChild(x *Xml) {
 
 func (self *Xml) removeChild(x *Xml) bool {
 	self.ensureElementType()
-	remaining := []*Xml{}
-	removed := false
-	_g := 0
-	_g1 := self.children
-	for _g < len(_g1) {
-		child := _g1[_g]
-		_g = int(int32((_g + 1)))
-		if !removed && (child == x) {
-			removed = true
-		} else {
-			remaining = append(remaining, child)
+	if func() bool {
+		hx_arr_94 := self.children
+		var hx_remove_value_95 *Xml = x
+		for hx_remove_index_96, hx_remove_element_97 := range hx_arr_94 {
+			if hx_remove_element_97 == hx_remove_value_95 {
+				hx_remove_last_98 := (len(hx_arr_94) - 1)
+				copy(hx_arr_94[hx_remove_index_96:], hx_arr_94[(hx_remove_index_96+1):])
+				var hx_remove_zero_99 *Xml
+				hx_arr_94[hx_remove_last_98] = hx_remove_zero_99
+				hx_arr_94 = hx_arr_94[:hx_remove_last_98]
+				self.children = hx_arr_94
+				return true
+			}
 		}
-	}
-	if removed {
-		self.children = remaining
+		return false
+	}() {
 		x.parent = nil
 		return true
 	}
@@ -320,34 +321,43 @@ func (self *Xml) removeChild(x *Xml) bool {
 func (self *Xml) insertChild(x *Xml, pos int) {
 	self.ensureElementType()
 	if x.parent != nil {
-		x.parent.removeChild(x)
+		func() bool {
+			hx_arr_100 := x.parent.children
+			var hx_remove_value_101 *Xml = x
+			for hx_remove_index_102, hx_remove_element_103 := range hx_arr_100 {
+				if hx_remove_element_103 == hx_remove_value_101 {
+					hx_remove_last_104 := (len(hx_arr_100) - 1)
+					copy(hx_arr_100[hx_remove_index_102:], hx_arr_100[(hx_remove_index_102+1):])
+					var hx_remove_zero_105 *Xml
+					hx_arr_100[hx_remove_last_104] = hx_remove_zero_105
+					hx_arr_100 = hx_arr_100[:hx_remove_last_104]
+					x.parent.children = hx_arr_100
+					return true
+				}
+			}
+			return false
+		}()
 	}
-	length := len(self.children)
-	if pos < 0 {
-		pos = int(int32((hxrt.Int32Wrap(length) + hxrt.Int32Wrap(pos))))
-		if pos < 0 {
-			pos = 0
+	func() {
+		hx_arr_106 := self.children
+		hx_insert_position_107 := pos
+		var hx_insert_value_108 *Xml = x
+		hx_insert_length_109 := len(hx_arr_106)
+		if hx_insert_position_107 < 0 {
+			hx_insert_position_107 = (hx_insert_length_109 + hx_insert_position_107)
+			if hx_insert_position_107 < 0 {
+				hx_insert_position_107 = 0
+			}
 		}
-	}
-	if pos > length {
-		pos = length
-	}
-	inserted := []*Xml{}
-	_g := 0
-	_g1 := length
-	for _g < _g1 {
-		hx_post_95 := _g
-		_g = int(int32((_g + 1)))
-		index := hx_post_95
-		if index == pos {
-			inserted = append(inserted, x)
+		if hx_insert_position_107 > hx_insert_length_109 {
+			hx_insert_position_107 = hx_insert_length_109
 		}
-		inserted = append(inserted, self.children[index])
-	}
-	if pos == length {
-		inserted = append(inserted, x)
-	}
-	self.children = inserted
+		var hx_insert_zero_110 *Xml
+		hx_arr_106 = append(hx_arr_106, hx_insert_zero_110)
+		copy(hx_arr_106[(hx_insert_position_107+1):], hx_arr_106[hx_insert_position_107:])
+		hx_arr_106[hx_insert_position_107] = hx_insert_value_108
+		self.children = hx_arr_106
+	}()
 	x.parent = self
 }
 

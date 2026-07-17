@@ -1877,3 +1877,69 @@ Observed result:
 - Compiler debt remains flat at 3,878 raw sites. This slice does not change the
   exception runtime representation or claim the remaining typed-Go-IR
   control-flow work tracked by the other `haxe_go-vfp.8.3` children.
+
+### 2026-07-16: lower portable Array remove and insert structurally (`haxe_go-vfp.8.3.2`)
+
+Implementation:
+
+- Added red semantic-diff, selective snapshot/runtime, and static ownership
+  contracts before changing lowering. They cover first-match and missing
+  removal, duplicate values, string contents, object identity, nullable Int and
+  String values, erased generic values, every insertion position rule,
+  left-to-right argument evaluation, and single evaluation plus write-back for
+  anonymous-object fields.
+- Lowered `Array.remove` and `Array.insert` entirely through typed Go AST nodes.
+  Removal ranges to the first Haxe-equal element, shifts with `copy`, clears the
+  released slot, shrinks the slice, and returns `Bool`. Insertion evaluates both
+  arguments once, applies Haxe negative and oversized position rules, grows with
+  `append`, shifts the suffix, and writes the final slice back to its mutation
+  site. No `GoRaw`, profile branch, library-name dispatch, reflection, or unsafe
+  operation owns either algorithm.
+- Made array-like storage preserve nullable primitive elements as `any`, matching
+  existing value storage instead of emitting impossible Go literals such as
+  `[]int{nil}`. Typed comparable elements still use native equality and strings
+  use their value comparator; only interface-backed or non-comparable carriers
+  use the selectively inferred `hxrt.HaxeEqual` capability.
+- Moved the existing reference-identity reflection island out of the atomic
+  object file into the new equality runtime slice. `AtomicObject` now depends on
+  that shared slice, and Array lowering requests it only when an interface-backed
+  comparison is emitted. The debt baseline moved the same 130 copied reflection
+  findings to their new owner while total reflection stayed exactly flat at 597.
+- Restored root `Xml.removeChild()` and `insertChild()` to their upstream
+  `children.remove(...)` / `children.insert(...)` source. The staged override now
+  retains only its documented nullable empty `firstChild()` adaptation.
+- Correct string equality so native nil remains distinct from the literal
+  `"null"`. That regression exposed a previously masked `Sys.getEnv` bridge bug;
+  explicit `Null<String>` extern results now bypass non-nullable Go string
+  normalization and preserve an absent environment value as nil.
+
+Validation evidence:
+
+- `npm run test:changed`
+- `npm test` (`283/283` snapshots)
+- `npm run test:semantic-diff` (`144/144` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance`, `npm run test:stdlib-inventory`, and
+  `npm run compatibility:verify`
+- `npm run test:compiler-debt` (`3,878` `GoRaw` sites, `597` reflection sites,
+  and `13` compiler shim entry points)
+- raw-injection hygiene, `npm run test:release-contracts`, and
+  `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates)
+- `npm run test:perf:hxrt-selective` and `npm run test:perf:go` (no hard
+  regression; the Go lane reported warning-only startup signals)
+
+Observed result:
+
+- Ordinary staged Haxe source can use `Array.remove` and `Array.insert` without
+  rebuilding arrays or growing compiler-owned stdlib behavior. Generated Go is
+  typed slice code, preserves nullable and generic equality, evaluates mutation
+  inputs once, and writes changed slice headers back through anonymous fields.
+- Root XML child mutation now matches upstream Haxe source and retains parent
+  ownership semantics. Missing environment values also remain native nil after
+  the corrected string equality stopped masking the nullable extern boundary.
+- This slice deliberately does not claim full portable Array identity. Concrete
+  arrays crossing erased generic function boundaries remain
+  `haxe_go-vfp.8.3.7`; shared identity across length-changing aliases is the
+  xhigh representation decision in `haxe_go-vfp.8.3.8`; sparse indexed growth
+  remains `haxe_go-vfp.8.7.20`.

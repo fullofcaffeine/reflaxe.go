@@ -52,7 +52,7 @@ func Sys_getCwd() *string {
 }
 
 func Sys_getEnv(s *string) *string {
-	return hxrt.StdString(hxrt.SysGetEnv(s))
+	return hxrt.SysGetEnv(s)
 }
 
 func Sys_print(v any) {

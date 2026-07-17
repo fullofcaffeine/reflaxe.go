@@ -21,6 +21,7 @@ package reflaxe.go.compiler;
 class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_CORE = "core";
 	public static inline final FEATURE_STRING = "string";
+	public static inline final FEATURE_EQUALITY = "equality";
 	public static inline final FEATURE_PRINT = "print";
 	public static inline final FEATURE_EXCEPTION = "exception";
 	public static inline final FEATURE_JSON = "json";
@@ -48,6 +49,7 @@ class GoHxrtFeatureAnalyzer {
 	static final FEATURE_ORDER = [
 		FEATURE_CORE,
 		FEATURE_STRING,
+		FEATURE_EQUALITY,
 		FEATURE_PRINT,
 		FEATURE_EXCEPTION,
 		FEATURE_JSON,
@@ -81,13 +83,13 @@ class GoHxrtFeatureAnalyzer {
 		return FEATURE_ORDER.indexOf(feature) >= 0;
 	}
 
-	public static function inferFromUsage(classPaths:Array<String>, enumPaths:Array<String>, shimGroups:Array<String>,
-			requiresIoHelperSurface:Bool):Array<String> {
-		return inferWithReasons(classPaths, enumPaths, shimGroups, requiresIoHelperSurface).features;
+	public static function inferFromUsage(classPaths:Array<String>, enumPaths:Array<String>, shimGroups:Array<String>, requiresIoHelperSurface:Bool,
+			?requiresEqualitySurface:Bool = false):Array<String> {
+		return inferWithReasons(classPaths, enumPaths, shimGroups, requiresIoHelperSurface, requiresEqualitySurface).features;
 	}
 
-	public static function inferWithReasons(classPaths:Array<String>, enumPaths:Array<String>, shimGroups:Array<String>,
-			requiresIoHelperSurface:Bool):GoHxrtFeatureInference {
+	public static function inferWithReasons(classPaths:Array<String>, enumPaths:Array<String>, shimGroups:Array<String>, requiresIoHelperSurface:Bool,
+			?requiresEqualitySurface:Bool = false):GoHxrtFeatureInference {
 		var out = new Map<String, Bool>();
 		var reasonsByFeature = new Map<String, Array<GoHxrtFeatureReason>>();
 
@@ -238,6 +240,9 @@ class GoHxrtFeatureAnalyzer {
 		if (requiresIoHelperSurface) {
 			add(FEATURE_BYTES, "io_helper_surface", "compiler_io_helpers");
 		}
+		if (requiresEqualitySurface) {
+			add(FEATURE_EQUALITY, "compiler_surface", "erased_haxe_equality");
+		}
 
 		return expandWithReasons([for (feature in out.keys()) feature], flattenReasons(reasonsByFeature));
 	}
@@ -307,6 +312,8 @@ class GoHxrtFeatureAnalyzer {
 		return switch (feature) {
 			case FEATURE_STRING:
 				[FEATURE_CORE];
+			case FEATURE_EQUALITY:
+				[FEATURE_STRING];
 			case FEATURE_PRINT:
 				[FEATURE_STRING];
 			case FEATURE_EXCEPTION:
@@ -345,6 +352,8 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_STRING];
 			case FEATURE_MAP_OBJECT:
 				[FEATURE_EXCEPTION];
+			case FEATURE_ATOMIC_OBJECT:
+				[FEATURE_EQUALITY];
 			case _:
 				[];
 		};
@@ -356,6 +365,8 @@ class GoHxrtFeatureAnalyzer {
 				["hxrt.go", "core.go"];
 			case FEATURE_STRING:
 				["string.go"];
+			case FEATURE_EQUALITY:
+				["equality.go"];
 			case FEATURE_PRINT:
 				["print.go"];
 			case FEATURE_EXCEPTION:

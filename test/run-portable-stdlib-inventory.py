@@ -279,10 +279,11 @@ MODULE_NOTES_OVERRIDES = {
     ),
     "Xml": (
         "Canonical std/go/_std/Xml.hx owns the complete root DOM API. Its throwing accessors and "
-        "iterator retain the upstream inline forms; only child-array mutation and nullable empty "
-        "firstChild reads remain narrow source-level representation adaptations. Evidence: "
-        "inline_throw_accessor_result_type_contract, xml_source_owned, root_xml_contract, and "
-        "stdlib/xml_root_dom_basic."
+        "iterator retain the upstream inline forms, and child mutation uses the upstream Array.remove "
+        "and Array.insert calls through general typed slice lowering. Only nullable empty firstChild "
+        "reads remain a narrow source-level representation adaptation. Evidence: "
+        "array_remove_insert_contract, inline_throw_accessor_result_type_contract, xml_source_owned, "
+        "root_xml_contract, and stdlib/xml_root_dom_basic."
     ),
     "haxe.xml.Parser": (
         "The unchanged Haxe 4.3.7 parser state machine remains authoritative source, including strict "

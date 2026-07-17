@@ -9,7 +9,7 @@
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "c9cc5b90384f99becb64bfa14bcc643db4d9b265b20f8f9f1673be8ef92207df"
+    "portable_stdlib_inventory_sha256": "d26f0283451af9aa8594278c76f6406983d26d817a5851a810c7f69de6db27e9"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -1639,7 +1639,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical std/go/_std/Xml.hx owns the complete root DOM API. Its throwing accessors and iterator retain the upstream inline forms; only child-array mutation and nullable empty firstChild reads remain narrow source-level representation adaptations. Evidence: inline_throw_accessor_result_type_contract, xml_source_owned, root_xml_contract, and stdlib/xml_root_dom_basic."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical std/go/_std/Xml.hx owns the complete root DOM API. Its throwing accessors and iterator retain the upstream inline forms, and child mutation uses the upstream Array.remove and Array.insert calls through general typed slice lowering. Only nullable empty firstChild reads remain a narrow source-level representation adaptation. Evidence: array_remove_insert_contract, inline_throw_accessor_result_type_contract, xml_source_owned, root_xml_contract, and stdlib/xml_root_dom_basic."
       },
       {
         "module": "haxe.CallStack",

@@ -143,6 +143,13 @@ construction, and the complete typed-shape fixture. Remaining expression and
 statement structure is tracked by the dependent typed-IR beads rather than
 being hidden inside this contract.
 
+Portable `Array.remove` and `Array.insert` are also lowered through ordinary
+typed statement/expression nodes: range, condition, assignment, slice, call,
+and return. Typed comparable elements stay on native Go equality, strings use
+their established value comparator, and only erased, nullable-primitive, or
+non-comparable element shapes cross the narrow `hxrt.HaxeEqual` runtime
+boundary. No library name or raw statement block owns these algorithms.
+
 ## Profile and native-boundary relationship
 
 The typed Go IR is profile-neutral:

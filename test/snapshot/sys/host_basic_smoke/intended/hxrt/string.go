@@ -154,8 +154,17 @@ func StringConcatStringPtr(left *string, right *string) *string {
 	return StringFromLiteral(stringValueOrNullToken(left) + stringValueOrNullToken(right))
 }
 
+// StringEqualStringPtr preserves Haxe equality for pointer-backed strings.
+//
+// What: Compare nullable string carriers by value.
+// Why: Haxe null is distinct from the literal string "null" even though string
+// conversion and concatenation intentionally render both with the same text.
+// How: Resolve nil identity before dereferencing two present string values.
 func StringEqualStringPtr(left *string, right *string) bool {
-	return stringValueOrNullToken(left) == stringValueOrNullToken(right)
+	if left == nil || right == nil {
+		return left == nil && right == nil
+	}
+	return *left == *right
 }
 
 func StringLengthStringPtr(value *string) int {

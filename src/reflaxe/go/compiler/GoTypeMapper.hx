@@ -10,18 +10,29 @@ typedef GoClassTypeNamer = ClassType->String;
 typedef GoEnumTypeNamer = EnumType->String;
 
 class GoTypeMapper {
+	/**
+		What: Maps one array-like element to its actual Go storage type.
+		Why: `Null<Int>`, `Null<Float>`, and `Null<Bool>` must retain Go `nil`
+		inside arrays instead of being unwrapped to non-nullable scalar storage.
+		How: Keep the existing scalar mapping for ordinary elements and use `any`
+		only for nullable primitives, matching local/value storage policy.
+	**/
+	static function arrayElementStorageGoType(elementType:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
+		return isNullablePrimitiveType(elementType) ? "any" : scalarGoType(elementType, classTypeName, enumTypeName);
+	}
+
 	public static function typeToGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
 		var restElement = restElementType(type);
 		if (restElement != null) {
-			return "[]" + scalarGoType(restElement, classTypeName, enumTypeName);
+			return "[]" + arrayElementStorageGoType(restElement, classTypeName, enumTypeName);
 		}
 		var vectorElement = vectorElementType(type);
 		if (vectorElement != null) {
-			return "[]" + scalarGoType(vectorElement, classTypeName, enumTypeName);
+			return "[]" + arrayElementStorageGoType(vectorElement, classTypeName, enumTypeName);
 		}
 		var readOnlyElement = readOnlyArrayElementType(type);
 		if (readOnlyElement != null) {
-			return "[]" + scalarGoType(readOnlyElement, classTypeName, enumTypeName);
+			return "[]" + arrayElementStorageGoType(readOnlyElement, classTypeName, enumTypeName);
 		}
 
 		var followed = Context.follow(type);
@@ -41,7 +52,7 @@ class GoTypeMapper {
 				} else if (classType.pack.length == 0 && classType.name == "String") {
 					"*string";
 				} else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
-					"[]" + scalarGoType(params[0], classTypeName, enumTypeName);
+					"[]" + arrayElementStorageGoType(params[0], classTypeName, enumTypeName);
 				} else {
 					"*" + classTypeName(classType);
 				}
@@ -230,15 +241,15 @@ class GoTypeMapper {
 	public static function arrayElementGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
 		var restElement = restElementType(type);
 		if (restElement != null) {
-			return scalarGoType(restElement, classTypeName, enumTypeName);
+			return arrayElementStorageGoType(restElement, classTypeName, enumTypeName);
 		}
 		var vectorElement = vectorElementType(type);
 		if (vectorElement != null) {
-			return scalarGoType(vectorElement, classTypeName, enumTypeName);
+			return arrayElementStorageGoType(vectorElement, classTypeName, enumTypeName);
 		}
 		var readOnlyElement = readOnlyArrayElementType(type);
 		if (readOnlyElement != null) {
-			return scalarGoType(readOnlyElement, classTypeName, enumTypeName);
+			return arrayElementStorageGoType(readOnlyElement, classTypeName, enumTypeName);
 		}
 
 		var followed = Context.follow(type);
@@ -246,7 +257,7 @@ class GoTypeMapper {
 			case TInst(classRef, params):
 				var classType = classRef.get();
 				if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
-					scalarGoType(params[0], classTypeName, enumTypeName);
+					arrayElementStorageGoType(params[0], classTypeName, enumTypeName);
 				} else {
 					"any";
 				}
@@ -258,15 +269,15 @@ class GoTypeMapper {
 	public static function scalarGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
 		var restElement = restElementType(type);
 		if (restElement != null) {
-			return "[]" + scalarGoType(restElement, classTypeName, enumTypeName);
+			return "[]" + arrayElementStorageGoType(restElement, classTypeName, enumTypeName);
 		}
 		var vectorElement = vectorElementType(type);
 		if (vectorElement != null) {
-			return "[]" + scalarGoType(vectorElement, classTypeName, enumTypeName);
+			return "[]" + arrayElementStorageGoType(vectorElement, classTypeName, enumTypeName);
 		}
 		var readOnlyElement = readOnlyArrayElementType(type);
 		if (readOnlyElement != null) {
-			return "[]" + scalarGoType(readOnlyElement, classTypeName, enumTypeName);
+			return "[]" + arrayElementStorageGoType(readOnlyElement, classTypeName, enumTypeName);
 		}
 
 		var followed = Context.follow(type);
@@ -286,7 +297,7 @@ class GoTypeMapper {
 				} else if (classType.pack.length == 0 && classType.name == "String") {
 					"*string";
 				} else if (classType.pack.length == 0 && classType.name == "Array" && params.length == 1) {
-					"[]" + scalarGoType(params[0], classTypeName, enumTypeName);
+					"[]" + arrayElementStorageGoType(params[0], classTypeName, enumTypeName);
 				} else {
 					"*" + classTypeName(classType);
 				}

@@ -208,6 +208,8 @@ def source_capability(file: str) -> str:
         return "sys"
     if file.endswith("atomic_object.go"):
         return "atomic"
+    if file.endswith("equality.go"):
+        return "dynamic_values"
     if "/atomic/" in file:
         return "atomic"
     if file.endswith(("/enum_value.go", "/map_int.go", "/map_object.go", "/map_string.go")):
