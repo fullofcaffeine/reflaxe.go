@@ -7,8 +7,8 @@ var InteractiveCli_STATE_FILE *string = hxrt.StringFromLiteral(".tui_todo_state.
 func InteractiveCli_clearState() {
 	hxrt.TryCatch(func() {
 		sys__io__File_saveContent(hxrt.StringFromLiteral(".tui_todo_state.txt"), hxrt.StringFromLiteral(""))
-	}, func(hx_caught_6 any) {
-		hx_tmp := hxrt.ExceptionCaught(hx_caught_6)
+	}, func(hx_caught_3 any) {
+		hx_tmp := hxrt.ExceptionCaught(hx_caught_3)
 		_ = hx_tmp
 	})
 }
@@ -41,40 +41,40 @@ func InteractiveCli_encodeField(raw *string) *string {
 	for i < bytes.length {
 		code := bytes.b[i]
 		if code == 92 {
-			hx_arr_9 := out.b
-			hx_arr_9 = append(hx_arr_9, (92 & 255))
-			out.b = hx_arr_9
-			hx_arr_10 := out.b
-			hx_arr_10 = append(hx_arr_10, (92 & 255))
-			out.b = hx_arr_10
+			hx_arr_6 := out.b
+			hx_arr_6 = append(hx_arr_6, (92 & 255))
+			out.b = hx_arr_6
+			hx_arr_7 := out.b
+			hx_arr_7 = append(hx_arr_7, (92 & 255))
+			out.b = hx_arr_7
 		} else {
 			if code == 9 {
-				hx_arr_11 := out.b
-				hx_arr_11 = append(hx_arr_11, (92 & 255))
-				out.b = hx_arr_11
-				hx_arr_12 := out.b
-				hx_arr_12 = append(hx_arr_12, (116 & 255))
-				out.b = hx_arr_12
+				hx_arr_8 := out.b
+				hx_arr_8 = append(hx_arr_8, (92 & 255))
+				out.b = hx_arr_8
+				hx_arr_9 := out.b
+				hx_arr_9 = append(hx_arr_9, (116 & 255))
+				out.b = hx_arr_9
 			} else {
 				if code == 10 {
-					hx_arr_13 := out.b
-					hx_arr_13 = append(hx_arr_13, (92 & 255))
-					out.b = hx_arr_13
-					hx_arr_14 := out.b
-					hx_arr_14 = append(hx_arr_14, (110 & 255))
-					out.b = hx_arr_14
+					hx_arr_10 := out.b
+					hx_arr_10 = append(hx_arr_10, (92 & 255))
+					out.b = hx_arr_10
+					hx_arr_11 := out.b
+					hx_arr_11 = append(hx_arr_11, (110 & 255))
+					out.b = hx_arr_11
 				} else {
 					if code == 44 {
-						hx_arr_15 := out.b
-						hx_arr_15 = append(hx_arr_15, (92 & 255))
-						out.b = hx_arr_15
-						hx_arr_16 := out.b
-						hx_arr_16 = append(hx_arr_16, (99 & 255))
-						out.b = hx_arr_16
+						hx_arr_12 := out.b
+						hx_arr_12 = append(hx_arr_12, (92 & 255))
+						out.b = hx_arr_12
+						hx_arr_13 := out.b
+						hx_arr_13 = append(hx_arr_13, (99 & 255))
+						out.b = hx_arr_13
 					} else {
-						hx_arr_17 := out.b
-						hx_arr_17 = append(hx_arr_17, (code & 255))
-						out.b = hx_arr_17
+						hx_arr_14 := out.b
+						hx_arr_14 = append(hx_arr_14, (code & 255))
+						out.b = hx_arr_14
 					}
 				}
 			}
@@ -113,11 +113,11 @@ func InteractiveCli_listIndex(values []*string, index int) *string {
 }
 
 func InteractiveCli_loadState(app *app__TodoApp) {
-	hx_try_return_18 := false
+	hx_try_return_15 := false
 	hxrt.TryCatch(func() {
 		raw := sys__io__File_getContent(hxrt.StringFromLiteral(".tui_todo_state.txt"))
 		if hxrt.StringEqualStringPtr(raw, hxrt.StringFromLiteral("")) {
-			hx_try_return_18 = true
+			hx_try_return_15 = true
 			return
 		}
 		lines := InteractiveCli_splitRaw(raw, 10)
@@ -147,13 +147,13 @@ func InteractiveCli_loadState(app *app__TodoApp) {
 				app.tag(id, tag)
 			}
 		}
-	}, func(hx_caught_19 any) {
-		hx_tmp := hxrt.ExceptionCaught(hx_caught_19)
+	}, func(hx_caught_16 any) {
+		hx_tmp := hxrt.ExceptionCaught(hx_caught_16)
 		_ = hx_tmp
-		hx_try_return_18 = true
+		hx_try_return_15 = true
 		return
 	})
-	if hx_try_return_18 {
+	if hx_try_return_15 {
 		return
 	}
 }
@@ -336,13 +336,13 @@ func InteractiveCli_saveState(app *app__TodoApp) {
 		item := items[_g]
 		_g = int(int32((_g + 1)))
 		out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(InteractiveCli_encodeField(item.title), hxrt.StringFromLiteral("\t")), item.priority), hxrt.StringFromLiteral("\t")), func() *string {
-			var hx_if_23 *string
+			var hx_if_20 *string
 			if item.done {
-				hx_if_23 = hxrt.StringFromLiteral("1")
+				hx_if_20 = hxrt.StringFromLiteral("1")
 			} else {
-				hx_if_23 = hxrt.StringFromLiteral("0")
+				hx_if_20 = hxrt.StringFromLiteral("0")
 			}
-			return hx_if_23
+			return hx_if_20
 		}()), hxrt.StringFromLiteral("\t")), InteractiveCli_encodeTags(item.tags)), hxrt.StringFromLiteral("\n")))
 	}
 	sys__io__File_saveContent(hxrt.StringFromLiteral(".tui_todo_state.txt"), out)
@@ -358,28 +358,28 @@ func InteractiveCli_splitEscaped(raw *string, separatorCode int) []*string {
 		code := bytes.b[i]
 		if escaped {
 			if code == 116 {
-				hx_arr_24 := current.b
-				hx_arr_24 = append(hx_arr_24, (9 & 255))
-				current.b = hx_arr_24
+				hx_arr_21 := current.b
+				hx_arr_21 = append(hx_arr_21, (9 & 255))
+				current.b = hx_arr_21
 			} else {
 				if code == 110 {
-					hx_arr_25 := current.b
-					hx_arr_25 = append(hx_arr_25, (10 & 255))
-					current.b = hx_arr_25
+					hx_arr_22 := current.b
+					hx_arr_22 = append(hx_arr_22, (10 & 255))
+					current.b = hx_arr_22
 				} else {
 					if code == 99 {
-						hx_arr_26 := current.b
-						hx_arr_26 = append(hx_arr_26, (44 & 255))
-						current.b = hx_arr_26
+						hx_arr_23 := current.b
+						hx_arr_23 = append(hx_arr_23, (44 & 255))
+						current.b = hx_arr_23
 					} else {
 						if code == 92 {
-							hx_arr_27 := current.b
-							hx_arr_27 = append(hx_arr_27, (92 & 255))
-							current.b = hx_arr_27
+							hx_arr_24 := current.b
+							hx_arr_24 = append(hx_arr_24, (92 & 255))
+							current.b = hx_arr_24
 						} else {
-							hx_arr_28 := current.b
-							hx_arr_28 = append(hx_arr_28, (code & 255))
-							current.b = hx_arr_28
+							hx_arr_25 := current.b
+							hx_arr_25 = append(hx_arr_25, (code & 255))
+							current.b = hx_arr_25
 						}
 					}
 				}
@@ -399,9 +399,9 @@ func InteractiveCli_splitEscaped(raw *string, separatorCode int) []*string {
 			i = int(int32((i + 1)))
 			continue
 		}
-		hx_arr_30 := current.b
-		hx_arr_30 = append(hx_arr_30, (code & 255))
-		current.b = hx_arr_30
+		hx_arr_27 := current.b
+		hx_arr_27 = append(hx_arr_27, (code & 255))
+		current.b = hx_arr_27
 		i = int(int32((i + 1)))
 	}
 	out = append(out, current.getBytes().toString())
@@ -420,9 +420,9 @@ func InteractiveCli_splitRaw(raw *string, separatorCode int) []*string {
 			current = New_haxe__io__BytesBuffer()
 		} else {
 			if code != 13 {
-				hx_arr_33 := current.b
-				hx_arr_33 = append(hx_arr_33, (code & 255))
-				current.b = hx_arr_33
+				hx_arr_30 := current.b
+				hx_arr_30 = append(hx_arr_30, (code & 255))
+				current.b = hx_arr_30
 			}
 		}
 		i = int(int32((i + 1)))

@@ -23,8 +23,6 @@ func New_sys__thread__Thread(id int) *sys__thread__Thread {
 func (self *sys__thread__Thread) get_events() *sys__thread__EventLoop {
 	if !hxrt.ThreadHasEventLoop(self.__id) {
 		hxrt.Throw(New_sys__thread__NoEventLoopException(hxrt.StringFromLiteral("Event loop is not available. Refer to sys.thread.Thread.runWithEventLoop."), nil))
-		var hx_throw_zero_7 *sys__thread__EventLoop
-		return hx_throw_zero_7
 	}
 	return sys__thread__EventLoop___fromHandle(hxrt.ThreadEvents(self.__id))
 }

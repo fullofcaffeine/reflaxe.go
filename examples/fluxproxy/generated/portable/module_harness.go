@@ -20,65 +20,43 @@ func Harness_assertContract(runtime app__runtime__FluxRuntime) *string {
 	report := Harness_runReport(runtime, Harness_baselineRequests())
 	if !hxrt.StringEqualStringPtr(report.profile, runtime.profileId()) {
 		hxrt.Throw(hxrt.StringFromLiteral("profile drift"))
-		var hx_throw_zero_1 *string
-		return hx_throw_zero_1
 	}
 	if !hxrt.StringEqualStringPtr(report.variant, runtime.variantId()) {
 		hxrt.Throw(hxrt.StringFromLiteral("variant drift"))
-		var hx_throw_zero_2 *string
-		return hx_throw_zero_2
 	}
 	if !hxrt.StringEqualStringPtr(report.capability, runtime.capabilityId()) {
 		hxrt.Throw(hxrt.StringFromLiteral("capability drift"))
-		var hx_throw_zero_3 *string
-		return hx_throw_zero_3
 	}
 	if report.ingressReceived != 8 {
 		hxrt.Throw(hxrt.StringFromLiteral("ingress.received drift"))
-		var hx_throw_zero_4 *string
-		return hx_throw_zero_4
 	}
 	if report.ingressAccepted != 8 {
 		hxrt.Throw(hxrt.StringFromLiteral("ingress.accepted drift"))
-		var hx_throw_zero_5 *string
-		return hx_throw_zero_5
 	}
 	if report.ingressBackpressure != 5 {
 		hxrt.Throw(hxrt.StringFromLiteral("ingress.backpressure drift"))
-		var hx_throw_zero_6 *string
-		return hx_throw_zero_6
 	}
 	if report.proxyRetries != 2 {
 		hxrt.Throw(hxrt.StringFromLiteral("proxy.retries drift"))
-		var hx_throw_zero_7 *string
-		return hx_throw_zero_7
 	}
 	if report.rateLimitedCount != 1 {
 		hxrt.Throw(hxrt.StringFromLiteral("policy.rate_limited drift"))
-		var hx_throw_zero_8 *string
-		return hx_throw_zero_8
 	}
 	if report.breakerOpenCount != 0 {
 		hxrt.Throw(hxrt.StringFromLiteral("policy.breaker_open drift"))
-		var hx_throw_zero_9 *string
-		return hx_throw_zero_9
 	}
 	if report.errorsCount != 3 {
 		hxrt.Throw(hxrt.StringFromLiteral("errors.count drift"))
-		var hx_throw_zero_10 *string
-		return hx_throw_zero_10
 	}
-	var hx_if_11 int
+	var hx_if_1 int
 	if hxrt.StringEqualStringPtr(runtime.variantId(), hxrt.StringFromLiteral("go_native")) {
-		hx_if_11 = 35
+		hx_if_1 = 35
 	} else {
-		hx_if_11 = 26
+		hx_if_1 = 26
 	}
-	expectedScore := hx_if_11
+	expectedScore := hx_if_1
 	if report.runtimeScore != expectedScore {
 		hxrt.Throw(hxrt.StringFromLiteral("runtime.score drift"))
-		var hx_throw_zero_12 *string
-		return hx_throw_zero_12
 	}
 	Harness_assertBreakerScenario(runtime)
 	return report.render()

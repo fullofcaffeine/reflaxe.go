@@ -31,8 +31,6 @@ func (self *sys__io__FileOutput) writeByte(value int) {
 func (self *sys__io__FileOutput) writeBytes(bytes *haxe__io__Bytes, pos int, length int) int {
 	if ((pos < 0) || (length < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length)))) > bytes.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		var hx_throw_zero_37 int
-		return hx_throw_zero_37
 	}
 	if length == 0 {
 		return 0
@@ -41,9 +39,9 @@ func (self *sys__io__FileOutput) writeBytes(bytes *haxe__io__Bytes, pos int, len
 	_g := 0
 	_g1 := length
 	for _g < _g1 {
-		hx_post_38 := _g
+		hx_post_34 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_38
+		index := hx_post_34
 		values = append(values, bytes.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(index))))])
 	}
 	return hxrt.FileOutputWriteValues(self.handle, values, 0, length)

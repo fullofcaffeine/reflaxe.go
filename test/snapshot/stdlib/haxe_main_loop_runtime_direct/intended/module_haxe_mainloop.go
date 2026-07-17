@@ -19,13 +19,11 @@ func haxe__MainLoop___remove(event *haxe__MainEvent) {
 func haxe__MainLoop_add(f func(), priority int) *haxe__MainEvent {
 	if f == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("Event function is null"))
-		var hx_throw_zero_7 *haxe__MainEvent
-		return hx_throw_zero_7
 	}
 	event := New_haxe__MainEvent(f, priority)
-	hx_arr_8 := haxe__MainLoop_pending
-	hx_arr_8 = append(hx_arr_8, event)
-	haxe__MainLoop_pending = hx_arr_8
+	hx_arr_6 := haxe__MainLoop_pending
+	hx_arr_6 = append(hx_arr_6, event)
+	haxe__MainLoop_pending = hx_arr_6
 	event.delayNow()
 	return event
 }

@@ -8,32 +8,26 @@ import (
 func haxe__Int64Helper_fromFloat(f float64) *haxe___Int64_____Int64 {
 	if math.IsNaN(f) || !(!math.IsInf(f, 0) && !math.IsNaN(f)) {
 		hxrt.Throw(hxrt.StringFromLiteral("Number is NaN or Infinite"))
-		var hx_throw_zero_32 *haxe___Int64_____Int64
-		return hx_throw_zero_32
 	}
 	noFractions := (f - hxrt.FloatMod(f, float64(1)))
 	if noFractions > 9007199254740991 {
 		hxrt.Throw(hxrt.StringFromLiteral("Conversion overflow"))
-		var hx_throw_zero_33 *haxe___Int64_____Int64
-		return hx_throw_zero_33
 	}
 	if noFractions < -9007199254740991 {
 		hxrt.Throw(hxrt.StringFromLiteral("Conversion underflow"))
-		var hx_throw_zero_34 *haxe___Int64_____Int64
-		return hx_throw_zero_34
 	}
 	x := New_haxe___Int64_____Int64(0, 0)
 	var this1 *haxe___Int64_____Int64
 	this1 = x
 	result := this1
 	neg := (noFractions < 0)
-	var hx_if_35 float64
+	var hx_if_32 float64
 	if neg {
-		hx_if_35 = -noFractions
+		hx_if_32 = -noFractions
 	} else {
-		hx_if_35 = noFractions
+		hx_if_32 = noFractions
 	}
-	rest := hx_if_35
+	rest := hx_if_32
 	i := 0
 	for rest >= 1 {
 		curr := hxrt.FloatMod(rest, float64(2))
@@ -45,39 +39,39 @@ func haxe__Int64Helper_fromFloat(f float64) *haxe___Int64_____Int64 {
 			a_low = 1
 			b_1 := i
 			b_1 = int(int32((hxrt.Int32Wrap(b_1) & hxrt.Int32Wrap(63))))
-			var hx_if_37 *haxe___Int64_____Int64
+			var hx_if_34 *haxe___Int64_____Int64
 			if b_1 == 0 {
 				high := a_high
 				low := a_low
 				x_1 := New_haxe___Int64_____Int64(high, low)
 				var this1_1 *haxe___Int64_____Int64
 				this1_1 = x_1
-				hx_if_37 = this1_1
+				hx_if_34 = this1_1
 			} else {
-				var hx_if_36 *haxe___Int64_____Int64
+				var hx_if_33 *haxe___Int64_____Int64
 				if b_1 < 32 {
 					high_1 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(a_high) << uint(b_1))))) | hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(a_low)) >> uint(int(int32((hxrt.Int32Wrap(32) - hxrt.Int32Wrap(b_1)))))))))))))
 					low_1 := int(int32((hxrt.Int32Wrap(a_low) << uint(b_1))))
 					x_2 := New_haxe___Int64_____Int64(high_1, low_1)
 					var this1_2 *haxe___Int64_____Int64
 					this1_2 = x_2
-					hx_if_36 = this1_2
+					hx_if_33 = this1_2
 				} else {
 					high_2 := int(int32((hxrt.Int32Wrap(a_low) << uint(int(int32((hxrt.Int32Wrap(b_1) - hxrt.Int32Wrap(32))))))))
 					x_3 := New_haxe___Int64_____Int64(high_2, 0)
 					var this1_3 *haxe___Int64_____Int64
 					this1_3 = x_3
-					hx_if_36 = this1_3
+					hx_if_33 = this1_3
 				}
-				hx_if_37 = hx_if_36
+				hx_if_34 = hx_if_33
 			}
-			b := hx_if_37
+			b := hx_if_34
 			high_3 := int(int32((hxrt.Int32Wrap(result.high) + hxrt.Int32Wrap(b.high))))
 			low_2 := int(int32((hxrt.Int32Wrap(result.low) + hxrt.Int32Wrap(b.low))))
 			if haxe___Int32__Int32_Impl__ucompare(low_2, result.low) < 0 {
-				hx_post_38 := high_3
+				hx_post_35 := high_3
 				high_3 = int(int32((high_3 + 1)))
-				ret := hx_post_38
+				ret := hx_post_35
 				_ = ret
 				high_3 = high_3
 			}
@@ -92,9 +86,9 @@ func haxe__Int64Helper_fromFloat(f float64) *haxe___Int64_____Int64 {
 		high_4 := int(int32(^int32(result.high)))
 		low_3 := int(int32((hxrt.Int32Wrap(int(int32(^int32(result.low)))) + hxrt.Int32Wrap(1))))
 		if low_3 == 0 {
-			hx_post_39 := high_4
+			hx_post_36 := high_4
 			high_4 = int(int32((high_4 + 1)))
-			ret_1 := hx_post_39
+			ret_1 := hx_post_36
 			_ = ret_1
 			high_4 = high_4
 		}
@@ -129,14 +123,12 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 	_g := 0
 	_g1 := len
 	for _g < _g1 {
-		hx_post_40 := _g
+		hx_post_37 := _g
 		_g = int(int32((_g + 1)))
-		i := hx_post_40
+		i := hx_post_37
 		digitInt := int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(s, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(len)-hxrt.Int32Wrap(1)))))-hxrt.Int32Wrap(i))))))) - hxrt.Int32Wrap(48))))
 		if (digitInt < 0) || (digitInt > 9) {
 			hxrt.Throw(hxrt.StringFromLiteral("NumberFormatError"))
-			var hx_throw_zero_41 *haxe___Int64_____Int64
-			return hx_throw_zero_41
 		}
 		if digitInt != 0 {
 			var digit_low int
@@ -160,18 +152,18 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 				p01 = int(int32((hxrt.Int32Wrap(p01) << uint(16))))
 				low = int(int32((hxrt.Int32Wrap(low) + hxrt.Int32Wrap(p01))))
 				if haxe___Int32__Int32_Impl__ucompare(low, p01) < 0 {
-					hx_post_42 := high
+					hx_post_38 := high
 					high = int(int32((high + 1)))
-					ret := hx_post_42
+					ret := hx_post_38
 					_ = ret
 					high = high
 				}
 				p10 = int(int32((hxrt.Int32Wrap(p10) << uint(16))))
 				low = int(int32((hxrt.Int32Wrap(low) + hxrt.Int32Wrap(p10))))
 				if haxe___Int32__Int32_Impl__ucompare(low, p10) < 0 {
-					hx_post_43 := high
+					hx_post_39 := high
 					high = int(int32((high + 1)))
-					ret_1 := hx_post_43
+					ret_1 := hx_post_39
 					_ = ret_1
 					high = high
 				}
@@ -181,9 +173,9 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 				high_1 := int(int32((hxrt.Int32Wrap(current.high) - hxrt.Int32Wrap(b_high))))
 				low_1 := int(int32((hxrt.Int32Wrap(current.low) - hxrt.Int32Wrap(b_low))))
 				if haxe___Int32__Int32_Impl__ucompare(current.low, b_low) < 0 {
-					hx_post_44 := high_1
+					hx_post_40 := high_1
 					high_1 = int(int32((high_1 - 1)))
-					ret_2 := hx_post_44
+					ret_2 := hx_post_40
 					_ = ret_2
 					high_1 = high_1
 				}
@@ -193,8 +185,6 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 				current = this1_2
 				if !(current.high < 0) {
 					hxrt.Throw(hxrt.StringFromLiteral("NumberFormatError: Underflow"))
-					var hx_throw_zero_45 *haxe___Int64_____Int64
-					return hx_throw_zero_45
 				}
 			} else {
 				var b_low_1 int
@@ -213,18 +203,18 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 				p01_1 = int(int32((hxrt.Int32Wrap(p01_1) << uint(16))))
 				low_2 = int(int32((hxrt.Int32Wrap(low_2) + hxrt.Int32Wrap(p01_1))))
 				if haxe___Int32__Int32_Impl__ucompare(low_2, p01_1) < 0 {
-					hx_post_46 := high_2
+					hx_post_41 := high_2
 					high_2 = int(int32((high_2 + 1)))
-					ret_3 := hx_post_46
+					ret_3 := hx_post_41
 					_ = ret_3
 					high_2 = high_2
 				}
 				p10_1 = int(int32((hxrt.Int32Wrap(p10_1) << uint(16))))
 				low_2 = int(int32((hxrt.Int32Wrap(low_2) + hxrt.Int32Wrap(p10_1))))
 				if haxe___Int32__Int32_Impl__ucompare(low_2, p10_1) < 0 {
-					hx_post_47 := high_2
+					hx_post_42 := high_2
 					high_2 = int(int32((high_2 + 1)))
-					ret_4 := hx_post_47
+					ret_4 := hx_post_42
 					_ = ret_4
 					high_2 = high_2
 				}
@@ -234,9 +224,9 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 				high_3 := int(int32((hxrt.Int32Wrap(current.high) + hxrt.Int32Wrap(b_high_1))))
 				low_3 := int(int32((hxrt.Int32Wrap(current.low) + hxrt.Int32Wrap(b_low_1))))
 				if haxe___Int32__Int32_Impl__ucompare(low_3, current.low) < 0 {
-					hx_post_48 := high_3
+					hx_post_43 := high_3
 					high_3 = int(int32((high_3 + 1)))
-					ret_5 := hx_post_48
+					ret_5 := hx_post_43
 					_ = ret_5
 					high_3 = high_3
 				}
@@ -246,8 +236,6 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 				current = this1_3
 				if current.high < 0 {
 					hxrt.Throw(hxrt.StringFromLiteral("NumberFormatError: Overflow"))
-					var hx_throw_zero_49 *haxe___Int64_____Int64
-					return hx_throw_zero_49
 				}
 			}
 		}
@@ -265,18 +253,18 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 		p01_2 = int(int32((hxrt.Int32Wrap(p01_2) << uint(16))))
 		low_4 = int(int32((hxrt.Int32Wrap(low_4) + hxrt.Int32Wrap(p01_2))))
 		if haxe___Int32__Int32_Impl__ucompare(low_4, p01_2) < 0 {
-			hx_post_50 := high_4
+			hx_post_44 := high_4
 			high_4 = int(int32((high_4 + 1)))
-			ret_6 := hx_post_50
+			ret_6 := hx_post_44
 			_ = ret_6
 			high_4 = high_4
 		}
 		p10_2 = int(int32((hxrt.Int32Wrap(p10_2) << uint(16))))
 		low_4 = int(int32((hxrt.Int32Wrap(low_4) + hxrt.Int32Wrap(p10_2))))
 		if haxe___Int32__Int32_Impl__ucompare(low_4, p10_2) < 0 {
-			hx_post_51 := high_4
+			hx_post_45 := high_4
 			high_4 = int(int32((high_4 + 1)))
-			ret_7 := hx_post_51
+			ret_7 := hx_post_45
 			_ = ret_7
 			high_4 = high_4
 		}

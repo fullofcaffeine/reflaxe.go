@@ -219,6 +219,8 @@ class GoCompiler {
 	final constructorReturnScopes:Array<Bool>;
 	final loopBreakTargetScopes:Array<LoopBreakTarget>;
 	var switchDepth:Int;
+	var throwFallbackSuppressionDepth:Int;
+	final throwFallbackSuppressionDepthScopes:Array<Int>;
 	var cachedVoidType:Null<Type>;
 	var requiresIoHelperSurface:Bool;
 	var requiresIoStringInputSurface:Bool;
@@ -271,6 +273,8 @@ class GoCompiler {
 		constructorReturnScopes = [];
 		loopBreakTargetScopes = [];
 		switchDepth = 0;
+		throwFallbackSuppressionDepth = 0;
+		throwFallbackSuppressionDepthScopes = [];
 		cachedVoidType = null;
 		requiresIoHelperSurface = false;
 		requiresIoStringInputSurface = false;
@@ -6570,6 +6574,13 @@ class GoCompiler {
 		};
 	}
 
+	/**
+		What: Lowers a statement block while retaining local and continuation facts.
+		Why: A throw inside any non-final statement has later generated code, so adding
+		a synthetic function return there can use the wrong type after inline expansion.
+		How: Suppress throw fallbacks only before the final statement; terminal throws
+		still receive the enclosing function's required Go zero return.
+	**/
 	function lowerBlock(exprs:Array<TypedExpr>):Array<GoStmt> {
 		pushLocalScope();
 		var out = new Array<GoStmt>();
@@ -6577,7 +6588,8 @@ class GoCompiler {
 		for (index in 0...exprs.length) {
 			var inner = exprs[index];
 			registerBlockLocalReassignmentInfo(inner, exprs, index);
-			out = out.concat(lowerToStatements(inner));
+			var loweredInner = index < exprs.length - 1 ? withoutThrowFallback(function() return lowerToStatements(inner)) : lowerToStatements(inner);
+			out = out.concat(loweredInner);
 			var continuingFacts = continuingNonNullPrimitiveFactsAfterGuard(inner, exprs, index);
 			for (fact in continuingFacts) {
 				var scope = currentNonNullPrimitiveLocalScope();
@@ -6810,13 +6822,25 @@ class GoCompiler {
 		};
 	}
 
+	/**
+		What: Starts a generated function's return and throw-fallback scope.
+		Why: Continuation-aware suppression in an outer statement must not remove the
+		terminal fallback required by a nested function literal.
+		How: Save the outer suppression depth, reset it for the nested function, then
+		restore it when that function's return scope closes.
+	**/
 	function pushFunctionReturnType(returnType:Type):Void {
 		functionReturnTypeScopes.push(returnType);
+		throwFallbackSuppressionDepthScopes.push(throwFallbackSuppressionDepth);
+		throwFallbackSuppressionDepth = 0;
 	}
 
 	function popFunctionReturnType():Void {
 		if (functionReturnTypeScopes.length > 0) {
 			functionReturnTypeScopes.pop();
+		}
+		if (throwFallbackSuppressionDepthScopes.length > 0) {
+			throwFallbackSuppressionDepth = throwFallbackSuppressionDepthScopes.pop();
 		}
 	}
 
@@ -6825,6 +6849,19 @@ class GoCompiler {
 			return null;
 		}
 		return functionReturnTypeScopes[functionReturnTypeScopes.length - 1];
+	}
+
+	/**
+		What: Lowers statements that are guaranteed to have a later continuation.
+		Why: A guard throw before a value block's terminal expression does not need a
+		synthetic Go return; the generated tail already satisfies the function or IIFE.
+		How: Suppress only fallback returns while lowering the pre-tail statement.
+	**/
+	function withoutThrowFallback<T>(lower:Void->T):T {
+		throwFallbackSuppressionDepth++;
+		var out = lower();
+		throwFallbackSuppressionDepth--;
+		return out;
 	}
 
 	function pushConstructorReturnScope():Void {
@@ -6883,17 +6920,88 @@ class GoCompiler {
 	}
 
 	function nonVoidThrowFallbackReturnStmts():Array<GoStmt> {
+		if (throwFallbackSuppressionDepth > 0) {
+			return [];
+		}
 		var returnType = currentFunctionReturnType();
 		if (returnType == null || isVoidType(returnType)) {
 			return [];
 		}
 
 		var zeroName = freshTempName("hx_throw_zero");
-		var returnTypeName = typeToGoType(returnType);
+		var returnTypeName = valueStorageGoType(returnType);
 		return [
 			GoStmt.GoVarDecl(zeroName, returnTypeName, null, false),
 			GoStmt.GoReturn(GoExpr.GoIdent(zeroName))
 		];
+	}
+
+	/**
+		What: Lowers a throwing value expression for its immediate expected result type.
+		Why: Haxe inline expansion can give the `TThrow` node a surrounding comparison
+		or interpolation type even though the enclosing accessor branch must still
+		produce the accessor's own result type for Go's unreachable fallback return.
+		How: Emit the shared runtime throw, then a typed zero return using the caller's
+		expected storage type solely to satisfy Go's static return rules.
+	**/
+	function lowerThrowExprForType(value:TypedExpr, resultType:Type):LoweredExpr {
+		var loweredValue = lowerExprWithPrefix(value);
+		var throwBody = loweredValue.prefix.concat([
+			GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [loweredValue.expr]))
+		]);
+		if (isVoidType(resultType)) {
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], throwBody), []),
+				isStringLike: false
+			};
+		}
+		var resultTypeName = valueStorageGoType(resultType);
+		var zeroName = freshTempName("hx_throw_zero");
+		return {
+			expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [resultTypeName], throwBody.concat([
+				GoStmt.GoVarDecl(zeroName, resultTypeName, null, false),
+				GoStmt.GoReturn(GoExpr.GoIdent(zeroName))
+			])), []),
+			isStringLike: isStringType(resultType)
+		};
+	}
+
+	/**
+		What: Lowers a wrapper or block chain whose terminal value is a throw.
+		Why: Inline accessor guards commonly represent their throwing branch as a
+		one-expression `TBlock`, so recognizing only a bare `TThrow` still loses the
+		immediate expected type.
+		How: Recurse through compile-only wrappers and the final block expression,
+		retaining every preceding block statement in source order; decline normal tails.
+	**/
+	function lowerExpectedThrowExpr(expr:TypedExpr, resultType:Type):Null<LoweredExprWithPrefix> {
+		return switch (expr.expr) {
+			case TThrow(value):
+				var loweredThrow = lowerThrowExprForType(value, resultType);
+				{
+					prefix: [],
+					expr: loweredThrow.expr,
+					isStringLike: loweredThrow.isStringLike
+				};
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				lowerExpectedThrowExpr(inner, resultType);
+			case TBlock(exprs) if (exprs.length > 0):
+				var loweredTail = lowerExpectedThrowExpr(exprs[exprs.length - 1], resultType);
+				if (loweredTail == null) {
+					null;
+				} else {
+					var prefix = new Array<GoStmt>();
+					for (index in 0...exprs.length - 1) {
+						prefix = prefix.concat(withoutThrowFallback(function() return lowerToStatements(exprs[index])));
+					}
+					{
+						prefix: prefix.concat(loweredTail.prefix),
+						expr: loweredTail.expr,
+						isStringLike: loweredTail.isStringLike
+					};
+				}
+			case _: null;
+		};
 	}
 
 	function currentFunctionVarNameScope():Null<Map<Int, String>> {
@@ -7732,26 +7840,7 @@ class GoCompiler {
 				var injected = lowerTargetCodeInjectionExpr(expr);
 				injected != null ? injected : lowerCall(callee, args, expr.t);
 			case TThrow(value):
-				var loweredValue = lowerExprWithPrefix(value);
-				var throwBody = loweredValue.prefix.concat([
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [loweredValue.expr]))
-				]);
-				if (isVoidType(expr.t)) {
-					{
-						expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], throwBody), []),
-						isStringLike: false
-					};
-				} else {
-					var resultTypeName = typeToGoType(expr.t);
-					var zeroName = freshTempName("hx_throw_zero");
-					{
-						expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [resultTypeName], throwBody.concat([
-							GoStmt.GoVarDecl(zeroName, resultTypeName, null, false),
-							GoStmt.GoReturn(GoExpr.GoIdent(zeroName))
-						])), []),
-						isStringLike: isStringType(expr.t)
-					};
-				}
+				lowerThrowExprForType(value, expr.t);
 			case TTypeExpr(moduleType):
 				lowerTypeExpr(moduleType);
 			case TBinop(op, left, right):
@@ -8037,12 +8126,11 @@ class GoCompiler {
 				} else {
 					var prefix = new Array<GoStmt>();
 					for (index in 0...exprs.length - 1) {
-						prefix = prefix.concat(lowerToStatements(exprs[index]));
+						prefix = prefix.concat(withoutThrowFallback(function() return lowerToStatements(exprs[index])));
 					}
 					var tail = lowerExprWithPrefix(exprs[exprs.length - 1]);
-					prefix = prefix.concat(tail.prefix);
 					{
-						prefix: prefix,
+						prefix: prefix.concat(tail.prefix),
 						expr: tail.expr,
 						isStringLike: tail.isStringLike
 					};
@@ -11248,6 +11336,10 @@ class GoCompiler {
 		structural upcasting.
 	**/
 	function lowerExprWithExpectedUpcast(source:TypedExpr, targetType:Type):LoweredExprWithPrefix {
+		var expectedThrow = lowerExpectedThrowExpr(source, targetType);
+		if (expectedThrow != null) {
+			return expectedThrow;
+		}
 		var nativeArrayIterator = lambdaIterableLowering.nativeArrayStructuralIteratorCoerce(source, targetType);
 		if (nativeArrayIterator != null) {
 			return nativeArrayIterator;

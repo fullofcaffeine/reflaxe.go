@@ -68,8 +68,6 @@ func haxe__zip__Uncompress_run(src *haxe__io__Bytes, bufsize any) *haxe__io__Byt
 	var resolvedBufferSize any = hx_if_8
 	if hxrt.IntFromNullableAny(resolvedBufferSize) <= 0 {
 		hxrt.Throw(hxrt.StringConcatAny(hxrt.StringFromLiteral("Invalid zlib buffer size: "), resolvedBufferSize))
-		var hx_throw_zero_9 *haxe__io__Bytes
-		return hx_throw_zero_9
 	}
 	return haxe__zip__Uncompress_fromValues(hxrt.ZipUncompress(haxe__zip__Uncompress_toValues(src), false, hxrt.IntFromNullableAny(resolvedBufferSize)))
 }
@@ -79,9 +77,9 @@ func haxe__zip__Uncompress_toValues(bytes *haxe__io__Bytes) []int {
 	_g := 0
 	_g1 := bytes.length
 	for _g < _g1 {
-		hx_post_10 := _g
+		hx_post_9 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_10
+		index := hx_post_9
 		values = append(values, bytes.b[index])
 	}
 	return values

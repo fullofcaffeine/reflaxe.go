@@ -278,10 +278,11 @@ MODULE_NOTES_OVERRIDES = {
         "Thread.current().events and uses the hxrt monotonic thread clock for Timer.stamp()."
     ),
     "Xml": (
-        "Canonical std/go/_std/Xml.hx owns the complete root DOM API, with only narrow source-level "
-        "representation adaptations for Go-invariant iterators, non-inline throwing accessors, child "
-        "array mutation, and nullable empty firstChild reads. Evidence: xml_source_owned, "
-        "root_xml_contract, and stdlib/xml_root_dom_basic."
+        "Canonical std/go/_std/Xml.hx owns the complete root DOM API. Its throwing accessors and "
+        "iterator retain the upstream inline forms; only child-array mutation and nullable empty "
+        "firstChild reads remain narrow source-level representation adaptations. Evidence: "
+        "inline_throw_accessor_result_type_contract, xml_source_owned, root_xml_contract, and "
+        "stdlib/xml_root_dom_basic."
     ),
     "haxe.xml.Parser": (
         "The unchanged Haxe 4.3.7 parser state machine remains authoritative source, including strict "

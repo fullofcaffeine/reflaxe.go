@@ -26,9 +26,9 @@ func (self *go___Slice) get_length() int {
 }
 
 func (self *go___Slice) push(value any) {
-	hx_arr_22 := self.data
-	hx_arr_22 = append(hx_arr_22, value)
-	self.data = hx_arr_22
+	hx_arr_21 := self.data
+	hx_arr_21 = append(hx_arr_21, value)
+	self.data = hx_arr_21
 }
 
 func (self *go___Slice) get(index int) any {

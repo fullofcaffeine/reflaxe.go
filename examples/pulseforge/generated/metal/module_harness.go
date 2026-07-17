@@ -6,55 +6,37 @@ func Harness_assertContract(runtime app__runtime__PulseRuntime) *string {
 	report := Harness_runReport(runtime, Harness_baselineFrames())
 	if !hxrt.StringEqualStringPtr(report.profile, runtime.profileId()) {
 		hxrt.Throw(hxrt.StringFromLiteral("profile drift"))
-		var hx_throw_zero_1 *string
-		return hx_throw_zero_1
 	}
 	if !hxrt.StringEqualStringPtr(report.variant, runtime.variantId()) {
 		hxrt.Throw(hxrt.StringFromLiteral("variant drift"))
-		var hx_throw_zero_2 *string
-		return hx_throw_zero_2
 	}
 	if !hxrt.StringEqualStringPtr(report.capability, runtime.capabilityId()) {
 		hxrt.Throw(hxrt.StringFromLiteral("capability drift"))
-		var hx_throw_zero_3 *string
-		return hx_throw_zero_3
 	}
 	if report.ingestReceived != 8 {
 		hxrt.Throw(hxrt.StringFromLiteral("ingest.received drift"))
-		var hx_throw_zero_4 *string
-		return hx_throw_zero_4
 	}
 	if report.ingestAccepted != 8 {
 		hxrt.Throw(hxrt.StringFromLiteral("ingest.accepted drift"))
-		var hx_throw_zero_5 *string
-		return hx_throw_zero_5
 	}
 	if report.backpressureEvents != 5 {
 		hxrt.Throw(hxrt.StringFromLiteral("ingest.backpressure drift"))
-		var hx_throw_zero_6 *string
-		return hx_throw_zero_6
 	}
 	if report.alertCount != 3 {
 		hxrt.Throw(hxrt.StringFromLiteral("alert.count drift"))
-		var hx_throw_zero_7 *string
-		return hx_throw_zero_7
 	}
 	if !hxrt.StringEqualStringPtr(report.alertDigest, hxrt.StringFromLiteral("3,5,7")) {
 		hxrt.Throw(hxrt.StringFromLiteral("alert.events drift"))
-		var hx_throw_zero_8 *string
-		return hx_throw_zero_8
 	}
-	var hx_if_9 int
+	var hx_if_1 int
 	if hxrt.StringEqualStringPtr(runtime.variantId(), hxrt.StringFromLiteral("go_native")) {
-		hx_if_9 = 146
+		hx_if_1 = 146
 	} else {
-		hx_if_9 = 129
+		hx_if_1 = 129
 	}
-	expectedScore := hx_if_9
+	expectedScore := hx_if_1
 	if report.runtimeScore != expectedScore {
 		hxrt.Throw(hxrt.StringFromLiteral("runtime.score drift"))
-		var hx_throw_zero_10 *string
-		return hx_throw_zero_10
 	}
 	return report.render()
 }

@@ -13,19 +13,13 @@ func Harness_assertContract(runtime profile__StoryboardRuntime) *string {
 	summary := hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("cards="), len(cards)), hxrt.StringFromLiteral(",points=")), Harness_totalPoints(cards)), hxrt.StringFromLiteral(",done_points=")), Harness_donePoints(cards)), hxrt.StringFromLiteral(",open_points=")), Harness_openPoints(cards)), hxrt.StringFromLiteral(",readiness=")), Harness_readinessPercent(Harness_donePoints(cards), Harness_totalPoints(cards)))
 	if !hxrt.StringEqualStringPtr(summary, hxrt.StringFromLiteral("cards=5,points=21,done_points=8,open_points=13,readiness=38")) {
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("baseline drift: "), summary))
-		var hx_throw_zero_1 *string
-		return hx_throw_zero_1
 	}
 	extra := runtime.extraSignal(Harness_buildSignalMetrics(cards))
 	if hxrt.StringEqualStringPtr(extra, nil) || hxrt.StringEqualStringPtr(extra, hxrt.StringFromLiteral("")) {
 		hxrt.Throw(hxrt.StringFromLiteral("missing extra signal"))
-		var hx_throw_zero_2 *string
-		return hx_throw_zero_2
 	}
 	if runtime.velocityPerSprint() <= 0 {
 		hxrt.Throw(hxrt.StringFromLiteral("invalid velocity"))
-		var hx_throw_zero_3 *string
-		return hx_throw_zero_3
 	}
 	return hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("OK "), runtime.profileId())
 }
@@ -262,13 +256,13 @@ func Harness_render(runtime profile__StoryboardRuntime) *string {
 	highRisk := Harness_openHighRisk(cards, riskThreshold)
 	releaseOpen := Harness_releaseTaggedOpen(cards)
 	signalMetrics := Harness_buildSignalMetrics(cards)
-	var hx_if_13 *string
+	var hx_if_10 *string
 	if runtime.supportsVelocityHint() {
-		hx_if_13 = hxrt.StringFromLiteral("adaptive")
+		hx_if_10 = hxrt.StringFromLiteral("adaptive")
 	} else {
-		hx_if_13 = hxrt.StringFromLiteral("baseline")
+		hx_if_10 = hxrt.StringFromLiteral("baseline")
 	}
-	velocityHint := hx_if_13
+	velocityHint := hx_if_10
 	bar := Harness_progressBar(done, total, 24)
 	action := hxrt.StringFromLiteral("ready to cut release")
 	if highRisk > 0 {

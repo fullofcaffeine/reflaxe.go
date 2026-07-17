@@ -29,25 +29,28 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 	case 0:
 		_this := self.output
 		_this.b = hxrt.StringConcatStringPtr(_this.b, hxrt.StdString(hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("<"))))
-		input := value.get_nodeName()
+		if value.nodeType != Xml_Element {
+			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType))))
+		}
+		input := value.nodeName
 		_this_1 := self.output
 		_this_1.b = hxrt.StringConcatStringPtr(_this_1.b, hxrt.StdString(input))
 		attribute := value.attributes()
-		for func(hx_obj_40 map[string]any) func() bool {
-			hx_field_41 := hx_obj_40["hasNext"]
-			if hx_field_41 == nil {
-				var hx_zero_42 func() bool
-				return hx_zero_42
+		for func(hx_obj_33 map[string]any) func() bool {
+			hx_field_34 := hx_obj_33["hasNext"]
+			if hx_field_34 == nil {
+				var hx_zero_35 func() bool
+				return hx_zero_35
 			}
-			return hx_field_41.(func() bool)
+			return hx_field_34.(func() bool)
 		}(attribute)() {
-			attribute_1 := func(hx_obj_43 map[string]any) func() *string {
-				hx_field_44 := hx_obj_43["next"]
-				if hx_field_44 == nil {
-					var hx_zero_45 func() *string
-					return hx_zero_45
+			attribute_1 := func(hx_obj_36 map[string]any) func() *string {
+				hx_field_37 := hx_obj_36["next"]
+				if hx_field_37 == nil {
+					var hx_zero_38 func() *string
+					return hx_zero_38
 				}
-				return hx_field_44.(func() *string)
+				return hx_field_37.(func() *string)
 			}(attribute)()
 			_this_2 := self.output
 			_this_2.b = hxrt.StringConcatStringPtr(_this_2.b, hxrt.StdString(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(" "), attribute_1), hxrt.StringFromLiteral("=\""))))
@@ -71,22 +74,25 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 			_g_current = 0
 			_g_array = _this_7
 			for _g_current < len(_g_array) {
-				hx_post_46 := _g_current
+				hx_post_39 := _g_current
 				_g_current = int(int32((_g_current + 1)))
-				child := _g_array[hx_post_46]
+				child := _g_array[hx_post_39]
 				self.writeNode(child, func() *string {
-					var hx_if_47 *string
+					var hx_if_40 *string
 					if self.pretty {
-						hx_if_47 = hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("\t"))
+						hx_if_40 = hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("\t"))
 					} else {
-						hx_if_47 = tabs
+						hx_if_40 = tabs
 					}
-					return hx_if_47
+					return hx_if_40
 				}())
 			}
 			_this_8 := self.output
 			_this_8.b = hxrt.StringConcatStringPtr(_this_8.b, hxrt.StdString(hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("</"))))
-			input_2 := value.get_nodeName()
+			if value.nodeType != Xml_Element {
+				hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType))))
+			}
+			input_2 := value.nodeName
 			_this_9 := self.output
 			_this_9.b = hxrt.StringConcatStringPtr(_this_9.b, hxrt.StdString(input_2))
 			_this_10 := self.output
@@ -104,7 +110,10 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 			}
 		}
 	case 1:
-		nodeValue := value.get_nodeValue()
+		if (value.nodeType == Xml_Document) || (value.nodeType == Xml_Element) {
+			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType))))
+		}
+		nodeValue := value.nodeValue
 		if hxrt.StringLengthStringPtr(nodeValue) != 0 {
 			input_3 := hxrt.StringConcatStringPtr(tabs, StringTools_htmlEscape(nodeValue, nil))
 			_this_14 := self.output
@@ -117,7 +126,10 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 	case 2:
 		_this_16 := self.output
 		_this_16.b = hxrt.StringConcatStringPtr(_this_16.b, hxrt.StdString(hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("<![CDATA["))))
-		input_4 := value.get_nodeValue()
+		if (value.nodeType == Xml_Document) || (value.nodeType == Xml_Element) {
+			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType))))
+		}
+		input_4 := value.nodeValue
 		_this_17 := self.output
 		_this_17.b = hxrt.StringConcatStringPtr(_this_17.b, hxrt.StdString(input_4))
 		_this_18 := self.output
@@ -127,7 +139,10 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 			_this_19.b = hxrt.StringConcatStringPtr(_this_19.b, hxrt.StringFromLiteral("\n"))
 		}
 	case 3:
-		commentContent := value.get_nodeValue()
+		if (value.nodeType == Xml_Document) || (value.nodeType == Xml_Element) {
+			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType))))
+		}
+		commentContent := value.nodeValue
 		commentContent = StringTools_replace(commentContent, hxrt.StringFromLiteral("\n"), hxrt.StringFromLiteral(""))
 		commentContent = StringTools_replace(commentContent, hxrt.StringFromLiteral("\r"), hxrt.StringFromLiteral(""))
 		commentContent = StringTools_replace(commentContent, hxrt.StringFromLiteral("\t"), hxrt.StringFromLiteral(""))
@@ -142,7 +157,12 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 			_this_22.b = hxrt.StringConcatStringPtr(_this_22.b, hxrt.StringFromLiteral("\n"))
 		}
 	case 4:
-		input_6 := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("<!DOCTYPE "), value.get_nodeValue()), hxrt.StringFromLiteral(">"))
+		input_6 := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("<!DOCTYPE "), func() *string {
+			if (value.nodeType == Xml_Document) || (value.nodeType == Xml_Element) {
+				hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType))))
+			}
+			return value.nodeValue
+		}()), hxrt.StringFromLiteral(">"))
 		_this_23 := self.output
 		_this_23.b = hxrt.StringConcatStringPtr(_this_23.b, hxrt.StdString(input_6))
 		if self.pretty {
@@ -150,7 +170,12 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 			_this_24.b = hxrt.StringConcatStringPtr(_this_24.b, hxrt.StringFromLiteral("\n"))
 		}
 	case 5:
-		input_7 := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("<?"), value.get_nodeValue()), hxrt.StringFromLiteral("?>"))
+		input_7 := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("<?"), func() *string {
+			if (value.nodeType == Xml_Document) || (value.nodeType == Xml_Element) {
+				hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType))))
+			}
+			return value.nodeValue
+		}()), hxrt.StringFromLiteral("?>"))
 		_this_25 := self.output
 		_this_25.b = hxrt.StringConcatStringPtr(_this_25.b, hxrt.StdString(input_7))
 		if self.pretty {
@@ -165,9 +190,9 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 		_g_current_1 = 0
 		_g_array_1 = _this_27
 		for _g_current_1 < len(_g_array_1) {
-			hx_post_48 := _g_current_1
+			hx_post_41 := _g_current_1
 			_g_current_1 = int(int32((_g_current_1 + 1)))
-			child_1 := _g_array_1[hx_post_48]
+			child_1 := _g_array_1[hx_post_41]
 			self.writeNode(child_1, tabs)
 		}
 	}
@@ -193,15 +218,20 @@ func (self *haxe__xml__Printer) hasChildren(value *Xml) bool {
 	_g_current = 0
 	_g_array = _this
 	for _g_current < len(_g_array) {
-		hx_post_49 := _g_current
+		hx_post_42 := _g_current
 		_g_current = int(int32((_g_current + 1)))
-		child := _g_array[hx_post_49]
+		child := _g_array[hx_post_42]
 		var _g any = child.nodeType
 		switch _g {
 		case 0, 1:
 			return true
 		case 2, 3:
-			if hxrt.StringLengthStringPtr(StringTools_ltrim(child.get_nodeValue())) != 0 {
+			if hxrt.StringLengthStringPtr(StringTools_ltrim(func() *string {
+				if (child.nodeType == Xml_Document) || (child.nodeType == Xml_Element) {
+					hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(child.nodeType))))
+				}
+				return child.nodeValue
+			}())) != 0 {
 				return true
 			}
 		default:

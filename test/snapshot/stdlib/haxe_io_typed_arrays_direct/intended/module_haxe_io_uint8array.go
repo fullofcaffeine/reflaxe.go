@@ -23,8 +23,6 @@ func haxe__io___UInt8Array__UInt8Array_Impl__fromArray(a []int, pos int, length 
 	resolvedLength := hx_if_7
 	if ((pos < 0) || (resolvedLength < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength)))) > len(a)) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		var hx_throw_zero_8 *haxe__io__ArrayBufferViewImpl
-		return hx_throw_zero_8
 	}
 	var this1 *haxe__io__ArrayBufferViewImpl
 	var this1_2 *haxe__io__ArrayBufferViewImpl
@@ -35,9 +33,9 @@ func haxe__io___UInt8Array__UInt8Array_Impl__fromArray(a []int, pos int, length 
 	_g := 0
 	_g1 := resolvedLength
 	for _g < _g1 {
-		hx_post_9 := _g
+		hx_post_8 := _g
 		_g = int(int32((_g + 1)))
-		idx := hx_post_9
+		idx := hx_post_8
 		value := a[int(int32((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(pos))))]
 		if (idx >= 0) && (idx < out.byteLength) {
 			_this := out.bytes

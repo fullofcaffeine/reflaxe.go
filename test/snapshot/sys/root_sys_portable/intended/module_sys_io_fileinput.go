@@ -28,8 +28,6 @@ func (self *sys__io__FileInput) readByte() int {
 	value := hxrt.FileInputReadByteValue(self.handle)
 	if value < 0 {
 		hxrt.Throw(New_haxe__io__Eof())
-		var hx_throw_zero_15 int
-		return hx_throw_zero_15
 	}
 	return value
 }
@@ -37,8 +35,6 @@ func (self *sys__io__FileInput) readByte() int {
 func (self *sys__io__FileInput) readBytes(bytes *haxe__io__Bytes, pos int, length int) int {
 	if ((pos < 0) || (length < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length)))) > bytes.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		var hx_throw_zero_16 int
-		return hx_throw_zero_16
 	}
 	if length == 0 {
 		return 0
@@ -46,15 +42,13 @@ func (self *sys__io__FileInput) readBytes(bytes *haxe__io__Bytes, pos int, lengt
 	values := hxrt.FileInputReadValues(self.handle, length)
 	if len(values) == 0 {
 		hxrt.Throw(New_haxe__io__Eof())
-		var hx_throw_zero_17 int
-		return hx_throw_zero_17
 	}
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_18 := _g
+		hx_post_13 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_18
+		index := hx_post_13
 		bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
 	}
 	return len(values)

@@ -1,0 +1,11 @@
+string=true
+int=true
+bool=true
+nullable=true
+generic=generic
+nested:throw
+string:throw
+int:throw
+bool:throw
+nullable:throw
+generic:throw

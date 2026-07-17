@@ -25,11 +25,11 @@ func (self *haxe__zip__Compress) execute(src *haxe__io__Bytes, srcPos int, dst *
 	input := src.sub(srcPos, int(int32((hxrt.Int32Wrap(src.length) - hxrt.Int32Wrap(srcPos)))))
 	data := haxe__zip__Compress_fromValues(hxrt.ZipCompress(haxe__zip__Compress_toValues(input), self.level))
 	dst.blit(dstPos, data, 0, data.length)
-	hx_obj_12 := map[string]any{}
-	hx_obj_12["done"] = true
-	hx_obj_12["read"] = input.length
-	hx_obj_12["write"] = data.length
-	return hx_obj_12
+	hx_obj_11 := map[string]any{}
+	hx_obj_11["done"] = true
+	hx_obj_11["read"] = input.length
+	hx_obj_11["write"] = data.length
+	return hx_obj_11
 }
 
 func (self *haxe__zip__Compress) setFlushMode(f *haxe__zip__FlushMode) {
@@ -43,9 +43,9 @@ func haxe__zip__Compress_fromValues(values []int) *haxe__io__Bytes {
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_13 := _g
+		hx_post_12 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_13
+		index := hx_post_12
 		bytes.b[index] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
 	}
 	return bytes
@@ -61,9 +61,9 @@ func haxe__zip__Compress_toValues(bytes *haxe__io__Bytes) []int {
 	_g := 0
 	_g1 := bytes.length
 	for _g < _g1 {
-		hx_post_14 := _g
+		hx_post_13 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_14
+		index := hx_post_13
 		values = append(values, bytes.b[index])
 	}
 	return values

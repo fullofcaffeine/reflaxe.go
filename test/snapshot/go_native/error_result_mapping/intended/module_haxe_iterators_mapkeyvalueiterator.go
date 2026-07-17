@@ -15,38 +15,38 @@ func New_haxe__iterators__MapKeyValueIterator(map_ haxe__IMap) *haxe__iterators_
 	self := &haxe__iterators__MapKeyValueIterator{}
 	self.__hx_this = self
 	self.map_ = map_
-	self.keys = func(hx_value_15 any) map[string]any {
-		if hx_value_15 == nil {
-			var hx_zero_16 map[string]any
-			return hx_zero_16
+	self.keys = func(hx_value_14 any) map[string]any {
+		if hx_value_14 == nil {
+			var hx_zero_15 map[string]any
+			return hx_zero_15
 		}
-		return hx_value_15.(map[string]any)
+		return hx_value_14.(map[string]any)
 	}(map_.keys())
 	return self
 }
 
 func (self *haxe__iterators__MapKeyValueIterator) hasNext() bool {
-	return func(hx_obj_17 map[string]any) func() bool {
-		hx_field_18 := hx_obj_17["hasNext"]
-		if hx_field_18 == nil {
-			var hx_zero_19 func() bool
-			return hx_zero_19
+	return func(hx_obj_16 map[string]any) func() bool {
+		hx_field_17 := hx_obj_16["hasNext"]
+		if hx_field_17 == nil {
+			var hx_zero_18 func() bool
+			return hx_zero_18
 		}
-		return hx_field_18.(func() bool)
+		return hx_field_17.(func() bool)
 	}(self.keys)()
 }
 
 func (self *haxe__iterators__MapKeyValueIterator) next() map[string]any {
-	var key any = func(hx_obj_20 map[string]any) func() any {
-		hx_field_21 := hx_obj_20["next"]
-		if hx_field_21 == nil {
-			var hx_zero_22 func() any
-			return hx_zero_22
+	var key any = func(hx_obj_19 map[string]any) func() any {
+		hx_field_20 := hx_obj_19["next"]
+		if hx_field_20 == nil {
+			var hx_zero_21 func() any
+			return hx_zero_21
 		}
-		return hx_field_21.(func() any)
+		return hx_field_20.(func() any)
 	}(self.keys)()
-	hx_obj_23 := map[string]any{}
-	hx_obj_23["key"] = key
-	hx_obj_23["value"] = self.map_.getIMap(key)
-	return hx_obj_23
+	hx_obj_22 := map[string]any{}
+	hx_obj_22["key"] = key
+	hx_obj_22["value"] = self.map_.getIMap(key)
+	return hx_obj_22
 }

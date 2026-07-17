@@ -28,9 +28,9 @@ func New_model__TodoStore() *model__TodoStore {
 func (self *model__TodoStore) add(title *string, priority int) *model__TodoItem {
 	item := New_model__TodoItem(self.nextId, title, priority)
 	self.nextId = int(int32((self.nextId + 1)))
-	hx_arr_35 := self.entries
-	hx_arr_35 = append(hx_arr_35, item)
-	self.entries = hx_arr_35
+	hx_arr_32 := self.entries
+	hx_arr_32 = append(hx_arr_32, item)
+	self.entries = hx_arr_32
 	return item
 }
 
@@ -48,9 +48,9 @@ func (self *model__TodoStore) addTag(id int, tag *string) bool {
 	if item == nil {
 		return false
 	}
-	hx_arr_36 := item.tags
-	hx_arr_36 = append(hx_arr_36, tag)
-	item.tags = hx_arr_36
+	hx_arr_33 := item.tags
+	hx_arr_33 = append(hx_arr_33, tag)
+	item.tags = hx_arr_33
 	return true
 }
 

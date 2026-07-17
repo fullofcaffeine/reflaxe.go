@@ -33,6 +33,7 @@ def main() -> int:
         ["python3", "test/test_haxelib_package_runner.py"],
         ["python3", "test/test_haxelib_release_artifact.py"],
         ["python3", "test/test_haxelib_release_install.py"],
+        ["python3", "test/test_inline_throw_accessor_result_type_contract.py"],
         ["python3", "test/test_language_hard_fail_inventory_contract.py"],
         ["python3", "test/test_license_policy_contract.py"],
         ["python3", "test/test_lambda_iterable_lowering_ownership_contract.py"],

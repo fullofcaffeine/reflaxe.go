@@ -24,14 +24,10 @@ func New_sys__io___Process__ProcessOutput(handle *hxrt.ProcessOutput) *sys__io__
 func (self *sys__io___Process__ProcessOutput) readByte() int {
 	if self.handle == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("Process output is closed"))
-		var hx_throw_zero_9 int
-		return hx_throw_zero_9
 	}
 	value := hxrt.ProcessOutputReadByteValue(self.handle)
 	if value < 0 {
 		hxrt.Throw(New_haxe__io__Eof())
-		var hx_throw_zero_10 int
-		return hx_throw_zero_10
 	}
 	return value
 }
@@ -39,29 +35,23 @@ func (self *sys__io___Process__ProcessOutput) readByte() int {
 func (self *sys__io___Process__ProcessOutput) readBytes(bytes *haxe__io__Bytes, pos int, length int) int {
 	if ((pos < 0) || (length < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length)))) > bytes.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		var hx_throw_zero_11 int
-		return hx_throw_zero_11
 	}
 	if length == 0 {
 		return 0
 	}
 	if self.handle == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("Process output is closed"))
-		var hx_throw_zero_12 int
-		return hx_throw_zero_12
 	}
 	values := hxrt.ProcessOutputReadValues(self.handle, length)
 	if len(values) == 0 {
 		hxrt.Throw(New_haxe__io__Eof())
-		var hx_throw_zero_13 int
-		return hx_throw_zero_13
 	}
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_14 := _g
+		hx_post_9 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_14
+		index := hx_post_9
 		bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
 	}
 	return len(values)
@@ -174,8 +164,6 @@ func (self *sys__io___Process__ProcessInput) writeByte(value int) {
 func (self *sys__io___Process__ProcessInput) writeBytes(bytes *haxe__io__Bytes, pos int, length int) int {
 	if ((pos < 0) || (length < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length)))) > bytes.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		var hx_throw_zero_15 int
-		return hx_throw_zero_15
 	}
 	if length == 0 {
 		return 0
@@ -184,15 +172,13 @@ func (self *sys__io___Process__ProcessInput) writeBytes(bytes *haxe__io__Bytes, 
 	_g := 0
 	_g1 := length
 	for _g < _g1 {
-		hx_post_16 := _g
+		hx_post_10 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_16
+		index := hx_post_10
 		values = append(values, bytes.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(index))))])
 	}
 	if (self.handle == nil) || !hxrt.ProcessInputWriteValues(self.handle, values) {
 		hxrt.Throw(New_haxe__io__Eof())
-		var hx_throw_zero_18 int
-		return hx_throw_zero_18
 	}
 	return length
 }
@@ -313,13 +299,13 @@ func (self *sys__io__Process) getPid() int {
 
 func (self *sys__io__Process) exitCode(block bool) any {
 	status := hxrt.ProcessExitStatusValue(self.requireHandle(), block)
-	var hx_if_19 any
+	var hx_if_12 any
 	if status.Available {
-		hx_if_19 = status.Code
+		hx_if_12 = status.Code
 	} else {
-		hx_if_19 = nil
+		hx_if_12 = nil
 	}
-	return hx_if_19
+	return hx_if_12
 }
 
 func (self *sys__io__Process) close() {
@@ -337,8 +323,6 @@ func (self *sys__io__Process) kill() {
 func (self *sys__io__Process) requireHandle() *hxrt.Process {
 	if self.handle == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("Process is closed"))
-		var hx_throw_zero_20 *hxrt.Process
-		return hx_throw_zero_20
 	}
 	return self.handle
 }

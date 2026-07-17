@@ -40,17 +40,17 @@ func sys__FileSystem_rename(path *string, newPath *string) {
 
 func sys__FileSystem_stat(path *string) map[string]any {
 	value := hxrt.FileSystemStatPath(path)
-	hx_obj_20 := map[string]any{}
-	hx_obj_20["gid"] = value.Gid
-	hx_obj_20["uid"] = value.Uid
-	hx_obj_20["atime"] = Date_fromTime(value.AtimeMs)
-	hx_obj_20["mtime"] = Date_fromTime(value.MtimeMs)
-	hx_obj_20["ctime"] = Date_fromTime(value.CtimeMs)
-	hx_obj_20["size"] = value.Size
-	hx_obj_20["dev"] = value.Dev
-	hx_obj_20["ino"] = value.Ino
-	hx_obj_20["nlink"] = value.Nlink
-	hx_obj_20["rdev"] = value.Rdev
-	hx_obj_20["mode"] = value.Mode
-	return hx_obj_20
+	hx_obj_14 := map[string]any{}
+	hx_obj_14["gid"] = value.Gid
+	hx_obj_14["uid"] = value.Uid
+	hx_obj_14["atime"] = Date_fromTime(value.AtimeMs)
+	hx_obj_14["mtime"] = Date_fromTime(value.MtimeMs)
+	hx_obj_14["ctime"] = Date_fromTime(value.CtimeMs)
+	hx_obj_14["size"] = value.Size
+	hx_obj_14["dev"] = value.Dev
+	hx_obj_14["ino"] = value.Ino
+	hx_obj_14["nlink"] = value.Nlink
+	hx_obj_14["rdev"] = value.Rdev
+	hx_obj_14["mode"] = value.Mode
+	return hx_obj_14
 }

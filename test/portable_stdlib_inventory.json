@@ -332,7 +332,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Xml",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical std/go/_std/Xml.hx owns the complete root DOM API, with only narrow source-level representation adaptations for Go-invariant iterators, non-inline throwing accessors, child array mutation, and nullable empty firstChild reads. Evidence: xml_source_owned, root_xml_contract, and stdlib/xml_root_dom_basic.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical std/go/_std/Xml.hx owns the complete root DOM API. Its throwing accessors and iterator retain the upstream inline forms; only child-array mutation and nullable empty firstChild reads remain narrow source-level representation adaptations. Evidence: inline_throw_accessor_result_type_contract, xml_source_owned, root_xml_contract, and stdlib/xml_root_dom_basic.",
       "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"

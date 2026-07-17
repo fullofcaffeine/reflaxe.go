@@ -81,20 +81,18 @@ enum abstract XmlType(Int) {
 
 	Why:
 	- The mainstream Haxe stdlib implementation cannot be used unchanged on
-	  `haxe.go`: its inline throwing accessors can be expanded inside expressions
-	  whose Go return type differs from the accessor. Its `Array.remove` / `insert`
-	  calls also need source-level loops until those methods have typed slice
-	  lowering.
+	  `haxe.go`: its `Array.remove` / `insert` calls need source-level loops until
+	  those methods have typed slice lowering, and an empty indexed `firstChild()`
+	  read needs an explicit nullable guard with the current slice representation.
 	- DOM storage, validation, mutation, parent ownership, and iteration are Haxe
 	  library behavior and must not be compiler-generated Go declarations.
 
 	How:
-	- Preserve the upstream Haxe 4.3.7 implementation and public API, while keeping
-	  only the throwing accessors out of inline expression expansion. The upstream
-	  inline `iterator()` keeps node validation before the typed structural
-	  `children.iterator()` adapter, without an Xml-specific closure. Rebuild child
-	  arrays for removal and insertion, and guard empty `firstChild()` reads so Go
-	  preserves Haxe's nullable out-of-range result.
+	- Preserve the upstream Haxe 4.3.7 implementation and public API, including its
+	  inline throwing accessors and `iterator()`. Typed expression lowering keeps
+	  accessor fallback types and iterator setup without Xml-specific compiler
+	  routes. Rebuild child arrays for removal and insertion, and guard empty
+	  `firstChild()` reads so Go preserves Haxe's nullable out-of-range result.
 
 	@see https://haxe.org/manual/std-Xml.html
 **/
@@ -167,28 +165,28 @@ class Xml {
 	var children:Array<Xml>;
 	var attributeMap:Map<String, String>;
 
-	function get_nodeName() {
+	#if !cppia inline #end function get_nodeName() {
 		if (nodeType != Element) {
 			throw 'Bad node type, expected Element but found $nodeType';
 		}
 		return nodeName;
 	}
 
-	function set_nodeName(v) {
+	#if !cppia inline #end function set_nodeName(v) {
 		if (nodeType != Element) {
 			throw 'Bad node type, expected Element but found $nodeType';
 		}
 		return this.nodeName = v;
 	}
 
-	function get_nodeValue() {
+	#if !cppia inline #end function get_nodeValue() {
 		if (nodeType == Document || nodeType == Element) {
 			throw 'Bad node type, unexpected $nodeType';
 		}
 		return nodeValue;
 	}
 
-	function set_nodeValue(v) {
+	#if !cppia inline #end function set_nodeValue(v) {
 		if (nodeType == Document || nodeType == Element) {
 			throw 'Bad node type, unexpected $nodeType';
 		}

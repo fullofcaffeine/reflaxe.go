@@ -26,13 +26,13 @@ func (self *haxe__ds___List__GoListKeyValueIterator) hasNext() bool {
 }
 
 func (self *haxe__ds___List__GoListKeyValueIterator) next() map[string]any {
-	hx_post_34 := self.index
+	hx_post_33 := self.index
 	self.index = int(int32((self.index + 1)))
-	key := hx_post_34
-	hx_obj_35 := map[string]any{}
-	hx_obj_35["key"] = key
-	hx_obj_35["value"] = self.items[key]
-	return hx_obj_35
+	key := hx_post_33
+	hx_obj_34 := map[string]any{}
+	hx_obj_34["key"] = key
+	hx_obj_34["value"] = self.items[key]
+	return hx_obj_34
 }
 
 type I_haxe__ds___List__GoListIterator interface {
@@ -59,9 +59,9 @@ func (self *haxe__ds___List__GoListIterator) hasNext() bool {
 }
 
 func (self *haxe__ds___List__GoListIterator) next() any {
-	hx_post_36 := self.index
+	hx_post_35 := self.index
 	self.index = int(int32((self.index + 1)))
-	return self.items[hx_post_36]
+	return self.items[hx_post_35]
 }
 
 type I_haxe__ds__List interface {
@@ -96,9 +96,9 @@ func New_haxe__ds__List() *haxe__ds__List {
 }
 
 func (self *haxe__ds__List) add(item any) {
-	hx_arr_84 := self.items
-	hx_arr_84 = append(hx_arr_84, item)
-	self.items = hx_arr_84
+	hx_arr_83 := self.items
+	hx_arr_83 = append(hx_arr_83, item)
+	self.items = hx_arr_83
 	self.length = int(int32((self.length + 1)))
 }
 
@@ -116,23 +116,23 @@ func (self *haxe__ds__List) push(item any) {
 }
 
 func (self *haxe__ds__List) first() any {
+	var hx_if_85 any
+	if self.length == 0 {
+		hx_if_85 = nil
+	} else {
+		hx_if_85 = self.items[0]
+	}
+	return hx_if_85
+}
+
+func (self *haxe__ds__List) last() any {
 	var hx_if_86 any
 	if self.length == 0 {
 		hx_if_86 = nil
 	} else {
-		hx_if_86 = self.items[0]
+		hx_if_86 = self.items[int(int32((hxrt.Int32Wrap(self.length) - hxrt.Int32Wrap(1))))]
 	}
 	return hx_if_86
-}
-
-func (self *haxe__ds__List) last() any {
-	var hx_if_87 any
-	if self.length == 0 {
-		hx_if_87 = nil
-	} else {
-		hx_if_87 = self.items[int(int32((hxrt.Int32Wrap(self.length) - hxrt.Int32Wrap(1))))]
-	}
-	return hx_if_87
 }
 
 func (self *haxe__ds__List) pop() any {
@@ -144,9 +144,9 @@ func (self *haxe__ds__List) pop() any {
 	_g := 1
 	_g1 := len(self.items)
 	for _g < _g1 {
-		hx_post_88 := _g
+		hx_post_87 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_88
+		index := hx_post_87
 		remaining = append(remaining, self.items[index])
 	}
 	self.items = remaining
@@ -167,17 +167,17 @@ func (self *haxe__ds__List) remove(value any) bool {
 	_g := 0
 	_g1 := len(self.items)
 	for _g < _g1 {
-		hx_post_90 := _g
+		hx_post_89 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_90
+		index := hx_post_89
 		if haxe__ds__List_sameValue(self.items[index], value) {
 			remaining := []any{}
 			_g_1 := 0
 			_g1_1 := len(self.items)
 			for _g_1 < _g1_1 {
-				hx_post_91 := _g_1
+				hx_post_90 := _g_1
 				_g_1 = int(int32((_g_1 + 1)))
-				copyIndex := hx_post_91
+				copyIndex := hx_post_90
 				if copyIndex != index {
 					remaining = append(remaining, self.items[copyIndex])
 				}
@@ -203,17 +203,17 @@ func (self *haxe__ds__List) toString() *string {
 	_g := 0
 	_g1 := len(self.items)
 	for _g < _g1 {
-		hx_post_93 := _g
+		hx_post_92 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_93
+		index := hx_post_92
 		rendered = append(rendered, hxrt.StdString(self.items[index]))
 	}
-	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("{"), hxrt.StringJoinAny(func(hx_sort_src_95 []*string) []any {
-		hx_sort_out_97 := make([]any, 0, len(hx_sort_src_95))
-		for _, hx_sort_item_96 := range hx_sort_src_95 {
-			hx_sort_out_97 = append(hx_sort_out_97, hx_sort_item_96)
+	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("{"), hxrt.StringJoinAny(func(hx_sort_src_94 []*string) []any {
+		hx_sort_out_96 := make([]any, 0, len(hx_sort_src_94))
+		for _, hx_sort_item_95 := range hx_sort_src_94 {
+			hx_sort_out_96 = append(hx_sort_out_96, hx_sort_item_95)
 		}
-		return hx_sort_out_97
+		return hx_sort_out_96
 	}(rendered), hxrt.StringFromLiteral(", "))), hxrt.StringFromLiteral("}"))
 }
 
@@ -222,35 +222,35 @@ func (self *haxe__ds__List) join(separator *string) *string {
 	_g := 0
 	_g1 := len(self.items)
 	for _g < _g1 {
-		hx_post_98 := _g
+		hx_post_97 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_98
+		index := hx_post_97
 		rendered = append(rendered, hxrt.StdString(self.items[index]))
 	}
-	return hxrt.StringJoinAny(func(hx_sort_src_100 []*string) []any {
-		hx_sort_out_102 := make([]any, 0, len(hx_sort_src_100))
-		for _, hx_sort_item_101 := range hx_sort_src_100 {
-			hx_sort_out_102 = append(hx_sort_out_102, hx_sort_item_101)
+	return hxrt.StringJoinAny(func(hx_sort_src_99 []*string) []any {
+		hx_sort_out_101 := make([]any, 0, len(hx_sort_src_99))
+		for _, hx_sort_item_100 := range hx_sort_src_99 {
+			hx_sort_out_101 = append(hx_sort_out_101, hx_sort_item_100)
 		}
-		return hx_sort_out_102
+		return hx_sort_out_101
 	}(rendered), separator)
 }
 
 func (self *haxe__ds__List) filter(predicate func(any) bool) *haxe__ds__List {
 	filtered := New_haxe__ds__List()
-	source := func(hx_value_103 any) *haxe__ds___List__GoListIterator {
-		if hx_value_103 == nil {
-			var hx_zero_104 *haxe__ds___List__GoListIterator
-			return hx_zero_104
+	source := func(hx_value_102 any) *haxe__ds___List__GoListIterator {
+		if hx_value_102 == nil {
+			var hx_zero_103 *haxe__ds___List__GoListIterator
+			return hx_zero_103
 		}
-		return hx_value_103.(*haxe__ds___List__GoListIterator)
+		return hx_value_102.(*haxe__ds___List__GoListIterator)
 	}(self.iterator())
-	for func(hx_value_105 any) bool {
-		if hx_value_105 == nil {
-			var hx_zero_106 bool
-			return hx_zero_106
+	for func(hx_value_104 any) bool {
+		if hx_value_104 == nil {
+			var hx_zero_105 bool
+			return hx_zero_105
 		}
-		return hx_value_105.(bool)
+		return hx_value_104.(bool)
 	}(source.hasNext()) {
 		var item any = source.next()
 		if predicate(item) {
@@ -262,19 +262,19 @@ func (self *haxe__ds__List) filter(predicate func(any) bool) *haxe__ds__List {
 
 func (self *haxe__ds__List) map_(transform func(any) any) *haxe__ds__List {
 	mapped := New_haxe__ds__List()
-	source := func(hx_value_107 any) *haxe__ds___List__GoListIterator {
-		if hx_value_107 == nil {
-			var hx_zero_108 *haxe__ds___List__GoListIterator
-			return hx_zero_108
+	source := func(hx_value_106 any) *haxe__ds___List__GoListIterator {
+		if hx_value_106 == nil {
+			var hx_zero_107 *haxe__ds___List__GoListIterator
+			return hx_zero_107
 		}
-		return hx_value_107.(*haxe__ds___List__GoListIterator)
+		return hx_value_106.(*haxe__ds___List__GoListIterator)
 	}(self.iterator())
-	for func(hx_value_109 any) bool {
-		if hx_value_109 == nil {
-			var hx_zero_110 bool
-			return hx_zero_110
+	for func(hx_value_108 any) bool {
+		if hx_value_108 == nil {
+			var hx_zero_109 bool
+			return hx_zero_109
 		}
-		return hx_value_109.(bool)
+		return hx_value_108.(bool)
 	}(source.hasNext()) {
 		var item any = source.next()
 		mapped.add(transform(item))

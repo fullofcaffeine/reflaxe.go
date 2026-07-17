@@ -3,78 +3,78 @@ package main
 import "snapshot/hxrt"
 
 func haxe__rtti__TypeApi_constructorEq(c1 map[string]any, c2 map[string]any) bool {
-	if !hxrt.StringEqualStringPtr(func(hx_obj_532 map[string]any) *string {
-		hx_field_533 := hx_obj_532["name"]
-		if hx_field_533 == nil {
-			var hx_zero_534 *string
-			return hx_zero_534
+	if !hxrt.StringEqualStringPtr(func(hx_obj_525 map[string]any) *string {
+		hx_field_526 := hx_obj_525["name"]
+		if hx_field_526 == nil {
+			var hx_zero_527 *string
+			return hx_zero_527
 		}
-		return hx_field_533.(*string)
-	}(c1), func(hx_obj_535 map[string]any) *string {
-		hx_field_536 := hx_obj_535["name"]
-		if hx_field_536 == nil {
-			var hx_zero_537 *string
-			return hx_zero_537
+		return hx_field_526.(*string)
+	}(c1), func(hx_obj_528 map[string]any) *string {
+		hx_field_529 := hx_obj_528["name"]
+		if hx_field_529 == nil {
+			var hx_zero_530 *string
+			return hx_zero_530
 		}
-		return hx_field_536.(*string)
+		return hx_field_529.(*string)
 	}(c2)) {
 		return false
 	}
-	if !hxrt.StringEqualStringPtr(func(hx_obj_538 map[string]any) *string {
-		hx_field_539 := hx_obj_538["doc"]
-		if hx_field_539 == nil {
-			var hx_zero_540 *string
-			return hx_zero_540
+	if !hxrt.StringEqualStringPtr(func(hx_obj_531 map[string]any) *string {
+		hx_field_532 := hx_obj_531["doc"]
+		if hx_field_532 == nil {
+			var hx_zero_533 *string
+			return hx_zero_533
 		}
-		return hx_field_539.(*string)
-	}(c1), func(hx_obj_541 map[string]any) *string {
-		hx_field_542 := hx_obj_541["doc"]
-		if hx_field_542 == nil {
-			var hx_zero_543 *string
-			return hx_zero_543
+		return hx_field_532.(*string)
+	}(c1), func(hx_obj_534 map[string]any) *string {
+		hx_field_535 := hx_obj_534["doc"]
+		if hx_field_535 == nil {
+			var hx_zero_536 *string
+			return hx_zero_536
 		}
-		return hx_field_542.(*string)
+		return hx_field_535.(*string)
 	}(c2)) {
 		return false
 	}
-	if (func(hx_obj_544 map[string]any) []map[string]any {
-		hx_field_545 := hx_obj_544["args"]
-		if hx_field_545 == nil {
-			var hx_zero_546 []map[string]any
-			return hx_zero_546
+	if (func(hx_obj_537 map[string]any) []map[string]any {
+		hx_field_538 := hx_obj_537["args"]
+		if hx_field_538 == nil {
+			var hx_zero_539 []map[string]any
+			return hx_zero_539
 		}
-		return hx_field_545.([]map[string]any)
-	}(c1) == nil) != (func(hx_obj_547 map[string]any) []map[string]any {
-		hx_field_548 := hx_obj_547["args"]
-		if hx_field_548 == nil {
-			var hx_zero_549 []map[string]any
-			return hx_zero_549
+		return hx_field_538.([]map[string]any)
+	}(c1) == nil) != (func(hx_obj_540 map[string]any) []map[string]any {
+		hx_field_541 := hx_obj_540["args"]
+		if hx_field_541 == nil {
+			var hx_zero_542 []map[string]any
+			return hx_zero_542
 		}
-		return hx_field_548.([]map[string]any)
+		return hx_field_541.([]map[string]any)
 	}(c2) == nil) {
 		return false
 	}
-	if (func(hx_obj_550 map[string]any) []map[string]any {
-		hx_field_551 := hx_obj_550["args"]
-		if hx_field_551 == nil {
-			var hx_zero_552 []map[string]any
-			return hx_zero_552
+	if (func(hx_obj_543 map[string]any) []map[string]any {
+		hx_field_544 := hx_obj_543["args"]
+		if hx_field_544 == nil {
+			var hx_zero_545 []map[string]any
+			return hx_zero_545
 		}
-		return hx_field_551.([]map[string]any)
-	}(c1) != nil) && !haxe__rtti__TypeApi_sameConstructorArguments(func(hx_obj_553 map[string]any) []map[string]any {
-		hx_field_554 := hx_obj_553["args"]
-		if hx_field_554 == nil {
-			var hx_zero_555 []map[string]any
-			return hx_zero_555
+		return hx_field_544.([]map[string]any)
+	}(c1) != nil) && !haxe__rtti__TypeApi_sameConstructorArguments(func(hx_obj_546 map[string]any) []map[string]any {
+		hx_field_547 := hx_obj_546["args"]
+		if hx_field_547 == nil {
+			var hx_zero_548 []map[string]any
+			return hx_zero_548
 		}
-		return hx_field_554.([]map[string]any)
-	}(c1), func(hx_obj_556 map[string]any) []map[string]any {
-		hx_field_557 := hx_obj_556["args"]
-		if hx_field_557 == nil {
-			var hx_zero_558 []map[string]any
-			return hx_zero_558
+		return hx_field_547.([]map[string]any)
+	}(c1), func(hx_obj_549 map[string]any) []map[string]any {
+		hx_field_550 := hx_obj_549["args"]
+		if hx_field_550 == nil {
+			var hx_zero_551 []map[string]any
+			return hx_zero_551
 		}
-		return hx_field_557.([]map[string]any)
+		return hx_field_550.([]map[string]any)
 	}(c2)) {
 		return false
 	}
@@ -82,146 +82,146 @@ func haxe__rtti__TypeApi_constructorEq(c1 map[string]any, c2 map[string]any) boo
 }
 
 func haxe__rtti__TypeApi_fieldEq(f1 map[string]any, f2 map[string]any) bool {
-	if !hxrt.StringEqualStringPtr(func(hx_obj_559 map[string]any) *string {
-		hx_field_560 := hx_obj_559["name"]
-		if hx_field_560 == nil {
-			var hx_zero_561 *string
-			return hx_zero_561
+	if !hxrt.StringEqualStringPtr(func(hx_obj_552 map[string]any) *string {
+		hx_field_553 := hx_obj_552["name"]
+		if hx_field_553 == nil {
+			var hx_zero_554 *string
+			return hx_zero_554
 		}
-		return hx_field_560.(*string)
-	}(f1), func(hx_obj_562 map[string]any) *string {
-		hx_field_563 := hx_obj_562["name"]
-		if hx_field_563 == nil {
-			var hx_zero_564 *string
-			return hx_zero_564
+		return hx_field_553.(*string)
+	}(f1), func(hx_obj_555 map[string]any) *string {
+		hx_field_556 := hx_obj_555["name"]
+		if hx_field_556 == nil {
+			var hx_zero_557 *string
+			return hx_zero_557
 		}
-		return hx_field_563.(*string)
+		return hx_field_556.(*string)
 	}(f2)) {
 		return false
 	}
-	if !haxe__rtti__TypeApi_typeEq(func(hx_obj_565 map[string]any) *haxe__rtti__CType {
-		hx_field_566 := hx_obj_565["type"]
-		if hx_field_566 == nil {
-			var hx_zero_567 *haxe__rtti__CType
-			return hx_zero_567
+	if !haxe__rtti__TypeApi_typeEq(func(hx_obj_558 map[string]any) *haxe__rtti__CType {
+		hx_field_559 := hx_obj_558["type"]
+		if hx_field_559 == nil {
+			var hx_zero_560 *haxe__rtti__CType
+			return hx_zero_560
 		}
-		return hx_field_566.(*haxe__rtti__CType)
-	}(f1), func(hx_obj_568 map[string]any) *haxe__rtti__CType {
-		hx_field_569 := hx_obj_568["type"]
-		if hx_field_569 == nil {
-			var hx_zero_570 *haxe__rtti__CType
-			return hx_zero_570
+		return hx_field_559.(*haxe__rtti__CType)
+	}(f1), func(hx_obj_561 map[string]any) *haxe__rtti__CType {
+		hx_field_562 := hx_obj_561["type"]
+		if hx_field_562 == nil {
+			var hx_zero_563 *haxe__rtti__CType
+			return hx_zero_563
 		}
-		return hx_field_569.(*haxe__rtti__CType)
+		return hx_field_562.(*haxe__rtti__CType)
 	}(f2)) {
 		return false
 	}
-	if func(hx_obj_571 map[string]any) bool {
-		hx_field_572 := hx_obj_571["isPublic"]
-		if hx_field_572 == nil {
-			var hx_zero_573 bool
-			return hx_zero_573
+	if func(hx_obj_564 map[string]any) bool {
+		hx_field_565 := hx_obj_564["isPublic"]
+		if hx_field_565 == nil {
+			var hx_zero_566 bool
+			return hx_zero_566
 		}
-		return hx_field_572.(bool)
-	}(f1) != func(hx_obj_574 map[string]any) bool {
-		hx_field_575 := hx_obj_574["isPublic"]
-		if hx_field_575 == nil {
-			var hx_zero_576 bool
-			return hx_zero_576
+		return hx_field_565.(bool)
+	}(f1) != func(hx_obj_567 map[string]any) bool {
+		hx_field_568 := hx_obj_567["isPublic"]
+		if hx_field_568 == nil {
+			var hx_zero_569 bool
+			return hx_zero_569
 		}
-		return hx_field_575.(bool)
+		return hx_field_568.(bool)
 	}(f2) {
 		return false
 	}
-	if !hxrt.StringEqualStringPtr(func(hx_obj_577 map[string]any) *string {
-		hx_field_578 := hx_obj_577["doc"]
-		if hx_field_578 == nil {
-			var hx_zero_579 *string
-			return hx_zero_579
+	if !hxrt.StringEqualStringPtr(func(hx_obj_570 map[string]any) *string {
+		hx_field_571 := hx_obj_570["doc"]
+		if hx_field_571 == nil {
+			var hx_zero_572 *string
+			return hx_zero_572
 		}
-		return hx_field_578.(*string)
-	}(f1), func(hx_obj_580 map[string]any) *string {
-		hx_field_581 := hx_obj_580["doc"]
-		if hx_field_581 == nil {
-			var hx_zero_582 *string
-			return hx_zero_582
+		return hx_field_571.(*string)
+	}(f1), func(hx_obj_573 map[string]any) *string {
+		hx_field_574 := hx_obj_573["doc"]
+		if hx_field_574 == nil {
+			var hx_zero_575 *string
+			return hx_zero_575
 		}
-		return hx_field_581.(*string)
+		return hx_field_574.(*string)
 	}(f2)) {
 		return false
 	}
-	if !haxe__rtti__TypeApi_rightsEq(func(hx_obj_583 map[string]any) *haxe__rtti__Rights {
-		hx_field_584 := hx_obj_583["get"]
-		if hx_field_584 == nil {
-			var hx_zero_585 *haxe__rtti__Rights
-			return hx_zero_585
+	if !haxe__rtti__TypeApi_rightsEq(func(hx_obj_576 map[string]any) *haxe__rtti__Rights {
+		hx_field_577 := hx_obj_576["get"]
+		if hx_field_577 == nil {
+			var hx_zero_578 *haxe__rtti__Rights
+			return hx_zero_578
 		}
-		return hx_field_584.(*haxe__rtti__Rights)
-	}(f1), func(hx_obj_586 map[string]any) *haxe__rtti__Rights {
-		hx_field_587 := hx_obj_586["get"]
-		if hx_field_587 == nil {
-			var hx_zero_588 *haxe__rtti__Rights
-			return hx_zero_588
+		return hx_field_577.(*haxe__rtti__Rights)
+	}(f1), func(hx_obj_579 map[string]any) *haxe__rtti__Rights {
+		hx_field_580 := hx_obj_579["get"]
+		if hx_field_580 == nil {
+			var hx_zero_581 *haxe__rtti__Rights
+			return hx_zero_581
 		}
-		return hx_field_587.(*haxe__rtti__Rights)
+		return hx_field_580.(*haxe__rtti__Rights)
 	}(f2)) {
 		return false
 	}
-	if !haxe__rtti__TypeApi_rightsEq(func(hx_obj_589 map[string]any) *haxe__rtti__Rights {
-		hx_field_590 := hx_obj_589["set"]
-		if hx_field_590 == nil {
-			var hx_zero_591 *haxe__rtti__Rights
-			return hx_zero_591
+	if !haxe__rtti__TypeApi_rightsEq(func(hx_obj_582 map[string]any) *haxe__rtti__Rights {
+		hx_field_583 := hx_obj_582["set"]
+		if hx_field_583 == nil {
+			var hx_zero_584 *haxe__rtti__Rights
+			return hx_zero_584
 		}
-		return hx_field_590.(*haxe__rtti__Rights)
-	}(f1), func(hx_obj_592 map[string]any) *haxe__rtti__Rights {
-		hx_field_593 := hx_obj_592["set"]
-		if hx_field_593 == nil {
-			var hx_zero_594 *haxe__rtti__Rights
-			return hx_zero_594
+		return hx_field_583.(*haxe__rtti__Rights)
+	}(f1), func(hx_obj_585 map[string]any) *haxe__rtti__Rights {
+		hx_field_586 := hx_obj_585["set"]
+		if hx_field_586 == nil {
+			var hx_zero_587 *haxe__rtti__Rights
+			return hx_zero_587
 		}
-		return hx_field_593.(*haxe__rtti__Rights)
+		return hx_field_586.(*haxe__rtti__Rights)
 	}(f2)) {
 		return false
 	}
-	if (func(hx_obj_595 map[string]any) []*string {
-		hx_field_596 := hx_obj_595["params"]
-		if hx_field_596 == nil {
-			var hx_zero_597 []*string
-			return hx_zero_597
+	if (func(hx_obj_588 map[string]any) []*string {
+		hx_field_589 := hx_obj_588["params"]
+		if hx_field_589 == nil {
+			var hx_zero_590 []*string
+			return hx_zero_590
 		}
-		return hx_field_596.([]*string)
-	}(f1) == nil) != (func(hx_obj_598 map[string]any) []*string {
-		hx_field_599 := hx_obj_598["params"]
-		if hx_field_599 == nil {
-			var hx_zero_600 []*string
-			return hx_zero_600
+		return hx_field_589.([]*string)
+	}(f1) == nil) != (func(hx_obj_591 map[string]any) []*string {
+		hx_field_592 := hx_obj_591["params"]
+		if hx_field_592 == nil {
+			var hx_zero_593 []*string
+			return hx_zero_593
 		}
-		return hx_field_599.([]*string)
+		return hx_field_592.([]*string)
 	}(f2) == nil) {
 		return false
 	}
-	if (func(hx_obj_601 map[string]any) []*string {
-		hx_field_602 := hx_obj_601["params"]
-		if hx_field_602 == nil {
-			var hx_zero_603 []*string
-			return hx_zero_603
+	if (func(hx_obj_594 map[string]any) []*string {
+		hx_field_595 := hx_obj_594["params"]
+		if hx_field_595 == nil {
+			var hx_zero_596 []*string
+			return hx_zero_596
 		}
-		return hx_field_602.([]*string)
-	}(f1) != nil) && !haxe__rtti__TypeApi_sameTypeParamNames(func(hx_obj_604 map[string]any) []*string {
-		hx_field_605 := hx_obj_604["params"]
-		if hx_field_605 == nil {
-			var hx_zero_606 []*string
-			return hx_zero_606
+		return hx_field_595.([]*string)
+	}(f1) != nil) && !haxe__rtti__TypeApi_sameTypeParamNames(func(hx_obj_597 map[string]any) []*string {
+		hx_field_598 := hx_obj_597["params"]
+		if hx_field_598 == nil {
+			var hx_zero_599 []*string
+			return hx_zero_599
 		}
-		return hx_field_605.([]*string)
-	}(f1), func(hx_obj_607 map[string]any) []*string {
-		hx_field_608 := hx_obj_607["params"]
-		if hx_field_608 == nil {
-			var hx_zero_609 []*string
-			return hx_zero_609
+		return hx_field_598.([]*string)
+	}(f1), func(hx_obj_600 map[string]any) []*string {
+		hx_field_601 := hx_obj_600["params"]
+		if hx_field_601 == nil {
+			var hx_zero_602 []*string
+			return hx_zero_602
 		}
-		return hx_field_608.([]*string)
+		return hx_field_601.([]*string)
 	}(f2)) {
 		return false
 	}
@@ -229,17 +229,17 @@ func haxe__rtti__TypeApi_fieldEq(f1 map[string]any, f2 map[string]any) bool {
 }
 
 func haxe__rtti__TypeApi_isVar(t *haxe__rtti__CType) bool {
-	var hx_if_610 bool
+	var hx_if_603 bool
 	if t.tag == 4 {
 		_g := t.params[0].([]map[string]any)
 		_ = _g
 		_g_1 := t.params[1].(*haxe__rtti__CType)
 		_ = _g_1
-		hx_if_610 = false
+		hx_if_603 = false
 	} else {
-		hx_if_610 = true
+		hx_if_603 = true
 	}
-	return hx_if_610
+	return hx_if_603
 }
 
 func haxe__rtti__TypeApi_rightsEq(r1 *haxe__rtti__Rights, r2 *haxe__rtti__Rights) bool {
@@ -267,9 +267,9 @@ func haxe__rtti__TypeApi_sameClassFields(l1 []map[string]any, l2 []map[string]an
 	_g := 0
 	_g1 := len(l1)
 	for _g < _g1 {
-		hx_post_611 := _g
+		hx_post_604 := _g
 		_g = int(int32((_g + 1)))
-		i := hx_post_611
+		i := hx_post_604
 		if !haxe__rtti__TypeApi_fieldEq(l1[i], l2[i]) {
 			return false
 		}
@@ -284,53 +284,53 @@ func haxe__rtti__TypeApi_sameConstructorArguments(l1 []map[string]any, l2 []map[
 	_g := 0
 	_g1 := len(l1)
 	for _g < _g1 {
-		hx_post_612 := _g
+		hx_post_605 := _g
 		_g = int(int32((_g + 1)))
-		i := hx_post_612
+		i := hx_post_605
 		a := l1[i]
 		b := l2[i]
-		if (!hxrt.StringEqualStringPtr(func(hx_obj_613 map[string]any) *string {
-			hx_field_614 := hx_obj_613["name"]
-			if hx_field_614 == nil {
-				var hx_zero_615 *string
-				return hx_zero_615
+		if (!hxrt.StringEqualStringPtr(func(hx_obj_606 map[string]any) *string {
+			hx_field_607 := hx_obj_606["name"]
+			if hx_field_607 == nil {
+				var hx_zero_608 *string
+				return hx_zero_608
 			}
-			return hx_field_614.(*string)
-		}(a), func(hx_obj_616 map[string]any) *string {
-			hx_field_617 := hx_obj_616["name"]
-			if hx_field_617 == nil {
-				var hx_zero_618 *string
-				return hx_zero_618
+			return hx_field_607.(*string)
+		}(a), func(hx_obj_609 map[string]any) *string {
+			hx_field_610 := hx_obj_609["name"]
+			if hx_field_610 == nil {
+				var hx_zero_611 *string
+				return hx_zero_611
 			}
-			return hx_field_617.(*string)
-		}(b)) || (func(hx_obj_619 map[string]any) bool {
-			hx_field_620 := hx_obj_619["opt"]
-			if hx_field_620 == nil {
-				var hx_zero_621 bool
-				return hx_zero_621
+			return hx_field_610.(*string)
+		}(b)) || (func(hx_obj_612 map[string]any) bool {
+			hx_field_613 := hx_obj_612["opt"]
+			if hx_field_613 == nil {
+				var hx_zero_614 bool
+				return hx_zero_614
 			}
-			return hx_field_620.(bool)
-		}(a) != func(hx_obj_622 map[string]any) bool {
-			hx_field_623 := hx_obj_622["opt"]
-			if hx_field_623 == nil {
-				var hx_zero_624 bool
-				return hx_zero_624
+			return hx_field_613.(bool)
+		}(a) != func(hx_obj_615 map[string]any) bool {
+			hx_field_616 := hx_obj_615["opt"]
+			if hx_field_616 == nil {
+				var hx_zero_617 bool
+				return hx_zero_617
 			}
-			return hx_field_623.(bool)
-		}(b))) || !haxe__rtti__TypeApi_typeEq(func(hx_obj_625 map[string]any) *haxe__rtti__CType {
-			hx_field_626 := hx_obj_625["t"]
-			if hx_field_626 == nil {
-				var hx_zero_627 *haxe__rtti__CType
-				return hx_zero_627
+			return hx_field_616.(bool)
+		}(b))) || !haxe__rtti__TypeApi_typeEq(func(hx_obj_618 map[string]any) *haxe__rtti__CType {
+			hx_field_619 := hx_obj_618["t"]
+			if hx_field_619 == nil {
+				var hx_zero_620 *haxe__rtti__CType
+				return hx_zero_620
 			}
-			return hx_field_626.(*haxe__rtti__CType)
-		}(a), func(hx_obj_628 map[string]any) *haxe__rtti__CType {
-			hx_field_629 := hx_obj_628["t"]
-			if hx_field_629 == nil {
-				var hx_zero_630 *haxe__rtti__CType
-				return hx_zero_630
+			return hx_field_619.(*haxe__rtti__CType)
+		}(a), func(hx_obj_621 map[string]any) *haxe__rtti__CType {
+			hx_field_622 := hx_obj_621["t"]
+			if hx_field_622 == nil {
+				var hx_zero_623 *haxe__rtti__CType
+				return hx_zero_623
 			}
-			return hx_field_629.(*haxe__rtti__CType)
+			return hx_field_622.(*haxe__rtti__CType)
 		}(b)) {
 			return false
 		}
@@ -345,53 +345,53 @@ func haxe__rtti__TypeApi_sameFunctionArguments(l1 []map[string]any, l2 []map[str
 	_g := 0
 	_g1 := len(l1)
 	for _g < _g1 {
-		hx_post_631 := _g
+		hx_post_624 := _g
 		_g = int(int32((_g + 1)))
-		i := hx_post_631
+		i := hx_post_624
 		a := l1[i]
 		b := l2[i]
-		if (!hxrt.StringEqualStringPtr(func(hx_obj_632 map[string]any) *string {
-			hx_field_633 := hx_obj_632["name"]
-			if hx_field_633 == nil {
-				var hx_zero_634 *string
-				return hx_zero_634
+		if (!hxrt.StringEqualStringPtr(func(hx_obj_625 map[string]any) *string {
+			hx_field_626 := hx_obj_625["name"]
+			if hx_field_626 == nil {
+				var hx_zero_627 *string
+				return hx_zero_627
 			}
-			return hx_field_633.(*string)
-		}(a), func(hx_obj_635 map[string]any) *string {
-			hx_field_636 := hx_obj_635["name"]
-			if hx_field_636 == nil {
-				var hx_zero_637 *string
-				return hx_zero_637
+			return hx_field_626.(*string)
+		}(a), func(hx_obj_628 map[string]any) *string {
+			hx_field_629 := hx_obj_628["name"]
+			if hx_field_629 == nil {
+				var hx_zero_630 *string
+				return hx_zero_630
 			}
-			return hx_field_636.(*string)
-		}(b)) || (func(hx_obj_638 map[string]any) bool {
-			hx_field_639 := hx_obj_638["opt"]
-			if hx_field_639 == nil {
-				var hx_zero_640 bool
-				return hx_zero_640
+			return hx_field_629.(*string)
+		}(b)) || (func(hx_obj_631 map[string]any) bool {
+			hx_field_632 := hx_obj_631["opt"]
+			if hx_field_632 == nil {
+				var hx_zero_633 bool
+				return hx_zero_633
 			}
-			return hx_field_639.(bool)
-		}(a) != func(hx_obj_641 map[string]any) bool {
-			hx_field_642 := hx_obj_641["opt"]
-			if hx_field_642 == nil {
-				var hx_zero_643 bool
-				return hx_zero_643
+			return hx_field_632.(bool)
+		}(a) != func(hx_obj_634 map[string]any) bool {
+			hx_field_635 := hx_obj_634["opt"]
+			if hx_field_635 == nil {
+				var hx_zero_636 bool
+				return hx_zero_636
 			}
-			return hx_field_642.(bool)
-		}(b))) || !haxe__rtti__TypeApi_typeEq(func(hx_obj_644 map[string]any) *haxe__rtti__CType {
-			hx_field_645 := hx_obj_644["t"]
-			if hx_field_645 == nil {
-				var hx_zero_646 *haxe__rtti__CType
-				return hx_zero_646
+			return hx_field_635.(bool)
+		}(b))) || !haxe__rtti__TypeApi_typeEq(func(hx_obj_637 map[string]any) *haxe__rtti__CType {
+			hx_field_638 := hx_obj_637["t"]
+			if hx_field_638 == nil {
+				var hx_zero_639 *haxe__rtti__CType
+				return hx_zero_639
 			}
-			return hx_field_645.(*haxe__rtti__CType)
-		}(a), func(hx_obj_647 map[string]any) *haxe__rtti__CType {
-			hx_field_648 := hx_obj_647["t"]
-			if hx_field_648 == nil {
-				var hx_zero_649 *haxe__rtti__CType
-				return hx_zero_649
+			return hx_field_638.(*haxe__rtti__CType)
+		}(a), func(hx_obj_640 map[string]any) *haxe__rtti__CType {
+			hx_field_641 := hx_obj_640["t"]
+			if hx_field_641 == nil {
+				var hx_zero_642 *haxe__rtti__CType
+				return hx_zero_642
 			}
-			return hx_field_648.(*haxe__rtti__CType)
+			return hx_field_641.(*haxe__rtti__CType)
 		}(b)) {
 			return false
 		}
@@ -406,9 +406,9 @@ func haxe__rtti__TypeApi_sameTypeParamNames(p1 []*string, p2 []*string) bool {
 	_g := 0
 	_g1 := len(p1)
 	for _g < _g1 {
-		hx_post_650 := _g
+		hx_post_643 := _g
 		_g = int(int32((_g + 1)))
-		i := hx_post_650
+		i := hx_post_643
 		if !hxrt.StringEqualStringPtr(p1[i], p2[i]) {
 			return false
 		}
@@ -423,9 +423,9 @@ func haxe__rtti__TypeApi_sameTypes(l1 []*haxe__rtti__CType, l2 []*haxe__rtti__CT
 	_g := 0
 	_g1 := len(l1)
 	for _g < _g1 {
-		hx_post_651 := _g
+		hx_post_644 := _g
 		_g = int(int32((_g + 1)))
-		i := hx_post_651
+		i := hx_post_644
 		if !haxe__rtti__TypeApi_typeEq(l1[i], l2[i]) {
 			return false
 		}
@@ -538,8 +538,6 @@ func haxe__rtti__TypeApi_typeInfos(t *haxe__rtti__TypeTree) map[string]any {
 		_g_2 := t.params[2].([]*haxe__rtti__TypeTree)
 		_ = _g_2
 		hxrt.Throw(hxrt.StringFromLiteral("Unexpected Package"))
-		var hx_throw_zero_652 map[string]any
-		return hx_throw_zero_652
 	case 1:
 		_g_3 := t.params[0].(map[string]any)
 		c := _g_3
@@ -561,90 +559,90 @@ func haxe__rtti__TypeApi_typeInfos(t *haxe__rtti__TypeTree) map[string]any {
 }
 
 func haxe__rtti__CTypeTools_classField(cf map[string]any) *string {
-	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(func(hx_obj_655 map[string]any) *string {
-		hx_field_656 := hx_obj_655["name"]
-		if hx_field_656 == nil {
-			var hx_zero_657 *string
-			return hx_zero_657
+	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(func(hx_obj_646 map[string]any) *string {
+		hx_field_647 := hx_obj_646["name"]
+		if hx_field_647 == nil {
+			var hx_zero_648 *string
+			return hx_zero_648
 		}
-		return hx_field_656.(*string)
-	}(cf), hxrt.StringFromLiteral(":")), haxe__rtti__CTypeTools_toString(func(hx_obj_658 map[string]any) *haxe__rtti__CType {
-		hx_field_659 := hx_obj_658["type"]
-		if hx_field_659 == nil {
-			var hx_zero_660 *haxe__rtti__CType
-			return hx_zero_660
+		return hx_field_647.(*string)
+	}(cf), hxrt.StringFromLiteral(":")), haxe__rtti__CTypeTools_toString(func(hx_obj_649 map[string]any) *haxe__rtti__CType {
+		hx_field_650 := hx_obj_649["type"]
+		if hx_field_650 == nil {
+			var hx_zero_651 *haxe__rtti__CType
+			return hx_zero_651
 		}
-		return hx_field_659.(*haxe__rtti__CType)
+		return hx_field_650.(*haxe__rtti__CType)
 	}(cf)))
 }
 
 func haxe__rtti__CTypeTools_functionArgumentName(arg map[string]any) *string {
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(func() *string {
-		var hx_if_664 *string
-		if func(hx_obj_661 map[string]any) bool {
-			hx_field_662 := hx_obj_661["opt"]
-			if hx_field_662 == nil {
-				var hx_zero_663 bool
-				return hx_zero_663
+		var hx_if_655 *string
+		if func(hx_obj_652 map[string]any) bool {
+			hx_field_653 := hx_obj_652["opt"]
+			if hx_field_653 == nil {
+				var hx_zero_654 bool
+				return hx_zero_654
 			}
-			return hx_field_662.(bool)
+			return hx_field_653.(bool)
 		}(arg) {
-			hx_if_664 = hxrt.StringFromLiteral("?")
+			hx_if_655 = hxrt.StringFromLiteral("?")
 		} else {
-			hx_if_664 = hxrt.StringFromLiteral("")
+			hx_if_655 = hxrt.StringFromLiteral("")
 		}
-		return hx_if_664
+		return hx_if_655
 	}(), func() *string {
-		var hx_if_671 *string
-		if hxrt.StringEqualStringPtr(func(hx_obj_665 map[string]any) *string {
-			hx_field_666 := hx_obj_665["name"]
-			if hx_field_666 == nil {
-				var hx_zero_667 *string
-				return hx_zero_667
+		var hx_if_662 *string
+		if hxrt.StringEqualStringPtr(func(hx_obj_656 map[string]any) *string {
+			hx_field_657 := hx_obj_656["name"]
+			if hx_field_657 == nil {
+				var hx_zero_658 *string
+				return hx_zero_658
 			}
-			return hx_field_666.(*string)
+			return hx_field_657.(*string)
 		}(arg), hxrt.StringFromLiteral("")) {
-			hx_if_671 = hxrt.StringFromLiteral("")
+			hx_if_662 = hxrt.StringFromLiteral("")
 		} else {
-			hx_if_671 = hxrt.StringConcatStringPtr(func(hx_obj_668 map[string]any) *string {
-				hx_field_669 := hx_obj_668["name"]
-				if hx_field_669 == nil {
-					var hx_zero_670 *string
-					return hx_zero_670
+			hx_if_662 = hxrt.StringConcatStringPtr(func(hx_obj_659 map[string]any) *string {
+				hx_field_660 := hx_obj_659["name"]
+				if hx_field_660 == nil {
+					var hx_zero_661 *string
+					return hx_zero_661
 				}
-				return hx_field_669.(*string)
+				return hx_field_660.(*string)
 			}(arg), hxrt.StringFromLiteral(":"))
 		}
-		return hx_if_671
-	}()), haxe__rtti__CTypeTools_toString(func(hx_obj_672 map[string]any) *haxe__rtti__CType {
-		hx_field_673 := hx_obj_672["t"]
-		if hx_field_673 == nil {
-			var hx_zero_674 *haxe__rtti__CType
-			return hx_zero_674
+		return hx_if_662
+	}()), haxe__rtti__CTypeTools_toString(func(hx_obj_663 map[string]any) *haxe__rtti__CType {
+		hx_field_664 := hx_obj_663["t"]
+		if hx_field_664 == nil {
+			var hx_zero_665 *haxe__rtti__CType
+			return hx_zero_665
 		}
-		return hx_field_673.(*haxe__rtti__CType)
+		return hx_field_664.(*haxe__rtti__CType)
 	}(arg))), func() *string {
-		var hx_if_681 *string
-		if hxrt.StringEqualStringPtr(func(hx_obj_675 map[string]any) *string {
-			hx_field_676 := hx_obj_675["value"]
-			if hx_field_676 == nil {
-				var hx_zero_677 *string
-				return hx_zero_677
+		var hx_if_672 *string
+		if hxrt.StringEqualStringPtr(func(hx_obj_666 map[string]any) *string {
+			hx_field_667 := hx_obj_666["value"]
+			if hx_field_667 == nil {
+				var hx_zero_668 *string
+				return hx_zero_668
 			}
-			return hx_field_676.(*string)
+			return hx_field_667.(*string)
 		}(arg), nil) {
-			hx_if_681 = hxrt.StringFromLiteral("")
+			hx_if_672 = hxrt.StringFromLiteral("")
 		} else {
-			hx_if_681 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(" = "), func(hx_obj_678 map[string]any) *string {
-				hx_field_679 := hx_obj_678["value"]
-				if hx_field_679 == nil {
-					var hx_zero_680 *string
-					return hx_zero_680
+			hx_if_672 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(" = "), func(hx_obj_669 map[string]any) *string {
+				hx_field_670 := hx_obj_669["value"]
+				if hx_field_670 == nil {
+					var hx_zero_671 *string
+					return hx_zero_671
 				}
-				return hx_field_679.(*string)
+				return hx_field_670.(*string)
 			}(arg))
 		}
-		return hx_if_681
+		return hx_if_672
 	}())
 }
 
@@ -676,9 +674,9 @@ func haxe__rtti__CTypeTools_joinStringArray(parts []*string, separator *string) 
 	_g := 0
 	_g1 := len(parts)
 	for _g < _g1 {
-		hx_post_684 := _g
+		hx_post_675 := _g
 		_g = int(int32((_g + 1)))
-		i := hx_post_684
+		i := hx_post_675
 		if i > 0 {
 			buf_b = hxrt.StringConcatStringPtr(buf_b, hxrt.StdString(separator))
 		}
@@ -702,62 +700,62 @@ func haxe__rtti__CTypeTools_nameWithParams(name *string, params []*haxe__rtti__C
 }
 
 func haxe__rtti__CTypeTools_toString(t *haxe__rtti__CType) *string {
-	var hx_switch_686 *string
+	var hx_switch_677 *string
 	switch t.tag {
 	case 0:
-		hx_switch_686 = hxrt.StringFromLiteral("unknown")
+		hx_switch_677 = hxrt.StringFromLiteral("unknown")
 	case 1:
 		_g := t.params[0].(*string)
 		_g1 := t.params[1].([]*haxe__rtti__CType)
 		name := _g
 		params := _g1
-		hx_switch_686 = haxe__rtti__CTypeTools_nameWithParams(name, params)
+		hx_switch_677 = haxe__rtti__CTypeTools_nameWithParams(name, params)
 	case 2:
 		_g_1 := t.params[0].(*string)
 		_g1_1 := t.params[1].([]*haxe__rtti__CType)
 		name_1 := _g_1
 		params_1 := _g1_1
-		hx_switch_686 = haxe__rtti__CTypeTools_nameWithParams(name_1, params_1)
+		hx_switch_677 = haxe__rtti__CTypeTools_nameWithParams(name_1, params_1)
 	case 3:
 		_g_2 := t.params[0].(*string)
 		_g1_2 := t.params[1].([]*haxe__rtti__CType)
 		name_2 := _g_2
 		params_2 := _g1_2
-		hx_switch_686 = haxe__rtti__CTypeTools_nameWithParams(name_2, params_2)
+		hx_switch_677 = haxe__rtti__CTypeTools_nameWithParams(name_2, params_2)
 	case 4:
 		_g_3 := t.params[0].([]map[string]any)
 		_g1_3 := t.params[1].(*haxe__rtti__CType)
 		args := _g_3
 		ret := _g1_3
-		var hx_if_687 *string
+		var hx_if_678 *string
 		if len(args) == 0 {
-			hx_if_687 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Void -> "), haxe__rtti__CTypeTools_toString(ret))
+			hx_if_678 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Void -> "), haxe__rtti__CTypeTools_toString(ret))
 		} else {
-			hx_if_687 = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(haxe__rtti__CTypeTools_joinFunctionArguments(args), hxrt.StringFromLiteral(" -> ")), haxe__rtti__CTypeTools_toString(ret))
+			hx_if_678 = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(haxe__rtti__CTypeTools_joinFunctionArguments(args), hxrt.StringFromLiteral(" -> ")), haxe__rtti__CTypeTools_toString(ret))
 		}
-		hx_switch_686 = hx_if_687
+		hx_switch_677 = hx_if_678
 	case 5:
 		_g_4 := t.params[0].([]map[string]any)
 		fields := _g_4
-		hx_switch_686 = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("{ "), haxe__rtti__CTypeTools_joinClassFields(fields)), hxrt.StringFromLiteral("}"))
+		hx_switch_677 = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("{ "), haxe__rtti__CTypeTools_joinClassFields(fields)), hxrt.StringFromLiteral("}"))
 	case 6:
 		_g_5 := t.params[0].(*haxe__rtti__CType)
 		d := _g_5
-		var hx_if_688 *string
+		var hx_if_679 *string
 		if d == nil {
-			hx_if_688 = hxrt.StringFromLiteral("Dynamic")
+			hx_if_679 = hxrt.StringFromLiteral("Dynamic")
 		} else {
-			hx_if_688 = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Dynamic<"), haxe__rtti__CTypeTools_toString(d)), hxrt.StringFromLiteral(">"))
+			hx_if_679 = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Dynamic<"), haxe__rtti__CTypeTools_toString(d)), hxrt.StringFromLiteral(">"))
 		}
-		hx_switch_686 = hx_if_688
+		hx_switch_677 = hx_if_679
 	case 7:
 		_g_6 := t.params[0].(*string)
 		_g1_4 := t.params[1].([]*haxe__rtti__CType)
 		name_3 := _g_6
 		params_3 := _g1_4
-		hx_switch_686 = haxe__rtti__CTypeTools_nameWithParams(name_3, params_3)
+		hx_switch_677 = haxe__rtti__CTypeTools_nameWithParams(name_3, params_3)
 	}
-	return hx_switch_686
+	return hx_switch_677
 }
 
 type haxe__rtti__TypeTree struct {

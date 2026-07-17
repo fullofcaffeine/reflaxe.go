@@ -18,24 +18,24 @@ var _Xml__XmlType_Impl__ProcessingInstruction any = any(5)
 
 func _Xml__XmlType_Impl__toString(this1 int) *string {
 	var _g any = any(this1)
-	var hx_switch_689 *string
+	var hx_switch_680 *string
 	switch _g {
 	case 0:
-		hx_switch_689 = hxrt.StringFromLiteral("Element")
+		hx_switch_680 = hxrt.StringFromLiteral("Element")
 	case 1:
-		hx_switch_689 = hxrt.StringFromLiteral("PCData")
+		hx_switch_680 = hxrt.StringFromLiteral("PCData")
 	case 2:
-		hx_switch_689 = hxrt.StringFromLiteral("CData")
+		hx_switch_680 = hxrt.StringFromLiteral("CData")
 	case 3:
-		hx_switch_689 = hxrt.StringFromLiteral("Comment")
+		hx_switch_680 = hxrt.StringFromLiteral("Comment")
 	case 4:
-		hx_switch_689 = hxrt.StringFromLiteral("DocType")
+		hx_switch_680 = hxrt.StringFromLiteral("DocType")
 	case 5:
-		hx_switch_689 = hxrt.StringFromLiteral("ProcessingInstruction")
+		hx_switch_680 = hxrt.StringFromLiteral("ProcessingInstruction")
 	case 6:
-		hx_switch_689 = hxrt.StringFromLiteral("Document")
+		hx_switch_680 = hxrt.StringFromLiteral("Document")
 	}
-	return hx_switch_689
+	return hx_switch_680
 }
 
 type I_Xml interface {
@@ -82,8 +82,6 @@ func New_Xml(nodeType any) *Xml {
 func (self *Xml) get_nodeName() *string {
 	if self.nodeType != Xml_Element {
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(self.nodeType))))
-		var hx_throw_zero_690 *string
-		return hx_throw_zero_690
 	}
 	return self.nodeName
 }
@@ -91,8 +89,6 @@ func (self *Xml) get_nodeName() *string {
 func (self *Xml) set_nodeName(v *string) *string {
 	if self.nodeType != Xml_Element {
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(self.nodeType))))
-		var hx_throw_zero_691 *string
-		return hx_throw_zero_691
 	}
 	return func() *string {
 		self.nodeName = v
@@ -103,8 +99,6 @@ func (self *Xml) set_nodeName(v *string) *string {
 func (self *Xml) get_nodeValue() *string {
 	if (self.nodeType == Xml_Document) || (self.nodeType == Xml_Element) {
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(self.nodeType))))
-		var hx_throw_zero_692 *string
-		return hx_throw_zero_692
 	}
 	return self.nodeValue
 }
@@ -112,8 +106,6 @@ func (self *Xml) get_nodeValue() *string {
 func (self *Xml) set_nodeValue(v *string) *string {
 	if (self.nodeType == Xml_Document) || (self.nodeType == Xml_Element) {
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(self.nodeType))))
-		var hx_throw_zero_693 *string
-		return hx_throw_zero_693
 	}
 	return func() *string {
 		self.nodeValue = v
@@ -124,16 +116,14 @@ func (self *Xml) set_nodeValue(v *string) *string {
 func (self *Xml) get(att *string) *string {
 	if self.nodeType != Xml_Element {
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(self.nodeType))))
-		var hx_throw_zero_694 *string
-		return hx_throw_zero_694
 	}
 	var this1 haxe__IMap = self.attributeMap
-	return func(hx_value_695 any) *string {
-		if hx_value_695 == nil {
-			var hx_zero_696 *string
-			return hx_zero_696
+	return func(hx_value_681 any) *string {
+		if hx_value_681 == nil {
+			var hx_zero_682 *string
+			return hx_zero_682
 		}
-		return hx_value_695.(*string)
+		return hx_value_681.(*string)
 	}(this1.(*haxe__ds__StringMap).get(att))
 }
 
@@ -150,62 +140,58 @@ func (self *Xml) remove(att *string) {
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(self.nodeType))))
 	}
 	var this1 haxe__IMap = self.attributeMap
-	func(hx_value_697 any) bool {
-		if hx_value_697 == nil {
-			var hx_zero_698 bool
-			return hx_zero_698
+	func(hx_value_683 any) bool {
+		if hx_value_683 == nil {
+			var hx_zero_684 bool
+			return hx_zero_684
 		}
-		return hx_value_697.(bool)
+		return hx_value_683.(bool)
 	}(this1.(*haxe__ds__StringMap).remove(att))
 }
 
 func (self *Xml) exists(att *string) bool {
 	if self.nodeType != Xml_Element {
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(self.nodeType))))
-		var hx_throw_zero_699 bool
-		return hx_throw_zero_699
 	}
 	var this1 haxe__IMap = self.attributeMap
-	return func(hx_value_700 any) bool {
-		if hx_value_700 == nil {
-			var hx_zero_701 bool
-			return hx_zero_701
+	return func(hx_value_685 any) bool {
+		if hx_value_685 == nil {
+			var hx_zero_686 bool
+			return hx_zero_686
 		}
-		return hx_value_700.(bool)
+		return hx_value_685.(bool)
 	}(this1.(*haxe__ds__StringMap).exists(att))
 }
 
 func (self *Xml) attributes() map[string]any {
 	if self.nodeType != Xml_Element {
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(self.nodeType))))
-		var hx_throw_zero_702 map[string]any
-		return hx_throw_zero_702
 	}
 	var this1 haxe__IMap = self.attributeMap
-	return func(hx_value_703 any) map[string]any {
-		if hx_value_703 == nil {
-			var hx_zero_704 map[string]any
-			return hx_zero_704
+	return func(hx_value_687 any) map[string]any {
+		if hx_value_687 == nil {
+			var hx_zero_688 map[string]any
+			return hx_zero_688
 		}
-		return hx_value_703.(map[string]any)
+		return hx_value_687.(map[string]any)
 	}(this1.(*haxe__ds__StringMap).keys())
 }
 
 func (self *Xml) iterator() map[string]any {
 	self.ensureElementType()
 	return func() map[string]any {
-		hx_structural_array_705 := self.children
-		hx_structural_array_index_706 := 0
-		hx_structural_iterator_map_707 := map[string]any{}
-		hx_structural_iterator_map_707["hasNext"] = func() bool {
-			return (hx_structural_array_index_706 < len(hx_structural_array_705))
+		hx_structural_array_689 := self.children
+		hx_structural_array_index_690 := 0
+		hx_structural_iterator_map_691 := map[string]any{}
+		hx_structural_iterator_map_691["hasNext"] = func() bool {
+			return (hx_structural_array_index_690 < len(hx_structural_array_689))
 		}
-		hx_structural_iterator_map_707["next"] = func() *Xml {
-			hx_structural_array_value_708 := hx_structural_array_705[hx_structural_array_index_706]
-			hx_structural_array_index_706 = (hx_structural_array_index_706 + 1)
-			return hx_structural_array_value_708
+		hx_structural_iterator_map_691["next"] = func() *Xml {
+			hx_structural_array_value_692 := hx_structural_array_689[hx_structural_array_index_690]
+			hx_structural_array_index_690 = (hx_structural_array_index_690 + 1)
+			return hx_structural_array_value_692
 		}
-		return hx_structural_iterator_map_707
+		return hx_structural_iterator_map_691
 	}()
 }
 
@@ -223,18 +209,18 @@ func (self *Xml) elements() map[string]any {
 	}
 	ret := _g
 	return func() map[string]any {
-		hx_structural_array_710 := ret
-		hx_structural_array_index_711 := 0
-		hx_structural_iterator_map_712 := map[string]any{}
-		hx_structural_iterator_map_712["hasNext"] = func() bool {
-			return (hx_structural_array_index_711 < len(hx_structural_array_710))
+		hx_structural_array_694 := ret
+		hx_structural_array_index_695 := 0
+		hx_structural_iterator_map_696 := map[string]any{}
+		hx_structural_iterator_map_696["hasNext"] = func() bool {
+			return (hx_structural_array_index_695 < len(hx_structural_array_694))
 		}
-		hx_structural_iterator_map_712["next"] = func() *Xml {
-			hx_structural_array_value_713 := hx_structural_array_710[hx_structural_array_index_711]
-			hx_structural_array_index_711 = (hx_structural_array_index_711 + 1)
-			return hx_structural_array_value_713
+		hx_structural_iterator_map_696["next"] = func() *Xml {
+			hx_structural_array_value_697 := hx_structural_array_694[hx_structural_array_index_695]
+			hx_structural_array_index_695 = (hx_structural_array_index_695 + 1)
+			return hx_structural_array_value_697
 		}
-		return hx_structural_iterator_map_712
+		return hx_structural_iterator_map_696
 	}()
 }
 
@@ -246,36 +232,41 @@ func (self *Xml) elementsNamed(name *string) map[string]any {
 	for _g1 < len(_g2) {
 		child := _g2[_g1]
 		_g1 = int(int32((_g1 + 1)))
-		if (child.nodeType == Xml_Element) && hxrt.StringEqualStringPtr(child.get_nodeName(), name) {
+		if (child.nodeType == Xml_Element) && hxrt.StringEqualStringPtr(func() *string {
+			if child.nodeType != Xml_Element {
+				hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(child.nodeType))))
+			}
+			return child.nodeName
+		}(), name) {
 			_g = append(_g, child)
 		}
 	}
 	ret := _g
 	return func() map[string]any {
-		hx_structural_array_715 := ret
-		hx_structural_array_index_716 := 0
-		hx_structural_iterator_map_717 := map[string]any{}
-		hx_structural_iterator_map_717["hasNext"] = func() bool {
-			return (hx_structural_array_index_716 < len(hx_structural_array_715))
+		hx_structural_array_699 := ret
+		hx_structural_array_index_700 := 0
+		hx_structural_iterator_map_701 := map[string]any{}
+		hx_structural_iterator_map_701["hasNext"] = func() bool {
+			return (hx_structural_array_index_700 < len(hx_structural_array_699))
 		}
-		hx_structural_iterator_map_717["next"] = func() *Xml {
-			hx_structural_array_value_718 := hx_structural_array_715[hx_structural_array_index_716]
-			hx_structural_array_index_716 = (hx_structural_array_index_716 + 1)
-			return hx_structural_array_value_718
+		hx_structural_iterator_map_701["next"] = func() *Xml {
+			hx_structural_array_value_702 := hx_structural_array_699[hx_structural_array_index_700]
+			hx_structural_array_index_700 = (hx_structural_array_index_700 + 1)
+			return hx_structural_array_value_702
 		}
-		return hx_structural_iterator_map_717
+		return hx_structural_iterator_map_701
 	}()
 }
 
 func (self *Xml) firstChild() *Xml {
 	self.ensureElementType()
-	var hx_if_719 *Xml
+	var hx_if_703 *Xml
 	if len(self.children) == 0 {
-		hx_if_719 = nil
+		hx_if_703 = nil
 	} else {
-		hx_if_719 = self.children[0]
+		hx_if_703 = self.children[0]
 	}
-	return hx_if_719
+	return hx_if_703
 }
 
 func (self *Xml) firstElement() *Xml {
@@ -297,9 +288,9 @@ func (self *Xml) addChild(x *Xml) {
 	if x.parent != nil {
 		x.parent.removeChild(x)
 	}
-	hx_arr_720 := self.children
-	hx_arr_720 = append(hx_arr_720, x)
-	self.children = hx_arr_720
+	hx_arr_704 := self.children
+	hx_arr_704 = append(hx_arr_704, x)
+	self.children = hx_arr_704
 	x.parent = self
 }
 
@@ -345,9 +336,9 @@ func (self *Xml) insertChild(x *Xml, pos int) {
 	_g := 0
 	_g1 := length
 	for _g < _g1 {
-		hx_post_722 := _g
+		hx_post_706 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_722
+		index := hx_post_706
 		if index == pos {
 			inserted = append(inserted, x)
 		}
@@ -386,19 +377,28 @@ var Xml_ProcessingInstruction any = any(5)
 
 func Xml_createCData(data *string) *Xml {
 	xml := New_Xml(Xml_CData)
-	xml.set_nodeValue(data)
+	if (xml.nodeType == Xml_Document) || (xml.nodeType == Xml_Element) {
+		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(xml.nodeType))))
+	}
+	xml.nodeValue = data
 	return xml
 }
 
 func Xml_createComment(data *string) *Xml {
 	xml := New_Xml(Xml_Comment)
-	xml.set_nodeValue(data)
+	if (xml.nodeType == Xml_Document) || (xml.nodeType == Xml_Element) {
+		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(xml.nodeType))))
+	}
+	xml.nodeValue = data
 	return xml
 }
 
 func Xml_createDocType(data *string) *Xml {
 	xml := New_Xml(Xml_DocType)
-	xml.set_nodeValue(data)
+	if (xml.nodeType == Xml_Document) || (xml.nodeType == Xml_Element) {
+		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(xml.nodeType))))
+	}
+	xml.nodeValue = data
 	return xml
 }
 
@@ -408,19 +408,28 @@ func Xml_createDocument() *Xml {
 
 func Xml_createElement(name *string) *Xml {
 	xml := New_Xml(Xml_Element)
-	xml.set_nodeName(name)
+	if xml.nodeType != Xml_Element {
+		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(xml.nodeType))))
+	}
+	xml.nodeName = name
 	return xml
 }
 
 func Xml_createPCData(data *string) *Xml {
 	xml := New_Xml(Xml_PCData)
-	xml.set_nodeValue(data)
+	if (xml.nodeType == Xml_Document) || (xml.nodeType == Xml_Element) {
+		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(xml.nodeType))))
+	}
+	xml.nodeValue = data
 	return xml
 }
 
 func Xml_createProcessingInstruction(data *string) *Xml {
 	xml := New_Xml(Xml_ProcessingInstruction)
-	xml.set_nodeValue(data)
+	if (xml.nodeType == Xml_Document) || (xml.nodeType == Xml_Element) {
+		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(xml.nodeType))))
+	}
+	xml.nodeValue = data
 	return xml
 }
 

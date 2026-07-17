@@ -16,9 +16,9 @@ func sys__io__File_getBytes(path *string) *haxe__io__Bytes {
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_18 := _g
+		hx_post_14 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_18
+		index := hx_post_14
 		bytes.b[index] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
 	}
 	return bytes
@@ -37,9 +37,9 @@ func sys__io__File_saveBytes(path *string, bytes *haxe__io__Bytes) {
 	_g := 0
 	_g1 := bytes.length
 	for _g < _g1 {
-		hx_post_19 := _g
+		hx_post_15 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_19
+		index := hx_post_15
 		values = append(values, bytes.b[index])
 	}
 	hxrt.FileWriteByteValues(path, values)

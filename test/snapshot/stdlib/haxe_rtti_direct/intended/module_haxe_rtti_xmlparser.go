@@ -1264,7 +1264,10 @@ func (self *haxe__rtti__XmlParser) processElement(x *Xml) *haxe__rtti__TypeTree 
 	if x.nodeType == Xml_Document {
 		hx_if_356 = hxrt.StringFromLiteral("Document")
 	} else {
-		hx_if_356 = x.get_nodeName()
+		if x.nodeType != Xml_Element {
+			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(x.nodeType))))
+		}
+		hx_if_356 = x.nodeName
 	}
 	nodeName := hx_if_356
 	if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("class")) {
@@ -1513,63 +1516,61 @@ func (self *haxe__rtti__XmlParser) xclassfield(x *Xml, defPublic bool) map[strin
 					overloads = self.xoverloads(c_1)
 				} else {
 					hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid "), nodeName))
-					var hx_throw_zero_409 map[string]any
-					return hx_throw_zero_409
 				}
 			}
 		}
 	}
-	hx_obj_410 := map[string]any{}
-	hx_obj_410["name"] = self.elementName(x)
-	hx_obj_410["type"] = t
-	hx_obj_410["isPublic"] = (x.exists(hxrt.StringFromLiteral("public")) || func(hx_value_411 any) bool {
-		if hx_value_411 == nil {
-			var hx_zero_412 bool
-			return hx_zero_412
+	hx_obj_409 := map[string]any{}
+	hx_obj_409["name"] = self.elementName(x)
+	hx_obj_409["type"] = t
+	hx_obj_409["isPublic"] = (x.exists(hxrt.StringFromLiteral("public")) || func(hx_value_410 any) bool {
+		if hx_value_410 == nil {
+			var hx_zero_411 bool
+			return hx_zero_411
 		}
-		return hx_value_411.(bool)
+		return hx_value_410.(bool)
 	}(defPublic))
-	hx_obj_410["isFinal"] = x.exists(hxrt.StringFromLiteral("final"))
-	hx_obj_410["isOverride"] = x.exists(hxrt.StringFromLiteral("override"))
-	hx_obj_410["line"] = func(hx_value_413 any) any {
-		if hx_value_413 == nil {
+	hx_obj_409["isFinal"] = x.exists(hxrt.StringFromLiteral("final"))
+	hx_obj_409["isOverride"] = x.exists(hxrt.StringFromLiteral("override"))
+	hx_obj_409["line"] = func(hx_value_412 any) any {
+		if hx_value_412 == nil {
 			return nil
 		}
-		return hx_value_413.(int)
+		return hx_value_412.(int)
 	}(line)
-	hx_obj_410["doc"] = doc
-	var hx_if_414 *haxe__rtti__Rights
+	hx_obj_409["doc"] = doc
+	var hx_if_413 *haxe__rtti__Rights
 	if x.exists(hxrt.StringFromLiteral("get")) {
-		hx_if_414 = self.mkRights(self.requireAttr(x, hxrt.StringFromLiteral("get")))
+		hx_if_413 = self.mkRights(self.requireAttr(x, hxrt.StringFromLiteral("get")))
+	} else {
+		hx_if_413 = haxe__rtti__Rights_RNormal
+	}
+	hx_obj_409["get"] = hx_if_413
+	var hx_if_414 *haxe__rtti__Rights
+	if x.exists(hxrt.StringFromLiteral("set")) {
+		hx_if_414 = self.mkRights(self.requireAttr(x, hxrt.StringFromLiteral("set")))
 	} else {
 		hx_if_414 = haxe__rtti__Rights_RNormal
 	}
-	hx_obj_410["get"] = hx_if_414
-	var hx_if_415 *haxe__rtti__Rights
-	if x.exists(hxrt.StringFromLiteral("set")) {
-		hx_if_415 = self.mkRights(self.requireAttr(x, hxrt.StringFromLiteral("set")))
-	} else {
-		hx_if_415 = haxe__rtti__Rights_RNormal
-	}
-	hx_obj_410["set"] = hx_if_415
-	var hx_if_416 []*string
+	hx_obj_409["set"] = hx_if_414
+	var hx_if_415 []*string
 	if x.exists(hxrt.StringFromLiteral("params")) {
-		hx_if_416 = self.mkTypeParams(self.requireAttr(x, hxrt.StringFromLiteral("params")))
+		hx_if_415 = self.mkTypeParams(self.requireAttr(x, hxrt.StringFromLiteral("params")))
 	} else {
-		hx_if_416 = []*string{}
+		hx_if_415 = []*string{}
 	}
-	hx_obj_410["params"] = hx_if_416
-	hx_obj_410["platforms"] = self.defplat()
-	hx_obj_410["meta"] = meta
-	hx_obj_410["overloads"] = overloads
-	var hx_if_417 *string
+	hx_obj_409["params"] = hx_if_415
+	hx_obj_409["platforms"] = self.defplat()
+	hx_obj_409["meta"] = meta
+	hx_obj_409["overloads"] = overloads
+	var hx_if_416 *string
 	if x.exists(hxrt.StringFromLiteral("expr")) {
-		hx_if_417 = self.requireAttr(x, hxrt.StringFromLiteral("expr"))
+		hx_if_416 = self.requireAttr(x, hxrt.StringFromLiteral("expr"))
 	} else {
-		hx_if_417 = nil
+		hx_if_416 = nil
 	}
-	hx_obj_410["expr"] = hx_if_417
-	return hx_obj_410
+	hx_obj_409["expr"] = hx_if_416
+	return hx_obj_409
 }
 
 func (self *haxe__rtti__XmlParser) xenum(x *Xml) map[string]any {
@@ -1577,21 +1578,21 @@ func (self *haxe__rtti__XmlParser) xenum(x *Xml) map[string]any {
 	var doc *string = nil
 	meta := []map[string]any{}
 	c := x.elements()
-	for func(hx_obj_418 map[string]any) func() bool {
-		hx_field_419 := hx_obj_418["hasNext"]
-		if hx_field_419 == nil {
-			var hx_zero_420 func() bool
-			return hx_zero_420
+	for func(hx_obj_417 map[string]any) func() bool {
+		hx_field_418 := hx_obj_417["hasNext"]
+		if hx_field_418 == nil {
+			var hx_zero_419 func() bool
+			return hx_zero_419
 		}
-		return hx_field_419.(func() bool)
+		return hx_field_418.(func() bool)
 	}(c)() {
-		c_1 := func(hx_obj_421 map[string]any) func() *Xml {
-			hx_field_422 := hx_obj_421["next"]
-			if hx_field_422 == nil {
-				var hx_zero_423 func() *Xml
-				return hx_zero_423
+		c_1 := func(hx_obj_420 map[string]any) func() *Xml {
+			hx_field_421 := hx_obj_420["next"]
+			if hx_field_421 == nil {
+				var hx_zero_422 func() *Xml
+				return hx_zero_422
 			}
-			return hx_field_422.(func() *Xml)
+			return hx_field_421.(func() *Xml)
 		}(c)()
 		if hxrt.StringEqualStringPtr(self.elementName(c_1), hxrt.StringFromLiteral("haxe_doc")) {
 			doc = self.innerData(c_1)
@@ -1603,57 +1604,57 @@ func (self *haxe__rtti__XmlParser) xenum(x *Xml) map[string]any {
 			}
 		}
 	}
-	hx_obj_425 := map[string]any{}
-	hx_obj_425["file"] = x.get(hxrt.StringFromLiteral("file"))
-	hx_obj_425["path"] = self.mkPath(self.requireAttr(x, hxrt.StringFromLiteral("path")))
-	var hx_if_426 *string
+	hx_obj_424 := map[string]any{}
+	hx_obj_424["file"] = x.get(hxrt.StringFromLiteral("file"))
+	hx_obj_424["path"] = self.mkPath(self.requireAttr(x, hxrt.StringFromLiteral("path")))
+	var hx_if_425 *string
 	if x.exists(hxrt.StringFromLiteral("module")) {
-		hx_if_426 = self.mkPath(self.requireAttr(x, hxrt.StringFromLiteral("module")))
+		hx_if_425 = self.mkPath(self.requireAttr(x, hxrt.StringFromLiteral("module")))
 	} else {
-		hx_if_426 = nil
+		hx_if_425 = nil
 	}
-	hx_obj_425["module"] = hx_if_426
-	hx_obj_425["doc"] = doc
-	hx_obj_425["isPrivate"] = x.exists(hxrt.StringFromLiteral("private"))
-	hx_obj_425["isExtern"] = x.exists(hxrt.StringFromLiteral("extern"))
-	hx_obj_425["params"] = self.mkTypeParams(self.requireAttr(x, hxrt.StringFromLiteral("params")))
-	hx_obj_425["constructors"] = cl
-	hx_obj_425["platforms"] = self.defplat()
-	hx_obj_425["meta"] = meta
-	return hx_obj_425
+	hx_obj_424["module"] = hx_if_425
+	hx_obj_424["doc"] = doc
+	hx_obj_424["isPrivate"] = x.exists(hxrt.StringFromLiteral("private"))
+	hx_obj_424["isExtern"] = x.exists(hxrt.StringFromLiteral("extern"))
+	hx_obj_424["params"] = self.mkTypeParams(self.requireAttr(x, hxrt.StringFromLiteral("params")))
+	hx_obj_424["constructors"] = cl
+	hx_obj_424["platforms"] = self.defplat()
+	hx_obj_424["meta"] = meta
+	return hx_obj_424
 }
 
 func (self *haxe__rtti__XmlParser) xenumfield(x *Xml) map[string]any {
 	var args []map[string]any = nil
 	docElements := x.elementsNamed(hxrt.StringFromLiteral("haxe_doc"))
-	var hx_if_433 *Xml
-	if func(hx_obj_427 map[string]any) func() bool {
-		hx_field_428 := hx_obj_427["hasNext"]
-		if hx_field_428 == nil {
-			var hx_zero_429 func() bool
-			return hx_zero_429
+	var hx_if_432 *Xml
+	if func(hx_obj_426 map[string]any) func() bool {
+		hx_field_427 := hx_obj_426["hasNext"]
+		if hx_field_427 == nil {
+			var hx_zero_428 func() bool
+			return hx_zero_428
 		}
-		return hx_field_428.(func() bool)
+		return hx_field_427.(func() bool)
 	}(docElements)() {
-		hx_if_433 = func(hx_obj_430 map[string]any) func() *Xml {
-			hx_field_431 := hx_obj_430["next"]
-			if hx_field_431 == nil {
-				var hx_zero_432 func() *Xml
-				return hx_zero_432
+		hx_if_432 = func(hx_obj_429 map[string]any) func() *Xml {
+			hx_field_430 := hx_obj_429["next"]
+			if hx_field_430 == nil {
+				var hx_zero_431 func() *Xml
+				return hx_zero_431
 			}
-			return hx_field_431.(func() *Xml)
+			return hx_field_430.(func() *Xml)
 		}(docElements)()
 	} else {
-		hx_if_433 = nil
+		hx_if_432 = nil
 	}
-	xdoc := hx_if_433
-	var hx_if_434 []map[string]any
+	xdoc := hx_if_432
+	var hx_if_433 []map[string]any
 	if self.hasNamedElement(x, hxrt.StringFromLiteral("meta")) {
-		hx_if_434 = self.xmeta(self.requireNamedElement(x, hxrt.StringFromLiteral("meta")))
+		hx_if_433 = self.xmeta(self.requireNamedElement(x, hxrt.StringFromLiteral("meta")))
 	} else {
-		hx_if_434 = []map[string]any{}
+		hx_if_433 = []map[string]any{}
 	}
-	meta := hx_if_434
+	meta := hx_if_433
 	if x.exists(hxrt.StringFromLiteral("a")) {
 		names := self.splitString(self.requireAttr(x, hxrt.StringFromLiteral("a")), hxrt.StringFromLiteral(":"))
 		elts := x.elements()
@@ -1668,34 +1669,34 @@ func (self *haxe__rtti__XmlParser) xenumfield(x *Xml) map[string]any {
 				c = hxrt.StringSubstrStringPtr(c, 1, 0, false)
 			}
 			args = append(args, func() map[string]any {
-				hx_obj_436 := map[string]any{}
-				hx_obj_436["name"] = c
-				hx_obj_436["opt"] = opt
-				hx_obj_436["t"] = self.xtype(func(hx_obj_437 map[string]any) func() *Xml {
-					hx_field_438 := hx_obj_437["next"]
-					if hx_field_438 == nil {
-						var hx_zero_439 func() *Xml
-						return hx_zero_439
+				hx_obj_435 := map[string]any{}
+				hx_obj_435["name"] = c
+				hx_obj_435["opt"] = opt
+				hx_obj_435["t"] = self.xtype(func(hx_obj_436 map[string]any) func() *Xml {
+					hx_field_437 := hx_obj_436["next"]
+					if hx_field_437 == nil {
+						var hx_zero_438 func() *Xml
+						return hx_zero_438
 					}
-					return hx_field_438.(func() *Xml)
+					return hx_field_437.(func() *Xml)
 				}(elts)())
-				return hx_obj_436
+				return hx_obj_435
 			}())
 		}
 	}
-	hx_obj_440 := map[string]any{}
-	hx_obj_440["name"] = self.elementName(x)
-	hx_obj_440["args"] = args
-	var hx_if_441 *string
+	hx_obj_439 := map[string]any{}
+	hx_obj_439["name"] = self.elementName(x)
+	hx_obj_439["args"] = args
+	var hx_if_440 *string
 	if xdoc == nil {
-		hx_if_441 = nil
+		hx_if_440 = nil
 	} else {
-		hx_if_441 = self.innerData(xdoc)
+		hx_if_440 = self.innerData(xdoc)
 	}
-	hx_obj_440["doc"] = hx_if_441
-	hx_obj_440["meta"] = meta
-	hx_obj_440["platforms"] = self.defplat()
-	return hx_obj_440
+	hx_obj_439["doc"] = hx_if_440
+	hx_obj_439["meta"] = meta
+	hx_obj_439["platforms"] = self.defplat()
+	return hx_obj_439
 }
 
 func (self *haxe__rtti__XmlParser) xabstract(x *Xml) map[string]any {
@@ -1706,21 +1707,21 @@ func (self *haxe__rtti__XmlParser) xabstract(x *Xml) map[string]any {
 	to := []map[string]any{}
 	from := []map[string]any{}
 	c := x.elements()
-	for func(hx_obj_442 map[string]any) func() bool {
-		hx_field_443 := hx_obj_442["hasNext"]
-		if hx_field_443 == nil {
-			var hx_zero_444 func() bool
-			return hx_zero_444
+	for func(hx_obj_441 map[string]any) func() bool {
+		hx_field_442 := hx_obj_441["hasNext"]
+		if hx_field_442 == nil {
+			var hx_zero_443 func() bool
+			return hx_zero_443
 		}
-		return hx_field_443.(func() bool)
+		return hx_field_442.(func() bool)
 	}(c)() {
-		c_1 := func(hx_obj_445 map[string]any) func() *Xml {
-			hx_field_446 := hx_obj_445["next"]
-			if hx_field_446 == nil {
-				var hx_zero_447 func() *Xml
-				return hx_zero_447
+		c_1 := func(hx_obj_444 map[string]any) func() *Xml {
+			hx_field_445 := hx_obj_444["next"]
+			if hx_field_445 == nil {
+				var hx_zero_446 func() *Xml
+				return hx_zero_446
 			}
-			return hx_field_446.(func() *Xml)
+			return hx_field_445.(func() *Xml)
 		}(c)()
 		nodeName := self.elementName(c_1)
 		if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("haxe_doc")) {
@@ -1731,53 +1732,53 @@ func (self *haxe__rtti__XmlParser) xabstract(x *Xml) map[string]any {
 			} else {
 				if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("to")) {
 					t := c_1.elements()
-					for func(hx_obj_448 map[string]any) func() bool {
-						hx_field_449 := hx_obj_448["hasNext"]
-						if hx_field_449 == nil {
-							var hx_zero_450 func() bool
-							return hx_zero_450
+					for func(hx_obj_447 map[string]any) func() bool {
+						hx_field_448 := hx_obj_447["hasNext"]
+						if hx_field_448 == nil {
+							var hx_zero_449 func() bool
+							return hx_zero_449
 						}
-						return hx_field_449.(func() bool)
+						return hx_field_448.(func() bool)
 					}(t)() {
-						t_1 := func(hx_obj_451 map[string]any) func() *Xml {
-							hx_field_452 := hx_obj_451["next"]
-							if hx_field_452 == nil {
-								var hx_zero_453 func() *Xml
-								return hx_zero_453
+						t_1 := func(hx_obj_450 map[string]any) func() *Xml {
+							hx_field_451 := hx_obj_450["next"]
+							if hx_field_451 == nil {
+								var hx_zero_452 func() *Xml
+								return hx_zero_452
 							}
-							return hx_field_452.(func() *Xml)
+							return hx_field_451.(func() *Xml)
 						}(t)()
 						to = append(to, func() map[string]any {
-							hx_obj_455 := map[string]any{}
-							hx_obj_455["t"] = self.xtype(self.requireFirstElement(t_1))
-							hx_obj_455["field"] = t_1.get(hxrt.StringFromLiteral("field"))
-							return hx_obj_455
+							hx_obj_454 := map[string]any{}
+							hx_obj_454["t"] = self.xtype(self.requireFirstElement(t_1))
+							hx_obj_454["field"] = t_1.get(hxrt.StringFromLiteral("field"))
+							return hx_obj_454
 						}())
 					}
 				} else {
 					if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("from")) {
 						t_2 := c_1.elements()
-						for func(hx_obj_456 map[string]any) func() bool {
-							hx_field_457 := hx_obj_456["hasNext"]
-							if hx_field_457 == nil {
-								var hx_zero_458 func() bool
-								return hx_zero_458
+						for func(hx_obj_455 map[string]any) func() bool {
+							hx_field_456 := hx_obj_455["hasNext"]
+							if hx_field_456 == nil {
+								var hx_zero_457 func() bool
+								return hx_zero_457
 							}
-							return hx_field_457.(func() bool)
+							return hx_field_456.(func() bool)
 						}(t_2)() {
-							t_3 := func(hx_obj_459 map[string]any) func() *Xml {
-								hx_field_460 := hx_obj_459["next"]
-								if hx_field_460 == nil {
-									var hx_zero_461 func() *Xml
-									return hx_zero_461
+							t_3 := func(hx_obj_458 map[string]any) func() *Xml {
+								hx_field_459 := hx_obj_458["next"]
+								if hx_field_459 == nil {
+									var hx_zero_460 func() *Xml
+									return hx_zero_460
 								}
-								return hx_field_460.(func() *Xml)
+								return hx_field_459.(func() *Xml)
 							}(t_2)()
 							from = append(from, func() map[string]any {
-								hx_obj_463 := map[string]any{}
-								hx_obj_463["t"] = self.xtype(self.requireFirstElement(t_3))
-								hx_obj_463["field"] = t_3.get(hxrt.StringFromLiteral("field"))
-								return hx_obj_463
+								hx_obj_462 := map[string]any{}
+								hx_obj_462["t"] = self.xtype(self.requireFirstElement(t_3))
+								hx_obj_462["field"] = t_3.get(hxrt.StringFromLiteral("field"))
+								return hx_obj_462
 							}())
 						}
 					} else {
@@ -1788,8 +1789,6 @@ func (self *haxe__rtti__XmlParser) xabstract(x *Xml) map[string]any {
 								athis = self.xtype(self.requireFirstElement(c_1))
 							} else {
 								hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid "), nodeName))
-								var hx_throw_zero_464 map[string]any
-								return hx_throw_zero_464
 							}
 						}
 					}
@@ -1797,26 +1796,26 @@ func (self *haxe__rtti__XmlParser) xabstract(x *Xml) map[string]any {
 			}
 		}
 	}
-	hx_obj_465 := map[string]any{}
-	hx_obj_465["file"] = x.get(hxrt.StringFromLiteral("file"))
-	hx_obj_465["path"] = self.mkPath(self.requireAttr(x, hxrt.StringFromLiteral("path")))
-	var hx_if_466 *string
+	hx_obj_463 := map[string]any{}
+	hx_obj_463["file"] = x.get(hxrt.StringFromLiteral("file"))
+	hx_obj_463["path"] = self.mkPath(self.requireAttr(x, hxrt.StringFromLiteral("path")))
+	var hx_if_464 *string
 	if x.exists(hxrt.StringFromLiteral("module")) {
-		hx_if_466 = self.mkPath(self.requireAttr(x, hxrt.StringFromLiteral("module")))
+		hx_if_464 = self.mkPath(self.requireAttr(x, hxrt.StringFromLiteral("module")))
 	} else {
-		hx_if_466 = nil
+		hx_if_464 = nil
 	}
-	hx_obj_465["module"] = hx_if_466
-	hx_obj_465["doc"] = doc
-	hx_obj_465["isPrivate"] = x.exists(hxrt.StringFromLiteral("private"))
-	hx_obj_465["params"] = self.mkTypeParams(self.requireAttr(x, hxrt.StringFromLiteral("params")))
-	hx_obj_465["platforms"] = self.defplat()
-	hx_obj_465["meta"] = meta
-	hx_obj_465["athis"] = athis
-	hx_obj_465["to"] = to
-	hx_obj_465["from"] = from
-	hx_obj_465["impl"] = impl
-	return hx_obj_465
+	hx_obj_463["module"] = hx_if_464
+	hx_obj_463["doc"] = doc
+	hx_obj_463["isPrivate"] = x.exists(hxrt.StringFromLiteral("private"))
+	hx_obj_463["params"] = self.mkTypeParams(self.requireAttr(x, hxrt.StringFromLiteral("params")))
+	hx_obj_463["platforms"] = self.defplat()
+	hx_obj_463["meta"] = meta
+	hx_obj_463["athis"] = athis
+	hx_obj_463["to"] = to
+	hx_obj_463["from"] = from
+	hx_obj_463["impl"] = impl
+	return hx_obj_463
 }
 
 func (self *haxe__rtti__XmlParser) xtypedef(x *Xml) map[string]any {
@@ -1824,21 +1823,21 @@ func (self *haxe__rtti__XmlParser) xtypedef(x *Xml) map[string]any {
 	var t *haxe__rtti__CType = nil
 	meta := []map[string]any{}
 	c := x.elements()
-	for func(hx_obj_467 map[string]any) func() bool {
-		hx_field_468 := hx_obj_467["hasNext"]
-		if hx_field_468 == nil {
-			var hx_zero_469 func() bool
-			return hx_zero_469
+	for func(hx_obj_465 map[string]any) func() bool {
+		hx_field_466 := hx_obj_465["hasNext"]
+		if hx_field_466 == nil {
+			var hx_zero_467 func() bool
+			return hx_zero_467
 		}
-		return hx_field_468.(func() bool)
+		return hx_field_466.(func() bool)
 	}(c)() {
-		c_1 := func(hx_obj_470 map[string]any) func() *Xml {
-			hx_field_471 := hx_obj_470["next"]
-			if hx_field_471 == nil {
-				var hx_zero_472 func() *Xml
-				return hx_zero_472
+		c_1 := func(hx_obj_468 map[string]any) func() *Xml {
+			hx_field_469 := hx_obj_468["next"]
+			if hx_field_469 == nil {
+				var hx_zero_470 func() *Xml
+				return hx_zero_470
 			}
-			return hx_field_471.(func() *Xml)
+			return hx_field_469.(func() *Xml)
 		}(c)()
 		if hxrt.StringEqualStringPtr(self.elementName(c_1), hxrt.StringFromLiteral("haxe_doc")) {
 			doc = self.innerData(c_1)
@@ -1854,24 +1853,24 @@ func (self *haxe__rtti__XmlParser) xtypedef(x *Xml) map[string]any {
 	if !hxrt.StringEqualStringPtr(self.curplatform, nil) {
 		types.set(self.curplatform, t)
 	}
-	hx_obj_473 := map[string]any{}
-	hx_obj_473["file"] = x.get(hxrt.StringFromLiteral("file"))
-	hx_obj_473["path"] = self.mkPath(self.requireAttr(x, hxrt.StringFromLiteral("path")))
-	var hx_if_474 *string
+	hx_obj_471 := map[string]any{}
+	hx_obj_471["file"] = x.get(hxrt.StringFromLiteral("file"))
+	hx_obj_471["path"] = self.mkPath(self.requireAttr(x, hxrt.StringFromLiteral("path")))
+	var hx_if_472 *string
 	if x.exists(hxrt.StringFromLiteral("module")) {
-		hx_if_474 = self.mkPath(self.requireAttr(x, hxrt.StringFromLiteral("module")))
+		hx_if_472 = self.mkPath(self.requireAttr(x, hxrt.StringFromLiteral("module")))
 	} else {
-		hx_if_474 = nil
+		hx_if_472 = nil
 	}
-	hx_obj_473["module"] = hx_if_474
-	hx_obj_473["doc"] = doc
-	hx_obj_473["isPrivate"] = x.exists(hxrt.StringFromLiteral("private"))
-	hx_obj_473["params"] = self.mkTypeParams(self.requireAttr(x, hxrt.StringFromLiteral("params")))
-	hx_obj_473["type"] = t
-	hx_obj_473["types"] = types
-	hx_obj_473["platforms"] = self.defplat()
-	hx_obj_473["meta"] = meta
-	return hx_obj_473
+	hx_obj_471["module"] = hx_if_472
+	hx_obj_471["doc"] = doc
+	hx_obj_471["isPrivate"] = x.exists(hxrt.StringFromLiteral("private"))
+	hx_obj_471["params"] = self.mkTypeParams(self.requireAttr(x, hxrt.StringFromLiteral("params")))
+	hx_obj_471["type"] = t
+	hx_obj_471["types"] = types
+	hx_obj_471["platforms"] = self.defplat()
+	hx_obj_471["meta"] = meta
+	return hx_obj_471
 }
 
 func (self *haxe__rtti__XmlParser) xtype(x *Xml) *haxe__rtti__CType {
@@ -1895,39 +1894,39 @@ func (self *haxe__rtti__XmlParser) xtype(x *Xml) *haxe__rtti__CType {
 		args := []map[string]any{}
 		aname := self.splitString(self.requireAttr(x, hxrt.StringFromLiteral("a")), hxrt.StringFromLiteral(":"))
 		argIndex := 0
-		var hx_if_475 []*string
+		var hx_if_473 []*string
 		if x.exists(hxrt.StringFromLiteral("v")) {
-			hx_if_475 = self.splitString(self.requireAttr(x, hxrt.StringFromLiteral("v")), hxrt.StringFromLiteral(":"))
+			hx_if_473 = self.splitString(self.requireAttr(x, hxrt.StringFromLiteral("v")), hxrt.StringFromLiteral(":"))
 		} else {
-			hx_if_475 = nil
+			hx_if_473 = nil
 		}
-		evalues := hx_if_475
+		evalues := hx_if_473
 		valueIndex := 0
 		e := x.elements()
-		for func(hx_obj_476 map[string]any) func() bool {
-			hx_field_477 := hx_obj_476["hasNext"]
-			if hx_field_477 == nil {
-				var hx_zero_478 func() bool
-				return hx_zero_478
+		for func(hx_obj_474 map[string]any) func() bool {
+			hx_field_475 := hx_obj_474["hasNext"]
+			if hx_field_475 == nil {
+				var hx_zero_476 func() bool
+				return hx_zero_476
 			}
-			return hx_field_477.(func() bool)
+			return hx_field_475.(func() bool)
 		}(e)() {
-			e_1 := func(hx_obj_479 map[string]any) func() *Xml {
-				hx_field_480 := hx_obj_479["next"]
-				if hx_field_480 == nil {
-					var hx_zero_481 func() *Xml
-					return hx_zero_481
+			e_1 := func(hx_obj_477 map[string]any) func() *Xml {
+				hx_field_478 := hx_obj_477["next"]
+				if hx_field_478 == nil {
+					var hx_zero_479 func() *Xml
+					return hx_zero_479
 				}
-				return hx_field_480.(func() *Xml)
+				return hx_field_478.(func() *Xml)
 			}(e)()
 			opt := false
-			var hx_if_482 *string
+			var hx_if_480 *string
 			if argIndex < len(aname) {
-				hx_if_482 = aname[argIndex]
+				hx_if_480 = aname[argIndex]
 			} else {
-				hx_if_482 = nil
+				hx_if_480 = nil
 			}
-			a := hx_if_482
+			a := hx_if_480
 			argIndex = int(int32((argIndex + 1)))
 			if hxrt.StringEqualStringPtr(a, nil) {
 				a = hxrt.StringFromLiteral("")
@@ -1936,28 +1935,28 @@ func (self *haxe__rtti__XmlParser) xtype(x *Xml) *haxe__rtti__CType {
 				opt = true
 				a = hxrt.StringSubstrStringPtr(a, 1, 0, false)
 			}
-			var hx_if_484 *string
+			var hx_if_482 *string
 			if (evalues == nil) || (valueIndex >= len(evalues)) {
-				hx_if_484 = nil
+				hx_if_482 = nil
 			} else {
-				hx_post_483 := valueIndex
+				hx_post_481 := valueIndex
 				valueIndex = int(int32((valueIndex + 1)))
-				hx_if_484 = evalues[hx_post_483]
+				hx_if_482 = evalues[hx_post_481]
 			}
-			v := hx_if_484
+			v := hx_if_482
 			args = append(args, func() map[string]any {
-				hx_obj_486 := map[string]any{}
-				hx_obj_486["name"] = a
-				hx_obj_486["opt"] = opt
-				hx_obj_486["t"] = self.xtype(e_1)
-				var hx_if_487 *string
+				hx_obj_484 := map[string]any{}
+				hx_obj_484["name"] = a
+				hx_obj_484["opt"] = opt
+				hx_obj_484["t"] = self.xtype(e_1)
+				var hx_if_485 *string
 				if hxrt.StringEqualStringPtr(v, hxrt.StringFromLiteral("")) {
-					hx_if_487 = nil
+					hx_if_485 = nil
 				} else {
-					hx_if_487 = v
+					hx_if_485 = v
 				}
-				hx_obj_486["value"] = hx_if_487
-				return hx_obj_486
+				hx_obj_484["value"] = hx_if_485
+				return hx_obj_484
 			}())
 		}
 		ret := args[int(int32((hxrt.Int32Wrap(len(args)) - hxrt.Int32Wrap(1))))]
@@ -1965,38 +1964,38 @@ func (self *haxe__rtti__XmlParser) xtype(x *Xml) *haxe__rtti__CType {
 		_g := 0
 		_g1 := int(int32((hxrt.Int32Wrap(len(args)) - hxrt.Int32Wrap(1))))
 		for _g < _g1 {
-			hx_post_488 := _g
+			hx_post_486 := _g
 			_g = int(int32((_g + 1)))
-			i := hx_post_488
+			i := hx_post_486
 			callArgs = append(callArgs, args[i])
 		}
-		return haxe__rtti__CType_CFunction(callArgs, func(hx_obj_490 map[string]any) *haxe__rtti__CType {
-			hx_field_491 := hx_obj_490["t"]
-			if hx_field_491 == nil {
-				var hx_zero_492 *haxe__rtti__CType
-				return hx_zero_492
+		return haxe__rtti__CType_CFunction(callArgs, func(hx_obj_488 map[string]any) *haxe__rtti__CType {
+			hx_field_489 := hx_obj_488["t"]
+			if hx_field_489 == nil {
+				var hx_zero_490 *haxe__rtti__CType
+				return hx_zero_490
 			}
-			return hx_field_491.(*haxe__rtti__CType)
+			return hx_field_489.(*haxe__rtti__CType)
 		}(ret))
 	}
 	if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("a")) {
 		fields := []map[string]any{}
 		f := x.elements()
-		for func(hx_obj_493 map[string]any) func() bool {
-			hx_field_494 := hx_obj_493["hasNext"]
-			if hx_field_494 == nil {
-				var hx_zero_495 func() bool
-				return hx_zero_495
+		for func(hx_obj_491 map[string]any) func() bool {
+			hx_field_492 := hx_obj_491["hasNext"]
+			if hx_field_492 == nil {
+				var hx_zero_493 func() bool
+				return hx_zero_493
 			}
-			return hx_field_494.(func() bool)
+			return hx_field_492.(func() bool)
 		}(f)() {
-			f_1 := func(hx_obj_496 map[string]any) func() *Xml {
-				hx_field_497 := hx_obj_496["next"]
-				if hx_field_497 == nil {
-					var hx_zero_498 func() *Xml
-					return hx_zero_498
+			f_1 := func(hx_obj_494 map[string]any) func() *Xml {
+				hx_field_495 := hx_obj_494["next"]
+				if hx_field_495 == nil {
+					var hx_zero_496 func() *Xml
+					return hx_zero_496
 				}
-				return hx_field_497.(func() *Xml)
+				return hx_field_495.(func() *Xml)
 			}(f)()
 			f_2 := self.xclassfield(f_1, true)
 			f_2["platforms"] = []*string{}
@@ -2013,28 +2012,28 @@ func (self *haxe__rtti__XmlParser) xtype(x *Xml) *haxe__rtti__CType {
 		return haxe__rtti__CType_CDynamic(t)
 	}
 	hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid "), nodeName))
-	var hx_throw_zero_500 *haxe__rtti__CType
-	return hx_throw_zero_500
+	var hx_throw_zero_498 *haxe__rtti__CType
+	return hx_throw_zero_498
 }
 
 func (self *haxe__rtti__XmlParser) xtypeparams(x *Xml) []*haxe__rtti__CType {
 	p := []*haxe__rtti__CType{}
 	c := x.elements()
-	for func(hx_obj_501 map[string]any) func() bool {
-		hx_field_502 := hx_obj_501["hasNext"]
-		if hx_field_502 == nil {
-			var hx_zero_503 func() bool
-			return hx_zero_503
+	for func(hx_obj_499 map[string]any) func() bool {
+		hx_field_500 := hx_obj_499["hasNext"]
+		if hx_field_500 == nil {
+			var hx_zero_501 func() bool
+			return hx_zero_501
 		}
-		return hx_field_502.(func() bool)
+		return hx_field_500.(func() bool)
 	}(c)() {
-		c_1 := func(hx_obj_504 map[string]any) func() *Xml {
-			hx_field_505 := hx_obj_504["next"]
-			if hx_field_505 == nil {
-				var hx_zero_506 func() *Xml
-				return hx_zero_506
+		c_1 := func(hx_obj_502 map[string]any) func() *Xml {
+			hx_field_503 := hx_obj_502["next"]
+			if hx_field_503 == nil {
+				var hx_zero_504 func() *Xml
+				return hx_zero_504
 			}
-			return hx_field_505.(func() *Xml)
+			return hx_field_503.(func() *Xml)
 		}(c)()
 		p = append(p, self.xtype(c_1))
 	}
@@ -2055,9 +2054,9 @@ func (self *haxe__rtti__XmlParser) joinStringArray(values []*string, separator *
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_509 := _g
+		hx_post_507 := _g
 		_g = int(int32((_g + 1)))
-		i := hx_post_509
+		i := hx_post_507
 		if i > 0 {
 			buf_b = hxrt.StringConcatStringPtr(buf_b, hxrt.StdString(separator))
 		}
@@ -2098,47 +2097,45 @@ func (self *haxe__rtti__XmlParser) findSeparator(value *string, separator *strin
 
 func (self *haxe__rtti__XmlParser) requireAttr(x *Xml, name *string) *string {
 	value := x.get(name)
-	var hx_if_512 *string
+	var hx_if_510 *string
 	if hxrt.StringEqualStringPtr(value, nil) {
-		hx_if_512 = hxrt.StringFromLiteral("")
+		hx_if_510 = hxrt.StringFromLiteral("")
 	} else {
-		hx_if_512 = value
+		hx_if_510 = value
 	}
-	return hx_if_512
+	return hx_if_510
 }
 
 func (self *haxe__rtti__XmlParser) hasNamedElement(x *Xml, name *string) bool {
-	return func(hx_obj_513 map[string]any) func() bool {
-		hx_field_514 := hx_obj_513["hasNext"]
-		if hx_field_514 == nil {
-			var hx_zero_515 func() bool
-			return hx_zero_515
+	return func(hx_obj_511 map[string]any) func() bool {
+		hx_field_512 := hx_obj_511["hasNext"]
+		if hx_field_512 == nil {
+			var hx_zero_513 func() bool
+			return hx_zero_513
 		}
-		return hx_field_514.(func() bool)
+		return hx_field_512.(func() bool)
 	}(x.elementsNamed(name))()
 }
 
 func (self *haxe__rtti__XmlParser) requireNamedElement(x *Xml, name *string) *Xml {
 	elements := x.elementsNamed(name)
-	if !func(hx_obj_517 map[string]any) func() bool {
-		hx_field_518 := hx_obj_517["hasNext"]
-		if hx_field_518 == nil {
-			var hx_zero_519 func() bool
-			return hx_zero_519
+	if !func(hx_obj_514 map[string]any) func() bool {
+		hx_field_515 := hx_obj_514["hasNext"]
+		if hx_field_515 == nil {
+			var hx_zero_516 func() bool
+			return hx_zero_516
 		}
-		return hx_field_518.(func() bool)
+		return hx_field_515.(func() bool)
 	}(elements)() {
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(self.nodeDisplayName(x), hxrt.StringFromLiteral(" is missing element ")), name))
-		var hx_throw_zero_516 *Xml
-		return hx_throw_zero_516
 	}
-	return func(hx_obj_520 map[string]any) func() *Xml {
-		hx_field_521 := hx_obj_520["next"]
-		if hx_field_521 == nil {
-			var hx_zero_522 func() *Xml
-			return hx_zero_522
+	return func(hx_obj_517 map[string]any) func() *Xml {
+		hx_field_518 := hx_obj_517["next"]
+		if hx_field_518 == nil {
+			var hx_zero_519 func() *Xml
+			return hx_zero_519
 		}
-		return hx_field_521.(func() *Xml)
+		return hx_field_518.(func() *Xml)
 	}(elements)()
 }
 
@@ -2146,31 +2143,32 @@ func (self *haxe__rtti__XmlParser) requireFirstElement(x *Xml) *Xml {
 	first := x.firstElement()
 	if first == nil {
 		hxrt.Throw(hxrt.StringConcatStringPtr(self.nodeDisplayName(x), hxrt.StringFromLiteral(" is missing first element")))
-		var hx_throw_zero_523 *Xml
-		return hx_throw_zero_523
 	}
 	return first
 }
 
 func (self *haxe__rtti__XmlParser) nodeDisplayName(x *Xml) *string {
-	var hx_if_524 *string
+	var hx_if_520 *string
 	if x.nodeType == Xml_Document {
-		hx_if_524 = hxrt.StringFromLiteral("Document")
+		hx_if_520 = hxrt.StringFromLiteral("Document")
 	} else {
-		hx_if_524 = self.elementName(x)
+		hx_if_520 = self.elementName(x)
 	}
-	return hx_if_524
+	return hx_if_520
 }
 
 func (self *haxe__rtti__XmlParser) elementName(x *Xml) *string {
-	name := x.get_nodeName()
-	var hx_if_525 *string
-	if hxrt.StringEqualStringPtr(name, nil) {
-		hx_if_525 = hxrt.StringFromLiteral("")
-	} else {
-		hx_if_525 = name
+	if x.nodeType != Xml_Element {
+		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(x.nodeType))))
 	}
-	return hx_if_525
+	name := x.nodeName
+	var hx_if_521 *string
+	if hxrt.StringEqualStringPtr(name, nil) {
+		hx_if_521 = hxrt.StringFromLiteral("")
+	} else {
+		hx_if_521 = name
+	}
+	return hx_if_521
 }
 
 func (self *haxe__rtti__XmlParser) innerData(x *Xml) *string {
@@ -2182,25 +2180,22 @@ func (self *haxe__rtti__XmlParser) innerData(x *Xml) *string {
 	it_array = _this
 	if !(it_current < len(it_array)) {
 		hxrt.Throw(hxrt.StringConcatStringPtr(self.nodeDisplayName(x), hxrt.StringFromLiteral(" does not have data")))
-		var hx_throw_zero_526 *string
-		return hx_throw_zero_526
 	}
 	value := it_array[func() int {
-		hx_post_527 := it_current
+		hx_post_522 := it_current
 		it_current = int(int32((it_current + 1)))
-		return hx_post_527
+		return hx_post_522
 	}()]
 	if it_current < len(it_array) {
 		hxrt.Throw(hxrt.StringConcatStringPtr(self.nodeDisplayName(x), hxrt.StringFromLiteral(" does not only have data")))
-		var hx_throw_zero_528 *string
-		return hx_throw_zero_528
 	}
 	if (value.nodeType != Xml_PCData) && (value.nodeType != Xml_CData) {
 		hxrt.Throw(hxrt.StringConcatStringPtr(self.nodeDisplayName(x), hxrt.StringFromLiteral(" does not have data")))
-		var hx_throw_zero_529 *string
-		return hx_throw_zero_529
 	}
-	return value.get_nodeValue()
+	if (value.nodeType == Xml_Document) || (value.nodeType == Xml_Element) {
+		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType))))
+	}
+	return value.nodeValue
 }
 
 func (self *haxe__rtti__XmlParser) innerHTML(x *Xml) *string {
@@ -2213,9 +2208,9 @@ func (self *haxe__rtti__XmlParser) innerHTML(x *Xml) *string {
 	_g_current = 0
 	_g_array = _this
 	for _g_current < len(_g_array) {
-		hx_post_530 := _g_current
+		hx_post_523 := _g_current
 		_g_current = int(int32((_g_current + 1)))
-		child := _g_array[hx_post_530]
+		child := _g_array[hx_post_523]
 		x_1 := child.toString()
 		buf_b = hxrt.StringConcatStringPtr(buf_b, hxrt.StdString(x_1))
 	}
@@ -2243,11 +2238,11 @@ func (self *haxe__rtti__XmlParser) parseIntString(value *string) int {
 		result = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(result) * hxrt.Int32Wrap(10))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(zeroCode))))))))
 		index = int(int32((index + 1)))
 	}
-	var hx_if_531 int
+	var hx_if_524 int
 	if negative {
-		hx_if_531 = int(int32(-int32(result)))
+		hx_if_524 = int(int32(-int32(result)))
 	} else {
-		hx_if_531 = result
+		hx_if_524 = result
 	}
-	return hx_if_531
+	return hx_if_524
 }

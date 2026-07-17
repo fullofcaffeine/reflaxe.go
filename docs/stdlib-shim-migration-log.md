@@ -1818,3 +1818,62 @@ Observed result:
 - Compiler debt stays flat at 3,878 raw sites because this change preserves typed
   tail authority and reuses the existing carrier rather than adding syntax or a
   representation owner.
+
+### 2026-07-16: preserve inline throw result types (`haxe_go-vfp.8.3.1`)
+
+Implementation:
+
+- Added a red semantic-diff, snapshot/runtime, and static ownership contract
+  before changing lowering. They cover inline accessors returning `String`,
+  `Int`, `Bool`, nullable references, and generic values inside comparisons,
+  interpolation, and returns, including both successful reads and caught throws.
+  A nested function literal declared before an outer continuation also pins that
+  suppression cannot leak across generated function scopes.
+  Before the fix, the generated fallback could inherit the surrounding
+  expression's Go type instead of the accessor result type.
+- Split throw handling into two typed cases. A terminal throw used as a value
+  now receives its immediate expected storage type, while a guard throw with
+  later generated code no longer emits a synthetic return that would escape the
+  enclosing function or immediately invoked expression.
+- Applied continuation-aware fallback suppression to ordinary statement blocks,
+  expression blocks, and wrapped block-tail throws. Terminal function throws
+  still receive the Go zero return required for static typing, and nullable
+  values use their storage representation rather than their unwrapped value
+  type. Each generated function saves and resets suppression state so an outer
+  guard continuation cannot remove a nested closure's required return.
+- Restored the exact upstream Haxe 4.3.7 inline modifiers on root `Xml`'s four
+  throwing accessors. Parser and printer call sites now inline the same node-type
+  validation and field access without an XML-specific compiler route.
+- Refreshed the affected snapshots and committed example trees only after an
+  aggregate audit. Across the existing snapshot suite, the substantive general
+  change is removal of unreachable zero returns after guard throws; XML adds the
+  expected inline validation/field access, and remaining differences are
+  deterministic temporary renumbering.
+
+Validation evidence:
+
+- `npm run test:changed`
+- `npm test` (`282/282` snapshots)
+- `npm run test:semantic-diff` (`143/143` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance`, `npm run test:stdlib-inventory`, and
+  `npm run compatibility:verify`
+- `npm run test:compiler-debt` (`3,878` `GoRaw` sites and `13` compiler shim
+  entry points)
+- raw-injection hygiene, `npm run test:release-contracts`, and
+  `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates)
+
+Observed result:
+
+- Inline accessor throws now retain their immediate `String`, `Int`, `Bool`,
+  nullable-reference, or erased generic Go result contract even when the caller
+  produces a different outer type. Successful and caught-throw behavior matches
+  the Haxe reference in all five cases.
+- Guard throws followed by a value tail emit no dead return; terminal throwing
+  value branches retain correctly typed `bool` or `any` zero returns solely for
+  Go's static checker. Root `Xml` accessors can therefore match upstream source
+  without compiler-owned library policy.
+- Compiler debt remains flat at 3,878 raw sites. This slice does not change the
+  exception runtime representation or claim the remaining typed-Go-IR
+  control-flow work tracked by the other `haxe_go-vfp.8.3` children.
