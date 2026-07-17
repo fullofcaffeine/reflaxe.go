@@ -85,4 +85,14 @@ asks the independent reviewer to choose the metadata/adapter boundary before
 `haxe_go-vfp.8.7.19` changes generated representation. No review response has
 been received yet.
 
+The Go extern method-set gap has a separate commit-pinned checkpoint:
+
+- [structural Go method-set satisfaction for typed extern interfaces](review-prompt-ecbfe9ea-go-method-sets.md).
+
+This prompt asks the reviewer to choose the Haxe typing and proof-metadata
+boundary for calls such as `*bytes.Buffer` to `io.Writer` before
+`haxe_go-vfp.8.4.1` changes compiler or generator behavior. A deterministic
+manual-upload package was prepared from source commit `ecbfe9ea`; no review
+response has been received yet.
+
 The local finding-by-finding disposition is recorded on Bead `haxe_go-vfp.3.3`; accepted findings remain owned by their dependency-ordered implementation beads rather than by this evidence directory.
