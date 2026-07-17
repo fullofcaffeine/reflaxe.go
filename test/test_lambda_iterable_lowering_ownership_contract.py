@@ -9,6 +9,9 @@ SOURCE_PLANNER = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoSourceOwnedSt
 LAMBDA_OVERRIDE = ROOT / "std" / "go" / "_std" / "Lambda.hx"
 STRUCTURAL_ITERATOR_SNAPSHOT = ROOT / "test" / "snapshot" / "core" / "structural_iterator_assignment" / "intended"
 INLINE_EFFECT_SNAPSHOT = ROOT / "test" / "snapshot" / "core" / "inline_structural_iterator_effect" / "intended"
+INLINE_CONCRETE_EFFECT_SNAPSHOT = (
+    ROOT / "test" / "snapshot" / "core" / "inline_concrete_structural_iterator_effect" / "intended"
+)
 CONSTRUCTOR_ITERATOR_SNAPSHOT = ROOT / "test" / "snapshot" / "core" / "structural_iterator_constructor_argument" / "intended"
 XML_OVERRIDE = ROOT / "std" / "go" / "_std" / "Xml.hx"
 XML_PRINTER_SNAPSHOT = (
@@ -275,6 +278,72 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
         self.assertGreaterEqual(xml_printer_go.count("value.ensureElementType()"), 3)
         self.assertIn("value.children", xml_printer_go)
         self.assertNotIn("value.iterator()", xml_printer_go)
+
+    def test_effectful_inline_concrete_tail_reuses_the_structural_adapter(self):
+        compiler_source = GO_COMPILER.read_text(encoding="utf-8")
+        lowering_source = LOWERING_MODULE.read_text(encoding="utf-8")
+        main_go = (INLINE_CONCRETE_EFFECT_SNAPSHOT / "main.go").read_text(encoding="utf-8")
+
+        validation_plan = function_block(
+            lowering_source,
+            "concreteStructuralIteratorPlan",
+            "unwrapStructuralSourceExpr",
+        )
+        for required in [
+            "structuralIteratorShape(toType)",
+            'concreteIteratorMethod(sourceClass, sourceParams, "hasNext")',
+            'concreteIteratorMethod(sourceClass, sourceParams, "next")',
+        ]:
+            self.assertIn(required, validation_plan)
+
+        tail_plan = function_block(
+            lowering_source,
+            "inlineConcreteIteratorTailPlan",
+            "inlineConcreteStructuralIteratorCoerce",
+        )
+        self.assertIn("exprs.slice(0, exprs.length - 1).concat(tailPlan.setup)", tail_plan)
+        self.assertIn("concreteStructuralIteratorPlan(source.t, toType)", tail_plan)
+
+        inline_adapter = function_block(
+            lowering_source,
+            "inlineConcreteStructuralIteratorCoerce",
+            "structuralIteratorCoerce",
+        )
+        self.assertIn("lowerToStatements(setupExpr)", inline_adapter)
+        self.assertIn("structuralIteratorCoerce(loweredTail.expr, tailPlan.sourceExpr.t, toType)", inline_adapter)
+        for forbidden in ["nativeArrayCursorMap", "reflect", "unsafe", "GoStmt.GoRaw"]:
+            self.assertNotIn(forbidden, inline_adapter)
+
+        expected_upcast = function_block(compiler_source, "lowerExprWithExpectedUpcast", "upcastIfNeeded")
+        self.assertIn("inlineConcreteStructuralIteratorCoerce", expected_upcast)
+        self.assertLess(
+            expected_upcast.index("nativeArrayStructuralIteratorCoerce"),
+            expected_upcast.index("inlineConcreteStructuralIteratorCoerce"),
+            "Array must retain its specialized live-slice plan before general concrete-tail recovery",
+        )
+        source_aware_upcast = function_block(compiler_source, "upcastIfNeeded", "typeToGoType")
+        self.assertIn("materializeExprWithPrefix(inlineConcreteIterator, toType)", source_aware_upcast)
+        self.assertLess(
+            source_aware_upcast.index("nativeArrayStructuralIteratorCoerce"),
+            source_aware_upcast.index("inlineConcreteStructuralIteratorCoerce"),
+            "expression contexts must preserve the same Array-first ownership order",
+        )
+
+        main_start = main_go.index("func main()")
+        main_end = main_go.index("func note", main_start)
+        main_body = main_go[main_start:main_end]
+        generic_effect = main_body.index('StringFromLiteral("generic:effect")')
+        generic_constructor = main_body.index("New_SnapshotInlineGenericIterator", generic_effect)
+        virtual_effect = main_body.index('StringFromLiteral("virtual:effect")', generic_constructor)
+        virtual_constructor = main_body.index("New_SnapshotInlineSpecializedStringIterator", virtual_effect)
+        self.assertLess(generic_effect, generic_constructor)
+        self.assertLess(virtual_effect, virtual_constructor)
+        self.assertEqual(main_body.count('StringFromLiteral("generic:effect")'), 1)
+        self.assertEqual(main_body.count('StringFromLiteral("virtual:effect")'), 1)
+        self.assertIn("any(hx_structural_iterator_", main_body)
+        self.assertIn(".__hx_this.next()", main_body)
+        for forbidden in ["ArrayIterator", "reflect.", "unsafe.", ") HasNext(", ") Next("]:
+            self.assertNotIn(forbidden, main_body)
 
     def test_constructor_arguments_reuse_expected_type_coercion_and_emitted_abi(self):
         compiler_source = GO_COMPILER.read_text(encoding="utf-8")

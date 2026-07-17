@@ -1764,3 +1764,57 @@ Observed result:
 - Compiler debt stays flat at 3,878 raw sites because this is an expected-type
   orchestration fix. Effectful inline blocks ending in a non-array concrete
   iterator remain explicitly deferred to `haxe_go-vfp.8.3.6`.
+
+### 2026-07-16: retain concrete iterator authority through effectful inline blocks (`haxe_go-vfp.8.3.6`)
+
+Implementation:
+
+- Added red semantic-diff, positive snapshot/runtime, and negative compile
+  contracts before changing lowering. The positive case records an effect before
+  constructing a user generic iterator, then repeats the shape with a subclass
+  stored in a base-typed local and passed directly to an ordinary call. Before
+  the fix, generated Go tried to pass both class pointers where the existing
+  structural `map[string]any` carrier was required.
+- Extracted the concrete iterator validation from carrier construction into one
+  shared typed plan. It still requires the exact anonymous
+  `hasNext():Bool` / `next():T` target and a non-extern concrete class with
+  matching zero-argument methods; ordinary direct values and recovered inline
+  tails now make the same decision.
+- Added a narrow nested-block plan that retains every setup expression in source
+  order while preserving the final expression's concrete Haxe type. The setup
+  lowers once, then the terminal value flows through the existing class-agnostic
+  structural adapter, including erased generic result recovery and `__hx_this`
+  virtual dispatch.
+- Wired the plan into both expected-type statement contexts and source-aware
+  ordinary call arguments. Each entry point tries the native Array cursor first,
+  so Array keeps its distinct live-slice representation instead of falling into
+  the general concrete-class path.
+- Added no runtime helper, reflection, unsafe conversion, raw fragment, second
+  carrier, profile branch, or stdlib class-name dispatch.
+
+Validation evidence:
+
+- `npm run test:changed`
+- `npm test` (`281/281` snapshots)
+- `npm run test:semantic-diff` (`142/142` cases)
+- `npm run test:stdlib-sweep:go-test` (`55/55` strict modules)
+- `npm run test:examples` (`12/12` example/profile lanes)
+- `npm run test:stdlib:governance`, `npm run test:stdlib-inventory`, and
+  `npm run compatibility:verify`
+- `npm run test:compiler-debt` (`3,878` `GoRaw` sites and `13` compiler shim
+  entry points)
+- raw-injection hygiene, `npm run test:release-contracts`, and
+  `npm run security:go-tooling` (all 28 race/checkptr/vet/staticcheck gates)
+
+Observed result:
+
+- Effectful inline methods can now return user concrete generic iterators to
+  matching `Iterator<T>` declarations and ordinary call parameters. Effects run
+  once before construction, erased generic results recover the Haxe-proven
+  element type, and base-typed subclass tails retain override dispatch.
+- Mismatched element types still fail in Haxe before Go generation. Existing
+  direct concrete, Array live-cursor, constructor, and inline XML paths remain
+  green through the aggregate regression suites.
+- Compiler debt stays flat at 3,878 raw sites because this change preserves typed
+  tail authority and reuses the existing carrier rather than adding syntax or a
+  representation owner.

@@ -11252,6 +11252,10 @@ class GoCompiler {
 		if (nativeArrayIterator != null) {
 			return nativeArrayIterator;
 		}
+		var inlineConcreteIterator = lambdaIterableLowering.inlineConcreteStructuralIteratorCoerce(source, targetType);
+		if (inlineConcreteIterator != null) {
+			return inlineConcreteIterator;
+		}
 		var lowered = lowerExprWithPrefix(source);
 		return {
 			prefix: lowered.prefix,
@@ -11265,15 +11269,19 @@ class GoCompiler {
 		Why: Go does not consider a generated class pointer assignable to Haxe's
 		anonymous iterator map, while ordinary class inheritance still needs its
 		embedded-base selector path.
-		How: Prefer the source-aware live-array plan when typed source is available,
-		then the general concrete iterator adapter, then the existing nominal upcast;
-		leave unrelated values unchanged.
+		How: Prefer source-aware live-array and inline concrete-tail plans when typed
+		source is available, then the general concrete iterator adapter, then the
+		existing nominal upcast; leave unrelated values unchanged.
 	**/
 	function upcastIfNeeded(expr:GoExpr, fromType:Type, toType:Type, ?sourceTypedExpr:TypedExpr):GoExpr {
 		if (sourceTypedExpr != null) {
 			var nativeArrayIterator = lambdaIterableLowering.nativeArrayStructuralIteratorCoerce(sourceTypedExpr, toType);
 			if (nativeArrayIterator != null) {
 				return materializeExprWithPrefix(nativeArrayIterator, toType).expr;
+			}
+			var inlineConcreteIterator = lambdaIterableLowering.inlineConcreteStructuralIteratorCoerce(sourceTypedExpr, toType);
+			if (inlineConcreteIterator != null) {
+				return materializeExprWithPrefix(inlineConcreteIterator, toType).expr;
 			}
 		}
 		var structuralIterator = lambdaIterableLowering.structuralIteratorCoerce(expr, fromType, toType);

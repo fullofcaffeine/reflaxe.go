@@ -56,6 +56,31 @@ private typedef GoConcreteIteratorMethod = {
 }
 
 /**
+	What: The validated class and method authority for one structural iterator adapter.
+	Why: Inline-tail discovery must prove an adapter exists before lowering retained
+	setup statements, while ordinary coercion needs the same proof to build closures.
+	How: Resolve the exact anonymous target shape and concrete source methods once.
+**/
+private typedef GoConcreteStructuralIteratorPlan = {
+	final targetShape:GoStructuralIteratorShape;
+	final sourceClass:ClassType;
+	final hasNextMethod:GoConcreteIteratorMethod;
+	final nextMethod:GoConcreteIteratorMethod;
+	final declaredNextReturn:Type;
+}
+
+/**
+	What: One concrete terminal iterator plus expressions that precede it in an inline block.
+	Why: The enclosing block is typed as anonymous `Iterator<T>`, but its terminal
+	expression retains the concrete class needed by the Go adapter.
+	How: Keep the terminal typed expression intact and lower the ordered setup later.
+**/
+private typedef GoInlineConcreteIteratorTailPlan = {
+	final setup:Array<TypedExpr>;
+	final sourceExpr:TypedExpr;
+}
+
+/**
 	What: The typed array source and ordered setup expressions recovered from an
 	inlined Array iterator.
 	Why: Replacing the final erased iterator constructor must not discard effects
@@ -216,6 +241,55 @@ class GoLambdaIterableLowering {
 		return concreteIteratorMethod(superClass, superParams, name);
 	}
 
+	/**
+		What: Validates a concrete generated class against the closed iterator target.
+		Why: Both ordinary values and recovered inline tails must make the same typed
+		decision before emitting a structural carrier.
+		How: Require a non-extern class plus zero-argument `hasNext():Bool` and `next()`
+		methods, retaining both applied validation and the declared emitted result ABI.
+	**/
+	function concreteStructuralIteratorPlan(fromType:Type, toType:Type):Null<GoConcreteStructuralIteratorPlan> {
+		var targetShape = structuralIteratorShape(toType);
+		if (targetShape == null) {
+			return null;
+		}
+
+		var sourceClass:Null<ClassType> = null;
+		var sourceParams:Array<Type> = [];
+		switch (Context.follow(fromType)) {
+			case TInst(classRef, params):
+				sourceClass = classRef.get();
+				sourceParams = params;
+			case _:
+		}
+		if (sourceClass == null || sourceClass.isExtern || sourceClass.isInterface) {
+			return null;
+		}
+
+		var hasNextMethod = concreteIteratorMethod(sourceClass, sourceParams, "hasNext");
+		var nextMethod = concreteIteratorMethod(sourceClass, sourceParams, "next");
+		if (hasNextMethod == null || nextMethod == null) {
+			return null;
+		}
+		var appliedHasNextReturn = zeroArgReturnType(hasNextMethod.appliedType);
+		var appliedNextReturn = zeroArgReturnType(nextMethod.appliedType);
+		var declaredNextReturn = zeroArgReturnType(nextMethod.declaredType);
+		if (appliedHasNextReturn == null
+			|| scalarGoType(appliedHasNextReturn) != "bool"
+			|| appliedNextReturn == null
+			|| declaredNextReturn == null) {
+			return null;
+		}
+
+		return {
+			targetShape: targetShape,
+			sourceClass: sourceClass,
+			hasNextMethod: hasNextMethod,
+			nextMethod: nextMethod,
+			declaredNextReturn: declaredNextReturn
+		};
+	}
+
 	/** What: Removes compile-time-only wrappers without changing runtime evaluation. **/
 	function unwrapStructuralSourceExpr(expr:TypedExpr):TypedExpr {
 		return switch (expr.expr) {
@@ -349,6 +423,65 @@ class GoLambdaIterableLowering {
 	}
 
 	/**
+		What: Recovers the concrete terminal iterator from a nested inline block.
+		Why: Haxe assigns the block its declared anonymous `Iterator<T>` type, hiding
+		the terminal class from ordinary post-lowering coercion.
+		How: Retain every preceding expression in order and admit the terminal value
+		only when the shared concrete structural plan validates it.
+	**/
+	function inlineConcreteIteratorTailPlan(expr:TypedExpr, toType:Type):Null<GoInlineConcreteIteratorTailPlan> {
+		var source = unwrapStructuralSourceExpr(expr);
+		return switch (source.expr) {
+			case TBlock(exprs) if (exprs.length > 0):
+				var tailPlan = inlineConcreteIteratorTailPlan(exprs[exprs.length - 1], toType);
+				tailPlan == null ? null : {
+					setup: exprs.slice(0, exprs.length - 1).concat(tailPlan.setup),
+					sourceExpr: tailPlan.sourceExpr
+				};
+			case _:
+				concreteStructuralIteratorPlan(source.t, toType) == null ? null : {
+					setup: [],
+					sourceExpr: source
+				};
+		};
+	}
+
+	/**
+		What: Adapts an effectful inline block ending in a concrete generated iterator.
+		Why: Lowering the enclosing anonymous block first loses the class authority
+		required by `structuralIteratorCoerce` and leaves an invalid Go pointer-to-map
+		assignment.
+		How: Keep Array on its dedicated live-slice path, lower the retained setup once,
+		then pass the typed terminal value to the existing class-agnostic adapter.
+	**/
+	public function inlineConcreteStructuralIteratorCoerce(sourceExpr:TypedExpr, toType:Type):Null<GoLambdaLoweredExprWithPrefix> {
+		var source = unwrapStructuralSourceExpr(sourceExpr);
+		switch (source.expr) {
+			case TBlock(_):
+			case _:
+				return null;
+		}
+		var tailPlan = inlineConcreteIteratorTailPlan(source, toType);
+		if (tailPlan == null) {
+			return null;
+		}
+		var loweredTail = lowerExpr(tailPlan.sourceExpr);
+		var adaptedTail = structuralIteratorCoerce(loweredTail.expr, tailPlan.sourceExpr.t, toType);
+		if (adaptedTail == null) {
+			return null;
+		}
+		var prefix = new Array<GoStmt>();
+		for (setupExpr in tailPlan.setup) {
+			prefix = prefix.concat(lowerToStatements(setupExpr));
+		}
+		return {
+			prefix: prefix,
+			expr: adaptedTail,
+			isStringLike: false
+		};
+	}
+
+	/**
 		What:
 		- Adapts one concrete generated iterator class to Haxe's structural
 		  `Iterator<T>` carrier.
@@ -367,38 +500,14 @@ class GoLambdaIterableLowering {
 		  erased `next()` result is asserted back to the target element type.
 	**/
 	public function structuralIteratorCoerce(expr:GoExpr, fromType:Type, toType:Type):Null<GoExpr> {
-		var targetShape = structuralIteratorShape(toType);
-		if (targetShape == null) {
+		var plan = concreteStructuralIteratorPlan(fromType, toType);
+		if (plan == null) {
 			return null;
 		}
-
-		var sourceClass:Null<ClassType> = null;
-		var sourceParams:Array<Type> = [];
-		switch (Context.follow(fromType)) {
-			case TInst(classRef, params):
-				sourceClass = classRef.get();
-				sourceParams = params;
-			case _:
-		}
-		if (sourceClass == null || sourceClass.isExtern || sourceClass.isInterface) {
-			return null;
-		}
-
-		var hasNextMethod = concreteIteratorMethod(sourceClass, sourceParams, "hasNext");
-		var nextMethod = concreteIteratorMethod(sourceClass, sourceParams, "next");
-		if (hasNextMethod == null || nextMethod == null) {
-			return null;
-		}
-		var appliedHasNextReturn = zeroArgReturnType(hasNextMethod.appliedType);
-		var appliedNextReturn = zeroArgReturnType(nextMethod.appliedType);
-		var declaredNextReturn = zeroArgReturnType(nextMethod.declaredType);
-		if (appliedHasNextReturn == null
-			|| scalarGoType(appliedHasNextReturn) != "bool"
-			|| appliedNextReturn == null
-			|| declaredNextReturn == null) {
-			return null;
-		}
-
+		var targetShape = plan.targetShape;
+		var sourceClass = plan.sourceClass;
+		var hasNextMethod = plan.hasNextMethod;
+		var nextMethod = plan.nextMethod;
 		noteSourceOwnedStdlibUsage(sourceClass);
 		var sourceName = freshTempName("hx_structural_iterator");
 		var mapName = freshTempName("hx_structural_iterator_map");
@@ -407,7 +516,7 @@ class GoLambdaIterableLowering {
 		var hasNextCall = GoExpr.GoCall(GoExpr.GoSelector(dispatchReceiver, interfaceFieldName(sourceClass, hasNextMethod.field)), []);
 		var nextCall = GoExpr.GoCall(GoExpr.GoSelector(dispatchReceiver, interfaceFieldName(sourceClass, nextMethod.field)), []);
 		var targetResultGoType = functionResultGoType(targetShape.nextReturnType);
-		var declaredResultGoType = functionResultGoType(declaredNextReturn);
+		var declaredResultGoType = functionResultGoType(plan.declaredNextReturn);
 		var adaptedNext:GoExpr = nextCall;
 		if (targetResultGoType == "any") {
 			adaptedNext = GoExpr.GoCall(GoExpr.GoIdent("any"), [nextCall]);

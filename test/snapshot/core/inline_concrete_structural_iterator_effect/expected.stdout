@@ -1,0 +1,4 @@
+events-generic=generic:effect,generic:new
+generic=g1,g2
+virtual=special:v
+events-final=generic:effect,generic:new,virtual:effect,virtual:new
