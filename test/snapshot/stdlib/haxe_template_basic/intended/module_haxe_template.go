@@ -1085,33 +1085,15 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 				hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Cannot iter on "), hxrt.StdString(value_1)))
 			})
 		})
+		var hasNext any = Reflect_field(iterator, hxrt.StringFromLiteral("hasNext"))
+		var next any = Reflect_field(iterator, hxrt.StringFromLiteral("next"))
+		if hxrt.AnyEqualsNull(hasNext) || hxrt.AnyEqualsNull(next) {
+			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Cannot iter on "), hxrt.StdString(value_1)))
+		}
 		hx_arr_216 := self.stack
 		hx_arr_216.Push(self.context)
-		iterable := func(hx_value_217 any) map[string]any {
-			if hx_value_217 == nil {
-				var hx_zero_218 map[string]any
-				return hx_zero_218
-			}
-			return hx_value_217.(map[string]any)
-		}(iterator)
-		ctx_1 := iterable
-		for func(hx_obj_219 map[string]any) func() bool {
-			hx_field_220 := hx_obj_219["hasNext"]
-			if hx_field_220 == nil {
-				var hx_zero_221 func() bool
-				return hx_zero_221
-			}
-			return hx_field_220.(func() bool)
-		}(ctx_1)() {
-			var ctx_2 any = func(hx_obj_222 map[string]any) func() any {
-				hx_field_223 := hx_obj_222["next"]
-				if hx_field_223 == nil {
-					var hx_zero_224 func() any
-					return hx_zero_224
-				}
-				return hx_field_223.(func() any)
-			}(ctx_1)()
-			self.context = ctx_2
+		for hxrt.HaxeEqual(hxrt.TemplateCall(hasNext, []any{}), true) {
+			self.context = hxrt.TemplateCall(next, []any{})
 			self.__hx_this.run(loop)
 		}
 		self.context = self.__hx_this.popStackValue()
@@ -1125,12 +1107,12 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 		callArgs.Push(self.resolve)
 		_g_9 := 0
 		for _g_9 < params.Len() {
-			param := func(hx_value_226 any) *haxe___Template__TemplateExpr {
-				if hx_value_226 == nil {
-					var hx_zero_227 *haxe___Template__TemplateExpr
-					return hx_zero_227
+			param := func(hx_value_218 any) *haxe___Template__TemplateExpr {
+				if hx_value_218 == nil {
+					var hx_zero_219 *haxe___Template__TemplateExpr
+					return hx_zero_219
 				}
-				return hx_value_226.(*haxe___Template__TemplateExpr)
+				return hx_value_218.(*haxe___Template__TemplateExpr)
 			}(params.Get(_g_9))
 			_g_9 = int(int32((_g_9 + 1)))
 			if param.tag == 0 {
@@ -1147,17 +1129,17 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 		}
 		hxrt.TryCatch(func() {
 			self.output = hxrt.StringConcatStringPtr(self.output, hxrt.StdString(hxrt.TemplateCall(fn, callArgs.ValuesCopy())))
-		}, func(hx_caught_230 any) {
-			err := hx_caught_230
-			var hx_try_232 *string
+		}, func(hx_caught_222 any) {
+			err := hx_caught_222
+			var hx_try_224 *string
 			hxrt.TryCatch(func() {
-				hx_try_232 = haxe__Template_joinDynamicArgs(callArgs)
-			}, func(hx_caught_233 any) {
-				hx_tmp_2 := hx_caught_233
+				hx_try_224 = haxe__Template_joinDynamicArgs(callArgs)
+			}, func(hx_caught_225 any) {
+				hx_tmp_2 := hx_caught_225
 				_ = hx_tmp_2
-				hx_try_232 = hxrt.StringFromLiteral("???")
+				hx_try_224 = hxrt.StringFromLiteral("???")
 			})
-			argsText := hx_try_232
+			argsText := hx_try_224
 			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Macro call "), name), hxrt.StringFromLiteral("(")), argsText), hxrt.StringFromLiteral(") failed (")), hxrt.StdString(err)), hxrt.StringFromLiteral(")")))
 		})
 	}
@@ -1170,9 +1152,9 @@ func (self *haxe__Template) popStackValue() any {
 	_g := 0
 	_g1 := lastIndex
 	for _g < _g1 {
-		hx_post_235 := _g
+		hx_post_227 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_235
+		index := hx_post_227
 		remaining.Push(self.stack.Get(index))
 	}
 	self.stack = remaining
@@ -1326,19 +1308,19 @@ func haxe__Template_compareValues(left any, right any) int {
 	if leftNumeric && rightNumeric {
 		leftFloat := haxe__Template_valueAsFloat(left)
 		rightFloat := haxe__Template_valueAsFloat(right)
-		var hx_if_238 int
+		var hx_if_230 int
 		if leftFloat < rightFloat {
-			hx_if_238 = -1
+			hx_if_230 = -1
 		} else {
-			var hx_if_237 int
+			var hx_if_229 int
 			if leftFloat > rightFloat {
-				hx_if_237 = 1
+				hx_if_229 = 1
 			} else {
-				hx_if_237 = 0
+				hx_if_229 = 0
 			}
-			hx_if_238 = hx_if_237
+			hx_if_230 = hx_if_229
 		}
-		return hx_if_238
+		return hx_if_230
 	}
 	return Reflect_compare(hxrt.StdString(left), hxrt.StdString(right))
 }
@@ -1356,8 +1338,8 @@ var haxe__Template_expr_splitter *EReg = New_EReg(hxrt.StringFromLiteral("(\\(|\
 var haxe__Template_expr_trim *EReg = New_EReg(hxrt.StringFromLiteral("^[ ]*([^ ]+)[ ]*$"), hxrt.StringFromLiteral(""))
 
 var haxe__Template_globals any = any(func() map[string]any {
-	hx_obj_239 := map[string]any{}
-	return hx_obj_239
+	hx_obj_231 := map[string]any{}
+	return hx_obj_231
 }())
 
 func haxe__Template_isSpaceOnly(value *string) bool {
@@ -1367,9 +1349,9 @@ func haxe__Template_isSpaceOnly(value *string) bool {
 	_g_s = value
 	for _g_offset < hxrt.StringLengthStringPtr(_g_s) {
 		code := hxrt.StringCharCodeAtStringPtr(_g_s, func() int {
-			hx_post_240 := _g_offset
+			hx_post_232 := _g_offset
 			_g_offset = int(int32((_g_offset + 1)))
-			return hx_post_240
+			return hx_post_232
 		}())
 		if code != 32 {
 			return false
@@ -1383,9 +1365,9 @@ func haxe__Template_joinDynamicArgs(values *hxrt.Array) *string {
 	_g := 0
 	_g1 := values.Len()
 	for _g < _g1 {
-		hx_post_241 := _g
+		hx_post_233 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_241
+		index := hx_post_233
 		if index > 0 {
 			out = hxrt.StringConcatStringPtr(out, hxrt.StringFromLiteral(","))
 		}
@@ -1406,9 +1388,9 @@ func haxe__Template_kwdEnd(value *string, keyword *string) int {
 		_g_s = s
 		for _g_offset < hxrt.StringLengthStringPtr(_g_s) {
 			code := hxrt.StringCharCodeAtStringPtr(_g_s, func() int {
-				hx_post_242 := _g_offset
+				hx_post_234 := _g_offset
 				_g_offset = int(int32((_g_offset + 1)))
-				return hx_post_242
+				return hx_post_234
 			}())
 			if code == 32 {
 				pos = int(int32((pos + 1)))
@@ -1483,13 +1465,13 @@ func haxe__Template_parseFloatLiteral(value *string) float64 {
 				index = int(int32((index + 1)))
 			}
 			for exponent > 0 {
-				var hx_if_243 float64
+				var hx_if_235 float64
 				if exponentSign < 0 {
-					hx_if_243 = (result / 10.0)
+					hx_if_235 = (result / 10.0)
 				} else {
-					hx_if_243 = (result * 10.0)
+					hx_if_235 = (result * 10.0)
 				}
-				result = hx_if_243
+				result = hx_if_235
 				exponent = int(int32((exponent - 1)))
 			}
 		}
@@ -1509,65 +1491,65 @@ func haxe__Template_parseIntLiteral(value *string) int {
 }
 
 func haxe__Template_peekExprToken(cursor *haxe___Template__ExprCursor) map[string]any {
-	var hx_if_246 map[string]any
+	var hx_if_238 map[string]any
 	if cursor.index < cursor.tokens.Len() {
-		hx_if_246 = func(hx_value_244 any) map[string]any {
-			if hx_value_244 == nil {
-				var hx_zero_245 map[string]any
-				return hx_zero_245
+		hx_if_238 = func(hx_value_236 any) map[string]any {
+			if hx_value_236 == nil {
+				var hx_zero_237 map[string]any
+				return hx_zero_237
 			}
-			return hx_value_244.(map[string]any)
+			return hx_value_236.(map[string]any)
 		}(cursor.tokens.Get(cursor.index))
 	} else {
-		hx_if_246 = nil
+		hx_if_238 = nil
 	}
-	return hx_if_246
+	return hx_if_238
 }
 
 func haxe__Template_peekToken(cursor *haxe___Template__TokenCursor) map[string]any {
-	var hx_if_249 map[string]any
+	var hx_if_241 map[string]any
 	if cursor.index < cursor.tokens.Len() {
-		hx_if_249 = func(hx_value_247 any) map[string]any {
-			if hx_value_247 == nil {
-				var hx_zero_248 map[string]any
-				return hx_zero_248
+		hx_if_241 = func(hx_value_239 any) map[string]any {
+			if hx_value_239 == nil {
+				var hx_zero_240 map[string]any
+				return hx_zero_240
 			}
-			return hx_value_247.(map[string]any)
+			return hx_value_239.(map[string]any)
 		}(cursor.tokens.Get(cursor.index))
 	} else {
-		hx_if_249 = nil
+		hx_if_241 = nil
 	}
-	return hx_if_249
+	return hx_if_241
 }
 
 func haxe__Template_popExprToken(cursor *haxe___Template__ExprCursor) map[string]any {
 	if cursor.index >= cursor.tokens.Len() {
 		return nil
 	}
-	hx_post_250 := cursor.index
+	hx_post_242 := cursor.index
 	cursor.index = int(int32((cursor.index + 1)))
-	return func(hx_value_251 any) map[string]any {
-		if hx_value_251 == nil {
-			var hx_zero_252 map[string]any
-			return hx_zero_252
+	return func(hx_value_243 any) map[string]any {
+		if hx_value_243 == nil {
+			var hx_zero_244 map[string]any
+			return hx_zero_244
 		}
-		return hx_value_251.(map[string]any)
-	}(cursor.tokens.Get(hx_post_250))
+		return hx_value_243.(map[string]any)
+	}(cursor.tokens.Get(hx_post_242))
 }
 
 func haxe__Template_popToken(cursor *haxe___Template__TokenCursor) map[string]any {
 	if cursor.index >= cursor.tokens.Len() {
 		return nil
 	}
-	hx_post_253 := cursor.index
+	hx_post_245 := cursor.index
 	cursor.index = int(int32((cursor.index + 1)))
-	return func(hx_value_254 any) map[string]any {
-		if hx_value_254 == nil {
-			var hx_zero_255 map[string]any
-			return hx_zero_255
+	return func(hx_value_246 any) map[string]any {
+		if hx_value_246 == nil {
+			var hx_zero_247 map[string]any
+			return hx_zero_247
 		}
-		return hx_value_254.(map[string]any)
-	}(cursor.tokens.Get(hx_post_253))
+		return hx_value_246.(map[string]any)
+	}(cursor.tokens.Get(hx_post_245))
 }
 
 var haxe__Template_splitter *EReg = New_EReg(hxrt.StringFromLiteral("(::[A-Za-z0-9_ ()&|!+=/><*.\"-]+::|\\$\\$([A-Za-z0-9_-]+)\\()"), hxrt.StringFromLiteral(""))
@@ -1645,12 +1627,12 @@ func haxe__Template_valueAsFloat(value any) float64 {
 			return false
 		}
 	}(any(value)) {
-		return func(hx_value_256 any) float64 {
-			if hx_value_256 == nil {
-				var hx_zero_257 float64
-				return hx_zero_257
+		return func(hx_value_248 any) float64 {
+			if hx_value_248 == nil {
+				var hx_zero_249 float64
+				return hx_zero_249
 			}
-			return hx_value_256.(float64)
+			return hx_value_248.(float64)
 		}(value)
 	}
 	if func(hx_value any) bool {
@@ -1663,17 +1645,17 @@ func haxe__Template_valueAsFloat(value any) float64 {
 			return false
 		}
 	}(any(value)) {
-		return haxe__Template_parseFloatLiteral(hxrt.StdString(func(hx_value_258 any) *string {
-			if hx_value_258 == nil {
-				var hx_zero_259 *string
-				return hx_zero_259
+		return haxe__Template_parseFloatLiteral(hxrt.StdString(func(hx_value_250 any) *string {
+			if hx_value_250 == nil {
+				var hx_zero_251 *string
+				return hx_zero_251
 			}
-			return hx_value_258.(*string)
+			return hx_value_250.(*string)
 		}(value)))
 	}
 	hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Expected numeric expression value, got "), hxrt.StdString(value)))
-	var hx_throw_zero_260 float64
-	return hx_throw_zero_260
+	var hx_throw_zero_252 float64
+	return hx_throw_zero_252
 }
 
 type haxe___Template__TemplateExpr struct {

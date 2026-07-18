@@ -127,6 +127,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Prefix/postfix call argument order | Supported | `core/prefix_call_arg`, `core/postfix_call_arg` |
 | Classes, instance/static fields/methods | Supported | `core/class_fields_methods`, `core/static_fields_methods` |
 | Inheritance and override dispatch | Supported for normally constructed generated hierarchies, including deep upcasts | `core/inheritance_override_dispatch`, `core/inheritance_ctor_chain_upcast`, `core/inheritance_return_upcast`, `core/inheritance_self_dispatch_wiring`, `core/deep_inheritance_dispatch_rebinding` |
+| Dynamic lookup of emitted generated methods through `Reflect.field` / `Reflect.hasField` | Supported through selective same-package method metadata; methods remain lowercase in Go output | `haxe_template_concrete_iterable_contract`, `stdlib/haxe_template_generated_method_lookup` |
 | Interface dispatch | Supported | `core/interface_dispatch_basic` |
 | Super calls | Supported | `core/super_calls` |
 | Enums and switch pattern bindings | Supported | `core/enum_constructors`, `core/switch_enum_basic`, `core/enum_switch_bindings` |
@@ -207,6 +208,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/type_expr_contract`
 - `test/semantic_diff/type_reflection_contract`
 - `test/semantic_diff/type_reflection_extended_contract`
+- `test/semantic_diff/haxe_template_concrete_iterable_contract`
 - `test/semantic_diff/throw_expr_contract`
 - `test/semantic_diff/try_catch_return_forwarding_contract`
 - `test/semantic_diff/atomic_int_bool_contract`
@@ -271,7 +273,7 @@ Shim strategy and alternatives are documented in:
 
 ### Explicit direct-helper exclusions
 
-- `haxe.Template` constructor/execute, nested lookup, array and structural-Dynamic iteration, stack fallback, and macro invocation have direct parity coverage through `test/semantic_diff/haxe_template_contract` and `test/snapshot/stdlib/haxe_template_basic`. Template behavior is staged Haxe; three runtime representation operations cross a typed, footprint-explicit `hxrt` binding. Concrete generated-class iterator discovery remains tracked by `haxe_go-vfp.8.7.19`.
+- `haxe.Template` constructor/execute, nested lookup, array, structural-Dynamic, and concrete generated-class iteration, stack fallback, and macro invocation have direct parity coverage through `test/semantic_diff/haxe_template_contract`, `test/semantic_diff/haxe_template_concrete_iterable_contract`, `test/snapshot/stdlib/haxe_template_basic`, and `test/snapshot/stdlib/haxe_template_generated_method_lookup`. Template behavior is staged Haxe; three runtime representation operations cross a typed, footprint-explicit `hxrt` binding. Generic selective generated-method metadata supplies only already-bound lowercase methods to `Reflect.field` / `Reflect.hasField`.
 - `haxe.ValueException` direct constructor/message/value parity now has semantic-diff coverage through `test/semantic_diff/haxe_value_exception_contract` and snapshot coverage in `test/snapshot/stdlib/haxe_value_exception_basic`.
 
 ### `haxe.Json` runtime-lowered contract

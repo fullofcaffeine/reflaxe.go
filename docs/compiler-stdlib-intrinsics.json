@@ -13,6 +13,17 @@
       ],
       "reviewCondition": "Revisit if staged exception source gains a typed carrier abstraction that preserves arbitrary Haxe thrown values."
     },
+    "approved_generated_method_metadata": {
+      "what": "Generate a method-only lookup over reachable concrete Haxe classes that returns an already-bound lowercase Go method for a Haxe field name.",
+      "why": "Go reflection cannot discover unexported generated methods, and the separate hxrt package cannot select them across the package boundary; ordinary Haxe source also cannot enumerate the final reachable generated class graph.",
+      "how": "Record the exact selector chosen by ordinary class lowering, emit a typed canonical-receiver switch plus per-class own-method resolvers with one generated-superclass fallback, and query it only when Reflect.field or Reflect.hasField is reachable. Public lookup and iteration policy stay in staged source, while hxrt only invokes an already-resolved function value.",
+      "evidence": [
+        "haxe_template_concrete_iterable_contract",
+        "stdlib/haxe_template_generated_method_lookup",
+        "test/test_stdlib_migration_ledger_contract.py"
+      ],
+      "reviewCondition": "Revisit if generated Haxe methods gain a source-visible typed descriptor or callable representation that preserves lowercase Go output without same-package metadata."
+    },
     "approved_lambda_iterable_representation": {
       "what": "Adapt exact calls to all 19 source-owned Lambda algorithms across Go's erased structural Iterable, constrained nested-Iterable, and invariant function representations.",
       "why": "The generated Lambda source accepts the erased map-shaped Iterable protocol, while valid Haxe callers can supply native Go slices, staged lists, concrete iterator classes, typed callbacks, and nested iterable carriers that are not assignable to the same Go shape. A constrained nested iterable additionally becomes a Go method interface that a structural map cannot implement directly.",
@@ -199,6 +210,11 @@
       "dependencies": [],
       "declaresDependencyBlock": false,
       "supportEntryPoints": [
+        {
+          "context": "lowerGeneratedMethodMetadataShimDecls",
+          "status": "approved_intrinsic",
+          "decisionId": "approved_generated_method_metadata"
+        },
         {
           "context": "lowerSerializationSourceBridgeShimDecls",
           "status": "approved_intrinsic",

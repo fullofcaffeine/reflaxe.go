@@ -240,7 +240,7 @@
       "compilerShimGroups": [
         "stdlib_symbols"
       ],
-      "notes": "Go staged portable override for haxe.Template execution semantics. Template parsing, lookup, iteration, macro policy, and rendering remain in Haxe; haxe_go-vfp.8.7.16 moved its three runtime representation operations to a typed hxrt binding."
+      "notes": "Go staged portable override for haxe.Template execution semantics. Template parsing, lookup, concrete and structural iteration, macro policy, and rendering remain in Haxe. haxe_go-vfp.8.7.16 moved its three runtime representation operations to a typed hxrt binding; haxe_go-vfp.8.7.19 lets the generic Reflect path consume selective already-bound generated-method metadata without restoring a Template compiler shim."
     },
     {
       "path": "std/go/_std/haxe/xml/Printer.hx",
@@ -1681,7 +1681,7 @@
       "destination": "std/hxrt/template/NativeTemplate.hx",
       "migrationBead": "haxe_go-vfp.8.7.16",
       "compilerShimGroups": [],
-      "notes": "Typed extern bridge from staged haxe.Template to runtime/hxrt/template.go for dynamic array inspection, object classification, and invocation. All Template lookup, iteration, macro, error, and rendering policy remains in Haxe source."
+      "notes": "Typed extern bridge from staged haxe.Template to runtime/hxrt/template.go for dynamic array inspection, object classification, and invocation of an already-resolved function. It performs no generated-method discovery; all Template lookup, concrete and structural iteration, macro, error, and rendering policy remains in Haxe source."
     },
     {
       "path": "std/hxrt/thread/ConditionHandle.hx",

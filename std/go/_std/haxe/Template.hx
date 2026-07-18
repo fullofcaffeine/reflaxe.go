@@ -56,7 +56,10 @@ private class ExprCursor {
 	The upstream stdlib implementation is a good semantic reference, but it currently
 	assumes several target surfaces that `haxe.go` does not expose cleanly through
 	source-owned inclusion yet: private `haxe.ds.List` internals, direct string helper
-	symbols, and closure shapes that lower too narrowly in Go. That made direct
+	symbols, closure shapes that lower too narrowly in Go, and an
+	`Iterator<Dynamic>` cast that cannot represent concrete generated Go iterator
+	methods with exact result types. Generated Haxe methods also remain lowercase,
+	so Go reflection cannot discover them by itself. Those assumptions made direct
 	`new haxe.Template(...).execute(...)` fail even though the public Template contract
 	itself is portable.
 
@@ -65,8 +68,10 @@ private class ExprCursor {
 	parser/runtime to use `Array`-backed cursors and explicit helper functions that
 	already lower cleanly on `haxe.go`. Three narrow typed `hxrt` calls expose only
 	runtime representation facts for array inspection, object classification, and
-	dynamic function invocation. This keeps all Template policy in staged std code
-	instead of pushing stdlib semantics into `GoCompiler`.
+	dynamic function invocation. Concrete iteration resolves `iterator`, `hasNext`,
+	and `next` through the ordinary Reflect contract; selective same-package compiler
+	metadata supplies an already-bound generated method when one exists. This keeps
+	all Template policy in staged std code without a Template-specific compiler shim.
 **/
 class Template {
 	static var splitter = ~/(::[A-Za-z0-9_ ()&|!+=\/><*."-]+::|\$\$([A-Za-z0-9_-]+)\()/;
@@ -476,10 +481,14 @@ class Template {
 						throw "Cannot iter on " + value;
 					}
 				}
+				var hasNext = Reflect.field(iterator, "hasNext");
+				var next = Reflect.field(iterator, "next");
+				if (hasNext == null || next == null) {
+					throw "Cannot iter on " + value;
+				}
 				stack.push(context);
-				var iterable:Iterator<Dynamic> = cast iterator;
-				for (ctx in iterable) {
-					context = ctx;
+				while (NativeTemplate.call(hasNext, NativeSlice.fromArray([])) == true) {
+					context = NativeTemplate.call(next, NativeSlice.fromArray([]));
 					run(loop);
 				}
 				context = popStackValue();

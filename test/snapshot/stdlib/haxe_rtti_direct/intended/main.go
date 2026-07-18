@@ -69,6 +69,376 @@ func main() {
 	}
 }
 
+func hxrt__generated_method_field(obj any, key string) any {
+	var receiver any
+	switch value := obj.(type) {
+	case *Xml:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ds__StringMap:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__io__Bytes:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__MapKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__StringIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__StringKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__rtti__XmlParser:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__xml__Printer:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__xml__XmlParserException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	default:
+		return nil
+	}
+	switch value := receiver.(type) {
+	case *Xml:
+		return hxrt__generated_method_field__Xml(value, key)
+	case *haxe__ds__StringMap:
+		return hxrt__generated_method_field__haxe__ds__StringMap(value, key)
+	case *haxe__io__Bytes:
+		return hxrt__generated_method_field__haxe__io__Bytes(value, key)
+	case *haxe__iterators__MapKeyValueIterator:
+		return hxrt__generated_method_field__haxe__iterators__MapKeyValueIterator(value, key)
+	case *haxe__iterators__StringIterator:
+		return hxrt__generated_method_field__haxe__iterators__StringIterator(value, key)
+	case *haxe__iterators__StringKeyValueIterator:
+		return hxrt__generated_method_field__haxe__iterators__StringKeyValueIterator(value, key)
+	case *haxe__rtti__XmlParser:
+		return hxrt__generated_method_field__haxe__rtti__XmlParser(value, key)
+	case *haxe__xml__Printer:
+		return hxrt__generated_method_field__haxe__xml__Printer(value, key)
+	case *haxe__xml__XmlParserException:
+		return hxrt__generated_method_field__haxe__xml__XmlParserException(value, key)
+	default:
+		return nil
+	}
+}
+
+func hxrt__generated_method_field__Xml(value *Xml, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "addChild":
+		return value.addChild
+	case "attributes":
+		return value.attributes
+	case "elements":
+		return value.elements
+	case "elementsNamed":
+		return value.elementsNamed
+	case "ensureElementType":
+		return value.ensureElementType
+	case "exists":
+		return value.exists
+	case "firstChild":
+		return value.firstChild
+	case "firstElement":
+		return value.firstElement
+	case "get":
+		return value.get
+	case "get_nodeName":
+		return value.get_nodeName
+	case "get_nodeValue":
+		return value.get_nodeValue
+	case "insertChild":
+		return value.insertChild
+	case "iterator":
+		return value.iterator
+	case "remove":
+		return value.remove
+	case "removeChild":
+		return value.removeChild
+	case "set":
+		return value.set
+	case "set_nodeName":
+		return value.set_nodeName
+	case "set_nodeValue":
+		return value.set_nodeValue
+	case "toString":
+		return value.toString
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__ds__StringMap(value *haxe__ds__StringMap, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "clear":
+		return value.clear
+	case "copy":
+		return value.copy
+	case "copyIMap":
+		return value.copyIMap
+	case "exists":
+		return value.exists
+	case "existsIMap":
+		return value.existsIMap
+	case "get":
+		return value.get
+	case "getIMap":
+		return value.getIMap
+	case "iterator":
+		return value.iterator
+	case "keyValueIterator":
+		return value.keyValueIterator
+	case "keys":
+		return value.keys
+	case "remove":
+		return value.remove
+	case "removeIMap":
+		return value.removeIMap
+	case "set":
+		return value.set
+	case "setIMap":
+		return value.setIMap
+	case "toString":
+		return value.toString
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__io__Bytes(value *haxe__io__Bytes, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "__hx_nativeView":
+		return value.__hx_nativeView
+	case "blit":
+		return value.blit
+	case "compare":
+		return value.compare
+	case "fill":
+		return value.fill
+	case "get":
+		return value.get
+	case "getData":
+		return value.getData
+	case "getDouble":
+		return value.getDouble
+	case "getFloat":
+		return value.getFloat
+	case "getInt32":
+		return value.getInt32
+	case "getInt64":
+		return value.getInt64
+	case "getString":
+		return value.getString
+	case "getUInt16":
+		return value.getUInt16
+	case "readString":
+		return value.readString
+	case "set":
+		return value.set
+	case "setDouble":
+		return value.setDouble
+	case "setFloat":
+		return value.setFloat
+	case "setInt32":
+		return value.setInt32
+	case "setInt64":
+		return value.setInt64
+	case "setUInt16":
+		return value.setUInt16
+	case "sub":
+		return value.sub
+	case "toHex":
+		return value.toHex
+	case "toString":
+		return value.toString
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__iterators__MapKeyValueIterator(value *haxe__iterators__MapKeyValueIterator, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "hasNext":
+		return value.hasNext
+	case "next":
+		return value.next
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__iterators__StringIterator(value *haxe__iterators__StringIterator, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "hasNext":
+		return value.hasNext
+	case "next":
+		return value.next
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__iterators__StringKeyValueIterator(value *haxe__iterators__StringKeyValueIterator, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "hasNext":
+		return value.hasNext
+	case "next":
+		return value.next
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__rtti__XmlParser(value *haxe__rtti__XmlParser, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "defplat":
+		return value.defplat
+	case "elementName":
+		return value.elementName
+	case "findSeparator":
+		return value.findSeparator
+	case "hasNamedElement":
+		return value.hasNamedElement
+	case "innerData":
+		return value.innerData
+	case "innerHTML":
+		return value.innerHTML
+	case "joinStringArray":
+		return value.joinStringArray
+	case "merge":
+		return value.merge
+	case "mergeAbstracts":
+		return value.mergeAbstracts
+	case "mergeClasses":
+		return value.mergeClasses
+	case "mergeDoc":
+		return value.mergeDoc
+	case "mergeEnums":
+		return value.mergeEnums
+	case "mergeFields":
+		return value.mergeFields
+	case "mergeRights":
+		return value.mergeRights
+	case "mergeTypedefs":
+		return value.mergeTypedefs
+	case "mkPath":
+		return value.mkPath
+	case "mkRights":
+		return value.mkRights
+	case "mkTypeParams":
+		return value.mkTypeParams
+	case "nodeDisplayName":
+		return value.nodeDisplayName
+	case "parseIntString":
+		return value.parseIntString
+	case "process":
+		return value.process
+	case "processElement":
+		return value.processElement
+	case "requireAttr":
+		return value.requireAttr
+	case "requireFirstElement":
+		return value.requireFirstElement
+	case "requireNamedElement":
+		return value.requireNamedElement
+	case "sort":
+		return value.sort
+	case "sortFields":
+		return value.sortFields
+	case "splitString":
+		return value.splitString
+	case "xabstract":
+		return value.xabstract
+	case "xclass":
+		return value.xclass
+	case "xclassfield":
+		return value.xclassfield
+	case "xenum":
+		return value.xenum
+	case "xenumfield":
+		return value.xenumfield
+	case "xmeta":
+		return value.xmeta
+	case "xoverloads":
+		return value.xoverloads
+	case "xpath":
+		return value.xpath
+	case "xroot":
+		return value.xroot
+	case "xtype":
+		return value.xtype
+	case "xtypedef":
+		return value.xtypedef
+	case "xtypeparams":
+		return value.xtypeparams
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__xml__Printer(value *haxe__xml__Printer, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "hasChildren":
+		return value.hasChildren
+	case "newline":
+		return value.newline
+	case "write":
+		return value.write
+	case "writeNode":
+		return value.writeNode
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__xml__XmlParserException(value *haxe__xml__XmlParserException, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "toString":
+		return value.toString
+	}
+	return nil
+}
+
 type Std struct {
 }
 
@@ -188,6 +558,10 @@ func Reflect_field(obj any, field *string) any {
 			return fieldValue.Interface()
 		}
 	}
+	generatedMethod := hxrt__generated_method_field(obj, key)
+	if generatedMethod != nil {
+		return generatedMethod
+	}
 	method := reflect.ValueOf(obj).MethodByName(key)
 	if method.IsValid() {
 		return method.Interface()
@@ -237,6 +611,10 @@ func Reflect_hasField(obj any, field *string) bool {
 		if rv.FieldByName(key).IsValid() {
 			return true
 		}
+	}
+	generatedMethod := hxrt__generated_method_field(obj, key)
+	if generatedMethod != nil {
+		return true
 	}
 	return reflect.ValueOf(obj).MethodByName(key).IsValid()
 }

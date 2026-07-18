@@ -124,6 +124,18 @@
   ],
   "limits": [
     {
+      "capability": "generated_method_metadata",
+      "classification": "required",
+      "context": "lowerGeneratedMethodMetadataShimDecls",
+      "exception_id": "compiler_stdlib_intrinsic_boundary",
+      "file": "src/reflaxe/go/GoCompiler.hx",
+      "max_count": 1,
+      "metric": "compiler_shim",
+      "owner": "compiler_shim",
+      "profile": "shared",
+      "surface": "compiler"
+    },
+    {
       "capability": "go_concurrency",
       "classification": "required",
       "context": "lowerGoConcurrencyShimDecls",
@@ -2781,7 +2793,7 @@
       "context": "run",
       "exception_id": "staged_std_dynamic_contract",
       "file": "std/go/_std/haxe/Template.hx",
-      "max_count": 12,
+      "max_count": 11,
       "metric": "haxe_dynamic",
       "owner": "staged_std",
       "profile": "shared",

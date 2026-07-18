@@ -22,6 +22,7 @@ import reflaxe.go.compiler.GoStdlibShimClassifier;
 import reflaxe.go.compiler.GoStdlibOwnership;
 import reflaxe.go.compiler.GoTestAstFixtureEmitter;
 import reflaxe.go.compiler.GoTypeMapper;
+import reflaxe.go.compiler.emit.GoGeneratedMethodMetadataEmitter;
 import reflaxe.go.compiler.emit.GoTypeReflectionEmitter;
 import reflaxe.go.compiler.emit.GoRttiMetadataEmitter;
 import reflaxe.go.compiler.emit.GoSerializationSourceBridgeEmitter;
@@ -140,6 +141,34 @@ private typedef TypeReflectionEnumMetadata = {
 	final constructors:Array<TypeReflectionEnumConstructorMetadata>;
 }
 
+private typedef EmittedInstanceMethod = {
+	final name:String;
+	final selector:String;
+	final func:TFunc;
+	final fieldType:Type;
+}
+
+private typedef GeneratedMethodMetadataSeed = {
+	final className:String;
+	final goTypeName:String;
+	final parentClassName:Null<String>;
+	final ownMethods:Array<{
+		final lookupKey:String;
+		final selector:String;
+	}>;
+}
+
+private typedef GeneratedMethodClassMetadata = {
+	final goTypeName:String;
+	final resolverSymbol:String;
+	final parentGoTypeName:Null<String>;
+	final parentResolverSymbol:Null<String>;
+	final ownMethods:Array<{
+		final lookupKey:String;
+		final selector:String;
+	}>;
+}
+
 private typedef GoResultMethodCall = {
 	final target:TypedExpr;
 	final methodName:String;
@@ -225,6 +254,7 @@ class GoCompiler {
 	var cachedVoidType:Null<Type>;
 	var requiresEqualitySurface:Bool;
 	var requiresReflectFieldsShim:Bool;
+	var requiresGeneratedMethodLookup:Bool;
 	var projectClasses:Array<ClassType>;
 	var projectEnums:Array<EnumType>;
 	final availableClassesByName:Map<String, ClassType>;
@@ -233,6 +263,8 @@ class GoCompiler {
 	final pendingRequiredEnumsByName:Map<String, EnumType>;
 	final requiredSourceOwnedClassNames:Map<String, Bool>;
 	final requiredNominalClassTypeNames:Map<String, Bool>;
+	final generatedMethodMetadataByClassName:Map<String, GeneratedMethodMetadataSeed>;
+	var generatedMethodMetadataPlan:Array<GeneratedMethodClassMetadata>;
 	var globalLeafReceiverTypes:Map<String, Bool>;
 	var tempVarCounter:Int;
 	var requiresTypeValueSupport:Bool;
@@ -276,6 +308,7 @@ class GoCompiler {
 		cachedVoidType = null;
 		requiresEqualitySurface = false;
 		requiresReflectFieldsShim = false;
+		requiresGeneratedMethodLookup = false;
 		projectClasses = [];
 		projectEnums = [];
 		availableClassesByName = new Map<String, ClassType>();
@@ -284,6 +317,8 @@ class GoCompiler {
 		pendingRequiredEnumsByName = new Map<String, EnumType>();
 		requiredSourceOwnedClassNames = new Map<String, Bool>();
 		requiredNominalClassTypeNames = new Map<String, Bool>();
+		generatedMethodMetadataByClassName = new Map<String, GeneratedMethodMetadataSeed>();
+		generatedMethodMetadataPlan = [];
 		sourceModuleRegistry = new GoSourceModuleRegistry(normalizeModuleLabel, normalizeSourcePath, sourceModuleToFilePath);
 		sourceOwnedStdlibPlanner = new GoSourceOwnedStdlibPlanner({
 			availableClassesByName: availableClassesByName,
@@ -347,6 +382,9 @@ class GoCompiler {
 		clearBoolMap(compilationContext.leafReturningFunctions);
 		requiresEqualitySurface = false;
 		requiresReflectFieldsShim = false;
+		requiresGeneratedMethodLookup = false;
+		clearGeneratedMethodMetadata();
+		generatedMethodMetadataPlan = [];
 		resetRequiredNativeChanElementTypes();
 		resetRequiredNativeSliceElementTypes();
 		resetRequiredNativeMapTypePairs();
@@ -392,12 +430,14 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			requiresTypeValueSupport = true;
 		}
+		generatedMethodMetadataPlan = requiresGeneratedMethodLookup ? generatedMethodClassMetadata() : [];
 
 		var preludeDecls = new Array<GoDecl>();
 		if (requiresTypeValueSupport) {
 			preludeDecls = preludeDecls.concat(lowerTypeValueDecls());
 		}
 		var supportDecls = new Array<GoDecl>();
+		supportDecls = supportDecls.concat(lowerGeneratedMethodMetadataShimDecls());
 		supportDecls = supportDecls.concat(lowerStdlibShimDecls());
 		supportDecls = supportDecls.concat(lowerTestAstStmtDecls());
 		populateLeafReturningFunctions(moduleDecls, preludeDecls, supportDecls);
@@ -1259,6 +1299,124 @@ class GoCompiler {
 		return projectSuperClass(classType) != null || instanceDataCount > 0 || instanceMethodCount > 0 || hasCtor;
 	}
 
+	/**
+		What: Remember the exact Haxe lookup keys and Go selectors emitted for one
+		generated concrete class.
+
+		Why: Go reflection cannot discover lowercase methods, while normal method
+		lowering may normalize a Haxe name such as `type` to a different Go selector.
+		Recomputing that choice later would let dynamic lookup drift from direct calls.
+
+		How: Record only own ordinary methods that already have emitted bodies. The
+		final metadata pass runs after all class queues drain, sorts these records, and
+		links a direct generated superclass only when that superclass was also emitted.
+	**/
+	function recordGeneratedMethodMetadata(classType:ClassType, goTypeName:String, superClass:Null<ClassType>, methods:Array<EmittedInstanceMethod>):Void {
+		var ownMethods = [
+			for (method in methods)
+				{
+					lookupKey: method.name,
+					selector: method.selector
+				}
+		];
+		ownMethods.sort(function(a, b) {
+			var byKey = Reflect.compare(a.lookupKey, b.lookupKey);
+			return byKey == 0 ? Reflect.compare(a.selector, b.selector) : byKey;
+		});
+		var className = fullClassName(classType);
+		generatedMethodMetadataByClassName.set(className, {
+			className: className,
+			goTypeName: goTypeName,
+			parentClassName: superClass == null ? null : fullClassName(superClass),
+			ownMethods: ownMethods
+		});
+	}
+
+	function generatedMethodResolverSymbol(goTypeName:String):String {
+		return "hxrt__generated_method_field__" + goTypeName;
+	}
+
+	/**
+		What: Select only generated classes that can participate in a successful
+		method lookup or carry a descendant that can.
+
+		Why: A reachable Reflect call does not imply that the final program contains
+		an emitted instance method. Empty resolvers add code without adding a lookup
+		capability, but an otherwise empty ancestor must remain when a descendant can
+		be observed through that physical upcast carrier.
+
+		How: First mark classes with own emitted methods and descendants that inherit
+		from an already-marked class. Then add every generated ancestor of an own-method
+		class. This excludes unrelated empty siblings while retaining both inherited
+		resolvers and canonical-receiver recovery paths.
+	**/
+	function relevantGeneratedMethodClassNames(seeds:Array<GeneratedMethodMetadataSeed>):Map<String, Bool> {
+		var effective = new Map<String, Bool>();
+		for (seed in seeds) {
+			if (seed.ownMethods.length > 0) {
+				effective.set(seed.className, true);
+			}
+		}
+		var changed = true;
+		while (changed) {
+			changed = false;
+			for (seed in seeds) {
+				if (effective.exists(seed.className) || seed.parentClassName == null || !effective.exists(seed.parentClassName)) {
+					continue;
+				}
+				effective.set(seed.className, true);
+				changed = true;
+			}
+		}
+
+		var relevant = new Map<String, Bool>();
+		for (className in effective.keys()) {
+			relevant.set(className, true);
+		}
+		for (seed in seeds) {
+			if (seed.ownMethods.length == 0) {
+				continue;
+			}
+			var current:Null<GeneratedMethodMetadataSeed> = seed;
+			var visited = new Map<String, Bool>();
+			while (current != null && !visited.exists(current.className)) {
+				visited.set(current.className, true);
+				relevant.set(current.className, true);
+				current = current.parentClassName == null ? null : generatedMethodMetadataByClassName.get(current.parentClassName);
+			}
+		}
+		return relevant;
+	}
+
+	/** Build the post-reachability metadata input consumed by the typed emitter. */
+	function generatedMethodClassMetadata():Array<GeneratedMethodClassMetadata> {
+		var seeds = [for (seed in generatedMethodMetadataByClassName) seed];
+		seeds.sort(function(a, b) return Reflect.compare(a.goTypeName, b.goTypeName));
+		var relevantClassNames = relevantGeneratedMethodClassNames(seeds);
+		var entries = new Array<GeneratedMethodClassMetadata>();
+		for (seed in seeds) {
+			if (!relevantClassNames.exists(seed.className)) {
+				continue;
+			}
+			var parentSeed:Null<GeneratedMethodMetadataSeed> = seed.parentClassName == null ? null : generatedMethodMetadataByClassName.get(seed.parentClassName);
+			if (parentSeed != null && !relevantClassNames.exists(parentSeed.className)) {
+				parentSeed = null;
+			}
+			entries.push({
+				goTypeName: seed.goTypeName,
+				resolverSymbol: generatedMethodResolverSymbol(seed.goTypeName),
+				parentGoTypeName: parentSeed == null ? null : parentSeed.goTypeName,
+				parentResolverSymbol: parentSeed == null ? null : generatedMethodResolverSymbol(parentSeed.goTypeName),
+				ownMethods: seed.ownMethods.copy()
+			});
+		}
+		return entries;
+	}
+
+	function lowerGeneratedMethodMetadataShimDecls():Array<GoDecl> {
+		return generatedMethodMetadataPlan.length > 0 ? GoGeneratedMethodMetadataEmitter.emit(generatedMethodMetadataPlan) : [];
+	}
+
 	function collectClassStaticFieldNames(classType:ClassType):Array<String> {
 		var names = new Array<String>();
 		for (field in classType.statics.get()) {
@@ -1506,6 +1664,13 @@ class GoCompiler {
 		var keys = [for (key in map.keys()) key];
 		for (key in keys) {
 			map.remove(key);
+		}
+	}
+
+	function clearGeneratedMethodMetadata():Void {
+		var keys = [for (key in generatedMethodMetadataByClassName.keys()) key];
+		for (key in keys) {
+			generatedMethodMetadataByClassName.remove(key);
 		}
 	}
 
@@ -2225,6 +2390,30 @@ class GoCompiler {
 		return decls;
 	}
 
+	/**
+		What: Query compiler-generated lowercase method metadata from the current
+		compiler-owned `Reflect.field` / `Reflect.hasField` bridge.
+
+		Why: Native struct fields must retain precedence and exported Go methods must
+		remain the final fallback. Keeping this insertion typed makes that ordering
+		explicit without extending the bridge's legacy raw reflection implementation.
+
+		How: Emit the call only when a reachable Reflect consumer requested the
+		capability, and return immediately only for a non-null bound method value.
+	**/
+	function generatedMethodReflectLookupStmts(returnPresence:Bool):Array<GoStmt> {
+		if (generatedMethodMetadataPlan.length == 0) {
+			return [];
+		}
+		var methodValue = GoExpr.GoIdent("generatedMethod");
+		var returnValue:GoExpr = returnPresence ? GoExpr.GoBoolLiteral(true) : methodValue;
+		return [
+			GoStmt.GoVarDecl("generatedMethod", null,
+				GoExpr.GoCall(GoExpr.GoIdent(GoGeneratedMethodMetadataEmitter.LOOKUP_SYMBOL), [GoExpr.GoIdent("obj"), GoExpr.GoIdent("key")]), true),
+			GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.NotEqual, methodValue, GoExpr.GoNil), [GoStmt.GoReturn(returnValue)], null)
+		];
+	}
+
 	function lowerStdlibSymbolShimDecls():Array<GoDecl> {
 		var decls = [
 			GoDecl.GoStructDecl("Std", []),
@@ -2355,13 +2544,14 @@ class GoCompiler {
 				GoStmt.GoRaw("\tif fieldValue := rv.FieldByName(key); fieldValue.IsValid() && fieldValue.CanInterface() {"),
 				GoStmt.GoRaw("\t\treturn fieldValue.Interface()"),
 				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
+				GoStmt.GoRaw("}")
+			].concat(generatedMethodReflectLookupStmts(false)).concat([
 				GoStmt.GoRaw("method := reflect.ValueOf(obj).MethodByName(key)"),
 				GoStmt.GoRaw("if method.IsValid() {"),
 				GoStmt.GoRaw("\treturn method.Interface()"),
 				GoStmt.GoRaw("}"),
 				GoStmt.GoReturn(GoExpr.GoNil)
-			]),
+				])),
 			GoDecl.GoFuncDecl("Reflect_hasField", null, [
 				{
 					name: "obj",
@@ -2410,9 +2600,8 @@ class GoCompiler {
 				GoStmt.GoRaw("\tif rv.FieldByName(key).IsValid() {"),
 				GoStmt.GoRaw("\t\treturn true"),
 				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("return reflect.ValueOf(obj).MethodByName(key).IsValid()")
-			]),
+				GoStmt.GoRaw("}")
+			].concat(generatedMethodReflectLookupStmts(true)).concat([GoStmt.GoRaw("return reflect.ValueOf(obj).MethodByName(key).IsValid()")])),
 			GoDecl.GoFuncDecl("Reflect_setField", null, [
 				{
 					name: "obj",
@@ -2597,7 +2786,7 @@ class GoCompiler {
 		var directHaxeExceptionSuper = directHaxeExceptionSuperClass(classType);
 
 		var instanceDataFields = new Array<GoParam>();
-		var instanceMethods = new Array<{name:String, func:TFunc, fieldType:Type}>();
+		var instanceMethods = new Array<EmittedInstanceMethod>();
 		for (field in classType.fields.get()) {
 			switch (field.kind) {
 				case FVar(_, _):
@@ -2616,7 +2805,12 @@ class GoCompiler {
 					if (field.name != "new") {
 						var methodFunc = unwrapFunction(field.expr());
 						if (methodFunc != null) {
-							instanceMethods.push({name: field.name, func: methodFunc, fieldType: field.type});
+							instanceMethods.push({
+								name: field.name,
+								selector: emittedInstanceMethodSelector(field),
+								func: methodFunc,
+								fieldType: field.type
+							});
 						}
 					}
 			}
@@ -2637,6 +2831,7 @@ class GoCompiler {
 		var hasInstanceLayout = superClass != null || instanceDataFields.length > 0 || instanceMethods.length > 0 || ctorFunc != null;
 		var dispatchMethods = hasInstanceLayout ? collectDispatchMethods(classType) : [];
 		if (hasInstanceLayout) {
+			recordGeneratedMethodMetadata(classType, typeName, superClass, instanceMethods);
 			var instanceFields = new Array<GoParam>();
 			if (superClass != null) {
 				instanceFields.push({
@@ -2674,7 +2869,7 @@ class GoCompiler {
 		}
 
 		for (method in instanceMethods) {
-			decls.push(lowerInstanceMethodDecl(classType, method.name, method.func, method.fieldType));
+			decls.push(lowerInstanceMethodDecl(classType, method.selector, method.func, method.fieldType));
 		}
 		if (hasPortableToString(dispatchMethods)) {
 			decls.push(lowerGoStringerAdapterDecl(classType));
@@ -2883,8 +3078,19 @@ class GoCompiler {
 		return out;
 	}
 
-	function lowerInstanceMethodDecl(classType:ClassType, fieldName:String, func:TFunc, fieldType:Type):GoDecl {
-		return lowerFunctionDecl(normalizeIdent(fieldName), func, {
+	/**
+		What: Select the Go method identifier used for one generated Haxe method.
+		Why: Dynamic generated-method metadata must return the exact same selector as
+		the ordinary declaration, including keyword normalization.
+		How: Make this single helper authoritative for both declaration lowering and
+		the post-reachability metadata record.
+	**/
+	function emittedInstanceMethodSelector(field:ClassField):String {
+		return normalizeIdent(field.name);
+	}
+
+	function lowerInstanceMethodDecl(classType:ClassType, selector:String, func:TFunc, fieldType:Type):GoDecl {
+		return lowerFunctionDecl(selector, func, {
 			name: "self",
 			typeName: "*" + classTypeName(classType)
 		}, classType.module, fieldType);
@@ -9720,6 +9926,9 @@ class GoCompiler {
 			Context.error("Sys.cpuTime is unsupported on haxe.go: Go's standard library does not expose portable process CPU time. "
 				+ "Use an explicit Go-native module/API boundary for platform-specific process accounting.",
 				pos);
+		}
+		if (classType.pack.length == 0 && classType.name == "Reflect" && (fieldName == "field" || fieldName == "hasField")) {
+			requiresGeneratedMethodLookup = true;
 		}
 		sourceOwnedStdlibPlanner.noteSourceOwnedStdlibUsage(classType);
 	}

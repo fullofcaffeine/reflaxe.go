@@ -2319,3 +2319,70 @@ Observed result:
   transport boundary.
 - The narrow `@:allow(sys.Http)` access to the existing typed socket handle
   avoids adding an HTTP-only method to the reflected `sys.net.Socket` surface.
+
+### 2026-07-18: support concrete generated Template iterables with selective method metadata (`haxe_go-vfp.8.7.19`)
+
+Implementation:
+
+- Added a failing portable contract first. Haxe Eval rendered concrete custom
+  `Iterable` / `Iterator` classes correctly, while generated Go could not find
+  their lowercase `iterator`, `hasNext`, and `next` methods through reflection.
+- Added a small closed-world metadata plan after the reachable class queue is
+  complete. It records each concrete class, its canonical receiver, its direct
+  generated superclass, and the exact Haxe lookup key and Go selector already
+  chosen by ordinary method lowering.
+- Added a dedicated typed-Go-AST emitter. One central switch recovers
+  `__hx_this` from physical superclass carriers, a second selects the exact
+  concrete resolver, and each per-class resolver lists only its own emitted
+  methods before one nil-guarded direct-superclass fallback.
+- Kept generated methods lowercase and returned already-bound function values.
+  The implementation adds no exported duplicates, provider interface, global
+  registry/map, `unsafe`, raw Go block, runtime discovery, or Template-specific
+  compiler helper.
+- Inserted the generic lookup after existing native/data-field discovery and
+  before Go's exported `MethodByName` fallback in `Reflect.field` and
+  `Reflect.hasField`. Metadata is absent unless either API is reachable.
+- Changed staged `haxe.Template` to resolve `hasNext` and `next` through the
+  existing Reflect contract and invoke them through `NativeTemplate.call`. The
+  invalid `Iterator<Dynamic>` representation cast is gone; all iteration,
+  fallback, macro, error, and rendering policy remains ordinary Haxe source.
+- Kept `NativeTemplate` at exactly three typed runtime operations. A direct Go
+  test proves that invoking an already-bound method preserves its receiver and
+  mutation; `hxrt` neither discovers nor indexes generated methods.
+- Documented the architectural boundary in `docs/typed-go-ir.md`: this feature
+  uses a validated semantic metadata plan feeding typed Go AST. It does not
+  justify copying `haxe.c`'s full ownership/lifetime/control-flow IR into the Go
+  target.
+
+Validation evidence:
+
+- `npm test`: 297/297 snapshots, including exact selectors, inheritance
+  fallback, nil guards, Reflect ordering, selective absence, and source-owned
+  Template iteration.
+- `npm run test:semantic-diff`: 137/137 portable parity contracts, including
+  concrete Template iteration and computed generated-method lookup.
+- `npm run test:stdlib-sweep:go-test`: 55/55 upstream stdlib modules; and
+  `npm run test:examples`: 12/12 runnable examples.
+- Stdlib governance, portable inventory, compatibility verification, raw
+  injection hygiene, and the full 28-lane Go security/tooling matrix passed.
+- The compiler-debt ratchet passed at `go_raw=822`, `haxe_dynamic=264`,
+  `haxe_any=5`, `go_unsafe=4`, `go_reflection=695`, and
+  `compiler_shim=11`.
+- Selective-runtime performance passed; the full Go performance report had
+  nine documented warning-only signals and zero hard failures.
+
+Observed result:
+
+- Concrete generated iterables now follow the same portable Template contract as
+  arrays and structural iterators without changing the public generated Go API.
+- The capability is generic to dynamic generated-method lookup rather than owned
+  by Template, and it is emitted only when reachable Reflect use requires it.
+- The semantic decision is a narrow immutable plan, while all target output is
+  ordinary typed Go AST. A full second program IR remains intentionally deferred
+  until repeated cross-cutting representation, effect, failure, or dispatch
+  evidence demonstrates that the target AST plus feature plans is insufficient.
+- A broad `Dynamic` Reflect consumer still requires conservative metadata for
+  every reachable generated method; this adds 645 lines to each committed
+  `incident_api` profile output. Follow-up `haxe_go-k8w2` owns deterministic
+  footprint reporting and proof-based demand narrowing. It must retain the
+  generic path whenever typed provenance cannot exclude generated class values.

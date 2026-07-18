@@ -67,6 +67,37 @@ This rule is profile-neutral. `portable` and the compatibility `metal` preset
 share the same generated class representation; explicit Go-native source
 boundaries do not change ordinary generated Haxe class semantics.
 
+## Dynamic generated-method lookup
+
+`Reflect.field` and `Reflect.hasField` sometimes receive a class instance only
+as `Dynamic`. Go's `reflect` package cannot discover the lowercase methods that
+haxe.go deliberately emits for ordinary Haxe methods. Exporting or duplicating
+those methods would change the public Go shape, while moving discovery into
+`hxrt` would cross a Go package-visibility boundary.
+
+When either lookup API is reachable, the compiler therefore emits one selective,
+method-only metadata capability in the generated program package:
+
+1. a type switch maps the physical embedded carrier to its canonical
+   `__hx_this` receiver;
+2. a second type switch selects the resolver for that exact concrete receiver;
+3. each class resolver lists only its own emitted methods by Haxe field name;
+4. a miss follows the one direct generated-superclass embedding, with a nil
+   guard; and
+5. the result is an already-bound Go function value or `nil`.
+
+The selector stored for each entry is the selector chosen by ordinary method
+lowering. For example, Haxe method `type` remains the lookup key `"type"` even
+when its Go selector is normalized to `type_`. Constructors, static functions,
+interfaces without bodies, mutable Haxe `dynamic function` fields, and synthetic
+Go adapters are not method-metadata entries.
+
+The central helper and class resolvers use typed Go AST only. They are absent
+when `Reflect.field` and `Reflect.hasField` are unreachable. They do not own
+field/property lookup, method invocation, iteration, errors, or retention policy;
+current `Reflect` checks them after native/data fields and before exported native
+Go methods. `hxrt.TemplateCall` invokes only an already-resolved function value.
+
 ## Deliberate limits
 
 This invariant applies to normally constructed generated classes after each
@@ -90,3 +121,10 @@ independently establish the carrier invariants promised by that API.
   one-level shape.
 - `test/snapshot/stdlib/haxe_io_misc_direct` proves the same rule on the staged
   `Input <- BytesInput <- StringInput` hierarchy.
+- `test/semantic_diff/haxe_template_concrete_iterable_contract` proves computed
+  method lookup, deep canonical receiver recovery, inherited/private/normalized
+  selectors, bound arguments and mutation, interface values, nil/misses, and
+  concrete `haxe.Template` iteration against Haxe `--interp`.
+- `test/snapshot/stdlib/haxe_template_generated_method_lookup` fixes the typed
+  helper shape, superclass fallback and guards, Reflect ordering, unchanged
+  lowercase methods, and the source-owned Template loop.

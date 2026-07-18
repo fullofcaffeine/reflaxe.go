@@ -63,6 +63,7 @@ SHIM_CAPABILITIES = {
     "lowerStdlibSymbolShimDecls": "stdlib_symbols",
     "reflectFieldsShimDecl": "reflection",
     "lowerTypeReflectionShimDecls": "reflection",
+    "lowerGeneratedMethodMetadataShimDecls": "generated_method_metadata",
     "lowerSerializationSourceBridgeShimDecls": "serialization_source_bridge",
 }
 

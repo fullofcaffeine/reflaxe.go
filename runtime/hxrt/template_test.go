@@ -71,3 +71,25 @@ func TestTemplateCall(t *testing.T) {
 		t.Fatalf("TemplateCall(non-function) = %#v, want nil", got)
 	}
 }
+
+type templateCallCounter struct {
+	value int
+}
+
+func (counter *templateCallCounter) add(amount int) int {
+	counter.value += amount
+	return counter.value
+}
+
+func TestTemplateCallInvokesBoundMethodValue(t *testing.T) {
+	counter := &templateCallCounter{value: 4}
+
+	got := TemplateCall(counter.add, []any{3})
+
+	if got != 7 {
+		t.Fatalf("expected bound method result 7, got %v", got)
+	}
+	if counter.value != 7 {
+		t.Fatalf("expected bound receiver mutation to persist, got %d", counter.value)
+	}
+}

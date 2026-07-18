@@ -889,6 +889,114 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         )
         self.assertNotIn('"lowerTemplateSupportShimDecls": "template"', debt_ratchet)
 
+    def test_template_generated_method_lookup_is_typed_selective_metadata(self) -> None:
+        staged_template = (ROOT / "std/go/_std/haxe/Template.hx").read_text(
+            encoding="utf-8"
+        )
+        native_template = (
+            ROOT / "std/hxrt/template/NativeTemplate.hx"
+        ).read_text(encoding="utf-8")
+        emitter = (
+            ROOT
+            / "src/reflaxe/go/compiler/emit/GoGeneratedMethodMetadataEmitter.hx"
+        ).read_text(encoding="utf-8")
+        runtime_test = (ROOT / "runtime/hxrt/template_test.go").read_text(
+            encoding="utf-8"
+        )
+        generated_root = (
+            ROOT
+            / "test/snapshot/stdlib/haxe_template_generated_method_lookup/intended"
+        )
+        generated_main = (generated_root / "main.go").read_text(encoding="utf-8")
+        generated_template = (generated_root / "module_haxe_template.go").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertNotIn("var iterable:Iterator<Dynamic> = cast iterator", staged_template)
+        for fragment in (
+            'Reflect.field(iterator, "hasNext")',
+            'Reflect.field(iterator, "next")',
+            "NativeTemplate.call(hasNext",
+            "NativeTemplate.call(next",
+        ):
+            self.assertIn(fragment, staged_template, fragment)
+        self.assertEqual(
+            3,
+            len(re.findall(r"public static function ", native_template)),
+            "generated method discovery must not grow the NativeTemplate runtime API",
+        )
+
+        for forbidden in ("GoRaw", "unsafe", "reflect."):
+            self.assertNotIn(forbidden, emitter, forbidden)
+        self.assertIn("GoTypeSwitch", emitter)
+        self.assertIn("GoSwitch", emitter)
+
+        for fragment in (
+            "func hxrt__generated_method_field(obj any, key string) any",
+            "func hxrt__generated_method_field__MethodLeaf",
+            'case "leafOnly":',
+            "return value.leafOnly",
+            'case "type":',
+            "return value.type_",
+            'case "secret":',
+            "return value.secret",
+            "if value.MethodMiddle == nil",
+            "return hxrt__generated_method_field__MethodMiddle(value.MethodMiddle, key)",
+            "if value.MethodBase == nil",
+            "return hxrt__generated_method_field__MethodBase(value.MethodBase, key)",
+            "func (self *ConcreteIterable) iterator() *SpecializedIterator",
+        ):
+            self.assertIn(fragment, generated_main, fragment)
+
+        field_body = generated_main.split("func Reflect_field", 1)[1].split(
+            "func Reflect_hasField", 1
+        )[0]
+        self.assertLess(field_body.index("FieldByName"), field_body.index("generatedMethod :="))
+        self.assertLess(field_body.index("generatedMethod :="), field_body.index("MethodByName"))
+        has_field_body = generated_main.split("func Reflect_hasField", 1)[1].split(
+            "func Reflect_setField", 1
+        )[0]
+        self.assertLess(
+            has_field_body.index("FieldByName"), has_field_body.index("generatedMethod :=")
+        )
+        self.assertLess(
+            has_field_body.index("generatedMethod :="), has_field_body.index("MethodByName")
+        )
+
+        for forbidden in (
+            "generatedMethodProvider",
+            "generatedMethodRegistry",
+            "map[reflect.Type]",
+            "iterator.(map[string]any)",
+        ):
+            self.assertNotIn(forbidden, generated_main + generated_template, forbidden)
+        self.assertIn("hxrt.TemplateCall(hasNext", generated_template)
+        self.assertIn("hxrt.TemplateCall(next", generated_template)
+        self.assertIn("TestTemplateCallInvokesBoundMethodValue", runtime_test)
+
+        unrelated_output = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in (
+                ROOT / "test/snapshot/core/const_kinds_contract/intended"
+            ).glob("*.go")
+        )
+        self.assertNotIn(
+            "hxrt__generated_method_field",
+            unrelated_output,
+            "method metadata must be absent when Reflect.field/hasField is unreachable",
+        )
+        reflect_without_generated_methods = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in (
+                ROOT / "test/snapshot/stdlib/dynamic_access_basic/intended"
+            ).glob("*.go")
+        )
+        self.assertNotIn(
+            "hxrt__generated_method_field",
+            reflect_without_generated_methods,
+            "a reachable Reflect call must not emit an empty method-metadata plan",
+        )
+
     def test_crypto_is_source_owned_instead_of_a_compiler_shim(self) -> None:
         ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
         compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")

@@ -102,6 +102,643 @@ func serve(configPath *string) {
 	}
 }
 
+func hxrt__generated_method_field(obj any, key string) any {
+	var receiver any
+	switch value := obj.(type) {
+	case *Date:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *app__core__Incident:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *app__core__IncidentApi:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *app__core__IncidentStore:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *app__http__TinyHttpServer:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__exceptions__NotImplementedException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__exceptions__PosException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__io__Bytes:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__io__BytesBuffer:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__io__Eof:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__io__Input:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__io__Output:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__StringIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__StringKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__io__FileInput:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__io__FileOutput:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__net__Host:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__net__Socket:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__net__SocketInput:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__net__SocketOutput:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	default:
+		return nil
+	}
+	switch value := receiver.(type) {
+	case *Date:
+		return hxrt__generated_method_field__Date(value, key)
+	case *app__core__Incident:
+		return hxrt__generated_method_field__app__core__Incident(value, key)
+	case *app__core__IncidentApi:
+		return hxrt__generated_method_field__app__core__IncidentApi(value, key)
+	case *app__core__IncidentStore:
+		return hxrt__generated_method_field__app__core__IncidentStore(value, key)
+	case *app__http__TinyHttpServer:
+		return hxrt__generated_method_field__app__http__TinyHttpServer(value, key)
+	case *haxe__exceptions__NotImplementedException:
+		return hxrt__generated_method_field__haxe__exceptions__NotImplementedException(value, key)
+	case *haxe__exceptions__PosException:
+		return hxrt__generated_method_field__haxe__exceptions__PosException(value, key)
+	case *haxe__io__Bytes:
+		return hxrt__generated_method_field__haxe__io__Bytes(value, key)
+	case *haxe__io__BytesBuffer:
+		return hxrt__generated_method_field__haxe__io__BytesBuffer(value, key)
+	case *haxe__io__Eof:
+		return hxrt__generated_method_field__haxe__io__Eof(value, key)
+	case *haxe__io__Input:
+		return hxrt__generated_method_field__haxe__io__Input(value, key)
+	case *haxe__io__Output:
+		return hxrt__generated_method_field__haxe__io__Output(value, key)
+	case *haxe__iterators__StringIterator:
+		return hxrt__generated_method_field__haxe__iterators__StringIterator(value, key)
+	case *haxe__iterators__StringKeyValueIterator:
+		return hxrt__generated_method_field__haxe__iterators__StringKeyValueIterator(value, key)
+	case *sys__io__FileInput:
+		return hxrt__generated_method_field__sys__io__FileInput(value, key)
+	case *sys__io__FileOutput:
+		return hxrt__generated_method_field__sys__io__FileOutput(value, key)
+	case *sys__net__Host:
+		return hxrt__generated_method_field__sys__net__Host(value, key)
+	case *sys__net__Socket:
+		return hxrt__generated_method_field__sys__net__Socket(value, key)
+	case *sys__net__SocketInput:
+		return hxrt__generated_method_field__sys__net__SocketInput(value, key)
+	case *sys__net__SocketOutput:
+		return hxrt__generated_method_field__sys__net__SocketOutput(value, key)
+	default:
+		return nil
+	}
+}
+
+func hxrt__generated_method_field__Date(value *Date, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "getDate":
+		return value.getDate
+	case "getDay":
+		return value.getDay
+	case "getFullYear":
+		return value.getFullYear
+	case "getHours":
+		return value.getHours
+	case "getMinutes":
+		return value.getMinutes
+	case "getMonth":
+		return value.getMonth
+	case "getSeconds":
+		return value.getSeconds
+	case "getTime":
+		return value.getTime
+	case "getTimezoneOffset":
+		return value.getTimezoneOffset
+	case "getUTCDate":
+		return value.getUTCDate
+	case "getUTCDay":
+		return value.getUTCDay
+	case "getUTCFullYear":
+		return value.getUTCFullYear
+	case "getUTCHours":
+		return value.getUTCHours
+	case "getUTCMinutes":
+		return value.getUTCMinutes
+	case "getUTCMonth":
+		return value.getUTCMonth
+	case "getUTCSeconds":
+		return value.getUTCSeconds
+	case "localParts":
+		return value.localParts
+	case "toString":
+		return value.toString
+	case "utcParts":
+		return value.utcParts
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__app__core__Incident(value *app__core__Incident, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "toJson":
+		return value.toJson
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__app__core__IncidentApi(value *app__core__IncidentApi, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "createIncident":
+		return value.createIncident
+	case "handle":
+		return value.handle
+	case "updateIncident":
+		return value.updateIncident
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__app__core__IncidentStore(value *app__core__IncidentStore, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "acknowledge":
+		return value.acknowledge
+	case "create":
+		return value.create
+	case "find":
+		return value.find
+	case "listJson":
+		return value.listJson
+	case "load":
+		return value.load
+	case "metricsJson":
+		return value.metricsJson
+	case "resolve":
+		return value.resolve
+	case "save":
+		return value.save
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__app__http__TinyHttpServer(value *app__http__TinyHttpServer, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "close":
+		return value.close
+	case "readBody":
+		return value.readBody
+	case "readRequest":
+		return value.readRequest
+	case "serveOnce":
+		return value.serveOnce
+	case "writeResponse":
+		return value.writeResponse
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__exceptions__NotImplementedException(value *haxe__exceptions__NotImplementedException, key string) any {
+	if value == nil {
+		return nil
+	}
+	if value.haxe__exceptions__PosException == nil {
+		return nil
+	}
+	return hxrt__generated_method_field__haxe__exceptions__PosException(value.haxe__exceptions__PosException, key)
+}
+
+func hxrt__generated_method_field__haxe__exceptions__PosException(value *haxe__exceptions__PosException, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "toString":
+		return value.toString
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__io__Bytes(value *haxe__io__Bytes, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "__hx_nativeView":
+		return value.__hx_nativeView
+	case "blit":
+		return value.blit
+	case "compare":
+		return value.compare
+	case "fill":
+		return value.fill
+	case "get":
+		return value.get
+	case "getData":
+		return value.getData
+	case "getDouble":
+		return value.getDouble
+	case "getFloat":
+		return value.getFloat
+	case "getInt32":
+		return value.getInt32
+	case "getInt64":
+		return value.getInt64
+	case "getString":
+		return value.getString
+	case "getUInt16":
+		return value.getUInt16
+	case "readString":
+		return value.readString
+	case "set":
+		return value.set
+	case "setDouble":
+		return value.setDouble
+	case "setFloat":
+		return value.setFloat
+	case "setInt32":
+		return value.setInt32
+	case "setInt64":
+		return value.setInt64
+	case "setUInt16":
+		return value.setUInt16
+	case "sub":
+		return value.sub
+	case "toHex":
+		return value.toHex
+	case "toString":
+		return value.toString
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__io__BytesBuffer(value *haxe__io__BytesBuffer, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "add":
+		return value.add
+	case "addByte":
+		return value.addByte
+	case "addBytes":
+		return value.addBytes
+	case "addDouble":
+		return value.addDouble
+	case "addFloat":
+		return value.addFloat
+	case "addInt32":
+		return value.addInt32
+	case "addInt64":
+		return value.addInt64
+	case "addString":
+		return value.addString
+	case "getBytes":
+		return value.getBytes
+	case "get_length":
+		return value.get_length
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__io__Eof(value *haxe__io__Eof, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "toString":
+		return value.toString
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__io__Input(value *haxe__io__Input, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "close":
+		return value.close
+	case "read":
+		return value.read
+	case "readAll":
+		return value.readAll
+	case "readByte":
+		return value.readByte
+	case "readBytes":
+		return value.readBytes
+	case "readDouble":
+		return value.readDouble
+	case "readFloat":
+		return value.readFloat
+	case "readFullBytes":
+		return value.readFullBytes
+	case "readInt16":
+		return value.readInt16
+	case "readInt24":
+		return value.readInt24
+	case "readInt32":
+		return value.readInt32
+	case "readInt8":
+		return value.readInt8
+	case "readLine":
+		return value.readLine
+	case "readString":
+		return value.readString
+	case "readUInt16":
+		return value.readUInt16
+	case "readUInt24":
+		return value.readUInt24
+	case "readUntil":
+		return value.readUntil
+	case "set_bigEndian":
+		return value.set_bigEndian
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__io__Output(value *haxe__io__Output, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "close":
+		return value.close
+	case "flush":
+		return value.flush
+	case "prepare":
+		return value.prepare
+	case "set_bigEndian":
+		return value.set_bigEndian
+	case "write":
+		return value.write
+	case "writeByte":
+		return value.writeByte
+	case "writeBytes":
+		return value.writeBytes
+	case "writeDouble":
+		return value.writeDouble
+	case "writeFloat":
+		return value.writeFloat
+	case "writeFullBytes":
+		return value.writeFullBytes
+	case "writeInput":
+		return value.writeInput
+	case "writeInt16":
+		return value.writeInt16
+	case "writeInt24":
+		return value.writeInt24
+	case "writeInt32":
+		return value.writeInt32
+	case "writeInt8":
+		return value.writeInt8
+	case "writeString":
+		return value.writeString
+	case "writeUInt16":
+		return value.writeUInt16
+	case "writeUInt24":
+		return value.writeUInt24
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__iterators__StringIterator(value *haxe__iterators__StringIterator, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "hasNext":
+		return value.hasNext
+	case "next":
+		return value.next
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__iterators__StringKeyValueIterator(value *haxe__iterators__StringKeyValueIterator, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "hasNext":
+		return value.hasNext
+	case "next":
+		return value.next
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__sys__io__FileInput(value *sys__io__FileInput, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "close":
+		return value.close
+	case "eof":
+		return value.eof
+	case "readByte":
+		return value.readByte
+	case "readBytes":
+		return value.readBytes
+	case "seek":
+		return value.seek
+	case "tell":
+		return value.tell
+	}
+	if value.haxe__io__Input == nil {
+		return nil
+	}
+	return hxrt__generated_method_field__haxe__io__Input(value.haxe__io__Input, key)
+}
+
+func hxrt__generated_method_field__sys__io__FileOutput(value *sys__io__FileOutput, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "close":
+		return value.close
+	case "flush":
+		return value.flush
+	case "seek":
+		return value.seek
+	case "tell":
+		return value.tell
+	case "writeByte":
+		return value.writeByte
+	case "writeBytes":
+		return value.writeBytes
+	}
+	if value.haxe__io__Output == nil {
+		return nil
+	}
+	return hxrt__generated_method_field__haxe__io__Output(value.haxe__io__Output, key)
+}
+
+func hxrt__generated_method_field__sys__net__Host(value *sys__net__Host, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "reverse":
+		return value.reverse
+	case "toString":
+		return value.toString
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__sys__net__Socket(value *sys__net__Socket, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "accept":
+		return value.accept
+	case "bind":
+		return value.bind
+	case "close":
+		return value.close
+	case "connect":
+		return value.connect
+	case "host":
+		return value.host
+	case "listen":
+		return value.listen
+	case "peer":
+		return value.peer
+	case "read":
+		return value.read
+	case "replaceHandle":
+		return value.replaceHandle
+	case "setBlocking":
+		return value.setBlocking
+	case "setFastSend":
+		return value.setFastSend
+	case "setTimeout":
+		return value.setTimeout
+	case "shutdown":
+		return value.shutdown
+	case "waitForRead":
+		return value.waitForRead
+	case "write":
+		return value.write
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__sys__net__SocketInput(value *sys__net__SocketInput, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "close":
+		return value.close
+	case "readByte":
+		return value.readByte
+	case "readBytes":
+		return value.readBytes
+	}
+	if value.haxe__io__Input == nil {
+		return nil
+	}
+	return hxrt__generated_method_field__haxe__io__Input(value.haxe__io__Input, key)
+}
+
+func hxrt__generated_method_field__sys__net__SocketOutput(value *sys__net__SocketOutput, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "close":
+		return value.close
+	case "flush":
+		return value.flush
+	case "writeByte":
+		return value.writeByte
+	case "writeBytes":
+		return value.writeBytes
+	}
+	if value.haxe__io__Output == nil {
+		return nil
+	}
+	return hxrt__generated_method_field__haxe__io__Output(value.haxe__io__Output, key)
+}
+
 type Std struct {
 }
 
@@ -221,6 +858,10 @@ func Reflect_field(obj any, field *string) any {
 			return fieldValue.Interface()
 		}
 	}
+	generatedMethod := hxrt__generated_method_field(obj, key)
+	if generatedMethod != nil {
+		return generatedMethod
+	}
 	method := reflect.ValueOf(obj).MethodByName(key)
 	if method.IsValid() {
 		return method.Interface()
@@ -270,6 +911,10 @@ func Reflect_hasField(obj any, field *string) bool {
 		if rv.FieldByName(key).IsValid() {
 			return true
 		}
+	}
+	generatedMethod := hxrt__generated_method_field(obj, key)
+	if generatedMethod != nil {
+		return true
 	}
 	return reflect.ValueOf(obj).MethodByName(key).IsValid()
 }

@@ -215,6 +215,58 @@ contracts require them. `NativeSlice.fromArray` and `toArray` are explicit
 shallow-copy boundaries; typed externs must not declare native `[]T` values as
 portable `Array<T>` merely because both can be indexed.
 
+## Semantic plans, not a second program IR
+
+Some compiler facts must be settled before Go syntax is built, but that does not
+make them Go syntax. Representation eligibility, dispatch authority,
+specialization and fallback, reachable runtime capabilities, and closed-world
+generated metadata belong in small immutable typed plans. A plan should be
+validated deterministically, then consumed by an emitter that builds only typed
+`GoAST`; the emitter must not silently choose a different semantic policy.
+
+Generated-method lookup is one example. Final reachability and ordinary method
+lowering produce an exact method-metadata plan containing canonical receiver,
+inheritance, Haxe lookup key, and emitted Go selector facts. The dedicated
+emitter turns that plan into typed switches and bound method values. Neither the
+printer nor staged `haxe.Template` rediscovers the class graph, and the plan does
+not attempt to model every expression or control-flow edge in the program.
+
+This target-specific split is intentionally different from `haxe.c`. C needs a
+semantic IR above its C AST to make evaluation order, initialization, ownership,
+lifetime, allocation failure, cleanup, ABI representation, and dispatch explicit
+before choosing C syntax. Go already defines evaluation order and supplies
+garbage collection, interfaces, method values, and panic propagation, so copying
+that complete semantic value/control-flow model here would create a second source
+of truth without currently closing a Go correctness gap.
+
+The other sibling targets reinforce that this is a target-burden decision, not a
+maturity ladder. `haxe.rust` uses validated representation, borrow, runtime, and
+reflection plans around `RustAST` rather than one full-program value IR;
+`haxe.ruby` lowers into `RubyAST`; and `haxe.elixir` keeps its extra IR bounded to
+loop intent while its main pipeline builds and transforms `ElixirAST`. The useful
+shared precedent is explicit typed decisions plus deterministic validation, not
+one identical intermediate representation for every backend.
+
+Prefer extracting and validating a feature plan when touching a lowering area.
+Reconsider a unified semantic program IR only when concrete evidence shows at
+least one of these conditions:
+
+1. the same semantic decision is duplicated across three or more independent
+   lowering or emission paths;
+2. a whole-program transform must choose or compare representations before Go
+   syntax exists;
+3. evaluation, effects, failure, or dispatch cannot be represented and checked
+   without assembling raw Go fragments; or
+4. contradictory compiler decisions cannot be diagnosed until generated Go is
+   printed or compiled.
+
+Compiler size, by itself, is not that evidence. The immediate architectural work
+is to move policy and closed-world analysis out of `GoCompiler` into typed plans,
+complete the typed Go AST, and give both layers focused validators and golden
+contracts. If several extracted plans later converge on one shared semantic
+value/control-flow model, that evidence can justify an ADR and migration plan for
+a fuller IR without a speculative rewrite.
+
 ## Profile and native-boundary relationship
 
 The typed Go IR is profile-neutral:
