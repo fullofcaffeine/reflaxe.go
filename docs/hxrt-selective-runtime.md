@@ -88,6 +88,17 @@ Windows so descriptor-type differences cannot regress silently.
 depends on both `socket` and `ssl` and additionally copies
 `runtime/hxrt/socket_ssl.go`. `core/runtime_hxrt_infer_ssl` and
 `core/runtime_hxrt_infer_socket_ssl` prove the leaf/transport split.
+
+`EReg` and typed `hxrt.regex` bindings infer `regex`, which copies
+`runtime/hxrt/regex.go` plus its string/exception dependencies. `haxe.Serializer`,
+`haxe.Unserializer`, and typed `hxrt.serialization` bindings infer
+`serialization`, which copies `runtime/hxrt/serialization.go` plus string and
+equality support. The two capabilities do not depend on one another:
+`core/runtime_hxrt_infer_regex` and
+`core/runtime_hxrt_infer_serialization` lock both positive and negative file
+sets. Both native capability files remain footprint-explicit in broad full-copy
+mode unless typed use, manual feature selection, or disabled inference requests
+them; that keeps RE2/reflection/unsafe support out of unrelated programs.
 - `reflaxe_go_hxrt_no_feature_infer`
   - Enables selective runtime mode and disables inference (use core + manual only).
 

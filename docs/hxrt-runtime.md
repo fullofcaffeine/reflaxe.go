@@ -122,6 +122,14 @@ Key implementation points:
     SNI certificate selection over the shared `SocketHandle`;
   - typed certificate/key primitives remain in `runtime/hxrt/ssl.go`, so SSL
     digest/certificate users do not select network transport automatically.
+- Regex execution (`runtime/hxrt/regex.go`):
+  - typed compiled RE2 handles, match snapshots, and quoting;
+  - UTF-8 byte indexes are converted to the code-point offsets expected by the Haxe string contract before staged `EReg` sees them;
+  - match state, capture validation, split/map traversal, Haxe replacement-template expansion, and global policy remain in `std/go/_std/EReg.hx`.
+- Serialization representation (`runtime/hxrt/serialization.go`):
+  - deterministic erased snapshots of generated package-private instance fields, decoded-field assignment, hidden `__hx_this` repair, and bounded host float parsing;
+  - one centralized `reflect.NewAt`/`unsafe.Pointer` lift reaches package-private generated fields after addressability checks. The exact debt owner, ceiling, evidence, and removal condition live in `test/compiler_debt_policy.json`;
+  - token streams, reference caches, recursion, resolver policy, class/enum construction, and custom-hook sequencing remain in staged `haxe.Serializer` / `haxe.Unserializer`; existing Type metadata supplies the closed class/enum facts.
 
 These helpers preserve native failures at the runtime boundary. Canonical staged file and Process wrappers translate bounds, EOF, nullable exit availability, and public lifecycle policy in Haxe source; process startup and non-EOF read failures remain distinct from normal EOF and child exit codes. Public byte arrays are copied explicitly through `go.NativeSlice<Int>` into native `[]int`, so `hxrt` does not depend on the portable Array carrier or generated `haxe.io.Bytes` internals. Portable `Sys.putEnv` is the intentional exception: staged `Sys.hx` calls the non-throwing `SysSetEnvironment` capability to match the upstream Haxe 4.3.7 eval contract, while `SysPutEnv` retains the native error for typed Go-native bindings.
 - Byte representation helpers:
@@ -199,12 +207,18 @@ identity. Typed bindings under `std/hxrt/net` and `std/hxrt/ssl` expose only
 native resources and concrete result carriers. `hxrt` never constructs a
 generated `sys.net.Socket`, `Host`, `Address`, `Bytes`, or Haxe exception.
 
+Regex and serialization use the same split. Typed bindings under
+`std/hxrt/regex` and `std/hxrt/serialization` expose only native execution and
+representation capabilities. The exact compiler-generated
+`haxe.GoSerializationBridge` adapter exists solely because public Haxe methods
+are package-private in generated Go; it invokes known hooks in the generated
+package and owns no runtime or library policy.
+
 Examples that are currently compiler-owned migration debt (not approved
 `hxrt` ownership):
 
 - `sys.Http`
-- `haxe.Serializer` / `haxe.Unserializer`
-- most `haxe.io` and `haxe.ds` shim declarations
+- most base `haxe.io` shim declarations
 
 ## Change guidelines
 

@@ -2084,3 +2084,80 @@ Observed result:
   TLS handshake, peer certificates, SNI selection, accepted SSL identity, and
   concurrent cleanup have deterministic local evidence. Cross-platform network
   admission remains governed separately by `haxe_go-vfp.10.4`.
+
+### 2026-07-18: retire the mixed regex/serializer compiler emitter (`haxe_go-vfp.8.7.13`)
+
+Implementation:
+
+- Added a failing ownership contract first for canonical staged `EReg`,
+  `haxe.Serializer`, and `haxe.Unserializer`, typed runtime bindings, exact
+  provenance, feature slicing, and complete removal of the behavior-heavy
+  `regex_serializer` group and emitter.
+- Moved match state, capture validation, `matchSub`, split/map traversal, Haxe
+  replacement-template expansion, global replacement policy, every serialization
+  token, cache ordering, recursive traversal, collection handling, resolver
+  policy, and custom-hook sequencing into ordinary Haxe source under
+  `std/go/_std`.
+- Added typed `std/hxrt/regex` bindings over footprint-explicit
+  `runtime/hxrt/regex.go`. The runtime owns only compiled RE2 resources,
+  matching/quoting, and exact conversion from Go UTF-8 byte indexes
+  to Haxe code-point offsets.
+- Added typed `std/hxrt/serialization` bindings over footprint-explicit
+  `runtime/hxrt/serialization.go`. The runtime owns deterministic erased field
+  snapshots, decoded-field assignment, constructor-bypassed hidden-self repair,
+  and bounded float parsing. One centralized, ratcheted
+  `reflect.NewAt`/`unsafe.Pointer` lift reaches package-private generated fields;
+  direct tests and checkptr guard it.
+- Reused the existing approved Type metadata emitter for reachable class/enum
+  names, resolution, empty construction, enum construction, and field lists.
+  No serializer-specific metadata table or duplicate construction registry was
+  added.
+- Retained one exact compiler representation primitive:
+  `lowerSerializationSourceBridgeShimDecls` emits same-package interface
+  assertions for `hxSerialize`, `hxUnserialize`, `resolveClass`, and
+  `resolveEnum`. Its machine-readable intrinsic decision forbids tokens,
+  traversal, caches, regex, reflection, unsafe access, metadata tables, and
+  constructors, and requires removal when generated method visibility gains a
+  source-visible typed representation.
+- Added regex-only and serialization-only selective-runtime snapshots. Each
+  proves its own runtime file is copied and the other capability remains absent;
+  neither behavior branches on the legacy `portable|metal` compatibility
+  preset.
+- Updated the intrinsic registry, provenance ledger, compiler-debt policy,
+  portable inventory, compatibility artifacts, feature matrix, runtime docs,
+  and ownership rationale. The old 2,491-line emitter and its complete-type
+  authority are deleted.
+
+Validation evidence:
+
+- all 13 focused regex/serialization semantic-diff contracts
+- the two selective-runtime snapshots and direct `runtime/hxrt` unit tests
+- stdlib governance, inventory, compatibility, compiler-debt, and raw-injection
+  contracts
+- full snapshots, semantic diff, strict upstream stdlib Go sweep, and examples
+- Go vet/staticcheck/race/checkptr security tooling
+- Go profile, selective-runtime, and staged-stdlib performance gates
+- an explicit written xhigh second pass that challenged host regex replacement
+  and traversal semantics before accepting the boundary
+
+Observed result:
+
+- Regex and serialization are portable-by-default staged library surfaces in
+  both compatibility presets. Native RE2 and erased field access are explicit
+  typed runtime boundaries, not profile-wide native semantics.
+- The compiler no longer owns public regex or serialization behavior. The only
+  residual primitive adapts exact package-private method representation, while
+  the pre-existing Type metadata authority remains the single source of
+  reachable class/enum facts.
+- Compiler raw-emission debt falls by more than 1,700 sites despite the exact
+  bridge, and the new Dynamic findings are confined to the public serialization
+  API and its erased boundaries. The reviewed unsafe ceiling is one import and
+  one selector in a single runtime file.
+- The second pass found and fixed two host-policy leaks before closure: Go's
+  named-capture parsing of `$1x`, and its omission of empty matches adjacent to
+  a previous match. Staged `EReg` now owns replacement expansion and the distinct
+  zero-width progress rules for replace, map, and split; `hxrt` exposes no bulk
+  traversal or replacement API.
+- Follow-up `haxe_go-vfp.10.5.1` owns evaluation of typed generated field/method
+  accessors that could remove the remaining unsafe lift and exact same-package
+  bridge without returning serialization algorithms to compiler ownership.

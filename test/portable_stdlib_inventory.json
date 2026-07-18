@@ -91,8 +91,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "EReg",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged EReg owns match state, capture validation, split/map traversal, and global policy. Typed std/hxrt/regex delegates only RE2 execution and code-point-normalized match snapshots to footprint-explicit runtime/hxrt/regex.go. Evidence: ereg_behavior_contract, ereg_edge_contract, and core/runtime_hxrt_infer_regex.",
+      "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -587,8 +587,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.Serializer",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged Serializer owns the Haxe 4.3.7 wire tokens, caches, traversal, collections, and custom-hook sequencing. Typed runtime support snapshots package-private fields, while the registered same-package bridge only invokes exact hooks. Evidence: the serializer semantic-diff suite and core/runtime_hxrt_infer_serialization.",
+      "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -653,8 +653,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.Unserializer",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged Unserializer owns parsing, cursor/cache order, resolver policy, construction sequencing, and custom-hook dispatch. Existing Type metadata resolves and constructs classes/enums; typed runtime support only assigns erased fields and repairs hidden self state. Evidence: the serializer semantic-diff suite and core/runtime_hxrt_infer_serialization.",
+      "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
     },

@@ -12,8 +12,38 @@ class Main {
 		var global = ~/a./g;
 		safe("replace.once", function() return Std.string(once.replace("ab ac ad", "X")));
 		safe("replace.global", function() return Std.string(global.replace("ab ac ad", "X")));
+		var captures = ~/(a)(b)?/g;
+		safe("replace.captures", function() return Std.string(captures.replace("ab a", "<$1:$2:$$>")));
+		safe("replace.haxe.syntax", function() return Std.string(captures.replace("ab", "<$1x:$2y:$$>")));
 		safe("map.once", function() return Std.string(once.map("ab ac ad", function(r:EReg) return "[" + r.matched(0) + "]")));
 		safe("map.global", function() return Std.string(global.map("ab ac ad", function(r:EReg) return "[" + r.matched(0) + "]")));
+		var zeroWidth = ~/x*/g;
+		safe("zero.replace", function() return zeroWidth.replace("ab", "|"));
+		safe("zero.replace.empty", function() return zeroWidth.replace("", "|"));
+		safe("zero.map", function() return zeroWidth.map("ab", function(_) return "|"));
+		safe("zero.map.empty", function() return zeroWidth.map("", function(_) return "|"));
+		safe("zero.split", function() {
+			var parts = zeroWidth.split("ab");
+			return parts.length + ":" + parts.map(function(part) return "[" + part + "]").join(",");
+		});
+		safe("zero.split.empty", function() {
+			var parts = zeroWidth.split("");
+			return parts.length + ":" + parts.map(function(part) return "[" + part + "]").join(",");
+		});
+		var adjacentZero = ~/a*/g;
+		safe("zero.adjacent.replace", function() return adjacentZero.replace("ab", "|"));
+		safe("zero.adjacent.map", function() return adjacentZero.map("ab", function(_) return "|"));
+		safe("zero.adjacent.split", function() {
+			var parts = adjacentZero.split("ab");
+			return parts.length + ":" + parts.map(function(part) return "[" + part + "]").join(",");
+		});
+		var zeroOnce = ~/x*/;
+		safe("zero.once.replace.empty", function() return zeroOnce.replace("", "|"));
+		safe("zero.once.map.empty", function() return zeroOnce.map("", function(_) return "|"));
+		safe("zero.once.split.empty", function() {
+			var parts = zeroOnce.split("");
+			return parts.length + ":" + parts.map(function(part) return "[" + part + "]").join(",");
+		});
 
 		var multiline = ~/^bar/m;
 		var noMultiline = ~/^bar/;
@@ -24,6 +54,15 @@ class Main {
 		var noDotAll = ~/a.b/;
 		safe("flag.s.true", function() return Std.string(dotAll.match("a\nb")));
 		safe("flag.s.false", function() return Std.string(noDotAll.match("a\nb")));
+
+		var insensitive = ~/abc/i;
+		safe("flag.i.true", function() return Std.string(insensitive.match("AbC")));
+		var unicode = new EReg("é.", "u");
+		safe("flag.u.true", function() return Std.string(unicode.match("é🙂")));
+		safe("escape.literal", function() {
+			var literal = "a+b[c].";
+			return Std.string(new EReg(EReg.escape(literal), "").match(literal));
+		});
 
 		var grouped = ~/(a)(b)?/;
 		safe("group.before", function() return Std.string(grouped.matched(0)));

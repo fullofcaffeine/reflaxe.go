@@ -9,7 +9,7 @@
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "ab20e49e2807ff4feba74dc4ffd8dfa3b147c06ce8689bc11486291e54b6e5ac"
+    "portable_stdlib_inventory_sha256": "a5f8c853877ee6e8586724322c2716286d61d88bd2e4314ee3d9a0a3af3336f3"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -1444,7 +1444,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged EReg owns match state, capture validation, split/map traversal, and global policy. Typed std/hxrt/regex delegates only RE2 execution and code-point-normalized match snapshots to footprint-explicit runtime/hxrt/regex.go. Evidence: ereg_behavior_contract, ereg_edge_contract, and core/runtime_hxrt_infer_regex."
       },
       {
         "module": "Enum",
@@ -1903,7 +1903,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged Serializer owns the Haxe 4.3.7 wire tokens, caches, traversal, collections, and custom-hook sequencing. Typed runtime support snapshots package-private fields, while the registered same-package bridge only invokes exact hooks. Evidence: the serializer semantic-diff suite and core/runtime_hxrt_infer_serialization."
       },
       {
         "module": "haxe.SysTools",
@@ -1964,7 +1964,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged Unserializer owns parsing, cursor/cache order, resolver policy, construction sequencing, and custom-hook dispatch. Existing Type metadata resolves and constructs classes/enums; typed runtime support only assigns erased fields and repairs hidden self state. Evidence: the serializer semantic-diff suite and core/runtime_hxrt_infer_serialization."
       },
       {
         "module": "haxe.Utf8",

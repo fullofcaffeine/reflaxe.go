@@ -47,6 +47,10 @@ SOURCE_SPECIAL_DESTINATIONS = {
     "std/go/Fmt.hx": ("public_go_facade", "std/go/Fmt.hx"),
     "std/go/Http.hx": ("public_go_facade", "std/go/Http.hx"),
     "std/go/Time.hx": ("public_go_facade", "std/go/Time.hx"),
+    "std/haxe/GoSerializationBridge.hx": (
+        "staged_support",
+        "std/haxe/GoSerializationBridge.hx",
+    ),
     "std/haxe/io/GoIoHelpers.cross.hx": ("staged_support", "std/haxe/io/GoIoHelpers.hx"),
     "std/sys/GoHttpHelpers.cross.hx": ("staged_support", "std/sys/GoHttpHelpers.hx"),
     "std/sys/thread/ElasticThreadPoolWorker.cross.hx": (
@@ -196,6 +200,26 @@ SOURCE_SPECIAL_DESTINATIONS = {
     "std/hxrt/process/ProcessOutputHandle.hx": (
         "hxrt_binding",
         "std/hxrt/process/ProcessOutputHandle.hx",
+    ),
+    "std/hxrt/regex/NativeRegex.hx": (
+        "hxrt_binding",
+        "std/hxrt/regex/NativeRegex.hx",
+    ),
+    "std/hxrt/regex/RegexHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/regex/RegexHandle.hx",
+    ),
+    "std/hxrt/regex/RegexMatch.hx": (
+        "hxrt_binding",
+        "std/hxrt/regex/RegexMatch.hx",
+    ),
+    "std/hxrt/serialization/NativeSerialization.hx": (
+        "hxrt_binding",
+        "std/hxrt/serialization/NativeSerialization.hx",
+    ),
+    "std/hxrt/serialization/SerializationField.hx": (
+        "hxrt_binding",
+        "std/hxrt/serialization/SerializationField.hx",
     ),
     "std/hxrt/net/NativeSocket.hx": (
         "hxrt_binding",
@@ -1028,7 +1052,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             build_imports_start,
         )
         import_end = compiler.index(
-            'if (requiredStdlibShimGroups.exists("regex_serializer"))', import_start
+            'if (requiredStdlibShimGroups.exists("go_result"))', import_start
         )
         stdlib_imports = compiler[import_start:import_end]
         for native_import in ("bytes", "compress/zlib", "io"):
@@ -1102,8 +1126,11 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         reflaxe_compiler = (
             ROOT / "src/reflaxe/go/GoReflaxeCompiler.hx"
         ).read_text(encoding="utf-8")
-        serializer_emitter = (
-            ROOT / "src/reflaxe/go/compiler/emit/GoRegexSerializerEmitter.hx"
+        serializer_source = (
+            ROOT / "std/go/_std/haxe/Serializer.hx"
+        ).read_text(encoding="utf-8")
+        serialization_runtime = (
+            ROOT / "runtime/hxrt/serialization.go"
         ).read_text(encoding="utf-8")
         registry = json.loads(
             (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
@@ -1131,7 +1158,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             build_imports_start,
         )
         import_end = compiler.index(
-            'if (requiredStdlibShimGroups.exists("regex_serializer"))', import_start
+            'if (requiredStdlibShimGroups.exists("go_result"))', import_start
         )
         stdlib_imports = compiler[import_start:import_end]
         self.assertNotIn('imports.push("math")', stdlib_imports)
@@ -1205,8 +1232,9 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertIn('case "date.go":', reflaxe_compiler)
         self.assertIn('case "math.go":', reflaxe_compiler)
 
-        self.assertIn('FieldByName(\\"ms\\")', serializer_emitter)
-        self.assertNotIn('fieldType.PkgPath() != "time"', serializer_emitter)
+        self.assertIn('case "Date"', serializer_source)
+        self.assertIn("date.getTime()", serializer_source)
+        self.assertNotIn('fieldType.PkgPath() != "time"', serialization_runtime)
 
         generated_root = ROOT / "test/snapshot/stdlib/date_math_source_owned/intended"
         self.assertTrue((generated_root / "module_date.go").is_file())
@@ -1530,6 +1558,137 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             self.assertRegex(follow_up or "", r"^haxe_go-[a-z0-9.-]+$")
             seen.add(path)
 
+    def test_regex_and_serialization_algorithms_are_source_owned(self) -> None:
+        """Regex and token-stream policy must not return to a mixed emitter."""
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(
+            encoding="utf-8"
+        )
+        classifier = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx"
+        ).read_text(encoding="utf-8")
+        ownership = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibOwnership.hx"
+        ).read_text(encoding="utf-8")
+        feature_analyzer = (
+            ROOT / "src/reflaxe/go/compiler/GoHxrtFeatureAnalyzer.hx"
+        ).read_text(encoding="utf-8")
+        reflaxe_compiler = (
+            ROOT / "src/reflaxe/go/GoReflaxeCompiler.hx"
+        ).read_text(encoding="utf-8")
+        planner = (
+            ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ).read_text(encoding="utf-8")
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
+
+        staged_paths = (
+            "std/go/_std/EReg.hx",
+            "std/go/_std/haxe/Serializer.hx",
+            "std/go/_std/haxe/Unserializer.hx",
+        )
+        for staged_path in staged_paths:
+            source = (ROOT / staged_path).read_text(encoding="utf-8")
+            self.assertNotIn("extern class", source, staged_path)
+            self.assertNotIn("__go__", source, staged_path)
+            for heading in ("What:", "Why:", "How:"):
+                self.assertIn(heading, source, staged_path)
+
+            entry = ledger_entries.get(staged_path)
+            self.assertIsNotNone(entry, staged_path)
+            self.assertEqual("upstream_std_override", entry.get("ownershipClass"))
+            self.assertEqual("haxe_go-vfp.8.7.13", entry.get("migrationBead"))
+            self.assertEqual([], entry.get("compilerShimGroups"))
+
+        support_path = "std/haxe/GoSerializationBridge.hx"
+        support_source = (ROOT / support_path).read_text(encoding="utf-8")
+        support_entry = ledger_entries.get(support_path)
+        self.assertIsNotNone(support_entry, support_path)
+        self.assertEqual("staged_support", support_entry.get("ownershipClass"))
+        self.assertEqual("haxe_go-vfp.8.7.13", support_entry.get("migrationBead"))
+        self.assertEqual([], support_entry.get("compilerShimGroups"))
+        for heading in ("What:", "Why:", "How:"):
+            self.assertIn(heading, support_source, support_path)
+
+        runtime_bindings = (
+            "std/hxrt/regex/NativeRegex.hx",
+            "std/hxrt/regex/RegexHandle.hx",
+            "std/hxrt/regex/RegexMatch.hx",
+            "std/hxrt/serialization/NativeSerialization.hx",
+            "std/hxrt/serialization/SerializationField.hx",
+        )
+        for binding_path in runtime_bindings:
+            binding_source = (ROOT / binding_path).read_text(encoding="utf-8")
+            binding_entry = ledger_entries.get(binding_path)
+            self.assertIsNotNone(binding_entry, binding_path)
+            self.assertEqual("hxrt_binding", binding_entry.get("ownershipClass"))
+            self.assertEqual("haxe_go-vfp.8.7.13", binding_entry.get("migrationBead"))
+            self.assertEqual([], binding_entry.get("compilerShimGroups"))
+            for heading in ("What:", "Why:", "How:"):
+                self.assertIn(heading, binding_source, binding_path)
+
+        self.assertFalse(
+            (ROOT / "src/reflaxe/go/compiler/emit/GoRegexSerializerEmitter.hx").exists()
+        )
+        for fragment in (
+            "GoRegexSerializerEmitter",
+            "lowerRegexSerializerShimDecls",
+            'requiredStdlibShimGroups.exists("regex_serializer")',
+            'requireStdlibShimGroup("regex_serializer")',
+        ):
+            self.assertNotIn(fragment, compiler + planner, fragment)
+        self.assertNotIn('groups: ["regex_serializer"]', classifier)
+        self.assertNotIn('"EReg"', ownership)
+        self.assertIn("lowerSerializationSourceBridgeShimDecls", compiler)
+
+        for source_path in ("EReg", "haxe.Serializer", "haxe.Unserializer"):
+            self.assertIn(f'case "{source_path}"', planner)
+
+        self.assertFalse(
+            any(group.get("group") == "regex_serializer" for group in registry["groups"]),
+            "source-owned regex and serialization must not retain a compiler shim group",
+        )
+        self.assertNotIn("migration_regex_serializer", registry["decisions"])
+        self.assertIn("approved_serialization_source_bridge", registry["decisions"])
+        support_entries = [
+            support
+            for group in registry["groups"]
+            for support in group.get("supportEntryPoints", [])
+        ]
+        self.assertIn(
+            {
+                "context": "lowerSerializationSourceBridgeShimDecls",
+                "status": "approved_intrinsic",
+                "decisionId": "approved_serialization_source_bridge",
+            },
+            support_entries,
+        )
+
+        self.assertIn('FEATURE_REGEX = "regex"', feature_analyzer)
+        self.assertIn('FEATURE_SERIALIZATION = "serialization"', feature_analyzer)
+        self.assertIn('case FEATURE_REGEX:\n\t\t\t\t["regex.go"]', feature_analyzer)
+        self.assertIn(
+            'case FEATURE_SERIALIZATION:\n\t\t\t\t["serialization.go"]',
+            feature_analyzer,
+        )
+        self.assertIn('case "regex.go":', reflaxe_compiler)
+        self.assertIn('case "serialization.go":', reflaxe_compiler)
+
+        regex_runtime = (
+            ROOT / "test/snapshot/core/runtime_hxrt_infer_regex/intended/hxrt"
+        )
+        serialization_runtime = (
+            ROOT
+            / "test/snapshot/core/runtime_hxrt_infer_serialization/intended/hxrt"
+        )
+        self.assertTrue((regex_runtime / "regex.go").is_file())
+        self.assertFalse((regex_runtime / "serialization.go").exists())
+        self.assertTrue((serialization_runtime / "serialization.go").is_file())
+        self.assertFalse((serialization_runtime / "regex.go").exists())
+
     def test_socket_public_api_is_staged_over_typed_runtime_handles(self) -> None:
         """Socket lifecycle must not return to compiler-owned declaration shims."""
         compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")
@@ -1591,15 +1750,19 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
 
         self.assertIn('FEATURE_SOCKET = "socket"', feature_analyzer)
         self.assertIn('FEATURE_SOCKET_SSL = "socket_ssl"', feature_analyzer)
-        self.assertIn(
-            '["socket.go", "socket_broadcast_posix.go", "socket_broadcast_unsupported.go", "socket_broadcast_windows.go"]',
-            feature_analyzer,
-        )
+        for runtime_file in (
+            "socket.go",
+            "socket_broadcast_posix.go",
+            "socket_broadcast_unsupported.go",
+            "socket_broadcast_windows.go",
+        ):
+            self.assertIn(f'"{runtime_file}"', feature_analyzer)
         self.assertIn('["socket_ssl.go"]', feature_analyzer)
         self.assertIn(
-            'case "socket.go", "socket_broadcast_posix.go", "socket_broadcast_unsupported.go", "socket_broadcast_windows.go":',
+            'case "socket.go", "socket_broadcast_posix.go", "socket_broadcast_unsupported.go",',
             reflaxe_compiler,
         )
+        self.assertIn('"socket_broadcast_windows.go":', reflaxe_compiler)
         self.assertIn('case "socket_ssl.go":', reflaxe_compiler)
 
         socket_runtime = ROOT / "test/snapshot/core/runtime_hxrt_infer_socket/intended/hxrt"

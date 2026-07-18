@@ -24,7 +24,7 @@ import reflaxe.go.compiler.GoTestAstFixtureEmitter;
 import reflaxe.go.compiler.GoTypeMapper;
 import reflaxe.go.compiler.emit.GoTypeReflectionEmitter;
 import reflaxe.go.compiler.emit.GoRttiMetadataEmitter;
-import reflaxe.go.compiler.emit.GoRegexSerializerEmitter;
+import reflaxe.go.compiler.emit.GoSerializationSourceBridgeEmitter;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoFile;
@@ -594,16 +594,6 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			imports.push("reflect");
 			imports.push("strings");
-		}
-		if (requiredStdlibShimGroups.exists("regex_serializer")) {
-			imports.push("encoding/base64");
-			imports.push("math");
-			imports.push("reflect");
-			imports.push("regexp");
-			imports.push("sort");
-			imports.push("strconv");
-			imports.push("strings");
-			imports.push("unsafe");
 		}
 		if (requiredStdlibShimGroups.exists("go_result")) {
 			imports.push("errors");
@@ -1339,26 +1329,6 @@ class GoCompiler {
 		return out;
 	}
 
-	function serializerClassMetadata():Array<{goTypeName:String, haxeTypeName:String}> {
-		var entries = new Array<{goTypeName:String, haxeTypeName:String}>();
-		for (classType in projectClasses) {
-			if (classType.isExtern || classType.isInterface) {
-				continue;
-			}
-			switch (classType.kind) {
-				case KTypeParameter(_):
-					continue;
-				case _:
-			}
-			if (!classHasInstanceLayout(classType)) {
-				continue;
-			}
-			entries.push({goTypeName: classTypeName(classType), haxeTypeName: fullClassName(classType)});
-		}
-		entries.sort(function(a, b) return Reflect.compare(a.goTypeName, b.goTypeName));
-		return entries;
-	}
-
 	function typeReflectionClassMetadata():Array<TypeReflectionClassMetadata> {
 		var entries = new Array<TypeReflectionClassMetadata>();
 		for (classType in projectClasses) {
@@ -1422,24 +1392,6 @@ class GoCompiler {
 			}
 		}
 		entries.sort(function(a, b) return Reflect.compare(a.haxeTypeName, b.haxeTypeName));
-		return entries;
-	}
-
-	function serializerEnumMetadata():Array<{goTypeName:String, haxeTypeName:String, constructors:Array<String>}> {
-		var entries = new Array<{goTypeName:String, haxeTypeName:String, constructors:Array<String>}>();
-		for (enumType in projectEnums) {
-			if (enumType.isExtern) {
-				continue;
-			}
-			var constructors = [for (field in enumType.constructs) field];
-			constructors.sort(function(a, b) return a.index - b.index);
-			entries.push({
-				goTypeName: enumTypeName(enumType),
-				haxeTypeName: fullEnumName(enumType),
-				constructors: [for (constructor in constructors) constructor.name]
-			});
-		}
-		entries.sort(function(a, b) return Reflect.compare(a.goTypeName, b.goTypeName));
 		return entries;
 	}
 
@@ -1742,9 +1694,7 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			decls = decls.concat(lowerStdlibSymbolShimDecls());
 		}
-		if (requiredStdlibShimGroups.exists("regex_serializer")) {
-			decls = decls.concat(lowerRegexSerializerShimDecls());
-		}
+		decls = decls.concat(lowerSerializationSourceBridgeShimDecls());
 		if (requiredStdlibShimGroups.exists("go_concurrency")) {
 			decls = decls.concat(lowerGoConcurrencyShimDecls());
 		}
@@ -1766,14 +1716,6 @@ class GoCompiler {
 			// Http request shims expose and consume haxe.io.Bytes payloads.
 			requireStdlibShimGroup("io");
 			requireSourceOwnedStdlibClass("haxe.ds.StringMap");
-		}
-		if (requiredStdlibShimGroups.exists("regex_serializer")) {
-			// The transitional serializer emitter consumes ordinary source-owned
-			// collection APIs and typed runtime handles; it does not own collections.
-			requireSourceOwnedStdlibModule("haxe.ds.List");
-			requireSourceOwnedStdlibClass("haxe.ds.StringMap");
-			requireSourceOwnedStdlibClass("haxe.ds.IntMap");
-			requireSourceOwnedStdlibClass("haxe.ds.ObjectMap");
 		}
 	}
 
@@ -5005,6 +4947,11 @@ class GoCompiler {
 		return decls;
 	}
 
+	function lowerSerializationSourceBridgeShimDecls():Array<GoDecl> {
+		return GoSerializationSourceBridgeEmitter.emit(requiredSourceOwnedClassNames.exists("haxe.Serializer"),
+			requiredSourceOwnedClassNames.exists("haxe.Unserializer"));
+	}
+
 	function reflectFieldsShimDecl():GoDecl {
 		return GoDecl.GoFuncDecl("Reflect_fields", null, [
 			{
@@ -5076,10 +5023,6 @@ class GoCompiler {
 	function lowerTypeReflectionShimDecls():Array<GoDecl> {
 		return GoTypeReflectionEmitter.emit(typeReflectionClassMetadata(), typeReflectionEnumMetadata(), goRawQuotedString, goStringArrayCarrierLiteral)
 			.concat(GoRttiMetadataEmitter.emit(rttiClassMetadata(), goRawQuotedString));
-	}
-
-	function lowerRegexSerializerShimDecls():Array<GoDecl> {
-		return GoRegexSerializerEmitter.emit(serializerClassMetadata(), serializerEnumMetadata(), goRawQuotedString);
 	}
 
 	function lowerClassDecls(classType:ClassType):Array<GoDecl> {
@@ -7715,10 +7658,6 @@ class GoCompiler {
 	// Go-native rest/vararg shapes. Source-level padding would duplicate those
 	// omitted args and change call arity at the emitted Go boundary.
 	function shouldSkipInstanceDefaultArgPadding(classType:ClassType, fieldName:String):Bool {
-		if (classType.pack.length == 0 && classType.name == "EReg" && fieldName == "matchSub") {
-			return true;
-		}
-
 		if (classType.pack.length == 1 && classType.pack[0] == "sys" && classType.name == "Http") {
 			return switch (fieldName) {
 				case "request", "customRequest":

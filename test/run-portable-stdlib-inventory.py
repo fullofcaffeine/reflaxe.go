@@ -160,9 +160,9 @@ OWNER_OVERRIDES = {
     "haxe.rtti.Rtti": "mixed",
     "haxe.rtti.XmlParser": "mixed",
     "haxe.ds.WeakMap": "staged_std",
-    "EReg": "compiler_shim",
-    "haxe.Serializer": "compiler_shim",
-    "haxe.Unserializer": "compiler_shim",
+    "EReg": "mixed",
+    "haxe.Serializer": "mixed",
+    "haxe.Unserializer": "mixed",
     "sys.Http": "compiler_shim",
     "sys.net.Host": "mixed",
     "sys.net.Socket": "mixed",
@@ -180,6 +180,24 @@ UNSUPPORTED_EXPLICIT = {
 }
 
 MODULE_NOTES_OVERRIDES = {
+	"EReg": (
+		"Canonical staged EReg owns match state, capture validation, split/map traversal, and global "
+		"policy. Typed std/hxrt/regex delegates only RE2 execution and code-point-normalized match "
+		"snapshots to footprint-explicit runtime/hxrt/regex.go. Evidence: ereg_behavior_contract, "
+		"ereg_edge_contract, and core/runtime_hxrt_infer_regex."
+	),
+	"haxe.Serializer": (
+		"Canonical staged Serializer owns the Haxe 4.3.7 wire tokens, caches, traversal, collections, "
+		"and custom-hook sequencing. Typed runtime support snapshots package-private fields, while the "
+		"registered same-package bridge only invokes exact hooks. Evidence: the serializer semantic-diff "
+		"suite and core/runtime_hxrt_infer_serialization."
+	),
+	"haxe.Unserializer": (
+		"Canonical staged Unserializer owns parsing, cursor/cache order, resolver policy, construction "
+		"sequencing, and custom-hook dispatch. Existing Type metadata resolves and constructs classes/enums; "
+		"typed runtime support only assigns erased fields and repairs hidden self state. Evidence: the "
+		"serializer semantic-diff suite and core/runtime_hxrt_infer_serialization."
+	),
 	"UnicodeString": (
 		"Canonical staged UnicodeString owns code-point bounds, slicing, searching, comparison, "
 		"iteration, operators, and UTF-8 validation. Typed GoStringRuntime calls expose only rune "

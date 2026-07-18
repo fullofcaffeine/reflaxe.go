@@ -68,6 +68,18 @@
       ],
       "reviewCondition": "Revisit if the metadata is emitted as typed data consumed by staged RTTI source without compiler-owned access behavior."
     },
+    "approved_serialization_source_bridge": {
+      "what": "Invoke the exact generated hxSerialize, hxUnserialize, resolveClass, and resolveEnum methods from staged serialization source inside the generated program package.",
+      "why": "Public Haxe methods intentionally compile to package-private Go methods, so an external hxrt package cannot call custom serialization hooks or structural resolver methods. Ordinary class instances also cannot be modeled as one anonymous-map shape without rejecting valid Haxe programs.",
+      "how": "Emit only exact interface assertions and anonymous resolver callback extraction when Serializer or Unserializer is reachable. Token parsing, regex behavior, traversal, caches, metadata tables, class and enum construction, reflection, unsafe access, and resolver policy remain outside this bridge.",
+      "evidence": [
+        "serializer_custom_resolver_contract",
+        "serializer_resolver_polymorphism_contract",
+        "serializer_unserializer_roundtrip",
+        "test/test_stdlib_migration_ledger_contract.py"
+      ],
+      "reviewCondition": "Remove when generated public Haxe methods and structural objects share a source-visible typed invocation representation that does not require same-package adaptation."
+    },
     "approved_sort_erasure_representation": {
       "what": "Adapt exact ArraySort and ListSort calls to their source-owned generic Haxe entrypoints.",
       "why": "The source algorithms erase generic arrays, linked nodes, and comparators to Go any-based signatures, which are not assignable from concrete typed slices, nodes, or callbacks even though the Haxe calls are valid.",
@@ -148,16 +160,6 @@
         "stdlib/bytes_raw_native_compiler_ownership"
       ],
       "reviewCondition": "Close only when haxe_go-vfp.8.7.11 retires the broad io group and adjudicates every residual primitive."
-    },
-    "migration_regex_serializer": {
-      "what": "Separate compiler-known serialization metadata from EReg and serialization runtime algorithms.",
-      "why": "Reachable type metadata can be compile-time authority, but regex matching, token streams, resolver policy, traversal, and object identity are not.",
-      "how": "Move public behavior to staged Haxe and typed hxrt, then retain only exact generated metadata data or lookup hooks.",
-      "evidence": [
-        "serializer_roundtrip_contract",
-        "ereg_contract"
-      ],
-      "reviewCondition": "Close only when haxe_go-vfp.8.7.13 replaces the mixed behavior-heavy emitter with source ownership plus narrow metadata primitives."
     },
     "migration_runtime_reflection": {
       "what": "Move runtime-only Reflect.fields behavior out of compiler-generated declarations.",
@@ -255,29 +257,6 @@
       "declaresDependencyBlock": false
     },
     {
-      "group": "regex_serializer",
-      "entryPoint": "lowerRegexSerializerShimDecls",
-      "status": "migration_required",
-      "decisionId": "migration_regex_serializer",
-      "followUpBead": "haxe_go-vfp.8.7.13",
-      "ownedSymbols": [
-        {"symbol": "EReg", "scope": "complete_type"},
-        {"symbol": "haxe.Serializer", "scope": "complete_type"},
-        {"symbol": "haxe.Unserializer", "scope": "complete_type"}
-      ],
-      "compilerOwnedAuthorities": [
-        "EReg"
-      ],
-      "classifierSelections": [
-        {"kind": "class", "path": "EReg"},
-        {"kind": "class", "path": "haxe.Serializer"},
-        {"kind": "class", "path": "haxe.Unserializer"}
-      ],
-      "plannerSelections": [],
-      "dependencies": [],
-      "declaresDependencyBlock": true
-    },
-    {
       "group": "stdlib_symbols",
       "entryPoint": "lowerStdlibSymbolShimDecls",
       "status": "migration_required",
@@ -312,6 +291,11 @@
       ],
       "declaresDependencyBlock": true,
       "supportEntryPoints": [
+        {
+          "context": "lowerSerializationSourceBridgeShimDecls",
+          "status": "approved_intrinsic",
+          "decisionId": "approved_serialization_source_bridge"
+        },
         {
           "context": "lowerTypeReflectionShimDecls",
           "status": "approved_intrinsic",

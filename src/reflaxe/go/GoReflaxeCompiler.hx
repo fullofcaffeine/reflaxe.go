@@ -498,6 +498,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 				// not use haxe.Template should not pay for that capability in full-copy
 				// mode. Disabling inference remains the explicit all-files escape hatch.
 				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TEMPLATE) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TEMPLATE) >= 0;
+			case "regex.go": // Compiled RE2 state is selected only through staged EReg or its typed binding.
+				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_REGEX) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_REGEX) >= 0;
+			case "serialization.go": // Private generated-field access is selected only by staged serialization.
+				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_SERIALIZATION) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_SERIALIZATION) >= 0;
 			case "date.go": // Host calendar and timezone behavior is selected only through staged Date
 				// or its typed hxrt binding. Other programs keep the native time capability out.
 				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_DATE) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_DATE) >= 0;

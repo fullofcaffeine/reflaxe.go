@@ -80,6 +80,22 @@ class GoSourceOwnedStdlibPlanner {
 
 	public function noteSourceOwnedStdlibUsage(classType:ClassType):Void {
 		switch (fullClassName(classType)) {
+			case "EReg":
+				requireSourceOwnedStdlibClass("EReg");
+				requireSourceOwnedStdlibClass("StringBuf");
+			case "haxe.Serializer":
+				requireSourceOwnedStdlibClass("haxe.Serializer");
+				requireSourceOwnedStdlibClass("StringBuf");
+				requireSourceOwnedStdlibModule("haxe.ds.List");
+				requireSourceOwnedStdlibClass("haxe.ds.StringMap");
+				requireSourceOwnedStdlibClass("haxe.ds.IntMap");
+				requireSourceOwnedStdlibClass("haxe.ds.ObjectMap");
+			case "haxe.Unserializer":
+				requireSourceOwnedStdlibClass("haxe.Unserializer");
+				requireSourceOwnedStdlibModule("haxe.ds.List");
+				requireSourceOwnedStdlibClass("haxe.ds.StringMap");
+				requireSourceOwnedStdlibClass("haxe.ds.IntMap");
+				requireSourceOwnedStdlibClass("haxe.ds.ObjectMap");
 			case "Sys":
 				requireSourceOwnedStdlibClass("Sys");
 			case "StringTools":

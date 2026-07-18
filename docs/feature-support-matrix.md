@@ -388,6 +388,11 @@ Shim strategy and alternatives are documented in:
 
 ### `EReg` + `haxe.Serializer` contract and tradeoffs
 
+- `std/go/_std/EReg.hx`, `std/go/_std/haxe/Serializer.hx`, and `Unserializer.hx` are now the canonical public implementations. Match state, group validation, global policy, token selection/parsing, caches, recursive traversal, resolver policy, and custom-hook sequencing are ordinary staged Haxe behavior; the retired `regex_serializer` compiler group no longer emits them.
+- Typed `std/hxrt/regex` bindings select `runtime/hxrt/regex.go`, which owns only compiled RE2 resources, native matching/quoting, and conversion from Go UTF-8 byte indexes to Haxe code-point indexes. Staged `EReg` expands Haxe replacement templates itself so `$1x` cannot be misread as Go's named-capture syntax. `core/runtime_hxrt_infer_regex` proves this slice does not copy serialization support.
+- Typed `std/hxrt/serialization` bindings select `runtime/hxrt/serialization.go`, which owns only deterministic erased field snapshots, reflected decoded-field assignment, hidden `__hx_this` repair after constructor-free allocation, and bounded host float parsing. The package-private field lift is one documented and ratcheted `reflect.NewAt`/`unsafe.Pointer` boundary covered by direct runtime tests and checkptr.
+- Class/enum name resolution and construction reuse the existing approved Type metadata emitter; there is no serializer-specific metadata table. The only residual serializer compiler primitive is the individually registered `GoSerializationBridge` same-package invocation adapter for package-private custom hooks and structural resolver methods. It emits no tokens, traversal, caches, regex, reflection, unsafe access, lookup tables, or constructors.
+- `core/runtime_hxrt_infer_serialization` proves the serialization slice and its equality dependency are copied without `regex.go`. Runtime feature selection follows typed reachability, not the legacy `portable|metal` preset.
 - `EReg` parity now covers: `g/i/m/s/u` option handling, global vs non-global `replace`/`map`, `matched`/`matchedPos`/`matchedLeft`/`matchedRight` error semantics, and group/null behavior via semantic diff fixtures (`ereg_behavior_contract`, `ereg_edge_contract`).
 - `haxe.Serializer`/`haxe.Unserializer` now cover a wire-format-compatible baseline for core tokens used by fixtures (`n/t/f/z/i/d/k/p/m/v/s/y/a/o/l/b/q/M/c/w/j/C/x/A/B/g/u/h/r/R`) plus sequential `Unserializer` cursor behavior (`serializer_wire_contract`), resolver paths (`serializer_custom_resolver_contract`), resolver method-shape polymorphism (`serializer_resolver_polymorphism_contract`), cache/reference graph parity (`serializer_cache_reference_contract`), global serializer default flag behavior (`Serializer.USE_CACHE`/`Serializer.USE_ENUM_INDEX`) with `serializeException` interaction (`serializer_global_flags_contract`), and mixed string/object reference stress (`serializer_reference_stress_contract`).
 - Current scope note: serializer/unserializer coverage is broad, but the fixtures still focus on deterministic, portable payload shapes rather than claiming every obscure cross-target edge combination.
@@ -399,6 +404,7 @@ Shim strategy and alternatives are documented in:
   - `haxe_go-vfp.8.7.7` (retire the final Process compiler emitter in favor of canonical staged source and typed runtime capabilities, completed 2026-07-15)
   - `haxe.go-7zy.12` (reduce `stdlib_symbols` bytes-conversion overhead, completed 2026-02-19)
   - `haxe.go-re8` (support resolver-returned type-value markers for class/enum name extraction + serialization, completed 2026-02-20)
+  - `haxe_go-vfp.8.7.13` (retire the mixed regex/serializer emitter in favor of staged algorithms and exact typed boundaries, completed 2026-07-18)
 
 ### Upstream module sweep (strict CI-gated)
 

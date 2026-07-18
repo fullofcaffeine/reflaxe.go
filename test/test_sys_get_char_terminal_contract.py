@@ -74,7 +74,9 @@ class SysGetCharTerminalContractTest(unittest.TestCase):
         unsafe_pointer_files = {
             name for name, source in runtime_sources.items() if "unsafe.Pointer" in source
         }
-        self.assertEqual({"terminal_posix.go"}, unsafe_pointer_files)
+        self.assertEqual(
+            {"serialization.go", "terminal_posix.go"}, unsafe_pointer_files
+        )
 
 
 if __name__ == "__main__":

@@ -20,8 +20,8 @@ package reflaxe.go.compiler;
 class GoStdlibOwnership {
 	public static function isCompilerOwnedAuthority(name:String):Bool {
 		return switch (name) {
-			case "EReg", "haxe.io.BufferInput", "haxe.io.Bytes", "haxe.io.BytesBuffer", "haxe.io.BytesInput", "haxe.io.BytesOutput", "haxe.io.Eof",
-				"haxe.io.Error", "haxe.io.Input", "haxe.io.Output", "haxe.io.StringInput", "sys.Http":
+			case "haxe.io.BufferInput", "haxe.io.Bytes", "haxe.io.BytesBuffer", "haxe.io.BytesInput", "haxe.io.BytesOutput", "haxe.io.Eof", "haxe.io.Error",
+				"haxe.io.Input", "haxe.io.Output", "haxe.io.StringInput", "sys.Http":
 				true;
 			case _:
 				false;

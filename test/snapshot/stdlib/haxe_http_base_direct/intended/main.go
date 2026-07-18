@@ -1425,9 +1425,13 @@ func Type_allEnums(e any) *hxrt.Array {
 	}
 }
 
-func Type_typeof(v any) any {
+func Type_typeof(v any) *ValueType {
 	if hxrt.AnyEqualsNull(v) {
 		return ValueType_TNull
+	}
+	switch v.(type) {
+	case *hxrt__TypeClassValue, hxrt__TypeClassValue, *hxrt__TypeEnumValue, hxrt__TypeEnumValue:
+		return ValueType_TObject
 	}
 	if enumValue := Type_getEnum(v); enumValue != nil {
 		return ValueType_TEnum(enumValue)

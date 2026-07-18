@@ -21,6 +21,7 @@
       "upstream_std_override": [
         "haxe_go-vfp.5.3",
         "haxe_go-vfp.8.7.10",
+        "haxe_go-vfp.8.7.13",
         "haxe_go-vfp.8.7.14",
         "haxe_go-vfp.8.7.15.1",
         "haxe_go-vfp.8.7.15.2",
@@ -36,12 +37,14 @@
       ],
       "staged_support": [
         "haxe_go-vfp.5.4",
+        "haxe_go-vfp.8.7.13",
         "haxe_go-vfp.8.7.14"
       ],
       "hxrt_binding": [
         "haxe_go-vfp.5.4",
         "haxe_go-vfp.8.3.8",
         "haxe_go-vfp.8.7.10",
+        "haxe_go-vfp.8.7.13",
         "haxe_go-vfp.8.7.14",
         "haxe_go-vfp.8.7.15.1",
         "haxe_go-vfp.8.7.15.3",
@@ -182,6 +185,15 @@
       "migrationBead": "haxe_go-vfp.5.3",
       "compilerShimGroups": [],
       "notes": "Go staged portable override for DateTools helper ownership, keeping formatting and date-helper semantics out of GoCompiler."
+    },
+    {
+      "path": "std/go/_std/EReg.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/EReg.hx",
+      "migrationBead": "haxe_go-vfp.8.7.13",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged EReg API. Haxe owns options, match state, capture validation, split/map traversal, matchSub, and global replacement policy; the typed NativeRegex boundary exposes only compiled RE2 execution and code-point-normalized match snapshots."
     },
     {
       "path": "std/go/_std/Lambda.hx",
@@ -485,6 +497,15 @@
         "io"
       ],
       "notes": "Go staged portable helper surface for inherited haxe.io.Input and haxe.io.Output loop semantics. The remaining compiler-emitted base IO shapes are compatibility migration debt tracked by haxe_go-vfp.8.7.11."
+    },
+    {
+      "path": "std/haxe/GoSerializationBridge.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "staged_support",
+      "destination": "std/haxe/GoSerializationBridge.hx",
+      "migrationBead": "haxe_go-vfp.8.7.13",
+      "compilerShimGroups": [],
+      "notes": "Ordinary staged declaration of the exact same-package custom-hook and structural-resolver invocation bridge. It contains no token policy, traversal, metadata table, or runtime reflection behavior."
     },
     {
       "path": "std/go/_std/haxe/io/FPHelper.hx",
@@ -875,6 +896,24 @@
       "migrationBead": "haxe_go-vfp.5.3",
       "compilerShimGroups": [],
       "notes": "Go staged portable override for direct haxe.SysTools quoting helpers, keeping command-line quoting semantics out of GoCompiler while upstream string/array lowerings remain incomplete."
+    },
+    {
+      "path": "std/go/_std/haxe/Serializer.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/Serializer.hx",
+      "migrationBead": "haxe_go-vfp.8.7.13",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged Haxe 4.3.7 serializer token stream, caches, traversal, collection handling, and custom-hook policy over narrow field-snapshot and same-package invocation boundaries."
+    },
+    {
+      "path": "std/go/_std/haxe/Unserializer.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/Unserializer.hx",
+      "migrationBead": "haxe_go-vfp.8.7.13",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged Haxe 4.3.7 unserializer parser, resolver policy, cache ordering, token construction, and custom-hook dispatch over existing Type metadata plus narrow field-assignment and same-package invocation boundaries."
     },
     {
       "path": "std/go/_std/haxe/Utf8.hx",
@@ -1361,6 +1400,51 @@
       "migrationBead": "haxe_go-vfp.8.7.7",
       "compilerShimGroups": [],
       "notes": "Opaque typed extern carrier for a child stdout or stderr pipe wrapped by the staged haxe.io.Input implementation."
+    },
+    {
+      "path": "std/hxrt/regex/NativeRegex.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/regex/NativeRegex.hx",
+      "migrationBead": "haxe_go-vfp.8.7.13",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge to runtime/hxrt/regex.go for RE2 compilation, matching, and quoting; staged EReg owns every public semantic and state transition, including Haxe replacement-template expansion."
+    },
+    {
+      "path": "std/hxrt/regex/RegexHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/regex/RegexHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.13",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed carrier for one compiled Go regexp resource retained privately by staged EReg."
+    },
+    {
+      "path": "std/hxrt/regex/RegexMatch.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/regex/RegexMatch.hx",
+      "migrationBead": "haxe_go-vfp.8.7.13",
+      "compilerShimGroups": [],
+      "notes": "Typed native match carrier whose indexes are normalized from Go UTF-8 byte offsets to the Haxe code-point string contract before staged EReg consumes them."
+    },
+    {
+      "path": "std/hxrt/serialization/NativeSerialization.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/serialization/NativeSerialization.hx",
+      "migrationBead": "haxe_go-vfp.8.7.13",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge to the narrow runtime field snapshot, reflected assignment, hidden-self repair, and bounded float parsing capabilities required by staged serialization."
+    },
+    {
+      "path": "std/hxrt/serialization/SerializationField.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/serialization/SerializationField.hx",
+      "migrationBead": "haxe_go-vfp.8.7.13",
+      "compilerShimGroups": [],
+      "notes": "Typed name/value carrier for one generated instance-field snapshot, keeping runtime reflection output explicit and deterministically ordered."
     },
     {
       "path": "std/hxrt/ssl/CertificateHandle.hx",

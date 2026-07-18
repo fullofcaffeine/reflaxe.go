@@ -104,9 +104,12 @@ For each current report row, CI requires a matching policy entry.
 - A higher count fails with the current and permitted counts.
 - A finding in a new file, function context, owner, capability, profile, or
   surface fails as unexplained debt.
-- Direct `unsafe` package touchpoints currently have a zero baseline. The first use fails
-  even though no zero-count file row exists, because every observed finding must
-  match a checked-in entry.
+- Generated program output keeps a zero `unsafe` baseline. Checked-in `hxrt`
+  admits only the exact POSIX terminal ioctl pointer and serialization
+  package-private-field lift, each under a separate owner, What / Why / How
+  exception, per-file ceiling, removal condition, and tooling evidence. Any new
+  file or selector still fails because every observed finding must match a
+  checked-in entry.
 
 This gate runs from `npm test`, `npm run test:changed`, and the release-contract
 suite used by `test/run-ci.py`.

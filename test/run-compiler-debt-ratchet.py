@@ -65,7 +65,7 @@ SHIM_CAPABILITIES = {
     "lowerStdlibSymbolShimDecls": "stdlib_symbols",
     "reflectFieldsShimDecl": "reflection",
     "lowerTypeReflectionShimDecls": "reflection",
-    "lowerRegexSerializerShimDecls": "regex_serializer",
+    "lowerSerializationSourceBridgeShimDecls": "serialization_source_bridge",
 }
 
 
@@ -209,6 +209,14 @@ def source_capability(file: str) -> str:
         return "atomic"
     if file.endswith("equality.go"):
         return "dynamic_values"
+    if file.endswith("/EReg.hx") or "/hxrt/regex/" in file or file.endswith("/regex.go"):
+        return "regex"
+    if (
+        file.endswith(("/Serializer.hx", "/Unserializer.hx", "/GoSerializationBridge.hx"))
+        or "/hxrt/serialization/" in file
+        or file.endswith("/serialization.go")
+    ):
+        return "serialization"
     if "/atomic/" in file:
         return "atomic"
     if file.endswith(("/enum_value.go", "/map_int.go", "/map_object.go", "/map_string.go")):
@@ -238,8 +246,8 @@ def go_raw_dimensions(file: str, context: str) -> dict[str, str]:
                 "capability": shim_capability(context),
             }
         return {"owner": "compiler_core", "capability": "typed_lowering"}
-    if file.endswith("GoRegexSerializerEmitter.hx"):
-        return {"owner": "compiler_shim", "capability": "regex_serializer"}
+    if file.endswith("GoSerializationSourceBridgeEmitter.hx"):
+        return {"owner": "compiler_shim", "capability": "serialization_source_bridge"}
     if file.endswith("GoTypeReflectionEmitter.hx") or file.endswith("GoRttiMetadataEmitter.hx"):
         return {"owner": "compiler_shim", "capability": "reflection"}
     if file.endswith("GoLambdaIterableLowering.hx"):
@@ -295,6 +303,9 @@ def go_selector_dimensions(file: str, metric: str) -> dict[str, str]:
         is_admitted_terminal_boundary = (
             is_unsafe and file == "runtime/hxrt/terminal_posix.go"
         )
+        is_admitted_serialization_boundary = (
+            is_unsafe and file == "runtime/hxrt/serialization.go"
+        )
         return {
             "owner": "runtime_hxrt",
             "capability": source_capability(file),
@@ -302,10 +313,16 @@ def go_selector_dimensions(file: str, metric: str) -> dict[str, str]:
             "surface": "runtime",
             "classification": (
                 "required"
-                if is_admitted_terminal_boundary or not is_unsafe
+                if is_admitted_terminal_boundary or is_admitted_serialization_boundary or not is_unsafe
                 else "avoidable"
             ),
-            "exception_id": "runtime_unsafe_boundary" if is_unsafe else "runtime_reflection_boundary",
+            "exception_id": (
+                "runtime_serialization_unsafe_boundary"
+                if is_admitted_serialization_boundary
+                else "runtime_unsafe_boundary"
+                if is_unsafe
+                else "runtime_reflection_boundary"
+            ),
         }
 
     parts = file.split("/")

@@ -441,6 +441,10 @@ class GoTypeReflectionEmitter {
 			GoStmt.GoRaw("if hxrt.AnyEqualsNull(v) {"),
 			GoStmt.GoRaw("\treturn ValueType_TNull"),
 			GoStmt.GoRaw("}"),
+			GoStmt.GoRaw("switch v.(type) {"),
+			GoStmt.GoRaw("case *hxrt__TypeClassValue, hxrt__TypeClassValue, *hxrt__TypeEnumValue, hxrt__TypeEnumValue:"),
+			GoStmt.GoRaw("\treturn ValueType_TObject"),
+			GoStmt.GoRaw("}"),
 			GoStmt.GoRaw("if enumValue := Type_getEnum(v); enumValue != nil {"),
 			GoStmt.GoRaw("\treturn ValueType_TEnum(enumValue)"),
 			GoStmt.GoRaw("}"),
@@ -743,7 +747,7 @@ class GoTypeReflectionEmitter {
 			GoDecl.GoFuncDecl("Type_getEnumConstructs", null, [{name: "e", typeName: "any"}], ["*hxrt.Array"], getEnumConstructsBody),
 			GoDecl.GoFuncDecl("Type_enumParameters", null, [{name: "e", typeName: "any"}], ["*hxrt.Array"], enumParametersBody),
 			GoDecl.GoFuncDecl("Type_allEnums", null, [{name: "e", typeName: "any"}], ["*hxrt.Array"], allEnumsBody),
-			GoDecl.GoFuncDecl("Type_typeof", null, [{name: "v", typeName: "any"}], ["any"], typeOfBody),
+			GoDecl.GoFuncDecl("Type_typeof", null, [{name: "v", typeName: "any"}], ["*ValueType"], typeOfBody),
 			GoDecl.GoFuncDecl("Type_enumEq", null, [{name: "a", typeName: "any"}, {name: "b", typeName: "any"}], ["bool"],
 				[GoStmt.GoReturn(GoExpr.GoRaw("reflect.DeepEqual(a, b)"))])
 		];
