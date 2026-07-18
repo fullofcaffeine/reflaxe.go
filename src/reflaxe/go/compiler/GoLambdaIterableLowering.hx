@@ -6,6 +6,8 @@ import haxe.macro.Type;
 import haxe.macro.TypeTools;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoStmt;
+import reflaxe.go.ast.GoBuiltinType;
+import reflaxe.go.ast.GoType;
 
 typedef GoLambdaLoweredExpr = {
 	final expr:GoExpr;
@@ -551,13 +553,14 @@ class GoLambdaIterableLowering {
 
 	/**
 		What: Builds the empty map used by erased structural object carriers.
-		Why: The typed Go AST does not yet model map composite literals; duplicating
-		`GoRaw` at every adapter site would grow unowned compiler debt.
-		How: Keep the one syntax-only fragment here until `haxe_go-vfp.8.3` adds the
-		typed composite-literal node, while all keys, closures, and calls stay typed.
+		Why: Iterator callbacks use an erased field map, but its initialization should
+		remain visible to import analysis and transforms.
+		How: Construct the empty value through the same typed composite-literal node
+		used by ordinary anonymous-object lowering.
 	**/
 	function emptyDynamicFieldMapExpr():GoExpr {
-		return GoExpr.GoRaw("map[string]any{}");
+		var mapType = GoType.map(GoType.builtin(GoBuiltinType.StringType), GoType.builtin(GoBuiltinType.AnyType));
+		return GoExpr.GoCompositeLiteral(mapType, []);
 	}
 
 	function tryValuePlan(sourceExpr:GoExpr, sourceType:Type):Null<GoLambdaSourcePlan> {
@@ -888,10 +891,11 @@ class GoLambdaIterableLowering {
 		var convertedItemExpr = lowerNullableAwareTypeAssertExpr(GoExpr.GoIdent(itemName), targetElementType);
 		var outType = "[]" + targetElementGoType;
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: rawName, typeName: "[]any"}], [outType], [
-			GoStmt.GoVarDecl(outName, outType, GoExpr.GoRaw("make(" + outType + ", 0, len(" + rawName + "))"), true),
-			GoStmt.GoRaw("for _, " + itemName + " := range " + rawName + " {"),
-			GoStmt.GoAssign(GoExpr.GoIdent(outName), GoExpr.GoCall(GoExpr.GoIdent("append"), [GoExpr.GoIdent(outName), convertedItemExpr])),
-			GoStmt.GoRaw("}"),
+			GoStmt.GoVarDecl(outName, outType,
+				GoExpr.GoMakeSlice(targetElementGoType, GoExpr.GoIntLiteral(0), GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent(rawName)])), true),
+			GoStmt.GoRangeStmt(null, itemName, GoExpr.GoIdent(rawName), true, [
+				GoStmt.GoAssign(GoExpr.GoIdent(outName), GoExpr.GoCall(GoExpr.GoIdent("append"), [GoExpr.GoIdent(outName), convertedItemExpr]))
+			]),
 			GoStmt.GoReturn(GoExpr.GoIdent(outName))
 		]), [anySliceExpr]);
 	}

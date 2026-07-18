@@ -9,6 +9,8 @@ import reflaxe.go.ast.GoAST.GoSelectClause;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
+import reflaxe.go.ast.GoCompositeElement;
+import reflaxe.go.ast.GoSimpleStmt;
 import reflaxe.go.ast.GoUnaryOperator;
 import reflaxe.go.ast.transformers.registry.RegistryCore.IGoASTPass;
 
@@ -48,8 +50,10 @@ class RewriteStringOpsPass implements IGoASTPass {
 				GoStmt.GoVarDecl(name, typeName, value == null ? null : rewriteExpr(value), useShort);
 			case GoStmt.GoMultiAssign(names, value, useShort):
 				GoStmt.GoMultiAssign(names, rewriteExpr(value), useShort);
-			case GoStmt.GoAssign(left, right):
-				GoStmt.GoAssign(rewriteExpr(left), rewriteExpr(right));
+			case GoStmt.GoAssign(left, right, op):
+				GoStmt.GoAssign(rewriteExpr(left), rewriteExpr(right), op);
+			case GoStmt.GoIncDec(target, op):
+				GoStmt.GoIncDec(rewriteExpr(target), op);
 			case GoStmt.GoExprStmt(expr):
 				GoStmt.GoExprStmt(rewriteExpr(expr));
 			case GoStmt.GoGoStmt(call):
@@ -60,6 +64,9 @@ class RewriteStringOpsPass implements IGoASTPass {
 				GoStmt.GoSendStmt(rewriteExpr(channel), rewriteExpr(value));
 			case GoStmt.GoWhile(cond, body):
 				GoStmt.GoWhile(rewriteExpr(cond), [for (inner in body) rewriteStmt(inner)]);
+			case GoStmt.GoFor(initializer, condition, post, body):
+				GoStmt.GoFor(initializer == null ? null : rewriteSimpleStmt(initializer), condition == null ? null : rewriteExpr(condition),
+					post == null ? null : rewriteSimpleStmt(post), [for (inner in body) rewriteStmt(inner)]);
 			case GoStmt.GoLabeled(label, child):
 				GoStmt.GoLabeled(label, rewriteStmt(child));
 			case GoStmt.GoRangeStmt(keyName, valueName, source, useShort, body):
@@ -102,6 +109,16 @@ class RewriteStringOpsPass implements IGoASTPass {
 		};
 	}
 
+	function rewriteSimpleStmt(stmt:GoSimpleStmt):GoSimpleStmt {
+		return switch (stmt) {
+			case GoSimpleDeclare(name, value): GoSimpleDeclare(name, rewriteExpr(value));
+			case GoSimpleAssign(left, right, op): GoSimpleAssign(rewriteExpr(left), rewriteExpr(right), op);
+			case GoSimpleIncDec(target, op): GoSimpleIncDec(rewriteExpr(target), op);
+			case GoSimpleExpr(expr): GoSimpleExpr(rewriteExpr(expr));
+			case GoSimpleSend(channel, value): GoSimpleSend(rewriteExpr(channel), rewriteExpr(value));
+		};
+	}
+
 	function rewriteSelectClause(clause:GoSelectClause):GoSelectClause {
 		return switch (clause) {
 			case GoSelectClause.GoSelectSend(channel, value):
@@ -125,8 +142,8 @@ class RewriteStringOpsPass implements IGoASTPass {
 				GoExpr.GoIndex(rewriteExpr(target), rewriteExpr(index));
 			case GoExpr.GoSlice(target, start, end):
 				GoExpr.GoSlice(rewriteExpr(target), start == null ? null : rewriteExpr(start), end == null ? null : rewriteExpr(end));
-			case GoExpr.GoArrayLiteral(elementType, elements):
-				GoExpr.GoArrayLiteral(elementType, [for (element in elements) rewriteExpr(element)]);
+			case GoExpr.GoCompositeLiteral(typeName, elements):
+				GoExpr.GoCompositeLiteral(typeName, [for (element in elements) rewriteCompositeElement(element)]);
 			case GoExpr.GoMakeSlice(elementType, length, capacity):
 				GoExpr.GoMakeSlice(elementType, rewriteExpr(length), capacity == null ? null : rewriteExpr(capacity));
 			case GoExpr.GoFuncLiteral(params, results, body):
@@ -146,6 +163,14 @@ class RewriteStringOpsPass implements IGoASTPass {
 		};
 
 		return foldExpr(rewritten);
+	}
+
+	function rewriteCompositeElement(element:GoCompositeElement):GoCompositeElement {
+		return switch (element) {
+			case GoCompositeValue(value): GoCompositeValue(rewriteExpr(value));
+			case GoCompositeKeyValue(key, value): GoCompositeKeyValue(rewriteExpr(key), rewriteExpr(value));
+			case GoCompositeField(fieldName, value): GoCompositeField(fieldName, rewriteExpr(value));
+		};
 	}
 
 	function foldExpr(expr:GoExpr):GoExpr {

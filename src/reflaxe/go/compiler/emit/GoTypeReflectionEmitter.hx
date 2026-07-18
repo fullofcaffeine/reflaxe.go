@@ -4,6 +4,10 @@ package reflaxe.go.compiler.emit;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoStmt;
+import reflaxe.go.ast.GoBuiltinType;
+import reflaxe.go.ast.GoCompositeElement;
+import reflaxe.go.ast.GoType;
+import reflaxe.go.ast.GoUnaryOperator;
 import reflaxe.go.compiler.GoStdlibOwnership;
 
 /**
@@ -473,22 +477,22 @@ class GoTypeReflectionEmitter {
 
 		return [
 			GoDecl.GoStructDecl("ValueType", [{name: "tag", typeName: "int"}, {name: "params", typeName: "[]any"}]),
-			GoDecl.GoGlobalVarDecl("ValueType_TNull", "*ValueType", GoExpr.GoRaw("&ValueType{tag: 0, params: []any{}}")),
-			GoDecl.GoGlobalVarDecl("ValueType_TInt", "*ValueType", GoExpr.GoRaw("&ValueType{tag: 1, params: []any{}}")),
-			GoDecl.GoGlobalVarDecl("ValueType_TFloat", "*ValueType", GoExpr.GoRaw("&ValueType{tag: 2, params: []any{}}")),
-			GoDecl.GoGlobalVarDecl("ValueType_TBool", "*ValueType", GoExpr.GoRaw("&ValueType{tag: 3, params: []any{}}")),
-			GoDecl.GoGlobalVarDecl("ValueType_TObject", "*ValueType", GoExpr.GoRaw("&ValueType{tag: 4, params: []any{}}")),
-			GoDecl.GoGlobalVarDecl("ValueType_TFunction", "*ValueType", GoExpr.GoRaw("&ValueType{tag: 5, params: []any{}}")),
-			GoDecl.GoGlobalVarDecl("ValueType_TUnknown", "*ValueType", GoExpr.GoRaw("&ValueType{tag: 8, params: []any{}}")),
+			GoDecl.GoGlobalVarDecl("ValueType_TNull", "*ValueType", valueTypeLiteral(0, [])),
+			GoDecl.GoGlobalVarDecl("ValueType_TInt", "*ValueType", valueTypeLiteral(1, [])),
+			GoDecl.GoGlobalVarDecl("ValueType_TFloat", "*ValueType", valueTypeLiteral(2, [])),
+			GoDecl.GoGlobalVarDecl("ValueType_TBool", "*ValueType", valueTypeLiteral(3, [])),
+			GoDecl.GoGlobalVarDecl("ValueType_TObject", "*ValueType", valueTypeLiteral(4, [])),
+			GoDecl.GoGlobalVarDecl("ValueType_TFunction", "*ValueType", valueTypeLiteral(5, [])),
+			GoDecl.GoGlobalVarDecl("ValueType_TUnknown", "*ValueType", valueTypeLiteral(8, [])),
 			GoDecl.GoFuncDecl("ValueType_TClass", null, [
 				{
 					name: "c",
 					typeName: "any"
 				}
 			],
-				["*ValueType"], [GoStmt.GoReturn(GoExpr.GoRaw("&ValueType{tag: 6, params: []any{c}}"))]),
+				["*ValueType"], [GoStmt.GoReturn(valueTypeLiteral(6, [GoExpr.GoIdent("c")]))]),
 			GoDecl.GoFuncDecl("ValueType_TEnum", null, [{name: "e", typeName: "any"}], ["*ValueType"],
-				[GoStmt.GoReturn(GoExpr.GoRaw("&ValueType{tag: 7, params: []any{e}}"))]),
+				[GoStmt.GoReturn(valueTypeLiteral(7, [GoExpr.GoIdent("e")]))]),
 			GoDecl.GoFuncDecl("hxrt_typeCallAny", null, [{name: "callable", typeName: "any"}, {name: "args", typeName: "[]any"}], ["any", "bool"], [
 				GoStmt.GoRaw("result := any(nil)"),
 				GoStmt.GoRaw("ok := false"),
@@ -550,7 +554,9 @@ class GoTypeReflectionEmitter {
 					typeName: "*hxrt.Array"
 				}
 			], ["[]any"], [
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("value"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoArrayLiteral("any", []))], null),
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("value"), GoExpr.GoNil), [
+					GoStmt.GoReturn(GoExpr.GoCompositeLiteral(GoType.slice(GoType.builtin(GoBuiltinType.AnyType)), []))
+				], null),
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("value"), "Values"), []))
 			]),
 			GoDecl.GoFuncDecl("hxrt_typeResolvedClassName", null, [
@@ -741,6 +747,24 @@ class GoTypeReflectionEmitter {
 			GoDecl.GoFuncDecl("Type_enumEq", null, [{name: "a", typeName: "any"}, {name: "b", typeName: "any"}], ["bool"],
 				[GoStmt.GoReturn(GoExpr.GoRaw("reflect.DeepEqual(a, b)"))])
 		];
+	}
+
+	/**
+		What: Build the compiler-owned structural representation of one `ValueType`
+		constructor value.
+		Why: Reflection metadata is compiler-owned, but its ordinary struct and slice
+		literals should remain visible to validation, traversal, and import analysis
+		instead of crossing a raw-Go escape.
+		How: Store the enum tag in a named-field composite and represent parameters as
+		a typed `[]any` composite before taking the struct address.
+	**/
+	static function valueTypeLiteral(tag:Int, params:Array<GoExpr>):GoExpr {
+		return GoExpr.GoUnary(GoUnaryOperator.AddressOf, GoExpr.GoCompositeLiteral(GoType.named("ValueType"), [
+			GoCompositeElement.GoCompositeField("tag", GoExpr.GoIntLiteral(tag)),
+			GoCompositeElement.GoCompositeField("params",
+				GoExpr.GoCompositeLiteral(GoType.slice(GoType.builtin(GoBuiltinType.AnyType)),
+					[for (param in params) GoCompositeElement.GoCompositeValue(param)]))
+		]));
 	}
 }
 #end

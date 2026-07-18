@@ -315,42 +315,6 @@
       "surface": "compiler"
     },
     {
-      "capability": "typed_lowering",
-      "classification": "avoidable",
-      "context": "lowerConstructorDecl",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "go_raw",
-      "owner": "compiler_core",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
-      "capability": "typed_lowering",
-      "classification": "avoidable",
-      "context": "lowerEnumDecls",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 2,
-      "metric": "go_raw",
-      "owner": "compiler_core",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
-      "capability": "typed_lowering",
-      "classification": "avoidable",
-      "context": "lowerExternTupleReturnExpr",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "go_raw",
-      "owner": "compiler_core",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
       "capability": "go_concurrency",
       "classification": "avoidable",
       "context": "lowerGoConcurrencyShimDecls",
@@ -423,18 +387,6 @@
       "surface": "compiler"
     },
     {
-      "capability": "typed_lowering",
-      "classification": "avoidable",
-      "context": "lowerObjectDeclExpr",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "go_raw",
-      "owner": "compiler_core",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
       "capability": "stdlib_symbols",
       "classification": "avoidable",
       "context": "lowerStdlibSymbolShimDecls",
@@ -467,30 +419,6 @@
       "max_count": 1,
       "metric": "go_raw",
       "owner": "compiler_core",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
-      "capability": "typed_lowering",
-      "classification": "avoidable",
-      "context": "lowerTypeExpr",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "go_raw",
-      "owner": "compiler_core",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
-      "capability": "go_collections",
-      "classification": "avoidable",
-      "context": "lowerTypedGoCollectionShimDecls",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "go_raw",
-      "owner": "compiler_shim",
       "profile": "shared",
       "surface": "compiler"
     },
@@ -615,36 +543,12 @@
       "surface": "compiler"
     },
     {
-      "capability": "collection_lowering",
-      "classification": "avoidable",
-      "context": "anyArrayCoerce",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/compiler/GoLambdaIterableLowering.hx",
-      "max_count": 3,
-      "metric": "go_raw",
-      "owner": "compiler_core",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
-      "capability": "collection_lowering",
-      "classification": "avoidable",
-      "context": "emptyDynamicFieldMapExpr",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/compiler/GoLambdaIterableLowering.hx",
-      "max_count": 1,
-      "metric": "go_raw",
-      "owner": "compiler_core",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
       "capability": "ast_fixture",
       "classification": "avoidable",
       "context": "emit",
       "exception_id": "typed_ast_gap",
       "file": "src/reflaxe/go/compiler/GoTestAstFixtureEmitter.hx",
-      "max_count": 5,
+      "max_count": 3,
       "metric": "go_raw",
       "owner": "test_infrastructure",
       "profile": "shared",
@@ -692,7 +596,7 @@
       "context": "emit",
       "exception_id": "typed_ast_gap",
       "file": "src/reflaxe/go/compiler/emit/GoTypeReflectionEmitter.hx",
-      "max_count": 393,
+      "max_count": 384,
       "metric": "go_raw",
       "owner": "compiler_shim",
       "profile": "shared",

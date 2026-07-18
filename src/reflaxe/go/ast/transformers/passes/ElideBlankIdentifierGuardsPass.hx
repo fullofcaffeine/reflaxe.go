@@ -9,6 +9,9 @@ import reflaxe.go.ast.GoAST.GoSelectClause;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
+import reflaxe.go.ast.GoAssignmentOperator;
+import reflaxe.go.ast.GoCompositeElement;
+import reflaxe.go.ast.GoSimpleStmt;
 import reflaxe.go.ast.transformers.registry.RegistryCore.IGoASTPass;
 
 class ElideBlankIdentifierGuardsPass implements IGoASTPass {
@@ -176,11 +179,17 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 						declareBinding(name);
 					}
 				}
-			case GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(_)):
+			case GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(_), op) if (isPlainAssignment(op)):
 				// Ignore blank-identifier guards while counting real reads.
-			case GoStmt.GoAssign(left, right):
-				collectLValueReads(left);
+			case GoStmt.GoAssign(left, right, op):
+				if (isPlainAssignment(op)) {
+					collectLValueReads(left);
+				} else {
+					collectExprReads(left);
+				}
 				collectExprReads(right);
+			case GoStmt.GoIncDec(target, _):
+				collectExprReads(target);
 			case GoStmt.GoExprStmt(expr):
 				collectExprReads(expr);
 			case GoStmt.GoGoStmt(call):
@@ -196,6 +205,21 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				collectExprReads(cond);
 				pushScope();
 				collectStmtList(body);
+				popScope();
+			case GoStmt.GoFor(initializer, condition, post, body):
+				pushScope();
+				if (initializer != null) {
+					collectSimpleStmt(initializer);
+				}
+				if (condition != null) {
+					collectExprReads(condition);
+				}
+				pushScope();
+				collectStmtList(body);
+				popScope();
+				if (post != null) {
+					collectSimpleStmt(post);
+				}
 				popScope();
 			case GoStmt.GoLabeled(_, child):
 				collectStmt(child);
@@ -271,6 +295,32 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 		}
 	}
 
+	function collectSimpleStmt(stmt:GoSimpleStmt):Void {
+		switch (stmt) {
+			case GoSimpleDeclare(name, value):
+				collectExprReads(value);
+				declareBinding(name);
+			case GoSimpleAssign(left, right, op):
+				if (isPlainAssignment(op)) {
+					collectLValueReads(left);
+				} else {
+					collectExprReads(left);
+				}
+				collectExprReads(right);
+			case GoSimpleIncDec(target, _):
+				collectExprReads(target);
+			case GoSimpleExpr(expr):
+				collectExprReads(expr);
+			case GoSimpleSend(channel, value):
+				collectExprReads(channel);
+				collectExprReads(value);
+		}
+	}
+
+	inline function isPlainAssignment(op:Null<GoAssignmentOperator>):Bool {
+		return op == null || op == GoAssignmentOperator.Assign;
+	}
+
 	function collectSelectClause(clause:GoSelectClause):Void {
 		switch (clause) {
 			case GoSelectClause.GoSelectSend(channel, value):
@@ -325,9 +375,9 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				if (end != null) {
 					collectExprReads(end);
 				}
-			case GoExpr.GoArrayLiteral(_, elements):
+			case GoExpr.GoCompositeLiteral(_, elements):
 				for (element in elements) {
-					collectExprReads(element);
+					collectCompositeElementReads(element);
 				}
 			case GoExpr.GoMakeSlice(_, length, capacity):
 				collectExprReads(length);
@@ -358,6 +408,16 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 					collectExprReads(arg);
 				}
 			case _:
+		}
+	}
+
+	function collectCompositeElementReads(element:GoCompositeElement):Void {
+		switch (element) {
+			case GoCompositeValue(value), GoCompositeField(_, value):
+				collectExprReads(value);
+			case GoCompositeKeyValue(key, value):
+				collectExprReads(key);
+				collectExprReads(value);
 		}
 	}
 
@@ -438,7 +498,7 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 					}
 				}
 				GoStmt.GoMultiAssign(names, rewrittenValue, useShort);
-			case GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(name)):
+			case GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(name), op) if (isPlainAssignment(op)):
 				var bindingId = resolveBinding(name);
 				if (bindingId == null || unsafeBindings.exists(bindingId)) {
 					stmt;
@@ -453,8 +513,10 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 						stmt;
 					}
 				}
-			case GoStmt.GoAssign(left, right):
-				GoStmt.GoAssign(rewriteExpr(left), rewriteExpr(right));
+			case GoStmt.GoAssign(left, right, op):
+				GoStmt.GoAssign(rewriteExpr(left), rewriteExpr(right), op);
+			case GoStmt.GoIncDec(target, op):
+				GoStmt.GoIncDec(rewriteExpr(target), op);
 			case GoStmt.GoExprStmt(expr):
 				GoStmt.GoExprStmt(rewriteExpr(expr));
 			case GoStmt.GoGoStmt(call):
@@ -471,6 +533,16 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				var rewrittenBody = rewriteStmtList(body);
 				popScope();
 				GoStmt.GoWhile(rewrittenCond, rewrittenBody);
+			case GoStmt.GoFor(initializer, condition, post, body):
+				pushScope();
+				var rewrittenInitializer = initializer == null ? null : rewriteSimpleStmt(initializer);
+				var rewrittenCondition = condition == null ? null : rewriteExpr(condition);
+				pushScope();
+				var rewrittenBody = rewriteStmtList(body);
+				popScope();
+				var rewrittenPost = post == null ? null : rewriteSimpleStmt(post);
+				popScope();
+				GoStmt.GoFor(rewrittenInitializer, rewrittenCondition, rewrittenPost, rewrittenBody);
 			case GoStmt.GoLabeled(label, child):
 				var rewrittenChild = rewriteStmt(child, new Map<Int, Bool>());
 				rewrittenChild == null ? null : GoStmt.GoLabeled(label, rewrittenChild);
@@ -573,6 +645,23 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 		};
 	}
 
+	function rewriteSimpleStmt(stmt:GoSimpleStmt):GoSimpleStmt {
+		return switch (stmt) {
+			case GoSimpleDeclare(name, value):
+				var rewrittenValue = rewriteExpr(value);
+				declareBinding(name);
+				GoSimpleDeclare(name, rewrittenValue);
+			case GoSimpleAssign(left, right, op):
+				GoSimpleAssign(rewriteExpr(left), rewriteExpr(right), op);
+			case GoSimpleIncDec(target, op):
+				GoSimpleIncDec(rewriteExpr(target), op);
+			case GoSimpleExpr(expr):
+				GoSimpleExpr(rewriteExpr(expr));
+			case GoSimpleSend(channel, value):
+				GoSimpleSend(rewriteExpr(channel), rewriteExpr(value));
+		};
+	}
+
 	function rewriteSelectClause(clause:GoSelectClause):GoSelectClause {
 		return switch (clause) {
 			case GoSelectClause.GoSelectSend(channel, value):
@@ -617,8 +706,8 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				GoExpr.GoIndex(rewriteExpr(target), rewriteExpr(index));
 			case GoExpr.GoSlice(target, start, end):
 				GoExpr.GoSlice(rewriteExpr(target), start == null ? null : rewriteExpr(start), end == null ? null : rewriteExpr(end));
-			case GoExpr.GoArrayLiteral(elementType, elements):
-				GoExpr.GoArrayLiteral(elementType, [for (element in elements) rewriteExpr(element)]);
+			case GoExpr.GoCompositeLiteral(typeName, elements):
+				GoExpr.GoCompositeLiteral(typeName, [for (element in elements) rewriteCompositeElement(element)]);
 			case GoExpr.GoMakeSlice(elementType, length, capacity):
 				GoExpr.GoMakeSlice(elementType, rewriteExpr(length), capacity == null ? null : rewriteExpr(capacity));
 			case GoExpr.GoFuncLiteral(params, results, body):
@@ -641,6 +730,14 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				GoExpr.GoCall(rewriteExpr(callee), [for (arg in args) rewriteExpr(arg)]);
 			case _:
 				expr;
+		};
+	}
+
+	function rewriteCompositeElement(element:GoCompositeElement):GoCompositeElement {
+		return switch (element) {
+			case GoCompositeValue(value): GoCompositeValue(rewriteExpr(value));
+			case GoCompositeKeyValue(key, value): GoCompositeKeyValue(rewriteExpr(key), rewriteExpr(value));
+			case GoCompositeField(fieldName, value): GoCompositeField(fieldName, rewriteExpr(value));
 		};
 	}
 }

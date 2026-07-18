@@ -5,11 +5,15 @@ import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoSelectClause;
 import reflaxe.go.ast.GoAST.GoStmt;
+import reflaxe.go.ast.GoAssignmentOperator;
 import reflaxe.go.ast.GoBinaryOperator;
 import reflaxe.go.ast.GoBuiltinType;
 import reflaxe.go.ast.GoChannelDirection;
+import reflaxe.go.ast.GoCompositeElement;
 import reflaxe.go.ast.GoImportPath;
+import reflaxe.go.ast.GoIncDecOperator;
 import reflaxe.go.ast.GoPackageName;
+import reflaxe.go.ast.GoSimpleStmt;
 import reflaxe.go.ast.GoType;
 import reflaxe.go.ast.GoUnaryOperator;
 
@@ -80,9 +84,14 @@ class GoTestAstFixtureEmitter {
 					])
 				];
 			case "range":
+				var intType = GoType.builtin(GoBuiltinType.Int);
+				var mapType = GoType.map(GoType.builtin(GoBuiltinType.StringType), intType);
 				[
 					GoDecl.GoFuncDecl("hxrt__test_ast_range_stmt_smoke", null, [], [], [
-						GoStmt.GoVarDecl("items", null, GoExpr.GoRaw("map[string]int{\"a\": 1, \"b\": 2}"), true),
+						GoStmt.GoVarDecl("items", null, GoExpr.GoCompositeLiteral(mapType, [
+							GoCompositeElement.GoCompositeKeyValue(GoExpr.GoStringLiteral("a"), GoExpr.GoIntLiteral(1)),
+							GoCompositeElement.GoCompositeKeyValue(GoExpr.GoStringLiteral("b"), GoExpr.GoIntLiteral(2))
+						]), true),
 						GoStmt.GoRangeStmt("key", "value", GoExpr.GoIdent("items"), true,
 							[
 								GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("key")),
@@ -90,7 +99,11 @@ class GoTestAstFixtureEmitter {
 							]),
 						GoStmt.GoVarDecl("seenKey", "string", null, false),
 						GoStmt.GoRangeStmt("seenKey", null, GoExpr.GoIdent("items"), false, [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("seenKey"))]),
-						GoStmt.GoRangeStmt("index", null, GoExpr.GoRaw("[]int{1, 2, 3}"), true, [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("index"))])
+						GoStmt.GoRangeStmt("index", null, GoExpr.GoCompositeLiteral(GoType.slice(intType), [
+							GoCompositeElement.GoCompositeValue(GoExpr.GoIntLiteral(1)),
+							GoCompositeElement.GoCompositeValue(GoExpr.GoIntLiteral(2)),
+							GoCompositeElement.GoCompositeValue(GoExpr.GoIntLiteral(3))
+						]), true, [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("index"))])
 					])
 				];
 			case "multi_assign":
@@ -144,12 +157,79 @@ class GoTestAstFixtureEmitter {
 					], [GoType.builtin(GoBuiltinType.Bool)], [
 						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoUnary(GoUnaryOperator.Negate, GoExpr.GoIdent("left"))),
 						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoUnary(GoUnaryOperator.BitwiseNot, GoExpr.GoIdent("right"))),
-						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoArrayLiteral(intType, [GoExpr.GoIdent("left"), GoExpr.GoIdent("right")])),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"),
+							GoExpr.GoCompositeLiteral(GoType.slice(intType),
+								[
+									GoCompositeElement.GoCompositeValue(GoExpr.GoIdent("left")),
+									GoCompositeElement.GoCompositeValue(GoExpr.GoIdent("right"))
+								])),
 						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoMakeSlice(intType, GoExpr.GoIntLiteral(0), GoExpr.GoIntLiteral(2))),
 						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoTypeAssert(GoExpr.GoIdent("boxed"), constraintType)),
 						GoStmt.GoReturn(GoExpr.GoBinary(GoBinaryOperator.LogicalAnd,
 							GoExpr.GoBinary(GoBinaryOperator.LessThan, GoExpr.GoIdent("left"), GoExpr.GoIdent("right")),
 							GoExpr.GoBinary(GoBinaryOperator.NotEqual, GoExpr.GoIdent("left"), GoExpr.GoIdent("right"))))
+					])
+				];
+			case "structured_composites":
+				var intType = GoType.builtin(GoBuiltinType.Int);
+				var stringType = GoType.builtin(GoBuiltinType.StringType);
+				var pointType = GoType.named("hxrt__test_ast_Point");
+				var sliceType = GoType.slice(intType);
+				var arrayType = GoType.array(3, intType);
+				var mapType = GoType.map(stringType, intType);
+				[
+					GoDecl.GoStructDecl("hxrt__test_ast_Point", [
+						{name: "X", typeName: intType},
+						{name: "Y", typeName: intType},
+						{name: "Label", typeName: GoType.pointer(stringType)}
+					]),
+					GoDecl.GoFuncDecl("hxrt__test_ast_structured_composite_control_smoke", null, [], [], [
+						GoStmt.GoVarDecl("point", null, GoExpr.GoUnary(GoUnaryOperator.AddressOf, GoExpr.GoCompositeLiteral(pointType, [
+							GoCompositeElement.GoCompositeField("X", GoExpr.GoIntLiteral(1)),
+							GoCompositeElement.GoCompositeField("Y", GoExpr.GoIntLiteral(2)),
+							GoCompositeElement.GoCompositeField("Label",
+								GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringConcatAny"), [GoExpr.GoStringLiteral("a"), GoExpr.GoStringLiteral("b")]))
+						])), true),
+						GoStmt.GoVarDecl("values", null, GoExpr.GoCompositeLiteral(sliceType, [
+							GoCompositeElement.GoCompositeValue(GoExpr.GoIntLiteral(1)),
+							GoCompositeElement.GoCompositeValue(GoExpr.GoIntLiteral(2)),
+							GoCompositeElement.GoCompositeValue(GoExpr.GoIntLiteral(3))
+						]), true),
+						GoStmt.GoVarDecl("indexed", null, GoExpr.GoCompositeLiteral(arrayType, [
+							GoCompositeElement.GoCompositeKeyValue(GoExpr.GoIntLiteral(0), GoExpr.GoIntLiteral(4)),
+							GoCompositeElement.GoCompositeKeyValue(GoExpr.GoIntLiteral(2), GoExpr.GoIntLiteral(6))
+						]), true),
+						GoStmt.GoVarDecl("lookup", null, GoExpr.GoCompositeLiteral(mapType,
+							[
+								GoCompositeElement.GoCompositeKeyValue(GoExpr.GoStringLiteral("one"), GoExpr.GoIntLiteral(1)),
+								GoCompositeElement.GoCompositeKeyValue(GoExpr.GoStringLiteral("two"), GoExpr.GoIntLiteral(2))
+							]),
+							true),
+						GoStmt.GoVarDecl("total", null, GoExpr.GoIntLiteral(0), true),
+						GoStmt.GoFor(GoSimpleStmt.GoSimpleDeclare("index", GoExpr.GoIntLiteral(0)),
+							GoExpr.GoBinary(GoBinaryOperator.LessThan, GoExpr.GoIdent("index"),
+								GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent("values")])),
+							GoSimpleStmt.GoSimpleIncDec(GoExpr.GoIdent("index"), GoIncDecOperator.Increment),
+							[
+								GoStmt.GoAssign(GoExpr.GoIdent("total"), GoExpr.GoIndex(GoExpr.GoIdent("values"), GoExpr.GoIdent("index")),
+									GoAssignmentOperator.AddAssign)
+							]),
+						GoStmt.GoIncDec(GoExpr.GoIdent("total"), GoIncDecOperator.Increment),
+						GoStmt.GoIncDec(GoExpr.GoIdent("total"), GoIncDecOperator.Decrement),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("point")),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("indexed")),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("lookup")),
+						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("total"))
+					])
+				];
+			case "invalid_composite_literal":
+				[
+					GoDecl.GoGlobalVarDecl("invalid", GoType.builtin(GoBuiltinType.Int), GoExpr.GoCompositeLiteral(GoType.builtin(GoBuiltinType.Int), []))
+				];
+			case "invalid_for_post":
+				[
+					GoDecl.GoFuncDecl("invalid", null, [], [], [
+						GoStmt.GoFor(null, null, GoSimpleStmt.GoSimpleDeclare("value", GoExpr.GoIntLiteral(0)), [])
 					])
 				];
 			case "invalid_type":

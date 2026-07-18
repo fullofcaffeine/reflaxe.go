@@ -4,7 +4,8 @@
 
 The typed Go intermediate representation (IR) is the compiler-owned syntax
 model between Haxe lowering and generated Go text. It now represents target
-types, package names, import paths, and unary/binary operators structurally:
+types, package names, import paths, composite literals, assignment forms,
+selected control flow, and expression operators structurally:
 
 ```text
 Haxe TypedExpr
@@ -20,6 +21,10 @@ The central types are:
 
 - `GoType` and `GoBuiltinType` for Go target types;
 - `GoPackageName` and `GoImportPath` for package/import identity;
+- `GoCompositeElement` for positional, expression-keyed, and struct-field
+  literal entries;
+- `GoAssignmentOperator`, `GoIncDecOperator`, and `GoSimpleStmt` for assignment
+  and classic `for` clauses;
 - `GoBinaryOperator` and `GoUnaryOperator` for expression operators; and
 - `GoAST` nodes whose relevant fields use those types instead of `String`,
   including typed slice allocation through `GoMakeSlice`.
@@ -39,6 +44,9 @@ passes cannot safely answer basic questions about it:
 - Is a variadic parameter in the final position?
 - Does a function return one value or several?
 - Is `=>` an accidentally emitted operator?
+- Is a composite entry a struct field, a map key, or a positional value?
+- Can a transform still see both sides of `+=` and the target of `++`?
+- Is a short declaration being placed illegally in a `for` post clause?
 
 Previously those questions were deferred to generated-source compilation or
 answered by regular expressions over target text. That made validation late,
@@ -76,6 +84,36 @@ required by the compiler:
 it is not a standalone Haxe value type. `variadic` represents parameter shape
 and is admitted only as the final parameter by `functionType`.
 
+### Composite literals, assignments, and classic loops
+
+`GoCompositeLiteral` owns the complete literal type. Each entry then states its
+syntax explicitly:
+
+| Go form | Structural entry |
+| --- | --- |
+| `[]int{1, 2}` | positional `GoCompositeValue` entries |
+| `[3]int{2: 9}` | `GoCompositeKeyValue` with an expression key |
+| `map[string]int{"a": 1}` | `GoCompositeKeyValue` with an expression key |
+| `Point{X: 1}` | `GoCompositeField` with a validated field identifier |
+
+The distinction matters to transforms: map and array keys are expressions that
+must be traversed, while a struct field name is target syntax rather than a
+value expression. Named structs, slices, arrays, maps, and named generic types
+may head a composite literal. Pointer construction remains an ordinary typed
+address-of expression around that literal.
+
+`GoAssign` keeps ordinary `=` source-compatible while optionally carrying a
+closed compound-assignment operator such as `+=` or `&^=`. `GoIncDec` models
+`++` and `--` without treating them as expressions. `GoFor` models the classic
+three-clause loop with nullable initializer, condition, and post slots. Its
+initializer and post use the deliberately closed `GoSimpleStmt` type, so a
+block statement cannot accidentally enter a clause. The same node also prints
+condition-only and infinite loops canonically when the clause slots are absent.
+
+These nodes model Go syntax after source semantics and native-boundary policy
+have already been decided. They do not make `metal` a separate semantic product
+and do not grant profile-wide native authority.
+
 ### Validation before printing
 
 Construction rejects malformed or structurally invalid input, including:
@@ -87,8 +125,12 @@ Construction rejects malformed or structurally invalid input, including:
 - non-final variadic function parameters;
 - multi-result values nested where one ordinary type is required;
 - duplicate interface method names;
-- generic instantiation over a non-named base; and
-- tokens outside the closed unary and binary operator sets.
+- generic instantiation over a non-named base;
+- tokens outside the closed unary, binary, assignment, and increment/decrement
+  operator sets;
+- target types that cannot head a composite literal;
+- malformed struct-field identifiers in composite literals; and
+- short declarations in a classic `for` post clause.
 
 These checks are target-syntax checks. Representation eligibility and portable
 semantics remain separate compiler policies.
@@ -102,7 +144,9 @@ qualifier.
 
 For example, `atomic.Pointer[int]` retains `sync/atomic` because the generic
 base contains the structural qualifier `atomic`; no regular expression over
-the rendered type is needed. Expressions and statements that still use
+the rendered type is needed. Composite keys and values, assignment operands,
+increment/decrement targets, and every classic-loop clause are traversed by the
+same structural import-use analysis. Expressions and statements that still use
 `GoRaw` retain their measured text-scanning fallback until their own migration
 beads replace those fragments with structural nodes.
 
@@ -112,8 +156,10 @@ AST nodes carry meaning, not assembled target syntax. `GoASTPrinter` owns:
 
 - package and import quoting;
 - pointer, slice, map, channel, function, interface, and generic punctuation;
+- composite-literal type and entry punctuation;
 - result-list parentheses;
-- operator tokens;
+- expression, assignment, and increment/decrement operator tokens;
+- classic `for` clause separators and bodies;
 - slice-allocation syntax such as `make([]T, length, capacity)`; and
 - ordinary declaration/expression layout.
 
@@ -140,10 +186,18 @@ should use direct builders. Existing string-producing helpers should migrate
 when their ownership area is touched, without changing portable/native
 admission semantics in the same mechanical step.
 
-The first direct migrations include the operator mapper, function-result AST
-construction, and the complete typed-shape fixture. Remaining expression and
-statement structure is tracked by the dependent typed-IR beads rather than
-being hidden inside this contract.
+Direct migrations include the operator mapper, function-result AST
+construction, enum and object construction, reflection `ValueType` metadata,
+native collection allocation/copy loops, and the complete typed-shape fixtures.
+Those compiler-owned sites now expose ordinary composites, compound
+assignments, increment/decrement statements, and classic loops to transforms.
+
+Behavior-heavy standard-library compatibility blocks are intentionally not
+being converted into ever-larger compiler AST builders as part of this syntax
+slice. Their staged-stdlib and runtime ownership migrations remain tracked by
+the dedicated stdlib beads. Likewise, remaining general statement/expression
+structure is owned by the dependent typed-IR beads rather than hidden inside
+this contract or papered over with a generic structured-code escape.
 
 Portable `Array.remove` and `Array.insert` are also lowered through ordinary
 typed statement/expression nodes: range, condition, assignment, slice, call,
@@ -197,7 +251,7 @@ Ruby have different target grammars.
 
 ## Extending the IR
 
-When adding a target type or operator form:
+When adding a target type, literal entry, assignment, or control-flow form:
 
 1. add a failing positive or negative AST contract first;
 2. extend the closed structural model and its validation;
@@ -209,9 +263,14 @@ When adding a target type or operator form:
 
 The primary contracts are:
 
-- `core/ast_typed_type_operator_printer` for valid shape and printer coverage;
+- `core/ast_typed_type_operator_printer` for valid type and expression-operator
+  coverage;
+- `core/ast_structured_composite_control_printer` for composites, assignment
+  variants, loop clauses, and transform traversal;
 - `negative/ast_invalid_go_type` for malformed type syntax;
 - `negative/ast_invalid_go_type_combination` for structural invalidity;
 - `negative/ast_invalid_go_operator` for the closed operator set;
+- `negative/ast_invalid_composite_literal` for illegal literal head types;
+- `negative/ast_invalid_for_post` for illegal post-clause declarations;
 - `negative/ast_invalid_go_import_path` for whitespace/import validation; and
 - `negative/ast_invalid_go_import_path_character` for Go-tooling portability.

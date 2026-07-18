@@ -1,0 +1,1 @@
+Invalid Go composite literal type "int"

@@ -173,8 +173,10 @@ class GoASTPrinter {
 				}
 			case GoMultiAssign(names, value, useShort):
 				names.join(", ") + (useShort ? " := " : " = ") + printExpr(value);
-			case GoAssign(left, right):
-				printExpr(left) + " = " + printExpr(right);
+			case GoAssign(left, right, op):
+				printExpr(left) + " " + assignmentToken(op) + " " + printExpr(right);
+			case GoIncDec(target, op):
+				printExpr(target) + op.token();
 			case GoExprStmt(expr): printExpr(expr);
 			case GoGoStmt(call):
 				"go " + printExpr(call);
@@ -191,6 +193,36 @@ class GoASTPrinter {
 				for (stmt in body) {
 					out.add("\t");
 					out.add(printStmt(stmt));
+					out.add("\n");
+				}
+				out.add("}");
+				out.toString();
+			case GoFor(initializer, condition, post, body):
+				var out = new StringBuf();
+				out.add("for");
+				if (initializer == null && post == null) {
+					if (condition != null) {
+						out.add(" ");
+						out.add(printExpr(condition));
+					}
+				} else {
+					out.add(" ");
+					if (initializer != null) {
+						out.add(printSimpleStmt(initializer, false));
+					}
+					out.add("; ");
+					if (condition != null) {
+						out.add(printExpr(condition));
+					}
+					out.add("; ");
+					if (post != null) {
+						out.add(printSimpleStmt(post, true));
+					}
+				}
+				out.add(" {\n");
+				for (inner in body) {
+					out.add("\t");
+					out.add(printStmt(inner));
 					out.add("\n");
 				}
 				out.add("}");
@@ -386,11 +418,11 @@ class GoASTPrinter {
 				var startCode = start == null ? "" : printExpr(start);
 				var endCode = end == null ? "" : printExpr(end);
 				printExpr(target) + "[" + startCode + ":" + endCode + "]";
-			case GoArrayLiteral(elementType, elements):
-				"[]"
-				+ elementType.render()
-				+ "{"
-				+ [for (element in elements) printExpr(element)].join(", ") + "}";
+			case GoCompositeLiteral(typeName, elements):
+				if (!typeName.supportsCompositeLiteral()) {
+					throw 'Invalid Go composite literal type "' + typeName.render() + '"';
+				}
+				typeName.render() + "{" + [for (element in elements) printCompositeElement(element)].join(", ") + "}";
 			case GoMakeSlice(elementType, length, capacity):
 				"make([]"
 				+ elementType.render()
@@ -430,6 +462,54 @@ class GoASTPrinter {
 				var renderedArgs = [for (arg in args) printExpr(arg)].join(", ");
 				printExpr(callee) + "(" + renderedArgs + ")";
 		}
+	}
+
+	static function assignmentToken(op:Null<GoAssignmentOperator>):String {
+		return op == null ? GoAssignmentOperator.Assign.token() : op.token();
+	}
+
+	/**
+		What: Render the closed statement subset admitted by a classic `for` clause.
+		Why: Initializer and post positions share most syntax, but Go specifically
+		forbids a short declaration in the post position.
+		How: Render each typed variant and apply the position-sensitive rejection
+		before generated Go reaches `gofmt` or `go test`.
+	**/
+	static function printSimpleStmt(stmt:GoSimpleStmt, isPost:Bool):String {
+		return switch (stmt) {
+			case GoSimpleDeclare(name, value):
+				if (isPost) {
+					throw "Invalid Go for post statement: short declarations are not permitted";
+				}
+				name + " := " + printExpr(value);
+			case GoSimpleAssign(left, right, op):
+				printExpr(left) + " " + assignmentToken(op) + " " + printExpr(right);
+			case GoSimpleIncDec(target, op):
+				printExpr(target) + op.token();
+			case GoSimpleExpr(expr):
+				printExpr(expr);
+			case GoSimpleSend(channel, value):
+				printExpr(channel) + " <- " + printExpr(value);
+		};
+	}
+
+	/**
+		What: Render one positional, expression-keyed, or named-field literal entry.
+		Why: Expression keys require traversal while struct field names require Go
+		identifier validation; flattening both to text loses that distinction.
+		How: Delegate expression text to `printExpr` and validate only the field-name
+		variant before adding its colon.
+	**/
+	static function printCompositeElement(element:GoCompositeElement):String {
+		return switch (element) {
+			case GoCompositeValue(value): printExpr(value);
+			case GoCompositeKeyValue(key, value): printExpr(key) + ": " + printExpr(value);
+			case GoCompositeField(fieldName, value):
+				if (!GoPackageName.isIdentifier(fieldName)) {
+					throw 'Invalid Go composite field name "' + fieldName + '"';
+				}
+				fieldName + ": " + printExpr(value);
+		};
 	}
 
 	static function renderTypes(types:Array<GoType>):String {

@@ -278,6 +278,20 @@ abstract GoType(GoTypeKind) {
 		};
 	}
 
+	/**
+		What: Report whether this target type can syntactically head a composite literal.
+		Why: Builtins, pointers, functions, channels, interfaces, multi-results, and
+		variadics cannot be printed before `{...}` as literal types.
+		How: Admit named and generic named forms plus the structural array, slice, and
+		map forms; later Go type checking resolves named underlying-type constraints.
+	**/
+	public function supportsCompositeLiteral():Bool {
+		return switch (this) {
+			case Named(_, _), Slice(_), ArrayType(_, _), MapType(_, _), GenericType(_, _): true;
+			case _: false;
+		};
+	}
+
 	private inline function kind():GoTypeKind {
 		return this;
 	}

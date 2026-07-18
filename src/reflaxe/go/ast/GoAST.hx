@@ -96,13 +96,37 @@ enum GoStmt {
 	**/
 	GoMultiAssign(names:Array<String>, value:GoExpr, useShort:Bool);
 
-	GoAssign(left:GoExpr, right:GoExpr);
+	/**
+		What: Assign one value or apply one closed compound-assignment operator.
+		Why: Free-form `+=` and related statement text hid both operands from passes.
+		How: Omitting `op` preserves the ordinary `=` form used by existing lowering.
+	**/
+	GoAssign(left:GoExpr, right:GoExpr, ?op:GoAssignmentOperator);
+
+	/**
+		What: Apply Go's statement-only `++` or `--` form to a typed target.
+		Why: Modeling it as an expression would admit illegal nesting and lose lvalue
+		reads during analysis.
+		How: `GoIncDecOperator` owns the closed direction and the printer adds the
+		postfix token.
+	**/
+	GoIncDec(target:GoExpr, op:GoIncDecOperator);
+
 	GoExprStmt(expr:GoExpr);
 	GoGoStmt(call:GoExpr);
 	GoDeferStmt(call:GoExpr);
 	GoSendStmt(channel:GoExpr, value:GoExpr);
 	GoRaw(code:String);
 	GoWhile(cond:GoExpr, body:Array<GoStmt>);
+
+	/**
+		What: A classic Go loop with typed initializer, condition, and post slots.
+		Why: Counted loops were previously emitted as multi-line `GoRaw` fragments.
+		How: `GoSimpleStmt` prevents block-only statements from entering the clause;
+		null init/post values also cover condition-only and infinite loops.
+	**/
+	GoFor(initializer:Null<GoSimpleStmt>, condition:Null<GoExpr>, post:Null<GoSimpleStmt>, body:Array<GoStmt>);
+
 	GoLabeled(label:String, stmt:GoStmt);
 	GoRangeStmt(keyName:Null<String>, valueName:Null<String>, source:GoExpr, useShort:Bool, body:Array<GoStmt>);
 	GoIf(cond:GoExpr, thenBody:Array<GoStmt>, elseBody:Null<Array<GoStmt>>);
@@ -124,7 +148,15 @@ enum GoExpr {
 	GoSelector(target:GoExpr, field:String);
 	GoIndex(target:GoExpr, index:GoExpr);
 	GoSlice(target:GoExpr, start:Null<GoExpr>, end:Null<GoExpr>);
-	GoArrayLiteral(elementType:GoType, elements:Array<GoExpr>);
+
+	/**
+		What: A structural Go struct, map, slice, or array composite literal.
+		Why: A slice-only node could not model named structs or distinguish map keys
+		from struct field names.
+		How: `GoType` owns the literal type and `GoCompositeElement` owns each
+		positional or keyed entry; the printer validates known-impossible forms.
+	**/
+	GoCompositeLiteral(typeName:GoType, elements:Array<GoCompositeElement>);
 
 	/**
 		What: A typed Go slice allocation with a required length and optional capacity.

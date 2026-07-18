@@ -39,7 +39,10 @@ import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
 import reflaxe.go.ast.GoASTPrinter;
 import reflaxe.go.ast.GoASTTransformer;
 import reflaxe.go.ast.GoBinaryOperator;
+import reflaxe.go.ast.GoBuiltinType;
+import reflaxe.go.ast.GoCompositeElement;
 import reflaxe.go.ast.GoImportPath;
+import reflaxe.go.ast.GoSimpleStmt;
 import reflaxe.go.ast.GoType;
 import reflaxe.go.ast.GoUnaryOperator;
 import reflaxe.go.naming.GoNaming;
@@ -767,7 +770,8 @@ class GoCompiler {
 			case GoVarDecl(_, typeName, value, _): typeName != null && typeNameUsesImportAlias(typeName,
 					alias) || (value != null && exprUsesImportAlias(value, alias));
 			case GoMultiAssign(_, value, _): exprUsesImportAlias(value, alias);
-			case GoAssign(left, right): exprUsesImportAlias(left, alias) || exprUsesImportAlias(right, alias);
+			case GoAssign(left, right, _): exprUsesImportAlias(left, alias) || exprUsesImportAlias(right, alias);
+			case GoIncDec(target, _): exprUsesImportAlias(target, alias);
 			case GoExprStmt(expr):
 				exprUsesImportAlias(expr, alias);
 			case GoGoStmt(call):
@@ -790,6 +794,11 @@ class GoCompiler {
 					}
 					used;
 				}
+			case GoFor(initializer, condition, post, body):
+				(initializer != null && simpleStmtUsesImportAlias(initializer, alias))
+				|| (condition != null && exprUsesImportAlias(condition, alias))
+				|| (post != null && simpleStmtUsesImportAlias(post, alias))
+				|| stmtListUsesImportAlias(body, alias);
 			case GoLabeled(_, child):
 				stmtUsesImportAlias(child, alias);
 			case GoRangeStmt(_, _, source, _, body):
@@ -915,6 +924,25 @@ class GoCompiler {
 		};
 	}
 
+	function stmtListUsesImportAlias(stmts:Array<GoStmt>, alias:String):Bool {
+		for (stmt in stmts) {
+			if (stmtUsesImportAlias(stmt, alias)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function simpleStmtUsesImportAlias(stmt:GoSimpleStmt, alias:String):Bool {
+		return switch (stmt) {
+			case GoSimpleDeclare(_, value): exprUsesImportAlias(value, alias);
+			case GoSimpleAssign(left, right, _): exprUsesImportAlias(left, alias) || exprUsesImportAlias(right, alias);
+			case GoSimpleIncDec(target, _): exprUsesImportAlias(target, alias);
+			case GoSimpleExpr(expr): exprUsesImportAlias(expr, alias);
+			case GoSimpleSend(channel, value): exprUsesImportAlias(channel, alias) || exprUsesImportAlias(value, alias);
+		};
+	}
+
 	function selectClauseUsesImportAlias(clause:GoSelectClause, alias:String):Bool {
 		return switch (clause) {
 			case GoSelectSend(channel, value): exprUsesImportAlias(channel, alias) || exprUsesImportAlias(value, alias);
@@ -938,13 +966,13 @@ class GoCompiler {
 			case GoIndex(target, index): exprUsesImportAlias(target, alias) || exprUsesImportAlias(index, alias);
 			case GoSlice(target, start, end): exprUsesImportAlias(target,
 					alias) || (start != null && exprUsesImportAlias(start, alias)) || (end != null && exprUsesImportAlias(end, alias));
-			case GoArrayLiteral(elementType, elements):
-				if (typeNameUsesImportAlias(elementType, alias)) {
+			case GoCompositeLiteral(typeName, elements):
+				if (typeNameUsesImportAlias(typeName, alias)) {
 					true;
 				} else {
 					var used = false;
 					for (element in elements) {
-						if (exprUsesImportAlias(element, alias)) {
+						if (compositeElementUsesImportAlias(element, alias)) {
 							used = true;
 							break;
 						}
@@ -999,6 +1027,13 @@ class GoCompiler {
 					}
 					used;
 				}
+		};
+	}
+
+	function compositeElementUsesImportAlias(element:GoCompositeElement, alias:String):Bool {
+		return switch (element) {
+			case GoCompositeValue(value), GoCompositeField(_, value): exprUsesImportAlias(value, alias);
+			case GoCompositeKeyValue(key, value): exprUsesImportAlias(key, alias) || exprUsesImportAlias(value, alias);
 		};
 	}
 
@@ -1587,8 +1622,11 @@ class GoCompiler {
 		for (constructor in constructors) {
 			var symbol = enumConstructorSymbol(enumType, constructor.name);
 			var ctorArgs = enumConstructorArgs(constructor.type);
+			var enumLiteral = GoExpr.GoUnary(GoUnaryOperator.AddressOf, GoExpr.GoCompositeLiteral(GoType.named(enumName), [
+				GoCompositeElement.GoCompositeField("tag", GoExpr.GoIntLiteral(constructor.index))
+			]));
 			if (ctorArgs.length == 0) {
-				decls.push(GoDecl.GoGlobalVarDecl(symbol, "*" + enumName, GoExpr.GoRaw("&" + enumName + "{tag: " + constructor.index + "}")));
+				decls.push(GoDecl.GoGlobalVarDecl(symbol, "*" + enumName, enumLiteral));
 			} else {
 				var params = new Array<GoParam>();
 				var payloadExprs = new Array<GoExpr>();
@@ -1603,8 +1641,10 @@ class GoCompiler {
 				}
 
 				decls.push(GoDecl.GoFuncDecl(symbol, null, params, ["*" + enumName], [
-					GoStmt.GoVarDecl("enumValue", null, GoExpr.GoRaw("&" + enumName + "{tag: " + constructor.index + "}"), true),
-					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("enumValue"), "params"), GoExpr.GoArrayLiteral("any", payloadExprs)),
+					GoStmt.GoVarDecl("enumValue", null, enumLiteral, true),
+					GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("enumValue"), "params"),
+						GoExpr.GoCompositeLiteral(GoType.slice(GoType.builtin(GoBuiltinType.AnyType)),
+							[for (payload in payloadExprs) GoCompositeElement.GoCompositeValue(payload)])),
 					GoStmt.GoReturn(GoExpr.GoIdent("enumValue"))
 				]));
 			}
@@ -3955,7 +3995,8 @@ class GoCompiler {
 				}
 			], ["[]" + elementType], [
 				GoStmt.GoVarDecl("raw", "[]any", GoExpr.GoSelector(GoExpr.GoIdent("slice"), "data"), true),
-				GoStmt.GoVarDecl("out", "[]" + elementType, GoExpr.GoRaw("make([]" + elementType + ", len(raw))"), true),
+				GoStmt.GoVarDecl("out", "[]" + elementType,
+					GoExpr.GoMakeSlice(elementType, GoExpr.GoCall(GoExpr.GoIdent("len"), [GoExpr.GoIdent("raw")]), null), true),
 				GoStmt.GoRangeStmt("idx", "value", GoExpr.GoIdent("raw"), true, [
 					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("value"), GoExpr.GoNil), [GoStmt.GoContinue], null),
 					GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent("out"), GoExpr.GoIdent("idx")), GoExpr.GoTypeAssert(GoExpr.GoIdent("value"), elementType))
@@ -5272,7 +5313,7 @@ class GoCompiler {
 		var typeName = classTypeName(classType);
 		var params = ctorFunc == null ? [] : lowerFunctionParams(ctorFunc, typedFunctionArgs(ctorType == null ? ctorFunc.t : ctorType));
 		var body = new Array<GoStmt>();
-		body.push(GoStmt.GoVarDecl("self", null, GoExpr.GoRaw("&" + typeName + "{}"), true));
+		body.push(GoStmt.GoVarDecl("self", null, GoExpr.GoUnary(GoUnaryOperator.AddressOf, GoExpr.GoCompositeLiteral(GoType.named(typeName), [])), true));
 
 		var loweredCtorBody:ConstructorBodyLowering = {
 			superArgs: null,
@@ -6792,7 +6833,10 @@ class GoCompiler {
 
 	function lowerObjectDeclExpr(fields:Array<{name:String, expr:TypedExpr}>):LoweredExprWithPrefix {
 		var temp = freshTempName("hx_obj");
-		var prefix = [GoStmt.GoVarDecl(temp, "map[string]any", GoExpr.GoRaw("map[string]any{}"), true)];
+		var objectType = GoType.map(GoType.builtin(GoBuiltinType.StringType), GoType.builtin(GoBuiltinType.AnyType));
+		var prefix = [
+			GoStmt.GoVarDecl(temp, objectType, GoExpr.GoCompositeLiteral(objectType, []), true)
+		];
 		var targetExpr = GoExpr.GoIdent(temp);
 
 		for (field in fields) {
@@ -7919,8 +7963,8 @@ class GoCompiler {
 			case TArrayDecl(values):
 				{
 					expr: isHaxeArrayType(expr.t) ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewArray"),
-						[for (value in values) lowerExpr(value).expr]) : GoExpr.GoArrayLiteral(arrayElementGoType(expr.t),
-							[for (value in values) lowerExpr(value).expr]),
+						[for (value in values) lowerExpr(value).expr]) : GoExpr.GoCompositeLiteral(GoType.slice(arrayElementGoType(expr.t)),
+							[for (value in values) GoCompositeElement.GoCompositeValue(lowerExpr(value).expr)]),
 					isStringLike: false
 				};
 			case TObjectDecl(fields):
@@ -8495,9 +8539,11 @@ class GoCompiler {
 	function lowerTypeExpr(moduleType:ModuleType):LoweredExpr {
 		requiresTypeValueSupport = true;
 		var markerType = moduleTypeRepresentsEnumValue(moduleType) ? "hxrt__TypeEnumValue" : "hxrt__TypeClassValue";
-		var markerName = goRawQuotedString(moduleTypeDisplayName(moduleType));
 		return {
-			expr: GoExpr.GoRaw("&" + markerType + "{name: hxrt.StringFromLiteral(" + markerName + ")}"),
+			expr: GoExpr.GoUnary(GoUnaryOperator.AddressOf, GoExpr.GoCompositeLiteral(GoType.named(markerType), [
+				GoCompositeElement.GoCompositeField("name",
+					GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral(moduleTypeDisplayName(moduleType))]))
+			])),
 			isStringLike: false
 		};
 	}
@@ -11123,7 +11169,7 @@ class GoCompiler {
 
 		var tempNames = [for (_ in constructorArgs) freshTempName("hx_tuple")];
 		var body = new Array<GoStmt>();
-		body.push(GoStmt.GoRaw(tempNames.join(", ") + " := " + GoASTPrinter.printExprForInjection(callExpr)));
+		body.push(GoStmt.GoMultiAssign(tempNames, callExpr, true));
 
 		var loweredArgs = new Array<GoExpr>();
 		for (index in 0...constructorArgs.length) {
@@ -11828,7 +11874,8 @@ class GoCompiler {
 			case TArrayDecl(values):
 				{
 					prefix: [],
-					expr: GoExpr.GoArrayLiteral(arrayElementGoType(targetType), [for (value in values) lowerExpr(value).expr]),
+					expr: GoExpr.GoCompositeLiteral(GoType.slice(arrayElementGoType(targetType)),
+						[for (value in values) GoCompositeElement.GoCompositeValue(lowerExpr(value).expr)]),
 					isStringLike: false
 				};
 			case TMeta(_, inner) | TParenthesis(inner):
@@ -12344,7 +12391,8 @@ class GoCompiler {
 				case TBinop(OpAssign, _, right):
 					switch (right.expr) {
 						case TArrayDecl(values):
-							return GoExpr.GoArrayLiteral(arrayElementGoType(right.t), [for (value in values) lowerExpr(value).expr]);
+							return GoExpr.GoCompositeLiteral(GoType.slice(arrayElementGoType(right.t)),
+								[for (value in values) GoCompositeElement.GoCompositeValue(lowerExpr(value).expr)]);
 						case _:
 					}
 				case _:

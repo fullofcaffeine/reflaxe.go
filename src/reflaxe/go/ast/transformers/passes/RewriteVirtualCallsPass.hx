@@ -9,6 +9,9 @@ import reflaxe.go.ast.GoAST.GoSelectClause;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
+import reflaxe.go.ast.GoAssignmentOperator;
+import reflaxe.go.ast.GoCompositeElement;
+import reflaxe.go.ast.GoSimpleStmt;
 import reflaxe.go.ast.transformers.registry.RegistryCore.IGoASTPass;
 
 class RewriteVirtualCallsPass implements IGoASTPass {
@@ -79,19 +82,27 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 					localLeafVars.remove(name);
 				}
 				GoStmt.GoMultiAssign(names, rewrittenValue, useShort);
-			case GoStmt.GoAssign(left, right):
+			case GoStmt.GoAssign(left, right, op):
 				var rewrittenLeft = rewriteExpr(left, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets);
 				var rewrittenRight = rewriteExpr(right, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets);
 				switch (rewrittenLeft) {
 					case GoExpr.GoIdent(name):
-						if (isLeafCandidateValue(rewrittenRight, leafReceivers, localLeafVars, leafReturnCallTargets)) {
+						if (isPlainAssignment(op)
+							&& isLeafCandidateValue(rewrittenRight, leafReceivers, localLeafVars, leafReturnCallTargets)) {
 							localLeafVars.set(name, true);
 						} else {
 							localLeafVars.remove(name);
 						}
 					case _:
 				}
-				GoStmt.GoAssign(rewrittenLeft, rewrittenRight);
+				GoStmt.GoAssign(rewrittenLeft, rewrittenRight, op);
+			case GoStmt.GoIncDec(target, op):
+				var rewrittenTarget = rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets);
+				switch (rewrittenTarget) {
+					case GoExpr.GoIdent(name): localLeafVars.remove(name);
+					case _:
+				}
+				GoStmt.GoIncDec(rewrittenTarget, op);
 			case GoStmt.GoExprStmt(expr):
 				GoStmt.GoExprStmt(rewriteExpr(expr, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
 			case GoStmt.GoGoStmt(call):
@@ -109,6 +120,23 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 				var rewrittenBody = rewriteStmtList(body, receiverName, canDevirtualizeSelf, loopCandidates, leafReceivers, leafReturnCallTargets);
 				clearCandidates(localLeafVars);
 				GoStmt.GoWhile(rewriteExpr(cond, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets), rewrittenBody);
+			case GoStmt.GoFor(initializer, condition, post, body):
+				var loopCandidates = cloneCandidates(localLeafVars);
+				var rewrittenInitializer = initializer == null ? null : rewriteSimpleStmt(initializer, receiverName, canDevirtualizeSelf, loopCandidates,
+					leafReceivers, leafReturnCallTargets);
+				// The initializer runs once, but the condition runs again after the body
+				// and post clause may have replaced any candidate it established.
+				clearCandidates(loopCandidates);
+				var rewrittenCondition = condition == null ? null : rewriteExpr(condition, receiverName, canDevirtualizeSelf, loopCandidates, leafReceivers,
+					leafReturnCallTargets);
+				var rewrittenBody = rewriteStmtList(body, receiverName, canDevirtualizeSelf, loopCandidates, leafReceivers, leafReturnCallTargets);
+				// Body-local declarations are out of scope in the post clause, and body
+				// assignments may not run on every path, so do not propagate candidates.
+				var postCandidates = new Map<String, Bool>();
+				var rewrittenPost = post == null ? null : rewriteSimpleStmt(post, receiverName, canDevirtualizeSelf, postCandidates, leafReceivers,
+					leafReturnCallTargets);
+				clearCandidates(localLeafVars);
+				GoStmt.GoFor(rewrittenInitializer, rewrittenCondition, rewrittenPost, rewrittenBody);
 			case GoStmt.GoLabeled(label, child):
 				GoStmt.GoLabeled(label, rewriteStmt(child, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
 			case GoStmt.GoRangeStmt(keyName, valueName, source, useShort, body):
@@ -187,6 +215,50 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 		};
 	}
 
+	function rewriteSimpleStmt(stmt:GoSimpleStmt, receiverName:Null<String>, canDevirtualizeSelf:Bool, localLeafVars:Map<String, Bool>,
+			leafReceivers:Map<String, Bool>, leafReturnCallTargets:Map<String, Bool>):GoSimpleStmt {
+		return switch (stmt) {
+			case GoSimpleDeclare(name, value):
+				var rewrittenValue = rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets);
+				if (isLeafCandidateValue(rewrittenValue, leafReceivers, localLeafVars, leafReturnCallTargets)) {
+					localLeafVars.set(name, true);
+				} else {
+					localLeafVars.remove(name);
+				}
+				GoSimpleDeclare(name, rewrittenValue);
+			case GoSimpleAssign(left, right, op):
+				var rewrittenLeft = rewriteExpr(left, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets);
+				var rewrittenRight = rewriteExpr(right, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets);
+				switch (rewrittenLeft) {
+					case GoExpr.GoIdent(name):
+						if (isPlainAssignment(op)
+							&& isLeafCandidateValue(rewrittenRight, leafReceivers, localLeafVars, leafReturnCallTargets)) {
+							localLeafVars.set(name, true);
+						} else {
+							localLeafVars.remove(name);
+						}
+					case _:
+				}
+				GoSimpleAssign(rewrittenLeft, rewrittenRight, op);
+			case GoSimpleIncDec(target, op):
+				var rewrittenTarget = rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets);
+				switch (rewrittenTarget) {
+					case GoExpr.GoIdent(name): localLeafVars.remove(name);
+					case _:
+				}
+				GoSimpleIncDec(rewrittenTarget, op);
+			case GoSimpleExpr(expr):
+				GoSimpleExpr(rewriteExpr(expr, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
+			case GoSimpleSend(channel, value):
+				GoSimpleSend(rewriteExpr(channel, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets),
+					rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
+		};
+	}
+
+	inline function isPlainAssignment(op:Null<GoAssignmentOperator>):Bool {
+		return op == null || op == GoAssignmentOperator.Assign;
+	}
+
 	function rewriteSelectClause(clause:GoSelectClause, receiverName:Null<String>, canDevirtualizeSelf:Bool, localLeafVars:Map<String, Bool>,
 			leafReceivers:Map<String, Bool>, leafReturnCallTargets:Map<String, Bool>):GoSelectClause {
 		return switch (clause) {
@@ -219,10 +291,10 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 				GoExpr.GoSlice(rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets),
 					start == null ? null : rewriteExpr(start, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets),
 					end == null ? null : rewriteExpr(end, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
-			case GoExpr.GoArrayLiteral(elementType, elements):
-				GoExpr.GoArrayLiteral(elementType, [
+			case GoExpr.GoCompositeLiteral(typeName, elements):
+				GoExpr.GoCompositeLiteral(typeName, [
 					for (element in elements)
-						rewriteExpr(element, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets)
+						rewriteCompositeElement(element, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets)
 				]);
 			case GoExpr.GoMakeSlice(elementType, length, capacity):
 				GoExpr.GoMakeSlice(elementType, rewriteExpr(length, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets),
@@ -257,6 +329,19 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 				}
 			case _:
 				rewritten;
+		};
+	}
+
+	function rewriteCompositeElement(element:GoCompositeElement, receiverName:Null<String>, canDevirtualizeSelf:Bool, localLeafVars:Map<String, Bool>,
+			leafReceivers:Map<String, Bool>, leafReturnCallTargets:Map<String, Bool>):GoCompositeElement {
+		return switch (element) {
+			case GoCompositeValue(value):
+				GoCompositeValue(rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
+			case GoCompositeKeyValue(key, value):
+				GoCompositeKeyValue(rewriteExpr(key, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets),
+					rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
+			case GoCompositeField(fieldName, value):
+				GoCompositeField(fieldName, rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));
 		};
 	}
 
