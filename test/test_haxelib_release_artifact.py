@@ -236,7 +236,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                     for entry in embedded["entries"]
                     if entry["packagePath"].endswith(".cross.hx")
                 ]
-                self.assertEqual(100, len(cross_entries))
+                self.assertEqual(103, len(cross_entries))
                 self.assertTrue(
                     all(
                         entry["kind"] == "stdlib-override"
