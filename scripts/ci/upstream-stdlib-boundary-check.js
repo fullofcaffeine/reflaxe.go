@@ -34,6 +34,7 @@ const approvedStdOverrideLayout = [
   "std/sys/**",
   "std/go/**",
   "std/hxrt/**",
+  "std/reflaxe/go/internal/**",
 ];
 const stdPathAllowlist = new Set(["std/AGENTS.md"]);
 
@@ -51,6 +52,7 @@ function isApprovedStdOverridePath(path) {
     || path.startsWith("std/sys/")
     || path.startsWith("std/go/")
     || path.startsWith("std/hxrt/")
+    || path.startsWith("std/reflaxe/go/internal/")
   ) {
     return true;
   }

@@ -18,8 +18,11 @@ deterministic conversion to flattened `src/**/*.cross.hx` artifacts.
 
 No `.cross.hx` files are checked in. Repo-authored target support remains
 ordinary `.hx` source under `std/haxe/**` and `std/sys/**`; typed bindings for
-real Go runtime APIs live under `std/hxrt/**`. Exact ownership and canonical
-paths live in `docs/stdlib-provenance-ledger.json`.
+real Go runtime APIs live under `std/hxrt/**`. Narrow source-callable adapters
+for compiler-owned closed-world metadata live under the exact internal root
+`std/reflaxe/go/internal/**`; this root is not a public facade or a general
+extension point. Exact ownership and canonical paths live in
+`docs/stdlib-provenance-ledger.json`.
 
 ## Quick Matrix
 
@@ -30,6 +33,7 @@ paths live in `docs/stdlib-provenance-ledger.json`.
 | Checked-in upstream override `.cross.hx` files | none |
 | Checked-in support/runtime `.cross.hx` files | none |
 | Public Go facades | ordinary modules under `std/go/**`, outside `_std` |
+| Internal compiler-metadata adapters | ordinary modules under the narrow `std/reflaxe/go/internal/**` root |
 | Does this repo own early `src/haxe/*` modules? | no |
 | Bootstrap activation keys off raw Haxe 4 `Cross`? | no |
 | Same-compilation sibling-target coexistence safe today? | not guaranteed |

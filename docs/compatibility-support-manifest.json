@@ -5,11 +5,11 @@
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "24f150c93c86ff4c62190b5dfca6052a0c05766b4ab95a1d63d6a53e5764cf10",
+    "compatibility_source_sha256": "a04ba5d18cf90f662fd2783346a4feddc6f4fad0dc139dcb135dc3ab876a20f9",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "3a3e3099716486c1d6f423cb860c645e6d310572c3a7e96963062b671a028937"
+    "portable_stdlib_inventory_sha256": "28e279474cf71efb579760400a03c3894197b7c97a93012208c38777b829ae91"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -388,6 +388,18 @@
       "id": "semantic:reflect-fields",
       "kind": "path",
       "path": "test/semantic_diff/reflect_field_ops",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:reflect-compare",
+      "kind": "path",
+      "path": "test/semantic_diff/reflect_compare",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:reflect-extended",
+      "kind": "path",
+      "path": "test/semantic_diff/reflect_extended_contract",
       "level": "semantic-diff"
     },
     {
@@ -836,7 +848,7 @@
     {
       "id": "portable-reflection",
       "kind": "portable",
-      "scope": "Closed-world named reflection subset",
+      "scope": "Complete Haxe 4.3.7 Reflect API and closed-world Type metadata over supported generated and native carriers",
       "operations": [
         {
           "id": "type-reflection",
@@ -868,21 +880,35 @@
           "blockers": []
         },
         {
-          "id": "reflect-fields",
+          "id": "reflect-api",
           "symbols": [
-            "Reflect.hasField",
+            "Reflect.callMethod",
+            "Reflect.compare",
+            "Reflect.compareMethods",
+            "Reflect.copy",
+            "Reflect.deleteField",
             "Reflect.field",
-            "Reflect.setField"
+            "Reflect.fields",
+            "Reflect.getProperty",
+            "Reflect.hasField",
+            "Reflect.isEnumValue",
+            "Reflect.isFunction",
+            "Reflect.isObject",
+            "Reflect.makeVarArgs",
+            "Reflect.setField",
+            "Reflect.setProperty"
           ],
           "granularity": "member",
           "state": "semantic-diff-supported",
           "release_admitted": true,
-          "qualification": "Named dynamic-field operations on covered runtime shapes.",
+          "qualification": "All 15 public Reflect entrypoints are present. Admission is evidence-scoped to generated field/property and enum cases, Haxe anonymous objects, supported maps/exported Go fields and methods, covered numeric/string comparisons, and the exercised generated function carriers; lookup precedence is RTTI, native field, generated field, generated method, then native method.",
           "evidence_ids": [
+            "semantic:reflect-compare",
+            "semantic:reflect-extended",
             "semantic:reflect-fields"
           ],
           "exclusions": [
-            "Unlisted reflection and carrier representations"
+            "Open-world types loaded outside the generated program, package-private members of arbitrary external Go structs, and unexercised function-identity or carrier edge cases"
           ],
           "blockers": []
         }
@@ -1556,7 +1582,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged Reflect owns the complete Haxe 4.3.7 API, public lookup precedence, property policy, copying, deletion, and varargs composition. Typed std/hxrt/reflect delegates only ordinary Go representation inspection to footprint-explicit runtime/hxrt/reflect.go; exact same-package metadata adapters expose closed generated fields, methods, RTTI, and enum carriers without unsafe or a runtime registry. Evidence: reflect_compare, reflect_field_ops, reflect_extended_contract, stdlib/dynamic_access_basic, and direct runtime Reflect tests."
       },
       {
         "module": "Std",

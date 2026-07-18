@@ -51,6 +51,10 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "staged_support",
         "std/haxe/GoSerializationBridge.hx",
     ),
+    "std/reflaxe/go/internal/CompilerReflect.hx": (
+        "staged_support",
+        "std/reflaxe/go/internal/CompilerReflect.hx",
+    ),
     "std/sys/thread/ElasticThreadPoolWorker.cross.hx": (
         "staged_support",
         "std/sys/thread/ElasticThreadPoolWorker.hx",
@@ -234,6 +238,14 @@ SOURCE_SPECIAL_DESTINATIONS = {
     "std/hxrt/regex/RegexMatch.hx": (
         "hxrt_binding",
         "std/hxrt/regex/RegexMatch.hx",
+    ),
+    "std/hxrt/reflect/NativeReflect.hx": (
+        "hxrt_binding",
+        "std/hxrt/reflect/NativeReflect.hx",
+    ),
+    "std/hxrt/reflect/ReflectFieldLookup.hx": (
+        "hxrt_binding",
+        "std/hxrt/reflect/ReflectFieldLookup.hx",
     ),
     "std/hxrt/serialization/NativeSerialization.hx": (
         "hxrt_binding",
@@ -756,6 +768,234 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "source-owned sys.io.Process must not retain a compiler-shim debt allowance",
         )
 
+    def test_reflect_is_staged_with_typed_runtime_and_metadata_boundaries(self) -> None:
+        ledger = load_ledger()
+        ledger_entries = {entry["path"]: entry for entry in ledger["entries"]}
+        expected_owners = {
+            "std/go/_std/Reflect.hx": "upstream_std_override",
+            "std/reflaxe/go/internal/CompilerReflect.hx": "staged_support",
+            "std/hxrt/reflect/NativeReflect.hx": "hxrt_binding",
+            "std/hxrt/reflect/ReflectFieldLookup.hx": "hxrt_binding",
+        }
+        for source_path, expected_owner in expected_owners.items():
+            self.assertTrue((ROOT / source_path).is_file(), source_path)
+            entry = ledger_entries.get(source_path)
+            self.assertIsNotNone(entry, source_path)
+            self.assertEqual(expected_owner, entry.get("ownershipClass"), source_path)
+            self.assertEqual("haxe_go-vfp.8.7.15.6", entry.get("migrationBead"), source_path)
+            self.assertEqual([], entry.get("compilerShimGroups"), source_path)
+
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")
+        classifier = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx"
+        ).read_text(encoding="utf-8")
+        planner = (
+            ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ).read_text(encoding="utf-8")
+        feature_analyzer = (
+            ROOT / "src/reflaxe/go/compiler/GoHxrtFeatureAnalyzer.hx"
+        ).read_text(encoding="utf-8")
+        reflaxe_compiler = (
+            ROOT / "src/reflaxe/go/GoReflaxeCompiler.hx"
+        ).read_text(encoding="utf-8")
+        staged_reflect = (ROOT / "std/go/_std/Reflect.hx").read_text(encoding="utf-8")
+        native_reflect = (
+            ROOT / "std/hxrt/reflect/NativeReflect.hx"
+        ).read_text(encoding="utf-8")
+        compiler_reflect = (
+            ROOT / "std/reflaxe/go/internal/CompilerReflect.hx"
+        ).read_text(encoding="utf-8")
+        generated_field_emitter = (
+            ROOT
+            / "src/reflaxe/go/compiler/emit/GoGeneratedFieldMetadataEmitter.hx"
+        ).read_text(encoding="utf-8")
+        reflect_metadata_emitter = (
+            ROOT / "src/reflaxe/go/compiler/emit/GoReflectMetadataEmitter.hx"
+        ).read_text(encoding="utf-8")
+        runtime_reflect = (ROOT / "runtime/hxrt/reflect.go").read_text(
+            encoding="utf-8"
+        )
+
+        for fragment in (
+            'GoFuncDecl("Reflect_compare"',
+            'GoFuncDecl("Reflect_compareMethods"',
+            'GoFuncDecl("Reflect_field"',
+            'GoFuncDecl("Reflect_hasField"',
+            'GoFuncDecl("Reflect_setField"',
+            'GoFuncDecl("Reflect_fields"',
+            "reflectFieldsShimDecl",
+            "requiresReflectFieldsShim",
+        ):
+            self.assertNotIn(fragment, compiler, fragment)
+        self.assertNotIn(
+            '{kind: "class", path: "Reflect", groups: ["stdlib_symbols"]}',
+            classifier,
+        )
+        self.assertIn(
+            '{kind: "class", path: "Type", groups: ["type_metadata"]}',
+            classifier,
+        )
+        self.assertIn('case "Reflect":', planner)
+        self.assertIn('requireSourceOwnedStdlibClass("Reflect")', planner)
+
+        for heading in ("What", "Why", "How"):
+            self.assertIn(heading, staged_reflect)
+            self.assertIn(heading, native_reflect)
+            self.assertIn(heading, compiler_reflect)
+        for forbidden in ("__go__", "GoInjection", "@:goAllowRaw"):
+            self.assertNotIn(forbidden, staged_reflect, forbidden)
+        for emitter in (generated_field_emitter, reflect_metadata_emitter):
+            # Match code-level escape/import spellings, not explanatory HaxeDoc
+            # that names the boundary these typed emitters deliberately avoid.
+            for forbidden in ("GoRaw", "GoUnsafe", '"unsafe"', "unsafe.", '"reflect"', "reflect."):
+                self.assertNotIn(forbidden, emitter, forbidden)
+            self.assertIn("GoTypeSwitch", emitter)
+        for fragment in (
+            "NativeReflect.lookupField",
+            "CompilerReflect.typeField",
+            "CompilerReflect.generatedField",
+            "CompilerReflect.generatedFields",
+            "CompilerReflect.generatedMethod",
+            "NativeReflect.lookupMethod",
+            "NativeReflect.callMethod",
+            "NativeReflect.fields",
+            "NativeReflect.deleteField",
+            "NativeReflect.copy",
+            "CompilerReflect.isEnumValue",
+        ):
+            self.assertIn(fragment, staged_reflect, fragment)
+
+        for fragment in (
+            '@:go.name("ReflectLookupField")',
+            '@:go.name("ReflectLookupMethod")',
+            '@:go.name("ReflectCallMethod")',
+            '@:go.name("ReflectFields")',
+            '@:go.name("ReflectDeleteField")',
+            '@:go.name("ReflectCopy")',
+        ):
+            self.assertIn(fragment, native_reflect, fragment)
+        for signature in (
+            "func ReflectLookupField(object any, field *string) *ReflectFieldLookup",
+            "func ReflectLookupMethod(object any, field *string) *ReflectFieldLookup",
+            "func ReflectCallMethod(function any, arguments []any) any",
+            "func ReflectFields(object any) []*string",
+            "func ReflectDeleteField(object any, field *string) bool",
+            "func ReflectCopy(object any) any",
+        ):
+            self.assertIn(signature, runtime_reflect, signature)
+
+        self.assertIn('FEATURE_REFLECTION = "reflection"', feature_analyzer)
+        self.assertIn('path == "Reflect" || path == "hxrt.reflect.NativeReflect"', feature_analyzer)
+        self.assertIn('[FEATURE_STRING, FEATURE_ARRAY]', feature_analyzer)
+        self.assertIn('["reflect.go"]', feature_analyzer)
+        self.assertIn('case "reflect.go":', reflaxe_compiler)
+
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
+        )
+        groups = {entry["group"]: entry for entry in registry["groups"]}
+        self.assertEqual("approved_intrinsic", groups["type_metadata"]["status"])
+        self.assertEqual("approved_intrinsic", groups["reflect_metadata"]["status"])
+        self.assertFalse(
+            any(
+                symbol.get("symbol") in {"Reflect", "Type"}
+                for symbol in groups["stdlib_symbols"]["ownedSymbols"]
+            )
+        )
+        registered_type_members = set(
+            next(
+                symbol["members"]
+                for symbol in groups["type_metadata"]["ownedSymbols"]
+                if symbol["symbol"] == "Type"
+            )
+        )
+        self.assertEqual(
+            {
+                "allEnums",
+                "createEmptyInstance",
+                "createEnum",
+                "createEnumIndex",
+                "createInstance",
+                "enumConstructor",
+                "enumEq",
+                "enumIndex",
+                "enumParameters",
+                "getClass",
+                "getClassFields",
+                "getClassName",
+                "getEnum",
+                "getEnumConstructs",
+                "getEnumName",
+                "getInstanceFields",
+                "getSuperClass",
+                "resolveClass",
+                "resolveEnum",
+                "typeof",
+            },
+            registered_type_members,
+        )
+        registered_reflect_members = set(
+            next(
+                symbol["members"]
+                for symbol in groups["reflect_metadata"]["ownedSymbols"]
+                if symbol["symbol"] == "Reflect"
+            )
+        )
+        self.assertEqual(
+            {"field", "fields", "hasField", "isEnumValue", "setField"},
+            registered_reflect_members,
+        )
+
+        generated_root = ROOT / "test/snapshot/stdlib/dynamic_access_basic/intended"
+        generated_main = (generated_root / "main.go").read_text(encoding="utf-8")
+        generated_reflect = (generated_root / "module_reflect.go").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("func Reflect_field", generated_main)
+        self.assertTrue((generated_root / "hxrt/reflect.go").is_file())
+        field_body = generated_reflect.split("func Reflect_field", 1)[1].split(
+            "func Reflect_setField", 1
+        )[0]
+        for fragment in (
+            "reflaxe__go___internal__CompilerReflect_typeField",
+            "hxrt.ReflectLookupField",
+            "reflaxe__go___internal__CompilerReflect_generatedField",
+            "reflaxe__go___internal__CompilerReflect_generatedMethod",
+            "hxrt.ReflectLookupMethod",
+        ):
+            self.assertIn(fragment, field_body, fragment)
+        self.assertLess(
+            field_body.index("CompilerReflect_typeField"),
+            field_body.index("hxrt.ReflectLookupField"),
+        )
+        self.assertLess(
+            field_body.index("hxrt.ReflectLookupField"),
+            field_body.index("CompilerReflect_generatedField"),
+        )
+        self.assertLess(
+            field_body.index("CompilerReflect_generatedField"),
+            field_body.index("CompilerReflect_generatedMethod"),
+        )
+        self.assertLess(
+            field_body.index("CompilerReflect_generatedMethod"),
+            field_body.index("hxrt.ReflectLookupMethod"),
+        )
+        fields_body = generated_reflect.split("func Reflect_fields", 1)[1].split(
+            "func Reflect_getProperty", 1
+        )[0]
+        self.assertIn(
+            "reflaxe__go___internal__CompilerReflect_generatedFields",
+            fields_body,
+        )
+        self.assertLess(
+            fields_body.index("CompilerReflect_generatedFields"),
+            fields_body.index("hxrt.ReflectFields"),
+        )
+        self.assertFalse(
+            (ROOT / "test/snapshot/core/const_kinds_contract/intended/hxrt/reflect.go").exists(),
+            "runtime reflection must remain absent from unrelated generated programs",
+        )
+
     def test_template_runtime_bridge_is_typed_hxrt_instead_of_a_compiler_shim(self) -> None:
         ledger = load_ledger()
         ledger_entries = {entry["path"]: entry for entry in ledger["entries"]}
@@ -908,6 +1148,9 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             / "test/snapshot/stdlib/haxe_template_generated_method_lookup/intended"
         )
         generated_main = (generated_root / "main.go").read_text(encoding="utf-8")
+        generated_reflect = (generated_root / "module_reflect.go").read_text(
+            encoding="utf-8"
+        )
         generated_template = (generated_root / "module_haxe_template.go").read_text(
             encoding="utf-8"
         )
@@ -948,19 +1191,27 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         ):
             self.assertIn(fragment, generated_main, fragment)
 
-        field_body = generated_main.split("func Reflect_field", 1)[1].split(
-            "func Reflect_hasField", 1
-        )[0]
-        self.assertLess(field_body.index("FieldByName"), field_body.index("generatedMethod :="))
-        self.assertLess(field_body.index("generatedMethod :="), field_body.index("MethodByName"))
-        has_field_body = generated_main.split("func Reflect_hasField", 1)[1].split(
-            "func Reflect_setField", 1
+        field_body = generated_reflect.split("func Reflect_field", 1)[1].split(
+            "func Reflect_fields", 1
         )[0]
         self.assertLess(
-            has_field_body.index("FieldByName"), has_field_body.index("generatedMethod :=")
+            field_body.index("hxrt.ReflectLookupField"),
+            field_body.index("CompilerReflect_generatedMethod"),
         )
         self.assertLess(
-            has_field_body.index("generatedMethod :="), has_field_body.index("MethodByName")
+            field_body.index("CompilerReflect_generatedMethod"),
+            field_body.index("hxrt.ReflectLookupMethod"),
+        )
+        has_field_body = generated_reflect.split("func Reflect_hasField", 1)[1].split(
+            "func Reflect_isEnumValue", 1
+        )[0]
+        self.assertLess(
+            has_field_body.index("hxrt.ReflectLookupField"),
+            has_field_body.index("CompilerReflect_generatedMethod"),
+        )
+        self.assertLess(
+            has_field_body.index("CompilerReflect_generatedMethod"),
+            has_field_body.index("hxrt.ReflectLookupMethod"),
         )
 
         for forbidden in (
@@ -969,7 +1220,11 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "map[reflect.Type]",
             "iterator.(map[string]any)",
         ):
-            self.assertNotIn(forbidden, generated_main + generated_template, forbidden)
+            self.assertNotIn(
+                forbidden,
+                generated_main + generated_reflect + generated_template,
+                forbidden,
+            )
         self.assertIn("hxrt.TemplateCall(hasNext", generated_template)
         self.assertIn("hxrt.TemplateCall(next", generated_template)
         self.assertIn("TestTemplateCallInvokesBoundMethodValue", runtime_test)
@@ -1032,7 +1287,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         )
 
         stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
-        stdlib_end = compiler.index("function reflectFieldsShimDecl", stdlib_start)
+        stdlib_end = compiler.index("function lowerTypeMetadataShimDecls", stdlib_start)
         stdlib_emitter = compiler[stdlib_start:stdlib_end]
         for path, symbol in zip(crypto_paths, crypto_symbols):
             self.assertNotIn(f'path: "{path}"', classifier)
@@ -1097,7 +1352,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             self.assertIn(f'"{path}"', planner)
 
         stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
-        stdlib_end = compiler.index("function reflectFieldsShimDecl", stdlib_start)
+        stdlib_end = compiler.index("function lowerTypeMetadataShimDecls", stdlib_start)
         stdlib_emitter = compiler[stdlib_start:stdlib_end]
         for symbol in (
             'GoDecl.GoStructDecl("Xml"',
@@ -1161,7 +1416,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             self.assertIn(f'"{path}"', planner)
 
         stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
-        stdlib_end = compiler.index("function reflectFieldsShimDecl", stdlib_start)
+        stdlib_end = compiler.index("function lowerTypeMetadataShimDecls", stdlib_start)
         stdlib_emitter = compiler[stdlib_start:stdlib_end]
         for symbol in (
             'GoDecl.GoStructDecl("haxe__zip__Compress"',
@@ -1266,7 +1521,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             self.assertIn(f'case "{path}"', planner)
 
         stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
-        stdlib_end = compiler.index("function reflectFieldsShimDecl", stdlib_start)
+        stdlib_end = compiler.index("function lowerTypeMetadataShimDecls", stdlib_start)
         stdlib_emitter = compiler[stdlib_start:stdlib_end]
         for symbol in (
             'GoDecl.GoStructDecl("Date"',
@@ -1407,7 +1662,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         )
 
         stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
-        stdlib_end = compiler.index("function reflectFieldsShimDecl", stdlib_start)
+        stdlib_end = compiler.index("function lowerTypeMetadataShimDecls", stdlib_start)
         stdlib_emitter = compiler[stdlib_start:stdlib_end]
         self.assertNotIn("_UnicodeString__UnicodeString_Impl__", stdlib_emitter)
 

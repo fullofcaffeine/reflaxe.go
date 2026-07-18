@@ -30,6 +30,7 @@
         "haxe_go-vfp.8.7.15.3",
         "haxe_go-vfp.8.7.15.4",
         "haxe_go-vfp.8.7.15.5",
+        "haxe_go-vfp.8.7.15.6",
         "haxe_go-vfp.8.7.17",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
@@ -40,7 +41,8 @@
       "staged_support": [
         "haxe_go-vfp.5.4",
         "haxe_go-vfp.8.7.13",
-        "haxe_go-vfp.8.7.14"
+        "haxe_go-vfp.8.7.14",
+        "haxe_go-vfp.8.7.15.6"
       ],
       "hxrt_binding": [
         "haxe_go-vfp.5.4",
@@ -53,6 +55,7 @@
         "haxe_go-vfp.8.7.15.1",
         "haxe_go-vfp.8.7.15.3",
         "haxe_go-vfp.8.7.15.4",
+        "haxe_go-vfp.8.7.15.6",
         "haxe_go-vfp.8.7.16",
         "haxe_go-vfp.8.7.3",
         "haxe_go-vfp.8.7.4",
@@ -185,6 +188,15 @@
       "migrationBead": "haxe_go-vfp.8.7.15.4",
       "compilerShimGroups": [],
       "notes": "Canonical staged Math API. Haxe owns rounding, finiteness, NaN propagation, and operand-order signed-zero policy; typed externs call Go math and math/rand directly, with three narrow hxrt Int-returning rounders for the native signature mismatch."
+    },
+    {
+      "path": "std/go/_std/Reflect.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/Reflect.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.6",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged Haxe 4.3.7 Reflect API. Haxe source owns public lookup precedence, property policy, copying, deletion, and varargs composition; a typed footprint-explicit hxrt boundary handles ordinary Go representation inspection, while exact same-package compiler metadata adapters expose only closed generated fields, methods, RTTI, and enum carriers."
     },
     {
       "path": "std/go/_std/Sys.hx",
@@ -567,6 +579,15 @@
       "migrationBead": "haxe_go-vfp.8.7.13",
       "compilerShimGroups": [],
       "notes": "Ordinary staged declaration of the exact same-package custom-hook and structural-resolver invocation bridge. It contains no token policy, traversal, metadata table, or runtime reflection behavior."
+    },
+    {
+      "path": "std/reflaxe/go/internal/CompilerReflect.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "staged_support",
+      "destination": "std/reflaxe/go/internal/CompilerReflect.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.6",
+      "compilerShimGroups": [],
+      "notes": "Narrow same-package extern contract for compiler-owned closed-world Reflect metadata. It deliberately carries Dynamic only at the public reflection boundary and resolves to typed generated-package adapters rather than importing hxrt or creating a runtime registry."
     },
     {
       "path": "std/go/_std/haxe/io/FPHelper.hx",
@@ -1538,6 +1559,24 @@
       "migrationBead": "haxe_go-vfp.8.7.13",
       "compilerShimGroups": [],
       "notes": "Typed native match carrier whose indexes are normalized from Go UTF-8 byte offsets to the Haxe code-point string contract before staged EReg consumes them."
+    },
+    {
+      "path": "std/hxrt/reflect/NativeReflect.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/reflect/NativeReflect.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.6",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge to footprint-explicit runtime/hxrt/reflect.go for ordinary map, exported struct-field, exported method, call, compare, object, copy, delete, and varargs operations. It carries no generated-program metadata or public lookup-order policy."
+    },
+    {
+      "path": "std/hxrt/reflect/ReflectFieldLookup.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/reflect/ReflectFieldLookup.hx",
+      "migrationBead": "haxe_go-vfp.8.7.15.6",
+      "compilerShimGroups": [],
+      "notes": "Typed found/value carrier that preserves the distinction between a missing dynamic field and a present field whose value is null across the staged Reflect runtime boundary."
     },
     {
       "path": "std/hxrt/serialization/NativeSerialization.hx",

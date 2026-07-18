@@ -230,6 +230,14 @@ MODULE_NOTES_OVERRIDES = {
 		"math_source_owned, numeric_edge_cases, stdlib/date_math_source_owned, "
 		"stdlib/math_float_native_no_hxrt, and direct runtime math tests."
 	),
+	"Reflect": (
+		"Canonical staged Reflect owns the complete Haxe 4.3.7 API, public lookup precedence, property "
+		"policy, copying, deletion, and varargs composition. Typed std/hxrt/reflect delegates only ordinary "
+		"Go representation inspection to footprint-explicit runtime/hxrt/reflect.go; exact same-package "
+		"metadata adapters expose closed generated fields, methods, RTTI, and enum carriers without unsafe or "
+		"a runtime registry. Evidence: reflect_compare, reflect_field_ops, reflect_extended_contract, "
+		"stdlib/dynamic_access_basic, and direct runtime Reflect tests."
+	),
 	"Sys": (
 		"The supported Haxe 4.3.7 root API is canonical staged source in "
 		"std/go/_std/Sys.hx over typed std/hxrt bindings. Public map construction, "

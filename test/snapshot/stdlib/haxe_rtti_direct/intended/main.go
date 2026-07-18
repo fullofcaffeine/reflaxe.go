@@ -439,257 +439,7 @@ func hxrt__generated_method_field__haxe__xml__XmlParserException(value *haxe__xm
 	return nil
 }
 
-type Std struct {
-}
-
 type Type struct {
-}
-
-type Reflect struct {
-}
-
-func Reflect_compare(a any, b any) int {
-	toFloat := func(value any) (float64, bool) {
-		switch v := value.(type) {
-		case int:
-			return float64(v), true
-		case int8:
-			return float64(v), true
-		case int16:
-			return float64(v), true
-		case int32:
-			return float64(v), true
-		case int64:
-			return float64(v), true
-		case uint:
-			return float64(v), true
-		case uint8:
-			return float64(v), true
-		case uint16:
-			return float64(v), true
-		case uint32:
-			return float64(v), true
-		case uint64:
-			return float64(v), true
-		case float32:
-			return float64(v), true
-		case float64:
-			return v, true
-		default:
-			return 0, false
-		}
-	}
-	if af, ok := toFloat(a); ok {
-		if bf, okB := toFloat(b); okB {
-			if af < bf {
-				return -1
-			}
-			if af > bf {
-				return 1
-			}
-			return 0
-		}
-	}
-	aStr := *hxrt.StdString(a)
-	bStr := *hxrt.StdString(b)
-	if aStr < bStr {
-		return -1
-	}
-	if aStr > bStr {
-		return 1
-	}
-	return 0
-}
-
-func Reflect_compareMethods(a any, b any) bool {
-	if a == nil || b == nil {
-		return a == nil && b == nil
-	}
-	av := reflect.ValueOf(a)
-	bv := reflect.ValueOf(b)
-	if !av.IsValid() || !bv.IsValid() {
-		return !av.IsValid() && !bv.IsValid()
-	}
-	if av.Kind() == reflect.Func && bv.Kind() == reflect.Func {
-		if av.IsNil() || bv.IsNil() {
-			return av.IsNil() && bv.IsNil()
-		}
-		return av.Pointer() == bv.Pointer()
-	}
-	return reflect.DeepEqual(a, b)
-}
-
-func Reflect_field(obj any, field *string) any {
-	if obj == nil {
-		return nil
-	}
-	key := *hxrt.StdString(field)
-	if metadataValue, ok := hxrt_typeClassMetadataField(obj, key); ok {
-		return metadataValue
-	}
-	switch value := obj.(type) {
-	case map[string]any:
-		return value[key]
-	case map[any]any:
-		return value[key]
-	case *map[string]any:
-		if value == nil {
-			return nil
-		}
-		return (*value)[key]
-	case *map[any]any:
-		if value == nil {
-			return nil
-		}
-		return (*value)[key]
-	}
-	rv := reflect.ValueOf(obj)
-	if !rv.IsValid() {
-		return nil
-	}
-	if rv.Kind() == reflect.Pointer {
-		if rv.IsNil() {
-			return nil
-		}
-		rv = rv.Elem()
-	}
-	if rv.Kind() == reflect.Struct {
-		if fieldValue := rv.FieldByName(key); fieldValue.IsValid() && fieldValue.CanInterface() {
-			return fieldValue.Interface()
-		}
-	}
-	generatedMethod := hxrt__generated_method_field(obj, key)
-	if generatedMethod != nil {
-		return generatedMethod
-	}
-	method := reflect.ValueOf(obj).MethodByName(key)
-	if method.IsValid() {
-		return method.Interface()
-	}
-	return nil
-}
-
-func Reflect_hasField(obj any, field *string) bool {
-	if obj == nil {
-		return false
-	}
-	key := *hxrt.StdString(field)
-	if _, ok := hxrt_typeClassMetadataField(obj, key); ok {
-		return true
-	}
-	switch value := obj.(type) {
-	case map[string]any:
-		_, ok := value[key]
-		return ok
-	case map[any]any:
-		_, ok := value[key]
-		return ok
-	case *map[string]any:
-		if value == nil {
-			return false
-		}
-		_, ok := (*value)[key]
-		return ok
-	case *map[any]any:
-		if value == nil {
-			return false
-		}
-		_, ok := (*value)[key]
-		return ok
-	}
-	rv := reflect.ValueOf(obj)
-	if !rv.IsValid() {
-		return false
-	}
-	if rv.Kind() == reflect.Pointer {
-		if rv.IsNil() {
-			return false
-		}
-		rv = rv.Elem()
-	}
-	if rv.Kind() == reflect.Struct {
-		if rv.FieldByName(key).IsValid() {
-			return true
-		}
-	}
-	generatedMethod := hxrt__generated_method_field(obj, key)
-	if generatedMethod != nil {
-		return true
-	}
-	return reflect.ValueOf(obj).MethodByName(key).IsValid()
-}
-
-func Reflect_setField(obj any, field *string, value any) {
-	if obj == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-		return
-	}
-	key := *hxrt.StdString(field)
-	switch target := obj.(type) {
-	case map[string]any:
-		target[key] = value
-		return
-	case map[any]any:
-		target[key] = value
-		return
-	case *map[string]any:
-		if target == nil {
-			hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-			return
-		}
-		(*target)[key] = value
-		return
-	case *map[any]any:
-		if target == nil {
-			hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-			return
-		}
-		(*target)[key] = value
-		return
-	}
-	rv := reflect.ValueOf(obj)
-	if !rv.IsValid() || rv.Kind() != reflect.Pointer {
-		return
-	}
-	if rv.IsNil() {
-		hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-		return
-	}
-	rv = rv.Elem()
-	if rv.Kind() != reflect.Struct {
-		return
-	}
-	fieldValue := rv.FieldByName(key)
-	if !fieldValue.IsValid() || !fieldValue.CanSet() {
-		return
-	}
-	if value == nil {
-		fieldValue.Set(reflect.Zero(fieldValue.Type()))
-		return
-	}
-	incoming := reflect.ValueOf(value)
-	if incoming.Type().AssignableTo(fieldValue.Type()) {
-		fieldValue.Set(incoming)
-		return
-	}
-	if incoming.Type().ConvertibleTo(fieldValue.Type()) {
-		fieldValue.Set(incoming.Convert(fieldValue.Type()))
-		return
-	}
-	if fieldValue.Kind() == reflect.Interface {
-		fieldValue.Set(incoming)
-	}
-}
-
-type haxe__ds__Option struct {
-	tag    int
-	params []any
-}
-
-var haxe__ds__Option_None *haxe__ds__Option = &haxe__ds__Option{tag: 1, params: []any{}}
-
-func haxe__ds__Option_Some(value any) *haxe__ds__Option {
-	return &haxe__ds__Option{tag: 0, params: []any{value}}
 }
 
 type ValueType struct {
@@ -835,6 +585,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	case "Demo":
 		return nil, false
 	case "Main":
+		return nil, false
+	case "Reflect":
 		return nil, false
 	case "StringBuf":
 		return hxrt_typeCallAny(New_StringBuf, args)
@@ -1465,6 +1217,8 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "Main":
 		return nil
+	case "Reflect":
+		return nil
 	case "StringBuf":
 		return nil
 	case "StringTools":
@@ -1534,6 +1288,8 @@ func Type_getClassFields(c any) *hxrt.Array {
 		return hxrt.NewArray(hxrt.StringFromLiteral("__rtti"), hxrt.StringFromLiteral("field"))
 	case "Main":
 		return hxrt.NewArray(hxrt.StringFromLiteral("main"))
+	case "Reflect":
+		return hxrt.NewArray(hxrt.StringFromLiteral("callMethod"), hxrt.StringFromLiteral("compare"), hxrt.StringFromLiteral("compareMethods"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("deleteField"), hxrt.StringFromLiteral("field"), hxrt.StringFromLiteral("fields"), hxrt.StringFromLiteral("getProperty"), hxrt.StringFromLiteral("hasField"), hxrt.StringFromLiteral("isEnumValue"), hxrt.StringFromLiteral("isFunction"), hxrt.StringFromLiteral("isObject"), hxrt.StringFromLiteral("makeVarArgs"), hxrt.StringFromLiteral("setField"), hxrt.StringFromLiteral("setProperty"))
 	case "StringBuf":
 		return hxrt.NewArray()
 	case "StringTools":
@@ -1594,6 +1350,8 @@ func Type_getInstanceFields(c any) *hxrt.Array {
 	case "Demo":
 		return hxrt.NewArray()
 	case "Main":
+		return hxrt.NewArray()
+	case "Reflect":
 		return hxrt.NewArray()
 	case "StringBuf":
 		return hxrt.NewArray(hxrt.StringFromLiteral("b"))
@@ -1663,6 +1421,8 @@ func Type_resolveClass(name *string) any {
 	case "Demo":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "Main":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "Reflect":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "StringBuf":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
@@ -2089,10 +1849,11 @@ func Type_enumEq(a any, b any) bool {
 }
 
 func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
-	className, ok := hxrt_typeResolvedClassName(value)
-	if !ok {
+	classValue, ok := value.(*hxrt__TypeClassValue)
+	if !ok || classValue == nil {
 		return nil, false
 	}
+	className := *hxrt.StdString(classValue.name)
 	switch className {
 	case "Demo":
 		switch key {
@@ -2103,5 +1864,1191 @@ func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
 		}
 	default:
 		return nil, false
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *string) any {
+	key := *hxrt.StdString(field)
+	var receiver any
+	switch value := object.(type) {
+	case *StringBuf:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *Xml:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe___Int64_____Int64:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ds__StringMap:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__io__Bytes:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__MapKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__StringIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__StringKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__rtti__XmlParser:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__xml__Printer:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__xml__XmlParserException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	default:
+		return nil
+	}
+	switch value := receiver.(type) {
+	case *StringBuf:
+		return hxrt__generated_field_lookup__StringBuf(value, key)
+	case *Xml:
+		return hxrt__generated_field_lookup__Xml(value, key)
+	case *haxe___Int64_____Int64:
+		return hxrt__generated_field_lookup__haxe___Int64_____Int64(value, key)
+	case *haxe__ds__StringMap:
+		return hxrt__generated_field_lookup__haxe__ds__StringMap(value, key)
+	case *haxe__io__Bytes:
+		return hxrt__generated_field_lookup__haxe__io__Bytes(value, key)
+	case *haxe__iterators__MapKeyValueIterator:
+		return hxrt__generated_field_lookup__haxe__iterators__MapKeyValueIterator(value, key)
+	case *haxe__iterators__StringIterator:
+		return hxrt__generated_field_lookup__haxe__iterators__StringIterator(value, key)
+	case *haxe__iterators__StringKeyValueIterator:
+		return hxrt__generated_field_lookup__haxe__iterators__StringKeyValueIterator(value, key)
+	case *haxe__rtti__XmlParser:
+		return hxrt__generated_field_lookup__haxe__rtti__XmlParser(value, key)
+	case *haxe__xml__Printer:
+		return hxrt__generated_field_lookup__haxe__xml__Printer(value, key)
+	case *haxe__xml__XmlParserException:
+		return hxrt__generated_field_lookup__haxe__xml__XmlParserException(value, key)
+	default:
+		return nil
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field *string) bool {
+	key := *hxrt.StdString(field)
+	var receiver any
+	switch value := object.(type) {
+	case *StringBuf:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *Xml:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe___Int64_____Int64:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ds__StringMap:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__io__Bytes:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__MapKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__StringIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__StringKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__rtti__XmlParser:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__xml__Printer:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__xml__XmlParserException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	default:
+		return false
+	}
+	switch value := receiver.(type) {
+	case *StringBuf:
+		return hxrt__generated_field_has__StringBuf(value, key)
+	case *Xml:
+		return hxrt__generated_field_has__Xml(value, key)
+	case *haxe___Int64_____Int64:
+		return hxrt__generated_field_has__haxe___Int64_____Int64(value, key)
+	case *haxe__ds__StringMap:
+		return hxrt__generated_field_has__haxe__ds__StringMap(value, key)
+	case *haxe__io__Bytes:
+		return hxrt__generated_field_has__haxe__io__Bytes(value, key)
+	case *haxe__iterators__MapKeyValueIterator:
+		return hxrt__generated_field_has__haxe__iterators__MapKeyValueIterator(value, key)
+	case *haxe__iterators__StringIterator:
+		return hxrt__generated_field_has__haxe__iterators__StringIterator(value, key)
+	case *haxe__iterators__StringKeyValueIterator:
+		return hxrt__generated_field_has__haxe__iterators__StringKeyValueIterator(value, key)
+	case *haxe__rtti__XmlParser:
+		return hxrt__generated_field_has__haxe__rtti__XmlParser(value, key)
+	case *haxe__xml__Printer:
+		return hxrt__generated_field_has__haxe__xml__Printer(value, key)
+	case *haxe__xml__XmlParserException:
+		return hxrt__generated_field_has__haxe__xml__XmlParserException(value, key)
+	default:
+		return false
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field *string, incoming any) bool {
+	key := *hxrt.StdString(field)
+	var receiver any
+	switch value := object.(type) {
+	case *StringBuf:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *Xml:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe___Int64_____Int64:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ds__StringMap:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__io__Bytes:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__MapKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__StringIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__StringKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__rtti__XmlParser:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__xml__Printer:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__xml__XmlParserException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	default:
+		return false
+	}
+	switch value := receiver.(type) {
+	case *StringBuf:
+		return hxrt__generated_field_set__StringBuf(value, key, incoming)
+	case *Xml:
+		return hxrt__generated_field_set__Xml(value, key, incoming)
+	case *haxe___Int64_____Int64:
+		return hxrt__generated_field_set__haxe___Int64_____Int64(value, key, incoming)
+	case *haxe__ds__StringMap:
+		return hxrt__generated_field_set__haxe__ds__StringMap(value, key, incoming)
+	case *haxe__io__Bytes:
+		return hxrt__generated_field_set__haxe__io__Bytes(value, key, incoming)
+	case *haxe__iterators__MapKeyValueIterator:
+		return hxrt__generated_field_set__haxe__iterators__MapKeyValueIterator(value, key, incoming)
+	case *haxe__iterators__StringIterator:
+		return hxrt__generated_field_set__haxe__iterators__StringIterator(value, key, incoming)
+	case *haxe__iterators__StringKeyValueIterator:
+		return hxrt__generated_field_set__haxe__iterators__StringKeyValueIterator(value, key, incoming)
+	case *haxe__rtti__XmlParser:
+		return hxrt__generated_field_set__haxe__rtti__XmlParser(value, key, incoming)
+	case *haxe__xml__Printer:
+		return hxrt__generated_field_set__haxe__xml__Printer(value, key, incoming)
+	case *haxe__xml__XmlParserException:
+		return hxrt__generated_field_set__haxe__xml__XmlParserException(value, key, incoming)
+	default:
+		return false
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.Array {
+	var receiver any
+	switch value := object.(type) {
+	case *StringBuf:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *Xml:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe___Int64_____Int64:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ds__StringMap:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__io__Bytes:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__MapKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__StringIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__StringKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__rtti__XmlParser:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__xml__Printer:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__xml__XmlParserException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	default:
+		return nil
+	}
+	switch receiver.(type) {
+	case *StringBuf:
+		return hxrt.NewArray(hxrt.StringFromLiteral("b"))
+	case *Xml:
+		return hxrt.NewArray(hxrt.StringFromLiteral("attributeMap"), hxrt.StringFromLiteral("children"), hxrt.StringFromLiteral("nodeType"), hxrt.StringFromLiteral("parent"))
+	case *haxe___Int64_____Int64:
+		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
+	case *haxe__ds__StringMap:
+		return hxrt.NewArray(hxrt.StringFromLiteral("h"))
+	case *haxe__io__Bytes:
+		return hxrt.NewArray(hxrt.StringFromLiteral("__hx_dataExposed"), hxrt.StringFromLiteral("__hx_raw"), hxrt.StringFromLiteral("__hx_rawValid"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("length"))
+	case *haxe__iterators__MapKeyValueIterator:
+		return hxrt.NewArray(hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("map"))
+	case *haxe__iterators__StringIterator:
+		return hxrt.NewArray(hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
+	case *haxe__iterators__StringKeyValueIterator:
+		return hxrt.NewArray(hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
+	case *haxe__rtti__XmlParser:
+		return hxrt.NewArray(hxrt.StringFromLiteral("curplatform"), hxrt.StringFromLiteral("newField"), hxrt.StringFromLiteral("root"))
+	case *haxe__xml__Printer:
+		return hxrt.NewArray(hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("pretty"))
+	case *haxe__xml__XmlParserException:
+		return hxrt.NewArray(hxrt.StringFromLiteral("lineNumber"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("position"), hxrt.StringFromLiteral("positionAtLine"), hxrt.StringFromLiteral("xml"))
+	default:
+		return nil
+	}
+}
+
+func hxrt__generated_field_lookup__StringBuf(value *StringBuf, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "b":
+		return value.b
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__StringBuf(value *StringBuf, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "b":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__StringBuf(value *StringBuf, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "b":
+		if incoming == nil {
+			var zero *string
+			value.b = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *string:
+			value.b = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__Xml(value *Xml, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "attributeMap":
+		return value.attributeMap
+	case "children":
+		return value.children
+	case "nodeType":
+		return value.nodeType
+	case "parent":
+		return value.parent
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__Xml(value *Xml, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "attributeMap":
+		return true
+	case "children":
+		return true
+	case "nodeType":
+		return true
+	case "parent":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__Xml(value *Xml, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "attributeMap":
+		if incoming == nil {
+			var zero *haxe__ds__StringMap
+			value.attributeMap = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *haxe__ds__StringMap:
+			value.attributeMap = typed
+			return true
+		default:
+			return false
+		}
+	case "children":
+		if incoming == nil {
+			var zero *hxrt.Array
+			value.children = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *hxrt.Array:
+			value.children = typed
+			return true
+		default:
+			return false
+		}
+	case "nodeType":
+		if incoming == nil {
+			var zero any
+			value.nodeType = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case any:
+			value.nodeType = typed
+			return true
+		default:
+			return false
+		}
+	case "parent":
+		if incoming == nil {
+			var zero *Xml
+			value.parent = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *Xml:
+			value.parent = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe___Int64_____Int64(value *haxe___Int64_____Int64, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "high":
+		return value.high
+	case "low":
+		return value.low
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe___Int64_____Int64(value *haxe___Int64_____Int64, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "high":
+		return true
+	case "low":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe___Int64_____Int64(value *haxe___Int64_____Int64, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "high":
+		if incoming == nil {
+			var zero int
+			value.high = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.high = typed
+			return true
+		default:
+			return false
+		}
+	case "low":
+		if incoming == nil {
+			var zero int
+			value.low = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.low = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__ds__StringMap(value *haxe__ds__StringMap, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "h":
+		return value.h
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__ds__StringMap(value *haxe__ds__StringMap, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "h":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__ds__StringMap(value *haxe__ds__StringMap, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "h":
+		if incoming == nil {
+			var zero *hxrt.StringMapCell
+			value.h = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *hxrt.StringMapCell:
+			value.h = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__io__Bytes(value *haxe__io__Bytes, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "__hx_dataExposed":
+		return value.__hx_dataExposed
+	case "__hx_raw":
+		return value.__hx_raw
+	case "__hx_rawValid":
+		return value.__hx_rawValid
+	case "b":
+		return value.b
+	case "length":
+		return value.length
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__io__Bytes(value *haxe__io__Bytes, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "__hx_dataExposed":
+		return true
+	case "__hx_raw":
+		return true
+	case "__hx_rawValid":
+		return true
+	case "b":
+		return true
+	case "length":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__io__Bytes(value *haxe__io__Bytes, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "__hx_dataExposed":
+		if incoming == nil {
+			var zero bool
+			value.__hx_dataExposed = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case bool:
+			value.__hx_dataExposed = typed
+			return true
+		default:
+			return false
+		}
+	case "__hx_raw":
+		if incoming == nil {
+			var zero *hxrt.ByteView
+			value.__hx_raw = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *hxrt.ByteView:
+			value.__hx_raw = typed
+			return true
+		default:
+			return false
+		}
+	case "__hx_rawValid":
+		if incoming == nil {
+			var zero bool
+			value.__hx_rawValid = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case bool:
+			value.__hx_rawValid = typed
+			return true
+		default:
+			return false
+		}
+	case "b":
+		if incoming == nil {
+			var zero []int
+			value.b = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case []int:
+			value.b = typed
+			return true
+		default:
+			return false
+		}
+	case "length":
+		if incoming == nil {
+			var zero int
+			value.length = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.length = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__iterators__MapKeyValueIterator(value *haxe__iterators__MapKeyValueIterator, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "keys":
+		return value.keys
+	case "map":
+		return value.map_
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__iterators__MapKeyValueIterator(value *haxe__iterators__MapKeyValueIterator, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "keys":
+		return true
+	case "map":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__iterators__MapKeyValueIterator(value *haxe__iterators__MapKeyValueIterator, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "keys":
+		if incoming == nil {
+			var zero map[string]any
+			value.keys = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case map[string]any:
+			value.keys = typed
+			return true
+		default:
+			return false
+		}
+	case "map":
+		if incoming == nil {
+			var zero haxe__IMap
+			value.map_ = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case haxe__IMap:
+			value.map_ = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__iterators__StringIterator(value *haxe__iterators__StringIterator, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "offset":
+		return value.offset
+	case "s":
+		return value.s
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__iterators__StringIterator(value *haxe__iterators__StringIterator, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "offset":
+		return true
+	case "s":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__iterators__StringIterator(value *haxe__iterators__StringIterator, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "offset":
+		if incoming == nil {
+			var zero int
+			value.offset = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.offset = typed
+			return true
+		default:
+			return false
+		}
+	case "s":
+		if incoming == nil {
+			var zero *string
+			value.s = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *string:
+			value.s = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__iterators__StringKeyValueIterator(value *haxe__iterators__StringKeyValueIterator, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "offset":
+		return value.offset
+	case "s":
+		return value.s
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__iterators__StringKeyValueIterator(value *haxe__iterators__StringKeyValueIterator, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "offset":
+		return true
+	case "s":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__iterators__StringKeyValueIterator(value *haxe__iterators__StringKeyValueIterator, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "offset":
+		if incoming == nil {
+			var zero int
+			value.offset = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.offset = typed
+			return true
+		default:
+			return false
+		}
+	case "s":
+		if incoming == nil {
+			var zero *string
+			value.s = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *string:
+			value.s = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__rtti__XmlParser(value *haxe__rtti__XmlParser, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "curplatform":
+		return value.curplatform
+	case "newField":
+		return value.newField
+	case "root":
+		return value.root
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__rtti__XmlParser(value *haxe__rtti__XmlParser, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "curplatform":
+		return true
+	case "newField":
+		return true
+	case "root":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__rtti__XmlParser(value *haxe__rtti__XmlParser, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "curplatform":
+		if incoming == nil {
+			var zero *string
+			value.curplatform = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *string:
+			value.curplatform = typed
+			return true
+		default:
+			return false
+		}
+	case "newField":
+		if incoming == nil {
+			var zero func(map[string]any, map[string]any)
+			value.newField = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case func(map[string]any, map[string]any):
+			value.newField = typed
+			return true
+		default:
+			return false
+		}
+	case "root":
+		if incoming == nil {
+			var zero *hxrt.Array
+			value.root = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *hxrt.Array:
+			value.root = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__xml__Printer(value *haxe__xml__Printer, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "output":
+		return value.output
+	case "pretty":
+		return value.pretty
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__xml__Printer(value *haxe__xml__Printer, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "output":
+		return true
+	case "pretty":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__xml__Printer(value *haxe__xml__Printer, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "output":
+		if incoming == nil {
+			var zero *StringBuf
+			value.output = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *StringBuf:
+			value.output = typed
+			return true
+		default:
+			return false
+		}
+	case "pretty":
+		if incoming == nil {
+			var zero bool
+			value.pretty = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case bool:
+			value.pretty = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__xml__XmlParserException(value *haxe__xml__XmlParserException, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "lineNumber":
+		return value.lineNumber
+	case "message":
+		return value.message
+	case "position":
+		return value.position
+	case "positionAtLine":
+		return value.positionAtLine
+	case "xml":
+		return value.xml
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__xml__XmlParserException(value *haxe__xml__XmlParserException, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "lineNumber":
+		return true
+	case "message":
+		return true
+	case "position":
+		return true
+	case "positionAtLine":
+		return true
+	case "xml":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__xml__XmlParserException(value *haxe__xml__XmlParserException, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "lineNumber":
+		if incoming == nil {
+			var zero int
+			value.lineNumber = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.lineNumber = typed
+			return true
+		default:
+			return false
+		}
+	case "message":
+		if incoming == nil {
+			var zero *string
+			value.message = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *string:
+			value.message = typed
+			return true
+		default:
+			return false
+		}
+	case "position":
+		if incoming == nil {
+			var zero int
+			value.position = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.position = typed
+			return true
+		default:
+			return false
+		}
+	case "positionAtLine":
+		if incoming == nil {
+			var zero int
+			value.positionAtLine = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.positionAtLine = typed
+			return true
+		default:
+			return false
+		}
+	case "xml":
+		if incoming == nil {
+			var zero *string
+			value.xml = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *string:
+			value.xml = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func reflaxe__go___internal__CompilerReflect_typeField(object any, field *string) any {
+	key := *hxrt.StdString(field)
+	value, found := hxrt_typeClassMetadataField(object, key)
+	if !found {
+		return nil
+	}
+	return value
+}
+
+func reflaxe__go___internal__CompilerReflect_hasTypeField(object any, field *string) bool {
+	key := *hxrt.StdString(field)
+	_, found := hxrt_typeClassMetadataField(object, key)
+	return found
+}
+
+func reflaxe__go___internal__CompilerReflect_generatedMethod(object any, field *string) any {
+	key := *hxrt.StdString(field)
+	return hxrt__generated_method_field(object, key)
+}
+
+func reflaxe__go___internal__CompilerReflect_isEnumValue(value any) bool {
+	switch enumValue := value.(type) {
+	case *haxe__io__Encoding:
+		return (enumValue != nil)
+	case *haxe__io__Error:
+		return (enumValue != nil)
+	case *haxe__rtti__CType:
+		return (enumValue != nil)
+	case *haxe__rtti__Rights:
+		return (enumValue != nil)
+	case *haxe__rtti__TypeTree:
+		return (enumValue != nil)
+	default:
+		return false
 	}
 }

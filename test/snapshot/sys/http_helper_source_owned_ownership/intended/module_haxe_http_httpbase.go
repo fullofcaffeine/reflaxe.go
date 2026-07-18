@@ -162,7 +162,11 @@ func (self *haxe__http__HttpBase) request(post any) {
 }
 
 func (self *haxe__http__HttpBase) hasOnData() bool {
-	return !Reflect_compareMethods(self.onData, self.emptyOnData)
+	return !func() bool {
+		var f1 any = any(self.onData)
+		var f2 any = any(self.emptyOnData)
+		return hxrt.ReflectCompareMethods(f1, f2)
+	}()
 }
 
 func (self *haxe__http__HttpBase) success(data *haxe__io__Bytes) {

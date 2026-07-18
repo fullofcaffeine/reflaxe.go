@@ -49,6 +49,17 @@
       ],
       "reviewCondition": "Revisit when typed Go IR can express the same native specialization without generated helper declarations."
     },
+    "approved_reflect_metadata": {
+      "what": "Generate only the same-package metadata adapters needed by staged Reflect for class-token RTTI, lowercase generated fields and methods, and exact enum carriers.",
+      "why": "The separate hxrt package cannot access unexported generated members or know the compiler's finalized class, enum, RTTI, and metadata tables without unsafe access or a duplicated runtime registry.",
+      "how": "Keep public lookup and property policy in staged Reflect, recover canonical generated receivers with typed switches, and emit exact adapters through the reflect_metadata group while hxrt owns only ordinary Go representation inspection.",
+      "evidence": [
+        "reflect_extended_contract",
+        "haxe_template_concrete_iterable_contract",
+        "haxe_rtti_direct_contract"
+      ],
+      "reviewCondition": "Revisit if generated Go members become safely exported or a typed data-only metadata artifact can replace same-package adapters without increasing runtime authority."
+    },
     "approved_resource_table": {
       "what": "Materialize the exact haxe.Resource.content data table from compile-time embedded resources.",
       "why": "Ordinary Haxe source can implement the Resource API, but it cannot read the compiler resource table after typing or invent the generated payload bytes.",
@@ -113,12 +124,12 @@
       "reviewCondition": "Revisit when the string representation is modeled as a typed source-facing abstraction rather than compiler knowledge."
     },
     "approved_type_metadata": {
-      "what": "Generate narrow Type and reflection lookup declarations from the compiler's closed typed class and enum metadata tables.",
-      "why": "Ordinary Haxe source cannot enumerate the final reachable generated Go types, constructors, class markers, and enum markers at compile time.",
-      "how": "Keep metadata generation separate from public reflection algorithms and register its exact compiler entry point.",
+      "what": "Generate the individually listed Type operations from the compiler's closed typed class and enum tables, generated constructors, and target carriers.",
+      "why": "Ordinary Haxe source and the separate hxrt package cannot enumerate the finalized reachable generated Go types, constructors, class markers, enum markers, inheritance, or field tables.",
+      "how": "Route Type through its own type_metadata group, keep public symbols individually listed, and emit no ordinary Reflect runtime behavior from that group.",
       "evidence": [
-        "type_reflection_extended_contract",
-        "haxe_rtti_direct_contract"
+        "type_reflection_contract",
+        "type_reflection_extended_contract"
       ],
       "reviewCondition": "Revisit if the compiler emits a typed metadata data file that staged source can consume without generated behavior."
     },
@@ -152,24 +163,15 @@
       ],
       "reviewCondition": "Remove the dispatcher when no portable declaration group remains."
     },
-    "migration_runtime_reflection": {
-      "what": "Move runtime-only Reflect.fields behavior out of compiler-generated declarations.",
-      "why": "Field enumeration inspects runtime values and does not consume the compiler's closed metadata table.",
-      "how": "Use a staged helper island or narrow hxrt reflection capability while keeping generated metadata work separately registered.",
-      "evidence": [
-        "reflect_dynamic_fields_contract"
-      ],
-      "reviewCondition": "Remove under haxe_go-vfp.8.7.15 once equivalent typed runtime behavior lands."
-    },
     "migration_stdlib_symbols": {
-      "what": "Split the remaining Unicode, Reflect, Option, logging, and nominal-symbol block by its correct source or runtime owner; crypto, XML, zip, Date, and Math have already left the group.",
-      "why": "Most functions in the group are ordinary library or runtime behavior; sharing a file with generated type metadata does not make them compile-context intrinsics.",
-      "how": "Move library code to upstream or staged Haxe, native algorithms to narrow hxrt helpers, and keep only separately registered metadata or representation primitives.",
+      "what": "Split the remaining Std nominal carrier, Option representation, and false planner selectors by their correct source or runtime owner; crypto, XML, zip, Date, Math, Reflect, and Type have already left the group.",
+      "why": "The residual group still combines unrelated compatibility carriers and selectors, making ownership and runtime consequences harder to audit.",
+      "how": "Migrate one exact symbol family at a time with source, runtime, snapshot, semantic, and registry evidence before deleting the residual dispatcher branch.",
       "evidence": [
-        "docs/stdlib-shim-rationale.md",
-        "test/semantic_diff"
+        "stdlib_migration_ledger_contract",
+        "compiler_stdlib_intrinsic_registry_contract"
       ],
-      "reviewCondition": "Close only when haxe_go-vfp.8.7.15 retires lowerStdlibSymbolShimDecls and registers any exact residual primitive."
+      "reviewCondition": "Delete the group once every remaining owned symbol and false selector has an explicit replacement."
     }
   },
   "dispatcher": {
@@ -179,25 +181,73 @@
   },
   "groups": [
     {
+      "group": "reflect_metadata",
+      "entryPoint": "lowerReflectMetadataShimDecls",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_reflect_metadata",
+      "ownedSymbols": [
+        {
+          "symbol": "Reflect",
+          "scope": "partial_type",
+          "members": [
+            "field",
+            "fields",
+            "hasField",
+            "isEnumValue",
+            "setField"
+          ]
+        }
+      ],
+      "compilerOwnedAuthorities": [],
+      "classifierSelections": [],
+      "plannerSelections": [],
+      "dependencies": [],
+      "declaresDependencyBlock": false,
+      "supportEntryPoints": [
+        {
+          "context": "lowerGeneratedMethodMetadataShimDecls",
+          "status": "approved_intrinsic",
+          "decisionId": "approved_generated_method_metadata"
+        }
+      ]
+    },
+    {
       "group": "stdlib_symbols",
       "entryPoint": "lowerStdlibSymbolShimDecls",
       "status": "migration_required",
       "decisionId": "migration_stdlib_symbols",
       "followUpBead": "haxe_go-vfp.8.7.15",
       "ownedSymbols": [
-        {"symbol": "Reflect", "scope": "partial_type", "members": ["compare", "compareMethods", "field", "hasField", "setField"]},
-        {"symbol": "Std", "scope": "partial_type", "members": ["<nominal type carrier>"]},
-        {"symbol": "Type", "scope": "complete_type"},
-        {"symbol": "haxe.ds.Option", "scope": "complete_type"}
+        {
+          "symbol": "Std",
+          "scope": "partial_type",
+          "members": [
+            "<nominal type carrier>"
+          ]
+        },
+        {
+          "symbol": "haxe.ds.Option",
+          "scope": "complete_type"
+        }
       ],
       "compilerOwnedAuthorities": [],
       "classifierSelections": [
-        {"kind": "class", "path": "Reflect"},
-        {"kind": "class", "path": "Std"},
-        {"kind": "class", "path": "Type"},
-        {"kind": "class", "path": "haxe.ds.BalancedTree"},
-        {"kind": "class", "path": "haxe.io.Path"},
-        {"kind": "enum", "path": "haxe.ds.Option"}
+        {
+          "kind": "class",
+          "path": "Std"
+        },
+        {
+          "kind": "class",
+          "path": "haxe.ds.BalancedTree"
+        },
+        {
+          "kind": "class",
+          "path": "haxe.io.Path"
+        },
+        {
+          "kind": "enum",
+          "path": "haxe.ds.Option"
+        }
       ],
       "plannerSelections": [
         "haxe.Template",
@@ -211,89 +261,279 @@
       "declaresDependencyBlock": false,
       "supportEntryPoints": [
         {
-          "context": "lowerGeneratedMethodMetadataShimDecls",
-          "status": "approved_intrinsic",
-          "decisionId": "approved_generated_method_metadata"
-        },
-        {
           "context": "lowerSerializationSourceBridgeShimDecls",
           "status": "approved_intrinsic",
           "decisionId": "approved_serialization_source_bridge"
-        },
-        {
-          "context": "lowerTypeReflectionShimDecls",
-          "status": "approved_intrinsic",
-          "decisionId": "approved_type_metadata"
-        },
-        {
-          "context": "reflectFieldsShimDecl",
-          "status": "migration_required",
-          "decisionId": "migration_runtime_reflection",
-          "followUpBead": "haxe_go-vfp.8.7.15"
         }
       ]
+    },
+    {
+      "group": "type_metadata",
+      "entryPoint": "lowerTypeMetadataShimDecls",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_type_metadata",
+      "ownedSymbols": [
+        {
+          "symbol": "Type",
+          "scope": "partial_type",
+          "members": [
+            "allEnums",
+            "createEmptyInstance",
+            "createEnum",
+            "createEnumIndex",
+            "createInstance",
+            "enumConstructor",
+            "enumEq",
+            "enumIndex",
+            "enumParameters",
+            "getClass",
+            "getClassFields",
+            "getClassName",
+            "getEnum",
+            "getEnumConstructs",
+            "getEnumName",
+            "getInstanceFields",
+            "getSuperClass",
+            "resolveClass",
+            "resolveEnum",
+            "typeof"
+          ]
+        }
+      ],
+      "compilerOwnedAuthorities": [],
+      "classifierSelections": [
+        {
+          "kind": "class",
+          "path": "Type"
+        }
+      ],
+      "plannerSelections": [],
+      "dependencies": [],
+      "declaresDependencyBlock": false,
+      "supportEntryPoints": []
     }
   ],
   "directLowerings": [
-    {"symbol": "Lambda.array", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.concat", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.count", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.empty", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.exists", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.filter", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.find", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.findIndex", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.flatMap", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.flatten", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.fold", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.foldi", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.foreach", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.has", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.indexOf", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.iter", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.list", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.map", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Lambda.mapi", "status": "approved_intrinsic", "decisionId": "approved_lambda_iterable_representation"},
-    {"symbol": "Reflect.fields", "status": "migration_required", "decisionId": "migration_runtime_reflection", "followUpBead": "haxe_go-vfp.8.7.15"},
-    {"symbol": "Std.isOfType", "status": "approved_intrinsic", "decisionId": "approved_type_test"},
-    {"symbol": "Std.parseInt", "status": "migration_required", "decisionId": "migration_stdlib_symbols", "followUpBead": "haxe_go-vfp.8.7.15"},
-    {"symbol": "Std.string", "status": "approved_intrinsic", "decisionId": "approved_string_representation"},
-    {"symbol": "String.fromCharCode", "status": "approved_intrinsic", "decisionId": "approved_string_representation"},
-    {"symbol": "haxe.Exception.caught", "status": "approved_intrinsic", "decisionId": "approved_exception_carrier"},
-    {"symbol": "haxe.Exception.thrown", "status": "approved_intrinsic", "decisionId": "approved_exception_carrier"},
-    {"symbol": "haxe.Log.trace", "status": "migration_required", "decisionId": "migration_stdlib_symbols", "followUpBead": "haxe_go-vfp.8.7.15"},
-    {"symbol": "haxe._Rest.Rest_Impl_.append", "status": "approved_intrinsic", "decisionId": "approved_rest_representation"},
-    {"symbol": "haxe._Rest.Rest_Impl_.prepend", "status": "approved_intrinsic", "decisionId": "approved_rest_representation"},
-    {"symbol": "haxe.ds.ArraySort.sort", "status": "approved_intrinsic", "decisionId": "approved_sort_erasure_representation"},
-    {"symbol": "haxe.ds.ListSort.sort", "status": "approved_intrinsic", "decisionId": "approved_sort_erasure_representation"},
-    {"symbol": "haxe.ds.ListSort.sortSingleLinked", "status": "approved_intrinsic", "decisionId": "approved_sort_erasure_representation"}
+    {
+      "symbol": "Lambda.array",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.concat",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.count",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.empty",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.exists",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.filter",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.find",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.findIndex",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.flatMap",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.flatten",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.fold",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.foldi",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.foreach",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.has",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.indexOf",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.iter",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.list",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.map",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Lambda.mapi",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_lambda_iterable_representation"
+    },
+    {
+      "symbol": "Std.isOfType",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_type_test"
+    },
+    {
+      "symbol": "Std.parseInt",
+      "status": "migration_required",
+      "decisionId": "migration_stdlib_symbols",
+      "followUpBead": "haxe_go-vfp.8.7.15"
+    },
+    {
+      "symbol": "Std.string",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_string_representation"
+    },
+    {
+      "symbol": "String.fromCharCode",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_string_representation"
+    },
+    {
+      "symbol": "haxe.Exception.caught",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_exception_carrier"
+    },
+    {
+      "symbol": "haxe.Exception.thrown",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_exception_carrier"
+    },
+    {
+      "symbol": "haxe.Log.trace",
+      "status": "migration_required",
+      "decisionId": "migration_stdlib_symbols",
+      "followUpBead": "haxe_go-vfp.8.7.15"
+    },
+    {
+      "symbol": "haxe._Rest.Rest_Impl_.append",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_rest_representation"
+    },
+    {
+      "symbol": "haxe._Rest.Rest_Impl_.prepend",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_rest_representation"
+    },
+    {
+      "symbol": "haxe.ds.ArraySort.sort",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_sort_erasure_representation"
+    },
+    {
+      "symbol": "haxe.ds.ListSort.sort",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_sort_erasure_representation"
+    },
+    {
+      "symbol": "haxe.ds.ListSort.sortSingleLinked",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_sort_erasure_representation"
+    }
   ],
   "specialIntrinsics": [
-    {"symbol": "Sys.cpuTime", "status": "approved_intrinsic", "decisionId": "approved_unsupported_diagnostic"},
-    {"symbol": "generated_type.__meta__", "status": "approved_intrinsic", "decisionId": "approved_rtti_fields"},
-    {"symbol": "generated_type.__rtti", "status": "approved_intrinsic", "decisionId": "approved_rtti_fields"},
-    {"symbol": "haxe.Exception.message", "status": "approved_intrinsic", "decisionId": "approved_exception_carrier"},
-    {"symbol": "haxe.Exception.toString", "status": "approved_intrinsic", "decisionId": "approved_exception_carrier"},
-    {"symbol": "haxe.Resource.content", "status": "approved_intrinsic", "decisionId": "approved_resource_table"},
-    {"symbol": "haxe.ValueException.value", "status": "approved_intrinsic", "decisionId": "approved_exception_carrier"}
+    {
+      "symbol": "Sys.cpuTime",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_unsupported_diagnostic"
+    },
+    {
+      "symbol": "generated_type.__meta__",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_rtti_fields"
+    },
+    {
+      "symbol": "generated_type.__rtti",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_rtti_fields"
+    },
+    {
+      "symbol": "haxe.Exception.message",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_exception_carrier"
+    },
+    {
+      "symbol": "haxe.Exception.toString",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_exception_carrier"
+    },
+    {
+      "symbol": "haxe.Resource.content",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_resource_table"
+    },
+    {
+      "symbol": "haxe.ValueException.value",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_exception_carrier"
+    }
   ],
   "nativeCompilerGroups": [
     {
       "group": "go_collections",
       "entryPoint": "lowerTypedGoCollectionShimDecls",
-      "debtContexts": ["lowerTypedGoCollectionShimDecls"],
+      "debtContexts": [
+        "lowerTypedGoCollectionShimDecls"
+      ],
       "decisionId": "approved_native_api"
     },
     {
       "group": "go_concurrency",
       "entryPoint": "lowerGoConcurrencyShimDecls",
-      "debtContexts": ["lowerGoConcurrencyShimDecls", "lowerTypedGoConcurrencyShimDecls"],
+      "debtContexts": [
+        "lowerGoConcurrencyShimDecls",
+        "lowerTypedGoConcurrencyShimDecls"
+      ],
       "decisionId": "approved_native_api"
     },
     {
       "group": "go_result",
       "entryPoint": "lowerGoResultShimDecls",
-      "debtContexts": ["lowerGoResultShimDecls", "lowerTypedGoResultShimDecls"],
+      "debtContexts": [
+        "lowerGoResultShimDecls",
+        "lowerTypedGoResultShimDecls"
+      ],
       "decisionId": "approved_native_api"
     }
   ],

@@ -77,6 +77,8 @@ class GoSourceOwnedStdlibPlanner {
 
 	public function noteSourceOwnedStdlibUsage(classType:ClassType):Void {
 		switch (fullClassName(classType)) {
+			case "Reflect":
+				requireSourceOwnedStdlibClass("Reflect");
 			case "EReg":
 				requireSourceOwnedStdlibClass("EReg");
 				requireSourceOwnedStdlibClass("StringBuf");

@@ -25,9 +25,8 @@ private typedef GoStdlibShimSurface = {
 **/
 class GoStdlibShimClassifier {
 	static final SURFACES:Array<GoStdlibShimSurface> = [
-		{kind: "class", path: "Reflect", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "Std", groups: ["stdlib_symbols"]},
-		{kind: "class", path: "Type", groups: ["stdlib_symbols"]},
+		{kind: "class", path: "Type", groups: ["type_metadata"]},
 		{kind: "class", path: "haxe.ds.BalancedTree", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "haxe.io.Path", groups: ["stdlib_symbols"]},
 		{kind: "enum", path: "haxe.ds.Option", groups: ["stdlib_symbols"]}

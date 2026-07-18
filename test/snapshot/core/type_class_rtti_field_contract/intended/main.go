@@ -46,249 +46,7 @@ func main() {
 	hxrt.Println(v_3)
 }
 
-type Std struct {
-}
-
 type Type struct {
-}
-
-type Reflect struct {
-}
-
-func Reflect_compare(a any, b any) int {
-	toFloat := func(value any) (float64, bool) {
-		switch v := value.(type) {
-		case int:
-			return float64(v), true
-		case int8:
-			return float64(v), true
-		case int16:
-			return float64(v), true
-		case int32:
-			return float64(v), true
-		case int64:
-			return float64(v), true
-		case uint:
-			return float64(v), true
-		case uint8:
-			return float64(v), true
-		case uint16:
-			return float64(v), true
-		case uint32:
-			return float64(v), true
-		case uint64:
-			return float64(v), true
-		case float32:
-			return float64(v), true
-		case float64:
-			return v, true
-		default:
-			return 0, false
-		}
-	}
-	if af, ok := toFloat(a); ok {
-		if bf, okB := toFloat(b); okB {
-			if af < bf {
-				return -1
-			}
-			if af > bf {
-				return 1
-			}
-			return 0
-		}
-	}
-	aStr := *hxrt.StdString(a)
-	bStr := *hxrt.StdString(b)
-	if aStr < bStr {
-		return -1
-	}
-	if aStr > bStr {
-		return 1
-	}
-	return 0
-}
-
-func Reflect_compareMethods(a any, b any) bool {
-	if a == nil || b == nil {
-		return a == nil && b == nil
-	}
-	av := reflect.ValueOf(a)
-	bv := reflect.ValueOf(b)
-	if !av.IsValid() || !bv.IsValid() {
-		return !av.IsValid() && !bv.IsValid()
-	}
-	if av.Kind() == reflect.Func && bv.Kind() == reflect.Func {
-		if av.IsNil() || bv.IsNil() {
-			return av.IsNil() && bv.IsNil()
-		}
-		return av.Pointer() == bv.Pointer()
-	}
-	return reflect.DeepEqual(a, b)
-}
-
-func Reflect_field(obj any, field *string) any {
-	if obj == nil {
-		return nil
-	}
-	key := *hxrt.StdString(field)
-	if metadataValue, ok := hxrt_typeClassMetadataField(obj, key); ok {
-		return metadataValue
-	}
-	switch value := obj.(type) {
-	case map[string]any:
-		return value[key]
-	case map[any]any:
-		return value[key]
-	case *map[string]any:
-		if value == nil {
-			return nil
-		}
-		return (*value)[key]
-	case *map[any]any:
-		if value == nil {
-			return nil
-		}
-		return (*value)[key]
-	}
-	rv := reflect.ValueOf(obj)
-	if !rv.IsValid() {
-		return nil
-	}
-	if rv.Kind() == reflect.Pointer {
-		if rv.IsNil() {
-			return nil
-		}
-		rv = rv.Elem()
-	}
-	if rv.Kind() == reflect.Struct {
-		if fieldValue := rv.FieldByName(key); fieldValue.IsValid() && fieldValue.CanInterface() {
-			return fieldValue.Interface()
-		}
-	}
-	method := reflect.ValueOf(obj).MethodByName(key)
-	if method.IsValid() {
-		return method.Interface()
-	}
-	return nil
-}
-
-func Reflect_hasField(obj any, field *string) bool {
-	if obj == nil {
-		return false
-	}
-	key := *hxrt.StdString(field)
-	if _, ok := hxrt_typeClassMetadataField(obj, key); ok {
-		return true
-	}
-	switch value := obj.(type) {
-	case map[string]any:
-		_, ok := value[key]
-		return ok
-	case map[any]any:
-		_, ok := value[key]
-		return ok
-	case *map[string]any:
-		if value == nil {
-			return false
-		}
-		_, ok := (*value)[key]
-		return ok
-	case *map[any]any:
-		if value == nil {
-			return false
-		}
-		_, ok := (*value)[key]
-		return ok
-	}
-	rv := reflect.ValueOf(obj)
-	if !rv.IsValid() {
-		return false
-	}
-	if rv.Kind() == reflect.Pointer {
-		if rv.IsNil() {
-			return false
-		}
-		rv = rv.Elem()
-	}
-	if rv.Kind() == reflect.Struct {
-		if rv.FieldByName(key).IsValid() {
-			return true
-		}
-	}
-	return reflect.ValueOf(obj).MethodByName(key).IsValid()
-}
-
-func Reflect_setField(obj any, field *string, value any) {
-	if obj == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-		return
-	}
-	key := *hxrt.StdString(field)
-	switch target := obj.(type) {
-	case map[string]any:
-		target[key] = value
-		return
-	case map[any]any:
-		target[key] = value
-		return
-	case *map[string]any:
-		if target == nil {
-			hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-			return
-		}
-		(*target)[key] = value
-		return
-	case *map[any]any:
-		if target == nil {
-			hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-			return
-		}
-		(*target)[key] = value
-		return
-	}
-	rv := reflect.ValueOf(obj)
-	if !rv.IsValid() || rv.Kind() != reflect.Pointer {
-		return
-	}
-	if rv.IsNil() {
-		hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-		return
-	}
-	rv = rv.Elem()
-	if rv.Kind() != reflect.Struct {
-		return
-	}
-	fieldValue := rv.FieldByName(key)
-	if !fieldValue.IsValid() || !fieldValue.CanSet() {
-		return
-	}
-	if value == nil {
-		fieldValue.Set(reflect.Zero(fieldValue.Type()))
-		return
-	}
-	incoming := reflect.ValueOf(value)
-	if incoming.Type().AssignableTo(fieldValue.Type()) {
-		fieldValue.Set(incoming)
-		return
-	}
-	if incoming.Type().ConvertibleTo(fieldValue.Type()) {
-		fieldValue.Set(incoming.Convert(fieldValue.Type()))
-		return
-	}
-	if fieldValue.Kind() == reflect.Interface {
-		fieldValue.Set(incoming)
-	}
-}
-
-type haxe__ds__Option struct {
-	tag    int
-	params []any
-}
-
-var haxe__ds__Option_None *haxe__ds__Option = &haxe__ds__Option{tag: 1, params: []any{}}
-
-func haxe__ds__Option_Some(value any) *haxe__ds__Option {
-	return &haxe__ds__Option{tag: 0, params: []any{value}}
 }
 
 type ValueType struct {
@@ -436,6 +194,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	case "Lambda":
 		return nil, false
 	case "Main":
+		return nil, false
+	case "Reflect":
 		return nil, false
 	case "haxe.Int64Helper":
 		return nil, false
@@ -630,6 +390,8 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "Main":
 		return nil
+	case "Reflect":
+		return nil
 	case "haxe.Int64Helper":
 		return nil
 	case "haxe._Int32.Int32_Impl_":
@@ -663,6 +425,8 @@ func Type_getClassFields(c any) *hxrt.Array {
 		return hxrt.NewArray(hxrt.StringFromLiteral("has"))
 	case "Main":
 		return hxrt.NewArray(hxrt.StringFromLiteral("main"))
+	case "Reflect":
+		return hxrt.NewArray(hxrt.StringFromLiteral("callMethod"), hxrt.StringFromLiteral("compare"), hxrt.StringFromLiteral("compareMethods"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("deleteField"), hxrt.StringFromLiteral("field"), hxrt.StringFromLiteral("fields"), hxrt.StringFromLiteral("getProperty"), hxrt.StringFromLiteral("hasField"), hxrt.StringFromLiteral("isEnumValue"), hxrt.StringFromLiteral("isFunction"), hxrt.StringFromLiteral("isObject"), hxrt.StringFromLiteral("makeVarArgs"), hxrt.StringFromLiteral("setField"), hxrt.StringFromLiteral("setProperty"))
 	case "haxe.Int64Helper":
 		return hxrt.NewArray()
 	case "haxe._Int32.Int32_Impl_":
@@ -687,6 +451,8 @@ func Type_getInstanceFields(c any) *hxrt.Array {
 	case "Lambda":
 		return hxrt.NewArray()
 	case "Main":
+		return hxrt.NewArray()
+	case "Reflect":
 		return hxrt.NewArray()
 	case "haxe.Int64Helper":
 		return hxrt.NewArray()
@@ -720,6 +486,8 @@ func Type_resolveClass(name *string) any {
 	case "Lambda":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "Main":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "Reflect":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.Int64Helper":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
@@ -938,10 +706,11 @@ func Type_enumEq(a any, b any) bool {
 }
 
 func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
-	className, ok := hxrt_typeResolvedClassName(value)
-	if !ok {
+	classValue, ok := value.(*hxrt__TypeClassValue)
+	if !ok || classValue == nil {
 		return nil, false
 	}
+	className := *hxrt.StdString(classValue.name)
 	switch className {
 	case "Demo":
 		switch key {
@@ -953,4 +722,167 @@ func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
 	default:
 		return nil, false
 	}
+}
+
+func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *string) any {
+	key := *hxrt.StdString(field)
+	var receiver any
+	switch value := object.(type) {
+	case *haxe___Int64_____Int64:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	default:
+		return nil
+	}
+	switch value := receiver.(type) {
+	case *haxe___Int64_____Int64:
+		return hxrt__generated_field_lookup__haxe___Int64_____Int64(value, key)
+	default:
+		return nil
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field *string) bool {
+	key := *hxrt.StdString(field)
+	var receiver any
+	switch value := object.(type) {
+	case *haxe___Int64_____Int64:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	default:
+		return false
+	}
+	switch value := receiver.(type) {
+	case *haxe___Int64_____Int64:
+		return hxrt__generated_field_has__haxe___Int64_____Int64(value, key)
+	default:
+		return false
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field *string, incoming any) bool {
+	key := *hxrt.StdString(field)
+	var receiver any
+	switch value := object.(type) {
+	case *haxe___Int64_____Int64:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	default:
+		return false
+	}
+	switch value := receiver.(type) {
+	case *haxe___Int64_____Int64:
+		return hxrt__generated_field_set__haxe___Int64_____Int64(value, key, incoming)
+	default:
+		return false
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.Array {
+	var receiver any
+	switch value := object.(type) {
+	case *haxe___Int64_____Int64:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	default:
+		return nil
+	}
+	switch receiver.(type) {
+	case *haxe___Int64_____Int64:
+		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
+	default:
+		return nil
+	}
+}
+
+func hxrt__generated_field_lookup__haxe___Int64_____Int64(value *haxe___Int64_____Int64, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "high":
+		return value.high
+	case "low":
+		return value.low
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe___Int64_____Int64(value *haxe___Int64_____Int64, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "high":
+		return true
+	case "low":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe___Int64_____Int64(value *haxe___Int64_____Int64, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "high":
+		if incoming == nil {
+			var zero int
+			value.high = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.high = typed
+			return true
+		default:
+			return false
+		}
+	case "low":
+		if incoming == nil {
+			var zero int
+			value.low = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.low = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func reflaxe__go___internal__CompilerReflect_typeField(object any, field *string) any {
+	key := *hxrt.StdString(field)
+	value, found := hxrt_typeClassMetadataField(object, key)
+	if !found {
+		return nil
+	}
+	return value
+}
+
+func reflaxe__go___internal__CompilerReflect_hasTypeField(object any, field *string) bool {
+	key := *hxrt.StdString(field)
+	_, found := hxrt_typeClassMetadataField(object, key)
+	return found
+}
+
+func reflaxe__go___internal__CompilerReflect_generatedMethod(object any, field *string) any {
+	return nil
+}
+
+func reflaxe__go___internal__CompilerReflect_isEnumValue(value any) bool {
+	return false
 }

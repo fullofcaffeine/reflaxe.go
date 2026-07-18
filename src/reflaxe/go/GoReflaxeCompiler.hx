@@ -498,6 +498,10 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 				// not use haxe.Template should not pay for that capability in full-copy
 				// mode. Disabling inference remains the explicit all-files escape hatch.
 				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TEMPLATE) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TEMPLATE) >= 0;
+			case "reflect.go": // Public Reflect APIs own policy in staged source; only programs
+				// that select the typed runtime boundary should copy erased Go representation
+				// inspection into broad-runtime output.
+				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_REFLECTION) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_REFLECTION) >= 0;
 			case "regex.go": // Compiled RE2 state is selected only through staged EReg or its typed binding.
 				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_REGEX) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_REGEX) >= 0;
 			case "serialization.go": // Private generated-field access is selected only by staged serialization.

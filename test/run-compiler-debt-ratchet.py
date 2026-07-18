@@ -49,7 +49,7 @@ FUNCTION_RE = re.compile(r"\bfunction\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")
 QUALIFIED_GO_RAW_RE = re.compile(r"\bGo(?:Stmt|Expr)\.GoRaw\s*\(")
 BARE_GO_RAW_RE = re.compile(r"(?<![A-Za-z0-9_.])GoRaw\s*\(")
 COMPILER_SHIM_RE = re.compile(
-    r"\bfunction\s+((?:lower[A-Za-z0-9_]*ShimDecls)|reflectFieldsShimDecl)\s*\("
+    r"\bfunction\s+(lower[A-Za-z0-9_]*ShimDecls)\s*\("
 )
 
 SHIM_CAPABILITIES = {
@@ -61,8 +61,8 @@ SHIM_CAPABILITIES = {
     "lowerTypedGoResultShimDecls": "go_result",
     "lowerFileSystemShimDecls": "filesystem",
     "lowerStdlibSymbolShimDecls": "stdlib_symbols",
-    "reflectFieldsShimDecl": "reflection",
-    "lowerTypeReflectionShimDecls": "reflection",
+    "lowerReflectMetadataShimDecls": "reflect_metadata",
+    "lowerTypeMetadataShimDecls": "type_metadata",
     "lowerGeneratedMethodMetadataShimDecls": "generated_method_metadata",
     "lowerSerializationSourceBridgeShimDecls": "serialization_source_bridge",
 }
@@ -276,6 +276,15 @@ def haxe_token_dimensions(file: str) -> dict[str, str]:
             "surface": "staged_std",
             "classification": "required",
             "exception_id": "staged_std_dynamic_contract",
+        }
+    if file.startswith("std/reflaxe/go/internal/"):
+        return {
+            "owner": "compiler_metadata",
+            "capability": "reflection",
+            "profile": "shared",
+            "surface": "staged_support",
+            "classification": "required",
+            "exception_id": "compiler_stdlib_intrinsic_boundary",
         }
     if file.startswith("std/"):
         return {

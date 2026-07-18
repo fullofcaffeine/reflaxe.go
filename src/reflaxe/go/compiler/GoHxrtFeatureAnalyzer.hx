@@ -43,6 +43,7 @@ class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_THREAD = "thread";
 	public static inline final FEATURE_STACK = "stack";
 	public static inline final FEATURE_TEMPLATE = "template";
+	public static inline final FEATURE_REFLECTION = "reflection";
 	public static inline final FEATURE_REGEX = "regex";
 	public static inline final FEATURE_SERIALIZATION = "serialization";
 	public static inline final FEATURE_ENUM_VALUE = "enum_value";
@@ -77,6 +78,7 @@ class GoHxrtFeatureAnalyzer {
 		FEATURE_THREAD,
 		FEATURE_STACK,
 		FEATURE_TEMPLATE,
+		FEATURE_REFLECTION,
 		FEATURE_REGEX,
 		FEATURE_SERIALIZATION,
 		FEATURE_ENUM_VALUE,
@@ -185,6 +187,10 @@ class GoHxrtFeatureAnalyzer {
 
 			if (path == "haxe.Template" || path == "hxrt.template.NativeTemplate") {
 				add(FEATURE_TEMPLATE, "class_usage", path);
+			}
+
+			if (path == "Reflect" || path == "hxrt.reflect.NativeReflect") {
+				add(FEATURE_REFLECTION, "class_usage", path);
 			}
 
 			if (path == "EReg" || StringTools.startsWith(path, "hxrt.regex.")) {
@@ -382,6 +388,8 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_STRING];
 			case FEATURE_TEMPLATE:
 				[FEATURE_CORE, FEATURE_ARRAY];
+			case FEATURE_REFLECTION:
+				[FEATURE_STRING, FEATURE_ARRAY];
 			case FEATURE_REGEX:
 				[FEATURE_STRING, FEATURE_EXCEPTION];
 			case FEATURE_SERIALIZATION:
@@ -459,6 +467,8 @@ class GoHxrtFeatureAnalyzer {
 				["stack.go"];
 			case FEATURE_TEMPLATE:
 				["template.go"];
+			case FEATURE_REFLECTION:
+				["reflect.go"];
 			case FEATURE_REGEX:
 				["regex.go"];
 			case FEATURE_SERIALIZATION:

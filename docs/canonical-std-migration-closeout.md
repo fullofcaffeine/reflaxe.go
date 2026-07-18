@@ -14,7 +14,7 @@ different file shapes for the same target overrides:
 | --- | --- | --- |
 | Source checkout | ordinary `.hx` under `std/go/_std` | Review and edit normal Haxe modules in the canonical target root. |
 | Installed package | generated `.cross.hx` under `src` | Let Haxe select target-specific replacements from the flattened package classpath. |
-| Both contexts | ordinary support under `std/haxe`, `std/sys`, `std/hxrt`, and `std/go` | Support, typed runtime bindings, and public Go facades are not upstream replacements. |
+| Both contexts | ordinary support under `std/haxe`, `std/sys`, `std/hxrt`, `std/go`, and the narrow `std/reflaxe/go/internal` compiler-metadata root | Support, typed runtime bindings, public Go facades, and source-callable closed-world metadata adapters are not upstream replacements. |
 
 The package runner is the only owner of the `.hx` to `.cross.hx` name change.
 File bytes do not change, and the package manifest records the source path,

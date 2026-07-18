@@ -214,6 +214,18 @@
       "level": "semantic-diff"
     },
     {
+      "id": "semantic:reflect-compare",
+      "kind": "path",
+      "path": "test/semantic_diff/reflect_compare",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:reflect-extended",
+      "kind": "path",
+      "path": "test/semantic_diff/reflect_extended_contract",
+      "level": "semantic-diff"
+    },
+    {
       "id": "semantic:file-content",
       "kind": "path",
       "path": "test/semantic_diff/file_read_write_contract",
@@ -776,7 +788,7 @@
     {
       "id": "portable-reflection",
       "kind": "portable",
-      "scope": "Closed-world named reflection subset",
+      "scope": "Complete Haxe 4.3.7 Reflect API and closed-world Type metadata over supported generated and native carriers",
       "operations": [
         {
           "id": "type-reflection",
@@ -808,21 +820,35 @@
           "blockers": []
         },
         {
-          "id": "reflect-fields",
+          "id": "reflect-api",
           "symbols": [
-            "Reflect.hasField",
+            "Reflect.callMethod",
+            "Reflect.compare",
+            "Reflect.compareMethods",
+            "Reflect.copy",
+            "Reflect.deleteField",
             "Reflect.field",
-            "Reflect.setField"
+            "Reflect.fields",
+            "Reflect.getProperty",
+            "Reflect.hasField",
+            "Reflect.isEnumValue",
+            "Reflect.isFunction",
+            "Reflect.isObject",
+            "Reflect.makeVarArgs",
+            "Reflect.setField",
+            "Reflect.setProperty"
           ],
           "granularity": "member",
           "state": "semantic-diff-supported",
           "release_admitted": true,
-          "qualification": "Named dynamic-field operations on covered runtime shapes.",
+          "qualification": "All 15 public Reflect entrypoints are present. Admission is evidence-scoped to generated field/property and enum cases, Haxe anonymous objects, supported maps/exported Go fields and methods, covered numeric/string comparisons, and the exercised generated function carriers; lookup precedence is RTTI, native field, generated field, generated method, then native method.",
           "evidence_ids": [
+            "semantic:reflect-compare",
+            "semantic:reflect-extended",
             "semantic:reflect-fields"
           ],
           "exclusions": [
-            "Unlisted reflection and carrier representations"
+            "Open-world types loaded outside the generated program, package-private members of arbitrary external Go structs, and unexercised function-identity or carrier edge cases"
           ],
           "blockers": []
         }

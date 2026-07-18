@@ -1,9 +1,6 @@
 package main
 
-import (
-	"reflect"
-	"snapshot/hxrt"
-)
+import "snapshot/hxrt"
 
 type hxrt__TypeClassValue struct {
 	name *string
@@ -189,1237 +186,1716 @@ func sortedMessages(count int) *string {
 	return buf_b
 }
 
-type Std struct {
-}
-
-type Type struct {
-}
-
-type Reflect struct {
-}
-
-func Reflect_compare(a any, b any) int {
-	toFloat := func(value any) (float64, bool) {
-		switch v := value.(type) {
-		case int:
-			return float64(v), true
-		case int8:
-			return float64(v), true
-		case int16:
-			return float64(v), true
-		case int32:
-			return float64(v), true
-		case int64:
-			return float64(v), true
-		case uint:
-			return float64(v), true
-		case uint8:
-			return float64(v), true
-		case uint16:
-			return float64(v), true
-		case uint32:
-			return float64(v), true
-		case uint64:
-			return float64(v), true
-		case float32:
-			return float64(v), true
-		case float64:
-			return v, true
-		default:
-			return 0, false
-		}
-	}
-	if af, ok := toFloat(a); ok {
-		if bf, okB := toFloat(b); okB {
-			if af < bf {
-				return -1
-			}
-			if af > bf {
-				return 1
-			}
-			return 0
-		}
-	}
-	aStr := *hxrt.StdString(a)
-	bStr := *hxrt.StdString(b)
-	if aStr < bStr {
-		return -1
-	}
-	if aStr > bStr {
-		return 1
-	}
-	return 0
-}
-
-func Reflect_compareMethods(a any, b any) bool {
-	if a == nil || b == nil {
-		return a == nil && b == nil
-	}
-	av := reflect.ValueOf(a)
-	bv := reflect.ValueOf(b)
-	if !av.IsValid() || !bv.IsValid() {
-		return !av.IsValid() && !bv.IsValid()
-	}
-	if av.Kind() == reflect.Func && bv.Kind() == reflect.Func {
-		if av.IsNil() || bv.IsNil() {
-			return av.IsNil() && bv.IsNil()
-		}
-		return av.Pointer() == bv.Pointer()
-	}
-	return reflect.DeepEqual(a, b)
-}
-
-func Reflect_field(obj any, field *string) any {
-	if obj == nil {
-		return nil
-	}
-	key := *hxrt.StdString(field)
-	if metadataValue, ok := hxrt_typeClassMetadataField(obj, key); ok {
-		return metadataValue
-	}
+func hxrt__generated_method_field(obj any, key string) any {
+	var receiver any
 	switch value := obj.(type) {
-	case map[string]any:
-		return value[key]
-	case map[any]any:
-		return value[key]
-	case *map[string]any:
-		if value == nil {
+	case *haxe__ds__List:
+		if (value == nil) || (value.__hx_this == nil) {
 			return nil
 		}
-		return (*value)[key]
-	case *map[any]any:
-		if value == nil {
+		receiver = value.__hx_this
+	case *haxe__ds___List__GoListIterator:
+		if (value == nil) || (value.__hx_this == nil) {
 			return nil
 		}
-		return (*value)[key]
-	}
-	rv := reflect.ValueOf(obj)
-	if !rv.IsValid() {
+		receiver = value.__hx_this
+	case *haxe__ds___List__GoListKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Deque:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__ElasticThreadPool:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__ElasticThreadPoolWorker:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__EventLoop:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__FixedThreadPool:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__FixedThreadPoolWorker:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Lock:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Mutex:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Thread:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	default:
 		return nil
 	}
-	if rv.Kind() == reflect.Pointer {
-		if rv.IsNil() {
-			return nil
-		}
-		rv = rv.Elem()
+	switch value := receiver.(type) {
+	case *haxe__ds__List:
+		return hxrt__generated_method_field__haxe__ds__List(value, key)
+	case *haxe__ds___List__GoListIterator:
+		return hxrt__generated_method_field__haxe__ds___List__GoListIterator(value, key)
+	case *haxe__ds___List__GoListKeyValueIterator:
+		return hxrt__generated_method_field__haxe__ds___List__GoListKeyValueIterator(value, key)
+	case *sys__thread__Deque:
+		return hxrt__generated_method_field__sys__thread__Deque(value, key)
+	case *sys__thread__ElasticThreadPool:
+		return hxrt__generated_method_field__sys__thread__ElasticThreadPool(value, key)
+	case *sys__thread__ElasticThreadPoolWorker:
+		return hxrt__generated_method_field__sys__thread__ElasticThreadPoolWorker(value, key)
+	case *sys__thread__EventLoop:
+		return hxrt__generated_method_field__sys__thread__EventLoop(value, key)
+	case *sys__thread__FixedThreadPool:
+		return hxrt__generated_method_field__sys__thread__FixedThreadPool(value, key)
+	case *sys__thread__FixedThreadPoolWorker:
+		return hxrt__generated_method_field__sys__thread__FixedThreadPoolWorker(value, key)
+	case *sys__thread__Lock:
+		return hxrt__generated_method_field__sys__thread__Lock(value, key)
+	case *sys__thread__Mutex:
+		return hxrt__generated_method_field__sys__thread__Mutex(value, key)
+	case *sys__thread__Thread:
+		return hxrt__generated_method_field__sys__thread__Thread(value, key)
+	default:
+		return nil
 	}
-	if rv.Kind() == reflect.Struct {
-		if fieldValue := rv.FieldByName(key); fieldValue.IsValid() && fieldValue.CanInterface() {
-			return fieldValue.Interface()
-		}
+}
+
+func hxrt__generated_method_field__haxe__ds__List(value *haxe__ds__List, key string) any {
+	if value == nil {
+		return nil
 	}
-	method := reflect.ValueOf(obj).MethodByName(key)
-	if method.IsValid() {
-		return method.Interface()
+	switch key {
+	case "add":
+		return value.add
+	case "clear":
+		return value.clear
+	case "filter":
+		return value.filter
+	case "first":
+		return value.first
+	case "isEmpty":
+		return value.isEmpty
+	case "iterator":
+		return value.iterator
+	case "join":
+		return value.join
+	case "keyValueIterator":
+		return value.keyValueIterator
+	case "last":
+		return value.last
+	case "map":
+		return value.map_
+	case "pop":
+		return value.pop
+	case "push":
+		return value.push
+	case "remove":
+		return value.remove
+	case "toString":
+		return value.toString
 	}
 	return nil
 }
 
-func Reflect_hasField(obj any, field *string) bool {
-	if obj == nil {
-		return false
-	}
-	key := *hxrt.StdString(field)
-	if _, ok := hxrt_typeClassMetadataField(obj, key); ok {
-		return true
-	}
-	switch value := obj.(type) {
-	case map[string]any:
-		_, ok := value[key]
-		return ok
-	case map[any]any:
-		_, ok := value[key]
-		return ok
-	case *map[string]any:
-		if value == nil {
-			return false
-		}
-		_, ok := (*value)[key]
-		return ok
-	case *map[any]any:
-		if value == nil {
-			return false
-		}
-		_, ok := (*value)[key]
-		return ok
-	}
-	rv := reflect.ValueOf(obj)
-	if !rv.IsValid() {
-		return false
-	}
-	if rv.Kind() == reflect.Pointer {
-		if rv.IsNil() {
-			return false
-		}
-		rv = rv.Elem()
-	}
-	if rv.Kind() == reflect.Struct {
-		if rv.FieldByName(key).IsValid() {
-			return true
-		}
-	}
-	return reflect.ValueOf(obj).MethodByName(key).IsValid()
-}
-
-func Reflect_setField(obj any, field *string, value any) {
-	if obj == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-		return
-	}
-	key := *hxrt.StdString(field)
-	switch target := obj.(type) {
-	case map[string]any:
-		target[key] = value
-		return
-	case map[any]any:
-		target[key] = value
-		return
-	case *map[string]any:
-		if target == nil {
-			hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-			return
-		}
-		(*target)[key] = value
-		return
-	case *map[any]any:
-		if target == nil {
-			hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-			return
-		}
-		(*target)[key] = value
-		return
-	}
-	rv := reflect.ValueOf(obj)
-	if !rv.IsValid() || rv.Kind() != reflect.Pointer {
-		return
-	}
-	if rv.IsNil() {
-		hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-		return
-	}
-	rv = rv.Elem()
-	if rv.Kind() != reflect.Struct {
-		return
-	}
-	fieldValue := rv.FieldByName(key)
-	if !fieldValue.IsValid() || !fieldValue.CanSet() {
-		return
-	}
+func hxrt__generated_method_field__haxe__ds___List__GoListIterator(value *haxe__ds___List__GoListIterator, key string) any {
 	if value == nil {
-		fieldValue.Set(reflect.Zero(fieldValue.Type()))
-		return
+		return nil
 	}
-	incoming := reflect.ValueOf(value)
-	if incoming.Type().AssignableTo(fieldValue.Type()) {
-		fieldValue.Set(incoming)
-		return
+	switch key {
+	case "hasNext":
+		return value.hasNext
+	case "next":
+		return value.next
 	}
-	if incoming.Type().ConvertibleTo(fieldValue.Type()) {
-		fieldValue.Set(incoming.Convert(fieldValue.Type()))
-		return
-	}
-	if fieldValue.Kind() == reflect.Interface {
-		fieldValue.Set(incoming)
-	}
+	return nil
 }
 
-type haxe__ds__Option struct {
-	tag    int
-	params []any
-}
-
-var haxe__ds__Option_None *haxe__ds__Option = &haxe__ds__Option{tag: 1, params: []any{}}
-
-func haxe__ds__Option_Some(value any) *haxe__ds__Option {
-	return &haxe__ds__Option{tag: 0, params: []any{value}}
-}
-
-type ValueType struct {
-	tag    int
-	params []any
-}
-
-var ValueType_TNull *ValueType = &ValueType{tag: 0, params: []any{}}
-
-var ValueType_TInt *ValueType = &ValueType{tag: 1, params: []any{}}
-
-var ValueType_TFloat *ValueType = &ValueType{tag: 2, params: []any{}}
-
-var ValueType_TBool *ValueType = &ValueType{tag: 3, params: []any{}}
-
-var ValueType_TObject *ValueType = &ValueType{tag: 4, params: []any{}}
-
-var ValueType_TFunction *ValueType = &ValueType{tag: 5, params: []any{}}
-
-var ValueType_TUnknown *ValueType = &ValueType{tag: 8, params: []any{}}
-
-func ValueType_TClass(c any) *ValueType {
-	return &ValueType{tag: 6, params: []any{c}}
-}
-
-func ValueType_TEnum(e any) *ValueType {
-	return &ValueType{tag: 7, params: []any{e}}
-}
-
-func hxrt_typeCallAny(callable any, args []any) (any, bool) {
-	result := any(nil)
-	ok := false
-	defer func() {
-		if recover() != nil {
-			result = nil
-			ok = false
-		}
-	}()
-	if callable == nil {
-		return nil, false
-	}
-	fn := reflect.ValueOf(callable)
-	if !fn.IsValid() || fn.Kind() != reflect.Func {
-		return nil, false
-	}
-	fnType := fn.Type()
-	if fnType.NumIn() != len(args) {
-		return nil, false
-	}
-	in := make([]reflect.Value, len(args))
-	for i := 0; i < len(args); i++ {
-		paramType := fnType.In(i)
-		arg := args[i]
-		if arg == nil {
-			in[i] = reflect.Zero(paramType)
-			continue
-		}
-		v := reflect.ValueOf(arg)
-		if v.IsValid() && v.Type().AssignableTo(paramType) {
-			in[i] = v
-			continue
-		}
-		if v.IsValid() && v.Type().ConvertibleTo(paramType) {
-			in[i] = v.Convert(paramType)
-			continue
-		}
-		if paramType.Kind() == reflect.Interface && v.IsValid() {
-			in[i] = v
-			continue
-		}
-		return nil, false
-	}
-	out := fn.Call(in)
-	if len(out) == 0 {
-		return nil, true
-	}
-	first := out[0]
-	if !first.IsValid() {
-		return nil, true
-	}
-	result = first.Interface()
-	ok = true
-	return result, ok
-}
-
-func hxrt_typeArrayValues(value *hxrt.Array) []any {
+func hxrt__generated_method_field__haxe__ds___List__GoListKeyValueIterator(value *haxe__ds___List__GoListKeyValueIterator, key string) any {
 	if value == nil {
-		return []any{}
+		return nil
 	}
-	return value.Values()
+	switch key {
+	case "hasNext":
+		return value.hasNext
+	case "next":
+		return value.next
+	}
+	return nil
 }
 
-func hxrt_typeResolvedClassName(value any) (string, bool) {
-	switch current := value.(type) {
-	case *hxrt__TypeClassValue:
-		if current == nil || current.name == nil {
-			return "", false
-		}
-		return *current.name, true
-	case hxrt__TypeClassValue:
-		if current.name == nil {
-			return "", false
-		}
-		return *current.name, true
-	case string:
-		return current, true
-	case *string:
-		if current == nil {
-			return "", false
-		}
-		return *current, true
-	default:
-		return "", false
+func hxrt__generated_method_field__sys__thread__Deque(value *sys__thread__Deque, key string) any {
+	if value == nil {
+		return nil
 	}
+	switch key {
+	case "add":
+		return value.add
+	case "pop":
+		return value.pop
+	case "push":
+		return value.push
+	}
+	return nil
 }
 
-func hxrt_typeResolvedEnumName(value any) (string, bool) {
-	switch current := value.(type) {
-	case *hxrt__TypeEnumValue:
-		if current == nil || current.name == nil {
-			return "", false
-		}
-		return *current.name, true
-	case hxrt__TypeEnumValue:
-		if current.name == nil {
-			return "", false
-		}
-		return *current.name, true
-	case string:
-		return current, true
-	case *string:
-		if current == nil {
-			return "", false
-		}
-		return *current, true
-	default:
-		return "", false
+func hxrt__generated_method_field__sys__thread__ElasticThreadPool(value *sys__thread__ElasticThreadPool, key string) any {
+	if value == nil {
+		return nil
 	}
+	switch key {
+	case "get_isShutdown":
+		return value.get_isShutdown
+	case "get_threadsCount":
+		return value.get_threadsCount
+	case "retireWorkerLocked":
+		return value.retireWorkerLocked
+	case "run":
+		return value.run
+	case "shutdown":
+		return value.shutdown
+	case "startWorkerLocked":
+		return value.startWorkerLocked
+	case "workerResolveWait":
+		return value.workerResolveWait
+	case "workerTaskFailed":
+		return value.workerTaskFailed
+	case "workerTaskFinished":
+		return value.workerTaskFinished
+	}
+	return nil
 }
 
-func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
-	switch className {
-	case "Main":
-		return nil, false
-	case "haxe.Int64Helper":
-		return nil, false
-	case "haxe._Int32.Int32_Impl_":
-		return nil, false
-	case "haxe._Int64.Int64_Impl_":
-		return nil, false
-	case "haxe._Int64.___Int64":
-		return hxrt_typeCallAny(New_haxe___Int64_____Int64, args)
-	case "haxe.ds.ArraySort":
-		return nil, false
-	case "haxe.ds.List":
-		return hxrt_typeCallAny(New_haxe__ds__List, args)
-	case "haxe.ds._List.GoListIterator":
-		return hxrt_typeCallAny(New_haxe__ds___List__GoListIterator, args)
-	case "haxe.ds._List.GoListKeyValueIterator":
-		return hxrt_typeCallAny(New_haxe__ds___List__GoListKeyValueIterator, args)
-	case "sys.thread.Deque":
-		return hxrt_typeCallAny(New_sys__thread__Deque, args)
-	case "sys.thread.ElasticThreadPool":
-		return hxrt_typeCallAny(New_sys__thread__ElasticThreadPool, args)
-	case "sys.thread.ElasticThreadPoolWorker":
-		return hxrt_typeCallAny(New_sys__thread__ElasticThreadPoolWorker, args)
-	case "sys.thread.EventLoop":
-		return hxrt_typeCallAny(New_sys__thread__EventLoop, args)
-	case "sys.thread.FixedThreadPool":
-		return hxrt_typeCallAny(New_sys__thread__FixedThreadPool, args)
-	case "sys.thread.FixedThreadPoolShutdownException":
-		return hxrt_typeCallAny(New_sys__thread__FixedThreadPoolShutdownException, args)
-	case "sys.thread.FixedThreadPoolWorker":
-		return hxrt_typeCallAny(New_sys__thread__FixedThreadPoolWorker, args)
-	case "sys.thread.Lock":
-		return hxrt_typeCallAny(New_sys__thread__Lock, args)
-	case "sys.thread.Mutex":
-		return hxrt_typeCallAny(New_sys__thread__Mutex, args)
-	case "sys.thread.NoEventLoopException":
-		return hxrt_typeCallAny(New_sys__thread__NoEventLoopException, args)
-	case "sys.thread.Thread":
-		return hxrt_typeCallAny(New_sys__thread__Thread, args)
-	case "sys.thread.ThreadPoolException":
-		return hxrt_typeCallAny(New_sys__thread__ThreadPoolException, args)
-	default:
-		return nil, false
+func hxrt__generated_method_field__sys__thread__ElasticThreadPoolWorker(value *sys__thread__ElasticThreadPoolWorker, key string) any {
+	if value == nil {
+		return nil
 	}
+	switch key {
+	case "loop":
+		return value.loop
+	case "start":
+		return value.start
+	}
+	return nil
 }
 
-func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
-	switch className {
-	case "haxe._Int64.___Int64":
-		return &haxe___Int64_____Int64{}, true
-	case "haxe.ds.List":
-		return &haxe__ds__List{}, true
-	case "haxe.ds._List.GoListIterator":
-		return &haxe__ds___List__GoListIterator{}, true
-	case "haxe.ds._List.GoListKeyValueIterator":
-		return &haxe__ds___List__GoListKeyValueIterator{}, true
-	case "sys.thread.Deque":
-		return &sys__thread__Deque{}, true
-	case "sys.thread.ElasticThreadPool":
-		return &sys__thread__ElasticThreadPool{}, true
-	case "sys.thread.ElasticThreadPoolWorker":
-		return &sys__thread__ElasticThreadPoolWorker{}, true
-	case "sys.thread.EventLoop":
-		return &sys__thread__EventLoop{}, true
-	case "sys.thread.FixedThreadPool":
-		return &sys__thread__FixedThreadPool{}, true
-	case "sys.thread.FixedThreadPoolShutdownException":
-		return &sys__thread__FixedThreadPoolShutdownException{}, true
-	case "sys.thread.FixedThreadPoolWorker":
-		return &sys__thread__FixedThreadPoolWorker{}, true
-	case "sys.thread.Lock":
-		return &sys__thread__Lock{}, true
-	case "sys.thread.Mutex":
-		return &sys__thread__Mutex{}, true
-	case "sys.thread.NoEventLoopException":
-		return &sys__thread__NoEventLoopException{}, true
-	case "sys.thread.Thread":
-		return &sys__thread__Thread{}, true
-	case "sys.thread.ThreadPoolException":
-		return &sys__thread__ThreadPoolException{}, true
-	default:
-		return nil, false
+func hxrt__generated_method_field__sys__thread__EventLoop(value *sys__thread__EventLoop, key string) any {
+	if value == nil {
+		return nil
 	}
+	switch key {
+	case "cancel":
+		return value.cancel
+	case "loop":
+		return value.loop
+	case "progress":
+		return value.progress
+	case "promise":
+		return value.promise
+	case "repeat":
+		return value.repeat
+	case "run":
+		return value.run
+	case "runPromised":
+		return value.runPromised
+	case "wait":
+		return value.wait
+	}
+	return nil
 }
 
-func hxrt_typeCreateEnumInstance(enumName string, constructorName string, constructorIndex int, useIndex bool, args []any) (any, bool) {
-	switch enumName {
-	case "ValueType":
-		if useIndex {
-			switch constructorIndex {
-			case 0:
-				if len(args) != 0 {
-					return nil, false
-				}
-				return ValueType_TNull, true
-			case 1:
-				if len(args) != 0 {
-					return nil, false
-				}
-				return ValueType_TInt, true
-			case 2:
-				if len(args) != 0 {
-					return nil, false
-				}
-				return ValueType_TFloat, true
-			case 3:
-				if len(args) != 0 {
-					return nil, false
-				}
-				return ValueType_TBool, true
-			case 4:
-				if len(args) != 0 {
-					return nil, false
-				}
-				return ValueType_TObject, true
-			case 5:
-				if len(args) != 0 {
-					return nil, false
-				}
-				return ValueType_TFunction, true
-			case 6:
-				if len(args) != 1 {
-					return nil, false
-				}
-				return hxrt_typeCallAny(ValueType_TClass, args)
-			case 7:
-				if len(args) != 1 {
-					return nil, false
-				}
-				return hxrt_typeCallAny(ValueType_TEnum, args)
-			case 8:
-				if len(args) != 0 {
-					return nil, false
-				}
-				return ValueType_TUnknown, true
-			default:
-				return nil, false
-			}
-		}
-		switch constructorName {
-		case "TNull":
-			if len(args) != 0 {
-				return nil, false
-			}
-			return ValueType_TNull, true
-		case "TInt":
-			if len(args) != 0 {
-				return nil, false
-			}
-			return ValueType_TInt, true
-		case "TFloat":
-			if len(args) != 0 {
-				return nil, false
-			}
-			return ValueType_TFloat, true
-		case "TBool":
-			if len(args) != 0 {
-				return nil, false
-			}
-			return ValueType_TBool, true
-		case "TObject":
-			if len(args) != 0 {
-				return nil, false
-			}
-			return ValueType_TObject, true
-		case "TFunction":
-			if len(args) != 0 {
-				return nil, false
-			}
-			return ValueType_TFunction, true
-		case "TClass":
-			if len(args) != 1 {
-				return nil, false
-			}
-			return hxrt_typeCallAny(ValueType_TClass, args)
-		case "TEnum":
-			if len(args) != 1 {
-				return nil, false
-			}
-			return hxrt_typeCallAny(ValueType_TEnum, args)
-		case "TUnknown":
-			if len(args) != 0 {
-				return nil, false
-			}
-			return ValueType_TUnknown, true
-		default:
-			return nil, false
-		}
-	case "sys.thread.NextEventTime":
-		if useIndex {
-			switch constructorIndex {
-			case 0:
-				if len(args) != 0 {
-					return nil, false
-				}
-				return sys__thread__NextEventTime_Now, true
-			case 1:
-				if len(args) != 0 {
-					return nil, false
-				}
-				return sys__thread__NextEventTime_Never, true
-			case 2:
-				if len(args) != 1 {
-					return nil, false
-				}
-				return hxrt_typeCallAny(sys__thread__NextEventTime_AnyTime, args)
-			case 3:
-				if len(args) != 1 {
-					return nil, false
-				}
-				return hxrt_typeCallAny(sys__thread__NextEventTime_At, args)
-			default:
-				return nil, false
-			}
-		}
-		switch constructorName {
-		case "Now":
-			if len(args) != 0 {
-				return nil, false
-			}
-			return sys__thread__NextEventTime_Now, true
-		case "Never":
-			if len(args) != 0 {
-				return nil, false
-			}
-			return sys__thread__NextEventTime_Never, true
-		case "AnyTime":
-			if len(args) != 1 {
-				return nil, false
-			}
-			return hxrt_typeCallAny(sys__thread__NextEventTime_AnyTime, args)
-		case "At":
-			if len(args) != 1 {
-				return nil, false
-			}
-			return hxrt_typeCallAny(sys__thread__NextEventTime_At, args)
-		default:
-			return nil, false
-		}
-	default:
-		return nil, false
+func hxrt__generated_method_field__sys__thread__FixedThreadPool(value *sys__thread__FixedThreadPool, key string) any {
+	if value == nil {
+		return nil
 	}
+	switch key {
+	case "get_isShutdown":
+		return value.get_isShutdown
+	case "get_threadsCount":
+		return value.get_threadsCount
+	case "run":
+		return value.run
+	case "shutdown":
+		return value.shutdown
+	}
+	return nil
 }
 
-func Type_getClass(o any) any {
-	if hxrt.AnyEqualsNull(o) {
+func hxrt__generated_method_field__sys__thread__FixedThreadPoolWorker(value *sys__thread__FixedThreadPoolWorker, key string) any {
+	if value == nil {
 		return nil
 	}
-	switch value := o.(type) {
-	case *hxrt__TypeClassValue:
-		if value == nil {
-			return nil
-		}
-		return value
-	case hxrt__TypeClassValue:
-		copyValue := value
-		return &copyValue
-	case *hxrt.Array:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")}
-	case *haxe___Int64_____Int64:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe._Int64.___Int64")}
-	case *haxe__ds__List:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.ds.List")}
-	case *haxe__ds___List__GoListIterator:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.ds._List.GoListIterator")}
-	case *haxe__ds___List__GoListKeyValueIterator:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.ds._List.GoListKeyValueIterator")}
-	case *sys__thread__Deque:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.Deque")}
-	case *sys__thread__ElasticThreadPool:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.ElasticThreadPool")}
-	case *sys__thread__ElasticThreadPoolWorker:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.ElasticThreadPoolWorker")}
-	case *sys__thread__EventLoop:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.EventLoop")}
-	case *sys__thread__FixedThreadPool:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.FixedThreadPool")}
-	case *sys__thread__FixedThreadPoolShutdownException:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.FixedThreadPoolShutdownException")}
-	case *sys__thread__FixedThreadPoolWorker:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.FixedThreadPoolWorker")}
-	case *sys__thread__Lock:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.Lock")}
-	case *sys__thread__Mutex:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.Mutex")}
-	case *sys__thread__NoEventLoopException:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.NoEventLoopException")}
-	case *sys__thread__Thread:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.Thread")}
-	case *sys__thread__ThreadPoolException:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.ThreadPoolException")}
-	default:
-		return nil
+	switch key {
+	case "loop":
+		return value.loop
 	}
+	return nil
 }
 
-func Type_getEnum(o any) any {
-	if hxrt.AnyEqualsNull(o) {
+func hxrt__generated_method_field__sys__thread__Lock(value *sys__thread__Lock, key string) any {
+	if value == nil {
 		return nil
 	}
-	switch value := o.(type) {
-	case *hxrt__TypeEnumValue:
-		if value == nil {
-			return nil
-		}
-		return value
-	case hxrt__TypeEnumValue:
-		copyValue := value
-		return &copyValue
-	case *ValueType:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("ValueType")}
-	case *sys__thread__NextEventTime:
-		if value == nil {
-			return nil
-		}
-		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("sys.thread.NextEventTime")}
-	default:
-		return nil
+	switch key {
+	case "release":
+		return value.release
+	case "wait":
+		return value.wait
 	}
+	return nil
 }
 
-func Type_getSuperClass(c any) any {
-	className, ok := hxrt_typeResolvedClassName(c)
-	if !ok {
+func hxrt__generated_method_field__sys__thread__Mutex(value *sys__thread__Mutex, key string) any {
+	if value == nil {
 		return nil
 	}
-	switch className {
-	case "Main":
-		return nil
-	case "haxe.Int64Helper":
-		return nil
-	case "haxe._Int32.Int32_Impl_":
-		return nil
-	case "haxe._Int64.Int64_Impl_":
-		return nil
-	case "haxe._Int64.___Int64":
-		return nil
-	case "haxe.ds.ArraySort":
-		return nil
-	case "haxe.ds.List":
-		return nil
-	case "haxe.ds._List.GoListIterator":
-		return nil
-	case "haxe.ds._List.GoListKeyValueIterator":
-		return nil
-	case "sys.thread.Deque":
-		return nil
-	case "sys.thread.ElasticThreadPool":
-		return nil
-	case "sys.thread.ElasticThreadPoolWorker":
-		return nil
-	case "sys.thread.EventLoop":
-		return nil
-	case "sys.thread.FixedThreadPool":
-		return nil
-	case "sys.thread.FixedThreadPoolShutdownException":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.Exception")}
-	case "sys.thread.FixedThreadPoolWorker":
-		return nil
-	case "sys.thread.Lock":
-		return nil
-	case "sys.thread.Mutex":
-		return nil
-	case "sys.thread.NoEventLoopException":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.Exception")}
-	case "sys.thread.Thread":
-		return nil
-	case "sys.thread.ThreadPoolException":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.Exception")}
-	default:
-		return nil
+	switch key {
+	case "acquire":
+		return value.acquire
+	case "release":
+		return value.release
+	case "tryAcquire":
+		return value.tryAcquire
 	}
+	return nil
 }
 
-func Type_getClassName(c any) *string {
-	className, ok := hxrt_typeResolvedClassName(c)
-	if !ok {
+func hxrt__generated_method_field__sys__thread__Thread(value *sys__thread__Thread, key string) any {
+	if value == nil {
 		return nil
 	}
-	return hxrt.StringFromLiteral(className)
-}
-
-func Type_getClassFields(c any) *hxrt.Array {
-	className, ok := hxrt_typeResolvedClassName(c)
-	if !ok {
-		return hxrt.NewArray()
+	switch key {
+	case "get_events":
+		return value.get_events
+	case "sendMessage":
+		return value.sendMessage
 	}
-	switch className {
-	case "Main":
-		return hxrt.NewArray(hxrt.StringFromLiteral("main"), hxrt.StringFromLiteral("sortedMessages"))
-	case "haxe.Int64Helper":
-		return hxrt.NewArray()
-	case "haxe._Int32.Int32_Impl_":
-		return hxrt.NewArray()
-	case "haxe._Int64.Int64_Impl_":
-		return hxrt.NewArray()
-	case "haxe._Int64.___Int64":
-		return hxrt.NewArray()
-	case "haxe.ds.ArraySort":
-		return hxrt.NewArray(hxrt.StringFromLiteral("doMerge"), hxrt.StringFromLiteral("gcd"), hxrt.StringFromLiteral("lower"), hxrt.StringFromLiteral("rec"), hxrt.StringFromLiteral("rotate"), hxrt.StringFromLiteral("sort"), hxrt.StringFromLiteral("swap"), hxrt.StringFromLiteral("upper"))
-	case "haxe.ds.List":
-		return hxrt.NewArray(hxrt.StringFromLiteral("sameValue"))
-	case "haxe.ds._List.GoListIterator":
-		return hxrt.NewArray()
-	case "haxe.ds._List.GoListKeyValueIterator":
-		return hxrt.NewArray()
-	case "sys.thread.Deque":
-		return hxrt.NewArray()
-	case "sys.thread.ElasticThreadPool":
-		return hxrt.NewArray()
-	case "sys.thread.ElasticThreadPoolWorker":
-		return hxrt.NewArray()
-	case "sys.thread.EventLoop":
-		return hxrt.NewArray(hxrt.StringFromLiteral("__fromHandle"))
-	case "sys.thread.FixedThreadPool":
-		return hxrt.NewArray(hxrt.StringFromLiteral("shutdownTask"))
-	case "sys.thread.FixedThreadPoolShutdownException":
-		return hxrt.NewArray()
-	case "sys.thread.FixedThreadPoolWorker":
-		return hxrt.NewArray()
-	case "sys.thread.Lock":
-		return hxrt.NewArray()
-	case "sys.thread.Mutex":
-		return hxrt.NewArray()
-	case "sys.thread.NoEventLoopException":
-		return hxrt.NewArray()
-	case "sys.thread.Thread":
-		return hxrt.NewArray(hxrt.StringFromLiteral("create"), hxrt.StringFromLiteral("createWithEventLoop"), hxrt.StringFromLiteral("current"), hxrt.StringFromLiteral("processEvents"), hxrt.StringFromLiteral("readMessage"), hxrt.StringFromLiteral("runWithEventLoop"))
-	case "sys.thread.ThreadPoolException":
-		return hxrt.NewArray()
-	default:
-		return hxrt.NewArray()
-	}
-}
-
-func Type_getInstanceFields(c any) *hxrt.Array {
-	className, ok := hxrt_typeResolvedClassName(c)
-	if !ok {
-		return hxrt.NewArray()
-	}
-	switch className {
-	case "Main":
-		return hxrt.NewArray()
-	case "haxe.Int64Helper":
-		return hxrt.NewArray()
-	case "haxe._Int32.Int32_Impl_":
-		return hxrt.NewArray()
-	case "haxe._Int64.Int64_Impl_":
-		return hxrt.NewArray()
-	case "haxe._Int64.___Int64":
-		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
-	case "haxe.ds.ArraySort":
-		return hxrt.NewArray()
-	case "haxe.ds.List":
-		return hxrt.NewArray(hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("filter"), hxrt.StringFromLiteral("first"), hxrt.StringFromLiteral("isEmpty"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("join"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("last"), hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("pop"), hxrt.StringFromLiteral("push"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("toString"))
-	case "haxe.ds._List.GoListIterator":
-		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("next"))
-	case "haxe.ds._List.GoListKeyValueIterator":
-		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("next"))
-	case "sys.thread.Deque":
-		return hxrt.NewArray(hxrt.StringFromLiteral("__available"), hxrt.StringFromLiteral("__items"), hxrt.StringFromLiteral("__mutex"), hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("pop"), hxrt.StringFromLiteral("push"))
-	case "sys.thread.ElasticThreadPool":
-		return hxrt.NewArray(hxrt.StringFromLiteral("_isShutdown"), hxrt.StringFromLiteral("available"), hxrt.StringFromLiteral("get_isShutdown"), hxrt.StringFromLiteral("get_threadsCount"), hxrt.StringFromLiteral("isShutdown"), hxrt.StringFromLiteral("liveWorkers"), hxrt.StringFromLiteral("maxThreadsCount"), hxrt.StringFromLiteral("mutex"), hxrt.StringFromLiteral("pendingTasks"), hxrt.StringFromLiteral("pool"), hxrt.StringFromLiteral("queue"), hxrt.StringFromLiteral("retireWorkerLocked"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("shutdown"), hxrt.StringFromLiteral("startWorkerLocked"), hxrt.StringFromLiteral("threadTimeout"), hxrt.StringFromLiteral("threadsCount"), hxrt.StringFromLiteral("workerResolveWait"), hxrt.StringFromLiteral("workerTaskFailed"), hxrt.StringFromLiteral("workerTaskFinished"))
-	case "sys.thread.ElasticThreadPoolWorker":
-		return hxrt.NewArray(hxrt.StringFromLiteral("available"), hxrt.StringFromLiteral("dead"), hxrt.StringFromLiteral("loop"), hxrt.StringFromLiteral("owner"), hxrt.StringFromLiteral("start"), hxrt.StringFromLiteral("task"), hxrt.StringFromLiteral("timeout"))
-	case "sys.thread.EventLoop":
-		return hxrt.NewArray(hxrt.StringFromLiteral("__h"), hxrt.StringFromLiteral("cancel"), hxrt.StringFromLiteral("loop"), hxrt.StringFromLiteral("progress"), hxrt.StringFromLiteral("promise"), hxrt.StringFromLiteral("repeat"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("runPromised"), hxrt.StringFromLiteral("wait"))
-	case "sys.thread.FixedThreadPool":
-		return hxrt.NewArray(hxrt.StringFromLiteral("_isShutdown"), hxrt.StringFromLiteral("get_isShutdown"), hxrt.StringFromLiteral("get_threadsCount"), hxrt.StringFromLiteral("isShutdown"), hxrt.StringFromLiteral("mutex"), hxrt.StringFromLiteral("pool"), hxrt.StringFromLiteral("queue"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("shutdown"), hxrt.StringFromLiteral("threadsCount"))
-	case "sys.thread.FixedThreadPoolShutdownException":
-		return hxrt.NewArray(hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap"))
-	case "sys.thread.FixedThreadPoolWorker":
-		return hxrt.NewArray(hxrt.StringFromLiteral("loop"), hxrt.StringFromLiteral("queue"))
-	case "sys.thread.Lock":
-		return hxrt.NewArray(hxrt.StringFromLiteral("__h"), hxrt.StringFromLiteral("release"), hxrt.StringFromLiteral("wait"))
-	case "sys.thread.Mutex":
-		return hxrt.NewArray(hxrt.StringFromLiteral("__h"), hxrt.StringFromLiteral("acquire"), hxrt.StringFromLiteral("release"), hxrt.StringFromLiteral("tryAcquire"))
-	case "sys.thread.NoEventLoopException":
-		return hxrt.NewArray(hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap"))
-	case "sys.thread.Thread":
-		return hxrt.NewArray(hxrt.StringFromLiteral("__id"), hxrt.StringFromLiteral("events"), hxrt.StringFromLiteral("get_events"), hxrt.StringFromLiteral("sendMessage"))
-	case "sys.thread.ThreadPoolException":
-		return hxrt.NewArray(hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap"))
-	default:
-		return hxrt.NewArray()
-	}
-}
-
-func Type_getEnumName(e any) *string {
-	enumName, ok := hxrt_typeResolvedEnumName(e)
-	if !ok {
-		return nil
-	}
-	return hxrt.StringFromLiteral(enumName)
-}
-
-func Type_resolveClass(name *string) any {
-	if name == nil {
-		return nil
-	}
-	rawName := *hxrt.StdString(name)
-	switch rawName {
-	case "Main":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "haxe.Int64Helper":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "haxe._Int32.Int32_Impl_":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "haxe._Int64.Int64_Impl_":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "haxe._Int64.___Int64":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "haxe.ds.ArraySort":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "haxe.ds.List":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "haxe.ds._List.GoListIterator":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "haxe.ds._List.GoListKeyValueIterator":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.thread.Deque":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.thread.ElasticThreadPool":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.thread.ElasticThreadPoolWorker":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.thread.EventLoop":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.thread.FixedThreadPool":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.thread.FixedThreadPoolShutdownException":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.thread.FixedThreadPoolWorker":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.thread.Lock":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.thread.Mutex":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.thread.NoEventLoopException":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.thread.Thread":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.thread.ThreadPoolException":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	default:
-		return nil
-	}
-}
-
-func Type_resolveEnum(name *string) any {
-	if name == nil {
-		return nil
-	}
-	rawName := *hxrt.StdString(name)
-	switch rawName {
-	case "ValueType":
-		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.thread.NextEventTime":
-		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
-	default:
-		return nil
-	}
-}
-
-func Type_createInstance(cl any, args *hxrt.Array) any {
-	className, ok := hxrt_typeResolvedClassName(cl)
-	if !ok {
-		return nil
-	}
-	instance, ok := hxrt_typeCreateClassInstance(className, hxrt_typeArrayValues(args))
-	if !ok {
-		return nil
-	}
-	return instance
-}
-
-func Type_createEmptyInstance(cl any) any {
-	className, ok := hxrt_typeResolvedClassName(cl)
-	if !ok {
-		return nil
-	}
-	instance, ok := hxrt_typeCreateClassEmptyInstance(className)
-	if !ok {
-		return nil
-	}
-	return instance
-}
-
-func Type_createEnum(e any, constr *string, params *hxrt.Array) any {
-	enumName, ok := hxrt_typeResolvedEnumName(e)
-	if !ok {
-		return nil
-	}
-	constructorName := ""
-	if constr != nil {
-		constructorName = *hxrt.StdString(constr)
-	}
-	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, constructorName, 0, false, hxrt_typeArrayValues(params))
-	if !ok {
-		return nil
-	}
-	return enumValue
-}
-
-func Type_createEnumIndex(e any, index int, params *hxrt.Array) any {
-	enumName, ok := hxrt_typeResolvedEnumName(e)
-	if !ok {
-		return nil
-	}
-	enumValue, ok := hxrt_typeCreateEnumInstance(enumName, "", index, true, hxrt_typeArrayValues(params))
-	if !ok {
-		return nil
-	}
-	return enumValue
-}
-
-func Type_enumConstructor(e any) *string {
-	if hxrt.AnyEqualsNull(e) {
-		return nil
-	}
-	switch value := e.(type) {
-	case *ValueType:
-		if value == nil {
-			return nil
-		}
-		switch value.tag {
-		case 0:
-			return hxrt.StringFromLiteral("TNull")
-		case 1:
-			return hxrt.StringFromLiteral("TInt")
-		case 2:
-			return hxrt.StringFromLiteral("TFloat")
-		case 3:
-			return hxrt.StringFromLiteral("TBool")
-		case 4:
-			return hxrt.StringFromLiteral("TObject")
-		case 5:
-			return hxrt.StringFromLiteral("TFunction")
-		case 6:
-			return hxrt.StringFromLiteral("TClass")
-		case 7:
-			return hxrt.StringFromLiteral("TEnum")
-		case 8:
-			return hxrt.StringFromLiteral("TUnknown")
-		default:
-			return nil
-		}
-	case *sys__thread__NextEventTime:
-		if value == nil {
-			return nil
-		}
-		switch value.tag {
-		case 0:
-			return hxrt.StringFromLiteral("Now")
-		case 1:
-			return hxrt.StringFromLiteral("Never")
-		case 2:
-			return hxrt.StringFromLiteral("AnyTime")
-		case 3:
-			return hxrt.StringFromLiteral("At")
-		default:
-			return nil
-		}
-	default:
-		return nil
-	}
-}
-
-func Type_enumIndex(e any) int {
-	if hxrt.AnyEqualsNull(e) {
-		return -1
-	}
-	switch value := e.(type) {
-	case *ValueType:
-		if value == nil {
-			return -1
-		}
-		return value.tag
-	case *sys__thread__NextEventTime:
-		if value == nil {
-			return -1
-		}
-		return value.tag
-	default:
-		return -1
-	}
-}
-
-func Type_getEnumConstructs(e any) *hxrt.Array {
-	enumName, ok := hxrt_typeResolvedEnumName(e)
-	if !ok {
-		return hxrt.NewArray()
-	}
-	switch enumName {
-	case "ValueType":
-		return hxrt.NewArray(hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown"))
-	case "sys.thread.NextEventTime":
-		return hxrt.NewArray(hxrt.StringFromLiteral("Now"), hxrt.StringFromLiteral("Never"), hxrt.StringFromLiteral("AnyTime"), hxrt.StringFromLiteral("At"))
-	default:
-		return hxrt.NewArray()
-	}
-}
-
-func Type_enumParameters(e any) *hxrt.Array {
-	if hxrt.AnyEqualsNull(e) {
-		return hxrt.NewArray()
-	}
-	switch value := e.(type) {
-	case *ValueType:
-		if value == nil || value.params == nil {
-			return hxrt.NewArray()
-		}
-		return hxrt.NewArray(value.params...)
-	case *sys__thread__NextEventTime:
-		if value == nil || value.params == nil {
-			return hxrt.NewArray()
-		}
-		return hxrt.NewArray(value.params...)
-	default:
-		return hxrt.NewArray()
-	}
-}
-
-func Type_allEnums(e any) *hxrt.Array {
-	enumName, ok := hxrt_typeResolvedEnumName(e)
-	if !ok {
-		return hxrt.NewArray()
-	}
-	switch enumName {
-	case "ValueType":
-		return hxrt.NewArray(ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown)
-	case "sys.thread.NextEventTime":
-		return hxrt.NewArray(sys__thread__NextEventTime_Now, sys__thread__NextEventTime_Never)
-	default:
-		return hxrt.NewArray()
-	}
-}
-
-func Type_typeof(v any) *ValueType {
-	if hxrt.AnyEqualsNull(v) {
-		return ValueType_TNull
-	}
-	switch v.(type) {
-	case *hxrt__TypeClassValue, hxrt__TypeClassValue, *hxrt__TypeEnumValue, hxrt__TypeEnumValue:
-		return ValueType_TObject
-	}
-	if enumValue := Type_getEnum(v); enumValue != nil {
-		return ValueType_TEnum(enumValue)
-	}
-	if classValue := Type_getClass(v); classValue != nil {
-		return ValueType_TClass(classValue)
-	}
-	switch v.(type) {
-	case bool:
-		return ValueType_TBool
-	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr:
-		return ValueType_TInt
-	case float32, float64:
-		return ValueType_TFloat
-	case string, *string:
-		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("String")})
-	case *hxrt.Array:
-		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")})
-	}
-	ref := reflect.ValueOf(v)
-	if !ref.IsValid() {
-		return ValueType_TNull
-	}
-	switch ref.Kind() {
-	case reflect.Func:
-		return ValueType_TFunction
-	case reflect.Slice, reflect.Array:
-		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")})
-	case reflect.Map, reflect.Struct, reflect.Interface, reflect.Pointer:
-		return ValueType_TObject
-	default:
-		return ValueType_TUnknown
-	}
-}
-
-func Type_enumEq(a any, b any) bool {
-	return reflect.DeepEqual(a, b)
+	return nil
 }
 
 func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
-	className, ok := hxrt_typeResolvedClassName(value)
-	if !ok {
+	classValue, ok := value.(*hxrt__TypeClassValue)
+	if !ok || classValue == nil {
 		return nil, false
 	}
+	className := *hxrt.StdString(classValue.name)
 	switch className {
 	default:
 		return nil, false
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *string) any {
+	key := *hxrt.StdString(field)
+	var receiver any
+	switch value := object.(type) {
+	case *haxe___Int64_____Int64:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ds__List:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ds___List__GoListIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ds___List__GoListKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Deque:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__ElasticThreadPool:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__ElasticThreadPoolWorker:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__EventLoop:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__FixedThreadPool:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__FixedThreadPoolWorker:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Lock:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Mutex:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Thread:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	default:
+		return nil
+	}
+	switch value := receiver.(type) {
+	case *haxe___Int64_____Int64:
+		return hxrt__generated_field_lookup__haxe___Int64_____Int64(value, key)
+	case *haxe__ds__List:
+		return hxrt__generated_field_lookup__haxe__ds__List(value, key)
+	case *haxe__ds___List__GoListIterator:
+		return hxrt__generated_field_lookup__haxe__ds___List__GoListIterator(value, key)
+	case *haxe__ds___List__GoListKeyValueIterator:
+		return hxrt__generated_field_lookup__haxe__ds___List__GoListKeyValueIterator(value, key)
+	case *sys__thread__Deque:
+		return hxrt__generated_field_lookup__sys__thread__Deque(value, key)
+	case *sys__thread__ElasticThreadPool:
+		return hxrt__generated_field_lookup__sys__thread__ElasticThreadPool(value, key)
+	case *sys__thread__ElasticThreadPoolWorker:
+		return hxrt__generated_field_lookup__sys__thread__ElasticThreadPoolWorker(value, key)
+	case *sys__thread__EventLoop:
+		return hxrt__generated_field_lookup__sys__thread__EventLoop(value, key)
+	case *sys__thread__FixedThreadPool:
+		return hxrt__generated_field_lookup__sys__thread__FixedThreadPool(value, key)
+	case *sys__thread__FixedThreadPoolWorker:
+		return hxrt__generated_field_lookup__sys__thread__FixedThreadPoolWorker(value, key)
+	case *sys__thread__Lock:
+		return hxrt__generated_field_lookup__sys__thread__Lock(value, key)
+	case *sys__thread__Mutex:
+		return hxrt__generated_field_lookup__sys__thread__Mutex(value, key)
+	case *sys__thread__Thread:
+		return hxrt__generated_field_lookup__sys__thread__Thread(value, key)
+	default:
+		return nil
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field *string) bool {
+	key := *hxrt.StdString(field)
+	var receiver any
+	switch value := object.(type) {
+	case *haxe___Int64_____Int64:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ds__List:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ds___List__GoListIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ds___List__GoListKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Deque:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__ElasticThreadPool:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__ElasticThreadPoolWorker:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__EventLoop:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__FixedThreadPool:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__FixedThreadPoolWorker:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Lock:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Mutex:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Thread:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	default:
+		return false
+	}
+	switch value := receiver.(type) {
+	case *haxe___Int64_____Int64:
+		return hxrt__generated_field_has__haxe___Int64_____Int64(value, key)
+	case *haxe__ds__List:
+		return hxrt__generated_field_has__haxe__ds__List(value, key)
+	case *haxe__ds___List__GoListIterator:
+		return hxrt__generated_field_has__haxe__ds___List__GoListIterator(value, key)
+	case *haxe__ds___List__GoListKeyValueIterator:
+		return hxrt__generated_field_has__haxe__ds___List__GoListKeyValueIterator(value, key)
+	case *sys__thread__Deque:
+		return hxrt__generated_field_has__sys__thread__Deque(value, key)
+	case *sys__thread__ElasticThreadPool:
+		return hxrt__generated_field_has__sys__thread__ElasticThreadPool(value, key)
+	case *sys__thread__ElasticThreadPoolWorker:
+		return hxrt__generated_field_has__sys__thread__ElasticThreadPoolWorker(value, key)
+	case *sys__thread__EventLoop:
+		return hxrt__generated_field_has__sys__thread__EventLoop(value, key)
+	case *sys__thread__FixedThreadPool:
+		return hxrt__generated_field_has__sys__thread__FixedThreadPool(value, key)
+	case *sys__thread__FixedThreadPoolWorker:
+		return hxrt__generated_field_has__sys__thread__FixedThreadPoolWorker(value, key)
+	case *sys__thread__Lock:
+		return hxrt__generated_field_has__sys__thread__Lock(value, key)
+	case *sys__thread__Mutex:
+		return hxrt__generated_field_has__sys__thread__Mutex(value, key)
+	case *sys__thread__Thread:
+		return hxrt__generated_field_has__sys__thread__Thread(value, key)
+	default:
+		return false
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field *string, incoming any) bool {
+	key := *hxrt.StdString(field)
+	var receiver any
+	switch value := object.(type) {
+	case *haxe___Int64_____Int64:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ds__List:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ds___List__GoListIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ds___List__GoListKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Deque:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__ElasticThreadPool:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__ElasticThreadPoolWorker:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__EventLoop:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__FixedThreadPool:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__FixedThreadPoolWorker:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Lock:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Mutex:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Thread:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	default:
+		return false
+	}
+	switch value := receiver.(type) {
+	case *haxe___Int64_____Int64:
+		return hxrt__generated_field_set__haxe___Int64_____Int64(value, key, incoming)
+	case *haxe__ds__List:
+		return hxrt__generated_field_set__haxe__ds__List(value, key, incoming)
+	case *haxe__ds___List__GoListIterator:
+		return hxrt__generated_field_set__haxe__ds___List__GoListIterator(value, key, incoming)
+	case *haxe__ds___List__GoListKeyValueIterator:
+		return hxrt__generated_field_set__haxe__ds___List__GoListKeyValueIterator(value, key, incoming)
+	case *sys__thread__Deque:
+		return hxrt__generated_field_set__sys__thread__Deque(value, key, incoming)
+	case *sys__thread__ElasticThreadPool:
+		return hxrt__generated_field_set__sys__thread__ElasticThreadPool(value, key, incoming)
+	case *sys__thread__ElasticThreadPoolWorker:
+		return hxrt__generated_field_set__sys__thread__ElasticThreadPoolWorker(value, key, incoming)
+	case *sys__thread__EventLoop:
+		return hxrt__generated_field_set__sys__thread__EventLoop(value, key, incoming)
+	case *sys__thread__FixedThreadPool:
+		return hxrt__generated_field_set__sys__thread__FixedThreadPool(value, key, incoming)
+	case *sys__thread__FixedThreadPoolWorker:
+		return hxrt__generated_field_set__sys__thread__FixedThreadPoolWorker(value, key, incoming)
+	case *sys__thread__Lock:
+		return hxrt__generated_field_set__sys__thread__Lock(value, key, incoming)
+	case *sys__thread__Mutex:
+		return hxrt__generated_field_set__sys__thread__Mutex(value, key, incoming)
+	case *sys__thread__Thread:
+		return hxrt__generated_field_set__sys__thread__Thread(value, key, incoming)
+	default:
+		return false
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.Array {
+	var receiver any
+	switch value := object.(type) {
+	case *haxe___Int64_____Int64:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ds__List:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ds___List__GoListIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ds___List__GoListKeyValueIterator:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Deque:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__ElasticThreadPool:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__ElasticThreadPoolWorker:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__EventLoop:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__FixedThreadPool:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__FixedThreadPoolShutdownException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__FixedThreadPoolWorker:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Lock:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Mutex:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__NoEventLoopException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__Thread:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *sys__thread__ThreadPoolException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	default:
+		return nil
+	}
+	switch receiver.(type) {
+	case *haxe___Int64_____Int64:
+		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
+	case *haxe__ds__List:
+		return hxrt.NewArray(hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("length"))
+	case *haxe__ds___List__GoListIterator:
+		return hxrt.NewArray(hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"))
+	case *haxe__ds___List__GoListKeyValueIterator:
+		return hxrt.NewArray(hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"))
+	case *sys__thread__Deque:
+		return hxrt.NewArray(hxrt.StringFromLiteral("__available"), hxrt.StringFromLiteral("__items"), hxrt.StringFromLiteral("__mutex"))
+	case *sys__thread__ElasticThreadPool:
+		return hxrt.NewArray(hxrt.StringFromLiteral("_isShutdown"), hxrt.StringFromLiteral("available"), hxrt.StringFromLiteral("liveWorkers"), hxrt.StringFromLiteral("maxThreadsCount"), hxrt.StringFromLiteral("mutex"), hxrt.StringFromLiteral("pendingTasks"), hxrt.StringFromLiteral("pool"), hxrt.StringFromLiteral("queue"), hxrt.StringFromLiteral("threadTimeout"))
+	case *sys__thread__ElasticThreadPoolWorker:
+		return hxrt.NewArray(hxrt.StringFromLiteral("available"), hxrt.StringFromLiteral("dead"), hxrt.StringFromLiteral("owner"), hxrt.StringFromLiteral("task"), hxrt.StringFromLiteral("timeout"))
+	case *sys__thread__EventLoop:
+		return hxrt.NewArray(hxrt.StringFromLiteral("__h"))
+	case *sys__thread__FixedThreadPool:
+		return hxrt.NewArray(hxrt.StringFromLiteral("_isShutdown"), hxrt.StringFromLiteral("mutex"), hxrt.StringFromLiteral("pool"), hxrt.StringFromLiteral("queue"))
+	case *sys__thread__FixedThreadPoolShutdownException:
+		return hxrt.NewArray()
+	case *sys__thread__FixedThreadPoolWorker:
+		return hxrt.NewArray(hxrt.StringFromLiteral("queue"))
+	case *sys__thread__Lock:
+		return hxrt.NewArray(hxrt.StringFromLiteral("__h"))
+	case *sys__thread__Mutex:
+		return hxrt.NewArray(hxrt.StringFromLiteral("__h"))
+	case *sys__thread__NoEventLoopException:
+		return hxrt.NewArray()
+	case *sys__thread__Thread:
+		return hxrt.NewArray(hxrt.StringFromLiteral("__id"))
+	case *sys__thread__ThreadPoolException:
+		return hxrt.NewArray()
+	default:
+		return nil
+	}
+}
+
+func hxrt__generated_field_lookup__haxe___Int64_____Int64(value *haxe___Int64_____Int64, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "high":
+		return value.high
+	case "low":
+		return value.low
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe___Int64_____Int64(value *haxe___Int64_____Int64, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "high":
+		return true
+	case "low":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe___Int64_____Int64(value *haxe___Int64_____Int64, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "high":
+		if incoming == nil {
+			var zero int
+			value.high = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.high = typed
+			return true
+		default:
+			return false
+		}
+	case "low":
+		if incoming == nil {
+			var zero int
+			value.low = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.low = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__ds__List(value *haxe__ds__List, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "items":
+		return value.items
+	case "length":
+		return value.length
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__ds__List(value *haxe__ds__List, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "items":
+		return true
+	case "length":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__ds__List(value *haxe__ds__List, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "items":
+		if incoming == nil {
+			var zero *hxrt.Array
+			value.items = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *hxrt.Array:
+			value.items = typed
+			return true
+		default:
+			return false
+		}
+	case "length":
+		if incoming == nil {
+			var zero int
+			value.length = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.length = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__ds___List__GoListIterator(value *haxe__ds___List__GoListIterator, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "index":
+		return value.index
+	case "items":
+		return value.items
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__ds___List__GoListIterator(value *haxe__ds___List__GoListIterator, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "index":
+		return true
+	case "items":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__ds___List__GoListIterator(value *haxe__ds___List__GoListIterator, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "index":
+		if incoming == nil {
+			var zero int
+			value.index = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.index = typed
+			return true
+		default:
+			return false
+		}
+	case "items":
+		if incoming == nil {
+			var zero *hxrt.Array
+			value.items = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *hxrt.Array:
+			value.items = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__ds___List__GoListKeyValueIterator(value *haxe__ds___List__GoListKeyValueIterator, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "index":
+		return value.index
+	case "items":
+		return value.items
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__ds___List__GoListKeyValueIterator(value *haxe__ds___List__GoListKeyValueIterator, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "index":
+		return true
+	case "items":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__ds___List__GoListKeyValueIterator(value *haxe__ds___List__GoListKeyValueIterator, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "index":
+		if incoming == nil {
+			var zero int
+			value.index = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.index = typed
+			return true
+		default:
+			return false
+		}
+	case "items":
+		if incoming == nil {
+			var zero *hxrt.Array
+			value.items = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *hxrt.Array:
+			value.items = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__sys__thread__Deque(value *sys__thread__Deque, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "__available":
+		return value.__available
+	case "__items":
+		return value.__items
+	case "__mutex":
+		return value.__mutex
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__sys__thread__Deque(value *sys__thread__Deque, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "__available":
+		return true
+	case "__items":
+		return true
+	case "__mutex":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__sys__thread__Deque(value *sys__thread__Deque, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "__available":
+		if incoming == nil {
+			var zero *sys__thread__Lock
+			value.__available = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *sys__thread__Lock:
+			value.__available = typed
+			return true
+		default:
+			return false
+		}
+	case "__items":
+		if incoming == nil {
+			var zero *haxe__ds__List
+			value.__items = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *haxe__ds__List:
+			value.__items = typed
+			return true
+		default:
+			return false
+		}
+	case "__mutex":
+		if incoming == nil {
+			var zero *sys__thread__Mutex
+			value.__mutex = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *sys__thread__Mutex:
+			value.__mutex = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__sys__thread__ElasticThreadPool(value *sys__thread__ElasticThreadPool, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "_isShutdown":
+		return value._isShutdown
+	case "available":
+		return value.available
+	case "liveWorkers":
+		return value.liveWorkers
+	case "maxThreadsCount":
+		return value.maxThreadsCount
+	case "mutex":
+		return value.mutex
+	case "pendingTasks":
+		return value.pendingTasks
+	case "pool":
+		return value.pool
+	case "queue":
+		return value.queue
+	case "threadTimeout":
+		return value.threadTimeout
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__sys__thread__ElasticThreadPool(value *sys__thread__ElasticThreadPool, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "_isShutdown":
+		return true
+	case "available":
+		return true
+	case "liveWorkers":
+		return true
+	case "maxThreadsCount":
+		return true
+	case "mutex":
+		return true
+	case "pendingTasks":
+		return true
+	case "pool":
+		return true
+	case "queue":
+		return true
+	case "threadTimeout":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__sys__thread__ElasticThreadPool(value *sys__thread__ElasticThreadPool, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "_isShutdown":
+		if incoming == nil {
+			var zero bool
+			value._isShutdown = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case bool:
+			value._isShutdown = typed
+			return true
+		default:
+			return false
+		}
+	case "available":
+		if incoming == nil {
+			var zero *sys__thread__Lock
+			value.available = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *sys__thread__Lock:
+			value.available = typed
+			return true
+		default:
+			return false
+		}
+	case "liveWorkers":
+		if incoming == nil {
+			var zero int
+			value.liveWorkers = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.liveWorkers = typed
+			return true
+		default:
+			return false
+		}
+	case "maxThreadsCount":
+		if incoming == nil {
+			var zero int
+			value.maxThreadsCount = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.maxThreadsCount = typed
+			return true
+		default:
+			return false
+		}
+	case "mutex":
+		if incoming == nil {
+			var zero *sys__thread__Mutex
+			value.mutex = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *sys__thread__Mutex:
+			value.mutex = typed
+			return true
+		default:
+			return false
+		}
+	case "pendingTasks":
+		if incoming == nil {
+			var zero int
+			value.pendingTasks = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.pendingTasks = typed
+			return true
+		default:
+			return false
+		}
+	case "pool":
+		if incoming == nil {
+			var zero *hxrt.Array
+			value.pool = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *hxrt.Array:
+			value.pool = typed
+			return true
+		default:
+			return false
+		}
+	case "queue":
+		if incoming == nil {
+			var zero *sys__thread__Deque
+			value.queue = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *sys__thread__Deque:
+			value.queue = typed
+			return true
+		default:
+			return false
+		}
+	case "threadTimeout":
+		if incoming == nil {
+			var zero float64
+			value.threadTimeout = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case float64:
+			value.threadTimeout = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__sys__thread__ElasticThreadPoolWorker(value *sys__thread__ElasticThreadPoolWorker, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "available":
+		return value.available
+	case "dead":
+		return value.dead
+	case "owner":
+		return value.owner
+	case "task":
+		return value.task
+	case "timeout":
+		return value.timeout
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__sys__thread__ElasticThreadPoolWorker(value *sys__thread__ElasticThreadPoolWorker, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "available":
+		return true
+	case "dead":
+		return true
+	case "owner":
+		return true
+	case "task":
+		return true
+	case "timeout":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__sys__thread__ElasticThreadPoolWorker(value *sys__thread__ElasticThreadPoolWorker, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "available":
+		if incoming == nil {
+			var zero *sys__thread__Lock
+			value.available = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *sys__thread__Lock:
+			value.available = typed
+			return true
+		default:
+			return false
+		}
+	case "dead":
+		if incoming == nil {
+			var zero bool
+			value.dead = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case bool:
+			value.dead = typed
+			return true
+		default:
+			return false
+		}
+	case "owner":
+		if incoming == nil {
+			var zero *sys__thread__ElasticThreadPool
+			value.owner = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *sys__thread__ElasticThreadPool:
+			value.owner = typed
+			return true
+		default:
+			return false
+		}
+	case "task":
+		if incoming == nil {
+			var zero func()
+			value.task = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case func():
+			value.task = typed
+			return true
+		default:
+			return false
+		}
+	case "timeout":
+		if incoming == nil {
+			var zero float64
+			value.timeout = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case float64:
+			value.timeout = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__sys__thread__EventLoop(value *sys__thread__EventLoop, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "__h":
+		return value.__h
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__sys__thread__EventLoop(value *sys__thread__EventLoop, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "__h":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__sys__thread__EventLoop(value *sys__thread__EventLoop, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "__h":
+		if incoming == nil {
+			var zero *hxrt.EventLoopHandle
+			value.__h = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *hxrt.EventLoopHandle:
+			value.__h = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__sys__thread__FixedThreadPool(value *sys__thread__FixedThreadPool, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "_isShutdown":
+		return value._isShutdown
+	case "mutex":
+		return value.mutex
+	case "pool":
+		return value.pool
+	case "queue":
+		return value.queue
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__sys__thread__FixedThreadPool(value *sys__thread__FixedThreadPool, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "_isShutdown":
+		return true
+	case "mutex":
+		return true
+	case "pool":
+		return true
+	case "queue":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__sys__thread__FixedThreadPool(value *sys__thread__FixedThreadPool, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "_isShutdown":
+		if incoming == nil {
+			var zero bool
+			value._isShutdown = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case bool:
+			value._isShutdown = typed
+			return true
+		default:
+			return false
+		}
+	case "mutex":
+		if incoming == nil {
+			var zero *sys__thread__Mutex
+			value.mutex = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *sys__thread__Mutex:
+			value.mutex = typed
+			return true
+		default:
+			return false
+		}
+	case "pool":
+		if incoming == nil {
+			var zero *hxrt.Array
+			value.pool = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *hxrt.Array:
+			value.pool = typed
+			return true
+		default:
+			return false
+		}
+	case "queue":
+		if incoming == nil {
+			var zero *sys__thread__Deque
+			value.queue = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *sys__thread__Deque:
+			value.queue = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__sys__thread__FixedThreadPoolWorker(value *sys__thread__FixedThreadPoolWorker, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "queue":
+		return value.queue
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__sys__thread__FixedThreadPoolWorker(value *sys__thread__FixedThreadPoolWorker, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "queue":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__sys__thread__FixedThreadPoolWorker(value *sys__thread__FixedThreadPoolWorker, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "queue":
+		if incoming == nil {
+			var zero *sys__thread__Deque
+			value.queue = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *sys__thread__Deque:
+			value.queue = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__sys__thread__Lock(value *sys__thread__Lock, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "__h":
+		return value.__h
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__sys__thread__Lock(value *sys__thread__Lock, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "__h":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__sys__thread__Lock(value *sys__thread__Lock, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "__h":
+		if incoming == nil {
+			var zero *hxrt.LockHandle
+			value.__h = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *hxrt.LockHandle:
+			value.__h = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__sys__thread__Mutex(value *sys__thread__Mutex, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "__h":
+		return value.__h
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__sys__thread__Mutex(value *sys__thread__Mutex, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "__h":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__sys__thread__Mutex(value *sys__thread__Mutex, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "__h":
+		if incoming == nil {
+			var zero *hxrt.MutexHandle
+			value.__h = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *hxrt.MutexHandle:
+			value.__h = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__sys__thread__Thread(value *sys__thread__Thread, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "__id":
+		return value.__id
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__sys__thread__Thread(value *sys__thread__Thread, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "__id":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__sys__thread__Thread(value *sys__thread__Thread, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "__id":
+		if incoming == nil {
+			var zero int
+			value.__id = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.__id = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func reflaxe__go___internal__CompilerReflect_typeField(object any, field *string) any {
+	key := *hxrt.StdString(field)
+	value, found := hxrt_typeClassMetadataField(object, key)
+	if !found {
+		return nil
+	}
+	return value
+}
+
+func reflaxe__go___internal__CompilerReflect_hasTypeField(object any, field *string) bool {
+	key := *hxrt.StdString(field)
+	_, found := hxrt_typeClassMetadataField(object, key)
+	return found
+}
+
+func reflaxe__go___internal__CompilerReflect_generatedMethod(object any, field *string) any {
+	key := *hxrt.StdString(field)
+	return hxrt__generated_method_field(object, key)
+}
+
+func reflaxe__go___internal__CompilerReflect_isEnumValue(value any) bool {
+	switch enumValue := value.(type) {
+	case *sys__thread__NextEventTime:
+		return (enumValue != nil)
+	default:
+		return false
 	}
 }

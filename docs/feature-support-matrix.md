@@ -87,7 +87,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `Xml` (root DOM subset: document/element creation, attributes, child iteration, parse/print baseline) | `semantic-diff` | `root_xml_contract`, `stdlib/xml_root_dom_basic` |
 | `haxe.ds.*Map` + `haxe.ds.List` (core ops subset) | `semantic-diff` | `ds_maps_list_contract`, `stdlib/ds_maps_list_basic` |
 | `haxe.ds.WeakMap` (upstream platform contract: constructor throws `haxe.exceptions.NotImplementedException` on this target) | `semantic-diff` | `haxe_ds_weakmap_contract`, `stdlib/haxe_ds_weakmap_platform` |
-| `Reflect` (compare + dynamic field ops subset) | `semantic-diff` | `reflect_compare`, `reflect_field_ops` |
+| root `Reflect` complete Haxe 4.3.7 API | `semantic-diff` + `snapshot` + direct runtime | `reflect_compare`, `reflect_field_ops`, `reflect_extended_contract`, `stdlib/dynamic_access_basic`, direct runtime Reflect tests |
 | `Date` + `haxe.ds.Option` + `haxe.io.Path` subset | `semantic-diff` | `option_date_path`, `path_cross_std_contract`, `stdlib/date_path_basic`, `stdlib/path_cross_std_basic` |
 | `haxe.Log` + `haxe.Resource` + `haxe.SysTools` direct helper subset | `semantic-diff` | `direct_haxe_helpers_contract`, `direct_haxe_resource_contract`, `stdlib/haxe_resource_embedded_basic` |
 | `haxe.Utf8` deprecated helper subset (buffer ctor with or without optional size hint, `addChar`, `toString`, `iter`, `charCodeAt`, `validate`, byte-length `length`, byte-compare `compare`, UTF-8 character-position `sub`, `encode`, `decode`) | `semantic-diff` | `haxe_utf8_contract`, `stdlib/haxe_utf8_basic` |
@@ -127,7 +127,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Prefix/postfix call argument order | Supported | `core/prefix_call_arg`, `core/postfix_call_arg` |
 | Classes, instance/static fields/methods | Supported | `core/class_fields_methods`, `core/static_fields_methods` |
 | Inheritance and override dispatch | Supported for normally constructed generated hierarchies, including deep upcasts | `core/inheritance_override_dispatch`, `core/inheritance_ctor_chain_upcast`, `core/inheritance_return_upcast`, `core/inheritance_self_dispatch_wiring`, `core/deep_inheritance_dispatch_rebinding` |
-| Dynamic lookup of emitted generated methods through `Reflect.field` / `Reflect.hasField` | Supported through selective same-package method metadata; methods remain lowercase in Go output | `haxe_template_concrete_iterable_contract`, `stdlib/haxe_template_generated_method_lookup` |
+| Dynamic lookup and mutation of emitted generated fields/methods through `Reflect` | Supported through selective typed same-package metadata; generated members remain lowercase in Go output | `reflect_extended_contract`, `haxe_template_concrete_iterable_contract`, `stdlib/dynamic_access_basic`, `stdlib/haxe_template_generated_method_lookup` |
 | Interface dispatch | Supported | `core/interface_dispatch_basic` |
 | Super calls | Supported | `core/super_calls` |
 | Enums and switch pattern bindings | Supported | `core/enum_constructors`, `core/switch_enum_basic`, `core/enum_switch_bindings` |
@@ -275,6 +275,14 @@ Shim strategy and alternatives are documented in:
 
 - `haxe.Template` constructor/execute, nested lookup, array, structural-Dynamic, and concrete generated-class iteration, stack fallback, and macro invocation have direct parity coverage through `test/semantic_diff/haxe_template_contract`, `test/semantic_diff/haxe_template_concrete_iterable_contract`, `test/snapshot/stdlib/haxe_template_basic`, and `test/snapshot/stdlib/haxe_template_generated_method_lookup`. Template behavior is staged Haxe; three runtime representation operations cross a typed, footprint-explicit `hxrt` binding. Generic selective generated-method metadata supplies only already-bound lowercase methods to `Reflect.field` / `Reflect.hasField`.
 - `haxe.ValueException` direct constructor/message/value parity now has semantic-diff coverage through `test/semantic_diff/haxe_value_exception_contract` and snapshot coverage in `test/snapshot/stdlib/haxe_value_exception_basic`.
+
+### `Reflect` ownership and lookup contract
+
+- `std/go/_std/Reflect.hx` owns the complete public Haxe 4.3.7 API, including lookup precedence, property access, copying, deletion, comparison, and varargs composition. This source contract is shared by the compatible `portable` and `metal` policy presets; no reflection behavior branches on the legacy profile name.
+- `runtime/hxrt/reflect.go` owns only ordinary Go representation operations: map/exported-field and exported-method inspection, safe reflected calls and assignment, comparison, copying, deletion, object/function classification, and varargs adaptation. It is copied only when the reflection runtime feature is inferred.
+- The compiler owns only closed-world facts that cannot be recovered from a separate Go package: class-token RTTI, generated lowercase fields and bound methods, and exact enum carriers. Typed semantic plans feed typed Go AST emitters for these adapters; there is no unsafe access, runtime type registry, or behavior-heavy `Reflect_*` compiler shim.
+- Dynamic field lookup order is fixed and covered as: class-token RTTI, native map/exported field, generated Haxe field, generated Haxe method, then exported native Go method. `Type` metadata remains a separate exact intrinsic group and does not select ordinary `Reflect` runtime behavior.
+- “Complete API” describes the 15 public Haxe 4.3.7 entrypoints, not an open-world promise for every possible Go carrier. The release manifest limits admission to the named generated-object, anonymous-object, native exported-member, comparison, and function cases with direct evidence; arbitrary external package-private members and untested function-identity edge cases remain excluded.
 
 ### `haxe.Json` runtime-lowered contract
 

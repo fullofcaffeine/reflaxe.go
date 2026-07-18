@@ -36,249 +36,103 @@ func main() {
 	}(values.__hx_this.exists(CollectionFeatureKey_Entry(1)))
 }
 
-type Std struct {
-}
-
-type Type struct {
-}
-
-type Reflect struct {
-}
-
-func Reflect_compare(a any, b any) int {
-	toFloat := func(value any) (float64, bool) {
-		switch v := value.(type) {
-		case int:
-			return float64(v), true
-		case int8:
-			return float64(v), true
-		case int16:
-			return float64(v), true
-		case int32:
-			return float64(v), true
-		case int64:
-			return float64(v), true
-		case uint:
-			return float64(v), true
-		case uint8:
-			return float64(v), true
-		case uint16:
-			return float64(v), true
-		case uint32:
-			return float64(v), true
-		case uint64:
-			return float64(v), true
-		case float32:
-			return float64(v), true
-		case float64:
-			return v, true
-		default:
-			return 0, false
-		}
-	}
-	if af, ok := toFloat(a); ok {
-		if bf, okB := toFloat(b); okB {
-			if af < bf {
-				return -1
-			}
-			if af > bf {
-				return 1
-			}
-			return 0
-		}
-	}
-	aStr := *hxrt.StdString(a)
-	bStr := *hxrt.StdString(b)
-	if aStr < bStr {
-		return -1
-	}
-	if aStr > bStr {
-		return 1
-	}
-	return 0
-}
-
-func Reflect_compareMethods(a any, b any) bool {
-	if a == nil || b == nil {
-		return a == nil && b == nil
-	}
-	av := reflect.ValueOf(a)
-	bv := reflect.ValueOf(b)
-	if !av.IsValid() || !bv.IsValid() {
-		return !av.IsValid() && !bv.IsValid()
-	}
-	if av.Kind() == reflect.Func && bv.Kind() == reflect.Func {
-		if av.IsNil() || bv.IsNil() {
-			return av.IsNil() && bv.IsNil()
-		}
-		return av.Pointer() == bv.Pointer()
-	}
-	return reflect.DeepEqual(a, b)
-}
-
-func Reflect_field(obj any, field *string) any {
-	if obj == nil {
-		return nil
-	}
-	key := *hxrt.StdString(field)
-	if metadataValue, ok := hxrt_typeClassMetadataField(obj, key); ok {
-		return metadataValue
-	}
+func hxrt__generated_method_field(obj any, key string) any {
+	var receiver any
 	switch value := obj.(type) {
-	case map[string]any:
-		return value[key]
-	case map[any]any:
-		return value[key]
-	case *map[string]any:
-		if value == nil {
+	case *haxe__ds__EnumValueMap:
+		if (value == nil) || (value.__hx_this == nil) {
 			return nil
 		}
-		return (*value)[key]
-	case *map[any]any:
-		if value == nil {
+		receiver = value.__hx_this
+	case *haxe__ds___EnumValueMap__EnumValueTreeNode:
+		if (value == nil) || (value.__hx_this == nil) {
 			return nil
 		}
-		return (*value)[key]
-	}
-	rv := reflect.ValueOf(obj)
-	if !rv.IsValid() {
+		receiver = value.__hx_this
+	default:
 		return nil
 	}
-	if rv.Kind() == reflect.Pointer {
-		if rv.IsNil() {
-			return nil
-		}
-		rv = rv.Elem()
+	switch value := receiver.(type) {
+	case *haxe__ds__EnumValueMap:
+		return hxrt__generated_method_field__haxe__ds__EnumValueMap(value, key)
+	case *haxe__ds___EnumValueMap__EnumValueTreeNode:
+		return hxrt__generated_method_field__haxe__ds___EnumValueMap__EnumValueTreeNode(value, key)
+	default:
+		return nil
 	}
-	if rv.Kind() == reflect.Struct {
-		if fieldValue := rv.FieldByName(key); fieldValue.IsValid() && fieldValue.CanInterface() {
-			return fieldValue.Interface()
-		}
+}
+
+func hxrt__generated_method_field__haxe__ds__EnumValueMap(value *haxe__ds__EnumValueMap, key string) any {
+	if value == nil {
+		return nil
 	}
-	method := reflect.ValueOf(obj).MethodByName(key)
-	if method.IsValid() {
-		return method.Interface()
+	switch key {
+	case "balance":
+		return value.balance
+	case "clear":
+		return value.clear
+	case "compare":
+		return value.compare
+	case "compareArg":
+		return value.compareArg
+	case "compareArgs":
+		return value.compareArgs
+	case "copy":
+		return value.copy
+	case "copyIMap":
+		return value.copyIMap
+	case "exists":
+		return value.exists
+	case "existsIMap":
+		return value.existsIMap
+	case "get":
+		return value.get
+	case "getIMap":
+		return value.getIMap
+	case "iterator":
+		return value.iterator
+	case "keyValueIterator":
+		return value.keyValueIterator
+	case "keys":
+		return value.keys
+	case "merge":
+		return value.merge
+	case "minBinding":
+		return value.minBinding
+	case "remove":
+		return value.remove
+	case "removeIMap":
+		return value.removeIMap
+	case "removeLoop":
+		return value.removeLoop
+	case "removeMinBinding":
+		return value.removeMinBinding
+	case "set":
+		return value.set
+	case "setIMap":
+		return value.setIMap
+	case "setLoop":
+		return value.setLoop
+	case "toString":
+		return value.toString
 	}
 	return nil
 }
 
-func Reflect_hasField(obj any, field *string) bool {
-	if obj == nil {
-		return false
-	}
-	key := *hxrt.StdString(field)
-	if _, ok := hxrt_typeClassMetadataField(obj, key); ok {
-		return true
-	}
-	switch value := obj.(type) {
-	case map[string]any:
-		_, ok := value[key]
-		return ok
-	case map[any]any:
-		_, ok := value[key]
-		return ok
-	case *map[string]any:
-		if value == nil {
-			return false
-		}
-		_, ok := (*value)[key]
-		return ok
-	case *map[any]any:
-		if value == nil {
-			return false
-		}
-		_, ok := (*value)[key]
-		return ok
-	}
-	rv := reflect.ValueOf(obj)
-	if !rv.IsValid() {
-		return false
-	}
-	if rv.Kind() == reflect.Pointer {
-		if rv.IsNil() {
-			return false
-		}
-		rv = rv.Elem()
-	}
-	if rv.Kind() == reflect.Struct {
-		if rv.FieldByName(key).IsValid() {
-			return true
-		}
-	}
-	return reflect.ValueOf(obj).MethodByName(key).IsValid()
-}
-
-func Reflect_setField(obj any, field *string, value any) {
-	if obj == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-		return
-	}
-	key := *hxrt.StdString(field)
-	switch target := obj.(type) {
-	case map[string]any:
-		target[key] = value
-		return
-	case map[any]any:
-		target[key] = value
-		return
-	case *map[string]any:
-		if target == nil {
-			hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-			return
-		}
-		(*target)[key] = value
-		return
-	case *map[any]any:
-		if target == nil {
-			hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-			return
-		}
-		(*target)[key] = value
-		return
-	}
-	rv := reflect.ValueOf(obj)
-	if !rv.IsValid() || rv.Kind() != reflect.Pointer {
-		return
-	}
-	if rv.IsNil() {
-		hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
-		return
-	}
-	rv = rv.Elem()
-	if rv.Kind() != reflect.Struct {
-		return
-	}
-	fieldValue := rv.FieldByName(key)
-	if !fieldValue.IsValid() || !fieldValue.CanSet() {
-		return
-	}
+func hxrt__generated_method_field__haxe__ds___EnumValueMap__EnumValueTreeNode(value *haxe__ds___EnumValueMap__EnumValueTreeNode, key string) any {
 	if value == nil {
-		fieldValue.Set(reflect.Zero(fieldValue.Type()))
-		return
+		return nil
 	}
-	incoming := reflect.ValueOf(value)
-	if incoming.Type().AssignableTo(fieldValue.Type()) {
-		fieldValue.Set(incoming)
-		return
+	switch key {
+	case "getHeight":
+		return value.getHeight
+	case "toString":
+		return value.toString
 	}
-	if incoming.Type().ConvertibleTo(fieldValue.Type()) {
-		fieldValue.Set(incoming.Convert(fieldValue.Type()))
-		return
-	}
-	if fieldValue.Kind() == reflect.Interface {
-		fieldValue.Set(incoming)
-	}
+	return nil
 }
 
-type haxe__ds__Option struct {
-	tag    int
-	params []any
-}
-
-var haxe__ds__Option_None *haxe__ds__Option = &haxe__ds__Option{tag: 1, params: []any{}}
-
-func haxe__ds__Option_Some(value any) *haxe__ds__Option {
-	return &haxe__ds__Option{tag: 0, params: []any{value}}
+type Type struct {
 }
 
 type ValueType struct {
@@ -422,6 +276,8 @@ func hxrt_typeResolvedEnumName(value any) (string, bool) {
 func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	switch className {
 	case "Main":
+		return nil, false
+	case "Reflect":
 		return nil, false
 	case "haxe.ds.EnumValueMap":
 		return hxrt_typeCallAny(New_haxe__ds__EnumValueMap, args)
@@ -641,6 +497,8 @@ func Type_getSuperClass(c any) any {
 	switch className {
 	case "Main":
 		return nil
+	case "Reflect":
+		return nil
 	case "haxe.ds.EnumValueMap":
 		return nil
 	case "haxe.ds._EnumValueMap.EnumValueTreeNode":
@@ -666,6 +524,8 @@ func Type_getClassFields(c any) *hxrt.Array {
 	switch className {
 	case "Main":
 		return hxrt.NewArray(hxrt.StringFromLiteral("main"))
+	case "Reflect":
+		return hxrt.NewArray(hxrt.StringFromLiteral("callMethod"), hxrt.StringFromLiteral("compare"), hxrt.StringFromLiteral("compareMethods"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("deleteField"), hxrt.StringFromLiteral("field"), hxrt.StringFromLiteral("fields"), hxrt.StringFromLiteral("getProperty"), hxrt.StringFromLiteral("hasField"), hxrt.StringFromLiteral("isEnumValue"), hxrt.StringFromLiteral("isFunction"), hxrt.StringFromLiteral("isObject"), hxrt.StringFromLiteral("makeVarArgs"), hxrt.StringFromLiteral("setField"), hxrt.StringFromLiteral("setProperty"))
 	case "haxe.ds.EnumValueMap":
 		return hxrt.NewArray(hxrt.StringFromLiteral("isEnumValue"), hxrt.StringFromLiteral("keysLoop"), hxrt.StringFromLiteral("valuesLoop"))
 	case "haxe.ds._EnumValueMap.EnumValueTreeNode":
@@ -682,6 +542,8 @@ func Type_getInstanceFields(c any) *hxrt.Array {
 	}
 	switch className {
 	case "Main":
+		return hxrt.NewArray()
+	case "Reflect":
 		return hxrt.NewArray()
 	case "haxe.ds.EnumValueMap":
 		return hxrt.NewArray(hxrt.StringFromLiteral("balance"), hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("compare"), hxrt.StringFromLiteral("compareArg"), hxrt.StringFromLiteral("compareArgs"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("copyIMap"), hxrt.StringFromLiteral("exists"), hxrt.StringFromLiteral("existsIMap"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getIMap"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("merge"), hxrt.StringFromLiteral("minBinding"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("removeIMap"), hxrt.StringFromLiteral("removeLoop"), hxrt.StringFromLiteral("removeMinBinding"), hxrt.StringFromLiteral("root"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setIMap"), hxrt.StringFromLiteral("setLoop"), hxrt.StringFromLiteral("toString"))
@@ -707,6 +569,8 @@ func Type_resolveClass(name *string) any {
 	rawName := *hxrt.StdString(name)
 	switch rawName {
 	case "Main":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "Reflect":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.ds.EnumValueMap":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
@@ -947,12 +811,305 @@ func Type_enumEq(a any, b any) bool {
 }
 
 func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
-	className, ok := hxrt_typeResolvedClassName(value)
-	if !ok {
+	classValue, ok := value.(*hxrt__TypeClassValue)
+	if !ok || classValue == nil {
 		return nil, false
 	}
+	className := *hxrt.StdString(classValue.name)
 	switch className {
 	default:
 		return nil, false
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *string) any {
+	key := *hxrt.StdString(field)
+	var receiver any
+	switch value := object.(type) {
+	case *haxe__ds__EnumValueMap:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ds___EnumValueMap__EnumValueTreeNode:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	default:
+		return nil
+	}
+	switch value := receiver.(type) {
+	case *haxe__ds__EnumValueMap:
+		return hxrt__generated_field_lookup__haxe__ds__EnumValueMap(value, key)
+	case *haxe__ds___EnumValueMap__EnumValueTreeNode:
+		return hxrt__generated_field_lookup__haxe__ds___EnumValueMap__EnumValueTreeNode(value, key)
+	default:
+		return nil
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field *string) bool {
+	key := *hxrt.StdString(field)
+	var receiver any
+	switch value := object.(type) {
+	case *haxe__ds__EnumValueMap:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ds___EnumValueMap__EnumValueTreeNode:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	default:
+		return false
+	}
+	switch value := receiver.(type) {
+	case *haxe__ds__EnumValueMap:
+		return hxrt__generated_field_has__haxe__ds__EnumValueMap(value, key)
+	case *haxe__ds___EnumValueMap__EnumValueTreeNode:
+		return hxrt__generated_field_has__haxe__ds___EnumValueMap__EnumValueTreeNode(value, key)
+	default:
+		return false
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field *string, incoming any) bool {
+	key := *hxrt.StdString(field)
+	var receiver any
+	switch value := object.(type) {
+	case *haxe__ds__EnumValueMap:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ds___EnumValueMap__EnumValueTreeNode:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	default:
+		return false
+	}
+	switch value := receiver.(type) {
+	case *haxe__ds__EnumValueMap:
+		return hxrt__generated_field_set__haxe__ds__EnumValueMap(value, key, incoming)
+	case *haxe__ds___EnumValueMap__EnumValueTreeNode:
+		return hxrt__generated_field_set__haxe__ds___EnumValueMap__EnumValueTreeNode(value, key, incoming)
+	default:
+		return false
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.Array {
+	var receiver any
+	switch value := object.(type) {
+	case *haxe__ds__EnumValueMap:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ds___EnumValueMap__EnumValueTreeNode:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	default:
+		return nil
+	}
+	switch receiver.(type) {
+	case *haxe__ds__EnumValueMap:
+		return hxrt.NewArray(hxrt.StringFromLiteral("root"))
+	case *haxe__ds___EnumValueMap__EnumValueTreeNode:
+		return hxrt.NewArray(hxrt.StringFromLiteral("height"), hxrt.StringFromLiteral("key"), hxrt.StringFromLiteral("left"), hxrt.StringFromLiteral("right"), hxrt.StringFromLiteral("value"))
+	default:
+		return nil
+	}
+}
+
+func hxrt__generated_field_lookup__haxe__ds__EnumValueMap(value *haxe__ds__EnumValueMap, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "root":
+		return value.root
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__ds__EnumValueMap(value *haxe__ds__EnumValueMap, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "root":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__ds__EnumValueMap(value *haxe__ds__EnumValueMap, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "root":
+		if incoming == nil {
+			var zero *haxe__ds___EnumValueMap__EnumValueTreeNode
+			value.root = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *haxe__ds___EnumValueMap__EnumValueTreeNode:
+			value.root = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__ds___EnumValueMap__EnumValueTreeNode(value *haxe__ds___EnumValueMap__EnumValueTreeNode, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "height":
+		return value.height
+	case "key":
+		return value.key
+	case "left":
+		return value.left
+	case "right":
+		return value.right
+	case "value":
+		return value.value
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__ds___EnumValueMap__EnumValueTreeNode(value *haxe__ds___EnumValueMap__EnumValueTreeNode, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "height":
+		return true
+	case "key":
+		return true
+	case "left":
+		return true
+	case "right":
+		return true
+	case "value":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__ds___EnumValueMap__EnumValueTreeNode(value *haxe__ds___EnumValueMap__EnumValueTreeNode, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "height":
+		if incoming == nil {
+			var zero int
+			value.height = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.height = typed
+			return true
+		default:
+			return false
+		}
+	case "key":
+		if incoming == nil {
+			var zero any
+			value.key = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case any:
+			value.key = typed
+			return true
+		default:
+			return false
+		}
+	case "left":
+		if incoming == nil {
+			var zero *haxe__ds___EnumValueMap__EnumValueTreeNode
+			value.left = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *haxe__ds___EnumValueMap__EnumValueTreeNode:
+			value.left = typed
+			return true
+		default:
+			return false
+		}
+	case "right":
+		if incoming == nil {
+			var zero *haxe__ds___EnumValueMap__EnumValueTreeNode
+			value.right = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *haxe__ds___EnumValueMap__EnumValueTreeNode:
+			value.right = typed
+			return true
+		default:
+			return false
+		}
+	case "value":
+		if incoming == nil {
+			var zero any
+			value.value = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case any:
+			value.value = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func reflaxe__go___internal__CompilerReflect_typeField(object any, field *string) any {
+	key := *hxrt.StdString(field)
+	value, found := hxrt_typeClassMetadataField(object, key)
+	if !found {
+		return nil
+	}
+	return value
+}
+
+func reflaxe__go___internal__CompilerReflect_hasTypeField(object any, field *string) bool {
+	key := *hxrt.StdString(field)
+	_, found := hxrt_typeClassMetadataField(object, key)
+	return found
+}
+
+func reflaxe__go___internal__CompilerReflect_generatedMethod(object any, field *string) any {
+	key := *hxrt.StdString(field)
+	return hxrt__generated_method_field(object, key)
+}
+
+func reflaxe__go___internal__CompilerReflect_isEnumValue(value any) bool {
+	switch enumValue := value.(type) {
+	case *CollectionFeatureKey:
+		return (enumValue != nil)
+	default:
+		return false
 	}
 }

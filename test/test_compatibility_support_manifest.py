@@ -185,8 +185,26 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
         self.assertNotIn("Array.iterator", admitted_symbols("portable-collections-and-text"))
 
         reflection = admitted_symbols("portable-reflection")
-        self.assertTrue({"Reflect.hasField", "Reflect.field", "Reflect.setField"} <= reflection)
-        self.assertFalse({"Reflect.compare", "Reflect.getProperty", "Reflect.deleteField"} & reflection)
+        self.assertTrue(
+            {
+                "Reflect.callMethod",
+                "Reflect.compare",
+                "Reflect.compareMethods",
+                "Reflect.copy",
+                "Reflect.deleteField",
+                "Reflect.field",
+                "Reflect.fields",
+                "Reflect.getProperty",
+                "Reflect.hasField",
+                "Reflect.isEnumValue",
+                "Reflect.isFunction",
+                "Reflect.isObject",
+                "Reflect.makeVarArgs",
+                "Reflect.setField",
+                "Reflect.setProperty",
+            }
+            <= reflection
+        )
 
         filesystem = admitted_symbols("portable-filesystem")
         self.assertTrue(

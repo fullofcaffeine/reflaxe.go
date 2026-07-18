@@ -2,6 +2,7 @@ package reflaxe.go.compiler.emit;
 
 #if macro
 import reflaxe.go.ast.GoAST.GoDecl;
+import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoStmt;
 
 /**
@@ -21,16 +22,19 @@ import reflaxe.go.ast.GoAST.GoStmt;
 	before falling back to generic map/struct reflection.
 **/
 class GoRttiMetadataEmitter {
+	public static inline final LOOKUP_SYMBOL = "hxrt_typeClassMetadataField";
+
 	public static function emit(classMetadata:Array<{
 		final haxeTypeName:String;
 		final rttiSymbol:Null<String>;
 		final metaSymbol:Null<String>;
 	}>, goRawQuotedString:String->String):Array<GoDecl> {
 		var body = [
-			GoStmt.GoRaw("className, ok := hxrt_typeResolvedClassName(value)"),
-			GoStmt.GoRaw("if !ok {"),
+			GoStmt.GoMultiAssign(["classValue", "ok"], GoExpr.GoTypeAssert(GoExpr.GoIdent("value"), "*hxrt__TypeClassValue"), true),
+			GoStmt.GoRaw("if !ok || classValue == nil {"),
 			GoStmt.GoRaw("\treturn nil, false"),
 			GoStmt.GoRaw("}"),
+			GoStmt.GoRaw("className := *hxrt.StdString(classValue.name)"),
 			GoStmt.GoRaw("switch className {")
 		];
 
@@ -55,7 +59,7 @@ class GoRttiMetadataEmitter {
 		body.push(GoStmt.GoRaw("}"));
 
 		return [
-			GoDecl.GoFuncDecl("hxrt_typeClassMetadataField", null, [{name: "value", typeName: "any"}, {name: "key", typeName: "string"}], ["any", "bool"], body)
+			GoDecl.GoFuncDecl(LOOKUP_SYMBOL, null, [{name: "value", typeName: "any"}, {name: "key", typeName: "string"}], ["any", "bool"], body)
 		];
 	}
 }

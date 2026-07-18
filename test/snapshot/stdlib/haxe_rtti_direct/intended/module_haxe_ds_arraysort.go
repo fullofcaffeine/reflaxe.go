@@ -69,9 +69,9 @@ func haxe__ds__ArraySort_rec(a *hxrt.Array, cmp func(any, any) int, from int, to
 		_g := int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(1))))
 		_g1 := to
 		for _g < _g1 {
-			hx_post_820 := _g
+			hx_post_825 := _g
 			_g = int(int32((_g + 1)))
-			i := hx_post_820
+			i := hx_post_825
 			j := i
 			for j > from {
 				if cmp(a.Get(j), a.Get(int(int32((hxrt.Int32Wrap(j)-hxrt.Int32Wrap(1)))))) < 0 {
@@ -96,18 +96,18 @@ func haxe__ds__ArraySort_rotate(a *hxrt.Array, cmp func(any, any) int, from int,
 	}
 	n = haxe__ds__ArraySort_gcd(int(int32((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from)))), int(int32((hxrt.Int32Wrap(mid) - hxrt.Int32Wrap(from)))))
 	for func() int {
-		hx_post_821 := n
+		hx_post_826 := n
 		n = int(int32((n - 1)))
-		return hx_post_821
+		return hx_post_826
 	}() != 0 {
 		var val any = a.Get(int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n)))))
 		shift := int(int32((hxrt.Int32Wrap(mid) - hxrt.Int32Wrap(from))))
 		p1 := int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n))))
 		p2 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n))))) + hxrt.Int32Wrap(shift))))
 		for p2 != int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n)))) {
-			hx_array_target_822 := a
-			hx_array_index_823 := p1
-			hx_array_target_822.Set(hx_array_index_823, a.Get(p2))
+			hx_array_target_827 := a
+			hx_array_index_828 := p1
+			hx_array_target_827.Set(hx_array_index_828, a.Get(p2))
 			p1 = p2
 			if int(int32((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(p2)))) > shift {
 				p2 = int(int32((hxrt.Int32Wrap(p2) + hxrt.Int32Wrap(shift))))
@@ -115,9 +115,9 @@ func haxe__ds__ArraySort_rotate(a *hxrt.Array, cmp func(any, any) int, from int,
 				p2 = int(int32((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(shift) - hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(p2))))))))))))
 			}
 		}
-		hx_array_target_824 := a
-		hx_array_index_825 := p1
-		hx_array_target_824.Set(hx_array_index_825, val)
+		hx_array_target_829 := a
+		hx_array_index_830 := p1
+		hx_array_target_829.Set(hx_array_index_830, val)
 	}
 }
 
@@ -127,12 +127,12 @@ func haxe__ds__ArraySort_sort(a *hxrt.Array, cmp func(any, any) int) {
 
 func haxe__ds__ArraySort_swap(a *hxrt.Array, i int, j int) {
 	var tmp any = a.Get(i)
-	hx_array_target_826 := a
-	hx_array_index_827 := i
-	hx_array_target_826.Set(hx_array_index_827, a.Get(j))
-	hx_array_target_828 := a
-	hx_array_index_829 := j
-	hx_array_target_828.Set(hx_array_index_829, tmp)
+	hx_array_target_831 := a
+	hx_array_index_832 := i
+	hx_array_target_831.Set(hx_array_index_832, a.Get(j))
+	hx_array_target_833 := a
+	hx_array_index_834 := j
+	hx_array_target_833.Set(hx_array_index_834, tmp)
 }
 
 func haxe__ds__ArraySort_upper(a *hxrt.Array, cmp func(any, any) int, from int, to int, val int) int {

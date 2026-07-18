@@ -43,6 +43,7 @@
         "std/go/*.hx",
         "std/haxe/**/*.hx",
         "std/hxrt/**/*.hx",
+        "std/reflaxe/go/internal/**/*.hx",
         "std/sys/**/*.hx"
       ],
       "declaredLicenses": [

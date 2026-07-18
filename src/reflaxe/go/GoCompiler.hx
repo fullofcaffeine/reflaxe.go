@@ -22,7 +22,9 @@ import reflaxe.go.compiler.GoStdlibShimClassifier;
 import reflaxe.go.compiler.GoStdlibOwnership;
 import reflaxe.go.compiler.GoTestAstFixtureEmitter;
 import reflaxe.go.compiler.GoTypeMapper;
+import reflaxe.go.compiler.emit.GoGeneratedFieldMetadataEmitter;
 import reflaxe.go.compiler.emit.GoGeneratedMethodMetadataEmitter;
+import reflaxe.go.compiler.emit.GoReflectMetadataEmitter;
 import reflaxe.go.compiler.emit.GoTypeReflectionEmitter;
 import reflaxe.go.compiler.emit.GoRttiMetadataEmitter;
 import reflaxe.go.compiler.emit.GoSerializationSourceBridgeEmitter;
@@ -169,6 +171,29 @@ private typedef GeneratedMethodClassMetadata = {
 	}>;
 }
 
+private typedef GeneratedFieldMetadataSeed = {
+	final className:String;
+	final goTypeName:String;
+	final parentClassName:Null<String>;
+	final ownFields:Array<{
+		final lookupKey:String;
+		final selector:String;
+		final typeName:GoType;
+	}>;
+}
+
+private typedef GeneratedFieldClassMetadata = {
+	final goTypeName:String;
+	final parentGoTypeName:Null<String>;
+	final participatesInLookup:Bool;
+	final allFields:Array<String>;
+	final ownFields:Array<{
+		final lookupKey:String;
+		final selector:String;
+		final typeName:GoType;
+	}>;
+}
+
 private typedef GoResultMethodCall = {
 	final target:TypedExpr;
 	final methodName:String;
@@ -253,8 +278,10 @@ class GoCompiler {
 	final throwFallbackSuppressionDepthScopes:Array<Int>;
 	var cachedVoidType:Null<Type>;
 	var requiresEqualitySurface:Bool;
-	var requiresReflectFieldsShim:Bool;
+	var requiresReflectTypeFieldMetadata:Bool;
+	var requiresReflectEnumValueMetadata:Bool;
 	var requiresGeneratedMethodLookup:Bool;
+	var requiresGeneratedFieldLookup:Bool;
 	var projectClasses:Array<ClassType>;
 	var projectEnums:Array<EnumType>;
 	final availableClassesByName:Map<String, ClassType>;
@@ -264,7 +291,9 @@ class GoCompiler {
 	final requiredSourceOwnedClassNames:Map<String, Bool>;
 	final requiredNominalClassTypeNames:Map<String, Bool>;
 	final generatedMethodMetadataByClassName:Map<String, GeneratedMethodMetadataSeed>;
+	final generatedFieldMetadataByClassName:Map<String, GeneratedFieldMetadataSeed>;
 	var generatedMethodMetadataPlan:Array<GeneratedMethodClassMetadata>;
+	var generatedFieldMetadataPlan:Array<GeneratedFieldClassMetadata>;
 	var globalLeafReceiverTypes:Map<String, Bool>;
 	var tempVarCounter:Int;
 	var requiresTypeValueSupport:Bool;
@@ -307,8 +336,10 @@ class GoCompiler {
 		throwFallbackSuppressionDepthScopes = [];
 		cachedVoidType = null;
 		requiresEqualitySurface = false;
-		requiresReflectFieldsShim = false;
+		requiresReflectTypeFieldMetadata = false;
+		requiresReflectEnumValueMetadata = false;
 		requiresGeneratedMethodLookup = false;
+		requiresGeneratedFieldLookup = false;
 		projectClasses = [];
 		projectEnums = [];
 		availableClassesByName = new Map<String, ClassType>();
@@ -318,7 +349,9 @@ class GoCompiler {
 		requiredSourceOwnedClassNames = new Map<String, Bool>();
 		requiredNominalClassTypeNames = new Map<String, Bool>();
 		generatedMethodMetadataByClassName = new Map<String, GeneratedMethodMetadataSeed>();
+		generatedFieldMetadataByClassName = new Map<String, GeneratedFieldMetadataSeed>();
 		generatedMethodMetadataPlan = [];
+		generatedFieldMetadataPlan = [];
 		sourceModuleRegistry = new GoSourceModuleRegistry(normalizeModuleLabel, normalizeSourcePath, sourceModuleToFilePath);
 		sourceOwnedStdlibPlanner = new GoSourceOwnedStdlibPlanner({
 			availableClassesByName: availableClassesByName,
@@ -381,10 +414,14 @@ class GoCompiler {
 		syncCompilationContextLeafReceivers();
 		clearBoolMap(compilationContext.leafReturningFunctions);
 		requiresEqualitySurface = false;
-		requiresReflectFieldsShim = false;
+		requiresReflectTypeFieldMetadata = false;
+		requiresReflectEnumValueMetadata = false;
 		requiresGeneratedMethodLookup = false;
+		requiresGeneratedFieldLookup = false;
 		clearGeneratedMethodMetadata();
+		clearGeneratedFieldMetadata();
 		generatedMethodMetadataPlan = [];
+		generatedFieldMetadataPlan = [];
 		resetRequiredNativeChanElementTypes();
 		resetRequiredNativeSliceElementTypes();
 		resetRequiredNativeMapTypePairs();
@@ -425,12 +462,13 @@ class GoCompiler {
 		drainPendingClassQueue(moduleDecls, classQueue, queuedClassNames, projectClasses);
 		drainPendingEnumQueue(moduleDecls, enumQueue, queuedEnumNames, projectEnums);
 
-		// Type reflection shims emitted with stdlib symbols rely on the same runtime
-		// class/enum marker structs used by TTypeExpr lowering.
-		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
+		// Exact Type and Reflect metadata adapters share the class-token carrier used
+		// by TTypeExpr lowering, without selecting ordinary runtime reflection.
+		if (requiredStdlibShimGroups.exists("type_metadata") || requiresReflectTypeFieldMetadata) {
 			requiresTypeValueSupport = true;
 		}
 		generatedMethodMetadataPlan = requiresGeneratedMethodLookup ? generatedMethodClassMetadata() : [];
+		generatedFieldMetadataPlan = requiresGeneratedFieldLookup ? generatedFieldClassMetadata() : [];
 
 		var preludeDecls = new Array<GoDecl>();
 		if (requiresTypeValueSupport) {
@@ -601,7 +639,7 @@ class GoCompiler {
 
 	function buildSupportImports():Array<String> {
 		var imports = [compilationContext.runtimeImportPath];
-		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
+		if (requiredStdlibShimGroups.exists("type_metadata")) {
 			imports.push("reflect");
 			imports.push("strings");
 		}
@@ -1332,6 +1370,75 @@ class GoCompiler {
 		});
 	}
 
+	/**
+		What: Record exact generated field selectors and their emitted Go types.
+
+		Why: Lowercase Haxe fields cannot cross the separate hxrt package through Go
+		reflection, and a Dynamic setter still needs a checked assignment to the exact
+		generated storage type.
+
+		How: Capture only own stored variables and dynamic-method slots. The final
+		metadata pass retains the same canonical-receiver and superclass topology used
+		by generated method lookup.
+	**/
+	function recordGeneratedFieldMetadata(classType:ClassType, goTypeName:String, superClass:Null<ClassType>):Void {
+		var ownFields = new Array<{
+			final lookupKey:String;
+			final selector:String;
+			final typeName:GoType;
+		}>();
+		for (field in classType.fields.get()) {
+			switch (field.kind) {
+				case FVar(readAccess, writeAccess) if (hasReflectableGeneratedFieldStorage(readAccess, writeAccess)):
+					ownFields.push({
+						lookupKey: field.name,
+						selector: normalizeIdent(field.name),
+						typeName: scalarGoType(field.type)
+					});
+				case FMethod(MethDynamic):
+					ownFields.push({
+						lookupKey: field.name,
+						selector: normalizeIdent(field.name),
+						typeName: scalarGoType(field.type)
+					});
+				case _:
+			}
+		}
+		ownFields.sort(function(a, b) {
+			var byKey = Reflect.compare(a.lookupKey, b.lookupKey);
+			return byKey == 0 ? Reflect.compare(a.selector, b.selector) : byKey;
+		});
+		var className = fullClassName(classType);
+		generatedFieldMetadataByClassName.set(className, {
+			className: className,
+			goTypeName: goTypeName,
+			parentClassName: superClass == null ? null : fullClassName(superClass),
+			ownFields: ownFields
+		});
+	}
+
+	/**
+		What: Distinguish stored Haxe variables from accessor-only properties.
+
+		Why: Go class lowering carries a zero-value slot for every typed `FVar`, but
+		Haxe reflection does not expose a `get`/`set`-only property as a field. Treating
+		that target representation slot as source-visible would make `field`,
+		`hasField`, and `fields` disagree with the interpreter.
+
+		How: Admit the field when either access path is a real storage access. Mixed
+		`default`/accessor properties retain their backing slot; pure accessor pairs do
+		not enter generated reflection metadata.
+	**/
+	function hasReflectableGeneratedFieldStorage(readAccess:VarAccess, writeAccess:VarAccess):Bool {
+		function isStorageAccess(access:VarAccess):Bool {
+			return switch (access) {
+				case AccNormal | AccInline | AccRequire(_, _): true;
+				case _: false;
+			};
+		}
+		return isStorageAccess(readAccess) || isStorageAccess(writeAccess);
+	}
+
 	function generatedMethodResolverSymbol(goTypeName:String):String {
 		return "hxrt__generated_method_field__" + goTypeName;
 	}
@@ -1408,6 +1515,117 @@ class GoCompiler {
 				parentGoTypeName: parentSeed == null ? null : parentSeed.goTypeName,
 				parentResolverSymbol: parentSeed == null ? null : generatedMethodResolverSymbol(parentSeed.goTypeName),
 				ownMethods: seed.ownMethods.copy()
+			});
+		}
+		return entries;
+	}
+
+	/**
+		What: Select the generated-class topology needed by field get/has/set adapters.
+
+		Why: Emitting three per-class resolvers for a class with no own or inherited
+		stored fields adds footprint without providing a successful lookup path, while
+		descendants and ancestors on an effective inheritance path must remain linked.
+
+		How: Mark classes with own fields, propagate the mark to descendants, then add
+		every generated ancestor required for one-step superclass fallback.
+	**/
+	function relevantGeneratedFieldClassNames(seeds:Array<GeneratedFieldMetadataSeed>):Map<String, Bool> {
+		var effective = new Map<String, Bool>();
+		for (seed in seeds) {
+			if (seed.ownFields.length > 0) {
+				effective.set(seed.className, true);
+			}
+		}
+		var changed = true;
+		while (changed) {
+			changed = false;
+			for (seed in seeds) {
+				if (effective.exists(seed.className) || seed.parentClassName == null || !effective.exists(seed.parentClassName)) {
+					continue;
+				}
+				effective.set(seed.className, true);
+				changed = true;
+			}
+		}
+
+		var relevant = new Map<String, Bool>();
+		for (className in effective.keys()) {
+			relevant.set(className, true);
+		}
+		for (seed in seeds) {
+			if (seed.ownFields.length == 0) {
+				continue;
+			}
+			var current:Null<GeneratedFieldMetadataSeed> = seed;
+			var visited = new Map<String, Bool>();
+			while (current != null && !visited.exists(current.className)) {
+				visited.set(current.className, true);
+				relevant.set(current.className, true);
+				current = current.parentClassName == null ? null : generatedFieldMetadataByClassName.get(current.parentClassName);
+			}
+		}
+		return relevant;
+	}
+
+	/**
+		What: Build the complete source-visible stored-field set for one generated class.
+
+		Why: `Reflect.fields` observes the canonical runtime class even through a Haxe
+		superclass upcast, while cross-package Go reflection cannot enumerate lowercase
+		generated members and would expose embedded Go carrier fields instead.
+
+		How: Walk the generated superclass chain root-first, deduplicate Haxe lookup
+		keys, and sort the result for deterministic output. Accessor-only properties were
+		already removed when each seed was recorded.
+	**/
+	function allGeneratedFieldNames(seed:GeneratedFieldMetadataSeed):Array<String> {
+		var chain = new Array<GeneratedFieldMetadataSeed>();
+		var current:Null<GeneratedFieldMetadataSeed> = seed;
+		var visited = new Map<String, Bool>();
+		while (current != null && !visited.exists(current.className)) {
+			visited.set(current.className, true);
+			chain.unshift(current);
+			current = current.parentClassName == null ? null : generatedFieldMetadataByClassName.get(current.parentClassName);
+		}
+		var names = new Map<String, Bool>();
+		for (entry in chain) {
+			for (field in entry.ownFields) {
+				names.set(field.lookupKey, true);
+			}
+		}
+		var sorted = [for (name in names.keys()) name];
+		sorted.sort(Reflect.compare);
+		return sorted;
+	}
+
+	/**
+		What: Finalize exact generated-class field metadata for typed adapters.
+
+		Why: Lookup helpers need only classes with effective stored fields, but
+		enumeration must classify every generated carrier—including an empty class—to
+		avoid falling through to native Go struct reflection.
+
+		How: Retain every generated seed, mark only the lookup-relevant topology for
+		per-class get/has/set resolvers, and attach the complete inherited field-name
+		set used by the canonical enumeration switch.
+	**/
+	function generatedFieldClassMetadata():Array<GeneratedFieldClassMetadata> {
+		var seeds = [for (seed in generatedFieldMetadataByClassName) seed];
+		seeds.sort(function(a, b) return Reflect.compare(a.goTypeName, b.goTypeName));
+		var relevantClassNames = relevantGeneratedFieldClassNames(seeds);
+		var entries = new Array<GeneratedFieldClassMetadata>();
+		for (seed in seeds) {
+			var parentSeed:Null<GeneratedFieldMetadataSeed> = seed.parentClassName == null ? null : generatedFieldMetadataByClassName.get(seed.parentClassName);
+			if (parentSeed != null && !relevantClassNames.exists(parentSeed.className)) {
+				parentSeed = null;
+			}
+			entries.push({
+				goTypeName: seed.goTypeName,
+				parentGoTypeName: parentSeed == null ? null : parentSeed.goTypeName,
+				participatesInLookup: relevantClassNames.exists(seed.className),
+				allFields: allGeneratedFieldNames(seed),
+				ownFields: seed.ownFields.copy()
 			});
 		}
 		return entries;
@@ -1674,6 +1892,13 @@ class GoCompiler {
 		}
 	}
 
+	function clearGeneratedFieldMetadata():Void {
+		var keys = [for (key in generatedFieldMetadataByClassName.keys()) key];
+		for (key in keys) {
+			generatedFieldMetadataByClassName.remove(key);
+		}
+	}
+
 	function clearEnumMap(map:Map<String, EnumType>):Void {
 		var keys = [for (key in map.keys()) key];
 		for (key in keys) {
@@ -1846,6 +2071,12 @@ class GoCompiler {
 		var decls = new Array<GoDecl>();
 		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
 			decls = decls.concat(lowerStdlibSymbolShimDecls());
+		}
+		if (requiredStdlibShimGroups.exists("type_metadata")) {
+			decls = decls.concat(lowerTypeMetadataShimDecls());
+		}
+		if (requiredStdlibShimGroups.exists("reflect_metadata")) {
+			decls = decls.concat(lowerReflectMetadataShimDecls());
 		}
 		decls = decls.concat(lowerSerializationSourceBridgeShimDecls());
 		if (requiredStdlibShimGroups.exists("go_concurrency")) {
@@ -2390,294 +2621,10 @@ class GoCompiler {
 		return decls;
 	}
 
-	/**
-		What: Query compiler-generated lowercase method metadata from the current
-		compiler-owned `Reflect.field` / `Reflect.hasField` bridge.
-
-		Why: Native struct fields must retain precedence and exported Go methods must
-		remain the final fallback. Keeping this insertion typed makes that ordering
-		explicit without extending the bridge's legacy raw reflection implementation.
-
-		How: Emit the call only when a reachable Reflect consumer requested the
-		capability, and return immediately only for a non-null bound method value.
-	**/
-	function generatedMethodReflectLookupStmts(returnPresence:Bool):Array<GoStmt> {
-		if (generatedMethodMetadataPlan.length == 0) {
-			return [];
-		}
-		var methodValue = GoExpr.GoIdent("generatedMethod");
-		var returnValue:GoExpr = returnPresence ? GoExpr.GoBoolLiteral(true) : methodValue;
-		return [
-			GoStmt.GoVarDecl("generatedMethod", null,
-				GoExpr.GoCall(GoExpr.GoIdent(GoGeneratedMethodMetadataEmitter.LOOKUP_SYMBOL), [GoExpr.GoIdent("obj"), GoExpr.GoIdent("key")]), true),
-			GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.NotEqual, methodValue, GoExpr.GoNil), [GoStmt.GoReturn(returnValue)], null)
-		];
-	}
-
 	function lowerStdlibSymbolShimDecls():Array<GoDecl> {
-		var decls = [
+		return [
 			GoDecl.GoStructDecl("Std", []),
-			GoDecl.GoStructDecl("Type", []),
-			GoDecl.GoStructDecl("Reflect", []),
-			GoDecl.GoFuncDecl("Reflect_compare", null, [
-				{
-					name: "a",
-					typeName: "any"
-				},
-				{name: "b", typeName: "any"}
-			], ["int"], [
-				GoStmt.GoRaw("toFloat := func(value any) (float64, bool) {"),
-				GoStmt.GoRaw("\tswitch v := value.(type) {"),
-				GoStmt.GoRaw("\tcase int:"),
-				GoStmt.GoRaw("\t\treturn float64(v), true"),
-				GoStmt.GoRaw("\tcase int8:"),
-				GoStmt.GoRaw("\t\treturn float64(v), true"),
-				GoStmt.GoRaw("\tcase int16:"),
-				GoStmt.GoRaw("\t\treturn float64(v), true"),
-				GoStmt.GoRaw("\tcase int32:"),
-				GoStmt.GoRaw("\t\treturn float64(v), true"),
-				GoStmt.GoRaw("\tcase int64:"),
-				GoStmt.GoRaw("\t\treturn float64(v), true"),
-				GoStmt.GoRaw("\tcase uint:"),
-				GoStmt.GoRaw("\t\treturn float64(v), true"),
-				GoStmt.GoRaw("\tcase uint8:"),
-				GoStmt.GoRaw("\t\treturn float64(v), true"),
-				GoStmt.GoRaw("\tcase uint16:"),
-				GoStmt.GoRaw("\t\treturn float64(v), true"),
-				GoStmt.GoRaw("\tcase uint32:"),
-				GoStmt.GoRaw("\t\treturn float64(v), true"),
-				GoStmt.GoRaw("\tcase uint64:"),
-				GoStmt.GoRaw("\t\treturn float64(v), true"),
-				GoStmt.GoRaw("\tcase float32:"),
-				GoStmt.GoRaw("\t\treturn float64(v), true"),
-				GoStmt.GoRaw("\tcase float64:"),
-				GoStmt.GoRaw("\t\treturn v, true"),
-				GoStmt.GoRaw("\tdefault:"),
-				GoStmt.GoRaw("\t\treturn 0, false"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if af, ok := toFloat(a); ok {"),
-				GoStmt.GoRaw("\tif bf, okB := toFloat(b); okB {"),
-				GoStmt.GoRaw("\t\tif af < bf {"),
-				GoStmt.GoRaw("\t\t\treturn -1"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\tif af > bf {"),
-				GoStmt.GoRaw("\t\t\treturn 1"),
-				GoStmt.GoRaw("\t\t}"),
-				GoStmt.GoRaw("\t\treturn 0"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("aStr := *hxrt.StdString(a)"),
-				GoStmt.GoRaw("bStr := *hxrt.StdString(b)"),
-				GoStmt.GoRaw("if aStr < bStr {"),
-				GoStmt.GoRaw("\treturn -1"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if aStr > bStr {"),
-				GoStmt.GoRaw("\treturn 1"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoIntLiteral(0))
-			]),
-			GoDecl.GoFuncDecl("Reflect_compareMethods", null, [
-				{
-					name: "a",
-					typeName: "any"
-				},
-				{name: "b", typeName: "any"}
-			], ["bool"], [
-				GoStmt.GoRaw("if a == nil || b == nil {"),
-				GoStmt.GoRaw("\treturn a == nil && b == nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("av := reflect.ValueOf(a)"),
-				GoStmt.GoRaw("bv := reflect.ValueOf(b)"),
-				GoStmt.GoRaw("if !av.IsValid() || !bv.IsValid() {"),
-				GoStmt.GoRaw("\treturn !av.IsValid() && !bv.IsValid()"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if av.Kind() == reflect.Func && bv.Kind() == reflect.Func {"),
-				GoStmt.GoRaw("\tif av.IsNil() || bv.IsNil() {"),
-				GoStmt.GoRaw("\t\treturn av.IsNil() && bv.IsNil()"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\treturn av.Pointer() == bv.Pointer()"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("return reflect.DeepEqual(a, b)")
-			]),
-			GoDecl.GoFuncDecl("Reflect_field", null, [
-				{
-					name: "obj",
-					typeName: "any"
-				},
-				{name: "field", typeName: "*string"}
-			], ["any"], [
-				GoStmt.GoRaw("if obj == nil {"),
-				GoStmt.GoRaw("\treturn nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("key := *hxrt.StdString(field)"),
-				GoStmt.GoRaw("if metadataValue, ok := hxrt_typeClassMetadataField(obj, key); ok {"),
-				GoStmt.GoRaw("\treturn metadataValue"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("switch value := obj.(type) {"),
-				GoStmt.GoRaw("case map[string]any:"),
-				GoStmt.GoRaw("\treturn value[key]"),
-				GoStmt.GoRaw("case map[any]any:"),
-				GoStmt.GoRaw("\treturn value[key]"),
-				GoStmt.GoRaw("case *map[string]any:"),
-				GoStmt.GoRaw("\tif value == nil {"),
-				GoStmt.GoRaw("\t\treturn nil"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\treturn (*value)[key]"),
-				GoStmt.GoRaw("case *map[any]any:"),
-				GoStmt.GoRaw("\tif value == nil {"),
-				GoStmt.GoRaw("\t\treturn nil"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\treturn (*value)[key]"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("rv := reflect.ValueOf(obj)"),
-				GoStmt.GoRaw("if !rv.IsValid() {"),
-				GoStmt.GoRaw("\treturn nil"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if rv.Kind() == reflect.Pointer {"),
-				GoStmt.GoRaw("\tif rv.IsNil() {"),
-				GoStmt.GoRaw("\t\treturn nil"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\trv = rv.Elem()"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if rv.Kind() == reflect.Struct {"),
-				GoStmt.GoRaw("\tif fieldValue := rv.FieldByName(key); fieldValue.IsValid() && fieldValue.CanInterface() {"),
-				GoStmt.GoRaw("\t\treturn fieldValue.Interface()"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}")
-			].concat(generatedMethodReflectLookupStmts(false)).concat([
-				GoStmt.GoRaw("method := reflect.ValueOf(obj).MethodByName(key)"),
-				GoStmt.GoRaw("if method.IsValid() {"),
-				GoStmt.GoRaw("\treturn method.Interface()"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoReturn(GoExpr.GoNil)
-				])),
-			GoDecl.GoFuncDecl("Reflect_hasField", null, [
-				{
-					name: "obj",
-					typeName: "any"
-				},
-				{name: "field", typeName: "*string"}
-			], ["bool"], [
-				GoStmt.GoRaw("if obj == nil {"),
-				GoStmt.GoRaw("\treturn false"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("key := *hxrt.StdString(field)"),
-				GoStmt.GoRaw("if _, ok := hxrt_typeClassMetadataField(obj, key); ok {"),
-				GoStmt.GoRaw("\treturn true"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("switch value := obj.(type) {"),
-				GoStmt.GoRaw("case map[string]any:"),
-				GoStmt.GoRaw("\t_, ok := value[key]"),
-				GoStmt.GoRaw("\treturn ok"),
-				GoStmt.GoRaw("case map[any]any:"),
-				GoStmt.GoRaw("\t_, ok := value[key]"),
-				GoStmt.GoRaw("\treturn ok"),
-				GoStmt.GoRaw("case *map[string]any:"),
-				GoStmt.GoRaw("\tif value == nil {"),
-				GoStmt.GoRaw("\t\treturn false"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\t_, ok := (*value)[key]"),
-				GoStmt.GoRaw("\treturn ok"),
-				GoStmt.GoRaw("case *map[any]any:"),
-				GoStmt.GoRaw("\tif value == nil {"),
-				GoStmt.GoRaw("\t\treturn false"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\t_, ok := (*value)[key]"),
-				GoStmt.GoRaw("\treturn ok"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("rv := reflect.ValueOf(obj)"),
-				GoStmt.GoRaw("if !rv.IsValid() {"),
-				GoStmt.GoRaw("\treturn false"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if rv.Kind() == reflect.Pointer {"),
-				GoStmt.GoRaw("\tif rv.IsNil() {"),
-				GoStmt.GoRaw("\t\treturn false"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\trv = rv.Elem()"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if rv.Kind() == reflect.Struct {"),
-				GoStmt.GoRaw("\tif rv.FieldByName(key).IsValid() {"),
-				GoStmt.GoRaw("\t\treturn true"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("}")
-			].concat(generatedMethodReflectLookupStmts(true)).concat([GoStmt.GoRaw("return reflect.ValueOf(obj).MethodByName(key).IsValid()")])),
-			GoDecl.GoFuncDecl("Reflect_setField", null, [
-				{
-					name: "obj",
-					typeName: "any"
-				},
-				{name: "field", typeName: "*string"},
-				{name: "value", typeName: "any"}
-			], [], [
-				GoStmt.GoRaw("if obj == nil {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Null Access\"))"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("key := *hxrt.StdString(field)"),
-				GoStmt.GoRaw("switch target := obj.(type) {"),
-				GoStmt.GoRaw("case map[string]any:"),
-				GoStmt.GoRaw("\ttarget[key] = value"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("case map[any]any:"),
-				GoStmt.GoRaw("\ttarget[key] = value"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("case *map[string]any:"),
-				GoStmt.GoRaw("\tif target == nil {"),
-				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Null Access\"))"),
-				GoStmt.GoRaw("\t\treturn"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\t(*target)[key] = value"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("case *map[any]any:"),
-				GoStmt.GoRaw("\tif target == nil {"),
-				GoStmt.GoRaw("\t\thxrt.Throw(hxrt.StringFromLiteral(\"Null Access\"))"),
-				GoStmt.GoRaw("\t\treturn"),
-				GoStmt.GoRaw("\t}"),
-				GoStmt.GoRaw("\t(*target)[key] = value"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("rv := reflect.ValueOf(obj)"),
-				GoStmt.GoRaw("if !rv.IsValid() || rv.Kind() != reflect.Pointer {"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if rv.IsNil() {"),
-				GoStmt.GoRaw("\thxrt.Throw(hxrt.StringFromLiteral(\"Null Access\"))"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("rv = rv.Elem()"),
-				GoStmt.GoRaw("if rv.Kind() != reflect.Struct {"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("fieldValue := rv.FieldByName(key)"),
-				GoStmt.GoRaw("if !fieldValue.IsValid() || !fieldValue.CanSet() {"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if value == nil {"),
-				GoStmt.GoRaw("\tfieldValue.Set(reflect.Zero(fieldValue.Type()))"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("incoming := reflect.ValueOf(value)"),
-				GoStmt.GoRaw("if incoming.Type().AssignableTo(fieldValue.Type()) {"),
-				GoStmt.GoRaw("\tfieldValue.Set(incoming)"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if incoming.Type().ConvertibleTo(fieldValue.Type()) {"),
-				GoStmt.GoRaw("\tfieldValue.Set(incoming.Convert(fieldValue.Type()))"),
-				GoStmt.GoRaw("\treturn"),
-				GoStmt.GoRaw("}"),
-				GoStmt.GoRaw("if fieldValue.Kind() == reflect.Interface {"),
-				GoStmt.GoRaw("\tfieldValue.Set(incoming)"),
-				GoStmt.GoRaw("}")
-			]),
-			GoDecl.GoStructDecl("haxe__ds__Option",
-				[
-					{
-						name: "tag",
-						typeName: "int"
-					},
-					{name: "params", typeName: "[]any"}
-				]),
+			GoDecl.GoStructDecl("haxe__ds__Option", [{name: "tag", typeName: "int"}, {name: "params", typeName: "[]any"}]),
 			GoDecl.GoGlobalVarDecl("haxe__ds__Option_None", "*haxe__ds__Option", GoExpr.GoRaw("&haxe__ds__Option{tag: 1, params: []any{}}")),
 			GoDecl.GoFuncDecl("haxe__ds__Option_Some", null, [
 				{
@@ -2685,91 +2632,57 @@ class GoCompiler {
 					typeName: "any"
 				}
 			], ["*haxe__ds__Option"],
-				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__Option{tag: 0, params: []any{value}}"))]),
+				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__Option{tag: 0, params: []any{value}}"))])
 		];
-		if (requiresReflectFieldsShim) {
-			decls.push(reflectFieldsShimDecl());
+	}
+
+	/**
+		What: Emit only the exact Type operations that consume the finalized class,
+		enum, constructor, and representation tables.
+
+		Why: Type metadata authority is compile-context-sensitive, but it must not
+		select ordinary Reflect runtime behavior or share its ownership group.
+
+		How: Keep the nominal extern carrier beside the dedicated typed metadata
+		emitter and register the public operations individually in the canonical
+		intrinsic registry.
+	**/
+	function lowerTypeMetadataShimDecls():Array<GoDecl> {
+		return [GoDecl.GoStructDecl("Type",
+			[])].concat(GoTypeReflectionEmitter.emit(typeReflectionClassMetadata(), typeReflectionEnumMetadata(), goRawQuotedString, goStringArrayCarrierLiteral));
+	}
+
+	/**
+		What: Emit same-package metadata adapters used by staged Reflect.
+
+		Why: RTTI symbols, lowercase generated members, and exact enum carriers cannot
+		be discovered by the separate hxrt package without a registry or unsafe access.
+
+		How: Emit only the adapter families selected by reachable Reflect operations;
+		ordinary map, struct, and function inspection stays in runtime/hxrt/reflect.go.
+	**/
+	function lowerReflectMetadataShimDecls():Array<GoDecl> {
+		var decls = new Array<GoDecl>();
+		if (requiresReflectTypeFieldMetadata) {
+			decls = decls.concat(GoRttiMetadataEmitter.emit(rttiClassMetadata(), goRawQuotedString));
 		}
-		decls = decls.concat(lowerTypeReflectionShimDecls());
+		if (requiresGeneratedFieldLookup) {
+			decls = decls.concat(GoGeneratedFieldMetadataEmitter.emit(generatedFieldMetadataPlan));
+		}
+		// Haxe emits the complete staged Reflect class once any of its public API is
+		// selected. Keep the referenced enum adapter link-complete even when the
+		// original call site used another Reflect member; an empty reachable-enum
+		// set still lowers to the tiny typed `false` stub.
+		var requiresEnumValueAdapter = requiresReflectEnumValueMetadata || requiredSourceOwnedClassNames.exists("Reflect");
+		var enumGoTypeNames = requiresEnumValueAdapter ? [for (entry in typeReflectionEnumMetadata()) entry.goTypeName] : [];
+		decls = decls.concat(GoReflectMetadataEmitter.emit(requiresReflectTypeFieldMetadata, requiresGeneratedMethodLookup,
+			generatedMethodMetadataPlan.length > 0, requiresEnumValueAdapter, enumGoTypeNames));
 		return decls;
 	}
 
 	function lowerSerializationSourceBridgeShimDecls():Array<GoDecl> {
 		return GoSerializationSourceBridgeEmitter.emit(requiredSourceOwnedClassNames.exists("haxe.Serializer"),
 			requiredSourceOwnedClassNames.exists("haxe.Unserializer"));
-	}
-
-	function reflectFieldsShimDecl():GoDecl {
-		return GoDecl.GoFuncDecl("Reflect_fields", null, [
-			{
-				name: "obj",
-				typeName: "any"
-			}
-		], ["*hxrt.Array"], [
-			GoStmt.GoRaw("if obj == nil {"),
-			GoStmt.GoRaw("\treturn hxrt.NewArray()"),
-			GoStmt.GoRaw("}"),
-			GoStmt.GoRaw("switch value := obj.(type) {"),
-			GoStmt.GoRaw("case map[string]any:"),
-			GoStmt.GoRaw("\tkeys := hxrt.NewArray()"),
-			GoStmt.GoRaw("\tfor key := range value {"),
-			GoStmt.GoRaw("\t\tkeys.Push(hxrt.StringFromLiteral(key))"),
-			GoStmt.GoRaw("\t}"),
-			GoStmt.GoRaw("\treturn keys"),
-			GoStmt.GoRaw("case map[any]any:"),
-			GoStmt.GoRaw("\tkeys := hxrt.NewArray()"),
-			GoStmt.GoRaw("\tfor key := range value {"),
-			GoStmt.GoRaw("\t\tkeys.Push(hxrt.StdString(key))"),
-			GoStmt.GoRaw("\t}"),
-			GoStmt.GoRaw("\treturn keys"),
-			GoStmt.GoRaw("case *map[string]any:"),
-			GoStmt.GoRaw("\tif value == nil {"),
-			GoStmt.GoRaw("\t\treturn hxrt.NewArray()"),
-			GoStmt.GoRaw("\t}"),
-			GoStmt.GoRaw("\tkeys := hxrt.NewArray()"),
-			GoStmt.GoRaw("\tfor key := range *value {"),
-			GoStmt.GoRaw("\t\tkeys.Push(hxrt.StringFromLiteral(key))"),
-			GoStmt.GoRaw("\t}"),
-			GoStmt.GoRaw("\treturn keys"),
-			GoStmt.GoRaw("case *map[any]any:"),
-			GoStmt.GoRaw("\tif value == nil {"),
-			GoStmt.GoRaw("\t\treturn hxrt.NewArray()"),
-			GoStmt.GoRaw("\t}"),
-			GoStmt.GoRaw("\tkeys := hxrt.NewArray()"),
-			GoStmt.GoRaw("\tfor key := range *value {"),
-			GoStmt.GoRaw("\t\tkeys.Push(hxrt.StdString(key))"),
-			GoStmt.GoRaw("\t}"),
-			GoStmt.GoRaw("\treturn keys"),
-			GoStmt.GoRaw("}"),
-			GoStmt.GoRaw("rv := reflect.ValueOf(obj)"),
-			GoStmt.GoRaw("if !rv.IsValid() {"),
-			GoStmt.GoRaw("\treturn hxrt.NewArray()"),
-			GoStmt.GoRaw("}"),
-			GoStmt.GoRaw("if rv.Kind() == reflect.Pointer {"),
-			GoStmt.GoRaw("\tif rv.IsNil() {"),
-			GoStmt.GoRaw("\t\treturn hxrt.NewArray()"),
-			GoStmt.GoRaw("\t}"),
-			GoStmt.GoRaw("\trv = rv.Elem()"),
-			GoStmt.GoRaw("}"),
-			GoStmt.GoRaw("if rv.Kind() != reflect.Struct {"),
-			GoStmt.GoRaw("\treturn hxrt.NewArray()"),
-			GoStmt.GoRaw("}"),
-			GoStmt.GoRaw("rt := rv.Type()"),
-			GoStmt.GoRaw("keys := hxrt.NewArray()"),
-			GoStmt.GoRaw("for i := 0; i < rv.NumField(); i++ {"),
-			GoStmt.GoRaw("\tfield := rt.Field(i)"),
-			GoStmt.GoRaw("\tif field.PkgPath != \"\" {"),
-			GoStmt.GoRaw("\t\tcontinue"),
-			GoStmt.GoRaw("\t}"),
-			GoStmt.GoRaw("\tkeys.Push(hxrt.StringFromLiteral(field.Name))"),
-			GoStmt.GoRaw("}"),
-			GoStmt.GoRaw("return keys")
-		]);
-	}
-
-	function lowerTypeReflectionShimDecls():Array<GoDecl> {
-		return GoTypeReflectionEmitter.emit(typeReflectionClassMetadata(), typeReflectionEnumMetadata(), goRawQuotedString, goStringArrayCarrierLiteral)
-			.concat(GoRttiMetadataEmitter.emit(rttiClassMetadata(), goRawQuotedString));
 	}
 
 	function lowerClassDecls(classType:ClassType):Array<GoDecl> {
@@ -2832,6 +2745,7 @@ class GoCompiler {
 		var dispatchMethods = hasInstanceLayout ? collectDispatchMethods(classType) : [];
 		if (hasInstanceLayout) {
 			recordGeneratedMethodMetadata(classType, typeName, superClass, instanceMethods);
+			recordGeneratedFieldMetadata(classType, typeName, superClass);
 			var instanceFields = new Array<GoParam>();
 			if (superClass != null) {
 				instanceFields.push({
@@ -6309,11 +6223,6 @@ class GoCompiler {
 		var injectedCall = lowerTargetCodeInjectionCall(callee, args, returnType);
 		if (injectedCall != null) {
 			return injectedCall;
-		}
-
-		if (isStaticCall(callee, "Reflect", [], "fields")) {
-			requireStdlibShimGroup("stdlib_symbols");
-			requiresReflectFieldsShim = true;
 		}
 
 		var nativeSliceBoundaryCall = lowerNativeSliceBoundaryCall(callee, args, returnType);
@@ -9927,8 +9836,40 @@ class GoCompiler {
 				+ "Use an explicit Go-native module/API boundary for platform-specific process accounting.",
 				pos);
 		}
-		if (classType.pack.length == 0 && classType.name == "Reflect" && (fieldName == "field" || fieldName == "hasField")) {
-			requiresGeneratedMethodLookup = true;
+		if (classType.pack.length == 0 && classType.name == "Reflect") {
+			switch (fieldName) {
+				case "field", "hasField":
+					requireStdlibShimGroup("reflect_metadata");
+					requiresReflectTypeFieldMetadata = true;
+					requiresGeneratedFieldLookup = true;
+					requiresGeneratedMethodLookup = true;
+				case "setField":
+					requireStdlibShimGroup("reflect_metadata");
+					requiresGeneratedFieldLookup = true;
+				case "fields":
+					requireStdlibShimGroup("reflect_metadata");
+					requiresGeneratedFieldLookup = true;
+				case "isEnumValue":
+					requireStdlibShimGroup("reflect_metadata");
+					requiresReflectEnumValueMetadata = true;
+				case _:
+			}
+		}
+		// `internal` is a Haxe keyword, so the typer canonicalizes that package
+		// segment to `_internal` even though source imports use `internal`.
+		if (classType.pack.join(".") == "reflaxe.go._internal" && classType.name == "CompilerReflect") {
+			requireStdlibShimGroup("reflect_metadata");
+			switch (fieldName) {
+				case "typeField", "hasTypeField":
+					requiresReflectTypeFieldMetadata = true;
+				case "generatedField", "hasGeneratedField", "setGeneratedField", "generatedFields":
+					requiresGeneratedFieldLookup = true;
+				case "generatedMethod":
+					requiresGeneratedMethodLookup = true;
+				case "isEnumValue":
+					requiresReflectEnumValueMetadata = true;
+				case _:
+			}
 		}
 		sourceOwnedStdlibPlanner.noteSourceOwnedStdlibUsage(classType);
 	}
