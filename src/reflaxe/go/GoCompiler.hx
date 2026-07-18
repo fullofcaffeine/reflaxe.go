@@ -2783,6 +2783,35 @@ class GoCompiler {
 		return GoDecl.GoFuncDecl(name, receiver, params, results, body);
 	}
 
+	/**
+		What: Rebind every generated superclass dispatch carrier to the receiver
+		being constructed.
+
+		Why: Each generated ancestor owns a separate `__hx_this` field. Rebinding
+		only the direct superclass leaves deeper carriers pointing at an intermediate
+		object, so a leaf override is lost after a deep nominal upcast or from inside
+		an inherited base-method closure.
+
+		How: Walk the `projectSuperClass` embedding path recursively; that path ends
+		before native/extern ancestors, and this helper additionally stops at
+		compiler-owned authority. Emit typed assignments deepest-first after the
+		direct superclass constructor returns and before the subclass body.
+	**/
+	function lowerAncestorDispatchCarrierRebindings(superClass:ClassType, carrier:GoExpr):Array<GoStmt> {
+		if (GoStdlibOwnership.isCompilerOwnedAuthority(fullClassName(superClass))) {
+			return [];
+		}
+
+		var out = new Array<GoStmt>();
+		var ancestor = projectSuperClass(superClass);
+		if (ancestor != null) {
+			var ancestorCarrier = GoExpr.GoSelector(carrier, classTypeName(ancestor));
+			out = out.concat(lowerAncestorDispatchCarrierRebindings(ancestor, ancestorCarrier));
+		}
+		out.push(GoStmt.GoAssign(GoExpr.GoSelector(carrier, "__hx_this"), GoExpr.GoIdent("self")));
+		return out;
+	}
+
 	function lowerConstructorDecl(classType:ClassType, ctorFunc:Null<TFunc>, ctorType:Null<Type>, superClass:Null<ClassType>):GoDecl {
 		pushFunctionVarNameScope();
 		var typeName = classTypeName(classType);
@@ -2802,12 +2831,10 @@ class GoCompiler {
 
 		if (superClass != null) {
 			var superTypeName = classTypeName(superClass);
+			var superCarrier = GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName);
 			var superCtorArgs = loweredCtorBody.superArgs == null ? [] : [for (arg in loweredCtorBody.superArgs) lowerExpr(arg).expr];
-			body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName),
-				GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(superClass)), superCtorArgs)));
-			if (!GoStdlibOwnership.isCompilerOwnedAuthority(fullClassName(superClass))) {
-				body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName), "__hx_this"), GoExpr.GoIdent("self")));
-			}
+			body.push(GoStmt.GoAssign(superCarrier, GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(superClass)), superCtorArgs)));
+			body = body.concat(lowerAncestorDispatchCarrierRebindings(superClass, superCarrier));
 		} else if (directHaxeExceptionSuperClass(classType)) {
 			var exceptionCtorArgs = loweredCtorBody.superArgs == null ? [] : [for (arg in loweredCtorBody.superArgs) lowerExpr(arg).expr];
 			while (exceptionCtorArgs.length < 3) {

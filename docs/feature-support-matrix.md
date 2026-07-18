@@ -126,7 +126,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Default arguments and varargs | Supported | `core/default_args`, `core/varargs`, `core/varargs_foreach` |
 | Prefix/postfix call argument order | Supported | `core/prefix_call_arg`, `core/postfix_call_arg` |
 | Classes, instance/static fields/methods | Supported | `core/class_fields_methods`, `core/static_fields_methods` |
-| Inheritance and override dispatch | Supported | `core/inheritance_override_dispatch`, `core/inheritance_ctor_chain_upcast`, `core/inheritance_return_upcast`, `core/inheritance_self_dispatch_wiring` |
+| Inheritance and override dispatch | Supported for normally constructed generated hierarchies, including deep upcasts | `core/inheritance_override_dispatch`, `core/inheritance_ctor_chain_upcast`, `core/inheritance_return_upcast`, `core/inheritance_self_dispatch_wiring`, `core/deep_inheritance_dispatch_rebinding` |
 | Interface dispatch | Supported | `core/interface_dispatch_basic` |
 | Super calls | Supported | `core/super_calls` |
 | Enums and switch pattern bindings | Supported | `core/enum_constructors`, `core/switch_enum_basic`, `core/enum_switch_bindings` |
@@ -156,6 +156,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/haxe_http_base_contract`
 - `test/semantic_diff/enum_switch_bindings`
 - `test/semantic_diff/virtual_dispatch`
+- `test/semantic_diff/deep_inheritance_dispatch_rebinding`
 - `test/semantic_diff/stringtools_math`
 - `test/semantic_diff/string_charcodeat_bounds_contract`
 - `test/semantic_diff/stringbuf_datetools_lambda_contract`

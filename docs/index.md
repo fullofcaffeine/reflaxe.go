@@ -75,6 +75,7 @@ This page helps you find the right docs quickly.
 
 ## Deep technical references
 
+- [Generated class dispatch ABI](class-dispatch-abi.md)
 - [Typed Go IR contract](typed-go-ir.md)
 - [Multi-package output evaluation](multi-package-output-evaluation.md)
 - [Compiler target template](compiler-target-template.md)

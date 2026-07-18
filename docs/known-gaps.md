@@ -102,6 +102,11 @@ current honest contract remains snapshot/runtime evidence.
 
 - Output remains a single Go package (multi-file, single package); multi-package emission is not implemented yet.
 - Multi-package output is currently deferred as non-blocking for production GA; explicit boundary conditions for re-opening are documented in [`docs/multi-package-output-evaluation.md`](multi-package-output-evaluation.md).
+- Normally constructed deep class hierarchies rebind every generated ancestor
+  to the most-derived receiver after the direct superclass constructor returns.
+  A virtual call made during the superclass constructor still cannot observe a
+  not-yet-bound derived receiver; that is separate constructor-dispatch work,
+  not part of the [generated class dispatch ABI](class-dispatch-abi.md) claim.
 - These remaining lowering guards are invariant checks, not open supported-language gaps.
 - No currently supported Haxe source construct is expected to hit them in normal typed lowering.
 - Current invariant inventory is summarized in the [feature support matrix](feature-support-matrix.md):

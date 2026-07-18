@@ -32,6 +32,7 @@ type haxe__io__StringInput struct {
 func New_haxe__io__StringInput(value *string) *haxe__io__StringInput {
 	self := &haxe__io__StringInput{}
 	self.haxe__io__BytesInput = New_haxe__io__BytesInput(haxe__io__Bytes_ofString(value, nil), nil, nil)
+	self.haxe__io__BytesInput.haxe__io__Input.__hx_this = self
 	self.haxe__io__BytesInput.__hx_this = self
 	self.__hx_this = self
 	return self
