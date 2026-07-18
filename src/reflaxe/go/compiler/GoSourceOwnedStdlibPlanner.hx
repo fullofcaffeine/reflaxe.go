@@ -277,10 +277,15 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("haxe.exceptions.PosException");
 				requireSourceOwnedStdlibClass("haxe.exceptions.NotImplementedException");
 			case "sys.Http":
-				requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
-				// GoHttpHelpers.captureApi has one framework-owned raw type switch whose
-				// concrete BytesBuffer arm is intentionally invisible to typed traversal.
-				requireSourceOwnedStdlibClass("haxe.io.BytesBuffer");
+				requireSourceOwnedStdlibClass("sys.Http");
+				requireSourceOwnedStdlibClass("haxe.http.HttpBase");
+				requireSourceOwnedStdlibClass("haxe.ds.StringMap");
+				requireSourceOwnedStdlibClass("haxe.io.Bytes");
+				requireSourceOwnedStdlibClass("haxe.io.Input");
+				requireSourceOwnedStdlibClass("haxe.io.Output");
+				requireSourceOwnedStdlibModule("sys.net.Socket");
+				requireSourceOwnedStdlibModule("sys.net._SocketIO");
+				requireSourceOwnedStdlibClass("sys.net.Host");
 			case "sys.FileSystem":
 				requireSourceOwnedStdlibClass("sys.FileSystem");
 			case "sys.io.File":

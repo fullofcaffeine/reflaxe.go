@@ -9,7 +9,6 @@ type I_haxe__rtti__XmlParser interface {
 	mergeRights(f1 map[string]any, f2 map[string]any) bool
 	mergeDoc(f1 map[string]any, f2 map[string]any) bool
 	mergeFields(f map[string]any, f2 map[string]any) bool
-	newField(c map[string]any, f map[string]any)
 	mergeClasses(c map[string]any, c2 map[string]any) bool
 	mergeEnums(e map[string]any, e2 map[string]any) bool
 	mergeTypedefs(t map[string]any, t2 map[string]any) bool
@@ -50,11 +49,14 @@ type haxe__rtti__XmlParser struct {
 	__hx_this   I_haxe__rtti__XmlParser
 	root        *hxrt.Array
 	curplatform *string
+	newField    func(map[string]any, map[string]any)
 }
 
 func New_haxe__rtti__XmlParser() *haxe__rtti__XmlParser {
 	self := &haxe__rtti__XmlParser{}
 	self.__hx_this = self
+	self.newField = func(c map[string]any, f map[string]any) {
+	}
 	self.root = hxrt.NewArray()
 	return self
 }
@@ -374,9 +376,6 @@ func (self *haxe__rtti__XmlParser) mergeFields(f map[string]any, f2 map[string]a
 	}(f2)) && (self.__hx_this.mergeRights(f, f2) || self.__hx_this.mergeRights(f2, f))) && self.__hx_this.mergeDoc(f, f2)) && haxe__rtti__TypeApi_fieldEq(f, f2)))
 }
 
-func (self *haxe__rtti__XmlParser) newField(c map[string]any, f map[string]any) {
-}
-
 func (self *haxe__rtti__XmlParser) mergeClasses(c map[string]any, c2 map[string]any) bool {
 	if func(hx_obj_103 map[string]any) bool {
 		hx_field_104 := hx_obj_103["isInterface"]
@@ -466,7 +465,7 @@ func (self *haxe__rtti__XmlParser) mergeClasses(c map[string]any, c2 map[string]
 			}
 		}
 		if found == nil {
-			self.__hx_this.newField(c, f2)
+			self.newField(c, f2)
 			hx_arr_129 := func(hx_obj_130 map[string]any) *hxrt.Array {
 				hx_field_131 := hx_obj_130["fields"]
 				if hx_field_131 == nil {
@@ -533,7 +532,7 @@ func (self *haxe__rtti__XmlParser) mergeClasses(c map[string]any, c2 map[string]
 			}
 		}
 		if found_1 == nil {
-			self.__hx_this.newField(c, f2_1)
+			self.newField(c, f2_1)
 			hx_arr_147 := func(hx_obj_148 map[string]any) *hxrt.Array {
 				hx_field_149 := hx_obj_148["statics"]
 				if hx_field_149 == nil {

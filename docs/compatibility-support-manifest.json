@@ -5,11 +5,11 @@
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "c2b4b94c9d42cf9e2cd1c9b3d85901ed1ed3b77755f7ac2d5d033556706e80f7",
+    "compatibility_source_sha256": "24f150c93c86ff4c62190b5dfca6052a0c05766b4ab95a1d63d6a53e5764cf10",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "01763a805767543d68ea2738ee44e2b6cc62872fc21ec02de821150c956113ea"
+    "portable_stdlib_inventory_sha256": "e3442f479e2570068f5cc2e5d06b90b9486a6188c97147abdcf43e79c14883ea"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -437,6 +437,18 @@
       "kind": "path",
       "path": "test/semantic_diff/http_request_callbacks_contract",
       "level": "semantic-diff"
+    },
+    {
+      "id": "runtime:http-regressions",
+      "kind": "path",
+      "path": "runtime/hxrt/http_test.go",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "snapshot:http-selective-runtime",
+      "kind": "path",
+      "path": "test/snapshot/core/runtime_hxrt_infer_http",
+      "level": "compile-go-test-run"
     },
     {
       "id": "semantic:socket",
@@ -1151,13 +1163,15 @@
           "granularity": "operation",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Loopback semantic contracts exist; cancellation, timeout, cleanup, proxy, and hostile-peer closure remains open.",
+          "qualification": "Canonical staged haxe.Http/sys.Http now owns request and callback policy over typed opaque HTTP/socket handles. Loopback semantic contracts plus direct runtime tests cover timeouts, response/body cleanup, proxy formatting, truncated-body status preservation, and socket consumption; broad cross-platform cancellation and hostile-peer admission remain open.",
           "evidence_ids": [
             "semantic:http",
+            "runtime:http-regressions",
+            "snapshot:http-selective-runtime",
             "bead:network-audit"
           ],
           "exclusions": [
-            "Broad production HTTP client support"
+            "Broad production HTTP client support, including cross-platform cancellation and hostile-peer guarantees"
           ],
           "blockers": [
             "haxe_go-vfp.10.4"
@@ -1766,7 +1780,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Portable `haxe.Http` aliases canonical staged `sys.Http`. Haxe source owns request selection, payload/header policy, callbacks, response maps, and status/error handling; typed opaque std/hxrt/http handles delegate only Go URL and transport resources to footprint-explicit runtime/hxrt/http.go. Evidence: http_request_callbacks_contract, http_proxy_custom_request, the sys/http snapshots, direct runtime HTTP tests, and core/runtime_hxrt_infer_http."
       },
       {
         "module": "haxe.Int32",
@@ -3147,7 +3161,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged `sys.Http` owns the Haxe 4.3.7 API, request selection, payload/header policy, callbacks, response maps, and status/error handling. Typed opaque std/hxrt/http handles delegate only Go URL and transport resources to footprint-explicit runtime/hxrt/http.go; no compiler HTTP group remains. Evidence: http_request_callbacks_contract, http_proxy_custom_request, the sys/http snapshots, direct runtime HTTP tests, and core/runtime_hxrt_infer_http."
       },
       {
         "module": "sys.db.Connection",

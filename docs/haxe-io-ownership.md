@@ -47,9 +47,10 @@ No generated `haxe__io__Bytes` layout crosses the typed boundary.
    `BytesData` alias cannot return stale bytes.
 5. Native results use `__hx_fromNativeView()` to seed both representations.
 
-Base64 and digest APIs consume the same opaque view. This removes the previous
-`Bytes -> Array<Int> -> []int -> []byte` copy chain while keeping alphabets,
-padding, public construction, and digest API policy in staged Haxe.
+Base64, digest, and staged `sys.Http` body APIs consume the same opaque view.
+This removes the previous `Bytes -> Array<Int> -> []int -> []byte` copy chain
+while keeping alphabets, padding, public construction, digest API policy, and
+HTTP request policy in staged Haxe.
 
 ## Inheritance and dispatch
 
@@ -66,9 +67,10 @@ Nominal type references also participate in source inclusion. If manual
 dead-code elimination keeps a staged IO class only in a field, argument, or
 superclass type, the compiler queues that exact typed declaration rather than
 falling back to a mainstream target implementation or restoring an entire
-module. Compiler-owned consumers follow the same explicit rule: for example,
-the current `sys.Http` carrier queues `BytesBuffer` because its narrow
-framework-owned type switch cannot expose that dependency to typed traversal.
+module. Staged `sys.Http` now follows the same ordinary typed rule: its
+`customRequest` API accepts `haxe.io.Output`, and its native body boundary uses
+only the opaque `ByteView`; the former compiler carrier, `BytesBuffer` type
+switch, and HTTP helper island are gone.
 
 The runtime does not retain the former string, hex, or buffer-length policy
 helpers. Those algorithms now live entirely in staged `Bytes` and

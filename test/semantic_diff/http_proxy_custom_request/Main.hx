@@ -1,6 +1,6 @@
 private typedef ServerHandle = {
 	var process:sys.io.Process;
-	var port:Dynamic;
+	var port:Int;
 };
 
 class Main {
@@ -38,7 +38,7 @@ class Main {
 		var script = pythonServerScript();
 		var proc = new sys.io.Process("python3", ["-u", "-c", script, logPath]);
 		var line = proc.stdout.readLine();
-		var port:Dynamic = haxe.Json.parse(line);
+		var port = Std.parseInt(line);
 		if (port == null) {
 			proc.close();
 			throw "failed to read server port";
@@ -67,16 +67,16 @@ class Main {
 		var customLog = "/tmp/reflaxe_go_http_custom.log";
 		var customServer = startServer(customLog);
 		var req = new haxe.Http("http://127.0.0.1:" + customServer.port + "/method");
-		var sink = new haxe.io.BytesBuffer();
-		req.customRequest(false, cast sink, null, "PATCH");
+		var sink = new haxe.io.BytesOutput();
+		req.customRequest(false, sink, null, "PATCH");
 		closeServer(customServer);
 		Sys.println("customTrace=" + readLog(customLog));
 
 		var socketLog = "/tmp/reflaxe_go_http_socket.log";
 		var socketServer = startServer(socketLog);
 		var socketReq = new haxe.Http("http://127.0.0.1:" + socketServer.port + "/socket");
-		var socketSink = new haxe.io.BytesBuffer();
-		socketReq.customRequest(false, cast socketSink, new sys.net.Socket(), "PATCH");
+		var socketSink = new haxe.io.BytesOutput();
+		socketReq.customRequest(false, socketSink, new sys.net.Socket(), "PATCH");
 		closeServer(socketServer);
 		Sys.println("socketTrace=" + readLog(socketLog));
 

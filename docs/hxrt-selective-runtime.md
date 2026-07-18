@@ -47,7 +47,7 @@ preset for stricter/eager defaults.
 - `reflaxe_go_hxrt_default_features`
   - Force full runtime copy (compat mode).
   - Takes precedence over selective runtime flags.
-- `reflaxe_go_hxrt_features=core,json,sys,terminal,file_io,filesystem,socket,ssl,socket_ssl,...`
+- `reflaxe_go_hxrt_features=core,json,sys,terminal,file_io,filesystem,http,socket,ssl,socket_ssl,...`
   - Enables selective runtime mode and adds manual feature list.
   - Use empty value (`-D reflaxe_go_hxrt_features=`) to enable selective mode with inferred-only features.
 
@@ -82,6 +82,16 @@ OS networking capability out, including ordinary full-copy mode.
 `core/runtime_hxrt_infer_socket` locks that positive and negative shape, while
 `test/test_socket_runtime_cross_build.py` compiles the runtime for POSIX and
 Windows so descriptor-type differences cannot regress silently.
+
+`sys.Http` and typed `hxrt.http` bindings infer `http`, which copies
+footprint-explicit `runtime/hxrt/http.go` plus `string`, `bytes`, and `socket`.
+The socket dependency is intentional: `customRequest` accepts a typed
+`sys.net.Socket`, so the HTTP capability must compile against the same opaque
+`SocketHandle` even when a particular request does not supply one.
+`core/runtime_hxrt_infer_http` locks the positive file set, while unrelated
+selective-runtime cases remain free of `http.go`. Ordinary full-copy mode also
+keeps `http.go` footprint-explicit unless typed use, a manual `http` feature, or
+disabled inference requests it.
 
 `sys.ssl.Certificate`, `Digest`, and `Key` infer `ssl` without networking.
 `sys.ssl.Socket` and `hxrt.ssl.NativeSocket` infer `socket_ssl`; that feature

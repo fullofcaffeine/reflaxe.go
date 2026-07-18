@@ -51,7 +51,6 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "staged_support",
         "std/haxe/GoSerializationBridge.hx",
     ),
-    "std/sys/GoHttpHelpers.cross.hx": ("staged_support", "std/sys/GoHttpHelpers.hx"),
     "std/sys/thread/ElasticThreadPoolWorker.cross.hx": (
         "staged_support",
         "std/sys/thread/ElasticThreadPoolWorker.hx",
@@ -115,6 +114,18 @@ SOURCE_SPECIAL_DESTINATIONS = {
     "std/hxrt/collections/StringMapHandle.hx": (
         "hxrt_binding",
         "std/hxrt/collections/StringMapHandle.hx",
+    ),
+    "std/hxrt/http/HttpRequestHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/http/HttpRequestHandle.hx",
+    ),
+    "std/hxrt/http/HttpResponseHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/http/HttpResponseHandle.hx",
+    ),
+    "std/hxrt/http/NativeHttp.hx": (
+        "hxrt_binding",
+        "std/hxrt/http/NativeHttp.hx",
     ),
     "std/hxrt/crypto/NativeCrypto.hx": (
         "hxrt_binding",
@@ -329,7 +340,6 @@ for special_owner, special_destination in SOURCE_SPECIAL_DESTINATIONS.values():
 SOURCE_EXPECTED_SHIM_GROUPS = {
     "std/haxe/Template.cross.hx": ["stdlib_symbols"],
     "std/haxe/ds/BalancedTree.cross.hx": ["stdlib_symbols"],
-    "std/sys/GoHttpHelpers.cross.hx": ["http"],
     "std/sys/ssl/Certificate.cross.hx": ["stdlib_symbols"],
     "std/sys/ssl/Digest.cross.hx": ["stdlib_symbols"],
     "std/sys/ssl/Key.cross.hx": ["stdlib_symbols"],
@@ -346,7 +356,6 @@ for shim_source, shim_groups in SOURCE_EXPECTED_SHIM_GROUPS.items():
     EXPECTED_SHIM_GROUPS[shim_destination] = shim_groups
 
 EXPECTED_SHIM_AUDIT_DECISIONS = {
-    "http": "migration_required_haxe_go_vfp_8_7_12",
     "stdlib_symbols": "split_migration_debt_from_exact_intrinsics_haxe_go_vfp_8_7_15",
 }
 
@@ -1801,6 +1810,159 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
                 bytes_runtime,
                 f"staged haxe.io owns the former {legacy_helper} policy",
             )
+
+    def test_sys_http_is_staged_policy_over_a_typed_runtime_boundary(self) -> None:
+        """Request choreography belongs in Haxe; hxrt owns only native transport."""
+        staged_path = ROOT / "std/go/_std/sys/Http.hx"
+        self.assertTrue(staged_path.is_file(), "sys.Http must be canonical staged source")
+        if not staged_path.is_file():
+            return
+
+        staged = staged_path.read_text(encoding="utf-8")
+        native_http_path = ROOT / "std/hxrt/http/NativeHttp.hx"
+        request_handle_path = ROOT / "std/hxrt/http/HttpRequestHandle.hx"
+        response_handle_path = ROOT / "std/hxrt/http/HttpResponseHandle.hx"
+        runtime_path = ROOT / "runtime/hxrt/http.go"
+        runtime_test_path = ROOT / "runtime/hxrt/http_test.go"
+        for path in (
+            native_http_path,
+            request_handle_path,
+            response_handle_path,
+            runtime_path,
+            runtime_test_path,
+        ):
+            self.assertTrue(path.is_file(), str(path.relative_to(ROOT)))
+
+        for forbidden in ("__go__", "GoInjection", "@:goAllowRaw"):
+            self.assertNotIn(forbidden, staged, forbidden)
+        for heading in ("What", "Why", "How"):
+            self.assertIn(heading, staged, heading)
+        self.assertIn("class Http extends haxe.http.HttpBase", staged)
+        self.assertIn("NativeHttp.execute", staged)
+        self.assertIn("onStatus", staged)
+        self.assertIn("onError", staged)
+        self.assertIn("getResponseHeaderValues", staged)
+        self.assertIn("NativeHttp.setSocket(request, sock.handle)", staged)
+
+        socket_source = (
+            ROOT / "std/go/_std/sys/net/Socket.hx"
+        ).read_text(encoding="utf-8")
+        self.assertIn("@:allow(sys.Http)", socket_source)
+        self.assertNotIn("__hx_httpHandle", socket_source + staged)
+
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(
+            encoding="utf-8"
+        )
+        classifier = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx"
+        ).read_text(encoding="utf-8")
+        ownership = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibOwnership.hx"
+        ).read_text(encoding="utf-8")
+        planner = (
+            ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ).read_text(encoding="utf-8")
+        feature_analyzer = (
+            ROOT / "src/reflaxe/go/compiler/GoHxrtFeatureAnalyzer.hx"
+        ).read_text(encoding="utf-8")
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        debt_policy = json.loads(
+            (ROOT / "test/compiler_debt_policy.json").read_text(encoding="utf-8")
+        )
+        debt_ratchet = (ROOT / "test/run-compiler-debt-ratchet.py").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertFalse((ROOT / "std/sys/GoHttpHelpers.hx").exists())
+        for fragment in (
+            "lowerHttpStdlibShimDecls",
+            'requiredStdlibShimGroups.exists("http")',
+            'requireStdlibShimGroup("http")',
+            'requireSourceOwnedStdlibClass("sys.GoHttpHelpers")',
+        ):
+            self.assertNotIn(fragment, compiler, fragment)
+        self.assertNotIn('{kind: "class", path: "sys.Http", groups: ["http"]}', classifier)
+        self.assertNotIn('case "sys.Http":', ownership)
+        self.assertIn('case "sys.Http":', planner)
+        self.assertIn('requireSourceOwnedStdlibClass("sys.Http")', planner)
+        self.assertFalse(
+            any(group.get("group") == "http" for group in registry["groups"]),
+            "source-owned sys.Http must not retain a compiler shim group",
+        )
+        self.assertNotIn("migration_http", registry["decisions"])
+        self.assertFalse(
+            any(
+                limit.get("metric") == "compiler_shim"
+                and limit.get("capability") == "http"
+                for limit in debt_policy["limits"]
+            )
+        )
+        self.assertNotIn('"lowerHttpStdlibShimDecls": "http"', debt_ratchet)
+        self.assertIn('FEATURE_HTTP = "http"', feature_analyzer)
+        self.assertIn('case FEATURE_HTTP:\n\t\t\t\t["http.go"]', feature_analyzer)
+
+        if native_http_path.is_file():
+            native_http = native_http_path.read_text(encoding="utf-8")
+            for forbidden in ("Dynamic", "Any", "__go__"):
+                self.assertNotIn(forbidden, native_http, forbidden)
+            self.assertIn("execute(request:HttpRequestHandle):HttpResponseHandle", native_http)
+
+        if runtime_path.is_file():
+            runtime = runtime_path.read_text(encoding="utf-8")
+            for generated_layout in ("sys__Http", "haxe__io__Bytes"):
+                self.assertNotIn(generated_layout, runtime, generated_layout)
+
+        inferred_runtime = (
+            ROOT / "test/snapshot/core/runtime_hxrt_infer_http/intended/hxrt"
+        )
+        for selected_file in ("http.go", "bytes.go", "socket.go", "string.go"):
+            self.assertTrue((inferred_runtime / selected_file).is_file(), selected_file)
+        for unrelated_file in ("filesystem.go", "process.go", "ssl.go"):
+            self.assertFalse((inferred_runtime / unrelated_file).exists(), unrelated_file)
+        self.assertFalse(
+            (
+                ROOT
+                / "test/snapshot/core/runtime_hxrt_infer_json/intended/hxrt/http.go"
+            ).exists(),
+            "unrelated typed runtime use must not copy the HTTP capability",
+        )
+
+        callback_shape = (
+            ROOT
+            / "test/snapshot/sys/http_request_callbacks_smoke/intended/module_haxe_http_httpbase.go"
+        ).read_text(encoding="utf-8")
+        self.assertRegex(callback_shape, r"(?m)^\s+onData\s+func\(\*string\)$")
+        self.assertNotRegex(callback_shape, r"(?m)^\s+onData\(data \*string\)$")
+        self.assertFalse(
+            (
+                ROOT
+                / "test/snapshot/sys/http_request_callbacks_smoke/intended/module_sys_gohttphelpers.go"
+            ).exists()
+        )
+
+        ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
+        staged_entry = ledger_entries.get("std/go/_std/sys/Http.hx")
+        self.assertIsNotNone(staged_entry)
+        if staged_entry is not None:
+            self.assertEqual("upstream_std_override", staged_entry["ownershipClass"])
+            self.assertEqual("haxe_go-vfp.8.7.12", staged_entry["migrationBead"])
+            self.assertEqual([], staged_entry["compilerShimGroups"])
+
+        for binding in (
+            "std/hxrt/http/NativeHttp.hx",
+            "std/hxrt/http/HttpRequestHandle.hx",
+            "std/hxrt/http/HttpResponseHandle.hx",
+        ):
+            entry = ledger_entries.get(binding)
+            self.assertIsNotNone(entry, binding)
+            if entry is not None:
+                self.assertEqual("hxrt_binding", entry["ownershipClass"])
+                self.assertEqual("haxe_go-vfp.8.7.12", entry["migrationBead"])
+                self.assertEqual([], entry["compilerShimGroups"])
 
     def test_bytes_native_view_is_shared_with_crypto_without_layout_leak(self) -> None:
         """Byte consumers reuse the opaque cache rather than copying generated fields."""

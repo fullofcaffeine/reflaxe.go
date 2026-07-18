@@ -30,7 +30,6 @@ class GoStdlibShimClassifier {
 		{kind: "class", path: "Type", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "haxe.ds.BalancedTree", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "haxe.io.Path", groups: ["stdlib_symbols"]},
-		{kind: "class", path: "sys.Http", groups: ["http"]},
 		{kind: "enum", path: "haxe.ds.Option", groups: ["stdlib_symbols"]}
 	];
 

@@ -148,18 +148,6 @@
       "surface": "compiler"
     },
     {
-      "capability": "http",
-      "classification": "avoidable",
-      "context": "lowerHttpStdlibShimDecls",
-      "exception_id": "compiler_stdlib_migration_debt",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "compiler_shim",
-      "owner": "compiler_shim",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
       "capability": "serialization_source_bridge",
       "classification": "required",
       "context": "lowerSerializationSourceBridgeShimDecls",
@@ -310,18 +298,6 @@
       "exception_id": "typed_ast_gap",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 83,
-      "metric": "go_raw",
-      "owner": "compiler_shim",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
-      "capability": "http",
-      "classification": "avoidable",
-      "context": "lowerHttpStdlibShimDecls",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 265,
       "metric": "go_raw",
       "owner": "compiler_shim",
       "profile": "shared",
@@ -3885,18 +3861,6 @@
       "context": "sendMessage",
       "exception_id": "runtime_facade_dynamic_contract",
       "file": "std/hxrt/thread/NativeThread.hx",
-      "max_count": 1,
-      "metric": "haxe_dynamic",
-      "owner": "runtime_facade",
-      "profile": "shared",
-      "surface": "staged_std"
-    },
-    {
-      "capability": "dynamic_values",
-      "classification": "required",
-      "context": "captureApi",
-      "exception_id": "runtime_facade_dynamic_contract",
-      "file": "std/sys/GoHttpHelpers.hx",
       "max_count": 1,
       "metric": "haxe_dynamic",
       "owner": "runtime_facade",

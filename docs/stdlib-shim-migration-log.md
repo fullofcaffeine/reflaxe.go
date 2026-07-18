@@ -2231,10 +2231,91 @@ Observed result:
   the isolated canonical source/package fixture carry the exact staged IO
   closure rather than silently selecting mainstream target implementations.
 - Type-only staged declarations and staged superclasses are queued from their
-  already-typed authority. The existing compiler-owned `sys.Http` carrier keeps
-  its concrete layout, while its hidden `BytesBuffer` dependency is explicit;
-  full HTTP, file, process, socket, and SSL consumers compile without restoring
-  an IO-specific compiler hierarchy.
+  already-typed authority. At this IO closeout, the compiler-owned `sys.Http`
+  carrier kept its concrete layout while its hidden `BytesBuffer` dependency
+  became explicit; the carrier was subsequently retired by
+  `haxe_go-vfp.8.7.12` without restoring an IO-specific compiler hierarchy.
 - The general performance lane reports warning-only timing signals and no
   enforced hard failure. Those signals remain governed by the existing
   performance policy rather than being reclassified as IO closure evidence.
+
+### 2026-07-18: move `sys.Http` request policy to staged source (`haxe_go-vfp.8.7.12`)
+
+Implementation:
+
+- Added a failing ownership contract first. It requires canonical staged
+  `sys.Http`, typed opaque request/response bindings, selective `hxrt/http.go`
+  packaging, and complete removal of the compiler HTTP group,
+  `GoHttpHelpers`, registry authority, and generic debt allowances.
+- Moved Haxe-visible request selection, parameters, headers, data URLs,
+  multipart marker compatibility, proxy/custom-request choreography, response
+  normalization, callback order, and status/error policy to
+  `std/go/_std/sys/Http.hx`.
+- Added typed `hxrt.http.HttpRequestHandle` and `HttpResponseHandle` boundaries.
+  The native runtime receives only strings, scalars, an opaque `ByteView`, and
+  an optional typed `SocketHandle`; no generated `sys.Http`, `haxe.io.Bytes`,
+  map, callback, or stream layout crosses the package boundary.
+- Added a one-use Go HTTP transport that owns URL parsing, native form/query
+  encoding, proxy setup, response-body closure, idle-connection cleanup,
+  timeout enforcement, deterministic header iteration, and custom socket
+  consumption. It returns status and headers even when body reading fails so
+  staged callback ordering remains observable.
+- Added footprint-explicit runtime slicing for `http.go` with declared string,
+  byte, and socket dependencies. HTTP code is absent unless typed `sys.Http` or
+  `hxrt.http` usage requires it.
+- Generalized instance dynamic-method lowering into per-instance function
+  fields initialized by constructors. This is ordinary AST lowering rather
+  than an HTTP special case and allows `haxe.http.HttpBase` callbacks to be
+  replaced per request without incorrectly treating them as interface methods.
+- Retired the compiler-emitted HTTP declaration block and its source helper.
+  Neither `portable` nor `metal` selects different HTTP semantics; the legacy
+  selector remains a convenience policy preset rather than a semantic branch.
+- Preserved the established deterministic upload size-marker contract. Real
+  streaming of the caller-supplied `Input`, including partial I/O,
+  cancellation, and cleanup, remains explicitly owned by
+  `haxe_go-vfp.10.4` and is not claimed as part of this migration.
+
+Validation evidence:
+
+- red-to-green migration-ledger and ownership assertions for source authority,
+  typed runtime boundaries, selective packaging, and retired compiler debt
+- focused portable semantic-diff contracts for request callbacks and
+  proxy/custom-request behavior
+- six focused generated-output snapshots covering selective runtime inference,
+  dynamic-method RTTI shape, callbacks, proxy/socket handling, custom requests,
+  and source ownership
+- deterministic local Go transport tests for query/form/header/body behavior,
+  multi-value response headers, truncated-body status preservation, bounded
+  timeout, idle-connection cleanup, custom method/body, proxy formatting, and
+  typed socket closure
+- 295 generated-output snapshots and 135 portable semantic-diff cases
+- 55 strict upstream stdlib modules compiled and checked with `go test`,
+  including direct `haxe.Http` and `sys.Http`
+- all 12 runnable example/profile lanes with unchanged portable/metal behavior
+- stdlib governance over 183 tracked sources, exact 382-member package and
+  381-entry manifest ratchets, inventory, compatibility, raw-injection, and
+  release contracts
+- all 28 race/checkptr/vet/staticcheck gates on supported Go 1.25.12, plus a
+  clean reachable-vulnerability audit on that exact patched toolchain; the
+  stale host Go 1.25.6 run failed closed as policy requires
+- selective-runtime and general Go profile performance harnesses; the latter
+  reported only its documented warning-only timing signals
+- supply-chain verification for vendor provenance, lockfile, pinned actions,
+  and dependency-update coverage
+
+Observed result:
+
+- `sys.Http` is an ordinary staged class in both compatibility presets. The
+  compiler no longer owns HTTP library semantics or emits a synthetic public
+  carrier.
+- Native networking is isolated behind small typed capabilities, while the
+  public Haxe API and callback contract remain readable and testable in source.
+- The general dynamic-method representation now matches Haxe's assignable
+  per-instance callback semantics and is regression-covered outside the HTTP
+  fixture itself.
+- Removing the 265 raw HTTP emitter statements and its shim group lowers the
+  compiler-debt ratchet from `go_raw=1087` / `compiler_shim=11` to
+  `go_raw=822` / `compiler_shim=10` without adding a `Dynamic` or `Any`
+  transport boundary.
+- The narrow `@:allow(sys.Http)` access to the existing typed socket handle
+  avoids adding an HTTP-only method to the reflected `sys.net.Socket` surface.

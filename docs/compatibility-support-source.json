@@ -262,6 +262,18 @@
       "level": "semantic-diff"
     },
     {
+      "id": "runtime:http-regressions",
+      "kind": "path",
+      "path": "runtime/hxrt/http_test.go",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "snapshot:http-selective-runtime",
+      "kind": "path",
+      "path": "test/snapshot/core/runtime_hxrt_infer_http",
+      "level": "compile-go-test-run"
+    },
+    {
       "id": "semantic:socket",
       "kind": "path",
       "path": "test/semantic_diff/socket_advanced_contract",
@@ -1091,13 +1103,15 @@
           "granularity": "operation",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Loopback semantic contracts exist; cancellation, timeout, cleanup, proxy, and hostile-peer closure remains open.",
+          "qualification": "Canonical staged haxe.Http/sys.Http now owns request and callback policy over typed opaque HTTP/socket handles. Loopback semantic contracts plus direct runtime tests cover timeouts, response/body cleanup, proxy formatting, truncated-body status preservation, and socket consumption; broad cross-platform cancellation and hostile-peer admission remain open.",
           "evidence_ids": [
             "semantic:http",
+            "runtime:http-regressions",
+            "snapshot:http-selective-runtime",
             "bead:network-audit"
           ],
           "exclusions": [
-            "Broad production HTTP client support"
+            "Broad production HTTP client support, including cross-platform cancellation and hostile-peer guarantees"
           ],
           "blockers": [
             "haxe_go-vfp.10.4"

@@ -59,7 +59,6 @@ SHIM_CAPABILITIES = {
     "lowerTypedGoCollectionShimDecls": "go_collections",
     "lowerGoResultShimDecls": "go_result",
     "lowerTypedGoResultShimDecls": "go_result",
-    "lowerHttpStdlibShimDecls": "http",
     "lowerFileSystemShimDecls": "filesystem",
     "lowerStdlibSymbolShimDecls": "stdlib_symbols",
     "reflectFieldsShimDecl": "reflection",

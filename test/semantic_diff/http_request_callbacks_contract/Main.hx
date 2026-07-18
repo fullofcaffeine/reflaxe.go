@@ -1,6 +1,6 @@
 private typedef ServerHandle = {
 	var process:sys.io.Process;
-	var port:Dynamic;
+	var port:Int;
 };
 
 class Main {
@@ -47,7 +47,7 @@ class Main {
 		var script = pythonServerScript();
 		var proc = new sys.io.Process("python3", ["-u", "-c", script, logPath]);
 		var line = proc.stdout.readLine();
-		var port:Dynamic = haxe.Json.parse(line);
+		var port = Std.parseInt(line);
 		if (port == null) {
 			proc.close();
 			throw "failed to read server port";

@@ -163,7 +163,7 @@ OWNER_OVERRIDES = {
     "EReg": "mixed",
     "haxe.Serializer": "mixed",
     "haxe.Unserializer": "mixed",
-    "sys.Http": "compiler_shim",
+    "sys.Http": "mixed",
     "sys.net.Host": "mixed",
     "sys.net.Socket": "mixed",
     "haxe.io.Bytes": "mixed",
@@ -180,6 +180,19 @@ UNSUPPORTED_EXPLICIT = {
 }
 
 MODULE_NOTES_OVERRIDES = {
+	"haxe.Http": (
+		"Portable `haxe.Http` aliases canonical staged `sys.Http`. Haxe source owns request selection, payload/header "
+		"policy, callbacks, response maps, and status/error handling; typed opaque std/hxrt/http handles delegate only "
+		"Go URL and transport resources to footprint-explicit runtime/hxrt/http.go. Evidence: http_request_callbacks_contract, "
+		"http_proxy_custom_request, the sys/http snapshots, direct runtime HTTP tests, and core/runtime_hxrt_infer_http."
+	),
+	"sys.Http": (
+		"Canonical staged `sys.Http` owns the Haxe 4.3.7 API, request selection, payload/header policy, callbacks, "
+		"response maps, and status/error handling. Typed opaque std/hxrt/http handles delegate only Go URL and transport "
+		"resources to footprint-explicit runtime/hxrt/http.go; no compiler HTTP group remains. Evidence: "
+		"http_request_callbacks_contract, http_proxy_custom_request, the sys/http snapshots, direct runtime HTTP tests, "
+		"and core/runtime_hxrt_infer_http."
+	),
 	"EReg": (
 		"Canonical staged EReg owns match state, capture validation, split/map traversal, and global "
 		"policy. Typed std/hxrt/regex delegates only RE2 execution and code-point-normalized match "

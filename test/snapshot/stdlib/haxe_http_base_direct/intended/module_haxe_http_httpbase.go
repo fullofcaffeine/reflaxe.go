@@ -10,10 +10,6 @@ type I_haxe__http__HttpBase interface {
 	setPostData(data *string)
 	setPostBytes(data *haxe__io__Bytes)
 	request(post any)
-	onData(data *string)
-	onBytes(data *haxe__io__Bytes)
-	onError(msg *string)
-	onStatus(status int)
 	hasOnData() bool
 	success(data *haxe__io__Bytes)
 	get_responseData() *string
@@ -30,11 +26,23 @@ type haxe__http__HttpBase struct {
 	headers          *hxrt.Array
 	params           *hxrt.Array
 	emptyOnData      func(*string)
+	onData           func(*string)
+	onBytes          func(*haxe__io__Bytes)
+	onError          func(*string)
+	onStatus         func(int)
 }
 
 func New_haxe__http__HttpBase(url *string) *haxe__http__HttpBase {
 	self := &haxe__http__HttpBase{}
 	self.__hx_this = self
+	self.onData = func(data *string) {
+	}
+	self.onBytes = func(data *haxe__io__Bytes) {
+	}
+	self.onError = func(msg *string) {
+	}
+	self.onStatus = func(status int) {
+	}
 	self.url = url
 	self.headers = hxrt.NewArray()
 	self.params = hxrt.NewArray()
@@ -153,18 +161,6 @@ func (self *haxe__http__HttpBase) request(post any) {
 	}()))
 }
 
-func (self *haxe__http__HttpBase) onData(data *string) {
-}
-
-func (self *haxe__http__HttpBase) onBytes(data *haxe__io__Bytes) {
-}
-
-func (self *haxe__http__HttpBase) onError(msg *string) {
-}
-
-func (self *haxe__http__HttpBase) onStatus(status int) {
-}
-
 func (self *haxe__http__HttpBase) hasOnData() bool {
 	return !Reflect_compareMethods(self.onData, self.emptyOnData)
 }
@@ -175,10 +171,10 @@ func (self *haxe__http__HttpBase) success(data *haxe__io__Bytes) {
 	if self.__hx_this.hasOnData() {
 		s := self.__hx_this.get_responseData()
 		if !hxrt.StringEqualStringPtr(s, nil) {
-			self.__hx_this.onData(s)
+			self.onData(s)
 		}
 	}
-	self.__hx_this.onBytes(data)
+	self.onBytes(data)
 }
 
 func (self *haxe__http__HttpBase) get_responseData() *string {

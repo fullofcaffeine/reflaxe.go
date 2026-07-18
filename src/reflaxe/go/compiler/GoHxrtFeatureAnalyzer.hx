@@ -32,6 +32,7 @@ class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_FILESYSTEM = "filesystem";
 	public static inline final FEATURE_PROCESS = "process";
 	public static inline final FEATURE_SOCKET = "socket";
+	public static inline final FEATURE_HTTP = "http";
 	public static inline final FEATURE_BYTES = "bytes";
 	public static inline final FEATURE_DATE = "date";
 	public static inline final FEATURE_MATH = "math";
@@ -65,6 +66,7 @@ class GoHxrtFeatureAnalyzer {
 		FEATURE_FILESYSTEM,
 		FEATURE_PROCESS,
 		FEATURE_SOCKET,
+		FEATURE_HTTP,
 		FEATURE_BYTES,
 		FEATURE_DATE,
 		FEATURE_MATH,
@@ -118,6 +120,7 @@ class GoHxrtFeatureAnalyzer {
 
 		for (path in classPaths) {
 			var isProcessSurface = path == "sys.io.Process" || StringTools.startsWith(path, "sys.io._Process.");
+			var isHttpSurface = path == "sys.Http" || StringTools.startsWith(path, "hxrt.http.");
 			var isSocketSurface = path == "sys.net.Host"
 				|| path == "sys.net.Socket"
 				|| path == "sys.net.UdpSocket"
@@ -130,6 +133,9 @@ class GoHxrtFeatureAnalyzer {
 
 			if (isProcessSurface) {
 				add(FEATURE_PROCESS, "class_usage", path);
+			}
+			if (isHttpSurface) {
+				add(FEATURE_HTTP, "class_usage", path);
 			}
 			if (path == "hxrt.process.NativeProcess") {
 				add(FEATURE_PROCESS, "class_usage", path);
@@ -156,8 +162,8 @@ class GoHxrtFeatureAnalyzer {
 				add(FEATURE_FILESYSTEM, "class_usage", path);
 			}
 
-			var hasDedicatedRuntimeSlice = isProcessSurface || isSocketSurface || isSocketSslSurface || path == "sys.io.File" || path == "sys.io.FileInput"
-				|| path == "sys.io.FileOutput";
+			var hasDedicatedRuntimeSlice = isProcessSurface || isHttpSurface || isSocketSurface || isSocketSslSurface || path == "sys.io.File"
+				|| path == "sys.io.FileInput" || path == "sys.io.FileOutput";
 			if (!hasDedicatedRuntimeSlice && (path == "sys.FileSystem" || StringTools.startsWith(path, "sys."))) {
 				add(FEATURE_SYS, "class_usage", path);
 			}
@@ -260,15 +266,6 @@ class GoHxrtFeatureAnalyzer {
 			}
 		}
 
-		for (group in shimGroups) {
-			switch (group) {
-				case "http":
-					add(FEATURE_SYS, "shim_group", group);
-					add(FEATURE_PROCESS, "shim_group", group);
-				case _:
-			}
-		}
-
 		if (requiresEqualitySurface) {
 			add(FEATURE_EQUALITY, "compiler_surface", "erased_haxe_equality");
 		}
@@ -363,6 +360,8 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_STRING];
 			case FEATURE_SOCKET:
 				[FEATURE_STRING, FEATURE_EXCEPTION];
+			case FEATURE_HTTP:
+				[FEATURE_STRING, FEATURE_BYTES, FEATURE_SOCKET];
 			case FEATURE_BYTES:
 				[FEATURE_CORE];
 			case FEATURE_DATE:
@@ -438,6 +437,8 @@ class GoHxrtFeatureAnalyzer {
 					"socket_broadcast_unsupported.go",
 					"socket_broadcast_windows.go"
 				];
+			case FEATURE_HTTP:
+				["http.go"];
 			case FEATURE_BYTES:
 				["bytes.go"];
 			case FEATURE_DATE:

@@ -514,6 +514,9 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			case "zip.go": // Native compression is selected only through staged haxe.zip Compress/Uncompress
 				// or their typed binding. Other zip data structures remain source-only.
 				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_ZIP) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_ZIP) >= 0;
+			case "http.go": // Go URL parsing and HTTP transport are selected only through staged sys.Http.
+				// Request policy and callbacks stay in source; unrelated programs do not copy net/http support.
+				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_HTTP) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_HTTP) >= 0;
 			case "socket.go", "socket_broadcast_posix.go", "socket_broadcast_unsupported.go",
 				"socket_broadcast_windows.go": // DNS and network transport are selected only through staged sys.net
 				// APIs or their typed hxrt binding. Unrelated full-copy builds keep the OS

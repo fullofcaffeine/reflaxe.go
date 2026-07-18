@@ -97,7 +97,7 @@ are present in report artifacts.
     require their own define before they are copied.
   - Takes precedence over selective runtime defines.
 - `reflaxe_go_hxrt_features=<csv>`
-  - Enable selective runtime mode and add manual feature names (for example `core,string,sys` for root OS capabilities, `core,string,file_io` for `sys.io.File`, `core,string,process` for `sys.io.Process`, `core,string,filesystem` for `sys.FileSystem`, `core,string,exception,socket` for DNS/TCP/UDP, `core,string,exception,bytes,ssl` for SSL leaf helpers, or `core,string,exception,bytes,socket,ssl,socket_ssl` for TLS sockets).
+  - Enable selective runtime mode and add manual feature names (for example `core,string,sys` for root OS capabilities, `core,string,file_io` for `sys.io.File`, `core,string,process` for `sys.io.Process`, `core,string,filesystem` for `sys.FileSystem`, `core,string,bytes,exception,socket,http` for `sys.Http`, `core,string,exception,socket` for DNS/TCP/UDP, `core,string,exception,bytes,ssl` for SSL leaf helpers, or `core,string,exception,bytes,socket,ssl,socket_ssl` for TLS sockets).
   - Unknown feature names fail compilation.
   - Empty value is allowed (`-D reflaxe_go_hxrt_features=`) and means "manual list empty; use inference unless disabled."
 - `reflaxe_go_hxrt_no_feature_infer`

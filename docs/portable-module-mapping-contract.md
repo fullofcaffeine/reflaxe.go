@@ -130,11 +130,18 @@ public ownership view.
   - Baseline evidence: `haxe.go-14as.15`; closure:
     `haxe_go-vfp.8.7.11`
 - `sys.Http`
-  - Tier1 mapping records current compiler ownership as migration debt. A single
-    request/callback contract requires coherent regression evidence, not compiler
-    ownership.
-  - `getResponseHeaderValues` and payload capture already live in `std/sys/GoHttpHelpers.hx`. The remaining request sequencing and proxy URL construction are migration debt under `haxe_go-vfp.8.7.12`, with the existing parity suite defining the replacement contract.
-  - Baseline evidence: `haxe.go-14as.53`; migration owner: `haxe_go-vfp.8.7.12`
+  - Canonical `std/go/_std/sys/Http.hx` owns the Haxe 4.3.7 API, request
+    selection, data-URL behavior, payload/header assembly, callback order,
+    response maps, and status/error policy.
+  - Typed `std/hxrt/http` bindings cross only opaque request/response handles,
+    scalar header access, `ByteView`, and the existing typed `SocketHandle` into
+    footprint-explicit `runtime/hxrt/http.go`. No generated `sys.Http` or
+    `haxe.io.Bytes` layout crosses that boundary.
+  - The public `portable|metal` selector does not choose HTTP semantics. Both
+    compatibility presets use the same staged API; native transport is an
+    API-scoped capability selected by typed reachability.
+  - Baseline evidence: `haxe.go-14as.53`; completed migration:
+    `haxe_go-vfp.8.7.12`
 
 ## Governance Rule
 

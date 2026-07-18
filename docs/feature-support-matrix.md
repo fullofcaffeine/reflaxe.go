@@ -366,10 +366,12 @@ Shim strategy and alternatives are documented in:
 ### `haxe.Http` / `sys.Http` shim contract and tradeoffs
 
 - `haxe.Http` is a `typedef` alias of `sys.Http` on `sys` targets, so the same semantic-diff fixtures now serve as the portable contract for both entry points.
-- `sys.Http` now includes synchronous request semantics for `http`/`https` and deterministic `data:` handling used by tests.
+- `sys.Http` is canonical staged source in `std/go/_std/sys/Http.hx`. It owns synchronous request selection for `http`/`https`, deterministic `data:` handling, payload/header assembly, callback order, public response maps, and status/error policy.
+- Go URL parsing, proxy setup, response resources, and optional typed socket consumption live behind opaque `std/hxrt/http` handles in footprint-explicit `runtime/hxrt/http.go`; no generated Haxe object layout crosses the runtime boundary and no compiler HTTP group remains.
 - Covered behaviors: `setHeader`/`addHeader`, `setParameter`/`addParameter`, `setPostData`/`setPostBytes`, `fileTransfer`/`fileTransfert`, `customRequest` (including optional socket transport injection), proxy URL wiring (`Http.PROXY`), `getResponseHeaderValues`, dynamic callbacks (`onData`, `onBytes`, `onError`, `onStatus`), `responseData`/`responseBytes`, and `requestUrl`.
 - Semantic diff now also locks callback/status/header/error parity for local deterministic HTTP servers (`http_request_callbacks_contract`), including 4xx `onError` formatting (`Http Error #<status>`).
-- Current tradeoff: execution remains synchronous, and `customRequest` socket injection currently maps into Go `http.Transport` dialing semantics rather than the exact byte-level write/read loop used by upstream `sys.Http`.
+- Direct runtime tests lock GET/POST/query/body behavior, deterministic multi-value headers, timeouts, truncated-body status preservation, proxy formatting, idle transport cleanup, and typed custom-socket closure. `core/runtime_hxrt_infer_http` proves the native capability is selected by typed use and excluded from unrelated output.
+- Current tradeoff: execution remains synchronous, and `customRequest` socket injection maps into Go `http.Transport` dialing semantics rather than the exact byte-level write/read loop used by upstream `sys.Http`. Broad cross-platform cancellation and hostile-peer admission remain part of the separate network audit.
 
 ### `sys.net.Socket` staged-source contract and tradeoffs
 

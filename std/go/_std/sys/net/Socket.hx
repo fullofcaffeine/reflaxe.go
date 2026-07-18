@@ -33,8 +33,16 @@ class Socket {
 	**/
 	public var custom:Dynamic;
 
+	/**
+		What: Retains the opaque native connection owned by this staged Socket.
+		Why: UDP/SSL replacement and `sys.Http.customRequest` need the same typed
+		resource without adding a public or reflected accessor to the Socket API.
+		How: Grant only the three source-owned collaborators direct typed access;
+		generated socket layout and untyped native resources remain private.
+	**/
 	@:allow(sys.net.UdpSocket)
 	@:allow(sys.ssl.Socket)
+	@:allow(sys.Http)
 	private var handle:SocketHandle;
 
 	public function new():Void {

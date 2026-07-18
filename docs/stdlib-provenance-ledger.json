@@ -22,6 +22,7 @@
         "haxe_go-vfp.5.3",
         "haxe_go-vfp.8.7.10",
         "haxe_go-vfp.8.7.11",
+        "haxe_go-vfp.8.7.12",
         "haxe_go-vfp.8.7.13",
         "haxe_go-vfp.8.7.14",
         "haxe_go-vfp.8.7.15.1",
@@ -46,6 +47,7 @@
         "haxe_go-vfp.8.3.8",
         "haxe_go-vfp.8.7.10",
         "haxe_go-vfp.8.7.11",
+        "haxe_go-vfp.8.7.12",
         "haxe_go-vfp.8.7.13",
         "haxe_go-vfp.8.7.14",
         "haxe_go-vfp.8.7.15.1",
@@ -71,21 +73,6 @@
     },
     "ambiguities": [],
     "compilerShimAudit": [
-      {
-        "group": "http",
-        "decision": "migration_required_haxe_go_vfp_8_7_12",
-        "sourcePaths": [
-          "std/sys/GoHttpHelpers.hx"
-        ],
-        "references": [
-          "docs/compiler-stdlib-intrinsics.json",
-          "src/reflaxe/go/GoCompiler.hx",
-          "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
-          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx",
-          "test/test_compiler_stdlib_intrinsic_registry.py"
-        ],
-        "notes": "Compiler-owned request choreography is compatibility migration debt. Staged Haxe will own callbacks and policy over typed hxrt transport capabilities."
-      },
       {
         "group": "stdlib_symbols",
         "decision": "split_migration_debt_from_exact_intrinsics_haxe_go_vfp_8_7_15",
@@ -352,7 +339,7 @@
       "destination": "std/go/_std/haxe/http/HttpBase.hx",
       "migrationBead": "haxe_go-vfp.5.3",
       "compilerShimGroups": [],
-      "notes": "Go staged portable override for direct haxe.http.HttpBase baseline ownership. The remaining compiler-emitted sys.Http request choreography is compatibility migration debt tracked by haxe_go-vfp.8.7.12."
+      "notes": "Canonical staged base for the portable haxe.http callback and payload API. Source-owned sys.Http now extends it directly, including mutable dynamic callback fields, with no compiler-emitted HTTP carrier."
     },
     {
       "path": "std/go/_std/haxe/rtti/CType.hx",
@@ -654,15 +641,13 @@
       "notes": "Go staged portable override for haxe.io.Float64Array, reusing staged FPHelper bit-conversion helpers instead of expanding compiler-owned Bytes double logic."
     },
     {
-      "path": "std/sys/GoHttpHelpers.hx",
+      "path": "std/go/_std/sys/Http.hx",
       "provenanceKind": "repo_authored_override",
-      "ownershipClass": "staged_support",
-      "destination": "std/sys/GoHttpHelpers.hx",
-      "migrationBead": "haxe_go-vfp.5.4",
-      "compilerShimGroups": [
-        "http"
-      ],
-      "notes": "Go staged helper surface for sys.Http leaf helpers, keeping response-header lookup glue and payload capture fan-out out of GoCompiler. The remaining request choreography is compatibility migration debt tracked by haxe_go-vfp.8.7.12."
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/Http.hx",
+      "migrationBead": "haxe_go-vfp.8.7.12",
+      "compilerShimGroups": [],
+      "notes": "Canonical source-owned Haxe 4.3.7 sys.Http API. Request selection, payload assembly, public headers, callback order, and status/error policy stay in staged Haxe over typed native transport handles."
     },
     {
       "path": "std/sys/net/_SocketIO.hx",
@@ -1256,6 +1241,33 @@
       "migrationBead": "haxe_go-vfp.8.7.10",
       "compilerShimGroups": [],
       "notes": "Opaque typed extern carrier for one runtime/hxrt string-keyed map cell; staged haxe.ds.StringMap owns the public collection contract."
+    },
+    {
+      "path": "std/hxrt/http/HttpRequestHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/http/HttpRequestHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.12",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed carrier for one native HTTP request builder; it exposes no generated sys.Http layout or callback policy."
+    },
+    {
+      "path": "std/hxrt/http/HttpResponseHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/http/HttpResponseHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.12",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed carrier for native status, headers, response bytes, and transport errors; staged sys.Http owns their public interpretation."
+    },
+    {
+      "path": "std/hxrt/http/NativeHttp.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/http/NativeHttp.hx",
+      "migrationBead": "haxe_go-vfp.8.7.12",
+      "compilerShimGroups": [],
+      "notes": "Typed footprint-explicit bridge to Go URL parsing and HTTP transport. Only scalars, opaque byte views, and typed socket handles cross the boundary."
     },
     {
       "path": "std/hxrt/io/ByteView.hx",

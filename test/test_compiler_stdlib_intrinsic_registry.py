@@ -129,6 +129,10 @@ def planner_surfaces(source: str) -> dict[str, tuple[str, ...]]:
 
 
 def group_dependencies(source: str) -> dict[str, tuple[str, ...]]:
+    # A fully retired dependency layer has no hook to parse. The exact registry
+    # comparison below still fails closed if any group declares dependencies.
+    if re.search(r"\bfunction\s+applyStdlibShimGroupDependencies\s*\(", source) is None:
+        return {}
     body = function_source(source, "applyStdlibShimGroupDependencies")
     matches = list(re.finditer(r'requiredStdlibShimGroups\.exists\("([^"]+)"\)', body))
     dependencies: dict[str, tuple[str, ...]] = {}
@@ -145,7 +149,9 @@ def compiler_owned_authorities(source: str) -> set[str]:
     body = function_source(source, "isCompilerOwnedAuthority")
     required_case = re.search(r"\bcase\s+(.*?):\s*\n?\s*true;", body, flags=re.DOTALL)
     if required_case is None:
-        raise AssertionError("missing true authority case")
+        # An empty authority set is a valid end state; any registered authority
+        # still makes the exact set comparison fail.
+        return set()
     return set(re.findall(r'"([^"]+)"', required_case.group(1)))
 
 

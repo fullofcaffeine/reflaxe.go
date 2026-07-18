@@ -20,8 +20,6 @@ package reflaxe.go.compiler;
 class GoStdlibOwnership {
 	public static function isCompilerOwnedAuthority(name:String):Bool {
 		return switch (name) {
-			case "sys.Http":
-				true;
 			case _:
 				false;
 		};

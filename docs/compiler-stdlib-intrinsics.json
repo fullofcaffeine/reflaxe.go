@@ -141,16 +141,6 @@
       ],
       "reviewCondition": "Remove the dispatcher when no portable declaration group remains."
     },
-    "migration_http": {
-      "what": "Move sys.Http public request and callback behavior to staged Haxe over typed native HTTP capabilities.",
-      "why": "Request sequencing, headers, payloads, proxy policy, callbacks, and response normalization are runtime and library semantics rather than compile-time facts.",
-      "how": "Keep Haxe-visible choreography in source and expose transport resources through narrow hxrt handles.",
-      "evidence": [
-        "http_request_callbacks_contract",
-        "sys/http_request_callbacks_smoke"
-      ],
-      "reviewCondition": "Close only when haxe_go-vfp.8.7.12 removes the generated sys.Http authority and shim group."
-    },
     "migration_runtime_reflection": {
       "what": "Move runtime-only Reflect.fields behavior out of compiler-generated declarations.",
       "why": "Field enumeration inspects runtime values and does not consume the compiler's closed metadata table.",
@@ -177,25 +167,6 @@
     "decisionId": "migration_dispatch"
   },
   "groups": [
-    {
-      "group": "http",
-      "entryPoint": "lowerHttpStdlibShimDecls",
-      "status": "migration_required",
-      "decisionId": "migration_http",
-      "followUpBead": "haxe_go-vfp.8.7.12",
-      "ownedSymbols": [
-        {"symbol": "sys.Http", "scope": "complete_type"}
-      ],
-      "compilerOwnedAuthorities": [
-        "sys.Http"
-      ],
-      "classifierSelections": [
-        {"kind": "class", "path": "sys.Http"}
-      ],
-      "plannerSelections": [],
-      "dependencies": [],
-      "declaresDependencyBlock": true
-    },
     {
       "group": "stdlib_symbols",
       "entryPoint": "lowerStdlibSymbolShimDecls",

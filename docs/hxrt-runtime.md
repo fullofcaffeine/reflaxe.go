@@ -108,6 +108,14 @@ Key implementation points:
   - non-owning `SysStdin`, `SysStdout`, and `SysStderr` handles used by the staged file-stream classes
 - Process wrappers (`runtime/hxrt/process.go`):
   - native `NewProcess` handles plus the typed `ProcessCreate`, pipe, byte-transfer, PID, status, kill, and close capabilities consumed by `std/hxrt/process`
+- HTTP transport (`runtime/hxrt/http.go`):
+  - opaque request/response handles consumed only through typed
+    `std/hxrt/http` bindings;
+  - URL/query/form construction, proxy configuration, bounded synchronous
+    `net/http` execution, deterministic indexed response headers, body closure,
+    idle-transport cleanup, and optional typed `SocketHandle` consumption;
+  - request selection, data-URL behavior, multipart policy, public maps,
+    callbacks, and status/error classification remain in staged `sys.Http`.
 - Network capabilities (`runtime/hxrt/socket.go` plus build-tagged
   `runtime/hxrt/socket_broadcast_*.go` adapters):
   - one opaque, synchronized `SocketHandle` shared by TCP and UDP;
@@ -141,9 +149,9 @@ These helpers preserve native failures at the runtime boundary. Canonical staged
   - scalar IEEE-754 bit reinterpretation used by staged `haxe.io.FPHelper`.
 
 Public bounds, hex algorithms, encoding selection, stream behavior, alias
-observation, and cache invalidation remain in canonical staged Haxe. Base64 and
-digest consumers reuse the same opaque view, so they do not copy through
-`go.NativeSlice<Int>` or depend on generated `haxe.io.Bytes` fields.
+observation, and cache invalidation remain in canonical staged Haxe. Base64,
+digest, and HTTP body consumers reuse the same opaque view, so they do not copy
+through `go.NativeSlice<Int>` or depend on generated `haxe.io.Bytes` fields.
 
 ## Exception and concurrency boundaries
 

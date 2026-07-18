@@ -199,6 +199,7 @@ class Bytes {
 	@:allow(haxe.crypto.Sha1)
 	@:allow(haxe.crypto.Sha224)
 	@:allow(haxe.crypto.Sha256)
+	@:allow(sys.Http)
 	function __hx_nativeView():ByteView {
 		if (!__hx_rawValid || (__hx_dataExposed && !NativeBytes.viewMatchesValues(__hx_raw, b))) {
 			__hx_raw = NativeBytes.viewFromValues(b);
@@ -212,6 +213,7 @@ class Bytes {
 	@:allow(haxe.crypto.Sha1)
 	@:allow(haxe.crypto.Sha224)
 	@:allow(haxe.crypto.Sha256)
+	@:allow(sys.Http)
 	static function __hx_fromNativeView(view:ByteView):Bytes {
 		return new Bytes(NativeBytes.viewLength(view), NativeBytes.valuesFromView(view), view);
 	}

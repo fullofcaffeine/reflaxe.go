@@ -1,15 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"io"
-	"net"
-	"net/http"
-	"net/url"
 	"reflect"
 	"snapshot/hxrt"
-	"strings"
-	"time"
 )
 
 type hxrt__TypeClassValue struct {
@@ -38,512 +31,35 @@ func main() {
 	http.onError = func(msg *string) {
 		errLog = msg
 	}
-	http.setHeader(hxrt.StringFromLiteral("X-Test"), hxrt.StringFromLiteral("one"))
-	http.setHeader(hxrt.StringFromLiteral("X-Test"), hxrt.StringFromLiteral("two"))
-	http.addHeader(hxrt.StringFromLiteral("X-Trace"), hxrt.StringFromLiteral("ok"))
-	http.setParameter(hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("1"))
-	http.addParameter(hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("2"))
-	http.request()
+	http.__hx_this.setHeader(hxrt.StringFromLiteral("X-Test"), hxrt.StringFromLiteral("one"))
+	http.__hx_this.setHeader(hxrt.StringFromLiteral("X-Test"), hxrt.StringFromLiteral("two"))
+	http.__hx_this.addHeader(hxrt.StringFromLiteral("X-Trace"), hxrt.StringFromLiteral("ok"))
+	http.__hx_this.setParameter(hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("1"))
+	http.__hx_this.addParameter(hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("2"))
+	http.__hx_this.request(nil)
 	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("data="), dataLog)))
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("bytes="), byteCount)))
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("status="), statusLog)))
-	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("response="), http.get_responseData()))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("response="), http.__hx_this.get_responseData()))
 	hxrt.Println(v)
 	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error="), errLog)))
 	post := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,ignored"))
-	post.setPostData(hxrt.StringFromLiteral("post-body"))
+	post.__hx_this.setPostData(hxrt.StringFromLiteral("post-body"))
 	postData := hxrt.StringFromLiteral("")
 	post.onData = func(data *string) {
 		postData = data
 	}
-	post.request(true)
+	post.__hx_this.request(true)
 	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("post="), postData)))
 	bad := New_sys__Http(hxrt.StringFromLiteral("://bad"))
 	badErr := hxrt.StringFromLiteral("")
 	bad.onError = func(msg *string) {
 		badErr = msg
 	}
-	bad.request()
+	bad.__hx_this.request(nil)
 	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("bad="), badErr)))
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("direct="), sys__Http_requestUrl(hxrt.StringFromLiteral("data:text/plain,direct%20ok"))))
 	hxrt.Println(v_1)
-}
-
-type hxrt__http__Pair struct {
-	name  *string
-	value *string
-}
-
-type hxrt__http__FileUpload struct {
-	param    *string
-	filename *string
-	size     int
-	mimeType *string
-	fileRef  any
-}
-
-var sys__Http_PROXY any = nil
-
-type sys__Http struct {
-	url                    *string
-	responseAsString       *string
-	responseBytes          *haxe__io__Bytes
-	postData               *string
-	postBytes              *haxe__io__Bytes
-	headers                []hxrt__http__Pair
-	params                 []hxrt__http__Pair
-	onData                 func(*string)
-	onBytes                func(*haxe__io__Bytes)
-	onError                func(*string)
-	onStatus               func(int)
-	noShutdown             bool
-	cnxTimeout             float64
-	responseHeaders        *haxe__ds__StringMap
-	responseHeadersSameKey map[string][]*string
-	fileUpload             *hxrt__http__FileUpload
-}
-
-func New_sys__Http(url *string) *sys__Http {
-	self := &sys__Http{url: url, headers: []hxrt__http__Pair{}, params: []hxrt__http__Pair{}, cnxTimeout: 10, responseHeaders: New_haxe__ds__StringMap(), responseHeadersSameKey: map[string][]*string{}}
-	self.onData = func(data *string) {}
-	self.onBytes = func(data *haxe__io__Bytes) {}
-	self.onError = func(msg *string) {}
-	self.onStatus = func(status int) {}
-	return self
-}
-
-func (self *sys__Http) setHeader(name *string, value *string) {
-	if self == nil {
-		return
-	}
-	for i := 0; i < len(self.headers); i++ {
-		if *hxrt.StdString(self.headers[i].name) == *hxrt.StdString(name) {
-			self.headers[i] = hxrt__http__Pair{name: name, value: value}
-			return
-		}
-	}
-	self.headers = append(self.headers, hxrt__http__Pair{name: name, value: value})
-}
-
-func (self *sys__Http) addHeader(header *string, value *string) {
-	if self == nil {
-		return
-	}
-	self.headers = append(self.headers, hxrt__http__Pair{name: header, value: value})
-}
-
-func (self *sys__Http) setParameter(name *string, value *string) {
-	if self == nil {
-		return
-	}
-	for i := 0; i < len(self.params); i++ {
-		if *hxrt.StdString(self.params[i].name) == *hxrt.StdString(name) {
-			self.params[i] = hxrt__http__Pair{name: name, value: value}
-			return
-		}
-	}
-	self.params = append(self.params, hxrt__http__Pair{name: name, value: value})
-}
-
-func (self *sys__Http) addParameter(name *string, value *string) {
-	if self == nil {
-		return
-	}
-	self.params = append(self.params, hxrt__http__Pair{name: name, value: value})
-}
-
-func (self *sys__Http) setPostData(data *string) {
-	if self == nil {
-		return
-	}
-	self.postData = data
-	self.postBytes = nil
-}
-
-func (self *sys__Http) setPostBytes(data *haxe__io__Bytes) {
-	if self == nil {
-		return
-	}
-	self.postBytes = data
-	self.postData = nil
-}
-
-func (self *sys__Http) fileTransfer(argname *string, filename *string, file any, size int, mimeType ...*string) {
-	if self == nil {
-		return
-	}
-	resolvedMime := hxrt.StringFromLiteral("application/octet-stream")
-	if len(mimeType) > 0 {
-		if mimeType[0] != nil {
-			resolvedMime = mimeType[0]
-		}
-	}
-	self.fileUpload = &hxrt__http__FileUpload{param: argname, filename: filename, size: size, mimeType: resolvedMime, fileRef: file}
-}
-
-func (self *sys__Http) fileTransfert(argname *string, filename *string, file any, size int, mimeType ...*string) {
-	self.fileTransfer(argname, filename, file, size, mimeType...)
-}
-
-func (self *sys__Http) getResponseHeaderValues(key *string) *hxrt.Array {
-	return sys__GoHttpHelpers_getResponseHeaderValues(self, key)
-}
-
-func (self *sys__Http) get_responseData() *string {
-	if self == nil {
-		return hxrt.StringFromLiteral("")
-	}
-	if self.responseAsString == nil && self.responseBytes != nil {
-		self.responseAsString = self.responseBytes.toString()
-	}
-	return self.responseAsString
-}
-
-func (self *sys__Http) customRequest(post bool, api any, rest ...any) {
-	var socketOverride any = nil
-	var methodOverride *string = nil
-	if len(rest) >= 1 {
-		switch candidate := rest[0].(type) {
-		case string:
-			if len(rest) == 1 {
-				methodOverride = hxrt.StringFromLiteral(candidate)
-			}
-		case *string:
-			if len(rest) == 1 {
-				methodOverride = candidate
-			}
-		default:
-			socketOverride = candidate
-		}
-	}
-	if len(rest) >= 2 {
-		switch candidate := rest[1].(type) {
-		case *string:
-			methodOverride = candidate
-		case string:
-			methodOverride = hxrt.StringFromLiteral(candidate)
-		}
-	}
-	self.hxrt__http__requestWith(post, methodOverride, api, socketOverride)
-}
-
-func (self *sys__Http) request(post ...bool) {
-	if self == nil {
-		return
-	}
-	isPost := false
-	if len(post) > 0 {
-		isPost = post[0]
-	}
-	if self.postData != nil || self.postBytes != nil || self.fileUpload != nil {
-		isPost = true
-	}
-	self.hxrt__http__requestWith(isPost, nil, nil, nil)
-}
-
-func (self *sys__Http) hxrt__http__requestWith(post bool, methodOverride *string, api any, sock any) {
-	self.responseAsString = nil
-	self.responseBytes = nil
-	self.responseHeaders = New_haxe__ds__StringMap()
-	self.responseHeadersSameKey = map[string][]*string{}
-	rawUrl := *hxrt.StdString(self.url)
-	parsedURL, err := url.Parse(rawUrl)
-	if err != nil || parsedURL == nil {
-		if self.onError != nil {
-			self.onError(hxrt.StringFromLiteral("Invalid URL"))
-		}
-		return
-	}
-	query := parsedURL.Query()
-	for _, param := range self.params {
-		query.Set(*hxrt.StdString(param.name), *hxrt.StdString(param.value))
-	}
-	var bodyReader io.Reader = nil
-	var contentTypeOverride *string = nil
-	if post {
-		if self.fileUpload != nil {
-			multipartPayload := ""
-			for _, param := range self.params {
-				multipartPayload += "--hxrt-go-boundary\r\n"
-				multipartPayload += "Content-Disposition: form-data; name=\"" + *hxrt.StdString(param.name) + "\"\r\n\r\n"
-				multipartPayload += *hxrt.StdString(param.value) + "\r\n"
-			}
-			multipartPayload += "--hxrt-go-boundary\r\n"
-			multipartPayload += "Content-Disposition: form-data; name=\"" + *hxrt.StdString(self.fileUpload.param) + "\"; filename=\"" + *hxrt.StdString(self.fileUpload.filename) + "\"\r\n"
-			multipartPayload += "Content-Type: " + *hxrt.StdString(self.fileUpload.mimeType) + "\r\n\r\n"
-			multipartPayload += "[uploaded-bytes=" + *hxrt.StdString(self.fileUpload.size) + "]\r\n"
-			multipartPayload += "--hxrt-go-boundary--\r\n"
-			bodyReader = strings.NewReader(multipartPayload)
-			contentTypeOverride = hxrt.StringFromLiteral("multipart/form-data; boundary=hxrt-go-boundary")
-		} else if self.postBytes != nil {
-			rawBody := make([]byte, len(self.postBytes.b))
-			for i := 0; i < len(self.postBytes.b); i++ {
-				rawBody[i] = byte(self.postBytes.b[i])
-			}
-			bodyReader = bytes.NewReader(rawBody)
-		} else if self.postData != nil {
-			bodyReader = strings.NewReader(*hxrt.StdString(self.postData))
-		} else {
-			encoded := query.Encode()
-			bodyReader = strings.NewReader(encoded)
-			hasContentType := false
-			for _, header := range self.headers {
-				if strings.EqualFold(*hxrt.StdString(header.name), "Content-Type") {
-					hasContentType = true
-					break
-				}
-			}
-			if !hasContentType {
-				contentTypeOverride = hxrt.StringFromLiteral("application/x-www-form-urlencoded")
-			}
-		}
-	} else {
-		parsedURL.RawQuery = query.Encode()
-	}
-	if parsedURL.Scheme == "data" {
-		payload := parsedURL.Opaque
-		mediaType := "text/plain"
-		commaIndex := strings.Index(payload, ",")
-		if commaIndex >= 0 {
-			if commaIndex > 0 {
-				mediaType = payload[:commaIndex]
-			}
-			payload = payload[commaIndex+1:]
-		}
-		if post {
-			if self.fileUpload != nil {
-				payload = "multipart file=" + *hxrt.StdString(self.fileUpload.filename) + ";mime=" + *hxrt.StdString(self.fileUpload.mimeType) + ";size=" + *hxrt.StdString(self.fileUpload.size)
-			} else if bodyReader != nil {
-				rawBody, readErr := io.ReadAll(bodyReader)
-				if readErr == nil {
-					payload = string(rawBody)
-				}
-			}
-		}
-		decoded, decodeErr := url.QueryUnescape(payload)
-		if decodeErr == nil {
-			payload = decoded
-		}
-		if methodOverride != nil {
-			methodToken := strings.ToUpper(*hxrt.StdString(methodOverride))
-			if methodToken != "" && methodToken != "NULL" {
-				payload = methodToken + " " + payload
-			}
-		}
-		rawPayload := []byte(payload)
-		intPayload := make([]int, len(rawPayload))
-		for i := 0; i < len(rawPayload); i++ {
-			intPayload[i] = int(rawPayload[i])
-		}
-		self.responseBytes = haxe__io__Bytes_ofData(intPayload)
-		self.responseAsString = hxrt.StringFromLiteral(payload)
-		self.responseHeaders = New_haxe__ds__StringMap()
-		self.responseHeaders.set(hxrt.StringFromLiteral("content-type"), hxrt.StringFromLiteral(mediaType))
-		self.responseHeaders.set(hxrt.StringFromLiteral("Content-Type"), hxrt.StringFromLiteral(mediaType))
-		self.responseHeadersSameKey = map[string][]*string{}
-		hxrt__http__captureApi(api, self.responseBytes)
-		if self.onStatus != nil {
-			self.onStatus(200)
-		}
-		if self.onData != nil {
-			self.onData(self.responseAsString)
-		}
-		if self.onBytes != nil {
-			self.onBytes(self.responseBytes)
-		}
-		return
-	}
-	if parsedURL.Scheme == "" || parsedURL.Host == "" {
-		if self.onError != nil {
-			self.onError(hxrt.StringFromLiteral("Invalid URL"))
-		}
-		return
-	}
-	method := "GET"
-	if post {
-		method = "POST"
-	}
-	if methodOverride != nil {
-		methodToken := strings.ToUpper(*hxrt.StdString(methodOverride))
-		if methodToken != "" && methodToken != "NULL" {
-			method = methodToken
-		}
-	}
-	request, err := http.NewRequest(method, parsedURL.String(), bodyReader)
-	if err != nil {
-		if self.onError != nil {
-			self.onError(hxrt.StringFromLiteral(err.Error()))
-		}
-		return
-	}
-	for _, header := range self.headers {
-		request.Header.Set(*hxrt.StdString(header.name), *hxrt.StdString(header.value))
-	}
-	if contentTypeOverride != nil && request.Header.Get("Content-Type") == "" {
-		request.Header.Set("Content-Type", *hxrt.StdString(contentTypeOverride))
-	}
-	transport := &http.Transport{}
-	proxyURL := hxrt__http__proxyURL()
-	if proxyURL != nil {
-		transport.Proxy = http.ProxyURL(proxyURL)
-	}
-	var socketAdapter interface {
-		hxrt__socket_conn() net.Conn
-		hxrt__socket_setConn(net.Conn)
-		close()
-	}
-	if candidate, ok := sock.(interface {
-		hxrt__socket_conn() net.Conn
-		hxrt__socket_setConn(net.Conn)
-		close()
-	}); ok {
-		socketAdapter = candidate
-		transport.DisableKeepAlives = true
-		request.Close = true
-		socketConsumed := false
-		transport.Dial = func(network string, addr string) (net.Conn, error) {
-			if socketConsumed {
-				return nil, io.EOF
-			}
-			socketConsumed = true
-			conn := socketAdapter.hxrt__socket_conn()
-			if conn == nil {
-				dialConn, dialErr := net.Dial(network, addr)
-				if dialErr != nil {
-					return nil, dialErr
-				}
-				socketAdapter.hxrt__socket_setConn(dialConn)
-				conn = dialConn
-			}
-			return conn, nil
-		}
-		defer socketAdapter.close()
-	}
-	timeout := time.Duration(self.cnxTimeout * float64(time.Second))
-	if timeout <= 0 {
-		timeout = 10 * time.Second
-	}
-	client := &http.Client{Transport: transport, Timeout: timeout}
-	response, err := client.Do(request)
-	if err != nil {
-		if self.onError != nil {
-			self.onError(hxrt.StringFromLiteral(err.Error()))
-		}
-		return
-	}
-	defer response.Body.Close()
-	self.responseHeaders = New_haxe__ds__StringMap()
-	self.responseHeadersSameKey = map[string][]*string{}
-	for name, values := range response.Header {
-		if len(values) == 0 {
-			continue
-		}
-		lowerKey := strings.ToLower(name)
-		lastValue := hxrt.StringFromLiteral(values[len(values)-1])
-		self.responseHeaders.set(hxrt.StringFromLiteral(name), lastValue)
-		if lowerKey != name {
-			self.responseHeaders.set(hxrt.StringFromLiteral(lowerKey), lastValue)
-		}
-		if len(values) > 1 {
-			allValues := make([]*string, 0, len(values))
-			for _, rawValue := range values {
-				allValues = append(allValues, hxrt.StringFromLiteral(rawValue))
-			}
-			self.responseHeadersSameKey[name] = allValues
-			if lowerKey != name {
-				self.responseHeadersSameKey[lowerKey] = allValues
-			}
-		}
-	}
-	if self.onStatus != nil {
-		self.onStatus(response.StatusCode)
-	}
-	rawPayload, err := io.ReadAll(response.Body)
-	if err != nil {
-		if self.onError != nil {
-			self.onError(hxrt.StringFromLiteral(err.Error()))
-		}
-		return
-	}
-	intPayload := make([]int, len(rawPayload))
-	for i := 0; i < len(rawPayload); i++ {
-		intPayload[i] = int(rawPayload[i])
-	}
-	self.responseBytes = haxe__io__Bytes_ofData(intPayload)
-	self.responseAsString = hxrt.StringFromLiteral(string(rawPayload))
-	hxrt__http__captureApi(api, self.responseBytes)
-	if response.StatusCode >= 400 {
-		if self.onError != nil {
-			self.onError(hxrt.StringConcatAny(hxrt.StringFromLiteral("Http Error #"), response.StatusCode))
-		}
-		return
-	}
-	if self.onData != nil {
-		self.onData(self.responseAsString)
-	}
-	if self.onBytes != nil {
-		self.onBytes(self.responseBytes)
-	}
-}
-
-func hxrt__http__captureApi(api any, payload *haxe__io__Bytes) {
-	sys__GoHttpHelpers_captureApi(api, payload)
-}
-
-func hxrt__http__proxyURL() *url.URL {
-	if sys__Http_PROXY == nil {
-		return nil
-	}
-	config, ok := sys__Http_PROXY.(map[string]any)
-	if !ok {
-		return nil
-	}
-	host := *hxrt.StdString(config["host"])
-	if host == "" {
-		return nil
-	}
-	if host == "null" {
-		return nil
-	}
-	port := *hxrt.StdString(config["port"])
-	hostPort := host
-	if port != "" && port != "null" && !strings.Contains(hostPort, ":") {
-		hostPort = hostPort + ":" + port
-	}
-	proxyURL, err := url.Parse("http://" + hostPort)
-	if err != nil {
-		return nil
-	}
-	if authValue, ok := config["auth"]; ok {
-		if authMap, ok := authValue.(map[string]any); ok {
-			user := *hxrt.StdString(authMap["user"])
-			pass := *hxrt.StdString(authMap["pass"])
-			if user != "" && user != "null" {
-				if pass == "null" {
-					pass = ""
-				}
-				proxyURL.User = url.UserPassword(user, pass)
-			}
-		}
-	}
-	return proxyURL
-}
-
-func sys__Http_hxrt_proxyDescriptor() *string {
-	proxyURL := hxrt__http__proxyURL()
-	if proxyURL == nil {
-		return hxrt.StringFromLiteral("null")
-	}
-	return hxrt.StringFromLiteral(proxyURL.String())
-}
-
-func sys__Http_requestUrl(url *string) *string {
-	self := New_sys__Http(url)
-	result := hxrt.StringFromLiteral("")
-	self.onData = func(data *string) { result = data }
-	self.onError = func(msg *string) { result = msg }
-	self.request()
-	return result
 }
 
 type Std struct {
@@ -931,11 +447,11 @@ func hxrt_typeResolvedEnumName(value any) (string, bool) {
 
 func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	switch className {
-	case "Lambda":
-		return nil, false
 	case "Main":
 		return nil, false
 	case "StringBuf":
+		return nil, false
+	case "StringTools":
 		return nil, false
 	case "haxe.Int64Helper":
 		return nil, false
@@ -957,12 +473,30 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return hxrt_typeCallAny(New_haxe__io__Bytes, args)
 	case "haxe.io.BytesBuffer":
 		return hxrt_typeCallAny(New_haxe__io__BytesBuffer, args)
+	case "haxe.io.Eof":
+		return hxrt_typeCallAny(New_haxe__io__Eof, args)
 	case "haxe.io.FPHelper":
 		return nil, false
+	case "haxe.io.Input":
+		return hxrt_typeCallAny(New_haxe__io__Input, args)
+	case "haxe.io.Output":
+		return hxrt_typeCallAny(New_haxe__io__Output, args)
 	case "haxe.iterators.MapKeyValueIterator":
 		return hxrt_typeCallAny(New_haxe__iterators__MapKeyValueIterator, args)
-	case "sys.GoHttpHelpers":
-		return nil, false
+	case "haxe.iterators.StringIterator":
+		return hxrt_typeCallAny(New_haxe__iterators__StringIterator, args)
+	case "haxe.iterators.StringKeyValueIterator":
+		return hxrt_typeCallAny(New_haxe__iterators__StringKeyValueIterator, args)
+	case "sys.Http":
+		return hxrt_typeCallAny(New_sys__Http, args)
+	case "sys.net.Host":
+		return hxrt_typeCallAny(New_sys__net__Host, args)
+	case "sys.net.Socket":
+		return hxrt_typeCallAny(New_sys__net__Socket, args)
+	case "sys.net.SocketInput":
+		return hxrt_typeCallAny(New_sys__net__SocketInput, args)
+	case "sys.net.SocketOutput":
+		return hxrt_typeCallAny(New_sys__net__SocketOutput, args)
 	default:
 		return nil, false
 	}
@@ -984,8 +518,28 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 		return &haxe__io__Bytes{}, true
 	case "haxe.io.BytesBuffer":
 		return &haxe__io__BytesBuffer{}, true
+	case "haxe.io.Eof":
+		return &haxe__io__Eof{}, true
+	case "haxe.io.Input":
+		return &haxe__io__Input{}, true
+	case "haxe.io.Output":
+		return &haxe__io__Output{}, true
 	case "haxe.iterators.MapKeyValueIterator":
 		return &haxe__iterators__MapKeyValueIterator{}, true
+	case "haxe.iterators.StringIterator":
+		return &haxe__iterators__StringIterator{}, true
+	case "haxe.iterators.StringKeyValueIterator":
+		return &haxe__iterators__StringKeyValueIterator{}, true
+	case "sys.Http":
+		return &sys__Http{}, true
+	case "sys.net.Host":
+		return &sys__net__Host{}, true
+	case "sys.net.Socket":
+		return &sys__net__Socket{}, true
+	case "sys.net.SocketInput":
+		return &sys__net__SocketInput{}, true
+	case "sys.net.SocketOutput":
+		return &sys__net__SocketOutput{}, true
 	default:
 		return nil, false
 	}
@@ -1234,11 +788,61 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.BytesBuffer")}
+	case *haxe__io__Eof:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Eof")}
+	case *haxe__io__Input:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Input")}
+	case *haxe__io__Output:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Output")}
 	case *haxe__iterators__MapKeyValueIterator:
 		if value == nil {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.MapKeyValueIterator")}
+	case *haxe__iterators__StringIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.StringIterator")}
+	case *haxe__iterators__StringKeyValueIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.StringKeyValueIterator")}
+	case *sys__Http:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.Http")}
+	case *sys__net__Host:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.net.Host")}
+	case *sys__net__Socket:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.net.Socket")}
+	case *sys__net__SocketInput:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.net.SocketInput")}
+	case *sys__net__SocketOutput:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.net.SocketOutput")}
 	default:
 		return nil
 	}
@@ -1283,11 +887,11 @@ func Type_getSuperClass(c any) any {
 		return nil
 	}
 	switch className {
-	case "Lambda":
-		return nil
 	case "Main":
 		return nil
 	case "StringBuf":
+		return nil
+	case "StringTools":
 		return nil
 	case "haxe.Int64Helper":
 		return nil
@@ -1309,12 +913,30 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "haxe.io.BytesBuffer":
 		return nil
+	case "haxe.io.Eof":
+		return nil
 	case "haxe.io.FPHelper":
+		return nil
+	case "haxe.io.Input":
+		return nil
+	case "haxe.io.Output":
 		return nil
 	case "haxe.iterators.MapKeyValueIterator":
 		return nil
-	case "sys.GoHttpHelpers":
+	case "haxe.iterators.StringIterator":
 		return nil
+	case "haxe.iterators.StringKeyValueIterator":
+		return nil
+	case "sys.Http":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.http.HttpBase")}
+	case "sys.net.Host":
+		return nil
+	case "sys.net.Socket":
+		return nil
+	case "sys.net.SocketInput":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Input")}
+	case "sys.net.SocketOutput":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Output")}
 	default:
 		return nil
 	}
@@ -1334,12 +956,12 @@ func Type_getClassFields(c any) *hxrt.Array {
 		return hxrt.NewArray()
 	}
 	switch className {
-	case "Lambda":
-		return hxrt.NewArray(hxrt.StringFromLiteral("exists"))
 	case "Main":
 		return hxrt.NewArray(hxrt.StringFromLiteral("main"))
 	case "StringBuf":
 		return hxrt.NewArray()
+	case "StringTools":
+		return hxrt.NewArray(hxrt.StringFromLiteral("MAX_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_HIGH_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("MIN_SURROGATE_CODE_POINT"), hxrt.StringFromLiteral("contains"), hxrt.StringFromLiteral("containsImpl"), hxrt.StringFromLiteral("endsWith"), hxrt.StringFromLiteral("endsWithImpl"), hxrt.StringFromLiteral("fastCodeAt"), hxrt.StringFromLiteral("hex"), hxrt.StringFromLiteral("hexDigitValue"), hxrt.StringFromLiteral("htmlEscape"), hxrt.StringFromLiteral("htmlUnescape"), hxrt.StringFromLiteral("isEof"), hxrt.StringFromLiteral("isSpace"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("lpad"), hxrt.StringFromLiteral("ltrim"), hxrt.StringFromLiteral("replace"), hxrt.StringFromLiteral("rpad"), hxrt.StringFromLiteral("rtrim"), hxrt.StringFromLiteral("startsWith"), hxrt.StringFromLiteral("startsWithImpl"), hxrt.StringFromLiteral("trim"), hxrt.StringFromLiteral("unsafeCodeAt"), hxrt.StringFromLiteral("urlDecode"), hxrt.StringFromLiteral("urlEncode"), hxrt.StringFromLiteral("utf16CodePointAt"))
 	case "haxe.Int64Helper":
 		return hxrt.NewArray()
 	case "haxe._Int32.Int32_Impl_":
@@ -1360,12 +982,30 @@ func Type_getClassFields(c any) *hxrt.Array {
 		return hxrt.NewArray(hxrt.StringFromLiteral("__hx_fromNativeView"), hxrt.StringFromLiteral("alloc"), hxrt.StringFromLiteral("fastGet"), hxrt.StringFromLiteral("ofData"), hxrt.StringFromLiteral("ofHex"), hxrt.StringFromLiteral("ofString"), hxrt.StringFromLiteral("rawNativeUsesUtf16LE"))
 	case "haxe.io.BytesBuffer":
 		return hxrt.NewArray()
+	case "haxe.io.Eof":
+		return hxrt.NewArray()
 	case "haxe.io.FPHelper":
 		return hxrt.NewArray(hxrt.StringFromLiteral("doubleToI64"), hxrt.StringFromLiteral("floatToI32"), hxrt.StringFromLiteral("i32ToFloat"), hxrt.StringFromLiteral("i64ToDouble"))
+	case "haxe.io.Input":
+		return hxrt.NewArray()
+	case "haxe.io.Output":
+		return hxrt.NewArray()
 	case "haxe.iterators.MapKeyValueIterator":
 		return hxrt.NewArray()
-	case "sys.GoHttpHelpers":
-		return hxrt.NewArray(hxrt.StringFromLiteral("captureApi"), hxrt.StringFromLiteral("getResponseHeaderValues"))
+	case "haxe.iterators.StringIterator":
+		return hxrt.NewArray()
+	case "haxe.iterators.StringKeyValueIterator":
+		return hxrt.NewArray()
+	case "sys.Http":
+		return hxrt.NewArray(hxrt.StringFromLiteral("PROXY"), hxrt.StringFromLiteral("capture"), hxrt.StringFromLiteral("firstComma"), hxrt.StringFromLiteral("hxrt_proxyDescriptor"), hxrt.StringFromLiteral("normalizedMethod"), hxrt.StringFromLiteral("requestUrl"))
+	case "sys.net.Host":
+		return hxrt.NewArray(hxrt.StringFromLiteral("fromIPv4"), hxrt.StringFromLiteral("localhost"))
+	case "sys.net.Socket":
+		return hxrt.NewArray(hxrt.StringFromLiteral("pick"), hxrt.StringFromLiteral("publicAddress"), hxrt.StringFromLiteral("select"))
+	case "sys.net.SocketInput":
+		return hxrt.NewArray(hxrt.StringFromLiteral("translateReadStatus"))
+	case "sys.net.SocketOutput":
+		return hxrt.NewArray(hxrt.StringFromLiteral("translateWriteStatus"))
 	default:
 		return hxrt.NewArray()
 	}
@@ -1377,11 +1017,11 @@ func Type_getInstanceFields(c any) *hxrt.Array {
 		return hxrt.NewArray()
 	}
 	switch className {
-	case "Lambda":
-		return hxrt.NewArray()
 	case "Main":
 		return hxrt.NewArray()
 	case "StringBuf":
+		return hxrt.NewArray()
+	case "StringTools":
 		return hxrt.NewArray()
 	case "haxe.Int64Helper":
 		return hxrt.NewArray()
@@ -1403,12 +1043,30 @@ func Type_getInstanceFields(c any) *hxrt.Array {
 		return hxrt.NewArray(hxrt.StringFromLiteral("__hx_dataExposed"), hxrt.StringFromLiteral("__hx_nativeView"), hxrt.StringFromLiteral("__hx_raw"), hxrt.StringFromLiteral("__hx_rawValid"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("blit"), hxrt.StringFromLiteral("compare"), hxrt.StringFromLiteral("fill"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getData"), hxrt.StringFromLiteral("getDouble"), hxrt.StringFromLiteral("getFloat"), hxrt.StringFromLiteral("getInt32"), hxrt.StringFromLiteral("getInt64"), hxrt.StringFromLiteral("getString"), hxrt.StringFromLiteral("getUInt16"), hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("readString"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setDouble"), hxrt.StringFromLiteral("setFloat"), hxrt.StringFromLiteral("setInt32"), hxrt.StringFromLiteral("setInt64"), hxrt.StringFromLiteral("setUInt16"), hxrt.StringFromLiteral("sub"), hxrt.StringFromLiteral("toHex"), hxrt.StringFromLiteral("toString"))
 	case "haxe.io.BytesBuffer":
 		return hxrt.NewArray(hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("addByte"), hxrt.StringFromLiteral("addBytes"), hxrt.StringFromLiteral("addDouble"), hxrt.StringFromLiteral("addFloat"), hxrt.StringFromLiteral("addInt32"), hxrt.StringFromLiteral("addInt64"), hxrt.StringFromLiteral("addString"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("getBytes"), hxrt.StringFromLiteral("get_length"), hxrt.StringFromLiteral("length"))
+	case "haxe.io.Eof":
+		return hxrt.NewArray(hxrt.StringFromLiteral("toString"))
 	case "haxe.io.FPHelper":
 		return hxrt.NewArray()
+	case "haxe.io.Input":
+		return hxrt.NewArray(hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("read"), hxrt.StringFromLiteral("readAll"), hxrt.StringFromLiteral("readByte"), hxrt.StringFromLiteral("readBytes"), hxrt.StringFromLiteral("readDouble"), hxrt.StringFromLiteral("readFloat"), hxrt.StringFromLiteral("readFullBytes"), hxrt.StringFromLiteral("readInt16"), hxrt.StringFromLiteral("readInt24"), hxrt.StringFromLiteral("readInt32"), hxrt.StringFromLiteral("readInt8"), hxrt.StringFromLiteral("readLine"), hxrt.StringFromLiteral("readString"), hxrt.StringFromLiteral("readUInt16"), hxrt.StringFromLiteral("readUInt24"), hxrt.StringFromLiteral("readUntil"), hxrt.StringFromLiteral("set_bigEndian"))
+	case "haxe.io.Output":
+		return hxrt.NewArray(hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("flush"), hxrt.StringFromLiteral("prepare"), hxrt.StringFromLiteral("set_bigEndian"), hxrt.StringFromLiteral("write"), hxrt.StringFromLiteral("writeByte"), hxrt.StringFromLiteral("writeBytes"), hxrt.StringFromLiteral("writeDouble"), hxrt.StringFromLiteral("writeFloat"), hxrt.StringFromLiteral("writeFullBytes"), hxrt.StringFromLiteral("writeInput"), hxrt.StringFromLiteral("writeInt16"), hxrt.StringFromLiteral("writeInt24"), hxrt.StringFromLiteral("writeInt32"), hxrt.StringFromLiteral("writeInt8"), hxrt.StringFromLiteral("writeString"), hxrt.StringFromLiteral("writeUInt16"), hxrt.StringFromLiteral("writeUInt24"))
 	case "haxe.iterators.MapKeyValueIterator":
 		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("next"))
-	case "sys.GoHttpHelpers":
-		return hxrt.NewArray()
+	case "haxe.iterators.StringIterator":
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
+	case "haxe.iterators.StringKeyValueIterator":
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
+	case "sys.Http":
+		return hxrt.NewArray(hxrt.StringFromLiteral("addHeader"), hxrt.StringFromLiteral("addParameter"), hxrt.StringFromLiteral("buildMultipartBody"), hxrt.StringFromLiteral("cnxTimeout"), hxrt.StringFromLiteral("customRequest"), hxrt.StringFromLiteral("emptyOnData"), hxrt.StringFromLiteral("encodedParameters"), hxrt.StringFromLiteral("file"), hxrt.StringFromLiteral("fileTransfer"), hxrt.StringFromLiteral("fileTransfert"), hxrt.StringFromLiteral("getResponseHeaderValues"), hxrt.StringFromLiteral("get_responseData"), hxrt.StringFromLiteral("handleDataRequest"), hxrt.StringFromLiteral("hasHeader"), hxrt.StringFromLiteral("hasOnData"), hxrt.StringFromLiteral("headers"), hxrt.StringFromLiteral("noShutdown"), hxrt.StringFromLiteral("onBytes"), hxrt.StringFromLiteral("onData"), hxrt.StringFromLiteral("onError"), hxrt.StringFromLiteral("onStatus"), hxrt.StringFromLiteral("params"), hxrt.StringFromLiteral("postBytes"), hxrt.StringFromLiteral("postData"), hxrt.StringFromLiteral("recordResponseHeaders"), hxrt.StringFromLiteral("request"), hxrt.StringFromLiteral("requestWith"), hxrt.StringFromLiteral("resetResponseHeaders"), hxrt.StringFromLiteral("responseAsString"), hxrt.StringFromLiteral("responseBytes"), hxrt.StringFromLiteral("responseData"), hxrt.StringFromLiteral("responseHeaders"), hxrt.StringFromLiteral("responseHeadersSameKey"), hxrt.StringFromLiteral("setHeader"), hxrt.StringFromLiteral("setParameter"), hxrt.StringFromLiteral("setPostBytes"), hxrt.StringFromLiteral("setPostData"), hxrt.StringFromLiteral("success"), hxrt.StringFromLiteral("url"))
+	case "sys.net.Host":
+		return hxrt.NewArray(hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("ip"), hxrt.StringFromLiteral("reverse"), hxrt.StringFromLiteral("toString"))
+	case "sys.net.Socket":
+		return hxrt.NewArray(hxrt.StringFromLiteral("accept"), hxrt.StringFromLiteral("bind"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("connect"), hxrt.StringFromLiteral("custom"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("input"), hxrt.StringFromLiteral("listen"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("peer"), hxrt.StringFromLiteral("read"), hxrt.StringFromLiteral("replaceHandle"), hxrt.StringFromLiteral("setBlocking"), hxrt.StringFromLiteral("setFastSend"), hxrt.StringFromLiteral("setTimeout"), hxrt.StringFromLiteral("shutdown"), hxrt.StringFromLiteral("waitForRead"), hxrt.StringFromLiteral("write"))
+	case "sys.net.SocketInput":
+		return hxrt.NewArray(hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("read"), hxrt.StringFromLiteral("readAll"), hxrt.StringFromLiteral("readByte"), hxrt.StringFromLiteral("readBytes"), hxrt.StringFromLiteral("readDouble"), hxrt.StringFromLiteral("readFloat"), hxrt.StringFromLiteral("readFullBytes"), hxrt.StringFromLiteral("readInt16"), hxrt.StringFromLiteral("readInt24"), hxrt.StringFromLiteral("readInt32"), hxrt.StringFromLiteral("readInt8"), hxrt.StringFromLiteral("readLine"), hxrt.StringFromLiteral("readString"), hxrt.StringFromLiteral("readUInt16"), hxrt.StringFromLiteral("readUInt24"), hxrt.StringFromLiteral("readUntil"), hxrt.StringFromLiteral("set_bigEndian"))
+	case "sys.net.SocketOutput":
+		return hxrt.NewArray(hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("flush"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("prepare"), hxrt.StringFromLiteral("set_bigEndian"), hxrt.StringFromLiteral("write"), hxrt.StringFromLiteral("writeByte"), hxrt.StringFromLiteral("writeBytes"), hxrt.StringFromLiteral("writeDouble"), hxrt.StringFromLiteral("writeFloat"), hxrt.StringFromLiteral("writeFullBytes"), hxrt.StringFromLiteral("writeInput"), hxrt.StringFromLiteral("writeInt16"), hxrt.StringFromLiteral("writeInt24"), hxrt.StringFromLiteral("writeInt32"), hxrt.StringFromLiteral("writeInt8"), hxrt.StringFromLiteral("writeString"), hxrt.StringFromLiteral("writeUInt16"), hxrt.StringFromLiteral("writeUInt24"))
 	default:
 		return hxrt.NewArray()
 	}
@@ -1428,11 +1086,11 @@ func Type_resolveClass(name *string) any {
 	}
 	rawName := *hxrt.StdString(name)
 	switch rawName {
-	case "Lambda":
-		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "Main":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "StringBuf":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "StringTools":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.Int64Helper":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
@@ -1454,11 +1112,29 @@ func Type_resolveClass(name *string) any {
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.io.BytesBuffer":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.io.Eof":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.io.FPHelper":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.io.Input":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.io.Output":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.iterators.MapKeyValueIterator":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
-	case "sys.GoHttpHelpers":
+	case "haxe.iterators.StringIterator":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.iterators.StringKeyValueIterator":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.Http":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.net.Host":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.net.Socket":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.net.SocketInput":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.net.SocketOutput":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
