@@ -21,6 +21,7 @@
       "upstream_std_override": [
         "haxe_go-vfp.5.3",
         "haxe_go-vfp.8.7.10",
+        "haxe_go-vfp.8.7.11",
         "haxe_go-vfp.8.7.13",
         "haxe_go-vfp.8.7.14",
         "haxe_go-vfp.8.7.15.1",
@@ -44,6 +45,7 @@
         "haxe_go-vfp.5.4",
         "haxe_go-vfp.8.3.8",
         "haxe_go-vfp.8.7.10",
+        "haxe_go-vfp.8.7.11",
         "haxe_go-vfp.8.7.13",
         "haxe_go-vfp.8.7.14",
         "haxe_go-vfp.8.7.15.1",
@@ -85,27 +87,11 @@
         "notes": "Compiler-owned request choreography is compatibility migration debt. Staged Haxe will own callbacks and policy over typed hxrt transport capabilities."
       },
       {
-        "group": "io",
-        "decision": "migration_required_haxe_go_vfp_8_7_11",
-        "sourcePaths": [
-          "std/haxe/io/GoIoHelpers.hx"
-        ],
-        "references": [
-          "docs/compiler-stdlib-intrinsics.json",
-          "src/reflaxe/go/GoCompiler.hx",
-          "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
-          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx",
-          "test/test_compiler_stdlib_intrinsic_registry.py"
-        ],
-        "notes": "The current base IO types and forwarding bodies are compatibility migration debt. Public behavior moves to staged source over a narrower typed byte representation boundary."
-      },
-      {
         "group": "stdlib_symbols",
         "decision": "split_migration_debt_from_exact_intrinsics_haxe_go_vfp_8_7_15",
         "sourcePaths": [
           "std/go/_std/haxe/Template.hx",
           "std/go/_std/haxe/ds/BalancedTree.hx",
-          "std/go/_std/haxe/io/FPHelper.hx",
           "std/go/_std/sys/ssl/Certificate.hx",
           "std/go/_std/sys/ssl/Digest.hx",
           "std/go/_std/sys/ssl/Key.hx",
@@ -488,15 +474,103 @@
       "notes": "Go staged portable override for direct haxe.ds.GenericStack runtime ownership, including localized erased-generic equality recovery."
     },
     {
-      "path": "std/haxe/io/GoIoHelpers.hx",
+      "path": "std/go/_std/haxe/io/BufferInput.hx",
       "provenanceKind": "repo_authored_override",
-      "ownershipClass": "staged_support",
-      "destination": "std/haxe/io/GoIoHelpers.hx",
-      "migrationBead": "haxe_go-vfp.5.4",
-      "compilerShimGroups": [
-        "io"
-      ],
-      "notes": "Go staged portable helper surface for inherited haxe.io.Input and haxe.io.Output loop semantics. The remaining compiler-emitted base IO shapes are compatibility migration debt tracked by haxe_go-vfp.8.7.11."
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/BufferInput.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged BufferInput override; buffering, refill progress, and inherited stream behavior are ordinary Haxe source."
+    },
+    {
+      "path": "std/go/_std/haxe/io/Bytes.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/Bytes.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged Bytes override over BytesData plus an opaque cached ByteView. Haxe owns bounds, alias observation, invalidation, encoding policy, and byte algorithms."
+    },
+    {
+      "path": "std/go/_std/haxe/io/BytesBuffer.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/BytesBuffer.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged BytesBuffer override; public append and materialization policy no longer crosses a compiler shim."
+    },
+    {
+      "path": "std/go/_std/haxe/io/BytesInput.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/BytesInput.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged BytesInput override with normal source inheritance, positions, bounds, EOF, and zero-copy input slicing policy."
+    },
+    {
+      "path": "std/go/_std/haxe/io/BytesOutput.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/BytesOutput.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged BytesOutput override with normal source inheritance and Haxe-owned write, growth, and result semantics."
+    },
+    {
+      "path": "std/go/_std/haxe/io/Encoding.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/Encoding.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged Encoding override; UTF8 and RawNative selection is source policy rather than a generated compiler carrier."
+    },
+    {
+      "path": "std/go/_std/haxe/io/Eof.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/Eof.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged EOF exception and text contract, emitted through ordinary class and exception lowering."
+    },
+    {
+      "path": "std/go/_std/haxe/io/Error.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/Error.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged haxe.io.Error constructors and payload semantics; no compiler-owned enum carrier remains."
+    },
+    {
+      "path": "std/go/_std/haxe/io/Input.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/Input.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged Input base class; all stream loops, endian reads, EOF handling, and subclass dispatch are ordinary Haxe source."
+    },
+    {
+      "path": "std/go/_std/haxe/io/Output.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/Output.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged Output base class; write loops, endian policy, overflow checks, and subclass dispatch are ordinary Haxe source."
+    },
+    {
+      "path": "std/go/_std/haxe/io/StringInput.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/io/StringInput.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged StringInput override composed from staged BytesInput and Bytes."
     },
     {
       "path": "std/haxe/GoSerializationBridge.hx",
@@ -512,11 +586,9 @@
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/io/FPHelper.hx",
-      "migrationBead": "haxe_go-vfp.5.3",
-      "compilerShimGroups": [
-        "stdlib_symbols"
-      ],
-      "notes": "Go staged portable override for haxe.io.FPHelper bit-conversion helpers, expressed on top of the existing little-endian BytesInput/BytesOutput contract instead of more compiler-owned raw Go."
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Staged FPHelper owns Haxe word ordering and Int64 construction over the typed NativeFloatBits IEEE-754 reinterpretation capability; it has no compiler-shim dependency."
     },
     {
       "path": "std/go/_std/haxe/io/ArrayBufferView.hx",
@@ -1186,13 +1258,40 @@
       "notes": "Opaque typed extern carrier for one runtime/hxrt string-keyed map cell; staged haxe.ds.StringMap owns the public collection contract."
     },
     {
+      "path": "std/hxrt/io/ByteView.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/io/ByteView.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed carrier for an immutable native byte view cached by staged haxe.io.Bytes; it exposes no generated Bytes layout or public policy."
+    },
+    {
+      "path": "std/hxrt/io/NativeBytes.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/io/NativeBytes.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Typed bridge for native byte allocation, opaque view conversion, overlap-safe copy, and UTF codec capabilities; staged Bytes retains validation, alias, cache, and encoding policy."
+    },
+    {
+      "path": "std/hxrt/io/NativeFloatBits.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/io/NativeFloatBits.hx",
+      "migrationBead": "haxe_go-vfp.8.7.11",
+      "compilerShimGroups": [],
+      "notes": "Typed scalar bridge to Go IEEE-754 bit reinterpretation; staged FPHelper retains Haxe word ordering and Int64 policy without recursive stream conversion."
+    },
+    {
       "path": "std/hxrt/crypto/NativeCrypto.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/crypto/NativeCrypto.hx",
       "migrationBead": "haxe_go-vfp.8.7.15.1",
       "compilerShimGroups": [],
-      "notes": "Typed footprint-explicit bridge from staged haxe.crypto APIs to runtime/hxrt/crypto.go. It accepts only strings and integer byte arrays; public padding, Bytes conversion, and API policy remain Haxe-owned."
+      "notes": "Typed footprint-explicit bridge from staged haxe.crypto APIs to runtime/hxrt/crypto.go. It accepts only strings and opaque ByteView handles; public padding and API policy remain Haxe-owned while repeated integer/native-byte copies are avoided."
     },
     {
       "path": "std/hxrt/date/DateParts.hx",

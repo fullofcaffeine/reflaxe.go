@@ -5,20 +5,36 @@ import "examples_incident_api_metal/hxrt"
 type I_sys__io__FileOutput interface {
 	writeByte(value int)
 	writeBytes(bytes *haxe__io__Bytes, pos int, length int) int
-	seek(p int, pos *sys__io__FileSeek)
-	tell() int
 	flush()
 	close()
+	set_bigEndian(value bool) bool
+	write(bytes *haxe__io__Bytes)
+	writeFullBytes(bytes *haxe__io__Bytes, pos int, len int)
+	writeFloat(value float64)
+	writeDouble(value float64)
+	writeInt8(value int)
+	writeInt16(value int)
+	writeUInt16(value int)
+	writeInt24(value int)
+	writeUInt24(value int)
+	writeInt32(value int)
+	prepare(nbytes int)
+	writeInput(input *haxe__io__Input, bufsize any)
+	writeString(value *string, encoding *haxe__io__Encoding)
+	seek(p int, pos *sys__io__FileSeek)
+	tell() int
 }
 
 type sys__io__FileOutput struct {
-	__hx_this         I_sys__io__FileOutput
-	handle            *hxrt.FileOutput
-	__hx_io_bigEndian bool
+	*haxe__io__Output
+	__hx_this I_sys__io__FileOutput
+	handle    *hxrt.FileOutput
 }
 
 func New_sys__io__FileOutput(handle *hxrt.FileOutput) *sys__io__FileOutput {
 	self := &sys__io__FileOutput{}
+	self.haxe__io__Output = New_haxe__io__Output()
+	self.haxe__io__Output.__hx_this = self
 	self.__hx_this = self
 	self.handle = handle
 	return self
@@ -39,23 +55,23 @@ func (self *sys__io__FileOutput) writeBytes(bytes *haxe__io__Bytes, pos int, len
 	_g := 0
 	_g1 := length
 	for _g < _g1 {
-		hx_post_132 := _g
+		hx_post_131 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_132
+		index := hx_post_131
 		values.Push(bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))])
 	}
-	return hxrt.FileOutputWriteValues(self.handle, func(hx_lambda_raw_134 []any) []int {
-		hx_lambda_out_135 := make([]int, 0, len(hx_lambda_raw_134))
-		for _, hx_lambda_item_136 := range hx_lambda_raw_134 {
-			hx_lambda_out_135 = append(hx_lambda_out_135, func(hx_value_137 any) int {
-				if hx_value_137 == nil {
-					var hx_zero_138 int
-					return hx_zero_138
+	return hxrt.FileOutputWriteValues(self.handle, func(hx_lambda_raw_133 []any) []int {
+		hx_lambda_out_134 := make([]int, 0, len(hx_lambda_raw_133))
+		for _, hx_lambda_item_135 := range hx_lambda_raw_133 {
+			hx_lambda_out_134 = append(hx_lambda_out_134, func(hx_value_136 any) int {
+				if hx_value_136 == nil {
+					var hx_zero_137 int
+					return hx_zero_137
 				}
-				return hx_value_137.(int)
-			}(hx_lambda_item_136))
+				return hx_value_136.(int)
+			}(hx_lambda_item_135))
 		}
-		return hx_lambda_out_135
+		return hx_lambda_out_134
 	}(values.Values()), 0, length)
 }
 
@@ -80,71 +96,4 @@ func (self *sys__io__FileOutput) flush() {
 
 func (self *sys__io__FileOutput) close() {
 	hxrt.FileOutputClose(self.handle)
-}
-
-func (self *sys__io__FileOutput) get_bigEndian() bool {
-	if self == nil {
-		return false
-	}
-	return self.__hx_io_bigEndian
-}
-
-func (self *sys__io__FileOutput) set_bigEndian(e bool) bool {
-	if self != nil {
-		self.__hx_io_bigEndian = e
-	}
-	return e
-}
-
-func (self *sys__io__FileOutput) prepare(nbytes int) {
-	_ = self
-	_ = nbytes
-}
-
-func (self *sys__io__FileOutput) write(s *haxe__io__Bytes) {
-	haxe__io__output_write(self, s)
-}
-
-func (self *sys__io__FileOutput) writeFullBytes(s *haxe__io__Bytes, pos int, len int) {
-	haxe__io__output_writeFullBytes(self, s, pos, len)
-}
-
-func (self *sys__io__FileOutput) writeFloat(x float64) {
-	haxe__io__output_writeFloat(self, x)
-}
-
-func (self *sys__io__FileOutput) writeDouble(x float64) {
-	haxe__io__output_writeDouble(self, x)
-}
-
-func (self *sys__io__FileOutput) writeInt8(x int) {
-	haxe__io__output_writeInt8(self, x)
-}
-
-func (self *sys__io__FileOutput) writeInt16(x int) {
-	haxe__io__output_writeInt16(self, x)
-}
-
-func (self *sys__io__FileOutput) writeUInt16(x int) {
-	haxe__io__output_writeUInt16(self, x)
-}
-
-func (self *sys__io__FileOutput) writeInt24(x int) {
-	haxe__io__output_writeInt24(self, x)
-}
-
-func (self *sys__io__FileOutput) writeUInt24(x int) {
-	haxe__io__output_writeUInt24(self, x)
-}
-
-func (self *sys__io__FileOutput) writeInt32(x int) {
-	haxe__io__output_writeInt32(self, x)
-}
-
-func (self *sys__io__FileOutput) writeInput(i haxe__io__Input, bufsize ...int) {
-	haxe__io__output_writeInput(self, i, bufsize...)
-}
-
-func (self *sys__io__FileOutput) writeString(s *string, encoding ...*haxe__io__Encoding) {
-	haxe__io__output_writeString(self, s, encoding...)
 }

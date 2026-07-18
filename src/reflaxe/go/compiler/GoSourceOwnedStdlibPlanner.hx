@@ -15,7 +15,6 @@ private typedef GoSourceOwnedStdlibPlannerConfig = {
 	final fullClassName:ClassType->String;
 	final fullEnumName:EnumType->String;
 	final requireStdlibShimGroup:String->Void;
-	final markIoSourceOwnedHelperSurfaceRequired:Void->Void;
 }
 
 /**
@@ -49,7 +48,6 @@ class GoSourceOwnedStdlibPlanner {
 	final fullClassName:ClassType->String;
 	final fullEnumName:EnumType->String;
 	final requireStdlibShimGroup:String->Void;
-	final markIoSourceOwnedHelperSurfaceRequired:Void->Void;
 
 	public function new(config:GoSourceOwnedStdlibPlannerConfig) {
 		availableClassesByName = config.availableClassesByName;
@@ -61,7 +59,6 @@ class GoSourceOwnedStdlibPlanner {
 		fullClassName = config.fullClassName;
 		fullEnumName = config.fullEnumName;
 		requireStdlibShimGroup = config.requireStdlibShimGroup;
-		markIoSourceOwnedHelperSurfaceRequired = config.markIoSourceOwnedHelperSurfaceRequired;
 	}
 
 	public function cacheAvailableClasses(classes:Array<ClassType>):Void {
@@ -112,9 +109,47 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("Math");
 			case "haxe.io.Path":
 				requireSourceOwnedStdlibClass("haxe.io.Path");
+			case "haxe.io.Bytes":
+				requireBytesSourceClasses();
+			case "haxe.io.BytesBuffer":
+				requireSourceOwnedStdlibClass("haxe.io.BytesBuffer");
+				requireBytesSourceClasses();
+			case "haxe.io.Input":
+				requireSourceOwnedStdlibClass("haxe.io.Input");
+				requireBytesSourceClasses();
+				requireSourceOwnedStdlibClass("haxe.io.BytesBuffer");
+				requireSourceOwnedStdlibClass("haxe.io.Eof");
+				requireSourceOwnedStdlibClass("haxe.exceptions.NotImplementedException");
+			case "haxe.io.Output":
+				requireSourceOwnedStdlibClass("haxe.io.Output");
+				requireBytesSourceClasses();
+				requireSourceOwnedStdlibClass("haxe.exceptions.NotImplementedException");
+			case "haxe.io.BytesInput":
+				requireSourceOwnedStdlibClass("haxe.io.BytesInput");
+				requireSourceOwnedStdlibClass("haxe.io.Input");
+				requireSourceOwnedStdlibClass("haxe.io.Bytes");
+				requireSourceOwnedStdlibClass("haxe.io.Eof");
+				requireSourceOwnedStdlibEnum("haxe.io.Error");
+			case "haxe.io.BytesOutput":
+				requireSourceOwnedStdlibClass("haxe.io.BytesOutput");
+				requireSourceOwnedStdlibClass("haxe.io.Output");
+				requireSourceOwnedStdlibClass("haxe.io.BytesBuffer");
+			case "haxe.io.BufferInput":
+				requireSourceOwnedStdlibClass("haxe.io.BufferInput");
+				requireSourceOwnedStdlibClass("haxe.io.Input");
+				requireSourceOwnedStdlibClass("haxe.io.Bytes");
+			case "haxe.io.StringInput":
+				requireSourceOwnedStdlibClass("haxe.io.StringInput");
+				requireSourceOwnedStdlibClass("haxe.io.BytesInput");
+				requireSourceOwnedStdlibClass("haxe.io.Bytes");
+			case "haxe.io.Eof":
+				requireSourceOwnedStdlibClass("haxe.io.Eof");
+			case "haxe.io.Encoding":
+				requireSourceOwnedStdlibEnum("haxe.io.Encoding");
+			case "haxe.io.Error":
+				requireSourceOwnedStdlibEnum("haxe.io.Error");
 			case "haxe.io.FPHelper":
 				requireSourceOwnedStdlibClass("haxe.io.FPHelper");
-				requireStdlibShimGroup("stdlib_symbols");
 			case "haxe.io.ArrayBufferViewImpl", "haxe.io._ArrayBufferView.ArrayBufferView_Impl_":
 				requireSourceOwnedStdlibModule("haxe.io.ArrayBufferView");
 			case "haxe.io._UInt8Array.UInt8Array_Impl_":
@@ -243,6 +278,9 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("haxe.exceptions.NotImplementedException");
 			case "sys.Http":
 				requireSourceOwnedStdlibClass("sys.GoHttpHelpers");
+				// GoHttpHelpers.captureApi has one framework-owned raw type switch whose
+				// concrete BytesBuffer arm is intentionally invisible to typed traversal.
+				requireSourceOwnedStdlibClass("haxe.io.BytesBuffer");
 			case "sys.FileSystem":
 				requireSourceOwnedStdlibClass("sys.FileSystem");
 			case "sys.io.File":
@@ -258,7 +296,7 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibEnum("sys.io.FileSeek");
 			case "sys.io.Process":
 				requireSourceOwnedStdlibModule("sys.io.Process");
-				requireIoSourceOwnedHelperClass();
+				requireBaseIoSourceClasses();
 			case "sys.net.Address":
 				requireSourceOwnedStdlibClass("sys.net.Address");
 			case "sys.net.Host":
@@ -267,14 +305,14 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibModule("sys.net.Socket");
 				requireSourceOwnedStdlibModule("sys.net._SocketIO");
 				requireSourceOwnedStdlibClass("sys.net.Host");
-				requireIoSourceOwnedHelperClass();
+				requireBaseIoSourceClasses();
 			case "sys.net.UdpSocket":
 				requireSourceOwnedStdlibClass("sys.net.UdpSocket");
 				requireSourceOwnedStdlibModule("sys.net.Socket");
 				requireSourceOwnedStdlibModule("sys.net._SocketIO");
 				requireSourceOwnedStdlibClass("sys.net.Host");
 				requireSourceOwnedStdlibClass("sys.net.Address");
-				requireIoSourceOwnedHelperClass();
+				requireBaseIoSourceClasses();
 			case "sys.ssl.Certificate":
 				requireSourceOwnedStdlibClass("sys.ssl.Certificate");
 				requireStdlibShimGroup("stdlib_symbols");
@@ -295,7 +333,7 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("sys.net.Host");
 				requireSourceOwnedStdlibClass("sys.ssl.Certificate");
 				requireSourceOwnedStdlibClass("sys.ssl.Key");
-				requireIoSourceOwnedHelperClass();
+				requireBaseIoSourceClasses();
 				requireStdlibShimGroup("stdlib_symbols");
 			case "sys.thread.Lock":
 				requireSourceOwnedStdlibClass("sys.thread.Lock");
@@ -343,16 +381,40 @@ class GoSourceOwnedStdlibPlanner {
 		}
 	}
 
-	public function requireIoSourceOwnedHelperClass():Void {
-		markIoSourceOwnedHelperSurfaceRequired();
-		requireSourceOwnedStdlibClass("haxe.io.GoIoHelpers");
+	public function requireBaseIoSourceClasses():Void {
+		requireSourceOwnedStdlibClass("haxe.io.Input");
+		requireSourceOwnedStdlibClass("haxe.io.Output");
+		requireBytesSourceClasses();
+		requireSourceOwnedStdlibClass("haxe.io.Eof");
+		requireSourceOwnedStdlibEnum("haxe.io.Error");
+	}
+
+	/**
+		What: Enqueue the complete typed source dependency closure for staged
+		`haxe.io.Bytes`.
+
+		Why: A compiler-owned consumer can request `Bytes` by name instead of
+		encountering a `new Bytes(...)` expression. The public API still mentions
+		the concrete `haxe.Int64` carrier, `FPHelper`, encodings, errors, and
+		`StringBuf`; omitting those
+		declarations can leave otherwise valid selective-runtime output with dangling
+		Go type or function references.
+
+		How: Queue only ordinary staged modules and enums. The runtime boundary remains
+		the separately inferred typed `hxrt` byte capability.
+	**/
+	public function requireBytesSourceClasses():Void {
+		requireSourceOwnedStdlibClass("haxe.io.Bytes");
+		requireSourceOwnedStdlibClass("haxe.io.FPHelper");
+		requireSourceOwnedStdlibClass("StringBuf");
+		requireSourceOwnedStdlibEnum("haxe.io.Encoding");
+		requireSourceOwnedStdlibEnum("haxe.io.Error");
 	}
 
 	public function requireSourceOwnedStdlibClass(className:String):Void {
 		if (className == "sys.io.FileInput" || className == "sys.io.FileOutput") {
-			// Source-owned subclasses still inherit the compiler-owned Input/Output
-			// method surface, whose ordinary Haxe algorithms live in GoIoHelpers.
-			requireIoSourceOwnedHelperClass();
+			// Source-owned subclasses inherit the staged Input/Output hierarchy.
+			requireBaseIoSourceClasses();
 		}
 		if (isCompilerOwnedAuthority(className)) {
 			return;
@@ -424,6 +486,54 @@ class GoSourceOwnedStdlibPlanner {
 		}
 		var file = Std.string(location.file);
 		return file != null && (StringTools.contains(file, "/std/") || StringTools.contains(file, "/vendor/"));
+	}
+
+	/**
+		What: Promote an already-typed, source-backed stdlib class into the ordinary
+		source inclusion queue.
+
+		Why: A class can survive only as a nominal type reference after manual DCE.
+		Resolving it again by module can restore methods DCE intentionally removed,
+		while ignoring it leaves generated Go type names without declarations.
+
+		How: Accept the exact typed `ClassType` carried by the expression/signature,
+		verify that it comes from std or vendor source, preserve compiler-owned
+		authorities, then cache and enqueue only that declaration.
+	**/
+	public function requireTypedSourceOwnedStdlibClass(classType:ClassType):Bool {
+		var className = fullClassName(classType);
+		if (classType.isExtern || isCompilerOwnedAuthority(className)) {
+			return false;
+		}
+		var location = PositionTools.toLocation(classType.pos);
+		if (location == null || location.file == null) {
+			return false;
+		}
+		var file = Std.string(location.file);
+		if (file == null || (!StringTools.contains(file, "/std/") && !StringTools.contains(file, "/vendor/"))) {
+			return false;
+		}
+
+		availableClassesByName.set(className, classType);
+		requireSourceOwnedStdlibClass(className);
+		return requiredSourceOwnedClassNames.exists(className);
+	}
+
+	/**
+		What: Promote a typed, source-backed stdlib superclass into the normal source
+		inclusion queue.
+
+		Why: Manual dead-code elimination can initially select only the user subclass.
+		The superclass is still present in the typed inheritance link, but it may not
+		yet be in the planner's availability map. Treating that class as absent drops
+		the embedded base view and makes otherwise valid Haxe upcasts invalid Go.
+
+		How: Accept only non-extern classes whose declaration comes from staged std or
+		vendor source, preserve compiler-owned authorities, cache the already-typed
+		class, and reuse the ordinary requirement queue.
+	**/
+	public function requireSourceOwnedStdlibSuperclass(classType:ClassType):Bool {
+		return requireTypedSourceOwnedStdlibClass(classType);
 	}
 
 	function resolveSourceOwnedStdlibClass(className:String):Null<ClassType> {

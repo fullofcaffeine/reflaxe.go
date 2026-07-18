@@ -64,8 +64,8 @@ type haxe__Template struct {
 func New_haxe__Template(str *string) *haxe__Template {
 	self := &haxe__Template{}
 	self.__hx_this = self
-	cursor := New_haxe___Template__TokenCursor(self.parseTokens(str))
-	self.expr = self.parseBlock(cursor)
+	cursor := New_haxe___Template__TokenCursor(self.__hx_this.parseTokens(str))
+	self.expr = self.__hx_this.parseBlock(cursor)
 	if cursor.index < cursor.tokens.Len() {
 		token := func(hx_value_5 any) map[string]any {
 			if hx_value_5 == nil {
@@ -98,7 +98,7 @@ func (self *haxe__Template) execute(context any, macros any) *string {
 	self.context = context
 	self.stack = hxrt.NewArray()
 	self.output = hxrt.StringFromLiteral("")
-	self.run(self.expr)
+	self.__hx_this.run(self.expr)
 	return self.output
 }
 
@@ -127,8 +127,8 @@ func (self *haxe__Template) resolve(v *string) any {
 
 func (self *haxe__Template) parseTokens(data *string) *hxrt.Array {
 	tokens := hxrt.NewArray()
-	for haxe__Template_splitter.match(data) {
-		p := haxe__Template_splitter.matchedPos()
+	for haxe__Template_splitter.__hx_this.match(data) {
+		p := haxe__Template_splitter.__hx_this.matchedPos()
 		if func(hx_obj_17 map[string]any) int {
 			hx_field_18 := hx_obj_17["pos"]
 			if hx_field_18 == nil {
@@ -177,7 +177,7 @@ func (self *haxe__Template) parseTokens(data *string) *hxrt.Array {
 			hx_obj_21["s"] = false
 			hx_obj_21["l"] = nil
 			tokens.Push(hx_obj_21)
-			data = haxe__Template_splitter.matchedRight()
+			data = haxe__Template_splitter.__hx_this.matchedRight()
 			continue
 		}
 		parp := int(int32((hxrt.Int32Wrap(func(hx_obj_31 map[string]any) int {
@@ -225,7 +225,7 @@ func (self *haxe__Template) parseTokens(data *string) *hxrt.Array {
 		}
 		params.Push(part)
 		hx_obj_40 := map[string]any{}
-		hx_obj_40["p"] = haxe__Template_splitter.matched(2)
+		hx_obj_40["p"] = haxe__Template_splitter.__hx_this.matched(2)
 		hx_obj_40["s"] = false
 		hx_obj_40["l"] = params
 		tokens.Push(hx_obj_40)
@@ -282,7 +282,7 @@ func (self *haxe__Template) parseBlock(cursor *haxe___Template__TokenCursor) *ha
 		}(t), 0, 7, true), hxrt.StringFromLiteral("elseif "))) {
 			break
 		}
-		items.Push(self.parse(cursor))
+		items.Push(self.__hx_this.parse(cursor))
 	}
 	if items.Len() == 1 {
 		return func(hx_value_58 any) *haxe___Template__TemplateExpr {
@@ -360,15 +360,15 @@ func (self *haxe__Template) parse(cursor *haxe___Template__TokenCursor) *haxe___
 				return hx_value_73.(*string)
 			}(_g1.Get(_g))
 			_g = int(int32((_g + 1)))
-			parsedParams.Push(self.parseBlock(New_haxe___Template__TokenCursor(self.parseTokens(param))))
+			parsedParams.Push(self.__hx_this.parseBlock(New_haxe___Template__TokenCursor(self.__hx_this.parseTokens(param))))
 		}
 		return haxe___Template__TemplateExpr_OpMacro(p, parsedParams)
 	}
 	pos := haxe__Template_kwdEnd(p, hxrt.StringFromLiteral("if"))
 	if pos > 0 {
 		p = hxrt.StringSubstrStringPtr(p, pos, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(p)) - hxrt.Int32Wrap(pos)))), true)
-		e := self.parseExpr(p)
-		eif := self.parseBlock(cursor)
+		e := self.__hx_this.parseExpr(p)
+		eif := self.__hx_this.parseBlock(cursor)
 		var hx_if_81 map[string]any
 		if cursor.index < cursor.tokens.Len() {
 			hx_if_81 = func(hx_value_79 any) map[string]any {
@@ -419,7 +419,7 @@ func (self *haxe__Template) parse(cursor *haxe___Template__TokenCursor) *haxe___
 						return hx_post_83
 					}())
 				}
-				eelse = self.parseBlock(cursor)
+				eelse = self.__hx_this.parseBlock(cursor)
 				var hx_if_87 map[string]any
 				if cursor.index >= cursor.tokens.Len() {
 					hx_if_87 = nil
@@ -461,7 +461,7 @@ func (self *haxe__Template) parse(cursor *haxe___Template__TokenCursor) *haxe___
 					}
 					return hx_field_95.(*string)
 				}(nextToken))) - hxrt.Int32Wrap(4)))), true)
-				eelse = self.parse(cursor)
+				eelse = self.__hx_this.parse(cursor)
 			}
 		}
 		return haxe___Template__TemplateExpr_OpIf(e, eif, eelse)
@@ -469,8 +469,8 @@ func (self *haxe__Template) parse(cursor *haxe___Template__TokenCursor) *haxe___
 	pos = haxe__Template_kwdEnd(p, hxrt.StringFromLiteral("foreach"))
 	if pos >= 0 {
 		p = hxrt.StringSubstrStringPtr(p, pos, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(p)) - hxrt.Int32Wrap(pos)))), true)
-		e_1 := self.parseExpr(p)
-		efor := self.parseBlock(cursor)
+		e_1 := self.__hx_this.parseExpr(p)
+		efor := self.__hx_this.parseBlock(cursor)
 		var hx_if_106 map[string]any
 		if cursor.index >= cursor.tokens.Len() {
 			hx_if_106 = nil
@@ -498,8 +498,8 @@ func (self *haxe__Template) parse(cursor *haxe___Template__TokenCursor) *haxe___
 		}
 		return haxe___Template__TemplateExpr_OpForeach(e_1, efor)
 	}
-	if haxe__Template_expr_splitter.match(p) {
-		return haxe___Template__TemplateExpr_OpExpr(self.parseExpr(p))
+	if haxe__Template_expr_splitter.__hx_this.match(p) {
+		return haxe___Template__TemplateExpr_OpExpr(self.__hx_this.parseExpr(p))
 	}
 	return haxe___Template__TemplateExpr_OpVar(p)
 }
@@ -507,8 +507,8 @@ func (self *haxe__Template) parse(cursor *haxe___Template__TokenCursor) *haxe___
 func (self *haxe__Template) parseExpr(data *string) func() any {
 	tokens := hxrt.NewArray()
 	expr := data
-	for haxe__Template_expr_splitter.match(data) {
-		p := haxe__Template_expr_splitter.matchedPos()
+	for haxe__Template_expr_splitter.__hx_this.match(data) {
+		p := haxe__Template_expr_splitter.__hx_this.matchedPos()
 		if func(hx_obj_115 map[string]any) int {
 			hx_field_116 := hx_obj_115["pos"]
 			if hx_field_116 == nil {
@@ -529,12 +529,12 @@ func (self *haxe__Template) parseExpr(data *string) func() any {
 			hx_obj_111["s"] = true
 			tokens.Push(hx_obj_111)
 		}
-		token := haxe__Template_expr_splitter.matched(0)
+		token := haxe__Template_expr_splitter.__hx_this.matched(0)
 		hx_obj_119 := map[string]any{}
 		hx_obj_119["p"] = token
 		hx_obj_119["s"] = StringTools_contains(token, hxrt.StringFromLiteral("\""))
 		tokens.Push(hx_obj_119)
-		data = haxe__Template_expr_splitter.matchedRight()
+		data = haxe__Template_expr_splitter.__hx_this.matchedRight()
 	}
 	if hxrt.StringLengthStringPtr(data) != 0 {
 		var _g_s *string
@@ -564,7 +564,7 @@ func (self *haxe__Template) parseExpr(data *string) func() any {
 	cursor := New_haxe___Template__ExprCursor(tokens)
 	var built func() any
 	hxrt.TryCatch(func() {
-		built = self.makeExpr(cursor)
+		built = self.__hx_this.makeExpr(cursor)
 		if cursor.index < cursor.tokens.Len() {
 			hxrt.Throw(func(hx_obj_126 map[string]any) *string {
 				hx_field_127 := hx_obj_126["p"]
@@ -612,8 +612,8 @@ func (self *haxe__Template) parseExpr(data *string) func() any {
 }
 
 func (self *haxe__Template) makeConst(v *string) func() any {
-	haxe__Template_expr_trim.match(v)
-	v = haxe__Template_expr_trim.matched(1)
+	haxe__Template_expr_trim.__hx_this.match(v)
+	v = haxe__Template_expr_trim.__hx_this.matched(1)
 	if hxrt.StringCharCodeAtAnyStringPtr(v, 0) == 34 {
 		str := hxrt.StringSubstrStringPtr(v, 1, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(v)) - hxrt.Int32Wrap(2)))), true)
 		literal := func() any {
@@ -621,14 +621,14 @@ func (self *haxe__Template) makeConst(v *string) func() any {
 		}
 		return literal
 	}
-	if haxe__Template_expr_int.match(v) {
+	if haxe__Template_expr_int.__hx_this.match(v) {
 		i := haxe__Template_parseIntLiteral(v)
 		intLiteral := func() any {
 			return i
 		}
 		return intLiteral
 	}
-	if haxe__Template_expr_float.match(v) {
+	if haxe__Template_expr_float.__hx_this.match(v) {
 		f := haxe__Template_parseFloatLiteral(v)
 		floatLiteral := func() any {
 			return f
@@ -637,7 +637,7 @@ func (self *haxe__Template) makeConst(v *string) func() any {
 	}
 	me := self
 	resolved := func() any {
-		return me.resolve(v)
+		return me.__hx_this.resolve(v)
 	}
 	return resolved
 }
@@ -720,13 +720,13 @@ func (self *haxe__Template) makePath(e func() any, cursor *haxe___Template__Expr
 		}
 		return hx_field_152.(*string)
 	}(field))
-	return self.makePath(func() any {
+	return self.__hx_this.makePath(func() any {
 		return Reflect_field(e(), name)
 	}, cursor)
 }
 
 func (self *haxe__Template) makeExpr(cursor *haxe___Template__ExprCursor) func() any {
-	return self.makePath(self.makeExpr2(cursor), cursor)
+	return self.__hx_this.makePath(self.__hx_this.makeExpr2(cursor), cursor)
 }
 
 func (self *haxe__Template) skipSpaces(cursor *haxe___Template__ExprCursor) {
@@ -752,7 +752,7 @@ func (self *haxe__Template) skipSpaces(cursor *haxe___Template__ExprCursor) {
 }
 
 func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func() any {
-	self.skipSpaces(cursor)
+	self.__hx_this.skipSpaces(cursor)
 	var hx_if_162 map[string]any
 	if cursor.index >= cursor.tokens.Len() {
 		hx_if_162 = nil
@@ -768,7 +768,7 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func(
 		}(cursor.tokens.Get(hx_post_159))
 	}
 	token := hx_if_162
-	self.skipSpaces(cursor)
+	self.__hx_this.skipSpaces(cursor)
 	if token == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("<eof>"))
 	}
@@ -780,7 +780,7 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func(
 		}
 		return hx_field_167.(bool)
 	}(token) {
-		return self.makeConst(func(hx_obj_163 map[string]any) *string {
+		return self.__hx_this.makeConst(func(hx_obj_163 map[string]any) *string {
 			hx_field_164 := hx_obj_163["p"]
 			if hx_field_164 == nil {
 				var hx_zero_165 *string
@@ -799,15 +799,15 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func(
 	}(token)
 	switch *hxrt.StdString(_g) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("!")):
-		inner := self.makeExpr(cursor)
+		inner := self.__hx_this.makeExpr(cursor)
 		return func() any {
 			var value any = inner()
 			return (hxrt.AnyEqualsNull(value) || hxrt.HaxeEqual(value, false))
 		}
 	case *hxrt.StdString(hxrt.StringFromLiteral("(")):
-		self.skipSpaces(cursor)
-		e1 := self.makeExpr(cursor)
-		self.skipSpaces(cursor)
+		self.__hx_this.skipSpaces(cursor)
+		e1 := self.__hx_this.makeExpr(cursor)
+		self.__hx_this.skipSpaces(cursor)
 		var hx_if_175 map[string]any
 		if cursor.index >= cursor.tokens.Len() {
 			hx_if_175 = nil
@@ -856,9 +856,9 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func(
 		}(op), hxrt.StringFromLiteral(")")) {
 			return e1
 		}
-		self.skipSpaces(cursor)
-		e2 := self.makeExpr(cursor)
-		self.skipSpaces(cursor)
+		self.__hx_this.skipSpaces(cursor)
+		e2 := self.__hx_this.makeExpr(cursor)
+		self.__hx_this.skipSpaces(cursor)
 		var hx_if_189 map[string]any
 		if cursor.index >= cursor.tokens.Len() {
 			hx_if_189 = nil
@@ -874,7 +874,7 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func(
 			}(cursor.tokens.Get(hx_post_186))
 		}
 		close := hx_if_189
-		self.skipSpaces(cursor)
+		self.__hx_this.skipSpaces(cursor)
 		if (close == nil) || !hxrt.StringEqualStringPtr(func(hx_obj_194 map[string]any) *string {
 			hx_field_195 := hx_obj_194["p"]
 			if hx_field_195 == nil {
@@ -978,7 +978,7 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func(
 		}
 		return hx_switch_200
 	case *hxrt.StdString(hxrt.StringFromLiteral("-")):
-		inner_1 := self.makeExpr(cursor)
+		inner_1 := self.__hx_this.makeExpr(cursor)
 		return func() any {
 			return -haxe__Template_valueAsFloat(inner_1())
 		}
@@ -1001,7 +1001,7 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 	case 0:
 		_g := e.params[0].(*string)
 		v := _g
-		self.output = hxrt.StringConcatStringPtr(self.output, hxrt.StdString(self.resolve(v)))
+		self.output = hxrt.StringConcatStringPtr(self.output, hxrt.StdString(self.__hx_this.resolve(v)))
 	case 1:
 		_g_1 := e.params[0].(func() any)
 		expr := _g_1
@@ -1016,10 +1016,10 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 		var value any = expr_1()
 		if hxrt.AnyEqualsNull(value) || hxrt.HaxeEqual(value, false) {
 			if elseExpr != nil {
-				self.run(elseExpr)
+				self.__hx_this.run(elseExpr)
 			}
 		} else {
-			self.run(ifExpr)
+			self.__hx_this.run(ifExpr)
 		}
 	case 3:
 		_g_3 := e.params[0].(*string)
@@ -1038,7 +1038,7 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 				return hx_value_209.(*haxe___Template__TemplateExpr)
 			}(items.Get(_g_5))
 			_g_5 = int(int32((_g_5 + 1)))
-			self.run(item)
+			self.__hx_this.run(item)
 		}
 	case 5:
 		_g_6 := e.params[0].(func() any)
@@ -1055,9 +1055,9 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 				var ctx any = arrayValues[_g_7]
 				_g_7 = int(int32((_g_7 + 1)))
 				self.context = ctx
-				self.run(loop)
+				self.__hx_this.run(loop)
 			}
-			self.context = self.popStackValue()
+			self.context = self.__hx_this.popStackValue()
 			return
 		}
 		var iterator any = nil
@@ -1112,9 +1112,9 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 				return hx_field_223.(func() any)
 			}(ctx_1)()
 			self.context = ctx_2
-			self.run(loop)
+			self.__hx_this.run(loop)
 		}
-		self.context = self.popStackValue()
+		self.context = self.__hx_this.popStackValue()
 	case 6:
 		_g_8 := e.params[0].(*string)
 		_g1_2 := e.params[1].(*hxrt.Array)
@@ -1136,11 +1136,11 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 			if param.tag == 0 {
 				_g_10 := param.params[0].(*string)
 				value_2 := _g_10
-				callArgs.Push(self.resolve(value_2))
+				callArgs.Push(self.__hx_this.resolve(value_2))
 			} else {
 				previous := self.output
 				self.output = hxrt.StringFromLiteral("")
-				self.run(param)
+				self.__hx_this.run(param)
 				callArgs.Push(self.output)
 				self.output = previous
 			}
@@ -1577,8 +1577,8 @@ func haxe__Template_subtractValues(left any, right any) float64 {
 }
 
 func haxe__Template_trimExprToken(value *string) *string {
-	haxe__Template_expr_trim.match(value)
-	return haxe__Template_expr_trim.matched(1)
+	haxe__Template_expr_trim.__hx_this.match(value)
+	return haxe__Template_expr_trim.__hx_this.matched(1)
 }
 
 func haxe__Template_valueAsBool(value any) bool {

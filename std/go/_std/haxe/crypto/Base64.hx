@@ -1,7 +1,6 @@
 package haxe.crypto;
 
 import haxe.io.Bytes;
-import go.NativeSlice;
 import hxrt.crypto.NativeCrypto;
 
 /**
@@ -16,8 +15,8 @@ import hxrt.crypto.NativeCrypto;
 	  compiler-generated Go helper.
 
 	How:
-	- Keep standard versus URL-safe alphabets, padding defaults, and `Bytes`
-	  conversion here; delegate only raw unpadded codec execution to `NativeCrypto`.
+	- Keep standard versus URL-safe alphabets and padding defaults here; delegate
+	  only raw unpadded codec execution through the opaque cached byte view.
 **/
 class Base64 {
 	public static var CHARS(default, null) = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -27,19 +26,19 @@ class Base64 {
 	public static var URL_BYTES(default, null) = Bytes.ofString(URL_CHARS);
 
 	public static function encode(bytes:Bytes, complement:Bool = true):String {
-		return addPadding(NativeCrypto.base64Encode(toValues(bytes), false), bytes.length, complement);
+		return addPadding(NativeCrypto.base64Encode(bytes.__hx_nativeView(), false), bytes.length, complement);
 	}
 
 	public static function decode(value:String, complement:Bool = true):Bytes {
-		return fromValues(NativeCrypto.base64Decode(removePadding(value, complement), false));
+		return Bytes.__hx_fromNativeView(NativeCrypto.base64Decode(removePadding(value, complement), false));
 	}
 
 	public static function urlEncode(bytes:Bytes, complement:Bool = false):String {
-		return addPadding(NativeCrypto.base64Encode(toValues(bytes), true), bytes.length, complement);
+		return addPadding(NativeCrypto.base64Encode(bytes.__hx_nativeView(), true), bytes.length, complement);
 	}
 
 	public static function urlDecode(value:String, complement:Bool = false):Bytes {
-		return fromValues(NativeCrypto.base64Decode(removePadding(value, complement), true));
+		return Bytes.__hx_fromNativeView(NativeCrypto.base64Decode(removePadding(value, complement), true));
 	}
 
 	static function addPadding(value:String, byteLength:Int, complement:Bool):String {
@@ -60,19 +59,5 @@ class Base64 {
 			while (value.length > 0 && value.charCodeAt(value.length - 1) == "=".code)
 				value = value.substr(0, -1);
 		return value;
-	}
-
-	static function toValues(bytes:Bytes):NativeSlice<Int> {
-		var values = new Array<Int>();
-		for (index in 0...bytes.length)
-			values.push(bytes.get(index));
-		return NativeSlice.fromArray(values);
-	}
-
-	static function fromValues(values:NativeSlice<Int>):Bytes {
-		var bytes = Bytes.alloc(values.length);
-		for (index in 0...values.length)
-			bytes.set(index, values[index]);
-		return bytes;
 	}
 }

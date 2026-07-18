@@ -101,6 +101,10 @@ func (self *haxe__ds__GenericStack) toString() *string {
 	return out_b
 }
 
+func (self *haxe__ds__GenericStack) String() string {
+	return *self.__hx_this.toString()
+}
+
 func haxe__ds__GenericStack_sameValue(left any, right any) bool {
 	if hxrt.AnyEqualsNull(left) || hxrt.AnyEqualsNull(right) {
 		return hxrt.HaxeEqual(left, right)

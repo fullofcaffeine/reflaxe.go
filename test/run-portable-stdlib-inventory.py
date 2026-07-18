@@ -139,12 +139,12 @@ OWNER_OVERRIDES = {
     "haxe.zip.Tools": "staged_std",
     "haxe.zip.Uncompress": "mixed",
     "haxe.zip.Writer": "staged_std",
-    "haxe.io.BufferInput": "compiler_shim",
+    "haxe.io.BufferInput": "staged_std",
     "haxe.io.BytesData": "mixed",
-    "haxe.io.Encoding": "compiler_shim",
-    "haxe.io.Eof": "compiler_shim",
-    "haxe.io.Error": "compiler_shim",
-    "haxe.io.FPHelper": "staged_std",
+    "haxe.io.Encoding": "staged_std",
+    "haxe.io.Eof": "staged_std",
+    "haxe.io.Error": "staged_std",
+    "haxe.io.FPHelper": "mixed",
     "haxe.io.ArrayBufferView": "mixed",
     "haxe.io.UInt8Array": "mixed",
     "haxe.io.UInt16Array": "mixed",
@@ -154,7 +154,7 @@ OWNER_OVERRIDES = {
     "haxe.io.Float64Array": "mixed",
     "haxe.io.Mime": "staged_std",
     "haxe.io.Scheme": "staged_std",
-    "haxe.io.StringInput": "compiler_shim",
+    "haxe.io.StringInput": "staged_std",
     "haxe.rtti.CType": "mixed",
     "haxe.rtti.Meta": "mixed",
     "haxe.rtti.Rtti": "mixed",
@@ -166,12 +166,12 @@ OWNER_OVERRIDES = {
     "sys.Http": "compiler_shim",
     "sys.net.Host": "mixed",
     "sys.net.Socket": "mixed",
-    "haxe.io.Bytes": "compiler_shim",
-    "haxe.io.BytesBuffer": "compiler_shim",
-    "haxe.io.BytesInput": "compiler_shim",
-    "haxe.io.BytesOutput": "compiler_shim",
-    "haxe.io.Input": "compiler_shim",
-    "haxe.io.Output": "compiler_shim",
+    "haxe.io.Bytes": "mixed",
+    "haxe.io.BytesBuffer": "mixed",
+    "haxe.io.BytesInput": "staged_std",
+    "haxe.io.BytesOutput": "staged_std",
+    "haxe.io.Input": "staged_std",
+    "haxe.io.Output": "staged_std",
 }
 
 UNSUPPORTED_EXPLICIT = {
@@ -334,122 +334,106 @@ MODULE_NOTES_OVERRIDES = {
         "stdlib/haxe_template_basic, and runtime template tests."
     ),
     "haxe.crypto.Base64": (
-        "Canonical staged source owns Base64 alphabets, padding defaults, and Bytes conversion; "
-        "typed std/hxrt/crypto delegates only raw native codec execution to footprint-explicit "
-        "runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, "
+        "Canonical staged source owns Base64 alphabets, padding defaults, and public Bytes construction; "
+        "typed std/hxrt/crypto delegates only raw native codec execution through the opaque cached "
+        "ByteView to footprint-explicit runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, "
         "stdlib/crypto_xml_zip_basic, and direct runtime crypto tests."
     ),
     "haxe.crypto.Md5": (
-        "Canonical staged source owns the Md5 API and Bytes conversion; typed std/hxrt/crypto "
-        "delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: "
+        "Canonical staged source owns the Md5 API and public Bytes construction; typed std/hxrt/crypto "
+        "delegates only digest execution through the opaque cached ByteView. Evidence: "
         "crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests."
     ),
     "haxe.crypto.Sha1": (
-        "Canonical staged source owns the Sha1 API and Bytes conversion; typed std/hxrt/crypto "
-        "delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: "
+        "Canonical staged source owns the Sha1 API and public Bytes construction; typed std/hxrt/crypto "
+        "delegates only digest execution through the opaque cached ByteView. Evidence: "
         "crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests."
     ),
     "haxe.crypto.Sha224": (
-        "Canonical staged source owns the Sha224 API and Bytes conversion; typed std/hxrt/crypto "
-        "delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: "
+        "Canonical staged source owns the Sha224 API and public Bytes construction; typed std/hxrt/crypto "
+        "delegates only digest execution through the opaque cached ByteView. Evidence: "
         "crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests."
     ),
     "haxe.crypto.Sha256": (
-        "Canonical staged source owns the Sha256 API and Bytes conversion; typed std/hxrt/crypto "
-        "delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: "
+        "Canonical staged source owns the Sha256 API and public Bytes construction; typed std/hxrt/crypto "
+        "delegates only digest execution through the opaque cached ByteView. Evidence: "
         "crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests."
     ),
     "haxe.io.BufferInput": (
         "Direct `haxe.io.BufferInput` constructor and buffered-read baseline now have semantic-diff "
         "coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in "
-        "`stdlib/haxe_io_misc_direct`. The backend still emits the `Input` / `BytesInput` / "
-        "`BufferInput` shapes as compatibility migration debt; `haxe_go-vfp.8.7.11` moves the "
-        "public IO hierarchy to staged source over a narrower typed byte boundary."
+        "`stdlib/haxe_io_misc_direct`. Canonical staged source now owns BufferInput and its ordinary "
+        "Input inheritance; no compiler IO type or forwarding wrapper remains."
     ),
     "haxe.io.BytesData": (
         "Direct `haxe.io.BytesData` alias semantics now have semantic-diff coverage through "
         "`semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`, "
-        "including `Bytes.getData()` / `Bytes.ofData()` alias mutation behavior. Ownership stays mixed "
-        "because the public alias is source-level, while the actual behavior currently rides on the "
-        "compiler-emitted `haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`."
+        "including `Bytes.getData()` / `Bytes.ofData()` alias mutation behavior. Staged Bytes owns the "
+        "alias and cache-validation contract over the narrow typed ByteView capability."
     ),
     "haxe.io.Encoding": (
         "Direct `haxe.io.Encoding` constructor and pattern-match parity now have semantic-diff coverage "
         "through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
-        "The backend still emits the encoding tags used by the IO shims as compatibility migration "
-        "debt; `haxe_go-vfp.8.7.11` moves that public behavior to staged source."
+        "Canonical staged source owns the encoding values and pattern behavior; no compiler IO carrier remains."
     ),
     "haxe.io.Eof": (
         "Direct `haxe.io.Eof` construction and string parity now have semantic-diff coverage through "
         "`semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
-        "The backend still emits the `Eof` carrier used by IO shims and exception matching as "
-        "compatibility migration debt tracked by `haxe_go-vfp.8.7.11`."
+        "Canonical staged source owns the Eof carrier, exception identity, and text contract."
     ),
     "haxe.io.Error": (
         "Direct `haxe.io.Error` constructor and pattern-match parity now have semantic-diff coverage "
         "through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
-        "The backend still emits the error-tag carrier used by the public IO shims as compatibility "
-        "migration debt tracked by `haxe_go-vfp.8.7.11`."
+        "Canonical staged source owns the error constructors and payload matching contract."
     ),
     "haxe.io.FPHelper": (
         "Direct `haxe.io.FPHelper` bit-conversion helpers now have semantic-diff coverage through "
         "`semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. "
-        "The public API now lives in the staged override `std/go/_std/haxe/io/FPHelper.hx`, expressed on "
-        "top of the existing little-endian `BytesInput` / `BytesOutput` contract instead of more raw Go."
+        "The public API lives in staged `FPHelper.hx`; only typed scalar IEEE-754 reinterpretation crosses "
+        "to NativeFloatBits, avoiding both compiler raw Go and recursive stream conversion."
     ),
     "haxe.io.ArrayBufferView": (
         "Direct `haxe.io.ArrayBufferView` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: the public typed-array API now lives "
-        "in staged overrides under `std/go/_std/haxe/io/*.hx`, while the underlying carrier currently "
-        "rides on the compiler-emitted `haxe.io.Bytes` / `ArrayBufferViewImpl` representation tracked "
-        "as migration debt by `haxe_go-vfp.8.7.11`."
+        "in staged overrides under `std/go/_std/haxe/io/*.hx` over staged Bytes and ordinary abstract "
+        "representation lowering; no IO compiler shim remains."
     ),
     "haxe.io.UInt8Array": (
         "Direct `haxe.io.UInt8Array` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
-        "API, while the actual storage and byte normalization currently ride on the compiler-emitted "
-        "`haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`."
+        "API over staged Bytes storage and its typed opaque byte capability."
     ),
     "haxe.io.UInt16Array": (
         "Direct `haxe.io.UInt16Array` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
-        "API, while the actual storage and byte normalization currently ride on the compiler-emitted "
-        "`haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`."
+        "API over staged Bytes storage and its typed opaque byte capability."
     ),
     "haxe.io.UInt32Array": (
         "Direct `haxe.io.UInt32Array` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
-        "API, while the actual storage and byte normalization currently ride on the compiler-emitted "
-        "`haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`."
+        "API over staged Bytes storage and its typed opaque byte capability."
     ),
     "haxe.io.Int32Array": (
         "Direct `haxe.io.Int32Array` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
-        "API, while the actual storage and byte normalization currently ride on the compiler-emitted "
-        "`haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`."
+        "API over staged Bytes storage and its typed opaque byte capability."
     ),
     "haxe.io.Float32Array": (
         "Direct `haxe.io.Float32Array` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
-        "API, the actual storage currently rides on the compiler-emitted `haxe.io.Bytes` carrier tracked "
-        "as migration debt by `haxe_go-vfp.8.7.11`, and the float "
-        "bit conversions are expressed through staged `haxe.io.FPHelper` helpers instead of new raw compiler "
-        "bytes logic."
+        "API over staged Bytes, and float bit conversion uses staged `FPHelper` over typed NativeFloatBits."
     ),
     "haxe.io.Float64Array": (
         "Direct `haxe.io.Float64Array` usage now has semantic-diff coverage through "
         "`semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in "
         "`stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array "
-        "API, the actual storage currently rides on the compiler-emitted `haxe.io.Bytes` carrier tracked "
-        "as migration debt by `haxe_go-vfp.8.7.11`, and the float "
-        "bit conversions are expressed through staged `haxe.io.FPHelper` helpers instead of new raw compiler "
-        "bytes logic."
+        "API over staged Bytes, and float bit conversion uses staged `FPHelper` over typed NativeFloatBits."
     ),
     "haxe.io.Mime": (
         "Direct `haxe.io.Mime` abstract usage now has semantic-diff coverage through "
@@ -472,9 +456,8 @@ MODULE_NOTES_OVERRIDES = {
     "haxe.io.StringInput": (
         "Direct `haxe.io.StringInput` constructor and inherited-read baseline now have semantic-diff "
         "coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in "
-        "`stdlib/haxe_io_misc_direct`. The backend still emits the `BytesInput` / `StringInput` type "
-        "shapes as compatibility migration debt; `haxe_go-vfp.8.7.11` moves the public IO hierarchy "
-        "to staged source over a narrower typed byte boundary."
+        "`stdlib/haxe_io_misc_direct`. Canonical staged source owns StringInput as ordinary BytesInput "
+        "inheritance over staged Bytes."
     ),
     "haxe.ValueException": (
         "Direct haxe.ValueException constructor/message/value parity now has semantic-diff coverage. "

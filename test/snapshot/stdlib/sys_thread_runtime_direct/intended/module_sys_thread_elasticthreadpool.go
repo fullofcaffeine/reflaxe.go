@@ -48,42 +48,42 @@ func New_sys__thread__ElasticThreadPool(maxThreadsCount int, threadTimeout float
 }
 
 func (self *sys__thread__ElasticThreadPool) get_isShutdown() bool {
-	self.mutex.acquire()
+	self.mutex.__hx_this.acquire()
 	result := self._isShutdown
-	self.mutex.release()
+	self.mutex.__hx_this.release()
 	return result
 }
 
 func (self *sys__thread__ElasticThreadPool) get_threadsCount() int {
-	self.mutex.acquire()
+	self.mutex.__hx_this.acquire()
 	result := self.liveWorkers
-	self.mutex.release()
+	self.mutex.__hx_this.release()
 	return result
 }
 
 func (self *sys__thread__ElasticThreadPool) run(task func()) {
-	self.mutex.acquire()
+	self.mutex.__hx_this.acquire()
 	if self._isShutdown {
-		self.mutex.release()
+		self.mutex.__hx_this.release()
 		hxrt.Throw(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("Task is rejected. Thread pool is shut down."), nil, nil))
 	}
 	if task == nil {
-		self.mutex.release()
+		self.mutex.__hx_this.release()
 		hxrt.Throw(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("Task to run must not be null."), nil, nil))
 	}
 	self.pendingTasks = int(int32((self.pendingTasks + 1)))
-	self.queue.add(task)
-	self.available.release()
+	self.queue.__hx_this.add(task)
+	self.available.__hx_this.release()
 	if (self.pendingTasks > self.liveWorkers) && (self.liveWorkers < self.maxThreadsCount) {
-		self.startWorkerLocked()
+		self.__hx_this.startWorkerLocked()
 	}
-	self.mutex.release()
+	self.mutex.__hx_this.release()
 }
 
 func (self *sys__thread__ElasticThreadPool) shutdown() {
-	self.mutex.acquire()
+	self.mutex.__hx_this.acquire()
 	if self._isShutdown {
-		self.mutex.release()
+		self.mutex.__hx_this.release()
 		return
 	}
 	self._isShutdown = true
@@ -94,9 +94,9 @@ func (self *sys__thread__ElasticThreadPool) shutdown() {
 		_g = int(int32((_g + 1)))
 		hx_tmp := hx_post_33
 		_ = hx_tmp
-		self.available.release()
+		self.available.__hx_this.release()
 	}
-	self.mutex.release()
+	self.mutex.__hx_this.release()
 }
 
 func (self *sys__thread__ElasticThreadPool) startWorkerLocked() {
@@ -123,14 +123,14 @@ func (self *sys__thread__ElasticThreadPool) startWorkerLocked() {
 		hx_arr_36.Push(selected)
 	}
 	self.liveWorkers = int(int32((self.liveWorkers + 1)))
-	selected.start()
+	selected.__hx_this.start()
 }
 
 func (self *sys__thread__ElasticThreadPool) workerResolveWait(worker *sys__thread__ElasticThreadPoolWorker, woke bool) bool {
-	self.mutex.acquire()
+	self.mutex.__hx_this.acquire()
 	hasToken := woke
 	if !hasToken {
-		hasToken = self.available.wait(0)
+		hasToken = self.available.__hx_this.wait(0)
 	}
 	if hasToken {
 		nextTask := func(hx_value_37 any) func() {
@@ -139,19 +139,19 @@ func (self *sys__thread__ElasticThreadPool) workerResolveWait(worker *sys__threa
 				return hx_zero_38
 			}
 			return hx_value_37.(func())
-		}(self.queue.pop(false))
+		}(self.queue.__hx_this.pop(false))
 		if nextTask != nil {
 			worker.task = nextTask
-			self.mutex.release()
+			self.mutex.__hx_this.release()
 			return true
 		}
 		if !self._isShutdown {
-			self.mutex.release()
+			self.mutex.__hx_this.release()
 			return true
 		}
 	}
-	self.retireWorkerLocked(worker)
-	self.mutex.release()
+	self.__hx_this.retireWorkerLocked(worker)
+	self.mutex.__hx_this.release()
 	return false
 }
 
@@ -164,19 +164,19 @@ func (self *sys__thread__ElasticThreadPool) retireWorkerLocked(worker *sys__thre
 }
 
 func (self *sys__thread__ElasticThreadPool) workerTaskFinished(worker *sys__thread__ElasticThreadPoolWorker) {
-	self.mutex.acquire()
+	self.mutex.__hx_this.acquire()
 	worker.task = nil
 	self.pendingTasks = int(int32((self.pendingTasks - 1)))
-	self.mutex.release()
+	self.mutex.__hx_this.release()
 }
 
 func (self *sys__thread__ElasticThreadPool) workerTaskFailed(worker *sys__thread__ElasticThreadPoolWorker) {
-	self.mutex.acquire()
+	self.mutex.__hx_this.acquire()
 	worker.task = nil
 	self.pendingTasks = int(int32((self.pendingTasks - 1)))
-	self.retireWorkerLocked(worker)
+	self.__hx_this.retireWorkerLocked(worker)
 	if (self.pendingTasks > self.liveWorkers) && (self.liveWorkers < self.maxThreadsCount) {
-		self.startWorkerLocked()
+		self.__hx_this.startWorkerLocked()
 	}
-	self.mutex.release()
+	self.mutex.__hx_this.release()
 }

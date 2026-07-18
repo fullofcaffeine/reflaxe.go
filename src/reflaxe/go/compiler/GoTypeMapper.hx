@@ -52,8 +52,6 @@ class GoTypeMapper {
 					typeParameterGoType(classType, classTypeName, enumTypeName);
 				} else if (isHaxeExceptionClass(classType)) {
 					"*hxrt.ExceptionValue";
-				} else if (isHaxeIoBaseClass(classType)) {
-					classTypeName(classType);
 				} else if (classType.isInterface) {
 					classTypeName(classType);
 				} else if (classType.pack.length == 0 && classType.name == "String") {
@@ -333,8 +331,6 @@ class GoTypeMapper {
 					typeParameterGoType(classType, classTypeName, enumTypeName);
 				} else if (isHaxeExceptionClass(classType)) {
 					"*hxrt.ExceptionValue";
-				} else if (isHaxeIoBaseClass(classType)) {
-					classTypeName(classType);
 				} else if (classType.isInterface) {
 					classTypeName(classType);
 				} else if (classType.pack.length == 0 && classType.name == "String") {
@@ -667,10 +663,6 @@ class GoTypeMapper {
 			case _:
 				false;
 		};
-	}
-
-	public static function isHaxeIoBaseClass(classType:ClassType):Bool {
-		return classType.pack.join(".") == "haxe.io" && (classType.name == "Input" || classType.name == "Output");
 	}
 
 	public static function isHaxeExceptionType(type:Type):Bool {

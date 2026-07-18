@@ -24,9 +24,9 @@ func New_app__http__TinyHttpServer(api *app__core__IncidentApi, host *string, po
 	self.api = api
 	self.host = host
 	self.server = New_sys__net__Socket()
-	self.server.bind(New_sys__net__Host(host), port)
-	self.server.listen(16)
-	bound := self.server.host()
+	self.server.__hx_this.bind(New_sys__net__Host(host), port)
+	self.server.__hx_this.listen(16)
+	bound := self.server.__hx_this.host()
 	var hx_if_75 int
 	if bound == nil {
 		hx_if_75 = port
@@ -47,7 +47,7 @@ func New_app__http__TinyHttpServer(api *app__core__IncidentApi, host *string, po
 func (self *app__http__TinyHttpServer) serveOnce() {
 	var peer *sys__net__Socket = nil
 	hxrt.TryCatch(func() {
-		peer = self.server.accept()
+		peer = self.server.__hx_this.accept()
 		request := self.readRequest(peer)
 		response := self.api.handle(request)
 		self.writeResponse(peer, response)
@@ -63,7 +63,7 @@ func (self *app__http__TinyHttpServer) serveOnce() {
 
 func (self *app__http__TinyHttpServer) close() {
 	hxrt.TryCatch(func() {
-		self.server.close()
+		self.server.__hx_this.close()
 	}, func(hx_caught_78 any) {
 		hx_tmp := hxrt.ExceptionCaught(hx_caught_78)
 		_ = hx_tmp
@@ -71,7 +71,7 @@ func (self *app__http__TinyHttpServer) close() {
 }
 
 func (self *app__http__TinyHttpServer) readRequest(peer *sys__net__Socket) *app__http__HttpRequest {
-	line := peer.input.readLine()
+	line := peer.input.__hx_this.readLine()
 	first := hxrt.ArrayFromValues(func(hx_sort_src_80 []*string) []any {
 		hx_sort_out_82 := make([]any, 0, len(hx_sort_src_80))
 		for _, hx_sort_item_81 := range hx_sort_src_80 {
@@ -107,7 +107,7 @@ func (self *app__http__TinyHttpServer) readRequest(peer *sys__net__Socket) *app_
 	path := hx_if_88
 	contentLength := 0
 	for true {
-		header := peer.input.readLine()
+		header := peer.input.__hx_this.readLine()
 		if hxrt.StringEqualStringPtr(header, hxrt.StringFromLiteral("")) {
 			break
 		}
@@ -134,20 +134,18 @@ func (self *app__http__TinyHttpServer) readBody(peer *sys__net__Socket, length i
 	out := New_haxe__io__BytesBuffer()
 	i := 0
 	for i < length {
-		byte := peer.input.readByte()
-		hx_arr_90 := out.b
-		hx_arr_90 = append(hx_arr_90, (byte & 255))
-		out.b = hx_arr_90
+		value := peer.input.__hx_this.readByte()
+		out.b = hxrt.BytesBufferAddByte(out.b, value)
 		i = int(int32((i + 1)))
 	}
-	return out.getBytes().toString()
+	return out.__hx_this.getBytes().__hx_this.toString()
 }
 
 func (self *app__http__TinyHttpServer) writeResponse(peer *sys__net__Socket, response *app__http__HttpResponse) {
-	bodyBytes := haxe__io__Bytes_ofString(response.body)
+	bodyBytes := haxe__io__Bytes_ofString(response.body, nil)
 	head := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("HTTP/1.1 "), response.status), hxrt.StringFromLiteral(" ")), app__http__TinyHttpServer_reason(response.status)), hxrt.StringFromLiteral("\r\n")), hxrt.StringFromLiteral("Content-Type: application/json\r\n")), hxrt.StringFromLiteral("Content-Length: ")), bodyBytes.length), hxrt.StringFromLiteral("\r\n")), hxrt.StringFromLiteral("Connection: close\r\n")), hxrt.StringFromLiteral("\r\n"))
-	peer.output.writeString(hxrt.StringConcatStringPtr(head, response.body))
-	peer.output.flush()
+	peer.output.__hx_this.writeString(hxrt.StringConcatStringPtr(head, response.body), nil)
+	peer.output.__hx_this.flush()
 }
 
 func app__http__TinyHttpServer_closePeer(peer *sys__net__Socket) {
@@ -155,28 +153,28 @@ func app__http__TinyHttpServer_closePeer(peer *sys__net__Socket) {
 		return
 	}
 	hxrt.TryCatch(func() {
-		peer.close()
-	}, func(hx_caught_91 any) {
-		hx_tmp := hxrt.ExceptionCaught(hx_caught_91)
+		peer.__hx_this.close()
+	}, func(hx_caught_90 any) {
+		hx_tmp := hxrt.ExceptionCaught(hx_caught_90)
 		_ = hx_tmp
 	})
 }
 
 func app__http__TinyHttpServer_reason(status int) *string {
-	var hx_switch_93 *string
+	var hx_switch_92 *string
 	switch status {
 	case 200:
-		hx_switch_93 = hxrt.StringFromLiteral("OK")
+		hx_switch_92 = hxrt.StringFromLiteral("OK")
 	case 201:
-		hx_switch_93 = hxrt.StringFromLiteral("Created")
+		hx_switch_92 = hxrt.StringFromLiteral("Created")
 	case 400:
-		hx_switch_93 = hxrt.StringFromLiteral("Bad Request")
+		hx_switch_92 = hxrt.StringFromLiteral("Bad Request")
 	case 404:
-		hx_switch_93 = hxrt.StringFromLiteral("Not Found")
+		hx_switch_92 = hxrt.StringFromLiteral("Not Found")
 	case 500:
-		hx_switch_93 = hxrt.StringFromLiteral("Internal Server Error")
+		hx_switch_92 = hxrt.StringFromLiteral("Internal Server Error")
 	default:
-		hx_switch_93 = hxrt.StringFromLiteral("OK")
+		hx_switch_92 = hxrt.StringFromLiteral("OK")
 	}
-	return hx_switch_93
+	return hx_switch_92
 }

@@ -151,16 +151,6 @@
       ],
       "reviewCondition": "Close only when haxe_go-vfp.8.7.12 removes the generated sys.Http authority and shim group."
     },
-    "migration_io": {
-      "what": "Move the base haxe.io hierarchy, byte policy, stream methods, encoding, EOF, and error behavior out of compiler-emitted declarations.",
-      "why": "Native byte storage can require a representation boundary, but that does not require compiler ownership of complete public types and algorithms.",
-      "how": "Put public semantics in staged Haxe, cross only typed raw-byte capabilities, and individually register any smaller irreducible representation primitive.",
-      "evidence": [
-        "bytes_io_stream_contract",
-        "stdlib/bytes_raw_native_compiler_ownership"
-      ],
-      "reviewCondition": "Close only when haxe_go-vfp.8.7.11 retires the broad io group and adjudicates every residual primitive."
-    },
     "migration_runtime_reflection": {
       "what": "Move runtime-only Reflect.fields behavior out of compiler-generated declarations.",
       "why": "Field enumeration inspects runtime values and does not consume the compiler's closed metadata table.",
@@ -203,58 +193,8 @@
         {"kind": "class", "path": "sys.Http"}
       ],
       "plannerSelections": [],
-      "dependencies": [
-        "io"
-      ],
-      "declaresDependencyBlock": true
-    },
-    {
-      "group": "io",
-      "entryPoint": "lowerIoStdlibShimDecls",
-      "status": "migration_required",
-      "decisionId": "migration_io",
-      "followUpBead": "haxe_go-vfp.8.7.11",
-      "ownedSymbols": [
-        {"symbol": "haxe.io.BufferInput", "scope": "complete_type"},
-        {"symbol": "haxe.io.Bytes", "scope": "complete_type"},
-        {"symbol": "haxe.io.BytesBuffer", "scope": "complete_type"},
-        {"symbol": "haxe.io.BytesInput", "scope": "complete_type"},
-        {"symbol": "haxe.io.BytesOutput", "scope": "complete_type"},
-        {"symbol": "haxe.io.Encoding", "scope": "complete_type"},
-        {"symbol": "haxe.io.Eof", "scope": "complete_type"},
-        {"symbol": "haxe.io.Error", "scope": "complete_type"},
-        {"symbol": "haxe.io.Input", "scope": "complete_type"},
-        {"symbol": "haxe.io.Output", "scope": "complete_type"},
-        {"symbol": "haxe.io.StringInput", "scope": "complete_type"}
-      ],
-      "compilerOwnedAuthorities": [
-        "haxe.io.BufferInput",
-        "haxe.io.Bytes",
-        "haxe.io.BytesBuffer",
-        "haxe.io.BytesInput",
-        "haxe.io.BytesOutput",
-        "haxe.io.Eof",
-        "haxe.io.Error",
-        "haxe.io.Input",
-        "haxe.io.Output",
-        "haxe.io.StringInput"
-      ],
-      "classifierSelections": [
-        {"kind": "class", "path": "haxe.io.BufferInput"},
-        {"kind": "class", "path": "haxe.io.Bytes"},
-        {"kind": "class", "path": "haxe.io.BytesBuffer"},
-        {"kind": "class", "path": "haxe.io.BytesInput"},
-        {"kind": "class", "path": "haxe.io.BytesOutput"},
-        {"kind": "class", "path": "haxe.io.Encoding"},
-        {"kind": "class", "path": "haxe.io.Eof"},
-        {"kind": "class", "path": "haxe.io.Input"},
-        {"kind": "class", "path": "haxe.io.Output"},
-        {"kind": "class", "path": "haxe.io.StringInput"},
-        {"kind": "enum", "path": "haxe.io.Error"}
-      ],
-      "plannerSelections": [],
       "dependencies": [],
-      "declaresDependencyBlock": false
+      "declaresDependencyBlock": true
     },
     {
       "group": "stdlib_symbols",
@@ -279,17 +219,14 @@
       ],
       "plannerSelections": [
         "haxe.Template",
-        "haxe.io.FPHelper",
         "sys.ssl.Certificate",
         "sys.ssl.Digest",
         "sys.ssl.Key",
         "sys.ssl.Socket",
         "sys.ssl._Socket.Socket_Impl_"
       ],
-      "dependencies": [
-        "io"
-      ],
-      "declaresDependencyBlock": true,
+      "dependencies": [],
+      "declaresDependencyBlock": false,
       "supportEntryPoints": [
         {
           "context": "lowerSerializationSourceBridgeShimDecls",

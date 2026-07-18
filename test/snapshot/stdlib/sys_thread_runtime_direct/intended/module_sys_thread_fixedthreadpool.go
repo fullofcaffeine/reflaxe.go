@@ -47,30 +47,30 @@ func (self *sys__thread__FixedThreadPool) get_threadsCount() int {
 }
 
 func (self *sys__thread__FixedThreadPool) get_isShutdown() bool {
-	self.mutex.acquire()
+	self.mutex.__hx_this.acquire()
 	result := self._isShutdown
-	self.mutex.release()
+	self.mutex.__hx_this.release()
 	return result
 }
 
 func (self *sys__thread__FixedThreadPool) run(task func()) {
-	self.mutex.acquire()
+	self.mutex.__hx_this.acquire()
 	if self._isShutdown {
-		self.mutex.release()
+		self.mutex.__hx_this.release()
 		hxrt.Throw(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("Task is rejected. Thread pool is shut down."), nil, nil))
 	}
 	if task == nil {
-		self.mutex.release()
+		self.mutex.__hx_this.release()
 		hxrt.Throw(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("Task to run must not be null."), nil, nil))
 	}
-	self.queue.add(task)
-	self.mutex.release()
+	self.queue.__hx_this.add(task)
+	self.mutex.__hx_this.release()
 }
 
 func (self *sys__thread__FixedThreadPool) shutdown() {
-	self.mutex.acquire()
+	self.mutex.__hx_this.acquire()
 	if self._isShutdown {
-		self.mutex.release()
+		self.mutex.__hx_this.release()
 		return
 	}
 	self._isShutdown = true
@@ -86,9 +86,9 @@ func (self *sys__thread__FixedThreadPool) shutdown() {
 		}(_g1.Get(_g))
 		_ = hx_tmp
 		_g = int(int32((_g + 1)))
-		self.queue.add(sys__thread__FixedThreadPool_shutdownTask)
+		self.queue.__hx_this.add(sys__thread__FixedThreadPool_shutdownTask)
 	}
-	self.mutex.release()
+	self.mutex.__hx_this.release()
 }
 
 func sys__thread__FixedThreadPool_shutdownTask() {

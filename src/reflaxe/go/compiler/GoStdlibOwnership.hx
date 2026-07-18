@@ -20,8 +20,7 @@ package reflaxe.go.compiler;
 class GoStdlibOwnership {
 	public static function isCompilerOwnedAuthority(name:String):Bool {
 		return switch (name) {
-			case "haxe.io.BufferInput", "haxe.io.Bytes", "haxe.io.BytesBuffer", "haxe.io.BytesInput", "haxe.io.BytesOutput", "haxe.io.Eof", "haxe.io.Error",
-				"haxe.io.Input", "haxe.io.Output", "haxe.io.StringInput", "sys.Http":
+			case "sys.Http":
 				true;
 			case _:
 				false;
@@ -38,9 +37,8 @@ class GoStdlibOwnership {
 		concrete superclass carrier in a generated Go struct.
 
 		Why:
-		The former socket structs were the last such carriers. Remaining authorities,
-		such as `haxe.io.Input`, lower to Go interfaces; treating them as concrete
-		superclasses produces invalid `*interface` fields.
+		The former socket and IO structs were the last such carriers. Remaining
+		authorities do not currently materialize as source-embeddable classes.
 
 		How:
 		Return false until an individually reviewed compiler authority genuinely

@@ -131,9 +131,19 @@ Key implementation points:
   - one centralized `reflect.NewAt`/`unsafe.Pointer` lift reaches package-private generated fields after addressability checks. The exact debt owner, ceiling, evidence, and removal condition live in `test/compiler_debt_policy.json`;
   - token streams, reference caches, recursion, resolver policy, class/enum construction, and custom-hook sequencing remain in staged `haxe.Serializer` / `haxe.Unserializer`; existing Type metadata supplies the closed class/enum facts.
 
-These helpers preserve native failures at the runtime boundary. Canonical staged file and Process wrappers translate bounds, EOF, nullable exit availability, and public lifecycle policy in Haxe source; process startup and non-EOF read failures remain distinct from normal EOF and child exit codes. Public byte arrays are copied explicitly through `go.NativeSlice<Int>` into native `[]int`, so `hxrt` does not depend on the portable Array carrier or generated `haxe.io.Bytes` internals. Portable `Sys.putEnv` is the intentional exception: staged `Sys.hx` calls the non-throwing `SysSetEnvironment` capability to match the upstream Haxe 4.3.7 eval contract, while `SysPutEnv` retains the native error for typed Go-native bindings.
-- Byte representation helpers:
-  - `BytesFromString`, `BytesToString`, `BytesClone`
+These helpers preserve native failures at the runtime boundary. Canonical staged file and Process wrappers translate bounds, EOF, nullable exit availability, and public lifecycle policy in Haxe source; process startup and non-EOF read failures remain distinct from normal EOF and child exit codes. Portable `Sys.putEnv` is the intentional exception: staged `Sys.hx` calls the non-throwing `SysSetEnvironment` capability to match the upstream Haxe 4.3.7 eval contract, while `SysPutEnv` retains the native error for typed Go-native bindings.
+
+- Byte representation capabilities (`runtime/hxrt/bytes.go`):
+  - an opaque immutable `ByteView` crosses typed `std/hxrt/io` bindings without
+    exposing generated `haxe.io.Bytes` layout;
+  - allocation, `[]int`/`[]byte` view conversion and validation, UTF-8/UTF-16LE
+    conversion, overlap-safe copy, cloning, and growable-slice append primitives;
+  - scalar IEEE-754 bit reinterpretation used by staged `haxe.io.FPHelper`.
+
+Public bounds, hex algorithms, encoding selection, stream behavior, alias
+observation, and cache invalidation remain in canonical staged Haxe. Base64 and
+digest consumers reuse the same opaque view, so they do not copy through
+`go.NativeSlice<Int>` or depend on generated `haxe.io.Bytes` fields.
 
 ## Exception and concurrency boundaries
 

@@ -19,510 +19,16 @@ func main() {
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("method="), method)))
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("status="), status)))
 	base := New_haxe__http__HttpBase(hxrt.StringFromLiteral("http://example.com"))
-	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("responseData="), hxrt.StdString(base.get_responseData())))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("responseData="), hxrt.StdString(base.__hx_this.get_responseData())))
 	hxrt.Println(v)
 	hxrt.TryCatch(func() {
-		base.request(false)
+		base.__hx_this.request(false)
 		hxrt.Println(any(hxrt.StringFromLiteral("request=no_throw")))
 	}, func(hx_caught_1 any) {
 		e := hx_caught_1
 		var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("requestType="), Type_getClassName(Type_getClass(e))))
 		hxrt.Println(v_1)
 	})
-}
-
-type haxe__io__Encoding struct {
-	tag int
-}
-
-type haxe__io__Input interface {
-	get_bigEndian() bool
-	set_bigEndian(e bool) bool
-	readByte() int
-	readBytes(buf *haxe__io__Bytes, pos int, len int) int
-	close()
-}
-
-type haxe__io__Output interface {
-	get_bigEndian() bool
-	set_bigEndian(e bool) bool
-	writeByte(c int)
-	writeBytes(s *haxe__io__Bytes, pos int, len int) int
-	flush()
-	close()
-}
-
-type haxe__io__Eof struct {
-}
-
-type haxe__io__Error struct {
-	tag    int
-	params []any
-}
-
-type haxe__io__Bytes struct {
-	b             []int
-	length        int
-	__hx_raw      []byte
-	__hx_rawValid bool
-}
-
-type haxe__io__BytesBuffer struct {
-	b []int
-}
-
-type haxe__io__BytesInput struct {
-	bigEndian bool
-	b         []int
-	pos       int
-	len       int
-	totlen    int
-}
-
-type haxe__io__BytesOutput struct {
-	bigEndian bool
-	b         *haxe__io__BytesBuffer
-}
-
-func New_haxe__io__Input() haxe__io__Input {
-	return New_haxe__io__BytesInput(&haxe__io__Bytes{b: []int{}, length: 0})
-}
-
-func New_haxe__io__Output() haxe__io__Output {
-	return New_haxe__io__BytesOutput()
-}
-
-func New_haxe__io__Eof() *haxe__io__Eof {
-	return &haxe__io__Eof{}
-}
-
-var haxe__io__Encoding_UTF8 *haxe__io__Encoding = &haxe__io__Encoding{tag: 0}
-
-var haxe__io__Encoding_RawNative *haxe__io__Encoding = &haxe__io__Encoding{tag: 1}
-
-func (self *haxe__io__Encoding) String() string {
-	if self == nil {
-		return "null"
-	}
-	switch self.tag {
-	case 0:
-		return "UTF8"
-	case 1:
-		return "RawNative"
-	default:
-		return "Encoding"
-	}
-}
-
-func (self *haxe__io__Encoding) toString() *string {
-	return hxrt.StringFromLiteral(self.String())
-}
-
-func haxe__io__resolveEncodingTag(encoding ...*haxe__io__Encoding) int {
-	if len(encoding) == 0 || encoding[0] == nil {
-		return 0
-	}
-	return encoding[0].tag
-}
-
-func haxe__io__bytes_fromStringRawNativeUTF16LE(value *string) *haxe__io__Bytes {
-	raw := []byte(*hxrt.StdString(value))
-	converted := make([]int, len(raw))
-	for i := 0; i < len(raw); i++ {
-		converted[i] = int(raw[i])
-	}
-	return &haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: raw, __hx_rawValid: true}
-}
-
-func haxe__io__bytes_toStringRawNativeUTF16LE(value []int) *string {
-	return hxrt.BytesToString(value)
-}
-
-func (self *haxe__io__Eof) toString() *string {
-	return hxrt.StringFromLiteral("Eof")
-}
-
-var haxe__io__Error_Blocked *haxe__io__Error = &haxe__io__Error{tag: 0}
-
-var haxe__io__Error_Overflow *haxe__io__Error = &haxe__io__Error{tag: 1}
-
-var haxe__io__Error_OutsideBounds *haxe__io__Error = &haxe__io__Error{tag: 2}
-
-func haxe__io__Error_Custom(e any) *haxe__io__Error {
-	return &haxe__io__Error{tag: 3, params: []any{e}}
-}
-
-func (self *haxe__io__Error) String() string {
-	if self == nil {
-		return "null"
-	}
-	switch self.tag {
-	case 0:
-		return "Blocked"
-	case 1:
-		return "Overflow"
-	case 2:
-		return "OutsideBounds"
-	case 3:
-		if len(self.params) == 0 {
-			return "Custom(null)"
-		}
-		return "Custom(" + *hxrt.StdString(self.params[0]) + ")"
-	default:
-		return "Error"
-	}
-}
-
-func (self *haxe__io__Error) toString() *string {
-	return hxrt.StringFromLiteral(self.String())
-}
-
-func New_haxe__io__Bytes(length int, b []int) *haxe__io__Bytes {
-	if b == nil {
-		b = make([]int, length)
-	}
-	return &haxe__io__Bytes{b: b, length: len(b)}
-}
-
-func haxe__io__Bytes_alloc(length int) *haxe__io__Bytes {
-	return &haxe__io__Bytes{b: make([]int, length), length: length}
-}
-
-func haxe__io__Bytes_ofString(value *string, encoding ...*haxe__io__Encoding) *haxe__io__Bytes {
-	if haxe__io__resolveEncodingTag(encoding...) == 1 {
-		return haxe__io__bytes_fromStringRawNativeUTF16LE(value)
-	}
-	raw := []byte(*hxrt.StdString(value))
-	converted := make([]int, len(raw))
-	for i := 0; i < len(raw); i++ {
-		converted[i] = int(raw[i])
-	}
-	return &haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: raw, __hx_rawValid: true}
-}
-
-func haxe__io__Bytes_ofData(b []int) *haxe__io__Bytes {
-	if b == nil {
-		return &haxe__io__Bytes{b: []int{}, length: 0}
-	}
-	return &haxe__io__Bytes{b: b, length: len(b)}
-}
-
-func haxe__io__Bytes_ofHex(s *string) *haxe__io__Bytes {
-	decoded := hxrt.BytesOfHex(s)
-	return &haxe__io__Bytes{b: decoded, length: len(decoded)}
-}
-
-func (self *haxe__io__Bytes) toString() *string {
-	if self == nil {
-		return hxrt.StringFromLiteral("")
-	}
-	return hxrt.BytesToString(self.b)
-}
-
-func (self *haxe__io__Bytes) toHex() *string {
-	if self == nil || self.length == 0 {
-		return hxrt.StringFromLiteral("")
-	}
-	return hxrt.BytesToHex(self.b, self.length)
-}
-
-func (self *haxe__io__Bytes) getData() []int {
-	if self == nil {
-		return []int{}
-	}
-	return self.b
-}
-
-func (self *haxe__io__Bytes) getString(pos int, len int, encoding ...*haxe__io__Encoding) *string {
-	if self == nil || pos < 0 || len < 0 || pos+len > self.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return hxrt.StringFromLiteral("")
-	}
-	slice := self.b[pos : pos+len]
-	if haxe__io__resolveEncodingTag(encoding...) == 1 {
-		return haxe__io__bytes_toStringRawNativeUTF16LE(slice)
-	}
-	return hxrt.BytesToString(slice)
-}
-
-func (self *haxe__io__Bytes) readString(pos int, len int) *string {
-	return self.getString(pos, len)
-}
-
-func (self *haxe__io__Bytes) get(pos int) int {
-	return self.b[pos]
-}
-
-func (self *haxe__io__Bytes) set(pos int, value int) {
-	self.b[pos] = value
-	self.__hx_rawValid = false
-}
-
-func (self *haxe__io__Bytes) blit(pos int, src *haxe__io__Bytes, srcpos int, len int) {
-	if self == nil || src == nil || pos < 0 || srcpos < 0 || len < 0 || pos+len > self.length || srcpos+len > src.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return
-	}
-	if len == 0 {
-		return
-	}
-	if self == src && pos > srcpos {
-		for i := len - 1; i >= 0; i-- {
-			self.b[pos+i] = src.b[srcpos+i]
-		}
-	} else {
-		for i := 0; i < len; i++ {
-			self.b[pos+i] = src.b[srcpos+i]
-		}
-	}
-	self.__hx_rawValid = false
-}
-
-func (self *haxe__io__Bytes) fill(pos int, len int, value int) {
-	if self == nil || pos < 0 || len < 0 || pos+len > self.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return
-	}
-	masked := value & 255
-	for i := 0; i < len; i++ {
-		self.b[pos+i] = masked
-	}
-	self.__hx_rawValid = false
-}
-
-func (self *haxe__io__Bytes) sub(pos int, len int) *haxe__io__Bytes {
-	if self == nil || pos < 0 || len < 0 || pos+len > self.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return &haxe__io__Bytes{b: []int{}, length: 0}
-	}
-	if len == 0 {
-		return &haxe__io__Bytes{b: []int{}, length: 0}
-	}
-	copied := make([]int, len)
-	copy(copied, self.b[pos:pos+len])
-	return &haxe__io__Bytes{b: copied, length: len}
-}
-
-func (self *haxe__io__Bytes) compare(other *haxe__io__Bytes) int {
-	if self == nil && other == nil {
-		return 0
-	}
-	if self == nil {
-		return -1
-	}
-	if other == nil {
-		return 1
-	}
-	limit := self.length
-	if other.length < limit {
-		limit = other.length
-	}
-	for i := 0; i < limit; i++ {
-		if self.b[i] < other.b[i] {
-			return -1
-		}
-		if self.b[i] > other.b[i] {
-			return 1
-		}
-	}
-	if self.length < other.length {
-		return -1
-	}
-	if self.length > other.length {
-		return 1
-	}
-	return 0
-}
-
-func New_haxe__io__BytesBuffer() *haxe__io__BytesBuffer {
-	return &haxe__io__BytesBuffer{b: []int{}}
-}
-
-func (self *haxe__io__BytesBuffer) addByte(value int) {
-	self.b = hxrt.BytesBufferAddByte(self.b, value)
-}
-
-func (self *haxe__io__BytesBuffer) add(src *haxe__io__Bytes) {
-	if src == nil {
-		return
-	}
-	self.b = hxrt.BytesBufferAdd(self.b, src.b)
-}
-
-func (self *haxe__io__BytesBuffer) addBytes(src *haxe__io__Bytes, pos int, len int) {
-	if src == nil || pos < 0 || len < 0 || pos+len > src.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return
-	}
-	if len == 0 {
-		return
-	}
-	self.b = hxrt.BytesBufferAddSlice(self.b, src.b, pos, len)
-}
-
-func (self *haxe__io__BytesBuffer) addString(value *string, encoding ...*haxe__io__Encoding) {
-	self.add(haxe__io__Bytes_ofString(value))
-}
-
-func (self *haxe__io__BytesBuffer) getBytes() *haxe__io__Bytes {
-	copied := hxrt.BytesClone(self.b)
-	return &haxe__io__Bytes{b: copied, length: len(copied)}
-}
-
-func (self *haxe__io__BytesBuffer) get_length() int {
-	return hxrt.BytesBufferLength(self.b)
-}
-
-func New_haxe__io__BytesInput(b *haxe__io__Bytes, opts ...int) *haxe__io__BytesInput {
-	if b == nil {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return &haxe__io__BytesInput{}
-	}
-	start := 0
-	if len(opts) > 0 {
-		start = opts[0]
-	}
-	sliceLen := (b.length - start)
-	if len(opts) > 1 {
-		sliceLen = opts[1]
-	}
-	if start < 0 || sliceLen < 0 || start+sliceLen > b.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return &haxe__io__BytesInput{}
-	}
-	return &haxe__io__BytesInput{b: b.b, pos: start, len: sliceLen, totlen: sliceLen}
-}
-
-func (self *haxe__io__BytesInput) get_position() int {
-	return self.pos
-}
-
-func (self *haxe__io__BytesInput) set_position(p int) int {
-	if p < 0 {
-		p = 0
-	} else {
-		if p > self.totlen {
-			p = self.totlen
-		}
-	}
-	self.len = (self.totlen - p)
-	self.pos = p
-	return p
-}
-
-func (self *haxe__io__BytesInput) get_length() int {
-	return self.totlen
-}
-
-func (self *haxe__io__BytesInput) readByte() int {
-	if self == nil || self.len == 0 {
-		hxrt.Throw(&haxe__io__Eof{})
-		return 0
-	}
-	self.len = (self.len - 1)
-	value := self.b[self.pos]
-	self.pos = (self.pos + 1)
-	return value
-}
-
-func (self *haxe__io__BytesInput) readBytes(buf *haxe__io__Bytes, pos int, len int) int {
-	if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return 0
-	}
-	if len > 0 && (self == nil || self.len == 0) {
-		hxrt.Throw(&haxe__io__Eof{})
-		return 0
-	}
-	if self == nil {
-		return 0
-	}
-	if self.len < len {
-		len = self.len
-	}
-	for i := 0; i < len; i++ {
-		buf.b[pos+i] = self.b[self.pos+i]
-	}
-	self.pos += len
-	self.len -= len
-	return len
-}
-
-func (self *haxe__io__BytesInput) get_bigEndian() bool {
-	if self == nil {
-		return false
-	}
-	return self.bigEndian
-}
-
-func (self *haxe__io__BytesInput) set_bigEndian(e bool) bool {
-	if self != nil {
-		self.bigEndian = e
-	}
-	return e
-}
-
-func (self *haxe__io__BytesInput) close() {
-	_ = self
-}
-
-func New_haxe__io__BytesOutput() *haxe__io__BytesOutput {
-	return &haxe__io__BytesOutput{b: &haxe__io__BytesBuffer{b: []int{}}}
-}
-
-func (self *haxe__io__BytesOutput) get_length() int {
-	if self == nil || self.b == nil {
-		return 0
-	}
-	return self.b.get_length()
-}
-
-func (self *haxe__io__BytesOutput) writeByte(c int) {
-	if self == nil || self.b == nil {
-		return
-	}
-	self.b.addByte(c)
-}
-
-func (self *haxe__io__BytesOutput) writeBytes(buf *haxe__io__Bytes, pos int, len int) int {
-	if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return 0
-	}
-	if self == nil || self.b == nil {
-		return 0
-	}
-	self.b.addBytes(buf, pos, len)
-	return len
-}
-
-func (self *haxe__io__BytesOutput) get_bigEndian() bool {
-	if self == nil {
-		return false
-	}
-	return self.bigEndian
-}
-
-func (self *haxe__io__BytesOutput) set_bigEndian(e bool) bool {
-	if self != nil {
-		self.bigEndian = e
-	}
-	return e
-}
-
-func (self *haxe__io__BytesOutput) flush() {
-	_ = self
-}
-
-func (self *haxe__io__BytesOutput) close() {
-	_ = self
-}
-
-func (self *haxe__io__BytesOutput) getBytes() *haxe__io__Bytes {
-	if self == nil || self.b == nil {
-		return &haxe__io__Bytes{b: []int{}, length: 0}
-	}
-	return self.b.getBytes()
 }
 
 type Std struct {
@@ -759,30 +265,6 @@ func Reflect_setField(obj any, field *string, value any) {
 	}
 }
 
-func hxrt_haxeBytesToRaw(value *haxe__io__Bytes) []byte {
-	if value == nil {
-		return []byte{}
-	}
-	if value.__hx_rawValid && len(value.__hx_raw) == len(value.b) {
-		return value.__hx_raw
-	}
-	raw := make([]byte, len(value.b))
-	for i := 0; i < len(value.b); i++ {
-		raw[i] = byte(value.b[i])
-	}
-	value.__hx_raw = raw
-	value.__hx_rawValid = true
-	return raw
-}
-
-func hxrt_rawToHaxeBytes(value []byte) *haxe__io__Bytes {
-	converted := make([]int, len(value))
-	for i := 0; i < len(value); i++ {
-		converted[i] = int(value[i])
-	}
-	return &haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: value, __hx_rawValid: true}
-}
-
 type haxe__ds__Option struct {
 	tag    int
 	params []any
@@ -936,6 +418,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	switch className {
 	case "Main":
 		return nil, false
+	case "StringBuf":
+		return nil, false
 	case "haxe.Int64Helper":
 		return nil, false
 	case "haxe._Int32.Int32_Impl_":
@@ -950,6 +434,10 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return hxrt_typeCallAny(New_haxe__exceptions__PosException, args)
 	case "haxe.http.HttpBase":
 		return hxrt_typeCallAny(New_haxe__http__HttpBase, args)
+	case "haxe.io.Bytes":
+		return hxrt_typeCallAny(New_haxe__io__Bytes, args)
+	case "haxe.io.FPHelper":
+		return nil, false
 	default:
 		return nil, false
 	}
@@ -965,6 +453,8 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 		return &haxe__exceptions__PosException{}, true
 	case "haxe.http.HttpBase":
 		return &haxe__http__HttpBase{}, true
+	case "haxe.io.Bytes":
+		return &haxe__io__Bytes{}, true
 	default:
 		return nil, false
 	}
@@ -1073,6 +563,88 @@ func hxrt_typeCreateEnumInstance(enumName string, constructorName string, constr
 		default:
 			return nil, false
 		}
+	case "haxe.io.Encoding":
+		if useIndex {
+			switch constructorIndex {
+			case 0:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return haxe__io__Encoding_UTF8, true
+			case 1:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return haxe__io__Encoding_RawNative, true
+			default:
+				return nil, false
+			}
+		}
+		switch constructorName {
+		case "UTF8":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return haxe__io__Encoding_UTF8, true
+		case "RawNative":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return haxe__io__Encoding_RawNative, true
+		default:
+			return nil, false
+		}
+	case "haxe.io.Error":
+		if useIndex {
+			switch constructorIndex {
+			case 0:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return haxe__io__Error_Blocked, true
+			case 1:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return haxe__io__Error_Overflow, true
+			case 2:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return haxe__io__Error_OutsideBounds, true
+			case 3:
+				if len(args) != 1 {
+					return nil, false
+				}
+				return hxrt_typeCallAny(haxe__io__Error_Custom, args)
+			default:
+				return nil, false
+			}
+		}
+		switch constructorName {
+		case "Blocked":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return haxe__io__Error_Blocked, true
+		case "Overflow":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return haxe__io__Error_Overflow, true
+		case "OutsideBounds":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return haxe__io__Error_OutsideBounds, true
+		case "Custom":
+			if len(args) != 1 {
+				return nil, false
+			}
+			return hxrt_typeCallAny(haxe__io__Error_Custom, args)
+		default:
+			return nil, false
+		}
 	default:
 		return nil, false
 	}
@@ -1116,6 +688,11 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.http.HttpBase")}
+	case *haxe__io__Bytes:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Bytes")}
 	default:
 		return nil
 	}
@@ -1139,6 +716,16 @@ func Type_getEnum(o any) any {
 			return nil
 		}
 		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("ValueType")}
+	case *haxe__io__Encoding:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("haxe.io.Encoding")}
+	case *haxe__io__Error:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("haxe.io.Error")}
 	default:
 		return nil
 	}
@@ -1151,6 +738,8 @@ func Type_getSuperClass(c any) any {
 	}
 	switch className {
 	case "Main":
+		return nil
+	case "StringBuf":
 		return nil
 	case "haxe.Int64Helper":
 		return nil
@@ -1165,6 +754,10 @@ func Type_getSuperClass(c any) any {
 	case "haxe.exceptions.PosException":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.Exception")}
 	case "haxe.http.HttpBase":
+		return nil
+	case "haxe.io.Bytes":
+		return nil
+	case "haxe.io.FPHelper":
 		return nil
 	default:
 		return nil
@@ -1187,6 +780,8 @@ func Type_getClassFields(c any) *hxrt.Array {
 	switch className {
 	case "Main":
 		return hxrt.NewArray(hxrt.StringFromLiteral("main"))
+	case "StringBuf":
+		return hxrt.NewArray()
 	case "haxe.Int64Helper":
 		return hxrt.NewArray()
 	case "haxe._Int32.Int32_Impl_":
@@ -1201,6 +796,10 @@ func Type_getClassFields(c any) *hxrt.Array {
 		return hxrt.NewArray()
 	case "haxe.http.HttpBase":
 		return hxrt.NewArray()
+	case "haxe.io.Bytes":
+		return hxrt.NewArray(hxrt.StringFromLiteral("__hx_fromNativeView"), hxrt.StringFromLiteral("alloc"), hxrt.StringFromLiteral("fastGet"), hxrt.StringFromLiteral("ofData"), hxrt.StringFromLiteral("ofHex"), hxrt.StringFromLiteral("ofString"), hxrt.StringFromLiteral("rawNativeUsesUtf16LE"))
+	case "haxe.io.FPHelper":
+		return hxrt.NewArray(hxrt.StringFromLiteral("doubleToI64"), hxrt.StringFromLiteral("floatToI32"), hxrt.StringFromLiteral("i32ToFloat"), hxrt.StringFromLiteral("i64ToDouble"))
 	default:
 		return hxrt.NewArray()
 	}
@@ -1213,6 +812,8 @@ func Type_getInstanceFields(c any) *hxrt.Array {
 	}
 	switch className {
 	case "Main":
+		return hxrt.NewArray()
+	case "StringBuf":
 		return hxrt.NewArray()
 	case "haxe.Int64Helper":
 		return hxrt.NewArray()
@@ -1228,6 +829,10 @@ func Type_getInstanceFields(c any) *hxrt.Array {
 		return hxrt.NewArray(hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("posInfos"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap"))
 	case "haxe.http.HttpBase":
 		return hxrt.NewArray(hxrt.StringFromLiteral("addHeader"), hxrt.StringFromLiteral("addParameter"), hxrt.StringFromLiteral("emptyOnData"), hxrt.StringFromLiteral("get_responseData"), hxrt.StringFromLiteral("hasOnData"), hxrt.StringFromLiteral("headers"), hxrt.StringFromLiteral("onBytes"), hxrt.StringFromLiteral("onData"), hxrt.StringFromLiteral("onError"), hxrt.StringFromLiteral("onStatus"), hxrt.StringFromLiteral("params"), hxrt.StringFromLiteral("postBytes"), hxrt.StringFromLiteral("postData"), hxrt.StringFromLiteral("request"), hxrt.StringFromLiteral("responseAsString"), hxrt.StringFromLiteral("responseBytes"), hxrt.StringFromLiteral("responseData"), hxrt.StringFromLiteral("setHeader"), hxrt.StringFromLiteral("setParameter"), hxrt.StringFromLiteral("setPostBytes"), hxrt.StringFromLiteral("setPostData"), hxrt.StringFromLiteral("success"), hxrt.StringFromLiteral("url"))
+	case "haxe.io.Bytes":
+		return hxrt.NewArray(hxrt.StringFromLiteral("__hx_dataExposed"), hxrt.StringFromLiteral("__hx_nativeView"), hxrt.StringFromLiteral("__hx_raw"), hxrt.StringFromLiteral("__hx_rawValid"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("blit"), hxrt.StringFromLiteral("compare"), hxrt.StringFromLiteral("fill"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getData"), hxrt.StringFromLiteral("getDouble"), hxrt.StringFromLiteral("getFloat"), hxrt.StringFromLiteral("getInt32"), hxrt.StringFromLiteral("getInt64"), hxrt.StringFromLiteral("getString"), hxrt.StringFromLiteral("getUInt16"), hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("readString"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setDouble"), hxrt.StringFromLiteral("setFloat"), hxrt.StringFromLiteral("setInt32"), hxrt.StringFromLiteral("setInt64"), hxrt.StringFromLiteral("setUInt16"), hxrt.StringFromLiteral("sub"), hxrt.StringFromLiteral("toHex"), hxrt.StringFromLiteral("toString"))
+	case "haxe.io.FPHelper":
+		return hxrt.NewArray()
 	default:
 		return hxrt.NewArray()
 	}
@@ -1249,6 +854,8 @@ func Type_resolveClass(name *string) any {
 	switch rawName {
 	case "Main":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "StringBuf":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.Int64Helper":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe._Int32.Int32_Impl_":
@@ -1263,6 +870,10 @@ func Type_resolveClass(name *string) any {
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.http.HttpBase":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.io.Bytes":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.io.FPHelper":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
 	}
@@ -1275,6 +886,10 @@ func Type_resolveEnum(name *string) any {
 	rawName := *hxrt.StdString(name)
 	switch rawName {
 	case "ValueType":
+		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.io.Encoding":
+		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.io.Error":
 		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
@@ -1364,6 +979,34 @@ func Type_enumConstructor(e any) *string {
 		default:
 			return nil
 		}
+	case *haxe__io__Encoding:
+		if value == nil {
+			return nil
+		}
+		switch value.tag {
+		case 0:
+			return hxrt.StringFromLiteral("UTF8")
+		case 1:
+			return hxrt.StringFromLiteral("RawNative")
+		default:
+			return nil
+		}
+	case *haxe__io__Error:
+		if value == nil {
+			return nil
+		}
+		switch value.tag {
+		case 0:
+			return hxrt.StringFromLiteral("Blocked")
+		case 1:
+			return hxrt.StringFromLiteral("Overflow")
+		case 2:
+			return hxrt.StringFromLiteral("OutsideBounds")
+		case 3:
+			return hxrt.StringFromLiteral("Custom")
+		default:
+			return nil
+		}
 	default:
 		return nil
 	}
@@ -1375,6 +1018,16 @@ func Type_enumIndex(e any) int {
 	}
 	switch value := e.(type) {
 	case *ValueType:
+		if value == nil {
+			return -1
+		}
+		return value.tag
+	case *haxe__io__Encoding:
+		if value == nil {
+			return -1
+		}
+		return value.tag
+	case *haxe__io__Error:
 		if value == nil {
 			return -1
 		}
@@ -1392,6 +1045,10 @@ func Type_getEnumConstructs(e any) *hxrt.Array {
 	switch enumName {
 	case "ValueType":
 		return hxrt.NewArray(hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown"))
+	case "haxe.io.Encoding":
+		return hxrt.NewArray(hxrt.StringFromLiteral("UTF8"), hxrt.StringFromLiteral("RawNative"))
+	case "haxe.io.Error":
+		return hxrt.NewArray(hxrt.StringFromLiteral("Blocked"), hxrt.StringFromLiteral("Overflow"), hxrt.StringFromLiteral("OutsideBounds"), hxrt.StringFromLiteral("Custom"))
 	default:
 		return hxrt.NewArray()
 	}
@@ -1403,6 +1060,16 @@ func Type_enumParameters(e any) *hxrt.Array {
 	}
 	switch value := e.(type) {
 	case *ValueType:
+		if value == nil || value.params == nil {
+			return hxrt.NewArray()
+		}
+		return hxrt.NewArray(value.params...)
+	case *haxe__io__Encoding:
+		if value == nil || value.params == nil {
+			return hxrt.NewArray()
+		}
+		return hxrt.NewArray(value.params...)
+	case *haxe__io__Error:
 		if value == nil || value.params == nil {
 			return hxrt.NewArray()
 		}
@@ -1420,6 +1087,10 @@ func Type_allEnums(e any) *hxrt.Array {
 	switch enumName {
 	case "ValueType":
 		return hxrt.NewArray(ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown)
+	case "haxe.io.Encoding":
+		return hxrt.NewArray(haxe__io__Encoding_UTF8, haxe__io__Encoding_RawNative)
+	case "haxe.io.Error":
+		return hxrt.NewArray(haxe__io__Error_Blocked, haxe__io__Error_Overflow, haxe__io__Error_OutsideBounds)
 	default:
 		return hxrt.NewArray()
 	}

@@ -35,8 +35,8 @@ func (self *sys__thread__ElasticThreadPoolWorker) start() {
 
 func (self *sys__thread__ElasticThreadPoolWorker) loop() {
 	for true {
-		woke := self.available.wait(self.timeout)
-		if !self.owner.workerResolveWait(self, woke) {
+		woke := self.available.__hx_this.wait(self.timeout)
+		if !self.owner.__hx_this.workerResolveWait(self, woke) {
 			return
 		}
 		_g := self.task
@@ -48,10 +48,10 @@ func (self *sys__thread__ElasticThreadPoolWorker) loop() {
 				fn()
 			}, func(hx_caught_31 any) {
 				err := hx_caught_31
-				self.owner.workerTaskFailed(self)
+				self.owner.__hx_this.workerTaskFailed(self)
 				hxrt.Throw(err)
 			})
-			self.owner.workerTaskFinished(self)
+			self.owner.__hx_this.workerTaskFinished(self)
 		}
 	}
 }

@@ -70,3 +70,7 @@ func (self *haxe__ds__WeakMap) toString() *string {
 
 func (self *haxe__ds__WeakMap) clear() {
 }
+
+func (self *haxe__ds__WeakMap) String() string {
+	return *self.__hx_this.toString()
+}

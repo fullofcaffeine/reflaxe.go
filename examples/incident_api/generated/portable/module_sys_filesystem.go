@@ -31,12 +31,12 @@ func sys__FileSystem_isDirectory(path *string) bool {
 }
 
 func sys__FileSystem_readDirectory(path *string) *hxrt.Array {
-	return hxrt.ArrayFromValues(func(hx_sort_src_148 []*string) []any {
-		hx_sort_out_150 := make([]any, 0, len(hx_sort_src_148))
-		for _, hx_sort_item_149 := range hx_sort_src_148 {
-			hx_sort_out_150 = append(hx_sort_out_150, hx_sort_item_149)
+	return hxrt.ArrayFromValues(func(hx_sort_src_147 []*string) []any {
+		hx_sort_out_149 := make([]any, 0, len(hx_sort_src_147))
+		for _, hx_sort_item_148 := range hx_sort_src_147 {
+			hx_sort_out_149 = append(hx_sort_out_149, hx_sort_item_148)
 		}
-		return hx_sort_out_150
+		return hx_sort_out_149
 	}(hxrt.FileSystemReadDirectory(path)))
 }
 
@@ -46,17 +46,17 @@ func sys__FileSystem_rename(path *string, newPath *string) {
 
 func sys__FileSystem_stat(path *string) map[string]any {
 	value := hxrt.FileSystemStatPath(path)
-	hx_obj_151 := map[string]any{}
-	hx_obj_151["gid"] = value.Gid
-	hx_obj_151["uid"] = value.Uid
-	hx_obj_151["atime"] = Date_fromTime(value.AtimeMs)
-	hx_obj_151["mtime"] = Date_fromTime(value.MtimeMs)
-	hx_obj_151["ctime"] = Date_fromTime(value.CtimeMs)
-	hx_obj_151["size"] = value.Size
-	hx_obj_151["dev"] = value.Dev
-	hx_obj_151["ino"] = value.Ino
-	hx_obj_151["nlink"] = value.Nlink
-	hx_obj_151["rdev"] = value.Rdev
-	hx_obj_151["mode"] = value.Mode
-	return hx_obj_151
+	hx_obj_150 := map[string]any{}
+	hx_obj_150["gid"] = value.Gid
+	hx_obj_150["uid"] = value.Uid
+	hx_obj_150["atime"] = Date_fromTime(value.AtimeMs)
+	hx_obj_150["mtime"] = Date_fromTime(value.MtimeMs)
+	hx_obj_150["ctime"] = Date_fromTime(value.CtimeMs)
+	hx_obj_150["size"] = value.Size
+	hx_obj_150["dev"] = value.Dev
+	hx_obj_150["ino"] = value.Ino
+	hx_obj_150["nlink"] = value.Nlink
+	hx_obj_150["rdev"] = value.Rdev
+	hx_obj_150["mode"] = value.Mode
+	return hx_obj_150
 }

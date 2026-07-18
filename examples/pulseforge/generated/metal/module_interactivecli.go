@@ -38,7 +38,7 @@ func InteractiveCli_parsePositiveInt(raw *string) int {
 	if hxrt.StringEqualStringPtr(raw, hxrt.StringFromLiteral("")) {
 		return -1
 	}
-	bytes := haxe__io__Bytes_ofString(raw)
+	bytes := haxe__io__Bytes_ofString(raw, nil)
 	value := 0
 	i := 0
 	for i < bytes.length {

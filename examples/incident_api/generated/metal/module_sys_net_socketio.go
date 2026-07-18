@@ -7,16 +7,32 @@ type I_sys__net__SocketOutput interface {
 	writeBytes(bytes *haxe__io__Bytes, pos int, length int) int
 	flush()
 	close()
+	set_bigEndian(value bool) bool
+	write(bytes *haxe__io__Bytes)
+	writeFullBytes(bytes *haxe__io__Bytes, pos int, len int)
+	writeFloat(value float64)
+	writeDouble(value float64)
+	writeInt8(value int)
+	writeInt16(value int)
+	writeUInt16(value int)
+	writeInt24(value int)
+	writeUInt24(value int)
+	writeInt32(value int)
+	prepare(nbytes int)
+	writeInput(input *haxe__io__Input, bufsize any)
+	writeString(value *string, encoding *haxe__io__Encoding)
 }
 
 type sys__net__SocketOutput struct {
-	__hx_this         I_sys__net__SocketOutput
-	handle            *hxrt.SocketHandle
-	__hx_io_bigEndian bool
+	*haxe__io__Output
+	__hx_this I_sys__net__SocketOutput
+	handle    *hxrt.SocketHandle
 }
 
 func New_sys__net__SocketOutput(handle *hxrt.SocketHandle) *sys__net__SocketOutput {
 	self := &sys__net__SocketOutput{}
+	self.haxe__io__Output = New_haxe__io__Output()
+	self.haxe__io__Output.__hx_this = self
 	self.__hx_this = self
 	self.handle = handle
 	return self
@@ -38,23 +54,23 @@ func (self *sys__net__SocketOutput) writeBytes(bytes *haxe__io__Bytes, pos int, 
 	_g := 0
 	_g1 := length
 	for _g < _g1 {
-		hx_post_94 := _g
+		hx_post_93 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_94
+		index := hx_post_93
 		values.Push(bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))])
 	}
-	result := hxrt.SocketWriteValues(self.handle, func(hx_lambda_raw_96 []any) []int {
-		hx_lambda_out_97 := make([]int, 0, len(hx_lambda_raw_96))
-		for _, hx_lambda_item_98 := range hx_lambda_raw_96 {
-			hx_lambda_out_97 = append(hx_lambda_out_97, func(hx_value_99 any) int {
-				if hx_value_99 == nil {
-					var hx_zero_100 int
-					return hx_zero_100
+	result := hxrt.SocketWriteValues(self.handle, func(hx_lambda_raw_95 []any) []int {
+		hx_lambda_out_96 := make([]int, 0, len(hx_lambda_raw_95))
+		for _, hx_lambda_item_97 := range hx_lambda_raw_95 {
+			hx_lambda_out_96 = append(hx_lambda_out_96, func(hx_value_98 any) int {
+				if hx_value_98 == nil {
+					var hx_zero_99 int
+					return hx_zero_99
 				}
-				return hx_value_99.(int)
-			}(hx_lambda_item_98))
+				return hx_value_98.(int)
+			}(hx_lambda_item_97))
 		}
-		return hx_lambda_out_97
+		return hx_lambda_out_96
 	}(values.Values()))
 	sys__net__SocketOutput_translateWriteStatus(result)
 	return result.Count
@@ -66,73 +82,6 @@ func (self *sys__net__SocketOutput) flush() {
 
 func (self *sys__net__SocketOutput) close() {
 	hxrt.SocketClose(self.handle)
-}
-
-func (self *sys__net__SocketOutput) get_bigEndian() bool {
-	if self == nil {
-		return false
-	}
-	return self.__hx_io_bigEndian
-}
-
-func (self *sys__net__SocketOutput) set_bigEndian(e bool) bool {
-	if self != nil {
-		self.__hx_io_bigEndian = e
-	}
-	return e
-}
-
-func (self *sys__net__SocketOutput) prepare(nbytes int) {
-	_ = self
-	_ = nbytes
-}
-
-func (self *sys__net__SocketOutput) write(s *haxe__io__Bytes) {
-	haxe__io__output_write(self, s)
-}
-
-func (self *sys__net__SocketOutput) writeFullBytes(s *haxe__io__Bytes, pos int, len int) {
-	haxe__io__output_writeFullBytes(self, s, pos, len)
-}
-
-func (self *sys__net__SocketOutput) writeFloat(x float64) {
-	haxe__io__output_writeFloat(self, x)
-}
-
-func (self *sys__net__SocketOutput) writeDouble(x float64) {
-	haxe__io__output_writeDouble(self, x)
-}
-
-func (self *sys__net__SocketOutput) writeInt8(x int) {
-	haxe__io__output_writeInt8(self, x)
-}
-
-func (self *sys__net__SocketOutput) writeInt16(x int) {
-	haxe__io__output_writeInt16(self, x)
-}
-
-func (self *sys__net__SocketOutput) writeUInt16(x int) {
-	haxe__io__output_writeUInt16(self, x)
-}
-
-func (self *sys__net__SocketOutput) writeInt24(x int) {
-	haxe__io__output_writeInt24(self, x)
-}
-
-func (self *sys__net__SocketOutput) writeUInt24(x int) {
-	haxe__io__output_writeUInt24(self, x)
-}
-
-func (self *sys__net__SocketOutput) writeInt32(x int) {
-	haxe__io__output_writeInt32(self, x)
-}
-
-func (self *sys__net__SocketOutput) writeInput(i haxe__io__Input, bufsize ...int) {
-	haxe__io__output_writeInput(self, i, bufsize...)
-}
-
-func (self *sys__net__SocketOutput) writeString(s *string, encoding ...*haxe__io__Encoding) {
-	haxe__io__output_writeString(self, s, encoding...)
 }
 
 func sys__net__SocketOutput_translateWriteStatus(result *hxrt.SocketIOResult) {
@@ -148,16 +97,33 @@ type I_sys__net__SocketInput interface {
 	readByte() int
 	readBytes(bytes *haxe__io__Bytes, pos int, length int) int
 	close()
+	set_bigEndian(value bool) bool
+	readAll(bufsize any) *haxe__io__Bytes
+	readFullBytes(bytes *haxe__io__Bytes, pos int, len int)
+	read(nbytes int) *haxe__io__Bytes
+	readUntil(end int) *string
+	readLine() *string
+	readFloat() float64
+	readDouble() float64
+	readInt8() int
+	readInt16() int
+	readUInt16() int
+	readInt24() int
+	readUInt24() int
+	readInt32() int
+	readString(len int, encoding *haxe__io__Encoding) *string
 }
 
 type sys__net__SocketInput struct {
-	__hx_this         I_sys__net__SocketInput
-	handle            *hxrt.SocketHandle
-	__hx_io_bigEndian bool
+	*haxe__io__Input
+	__hx_this I_sys__net__SocketInput
+	handle    *hxrt.SocketHandle
 }
 
 func New_sys__net__SocketInput(handle *hxrt.SocketHandle) *sys__net__SocketInput {
 	self := &sys__net__SocketInput{}
+	self.haxe__io__Input = New_haxe__io__Input()
+	self.haxe__io__Input.__hx_this = self
 	self.__hx_this = self
 	self.handle = handle
 	return self
@@ -186,87 +152,18 @@ func (self *sys__net__SocketInput) readBytes(bytes *haxe__io__Bytes, pos int, le
 	_g := 0
 	_g1 := result.Count
 	for _g < _g1 {
-		hx_post_101 := _g
+		hx_post_100 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_101
-		v := result.Values[index]
-		bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(v) & hxrt.Int32Wrap(255))))
+		index := hx_post_100
+		value := result.Values[index]
+		bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+		bytes.__hx_rawValid = false
 	}
 	return result.Count
 }
 
 func (self *sys__net__SocketInput) close() {
 	hxrt.SocketClose(self.handle)
-}
-
-func (self *sys__net__SocketInput) get_bigEndian() bool {
-	if self == nil {
-		return false
-	}
-	return self.__hx_io_bigEndian
-}
-
-func (self *sys__net__SocketInput) set_bigEndian(e bool) bool {
-	if self != nil {
-		self.__hx_io_bigEndian = e
-	}
-	return e
-}
-
-func (self *sys__net__SocketInput) readAll(bufsize ...int) *haxe__io__Bytes {
-	return haxe__io__input_readAll(self, bufsize...)
-}
-
-func (self *sys__net__SocketInput) readFullBytes(s *haxe__io__Bytes, pos int, len int) {
-	haxe__io__input_readFullBytes(self, s, pos, len)
-}
-
-func (self *sys__net__SocketInput) read(nbytes int) *haxe__io__Bytes {
-	return haxe__io__input_read(self, nbytes)
-}
-
-func (self *sys__net__SocketInput) readUntil(end int) *string {
-	return haxe__io__input_readUntil(self, end)
-}
-
-func (self *sys__net__SocketInput) readLine() *string {
-	return haxe__io__input_readLine(self)
-}
-
-func (self *sys__net__SocketInput) readFloat() float64 {
-	return haxe__io__input_readFloat(self)
-}
-
-func (self *sys__net__SocketInput) readDouble() float64 {
-	return haxe__io__input_readDouble(self)
-}
-
-func (self *sys__net__SocketInput) readInt8() int {
-	return haxe__io__input_readInt8(self)
-}
-
-func (self *sys__net__SocketInput) readInt16() int {
-	return haxe__io__input_readInt16(self)
-}
-
-func (self *sys__net__SocketInput) readUInt16() int {
-	return haxe__io__input_readUInt16(self)
-}
-
-func (self *sys__net__SocketInput) readInt24() int {
-	return haxe__io__input_readInt24(self)
-}
-
-func (self *sys__net__SocketInput) readUInt24() int {
-	return haxe__io__input_readUInt24(self)
-}
-
-func (self *sys__net__SocketInput) readInt32() int {
-	return haxe__io__input_readInt32(self)
-}
-
-func (self *sys__net__SocketInput) readString(len int, encoding ...*haxe__io__Encoding) *string {
-	return haxe__io__input_readString(self, len, encoding...)
 }
 
 func sys__net__SocketInput_translateReadStatus(result *hxrt.SocketIOResult) {

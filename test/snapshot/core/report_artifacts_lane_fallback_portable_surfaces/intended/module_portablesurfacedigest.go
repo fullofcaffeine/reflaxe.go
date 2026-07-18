@@ -4,25 +4,25 @@ import "snapshot/hxrt"
 
 func PortableSurfaceDigest_compute(seed int) *string {
 	list := New_haxe__ds__List()
-	list.add(seed)
-	list.push(int(int32((hxrt.Int32Wrap(seed) + hxrt.Int32Wrap(1)))))
-	list.push(int(int32((hxrt.Int32Wrap(seed) + hxrt.Int32Wrap(3)))))
+	list.__hx_this.add(seed)
+	list.__hx_this.push(int(int32((hxrt.Int32Wrap(seed) + hxrt.Int32Wrap(1)))))
+	list.__hx_this.push(int(int32((hxrt.Int32Wrap(seed) + hxrt.Int32Wrap(3)))))
 	var popValue any = func(hx_value_1 any) any {
 		if hx_value_1 == nil {
 			return nil
 		}
 		return hx_value_1.(int)
-	}(list.pop())
+	}(list.__hx_this.pop())
 	listDigest := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(list.length, hxrt.StringFromLiteral("|")), hxrt.StdString(func(hx_value_2 any) any {
 		if hx_value_2 == nil {
 			return nil
 		}
 		return hx_value_2.(int)
-	}(list.first()))), hxrt.StringFromLiteral("|")), hxrt.StdString(popValue))
+	}(list.__hx_this.first()))), hxrt.StringFromLiteral("|")), hxrt.StdString(popValue))
 	_g := New_haxe__ds__StringMap()
-	_g.set(hxrt.StringFromLiteral("a"), seed)
-	_g.set(hxrt.StringFromLiteral("bb"), int(int32((hxrt.Int32Wrap(seed) + hxrt.Int32Wrap(2)))))
-	_g.set(hxrt.StringFromLiteral("ccc"), int(int32((hxrt.Int32Wrap(seed) + hxrt.Int32Wrap(4)))))
+	_g.__hx_this.set(hxrt.StringFromLiteral("a"), seed)
+	_g.__hx_this.set(hxrt.StringFromLiteral("bb"), int(int32((hxrt.Int32Wrap(seed) + hxrt.Int32Wrap(2)))))
+	_g.__hx_this.set(hxrt.StringFromLiteral("ccc"), int(int32((hxrt.Int32Wrap(seed) + hxrt.Int32Wrap(4)))))
 	map_ := _g
 	mapCount := 0
 	mapKeyLen := 0
@@ -33,7 +33,7 @@ func PortableSurfaceDigest_compute(seed int) *string {
 			return hx_zero_4
 		}
 		return hx_value_3.(map[string]any)
-	}(map_.keyValueIterator())
+	}(map_.__hx_this.keyValueIterator())
 	for func(hx_obj_5 map[string]any) func() bool {
 		hx_field_6 := hx_obj_5["hasNext"]
 		if hx_field_6 == nil {

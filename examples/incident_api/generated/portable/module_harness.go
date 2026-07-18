@@ -31,24 +31,24 @@ func Harness_request(server *app__http__TinyHttpServer, method *string, path *st
 	client := New_sys__net__Socket()
 	result := hxrt.StringFromLiteral("")
 	hxrt.TryCatch(func() {
-		client.connect(New_sys__net__Host(server.host), server.port)
-		contentLength := haxe__io__Bytes_ofString(body).length
-		client.output.writeString(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(method, hxrt.StringFromLiteral(" ")), path), hxrt.StringFromLiteral(" HTTP/1.1\r\n")))
-		client.output.writeString(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Host: "), server.host), hxrt.StringFromLiteral(":")), server.port), hxrt.StringFromLiteral("\r\n")))
-		client.output.writeString(hxrt.StringFromLiteral("Content-Type: application/json\r\n"))
-		client.output.writeString(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("Content-Length: "), contentLength), hxrt.StringFromLiteral("\r\n")))
-		client.output.writeString(hxrt.StringFromLiteral("Connection: close\r\n\r\n"))
-		client.output.writeString(body)
-		client.output.flush()
+		client.__hx_this.connect(New_sys__net__Host(server.host), server.port)
+		contentLength := haxe__io__Bytes_ofString(body, nil).length
+		client.output.__hx_this.writeString(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(method, hxrt.StringFromLiteral(" ")), path), hxrt.StringFromLiteral(" HTTP/1.1\r\n")), nil)
+		client.output.__hx_this.writeString(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Host: "), server.host), hxrt.StringFromLiteral(":")), server.port), hxrt.StringFromLiteral("\r\n")), nil)
+		client.output.__hx_this.writeString(hxrt.StringFromLiteral("Content-Type: application/json\r\n"), nil)
+		client.output.__hx_this.writeString(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("Content-Length: "), contentLength), hxrt.StringFromLiteral("\r\n")), nil)
+		client.output.__hx_this.writeString(hxrt.StringFromLiteral("Connection: close\r\n\r\n"), nil)
+		client.output.__hx_this.writeString(body, nil)
+		client.output.__hx_this.flush()
 		server.serveOnce()
-		result = Harness_summarize(client.input.readAll().toString())
+		result = Harness_summarize(client.input.__hx_this.readAll(nil).__hx_this.toString())
 	}, func(hx_caught_5 any) {
 		error := hxrt.ExceptionCaught(hx_caught_5)
 		_ = error
 		result = hxrt.StringFromLiteral("HTTP/1.1 000 Client Error body={\"error\":\"client_error\"}")
 	})
 	hxrt.TryCatch(func() {
-		client.close()
+		client.__hx_this.close()
 	}, func(hx_caught_7 any) {
 		hx_tmp := hxrt.ExceptionCaught(hx_caught_7)
 		_ = hx_tmp

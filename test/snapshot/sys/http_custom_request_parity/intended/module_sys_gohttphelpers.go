@@ -65,17 +65,17 @@ func sys__GoHttpHelpers_getResponseHeaderValues(self *sys__Http, key *string) *h
 		}
 		return []*string{hxrt.StdString(single)}
 	}()
-	var hx_if_19 *hxrt.Array
+	var hx_if_57 *hxrt.Array
 	if nativeValues == nil {
-		hx_if_19 = nil
+		hx_if_57 = nil
 	} else {
-		hx_if_19 = hxrt.ArrayFromValues(func(hx_sort_src_16 []*string) []any {
-			hx_sort_out_18 := make([]any, 0, len(hx_sort_src_16))
-			for _, hx_sort_item_17 := range hx_sort_src_16 {
-				hx_sort_out_18 = append(hx_sort_out_18, hx_sort_item_17)
+		hx_if_57 = hxrt.ArrayFromValues(func(hx_sort_src_54 []*string) []any {
+			hx_sort_out_56 := make([]any, 0, len(hx_sort_src_54))
+			for _, hx_sort_item_55 := range hx_sort_src_54 {
+				hx_sort_out_56 = append(hx_sort_out_56, hx_sort_item_55)
 			}
-			return hx_sort_out_18
+			return hx_sort_out_56
 		}(nativeValues))
 	}
-	return hx_if_19
+	return hx_if_57
 }

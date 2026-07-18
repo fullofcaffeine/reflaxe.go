@@ -112,6 +112,10 @@ func (self *Date) utcParts() *hxrt.DateParts {
 	return hxrt.DateUTCParts(self.ms)
 }
 
+func (self *Date) String() string {
+	return *self.__hx_this.toString()
+}
+
 func Date_fromMilliseconds(value float64) *Date {
 	result := New_Date(1970, 0, 1, 0, 0, 0)
 	result.ms = value

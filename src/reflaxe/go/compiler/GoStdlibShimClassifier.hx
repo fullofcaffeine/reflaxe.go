@@ -29,36 +29,10 @@ class GoStdlibShimClassifier {
 		{kind: "class", path: "Std", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "Type", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "haxe.ds.BalancedTree", groups: ["stdlib_symbols"]},
-		{kind: "class", path: "haxe.io.BufferInput", groups: ["io"]},
-		{kind: "class", path: "haxe.io.Bytes", groups: ["io"]},
-		{kind: "class", path: "haxe.io.BytesBuffer", groups: ["io"]},
-		{kind: "class", path: "haxe.io.BytesInput", groups: ["io"]},
-		{kind: "class", path: "haxe.io.BytesOutput", groups: ["io"]},
-		{kind: "class", path: "haxe.io.Encoding", groups: ["io"]},
-		{kind: "class", path: "haxe.io.Eof", groups: ["io"]},
-		{kind: "class", path: "haxe.io.Input", groups: ["io"]},
-		{kind: "class", path: "haxe.io.Output", groups: ["io"]},
 		{kind: "class", path: "haxe.io.Path", groups: ["stdlib_symbols"]},
-		{kind: "class", path: "haxe.io.StringInput", groups: ["io"]},
 		{kind: "class", path: "sys.Http", groups: ["http"]},
-		{kind: "enum", path: "haxe.ds.Option", groups: ["stdlib_symbols"]},
-		{kind: "enum", path: "haxe.io.Error", groups: ["io"]}
+		{kind: "enum", path: "haxe.ds.Option", groups: ["stdlib_symbols"]}
 	];
-
-	public static function needsIoHelperSurface(classType:ClassType, fieldName:String, isIoInputHelperMethodName:String->Bool,
-			isIoOutputHelperMethodName:String->Bool):Bool {
-		if (classType.pack.join(".") != "haxe.io") {
-			return false;
-		}
-		return switch (classType.name) {
-			case "Input", "BytesInput", "BufferInput", "StringInput":
-				isIoInputHelperMethodName(fieldName);
-			case "Output", "BytesOutput":
-				isIoOutputHelperMethodName(fieldName);
-			case _:
-				false;
-		};
-	}
 
 	public static function requiredGroupsForClass(classType:ClassType):Array<String> {
 		return requiredGroups("class", qualifiedPath(classType.pack, classType.name));

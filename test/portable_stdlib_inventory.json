@@ -745,7 +745,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.crypto.Base64",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns Base64 alphabets, padding defaults, and Bytes conversion; typed std/hxrt/crypto delegates only raw native codec execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and direct runtime crypto tests.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns Base64 alphabets, padding defaults, and public Bytes construction; typed std/hxrt/crypto delegates only raw native codec execution through the opaque cached ByteView to footprint-explicit runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and direct runtime crypto tests.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -798,7 +798,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.crypto.Md5",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the Md5 API and Bytes conversion; typed std/hxrt/crypto delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the Md5 API and public Bytes construction; typed std/hxrt/crypto delegates only digest execution through the opaque cached ByteView. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -812,7 +812,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.crypto.Sha1",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the Sha1 API and Bytes conversion; typed std/hxrt/crypto delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the Sha1 API and public Bytes construction; typed std/hxrt/crypto delegates only digest execution through the opaque cached ByteView. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -826,7 +826,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.crypto.Sha224",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the Sha224 API and Bytes conversion; typed std/hxrt/crypto delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the Sha224 API and public Bytes construction; typed std/hxrt/crypto delegates only digest execution through the opaque cached ByteView. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -840,7 +840,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.crypto.Sha256",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the Sha256 API and Bytes conversion; typed std/hxrt/crypto delegates only digest execution to footprint-explicit runtime/hxrt/crypto.go. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the Sha256 API and public Bytes construction; typed std/hxrt/crypto delegates only digest execution through the opaque cached ByteView. Evidence: crypto_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and runtime tests.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -1199,7 +1199,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.ArrayBufferView",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.ArrayBufferView` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: the public typed-array API now lives in staged overrides under `std/go/_std/haxe/io/*.hx`, while the underlying carrier currently rides on the compiler-emitted `haxe.io.Bytes` / `ArrayBufferViewImpl` representation tracked as migration debt by `haxe_go-vfp.8.7.11`.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.ArrayBufferView` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: the public typed-array API now lives in staged overrides under `std/go/_std/haxe/io/*.hx` over staged Bytes and ordinary abstract representation lowering; no IO compiler shim remains.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -1212,8 +1212,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.BufferInput",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.BufferInput` constructor and buffered-read baseline now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. The backend still emits the `Input` / `BytesInput` / `BufferInput` shapes as compatibility migration debt; `haxe_go-vfp.8.7.11` moves the public IO hierarchy to staged source over a narrower typed byte boundary.",
-      "owner": "compiler_shim",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.BufferInput` constructor and buffered-read baseline now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Canonical staged source now owns BufferInput and its ordinary Input inheritance; no compiler IO type or forwarding wrapper remains.",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1227,7 +1227,7 @@
       "in_strict_sweep": true,
       "module": "haxe.io.Bytes",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1241,7 +1241,7 @@
       "in_strict_sweep": true,
       "module": "haxe.io.BytesBuffer",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1254,7 +1254,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.BytesData",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.BytesData` alias semantics now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`, including `Bytes.getData()` / `Bytes.ofData()` alias mutation behavior. Ownership stays mixed because the public alias is source-level, while the actual behavior currently rides on the compiler-emitted `haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.BytesData` alias semantics now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`, including `Bytes.getData()` / `Bytes.ofData()` alias mutation behavior. Staged Bytes owns the alias and cache-validation contract over the narrow typed ByteView capability.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -1269,7 +1269,7 @@
       "in_strict_sweep": true,
       "module": "haxe.io.BytesInput",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1283,7 +1283,7 @@
       "in_strict_sweep": true,
       "module": "haxe.io.BytesOutput",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1295,8 +1295,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.Encoding",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Encoding` constructor and pattern-match parity now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. The backend still emits the encoding tags used by the IO shims as compatibility migration debt; `haxe_go-vfp.8.7.11` moves that public behavior to staged source.",
-      "owner": "compiler_shim",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Encoding` constructor and pattern-match parity now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Canonical staged source owns the encoding values and pattern behavior; no compiler IO carrier remains.",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1309,8 +1309,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.Eof",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Eof` construction and string parity now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. The backend still emits the `Eof` carrier used by IO shims and exception matching as compatibility migration debt tracked by `haxe_go-vfp.8.7.11`.",
-      "owner": "compiler_shim",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Eof` construction and string parity now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Canonical staged source owns the Eof carrier, exception identity, and text contract.",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1323,20 +1323,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.Error",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Error` constructor and pattern-match parity now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. The backend still emits the error-tag carrier used by the public IO shims as compatibility migration debt tracked by `haxe_go-vfp.8.7.11`.",
-      "owner": "compiler_shim",
-      "portable_eligible": true,
-      "status": "semantic-diff"
-    },
-    {
-      "coverage_evidence": [
-        "upstream_sweep:full_compile",
-        "semantic_diff"
-      ],
-      "in_full_sweep": true,
-      "in_strict_sweep": false,
-      "module": "haxe.io.FPHelper",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.FPHelper` bit-conversion helpers now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. The public API now lives in the staged override `std/go/_std/haxe/io/FPHelper.hx`, expressed on top of the existing little-endian `BytesInput` / `BytesOutput` contract instead of more raw Go.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Error` constructor and pattern-match parity now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Canonical staged source owns the error constructors and payload matching contract.",
       "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -1348,8 +1335,21 @@
       ],
       "in_full_sweep": true,
       "in_strict_sweep": false,
+      "module": "haxe.io.FPHelper",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.FPHelper` bit-conversion helpers now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. The public API lives in staged `FPHelper.hx`; only typed scalar IEEE-754 reinterpretation crosses to NativeFloatBits, avoiding both compiler raw Go and recursive stream conversion.",
+      "owner": "mixed",
+      "portable_eligible": true,
+      "status": "semantic-diff"
+    },
+    {
+      "coverage_evidence": [
+        "upstream_sweep:full_compile",
+        "semantic_diff"
+      ],
+      "in_full_sweep": true,
+      "in_strict_sweep": false,
       "module": "haxe.io.Float32Array",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Float32Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, the actual storage currently rides on the compiler-emitted `haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`, and the float bit conversions are expressed through staged `haxe.io.FPHelper` helpers instead of new raw compiler bytes logic.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Float32Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API over staged Bytes, and float bit conversion uses staged `FPHelper` over typed NativeFloatBits.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -1362,7 +1362,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.Float64Array",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Float64Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, the actual storage currently rides on the compiler-emitted `haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`, and the float bit conversions are expressed through staged `haxe.io.FPHelper` helpers instead of new raw compiler bytes logic.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Float64Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API over staged Bytes, and float bit conversion uses staged `FPHelper` over typed NativeFloatBits.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -1377,7 +1377,7 @@
       "in_strict_sweep": true,
       "module": "haxe.io.Input",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1389,7 +1389,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.Int32Array",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Int32Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, while the actual storage and byte normalization currently ride on the compiler-emitted `haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.Int32Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API over staged Bytes storage and its typed opaque byte capability.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -1417,7 +1417,7 @@
       "in_strict_sweep": true,
       "module": "haxe.io.Output",
       "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "compiler_shim",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1457,8 +1457,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.io.StringInput",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.StringInput` constructor and inherited-read baseline now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. The backend still emits the `BytesInput` / `StringInput` type shapes as compatibility migration debt; `haxe_go-vfp.8.7.11` moves the public IO hierarchy to staged source over a narrower typed byte boundary.",
-      "owner": "compiler_shim",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.StringInput` constructor and inherited-read baseline now have semantic-diff coverage through `semantic_diff/haxe_io_misc_contract` and snapshot coverage in `stdlib/haxe_io_misc_direct`. Canonical staged source owns StringInput as ordinary BytesInput inheritance over staged Bytes.",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
@@ -1470,7 +1470,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.UInt16Array",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.UInt16Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, while the actual storage and byte normalization currently ride on the compiler-emitted `haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.UInt16Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API over staged Bytes storage and its typed opaque byte capability.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -1483,7 +1483,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.UInt32Array",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.UInt32Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, while the actual storage and byte normalization currently ride on the compiler-emitted `haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.UInt32Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API over staged Bytes storage and its typed opaque byte capability.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -1496,7 +1496,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.io.UInt8Array",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.UInt8Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API, while the actual storage and byte normalization currently ride on the compiler-emitted `haxe.io.Bytes` carrier tracked as migration debt by `haxe_go-vfp.8.7.11`.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `haxe.io.UInt8Array` usage now has semantic-diff coverage through `semantic_diff/haxe_io_typed_arrays_contract` and snapshot coverage in `stdlib/haxe_io_typed_arrays_direct`. Ownership stays mixed: staged std owns the public typed-array API over staged Bytes storage and its typed opaque byte capability.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"

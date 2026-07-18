@@ -54,7 +54,6 @@ COMPILER_SHIM_RE = re.compile(
 
 SHIM_CAPABILITIES = {
     "lowerStdlibShimDecls": "stdlib_dispatch",
-    "lowerIoStdlibShimDecls": "io",
     "lowerGoConcurrencyShimDecls": "go_concurrency",
     "lowerTypedGoConcurrencyShimDecls": "go_concurrency",
     "lowerTypedGoCollectionShimDecls": "go_collections",

@@ -29,7 +29,7 @@ func haxe__MainLoop_add(f func(), priority int) *haxe__MainEvent {
 	event := New_haxe__MainEvent(f, priority)
 	hx_arr_8 := haxe__MainLoop_pending
 	hx_arr_8.Push(event)
-	event.delayNow()
+	event.__hx_this.delayNow()
 	return event
 }
 
@@ -101,10 +101,10 @@ func New_haxe__MainEvent(f func(), priority int) *haxe__MainEvent {
 func (self *haxe__MainEvent) delay(t float64) {
 	self.nextRun = (hxrt.ThreadNowSeconds() + t)
 	if self.timer != nil {
-		self.timer.stop()
+		self.timer.__hx_this.stop()
 		self.timer = nil
 	}
-	self.schedule()
+	self.__hx_this.schedule()
 }
 
 func (self *haxe__MainEvent) call() {
@@ -120,7 +120,7 @@ func (self *haxe__MainEvent) stop() {
 	self.active = false
 	self.f = nil
 	if self.timer != nil {
-		self.timer.stop()
+		self.timer.__hx_this.stop()
 		self.timer = nil
 	}
 	haxe__MainLoop___remove(self)
@@ -129,10 +129,10 @@ func (self *haxe__MainEvent) stop() {
 func (self *haxe__MainEvent) delayNow() {
 	self.nextRun = -1.0
 	if self.timer != nil {
-		self.timer.stop()
+		self.timer.__hx_this.stop()
 		self.timer = nil
 	}
-	self.schedule()
+	self.__hx_this.schedule()
 }
 
 func (self *haxe__MainEvent) schedule() {
@@ -157,13 +157,13 @@ func (self *haxe__MainEvent) dispatch() {
 	}
 	wait := (self.nextRun - hxrt.ThreadNowSeconds())
 	if wait > 0 {
-		self.schedule()
+		self.__hx_this.schedule()
 		return
 	}
 	if self.f != nil {
 		self.f()
 	}
 	if self.active && (self.f != nil) {
-		self.schedule()
+		self.__hx_this.schedule()
 	}
 }

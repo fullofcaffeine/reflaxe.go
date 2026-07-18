@@ -64,3 +64,7 @@ func (self *haxe__exceptions__PosException) toString() *string {
 		return hx_field_13.(int)
 	}(self.posInfos))
 }
+
+func (self *haxe__exceptions__PosException) String() string {
+	return *self.__hx_this.toString()
+}

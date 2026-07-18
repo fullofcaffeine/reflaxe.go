@@ -33,7 +33,7 @@ func New_sys__net__UdpSocket() *sys__net__UdpSocket {
 	self.sys__net__Socket = New_sys__net__Socket()
 	self.sys__net__Socket.__hx_this = self
 	self.__hx_this = self
-	self.replaceHandle(hxrt.SocketNewUDP())
+	self.__hx_this.replaceHandle(hxrt.SocketNewUDP())
 	return self
 }
 
@@ -41,7 +41,7 @@ func (self *sys__net__UdpSocket) bind(host *sys__net__Host, port int) {
 	if host == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("udp bind requires host"))
 	}
-	hxrt.SocketUdpBind(self.handle, host.toString(), port)
+	hxrt.SocketUdpBind(self.handle, host.__hx_this.toString(), port)
 }
 
 func (self *sys__net__UdpSocket) setBroadcast(enabled bool) {
@@ -103,8 +103,9 @@ func (self *sys__net__UdpSocket) readFrom(bytes *haxe__io__Bytes, pos int, lengt
 		hx_post_24 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_24
-		v := result.Values[index]
-		bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(v) & hxrt.Int32Wrap(255))))
+		value := result.Values[index]
+		bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+		bytes.__hx_rawValid = false
 	}
 	address.host = result.Host
 	address.port = result.Port

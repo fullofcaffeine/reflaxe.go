@@ -51,7 +51,6 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "staged_support",
         "std/haxe/GoSerializationBridge.hx",
     ),
-    "std/haxe/io/GoIoHelpers.cross.hx": ("staged_support", "std/haxe/io/GoIoHelpers.hx"),
     "std/sys/GoHttpHelpers.cross.hx": ("staged_support", "std/sys/GoHttpHelpers.hx"),
     "std/sys/thread/ElasticThreadPoolWorker.cross.hx": (
         "staged_support",
@@ -120,6 +119,18 @@ SOURCE_SPECIAL_DESTINATIONS = {
     "std/hxrt/crypto/NativeCrypto.hx": (
         "hxrt_binding",
         "std/hxrt/crypto/NativeCrypto.hx",
+    ),
+    "std/hxrt/io/ByteView.hx": (
+        "hxrt_binding",
+        "std/hxrt/io/ByteView.hx",
+    ),
+    "std/hxrt/io/NativeBytes.hx": (
+        "hxrt_binding",
+        "std/hxrt/io/NativeBytes.hx",
+    ),
+    "std/hxrt/io/NativeFloatBits.hx": (
+        "hxrt_binding",
+        "std/hxrt/io/NativeFloatBits.hx",
     ),
     "std/hxrt/date/DateParts.hx": (
         "hxrt_binding",
@@ -318,8 +329,6 @@ for special_owner, special_destination in SOURCE_SPECIAL_DESTINATIONS.values():
 SOURCE_EXPECTED_SHIM_GROUPS = {
     "std/haxe/Template.cross.hx": ["stdlib_symbols"],
     "std/haxe/ds/BalancedTree.cross.hx": ["stdlib_symbols"],
-    "std/haxe/io/FPHelper.cross.hx": ["stdlib_symbols"],
-    "std/haxe/io/GoIoHelpers.cross.hx": ["io"],
     "std/sys/GoHttpHelpers.cross.hx": ["http"],
     "std/sys/ssl/Certificate.cross.hx": ["stdlib_symbols"],
     "std/sys/ssl/Digest.cross.hx": ["stdlib_symbols"],
@@ -338,7 +347,6 @@ for shim_source, shim_groups in SOURCE_EXPECTED_SHIM_GROUPS.items():
 
 EXPECTED_SHIM_AUDIT_DECISIONS = {
     "http": "migration_required_haxe_go_vfp_8_7_12",
-    "io": "migration_required_haxe_go_vfp_8_7_11",
     "stdlib_symbols": "split_migration_debt_from_exact_intrinsics_haxe_go_vfp_8_7_15",
 }
 
@@ -1688,6 +1696,155 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertFalse((regex_runtime / "serialization.go").exists())
         self.assertTrue((serialization_runtime / "serialization.go").is_file())
         self.assertFalse((serialization_runtime / "regex.go").exists())
+
+    def test_base_haxe_io_is_source_owned_instead_of_a_compiler_shim(self) -> None:
+        """Public byte and stream policy must compile from canonical Haxe source."""
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(
+            encoding="utf-8"
+        )
+        classifier = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx"
+        ).read_text(encoding="utf-8")
+        ownership = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibOwnership.hx"
+        ).read_text(encoding="utf-8")
+        planner = (
+            ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ).read_text(encoding="utf-8")
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        debt_policy = json.loads(
+            (ROOT / "test/compiler_debt_policy.json").read_text(encoding="utf-8")
+        )
+        debt_ratchet = (ROOT / "test/run-compiler-debt-ratchet.py").read_text(
+            encoding="utf-8"
+        )
+        bytes_runtime = (ROOT / "runtime/hxrt/bytes.go").read_text(
+            encoding="utf-8"
+        )
+        ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
+
+        staged_types = (
+            "BufferInput",
+            "Bytes",
+            "BytesBuffer",
+            "BytesInput",
+            "BytesOutput",
+            "Encoding",
+            "Eof",
+            "Error",
+            "Input",
+            "Output",
+            "StringInput",
+        )
+        for type_name in staged_types:
+            staged_path = f"std/go/_std/haxe/io/{type_name}.hx"
+            source_path = ROOT / staged_path
+            self.assertTrue(source_path.is_file(), staged_path)
+            if not source_path.is_file():
+                continue
+            source = source_path.read_text(encoding="utf-8")
+            self.assertNotIn("extern class", source, staged_path)
+            self.assertNotIn("__go__", source, staged_path)
+            for heading in ("What:", "Why:", "How:"):
+                self.assertIn(heading, source, staged_path)
+
+            entry = ledger_entries.get(staged_path)
+            self.assertIsNotNone(entry, staged_path)
+            if entry is None:
+                continue
+            self.assertEqual("upstream_std_override", entry.get("ownershipClass"))
+            self.assertEqual("haxe_go-vfp.8.7.11", entry.get("migrationBead"))
+            self.assertEqual([], entry.get("compilerShimGroups"))
+
+            self.assertIn(f'case "haxe.io.{type_name}"', planner, type_name)
+
+        self.assertFalse((ROOT / "std/haxe/io/GoIoHelpers.hx").exists())
+        for fragment in (
+            "lowerIoStdlibShimDecls",
+            'requiredStdlibShimGroups.exists("io")',
+            'requireStdlibShimGroup("io")',
+        ):
+            self.assertNotIn(fragment, compiler, fragment)
+        self.assertNotIn('groups: ["io"]', classifier)
+        for type_name in staged_types:
+            self.assertNotIn(f'"haxe.io.{type_name}"', ownership, type_name)
+
+        self.assertFalse(
+            any(group.get("group") == "io" for group in registry["groups"]),
+            "source-owned haxe.io must not retain a compiler shim group",
+        )
+        self.assertNotIn(
+            "migration_required_haxe_go_vfp_8_7_11", registry["decisions"]
+        )
+        self.assertFalse(
+            any(
+                limit.get("metric") == "compiler_shim"
+                and limit.get("capability") == "io"
+                for limit in debt_policy["limits"]
+            ),
+            "source-owned haxe.io must not retain a compiler-shim debt allowance",
+        )
+        self.assertNotIn('"lowerIoStdlibShimDecls": "io"', debt_ratchet)
+        for legacy_helper in (
+            "BytesFromString",
+            "BytesToString",
+            "BytesOfHex",
+            "BytesToHex",
+            "BytesBufferLength",
+        ):
+            self.assertNotIn(
+                f"func {legacy_helper}(",
+                bytes_runtime,
+                f"staged haxe.io owns the former {legacy_helper} policy",
+            )
+
+    def test_bytes_native_view_is_shared_with_crypto_without_layout_leak(self) -> None:
+        """Byte consumers reuse the opaque cache rather than copying generated fields."""
+        native_crypto = (ROOT / "std/hxrt/crypto/NativeCrypto.hx").read_text(
+            encoding="utf-8"
+        )
+        crypto_runtime = (ROOT / "runtime/hxrt/crypto.go").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("import hxrt.io.ByteView;", native_crypto)
+        self.assertNotIn("go.NativeSlice", native_crypto)
+        for method in (
+            "md5Values",
+            "sha1Values",
+            "sha224Values",
+            "sha256Values",
+        ):
+            self.assertIn(f"{method}(values:ByteView)", native_crypto, method)
+        self.assertIn(
+            "base64Encode(values:ByteView, urlSafe:Bool):String", native_crypto
+        )
+        self.assertIn("base64Decode(value:String, urlSafe:Bool):ByteView", native_crypto)
+
+        for function in (
+            "CryptoBase64Encode(values *ByteView",
+            "CryptoBase64Decode(value *string, urlSafe bool) *ByteView",
+            "CryptoMd5Values(values *ByteView) *ByteView",
+            "CryptoSha1Values(values *ByteView) *ByteView",
+            "CryptoSha224Values(values *ByteView) *ByteView",
+            "CryptoSha256Values(values *ByteView) *ByteView",
+        ):
+            self.assertIn(function, crypto_runtime, function)
+        self.assertNotIn("cryptoValuesToBytes", crypto_runtime)
+        self.assertNotIn("cryptoBytesToValues", crypto_runtime)
+
+        for module_name in ("Base64", "Md5", "Sha1", "Sha224", "Sha256"):
+            source = (
+                ROOT / f"std/go/_std/haxe/crypto/{module_name}.hx"
+            ).read_text(encoding="utf-8")
+            self.assertIn("__hx_nativeView()", source, module_name)
+            self.assertIn("__hx_fromNativeView", source, module_name)
+            self.assertNotIn("NativeSlice", source, module_name)
+            self.assertNotIn("toValues", source, module_name)
+            self.assertNotIn("fromValues", source, module_name)
 
     def test_socket_public_api_is_staged_over_typed_runtime_handles(self) -> None:
         """Socket lifecycle must not return to compiler-owned declaration shims."""

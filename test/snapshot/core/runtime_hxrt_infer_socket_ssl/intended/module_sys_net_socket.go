@@ -22,8 +22,8 @@ type I_sys__net__Socket interface {
 
 type sys__net__Socket struct {
 	__hx_this I_sys__net__Socket
-	input     haxe__io__Input
-	output    haxe__io__Output
+	input     *haxe__io__Input
+	output    *haxe__io__Output
 	custom    any
 	handle    *hxrt.SocketHandle
 }
@@ -31,7 +31,7 @@ type sys__net__Socket struct {
 func New_sys__net__Socket() *sys__net__Socket {
 	self := &sys__net__Socket{}
 	self.__hx_this = self
-	self.replaceHandle(hxrt.SocketNewTCP())
+	self.__hx_this.replaceHandle(hxrt.SocketNewTCP())
 	return self
 }
 
@@ -40,18 +40,18 @@ func (self *sys__net__Socket) close() {
 }
 
 func (self *sys__net__Socket) read() *string {
-	return self.input.readAll().toString()
+	return self.input.__hx_this.readAll(nil).__hx_this.toString()
 }
 
 func (self *sys__net__Socket) write(content *string) {
-	self.output.writeString(content)
+	self.output.__hx_this.writeString(content, nil)
 }
 
 func (self *sys__net__Socket) connect(host *sys__net__Host, port int) {
 	if host == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("socket connect requires host"))
 	}
-	hxrt.SocketConnectTCP(self.handle, host.toString(), port)
+	hxrt.SocketConnectTCP(self.handle, host.__hx_this.toString(), port)
 }
 
 func (self *sys__net__Socket) listen(connections int) {
@@ -66,7 +66,7 @@ func (self *sys__net__Socket) bind(host *sys__net__Host, port int) {
 	if host == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("socket bind requires host"))
 	}
-	hxrt.SocketBindTCP(self.handle, host.toString(), port)
+	hxrt.SocketBindTCP(self.handle, host.__hx_this.toString(), port)
 }
 
 func (self *sys__net__Socket) accept() *sys__net__Socket {
@@ -78,7 +78,7 @@ func (self *sys__net__Socket) accept() *sys__net__Socket {
 		hxrt.Throw(New_haxe__io__Eof())
 	}
 	accepted := New_sys__net__Socket()
-	accepted.replaceHandle(result.Handle)
+	accepted.__hx_this.replaceHandle(result.Handle)
 	return accepted
 }
 
@@ -111,8 +111,8 @@ func (self *sys__net__Socket) replaceHandle(next *hxrt.SocketHandle) {
 		hxrt.SocketClose(self.handle)
 	}
 	self.handle = next
-	self.input = New_sys__net__SocketInput(next)
-	self.output = New_sys__net__SocketOutput(next)
+	self.input = New_sys__net__SocketInput(next).haxe__io__Input
+	self.output = New_sys__net__SocketOutput(next).haxe__io__Output
 }
 
 func sys__net__Socket_pick(source *hxrt.Array, indexes []int) *hxrt.Array {

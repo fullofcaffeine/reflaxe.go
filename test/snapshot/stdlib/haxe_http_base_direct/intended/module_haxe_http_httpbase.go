@@ -172,18 +172,18 @@ func (self *haxe__http__HttpBase) hasOnData() bool {
 func (self *haxe__http__HttpBase) success(data *haxe__io__Bytes) {
 	self.responseBytes = data
 	self.responseAsString = nil
-	if self.hasOnData() {
-		s := self.get_responseData()
+	if self.__hx_this.hasOnData() {
+		s := self.__hx_this.get_responseData()
 		if !hxrt.StringEqualStringPtr(s, nil) {
-			self.onData(s)
+			self.__hx_this.onData(s)
 		}
 	}
-	self.onBytes(data)
+	self.__hx_this.onBytes(data)
 }
 
 func (self *haxe__http__HttpBase) get_responseData() *string {
 	if hxrt.StringEqualStringPtr(self.responseAsString, nil) && (self.responseBytes != nil) {
-		self.responseAsString = self.responseBytes.getString(0, self.responseBytes.length, haxe__io__Encoding_UTF8)
+		self.responseAsString = self.responseBytes.__hx_this.getString(0, self.responseBytes.length, haxe__io__Encoding_UTF8)
 	}
 	return self.responseAsString
 }

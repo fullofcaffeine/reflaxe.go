@@ -29,6 +29,10 @@ func (self *sys__net__Host) reverse() *string {
 	return hxrt.StdString(hxrt.HostReverse(self.ip))
 }
 
+func (self *sys__net__Host) String() string {
+	return *self.__hx_this.toString()
+}
+
 func sys__net__Host_fromIPv4(value int) *sys__net__Host {
 	result := New_sys__net__Host(hxrt.StdString(hxrt.HostToString(value)))
 	result.ip = value

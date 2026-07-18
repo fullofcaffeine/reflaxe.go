@@ -26,3 +26,7 @@ func New_haxe__exceptions__NotImplementedException(message *string, previous *hx
 	self.__hx_this = self
 	return self
 }
+
+func (self *haxe__exceptions__NotImplementedException) String() string {
+	return *self.__hx_this.toString()
+}

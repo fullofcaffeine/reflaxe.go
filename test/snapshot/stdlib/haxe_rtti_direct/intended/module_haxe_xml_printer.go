@@ -35,7 +35,7 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 		input := value.nodeName
 		_this_1 := self.output
 		_this_1.b = hxrt.StringConcatStringPtr(_this_1.b, hxrt.StdString(input))
-		attribute := value.attributes()
+		attribute := value.__hx_this.attributes()
 		for func(hx_obj_832 map[string]any) func() bool {
 			hx_field_833 := hx_obj_832["hasNext"]
 			if hx_field_833 == nil {
@@ -54,13 +54,13 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 			}(attribute)()
 			_this_2 := self.output
 			_this_2.b = hxrt.StringConcatStringPtr(_this_2.b, hxrt.StdString(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(" "), attribute_1), hxrt.StringFromLiteral("=\""))))
-			input_1 := StringTools_htmlEscape(value.get(attribute_1), true)
+			input_1 := StringTools_htmlEscape(value.__hx_this.get(attribute_1), true)
 			_this_3 := self.output
 			_this_3.b = hxrt.StringConcatStringPtr(_this_3.b, hxrt.StdString(input_1))
 			_this_4 := self.output
 			_this_4.b = hxrt.StringConcatStringPtr(_this_4.b, hxrt.StringFromLiteral("\""))
 		}
-		if self.hasChildren(value) {
+		if self.__hx_this.hasChildren(value) {
 			_this_5 := self.output
 			_this_5.b = hxrt.StringConcatStringPtr(_this_5.b, hxrt.StringFromLiteral(">"))
 			if self.pretty {
@@ -69,7 +69,7 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 			}
 			var _g_current int
 			var _g_array *hxrt.Array
-			value.ensureElementType()
+			value.__hx_this.ensureElementType()
 			_this_7 := value.children
 			_g_current = 0
 			_g_array = _this_7
@@ -83,7 +83,7 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 					}
 					return hx_value_839.(*Xml)
 				}(_g_array.Get(hx_post_838))
-				self.writeNode(child, func() *string {
+				self.__hx_this.writeNode(child, func() *string {
 					var hx_if_841 *string
 					if self.pretty {
 						hx_if_841 = hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("\t"))
@@ -191,7 +191,7 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 	case 6:
 		var _g_current_1 int
 		var _g_array_1 *hxrt.Array
-		value.ensureElementType()
+		value.__hx_this.ensureElementType()
 		_this_27 := value.children
 		_g_current_1 = 0
 		_g_array_1 = _this_27
@@ -205,7 +205,7 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 				}
 				return hx_value_843.(*Xml)
 			}(_g_array_1.Get(hx_post_842))
-			self.writeNode(child_1, tabs)
+			self.__hx_this.writeNode(child_1, tabs)
 		}
 	}
 }
@@ -225,7 +225,7 @@ func (self *haxe__xml__Printer) newline() {
 func (self *haxe__xml__Printer) hasChildren(value *Xml) bool {
 	var _g_current int
 	var _g_array *hxrt.Array
-	value.ensureElementType()
+	value.__hx_this.ensureElementType()
 	_this := value.children
 	_g_current = 0
 	_g_array = _this
@@ -260,6 +260,6 @@ func (self *haxe__xml__Printer) hasChildren(value *Xml) bool {
 
 func haxe__xml__Printer_print(xml *Xml, pretty bool) *string {
 	printer := New_haxe__xml__Printer(pretty)
-	printer.writeNode(xml, hxrt.StringFromLiteral(""))
+	printer.__hx_this.writeNode(xml, hxrt.StringFromLiteral(""))
 	return printer.output.b
 }

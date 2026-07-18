@@ -15,10 +15,33 @@ import unittest
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_ROOT = ROOT / "test" / "fixtures" / "canonical_std_selection"
 STATUS_PATH = ROOT / "test" / "canonical_std_layout_status.json"
-SYS_OVERRIDE_DEPENDENCIES = (
+# What: The canonical-selection fixture carries the staged overrides that its
+# synthetic Sys and IO programs can reach.
+# Why: This fixture intentionally builds a small source/package tree instead of
+# the complete release archive. Once base haxe.io became source-owned, omitting
+# its override closure made the test select incompatible mainstream target
+# implementations and no longer exercised the real haxe.go package boundary.
+# How: Copy the same exact closure into both canonical source and packaged
+# .cross.hx layouts so the source/package probe remains isolated and equivalent.
+SELECTION_OVERRIDE_DEPENDENCIES = (
     "Sys.hx",
+    "StringTools.hx",
     "haxe/Constraints.hx",
     "haxe/ds/StringMap.hx",
+    "haxe/exceptions/NotImplementedException.hx",
+    "haxe/exceptions/PosException.hx",
+    "haxe/io/BufferInput.hx",
+    "haxe/io/Bytes.hx",
+    "haxe/io/BytesBuffer.hx",
+    "haxe/io/BytesInput.hx",
+    "haxe/io/BytesOutput.hx",
+    "haxe/io/Encoding.hx",
+    "haxe/io/Eof.hx",
+    "haxe/io/Error.hx",
+    "haxe/io/FPHelper.hx",
+    "haxe/io/Input.hx",
+    "haxe/io/Output.hx",
+    "haxe/io/StringInput.hx",
     "haxe/iterators/MapKeyValueIterator.hx",
     "sys/io/FileInput.hx",
     "sys/io/FileOutput.hx",
@@ -69,7 +92,7 @@ def write_canonical_source(root: Path) -> None:
     override = root / "std" / "go" / "_std" / "Lambda.hx"
     override.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(FIXTURE_ROOT / "SourceProbe.hx.fixture", override)
-    for relative in SYS_OVERRIDE_DEPENDENCIES:
+    for relative in SELECTION_OVERRIDE_DEPENDENCIES:
         source = ROOT / "std" / "go" / "_std" / relative
         destination = override.parent / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -160,7 +183,7 @@ def write_canonical_package(package_root: Path, source_root: Path) -> None:
     packaged_override = package_root / "src" / "Lambda.cross.hx"
     packaged_override.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(FIXTURE_ROOT / "PackageProbe.hx.fixture", packaged_override)
-    for relative in SYS_OVERRIDE_DEPENDENCIES:
+    for relative in SELECTION_OVERRIDE_DEPENDENCIES:
         source = source_root / "std" / "go" / "_std" / relative
         destination = package_root / "src" / relative
         destination = destination.with_name(destination.stem + ".cross.hx")

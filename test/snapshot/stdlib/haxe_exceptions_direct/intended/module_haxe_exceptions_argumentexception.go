@@ -28,3 +28,7 @@ func New_haxe__exceptions__ArgumentException(argument *string, message *string, 
 	self.argument = argument
 	return self
 }
+
+func (self *haxe__exceptions__ArgumentException) String() string {
+	return *self.__hx_this.toString()
+}

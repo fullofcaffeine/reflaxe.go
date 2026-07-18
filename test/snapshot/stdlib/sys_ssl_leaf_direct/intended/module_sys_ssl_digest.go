@@ -39,6 +39,7 @@ func sys__ssl__Digest_make(data *haxe__io__Bytes, algorithm any) *haxe__io__Byte
 		_g_1 = int(int32((_g_1 + 1)))
 		index_1 := hx_post_17
 		result.b[index_1] = int(int32((hxrt.Int32Wrap(nativeResult[index_1]) & hxrt.Int32Wrap(255))))
+		result.__hx_rawValid = false
 	}
 	return result
 }
@@ -80,6 +81,7 @@ func sys__ssl__Digest_sign(data *haxe__io__Bytes, privateKey *sys__ssl__Key, alg
 		_g_1 = int(int32((_g_1 + 1)))
 		index_1 := hx_post_27
 		result.b[index_1] = int(int32((hxrt.Int32Wrap(nativeResult[index_1]) & hxrt.Int32Wrap(255))))
+		result.__hx_rawValid = false
 	}
 	return result
 }

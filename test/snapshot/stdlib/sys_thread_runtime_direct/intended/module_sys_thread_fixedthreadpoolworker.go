@@ -29,7 +29,7 @@ func (self *sys__thread__FixedThreadPoolWorker) loop() {
 					return hx_zero_22
 				}
 				return hx_value_21.(func())
-			}(self.queue.pop(true))
+			}(self.queue.__hx_this.pop(true))
 			if task != nil {
 				task()
 			}

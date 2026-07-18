@@ -7,26 +7,28 @@ import (
 
 func TestCryptoBase64Codecs(t *testing.T) {
 	values := []int{0, 127, 128, 255}
-	if got := *CryptoBase64Encode(values, false); got != "AH+A/w" {
+	view := BytesViewFromValues(values)
+	if got := *CryptoBase64Encode(view, false); got != "AH+A/w" {
 		t.Fatalf("standard encode = %q", got)
 	}
-	if got := *CryptoBase64Encode(values, true); got != "AH-A_w" {
+	if got := *CryptoBase64Encode(view, true); got != "AH-A_w" {
 		t.Fatalf("URL-safe encode = %q", got)
 	}
-	if got := CryptoBase64Decode(StringFromLiteral("AH+A/w"), false); !equalCryptoValues(got, values) {
+	if got := CryptoBase64Decode(StringFromLiteral("AH+A/w"), false); !equalCryptoViewValues(got, values) {
 		t.Fatalf("standard decode = %#v", got)
 	}
-	if got := CryptoBase64Decode(StringFromLiteral("AH-A_w"), true); !equalCryptoValues(got, values) {
+	if got := CryptoBase64Decode(StringFromLiteral("AH-A_w"), true); !equalCryptoViewValues(got, values) {
 		t.Fatalf("URL-safe decode = %#v", got)
 	}
 }
 
-func equalCryptoValues(left []int, right []int) bool {
-	if len(left) != len(right) {
+func equalCryptoViewValues(left *ByteView, right []int) bool {
+	leftValues := BytesValuesFromView(left)
+	if len(leftValues) != len(right) {
 		return false
 	}
-	for index := range left {
-		if left[index] != right[index] {
+	for index := range leftValues {
+		if leftValues[index] != right[index] {
 			return false
 		}
 	}
@@ -53,7 +55,7 @@ func TestCryptoDigests(t *testing.T) {
 		name       string
 		want       string
 		stringHash func(*string) *string
-		valueHash  func([]int) []int
+		valueHash  func(*ByteView) *ByteView
 	}{
 		{"md5", "187ef4436122d1cc2f40dc2b92f0eba0", CryptoMd5String, CryptoMd5Values},
 		{"sha1", "da23614e02469a0d7c7bd1bdab5c9c474b1904dc", CryptoSha1String, CryptoSha1Values},
@@ -65,7 +67,7 @@ func TestCryptoDigests(t *testing.T) {
 			if got := *test.stringHash(value); got != test.want {
 				t.Fatalf("string digest = %q", got)
 			}
-			if got := hex.EncodeToString(cryptoValuesToBytes(test.valueHash(values))); got != test.want {
+			if got := hex.EncodeToString(byteViewRaw(test.valueHash(BytesViewFromValues(values)))); got != test.want {
 				t.Fatalf("byte digest = %q", got)
 			}
 		})

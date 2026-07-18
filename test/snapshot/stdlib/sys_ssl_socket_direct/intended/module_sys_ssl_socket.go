@@ -83,7 +83,7 @@ func (self *sys__ssl__Socket) connect(host *sys__net__Host, port int) {
 	if host == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("socket connect requires host"))
 	}
-	hxrt.SslSocketConnect(self.handle, host.toString(), port, (self.verifyCert != false), func() *hxrt.SslCertificate {
+	hxrt.SslSocketConnect(self.handle, host.__hx_this.toString(), port, (self.verifyCert != false), func() *hxrt.SslCertificate {
 		var hx_if_12 *hxrt.SslCertificate
 		if self.caCert == nil {
 			hx_if_12 = nil
@@ -114,7 +114,7 @@ func (self *sys__ssl__Socket) bind(host *sys__net__Host, port int) {
 	if host == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("socket bind requires host"))
 	}
-	hxrt.SslSocketListen(self.handle, host.toString(), port, func() *hxrt.SslCertificate {
+	hxrt.SslSocketListen(self.handle, host.__hx_this.toString(), port, func() *hxrt.SslCertificate {
 		var hx_if_15 *hxrt.SslCertificate
 		if self.ownCert == nil {
 			hx_if_15 = nil
@@ -142,7 +142,7 @@ func (self *sys__ssl__Socket) accept() *sys__net__Socket {
 		hxrt.Throw(New_haxe__io__Eof())
 	}
 	accepted := New_sys__ssl__Socket()
-	accepted.replaceHandle(result.Handle)
+	accepted.__hx_this.replaceHandle(result.Handle)
 	hxrt.SslSocketHandshake(accepted.handle)
 	return accepted.sys__net__Socket
 }

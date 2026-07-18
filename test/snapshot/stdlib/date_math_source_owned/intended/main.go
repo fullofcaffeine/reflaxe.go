@@ -25,7 +25,7 @@ func invalidDateThrows() bool {
 
 func main() {
 	value := New_Date(2024, 1, 29, 12, 34, 56)
-	var v any = any(value.toString())
+	var v any = any(value.__hx_this.toString())
 	hxrt.Println(v)
 	var v_1 any = any((func() bool {
 		f := math.Sqrt(4.0)

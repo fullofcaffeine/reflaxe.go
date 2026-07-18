@@ -67,13 +67,12 @@ Good current examples:
 - `std/go/_std/haxe/Template.hx`
 - `std/go/_std/haxe/exceptions/PosException.hx`
 - `std/go/_std/haxe/ds/BalancedTree.hx`
-- `std/haxe/io/GoIoHelpers.hx`
+- `std/go/_std/haxe/io/Input.hx`
+- `std/go/_std/haxe/io/Bytes.hx`
 
-The first three are canonical upstream overrides. `GoIoHelpers` is a
-repo-authored staged-support module in its ordinary source location. Package
-staging flattens only the canonical override root and renames those files to
-`.cross.hx`; support, typed `hxrt` bindings, and public `go.*` facades remain
-ordinary modules.
+These are canonical upstream overrides. Package staging flattens only the
+canonical override root and renames those files to `.cross.hx`; support, typed
+`hxrt` bindings, and public `go.*` facades remain ordinary modules.
 
 ## 2. `hxrt` Runtime (`runtime/hxrt/**`)
 
@@ -194,9 +193,11 @@ Good mixed examples:
 - `haxe.Json`
 - staged RTTI source over a narrow generated metadata table
 
-`haxe.io.Bytes` remains a mixed migration implementation. `Lambda` and sort
-calls are mixed only at exact registered Go representation adapters; their
-behavior is source-owned. Neither case permits new compiler-owned algorithms.
+`haxe.io.Bytes` is mixed only at its typed opaque `ByteView` runtime boundary;
+its public behavior is staged source and no `io` compiler shim remains.
+`Lambda` and sort calls are mixed only at exact registered Go representation
+adapters; their behavior is source-owned. Neither case permits new
+compiler-owned algorithms.
 
 Bad mixed ownership looks like:
 

@@ -19,3 +19,7 @@ func New_go___Error(message *string) *go___Error {
 func (self *go___Error) toString() *string {
 	return self.message
 }
+
+func (self *go___Error) String() string {
+	return *self.toString()
+}

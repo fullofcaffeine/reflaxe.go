@@ -20,7 +20,7 @@ func New_haxe__Timer(time_ms int) *haxe__Timer {
 	self.run = func() {
 	}
 	self.thread = sys__thread__Thread_current()
-	self.eventHandler = self.thread.get_events().repeat(func() {
+	self.eventHandler = self.thread.__hx_this.get_events().__hx_this.repeat(func() {
 		_gthis.run()
 	}, time_ms)
 	return self
@@ -28,7 +28,7 @@ func New_haxe__Timer(time_ms int) *haxe__Timer {
 
 func (self *haxe__Timer) stop() {
 	if !hxrt.HaxeEqual(self.eventHandler, any(0)) {
-		self.thread.get_events().cancel(self.eventHandler)
+		self.thread.__hx_this.get_events().__hx_this.cancel(self.eventHandler)
 		self.eventHandler = any(0)
 	}
 }
@@ -36,7 +36,7 @@ func (self *haxe__Timer) stop() {
 func haxe__Timer_delay(f func(), time_ms int) *haxe__Timer {
 	timer := New_haxe__Timer(time_ms)
 	timer.run = func() {
-		timer.stop()
+		timer.__hx_this.stop()
 		f()
 	}
 	return timer

@@ -43,7 +43,9 @@ func haxe__io___UInt16Array__UInt16Array_Impl__fromArray(a *hxrt.Array, pos int,
 			_this := out.bytes
 			pos_1 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(idx) << uint(1))))) + hxrt.Int32Wrap(out.byteOffset))))
 			_this.b[pos_1] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+			_this.__hx_rawValid = false
 			_this.b[int(int32((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(1))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(8))))) & hxrt.Int32Wrap(255))))
+			_this.__hx_rawValid = false
 		} else {
 			_ = 0
 		}
@@ -94,7 +96,9 @@ func haxe__io___UInt16Array__UInt16Array_Impl__set(this1 *haxe__io__ArrayBufferV
 		_this := this1.bytes
 		pos := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(index) << uint(1))))) + hxrt.Int32Wrap(this1.byteOffset))))
 		_this.b[pos] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+		_this.__hx_rawValid = false
 		_this.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(8))))) & hxrt.Int32Wrap(255))))
+		_this.__hx_rawValid = false
 		return value
 	}
 	return 0
@@ -108,7 +112,7 @@ func haxe__io___UInt16Array__UInt16Array_Impl__sub(this1 *haxe__io__ArrayBufferV
 		hx_if_18 = int(int32((hxrt.Int32Wrap(length.(int)) << uint(1))))
 	}
 	var scaledLength any = hx_if_18
-	return haxe__io___UInt16Array__UInt16Array_Impl__fromData(this1.sub(int(int32((hxrt.Int32Wrap(begin) << uint(1)))), scaledLength))
+	return haxe__io___UInt16Array__UInt16Array_Impl__fromData(this1.__hx_this.sub(int(int32((hxrt.Int32Wrap(begin) << uint(1)))), scaledLength))
 }
 
 func haxe__io___UInt16Array__UInt16Array_Impl__subarray(this1 *haxe__io__ArrayBufferViewImpl, begin any, end any) *haxe__io__ArrayBufferViewImpl {
@@ -126,7 +130,7 @@ func haxe__io___UInt16Array__UInt16Array_Impl__subarray(this1 *haxe__io__ArrayBu
 		hx_if_20 = int(int32((hxrt.Int32Wrap(end.(int)) << uint(1))))
 	}
 	var scaledEnd any = hx_if_20
-	return haxe__io___UInt16Array__UInt16Array_Impl__fromData(this1.subarray(scaledBegin, scaledEnd))
+	return haxe__io___UInt16Array__UInt16Array_Impl__fromData(this1.__hx_this.subarray(scaledBegin, scaledEnd))
 }
 
 var haxe__io___UInt16Array__UInt16Array_Impl__view *haxe__io__ArrayBufferViewImpl

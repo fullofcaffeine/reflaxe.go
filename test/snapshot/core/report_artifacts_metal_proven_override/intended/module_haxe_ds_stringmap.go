@@ -89,7 +89,7 @@ func (self *haxe__ds__StringMap) keyValueIterator() map[string]any {
 			return hx_zero_21
 		}
 		return hx_value_20.(map[string]any)
-	}(self.keys())
+	}(self.__hx_this.keys())
 	hx_obj_22 := map[string]any{}
 	hx_obj_22["hasNext"] = func() bool {
 		return func(hx_obj_23 map[string]any) func() bool {
@@ -112,14 +112,14 @@ func (self *haxe__ds__StringMap) keyValueIterator() map[string]any {
 		}(keys)()
 		hx_obj_29 := map[string]any{}
 		hx_obj_29["key"] = key
-		hx_obj_29["value"] = _gthis.get(key)
+		hx_obj_29["value"] = _gthis.__hx_this.get(key)
 		return hx_obj_29
 	}
 	return hx_obj_22
 }
 
 func (self *haxe__ds__StringMap) getIMap(key any) any {
-	return self.get(hxrt.StdString(func(hx_value_30 any) *string {
+	return self.__hx_this.get(hxrt.StdString(func(hx_value_30 any) *string {
 		if hx_value_30 == nil {
 			var hx_zero_31 *string
 			return hx_zero_31
@@ -129,7 +129,7 @@ func (self *haxe__ds__StringMap) getIMap(key any) any {
 }
 
 func (self *haxe__ds__StringMap) setIMap(key any, value any) {
-	self.set(hxrt.StdString(func(hx_value_32 any) *string {
+	self.__hx_this.set(hxrt.StdString(func(hx_value_32 any) *string {
 		if hx_value_32 == nil {
 			var hx_zero_33 *string
 			return hx_zero_33
@@ -145,7 +145,7 @@ func (self *haxe__ds__StringMap) existsIMap(key any) bool {
 			return hx_zero_37
 		}
 		return hx_value_36.(bool)
-	}(self.exists(hxrt.StdString(func(hx_value_34 any) *string {
+	}(self.__hx_this.exists(hxrt.StdString(func(hx_value_34 any) *string {
 		if hx_value_34 == nil {
 			var hx_zero_35 *string
 			return hx_zero_35
@@ -161,7 +161,7 @@ func (self *haxe__ds__StringMap) removeIMap(key any) bool {
 			return hx_zero_41
 		}
 		return hx_value_40.(bool)
-	}(self.remove(hxrt.StdString(func(hx_value_38 any) *string {
+	}(self.__hx_this.remove(hxrt.StdString(func(hx_value_38 any) *string {
 		if hx_value_38 == nil {
 			var hx_zero_39 *string
 			return hx_zero_39
@@ -177,7 +177,7 @@ func (self *haxe__ds__StringMap) copyIMap() haxe__IMap {
 			return hx_zero_43
 		}
 		return hx_value_42.(*haxe__ds__StringMap)
-	}(self.copy())
+	}(self.__hx_this.copy())
 }
 
 func (self *haxe__ds__StringMap) copy() *haxe__ds__StringMap {
@@ -188,7 +188,7 @@ func (self *haxe__ds__StringMap) copy() *haxe__ds__StringMap {
 			return hx_zero_45
 		}
 		return hx_value_44.(map[string]any)
-	}(self.keys())
+	}(self.__hx_this.keys())
 	for func(hx_obj_46 map[string]any) func() bool {
 		hx_field_47 := hx_obj_46["hasNext"]
 		if hx_field_47 == nil {
@@ -205,7 +205,7 @@ func (self *haxe__ds__StringMap) copy() *haxe__ds__StringMap {
 			}
 			return hx_field_50.(func() *string)
 		}(key)()
-		copied.set(key_1, self.get(key_1))
+		copied.__hx_this.set(key_1, self.__hx_this.get(key_1))
 	}
 	return copied
 }
@@ -220,7 +220,7 @@ func (self *haxe__ds__StringMap) toString() *string {
 			return hx_zero_53
 		}
 		return hx_value_52.(map[string]any)
-	}(self.keys())
+	}(self.__hx_this.keys())
 	for func(hx_obj_54 map[string]any) func() bool {
 		hx_field_55 := hx_obj_54["hasNext"]
 		if hx_field_55 == nil {
@@ -239,7 +239,7 @@ func (self *haxe__ds__StringMap) toString() *string {
 		}(iterator)()
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(key))
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral(" => "))
-		x := hxrt.StdString(self.get(key))
+		x := hxrt.StdString(self.__hx_this.get(key))
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x))
 		if func(hx_obj_60 map[string]any) func() bool {
 			hx_field_61 := hx_obj_60["hasNext"]
@@ -258,4 +258,8 @@ func (self *haxe__ds__StringMap) toString() *string {
 
 func (self *haxe__ds__StringMap) clear() {
 	hxrt.StringMapClear(self.h)
+}
+
+func (self *haxe__ds__StringMap) String() string {
+	return *self.__hx_this.toString()
 }

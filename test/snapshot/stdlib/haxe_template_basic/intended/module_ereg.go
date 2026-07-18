@@ -48,7 +48,7 @@ func (self *EReg) match(s *string) bool {
 }
 
 func (self *EReg) matched(n int) *string {
-	current := self.requireMatch()
+	current := self.__hx_this.requireMatch()
 	if n < 0 {
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid group"))
 	}
@@ -65,17 +65,17 @@ func (self *EReg) matched(n int) *string {
 }
 
 func (self *EReg) matchedLeft() *string {
-	current := self.requireMatch()
+	current := self.__hx_this.requireMatch()
 	return hxrt.StringSubstrStringPtr(self.lastSource, 0, current.Indices[0], true)
 }
 
 func (self *EReg) matchedRight() *string {
-	current := self.requireMatch()
+	current := self.__hx_this.requireMatch()
 	return hxrt.StringSubstrStringPtr(self.lastSource, current.Indices[1], 0, false)
 }
 
 func (self *EReg) matchedPos() map[string]any {
-	current := self.requireMatch()
+	current := self.__hx_this.requireMatch()
 	start := current.Indices[0]
 	hx_obj_279 := map[string]any{}
 	hx_obj_279["pos"] = start
@@ -171,7 +171,7 @@ func (self *EReg) replace(s *string, by *string) *string {
 		end := current.Indices[1]
 		x := hxrt.StringSubstrStringPtr(s, copyOffset, int(int32((hxrt.Int32Wrap(start) - hxrt.Int32Wrap(copyOffset)))), true)
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x))
-		x_1 := self.expandReplacement(by, s, current)
+		x_1 := self.__hx_this.expandReplacement(by, s, current)
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x_1))
 		copyOffset = end
 		if !self.global {

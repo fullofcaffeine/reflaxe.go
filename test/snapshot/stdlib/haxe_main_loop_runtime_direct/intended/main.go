@@ -9,7 +9,7 @@ func main() {
 	event = haxe__MainLoop_add(func() {
 		ran = true
 		hxrt.Println(any(hxrt.StringFromLiteral("mainloop.add=ran")))
-		event.stop()
+		event.__hx_this.stop()
 	}, 0)
 	haxe__EntryPoint_run()
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("mainloop.after="), hxrt.StdString(ran)))

@@ -1,6 +1,7 @@
 package haxe.io;
 
 import haxe.Int64;
+import hxrt.io.NativeFloatBits;
 
 /**
 	What
@@ -10,55 +11,30 @@ import haxe.Int64;
 	The mainstream Haxe stdlib implementation cannot be used unchanged on `haxe.go`.
 	- The public `FPHelper` API is portable stdlib behavior and does not need to
 	  live in `GoCompiler`.
-	- The upstream fallback implementation assumes math helper surfaces that
-	  `haxe.go` does not expose directly as public `Math_*` shims.
-	- This backend already owns a little-endian `BytesInput` / `BytesOutput`
-	  contract, so `FPHelper` can be expressed on top of that existing portable IO
-	  surface instead of adding more raw Go.
+	- Implementing the conversion through `BytesInput` / `BytesOutput` would
+	  recurse because those stream methods call `FPHelper` themselves.
+	- Reinterpreting Go floating-point storage is a target capability that staged
+	  Haxe cannot express with ordinary arithmetic.
 
 	How
-	- Encode values through `BytesOutput` with `bigEndian = false`.
-	- Decode them again through `BytesInput`, preserving the same low-endian
-	  contract the upstream helper documents.
+	- Delegate only raw IEEE-754 bit reinterpretation to the typed
+	  `hxrt.io.NativeFloatBits` boundary.
+	- Keep public word ordering and `Int64` construction in staged Haxe.
 **/
 class FPHelper {
-	static function littleEndianOutput():BytesOutput {
-		var out = new BytesOutput();
-		out.bigEndian = false;
-		return out;
-	}
-
-	static function littleEndianInput(bytes:Bytes):BytesInput {
-		var input = new BytesInput(bytes);
-		input.bigEndian = false;
-		return input;
-	}
-
 	public static function i32ToFloat(i:Int):Float {
-		var out = littleEndianOutput();
-		out.writeInt32(i);
-		return littleEndianInput(out.getBytes()).readFloat();
+		return NativeFloatBits.float32FromBits(i);
 	}
 
 	public static function floatToI32(f:Float):Int {
-		var out = littleEndianOutput();
-		out.writeFloat(f);
-		return littleEndianInput(out.getBytes()).readInt32();
+		return NativeFloatBits.float32Bits(f);
 	}
 
 	public static function i64ToDouble(low:Int, high:Int):Float {
-		var out = littleEndianOutput();
-		out.writeInt32(low);
-		out.writeInt32(high);
-		return littleEndianInput(out.getBytes()).readDouble();
+		return NativeFloatBits.float64FromWords(low, high);
 	}
 
 	public static function doubleToI64(v:Float):Int64 {
-		var out = littleEndianOutput();
-		out.writeDouble(v);
-		var input = littleEndianInput(out.getBytes());
-		var low = input.readInt32();
-		var high = input.readInt32();
-		return Int64.make(high, low);
+		return Int64.make(NativeFloatBits.float64HighWord(v), NativeFloatBits.float64LowWord(v));
 	}
 }

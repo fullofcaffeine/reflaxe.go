@@ -49,7 +49,7 @@ func Sys_environment() *haxe__ds__StringMap {
 	for _g < len(_g1) {
 		entry := _g1[_g]
 		_g = int(int32((_g + 1)))
-		environment.set(entry.Key, entry.Value)
+		environment.__hx_this.set(entry.Key, entry.Value)
 	}
 	return environment
 }
@@ -68,7 +68,7 @@ func Sys_getChar(echo bool) int {
 		hxrt.Throw(New_haxe__io__Eof())
 	}
 	if echo {
-		New_sys__io__FileOutput(hxrt.SysStdout()).writeByte(value)
+		New_sys__io__FileOutput(hxrt.SysStdout()).__hx_this.writeByte(value)
 	}
 	return value
 }
@@ -111,16 +111,16 @@ func Sys_sleep(seconds float64) {
 	hxrt.SysSleep(seconds)
 }
 
-func Sys_stderr() haxe__io__Output {
-	return New_sys__io__FileOutput(hxrt.SysStderr())
+func Sys_stderr() *haxe__io__Output {
+	return New_sys__io__FileOutput(hxrt.SysStderr()).haxe__io__Output
 }
 
-func Sys_stdin() haxe__io__Input {
-	return New_sys__io__FileInput(hxrt.SysStdin())
+func Sys_stdin() *haxe__io__Input {
+	return New_sys__io__FileInput(hxrt.SysStdin()).haxe__io__Input
 }
 
-func Sys_stdout() haxe__io__Output {
-	return New_sys__io__FileOutput(hxrt.SysStdout())
+func Sys_stdout() *haxe__io__Output {
+	return New_sys__io__FileOutput(hxrt.SysStdout()).haxe__io__Output
 }
 
 func Sys_systemName() *string {

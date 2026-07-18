@@ -18,12 +18,12 @@ func New_CollectionFeatureKey() *CollectionFeatureKey {
 func main() {
 	key := New_CollectionFeatureKey()
 	values := New_haxe__ds__ObjectMap()
-	values.set(key, hxrt.StringFromLiteral("one"))
+	values.__hx_this.set(key, hxrt.StringFromLiteral("one"))
 	func(hx_value_1 any) bool {
 		if hx_value_1 == nil {
 			var hx_zero_2 bool
 			return hx_zero_2
 		}
 		return hx_value_1.(bool)
-	}(values.exists(key))
+	}(values.__hx_this.exists(key))
 }

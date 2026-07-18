@@ -93,12 +93,12 @@ class GoHxrtFeatureAnalyzer {
 		return FEATURE_ORDER.indexOf(feature) >= 0;
 	}
 
-	public static function inferFromUsage(classPaths:Array<String>, enumPaths:Array<String>, shimGroups:Array<String>, requiresIoHelperSurface:Bool,
+	public static function inferFromUsage(classPaths:Array<String>, enumPaths:Array<String>, shimGroups:Array<String>,
 			?requiresEqualitySurface:Bool = false):Array<String> {
-		return inferWithReasons(classPaths, enumPaths, shimGroups, requiresIoHelperSurface, requiresEqualitySurface).features;
+		return inferWithReasons(classPaths, enumPaths, shimGroups, requiresEqualitySurface).features;
 	}
 
-	public static function inferWithReasons(classPaths:Array<String>, enumPaths:Array<String>, shimGroups:Array<String>, requiresIoHelperSurface:Bool,
+	public static function inferWithReasons(classPaths:Array<String>, enumPaths:Array<String>, shimGroups:Array<String>,
 			?requiresEqualitySurface:Bool = false):GoHxrtFeatureInference {
 		var out = new Map<String, Bool>();
 		var reasonsByFeature = new Map<String, Array<GoHxrtFeatureReason>>();
@@ -262,8 +262,6 @@ class GoHxrtFeatureAnalyzer {
 
 		for (group in shimGroups) {
 			switch (group) {
-				case "io":
-					add(FEATURE_BYTES, "shim_group", group);
 				case "http":
 					add(FEATURE_SYS, "shim_group", group);
 					add(FEATURE_PROCESS, "shim_group", group);
@@ -271,9 +269,6 @@ class GoHxrtFeatureAnalyzer {
 			}
 		}
 
-		if (requiresIoHelperSurface) {
-			add(FEATURE_BYTES, "io_helper_surface", "compiler_io_helpers");
-		}
 		if (requiresEqualitySurface) {
 			add(FEATURE_EQUALITY, "compiler_surface", "erased_haxe_equality");
 		}

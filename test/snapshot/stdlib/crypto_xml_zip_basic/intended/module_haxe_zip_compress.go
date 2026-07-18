@@ -22,9 +22,9 @@ func New_haxe__zip__Compress(level int) *haxe__zip__Compress {
 }
 
 func (self *haxe__zip__Compress) execute(src *haxe__io__Bytes, srcPos int, dst *haxe__io__Bytes, dstPos int) map[string]any {
-	input := src.sub(srcPos, int(int32((hxrt.Int32Wrap(src.length) - hxrt.Int32Wrap(srcPos)))))
+	input := src.__hx_this.sub(srcPos, int(int32((hxrt.Int32Wrap(src.length) - hxrt.Int32Wrap(srcPos)))))
 	data := haxe__zip__Compress_fromValues(hxrt.ZipCompress(haxe__zip__Compress_toValues(input), self.level))
-	dst.blit(dstPos, data, 0, data.length)
+	dst.__hx_this.blit(dstPos, data, 0, data.length)
 	hx_obj_16 := map[string]any{}
 	hx_obj_16["done"] = true
 	hx_obj_16["read"] = input.length
@@ -47,6 +47,7 @@ func haxe__zip__Compress_fromValues(values []int) *haxe__io__Bytes {
 		_g = int(int32((_g + 1)))
 		index := hx_post_17
 		bytes.b[index] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
+		bytes.__hx_rawValid = false
 	}
 	return bytes
 }

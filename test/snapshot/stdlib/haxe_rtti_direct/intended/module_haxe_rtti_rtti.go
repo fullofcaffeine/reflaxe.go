@@ -7,8 +7,8 @@ func haxe__rtti__Rtti_getRtti(c any) map[string]any {
 	if hxrt.AnyEqualsNull(rtti) {
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class "), Type_getClassName(c)), hxrt.StringFromLiteral(" has no RTTI information, consider adding @:rtti")))
 	}
-	x := Xml_parse(hxrt.StdString(rtti)).firstElement()
-	infos := New_haxe__rtti__XmlParser().processElement(x)
+	x := Xml_parse(hxrt.StdString(rtti)).__hx_this.firstElement()
+	infos := New_haxe__rtti__XmlParser().__hx_this.processElement(x)
 	if infos.tag == 1 {
 		_g := infos.params[0].(map[string]any)
 		c_1 := _g

@@ -69,7 +69,7 @@ func (self *haxe__ds___EnumValueMap__EnumValueTreeNode) toString() *string {
 					return hx_zero_7
 				}
 				return hx_value_6.(*string)
-			}(self.left.toString()), hxrt.StringFromLiteral(", "))
+			}(self.left.__hx_this.toString()), hxrt.StringFromLiteral(", "))
 		}
 		return hx_if_8
 	}(), hxrt.StdString(self.key)), hxrt.StringFromLiteral(" => ")), hxrt.StdString(self.value)), func() *string {
@@ -83,10 +83,14 @@ func (self *haxe__ds___EnumValueMap__EnumValueTreeNode) toString() *string {
 					return hx_zero_10
 				}
 				return hx_value_9.(*string)
-			}(self.right.toString()))
+			}(self.right.__hx_this.toString()))
 		}
 		return hx_if_11
 	}())
+}
+
+func (self *haxe__ds___EnumValueMap__EnumValueTreeNode) String() string {
+	return *self.__hx_this.toString()
 }
 
 type I_haxe__ds__EnumValueMap interface {
@@ -134,7 +138,7 @@ func (self *haxe__ds__EnumValueMap) set(key any, value any) {
 			return hx_zero_13
 		}
 		return hx_value_12.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-	}(self.setLoop(key, value, self.root))
+	}(self.__hx_this.setLoop(key, value, self.root))
 }
 
 func (self *haxe__ds__EnumValueMap) get(key any) any {
@@ -146,7 +150,7 @@ func (self *haxe__ds__EnumValueMap) get(key any) any {
 				return hx_zero_15
 			}
 			return hx_value_14.(int)
-		}(self.compare(key, node.key))
+		}(self.__hx_this.compare(key, node.key))
 		if result == 0 {
 			return node.value
 		}
@@ -170,7 +174,7 @@ func (self *haxe__ds__EnumValueMap) exists(key any) bool {
 				return hx_zero_18
 			}
 			return hx_value_17.(int)
-		}(self.compare(key, node.key))
+		}(self.__hx_this.compare(key, node.key))
 		if result == 0 {
 			return true
 		}
@@ -194,7 +198,7 @@ func (self *haxe__ds__EnumValueMap) remove(key any) bool {
 				return hx_zero_23
 			}
 			return hx_value_22.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-		}(self.removeLoop(key, self.root))
+		}(self.__hx_this.removeLoop(key, self.root))
 	}, func(hx_caught_20 any) {
 		switch hx_typed_21 := hx_caught_20.(type) {
 		case *string:
@@ -246,7 +250,7 @@ func (self *haxe__ds__EnumValueMap) keyValueIterator() map[string]any {
 			return hx_zero_29
 		}
 		return hx_value_28.(map[string]any)
-	}(self.keys())
+	}(self.__hx_this.keys())
 	hx_obj_30 := map[string]any{}
 	hx_obj_30["hasNext"] = func() bool {
 		return func(hx_obj_31 map[string]any) func() bool {
@@ -269,7 +273,7 @@ func (self *haxe__ds__EnumValueMap) keyValueIterator() map[string]any {
 		}(keys)()
 		hx_obj_37 := map[string]any{}
 		hx_obj_37["key"] = key
-		hx_obj_37["value"] = _gthis.get(key)
+		hx_obj_37["value"] = _gthis.__hx_this.get(key)
 		return hx_obj_37
 	}
 	return hx_obj_30
@@ -292,7 +296,7 @@ func (self *haxe__ds__EnumValueMap) toString() *string {
 				return hx_zero_39
 			}
 			return hx_value_38.(*string)
-		}(self.root.toString())), hxrt.StringFromLiteral("]"))
+		}(self.root.__hx_this.toString())), hxrt.StringFromLiteral("]"))
 	}
 	return hx_if_40
 }
@@ -312,7 +316,7 @@ func (self *haxe__ds__EnumValueMap) compare(left any, right any) int {
 			return hx_zero_42
 		}
 		return hx_value_41.(int)
-	}(self.compareArgs(Type_enumParameters(left), Type_enumParameters(right)))
+	}(self.__hx_this.compareArgs(Type_enumParameters(left), Type_enumParameters(right)))
 }
 
 func (self *haxe__ds__EnumValueMap) compareArgs(left *hxrt.Array, right *hxrt.Array) int {
@@ -332,7 +336,7 @@ func (self *haxe__ds__EnumValueMap) compareArgs(left *hxrt.Array, right *hxrt.Ar
 				return hx_zero_45
 			}
 			return hx_value_44.(int)
-		}(self.compareArg(left.Get(index), right.Get(index)))
+		}(self.__hx_this.compareArg(left.Get(index), right.Get(index)))
 		if result != 0 {
 			return result
 		}
@@ -348,7 +352,7 @@ func (self *haxe__ds__EnumValueMap) compareArg(left any, right any) int {
 				return hx_zero_47
 			}
 			return hx_value_46.(int)
-		}(self.compare(left, right))
+		}(self.__hx_this.compare(left, right))
 	}
 	if func(hx_value any) bool {
 		switch hx_value.(type) {
@@ -371,7 +375,7 @@ func (self *haxe__ds__EnumValueMap) compareArg(left any, right any) int {
 				return hx_zero_53
 			}
 			return hx_value_52.(int)
-		}(self.compareArgs(func(hx_value_48 any) *hxrt.Array {
+		}(self.__hx_this.compareArgs(func(hx_value_48 any) *hxrt.Array {
 			if hx_value_48 == nil {
 				var hx_zero_49 *hxrt.Array
 				return hx_zero_49
@@ -398,7 +402,7 @@ func (self *haxe__ds__EnumValueMap) setLoop(key any, value any, node *haxe__ds__
 			return hx_zero_55
 		}
 		return hx_value_54.(int)
-	}(self.compare(key, node.key))
+	}(self.__hx_this.compare(key, node.key))
 	if result == 0 {
 		return New_haxe__ds___EnumValueMap__EnumValueTreeNode(node.left, key, value, node.right, node.height)
 	}
@@ -409,13 +413,13 @@ func (self *haxe__ds__EnumValueMap) setLoop(key any, value any, node *haxe__ds__
 				return hx_zero_59
 			}
 			return hx_value_58.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-		}(self.balance(func(hx_value_56 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
+		}(self.__hx_this.balance(func(hx_value_56 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
 			if hx_value_56 == nil {
 				var hx_zero_57 *haxe__ds___EnumValueMap__EnumValueTreeNode
 				return hx_zero_57
 			}
 			return hx_value_56.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-		}(self.setLoop(key, value, node.left)), node.key, node.value, node.right))
+		}(self.__hx_this.setLoop(key, value, node.left)), node.key, node.value, node.right))
 	}
 	return func(hx_value_62 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
 		if hx_value_62 == nil {
@@ -423,13 +427,13 @@ func (self *haxe__ds__EnumValueMap) setLoop(key any, value any, node *haxe__ds__
 			return hx_zero_63
 		}
 		return hx_value_62.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-	}(self.balance(node.left, node.key, node.value, func(hx_value_60 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
+	}(self.__hx_this.balance(node.left, node.key, node.value, func(hx_value_60 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
 		if hx_value_60 == nil {
 			var hx_zero_61 *haxe__ds___EnumValueMap__EnumValueTreeNode
 			return hx_zero_61
 		}
 		return hx_value_60.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-	}(self.setLoop(key, value, node.right))))
+	}(self.__hx_this.setLoop(key, value, node.right))))
 }
 
 func (self *haxe__ds__EnumValueMap) removeLoop(key any, node *haxe__ds___EnumValueMap__EnumValueTreeNode) *haxe__ds___EnumValueMap__EnumValueTreeNode {
@@ -442,7 +446,7 @@ func (self *haxe__ds__EnumValueMap) removeLoop(key any, node *haxe__ds___EnumVal
 			return hx_zero_65
 		}
 		return hx_value_64.(int)
-	}(self.compare(key, node.key))
+	}(self.__hx_this.compare(key, node.key))
 	if result == 0 {
 		return func(hx_value_66 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
 			if hx_value_66 == nil {
@@ -450,7 +454,7 @@ func (self *haxe__ds__EnumValueMap) removeLoop(key any, node *haxe__ds___EnumVal
 				return hx_zero_67
 			}
 			return hx_value_66.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-		}(self.merge(node.left, node.right))
+		}(self.__hx_this.merge(node.left, node.right))
 	}
 	if result < 0 {
 		return func(hx_value_70 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
@@ -459,13 +463,13 @@ func (self *haxe__ds__EnumValueMap) removeLoop(key any, node *haxe__ds___EnumVal
 				return hx_zero_71
 			}
 			return hx_value_70.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-		}(self.balance(func(hx_value_68 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
+		}(self.__hx_this.balance(func(hx_value_68 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
 			if hx_value_68 == nil {
 				var hx_zero_69 *haxe__ds___EnumValueMap__EnumValueTreeNode
 				return hx_zero_69
 			}
 			return hx_value_68.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-		}(self.removeLoop(key, node.left)), node.key, node.value, node.right))
+		}(self.__hx_this.removeLoop(key, node.left)), node.key, node.value, node.right))
 	}
 	return func(hx_value_74 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
 		if hx_value_74 == nil {
@@ -473,13 +477,13 @@ func (self *haxe__ds__EnumValueMap) removeLoop(key any, node *haxe__ds___EnumVal
 			return hx_zero_75
 		}
 		return hx_value_74.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-	}(self.balance(node.left, node.key, node.value, func(hx_value_72 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
+	}(self.__hx_this.balance(node.left, node.key, node.value, func(hx_value_72 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
 		if hx_value_72 == nil {
 			var hx_zero_73 *haxe__ds___EnumValueMap__EnumValueTreeNode
 			return hx_zero_73
 		}
 		return hx_value_72.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-	}(self.removeLoop(key, node.right))))
+	}(self.__hx_this.removeLoop(key, node.right))))
 }
 
 func (self *haxe__ds__EnumValueMap) merge(left *haxe__ds___EnumValueMap__EnumValueTreeNode, right *haxe__ds___EnumValueMap__EnumValueTreeNode) *haxe__ds___EnumValueMap__EnumValueTreeNode {
@@ -495,20 +499,20 @@ func (self *haxe__ds__EnumValueMap) merge(left *haxe__ds___EnumValueMap__EnumVal
 			return hx_zero_77
 		}
 		return hx_value_76.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-	}(self.minBinding(right))
+	}(self.__hx_this.minBinding(right))
 	return func(hx_value_80 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
 		if hx_value_80 == nil {
 			var hx_zero_81 *haxe__ds___EnumValueMap__EnumValueTreeNode
 			return hx_zero_81
 		}
 		return hx_value_80.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-	}(self.balance(left, minimum.key, minimum.value, func(hx_value_78 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
+	}(self.__hx_this.balance(left, minimum.key, minimum.value, func(hx_value_78 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
 		if hx_value_78 == nil {
 			var hx_zero_79 *haxe__ds___EnumValueMap__EnumValueTreeNode
 			return hx_zero_79
 		}
 		return hx_value_78.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-	}(self.removeMinBinding(right))))
+	}(self.__hx_this.removeMinBinding(right))))
 }
 
 func (self *haxe__ds__EnumValueMap) minBinding(node *haxe__ds___EnumValueMap__EnumValueTreeNode) *haxe__ds___EnumValueMap__EnumValueTreeNode {
@@ -525,7 +529,7 @@ func (self *haxe__ds__EnumValueMap) minBinding(node *haxe__ds___EnumValueMap__En
 				return hx_zero_83
 			}
 			return hx_value_82.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-		}(self.minBinding(node.left))
+		}(self.__hx_this.minBinding(node.left))
 	}
 	return hx_if_84
 }
@@ -541,13 +545,13 @@ func (self *haxe__ds__EnumValueMap) removeMinBinding(node *haxe__ds___EnumValueM
 				return hx_zero_88
 			}
 			return hx_value_87.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-		}(self.balance(func(hx_value_85 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
+		}(self.__hx_this.balance(func(hx_value_85 any) *haxe__ds___EnumValueMap__EnumValueTreeNode {
 			if hx_value_85 == nil {
 				var hx_zero_86 *haxe__ds___EnumValueMap__EnumValueTreeNode
 				return hx_zero_86
 			}
 			return hx_value_85.(*haxe__ds___EnumValueMap__EnumValueTreeNode)
-		}(self.removeMinBinding(node.left)), node.key, node.value, node.right))
+		}(self.__hx_this.removeMinBinding(node.left)), node.key, node.value, node.right))
 	}
 	return hx_if_89
 }
@@ -619,11 +623,11 @@ func (self *haxe__ds__EnumValueMap) balance(left *haxe__ds___EnumValueMap__EnumV
 }
 
 func (self *haxe__ds__EnumValueMap) getIMap(key any) any {
-	return self.get(key)
+	return self.__hx_this.get(key)
 }
 
 func (self *haxe__ds__EnumValueMap) setIMap(key any, value any) {
-	self.set(key, value)
+	self.__hx_this.set(key, value)
 }
 
 func (self *haxe__ds__EnumValueMap) existsIMap(key any) bool {
@@ -633,7 +637,7 @@ func (self *haxe__ds__EnumValueMap) existsIMap(key any) bool {
 			return hx_zero_98
 		}
 		return hx_value_97.(bool)
-	}(self.exists(key))
+	}(self.__hx_this.exists(key))
 }
 
 func (self *haxe__ds__EnumValueMap) removeIMap(key any) bool {
@@ -643,7 +647,7 @@ func (self *haxe__ds__EnumValueMap) removeIMap(key any) bool {
 			return hx_zero_100
 		}
 		return hx_value_99.(bool)
-	}(self.remove(key))
+	}(self.__hx_this.remove(key))
 }
 
 func (self *haxe__ds__EnumValueMap) copyIMap() haxe__IMap {
@@ -653,7 +657,11 @@ func (self *haxe__ds__EnumValueMap) copyIMap() haxe__IMap {
 			return hx_zero_102
 		}
 		return hx_value_101.(*haxe__ds__EnumValueMap)
-	}(self.copy())
+	}(self.__hx_this.copy())
+}
+
+func (self *haxe__ds__EnumValueMap) String() string {
+	return *self.__hx_this.toString()
 }
 
 func haxe__ds__EnumValueMap_isEnumValue(value any) bool {

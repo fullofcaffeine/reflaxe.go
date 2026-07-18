@@ -345,16 +345,23 @@ Shim strategy and alternatives are documented in:
 - `List.push` now prepends to match Haxe semantics (with `pop` removing the list head).
 - Missing-key map reads and empty `List` reads in typed call sites now lower through nil-safe typed assertions, returning typed zero values (`null` for reference-like types) instead of panicking.
 
-### `haxe.io.BytesInput` / `haxe.io.BytesOutput` shim contract and tradeoffs
+### `haxe.io.BytesInput` / `haxe.io.BytesOutput` source/runtime contract and tradeoffs
 
 - Coverage includes `test/semantic_diff/bytes_io_stream_contract`, `test/semantic_diff/bytes_of_data_contract`, `test/semantic_diff/bytes_hex_contract`, `test/semantic_diff/io_input_output_helpers_contract`, `test/semantic_diff/io_input_output_edge_contract`, `test/semantic_diff/io_error_constructor_contract`, `test/semantic_diff/io_encoding_contract`, and `test/semantic_diff/haxe_io_misc_contract` for deterministic constructor bounds checks, `position`/`length`, EOF behavior, `readByte`/`readBytes`, inherited helper subset parity (`readAll`, `readFullBytes`, `read`, `readUntil`, `readLine`, `readString`, `readFloat`/`readDouble`, signed/unsigned numeric reads), output helper subset parity (`write`, `writeFullBytes`, `writeInput`, `writeString`, numeric typed writes, overflow guards), direct `StringInput` / `BufferInput` constructor+read behavior, `haxe.io.Error` typed constructor matching (`Blocked`, `Overflow`, `OutsideBounds`, `Custom`), `haxe.io.Encoding` constructor parity (`UTF8`, `RawNative`), `Bytes.getString` bounds behavior, `Bytes.getData`/`Bytes.ofData` alias semantics, direct `Mime` / `Scheme` abstract usage, `FPHelper` bit conversions, `Bytes.toHex`/`Bytes.ofHex` behavior, and `readLine` EOF/tail/CRLF edge paths. Snapshot evidence for the direct tranche lives in `test/snapshot/stdlib/haxe_io_misc_direct`.
+- Canonical staged modules under `std/go/_std/haxe/io` own the public hierarchy,
+  stream algorithms, validation, endian behavior, EOF/error policy, alias
+  observation, and RawNative cache invalidation. Typed `std/hxrt/io` bindings
+  cross only opaque byte views, native conversion/copy/UTF operations, and
+  scalar IEEE-754 reinterpretation. No compiler `io` group remains.
 - Current tradeoff: parity remains focused on `BytesInput`/`BytesOutput` stream behavior with interpreter-compatible semantics by default (`reflaxe_go_raw_native_mode=interp`, where `UTF8` and `RawNative` both map to UTF-8 conversion). For projects that need Java/C#-style RawNative byte layout, `reflaxe_go_raw_native_mode=utf16le` provides an explicit opt-in UTF-16LE path; full target-by-target RawNative equivalence is still not claimed outside these documented modes.
 
 ### `haxe.io` typed-array contract and tradeoffs
 
 - Coverage includes `test/semantic_diff/haxe_io_typed_arrays_contract` and `test/snapshot/stdlib/haxe_io_typed_arrays_direct` for direct `ArrayBufferView`, `UInt8Array`, `UInt16Array`, `UInt32Array`, `Int32Array`, `Float32Array`, and `Float64Array` usage, including `fromBytes`, `fromArray`, direct construction, indexing, `sub`, `subarray`, aliasing through `Bytes`, and bounds errors.
 - Public typed-array behavior now lives in ordinary staged source under `std/go/_std/haxe/io/*.hx`, so the Haxe-facing API stays library-owned instead of growing more raw compiler-owned bytes logic.
-- Current tradeoff: ownership is mixed because storage still rides on the compiler-emitted `haxe.io.Bytes` / `ArrayBufferViewImpl` carrier. That carrier is compatibility migration debt under `haxe_go-vfp.8.7.11`; the float-array bit conversions already live in staged `haxe.io.FPHelper` helpers on top of it.
+- Current tradeoff: typed arrays use ordinary generated abstract representation
+  mapping over staged `Bytes`; native byte and float-bit facts cross the shared
+  typed `ByteView` / `NativeFloatBits` capabilities. There is no IO compiler shim.
 
 ### `haxe.Http` / `sys.Http` shim contract and tradeoffs
 

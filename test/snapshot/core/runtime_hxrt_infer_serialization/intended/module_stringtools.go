@@ -39,32 +39,32 @@ func StringTools_endsWithImpl(s *string, end *string) bool {
 
 func StringTools_fastCodeAt(s *string, index int) int {
 	var c any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
-	var hx_if_237 int
+	var hx_if_247 int
 	if c == nil {
-		hx_if_237 = -1
+		hx_if_247 = -1
 	} else {
-		hx_if_237 = c.(int)
+		hx_if_247 = c.(int)
 	}
-	return hx_if_237
+	return hx_if_247
 }
 
 func StringTools_hex(n int, digits any) *string {
 	hexChars := hxrt.StringFromLiteral("0123456789ABCDEF")
 	value := n
 	out := hxrt.StringFromLiteral("")
-	hx_do_first_238 := true
-	for hx_do_first_238 || (value > 0) {
-		hx_do_first_238 = false
+	hx_do_first_248 := true
+	for hx_do_first_248 || (value > 0) {
+		hx_do_first_248 = false
 		out = hxrt.StringConcatStringPtr(hxrt.StringCharAtStringPtr(hexChars, int(int32((hxrt.Int32Wrap(value)&hxrt.Int32Wrap(15))))), out)
 		value = int(int32(int32((uint32(hxrt.Int32Wrap(value)) >> uint(4)))))
 	}
-	var hx_if_239 int
+	var hx_if_249 int
 	if digits == nil {
-		hx_if_239 = 0
+		hx_if_249 = 0
 	} else {
-		hx_if_239 = digits.(int)
+		hx_if_249 = digits.(int)
 	}
-	resolvedDigits := hx_if_239
+	resolvedDigits := hx_if_249
 	for (resolvedDigits != 0) && (hxrt.StringLengthStringPtr(out) < resolvedDigits) {
 		out = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("0"), out)
 	}
@@ -76,13 +76,13 @@ func StringTools_hexDigitValue(value *string) int {
 		return -1
 	}
 	var c any = hxrt.StringCharCodeAtAnyStringPtr(value, 0)
-	var hx_if_240 int
+	var hx_if_250 int
 	if c == nil {
-		hx_if_240 = -1
+		hx_if_250 = -1
 	} else {
-		hx_if_240 = c.(int)
+		hx_if_250 = c.(int)
 	}
-	code := hx_if_240
+	code := hx_if_250
 	if code == -1 {
 		return -1
 	}
@@ -127,13 +127,13 @@ func StringTools_isSpace(s *string, pos int) bool {
 		return false
 	}
 	var c_1 any = hxrt.StringCharCodeAtAnyStringPtr(s, pos)
-	var hx_if_241 int
+	var hx_if_251 int
 	if c_1 == nil {
-		hx_if_241 = -1
+		hx_if_251 = -1
 	} else {
-		hx_if_241 = c_1.(int)
+		hx_if_251 = c_1.(int)
 	}
-	c := hx_if_241
+	c := hx_if_251
 	return ((c != -1) && (((c > 8) && (c < 14)) || (c == 32)))
 }
 
@@ -161,13 +161,13 @@ func StringTools_ltrim(s *string) *string {
 	for (r < hxrt.StringLengthStringPtr(s)) && StringTools_isSpace(s, r) {
 		r = int(int32((r + 1)))
 	}
-	var hx_if_242 *string
+	var hx_if_252 *string
 	if r > 0 {
-		hx_if_242 = hxrt.StringSubstrStringPtr(s, r, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(s)) - hxrt.Int32Wrap(r)))), true)
+		hx_if_252 = hxrt.StringSubstrStringPtr(s, r, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(s)) - hxrt.Int32Wrap(r)))), true)
 	} else {
-		hx_if_242 = s
+		hx_if_252 = s
 	}
-	return hx_if_242
+	return hx_if_252
 }
 
 func StringTools_replace(s *string, sub *string, by *string) *string {
@@ -178,9 +178,9 @@ func StringTools_replace(s *string, sub *string, by *string) *string {
 		_g := 0
 		_g1 := hxrt.StringLengthStringPtr(s)
 		for _g < _g1 {
-			hx_post_243 := _g
+			hx_post_253 := _g
 			_g = int(int32((_g + 1)))
-			index := hx_post_243
+			index := hx_post_253
 			x := hxrt.StringSubstrStringPtr(s, index, 1, true)
 			every_b = hxrt.StringConcatStringPtr(every_b, hxrt.StdString(x))
 			every_b = hxrt.StringConcatStringPtr(every_b, hxrt.StdString(by))
@@ -219,13 +219,13 @@ func StringTools_rtrim(s *string) *string {
 	for (r < hxrt.StringLengthStringPtr(s)) && StringTools_isSpace(s, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(s))-hxrt.Int32Wrap(r)))))-hxrt.Int32Wrap(1))))) {
 		r = int(int32((r + 1)))
 	}
-	var hx_if_244 *string
+	var hx_if_254 *string
 	if r > 0 {
-		hx_if_244 = hxrt.StringSubstrStringPtr(s, 0, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(s)) - hxrt.Int32Wrap(r)))), true)
+		hx_if_254 = hxrt.StringSubstrStringPtr(s, 0, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(s)) - hxrt.Int32Wrap(r)))), true)
 	} else {
-		hx_if_244 = s
+		hx_if_254 = s
 	}
-	return hx_if_244
+	return hx_if_254
 }
 
 func StringTools_startsWith(s *string, start *string) bool {
@@ -242,13 +242,13 @@ func StringTools_trim(s *string) *string {
 
 func StringTools_unsafeCodeAt(s *string, index int) int {
 	var c any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
-	var hx_if_245 int
+	var hx_if_255 int
 	if c == nil {
-		hx_if_245 = -1
+		hx_if_255 = -1
 	} else {
-		hx_if_245 = c.(int)
+		hx_if_255 = c.(int)
 	}
-	return hx_if_245
+	return hx_if_255
 }
 
 func StringTools_urlDecode(s *string) *string {
@@ -266,13 +266,13 @@ func StringTools_urlDecode(s *string) *string {
 				continue
 			}
 		}
-		chunk := haxe__io__Bytes_ofString(hxrt.StringCharAtStringPtr(input, index))
+		chunk := haxe__io__Bytes_ofString(hxrt.StringCharAtStringPtr(input, index), nil)
 		_g := 0
 		_g1 := chunk.length
 		for _g < _g1 {
-			hx_post_247 := _g
+			hx_post_257 := _g
 			_g = int(int32((_g + 1)))
-			chunkIndex := hx_post_247
+			chunkIndex := hx_post_257
 			bytes.Push(chunk.b[chunkIndex])
 		}
 		index = int(int32((index + 1)))
@@ -281,30 +281,32 @@ func StringTools_urlDecode(s *string) *string {
 	_g_1 := 0
 	_g1_1 := bytes.Len()
 	for _g_1 < _g1_1 {
-		hx_post_249 := _g_1
+		hx_post_259 := _g_1
 		_g_1 = int(int32((_g_1 + 1)))
-		byteIndex := hx_post_249
+		byteIndex := hx_post_259
 		out.b[byteIndex] = int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(bytes.Get(byteIndex))) & hxrt.Int32Wrap(255))))
+		out.__hx_rawValid = false
 	}
-	return out.toString()
+	return out.__hx_this.toString()
 }
 
 func StringTools_urlEncode(s *string) *string {
-	bytes := haxe__io__Bytes_ofString(s)
+	bytes := haxe__io__Bytes_ofString(s, nil)
 	var out_b *string
 	out_b = hxrt.StringFromLiteral("")
 	ascii := haxe__io__Bytes_alloc(1)
 	_g := 0
 	_g1 := bytes.length
 	for _g < _g1 {
-		hx_post_250 := _g
+		hx_post_260 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_250
+		index := hx_post_260
 		b := bytes.b[index]
 		isUnreserved := ((((((((b >= 65) && (b <= 90)) || ((b >= 97) && (b <= 122))) || ((b >= 48) && (b <= 57))) || (b == 45)) || (b == 95)) || (b == 46)) || (b == 126))
 		if isUnreserved {
 			ascii.b[0] = int(int32((hxrt.Int32Wrap(b) & hxrt.Int32Wrap(255))))
-			x := ascii.toString()
+			ascii.__hx_rawValid = false
+			x := ascii.__hx_this.toString()
 			out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x))
 		} else {
 			if b == 32 {
@@ -321,23 +323,23 @@ func StringTools_urlEncode(s *string) *string {
 
 func StringTools_utf16CodePointAt(s *string, index int) int {
 	var c_1 any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
-	var hx_if_251 int
+	var hx_if_261 int
 	if c_1 == nil {
-		hx_if_251 = -1
+		hx_if_261 = -1
 	} else {
-		hx_if_251 = c_1.(int)
+		hx_if_261 = c_1.(int)
 	}
-	c := hx_if_251
+	c := hx_if_261
 	if (c >= 55296) && (c <= 56319) {
 		c = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(c) - hxrt.Int32Wrap(55232))))) << uint(10))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(func() int {
 			var c_2 any = hxrt.StringCharCodeAtAnyStringPtr(s, int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1)))))
-			var hx_if_252 int
+			var hx_if_262 int
 			if c_2 == nil {
-				hx_if_252 = -1
+				hx_if_262 = -1
 			} else {
-				hx_if_252 = c_2.(int)
+				hx_if_262 = c_2.(int)
 			}
-			return hx_if_252
+			return hx_if_262
 		}()) & hxrt.Int32Wrap(1023))))))))
 	}
 	return c

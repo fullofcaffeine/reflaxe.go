@@ -2161,3 +2161,80 @@ Observed result:
 - Follow-up `haxe_go-vfp.10.5.1` owns evaluation of typed generated field/method
   accessors that could remove the remaining unsafe lift and exact same-package
   bridge without returning serialization algorithms to compiler ownership.
+
+### 2026-07-18: move the base `haxe.io` hierarchy to staged source (`haxe_go-vfp.8.7.11`)
+
+Implementation:
+
+- Added a fail-closed ownership contract before implementation. It requires
+  canonical staged definitions for all eleven formerly generated public IO
+  types, exact provenance/planner routing, and complete removal of the compiler
+  `io` group, authorities, synthetic subclass wrappers, helper island, registry
+  entry, and debt allowances.
+- Moved `BufferInput`, `Bytes`, `BytesBuffer`, `BytesInput`, `BytesOutput`,
+  `Encoding`, `Eof`, `Error`, `Input`, `Output`, and `StringInput` to canonical
+  overrides under `std/go/_std/haxe/io`. Public validation, byte algorithms,
+  stream loops, EOF/error behavior, endian policy, RawNative selection, aliases,
+  and cache invalidation are now ordinary Haxe source.
+- Replaced `GoIoHelpers` and compiler-generated IO forwarding methods with
+  ordinary source inheritance and the existing `__hx_this` virtual-dispatch
+  path. Typed source-backed std superclasses are now queued even when manual DCE
+  initially selected only a user subclass, preserving normal base-class upcasts.
+- Added a generic generated `String() string` adapter for source classes that
+  implement typed `toString():String`. It delegates through `__hx_this`, allowing
+  erased `Std.string` calls to observe source policy without an Eof-specific
+  compiler rule.
+- Added typed `std/hxrt/io` bindings for an opaque immutable `ByteView`, native
+  allocation/conversion/copy/UTF capabilities, and scalar IEEE-754 bit
+  reinterpretation. `runtime/hxrt/bytes.go` owns only those target facts; no
+  generated `Bytes` layout or public IO policy crosses the package boundary.
+- Staged `Bytes` retains `BytesData` alias semantics. Mutations invalidate the
+  opaque cache, and a view requested after `getData()` validates against live
+  integer values so external alias mutation cannot return stale native bytes.
+- Routed staged Base64 and digest implementations through the same opaque view.
+  This removes the previous `Bytes -> Array<Int> -> []int -> []byte` copy chain
+  while leaving alphabets, padding, public construction, and API policy in Haxe.
+- Retired the broad IO intrinsic-registry entry and every IO-specific compiler
+  debt allowance. Neither `portable` nor `metal` selects different IO semantics;
+  `metal` remains only a compatibility policy preset.
+
+Validation evidence:
+
+- red-to-green source/ledger/registry, exact runtime-surface, canonical-package,
+  and crypto byte-view ownership contracts
+- 294 generated-output snapshots and 135 portable semantic-diff cases
+- 55 strict upstream stdlib modules compiled and checked with `go test`
+- all 12 runnable example/profile lanes, including both portable and metal
+  where the example declares both compatibility presets
+- stdlib governance over 180 tracked sources, inventory, compatibility,
+  release/archive, raw-injection, and compiler-debt contracts
+- all 28 Go vet/staticcheck/race/checkptr gates across `hxrt` and representative
+  generated portable/metal scopes
+- selective-runtime, staged-stdlib boundary, and general Go profile performance
+  harnesses
+- an explicit written xhigh second pass covering byte aliasing, cache validity,
+  endian/IEEE word ordering, inheritance/DCE, compiler-owned HTTP interaction,
+  package selection, runtime slicing, and compatibility-preset invariance
+
+Observed result:
+
+- Public `haxe.io` policy is source-owned in both compatibility presets. The
+  compiler retains no IO shim group or profile branch, and compiler debt falls
+  from `go_raw=1598` / `compiler_shim=12` to `go_raw=1087` /
+  `compiler_shim=11`.
+- The opaque byte view removes the former double conversion for codecs and
+  digests. The staged Base64 boundary measures 78.23 ns/op, 112 B/op, and 3
+  allocations/op versus direct Go at 62.90 ns/op, 96 B/op, and 2 allocations/op;
+  selective runtime output saves 12-15 files and 65-87% of runtime source.
+- The xhigh pass found and removed five unreachable legacy runtime helpers, so
+  string, hex, and buffer-length policy no longer ships in `hxrt`. It also made
+  the isolated canonical source/package fixture carry the exact staged IO
+  closure rather than silently selecting mainstream target implementations.
+- Type-only staged declarations and staged superclasses are queued from their
+  already-typed authority. The existing compiler-owned `sys.Http` carrier keeps
+  its concrete layout, while its hidden `BytesBuffer` dependency is explicit;
+  full HTTP, file, process, socket, and SSL consumers compile without restoring
+  an IO-specific compiler hierarchy.
+- The general performance lane reports warning-only timing signals and no
+  enforced hard failure. Those signals remain governed by the existing
+  performance policy rather than being reclassified as IO closure evidence.

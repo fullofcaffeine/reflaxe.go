@@ -43,9 +43,13 @@ func haxe__io___UInt32Array__UInt32Array_Impl__fromArray(a *hxrt.Array, pos int,
 			_this := out.bytes
 			pos_1 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(idx) << uint(2))))) + hxrt.Int32Wrap(out.byteOffset))))
 			_this.b[pos_1] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+			_this.__hx_rawValid = false
 			_this.b[int(int32((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(1))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(8))))) & hxrt.Int32Wrap(255))))
+			_this.__hx_rawValid = false
 			_this.b[int(int32((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(2))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(16))))) & hxrt.Int32Wrap(255))))
+			_this.__hx_rawValid = false
 			_this.b[int(int32((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(3))))] = int(int32((hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(value)) >> uint(24)))))) & hxrt.Int32Wrap(255))))
+			_this.__hx_rawValid = false
 		} else {
 			_ = 0
 		}
@@ -96,9 +100,13 @@ func haxe__io___UInt32Array__UInt32Array_Impl__set(this1 *haxe__io__ArrayBufferV
 		_this := this1.bytes
 		pos := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(index) << uint(2))))) + hxrt.Int32Wrap(this1.byteOffset))))
 		_this.b[pos] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+		_this.__hx_rawValid = false
 		_this.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(8))))) & hxrt.Int32Wrap(255))))
+		_this.__hx_rawValid = false
 		_this.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(16))))) & hxrt.Int32Wrap(255))))
+		_this.__hx_rawValid = false
 		_this.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3))))] = int(int32((hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(value)) >> uint(24)))))) & hxrt.Int32Wrap(255))))
+		_this.__hx_rawValid = false
 		return value
 	}
 	return 0
@@ -112,7 +120,7 @@ func haxe__io___UInt32Array__UInt32Array_Impl__sub(this1 *haxe__io__ArrayBufferV
 		hx_if_12 = int(int32((hxrt.Int32Wrap(length.(int)) << uint(2))))
 	}
 	var scaledLength any = hx_if_12
-	return haxe__io___UInt32Array__UInt32Array_Impl__fromData(this1.sub(int(int32((hxrt.Int32Wrap(begin) << uint(2)))), scaledLength))
+	return haxe__io___UInt32Array__UInt32Array_Impl__fromData(this1.__hx_this.sub(int(int32((hxrt.Int32Wrap(begin) << uint(2)))), scaledLength))
 }
 
 func haxe__io___UInt32Array__UInt32Array_Impl__subarray(this1 *haxe__io__ArrayBufferViewImpl, begin any, end any) *haxe__io__ArrayBufferViewImpl {
@@ -130,7 +138,7 @@ func haxe__io___UInt32Array__UInt32Array_Impl__subarray(this1 *haxe__io__ArrayBu
 		hx_if_14 = int(int32((hxrt.Int32Wrap(end.(int)) << uint(2))))
 	}
 	var scaledEnd any = hx_if_14
-	return haxe__io___UInt32Array__UInt32Array_Impl__fromData(this1.subarray(scaledBegin, scaledEnd))
+	return haxe__io___UInt32Array__UInt32Array_Impl__fromData(this1.__hx_this.subarray(scaledBegin, scaledEnd))
 }
 
 var haxe__io___UInt32Array__UInt32Array_Impl__view *haxe__io__ArrayBufferViewImpl

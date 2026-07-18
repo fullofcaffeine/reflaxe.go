@@ -231,17 +231,17 @@ func (self *haxe__ds__List) filter(predicate func(any) bool) *haxe__ds__List {
 			return hx_zero_97
 		}
 		return hx_value_96.(*haxe__ds___List__GoListIterator)
-	}(self.iterator())
+	}(self.__hx_this.iterator())
 	for func(hx_value_98 any) bool {
 		if hx_value_98 == nil {
 			var hx_zero_99 bool
 			return hx_zero_99
 		}
 		return hx_value_98.(bool)
-	}(source.hasNext()) {
-		var item any = source.next()
+	}(source.__hx_this.hasNext()) {
+		var item any = source.__hx_this.next()
 		if predicate(item) {
-			filtered.add(item)
+			filtered.__hx_this.add(item)
 		}
 	}
 	return filtered
@@ -255,18 +255,22 @@ func (self *haxe__ds__List) map_(transform func(any) any) *haxe__ds__List {
 			return hx_zero_101
 		}
 		return hx_value_100.(*haxe__ds___List__GoListIterator)
-	}(self.iterator())
+	}(self.__hx_this.iterator())
 	for func(hx_value_102 any) bool {
 		if hx_value_102 == nil {
 			var hx_zero_103 bool
 			return hx_zero_103
 		}
 		return hx_value_102.(bool)
-	}(source.hasNext()) {
-		var item any = source.next()
-		mapped.add(transform(item))
+	}(source.__hx_this.hasNext()) {
+		var item any = source.__hx_this.next()
+		mapped.__hx_this.add(transform(item))
 	}
 	return mapped
+}
+
+func (self *haxe__ds__List) String() string {
+	return *self.__hx_this.toString()
 }
 
 func haxe__ds__List_sameValue(left any, right any) bool {

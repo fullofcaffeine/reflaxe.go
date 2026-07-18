@@ -17,17 +17,17 @@ func main() {
 	defer hxrt.ThreadWaitForAll()
 	mainThread := sys__thread__Thread_current()
 	worker := sys__thread__Thread_create(func() {
-		mainThread.sendMessage(hxrt.StringFromLiteral("worker-ready"))
+		mainThread.__hx_this.sendMessage(hxrt.StringFromLiteral("worker-ready"))
 		var payload any = sys__thread__Thread_readMessage(true)
-		mainThread.sendMessage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("worker-echo="), hxrt.StdString(payload)))
+		mainThread.__hx_this.sendMessage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("worker-echo="), hxrt.StdString(payload)))
 	})
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.msg1="), hxrt.StdString(sys__thread__Thread_readMessage(true))))
 	hxrt.Println(v)
-	worker.sendMessage(hxrt.StringFromLiteral("ping"))
+	worker.__hx_this.sendMessage(hxrt.StringFromLiteral("ping"))
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.msg2="), hxrt.StdString(sys__thread__Thread_readMessage(true))))
 	hxrt.Println(v_1)
 	hxrt.TryCatch(func() {
-		worker.get_events().progress()
+		worker.__hx_this.get_events().__hx_this.progress()
 		hxrt.Println(any(hxrt.StringFromLiteral("thread.worker_events=available")))
 	}, func(hx_caught_1 any) {
 		switch hx_typed_2 := hx_caught_1.(type) {
@@ -40,62 +40,62 @@ func main() {
 		}
 	})
 	runLoop := New_sys__thread__EventLoop()
-	runLoop.run(func() {
+	runLoop.__hx_this.run(func() {
 		hxrt.Println(any(hxrt.StringFromLiteral("loop.run=once")))
 	})
-	runLoop.loop()
+	runLoop.__hx_this.loop()
 	hxrt.Println(any(hxrt.StringFromLiteral("loop.loop_after=done")))
 	promisedLoop := New_sys__thread__EventLoop()
-	promisedLoop.promise()
-	promisedLoop.runPromised(func() {
+	promisedLoop.__hx_this.promise()
+	promisedLoop.__hx_this.runPromised(func() {
 		hxrt.Println(any(hxrt.StringFromLiteral("loop.runPromised=ok")))
 	})
-	promisedLoop.loop()
+	promisedLoop.__hx_this.loop()
 	hxrt.Println(any(hxrt.StringFromLiteral("loop.promised_after=done")))
 	loop := New_sys__thread__EventLoop()
 	repeats := 0
 	var handler any = any(0)
-	handler = loop.repeat(func() {
+	handler = loop.__hx_this.repeat(func() {
 		repeats = int(int32((repeats + 1)))
 		hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("loop.repeat="), repeats)))
-		loop.cancel(handler)
+		loop.__hx_this.cancel(handler)
 	}, 10)
-	loop.loop()
+	loop.__hx_this.loop()
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("loop.repeat_after="), repeats)))
 	sys__thread__Thread_create(func() {
 		sys__thread__Thread_runWithEventLoop(func() {
-			sys__thread__Thread_current().get_events().promise()
-			sys__thread__Thread_current().get_events().runPromised(func() {
-				mainThread.sendMessage(hxrt.StringFromLiteral("runWithEventLoop=ok"))
+			sys__thread__Thread_current().__hx_this.get_events().__hx_this.promise()
+			sys__thread__Thread_current().__hx_this.get_events().__hx_this.runPromised(func() {
+				mainThread.__hx_this.sendMessage(hxrt.StringFromLiteral("runWithEventLoop=ok"))
 			})
 		})
-		mainThread.sendMessage(hxrt.StringFromLiteral("runWithEventLoop=after"))
+		mainThread.__hx_this.sendMessage(hxrt.StringFromLiteral("runWithEventLoop=after"))
 	})
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.runWithEventLoop="), sortedMessages(2)))
 	hxrt.Println(v_3)
 	sys__thread__Thread_createWithEventLoop(func() {
-		sys__thread__Thread_current().get_events().promise()
-		sys__thread__Thread_current().get_events().runPromised(func() {
-			mainThread.sendMessage(hxrt.StringFromLiteral("createWithEventLoop=ok"))
+		sys__thread__Thread_current().__hx_this.get_events().__hx_this.promise()
+		sys__thread__Thread_current().__hx_this.get_events().__hx_this.runPromised(func() {
+			mainThread.__hx_this.sendMessage(hxrt.StringFromLiteral("createWithEventLoop=ok"))
 		})
-		mainThread.sendMessage(hxrt.StringFromLiteral("createWithEventLoop=after-job"))
+		mainThread.__hx_this.sendMessage(hxrt.StringFromLiteral("createWithEventLoop=after-job"))
 	})
 	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.createWithEventLoop="), sortedMessages(2)))
 	hxrt.Println(v_4)
 	fixed := New_sys__thread__FixedThreadPool(2)
-	fixed.run(func() {
-		mainThread.sendMessage(hxrt.StringFromLiteral("fixed:b"))
+	fixed.__hx_this.run(func() {
+		mainThread.__hx_this.sendMessage(hxrt.StringFromLiteral("fixed:b"))
 	})
-	fixed.run(func() {
-		mainThread.sendMessage(hxrt.StringFromLiteral("fixed:a"))
+	fixed.__hx_this.run(func() {
+		mainThread.__hx_this.sendMessage(hxrt.StringFromLiteral("fixed:a"))
 	})
 	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fixed.msgs="), sortedMessages(2)))
 	hxrt.Println(v_5)
-	fixed.shutdown()
-	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fixed.shutdown="), hxrt.StdString(fixed.get_isShutdown())))
+	fixed.__hx_this.shutdown()
+	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fixed.shutdown="), hxrt.StdString(fixed.__hx_this.get_isShutdown())))
 	hxrt.Println(v_6)
 	hxrt.TryCatch(func() {
-		fixed.run(func() {
+		fixed.__hx_this.run(func() {
 		})
 	}, func(hx_caught_3 any) {
 		switch hx_typed_4 := hx_caught_3.(type) {
@@ -108,19 +108,19 @@ func main() {
 		}
 	})
 	elastic := New_sys__thread__ElasticThreadPool(2, 0.05)
-	elastic.run(func() {
-		mainThread.sendMessage(hxrt.StringFromLiteral("elastic:a"))
+	elastic.__hx_this.run(func() {
+		mainThread.__hx_this.sendMessage(hxrt.StringFromLiteral("elastic:a"))
 	})
-	elastic.run(func() {
-		mainThread.sendMessage(hxrt.StringFromLiteral("elastic:b"))
+	elastic.__hx_this.run(func() {
+		mainThread.__hx_this.sendMessage(hxrt.StringFromLiteral("elastic:b"))
 	})
 	var v_8 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("elastic.msgs="), sortedMessages(2)))
 	hxrt.Println(v_8)
-	elastic.shutdown()
-	var v_9 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("elastic.shutdown="), hxrt.StdString(elastic.get_isShutdown())))
+	elastic.__hx_this.shutdown()
+	var v_9 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("elastic.shutdown="), hxrt.StdString(elastic.__hx_this.get_isShutdown())))
 	hxrt.Println(v_9)
 	hxrt.TryCatch(func() {
-		elastic.run(func() {
+		elastic.__hx_this.run(func() {
 		})
 	}, func(hx_caught_5 any) {
 		switch hx_typed_6 := hx_caught_5.(type) {
@@ -187,500 +187,6 @@ func sortedMessages(count int) *string {
 		buf_b = hxrt.StringConcatStringPtr(buf_b, hxrt.StdString(value))
 	}
 	return buf_b
-}
-
-type haxe__io__Encoding struct {
-	tag int
-}
-
-type haxe__io__Input interface {
-	get_bigEndian() bool
-	set_bigEndian(e bool) bool
-	readByte() int
-	readBytes(buf *haxe__io__Bytes, pos int, len int) int
-	close()
-}
-
-type haxe__io__Output interface {
-	get_bigEndian() bool
-	set_bigEndian(e bool) bool
-	writeByte(c int)
-	writeBytes(s *haxe__io__Bytes, pos int, len int) int
-	flush()
-	close()
-}
-
-type haxe__io__Eof struct {
-}
-
-type haxe__io__Error struct {
-	tag    int
-	params []any
-}
-
-type haxe__io__Bytes struct {
-	b             []int
-	length        int
-	__hx_raw      []byte
-	__hx_rawValid bool
-}
-
-type haxe__io__BytesBuffer struct {
-	b []int
-}
-
-type haxe__io__BytesInput struct {
-	bigEndian bool
-	b         []int
-	pos       int
-	len       int
-	totlen    int
-}
-
-type haxe__io__BytesOutput struct {
-	bigEndian bool
-	b         *haxe__io__BytesBuffer
-}
-
-func New_haxe__io__Input() haxe__io__Input {
-	return New_haxe__io__BytesInput(&haxe__io__Bytes{b: []int{}, length: 0})
-}
-
-func New_haxe__io__Output() haxe__io__Output {
-	return New_haxe__io__BytesOutput()
-}
-
-func New_haxe__io__Eof() *haxe__io__Eof {
-	return &haxe__io__Eof{}
-}
-
-var haxe__io__Encoding_UTF8 *haxe__io__Encoding = &haxe__io__Encoding{tag: 0}
-
-var haxe__io__Encoding_RawNative *haxe__io__Encoding = &haxe__io__Encoding{tag: 1}
-
-func (self *haxe__io__Encoding) String() string {
-	if self == nil {
-		return "null"
-	}
-	switch self.tag {
-	case 0:
-		return "UTF8"
-	case 1:
-		return "RawNative"
-	default:
-		return "Encoding"
-	}
-}
-
-func (self *haxe__io__Encoding) toString() *string {
-	return hxrt.StringFromLiteral(self.String())
-}
-
-func haxe__io__resolveEncodingTag(encoding ...*haxe__io__Encoding) int {
-	if len(encoding) == 0 || encoding[0] == nil {
-		return 0
-	}
-	return encoding[0].tag
-}
-
-func haxe__io__bytes_fromStringRawNativeUTF16LE(value *string) *haxe__io__Bytes {
-	raw := []byte(*hxrt.StdString(value))
-	converted := make([]int, len(raw))
-	for i := 0; i < len(raw); i++ {
-		converted[i] = int(raw[i])
-	}
-	return &haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: raw, __hx_rawValid: true}
-}
-
-func haxe__io__bytes_toStringRawNativeUTF16LE(value []int) *string {
-	return hxrt.BytesToString(value)
-}
-
-func (self *haxe__io__Eof) toString() *string {
-	return hxrt.StringFromLiteral("Eof")
-}
-
-var haxe__io__Error_Blocked *haxe__io__Error = &haxe__io__Error{tag: 0}
-
-var haxe__io__Error_Overflow *haxe__io__Error = &haxe__io__Error{tag: 1}
-
-var haxe__io__Error_OutsideBounds *haxe__io__Error = &haxe__io__Error{tag: 2}
-
-func haxe__io__Error_Custom(e any) *haxe__io__Error {
-	return &haxe__io__Error{tag: 3, params: []any{e}}
-}
-
-func (self *haxe__io__Error) String() string {
-	if self == nil {
-		return "null"
-	}
-	switch self.tag {
-	case 0:
-		return "Blocked"
-	case 1:
-		return "Overflow"
-	case 2:
-		return "OutsideBounds"
-	case 3:
-		if len(self.params) == 0 {
-			return "Custom(null)"
-		}
-		return "Custom(" + *hxrt.StdString(self.params[0]) + ")"
-	default:
-		return "Error"
-	}
-}
-
-func (self *haxe__io__Error) toString() *string {
-	return hxrt.StringFromLiteral(self.String())
-}
-
-func New_haxe__io__Bytes(length int, b []int) *haxe__io__Bytes {
-	if b == nil {
-		b = make([]int, length)
-	}
-	return &haxe__io__Bytes{b: b, length: len(b)}
-}
-
-func haxe__io__Bytes_alloc(length int) *haxe__io__Bytes {
-	return &haxe__io__Bytes{b: make([]int, length), length: length}
-}
-
-func haxe__io__Bytes_ofString(value *string, encoding ...*haxe__io__Encoding) *haxe__io__Bytes {
-	if haxe__io__resolveEncodingTag(encoding...) == 1 {
-		return haxe__io__bytes_fromStringRawNativeUTF16LE(value)
-	}
-	raw := []byte(*hxrt.StdString(value))
-	converted := make([]int, len(raw))
-	for i := 0; i < len(raw); i++ {
-		converted[i] = int(raw[i])
-	}
-	return &haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: raw, __hx_rawValid: true}
-}
-
-func haxe__io__Bytes_ofData(b []int) *haxe__io__Bytes {
-	if b == nil {
-		return &haxe__io__Bytes{b: []int{}, length: 0}
-	}
-	return &haxe__io__Bytes{b: b, length: len(b)}
-}
-
-func haxe__io__Bytes_ofHex(s *string) *haxe__io__Bytes {
-	decoded := hxrt.BytesOfHex(s)
-	return &haxe__io__Bytes{b: decoded, length: len(decoded)}
-}
-
-func (self *haxe__io__Bytes) toString() *string {
-	if self == nil {
-		return hxrt.StringFromLiteral("")
-	}
-	return hxrt.BytesToString(self.b)
-}
-
-func (self *haxe__io__Bytes) toHex() *string {
-	if self == nil || self.length == 0 {
-		return hxrt.StringFromLiteral("")
-	}
-	return hxrt.BytesToHex(self.b, self.length)
-}
-
-func (self *haxe__io__Bytes) getData() []int {
-	if self == nil {
-		return []int{}
-	}
-	return self.b
-}
-
-func (self *haxe__io__Bytes) getString(pos int, len int, encoding ...*haxe__io__Encoding) *string {
-	if self == nil || pos < 0 || len < 0 || pos+len > self.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return hxrt.StringFromLiteral("")
-	}
-	slice := self.b[pos : pos+len]
-	if haxe__io__resolveEncodingTag(encoding...) == 1 {
-		return haxe__io__bytes_toStringRawNativeUTF16LE(slice)
-	}
-	return hxrt.BytesToString(slice)
-}
-
-func (self *haxe__io__Bytes) readString(pos int, len int) *string {
-	return self.getString(pos, len)
-}
-
-func (self *haxe__io__Bytes) get(pos int) int {
-	return self.b[pos]
-}
-
-func (self *haxe__io__Bytes) set(pos int, value int) {
-	self.b[pos] = value
-	self.__hx_rawValid = false
-}
-
-func (self *haxe__io__Bytes) blit(pos int, src *haxe__io__Bytes, srcpos int, len int) {
-	if self == nil || src == nil || pos < 0 || srcpos < 0 || len < 0 || pos+len > self.length || srcpos+len > src.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return
-	}
-	if len == 0 {
-		return
-	}
-	if self == src && pos > srcpos {
-		for i := len - 1; i >= 0; i-- {
-			self.b[pos+i] = src.b[srcpos+i]
-		}
-	} else {
-		for i := 0; i < len; i++ {
-			self.b[pos+i] = src.b[srcpos+i]
-		}
-	}
-	self.__hx_rawValid = false
-}
-
-func (self *haxe__io__Bytes) fill(pos int, len int, value int) {
-	if self == nil || pos < 0 || len < 0 || pos+len > self.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return
-	}
-	masked := value & 255
-	for i := 0; i < len; i++ {
-		self.b[pos+i] = masked
-	}
-	self.__hx_rawValid = false
-}
-
-func (self *haxe__io__Bytes) sub(pos int, len int) *haxe__io__Bytes {
-	if self == nil || pos < 0 || len < 0 || pos+len > self.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return &haxe__io__Bytes{b: []int{}, length: 0}
-	}
-	if len == 0 {
-		return &haxe__io__Bytes{b: []int{}, length: 0}
-	}
-	copied := make([]int, len)
-	copy(copied, self.b[pos:pos+len])
-	return &haxe__io__Bytes{b: copied, length: len}
-}
-
-func (self *haxe__io__Bytes) compare(other *haxe__io__Bytes) int {
-	if self == nil && other == nil {
-		return 0
-	}
-	if self == nil {
-		return -1
-	}
-	if other == nil {
-		return 1
-	}
-	limit := self.length
-	if other.length < limit {
-		limit = other.length
-	}
-	for i := 0; i < limit; i++ {
-		if self.b[i] < other.b[i] {
-			return -1
-		}
-		if self.b[i] > other.b[i] {
-			return 1
-		}
-	}
-	if self.length < other.length {
-		return -1
-	}
-	if self.length > other.length {
-		return 1
-	}
-	return 0
-}
-
-func New_haxe__io__BytesBuffer() *haxe__io__BytesBuffer {
-	return &haxe__io__BytesBuffer{b: []int{}}
-}
-
-func (self *haxe__io__BytesBuffer) addByte(value int) {
-	self.b = hxrt.BytesBufferAddByte(self.b, value)
-}
-
-func (self *haxe__io__BytesBuffer) add(src *haxe__io__Bytes) {
-	if src == nil {
-		return
-	}
-	self.b = hxrt.BytesBufferAdd(self.b, src.b)
-}
-
-func (self *haxe__io__BytesBuffer) addBytes(src *haxe__io__Bytes, pos int, len int) {
-	if src == nil || pos < 0 || len < 0 || pos+len > src.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return
-	}
-	if len == 0 {
-		return
-	}
-	self.b = hxrt.BytesBufferAddSlice(self.b, src.b, pos, len)
-}
-
-func (self *haxe__io__BytesBuffer) addString(value *string, encoding ...*haxe__io__Encoding) {
-	self.add(haxe__io__Bytes_ofString(value))
-}
-
-func (self *haxe__io__BytesBuffer) getBytes() *haxe__io__Bytes {
-	copied := hxrt.BytesClone(self.b)
-	return &haxe__io__Bytes{b: copied, length: len(copied)}
-}
-
-func (self *haxe__io__BytesBuffer) get_length() int {
-	return hxrt.BytesBufferLength(self.b)
-}
-
-func New_haxe__io__BytesInput(b *haxe__io__Bytes, opts ...int) *haxe__io__BytesInput {
-	if b == nil {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return &haxe__io__BytesInput{}
-	}
-	start := 0
-	if len(opts) > 0 {
-		start = opts[0]
-	}
-	sliceLen := (b.length - start)
-	if len(opts) > 1 {
-		sliceLen = opts[1]
-	}
-	if start < 0 || sliceLen < 0 || start+sliceLen > b.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return &haxe__io__BytesInput{}
-	}
-	return &haxe__io__BytesInput{b: b.b, pos: start, len: sliceLen, totlen: sliceLen}
-}
-
-func (self *haxe__io__BytesInput) get_position() int {
-	return self.pos
-}
-
-func (self *haxe__io__BytesInput) set_position(p int) int {
-	if p < 0 {
-		p = 0
-	} else {
-		if p > self.totlen {
-			p = self.totlen
-		}
-	}
-	self.len = (self.totlen - p)
-	self.pos = p
-	return p
-}
-
-func (self *haxe__io__BytesInput) get_length() int {
-	return self.totlen
-}
-
-func (self *haxe__io__BytesInput) readByte() int {
-	if self == nil || self.len == 0 {
-		hxrt.Throw(&haxe__io__Eof{})
-		return 0
-	}
-	self.len = (self.len - 1)
-	value := self.b[self.pos]
-	self.pos = (self.pos + 1)
-	return value
-}
-
-func (self *haxe__io__BytesInput) readBytes(buf *haxe__io__Bytes, pos int, len int) int {
-	if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return 0
-	}
-	if len > 0 && (self == nil || self.len == 0) {
-		hxrt.Throw(&haxe__io__Eof{})
-		return 0
-	}
-	if self == nil {
-		return 0
-	}
-	if self.len < len {
-		len = self.len
-	}
-	for i := 0; i < len; i++ {
-		buf.b[pos+i] = self.b[self.pos+i]
-	}
-	self.pos += len
-	self.len -= len
-	return len
-}
-
-func (self *haxe__io__BytesInput) get_bigEndian() bool {
-	if self == nil {
-		return false
-	}
-	return self.bigEndian
-}
-
-func (self *haxe__io__BytesInput) set_bigEndian(e bool) bool {
-	if self != nil {
-		self.bigEndian = e
-	}
-	return e
-}
-
-func (self *haxe__io__BytesInput) close() {
-	_ = self
-}
-
-func New_haxe__io__BytesOutput() *haxe__io__BytesOutput {
-	return &haxe__io__BytesOutput{b: &haxe__io__BytesBuffer{b: []int{}}}
-}
-
-func (self *haxe__io__BytesOutput) get_length() int {
-	if self == nil || self.b == nil {
-		return 0
-	}
-	return self.b.get_length()
-}
-
-func (self *haxe__io__BytesOutput) writeByte(c int) {
-	if self == nil || self.b == nil {
-		return
-	}
-	self.b.addByte(c)
-}
-
-func (self *haxe__io__BytesOutput) writeBytes(buf *haxe__io__Bytes, pos int, len int) int {
-	if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return 0
-	}
-	if self == nil || self.b == nil {
-		return 0
-	}
-	self.b.addBytes(buf, pos, len)
-	return len
-}
-
-func (self *haxe__io__BytesOutput) get_bigEndian() bool {
-	if self == nil {
-		return false
-	}
-	return self.bigEndian
-}
-
-func (self *haxe__io__BytesOutput) set_bigEndian(e bool) bool {
-	if self != nil {
-		self.bigEndian = e
-	}
-	return e
-}
-
-func (self *haxe__io__BytesOutput) flush() {
-	_ = self
-}
-
-func (self *haxe__io__BytesOutput) close() {
-	_ = self
-}
-
-func (self *haxe__io__BytesOutput) getBytes() *haxe__io__Bytes {
-	if self == nil || self.b == nil {
-		return &haxe__io__Bytes{b: []int{}, length: 0}
-	}
-	return self.b.getBytes()
 }
 
 type Std struct {
@@ -915,30 +421,6 @@ func Reflect_setField(obj any, field *string, value any) {
 	if fieldValue.Kind() == reflect.Interface {
 		fieldValue.Set(incoming)
 	}
-}
-
-func hxrt_haxeBytesToRaw(value *haxe__io__Bytes) []byte {
-	if value == nil {
-		return []byte{}
-	}
-	if value.__hx_rawValid && len(value.__hx_raw) == len(value.b) {
-		return value.__hx_raw
-	}
-	raw := make([]byte, len(value.b))
-	for i := 0; i < len(value.b); i++ {
-		raw[i] = byte(value.b[i])
-	}
-	value.__hx_raw = raw
-	value.__hx_rawValid = true
-	return raw
-}
-
-func hxrt_rawToHaxeBytes(value []byte) *haxe__io__Bytes {
-	converted := make([]int, len(value))
-	for i := 0; i < len(value); i++ {
-		converted[i] = int(value[i])
-	}
-	return &haxe__io__Bytes{b: converted, length: len(converted), __hx_raw: value, __hx_rawValid: true}
 }
 
 type haxe__ds__Option struct {

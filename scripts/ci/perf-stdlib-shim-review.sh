@@ -130,7 +130,7 @@ import (
   "testing"
 )
 
-var shimBenchBytes = haxe__io__Bytes_ofString(hxrt.StringFromLiteral("bench-payload-0123456789abcdef"))
+var shimBenchBytes = haxe__io__Bytes_ofString(hxrt.StringFromLiteral("bench-payload-0123456789abcdef"), nil)
 
 func BenchmarkShimBase64Encode(b *testing.B) {
   b.ReportAllocs()
@@ -231,15 +231,16 @@ PY
 }
 
 staged_base64="$haxe_out/module_haxe_crypto_base64.go"
+staged_bytes="$haxe_out/module_haxe_io_bytes.go"
 staged_crypto_runtime="$haxe_out/hxrt/crypto.go"
 direct_file="$work_dir/direct/base64_test.go"
 loc_staged_encode="$(func_loc "$staged_base64" "haxe__crypto__Base64_encode")"
-loc_staged_to_values="$(func_loc "$staged_base64" "haxe__crypto__Base64_toValues")"
 loc_staged_add_padding="$(func_loc "$staged_base64" "haxe__crypto__Base64_addPadding")"
+loc_staged_native_view="$(func_loc "$staged_bytes" "__hx_nativeView")"
 loc_runtime_encode="$(func_loc "$staged_crypto_runtime" "CryptoBase64Encode")"
-loc_runtime_to_bytes="$(func_loc "$staged_crypto_runtime" "cryptoValuesToBytes")"
+loc_runtime_view_raw="$(func_loc "$staged_crypto_runtime" "byteViewRaw")"
 loc_direct_encode="$(func_loc "$direct_file" "directBase64Encode")"
-loc_staged_path="$((loc_staged_encode + loc_staged_to_values + loc_staged_add_padding + loc_runtime_encode + loc_runtime_to_bytes))"
+loc_staged_path="$((loc_staged_encode + loc_staged_add_padding + loc_staged_native_view + loc_runtime_encode + loc_runtime_view_raw))"
 
 shim_overhead_ns_pct="$(awk -v shim="$shim_ns" -v direct="$direct_ns" 'BEGIN { printf "%.2f", ((shim / direct) - 1.0) * 100.0 }')"
 shim_overhead_bytes="$(awk -v shim="$shim_bytes" -v direct="$direct_bytes" 'BEGIN { printf "%d", shim - direct }')"
@@ -265,10 +266,10 @@ cat > "$report_json" <<JSON
     "allocsPerOp": $shim_allocs,
     "codeShapeLoc": {
       "haxe__crypto__Base64_encode": $loc_staged_encode,
-      "haxe__crypto__Base64_toValues": $loc_staged_to_values,
       "haxe__crypto__Base64_addPadding": $loc_staged_add_padding,
+      "haxe__io__Bytes.__hx_nativeView": $loc_staged_native_view,
       "hxrt.CryptoBase64Encode": $loc_runtime_encode,
-      "hxrt.cryptoValuesToBytes": $loc_runtime_to_bytes,
+      "hxrt.byteViewRaw": $loc_runtime_view_raw,
       "totalPathLoc": $loc_staged_path
     }
   },
@@ -309,10 +310,10 @@ cat > "$report_md" <<MD
 | Function path | LOC |
 | --- | ---: |
 | \`haxe__crypto__Base64_encode\` | $loc_staged_encode |
-| \`haxe__crypto__Base64_toValues\` | $loc_staged_to_values |
 | \`haxe__crypto__Base64_addPadding\` | $loc_staged_add_padding |
+| \`haxe__io__Bytes.__hx_nativeView\` | $loc_staged_native_view |
 | \`hxrt.CryptoBase64Encode\` | $loc_runtime_encode |
-| \`hxrt.cryptoValuesToBytes\` | $loc_runtime_to_bytes |
+| \`hxrt.byteViewRaw\` | $loc_runtime_view_raw |
 | Staged call-path total | $loc_staged_path |
 | \`directBase64Encode\` | $loc_direct_encode |
 MD

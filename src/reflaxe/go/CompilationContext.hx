@@ -64,7 +64,6 @@ class CompilationContext {
 	public var inferredHxrtFeatureReasons:Array<GoHxrtFeatureReason>;
 	public var selectedHxrtFeatures:Array<String>;
 	public var requiredStdlibShimGroups:Array<String>;
-	public var requiresIoHelperSurface:Bool;
 	public var nativeFallbackEvents:Array<NativeFallbackEvent>;
 	public var loweringDecisionLedger:Array<LoweringDecisionLedgerEntry>;
 	public var appliedGoAstPassNames:Array<String>;
@@ -96,7 +95,6 @@ class CompilationContext {
 		this.inferredHxrtFeatureReasons = [];
 		this.selectedHxrtFeatures = [];
 		this.requiredStdlibShimGroups = [];
-		this.requiresIoHelperSurface = false;
 		this.nativeFallbackEvents = [];
 		this.loweringDecisionLedger = [];
 		this.appliedGoAstPassNames = [];

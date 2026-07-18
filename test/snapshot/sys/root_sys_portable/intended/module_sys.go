@@ -6,43 +6,43 @@ type Sys struct {
 }
 
 func Sys_args() *hxrt.Array {
-	return hxrt.ArrayFromValues(func(hx_sort_src_10 []*string) []any {
-		hx_sort_out_12 := make([]any, 0, len(hx_sort_src_10))
-		for _, hx_sort_item_11 := range hx_sort_src_10 {
-			hx_sort_out_12 = append(hx_sort_out_12, hx_sort_item_11)
+	return hxrt.ArrayFromValues(func(hx_sort_src_32 []*string) []any {
+		hx_sort_out_34 := make([]any, 0, len(hx_sort_src_32))
+		for _, hx_sort_item_33 := range hx_sort_src_32 {
+			hx_sort_out_34 = append(hx_sort_out_34, hx_sort_item_33)
 		}
-		return hx_sort_out_12
+		return hx_sort_out_34
 	}(hxrt.SysArgs()))
 }
 
 func Sys_command(cmd *string, args *hxrt.Array) int {
 	return hxrt.SysCommand(cmd, func() []*string {
-		var hx_if_18 []*string
+		var hx_if_40 []*string
 		if args == nil {
-			hx_if_18 = nil
+			hx_if_40 = nil
 		} else {
-			hx_if_18 = func(hx_lambda_raw_13 []any) []*string {
-				hx_lambda_out_14 := make([]*string, 0, len(hx_lambda_raw_13))
-				for _, hx_lambda_item_15 := range hx_lambda_raw_13 {
-					hx_lambda_out_14 = append(hx_lambda_out_14, func(hx_value_16 any) *string {
-						if hx_value_16 == nil {
-							var hx_zero_17 *string
-							return hx_zero_17
+			hx_if_40 = func(hx_lambda_raw_35 []any) []*string {
+				hx_lambda_out_36 := make([]*string, 0, len(hx_lambda_raw_35))
+				for _, hx_lambda_item_37 := range hx_lambda_raw_35 {
+					hx_lambda_out_36 = append(hx_lambda_out_36, func(hx_value_38 any) *string {
+						if hx_value_38 == nil {
+							var hx_zero_39 *string
+							return hx_zero_39
 						}
-						return hx_value_16.(*string)
-					}(hx_lambda_item_15))
+						return hx_value_38.(*string)
+					}(hx_lambda_item_37))
 				}
-				return hx_lambda_out_14
+				return hx_lambda_out_36
 			}(args.Values())
 		}
-		return hx_if_18
+		return hx_if_40
 	}())
 }
 
 func Sys_cpuTime() float64 {
 	hxrt.Throw(hxrt.StringFromLiteral("Sys.cpuTime is unsupported on haxe.go: process CPU time is not implemented"))
-	var hx_throw_zero_19 float64
-	return hx_throw_zero_19
+	var hx_throw_zero_41 float64
+	return hx_throw_zero_41
 }
 
 func Sys_environment() *haxe__ds__StringMap {
@@ -52,7 +52,7 @@ func Sys_environment() *haxe__ds__StringMap {
 	for _g < len(_g1) {
 		entry := _g1[_g]
 		_g = int(int32((_g + 1)))
-		environment.set(entry.Key, entry.Value)
+		environment.__hx_this.set(entry.Key, entry.Value)
 	}
 	return environment
 }
@@ -71,7 +71,7 @@ func Sys_getChar(echo bool) int {
 		hxrt.Throw(New_haxe__io__Eof())
 	}
 	if echo {
-		New_sys__io__FileOutput(hxrt.SysStdout()).writeByte(value)
+		New_sys__io__FileOutput(hxrt.SysStdout()).__hx_this.writeByte(value)
 	}
 	return value
 }
@@ -114,16 +114,16 @@ func Sys_sleep(seconds float64) {
 	hxrt.SysSleep(seconds)
 }
 
-func Sys_stderr() haxe__io__Output {
-	return New_sys__io__FileOutput(hxrt.SysStderr())
+func Sys_stderr() *haxe__io__Output {
+	return New_sys__io__FileOutput(hxrt.SysStderr()).haxe__io__Output
 }
 
-func Sys_stdin() haxe__io__Input {
-	return New_sys__io__FileInput(hxrt.SysStdin())
+func Sys_stdin() *haxe__io__Input {
+	return New_sys__io__FileInput(hxrt.SysStdin()).haxe__io__Input
 }
 
-func Sys_stdout() haxe__io__Output {
-	return New_sys__io__FileOutput(hxrt.SysStdout())
+func Sys_stdout() *haxe__io__Output {
+	return New_sys__io__FileOutput(hxrt.SysStdout()).haxe__io__Output
 }
 
 func Sys_systemName() *string {

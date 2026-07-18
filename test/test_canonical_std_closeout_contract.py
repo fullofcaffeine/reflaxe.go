@@ -25,16 +25,16 @@ RELEASE_RUNNER_PATH = ROOT / "test" / "run-release-contracts.py"
 
 
 EXPECTED_INVENTORY = {
-    "canonicalOverrideSources": 92,
-    "ledgerEntries": 167,
+    "canonicalOverrideSources": 103,
+    "ledgerEntries": 180,
     "ownershipClasses": {
-        "hxrt_binding": 63,
+        "hxrt_binding": 66,
         "public_go_facade": 5,
-        "staged_support": 7,
-        "upstream_std_override": 92,
+        "staged_support": 6,
+        "upstream_std_override": 103,
     },
-    "packagedArchiveMembers": 365,
-    "packagedManifestEntries": 364,
+    "packagedArchiveMembers": 378,
+    "packagedManifestEntries": 377,
     "trackedCrossHxFiles": 0,
 }
 

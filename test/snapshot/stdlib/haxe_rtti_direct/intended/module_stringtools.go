@@ -266,7 +266,7 @@ func StringTools_urlDecode(s *string) *string {
 				continue
 			}
 		}
-		chunk := haxe__io__Bytes_ofString(hxrt.StringCharAtStringPtr(input, index))
+		chunk := haxe__io__Bytes_ofString(hxrt.StringCharAtStringPtr(input, index), nil)
 		_g := 0
 		_g1 := chunk.length
 		for _g < _g1 {
@@ -285,12 +285,13 @@ func StringTools_urlDecode(s *string) *string {
 		_g_1 = int(int32((_g_1 + 1)))
 		byteIndex := hx_post_889
 		out.b[byteIndex] = int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(bytes.Get(byteIndex))) & hxrt.Int32Wrap(255))))
+		out.__hx_rawValid = false
 	}
-	return out.toString()
+	return out.__hx_this.toString()
 }
 
 func StringTools_urlEncode(s *string) *string {
-	bytes := haxe__io__Bytes_ofString(s)
+	bytes := haxe__io__Bytes_ofString(s, nil)
 	var out_b *string
 	out_b = hxrt.StringFromLiteral("")
 	ascii := haxe__io__Bytes_alloc(1)
@@ -304,7 +305,8 @@ func StringTools_urlEncode(s *string) *string {
 		isUnreserved := ((((((((b >= 65) && (b <= 90)) || ((b >= 97) && (b <= 122))) || ((b >= 48) && (b <= 57))) || (b == 45)) || (b == 95)) || (b == 46)) || (b == 126))
 		if isUnreserved {
 			ascii.b[0] = int(int32((hxrt.Int32Wrap(b) & hxrt.Int32Wrap(255))))
-			x := ascii.toString()
+			ascii.__hx_rawValid = false
+			x := ascii.__hx_this.toString()
 			out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x))
 		} else {
 			if b == 32 {

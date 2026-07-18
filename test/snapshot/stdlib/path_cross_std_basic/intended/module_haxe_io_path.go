@@ -76,6 +76,10 @@ func (self *haxe__io__Path) toString() *string {
 	}())
 }
 
+func (self *haxe__io__Path) String() string {
+	return *self.__hx_this.toString()
+}
+
 func haxe__io__Path_addTrailingSlash(path *string) *string {
 	if hxrt.StringLengthStringPtr(path) == 0 {
 		return hxrt.StringFromLiteral("/")
@@ -291,17 +295,17 @@ hx_loop_26:
 func haxe__io__Path_withExtension(path *string, ext *string) *string {
 	s := New_haxe__io__Path(path)
 	s.ext = ext
-	return s.toString()
+	return s.__hx_this.toString()
 }
 
 func haxe__io__Path_withoutDirectory(path *string) *string {
 	s := New_haxe__io__Path(path)
 	s.dir = nil
-	return s.toString()
+	return s.__hx_this.toString()
 }
 
 func haxe__io__Path_withoutExtension(path *string) *string {
 	s := New_haxe__io__Path(path)
 	s.ext = nil
-	return s.toString()
+	return s.__hx_this.toString()
 }

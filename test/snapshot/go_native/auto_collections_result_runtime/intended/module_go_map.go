@@ -21,11 +21,11 @@ func New_go___Map() *go___Map {
 }
 
 func (self *go___Map) set(key any, value any) {
-	self.inner.set(hxrt.StdString(key), value)
+	self.inner.__hx_this.set(hxrt.StdString(key), value)
 }
 
 func (self *go___Map) get(key any) any {
-	return self.inner.get(hxrt.StdString(key))
+	return self.inner.__hx_this.get(hxrt.StdString(key))
 }
 
 func (self *go___Map) exists(key any) bool {
@@ -35,5 +35,5 @@ func (self *go___Map) exists(key any) bool {
 			return hx_zero_35
 		}
 		return hx_value_34.(bool)
-	}(self.inner.exists(hxrt.StdString(key)))
+	}(self.inner.__hx_this.exists(hxrt.StdString(key)))
 }

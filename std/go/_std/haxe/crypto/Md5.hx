@@ -1,7 +1,6 @@
 package haxe.crypto;
 
 import haxe.io.Bytes;
-import go.NativeSlice;
 import hxrt.crypto.NativeCrypto;
 
 /**
@@ -14,8 +13,8 @@ import hxrt.crypto.NativeCrypto;
 	  does not justify compiler-owned declarations.
 
 	How:
-	- Convert public `Bytes` through typed integer arrays and delegate only MD5
-	  execution to Go's standard runtime implementation.
+	- Reuse `Bytes`' opaque cached byte view and delegate only MD5 execution to
+	  Go's standard runtime implementation.
 **/
 class Md5 {
 	public static function encode(value:String):String {
@@ -23,20 +22,6 @@ class Md5 {
 	}
 
 	public static function make(value:Bytes):Bytes {
-		return fromValues(NativeCrypto.md5Values(toValues(value)));
-	}
-
-	static function toValues(bytes:Bytes):NativeSlice<Int> {
-		var values = new Array<Int>();
-		for (index in 0...bytes.length)
-			values.push(bytes.get(index));
-		return NativeSlice.fromArray(values);
-	}
-
-	static function fromValues(values:NativeSlice<Int>):Bytes {
-		var bytes = Bytes.alloc(values.length);
-		for (index in 0...values.length)
-			bytes.set(index, values[index]);
-		return bytes;
+		return Bytes.__hx_fromNativeView(NativeCrypto.md5Values(value.__hx_nativeView()));
 	}
 }

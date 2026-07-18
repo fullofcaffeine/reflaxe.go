@@ -41,6 +41,7 @@ func haxe__io___UInt8Array__UInt8Array_Impl__fromArray(a *hxrt.Array, pos int, l
 			_this := out.bytes
 			pos_1 := int(int32((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(out.byteOffset))))
 			_this.b[pos_1] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+			_this.__hx_rawValid = false
 		} else {
 			_ = 0
 		}
@@ -82,17 +83,18 @@ func haxe__io___UInt8Array__UInt8Array_Impl__set(this1 *haxe__io__ArrayBufferVie
 		_this := this1.bytes
 		pos := int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(this1.byteOffset))))
 		_this.b[pos] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+		_this.__hx_rawValid = false
 		return value
 	}
 	return 0
 }
 
 func haxe__io___UInt8Array__UInt8Array_Impl__sub(this1 *haxe__io__ArrayBufferViewImpl, begin int, length any) *haxe__io__ArrayBufferViewImpl {
-	return haxe__io___UInt8Array__UInt8Array_Impl__fromData(this1.sub(begin, length))
+	return haxe__io___UInt8Array__UInt8Array_Impl__fromData(this1.__hx_this.sub(begin, length))
 }
 
 func haxe__io___UInt8Array__UInt8Array_Impl__subarray(this1 *haxe__io__ArrayBufferViewImpl, begin any, end any) *haxe__io__ArrayBufferViewImpl {
-	return haxe__io___UInt8Array__UInt8Array_Impl__fromData(this1.subarray(begin, end))
+	return haxe__io___UInt8Array__UInt8Array_Impl__fromData(this1.__hx_this.subarray(begin, end))
 }
 
 var haxe__io___UInt8Array__UInt8Array_Impl__view *haxe__io__ArrayBufferViewImpl

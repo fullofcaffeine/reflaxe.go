@@ -46,7 +46,7 @@ func sys__thread__Thread_current() *sys__thread__Thread {
 func sys__thread__Thread_processEvents() {
 	current := sys__thread__Thread_current()
 	if hxrt.ThreadHasEventLoop(current.__id) {
-		current.get_events().progress()
+		current.__hx_this.get_events().__hx_this.progress()
 	}
 }
 
