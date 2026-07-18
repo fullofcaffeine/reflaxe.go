@@ -278,7 +278,9 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
         self.assertIn(".Get(", main_go)
 
         self.assertIn("public inline function iterator():Iterator<Xml>", xml_source)
-        self.assertGreaterEqual(xml_printer_go.count("value.ensureElementType()"), 3)
+        self.assertGreaterEqual(
+            xml_printer_go.count("value.__hx_this.ensureElementType()"), 3
+        )
         self.assertIn("value.children", xml_printer_go)
         self.assertNotIn("value.iterator()", xml_printer_go)
 
