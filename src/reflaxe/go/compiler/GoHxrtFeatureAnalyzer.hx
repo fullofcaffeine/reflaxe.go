@@ -31,12 +31,14 @@ class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_FILE_IO = "file_io";
 	public static inline final FEATURE_FILESYSTEM = "filesystem";
 	public static inline final FEATURE_PROCESS = "process";
+	public static inline final FEATURE_SOCKET = "socket";
 	public static inline final FEATURE_BYTES = "bytes";
 	public static inline final FEATURE_DATE = "date";
 	public static inline final FEATURE_MATH = "math";
 	public static inline final FEATURE_CRYPTO = "crypto";
 	public static inline final FEATURE_ZIP = "zip";
 	public static inline final FEATURE_SSL = "ssl";
+	public static inline final FEATURE_SOCKET_SSL = "socket_ssl";
 	public static inline final FEATURE_THREAD = "thread";
 	public static inline final FEATURE_STACK = "stack";
 	public static inline final FEATURE_TEMPLATE = "template";
@@ -60,12 +62,14 @@ class GoHxrtFeatureAnalyzer {
 		FEATURE_FILE_IO,
 		FEATURE_FILESYSTEM,
 		FEATURE_PROCESS,
+		FEATURE_SOCKET,
 		FEATURE_BYTES,
 		FEATURE_DATE,
 		FEATURE_MATH,
 		FEATURE_CRYPTO,
 		FEATURE_ZIP,
 		FEATURE_SSL,
+		FEATURE_SOCKET_SSL,
 		FEATURE_THREAD,
 		FEATURE_STACK,
 		FEATURE_TEMPLATE,
@@ -110,6 +114,12 @@ class GoHxrtFeatureAnalyzer {
 
 		for (path in classPaths) {
 			var isProcessSurface = path == "sys.io.Process" || StringTools.startsWith(path, "sys.io._Process.");
+			var isSocketSurface = path == "sys.net.Host"
+				|| path == "sys.net.Socket"
+				|| path == "sys.net.UdpSocket"
+				|| StringTools.startsWith(path, "sys.net._SocketIO.")
+				|| StringTools.startsWith(path, "hxrt.net.");
+			var isSocketSslSurface = path == "sys.ssl.Socket" || path == "sys.ssl._Socket.Socket_Impl_" || path == "hxrt.ssl.NativeSocket";
 			if (path == "haxe.Json" || StringTools.startsWith(path, "haxe.json.")) {
 				add(FEATURE_JSON, "class_usage", path);
 			}
@@ -119,6 +129,12 @@ class GoHxrtFeatureAnalyzer {
 			}
 			if (path == "hxrt.process.NativeProcess") {
 				add(FEATURE_PROCESS, "class_usage", path);
+			}
+			if (isSocketSurface) {
+				add(FEATURE_SOCKET, "class_usage", path);
+			}
+			if (isSocketSslSurface) {
+				add(FEATURE_SOCKET_SSL, "class_usage", path);
 			}
 
 			if (path == "hxrt.sys.NativeSys") {
@@ -136,12 +152,16 @@ class GoHxrtFeatureAnalyzer {
 				add(FEATURE_FILESYSTEM, "class_usage", path);
 			}
 
-			var hasDedicatedRuntimeSlice = isProcessSurface || path == "sys.io.File" || path == "sys.io.FileInput" || path == "sys.io.FileOutput";
+			var hasDedicatedRuntimeSlice = isProcessSurface || isSocketSurface || isSocketSslSurface || path == "sys.io.File" || path == "sys.io.FileInput"
+				|| path == "sys.io.FileOutput";
 			if (!hasDedicatedRuntimeSlice && (path == "sys.FileSystem" || StringTools.startsWith(path, "sys."))) {
 				add(FEATURE_SYS, "class_usage", path);
 			}
 
 			if (StringTools.startsWith(path, "sys.ssl.")) {
+				add(FEATURE_SSL, "class_usage", path);
+			}
+			if (StringTools.startsWith(path, "hxrt.ssl.") && path != "hxrt.ssl.NativeSocket") {
 				add(FEATURE_SSL, "class_usage", path);
 			}
 
@@ -232,7 +252,7 @@ class GoHxrtFeatureAnalyzer {
 			switch (group) {
 				case "io":
 					add(FEATURE_BYTES, "shim_group", group);
-				case "http", "net_socket":
+				case "http":
 					add(FEATURE_SYS, "shim_group", group);
 					add(FEATURE_PROCESS, "shim_group", group);
 				case _:
@@ -334,6 +354,8 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_STRING];
 			case FEATURE_PROCESS:
 				[FEATURE_STRING];
+			case FEATURE_SOCKET:
+				[FEATURE_STRING, FEATURE_EXCEPTION];
 			case FEATURE_BYTES:
 				[FEATURE_CORE];
 			case FEATURE_DATE:
@@ -346,6 +368,8 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_EXCEPTION];
 			case FEATURE_SSL:
 				[FEATURE_STRING, FEATURE_EXCEPTION, FEATURE_BYTES];
+			case FEATURE_SOCKET_SSL:
+				[FEATURE_SOCKET, FEATURE_SSL];
 			case FEATURE_THREAD:
 				[FEATURE_CORE, FEATURE_EXCEPTION];
 			case FEATURE_STACK:
@@ -396,6 +420,13 @@ class GoHxrtFeatureAnalyzer {
 				["filesystem.go"];
 			case FEATURE_PROCESS:
 				["process.go"];
+			case FEATURE_SOCKET:
+				[
+					"socket.go",
+					"socket_broadcast_posix.go",
+					"socket_broadcast_unsupported.go",
+					"socket_broadcast_windows.go"
+				];
 			case FEATURE_BYTES:
 				["bytes.go"];
 			case FEATURE_DATE:
@@ -408,6 +439,8 @@ class GoHxrtFeatureAnalyzer {
 				["zip.go"];
 			case FEATURE_SSL:
 				["ssl.go"];
+			case FEATURE_SOCKET_SSL:
+				["socket_ssl.go"];
 			case FEATURE_THREAD:
 				["thread.go"];
 			case FEATURE_STACK:

@@ -66,7 +66,6 @@ SHIM_CAPABILITIES = {
     "reflectFieldsShimDecl": "reflection",
     "lowerTypeReflectionShimDecls": "reflection",
     "lowerRegexSerializerShimDecls": "regex_serializer",
-    "lowerNetSocketShimDecls": "net_socket",
 }
 
 
@@ -241,8 +240,6 @@ def go_raw_dimensions(file: str, context: str) -> dict[str, str]:
         return {"owner": "compiler_core", "capability": "typed_lowering"}
     if file.endswith("GoRegexSerializerEmitter.hx"):
         return {"owner": "compiler_shim", "capability": "regex_serializer"}
-    if file.endswith("GoNetSocketEmitter.hx"):
-        return {"owner": "compiler_shim", "capability": "net_socket"}
     if file.endswith("GoTypeReflectionEmitter.hx") or file.endswith("GoRttiMetadataEmitter.hx"):
         return {"owner": "compiler_shim", "capability": "reflection"}
     if file.endswith("GoLambdaIterableLowering.hx"):

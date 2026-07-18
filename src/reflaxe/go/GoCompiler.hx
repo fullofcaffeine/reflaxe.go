@@ -25,7 +25,6 @@ import reflaxe.go.compiler.GoTypeMapper;
 import reflaxe.go.compiler.emit.GoTypeReflectionEmitter;
 import reflaxe.go.compiler.emit.GoRttiMetadataEmitter;
 import reflaxe.go.compiler.emit.GoRegexSerializerEmitter;
-import reflaxe.go.compiler.emit.GoNetSocketEmitter;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoFile;
@@ -229,7 +228,6 @@ class GoCompiler {
 	var requiresIoStringInputSurface:Bool;
 	var requiresIoBufferInputSurface:Bool;
 	var requiresIoEofStringSurface:Bool;
-	var requiresUdpSocketSurface:Bool;
 	var requiresReflectFieldsShim:Bool;
 	var projectClasses:Array<ClassType>;
 	var projectEnums:Array<EnumType>;
@@ -285,7 +283,6 @@ class GoCompiler {
 		requiresIoStringInputSurface = false;
 		requiresIoBufferInputSurface = false;
 		requiresIoEofStringSurface = false;
-		requiresUdpSocketSurface = false;
 		requiresReflectFieldsShim = false;
 		projectClasses = [];
 		projectEnums = [];
@@ -362,7 +359,6 @@ class GoCompiler {
 		requiresIoStringInputSurface = false;
 		requiresIoBufferInputSurface = false;
 		requiresIoEofStringSurface = false;
-		requiresUdpSocketSurface = false;
 		requiresReflectFieldsShim = false;
 		resetRequiredNativeChanElementTypes();
 		resetRequiredNativeSliceElementTypes();
@@ -608,17 +604,6 @@ class GoCompiler {
 			imports.push("strconv");
 			imports.push("strings");
 			imports.push("unsafe");
-		}
-		if (requiredStdlibShimGroups.exists("net_socket")) {
-			imports.push("bufio");
-			imports.push("net");
-			imports.push("os");
-			imports.push("strconv");
-			imports.push("strings");
-			if (requiresUdpSocketSurface) {
-				imports.push("syscall");
-			}
-			imports.push("time");
 		}
 		if (requiredStdlibShimGroups.exists("go_result")) {
 			imports.push("errors");
@@ -1760,9 +1745,6 @@ class GoCompiler {
 		if (requiredStdlibShimGroups.exists("regex_serializer")) {
 			decls = decls.concat(lowerRegexSerializerShimDecls());
 		}
-		if (requiredStdlibShimGroups.exists("net_socket")) {
-			decls = decls.concat(lowerNetSocketShimDecls());
-		}
 		if (requiredStdlibShimGroups.exists("go_concurrency")) {
 			decls = decls.concat(lowerGoConcurrencyShimDecls());
 		}
@@ -1792,11 +1774,6 @@ class GoCompiler {
 			requireSourceOwnedStdlibClass("haxe.ds.StringMap");
 			requireSourceOwnedStdlibClass("haxe.ds.IntMap");
 			requireSourceOwnedStdlibClass("haxe.ds.ObjectMap");
-		}
-		if (requiredStdlibShimGroups.exists("net_socket")) {
-			// Socket input/output is part of the haxe.io stream contract.
-			requireStdlibShimGroup("io");
-			requireIoSourceOwnedHelperSurface();
 		}
 	}
 
@@ -5103,10 +5080,6 @@ class GoCompiler {
 
 	function lowerRegexSerializerShimDecls():Array<GoDecl> {
 		return GoRegexSerializerEmitter.emit(serializerClassMetadata(), serializerEnumMetadata(), goRawQuotedString);
-	}
-
-	function lowerNetSocketShimDecls():Array<GoDecl> {
-		return GoNetSocketEmitter.emit(requiresUdpSocketSurface);
 	}
 
 	function lowerClassDecls(classType:ClassType):Array<GoDecl> {
@@ -12563,9 +12536,6 @@ class GoCompiler {
 					requiresIoEofStringSurface = true;
 				case _:
 			}
-		}
-		if (classType.pack.join(".") == "sys.net" && classType.name == "UdpSocket") {
-			requiresUdpSocketSurface = true;
 		}
 		for (group in GoStdlibShimClassifier.requiredGroupsForClass(classType)) {
 			requireStdlibShimGroup(group);

@@ -1,0 +1,6 @@
+server.accept.ssl=true
+server.read=ping
+client.read=pong
+peer.cn=default.local
+peer.issuer.cn=default.local
+peer.next=true

@@ -108,6 +108,20 @@ Key implementation points:
   - non-owning `SysStdin`, `SysStdout`, and `SysStderr` handles used by the staged file-stream classes
 - Process wrappers (`runtime/hxrt/process.go`):
   - native `NewProcess` handles plus the typed `ProcessCreate`, pipe, byte-transfer, PID, status, kill, and close capabilities consumed by `std/hxrt/process`
+- Network capabilities (`runtime/hxrt/socket.go` plus build-tagged
+  `runtime/hxrt/socket_broadcast_*.go` adapters):
+  - one opaque, synchronized `SocketHandle` shared by TCP and UDP;
+  - typed DNS/IPv4, connect/bind/listen/accept, byte transfer, deadline,
+    blocking-policy, readiness, shutdown, address, broadcast, and datagram operations;
+  - POSIX and Windows keep their native descriptor types behind separate
+    build-tagged `SO_BROADCAST` helpers, with an explicit unsupported-platform error;
+  - concrete result carriers keep byte progress, EOF/blocked state, peer addresses,
+    accepted handles, and readiness indexes explicit instead of using `Dynamic`.
+- TLS socket composition (`runtime/hxrt/socket_ssl.go`):
+  - typed client/listener installation, handshake, peer-certificate access, and
+    SNI certificate selection over the shared `SocketHandle`;
+  - typed certificate/key primitives remain in `runtime/hxrt/ssl.go`, so SSL
+    digest/certificate users do not select network transport automatically.
 
 These helpers preserve native failures at the runtime boundary. Canonical staged file and Process wrappers translate bounds, EOF, nullable exit availability, and public lifecycle policy in Haxe source; process startup and non-EOF read failures remain distinct from normal EOF and child exit codes. Public byte arrays are copied explicitly through `go.NativeSlice<Int>` into native `[]int`, so `hxrt` does not depend on the portable Array carrier or generated `haxe.io.Bytes` internals. Portable `Sys.putEnv` is the intentional exception: staged `Sys.hx` calls the non-throwing `SysSetEnvironment` capability to match the upstream Haxe 4.3.7 eval contract, while `SysPutEnv` retains the native error for typed Go-native bindings.
 - Byte representation helpers:
@@ -177,11 +191,18 @@ handles. The typed `std/hxrt/sys/NativeTerminal.hx` binding selects build-tagged
 not construct the public environment map, aliases, fallbacks, Haxe stream
 wrappers, `haxe.io.Eof`, or requested character echo.
 
+Networking follows it too. `std/go/_std/sys/net/{Host,Socket,UdpSocket}.hx`,
+`std/sys/net/_SocketIO.hx`, and `std/go/_std/sys/ssl/Socket.hx` own the public
+objects, byte bounds/copies, Haxe EOF and blocked translation, address/result
+construction, select identity, TLS configuration, and accepted SSL object
+identity. Typed bindings under `std/hxrt/net` and `std/hxrt/ssl` expose only
+native resources and concrete result carriers. `hxrt` never constructs a
+generated `sys.net.Socket`, `Host`, `Address`, `Bytes`, or Haxe exception.
+
 Examples that are currently compiler-owned migration debt (not approved
 `hxrt` ownership):
 
 - `sys.Http`
-- `sys.net.Socket` / `sys.net.Host`
 - `haxe.Serializer` / `haxe.Unserializer`
 - most `haxe.io` and `haxe.ds` shim declarations
 

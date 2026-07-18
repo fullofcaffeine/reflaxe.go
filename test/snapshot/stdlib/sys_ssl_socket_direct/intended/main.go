@@ -1,15 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"math"
-	"net"
-	"os"
 	"reflect"
 	"snapshot/hxrt"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type hxrt__TypeClassValue struct {
@@ -25,6 +19,7 @@ var CERT_PEM *string = hxrt.StringFromLiteral("-----BEGIN CERTIFICATE-----\nMIID
 var KEY_PEM *string = hxrt.StringFromLiteral("-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCktatoj06k/dql\ndeSzjPUnPxeMC/WpprMz7tHisw82tHc0Xk18wW/m0Dm+W11kLlq+k5fNuVoQTcqa\nQDkLF0Zy+Q2K+GWLRCux7Ms0ixw6oSIUFnaG8+SByKuEfaW232ZKCWFsSxq0PdVK\nT3jjcc3ivv6j/kOsbE7jjELMP9w1askakA/I8CWM0AZyYVZ5ajwYcBBQm1UOzWLe\noT+UU7O9VKsEIQHCGt5Pp7U/PDqh5z7KJ+XWIG/jpjZ8IYEo8fTxik+16jN34Ubp\nnx+I/wUmLK4Aqh2VuuZzmmcUFD7JLC+r9ymOUa7DS0bWyUoBDzZyvAO1577p7SXi\n9/IqJ3NpAgMBAAECggEAECDG2jvwGjlOO9XtsUQr7C4iHuE76qMLWJo5vI5GfteQ\ndZUHVuA1Fh+NC+3z2N+uHIukuWz9G+wWGuEPhN3AVPk8oX89qDOiaK90XV6Cwt3s\n0ZU6gW/nz+qHmvdXru60nCrLephnEr+cP0TFZFYMMDf+BK5cz4kid2cQUmItbKBy\nE9k1vHvyyLONK18y72IXsMEA572V+AhtvWVar5qUJiY2+dWtxmWh9dzUvWCUJ/Gj\niqyrJdNxHJfXdteT8QpJEndsX19MWNAMZY+e10XOVzs2Rd4RdnlLwUE37HbPz73V\nC1z2h6tshSOYi9ZwlNdYEjfWbuiQimwgljwc9/NagQKBgQDg4JkcchEOmntEXPz0\n/HTEmAd7Sl75V0ozj7xPTYcaSvdoEtLEbUJbGoVfLKJM17jLuEjpisS1IHa29kkG\n2PACbbIRzOLlCA2Spkzm9R2Rni9qbBCwYbnYbdhV+hshcnr6LwUt8KBAFHBCk2lW\nMfiCsBE1KzBeye1JFxIZ9+dyKQKBgQC7gVSvPDIqPRYP8l8sLbONMHTNhbZpMh23\npdD1i0YpYTIuvrxZMXwY6gt71SJcHIwyh/6HEg8mAIMZutdRzpZc4NWQw98yG9Zo\nkpY7S2uLZ8YnARps+NprdWiARkY3PJjIiK7tieNo+dQtfBeuL3Ox7s/XR0nDUXMP\nxkuAnByfQQKBgQCks9twehsEFyExcOnUhRMA6liQdGgbN1OhcCT78EyDdWS/VQoJ\n0/xFvabxjj9RCK7QhqjgZEKuZpiMaNYTrdAb9zv0zZthJATM5ABvKBgAD1urFnsi\ntHDpk4pfbk9wr+hiVQ32F8dHJ7EREeaUuwTIsyvnRTqoMj0Yy0z2uBtMAQKBgQC2\nEnG+7z7vEP4ZYgrUhVQyp3jkERD9uTJuH892f1UT3VOzXHbcTVbpgmrARkflFbt1\nXeTkF78p8ZlcJLfssiQD8DaxKeHTcICUbrL+xM+bQJuDSGj2o/bEHe/pj1OjU24w\nW7kw45I1X1KPEE6WT3GSuAiOTKTtymtmR/EM44pPgQKBgQC52gWDbpJb1UREu9Sb\naIy1zgqGhSxg1DLChu4vz3t5ZBhWoiw6wG7vQDrtrn9Jl61mVtog0rSTSiIj726W\nLDxSrTdYBhcgkbJf/fw1N6Uk+FfJcVS/zuoJwogkiP6tmircL0qA9sYR4RZo2ubE\nAg6A+vHIw54BclYKSczsXnCe+A==\n-----END PRIVATE KEY-----\n")
 
 func main() {
+	defer hxrt.ThreadWaitForAll()
 	cert := sys__ssl__Certificate_fromString(CERT_PEM)
 	key := sys__ssl__Key_readPEM(KEY_PEM, false, nil)
 	server := New_sys__ssl__Socket()
@@ -32,6 +27,10 @@ func main() {
 	server.bind(New_sys__net__Host(hxrt.StringFromLiteral("127.0.0.1")), 0)
 	server.listen(1)
 	bound := server.host()
+	acceptedSockets := New_sys__thread__Deque()
+	sys__thread__Thread_create(func() {
+		acceptedSockets.add(server.accept())
+	})
 	client := New_sys__ssl__Socket()
 	client.verifyCert = false
 	client.setCA(cert)
@@ -45,22 +44,36 @@ func main() {
 		return hx_field_2.(int)
 	}(bound))
 	client.handshake()
-	accepted := server.accept()
+	accepted := func(hx_value_4 any) *sys__net__Socket {
+		if hx_value_4 == nil {
+			var hx_zero_5 *sys__net__Socket
+			return hx_zero_5
+		}
+		return hx_value_4.(*sys__net__Socket)
+	}(acceptedSockets.pop(true))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("server.accept.ssl="), hxrt.StdString(func(hx_value *sys__net__Socket) bool {
+		if hx_value == nil {
+			return false
+		}
+		_, ok := hx_value.__hx_this.(*sys__ssl__Socket)
+		return ok
+	}(accepted))))
+	hxrt.Println(v)
 	client.output.writeString(hxrt.StringFromLiteral("ping\n"))
 	client.output.flush()
-	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("server.read="), accepted.input.readLine()))
-	hxrt.Println(v)
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("server.read="), accepted.input.readLine()))
+	hxrt.Println(v_1)
 	accepted.output.writeString(hxrt.StringFromLiteral("pong\n"))
 	accepted.output.flush()
-	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("client.read="), client.input.readLine()))
-	hxrt.Println(v_1)
-	peer := client.peerCertificate()
-	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("peer.cn="), peer.get_commonName()))
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("client.read="), client.input.readLine()))
 	hxrt.Println(v_2)
-	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("peer.issuer.cn="), peer.issuer(hxrt.StringFromLiteral("CN"))))
+	peer := client.peerCertificate()
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("peer.cn="), peer.get_commonName()))
 	hxrt.Println(v_3)
-	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("peer.next="), hxrt.StdString((peer.next() == nil))))
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("peer.issuer.cn="), peer.issuer(hxrt.StringFromLiteral("CN"))))
 	hxrt.Println(v_4)
+	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("peer.next="), hxrt.StdString((peer.next() == nil))))
+	hxrt.Println(v_5)
 	client.close()
 	accepted.close()
 	server.close()
@@ -1349,14 +1362,40 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return nil, false
 	case "haxe._Int64.___Int64":
 		return hxrt_typeCallAny(New_haxe___Int64_____Int64, args)
+	case "haxe.ds.List":
+		return hxrt_typeCallAny(New_haxe__ds__List, args)
+	case "haxe.ds._List.GoListIterator":
+		return hxrt_typeCallAny(New_haxe__ds___List__GoListIterator, args)
+	case "haxe.ds._List.GoListKeyValueIterator":
+		return hxrt_typeCallAny(New_haxe__ds___List__GoListKeyValueIterator, args)
 	case "haxe.io.GoIoHelpers":
 		return nil, false
+	case "sys.net.Host":
+		return hxrt_typeCallAny(New_sys__net__Host, args)
+	case "sys.net.Socket":
+		return hxrt_typeCallAny(New_sys__net__Socket, args)
+	case "sys.net.SocketInput":
+		return hxrt_typeCallAny(New_sys__net__SocketInput, args)
+	case "sys.net.SocketOutput":
+		return hxrt_typeCallAny(New_sys__net__SocketOutput, args)
 	case "sys.ssl.Certificate":
 		return hxrt_typeCallAny(New_sys__ssl__Certificate, args)
 	case "sys.ssl.Key":
 		return hxrt_typeCallAny(New_sys__ssl__Key, args)
 	case "sys.ssl.Socket":
 		return hxrt_typeCallAny(New_sys__ssl__Socket, args)
+	case "sys.thread.Deque":
+		return hxrt_typeCallAny(New_sys__thread__Deque, args)
+	case "sys.thread.EventLoop":
+		return hxrt_typeCallAny(New_sys__thread__EventLoop, args)
+	case "sys.thread.Lock":
+		return hxrt_typeCallAny(New_sys__thread__Lock, args)
+	case "sys.thread.Mutex":
+		return hxrt_typeCallAny(New_sys__thread__Mutex, args)
+	case "sys.thread.NoEventLoopException":
+		return hxrt_typeCallAny(New_sys__thread__NoEventLoopException, args)
+	case "sys.thread.Thread":
+		return hxrt_typeCallAny(New_sys__thread__Thread, args)
 	default:
 		return nil, false
 	}
@@ -1368,12 +1407,38 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 		return &Date{}, true
 	case "haxe._Int64.___Int64":
 		return &haxe___Int64_____Int64{}, true
+	case "haxe.ds.List":
+		return &haxe__ds__List{}, true
+	case "haxe.ds._List.GoListIterator":
+		return &haxe__ds___List__GoListIterator{}, true
+	case "haxe.ds._List.GoListKeyValueIterator":
+		return &haxe__ds___List__GoListKeyValueIterator{}, true
+	case "sys.net.Host":
+		return &sys__net__Host{}, true
+	case "sys.net.Socket":
+		return &sys__net__Socket{}, true
+	case "sys.net.SocketInput":
+		return &sys__net__SocketInput{}, true
+	case "sys.net.SocketOutput":
+		return &sys__net__SocketOutput{}, true
 	case "sys.ssl.Certificate":
 		return &sys__ssl__Certificate{}, true
 	case "sys.ssl.Key":
 		return &sys__ssl__Key{}, true
 	case "sys.ssl.Socket":
 		return &sys__ssl__Socket{}, true
+	case "sys.thread.Deque":
+		return &sys__thread__Deque{}, true
+	case "sys.thread.EventLoop":
+		return &sys__thread__EventLoop{}, true
+	case "sys.thread.Lock":
+		return &sys__thread__Lock{}, true
+	case "sys.thread.Mutex":
+		return &sys__thread__Mutex{}, true
+	case "sys.thread.NoEventLoopException":
+		return &sys__thread__NoEventLoopException{}, true
+	case "sys.thread.Thread":
+		return &sys__thread__Thread{}, true
 	default:
 		return nil, false
 	}
@@ -1482,6 +1547,57 @@ func hxrt_typeCreateEnumInstance(enumName string, constructorName string, constr
 		default:
 			return nil, false
 		}
+	case "sys.thread.NextEventTime":
+		if useIndex {
+			switch constructorIndex {
+			case 0:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return sys__thread__NextEventTime_Now, true
+			case 1:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return sys__thread__NextEventTime_Never, true
+			case 2:
+				if len(args) != 1 {
+					return nil, false
+				}
+				return hxrt_typeCallAny(sys__thread__NextEventTime_AnyTime, args)
+			case 3:
+				if len(args) != 1 {
+					return nil, false
+				}
+				return hxrt_typeCallAny(sys__thread__NextEventTime_At, args)
+			default:
+				return nil, false
+			}
+		}
+		switch constructorName {
+		case "Now":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return sys__thread__NextEventTime_Now, true
+		case "Never":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return sys__thread__NextEventTime_Never, true
+		case "AnyTime":
+			if len(args) != 1 {
+				return nil, false
+			}
+			return hxrt_typeCallAny(sys__thread__NextEventTime_AnyTime, args)
+		case "At":
+			if len(args) != 1 {
+				return nil, false
+			}
+			return hxrt_typeCallAny(sys__thread__NextEventTime_At, args)
+		default:
+			return nil, false
+		}
 	default:
 		return nil, false
 	}
@@ -1515,6 +1631,41 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe._Int64.___Int64")}
+	case *haxe__ds__List:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.ds.List")}
+	case *haxe__ds___List__GoListIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.ds._List.GoListIterator")}
+	case *haxe__ds___List__GoListKeyValueIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.ds._List.GoListKeyValueIterator")}
+	case *sys__net__Host:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.net.Host")}
+	case *sys__net__Socket:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.net.Socket")}
+	case *sys__net__SocketInput:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.net.SocketInput")}
+	case *sys__net__SocketOutput:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.net.SocketOutput")}
 	case *sys__ssl__Certificate:
 		if value == nil {
 			return nil
@@ -1530,6 +1681,36 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.ssl.Socket")}
+	case *sys__thread__Deque:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.Deque")}
+	case *sys__thread__EventLoop:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.EventLoop")}
+	case *sys__thread__Lock:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.Lock")}
+	case *sys__thread__Mutex:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.Mutex")}
+	case *sys__thread__NoEventLoopException:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.NoEventLoopException")}
+	case *sys__thread__Thread:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.thread.Thread")}
 	default:
 		return nil
 	}
@@ -1553,6 +1734,11 @@ func Type_getEnum(o any) any {
 			return nil
 		}
 		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("ValueType")}
+	case *sys__thread__NextEventTime:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("sys.thread.NextEventTime")}
 	default:
 		return nil
 	}
@@ -1576,14 +1762,40 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "haxe._Int64.___Int64":
 		return nil
+	case "haxe.ds.List":
+		return nil
+	case "haxe.ds._List.GoListIterator":
+		return nil
+	case "haxe.ds._List.GoListKeyValueIterator":
+		return nil
 	case "haxe.io.GoIoHelpers":
 		return nil
+	case "sys.net.Host":
+		return nil
+	case "sys.net.Socket":
+		return nil
+	case "sys.net.SocketInput":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Input")}
+	case "sys.net.SocketOutput":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Output")}
 	case "sys.ssl.Certificate":
 		return nil
 	case "sys.ssl.Key":
 		return nil
 	case "sys.ssl.Socket":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("sys.net.Socket")}
+	case "sys.thread.Deque":
+		return nil
+	case "sys.thread.EventLoop":
+		return nil
+	case "sys.thread.Lock":
+		return nil
+	case "sys.thread.Mutex":
+		return nil
+	case "sys.thread.NoEventLoopException":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.Exception")}
+	case "sys.thread.Thread":
+		return nil
 	default:
 		return nil
 	}
@@ -1615,14 +1827,40 @@ func Type_getClassFields(c any) *hxrt.Array {
 		return hxrt.NewArray()
 	case "haxe._Int64.___Int64":
 		return hxrt.NewArray()
+	case "haxe.ds.List":
+		return hxrt.NewArray(hxrt.StringFromLiteral("sameValue"))
+	case "haxe.ds._List.GoListIterator":
+		return hxrt.NewArray()
+	case "haxe.ds._List.GoListKeyValueIterator":
+		return hxrt.NewArray()
 	case "haxe.io.GoIoHelpers":
 		return hxrt.NewArray(hxrt.StringFromLiteral("bytesOutputGetBytes"), hxrt.StringFromLiteral("inputRead"), hxrt.StringFromLiteral("inputReadAll"), hxrt.StringFromLiteral("inputReadBytes"), hxrt.StringFromLiteral("inputReadFullBytes"), hxrt.StringFromLiteral("inputReadLine"), hxrt.StringFromLiteral("inputReadUntil"), hxrt.StringFromLiteral("outputWrite"), hxrt.StringFromLiteral("outputWriteBytes"), hxrt.StringFromLiteral("outputWriteFullBytes"), hxrt.StringFromLiteral("outputWriteInput"), hxrt.StringFromLiteral("outputWriteString"))
+	case "sys.net.Host":
+		return hxrt.NewArray(hxrt.StringFromLiteral("fromIPv4"), hxrt.StringFromLiteral("localhost"))
+	case "sys.net.Socket":
+		return hxrt.NewArray(hxrt.StringFromLiteral("pick"), hxrt.StringFromLiteral("publicAddress"), hxrt.StringFromLiteral("select"))
+	case "sys.net.SocketInput":
+		return hxrt.NewArray(hxrt.StringFromLiteral("translateReadStatus"))
+	case "sys.net.SocketOutput":
+		return hxrt.NewArray(hxrt.StringFromLiteral("translateWriteStatus"))
 	case "sys.ssl.Certificate":
 		return hxrt.NewArray(hxrt.StringFromLiteral("fromString"), hxrt.StringFromLiteral("loadDefaults"), hxrt.StringFromLiteral("loadFile"), hxrt.StringFromLiteral("loadPath"))
 	case "sys.ssl.Key":
 		return hxrt.NewArray(hxrt.StringFromLiteral("loadFile"), hxrt.StringFromLiteral("readDER"), hxrt.StringFromLiteral("readPEM"))
 	case "sys.ssl.Socket":
 		return hxrt.NewArray(hxrt.StringFromLiteral("DEFAULT_CA"), hxrt.StringFromLiteral("DEFAULT_VERIFY_CERT"))
+	case "sys.thread.Deque":
+		return hxrt.NewArray()
+	case "sys.thread.EventLoop":
+		return hxrt.NewArray(hxrt.StringFromLiteral("__fromHandle"))
+	case "sys.thread.Lock":
+		return hxrt.NewArray()
+	case "sys.thread.Mutex":
+		return hxrt.NewArray()
+	case "sys.thread.NoEventLoopException":
+		return hxrt.NewArray()
+	case "sys.thread.Thread":
+		return hxrt.NewArray(hxrt.StringFromLiteral("create"), hxrt.StringFromLiteral("createWithEventLoop"), hxrt.StringFromLiteral("current"), hxrt.StringFromLiteral("processEvents"), hxrt.StringFromLiteral("readMessage"), hxrt.StringFromLiteral("runWithEventLoop"))
 	default:
 		return hxrt.NewArray()
 	}
@@ -1646,14 +1884,40 @@ func Type_getInstanceFields(c any) *hxrt.Array {
 		return hxrt.NewArray()
 	case "haxe._Int64.___Int64":
 		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
+	case "haxe.ds.List":
+		return hxrt.NewArray(hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("clear"), hxrt.StringFromLiteral("filter"), hxrt.StringFromLiteral("first"), hxrt.StringFromLiteral("isEmpty"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("iterator"), hxrt.StringFromLiteral("join"), hxrt.StringFromLiteral("keyValueIterator"), hxrt.StringFromLiteral("last"), hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("pop"), hxrt.StringFromLiteral("push"), hxrt.StringFromLiteral("remove"), hxrt.StringFromLiteral("toString"))
+	case "haxe.ds._List.GoListIterator":
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("next"))
+	case "haxe.ds._List.GoListKeyValueIterator":
+		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("next"))
 	case "haxe.io.GoIoHelpers":
 		return hxrt.NewArray()
+	case "sys.net.Host":
+		return hxrt.NewArray(hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("ip"), hxrt.StringFromLiteral("reverse"), hxrt.StringFromLiteral("toString"))
+	case "sys.net.Socket":
+		return hxrt.NewArray(hxrt.StringFromLiteral("accept"), hxrt.StringFromLiteral("bind"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("connect"), hxrt.StringFromLiteral("custom"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("input"), hxrt.StringFromLiteral("listen"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("peer"), hxrt.StringFromLiteral("read"), hxrt.StringFromLiteral("replaceHandle"), hxrt.StringFromLiteral("setBlocking"), hxrt.StringFromLiteral("setFastSend"), hxrt.StringFromLiteral("setTimeout"), hxrt.StringFromLiteral("shutdown"), hxrt.StringFromLiteral("waitForRead"), hxrt.StringFromLiteral("write"))
+	case "sys.net.SocketInput":
+		return hxrt.NewArray(hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("readAll"), hxrt.StringFromLiteral("readByte"), hxrt.StringFromLiteral("readBytes"), hxrt.StringFromLiteral("readDouble"), hxrt.StringFromLiteral("readFloat"), hxrt.StringFromLiteral("readInt32"), hxrt.StringFromLiteral("readLine"), hxrt.StringFromLiteral("set_bigEndian"))
+	case "sys.net.SocketOutput":
+		return hxrt.NewArray(hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("flush"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("set_bigEndian"), hxrt.StringFromLiteral("writeByte"), hxrt.StringFromLiteral("writeBytes"), hxrt.StringFromLiteral("writeDouble"), hxrt.StringFromLiteral("writeFloat"), hxrt.StringFromLiteral("writeFullBytes"), hxrt.StringFromLiteral("writeInt32"), hxrt.StringFromLiteral("writeString"))
 	case "sys.ssl.Certificate":
 		return hxrt.NewArray(hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("addDER"), hxrt.StringFromLiteral("altNames"), hxrt.StringFromLiteral("commonName"), hxrt.StringFromLiteral("get_altNames"), hxrt.StringFromLiteral("get_commonName"), hxrt.StringFromLiteral("get_notAfter"), hxrt.StringFromLiteral("get_notBefore"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("issuer"), hxrt.StringFromLiteral("next"), hxrt.StringFromLiteral("notAfter"), hxrt.StringFromLiteral("notBefore"), hxrt.StringFromLiteral("subject"))
 	case "sys.ssl.Key":
 		return hxrt.NewArray(hxrt.StringFromLiteral("handle"))
 	case "sys.ssl.Socket":
-		return hxrt.NewArray(hxrt.StringFromLiteral("accept"), hxrt.StringFromLiteral("addSNICertificate"), hxrt.StringFromLiteral("bind"), hxrt.StringFromLiteral("caCert"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("connect"), hxrt.StringFromLiteral("custom"), hxrt.StringFromLiteral("handshake"), hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("hostname"), hxrt.StringFromLiteral("input"), hxrt.StringFromLiteral("listen"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("ownCert"), hxrt.StringFromLiteral("ownKey"), hxrt.StringFromLiteral("peer"), hxrt.StringFromLiteral("peerCertificate"), hxrt.StringFromLiteral("read"), hxrt.StringFromLiteral("setBlocking"), hxrt.StringFromLiteral("setCA"), hxrt.StringFromLiteral("setCertificate"), hxrt.StringFromLiteral("setFastSend"), hxrt.StringFromLiteral("setHostname"), hxrt.StringFromLiteral("setTimeout"), hxrt.StringFromLiteral("shutdown"), hxrt.StringFromLiteral("sniConfig"), hxrt.StringFromLiteral("verifyCert"), hxrt.StringFromLiteral("waitForRead"), hxrt.StringFromLiteral("write"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("accept"), hxrt.StringFromLiteral("addSNICertificate"), hxrt.StringFromLiteral("bind"), hxrt.StringFromLiteral("caCert"), hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("connect"), hxrt.StringFromLiteral("custom"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("handshake"), hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("hostname"), hxrt.StringFromLiteral("input"), hxrt.StringFromLiteral("listen"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("ownCert"), hxrt.StringFromLiteral("ownKey"), hxrt.StringFromLiteral("peer"), hxrt.StringFromLiteral("peerCertificate"), hxrt.StringFromLiteral("read"), hxrt.StringFromLiteral("replaceHandle"), hxrt.StringFromLiteral("setBlocking"), hxrt.StringFromLiteral("setCA"), hxrt.StringFromLiteral("setCertificate"), hxrt.StringFromLiteral("setFastSend"), hxrt.StringFromLiteral("setHostname"), hxrt.StringFromLiteral("setTimeout"), hxrt.StringFromLiteral("shutdown"), hxrt.StringFromLiteral("sniConfig"), hxrt.StringFromLiteral("verifyCert"), hxrt.StringFromLiteral("waitForRead"), hxrt.StringFromLiteral("write"))
+	case "sys.thread.Deque":
+		return hxrt.NewArray(hxrt.StringFromLiteral("__available"), hxrt.StringFromLiteral("__items"), hxrt.StringFromLiteral("__mutex"), hxrt.StringFromLiteral("add"), hxrt.StringFromLiteral("pop"), hxrt.StringFromLiteral("push"))
+	case "sys.thread.EventLoop":
+		return hxrt.NewArray(hxrt.StringFromLiteral("__h"), hxrt.StringFromLiteral("cancel"), hxrt.StringFromLiteral("loop"), hxrt.StringFromLiteral("progress"), hxrt.StringFromLiteral("promise"), hxrt.StringFromLiteral("repeat"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("runPromised"), hxrt.StringFromLiteral("wait"))
+	case "sys.thread.Lock":
+		return hxrt.NewArray(hxrt.StringFromLiteral("__h"), hxrt.StringFromLiteral("release"), hxrt.StringFromLiteral("wait"))
+	case "sys.thread.Mutex":
+		return hxrt.NewArray(hxrt.StringFromLiteral("__h"), hxrt.StringFromLiteral("acquire"), hxrt.StringFromLiteral("release"), hxrt.StringFromLiteral("tryAcquire"))
+	case "sys.thread.NoEventLoopException":
+		return hxrt.NewArray(hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap"))
+	case "sys.thread.Thread":
+		return hxrt.NewArray(hxrt.StringFromLiteral("__id"), hxrt.StringFromLiteral("events"), hxrt.StringFromLiteral("get_events"), hxrt.StringFromLiteral("sendMessage"))
 	default:
 		return hxrt.NewArray()
 	}
@@ -1685,13 +1949,39 @@ func Type_resolveClass(name *string) any {
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe._Int64.___Int64":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.ds.List":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.ds._List.GoListIterator":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.ds._List.GoListKeyValueIterator":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.io.GoIoHelpers":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.net.Host":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.net.Socket":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.net.SocketInput":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.net.SocketOutput":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "sys.ssl.Certificate":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "sys.ssl.Key":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "sys.ssl.Socket":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.thread.Deque":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.thread.EventLoop":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.thread.Lock":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.thread.Mutex":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.thread.NoEventLoopException":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.thread.Thread":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
@@ -1705,6 +1995,8 @@ func Type_resolveEnum(name *string) any {
 	rawName := *hxrt.StdString(name)
 	switch rawName {
 	case "ValueType":
+		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
+	case "sys.thread.NextEventTime":
 		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
@@ -1794,6 +2086,22 @@ func Type_enumConstructor(e any) *string {
 		default:
 			return nil
 		}
+	case *sys__thread__NextEventTime:
+		if value == nil {
+			return nil
+		}
+		switch value.tag {
+		case 0:
+			return hxrt.StringFromLiteral("Now")
+		case 1:
+			return hxrt.StringFromLiteral("Never")
+		case 2:
+			return hxrt.StringFromLiteral("AnyTime")
+		case 3:
+			return hxrt.StringFromLiteral("At")
+		default:
+			return nil
+		}
 	default:
 		return nil
 	}
@@ -1805,6 +2113,11 @@ func Type_enumIndex(e any) int {
 	}
 	switch value := e.(type) {
 	case *ValueType:
+		if value == nil {
+			return -1
+		}
+		return value.tag
+	case *sys__thread__NextEventTime:
 		if value == nil {
 			return -1
 		}
@@ -1822,6 +2135,8 @@ func Type_getEnumConstructs(e any) *hxrt.Array {
 	switch enumName {
 	case "ValueType":
 		return hxrt.NewArray(hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown"))
+	case "sys.thread.NextEventTime":
+		return hxrt.NewArray(hxrt.StringFromLiteral("Now"), hxrt.StringFromLiteral("Never"), hxrt.StringFromLiteral("AnyTime"), hxrt.StringFromLiteral("At"))
 	default:
 		return hxrt.NewArray()
 	}
@@ -1833,6 +2148,11 @@ func Type_enumParameters(e any) *hxrt.Array {
 	}
 	switch value := e.(type) {
 	case *ValueType:
+		if value == nil || value.params == nil {
+			return hxrt.NewArray()
+		}
+		return hxrt.NewArray(value.params...)
+	case *sys__thread__NextEventTime:
 		if value == nil || value.params == nil {
 			return hxrt.NewArray()
 		}
@@ -1850,6 +2170,8 @@ func Type_allEnums(e any) *hxrt.Array {
 	switch enumName {
 	case "ValueType":
 		return hxrt.NewArray(ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown)
+	case "sys.thread.NextEventTime":
+		return hxrt.NewArray(sys__thread__NextEventTime_Now, sys__thread__NextEventTime_Never)
 	default:
 		return hxrt.NewArray()
 	}
@@ -1905,597 +2227,5 @@ func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
 	switch className {
 	default:
 		return nil, false
-	}
-}
-
-type sys__net__Host struct {
-	host     *string
-	ip       int
-	resolved *string
-}
-
-func hxrt__host_empty() *sys__net__Host {
-	return &sys__net__Host{host: hxrt.StringFromLiteral(""), ip: 0, resolved: hxrt.StringFromLiteral("")}
-}
-
-func hxrt__host_ipv4Int(ip net.IP) int {
-	if ip == nil {
-		return 0
-	}
-	v4 := ip.To4()
-	if v4 == nil {
-		return 0
-	}
-	return int(v4[0])<<24 | int(v4[1])<<16 | int(v4[2])<<8 | int(v4[3])
-}
-
-func hxrt__host_ipv4String(value int) *string {
-	u := uint32(value)
-	rendered := net.IPv4(byte((u>>24)&0xff), byte((u>>16)&0xff), byte((u>>8)&0xff), byte(u&0xff)).String()
-	return hxrt.StringFromLiteral(rendered)
-}
-
-func New_sys__net__Host(name *string) *sys__net__Host {
-	if name == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Could not resolve host"))
-		return hxrt__host_empty()
-	}
-	rawName := *hxrt.StdString(name)
-	ips, err := net.LookupIP(rawName)
-	if err != nil || len(ips) == 0 {
-		hxrt.Throw(hxrt.StringFromLiteral("Could not resolve host"))
-		return hxrt__host_empty()
-	}
-	selected := ips[0]
-	for _, candidate := range ips {
-		if v4 := candidate.To4(); v4 != nil {
-			selected = v4
-			break
-		}
-	}
-	resolved := hxrt.StringFromLiteral(selected.String())
-	ip := hxrt__host_ipv4Int(selected)
-	return &sys__net__Host{host: name, ip: ip, resolved: resolved}
-}
-
-func (self *sys__net__Host) toString() *string {
-	if self == nil {
-		return hxrt.StringFromLiteral("")
-	}
-	if self.resolved != nil && *self.resolved != "" {
-		return self.resolved
-	}
-	if self.ip != 0 {
-		return hxrt__host_ipv4String(self.ip)
-	}
-	return self.resolved
-}
-
-func (self *sys__net__Host) reverse() *string {
-	if self == nil || self.resolved == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Could not reverse host"))
-		return hxrt.StringFromLiteral("")
-	}
-	names, err := net.LookupAddr(*hxrt.StdString(self.resolved))
-	if err != nil || len(names) == 0 {
-		hxrt.Throw(hxrt.StringFromLiteral("Could not reverse host"))
-		return hxrt.StringFromLiteral("")
-	}
-	resolved := strings.TrimSuffix(names[0], ".")
-	return hxrt.StringFromLiteral(resolved)
-}
-
-func sys__net__Host_localhost() *string {
-	name, err := os.Hostname()
-	if err != nil || name == "" {
-		return hxrt.StringFromLiteral("localhost")
-	}
-	return hxrt.StringFromLiteral(name)
-}
-
-type sys__net__SocketInput struct {
-	reader    *bufio.Reader
-	socket    *sys__net__Socket
-	bigEndian bool
-}
-
-type sys__net__SocketOutput struct {
-	writer *bufio.Writer
-	socket *sys__net__Socket
-}
-
-type sys__net__Socket struct {
-	input      *sys__net__SocketInput
-	output     *sys__net__SocketOutput
-	custom     any
-	conn       net.Conn
-	listener   net.Listener
-	timeout    float64
-	hasTimeout bool
-	blocking   bool
-	fastSend   bool
-}
-
-func New_sys__net__Socket() *sys__net__Socket {
-	return &sys__net__Socket{input: &sys__net__SocketInput{}, output: &sys__net__SocketOutput{}, blocking: true}
-}
-
-func hxrt__socket_deadline(timeout float64) time.Time {
-	duration := time.Duration(timeout * float64(time.Second))
-	return time.Now().Add(duration)
-}
-
-func (self *sys__net__Socket) hxrt__socket_applyConnDeadline() {
-	if self == nil || self.conn == nil {
-		return
-	}
-	if !self.blocking {
-		_ = self.conn.SetDeadline(time.Now())
-		return
-	}
-	if self.hasTimeout {
-		_ = self.conn.SetDeadline(hxrt__socket_deadline(self.timeout))
-		return
-	}
-	_ = self.conn.SetDeadline(time.Time{})
-}
-
-func (self *sys__net__Socket) hxrt__socket_applyListenerDeadline() {
-	if self == nil || self.listener == nil {
-		return
-	}
-	tcpListener, ok := self.listener.(*net.TCPListener)
-	if !ok {
-		return
-	}
-	if !self.blocking {
-		_ = tcpListener.SetDeadline(time.Now())
-		return
-	}
-	if self.hasTimeout {
-		_ = tcpListener.SetDeadline(hxrt__socket_deadline(self.timeout))
-		return
-	}
-	_ = tcpListener.SetDeadline(time.Time{})
-}
-
-func (self *sys__net__Socket) hxrt__socket_applyFastSend() {
-	if self == nil || self.conn == nil {
-		return
-	}
-	tcpConn, ok := self.conn.(*net.TCPConn)
-	if !ok {
-		return
-	}
-	if err := tcpConn.SetNoDelay(self.fastSend); err != nil {
-		hxrt.Throw(err)
-	}
-}
-
-func (self *sys__net__Socket) hxrt__socket_setConn(conn net.Conn) {
-	if self == nil || conn == nil {
-		return
-	}
-	self.conn = conn
-	self.input = &sys__net__SocketInput{reader: bufio.NewReader(conn), socket: self}
-	self.output = &sys__net__SocketOutput{writer: bufio.NewWriter(conn), socket: self}
-	self.hxrt__socket_applyFastSend()
-	self.hxrt__socket_applyConnDeadline()
-}
-
-func (self *sys__net__Socket) hxrt__socket_conn() net.Conn {
-	if self == nil {
-		return nil
-	}
-	return self.conn
-}
-
-func (self *sys__net__Socket) close() {
-	if self == nil {
-		return
-	}
-	if self.conn != nil {
-		_ = self.conn.Close()
-		self.conn = nil
-	}
-	if self.listener != nil {
-		_ = self.listener.Close()
-		self.listener = nil
-	}
-}
-
-func (self *sys__net__Socket) connect(host *sys__net__Host, port int) {
-	if self == nil || host == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("socket connect requires host"))
-		return
-	}
-	resolvedHost := host.toString()
-	if resolvedHost == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("socket connect requires host"))
-		return
-	}
-	address := net.JoinHostPort(*hxrt.StdString(resolvedHost), strconv.Itoa(port))
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		hxrt.Throw(err)
-		return
-	}
-	self.hxrt__socket_setConn(conn)
-}
-
-func (self *sys__net__Socket) bind(host *sys__net__Host, port int) {
-	if self == nil || host == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("socket bind requires host"))
-		return
-	}
-	resolvedHost := host.toString()
-	if resolvedHost == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("socket bind requires host"))
-		return
-	}
-	address := net.JoinHostPort(*hxrt.StdString(resolvedHost), strconv.Itoa(port))
-	listener, err := net.Listen("tcp", address)
-	if err != nil {
-		hxrt.Throw(err)
-		return
-	}
-	if self.listener != nil {
-		_ = self.listener.Close()
-	}
-	self.listener = listener
-	self.hxrt__socket_applyListenerDeadline()
-}
-
-func (self *sys__net__Socket) listen(connections int) {
-	_ = connections
-}
-
-func (self *sys__net__Socket) accept() *sys__net__Socket {
-	if self == nil || self.listener == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("socket accept requires listener"))
-		return New_sys__net__Socket()
-	}
-	self.hxrt__socket_applyListenerDeadline()
-	conn, err := self.listener.Accept()
-	if err != nil {
-		hxrt.Throw(err)
-		return New_sys__net__Socket()
-	}
-	accepted := New_sys__net__Socket()
-	accepted.timeout = self.timeout
-	accepted.hasTimeout = self.hasTimeout
-	accepted.blocking = self.blocking
-	accepted.fastSend = self.fastSend
-	accepted.hxrt__socket_setConn(conn)
-	return accepted
-}
-
-func (self *sys__net__Socket) read() *string {
-	if self == nil || self.input == nil {
-		return hxrt.StringFromLiteral("")
-	}
-	return self.input.readLine()
-}
-
-func (self *sys__net__Socket) write(content *string) {
-	if self == nil || self.output == nil {
-		return
-	}
-	self.output.writeString(content)
-	self.output.flush()
-}
-
-func (self *sys__net__Socket) shutdown(read bool, write bool) {
-	if self == nil || self.conn == nil || (!read && !write) {
-		return
-	}
-	if tcpConn, ok := self.conn.(*net.TCPConn); ok {
-		if read {
-			if err := tcpConn.CloseRead(); err != nil {
-				hxrt.Throw(err)
-			}
-		}
-		if write {
-			if err := tcpConn.CloseWrite(); err != nil {
-				hxrt.Throw(err)
-			}
-		}
-		return
-	}
-	if err := self.conn.Close(); err != nil {
-		hxrt.Throw(err)
-	}
-	self.conn = nil
-}
-
-func hxrt__socket_addrInfo(addr net.Addr) map[string]any {
-	if addr == nil {
-		return map[string]any{"host": hxrt__host_empty(), "port": 0}
-	}
-	rawHost := ""
-	rawPort := "0"
-	hostPart, portPart, err := net.SplitHostPort(addr.String())
-	if err == nil {
-		rawHost = hostPart
-		rawPort = portPart
-	}
-	port, _ := strconv.Atoi(rawPort)
-	if rawHost == "" {
-		return map[string]any{"host": hxrt__host_empty(), "port": port}
-	}
-	return map[string]any{"host": New_sys__net__Host(hxrt.StringFromLiteral(rawHost)), "port": port}
-}
-
-func (self *sys__net__Socket) peer() map[string]any {
-	if self == nil || self.conn == nil {
-		return map[string]any{"host": hxrt__host_empty(), "port": 0}
-	}
-	return hxrt__socket_addrInfo(self.conn.RemoteAddr())
-}
-
-func (self *sys__net__Socket) host() map[string]any {
-	if self == nil {
-		return map[string]any{"host": hxrt__host_empty(), "port": 0}
-	}
-	if self.conn != nil {
-		return hxrt__socket_addrInfo(self.conn.LocalAddr())
-	}
-	if self.listener != nil {
-		return hxrt__socket_addrInfo(self.listener.Addr())
-	}
-	return map[string]any{"host": hxrt__host_empty(), "port": 0}
-}
-
-func (self *sys__net__Socket) setTimeout(timeout float64) {
-	if self == nil {
-		return
-	}
-	if timeout < 0 {
-		self.hasTimeout = false
-		self.timeout = 0
-	} else {
-		self.hasTimeout = true
-		self.timeout = timeout
-	}
-	self.hxrt__socket_applyConnDeadline()
-	self.hxrt__socket_applyListenerDeadline()
-}
-
-func (self *sys__net__Socket) waitForRead() {
-	if self == nil {
-		return
-	}
-	_ = sys__net__Socket_select_(hxrt.NewArray(self), hxrt.NewArray(), hxrt.NewArray(), -1)
-}
-
-func (self *sys__net__Socket) setBlocking(b bool) {
-	if self == nil {
-		return
-	}
-	self.blocking = b
-	self.hxrt__socket_applyConnDeadline()
-	self.hxrt__socket_applyListenerDeadline()
-}
-
-func (self *sys__net__Socket) setFastSend(b bool) {
-	if self == nil {
-		return
-	}
-	self.fastSend = b
-	self.hxrt__socket_applyFastSend()
-}
-
-func sys__net__Socket_select_(read *hxrt.Array, write *hxrt.Array, others *hxrt.Array, timeout ...float64) map[string]any {
-	if read == nil {
-		read = hxrt.NewArray()
-	}
-	if write == nil {
-		write = hxrt.NewArray()
-	}
-	if others == nil {
-		others = hxrt.NewArray()
-	}
-	effectiveTimeout := -1.0
-	if len(timeout) > 0 {
-		effectiveTimeout = timeout[0]
-	}
-	readyRead := hxrt.NewArray()
-	readyWrite := hxrt.NewArray()
-	readyOther := hxrt.NewArray()
-	for _, rawSocket := range read.Values() {
-		socket, ok := rawSocket.(*sys__net__Socket)
-		if !ok || socket == nil || socket.conn == nil || socket.input == nil || socket.input.reader == nil {
-			continue
-		}
-		reader := socket.input.reader
-		if reader.Buffered() > 0 {
-			readyRead.Push(socket)
-			continue
-		}
-		if effectiveTimeout >= 0 {
-			deadline := time.Now()
-			if effectiveTimeout > 0 {
-				deadline = time.Now().Add(time.Duration(effectiveTimeout * float64(time.Second)))
-			}
-			_ = socket.conn.SetReadDeadline(deadline)
-		}
-		_, err := reader.Peek(1)
-		socket.hxrt__socket_applyConnDeadline()
-		if err == nil {
-			readyRead.Push(socket)
-			continue
-		}
-		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
-			continue
-		}
-		readyOther.Push(socket)
-	}
-	for _, rawSocket := range write.Values() {
-		socket, ok := rawSocket.(*sys__net__Socket)
-		if !ok || socket == nil || socket.conn == nil {
-			continue
-		}
-		readyWrite.Push(socket)
-	}
-	for _, rawSocket := range others.Values() {
-		socket, ok := rawSocket.(*sys__net__Socket)
-		if !ok || socket == nil {
-			continue
-		}
-		readyOther.Push(socket)
-	}
-	return map[string]any{"read": readyRead, "write": readyWrite, "others": readyOther}
-}
-
-func (self *sys__net__SocketInput) readLine() *string {
-	if self == nil || self.reader == nil {
-		return hxrt.StringFromLiteral("")
-	}
-	if self.socket != nil {
-		self.socket.hxrt__socket_applyConnDeadline()
-	}
-	line, err := self.reader.ReadString('\n')
-	if err != nil && len(line) == 0 {
-		return hxrt.StringFromLiteral("")
-	}
-	return hxrt.StringFromLiteral(strings.TrimRight(line, "\r\n"))
-}
-
-func (self *sys__net__SocketInput) readByte() int {
-	if self == nil || self.reader == nil {
-		hxrt.Throw(&haxe__io__Eof{})
-		return 0
-	}
-	if self.socket != nil {
-		self.socket.hxrt__socket_applyConnDeadline()
-	}
-	value, err := self.reader.ReadByte()
-	if err != nil {
-		hxrt.Throw(&haxe__io__Eof{})
-		return 0
-	}
-	return int(value)
-}
-
-func (self *sys__net__SocketInput) readBytes(buf *haxe__io__Bytes, pos int, len int) int {
-	if buf == nil || pos < 0 || len < 0 || pos+len > buf.length {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
-		return 0
-	}
-	if len == 0 {
-		return 0
-	}
-	if self == nil || self.reader == nil {
-		hxrt.Throw(&haxe__io__Eof{})
-		return 0
-	}
-	if self.socket != nil {
-		self.socket.hxrt__socket_applyConnDeadline()
-	}
-	tmp := make([]byte, len)
-	read, err := self.reader.Read(tmp)
-	if err != nil && read == 0 {
-		hxrt.Throw(&haxe__io__Eof{})
-		return 0
-	}
-	for i := 0; i < read; i++ {
-		buf.b[pos+i] = int(tmp[i])
-	}
-	return read
-}
-
-func (self *sys__net__SocketInput) readAll(bufsize ...int) *haxe__io__Bytes {
-	return haxe__io__input_readAll(self, bufsize...)
-}
-
-func (self *sys__net__SocketInput) get_bigEndian() bool {
-	if self == nil {
-		return false
-	}
-	return self.bigEndian
-}
-
-func (self *sys__net__SocketInput) set_bigEndian(e bool) bool {
-	if self != nil {
-		self.bigEndian = e
-	}
-	return e
-}
-
-func (self *sys__net__SocketInput) close() {
-	if self != nil && self.socket != nil {
-		self.socket.close()
-	}
-}
-
-func (self *sys__net__SocketInput) readFullBytes(s *haxe__io__Bytes, pos int, len int) {
-	haxe__io__input_readFullBytes(self, s, pos, len)
-}
-
-func (self *sys__net__SocketInput) read(nbytes int) *haxe__io__Bytes {
-	return haxe__io__input_read(self, nbytes)
-}
-
-func (self *sys__net__SocketInput) readUntil(end int) *string {
-	return haxe__io__input_readUntil(self, end)
-}
-
-func (self *sys__net__SocketInput) readFloat() float64 {
-	return haxe__io__input_readFloat(self)
-}
-
-func (self *sys__net__SocketInput) readDouble() float64 {
-	return haxe__io__input_readDouble(self)
-}
-
-func (self *sys__net__SocketInput) readInt8() int {
-	return haxe__io__input_readInt8(self)
-}
-
-func (self *sys__net__SocketInput) readInt16() int {
-	return haxe__io__input_readInt16(self)
-}
-
-func (self *sys__net__SocketInput) readUInt16() int {
-	return haxe__io__input_readUInt16(self)
-}
-
-func (self *sys__net__SocketInput) readInt24() int {
-	return haxe__io__input_readInt24(self)
-}
-
-func (self *sys__net__SocketInput) readUInt24() int {
-	return haxe__io__input_readUInt24(self)
-}
-
-func (self *sys__net__SocketInput) readInt32() int {
-	return haxe__io__input_readInt32(self)
-}
-
-func (self *sys__net__SocketInput) readString(len int, encoding ...*haxe__io__Encoding) *string {
-	return haxe__io__input_readString(self, len, encoding...)
-}
-
-func (self *sys__net__SocketOutput) writeString(value *string) {
-	if self == nil || self.writer == nil || value == nil {
-		return
-	}
-	if self.socket != nil {
-		self.socket.hxrt__socket_applyConnDeadline()
-	}
-	if _, err := self.writer.WriteString(*hxrt.StdString(value)); err != nil {
-		hxrt.Throw(err)
-	}
-}
-
-func (self *sys__net__SocketOutput) flush() {
-	if self == nil || self.writer == nil {
-		return
-	}
-	if self.socket != nil {
-		self.socket.hxrt__socket_applyConnDeadline()
-	}
-	if err := self.writer.Flush(); err != nil {
-		hxrt.Throw(err)
 	}
 }

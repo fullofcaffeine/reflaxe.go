@@ -29,9 +29,7 @@ class Address {
 	}
 
 	public function getHost():Host {
-		var h = new Host(octet(host, 24) + "." + octet(host, 16) + "." + octet(host, 8) + "." + octet(host, 0));
-		untyped h.ip = host;
-		return h;
+		return Host.fromIPv4(host);
 	}
 
 	public function compare(a:Address):Int {

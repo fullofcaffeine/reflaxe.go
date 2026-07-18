@@ -510,6 +510,16 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			case "zip.go": // Native compression is selected only through staged haxe.zip Compress/Uncompress
 				// or their typed binding. Other zip data structures remain source-only.
 				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_ZIP) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_ZIP) >= 0;
+			case "socket.go", "socket_broadcast_posix.go", "socket_broadcast_unsupported.go",
+				"socket_broadcast_windows.go": // DNS and network transport are selected only through staged sys.net
+				// APIs or their typed hxrt binding. Unrelated full-copy builds keep the OS
+				// networking capability out unless inference is explicitly disabled.
+				buildContext.hxrtNoFeatureInfer
+				|| plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_SOCKET) >= 0
+				|| plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_SOCKET) >= 0;
+			case "socket_ssl.go": // TLS transport composes the socket and SSL slices but remains
+				// footprint-explicit for programs that use certificate/digest APIs without sockets.
+				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_SOCKET_SSL) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_SOCKET_SSL) >= 0;
 			case "terminal.go", "terminal_darwin.go", "terminal_linux.go", "terminal_posix.go", "terminal_unsupported.go", "terminal_windows.go":
 				// Terminal mode contains a platform syscall boundary and should not add
 				// unsafe-bearing code to programs that never call Sys.getChar. Explicitly

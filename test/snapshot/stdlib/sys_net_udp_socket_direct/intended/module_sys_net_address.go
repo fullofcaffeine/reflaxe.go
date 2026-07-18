@@ -23,21 +23,7 @@ func New_sys__net__Address() *sys__net__Address {
 }
 
 func (self *sys__net__Address) getHost() *sys__net__Host {
-	h := New_sys__net__Host(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(func() *string {
-		value := self.host
-		return hxrt.StdString(int(int32((hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(value)) >> uint(24)))))) & hxrt.Int32Wrap(255)))))
-	}(), hxrt.StringFromLiteral(".")), func() *string {
-		value_1 := self.host
-		return hxrt.StdString(int(int32((hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(value_1)) >> uint(16)))))) & hxrt.Int32Wrap(255)))))
-	}()), hxrt.StringFromLiteral(".")), func() *string {
-		value_2 := self.host
-		return hxrt.StdString(int(int32((hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(value_2)) >> uint(8)))))) & hxrt.Int32Wrap(255)))))
-	}()), hxrt.StringFromLiteral(".")), func() *string {
-		value_3 := self.host
-		return hxrt.StdString(int(int32((hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(value_3)) >> uint(0)))))) & hxrt.Int32Wrap(255)))))
-	}()))
-	h.ip = self.host
-	return h
+	return sys__net__Host_fromIPv4(self.host)
 }
 
 func (self *sys__net__Address) compare(a *sys__net__Address) int {

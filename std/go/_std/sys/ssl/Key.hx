@@ -1,25 +1,18 @@
 package sys.ssl;
 
+import go.NativeSlice;
 import haxe.io.Bytes;
-
-private typedef KeyHandle = Dynamic;
+import hxrt.ssl.KeyHandle;
+import hxrt.ssl.NativeKey;
 
 /**
-	What
-	Direct `sys.ssl.Key` support for `haxe.go`.
-
-	Why
-	The mainstream Haxe stdlib implementation cannot be used unchanged on `haxe.go`.
-	- `sys.ssl.Digest` and `sys.ssl.Socket` need a concrete key representation on
-	  sys targets.
-	- Parsing PEM/DER is target-runtime work, not compiler lowering work.
-
-	How
-	- Keep the Haxe-facing constructors in staged std.
-	- Store the native key handle behind one hidden localized `Dynamic` field and
-	  delegate parsing to `hxrt`.
+	What: Implements the Haxe 4.3.7 `sys.ssl.Key` constructors in staged source.
+	Why: The mainstream Haxe stdlib implementation cannot be used unchanged on `haxe.go`
+	because `sys.ssl.Key` is extern, and native PEM/DER key material must remain
+	opaque without reducing the boundary to `Dynamic`.
+	How: Store a typed `KeyHandle`, copy DER bytes to a native slice explicitly,
+	and delegate only parsing to `NativeKey`.
 **/
-@:goAllowRaw
 class Key {
 	@:noCompletion
 	@:dox(hide)
@@ -30,14 +23,17 @@ class Key {
 	}
 
 	public static function loadFile(file:String, ?isPublic:Bool, ?pass:String):Key {
-		return new Key(untyped __go__("hxrt.SslKeyLoadFile({0}, {1}, {2})", file, isPublic == true, pass));
+		return new Key(NativeKey.loadFile(file, isPublic == true, pass));
 	}
 
 	public static function readPEM(data:String, isPublic:Bool, ?pass:String):Key {
-		return new Key(untyped __go__("hxrt.SslKeyReadPEM({0}, {1}, {2})", data, isPublic, pass));
+		return new Key(NativeKey.readPem(data, isPublic, pass));
 	}
 
 	public static function readDER(data:Bytes, isPublic:Bool):Key {
-		return new Key(untyped __go__("hxrt.SslKeyReadDER(hxrt_haxeBytesToRaw({0}), {1})", data, isPublic));
+		var values = new Array<Int>();
+		for (index in 0...data.length)
+			values.push(data.get(index));
+		return new Key(NativeKey.readDer(NativeSlice.fromArray(values), isPublic));
 	}
 }

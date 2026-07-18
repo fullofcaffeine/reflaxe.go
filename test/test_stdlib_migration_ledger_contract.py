@@ -61,6 +61,10 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "staged_support",
         "std/sys/thread/FixedThreadPoolWorker.hx",
     ),
+    "std/sys/net/_SocketIO.hx": (
+        "staged_support",
+        "std/sys/net/_SocketIO.hx",
+    ),
     "std/_std/haxe/iterators/GoStringRuntime.cross.hx": (
         "hxrt_binding",
         "std/hxrt/string/GoStringRuntime.hx",
@@ -193,9 +197,61 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/process/ProcessOutputHandle.hx",
     ),
+    "std/hxrt/net/NativeSocket.hx": (
+        "hxrt_binding",
+        "std/hxrt/net/NativeSocket.hx",
+    ),
+    "std/hxrt/net/SocketAcceptResult.hx": (
+        "hxrt_binding",
+        "std/hxrt/net/SocketAcceptResult.hx",
+    ),
+    "std/hxrt/net/SocketAddress.hx": (
+        "hxrt_binding",
+        "std/hxrt/net/SocketAddress.hx",
+    ),
+    "std/hxrt/net/SocketDatagramResult.hx": (
+        "hxrt_binding",
+        "std/hxrt/net/SocketDatagramResult.hx",
+    ),
+    "std/hxrt/net/SocketHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/net/SocketHandle.hx",
+    ),
+    "std/hxrt/net/SocketIOResult.hx": (
+        "hxrt_binding",
+        "std/hxrt/net/SocketIOResult.hx",
+    ),
+    "std/hxrt/net/SocketSelectResult.hx": (
+        "hxrt_binding",
+        "std/hxrt/net/SocketSelectResult.hx",
+    ),
+    "std/hxrt/ssl/CertificateHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/ssl/CertificateHandle.hx",
+    ),
+    "std/hxrt/ssl/KeyHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/ssl/KeyHandle.hx",
+    ),
+    "std/hxrt/ssl/NativeDigest.hx": (
+        "hxrt_binding",
+        "std/hxrt/ssl/NativeDigest.hx",
+    ),
+    "std/hxrt/ssl/NativeKey.hx": (
+        "hxrt_binding",
+        "std/hxrt/ssl/NativeKey.hx",
+    ),
     "std/hxrt/ssl/NativeCertificate.hx": (
         "hxrt_binding",
         "std/hxrt/ssl/NativeCertificate.hx",
+    ),
+    "std/hxrt/ssl/NativeSocket.hx": (
+        "hxrt_binding",
+        "std/hxrt/ssl/NativeSocket.hx",
+    ),
+    "std/hxrt/ssl/SNIConfigHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/ssl/SNIConfigHandle.hx",
     ),
     "std/_std/hxrt/stack/NativeStack.hx": ("hxrt_binding", "std/hxrt/stack/NativeStack.hx"),
     "std/_std/hxrt/stack/NativeStackFrame.hx": (
@@ -244,7 +300,7 @@ SOURCE_EXPECTED_SHIM_GROUPS = {
     "std/sys/ssl/Certificate.cross.hx": ["stdlib_symbols"],
     "std/sys/ssl/Digest.cross.hx": ["stdlib_symbols"],
     "std/sys/ssl/Key.cross.hx": ["stdlib_symbols"],
-    "std/sys/ssl/Socket.cross.hx": ["net_socket", "stdlib_symbols"],
+    "std/sys/ssl/Socket.cross.hx": ["stdlib_symbols"],
 }
 
 EXPECTED_SHIM_GROUPS: dict[str, list[str]] = {}
@@ -259,7 +315,6 @@ for shim_source, shim_groups in SOURCE_EXPECTED_SHIM_GROUPS.items():
 EXPECTED_SHIM_AUDIT_DECISIONS = {
     "http": "migration_required_haxe_go_vfp_8_7_12",
     "io": "migration_required_haxe_go_vfp_8_7_11",
-    "net_socket": "migration_required_haxe_go_vfp_8_7_14",
     "stdlib_symbols": "split_migration_debt_from_exact_intrinsics_haxe_go_vfp_8_7_15",
 }
 
@@ -1474,6 +1529,111 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             self.assertNotIn(path, seen)
             self.assertRegex(follow_up or "", r"^haxe_go-[a-z0-9.-]+$")
             seen.add(path)
+
+    def test_socket_public_api_is_staged_over_typed_runtime_handles(self) -> None:
+        """Socket lifecycle must not return to compiler-owned declaration shims."""
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")
+        classifier = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx"
+        ).read_text(encoding="utf-8")
+        ownership = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibOwnership.hx"
+        ).read_text(encoding="utf-8")
+        planner = (
+            ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ).read_text(encoding="utf-8")
+        feature_analyzer = (
+            ROOT / "src/reflaxe/go/compiler/GoHxrtFeatureAnalyzer.hx"
+        ).read_text(encoding="utf-8")
+        reflaxe_compiler = (
+            ROOT / "src/reflaxe/go/GoReflaxeCompiler.hx"
+        ).read_text(encoding="utf-8")
+
+        for staged_path in (
+            "std/go/_std/sys/net/Host.hx",
+            "std/go/_std/sys/net/Socket.hx",
+            "std/go/_std/sys/net/UdpSocket.hx",
+            "std/sys/net/_SocketIO.hx",
+        ):
+            source = (ROOT / staged_path).read_text(encoding="utf-8")
+            self.assertNotIn("extern class", source, staged_path)
+            self.assertNotIn("__go__", source, staged_path)
+
+        for binding_path in (
+            "std/hxrt/net/SocketHandle.hx",
+            "std/hxrt/net/SocketAddress.hx",
+            "std/hxrt/net/SocketAcceptResult.hx",
+            "std/hxrt/net/SocketIOResult.hx",
+            "std/hxrt/net/SocketDatagramResult.hx",
+            "std/hxrt/net/SocketSelectResult.hx",
+            "std/hxrt/net/NativeSocket.hx",
+        ):
+            binding = (ROOT / binding_path).read_text(encoding="utf-8")
+            self.assertIn('@:go.import("hxrt")', binding, binding_path)
+
+        self.assertTrue((ROOT / "runtime/hxrt/socket.go").is_file())
+        self.assertTrue((ROOT / "runtime/hxrt/socket_test.go").is_file())
+        self.assertTrue((ROOT / "runtime/hxrt/socket_ssl.go").is_file())
+        self.assertFalse(
+            (ROOT / "src/reflaxe/go/compiler/emit/GoNetSocketEmitter.hx").exists()
+        )
+
+        for fragment in (
+            "GoNetSocketEmitter",
+            "lowerNetSocketShimDecls",
+            'requiredStdlibShimGroups.exists("net_socket")',
+            'requireStdlibShimGroup("net_socket")',
+        ):
+            self.assertNotIn(fragment, compiler + planner, fragment)
+        self.assertNotIn('groups: ["net_socket"]', classifier)
+        for authority in ("sys.net.Host", "sys.net.Socket", "sys.net.UdpSocket"):
+            self.assertNotIn(f'"{authority}"', ownership)
+
+        self.assertIn('FEATURE_SOCKET = "socket"', feature_analyzer)
+        self.assertIn('FEATURE_SOCKET_SSL = "socket_ssl"', feature_analyzer)
+        self.assertIn(
+            '["socket.go", "socket_broadcast_posix.go", "socket_broadcast_unsupported.go", "socket_broadcast_windows.go"]',
+            feature_analyzer,
+        )
+        self.assertIn('["socket_ssl.go"]', feature_analyzer)
+        self.assertIn(
+            'case "socket.go", "socket_broadcast_posix.go", "socket_broadcast_unsupported.go", "socket_broadcast_windows.go":',
+            reflaxe_compiler,
+        )
+        self.assertIn('case "socket_ssl.go":', reflaxe_compiler)
+
+        socket_runtime = ROOT / "test/snapshot/core/runtime_hxrt_infer_socket/intended/hxrt"
+        ssl_runtime = ROOT / "test/snapshot/core/runtime_hxrt_infer_ssl/intended/hxrt"
+        socket_ssl_runtime = ROOT / "test/snapshot/core/runtime_hxrt_infer_socket_ssl/intended/hxrt"
+        self.assertTrue((socket_runtime / "socket.go").is_file())
+        for runtime_file in (
+            "socket_broadcast_posix.go",
+            "socket_broadcast_unsupported.go",
+            "socket_broadcast_windows.go",
+        ):
+            self.assertTrue((socket_runtime / runtime_file).is_file(), runtime_file)
+        self.assertFalse((socket_runtime / "ssl.go").exists())
+        self.assertFalse((socket_runtime / "socket_ssl.go").exists())
+        self.assertTrue((ssl_runtime / "ssl.go").is_file())
+        self.assertFalse((ssl_runtime / "socket.go").exists())
+        self.assertFalse((ssl_runtime / "socket_ssl.go").exists())
+        for runtime_file in ("ssl.go", "socket.go", "socket_ssl.go"):
+            self.assertTrue((socket_ssl_runtime / runtime_file).is_file(), runtime_file)
+        for runtime_file in (
+            "socket.go",
+            "socket_broadcast_posix.go",
+            "socket_broadcast_unsupported.go",
+            "socket_broadcast_windows.go",
+            "socket_ssl.go",
+        ):
+            self.assertFalse(
+                (
+                    ROOT
+                    / "test/snapshot/core/const_kinds_contract/intended/hxrt"
+                    / runtime_file
+                ).exists(),
+                runtime_file,
+            )
 
     def test_migration_and_governance_entrypoints_consume_the_ledger(self) -> None:
         package = json.loads(PACKAGE_PATH.read_text(encoding="utf-8"))

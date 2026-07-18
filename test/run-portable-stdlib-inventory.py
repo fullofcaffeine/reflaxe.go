@@ -106,7 +106,7 @@ OWNER_OVERRIDES = {
     "sys.db.ResultSet": "staged_std",
     "sys.db.Sqlite": "staged_std",
     "sys.net.Address": "staged_std",
-    "sys.net.UdpSocket": "compiler_shim",
+    "sys.net.UdpSocket": "mixed",
     "sys.ssl.Certificate": "mixed",
     "sys.ssl.Digest": "mixed",
     "sys.ssl.DigestAlgorithm": "staged_std",
@@ -164,8 +164,8 @@ OWNER_OVERRIDES = {
     "haxe.Serializer": "compiler_shim",
     "haxe.Unserializer": "compiler_shim",
     "sys.Http": "compiler_shim",
-    "sys.net.Host": "compiler_shim",
-    "sys.net.Socket": "compiler_shim",
+    "sys.net.Host": "mixed",
+    "sys.net.Socket": "mixed",
     "haxe.io.Bytes": "compiler_shim",
     "haxe.io.BytesBuffer": "compiler_shim",
     "haxe.io.BytesInput": "compiler_shim",
@@ -515,15 +515,27 @@ MODULE_NOTES_OVERRIDES = {
         "Direct `sys.net.Address` usage now has semantic-diff coverage through "
         "`semantic_diff/sys_net_address_ssl_digest_algorithm_contract` and snapshot coverage in "
         "`stdlib/sys_net_address_ssl_digest_algorithm_direct`. Ownership stays source-owned because this "
-        "surface is just the upstream `{host, port}` carrier and helper methods, expressed without growing "
-        "the compiler-owned socket runtime."
+        "surface is just the upstream `{host, port}` carrier and helper methods, expressed without compiler-owned "
+        "socket declarations. Native address values arrive through a typed carrier and are converted in staged source."
+    ),
+    "sys.net.Host": (
+        "Canonical staged `sys.net.Host` owns the public name/IP fields and conversion behavior in "
+        "`std/go/_std/sys/net/Host.hx`; typed DNS, reverse lookup, and local-hostname capabilities live in the "
+        "footprint-explicit `runtime/hxrt/socket.go`. `host_basic_contract` provides semantic-diff coverage without "
+        "retaining a compiler-emitted Host type."
+    ),
+    "sys.net.Socket": (
+        "Canonical staged `sys.net.Socket` owns the public API, stream wrappers, Haxe EOF/blocked translation, "
+        "address construction, and select identity. One opaque typed handle reaches TCP lifecycle, deadlines, "
+        "readiness, and socket options in footprint-explicit `runtime/hxrt/socket.go`; loopback semantic-diff, "
+        "selective-runtime snapshots, direct timeout/cleanup tests, and the Go race detector guard the boundary."
     ),
     "sys.net.UdpSocket": (
         "Direct `sys.net.UdpSocket` usage now has deterministic snapshot/runtime coverage through "
         "`stdlib/sys_net_udp_socket_direct`, covering loopback `bind` / `host` / `sendTo` / `readFrom` / `setBroadcast` "
-        "plus peer address round-tripping. The current `net_socket` compiler group is compatibility "
-        "migration debt; `haxe_go-vfp.8.7.14` moves public socket APIs to staged source over typed "
-        "runtime handles for target-sensitive deadlines, blocking, address translation, and socket options. "
+        "plus peer address round-tripping. `haxe_go-vfp.8.7.14` moved the public API to canonical staged source over "
+        "the same typed handle as TCP; datagram transport, address translation, and socket options live in "
+        "footprint-explicit `runtime/hxrt/socket.go`, with no `net_socket` compiler group remaining. "
         "The evidence covers OS socket-option installation without requiring LAN broadcast packet delivery in CI."
     ),
     "sys.ssl.Certificate": (
@@ -577,11 +589,10 @@ MODULE_NOTES_OVERRIDES = {
     "sys.ssl.Socket": (
         "Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct` "
         "and SNI selection coverage through `stdlib/sys_ssl_socket_sni_direct`, "
-        "covering staged public socket configuration on top of the compiler-emitted `sys.net.Socket` carrier "
-        "tracked as migration debt by `haxe_go-vfp.8.7.14`, plus "
-        "runtime TLS dial/listen/handshake/peer-certificate/SNI behavior in `runtime/hxrt/ssl.go`. Ownership stays mixed: "
-        "the public Haxe API lives in `std/go/_std/sys/ssl/Socket.hx`, while the underlying connection/listener TLS "
-        "behavior remains runtime-owned."
+        "covering staged public configuration and accepted SSL object identity over the source-owned `sys.net.Socket` "
+        "and its shared typed handle. TLS dial/listen/handshake/peer-certificate/SNI composition lives in the "
+        "footprint-explicit `runtime/hxrt/socket_ssl.go`; certificate and key primitives remain in `ssl.go`. "
+        "No raw injection, Dynamic native handle, or `net_socket` compiler ownership remains."
     ),
 }
 

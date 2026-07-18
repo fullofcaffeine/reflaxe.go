@@ -1,26 +1,23 @@
 package sys.ssl;
 
+import go.NativeSlice;
 import haxe.io.Bytes;
+import hxrt.ssl.CertificateHandle;
 import hxrt.ssl.NativeCertificate;
-
-private typedef CertificateHandle = Dynamic;
 
 /**
 	What
-	Direct `sys.ssl.Certificate` support for `haxe.go`.
+	- Implements the Haxe 4.3.7 `sys.ssl.Certificate` API as staged source.
 
 	Why
-	The mainstream Haxe stdlib implementation cannot be used unchanged on `haxe.go`.
-	- TLS and certificate inspection are part of the Haxe sys stdlib surface.
-	- The public API is ordinary Haxe code, but the actual certificate parsing and
-	  platform trust-root handling are Go runtime concerns.
+	- The mainstream Haxe stdlib implementation cannot be used unchanged on `haxe.go`
+	  because `sys.ssl.Certificate` is extern. Certificate parsing and trust stores are native, but public chain
+	  traversal, Array conversion, and Date construction belong in Haxe source.
 
 	How
-	- Keep the Haxe-facing API in staged std.
-	- Store the native handle behind a hidden localized `Dynamic` field and route
-	  all heavy lifting through `hxrt` helpers.
+	- Retain one opaque typed certificate handle and delegate native capabilities
+	  through `NativeCertificate`; DER and alt-name slices are copied explicitly.
 **/
-@:goAllowRaw
 class Certificate {
 	@:noCompletion
 	@:dox(hide)
@@ -32,19 +29,19 @@ class Certificate {
 	}
 
 	public static function loadFile(file:String):Certificate {
-		return new Certificate(untyped __go__("hxrt.SslCertLoadFile({0})", file));
+		return new Certificate(NativeCertificate.loadFile(file));
 	}
 
 	public static function loadPath(path:String):Certificate {
-		return new Certificate(untyped __go__("hxrt.SslCertLoadPath({0})", path));
+		return new Certificate(NativeCertificate.loadPath(path));
 	}
 
-	public static function fromString(str:String):Certificate {
-		return new Certificate(untyped __go__("hxrt.SslCertFromString({0})", str));
+	public static function fromString(value:String):Certificate {
+		return new Certificate(NativeCertificate.fromString(value));
 	}
 
 	public static function loadDefaults():Certificate {
-		return new Certificate(untyped __go__("hxrt.SslCertLoadDefaults()"));
+		return new Certificate(NativeCertificate.loadDefaults());
 	}
 
 	public var commonName(get, null):Null<String>;
@@ -53,39 +50,42 @@ class Certificate {
 	public var notAfter(get, null):Date;
 
 	public function subject(field:String):Null<String> {
-		return untyped __go__("hxrt.SslCertSubject({0}, {1})", handle, field);
+		return NativeCertificate.subject(handle, field);
 	}
 
 	public function issuer(field:String):Null<String> {
-		return untyped __go__("hxrt.SslCertIssuer({0}, {1})", handle, field);
+		return NativeCertificate.issuer(handle, field);
 	}
 
 	public function next():Null<Certificate> {
-		var nextHandle:CertificateHandle = untyped __go__("hxrt.SslCertNext({0})", handle);
+		var nextHandle = NativeCertificate.next(handle);
 		return nextHandle == null ? null : new Certificate(nextHandle);
 	}
 
 	public function add(pem:String):Void {
-		untyped __go__("func() int { hxrt.SslCertAddPEM({0}, {1}); return 0 }()", handle, pem);
+		NativeCertificate.addPem(handle, pem);
 	}
 
 	public function addDER(der:Bytes):Void {
-		untyped __go__("func() int { hxrt.SslCertAddDER({0}, hxrt_haxeBytesToRaw({1})); return 0 }()", handle, der);
+		var values = new Array<Int>();
+		for (index in 0...der.length)
+			values.push(der.get(index));
+		NativeCertificate.addDer(handle, NativeSlice.fromArray(values));
 	}
 
-	function get_commonName():Null<String> {
-		return untyped __go__("hxrt.SslCertCommonName({0})", handle);
+	private function get_commonName():Null<String> {
+		return NativeCertificate.commonName(handle);
 	}
 
-	function get_altNames():Array<String> {
+	private function get_altNames():Array<String> {
 		return NativeCertificate.altNames(handle).toArray();
 	}
 
-	function get_notBefore():Date {
-		return Date.fromTime(untyped __go__("hxrt.SslCertNotBeforeMs({0})", handle));
+	private function get_notBefore():Date {
+		return Date.fromTime(NativeCertificate.notBeforeMs(handle));
 	}
 
-	function get_notAfter():Date {
-		return Date.fromTime(untyped __go__("hxrt.SslCertNotAfterMs({0})", handle));
+	private function get_notAfter():Date {
+		return Date.fromTime(NativeCertificate.notAfterMs(handle));
 	}
 }

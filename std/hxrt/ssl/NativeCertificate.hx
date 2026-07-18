@@ -19,6 +19,42 @@ import go.NativeSlice;
 @:go.import("hxrt")
 @:go.package("hxrt")
 extern class NativeCertificate {
+	@:go.name("SslCertLoadFile")
+	public static function loadFile(file:String):CertificateHandle;
+
+	@:go.name("SslCertLoadPath")
+	public static function loadPath(path:String):CertificateHandle;
+
+	@:go.name("SslCertFromString")
+	public static function fromString(value:String):CertificateHandle;
+
+	@:go.name("SslCertLoadDefaults")
+	public static function loadDefaults():CertificateHandle;
+
+	@:go.name("SslCertCommonName")
+	public static function commonName(handle:CertificateHandle):String;
+
 	@:go.name("SslCertAltNames")
-	public static function altNames(handle:Dynamic):NativeSlice<String>;
+	public static function altNames(handle:CertificateHandle):NativeSlice<String>;
+
+	@:go.name("SslCertSubject")
+	public static function subject(handle:CertificateHandle, field:String):String;
+
+	@:go.name("SslCertIssuer")
+	public static function issuer(handle:CertificateHandle, field:String):String;
+
+	@:go.name("SslCertNotBeforeMs")
+	public static function notBeforeMs(handle:CertificateHandle):Float;
+
+	@:go.name("SslCertNotAfterMs")
+	public static function notAfterMs(handle:CertificateHandle):Float;
+
+	@:go.name("SslCertNext")
+	public static function next(handle:CertificateHandle):CertificateHandle;
+
+	@:go.name("SslCertAddPEM")
+	public static function addPem(handle:CertificateHandle, value:String):Void;
+
+	@:go.name("SslCertAddDERValues")
+	public static function addDer(handle:CertificateHandle, values:NativeSlice<Int>):Void;
 }

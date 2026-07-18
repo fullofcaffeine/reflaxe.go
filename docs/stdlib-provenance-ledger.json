@@ -21,6 +21,7 @@
       "upstream_std_override": [
         "haxe_go-vfp.5.3",
         "haxe_go-vfp.8.7.10",
+        "haxe_go-vfp.8.7.14",
         "haxe_go-vfp.8.7.15.1",
         "haxe_go-vfp.8.7.15.2",
         "haxe_go-vfp.8.7.15.3",
@@ -34,12 +35,14 @@
         "haxe_go-vfp.8.7.9"
       ],
       "staged_support": [
-        "haxe_go-vfp.5.4"
+        "haxe_go-vfp.5.4",
+        "haxe_go-vfp.8.7.14"
       ],
       "hxrt_binding": [
         "haxe_go-vfp.5.4",
         "haxe_go-vfp.8.3.8",
         "haxe_go-vfp.8.7.10",
+        "haxe_go-vfp.8.7.14",
         "haxe_go-vfp.8.7.15.1",
         "haxe_go-vfp.8.7.15.3",
         "haxe_go-vfp.8.7.15.4",
@@ -92,21 +95,6 @@
           "test/test_compiler_stdlib_intrinsic_registry.py"
         ],
         "notes": "The current base IO types and forwarding bodies are compatibility migration debt. Public behavior moves to staged source over a narrower typed byte representation boundary."
-      },
-      {
-        "group": "net_socket",
-        "decision": "migration_required_haxe_go_vfp_8_7_14",
-        "sourcePaths": [
-          "std/go/_std/sys/ssl/Socket.hx"
-        ],
-        "references": [
-          "docs/compiler-stdlib-intrinsics.json",
-          "src/reflaxe/go/GoCompiler.hx",
-          "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
-          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx",
-          "test/test_compiler_stdlib_intrinsic_registry.py"
-        ],
-        "notes": "Socket lifecycle, deadlines, readiness, address translation, and carriers are compatibility migration debt targeted for staged APIs over typed runtime handles."
       },
       {
         "group": "stdlib_symbols",
@@ -584,6 +572,15 @@
       "notes": "Go staged helper surface for sys.Http leaf helpers, keeping response-header lookup glue and payload capture fan-out out of GoCompiler. The remaining request choreography is compatibility migration debt tracked by haxe_go-vfp.8.7.12."
     },
     {
+      "path": "std/sys/net/_SocketIO.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "staged_support",
+      "destination": "std/sys/net/_SocketIO.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Ordinary staged support that implements source-owned haxe.io.Input and Output wrappers over a typed socket handle; byte bounds, EOF, blocked translation, and portable Bytes mutation stay outside compiler and runtime ownership."
+    },
+    {
       "path": "std/go/_std/sys/FileSystem.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
@@ -644,7 +641,34 @@
       "destination": "std/go/_std/sys/net/Address.hx",
       "migrationBead": "haxe_go-vfp.5.3",
       "compilerShimGroups": [],
-      "notes": "Go staged portable override for sys.net.Address, keeping the public {host, port} carrier and IPv4 helper methods in std while the backend-owned socket shim translates addresses underneath."
+      "notes": "Go staged portable override for sys.net.Address, keeping the public {host, port} carrier and IPv4 helper methods in std while source-owned sockets translate typed native address carriers."
+    },
+    {
+      "path": "std/go/_std/sys/net/Host.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/net/Host.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Canonical source-owned Haxe 4.3.7 sys.net.Host API over typed hxrt DNS and hostname capabilities; host identity, rendering, and public fields no longer come from compiler-synthesized declarations."
+    },
+    {
+      "path": "std/go/_std/sys/net/Socket.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/net/Socket.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Canonical source-owned Haxe 4.3.7 sys.net.Socket API over one opaque typed hxrt handle; lifecycle, stream wrappers, exceptions, select identity, and public address construction stay in staged Haxe."
+    },
+    {
+      "path": "std/go/_std/sys/net/UdpSocket.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/sys/net/UdpSocket.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Canonical source-owned Haxe 4.3.7 sys.net.UdpSocket API; byte bounds and public Address mutation remain Haxe policy while typed hxrt capabilities own native datagram transport and broadcast options."
     },
     {
       "path": "std/go/_std/sys/ssl/Certificate.hx",
@@ -693,12 +717,11 @@
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/ssl/Socket.hx",
-      "migrationBead": "haxe_go-vfp.5.3",
+      "migrationBead": "haxe_go-vfp.8.7.14",
       "compilerShimGroups": [
-        "net_socket",
         "stdlib_symbols"
       ],
-      "notes": "Go staged portable override for the public sys.ssl.Socket API, currently reusing the compiler-emitted sys.net.Socket carrier while runtime/hxrt/ssl.go owns TLS dial/listen/handshake and peer-certificate behavior. The carrier is compatibility migration debt tracked by haxe_go-vfp.8.7.14."
+      "notes": "Canonical source-owned Haxe 4.3.7 sys.ssl.Socket API composed over the staged sys.net.Socket and shared typed handle. TLS transport capabilities live in footprint-explicit socket_ssl.go; configuration, accepted-object identity, and certificate wrapping remain staged source."
     },
     {
       "path": "std/go/_std/sys/thread/Condition.hx",
@@ -1232,6 +1255,69 @@
       "notes": "Typed extern bridge to the narrow runtime/hxrt filesystem capability surface used by canonical staged sys.FileSystem source."
     },
     {
+      "path": "std/hxrt/net/NativeSocket.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/net/NativeSocket.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Typed extern bridge to the footprint-explicit DNS, TCP, UDP, stream, deadline, socket-option, and readiness capabilities in runtime/hxrt/socket.go."
+    },
+    {
+      "path": "std/hxrt/net/SocketAcceptResult.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/net/SocketAcceptResult.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Typed accepted-handle and readiness-status carrier translated into a source-owned sys.net.Socket by staged Haxe."
+    },
+    {
+      "path": "std/hxrt/net/SocketAddress.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/net/SocketAddress.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Typed native IPv4 and port carrier that staged source converts into the unchanged public Host and Address objects."
+    },
+    {
+      "path": "std/hxrt/net/SocketDatagramResult.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/net/SocketDatagramResult.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Typed UDP payload-progress, status, and peer-address carrier that avoids Dynamic and runtime-created Haxe objects."
+    },
+    {
+      "path": "std/hxrt/net/SocketHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/net/SocketHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for a native TCP or UDP resource, its synchronized lifecycle, stream state, deadline, and socket-option policy."
+    },
+    {
+      "path": "std/hxrt/net/SocketIOResult.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/net/SocketIOResult.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Typed byte-progress and EOF/blocked status carrier consumed by ordinary staged socket stream wrappers."
+    },
+    {
+      "path": "std/hxrt/net/SocketSelectResult.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/net/SocketSelectResult.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Typed readiness-index slices that let staged Socket.select preserve exact public Socket identity and custom payload values."
+    },
+    {
       "path": "std/hxrt/process/NativeProcess.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
@@ -1277,13 +1363,67 @@
       "notes": "Opaque typed extern carrier for a child stdout or stderr pipe wrapped by the staged haxe.io.Input implementation."
     },
     {
+      "path": "std/hxrt/ssl/CertificateHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/ssl/CertificateHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for parsed certificate chains and trust pools shared by staged certificate and TLS socket APIs."
+    },
+    {
+      "path": "std/hxrt/ssl/KeyHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/ssl/KeyHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for parsed native public and private keys used by staged key, digest, and TLS APIs."
+    },
+    {
       "path": "std/hxrt/ssl/NativeCertificate.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/ssl/NativeCertificate.hx",
       "migrationBead": "haxe_go-vfp.8.3.8",
       "compilerShimGroups": [],
-      "notes": "Typed extern bridge for native certificate alternate-name slices. Staged sys.ssl.Certificate explicitly copies the Go slice into the portable shared Array carrier instead of disguising native slice storage as Haxe Array."
+      "notes": "Typed extern bridge for certificate parsing, chain traversal, fields, dates, trust pools, and native alternate-name slices; staged Certificate owns public object and Array construction."
+    },
+    {
+      "path": "std/hxrt/ssl/NativeDigest.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/ssl/NativeDigest.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Typed hashing, signing, and verification bridge over explicit integer byte slices and opaque key handles."
+    },
+    {
+      "path": "std/hxrt/ssl/NativeKey.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/ssl/NativeKey.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Typed native key parsing bridge that keeps PEM/DER conversion in staged source and implementation-specific key values opaque."
+    },
+    {
+      "path": "std/hxrt/ssl/NativeSocket.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/ssl/NativeSocket.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Typed TLS composition bridge over the shared SocketHandle, opaque key/certificate/SNI values, and footprint-explicit runtime/hxrt/socket_ssl.go capabilities."
+    },
+    {
+      "path": "std/hxrt/ssl/SNIConfigHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/ssl/SNIConfigHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.14",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed extern carrier for the TLS server's SNI matcher and certificate table, with public configuration retained by staged sys.ssl.Socket."
     },
     {
       "path": "std/hxrt/sys/NativeConsole.hx",

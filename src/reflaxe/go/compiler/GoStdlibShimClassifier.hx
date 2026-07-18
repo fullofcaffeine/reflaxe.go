@@ -44,11 +44,6 @@ class GoStdlibShimClassifier {
 		{kind: "class", path: "haxe.io.Path", groups: ["stdlib_symbols"]},
 		{kind: "class", path: "haxe.io.StringInput", groups: ["io"]},
 		{kind: "class", path: "sys.Http", groups: ["http"]},
-		{kind: "class", path: "sys.net.Host", groups: ["net_socket"]},
-		{kind: "class", path: "sys.net.Socket", groups: ["net_socket"]},
-		{kind: "class", path: "sys.net.UdpSocket", groups: ["net_socket"]},
-		{kind: "class", path: "sys.ssl.Socket", groups: ["net_socket"]},
-		{kind: "class", path: "sys.ssl._Socket.Socket_Impl_", groups: ["net_socket"]},
 		{kind: "enum", path: "haxe.ds.Option", groups: ["stdlib_symbols"]},
 		{kind: "enum", path: "haxe.io.Error", groups: ["io"]}
 	];

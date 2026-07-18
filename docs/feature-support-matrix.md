@@ -68,7 +68,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `EReg` | `semantic-diff` | `ereg_behavior_contract`, `ereg_edge_contract` |
 | `haxe.Http` / `sys.Http` | `semantic-diff` | `http_proxy_custom_request`, `http_request_callbacks_contract` |
 | Direct `haxe.http.HttpBase` baseline plus direct `haxe.http.HttpMethod` / `haxe.http.HttpStatus` use | `semantic-diff` | `haxe_http_base_contract`, `stdlib/haxe_http_base_direct` |
-| `sys.net.Socket` | `semantic-diff` + `snapshot` | `socket_loopback_contract`, `socket_advanced_contract`, `sys/socket_input_service_surface` |
+| `sys.net.Socket` | `semantic-diff` + `snapshot` + direct race/cross-build | `socket_loopback_contract`, `socket_advanced_contract`, `sys/socket_input_service_surface`, `core/runtime_hxrt_infer_socket`, `runtime/hxrt/socket_test.go`, `test_socket_runtime_cross_build.py` |
 | `haxe.crypto.Base64`, `Md5`, `Sha1`, `Sha224`, `Sha256` | `semantic-diff` + `snapshot` | `crypto_source_owned`, `crypto_xml_zip`, `stdlib/crypto_xml_zip_basic`, direct runtime crypto tests |
 | root `Xml`, `haxe.xml.Parser`, `haxe.xml.Printer` | `semantic-diff` + `snapshot` | `xml_source_owned`, `root_xml_contract`, `crypto_xml_zip`, `stdlib/xml_root_dom_basic`, `stdlib/crypto_xml_zip_basic` |
 | `haxe.zip.Compress`, `haxe.zip.Uncompress`, and `haxe.zip.Tools` one-shot compression paths | `semantic-diff` + `snapshot` + direct runtime | `zip_source_owned`, `crypto_xml_zip`, `stdlib/crypto_xml_zip_basic`, direct runtime zip tests |
@@ -83,7 +83,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `sys.io.File` | `semantic-diff` + `snapshot` | `file_read_write_contract`, `file_error_semantics_contract`, `sys/file_read_write_smoke`, `sys/file_error_semantics` |
 | `sys.FileSystem` | `semantic-diff` | `filesystem_contract`, `sys/filesystem_basic_smoke` |
 | `sys.net.Address` | `semantic-diff` | `sys_net_address_ssl_digest_algorithm_contract`, `stdlib/sys_net_address_ssl_digest_algorithm_direct` |
-| `sys.net.UdpSocket` | `snapshot` | `stdlib/sys_net_udp_socket_direct` |
+| `sys.net.UdpSocket` | `snapshot` + direct race/cross-build | `stdlib/sys_net_udp_socket_direct`, `runtime/hxrt/socket_test.go`, `test_socket_runtime_cross_build.py` |
 | `Xml` (root DOM subset: document/element creation, attributes, child iteration, parse/print baseline) | `semantic-diff` | `root_xml_contract`, `stdlib/xml_root_dom_basic` |
 | `haxe.ds.*Map` + `haxe.ds.List` (core ops subset) | `semantic-diff` | `ds_maps_list_contract`, `stdlib/ds_maps_list_basic` |
 | `haxe.ds.WeakMap` (upstream platform contract: constructor throws `haxe.exceptions.NotImplementedException` on this target) | `semantic-diff` | `haxe_ds_weakmap_contract`, `stdlib/haxe_ds_weakmap_platform` |
@@ -104,7 +104,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.ds.ReadOnlyArray` (length/index/read-only view subset) | `semantic-diff` | `readonly_array_contract` |
 | `sys.net.Host` | `semantic-diff` | `host_basic_contract`, `sys/host_basic_smoke` |
 | `sys.ssl.Certificate` / `sys.ssl.Digest` / `sys.ssl.Key` | `snapshot` | `stdlib/sys_ssl_leaf_direct` |
-| `sys.ssl.Socket` | `snapshot` | `stdlib/sys_ssl_socket_direct`, `stdlib/sys_ssl_socket_sni_direct` |
+| `sys.ssl.Socket` | `snapshot runtime` + direct race | `stdlib/sys_ssl_socket_direct`, `stdlib/sys_ssl_socket_sni_direct`, `core/runtime_hxrt_infer_socket_ssl`, `runtime/hxrt/socket_test.go` |
 | `sys.ssl.DigestAlgorithm` | `semantic-diff` | `sys_net_address_ssl_digest_algorithm_contract`, `stdlib/sys_net_address_ssl_digest_algorithm_direct` |
 | `haxe.PosInfos` | `semantic-diff` | `posinfos_contract`, `stdlib/posinfos_basic` |
 | `haxe.Int32` | `semantic-diff` | `int32_contract` |
@@ -364,18 +364,27 @@ Shim strategy and alternatives are documented in:
 - Semantic diff now also locks callback/status/header/error parity for local deterministic HTTP servers (`http_request_callbacks_contract`), including 4xx `onError` formatting (`Http Error #<status>`).
 - Current tradeoff: execution remains synchronous, and `customRequest` socket injection currently maps into Go `http.Transport` dialing semantics rather than the exact byte-level write/read loop used by upstream `sys.Http`.
 
-### `sys.net.Socket` shim contract and tradeoffs
+### `sys.net.Socket` staged-source contract and tradeoffs
 
 - Socket parity now covers deterministic loopback contracts (`bind`/`listen`/`connect`/`accept`/`read`/`write`/`close`) plus advanced methods: `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, and `shutdown` (`socket_loopback_contract`, `socket_advanced_contract`).
 - `sys.net.Socket.input` now satisfies the generated `haxe.io.Input` stream contract for service-style code paths (`readByte`, `readBytes`, `readAll`, typed numeric/string helper forwarding, and endian control). The focused snapshot is `sys/socket_input_service_surface`.
 - `select` now returns readiness-filtered arrays for read/write groups under timeout control, and `waitForRead` delegates to this readiness path.
+- The public API, stream wrappers, Haxe exceptions, address construction, and select object identity are canonical staged Haxe. A typed opaque `SocketHandle` and concrete result carriers cross into footprint-explicit `runtime/hxrt/socket.go`; the former `net_socket` compiler group and `GoNetSocketEmitter` are gone.
+- Direct runtime tests cover TCP/UDP round trips, explicit timeout/readiness state, idempotent concurrent close, close-unblocks-read, and closed-handle `waitForRead` under the Go race detector.
 - Current tradeoff: `setBlocking` is implemented through deadline behavior rather than true OS-level non-blocking file descriptor mode.
 
 ### `sys.net.UdpSocket` direct baseline and tradeoffs
 
 - Direct UDP parity now has deterministic loopback snapshot/runtime coverage for `bind`, `host`, `sendTo`, `readFrom`, `setBroadcast`, and `Address` round-tripping (`stdlib/sys_net_udp_socket_direct`).
-- The current compiler-emitted `UdpSocket` implementation is compatibility migration debt, not the target architecture. `haxe_go-vfp.8.7.14` moves the public API to staged source over typed runtime handles for target-sensitive deadlines, blocking, address translation, and socket options.
-- `setBroadcast(true)` maps to Go's operating-system socket option path (`SO_BROADCAST`) on the underlying UDP connection. The portable evidence checks that the option is installed and that normal UDP behavior still works; it does not require sending packets to a LAN broadcast address, because CI machines and developer laptops can block that at the network-policy level.
+- `haxe_go-vfp.8.7.14` moved the public API to canonical staged source over the shared typed TCP/UDP handle. No compiler-emitted UdpSocket implementation or raw-injection path remains.
+- `setBroadcast(true)` maps to Go's operating-system socket option path (`SO_BROADCAST`) on the underlying UDP connection. Build-tagged POSIX and Windows helpers preserve each platform's native descriptor type, and a cross-build regression test keeps both compiling. The portable evidence checks that the option is installed and that normal UDP behavior still works; it does not require sending packets to a LAN broadcast address, because CI machines and developer laptops can block that at the network-policy level.
+
+### `sys.ssl.Socket` staged TLS composition and tradeoffs
+
+- Public verification/CA/hostname/certificate/SNI configuration lives in staged Haxe over the source-owned `sys.net.Socket` and its shared typed handle.
+- `runtime/hxrt/socket_ssl.go` owns only native TLS client/listener installation, handshake, peer-certificate access, and synchronized SNI selection. Certificate/key/digest primitives remain in `ssl.go`; SSL leaf users therefore do not select network transport.
+- Runnable snapshots prove TLS loopback I/O, peer certificate fields, accepted `sys.ssl.Socket` runtime identity, default-certificate selection, and callback-driven SNI selection. Selective snapshots prove the `ssl` leaf versus `socket + ssl + socket_ssl` transport split.
+- The governed release manifest still leaves broad cross-platform networking, cancellation, and hostile-peer closure under `haxe_go-vfp.10.4`; this ownership migration does not widen the admitted beta network surface.
 
 ### `EReg` + `haxe.Serializer` contract and tradeoffs
 

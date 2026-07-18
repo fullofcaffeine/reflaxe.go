@@ -47,7 +47,7 @@ preset for stricter/eager defaults.
 - `reflaxe_go_hxrt_default_features`
   - Force full runtime copy (compat mode).
   - Takes precedence over selective runtime flags.
-- `reflaxe_go_hxrt_features=core,json,sys,terminal,file_io,filesystem,ssl,...`
+- `reflaxe_go_hxrt_features=core,json,sys,terminal,file_io,filesystem,socket,ssl,socket_ssl,...`
   - Enables selective runtime mode and adds manual feature list.
   - Use empty value (`-D reflaxe_go_hxrt_features=`) to enable selective mode with inferred-only features.
 
@@ -73,6 +73,21 @@ Process use therefore do not pull one another's native slices. `core/runtime_hxr
 footprint-explicit even in ordinary full-copy mode so unrelated output never
 acquires the POSIX unsafe boundary. Explicitly disabling feature inference
 retains the traditional all-files full-copy escape.
+
+`sys.net.Host`, `sys.net.Socket`, `sys.net.UdpSocket`, and their typed
+`hxrt.net` bindings infer `socket`, which copies `runtime/hxrt/socket.go`, its
+build-tagged `socket_broadcast_*.go` option adapters, and the `string` and
+`exception` dependencies. Plain programs and SSL leaf-only programs keep the
+OS networking capability out, including ordinary full-copy mode.
+`core/runtime_hxrt_infer_socket` locks that positive and negative shape, while
+`test/test_socket_runtime_cross_build.py` compiles the runtime for POSIX and
+Windows so descriptor-type differences cannot regress silently.
+
+`sys.ssl.Certificate`, `Digest`, and `Key` infer `ssl` without networking.
+`sys.ssl.Socket` and `hxrt.ssl.NativeSocket` infer `socket_ssl`; that feature
+depends on both `socket` and `ssl` and additionally copies
+`runtime/hxrt/socket_ssl.go`. `core/runtime_hxrt_infer_ssl` and
+`core/runtime_hxrt_infer_socket_ssl` prove the leaf/transport split.
 - `reflaxe_go_hxrt_no_feature_infer`
   - Enables selective runtime mode and disables inference (use core + manual only).
 

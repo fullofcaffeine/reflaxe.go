@@ -268,6 +268,30 @@
       "level": "semantic-diff"
     },
     {
+      "id": "snapshot:socket-tls",
+      "kind": "path",
+      "path": "test/snapshot/stdlib/sys_ssl_socket_direct",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "snapshot:socket-sni",
+      "kind": "path",
+      "path": "test/snapshot/stdlib/sys_ssl_socket_sni_direct",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "runtime:socket-regressions",
+      "kind": "path",
+      "path": "runtime/hxrt/socket_test.go",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "runtime:socket-cross-build",
+      "kind": "path",
+      "path": "test/test_socket_runtime_cross_build.py",
+      "level": "compile-only"
+    },
+    {
       "id": "snapshot:native-extern",
       "kind": "path",
       "path": "test/snapshot/go_native/extern_metadata_mapping",
@@ -1090,9 +1114,13 @@
           "granularity": "surface",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Loopback and target-sensitive smokes exist; cross-platform timeout, cancellation, TLS, and cleanup evidence remains open.",
+          "qualification": "Public Host/TCP/UDP/TLS APIs are canonical staged source over typed runtime handles. Loopback semantics, UDP, TLS/SNI, accepted SSL identity, timeout/readiness, race-capable cleanup, and POSIX/Windows runtime cross-build evidence exist; cross-platform cancellation and hostile-peer closure remain open.",
           "evidence_ids": [
             "semantic:socket",
+            "snapshot:socket-tls",
+            "snapshot:socket-sni",
+            "runtime:socket-regressions",
+            "runtime:socket-cross-build",
             "bead:network-audit"
           ],
           "exclusions": [

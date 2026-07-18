@@ -2,6 +2,8 @@ import sys.net.Host;
 import sys.ssl.Certificate;
 import sys.ssl.Key;
 import sys.ssl.Socket;
+import sys.thread.Deque;
+import sys.thread.Thread;
 
 class Main {
 	static final DEFAULT_CERT_PEM = "-----BEGIN CERTIFICATE-----\nMIIDETCCAfmgAwIBAgIUVftG+IyWIEqIQE+K9ztyXCDYIcswDQYJKoZIhvcNAQEL\nBQAwGDEWMBQGA1UEAwwNZGVmYXVsdC5sb2NhbDAeFw0yNjAzMDcwNjA1NTBaFw0y\nNzAzMDcwNjA1NTBaMBgxFjAUBgNVBAMMDWRlZmF1bHQubG9jYWwwggEiMA0GCSqG\nSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCktatoj06k/dqldeSzjPUnPxeMC/WpprMz\n7tHisw82tHc0Xk18wW/m0Dm+W11kLlq+k5fNuVoQTcqaQDkLF0Zy+Q2K+GWLRCux\n7Ms0ixw6oSIUFnaG8+SByKuEfaW232ZKCWFsSxq0PdVKT3jjcc3ivv6j/kOsbE7j\njELMP9w1askakA/I8CWM0AZyYVZ5ajwYcBBQm1UOzWLeoT+UU7O9VKsEIQHCGt5P\np7U/PDqh5z7KJ+XWIG/jpjZ8IYEo8fTxik+16jN34Ubpnx+I/wUmLK4Aqh2VuuZz\nmmcUFD7JLC+r9ymOUa7DS0bWyUoBDzZyvAO1577p7SXi9/IqJ3NpAgMBAAGjUzBR\nMB0GA1UdDgQWBBR7eOzK13X2mO5Kpc9MZOFGJ+MdlDAfBgNVHSMEGDAWgBR7eOzK\n13X2mO5Kpc9MZOFGJ+MdlDAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUA\nA4IBAQAxilSFs9ZEEI5RFGVpWUTCH8Iuewc4K0JH2LbGqExgLu5MQJF5xsGoEBRe\nmDB3duaMDwnoDY19hdoClIz/Z5IO0wPEcny3hTb582W8+cRDiCQx0Qz5g2NpsfGH\nwZaGyVzSS2xbt0F6TPRQarXtzV97J067j7bRuMbD4fFYb6iqF1GbaaQsP89sA9b4\nx8yT0TGREdx2Dw29lokd4H16b3O9aYX274qZk9qpgE3oYpCeNsjHCSdTWRDw2+pg\ncKP2FsxcbB4qChjPXhhE5I3zDMTI1/4r4wGbnVIud6TmibElpAU6hwbpo1onyxKw\nVCpI190WWaS+Cz+9vGVNBSsRYjgN\n-----END CERTIFICATE-----\n";
@@ -22,12 +24,14 @@ class Main {
 		server.listen(2);
 
 		var bound = server.host();
-		connectAndPrint(bound.port, "default.local");
-		connectAndPrint(bound.port, "sni.local");
+		connectAndPrint(server, bound.port, "default.local");
+		connectAndPrint(server, bound.port, "sni.local");
 		server.close();
 	}
 
-	static function connectAndPrint(port:Int, hostname:String):Void {
+	static function connectAndPrint(server:Socket, port:Int, hostname:String):Void {
+		var acceptedSockets = new Deque<sys.net.Socket>();
+		Thread.create(function() acceptedSockets.add(server.accept()));
 		var client:Socket = new Socket();
 		client.verifyCert = false;
 		client.setHostname(hostname);
@@ -35,6 +39,7 @@ class Main {
 		client.handshake();
 		var peer = client.peerCertificate();
 		Sys.println(hostname + "=" + peer.commonName);
+		acceptedSockets.pop(true).close();
 		client.close();
 	}
 }

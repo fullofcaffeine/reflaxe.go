@@ -149,16 +149,6 @@
       ],
       "reviewCondition": "Close only when haxe_go-vfp.8.7.11 retires the broad io group and adjudicates every residual primitive."
     },
-    "migration_network": {
-      "what": "Move portable Host, Socket, UdpSocket, and related socket behavior to staged source over typed runtime handles.",
-      "why": "Deadlines, readiness, address translation, shutdown, broadcast, and TLS resources are runtime behavior, not compile-time compiler authority.",
-      "how": "Keep public policy in Haxe and native resource lifecycle in hxrt while preserving deterministic TCP, UDP, and SSL contracts.",
-      "evidence": [
-        "socket_advanced_contract",
-        "stdlib/sys_net_udp_socket_direct"
-      ],
-      "reviewCondition": "Close only when haxe_go-vfp.8.7.14 removes GoNetSocketEmitter from portable stdlib ownership."
-    },
     "migration_regex_serializer": {
       "what": "Separate compiler-known serialization metadata from EReg and serialization runtime algorithms.",
       "why": "Reachable type metadata can be compile-time authority, but regex matching, token streams, resolver policy, traversal, and object identity are not.",
@@ -263,38 +253,6 @@
       "plannerSelections": [],
       "dependencies": [],
       "declaresDependencyBlock": false
-    },
-    {
-      "group": "net_socket",
-      "entryPoint": "lowerNetSocketShimDecls",
-      "status": "migration_required",
-      "decisionId": "migration_network",
-      "followUpBead": "haxe_go-vfp.8.7.14",
-      "ownedSymbols": [
-        {"symbol": "sys.net.Host", "scope": "complete_type"},
-        {"symbol": "sys.net.Socket", "scope": "complete_type"},
-        {"symbol": "sys.net.UdpSocket", "scope": "complete_type"}
-      ],
-      "compilerOwnedAuthorities": [
-        "sys.net.Host",
-        "sys.net.Socket",
-        "sys.net.UdpSocket"
-      ],
-      "classifierSelections": [
-        {"kind": "class", "path": "sys.net.Host"},
-        {"kind": "class", "path": "sys.net.Socket"},
-        {"kind": "class", "path": "sys.net.UdpSocket"},
-        {"kind": "class", "path": "sys.ssl.Socket"},
-        {"kind": "class", "path": "sys.ssl._Socket.Socket_Impl_"}
-      ],
-      "plannerSelections": [
-        "sys.ssl.Socket",
-        "sys.ssl._Socket.Socket_Impl_"
-      ],
-      "dependencies": [
-        "io"
-      ],
-      "declaresDependencyBlock": true
     },
     {
       "group": "regex_serializer",

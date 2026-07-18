@@ -3,14 +3,26 @@ package main
 import "snapshot/hxrt"
 
 type I_sys__ssl__Socket interface {
+	close()
+	read() *string
+	write(content *string)
+	connect(host *sys__net__Host, port int)
+	listen(connections int)
+	shutdown(read bool, write bool)
+	bind(host *sys__net__Host, port int)
+	accept() *sys__net__Socket
+	peer() map[string]any
+	host() map[string]any
+	setTimeout(timeout float64)
+	waitForRead()
+	setBlocking(blocking bool)
+	setFastSend(fastSend bool)
+	replaceHandle(next *hxrt.SocketHandle)
 	handshake()
 	setCA(cert *sys__ssl__Certificate)
 	setHostname(name *string)
 	setCertificate(cert *sys__ssl__Certificate, key *sys__ssl__Key)
-	addSNICertificate(cbServernameMatch func(*string) bool, cert *sys__ssl__Certificate, key *sys__ssl__Key)
-	connect(host *sys__net__Host, port int)
-	bind(host *sys__net__Host, port int)
-	accept() *sys__net__Socket
+	addSNICertificate(matcher func(*string) bool, cert *sys__ssl__Certificate, key *sys__ssl__Key)
 	peerCertificate() *sys__ssl__Certificate
 }
 
@@ -22,18 +34,19 @@ type sys__ssl__Socket struct {
 	hostname   *string
 	ownCert    *sys__ssl__Certificate
 	ownKey     *sys__ssl__Key
-	sniConfig  any
+	sniConfig  *hxrt.SslSocketSNIConfig
 }
 
 func New_sys__ssl__Socket() *sys__ssl__Socket {
 	self := &sys__ssl__Socket{}
 	self.sys__net__Socket = New_sys__net__Socket()
+	self.sys__net__Socket.__hx_this = self
 	self.__hx_this = self
 	if (sys__ssl__Socket_DEFAULT_VERIFY_CERT == true) && (sys__ssl__Socket_DEFAULT_CA == nil) {
 		hxrt.TryCatch(func() {
 			sys__ssl__Socket_DEFAULT_CA = sys__ssl__Certificate_loadDefaults()
-		}, func(hx_caught_4 any) {
-			hx_tmp := hxrt.ExceptionCaught(hx_caught_4)
+		}, func(hx_caught_10 any) {
+			hx_tmp := hxrt.ExceptionCaught(hx_caught_10)
 			_ = hx_tmp
 		})
 	}
@@ -43,7 +56,7 @@ func New_sys__ssl__Socket() *sys__ssl__Socket {
 }
 
 func (self *sys__ssl__Socket) handshake() {
-	_ = func() int { hxrt.SslSocketHandshake(self.hxrt__socket_conn()); return 0 }()
+	hxrt.SslSocketHandshake(self.handle)
 }
 
 func (self *sys__ssl__Socket) setCA(cert *sys__ssl__Certificate) {
@@ -59,105 +72,90 @@ func (self *sys__ssl__Socket) setCertificate(cert *sys__ssl__Certificate, key *s
 	self.ownKey = key
 }
 
-func (self *sys__ssl__Socket) addSNICertificate(cbServernameMatch func(*string) bool, cert *sys__ssl__Certificate, key *sys__ssl__Key) {
-	if ((cbServernameMatch == nil) || (cert == nil)) || (key == nil) {
+func (self *sys__ssl__Socket) addSNICertificate(matcher func(*string) bool, cert *sys__ssl__Certificate, key *sys__ssl__Key) {
+	if ((matcher == nil) || (cert == nil)) || (key == nil) {
 		hxrt.Throw(hxrt.StringFromLiteral("sys.ssl.Socket.addSNICertificate requires callback, certificate, and key"))
 	}
-	self.sniConfig = hxrt.SslSocketAddSNICertificate(self.sniConfig, cbServernameMatch, cert.handle, key.handle)
+	self.sniConfig = hxrt.SslSocketAddSNICertificate(self.sniConfig, matcher, cert.handle, key.handle)
 }
 
 func (self *sys__ssl__Socket) connect(host *sys__net__Host, port int) {
 	if host == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("socket connect requires host"))
 	}
-	resolvedHost := host.toString()
-	_ = resolvedHost
-	if hxrt.StringEqualStringPtr(resolvedHost, nil) {
-		hxrt.Throw(hxrt.StringFromLiteral("socket connect requires host"))
-	}
-	_ = func() int {
-		conn := hxrt.SslSocketConnect(resolvedHost, port, (self.verifyCert != false), func() any {
-			var hx_if_6 any
-			if self.caCert == nil {
-				hx_if_6 = nil
-			} else {
-				hx_if_6 = self.caCert.handle
-			}
-			return hx_if_6
-		}(), self.hostname, func() any {
-			var hx_if_7 any
-			if self.ownCert == nil {
-				hx_if_7 = nil
-			} else {
-				hx_if_7 = self.ownCert.handle
-			}
-			return hx_if_7
-		}(), func() any {
-			var hx_if_8 any
-			if self.ownKey == nil {
-				hx_if_8 = nil
-			} else {
-				hx_if_8 = self.ownKey.handle
-			}
-			return hx_if_8
-		}())
-		self.hxrt__socket_setConn(conn)
-		return 0
-	}()
+	hxrt.SslSocketConnect(self.handle, host.toString(), port, (self.verifyCert != false), func() *hxrt.SslCertificate {
+		var hx_if_12 *hxrt.SslCertificate
+		if self.caCert == nil {
+			hx_if_12 = nil
+		} else {
+			hx_if_12 = self.caCert.handle
+		}
+		return hx_if_12
+	}(), self.hostname, func() *hxrt.SslCertificate {
+		var hx_if_13 *hxrt.SslCertificate
+		if self.ownCert == nil {
+			hx_if_13 = nil
+		} else {
+			hx_if_13 = self.ownCert.handle
+		}
+		return hx_if_13
+	}(), func() *hxrt.SslKey {
+		var hx_if_14 *hxrt.SslKey
+		if self.ownKey == nil {
+			hx_if_14 = nil
+		} else {
+			hx_if_14 = self.ownKey.handle
+		}
+		return hx_if_14
+	}())
 }
 
 func (self *sys__ssl__Socket) bind(host *sys__net__Host, port int) {
 	if host == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("socket bind requires host"))
 	}
-	resolvedHost := host.toString()
-	_ = resolvedHost
-	if hxrt.StringEqualStringPtr(resolvedHost, nil) {
-		hxrt.Throw(hxrt.StringFromLiteral("socket bind requires host"))
-	}
-	_ = func() int {
-		listener := hxrt.SslSocketListen(resolvedHost, port, func() any {
-			var hx_if_9 any
-			if self.ownCert == nil {
-				hx_if_9 = nil
-			} else {
-				hx_if_9 = self.ownCert.handle
-			}
-			return hx_if_9
-		}(), func() any {
-			var hx_if_10 any
-			if self.ownKey == nil {
-				hx_if_10 = nil
-			} else {
-				hx_if_10 = self.ownKey.handle
-			}
-			return hx_if_10
-		}(), self.sniConfig)
-		if self.listener != nil {
-			_ = self.listener.Close()
+	hxrt.SslSocketListen(self.handle, host.toString(), port, func() *hxrt.SslCertificate {
+		var hx_if_15 *hxrt.SslCertificate
+		if self.ownCert == nil {
+			hx_if_15 = nil
+		} else {
+			hx_if_15 = self.ownCert.handle
 		}
-		self.listener = listener
-		self.hxrt__socket_applyListenerDeadline()
-		return 0
-	}()
+		return hx_if_15
+	}(), func() *hxrt.SslKey {
+		var hx_if_16 *hxrt.SslKey
+		if self.ownKey == nil {
+			hx_if_16 = nil
+		} else {
+			hx_if_16 = self.ownKey.handle
+		}
+		return hx_if_16
+	}(), self.sniConfig)
 }
 
 func (self *sys__ssl__Socket) accept() *sys__net__Socket {
-	accepted := self.sys__net__Socket.accept()
-	_ = accepted
-	_ = func() int { hxrt.SslSocketHandshake(accepted.hxrt__socket_conn()); return 0 }()
-	return accepted
+	result := hxrt.SocketAccept(self.handle)
+	if result.Status == hxrt.SocketIOBlocked {
+		hxrt.Throw(haxe__io__Error_Blocked)
+	}
+	if (result.Status == hxrt.SocketIOEOF) || (result.Handle == nil) {
+		hxrt.Throw(New_haxe__io__Eof())
+	}
+	accepted := New_sys__ssl__Socket()
+	accepted.replaceHandle(result.Handle)
+	hxrt.SslSocketHandshake(accepted.handle)
+	return accepted.sys__net__Socket
 }
 
 func (self *sys__ssl__Socket) peerCertificate() *sys__ssl__Certificate {
-	var handle any = hxrt.SslSocketPeerCertificate(self.hxrt__socket_conn())
-	var hx_if_11 *sys__ssl__Certificate
-	if hxrt.AnyEqualsNull(handle) {
-		hx_if_11 = nil
+	certificateHandle := hxrt.SslSocketPeerCertificate(self.handle)
+	var hx_if_17 *sys__ssl__Certificate
+	if certificateHandle == nil {
+		hx_if_17 = nil
 	} else {
-		hx_if_11 = New_sys__ssl__Certificate(handle)
+		hx_if_17 = New_sys__ssl__Certificate(certificateHandle)
 	}
-	return hx_if_11
+	return hx_if_17
 }
 
 var sys__ssl__Socket_DEFAULT_CA *sys__ssl__Certificate

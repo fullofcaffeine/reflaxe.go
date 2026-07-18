@@ -159,18 +159,6 @@
       "surface": "compiler"
     },
     {
-      "capability": "net_socket",
-      "classification": "avoidable",
-      "context": "lowerNetSocketShimDecls",
-      "exception_id": "compiler_stdlib_migration_debt",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "compiler_shim",
-      "owner": "compiler_shim",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
       "capability": "regex_serializer",
       "classification": "avoidable",
       "context": "lowerRegexSerializerShimDecls",
@@ -551,18 +539,6 @@
       "max_count": 3,
       "metric": "go_raw",
       "owner": "test_infrastructure",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
-      "capability": "net_socket",
-      "classification": "avoidable",
-      "context": "emit",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/compiler/emit/GoNetSocketEmitter.hx",
-      "max_count": 463,
-      "metric": "go_raw",
-      "owner": "compiler_shim",
       "profile": "shared",
       "surface": "compiler"
     },
@@ -3255,35 +3231,11 @@
       "surface": "staged_std"
     },
     {
-      "capability": "ssl",
+      "capability": "dynamic_values",
       "classification": "required",
       "context": "<module>",
       "exception_id": "staged_std_dynamic_contract",
-      "file": "std/go/_std/sys/ssl/Certificate.hx",
-      "max_count": 1,
-      "metric": "haxe_dynamic",
-      "owner": "staged_std",
-      "profile": "shared",
-      "surface": "staged_std"
-    },
-    {
-      "capability": "ssl",
-      "classification": "required",
-      "context": "<module>",
-      "exception_id": "staged_std_dynamic_contract",
-      "file": "std/go/_std/sys/ssl/Key.hx",
-      "max_count": 1,
-      "metric": "haxe_dynamic",
-      "owner": "staged_std",
-      "profile": "shared",
-      "surface": "staged_std"
-    },
-    {
-      "capability": "ssl",
-      "classification": "required",
-      "context": "<module>",
-      "exception_id": "staged_std_dynamic_contract",
-      "file": "std/go/_std/sys/ssl/Socket.hx",
+      "file": "std/go/_std/sys/net/Socket.hx",
       "max_count": 1,
       "metric": "haxe_dynamic",
       "owner": "staged_std",
@@ -3488,18 +3440,6 @@
       "context": "set",
       "exception_id": "runtime_facade_dynamic_contract",
       "file": "std/hxrt/collections/NativeStringMap.hx",
-      "max_count": 1,
-      "metric": "haxe_dynamic",
-      "owner": "runtime_facade",
-      "profile": "shared",
-      "surface": "staged_std"
-    },
-    {
-      "capability": "ssl",
-      "classification": "required",
-      "context": "altNames",
-      "exception_id": "runtime_facade_dynamic_contract",
-      "file": "std/hxrt/ssl/NativeCertificate.hx",
       "max_count": 1,
       "metric": "haxe_dynamic",
       "owner": "runtime_facade",

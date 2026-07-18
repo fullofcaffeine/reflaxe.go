@@ -14,10 +14,8 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"net"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -89,6 +87,27 @@ func sslDigestBytes(data []byte, name string) []byte {
 
 func SslDigestMake(data []byte, alg *string) []byte {
 	return sslDigestBytes(data, sslDigestName(alg))
+}
+
+func sslValuesToBytes(values []int) []byte {
+	raw := make([]byte, len(values))
+	for index, value := range values {
+		raw[index] = byte(value)
+	}
+	return raw
+}
+
+func sslBytesToValues(raw []byte) []int {
+	values := make([]int, len(raw))
+	for index, value := range raw {
+		values[index] = int(value)
+	}
+	return values
+}
+
+// SslDigestMakeValues exposes the digest through the typed Haxe integer-slice boundary.
+func SslDigestMakeValues(data []int, alg *string) []int {
+	return sslBytesToValues(SslDigestMake(sslValuesToBytes(data), alg))
 }
 
 func parsePrivateDER(der []byte) (any, any, error) {
@@ -166,7 +185,7 @@ func sslKeyFromBytes(raw []byte, isPublic bool) *SslKey {
 	return &SslKey{privateKey: priv, publicKey: pub}
 }
 
-func SslKeyLoadFile(file *string, isPublic bool, _pass *string) any {
+func SslKeyLoadFile(file *string, isPublic bool, _pass *string) *SslKey {
 	raw, err := os.ReadFile(*StdString(file))
 	if err != nil {
 		Throw(err)
@@ -175,16 +194,20 @@ func SslKeyLoadFile(file *string, isPublic bool, _pass *string) any {
 	return sslKeyFromBytes(raw, isPublic)
 }
 
-func SslKeyReadPEM(data *string, isPublic bool, _pass *string) any {
+func SslKeyReadPEM(data *string, isPublic bool, _pass *string) *SslKey {
 	return sslKeyFromBytes([]byte(*StdString(data)), isPublic)
 }
 
-func SslKeyReadDER(data []byte, isPublic bool) any {
+func SslKeyReadDER(data []byte, isPublic bool) *SslKey {
 	return sslKeyFromBytes(data, isPublic)
 }
 
-func SslDigestSign(data []byte, handle any, alg *string) []byte {
-	key, _ := handle.(*SslKey)
+// SslKeyReadDERValues crosses DER bytes as an explicit native integer slice.
+func SslKeyReadDERValues(data []int, isPublic bool) *SslKey {
+	return SslKeyReadDER(sslValuesToBytes(data), isPublic)
+}
+
+func SslDigestSign(data []byte, key *SslKey, alg *string) []byte {
 	if key == nil || key.privateKey == nil {
 		Throw(StringFromLiteral("sys.ssl.Key private key is not available"))
 		return []byte{}
@@ -215,8 +238,12 @@ func SslDigestSign(data []byte, handle any, alg *string) []byte {
 	}
 }
 
-func SslDigestVerify(data []byte, signature []byte, handle any, alg *string) bool {
-	key, _ := handle.(*SslKey)
+// SslDigestSignValues exposes signature bytes through typed integer slices.
+func SslDigestSignValues(data []int, key *SslKey, alg *string) []int {
+	return sslBytesToValues(SslDigestSign(sslValuesToBytes(data), key, alg))
+}
+
+func SslDigestVerify(data []byte, signature []byte, key *SslKey, alg *string) bool {
 	if key == nil || key.publicKey == nil {
 		return false
 	}
@@ -233,6 +260,11 @@ func SslDigestVerify(data []byte, signature []byte, handle any, alg *string) boo
 	default:
 		return false
 	}
+}
+
+// SslDigestVerifyValues verifies typed integer-slice data and signature bytes.
+func SslDigestVerifyValues(data []int, signature []int, key *SslKey, alg *string) bool {
+	return SslDigestVerify(sslValuesToBytes(data), sslValuesToBytes(signature), key, alg)
 }
 
 func parseCertificates(raw []byte) []*x509.Certificate {
@@ -274,7 +306,7 @@ func newSslCertificate(certs []*x509.Certificate, pool *x509.CertPool) *SslCerti
 	return &SslCertificate{certs: certs, pool: pool, index: 0}
 }
 
-func SslCertLoadFile(file *string) any {
+func SslCertLoadFile(file *string) *SslCertificate {
 	raw, err := os.ReadFile(*StdString(file))
 	if err != nil {
 		Throw(err)
@@ -283,7 +315,7 @@ func SslCertLoadFile(file *string) any {
 	return newSslCertificate(parseCertificates(raw), nil)
 }
 
-func SslCertLoadPath(path *string) any {
+func SslCertLoadPath(path *string) *SslCertificate {
 	pool := x509.NewCertPool()
 	certs := make([]*x509.Certificate, 0)
 	entries, err := os.ReadDir(*StdString(path))
@@ -309,11 +341,11 @@ func SslCertLoadPath(path *string) any {
 	return newSslCertificate(certs, pool)
 }
 
-func SslCertFromString(str *string) any {
+func SslCertFromString(str *string) *SslCertificate {
 	return newSslCertificate(parseCertificates([]byte(*StdString(str))), nil)
 }
 
-func SslCertLoadDefaults() any {
+func SslCertLoadDefaults() *SslCertificate {
 	pool, err := x509.SystemCertPool()
 	if err != nil || pool == nil {
 		pool = x509.NewCertPool()
@@ -321,8 +353,7 @@ func SslCertLoadDefaults() any {
 	return newSslCertificate([]*x509.Certificate{}, pool)
 }
 
-func sslLeafCertificate(handle any) *x509.Certificate {
-	cert, _ := handle.(*SslCertificate)
+func sslLeafCertificate(cert *SslCertificate) *x509.Certificate {
 	if cert == nil || cert.index < 0 || cert.index >= len(cert.certs) {
 		return nil
 	}
@@ -366,7 +397,7 @@ func sslNameField(name pkix.Name, field string) *string {
 	}
 }
 
-func SslCertCommonName(handle any) *string {
+func SslCertCommonName(handle *SslCertificate) *string {
 	cert := sslLeafCertificate(handle)
 	if cert == nil || cert.Subject.CommonName == "" {
 		return nil
@@ -374,7 +405,7 @@ func SslCertCommonName(handle any) *string {
 	return StringFromLiteral(cert.Subject.CommonName)
 }
 
-func SslCertAltNames(handle any) []*string {
+func SslCertAltNames(handle *SslCertificate) []*string {
 	cert := sslLeafCertificate(handle)
 	if cert == nil {
 		return []*string{}
@@ -392,7 +423,7 @@ func SslCertAltNames(handle any) []*string {
 	return out
 }
 
-func SslCertSubject(handle any, field *string) *string {
+func SslCertSubject(handle *SslCertificate, field *string) *string {
 	cert := sslLeafCertificate(handle)
 	if cert == nil {
 		return nil
@@ -400,7 +431,7 @@ func SslCertSubject(handle any, field *string) *string {
 	return sslNameField(cert.Subject, *StdString(field))
 }
 
-func SslCertIssuer(handle any, field *string) *string {
+func SslCertIssuer(handle *SslCertificate, field *string) *string {
 	cert := sslLeafCertificate(handle)
 	if cert == nil {
 		return nil
@@ -408,7 +439,7 @@ func SslCertIssuer(handle any, field *string) *string {
 	return sslNameField(cert.Issuer, *StdString(field))
 }
 
-func SslCertNotBeforeMs(handle any) float64 {
+func SslCertNotBeforeMs(handle *SslCertificate) float64 {
 	cert := sslLeafCertificate(handle)
 	if cert == nil {
 		return 0
@@ -416,7 +447,7 @@ func SslCertNotBeforeMs(handle any) float64 {
 	return float64(cert.NotBefore.UnixMilli())
 }
 
-func SslCertNotAfterMs(handle any) float64 {
+func SslCertNotAfterMs(handle *SslCertificate) float64 {
 	cert := sslLeafCertificate(handle)
 	if cert == nil {
 		return 0
@@ -424,20 +455,18 @@ func SslCertNotAfterMs(handle any) float64 {
 	return float64(cert.NotAfter.UnixMilli())
 }
 
-func SslCertNext(handle any) any {
-	cert, _ := handle.(*SslCertificate)
+func SslCertNext(cert *SslCertificate) *SslCertificate {
 	if cert == nil || cert.index+1 >= len(cert.certs) {
 		return nil
 	}
 	return &SslCertificate{certs: cert.certs, pool: cert.pool, index: cert.index + 1}
 }
 
-func SslCertAddPEM(handle any, pemText *string) {
+func SslCertAddPEM(handle *SslCertificate, pemText *string) {
 	SslCertAddDER(handle, []byte(*StdString(pemText)))
 }
 
-func SslCertAddDER(handle any, der []byte) {
-	cert, _ := handle.(*SslCertificate)
+func SslCertAddDER(cert *SslCertificate, der []byte) {
 	if cert == nil {
 		return
 	}
@@ -453,8 +482,12 @@ func SslCertAddDER(handle any, der []byte) {
 	}
 }
 
-func sslCertPool(handle any) *x509.CertPool {
-	cert, _ := handle.(*SslCertificate)
+// SslCertAddDERValues crosses certificate bytes as an explicit typed integer slice.
+func SslCertAddDERValues(handle *SslCertificate, der []int) {
+	SslCertAddDER(handle, sslValuesToBytes(der))
+}
+
+func sslCertPool(cert *SslCertificate) *x509.CertPool {
 	if cert == nil {
 		return nil
 	}
@@ -470,9 +503,7 @@ func sslCertPool(handle any) *x509.CertPool {
 	return pool
 }
 
-func sslKeyPair(certHandle any, keyHandle any) (tls.Certificate, error) {
-	cert, _ := certHandle.(*SslCertificate)
-	key, _ := keyHandle.(*SslKey)
+func sslKeyPair(cert *SslCertificate, key *SslKey) (tls.Certificate, error) {
 	if cert == nil || len(cert.certs) == 0 {
 		return tls.Certificate{}, x509.IncorrectPasswordError
 	}
@@ -490,132 +521,4 @@ func sslKeyPair(certHandle any, keyHandle any) (tls.Certificate, error) {
 		}
 	}
 	return pair, nil
-}
-
-type sslSocketSNIEntry struct {
-	match func(*string) bool
-	cert  tls.Certificate
-}
-
-type sslSocketSNIConfig struct {
-	entries []sslSocketSNIEntry
-}
-
-func SslSocketAddSNICertificate(configHandle any, matchHandle any, certHandle any, keyHandle any) any {
-	config, ok := configHandle.(*sslSocketSNIConfig)
-	if !ok || config == nil {
-		config = &sslSocketSNIConfig{}
-	}
-	match, ok := matchHandle.(func(*string) bool)
-	if !ok || match == nil {
-		Throw(StringFromLiteral("sys.ssl.Socket.addSNICertificate callback has unsupported shape"))
-		return config
-	}
-	pair, err := sslKeyPair(certHandle, keyHandle)
-	if err != nil {
-		Throw(err)
-		return config
-	}
-	config.entries = append(config.entries, sslSocketSNIEntry{
-		match: match,
-		cert:  pair,
-	})
-	return config
-}
-
-func SslSocketConnect(host *string, port int, verifyCert bool, caHandle any, serverName *string, certHandle any, keyHandle any) net.Conn {
-	if host == nil {
-		Throw(StringFromLiteral("socket connect requires host"))
-		return nil
-	}
-	config := &tls.Config{
-		InsecureSkipVerify: !verifyCert,
-	}
-	if verifyCert {
-		if pool := sslCertPool(caHandle); pool != nil {
-			config.RootCAs = pool
-		}
-	}
-	if serverName != nil && *StdString(serverName) != "" {
-		config.ServerName = *StdString(serverName)
-	}
-	if certHandle != nil || keyHandle != nil {
-		pair, err := sslKeyPair(certHandle, keyHandle)
-		if err != nil {
-			Throw(err)
-			return nil
-		}
-		config.Certificates = []tls.Certificate{pair}
-	}
-	conn, err := tls.Dial("tcp", net.JoinHostPort(*StdString(host), strconv.Itoa(port)), config)
-	if err != nil {
-		Throw(err)
-		return nil
-	}
-	return conn
-}
-
-func SslSocketListen(host *string, port int, certHandle any, keyHandle any, sniHandle any) net.Listener {
-	if host == nil {
-		Throw(StringFromLiteral("socket bind requires host"))
-		return nil
-	}
-	pair, err := sslKeyPair(certHandle, keyHandle)
-	if err != nil {
-		Throw(err)
-		return nil
-	}
-	config := &tls.Config{
-		Certificates: []tls.Certificate{pair},
-	}
-	if sniConfig, ok := sniHandle.(*sslSocketSNIConfig); ok && sniConfig != nil && len(sniConfig.entries) > 0 {
-		config.GetCertificate = func(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) {
-			serverName := StringFromLiteral(clientHello.ServerName)
-			for i := range sniConfig.entries {
-				entry := &sniConfig.entries[i]
-				if entry.match != nil && entry.match(serverName) {
-					return &entry.cert, nil
-				}
-			}
-			return &pair, nil
-		}
-	}
-	listener, err := tls.Listen("tcp", net.JoinHostPort(*StdString(host), strconv.Itoa(port)), config)
-	if err != nil {
-		Throw(err)
-		return nil
-	}
-	return listener
-}
-
-func SslSocketHandshake(conn any) {
-	switch typed := conn.(type) {
-	case *tls.Conn:
-		if err := typed.Handshake(); err != nil {
-			Throw(err)
-		}
-	case interface{ Handshake() error }:
-		if err := typed.Handshake(); err != nil {
-			Throw(err)
-		}
-	}
-}
-
-func SslSocketPeerCertificate(conn any) any {
-	if conn == nil {
-		return nil
-	}
-	tlsConn, ok := conn.(*tls.Conn)
-	if !ok {
-		return nil
-	}
-	if err := tlsConn.Handshake(); err != nil {
-		Throw(err)
-		return nil
-	}
-	state := tlsConn.ConnectionState()
-	if len(state.PeerCertificates) == 0 {
-		return nil
-	}
-	return newSslCertificate(state.PeerCertificates, nil)
 }

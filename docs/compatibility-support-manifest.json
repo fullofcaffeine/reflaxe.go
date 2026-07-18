@@ -5,11 +5,11 @@
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "4e11f3bd0112fd2b72d173c07c84d004985dacd5ff721dce2a27f59f1440a03d",
+    "compatibility_source_sha256": "c2b4b94c9d42cf9e2cd1c9b3d85901ed1ed3b77755f7ac2d5d033556706e80f7",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "d26f0283451af9aa8594278c76f6406983d26d817a5851a810c7f69de6db27e9"
+    "portable_stdlib_inventory_sha256": "ab20e49e2807ff4feba74dc4ffd8dfa3b147c06ce8689bc11486291e54b6e5ac"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -443,6 +443,30 @@
       "kind": "path",
       "path": "test/semantic_diff/socket_advanced_contract",
       "level": "semantic-diff"
+    },
+    {
+      "id": "snapshot:socket-tls",
+      "kind": "path",
+      "path": "test/snapshot/stdlib/sys_ssl_socket_direct",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "snapshot:socket-sni",
+      "kind": "path",
+      "path": "test/snapshot/stdlib/sys_ssl_socket_sni_direct",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "runtime:socket-regressions",
+      "kind": "path",
+      "path": "runtime/hxrt/socket_test.go",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "runtime:socket-cross-build",
+      "kind": "path",
+      "path": "test/test_socket_runtime_cross_build.py",
+      "level": "compile-only"
     },
     {
       "id": "snapshot:native-extern",
@@ -1150,9 +1174,13 @@
           "granularity": "surface",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Loopback and target-sensitive smokes exist; cross-platform timeout, cancellation, TLS, and cleanup evidence remains open.",
+          "qualification": "Public Host/TCP/UDP/TLS APIs are canonical staged source over typed runtime handles. Loopback semantics, UDP, TLS/SNI, accepted SSL identity, timeout/readiness, race-capable cleanup, and POSIX/Windows runtime cross-build evidence exist; cross-platform cancellation and hostile-peer closure remain open.",
           "evidence_ids": [
             "semantic:socket",
+            "snapshot:socket-tls",
+            "snapshot:socket-sni",
+            "runtime:socket-regressions",
+            "runtime:socket-cross-build",
             "bead:network-audit"
           ],
           "exclusions": [
@@ -3241,7 +3269,7 @@
           "upstream_sweep:full_compile",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.net.Address` usage now has semantic-diff coverage through `semantic_diff/sys_net_address_ssl_digest_algorithm_contract` and snapshot coverage in `stdlib/sys_net_address_ssl_digest_algorithm_direct`. Ownership stays source-owned because this surface is just the upstream `{host, port}` carrier and helper methods, expressed without growing the compiler-owned socket runtime."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Direct `sys.net.Address` usage now has semantic-diff coverage through `semantic_diff/sys_net_address_ssl_digest_algorithm_contract` and snapshot coverage in `stdlib/sys_net_address_ssl_digest_algorithm_direct`. Ownership stays source-owned because this surface is just the upstream `{host, port}` carrier and helper methods, expressed without compiler-owned socket declarations. Native address values arrive through a typed carrier and are converted in staged source."
       },
       {
         "module": "sys.net.Host",
@@ -3254,7 +3282,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged `sys.net.Host` owns the public name/IP fields and conversion behavior in `std/go/_std/sys/net/Host.hx`; typed DNS, reverse lookup, and local-hostname capabilities live in the footprint-explicit `runtime/hxrt/socket.go`. `host_basic_contract` provides semantic-diff coverage without retaining a compiler-emitted Host type."
       },
       {
         "module": "sys.net.Socket",
@@ -3267,7 +3295,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged `sys.net.Socket` owns the public API, stream wrappers, Haxe EOF/blocked translation, address construction, and select identity. One opaque typed handle reaches TCP lifecycle, deadlines, readiness, and socket options in footprint-explicit `runtime/hxrt/socket.go`; loopback semantic-diff, selective-runtime snapshots, direct timeout/cleanup tests, and the Go race detector guard the boundary."
       },
       {
         "module": "sys.net.UdpSocket",
@@ -3279,7 +3307,7 @@
           "upstream_sweep:full_compile",
           "snapshot"
         ],
-        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.net.UdpSocket` usage now has deterministic snapshot/runtime coverage through `stdlib/sys_net_udp_socket_direct`, covering loopback `bind` / `host` / `sendTo` / `readFrom` / `setBroadcast` plus peer address round-tripping. The current `net_socket` compiler group is compatibility migration debt; `haxe_go-vfp.8.7.14` moves public socket APIs to staged source over typed runtime handles for target-sensitive deadlines, blocking, address translation, and socket options. The evidence covers OS socket-option installation without requiring LAN broadcast packet delivery in CI."
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.net.UdpSocket` usage now has deterministic snapshot/runtime coverage through `stdlib/sys_net_udp_socket_direct`, covering loopback `bind` / `host` / `sendTo` / `readFrom` / `setBroadcast` plus peer address round-tripping. `haxe_go-vfp.8.7.14` moved the public API to canonical staged source over the same typed handle as TCP; datagram transport, address translation, and socket options live in footprint-explicit `runtime/hxrt/socket.go`, with no `net_socket` compiler group remaining. The evidence covers OS socket-option installation without requiring LAN broadcast packet delivery in CI."
       },
       {
         "module": "sys.ssl.Certificate",
@@ -3339,7 +3367,7 @@
           "upstream_sweep:full_compile",
           "snapshot"
         ],
-        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct` and SNI selection coverage through `stdlib/sys_ssl_socket_sni_direct`, covering staged public socket configuration on top of the compiler-emitted `sys.net.Socket` carrier tracked as migration debt by `haxe_go-vfp.8.7.14`, plus runtime TLS dial/listen/handshake/peer-certificate/SNI behavior in `runtime/hxrt/ssl.go`. Ownership stays mixed: the public Haxe API lives in `std/go/_std/sys/ssl/Socket.hx`, while the underlying connection/listener TLS behavior remains runtime-owned."
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct` and SNI selection coverage through `stdlib/sys_ssl_socket_sni_direct`, covering staged public configuration and accepted SSL object identity over the source-owned `sys.net.Socket` and its shared typed handle. TLS dial/listen/handshake/peer-certificate/SNI composition lives in the footprint-explicit `runtime/hxrt/socket_ssl.go`; certificate and key primitives remain in `ssl.go`. No raw injection, Dynamic native handle, or `net_socket` compiler ownership remains."
       },
       {
         "module": "sys.thread.Condition",

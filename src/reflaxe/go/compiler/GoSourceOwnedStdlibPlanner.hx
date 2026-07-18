@@ -245,6 +245,20 @@ class GoSourceOwnedStdlibPlanner {
 				requireIoSourceOwnedHelperClass();
 			case "sys.net.Address":
 				requireSourceOwnedStdlibClass("sys.net.Address");
+			case "sys.net.Host":
+				requireSourceOwnedStdlibClass("sys.net.Host");
+			case "sys.net.Socket":
+				requireSourceOwnedStdlibModule("sys.net.Socket");
+				requireSourceOwnedStdlibModule("sys.net._SocketIO");
+				requireSourceOwnedStdlibClass("sys.net.Host");
+				requireIoSourceOwnedHelperClass();
+			case "sys.net.UdpSocket":
+				requireSourceOwnedStdlibClass("sys.net.UdpSocket");
+				requireSourceOwnedStdlibModule("sys.net.Socket");
+				requireSourceOwnedStdlibModule("sys.net._SocketIO");
+				requireSourceOwnedStdlibClass("sys.net.Host");
+				requireSourceOwnedStdlibClass("sys.net.Address");
+				requireIoSourceOwnedHelperClass();
 			case "sys.ssl.Certificate":
 				requireSourceOwnedStdlibClass("sys.ssl.Certificate");
 				requireStdlibShimGroup("stdlib_symbols");
@@ -260,9 +274,12 @@ class GoSourceOwnedStdlibPlanner {
 				requireStdlibShimGroup("stdlib_symbols");
 			case "sys.ssl.Socket", "sys.ssl._Socket.Socket_Impl_":
 				requireSourceOwnedStdlibModule("sys.ssl.Socket");
+				requireSourceOwnedStdlibModule("sys.net.Socket");
+				requireSourceOwnedStdlibModule("sys.net._SocketIO");
+				requireSourceOwnedStdlibClass("sys.net.Host");
 				requireSourceOwnedStdlibClass("sys.ssl.Certificate");
 				requireSourceOwnedStdlibClass("sys.ssl.Key");
-				requireStdlibShimGroup("net_socket");
+				requireIoSourceOwnedHelperClass();
 				requireStdlibShimGroup("stdlib_symbols");
 			case "sys.thread.Lock":
 				requireSourceOwnedStdlibClass("sys.thread.Lock");

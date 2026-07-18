@@ -21,7 +21,7 @@ class GoStdlibOwnership {
 	public static function isCompilerOwnedAuthority(name:String):Bool {
 		return switch (name) {
 			case "EReg", "haxe.io.BufferInput", "haxe.io.Bytes", "haxe.io.BytesBuffer", "haxe.io.BytesInput", "haxe.io.BytesOutput", "haxe.io.Eof",
-				"haxe.io.Error", "haxe.io.Input", "haxe.io.Output", "haxe.io.StringInput", "sys.Http", "sys.net.Host", "sys.net.Socket", "sys.net.UdpSocket":
+				"haxe.io.Error", "haxe.io.Input", "haxe.io.Output", "haxe.io.StringInput", "sys.Http":
 				true;
 			case _:
 				false;
@@ -34,25 +34,20 @@ class GoStdlibOwnership {
 
 	/**
 		What:
-		Identify compiler-owned classes that are safe to embed as concrete
-		superclass carriers in generated Go structs.
+		Report whether a remaining compiler-owned class is safe to embed as a
+		concrete superclass carrier in a generated Go struct.
 
 		Why:
-		Some compiler-owned stdlib authorities, such as `haxe.io.Input`, lower to
-		Go interfaces rather than concrete structs. Treating those as embeddable
+		The former socket structs were the last such carriers. Remaining authorities,
+		such as `haxe.io.Input`, lower to Go interfaces; treating them as concrete
 		superclasses produces invalid `*interface` fields.
 
 		How:
-		Keep the allowlist narrow and concrete. Only compiler-owned surfaces that
-		really materialize as struct carriers should return `true` here.
+		Return false until an individually reviewed compiler authority genuinely
+		materializes as an embeddable struct again.
 	**/
-	public static function isEmbeddableCompilerOwnedSuper(name:String):Bool {
-		return switch (name) {
-			case "sys.net.Socket", "sys.net.UdpSocket":
-				true;
-			case _:
-				false;
-		};
+	public static function isEmbeddableCompilerOwnedSuper(_name:String):Bool {
+		return false;
 	}
 
 	public static inline function canConstructEmptyTypeValue(goTypeName:String):Bool {

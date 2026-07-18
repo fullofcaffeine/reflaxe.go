@@ -16,14 +16,14 @@ type I_sys__ssl__Certificate interface {
 
 type sys__ssl__Certificate struct {
 	__hx_this  I_sys__ssl__Certificate
-	handle     any
+	handle     *hxrt.SslCertificate
 	commonName *string
 	altNames   *hxrt.Array
 	notBefore  *Date
 	notAfter   *Date
 }
 
-func New_sys__ssl__Certificate(handle any) *sys__ssl__Certificate {
+func New_sys__ssl__Certificate(handle *hxrt.SslCertificate) *sys__ssl__Certificate {
 	self := &sys__ssl__Certificate{}
 	self.__hx_this = self
 	self.handle = handle
@@ -31,43 +31,64 @@ func New_sys__ssl__Certificate(handle any) *sys__ssl__Certificate {
 }
 
 func (self *sys__ssl__Certificate) subject(field *string) *string {
-	return hxrt.SslCertSubject(self.handle, field)
+	return hxrt.StdString(hxrt.SslCertSubject(self.handle, field))
 }
 
 func (self *sys__ssl__Certificate) issuer(field *string) *string {
-	return hxrt.SslCertIssuer(self.handle, field)
+	return hxrt.StdString(hxrt.SslCertIssuer(self.handle, field))
 }
 
 func (self *sys__ssl__Certificate) next() *sys__ssl__Certificate {
-	var nextHandle any = hxrt.SslCertNext(self.handle)
-	var hx_if_15 *sys__ssl__Certificate
-	if hxrt.AnyEqualsNull(nextHandle) {
-		hx_if_15 = nil
+	nextHandle := hxrt.SslCertNext(self.handle)
+	var hx_if_28 *sys__ssl__Certificate
+	if nextHandle == nil {
+		hx_if_28 = nil
 	} else {
-		hx_if_15 = New_sys__ssl__Certificate(nextHandle)
+		hx_if_28 = New_sys__ssl__Certificate(nextHandle)
 	}
-	return hx_if_15
+	return hx_if_28
 }
 
 func (self *sys__ssl__Certificate) add(pem *string) {
-	_ = func() int { hxrt.SslCertAddPEM(self.handle, pem); return 0 }()
+	hxrt.SslCertAddPEM(self.handle, pem)
 }
 
 func (self *sys__ssl__Certificate) addDER(der *haxe__io__Bytes) {
-	_ = func() int { hxrt.SslCertAddDER(self.handle, hxrt_haxeBytesToRaw(der)); return 0 }()
+	values := hxrt.NewArray()
+	_g := 0
+	_g1 := der.length
+	for _g < _g1 {
+		hx_post_29 := _g
+		_g = int(int32((_g + 1)))
+		index := hx_post_29
+		values.Push(der.b[index])
+	}
+	hxrt.SslCertAddDERValues(self.handle, func(hx_lambda_raw_31 []any) []int {
+		hx_lambda_out_32 := make([]int, 0, len(hx_lambda_raw_31))
+		for _, hx_lambda_item_33 := range hx_lambda_raw_31 {
+			hx_lambda_out_32 = append(hx_lambda_out_32, func(hx_value_34 any) int {
+				if hx_value_34 == nil {
+					var hx_zero_35 int
+					return hx_zero_35
+				}
+				return hx_value_34.(int)
+			}(hx_lambda_item_33))
+		}
+		return hx_lambda_out_32
+	}(values.Values()))
 }
 
 func (self *sys__ssl__Certificate) get_commonName() *string {
-	return hxrt.SslCertCommonName(self.handle)
+	return hxrt.StdString(hxrt.SslCertCommonName(self.handle))
 }
 
 func (self *sys__ssl__Certificate) get_altNames() *hxrt.Array {
-	return hxrt.ArrayFromValues(func(hx_sort_src_16 []*string) []any {
-		hx_sort_out_18 := make([]any, 0, len(hx_sort_src_16))
-		for _, hx_sort_item_17 := range hx_sort_src_16 {
-			hx_sort_out_18 = append(hx_sort_out_18, hx_sort_item_17)
+	return hxrt.ArrayFromValues(func(hx_sort_src_36 []*string) []any {
+		hx_sort_out_38 := make([]any, 0, len(hx_sort_src_36))
+		for _, hx_sort_item_37 := range hx_sort_src_36 {
+			hx_sort_out_38 = append(hx_sort_out_38, hx_sort_item_37)
 		}
-		return hx_sort_out_18
+		return hx_sort_out_38
 	}(hxrt.SslCertAltNames(self.handle)))
 }
 
@@ -79,8 +100,8 @@ func (self *sys__ssl__Certificate) get_notAfter() *Date {
 	return Date_fromTime(hxrt.SslCertNotAfterMs(self.handle))
 }
 
-func sys__ssl__Certificate_fromString(str *string) *sys__ssl__Certificate {
-	return New_sys__ssl__Certificate(hxrt.SslCertFromString(str))
+func sys__ssl__Certificate_fromString(value *string) *sys__ssl__Certificate {
+	return New_sys__ssl__Certificate(hxrt.SslCertFromString(value))
 }
 
 func sys__ssl__Certificate_loadDefaults() *sys__ssl__Certificate {

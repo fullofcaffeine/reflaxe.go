@@ -2017,3 +2017,70 @@ Observed result:
   buffer accepted where a writer interface is expected) is intentionally not
   claimed here. That independent interop design remains tracked as
   `haxe_go-vfp.8.4.1`.
+
+### 2026-07-17: retire compiler-owned sockets (`haxe_go-vfp.8.7.14`)
+
+Implementation:
+
+- Added failing ownership and runtime contracts before implementation. They
+  required canonical `Host`, `Socket`, and `UdpSocket` source, ordinary staged
+  Input/Output support, typed runtime bindings, no `net_socket` classifier or
+  authority, explicit timeout/readiness state, TCP/UDP round trips, and safe
+  concurrent cleanup.
+- Replaced `GoNetSocketEmitter` and its complete-type authorities with
+  `std/go/_std/sys/net/{Host,Socket,UdpSocket}.hx` plus
+  `std/sys/net/_SocketIO.hx`. Public object identity, byte bounds and copying,
+  Haxe EOF/blocked translation, address construction, and select mapping now
+  live in ordinary Haxe source.
+- Added `std/hxrt/net` opaque handles and concrete address, byte-progress,
+  accept, datagram, and readiness carriers over footprint-explicit
+  `runtime/hxrt/socket.go`. The handle synchronizes replace/close/deadline and
+  read/write state; close is idempotent, interrupts blocked reads, and a closed
+  handle cannot leave `waitForRead` spinning forever.
+- Reworked `sys.ssl.Certificate`, `Key`, `Digest`, and `Socket` to cross typed
+  certificate/key/SNI/socket handles rather than raw injection or `Dynamic`.
+  TLS transport composition moved from `ssl.go` into footprint-explicit
+  `socket_ssl.go`, so SSL leaf APIs do not acquire networking code.
+- Preserved the inherited `sys.net.Socket` return signature for TLS `accept`
+  while returning the embedded base view of a real `sys.ssl.Socket`. This keeps
+  Go method sets valid and matches established Haxe target behavior: dynamic
+  type checks still see the accepted connection as SSL.
+- Added selective-runtime cases for socket-only and TLS-socket programs. The
+  existing SSL-leaf case stays free of `socket.go` and `socket_ssl.go`, and
+  unrelated full-copy output excludes both new capability files unless typed
+  use or explicit feature selection requires them.
+- The xhigh second pass found two concurrency/portability defects before
+  landing. Lazy UDP initialization could install competing ephemeral sockets,
+  and the broadcast option used a POSIX descriptor type on Windows. A direct
+  concurrency regression now requires one shared connection, while
+  build-tagged POSIX/Windows option helpers and a permanent cross-build gate
+  preserve both runtime behavior and platform compilation.
+- Updated the intrinsic registry, provenance ledger, compiler-debt policy,
+  portable inventory, compatibility source, feature matrix, and runtime docs.
+  The broader network release blocker remains open: retiring compiler
+  ownership does not claim cross-platform cancellation or hostile-peer closure.
+
+Validation evidence:
+
+- `npm run test:changed` and `npm test`
+- `npm run test:semantic-diff` and `npm run test:stdlib-sweep:go-test`
+- `npm run test:examples`
+- `npm run test:stdlib:governance`, `npm run test:stdlib-inventory`, and
+  `npm run compatibility:verify`
+- targeted TLS and SNI snapshots with runtime execution, plus UDP and socket
+  stream snapshots
+- direct `runtime/hxrt` tests normally and under `go test -race`
+- `python3 test/test_socket_runtime_cross_build.py` (Linux and Windows)
+- `npm run test:compiler-debt`, raw-injection hygiene, release contracts, and
+  the selective-runtime performance harness
+
+Observed result:
+
+- Portable Haxe networking remains the product semantics in both compatibility
+  presets; no behavior branches on `portable|metal`. OS networking and TLS are
+  explicit typed capabilities beneath source-owned APIs, not a second semantic
+  product or a compiler-generated stdlib.
+- TCP, UDP, deadlines, readiness, address translation, shutdown, broadcast,
+  TLS handshake, peer certificates, SNI selection, accepted SSL identity, and
+  concurrent cleanup have deterministic local evidence. Cross-platform network
+  admission remains governed separately by `haxe_go-vfp.10.4`.
