@@ -588,6 +588,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return nil, false
 	case "Reflect":
 		return nil, false
+	case "Std":
+		return nil, false
 	case "StringBuf":
 		return hxrt_typeCallAny(New_StringBuf, args)
 	case "StringTools":
@@ -1219,6 +1221,8 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "Reflect":
 		return nil
+	case "Std":
+		return nil
 	case "StringBuf":
 		return nil
 	case "StringTools":
@@ -1290,6 +1294,8 @@ func Type_getClassFields(c any) *hxrt.Array {
 		return hxrt.NewArray(hxrt.StringFromLiteral("main"))
 	case "Reflect":
 		return hxrt.NewArray(hxrt.StringFromLiteral("callMethod"), hxrt.StringFromLiteral("compare"), hxrt.StringFromLiteral("compareMethods"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("deleteField"), hxrt.StringFromLiteral("field"), hxrt.StringFromLiteral("fields"), hxrt.StringFromLiteral("getProperty"), hxrt.StringFromLiteral("hasField"), hxrt.StringFromLiteral("isEnumValue"), hxrt.StringFromLiteral("isFunction"), hxrt.StringFromLiteral("isObject"), hxrt.StringFromLiteral("makeVarArgs"), hxrt.StringFromLiteral("setField"), hxrt.StringFromLiteral("setProperty"))
+	case "Std":
+		return hxrt.NewArray(hxrt.StringFromLiteral("digitValue"), hxrt.StringFromLiteral("downcast"), hxrt.StringFromLiteral("instance"), hxrt.StringFromLiteral("int"), hxrt.StringFromLiteral("invalidFloat"), hxrt.StringFromLiteral("is"), hxrt.StringFromLiteral("isDecimalDigit"), hxrt.StringFromLiteral("isSpaceCode"), hxrt.StringFromLiteral("parseFloat"), hxrt.StringFromLiteral("parseInt"), hxrt.StringFromLiteral("random"))
 	case "StringBuf":
 		return hxrt.NewArray()
 	case "StringTools":
@@ -1352,6 +1358,8 @@ func Type_getInstanceFields(c any) *hxrt.Array {
 	case "Main":
 		return hxrt.NewArray()
 	case "Reflect":
+		return hxrt.NewArray()
+	case "Std":
 		return hxrt.NewArray()
 	case "StringBuf":
 		return hxrt.NewArray(hxrt.StringFromLiteral("b"))
@@ -1423,6 +1431,8 @@ func Type_resolveClass(name *string) any {
 	case "Main":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "Reflect":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "Std":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "StringBuf":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}

@@ -13,6 +13,7 @@
 - none
 
 ## inferred features
+- `array`
 - `core`
 - `exception`
 - `print`

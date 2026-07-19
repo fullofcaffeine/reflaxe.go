@@ -28,3 +28,14 @@ func MathCeilInt(value float64) int {
 func MathRoundInt(value float64) int {
 	return int(math.Floor(value + 0.5))
 }
+
+// MathTruncInt implements the Haxe Std.int finite-value conversion.
+//
+// What: Converts a float64 to Go int by discarding its fractional component.
+// Why: Haxe source cannot spell Go's native numeric conversion, while rounding
+// policy and the public Std API remain in staged source.
+// How: Use Go's direct conversion, whose behavior is relevant only inside the
+// Haxe-specified finite Int32 range; behavior outside that range is unspecified.
+func MathTruncInt(value float64) int {
+	return int(value)
+}

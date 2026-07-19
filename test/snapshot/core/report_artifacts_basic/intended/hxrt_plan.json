@@ -10,6 +10,7 @@
 	"manualFeatures": [
 	],
 	"inferredFeatures": [
+		"array",
 		"core",
 		"exception",
 		"print",

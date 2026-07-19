@@ -447,14 +447,6 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             serialization_group["ownedSymbols"],
         )
         self.assertNotIn("migration_stdlib_symbols", registry["decisions"])
-        direct = {entry["symbol"]: entry for entry in registry["directLowerings"]}
-        for symbol in ("Std.parseInt", "haxe.Log.trace"):
-            self.assertEqual("migration_required", direct[symbol]["status"])
-            self.assertEqual(
-                "migration_std_log_source_ownership",
-                direct[symbol]["decisionId"],
-            )
-            self.assertEqual("haxe_go-vfp.8.7.22", direct[symbol]["followUpBead"])
 
         self.assertFalse(
             any(
@@ -487,6 +479,66 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertIn("type haxe__ds__Option struct", generated_option)
         self.assertIn("var haxe__ds__Option_None", generated_option)
         self.assertIn("func haxe__ds__Option_Some", generated_option)
+
+    def test_std_and_log_are_complete_source_owned_apis(self) -> None:
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(
+            encoding="utf-8"
+        )
+        planner = (
+            ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ).read_text(encoding="utf-8")
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
+
+        staged_std = (ROOT / "std/go/_std/Std.hx").read_text(encoding="utf-8")
+        staged_log = (ROOT / "std/go/_std/haxe/Log.hx").read_text(
+            encoding="utf-8"
+        )
+        for source in (staged_std, staged_log):
+            self.assertIn("What:", source)
+            self.assertIn("Why:", source)
+            self.assertIn("How:", source)
+            self.assertIn("@:coreApi", source)
+
+        for method in (
+            "is",
+            "isOfType",
+            "downcast",
+            "instance",
+            "string",
+            "int",
+            "parseInt",
+            "parseFloat",
+            "random",
+        ):
+            self.assertRegex(staged_std, rf"function\s+{method}\b")
+        self.assertIn("function formatOutput", staged_log)
+        self.assertIn("static dynamic function trace", staged_log)
+        self.assertIn("Sys.println(str)", staged_log)
+
+        self.assertIn('case "Std":', planner)
+        self.assertIn('case "haxe.Log"', planner)
+        self.assertNotIn('isStaticCall(callee, "Std", [], "parseInt")', compiler)
+        self.assertNotIn('isStaticCall(callee, "Log", ["haxe"], "trace")', compiler)
+        self.assertNotIn("StdParseInt", compiler)
+
+        self.assertNotIn("migration_std_log_source_ownership", registry["decisions"])
+        direct = {entry["symbol"]: entry for entry in registry["directLowerings"]}
+        self.assertNotIn("Std.parseInt", direct)
+        self.assertNotIn("haxe.Log.trace", direct)
+        self.assertEqual("approved_intrinsic", direct["Std.isOfType"]["status"])
+        self.assertEqual("approved_intrinsic", direct["Std.string"]["status"])
+
+        for source_path in ("std/go/_std/Std.hx", "std/go/_std/haxe/Log.hx"):
+            entry = ledger_entries.get(source_path)
+            self.assertIsNotNone(entry, source_path)
+            self.assertEqual("upstream_std_override", entry.get("ownershipClass"))
+            self.assertEqual("haxe_go-vfp.8.7.22", entry.get("migrationBead"))
+            self.assertEqual([], entry.get("compilerShimGroups"))
 
     def test_upstream_overrides_are_canonical_documented_source(self) -> None:
         failures: list[str] = []

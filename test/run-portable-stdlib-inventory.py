@@ -85,6 +85,7 @@ SEMANTIC_DIFF_PREFIXES = (
 OWNER_OVERRIDES = {
     "Sys": "mixed",
     "Xml": "staged_std",
+	"haxe.Log": "staged_std",
     "haxe.http.HttpBase": "staged_std",
     "haxe.EntryPoint": "mixed",
     "haxe.CallStack": "staged_std",
@@ -180,6 +181,19 @@ UNSUPPORTED_EXPLICIT = {
 }
 
 MODULE_NOTES_OVERRIDES = {
+	"Std": (
+		"Canonical staged Std owns the complete Haxe 4.3.7 API, including parseInt/parseFloat scanning, overflow behavior, "
+		"aliases, downcast policy, truncation, and random guards. Typed bindings retain only native conversion/random facts; "
+		"exact Std.string and Std.isOfType representation intrinsics remain separately registered. Evidence: "
+		"std_complete_api_contract, std_is_of_type_contract, std_is_of_type_runtime_core_abstract_contract, and core Std "
+		"snapshots; migration haxe_go-vfp.8.7.22."
+	),
+	"haxe.Log": (
+		"Canonical staged haxe.Log owns complete Haxe 4.3.7 formatOutput and mutable trace policy, including PosInfos/custom "
+		"parameters, compiler-injected trace arguments, direct function values, rebinding, catchable null invocation, "
+		"restoration, and Sys.println output. Evidence: direct_haxe_helpers_contract and runtime snapshot "
+		"stdlib/std_log_source_owned; migration haxe_go-vfp.8.7.22."
+	),
 	"haxe.Http": (
 		"Portable `haxe.Http` aliases canonical staged `sys.Http`. Haxe source owns request selection, payload/header "
 		"policy, callbacks, response maps, and status/error handling; typed opaque std/hxrt/http handles delegate only "

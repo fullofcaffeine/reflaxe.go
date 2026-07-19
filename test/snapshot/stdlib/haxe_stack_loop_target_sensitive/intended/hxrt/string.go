@@ -2,6 +2,7 @@ package hxrt
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"strconv"
 	"strings"
@@ -70,53 +71,21 @@ func StdString(value any) *string {
 	}
 }
 
-func StdParseInt(value any) any {
-	raw := strings.TrimSpace(*StdString(value))
-	if raw == "" {
-		return nil
+// StringParseFloatExact converts one source-validated numeric token.
+//
+// What: Returns the Go float64 value for an exact decimal/exponent token.
+// Why: Native IEEE-754 conversion is representation work, while staged Std owns
+// whitespace, prefix scanning, malformed exponents, and trailing input policy.
+// How: Parse the complete supplied token and map every native error to Haxe NaN.
+func StringParseFloatExact(value *string) float64 {
+	if value == nil {
+		return math.NaN()
 	}
-
-	sign := ""
-	if raw[0] == '+' || raw[0] == '-' {
-		sign = raw[:1]
-		raw = raw[1:]
-		if raw == "" {
-			return nil
-		}
-	}
-
-	base := 10
-	if len(raw) >= 2 && raw[0] == '0' && (raw[1] == 'x' || raw[1] == 'X') {
-		base = 16
-		raw = raw[2:]
-	}
-
-	end := 0
-	for end < len(raw) && isParseIntDigit(raw[end], base) {
-		end++
-	}
-	if end == 0 {
-		return nil
-	}
-
-	parsed, err := strconv.ParseInt(sign+raw[:end], base, 0)
+	parsed, err := strconv.ParseFloat(*value, 64)
 	if err != nil {
-		return nil
+		return math.NaN()
 	}
-	return int(parsed)
-}
-
-func isParseIntDigit(ch byte, base int) bool {
-	if ch >= '0' && ch <= '9' {
-		return int(ch-'0') < base
-	}
-	if base <= 10 {
-		return false
-	}
-	if ch >= 'a' && ch <= 'f' {
-		return true
-	}
-	return ch >= 'A' && ch <= 'F'
+	return parsed
 }
 
 func StringSlice(values []*string) []string {

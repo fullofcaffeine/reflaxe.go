@@ -1,6 +1,9 @@
 package hxrt
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 func TestStringSliceCodePointsStringPtrUsesLogicalRuneBounds(t *testing.T) {
 	value := "a😀bé"
@@ -17,5 +20,20 @@ func TestStringEqualStringPtrDistinguishesNullFromLiteral(t *testing.T) {
 	}
 	if !StringEqualStringPtr(nil, nil) {
 		t.Fatal("StringEqualStringPtr rejected two null strings")
+	}
+}
+
+func TestStringParseFloatExactAcceptsOnlyValidatedCompleteTokens(t *testing.T) {
+	valid := "-125.5e-1"
+	if got := StringParseFloatExact(&valid); got != -12.55 {
+		t.Fatalf("StringParseFloatExact(%q) = %v, want -12.55", valid, got)
+	}
+
+	invalid := "12tail"
+	if got := StringParseFloatExact(&invalid); !math.IsNaN(got) {
+		t.Fatalf("StringParseFloatExact(%q) = %v, want NaN", invalid, got)
+	}
+	if got := StringParseFloatExact(nil); !math.IsNaN(got) {
+		t.Fatalf("StringParseFloatExact(nil) = %v, want NaN", got)
 	}
 }

@@ -81,17 +81,23 @@ func (self *app__core__IncidentApi) updateIncident(path *string, action *string)
 	if parts.Len() < 4 {
 		return app__http__HttpResponse_json(404, hxrt.StringFromLiteral("{\"error\":\"not_found\"}"))
 	}
-	var id any = hxrt.StdParseInt(parts.Get(2))
+	var id any = Std_parseInt(func(hx_value_52 any) *string {
+		if hx_value_52 == nil {
+			var hx_zero_53 *string
+			return hx_zero_53
+		}
+		return hx_value_52.(*string)
+	}(parts.Get(2)))
 	if id == nil {
 		return app__http__HttpResponse_json(400, hxrt.StringFromLiteral("{\"error\":\"invalid_id\"}"))
 	}
-	var hx_if_52 *app__core__Incident
+	var hx_if_54 *app__core__Incident
 	if hxrt.StringEqualStringPtr(action, hxrt.StringFromLiteral("ack")) {
-		hx_if_52 = self.store.acknowledge(id.(int))
+		hx_if_54 = self.store.acknowledge(id.(int))
 	} else {
-		hx_if_52 = self.store.resolve(id.(int))
+		hx_if_54 = self.store.resolve(id.(int))
 	}
-	incident := hx_if_52
+	incident := hx_if_54
 	if incident == nil {
 		return app__http__HttpResponse_json(404, hxrt.StringFromLiteral("{\"error\":\"incident_not_found\"}"))
 	}
@@ -103,37 +109,37 @@ func app__core__IncidentApi_fieldString(raw any, name *string, fallback *string)
 		return fallback
 	}
 	var value any = Reflect_field(raw, name)
-	var hx_if_53 *string
+	var hx_if_55 *string
 	if hxrt.AnyEqualsNull(value) {
-		hx_if_53 = fallback
+		hx_if_55 = fallback
 	} else {
-		hx_if_53 = hxrt.StdString(value)
+		hx_if_55 = hxrt.StdString(value)
 	}
-	return hx_if_53
+	return hx_if_55
 }
 
 func app__core__IncidentApi_parseJsonBody(body *string) any {
-	hx_try_return_54 := false
-	var hx_try_value_55 any
+	hx_try_return_56 := false
+	var hx_try_value_57 any
 	hxrt.TryCatch(func() {
-		hx_try_value_55 = hxrt.JsonParse(func() *string {
-			var hx_if_58 *string
+		hx_try_value_57 = hxrt.JsonParse(func() *string {
+			var hx_if_60 *string
 			if hxrt.StringEqualStringPtr(body, hxrt.StringFromLiteral("")) {
-				hx_if_58 = hxrt.StringFromLiteral("{}")
+				hx_if_60 = hxrt.StringFromLiteral("{}")
 			} else {
-				hx_if_58 = body
+				hx_if_60 = body
 			}
-			return hx_if_58
+			return hx_if_60
 		}())
-		hx_try_return_54 = true
+		hx_try_return_56 = true
 		return
-	}, func(hx_caught_56 any) {
-		hx_tmp := hxrt.ExceptionCaught(hx_caught_56)
+	}, func(hx_caught_58 any) {
+		hx_tmp := hxrt.ExceptionCaught(hx_caught_58)
 		_ = hx_tmp
 		hxrt.Throw(New_app__core__IncidentRequestException(hxrt.StringFromLiteral("invalid_json")))
 	})
-	if hx_try_return_54 {
-		return hx_try_value_55
+	if hx_try_return_56 {
+		return hx_try_value_57
 	}
 	return nil
 }

@@ -55,23 +55,23 @@ func (self *sys__io__FileOutput) writeBytes(bytes *haxe__io__Bytes, pos int, len
 	_g := 0
 	_g1 := length
 	for _g < _g1 {
-		hx_post_131 := _g
+		hx_post_133 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_131
+		index := hx_post_133
 		values.Push(bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))])
 	}
-	return hxrt.FileOutputWriteValues(self.handle, func(hx_lambda_raw_133 []any) []int {
-		hx_lambda_out_134 := make([]int, 0, len(hx_lambda_raw_133))
-		for _, hx_lambda_item_135 := range hx_lambda_raw_133 {
-			hx_lambda_out_134 = append(hx_lambda_out_134, func(hx_value_136 any) int {
-				if hx_value_136 == nil {
-					var hx_zero_137 int
-					return hx_zero_137
+	return hxrt.FileOutputWriteValues(self.handle, func(hx_lambda_raw_135 []any) []int {
+		hx_lambda_out_136 := make([]int, 0, len(hx_lambda_raw_135))
+		for _, hx_lambda_item_137 := range hx_lambda_raw_135 {
+			hx_lambda_out_136 = append(hx_lambda_out_136, func(hx_value_138 any) int {
+				if hx_value_138 == nil {
+					var hx_zero_139 int
+					return hx_zero_139
 				}
-				return hx_value_136.(int)
-			}(hx_lambda_item_135))
+				return hx_value_138.(int)
+			}(hx_lambda_item_137))
 		}
-		return hx_lambda_out_134
+		return hx_lambda_out_136
 	}(values.Values()), 0, length)
 }
 

@@ -45,7 +45,13 @@ func haxe__Timer_delay(f func(), time_ms int) *haxe__Timer {
 func haxe__Timer_measure(f func() any, pos map[string]any) any {
 	t0 := hxrt.ThreadNowSeconds()
 	var result any = f()
-	hxrt.Println(hxrt.StringConcatAny((hxrt.ThreadNowSeconds() - t0), hxrt.StringFromLiteral("s")))
+	func(hx_fn func(any, map[string]any), hx_arg_0 any, hx_arg_1 map[string]any) {
+		if hx_fn == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+			return
+		}
+		hx_fn(hx_arg_0, hx_arg_1)
+	}(haxe__Log_trace, hxrt.StringConcatAny((hxrt.ThreadNowSeconds()-t0), hxrt.StringFromLiteral("s")), pos)
 	return result
 }
 

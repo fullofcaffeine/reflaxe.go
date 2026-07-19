@@ -34,10 +34,16 @@ func New_Child() *Child {
 func main() {
 	var d any = New_Child()
 	var v any = any(func(hx_value any) bool {
-		switch hx_value.(type) {
+		switch hx_carrier := hx_value.(type) {
 		case *Base:
+			if hx_carrier == nil {
+				return false
+			}
 			return true
 		case *Child:
+			if hx_carrier == nil {
+				return false
+			}
 			return true
 		default:
 			return false
@@ -45,8 +51,17 @@ func main() {
 	}(any(d)))
 	hxrt.Println(v)
 	var v_1 any = any(func(hx_value any) bool {
-		switch hx_value.(type) {
+		switch hx_carrier := hx_value.(type) {
+		case *Base:
+			if hx_carrier == nil {
+				return false
+			}
+			_, hx_ok := hx_carrier.__hx_this.(*Child)
+			return hx_ok
 		case *Child:
+			if hx_carrier == nil {
+				return false
+			}
 			return true
 		default:
 			return false
@@ -55,8 +70,17 @@ func main() {
 	hxrt.Println(v_1)
 	d = New_Base()
 	var v_2 any = any(func(hx_value any) bool {
-		switch hx_value.(type) {
+		switch hx_carrier := hx_value.(type) {
+		case *Base:
+			if hx_carrier == nil {
+				return false
+			}
+			_, hx_ok := hx_carrier.__hx_this.(*Child)
+			return hx_ok
 		case *Child:
+			if hx_carrier == nil {
+				return false
+			}
 			return true
 		default:
 			return false

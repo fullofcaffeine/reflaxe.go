@@ -36,12 +36,12 @@ func New_haxe__io__Output() *haxe__io__Output {
 
 func (self *haxe__io__Output) writeByte(value int) {
 	hxrt.Throw(New_haxe__exceptions__NotImplementedException(nil, nil, func() map[string]any {
-		hx_obj_153 := map[string]any{}
-		hx_obj_153["fileName"] = hxrt.StringFromLiteral("haxe/io/Output.hx")
-		hx_obj_153["lineNumber"] = 17
-		hx_obj_153["className"] = hxrt.StringFromLiteral("haxe.io.Output")
-		hx_obj_153["methodName"] = hxrt.StringFromLiteral("writeByte")
-		return hx_obj_153
+		hx_obj_155 := map[string]any{}
+		hx_obj_155["fileName"] = hxrt.StringFromLiteral("haxe/io/Output.hx")
+		hx_obj_155["lineNumber"] = 17
+		hx_obj_155["className"] = hxrt.StringFromLiteral("haxe.io.Output")
+		hx_obj_155["methodName"] = hxrt.StringFromLiteral("writeByte")
+		return hx_obj_155
 	}()))
 }
 
@@ -178,13 +178,13 @@ func (self *haxe__io__Output) writeInput(input *haxe__io__Input, bufsize any) {
 			}
 			self.__hx_this.writeFullBytes(buffer, 0, count)
 		}
-	}, func(hx_caught_154 any) {
-		switch hx_typed_155 := hx_caught_154.(type) {
+	}, func(hx_caught_156 any) {
+		switch hx_typed_157 := hx_caught_156.(type) {
 		case *haxe__io__Eof:
-			hx_tmp := hx_typed_155
+			hx_tmp := hx_typed_157
 			_ = hx_tmp
 		default:
-			hxrt.Throw(hx_caught_154)
+			hxrt.Throw(hx_caught_156)
 		}
 	})
 }

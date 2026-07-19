@@ -175,10 +175,22 @@ func (self *haxe__http__HttpBase) success(data *haxe__io__Bytes) {
 	if self.__hx_this.hasOnData() {
 		s := self.__hx_this.get_responseData()
 		if !hxrt.StringEqualStringPtr(s, nil) {
-			self.onData(s)
+			func(hx_fn func(*string), hx_arg_0 *string) {
+				if hx_fn == nil {
+					hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+					return
+				}
+				hx_fn(hx_arg_0)
+			}(self.onData, s)
 		}
 	}
-	self.onBytes(data)
+	func(hx_fn func(*haxe__io__Bytes), hx_arg_0 *haxe__io__Bytes) {
+		if hx_fn == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+			return
+		}
+		hx_fn(hx_arg_0)
+	}(self.onBytes, data)
 }
 
 func (self *haxe__http__HttpBase) get_responseData() *string {

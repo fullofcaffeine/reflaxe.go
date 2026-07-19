@@ -178,6 +178,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 	switch className {
 	case "Main":
 		return nil, false
+	case "Std":
+		return nil, false
 	case "StringBuf":
 		return hxrt_typeCallAny(New_StringBuf, args)
 	case "StringTools":
@@ -550,6 +552,8 @@ func Type_getSuperClass(c any) any {
 	switch className {
 	case "Main":
 		return nil
+	case "Std":
+		return nil
 	case "StringBuf":
 		return nil
 	case "StringTools":
@@ -607,6 +611,8 @@ func Type_getClassFields(c any) *hxrt.Array {
 	switch className {
 	case "Main":
 		return hxrt.NewArray(hxrt.StringFromLiteral("main"))
+	case "Std":
+		return hxrt.NewArray(hxrt.StringFromLiteral("digitValue"), hxrt.StringFromLiteral("downcast"), hxrt.StringFromLiteral("instance"), hxrt.StringFromLiteral("int"), hxrt.StringFromLiteral("invalidFloat"), hxrt.StringFromLiteral("is"), hxrt.StringFromLiteral("isDecimalDigit"), hxrt.StringFromLiteral("isSpaceCode"), hxrt.StringFromLiteral("parseFloat"), hxrt.StringFromLiteral("parseInt"), hxrt.StringFromLiteral("random"))
 	case "StringBuf":
 		return hxrt.NewArray()
 	case "StringTools":
@@ -655,6 +661,8 @@ func Type_getInstanceFields(c any) *hxrt.Array {
 	}
 	switch className {
 	case "Main":
+		return hxrt.NewArray()
+	case "Std":
 		return hxrt.NewArray()
 	case "StringBuf":
 		return hxrt.NewArray(hxrt.StringFromLiteral("b"))
@@ -712,6 +720,8 @@ func Type_resolveClass(name *string) any {
 	rawName := *hxrt.StdString(name)
 	switch rawName {
 	case "Main":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "Std":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "StringBuf":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}

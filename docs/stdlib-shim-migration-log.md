@@ -2463,3 +2463,80 @@ Observed result:
   ordinary source-owned generated module.
 - Serialization retains its exact same-package capability without becoming a
   second semantic product or profile-specific branch.
+
+### 2026-07-18: finish `Std` and `haxe.Log` source ownership (`haxe_go-vfp.8.7.22`)
+
+Implementation:
+
+- Added failing contracts first for the complete Haxe 4.3.7 `Std` surface and
+  for `haxe.Log.formatOutput` / mutable `trace`. The red evidence covered null,
+  whitespace, sign, hexadecimal, prefix stopping, Int32 overflow, float
+  exponents, aliases, downcasts, random bounds, compiler-injected `PosInfos`,
+  custom parameters, direct function values, rebinding, and null rebinding.
+- Added canonical staged `Std` and `haxe.Log` overrides. Integer and float-token
+  scanning, overflow rules, aliases, downcast decisions, random-bound policy,
+  trace formatting, and trace delegation through `Sys.println` are now ordinary
+  Haxe source in both compatibility presets.
+- Retained exactly two `Std` representation intrinsics: `Std.string` for erased
+  target values and `Std.isOfType` for typed runtime tokens. Removed the direct
+  `Std.parseInt -> hxrt.StdParseInt` and `haxe.Log.trace -> hxrt.Println`
+  rewrites and removed their migration registry entries.
+- Kept native work behind narrow typed capabilities: exact IEEE-754 token
+  conversion, finite float-to-int conversion, and Go random generation. The Go
+  runtime no longer owns integer parsing policy.
+- Lowered static Haxe `dynamic function` methods as mutable typed Go variables.
+  Calls through generated dynamic-method fields now evaluate the callee and
+  arguments once, reject null through `hxrt.Throw`, and remain catchable by Haxe
+  `try/catch`; typed native extern calls retain their direct path.
+- Added closed, typed semantic plans for forwarded `Class<T>` / `Enum<T>` tokens
+  and concrete subclass recovery through generated virtual receivers. These
+  plans feed the existing typed Go AST and use no raw-Go emitter, reflection
+  registry, `unsafe`, `Dynamic` transport boundary, or profile-name branch.
+- Updated provenance, portability inventory, compatibility, feature mapping,
+  package/archive ratchets, compiler-debt ownership, and committed snapshot and
+  example trees for the new source authority.
+
+Design review:
+
+- Rejected a partial `Std` override because replacing the target declaration
+  without its complete public API would create a misleading ownership claim.
+- Rejected keeping parsing or trace formatting in `hxrt`: both are portable
+  source policy, while only exact host representation conversions justify typed
+  native bindings.
+- Rejected treating `metal` as a separate semantic implementation. Portable
+  Haxe behavior is the product default; the public selector remains only a
+  compatibility policy preset, and explicit native modules/APIs remain the Go
+  boundary.
+- This work does not justify a universal compiler IR. The new decisions are
+  small immutable semantic plans feeding the established builder/lowering,
+  transform, and typed Go AST pipeline. A second whole-program IR would add
+  ownership and synchronization cost without solving an observed repeated
+  cross-cutting limitation.
+- The `thinking:high` local design pass converged on one bounded typed approach.
+  No unresolved competing design remained, so an Oracle review was not needed;
+  Oracle remains appropriate if a future `thinking:xhigh` scope or repeated
+  representation/effect/failure evidence reopens the architecture decision.
+
+Validation evidence:
+
+- 298/298 generated-output snapshots, including the focused source-owned
+  `haxe.Log` runtime contract
+- 139/139 portable semantic-diff contracts, including the new complete `Std`
+  API case and existing type/reflection/serialization contracts
+- 55/55 strict upstream stdlib modules compiled and checked with `go test`
+- 12/12 runnable example/profile lanes after intentional generated-tree refresh
+- all 28 Go race, checkptr, vet, and staticcheck lanes
+- compiler-debt, stdlib governance, portability inventory, compatibility,
+  canonical-layout, package, and intrinsic-registry contracts
+- selective-runtime performance passed; the full Go profile harness reported
+  only its documented warning-only signals and no enforced hard failure
+
+Observed result:
+
+- `Std` and `haxe.Log` are readable, testable staged library owners rather than
+  special compiler call sites, with identical portable semantics under the
+  compatibility presets.
+- Mutable trace sinks now preserve formatting, position/custom-parameter data,
+  direct function use, rebinding, restoration, and catchable null-call failure.
+- Complete `Std` parsing and downcast behavior is covered without broadening the
+  target runtime or introducing a universal IR.

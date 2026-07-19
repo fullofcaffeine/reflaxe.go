@@ -32,6 +32,7 @@
         "haxe_go-vfp.8.7.15.5",
         "haxe_go-vfp.8.7.15.6",
         "haxe_go-vfp.8.7.17",
+        "haxe_go-vfp.8.7.22",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
         "haxe_go-vfp.8.7.6",
@@ -178,6 +179,15 @@
       "notes": "Canonical staged Haxe 4.3.7 Reflect API. Haxe source owns public lookup precedence, property policy, copying, deletion, and varargs composition; a typed footprint-explicit hxrt boundary handles ordinary Go representation inspection, while exact same-package compiler metadata adapters expose only closed generated fields, methods, RTTI, and enum carriers."
     },
     {
+      "path": "std/go/_std/Std.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/Std.hx",
+      "migrationBead": "haxe_go-vfp.8.7.22",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged complete Haxe 4.3.7 Std API. Haxe source owns parseInt/parseFloat scanning and overflow policy, aliases, downcast policy, truncation bounds, and random guards. Typed bindings retain only exact native float conversion, integer truncation, and random generation; Std.string and Std.isOfType remain separately registered representation intrinsics."
+    },
+    {
       "path": "std/go/_std/Sys.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
@@ -212,6 +222,15 @@
       "migrationBead": "haxe_go-vfp.5.3",
       "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.Constraints constraint aliases plus named erased IMap bridge methods, keeping Haxe-facing typing in source while generated Go interfaces preserve exact method signatures."
+    },
+    {
+      "path": "std/go/_std/haxe/Log.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/Log.hx",
+      "migrationBead": "haxe_go-vfp.8.7.22",
+      "compilerShimGroups": [],
+      "notes": "Canonical staged Haxe 4.3.7 Log formatting and trace policy. Source owns PosInfos/custom-parameter formatting, the mutable trace function, and Sys.println delegation; general typed class lowering owns static dynamic-function storage and catchable null invocation without a Log-specific rewrite."
     },
     {
       "path": "std/go/_std/haxe/CallStack.hx",

@@ -9,7 +9,7 @@
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "28e279474cf71efb579760400a03c3894197b7c97a93012208c38777b829ae91"
+    "portable_stdlib_inventory_sha256": "079603288b2fc151914c2d1ab81ec821f984f7f3ea07a17d94fe78676840b9e5"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -1595,7 +1595,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged Std owns the complete Haxe 4.3.7 API, including parseInt/parseFloat scanning, overflow behavior, aliases, downcast policy, truncation, and random guards. Typed bindings retain only native conversion/random facts; exact Std.string and Std.isOfType representation intrinsics remain separately registered. Evidence: std_complete_api_contract, std_is_of_type_contract, std_is_of_type_runtime_core_abstract_contract, and core Std snapshots; migration haxe_go-vfp.8.7.22."
       },
       {
         "module": "StdTypes",
@@ -1869,7 +1869,7 @@
           "upstream_sweep:full_compile",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged haxe.Log owns complete Haxe 4.3.7 formatOutput and mutable trace policy, including PosInfos/custom parameters, compiler-injected trace arguments, direct function values, rebinding, catchable null invocation, restoration, and Sys.println output. Evidence: direct_haxe_helpers_contract and runtime snapshot stdlib/std_log_source_owned; migration haxe_go-vfp.8.7.22."
       },
       {
         "module": "haxe.MainLoop",

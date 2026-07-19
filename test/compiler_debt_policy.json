@@ -364,18 +364,6 @@
       "surface": "compiler"
     },
     {
-      "capability": "typed_lowering",
-      "classification": "avoidable",
-      "context": "stdIsOfTypeClassExpr",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "go_raw",
-      "owner": "compiler_core",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
       "capability": "ast_transform",
       "classification": "avoidable",
       "context": "collectExprReads",
@@ -2584,6 +2572,42 @@
       "surface": "staged_std"
     },
     {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "is",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/Std.hx",
+      "max_count": 2,
+      "metric": "haxe_dynamic",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "isOfType",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/Std.hx",
+      "max_count": 2,
+      "metric": "haxe_dynamic",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "string",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/Std.hx",
+      "max_count": 1,
+      "metric": "haxe_dynamic",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
       "capability": "sys",
       "classification": "required",
       "context": "print",
@@ -2638,6 +2662,30 @@
       "exception_id": "staged_std_dynamic_contract",
       "file": "std/go/_std/haxe/Json.hx",
       "max_count": 5,
+      "metric": "haxe_dynamic",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "formatOutput",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/haxe/Log.hx",
+      "max_count": 1,
+      "metric": "haxe_dynamic",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "trace",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/haxe/Log.hx",
+      "max_count": 1,
       "metric": "haxe_dynamic",
       "owner": "staged_std",
       "profile": "shared",

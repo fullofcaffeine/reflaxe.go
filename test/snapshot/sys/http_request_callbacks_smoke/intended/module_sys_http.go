@@ -288,13 +288,31 @@ func (self *sys__Http) requestWith(post bool, api *haxe__io__Output, sock *sys__
 	status := hxrt.HttpResponseStatus(response)
 	nativeError := hxrt.HttpResponseError(response)
 	if (status == 0) && !hxrt.StringEqualStringPtr(nativeError, nil) {
-		self.onError(nativeError)
+		func(hx_fn func(*string), hx_arg_0 *string) {
+			if hx_fn == nil {
+				hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+				return
+			}
+			hx_fn(hx_arg_0)
+		}(self.onError, nativeError)
 		return
 	}
 	self.__hx_this.recordResponseHeaders(response)
-	self.onStatus(status)
+	func(hx_fn func(int), hx_arg_0 int) {
+		if hx_fn == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+			return
+		}
+		hx_fn(hx_arg_0)
+	}(self.onStatus, status)
 	if !hxrt.StringEqualStringPtr(nativeError, nil) {
-		self.onError(nativeError)
+		func(hx_fn func(*string), hx_arg_0 *string) {
+			if hx_fn == nil {
+				hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+				return
+			}
+			hx_fn(hx_arg_0)
+		}(self.onError, nativeError)
 		return
 	}
 	payload := haxe__io__Bytes___hx_fromNativeView(hxrt.HttpResponseBody(response))
@@ -302,11 +320,29 @@ func (self *sys__Http) requestWith(post bool, api *haxe__io__Output, sock *sys__
 	self.responseAsString = payload.__hx_this.toString()
 	sys__Http_capture(api, payload)
 	if status >= 400 {
-		self.onError(hxrt.StringConcatAny(hxrt.StringFromLiteral("Http Error #"), status))
+		func(hx_fn func(*string), hx_arg_0 *string) {
+			if hx_fn == nil {
+				hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+				return
+			}
+			hx_fn(hx_arg_0)
+		}(self.onError, hxrt.StringConcatAny(hxrt.StringFromLiteral("Http Error #"), status))
 		return
 	}
-	self.onData(self.responseAsString)
-	self.onBytes(payload)
+	func(hx_fn func(*string), hx_arg_0 *string) {
+		if hx_fn == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+			return
+		}
+		hx_fn(hx_arg_0)
+	}(self.onData, self.responseAsString)
+	func(hx_fn func(*haxe__io__Bytes), hx_arg_0 *haxe__io__Bytes) {
+		if hx_fn == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+			return
+		}
+		hx_fn(hx_arg_0)
+	}(self.onBytes, payload)
 }
 
 func (self *sys__Http) handleDataRequest(post bool, api *haxe__io__Output, method *string) {
@@ -368,9 +404,27 @@ func (self *sys__Http) handleDataRequest(post bool, api *haxe__io__Output, metho
 	var this1_1 haxe__IMap = self.responseHeaders
 	this1_1.(*haxe__ds__StringMap).__hx_this.set(hxrt.StringFromLiteral("Content-Type"), mediaType)
 	sys__Http_capture(api, payload)
-	self.onStatus(200)
-	self.onData(payloadText)
-	self.onBytes(payload)
+	func(hx_fn func(int), hx_arg_0 int) {
+		if hx_fn == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+			return
+		}
+		hx_fn(hx_arg_0)
+	}(self.onStatus, 200)
+	func(hx_fn func(*string), hx_arg_0 *string) {
+		if hx_fn == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+			return
+		}
+		hx_fn(hx_arg_0)
+	}(self.onData, payloadText)
+	func(hx_fn func(*haxe__io__Bytes), hx_arg_0 *haxe__io__Bytes) {
+		if hx_fn == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+			return
+		}
+		hx_fn(hx_arg_0)
+	}(self.onBytes, payload)
 }
 
 func (self *sys__Http) recordResponseHeaders(response *hxrt.HttpResponse) {

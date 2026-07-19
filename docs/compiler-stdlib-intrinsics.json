@@ -162,19 +162,6 @@
         "test/test_compiler_stdlib_intrinsic_registry.py"
       ],
       "reviewCondition": "Remove the dispatcher when no portable declaration group remains."
-    },
-    "migration_std_log_source_ownership": {
-      "what": "Move the remaining exact Std.parseInt and haxe.Log.trace rewrites behind complete source-owned Std and Log APIs.",
-      "why": "Parsing edge cases, trace formatting, source positions, and dynamic trace rebinding are public Haxe behavior; they are separate from the retired declaration-carrier group and must not be mislabeled as approved representation intrinsics.",
-      "how": "Stage the complete APIs, preserve exact typed runtime primitives only where their representations require them, and prove interpreter-compatible behavior plus Go-only trace rebinding before removing these direct rewrites.",
-      "evidence": [
-        "sys/socket_input_service_surface",
-        "http_request_callbacks_contract",
-        "stdlib/sys_db_io_direct",
-        "sys_db_io_contract",
-        "haxe_go-vfp.8.7.22"
-      ],
-      "reviewCondition": "Delete this migration decision when complete source-owned Std and Log surfaces own the behavior and no broad direct rewrite remains."
     }
   },
   "dispatcher": {
@@ -390,12 +377,6 @@
       "decisionId": "approved_type_test"
     },
     {
-      "symbol": "Std.parseInt",
-      "status": "migration_required",
-      "decisionId": "migration_std_log_source_ownership",
-      "followUpBead": "haxe_go-vfp.8.7.22"
-    },
-    {
       "symbol": "Std.string",
       "status": "approved_intrinsic",
       "decisionId": "approved_string_representation"
@@ -414,12 +395,6 @@
       "symbol": "haxe.Exception.thrown",
       "status": "approved_intrinsic",
       "decisionId": "approved_exception_carrier"
-    },
-    {
-      "symbol": "haxe.Log.trace",
-      "status": "migration_required",
-      "decisionId": "migration_std_log_source_ownership",
-      "followUpBead": "haxe_go-vfp.8.7.22"
     },
     {
       "symbol": "haxe._Rest.Rest_Impl_.append",

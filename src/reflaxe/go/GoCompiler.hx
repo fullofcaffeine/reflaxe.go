@@ -2788,6 +2788,14 @@ class GoCompiler {
 						valueExpr == null ? null : materializeExprWithPrefix(lowerExprWithExpectedUpcast(valueExpr, field.type), field.type).expr;
 					}
 					decls.push(GoDecl.GoGlobalVarDecl(symbol, scalarGoType(field.type), loweredValue));
+				case FMethod(MethDynamic):
+					// Static dynamic methods are mutable function values just like their
+					// instance counterparts. A named Go function is not assignable and
+					// breaks APIs such as haxe.Log.trace rebinding.
+					var valueExpr = field.expr();
+					var loweredValue = valueExpr == null ? null : materializeExprWithPrefix(lowerExprWithExpectedUpcast(valueExpr, field.type),
+						field.type).expr;
+					decls.push(GoDecl.GoGlobalVarDecl(symbol, scalarGoType(field.type), loweredValue));
 				case FMethod(_):
 					var func = unwrapFunction(field.expr());
 					if (func != null) {
@@ -5437,13 +5445,18 @@ class GoCompiler {
 						castExpr = lowerNullableAwareTypeAssertExpr(castExpr, expr.t);
 					} else if (castGoType == "any" && innerGoType != "any") {
 						castExpr = GoExpr.GoCall(GoExpr.GoIdent("any"), [castExpr]);
-					} else if (isInterfaceType(inner.t) && !isInterfaceType(expr.t)) {
-						// What: retain Haxe's proven interface-to-concrete nominal cast in Go.
-						// Why: multi-type abstracts such as Map store IMap but inline calls through
-						// their selected concrete implementation; dropping the cast leaves an
-						// interface receiver with a concrete-only method selector.
-						// How: use the ordinary Go type assertion for the concrete target type.
-						castExpr = GoExpr.GoTypeAssert(castExpr, castGoType);
+					} else {
+						var concreteDowncast = lowerConcreteClassDowncastExpr(castExpr, inner.t, expr.t);
+						if (concreteDowncast != null) {
+							castExpr = concreteDowncast;
+						} else if (isInterfaceType(inner.t) && !isInterfaceType(expr.t)) {
+							// What: retain Haxe's proven interface-to-concrete nominal cast in Go.
+							// Why: multi-type abstracts such as Map store IMap but inline calls through
+							// their selected concrete implementation; dropping the cast leaves an
+							// interface receiver with a concrete-only method selector.
+							// How: use the ordinary Go type assertion for the concrete target type.
+							castExpr = GoExpr.GoTypeAssert(castExpr, castGoType);
+						}
 					}
 				}
 				{
@@ -6346,27 +6359,11 @@ class GoCompiler {
 			};
 		}
 
-		if (isStaticCall(callee, "Log", ["haxe"], "trace")) {
-			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
-			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.Println"), [arg]),
-				isStringLike: false
-			};
-		}
-
 		if (isStaticCall(callee, "Std", [], "string")) {
 			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [arg]),
 				isStringLike: true
-			};
-		}
-
-		if (isStaticCall(callee, "Std", [], "parseInt")) {
-			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
-			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdParseInt"), [arg]),
-				isStringLike: false
 			};
 		}
 
@@ -6459,7 +6456,9 @@ class GoCompiler {
 			}
 		}
 
-		var callExpr:GoExpr = GoExpr.GoCall(lowerExpr(callee).expr, loweredArgs);
+		var loweredCallee = lowerExpr(callee).expr;
+		var callExpr:GoExpr = isGeneratedDynamicFunctionCall(callee) ? lowerNullGuardedDynamicFunctionCall(loweredCallee, loweredArgs,
+			callee.t) : GoExpr.GoCall(loweredCallee, loweredArgs);
 		if (isExternValueErrorCall(callee, returnType)) {
 			requireStdlibShimGroup("go_result");
 			return {
@@ -6482,6 +6481,80 @@ class GoCompiler {
 		return {
 			expr: callExpr,
 			isStringLike: isStringType(returnType)
+		};
+	}
+
+	/**
+		What: Recognize calls through source-owned Haxe `dynamic function` fields.
+
+		Why: These fields are mutable function values and may legally be rebound to
+		null. Direct Go invocation of a nil function produces a native panic, which is
+		intentionally outside Haxe catch semantics.
+
+		How: Match only non-extern generated static/instance dynamic methods; ordinary
+		methods and explicit native extern calls retain their existing direct path.
+	**/
+	function isGeneratedDynamicFunctionCall(callee:TypedExpr):Bool {
+		return switch (callee.expr) {
+			case TField(_, FStatic(classRef, field)) | TField(_, FInstance(classRef, _, field)): var classType = classRef.get(); !classType.isExtern && !GoStdlibOwnership.isCompilerOwnedAuthority(fullClassName(classType)) && switch (field.get()
+					.kind) {
+					case FMethod(MethDynamic): true;
+					case _: false;
+				};
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				isGeneratedDynamicFunctionCall(inner);
+			case _:
+				false;
+		};
+	}
+
+	/**
+		What: Invoke a generated dynamic-function value with a portable null guard.
+
+		Why: A null function call is a Haxe runtime failure and must cross `hxrt.Throw`
+		so a surrounding Haxe `try/catch` can observe it; a raw Go nil-function panic
+		would bypass that contract.
+
+		How: Evaluate the callee and every argument once as typed IIFE parameters, test
+		the function value, then invoke it. The unreachable zero return exists only to
+		satisfy Go's static return checker after `hxrt.Throw`.
+	**/
+	function lowerNullGuardedDynamicFunctionCall(calleeExpr:GoExpr, args:Array<GoExpr>, calleeType:Type):GoExpr {
+		return switch (Context.follow(calleeType)) {
+			case TFun(functionArgs, functionReturn) if (functionArgs.length == args.length):
+				var params = [{name: "hx_fn", typeName: GoType.parse(typeToGoType(calleeType))}];
+				var actuals = [calleeExpr];
+				var forwarded = new Array<GoExpr>();
+				for (index in 0...args.length) {
+					var name = "hx_arg_" + index;
+					params.push({name: name, typeName: GoType.parse(scalarGoType(functionArgs[index].t))});
+					actuals.push(args[index]);
+					forwarded.push(GoExpr.GoIdent(name));
+				}
+				var nullBody = [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [
+						GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Invalid operation: null function")])
+					]))
+				];
+				var body = new Array<GoStmt>();
+				var rawCall = GoExpr.GoCall(GoExpr.GoIdent("hx_fn"), forwarded);
+				var results = new Array<GoType>();
+				if (isVoidType(functionReturn)) {
+					nullBody.push(GoStmt.GoReturn(null));
+					body.push(GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, GoExpr.GoIdent("hx_fn"), GoExpr.GoNil), nullBody, null));
+					body.push(GoStmt.GoExprStmt(rawCall));
+				} else {
+					var resultTypeName = scalarGoType(functionReturn);
+					var zeroName = freshTempName("hx_null_call_zero");
+					nullBody.push(GoStmt.GoVarDecl(zeroName, GoType.parse(resultTypeName), null, false));
+					nullBody.push(GoStmt.GoReturn(GoExpr.GoIdent(zeroName)));
+					body.push(GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, GoExpr.GoIdent("hx_fn"), GoExpr.GoNil), nullBody, null));
+					body.push(GoStmt.GoReturn(rawCall));
+					results.push(GoType.parse(resultTypeName));
+				}
+				GoExpr.GoCall(GoExpr.GoFuncLiteral(params, results, body), actuals);
+			case _:
+				GoExpr.GoCall(calleeExpr, args);
 		};
 	}
 
@@ -7636,7 +7709,10 @@ class GoCompiler {
 
 		var targetType = stdIsOfTypeTargetType(args[1]);
 		if (targetType == null) {
-			Context.fatalError("Std.isOfType requires a type literal as the second argument", args[1].pos);
+			return {
+				expr: lowerDynamicStdIsOfTypeExpr(lowerExpr(args[0]).expr, lowerExpr(args[1]).expr),
+				isStringLike: false
+			};
 		}
 
 		var loweredValue = lowerExprWithPrefix(args[0]);
@@ -7652,6 +7728,150 @@ class GoCompiler {
 			expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["bool"], loweredValue.prefix.concat([GoStmt.GoReturn(loweredCheck)])), []),
 			isStringLike: false
 		};
+	}
+
+	/**
+		What: Lower the source-owned `Std` aliases and downcast helper when their
+		type token arrives through a typed function parameter instead of a literal.
+
+		Why: Direct `Std.isOfType(value, Type)` calls retain the smaller compile-time
+		specialization, but ordinary Haxe implementations of `Std.is`, `downcast`, and
+		`instance` necessarily forward a runtime `Class<T>` value. Rejecting that value
+		forces public library behavior back into separate compiler rewrites.
+
+		How: Build one closed, typed Go expression over the target's existing named
+		type-token carriers. Core tokens use exact Go representation switches; project
+		classes and enums use the same final reachable type-name plans as the literal
+		intrinsic. Unknown or null tokens fail closed.
+	**/
+	function lowerDynamicStdIsOfTypeExpr(valueExpr:GoExpr, targetExpr:GoExpr):GoExpr {
+		requiresTypeValueSupport = true;
+		var classCases = dynamicStdClassTypeCases();
+		var enumCases = dynamicStdEnumTypeCases();
+		var classMarker = GoType.pointer(GoType.named("hxrt__TypeClassValue"));
+		var enumMarker = GoType.pointer(GoType.named("hxrt__TypeEnumValue"));
+		var markerName = GoExpr.GoSelector(GoExpr.GoIdent("hx_type_marker"), "name");
+
+		function markerBody(cases:Array<GoSwitchCase>):Array<GoStmt> {
+			return [
+				GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, GoExpr.GoIdent("hx_type_marker"), GoExpr.GoNil),
+					[GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null),
+				GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, markerName, GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null),
+				GoStmt.GoSwitch(GoExpr.GoUnary(GoUnaryOperator.Dereference, markerName), cases, [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
+			];
+		}
+
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([
+			{name: "hx_value", typeName: GoType.builtin(GoBuiltinType.AnyType)},
+			{name: "hx_type", typeName: GoType.builtin(GoBuiltinType.AnyType)}
+		], [GoType.builtin(GoBuiltinType.Bool)], [
+			GoStmt.GoTypeSwitch(GoExpr.GoIdent("hx_type"), "hx_type_marker", [
+				{typeName: classMarker, body: markerBody(classCases)},
+				{typeName: enumMarker, body: markerBody(enumCases)}
+			], [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
+		]), [
+			GoExpr.GoCall(GoExpr.GoIdent("any"), [valueExpr]),
+			GoExpr.GoCall(GoExpr.GoIdent("any"), [targetExpr])
+		]);
+	}
+
+	/**
+		What: Build the closed runtime-token cases for Haxe class values.
+		Why: Source-owned `Std` aliases pass `Class<T>` as a value, so their target is
+		not always available as a compile-time type literal.
+		How: Reuse the compiler's final generated carriers and exact core
+		representations, sorted by canonical Haxe name for deterministic output.
+	**/
+	function dynamicStdClassTypeCases():Array<GoSwitchCase> {
+		var specs = new Map<String, Array<String>>();
+		var generatedClassSpecs = new Map<String, ClassType>();
+		specs.set("Array", stdIsOfTypeArrayTypeNames());
+		specs.set("Bool", ["bool"]);
+		specs.set("Class", ["*hxrt__TypeClassValue"]);
+		specs.set("Enum", ["*hxrt__TypeEnumValue"]);
+		specs.set("Float", [
+			"int",
+			"int8",
+			"int16",
+			"int32",
+			"int64",
+			"uint",
+			"uint8",
+			"uint16",
+			"uint32",
+			"uint64",
+			"uintptr",
+			"float32",
+			"float64"
+		]);
+		specs.set("Int", [
+			"int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "uintptr"
+		]);
+		specs.set("String", ["*string", "string"]);
+
+		for (classType in projectClasses) {
+			if (classType.isExtern || specs.exists(fullClassName(classType))) {
+				continue;
+			}
+			if (hasGeneratedVirtualCarrier(classType) && !isHaxeExceptionClass(classType)) {
+				generatedClassSpecs.set(fullClassName(classType), classType);
+				continue;
+			}
+			var typeNames = stdIsOfTypeClassTypeNames(classType);
+			if (isHaxeExceptionClass(classType)) {
+				typeNames = typeNames.concat(["*hxrt.ExceptionValue", "hxrt.ExceptionCarrier"]);
+			}
+			typeNames.sort(function(a, b) return Reflect.compare(a, b));
+			if (typeNames.length > 0) {
+				specs.set(fullClassName(classType), typeNames);
+			}
+		}
+
+		var names = [for (name in specs.keys()) name];
+		for (name in generatedClassSpecs.keys()) {
+			names.push(name);
+		}
+		names.push("Dynamic");
+		names.sort(function(a, b) return Reflect.compare(a, b));
+		var cases = new Array<GoSwitchCase>();
+		for (name in names) {
+			var body = if (name == "Dynamic") {
+				[
+					GoStmt.GoReturn(GoExpr.GoBinary(GoBinaryOperator.NotEqual, GoExpr.GoIdent("hx_value"), GoExpr.GoNil))
+				];
+			} else if (generatedClassSpecs.exists(name)) {
+				[
+					GoStmt.GoReturn(stdIsOfTypeDynamicClassExpr(GoExpr.GoIdent("hx_value"), generatedClassSpecs.get(name)))
+				];
+			} else {
+				[
+					GoStmt.GoReturn(stdIsOfTypeTypeSwitch(GoExpr.GoIdent("hx_value"), specs.get(name)))
+				];
+			};
+			cases.push({values: [GoExpr.GoStringLiteral(name)], body: body});
+		}
+		return cases;
+	}
+
+	/**
+		What: Build the closed runtime-token cases for reachable generated enums.
+		Why: A forwarded `Enum<T>` value must retain the same nominal test as a direct
+		`Std.isOfType(value, MyEnum)` call.
+		How: Match each canonical enum token name to its already-planned generated
+		pointer type, in deterministic name order.
+	**/
+	function dynamicStdEnumTypeCases():Array<GoSwitchCase> {
+		var enums = projectEnums.copy();
+		enums.sort(function(a, b) return Reflect.compare(fullEnumName(a), fullEnumName(b)));
+		return [
+			for (enumType in enums)
+				{
+					values: [GoExpr.GoStringLiteral(fullEnumName(enumType))],
+					body: [
+						GoStmt.GoReturn(stdIsOfTypeTypeSwitch(GoExpr.GoIdent("hx_value"), ["*" + enumTypeName(enumType)]))
+					]
+				}
+		];
 	}
 
 	function stdIsOfTypeTargetType(expr:TypedExpr):Null<Type> {
@@ -7835,10 +8055,10 @@ class GoCompiler {
 
 			if (inheritancePath(targetClass, valueClass) != null) {
 				var valueTypeName = "*" + classTypeName(valueClass);
-				var targetPointerType = "*" + classTypeName(targetClass);
+				var targetPointerType = GoType.pointer(GoType.named(classTypeName(targetClass)));
 				return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "hx_value", typeName: valueTypeName}], ["bool"], [
 					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("hx_value"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null),
-					GoStmt.GoRaw("_, ok := hx_value.__hx_this.(" + targetPointerType + ")"),
+					GoStmt.GoMultiAssign(["_", "ok"], GoExpr.GoTypeAssert(GoExpr.GoSelector(GoExpr.GoIdent("hx_value"), "__hx_this"), targetPointerType), true),
 					GoStmt.GoReturn(GoExpr.GoIdent("ok"))
 				]), [valueExpr]);
 			}
@@ -7849,8 +8069,87 @@ class GoCompiler {
 		if (!isAnyLikeType(valueType)) {
 			return GoExpr.GoBoolLiteral(false);
 		}
+		if (!hasGeneratedVirtualCarrier(targetClass)) {
+			return stdIsOfTypeTypeSwitch(valueExpr, stdIsOfTypeClassTypeNames(targetClass));
+		}
 
-		return stdIsOfTypeTypeSwitch(valueExpr, stdIsOfTypeClassTypeNames(targetClass));
+		return stdIsOfTypeDynamicClassExpr(valueExpr, targetClass);
+	}
+
+	/**
+		What: Test an erased generated-class carrier against one concrete Haxe class.
+
+		Why: A value can enter `Dynamic` through a statically upcast base pointer even
+		though its runtime object is a subclass. A Go type switch over only the physical
+		pointer then loses the subclass identity stored in `__hx_this`.
+
+		How: Build a closed typed switch over only the target's reachable ancestors and
+		descendants. Concrete target/descendant pointers succeed directly; ancestor
+		carriers recover the canonical virtual receiver with a typed comma-ok assertion.
+	**/
+	function stdIsOfTypeDynamicClassExpr(valueExpr:GoExpr, targetClass:ClassType):GoExpr {
+		var related = new Array<{typeName:String, usesVirtualReceiver:Bool}>();
+		var seen = new Map<String, Bool>();
+		var candidates = projectClasses.copy();
+		if (!hasProjectClassNamed(candidates, fullClassName(targetClass))) {
+			candidates.push(targetClass);
+		}
+
+		for (candidate in candidates) {
+			if (!hasGeneratedVirtualCarrier(candidate)) {
+				continue;
+			}
+			var candidateIsTargetOrDescendant = inheritancePath(candidate, targetClass) != null;
+			var candidateIsAncestor = inheritancePath(targetClass, candidate) != null;
+			if (!candidateIsTargetOrDescendant && !candidateIsAncestor) {
+				continue;
+			}
+			var typeName = "*" + classTypeName(candidate);
+			if (seen.exists(typeName)) {
+				continue;
+			}
+			seen.set(typeName, true);
+			related.push({
+				typeName: typeName,
+				usesVirtualReceiver: candidateIsAncestor && !candidateIsTargetOrDescendant});
+		}
+		related.sort(function(a, b) return Reflect.compare(a.typeName, b.typeName));
+
+		var targetPointerType = GoType.pointer(GoType.named(classTypeName(targetClass)));
+		var cases = new Array<GoTypeSwitchCase>();
+		for (entry in related) {
+			var carrier = GoExpr.GoIdent("hx_carrier");
+			var body = [
+				GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, carrier, GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null)
+			];
+			if (entry.usesVirtualReceiver) {
+				body.push(GoStmt.GoMultiAssign(["_", "hx_ok"], GoExpr.GoTypeAssert(GoExpr.GoSelector(carrier, "__hx_this"), targetPointerType), true));
+				body.push(GoStmt.GoReturn(GoExpr.GoIdent("hx_ok")));
+			} else {
+				body.push(GoStmt.GoReturn(GoExpr.GoBoolLiteral(true)));
+			}
+			cases.push({typeName: GoType.parse(entry.typeName), body: body});
+		}
+
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "hx_value", typeName: GoType.builtin(GoBuiltinType.AnyType)}], [GoType.builtin(GoBuiltinType.Bool)],
+			[
+				GoStmt.GoTypeSwitch(GoExpr.GoIdent("hx_value"), "hx_carrier", cases, [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
+			]), [GoExpr.GoCall(GoExpr.GoIdent("any"), [valueExpr])]);
+	}
+
+	/**
+		What: Test whether a class plan already contains one canonical Haxe name.
+		Why: The focused dynamic type-test plan may receive a target class that was not
+		copied into the project-class array used to seed its reachable candidates.
+		How: Compare canonical names without introducing a second class registry.
+	**/
+	function hasProjectClassNamed(classes:Array<ClassType>, name:String):Bool {
+		for (classType in classes) {
+			if (fullClassName(classType) == name) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	function stdIsOfTypeEnumExpr(valueExpr:GoExpr, valueType:Type, targetEnum:EnumType):GoExpr {
@@ -7950,6 +8249,21 @@ class GoCompiler {
 		}
 
 		return classType.constructor != null;
+	}
+
+	/**
+		What: Identify a class whose ordinary generated struct owns `__hx_this`.
+		Why: Compiler-owned, extern, interface, and static-only types do not share that
+		layout, so selecting a virtual carrier for them would emit invalid Go.
+		How: Mirror class-emission admission and require a real instance layout under
+		source-owned project authority.
+	**/
+	function hasGeneratedVirtualCarrier(classType:ClassType):Bool {
+		return !classType.isExtern
+			&& !classType.isInterface
+			&& isProjectClass(classType)
+			&& !GoStdlibOwnership.isCompilerOwnedAuthority(fullClassName(classType))
+			&& hasInstanceLayout(classType);
 	}
 
 	function isStaticCall(callee:TypedExpr, className:String, classPack:Array<String>, fieldName:String):Bool {
@@ -9268,6 +9582,40 @@ class GoCompiler {
 			out = GoExpr.GoSelector(out, classTypeName(classType));
 		}
 		return out;
+	}
+
+	/**
+		What: Lower a Haxe-proven concrete subclass cast through the generated virtual
+		receiver carried by its statically typed base pointer.
+
+		Why: Go embedding supports the forward `Child -> Base` selector path but does
+		not make `*Base` assignable to `*Child`. Haxe downcasts still have access to the
+		canonical concrete object through the base carrier's `__hx_this` field.
+
+		How: Admit only a generated class-to-descendant relation, preserve null, and
+		assert the virtual receiver to the exact target pointer. Interface casts retain
+		their separate ordinary Go assertion path.
+	**/
+	function lowerConcreteClassDowncastExpr(expr:GoExpr, fromType:Type, toType:Type):Null<GoExpr> {
+		var fromClass = classFromType(fromType);
+		var toClass = classFromType(toType);
+		if (fromClass == null || toClass == null || fromClass.isInterface || toClass.isInterface) {
+			return null;
+		}
+		if (!hasGeneratedVirtualCarrier(fromClass) || inheritancePath(toClass, fromClass) == null) {
+			return null;
+		}
+		if (fullClassName(fromClass) == fullClassName(toClass)) {
+			return null;
+		}
+
+		var sourcePointerType = GoType.pointer(GoType.named(classTypeName(fromClass)));
+		var targetPointerType = GoType.pointer(GoType.named(classTypeName(toClass)));
+		var value = GoExpr.GoIdent("hx_value");
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "hx_value", typeName: sourcePointerType}], [targetPointerType], [
+			GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, value, GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+			GoStmt.GoReturn(GoExpr.GoTypeAssert(GoExpr.GoSelector(value, "__hx_this"), targetPointerType))
+		]), [expr]);
 	}
 
 	/**

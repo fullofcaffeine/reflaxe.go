@@ -27,3 +27,18 @@ func TestMathIntRoundingUsesHaxeRules(t *testing.T) {
 		}
 	}
 }
+
+func TestMathTruncIntDiscardsFractionTowardZero(t *testing.T) {
+	for _, test := range []struct {
+		value float64
+		want  int
+	}{
+		{value: 3.9, want: 3},
+		{value: -3.9, want: -3},
+		{value: 0.0, want: 0},
+	} {
+		if got := MathTruncInt(test.value); got != test.want {
+			t.Errorf("MathTruncInt(%v) = %d, want %d", test.value, got, test.want)
+		}
+	}
+}

@@ -499,8 +499,11 @@ func (self *haxe__Serializer) serializeEnum(value any, declaration any) {
 
 func (self *haxe__Serializer) serialize(value any) {
 	if func(hx_value any) bool {
-		switch hx_value.(type) {
+		switch hx_carrier := hx_value.(type) {
 		case *haxe__io__Bytes:
+			if hx_carrier == nil {
+				return false
+			}
 			return true
 		default:
 			return false

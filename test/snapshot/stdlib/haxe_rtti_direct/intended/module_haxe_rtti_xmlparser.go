@@ -465,7 +465,13 @@ func (self *haxe__rtti__XmlParser) mergeClasses(c map[string]any, c2 map[string]
 			}
 		}
 		if found == nil {
-			self.newField(c, f2)
+			func(hx_fn func(map[string]any, map[string]any), hx_arg_0 map[string]any, hx_arg_1 map[string]any) {
+				if hx_fn == nil {
+					hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+					return
+				}
+				hx_fn(hx_arg_0, hx_arg_1)
+			}(self.newField, c, f2)
 			hx_arr_129 := func(hx_obj_130 map[string]any) *hxrt.Array {
 				hx_field_131 := hx_obj_130["fields"]
 				if hx_field_131 == nil {
@@ -532,7 +538,13 @@ func (self *haxe__rtti__XmlParser) mergeClasses(c map[string]any, c2 map[string]
 			}
 		}
 		if found_1 == nil {
-			self.newField(c, f2_1)
+			func(hx_fn func(map[string]any, map[string]any), hx_arg_0 map[string]any, hx_arg_1 map[string]any) {
+				if hx_fn == nil {
+					hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+					return
+				}
+				hx_fn(hx_arg_0, hx_arg_1)
+			}(self.newField, c, f2_1)
 			hx_arr_147 := func(hx_obj_148 map[string]any) *hxrt.Array {
 				hx_field_149 := hx_obj_148["statics"]
 				if hx_field_149 == nil {

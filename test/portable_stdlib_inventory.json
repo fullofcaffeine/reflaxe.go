@@ -211,7 +211,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "Std",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged Std owns the complete Haxe 4.3.7 API, including parseInt/parseFloat scanning, overflow behavior, aliases, downcast policy, truncation, and random guards. Typed bindings retain only native conversion/random facts; exact Std.string and Std.isOfType representation intrinsics remain separately registered. Evidence: std_complete_api_contract, std_is_of_type_contract, std_is_of_type_runtime_core_abstract_contract, and core Std snapshots; migration haxe_go-vfp.8.7.22.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -507,8 +507,8 @@
       "in_full_sweep": true,
       "in_strict_sweep": false,
       "module": "haxe.Log",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md.",
-      "owner": "unassigned",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged haxe.Log owns complete Haxe 4.3.7 formatOutput and mutable trace policy, including PosInfos/custom parameters, compiler-injected trace arguments, direct function values, rebinding, catchable null invocation, restoration, and Sys.println output. Evidence: direct_haxe_helpers_contract and runtime snapshot stdlib/std_log_source_owned; migration haxe_go-vfp.8.7.22.",
+      "owner": "staged_std",
       "portable_eligible": true,
       "status": "semantic-diff"
     },
