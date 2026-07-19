@@ -171,6 +171,18 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/zip/NativeZip.hx",
     ),
+    "std/hxrt/zip/ZipCodecStep.hx": (
+        "hxrt_binding",
+        "std/hxrt/zip/ZipCodecStep.hx",
+    ),
+    "std/hxrt/zip/ZipDeflateHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/zip/ZipDeflateHandle.hx",
+    ),
+    "std/hxrt/zip/ZipInflateHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/zip/ZipInflateHandle.hx",
+    ),
     "std/hxrt/fs/FileSystemStat.hx": (
         "hxrt_binding",
         "std/hxrt/fs/FileSystemStat.hx",
@@ -1545,12 +1557,32 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertEqual("haxe_go-vfp.8.7.15.3", native_entry.get("migrationBead"))
         self.assertEqual([], native_entry.get("compilerShimGroups"))
 
+        for binding_path in (
+            "std/hxrt/zip/ZipCodecStep.hx",
+            "std/hxrt/zip/ZipDeflateHandle.hx",
+            "std/hxrt/zip/ZipInflateHandle.hx",
+        ):
+            binding_entry = ledger_entries.get(binding_path)
+            self.assertIsNotNone(binding_entry, binding_path)
+            self.assertEqual("hxrt_binding", binding_entry.get("ownershipClass"))
+            self.assertEqual("haxe_go-vfp.8.7.21", binding_entry.get("migrationBead"))
+            self.assertEqual([], binding_entry.get("compilerShimGroups"))
+
         runtime_zip = (ROOT / "runtime/hxrt/zip.go").read_text(encoding="utf-8")
         self.assertIn("func ZipCompress(values []int, level int) []int", runtime_zip)
         self.assertIn(
             "func ZipUncompress(values []int, raw bool, bufferSize int) []int",
             runtime_zip,
         )
+        for signature in (
+            "func ZipDeflateCreate(level int) *ZipDeflateHandle",
+            "func ZipDeflateExecute(handle *ZipDeflateHandle",
+            "func ZipInflateCreate(raw bool) *ZipInflateHandle",
+            "func ZipInflateExecute(handle *ZipInflateHandle",
+        ):
+            self.assertIn(signature, runtime_zip)
+        self.assertIn("go handle.runInflater()", runtime_zip)
+        self.assertNotIn("zipReplayInflate", runtime_zip)
         self.assertNotIn("haxe__io__Bytes", runtime_zip)
         self.assertNotIn("reflect.", runtime_zip)
         self.assertNotIn("unsafe.", runtime_zip)
@@ -1567,6 +1599,11 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertTrue((generated_root / "module_haxe_zip_compress.go").is_file())
         self.assertTrue((generated_root / "module_haxe_zip_uncompress.go").is_file())
         self.assertTrue((generated_root / "hxrt/zip.go").is_file())
+        streaming_root = ROOT / "test/snapshot/stdlib/zip_streaming_policy/intended"
+        self.assertTrue((streaming_root / "module_haxe_zip_compress.go").is_file())
+        self.assertTrue((streaming_root / "module_haxe_zip_uncompress.go").is_file())
+        self.assertTrue((streaming_root / "hxrt/zip.go").is_file())
+        self.assertTrue((ROOT / "test/semantic_diff/zip_streaming_contract/Main.hx").is_file())
         self.assertFalse(
             (ROOT / "test/snapshot/core/const_kinds_contract/intended/hxrt/zip.go").exists()
         )

@@ -71,7 +71,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `sys.net.Socket` | `semantic-diff` + `snapshot` + direct race/cross-build | `socket_loopback_contract`, `socket_advanced_contract`, `sys/socket_input_service_surface`, `core/runtime_hxrt_infer_socket`, `runtime/hxrt/socket_test.go`, `test_socket_runtime_cross_build.py` |
 | `haxe.crypto.Base64`, `Md5`, `Sha1`, `Sha224`, `Sha256` | `semantic-diff` + `snapshot` | `crypto_source_owned`, `crypto_xml_zip`, `stdlib/crypto_xml_zip_basic`, direct runtime crypto tests |
 | root `Xml`, `haxe.xml.Parser`, `haxe.xml.Printer` | `semantic-diff` + `snapshot` | `xml_source_owned`, `root_xml_contract`, `crypto_xml_zip`, `stdlib/xml_root_dom_basic`, `stdlib/crypto_xml_zip_basic` |
-| `haxe.zip.Compress`, `haxe.zip.Uncompress`, and `haxe.zip.Tools` one-shot compression paths | `semantic-diff` + `snapshot` + direct runtime | `zip_source_owned`, `crypto_xml_zip`, `stdlib/crypto_xml_zip_basic`, direct runtime zip tests |
+| `haxe.zip.Compress`, `haxe.zip.Uncompress`, and `haxe.zip.Tools` one-shot and progressive partial-buffer paths | `semantic-diff` + snapshot/runtime + direct runtime/race | `zip_source_owned`, `zip_streaming_contract`, `crypto_xml_zip`, `stdlib/crypto_xml_zip_basic`, `stdlib/zip_streaming_policy`, direct runtime zip tests; exact `NO` / `SYNC` / `FINISH`, explicit unsupported errors for `FULL` / `BLOCK`; [streaming contract](haxe-zip-streaming.md) |
 | root `Date` complete Haxe 4.3.7 API | `semantic-diff` + `snapshot` + direct runtime | `date_source_owned`, `option_date_path`, `datetools_cross_std_contract`, `stdlib/date_math_source_owned`, direct runtime date/timezone tests |
 | root `Math` complete Haxe 4.3.7 API | `semantic-diff` + `snapshot` + direct runtime | `math_source_owned`, `numeric_edge_cases`, `stringtools_math`, `stdlib/date_math_source_owned`, `stdlib/math_float_native_no_hxrt`, direct runtime rounding tests |
 | root `UnicodeString` complete Haxe 4.3.7 API | `semantic-diff` + `snapshot` + direct runtime | `unicode_string_source_owned`, `stdlib/unicode_string_basic`, direct runtime rune-slice tests |
@@ -146,6 +146,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/math_source_owned`
 - `test/semantic_diff/crypto_xml_zip`
 - `test/semantic_diff/zip_source_owned`
+- `test/semantic_diff/zip_streaming_contract`
 - `test/semantic_diff/http_proxy_custom_request`
 - `test/semantic_diff/http_request_callbacks_contract`
 - `test/semantic_diff/socket_loopback_contract`
@@ -249,6 +250,7 @@ Shim strategy and alternatives are documented in:
 
 - `stdlib/bytes_basic`
 - `stdlib/crypto_xml_zip_basic`
+- `stdlib/zip_streaming_policy`
 - `stdlib/date_path_basic`
 - `stdlib/ds_maps_list_basic`
 - `stdlib/intmap_basic`

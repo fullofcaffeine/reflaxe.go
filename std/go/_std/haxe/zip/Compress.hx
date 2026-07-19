@@ -23,8 +23,10 @@
 package haxe.zip;
 
 import haxe.io.Bytes;
+import haxe.io.Error;
 import go.NativeSlice;
 import hxrt.zip.NativeZip;
+import hxrt.zip.ZipDeflateHandle;
 
 /**
 	What:
@@ -39,35 +41,55 @@ import hxrt.zip.NativeZip;
 	  library behavior and must not be emitted as compiler-owned Go functions.
 
 	How:
-	- Retain the whole-buffer `execute` contract used by established Haxe targets:
-	  consume the remaining source, write one complete zlib stream, and keep
-	  `setFlushMode` / `close` as no-ops because no streaming handle is retained.
-	- Convert `Bytes` to integer values in Haxe and delegate only zlib execution to
-	  the typed `NativeZip` capability.
+	- Retain an opaque typed deflate handle across calls, convert only the
+	  remaining source bytes, and ask `NativeZip` for no more output than fits in
+	  the destination. Haxe performs the final blit and public result assembly.
+	- Support NO, SYNC, and FINISH exactly. Go's standard compressor exposes no
+	  honest equivalent for FULL's dictionary reset or BLOCK's boundary stop, so
+	  selecting either fails explicitly instead of silently changing semantics.
+	- Make close idempotent and reject later mutation or execution in staged
+	  source, with the runtime independently defending the opaque handle.
 **/
 @:coreApi
 class Compress {
-	var level:Int;
+	var handle:ZipDeflateHandle;
+	var flushMode:Int;
+	var closed:Bool;
 
 	public function new(level:Int):Void {
 		validateLevel(level);
-		this.level = level;
+		handle = NativeZip.createDeflate(level);
+		flushMode = NativeZip.FLUSH_NO;
+		closed = false;
 	}
 
 	public function execute(src:Bytes, srcPos:Int, dst:Bytes, dstPos:Int):{done:Bool, read:Int, write:Int} {
-		var input = src.sub(srcPos, src.length - srcPos);
-		var data = fromValues(NativeZip.compress(toValues(input), level));
-		dst.blit(dstPos, data, 0, data.length);
+		ensureOpen();
+		validatePosition(srcPos, src.length);
+		validatePosition(dstPos, dst.length);
+		var outputLimit = dst.length - dstPos;
+		if (outputLimit == 0)
+			return {done: false, read: 0, write: 0};
+		var step = NativeZip.executeDeflate(handle, toValuesFrom(src, srcPos), outputLimit, flushMode);
+		var write = writeValues(dst, dstPos, step.values);
 		return {
-			done: true,
-			read: input.length,
-			write: data.length
+			done: step.done,
+			read: step.read,
+			write: write
 		};
 	}
 
-	public function setFlushMode(f:FlushMode):Void {}
+	public function setFlushMode(f:FlushMode):Void {
+		ensureOpen();
+		flushMode = flushModeCode(f);
+	}
 
-	public function close():Void {}
+	public function close():Void {
+		if (closed)
+			return;
+		closed = true;
+		NativeZip.closeDeflate(handle);
+	}
 
 	public static function run(s:Bytes, level:Int):Bytes {
 		validateLevel(level);
@@ -79,11 +101,73 @@ class Compress {
 			throw 'Invalid zlib compression level: $level';
 	}
 
+	/**
+		What: Validate one public source or destination cursor.
+		Why: Native slices must never receive a position outside its owning Haxe
+		`Bytes`; otherwise target-specific slice failures would leak through.
+		How: Accept the end cursor for empty/drain calls and use Haxe's canonical
+		`OutsideBounds` error for every other invalid position.
+	**/
+	static function validatePosition(position:Int, length:Int):Void {
+		if (position < 0 || position > length)
+			throw Error.OutsideBounds;
+	}
+
+	/**
+		What: Translate portable flush constructors to the typed runtime protocol.
+		Why: Go exposes exact NO, SYNC, and FINISH operations but no FULL dictionary
+		reset or BLOCK boundary operation.
+		How: Use stable private integer codes for supported modes and fail at the
+		public setter for unsupported semantics.
+	**/
+	static function flushModeCode(mode:FlushMode):Int {
+		return switch (mode) {
+			case NO: NativeZip.FLUSH_NO;
+			case SYNC: NativeZip.FLUSH_SYNC;
+			case FINISH: NativeZip.FLUSH_FINISH;
+			case FULL: throw "haxe.zip.FlushMode.FULL is not supported by Go's standard compressor";
+			case BLOCK: throw "haxe.zip.FlushMode.BLOCK is not supported by Go's standard compressor";
+		};
+	}
+
+	/**
+		What: Guard methods that require a live native compressor.
+		Why: A closed opaque handle cannot safely accept more input or policy changes.
+		How: Keep the public lifecycle error deterministic before crossing into Go.
+	**/
+	function ensureOpen():Void {
+		if (closed)
+			throw "haxe.zip.Compress is closed";
+	}
+
 	static function toValues(bytes:Bytes):NativeSlice<Int> {
+		return toValuesFrom(bytes, 0);
+	}
+
+	/**
+		What: Copy the remaining Haxe bytes into the typed native slice boundary.
+		Why: Constructing an intermediate `Bytes.sub` would copy the same input twice
+		for every progressive call.
+		How: Traverse directly from the validated source cursor to the end.
+	**/
+	static function toValuesFrom(bytes:Bytes, position:Int):NativeSlice<Int> {
 		var values = new Array<Int>();
-		for (index in 0...bytes.length)
+		for (index in position...bytes.length)
 			values.push(bytes.get(index));
 		return NativeSlice.fromArray(values);
+	}
+
+	/**
+		What: Copy one bounded native output step into its Haxe destination.
+		Why: The staged layer owns `Bytes`, but allocating a temporary `Bytes` value
+		before every partial write would add a redundant copy.
+		How: Store each typed integer value at the already-validated destination
+		cursor and return the public write count.
+	**/
+	static function writeValues(destination:Bytes, position:Int, values:NativeSlice<Int>):Int {
+		for (index in 0...values.length)
+			destination.set(position + index, values[index]);
+		return values.length;
 	}
 
 	static function fromValues(values:NativeSlice<Int>):Bytes {

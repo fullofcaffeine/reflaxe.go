@@ -349,16 +349,20 @@ MODULE_NOTES_OVERRIDES = {
         "regex/serializer compiler output. Evidence: xml_source_owned and direct XML snapshots."
     ),
     "haxe.zip.Compress": (
-        "Canonical staged source owns level validation, Haxe Bytes conversion, and the whole-buffer "
-        "Compress API. Typed std/hxrt/zip delegates only zlib execution over integer byte arrays to "
-        "footprint-explicit runtime/hxrt/zip.go. Evidence: zip_source_owned, crypto_xml_zip, "
-        "stdlib/crypto_xml_zip_basic, and direct runtime zip tests."
+        "Canonical staged source owns level validation, Haxe Bytes conversion, offsets, bounded public "
+        "results, flush/lifecycle policy, and static run. Typed std/hxrt/zip delegates persistent zlib "
+        "state through an opaque deflate handle and typed step carrier to footprint-explicit "
+        "runtime/hxrt/zip.go. Exact NO, SYNC, and FINISH are supported; FULL and BLOCK fail explicitly. "
+        "Evidence: zip_source_owned, zip_streaming_contract, crypto_xml_zip, stdlib/crypto_xml_zip_basic, "
+        "stdlib/zip_streaming_policy, and direct runtime/race zip tests."
     ),
     "haxe.zip.Uncompress": (
-        "Canonical staged source owns the 64 KiB default, positive buffer-size policy, Haxe Bytes "
-        "conversion, and negative-window raw-DEFLATE selection. Typed std/hxrt/zip delegates only "
-        "native expansion to footprint-explicit runtime/hxrt/zip.go. Evidence: zip_source_owned, "
-        "crypto_xml_zip, stdlib/crypto_xml_zip_basic, and direct runtime zip tests."
+        "Canonical staged source owns the 64 KiB default, Haxe Bytes conversion, offsets, bounded public "
+        "results, flush/lifecycle policy, static run, and negative-window raw-DEFLATE selection. Typed "
+        "std/hxrt/zip delegates a live pausable inflater through an opaque handle and typed step carrier "
+        "to footprint-explicit runtime/hxrt/zip.go without replaying prior fragments. Evidence: "
+        "zip_source_owned, zip_streaming_contract, crypto_xml_zip, stdlib/crypto_xml_zip_basic, "
+        "stdlib/zip_streaming_policy, and direct runtime/race zip tests."
     ),
     "haxe.Template": (
         "Direct haxe.Template constructor/execute usage has semantic-diff coverage through "

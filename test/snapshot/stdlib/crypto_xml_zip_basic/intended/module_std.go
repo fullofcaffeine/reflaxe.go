@@ -19,7 +19,7 @@ func Std_digitValue(code int, hexadecimal bool) int {
 }
 
 func Std_downcast(value any, c any) any {
-	var hx_if_204 any
+	var hx_if_213 any
 	if func(hx_value any, hx_type any) bool {
 		switch hx_type_marker := hx_type.(type) {
 		case *hxrt__TypeClassValue:
@@ -303,16 +303,16 @@ func Std_downcast(value any, c any) any {
 			return false
 		}
 	}(any(value), any(c)) {
-		hx_if_204 = value
+		hx_if_213 = value
 	} else {
-		hx_if_204 = nil
+		hx_if_213 = nil
 	}
-	return hx_if_204
+	return hx_if_213
 }
 
 func Std_instance(value any, c any) any {
 	return func() any {
-		var hx_if_205 any
+		var hx_if_214 any
 		if func(hx_value any, hx_type any) bool {
 			switch hx_type_marker := hx_type.(type) {
 			case *hxrt__TypeClassValue:
@@ -596,11 +596,11 @@ func Std_instance(value any, c any) any {
 				return false
 			}
 		}(any(value), any(c)) {
-			hx_if_205 = value
+			hx_if_214 = value
 		} else {
-			hx_if_205 = nil
+			hx_if_214 = nil
 		}
-		return hx_if_205
+		return hx_if_214
 	}()
 }
 
@@ -996,25 +996,25 @@ func Std_parseInt(x *string) any {
 		sawNonZero := false
 		for index < length {
 			code_1 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(x, index))
-			var hx_if_208 int
+			var hx_if_217 int
 			if (code_1 >= 48) && (code_1 <= 57) {
-				hx_if_208 = int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(48))))
+				hx_if_217 = int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(48))))
 			} else {
-				var hx_if_207 int
+				var hx_if_216 int
 				if (code_1 >= 97) && (code_1 <= 102) {
-					hx_if_207 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(97))))) + hxrt.Int32Wrap(10))))
+					hx_if_216 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(97))))) + hxrt.Int32Wrap(10))))
 				} else {
-					var hx_if_206 int
+					var hx_if_215 int
 					if (code_1 >= 65) && (code_1 <= 70) {
-						hx_if_206 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(65))))) + hxrt.Int32Wrap(10))))
+						hx_if_215 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(65))))) + hxrt.Int32Wrap(10))))
 					} else {
-						hx_if_206 = -1
+						hx_if_215 = -1
 					}
-					hx_if_207 = hx_if_206
+					hx_if_216 = hx_if_215
 				}
-				hx_if_208 = hx_if_207
+				hx_if_217 = hx_if_216
 			}
-			digit := hx_if_208
+			digit := hx_if_217
 			if digit < 0 {
 				break
 			}
@@ -1031,34 +1031,34 @@ func Std_parseInt(x *string) any {
 		if index == digitStart {
 			return nil
 		}
-		var hx_if_209 any
+		var hx_if_218 any
 		if negative {
-			hx_if_209 = int(int32(-int32(value)))
+			hx_if_218 = int(int32(-int32(value)))
 		} else {
-			hx_if_209 = value
+			hx_if_218 = value
 		}
-		return hx_if_209
+		return hx_if_218
 	}
 	result := 0
 	for index < length {
 		code_2 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(x, index))
-		var hx_if_210 int
+		var hx_if_219 int
 		if (code_2 >= 48) && (code_2 <= 57) {
-			hx_if_210 = int(int32((hxrt.Int32Wrap(code_2) - hxrt.Int32Wrap(48))))
+			hx_if_219 = int(int32((hxrt.Int32Wrap(code_2) - hxrt.Int32Wrap(48))))
 		} else {
-			hx_if_210 = -1
+			hx_if_219 = -1
 		}
-		digit_1 := hx_if_210
+		digit_1 := hx_if_219
 		if digit_1 < 0 {
 			break
 		}
-		var hx_if_211 int
+		var hx_if_220 int
 		if negative {
-			hx_if_211 = 8
+			hx_if_220 = 8
 		} else {
-			hx_if_211 = 7
+			hx_if_220 = 7
 		}
-		lastAllowedDigit := hx_if_211
+		lastAllowedDigit := hx_if_220
 		if (result < -214748364) || ((result == -214748364) && (digit_1 > lastAllowedDigit)) {
 			return nil
 		}
@@ -1068,21 +1068,21 @@ func Std_parseInt(x *string) any {
 	if index == digitStart {
 		return nil
 	}
-	var hx_if_212 any
+	var hx_if_221 any
 	if negative {
-		hx_if_212 = result
+		hx_if_221 = result
 	} else {
-		hx_if_212 = int(int32(-int32(result)))
+		hx_if_221 = int(int32(-int32(result)))
 	}
-	return hx_if_212
+	return hx_if_221
 }
 
 func Std_random(x int) int {
-	var hx_if_213 int
+	var hx_if_222 int
 	if x <= 1 {
-		hx_if_213 = 0
+		hx_if_222 = 0
 	} else {
-		hx_if_213 = rand.Intn(x)
+		hx_if_222 = rand.Intn(x)
 	}
-	return hx_if_213
+	return hx_if_222
 }

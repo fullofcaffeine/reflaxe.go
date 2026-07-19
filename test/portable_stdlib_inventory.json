@@ -1786,7 +1786,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.zip.Compress",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns level validation, Haxe Bytes conversion, and the whole-buffer Compress API. Typed std/hxrt/zip delegates only zlib execution over integer byte arrays to footprint-explicit runtime/hxrt/zip.go. Evidence: zip_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and direct runtime zip tests.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns level validation, Haxe Bytes conversion, offsets, bounded public results, flush/lifecycle policy, and static run. Typed std/hxrt/zip delegates persistent zlib state through an opaque deflate handle and typed step carrier to footprint-explicit runtime/hxrt/zip.go. Exact NO, SYNC, and FINISH are supported; FULL and BLOCK fail explicitly. Evidence: zip_source_owned, zip_streaming_contract, crypto_xml_zip, stdlib/crypto_xml_zip_basic, stdlib/zip_streaming_policy, and direct runtime/race zip tests.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"
@@ -1878,7 +1878,7 @@
       "in_full_sweep": true,
       "in_strict_sweep": true,
       "module": "haxe.zip.Uncompress",
-      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the 64 KiB default, positive buffer-size policy, Haxe Bytes conversion, and negative-window raw-DEFLATE selection. Typed std/hxrt/zip delegates only native expansion to footprint-explicit runtime/hxrt/zip.go. Evidence: zip_source_owned, crypto_xml_zip, stdlib/crypto_xml_zip_basic, and direct runtime zip tests.",
+      "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged source owns the 64 KiB default, Haxe Bytes conversion, offsets, bounded public results, flush/lifecycle policy, static run, and negative-window raw-DEFLATE selection. Typed std/hxrt/zip delegates a live pausable inflater through an opaque handle and typed step carrier to footprint-explicit runtime/hxrt/zip.go without replaying prior fragments. Evidence: zip_source_owned, zip_streaming_contract, crypto_xml_zip, stdlib/crypto_xml_zip_basic, stdlib/zip_streaming_policy, and direct runtime/race zip tests.",
       "owner": "mixed",
       "portable_eligible": true,
       "status": "semantic-diff"

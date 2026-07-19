@@ -800,9 +800,9 @@ func Type_getClassFields(c any) *hxrt.Array {
 	case "haxe.xml._Parser.S_Impl_":
 		return hxrt.NewArray()
 	case "haxe.zip.Compress":
-		return hxrt.NewArray(hxrt.StringFromLiteral("fromValues"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("toValues"), hxrt.StringFromLiteral("validateLevel"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("flushModeCode"), hxrt.StringFromLiteral("fromValues"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("toValues"), hxrt.StringFromLiteral("toValuesFrom"), hxrt.StringFromLiteral("validateLevel"), hxrt.StringFromLiteral("validatePosition"), hxrt.StringFromLiteral("writeValues"))
 	case "haxe.zip.Uncompress":
-		return hxrt.NewArray(hxrt.StringFromLiteral("fromValues"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("toValues"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("flushModeCode"), hxrt.StringFromLiteral("fromValues"), hxrt.StringFromLiteral("run"), hxrt.StringFromLiteral("toValues"), hxrt.StringFromLiteral("toValuesFrom"), hxrt.StringFromLiteral("validatePosition"), hxrt.StringFromLiteral("writeValues"))
 	default:
 		return hxrt.NewArray()
 	}
@@ -865,9 +865,9 @@ func Type_getInstanceFields(c any) *hxrt.Array {
 	case "haxe.xml._Parser.S_Impl_":
 		return hxrt.NewArray()
 	case "haxe.zip.Compress":
-		return hxrt.NewArray(hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("execute"), hxrt.StringFromLiteral("level"), hxrt.StringFromLiteral("setFlushMode"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("closed"), hxrt.StringFromLiteral("ensureOpen"), hxrt.StringFromLiteral("execute"), hxrt.StringFromLiteral("flushMode"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("setFlushMode"))
 	case "haxe.zip.Uncompress":
-		return hxrt.NewArray(hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("execute"), hxrt.StringFromLiteral("raw"), hxrt.StringFromLiteral("setFlushMode"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("close"), hxrt.StringFromLiteral("closed"), hxrt.StringFromLiteral("ensureOpen"), hxrt.StringFromLiteral("execute"), hxrt.StringFromLiteral("flushMode"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("raw"), hxrt.StringFromLiteral("setFlushMode"))
 	default:
 		return hxrt.NewArray()
 	}

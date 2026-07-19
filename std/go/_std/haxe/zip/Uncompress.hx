@@ -23,8 +23,10 @@
 package haxe.zip;
 
 import haxe.io.Bytes;
+import haxe.io.Error;
 import go.NativeSlice;
 import hxrt.zip.NativeZip;
+import hxrt.zip.ZipInflateHandle;
 
 /**
 	What:
@@ -39,37 +41,56 @@ import hxrt.zip.NativeZip;
 	  instance contract are source-level policy rather than compiler behavior.
 
 	How:
-	- Preserve the 64 KiB default and pass positive buffer sizes explicitly to a
-	  typed `NativeZip` capability. A negative constructor `windowBits` selects
-	  raw DEFLATE; other values select a zlib stream.
-	- Retain the established whole-buffer target contract for `execute`, with
-	  no-op flush and close methods because no runtime handle is retained.
+	- A negative constructor `windowBits` selects raw DEFLATE; other values select
+	  zlib. Retain the resulting opaque typed inflater across partial calls.
+	- Pass only remaining integer byte values plus available destination capacity
+	  to `NativeZip`; Haxe owns offsets, destination writes, and the public result.
+	- Support NO, SYNC, and FINISH policy. FULL and BLOCK are rejected explicitly
+	  because Go's standard inflater cannot promise their zlib boundary behavior.
+	- Preserve the 64 KiB static-run default while making instance close
+	  idempotent and use-after-close deterministic.
 **/
 @:coreApi
 class Uncompress {
 	var raw:Bool;
+	var handle:ZipInflateHandle;
+	var flushMode:Int;
+	var closed:Bool;
 
 	public function new(?windowBits:Int):Void {
 		raw = windowBits != null && windowBits < 0;
+		handle = NativeZip.createInflate(raw);
+		flushMode = NativeZip.FLUSH_NO;
+		closed = false;
 	}
 
 	public function execute(src:Bytes, srcPos:Int, dst:Bytes, dstPos:Int):{done:Bool, read:Int, write:Int} {
-		var input = src.sub(srcPos, src.length - srcPos);
+		ensureOpen();
+		validatePosition(srcPos, src.length);
+		validatePosition(dstPos, dst.length);
 		var bufferSize = dst.length - dstPos;
-		if (bufferSize <= 0)
+		if (bufferSize == 0)
 			return {done: false, read: 0, write: 0};
-		var data = fromValues(NativeZip.uncompress(toValues(input), raw, bufferSize));
-		dst.blit(dstPos, data, 0, data.length);
+		var step = NativeZip.executeInflate(handle, toValuesFrom(src, srcPos), bufferSize, flushMode);
+		var write = writeValues(dst, dstPos, step.values);
 		return {
-			done: true,
-			read: input.length,
-			write: data.length
+			done: step.done,
+			read: step.read,
+			write: write
 		};
 	}
 
-	public function setFlushMode(f:FlushMode):Void {}
+	public function setFlushMode(f:FlushMode):Void {
+		ensureOpen();
+		flushMode = flushModeCode(f);
+	}
 
-	public function close():Void {}
+	public function close():Void {
+		if (closed)
+			return;
+		closed = true;
+		NativeZip.closeInflate(handle);
+	}
 
 	public static function run(src:Bytes, ?bufsize:Int):Bytes {
 		var resolvedBufferSize = bufsize == null ? 65536 : bufsize;
@@ -78,11 +99,72 @@ class Uncompress {
 		return fromValues(NativeZip.uncompress(toValues(src), false, resolvedBufferSize));
 	}
 
+	/**
+		What: Validate one public source or destination cursor.
+		Why: Partial native execution must not receive a position outside its owning
+		Haxe `Bytes` value.
+		How: Permit the end cursor for drain calls and otherwise throw the canonical
+		Haxe `OutsideBounds` error.
+	**/
+	static function validatePosition(position:Int, length:Int):Void {
+		if (position < 0 || position > length)
+			throw Error.OutsideBounds;
+	}
+
+	/**
+		What: Translate portable flush constructors to the native integer protocol.
+		Why: Go's inflater cannot expose exact FULL or BLOCK boundary behavior.
+		How: Map supported modes and reject unsupported semantics at policy selection
+		rather than silently downgrading them.
+	**/
+	static function flushModeCode(mode:FlushMode):Int {
+		return switch (mode) {
+			case NO: NativeZip.FLUSH_NO;
+			case SYNC: NativeZip.FLUSH_SYNC;
+			case FINISH: NativeZip.FLUSH_FINISH;
+			case FULL: throw "haxe.zip.FlushMode.FULL is not supported by Go's standard inflater";
+			case BLOCK: throw "haxe.zip.FlushMode.BLOCK is not supported by Go's standard inflater";
+		};
+	}
+
+	/**
+		What: Guard methods that require a live native inflater.
+		Why: Retained native state is released by `close` and cannot be reused safely.
+		How: Throw one deterministic public lifecycle error before crossing into Go.
+	**/
+	function ensureOpen():Void {
+		if (closed)
+			throw "haxe.zip.Uncompress is closed";
+	}
+
 	static function toValues(bytes:Bytes):NativeSlice<Int> {
+		return toValuesFrom(bytes, 0);
+	}
+
+	/**
+		What: Copy source bytes from one validated cursor into the native boundary.
+		Why: Progressive execution should not allocate and copy an intermediate
+		`Bytes.sub` before converting the same remaining input.
+		How: Read directly from the cursor through the source end.
+	**/
+	static function toValuesFrom(bytes:Bytes, position:Int):NativeSlice<Int> {
 		var values = new Array<Int>();
-		for (index in 0...bytes.length)
+		for (index in position...bytes.length)
 			values.push(bytes.get(index));
 		return NativeSlice.fromArray(values);
+	}
+
+	/**
+		What: Write one bounded native decode step into its Haxe destination.
+		Why: Haxe owns `Bytes`, but a temporary output `Bytes` plus `blit` would copy
+		every progressive result twice.
+		How: Store the typed native values at the validated destination cursor and
+		return their count.
+	**/
+	static function writeValues(destination:Bytes, position:Int, values:NativeSlice<Int>):Int {
+		for (index in 0...values.length)
+			destination.set(position + index, values[index]);
+		return values.length;
 	}
 
 	static function fromValues(values:NativeSlice<Int>):Bytes {

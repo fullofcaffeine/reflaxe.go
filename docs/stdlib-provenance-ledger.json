@@ -58,6 +58,7 @@
         "haxe_go-vfp.8.7.15.4",
         "haxe_go-vfp.8.7.15.6",
         "haxe_go-vfp.8.7.16",
+        "haxe_go-vfp.8.7.21",
         "haxe_go-vfp.8.7.3",
         "haxe_go-vfp.8.7.4",
         "haxe_go-vfp.8.7.5",
@@ -266,7 +267,7 @@
       "destination": "std/go/_std/haxe/zip/Compress.hx",
       "migrationBead": "haxe_go-vfp.8.7.15.3",
       "compilerShimGroups": [],
-      "notes": "Canonical staged Compress API. Haxe owns level validation, Bytes conversion, and the whole-buffer instance contract; only zlib execution crosses the typed NativeZip boundary."
+      "notes": "Canonical staged Compress API. Haxe owns level validation, Bytes conversion, offsets, bounded public result construction, flush/lifecycle policy, and static run. haxe_go-vfp.8.7.21 added progressive execution over an opaque typed deflate handle; only native zlib state and execution cross the NativeZip boundary."
     },
     {
       "path": "std/go/_std/haxe/zip/Uncompress.hx",
@@ -275,7 +276,7 @@
       "destination": "std/go/_std/haxe/zip/Uncompress.hx",
       "migrationBead": "haxe_go-vfp.8.7.15.3",
       "compilerShimGroups": [],
-      "notes": "Canonical staged Uncompress API. Haxe owns the optional buffer default, Bytes conversion, one-shot instance behavior, and negative-window raw-DEFLATE selection over the typed NativeZip boundary."
+      "notes": "Canonical staged Uncompress API. Haxe owns the optional buffer default, Bytes conversion, offsets, bounded public result construction, flush/lifecycle policy, static run, and negative-window raw-DEFLATE selection. haxe_go-vfp.8.7.21 added progressive execution over an opaque typed inflate handle."
     },
     {
       "path": "std/go/_std/haxe/atomic/AtomicInt.hx",
@@ -1364,7 +1365,34 @@
       "destination": "std/hxrt/zip/NativeZip.hx",
       "migrationBead": "haxe_go-vfp.8.7.15.3",
       "compilerShimGroups": [],
-      "notes": "Typed footprint-explicit bridge from staged haxe.zip APIs to runtime/hxrt/zip.go. Only integer byte arrays, level and buffer integers, and a raw-DEFLATE selector cross the package boundary."
+      "notes": "Typed footprint-explicit bridge from staged haxe.zip APIs to runtime/hxrt/zip.go. Integer byte arrays, scalar policy values, opaque codec handles, and a typed step carrier cross the package boundary; generated haxe.io.Bytes layouts never do."
+    },
+    {
+      "path": "std/hxrt/zip/ZipCodecStep.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/zip/ZipCodecStep.hx",
+      "migrationBead": "haxe_go-vfp.8.7.21",
+      "compilerShimGroups": [],
+      "notes": "Typed carrier for one bounded codec step. Native values, source progress, and completion cross into staged Haxe, which owns Bytes writes and the public anonymous result."
+    },
+    {
+      "path": "std/hxrt/zip/ZipDeflateHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/zip/ZipDeflateHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.21",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed carrier for persistent Go zlib writer state used by staged haxe.zip.Compress; no native fields or generated Haxe layouts are exposed."
+    },
+    {
+      "path": "std/hxrt/zip/ZipInflateHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/zip/ZipInflateHandle.hx",
+      "migrationBead": "haxe_go-vfp.8.7.21",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed carrier for persistent Go zlib or raw-DEFLATE reader state and its fragment feeder; staged haxe.zip.Uncompress retains public lifecycle and buffer policy."
     },
     {
       "path": "std/hxrt/fs/FileSystemStat.hx",

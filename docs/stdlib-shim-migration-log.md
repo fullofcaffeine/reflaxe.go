@@ -2540,3 +2540,78 @@ Observed result:
   direct function use, rebinding, restoration, and catchable null-call failure.
 - Complete `Std` parsing and downcast behavior is covered without broadening the
   target runtime or introducing a universal IR.
+
+### 2026-07-19: complete progressive `haxe.zip` codec semantics (`haxe_go-vfp.8.7.21`)
+
+Implementation:
+
+- Added the portable contract first and confirmed the previous whole-buffer
+  implementation failed when a complete compressed stream did not fit in a
+  five-byte destination. The cross-target case now covers repeated source and
+  destination fragments, aggregate `read` / `write` accounting, completion,
+  zlib round trips, and negative-window raw DEFLATE.
+- Replaced per-call compression with an opaque typed deflate handle retaining a
+  live Go zlib writer and pending output. Haxe continues to own source/destination
+  positions, `Bytes` conversion and blits, and the public anonymous result.
+- Added an opaque typed inflate handle whose fragment feeder implements Go's
+  exact byte-reader path. A live inflater pauses at temporary input boundaries,
+  resumes on the next `execute`, and stops without consuming bytes after the end
+  of one stream. Partial input is not treated as terminal EOF and earlier input
+  is not replayed.
+- Applied destination-sized backpressure to the live inflater, so highly
+  compressed input cannot expand into an unbounded hidden output buffer. Its
+  pending decode state stays within the current or still-active destination
+  allowance.
+- Added a typed `ZipCodecStep` carrier containing only integer byte values,
+  consumed input, and completion. No generated `haxe.io.Bytes` layout,
+  `Dynamic` native state, raw injection, reflection, or `unsafe` crosses the
+  staged-source/runtime boundary.
+- Implemented exact `NO`, `SYNC`, and `FINISH` behavior. Go's public compressor
+  does not expose zlib's FULL dictionary reset or BLOCK boundary stop, so both
+  modes fail at `setFlushMode` with explicit target-capability errors instead of
+  silently behaving like `SYNC`.
+- Made close idempotent, use-after-close deterministic, invalid positions use
+  `haxe.io.Error.OutsideBounds`, zero-capacity destinations return zero progress,
+  and incomplete native inflater shutdown releases its paused decoder.
+- Preserved source-owned `Compress.run`, `Uncompress.run`, and `haxe.zip.Tools`
+  behavior, including the raw-DEFLATE ZIP entry path and footprint-explicit
+  selection of `runtime/hxrt/zip.go`.
+
+Design review:
+
+- A first bounded prototype accumulated and replayed compressed input. It was
+  semantically correct but rejected because many tiny fragments would cause
+  quadratic decode work and did not retain the actual native inflater state.
+- A terminal EOF per fragment was rejected because Go's inflater makes read
+  errors sticky and cannot resume afterward. The final feeder blocks only the
+  codec's private reader between fragments or output allowances and
+  acknowledges consumption to the public call, retaining linear decode work,
+  bounded pending expansion, and exact trailing-byte accounting.
+- Adding cgo zlib or a third-party compression backend was rejected: both would
+  add distribution/dependency cost solely to expose FULL/BLOCK controls that Go
+  otherwise does not promise. Explicit limitation is the honest portable-target
+  policy.
+- This is a library/runtime state machine feeding the existing typed Go AST; it
+  presents no evidence for a second whole-program IR or a profile-specific
+  semantic product. The `thinking:high` local pass converged on one design, so
+  no Oracle escalation was needed.
+
+Validation evidence:
+
+- `zip_streaming_contract` and the existing zip semantic-diff contracts
+- `stdlib/zip_streaming_policy` plus the existing crypto/XML/zip snapshot runtime
+- direct `runtime/hxrt` zip tests, including tiny fragments, bounded output,
+  raw DEFLATE, trailing-byte preservation, unsupported flushes, idempotent close,
+  and use-after-close, under the Go race detector
+- strict upstream stdlib, examples, selective-runtime, compiler-debt, security,
+  package-governance, inventory, and compatibility gates
+
+Observed result:
+
+- Instance codecs now preserve progressive Haxe behavior across repeated
+  partial buffers while one-shot helpers remain simple source-owned APIs.
+- The runtime boundary remains typed and representation-neutral, with actual
+  persistent codecs rather than a compiler shim, whole-buffer restart, or
+  universal IR layer.
+- Unsupported zlib controls are visible and documented; no compatibility mode
+  silently changes their semantics.
