@@ -6,10 +6,15 @@ edit files, create commits, or merely restate the proposal. Use read-only source
 tracing and tests where useful, and report the exact 40-character reviewed
 commit from `git rev-parse HEAD`.
 
-The requested route is `gpt-5.6-sol` with xhigh reasoning. Begin your response
-with the actual model route you were invoked as. If you cannot establish that
-you are that exact route, stop and say the provenance is insufficient; do not
-claim GPT-5.6 on behalf of an alias or older fallback.
+The requested route is `gpt-5.6-sol` with xhigh reasoning. The direct Codex CLI
+invocation records the actual selected model route and reasoning effort outside
+your response; that wrapper metadata is the provenance authority. In your
+response, report `gpt-5.6-sol (recorded by the direct invocation wrapper)` and
+`xhigh (recorded by the direct invocation wrapper)`. Do not try to infer an
+undisclosed backend from your model identity, and do not self-abort merely
+because you cannot see the wrapper's routing metadata. The repository owner
+will reject the review if the external invocation record instead shows an
+alias, an older fallback, or different reasoning effort.
 
 ## Decision under review
 
