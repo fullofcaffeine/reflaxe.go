@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "reviewClass": "Independent metal compatibility-preset retention review",
+  "actualModelRoute": "gpt-5.6-sol",
+  "provider": "openai",
+  "reasoningEffort": "xhigh",
+  "codexCliVersion": "0.144.6",
+  "sessionId": "019f7ca3-bcfe-7ec2-ba35-ecc76146f68a",
+  "ephemeral": true,
+  "sandbox": "read-only",
+  "approvalPolicy": "never",
+  "completedAt": "2026-07-19T23:16:50Z",
+  "reviewedCommit": "4c0d8eb48d336e3149c26efa55bb4ddce4f7fbb5",
+  "reviewedTree": "8740b19e8b211e6a65452fdd470b42ecce6c342a",
+  "status": "complete",
+  "promptPath": "docs/reviews/gpt-5.6-pro/review-prompt-vfp-6.6-metal-preset.md",
+  "promptBytes": 6369,
+  "promptSha256": "18ebb8ef86cfb1ce392b1ffcc40dd749fde7a667f60d99df56d9accaee5806a9",
+  "reviewPath": "docs/reviews/gpt-5.6-pro/review-vfp-6.6-metal-preset.md",
+  "reviewBytes": 9584,
+  "reviewSha256": "6aeee8798624e5e0067103fca3d18b9af5847eb51d63d3a1164d3225aa838459",
+  "rawCapture": {
+    "bytes": 9583,
+    "sha256": "40dffa993946bd80e1e70f544230ca33ef9ded70a8f98b8d7a73ff64ae888b1c",
+    "committed": false
+  },
+  "normalization": {
+    "reason": "Repository text files use a terminal newline.",
+    "change": "Added one terminal newline to the direct output-last-message capture.",
+    "substantiveReviewContentChanged": false
+  },
+  "provenanceNote": "The direct Codex CLI invocation reported model gpt-5.6-sol and reasoning effort xhigh. No Oracle alias, gpt-5-pro fallback, or other model substitution was used."
+}

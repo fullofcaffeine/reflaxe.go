@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
   "capturedAt": "2026-07-19T22:55:00Z",
-  "sourceCommit": "93a1fd11d80f40092d23b7cec5e9846b856f46e0",
+  "networkCaptureContextCommit": "93a1fd11d80f40092d23b7cec5e9846b856f46e0",
+  "repositoryInventoryCommit": "4c0d8eb48d336e3149c26efa55bb4ddce4f7fbb5",
+  "repositoryInventoryTree": "8740b19e8b211e6a65452fdd470b42ecce6c342a",
   "repositoryInventory": {
     "trackedMetalProfileHxmlFiles": 28,
     "exampleMetalProfileHxmlFiles": 10,

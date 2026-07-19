@@ -96,10 +96,11 @@ The local sibling audit found one strong precedent and two non-precedents:
   results, so it is not acceptable parity evidence.
 
 This is a bounded `thinking:high` ownership decision with a single honest
-design after local tracing, so it does not require Oracle. By contrast, any
-future deprecation of the global `metal` compatibility selector remains the
-separate `thinking:xhigh` decision in `haxe_go-vfp.6.6` and still requires its
-independent review, usage evidence, and SemVer migration plan.
+design after local tracing, so it does not require Oracle. The separate
+`thinking:xhigh` [metal preset decision](metal-preset-retention-decision.md)
+completed its independent review and retained the selector without a warning;
+any future reconsideration still requires new usage evidence, SemVer planning,
+and independent review.
 
 ## Evidence
 

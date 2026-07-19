@@ -90,8 +90,11 @@ The paired snapshot contracts
 `go_native/explicit_policy_equivalence` compile identical typed `go.Chan<Int>`
 source. They require identical generated Go, `go.mod`, runtime output, effective
 canonical policy fields, and lowering decisions. The reports may retain
-different selector, preset, and resolution-source labels because those fields
-explain how the same effective policy was selected.
+different selector, preset, resolution-source, strict-policy-input,
+`metalContractHardError`, legacy `metalFallbackViolation*`, and planner-reason
+labels because those fields explain how the same effective behavior was
+selected and preserve compatibility projections. Explicit-axis replacement is
+behaviorally equivalent; it is intentionally not report-byte-identical.
 
 This proves replacement completeness for behavior. It does not make four
 defines as ergonomic as one selector, and therefore does not itself justify a
@@ -159,14 +162,28 @@ does not require restoring a semantic backend because none exists.
 
 ## Independent review
 
-The local decision is intentionally drafted before review so the reviewer can
-adjudicate a concrete proposal. A direct `gpt-5.6-sol` xhigh, read-only review
-will be pinned to the draft commit and recorded beside its prompt and exact
-provenance under `docs/reviews/gpt-5.6-pro/`. An older `gpt-5-pro` route or an
-Oracle alias that maps to it is not acceptable provenance.
+A direct, ephemeral, read-only `gpt-5.6-sol` review ran at xhigh against commit
+`4c0d8eb48d336e3149c26efa55bb4ddce4f7fbb5`. The Codex CLI 0.144.6 invocation
+recorded the exact route; no Oracle alias or older-model fallback was used. See
+the [review](reviews/gpt-5.6-pro/review-vfp-6.6-metal-preset.md) and its
+[provenance](reviews/gpt-5.6-pro/review-vfp-6.6-metal-preset.provenance.json).
 
-The final section will record the selector-deprecation verdict, all findings,
-and their local adjudication before this bead closes.
+The decision verdict was `RETAIN WITH FOLLOW-UPS`; the selector-deprecation
+verdict was `RETAIN`. The reviewer independently confirmed that no profile-name
+branch changes semantic lowering, generated behavior, or runtime ownership,
+and that no universal IR or second backend is needed.
+
+Findings were adjudicated as follows:
+
+| Finding | Disposition |
+| --- | --- |
+| F-1, the usage counts were not reproducible from their original base-commit pin | Accepted and fixed. Network-capture context, repository-inventory commit, and inventory tree are now separate, and the contract reproduces counts from the pinned commit. |
+| F-2, the source guard checked only literal `GoProfile.Metal` uses | Accepted and fixed. The contract now inventories preset literals, compatibility predicates, `policyPreset` consumers, the report-only planner tag, and forbidden `GoCompiler` uses. |
+| F-3, explicit-axis output is behaviorally but not report-byte equivalent | Accepted as an intentional compatibility fact. The exact differing report families are documented above and become required migration evidence if deprecation is ever reconsidered. |
+
+The review could not rerun Go in its read-only sandbox because the Go tool needs
+a writable temporary directory. The primary session ran both paired snapshot
+and runtime cases successfully before review and reruns them in final validation.
 
 ## Validation contract
 

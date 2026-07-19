@@ -61,6 +61,18 @@ def tracked_files(pattern: str) -> list[Path]:
     return [ROOT / line for line in result.stdout.splitlines() if line]
 
 
+def git_lines(*args: str) -> list[str]:
+    result = subprocess.run(
+        ["git", *args],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=True,
+    )
+    return [line for line in result.stdout.splitlines() if line]
+
+
 class MetalPresetRetentionContractTest(unittest.TestCase):
     def test_decision_retains_the_preset_without_authorizing_deprecation(self) -> None:
         text = DECISION.read_text(encoding="utf-8")
@@ -82,9 +94,11 @@ class MetalPresetRetentionContractTest(unittest.TestCase):
             self.assertIn(heading, text)
 
     def test_profile_branches_stay_confined_to_mapping_and_reports(self) -> None:
+        source_root = ROOT / "src" / "reflaxe" / "go"
+        haxe_sources = list(source_root.rglob("*.hx"))
         profile_branch_files = {
             path.relative_to(ROOT).as_posix()
-            for path in (ROOT / "src" / "reflaxe" / "go").rglob("*.hx")
+            for path in haxe_sources
             if "GoProfile.Metal" in path.read_text(encoding="utf-8")
         }
         self.assertEqual(
@@ -96,15 +110,129 @@ class MetalPresetRetentionContractTest(unittest.TestCase):
             profile_branch_files,
         )
 
+        preset_literal_counts = {
+            path.relative_to(ROOT).as_posix(): text.count(
+                "GoPolicyPreset.MetalCompatibility"
+            )
+            for path in haxe_sources
+            if (
+                text := path.read_text(encoding="utf-8")
+            ).count("GoPolicyPreset.MetalCompatibility")
+        }
+        self.assertEqual(
+            {
+                "src/reflaxe/go/compiler/GoBuildContext.hx": 1,
+                "src/reflaxe/go/compiler/GoBuildContextResolver.hx": 2,
+                "src/reflaxe/go/compiler/GoNativeAuthorityPolicy.hx": 1,
+                "src/reflaxe/go/compiler/GoNativeFallbackPolicy.hx": 1,
+                "src/reflaxe/go/compiler/GoNativeSpecializationPolicy.hx": 1,
+            },
+            preset_literal_counts,
+        )
+
+        compatibility_predicate_counts = {
+            path.relative_to(ROOT).as_posix(): text.count(
+                "usesMetalCompatibilityPreset"
+            )
+            for path in haxe_sources
+            if (
+                text := path.read_text(encoding="utf-8")
+            ).count("usesMetalCompatibilityPreset")
+        }
+        self.assertEqual(
+            {
+                "src/reflaxe/go/GoReflaxeCompiler.hx": 4,
+                "src/reflaxe/go/compiler/GoBuildContext.hx": 2,
+            },
+            compatibility_predicate_counts,
+        )
+
+        policy_preset_files = {
+            path.relative_to(ROOT).as_posix()
+            for path in haxe_sources
+            if "policyPreset" in path.read_text(encoding="utf-8")
+        }
+        self.assertEqual(
+            {
+                "src/reflaxe/go/GoReflaxeCompiler.hx",
+                "src/reflaxe/go/ast/transformers/registry/GoASTPassRegistry.hx",
+                "src/reflaxe/go/compiler/GoBuildContext.hx",
+            },
+            policy_preset_files,
+        )
+
+        report_compiler = (
+            ROOT / "src" / "reflaxe" / "go" / "GoReflaxeCompiler.hx"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(3, report_compiler.count("buildContext.policyPreset.label()"))
+        planner = (
+            ROOT
+            / "src"
+            / "reflaxe"
+            / "go"
+            / "ast"
+            / "transformers"
+            / "registry"
+            / "GoASTPassRegistry.hx"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(1, planner.count("context.buildContext.policyPreset.label()"))
+        self.assertEqual(1, planner.count("policyPreset"))
+
+        metal_contract_predicate_files = {
+            path.relative_to(ROOT).as_posix()
+            for path in haxe_sources
+            if "isMetalContract(" in path.read_text(encoding="utf-8")
+        }
+        self.assertEqual(
+            {"src/reflaxe/go/compiler/GoBuildContext.hx"},
+            metal_contract_predicate_files,
+        )
+
         compiler = (ROOT / "src" / "reflaxe" / "go" / "GoCompiler.hx").read_text(
             encoding="utf-8"
         )
         self.assertNotIn("GoProfile.Metal", compiler)
+        self.assertNotIn("GoPolicyPreset.MetalCompatibility", compiler)
         self.assertNotIn("usesMetalCompatibilityPreset", compiler)
+        self.assertNotIn("isMetalContract", compiler)
+        self.assertNotIn("policyPreset", compiler)
 
     def test_repository_usage_inventory_is_current(self) -> None:
         evidence = json.loads(USAGE_EVIDENCE.read_text(encoding="utf-8"))
         inventory = evidence["repositoryInventory"]
+
+        inventory_commit = evidence["repositoryInventoryCommit"]
+        self.assertRegex(inventory_commit, r"^[0-9a-f]{40}$")
+        self.assertEqual(
+            evidence["repositoryInventoryTree"],
+            git_lines("rev-parse", f"{inventory_commit}^{{tree}}")[0],
+        )
+        pinned_profile_files = [
+            line.split(":", 1)[1]
+            for line in git_lines(
+                "grep",
+                "-l",
+                "reflaxe_go_profile=metal",
+                inventory_commit,
+                "--",
+                "*.hxml",
+            )
+        ]
+        self.assertEqual(
+            inventory["trackedMetalProfileHxmlFiles"], len(pinned_profile_files)
+        )
+        self.assertEqual(
+            inventory["exampleMetalProfileHxmlFiles"],
+            sum(path.startswith("examples/") for path in pinned_profile_files),
+        )
+        self.assertEqual(
+            inventory["snapshotMetalProfileHxmlFiles"],
+            sum(path.startswith("test/snapshot/") for path in pinned_profile_files),
+        )
+        self.assertEqual(
+            inventory["templateMetalProfileHxmlFiles"],
+            sum(path.startswith("templates/") for path in pinned_profile_files),
+        )
 
         hxml_files = tracked_files("*.hxml")
         profile_files = [
