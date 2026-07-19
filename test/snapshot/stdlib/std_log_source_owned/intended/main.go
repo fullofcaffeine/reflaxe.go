@@ -73,7 +73,7 @@ func main() {
 	}(haxe__Log_trace, hxrt.StringFromLiteral("rebound"), func() map[string]any {
 		hx_obj_17 := map[string]any{}
 		hx_obj_17["fileName"] = hxrt.StringFromLiteral("Main.hx")
-		hx_obj_17["lineNumber"] = 27
+		hx_obj_17["lineNumber"] = 35
 		hx_obj_17["className"] = hxrt.StringFromLiteral("Main")
 		hx_obj_17["methodName"] = hxrt.StringFromLiteral("main")
 		hx_obj_17["customParams"] = hxrt.NewArray(hxrt.StringFromLiteral("tail"), nil)
