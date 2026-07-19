@@ -28,9 +28,9 @@ Current architecture status:
 - `GoBuildContext` and `GoBuildContextResolver` are already in place for centralized contract/capability resolution.
 - Deterministic contract/runtime/optimizer reports (`profile_contract`, `hxrt_plan`, `optimizer_plan`) are already emitted when enabled.
 - The preset model is now decomposed into typed authority, specialization,
-  fallback, strictness, planner, optimizer, and runtime axes. Whether the global
-  `metal` selector should ever be deprecated remains a separately reviewed
-  compatibility decision.
+  fallback, strictness, planner, optimizer, and runtime axes. The focused
+  [retention decision](metal-preset-retention-decision.md) keeps the global
+  `metal` shortcut supported without a warning; it is not a semantic mode.
 
 ## Production hardening scoreboard
 

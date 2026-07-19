@@ -1,0 +1,204 @@
+{
+	"schemaVersion": 8,
+	"contract": "portable",
+	"policyPreset": "portable_default",
+	"semanticBoundarySource": "typed_api_or_module",
+	"nativeAuthorityPolicy": "explicit",
+	"nativeAuthorityPolicySource": "reflaxe_go_native_authority",
+	"nativeSpecializationPolicy": "eager",
+	"nativeSpecializationPolicySource": "reflaxe_go_native_specialization",
+	"nativeFallbackPolicy": "error",
+	"nativeFallbackPolicySource": "reflaxe_go_native_fallback",
+	"autoLoweringMode": "off",
+	"strictExamples": false,
+	"strictUserBoundaryPolicy": "on",
+	"strictUserBoundaries": true,
+	"metalFallbackAllowed": false,
+	"metalContractHardError": false,
+	"emitLineDirectives": false,
+	"rawNativeMode": "interp",
+	"hxrtSelectiveEnabled": true,
+	"hxrtForceFullCopy": false,
+	"hxrtNoFeatureInfer": false,
+	"loweringDecisionCount": 12,
+	"loweringDecisionAttemptCount": 6,
+	"loweringDecisionSuccessCount": 4,
+	"loweringDecisionFallbackCount": 2,
+	"nativeFallbackEventCount": 2,
+	"nativeFallbackBoundaryEventCount": 0,
+	"nativeFallbackNonBoundaryEventCount": 2,
+	"metalFallbackViolationCount": 0,
+	"metalFallbackLaneViolationCount": 0,
+	"metalFallbackNonLaneViolationCount": 0,
+	"portableNativeImportScanMode": "typed",
+	"portableNativeImportHitCount": 0,
+	"portableNativeImportTypedHitCount": 0,
+	"portableNativeImportScannerHitCount": 0,
+	"contractDiagnosticCount": 0,
+	"hxrtManualFeatures": [
+	],
+	"nativeBoundaryModules": [
+	],
+	"metalLaneModules": [
+	],
+	"portableNativeImportHits": [
+	],
+	"portableNativeImportTypedHits": [
+	],
+	"portableNativeImportScannerHits": [
+	],
+	"contractDiagnostics": [
+	],
+	"loweringDecisions": [
+		{
+			"module": "Main",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method_close",
+			"outcome": "attempted",
+			"location": "Main:9",
+			"detail": "Attempt typed go.Chan method specialization."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method_close",
+			"outcome": "succeeded",
+			"location": "Main:9",
+			"detail": "Applied typed go.Chan method specialization (element type: int)."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method_recv",
+			"outcome": "attempted",
+			"location": "Main:8",
+			"detail": "Attempt typed go.Chan method specialization."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method_recv",
+			"outcome": "succeeded",
+			"location": "Main:8",
+			"detail": "Applied typed go.Chan method specialization (element type: int)."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method_send",
+			"outcome": "attempted",
+			"location": "Main:7",
+			"detail": "Attempt typed go.Chan method specialization."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method_send",
+			"outcome": "succeeded",
+			"location": "Main:7",
+			"detail": "Applied typed go.Chan method specialization (element type: int)."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_new",
+			"outcome": "attempted",
+			"location": "Main:6",
+			"detail": "Attempt typed go.Go.newChan specialization."
+		},
+		{
+			"module": "Main",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_new",
+			"outcome": "succeeded",
+			"location": "Main:6",
+			"detail": "Applied typed go.Go.newChan specialization (element type: int)."
+		},
+		{
+			"module": "go.Go",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method___hx_setBuffer",
+			"outcome": "attempted",
+			"location": "go.Go:19",
+			"detail": "Attempt typed go.Chan method specialization."
+		},
+		{
+			"module": "go.Go",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_method_unmorphable",
+			"outcome": "fallback",
+			"location": "go.Go:19",
+			"detail": "Could not monomorphize go.Chan method call for native specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+		},
+		{
+			"module": "go.Go",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_new",
+			"outcome": "attempted",
+			"location": "go.Go:17",
+			"detail": "Attempt typed go.Chan constructor specialization."
+		},
+		{
+			"module": "go.Go",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"feature": "go.concurrency.typed",
+			"kind": "go_chan_new_unmorphable",
+			"outcome": "fallback",
+			"location": "go.Go:17",
+			"detail": "Could not monomorphize go.Chan element type for constructor specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+		}
+	],
+	"nativeFallbackEventsByModule": [
+		{
+			"module": "go.Go",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"count": 2
+		}
+	],
+	"nativeFallbackEvents": [
+		{
+			"module": "go.Go",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"kind": "go_chan_method_unmorphable",
+			"location": "go.Go:19",
+			"detail": "Could not monomorphize go.Chan method call for native specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+		},
+		{
+			"module": "go.Go",
+			"inNativeBoundary": false,
+			"inMetalLane": false,
+			"kind": "go_chan_new_unmorphable",
+			"location": "go.Go:17",
+			"detail": "Could not monomorphize go.Chan element type for constructor specialization: Generic type resolves to `any`; typed specialization requires a concrete non-`any` Go type."
+		}
+	],
+	"metalFallbackViolationsByModule": [
+	],
+	"metalFallbackViolations": [
+	]
+}

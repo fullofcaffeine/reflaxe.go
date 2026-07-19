@@ -51,8 +51,11 @@ The build-wide selector only supplies policy defaults:
 | `portable` (default) | `portable_default` | guarded | proven | allow | off |
 | `metal` | `metal_compatibility` | explicit | eager | error | on |
 
-`metal` remains supported without a deprecation warning. Its possible future
-deprecation is a separate SemVer and independent-review decision.
+The focused [retention decision](metal-preset-retention-decision.md) keeps
+`metal` supported without a deprecation warning. It found that explicit axes
+replace the behavior but not the convenience or compatibility value; any future
+reconsideration requires new usage, SemVer, migration, and independent-review
+evidence.
 
 ## Independent policy axes
 

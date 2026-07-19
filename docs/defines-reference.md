@@ -47,7 +47,9 @@
 
 Design note:
 
-- `metal` remains supported without a deprecation warning.
+- `metal` remains supported without a deprecation warning. See the
+  [retention decision](metal-preset-retention-decision.md) for evidence and
+  future reopen criteria.
 - `auto` is a planner mode, not a semantic profile.
 - Canonical contract: `docs/native-policy-presets.md`.
 

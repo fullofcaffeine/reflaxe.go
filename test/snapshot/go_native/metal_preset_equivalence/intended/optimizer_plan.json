@@ -1,0 +1,84 @@
+{
+	"schemaVersion": 6,
+	"contract": "metal",
+	"policyPreset": "metal_compatibility",
+	"nativeSpecializationPolicy": "eager",
+	"nativeSpecializationPolicySource": "policy_preset",
+	"autoLoweringMode": "off",
+	"optimizationPreset": "none",
+	"portableStringFastpathEnabled": false,
+	"portableConcurrencyFastpathEnabled": false,
+	"stringInstanceTypedLowerings": 0,
+	"stringInstanceLegacyLowerings": 0,
+	"stringLengthFieldTypedLowerings": 0,
+	"stringLengthFieldLegacyLowerings": 0,
+	"portableConcurrencyTypedFastpathHits": 0,
+	"portableConcurrencyTypedFastpathFallbacks": 0,
+	"goCollectionsTypedLowerings": 0,
+	"goCollectionsTypedFallbacks": 0,
+	"goResultTypedLowerings": 0,
+	"goResultTypedFallbacks": 0,
+	"loweringFallbackBoundaryCount": 0,
+	"loweringFallbackNonBoundaryCount": 2,
+	"loweringFallbackLaneCount": 0,
+	"loweringFallbackNonLaneCount": 2,
+	"autoLoweringCapabilities": [
+		{
+			"id": "go.concurrency.typed",
+			"attempts": 6,
+			"successes": 4,
+			"fallbacks": 2,
+			"fallbackReasonCounts": [
+				{
+					"kind": "go_chan_method_unmorphable",
+					"count": 1
+				},
+				{
+					"kind": "go_chan_new_unmorphable",
+					"count": 1
+				}
+			]
+		}
+	],
+	"goAstPassSelectionSource": "planner",
+	"goAstPasses": [
+		"normalize_names",
+		"rewrite_string_ops",
+		"rewrite_virtual_calls",
+		"insert_runtime_prelude",
+		"elide_blank_identifier_guards",
+		"collect_imports"
+	],
+	"goAstPassSelectionReasons": [
+		{
+			"pass": "normalize_names",
+			"source": "planner(preset=metal_compatibility, auto=off, opt=none)",
+			"reason": "Canonicalize generated identifiers before rewrite passes."
+		},
+		{
+			"pass": "rewrite_string_ops",
+			"source": "planner(preset=metal_compatibility, auto=off, opt=none)",
+			"reason": "Apply planner-selected string rewrite/folding pass for deterministic code shape."
+		},
+		{
+			"pass": "rewrite_virtual_calls",
+			"source": "planner(preset=metal_compatibility, auto=off, opt=none)",
+			"reason": "Apply planner-selected safe virtual-call rewrite pass."
+		},
+		{
+			"pass": "insert_runtime_prelude",
+			"source": "planner(preset=metal_compatibility, auto=off, opt=none)",
+			"reason": "Inject runtime prelude declarations before cleanup/import collection."
+		},
+		{
+			"pass": "elide_blank_identifier_guards",
+			"source": "planner(preset=metal_compatibility, auto=off, opt=none)",
+			"reason": "Remove redundant blank-identifier consume guards after lowering."
+		},
+		{
+			"pass": "collect_imports",
+			"source": "planner(preset=metal_compatibility, auto=off, opt=none)",
+			"reason": "Collect final deterministic import set after all rewrites."
+		}
+	]
+}

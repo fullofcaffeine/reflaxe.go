@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-19T22:55:00Z",
+  "sourceCommit": "93a1fd11d80f40092d23b7cec5e9846b856f46e0",
+  "repositoryInventory": {
+    "trackedMetalProfileHxmlFiles": 28,
+    "exampleMetalProfileHxmlFiles": 10,
+    "snapshotMetalProfileHxmlFiles": 17,
+    "templateMetalProfileHxmlFiles": 1,
+    "trackedLegacyGoMetalMetadataFiles": 15,
+    "trackedMetalFallbackAliasFiles": 15,
+    "committedGeneratedMetalExampleTrees": 5,
+    "metalExpectedStdoutFiles": 10,
+    "note": "The HXML count includes the focused metal-preset equivalence fixture added by haxe_go-vfp.6.6. The @:goMetal count describes a separate source-metadata compatibility alias; this decision does not deprecate it."
+  },
+  "publicCodeSearch": {
+    "provider": "GitHub Code Search REST API",
+    "capturedAt": "2026-07-19T22:55:00Z",
+    "limitation": "Public code search is a lower bound. It cannot see private repositories, local HXML files, unindexed code, shell-generated defines, or CI secrets, so absence does not prove that removing a build input is safe.",
+    "authorizesRemoval": false,
+    "queries": [
+      {
+        "query": "reflaxe_go_profile=metal -repo:fullofcaffeine/reflaxe.go",
+        "resultCount": 0,
+        "classification": "No indexed external consumer configuration found."
+      },
+      {
+        "query": "reflaxe_go_profile -repo:fullofcaffeine/reflaxe.go",
+        "resultCount": 0,
+        "classification": "No indexed external selector use found."
+      },
+      {
+        "query": "reflaxe_go_metal -repo:fullofcaffeine/reflaxe.go",
+        "resultCount": 0,
+        "classification": "No indexed external define use found."
+      },
+      {
+        "query": "@:goMetal -repo:fullofcaffeine/reflaxe.go",
+        "resultCount": 1,
+        "classification": "The sole result is hxhx documentation discussing haxe.go policy, not a consuming build."
+      },
+      {
+        "query": "-lib reflaxe.go extension:hxml -repo:fullofcaffeine/reflaxe.go",
+        "resultCount": 0,
+        "classification": "No indexed external HXML consumer found."
+      },
+      {
+        "query": "reflaxe.go filename:haxelib.json -repo:fullofcaffeine/reflaxe.go",
+        "resultCount": 1,
+        "classification": "The result is neimanpinchas/reflaxe_go, an older compiler package declaration rather than a consumer configuration."
+      }
+    ]
+  },
+  "repositoryReach": {
+    "provider": "GitHub repository and release APIs",
+    "capturedAt": "2026-07-19T22:55:00Z",
+    "stars": 3,
+    "forks": 0,
+    "watchers": 0,
+    "latestRelease": "v0.53.1",
+    "latestReleaseAssets": 0,
+    "downloadTelemetryAvailable": false,
+    "interpretation": "The project has little public reach telemetry and published releases have no downloadable assets. These facts reduce the observable migration population but do not measure private or source-based consumers."
+  },
+  "implementationBoundary": {
+    "directGoProfileMetalFiles": [
+      "src/reflaxe/go/ProfileResolver.hx",
+      "src/reflaxe/go/GoReflaxeCompiler.hx",
+      "src/reflaxe/go/compiler/GoPolicyPreset.hx"
+    ],
+    "semanticLoweringBranchesOnProfile": false,
+    "remainingPresetValue": "A short compatibility selector that supplies explicit/eager/error/strict-on defaults, plus stable report labels and build-lane names.",
+    "replacement": [
+      "reflaxe_go_native_authority=explicit",
+      "reflaxe_go_native_specialization=eager",
+      "reflaxe_go_native_fallback=error",
+      "reflaxe_go_strict_policy=on"
+    ]
+  },
+  "siblings": [
+    {
+      "repository": "haxe.rust",
+      "commit": "c1c95fbe7debccac68975ac9b5d75c115894675f",
+      "evidence": [
+        "README.md",
+        "docs/architecture-capability.md",
+        "docs/defines-reference.md"
+      ],
+      "verdict": "Retains a true global portable/metal contract because ownership, nullability, native APIs, and fail-closed no-hxrt eligibility still carry irreducible target-wide semantics."
+    },
+    {
+      "repository": "haxe.elixir.codex",
+      "commit": "a4897cd3106f916c26f813388215f69699e742cc",
+      "evidence": [
+        "docs/02-user-guide/AUTHORING_STYLES_PORTABLE_VS_ELIXIR_FIRST.md"
+      ],
+      "verdict": "Uses one pipeline and source/API-scoped authoring intent; it has no application-wide semantic backend switch, and strictness remains orthogonal."
+    },
+    {
+      "repository": "haxe.ruby",
+      "commit": "a74818e996b68e467621a76cfaae520f553c6960",
+      "evidence": [
+        "docs/profiles.md",
+        "docs/public-contract.md"
+      ],
+      "verdict": "Keeps its existing public portable/ruby_first compatibility contract because renaming churn has no current payoff, while rejecting a generic metal/performance profile without irreducible semantics."
+    }
+  ],
+  "conclusion": "The Go selector no longer owns semantics, but its shorthand and compatibility value are real. Public-search absence is insufficient removal evidence; retain it without a warning and require a later evidence-backed decision before reconsideration."
+}

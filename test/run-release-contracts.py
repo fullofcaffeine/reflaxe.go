@@ -39,6 +39,7 @@ def main() -> int:
         ["python3", "test/test_license_policy_contract.py"],
         ["python3", "test/test_lambda_iterable_lowering_ownership_contract.py"],
         ["python3", "test/test_markdown_internal_links_contract.py"],
+        ["python3", "test/test_metal_preset_retention_contract.py"],
         ["python3", "test/test_metal_graduation_contract.py"],
         ["python3", "test/test_multi_package_output_decision_contract.py"],
         ["python3", "test/test_perf_budget_policy_contract.py"],

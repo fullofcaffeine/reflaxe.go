@@ -29,10 +29,10 @@ The product rule is:
 > generated output whenever the compiler can prove the lowering preserves the
 > source contract.
 
-No deprecation warning or removal schedule applies to `metal` in this change.
-The separate decision tracked by Bead `haxe_go-vfp.6.6` must obtain compatibility
-evidence, a SemVer migration plan, and a genuine independent deep review before
-any deprecation can be approved.
+The focused [retention decision](metal-preset-retention-decision.md) keeps
+`metal` supported without a deprecation warning. It found no semantic branch to
+remove, but found continuing shorthand and compatibility value. That decision
+does not authorize deprecation, renaming, or removal.
 
 ## What chooses semantics
 
@@ -257,15 +257,16 @@ authority, specialization, fallback, and strictness policies. That is why
 `metal` is retained as a compatibility preset rather than claimed as a second
 semantic product.
 
-## Review and future deprecation gate
+## Retention review and future reconsideration gate
 
 This refactor preserves accepted selectors, defaults, and aliases while making
 the underlying policy explicit. An xhigh written second pass plus the full
 compiler/semantic/example/runtime/performance/security gates is sufficient to
 land that compatibility-preserving step.
 
-Deprecating, renaming, or removing the global selector is a broader public API
-decision. It requires all of the following:
+Bead `haxe_go-vfp.6.6` evaluated retain, rename, deprecate, and remove and chose
+retention. Deprecating, renaming, or removing the global selector in the future
+would be a new public API decision. It requires all of the following:
 
 1. evidence that explicit axes and `@:goNative` replace every real use case;
 2. usage and migration-impact evidence;
@@ -273,7 +274,9 @@ decision. It requires all of the following:
 4. a commit-pinned genuine independent deep review;
 5. a separate approved implementation issue.
 
-Until that gate passes, `metal` remains supported without deprecation warnings.
+The public API manifest and SemVer-policy work must land before that decision
+can reopen. Until a separate approved implementation issue passes the full
+gate, `metal` remains supported without deprecation warnings.
 
 ## Evidence anchors
 

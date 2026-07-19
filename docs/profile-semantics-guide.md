@@ -183,10 +183,12 @@ irreducible semantic distinction.
 
 ## Review boundary
 
-The compatibility-preserving refactor can land with the repository's xhigh
-written second-pass fallback and full test evidence. Any decision to deprecate
-or remove `metal` is broader: it needs a genuine independent deep review,
-commit-pinned evidence, a SemVer migration plan, and separate approval.
+The [metal preset retention decision](metal-preset-retention-decision.md)
+completed the focused xhigh review and retained the selector without a warning.
+The explicit axes replace its behavior, but do not erase its convenience or
+compatibility value. Any future decision to rename, deprecate, or remove it is
+new scope requiring current usage evidence, a genuine independent deep review,
+commit-pinned equivalence, a SemVer migration plan, and separate approval.
 
 ## Validation
 
