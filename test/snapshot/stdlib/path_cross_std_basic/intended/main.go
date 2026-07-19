@@ -50,17 +50,3 @@ func main() {
 	var v_21 any = any(haxe__io__Path_isAbsolute(hxrt.StringFromLiteral("relative/path")))
 	hxrt.Println(v_21)
 }
-
-type Std struct {
-}
-
-type haxe__ds__Option struct {
-	tag    int
-	params []any
-}
-
-var haxe__ds__Option_None *haxe__ds__Option = &haxe__ds__Option{tag: 1, params: []any{}}
-
-func haxe__ds__Option_Some(value any) *haxe__ds__Option {
-	return &haxe__ds__Option{tag: 0, params: []any{value}}
-}

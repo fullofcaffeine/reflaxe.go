@@ -2069,16 +2069,15 @@ class GoCompiler {
 
 	function lowerStdlibShimDecls():Array<GoDecl> {
 		var decls = new Array<GoDecl>();
-		if (requiredStdlibShimGroups.exists("stdlib_symbols")) {
-			decls = decls.concat(lowerStdlibSymbolShimDecls());
-		}
 		if (requiredStdlibShimGroups.exists("type_metadata")) {
 			decls = decls.concat(lowerTypeMetadataShimDecls());
 		}
 		if (requiredStdlibShimGroups.exists("reflect_metadata")) {
 			decls = decls.concat(lowerReflectMetadataShimDecls());
 		}
-		decls = decls.concat(lowerSerializationSourceBridgeShimDecls());
+		if (requiredStdlibShimGroups.exists("serialization_source_bridge")) {
+			decls = decls.concat(lowerSerializationSourceBridgeShimDecls());
+		}
 		if (requiredStdlibShimGroups.exists("go_concurrency")) {
 			decls = decls.concat(lowerGoConcurrencyShimDecls());
 		}
@@ -2619,21 +2618,6 @@ class GoCompiler {
 		}
 
 		return decls;
-	}
-
-	function lowerStdlibSymbolShimDecls():Array<GoDecl> {
-		return [
-			GoDecl.GoStructDecl("Std", []),
-			GoDecl.GoStructDecl("haxe__ds__Option", [{name: "tag", typeName: "int"}, {name: "params", typeName: "[]any"}]),
-			GoDecl.GoGlobalVarDecl("haxe__ds__Option_None", "*haxe__ds__Option", GoExpr.GoRaw("&haxe__ds__Option{tag: 1, params: []any{}}")),
-			GoDecl.GoFuncDecl("haxe__ds__Option_Some", null, [
-				{
-					name: "value",
-					typeName: "any"
-				}
-			], ["*haxe__ds__Option"],
-				[GoStmt.GoReturn(GoExpr.GoRaw("&haxe__ds__Option{tag: 0, params: []any{value}}"))])
-		];
 	}
 
 	/**
@@ -9912,10 +9896,24 @@ class GoCompiler {
 		}
 	}
 
+	/**
+		What: Route reachable upstream stdlib enums through their declared source or
+		exact compiler-capability owner.
+
+		Why: Haxe includes these enum declarations in the typed program without
+		necessarily placing them in the ordinary project enum queue. A target-specific
+		carrier would duplicate normal enum semantics and hide source provenance.
+
+		How: Enqueue the known source-owned enums through the standard pending enum map,
+		then apply only independently registered compiler groups for any remaining exact
+		representation capability.
+	**/
 	function noteStdlibEnum(enumType:EnumType):Void {
 		switch (fullEnumName(enumType)) {
 			case "haxe.ds.Either":
 				requireSourceOwnedStdlibEnum("haxe.ds.Either");
+			case "haxe.ds.Option":
+				requireSourceOwnedStdlibEnum("haxe.ds.Option");
 			case "sys.thread.NextEventTime":
 				requireSourceOwnedStdlibEnum("sys.thread.NextEventTime");
 			case _:

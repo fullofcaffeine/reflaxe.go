@@ -65,17 +65,3 @@ func main() {
 	}(bound), hxrt.StringFromLiteral("sni.local"))
 	server.__hx_this.close()
 }
-
-type Std struct {
-}
-
-type haxe__ds__Option struct {
-	tag    int
-	params []any
-}
-
-var haxe__ds__Option_None *haxe__ds__Option = &haxe__ds__Option{tag: 1, params: []any{}}
-
-func haxe__ds__Option_Some(value any) *haxe__ds__Option {
-	return &haxe__ds__Option{tag: 0, params: []any{value}}
-}

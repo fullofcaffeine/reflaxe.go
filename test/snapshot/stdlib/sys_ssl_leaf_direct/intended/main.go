@@ -26,17 +26,3 @@ func main() {
 	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("digest.verify="), hxrt.StdString(sys__ssl__Digest_verify(payload, sig, key, any(hxrt.StringFromLiteral("SHA256"))))))
 	hxrt.Println(v_7)
 }
-
-type Std struct {
-}
-
-type haxe__ds__Option struct {
-	tag    int
-	params []any
-}
-
-var haxe__ds__Option_None *haxe__ds__Option = &haxe__ds__Option{tag: 1, params: []any{}}
-
-func haxe__ds__Option_Some(value any) *haxe__ds__Option {
-	return &haxe__ds__Option{tag: 0, params: []any{value}}
-}

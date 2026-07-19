@@ -89,12 +89,14 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("haxe.ds.StringMap");
 				requireSourceOwnedStdlibClass("haxe.ds.IntMap");
 				requireSourceOwnedStdlibClass("haxe.ds.ObjectMap");
+				requireStdlibShimGroup("serialization_source_bridge");
 			case "haxe.Unserializer":
 				requireSourceOwnedStdlibClass("haxe.Unserializer");
 				requireSourceOwnedStdlibModule("haxe.ds.List");
 				requireSourceOwnedStdlibClass("haxe.ds.StringMap");
 				requireSourceOwnedStdlibClass("haxe.ds.IntMap");
 				requireSourceOwnedStdlibClass("haxe.ds.ObjectMap");
+				requireStdlibShimGroup("serialization_source_bridge");
 			case "Sys":
 				requireSourceOwnedStdlibClass("Sys");
 			case "StringTools":
@@ -322,17 +324,14 @@ class GoSourceOwnedStdlibPlanner {
 				requireBaseIoSourceClasses();
 			case "sys.ssl.Certificate":
 				requireSourceOwnedStdlibClass("sys.ssl.Certificate");
-				requireStdlibShimGroup("stdlib_symbols");
 			case "sys.ssl.Digest":
 				requireSourceOwnedStdlibClass("sys.ssl.Digest");
 				requireSourceOwnedStdlibModule("sys.ssl.DigestAlgorithm");
 				requireSourceOwnedStdlibClass("sys.ssl.Key");
-				requireStdlibShimGroup("stdlib_symbols");
 			case "sys.ssl.DigestAlgorithm":
 				requireSourceOwnedStdlibModule("sys.ssl.DigestAlgorithm");
 			case "sys.ssl.Key":
 				requireSourceOwnedStdlibClass("sys.ssl.Key");
-				requireStdlibShimGroup("stdlib_symbols");
 			case "sys.ssl.Socket", "sys.ssl._Socket.Socket_Impl_":
 				requireSourceOwnedStdlibModule("sys.ssl.Socket");
 				requireSourceOwnedStdlibModule("sys.net.Socket");
@@ -341,7 +340,6 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("sys.ssl.Certificate");
 				requireSourceOwnedStdlibClass("sys.ssl.Key");
 				requireBaseIoSourceClasses();
-				requireStdlibShimGroup("stdlib_symbols");
 			case "sys.thread.Lock":
 				requireSourceOwnedStdlibClass("sys.thread.Lock");
 			case "sys.thread.Mutex":
@@ -380,7 +378,6 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("sys.thread.ThreadPoolException");
 			case "haxe.Template":
 				requireSourceOwnedStdlibModule("haxe.Template");
-				requireStdlibShimGroup("stdlib_symbols");
 			case "haxe.ValueException":
 				// Direct ValueException usage lowers to the existing hxrt exception
 				// carrier rather than emitting a separate source-owned class body.

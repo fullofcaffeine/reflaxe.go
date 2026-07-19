@@ -349,14 +349,7 @@ SPECIAL_DESTINATIONS = dict(SOURCE_SPECIAL_DESTINATIONS)
 for special_owner, special_destination in SOURCE_SPECIAL_DESTINATIONS.values():
     SPECIAL_DESTINATIONS[special_destination] = (special_owner, special_destination)
 
-SOURCE_EXPECTED_SHIM_GROUPS = {
-    "std/haxe/Template.cross.hx": ["stdlib_symbols"],
-    "std/haxe/ds/BalancedTree.cross.hx": ["stdlib_symbols"],
-    "std/sys/ssl/Certificate.cross.hx": ["stdlib_symbols"],
-    "std/sys/ssl/Digest.cross.hx": ["stdlib_symbols"],
-    "std/sys/ssl/Key.cross.hx": ["stdlib_symbols"],
-    "std/sys/ssl/Socket.cross.hx": ["stdlib_symbols"],
-}
+SOURCE_EXPECTED_SHIM_GROUPS: dict[str, list[str]] = {}
 
 EXPECTED_SHIM_GROUPS: dict[str, list[str]] = {}
 for shim_source, shim_groups in SOURCE_EXPECTED_SHIM_GROUPS.items():
@@ -367,9 +360,7 @@ for shim_source, shim_groups in SOURCE_EXPECTED_SHIM_GROUPS.items():
     EXPECTED_SHIM_GROUPS[shim_source] = shim_groups
     EXPECTED_SHIM_GROUPS[shim_destination] = shim_groups
 
-EXPECTED_SHIM_AUDIT_DECISIONS = {
-    "stdlib_symbols": "split_migration_debt_from_exact_intrinsics_haxe_go_vfp_8_7_15",
-}
+EXPECTED_SHIM_AUDIT_DECISIONS: dict[str, str] = {}
 
 SHIM_AUDIT_AUTHORITY_REFERENCES = {
     "docs/compiler-stdlib-intrinsics.json",
@@ -395,6 +386,108 @@ def tracked_std_sources() -> set[str]:
     }
 
 class StdlibMigrationLedgerContractTest(unittest.TestCase):
+    def test_residual_stdlib_symbols_group_is_fully_retired(self) -> None:
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(
+            encoding="utf-8"
+        )
+        classifier = (
+            ROOT / "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx"
+        ).read_text(encoding="utf-8")
+        planner = (
+            ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
+        ).read_text(encoding="utf-8")
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        debt_policy = json.loads(
+            (ROOT / "test/compiler_debt_policy.json").read_text(encoding="utf-8")
+        )
+        debt_ratchet = (ROOT / "test/run-compiler-debt-ratchet.py").read_text(
+            encoding="utf-8"
+        )
+        ledger = load_ledger()
+
+        self.assertNotIn("lowerStdlibSymbolShimDecls", compiler)
+        self.assertNotIn('requiredStdlibShimGroups.exists("stdlib_symbols")', compiler)
+        self.assertNotIn('groups: ["stdlib_symbols"]', classifier)
+        self.assertNotIn('requireStdlibShimGroup("stdlib_symbols")', planner)
+        self.assertIn('case "haxe.ds.Option":', compiler)
+        self.assertIn(
+            'requireSourceOwnedStdlibEnum("haxe.ds.Option")', compiler
+        )
+
+        groups = {entry["group"]: entry for entry in registry["groups"]}
+        self.assertNotIn("stdlib_symbols", groups)
+        serialization_group = groups["serialization_source_bridge"]
+        self.assertEqual("approved_intrinsic", serialization_group["status"])
+        self.assertEqual(
+            "lowerSerializationSourceBridgeShimDecls",
+            serialization_group["entryPoint"],
+        )
+        self.assertEqual(
+            ["haxe.Serializer", "haxe.Unserializer"],
+            serialization_group["plannerSelections"],
+        )
+        self.assertEqual(
+            [
+                {
+                    "symbol": "haxe.GoSerializationBridge",
+                    "scope": "partial_type",
+                    "members": [
+                        "callSerializeHook",
+                        "callUnserializeHook",
+                        "hasSerializeHook",
+                        "resolveClass",
+                        "resolveEnum",
+                    ],
+                }
+            ],
+            serialization_group["ownedSymbols"],
+        )
+        self.assertNotIn("migration_stdlib_symbols", registry["decisions"])
+        direct = {entry["symbol"]: entry for entry in registry["directLowerings"]}
+        for symbol in ("Std.parseInt", "haxe.Log.trace"):
+            self.assertEqual("migration_required", direct[symbol]["status"])
+            self.assertEqual(
+                "migration_std_log_source_ownership",
+                direct[symbol]["decisionId"],
+            )
+            self.assertEqual("haxe_go-vfp.8.7.22", direct[symbol]["followUpBead"])
+
+        self.assertFalse(
+            any(
+                entry.get("context") == "lowerStdlibSymbolShimDecls"
+                or entry.get("capability") == "stdlib_symbols"
+                for entry in debt_policy["limits"]
+            )
+        )
+        self.assertNotIn("lowerStdlibSymbolShimDecls", debt_ratchet)
+        self.assertFalse(
+            any(
+                audit.get("group") == "stdlib_symbols"
+                for audit in ledger["migrationContract"]["compilerShimAudit"]
+            )
+        )
+        self.assertFalse(
+            any(
+                "stdlib_symbols" in entry.get("compilerShimGroups", [])
+                for entry in ledger["entries"]
+            )
+        )
+
+        option_root = ROOT / "test/snapshot/stdlib/option_enum_basic/intended"
+        generated_main = (option_root / "main.go").read_text(encoding="utf-8")
+        self.assertNotIn("type Std struct", generated_main)
+        self.assertNotIn("type haxe__ds__Option struct", generated_main)
+        generated_option = (option_root / "module_haxe_ds_option.go").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("type haxe__ds__Option struct", generated_option)
+        self.assertIn("var haxe__ds__Option_None", generated_option)
+        self.assertIn("func haxe__ds__Option_Some", generated_option)
+
     def test_upstream_overrides_are_canonical_documented_source(self) -> None:
         failures: list[str] = []
         for entry in load_ledger()["entries"]:
@@ -815,6 +908,11 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         runtime_reflect = (ROOT / "runtime/hxrt/reflect.go").read_text(
             encoding="utf-8"
         )
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(
+                encoding="utf-8"
+            )
+        )
 
         for fragment in (
             'GoFuncDecl("Reflect_compare"',
@@ -890,18 +988,10 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertIn('["reflect.go"]', feature_analyzer)
         self.assertIn('case "reflect.go":', reflaxe_compiler)
 
-        registry = json.loads(
-            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
-        )
         groups = {entry["group"]: entry for entry in registry["groups"]}
         self.assertEqual("approved_intrinsic", groups["type_metadata"]["status"])
         self.assertEqual("approved_intrinsic", groups["reflect_metadata"]["status"])
-        self.assertFalse(
-            any(
-                symbol.get("symbol") in {"Reflect", "Type"}
-                for symbol in groups["stdlib_symbols"]["ownedSymbols"]
-            )
-        )
+        self.assertNotIn("stdlib_symbols", groups)
         registered_type_members = set(
             next(
                 symbol["members"]
@@ -1003,7 +1093,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         native_entry = ledger_entries.get("std/hxrt/template/NativeTemplate.hx")
 
         self.assertIsNotNone(template_entry)
-        self.assertEqual(["stdlib_symbols"], template_entry.get("compilerShimGroups"))
+        self.assertEqual([], template_entry.get("compilerShimGroups"))
         self.assertEqual("hxrt_binding", native_entry.get("ownershipClass"))
         self.assertEqual("haxe_go-vfp.8.7.16", native_entry.get("migrationBead"))
         self.assertEqual([], native_entry.get("compilerShimGroups"))
@@ -1286,24 +1376,10 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "haxe__crypto__Sha256",
         )
 
-        stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
-        stdlib_end = compiler.index("function lowerTypeMetadataShimDecls", stdlib_start)
-        stdlib_emitter = compiler[stdlib_start:stdlib_end]
         for path, symbol in zip(crypto_paths, crypto_symbols):
             self.assertNotIn(f'path: "{path}"', classifier)
             self.assertIn(f'"{path}"', planner)
-            self.assertNotIn(symbol, stdlib_emitter)
-
-        stdlib_group = next(
-            group for group in registry["groups"] if group["group"] == "stdlib_symbols"
-        )
-        owned_symbols = {entry["symbol"] for entry in stdlib_group["ownedSymbols"]}
-        selected_paths = {
-            entry["path"] for entry in stdlib_group["classifierSelections"]
-        }
-        for path in crypto_paths:
-            self.assertNotIn(path, owned_symbols)
-            self.assertNotIn(path, selected_paths)
+            self.assertNotIn(symbol, compiler)
 
         for source_path in (
             "std/go/_std/haxe/crypto/Base64.hx",
@@ -1342,18 +1418,11 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         planner = (
             ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
         ).read_text(encoding="utf-8")
-        registry = json.loads(
-            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
-        )
-
         xml_paths = ("Xml", "haxe.xml.Parser", "haxe.xml.Printer")
         for path in xml_paths:
             self.assertNotIn(f'path: "{path}"', classifier)
             self.assertIn(f'"{path}"', planner)
 
-        stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
-        stdlib_end = compiler.index("function lowerTypeMetadataShimDecls", stdlib_start)
-        stdlib_emitter = compiler[stdlib_start:stdlib_end]
         for symbol in (
             'GoDecl.GoStructDecl("Xml"',
             'GoDecl.GoStructDecl("haxe__xml__Parser"',
@@ -1361,19 +1430,8 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             'GoDecl.GoFuncDecl("haxe__xml__Parser_parse"',
             'GoDecl.GoFuncDecl("haxe__xml__Printer_print"',
         ):
-            self.assertNotIn(symbol, stdlib_emitter)
+            self.assertNotIn(symbol, compiler)
         self.assertNotIn('imports.push("encoding/xml")', compiler)
-
-        stdlib_group = next(
-            group for group in registry["groups"] if group["group"] == "stdlib_symbols"
-        )
-        owned_symbols = {entry["symbol"] for entry in stdlib_group["ownedSymbols"]}
-        selected_paths = {
-            entry["path"] for entry in stdlib_group["classifierSelections"]
-        }
-        for path in xml_paths:
-            self.assertNotIn(path, owned_symbols)
-            self.assertNotIn(path, selected_paths)
 
         for source_path in (
             "std/go/_std/Xml.hx",
@@ -1406,48 +1464,18 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         reflaxe_compiler = (
             ROOT / "src/reflaxe/go/GoReflaxeCompiler.hx"
         ).read_text(encoding="utf-8")
-        registry = json.loads(
-            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
-        )
-
         zip_paths = ("haxe.zip.Compress", "haxe.zip.Uncompress")
         for path in zip_paths:
             self.assertNotIn(f'path: "{path}"', classifier)
             self.assertIn(f'"{path}"', planner)
 
-        stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
-        stdlib_end = compiler.index("function lowerTypeMetadataShimDecls", stdlib_start)
-        stdlib_emitter = compiler[stdlib_start:stdlib_end]
         for symbol in (
             'GoDecl.GoStructDecl("haxe__zip__Compress"',
             'GoDecl.GoStructDecl("haxe__zip__Uncompress"',
             'GoDecl.GoFuncDecl("haxe__zip__Compress_run"',
             'GoDecl.GoFuncDecl("haxe__zip__Uncompress_run"',
         ):
-            self.assertNotIn(symbol, stdlib_emitter)
-
-        build_imports_start = compiler.index("function buildSupportImports")
-        import_start = compiler.index(
-            'if (requiredStdlibShimGroups.exists("stdlib_symbols"))',
-            build_imports_start,
-        )
-        import_end = compiler.index(
-            'if (requiredStdlibShimGroups.exists("go_result"))', import_start
-        )
-        stdlib_imports = compiler[import_start:import_end]
-        for native_import in ("bytes", "compress/zlib", "io"):
-            self.assertNotIn(f'imports.push("{native_import}")', stdlib_imports)
-
-        stdlib_group = next(
-            group for group in registry["groups"] if group["group"] == "stdlib_symbols"
-        )
-        owned_symbols = {entry["symbol"] for entry in stdlib_group["ownedSymbols"]}
-        selected_paths = {
-            entry["path"] for entry in stdlib_group["classifierSelections"]
-        }
-        for path in zip_paths:
-            self.assertNotIn(path, owned_symbols)
-            self.assertNotIn(path, selected_paths)
+            self.assertNotIn(symbol, compiler)
 
         for source_path in (
             "std/go/_std/haxe/zip/Compress.hx",
@@ -1512,17 +1540,10 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         serialization_runtime = (
             ROOT / "runtime/hxrt/serialization.go"
         ).read_text(encoding="utf-8")
-        registry = json.loads(
-            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
-        )
-
         for path in ("Date", "Math"):
             self.assertNotIn(f'path: "{path}"', classifier)
             self.assertIn(f'case "{path}"', planner)
 
-        stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
-        stdlib_end = compiler.index("function lowerTypeMetadataShimDecls", stdlib_start)
-        stdlib_emitter = compiler[stdlib_start:stdlib_end]
         for symbol in (
             'GoDecl.GoStructDecl("Date"',
             'GoDecl.GoFuncDecl("Date_',
@@ -1530,30 +1551,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             'GoDecl.GoStructDecl("Math"',
             'GoDecl.GoFuncDecl("Math_',
         ):
-            self.assertNotIn(symbol, stdlib_emitter)
-
-        build_imports_start = compiler.index("function buildSupportImports")
-        import_start = compiler.index(
-            'if (requiredStdlibShimGroups.exists("stdlib_symbols"))',
-            build_imports_start,
-        )
-        import_end = compiler.index(
-            'if (requiredStdlibShimGroups.exists("go_result"))', import_start
-        )
-        stdlib_imports = compiler[import_start:import_end]
-        self.assertNotIn('imports.push("math")', stdlib_imports)
-        self.assertNotIn('imports.push("time")', stdlib_imports)
-
-        stdlib_group = next(
-            group for group in registry["groups"] if group["group"] == "stdlib_symbols"
-        )
-        owned_symbols = {entry["symbol"] for entry in stdlib_group["ownedSymbols"]}
-        selected_paths = {
-            entry["path"] for entry in stdlib_group["classifierSelections"]
-        }
-        for path in ("Date", "Math"):
-            self.assertNotIn(path, owned_symbols)
-            self.assertNotIn(path, selected_paths)
+            self.assertNotIn(symbol, compiler)
 
         for source_path in ("std/go/_std/Date.hx", "std/go/_std/Math.hx"):
             entry = ledger_entries.get(source_path)
@@ -1643,10 +1641,6 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         planner = (
             ROOT / "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx"
         ).read_text(encoding="utf-8")
-        registry = json.loads(
-            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(encoding="utf-8")
-        )
-
         for path in ("UnicodeString", "_UnicodeString.UnicodeString_Impl_"):
             self.assertNotIn(f'path: "{path}"', classifier)
         self.assertIn(
@@ -1661,23 +1655,9 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             planner,
         )
 
-        stdlib_start = compiler.index("function lowerStdlibSymbolShimDecls")
-        stdlib_end = compiler.index("function lowerTypeMetadataShimDecls", stdlib_start)
-        stdlib_emitter = compiler[stdlib_start:stdlib_end]
-        self.assertNotIn("_UnicodeString__UnicodeString_Impl__", stdlib_emitter)
+        self.assertNotIn("_UnicodeString__UnicodeString_Impl__", compiler)
 
         self.assertNotIn("function shouldSkipStaticDefaultArgPadding", compiler)
-
-        stdlib_group = next(
-            group for group in registry["groups"] if group["group"] == "stdlib_symbols"
-        )
-        owned_symbols = {entry["symbol"] for entry in stdlib_group["ownedSymbols"]}
-        selected_paths = {
-            entry["path"] for entry in stdlib_group["classifierSelections"]
-        }
-        self.assertNotIn("UnicodeString", owned_symbols)
-        self.assertNotIn("UnicodeString", selected_paths)
-        self.assertNotIn("_UnicodeString.UnicodeString_Impl_", selected_paths)
 
         source_path = "std/go/_std/UnicodeString.hx"
         entry = ledger_entries.get(source_path)
@@ -2029,22 +2009,20 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
 
         self.assertFalse(
             any(group.get("group") == "regex_serializer" for group in registry["groups"]),
-            "source-owned regex and serialization must not retain a compiler shim group",
+            "source-owned regex must not retain a compiler shim group",
         )
         self.assertNotIn("migration_regex_serializer", registry["decisions"])
         self.assertIn("approved_serialization_source_bridge", registry["decisions"])
-        support_entries = [
-            support
-            for group in registry["groups"]
-            for support in group.get("supportEntryPoints", [])
-        ]
-        self.assertIn(
-            {
-                "context": "lowerSerializationSourceBridgeShimDecls",
-                "status": "approved_intrinsic",
-                "decisionId": "approved_serialization_source_bridge",
-            },
-            support_entries,
+        groups = {group["group"]: group for group in registry["groups"]}
+        serialization_group = groups["serialization_source_bridge"]
+        self.assertEqual(
+            "lowerSerializationSourceBridgeShimDecls",
+            serialization_group["entryPoint"],
+        )
+        self.assertEqual("approved_intrinsic", serialization_group["status"])
+        self.assertEqual(
+            "approved_serialization_source_bridge",
+            serialization_group["decisionId"],
         )
 
         self.assertIn('FEATURE_REGEX = "regex"', feature_analyzer)

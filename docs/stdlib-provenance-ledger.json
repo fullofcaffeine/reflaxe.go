@@ -75,28 +75,7 @@
       ]
     },
     "ambiguities": [],
-    "compilerShimAudit": [
-      {
-        "group": "stdlib_symbols",
-        "decision": "split_migration_debt_from_exact_intrinsics_haxe_go_vfp_8_7_15",
-        "sourcePaths": [
-          "std/go/_std/haxe/Template.hx",
-          "std/go/_std/haxe/ds/BalancedTree.hx",
-          "std/go/_std/sys/ssl/Certificate.hx",
-          "std/go/_std/sys/ssl/Digest.hx",
-          "std/go/_std/sys/ssl/Key.hx",
-          "std/go/_std/sys/ssl/Socket.hx"
-        ],
-        "references": [
-          "docs/compiler-stdlib-intrinsics.json",
-          "src/reflaxe/go/GoCompiler.hx",
-          "src/reflaxe/go/compiler/GoStdlibShimClassifier.hx",
-          "src/reflaxe/go/compiler/GoSourceOwnedStdlibPlanner.hx",
-          "test/test_compiler_stdlib_intrinsic_registry.py"
-        ],
-        "notes": "The monolithic group is migration debt. Only exact type-metadata and representation primitives separately admitted by the intrinsic registry may remain after the split."
-      }
-    ]
+    "compilerShimAudit": []
   },
   "entries": [
     {
@@ -249,9 +228,7 @@
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/Template.hx",
       "migrationBead": "haxe_go-vfp.5.3",
-      "compilerShimGroups": [
-        "stdlib_symbols"
-      ],
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for haxe.Template execution semantics. Template parsing, lookup, concrete and structural iteration, macro policy, and rendering remain in Haxe. haxe_go-vfp.8.7.16 moved its three runtime representation operations to a typed hxrt binding; haxe_go-vfp.8.7.19 lets the generic Reflect path consume selective already-bound generated-method metadata without restoring a Template compiler shim."
     },
     {
@@ -458,9 +435,7 @@
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/ds/BalancedTree.hx",
       "migrationBead": "haxe_go-vfp.5.3",
-      "compilerShimGroups": [
-        "stdlib_symbols"
-      ],
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for direct haxe.ds.BalancedTree runtime ownership, keeping source-owned collection logic out of GoCompiler while preserving ordered map semantics."
     },
     {
@@ -775,9 +750,7 @@
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/ssl/Certificate.hx",
       "migrationBead": "haxe_go-vfp.5.3",
-      "compilerShimGroups": [
-        "stdlib_symbols"
-      ],
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for the public sys.ssl.Certificate API, keeping certificate-facing methods in std while runtime/hxrt/ssl.go owns parsing and trust-root behavior."
     },
     {
@@ -786,9 +759,7 @@
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/ssl/Digest.hx",
       "migrationBead": "haxe_go-vfp.5.3",
-      "compilerShimGroups": [
-        "stdlib_symbols"
-      ],
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for the public sys.ssl.Digest API, keeping the Haxe-facing helpers in std while runtime/hxrt/ssl.go owns the cryptographic implementation."
     },
     {
@@ -806,9 +777,7 @@
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/ssl/Key.hx",
       "migrationBead": "haxe_go-vfp.5.3",
-      "compilerShimGroups": [
-        "stdlib_symbols"
-      ],
+      "compilerShimGroups": [],
       "notes": "Go staged portable override for the public sys.ssl.Key API, keeping Haxe-facing key helpers in std while runtime/hxrt/ssl.go owns PEM parsing and native key handling."
     },
     {
@@ -817,9 +786,7 @@
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/sys/ssl/Socket.hx",
       "migrationBead": "haxe_go-vfp.8.7.14",
-      "compilerShimGroups": [
-        "stdlib_symbols"
-      ],
+      "compilerShimGroups": [],
       "notes": "Canonical source-owned Haxe 4.3.7 sys.ssl.Socket API composed over the staged sys.net.Socket and shared typed handle. TLS transport capabilities live in footprint-explicit socket_ssl.go; configuration, accepted-object identity, and certificate wrapping remain staged source."
     },
     {

@@ -24,13 +24,7 @@ private typedef GoStdlibShimSurface = {
 	  canonical ownership decision in `docs/compiler-stdlib-intrinsics.json`.
 **/
 class GoStdlibShimClassifier {
-	static final SURFACES:Array<GoStdlibShimSurface> = [
-		{kind: "class", path: "Std", groups: ["stdlib_symbols"]},
-		{kind: "class", path: "Type", groups: ["type_metadata"]},
-		{kind: "class", path: "haxe.ds.BalancedTree", groups: ["stdlib_symbols"]},
-		{kind: "class", path: "haxe.io.Path", groups: ["stdlib_symbols"]},
-		{kind: "enum", path: "haxe.ds.Option", groups: ["stdlib_symbols"]}
-	];
+	static final SURFACES:Array<GoStdlibShimSurface> = [{kind: "class", path: "Type", groups: ["type_metadata"]}];
 
 	public static function requiredGroupsForClass(classType:ClassType):Array<String> {
 		return requiredGroups("class", qualifiedPath(classType.pack, classType.name));

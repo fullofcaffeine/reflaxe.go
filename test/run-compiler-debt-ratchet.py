@@ -60,7 +60,6 @@ SHIM_CAPABILITIES = {
     "lowerGoResultShimDecls": "go_result",
     "lowerTypedGoResultShimDecls": "go_result",
     "lowerFileSystemShimDecls": "filesystem",
-    "lowerStdlibSymbolShimDecls": "stdlib_symbols",
     "lowerReflectMetadataShimDecls": "reflect_metadata",
     "lowerTypeMetadataShimDecls": "type_metadata",
     "lowerGeneratedMethodMetadataShimDecls": "generated_method_metadata",

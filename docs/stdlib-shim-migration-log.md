@@ -2386,3 +2386,80 @@ Observed result:
   `incident_api` profile output. Follow-up `haxe_go-k8w2` owns deterministic
   footprint reporting and proof-based demand narrowing. It must retain the
   generic path whenever typed provenance cannot exclude generated class values.
+
+### 2026-07-18: retire the residual `stdlib_symbols` compatibility group (`haxe_go-vfp.8.7.15.7`)
+
+Implementation:
+
+- Started with a failing governance contract covering the compiler dispatcher,
+  classifier, source-owned planner, intrinsic registry, debt policy, provenance
+  ledger, and generated `Option` ownership.
+- Deleted the empty compiler-emitted `Std` carrier and the hand-written
+  `haxe.ds.Option` tag/parameter carrier. Reachable upstream `Option` now enters
+  the ordinary source-owned enum queue and is emitted in
+  `module_haxe_ds_option.go` by the same typed enum pipeline as other Haxe
+  enums.
+- Removed false selectors for `Std`, `haxe.ds.BalancedTree`, `haxe.io.Path`,
+  `haxe.Template`, and the staged SSL family. These selectors existed only to
+  pull in the compatibility carrier and did not own behavior for those
+  modules.
+- Promoted the already-approved serialization invocation adapter to the
+  independently named `serialization_source_bridge` group. It is now selected
+  only when staged `haxe.Serializer` or `haxe.Unserializer` is reachable,
+  instead of being emitted unconditionally or hidden under an unrelated group.
+- Kept `Std.parseInt` and `haxe.Log.trace` honest as explicit migration-required
+  direct calls. `haxe_go-vfp.8.7.22` owns complete source-level `Std` and `Log`
+  semantics, including parsing edges, `PosInfos` formatting, and dynamic trace
+  rebinding; this slice does not claim that the remaining calls are approved
+  representation intrinsics.
+- Removed the retired group from the intrinsic inventory, compiler-debt policy,
+  debt capability map, and bidirectional stdlib provenance audit. Historical
+  migration-log references remain historical evidence rather than current
+  selectors.
+
+Design review:
+
+- Rejected an empty compatibility group because it would preserve a second
+  ownership bucket with no semantic authority.
+- Rejected a new special `Option` carrier because ordinary enum lowering already
+  supplies the required typed shape and keeps source provenance visible.
+- Rejected a partial staged `Std`: publishing an incomplete public API would
+  move the declaration without completing Haxe 4.3.7 behavior. The focused
+  `Std`/`Log` follow-up is the honest boundary.
+- Rejected attaching serialization to Type or Reflect. The bridge invokes
+  package-private generated methods; it neither owns metadata nor public
+  reflection policy.
+- The final second pass corrected the registry owner to the actual staged extern
+  `haxe.GoSerializationBridge` and its five exact members. Serializer and
+  Unserializer remain reachability selectors; the registry does not falsely
+  claim that `hxSerialize` or `hxUnserialize` are members of those public types.
+- The local second pass converged on one design, so no Oracle escalation was
+  needed. This is a selector/ownership cleanup within the existing AST-first
+  pipeline and provides no evidence for a universal program IR.
+
+Validation evidence:
+
+- the new red-to-green residual-group contract and all 27 stdlib migration
+  ledger contracts
+- all six compiler stdlib intrinsic-registry contracts
+- all 297 generated-output snapshots, with 11 expected `main.go` reductions
+  and one new ordinary `module_haxe_ds_option.go` artifact
+- all 138 portable semantic-diff contracts, including `option_date_path` and the
+  serialization custom-hook/resolver family
+- all 55 strict upstream stdlib modules compiled and checked with `go test`,
+  including direct `Std`, `haxe.ds.Option`, Template dependencies, and SSL-adjacent
+  modules
+- all 12 runnable portable/metal example lanes
+- compiler-debt ratchet at `go_raw=554`, `haxe_dynamic=320`, `haxe_any=5`,
+  `go_unsafe=4`, `go_reflection=736`, and `compiler_shim=10`
+
+Observed result:
+
+- `stdlib_symbols` is no longer a production selector, registry group,
+  provenance dependency, or debt allowance.
+- SSL, Template, Path, and collection programs no longer receive an unrelated
+  empty `Std` plus `Option` carrier.
+- `Option` construction and matching retain portable behavior while gaining an
+  ordinary source-owned generated module.
+- Serialization retains its exact same-package capability without becoming a
+  second semantic product or profile-specific branch.

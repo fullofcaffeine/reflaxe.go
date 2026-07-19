@@ -163,15 +163,18 @@
       ],
       "reviewCondition": "Remove the dispatcher when no portable declaration group remains."
     },
-    "migration_stdlib_symbols": {
-      "what": "Split the remaining Std nominal carrier, Option representation, and false planner selectors by their correct source or runtime owner; crypto, XML, zip, Date, Math, Reflect, and Type have already left the group.",
-      "why": "The residual group still combines unrelated compatibility carriers and selectors, making ownership and runtime consequences harder to audit.",
-      "how": "Migrate one exact symbol family at a time with source, runtime, snapshot, semantic, and registry evidence before deleting the residual dispatcher branch.",
+    "migration_std_log_source_ownership": {
+      "what": "Move the remaining exact Std.parseInt and haxe.Log.trace rewrites behind complete source-owned Std and Log APIs.",
+      "why": "Parsing edge cases, trace formatting, source positions, and dynamic trace rebinding are public Haxe behavior; they are separate from the retired declaration-carrier group and must not be mislabeled as approved representation intrinsics.",
+      "how": "Stage the complete APIs, preserve exact typed runtime primitives only where their representations require them, and prove interpreter-compatible behavior plus Go-only trace rebinding before removing these direct rewrites.",
       "evidence": [
-        "stdlib_migration_ledger_contract",
-        "compiler_stdlib_intrinsic_registry_contract"
+        "sys/socket_input_service_surface",
+        "http_request_callbacks_contract",
+        "stdlib/sys_db_io_direct",
+        "sys_db_io_contract",
+        "haxe_go-vfp.8.7.22"
       ],
-      "reviewCondition": "Delete the group once every remaining owned symbol and false selector has an explicit replacement."
+      "reviewCondition": "Delete this migration decision when complete source-owned Std and Log surfaces own the behavior and no broad direct rewrite remains."
     }
   },
   "dispatcher": {
@@ -212,60 +215,32 @@
       ]
     },
     {
-      "group": "stdlib_symbols",
-      "entryPoint": "lowerStdlibSymbolShimDecls",
-      "status": "migration_required",
-      "decisionId": "migration_stdlib_symbols",
-      "followUpBead": "haxe_go-vfp.8.7.15",
+      "group": "serialization_source_bridge",
+      "entryPoint": "lowerSerializationSourceBridgeShimDecls",
+      "status": "approved_intrinsic",
+      "decisionId": "approved_serialization_source_bridge",
       "ownedSymbols": [
         {
-          "symbol": "Std",
+          "symbol": "haxe.GoSerializationBridge",
           "scope": "partial_type",
           "members": [
-            "<nominal type carrier>"
+            "callSerializeHook",
+            "callUnserializeHook",
+            "hasSerializeHook",
+            "resolveClass",
+            "resolveEnum"
           ]
-        },
-        {
-          "symbol": "haxe.ds.Option",
-          "scope": "complete_type"
         }
       ],
       "compilerOwnedAuthorities": [],
-      "classifierSelections": [
-        {
-          "kind": "class",
-          "path": "Std"
-        },
-        {
-          "kind": "class",
-          "path": "haxe.ds.BalancedTree"
-        },
-        {
-          "kind": "class",
-          "path": "haxe.io.Path"
-        },
-        {
-          "kind": "enum",
-          "path": "haxe.ds.Option"
-        }
-      ],
+      "classifierSelections": [],
       "plannerSelections": [
-        "haxe.Template",
-        "sys.ssl.Certificate",
-        "sys.ssl.Digest",
-        "sys.ssl.Key",
-        "sys.ssl.Socket",
-        "sys.ssl._Socket.Socket_Impl_"
+        "haxe.Serializer",
+        "haxe.Unserializer"
       ],
       "dependencies": [],
       "declaresDependencyBlock": false,
-      "supportEntryPoints": [
-        {
-          "context": "lowerSerializationSourceBridgeShimDecls",
-          "status": "approved_intrinsic",
-          "decisionId": "approved_serialization_source_bridge"
-        }
-      ]
+      "supportEntryPoints": []
     },
     {
       "group": "type_metadata",
@@ -417,8 +392,8 @@
     {
       "symbol": "Std.parseInt",
       "status": "migration_required",
-      "decisionId": "migration_stdlib_symbols",
-      "followUpBead": "haxe_go-vfp.8.7.15"
+      "decisionId": "migration_std_log_source_ownership",
+      "followUpBead": "haxe_go-vfp.8.7.22"
     },
     {
       "symbol": "Std.string",
@@ -443,8 +418,8 @@
     {
       "symbol": "haxe.Log.trace",
       "status": "migration_required",
-      "decisionId": "migration_stdlib_symbols",
-      "followUpBead": "haxe_go-vfp.8.7.15"
+      "decisionId": "migration_std_log_source_ownership",
+      "followUpBead": "haxe_go-vfp.8.7.22"
     },
     {
       "symbol": "haxe._Rest.Rest_Impl_.append",

@@ -196,18 +196,6 @@
       "surface": "compiler"
     },
     {
-      "capability": "stdlib_symbols",
-      "classification": "avoidable",
-      "context": "lowerStdlibSymbolShimDecls",
-      "exception_id": "compiler_stdlib_migration_debt",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "compiler_shim",
-      "owner": "compiler_shim",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
       "capability": "type_metadata",
       "classification": "required",
       "context": "lowerTypeMetadataShimDecls",
@@ -310,18 +298,6 @@
       "exception_id": "typed_ast_gap",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 83,
-      "metric": "go_raw",
-      "owner": "compiler_shim",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
-      "capability": "stdlib_symbols",
-      "classification": "avoidable",
-      "context": "lowerStdlibSymbolShimDecls",
-      "exception_id": "typed_ast_gap",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 2,
       "metric": "go_raw",
       "owner": "compiler_shim",
       "profile": "shared",
