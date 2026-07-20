@@ -10,7 +10,7 @@ The short version is:
    contract.
 2. The commit records that impact as a Conventional Commit.
 3. Semantic Release maps the commit to the next version under the reviewed
-   `0.x` or stable-major policy.
+   [`0.x` or stable-major policy](semver-lifecycle-policy.md).
 4. CI checks the underlying compatibility, packaging, behavior, and release
    evidence. It does not guess intent from a source-code diff.
 
@@ -88,6 +88,9 @@ in release policy. Semantic Release cannot turn an ordinary breaking
 change on `0.x` into `1.0.0` by itself.
 
 ## Deprecation and compatibility
+
+The detailed windows, experimental treatment, and stable admission checklist
+live in [SemVer and Compatibility Lifecycle Policy](semver-lifecycle-policy.md).
 
 During `0.x`, an incompatible public change advances the minor version and
 must carry migration guidance. A documented compatibility alias or selector is

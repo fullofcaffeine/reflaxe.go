@@ -297,5 +297,4 @@ Module evidence never admits every member. Release admission comes only from the
 | `haxe_go-vfp.10.4` | Network, HTTP, socket, timeout, cancellation, and cleanup closure | portable-networking |
 | `haxe_go-vfp.9.1` | Governed Go-native capability matrix | go-native |
 | `haxe_go-vfp.4.8` | Checksummed same-SHA hosted release assets and provenance | published beta-baseline artifact |
-| `haxe_go-vfp.6.4` | Pre-1.0 SemVer, deprecation, and stable-1.x admission policy | compatibility policy closure |
 | `haxe_go-vfp.12.7` | Separate stable-1.x admission decision | any stable 1.x claim |

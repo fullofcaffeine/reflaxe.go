@@ -183,6 +183,8 @@ Release version and tested-source policy:
 [docs/release-version-policy.md](release-version-policy.md)
 Public compatibility and SemVer boundary:
 [docs/public-contract.md](public-contract.md)
+Detailed compatibility lifecycle and stable-admission policy:
+[docs/semver-lifecycle-policy.md](semver-lifecycle-policy.md)
 Licensing and generated-output policy: [LICENSING.md](../LICENSING.md)
 Release checklist: [docs/release-readiness-checklist.md](release-readiness-checklist.md)
 Performance budget policy: [docs/performance-budget-policy.md](performance-budget-policy.md)
@@ -206,5 +208,6 @@ Supply-chain policy: [docs/supply-chain-policy.md](supply-chain-policy.md)
 - Supply-chain policy: [docs/supply-chain-policy.md](supply-chain-policy.md)
 - Vendored Reflaxe provenance: [docs/vendor-reflaxe-provenance.md](vendor-reflaxe-provenance.md)
 - Public contract and SemVer boundary: [docs/public-contract.md](public-contract.md)
+- SemVer and compatibility lifecycle: [docs/semver-lifecycle-policy.md](semver-lifecycle-policy.md)
 - Release version and source identity: [docs/release-version-policy.md](release-version-policy.md)
 - Release readiness checklist: [docs/release-readiness-checklist.md](release-readiness-checklist.md)

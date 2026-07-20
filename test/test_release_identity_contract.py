@@ -51,7 +51,7 @@ class ReleaseIdentityContractTest(unittest.TestCase):
             names,
             ["./scripts/release/analyze-commits.mjs", "@semantic-release/github"],
         )
-        self.assertEqual(plugins[0][1]["approvedStableMajors"], [])
+        self.assertEqual(plugins[0][1], {"policyPath": "release/policy.json"})
         self.assertNotIn("@semantic-release/git", names)
         self.assertNotIn("@semantic-release/changelog", names)
 

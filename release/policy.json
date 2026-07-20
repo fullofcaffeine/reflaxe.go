@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "normalChannel": {
+    "branch": "master",
+    "tagFormat": "v${version}",
+    "prerelease": false,
+    "productMaturityAuthority": "docs/compatibility-support-manifest.json"
+  },
+  "deprecationPolicy": {
+    "majorZero": {
+      "noticeRelease": "minor",
+      "minimumFunctionalMinorReleasesAfterNotice": 1,
+      "earliestRemovalMinorOffset": 2
+    },
+    "stable": {
+      "noticeRelease": "minor",
+      "removalRelease": "next-major"
+    },
+    "emergencyExceptionRequires": [
+      "review-record",
+      "release-note",
+      "migration-guidance"
+    ]
+  },
+  "experimentalPolicy": {
+    "compatibilityPromise": "excluded-unless-admitted",
+    "minimumChangeRelease": "minor",
+    "stableMinorException": "requires-explicit-surface-proof"
+  },
+  "releaseLines": {
+    "0": {
+      "stage": "initial-development",
+      "breakingBump": "minor"
+    },
+    "1": {
+      "stage": "stable",
+      "requirements": [
+        {
+          "id": "public-contract",
+          "status": "complete",
+          "record": "haxe_go-vfp.6.3"
+        },
+        {
+          "id": "stable-scope-and-support",
+          "status": "pending",
+          "record": "haxe_go-vfp.12.7"
+        },
+        {
+          "id": "release-readiness",
+          "status": "pending",
+          "record": "haxe_go-vfp.6.5"
+        },
+        {
+          "id": "published-beta-baseline",
+          "status": "pending",
+          "record": "haxe_go-vfp.4.8"
+        },
+        {
+          "id": "consumer-upgrade-rehearsal",
+          "status": "pending",
+          "record": "haxe_go-vfp.12.4"
+        },
+        {
+          "id": "security-and-licensing",
+          "status": "pending",
+          "record": "haxe_go-vfp.6.5"
+        },
+        {
+          "id": "independent-stable-review",
+          "status": "pending",
+          "record": "haxe_go-vfp.12.7"
+        }
+      ],
+      "approval": null
+    }
+  }
+}

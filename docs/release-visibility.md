@@ -53,7 +53,9 @@ compatibility paragraph for release notes. The
 [generated support matrix](compatibility-support-matrix.md) explains the human
 scope; the [JSON manifest](compatibility-support-manifest.json) is authoritative.
 The [public contract](public-contract.md) explains which changes to those and
-other consumer surfaces require a SemVer classification.
+other consumer surfaces require a SemVer classification. The
+[lifecycle policy](semver-lifecycle-policy.md) governs deprecation,
+experimental changes, channels, and stable-major admission.
 
 ## Related files
 
@@ -64,6 +66,8 @@ other consumer surfaces require a SemVer classification.
 - `docs/compatibility-support-matrix.md`
 - `docs/compatibility-release-status.md`
 - `docs/public-contract.md`
+- `docs/semver-lifecycle-policy.md`
+- `release/policy.json`
 - `docs/toolchain-policy.json`
 - `.releaserc.json`
 - `scripts/release/verify-release-policy.py`

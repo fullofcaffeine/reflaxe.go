@@ -58,6 +58,12 @@
       "level": "policy"
     },
     {
+      "id": "policy:semver-lifecycle",
+      "kind": "path",
+      "path": "docs/semver-lifecycle-policy.md",
+      "level": "policy"
+    },
+    {
       "id": "policy:known-gaps",
       "kind": "path",
       "path": "docs/known-gaps.md",
@@ -1386,11 +1392,6 @@
       "id": "haxe_go-vfp.4.8",
       "scope": "Checksummed same-SHA hosted release assets and provenance",
       "release_blocker_for": "published beta-baseline artifact"
-    },
-    {
-      "id": "haxe_go-vfp.6.4",
-      "scope": "Pre-1.0 SemVer, deprecation, and stable-1.x admission policy",
-      "release_blocker_for": "compatibility policy closure"
     },
     {
       "id": "haxe_go-vfp.12.7",

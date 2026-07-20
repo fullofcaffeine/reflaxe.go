@@ -121,8 +121,9 @@ No warning or removal release is scheduled. During the current 0.x line,
 continues to describe it as a preset rather than a product mode.
 
 The `haxe_go-vfp.6.3` public contract places the selector and its aliases in the
-federated boundary. Bead `haxe_go-vfp.6.4` owns the general pre-1.0 and stable
-deprecation policy. At 1.0 admission, the project must explicitly decide whether
+federated boundary. The [SemVer lifecycle policy](semver-lifecycle-policy.md),
+landed through `haxe_go-vfp.6.4`, now defines their pre-1.0 and stable
+deprecation floor. At 1.0 admission, the project must explicitly decide whether
 the still-supported selector enters the stable public contract; if it does, it
 remains supported throughout 1.x and removal is major-only.
 

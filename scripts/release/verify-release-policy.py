@@ -15,6 +15,7 @@ DEVELOPMENT_VERSION = "0.0.0"
 TAG_FORMAT = "v$" + "{version}"
 ANALYZER = "./scripts/release/analyze-commits.mjs"
 GITHUB_PLUGIN = "@semantic-release/github"
+POLICY_PATH = "release/policy.json"
 
 
 def fail(message: str) -> NoReturn:
@@ -85,9 +86,9 @@ def verify_release_config() -> None:
     if (
         not isinstance(plugins[0], list)
         or len(plugins[0]) != 2
-        or plugins[0][1] != {"approvedStableMajors": []}
+        or plugins[0][1] != {"policyPath": POLICY_PATH}
     ):
-        fail("release analyzer must declare the reviewed approvedStableMajors list")
+        fail("release analyzer must consume the reviewed release/policy.json checklist")
 
     expected_github_options = {
         "successCommentCondition": False,
@@ -181,6 +182,7 @@ def main() -> int:
     try:
         for path in (
             "scripts/release/analyze-commits.mjs",
+            "release/policy.json",
             "scripts/release/run-same-sha-release.sh",
             "scripts/release/stage-release-metadata.py",
             "scripts/release/verify-license-policy.py",
@@ -188,6 +190,7 @@ def main() -> int:
             "test/test_release_version_policy.mjs",
             "test/test_same_sha_release_wrapper.py",
             "docs/release-version-policy.md",
+            "docs/semver-lifecycle-policy.md",
             "LICENSING.md",
             "license-policy.json",
         ):

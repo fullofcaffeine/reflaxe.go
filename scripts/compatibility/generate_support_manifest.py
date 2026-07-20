@@ -696,6 +696,7 @@ def render_release_status(manifest: dict[str, Any]) -> str:
             "",
             "- `docs/compatibility-support-manifest.json`",
             "- public SemVer boundary: `docs/public-contract.md`",
+            "- lifecycle and stable admission: `docs/semver-lifecycle-policy.md`",
             "- verify with `npm run compatibility:verify`",
             "",
         ]

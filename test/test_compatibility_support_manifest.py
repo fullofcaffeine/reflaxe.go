@@ -243,7 +243,8 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
         self.assertIn("Not admitted by this release scope", release)
         self.assertNotIn("haxe_go-vfp.6.3", release)
         self.assertIn("docs/public-contract.md", release)
-        self.assertIn("haxe_go-vfp.6.4", release)
+        self.assertNotIn("haxe_go-vfp.6.4", release)
+        self.assertIn("docs/semver-lifecycle-policy.md", release)
 
     def test_release_wiring_consumes_the_generated_manifest(self) -> None:
         package_json = (REPO_ROOT / "package.json").read_text(encoding="utf-8")

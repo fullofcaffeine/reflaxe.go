@@ -7,7 +7,7 @@
     [
       "./scripts/release/analyze-commits.mjs",
       {
-        "approvedStableMajors": []
+        "policyPath": "release/policy.json"
       }
     ],
     [

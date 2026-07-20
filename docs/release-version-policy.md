@@ -8,6 +8,8 @@ tag lineage and can create a new tag only at the exact CI-tested SHA.
 The [public contract](public-contract.md) defines which consumer-visible
 changes require patch, minor, or breaking classification. This document owns
 the mechanical mapping from that authored classification to a release number.
+The [SemVer lifecycle policy](semver-lifecycle-policy.md) owns deprecation,
+experimental-surface, release-channel, and stable-admission rules.
 
 ## What, why, and how
 
@@ -66,11 +68,21 @@ must not promote the project to `1.0.0` accidentally.
 
 ## Stable-major approval
 
-The analyzer option `approvedStableMajors` is a reviewed, contiguous
-list. It is empty today. Graduation to major 1 requires changing it to
-`[1]` in a tested review. A later major 2 requires `[1, 2]`.
-Skipped, duplicated, unknown, prerelease, and noncanonical lineages fail
-closed.
+The analyzer reads `release/policy.json`. Every stable release line has named
+requirements and an approval record that remains `null` until those
+requirements are complete. Graduation to major 1 requires all major-1 rows to
+be complete plus a dated, commit-pinned human approval. Later majors require
+their own contiguous release-line record. Pending, skipped, unknown,
+prerelease, and noncanonical lineages fail closed.
+
+The approval points to the reviewed source commit immediately beneath the
+approval metadata. At the major transition, Git must contain that commit, it
+must be an ancestor of the candidate, and the policy at that commit must equal
+the candidate policy except for the target approval field. Only that policy
+approval plus the Beads interaction log may change afterward. Any other product,
+policy, test, documentation, workflow, or packaging change makes the approval
+stale and requires a new review. After the major ships, the historical approval
+does not gate ordinary maintenance within that already-admitted line.
 
 ## Mutation-free publication
 

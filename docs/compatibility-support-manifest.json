@@ -5,7 +5,7 @@
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "72f68ba5e1febbe7bcdc585c935f392275d4cd11a8064efa7de426af74a5df58",
+    "compatibility_source_sha256": "b78a00bbc8f933c801b3f2f121a3fe0d711d9f58e4f55d6d207c1b65bb2c75af",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
@@ -232,6 +232,12 @@
       "id": "policy:public-contract",
       "kind": "path",
       "path": "docs/public-contract.md",
+      "level": "policy"
+    },
+    {
+      "id": "policy:semver-lifecycle",
+      "kind": "path",
+      "path": "docs/semver-lifecycle-policy.md",
       "level": "policy"
     },
     {
@@ -3610,11 +3616,6 @@
       "id": "haxe_go-vfp.4.8",
       "scope": "Checksummed same-SHA hosted release assets and provenance",
       "release_blocker_for": "published beta-baseline artifact"
-    },
-    {
-      "id": "haxe_go-vfp.6.4",
-      "scope": "Pre-1.0 SemVer, deprecation, and stable-1.x admission policy",
-      "release_blocker_for": "compatibility policy closure"
     },
     {
       "id": "haxe_go-vfp.12.7",
