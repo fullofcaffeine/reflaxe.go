@@ -69,6 +69,37 @@ class SameShaReleaseWrapperTest(unittest.TestCase):
             encoding="utf-8",
         )
         (self.repo / "fake-release.sh").chmod(0o755)
+        (self.repo / "fake-builder.py").write_text(
+            """#!/usr/bin/env python3
+import json, os, pathlib, sys
+args = sys.argv[1:]
+out = pathlib.Path(args[args.index('--output-dir') + 1])
+tag = args[args.index('--tag') + 1]
+sha = args[args.index('--source-sha') + 1]
+out.mkdir(parents=True)
+(out / 'release-assets.json').write_text(json.dumps({
+    'schemaVersion': 1, 'tag': tag, 'sourceSha': sha, 'assets': []
+}) + '\\n')
+with open(os.environ['RELEASE_PIPELINE_LOG'], 'a') as stream:
+    stream.write('build ' + ' '.join(args) + '\\n')
+""",
+            encoding="utf-8",
+        )
+        (self.repo / "fake-verifier.py").write_text(
+            """#!/usr/bin/env python3
+import os, sys
+with open(os.environ['RELEASE_PIPELINE_LOG'], 'a') as stream:
+    stream.write('verify ' + ' '.join(sys.argv[1:]) + '\\n')
+""",
+            encoding="utf-8",
+        )
+        (self.repo / "fake-reconciler.mjs").write_text(
+            """import fs from 'node:fs';
+fs.appendFileSync(process.env.RELEASE_PIPELINE_LOG, 'reconcile ' + process.argv.slice(2).join(' ') + '\\n');
+""",
+            encoding="utf-8",
+        )
+        self.pipeline_log = self.repo / "pipeline.log"
         self.write_license_policy("approved")
         subprocess.run(["git", "add", "."], cwd=self.repo, check=True)
         subprocess.run(
@@ -184,6 +215,11 @@ class SameShaReleaseWrapperTest(unittest.TestCase):
             "CI": "false",
             "RELEASE_TESTED_SHA": tested_sha or self.tested_sha,
             "SEMANTIC_RELEASE_BIN": str(self.repo / "fake-release.sh"),
+            "GITHUB_REPOSITORY": "owner/repo",
+            "RELEASE_ARTIFACT_BUILDER": str(self.repo / "fake-builder.py"),
+            "RELEASE_ASSET_VERIFIER": str(self.repo / "fake-verifier.py"),
+            "RELEASE_RECONCILER": str(self.repo / "fake-reconciler.mjs"),
+            "RELEASE_PIPELINE_LOG": str(self.pipeline_log),
         }
         return subprocess.run(
             ["bash", "scripts/release/run-same-sha-release.sh"],
@@ -201,6 +237,7 @@ class SameShaReleaseWrapperTest(unittest.TestCase):
             proc.stdout,
         )
         self.assertEqual(self.git("rev-parse", "HEAD"), self.tested_sha)
+        self.assertFalse(self.pipeline_log.exists())
 
     def test_unapproved_license_policy_fails_before_release(self) -> None:
         self.write_license_policy("unresolved")
@@ -224,6 +261,27 @@ class SameShaReleaseWrapperTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertIn("v0.54.0", proc.stdout)
         self.assertEqual(self.git("rev-parse", "v0.54.0^{commit}"), self.tested_sha)
+        pipeline = self.pipeline_log.read_text(encoding="utf-8").splitlines()
+        self.assertEqual(3, len(pipeline), pipeline)
+        self.assertIn("build --version 0.54.0 --tag v0.54.0", pipeline[0])
+        self.assertIn("verify --assets", pipeline[1])
+        self.assertIn("reconcile --repository owner/repo --assets", pipeline[2])
+
+    def test_existing_exact_tag_completes_interrupted_release(self) -> None:
+        subprocess.run(["git", "tag", "v0.54.0"], cwd=self.repo, check=True)
+        proc = self.run_wrapper()
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("completing or verifying existing exact tag v0.54.0", proc.stdout)
+        pipeline = self.pipeline_log.read_text(encoding="utf-8").splitlines()
+        self.assertEqual(3, len(pipeline), pipeline)
+
+    def test_multiple_existing_exact_tags_fail_before_asset_build(self) -> None:
+        subprocess.run(["git", "tag", "v0.54.0"], cwd=self.repo, check=True)
+        subprocess.run(["git", "tag", "v0.54.1"], cwd=self.repo, check=True)
+        proc = self.run_wrapper()
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("multiple canonical release tags", proc.stderr)
+        self.assertFalse(self.pipeline_log.exists())
 
     def test_tracked_checkout_mutation_fails(self) -> None:
         self.set_fake_release("printf 'mutated\\n' >> tracked.txt\n")

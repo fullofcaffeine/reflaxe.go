@@ -175,6 +175,34 @@ async function proveSemanticReleaseIntegration() {
       result?.nextRelease?.notes ?? "",
       /compare\/v0\.53\.1\.\.\.v0\.53\.2/,
     );
+
+    const published = await semanticRelease(
+      {
+        branches: ["master"],
+        tagFormat: "v$" + "{version}",
+        repositoryUrl: pathToFileURL(cwd).href,
+        plugins: [[policyPlugin, { policyPath: "release-policy.json" }]],
+        ci: false,
+      },
+      {
+        cwd,
+        env: process.env,
+        stdout: silentStream,
+        stderr: silentStream,
+      },
+    );
+    assert.equal(published?.nextRelease?.gitTag, "v0.53.2");
+    assert.equal(
+      execFileSync("git", ["rev-parse", "v0.53.2^{commit}"], {
+        cwd,
+        encoding: "utf8",
+      }).trim(),
+      execFileSync("git", ["rev-parse", "HEAD"], {
+        cwd,
+        encoding: "utf8",
+      }).trim(),
+      "version-only semantic-release must create the tag at tested HEAD",
+    );
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }

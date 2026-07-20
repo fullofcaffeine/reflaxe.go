@@ -21,6 +21,8 @@ STAGER = ROOT / "scripts" / "release" / "stage-release-metadata.py"
 POLICY_CHECK = ROOT / "scripts" / "release" / "verify-release-policy.py"
 RELEASE_STATUS = ROOT / "scripts" / "release" / "check-release-state.sh"
 RECONCILER = ROOT / "scripts" / "release" / "reconcile-github-release.mjs"
+ASSET_BUILDER = ROOT / "scripts" / "release" / "build-haxelib-artifact.py"
+ASSET_VERIFIER = ROOT / "scripts" / "release" / "verify-release-assets.py"
 POLICY_DOC = ROOT / "docs" / "release-version-policy.md"
 RECONCILIATION_DOC = ROOT / "docs" / "release-reconciliation.md"
 RELEASE_CONTRACTS = ROOT / "test" / "run-release-contracts.py"
@@ -51,17 +53,15 @@ class ReleaseIdentityContractTest(unittest.TestCase):
 
         self.assertEqual(
             names,
-            ["./scripts/release/analyze-commits.mjs", "@semantic-release/github"],
+            ["./scripts/release/analyze-commits.mjs"],
         )
         self.assertEqual(plugins[0][1], {"policyPath": "release/policy.json"})
         self.assertNotIn("@semantic-release/git", names)
         self.assertNotIn("@semantic-release/changelog", names)
 
-        github_options = plugins[1][1]
-        self.assertFalse(github_options["successCommentCondition"])
-        self.assertFalse(github_options["failCommentCondition"])
-        self.assertFalse(github_options["releasedLabels"])
-        self.assertFalse(github_options["addReleases"])
+        self.assertNotIn("@semantic-release/github", names)
+        package = json.loads(PACKAGE.read_text(encoding="utf-8"))
+        self.assertNotIn("@semantic-release/github", package["devDependencies"])
 
     def test_release_scripts_and_workflow_bind_the_exact_tested_sha(self) -> None:
         package = json.loads(PACKAGE.read_text(encoding="utf-8"))
@@ -90,10 +90,15 @@ class ReleaseIdentityContractTest(unittest.TestCase):
             scripts["release:reconcile"],
             "node scripts/release/reconcile-github-release.mjs",
         )
+        self.assertEqual(
+            scripts["release:verify-assets"],
+            "python3 scripts/release/verify-release-assets.py",
+        )
 
         workflow = WORKFLOW.read_text(encoding="utf-8")
         release_job = workflow.split("\n  semantic-release:", 1)[1]
         github_sha = "$" + "{{ github.sha }}"
+        haxe_version = "$" + "{{ env.HAXE_VERSION }}"
         self.assertIn("workflow_dispatch:\n    inputs:\n      publish_release:", workflow)
         self.assertIn(
             "if: github.event_name == 'workflow_dispatch' && "
@@ -105,6 +110,9 @@ class ReleaseIdentityContractTest(unittest.TestCase):
         self.assertIn("RELEASE_TESTED_SHA: " + github_sha, release_job)
         self.assertIn("run: npm run release:license-policy", release_job)
         self.assertIn("run: npm run release", release_job)
+        self.assertIn("name: Setup Haxe (linux)", release_job)
+        self.assertIn("uses: ./.github/actions/setup-haxe-linux", release_job)
+        self.assertIn("haxe-version: " + haxe_version, release_job)
         self.assertNotIn("issues: write", release_job)
         self.assertNotIn("pull-requests: write", release_job)
         self.assertNotIn("continue-on-error:", release_job)
@@ -126,8 +134,15 @@ class ReleaseIdentityContractTest(unittest.TestCase):
             "git tag --list",
             "git ls-remote",
             "semantic-release",
+            "build-haxelib-artifact.py",
+            "verify-release-assets.py",
+            "reconcile-github-release.mjs",
+            "release-assets.json",
         ):
             self.assertIn(phrase, wrapper)
+
+        self.assertTrue(ASSET_BUILDER.is_file())
+        self.assertTrue(ASSET_VERIFIER.is_file())
 
         release_status = RELEASE_STATUS.read_text(encoding="utf-8")
         self.assertIn("scripts/release/verify-release-policy.py", release_status)

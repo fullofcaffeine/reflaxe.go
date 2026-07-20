@@ -9,15 +9,6 @@
       {
         "policyPath": "release/policy.json"
       }
-    ],
-    [
-      "@semantic-release/github",
-      {
-        "successCommentCondition": false,
-        "failCommentCondition": false,
-        "releasedLabels": false,
-        "addReleases": false
-      }
     ]
   ]
 }

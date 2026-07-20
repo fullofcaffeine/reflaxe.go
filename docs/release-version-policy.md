@@ -30,7 +30,11 @@ The release identity flow is:
 6. The wrapper verifies that semantic-release changed neither `HEAD`
    nor tracked files. If a tag was created, that tag must resolve to the tested
    commit; CI also verifies the tag at `origin`.
-7. When versioned package metadata is needed,
+7. If semantic-release created a tag—or a prior interrupted attempt already
+   left exactly one canonical tag at this tested commit—the same wrapper builds
+   and independently verifies all release assets, reconciles one GitHub draft,
+   and succeeds only after GitHub reports the published release immutable.
+8. When versioned package metadata is needed,
    `scripts/release/stage-release-metadata.py` writes it into a new
    output directory and binds the version, tag, source commit, and metadata
    hashes in `release-identity.json`. It never edits the source
@@ -84,12 +88,16 @@ policy, test, documentation, workflow, or packaging change makes the approval
 stale and requires a new review. After the major ships, the historical approval
 does not gate ordinary maintenance within that already-admitted line.
 
-## Mutation-free publication
+## Version-only semantic-release
 
-The semantic-release configuration contains only the policy analyzer and the
-GitHub publisher. Release automation never rewrites or commits CHANGELOG.md,
-`package.json`, or `haxelib.json`. Hosted release notes are
-generated from commits between the exact previous and next Git tags.
+The semantic-release configuration contains only the policy analyzer. It owns
+one decision: whether the tested commit needs a new version and tag. It does
+not create a GitHub Release. That avoids publishing an empty public release
+before the four approved files exist. The same wrapper takes over after tag
+creation, creates a draft, uploads and verifies the complete asset set, and
+then publishes it. Release automation never rewrites or commits CHANGELOG.md,
+`package.json`, or `haxelib.json`. GitHub generates hosted release notes from
+the commits between the exact previous and next Git tags.
 
 The final workflow job exists only for a manual run whose
 `publish_release` input is true on `master`. It waits for
@@ -114,7 +122,7 @@ The output directory must not already exist. Versions must be canonical stable
 SemVer and source identities must be full lowercase 40-character commit
 hashes. The source checkout remains byte-identical.
 
-## Deterministic Haxelib artifacts
+## Deterministic release asset build
 
 Build release-ready package evidence from an exact tested commit with:
 
@@ -133,27 +141,49 @@ fixed ZIP metadata, generated `.cross.hx` ownership, and the absence of local
 paths or development debris. The two ZIPs and their embedded manifests must be
 byte-identical before any output directory is created.
 
-The output directory contains exactly:
+The output directory contains four files intended for GitHub:
 
 - `reflaxe.go-<version>.zip`
 - `reflaxe.go-<version>.zip.sha256`
 - `reflaxe.go-<version>.manifest.json`
+- `reflaxe.go-<version>.provenance.json`
+
+It also contains `release-assets.json`, a local control document used to hand
+the four files to the hosted-release reconciler. The control document is not a
+fifth hosted asset: listing itself would require an impossible self-hash.
 
 The JSON manifest binds the artifact digest and complete embedded
-source-to-package map to the version, proposed tag, and source commit. Artifact
-construction happens before publication, so the proposed tag may not exist
-yet. If an existing tag has that name, the builder fails unless it already
-resolves to the supplied source SHA. The later publication transaction remains
-responsible for creating or verifying that same tag without moving it.
-Successful construction is not publication approval by itself: isolated
-package execution, licensing/notices, hosted provenance, and release-state
-checks remain separate fail-closed gates.
+source-to-package map to the version, tag, and source commit. The provenance is
+an in-toto Statement v1 with a SLSA provenance v1 predicate. It hashes the ZIP,
+checksum, and content manifest and identifies the exact builder source, tag,
+commit, and two-build `git archive` method. It is truthful build provenance,
+not a claim that a person cryptographically signed the files.
+
+The local control document records each hosted file's relative path, byte
+count, and `sha256:<digest>`. `release:verify-assets` independently re-hashes
+every file, checks the checksum sidecar, content identity, reproducibility
+evidence, and provenance subjects before the GitHub reconciler may mutate a
+draft. The reconciler verifies GitHub's hosted sizes and digests again and
+publishes only the complete draft; a failure leaves it unpublished. A rerun
+rebuilds the same bytes and completes or read-only verifies that exact tag. An
+existing tag with the requested name is accepted only when it already points
+to the supplied source commit.
 
 Verify a candidate ZIP independently with:
 
 ```bash
 npm run release:verify-haxelib -- \
   --zip /tmp/haxe-go-haxelib-artifact/reflaxe.go-0.54.0.zip \
+  --version 0.54.0 \
+  --tag v0.54.0 \
+  --source-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+```
+
+Verify the complete four-file bundle and handoff with:
+
+```bash
+npm run release:verify-assets -- \
+  --assets /tmp/haxe-go-haxelib-artifact/release-assets.json \
   --version 0.54.0 \
   --tag v0.54.0 \
   --source-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -210,9 +240,8 @@ the source/component inventory and refuses release unless the accountable
 decision in `license-policy.json` covers the current scope digest.
 
 `npm run release:status` composes this policy with the supported toolchain,
-supply-chain, tag visibility, and release asset-path checks. Artifact
-construction, checksums, and provenance publication remain the
-`haxe_go-vfp.4.8` release-artifact gate. Retry, idempotence, and partial-state
-rules are defined in the [release reconciliation contract](release-reconciliation.md);
-they preserve this same source identity and run in the same release path rather
-than a separate repair workflow.
+supply-chain, tag visibility, and complete release-asset wiring. Retry,
+idempotence, and partial-state rules are defined in the
+[release reconciliation contract](release-reconciliation.md); they preserve
+this same source identity and run in the same release path rather than a
+separate repair workflow.

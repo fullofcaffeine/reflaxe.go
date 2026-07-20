@@ -76,6 +76,18 @@ log "supply-chain provenance: OK"
 python3 scripts/release/verify-release-policy.py
 log "release identity policy: OK"
 
+for release_file in \
+  scripts/release/build-haxelib-artifact.py \
+  scripts/release/verify-haxelib-artifact.py \
+  scripts/release/verify-release-assets.py \
+  scripts/release/reconcile-github-release.mjs; do
+  require_file "$release_file"
+done
+require_contains "scripts/release/run-same-sha-release.sh" "release-assets.json" "verified asset handoff"
+require_contains "scripts/release/run-same-sha-release.sh" "verify-release-assets.py" "independent asset verification"
+require_contains "scripts/release/run-same-sha-release.sh" "reconcile-github-release.mjs" "same-workflow hosted reconciliation"
+log "complete release asset pipeline: ZIP, checksum, manifest, provenance, hosted reconciliation"
+
 python3 scripts/release/verify-license-policy.py --mode audit
 log "license inventory policy: audited (approval is checked only by publication entrypoints)"
 
@@ -147,7 +159,7 @@ require_file ".github/workflows/ci-harness.yml"
 require_contains ".github/workflows/ci-harness.yml" "semantic-release:" "semantic-release job declaration"
 require_contains ".github/workflows/ci-harness.yml" "npm run release" "semantic-release publish command"
 require_contains ".github/workflows/ci-harness.yml" "- go-tooling" "release-blocking Go tooling gate"
-log "ci harness semantic-release wiring: OK"
+log "ci harness same-workflow release wiring: OK"
 
 if ORIGIN_URL="$(git remote get-url origin 2>/dev/null || true)" && [[ -n "$ORIGIN_URL" ]]; then
   if REPO_SLUG="$(parse_repo_slug "$ORIGIN_URL" 2>/dev/null)"; then

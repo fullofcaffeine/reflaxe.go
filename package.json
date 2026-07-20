@@ -90,13 +90,13 @@
     "release:stage-metadata": "python3 scripts/release/stage-release-metadata.py",
     "release:build-haxelib": "python3 scripts/release/build-haxelib-artifact.py",
     "release:verify-haxelib": "python3 scripts/release/verify-haxelib-artifact.py",
+    "release:verify-assets": "python3 scripts/release/verify-release-assets.py",
     "package:haxelib": "bash scripts/release/package-haxelib.sh",
     "release": "bash scripts/release/run-same-sha-release.sh",
     "release:dry-run": "bash scripts/release/run-same-sha-release.sh --dry-run"
   },
   "devDependencies": {
     "@semantic-release/commit-analyzer": "^13.0.1",
-    "@semantic-release/github": "^12.0.9",
     "@semantic-release/release-notes-generator": "^14.1.1",
     "conventional-changelog-conventionalcommits": "^8.0.0",
     "lix": "^15.0.0",

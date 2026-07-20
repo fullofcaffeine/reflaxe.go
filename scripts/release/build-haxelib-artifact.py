@@ -22,7 +22,9 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 VERIFIER = ROOT / "scripts" / "release" / "verify-haxelib-artifact.py"
+ASSET_VERIFIER = ROOT / "scripts" / "release" / "verify-release-assets.py"
 PACKAGE_MANIFEST = "reflaxe-package-manifest.json"
+SOURCE_REPOSITORY = "git+https://github.com/fullofcaffeine/reflaxe.go"
 VERSION_PATTERN = re.compile(
     r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)"
 )
@@ -322,6 +324,7 @@ def build_artifacts(identity: ReleaseIdentity, output_dir: Path) -> dict[str, Pa
         archive_name = f"reflaxe.go-{identity.version}.zip"
         manifest_name = f"reflaxe.go-{identity.version}.manifest.json"
         checksum_name = f"{archive_name}.sha256"
+        provenance_name = f"reflaxe.go-{identity.version}.provenance.json"
         archive_digest = sha256_bytes(first.archive_bytes)
         artifact_manifest = {
             "schemaVersion": 1,
@@ -356,16 +359,111 @@ def build_artifacts(identity: ReleaseIdentity, output_dir: Path) -> dict[str, Pa
             json.dumps(artifact_manifest, indent=2, sort_keys=True) + "\n"
         ).encode("utf-8")
         checksum_bytes = f"{archive_digest}  {archive_name}\n".encode("ascii")
+        builder_uri = (
+            "https://github.com/fullofcaffeine/reflaxe.go/blob/"
+            f"{identity.source_sha}/scripts/release/build-haxelib-artifact.py"
+        )
+        provenance = {
+            "_type": "https://in-toto.io/Statement/v1",
+            "subject": [
+                {
+                    "name": name,
+                    "digest": {"sha256": sha256_bytes(contents)},
+                }
+                for name, contents in (
+                    (archive_name, first.archive_bytes),
+                    (checksum_name, checksum_bytes),
+                    (manifest_name, manifest_bytes),
+                )
+            ],
+            "predicateType": "https://slsa.dev/provenance/v1",
+            "predicate": {
+                "buildDefinition": {
+                    "buildType": (
+                        "https://github.com/fullofcaffeine/reflaxe.go/blob/"
+                        f"{identity.source_sha}/docs/release-version-policy.md"
+                        "#deterministic-release-asset-build"
+                    ),
+                    "externalParameters": {
+                        "sourceCommit": identity.source_sha,
+                        "tag": identity.tag,
+                        "version": identity.version,
+                    },
+                    "internalParameters": {
+                        "buildCount": build_count,
+                        "sourceExport": "git-archive",
+                    },
+                    "resolvedDependencies": [
+                        {
+                            "uri": f"{SOURCE_REPOSITORY}@refs/tags/{identity.tag}",
+                            "digest": {"gitCommit": identity.source_sha},
+                        }
+                    ],
+                },
+                "runDetails": {
+                    "builder": {"id": builder_uri},
+                    "metadata": {
+                        "invocationId": f"{identity.tag}@{identity.source_sha}"
+                    },
+                },
+            },
+        }
+        provenance_bytes = (
+            json.dumps(provenance, indent=2, sort_keys=True) + "\n"
+        ).encode("utf-8")
+        hosted_assets = (
+            (archive_name, first.archive_bytes),
+            (checksum_name, checksum_bytes),
+            (manifest_name, manifest_bytes),
+            (provenance_name, provenance_bytes),
+        )
+        asset_manifest = {
+            "schemaVersion": 1,
+            "tag": identity.tag,
+            "sourceSha": identity.source_sha,
+            "assets": [
+                {
+                    "name": name,
+                    "path": name,
+                    "size": len(contents),
+                    "digest": f"sha256:{sha256_bytes(contents)}",
+                }
+                for name, contents in hosted_assets
+            ],
+        }
+        asset_manifest_bytes = (
+            json.dumps(asset_manifest, indent=2, sort_keys=True) + "\n"
+        ).encode("utf-8")
 
         output_dir.mkdir(parents=True)
         archive_output = output_dir / archive_name
         manifest_output = output_dir / manifest_name
         checksum_output = output_dir / checksum_name
+        provenance_output = output_dir / provenance_name
+        asset_manifest_output = output_dir / "release-assets.json"
         try:
             archive_output.write_bytes(first.archive_bytes)
             manifest_output.write_bytes(manifest_bytes)
             checksum_output.write_bytes(checksum_bytes)
+            provenance_output.write_bytes(provenance_bytes)
+            asset_manifest_output.write_bytes(asset_manifest_bytes)
             verify_archive(archive_output, identity)
+            run_checked(
+                [
+                    sys.executable,
+                    str(ASSET_VERIFIER),
+                    "--assets",
+                    str(asset_manifest_output),
+                    "--version",
+                    identity.version,
+                    "--tag",
+                    identity.tag,
+                    "--source-sha",
+                    identity.source_sha,
+                ],
+                cwd=ROOT,
+                environment=deterministic_environment(),
+            )
         except Exception:
             shutil.rmtree(output_dir, ignore_errors=True)
             raise
@@ -373,6 +471,8 @@ def build_artifacts(identity: ReleaseIdentity, output_dir: Path) -> dict[str, Pa
             "archive": archive_output,
             "checksum": checksum_output,
             "manifest": manifest_output,
+            "provenance": provenance_output,
+            "asset_manifest": asset_manifest_output,
         }
 
 

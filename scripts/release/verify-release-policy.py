@@ -14,7 +14,6 @@ ROOT = Path(__file__).resolve().parents[2]
 DEVELOPMENT_VERSION = "0.0.0"
 TAG_FORMAT = "v$" + "{version}"
 ANALYZER = "./scripts/release/analyze-commits.mjs"
-GITHUB_PLUGIN = "@semantic-release/github"
 POLICY_PATH = "release/policy.json"
 
 
@@ -71,7 +70,7 @@ def verify_release_config() -> None:
         fail(f"semantic-release tagFormat must be {TAG_FORMAT!r}")
 
     plugins = config.get("plugins")
-    expected_names = [ANALYZER, GITHUB_PLUGIN]
+    expected_names = [ANALYZER]
     if not isinstance(plugins, list):
         fail("semantic-release plugins must be a list")
     names = [
@@ -80,8 +79,8 @@ def verify_release_config() -> None:
     ]
     if names != expected_names:
         fail(
-            "semantic-release plugins must be the mutation-free analyzer and "
-            f"GitHub publisher only; got {names!r}"
+            "semantic-release plugins must contain only the mutation-free "
+            f"version analyzer; got {names!r}"
         )
     if (
         not isinstance(plugins[0], list)
@@ -89,19 +88,6 @@ def verify_release_config() -> None:
         or plugins[0][1] != {"policyPath": POLICY_PATH}
     ):
         fail("release analyzer must consume the reviewed release/policy.json checklist")
-
-    expected_github_options = {
-        "successCommentCondition": False,
-        "failCommentCondition": False,
-        "releasedLabels": False,
-        "addReleases": False,
-    }
-    if (
-        not isinstance(plugins[1], list)
-        or len(plugins[1]) != 2
-        or plugins[1][1] != expected_github_options
-    ):
-        fail("GitHub release plugin options must disable issue and pull-request mutation")
 
     package = load_json(ROOT / "package.json")
     scripts = package.get("scripts")
@@ -114,6 +100,8 @@ def verify_release_config() -> None:
         "release:license-policy": "python3 scripts/release/verify-license-policy.py --mode release",
         "release:policy": "python3 scripts/release/verify-release-policy.py",
         "release:reconcile": "node scripts/release/reconcile-github-release.mjs",
+        "release:build-haxelib": "python3 scripts/release/build-haxelib-artifact.py",
+        "release:verify-assets": "python3 scripts/release/verify-release-assets.py",
         "test:release-version-policy": "node test/test_release_version_policy.mjs",
     }
     for name, expected in expected_scripts.items():
@@ -123,7 +111,11 @@ def verify_release_config() -> None:
     dependencies = package.get("devDependencies")
     if not isinstance(dependencies, dict):
         fail("package.json devDependencies must be an object")
-    for forbidden in ("@semantic-release/changelog", "@semantic-release/git"):
+    for forbidden in (
+        "@semantic-release/changelog",
+        "@semantic-release/git",
+        "@semantic-release/github",
+    ):
         if forbidden in dependencies:
             fail(f"tracked-checkout release mutator remains installed: {forbidden}")
     if "semver" not in dependencies:
@@ -155,12 +147,20 @@ def verify_same_sha_workflow() -> None:
         "run: npm run release:policy",
         "run: npm run release:license-policy",
         "RELEASE_TESTED_SHA: " + github_sha,
+        "name: Setup Haxe (linux)",
+        "uses: ./.github/actions/setup-haxe-linux",
+        "haxe-version: " + "$" + "{{ env.HAXE_VERSION }}",
         "run: npm run release",
     )
     for phrase in required:
         if phrase not in release_job:
             fail(f"semantic-release job is missing exact tested-SHA wiring: {phrase}")
-    for forbidden in ("issues: write", "pull-requests: write"):
+    for forbidden in (
+        "issues: write",
+        "pull-requests: write",
+        "deployments: write",
+        "environment:",
+    ):
         if forbidden in release_job:
             fail(f"semantic-release job retains unnecessary permission: {forbidden}")
     if "github.event_name == 'push'" in release_job:
@@ -186,6 +186,9 @@ def main() -> int:
             "release/policy.json",
             "scripts/release/run-same-sha-release.sh",
             "scripts/release/reconcile-github-release.mjs",
+            "scripts/release/build-haxelib-artifact.py",
+            "scripts/release/verify-haxelib-artifact.py",
+            "scripts/release/verify-release-assets.py",
             "scripts/release/stage-release-metadata.py",
             "scripts/release/verify-license-policy.py",
             "test/test_release_identity_contract.py",
@@ -204,6 +207,14 @@ def main() -> int:
         )
         if "verify-license-policy.py --mode release" not in wrapper:
             fail("same-SHA release wrapper does not enforce the licensing gate")
+        for phrase in (
+            "build-haxelib-artifact.py",
+            "verify-release-assets.py",
+            "release-assets.json",
+            "reconcile-github-release.mjs",
+        ):
+            if phrase not in wrapper:
+                fail(f"same-SHA release wrapper is missing asset completion wiring: {phrase}")
         verify_source_manifests()
         verify_release_config()
         verify_same_sha_workflow()
@@ -215,8 +226,8 @@ def main() -> int:
         "[release-policy] tag-owned version lineage: OK "
         f"(source sentinel {DEVELOPMENT_VERSION})"
     )
-    print("[release-policy] mutation-free semantic-release config: OK")
-    print("[release-policy] same-tested-SHA workflow: OK")
+    print("[release-policy] version-only semantic-release config: OK")
+    print("[release-policy] same-tested-SHA workflow: OK (complete asset pipeline)")
     return 0
 
 

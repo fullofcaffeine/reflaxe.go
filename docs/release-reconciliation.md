@@ -21,16 +21,16 @@ label to different code, or replace a file whose bytes disagree.
   draft/prerelease/immutable state, and hosted asset name, upload state, size,
   and SHA-256 digest.
 - The deterministic artifact builder is authoritative for the expected local
-  files. `haxe_go-vfp.4.8` owns production of the final ZIP, checksum, manifest,
-  and provenance/attestation plus wiring this reconciler into the release job.
+  ZIP, checksum, content manifest, and provenance statement. The independent
+  bundle verifier checks their relationships before this reconciler can run.
 
-That last boundary is intentional. This state machine must not invent empty or
-placeholder assets while the complete artifact contract is still being built.
-The future artifact step hands it a schema-versioned JSON control document with
+That boundary is intentional. This state machine never invents empty or
+placeholder assets. The artifact step hands it a schema-versioned JSON control document with
 the tag, source SHA, and each asset's relative path, byte count, and
 `sha256:<digest>`. This hand-off is not the hosted content manifest and can list
-that separate manifest as one of its assets without a self-hash. The reconciler
-verifies the local bytes again before any GitHub mutation.
+that separate manifest as one of its assets without a self-hash. The bundle
+verifier checks the meaning of those bytes, and the reconciler re-hashes them
+again before any GitHub mutation.
 
 ## State contract
 

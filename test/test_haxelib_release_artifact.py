@@ -17,6 +17,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parent.parent
 BUILDER = ROOT / "scripts" / "release" / "build-haxelib-artifact.py"
 VERIFIER = ROOT / "scripts" / "release" / "verify-haxelib-artifact.py"
+BUNDLE_VERIFIER = ROOT / "scripts" / "release" / "verify-release-assets.py"
 POLICY_DOC = ROOT / "docs" / "release-version-policy.md"
 VERSION = "0.999999.0"
 TAG = f"v{VERSION}"
@@ -98,12 +99,34 @@ def run_verifier(
     )
 
 
+def run_bundle_verifier(asset_manifest: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [
+            sys.executable,
+            str(BUNDLE_VERIFIER),
+            "--assets",
+            str(asset_manifest),
+            "--version",
+            VERSION,
+            "--tag",
+            TAG,
+            "--source-sha",
+            head_sha(),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+
+
 class HaxelibReleaseArtifactContractTest(unittest.TestCase):
     maxDiff = None
 
     def test_release_artifact_entrypoints_are_release_blocking(self) -> None:
         self.assertTrue(BUILDER.is_file())
         self.assertTrue(VERIFIER.is_file())
+        self.assertTrue(BUNDLE_VERIFIER.is_file())
         package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
         scripts = package.get("scripts", {})
         self.assertEqual(
@@ -113,6 +136,10 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
         self.assertEqual(
             "python3 scripts/release/verify-haxelib-artifact.py",
             scripts.get("release:verify-haxelib"),
+        )
+        self.assertEqual(
+            "python3 scripts/release/verify-release-assets.py",
+            scripts.get("release:verify-assets"),
         )
         contract = "python3 test/test_haxelib_release_artifact.py"
         self.assertEqual(contract, scripts.get("test:haxelib-artifact"))
@@ -153,13 +180,22 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
             archive_name = f"reflaxe.go-{VERSION}.zip"
             manifest_name = f"reflaxe.go-{VERSION}.manifest.json"
             checksum_name = f"{archive_name}.sha256"
+            provenance_name = f"reflaxe.go-{VERSION}.provenance.json"
             self.assertEqual(
-                {archive_name, manifest_name, checksum_name},
+                {
+                    archive_name,
+                    manifest_name,
+                    checksum_name,
+                    provenance_name,
+                    "release-assets.json",
+                },
                 {path.name for path in output_dir.iterdir()},
             )
             archive = output_dir / archive_name
             manifest_path = output_dir / manifest_name
             checksum_path = output_dir / checksum_name
+            provenance_path = output_dir / provenance_name
+            asset_manifest_path = output_dir / "release-assets.json"
 
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             self.assertEqual(1, manifest.get("schemaVersion"))
@@ -226,6 +262,84 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                 f"{sha256(archive)}  {archive_name}\n",
                 checksum_path.read_text(encoding="utf-8"),
             )
+
+            provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+            self.assertEqual("https://in-toto.io/Statement/v1", provenance["_type"])
+            self.assertEqual("https://slsa.dev/provenance/v1", provenance["predicateType"])
+            self.assertEqual(
+                {
+                    archive_name: sha256(archive),
+                    checksum_name: sha256(checksum_path),
+                    manifest_name: sha256(manifest_path),
+                },
+                {
+                    subject["name"]: subject["digest"]["sha256"]
+                    for subject in provenance["subject"]
+                },
+            )
+            build_definition = provenance["predicate"]["buildDefinition"]
+            self.assertEqual(
+                {
+                    "sourceCommit": head_sha(),
+                    "tag": TAG,
+                    "version": VERSION,
+                },
+                build_definition["externalParameters"],
+            )
+            self.assertEqual(
+                head_sha(),
+                build_definition["resolvedDependencies"][0]["digest"]["gitCommit"],
+            )
+
+            asset_manifest = json.loads(asset_manifest_path.read_text(encoding="utf-8"))
+            self.assertEqual(1, asset_manifest["schemaVersion"])
+            self.assertEqual(TAG, asset_manifest["tag"])
+            self.assertEqual(head_sha(), asset_manifest["sourceSha"])
+            self.assertEqual(
+                {archive_name, checksum_name, manifest_name, provenance_name},
+                {asset["name"] for asset in asset_manifest["assets"]},
+            )
+            for asset in asset_manifest["assets"]:
+                self.assertEqual(asset["name"], asset["path"])
+                asset_path = output_dir / asset["path"]
+                self.assertEqual(asset_path.stat().st_size, asset["size"])
+                self.assertEqual(f"sha256:{sha256(asset_path)}", asset["digest"])
+
+            bundle_verify = run_bundle_verifier(asset_manifest_path)
+            self.assertEqual(
+                0,
+                bundle_verify.returncode,
+                bundle_verify.stdout + bundle_verify.stderr,
+            )
+            bundle_summary = json.loads(bundle_verify.stdout)
+            self.assertEqual(4, bundle_summary["assets"])
+            self.assertEqual(TAG, bundle_summary["tag"])
+
+            tampered_checksum = checksum_path.read_bytes()
+            checksum_path.write_bytes(b"0" * 64 + f"  {archive_name}\n".encode("ascii"))
+            rejected_bundle = run_bundle_verifier(asset_manifest_path)
+            self.assertNotEqual(0, rejected_bundle.returncode)
+            self.assertRegex(rejected_bundle.stderr, r"digest|checksum")
+            checksum_path.write_bytes(tampered_checksum)
+
+            provenance["predicate"]["buildDefinition"]["externalParameters"][
+                "sourceCommit"
+            ] = "f" * 40
+            provenance_path.write_text(
+                json.dumps(provenance, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            for asset in asset_manifest["assets"]:
+                if asset["name"] == provenance_name:
+                    asset["size"] = provenance_path.stat().st_size
+                    asset["digest"] = f"sha256:{sha256(provenance_path)}"
+            asset_manifest_path.write_text(
+                json.dumps(asset_manifest, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            rejected_provenance = run_bundle_verifier(asset_manifest_path)
+            self.assertNotEqual(0, rejected_provenance.returncode)
+            self.assertIn("external parameters", rejected_provenance.stderr)
 
             with zipfile.ZipFile(archive) as package:
                 infos = package.infolist()
