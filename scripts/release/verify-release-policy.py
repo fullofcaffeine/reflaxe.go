@@ -113,6 +113,7 @@ def verify_release_config() -> None:
         "release:stage-metadata": "python3 scripts/release/stage-release-metadata.py",
         "release:license-policy": "python3 scripts/release/verify-license-policy.py --mode release",
         "release:policy": "python3 scripts/release/verify-release-policy.py",
+        "release:reconcile": "node scripts/release/reconcile-github-release.mjs",
         "test:release-version-policy": "node test/test_release_version_policy.mjs",
     }
     for name, expected in expected_scripts.items():
@@ -184,11 +185,14 @@ def main() -> int:
             "scripts/release/analyze-commits.mjs",
             "release/policy.json",
             "scripts/release/run-same-sha-release.sh",
+            "scripts/release/reconcile-github-release.mjs",
             "scripts/release/stage-release-metadata.py",
             "scripts/release/verify-license-policy.py",
             "test/test_release_identity_contract.py",
             "test/test_release_version_policy.mjs",
             "test/test_same_sha_release_wrapper.py",
+            "test/test_release_reconciliation.mjs",
+            "docs/release-reconciliation.md",
             "docs/release-version-policy.md",
             "docs/semver-lifecycle-policy.md",
             "LICENSING.md",

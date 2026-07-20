@@ -42,6 +42,7 @@ This page helps you find the right docs quickly.
 - [Public contract and SemVer boundary](public-contract.md)
 - [SemVer and compatibility lifecycle policy](semver-lifecycle-policy.md)
 - [Release version and source-identity policy](release-version-policy.md)
+- [Release retry and reconciliation](release-reconciliation.md)
 - [Licensing and generated-output policy](../LICENSING.md)
 - [Release readiness checklist](release-readiness-checklist.md)
 - [Security dependency audit](security-dependency-audit.md)

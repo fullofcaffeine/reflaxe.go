@@ -20,7 +20,9 @@ WRAPPER = ROOT / "scripts" / "release" / "run-same-sha-release.sh"
 STAGER = ROOT / "scripts" / "release" / "stage-release-metadata.py"
 POLICY_CHECK = ROOT / "scripts" / "release" / "verify-release-policy.py"
 RELEASE_STATUS = ROOT / "scripts" / "release" / "check-release-state.sh"
+RECONCILER = ROOT / "scripts" / "release" / "reconcile-github-release.mjs"
 POLICY_DOC = ROOT / "docs" / "release-version-policy.md"
+RECONCILIATION_DOC = ROOT / "docs" / "release-reconciliation.md"
 RELEASE_CONTRACTS = ROOT / "test" / "run-release-contracts.py"
 DEVELOPMENT_VERSION = "0.0.0"
 
@@ -84,6 +86,10 @@ class ReleaseIdentityContractTest(unittest.TestCase):
             scripts["release:license-policy"],
             "python3 scripts/release/verify-license-policy.py --mode release",
         )
+        self.assertEqual(
+            scripts["release:reconcile"],
+            "node scripts/release/reconcile-github-release.mjs",
+        )
 
         workflow = WORKFLOW.read_text(encoding="utf-8")
         release_job = workflow.split("\n  semantic-release:", 1)[1]
@@ -126,6 +132,18 @@ class ReleaseIdentityContractTest(unittest.TestCase):
         release_status = RELEASE_STATUS.read_text(encoding="utf-8")
         self.assertIn("scripts/release/verify-release-policy.py", release_status)
         self.assertIn("release identity policy: OK", release_status)
+        self.assertIn("--list-stable-tags", release_status)
+        self.assertNotIn("sort -V", release_status)
+        self.assertNotIn("TAG_REGEX", release_status)
+
+        reconciler = RECONCILER.read_text(encoding="utf-8")
+        self.assertIn('from "semver"', reconciler)
+        self.assertIn('"--verify-tag"', reconciler)
+        self.assertNotIn("deleteAsset", reconciler)
+        self.assertNotIn("deleteRelease", reconciler)
+        self.assertFalse((ROOT / ".github" / "workflows" / "release-repair.yml").exists())
+        self.assertNotIn("deployments: write", release_job)
+        self.assertNotIn("environment:", release_job)
 
     def test_staged_metadata_matches_version_tag_and_sha_without_source_mutation(self) -> None:
         before = {path: digest(path) for path in (PACKAGE, HAXELIB)}
@@ -254,6 +272,21 @@ class ReleaseIdentityContractTest(unittest.TestCase):
         self.assertIn("test/test_release_identity_contract.py", runner)
         self.assertIn("test/test_same_sha_release_wrapper.py", runner)
         self.assertIn("test/test_release_version_policy.mjs", runner)
+        self.assertIn("test/test_release_reconciliation.mjs", runner)
+
+        reconciliation = RECONCILIATION_DOC.read_text(encoding="utf-8")
+        for phrase in (
+            "# Release Retry and Reconciliation",
+            "not a second workflow",
+            "never creates, moves, or deletes a Git tag",
+            "uploads only missing assets",
+            "haxe.elixir.codex",
+            "haxe.ruby",
+            "haxe.rust",
+            "GitHub API",
+            "haxe_go-vfp.4.8",
+        ):
+            self.assertIn(phrase, reconciliation)
 
 
 if __name__ == "__main__":

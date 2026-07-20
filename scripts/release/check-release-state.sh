@@ -107,13 +107,12 @@ require_contains "src/reflaxe/go/GoReflaxeCompiler.hx" "\"go ${POLICY_GO_FLOOR}\
 require_contains "src/reflaxe/go/GoOutputIterator.hx" "\"go ${POLICY_GO_FLOOR}\"" "iterator Go language floor"
 log "toolchain policy wiring: Haxe ${POLICY_HAXE_SELECTOR}, Go ${POLICY_GO_VERSIONS} (recommended ${POLICY_GO_RECOMMENDED_VERSION}), Node ${POLICY_NODE_SELECTOR}, generated floor ${POLICY_GO_FLOOR}"
 
-TAG_REGEX='^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'
-SEMVERS="$(git tag --merged HEAD | grep -E "$TAG_REGEX" || true)"
+SEMVERS="$(git tag --merged HEAD | node scripts/release/reconcile-github-release.mjs --list-stable-tags)"
 if [[ -z "$SEMVERS" ]]; then
-  fail "no semver tag is reachable from current HEAD; semantic-release may treat this as an initial release"
+  fail "no canonical stable SemVer tag is reachable from current HEAD; semantic-release may treat this as an initial release"
 fi
 
-LATEST_TAG="$(printf '%s\n' "$SEMVERS" | sort -V | tail -n 1)"
+LATEST_TAG="$(printf '%s\n' "$SEMVERS" | sed -n '1p')"
 TAG_COUNT="$(printf '%s\n' "$SEMVERS" | sed '/^$/d' | wc -l | tr -d ' ')"
 log "reachable semver tags: $TAG_COUNT"
 log "latest reachable semver tag: $LATEST_TAG"
@@ -159,12 +158,14 @@ if ORIGIN_URL="$(git remote get-url origin 2>/dev/null || true)" && [[ -n "$ORIG
     fi
     log "haxelib url: ${HAXELIB_URL}"
     if command -v gh >/dev/null 2>&1; then
-      if RELEASE_JSON="$(gh release view "$LATEST_TAG" --repo "$REPO_SLUG" --json tagName,isDraft,isPrerelease,url,publishedAt 2>/dev/null)" && [[ -n "$RELEASE_JSON" ]]; then
+      if RELEASE_JSON="$(gh release view "$LATEST_TAG" --repo "$REPO_SLUG" --json tagName,isDraft,isImmutable,isPrerelease,url,publishedAt,assets 2>/dev/null)" && [[ -n "$RELEASE_JSON" ]]; then
         RELEASE_URL="$(printf '%s\n' "$RELEASE_JSON" | node -p "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); d.url || ''")"
         RELEASE_DRAFT="$(printf '%s\n' "$RELEASE_JSON" | node -p "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); String(!!d.isDraft)")"
+        RELEASE_IMMUTABLE="$(printf '%s\n' "$RELEASE_JSON" | node -p "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); String(!!d.isImmutable)")"
         RELEASE_PRERELEASE="$(printf '%s\n' "$RELEASE_JSON" | node -p "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); String(!!d.isPrerelease)")"
         RELEASE_PUBLISHED_AT="$(printf '%s\n' "$RELEASE_JSON" | node -p "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); d.publishedAt || ''")"
-        log "remote release visibility: tag=${LATEST_TAG} draft=${RELEASE_DRAFT} prerelease=${RELEASE_PRERELEASE} published_at=${RELEASE_PUBLISHED_AT}"
+        RELEASE_ASSET_COUNT="$(printf '%s\n' "$RELEASE_JSON" | node -p "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); String(Array.isArray(d.assets) ? d.assets.length : 0)")"
+        log "remote release visibility (GitHub API): tag=${LATEST_TAG} draft=${RELEASE_DRAFT} immutable=${RELEASE_IMMUTABLE} prerelease=${RELEASE_PRERELEASE} published_at=${RELEASE_PUBLISHED_AT} assets=${RELEASE_ASSET_COUNT}"
         if [[ -n "$RELEASE_URL" ]]; then
           log "remote release URL: ${RELEASE_URL}"
         fi

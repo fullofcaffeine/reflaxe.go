@@ -194,6 +194,7 @@ Run the focused version and source-identity contracts with:
 
 ```bash
 npm run test:release-version-policy
+npm run test:release-reconciliation
 python3 test/test_release_identity_contract.py
 python3 test/test_same_sha_release_wrapper.py
 npm run release:policy
@@ -208,7 +209,10 @@ The licensing command is a separate fail-closed publication gate: it validates
 the source/component inventory and refuses release unless the accountable
 decision in `license-policy.json` covers the current scope digest.
 
-`npm run release:status` composes this policy with the supported
-toolchain, supply-chain, tag visibility, and release asset-path checks. Artifact
-construction, checksums, provenance publication, idempotence, and repair are
-separate release-protocol gates and must preserve this same source identity.
+`npm run release:status` composes this policy with the supported toolchain,
+supply-chain, tag visibility, and release asset-path checks. Artifact
+construction, checksums, and provenance publication remain the
+`haxe_go-vfp.4.8` release-artifact gate. Retry, idempotence, and partial-state
+rules are defined in the [release reconciliation contract](release-reconciliation.md);
+they preserve this same source identity and run in the same release path rather
+than a separate repair workflow.

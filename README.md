@@ -191,4 +191,5 @@ only for explicit codegen-only workflows that own their Go build/test stage.
 - Defines reference: [docs/defines-reference.md](docs/defines-reference.md)
 - Semantic diff guide: [docs/semantic-diff-guide.md](docs/semantic-diff-guide.md)
 - Release version and source identity: [docs/release-version-policy.md](docs/release-version-policy.md)
+- Release retry and reconciliation: [docs/release-reconciliation.md](docs/release-reconciliation.md)
 - Release readiness checklist: [docs/release-readiness-checklist.md](docs/release-readiness-checklist.md)
