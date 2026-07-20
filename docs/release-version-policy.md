@@ -5,6 +5,10 @@ a development checkout; they do not pretend to be the latest published
 release. The release workflow selects its next version from the canonical Git
 tag lineage and can create a new tag only at the exact CI-tested SHA.
 
+The [public contract](public-contract.md) defines which consumer-visible
+changes require patch, minor, or breaking classification. This document owns
+the mechanical mapping from that authored classification to a release number.
+
 ## What, why, and how
 
 The release identity flow is:
@@ -42,6 +46,10 @@ The custom analyzer delegates parsing to the installed official
 `@semantic-release/commit-analyzer`. It supports both a
 `type!:` header and a `BREAKING CHANGE:` footer, then
 applies these haxe.go rules:
+
+The author or agent proposes the classification by comparing the change with
+the public contract. Review and executable contracts validate that decision;
+the analyzer does not independently infer API impact from changed source files.
 
 | Commit set | Current lineage | Result |
 | --- | --- | --- |

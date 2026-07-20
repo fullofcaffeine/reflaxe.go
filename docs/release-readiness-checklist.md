@@ -11,6 +11,7 @@ Run these checks from repo root on a clean branch before a release cut.
    - Record the exact resolved patch versions; a floating CI selector is not
      release provenance.
 2. Compatibility and release-scope contract:
+   - Read the [public contract and SemVer boundary](public-contract.md).
    - Read `docs/compatibility-support-manifest.json` and the generated
      `docs/compatibility-release-status.md`.
    - Confirm the candidate claims only the admitted portable preset,
@@ -139,6 +140,7 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 - [Supply-chain policy](supply-chain-policy.md)
 - [Vendored Reflaxe provenance](vendor-reflaxe-provenance.md)
 - [Release version and source-identity policy](release-version-policy.md)
+- [Public contract and SemVer boundary](public-contract.md)
 - [Licensing and generated-output policy](../LICENSING.md)
 - [Compatibility and support matrix](compatibility-support-matrix.md)
 - [Compatibility release status](compatibility-release-status.md)

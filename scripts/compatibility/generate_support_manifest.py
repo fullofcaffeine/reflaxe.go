@@ -695,6 +695,7 @@ def render_release_status(manifest: dict[str, Any]) -> str:
             "## Machine authority",
             "",
             "- `docs/compatibility-support-manifest.json`",
+            "- public SemVer boundary: `docs/public-contract.md`",
             "- verify with `npm run compatibility:verify`",
             "",
         ]

@@ -274,9 +274,9 @@ would be a new public API decision. It requires all of the following:
 4. a commit-pinned genuine independent deep review;
 5. a separate approved implementation issue.
 
-The public API manifest and SemVer-policy work must land before that decision
-can reopen. Until a separate approved implementation issue passes the full
-gate, `metal` remains supported without deprecation warnings.
+The public contract has now landed. The general SemVer policy must also land
+before that decision can reopen. Until a separate approved implementation issue
+passes the full gate, `metal` remains supported without deprecation warnings.
 
 ## Evidence anchors
 

@@ -241,7 +241,8 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
             self.assertNotIn("beta-stable", document.lower())
         self.assertIn("Operation/member admission", matrix)
         self.assertIn("Not admitted by this release scope", release)
-        self.assertIn("haxe_go-vfp.6.3", release)
+        self.assertNotIn("haxe_go-vfp.6.3", release)
+        self.assertIn("docs/public-contract.md", release)
         self.assertIn("haxe_go-vfp.6.4", release)
 
     def test_release_wiring_consumes_the_generated_manifest(self) -> None:

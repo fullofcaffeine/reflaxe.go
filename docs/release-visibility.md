@@ -52,6 +52,8 @@ The [generated release status](compatibility-release-status.md) is the
 compatibility paragraph for release notes. The
 [generated support matrix](compatibility-support-matrix.md) explains the human
 scope; the [JSON manifest](compatibility-support-manifest.json) is authoritative.
+The [public contract](public-contract.md) explains which changes to those and
+other consumer surfaces require a SemVer classification.
 
 ## Related files
 
@@ -61,6 +63,7 @@ scope; the [JSON manifest](compatibility-support-manifest.json) is authoritative
 - `docs/compatibility-support-manifest.json`
 - `docs/compatibility-support-matrix.md`
 - `docs/compatibility-release-status.md`
+- `docs/public-contract.md`
 - `docs/toolchain-policy.json`
 - `.releaserc.json`
 - `scripts/release/verify-release-policy.py`

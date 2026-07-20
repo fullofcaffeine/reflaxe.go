@@ -36,11 +36,11 @@ take the default excluded disposition.
 - `haxe_go-vfp.10.4`: Network, HTTP, socket, timeout, cancellation, and cleanup closure (blocks portable-networking).
 - `haxe_go-vfp.9.1`: Governed Go-native capability matrix (blocks go-native).
 - `haxe_go-vfp.4.8`: Checksummed same-SHA hosted release assets and provenance (blocks published beta-baseline artifact).
-- `haxe_go-vfp.6.3`: Generated public API manifest (blocks public API admission).
 - `haxe_go-vfp.6.4`: Pre-1.0 SemVer, deprecation, and stable-1.x admission policy (blocks compatibility policy closure).
 - `haxe_go-vfp.12.7`: Separate stable-1.x admission decision (blocks any stable 1.x claim).
 
 ## Machine authority
 
 - `docs/compatibility-support-manifest.json`
+- public SemVer boundary: `docs/public-contract.md`
 - verify with `npm run compatibility:verify`

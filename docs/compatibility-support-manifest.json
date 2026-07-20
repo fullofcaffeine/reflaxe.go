@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "kind": "haxe.go-compatibility-support-manifest",
-  "as_of": "2026-07-15",
+  "as_of": "2026-07-19",
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "a04ba5d18cf90f662fd2783346a4feddc6f4fad0dc139dcb135dc3ab876a20f9",
+    "compatibility_source_sha256": "72f68ba5e1febbe7bcdc585c935f392275d4cd11a8064efa7de426af74a5df58",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
@@ -226,6 +226,12 @@
       "id": "policy:native-presets",
       "kind": "path",
       "path": "docs/native-policy-presets.md",
+      "level": "policy"
+    },
+    {
+      "id": "policy:public-contract",
+      "kind": "path",
+      "path": "docs/public-contract.md",
       "level": "policy"
     },
     {
@@ -3604,11 +3610,6 @@
       "id": "haxe_go-vfp.4.8",
       "scope": "Checksummed same-SHA hosted release assets and provenance",
       "release_blocker_for": "published beta-baseline artifact"
-    },
-    {
-      "id": "haxe_go-vfp.6.3",
-      "scope": "Generated public API manifest",
-      "release_blocker_for": "public API admission"
     },
     {
       "id": "haxe_go-vfp.6.4",

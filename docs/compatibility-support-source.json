@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "manifest_schema_version": 1,
-  "as_of": "2026-07-15",
+  "as_of": "2026-07-19",
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
     "statement": "Haxe.Go is a pre-1.0 beta for pinned, application-qualified portable workloads on the admitted toolchain, platform, and operation/member surface.",
@@ -49,6 +49,12 @@
       "id": "policy:native-presets",
       "kind": "path",
       "path": "docs/native-policy-presets.md",
+      "level": "policy"
+    },
+    {
+      "id": "policy:public-contract",
+      "kind": "path",
+      "path": "docs/public-contract.md",
       "level": "policy"
     },
     {
@@ -1380,11 +1386,6 @@
       "id": "haxe_go-vfp.4.8",
       "scope": "Checksummed same-SHA hosted release assets and provenance",
       "release_blocker_for": "published beta-baseline artifact"
-    },
-    {
-      "id": "haxe_go-vfp.6.3",
-      "scope": "Generated public API manifest",
-      "release_blocker_for": "public API admission"
     },
     {
       "id": "haxe_go-vfp.6.4",

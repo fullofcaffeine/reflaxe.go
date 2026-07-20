@@ -39,6 +39,7 @@ This page helps you find the right docs quickly.
 - [Thinking levels](thinking-levels.md)
 - [Implementation evidence inventory](feature-support-matrix.md)
 - [Supported toolchain policy](toolchain-policy.md)
+- [Public contract and SemVer boundary](public-contract.md)
 - [Release version and source-identity policy](release-version-policy.md)
 - [Licensing and generated-output policy](../LICENSING.md)
 - [Release readiness checklist](release-readiness-checklist.md)
@@ -68,6 +69,7 @@ This page helps you find the right docs quickly.
 
 ## Contract/spec docs
 
+- [Public contract and SemVer boundary](public-contract.md)
 - [Portable canonical contract](portable-canonical-contract.md)
 - [Portable semantics v1](portable-semantics-v1.md)
 - [Native policy presets and semantic boundaries](native-policy-presets.md)

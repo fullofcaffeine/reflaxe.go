@@ -181,6 +181,8 @@ npm run release:status
 
 Release version and tested-source policy:
 [docs/release-version-policy.md](release-version-policy.md)
+Public compatibility and SemVer boundary:
+[docs/public-contract.md](public-contract.md)
 Licensing and generated-output policy: [LICENSING.md](../LICENSING.md)
 Release checklist: [docs/release-readiness-checklist.md](release-readiness-checklist.md)
 Performance budget policy: [docs/performance-budget-policy.md](performance-budget-policy.md)
@@ -203,5 +205,6 @@ Supply-chain policy: [docs/supply-chain-policy.md](supply-chain-policy.md)
 - Go tooling release gates: [docs/go-tooling-gates.md](go-tooling-gates.md)
 - Supply-chain policy: [docs/supply-chain-policy.md](supply-chain-policy.md)
 - Vendored Reflaxe provenance: [docs/vendor-reflaxe-provenance.md](vendor-reflaxe-provenance.md)
+- Public contract and SemVer boundary: [docs/public-contract.md](public-contract.md)
 - Release version and source identity: [docs/release-version-policy.md](release-version-policy.md)
 - Release readiness checklist: [docs/release-readiness-checklist.md](release-readiness-checklist.md)
