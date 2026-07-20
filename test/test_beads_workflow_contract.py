@@ -63,8 +63,8 @@ class BeadsWorkflowContractTest(unittest.TestCase):
     def test_beads_config_protects_legacy_archive_and_remote_history(self) -> None:
         text = self.read(BEADS_CONFIG)
         required_settings = [
-            'sync.remote: "git+ssh://git@github.com/fullofcaffeine/reflaxe.go.git"',
-            'federation.remote: "git+ssh://git@github.com/fullofcaffeine/reflaxe.go.git"',
+            'sync.remote: "git+https://github.com/fullofcaffeine/reflaxe.go.git"',
+            'federation.remote: "git+https://github.com/fullofcaffeine/reflaxe.go.git"',
             "export.auto: false",
             "export.git-add: false",
             "sync.require_confirmation_on_mass_delete: true",
