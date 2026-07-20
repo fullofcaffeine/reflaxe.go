@@ -106,6 +106,27 @@ Conformance fixtures:
 - `test/semantic_diff/int32_contract`
 - `test/semantic_diff/int64_contract`
 
+### 6) Array Identity and Growth
+
+1. A portable `Array<T>` is one mutable reference object. Assignments, fields,
+   parameters, returns, callbacks, `Dynamic`, and erased generic boundaries must
+   observe the same length and contents after mutation.
+2. `push`, `pop`, `insert`, `remove`, and `length` changes must update that shared
+   identity rather than a copied Go slice header.
+3. Indexed assignment at or beyond the current length must grow the Array and
+   preserve null-filled gaps, including for statically non-null element types.
+4. `copy()` creates a distinct Array identity. Converting between portable
+   `Array<T>` and explicit `go.NativeSlice<T>` storage is a shallow copy and must
+   be written explicitly at the native boundary.
+5. Erased element equality retains Haxe value rules, including content equality
+   for strings and identity equality for reference-shaped values.
+
+Conformance fixtures:
+
+- `test/semantic_diff/array_identity_contract`
+- `test/snapshot/core/array_identity`
+- `test/snapshot/go_native/native_slice_boundary`
+
 ## Contract Invariance Across `portable` and `metal`
 
 If a program stays on portable surfaces, these semantics must remain equivalent when compiled with:

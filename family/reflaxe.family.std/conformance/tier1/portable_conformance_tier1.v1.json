@@ -7,6 +7,7 @@
     ],
     "Std": [
       "exception_api_contract",
+      "std_complete_api_contract",
       "std_is_of_type_contract",
       "std_is_of_type_runtime_core_abstract_contract",
       "typed_nil_dynamic_string_contract"

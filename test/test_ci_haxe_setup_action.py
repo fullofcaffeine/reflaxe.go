@@ -35,9 +35,9 @@ class CiHaxeSetupActionTest(unittest.TestCase):
         harness = WORKFLOW_PATHS[1].read_text(encoding="utf-8")
         self.assertNotIn("uses: krdlab/setup-haxe@", harness)
 
-    def test_ci_harness_uses_shared_haxe_setup_for_each_linux_job(self) -> None:
+    def test_ci_harness_uses_shared_haxe_setup_for_each_haxe_job(self) -> None:
         workflow = (REPO_ROOT / ".github" / "workflows" / "ci-harness.yml").read_text(encoding="utf-8")
-        self.assertEqual(workflow.count("uses: ./.github/actions/setup-haxe-linux"), 3)
+        self.assertEqual(workflow.count("uses: ./.github/actions/setup-haxe-linux"), 4)
 
     def test_ci_quality_keeps_macos_setup_separate(self) -> None:
         workflow = (REPO_ROOT / ".github" / "workflows" / "ci-quality.yml").read_text(encoding="utf-8")
