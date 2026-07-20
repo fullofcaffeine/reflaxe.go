@@ -128,6 +128,10 @@ def write_synthetic_source(root: Path) -> None:
     write_text(root / "extraParams.hxml", "--macro fixture.Start()\n")
     write_json(root / "license-policy.json", {"fixture": True})
     write_text(
+        root / "licenses" / "HAXE-GO-GENERATED-MIT.txt",
+        "fixture haxe.go generated-output license\n",
+    )
+    write_text(
         root / "licenses" / "HAXE-STDLIB-MIT.txt",
         "fixture Haxe standard library license\n",
     )

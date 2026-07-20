@@ -343,6 +343,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 
 		var resolvedBuildContext = effectiveBuildContext();
 		saveGeneratedFile("go.mod", buildGoMod(resolvedBuildContext.goModuleName));
+		writeGeneratedLicenseMaterial();
 		writeRuntime(compilationContext, resolvedBuildContext);
 		emitBuildReports(compilationContext, resolvedBuildContext);
 	}
@@ -438,6 +439,40 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 
 	function buildGoMod(moduleName:String):String {
 		return ["module " + moduleName, "", "go 1.22", ""].join("\n");
+	}
+
+	/**
+		What: Copies the two approved license texts into every generated Go module.
+
+		Why: Generated files can combine user-owned code with project-owned runtime
+		or support portions and Haxe standard-library-derived portions. Keeping the
+		notices beside the generated module makes those permissions travel with the
+		code without assigning a license to the user's own work.
+
+		How: Resolve the immutable packaged license sources and copy their exact bytes
+		through the same confined, managed output boundary as runtime support files.
+	**/
+	function writeGeneratedLicenseMaterial():Void {
+		var libraryRoot = findLibraryRoot();
+		copyRequiredGeneratedMaterial(libraryRoot, "licenses/HAXE-GO-GENERATED-MIT.txt", "LICENSES/HAXE-GO-GENERATED-MIT.txt");
+		copyRequiredGeneratedMaterial(libraryRoot, "licenses/HAXE-STDLIB-MIT.txt", "LICENSES/HAXE-STDLIB-MIT.txt");
+	}
+
+	/**
+		What: Copies one required generated-project legal artifact.
+
+		Why: A missing packaged notice must fail compilation clearly instead of
+		producing a generated tree whose redistribution terms are incomplete.
+
+		How: Validate the trusted package source, then delegate the destination write
+		to the confined generated-output boundary.
+	**/
+	function copyRequiredGeneratedMaterial(libraryRoot:String, sourceRelativePath:String, targetRelativePath:String):Void {
+		var sourcePath = Path.join([libraryRoot, sourceRelativePath]);
+		if (!FileSystem.exists(sourcePath) || FileSystem.isDirectory(sourcePath)) {
+			Context.fatalError('Missing packaged generated-output license material: "' + sourceRelativePath + '"', Context.currentPos());
+		}
+		copyGeneratedFile(sourcePath, targetRelativePath);
 	}
 
 	function writeRuntime(context:Null<CompilationContext>, buildContext:GoBuildContext):Void {

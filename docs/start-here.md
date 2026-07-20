@@ -51,9 +51,10 @@ That path comes from `examples/tui_todo/compile.portable.hxml`:
 -D go_output=out_portable
 ```
 
-The generated directory contains `go.mod`, generated `.go` files, and the
-copied `hxrt/` runtime package. It is safe to delete because it is regenerated
-the next time you run the compile/run wrapper.
+The generated directory contains `go.mod`, generated `.go` files, the copied
+`hxrt/` runtime package, and the applicable redistribution texts under
+`LICENSES/`. It is safe to delete because it is regenerated the next time you
+run the compile/run wrapper.
 
 If you want generated output somewhere else, pass `--out`:
 

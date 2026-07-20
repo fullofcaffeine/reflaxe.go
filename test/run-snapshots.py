@@ -30,7 +30,10 @@ LAST_FAILED = CACHE_ROOT / "last_failed.txt"
 LAST_RUN = CACHE_ROOT / "last_run.json"
 RUN_LOCK = CACHE_ROOT / "run-snapshots.lock"
 EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json", ".DS_Store", ".gitkeep"}
-EXCLUDE_DIRS = {".cache"}
+# License material is identical in every generated tree and has its own
+# real-compiler byte contract in test_license_policy_contract.py. Keeping it out
+# of 200+ code-shape snapshots avoids duplicating legal text as snapshot noise.
+EXCLUDE_DIRS = {".cache", "LICENSES"}
 MAX_UNIFIED_DIFF_FILES = 5
 MAX_UNIFIED_DIFF_LINES = 120
 

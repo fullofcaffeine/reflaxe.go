@@ -473,6 +473,7 @@ def audit_package_map_manifest(package_root: Path, source_root: Path) -> list[Vi
         ("extraParams.hxml", "metadata"),
         ("haxelib.json", "metadata"),
         ("license-policy.json", "metadata"),
+        ("licenses/HAXE-GO-GENERATED-MIT.txt", "metadata"),
         ("licenses/HAXE-STDLIB-MIT.txt", "metadata"),
     ):
         if (source_root / source_path).is_file():

@@ -16,6 +16,7 @@ POLICY = ROOT / "license-policy.json"
 POLICY_DOC = ROOT / "LICENSING.md"
 VERIFIER = ROOT / "scripts" / "release" / "verify-license-policy.py"
 HAXE_STDLIB_LICENSE = ROOT / "licenses" / "HAXE-STDLIB-MIT.txt"
+GENERATED_OUTPUT_LICENSE = ROOT / "licenses" / "HAXE-GO-GENERATED-MIT.txt"
 REFLAXE_LICENSE = ROOT / "vendor" / "reflaxe" / "LICENSE"
 
 
@@ -139,14 +140,15 @@ def write_fixture(root: Path, *, status: str) -> dict[str, object]:
 class LicensePolicyContractTest(unittest.TestCase):
     maxDiff = None
 
-    def test_repository_inventory_is_auditable_but_release_blocking(self) -> None:
+    def test_repository_policy_records_the_approved_output_treatments(self) -> None:
         policy = json.loads(POLICY.read_text(encoding="utf-8"))
         self.assertEqual(1, policy.get("schemaVersion"))
         self.assertEqual("haxe.go-license-policy", policy.get("kind"))
-        self.assertEqual("unresolved", policy.get("status"))
+        self.assertEqual("approved", policy.get("status"))
         self.assertEqual(
             {
                 "haxe-standard-library-overrides",
+                "haxe-go-generated-output-license-material",
                 "reflaxe-framework",
                 "reflaxe-go-compiler-and-library",
                 "reflaxe-go-hxrt",
@@ -162,10 +164,48 @@ class LicensePolicyContractTest(unittest.TestCase):
             },
             {output["id"] for output in policy["generatedOutputClasses"]},
         )
-        self.assertTrue(policy["unresolvedQuestions"])
-        self.assertTrue(
-            all(value is None for value in policy["approval"].values()),
-            "an unresolved policy must not carry an apparent approval",
+        self.assertEqual([], policy["unresolvedQuestions"])
+        self.assertEqual(
+            {
+                "decidedBy": "Marcelo Serpa",
+                "authority": "project-copyright-owner",
+                "decisionDate": "2026-07-20",
+                "decisionRecord": (
+                    "beads:haxe_go-vfp.4.11#"
+                    "generated-output-license-approval-2026-07-20"
+                ),
+                "scopeSha256": canonical_scope_digest(policy),
+            },
+            policy["approval"],
+        )
+
+        outputs = {
+            output["id"]: output for output in policy["generatedOutputClasses"]
+        }
+        self.assertEqual(
+            "user-selected-license-project-asserts-no-rights-from-compilation",
+            outputs["lowered-user-program"]["licenseTreatment"],
+        )
+        self.assertEqual([], outputs["lowered-user-program"]["requiredArtifacts"])
+        for output_id in (
+            "compiler-emitted-framework-support",
+            "copied-hxrt-source",
+        ):
+            self.assertEqual("MIT", outputs[output_id]["licenseTreatment"])
+            self.assertEqual(
+                ["LICENSES/HAXE-GO-GENERATED-MIT.txt"],
+                outputs[output_id]["requiredArtifacts"],
+            )
+        self.assertEqual(
+            "MIT-upstream-and-project-generated-output-grant",
+            outputs["lowered-haxe-standard-library"]["licenseTreatment"],
+        )
+        self.assertEqual(
+            [
+                "LICENSES/HAXE-GO-GENERATED-MIT.txt",
+                "LICENSES/HAXE-STDLIB-MIT.txt",
+            ],
+            outputs["lowered-haxe-standard-library"]["requiredArtifacts"],
         )
 
         audit = run_verifier(ROOT, mode="audit")
@@ -174,8 +214,45 @@ class LicensePolicyContractTest(unittest.TestCase):
         self.assertIn(canonical_scope_digest(policy), audit.stdout)
 
         release = run_verifier(ROOT, mode="release")
-        self.assertEqual(1, release.returncode, release.stdout + release.stderr)
-        self.assertIn("license policy is unresolved", release.stderr)
+        self.assertEqual(0, release.returncode, release.stdout + release.stderr)
+        self.assertIn("approved release policy: OK", release.stdout)
+
+    def test_real_compilation_emits_the_approved_license_material(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-generated-license-") as raw:
+            fixture = Path(raw)
+            (fixture / "Main.hx").write_text(
+                "class Main { static function main() {} }\n",
+                encoding="utf-8",
+            )
+            output = fixture / "out"
+            compiled = subprocess.run(
+                [
+                    "haxe",
+                    "-cp",
+                    str(fixture),
+                    "-lib",
+                    "reflaxe.go",
+                    "-D",
+                    f"go_output={output}",
+                    "-D",
+                    "go_no_build",
+                    "-main",
+                    "Main",
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+            self.assertEqual(0, compiled.returncode, compiled.stdout + compiled.stderr)
+            self.assertEqual(
+                GENERATED_OUTPUT_LICENSE.read_bytes(),
+                (output / "LICENSES" / "HAXE-GO-GENERATED-MIT.txt").read_bytes(),
+            )
+            self.assertEqual(
+                HAXE_STDLIB_LICENSE.read_bytes(),
+                (output / "LICENSES" / "HAXE-STDLIB-MIT.txt").read_bytes(),
+            )
 
     def test_authoritative_license_material_is_preserved_and_packaged(self) -> None:
         self.assertEqual(
@@ -186,6 +263,7 @@ class LicensePolicyContractTest(unittest.TestCase):
             "61c9e5c8ca48e1f6e27f66cc6fb2eb11865a08672e1c793a13cfdaa89ad1bb74",
             sha256(HAXE_STDLIB_LICENSE),
         )
+        self.assertTrue(GENERATED_OUTPUT_LICENSE.is_file())
         self.assertIn("Copyright (c) 2022 Robert Borghese", REFLAXE_LICENSE.read_text())
         self.assertIn(
             "Copyright (C)2005-2016 Haxe Foundation",
@@ -203,6 +281,7 @@ class LicensePolicyContractTest(unittest.TestCase):
             "LICENSE",
             "LICENSING.md",
             "license-policy.json",
+            "licenses/HAXE-GO-GENERATED-MIT.txt",
             "licenses/HAXE-STDLIB-MIT.txt",
         ):
             self.assertIn(path, run_hx)

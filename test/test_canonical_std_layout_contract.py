@@ -108,6 +108,7 @@ def write_canonical_source(root: Path) -> None:
         destination = root / "std" / "go" / facade.name
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(facade, destination)
+    shutil.copytree(ROOT / "licenses", root / "licenses")
 
 
 def write_package_manifest(package_root: Path, source_root: Path) -> None:
@@ -145,6 +146,9 @@ def write_package_manifest(package_root: Path, source_root: Path) -> None:
         elif package_path.startswith("vendor/reflaxe/"):
             source_file = source_root / package_path
             kind = "vendored-reflaxe"
+        elif package_path.startswith("licenses/"):
+            source_file = source_root / package_path
+            kind = "metadata"
         else:
             raise AssertionError(f"synthetic package has no source mapping for {package_path}")
         assert source_file.is_file(), source_file
@@ -197,6 +201,7 @@ def write_canonical_package(package_root: Path, source_root: Path) -> None:
         destination = package_root / "src" / source.relative_to(source_root / "std")
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, destination)
+    shutil.copytree(source_root / "licenses", package_root / "licenses")
 
     # The mapping assertion needs the ordinary source authority as its input.
     assert (source_root / "std" / "go" / "_std" / "Lambda.hx").is_file()

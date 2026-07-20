@@ -212,6 +212,7 @@ private class PackageBuildConfig {
 			"README.md",
 			"extraParams.hxml",
 			"license-policy.json",
+			"licenses/HAXE-GO-GENERATED-MIT.txt",
 			"licenses/HAXE-STDLIB-MIT.txt",
 			"Run.hx"
 		]) {
@@ -552,6 +553,7 @@ private class PackageBuilder {
 		copyRequiredFile("README.md", PackageEntryKind.Metadata);
 		copyRequiredFile("extraParams.hxml", PackageEntryKind.Metadata);
 		copyRequiredFile("license-policy.json", PackageEntryKind.Metadata);
+		copyRequiredFile("licenses/HAXE-GO-GENERATED-MIT.txt", PackageEntryKind.Metadata);
 		copyRequiredFile("licenses/HAXE-STDLIB-MIT.txt", PackageEntryKind.Metadata);
 		copyRequiredFile("Run.hx", PackageEntryKind.PackageRunner);
 		writePackagedHaxelib();

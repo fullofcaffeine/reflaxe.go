@@ -198,7 +198,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                 manifest.get("stagedReleaseIdentitySha256", ""),
                 r"^[0-9a-f]{64}$",
             )
-            self.assertEqual(394, len(manifest["contents"]["entries"]))
+            self.assertEqual(395, len(manifest["contents"]["entries"]))
             packaged_sources = {
                 entry["sourcePath"] for entry in manifest["contents"]["entries"]
             }

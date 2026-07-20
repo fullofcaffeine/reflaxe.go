@@ -27,6 +27,7 @@ class GoOutputIterator {
 		for (file in files) {
 			boundary.saveContent(file.relativePath, file.contents);
 		}
+		copyGeneratedLicenseMaterial(boundary);
 	}
 
 	public static function writeGoMod(outputDir:String, moduleName:String):Void {
@@ -53,6 +54,20 @@ class GoOutputIterator {
 				boundary.copyFile(sourcePath, targetPath);
 			}
 		}
+	}
+
+	/**
+		What: Mirrors the registered compiler's generated-project license output.
+
+		Why: Legacy macro callers must receive the same redistribution material as the
+		main compiler path instead of silently producing an under-documented tree.
+
+		How: Copy both packaged notices through the confined direct-write boundary.
+	**/
+	static function copyGeneratedLicenseMaterial(boundary:GoGeneratedOutputBoundary):Void {
+		var libraryRoot = findLibraryRoot();
+		boundary.copyFile(Path.join([libraryRoot, "licenses", "HAXE-GO-GENERATED-MIT.txt"]), "LICENSES/HAXE-GO-GENERATED-MIT.txt");
+		boundary.copyFile(Path.join([libraryRoot, "licenses", "HAXE-STDLIB-MIT.txt"]), "LICENSES/HAXE-STDLIB-MIT.txt");
 	}
 
 	static function findLibraryRoot():String {

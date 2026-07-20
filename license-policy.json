@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "kind": "haxe.go-license-policy",
-  "status": "unresolved",
+  "status": "approved",
   "approval": {
-    "decidedBy": null,
-    "authority": null,
-    "decisionDate": null,
-    "decisionRecord": null,
-    "scopeSha256": null
+    "decidedBy": "Marcelo Serpa",
+    "authority": "project-copyright-owner",
+    "decisionDate": "2026-07-20",
+    "decisionRecord": "beads:haxe_go-vfp.4.11#generated-output-license-approval-2026-07-20",
+    "scopeSha256": "5cf487cc50dd27cac6a533079d2ffaa0b235f1464f953bf277447e7c0a744c15"
   },
   "shippedSourcePatterns": [
     "LICENSE",
@@ -17,6 +17,7 @@
     "extraParams.hxml",
     "haxelib.json",
     "license-policy.json",
+    "licenses/HAXE-GO-GENERATED-MIT.txt",
     "licenses/HAXE-STDLIB-MIT.txt",
     "runtime/**/*.go",
     "src/**/*.hx",
@@ -47,15 +48,20 @@
         "std/sys/**/*.hx"
       ],
       "declaredLicenses": [
-        "GPL-3.0-only"
+        "GPL-3.0-only",
+        "MIT"
       ],
       "licenseEvidence": [
         {
           "path": "LICENSE",
           "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+        },
+        {
+          "path": "licenses/HAXE-GO-GENERATED-MIT.txt",
+          "sha256": "6889cefcfdc5bf1b6fb9fc4807b0ae080db219ca3c82208c9455c1cf7e81ef94"
         }
       ],
-      "generatedOutputTreatment": "unresolved"
+      "generatedOutputTreatment": "repository-package-GPL-3.0-only-compiler-emitted-portions-MIT"
     },
     {
       "id": "reflaxe-go-hxrt",
@@ -64,15 +70,20 @@
         "runtime/hxrt/*.go"
       ],
       "declaredLicenses": [
-        "GPL-3.0-only"
+        "GPL-3.0-only",
+        "MIT"
       ],
       "licenseEvidence": [
         {
           "path": "LICENSE",
           "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+        },
+        {
+          "path": "licenses/HAXE-GO-GENERATED-MIT.txt",
+          "sha256": "6889cefcfdc5bf1b6fb9fc4807b0ae080db219ca3c82208c9455c1cf7e81ef94"
         }
       ],
-      "generatedOutputTreatment": "unresolved"
+      "generatedOutputTreatment": "GPL-3.0-only-in-repository-MIT-in-generated-projects"
     },
     {
       "id": "reflaxe-framework",
@@ -96,6 +107,23 @@
       "generatedOutputTreatment": "not-copied-or-lowered-into-generated-tree"
     },
     {
+      "id": "haxe-go-generated-output-license-material",
+      "provenance": "repository-authored-authorized-output-grant",
+      "sourcePatterns": [
+        "licenses/HAXE-GO-GENERATED-MIT.txt"
+      ],
+      "declaredLicenses": [
+        "MIT"
+      ],
+      "licenseEvidence": [
+        {
+          "path": "licenses/HAXE-GO-GENERATED-MIT.txt",
+          "sha256": "6889cefcfdc5bf1b6fb9fc4807b0ae080db219ca3c82208c9455c1cf7e81ef94"
+        }
+      ],
+      "generatedOutputTreatment": "exact-license-text-emitted-into-generated-tree"
+    },
+    {
       "id": "haxe-standard-library-overrides",
       "provenance": "mixed-repository-authored-and-haxe-standard-library-derived",
       "sourcePatterns": [
@@ -114,35 +142,46 @@
         {
           "path": "licenses/HAXE-STDLIB-MIT.txt",
           "sha256": "61c9e5c8ca48e1f6e27f66cc6fb2eb11865a08672e1c793a13cfdaa89ad1bb74"
+        },
+        {
+          "path": "licenses/HAXE-GO-GENERATED-MIT.txt",
+          "sha256": "6889cefcfdc5bf1b6fb9fc4807b0ae080db219ca3c82208c9455c1cf7e81ef94"
         }
       ],
-      "generatedOutputTreatment": "unresolved"
+      "generatedOutputTreatment": "Haxe-derived-portions-MIT-project-authored-output-portions-MIT"
     }
   ],
   "generatedOutputClasses": [
     {
       "id": "lowered-user-program",
       "origin": "user-authored Haxe input lowered to Go",
-      "licenseTreatment": "unresolved",
-      "requiredArtifacts": null
+      "licenseTreatment": "user-selected-license-project-asserts-no-rights-from-compilation",
+      "requiredArtifacts": []
     },
     {
       "id": "compiler-emitted-framework-support",
       "origin": "repository-authored compiler templates and support declarations",
-      "licenseTreatment": "unresolved",
-      "requiredArtifacts": null
+      "licenseTreatment": "MIT",
+      "requiredArtifacts": [
+        "LICENSES/HAXE-GO-GENERATED-MIT.txt"
+      ]
     },
     {
       "id": "copied-hxrt-source",
       "origin": "runtime/hxrt Go files copied verbatim into generated modules",
-      "licenseTreatment": "unresolved",
-      "requiredArtifacts": null
+      "licenseTreatment": "MIT",
+      "requiredArtifacts": [
+        "LICENSES/HAXE-GO-GENERATED-MIT.txt"
+      ]
     },
     {
       "id": "lowered-haxe-standard-library",
       "origin": "selected upstream or staged Haxe standard-library source lowered to Go",
-      "licenseTreatment": "unresolved",
-      "requiredArtifacts": null
+      "licenseTreatment": "MIT-upstream-and-project-generated-output-grant",
+      "requiredArtifacts": [
+        "LICENSES/HAXE-GO-GENERATED-MIT.txt",
+        "LICENSES/HAXE-STDLIB-MIT.txt"
+      ]
     }
   ],
   "releasePackage": {
@@ -155,12 +194,17 @@
       {
         "sourcePath": "LICENSING.md",
         "packagePath": "LICENSING.md",
-        "sha256": "371c4dcd7cbe44c30cf074c09943d714f9caf6f2feac7c20f7da7b956540b995"
+        "sha256": "133c8bd4dbc9ba545f2b03eb34ba38a6278fa306038cb5df83c8a278b48a6ece"
       },
       {
         "sourcePath": "license-policy.json",
         "packagePath": "license-policy.json",
         "sha256": null
+      },
+      {
+        "sourcePath": "licenses/HAXE-GO-GENERATED-MIT.txt",
+        "packagePath": "licenses/HAXE-GO-GENERATED-MIT.txt",
+        "sha256": "6889cefcfdc5bf1b6fb9fc4807b0ae080db219ca3c82208c9455c1cf7e81ef94"
       },
       {
         "sourcePath": "licenses/HAXE-STDLIB-MIT.txt",
@@ -174,12 +218,5 @@
       }
     ]
   },
-  "unresolvedQuestions": [
-    "What license treatment applies to lowered user-authored Haxe input?",
-    "What license treatment applies to compiler-emitted framework support?",
-    "What outbound license and notice treatment applies to copied runtime/hxrt source?",
-    "What outbound treatment applies to Go lowered from upstream or staged Haxe standard-library source?",
-    "Which license, notice, source, or source-offer artifacts must be emitted into every generated Go tree?",
-    "Has an authorized project owner or qualified legal reviewer approved the exact recorded scope?"
-  ]
+  "unresolvedQuestions": []
 }

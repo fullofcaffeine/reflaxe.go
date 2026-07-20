@@ -158,6 +158,7 @@ def validate_layout(files: dict[str, bytes]) -> None:
         "LICENSING.md",
         "haxelib.json",
         "license-policy.json",
+        "licenses/HAXE-GO-GENERATED-MIT.txt",
         "licenses/HAXE-STDLIB-MIT.txt",
         PACKAGE_MANIFEST,
         "runtime/hxrt/core.go",
@@ -239,6 +240,7 @@ def validate_license_material(files: dict[str, bytes]) -> None:
         "LICENSE",
         "LICENSING.md",
         "license-policy.json",
+        "licenses/HAXE-GO-GENERATED-MIT.txt",
         "licenses/HAXE-STDLIB-MIT.txt",
         "vendor/reflaxe/LICENSE",
     }
