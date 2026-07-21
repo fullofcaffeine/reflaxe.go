@@ -6,6 +6,7 @@ import haxe.macro.Context;
 import reflaxe.BaseCompiler.BaseCompilerFileOutputType;
 import reflaxe.ReflectCompiler;
 import reflaxe.go.compiler.GoBuildContextResolver;
+import reflaxe.go.compiler.SiblingTargetConflictGuard;
 import reflaxe.go.macros.AutoEmptyConstructor;
 import reflaxe.go.macros.BoundaryEnforcer;
 import reflaxe.go.macros.NativeBoundaryEnforcer;
@@ -22,6 +23,7 @@ class CompilerInit {
 		if (!BuildDetection.isGoBuild()) {
 			return;
 		}
+		SiblingTargetConflictGuard.init();
 
 		if (initialized) {
 			return;
