@@ -1,2 +1,3 @@
+--macro nullSafety("reflaxe.go")
 --macro reflaxe.go.CompilerBootstrap.Start()
 --macro reflaxe.go.CompilerInit.Start()

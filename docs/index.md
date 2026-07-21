@@ -52,6 +52,7 @@ This page helps you find the right docs quickly.
 - [Vendored Reflaxe provenance](vendor-reflaxe-provenance.md)
 - [Performance budget policy](performance-budget-policy.md)
 - [Compiler debt baseline and ratchet](compiler-debt-ratchet.md)
+- [Haxe 4.3.7 compiler modernization](haxe-4.3.7-modernization.md)
 - [Perf warning triage](perf-warning-triage.md)
 - [Release visibility](release-visibility.md)
 

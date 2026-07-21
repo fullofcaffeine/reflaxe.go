@@ -21,6 +21,21 @@ import sys.FileSystem;
 **/
 class CompilerBootstrap {
 	#if macro
+	/**
+		Why
+		This bootstrap must compile before the rest of haxe.go or vendored Reflaxe is
+		on the classpath, so it cannot import the shared typed define registry.
+
+		What
+		Names the one Haxe library define needed to decide whether vendored Reflaxe
+		must be appended.
+
+		How
+		Keep this self-contained exception local; all post-bootstrap macro code uses
+		`GoCompilerDefine`.
+	**/
+	static inline final REFLAXE_DEFINE:String = "reflaxe";
+
 	static var bootstrapped:Bool = false;
 
 	public static function Start():Void {
@@ -32,7 +47,7 @@ class CompilerBootstrap {
 		var root = findLibraryRoot();
 		var vendoredReflaxe = Path.normalize(Path.join([root, "vendor", "reflaxe", "src"]));
 		if (FileSystem.exists(vendoredReflaxe) && FileSystem.isDirectory(vendoredReflaxe)) {
-			if (!Context.defined("reflaxe")) {
+			if (!Context.defined(REFLAXE_DEFINE)) {
 				Compiler.addClassPath(vendoredReflaxe);
 			}
 			return;

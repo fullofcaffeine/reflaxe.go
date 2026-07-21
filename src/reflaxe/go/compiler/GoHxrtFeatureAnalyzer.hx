@@ -2,6 +2,57 @@ package reflaxe.go.compiler;
 
 #if macro
 /**
+	Closed identifiers for selectively packaged `hxrt` runtime features.
+
+	Why
+	Feature names cross inference, dependency, packaging, and report boundaries.
+	A typo in any one of those places can silently omit required runtime code.
+
+	What
+	Each value names one runtime slice understood by the compiler-owned registry.
+
+	How
+	The analyzer keeps compatibility constants for existing call sites, but those
+	constants now reference this closed type. Strings enter only through the
+	explicit manual-feature parser and must pass `isKnownFeature(...)`.
+**/
+enum abstract GoHxrtFeatureId(String) to String {
+	var HxrtCore = "core";
+	var HxrtArray = "array";
+	var HxrtString = "string";
+	var HxrtEquality = "equality";
+	var HxrtPrint = "print";
+	var HxrtException = "exception";
+	var HxrtJson = "json";
+	var HxrtSys = "sys";
+	var HxrtTerminal = "terminal";
+	var HxrtFileIo = "file_io";
+	var HxrtFilesystem = "filesystem";
+	var HxrtProcess = "process";
+	var HxrtSocket = "socket";
+	var HxrtHttp = "http";
+	var HxrtBytes = "bytes";
+	var HxrtDate = "date";
+	var HxrtMath = "math";
+	var HxrtCrypto = "crypto";
+	var HxrtZip = "zip";
+	var HxrtSsl = "ssl";
+	var HxrtSocketSsl = "socket_ssl";
+	var HxrtThread = "thread";
+	var HxrtStack = "stack";
+	var HxrtTemplate = "template";
+	var HxrtReflection = "reflection";
+	var HxrtRegex = "regex";
+	var HxrtSerialization = "serialization";
+	var HxrtEnumValue = "enum_value";
+	var HxrtMapInt = "map_int";
+	var HxrtMapString = "map_string";
+	var HxrtMapObject = "map_object";
+	var HxrtAtomicInt = "atomic_int";
+	var HxrtAtomicObject = "atomic_object";
+}
+
+/**
 	GoHxrtFeatureAnalyzer
 
 	Why
@@ -19,41 +70,41 @@ package reflaxe.go.compiler;
 	- `filesForFeatures(...)` returns deterministic runtime file lists for emitter copy.
 **/
 class GoHxrtFeatureAnalyzer {
-	public static inline final FEATURE_CORE = "core";
-	public static inline final FEATURE_ARRAY = "array";
-	public static inline final FEATURE_STRING = "string";
-	public static inline final FEATURE_EQUALITY = "equality";
-	public static inline final FEATURE_PRINT = "print";
-	public static inline final FEATURE_EXCEPTION = "exception";
-	public static inline final FEATURE_JSON = "json";
-	public static inline final FEATURE_SYS = "sys";
-	public static inline final FEATURE_TERMINAL = "terminal";
-	public static inline final FEATURE_FILE_IO = "file_io";
-	public static inline final FEATURE_FILESYSTEM = "filesystem";
-	public static inline final FEATURE_PROCESS = "process";
-	public static inline final FEATURE_SOCKET = "socket";
-	public static inline final FEATURE_HTTP = "http";
-	public static inline final FEATURE_BYTES = "bytes";
-	public static inline final FEATURE_DATE = "date";
-	public static inline final FEATURE_MATH = "math";
-	public static inline final FEATURE_CRYPTO = "crypto";
-	public static inline final FEATURE_ZIP = "zip";
-	public static inline final FEATURE_SSL = "ssl";
-	public static inline final FEATURE_SOCKET_SSL = "socket_ssl";
-	public static inline final FEATURE_THREAD = "thread";
-	public static inline final FEATURE_STACK = "stack";
-	public static inline final FEATURE_TEMPLATE = "template";
-	public static inline final FEATURE_REFLECTION = "reflection";
-	public static inline final FEATURE_REGEX = "regex";
-	public static inline final FEATURE_SERIALIZATION = "serialization";
-	public static inline final FEATURE_ENUM_VALUE = "enum_value";
-	public static inline final FEATURE_MAP_INT = "map_int";
-	public static inline final FEATURE_MAP_STRING = "map_string";
-	public static inline final FEATURE_MAP_OBJECT = "map_object";
-	public static inline final FEATURE_ATOMIC_INT = "atomic_int";
-	public static inline final FEATURE_ATOMIC_OBJECT = "atomic_object";
+	public static inline final FEATURE_CORE:GoHxrtFeatureId = GoHxrtFeatureId.HxrtCore;
+	public static inline final FEATURE_ARRAY:GoHxrtFeatureId = GoHxrtFeatureId.HxrtArray;
+	public static inline final FEATURE_STRING:GoHxrtFeatureId = GoHxrtFeatureId.HxrtString;
+	public static inline final FEATURE_EQUALITY:GoHxrtFeatureId = GoHxrtFeatureId.HxrtEquality;
+	public static inline final FEATURE_PRINT:GoHxrtFeatureId = GoHxrtFeatureId.HxrtPrint;
+	public static inline final FEATURE_EXCEPTION:GoHxrtFeatureId = GoHxrtFeatureId.HxrtException;
+	public static inline final FEATURE_JSON:GoHxrtFeatureId = GoHxrtFeatureId.HxrtJson;
+	public static inline final FEATURE_SYS:GoHxrtFeatureId = GoHxrtFeatureId.HxrtSys;
+	public static inline final FEATURE_TERMINAL:GoHxrtFeatureId = GoHxrtFeatureId.HxrtTerminal;
+	public static inline final FEATURE_FILE_IO:GoHxrtFeatureId = GoHxrtFeatureId.HxrtFileIo;
+	public static inline final FEATURE_FILESYSTEM:GoHxrtFeatureId = GoHxrtFeatureId.HxrtFilesystem;
+	public static inline final FEATURE_PROCESS:GoHxrtFeatureId = GoHxrtFeatureId.HxrtProcess;
+	public static inline final FEATURE_SOCKET:GoHxrtFeatureId = GoHxrtFeatureId.HxrtSocket;
+	public static inline final FEATURE_HTTP:GoHxrtFeatureId = GoHxrtFeatureId.HxrtHttp;
+	public static inline final FEATURE_BYTES:GoHxrtFeatureId = GoHxrtFeatureId.HxrtBytes;
+	public static inline final FEATURE_DATE:GoHxrtFeatureId = GoHxrtFeatureId.HxrtDate;
+	public static inline final FEATURE_MATH:GoHxrtFeatureId = GoHxrtFeatureId.HxrtMath;
+	public static inline final FEATURE_CRYPTO:GoHxrtFeatureId = GoHxrtFeatureId.HxrtCrypto;
+	public static inline final FEATURE_ZIP:GoHxrtFeatureId = GoHxrtFeatureId.HxrtZip;
+	public static inline final FEATURE_SSL:GoHxrtFeatureId = GoHxrtFeatureId.HxrtSsl;
+	public static inline final FEATURE_SOCKET_SSL:GoHxrtFeatureId = GoHxrtFeatureId.HxrtSocketSsl;
+	public static inline final FEATURE_THREAD:GoHxrtFeatureId = GoHxrtFeatureId.HxrtThread;
+	public static inline final FEATURE_STACK:GoHxrtFeatureId = GoHxrtFeatureId.HxrtStack;
+	public static inline final FEATURE_TEMPLATE:GoHxrtFeatureId = GoHxrtFeatureId.HxrtTemplate;
+	public static inline final FEATURE_REFLECTION:GoHxrtFeatureId = GoHxrtFeatureId.HxrtReflection;
+	public static inline final FEATURE_REGEX:GoHxrtFeatureId = GoHxrtFeatureId.HxrtRegex;
+	public static inline final FEATURE_SERIALIZATION:GoHxrtFeatureId = GoHxrtFeatureId.HxrtSerialization;
+	public static inline final FEATURE_ENUM_VALUE:GoHxrtFeatureId = GoHxrtFeatureId.HxrtEnumValue;
+	public static inline final FEATURE_MAP_INT:GoHxrtFeatureId = GoHxrtFeatureId.HxrtMapInt;
+	public static inline final FEATURE_MAP_STRING:GoHxrtFeatureId = GoHxrtFeatureId.HxrtMapString;
+	public static inline final FEATURE_MAP_OBJECT:GoHxrtFeatureId = GoHxrtFeatureId.HxrtMapObject;
+	public static inline final FEATURE_ATOMIC_INT:GoHxrtFeatureId = GoHxrtFeatureId.HxrtAtomicInt;
+	public static inline final FEATURE_ATOMIC_OBJECT:GoHxrtFeatureId = GoHxrtFeatureId.HxrtAtomicObject;
 
-	static final FEATURE_ORDER = [
+	static final FEATURE_ORDER:Array<String> = [
 		FEATURE_CORE,
 		FEATURE_ARRAY,
 		FEATURE_STRING,

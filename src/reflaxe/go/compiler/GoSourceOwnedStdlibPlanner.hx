@@ -542,6 +542,18 @@ class GoSourceOwnedStdlibPlanner {
 		return requireTypedSourceOwnedStdlibClass(classType);
 	}
 
+	/**
+		What
+		Resolves an optional staged class through Haxe's typed macro API.
+
+		Why
+		`Context.getType(...)` documents a `String` exception for an unresolved
+		name. Catching `Dynamic` here unnecessarily erased that known boundary.
+
+		How
+		Accept only a typed class result and translate the documented missing-name
+		exception to `null`; unrelated compiler failures are not swallowed.
+	**/
 	function resolveSourceOwnedStdlibClass(className:String):Null<ClassType> {
 		try {
 			return switch (Context.getType(className)) {
@@ -550,19 +562,21 @@ class GoSourceOwnedStdlibPlanner {
 				case _:
 					null;
 			};
-		} catch (_:Dynamic) {
+		} catch (_:String) {
 			return null;
 		}
 	}
 
+	/** Resolves an optional staged module using the same typed `String` failure boundary. */
 	function resolveSourceOwnedStdlibModule(moduleName:String):Array<Type> {
 		try {
 			return Context.getModule(moduleName);
-		} catch (_:Dynamic) {
+		} catch (_:String) {
 			return [];
 		}
 	}
 
+	/** Resolves an optional staged enum using the same typed `String` failure boundary. */
 	function resolveSourceOwnedStdlibEnum(enumName:String):Null<EnumType> {
 		try {
 			return switch (Context.getType(enumName)) {
@@ -571,7 +585,7 @@ class GoSourceOwnedStdlibPlanner {
 				case _:
 					null;
 			};
-		} catch (_:Dynamic) {
+		} catch (_:String) {
 			return null;
 		}
 	}

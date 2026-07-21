@@ -87,7 +87,11 @@ class ArrayRemoveInsertLoweringContract(unittest.TestCase):
 
     def test_erased_equality_is_a_selective_runtime_feature(self) -> None:
         analyzer = HXRT_ANALYZER.read_text(encoding="utf-8")
-        self.assertIn('FEATURE_EQUALITY = "equality"', analyzer)
+        self.assertIn('var HxrtEquality = "equality";', analyzer)
+        self.assertIn(
+            "FEATURE_EQUALITY:GoHxrtFeatureId = GoHxrtFeatureId.HxrtEquality",
+            analyzer,
+        )
         self.assertIn('add(FEATURE_EQUALITY, "compiler_surface"', analyzer)
         self.assertIn('case FEATURE_EQUALITY:\n\t\t\t\t["equality.go"]', analyzer)
         self.assertIn('case FEATURE_ATOMIC_OBJECT:\n\t\t\t\t[FEATURE_EQUALITY]', analyzer)

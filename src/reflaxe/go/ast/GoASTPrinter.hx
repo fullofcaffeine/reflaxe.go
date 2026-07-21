@@ -124,9 +124,9 @@ class GoASTPrinter {
 				}
 
 				out.add(" {\n");
-				for (stmt in body) {
+				for (bodyStmt in body) {
 					out.add("\t");
-					out.add(printStmt(stmt));
+					out.add(printStmt(bodyStmt));
 					out.add("\n");
 				}
 				out.add("}\n");
@@ -190,9 +190,9 @@ class GoASTPrinter {
 				out.add("for ");
 				out.add(printExpr(cond));
 				out.add(" {\n");
-				for (stmt in body) {
+				for (bodyStmt in body) {
 					out.add("\t");
-					out.add(printStmt(stmt));
+					out.add(printStmt(bodyStmt));
 					out.add("\n");
 				}
 				out.add("}");
@@ -250,9 +250,9 @@ class GoASTPrinter {
 				}
 				out.add(printExpr(source));
 				out.add(" {\n");
-				for (stmt in body) {
+				for (bodyStmt in body) {
 					out.add("\t");
-					out.add(printStmt(stmt));
+					out.add(printStmt(bodyStmt));
 					out.add("\n");
 				}
 				out.add("}");
@@ -262,17 +262,17 @@ class GoASTPrinter {
 				out.add("if ");
 				out.add(printExpr(cond));
 				out.add(" {\n");
-				for (stmt in thenBody) {
+				for (bodyStmt in thenBody) {
 					out.add("\t");
-					out.add(printStmt(stmt));
+					out.add(printStmt(bodyStmt));
 					out.add("\n");
 				}
 				out.add("}");
 				if (elseBody != null) {
 					out.add(" else {\n");
-					for (stmt in elseBody) {
+					for (bodyStmt in elseBody) {
 						out.add("\t");
-						out.add(printStmt(stmt));
+						out.add(printStmt(bodyStmt));
 						out.add("\n");
 					}
 					out.add("}");
@@ -290,9 +290,9 @@ class GoASTPrinter {
 				}
 				if (defaultBody != null) {
 					out.add("\tdefault:\n");
-					for (stmt in defaultBody) {
+					for (bodyStmt in defaultBody) {
 						out.add("\t\t");
-						out.add(printStmt(stmt));
+						out.add(printStmt(bodyStmt));
 						out.add("\n");
 					}
 				}
@@ -314,9 +314,9 @@ class GoASTPrinter {
 				}
 				if (defaultBody != null) {
 					out.add("\tdefault:\n");
-					for (stmt in defaultBody) {
+					for (bodyStmt in defaultBody) {
 						out.add("\t\t");
-						out.add(printStmt(stmt));
+						out.add(printStmt(bodyStmt));
 						out.add("\n");
 					}
 				}

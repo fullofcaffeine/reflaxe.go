@@ -1,15 +1,16 @@
 package reflaxe.go;
 
+import reflaxe.go.compiler.GoCompilerDefine;
 #if macro
 import haxe.macro.Context;
 #end
 
 class ProfileResolver {
-	public static inline final DEFINE_NAME = "reflaxe_go_profile";
-	public static inline final PORTABLE_DEFINE = "reflaxe_go_portable";
-	public static inline final IDIOMATIC_DEFINE = "reflaxe_go_idiomatic";
-	public static inline final GOPHER_DEFINE = "reflaxe_go_gopher";
-	public static inline final METAL_DEFINE = "reflaxe_go_metal";
+	public static inline final DEFINE_NAME:GoCompilerDefine = GoCompilerDefine.DefineProfile;
+	public static inline final PORTABLE_DEFINE:GoCompilerDefine = GoCompilerDefine.DefinePortableProfile;
+	public static inline final IDIOMATIC_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineIdiomaticProfile;
+	public static inline final GOPHER_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineGopherProfile;
+	public static inline final METAL_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineMetalProfile;
 	public static inline final DEPRECATED_IDIOMATIC = "idiomatic";
 	public static inline final REMOVED_GOPHER = "gopher";
 

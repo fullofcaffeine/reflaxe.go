@@ -4,9 +4,11 @@ package reflaxe.go.macros;
 import haxe.macro.Context;
 import haxe.macro.Type;
 import reflaxe.go.analyze.GoProfileContractAnalyzer;
+import reflaxe.go.analyze.GoProfileContractAnalyzer.GoContractDiagnosticSeverity;
 import reflaxe.go.analyze.GoProfileContractAnalyzer.PortableNativePolicyMode;
 import reflaxe.go.analyze.GoProfileContractAnalyzer.PortableNativeScanMode;
 import reflaxe.go.compiler.GoBuildContextResolver;
+import reflaxe.go.compiler.GoCompilerDefine;
 import reflaxe.go.compiler.GoNativeAuthorityPolicy;
 #end
 
@@ -58,18 +60,17 @@ class NativeAuthorityGate {
 		var diagnostics = GoProfileContractAnalyzer.analyze(types, buildContext, projectRoot, policy, scanMode, allowPrefixes).diagnostics;
 		for (entry in diagnostics) {
 			switch (entry.severity) {
-				case "error":
+				case GoContractDiagnosticSeverity.Error:
 					Context.error(entry.message, entry.pos);
-				case "warning":
+				case GoContractDiagnosticSeverity.Warning:
 					Context.warning(entry.message, entry.pos);
-				case _:
 			}
 		}
 	}
 
 	static function isGoBuild():Bool {
-		var targetName = Context.definedValue("target.name");
-		return targetName == "go" || Context.defined("go_output");
+		var targetName = Context.definedValue(GoCompilerDefine.DefineTargetName);
+		return targetName == GoCompilerDefine.DefineGoTarget || Context.defined(GoCompilerDefine.DefineGoOutput);
 	}
 	#else
 	public static function init():Void {}

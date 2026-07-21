@@ -1,11 +1,12 @@
 package reflaxe.go;
 
+import reflaxe.go.compiler.GoCompilerDefine;
 #if macro
 import haxe.macro.Context;
 #end
 
 class RawNativeModeResolver {
-	public static inline final DEFINE_NAME = "reflaxe_go_raw_native_mode";
+	public static inline final DEFINE_NAME:GoCompilerDefine = GoCompilerDefine.DefineRawNativeMode;
 
 	#if macro
 	public static function resolve():RawNativeMode {

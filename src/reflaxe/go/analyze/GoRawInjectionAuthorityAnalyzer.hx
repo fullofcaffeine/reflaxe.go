@@ -2,6 +2,7 @@ package reflaxe.go.analyze;
 
 #if macro
 import haxe.macro.Type;
+import reflaxe.go.compiler.GoMetadataName;
 
 /**
 	Collect scoped raw `__go__` authority declarations.
@@ -21,7 +22,7 @@ import haxe.macro.Type;
 	  the early text scan does not reject intentionally-authorized modules.
 **/
 class GoRawInjectionAuthorityAnalyzer {
-	public static inline final META_NAME = "goAllowRaw";
+	public static inline final META_NAME:GoMetadataName = GoMetadataName.GoAllowRaw;
 	static final SOURCE_MARKERS = ["@:goAllowRaw", "@goAllowRaw"];
 
 	public static function collect(moduleTypes:Array<ModuleType>):GoRawInjectionAuthoritySnapshot {
@@ -86,7 +87,7 @@ class GoRawInjectionAuthorityAnalyzer {
 
 	static function metaHasGoAllowRaw(meta:MetaAccess):Bool {
 		for (entry in meta.get()) {
-			if (entry.name == ":" + META_NAME || entry.name == META_NAME) {
+			if (META_NAME.matches(entry.name)) {
 				return true;
 			}
 		}

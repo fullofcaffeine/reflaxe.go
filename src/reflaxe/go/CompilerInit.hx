@@ -6,6 +6,7 @@ import haxe.macro.Context;
 import reflaxe.BaseCompiler.BaseCompilerFileOutputType;
 import reflaxe.ReflectCompiler;
 import reflaxe.go.compiler.GoBuildContextResolver;
+import reflaxe.go.compiler.GoCompilerDefine;
 import reflaxe.go.compiler.SiblingTargetConflictGuard;
 import reflaxe.go.macros.AutoEmptyConstructor;
 import reflaxe.go.macros.BoundaryEnforcer;
@@ -43,11 +44,11 @@ class CompilerInit {
 		NativeAuthorityGate.init();
 
 		// Enable stdlib atomic surfaces guarded behind target.atomics.
-		MacroCompiler.define("target.atomics");
+		MacroCompiler.define(GoCompilerDefine.DefineTargetAtomics);
 
 		ReflectCompiler.Start();
 		ReflectCompiler.AddCompiler(new GoReflaxeCompiler(), {
-			outputDirDefineName: "go_output",
+			outputDirDefineName: GoCompilerDefine.DefineGoOutput,
 			fileOutputType: Manual,
 			fileOutputExtension: ".go",
 			targetCodeInjectionName: "__go__",

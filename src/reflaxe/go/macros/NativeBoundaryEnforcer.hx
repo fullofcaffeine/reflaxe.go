@@ -8,6 +8,7 @@ import reflaxe.go.analyze.GoNativeBoundaryAnalyzer;
 import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.compiler.GoAutoLoweringMode;
 import reflaxe.go.compiler.GoBuildContextResolver;
+import reflaxe.go.compiler.GoCompilerDefine;
 #end
 
 /**
@@ -129,8 +130,8 @@ class NativeBoundaryEnforcer {
 	}
 
 	static function isGoBuild():Bool {
-		var targetName = Context.definedValue("target.name");
-		return targetName == "go" || Context.defined("go_output");
+		var targetName = Context.definedValue(GoCompilerDefine.DefineTargetName);
+		return targetName == GoCompilerDefine.DefineGoTarget || Context.defined(GoCompilerDefine.DefineGoOutput);
 	}
 	#else
 	public static function init():Void {}

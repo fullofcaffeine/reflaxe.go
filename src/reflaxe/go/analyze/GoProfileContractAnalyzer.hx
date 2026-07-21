@@ -7,6 +7,7 @@ import haxe.macro.PositionTools;
 import haxe.macro.Type;
 import haxe.macro.TypedExprTools;
 import reflaxe.go.compiler.GoBuildContext;
+import reflaxe.go.compiler.GoCompilerDefine;
 import reflaxe.go.compiler.GoNativeAuthorityPolicy;
 import reflaxe.go.compiler.GoNativeTypeEligibility;
 import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeEligibilityRole;
@@ -31,9 +32,9 @@ private typedef AnalyzerMapMethodCall = {
 	- Produce deterministic diagnostics payloads that can be emitted in contract reports.
 **/
 class GoProfileContractAnalyzer {
-	public static inline final PORTABLE_NATIVE_POLICY_DEFINE = "reflaxe_go_portable_native_policy";
-	public static inline final PORTABLE_NATIVE_ALLOW_DEFINE = "reflaxe_go_portable_native_allow";
-	public static inline final PORTABLE_NATIVE_SCAN_MODE_DEFINE = "reflaxe_go_portable_native_scan_mode";
+	public static inline final PORTABLE_NATIVE_POLICY_DEFINE:GoCompilerDefine = GoCompilerDefine.DefinePortableNativePolicy;
+	public static inline final PORTABLE_NATIVE_ALLOW_DEFINE:GoCompilerDefine = GoCompilerDefine.DefinePortableNativeAllow;
+	public static inline final PORTABLE_NATIVE_SCAN_MODE_DEFINE:GoCompilerDefine = GoCompilerDefine.DefinePortableNativeScanMode;
 
 	public static function analyze(types:Array<ModuleType>, buildContext:GoBuildContext, projectRoot:String, portableNativePolicy:PortableNativePolicyMode,
 			portableNativeScanMode:PortableNativeScanMode, portableNativeAllowPrefixes:Array<String>):GoProfileContractDiagnostics {
@@ -70,8 +71,8 @@ class GoProfileContractAnalyzer {
 			portableNativeImportHits = [for (hit in hits) hit.module];
 			for (hit in hits) {
 				diagnostics.push({
-					code: "portable_native_import",
-					severity: portableNativePolicy == PortableNativePolicyMode.Error ? "error" : "warning",
+					code: GoContractDiagnosticCode.PortableNativeImport,
+					severity: portableNativePolicy == PortableNativePolicyMode.Error ? GoContractDiagnosticSeverity.Error : GoContractDiagnosticSeverity.Warning,
 					module: hit.module,
 					location: hit.location,
 					message: nativeAuthorityMessage(hit.module),
@@ -528,7 +529,8 @@ class GoProfileContractAnalyzer {
 
 	static function excludeNativeBoundaryHits(hits:Array<GoPortableNativeImportHit>, nativeBoundaryModules:Map<String, Bool>):Array<GoPortableNativeImportHit> {
 		return [
-			for (hit in hits) if (hit != null && !nativeBoundaryModules.exists(hit.module)) hit
+			for (hit in hits)
+				if (hit != null && !nativeBoundaryModules.exists(hit.module)) hit
 		];
 	}
 
@@ -964,6 +966,40 @@ enum PortableNativeScanMode {
 	Hybrid;
 }
 
+/**
+	Stable machine-readable identifiers for haxe.go contract diagnostics.
+
+	Why
+	Reports, terminal diagnostics, and tests must agree on exact identifiers.
+
+	What
+	Each value names one compiler contract violation independently of its prose.
+
+	How
+	The analyzer creates only members of this closed set; report serialization can
+	convert them outward to strings without accepting arbitrary strings inward.
+**/
+enum abstract GoContractDiagnosticCode(String) to String {
+	var PortableNativeImport = "portable_native_import";
+}
+
+/**
+	Stable severity values used by typed contract diagnostics.
+
+	Why
+	A misspelled severity would bypass downstream warning/error handling.
+
+	What
+	The values distinguish advisory findings from compilation-blocking findings.
+
+	How
+	The typed analyzer chooses a member here before gates or reports consume it.
+**/
+enum abstract GoContractDiagnosticSeverity(String) to String {
+	var Warning = "warning";
+	var Error = "error";
+}
+
 typedef GoPortableNativeImportHit = {
 	var module:String;
 	var location:String;
@@ -971,8 +1007,8 @@ typedef GoPortableNativeImportHit = {
 }
 
 typedef GoContractDiagnostic = {
-	var code:String;
-	var severity:String;
+	var code:GoContractDiagnosticCode;
+	var severity:GoContractDiagnosticSeverity;
 	var module:String;
 	var location:String;
 	var message:String;

@@ -8,25 +8,25 @@ import reflaxe.go.RawNativeMode;
 import reflaxe.go.RawNativeModeResolver;
 
 class GoBuildContextResolver {
-	public static inline final STRICT_EXAMPLES_DEFINE = "reflaxe_go_strict_examples";
-	public static inline final STRICT_DEFINE = "reflaxe_go_strict";
-	public static inline final STRICT_POLICY_DEFINE = "reflaxe_go_strict_policy";
-	public static inline final METAL_ALLOW_FALLBACK_DEFINE = "reflaxe_go_metal_allow_fallback";
-	public static inline final NATIVE_AUTHORITY_DEFINE = "reflaxe_go_native_authority";
-	public static inline final NATIVE_SPECIALIZATION_DEFINE = "reflaxe_go_native_specialization";
-	public static inline final NATIVE_FALLBACK_DEFINE = "reflaxe_go_native_fallback";
-	public static inline final AUTO_MODE_DEFINE = "reflaxe_go_auto";
-	public static inline final GO_MODULE_DEFINE = "go_module";
-	public static inline final LINE_DIRECTIVES_DEFINE = "reflaxe_go_line_directives";
-	public static inline final HXRT_DEFAULT_FEATURES_DEFINE = "reflaxe_go_hxrt_default_features";
-	public static inline final HXRT_FEATURES_DEFINE = "reflaxe_go_hxrt_features";
-	public static inline final HXRT_NO_FEATURE_INFER_DEFINE = "reflaxe_go_hxrt_no_feature_infer";
-	public static inline final CONTRACT_REPORT_DEFINE = "reflaxe_go_contract_report";
-	public static inline final RUNTIME_PLAN_REPORT_DEFINE = "reflaxe_go_runtime_plan_report";
-	public static inline final OPTIMIZER_PLAN_REPORT_DEFINE = "reflaxe_go_optimizer_plan_report";
-	public static inline final OPT_PRESET_DEFINE = "reflaxe_go_opt";
-	public static inline final OPT_PORTABLE_CONCURRENCY_FASTPATH_DEFINE = "reflaxe_go_opt_go_concurrency_fastpath";
-	public static inline final NATIVE_STACK_TRACE_DEFINE = "reflaxe_go_native_stack_trace";
+	public static inline final STRICT_EXAMPLES_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineStrictExamples;
+	public static inline final STRICT_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineStrict;
+	public static inline final STRICT_POLICY_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineStrictPolicy;
+	public static inline final METAL_ALLOW_FALLBACK_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineMetalAllowFallback;
+	public static inline final NATIVE_AUTHORITY_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineNativeAuthority;
+	public static inline final NATIVE_SPECIALIZATION_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineNativeSpecialization;
+	public static inline final NATIVE_FALLBACK_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineNativeFallback;
+	public static inline final AUTO_MODE_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineAutoMode;
+	public static inline final GO_MODULE_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineGoModule;
+	public static inline final LINE_DIRECTIVES_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineLineDirectives;
+	public static inline final HXRT_DEFAULT_FEATURES_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineHxrtDefaultFeatures;
+	public static inline final HXRT_FEATURES_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineHxrtFeatures;
+	public static inline final HXRT_NO_FEATURE_INFER_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineHxrtNoFeatureInfer;
+	public static inline final CONTRACT_REPORT_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineContractReport;
+	public static inline final RUNTIME_PLAN_REPORT_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineRuntimePlanReport;
+	public static inline final OPTIMIZER_PLAN_REPORT_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineOptimizerPlanReport;
+	public static inline final OPT_PRESET_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineOptimizationPreset;
+	public static inline final OPT_PORTABLE_CONCURRENCY_FASTPATH_DEFINE:GoCompilerDefine = GoCompilerDefine.DefinePortableConcurrencyFastpath;
+	public static inline final NATIVE_STACK_TRACE_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineNativeStackTrace;
 
 	public static function resolve():GoBuildContext {
 		var profile = ProfileResolver.resolve();

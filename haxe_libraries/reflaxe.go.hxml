@@ -11,5 +11,6 @@
 -lib reflaxe
 
 -D reflaxe.go=0.0.0-development
+--macro nullSafety("reflaxe.go")
 --macro reflaxe.go.CompilerBootstrap.Start()
 --macro reflaxe.go.CompilerInit.Start()

@@ -13,6 +13,7 @@ import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.analyze.GoProfileContractAnalyzer.PortableNativeScanMode;
 import reflaxe.go.analyze.GoNativeBoundaryAnalyzer;
 import reflaxe.go.compiler.GoBuildContext;
+import reflaxe.go.compiler.GoCompilerDefine;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureInference;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureReason;
@@ -196,7 +197,27 @@ private typedef OptimizerCapabilityAccumulator = {
 	var fallbackReasonCounts:Map<String, Int>;
 }
 
-class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dynamic> {
+/**
+	Typed marker for Reflaxe's legacy per-node output hooks.
+
+	Why
+	haxe.go stages typed modules and emits them together, so these hooks always
+	return `null`. Using `Dynamic` for their unused generic result made that
+	implementation detail look like an untyped compiler boundary.
+
+	What
+	Names the deliberately unused output slot required by `GenericCompiler`.
+
+	How
+	All five generic hook result types use this marker while the real generated
+	files continue to flow through `generateOutputIterator()`.
+**/
+enum GoReflaxeStagedOutput {
+	StagedOutput;
+}
+
+class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxeStagedOutput, GoReflaxeStagedOutput, GoReflaxeStagedOutput,
+	GoReflaxeStagedOutput> {
 	var allModules:Array<ModuleType> = [];
 	var selectedClasses:Array<ClassType> = [];
 	var selectedEnums:Array<EnumType> = [];
@@ -385,7 +406,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			return;
 		}
 
-		if (Context.defined("go_no_build") || Context.defined("go_codegen_only")) {
+		if (Context.defined(GoCompilerDefine.DefineGoNoBuild) || Context.defined(GoCompilerDefine.DefineGoCodegenOnly)) {
 			return;
 		}
 
@@ -395,7 +416,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 			return;
 		}
 
-		var goCmd = Context.definedValue("go_cmd");
+		var goCmd = Context.definedValue(GoCompilerDefine.DefineGoCommand);
 		if (goCmd == null || StringTools.trim(goCmd) == "") {
 			goCmd = "go";
 		} else {
@@ -403,7 +424,7 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		}
 
 		var args = ["build"];
-		var binaryOutput = Context.definedValue("go_build_output");
+		var binaryOutput = Context.definedValue(GoCompilerDefine.DefineGoBuildOutput);
 		if (binaryOutput != null && StringTools.trim(binaryOutput) != "") {
 			args.push("-o");
 			args.push(StringTools.trim(binaryOutput));
@@ -423,17 +444,17 @@ class GoReflaxeCompiler extends GenericCompiler<Bool, Bool, Dynamic, Dynamic, Dy
 		return empty.iterator();
 	}
 
-	public function compileClassImpl(classType:ClassType, varFields:Array<ClassVarData>, funcFields:Array<ClassFuncData>):Null<Bool> {
+	public function compileClassImpl(classType:ClassType, varFields:Array<ClassVarData>, funcFields:Array<ClassFuncData>):Null<GoReflaxeStagedOutput> {
 		selectedClasses.push(classType);
 		return null;
 	}
 
-	public function compileEnumImpl(enumType:EnumType, options:Array<EnumOptionData>):Null<Bool> {
+	public function compileEnumImpl(enumType:EnumType, options:Array<EnumOptionData>):Null<GoReflaxeStagedOutput> {
 		selectedEnums.push(enumType);
 		return null;
 	}
 
-	public function compileExpressionImpl(expr:TypedExpr, topLevel:Bool):Null<Dynamic> {
+	public function compileExpressionImpl(expr:TypedExpr, topLevel:Bool):Null<GoReflaxeStagedOutput> {
 		return null;
 	}
 

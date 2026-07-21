@@ -3,6 +3,7 @@ package reflaxe.go.analyze;
 #if macro
 import haxe.macro.Context;
 import haxe.macro.Type;
+import reflaxe.go.compiler.GoMetadataName;
 
 /**
 	Compatibility parser for native-boundary metadata.
@@ -93,13 +94,13 @@ class MetalLaneAnalyzer {
 
 	static function metaHasNativeBoundary(meta:MetaAccess):Bool {
 		for (entry in meta.get()) {
-			if (entry.name == ":goNative" || entry.name == "goNative") {
+			if (GoMetadataName.GoNative.matches(entry.name)) {
 				return true;
 			}
-			if (entry.name == ":goMetal" || entry.name == "goMetal") {
+			if (GoMetadataName.GoMetal.matches(entry.name)) {
 				return true;
 			}
-			if (entry.name == ":haxeMetal" || entry.name == "haxeMetal") {
+			if (GoMetadataName.RemovedHaxeMetal.matches(entry.name)) {
 				Context.error("Native boundary metadata @:haxeMetal was removed; use @:goNative (@:goMetal remains a compatibility alias).", entry.pos);
 			}
 		}

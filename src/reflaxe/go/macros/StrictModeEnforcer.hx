@@ -8,6 +8,7 @@ import haxe.macro.TypedExprTools;
 import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.analyze.GoRawInjectionAuthorityAnalyzer;
 import reflaxe.go.compiler.GoBuildContextResolver;
+import reflaxe.go.compiler.GoCompilerDefine;
 import sys.FileSystem;
 import sys.io.File;
 #end
@@ -225,8 +226,8 @@ class StrictModeEnforcer {
 	}
 
 	static function isGoBuild():Bool {
-		var targetName = Context.definedValue("target.name");
-		return targetName == "go" || Context.defined("go_output");
+		var targetName = Context.definedValue(GoCompilerDefine.DefineTargetName);
+		return targetName == GoCompilerDefine.DefineGoTarget || Context.defined(GoCompilerDefine.DefineGoOutput);
 	}
 	#else
 	public static function init():Void {}

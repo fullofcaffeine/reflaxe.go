@@ -127,6 +127,13 @@ simultaneous multi-target compilation supported**. Compile each target in its
 own Haxe invocation so its initial classpath, stdlib ownership, compiler
 registration, and output policy remain internally consistent.
 
+Activating two Reflaxe compilers inside one compilation is therefore an invalid
+configuration and, in normal project work, almost always accidental. Merely
+installing several target libraries is harmless. Projects that produce more
+than one target should use independent Haxe invocations (or independent
+`--next` compilation segments), with exactly one Reflaxe target active in each
+segment.
+
 ## Hardening Status
 
 Package generation and isolated installed-package selection are now enforced:

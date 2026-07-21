@@ -61,7 +61,7 @@ class SysGetCharTerminalContractTest(unittest.TestCase):
         for file_name in terminal_files:
             self.assertTrue((ROOT / "runtime" / "hxrt" / file_name).is_file(), file_name)
             self.assertIn(f'"{file_name}"', feature_analyzer)
-        self.assertIn('FEATURE_TERMINAL = "terminal"', feature_analyzer)
+        self.assertIn('var HxrtTerminal = "terminal";', feature_analyzer)
         self.assertIn('path == "hxrt.sys.NativeTerminal"', feature_analyzer)
 
         runtime_sources = {

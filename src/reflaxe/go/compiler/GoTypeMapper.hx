@@ -117,7 +117,7 @@ class GoTypeMapper {
 		return switch (type) {
 			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isIntType(params[0]);
 			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableIntType(resolved);
-			case TType(_, _): var followed = TypeTools.follow(type, true); followed != type && isNullableIntType(followed);
+			case TType(_, _): isNullableIntType(TypeTools.follow(type, true));
 			case TLazy(f):
 				isNullableIntType(f());
 			case _:
@@ -129,7 +129,7 @@ class GoTypeMapper {
 		return switch (type) {
 			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isFloatType(params[0]);
 			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableFloatType(resolved);
-			case TType(_, _): var followed = TypeTools.follow(type, true); followed != type && isNullableFloatType(followed);
+			case TType(_, _): isNullableFloatType(TypeTools.follow(type, true));
 			case TLazy(f):
 				isNullableFloatType(f());
 			case _:
@@ -141,7 +141,7 @@ class GoTypeMapper {
 		return switch (type) {
 			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isBoolType(params[0]);
 			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableBoolType(resolved);
-			case TType(_, _): var followed = TypeTools.follow(type, true); followed != type && isNullableBoolType(followed);
+			case TType(_, _): isNullableBoolType(TypeTools.follow(type, true));
 			case TLazy(f):
 				isNullableBoolType(f());
 			case _:
@@ -153,7 +153,7 @@ class GoTypeMapper {
 		return switch (type) {
 			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isPrimitiveValueType(params[0]);
 			case TMono(ref): var resolved = ref.get(); resolved != null && isNullablePrimitiveType(resolved);
-			case TType(_, _): var followed = TypeTools.follow(type, true); followed != type && isNullablePrimitiveType(followed);
+			case TType(_, _): isNullablePrimitiveType(TypeTools.follow(type, true));
 			case TLazy(f):
 				isNullablePrimitiveType(f());
 			case _:
@@ -430,11 +430,7 @@ class GoTypeMapper {
 
 	static function hasGoImportMetadata(classType:ClassType):Bool {
 		for (entry in classType.meta.get()) {
-			var name = entry.name;
-			while (StringTools.startsWith(name, ":")) {
-				name = name.substr(1);
-			}
-			if (name == "go.import") {
+			if (GoMetadataName.GoImport.matches(entry.name)) {
 				return true;
 			}
 		}

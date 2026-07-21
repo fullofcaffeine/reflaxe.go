@@ -1046,7 +1046,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         ):
             self.assertIn(signature, runtime_reflect, signature)
 
-        self.assertIn('FEATURE_REFLECTION = "reflection"', feature_analyzer)
+        self.assertIn('var HxrtReflection = "reflection";', feature_analyzer)
         self.assertIn('path == "Reflect" || path == "hxrt.reflect.NativeReflect"', feature_analyzer)
         self.assertIn('[FEATURE_STRING, FEATURE_ARRAY]', feature_analyzer)
         self.assertIn('["reflect.go"]', feature_analyzer)
@@ -1237,7 +1237,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         ):
             self.assertIn(signature, runtime_template, signature)
 
-        self.assertIn('FEATURE_TEMPLATE = "template"', feature_analyzer)
+        self.assertIn('var HxrtTemplate = "template";', feature_analyzer)
         self.assertIn('[FEATURE_CORE, FEATURE_ARRAY]', feature_analyzer)
         self.assertIn('path == "hxrt.template.NativeTemplate"', feature_analyzer)
         self.assertIn('["template.go"]', feature_analyzer)
@@ -1464,7 +1464,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertEqual("haxe_go-vfp.8.7.15.1", native_entry.get("migrationBead"))
         self.assertEqual([], native_entry.get("compilerShimGroups"))
 
-        self.assertIn('FEATURE_CRYPTO = "crypto"', feature_analyzer)
+        self.assertIn('var HxrtCrypto = "crypto";', feature_analyzer)
         self.assertIn('["crypto.go"]', feature_analyzer)
         self.assertIn('case "crypto.go":', reflaxe_compiler)
         generated_root = ROOT / "test/snapshot/stdlib/crypto_xml_zip_basic/intended"
@@ -1587,7 +1587,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertNotIn("reflect.", runtime_zip)
         self.assertNotIn("unsafe.", runtime_zip)
 
-        self.assertIn('FEATURE_ZIP = "zip"', feature_analyzer)
+        self.assertIn('var HxrtZip = "zip";', feature_analyzer)
         self.assertIn('path == "hxrt.zip.NativeZip"', feature_analyzer)
         self.assertIn('path == "haxe.zip.Compress"', feature_analyzer)
         self.assertIn('path == "haxe.zip.Uncompress"', feature_analyzer)
@@ -1686,8 +1686,8 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertNotIn("func MathSin", runtime_math)
         self.assertNotIn("func MathSqrt", runtime_math)
 
-        self.assertIn('FEATURE_DATE = "date"', feature_analyzer)
-        self.assertIn('FEATURE_MATH = "math"', feature_analyzer)
+        self.assertIn('var HxrtDate = "date";', feature_analyzer)
+        self.assertIn('var HxrtMath = "math";', feature_analyzer)
         self.assertIn('path == "Date"', feature_analyzer)
         self.assertIn('path == "Math"', feature_analyzer)
         self.assertIn('path == "hxrt.date.NativeDate"', feature_analyzer)
@@ -2114,8 +2114,8 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             serialization_group["decisionId"],
         )
 
-        self.assertIn('FEATURE_REGEX = "regex"', feature_analyzer)
-        self.assertIn('FEATURE_SERIALIZATION = "serialization"', feature_analyzer)
+        self.assertIn('var HxrtRegex = "regex";', feature_analyzer)
+        self.assertIn('var HxrtSerialization = "serialization";', feature_analyzer)
         self.assertIn('case FEATURE_REGEX:\n\t\t\t\t["regex.go"]', feature_analyzer)
         self.assertIn(
             'case FEATURE_SERIALIZATION:\n\t\t\t\t["serialization.go"]',
@@ -2332,7 +2332,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             )
         )
         self.assertNotIn('"lowerHttpStdlibShimDecls": "http"', debt_ratchet)
-        self.assertIn('FEATURE_HTTP = "http"', feature_analyzer)
+        self.assertIn('var HxrtHttp = "http";', feature_analyzer)
         self.assertIn('case FEATURE_HTTP:\n\t\t\t\t["http.go"]', feature_analyzer)
 
         if native_http_path.is_file():
@@ -2497,8 +2497,8 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         for authority in ("sys.net.Host", "sys.net.Socket", "sys.net.UdpSocket"):
             self.assertNotIn(f'"{authority}"', ownership)
 
-        self.assertIn('FEATURE_SOCKET = "socket"', feature_analyzer)
-        self.assertIn('FEATURE_SOCKET_SSL = "socket_ssl"', feature_analyzer)
+        self.assertIn('var HxrtSocket = "socket";', feature_analyzer)
+        self.assertIn('var HxrtSocketSsl = "socket_ssl";', feature_analyzer)
         for runtime_file in (
             "socket.go",
             "socket_broadcast_posix.go",

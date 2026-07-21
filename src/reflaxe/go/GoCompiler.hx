@@ -9,9 +9,11 @@ import haxe.macro.PositionTools;
 import haxe.macro.Type;
 import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.compiler.GoAutoLoweringMode;
+import reflaxe.go.compiler.GoCompilerDefine;
 import reflaxe.go.compiler.GoExprOperatorOps;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureInference;
+import reflaxe.go.compiler.GoMetadataName;
 import reflaxe.go.compiler.GoLambdaIterableLowering;
 import reflaxe.go.compiler.GoNativeTypeEligibility;
 import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeEligibilityRole;
@@ -489,7 +491,7 @@ class GoCompiler {
 		}
 
 		var supportImports = buildSupportImports();
-		var testAstCase = Context.definedValue("reflaxe_go_test_ast_stmt_case");
+		var testAstCase = Context.definedValue(GoCompilerDefine.DefineTestAstStatementCase);
 		if (testAstCase != null && testAstCase != "") {
 			supportImports = GoTestAstFixtureEmitter.imports(testAstCase).concat(supportImports);
 		}
@@ -3363,7 +3365,7 @@ class GoCompiler {
 							exprStatement(sharedArrayAssign.expr);
 						} else {
 							var loweredRight = lowerExprWithPrefix(right);
-							var stringAppendFromSharedArray = assignOp == OpAdd
+							var stringAppendFromSharedArray = isAdditionBinop(assignOp)
 								&& (isStringType(left.t) || isStringType(right.t))
 								&& isSharedArrayElementExpr(right);
 							var rightExpr = stringAppendFromSharedArray ? lowerSharedArrayElementStorageExpr(right) : upcastIfNeeded(loweredRight.expr,
@@ -3651,7 +3653,7 @@ class GoCompiler {
 				var targetExpr = GoExpr.GoIdent(targetName);
 				var indexExpr = GoExpr.GoIdent(indexName);
 				var currentExpr = coerceStoredArrayElementExpr(GoExpr.GoCall(GoExpr.GoSelector(targetExpr, "Get"), [indexExpr]), left.t);
-				var stringAppendFromSharedArray = op == OpAdd
+				var stringAppendFromSharedArray = isAdditionBinop(op)
 					&& (isStringType(left.t) || isStringType(right.t))
 					&& isSharedArrayElementExpr(right);
 				var rightExpr = stringAppendFromSharedArray ? lowerSharedArrayElementStorageExpr(right) : upcastIfNeeded(loweredRight.expr, right.t, left.t,
@@ -5502,7 +5504,7 @@ class GoCompiler {
 						} else {
 							var targetExpr = lowerLValue(left);
 							var loweredRight = lowerExprWithPrefix(right);
-							var stringAppendFromSharedArray = assignOp == OpAdd
+							var stringAppendFromSharedArray = isAdditionBinop(assignOp)
 								&& (isStringType(left.t) || isStringType(right.t))
 								&& isSharedArrayElementExpr(right);
 							var rightExpr = stringAppendFromSharedArray ? lowerSharedArrayElementStorageExpr(right) : upcastIfNeeded(loweredRight.expr,
@@ -5888,7 +5890,7 @@ class GoCompiler {
 	}
 
 	function lowerTestAstStmtDecls():Array<GoDecl> {
-		var testCase = Context.definedValue("reflaxe_go_test_ast_stmt_case");
+		var testCase = Context.definedValue(GoCompilerDefine.DefineTestAstStatementCase);
 		if (testCase == null || testCase == "") {
 			return [];
 		}
@@ -9112,8 +9114,9 @@ class GoCompiler {
 				right.t) : (coerceNullableOperands ? coerceNullablePrimitiveOperandForUse(rightLowered.expr, right) : rightLowered.expr);
 		var useStringEquality = stringMode && (!nullComparison || isStringType(left.t) || isStringType(right.t));
 		var typedStringOps = isStringType(left.t) && isStringType(right.t) && !leftStoredArrayElement && !rightStoredArrayElement;
-		var storedArrayEquality = (op == OpEq || op == OpNotEq) && (leftStoredArrayElement || rightStoredArrayElement);
-		var erasedEquality = (op == OpEq || op == OpNotEq) && !nullComparison && (isAnyLikeType(left.t) || isAnyLikeType(right.t));
+		var equalityOp = isEqualityBinop(op);
+		var storedArrayEquality = equalityOp && (leftStoredArrayElement || rightStoredArrayElement);
+		var erasedEquality = equalityOp && !nullComparison && (isAnyLikeType(left.t) || isAnyLikeType(right.t));
 		var anyNullComparison = nullComparison && (isAnyLikeType(left.t) || isAnyLikeType(right.t));
 		var floatMode = isFloatType(left.t) || isFloatType(right.t) || isFloatType(resultType) || isNullableFloatType(left.t)
 			|| isNullableFloatType(right.t) || isNullableFloatType(resultType);
@@ -9252,38 +9255,66 @@ class GoCompiler {
 
 	function lowerAssignOpExpr(op:Binop, leftExpr:GoExpr, rightExpr:GoExpr, leftType:Type, rightType:Type, ?sourcePos:haxe.macro.Expr.Position,
 			?rightUsesErasedArrayStorage:Bool = false):GoExpr {
-		if (op == OpAssign) {
-			return rightExpr;
-		}
-		if (op == OpAdd && (isStringType(leftType) || isStringType(rightType))) {
-			var typedStringOps = isStringType(leftType) && isStringType(rightType) && !rightUsesErasedArrayStorage;
-			return GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringConcatStringPtr" : "hxrt.StringConcatAny"), [leftExpr, rightExpr]);
-		}
-		if ((isInt32SemanticType(leftType, sourcePos) || isInt32SemanticType(rightType, sourcePos))
+		var int32Operands = (isInt32SemanticType(leftType, sourcePos) || isInt32SemanticType(rightType, sourcePos))
 			&& !isFloatType(leftType)
 			&& !isFloatType(rightType)
 			&& !isNullableFloatType(leftType)
-			&& !isNullableFloatType(rightType)
-			&& (op == OpAdd || op == OpSub || op == OpMult || op == OpMod || op == OpAnd || op == OpOr || op == OpXor || op == OpShl || op == OpShr
-				|| op == OpUShr)) {
-			var int32Left = coerceNullableIntOperandExpr(leftExpr, leftType);
-			var int32Right = coerceNullableIntOperandExpr(rightExpr, rightType);
-			return lowerHaxeInt32BinopExpr(op, int32Left, int32Right);
-		}
-		if ((op == OpAdd || op == OpSub || op == OpMult || op == OpDiv)
-			&& (isFloatType(leftType) || isNullableFloatType(leftType) || isFloatType(rightType) || isNullableFloatType(rightType))) {
-			return GoExpr.GoBinary(binopSymbol(op), floatOperandExpr(leftExpr, leftType), floatOperandExpr(rightExpr, rightType));
-		}
-		if (op == OpMod
-			&& (isFloatType(leftType) || isFloatType(rightType) || isNullableFloatType(leftType) || isNullableFloatType(rightType))) {
-			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.FloatMod"), [floatOperandExpr(leftExpr, leftType), floatOperandExpr(rightExpr, rightType)]);
-		}
-		if (op == OpUShr) {
-			var ushrInner = GoExpr.GoBinary(">>", GoExpr.GoCall(GoExpr.GoIdent("uint32"), [leftExpr]), GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr]));
-			var ushrCast = scalarGoType(leftType) == "int32" ? "int32" : "int";
-			return GoExpr.GoCall(GoExpr.GoIdent(ushrCast), [ushrInner]);
-		}
-		return GoExpr.GoBinary(binopSymbol(op), leftExpr, rightExpr);
+			&& !isNullableFloatType(rightType);
+		var floatOperands = isFloatType(leftType) || isNullableFloatType(leftType) || isFloatType(rightType) || isNullableFloatType(rightType);
+
+		return switch (op) {
+			case OpAssign:
+				rightExpr;
+			case OpAdd if (isStringType(leftType) || isStringType(rightType)):
+				var typedStringOps = isStringType(leftType) && isStringType(rightType) && !rightUsesErasedArrayStorage;
+				GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringConcatStringPtr" : "hxrt.StringConcatAny"), [leftExpr, rightExpr]);
+			case OpAdd | OpSub | OpMult | OpMod | OpAnd | OpOr | OpXor | OpShl | OpShr | OpUShr if (int32Operands):
+				var int32Left = coerceNullableIntOperandExpr(leftExpr, leftType);
+				var int32Right = coerceNullableIntOperandExpr(rightExpr, rightType);
+				lowerHaxeInt32BinopExpr(op, int32Left, int32Right);
+			case OpAdd | OpSub | OpMult | OpDiv if (floatOperands):
+				GoExpr.GoBinary(binopSymbol(op), floatOperandExpr(leftExpr, leftType), floatOperandExpr(rightExpr, rightType));
+			case OpMod if (floatOperands):
+				GoExpr.GoCall(GoExpr.GoIdent("hxrt.FloatMod"), [floatOperandExpr(leftExpr, leftType), floatOperandExpr(rightExpr, rightType)]);
+			case OpUShr:
+				var ushrInner = GoExpr.GoBinary(">>", GoExpr.GoCall(GoExpr.GoIdent("uint32"), [leftExpr]), GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr]));
+				var ushrCast = scalarGoType(leftType) == "int32" ? "int32" : "int";
+				GoExpr.GoCall(GoExpr.GoIdent(ushrCast), [ushrInner]);
+			case _:
+				GoExpr.GoBinary(binopSymbol(op), leftExpr, rightExpr);
+		};
+	}
+
+	/**
+		Why: `Binop` has a recursive `OpAssignOp` constructor, so direct enum equality
+		is unsafe and Haxe 4.3.7 warns even when comparing argument-free cases.
+
+		What: identifies the exact addition operator used by string-specialization
+		guards without comparing enum values.
+
+		How: use typed pattern matching so a future parameterized operator cannot be
+		mistaken for `OpAdd`.
+	**/
+	function isAdditionBinop(op:Binop):Bool {
+		return switch (op) {
+			case OpAdd: true;
+			case _: false;
+		};
+	}
+
+	/**
+		Why: equality specialization needs the same safe handling as addition because
+		`Binop` contains an argument-carrying constructor.
+
+		What: identifies the two equality operators used by erased-value lowering.
+
+		How: match only `OpEq` and `OpNotEq`; all other operators return false.
+	**/
+	function isEqualityBinop(op:Binop):Bool {
+		return switch (op) {
+			case OpEq | OpNotEq: true;
+			case _: false;
+		};
 	}
 
 	function lowerHaxeInt32BinopExpr(op:Binop, leftExpr:GoExpr, rightExpr:GoExpr):GoExpr {
@@ -9701,8 +9732,7 @@ class GoCompiler {
 				var resolved = ref.get();
 				resolved == null ? null : nullableInnerType(resolved);
 			case TType(_, _):
-				var followed = haxe.macro.TypeTools.follow(type, true);
-				followed != type ? nullableInnerType(followed) : null;
+				nullableInnerType(haxe.macro.TypeTools.follow(type, true));
 			case TLazy(f):
 				nullableInnerType(f());
 			case _:
@@ -10352,10 +10382,6 @@ class GoCompiler {
 		return StringTools.startsWith(name, ":") ? name.substr(1) : name;
 	}
 
-	function metaNameEquals(actual:String, expected:String):Bool {
-		return normalizeMetaName(actual) == normalizeMetaName(expected);
-	}
-
 	function unwrapMetaExpr(expr:Expr):Expr {
 		return switch (expr.expr) {
 			case EParenthesis(inner):
@@ -10376,14 +10402,14 @@ class GoCompiler {
 		};
 	}
 
-	function readMetadataString(meta:MetaAccess, names:Array<String>):Null<String> {
+	function readMetadataString(meta:MetaAccess, names:Array<GoMetadataName>):Null<String> {
 		if (meta == null) {
 			return null;
 		}
 		for (entry in meta.get()) {
 			var matches = false;
 			for (name in names) {
-				if (metaNameEquals(entry.name, name)) {
+				if (name.matches(entry.name)) {
 					matches = true;
 					break;
 				}
@@ -10405,13 +10431,13 @@ class GoCompiler {
 		return null;
 	}
 
-	function hasMetadata(meta:MetaAccess, names:Array<String>):Bool {
+	function hasMetadata(meta:MetaAccess, names:Array<GoMetadataName>):Bool {
 		if (meta == null) {
 			return false;
 		}
 		for (entry in meta.get()) {
 			for (name in names) {
-				if (metaNameEquals(entry.name, name)) {
+				if (name.matches(entry.name)) {
 					return true;
 				}
 			}
@@ -10420,7 +10446,7 @@ class GoCompiler {
 	}
 
 	function externClassImportPath(classType:ClassType):Null<String> {
-		var value = readMetadataString(classType.meta, ["go.import"]);
+		var value = readMetadataString(classType.meta, [GoMetadataName.GoImport]);
 		if (value == null || value == "") {
 			return null;
 		}
@@ -10438,7 +10464,7 @@ class GoCompiler {
 			return null;
 		}
 
-		var packageName = readMetadataString(classType.meta, ["go.package", "go.pkg"]);
+		var packageName = readMetadataString(classType.meta, [GoMetadataName.GoPackage, GoMetadataName.GoPackageAlias]);
 		if (packageName == null || packageName == "") {
 			var segments = [for (segment in importPath.split("/")) StringTools.trim(segment)];
 			var index = segments.length - 1;
@@ -10456,17 +10482,17 @@ class GoCompiler {
 	}
 
 	function externClassTypeName(classType:ClassType):String {
-		var typeName = readMetadataString(classType.meta, ["go.name", "native"]);
+		var typeName = readMetadataString(classType.meta, [GoMetadataName.GoName, GoMetadataName.NativeName]);
 		return typeName == null || typeName == "" ? classType.name : typeName;
 	}
 
 	function externFieldName(field:ClassField):String {
-		var mapped = readMetadataString(field.meta, ["go.name", "native"]);
+		var mapped = readMetadataString(field.meta, [GoMetadataName.GoName, GoMetadataName.NativeName]);
 		return mapped == null || mapped == "" ? field.name : mapped;
 	}
 
 	function interfaceFieldName(classType:ClassType, field:ClassField):String {
-		var mapped = readMetadataString(field.meta, ["go.name", "native"]);
+		var mapped = readMetadataString(field.meta, [GoMetadataName.GoName, GoMetadataName.NativeName]);
 		if (mapped != null && mapped != "") {
 			return normalizeIdent(mapped);
 		}
@@ -10682,15 +10708,15 @@ class GoCompiler {
 	}
 
 	function hasExternReceiverMeta(field:ClassField):Bool {
-		return hasMetadata(field.meta, ["go.receiver"]);
+		return hasMetadata(field.meta, [GoMetadataName.GoReceiver]);
 	}
 
 	function hasExternValueErrorMeta(field:ClassField):Bool {
-		return hasMetadata(field.meta, ["go.valueError", "go.value_error"]);
+		return hasMetadata(field.meta, [GoMetadataName.GoValueError, GoMetadataName.GoValueErrorAlias]);
 	}
 
 	function hasExternTupleReturnMeta(field:ClassField):Bool {
-		return hasMetadata(field.meta, ["go.tupleReturn", "go.tuple_return"]);
+		return hasMetadata(field.meta, [GoMetadataName.GoTupleReturn, GoMetadataName.GoTupleReturnAlias]);
 	}
 
 	function classTypeName(classType:ClassType):String {

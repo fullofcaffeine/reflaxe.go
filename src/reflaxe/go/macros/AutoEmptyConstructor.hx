@@ -4,11 +4,12 @@ package reflaxe.go.macros;
 import haxe.macro.Compiler as MacroCompiler;
 import haxe.macro.Context;
 import haxe.macro.Expr;
+import reflaxe.go.compiler.GoCompilerDefine;
 #end
 
 class AutoEmptyConstructor {
 	#if macro
-	public static inline final DEFINE_INTERFACES = "reflaxe_go_auto_empty_ctor_interfaces";
+	public static inline final DEFINE_INTERFACES:GoCompilerDefine = GoCompilerDefine.DefineAutoEmptyConstructorInterfaces;
 	static var initialized = false;
 
 	public static function init():Void {

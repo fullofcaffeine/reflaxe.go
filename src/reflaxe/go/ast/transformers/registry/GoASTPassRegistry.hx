@@ -2,6 +2,7 @@ package reflaxe.go.ast.transformers.registry;
 
 #if macro
 import haxe.macro.Context;
+import reflaxe.go.compiler.GoCompilerDefine;
 #end
 import reflaxe.go.CompilationContext;
 import reflaxe.go.compiler.GoAutoLoweringModeTools;
@@ -30,9 +31,9 @@ typedef GoASTPassSelection = {
 }
 
 class GoASTPassRegistry {
-	static inline final GRANULAR_DEFINE = "go_granular_pass_registry";
-	static inline final LEGACY_LEAN_DEFINE = "reflaxe_go_legacy_pass_bundle";
-	static inline final TEST_DEFINE = "reflaxe_go_test_registry_case";
+	static inline final GRANULAR_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineGranularPassRegistry;
+	static inline final LEGACY_LEAN_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineLegacyPassBundle;
+	static inline final TEST_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineTestPassRegistryCase;
 
 	public static function resolve(?context:CompilationContext):Array<IGoASTPass> {
 		return select(context).passes;

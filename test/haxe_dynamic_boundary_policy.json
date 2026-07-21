@@ -1,0 +1,5 @@
+{
+  "allowedCompilerDynamicTypeSites": {
+    "src/reflaxe/go/compiler/GoPostBuildRunner.hx": 3
+  }
+}

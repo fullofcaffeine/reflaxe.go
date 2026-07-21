@@ -1,0 +1,62 @@
+{
+  "haxeVersion": "4.3.7",
+  "warningOptions": "+WAll",
+  "projectMaxCount": 0,
+  "externalLimits": [
+    {
+      "file": "haxe-stdlib/haxe/macro/Printer.hx",
+      "warning": "WUnsafeEnumEquality",
+      "maxCount": 3
+    },
+    {
+      "file": "haxe-stdlib/haxe/macro/TypeTools.hx",
+      "warning": "WUnsafeEnumEquality",
+      "maxCount": 3
+    },
+    {
+      "file": "vendor/reflaxe/src/reflaxe/ReflectCompiler.hx",
+      "warning": "WVarShadow",
+      "maxCount": 6
+    },
+    {
+      "file": "vendor/reflaxe/src/reflaxe/compiler/NullTypeEnforcer.hx",
+      "warning": "WUnsafeEnumEquality",
+      "maxCount": 5
+    },
+    {
+      "file": "vendor/reflaxe/src/reflaxe/helpers/ClassTypeHelper.hx",
+      "warning": "WVarShadow",
+      "maxCount": 2
+    },
+    {
+      "file": "vendor/reflaxe/src/reflaxe/helpers/OperatorHelper.hx",
+      "warning": "WUnsafeEnumEquality",
+      "maxCount": 1
+    },
+    {
+      "file": "vendor/reflaxe/src/reflaxe/helpers/TypeHelper.hx",
+      "warning": "WVarShadow",
+      "maxCount": 2
+    },
+    {
+      "file": "vendor/reflaxe/src/reflaxe/input/ClassHierarchyTracker.hx",
+      "warning": "WVarShadow",
+      "maxCount": 2
+    },
+    {
+      "file": "vendor/reflaxe/src/reflaxe/preprocessors/implementations/RemoveReassignedVariableDeclarationsImpl.hx",
+      "warning": "WVarShadow",
+      "maxCount": 2
+    },
+    {
+      "file": "vendor/reflaxe/src/reflaxe/preprocessors/implementations/RemoveUnnecessaryBlocksImpl.hx",
+      "warning": "WVarShadow",
+      "maxCount": 2
+    },
+    {
+      "file": "vendor/reflaxe/src/reflaxe/preprocessors/implementations/everything_is_expr/TempVarNameGenerator.hx",
+      "warning": "WVarShadow",
+      "maxCount": 2
+    }
+  ]
+}
