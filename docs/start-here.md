@@ -37,6 +37,33 @@ That command runs the portable TUI todo example. `portable` is the default
 starting point because it keeps the code closest to normal Haxe semantics and
 cross-target-friendly APIs.
 
+## One Reflaxe target per compilation
+
+A Reflaxe target is the compiler backend that owns one Haxe compilation and
+turns its typed program into one target language. Exactly one target backend
+may be active in each compilation. Activating `reflaxe.go` together with
+`reflaxe.rust`, `reflaxe.elixir`, or another Reflaxe target in the same
+compilation is invalid and is usually an accidental project or HXML
+configuration.
+
+Installing multiple Reflaxe target libraries is safe. A project may also build
+several targets, but each target must use a separate Haxe invocation or a
+separate `--next` compilation segment. For example, this is valid when each
+HXML file activates only its own target:
+
+```bash
+haxe build-go.hxml --next build-rust.hxml
+```
+
+`reflaxe.go` checks for competing target activation before application typing
+and reports a direct configuration error. This guard prevents one compiler
+from accidentally using another target's standard-library overrides; it does
+not add support for combining multiple backends into one compilation.
+
+The [cross-override hardening reference](cross-overrides-and-hardening.md#fail-fast-contract)
+documents the exact activation signals, diagnostic, and sibling-repository
+comparison.
+
 ## Generated output and local artifacts
 
 The first run creates generated Go under:

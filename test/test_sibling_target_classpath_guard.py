@@ -15,6 +15,7 @@ GUARD = ROOT / "src" / "reflaxe" / "go" / "compiler" / "SiblingTargetConflictGua
 COMPILER_INIT = ROOT / "src" / "reflaxe" / "go" / "CompilerInit.hx"
 RELEASE_CONTRACT_RUNNER = ROOT / "test" / "run-release-contracts.py"
 CROSS_OVERRIDE_DOC = ROOT / "docs" / "cross-overrides-and-hardening.md"
+START_HERE_DOC = ROOT / "docs" / "start-here.md"
 DIAGNOSTIC_PREFIX = "Reflaxe.Go cannot compile with competing sibling targets: "
 
 
@@ -55,6 +56,15 @@ class SiblingTargetClasspathContractTest(unittest.TestCase):
             document,
             r"does not make\s+simultaneous multi-target compilation supported",
         )
+
+        start_here = START_HERE_DOC.read_text(encoding="utf-8")
+        for phrase in [
+            "## One Reflaxe target per compilation",
+            "Installing multiple Reflaxe target libraries is safe",
+            "separate Haxe invocation",
+            "`--next`",
+        ]:
+            self.assertIn(phrase, start_here)
 
 
 @unittest.skipUnless(shutil.which("haxe"), "requires Haxe")
