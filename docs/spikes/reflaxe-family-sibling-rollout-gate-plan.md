@@ -1,112 +1,177 @@
-# `reflaxe.family.std` Sibling Rollout Gate Plan
+# `reflaxe.family.std` Sibling Adoption Gate Plan
 
-Owner issue: `haxe.go-cgk.18`  
-Scope: ordered adoption plan for `haxe.rust`, `hxhx/reflaxe.ocaml`, and `haxe.elixir.codex` after `haxe.go` dual-run stabilization.
+Owner issue: `haxe.go-cgk.18`; corrected by `haxe_go-1h8p`
+
+Scope: evidence-based, opt-in adoption after the family core has one reproducible identity.
 
 ## Goal
 
-Adopt the shared portable contract package across sibling compilers without breaking each backend's documented semantics.
+Offer a genuinely shared portable-contract core to sibling compilers without
+breaking each backend's documented semantics or misrepresenting target-local
+artifacts as a common package.
 
-This plan defines:
+This plan explains:
 
-1. rollout order,
-2. per-repo prerequisites,
-3. known semantic deltas,
-4. mandatory gates for the first adoption PR in each repo.
+1. what each sibling already uses;
+2. whether shared-core adoption would add value;
+3. per-repository prerequisites and semantic differences;
+4. mandatory identity and evidence gates for any adoption pull request.
 
-## Rollout Order
+## Current State (2026-07-20)
 
-1. `haxe.rust`
-2. `hxhx` / `reflaxe.ocaml`
-3. `haxe.elixir.codex`
+| Repository | Family directory | Existing governance | Current conclusion |
+| --- | --- | --- | --- |
+| `haxe.rust` | Present | Local family mirror plus Rust conformance, profile, runtime-plan, and generated-output checks | Comparison partner, not yet a consumer of one shared release |
+| `genes` | Absent | Deterministic compatibility reports and semantic-differential evidence | Local governance is already credible; adopt only a useful shared core |
+| `haxe.elixir.codex` | Absent | Stdlib inventory/parity guards, upstream `unitstd`, ExUnit runtime evidence, snapshots, and an authoring-profile contract | Does not need a new global profile selector; adoption is optional |
+| `hxhx` / `reflaxe.ocaml` | Not reassessed in this comparison | Earlier plan evidence must be refreshed before adoption | No rollout claim yet |
 
-Rationale:
+Rust and Go currently label different payloads as
+`reflaxe.family.std@0.1.0-bootstrap.1`. Therefore Rust's existing directory is
+not evidence that it consumes the same package. It is evidence that both
+repositories found local mirror verification useful.
 
-- `haxe.rust` already has the closest architecture match for explicit `portable|metal`, strict boundaries, and runtime feature planning.
-- `hxhx/reflaxe.ocaml` is also contract-aligned but has a distinct compiler architecture and runtime module selection strategy that should be validated after rust.
-- `haxe.elixir.codex` needs the largest contract formalization step (portable vs elixir-first currently documented as style, not strict contract mode), so it should adopt last.
+## Smallest Useful Model
 
-## Global Prerequisites Before Any Sibling PR
+```text
+one immutable family core
+    + one target-qualified adapter overlay
+    + that target's compiler/runtime tests
+    = reproducible cross-repository contract evidence
+```
 
-1. `haxe.go` dual-run pin remains green:
+The **family core** contains only rules and identifiers that have the same
+meaning for every adopting compiler. A **target adapter overlay** maps those
+rules to a particular backend's modules, fixtures, deviations, and evidence.
+The overlay may differ; the core payload for a pinned core version may not.
+
+## Adoption Policy
+
+There is no mandatory repository order. The first adoption pair should be the
+two repositories that can prove they consume the exact same core payload while
+keeping target differences in separate overlays. Go and Rust are the natural
+comparison pair because both already have bootstrap machinery, but neither is
+an external-package consumer yet.
+
+Genes, Elixir, and OCaml should adopt only when the shared core removes real
+duplicated work or supplies reusable fixtures. Their absence must not block Go
+or Rust release readiness.
+
+## Global Prerequisites
+
+Before any repository claims to consume a shared family release:
+
+1. the family core has an explicit file boundary and immutable content digest;
+2. at least two repositories verify the same core version and digest;
+3. target-specific allowlists, module mappings, fixture bindings, deviations,
+   and implementation evidence live in target-qualified overlays;
+4. `haxe.go` local mirror checks remain green:
    - `npm run test:family-stdlib-sync`
    - `npm run test:family-stdlib-bootstrap`
-2. `haxe.go` portable parity closure artifacts are stable and reviewed:
+5. `haxe.go` portable parity reports are stable and reviewed:
    - `test/.test-cache/portable_parity_closure_summary.json`
    - `test/.test-cache/family_std_dual_run_report.json`
-3. Family package contract artifacts are versioned and pinned:
-   - `family/reflaxe.family.std/VERSION`
-   - `family/family_std_pin.json`
-4. No open blocker in `docs/spikes/reflaxe-family-stdlib-execution-checklist.md` that invalidates extraction sequencing.
+6. the pin identifies the family core version, source, and content digest;
+7. no extraction blocker remains in
+   `docs/spikes/reflaxe-family-stdlib-execution-checklist.md`.
 
-## Per-Repo Adoption Matrix
+## Per-Repository Gates
 
-### `haxe.rust` (Wave 1)
-
-Prerequisites:
-
-1. Keep profile contract explicit (`portable|metal`) and preserve existing `metal` fallback controls.
-2. Keep existing runtime feature inference/reporting operational while wiring shared portable artifacts.
-
-Known semantic deltas to track:
-
-1. Metal defaults and representation choices (for example string/nullability defaults) are not identical to portable and must remain documented.
-2. `rust_no_hxrt` and no-runtime lanes remain rust-specific and out of shared portable contract scope.
-
-Required first adoption PR gates:
-
-1. Shared Tier1 portable conformance passes with rust backend.
-2. Existing rust profile contract and metal restrictions tests stay green.
-3. Runtime plan report still emits deterministic artifacts with pinned family version.
-
-### `hxhx` / `reflaxe.ocaml` (Wave 2)
+### `haxe.rust` (first comparison candidate)
 
 Prerequisites:
 
-1. Preserve explicit `portable|metal` profile contract and metal verifier behavior.
-2. Maintain runtime module-copy flow while introducing shared portable allowlist/conformance assets.
+1. Compare every proposed core file with Go and resolve differences explicitly.
+2. Keep Rust's product/profile contract and runtime policies local.
+3. Keep existing runtime feature inference and reporting operational while
+   wiring shared core artifacts.
 
-Known semantic deltas to track:
+Known target differences:
 
-1. Runtime module selection currently relies on token-level inference and may require explicit allow/force controls.
-2. OCaml-specific runtime representation choices (for example null/string/env semantics) must remain documented as target-specific deltas.
+1. Authority, specialization, fallback, strictness, and representation choices
+   remain target policy; a legacy profile name is not shared semantic authority.
+2. `rust_no_hxrt` and no-runtime lanes remain Rust-specific.
 
-Required first adoption PR gates:
+Required evidence:
 
-1. Shared Tier1 portable conformance passes with OCaml backend.
-2. Existing profile verifier tests and fixture harness remain green.
-3. Runtime selection report (or equivalent deterministic artifact) is available in CI.
+1. Rust and Go pins contain the same core version and content digest.
+2. Shared Tier1 case identifiers bind to Rust fixtures through a
+   Rust-qualified overlay, and those fixtures pass.
+3. Existing Rust contract and boundary tests stay green.
+4. Runtime-plan reports remain deterministic and identify both core and overlay
+   provenance.
 
-### `haxe.elixir.codex` (Wave 3)
+### `genes` (optional adopter)
 
 Prerequisites:
 
-1. Introduce formal profile contract selection (`portable|metal` or equivalent explicit contract names) instead of style-only guidance.
-2. Keep strict boundary enforcement available for app/examples and define fallback policy for migration.
+1. Identify shared semantic facts or fixture identifiers that materially reduce
+   duplication beyond Genes' existing compatibility report.
+2. Preserve the Haxe JavaScript target as Genes' documented runtime semantic
+   baseline unless a separately reviewed cross-target contract applies.
 
-Known semantic deltas to track:
+Required evidence:
 
-1. BEAM-oriented interop/idiomatic transforms may not map 1:1 to portable contract defaults.
-2. Existing feature-flag surface is broad; profile contract presets must avoid semantic ambiguity.
+1. Existing semantic-differential, compatibility-report, strict-diagnostic, and
+   downstream-contract checks remain green.
+2. Any claimed portable subset is explicit and backed by cross-target runtime
+   evidence; source appearance or successful compilation alone is insufficient.
+3. The family dependency is optional for ordinary Genes development unless it
+   supplies an actual build-time contract.
 
-Required first adoption PR gates:
+### `haxe.elixir.codex` (optional adopter)
 
-1. Shared Tier1 portable conformance passes with Elixir backend.
-2. Portable semantic subset gate exists and is CI-enforced.
-3. Profile contract docs clearly separate portable semantics vs target-native interop surfaces.
+Prerequisites:
 
-## Adoption PR Checklist (Each Sibling Repo)
+1. Preserve its existing portable-stdlib-first and typed-Elixir-first authoring
+   contract; do not require a `portable|metal` selector.
+2. Keep strict boundary enforcement available for applications and examples,
+   and preserve explicit typed BEAM-native boundaries.
 
-1. Add/refresh family pin metadata (version + source + migration mode).
-2. Add deterministic sync/verify command for local canonical artifacts vs pinned family assets.
-3. Wire CI gates:
-   - portable allowlist gate,
-   - Tier1 conformance gate,
-   - governance/provenance gate (or equivalent),
-   - profile/contract regression tests.
-4. Document known semantic deltas that remain intentionally target-specific.
-5. Publish generated reports/summary artifacts for reviewer inspection.
+Known target differences:
+
+1. BEAM-oriented interop and idiomatic transforms may not map one-to-one to
+   portable contract defaults.
+2. Upstream `unitstd` and local ExUnit evidence may bind to shared case
+   identifiers differently from Go snapshots.
+
+Required evidence:
+
+1. Any adopted shared Tier1 cases pass through Elixir's existing runtime
+   evidence lanes.
+2. Stdlib parity, API inventory, upstream `unitstd`, snapshots, and
+   authoring-profile checks stay green.
+3. Shared-core adoption does not replace or weaken typed BEAM-native boundary
+   tests.
+
+### `hxhx` / `reflaxe.ocaml` (requires refreshed assessment)
+
+Prerequisites:
+
+1. Reinspect the current repository before relying on the older profile and
+   runtime-selection assumptions in this plan.
+2. Preserve its documented product contract and native boundaries.
+3. Maintain its runtime module-selection flow while introducing any shared core
+   assets.
+
+Required evidence:
+
+1. Adopted shared cases pass with the OCaml backend.
+2. Existing boundary and fixture-harness tests remain green.
+3. Runtime-selection evidence is deterministic and target-qualified.
+
+## Adoption Pull Request Checklist
+
+1. Pin the family core version, source, and content digest.
+2. Pin or identify the target-qualified adapter overlay separately.
+3. Verify the pinned core identity before comparing target evidence.
+4. Wire the applicable portable semantics, conformance, and provenance gates.
+5. Preserve the compiler's existing local regression and native-boundary gates.
+6. Document intentional target differences in the adapter overlay.
+7. Publish deterministic reports for reviewer inspection.
 
 ## Rollback Rule
 
-If first adoption PR in a sibling repo fails any mandatory gate after merge, revert to local canonical artifacts and reopen the sibling rollout task with blocker details before continuing to the next wave.
+If adoption fails a mandatory gate after merge, revert to local canonical
+governance and reopen the rollout task with blocker details. Do not publish a
+replacement payload under the same family-core version.

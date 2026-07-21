@@ -1,8 +1,55 @@
 # Spike: `reflaxe.family.std` Extraction Plan (Portable Contract Surfaces)
 
-Status: proposed  
+Status: bootstrap implemented; standalone extraction blocked on shared-content identity
+
 Source program: `haxe.go-cgk.8`  
 Prepared from current `haxe.go` portable parity assets (`allowlist`, `semantics v1`, `tier1 conformance`, provenance guards, parity closure harness).
+
+## Cross-Repository Reality Check (2026-07-20)
+
+The bootstrap proved that a compiler can mirror its local portable-contract
+artifacts and verify that mirror in CI. It did **not** yet prove that the mirror
+is one shared family package.
+
+Tracked-file inspection found:
+
+| Repository | `family/reflaxe.family.std` | Current semantic evidence |
+| --- | --- | --- |
+| `haxe.go` | Present and CI-gated | Local portable semantics, allowlist, conformance mapping, ownership mapping, semantic-diff, and stdlib sweeps |
+| `haxe.rust` | Present and CI-gated | Its own local versions of the same artifact classes plus Rust-specific profile and runtime evidence |
+| `genes` | Absent | Local compatibility reports, feature evidence, and semantic-differential tests against its Haxe/JavaScript baseline |
+| `haxe.elixir.codex` | Absent | Local stdlib inventory/parity guards, upstream `unitstd`, Haxe-authored ExUnit tests, snapshots, and authoring-profile contract |
+
+Go and Rust both label their bootstrap as `reflaxe.family.std`
+`0.1.0-bootstrap.1`, but their semantics document, allowlist, Tier1 conformance
+mapping, module mapping, boundary policy, README, and release scaffold are not
+byte-identical. Each verifier compares a repository's local canonical files
+with that repository's local mirror. Neither verifier establishes that the two
+repositories consumed one immutable payload.
+
+That distinction matters because a package version is an identity promise: two
+consumers pinning the same version must receive the same core contents. The
+current same-version/different-content state is acceptable only as an explicitly
+local bootstrap. It must not be presented as a released cross-repository source
+of truth.
+
+### Revised decision
+
+Keep the useful local CI contracts, but separate future shared and target-owned
+artifacts:
+
+1. A released **family core** may own genuinely cross-target semantics, schemas,
+   stable fixture identifiers, and provenance rules. One core version must have
+   one immutable content digest in every consumer.
+2. A **target adapter overlay** owns backend-specific eligibility decisions,
+   module ownership mappings, fixture bindings, deviations, and implementation
+   evidence. Its identity must include the target and its own version or source
+   revision.
+3. A compiler may keep repo-local governance without adopting the family core.
+   Genes and Elixir demonstrate that strong local evidence does not require this
+   package shape.
+4. External extraction remains blocked until the shared core can be derived
+   without relabeling target-specific differences as one package release.
 
 ## Objective
 
@@ -55,8 +102,9 @@ reflaxe.family.std/
 Portable shared package owns:
 
 1. portable contract semantics spec (`portable-semantics-v1`)
-2. portable allowlist schema + canonical allowlist instance
-3. Tier1 conformance mapping schema + canonical mapping instance
+2. portable allowlist schema; a canonical cross-target baseline only after every
+   claimed consumer supplies evidence for the same baseline
+3. Tier1 conformance schema + stable shared case identifiers
 4. provenance schema and boundary policy spec
 5. shared conformance fixture indexes (and eventually shared fixtures where practical)
 
@@ -65,7 +113,9 @@ Target compiler repos keep ownership of:
 1. runtime implementation (`runtime/hxrt/*.go`, rust runtime crate, etc.)
 2. compiler lowering/intrinsics
 3. target-native facade namespaces and strict-boundary policies
-4. backend-specific fixture extensions and perf harnesses
+4. target eligibility allowlists and module ownership mappings
+5. bindings from shared case identifiers to runnable target fixtures
+6. backend-specific deviations, evidence, fixture extensions, and perf harnesses
 
 ## Versioning and Compatibility Policy
 
@@ -82,6 +132,11 @@ Contract version tuple in consumers:
 - pinned upstream Haxe baseline version (`4.3.7` initially)
 
 Consumer compilers must pin explicit versions in-repo (not floating `main`).
+
+The pin must eventually include a content digest for the immutable family core.
+Target overlays need a separate target-qualified identity. A core version must
+never be reused for different core payloads, even when the difference appears
+reasonable for an individual backend.
 
 ## CI Federation Model
 
@@ -126,11 +181,17 @@ Planned federation workflow:
 3. keep local mirror copies while dual-running comparison checks;
 4. remove local canonical ownership only after dual-run stability window.
 
-### Phase 3: Roll into sibling compilers
+### Phase 3: Offer the core to sibling compilers
 
-1. apply same pin/sync/verify flow in `haxe.rust`;
-2. repeat for `haxe.elixir.codex` and `hxhx` with target-specific adapters;
-3. track documented deviations explicitly until closed.
+1. compare the existing Go and Rust bootstraps and extract only their genuinely
+   identical or explicitly reconciled core;
+2. give Go and Rust separate target overlays and prove that the pinned core
+   digest is identical in both repositories;
+3. offer opt-in adoption to `genes`, `haxe.elixir.codex`, and `hxhx` only where
+   the core adds value beyond their local governance;
+4. preserve each compiler's existing authoring profiles and target-native
+   boundaries rather than imposing one global profile selector;
+5. track documented target deviations in their adapter overlays.
 
 ## Hard Blockers
 
@@ -142,6 +203,9 @@ Planned federation workflow:
    - modules marked `mixed` need per-target mapping clarity before central governance hardens.
 4. Tooling heterogeneity:
    - consumer repos use different harness runners and language toolchains.
+5. Package identity ambiguity:
+   - the Go and Rust bootstraps currently use the same version for different
+     payloads, so no standalone release may be claimed from either copy.
 
 ## Phase-1 Cut Lines (Required to start extraction)
 
