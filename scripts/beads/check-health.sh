@@ -65,12 +65,14 @@ sha256_file() {
 require_command bd
 require_command git
 require_command awk
+require_command python3
 
 echo "[beads-health] validating configuration and graph"
 bd config validate
 bd dep cycles
 bd lint
 bd orphans
+python3 scripts/beads/check-hierarchy-deadlocks.py
 
 echo "[beads-health] local Dolt status"
 bd vc status --json

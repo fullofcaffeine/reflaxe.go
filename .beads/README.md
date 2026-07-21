@@ -68,7 +68,36 @@ scripts/beads/check-health.sh --verify-remote
 
 The script uses supported read-only commands: `bd config validate`, `bd dep cycles`, `bd lint`, `bd orphans`, `bd vc status --json`, and `bd stats`. Exact remote verification creates a disposable Dolt clone, exports both databases with memories, and compares them byte-for-byte.
 
+It also runs `scripts/beads/check-hierarchy-deadlocks.py`, a repository guard for
+one dependency shape that upstream cycle checks do not currently catch. The
+guard reads a logical export and never writes to the tracker.
+
 `bd doctor` is not supported in embedded mode in bd 1.0.4. `bd config validate` plus the graph/lint/orphan checks are the explicit substitute. `bd preflight --check` currently describes the upstream Beads repository's generic Go/Nix checklist rather than haxe.go's gates, so it is not used as tracker-health evidence here.
+
+## Hierarchy and readiness
+
+A `parent-child` dependency says where an issue belongs; by itself, it does not
+mean that the child must wait for the parent or that the parent must wait for
+the child. Use a real blocking dependency to order work between independent
+issues, including sibling issues under the same parent.
+
+Blocked state does propagate through the hierarchy: when an active blocker
+holds up a parent, its descendants are not independently ready. This becomes a
+feedback loop if an ancestor also has a `blocks`, `conditional-blocks`, or
+`waits-for` edge to one of those descendants. The descendant blocks the
+ancestor, then the blocked ancestor suppresses the descendant. Do not add
+blocking edges in either direction between an ancestor and descendant.
+
+The upstream `bd dep cycles` check does not detect every hierarchy feedback
+loop. Run the repository guard directly when reviewing dependency changes:
+
+```bash
+python3 scripts/beads/check-hierarchy-deadlocks.py
+```
+
+The guard rejects active ancestor/descendant blocking edges, permits valid
+sibling ordering, and reports closed or pinned historical edges without
+failing. It is also part of `scripts/beads/check-health.sh`.
 
 ## Recovery
 

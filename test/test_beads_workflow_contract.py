@@ -7,6 +7,8 @@ import json
 import re
 import shutil
 import subprocess
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -19,6 +21,11 @@ BEADS_CONFIG = REPO_ROOT / ".beads" / "config.yaml"
 LEGACY_ARCHIVE = REPO_ROOT / ".beads" / "issues.jsonl"
 RELEASE_CONTRACT_RUNNER = REPO_ROOT / "test" / "run-release-contracts.py"
 HEALTH_SCRIPT = REPO_ROOT / "scripts" / "beads" / "check-health.sh"
+HIERARCHY_DEADLOCK_GUARD = REPO_ROOT / "scripts" / "beads" / "check-hierarchy-deadlocks.py"
+MIGRATION_INTEGRITY_RECORD = REPO_ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "beads-v53-migration-integrity.md"
+PUBLIC_CONTRACT_DECISION_LOG = (
+    REPO_ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "decision-log-vfp-6.3-public-contract.tsv"
+)
 
 LEGACY_ARCHIVE_SHA256 = "0e34e32cb1ac25fdc8592aea85aa5630ca31ab59076b3e33faa6611a4e51911c"
 
@@ -121,6 +128,163 @@ class BeadsWorkflowContractTest(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn("--session-close", completed.stdout)
         self.assertIn("--verify-remote", completed.stdout)
+
+    def run_hierarchy_guard(self, records: list[dict[str, object]]) -> subprocess.CompletedProcess[str]:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-beads-deadlock-test-") as raw:
+            fixture = Path(raw) / "issues.jsonl"
+            fixture.write_text(
+                "".join(json.dumps(record) + "\n" for record in records),
+                encoding="utf-8",
+            )
+            return subprocess.run(
+                [sys.executable, str(HIERARCHY_DEADLOCK_GUARD), "--input", str(fixture)],
+                cwd=REPO_ROOT,
+                capture_output=True,
+                text=True,
+            )
+
+    def test_hierarchy_deadlock_guard_rejects_active_ancestor_blocking_edges(self) -> None:
+        records = [
+            {
+                "id": "fixture-root",
+                "title": "Root",
+                "status": "open",
+                "dependencies": [
+                    {
+                        "issue_id": "fixture-root",
+                        "depends_on_id": "fixture-root.1",
+                        "type": "blocks",
+                    }
+                ],
+            },
+            {
+                "id": "fixture-root.1",
+                "title": "Child",
+                "status": "open",
+                "dependencies": [
+                    {
+                        "issue_id": "fixture-root.1",
+                        "depends_on_id": "fixture-root",
+                        "type": "parent-child",
+                    }
+                ],
+            },
+            {
+                "id": "fixture-root.2",
+                "title": "Other child",
+                "status": "open",
+                "dependencies": [
+                    {
+                        "issue_id": "fixture-root.2",
+                        "depends_on_id": "fixture-root",
+                        "type": "parent-child",
+                    },
+                    {
+                        "issue_id": "fixture-root.2",
+                        "depends_on_id": "fixture-root",
+                        "type": "conditional-blocks",
+                    },
+                ],
+            },
+        ]
+
+        completed = self.run_hierarchy_guard(records)
+        self.assertNotEqual(completed.returncode, 0)
+        self.assertIn("parent-depends-on-descendant", completed.stderr)
+        self.assertIn("fixture-root -> fixture-root.1", completed.stderr)
+        self.assertIn("child-depends-on-ancestor", completed.stderr)
+        self.assertIn("fixture-root.2 -> fixture-root", completed.stderr)
+
+    def test_hierarchy_deadlock_guard_allows_sibling_ordering_and_inactive_history(self) -> None:
+        records = [
+            {"id": "fixture-root", "title": "Root", "status": "open"},
+            {
+                "id": "fixture-root.1",
+                "title": "First child",
+                "status": "open",
+                "dependencies": [
+                    {
+                        "issue_id": "fixture-root.1",
+                        "depends_on_id": "fixture-root",
+                        "type": "parent-child",
+                    },
+                    {
+                        "issue_id": "fixture-root.1",
+                        "depends_on_id": "fixture-root.2",
+                        "type": "blocks",
+                    },
+                ],
+            },
+            {
+                "id": "fixture-root.2",
+                "title": "Sibling",
+                "status": "open",
+                "dependencies": [
+                    {
+                        "issue_id": "fixture-root.2",
+                        "depends_on_id": "fixture-root",
+                        "type": "parent-child",
+                    }
+                ],
+            },
+            {
+                "id": "fixture-closed",
+                "title": "Closed parent",
+                "status": "closed",
+                "dependencies": [
+                    {
+                        "issue_id": "fixture-closed",
+                        "depends_on_id": "fixture-closed.1",
+                        "type": "blocks",
+                    }
+                ],
+            },
+            {
+                "id": "fixture-closed.1",
+                "title": "Closed child",
+                "status": "closed",
+                "dependencies": [
+                    {
+                        "issue_id": "fixture-closed.1",
+                        "depends_on_id": "fixture-closed",
+                        "type": "parent-child",
+                    }
+                ],
+            },
+        ]
+
+        completed = self.run_hierarchy_guard(records)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("active=0", completed.stdout)
+        self.assertIn("inactive=1", completed.stdout)
+
+    def test_health_script_runs_hierarchy_deadlock_guard(self) -> None:
+        script = self.read(HEALTH_SCRIPT)
+        self.assertIn("scripts/beads/check-hierarchy-deadlocks.py", script)
+
+    def test_hierarchy_and_readiness_model_is_documented(self) -> None:
+        readme = self.read(BEADS_README)
+        for phrase in [
+            "## Hierarchy and readiness",
+            "parent-child",
+            "ancestor",
+            "descendant",
+            "sibling",
+            "scripts/beads/check-hierarchy-deadlocks.py",
+        ]:
+            self.assertIn(phrase, readme)
+
+        migration = self.read(MIGRATION_INTEGRITY_RECORD)
+        self.assertNotIn(
+            "The new client treats structural parent-child links as affecting readiness",
+            migration,
+        )
+        self.assertIn("feedback loop", migration)
+        self.assertIn("b5365b7dbbf7609b1cbe3d80776f76702c14c2d5c246d82852ad5d2cfbbbadab", migration)
+
+        decision_log = self.read(PUBLIC_CONTRACT_DECISION_LOG)
+        self.assertIn("Initial hypothesis; disproved by haxe_go-7hiq", decision_log)
+        self.assertIn("Correct the ready-list diagnosis", decision_log)
 
     def test_documented_bd_commands_exist_when_bd_is_installed(self) -> None:
         bd = shutil.which("bd")
