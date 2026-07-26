@@ -45,7 +45,7 @@ class SemanticReleaseDependencyBoundaryContract(unittest.TestCase):
 
     def test_sentinel_throws_if_a_publish_hook_is_activated(self) -> None:
         script = """
-        import * as plugin from './scripts/release/disabled-semantic-release-npm/index.js';
+        import * as plugin from '@semantic-release/npm';
         const expected = ['addChannel', 'prepare', 'publish', 'verifyConditions'];
         if (JSON.stringify(Object.keys(plugin).sort()) !== JSON.stringify(expected)) {
           throw new Error(`unexpected exports: ${Object.keys(plugin).sort().join(',')}`);

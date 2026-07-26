@@ -36,6 +36,12 @@ class DependencyAuditGateSemanticsTest(unittest.TestCase):
         fake_npm.write_text(
             "#!/usr/bin/env bash\n"
             "printf '%s\\n' \"$*\" >>\"$FAKE_NPM_LOG\"\n"
+            "if [[ \"${FAKE_NPM_REQUIRE_LOCAL_SENTINEL:-0}\" == \"1\" ]] && "
+            "[[ \"${1:-}\" == \"ci\" ]] && "
+            "[[ ! -f scripts/release/disabled-semantic-release-npm/package.json ]]; then\n"
+            "  printf 'missing staged local dependency\\n' >&2\n"
+            "  exit 42\n"
+            "fi\n"
             "if [[ \"${1:-}\" == \"audit\" ]]; then\n"
             "  printf '%s\\n' \"$FAKE_NPM_OUTPUT\"\n"
             "  exit \"$FAKE_NPM_EXIT\"\n"
@@ -89,6 +95,17 @@ class DependencyAuditGateSemanticsTest(unittest.TestCase):
         self.assertIn("audit --include=dev --audit-level=high", invocations)
         self.assertNotIn("--omit=dev", invocations)
         self.assertIn("operational Node dependencies", proc.stdout)
+
+    def test_npm_audit_stages_and_validates_local_file_dependencies(self) -> None:
+        proc, report_dir = self.run_with_fake_govulncheck(
+            output="No vulnerabilities found.",
+            exit_code=0,
+            extra_env={"FAKE_NPM_REQUIRE_LOCAL_SENTINEL": "1"},
+        )
+
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        invocations = (report_dir / "npm-invocations.txt").read_text(encoding="utf-8")
+        self.assertIn("ls --all", invocations)
 
     def test_high_severity_operational_npm_finding_fails_before_go_scan(self) -> None:
         proc, report_dir = self.run_with_fake_govulncheck(

@@ -40,13 +40,15 @@ Dependabot coverage, then runs the vendored-source verifier. The CI quality job
 runs the command immediately after its clean install, and npm run
 release:status runs it again before reporting healthy release wiring.
 
-The dependency vulnerability audit copies both package.json and
-package-lock.json into an isolated directory and performs npm ci
---ignore-scripts --include=dev. This is intentional: npm classifies the
+The dependency vulnerability audit copies package.json, package-lock.json, and
+every declared repository-local `file:` dependency into an isolated directory.
+It performs `npm ci --ignore-scripts --include=dev`, then requires `npm ls
+--all` to prove the isolated install has no missing or invalid package links
+before running the vulnerability scan. This is intentional: npm classifies the
 repository's CI and release executables as development dependencies, but they
 are operational supply-chain dependencies because they decide versions,
 generate release notes, and publish releases. The audit never resolves a new
-lock.
+lock or treats a malformed install as clean.
 
 ## Updating JavaScript dependencies
 

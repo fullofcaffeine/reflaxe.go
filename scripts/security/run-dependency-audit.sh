@@ -40,6 +40,56 @@ write_govulncheck_metadata() {
 
 write_govulncheck_metadata "not_run" "-"
 
+stage_local_npm_dependencies() {
+  local destination_root="$1"
+  local local_paths
+
+  if ! local_paths="$(
+    node - "$ROOT/package.json" <<'NODE'
+const fs = require("node:fs");
+const path = require("node:path");
+
+const packagePath = process.argv[2];
+const root = fs.realpathSync(path.dirname(packagePath));
+const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+const sections = [
+  packageJson.dependencies,
+  packageJson.devDependencies,
+  packageJson.optionalDependencies,
+];
+const localPaths = new Set();
+
+for (const section of sections) {
+  if (!section || typeof section !== "object" || Array.isArray(section)) continue;
+  for (const spec of Object.values(section)) {
+    if (typeof spec !== "string" || !spec.startsWith("file:")) continue;
+    const localPath = spec.slice("file:".length);
+    if (localPath.includes("\n") || localPath.includes("\r")) {
+      throw new Error("local npm dependency paths cannot contain line breaks");
+    }
+    const normalized = path.normalize(localPath);
+    const source = fs.realpathSync(path.resolve(root, normalized));
+    if (source === root || !source.startsWith(root + path.sep)) {
+      throw new Error(`local npm dependency escapes repository root: ${localPath}`);
+    }
+    localPaths.add(normalized);
+  }
+}
+
+process.stdout.write([...localPaths].sort().join("\n"));
+NODE
+  )"; then
+    echo "[deps] error: could not enumerate repository-local npm dependencies" >&2
+    return 1
+  fi
+
+  while IFS= read -r local_path; do
+    [[ -z "$local_path" ]] && continue
+    mkdir -p "$destination_root/$(dirname "$local_path")"
+    cp -R "$ROOT/$local_path" "$destination_root/$local_path"
+  done <<<"$local_paths"
+}
+
 if ! [[ "$govulncheck_install_attempts" =~ ^[1-9][0-9]*$ ]]; then
   echo "[deps] error: GOVULNCHECK_INSTALL_ATTEMPTS must be a positive integer" >&2
   exit 2
@@ -59,9 +109,11 @@ if [[ -f package.json ]]; then
   if [[ -f .npmrc ]]; then
     cp .npmrc "$npm_audit_tmp_dir/.npmrc"
   fi
+  stage_local_npm_dependencies "$npm_audit_tmp_dir"
   (
     cd "$npm_audit_tmp_dir"
     npm ci --ignore-scripts --include=dev --no-audit --no-fund
+    npm ls --all >/dev/null
     npm audit --include=dev --audit-level=high
   ) 2>&1 | tee "$npm_audit_report"
 fi

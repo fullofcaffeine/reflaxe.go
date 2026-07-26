@@ -56,6 +56,10 @@ boundary contracts require all of the following:
 3. the lockfile contains no transitive `node_modules/npm`; and
 4. high or critical npm advisories still fail CI.
 
+The isolated audit copies declared repository-local `file:` dependencies before
+installation and runs `npm ls --all` before `npm audit`. A dangling sentinel
+link therefore fails the gate instead of producing a misleading clean scan.
+
 The boundary was added after
 [GHSA-mh99-v99m-4gvg](https://github.com/advisories/GHSA-mh99-v99m-4gvg)
 and
