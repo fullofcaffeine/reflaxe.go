@@ -84,6 +84,8 @@
     "hooks:install": "bash scripts/install-git-hooks.sh",
     "security:gitleaks": "bash scripts/security/run-gitleaks.sh",
     "security:deps": "bash scripts/security/run-dependency-audit.sh",
+    "security:github-governance": "python3 scripts/security/verify-github-governance.py --mode source",
+    "security:github-governance:live": "python3 scripts/security/verify-github-governance.py --mode live",
     "security:go-tooling": "python3 scripts/security/run-go-tooling-gates.py",
     "security:supply-chain": "python3 scripts/security/verify-supply-chain.py",
     "verify:vendor-reflaxe": "python3 scripts/vendor/verify-reflaxe-provenance.py",

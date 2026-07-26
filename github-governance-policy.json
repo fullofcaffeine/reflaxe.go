@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "repository": "fullofcaffeine/reflaxe.go",
+  "default_branch": "master",
+  "api_version": "2026-03-10",
+  "actions": {
+    "enabled": true,
+    "allowed_actions": "all",
+    "sha_pinning_required": true,
+    "default_workflow_permissions": "read",
+    "can_approve_pull_request_reviews": false
+  },
+  "security_and_analysis": {
+    "secret_scanning": "enabled",
+    "secret_scanning_push_protection": "enabled",
+    "dependabot_security_updates": "enabled"
+  },
+  "plan_limitations": [
+    {
+      "control": "secret_scanning_non_provider_patterns",
+      "observed_status": "disabled",
+      "reason": "GitHub Secret Protection is not available for this personal public repository."
+    },
+    {
+      "control": "secret_scanning_validity_checks",
+      "observed_status": "disabled",
+      "reason": "GitHub Secret Protection is not available for this personal public repository."
+    }
+  ],
+  "vulnerability_alerts": true,
+  "immutable_releases": true,
+  "bypass_actor": {
+    "type": "User",
+    "login": "fullofcaffeine",
+    "mode": "always"
+  },
+  "rulesets": [
+    {
+      "name": "Protect master",
+      "target": "branch",
+      "enforcement": "active",
+      "include": [
+        "~DEFAULT_BRANCH"
+      ],
+      "rules": [
+        {
+          "type": "deletion"
+        },
+        {
+          "type": "non_fast_forward"
+        },
+        {
+          "type": "required_linear_history"
+        },
+        {
+          "type": "pull_request",
+          "parameters": {
+            "allowed_merge_methods": [
+              "squash",
+              "rebase"
+            ],
+            "dismiss_stale_reviews_on_push": true,
+            "require_code_owner_review": false,
+            "require_last_push_approval": true,
+            "required_approving_review_count": 1,
+            "required_review_thread_resolution": true
+          }
+        },
+        {
+          "type": "required_status_checks",
+          "parameters": {
+            "do_not_enforce_on_create": false,
+            "strict_required_status_checks_policy": true,
+            "required_status_checks": [
+              {
+                "context": "Quality Gate",
+                "integration_id": 15368
+              },
+              {
+                "context": "test:ci (ubuntu-latest, go 1.25.12)",
+                "integration_id": 15368
+              },
+              {
+                "context": "test:ci (ubuntu-latest, go 1.26.5)",
+                "integration_id": 15368
+              },
+              {
+                "context": "test:ci (macos-latest, go 1.26.5)",
+                "integration_id": 15368
+              },
+              {
+                "context": "CodeQL (go)",
+                "integration_id": 15368
+              },
+              {
+                "context": "CodeQL (python)",
+                "integration_id": 15368
+              },
+              {
+                "context": "gitleaks",
+                "integration_id": 15368
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Protect release tags",
+      "target": "tag",
+      "enforcement": "active",
+      "include": [
+        "refs/tags/v*"
+      ],
+      "rules": [
+        {
+          "type": "deletion"
+        },
+        {
+          "type": "non_fast_forward"
+        }
+      ]
+    }
+  ]
+}

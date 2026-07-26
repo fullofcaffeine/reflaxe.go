@@ -31,6 +31,7 @@ def main() -> int:
         ["python3", "test/test_go_tooling_gate_contract.py"],
         ["python3", "test/test_go_tooling_gate_semantics.py"],
         ["python3", "test/test_goextern_ci_gate_contract.py"],
+        ["python3", "test/test_github_governance_policy.py"],
         ["python3", "test/test_haxelib_package_runner.py"],
         ["python3", "test/test_haxelib_release_artifact.py"],
         ["python3", "test/test_haxelib_release_install.py"],
