@@ -119,3 +119,34 @@ version selection and generated notes after the major upgrade.
   boundary. It cannot replace an available compatible upgrade.
 - Changes to `.releaserc.json` must re-evaluate paths currently classified as
   installed but inactive.
+
+## 2026-07-26 Follow-up: Remove The Unused Publisher
+
+The audit later failed again when new advisories covered `brace-expansion`
+5.0.7 and `tar` 7.5.19 inside npm 11.18.0. Both packages were bundled into the
+npm CLI shipped by `@semantic-release/npm`, so a normal lock refresh or a leaf
+override could not replace them independently.
+
+The earlier remediation correctly made the tree clean against the advisories
+known on 2026-07-14, but retaining an inactive package publisher meant newly
+disclosed flaws in its large npm CLI subtree could still block releases. The
+stronger follow-up resolves `@semantic-release/npm` to the repository's private
+`scripts/release/disabled-semantic-release-npm` sentinel. The sentinel satisfies
+semantic-release's unconditional package dependency without installing the
+unused publisher or npm CLI, and every lifecycle hook throws if configuration
+drift tries to activate it.
+
+This changes the preferred remediation order for installed-but-inactive release
+plugins:
+
+1. remove an unused plugin dependency when the upstream package permits it;
+2. otherwise replace it with a tested, fail-closed local boundary when the
+   upstream meta-package declares it unconditionally;
+3. upgrade reachable dependencies to patched compatible versions; and
+4. never suppress a high or critical finding merely because the configured path
+   is currently inactive.
+
+The dependency audit still scans the complete remaining development tree. The
+new boundary is additionally enforced by the release-policy suite and an
+executable contract covering the manifest, lockfile, configured plugin list,
+and fail-closed hooks.

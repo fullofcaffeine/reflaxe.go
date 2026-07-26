@@ -1,0 +1,9 @@
+{
+  "name": "@semantic-release/npm",
+  "version": "13.1.5+disabled",
+  "description": "Fail-closed sentinel for the npm publish plugin excluded by haxe.go release policy",
+  "private": true,
+  "type": "module",
+  "exports": "./index.js",
+  "license": "GPL-3.0-only"
+}

@@ -15,6 +15,8 @@ DEVELOPMENT_VERSION = "0.0.0"
 TAG_FORMAT = "v$" + "{version}"
 ANALYZER = "./scripts/release/analyze-commits.mjs"
 POLICY_PATH = "release/policy.json"
+DISABLED_NPM_PLUGIN_SPEC = "file:scripts/release/disabled-semantic-release-npm"
+DISABLED_NPM_PLUGIN_PACKAGE = "scripts/release/disabled-semantic-release-npm/package.json"
 
 
 def fail(message: str) -> NoReturn:
@@ -111,6 +113,19 @@ def verify_release_config() -> None:
     dependencies = package.get("devDependencies")
     if not isinstance(dependencies, dict):
         fail("package.json devDependencies must be an object")
+    if dependencies.get("@semantic-release/npm") != DISABLED_NPM_PLUGIN_SPEC:
+        fail(
+            "the unused semantic-release npm publisher must resolve to the "
+            "fail-closed local sentinel"
+        )
+    disabled_npm_plugin = load_json(ROOT / DISABLED_NPM_PLUGIN_PACKAGE)
+    if (
+        disabled_npm_plugin.get("name") != "@semantic-release/npm"
+        or disabled_npm_plugin.get("version") != "13.1.5+disabled"
+        or disabled_npm_plugin.get("private") is not True
+        or disabled_npm_plugin.get("license") != "GPL-3.0-only"
+    ):
+        fail("the disabled semantic-release npm publisher sentinel drifted")
     for forbidden in (
         "@semantic-release/changelog",
         "@semantic-release/git",

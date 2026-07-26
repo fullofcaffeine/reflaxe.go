@@ -32,6 +32,39 @@ The initial full-tree finding inventory, configured-plugin reachability map,
 and all 19 remediations are recorded in
 [the operational npm dependency audit](reviews/npm-operational-dependency-audit-vfp-4.12.md).
 
+## Unused Semantic-release Publishers
+
+The upstream `semantic-release` package declares its default npm publisher even
+when a repository supplies an explicit plugin list. Haxe.go's release policy
+permits only `scripts/release/analyze-commits.mjs`: semantic-release chooses a
+version and creates the exact tested tag, while the same-SHA workflow separately
+publishes reviewed GitHub and Haxelib assets.
+
+`package.json` therefore resolves `@semantic-release/npm` to
+`scripts/release/disabled-semantic-release-npm`. This small local package
+satisfies the upstream dependency without installing an unused npm CLI and its
+bundled dependency tree. Every exported publish hook throws. If release
+configuration ever tries to activate the excluded publisher, the release fails
+before registry mutation.
+
+This is removal, not an audit exemption. The complete locked tree is still
+audited with dev dependencies included, and the release-policy and dependency-
+boundary contracts require all of the following:
+
+1. the configured plugin list excludes `@semantic-release/npm`;
+2. the local sentinel remains private and fail-closed;
+3. the lockfile contains no transitive `node_modules/npm`; and
+4. high or critical npm advisories still fail CI.
+
+The boundary was added after
+[GHSA-mh99-v99m-4gvg](https://github.com/advisories/GHSA-mh99-v99m-4gvg)
+and
+[GHSA-r292-9mhp-454m](https://github.com/advisories/GHSA-r292-9mhp-454m)
+affected dependencies bundled inside the otherwise unused npm CLI. Normal
+lockfile refreshes and leaf overrides cannot replace bundled package contents;
+downgrading semantic-release or suppressing the findings would weaken the
+release contract instead of removing the unused surface.
+
 ## Why SSL And Network Findings Can Appear
 
 `runtime/hxrt` implements Haxe standard-library SSL and network support.
