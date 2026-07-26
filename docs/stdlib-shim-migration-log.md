@@ -2615,3 +2615,36 @@ Observed result:
   universal IR layer.
 - Unsupported zlib controls are visible and documented; no compatibility mode
   silently changes their semantics.
+
+### 2026-07-26: close portable compiler-stdlib migration debt (`haxe_go-vfp.8.7`)
+
+Implementation:
+
+- Audited the final shared declaration selector after all family migrations.
+  Its portable entries are the registered Type, Reflect, and serialization
+  metadata/representation capabilities; its other entries are explicit
+  `go.*` native APIs. None implements a standard-library algorithm.
+- Renamed `lowerStdlibShimDecls` to
+  `lowerRegisteredCompilerCapabilityDecls` so its name describes its actual
+  responsibility instead of implying an unfinished second stdlib layer.
+- Kept the selector fail-closed and bidirectionally checked against
+  `docs/compiler-stdlib-intrinsics.json`.
+- Removed the empty `compiler_stdlib_migration_debt` exception and its
+  dispatcher ceiling. Every selected declaration emitter remains independently
+  registered and ratcheted.
+
+Validation evidence:
+
+- `python3 test/test_compiler_stdlib_intrinsic_registry.py`
+- `python3 test/test_compiler_debt_ratchet.py`
+- `npm run test:compiler-debt`
+- full compiler, semantic-diff, stdlib sweep, example, and release gates
+  recorded in the parent Bead closeout
+
+Observed result:
+
+- The compiler-shim count falls from 10 to 9 without changing generated Go.
+- The registry contains no `migration_required` entry.
+- Portable standard-library behavior is source-owned by upstream Haxe or
+  `std/go/_std`; retained compiler capabilities are exact, reviewed exceptions
+  rather than a global compatibility implementation.

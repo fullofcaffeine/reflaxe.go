@@ -20,9 +20,8 @@ DEBT_POLICY_PATH = ROOT / "test" / "compiler_debt_policy.json"
 PACKAGE_PATH = ROOT / "package.json"
 RELEASE_RUNNER_PATH = ROOT / "test" / "run-release-contracts.py"
 
-ALLOWED_STATUS = {"approved_intrinsic", "migration_required"}
+ALLOWED_STATUS = {"approved_intrinsic"}
 ALLOWED_SYMBOL_SCOPE = {"complete_type", "partial_type", "member"}
-FOLLOW_UP_RE = re.compile(r"^haxe_go-[a-z0-9.-]+$")
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -91,7 +90,7 @@ def strip_comments(source: str) -> str:
 
 
 def dispatch_groups(source: str) -> dict[str, str]:
-    body = function_source(source, "lowerStdlibShimDecls")
+    body = function_source(source, "lowerRegisteredCompilerCapabilityDecls")
     pairs = re.findall(
         r'requiredStdlibShimGroups\.exists\("([^"]+)"\).*?concat\((lower[A-Za-z0-9_]+ShimDecls)\(\)\)',
         body,
@@ -242,8 +241,11 @@ class CompilerStdlibIntrinsicRegistryContract(unittest.TestCase):
 
         dispatcher = registry.get("dispatcher")
         self.assertIsInstance(dispatcher, dict)
-        self.assertEqual("lowerStdlibShimDecls", dispatcher.get("context"))
-        self.assertEqual("migration_required", dispatcher.get("status"))
+        self.assertEqual(
+            "lowerRegisteredCompilerCapabilityDecls",
+            dispatcher.get("context"),
+        )
+        self.assertEqual("registry_plumbing", dispatcher.get("status"))
         decision_fields(dispatcher, "dispatcher", decisions)
 
         groups = registry.get("groups")
@@ -258,10 +260,7 @@ class CompilerStdlibIntrinsicRegistryContract(unittest.TestCase):
             label = f"group {group.get('group')}"
             self.assertIn(group.get("status"), ALLOWED_STATUS, label)
             decision_fields(group, label, decisions)
-            if group["status"] == "migration_required":
-                self.assertRegex(group.get("followUpBead", ""), FOLLOW_UP_RE, label)
-            else:
-                self.assertNotIn("followUpBead", group, label)
+            self.assertNotIn("followUpBead", group, label)
 
             symbols = group.get("ownedSymbols")
             self.assertIsInstance(symbols, list, label)
@@ -309,10 +308,7 @@ class CompilerStdlibIntrinsicRegistryContract(unittest.TestCase):
             label = f"direct lowering {entry.get('symbol')}"
             self.assertIn(entry.get("status"), ALLOWED_STATUS, label)
             decision_fields(entry, label, decisions)
-            if entry["status"] == "migration_required":
-                self.assertRegex(entry.get("followUpBead", ""), FOLLOW_UP_RE, label)
-            else:
-                self.assertNotIn("followUpBead", entry, label)
+            self.assertNotIn("followUpBead", entry, label)
 
         special = registry.get("specialIntrinsics")
         self.assertIsInstance(special, list)
@@ -322,10 +318,7 @@ class CompilerStdlibIntrinsicRegistryContract(unittest.TestCase):
             label = f"special intrinsic {entry.get('symbol')}"
             self.assertIn(entry.get("status"), ALLOWED_STATUS, label)
             decision_fields(entry, label, decisions)
-            if entry["status"] == "migration_required":
-                self.assertRegex(entry.get("followUpBead", ""), FOLLOW_UP_RE, label)
-            else:
-                self.assertNotIn("followUpBead", entry, label)
+            self.assertNotIn("followUpBead", entry, label)
 
     def test_dispatch_and_entry_points_are_bidirectional(self) -> None:
         actual_dispatch = dispatch_groups(self.compiler)
@@ -337,10 +330,8 @@ class CompilerStdlibIntrinsicRegistryContract(unittest.TestCase):
         }
         self.assertEqual(actual_dispatch, {**registered_groups, **native_groups})
 
-        portable_contexts = {self.registry["dispatcher"]["context"]}
-        context_status = {
-            self.registry["dispatcher"]["context"]: self.registry["dispatcher"]["status"]
-        }
+        portable_contexts: set[str] = set()
+        context_status: dict[str, str] = {}
         for group in self.registry["groups"]:
             portable_contexts.add(group["entryPoint"])
             context_status[group["entryPoint"]] = group["status"]
@@ -352,14 +343,12 @@ class CompilerStdlibIntrinsicRegistryContract(unittest.TestCase):
                     f"support entry point {support['context']}",
                     self.registry["decisions"],
                 )
-                if support["status"] == "migration_required":
-                    self.assertRegex(
-                        support.get("followUpBead", ""),
-                        FOLLOW_UP_RE,
-                        support["context"],
-                    )
-                else:
-                    self.assertNotIn("followUpBead", support, support["context"])
+                self.assertIn(
+                    support["status"],
+                    ALLOWED_STATUS,
+                    support["context"],
+                )
+                self.assertNotIn("followUpBead", support, support["context"])
 
         native_contexts = {
             context
@@ -375,19 +364,16 @@ class CompilerStdlibIntrinsicRegistryContract(unittest.TestCase):
         self.assertEqual(portable_contexts | native_contexts, set(shim_limits))
         for context, status in context_status.items():
             limit = shim_limits[context]
-            if status == "migration_required":
-                self.assertEqual("avoidable", limit["classification"], context)
-                self.assertEqual("compiler_stdlib_migration_debt", limit["exception_id"], context)
-            else:
-                self.assertEqual("required", limit["classification"], context)
-                self.assertEqual("compiler_stdlib_intrinsic_boundary", limit["exception_id"], context)
+            self.assertEqual("approved_intrinsic", status, context)
+            self.assertEqual("required", limit["classification"], context)
+            self.assertEqual("compiler_stdlib_intrinsic_boundary", limit["exception_id"], context)
         for context in native_contexts:
             self.assertEqual("required", shim_limits[context]["classification"], context)
             self.assertEqual("native_compiler_shim_boundary", shim_limits[context]["exception_id"], context)
 
         self.assertNotIn("compiler_shim_boundary", policy["exceptions"])
+        self.assertNotIn("compiler_stdlib_migration_debt", policy["exceptions"])
         for exception_id in (
-            "compiler_stdlib_migration_debt",
             "compiler_stdlib_intrinsic_boundary",
             "native_compiler_shim_boundary",
         ):

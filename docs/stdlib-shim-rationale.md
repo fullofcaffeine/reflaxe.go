@@ -19,9 +19,10 @@ Canonical ownership rule: `docs/ownership-rubric.md`.
 - compiler-emitted stdlib shims in `src/reflaxe/go/GoCompiler.hx`
 - staged stdlib sources under `std/go/_std` (selected before typing by `haxe_libraries/reflaxe.go.hxml`)
 
-This document records which compiler-core shims have migrated, which are still
-explicit migration debt, and which exact compiler primitives have enough
-compile-context evidence to remain.
+This document records which compiler-core shims migrated and which exact
+compiler primitives have enough compile-context evidence to remain. The
+behavior-heavy migration ledger is closed: no portable compiler-stdlib
+migration-debt exception remains.
 For runtime package internals and call-flow wiring, see `docs/hxrt-runtime.md`.
 Execution history and validation evidence are tracked in `docs/stdlib-shim-migration-log.md`.
 
@@ -65,9 +66,12 @@ Use the first applicable ownership layer that preserves parity:
 - compiler intrinsics only for exact compile-time metadata, policy, or
   representation primitives that neither source layer can express.
 
-Existing behavior-heavy compiler groups are compatibility implementations, not
-approved architecture. They remain measured and tested while their linked
-migration beads move them to the proper source/runtime owner.
+Former behavior-heavy compiler groups were compatibility implementations, not
+approved architecture, and have moved to their proper source/runtime owners.
+The remaining declaration emitters are individually registered metadata or
+representation capabilities; explicit `go.*` emitters are separately classified
+native APIs. A shared selector may dispatch those registered capabilities, but
+it owns no library behavior and is not a second stdlib layer.
 
 Family precedent matters here:
 
@@ -92,7 +96,7 @@ The repo-wide rule for deciding ownership lives in `docs/ownership-rubric.md`.
 | Compiler-lowered builtins/intrinsics only | Minimal generated wrappers for hot paths | Only viable when behavior depends on compile-time facts or an exact generated representation; ordinary token, regex, exception, and conversion policy belongs in source/runtime owners. |
 | Externs + external Go runtime package | Clean boundary and reuse potential | Externs are type-only and `ignoreExterns: true` is currently required for deterministic emission in `src/reflaxe/go/CompilerInit.hx`. |
 | Raw `__go__` in Haxe std/app code | Minimal indirection for target-native calls | Still the wrong default for app/examples, but now valid in framework-owned low-level abstraction islands via `@:goAllowRaw` + `reflaxe.go.macros.GoInjection.__go__`. Keep imports typed with extern metadata; do not use raw injection as a substitute for `@:go.import`/`@:go.name`. |
-| Canonical target `_std` (`std/go/_std`) | Authoritative home for Haxe-visible behavior | Remaining families need typed runtime handles and representation bridges migrated incrementally; their size is execution scope, not a reason for compiler ownership. |
+| Canonical target `_std` (`std/go/_std`) | Authoritative home for Haxe-visible behavior | Completed migrations show that typed runtime handles and narrow representation bridges preserve this ownership without compiler-emitted library algorithms. |
 
 ## Decision Matrix
 
@@ -149,6 +153,7 @@ These are the canonical per-surface decisions for shim ownership and alternative
 | `SDR-019` | portable compiler stdlib intrinsic registry | Inventory exact Haxe symbols, compiler entry points, selectors, direct call rewrites, dependencies, evidence, review conditions, and migration beads in a fail-closed machine-readable registry. Classify behavior-heavy groups as avoidable migration debt; distinguish narrow admitted intrinsics from explicit `go.*` native emitters. | Keep the file ledger as an indirect audit, treat every named shim as required, or ban all compiler primitives without recognizing type-metadata/representation needs | `docs/compiler-stdlib-intrinsics.json`, `test/test_compiler_stdlib_intrinsic_registry.py`, and the split compiler-debt exceptions under `haxe_go-vfp.8.7.8` |
 | `SDR-020` | lowercase generated-method discovery through `Reflect.field` / `Reflect.hasField` | Retain one selective, method-only compiler metadata plan over the final reachable generated class graph. Emit a canonical-receiver switch and per-class own-method resolvers with one generated-superclass fallback; return only an already-bound method value. Keep lookup policy in `Reflect`, iteration policy in staged `haxe.Template`, and invocation only in the existing typed runtime boundary. | Export or duplicate generated methods, use a provider interface, add a global registry/map, use unsafe reflection in `hxrt`, restore a Template-specific compiler shim, or introduce a full semantic program IR for this bounded closed-world fact | `haxe_template_concrete_iterable_contract`, `stdlib/haxe_template_generated_method_lookup`, direct bound-method runtime coverage, the intrinsic registry, and the written xhigh second pass under `haxe_go-vfp.8.7.19` |
 | `SDR-021` | complete `Std` and `haxe.Log` source ownership | Keep all Haxe-visible parsing, overflow, downcast, formatting, position, custom-parameter, trace-rebinding, and output policy in canonical staged source. Retain only `Std.string` / `Std.isOfType` as exact representation intrinsics and use typed native bindings for float conversion, truncation, and random generation. Extend general typed Go class/cast lowering for mutable static dynamic functions, catchable null calls, concrete downcasts, and virtual-carrier runtime tests; do not add a Log/Std-specific semantic product or universal IR. | Preserve direct `Std.parseInt` / `haxe.Log.trace` rewrites, move library policy into `hxrt`, publish a partial `Std`, treat nil Go-function panics as Haxe catches globally, add profile-specific lowering, or introduce a whole-program IR for four bounded representation seams | `std_complete_api_contract`, `stdlib/std_log_source_owned`, prior Std type-test contracts, provenance/intrinsic/debt gates, sibling staged-source precedent, and `haxe_go-vfp.8.7.22` |
+| `SDR-022` | stdlib ownership closeout and capability dispatch | Retire the obsolete `lowerStdlibShimDecls` migration-debt identity. Keep one fail-closed `lowerRegisteredCompilerCapabilityDecls` selector for the three approved portable metadata/representation groups and three explicit `go.*` native groups, while measuring every selected declaration emitter independently. Remove the now-empty portable stdlib migration-debt exception. | Keep reporting a completed migration as avoidable debt, inline the same six checks at the generation call site, or misclassify structural selection as another approved intrinsic | Exact bidirectional dispatcher/registry contract, compiler-debt reduction from 10 to 9 named shim entry points, zero `migration_required` registry entries, unchanged generated snapshots, and parent closeout review under `haxe_go-vfp.8.7` |
 
 Review trigger for all records: revisit when an alternative path proves equal/better parity and performance under the same harness gates.
 

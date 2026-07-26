@@ -53,7 +53,6 @@ COMPILER_SHIM_RE = re.compile(
 )
 
 SHIM_CAPABILITIES = {
-    "lowerStdlibShimDecls": "stdlib_dispatch",
     "lowerGoConcurrencyShimDecls": "go_concurrency",
     "lowerTypedGoConcurrencyShimDecls": "go_concurrency",
     "lowerTypedGoCollectionShimDecls": "go_collections",
@@ -159,17 +158,13 @@ def compiler_shim_policy_by_context(root_value: str) -> dict[str, tuple[str, str
     def register(context: str, status: str, label: str) -> None:
         if context in policies:
             raise ValueError(f"duplicate compiler shim registry context {context}: {label}")
-        if status == "migration_required":
-            policies[context] = ("avoidable", "compiler_stdlib_migration_debt")
-        elif status == "approved_intrinsic":
+        if status == "approved_intrinsic":
             policies[context] = ("required", "compiler_stdlib_intrinsic_boundary")
         elif status == "native_api":
             policies[context] = ("required", "native_compiler_shim_boundary")
         else:
             raise ValueError(f"unknown compiler shim registry status {status}: {label}")
 
-    dispatcher = registry["dispatcher"]
-    register(dispatcher["context"], dispatcher["status"], "dispatcher")
     for group in registry["groups"]:
         register(group["entryPoint"], group["status"], group["group"])
         for support in group.get("supportEntryPoints", []):

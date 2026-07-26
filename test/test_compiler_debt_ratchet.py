@@ -32,14 +32,14 @@ def write_test_intrinsic_registry(root: Path, entry_points: list[str]) -> None:
         json.dumps(
             {
                 "dispatcher": {
-                    "context": "lowerStdlibShimDecls",
-                    "status": "migration_required",
+                    "context": "lowerRegisteredCompilerCapabilityDecls",
+                    "status": "registry_plumbing",
                 },
                 "groups": [
                     {
                         "group": f"fixture_{index}",
                         "entryPoint": entry_point,
-                        "status": "migration_required",
+                        "status": "approved_intrinsic",
                     }
                     for index, entry_point in enumerate(entry_points)
                 ],

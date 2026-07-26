@@ -478,7 +478,7 @@ class GoCompiler {
 		}
 		var supportDecls = new Array<GoDecl>();
 		supportDecls = supportDecls.concat(lowerGeneratedMethodMetadataShimDecls());
-		supportDecls = supportDecls.concat(lowerStdlibShimDecls());
+		supportDecls = supportDecls.concat(lowerRegisteredCompilerCapabilityDecls());
 		supportDecls = supportDecls.concat(lowerTestAstStmtDecls());
 		populateLeafReturningFunctions(moduleDecls, preludeDecls, supportDecls);
 		var requiredShimGroups = sortedRequiredStdlibShimGroups();
@@ -2069,7 +2069,18 @@ class GoCompiler {
 		];
 	}
 
-	function lowerStdlibShimDecls():Array<GoDecl> {
+	/**
+		What: Dispatch only compiler capabilities registered for the current program.
+
+		Why: The remaining portable entries need finalized compiler metadata, while
+		explicit `go.*` APIs need native specialization. Neither category is an
+		unfinished compiler-owned standard-library implementation.
+
+		How: Select each independently registered emitter by its exact capability
+		key. The intrinsic registry checks this list bidirectionally, and the
+		individual emitters remain visible to the compiler-debt ratchet.
+	**/
+	function lowerRegisteredCompilerCapabilityDecls():Array<GoDecl> {
 		var decls = new Array<GoDecl>();
 		if (requiredStdlibShimGroups.exists("type_metadata")) {
 			decls = decls.concat(lowerTypeMetadataShimDecls());

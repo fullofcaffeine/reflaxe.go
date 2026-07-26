@@ -42,8 +42,8 @@ For compiler stdlib entry points, “required” is intentionally narrower than
 “currently needed to pass tests”:
 
 - exact compile-time metadata or representation primitives may be required;
-- behavior-heavy portable stdlib groups are avoidable migration debt even while
-  they remain compatibility-critical;
+- behavior-heavy portable stdlib groups were avoidable migration debt until
+  their staged-source/runtime migrations completed; no such exception remains;
 - explicit `go.*` native emitters use a separate required exception because
   they are not portable stdlib implementations.
 
@@ -75,9 +75,11 @@ relative paths. It covers:
 
 For named compiler shim entry points, the scanner loads the intrinsic registry.
 An entry point absent from that registry fails immediately. The companion
-registry gate also compares the shim dispatcher, class/enum selectors,
-source-planner selectors, group dependencies, compiler-owned authority list,
-and direct stdlib call rewrites in both directions.
+registry gate also compares the registered-capability dispatcher, class/enum
+selectors, source-planner selectors, group dependencies, compiler-owned
+authority list, and direct stdlib call rewrites in both directions. The
+dispatcher is selection plumbing, not a compiler-shim debt unit; every
+declaration emitter it can select remains counted independently.
 
 The last two generated lanes are measured separately. `portable` is still the
 default semantic product and `metal` is still a compatibility convenience

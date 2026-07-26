@@ -19,18 +19,6 @@
       "what": "Narrow portable stdlib primitives that genuinely need the compiler's closed type metadata or backend representation knowledge.",
       "why": "Ordinary staged source cannot enumerate the final generated type graph or safely construct a backend-owned carrier without that compile-time information."
     },
-    "compiler_stdlib_migration_debt": {
-      "classification": "avoidable",
-      "evidence": [
-        "docs/compiler-stdlib-intrinsics.json",
-        "haxe_go-vfp.8.7.9 through haxe_go-vfp.8.7.17"
-      ],
-      "how": "Keep every group and exact Haxe symbol registered with a follow-up bead, prevent count growth, and remove entries as staged Haxe or typed hxrt ownership lands.",
-      "owner": "compiler stdlib migration",
-      "reviewCondition": "This exception expires group by group; it cannot be reused for a new symbol or to approve the current implementation as architecture.",
-      "what": "Named compiler-emitted portable standard-library entry points that still contain library or runtime behavior scheduled for migration.",
-      "why": "The behavior may be correct and tested, but its current compiler ownership violates the staged-source-first ownership rule and is therefore debt rather than a required boundary."
-    },
     "generated_reflection_boundary": {
       "classification": "required",
       "how": "Measure portable and metal output independently, preserve selective runtime copying, keep JSON reflection inside the copied hxrt helper, and lower counts when typed specializations prove reflection unnecessary.",
@@ -176,18 +164,6 @@
       "classification": "required",
       "context": "lowerSerializationSourceBridgeShimDecls",
       "exception_id": "compiler_stdlib_intrinsic_boundary",
-      "file": "src/reflaxe/go/GoCompiler.hx",
-      "max_count": 1,
-      "metric": "compiler_shim",
-      "owner": "compiler_shim",
-      "profile": "shared",
-      "surface": "compiler"
-    },
-    {
-      "capability": "stdlib_dispatch",
-      "classification": "avoidable",
-      "context": "lowerStdlibShimDecls",
-      "exception_id": "compiler_stdlib_migration_debt",
       "file": "src/reflaxe/go/GoCompiler.hx",
       "max_count": 1,
       "metric": "compiler_shim",

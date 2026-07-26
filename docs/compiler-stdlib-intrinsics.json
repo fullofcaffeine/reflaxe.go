@@ -3,6 +3,16 @@
   "inventoryUnit": "exact_haxe_symbols_and_compiler_entry_points",
   "scope": "portable_haxe_stdlib",
   "decisions": {
+    "approved_capability_dispatch": {
+      "what": "Select the exact registered compiler capabilities required by the current program.",
+      "why": "The final portable entries consume closed compiler metadata, while explicit go.* entries request native specialization; grouping their selection is structural plumbing rather than standard-library ownership.",
+      "how": "Dispatch only the bidirectionally registered capability keys, keep portable intrinsics and native APIs independently classified, and continue measuring every declaration emitter in the compiler-debt ratchet.",
+      "evidence": [
+        "test/run-compiler-debt-ratchet.py",
+        "test/test_compiler_stdlib_intrinsic_registry.py"
+      ],
+      "reviewCondition": "Split or remove the dispatcher if capability selection moves behind typed lowering-pass ownership."
+    },
     "approved_exception_carrier": {
       "what": "Lower the exact haxe.Exception carrier conversion members directly at typed call sites.",
       "why": "Caught and thrown Haxe values cross the backend exception representation, so ordinary source cannot safely recover or expose the carrier without knowing that representation.",
@@ -152,22 +162,12 @@
         "docs/portable-sys-contract.md"
       ],
       "reviewCondition": "Remove the diagnostic if a supported, portable, dependency-safe process CPU-time capability becomes available."
-    },
-    "migration_dispatch": {
-      "what": "Retire the shared portable stdlib shim dispatcher as each behavior-heavy group moves to staged source or hxrt.",
-      "why": "A dispatcher is structural plumbing, not an intrinsic, and its continued existence must not make every child shim appear required.",
-      "how": "Keep its debt avoidable and shrink its exact group set as the linked migrations remove entries.",
-      "evidence": [
-        "test/run-compiler-debt-ratchet.py",
-        "test/test_compiler_stdlib_intrinsic_registry.py"
-      ],
-      "reviewCondition": "Remove the dispatcher when no portable declaration group remains."
     }
   },
   "dispatcher": {
-    "context": "lowerStdlibShimDecls",
-    "status": "migration_required",
-    "decisionId": "migration_dispatch"
+    "context": "lowerRegisteredCompilerCapabilityDecls",
+    "status": "registry_plumbing",
+    "decisionId": "approved_capability_dispatch"
   },
   "groups": [
     {
