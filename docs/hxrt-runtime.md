@@ -201,8 +201,9 @@ in `runtime/hxrt/exception_test.go` and `runtime/hxrt/thread_test.go`.
 
 `hxrt` is not the whole Haxe stdlib implementation. Public library semantics
 belong in upstream or canonical staged Haxe source. Exact admitted compiler
-intrinsics are listed in `docs/compiler-stdlib-intrinsics.json`; the larger
-groups listed there as `migration_required` are not approved exceptions.
+intrinsics are listed in `docs/compiler-stdlib-intrinsics.json`. No
+`migration_required` compiler-stdlib group remains; adding one fails the
+closeout gate instead of creating a new compatibility exception.
 
 `sys.FileSystem` follows the preferred split: `std/go/_std/sys/FileSystem.hx`
 owns its public API and `FileStat` construction, while typed `std/hxrt/fs`

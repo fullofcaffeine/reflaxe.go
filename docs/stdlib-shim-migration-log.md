@@ -2643,7 +2643,9 @@ Validation evidence:
 
 Observed result:
 
-- The compiler-shim count falls from 10 to 9 without changing generated Go.
+- The named compiler-shim metric falls from 10 to 9 because structural
+  selection plumbing is no longer counted as a declaration emitter; all nine
+  actual emitters remain independently ratcheted and generated Go is unchanged.
 - The registry contains no `migration_required` entry.
 - Portable standard-library behavior is source-owned by upstream Haxe or
   `std/go/_std`; retained compiler capabilities are exact, reviewed exceptions

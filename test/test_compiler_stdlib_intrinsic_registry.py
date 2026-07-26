@@ -90,12 +90,29 @@ def strip_comments(source: str) -> str:
 
 
 def dispatch_groups(source: str) -> dict[str, str]:
-    body = function_source(source, "lowerRegisteredCompilerCapabilityDecls")
-    pairs = re.findall(
-        r'requiredStdlibShimGroups\.exists\("([^"]+)"\).*?concat\((lower[A-Za-z0-9_]+ShimDecls)\(\)\)',
-        body,
-        flags=re.DOTALL,
+    body = strip_comments(
+        function_source(source, "lowerRegisteredCompilerCapabilityDecls")
     )
+    block_pattern = (
+        r'\s*if\s*\(\s*requiredStdlibShimGroups\.exists\("([^"]+)"\)\s*\)\s*\{\s*'
+        r"decls\s*=\s*decls\.concat\((lower[A-Za-z0-9_]+ShimDecls)\(\)\)\s*;\s*"
+        r"\}"
+    )
+    shape_pattern = (
+        r"\s*function\s+lowerRegisteredCompilerCapabilityDecls\s*\(\s*\)"
+        r"\s*:\s*Array<GoDecl>\s*\{\s*"
+        r"var\s+decls\s*=\s*new\s+Array<GoDecl>\(\)\s*;\s*"
+        rf"(?P<blocks>(?:{block_pattern})+)\s*"
+        r"return\s+decls\s*;\s*\}\s*"
+    )
+    shape = re.fullmatch(shape_pattern, body, flags=re.DOTALL)
+    if shape is None:
+        raise AssertionError(
+            "dispatcher must contain only registered capability selection"
+        )
+    pairs = re.findall(block_pattern, shape.group("blocks"), flags=re.DOTALL)
+    if len(pairs) != len({group for group, _ in pairs}):
+        raise AssertionError("dispatcher contains a duplicate capability key")
     return dict(pairs)
 
 
@@ -378,6 +395,23 @@ class CompilerStdlibIntrinsicRegistryContract(unittest.TestCase):
             "native_compiler_shim_boundary",
         ):
             decision_fields(policy["exceptions"][exception_id], exception_id)
+
+    def test_dispatcher_cannot_hide_unregistered_work(self) -> None:
+        source = """
+        function lowerRegisteredCompilerCapabilityDecls():Array<GoDecl> {
+            var decls = new Array<GoDecl>();
+            if (requiredStdlibShimGroups.exists("type_metadata")) {
+                decls = decls.concat(lowerTypeMetadataShimDecls());
+            }
+            decls.push(GoDecl.GoRawDecl("unregistered"));
+            return decls;
+        }
+        """
+        with self.assertRaisesRegex(
+            AssertionError,
+            "dispatcher must contain only registered capability selection",
+        ):
+            dispatch_groups(source)
 
     def test_classifier_planner_dependencies_and_authorities_are_exact(self) -> None:
         registered_classifier: dict[tuple[str, str], tuple[str, ...]] = {}
