@@ -18,10 +18,12 @@ ACTIONS_LOCK = ROOT / ".github" / "actions-lock.json"
 DEPENDABOT = ROOT / ".github" / "dependabot.yml"
 WORKFLOW_ROOT = ROOT / ".github"
 VENDOR_VERIFIER = ROOT / "scripts" / "vendor" / "verify-reflaxe-provenance.py"
+PINNED_NPM_BOOTSTRAP = "run: bash scripts/ci/setup-pinned-npm.sh"
 USES_RE = re.compile(r"^\s*uses:\s*([^\s#]+)(?:\s+#\s*(\S+))?\s*$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 VERSION_RE = re.compile(r"^v\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$")
 PACKAGE_MANAGER_RE = re.compile(r"^npm@\d+\.\d+\.\d+$")
+WORKFLOW_JOB_RE = re.compile(r"^  [A-Za-z0-9_-]+:\s*$")
 
 
 class VerificationError(RuntimeError):
@@ -112,15 +114,32 @@ def verify_actions_and_installs() -> None:
     locked = action_manifest()
     seen: set[str] = set()
     npm_ci_count = 0
+    setup_node_count = 0
+    pinned_npm_count = 0
     npm_install_re = re.compile(r"\bnpm\s+(?:install|i)\b")
+    npm_invocation_re = re.compile(r"\bnpm\s+(?:audit|ci|exec|run)\b")
 
     for path in workflow_files():
+        pinned_npm_ready = False
         for line_number, line in enumerate(
             path.read_text(encoding="utf-8").splitlines(), 1
         ):
+            if WORKFLOW_JOB_RE.fullmatch(line):
+                pinned_npm_ready = False
+            if "uses: actions/setup-node@" in line:
+                setup_node_count += 1
+                pinned_npm_ready = False
+            if line.strip() == PINNED_NPM_BOOTSTRAP:
+                pinned_npm_count += 1
+                pinned_npm_ready = True
             if npm_install_re.search(line):
                 raise VerificationError(
                     f"{path.relative_to(ROOT)}:{line_number}: use npm ci, not npm install"
+                )
+            if npm_invocation_re.search(line) and not pinned_npm_ready:
+                raise VerificationError(
+                    f"{path.relative_to(ROOT)}:{line_number}: "
+                    "npm invocation precedes pinned bootstrap"
                 )
             if re.search(r"\bnpm\s+ci\b", line):
                 npm_ci_count += 1
@@ -163,9 +182,14 @@ def verify_actions_and_installs() -> None:
         raise VerificationError(f"manifested action is unused: {unused[0]}")
     if npm_ci_count < 1:
         raise VerificationError("no workflow performs a clean npm ci install")
+    if setup_node_count != pinned_npm_count:
+        raise VerificationError(
+            "every setup-node job must run scripts/ci/setup-pinned-npm.sh exactly once"
+        )
     print(
         "[supply-chain] GitHub Actions: OK "
-        f"({len(locked)} repositories pinned; {npm_ci_count} npm ci lanes)"
+        f"({len(locked)} repositories pinned; {pinned_npm_count} pinned npm jobs; "
+        f"{npm_ci_count} npm ci lanes)"
     )
 
 

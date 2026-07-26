@@ -164,6 +164,8 @@ class SupplyChainContractTest(unittest.TestCase):
         self.assertIn("actions-lock.json", runner)
         self.assertIn("package-lock.json", runner)
         self.assertIn("verify-reflaxe-provenance.py", runner)
+        self.assertIn("setup-pinned-npm.sh", runner)
+        self.assertIn("npm invocation precedes pinned bootstrap", runner)
 
         workflow = CI_HARNESS.read_text(encoding="utf-8")
         self.assertIn("Verify locked dependencies and vendored provenance", workflow)
@@ -180,6 +182,9 @@ class SupplyChainContractTest(unittest.TestCase):
         policy = SUPPLY_CHAIN_DOC.read_text(encoding="utf-8")
         self.assertIn("# Supply-Chain Policy", policy)
         self.assertIn("npm ci", policy)
+        self.assertIn("does not activate that npm version", policy)
+        self.assertIn("setup-pinned-npm.sh", policy)
+        self.assertIn("npm ls --all", policy)
         self.assertIn("actions-lock.json", policy)
         self.assertIn("Dependabot", policy)
         self.assertIn("vendor Reflaxe", policy)

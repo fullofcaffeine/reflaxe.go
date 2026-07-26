@@ -52,21 +52,41 @@ lock or treats a malformed install as clean.
 
 ## Updating JavaScript dependencies
 
-package.json records the lock generator as npm@11.16.0 in its packageManager
-field. Use that exact npm version on the supported Node 24 line:
+`package.json` is the canonical npm version source through its exact
+`packageManager` value, currently `npm@11.16.0`. That metadata tells people and
+tools which version owns the lock, but it does not activate that npm version by
+itself. Node's
+[Corepack documentation](https://nodejs.org/docs/latest-v24.x/api/corepack.html)
+explains that npm has no Corepack shim by default, so an ordinary `npm` command
+otherwise uses the executable bundled with Node.
+
+Every CI job that sets up Node immediately runs
+`scripts/ci/setup-pinned-npm.sh`. The script reads `packageManager`, uses the
+bundled npm only to install that exact global npm package with lifecycle scripts
+and automatic audit disabled, clears the shell command cache, and fails unless
+`npm --version` matches. The supply-chain gate rejects workflow npm invocations
+that appear before this bootstrap. As a result, clean installs, dependency
+audits, tests, performance jobs, and the release job all execute through the
+same reviewed npm version.
+
+For a local lock refresh, invoke the same exact version without changing the
+developer's global npm:
 
 ~~~bash
 npm_version="$(node -p "require('./package.json').packageManager.split('@').pop()")"
 npx --yes --package="npm@$npm_version" --call \
   'npm install --package-lock-only --ignore-scripts --no-audit --no-fund'
-npm ci --ignore-scripts --no-audit --no-fund
+npx --yes --package="npm@$npm_version" --call \
+  'npm ci --ignore-scripts --no-audit --no-fund'
 npm run security:supply-chain
 npm run security:deps
 ~~~
 
 Change declared dependencies intentionally in package.json, inspect the full
 lock diff, and commit both files together. Do not hand-edit the resolved
-packages, and do not replace npm ci with npm install in CI.
+packages, and do not replace npm ci with npm install in CI. The isolated
+dependency audit additionally requires `npm ls --all`, so activating the exact
+npm version cannot make a broken dependency tree appear clean.
 
 ## Updating GitHub Actions
 

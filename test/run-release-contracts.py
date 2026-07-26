@@ -49,6 +49,7 @@ def main() -> int:
         ["python3", "test/test_perf_budget_policy_contract.py"],
         ["python3", "test/test_perf_delta_dry_run.py"],
         ["python3", "test/test_perf_warning_summary.py"],
+        ["python3", "test/test_pinned_npm_bootstrap.py"],
         ["python3", "test/test_portable_parity_closure_contract.py"],
         ["python3", "test/test_portable_governance_contract.py"],
         ["python3", "test/test_post_generation_build_runner.py"],

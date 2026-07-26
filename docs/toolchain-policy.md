@@ -40,6 +40,7 @@ does not establish production or security support.
 | Generated Go language floor | `1.22` | n/a | n/a | Language and module semantics permitted in generated `go.mod`; not a patched build-toolchain claim. |
 | Go build and test toolchain | `1.25.12` and `1.26.5` | `1.26.5` | `1.25.12`, `1.26.5` | Exact approved patches from the two current upstream-supported Go release lines. |
 | Node repository tooling | latest patch of `24` | latest patch of `24` | `24` | Active LTS line for npm and release tooling. |
+| npm lock and CI executor | exact `packageManager` value | exact `packageManager` value | `npm@11.16.0` | One reviewed npm version generates and consumes the lock; `package.json` owns the exact value. |
 
 The upstream authorities checked for this policy are:
 
@@ -83,8 +84,11 @@ allowing only the reviewed patch to satisfy the request.
    recommended supported line unless a separate matrix is the subject of the
    test.
 4. Haxe is installed as exactly 4.3.7. Node repository jobs use Node 24.
-5. Release status checks read the machine policy and fail when workflow wiring
-   drifts from it.
+5. Every Node job then runs `scripts/ci/setup-pinned-npm.sh`, which activates
+   and verifies the exact npm version declared by `package.json` before any npm
+   install, audit, test, performance, or release command.
+6. Release status checks read the machine policy and supply-chain contract and
+   fail when workflow wiring drifts from it.
 
 The compiler continues to emit `go 1.22`. Raising CI versions does not raise
 that directive. A language-floor change requires a separate red-first compiler
@@ -117,6 +121,11 @@ supported for production.
    snapshots, and full CI. Preserve `go version` output in release evidence.
 7. Remove an old lane or label it explicitly as compatibility-only with
    `production_supported=false` and `security_supported=false`.
+
+Update npm independently through the exact `packageManager` value in
+`package.json`. Regenerate the lock with that version, inspect the operational
+dependency audit, and keep every workflow behind the bootstrap contract. Do not
+duplicate the npm version in workflow environment variables.
 
 Do not retain an end-of-life production lane merely to preserve a green
 historical baseline. Preserve the baseline as fixture evidence and run it with
