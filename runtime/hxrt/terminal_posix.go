@@ -18,7 +18,9 @@ import (
 // safe terminal-state wrapper, while adding x/term would either raise the
 // generated Go language floor or pin a dependency with a known advisory.
 // How: Keep the pointer live for the syscall duration and expose only typed
-// state transitions to the rest of hxrt. Race/checkptr gates exercise this path.
+// state transitions to the rest of hxrt. The real-PTY contract executes this
+// path in a checkptr-instrumented binary; supported-toolchain gates cover the
+// surrounding runtime under race and checkptr.
 func terminalIoctlTermios(fd uintptr, request uintptr, state *syscall.Termios) error {
 	_, _, errno := syscall.Syscall(
 		syscall.SYS_IOCTL,

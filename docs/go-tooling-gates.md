@@ -62,6 +62,12 @@ delivery, integer and reference atomics, and the reflection branches for maps,
 slices, functions, channels, pointers, and `unsafe.Pointer`. The checkptr run
 executes those same paths with strict pointer checking enabled.
 
+The one production `unsafe.Pointer` is the POSIX terminal ioctl bridge. Its
+behavioral evidence is intentionally separate from the headless Go-tooling
+fixture: `test/test_sys_get_char_terminal.py` builds the generated program with
+`-gcflags=all=-d=checkptr=2`, then drives the actual terminal-mode transition,
+one-byte read, echo policy, and restoration through a real pseudo-terminal.
+
 The generated thread-pool fixture races 10,000 submissions against repeated
 shutdown at `GOMAXPROCS=1,2,8` and requires each accepted task to execute
 exactly once. It also requires fixed and elastic pools to replace a worker after

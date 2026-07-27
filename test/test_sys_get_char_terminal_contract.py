@@ -15,9 +15,13 @@ class SysGetCharTerminalContractTest(unittest.TestCase):
     def test_behavior_gate_is_wired_into_local_changed_and_ci_surfaces(self) -> None:
         package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
         scripts = package["scripts"]
+        behavior = (ROOT / "test" / "test_sys_get_char_terminal.py").read_text(
+            encoding="utf-8"
+        )
         self.assertEqual(BEHAVIOR_COMMAND, scripts.get("test:sys-get-char-terminal"))
         self.assertIn("npm run test:sys-get-char-terminal", scripts["test"])
         self.assertIn("npm run test:sys-get-char-terminal", scripts["test:changed"])
+        self.assertIn('"-gcflags=all=-d=checkptr=2"', behavior)
 
         ci_runner = (ROOT / "test" / "run-ci.py").read_text(encoding="utf-8")
         self.assertIn("build_sys_get_char_terminal_command", ci_runner)

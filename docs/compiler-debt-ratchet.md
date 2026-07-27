@@ -107,10 +107,10 @@ For each current report row, CI requires a matching policy entry.
 - A finding in a new file, function context, owner, capability, profile, or
   surface fails as unexplained debt.
 - Generated program output keeps a zero `unsafe` baseline. Checked-in `hxrt`
-  admits only the exact POSIX terminal ioctl pointer and serialization
-  package-private-field lift, each under a separate owner, What / Why / How
-  exception, per-file ceiling, removal condition, and tooling evidence. Any new
-  file or selector still fails because every observed finding must match a
+  admits only the exact POSIX terminal ioctl pointer under its named owner,
+  What / Why / How exception, per-file ceiling, removal condition, and tooling
+  evidence. The former serializer package-private-field lift is retired. Any
+  new file or selector still fails because every observed finding must match a
   checked-in entry.
 
 This gate runs from `npm test`, `npm run test:changed`, and the release-contract

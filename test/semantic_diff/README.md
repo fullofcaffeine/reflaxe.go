@@ -76,5 +76,8 @@ Goal:
   - serializer global default flag semantics (`Serializer.USE_CACHE`, `Serializer.USE_ENUM_INDEX`) and `serializeException` interaction
   - serializer resolver polymorphism semantics (method-shape variants and dynamic/object resolver invocation paths)
   - serializer mixed reference stress semantics (`R`/`r` interleaving and sequential cache replay)
+  - serializer boundary-matrix semantics for interface-typed fields, erased
+    generic classes, bounded deterministic round trips, generic cycles, and
+    malformed-input errors
   - EReg match/split/replace contract semantics
   - EReg edge semantics (flags, matched-group errors, global vs non-global replacement/map)

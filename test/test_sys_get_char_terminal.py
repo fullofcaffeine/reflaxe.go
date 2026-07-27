@@ -193,7 +193,17 @@ def main() -> int:
             run_checked(["go", "test", "./..."], cwd=OUT)
 
             binary = temp / "sys-get-char"
-            run_checked(["go", "build", "-o", str(binary), "."], cwd=OUT)
+            run_checked(
+                [
+                    "go",
+                    "build",
+                    "-gcflags=all=-d=checkptr=2",
+                    "-o",
+                    str(binary),
+                    ".",
+                ],
+                cwd=OUT,
+            )
             run_terminal_case(binary, echo=False)
             run_terminal_case(binary, echo=True)
             run_redirected_case(binary, echo=False, input_bytes=b"Q", expected=b"ready||81|\n")
@@ -216,7 +226,7 @@ def main() -> int:
             shutil.rmtree(OUT, ignore_errors=True)
 
     print(
-        "[sys-get-char-terminal] PTY, redirected echo/EOF, restoration, "
+        "[sys-get-char-terminal] checkptr PTY, redirected echo/EOF, restoration, "
         "and cross-build contracts passed"
     )
     return 0
