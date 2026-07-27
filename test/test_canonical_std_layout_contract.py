@@ -99,8 +99,13 @@ def write_canonical_source(root: Path) -> None:
         shutil.copyfile(source, destination)
 
     for support_root in ("haxe", "hxrt", "sys"):
+        source_root = ROOT / "std" / support_root
+        # Git does not preserve an empty support directory. Treat an absent root
+        # as an empty source set so clean-clone fixtures match the real package.
+        if not source_root.is_dir():
+            continue
         shutil.copytree(
-            ROOT / "std" / support_root,
+            source_root,
             root / "std" / support_root,
             dirs_exist_ok=True,
         )
