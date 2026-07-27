@@ -48,6 +48,7 @@ enum abstract GoCompilerDefine(String) to String {
 	var DefineContractReport = "reflaxe_go_contract_report";
 	var DefineRuntimePlanReport = "reflaxe_go_runtime_plan_report";
 	var DefineOptimizerPlanReport = "reflaxe_go_optimizer_plan_report";
+	var DefineTypeUsageReport = "reflaxe_go_type_usage_report";
 	var DefineOptimizationPreset = "reflaxe_go_opt";
 	var DefinePortableConcurrencyFastpath = "reflaxe_go_opt_go_concurrency_fastpath";
 	var DefineNativeStackTrace = "reflaxe_go_native_stack_trace";

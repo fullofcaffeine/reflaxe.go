@@ -232,6 +232,14 @@ Removed:
   - `optimizer_plan.json` schema v6 adds `policyPreset`, native
     specialization value/provenance, and canonical boundary/non-boundary
     fallback counters. Historical lane counters remain aliases.
+- `reflaxe_go_type_usage_report`
+  - Emit `type_usage.json` and `type_usage.md` with deterministic
+    compiler-observed generic/function/anonymous shapes, typed member/call
+    locations, metadata and resolved native import paths, and resulting
+    runtime-capability reasons.
+  - The schema uses normalized `Module:line` locations and contains no macro
+    objects or absolute source paths.
+  - See [Typed usage ledger](typed-usage-ledger.md).
 
 ## Constructor devex
 

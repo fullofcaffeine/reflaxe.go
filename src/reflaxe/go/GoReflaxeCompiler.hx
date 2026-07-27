@@ -22,6 +22,8 @@ import reflaxe.go.compiler.GoBuildContextResolver;
 import reflaxe.go.compiler.GoGeneratedOutputBoundary;
 import reflaxe.go.compiler.GoGeneratedOutputBoundary.GoOutputPathError;
 import reflaxe.go.compiler.GoPostBuildRunner;
+import reflaxe.go.compiler.GoTypeUsageLedger;
+import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeUsageLedgerSnapshot;
 import reflaxe.output.DataAndFileInfo;
 import reflaxe.output.StringOrBytes;
 import sys.FileSystem;
@@ -226,6 +228,8 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	var compilationContext:Null<CompilationContext> = null;
 	var lastRuntimePlan:Null<RuntimeCopyPlan> = null;
 	var outputBoundary:Null<GoGeneratedOutputBoundary> = null;
+	var typeUsageLedger:GoTypeUsageLedger = new GoTypeUsageLedger();
+	var lastTypeUsageReport:GoTypeUsageLedgerSnapshot = GoTypeUsageLedger.emptySnapshot();
 
 	public function new() {
 		super();
@@ -238,12 +242,14 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 
 	override public function onCompileStart():Void {
 		buildContext = GoBuildContextResolver.resolve();
-		compilationContext = CompilationContext.fromBuildContext(buildContext);
+		compilationContext = null;
 		selectedClasses = [];
 		selectedEnums = [];
 		generatedFiles = [];
 		lastRuntimePlan = null;
 		outputBoundary = null;
+		typeUsageLedger = new GoTypeUsageLedger();
+		lastTypeUsageReport = GoTypeUsageLedger.emptySnapshot();
 	}
 
 	override public function onCompileEnd():Void {
@@ -251,7 +257,9 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		var boundarySnapshot = GoNativeBoundaryAnalyzer.collect(allModules);
 		resolvedBuildContext = resolvedBuildContext.withNativeBoundaryModules(boundarySnapshot.modules);
 		buildContext = resolvedBuildContext;
-		var context = CompilationContext.fromBuildContext(resolvedBuildContext);
+		var runtimeImportPath = resolvedBuildContext.goModuleName + "/hxrt";
+		var authoritySnapshot = typeUsageLedger.snapshot([], runtimeImportPath);
+		var context = CompilationContext.fromBuildContext(resolvedBuildContext, authoritySnapshot);
 		compilationContext = context;
 		var compiler = new GoCompiler(context, resolveSelectedMainIdentity());
 		if (selectedClasses.length == 0 && selectedEnums.length == 0) {
@@ -259,6 +267,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		} else {
 			generatedFiles = compiler.compileSelectedTypes(selectedClasses, selectedEnums);
 		}
+		lastTypeUsageReport = typeUsageLedger.snapshot(context.inferredHxrtFeatureReasons, context.runtimeImportPath);
 	}
 
 	/**
@@ -445,12 +454,36 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	}
 
 	public function compileClassImpl(classType:ClassType, varFields:Array<ClassVarData>, funcFields:Array<ClassFuncData>):Null<GoReflaxeStagedOutput> {
+		var currentModule = getCurrentModule();
+		if (currentModule != null) {
+			typeUsageLedger.collect(currentModule, getTypeUsage());
+		}
 		selectedClasses.push(classType);
 		return null;
 	}
 
 	public function compileEnumImpl(enumType:EnumType, options:Array<EnumOptionData>):Null<GoReflaxeStagedOutput> {
+		var currentModule = getCurrentModule();
+		if (currentModule != null) {
+			typeUsageLedger.collect(currentModule, getTypeUsage());
+		}
 		selectedEnums.push(enumType);
+		return null;
+	}
+
+	override public function compileTypedefImpl(typedefType:DefType):Null<GoReflaxeStagedOutput> {
+		var currentModule = getCurrentModule();
+		if (currentModule != null) {
+			typeUsageLedger.collect(currentModule, getTypeUsage());
+		}
+		return null;
+	}
+
+	override public function compileAbstractImpl(abstractType:AbstractType):Null<GoReflaxeStagedOutput> {
+		var currentModule = getCurrentModule();
+		if (currentModule != null) {
+			typeUsageLedger.collect(currentModule, getTypeUsage());
+		}
 		return null;
 	}
 
@@ -692,6 +725,11 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			var optimizerSnapshot = buildOptimizerPlanReportSnapshot(buildContext, context);
 			saveGeneratedFile("optimizer_plan.json", renderOptimizerPlanJson(optimizerSnapshot));
 			saveGeneratedFile("optimizer_plan.md", renderOptimizerPlanMarkdown(optimizerSnapshot));
+		}
+
+		if (buildContext.typeUsageReportEnabled) {
+			saveGeneratedFile("type_usage.json", GoTypeUsageLedger.renderJson(lastTypeUsageReport));
+			saveGeneratedFile("type_usage.md", GoTypeUsageLedger.renderMarkdown(lastTypeUsageReport));
 		}
 	}
 

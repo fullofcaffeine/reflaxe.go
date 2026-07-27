@@ -1,0 +1,507 @@
+{
+	"schemaVersion": 1,
+	"source": "reflaxe_type_usage_tracker",
+	"scannerFallback": "transitional_contract_diagnostics_only",
+	"moduleCount": 3,
+	"typeUsageCount": 66,
+	"memberUsageCount": 20,
+	"nativeImportCount": 8,
+	"capabilityCount": 4,
+	"modules": [
+		{
+			"module": "Main",
+			"kind": "class",
+			"location": "Main:5",
+			"typeUsages": [
+				{
+					"level": "constructed",
+					"shape": {"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "constructed",
+					"shape": {"kind":"class","path":"UsedBox","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "constructed",
+					"shape": {"kind":"class","path":"UsedBox","parameters":[{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "constructed",
+					"shape": {"kind":"class","path":"UsedBox","parameters":[{"kind":"class","path":"UsedBox","parameters":[{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "constructed",
+					"shape": {"kind":"class","path":"UsedBox.UsedSibling","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"abstract","path":"StdTypes.Bool","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"anonymous","path":"","parameters":[],"arguments":[],"returnType":null,"fields":[{"name":"count","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}},{"name":"label","optional":false,"shape":{"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]}}]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"class","path":"UsedBox","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"class","path":"UsedBox","parameters":[{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"class","path":"UsedBox","parameters":[{"kind":"class","path":"UsedBox","parameters":[{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"class","path":"UsedBox.UsedSibling","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"dynamic","path":"","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[],"returnType":{"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"details","optional":false,"shape":{"kind":"anonymous","path":"","parameters":[],"arguments":[],"returnType":null,"fields":[{"name":"count","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}},{"name":"label","optional":false,"shape":{"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]}}]}}],"returnType":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"s","optional":false,"shape":{"kind":"dynamic","path":"","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"value","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"value","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"value","optional":false,"shape":{"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"value","optional":false,"shape":{"kind":"class","path":"UsedBox","parameters":[{"kind":"class","path":"UsedBox","parameters":[{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"typedef","path":"Main.Class<Main>","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"typedef","path":"Std.Class<Std>","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"typedef","path":"go.Fmt.Class<go.Fmt>","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"typedef","path":"hxrt.string.GoStringRuntime.Class<hxrt.string.GoStringRuntime>","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"anonymous","path":"","parameters":[],"arguments":[],"returnType":null,"fields":[{"name":"count","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}},{"name":"label","optional":false,"shape":{"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]}}]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"class","path":"UsedBox","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[],"returnType":{"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"details","optional":false,"shape":{"kind":"anonymous","path":"","parameters":[],"arguments":[],"returnType":null,"fields":[{"name":"count","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}},{"name":"label","optional":false,"shape":{"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]}}]}}],"returnType":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"value","optional":false,"shape":{"kind":"class","path":"UsedBox","parameters":[{"kind":"class","path":"UsedBox","parameters":[{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "static_access",
+					"shape": {"kind":"class","path":"Main","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "static_access",
+					"shape": {"kind":"class","path":"Std","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "static_access",
+					"shape": {"kind":"class","path":"go.Fmt","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "static_access",
+					"shape": {"kind":"class","path":"hxrt.string.GoStringRuntime","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "variable_type",
+					"shape": {"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "variable_type",
+					"shape": {"kind":"anonymous","path":"","parameters":[],"arguments":[],"returnType":null,"fields":[{"name":"count","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}},{"name":"label","optional":false,"shape":{"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]}}]}
+				},
+				{
+					"level": "variable_type",
+					"shape": {"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "variable_type",
+					"shape": {"kind":"class","path":"UsedBox","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "variable_type",
+					"shape": {"kind":"class","path":"UsedBox","parameters":[{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "variable_type",
+					"shape": {"kind":"class","path":"UsedBox","parameters":[{"kind":"class","path":"UsedBox","parameters":[{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "variable_type",
+					"shape": {"kind":"class","path":"UsedBox.UsedSibling","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "variable_type",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				}
+			],
+			"memberUsages": [
+				{
+					"kind": "construct",
+					"target": "UsedBox",
+					"member": "new",
+					"location": "Main:14"
+				},
+				{
+					"kind": "construct",
+					"target": "UsedBox",
+					"member": "new",
+					"location": "Main:15"
+				},
+				{
+					"kind": "construct",
+					"target": "UsedBox.UsedSibling",
+					"member": "new",
+					"location": "Main:16"
+				},
+				{
+					"kind": "call",
+					"target": "Std",
+					"member": "string",
+					"location": "Main:17"
+				},
+				{
+					"kind": "field_access",
+					"target": "Std",
+					"member": "string",
+					"location": "Main:17"
+				},
+				{
+					"kind": "field_access",
+					"target": "UsedBox.UsedSibling",
+					"member": "delta",
+					"location": "Main:20"
+				},
+				{
+					"kind": "call",
+					"target": "go.Fmt",
+					"member": "println",
+					"location": "Main:22"
+				},
+				{
+					"kind": "field_access",
+					"target": "UsedBox",
+					"member": "value",
+					"location": "Main:22"
+				},
+				{
+					"kind": "field_access",
+					"target": "go.Fmt",
+					"member": "println",
+					"location": "Main:22"
+				},
+				{
+					"kind": "call",
+					"target": "Main",
+					"member": "consumeDetails",
+					"location": "Main:23"
+				},
+				{
+					"kind": "call",
+					"target": "Main",
+					"member": "nestedDepth",
+					"location": "Main:23"
+				},
+				{
+					"kind": "call",
+					"target": "go.Fmt",
+					"member": "println",
+					"location": "Main:23"
+				},
+				{
+					"kind": "call",
+					"target": "hxrt.string.GoStringRuntime",
+					"member": "length",
+					"location": "Main:23"
+				},
+				{
+					"kind": "field_access",
+					"target": "Main",
+					"member": "consumeDetails",
+					"location": "Main:23"
+				},
+				{
+					"kind": "field_access",
+					"target": "Main",
+					"member": "nestedDepth",
+					"location": "Main:23"
+				},
+				{
+					"kind": "field_access",
+					"target": "go.Fmt",
+					"member": "println",
+					"location": "Main:23"
+				},
+				{
+					"kind": "field_access",
+					"target": "hxrt.string.GoStringRuntime",
+					"member": "length",
+					"location": "Main:23"
+				},
+				{
+					"kind": "field_access",
+					"target": "<anonymous>",
+					"member": "count",
+					"location": "Main:27"
+				}
+			],
+			"nativeImports": [
+				{
+					"target": "go.Fmt",
+					"metadataImportPath": "fmt",
+					"resolvedImportPath": "fmt",
+					"usageKind": "call",
+					"location": "Main:22"
+				},
+				{
+					"target": "go.Fmt",
+					"metadataImportPath": "fmt",
+					"resolvedImportPath": "fmt",
+					"usageKind": "call",
+					"location": "Main:23"
+				},
+				{
+					"target": "go.Fmt",
+					"metadataImportPath": "fmt",
+					"resolvedImportPath": "fmt",
+					"usageKind": "field_access",
+					"location": "Main:22"
+				},
+				{
+					"target": "go.Fmt",
+					"metadataImportPath": "fmt",
+					"resolvedImportPath": "fmt",
+					"usageKind": "field_access",
+					"location": "Main:23"
+				},
+				{
+					"target": "go.Fmt",
+					"metadataImportPath": "fmt",
+					"resolvedImportPath": "fmt",
+					"usageKind": "static_access",
+					"location": "Main:5"
+				},
+				{
+					"target": "hxrt.string.GoStringRuntime",
+					"metadataImportPath": "hxrt",
+					"resolvedImportPath": "snapshot/hxrt",
+					"usageKind": "call",
+					"location": "Main:23"
+				},
+				{
+					"target": "hxrt.string.GoStringRuntime",
+					"metadataImportPath": "hxrt",
+					"resolvedImportPath": "snapshot/hxrt",
+					"usageKind": "field_access",
+					"location": "Main:23"
+				},
+				{
+					"target": "hxrt.string.GoStringRuntime",
+					"metadataImportPath": "hxrt",
+					"resolvedImportPath": "snapshot/hxrt",
+					"usageKind": "static_access",
+					"location": "Main:5"
+				}
+			]
+		},
+		{
+			"module": "UsedBox",
+			"kind": "class",
+			"location": "UsedBox:1",
+			"typeUsages": [
+				{
+					"level": "expression",
+					"shape": {"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"class","path":"UsedBox","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"class","path":"UsedBox","parameters":[{"kind":"type_parameter","path":"UsedBox.T","parameters":[],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"class","path":"UsedBox.T","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"value","optional":false,"shape":{"kind":"type_parameter","path":"UsedBox.T","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"type_parameter","path":"UsedBox.T","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"class","path":"UsedBox.T","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"value","optional":false,"shape":{"kind":"type_parameter","path":"UsedBox.T","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "variable_declaration",
+					"shape": {"kind":"class","path":"UsedBox.T","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "variable_declaration",
+					"shape": {"kind":"type_parameter","path":"UsedBox.T","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				}
+			],
+			"memberUsages": [
+				{
+					"kind": "field_access",
+					"target": "UsedBox",
+					"member": "value",
+					"location": "UsedBox:5"
+				}
+			],
+			"nativeImports": [
+			]
+		},
+		{
+			"module": "UsedBox.UsedSibling",
+			"kind": "class",
+			"location": "UsedBox.UsedSibling:9",
+			"typeUsages": [
+				{
+					"level": "expression",
+					"shape": {"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"class","path":"UsedBox.UsedSibling","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "expression",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"delta","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				},
+				{
+					"level": "function_declaration",
+					"shape": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"delta","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]}
+				},
+				{
+					"level": "variable_declaration",
+					"shape": {"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}
+				}
+			],
+			"memberUsages": [
+				{
+					"kind": "field_access",
+					"target": "UsedBox.UsedSibling",
+					"member": "delta",
+					"location": "UsedBox.UsedSibling:13"
+				}
+			],
+			"nativeImports": [
+			]
+		}
+	],
+	"capabilities": [
+		{
+			"feature": "core",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "exception",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "print",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "string",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		}
+	]
+}

@@ -26,7 +26,11 @@ Before reading:
 Current architecture status:
 
 - `GoBuildContext` and `GoBuildContextResolver` are already in place for centralized contract/capability resolution.
-- Deterministic contract/runtime/optimizer reports (`profile_contract`, `hxrt_plan`, `optimizer_plan`) are already emitted when enabled.
+- Deterministic contract/runtime/optimizer/type-usage reports
+  (`profile_contract`, `hxrt_plan`, `optimizer_plan`, `type_usage`) are already
+  emitted when enabled. The [typed usage ledger](typed-usage-ledger.md) is now
+  available to later registry/planner work; it does not yet replace every
+  existing runtime-inference input.
 - The preset model is now decomposed into typed authority, specialization,
   fallback, strictness, planner, optimizer, and runtime axes. The focused
   [retention decision](metal-preset-retention-decision.md) keeps the global

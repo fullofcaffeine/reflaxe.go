@@ -46,7 +46,13 @@ Excluded from this parity objective:
 
 - `GoBuildContextResolver.resolve()` centralizes contract, boundary defaults, runtime/planner flags, and report toggles.
 - `GoReflaxeCompiler` consumes that context during compile start/end and runtime plan emission.
-- Optional report artifacts (`profile_contract.*`, `hxrt_plan.*`, `optimizer_plan.*`) provide deterministic audit output for contract/runtime/planner decisions.
+- Reflaxe type-usage tracking now feeds an immutable
+  [typed usage ledger](typed-usage-ledger.md) on `CompilationContext`.
+- Optional `profile_contract.*`, `hxrt_plan.*`, and `optimizer_plan.*` artifacts
+  provide deterministic audit output for current contract/runtime/planner
+  decisions. `type_usage.*` records the typed input and resulting runtime
+  consequences that the registry and planners will consume in their dedicated
+  follow-up work.
 
 This parity program is therefore about semantic closure and coverage promotion,
 not about the compatibility-preset lifecycle.

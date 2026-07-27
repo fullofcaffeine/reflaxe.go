@@ -71,6 +71,7 @@ def main() -> int:
         ["python3", "test/test_stdlib_migration_ledger_contract.py"],
         ["python3", "test/test_sys_get_char_terminal_contract.py"],
         ["python3", "test/test_toolchain_policy_contract.py"],
+        ["python3", "test/test_type_usage_ledger_contract.py"],
         ["python3", "test/test_typed_exception_hygiene_contract.py"],
         ["python3", "test/test_vendor_reflaxe_provenance.py"],
     ]

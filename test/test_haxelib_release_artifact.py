@@ -234,7 +234,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                 manifest.get("stagedReleaseIdentitySha256", ""),
                 r"^[0-9a-f]{64}$",
             )
-            self.assertEqual(395, len(manifest["contents"]["entries"]))
+            self.assertEqual(396, len(manifest["contents"]["entries"]))
             packaged_sources = {
                 entry["sourcePath"] for entry in manifest["contents"]["entries"]
             }
@@ -243,6 +243,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                     "runtime/hxrt/reflect.go",
                     "src/reflaxe/go/compiler/GoCompilerDefine.hx",
                     "src/reflaxe/go/compiler/GoMetadataName.hx",
+                    "src/reflaxe/go/compiler/GoTypeUsageLedger.hx",
                     "src/reflaxe/go/compiler/emit/GoGeneratedFieldMetadataEmitter.hx",
                     "src/reflaxe/go/compiler/emit/GoReflectMetadataEmitter.hx",
                     "std/go/_std/Reflect.hx",
@@ -396,7 +397,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
             self.assertEqual(0, verify.returncode, verify.stdout + verify.stderr)
             summary = json.loads(verify.stdout)
             self.assertEqual(sha256(archive), summary["sha256"])
-            self.assertEqual(396, summary["entries"])
+            self.assertEqual(397, summary["entries"])
 
             wrong_version = run_verifier(
                 archive,

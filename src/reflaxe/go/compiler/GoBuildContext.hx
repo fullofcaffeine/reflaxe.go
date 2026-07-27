@@ -43,6 +43,7 @@ class GoBuildContext {
 	public final contractReportEnabled:Bool;
 	public final runtimePlanReportEnabled:Bool;
 	public final optimizerPlanReportEnabled:Bool;
+	public final typeUsageReportEnabled:Bool;
 	public final autoLoweringMode:GoAutoLoweringMode;
 	public final optimizationPreset:String;
 	public final portableStringFastpathEnabled:Bool;
@@ -56,8 +57,9 @@ class GoBuildContext {
 	public function new(profile:GoProfile, policyResolution:GoPolicyResolution, goModuleName:String, rawNativeMode:RawNativeMode, emitLineDirectives:Bool,
 			strictExamples:Bool, strictUserBoundaryPolicy:String, strictUserBoundaries:Bool, metalFallbackAllowed:Bool, metalContractHardError:Bool,
 			hxrtForceFullCopy:Bool, hxrtFeaturesDefinePresent:Bool, hxrtNoFeatureInfer:Bool, hxrtManualFeatures:Array<String>, contractReportEnabled:Bool,
-			runtimePlanReportEnabled:Bool, optimizerPlanReportEnabled:Bool, autoLoweringMode:GoAutoLoweringMode, optimizationPreset:String,
-			portableStringFastpathEnabled:Bool, portableConcurrencyFastpathEnabled:Bool, nativeStackTraceEnabled:Bool, nativeBoundaryModules:Array<String>) {
+			runtimePlanReportEnabled:Bool, optimizerPlanReportEnabled:Bool, typeUsageReportEnabled:Bool, autoLoweringMode:GoAutoLoweringMode,
+			optimizationPreset:String, portableStringFastpathEnabled:Bool, portableConcurrencyFastpathEnabled:Bool, nativeStackTraceEnabled:Bool,
+			nativeBoundaryModules:Array<String>) {
 		this.profile = profile;
 		var resolvedPolicy = policyResolution == null ? legacyPolicyResolution(profile) : policyResolution;
 		this.policyPreset = resolvedPolicy.preset;
@@ -83,6 +85,7 @@ class GoBuildContext {
 		this.contractReportEnabled = contractReportEnabled == true;
 		this.runtimePlanReportEnabled = runtimePlanReportEnabled == true;
 		this.optimizerPlanReportEnabled = optimizerPlanReportEnabled == true;
+		this.typeUsageReportEnabled = typeUsageReportEnabled == true;
 		this.autoLoweringMode = autoLoweringMode == null ? GoAutoLoweringMode.Off : autoLoweringMode;
 		this.optimizationPreset = normalizeOptimizationPreset(optimizationPreset);
 		this.portableStringFastpathEnabled = portableStringFastpathEnabled == true;
@@ -120,8 +123,9 @@ class GoBuildContext {
 	public function withNativeBoundaryModules(nativeBoundaryModules:Array<String>):GoBuildContext {
 		return new GoBuildContext(profile, currentPolicyResolution(), goModuleName, rawNativeMode, emitLineDirectives, strictExamples,
 			strictUserBoundaryPolicy, strictUserBoundaries, metalFallbackAllowed, metalContractHardError, hxrtForceFullCopy, hxrtFeaturesDefinePresent,
-			hxrtNoFeatureInfer, hxrtManualFeatures, contractReportEnabled, runtimePlanReportEnabled, optimizerPlanReportEnabled, autoLoweringMode,
-			optimizationPreset, portableStringFastpathEnabled, portableConcurrencyFastpathEnabled, nativeStackTraceEnabled, nativeBoundaryModules);
+			hxrtNoFeatureInfer, hxrtManualFeatures, contractReportEnabled, runtimePlanReportEnabled, optimizerPlanReportEnabled, typeUsageReportEnabled,
+			autoLoweringMode, optimizationPreset, portableStringFastpathEnabled, portableConcurrencyFastpathEnabled, nativeStackTraceEnabled,
+			nativeBoundaryModules);
 	}
 
 	/** Compatibility alias; new code should use `withNativeBoundaryModules`. */
@@ -132,7 +136,7 @@ class GoBuildContext {
 	public static function legacyDefaults(profile:GoProfile, ?goModuleName:String, ?rawNativeMode:RawNativeMode, ?emitLineDirectives:Bool):GoBuildContext {
 		return new GoBuildContext(profile, legacyPolicyResolution(profile), normalizeGoModuleName(goModuleName),
 			rawNativeMode == null ? RawNativeMode.Interp : rawNativeMode, emitLineDirectives == true, false, "auto", false, false, false, false, false, false,
-			[], false, false, false, GoAutoLoweringMode.Off, "portable_fast", true, true, false, []);
+			[], false, false, false, false, GoAutoLoweringMode.Off, "portable_fast", true, true, false, []);
 	}
 
 	function currentPolicyResolution():GoPolicyResolution {

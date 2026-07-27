@@ -54,7 +54,8 @@ class CompilerInit {
 			targetCodeInjectionName: "__go__",
 			expressionPreprocessors: [],
 			ignoreBodilessFunctions: false,
-			ignoreExterns: true
+			ignoreExterns: true,
+			trackUsedTypes: true
 		});
 	}
 	#else

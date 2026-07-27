@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CONTRACT_SCHEMA = 8
 OPTIMIZER_SCHEMA = 6
 RUNTIME_SCHEMA = 2
+TYPE_USAGE_SCHEMA = 1
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -162,6 +163,7 @@ def main() -> int:
         ROOT / "test/snapshot/core/optimizer_plan_string_fastpath_disabled/intended/optimizer_plan.json"
     )
     runtime_path = ROOT / "test/snapshot/core/report_artifacts_runtime_reason_provenance/intended/hxrt_plan.json"
+    type_usage_path = ROOT / "test/snapshot/core/type_usage_ledger/intended/type_usage.json"
 
     contract = load_json(contract_path)
     require_schema(contract, CONTRACT_SCHEMA, str(contract_path))
@@ -394,7 +396,42 @@ def main() -> int:
     )
     require_runtime_reason_entries(runtime["reasons"], str(runtime_path) + ".reasons")
 
-    print("[PASS] auto planner report schema gate (contract/runtime/optimizer artifacts)")
+    type_usage = load_json(type_usage_path)
+    require_schema(type_usage, TYPE_USAGE_SCHEMA, str(type_usage_path))
+    require_keys(
+        type_usage,
+        [
+            "source",
+            "scannerFallback",
+            "moduleCount",
+            "typeUsageCount",
+            "memberUsageCount",
+            "nativeImportCount",
+            "capabilityCount",
+            "modules",
+            "capabilities",
+        ],
+        str(type_usage_path),
+    )
+    if type_usage["source"] != "reflaxe_type_usage_tracker":
+        raise SystemExit(f"{type_usage_path}: source must name the typed Reflaxe tracker")
+    if type_usage["scannerFallback"] != "transitional_contract_diagnostics_only":
+        raise SystemExit(f"{type_usage_path}: scanner fallback must not be planning authority")
+    for key in (
+        "moduleCount",
+        "typeUsageCount",
+        "memberUsageCount",
+        "nativeImportCount",
+        "capabilityCount",
+    ):
+        require_int(type_usage[key], f"{type_usage_path}.{key}")
+    modules = require_nonempty_list(type_usage["modules"], str(type_usage_path) + ".modules")
+    module_names = [entry.get("module") for entry in modules if isinstance(entry, dict)]
+    if module_names != sorted(module_names):
+        raise SystemExit(f"{type_usage_path}: modules must be sorted deterministically")
+    require_nonempty_list(type_usage["capabilities"], str(type_usage_path) + ".capabilities")
+
+    print("[PASS] auto planner report schema gate (contract/runtime/optimizer/type-usage artifacts)")
     return 0
 
 

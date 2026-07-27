@@ -2,6 +2,8 @@ package reflaxe.go;
 
 import reflaxe.go.compiler.GoBuildContext;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureReason;
+import reflaxe.go.compiler.GoTypeUsageLedger;
+import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeUsageLedgerSnapshot;
 
 /**
 	Why
@@ -79,8 +81,10 @@ class CompilationContext {
 	public var optimizerGoCollectionsTypedFallbacks:Int;
 	public var optimizerGoResultTypedLowerings:Int;
 	public var optimizerGoResultTypedFallbacks:Int;
+	public final typedUsageLedger:GoTypeUsageLedgerSnapshot;
 
-	public function new(profile:GoProfile, ?goModuleName:String, ?rawNativeMode:RawNativeMode, ?emitLineDirectives:Bool, ?buildContext:GoBuildContext) {
+	public function new(profile:GoProfile, ?goModuleName:String, ?rawNativeMode:RawNativeMode, ?emitLineDirectives:Bool, ?buildContext:GoBuildContext,
+			?typedUsageLedger:GoTypeUsageLedgerSnapshot) {
 		this.profile = profile;
 		var moduleName = normalizeGoModuleName(goModuleName);
 		this.goModuleName = moduleName;
@@ -110,11 +114,12 @@ class CompilationContext {
 		this.optimizerGoCollectionsTypedFallbacks = 0;
 		this.optimizerGoResultTypedLowerings = 0;
 		this.optimizerGoResultTypedFallbacks = 0;
+		this.typedUsageLedger = typedUsageLedger == null ? GoTypeUsageLedger.emptySnapshot() : typedUsageLedger;
 	}
 
-	public static function fromBuildContext(buildContext:GoBuildContext):CompilationContext {
+	public static function fromBuildContext(buildContext:GoBuildContext, ?typedUsageLedger:GoTypeUsageLedgerSnapshot):CompilationContext {
 		return new CompilationContext(buildContext.profile, buildContext.goModuleName, buildContext.rawNativeMode, buildContext.emitLineDirectives,
-			buildContext);
+			buildContext, typedUsageLedger);
 	}
 
 	static function normalizeGoModuleName(raw:Null<String>):String {

@@ -24,6 +24,7 @@ class GoBuildContextResolver {
 	public static inline final CONTRACT_REPORT_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineContractReport;
 	public static inline final RUNTIME_PLAN_REPORT_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineRuntimePlanReport;
 	public static inline final OPTIMIZER_PLAN_REPORT_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineOptimizerPlanReport;
+	public static inline final TYPE_USAGE_REPORT_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineTypeUsageReport;
 	public static inline final OPT_PRESET_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineOptimizationPreset;
 	public static inline final OPT_PORTABLE_CONCURRENCY_FASTPATH_DEFINE:GoCompilerDefine = GoCompilerDefine.DefinePortableConcurrencyFastpath;
 	public static inline final NATIVE_STACK_TRACE_DEFINE:GoCompilerDefine = GoCompilerDefine.DefineNativeStackTrace;
@@ -44,8 +45,9 @@ class GoBuildContextResolver {
 			&& policyResolution.nativeFallback == GoNativeFallbackPolicy.Error,
 			Context.defined(HXRT_DEFAULT_FEATURES_DEFINE), Context.defined(HXRT_FEATURES_DEFINE), Context.defined(HXRT_NO_FEATURE_INFER_DEFINE),
 			parseManualHxrtFeatures(Context.definedValue(HXRT_FEATURES_DEFINE)), Context.defined(CONTRACT_REPORT_DEFINE),
-			Context.defined(RUNTIME_PLAN_REPORT_DEFINE), parseBoolDefine(OPTIMIZER_PLAN_REPORT_DEFINE, false), autoLoweringMode, optimizationPreset,
-			portableStringFastpathEnabled, portableConcurrencyFastpathEnabled, Context.defined(NATIVE_STACK_TRACE_DEFINE), []);
+			Context.defined(RUNTIME_PLAN_REPORT_DEFINE), parseBoolDefine(OPTIMIZER_PLAN_REPORT_DEFINE, false), Context.defined(TYPE_USAGE_REPORT_DEFINE),
+			autoLoweringMode, optimizationPreset, portableStringFastpathEnabled, portableConcurrencyFastpathEnabled,
+			Context.defined(NATIVE_STACK_TRACE_DEFINE), []);
 	}
 
 	/**
