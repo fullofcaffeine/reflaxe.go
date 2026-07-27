@@ -22,7 +22,9 @@ COMPILER = ROOT / "src" / "reflaxe" / "go" / "GoReflaxeCompiler.hx"
 DEFINE = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoCompilerDefine.hx"
 SCHEMA = ROOT / "docs" / "schemas" / "surface-contracts-v1.schema.json"
 DOC = ROOT / "docs" / "surface-contract-registry.md"
+COLLECTION_DOC = ROOT / "docs" / "portable-collection-contract.md"
 DEFINES_DOC = ROOT / "docs" / "defines-reference.md"
+NATIVE_MAP = ROOT / "src" / "go" / "Map.hx"
 SCHEMA_VALIDATOR = ROOT / "test" / "validate_surface_contract_schema.mjs"
 
 
@@ -34,6 +36,27 @@ def flatten_strings(value: Any) -> list[str]:
     if isinstance(value, dict):
         return [item for entry in value.values() for item in flatten_strings(entry)]
     return []
+
+def shape_contains(shape: dict[str, Any], *, kind: str, path_fragment: str) -> bool:
+    if shape.get("kind") == kind and path_fragment in shape.get("path", ""):
+        return True
+    for parameter in shape.get("parameters", []):
+        if shape_contains(parameter, kind=kind, path_fragment=path_fragment):
+            return True
+    for argument in shape.get("arguments", []):
+        if shape_contains(argument["shape"], kind=kind, path_fragment=path_fragment):
+            return True
+    return_type = shape.get("returnType")
+    if isinstance(return_type, dict) and shape_contains(
+        return_type,
+        kind=kind,
+        path_fragment=path_fragment,
+    ):
+        return True
+    for field in shape.get("fields", []):
+        if shape_contains(field["shape"], kind=kind, path_fragment=path_fragment):
+            return True
+    return False
 
 
 class SurfaceContractRegistryTest(unittest.TestCase):
@@ -132,7 +155,7 @@ class SurfaceContractRegistryTest(unittest.TestCase):
             portable["profileAdmission"],
             "forbidden",
         )
-        self.assertEqual(portable["catalogCount"], 2)
+        self.assertEqual(portable["catalogCount"], 5)
         self.assertGreater(portable["decisionCount"], 0)
         self.assertEqual(
             portable["decisionCount"],
@@ -147,6 +170,11 @@ class SurfaceContractRegistryTest(unittest.TestCase):
             entry
             for entry in portable["decisions"]
             if entry["surfaceId"] == "reflaxe.std.Result"
+        ]
+        array_decisions = [
+            entry
+            for entry in portable["decisions"]
+            if entry["surfaceId"] == "haxe.Array"
         ]
         self.assertTrue(
             any(
@@ -169,6 +197,42 @@ class SurfaceContractRegistryTest(unittest.TestCase):
             any(entry["reason"] == "eligibility_rejected" for entry in result_decisions)
         )
         self.assertTrue(
+            any(
+                entry["outcome"] == "admitted"
+                and entry["selectedRepresentation"] == "go_slice"
+                for entry in array_decisions
+            )
+        )
+        self.assertTrue(
+            any(entry["reason"] == "eligibility_rejected" for entry in array_decisions)
+        )
+        hidden_alias_decisions = [
+            entry
+            for entry in array_decisions
+            if shape_contains(
+                entry["shape"],
+                kind="typedef",
+                path_fragment="HiddenDynamic",
+            )
+            or shape_contains(
+                entry["shape"],
+                kind="abstract",
+                path_fragment="HiddenDynamicAbstract",
+            )
+        ]
+        self.assertTrue(hidden_alias_decisions)
+        self.assertTrue(
+            all(entry["outcome"] == "rejected" for entry in hidden_alias_decisions)
+        )
+        self.assertTrue(
+            all(
+                entry["reason"] == "eligibility_rejected"
+                and "binding_has_proven_collection_carrier:element"
+                in entry["detail"]
+                for entry in hidden_alias_decisions
+            )
+        )
+        self.assertTrue(
             all(entry["shape"]["parameters"] for entry in option_decisions)
         )
         self.assertTrue(
@@ -179,8 +243,52 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         }
         self.assertEqual(
             set(contracts),
-            {"reflaxe.std.Option", "reflaxe.std.Result"},
+            {
+                "haxe.Array",
+                "haxe.ds.StringMap",
+                "haxe.ds.IntMap",
+                "reflaxe.std.Option",
+                "reflaxe.std.Result",
+            },
         )
+        for surface_id, fallback_runtime in (
+            ("haxe.Array", ["array"]),
+            ("haxe.ds.StringMap", ["map_string"]),
+            ("haxe.ds.IntMap", ["map_int"]),
+        ):
+            contract = contracts[surface_id]
+            self.assertEqual(contract["sourceContract"], "portable_haxe")
+            carrier_binding = "element" if surface_id == "haxe.Array" else "value"
+            self.assertIn(
+                f"binding_has_proven_collection_carrier:{carrier_binding}",
+                contract["eligibilityRules"],
+            )
+            if surface_id == "haxe.Array":
+                self.assertNotIn(
+                    "surface_has_fixed_go_comparable_map_key",
+                    contract["eligibilityRules"],
+                )
+            else:
+                self.assertIn(
+                    "surface_has_fixed_go_comparable_map_key",
+                    contract["eligibilityRules"],
+                )
+            self.assertEqual(contract["nativeRuntimeRequirements"], [])
+            self.assertEqual(
+                contract["fallbackRuntimeRequirements"],
+                fallback_runtime,
+            )
+            self.assertEqual(contract["noHxrtStatus"], "conditional")
+            self.assertIn(
+                "portable-collections-semantic-diff",
+                {proof["proofId"] for proof in contract["proofs"]},
+            )
+            if surface_id in {"haxe.ds.StringMap", "haxe.ds.IntMap"}:
+                self.assertNotIn(
+                    "generated_shape",
+                    {proof["kind"] for proof in contract["proofs"]},
+                    "map contracts must not claim an unasserted generated shape",
+                )
         for surface_id, native_representation, fallback_representation in (
             ("reflaxe.std.Option", "go_option", "portable_option"),
             ("reflaxe.std.Result", "go_result", "portable_result"),
@@ -215,15 +323,18 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         result_go = (
             FIXTURE / "out-portable" / "module_reflaxe_std_result.go"
         ).read_text(encoding="utf-8")
+        main_go = (FIXTURE / "out-portable" / "main.go").read_text(encoding="utf-8")
         self.assertIn("type reflaxe__std__Option struct", option_go)
         self.assertIn("params []any", option_go)
         self.assertIn("type reflaxe__std__Result struct", result_go)
         self.assertIn("params []any", result_go)
         self.assertNotIn("go___Result", result_go)
+        self.assertIn("*hxrt.Array", main_go)
+        self.assertNotIn("var values []int", main_go)
         rejected = [
             entry
             for entry in portable["decisions"]
-            if entry["surfaceId"] in {"haxe.Array", "haxe.String", "haxe.io.Bytes"}
+            if entry["surfaceId"] in {"haxe.String", "haxe.io.Bytes"}
         ]
         self.assertTrue(rejected)
         self.assertTrue(all(entry["outcome"] == "rejected" for entry in rejected))
@@ -232,7 +343,11 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         )
         observed_ids = {entry["surfaceId"] for entry in portable["decisions"]}
         self.assertTrue(
-            {"haxe.Array", "haxe.String", "haxe.io.Bytes"}.issubset(observed_ids)
+            {
+                "haxe.Array",
+                "haxe.String",
+                "haxe.io.Bytes",
+            }.issubset(observed_ids)
         )
 
         for value in flatten_strings(portable):
@@ -251,6 +366,9 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertNotIn("buildContext.profile", registry_source)
         self.assertNotIn("usesMetal", registry_source)
         self.assertNotIn("Metal", registry_source)
+        self.assertNotIn("Std.string", registry_source)
+        self.assertNotIn('"go.Map"', registry_source)
+        self.assertIn("Std.string(key)", NATIVE_MAP.read_text(encoding="utf-8"))
         self.assertIn(
             "public final surfaceContractRegistry:GoSurfaceContractRegistrySnapshot",
             context_source,
@@ -285,16 +403,32 @@ class SurfaceContractRegistryTest(unittest.TestCase):
                 "eligibility_rejected",
             ],
         )
+        simple_eligibility_values = schema["$defs"]["contract"]["properties"][
+            "eligibilityRules"
+        ]["items"]["anyOf"][0]["enum"]
+        self.assertIn(
+            "surface_has_fixed_go_comparable_map_key",
+            simple_eligibility_values,
+        )
+        binding_rule_pattern = schema["$defs"]["contract"]["properties"][
+            "eligibilityRules"
+        ]["items"]["anyOf"][1]["pattern"]
+        self.assertIn("has_proven_collection_carrier", binding_rule_pattern)
 
         doc = DOC.read_text(encoding="utf-8")
+        collection_doc = COLLECTION_DOC.read_text(encoding="utf-8")
         defines_doc = DEFINES_DOC.read_text(encoding="utf-8")
         self.assertIn("What it is", doc)
         self.assertIn("Why it exists", doc)
         self.assertIn("How it works", doc)
-        self.assertIn("Production starts with two admitted portable facade surfaces", doc)
+        self.assertIn("Production admits five", doc)
         self.assertNotIn("intentionally empty production catalog", doc)
         self.assertIn("not native `go.Result<T>`", doc)
         self.assertIn("planner does not consume", doc)
+        self.assertIn("shared, slice-backed carrier", collection_doc)
+        self.assertIn("ObjectMap", collection_doc)
+        self.assertIn("Std.string", collection_doc)
+        self.assertIn("not semantic evidence", collection_doc)
         self.assertIn("Profiles cannot admit a surface", doc)
         self.assertIn("haxe.rust", doc)
         self.assertIn("haxe.ruby", doc)
@@ -306,8 +440,29 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         populated = self.populated_contract_report()
         self.validate_schema(populated)
         populated_report = json.loads(populated)
-        self.assertEqual(populated_report["catalogCount"], 1)
-        self.assertEqual(populated_report["admittedCount"], 1)
+        self.assertEqual(populated_report["catalogCount"], 5)
+        self.assertEqual(populated_report["admittedCount"], 3)
+        self.assertEqual(populated_report["rejectedCount"], 4)
+        populated_decisions = {
+            (entry["surfaceId"], entry["outcome"], entry["reason"])
+            for entry in populated_report["decisions"]
+        }
+        self.assertIn(
+            ("haxe.ds.StringMap", "admitted", "contract_admitted"),
+            populated_decisions,
+        )
+        self.assertIn(
+            ("haxe.ds.StringMap", "rejected", "eligibility_rejected"),
+            populated_decisions,
+        )
+        self.assertIn(
+            ("haxe.ds.IntMap", "rejected", "eligibility_rejected"),
+            populated_decisions,
+        )
+        self.assertIn(
+            ("haxe.ds.ObjectMap", "rejected", "contract_missing"),
+            populated_decisions,
+        )
 
         registry_source = REGISTRY.read_text(encoding="utf-8")
         ledger_source = TYPE_LEDGER.read_text(encoding="utf-8")

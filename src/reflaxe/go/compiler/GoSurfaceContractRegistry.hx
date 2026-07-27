@@ -73,6 +73,10 @@ enum abstract GoSourceContractKind(String) to String {
 
 	Why / What / How
 	- Reports and planners need stable values rather than target-shape strings.
+	- `GoSlice` and `GoMap` name native-storage-backed semantic carriers. They
+	  do not by themselves authorize naked `[]T` or `map[K]V` values; the
+	  surface contract supplies the required identity, null, and iteration
+	  behavior.
 	- Option/Result currently select their typed carrier identities; later
 	  admission Beads may enable the remaining values after their proofs land.
 	- Catalog selection records representation authority, while planner
@@ -268,7 +272,8 @@ typedef GoSurfaceFunctionArgumentPattern = {
 
 	Why / What / How
 	- Exact root matching is necessary but not sufficient for nested `Dynamic`,
-	  unresolved shapes, or a future Go-comparable map-key rule.
+	  unresolved shapes, a bound Go-comparable map key, or a nominal map whose
+	  fixed key is encoded by the typed surface.
 	- Rules consume bindings created by the pattern; validation rejects references
 	  to bindings the pattern did not declare.
 **/
@@ -277,6 +282,8 @@ enum GoSurfaceEligibilityRule {
 	ShapeContainsNoDynamic;
 	BindingContainsNoDynamic(name:String);
 	BindingIsGoComparable(name:String);
+	BindingHasProvenCollectionCarrier(name:String);
+	SurfaceHasFixedGoComparableMapKey;
 }
 
 /**
@@ -541,14 +548,197 @@ class GoSurfaceContractRegistry {
 		Production catalog.
 
 		Why / What / How
-		- Option/Result have exact portable facade contracts and semantic evidence.
-		- Collections, strings/bytes, iterators, and closures remain absent until
-		  their own admission tasks land.
+		- Array, StringMap, IntMap, Option, and Result have exact portable
+		  contracts and semantic evidence.
+		- ObjectMap, strings/bytes, iterators, and closures remain absent until
+		  their own representation proofs land.
 		- Catalog membership is profile-independent and does not itself change
 		  lowering; `.7.6` owns planner consumption.
 	**/
 	public static function defaultRegistry():GoSurfaceContractRegistry {
-		return create([portableOptionContract(), portableResultContract()]);
+		return create([
+			haxeArrayContract(),
+			haxeStringMapContract(),
+			haxeIntMapContract(),
+			portableOptionContract(),
+			portableResultContract()
+		]);
+	}
+
+	/**
+		The portable shared Haxe `Array<T>` contract.
+
+		Why
+		A naked Go `[]T` copies its slice header when assigned, so a later append
+		can change one alias's length without changing the other. Primitive slices
+		also cannot represent sparse Haxe holes without extra presence state.
+
+		What
+		Admits recursively typed element shapes to `GoSlice`, meaning a shared,
+		slice-backed semantic carrier. It does not authorize replacing Haxe
+		`Array<T>` with a naked Go slice.
+
+		How
+		The carrier must preserve object identity, alias-visible mutation,
+		sparse/null slots, distinct null-versus-empty values, nested collection
+		identity, iteration, and callback-visible mutation. Dynamic or unresolved
+		nested shapes, named type parameters, and opaque typedef/abstract storage
+		retain the existing `hxrt.Array` fallback.
+	**/
+	static function haxeArrayContract():GoSurfaceContract {
+		return {
+			surfaceId: GoSurfaceId.HaxeArray,
+			contractVersion: 1,
+			sourceContract: GoSourceContractKind.PortableHaxe,
+			sourceSemanticsId: "haxe.array.shared",
+			sourceSemanticsVersion: 1,
+			sourceSemantics: "Ordered mutable Array object with shared identity, alias-visible length/content mutation, sparse null slots, distinct null and empty values, nested identity, iteration, and callback-visible mutation.",
+			eligibleShape: GoSurfaceTypePattern.NominalPattern(GoSurfaceNominalKind.Class, "Array",
+				GoImmutableList.fromArray([GoSurfaceTypePattern.Bind("element")])),
+			eligibilityRules: GoImmutableList.fromArray([
+				GoSurfaceEligibilityRule.NoUnknownShapes,
+				GoSurfaceEligibilityRule.BindingContainsNoDynamic("element"),
+				GoSurfaceEligibilityRule.BindingHasProvenCollectionCarrier("element")
+			]),
+			nativeRepresentation: GoNativeRepresentation.GoSlice,
+			nativeImports: GoImmutableList.fromArray([]),
+			nativeRuntimeRequirements: GoImmutableList.fromArray([]),
+			fallbackRepresentation: GoSurfaceFallbackRepresentation.HxrtArray,
+			fallbackPolicy: GoSurfaceFallbackPolicy.ReasonedRuntimeRequirement,
+			fallbackImports: GoImmutableList.fromArray([]),
+			fallbackRuntimeRequirements: GoImmutableList.fromArray([GoHxrtFeatureId.HxrtArray]),
+			noHxrtStatus: GoNoHxrtStatus.Conditional,
+			proofs: GoImmutableList.fromArray([
+				{
+					proofId: "portable-collections-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/portable_collections_contract"
+				},
+				{
+					proofId: "array-shared-identity-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/array_identity_contract"
+				},
+				{
+					proofId: "portable-collections-generated-fallback-shape",
+					kind: GoSurfaceProofKind.GeneratedShape,
+					fixturePath: "test/fixtures/surface_contract_registry"
+				}
+			]),
+			familySyncExpectation: GoFamilySyncExpectation.TargetLocal,
+			familyContractId: "",
+			familyContractVersion: 0
+		};
+	}
+
+	/**
+		The portable fixed-string-key `haxe.ds.StringMap<V>` contract.
+
+		Why / What / How
+		- The nominal surface fixes the key to Haxe `String`; a typed rule proves
+		  that its equality can use a Go-comparable string key without coercion.
+		- A semantic carrier around `map[string]V` must retain shared mutation,
+		  present-null versus missing, copy, iteration, nested values, and
+		  callback-visible updates.
+		- Dynamic, unresolved, or opaque alias value shapes retain the staged
+		  StringMap plus `hxrt` fallback. Explicit `go.Map<K,V>` is not this
+		  contract.
+	**/
+	static function haxeStringMapContract():GoSurfaceContract {
+		return {
+			surfaceId: GoSurfaceId.HaxeStringMap,
+			contractVersion: 1,
+			sourceContract: GoSourceContractKind.PortableHaxe,
+			sourceSemanticsId: "haxe.ds.string-map",
+			sourceSemanticsVersion: 1,
+			sourceSemantics: "Shared mutable String-key map with exact string equality, present-null distinct from missing through exists(), shallow copy, complete iteration, nested identity, and callback-visible mutation.",
+			eligibleShape: GoSurfaceTypePattern.NominalPattern(GoSurfaceNominalKind.Class, "haxe.ds.StringMap",
+				GoImmutableList.fromArray([GoSurfaceTypePattern.Bind("value")])),
+			eligibilityRules: GoImmutableList.fromArray([
+				GoSurfaceEligibilityRule.NoUnknownShapes,
+				GoSurfaceEligibilityRule.SurfaceHasFixedGoComparableMapKey,
+				GoSurfaceEligibilityRule.BindingContainsNoDynamic("value"),
+				GoSurfaceEligibilityRule.BindingHasProvenCollectionCarrier("value")
+			]),
+			nativeRepresentation: GoNativeRepresentation.GoMap,
+			nativeImports: GoImmutableList.fromArray([]),
+			nativeRuntimeRequirements: GoImmutableList.fromArray([]),
+			fallbackRepresentation: GoSurfaceFallbackRepresentation.HxrtMap,
+			fallbackPolicy: GoSurfaceFallbackPolicy.ReasonedRuntimeRequirement,
+			fallbackImports: GoImmutableList.fromArray([]),
+			fallbackRuntimeRequirements: GoImmutableList.fromArray([GoHxrtFeatureId.HxrtMapString]),
+			noHxrtStatus: GoNoHxrtStatus.Conditional,
+			proofs: GoImmutableList.fromArray([
+				{
+					proofId: "portable-collections-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/portable_collections_contract"
+				},
+				{
+					proofId: "portable-map-family-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/ds_maps_list_contract"
+				}
+			]),
+			familySyncExpectation: GoFamilySyncExpectation.TargetLocal,
+			familyContractId: "",
+			familyContractVersion: 0
+		};
+	}
+
+	/**
+		The portable fixed-integer-key `haxe.ds.IntMap<V>` contract.
+
+		Why / What / How
+		- The nominal surface fixes the key to Haxe `Int`; its equality is the
+		  compiler's typed, Go-comparable integer equality rather than a string
+		  conversion.
+		- A semantic carrier around `map[int]V` retains shared mutation,
+		  present-null versus missing, copy, iteration, nested values, and
+		  callback-visible updates.
+		- Dynamic, unresolved, or opaque alias value shapes retain the staged
+		  IntMap plus its exact `hxrt` fallback.
+	**/
+	static function haxeIntMapContract():GoSurfaceContract {
+		return {
+			surfaceId: GoSurfaceId.HaxeIntMap,
+			contractVersion: 1,
+			sourceContract: GoSourceContractKind.PortableHaxe,
+			sourceSemanticsId: "haxe.ds.int-map",
+			sourceSemanticsVersion: 1,
+			sourceSemantics: "Shared mutable Int-key map with exact integer equality, present-null distinct from missing through exists(), shallow copy, complete iteration, nested identity, and callback-visible mutation.",
+			eligibleShape: GoSurfaceTypePattern.NominalPattern(GoSurfaceNominalKind.Class, "haxe.ds.IntMap",
+				GoImmutableList.fromArray([GoSurfaceTypePattern.Bind("value")])),
+			eligibilityRules: GoImmutableList.fromArray([
+				GoSurfaceEligibilityRule.NoUnknownShapes,
+				GoSurfaceEligibilityRule.SurfaceHasFixedGoComparableMapKey,
+				GoSurfaceEligibilityRule.BindingContainsNoDynamic("value"),
+				GoSurfaceEligibilityRule.BindingHasProvenCollectionCarrier("value")
+			]),
+			nativeRepresentation: GoNativeRepresentation.GoMap,
+			nativeImports: GoImmutableList.fromArray([]),
+			nativeRuntimeRequirements: GoImmutableList.fromArray([]),
+			fallbackRepresentation: GoSurfaceFallbackRepresentation.HxrtMap,
+			fallbackPolicy: GoSurfaceFallbackPolicy.ReasonedRuntimeRequirement,
+			fallbackImports: GoImmutableList.fromArray([]),
+			fallbackRuntimeRequirements: GoImmutableList.fromArray([GoHxrtFeatureId.HxrtMapInt]),
+			noHxrtStatus: GoNoHxrtStatus.Conditional,
+			proofs: GoImmutableList.fromArray([
+				{
+					proofId: "portable-collections-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/portable_collections_contract"
+				},
+				{
+					proofId: "portable-map-family-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/ds_maps_list_contract"
+				}
+			]),
+			familySyncExpectation: GoFamilySyncExpectation.TargetLocal,
+			familyContractId: "",
+			familyContractVersion: 0
+		};
 	}
 
 	/**
@@ -807,7 +997,7 @@ class GoSurfaceContractRegistry {
 			return contractDecision(module, location, usageLevel, surfaceId, shape, contract, GoSurfaceDecisionOutcome.Rejected,
 				GoSurfaceDecisionReason.ShapeMismatch, "Observed type shape does not match the contract pattern.", false);
 		}
-		var failedRule = firstFailedEligibilityRule(contract.eligibilityRules, shape, patternMatch.bindings);
+		var failedRule = firstFailedEligibilityRule(contract.surfaceId, contract.eligibilityRules, shape, patternMatch.bindings);
 		if (failedRule != null) {
 			return contractDecision(module, location, usageLevel, surfaceId, shape, contract, GoSurfaceDecisionOutcome.Rejected,
 				GoSurfaceDecisionReason.EligibilityRejected, "Eligibility rule rejected the shape: " + failedRule, false);
@@ -1060,7 +1250,7 @@ class GoSurfaceContractRegistry {
 		};
 	}
 
-	static function firstFailedEligibilityRule(rules:GoImmutableList<GoSurfaceEligibilityRule>, shape:GoTypeShape,
+	static function firstFailedEligibilityRule(surfaceId:GoSurfaceId, rules:GoImmutableList<GoSurfaceEligibilityRule>, shape:GoTypeShape,
 			bindings:Map<String, GoTypeShape>):Null<String> {
 		for (rule in rules) {
 			var failure = switch (rule) {
@@ -1070,12 +1260,96 @@ class GoSurfaceContractRegistry {
 					containsDynamic(shape) ? "shape_contains_no_dynamic" : null;
 				case BindingContainsNoDynamic(name): var bound = bindings.get(name); bound == null || containsDynamic(bound) ? "binding_contains_no_dynamic:" + name : null;
 				case BindingIsGoComparable(name): var bound = bindings.get(name); bound == null || !isConservativelyGoComparable(bound) ? "binding_is_go_comparable:" + name : null;
+				case BindingHasProvenCollectionCarrier(name): var bound = bindings.get(name); bound == null || !hasProvenCollectionCarrier(bound) ? "binding_has_proven_collection_carrier:" + name : null;
+				case SurfaceHasFixedGoComparableMapKey:
+					hasFixedGoComparableMapKey(surfaceId) ? null : "surface_has_fixed_go_comparable_map_key";
 			};
 			if (failure != null) {
 				return failure;
 			}
 		}
 		return null;
+	}
+
+	/**
+		Whether a portable map surface fixes a key whose Haxe equality is exactly
+		representable by Go `==`.
+
+		Why / What / How
+		- `StringMap` and `IntMap` encode their key types in the typed nominal
+		  surface even though the ledger shape carries only the value parameter.
+		- `ObjectMap` deliberately fails: its contract is object identity, not
+		  structural Go comparability.
+		- Explicit `go.Map<K,V>` never reaches this portable registry, so its
+		  compatibility string coercion cannot satisfy this proof.
+	**/
+	static function hasFixedGoComparableMapKey(surfaceId:GoSurfaceId):Bool {
+		return surfaceId == GoSurfaceId.HaxeStringMap || surfaceId == GoSurfaceId.HaxeIntMap;
+	}
+
+	/**
+		Whether the ledger contains enough recursive facts to choose collection
+		storage without guessing through an erased alias.
+
+		Why
+		`GoTypeShape` retains a typedef or abstract's nominal identity and applied
+		parameters, but it does not currently retain the followed underlying type.
+		A typedef or user abstract over `Dynamic` could therefore look free of a
+		`DynamicShape` node.
+
+		What
+		Accepts classes, enums, anonymous records, and functions only when their
+		recorded child shapes are also proven. Core primitive and `Null<T>`
+		abstracts are closed known cases. Opaque typedefs, user abstracts, named
+		type parameters, Dynamic, and unresolved shapes fail closed.
+
+		How
+		A later ledger schema may carry followed underlying-type evidence and
+		broaden this rule. Until then, conservative fallback preserves behavior
+		and the report names this exact rejection.
+	**/
+	static function hasProvenCollectionCarrier(shape:GoTypeShape):Bool {
+		return switch (shape) {
+			case Nominal(kind, path, parameters):
+				switch (kind) {
+					case GoTypeUsageTargetKind.Class | GoTypeUsageTargetKind.Enum:
+						allShapes(parameters, hasProvenCollectionCarrier);
+					case GoTypeUsageTargetKind.Abstract:
+						switch (path) {
+							case "StdTypes.Int" | "StdTypes.Float" | "StdTypes.Bool" | "StdTypes.UInt" | "StdTypes.Void":
+								parameters.length == 0;
+							case "StdTypes.Null": parameters.length == 1 && hasProvenCollectionCarrier(parameters.at(0));
+							case _:
+								false;
+						}
+					case GoTypeUsageTargetKind.Typedef:
+						false;
+					case _:
+						false;
+				}
+			case Function(arguments, returnType):
+				var proven = hasProvenCollectionCarrier(returnType);
+				if (proven) {
+					for (argument in arguments) {
+						if (!hasProvenCollectionCarrier(argument.shape)) {
+							proven = false;
+							break;
+						}
+					}
+				}
+				proven;
+			case Anonymous(fields):
+				var proven = true;
+				for (field in fields) {
+					if (!hasProvenCollectionCarrier(field.shape)) {
+						proven = false;
+						break;
+					}
+				}
+				proven;
+			case TypeParameter(_) | DynamicShape(_) | UnknownShape(_):
+				false;
+		};
 	}
 
 	static function containsUnknown(shape:GoTypeShape):Bool {
@@ -1150,6 +1424,15 @@ class GoSurfaceContractRegistry {
 		return false;
 	}
 
+	static function allShapes(shapes:GoImmutableList<GoTypeShape>, predicate:GoTypeShape->Bool):Bool {
+		for (shape in shapes) {
+			if (!predicate(shape)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	static function isConservativelyGoComparable(shape:GoTypeShape):Bool {
 		return switch (shape) {
 			case Nominal(GoTypeUsageTargetKind.Abstract, path, parameters) if (parameters.length == 0): path == "StdTypes.Int" || path == "StdTypes.Float" || path == "StdTypes.Bool" || path == "StdTypes.UInt";
@@ -1173,8 +1456,8 @@ class GoSurfaceContractRegistry {
 				continue;
 			}
 			switch (rule) {
-				case NoUnknownShapes | ShapeContainsNoDynamic:
-				case BindingContainsNoDynamic(name) | BindingIsGoComparable(name):
+				case NoUnknownShapes | ShapeContainsNoDynamic | SurfaceHasFixedGoComparableMapKey:
+				case BindingContainsNoDynamic(name) | BindingIsGoComparable(name) | BindingHasProvenCollectionCarrier(name):
 					if (isBlank(name) || !bindings.exists(name)) {
 						addIssue(issues, GoSurfaceValidationCode.UnboundEligibilityRule, contract.surfaceId,
 							'Eligibility rule references unknown binding "$name".');
@@ -1637,6 +1920,8 @@ class GoSurfaceContractRegistry {
 			case ShapeContainsNoDynamic: "shape_contains_no_dynamic";
 			case BindingContainsNoDynamic(name): "binding_contains_no_dynamic:" + name;
 			case BindingIsGoComparable(name): "binding_is_go_comparable:" + name;
+			case BindingHasProvenCollectionCarrier(name): "binding_has_proven_collection_carrier:" + name;
+			case SurfaceHasFixedGoComparableMapKey: "surface_has_fixed_go_comparable_map_key";
 		};
 	}
 

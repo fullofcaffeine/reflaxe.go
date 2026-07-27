@@ -10,12 +10,13 @@ compiler also needs a reviewed contract that says which Haxe behavior must stay
 the same, which exact type shapes are safe, what Go representation may be used,
 what happens when the shape is unsafe, and which tests prove those claims.
 
-Production starts with two admitted portable facade surfaces:
-`reflaxe.std.Option` and `reflaxe.std.Result`. Their exact source contract,
-eligibility, fallback, and native-boundary rules are documented in
-[Portable Option and Result Contract](portable-option-result-contract.md).
-Collections, strings/bytes, iterators, and closures remain absent until their
-own semantic evidence lands.
+Production admits five proof-backed surfaces: portable Haxe `Array`,
+`StringMap`, and `IntMap`, plus the `reflaxe.std.Option` and
+`reflaxe.std.Result` facades. Their exact contracts are documented in
+[Portable Collection Representation Contract](portable-collection-contract.md)
+and [Portable Option and Result Contract](portable-option-result-contract.md).
+ObjectMap, strings/bytes, iterators, and closures remain absent until their own
+semantic evidence lands.
 
 Enable the optional report with:
 
@@ -119,13 +120,13 @@ references without depending on a developer's checkout path.
 lowering, beside `typedUsageLedger`. Neither report generation nor a
 compatibility profile can mutate it.
 
-The registry is observational for representation selection today. Option and
-Result are admitted, but the planner does not consume their carrier decisions
-until `.7.6`; current generated declarations retain the portable tagged-enum
-fallback. The only immediate lowering fixes retain the exact supplied facade
-declarations and safely extract nullable enum payloads. `.7.4` and `.7.5` add
-the remaining proven catalog entries, and `.7.6` makes optimizer and runtime
-planners consume all decisions.
+The registry is observational for representation selection today. Collections,
+Option, and Result are admitted, but the planner does not consume their carrier
+decisions until `.7.6`; current generated declarations retain their portable
+fallbacks. `go_slice` means a shared, slice-backed carrier rather than a naked
+Go slice, while portable `go_map` admission currently covers only the fixed
+StringMap and IntMap key contracts. `.7.5` adds the remaining proven catalog
+entries, and `.7.6` makes optimizer and runtime planners consume all decisions.
 
 Portable `reflaxe.std.Result<T,E>` is not native `go.Result<T>` and is not a Go
 `(T,error)` pair. The registry's `go_result` value names a future typed
@@ -183,6 +184,8 @@ npm run test:compiler-debt
 The focused contract runs the real Haxe validator against valid, duplicate,
 unknown, unproven, malformed-pattern, malformed-nested-list, unsafe-path, and
 unknown-runtime entries. It proves Option/Result admission and fallback,
+typed Array/StringMap/IntMap admission and fallback, ObjectMap identity
+rejection, fixed-key comparability, explicit `go.Map` exclusion,
 unregistered-surface rejection, deep catalog copying, deterministic
 JSON/Markdown, actual JSON Schema conformance, compiler/schema vocabulary
 synchronization, generated fallback declarations, path hygiene, and

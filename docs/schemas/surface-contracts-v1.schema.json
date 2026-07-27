@@ -334,8 +334,17 @@
           "type": "array",
           "items": {
             "anyOf": [
-              { "enum": ["no_unknown_shapes", "shape_contains_no_dynamic"] },
-              { "type": "string", "pattern": "^binding_(?:contains_no_dynamic|is_go_comparable):[^:]+$" }
+              {
+                "enum": [
+                  "no_unknown_shapes",
+                  "shape_contains_no_dynamic",
+                  "surface_has_fixed_go_comparable_map_key"
+                ]
+              },
+              {
+                "type": "string",
+                "pattern": "^binding_(?:contains_no_dynamic|is_go_comparable|has_proven_collection_carrier):[^:]+$"
+              }
             ]
           }
         },
