@@ -1,0 +1,463 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:reflaxe-go:schema:surface-contracts:v1",
+  "title": "reflaxe.go surface_contracts.json schema v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registryVersion",
+    "authority",
+    "profileAdmission",
+    "catalogCount",
+    "decisionCount",
+    "admittedCount",
+    "rejectedCount",
+    "contracts",
+    "decisions"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registryVersion": { "const": 1 },
+    "authority": { "const": "typed_usage_plus_versioned_surface_contract" },
+    "profileAdmission": { "const": "forbidden" },
+    "catalogCount": { "type": "integer", "minimum": 0 },
+    "decisionCount": { "type": "integer", "minimum": 0 },
+    "admittedCount": { "type": "integer", "minimum": 0 },
+    "rejectedCount": { "type": "integer", "minimum": 0 },
+    "contracts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/contract" }
+    },
+    "decisions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/decision" }
+    }
+  },
+  "$defs": {
+    "surfaceId": {
+      "enum": [
+        "haxe.Array",
+        "haxe.String",
+        "haxe.io.Bytes",
+        "haxe.ds.StringMap",
+        "haxe.ds.IntMap",
+        "haxe.ds.ObjectMap",
+        "reflaxe.std.Option",
+        "reflaxe.std.Result",
+        "haxe.Function"
+      ]
+    },
+    "sourceContract": {
+      "enum": ["portable_haxe", "portable_family_facade"]
+    },
+    "nativeRepresentation": {
+      "enum": [
+        "go_slice",
+        "go_map",
+        "go_string",
+        "go_byte_slice",
+        "go_iterator",
+        "go_closure",
+        "go_option",
+        "go_result"
+      ]
+    },
+    "fallbackRepresentation": {
+      "enum": [
+        "hxrt_array",
+        "hxrt_map",
+        "hxrt_string",
+        "hxrt_bytes",
+        "hxrt_iterator",
+        "hxrt_closure",
+        "portable_option",
+        "portable_result"
+      ]
+    },
+    "fallbackPolicy": {
+      "enum": [
+        "always_available",
+        "reasoned_runtime_requirement",
+        "error"
+      ]
+    },
+    "noHxrtStatus": {
+      "enum": ["eligible", "conditional", "ineligible"]
+    },
+    "familySyncExpectation": {
+      "enum": ["target_local", "shared_contract_required"]
+    },
+    "proofKind": {
+      "enum": [
+        "semantic_diff",
+        "generated_shape",
+        "go_runtime",
+        "race",
+        "performance"
+      ]
+    },
+    "decisionOutcome": {
+      "enum": ["admitted", "rejected"]
+    },
+    "decisionReason": {
+      "enum": [
+        "contract_admitted",
+        "contract_missing",
+        "shape_mismatch",
+        "eligibility_rejected"
+      ]
+    },
+    "nominalTargetKind": {
+      "enum": ["class", "enum", "typedef", "abstract"]
+    },
+    "usageLevel": {
+      "enum": [
+        "expression",
+        "variable_type",
+        "static_access",
+        "constructed",
+        "function_declaration",
+        "variable_declaration",
+        "extended_from"
+      ]
+    },
+    "runtimeRequirement": {
+      "enum": [
+        "core",
+        "array",
+        "string",
+        "equality",
+        "print",
+        "exception",
+        "json",
+        "sys",
+        "terminal",
+        "file_io",
+        "filesystem",
+        "process",
+        "socket",
+        "http",
+        "bytes",
+        "date",
+        "math",
+        "crypto",
+        "zip",
+        "ssl",
+        "socket_ssl",
+        "thread",
+        "stack",
+        "template",
+        "reflection",
+        "regex",
+        "serialization",
+        "enum_value",
+        "map_int",
+        "map_string",
+        "map_object",
+        "atomic_int",
+        "atomic_object"
+      ]
+    },
+    "importRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "reason"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proofId", "kind", "fixturePath"],
+      "properties": {
+        "proofId": { "type": "string", "minLength": 1 },
+        "kind": { "$ref": "#/$defs/proofKind" },
+        "fixturePath": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+        }
+      }
+    },
+    "pattern": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "name"],
+          "properties": {
+            "kind": { "const": "bind" },
+            "name": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "targetKind", "path", "parameters"],
+          "properties": {
+            "kind": { "const": "nominal" },
+            "targetKind": { "$ref": "#/$defs/nominalTargetKind" },
+            "path": { "type": "string", "minLength": 1 },
+            "parameters": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/pattern" }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "arguments", "returnType"],
+          "properties": {
+            "kind": { "const": "function" },
+            "arguments": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/patternArgument" }
+            },
+            "returnType": { "$ref": "#/$defs/pattern" }
+          }
+        }
+      ]
+    },
+    "patternArgument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["optional", "shape"],
+      "properties": {
+        "optional": { "type": "boolean" },
+        "shape": { "$ref": "#/$defs/pattern" }
+      }
+    },
+    "shape": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "path",
+        "parameters",
+        "arguments",
+        "returnType",
+        "fields"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "class",
+            "enum",
+            "typedef",
+            "abstract",
+            "type_parameter",
+            "function",
+            "anonymous",
+            "dynamic",
+            "unknown"
+          ]
+        },
+        "path": { "type": "string" },
+        "parameters": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/shape" }
+        },
+        "arguments": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/shapeArgument" }
+        },
+        "returnType": {
+          "anyOf": [
+            { "$ref": "#/$defs/shape" },
+            { "type": "null" }
+          ]
+        },
+        "fields": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/shapeField" }
+        }
+      }
+    },
+    "shapeArgument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "optional", "shape"],
+      "properties": {
+        "name": { "type": "string" },
+        "optional": { "type": "boolean" },
+        "shape": { "$ref": "#/$defs/shape" }
+      }
+    },
+    "shapeField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "optional", "shape"],
+      "properties": {
+        "name": { "type": "string" },
+        "optional": { "type": "boolean" },
+        "shape": { "$ref": "#/$defs/shape" }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "surfaceId",
+        "contractVersion",
+        "sourceContract",
+        "sourceSemanticsId",
+        "sourceSemanticsVersion",
+        "sourceSemantics",
+        "eligibleShape",
+        "eligibilityRules",
+        "nativeRepresentation",
+        "nativeImports",
+        "nativeRuntimeRequirements",
+        "fallbackRepresentation",
+        "fallbackPolicy",
+        "fallbackImports",
+        "fallbackRuntimeRequirements",
+        "noHxrtStatus",
+        "proofs",
+        "familySyncExpectation",
+        "familyContractId",
+        "familyContractVersion"
+      ],
+      "properties": {
+        "surfaceId": { "$ref": "#/$defs/surfaceId" },
+        "contractVersion": { "type": "integer", "minimum": 1 },
+        "sourceContract": { "$ref": "#/$defs/sourceContract" },
+        "sourceSemanticsId": { "type": "string", "minLength": 1 },
+        "sourceSemanticsVersion": { "type": "integer", "minimum": 1 },
+        "sourceSemantics": { "type": "string", "minLength": 1 },
+        "eligibleShape": { "$ref": "#/$defs/pattern" },
+        "eligibilityRules": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              { "enum": ["no_unknown_shapes", "shape_contains_no_dynamic"] },
+              { "type": "string", "pattern": "^binding_(?:contains_no_dynamic|is_go_comparable):[^:]+$" }
+            ]
+          }
+        },
+        "nativeRepresentation": { "$ref": "#/$defs/nativeRepresentation" },
+        "nativeImports": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/importRequirement" }
+        },
+        "nativeRuntimeRequirements": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/runtimeRequirement" }
+        },
+        "fallbackRepresentation": { "$ref": "#/$defs/fallbackRepresentation" },
+        "fallbackPolicy": { "$ref": "#/$defs/fallbackPolicy" },
+        "fallbackImports": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/importRequirement" }
+        },
+        "fallbackRuntimeRequirements": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/runtimeRequirement" }
+        },
+        "noHxrtStatus": { "$ref": "#/$defs/noHxrtStatus" },
+        "proofs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/proof" }
+        },
+        "familySyncExpectation": { "$ref": "#/$defs/familySyncExpectation" },
+        "familyContractId": { "type": "string" },
+        "familyContractVersion": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "module",
+        "location",
+        "usageLevel",
+        "surfaceId",
+        "shape",
+        "outcome",
+        "reason",
+        "detail",
+        "contractVersion",
+        "selectedRepresentation",
+        "nativeImports",
+        "runtimeRequirements",
+        "fallbackRepresentation",
+        "fallbackPolicy",
+        "fallbackImports",
+        "fallbackRuntimeRequirements",
+        "noHxrtStatus",
+        "proofIds",
+        "familySyncExpectation",
+        "familyContractId",
+        "familyContractVersion"
+      ],
+      "properties": {
+        "module": { "type": "string", "minLength": 1 },
+        "location": { "type": "string", "minLength": 1 },
+        "usageLevel": { "$ref": "#/$defs/usageLevel" },
+        "surfaceId": { "$ref": "#/$defs/surfaceId" },
+        "shape": { "$ref": "#/$defs/shape" },
+        "outcome": { "$ref": "#/$defs/decisionOutcome" },
+        "reason": { "$ref": "#/$defs/decisionReason" },
+        "detail": { "type": "string", "minLength": 1 },
+        "contractVersion": { "type": "integer", "minimum": 0 },
+        "selectedRepresentation": {
+          "anyOf": [
+            { "$ref": "#/$defs/nativeRepresentation" },
+            { "type": "null" }
+          ]
+        },
+        "nativeImports": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/importRequirement" }
+        },
+        "runtimeRequirements": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/runtimeRequirement" }
+        },
+        "fallbackRepresentation": {
+          "anyOf": [
+            { "$ref": "#/$defs/fallbackRepresentation" },
+            { "type": "null" }
+          ]
+        },
+        "fallbackPolicy": {
+          "anyOf": [
+            { "$ref": "#/$defs/fallbackPolicy" },
+            { "type": "null" }
+          ]
+        },
+        "fallbackImports": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/importRequirement" }
+        },
+        "fallbackRuntimeRequirements": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/runtimeRequirement" }
+        },
+        "noHxrtStatus": {
+          "anyOf": [
+            { "$ref": "#/$defs/noHxrtStatus" },
+            { "type": "null" }
+          ]
+        },
+        "proofIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "familySyncExpectation": {
+          "anyOf": [
+            { "$ref": "#/$defs/familySyncExpectation" },
+            { "type": "null" }
+          ]
+        },
+        "familyContractId": { "type": "string" },
+        "familyContractVersion": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

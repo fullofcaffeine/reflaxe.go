@@ -240,6 +240,16 @@ Removed:
   - The schema uses normalized `Module:line` locations and contains no macro
     objects or absolute source paths.
   - See [Typed usage ledger](typed-usage-ledger.md).
+- `reflaxe_go_surface_contract_report`
+  - Emit `surface_contracts.json` and `surface_contracts.md` from the immutable
+    typed-usage plus versioned-contract authority.
+  - Schema v1 reports validated catalog entries and every admitted/rejected
+    known surface shape with stable reasons, native/fallback representations,
+    import/runtime consequences, proof IDs, no-`hxrt` status, and family-sync
+    expectations.
+  - The report deliberately contains no active profile field: profiles cannot
+    admit a representation.
+  - See [Go surface contract registry](surface-contract-registry.md).
 
 ## Constructor devex
 

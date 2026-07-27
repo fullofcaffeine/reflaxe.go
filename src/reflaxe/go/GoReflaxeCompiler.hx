@@ -22,6 +22,8 @@ import reflaxe.go.compiler.GoBuildContextResolver;
 import reflaxe.go.compiler.GoGeneratedOutputBoundary;
 import reflaxe.go.compiler.GoGeneratedOutputBoundary.GoOutputPathError;
 import reflaxe.go.compiler.GoPostBuildRunner;
+import reflaxe.go.compiler.GoSurfaceContractRegistry;
+import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceContractRegistrySnapshot;
 import reflaxe.go.compiler.GoTypeUsageLedger;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeUsageLedgerSnapshot;
 import reflaxe.output.DataAndFileInfo;
@@ -230,6 +232,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	var outputBoundary:Null<GoGeneratedOutputBoundary> = null;
 	var typeUsageLedger:GoTypeUsageLedger = new GoTypeUsageLedger();
 	var lastTypeUsageReport:GoTypeUsageLedgerSnapshot = GoTypeUsageLedger.emptySnapshot();
+	var lastSurfaceContractReport:GoSurfaceContractRegistrySnapshot = GoSurfaceContractRegistry.emptySnapshot();
 
 	public function new() {
 		super();
@@ -250,6 +253,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		outputBoundary = null;
 		typeUsageLedger = new GoTypeUsageLedger();
 		lastTypeUsageReport = GoTypeUsageLedger.emptySnapshot();
+		lastSurfaceContractReport = GoSurfaceContractRegistry.emptySnapshot();
 	}
 
 	override public function onCompileEnd():Void {
@@ -259,8 +263,10 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		buildContext = resolvedBuildContext;
 		var runtimeImportPath = resolvedBuildContext.goModuleName + "/hxrt";
 		var authoritySnapshot = typeUsageLedger.snapshot([], runtimeImportPath);
-		var context = CompilationContext.fromBuildContext(resolvedBuildContext, authoritySnapshot);
+		var surfaceContractSnapshot = GoSurfaceContractRegistry.defaultRegistry().snapshot(authoritySnapshot);
+		var context = CompilationContext.fromBuildContext(resolvedBuildContext, authoritySnapshot, surfaceContractSnapshot);
 		compilationContext = context;
+		lastSurfaceContractReport = surfaceContractSnapshot;
 		var compiler = new GoCompiler(context, resolveSelectedMainIdentity());
 		if (selectedClasses.length == 0 && selectedEnums.length == 0) {
 			generatedFiles = compiler.compileModule(allModules);
@@ -730,6 +736,11 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		if (buildContext.typeUsageReportEnabled) {
 			saveGeneratedFile("type_usage.json", GoTypeUsageLedger.renderJson(lastTypeUsageReport));
 			saveGeneratedFile("type_usage.md", GoTypeUsageLedger.renderMarkdown(lastTypeUsageReport));
+		}
+
+		if (buildContext.surfaceContractReportEnabled) {
+			saveGeneratedFile("surface_contracts.json", GoSurfaceContractRegistry.renderJson(lastSurfaceContractReport));
+			saveGeneratedFile("surface_contracts.md", GoSurfaceContractRegistry.renderMarkdown(lastSurfaceContractReport));
 		}
 	}
 

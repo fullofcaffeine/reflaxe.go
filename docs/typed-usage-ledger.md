@@ -113,9 +113,10 @@ One deeply read-only snapshot is stored as a final `CompilationContext` field
 before Go lowering. Its lists clone their source arrays and expose no mutable
 alias. The optional post-lowering report uses a separate snapshot to append
 runtime capability consequences; it never mutates planner authority. The
-contract registry and runtime planner can consume the context snapshot in their
-dedicated follow-up Beads without this change silently altering representation
-admission or runtime selection.
+[Go surface contract registry](surface-contract-registry.md) now consumes that
+context snapshot and publishes a second immutable admission snapshot. Registry
+reporting remains observational until the dedicated admission and planner Beads
+add proven entries and route lowering through those decisions.
 
 The existing portable-native source scanner remains available only for
 transitional contract diagnostics through
