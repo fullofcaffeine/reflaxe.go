@@ -46,6 +46,7 @@ This page helps you find the right docs quickly.
 - [Release retry and reconciliation](release-reconciliation.md)
 - [Licensing and generated-output policy](../LICENSING.md)
 - [Release readiness checklist](release-readiness-checklist.md)
+- [Release readiness evidence](release-readiness-evidence.md)
 - [Security dependency audit](security-dependency-audit.md)
 - [Go tooling release gates](go-tooling-gates.md)
 - [Supply-chain policy](supply-chain-policy.md)

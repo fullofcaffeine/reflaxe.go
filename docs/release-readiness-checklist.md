@@ -3,6 +3,45 @@
 This checklist is the canonical production gate for `reflaxe.go`.
 Run these checks from repo root on a clean branch before a release cut.
 
+## How the machine gate works
+
+Release readiness is a join, not another long test suite. A **join** means that
+separate facts are accepted only when they all describe the same version and
+the same tested commit:
+
+1. `release/readiness-policy.json` names the exact admitted beta claim,
+   supported toolchains, required security gates, artifact roles, and owned
+   exclusions.
+2. `scripts/release/collect-upstream-release-evidence.py` records GitHub
+   `needs.*.result` values and resolved tool versions for the exact tested SHA.
+   It also records the exact hosted image OS/version exported by the admitted
+   Linux quality job; `ubuntu-latest` alone is not release provenance.
+   `scripts/release/collect-release-readiness.py` then joins that structured
+   result with the generated compatibility manifest, its canonical admitted
+   operation/member digest, licensing decision, verified local asset manifest,
+   and one remote Beads evidence file pinned to a stable Dolt ref commit. The
+   workflow reuses that file for candidate and published checks.
+3. `scripts/release/verify-release-readiness.py` evaluates a `candidate`
+   after the exact tag and local assets exist but before hosted-release
+   reconciliation. Missing assets or provenance, a different tested SHA, an
+   unsupported toolchain, a failed gate, an applicable unresolved P0/P1
+   blocker, or a claim broader than its evidence stops publication.
+4. After missing assets are reconciled, the verifier evaluates `published`
+   evidence in `live` mode. In that mode it discards any supplied hosted-state
+   claim and reads the tag, immutable flag, asset names, and asset digests from
+   the GitHub API. The hosted release must resolve to the tested SHA and match
+   the independently verified local bundle exactly.
+
+An open roadmap item does not block a release merely because it exists.
+For example, Go-native and portable-networking work remain visible as owned
+exclusions, but they are outside the admitted portable beta surface. The gate
+fails if an exclusion has no owner, is advertised as supported, or becomes
+part of the admitted claim while its P0/P1 blocker remains unresolved.
+
+`fixture` mode exists only to test pass and failure semantics without
+publishing. It is never hosted-release evidence. Production publication uses
+`live` mode through `scripts/release/run-same-sha-release.sh`.
+
 ## Required GA gates
 
 1. Supported toolchain contract:
@@ -46,6 +85,9 @@ Run these checks from repo root on a clean branch before a release cut.
    - `npm run test:release-version-policy`
    - `npm run test:release-reconciliation`
    - `npm run release:status`
+   - `npm run release:readiness -- --evidence <evidence.json> --mode fixture`
+     for deterministic local fixture/debugging work only; the same-SHA
+     publication wrapper invokes `--mode live`.
    - Publish only through a manual `CI Harness` run on `master`
      with `publish_release` enabled; normal pushes must not publish.
 9. Go dynamic and static tooling gates:
@@ -88,6 +130,7 @@ npm run release:license-policy
 npm run test:release-version-policy
 npm run test:release-reconciliation
 npm run release:status
+npm run release:readiness -- --evidence test/fixtures/release_readiness/published-pass.json --mode fixture
 npm run security:go-tooling
 npm run security:supply-chain
 npm run test:perf:go
@@ -132,6 +175,10 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
   fill missing draft assets whose GitHub API identity matches the local
   manifest; immutable matching reruns are read-only.
 - `npm run release:status` exits `0` and reports release wiring as healthy.
+- The readiness fixture passes, every documented mutation fixture fails, and
+  real publication performs both the candidate and published live checks.
+  GitHub API state—not prose, a cached release page, or caller-supplied hosted
+  JSON—is authoritative for the published verdict.
 - `npm run security:go-tooling` exits `0`; race detector, strict checkptr,
   vet, and pinned Staticcheck reports contain no blocking findings on every
   supported Go line.
@@ -149,11 +196,13 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
 - [Vendored Reflaxe provenance](vendor-reflaxe-provenance.md)
 - [Release version and source-identity policy](release-version-policy.md)
 - [Release retry and reconciliation contract](release-reconciliation.md)
+- [Release readiness evidence](release-readiness-evidence.md)
 - [Public contract and SemVer boundary](public-contract.md)
 - [SemVer and compatibility lifecycle policy](semver-lifecycle-policy.md)
 - [Licensing and generated-output policy](../LICENSING.md)
 - [Compatibility and support matrix](compatibility-support-matrix.md)
 - [Compatibility release status](compatibility-release-status.md)
+- Machine readiness policy: `release/readiness-policy.json`
 
 - CI stage contract source: `test/run-ci.py`
 - Compatibility manifest: `docs/compatibility-support-manifest.json`

@@ -39,25 +39,35 @@ jobs:
     name: Quality Gate
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    outputs:
+      runner_image_os: ${{ steps.runner-image.outputs.os }}
+      runner_image_version: ${{ steps.runner-image.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
 
+      - name: Record exact hosted runner image
+        id: runner-image
+        run: |
+          test -n "${ImageOS:-}" && test -n "${ImageVersion:-}"
+          echo "os=$ImageOS" >> "$GITHUB_OUTPUT"
+          echo "version=$ImageVersion" >> "$GITHUB_OUTPUT"
+
       - name: Setup Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pinned npm
-        run: bash scripts/ci/setup-pinned-npm.sh
 
       - name: Setup Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: false
+
+      - name: Setup pinned npm
+        run: bash scripts/ci/setup-pinned-npm.sh
 
       - name: Install npm dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
@@ -346,14 +356,54 @@ jobs:
           haxe-version: ${{ env.HAXE_VERSION }}
           warmup-attempts: ${{ env.HAXE_SETUP_WARMUP_ATTEMPTS }}
 
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
       - name: Verify release identity policy
         run: npm run release:policy
 
       - name: Verify approved licensing policy
         run: npm run release:license-policy
 
+      - name: Verify live GitHub governance
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run security:github-governance:live
+
+      - name: Collect remote Beads blocker evidence
+        run: |
+          go install github.com/steveyegge/beads/cmd/bd@v1.1.0
+          python3 scripts/release/refresh-readiness-blockers.py \
+            --observed-at "$(date -u +%F)" \
+            --output "${{ runner.temp }}/haxe-go-release-blockers.json"
+
+      - name: Collect exact-SHA upstream gate evidence
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          GITLEAKS_RESULT: ${{ needs.gitleaks.result }}
+          DEPENDENCY_AUDIT_RESULT: ${{ needs.dependency-audit.result }}
+          GO_TOOLING_RESULT: ${{ needs.go-tooling.result }}
+        run: |
+          python3 scripts/release/collect-upstream-release-evidence.py \
+            --tested-sha "${{ github.sha }}" \
+            --quality-result "$QUALITY_RESULT" \
+            --gitleaks-result "$GITLEAKS_RESULT" \
+            --dependency-audit-result "$DEPENDENCY_AUDIT_RESULT" \
+            --go-tooling-result "$GO_TOOLING_RESULT" \
+            --github-governance-result success \
+            --haxe-version "$(haxe --version)" \
+            --node-version "$(node --version)" \
+            --runner-image-os "${{ needs.quality.outputs.runner_image_os }}" \
+            --runner-image-version "${{ needs.quality.outputs.runner_image_version }}" \
+            --output "${{ runner.temp }}/haxe-go-upstream-release-evidence.json"
+
       - name: Select version and publish verified assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TESTED_SHA: ${{ github.sha }}
+          RELEASE_UPSTREAM_GATES_SHA: ${{ github.sha }}
+          RELEASE_UPSTREAM_EVIDENCE: ${{ runner.temp }}/haxe-go-upstream-release-evidence.json
+          RELEASE_BLOCKER_EVIDENCE: ${{ runner.temp }}/haxe-go-release-blockers.json
         run: npm run release

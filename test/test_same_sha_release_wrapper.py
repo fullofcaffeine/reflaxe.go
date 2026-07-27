@@ -99,7 +99,30 @@ fs.appendFileSync(process.env.RELEASE_PIPELINE_LOG, 'reconcile ' + process.argv.
 """,
             encoding="utf-8",
         )
+        (self.repo / "fake-readiness-collector.py").write_text(
+            """#!/usr/bin/env python3
+import os, pathlib, sys
+args = sys.argv[1:]
+output = pathlib.Path(args[args.index('--output') + 1])
+output.write_text('{}\\n')
+with open(os.environ['RELEASE_PIPELINE_LOG'], 'a') as stream:
+    stream.write('collect ' + ' '.join(args) + '\\n')
+""",
+            encoding="utf-8",
+        )
+        (self.repo / "fake-readiness-verifier.py").write_text(
+            """#!/usr/bin/env python3
+import os, sys
+with open(os.environ['RELEASE_PIPELINE_LOG'], 'a') as stream:
+    stream.write('readiness ' + ' '.join(sys.argv[1:]) + '\\n')
+""",
+            encoding="utf-8",
+        )
         self.pipeline_log = self.repo / "pipeline.log"
+        self.upstream_evidence = self.repo / "upstream-evidence.json"
+        self.upstream_evidence.write_text("{}\n", encoding="utf-8")
+        self.blocker_evidence = self.repo / "blocker-evidence.json"
+        self.blocker_evidence.write_text("{}\n", encoding="utf-8")
         self.write_license_policy("approved")
         subprocess.run(["git", "add", "."], cwd=self.repo, check=True)
         subprocess.run(
@@ -219,6 +242,16 @@ fs.appendFileSync(process.env.RELEASE_PIPELINE_LOG, 'reconcile ' + process.argv.
             "RELEASE_ARTIFACT_BUILDER": str(self.repo / "fake-builder.py"),
             "RELEASE_ASSET_VERIFIER": str(self.repo / "fake-verifier.py"),
             "RELEASE_RECONCILER": str(self.repo / "fake-reconciler.mjs"),
+            "RELEASE_READINESS_COLLECTOR": str(
+                self.repo / "fake-readiness-collector.py"
+            ),
+            "RELEASE_READINESS_VERIFIER": str(
+                self.repo / "fake-readiness-verifier.py"
+            ),
+            "RELEASE_READINESS_POLICY": str(self.repo / "license-policy.json"),
+            "RELEASE_UPSTREAM_GATES_SHA": tested_sha or self.tested_sha,
+            "RELEASE_UPSTREAM_EVIDENCE": str(self.upstream_evidence),
+            "RELEASE_BLOCKER_EVIDENCE": str(self.blocker_evidence),
             "RELEASE_PIPELINE_LOG": str(self.pipeline_log),
         }
         return subprocess.run(
@@ -262,10 +295,14 @@ fs.appendFileSync(process.env.RELEASE_PIPELINE_LOG, 'reconcile ' + process.argv.
         self.assertIn("v0.54.0", proc.stdout)
         self.assertEqual(self.git("rev-parse", "v0.54.0^{commit}"), self.tested_sha)
         pipeline = self.pipeline_log.read_text(encoding="utf-8").splitlines()
-        self.assertEqual(3, len(pipeline), pipeline)
+        self.assertEqual(7, len(pipeline), pipeline)
         self.assertIn("build --version 0.54.0 --tag v0.54.0", pipeline[0])
         self.assertIn("verify --assets", pipeline[1])
-        self.assertIn("reconcile --repository owner/repo --assets", pipeline[2])
+        self.assertIn("collect --phase candidate", pipeline[2])
+        self.assertIn("readiness --policy", pipeline[3])
+        self.assertIn("reconcile --repository owner/repo --assets", pipeline[4])
+        self.assertIn("collect --phase published", pipeline[5])
+        self.assertIn("readiness --policy", pipeline[6])
 
     def test_existing_exact_tag_completes_interrupted_release(self) -> None:
         subprocess.run(["git", "tag", "v0.54.0"], cwd=self.repo, check=True)
@@ -273,7 +310,7 @@ fs.appendFileSync(process.env.RELEASE_PIPELINE_LOG, 'reconcile ' + process.argv.
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertIn("completing or verifying existing exact tag v0.54.0", proc.stdout)
         pipeline = self.pipeline_log.read_text(encoding="utf-8").splitlines()
-        self.assertEqual(3, len(pipeline), pipeline)
+        self.assertEqual(7, len(pipeline), pipeline)
 
     def test_multiple_existing_exact_tags_fail_before_asset_build(self) -> None:
         subprocess.run(["git", "tag", "v0.54.0"], cwd=self.repo, check=True)
@@ -318,6 +355,29 @@ fs.appendFileSync(process.env.RELEASE_PIPELINE_LOG, 'reconcile ' + process.argv.
         )
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
         self.assertIn("RELEASE_TESTED_SHA is required in CI", proc.stderr)
+
+    def test_ci_requires_upstream_gate_sha_before_semantic_release(self) -> None:
+        release_marker = self.repo / "semantic-release-ran"
+        self.set_fake_release(f"touch {release_marker}\n")
+        env = {
+            **os.environ,
+            "CI": "true",
+            "RELEASE_TESTED_SHA": self.tested_sha,
+            "SEMANTIC_RELEASE_BIN": str(self.repo / "fake-release.sh"),
+        }
+        env.pop("RELEASE_UPSTREAM_GATES_SHA", None)
+        proc = subprocess.run(
+            ["bash", "scripts/release/run-same-sha-release.sh"],
+            cwd=self.repo,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn(
+            "RELEASE_UPSTREAM_GATES_SHA must match tested SHA", proc.stderr
+        )
+        self.assertFalse(release_marker.exists())
 
     def test_untested_input_sha_fails_before_release(self) -> None:
         proc = self.run_wrapper(tested_sha="b" * 40)

@@ -80,12 +80,24 @@ for release_file in \
   scripts/release/build-haxelib-artifact.py \
   scripts/release/verify-haxelib-artifact.py \
   scripts/release/verify-release-assets.py \
+  scripts/release/collect-release-readiness.py \
+  scripts/release/collect-upstream-release-evidence.py \
+  scripts/release/refresh-readiness-blockers.py \
+  scripts/release/verify-release-readiness.py \
   scripts/release/reconcile-github-release.mjs; do
   require_file "$release_file"
 done
+require_file "release/readiness-policy.json"
+require_file "test/fixtures/release_readiness/published-pass.json"
+python3 scripts/release/verify-release-readiness.py \
+  --policy release/readiness-policy.json \
+  --evidence test/fixtures/release_readiness/published-pass.json \
+  --mode fixture
+log "fail-closed release readiness semantics: OK (deterministic fixture)"
 require_contains "scripts/release/run-same-sha-release.sh" "release-assets.json" "verified asset handoff"
 require_contains "scripts/release/run-same-sha-release.sh" "verify-release-assets.py" "independent asset verification"
 require_contains "scripts/release/run-same-sha-release.sh" "reconcile-github-release.mjs" "same-workflow hosted reconciliation"
+require_contains "scripts/release/run-same-sha-release.sh" "verify-release-readiness.py" "candidate and published readiness evaluation"
 log "complete release asset pipeline: ZIP, checksum, manifest, provenance, hosted reconciliation"
 
 python3 scripts/release/verify-license-policy.py --mode audit

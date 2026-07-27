@@ -45,6 +45,17 @@ fi
 if [[ -n "$(git status --porcelain=v1 --untracked-files=no)" ]]; then
   fail "tracked checkout is not clean before semantic-release"
 fi
+if [[ "${CI:-false}" == "true" && "${RELEASE_UPSTREAM_GATES_SHA:-}" != "$TESTED_SHA" ]]; then
+  fail "RELEASE_UPSTREAM_GATES_SHA must match tested SHA $TESTED_SHA before semantic-release"
+fi
+UPSTREAM_EVIDENCE="${RELEASE_UPSTREAM_EVIDENCE:-}"
+if [[ "${CI:-false}" == "true" && ! -f "$UPSTREAM_EVIDENCE" ]]; then
+  fail "RELEASE_UPSTREAM_EVIDENCE must name structured gate evidence before semantic-release"
+fi
+BLOCKER_EVIDENCE="${RELEASE_BLOCKER_EVIDENCE:-}"
+if [[ "${CI:-false}" == "true" && ! -f "$BLOCKER_EVIDENCE" ]]; then
+  fail "RELEASE_BLOCKER_EVIDENCE must name remote tracker evidence before semantic-release"
+fi
 
 python3 scripts/release/verify-license-policy.py --mode release
 log "approved licensing policy: OK"
@@ -177,11 +188,30 @@ fi
 RELEASE_ARTIFACT_BUILDER="${RELEASE_ARTIFACT_BUILDER:-$ROOT_DIR/scripts/release/build-haxelib-artifact.py}"
 RELEASE_ASSET_VERIFIER="${RELEASE_ASSET_VERIFIER:-$ROOT_DIR/scripts/release/verify-release-assets.py}"
 RELEASE_RECONCILER="${RELEASE_RECONCILER:-$ROOT_DIR/scripts/release/reconcile-github-release.mjs}"
-for required_file in "$RELEASE_ARTIFACT_BUILDER" "$RELEASE_ASSET_VERIFIER" "$RELEASE_RECONCILER"; do
+RELEASE_READINESS_COLLECTOR="${RELEASE_READINESS_COLLECTOR:-$ROOT_DIR/scripts/release/collect-release-readiness.py}"
+RELEASE_READINESS_VERIFIER="${RELEASE_READINESS_VERIFIER:-$ROOT_DIR/scripts/release/verify-release-readiness.py}"
+RELEASE_READINESS_POLICY="${RELEASE_READINESS_POLICY:-$ROOT_DIR/release/readiness-policy.json}"
+for required_file in \
+  "$RELEASE_ARTIFACT_BUILDER" \
+  "$RELEASE_ASSET_VERIFIER" \
+  "$RELEASE_RECONCILER" \
+  "$RELEASE_READINESS_COLLECTOR" \
+  "$RELEASE_READINESS_VERIFIER" \
+  "$RELEASE_READINESS_POLICY"; do
   if [[ ! -f "$required_file" ]]; then
     fail "release completion helper is missing: $required_file"
   fi
 done
+UPSTREAM_GATES_SHA="${RELEASE_UPSTREAM_GATES_SHA:-}"
+if [[ "$UPSTREAM_GATES_SHA" != "$TESTED_SHA" ]]; then
+  fail "RELEASE_UPSTREAM_GATES_SHA must match tested SHA $TESTED_SHA"
+fi
+if [[ ! -f "$UPSTREAM_EVIDENCE" ]]; then
+  fail "RELEASE_UPSTREAM_EVIDENCE must name structured gate evidence"
+fi
+if [[ ! -f "$BLOCKER_EVIDENCE" ]]; then
+  fail "RELEASE_BLOCKER_EVIDENCE must name remote tracker evidence"
+fi
 
 RELEASE_WORK_DIR="$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/haxe-go-release.XXXXXX")"
 ARTIFACT_DIR="$RELEASE_WORK_DIR/artifacts"
@@ -196,9 +226,37 @@ python3 "$RELEASE_ASSET_VERIFIER" \
   --version "$RELEASE_VERSION" \
   --tag "$RELEASE_TAG" \
   --source-sha "$TESTED_SHA"
+CANDIDATE_EVIDENCE="$RELEASE_WORK_DIR/readiness-candidate.json"
+python3 "$RELEASE_READINESS_COLLECTOR" \
+  --phase candidate \
+  --version "$RELEASE_VERSION" \
+  --tag "$RELEASE_TAG" \
+  --tested-sha "$TESTED_SHA" \
+  --upstream-evidence "$UPSTREAM_EVIDENCE" \
+  --blocker-evidence "$BLOCKER_EVIDENCE" \
+  --assets "$ASSET_MANIFEST" \
+  --output "$CANDIDATE_EVIDENCE"
+python3 "$RELEASE_READINESS_VERIFIER" \
+  --policy "$RELEASE_READINESS_POLICY" \
+  --evidence "$CANDIDATE_EVIDENCE" \
+  --mode live
 node "$RELEASE_RECONCILER" \
   --repository "$GITHUB_REPOSITORY" \
   --assets "$ASSET_MANIFEST"
+PUBLISHED_EVIDENCE="$RELEASE_WORK_DIR/readiness-published.json"
+python3 "$RELEASE_READINESS_COLLECTOR" \
+  --phase published \
+  --version "$RELEASE_VERSION" \
+  --tag "$RELEASE_TAG" \
+  --tested-sha "$TESTED_SHA" \
+  --upstream-evidence "$UPSTREAM_EVIDENCE" \
+  --blocker-evidence "$BLOCKER_EVIDENCE" \
+  --assets "$ASSET_MANIFEST" \
+  --output "$PUBLISHED_EVIDENCE"
+python3 "$RELEASE_READINESS_VERIFIER" \
+  --policy "$RELEASE_READINESS_POLICY" \
+  --evidence "$PUBLISHED_EVIDENCE" \
+  --mode live
 
 if [[ "$(git rev-parse HEAD)" != "$TESTED_SHA" ]]; then
   fail "release completion moved HEAD away from tested SHA $TESTED_SHA"

@@ -1,5 +1,11 @@
 # Release Retry and Reconciliation
 
+The final readiness join is documented in
+[Release Readiness Evidence](release-readiness-evidence.md). Reconciliation is
+the hosted-state repair mechanism; it does not by itself prove compatibility,
+API, security, licensing, or blocker readiness. The same-SHA wrapper evaluates
+candidate evidence before this mechanism and GitHub API evidence after it.
+
 Release reconciliation is the safe answer to an interrupted publication. It is
 not a second workflow, a second version decision, or an application deployment.
 It is the final, rerunnable part of the same release command that owns the exact

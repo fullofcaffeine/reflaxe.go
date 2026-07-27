@@ -98,6 +98,10 @@
     "release:build-haxelib": "python3 scripts/release/build-haxelib-artifact.py",
     "release:verify-haxelib": "python3 scripts/release/verify-haxelib-artifact.py",
     "release:verify-assets": "python3 scripts/release/verify-release-assets.py",
+    "release:readiness": "python3 scripts/release/verify-release-readiness.py --policy release/readiness-policy.json",
+    "release:readiness:collect": "python3 scripts/release/collect-release-readiness.py",
+    "release:readiness:upstream": "python3 scripts/release/collect-upstream-release-evidence.py",
+    "release:readiness:blockers": "python3 scripts/release/refresh-readiness-blockers.py",
     "package:haxelib": "bash scripts/release/package-haxelib.sh",
     "release": "bash scripts/release/run-same-sha-release.sh",
     "release:dry-run": "bash scripts/release/run-same-sha-release.sh --dry-run"

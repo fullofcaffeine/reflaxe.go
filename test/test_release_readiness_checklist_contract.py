@@ -28,6 +28,7 @@ class ReleaseReadinessChecklistContractTest(unittest.TestCase):
         self.assertIn("npm run test:release-contracts", checklist)
         self.assertIn("npm run compatibility:verify", checklist)
         self.assertIn("npm run release:status", checklist)
+        self.assertIn("npm run release:readiness", checklist)
         self.assertIn("npm run test:perf:go", checklist)
         self.assertIn("npm run test:perf:hxrt-selective", checklist)
         self.assertIn("npm run test:perf:apps", checklist)
@@ -43,6 +44,10 @@ class ReleaseReadinessChecklistContractTest(unittest.TestCase):
         self.assertIn("docs/release-visibility.md", checklist)
         self.assertIn("docs/compatibility-support-manifest.json", checklist)
         self.assertIn("docs/compatibility-release-status.md", checklist)
+        self.assertIn("release/readiness-policy.json", checklist)
+        self.assertIn("candidate", checklist)
+        self.assertIn("published", checklist)
+        self.assertIn("GitHub API", checklist)
         self.assertIn("test/run-ci.py", checklist)
 
     def test_public_release_docs_use_the_bounded_compatibility_claim(self) -> None:

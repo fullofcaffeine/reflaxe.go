@@ -1,0 +1,213 @@
+{
+  "schemaVersion": 1,
+  "kind": "haxe.go-release-readiness-evidence",
+  "phase": "published",
+  "release": {
+    "version": "0.54.0",
+    "tag": "v0.54.0",
+    "testedSha": "1111111111111111111111111111111111111111",
+    "sourceSha": "1111111111111111111111111111111111111111",
+    "manifestTag": "v0.54.0"
+  },
+  "compatibility": {
+    "lifecycle": "pre-1.0 beta",
+    "claim": "Haxe.Go is a pre-1.0 beta for pinned, application-qualified portable workloads on the admitted toolchain, platform, and operation/member surface.",
+    "admittedScopes": [
+      "platform:linux-amd64",
+      "preset:portable"
+    ],
+    "evidencedScopes": [
+      "platform:linux-amd64",
+      "preset:portable"
+    ],
+    "surfaceSha256": "f839b36822ae113723805b27a7d29af4e15acc0760343d413dd5ab6c37821807",
+    "admittedOperationCount": 26,
+    "admittedSymbolCount": 124,
+    "exclusions": [
+      {
+        "scope": "go-native",
+        "owner": "haxe_go-vfp.9.1",
+        "advertisedAsSupported": false
+      },
+      {
+        "scope": "portable-networking",
+        "owner": "haxe_go-vfp.10.4",
+        "advertisedAsSupported": false
+      },
+      {
+        "scope": "stable-1.x",
+        "owner": "haxe_go-vfp.12.7",
+        "advertisedAsSupported": false
+      }
+    ]
+  },
+  "publicApi": {
+    "result": "pass",
+    "testedSha": "1111111111111111111111111111111111111111"
+  },
+  "toolchains": {
+    "haxe": {
+      "resolved": [
+        "4.3.7"
+      ]
+    },
+    "go": {
+      "resolved": [
+        "1.25.12",
+        "1.26.5"
+      ]
+    },
+    "node": {
+      "resolved": [
+        "24.11.1"
+      ]
+    }
+  },
+  "security": {
+    "reachableVulnerabilities": [],
+    "gates": [
+      {
+        "id": "dependency-audit:go1.25.12",
+        "result": "pass",
+        "testedSha": "1111111111111111111111111111111111111111"
+      },
+      {
+        "id": "dependency-audit:go1.26.5",
+        "result": "pass",
+        "testedSha": "1111111111111111111111111111111111111111"
+      },
+      {
+        "id": "gitleaks",
+        "result": "pass",
+        "testedSha": "1111111111111111111111111111111111111111"
+      },
+      {
+        "id": "github-governance-live",
+        "result": "pass",
+        "testedSha": "1111111111111111111111111111111111111111"
+      },
+      {
+        "id": "go-tooling:go1.25.12",
+        "result": "pass",
+        "testedSha": "1111111111111111111111111111111111111111"
+      },
+      {
+        "id": "go-tooling:go1.26.5",
+        "result": "pass",
+        "testedSha": "1111111111111111111111111111111111111111"
+      }
+    ]
+  },
+  "licensing": {
+    "status": "approved",
+    "scopeSha256": "5cf487cc50dd27cac6a533079d2ffaa0b235f1464f953bf277447e7c0a744c15",
+    "unresolvedQuestions": []
+  },
+  "platform": {
+    "id": "linux-amd64",
+    "os": "linux",
+    "architecture": "amd64",
+    "runnerImage": {
+      "os": "ubuntu24",
+      "version": "20260720.1.0"
+    }
+  },
+  "blockers": {
+    "schemaVersion": 1,
+    "kind": "haxe.go-release-blocker-evidence",
+    "tracker": {
+      "ref": "refs/dolt/data",
+      "commit": "1111111111111111111111111111111111111111",
+      "observedAt": "2026-07-27"
+    },
+    "records": [
+      {
+        "id": "haxe_go-vfp.4.8",
+        "priority": 0,
+        "status": "closed",
+        "scopes": [
+          "distribution:published-beta-artifact"
+        ]
+      },
+      {
+        "id": "haxe_go-vfp.9.1",
+        "priority": 0,
+        "status": "open",
+        "scopes": [
+          "go-native"
+        ]
+      },
+      {
+        "id": "haxe_go-vfp.10.4",
+        "priority": 1,
+        "status": "open",
+        "scopes": [
+          "portable-networking"
+        ]
+      },
+      {
+        "id": "haxe_go-vfp.12.7",
+        "priority": 2,
+        "status": "open",
+        "scopes": [
+          "stable-1.x"
+        ]
+      }
+    ]
+  },
+  "artifacts": {
+    "verifiedForSha": "1111111111111111111111111111111111111111",
+    "assets": [
+      {
+        "role": "haxelib-zip",
+        "name": "reflaxe.go-0.54.0.zip",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      {
+        "role": "checksum",
+        "name": "reflaxe.go-0.54.0.zip.sha256",
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      {
+        "role": "content-manifest",
+        "name": "reflaxe.go-0.54.0.manifest.json",
+        "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      {
+        "role": "provenance",
+        "name": "reflaxe.go-0.54.0.provenance.json",
+        "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      }
+    ],
+    "provenanceSubjects": [
+      "reflaxe.go-0.54.0.manifest.json",
+      "reflaxe.go-0.54.0.zip",
+      "reflaxe.go-0.54.0.zip.sha256"
+    ]
+  },
+  "github": {
+    "apiAuthoritative": true,
+    "tag": "v0.54.0",
+    "targetCommit": "1111111111111111111111111111111111111111",
+    "draft": false,
+    "immutable": true,
+    "assets": [
+      {
+        "name": "reflaxe.go-0.54.0.zip",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      {
+        "name": "reflaxe.go-0.54.0.zip.sha256",
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      {
+        "name": "reflaxe.go-0.54.0.manifest.json",
+        "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      {
+        "name": "reflaxe.go-0.54.0.provenance.json",
+        "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      }
+    ]
+  }
+}

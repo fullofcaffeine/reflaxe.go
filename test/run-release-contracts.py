@@ -57,6 +57,7 @@ def main() -> int:
         ["python3", "test/test_public_contract.py"],
         ["python3", "test/test_raw_injection_hygiene_contract.py"],
         ["python3", "test/test_release_readiness_checklist_contract.py"],
+        ["python3", "test/test_release_readiness_gate.py"],
         ["python3", "test/test_release_identity_contract.py"],
         ["python3", "test/test_release_package_metadata_contract.py"],
         ["node", "test/test_release_reconciliation.mjs"],

@@ -161,10 +161,32 @@ def verify_same_sha_workflow() -> None:
         "ref: " + github_sha,
         "run: npm run release:policy",
         "run: npm run release:license-policy",
+        "run: npm run security:github-governance:live",
         "RELEASE_TESTED_SHA: " + github_sha,
+        "RELEASE_UPSTREAM_GATES_SHA: " + github_sha,
+        "RELEASE_UPSTREAM_EVIDENCE: "
+        + "$"
+        + "{{ runner.temp }}/haxe-go-upstream-release-evidence.json",
+        "scripts/release/collect-upstream-release-evidence.py",
+        "--runner-image-os "
+        + '"'
+        + "$"
+        + "{{ needs.quality.outputs.runner_image_os }}"
+        + '"',
+        "--runner-image-version "
+        + '"'
+        + "$"
+        + "{{ needs.quality.outputs.runner_image_version }}"
+        + '"',
         "name: Setup Haxe (linux)",
         "uses: ./.github/actions/setup-haxe-linux",
         "haxe-version: " + "$" + "{{ env.HAXE_VERSION }}",
+        "name: Setup Go",
+        "go-version: " + "$" + "{{ env.GO_VERSION }}",
+        "scripts/release/refresh-readiness-blockers.py",
+        "RELEASE_BLOCKER_EVIDENCE: "
+        + "$"
+        + "{{ runner.temp }}/haxe-go-release-blockers.json",
         "run: npm run release",
     )
     for phrase in required:
@@ -204,6 +226,11 @@ def main() -> int:
             "scripts/release/build-haxelib-artifact.py",
             "scripts/release/verify-haxelib-artifact.py",
             "scripts/release/verify-release-assets.py",
+            "scripts/release/collect-release-readiness.py",
+            "scripts/release/collect-upstream-release-evidence.py",
+            "scripts/release/refresh-readiness-blockers.py",
+            "scripts/release/verify-release-readiness.py",
+            "release/readiness-policy.json",
             "scripts/release/stage-release-metadata.py",
             "scripts/release/verify-license-policy.py",
             "test/test_release_identity_contract.py",
@@ -227,6 +254,9 @@ def main() -> int:
             "verify-release-assets.py",
             "release-assets.json",
             "reconcile-github-release.mjs",
+            "collect-release-readiness.py",
+            "verify-release-readiness.py",
+            "RELEASE_BLOCKER_EVIDENCE",
         ):
             if phrase not in wrapper:
                 fail(f"same-SHA release wrapper is missing asset completion wiring: {phrase}")

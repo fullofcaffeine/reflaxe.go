@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "kind": "haxe.go-release-readiness-policy",
+  "repository": "fullofcaffeine/reflaxe.go",
+  "compatibility": {
+    "lifecycle": "pre-1.0 beta",
+    "claim": "Haxe.Go is a pre-1.0 beta for pinned, application-qualified portable workloads on the admitted toolchain, platform, and operation/member surface.",
+    "admittedScopes": [
+      "platform:linux-amd64",
+      "preset:portable"
+    ],
+    "requiredExclusions": {
+      "go-native": "haxe_go-vfp.9.1",
+      "portable-networking": "haxe_go-vfp.10.4",
+      "stable-1.x": "haxe_go-vfp.12.7"
+    },
+    "blockerScopes": {
+      "haxe_go-vfp.4.8": "distribution:published-beta-artifact",
+      "haxe_go-vfp.9.1": "go-native",
+      "haxe_go-vfp.10.4": "portable-networking",
+      "haxe_go-vfp.12.7": "stable-1.x"
+    }
+  },
+  "toolchains": {
+    "haxe": [
+      "4.3.7"
+    ],
+    "go": [
+      "1.25.12",
+      "1.26.5"
+    ],
+    "node": [
+      "24"
+    ]
+  },
+  "requiredSecurityGates": [
+    "dependency-audit:go1.25.12",
+    "dependency-audit:go1.26.5",
+    "gitleaks",
+    "github-governance-live",
+    "go-tooling:go1.25.12",
+    "go-tooling:go1.26.5"
+  ],
+  "requiredArtifactRoles": [
+    "checksum",
+    "content-manifest",
+    "haxelib-zip",
+    "provenance"
+  ],
+  "authorities": {
+    "compatibility": "docs/compatibility-support-manifest.json",
+    "publicApi": "docs/public-contract.md",
+    "toolchains": "docs/toolchain-policy.json",
+    "licensing": "license-policy.json",
+    "github": "GitHub API"
+  }
+}

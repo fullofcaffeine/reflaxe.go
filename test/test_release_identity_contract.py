@@ -94,6 +94,11 @@ class ReleaseIdentityContractTest(unittest.TestCase):
             scripts["release:verify-assets"],
             "python3 scripts/release/verify-release-assets.py",
         )
+        self.assertEqual(
+            scripts["release:readiness"],
+            "python3 scripts/release/verify-release-readiness.py "
+            "--policy release/readiness-policy.json",
+        )
 
         workflow = WORKFLOW.read_text(encoding="utf-8")
         release_job = workflow.split("\n  semantic-release:", 1)[1]
@@ -108,11 +113,44 @@ class ReleaseIdentityContractTest(unittest.TestCase):
         self.assertNotIn("github.event_name == 'push'", release_job)
         self.assertIn("ref: " + github_sha, release_job)
         self.assertIn("RELEASE_TESTED_SHA: " + github_sha, release_job)
+        self.assertIn("RELEASE_UPSTREAM_GATES_SHA: " + github_sha, release_job)
+        self.assertIn(
+            "RELEASE_UPSTREAM_EVIDENCE: ${{ runner.temp }}/"
+            "haxe-go-upstream-release-evidence.json",
+            release_job,
+        )
+        self.assertIn(
+            "RELEASE_BLOCKER_EVIDENCE: ${{ runner.temp }}/"
+            "haxe-go-release-blockers.json",
+            release_job,
+        )
+        self.assertIn(
+            "scripts/release/collect-upstream-release-evidence.py",
+            release_job,
+        )
+        self.assertIn(
+            "--runner-image-os \"${{ needs.quality.outputs.runner_image_os }}\"",
+            release_job,
+        )
+        self.assertIn(
+            "--runner-image-version "
+            "\"${{ needs.quality.outputs.runner_image_version }}\"",
+            release_job,
+        )
+        self.assertIn(
+            "scripts/release/refresh-readiness-blockers.py",
+            release_job,
+        )
+        self.assertIn(
+            "run: npm run security:github-governance:live", release_job
+        )
         self.assertIn("run: npm run release:license-policy", release_job)
         self.assertIn("run: npm run release", release_job)
         self.assertIn("name: Setup Haxe (linux)", release_job)
         self.assertIn("uses: ./.github/actions/setup-haxe-linux", release_job)
         self.assertIn("haxe-version: " + haxe_version, release_job)
+        self.assertIn("name: Setup Go", release_job)
+        self.assertIn("go-version: ${{ env.GO_VERSION }}", release_job)
         self.assertNotIn("issues: write", release_job)
         self.assertNotIn("pull-requests: write", release_job)
         self.assertNotIn("continue-on-error:", release_job)
@@ -138,6 +176,11 @@ class ReleaseIdentityContractTest(unittest.TestCase):
             "verify-release-assets.py",
             "reconcile-github-release.mjs",
             "release-assets.json",
+            "collect-release-readiness.py",
+            "verify-release-readiness.py",
+            "RELEASE_UPSTREAM_GATES_SHA",
+            "RELEASE_UPSTREAM_EVIDENCE",
+            "RELEASE_BLOCKER_EVIDENCE",
         ):
             self.assertIn(phrase, wrapper)
 
