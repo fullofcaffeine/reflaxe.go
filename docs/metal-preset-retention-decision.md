@@ -58,9 +58,12 @@ Those are policy and compatibility effects, not a second semantic product.
 The commit-pinned [usage evidence](reviews/gpt-5.6-pro/metal-preset-usage-evidence-vfp-6.6.json)
 records both repository and public-search evidence.
 
-After adding the focused equivalence contract, the repository contains 28
-tracked HXML files selecting `metal`: 10 example configurations, 17 snapshot
-configurations, and one project template. It also contains five committed
+After adding the focused equivalence contract and the profile-invariance
+registry report fixture, the repository contains 29 tracked HXML files
+selecting `metal`: 10 example configurations, 17 snapshot configurations, one
+project template, and one focused registry fixture. The registry fixture proves
+that `portable` and `metal` produce byte-identical admission reports; it does
+not give the profile semantic authority. The repository also contains five committed
 `generated/metal` example trees, 10 `metal*.stdout` example contracts, 15 files
 using the legacy `@:goMetal` metadata alias, and 15 files mentioning the legacy
 fallback define. Even a mechanical internal migration would therefore create

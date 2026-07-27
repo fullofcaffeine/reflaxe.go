@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "capturedAt": "2026-07-19T22:55:00Z",
   "networkCaptureContextCommit": "93a1fd11d80f40092d23b7cec5e9846b856f46e0",
-  "repositoryInventoryCommit": "4c0d8eb48d336e3149c26efa55bb4ddce4f7fbb5",
-  "repositoryInventoryTree": "8740b19e8b211e6a65452fdd470b42ecce6c342a",
+  "repositoryInventoryCommit": "cc1c673d7caeb1a3df520cc9eeaa18004b43f697",
+  "repositoryInventoryTree": "11de4adea74145e9a3193cdb9d7958ea98046763",
   "repositoryInventory": {
-    "trackedMetalProfileHxmlFiles": 28,
+    "trackedMetalProfileHxmlFiles": 29,
     "exampleMetalProfileHxmlFiles": 10,
     "snapshotMetalProfileHxmlFiles": 17,
     "templateMetalProfileHxmlFiles": 1,
@@ -13,7 +13,7 @@
     "trackedMetalFallbackAliasFiles": 15,
     "committedGeneratedMetalExampleTrees": 5,
     "metalExpectedStdoutFiles": 10,
-    "note": "The HXML count includes the focused metal-preset equivalence fixture added by haxe_go-vfp.6.6. The @:goMetal count describes a separate source-metadata compatibility alias; this decision does not deprecate it."
+    "note": "The HXML count includes the focused metal-preset equivalence fixture added by haxe_go-vfp.6.6 and the profile-invariance report fixture added by haxe_go-vfp.7.2. The latter proves portable and metal produce byte-identical registry reports; it does not grant the profile admission authority. The @:goMetal count describes a separate source-metadata compatibility alias; this decision does not deprecate it."
   },
   "publicCodeSearch": {
     "provider": "GitHub Code Search REST API",
