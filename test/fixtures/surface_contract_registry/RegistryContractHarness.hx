@@ -27,6 +27,7 @@ import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeUsageLedgerSnapshot;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeUsageLevelId;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeUsageModuleEvidence;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeUsageTargetKind;
+import reflaxe.go.compiler.GoTypeUsageLedger.GoUnknownTypeShapeReason;
 
 class RegistryContractHarness {
 	public static function run():Void {
@@ -87,9 +88,54 @@ class RegistryContractHarness {
 		assertEquals(GoSurfaceDecisionReason.EligibilityRejected, rejected.decisions.at(0).reason, "shape rejection reason should be stable");
 
 		final missing = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(arrayShape(intShape())));
-		assertEquals(0, missing.catalogCount, "infrastructure task must not prematurely admit production surfaces");
+		assertEquals(2, missing.catalogCount, "production must admit only the proven Option and Result facade contracts");
 		assertEquals(GoSurfaceDecisionOutcome.Rejected, missing.decisions.at(0).outcome, "known but unregistered surface must reject");
 		assertEquals(GoSurfaceDecisionReason.ContractMissing, missing.decisions.at(0).reason, "missing contract must be explained");
+
+		final option = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(optionShape(intShape())));
+		assertEquals(GoSurfaceDecisionOutcome.Admitted, option.decisions.at(0).outcome, "fully typed portable Option must be admitted");
+		assertEquals(GoNativeRepresentation.GoOption, option.decisions.at(0)
+			.selectedRepresentation, "portable Option must select the typed Go option carrier");
+		assertEquals(GoSurfaceFallbackRepresentation.PortableOption, option.decisions.at(0).fallbackRepresentation,
+			"portable Option must retain its tagged fallback");
+		assertEquals(0, option.decisions.at(0).runtimeRequirements.length, "typed Option carrier must not require hxrt");
+
+		final genericOption = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(optionShape(GoTypeShape.TypeParameter("T"))));
+		assertEquals(GoSurfaceDecisionOutcome.Admitted, genericOption.decisions.at(0).outcome,
+			"a named generic Option parameter is typed and must remain eligible");
+
+		final dynamicOption = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(optionShape(GoTypeShape.DynamicShape(null))));
+		assertEquals(GoSurfaceDecisionOutcome.Rejected, dynamicOption.decisions.at(0).outcome, "Dynamic Option payload must fall back");
+		assertEquals(GoSurfaceDecisionReason.EligibilityRejected, dynamicOption.decisions.at(0).reason,
+			"Dynamic Option fallback must name the eligibility boundary");
+		assertEquals(GoSurfaceFallbackRepresentation.PortableOption, dynamicOption.decisions.at(0).fallbackRepresentation,
+			"rejected Option must retain source semantics through its fallback");
+
+		final result = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(resultShape(intShape(), stringShape())));
+		assertEquals(GoSurfaceDecisionOutcome.Admitted, result.decisions.at(0).outcome, "fully typed portable Result must be admitted");
+		assertEquals(GoNativeRepresentation.GoResult, result.decisions.at(0).selectedRepresentation,
+			"portable Result must select a typed two-parameter Go result carrier");
+		assertEquals(GoSurfaceFallbackRepresentation.PortableResult, result.decisions.at(0).fallbackRepresentation,
+			"portable Result must retain its tagged fallback");
+		assertEquals(0, result.decisions.at(0).runtimeRequirements.length, "typed Result carrier must not require hxrt");
+
+		final genericResult = GoSurfaceContractRegistry.defaultRegistry()
+			.snapshot(ledger(resultShape(GoTypeShape.TypeParameter("T"), GoTypeShape.TypeParameter("E"))));
+		assertEquals(GoSurfaceDecisionOutcome.Admitted, genericResult.decisions.at(0).outcome,
+			"named generic Result parameters are typed and must preserve both T and E");
+
+		final dynamicError = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(resultShape(intShape(), GoTypeShape.DynamicShape(null))));
+		assertEquals(GoSurfaceDecisionOutcome.Rejected, dynamicError.decisions.at(0).outcome, "Dynamic Result error payload must fall back");
+		assertEquals(GoSurfaceFallbackRepresentation.PortableResult, dynamicError.decisions.at(0).fallbackRepresentation,
+			"rejected Result must retain its typed-error source contract");
+
+		final unknownError = GoSurfaceContractRegistry.defaultRegistry()
+			.snapshot(ledger(resultShape(intShape(), GoTypeShape.UnknownShape(GoUnknownTypeShapeReason.Missing))));
+		assertEquals(GoSurfaceDecisionOutcome.Rejected, unknownError.decisions.at(0).outcome, "unresolved Result error payload must fall back");
+
+		final nativeResult = GoSurfaceContractRegistry.defaultRegistry()
+			.snapshot(ledger(GoTypeShape.Nominal(GoTypeUsageTargetKind.Class, "go.Result", GoImmutableList.fromArray([intShape()]))));
+		assertEquals(0, nativeResult.decisionCount, "native go.Result must stay outside the portable registry");
 
 		final firstJson = GoSurfaceContractRegistry.renderJson(admitted);
 		final secondJson = GoSurfaceContractRegistry.renderJson(admitted);
@@ -202,8 +248,20 @@ class RegistryContractHarness {
 		return GoTypeShape.Nominal(GoTypeUsageTargetKind.Class, "Array", GoImmutableList.fromArray([element]));
 	}
 
+	static function optionShape(element:GoTypeShape):GoTypeShape {
+		return GoTypeShape.Nominal(GoTypeUsageTargetKind.Enum, "reflaxe.std.Option", GoImmutableList.fromArray([element]));
+	}
+
+	static function resultShape(value:GoTypeShape, error:GoTypeShape):GoTypeShape {
+		return GoTypeShape.Nominal(GoTypeUsageTargetKind.Enum, "reflaxe.std.Result", GoImmutableList.fromArray([value, error]));
+	}
+
 	static function intShape():GoTypeShape {
 		return GoTypeShape.Nominal(GoTypeUsageTargetKind.Abstract, "StdTypes.Int", GoImmutableList.fromArray([]));
+	}
+
+	static function stringShape():GoTypeShape {
+		return GoTypeShape.Nominal(GoTypeUsageTargetKind.Class, "String", GoImmutableList.fromArray([]));
 	}
 
 	static function assertTrue(condition:Bool, message:String):Void {

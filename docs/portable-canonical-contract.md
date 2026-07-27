@@ -61,6 +61,11 @@ Key rules are explicitly locked in tests:
 - Leaf-call devirtualization is allowed only when globally proven safe.
 - `Std.string(null)` and `"" + null` produce `"null"`.
 - Typed-nil values boxed into `Dynamic`/`any` still behave as null for portable stringification/equality expectations.
+- Supplied `reflaxe.std.Option<T>` preserves `Some(null)` separately from
+  `None`.
+- Supplied `reflaxe.std.Result<T,E>` preserves `E` and never becomes a native
+  target error pair implicitly. See
+  `docs/portable-option-result-contract.md`.
 
 ### Portable null semantics (practical contract)
 
@@ -92,6 +97,8 @@ Key semantic guards include:
 
 - `test/semantic_diff/virtual_dispatch_cross_module`
 - `test/semantic_diff/typed_nil_dynamic_string_contract`
+- `test/semantic_diff/portable_option_result_contract`
+- `test/semantic_diff/portable_option_result_fallback_contract`
 - `test/snapshot/core/portable_leaf_virtual_devirtualization`
 - `test/snapshot/core/portable_non_leaf_virtual_dispatch_preserved`
 

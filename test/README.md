@@ -568,6 +568,8 @@ Compare runtime behavior between Haxe reference execution (`--interp`) and `refl
 Portable semantic contract reference:
 
 - `docs/portable-semantics-v1.md`
+- Option/Result admission and native-boundary contract:
+  `docs/portable-option-result-contract.md`
 - guide: `docs/semantic-diff-guide.md`
 
 ```bash

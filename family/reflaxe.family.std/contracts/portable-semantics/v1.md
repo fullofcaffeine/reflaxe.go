@@ -127,6 +127,36 @@ Conformance fixtures:
 - `test/snapshot/core/array_identity`
 - `test/snapshot/go_native/native_slice_boundary`
 
+### 7) Portable Option and Result Facades
+
+1. Supplied `reflaxe.std.Option<T>` has two distinct cases: `Some(value)` and
+   `None`. `Some(null)` must remain observably different from `None`.
+2. Supplied `reflaxe.std.Result<T, E>` has two distinct cases: `Ok(value)` and
+   `Err(error)`. The `E` parameter, including its type and data, must not be
+   silently replaced with a target-native error type.
+3. Generic helpers and nested Option/Result values retain the same case and
+   payload semantics.
+4. Backend representation optimization is allowed only for an exact admitted
+   typed shape. `Dynamic` or unresolved children use a semantics-preserving
+   portable fallback.
+5. Conversion to a target-native Option, Result, nullable value, or error pair
+   must be explicit. In particular, portable Result is not `go.Result<T>` or Go
+   `(T, error)`.
+6. This rule defines supplied-module behavior; it does not claim that a target
+   compiler package publishes the future standalone `reflaxe.std` source
+   package.
+
+Conformance fixtures:
+
+- `test/semantic_diff/portable_option_result_contract`
+- `test/semantic_diff/portable_option_result_fallback_contract`
+- `test/snapshot/negative/portable_result_not_go_result`
+- `test/snapshot/negative/go_result_not_portable_result`
+
+Detailed Go admission and transition contract:
+
+- `docs/portable-option-result-contract.md`
+
 ## Contract Invariance Across `portable` and `metal`
 
 If a program stays on portable surfaces, these semantics must remain equivalent when compiled with:

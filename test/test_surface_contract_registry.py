@@ -132,20 +132,103 @@ class SurfaceContractRegistryTest(unittest.TestCase):
             portable["profileAdmission"],
             "forbidden",
         )
-        self.assertEqual(portable["catalogCount"], 0)
+        self.assertEqual(portable["catalogCount"], 2)
         self.assertGreater(portable["decisionCount"], 0)
         self.assertEqual(
             portable["decisionCount"],
             portable["admittedCount"] + portable["rejectedCount"],
         )
+        option_decisions = [
+            entry
+            for entry in portable["decisions"]
+            if entry["surfaceId"] == "reflaxe.std.Option"
+        ]
+        result_decisions = [
+            entry
+            for entry in portable["decisions"]
+            if entry["surfaceId"] == "reflaxe.std.Result"
+        ]
         self.assertTrue(
-            all(entry["outcome"] == "rejected" for entry in portable["decisions"])
+            any(
+                entry["outcome"] == "admitted"
+                and entry["selectedRepresentation"] == "go_option"
+                for entry in option_decisions
+            )
         )
         self.assertTrue(
-            all(
-                entry["reason"] == "contract_missing"
-                for entry in portable["decisions"]
+            any(
+                entry["outcome"] == "admitted"
+                and entry["selectedRepresentation"] == "go_result"
+                for entry in result_decisions
             )
+        )
+        self.assertTrue(
+            any(entry["reason"] == "eligibility_rejected" for entry in option_decisions)
+        )
+        self.assertTrue(
+            any(entry["reason"] == "eligibility_rejected" for entry in result_decisions)
+        )
+        self.assertTrue(
+            all(entry["shape"]["parameters"] for entry in option_decisions)
+        )
+        self.assertTrue(
+            all(entry["shape"]["parameters"] for entry in result_decisions)
+        )
+        contracts = {
+            entry["surfaceId"]: entry for entry in portable["contracts"]
+        }
+        self.assertEqual(
+            set(contracts),
+            {"reflaxe.std.Option", "reflaxe.std.Result"},
+        )
+        for surface_id, native_representation, fallback_representation in (
+            ("reflaxe.std.Option", "go_option", "portable_option"),
+            ("reflaxe.std.Result", "go_result", "portable_result"),
+        ):
+            contract = contracts[surface_id]
+            self.assertEqual(
+                contract["sourceContract"],
+                "portable_family_facade",
+            )
+            self.assertEqual(
+                contract["nativeRepresentation"],
+                native_representation,
+            )
+            self.assertEqual(
+                contract["fallbackRepresentation"],
+                fallback_representation,
+            )
+            self.assertEqual(contract["nativeRuntimeRequirements"], [])
+            self.assertEqual(contract["fallbackRuntimeRequirements"], [])
+            self.assertEqual(contract["noHxrtStatus"], "eligible")
+            self.assertEqual(contract["familySyncExpectation"], "target_local")
+            self.assertEqual(contract["familyContractId"], "")
+            self.assertEqual(contract["familyContractVersion"], 0)
+            self.assertIn(
+                "generated_shape",
+                {proof["kind"] for proof in contract["proofs"]},
+            )
+
+        option_go = (
+            FIXTURE / "out-portable" / "module_reflaxe_std_option.go"
+        ).read_text(encoding="utf-8")
+        result_go = (
+            FIXTURE / "out-portable" / "module_reflaxe_std_result.go"
+        ).read_text(encoding="utf-8")
+        self.assertIn("type reflaxe__std__Option struct", option_go)
+        self.assertIn("params []any", option_go)
+        self.assertIn("type reflaxe__std__Result struct", result_go)
+        self.assertIn("params []any", result_go)
+        self.assertNotIn("go___Result", result_go)
+        rejected = [
+            entry
+            for entry in portable["decisions"]
+            if entry["surfaceId"] in {"haxe.Array", "haxe.String", "haxe.io.Bytes"}
+        ]
+        self.assertTrue(rejected)
+        self.assertTrue(all(entry["outcome"] == "rejected" for entry in rejected))
+        self.assertTrue(
+            all(entry["reason"] == "contract_missing" for entry in rejected)
         )
         observed_ids = {entry["surfaceId"] for entry in portable["decisions"]}
         self.assertTrue(
@@ -208,7 +291,10 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertIn("What it is", doc)
         self.assertIn("Why it exists", doc)
         self.assertIn("How it works", doc)
-        self.assertIn("Production starts with no admitted surfaces", doc)
+        self.assertIn("Production starts with two admitted portable facade surfaces", doc)
+        self.assertNotIn("intentionally empty production catalog", doc)
+        self.assertIn("not native `go.Result<T>`", doc)
+        self.assertIn("planner does not consume", doc)
         self.assertIn("Profiles cannot admit a surface", doc)
         self.assertIn("haxe.rust", doc)
         self.assertIn("haxe.ruby", doc)
@@ -226,6 +312,10 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         registry_source = REGISTRY.read_text(encoding="utf-8")
         ledger_source = TYPE_LEDGER.read_text(encoding="utf-8")
         hxrt_source = HXRT_ANALYZER.read_text(encoding="utf-8")
+        self.assertNotIn(
+            "does not enable any of them in the production catalog",
+            registry_source,
+        )
 
         def enum_values(source: str, name: str) -> list[str]:
             body = re.search(

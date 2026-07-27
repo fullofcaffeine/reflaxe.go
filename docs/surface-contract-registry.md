@@ -10,10 +10,12 @@ compiler also needs a reviewed contract that says which Haxe behavior must stay
 the same, which exact type shapes are safe, what Go representation may be used,
 what happens when the shape is unsafe, and which tests prove those claims.
 
-Production starts with no admitted surfaces. This task establishes the schema,
-validation, immutable compiler authority, and reports. The dependent
-Option/Result, collection, and string/bytes/iterator/closure tasks add entries
-only after their semantic evidence exists.
+Production starts with two admitted portable facade surfaces:
+`reflaxe.std.Option` and `reflaxe.std.Result`. Their exact source contract,
+eligibility, fallback, and native-boundary rules are documented in
+[Portable Option and Result Contract](portable-option-result-contract.md).
+Collections, strings/bytes, iterators, and closures remain absent until their
+own semantic evidence lands.
 
 Enable the optional report with:
 
@@ -76,8 +78,10 @@ The four decision reasons are:
 
 Unknown types are ignored instead of being turned into accidental candidates.
 Known candidates use exact roots such as Haxe `Array`, `String`,
-`haxe.io.Bytes`, and future `reflaxe.std.Option`/`Result`; a namespace prefix is
-never sufficient.
+`haxe.io.Bytes`, and `reflaxe.std.Option`/`Result`; a namespace prefix is never
+sufficient. Bare generic enum declaration references do not choose a
+representation: the applied typed usage carries the parameters needed for that
+decision.
 
 ### What every admitted contract records
 
@@ -100,7 +104,7 @@ wrong source surface, rules that reference an unknown binding, absolute or
 traversing proof paths, unknown runtime features, and contracts without a
 semantic-diff proof. Binding names use a portable identifier grammar so they
 cannot corrupt encoded eligibility rules. A null catalog is malformed rather
-than an alias for the intentionally empty production catalog. Invalid catalog
+than an alias for an explicitly supplied zero-entry catalog. Invalid catalog
 data cannot become compiler authority; `create()` reports typed validation
 issues instead of exposing a raw null or enum-match failure.
 
@@ -115,12 +119,18 @@ references without depending on a developer's checkout path.
 lowering, beside `typedUsageLedger`. Neither report generation nor a
 compatibility profile can mutate it.
 
-The registry is observational in this task. Existing lowering behavior does not
-change yet. `.7.3` through `.7.5` add proven catalog entries; `.7.6` makes
-optimizer and runtime planners consume the decisions. Until then, the report
-can expose a known shape as `contract_missing` even where older lowering code
-still has a pre-registry fast path. That mismatch is explicit migration
-evidence, not permission for the report to bless the fast path.
+The registry is observational for representation selection today. Option and
+Result are admitted, but the planner does not consume their carrier decisions
+until `.7.6`; current generated declarations retain the portable tagged-enum
+fallback. The only immediate lowering fixes retain the exact supplied facade
+declarations and safely extract nullable enum payloads. `.7.4` and `.7.5` add
+the remaining proven catalog entries, and `.7.6` makes optimizer and runtime
+planners consume all decisions.
+
+Portable `reflaxe.std.Result<T,E>` is not native `go.Result<T>` and is not a Go
+`(T,error)` pair. The registry's `go_result` value names a future typed
+two-parameter carrier that preserves `E`; it never authorizes implicit Go-error
+conversion.
 
 ## Adding a surface safely
 
@@ -172,7 +182,8 @@ npm run test:compiler-debt
 
 The focused contract runs the real Haxe validator against valid, duplicate,
 unknown, unproven, malformed-pattern, malformed-nested-list, unsafe-path, and
-unknown-runtime entries. It proves admitted, shape-rejected, and
-missing-contract decisions, deep catalog copying, deterministic JSON/Markdown,
-actual JSON Schema conformance, compiler/schema vocabulary synchronization,
-path hygiene, and byte-identical portable/metal reports.
+unknown-runtime entries. It proves Option/Result admission and fallback,
+unregistered-surface rejection, deep catalog copying, deterministic
+JSON/Markdown, actual JSON Schema conformance, compiler/schema vocabulary
+synchronization, generated fallback declarations, path hygiene, and
+byte-identical portable/metal reports.

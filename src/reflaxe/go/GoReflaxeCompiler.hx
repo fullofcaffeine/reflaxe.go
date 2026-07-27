@@ -268,12 +268,50 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		compilationContext = context;
 		lastSurfaceContractReport = surfaceContractSnapshot;
 		var compiler = new GoCompiler(context, resolveSelectedMainIdentity());
+		retainSuppliedPortableFacadeEnums();
 		if (selectedClasses.length == 0 && selectedEnums.length == 0) {
 			generatedFiles = compiler.compileModule(allModules);
 		} else {
 			generatedFiles = compiler.compileSelectedTypes(selectedClasses, selectedEnums);
 		}
 		lastTypeUsageReport = typeUsageLedger.snapshot(context.inferredHxrtFeatureReasons, context.runtimeImportPath);
+	}
+
+	/**
+		Retains exact fixture- or package-supplied portable facade declarations.
+
+		Why
+		Reflaxe treats its own `reflaxe.*` compiler namespace as framework code, so
+		its normal selected-type callbacks can omit externally supplied
+		`reflaxe.std` declarations even when user expressions reference their
+		constructors. Without exact retention, generated calls have no declaration.
+
+		What
+		Adds only `reflaxe.std.Option` and `reflaxe.std.Result` enum declarations
+		that Haxe actually included in the typed module set.
+
+		How
+		Match exact enum paths, deduplicate against normal callback selection, and
+		leave every other `reflaxe.*` module untouched. This does not bundle those
+		source modules or infer authority from a namespace prefix.
+	**/
+	function retainSuppliedPortableFacadeEnums():Void {
+		var selected = new Map<String, Bool>();
+		for (enumType in selectedEnums) {
+			selected.set(enumType.pack.concat([enumType.name]).join("."), true);
+		}
+		for (moduleType in Context.getAllModuleTypes()) {
+			switch (moduleType) {
+				case TEnumDecl(enumRef):
+					var enumType = enumRef.get();
+					var path = enumType.pack.concat([enumType.name]).join(".");
+					if ((path == "reflaxe.std.Option" || path == "reflaxe.std.Result") && !selected.exists(path)) {
+						selectedEnums.push(enumType);
+						selected.set(path, true);
+					}
+				case _:
+			}
+		}
 	}
 
 	/**

@@ -1214,7 +1214,7 @@ class GoCompiler {
 	}
 
 	function isProjectEnum(enumType:EnumType):Bool {
-		if (isRequiredStdlibEnum(enumType)) {
+		if (isRequiredStdlibEnum(enumType) || isRequiredPortableFacadeEnum(enumType)) {
 			return true;
 		}
 
@@ -1259,6 +1259,43 @@ class GoCompiler {
 
 	function isRequiredStdlibEnum(enumType:EnumType):Bool {
 		return false;
+	}
+
+	/**
+		Recognizes exact externally supplied portable facade declarations.
+
+		Why / What / How
+		- `reflaxe.std` is a future standalone dependency, not compiler-owned source.
+		- Installed or vendored dependency paths must not make an actually referenced
+		  Option/Result declaration disappear from generated Go.
+		- Match only the two admitted enum identities; namespace membership alone is
+		  never retention or specialization authority.
+	**/
+	function isRequiredPortableFacadeEnum(enumType:EnumType):Bool {
+		var path = enumType.pack.concat([enumType.name]).join(".");
+		return path == "reflaxe.std.Option" || path == "reflaxe.std.Result";
+	}
+
+	/**
+		Recognizes an expression whose enum declaration is one of the admitted
+		portable facades.
+
+		Why / What / How
+		- Portable `Option` must preserve `Some(null)` as distinct from `None`.
+		- Haxe references remain nullable even without an explicit `Null<T>`
+		  wrapper, so every facade payload needs the nil-safe extraction path
+		  instead of a direct Go type assertion that panics on stored nil.
+		- Keep this compatibility behavior scoped to the two exact admitted enum
+		  identities so this contract does not silently rewrite unrelated enum
+		  output before the general nullable-enum policy is designed and tested.
+	**/
+	function isAdmittedPortableFacadeEnumType(type:Type):Bool {
+		return switch (Context.follow(type)) {
+			case TEnum(enumRef, _):
+				isRequiredPortableFacadeEnum(enumRef.get());
+			case _:
+				false;
+		};
 	}
 
 	function fullClassName(classType:ClassType):String {
@@ -5357,8 +5394,10 @@ class GoCompiler {
 			case TEnumParameter(target, constructor, index):
 				var payload = GoExpr.GoIndex(GoExpr.GoSelector(lowerExpr(target).expr, "params"), GoExpr.GoIntLiteral(index));
 				var payloadType = enumPayloadStorageGoType(constructor, index, expr.t);
+				var needsNilSafePortablePayload = isAdmittedPortableFacadeEnumType(target.t);
 				{
-					expr: payloadType == "any" ? payload : GoExpr.GoTypeAssert(payload, payloadType),
+					expr: payloadType == "any" ? payload : needsNilSafePortablePayload ? lowerNullableAwareTypeAssertExpr(payload,
+						expr.t) : GoExpr.GoTypeAssert(payload, payloadType),
 					isStringLike: isStringType(expr.t)
 				};
 			case TNew(classRef, _, args):

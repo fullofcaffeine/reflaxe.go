@@ -1,0 +1,1 @@
+go.Result<Int> should be reflaxe.std.Result<Int, String>

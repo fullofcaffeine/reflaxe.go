@@ -73,8 +73,10 @@ enum abstract GoSourceContractKind(String) to String {
 
 	Why / What / How
 	- Reports and planners need stable values rather than target-shape strings.
-	- Later admission Beads choose among these values; this registry task does not
-	  enable any of them in the production catalog.
+	- Option/Result currently select their typed carrier identities; later
+	  admission Beads may enable the remaining values after their proofs land.
+	- Catalog selection records representation authority, while planner
+	  consumption remains a separate step.
 **/
 enum abstract GoNativeRepresentation(String) to String {
 	var GoSlice = "go_slice";
@@ -485,10 +487,10 @@ private typedef PatternMatch = {
 	surface.
 
 	How
-	`defaultRegistry()` intentionally has no admitted production entries in this
-	infrastructure task. The dependent admission Beads add proven contracts one
-	surface family at a time. Unknown observed types are ignored; known observed
-	surfaces without a contract are explicitly rejected as `contract_missing`.
+	`defaultRegistry()` contains only surface-family entries whose dependent
+	admission Beads have landed. Unknown observed types are ignored; known
+	observed surfaces without a contract are explicitly rejected as
+	`contract_missing`.
 **/
 class GoSurfaceContractRegistry {
 	public static inline final SCHEMA_VERSION = 1;
@@ -539,12 +541,124 @@ class GoSurfaceContractRegistry {
 		Production catalog.
 
 		Why / What / How
-		- This task establishes governance only.
-		- `.7.3`, `.7.4`, and `.7.5` own the semantic evidence required to add
-		  Option/Result, collections, strings/bytes/iterators/closures.
+		- Option/Result have exact portable facade contracts and semantic evidence.
+		- Collections, strings/bytes, iterators, and closures remain absent until
+		  their own admission tasks land.
+		- Catalog membership is profile-independent and does not itself change
+		  lowering; `.7.6` owns planner consumption.
 	**/
 	public static function defaultRegistry():GoSurfaceContractRegistry {
-		return create([]);
+		return create([portableOptionContract(), portableResultContract()]);
+	}
+
+	/**
+		The portable `Some(value) | None` source contract.
+
+		Why / What / How
+		- Explicit presence means `Some(null)` is observably different from `None`.
+		- Fully typed generic parameters can use a typed tagged Go carrier.
+		- `Dynamic` or unresolved nested shapes retain the ordinary portable enum
+		  fallback. This is not a conversion to nullable Go data.
+	**/
+	static function portableOptionContract():GoSurfaceContract {
+		return {
+			surfaceId: GoSurfaceId.PortableOption,
+			contractVersion: 1,
+			sourceContract: GoSourceContractKind.PortableFamilyFacade,
+			sourceSemanticsId: "reflaxe.std.option",
+			sourceSemanticsVersion: 1,
+			sourceSemantics: "Tagged Some(value) or None; explicit presence preserves Some(null) as distinct from None.",
+			eligibleShape: GoSurfaceTypePattern.NominalPattern(GoSurfaceNominalKind.Enum, "reflaxe.std.Option",
+				GoImmutableList.fromArray([GoSurfaceTypePattern.Bind("value")])),
+			eligibilityRules: GoImmutableList.fromArray([
+				GoSurfaceEligibilityRule.NoUnknownShapes,
+				GoSurfaceEligibilityRule.BindingContainsNoDynamic("value")
+			]),
+			nativeRepresentation: GoNativeRepresentation.GoOption,
+			nativeImports: GoImmutableList.fromArray([]),
+			nativeRuntimeRequirements: GoImmutableList.fromArray([]),
+			fallbackRepresentation: GoSurfaceFallbackRepresentation.PortableOption,
+			fallbackPolicy: GoSurfaceFallbackPolicy.AlwaysAvailable,
+			fallbackImports: GoImmutableList.fromArray([]),
+			fallbackRuntimeRequirements: GoImmutableList.fromArray([]),
+			noHxrtStatus: GoNoHxrtStatus.Eligible,
+			proofs: GoImmutableList.fromArray([
+				{
+					proofId: "portable-option-result-typed-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/portable_option_result_contract"
+				},
+				{
+					proofId: "portable-option-result-fallback-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/portable_option_result_fallback_contract"
+				},
+				{
+					proofId: "portable-option-result-generated-fallback-shape",
+					kind: GoSurfaceProofKind.GeneratedShape,
+					fixturePath: "test/fixtures/surface_contract_registry"
+				}
+			]),
+			familySyncExpectation: GoFamilySyncExpectation.TargetLocal,
+			familyContractId: "",
+			familyContractVersion: 0
+		};
+	}
+
+	/**
+		The portable `Ok(value) | Err(error)` source contract.
+
+		Why / What / How
+		- `T` and `E` are independent and must survive representation selection.
+		- `GoResult` means a typed two-parameter tagged carrier; it never means
+		  native `go.Result<T>` or Go `(T, error)`.
+		- `Dynamic` or unresolved nested shapes retain the ordinary portable enum
+		  fallback instead of erasing the error parameter.
+	**/
+	static function portableResultContract():GoSurfaceContract {
+		return {
+			surfaceId: GoSurfaceId.PortableResult,
+			contractVersion: 1,
+			sourceContract: GoSourceContractKind.PortableFamilyFacade,
+			sourceSemanticsId: "reflaxe.std.result",
+			sourceSemanticsVersion: 1,
+			sourceSemantics: "Tagged Ok(value) or Err(error) with independent T and E parameters and no implicit Go-error conversion.",
+			eligibleShape: GoSurfaceTypePattern.NominalPattern(GoSurfaceNominalKind.Enum, "reflaxe.std.Result",
+				GoImmutableList.fromArray([GoSurfaceTypePattern.Bind("value"), GoSurfaceTypePattern.Bind("error")])),
+			eligibilityRules: GoImmutableList.fromArray([
+				GoSurfaceEligibilityRule.NoUnknownShapes,
+				GoSurfaceEligibilityRule.BindingContainsNoDynamic("value"),
+				GoSurfaceEligibilityRule.BindingContainsNoDynamic("error")
+			]),
+			nativeRepresentation: GoNativeRepresentation.GoResult,
+			nativeImports: GoImmutableList.fromArray([]),
+			nativeRuntimeRequirements: GoImmutableList.fromArray([]),
+			fallbackRepresentation: GoSurfaceFallbackRepresentation.PortableResult,
+			fallbackPolicy: GoSurfaceFallbackPolicy.AlwaysAvailable,
+			fallbackImports: GoImmutableList.fromArray([]),
+			fallbackRuntimeRequirements: GoImmutableList.fromArray([]),
+			noHxrtStatus: GoNoHxrtStatus.Eligible,
+			proofs: GoImmutableList.fromArray([
+				{
+					proofId: "portable-option-result-typed-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/portable_option_result_contract"
+				},
+				{
+					proofId: "portable-option-result-fallback-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/portable_option_result_fallback_contract"
+				},
+				{
+					proofId: "portable-option-result-generated-fallback-shape",
+					kind: GoSurfaceProofKind.GeneratedShape,
+					fixturePath: "test/fixtures/surface_contract_registry"
+				}
+			]),
+			familySyncExpectation: GoFamilySyncExpectation.TargetLocal,
+			familyContractId: "",
+			familyContractVersion: 0
+		};
 	}
 
 	/** Validate catalog data without promoting it to compiler authority. */
@@ -759,7 +873,7 @@ class GoSurfaceContractRegistry {
 
 	static function surfaceForShape(shape:GoTypeShape):Null<GoSurfaceId> {
 		return switch (shape) {
-			case Nominal(_, path, _):
+			case Nominal(_, path, parameters):
 				switch (path) {
 					case "Array": GoSurfaceId.HaxeArray;
 					case "String": GoSurfaceId.HaxeString;
@@ -767,8 +881,11 @@ class GoSurfaceContractRegistry {
 					case "haxe.ds.StringMap": GoSurfaceId.HaxeStringMap;
 					case "haxe.ds.IntMap": GoSurfaceId.HaxeIntMap;
 					case "haxe.ds.ObjectMap": GoSurfaceId.HaxeObjectMap;
-					case "reflaxe.std.Option": GoSurfaceId.PortableOption;
-					case "reflaxe.std.Result": GoSurfaceId.PortableResult;
+					// Reflaxe also reports bare enum declaration/constructor identities
+					// with no applied parameters. They do not choose a representation;
+					// the corresponding applied typed usage carries that authority.
+					case "reflaxe.std.Option" if (parameters.length > 0): GoSurfaceId.PortableOption;
+					case "reflaxe.std.Result" if (parameters.length > 0): GoSurfaceId.PortableResult;
 					case _: null;
 				}
 			case Function(_, _):

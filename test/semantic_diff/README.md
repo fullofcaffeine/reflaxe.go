@@ -27,6 +27,9 @@ Goal:
   - deterministic `go.Result` success/failure semantics (`isOk`/`isErr`/`unwrap`/`error`, `Go.ok`/`Go.fail`)
   - deterministic portable+auto parity for eligible typed `go.Slice`/`go.Map`/`go.Result` lowerings
   - deterministic portable+auto fallback parity for ineligible typed `go.Slice`/`go.Map`/`go.Result` specializations
+  - supplied portable `reflaxe.std.Option<T>` / `Result<T,E>` semantics for
+    success/error/null/nesting/generics, plus `Dynamic` fallback without
+    conflating native `go.Result` or Go errors
   - exceptions
   - enum/switch bindings
   - virtual dispatch
