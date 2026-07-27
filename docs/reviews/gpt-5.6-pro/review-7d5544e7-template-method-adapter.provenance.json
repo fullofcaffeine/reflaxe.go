@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "review_class": "GPT-5.6 Pro independent pre-refactor Template method-adapter review",
+  "capture_mode": "manual_user_supplied",
+  "declared_model": "GPT-5.6 Pro",
+  "declared_reasoning_setting": "maximum reasoning depth",
+  "independent_runtime_receipt": null,
+  "captured_at": "2026-07-17T18:13:39-06:00",
+  "reviewed_source_commit": "7d5544e738d72f2e42f88a467b43514ce75f3d6b",
+  "prompt": {
+    "path": "docs/reviews/gpt-5.6-pro/review-prompt-7d5544e7-template-method-adapter.md",
+    "bytes": 12431,
+    "sha256": "08d960dbf073e3c171c4e05a394a3b0b70df67aa6cb88f6a329f2e90e711b404"
+  },
+  "evidence": {
+    "path": "dist/review/haxe-go-template-method-adapter-review-7d5544e7.zip",
+    "bytes": 11876054,
+    "sha256": "d2592ca046a36c5780f1efd1f9518df3c9a93c4a9e8be050d4830e5301ba81aa",
+    "git_archive_comment": "7d5544e738d72f2e42f88a467b43514ce75f3d6b"
+  },
+  "review_output": {
+    "path": "docs/reviews/gpt-5.6-pro/review-7d5544e7-template-method-adapter.md",
+    "bytes": 35781,
+    "sha256": "406f6ee3740e5556ee18bb52f14941821299d972c7cfccde48bf229f1b2a3b1b"
+  },
+  "verdict": "Request revision",
+  "recommended_design": "A-prime: post-reachability same-package canonical-receiver switch plus top-level per-class own-method resolvers with superclass fallback",
+  "provenance_note": "The user supplied the response verbatim in the conversation after a manual upload. The model and reasoning setting are declarations within that response; no Caf Oracle session, harvest receipt, or independently verified model-route receipt exists for this capture. The review is advisory evidence and requires local adjudication and tests before implementation claims are accepted."
+}
