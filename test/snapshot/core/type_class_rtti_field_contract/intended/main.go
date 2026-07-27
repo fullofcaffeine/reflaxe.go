@@ -49,6 +49,12 @@ func main() {
 type Type struct {
 }
 
+func hxrt_typeCreateEmpty__haxe___Int64_____Int64() *haxe___Int64_____Int64 {
+	instance := &haxe___Int64_____Int64{}
+	instance.__hx_this = instance
+	return instance
+}
+
 type ValueType struct {
 	tag    int
 	params []any
@@ -213,7 +219,7 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
 	case "haxe._Int64.___Int64":
-		return &haxe___Int64_____Int64{}, true
+		return hxrt_typeCreateEmpty__haxe___Int64_____Int64(), true
 	default:
 		return nil, false
 	}

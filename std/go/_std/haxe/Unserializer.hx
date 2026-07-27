@@ -16,9 +16,8 @@ typedef TypeResolver = {
 
 	Why:
 	- The mainstream Haxe stdlib implementation cannot be used unchanged on
-	  `haxe.go` because decoded
-	  values must initialize package-private generated Go fields and repair the
-	  constructor-bypassed virtual-dispatch self pointer.
+	  `haxe.go` without ensuring decoded values can initialize package-private
+	  generated Go fields and constructor-free objects retain virtual dispatch.
 	- Cursor behavior, resolver policy, token parsing, cache order, and custom hook
 	  dispatch are Haxe library semantics and must not originate in a compiler
 	  declaration emitter.
@@ -26,8 +25,9 @@ typedef TypeResolver = {
 	How:
 	- Parse and construct all portable tokens in ordinary Haxe using the existing
 	  compiler-generated `Type` metadata API.
-	- Delegate only reflected field assignment and hidden-self initialization to
-	  the narrow typed `NativeSerialization` boundary.
+	- Reuse staged `Reflect` for exact field/method access; its typed generated
+	  adapters and `Type.createEmptyInstance` own the same-package representation.
+	- Keep only bounded host float parsing in `NativeSerialization`.
 **/
 class Unserializer {
 	public static var DEFAULT_RESOLVER:TypeResolver = {
@@ -124,9 +124,19 @@ class Unserializer {
 			var key:Dynamic = unserialize();
 			if (!Std.isOfType(key, String))
 				throw "Invalid object key";
-			NativeSerialization.setField(target, cast key, unserialize());
+			Reflect.setField(target, cast key, unserialize());
 		}
 		pos++;
+	}
+
+	function resolveClass(name:String):Class<Dynamic> {
+		var method = Reflect.field(resolver, "resolveClass");
+		return method == null ? null : cast Reflect.callMethod(resolver, cast method, [name]);
+	}
+
+	function resolveEnum(name:String):Enum<Dynamic> {
+		var method = Reflect.field(resolver, "resolveEnum");
+		return method == null ? null : cast Reflect.callMethod(resolver, cast method, [name]);
 	}
 
 	function unserializeEnum<T>(declaration:Enum<T>, tag:String):T {
@@ -241,17 +251,16 @@ class Unserializer {
 				throw unserialize();
 			case "c".code:
 				var name:String = unserialize();
-				var declaration = GoSerializationBridge.resolveClass(resolver, name);
+				var declaration = resolveClass(name);
 				if (declaration == null)
 					throw "Class not found " + name;
 				var object = Type.createEmptyInstance(declaration);
-				NativeSerialization.bindSelf(object);
 				cache.push(object);
 				unserializeObject(object);
 				return object;
 			case "w".code:
 				var name:String = unserialize();
-				var declaration = GoSerializationBridge.resolveEnum(resolver, name);
+				var declaration = resolveEnum(name);
 				if (declaration == null)
 					throw "Enum not found " + name;
 				var value = unserializeEnum(declaration, unserialize());
@@ -259,7 +268,7 @@ class Unserializer {
 				return value;
 			case "j".code:
 				var name:String = unserialize();
-				var declaration = GoSerializationBridge.resolveEnum(resolver, name);
+				var declaration = resolveEnum(name);
 				if (declaration == null)
 					throw "Enum not found " + name;
 				pos++;
@@ -324,26 +333,27 @@ class Unserializer {
 				return bytes;
 			case "C".code:
 				var name:String = unserialize();
-				var declaration = GoSerializationBridge.resolveClass(resolver, name);
+				var declaration = resolveClass(name);
 				if (declaration == null)
 					throw "Class not found " + name;
 				var object:Dynamic = Type.createEmptyInstance(declaration);
-				NativeSerialization.bindSelf(object);
 				cache.push(object);
-				if (!GoSerializationBridge.callUnserializeHook(object, this))
+				var hook = Reflect.field(object, "hxUnserialize");
+				if (hook == null)
 					throw "Class " + name + " has no hxUnserialize hook";
+				Reflect.callMethod(object, cast hook, [this]);
 				if (get(pos++) != "g".code)
 					throw "Invalid custom data";
 				return object;
 			case "A".code:
 				var name:String = unserialize();
-				var declaration = GoSerializationBridge.resolveClass(resolver, name);
+				var declaration = resolveClass(name);
 				if (declaration == null)
 					throw "Class not found " + name;
 				return declaration;
 			case "B".code:
 				var name:String = unserialize();
-				var declaration = GoSerializationBridge.resolveEnum(resolver, name);
+				var declaration = resolveEnum(name);
 				if (declaration == null)
 					throw "Enum not found " + name;
 				return declaration;

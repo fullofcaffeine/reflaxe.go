@@ -1184,13 +1184,13 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	case *haxe__exceptions__PosException:
 		return hxrt.NewArray(hxrt.StringFromLiteral("posInfos"))
 	case *haxe__http__HttpBase:
-		return hxrt.NewArray(hxrt.StringFromLiteral("emptyOnData"), hxrt.StringFromLiteral("headers"), hxrt.StringFromLiteral("onBytes"), hxrt.StringFromLiteral("onData"), hxrt.StringFromLiteral("onError"), hxrt.StringFromLiteral("onStatus"), hxrt.StringFromLiteral("params"), hxrt.StringFromLiteral("postBytes"), hxrt.StringFromLiteral("postData"), hxrt.StringFromLiteral("responseAsString"), hxrt.StringFromLiteral("responseBytes"), hxrt.StringFromLiteral("url"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("url"), hxrt.StringFromLiteral("responseBytes"), hxrt.StringFromLiteral("responseAsString"), hxrt.StringFromLiteral("postData"), hxrt.StringFromLiteral("postBytes"), hxrt.StringFromLiteral("headers"), hxrt.StringFromLiteral("params"), hxrt.StringFromLiteral("emptyOnData"), hxrt.StringFromLiteral("onData"), hxrt.StringFromLiteral("onBytes"), hxrt.StringFromLiteral("onError"), hxrt.StringFromLiteral("onStatus"))
 	case *haxe__io__Bytes:
-		return hxrt.NewArray(hxrt.StringFromLiteral("__hx_dataExposed"), hxrt.StringFromLiteral("__hx_raw"), hxrt.StringFromLiteral("__hx_rawValid"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("length"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("__hx_raw"), hxrt.StringFromLiteral("__hx_rawValid"), hxrt.StringFromLiteral("__hx_dataExposed"))
 	case *haxe__io__BytesBuffer:
 		return hxrt.NewArray(hxrt.StringFromLiteral("b"))
 	case *haxe__io__BytesOutput:
-		return hxrt.NewArray(hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("bigEndian"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("b"))
 	case *haxe__io__Eof:
 		return hxrt.NewArray()
 	case *haxe__io__Input:
@@ -1198,17 +1198,17 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	case *haxe__io__Output:
 		return hxrt.NewArray(hxrt.StringFromLiteral("bigEndian"))
 	case *haxe__iterators__MapKeyValueIterator:
-		return hxrt.NewArray(hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("map"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("keys"))
 	case *haxe__iterators__StringIterator:
 		return hxrt.NewArray(hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
 	case *haxe__iterators__StringKeyValueIterator:
 		return hxrt.NewArray(hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
 	case *sys__Http:
-		return hxrt.NewArray(hxrt.StringFromLiteral("cnxTimeout"), hxrt.StringFromLiteral("emptyOnData"), hxrt.StringFromLiteral("file"), hxrt.StringFromLiteral("headers"), hxrt.StringFromLiteral("noShutdown"), hxrt.StringFromLiteral("onBytes"), hxrt.StringFromLiteral("onData"), hxrt.StringFromLiteral("onError"), hxrt.StringFromLiteral("onStatus"), hxrt.StringFromLiteral("params"), hxrt.StringFromLiteral("postBytes"), hxrt.StringFromLiteral("postData"), hxrt.StringFromLiteral("responseAsString"), hxrt.StringFromLiteral("responseBytes"), hxrt.StringFromLiteral("responseHeaders"), hxrt.StringFromLiteral("responseHeadersSameKey"), hxrt.StringFromLiteral("url"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("url"), hxrt.StringFromLiteral("responseBytes"), hxrt.StringFromLiteral("responseAsString"), hxrt.StringFromLiteral("postData"), hxrt.StringFromLiteral("postBytes"), hxrt.StringFromLiteral("headers"), hxrt.StringFromLiteral("params"), hxrt.StringFromLiteral("emptyOnData"), hxrt.StringFromLiteral("onData"), hxrt.StringFromLiteral("onBytes"), hxrt.StringFromLiteral("onError"), hxrt.StringFromLiteral("onStatus"), hxrt.StringFromLiteral("noShutdown"), hxrt.StringFromLiteral("cnxTimeout"), hxrt.StringFromLiteral("responseHeaders"), hxrt.StringFromLiteral("responseHeadersSameKey"), hxrt.StringFromLiteral("file"))
 	case *sys__net__Host:
 		return hxrt.NewArray(hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("ip"))
 	case *sys__net__Socket:
-		return hxrt.NewArray(hxrt.StringFromLiteral("custom"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("input"), hxrt.StringFromLiteral("output"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("input"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("custom"), hxrt.StringFromLiteral("handle"))
 	case *sys__net__SocketInput:
 		return hxrt.NewArray(hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("handle"))
 	case *sys__net__SocketOutput:
@@ -2166,6 +2166,9 @@ func hxrt__generated_field_set__sys__Http(value *sys__Http, key string, incoming
 		switch typed := incoming.(type) {
 		case float64:
 			value.cnxTimeout = typed
+			return true
+		case int:
+			value.cnxTimeout = float64(typed)
 			return true
 		default:
 			return false

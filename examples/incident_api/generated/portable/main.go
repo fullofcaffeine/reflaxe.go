@@ -1426,21 +1426,21 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	case *Date:
 		return hxrt.NewArray(hxrt.StringFromLiteral("ms"))
 	case *app__core__Incident:
-		return hxrt.NewArray(hxrt.StringFromLiteral("acknowledged"), hxrt.StringFromLiteral("createdAt"), hxrt.StringFromLiteral("id"), hxrt.StringFromLiteral("resolved"), hxrt.StringFromLiteral("severity"), hxrt.StringFromLiteral("title"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("id"), hxrt.StringFromLiteral("title"), hxrt.StringFromLiteral("severity"), hxrt.StringFromLiteral("acknowledged"), hxrt.StringFromLiteral("resolved"), hxrt.StringFromLiteral("createdAt"))
 	case *app__core__IncidentApi:
-		return hxrt.NewArray(hxrt.StringFromLiteral("config"), hxrt.StringFromLiteral("requests"), hxrt.StringFromLiteral("store"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("config"), hxrt.StringFromLiteral("store"), hxrt.StringFromLiteral("requests"))
 	case *app__core__IncidentConfig:
-		return hxrt.NewArray(hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("port"), hxrt.StringFromLiteral("serviceName"), hxrt.StringFromLiteral("statePath"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("serviceName"), hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("port"), hxrt.StringFromLiteral("statePath"))
 	case *app__core__IncidentRequestException:
 		return hxrt.NewArray(hxrt.StringFromLiteral("code"))
 	case *app__core__IncidentStore:
-		return hxrt.NewArray(hxrt.StringFromLiteral("incidents"), hxrt.StringFromLiteral("nextId"), hxrt.StringFromLiteral("statePath"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("statePath"), hxrt.StringFromLiteral("incidents"), hxrt.StringFromLiteral("nextId"))
 	case *app__http__HttpRequest:
-		return hxrt.NewArray(hxrt.StringFromLiteral("body"), hxrt.StringFromLiteral("method"), hxrt.StringFromLiteral("path"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("method"), hxrt.StringFromLiteral("path"), hxrt.StringFromLiteral("body"))
 	case *app__http__HttpResponse:
-		return hxrt.NewArray(hxrt.StringFromLiteral("body"), hxrt.StringFromLiteral("status"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("status"), hxrt.StringFromLiteral("body"))
 	case *app__http__TinyHttpServer:
-		return hxrt.NewArray(hxrt.StringFromLiteral("api"), hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("port"), hxrt.StringFromLiteral("server"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("api"), hxrt.StringFromLiteral("server"), hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("port"))
 	case *haxe___Int64_____Int64:
 		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
 	case *haxe__exceptions__NotImplementedException:
@@ -1448,7 +1448,7 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	case *haxe__exceptions__PosException:
 		return hxrt.NewArray(hxrt.StringFromLiteral("posInfos"))
 	case *haxe__io__Bytes:
-		return hxrt.NewArray(hxrt.StringFromLiteral("__hx_dataExposed"), hxrt.StringFromLiteral("__hx_raw"), hxrt.StringFromLiteral("__hx_rawValid"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("length"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("__hx_raw"), hxrt.StringFromLiteral("__hx_rawValid"), hxrt.StringFromLiteral("__hx_dataExposed"))
 	case *haxe__io__BytesBuffer:
 		return hxrt.NewArray(hxrt.StringFromLiteral("b"))
 	case *haxe__io__Eof:
@@ -1468,7 +1468,7 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	case *sys__net__Host:
 		return hxrt.NewArray(hxrt.StringFromLiteral("host"), hxrt.StringFromLiteral("ip"))
 	case *sys__net__Socket:
-		return hxrt.NewArray(hxrt.StringFromLiteral("custom"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("input"), hxrt.StringFromLiteral("output"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("input"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("custom"), hxrt.StringFromLiteral("handle"))
 	case *sys__net__SocketInput:
 		return hxrt.NewArray(hxrt.StringFromLiteral("bigEndian"), hxrt.StringFromLiteral("handle"))
 	case *sys__net__SocketOutput:
@@ -1514,6 +1514,9 @@ func hxrt__generated_field_set__Date(value *Date, key string, incoming any) bool
 		switch typed := incoming.(type) {
 		case float64:
 			value.ms = typed
+			return true
+		case int:
+			value.ms = float64(typed)
 			return true
 		default:
 			return false

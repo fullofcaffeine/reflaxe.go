@@ -355,7 +355,7 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	case *haxe__ds__GenericStack:
 		return hxrt.NewArray(hxrt.StringFromLiteral("head"))
 	case *haxe__ds__TreeNode:
-		return hxrt.NewArray(hxrt.StringFromLiteral("_height"), hxrt.StringFromLiteral("key"), hxrt.StringFromLiteral("left"), hxrt.StringFromLiteral("right"), hxrt.StringFromLiteral("value"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("left"), hxrt.StringFromLiteral("right"), hxrt.StringFromLiteral("key"), hxrt.StringFromLiteral("value"), hxrt.StringFromLiteral("_height"))
 	default:
 		return nil
 	}

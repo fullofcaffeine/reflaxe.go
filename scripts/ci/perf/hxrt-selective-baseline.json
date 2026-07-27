@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-24T17:36:39.802Z",
+  "generated_at": "2026-07-27T09:05:05.718Z",
   "diffs": [
     {
       "case": "core",
@@ -9,9 +9,9 @@
         "case": "core",
         "profile": "portable",
         "mode": "full",
-        "runtime_file_count": 11,
-        "runtime_source_bytes": 10264,
-        "binary_bytes": 2424402
+        "runtime_file_count": 20,
+        "runtime_source_bytes": 110809,
+        "binary_bytes": 3583138
       },
       "selective": {
         "id": "core_portable_selective",
@@ -19,14 +19,14 @@
         "profile": "portable",
         "mode": "selective",
         "runtime_file_count": 5,
-        "runtime_source_bytes": 3595,
-        "binary_bytes": 2388098
+        "runtime_source_bytes": 14721,
+        "binary_bytes": 2421650
       },
-      "source_ratio": 0.35025331254871395,
-      "binary_ratio": 0.9850255856908219,
-      "source_delta_pct": -64.97466874512861,
-      "binary_delta_pct": -1.497441430917812,
-      "file_delta": -6
+      "source_ratio": 0.13285021974749345,
+      "binary_ratio": 0.6758461437990946,
+      "source_delta_pct": -86.71497802525066,
+      "binary_delta_pct": -32.41538562009054,
+      "file_delta": -15
     },
     {
       "case": "json",
@@ -36,24 +36,51 @@
         "case": "json",
         "profile": "portable",
         "mode": "full",
-        "runtime_file_count": 11,
-        "runtime_source_bytes": 10264,
-        "binary_bytes": 2985714
+        "runtime_file_count": 21,
+        "runtime_source_bytes": 115715,
+        "binary_bytes": 4128978
       },
       "selective": {
         "id": "json_portable_selective",
         "case": "json",
         "profile": "portable",
         "mode": "selective",
-        "runtime_file_count": 6,
-        "runtime_source_bytes": 4003,
-        "binary_bytes": 2985314
+        "runtime_file_count": 7,
+        "runtime_source_bytes": 23477,
+        "binary_bytes": 2986242
       },
-      "source_ratio": 0.39000389711613404,
-      "binary_ratio": 0.9998660286953137,
-      "source_delta_pct": -60.9996102883866,
-      "binary_delta_pct": -0.01339713046862867,
-      "file_delta": -5
+      "source_ratio": 0.20288640193579052,
+      "binary_ratio": 0.72323998820047,
+      "source_delta_pct": -79.71135980642094,
+      "binary_delta_pct": -27.676001179953,
+      "file_delta": -14
+    },
+    {
+      "case": "serialization",
+      "profile": "portable",
+      "full": {
+        "id": "serialization_portable_full",
+        "case": "serialization",
+        "profile": "portable",
+        "mode": "full",
+        "runtime_file_count": 25,
+        "runtime_source_bytes": 133412,
+        "binary_bytes": 5818178
+      },
+      "selective": {
+        "id": "serialization_portable_selective",
+        "case": "serialization",
+        "profile": "portable",
+        "mode": "selective",
+        "runtime_file_count": 15,
+        "runtime_source_bytes": 51758,
+        "binary_bytes": 3986386
+      },
+      "source_ratio": 0.38795610589752044,
+      "binary_ratio": 0.6851605433866066,
+      "source_delta_pct": -61.20438941024795,
+      "binary_delta_pct": -31.48394566133934,
+      "file_delta": -10
     },
     {
       "case": "sys_process",
@@ -63,24 +90,24 @@
         "case": "sys_process",
         "profile": "portable",
         "mode": "full",
-        "runtime_file_count": 11,
-        "runtime_source_bytes": 10264,
-        "binary_bytes": 2636306
+        "runtime_file_count": 21,
+        "runtime_source_bytes": 115715,
+        "binary_bytes": 3834178
       },
       "selective": {
         "id": "sys_process_portable_selective",
         "case": "sys_process",
         "profile": "portable",
         "mode": "selective",
-        "runtime_file_count": 7,
-        "runtime_source_bytes": 5463,
-        "binary_bytes": 2633410
+        "runtime_file_count": 9,
+        "runtime_source_bytes": 40342,
+        "binary_bytes": 2707538
       },
-      "source_ratio": 0.5322486360093531,
-      "binary_ratio": 0.9989014932257485,
-      "source_delta_pct": -46.775136399064685,
-      "binary_delta_pct": -0.10985067742514953,
-      "file_delta": -4
+      "source_ratio": 0.3486324158492849,
+      "binary_ratio": 0.706158660343886,
+      "source_delta_pct": -65.13675841507151,
+      "binary_delta_pct": -29.384133965611404,
+      "file_delta": -12
     },
     {
       "case": "metal_go_native",
@@ -90,24 +117,24 @@
         "case": "metal_go_native",
         "profile": "metal",
         "mode": "full",
-        "runtime_file_count": 11,
-        "runtime_source_bytes": 10264,
-        "binary_bytes": 2441602
+        "runtime_file_count": 21,
+        "runtime_source_bytes": 115715,
+        "binary_bytes": 3584178
       },
       "selective": {
         "id": "metal_go_native_metal_selective",
         "case": "metal_go_native",
         "profile": "metal",
         "mode": "selective",
-        "runtime_file_count": 5,
-        "runtime_source_bytes": 3595,
-        "binary_bytes": 2405298
+        "runtime_file_count": 7,
+        "runtime_source_bytes": 21575,
+        "binary_bytes": 2422706
       },
-      "source_ratio": 0.35025331254871395,
-      "binary_ratio": 0.9851310737786093,
-      "source_delta_pct": -64.97466874512861,
-      "binary_delta_pct": -1.4868926221390688,
-      "file_delta": -6
+      "source_ratio": 0.18644946636131876,
+      "binary_ratio": 0.6759446656946168,
+      "source_delta_pct": -81.35505336386812,
+      "binary_delta_pct": -32.40553343053833,
+      "file_delta": -14
     }
   ]
 }

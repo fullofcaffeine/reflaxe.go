@@ -135,6 +135,18 @@ func hxrt__generated_method_field__haxe__ds___EnumValueMap__EnumValueTreeNode(va
 type Type struct {
 }
 
+func hxrt_typeCreateEmpty__haxe__ds__EnumValueMap() *haxe__ds__EnumValueMap {
+	instance := &haxe__ds__EnumValueMap{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__ds___EnumValueMap__EnumValueTreeNode() *haxe__ds___EnumValueMap__EnumValueTreeNode {
+	instance := &haxe__ds___EnumValueMap__EnumValueTreeNode{}
+	instance.__hx_this = instance
+	return instance
+}
+
 type ValueType struct {
 	tag    int
 	params []any
@@ -291,9 +303,9 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
 	case "haxe.ds.EnumValueMap":
-		return &haxe__ds__EnumValueMap{}, true
+		return hxrt_typeCreateEmpty__haxe__ds__EnumValueMap(), true
 	case "haxe.ds._EnumValueMap.EnumValueTreeNode":
-		return &haxe__ds___EnumValueMap__EnumValueTreeNode{}, true
+		return hxrt_typeCreateEmpty__haxe__ds___EnumValueMap__EnumValueTreeNode(), true
 	default:
 		return nil, false
 	}
@@ -923,7 +935,7 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	case *haxe__ds__EnumValueMap:
 		return hxrt.NewArray(hxrt.StringFromLiteral("root"))
 	case *haxe__ds___EnumValueMap__EnumValueTreeNode:
-		return hxrt.NewArray(hxrt.StringFromLiteral("height"), hxrt.StringFromLiteral("key"), hxrt.StringFromLiteral("left"), hxrt.StringFromLiteral("right"), hxrt.StringFromLiteral("value"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("left"), hxrt.StringFromLiteral("right"), hxrt.StringFromLiteral("key"), hxrt.StringFromLiteral("value"), hxrt.StringFromLiteral("height"))
 	default:
 		return nil
 	}

@@ -135,9 +135,9 @@ Key implementation points:
   - UTF-8 byte indexes are converted to the code-point offsets expected by the Haxe string contract before staged `EReg` sees them;
   - match state, capture validation, split/map traversal, Haxe replacement-template expansion, and global policy remain in `std/go/_std/EReg.hx`.
 - Serialization representation (`runtime/hxrt/serialization.go`):
-  - deterministic erased snapshots of generated package-private instance fields, decoded-field assignment, hidden `__hx_this` repair, and bounded host float parsing;
-  - one centralized `reflect.NewAt`/`unsafe.Pointer` lift reaches package-private generated fields after addressability checks. The exact debt owner, ceiling, evidence, and removal condition live in `test/compiler_debt_policy.json`;
-  - token streams, reference caches, recursion, resolver policy, class/enum construction, and custom-hook sequencing remain in staged `haxe.Serializer` / `haxe.Unserializer`; existing Type metadata supplies the closed class/enum facts.
+  - bounded host float parsing is the only serialization-specific native capability;
+  - staged `haxe.Serializer` / `haxe.Unserializer` own token streams, reference caches, recursion, resolver policy, field traversal, assignment, and custom-hook sequencing through ordinary `Reflect` calls;
+  - existing typed same-package Reflect metadata discovers and accesses generated private and inherited fields and methods without `unsafe`; erased calls still use the shared safe `Reflect.callMethod` helper, while Type metadata constructs empty instances with initialized superclass carriers and valid virtual-dispatch self bindings.
 
 These helpers preserve native failures at the runtime boundary. Canonical staged file and Process wrappers translate bounds, EOF, nullable exit availability, and public lifecycle policy in Haxe source; process startup and non-EOF read failures remain distinct from normal EOF and child exit codes. Portable `Sys.putEnv` is the intentional exception: staged `Sys.hx` calls the non-throwing `SysSetEnvironment` capability to match the upstream Haxe 4.3.7 eval contract, while `SysPutEnv` retains the native error for typed Go-native bindings.
 
@@ -227,11 +227,12 @@ native resources and concrete result carriers. `hxrt` never constructs a
 generated `sys.net.Socket`, `Host`, `Address`, `Bytes`, or Haxe exception.
 
 Regex and serialization use the same split. Typed bindings under
-`std/hxrt/regex` and `std/hxrt/serialization` expose only native execution and
-representation capabilities. The exact compiler-generated
-`haxe.GoSerializationBridge` adapter exists solely because public Haxe methods
-are package-private in generated Go; it invokes known hooks in the generated
-package and owns no runtime or library policy.
+`std/hxrt/regex` and `std/hxrt/serialization` expose only native execution
+capabilities. Serialization reuses the same generated Reflect field/method
+metadata as ordinary `Reflect.field`, `Reflect.fields`, `Reflect.setField`, and
+`Reflect.callMethod`; it has no private bridge, unsafe field lift, or duplicate
+metadata registry. The staged calls intentionally select the shared safe
+`runtime/hxrt/reflect.go` helper for dynamic objects and erased invocation.
 
 Examples that are currently compiler-owned migration debt (not approved
 `hxrt` ownership):

@@ -60,13 +60,14 @@
       "reviewCondition": "Revisit when typed Go IR can express the same native specialization without generated helper declarations."
     },
     "approved_reflect_metadata": {
-      "what": "Generate only the same-package metadata adapters needed by staged Reflect for class-token RTTI, lowercase generated fields and methods, and exact enum carriers.",
-      "why": "The separate hxrt package cannot access unexported generated members or know the compiler's finalized class, enum, RTTI, and metadata tables without unsafe access or a duplicated runtime registry.",
-      "how": "Keep public lookup and property policy in staged Reflect, recover canonical generated receivers with typed switches, and emit exact adapters through the reflect_metadata group while hxrt owns only ordinary Go representation inspection.",
+      "what": "Generate only the same-package metadata adapters needed by staged Reflect for class-token RTTI, lowercase generated fields and methods, exact enum carriers, and source-owned serialization traversal.",
+      "why": "The separate hxrt package cannot access unexported generated members or know the compiler's finalized class, enum, RTTI, and metadata tables without unsafe access or a duplicated runtime registry. Reusing these typed adapters also lets Serializer and Unserializer preserve private and inherited fields without a second serialization-specific bridge.",
+      "how": "Keep public lookup, property, and serialization policy in staged source; recover canonical generated receivers with typed switches; and emit exact adapters through the reflect_metadata group while hxrt owns only ordinary Go representation inspection.",
       "evidence": [
         "reflect_extended_contract",
         "haxe_template_concrete_iterable_contract",
-        "haxe_rtti_direct_contract"
+        "haxe_rtti_direct_contract",
+        "serializer_typed_accessor_contract"
       ],
       "reviewCondition": "Revisit if generated Go members become safely exported or a typed data-only metadata artifact can replace same-package adapters without increasing runtime authority."
     },
@@ -99,18 +100,6 @@
         "stdlib/haxe_rtti_direct"
       ],
       "reviewCondition": "Revisit if the metadata is emitted as typed data consumed by staged RTTI source without compiler-owned access behavior."
-    },
-    "approved_serialization_source_bridge": {
-      "what": "Invoke the exact generated hxSerialize, hxUnserialize, resolveClass, and resolveEnum methods from staged serialization source inside the generated program package.",
-      "why": "Public Haxe methods intentionally compile to package-private Go methods, so an external hxrt package cannot call custom serialization hooks or structural resolver methods. Ordinary class instances also cannot be modeled as one anonymous-map shape without rejecting valid Haxe programs.",
-      "how": "Emit only exact interface assertions and anonymous resolver callback extraction when Serializer or Unserializer is reachable. Token parsing, regex behavior, traversal, caches, metadata tables, class and enum construction, reflection, unsafe access, and resolver policy remain outside this bridge.",
-      "evidence": [
-        "serializer_custom_resolver_contract",
-        "serializer_resolver_polymorphism_contract",
-        "serializer_unserializer_roundtrip",
-        "test/test_stdlib_migration_ledger_contract.py"
-      ],
-      "reviewCondition": "Remove when generated public Haxe methods and structural objects share a source-visible typed invocation representation that does not require same-package adaptation."
     },
     "approved_sort_erasure_representation": {
       "what": "Adapt exact ArraySort and ListSort calls to their source-owned generic Haxe entrypoints.",
@@ -200,34 +189,6 @@
           "decisionId": "approved_generated_method_metadata"
         }
       ]
-    },
-    {
-      "group": "serialization_source_bridge",
-      "entryPoint": "lowerSerializationSourceBridgeShimDecls",
-      "status": "approved_intrinsic",
-      "decisionId": "approved_serialization_source_bridge",
-      "ownedSymbols": [
-        {
-          "symbol": "haxe.GoSerializationBridge",
-          "scope": "partial_type",
-          "members": [
-            "callSerializeHook",
-            "callUnserializeHook",
-            "hasSerializeHook",
-            "resolveClass",
-            "resolveEnum"
-          ]
-        }
-      ],
-      "compilerOwnedAuthorities": [],
-      "classifierSelections": [],
-      "plannerSelections": [
-        "haxe.Serializer",
-        "haxe.Unserializer"
-      ],
-      "dependencies": [],
-      "declaresDependencyBlock": false,
-      "supportEntryPoints": []
     },
     {
       "group": "type_metadata",

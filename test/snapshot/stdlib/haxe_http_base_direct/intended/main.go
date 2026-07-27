@@ -34,6 +34,38 @@ func main() {
 type Type struct {
 }
 
+func hxrt_typeCreateEmpty__haxe___Int64_____Int64() *haxe___Int64_____Int64 {
+	instance := &haxe___Int64_____Int64{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__exceptions__NotImplementedException() *haxe__exceptions__NotImplementedException {
+	instance := &haxe__exceptions__NotImplementedException{}
+	instance.haxe__exceptions__PosException = &haxe__exceptions__PosException{}
+	instance.haxe__exceptions__PosException.__hx_this = instance
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__exceptions__PosException() *haxe__exceptions__PosException {
+	instance := &haxe__exceptions__PosException{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__http__HttpBase() *haxe__http__HttpBase {
+	instance := &haxe__http__HttpBase{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__io__Bytes() *haxe__io__Bytes {
+	instance := &haxe__io__Bytes{}
+	instance.__hx_this = instance
+	return instance
+}
+
 type ValueType struct {
 	tag    int
 	params []any
@@ -204,15 +236,15 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
 	case "haxe._Int64.___Int64":
-		return &haxe___Int64_____Int64{}, true
+		return hxrt_typeCreateEmpty__haxe___Int64_____Int64(), true
 	case "haxe.exceptions.NotImplementedException":
-		return &haxe__exceptions__NotImplementedException{}, true
+		return hxrt_typeCreateEmpty__haxe__exceptions__NotImplementedException(), true
 	case "haxe.exceptions.PosException":
-		return &haxe__exceptions__PosException{}, true
+		return hxrt_typeCreateEmpty__haxe__exceptions__PosException(), true
 	case "haxe.http.HttpBase":
-		return &haxe__http__HttpBase{}, true
+		return hxrt_typeCreateEmpty__haxe__http__HttpBase(), true
 	case "haxe.io.Bytes":
-		return &haxe__io__Bytes{}, true
+		return hxrt_typeCreateEmpty__haxe__io__Bytes(), true
 	default:
 		return nil, false
 	}

@@ -442,6 +442,72 @@ func hxrt__generated_method_field__haxe__xml__XmlParserException(value *haxe__xm
 type Type struct {
 }
 
+func hxrt_typeCreateEmpty__StringBuf() *StringBuf {
+	instance := &StringBuf{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__Xml() *Xml {
+	instance := &Xml{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe___Int64_____Int64() *haxe___Int64_____Int64 {
+	instance := &haxe___Int64_____Int64{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__ds__StringMap() *haxe__ds__StringMap {
+	instance := &haxe__ds__StringMap{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__io__Bytes() *haxe__io__Bytes {
+	instance := &haxe__io__Bytes{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__iterators__MapKeyValueIterator() *haxe__iterators__MapKeyValueIterator {
+	instance := &haxe__iterators__MapKeyValueIterator{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__iterators__StringIterator() *haxe__iterators__StringIterator {
+	instance := &haxe__iterators__StringIterator{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__iterators__StringKeyValueIterator() *haxe__iterators__StringKeyValueIterator {
+	instance := &haxe__iterators__StringKeyValueIterator{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__rtti__XmlParser() *haxe__rtti__XmlParser {
+	instance := &haxe__rtti__XmlParser{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__xml__Printer() *haxe__xml__Printer {
+	instance := &haxe__xml__Printer{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__xml__XmlParserException() *haxe__xml__XmlParserException {
+	instance := &haxe__xml__XmlParserException{}
+	instance.__hx_this = instance
+	return instance
+}
+
 type ValueType struct {
 	tag    int
 	params []any
@@ -644,27 +710,27 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
 	case "StringBuf":
-		return &StringBuf{}, true
+		return hxrt_typeCreateEmpty__StringBuf(), true
 	case "Xml":
-		return &Xml{}, true
+		return hxrt_typeCreateEmpty__Xml(), true
 	case "haxe._Int64.___Int64":
-		return &haxe___Int64_____Int64{}, true
+		return hxrt_typeCreateEmpty__haxe___Int64_____Int64(), true
 	case "haxe.ds.StringMap":
-		return &haxe__ds__StringMap{}, true
+		return hxrt_typeCreateEmpty__haxe__ds__StringMap(), true
 	case "haxe.io.Bytes":
-		return &haxe__io__Bytes{}, true
+		return hxrt_typeCreateEmpty__haxe__io__Bytes(), true
 	case "haxe.iterators.MapKeyValueIterator":
-		return &haxe__iterators__MapKeyValueIterator{}, true
+		return hxrt_typeCreateEmpty__haxe__iterators__MapKeyValueIterator(), true
 	case "haxe.iterators.StringIterator":
-		return &haxe__iterators__StringIterator{}, true
+		return hxrt_typeCreateEmpty__haxe__iterators__StringIterator(), true
 	case "haxe.iterators.StringKeyValueIterator":
-		return &haxe__iterators__StringKeyValueIterator{}, true
+		return hxrt_typeCreateEmpty__haxe__iterators__StringKeyValueIterator(), true
 	case "haxe.rtti.XmlParser":
-		return &haxe__rtti__XmlParser{}, true
+		return hxrt_typeCreateEmpty__haxe__rtti__XmlParser(), true
 	case "haxe.xml.Printer":
-		return &haxe__xml__Printer{}, true
+		return hxrt_typeCreateEmpty__haxe__xml__Printer(), true
 	case "haxe.xml.XmlParserException":
-		return &haxe__xml__XmlParserException{}, true
+		return hxrt_typeCreateEmpty__haxe__xml__XmlParserException(), true
 	default:
 		return nil, false
 	}
@@ -2212,25 +2278,25 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	case *StringBuf:
 		return hxrt.NewArray(hxrt.StringFromLiteral("b"))
 	case *Xml:
-		return hxrt.NewArray(hxrt.StringFromLiteral("attributeMap"), hxrt.StringFromLiteral("children"), hxrt.StringFromLiteral("nodeType"), hxrt.StringFromLiteral("parent"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("nodeType"), hxrt.StringFromLiteral("parent"), hxrt.StringFromLiteral("children"), hxrt.StringFromLiteral("attributeMap"))
 	case *haxe___Int64_____Int64:
 		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
 	case *haxe__ds__StringMap:
 		return hxrt.NewArray(hxrt.StringFromLiteral("h"))
 	case *haxe__io__Bytes:
-		return hxrt.NewArray(hxrt.StringFromLiteral("__hx_dataExposed"), hxrt.StringFromLiteral("__hx_raw"), hxrt.StringFromLiteral("__hx_rawValid"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("length"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("__hx_raw"), hxrt.StringFromLiteral("__hx_rawValid"), hxrt.StringFromLiteral("__hx_dataExposed"))
 	case *haxe__iterators__MapKeyValueIterator:
-		return hxrt.NewArray(hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("map"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("keys"))
 	case *haxe__iterators__StringIterator:
 		return hxrt.NewArray(hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
 	case *haxe__iterators__StringKeyValueIterator:
 		return hxrt.NewArray(hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
 	case *haxe__rtti__XmlParser:
-		return hxrt.NewArray(hxrt.StringFromLiteral("curplatform"), hxrt.StringFromLiteral("newField"), hxrt.StringFromLiteral("root"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("root"), hxrt.StringFromLiteral("curplatform"), hxrt.StringFromLiteral("newField"))
 	case *haxe__xml__Printer:
 		return hxrt.NewArray(hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("pretty"))
 	case *haxe__xml__XmlParserException:
-		return hxrt.NewArray(hxrt.StringFromLiteral("lineNumber"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("position"), hxrt.StringFromLiteral("positionAtLine"), hxrt.StringFromLiteral("xml"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("lineNumber"), hxrt.StringFromLiteral("positionAtLine"), hxrt.StringFromLiteral("position"), hxrt.StringFromLiteral("xml"))
 	default:
 		return nil
 	}

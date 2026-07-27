@@ -1,7 +1,6 @@
 package haxe;
 
 import haxe.ds.List;
-import hxrt.serialization.NativeSerialization;
 
 /**
 	What:
@@ -10,17 +9,17 @@ import hxrt.serialization.NativeSerialization;
 
 	Why:
 	- The mainstream Haxe stdlib implementation cannot be used unchanged on
-	  `haxe.go` because generated Go
-	  instance fields are package-private and require one typed runtime snapshot
-	  capability. Token choice, caches, recursive traversal, custom hooks, and wire
-	  compatibility are ordinary Haxe library behavior, not compiler intrinsics.
+	  `haxe.go` without ensuring that `Reflect` can see package-private generated
+	  Go fields and methods. Token choice, caches, recursive traversal, custom
+	  hooks, and wire compatibility are ordinary Haxe library behavior, not
+	  compiler intrinsics.
 
 	How:
 	- Follow the upstream wire-format algorithm over `Type`, collections, Date,
 	  Bytes, and enum APIs.
-	- Delegate only erased generated-field access to `NativeSerialization`; its
-	  unavoidable `Dynamic` values are immediately restored to the public
-	  serialization traversal.
+	- Reuse staged `Reflect`, whose compiler-generated typed per-class adapters
+	  expose the exact reachable field and method representation without unsafe
+	  cross-package reflection or a serializer-specific bridge.
 **/
 class Serializer {
 	public static var USE_CACHE = false;
@@ -78,11 +77,9 @@ class Serializer {
 	}
 
 	function serializeFields(value:Dynamic):Void {
-		var fields = NativeSerialization.fields(value);
-		for (index in 0...fields.length) {
-			var field = fields[index];
-			serializeString(field.name);
-			serialize(field.value);
+		for (field in Reflect.fields(value)) {
+			serializeString(field);
+			serialize(Reflect.field(value, field));
 		}
 		buf.add("g");
 	}
@@ -192,12 +189,13 @@ class Serializer {
 			default:
 				if (useCache)
 					cache.pop();
-				if (GoSerializationBridge.hasSerializeHook(value)) {
+				var hook = Reflect.field(value, "hxSerialize");
+				if (hook != null) {
 					buf.add("C");
 					serializeString(className);
 					if (useCache)
 						cache.push(value);
-					GoSerializationBridge.callSerializeHook(value, this);
+					Reflect.callMethod(value, cast hook, [this]);
 					buf.add("g");
 				} else {
 					buf.add("c");

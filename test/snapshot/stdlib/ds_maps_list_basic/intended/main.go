@@ -397,6 +397,66 @@ func hxrt__generated_method_field__haxe__iterators__MapKeyValueIterator(value *h
 type Type struct {
 }
 
+func hxrt_typeCreateEmpty__Box() *Box {
+	instance := &Box{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe___Int64_____Int64() *haxe___Int64_____Int64 {
+	instance := &haxe___Int64_____Int64{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__ds__EnumValueMap() *haxe__ds__EnumValueMap {
+	instance := &haxe__ds__EnumValueMap{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__ds__List() *haxe__ds__List {
+	instance := &haxe__ds__List{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__ds__ObjectMap() *haxe__ds__ObjectMap {
+	instance := &haxe__ds__ObjectMap{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__ds__StringMap() *haxe__ds__StringMap {
+	instance := &haxe__ds__StringMap{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__ds___EnumValueMap__EnumValueTreeNode() *haxe__ds___EnumValueMap__EnumValueTreeNode {
+	instance := &haxe__ds___EnumValueMap__EnumValueTreeNode{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__ds___List__GoListIterator() *haxe__ds___List__GoListIterator {
+	instance := &haxe__ds___List__GoListIterator{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__ds___List__GoListKeyValueIterator() *haxe__ds___List__GoListKeyValueIterator {
+	instance := &haxe__ds___List__GoListKeyValueIterator{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__iterators__MapKeyValueIterator() *haxe__iterators__MapKeyValueIterator {
+	instance := &haxe__iterators__MapKeyValueIterator{}
+	instance.__hx_this = instance
+	return instance
+}
+
 type ValueType struct {
 	tag    int
 	params []any
@@ -575,25 +635,25 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
 	case "Box":
-		return &Box{}, true
+		return hxrt_typeCreateEmpty__Box(), true
 	case "haxe._Int64.___Int64":
-		return &haxe___Int64_____Int64{}, true
+		return hxrt_typeCreateEmpty__haxe___Int64_____Int64(), true
 	case "haxe.ds.EnumValueMap":
-		return &haxe__ds__EnumValueMap{}, true
+		return hxrt_typeCreateEmpty__haxe__ds__EnumValueMap(), true
 	case "haxe.ds.List":
-		return &haxe__ds__List{}, true
+		return hxrt_typeCreateEmpty__haxe__ds__List(), true
 	case "haxe.ds.ObjectMap":
-		return &haxe__ds__ObjectMap{}, true
+		return hxrt_typeCreateEmpty__haxe__ds__ObjectMap(), true
 	case "haxe.ds.StringMap":
-		return &haxe__ds__StringMap{}, true
+		return hxrt_typeCreateEmpty__haxe__ds__StringMap(), true
 	case "haxe.ds._EnumValueMap.EnumValueTreeNode":
-		return &haxe__ds___EnumValueMap__EnumValueTreeNode{}, true
+		return hxrt_typeCreateEmpty__haxe__ds___EnumValueMap__EnumValueTreeNode(), true
 	case "haxe.ds._List.GoListIterator":
-		return &haxe__ds___List__GoListIterator{}, true
+		return hxrt_typeCreateEmpty__haxe__ds___List__GoListIterator(), true
 	case "haxe.ds._List.GoListKeyValueIterator":
-		return &haxe__ds___List__GoListKeyValueIterator{}, true
+		return hxrt_typeCreateEmpty__haxe__ds___List__GoListKeyValueIterator(), true
 	case "haxe.iterators.MapKeyValueIterator":
-		return &haxe__iterators__MapKeyValueIterator{}, true
+		return hxrt_typeCreateEmpty__haxe__iterators__MapKeyValueIterator(), true
 	default:
 		return nil, false
 	}
@@ -1581,13 +1641,13 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	case *haxe__ds__StringMap:
 		return hxrt.NewArray(hxrt.StringFromLiteral("h"))
 	case *haxe__ds___EnumValueMap__EnumValueTreeNode:
-		return hxrt.NewArray(hxrt.StringFromLiteral("height"), hxrt.StringFromLiteral("key"), hxrt.StringFromLiteral("left"), hxrt.StringFromLiteral("right"), hxrt.StringFromLiteral("value"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("left"), hxrt.StringFromLiteral("right"), hxrt.StringFromLiteral("key"), hxrt.StringFromLiteral("value"), hxrt.StringFromLiteral("height"))
 	case *haxe__ds___List__GoListIterator:
-		return hxrt.NewArray(hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("index"))
 	case *haxe__ds___List__GoListKeyValueIterator:
-		return hxrt.NewArray(hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("index"))
 	case *haxe__iterators__MapKeyValueIterator:
-		return hxrt.NewArray(hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("map"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("keys"))
 	default:
 		return nil
 	}

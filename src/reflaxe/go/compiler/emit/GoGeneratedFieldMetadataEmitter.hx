@@ -217,21 +217,35 @@ class GoGeneratedFieldMetadataEmitter {
 			case Set:
 				var target = GoExpr.GoSelector(value, selector);
 				var incoming = GoExpr.GoIdent("incoming");
+				var typedCases = [
+					{
+						typeName: typeName,
+						body: [
+							GoStmt.GoAssign(target, GoExpr.GoIdent("typed")),
+							GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
+						]
+					}
+				];
+				// JS and other number-erased Haxe targets can encode an integral
+				// Float field with the compact `i` token. Unserializer restores that
+				// token as Haxe Int, so preserve the declared Float representation
+				// through one explicit typed conversion rather than unsafe reflection.
+				if (typeName.isBuiltin(GoBuiltinType.Float64)) {
+					typedCases.push({
+						typeName: GoType.builtin(GoBuiltinType.Int),
+						body: [
+							GoStmt.GoAssign(target, GoExpr.GoCall(GoExpr.GoIdent("float64"), [GoExpr.GoIdent("typed")])),
+							GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
+						]
+					});
+				}
 				[
 					GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, incoming, GoExpr.GoNil), [
 						GoStmt.GoVarDecl("zero", typeName, null, false),
 						GoStmt.GoAssign(target, GoExpr.GoIdent("zero")),
 						GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
 					], null),
-					GoStmt.GoTypeSwitch(incoming, "typed", [
-						{
-							typeName: typeName,
-							body: [
-								GoStmt.GoAssign(target, GoExpr.GoIdent("typed")),
-								GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
-							]
-						}
-					], [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
+					GoStmt.GoTypeSwitch(incoming, "typed", typedCases, [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
 				];
 		};
 	}

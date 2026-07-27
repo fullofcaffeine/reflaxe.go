@@ -68,6 +68,78 @@ func main() {
 type Type struct {
 }
 
+func hxrt_typeCreateEmpty__StringBuf() *StringBuf {
+	instance := &StringBuf{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__Xml() *Xml {
+	instance := &Xml{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe___Int64_____Int64() *haxe___Int64_____Int64 {
+	instance := &haxe___Int64_____Int64{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__ds__StringMap() *haxe__ds__StringMap {
+	instance := &haxe__ds__StringMap{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__io__Bytes() *haxe__io__Bytes {
+	instance := &haxe__io__Bytes{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__iterators__MapKeyValueIterator() *haxe__iterators__MapKeyValueIterator {
+	instance := &haxe__iterators__MapKeyValueIterator{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__iterators__StringIterator() *haxe__iterators__StringIterator {
+	instance := &haxe__iterators__StringIterator{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__iterators__StringKeyValueIterator() *haxe__iterators__StringKeyValueIterator {
+	instance := &haxe__iterators__StringKeyValueIterator{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__xml__Printer() *haxe__xml__Printer {
+	instance := &haxe__xml__Printer{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__xml__XmlParserException() *haxe__xml__XmlParserException {
+	instance := &haxe__xml__XmlParserException{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__zip__Compress() *haxe__zip__Compress {
+	instance := &haxe__zip__Compress{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__zip__Uncompress() *haxe__zip__Uncompress {
+	instance := &haxe__zip__Uncompress{}
+	instance.__hx_this = instance
+	return instance
+}
+
 type ValueType struct {
 	tag    int
 	params []any
@@ -270,29 +342,29 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
 	case "StringBuf":
-		return &StringBuf{}, true
+		return hxrt_typeCreateEmpty__StringBuf(), true
 	case "Xml":
-		return &Xml{}, true
+		return hxrt_typeCreateEmpty__Xml(), true
 	case "haxe._Int64.___Int64":
-		return &haxe___Int64_____Int64{}, true
+		return hxrt_typeCreateEmpty__haxe___Int64_____Int64(), true
 	case "haxe.ds.StringMap":
-		return &haxe__ds__StringMap{}, true
+		return hxrt_typeCreateEmpty__haxe__ds__StringMap(), true
 	case "haxe.io.Bytes":
-		return &haxe__io__Bytes{}, true
+		return hxrt_typeCreateEmpty__haxe__io__Bytes(), true
 	case "haxe.iterators.MapKeyValueIterator":
-		return &haxe__iterators__MapKeyValueIterator{}, true
+		return hxrt_typeCreateEmpty__haxe__iterators__MapKeyValueIterator(), true
 	case "haxe.iterators.StringIterator":
-		return &haxe__iterators__StringIterator{}, true
+		return hxrt_typeCreateEmpty__haxe__iterators__StringIterator(), true
 	case "haxe.iterators.StringKeyValueIterator":
-		return &haxe__iterators__StringKeyValueIterator{}, true
+		return hxrt_typeCreateEmpty__haxe__iterators__StringKeyValueIterator(), true
 	case "haxe.xml.Printer":
-		return &haxe__xml__Printer{}, true
+		return hxrt_typeCreateEmpty__haxe__xml__Printer(), true
 	case "haxe.xml.XmlParserException":
-		return &haxe__xml__XmlParserException{}, true
+		return hxrt_typeCreateEmpty__haxe__xml__XmlParserException(), true
 	case "haxe.zip.Compress":
-		return &haxe__zip__Compress{}, true
+		return hxrt_typeCreateEmpty__haxe__zip__Compress(), true
 	case "haxe.zip.Uncompress":
-		return &haxe__zip__Uncompress{}, true
+		return hxrt_typeCreateEmpty__haxe__zip__Uncompress(), true
 	default:
 		return nil, false
 	}

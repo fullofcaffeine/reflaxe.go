@@ -19,6 +19,7 @@
     },
     "migrationBeads": {
       "upstream_std_override": [
+        "haxe_go-vfp.10.5.1",
         "haxe_go-vfp.5.3",
         "haxe_go-vfp.8.7.10",
         "haxe_go-vfp.8.7.11",
@@ -46,6 +47,7 @@
         "haxe_go-vfp.8.7.15.6"
       ],
       "hxrt_binding": [
+        "haxe_go-vfp.10.5.1",
         "haxe_go-vfp.5.4",
         "haxe_go-vfp.8.3.8",
         "haxe_go-vfp.8.7.10",
@@ -567,15 +569,6 @@
       "notes": "Canonical staged StringInput override composed from staged BytesInput and Bytes."
     },
     {
-      "path": "std/haxe/GoSerializationBridge.hx",
-      "provenanceKind": "repo_authored_override",
-      "ownershipClass": "staged_support",
-      "destination": "std/haxe/GoSerializationBridge.hx",
-      "migrationBead": "haxe_go-vfp.8.7.13",
-      "compilerShimGroups": [],
-      "notes": "Ordinary staged declaration of the exact same-package custom-hook and structural-resolver invocation bridge. It contains no token policy, traversal, metadata table, or runtime reflection behavior."
-    },
-    {
       "path": "std/reflaxe/go/internal/CompilerReflect.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "staged_support",
@@ -967,18 +960,18 @@
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/Serializer.hx",
-      "migrationBead": "haxe_go-vfp.8.7.13",
+      "migrationBead": "haxe_go-vfp.10.5.1",
       "compilerShimGroups": [],
-      "notes": "Canonical staged Haxe 4.3.7 serializer token stream, caches, traversal, collection handling, and custom-hook policy over narrow field-snapshot and same-package invocation boundaries."
+      "notes": "Canonical staged Haxe 4.3.7 serializer token stream, caches, traversal, collection handling, and custom-hook policy. Field enumeration, reads, and hook invocation reuse staged Reflect over typed same-package generated metadata; no serializer-specific bridge or unsafe runtime field access remains."
     },
     {
       "path": "std/go/_std/haxe/Unserializer.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "upstream_std_override",
       "destination": "std/go/_std/haxe/Unserializer.hx",
-      "migrationBead": "haxe_go-vfp.8.7.13",
+      "migrationBead": "haxe_go-vfp.10.5.1",
       "compilerShimGroups": [],
-      "notes": "Canonical staged Haxe 4.3.7 unserializer parser, resolver policy, cache ordering, token construction, and custom-hook dispatch over existing Type metadata plus narrow field-assignment and same-package invocation boundaries."
+      "notes": "Canonical staged Haxe 4.3.7 unserializer parser, resolver policy, cache ordering, token construction, and custom-hook dispatch. Assignment and calls reuse staged Reflect; Type metadata constructs empty instances with typed inherited carriers and valid virtual-dispatch self bindings."
     },
     {
       "path": "std/go/_std/haxe/Utf8.hx",
@@ -1597,18 +1590,9 @@
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/serialization/NativeSerialization.hx",
-      "migrationBead": "haxe_go-vfp.8.7.13",
+      "migrationBead": "haxe_go-vfp.10.5.1",
       "compilerShimGroups": [],
-      "notes": "Typed extern bridge to the narrow runtime field snapshot, reflected assignment, hidden-self repair, and bounded float parsing capabilities required by staged serialization."
-    },
-    {
-      "path": "std/hxrt/serialization/SerializationField.hx",
-      "provenanceKind": "repo_authored_override",
-      "ownershipClass": "hxrt_binding",
-      "destination": "std/hxrt/serialization/SerializationField.hx",
-      "migrationBead": "haxe_go-vfp.8.7.13",
-      "compilerShimGroups": [],
-      "notes": "Typed name/value carrier for one generated instance-field snapshot, keeping runtime reflection output explicit and deterministically ordered."
+      "notes": "Typed extern bridge only to bounded host float parsing. Generated field access and hidden-self initialization moved to existing typed same-package metadata under haxe_go-vfp.10.5.1."
     },
     {
       "path": "std/hxrt/ssl/CertificateHandle.hx",

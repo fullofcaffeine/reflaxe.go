@@ -47,10 +47,6 @@ SOURCE_SPECIAL_DESTINATIONS = {
     "std/go/Fmt.hx": ("public_go_facade", "std/go/Fmt.hx"),
     "std/go/Http.hx": ("public_go_facade", "std/go/Http.hx"),
     "std/go/Time.hx": ("public_go_facade", "std/go/Time.hx"),
-    "std/haxe/GoSerializationBridge.hx": (
-        "staged_support",
-        "std/haxe/GoSerializationBridge.hx",
-    ),
     "std/reflaxe/go/internal/CompilerReflect.hx": (
         "staged_support",
         "std/reflaxe/go/internal/CompilerReflect.hx",
@@ -263,10 +259,6 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/serialization/NativeSerialization.hx",
     ),
-    "std/hxrt/serialization/SerializationField.hx": (
-        "hxrt_binding",
-        "std/hxrt/serialization/SerializationField.hx",
-    ),
     "std/hxrt/net/NativeSocket.hx": (
         "hxrt_binding",
         "std/hxrt/net/NativeSocket.hx",
@@ -432,32 +424,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
 
         groups = {entry["group"]: entry for entry in registry["groups"]}
         self.assertNotIn("stdlib_symbols", groups)
-        serialization_group = groups["serialization_source_bridge"]
-        self.assertEqual("approved_intrinsic", serialization_group["status"])
-        self.assertEqual(
-            "lowerSerializationSourceBridgeShimDecls",
-            serialization_group["entryPoint"],
-        )
-        self.assertEqual(
-            ["haxe.Serializer", "haxe.Unserializer"],
-            serialization_group["plannerSelections"],
-        )
-        self.assertEqual(
-            [
-                {
-                    "symbol": "haxe.GoSerializationBridge",
-                    "scope": "partial_type",
-                    "members": [
-                        "callSerializeHook",
-                        "callUnserializeHook",
-                        "hasSerializeHook",
-                        "resolveClass",
-                        "resolveEnum",
-                    ],
-                }
-            ],
-            serialization_group["ownedSymbols"],
-        )
+        self.assertNotIn("serialization_source_bridge", groups)
         self.assertNotIn("migration_stdlib_symbols", registry["decisions"])
 
         self.assertFalse(
@@ -2034,12 +2001,12 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         )
         ledger_entries = {entry["path"]: entry for entry in load_ledger()["entries"]}
 
-        staged_paths = (
-            "std/go/_std/EReg.hx",
-            "std/go/_std/haxe/Serializer.hx",
-            "std/go/_std/haxe/Unserializer.hx",
-        )
-        for staged_path in staged_paths:
+        staged_paths = {
+            "std/go/_std/EReg.hx": "haxe_go-vfp.8.7.13",
+            "std/go/_std/haxe/Serializer.hx": "haxe_go-vfp.10.5.1",
+            "std/go/_std/haxe/Unserializer.hx": "haxe_go-vfp.10.5.1",
+        }
+        for staged_path, migration_bead in staged_paths.items():
             source = (ROOT / staged_path).read_text(encoding="utf-8")
             self.assertNotIn("extern class", source, staged_path)
             self.assertNotIn("__go__", source, staged_path)
@@ -2049,32 +2016,21 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             entry = ledger_entries.get(staged_path)
             self.assertIsNotNone(entry, staged_path)
             self.assertEqual("upstream_std_override", entry.get("ownershipClass"))
-            self.assertEqual("haxe_go-vfp.8.7.13", entry.get("migrationBead"))
+            self.assertEqual(migration_bead, entry.get("migrationBead"))
             self.assertEqual([], entry.get("compilerShimGroups"))
 
-        support_path = "std/haxe/GoSerializationBridge.hx"
-        support_source = (ROOT / support_path).read_text(encoding="utf-8")
-        support_entry = ledger_entries.get(support_path)
-        self.assertIsNotNone(support_entry, support_path)
-        self.assertEqual("staged_support", support_entry.get("ownershipClass"))
-        self.assertEqual("haxe_go-vfp.8.7.13", support_entry.get("migrationBead"))
-        self.assertEqual([], support_entry.get("compilerShimGroups"))
-        for heading in ("What:", "Why:", "How:"):
-            self.assertIn(heading, support_source, support_path)
-
-        runtime_bindings = (
-            "std/hxrt/regex/NativeRegex.hx",
-            "std/hxrt/regex/RegexHandle.hx",
-            "std/hxrt/regex/RegexMatch.hx",
-            "std/hxrt/serialization/NativeSerialization.hx",
-            "std/hxrt/serialization/SerializationField.hx",
-        )
-        for binding_path in runtime_bindings:
+        runtime_bindings = {
+            "std/hxrt/regex/NativeRegex.hx": "haxe_go-vfp.8.7.13",
+            "std/hxrt/regex/RegexHandle.hx": "haxe_go-vfp.8.7.13",
+            "std/hxrt/regex/RegexMatch.hx": "haxe_go-vfp.8.7.13",
+            "std/hxrt/serialization/NativeSerialization.hx": "haxe_go-vfp.10.5.1",
+        }
+        for binding_path, migration_bead in runtime_bindings.items():
             binding_source = (ROOT / binding_path).read_text(encoding="utf-8")
             binding_entry = ledger_entries.get(binding_path)
             self.assertIsNotNone(binding_entry, binding_path)
             self.assertEqual("hxrt_binding", binding_entry.get("ownershipClass"))
-            self.assertEqual("haxe_go-vfp.8.7.13", binding_entry.get("migrationBead"))
+            self.assertEqual(migration_bead, binding_entry.get("migrationBead"))
             self.assertEqual([], binding_entry.get("compilerShimGroups"))
             for heading in ("What:", "Why:", "How:"):
                 self.assertIn(heading, binding_source, binding_path)
@@ -2091,7 +2047,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             self.assertNotIn(fragment, compiler + planner, fragment)
         self.assertNotIn('groups: ["regex_serializer"]', classifier)
         self.assertNotIn('"EReg"', ownership)
-        self.assertIn("lowerSerializationSourceBridgeShimDecls", compiler)
+        self.assertNotIn("lowerSerializationSourceBridgeShimDecls", compiler)
 
         for source_path in ("EReg", "haxe.Serializer", "haxe.Unserializer"):
             self.assertIn(f'case "{source_path}"', planner)
@@ -2101,17 +2057,14 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "source-owned regex must not retain a compiler shim group",
         )
         self.assertNotIn("migration_regex_serializer", registry["decisions"])
-        self.assertIn("approved_serialization_source_bridge", registry["decisions"])
-        groups = {group["group"]: group for group in registry["groups"]}
-        serialization_group = groups["serialization_source_bridge"]
-        self.assertEqual(
-            "lowerSerializationSourceBridgeShimDecls",
-            serialization_group["entryPoint"],
+        self.assertNotIn(
+            "approved_serialization_source_bridge", registry["decisions"]
         )
-        self.assertEqual("approved_intrinsic", serialization_group["status"])
-        self.assertEqual(
-            "approved_serialization_source_bridge",
-            serialization_group["decisionId"],
+        self.assertFalse(
+            any(
+                group.get("group") == "serialization_source_bridge"
+                for group in registry["groups"]
+            )
         )
 
         self.assertIn('var HxrtRegex = "regex";', feature_analyzer)
@@ -2135,6 +2088,86 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertFalse((regex_runtime / "serialization.go").exists())
         self.assertTrue((serialization_runtime / "serialization.go").is_file())
         self.assertFalse((serialization_runtime / "regex.go").exists())
+
+    def test_serializer_uses_typed_generated_accessors_without_unsafe_or_a_private_bridge(
+        self,
+    ) -> None:
+        """Serialization should reuse Reflect/Type metadata instead of special access."""
+        serializer = (ROOT / "std/go/_std/haxe/Serializer.hx").read_text(
+            encoding="utf-8"
+        )
+        unserializer = (ROOT / "std/go/_std/haxe/Unserializer.hx").read_text(
+            encoding="utf-8"
+        )
+        runtime = (ROOT / "runtime/hxrt/serialization.go").read_text(
+            encoding="utf-8"
+        )
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(
+            encoding="utf-8"
+        )
+        registry = json.loads(
+            (ROOT / "docs/compiler-stdlib-intrinsics.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        ledger_paths = {entry["path"] for entry in load_ledger()["entries"]}
+        generated = (
+            ROOT
+            / "test/snapshot/core/runtime_hxrt_infer_serialization/intended/main.go"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("Reflect.fields(value)", serializer)
+        self.assertIn("Reflect.field(value, field)", serializer)
+        self.assertIn(
+            "Reflect.setField(target, cast key, unserialize())", unserializer
+        )
+        self.assertIn("Reflect.callMethod", serializer + unserializer)
+        self.assertNotIn("NativeSerialization.fields", serializer)
+        self.assertNotIn("NativeSerialization.setField", unserializer)
+        self.assertNotIn("NativeSerialization.bindSelf", unserializer)
+        self.assertNotIn("GoSerializationBridge", serializer + unserializer)
+
+        self.assertNotIn('"unsafe"', runtime)
+        self.assertNotIn("unsafe.Pointer", runtime)
+        self.assertNotIn("reflect.NewAt", runtime)
+        self.assertFalse((ROOT / "std/haxe/GoSerializationBridge.hx").exists())
+        self.assertFalse(
+            (
+                ROOT
+                / "src/reflaxe/go/compiler/emit/GoSerializationSourceBridgeEmitter.hx"
+            ).exists()
+        )
+        self.assertNotIn("lowerSerializationSourceBridgeShimDecls", compiler)
+
+        self.assertNotIn("approved_serialization_source_bridge", registry["decisions"])
+        self.assertFalse(
+            any(
+                group.get("group") == "serialization_source_bridge"
+                for group in registry["groups"]
+            )
+        )
+        self.assertNotIn("std/haxe/GoSerializationBridge.hx", ledger_paths)
+        self.assertNotIn(
+            "std/hxrt/serialization/SerializationField.hx", ledger_paths
+        )
+
+        empty_child = generated.split(
+            "func hxrt_typeCreateEmpty__SerializationSnapshotChild()", 1
+        )[1].split("\n}\n", 1)[0]
+        self.assertIn(
+            "instance.SerializationSnapshotBase = &SerializationSnapshotBase{}",
+            empty_child,
+        )
+        self.assertIn(
+            "instance.SerializationSnapshotBase.__hx_this = instance",
+            empty_child,
+        )
+        self.assertIn("instance.__hx_this = instance", empty_child)
+        self.assertIn(
+            'return hxrt.NewArray(hxrt.StringFromLiteral("baseValue"), '
+            'hxrt.StringFromLiteral("childValue"))',
+            generated,
+        )
 
     def test_base_haxe_io_is_source_owned_instead_of_a_compiler_shim(self) -> None:
         """Public byte and stream policy must compile from canonical Haxe source."""

@@ -1040,9 +1040,9 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	case *ConcreteIterable:
 		return hxrt.NewArray(hxrt.StringFromLiteral("values"))
 	case *ConcreteIterator:
-		return hxrt.NewArray(hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("values"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("values"), hxrt.StringFromLiteral("index"))
 	case *EReg:
-		return hxrt.NewArray(hxrt.StringFromLiteral("global"), hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("lastMatch"), hxrt.StringFromLiteral("lastSource"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("handle"), hxrt.StringFromLiteral("global"), hxrt.StringFromLiteral("lastSource"), hxrt.StringFromLiteral("lastMatch"))
 	case *MethodBase:
 		return hxrt.NewArray(hxrt.StringFromLiteral("total"))
 	case *MethodLeaf:
@@ -1050,17 +1050,17 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	case *MethodMiddle:
 		return hxrt.NewArray(hxrt.StringFromLiteral("total"))
 	case *SpecializedIterator:
-		return hxrt.NewArray(hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("values"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("values"), hxrt.StringFromLiteral("index"))
 	case *haxe__Template:
-		return hxrt.NewArray(hxrt.StringFromLiteral("context"), hxrt.StringFromLiteral("expr"), hxrt.StringFromLiteral("macros"), hxrt.StringFromLiteral("output"), hxrt.StringFromLiteral("stack"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("expr"), hxrt.StringFromLiteral("context"), hxrt.StringFromLiteral("macros"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("output"))
 	case *haxe___Int64_____Int64:
 		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
 	case *haxe___Template__ExprCursor:
-		return hxrt.NewArray(hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("tokens"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("tokens"), hxrt.StringFromLiteral("index"))
 	case *haxe___Template__TokenCursor:
-		return hxrt.NewArray(hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("tokens"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("tokens"), hxrt.StringFromLiteral("index"))
 	case *haxe__io__Bytes:
-		return hxrt.NewArray(hxrt.StringFromLiteral("__hx_dataExposed"), hxrt.StringFromLiteral("__hx_raw"), hxrt.StringFromLiteral("__hx_rawValid"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("length"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("__hx_raw"), hxrt.StringFromLiteral("__hx_rawValid"), hxrt.StringFromLiteral("__hx_dataExposed"))
 	case *haxe__iterators__StringIterator:
 		return hxrt.NewArray(hxrt.StringFromLiteral("offset"), hxrt.StringFromLiteral("s"))
 	case *haxe__iterators__StringKeyValueIterator:

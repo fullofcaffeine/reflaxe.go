@@ -91,14 +91,12 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("haxe.ds.StringMap");
 				requireSourceOwnedStdlibClass("haxe.ds.IntMap");
 				requireSourceOwnedStdlibClass("haxe.ds.ObjectMap");
-				requireStdlibShimGroup("serialization_source_bridge");
 			case "haxe.Unserializer":
 				requireSourceOwnedStdlibClass("haxe.Unserializer");
 				requireSourceOwnedStdlibModule("haxe.ds.List");
 				requireSourceOwnedStdlibClass("haxe.ds.StringMap");
 				requireSourceOwnedStdlibClass("haxe.ds.IntMap");
 				requireSourceOwnedStdlibClass("haxe.ds.ObjectMap");
-				requireStdlibShimGroup("serialization_source_bridge");
 			case "Sys":
 				requireSourceOwnedStdlibClass("Sys");
 			case "StringTools":

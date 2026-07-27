@@ -29,7 +29,6 @@ import reflaxe.go.compiler.emit.GoGeneratedMethodMetadataEmitter;
 import reflaxe.go.compiler.emit.GoReflectMetadataEmitter;
 import reflaxe.go.compiler.emit.GoTypeReflectionEmitter;
 import reflaxe.go.compiler.emit.GoRttiMetadataEmitter;
-import reflaxe.go.compiler.emit.GoSerializationSourceBridgeEmitter;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoFile;
@@ -122,6 +121,7 @@ private typedef TypeReflectionClassMetadata = {
 	final constructorSymbol:String;
 	final constructible:Bool;
 	final superHaxeTypeName:Null<String>;
+	final emptyInstanceCarrierGoTypeNames:Array<String>;
 	final staticFieldNames:Array<String>;
 	final instanceFieldNames:Array<String>;
 }
@@ -1379,9 +1379,10 @@ class GoCompiler {
 		reflection, and a Dynamic setter still needs a checked assignment to the exact
 		generated storage type.
 
-		How: Capture only own stored variables and dynamic-method slots. The final
-		metadata pass retains the same canonical-receiver and superclass topology used
-		by generated method lookup.
+		How: Capture only own stored variables and dynamic-method slots in the typer's
+		source declaration order. The final metadata pass retains that order for
+		enumeration, sorts only the semantically unordered lookup switches, and uses the
+		same canonical-receiver and superclass topology as generated method lookup.
 	**/
 	function recordGeneratedFieldMetadata(classType:ClassType, goTypeName:String, superClass:Null<ClassType>):Void {
 		var ownFields = new Array<{
@@ -1406,10 +1407,6 @@ class GoCompiler {
 				case _:
 			}
 		}
-		ownFields.sort(function(a, b) {
-			var byKey = Reflect.compare(a.lookupKey, b.lookupKey);
-			return byKey == 0 ? Reflect.compare(a.selector, b.selector) : byKey;
-		});
 		var className = fullClassName(classType);
 		generatedFieldMetadataByClassName.set(className, {
 			className: className,
@@ -1577,9 +1574,9 @@ class GoCompiler {
 		superclass upcast, while cross-package Go reflection cannot enumerate lowercase
 		generated members and would expose embedded Go carrier fields instead.
 
-		How: Walk the generated superclass chain root-first, deduplicate Haxe lookup
-		keys, and sort the result for deterministic output. Accessor-only properties were
-		already removed when each seed was recorded.
+		How: Walk the generated superclass chain root-first and append each declaration
+		once in source order. This matches Haxe's serialized field order while remaining
+		deterministic; accessor-only properties were removed when each seed was recorded.
 	**/
 	function allGeneratedFieldNames(seed:GeneratedFieldMetadataSeed):Array<String> {
 		var chain = new Array<GeneratedFieldMetadataSeed>();
@@ -1590,15 +1587,17 @@ class GoCompiler {
 			chain.unshift(current);
 			current = current.parentClassName == null ? null : generatedFieldMetadataByClassName.get(current.parentClassName);
 		}
-		var names = new Map<String, Bool>();
+		var seenNames = new Map<String, Bool>();
+		var names = new Array<String>();
 		for (entry in chain) {
 			for (field in entry.ownFields) {
-				names.set(field.lookupKey, true);
+				if (!seenNames.exists(field.lookupKey)) {
+					seenNames.set(field.lookupKey, true);
+					names.push(field.lookupKey);
+				}
 			}
 		}
-		var sorted = [for (name in names.keys()) name];
-		sorted.sort(Reflect.compare);
-		return sorted;
+		return names;
 	}
 
 	/**
@@ -1622,12 +1621,17 @@ class GoCompiler {
 			if (parentSeed != null && !relevantClassNames.exists(parentSeed.className)) {
 				parentSeed = null;
 			}
+			var lookupFields = seed.ownFields.copy();
+			lookupFields.sort(function(a, b) {
+				var byKey = Reflect.compare(a.lookupKey, b.lookupKey);
+				return byKey == 0 ? Reflect.compare(a.selector, b.selector) : byKey;
+			});
 			entries.push({
 				goTypeName: seed.goTypeName,
 				parentGoTypeName: parentSeed == null ? null : parentSeed.goTypeName,
 				participatesInLookup: relevantClassNames.exists(seed.className),
 				allFields: allGeneratedFieldNames(seed),
-				ownFields: seed.ownFields.copy()
+				ownFields: lookupFields
 			});
 		}
 		return entries;
@@ -1679,6 +1683,29 @@ class GoCompiler {
 		return out;
 	}
 
+	/**
+		What: Record the generated superclass carriers that a constructor-free
+		instance must allocate.
+
+		Why: `Type.createEmptyInstance` intentionally skips user constructors, but
+		embedded superclass pointers and every carrier's `__hx_this` still belong to
+		the generated object representation. Leaving them nil loses inherited fields
+		and virtual dispatch after unserialization.
+
+		How: Follow the same generated-only superclass projection used by ordinary
+		class lowering and record the direct-to-root Go carrier names. The Type
+		metadata emitter turns this data into typed allocations and self assignments.
+	**/
+	function emptyInstanceCarrierGoTypeNames(classType:ClassType):Array<String> {
+		var out = new Array<String>();
+		var current = projectSuperClass(classType);
+		while (current != null) {
+			out.push(classTypeName(current));
+			current = projectSuperClass(current);
+		}
+		return out;
+	}
+
 	function typeReflectionClassMetadata():Array<TypeReflectionClassMetadata> {
 		var entries = new Array<TypeReflectionClassMetadata>();
 		for (classType in projectClasses) {
@@ -1701,6 +1728,7 @@ class GoCompiler {
 				constructorSymbol: constructible ? constructorSymbol(classType) : "",
 				constructible: constructible,
 				superHaxeTypeName: superName,
+				emptyInstanceCarrierGoTypeNames: constructible ? emptyInstanceCarrierGoTypeNames(classType) : [],
 				staticFieldNames: collectClassStaticFieldNames(classType),
 				instanceFieldNames: constructible ? collectClassInstanceFieldNames(classType) : []
 			});
@@ -2087,9 +2115,6 @@ class GoCompiler {
 		}
 		if (requiredStdlibShimGroups.exists("reflect_metadata")) {
 			decls = decls.concat(lowerReflectMetadataShimDecls());
-		}
-		if (requiredStdlibShimGroups.exists("serialization_source_bridge")) {
-			decls = decls.concat(lowerSerializationSourceBridgeShimDecls());
 		}
 		if (requiredStdlibShimGroups.exists("go_concurrency")) {
 			decls = decls.concat(lowerGoConcurrencyShimDecls());
@@ -2675,11 +2700,6 @@ class GoCompiler {
 		decls = decls.concat(GoReflectMetadataEmitter.emit(requiresReflectTypeFieldMetadata, requiresGeneratedMethodLookup,
 			generatedMethodMetadataPlan.length > 0, requiresEnumValueAdapter, enumGoTypeNames));
 		return decls;
-	}
-
-	function lowerSerializationSourceBridgeShimDecls():Array<GoDecl> {
-		return GoSerializationSourceBridgeEmitter.emit(requiredSourceOwnedClassNames.exists("haxe.Serializer"),
-			requiredSourceOwnedClassNames.exists("haxe.Unserializer"));
 	}
 
 	function lowerClassDecls(classType:ClassType):Array<GoDecl> {

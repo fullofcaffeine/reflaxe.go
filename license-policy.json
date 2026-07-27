@@ -7,7 +7,7 @@
     "authority": "project-copyright-owner",
     "decisionDate": "2026-07-20",
     "decisionRecord": "beads:haxe_go-vfp.4.11#generated-output-license-approval-2026-07-20",
-    "scopeSha256": "5cf487cc50dd27cac6a533079d2ffaa0b235f1464f953bf277447e7c0a744c15"
+    "scopeSha256": "56e4dc13b3676562cd2ed6ac23f1706141a2098fdd67f408ceba026d84848c8a"
   },
   "shippedSourcePatterns": [
     "LICENSE",
@@ -42,7 +42,6 @@
         "license-policy.json",
         "src/**/*.hx",
         "std/go/*.hx",
-        "std/haxe/**/*.hx",
         "std/hxrt/**/*.hx",
         "std/reflaxe/go/internal/**/*.hx",
         "std/sys/**/*.hx"

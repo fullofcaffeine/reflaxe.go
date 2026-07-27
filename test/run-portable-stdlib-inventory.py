@@ -215,15 +215,16 @@ MODULE_NOTES_OVERRIDES = {
 	),
 	"haxe.Serializer": (
 		"Canonical staged Serializer owns the Haxe 4.3.7 wire tokens, caches, traversal, collections, "
-		"and custom-hook sequencing. Typed runtime support snapshots package-private fields, while the "
-		"registered same-package bridge only invokes exact hooks. Evidence: the serializer semantic-diff "
-		"suite and core/runtime_hxrt_infer_serialization."
+		"and custom-hook sequencing. Staged Reflect reuses shared typed same-package metadata for private and "
+		"inherited fields and hooks; no serializer-specific bridge or unsafe runtime access remains. Evidence: "
+		"serializer_typed_accessor_contract, the serializer semantic-diff suite, and core/runtime_hxrt_infer_serialization."
 	),
 	"haxe.Unserializer": (
 		"Canonical staged Unserializer owns parsing, cursor/cache order, resolver policy, construction "
-		"sequencing, and custom-hook dispatch. Existing Type metadata resolves and constructs classes/enums; "
-		"typed runtime support only assigns erased fields and repairs hidden self state. Evidence: the "
-		"serializer semantic-diff suite and core/runtime_hxrt_infer_serialization."
+		"sequencing, and custom-hook dispatch. Staged Reflect assigns generated fields and calls hooks; Type "
+		"metadata resolves classes/enums and creates inherited instances with valid virtual dispatch. Native "
+		"serialization support is limited to float parsing. Evidence: serializer_typed_accessor_contract, the "
+		"serializer semantic-diff suite, and core/runtime_hxrt_infer_serialization."
 	),
 	"UnicodeString": (
 		"Canonical staged UnicodeString owns code-point bounds, slicing, searching, comparison, "

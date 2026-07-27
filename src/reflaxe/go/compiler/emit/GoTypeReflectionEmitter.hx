@@ -33,6 +33,7 @@ class GoTypeReflectionEmitter {
 		final constructorSymbol:String;
 		final constructible:Bool;
 		final superHaxeTypeName:Null<String>;
+		final emptyInstanceCarrierGoTypeNames:Array<String>;
 		final staticFieldNames:Array<String>;
 		final instanceFieldNames:Array<String>;
 	}>, enumMetadata:Array<{
@@ -408,7 +409,7 @@ class GoTypeReflectionEmitter {
 				continue;
 			}
 			classCreateEmptyBody.push(GoStmt.GoRaw("case " + goRawQuotedString(entry.haxeTypeName) + ":"));
-			classCreateEmptyBody.push(GoStmt.GoRaw("\treturn &" + entry.goTypeName + "{}, true"));
+			classCreateEmptyBody.push(GoStmt.GoRaw("\treturn " + emptyInstanceHelperSymbol(entry.goTypeName) + "(), true"));
 		}
 		classCreateEmptyBody.push(GoStmt.GoRaw("default:"));
 		classCreateEmptyBody.push(GoStmt.GoRaw("\treturn nil, false"));
@@ -479,7 +480,13 @@ class GoTypeReflectionEmitter {
 			GoStmt.GoRaw("}")
 		];
 
-		return [
+		var emptyInstanceHelpers = [
+			for (entry in classMetadata)
+				if (entry.constructible
+					&& GoStdlibOwnership.canConstructEmptyTypeValue(entry.goTypeName)) emptyInstanceHelperDecl(entry.goTypeName,
+						entry.emptyInstanceCarrierGoTypeNames)
+		];
+		return emptyInstanceHelpers.concat([
 			GoDecl.GoStructDecl("ValueType", [{name: "tag", typeName: "int"}, {name: "params", typeName: "[]any"}]),
 			GoDecl.GoGlobalVarDecl("ValueType_TNull", "*ValueType", valueTypeLiteral(0, [])),
 			GoDecl.GoGlobalVarDecl("ValueType_TInt", "*ValueType", valueTypeLiteral(1, [])),
@@ -750,7 +757,43 @@ class GoTypeReflectionEmitter {
 			GoDecl.GoFuncDecl("Type_typeof", null, [{name: "v", typeName: "any"}], ["*ValueType"], typeOfBody),
 			GoDecl.GoFuncDecl("Type_enumEq", null, [{name: "a", typeName: "any"}, {name: "b", typeName: "any"}], ["bool"],
 				[GoStmt.GoReturn(GoExpr.GoRaw("reflect.DeepEqual(a, b)"))])
+		]);
+	}
+
+	/**
+		What: Construct one zero-valued generated class carrier with valid hidden
+		self links and an allocated generated superclass chain.
+
+		Why: Constructor-free Haxe instances must skip user initialization without
+		becoming malformed Go objects. In particular, inherited field access and
+		virtual calls must not depend on an unsafe post-allocation repair.
+
+		How: Allocate the concrete carrier and each compiler-projected superclass
+		carrier with typed composite literals, then bind every `__hx_this` slot to
+		the final concrete receiver.
+	**/
+	static function emptyInstanceHelperDecl(goTypeName:String, carrierGoTypeNames:Array<String>):GoDecl {
+		var instance = GoExpr.GoIdent("instance");
+		var body = [
+			GoStmt.GoVarDecl("instance", null, GoExpr.GoUnary(GoUnaryOperator.AddressOf, GoExpr.GoCompositeLiteral(GoType.named(goTypeName), [])), true)
 		];
+		var carriers = new Array<GoExpr>();
+		var carrier:GoExpr = instance;
+		for (carrierGoTypeName in carrierGoTypeNames) {
+			carrier = GoExpr.GoSelector(carrier, carrierGoTypeName);
+			body.push(GoStmt.GoAssign(carrier, GoExpr.GoUnary(GoUnaryOperator.AddressOf, GoExpr.GoCompositeLiteral(GoType.named(carrierGoTypeName), []))));
+			carriers.push(carrier);
+		}
+		for (current in carriers) {
+			body.push(GoStmt.GoAssign(GoExpr.GoSelector(current, "__hx_this"), instance));
+		}
+		body.push(GoStmt.GoAssign(GoExpr.GoSelector(instance, "__hx_this"), instance));
+		body.push(GoStmt.GoReturn(instance));
+		return GoDecl.GoFuncDecl(emptyInstanceHelperSymbol(goTypeName), null, [], [GoType.pointer(GoType.named(goTypeName))], body);
+	}
+
+	static function emptyInstanceHelperSymbol(goTypeName:String):String {
+		return "hxrt_typeCreateEmpty__" + goTypeName;
 	}
 
 	/**

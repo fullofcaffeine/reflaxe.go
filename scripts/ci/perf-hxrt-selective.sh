@@ -113,6 +113,25 @@ class Main {
 }
 EOF
       ;;
+    serialization)
+      cat > "$target/Main.hx" <<'EOF'
+class SerializationValue {
+  private var amount:Float;
+
+  public function new(amount:Float) {
+    this.amount = amount;
+  }
+}
+
+class Main {
+  static function main():Void {
+    var encoded = haxe.Serializer.run(new SerializationValue(3));
+    var decoded:SerializationValue = cast haxe.Unserializer.run(encoded);
+    Sys.println(decoded != null);
+  }
+}
+EOF
+      ;;
     sys_process)
       cat > "$target/Main.hx" <<'EOF'
 class Main {
@@ -238,6 +257,7 @@ printf "id\tcase\tprofile\tmode\truntime_file_count\truntime_source_bytes\tbinar
 declare -a case_specs=(
   "core:portable"
   "json:portable"
+  "serialization:portable"
   "sys_process:portable"
   "metal_go_native:metal"
 )

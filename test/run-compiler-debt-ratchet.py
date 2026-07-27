@@ -62,7 +62,6 @@ SHIM_CAPABILITIES = {
     "lowerReflectMetadataShimDecls": "reflect_metadata",
     "lowerTypeMetadataShimDecls": "type_metadata",
     "lowerGeneratedMethodMetadataShimDecls": "generated_method_metadata",
-    "lowerSerializationSourceBridgeShimDecls": "serialization_source_bridge",
 }
 
 
@@ -205,7 +204,7 @@ def source_capability(file: str) -> str:
     if file.endswith("/EReg.hx") or "/hxrt/regex/" in file or file.endswith("/regex.go"):
         return "regex"
     if (
-        file.endswith(("/Serializer.hx", "/Unserializer.hx", "/GoSerializationBridge.hx"))
+        file.endswith(("/Serializer.hx", "/Unserializer.hx"))
         or "/hxrt/serialization/" in file
         or file.endswith("/serialization.go")
     ):
@@ -239,8 +238,6 @@ def go_raw_dimensions(file: str, context: str) -> dict[str, str]:
                 "capability": shim_capability(context),
             }
         return {"owner": "compiler_core", "capability": "typed_lowering"}
-    if file.endswith("GoSerializationSourceBridgeEmitter.hx"):
-        return {"owner": "compiler_shim", "capability": "serialization_source_bridge"}
     if file.endswith("GoTypeReflectionEmitter.hx") or file.endswith("GoRttiMetadataEmitter.hx"):
         return {"owner": "compiler_shim", "capability": "reflection"}
     if file.endswith("GoLambdaIterableLowering.hx"):
@@ -305,9 +302,6 @@ def go_selector_dimensions(file: str, metric: str) -> dict[str, str]:
         is_admitted_terminal_boundary = (
             is_unsafe and file == "runtime/hxrt/terminal_posix.go"
         )
-        is_admitted_serialization_boundary = (
-            is_unsafe and file == "runtime/hxrt/serialization.go"
-        )
         return {
             "owner": "runtime_hxrt",
             "capability": source_capability(file),
@@ -315,13 +309,11 @@ def go_selector_dimensions(file: str, metric: str) -> dict[str, str]:
             "surface": "runtime",
             "classification": (
                 "required"
-                if is_admitted_terminal_boundary or is_admitted_serialization_boundary or not is_unsafe
+                if is_admitted_terminal_boundary or not is_unsafe
                 else "avoidable"
             ),
             "exception_id": (
-                "runtime_serialization_unsafe_boundary"
-                if is_admitted_serialization_boundary
-                else "runtime_unsafe_boundary"
+                "runtime_unsafe_boundary"
                 if is_unsafe
                 else "runtime_reflection_boundary"
             ),

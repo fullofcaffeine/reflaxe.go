@@ -2650,3 +2650,67 @@ Observed result:
 - Portable standard-library behavior is source-owned by upstream Haxe or
   `std/go/_std`; retained compiler capabilities are exact, reviewed exceptions
   rather than a global compatibility implementation.
+
+### 2026-07-27: retire serializer unsafe access and its private bridge (`haxe_go-vfp.10.5.1`)
+
+What changed:
+
+- Staged `haxe.Serializer` and `haxe.Unserializer` now use ordinary
+  `Reflect.fields`, `Reflect.field`, `Reflect.setField`, and
+  `Reflect.callMethod` for field traversal, custom hooks, and structural
+  resolver callbacks.
+- Those calls reuse the existing typed same-package generated field and method
+  metadata. No serializer-only field table, method registry, or compiler
+  adapter was added.
+- Generated field enumeration now preserves root-to-child source declaration
+  order, matching Haxe 4.3.7 wire bytes. Only the semantically unordered
+  get/has/set switch cases remain alphabetically sorted for stable output.
+- Constructor-free Type metadata now emits one typed empty-instance helper per
+  reachable constructible class. It allocates every embedded superclass
+  carrier and binds each hidden `__hx_this` to the final child instance, so
+  inherited virtual dispatch works before any constructor runs.
+- `runtime/hxrt/serialization.go` and `NativeSerialization` now own only bounded
+  host float parsing. The `reflect.NewAt` / `unsafe.Pointer` field lift,
+  `SerializationField` carrier, `GoSerializationBridge`, and its compiler
+  emitter and registry group are deleted.
+
+Why:
+
+- Go prevents a separate runtime package from reading or assigning unexported
+  generated fields. The former workaround was bounded and tested, but it still
+  used `unsafe` and duplicated a same-package invocation path.
+- Reflect already had the correct authority: generated code can safely access
+  its own private fields and methods through typed per-class switches. Reusing
+  that representation removes risk and debt without moving wire-format policy
+  into the compiler.
+- Empty allocation also had to initialize inherited carriers. Setting only the
+  top-level self pointer restored fields but caused inherited methods to
+  dispatch as the base class after deserialization.
+
+How it is proved:
+
+- `serializer_typed_accessor_contract` round-trips private fields across three
+  inheritance levels, preserves the Haxe 4.3.7 `@:transient` behavior, invokes
+  custom hooks, verifies child virtual dispatch after constructor-free
+  allocation, and assigns an integral wire token to a declared `Float` field
+  through an explicit typed conversion.
+- The existing serializer resolver, wire, cache/reference, class/enum, and
+  custom-hook semantic contracts continue to exercise the public format.
+- The selective-runtime performance harness includes a serialization-specific
+  class round trip, so `serialization.go` plus the shared safe `reflect.go`
+  dependency are visible in source-file and binary-size baselines.
+- The intrinsic registry, provenance ledger, generated snapshots, and
+  compiler-debt ratchet require the bridge, unsafe allowance, and deleted
+  support carriers to stay gone.
+
+Design boundary:
+
+- Token parsing, traversal, caches, resolver policy, and custom-hook sequencing
+  remain readable staged Haxe.
+- The compiler emits only closed-world representation facts already shared by
+  Reflect and Type. This is a narrow extension of the existing typed AST-first
+  pipeline, not evidence that the compiler needs a second universal IR.
+- Generated member discovery and access use typed metadata. Erased method
+  invocation still uses the existing shared `Reflect.callMethod` runtime
+  boundary; this migration removes the serializer-only bridge rather than
+  claiming reflection-free invocation.

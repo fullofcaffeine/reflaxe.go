@@ -256,6 +256,21 @@ abstract GoType(GoTypeKind) {
 		};
 	}
 
+	/**
+		What: Test whether this node is one exact predeclared Go type.
+
+		Why: Typed emitters sometimes need a representation-specific branch, and
+		comparing rendered type strings would discard the structural AST guarantee.
+
+		How: Match only the `Builtin` variant and compare its closed enum value.
+	**/
+	public function isBuiltin(value:GoBuiltinType):Bool {
+		return switch (this) {
+			case Builtin(current): current == value;
+			case _: false;
+		};
+	}
+
 	/** Traverse structural type nodes to discover use of an imported package. */
 	public function usesPackage(alias:String):Bool {
 		return switch (this) {

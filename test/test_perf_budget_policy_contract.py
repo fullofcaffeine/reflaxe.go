@@ -15,6 +15,9 @@ DOC_INDEX = REPO_ROOT / "docs" / "index.md"
 CI_HARNESS = REPO_ROOT / ".github" / "workflows" / "ci-harness.yml"
 GO_PERF_SCRIPT = REPO_ROOT / "scripts" / "ci" / "perf-go-profiles.sh"
 APP_PERF_SCRIPT = REPO_ROOT / "scripts" / "ci" / "perf-apps.sh"
+HXRT_SELECTIVE_SCRIPT = REPO_ROOT / "scripts" / "ci" / "perf-hxrt-selective.sh"
+HXRT_SELECTIVE_DOC = REPO_ROOT / "docs" / "hxrt-selective-runtime.md"
+HXRT_SELECTIVE_BASELINE = REPO_ROOT / "scripts" / "ci" / "perf" / "hxrt-selective-baseline.json"
 
 
 class PerfBudgetPolicyContractTest(unittest.TestCase):
@@ -89,6 +92,17 @@ class PerfBudgetPolicyContractTest(unittest.TestCase):
         self.assertIn("FluxProxy", triage)
         self.assertIn("multi-run startup variance", triage)
         self.assertIn("haxe.go-nhh2.4", triage)
+
+    def test_selective_runtime_budget_measures_serialization_reflection_cost(self) -> None:
+        script = HXRT_SELECTIVE_SCRIPT.read_text(encoding="utf-8")
+        documentation = HXRT_SELECTIVE_DOC.read_text(encoding="utf-8")
+        baseline = HXRT_SELECTIVE_BASELINE.read_text(encoding="utf-8")
+
+        self.assertIn("serialization:portable", script)
+        self.assertIn("haxe.Serializer.run", script)
+        self.assertIn('"case": "serialization"', baseline)
+        self.assertIn("runtime/hxrt/reflect.go", documentation)
+        self.assertIn("serialization-specific footprint case", documentation)
 
 
 if __name__ == "__main__":

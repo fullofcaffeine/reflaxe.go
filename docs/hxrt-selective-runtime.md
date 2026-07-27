@@ -103,12 +103,19 @@ depends on both `socket` and `ssl` and additionally copies
 `runtime/hxrt/regex.go` plus its string/exception dependencies. `haxe.Serializer`,
 `haxe.Unserializer`, and typed `hxrt.serialization` bindings infer
 `serialization`, which copies `runtime/hxrt/serialization.go` plus string and
-equality support. The two capabilities do not depend on one another:
+equality support. Their staged `Reflect` calls also select the shared,
+memory-safe `runtime/hxrt/reflect.go` helper. That helper provides the dynamic
+object and anonymous-structure fallback; generated class fields and methods
+still use compiler-emitted typed metadata. The two capabilities do not depend on
+one another:
 `core/runtime_hxrt_infer_regex` and
 `core/runtime_hxrt_infer_serialization` lock both positive and negative file
 sets. Both native capability files remain footprint-explicit in broad full-copy
 mode unless typed use, manual feature selection, or disabled inference requests
-them; that keeps RE2/reflection/unsafe support out of unrelated programs.
+them; that keeps RE2 and serialization float-parsing support out of unrelated
+programs. Generated private-field access for serialization reuses the ordinary
+typed Reflect metadata already selected by the staged calls; it does not add an
+unsafe runtime slice.
 - `reflaxe_go_hxrt_no_feature_infer`
   - Enables selective runtime mode and disables inference (use core + manual only).
 
@@ -149,6 +156,10 @@ Artifacts:
 - `.cache/perf-hxrt-selective/results/comparison.json`
 - `.cache/perf-hxrt-selective/results/summary.md`
 - `scripts/ci/perf/hxrt-selective-baseline.json`
+
+The harness includes a serialization-specific footprint case. It compiles and
+links a private-field class round trip, so both the small float parser and the
+shared Reflect helper are counted in source-file and binary-size budgets.
 
 Interpretation:
 

@@ -910,19 +910,19 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	case *haxe__ds__List:
 		return hxrt.NewArray(hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("length"))
 	case *haxe__ds___List__GoListIterator:
-		return hxrt.NewArray(hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("index"))
 	case *haxe__ds___List__GoListKeyValueIterator:
-		return hxrt.NewArray(hxrt.StringFromLiteral("index"), hxrt.StringFromLiteral("items"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("items"), hxrt.StringFromLiteral("index"))
 	case *sys__thread__Deque:
-		return hxrt.NewArray(hxrt.StringFromLiteral("__available"), hxrt.StringFromLiteral("__items"), hxrt.StringFromLiteral("__mutex"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("__mutex"), hxrt.StringFromLiteral("__available"), hxrt.StringFromLiteral("__items"))
 	case *sys__thread__ElasticThreadPool:
-		return hxrt.NewArray(hxrt.StringFromLiteral("_isShutdown"), hxrt.StringFromLiteral("available"), hxrt.StringFromLiteral("liveWorkers"), hxrt.StringFromLiteral("maxThreadsCount"), hxrt.StringFromLiteral("mutex"), hxrt.StringFromLiteral("pendingTasks"), hxrt.StringFromLiteral("pool"), hxrt.StringFromLiteral("queue"), hxrt.StringFromLiteral("threadTimeout"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("maxThreadsCount"), hxrt.StringFromLiteral("_isShutdown"), hxrt.StringFromLiteral("liveWorkers"), hxrt.StringFromLiteral("pendingTasks"), hxrt.StringFromLiteral("pool"), hxrt.StringFromLiteral("queue"), hxrt.StringFromLiteral("available"), hxrt.StringFromLiteral("mutex"), hxrt.StringFromLiteral("threadTimeout"))
 	case *sys__thread__ElasticThreadPoolWorker:
-		return hxrt.NewArray(hxrt.StringFromLiteral("available"), hxrt.StringFromLiteral("dead"), hxrt.StringFromLiteral("owner"), hxrt.StringFromLiteral("task"), hxrt.StringFromLiteral("timeout"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("task"), hxrt.StringFromLiteral("dead"), hxrt.StringFromLiteral("owner"), hxrt.StringFromLiteral("available"), hxrt.StringFromLiteral("timeout"))
 	case *sys__thread__EventLoop:
 		return hxrt.NewArray(hxrt.StringFromLiteral("__h"))
 	case *sys__thread__FixedThreadPool:
-		return hxrt.NewArray(hxrt.StringFromLiteral("_isShutdown"), hxrt.StringFromLiteral("mutex"), hxrt.StringFromLiteral("pool"), hxrt.StringFromLiteral("queue"))
+		return hxrt.NewArray(hxrt.StringFromLiteral("_isShutdown"), hxrt.StringFromLiteral("pool"), hxrt.StringFromLiteral("queue"), hxrt.StringFromLiteral("mutex"))
 	case *sys__thread__FixedThreadPoolShutdownException:
 		return hxrt.NewArray()
 	case *sys__thread__FixedThreadPoolWorker:
@@ -1437,6 +1437,9 @@ func hxrt__generated_field_set__sys__thread__ElasticThreadPool(value *sys__threa
 		case float64:
 			value.threadTimeout = typed
 			return true
+		case int:
+			value.threadTimeout = float64(typed)
+			return true
 		default:
 			return false
 		}
@@ -1548,6 +1551,9 @@ func hxrt__generated_field_set__sys__thread__ElasticThreadPoolWorker(value *sys_
 		switch typed := incoming.(type) {
 		case float64:
 			value.timeout = typed
+			return true
+		case int:
+			value.timeout = float64(typed)
 			return true
 		default:
 			return false

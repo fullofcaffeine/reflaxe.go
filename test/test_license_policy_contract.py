@@ -155,6 +155,12 @@ class LicensePolicyContractTest(unittest.TestCase):
             },
             {component["id"] for component in policy["components"]},
         )
+        compiler_component = next(
+            component
+            for component in policy["components"]
+            if component["id"] == "reflaxe-go-compiler-and-library"
+        )
+        self.assertNotIn("std/haxe/**/*.hx", compiler_component["sourcePatterns"])
         self.assertEqual(
             {
                 "compiler-emitted-framework-support",
