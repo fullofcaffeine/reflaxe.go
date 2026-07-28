@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 3,
+	"schemaVersion": 4,
 	"contract": "portable",
 	"policyPreset": "portable_default",
 	"semanticBoundarySource": "typed_api_or_module",
@@ -7,6 +7,7 @@
 	"selectiveEnabled": true,
 	"fullCopy": false,
 	"inferenceDisabled": false,
+	"manifestAuthority": "typed_usage_plus_surface_plan_runtime_manifest",
 	"manualFeatures": [
 	],
 	"inferredFeatures": [
@@ -18,12 +19,12 @@
 		"string"
 	],
 	"selectedFeatures": [
-		"array",
 		"core",
-		"exception",
+		"array",
+		"string",
 		"print",
-		"stack",
-		"string"
+		"exception",
+		"stack"
 	],
 	"files": [
 		"array.go",
@@ -33,6 +34,102 @@
 		"print.go",
 		"stack.go",
 		"string.go"
+	],
+	"capabilities": [
+		{
+			"id": "core",
+			"files": [
+				"core.go",
+				"hxrt.go"
+			],
+			"reasons": [
+				{
+					"feature": "core",
+					"sourceKind": "baseline",
+					"source": "compiler_baseline"
+				}
+			]
+		},
+		{
+			"id": "array",
+			"files": [
+				"array.go"
+			],
+			"reasons": [
+				{
+					"feature": "array",
+					"sourceKind": "surface_plan",
+					"source": "go_build_context_plus_typed_registry_decision"
+				}
+			]
+		},
+		{
+			"id": "string",
+			"files": [
+				"string.go"
+			],
+			"reasons": [
+				{
+					"feature": "string",
+					"sourceKind": "baseline",
+					"source": "compiler_baseline"
+				},
+				{
+					"feature": "string",
+					"sourceKind": "surface_plan",
+					"source": "go_build_context_plus_typed_registry_decision"
+				}
+			]
+		},
+		{
+			"id": "print",
+			"files": [
+				"print.go"
+			],
+			"reasons": [
+				{
+					"feature": "print",
+					"sourceKind": "baseline",
+					"source": "compiler_baseline"
+				}
+			]
+		},
+		{
+			"id": "exception",
+			"files": [
+				"exception.go"
+			],
+			"reasons": [
+				{
+					"feature": "exception",
+					"sourceKind": "baseline",
+					"source": "compiler_baseline"
+				}
+			]
+		},
+		{
+			"id": "stack",
+			"files": [
+				"stack.go"
+			],
+			"reasons": [
+				{
+					"feature": "stack",
+					"sourceKind": "class_usage",
+					"source": "hxrt.stack.NativeStack"
+				},
+				{
+					"feature": "stack",
+					"sourceKind": "class_usage",
+					"source": "hxrt.stack.NativeStackFrame"
+				},
+				{
+					"feature": "stack",
+					"sourceKind": "define",
+					"source": "reflaxe_go_native_stack_trace"
+				}
+			]
+		}
 	],
 	"surfacePlanAuthority": "go_build_context_plus_typed_registry_decision",
 	"surfacePlanDecisionCount": 14,
@@ -65,7 +162,9 @@
 			],
 			"runtimeRequirements": [
 				"array"
-			]
+			],
+			"noHxrtStatus": "conditional",
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -89,7 +188,9 @@
 			],
 			"runtimeRequirements": [
 				"array"
-			]
+			],
+			"noHxrtStatus": "conditional",
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -112,7 +213,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -135,7 +238,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -158,7 +263,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -181,7 +288,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -204,7 +313,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -227,7 +338,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -250,7 +363,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -274,7 +389,9 @@
 			],
 			"runtimeRequirements": [
 				"string"
-			]
+			],
+			"noHxrtStatus": "ineligible",
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -297,7 +414,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -321,7 +440,9 @@
 			],
 			"runtimeRequirements": [
 				"array"
-			]
+			],
+			"noHxrtStatus": "conditional",
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -345,7 +466,9 @@
 			],
 			"runtimeRequirements": [
 				"array"
-			]
+			],
+			"noHxrtStatus": "conditional",
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -369,7 +492,9 @@
 			],
 			"runtimeRequirements": [
 				"string"
-			]
+			],
+			"noHxrtStatus": "ineligible",
+			"selectedNoHxrtEligible": false
 		}
 	],
 	"reasons": [
@@ -412,6 +537,11 @@
 			"feature": "stack",
 			"sourceKind": "class_usage",
 			"source": "hxrt.stack.NativeStackFrame"
+		},
+		{
+			"feature": "stack",
+			"sourceKind": "define",
+			"source": "reflaxe_go_native_stack_trace"
 		}
 	]
 }

@@ -3,6 +3,7 @@ package reflaxe.go.compiler;
 #if (macro || reflaxe_runtime)
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureId;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoNativeRepresentation;
+import reflaxe.go.compiler.GoSurfaceContractRegistry.GoNoHxrtStatus;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceContractRegistrySnapshot;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceDecision;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceDecisionOutcome;
@@ -85,6 +86,8 @@ typedef GoSurfacePlanDecision = {
 	final fallbackReason:Null<String>;
 	final imports:GoImmutableList<GoSurfaceImportRequirement>;
 	final runtimeRequirements:GoImmutableList<GoHxrtFeatureId>;
+	final noHxrtStatus:Null<GoNoHxrtStatus>;
+	final selectedNoHxrtEligible:Bool;
 }
 
 /**
@@ -292,8 +295,11 @@ class GoSurfacePlanner {
 			selectedRepresentation: selectedRepresentation,
 			fallbackReason: fallbackReason,
 			imports: copyImports(imports),
-			runtimeRequirements: copyRuntimeRequirements(runtimeRequirements)
-		};
+			runtimeRequirements: copyRuntimeRequirements(runtimeRequirements),
+			noHxrtStatus: decision.noHxrtStatus,
+			selectedNoHxrtEligible: decision.noHxrtStatus != null
+			&& decision.noHxrtStatus != GoNoHxrtStatus.Ineligible
+			&& runtimeRequirements.length == 0};
 	}
 
 	static function copyImports(imports:GoImmutableList<GoSurfaceImportRequirement>):GoImmutableList<GoSurfaceImportRequirement> {

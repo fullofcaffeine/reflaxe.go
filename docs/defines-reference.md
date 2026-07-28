@@ -224,14 +224,17 @@ Removed:
     `inMetalLane` fields remain compatibility aliases.
 - `reflaxe_go_runtime_plan_report`
   - Emit `hxrt_plan.json` and `hxrt_plan.md` into output root with selected runtime features/files and selection reasons.
-  - `hxrt_plan.json` schema v3 adds the immutable portable-surface plan,
+  - `hxrt_plan.json` schema v4 adds the immutable typed runtime-capability
+    manifest: exact files, grouped inclusion reasons, and the manifest
+    authority consumed by the copier. It also retains the portable-surface plan,
     including each used type, contract and eligibility decision, selected
-    carrier or fallback, imports, and runtime consequences. Schema v2 added
+    carrier or fallback, registry-owned no-`hxrt` status, imports, and runtime
+    consequences. Schema v3 introduced that surface plan; schema v2 added
     `policyPreset` and `semanticBoundarySource`.
   - `hxrt_plan` reasons are deterministic per-feature provenance entries
     (`baseline`, `class_usage`, `enum_usage`, `shim_group`,
-    `io_helper_surface`, `manual_define`, `dependency_edge`, and
-    `surface_plan`) so runtime selection remains auditable in CI. A
+    `io_helper_surface`, `manual_define`, `dependency_edge`, `surface_plan`,
+    and `compatibility_contract`) so runtime selection remains auditable in CI. A
     `surface_plan` reason can name either a registry-selected consequence or a
     closed carrier symbol found in the retained typed Go AST.
 - `reflaxe_go_optimizer_plan_report`

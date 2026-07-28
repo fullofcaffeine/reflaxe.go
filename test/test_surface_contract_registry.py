@@ -19,6 +19,14 @@ REGISTRY = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoSurfaceContractRegi
 PLANNER = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoSurfacePlanner.hx"
 TYPE_LEDGER = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoTypeUsageLedger.hx"
 HXRT_ANALYZER = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoHxrtFeatureAnalyzer.hx"
+RUNTIME_MANIFEST = (
+    ROOT
+    / "src"
+    / "reflaxe"
+    / "go"
+    / "compiler"
+    / "GoRuntimeCapabilityManifest.hx"
+)
 CONTEXT = ROOT / "src" / "reflaxe" / "go" / "CompilationContext.hx"
 COMPILER = ROOT / "src" / "reflaxe" / "go" / "GoReflaxeCompiler.hx"
 LOWERING_COMPILER = ROOT / "src" / "reflaxe" / "go" / "GoCompiler.hx"
@@ -546,6 +554,26 @@ class SurfaceContractRegistryTest(unittest.TestCase):
             define_source,
         )
 
+    def test_runtime_manifest_is_typed_and_is_the_only_copy_authority(self) -> None:
+        manifest_source = RUNTIME_MANIFEST.read_text(encoding="utf-8")
+        compiler_source = COMPILER.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "GoImmutableList<GoHxrtFeatureId>",
+            manifest_source,
+        )
+        self.assertIn(
+            "GoImmutableList<GoRuntimeCapabilitySelection>",
+            manifest_source,
+        )
+        self.assertNotIn(":Dynamic", manifest_source)
+        self.assertNotIn("<Dynamic>", manifest_source)
+        self.assertNotIn(":Any", manifest_source)
+        self.assertNotIn("<Any>", manifest_source)
+        self.assertIn("GoRuntimeCapabilityManifest.build", compiler_source)
+        self.assertNotIn("shouldCopyRuntimeFileInFullMode", compiler_source)
+        self.assertNotIn("writeRuntimeDir", compiler_source)
+
     def test_optimizer_import_and_runtime_plans_consume_one_registry_decision(self) -> None:
         portable, _, _ = self.compile_report("portable")
         portable_optimizer = json.loads(
@@ -622,6 +650,8 @@ class SurfaceContractRegistryTest(unittest.TestCase):
                     "fallbackReason",
                     "imports",
                     "runtimeRequirements",
+                    "noHxrtStatus",
+                    "selectedNoHxrtEligible",
                 },
             )
             self.assertEqual(
@@ -636,6 +666,7 @@ class SurfaceContractRegistryTest(unittest.TestCase):
             self.assertIn(entry["selection"], {"native", "fallback", "existing"})
             self.assertIsInstance(entry["imports"], list)
             self.assertIsInstance(entry["runtimeRequirements"], list)
+            self.assertIsInstance(entry["selectedNoHxrtEligible"], bool)
 
         def matching(
             surface_id: str,
@@ -656,6 +687,14 @@ class SurfaceContractRegistryTest(unittest.TestCase):
 
         self.assertTrue(matching("haxe.String", selection="native"))
         self.assertTrue(matching("haxe.io.Bytes", selection="native"))
+        self.assertTrue(
+            all(
+                entry["noHxrtStatus"] == "ineligible"
+                and not entry["selectedNoHxrtEligible"]
+                for entry in matching("haxe.String", selection="native")
+                + matching("haxe.io.Bytes", selection="native")
+            )
+        )
         self.assertTrue(
             matching(
                 "haxe.Iterator",
@@ -702,6 +741,22 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertTrue(
             matching("reflaxe.std.Result", eligibility="admitted", selection="fallback")
         )
+        self.assertTrue(
+            all(
+                entry["noHxrtStatus"] == "eligible"
+                and entry["selectedNoHxrtEligible"]
+                for entry in matching(
+                    "reflaxe.std.Option",
+                    eligibility="admitted",
+                    selection="fallback",
+                )
+                + matching(
+                    "reflaxe.std.Result",
+                    eligibility="admitted",
+                    selection="fallback",
+                )
+            )
+        )
         function_existing = matching(
             "haxe.Function",
             eligibility="rejected",
@@ -720,6 +775,30 @@ class SurfaceContractRegistryTest(unittest.TestCase):
             portable_optimizer["requiredSurfaceRuntimeFeatures"],
             ["array", "bytes", "core", "string"],
         )
+        self.assertEqual(portable_runtime["schemaVersion"], 4)
+        self.assertEqual(
+            portable_runtime["manifestAuthority"],
+            "typed_usage_plus_surface_plan_runtime_manifest",
+        )
+        capabilities = portable_runtime["capabilities"]
+        self.assertEqual(
+            [entry["id"] for entry in capabilities],
+            portable_runtime["selectedFeatures"],
+        )
+        self.assertTrue(capabilities)
+        for capability in capabilities:
+            self.assertEqual(
+                set(capability),
+                {"id", "files", "reasons"},
+            )
+            self.assertTrue(capability["files"])
+            self.assertTrue(
+                capability["reasons"],
+                f"{capability['id']} must explain why it was included",
+            )
+            self.assertTrue(
+                all(reason["feature"] == capability["id"] for reason in capability["reasons"])
+            )
         for value in flatten_strings(portable_optimizer):
             self.assertNotIn(str(ROOT), value)
             self.assertFalse(value.startswith("/"), value)
@@ -855,7 +934,7 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertIn("profile name, optimization define, or", planner_doc)
         self.assertIn("go.Slice", planner_doc)
         self.assertIn("optimizer_plan.json` schema v7", planner_doc)
-        self.assertIn("hxrt_plan.json` schema v3", planner_doc)
+        self.assertIn("hxrt_plan.json` schema v4", planner_doc)
 
         populated = self.populated_contract_report()
         self.validate_schema(populated)

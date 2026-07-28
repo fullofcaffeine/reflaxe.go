@@ -391,6 +391,24 @@ class GoHxrtFeatureAnalyzer {
 		return out;
 	}
 
+	/**
+		Returns only the files owned directly by one known capability.
+
+		Why
+		The runtime manifest lists dependencies as their own capabilities, so
+		repeating dependency files under every parent would obscure ownership.
+
+		What
+		Exposes the closed feature-to-file registry without dependency expansion.
+
+		How
+		Unknown strings return an empty list; manual strings are validated before
+		reaching the manifest.
+	**/
+	public static function directFilesForFeature(feature:String):Array<String> {
+		return featureFiles(feature).copy();
+	}
+
 	static function featureDependencies(feature:String):Array<String> {
 		return switch (feature) {
 			case FEATURE_ARRAY:

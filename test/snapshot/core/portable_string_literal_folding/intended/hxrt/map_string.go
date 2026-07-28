@@ -60,13 +60,3 @@ func StringMapClear(cell *StringMapCell) {
 	cell.values = make(map[string]any)
 	cell.order = nil
 }
-
-// StringMapSnapshot is a narrow serializer bridge retained until Serializer
-// itself moves to staged source. The returned map cannot mutate live storage.
-func StringMapSnapshot(cell *StringMapCell) map[string]any {
-	out := make(map[string]any, len(cell.values))
-	for key, value := range cell.values {
-		out[key] = value
-	}
-	return out
-}

@@ -104,6 +104,15 @@ class PerfBudgetPolicyContractTest(unittest.TestCase):
         self.assertIn("runtime/hxrt/reflect.go", documentation)
         self.assertIn("serialization-specific footprint case", documentation)
 
+    def test_selective_runtime_budget_consumes_the_compiler_manifest(self) -> None:
+        script = HXRT_SELECTIVE_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("-D reflaxe_go_runtime_plan_report", script)
+        self.assertIn('manifest_path="$out_dir/hxrt_plan.json"', script)
+        self.assertIn("typed_usage_plus_surface_plan_runtime_manifest", script)
+        self.assertIn("manifest.files", script)
+        self.assertIn("manifest.capabilities", script)
+
 
 if __name__ == "__main__":
     unittest.main()

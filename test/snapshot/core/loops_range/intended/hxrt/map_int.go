@@ -50,14 +50,3 @@ func IntMapClear(cell *IntMapCell) {
 	cell.values = make(map[int]any)
 	cell.order = nil
 }
-
-// IntMapSnapshot is a narrow serializer bridge retained until Serializer itself
-// moves to staged source. Returning a copy prevents serializer code from
-// observing or mutating the live map carrier.
-func IntMapSnapshot(cell *IntMapCell) map[int]any {
-	out := make(map[int]any, len(cell.values))
-	for key, value := range cell.values {
-		out[key] = value
-	}
-	return out
-}

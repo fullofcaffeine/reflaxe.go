@@ -30,6 +30,42 @@ preset for stricter/eager defaults.
    selected source semantics permit it.
 3. Trim runtime footprint via deterministic feature inference + override controls.
 
+## What the runtime manifest is
+
+The runtime manifest is the compiler's single, typed answer to four questions:
+
+1. Which closed `hxrt` capabilities does this program need?
+2. What typed usage, surface contract, dependency, define, or compatibility
+   contract selected each capability?
+3. Which runtime files belong directly to each selected capability?
+4. What exact file set must the generated project contain?
+
+`GoRuntimeCapabilityManifest` builds that immutable answer after typed lowering.
+Both the file copier and `hxrt_plan.json` schema v4 consume it. The report's
+`capabilities` entries therefore explain the files that were actually copied;
+the report does not independently infer them.
+
+Selective mode includes only evidenced capabilities and their dependencies.
+Compatibility full-copy mode remains supported, but broad capabilities are
+explicitly attributed to the `default_full_copy` compatibility contract.
+Footprint-explicit capabilities such as sockets, terminal access, reflection,
+and native stack capture still require typed use or an explicit define.
+
+No-`hxrt` facts come from the portable surface registry. Each reported surface
+decision keeps the reviewed registry status and separately states whether the
+representation selected for that use has no runtime requirement. An empty file
+or import list cannot grant eligibility by itself.
+
+The runtime review also removed the old exported `IntMapSnapshot`,
+`StringMapSnapshot`, and `ObjectMapSnapshot` bridges. They had no staged Haxe
+binding or current generated caller. A retired compiler serializer emitter did
+call them before commit `abd42e87` moved serialization into staged source;
+staged Serializer now walks the typed map `Keys` and `Get` APIs instead. With
+that former owner gone and no admitted public compatibility consumer, keeping
+the helpers would have treated an unowned migration bridge as a compatibility
+contract. The ordinary map capabilities and their public Haxe behavior are
+unchanged.
+
 ## Implementation Tracks
 
 1. Runtime slice split:
@@ -159,7 +195,10 @@ Artifacts:
 
 The harness includes a serialization-specific footprint case. It compiles and
 links a private-field class round trip, so both the small float parser and the
-shared Reflect helper are counted in source-file and binary-size budgets.
+shared Reflect helper are counted in source-file and binary-size budgets. Every
+lane enables `hxrt_plan.json`, verifies that its manifest authority and
+per-capability reasons are present, checks the reported files against the
+generated directory, and measures source bytes from that manifest.
 
 Interpretation:
 

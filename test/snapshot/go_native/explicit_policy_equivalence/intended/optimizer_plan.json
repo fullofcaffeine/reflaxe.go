@@ -68,7 +68,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -91,7 +93,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -114,7 +118,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -137,7 +143,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -160,7 +168,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -183,7 +193,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		}
 	],
 	"goAstPassSelectionSource": "planner",

@@ -139,6 +139,11 @@ Current local validation:
   needs a compatibility decision. That wording and disposition are explicitly
   deferred to the existing runtime-slicing task `haxe_go-vfp.10.6`; it does not
   describe an active unsafe, reflection, or serializer-policy boundary.
+  `haxe_go-vfp.10.6` later confirmed there was no current staged or generated
+  caller and removed all three unowned migration helpers. A historical compiler
+  serializer emitter had called them before staged serialization replaced that
+  emitter in `abd42e87`; current Serializer uses typed Keys/Get access and no
+  admitted compatibility consumer remains.
 - Random/adversarial serializer fuzzing can be added if the input trust model
   expands. It is not needed to claim the current deterministic portable
   contract.

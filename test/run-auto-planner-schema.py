@@ -9,7 +9,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 CONTRACT_SCHEMA = 8
 OPTIMIZER_SCHEMA = 7
-RUNTIME_SCHEMA = 3
+RUNTIME_SCHEMA = 4
 TYPE_USAGE_SCHEMA = 1
 
 
@@ -191,9 +191,43 @@ def require_surface_plans(obj: dict[str, Any], label: str) -> None:
                 "fallbackReason",
                 "imports",
                 "runtimeRequirements",
+                "noHxrtStatus",
+                "selectedNoHxrtEligible",
             ],
             f"{label}.surfacePlans[{index}]",
         )
+
+
+def require_runtime_capabilities(obj: dict[str, Any], label: str) -> None:
+    require_keys(
+        obj,
+        ["manifestAuthority", "capabilities"],
+        label,
+    )
+    if obj["manifestAuthority"] != "typed_usage_plus_surface_plan_runtime_manifest":
+        raise SystemExit(f"{label}.manifestAuthority: unexpected authority")
+    capabilities = obj["capabilities"]
+    if not isinstance(capabilities, list) or not capabilities:
+        raise SystemExit(f"{label}.capabilities: expected non-empty array")
+    ids: list[str] = []
+    for index, capability in enumerate(capabilities):
+        capability_label = f"{label}.capabilities[{index}]"
+        if not isinstance(capability, dict):
+            raise SystemExit(f"{capability_label}: expected object")
+        require_keys(capability, ["id", "files", "reasons"], capability_label)
+        feature_id = capability["id"]
+        if not isinstance(feature_id, str) or not feature_id:
+            raise SystemExit(f"{capability_label}.id: expected non-empty string")
+        ids.append(feature_id)
+        if not isinstance(capability["files"], list) or not capability["files"]:
+            raise SystemExit(f"{capability_label}.files: expected non-empty array")
+        reasons = capability["reasons"]
+        if not isinstance(reasons, list) or not reasons:
+            raise SystemExit(f"{capability_label}.reasons: expected non-empty array")
+        if any(reason.get("feature") != feature_id for reason in reasons):
+            raise SystemExit(f"{capability_label}.reasons: feature mismatch")
+    if ids != obj["selectedFeatures"]:
+        raise SystemExit(f"{label}.capabilities: must match selectedFeatures order")
 
 
 def main() -> int:
@@ -429,6 +463,7 @@ def main() -> int:
 
     runtime = load_json(runtime_path)
     require_schema(runtime, RUNTIME_SCHEMA, str(runtime_path))
+    require_runtime_capabilities(runtime, str(runtime_path))
     require_keys(
         runtime,
         [

@@ -55,7 +55,9 @@
 			],
 			"runtimeRequirements": [
 				"array"
-			]
+			],
+			"noHxrtStatus": "conditional",
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -78,7 +80,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -101,7 +105,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -125,7 +131,9 @@
 			],
 			"runtimeRequirements": [
 				"string"
-			]
+			],
+			"noHxrtStatus": "ineligible",
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -148,7 +156,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		}
 	],
 	"goAstPassSelectionSource": "legacy_granular_bundle",

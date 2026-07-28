@@ -14,13 +14,6 @@ type objectMapEntry struct {
 	value any
 }
 
-// ObjectMapEntry is the temporary typed serializer view of one identity-map
-// entry. The public ObjectMap API never exposes this runtime carrier.
-type ObjectMapEntry struct {
-	Key   any
-	Value any
-}
-
 // ObjectMapCell retains original keys strongly and indexes them by reference
 // identity. order preserves the first insertion of each live key.
 type ObjectMapCell struct {
@@ -118,16 +111,4 @@ func ObjectMapKeys(cell *ObjectMapCell) []any {
 func ObjectMapClear(cell *ObjectMapCell) {
 	cell.entries = make(map[objectMapIdentity]objectMapEntry)
 	cell.order = nil
-}
-
-// ObjectMapSnapshot is a narrow serializer bridge retained until Serializer
-// itself moves to staged source. Its insertion-ordered slice also removes Go
-// map iteration nondeterminism from object-map wire output.
-func ObjectMapSnapshot(cell *ObjectMapCell) []ObjectMapEntry {
-	out := make([]ObjectMapEntry, 0, len(cell.order))
-	for _, identity := range cell.order {
-		entry := cell.entries[identity]
-		out = append(out, ObjectMapEntry{Key: entry.key, Value: entry.value})
-	}
-	return out
 }

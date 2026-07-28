@@ -94,7 +94,9 @@
 			],
 			"runtimeRequirements": [
 				"array"
-			]
+			],
+			"noHxrtStatus": "conditional",
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -118,7 +120,9 @@
 			],
 			"runtimeRequirements": [
 				"array"
-			]
+			],
+			"noHxrtStatus": "conditional",
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -141,7 +145,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -164,7 +170,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -187,7 +195,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -210,7 +220,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -233,7 +245,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -256,7 +270,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -279,7 +295,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -302,7 +320,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -325,7 +345,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -348,7 +370,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -372,7 +396,9 @@
 			],
 			"runtimeRequirements": [
 				"array"
-			]
+			],
+			"noHxrtStatus": "conditional",
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -396,7 +422,9 @@
 			],
 			"runtimeRequirements": [
 				"array"
-			]
+			],
+			"noHxrtStatus": "conditional",
+			"selectedNoHxrtEligible": false
 		}
 	],
 	"goAstPassSelectionSource": "planner",

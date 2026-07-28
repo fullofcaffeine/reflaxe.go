@@ -15,8 +15,10 @@ import reflaxe.go.analyze.GoNativeBoundaryAnalyzer;
 import reflaxe.go.compiler.GoBuildContext;
 import reflaxe.go.compiler.GoCompilerDefine;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
-import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureInference;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureReason;
+import reflaxe.go.compiler.GoRuntimeCapabilityManifest;
+import reflaxe.go.compiler.GoRuntimeCapabilityManifest.GoRuntimeCapabilityManifestSnapshot;
+import reflaxe.go.compiler.GoRuntimeCapabilityManifest.GoRuntimeCapabilitySelection;
 import reflaxe.go.compiler.GoAutoLoweringModeTools;
 import reflaxe.go.compiler.GoBuildContextResolver;
 import reflaxe.go.compiler.GoGeneratedOutputBoundary;
@@ -33,16 +35,6 @@ import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeUsageLedgerSnapshot;
 import reflaxe.output.DataAndFileInfo;
 import reflaxe.output.StringOrBytes;
 import sys.FileSystem;
-
-private typedef RuntimeCopyPlan = {
-	final fullCopy:Bool;
-	final selectiveEnabled:Bool;
-	final manualFeatures:Array<String>;
-	final inferredFeatures:Array<String>;
-	final features:Array<String>;
-	final files:Array<String>;
-	final reasons:Array<RuntimeFeatureReason>;
-}
 
 private typedef ContractReportSnapshot = {
 	final schemaVersion:Int;
@@ -147,6 +139,8 @@ private typedef RuntimePlanReportSnapshot = {
 	final selectedFeatures:Array<String>;
 	final files:Array<String>;
 	final reasons:Array<RuntimeFeatureReason>;
+	final manifestAuthority:String;
+	final capabilities:Array<GoRuntimeCapabilitySelection>;
 	final surfacePlanAuthority:String;
 	final surfacePlanDecisionCount:Int;
 	final requiredSurfaceImports:Array<GoSurfaceImportRequirement>;
@@ -242,7 +236,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	var generatedFiles:Array<GoCompiler.GoGeneratedFile> = [];
 	var buildContext:Null<GoBuildContext> = null;
 	var compilationContext:Null<CompilationContext> = null;
-	var lastRuntimePlan:Null<RuntimeCopyPlan> = null;
+	var lastRuntimePlan:Null<GoRuntimeCapabilityManifestSnapshot> = null;
 	var outputBoundary:Null<GoGeneratedOutputBoundary> = null;
 	var typeUsageLedger:GoTypeUsageLedger = new GoTypeUsageLedger();
 	var lastTypeUsageReport:GoTypeUsageLedgerSnapshot = GoTypeUsageLedger.emptySnapshot();
@@ -597,12 +591,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		var plan = resolveRuntimeCopyPlan(context, buildContext);
 		lastRuntimePlan = plan;
 		if (context != null) {
-			context.selectedHxrtFeatures = plan.features.copy();
-		}
-
-		if (plan.fullCopy) {
-			writeRuntimeDir(runtimeSource, "hxrt", buildContext, plan);
-			return;
+			context.selectedHxrtFeatures = [for (feature in plan.selectedFeatures) feature];
 		}
 
 		for (fileName in plan.files) {
@@ -613,82 +602,6 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			var targetPath = Path.join(["hxrt", fileName]);
 			copyGeneratedFile(sourcePath, targetPath);
 		}
-	}
-
-	function writeRuntimeDir(sourceDir:String, targetDir:String, buildContext:GoBuildContext, plan:RuntimeCopyPlan):Void {
-		for (entry in FileSystem.readDirectory(sourceDir)) {
-			var sourcePath = Path.join([sourceDir, entry]);
-			var targetPath = Path.join([targetDir, entry]);
-
-			if (FileSystem.isDirectory(sourcePath)) {
-				writeRuntimeDir(sourcePath, targetPath, buildContext, plan);
-			} else if (shouldCopyRuntimeFileInFullMode(entry, buildContext, plan)) {
-				copyGeneratedFile(sourcePath, targetPath);
-			}
-		}
-	}
-
-	function shouldCopyRuntimeFileInFullMode(fileName:String, buildContext:GoBuildContext, plan:RuntimeCopyPlan):Bool {
-		if (StringTools.endsWith(fileName, "_test.go")) {
-			// Runtime unit tests validate hxrt in the compiler repository; they are not
-			// dependencies of generated user modules.
-			return false;
-		}
-		return switch (fileName) {
-			case "stack.go":
-				// Native stack capture pulls in Go runtime frame machinery and must remain
-				// footprint-explicit even when users request the broad hxrt runtime bundle.
-				buildContext.nativeStackTraceEnabled;
-			case "array.go": // The portable shared Array carrier is selected from final generated Go,
-				// after inline native views and DCE have removed non-owning Array types.
-				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_ARRAY) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_ARRAY) >= 0;
-			case "template.go": // Dynamic Template invocation needs Go reflection, but programs that do
-				// not use haxe.Template should not pay for that capability in full-copy
-				// mode. Disabling inference remains the explicit all-files escape hatch.
-				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TEMPLATE) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TEMPLATE) >= 0;
-			case "reflect.go": // Public Reflect APIs own policy in staged source; only programs
-				// that select the typed runtime boundary should copy erased Go representation
-				// inspection into broad-runtime output.
-				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_REFLECTION) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_REFLECTION) >= 0;
-			case "regex.go": // Compiled RE2 state is selected only through staged EReg or its typed binding.
-				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_REGEX) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_REGEX) >= 0;
-			case "serialization.go": // Private generated-field access is selected only by staged serialization.
-				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_SERIALIZATION) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_SERIALIZATION) >= 0;
-			case "date.go": // Host calendar and timezone behavior is selected only through staged Date
-				// or its typed hxrt binding. Other programs keep the native time capability out.
-				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_DATE) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_DATE) >= 0;
-			case "math.go": // Haxe's Int-returning rounders need three narrow native conversions.
-				// Float-returning math operations bind directly to Go and do not use this file.
-				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_MATH) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_MATH) >= 0;
-			case "crypto.go": // Native crypto algorithms are selected only through the staged haxe.crypto
-				// API or its typed hxrt binding. Keep them out of unrelated full-copy builds.
-				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_CRYPTO) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_CRYPTO) >= 0;
-			case "zip.go": // Native compression is selected only through staged haxe.zip Compress/Uncompress
-				// or their typed binding. Other zip data structures remain source-only.
-				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_ZIP) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_ZIP) >= 0;
-			case "http.go": // Go URL parsing and HTTP transport are selected only through staged sys.Http.
-				// Request policy and callbacks stay in source; unrelated programs do not copy net/http support.
-				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_HTTP) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_HTTP) >= 0;
-			case "socket.go", "socket_broadcast_posix.go", "socket_broadcast_unsupported.go",
-				"socket_broadcast_windows.go": // DNS and network transport are selected only through staged sys.net
-				// APIs or their typed hxrt binding. Unrelated full-copy builds keep the OS
-				// networking capability out unless inference is explicitly disabled.
-				buildContext.hxrtNoFeatureInfer
-				|| plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_SOCKET) >= 0
-				|| plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_SOCKET) >= 0;
-			case "socket_ssl.go": // TLS transport composes the socket and SSL slices but remains
-				// footprint-explicit for programs that use certificate/digest APIs without sockets.
-				buildContext.hxrtNoFeatureInfer || plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_SOCKET_SSL) >= 0 || plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_SOCKET_SSL) >= 0;
-			case "terminal.go", "terminal_darwin.go", "terminal_linux.go", "terminal_posix.go", "terminal_unsupported.go", "terminal_windows.go":
-				// Terminal mode contains a platform syscall boundary and should not add
-				// unsafe-bearing code to programs that never call Sys.getChar. Explicitly
-				// disabling inference retains the traditional all-files full-copy escape.
-				buildContext.hxrtNoFeatureInfer
-				|| plan.inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TERMINAL) >= 0
-				|| plan.manualFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_TERMINAL) >= 0;
-			case _:
-				true;
-		};
 	}
 
 	function findLibraryRoot():String {
@@ -706,65 +619,10 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		return resolved;
 	}
 
-	function resolveRuntimeCopyPlan(context:Null<CompilationContext>, buildContext:GoBuildContext):RuntimeCopyPlan {
-		var forceFullCopy = buildContext.hxrtForceFullCopy;
-		var selectiveEnabled = buildContext.isHxrtSelectiveEnabled();
-		var manualFeatures = sortedUniqueStrings(buildContext.hxrtManualFeatures.copy());
-		var inferredFeatures = new Array<String>();
-		var inferredReasons = new Array<RuntimeFeatureReason>();
-		if (!buildContext.hxrtNoFeatureInfer && context != null) {
-			for (feature in context.inferredHxrtFeatures) {
-				if (feature != null && StringTools.trim(feature) != "" && inferredFeatures.indexOf(feature) == -1) {
-					inferredFeatures.push(feature);
-				}
-			}
-			for (entry in context.inferredHxrtFeatureReasons) {
-				if (entry == null) {
-					continue;
-				}
-				inferredReasons.push({
-					feature: entry.feature,
-					sourceKind: entry.sourceKind,
-					source: entry.source
-				});
-			}
-		}
-		inferredFeatures = sortedUniqueStrings(inferredFeatures);
-		if (buildContext.nativeStackTraceEnabled && inferredFeatures.indexOf(GoHxrtFeatureAnalyzer.FEATURE_STACK) == -1) {
-			inferredFeatures.push(GoHxrtFeatureAnalyzer.FEATURE_STACK);
-			inferredFeatures = sortedUniqueStrings(inferredFeatures);
-			inferredReasons.push({
-				feature: GoHxrtFeatureAnalyzer.FEATURE_STACK,
-				sourceKind: "define",
-				source: GoBuildContextResolver.NATIVE_STACK_TRACE_DEFINE
-			});
-		}
-
-		if (forceFullCopy || !selectiveEnabled) {
-			return {
-				fullCopy: true,
-				selectiveEnabled: selectiveEnabled,
-				manualFeatures: manualFeatures,
-				inferredFeatures: inferredFeatures,
-				features: [],
-				files: [],
-				reasons: []
-			};
-		}
-
-		var selection = buildRuntimeFeatureSelection(manualFeatures, inferredFeatures, inferredReasons);
-		var expanded = sortedUniqueStrings(selection.features.copy());
-		var files = GoHxrtFeatureAnalyzer.filesForFeatures(expanded);
-		files = sortedUniqueStrings(files);
-		return {
-			fullCopy: false,
-			selectiveEnabled: true,
-			manualFeatures: manualFeatures,
-			inferredFeatures: inferredFeatures,
-			features: expanded,
-			files: files,
-			reasons: selection.reasons
-		};
+	function resolveRuntimeCopyPlan(context:Null<CompilationContext>, buildContext:GoBuildContext):GoRuntimeCapabilityManifestSnapshot {
+		var inferredFeatures = context == null ? [] : context.inferredHxrtFeatures;
+		var inferredReasons = context == null ? [] : context.inferredHxrtFeatureReasons;
+		return GoRuntimeCapabilityManifest.build(buildContext, inferredFeatures, inferredReasons);
 	}
 
 	function emitBuildReports(context:Null<CompilationContext>, buildContext:GoBuildContext):Void {
@@ -940,13 +798,21 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	function buildRuntimePlanReportSnapshot(buildContext:GoBuildContext, context:Null<CompilationContext>):RuntimePlanReportSnapshot {
 		var contractLabel = buildContext.profile == GoProfile.Metal ? "metal" : "portable";
 		var plan = lastRuntimePlan == null ? resolveRuntimeCopyPlan(context, buildContext) : lastRuntimePlan;
-		var selectedFeatures = sortedUniqueStrings(plan.features.copy());
-		var manualFeatures = sortedUniqueStrings(plan.manualFeatures.copy());
-		var inferredFeatures = sortedUniqueStrings(plan.inferredFeatures.copy());
-		var files = sortedUniqueStrings(plan.files.copy());
+		var selectedFeatures = [for (feature in plan.selectedFeatures) cast(feature, String)];
+		var manualFeatures = [for (feature in plan.manualFeatures) cast(feature, String)];
+		var inferredFeatures = [for (feature in plan.inferredFeatures) cast(feature, String)];
+		var files = [for (fileName in plan.files) fileName];
+		var reasons = [
+			for (reason in plan.reasons)
+				{
+					feature: reason.feature,
+					sourceKind: reason.sourceKind,
+					source: reason.source
+				}
+		];
 		var surfacePlan = context == null ? GoSurfacePlanner.emptySnapshot() : context.surfacePlan;
 		return {
-			schemaVersion: 3,
+			schemaVersion: 4,
 			contract: contractLabel,
 			policyPreset: buildContext.policyPreset.label(),
 			semanticBoundarySource: buildContext.semanticBoundarySource.label(),
@@ -958,7 +824,9 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			inferredFeatures: inferredFeatures,
 			selectedFeatures: selectedFeatures,
 			files: files,
-			reasons: plan.reasons.copy(),
+			reasons: reasons,
+			manifestAuthority: plan.authority,
+			capabilities: [for (capability in plan.capabilities) capability],
 			surfacePlanAuthority: surfacePlan.authority,
 			surfacePlanDecisionCount: surfacePlan.decisionCount,
 			requiredSurfaceImports: [for (requirement in surfacePlan.requiredImports) requirement],
@@ -1035,36 +903,6 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			requiredSurfaceRuntimeFeatures: [for (feature in surfacePlan.requiredRuntimeFeatures) feature],
 			surfacePlans: [for (decision in surfacePlan.decisions) decision]
 		};
-	}
-
-	function buildRuntimeFeatureSelection(manualFeatures:Array<String>, inferredFeatures:Array<String>,
-			inferredReasons:Array<RuntimeFeatureReason>):GoHxrtFeatureInference {
-		var selected = inferredFeatures.copy();
-		var reasons:Array<GoHxrtFeatureReason> = [];
-		for (entry in inferredReasons) {
-			if (entry == null) {
-				continue;
-			}
-			reasons.push({
-				feature: entry.feature,
-				sourceKind: entry.sourceKind,
-				source: entry.source
-			});
-		}
-		for (feature in manualFeatures) {
-			if (feature == null || !GoHxrtFeatureAnalyzer.isKnownFeature(feature)) {
-				continue;
-			}
-			if (selected.indexOf(feature) == -1) {
-				selected.push(feature);
-			}
-			reasons.push({
-				feature: feature,
-				sourceKind: "manual_define",
-				source: GoBuildContextResolver.HXRT_FEATURES_DEFINE
-			});
-		}
-		return GoHxrtFeatureAnalyzer.expandWithReasons(selected, reasons);
 	}
 
 	function buildOptimizerCapabilitySummaries(context:CompilationContext):Array<OptimizerCapabilitySummary> {
@@ -1513,6 +1351,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		lines.push('\t"selectiveEnabled": ' + boolString(snapshot.selectiveEnabled) + ",");
 		lines.push('\t"fullCopy": ' + boolString(snapshot.fullCopy) + ",");
 		lines.push('\t"inferenceDisabled": ' + boolString(snapshot.inferenceDisabled) + ",");
+		lines.push('\t"manifestAuthority": "' + jsonEscape(snapshot.manifestAuthority) + '",');
 		lines.push('\t"manualFeatures": [');
 		appendJsonStringArray(lines, snapshot.manualFeatures, 2);
 		lines.push("\t],");
@@ -1524,6 +1363,9 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		lines.push("\t],");
 		lines.push('\t"files": [');
 		appendJsonStringArray(lines, snapshot.files, 2);
+		lines.push("\t],");
+		lines.push('\t"capabilities": [');
+		appendJsonRuntimeCapabilities(lines, snapshot.capabilities, 2);
 		lines.push("\t],");
 		lines.push('\t"surfacePlanAuthority": "' + jsonEscape(snapshot.surfacePlanAuthority) + '",');
 		lines.push('\t"surfacePlanDecisionCount": ' + snapshot.surfacePlanDecisionCount + ",");
@@ -1555,6 +1397,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		lines.push("- selective enabled: `" + boolLabel(snapshot.selectiveEnabled) + "`");
 		lines.push("- full copy: `" + boolLabel(snapshot.fullCopy) + "`");
 		lines.push("- inference disabled: `" + boolLabel(snapshot.inferenceDisabled) + "`");
+		lines.push("- manifest authority: `" + snapshot.manifestAuthority + "`");
 		lines.push("- surface plan authority: `" + snapshot.surfacePlanAuthority + "`");
 		lines.push("- surface plan decisions: `" + snapshot.surfacePlanDecisionCount + "`");
 		lines.push("");
@@ -1591,6 +1434,15 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		} else {
 			for (fileName in snapshot.files) {
 				lines.push("- `" + fileName + "`");
+			}
+		}
+		lines.push("");
+		lines.push("## capability manifest");
+		for (capability in snapshot.capabilities) {
+			var capabilityFiles = [for (fileName in capability.files) fileName];
+			lines.push("- `" + capability.id + "` -> `" + capabilityFiles.join(", ") + "`");
+			for (reason in capability.reasons) {
+				lines.push("  - `" + reason.sourceKind + "` (`" + reason.source + "`)");
 			}
 		}
 		lines.push("");
@@ -1781,7 +1633,9 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			lines.push(indent + "\t],");
 			lines.push(indent + '\t"runtimeRequirements": [');
 			appendJsonStringArray(lines, [for (feature in decision.runtimeRequirements) feature], indentLevel + 2);
-			lines.push(indent + "\t]");
+			lines.push(indent + "\t],");
+			lines.push(indent + '\t"noHxrtStatus": ' + nullableJsonString(decision.noHxrtStatus) + ",");
+			lines.push(indent + '\t"selectedNoHxrtEligible": ' + boolString(decision.selectedNoHxrtEligible));
 			lines.push(indent + "}" + suffix);
 		}
 	}
@@ -1839,7 +1693,35 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 				+ (imports.length == 0 ? "none" : imports.join(", "))
 				+ "` | runtime `"
 				+ (runtimeRequirements.length == 0 ? "none" : runtimeRequirements.join(", "))
+				+ "` | no-hxrt contract `"
+				+ (decision.noHxrtStatus == null ? "none" : decision.noHxrtStatus)
+				+ "` | selected no-hxrt eligible `"
+				+ boolLabel(decision.selectedNoHxrtEligible)
 				+ "`");
+		}
+	}
+
+	static function appendJsonRuntimeCapabilities(lines:Array<String>, capabilities:Array<GoRuntimeCapabilitySelection>, indentLevel:Int):Void {
+		var indent = [for (_ in 0...indentLevel) "\t"].join("");
+		for (index in 0...capabilities.length) {
+			var capability = capabilities[index];
+			var suffix = index == capabilities.length - 1 ? "" : ",";
+			lines.push(indent + "{");
+			lines.push(indent + '\t"id": "' + jsonEscape(capability.id) + '",');
+			lines.push(indent + '\t"files": [');
+			appendJsonStringArray(lines, [for (fileName in capability.files) fileName], indentLevel + 2);
+			lines.push(indent + "\t],");
+			lines.push(indent + '\t"reasons": [');
+			appendJsonRuntimeReasons(lines, [
+				for (reason in capability.reasons)
+					{
+						feature: reason.feature,
+						sourceKind: reason.sourceKind,
+						source: reason.source
+					}
+			], indentLevel + 2);
+			lines.push(indent + "\t]");
+			lines.push(indent + "}" + suffix);
 		}
 	}
 

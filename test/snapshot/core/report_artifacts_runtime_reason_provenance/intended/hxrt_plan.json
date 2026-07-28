@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 3,
+	"schemaVersion": 4,
 	"contract": "portable",
 	"policyPreset": "portable_default",
 	"semanticBoundarySource": "typed_api_or_module",
@@ -7,6 +7,7 @@
 	"selectiveEnabled": true,
 	"fullCopy": false,
 	"inferenceDisabled": false,
+	"manifestAuthority": "typed_usage_plus_surface_plan_runtime_manifest",
 	"manualFeatures": [
 		"process"
 	],
@@ -19,13 +20,13 @@
 		"string"
 	],
 	"selectedFeatures": [
-		"array",
 		"core",
+		"array",
+		"string",
+		"print",
 		"exception",
 		"json",
-		"print",
-		"process",
-		"string"
+		"process"
 	],
 	"files": [
 		"array.go",
@@ -36,6 +37,105 @@
 		"print.go",
 		"process.go",
 		"string.go"
+	],
+	"capabilities": [
+		{
+			"id": "core",
+			"files": [
+				"core.go",
+				"hxrt.go"
+			],
+			"reasons": [
+				{
+					"feature": "core",
+					"sourceKind": "baseline",
+					"source": "compiler_baseline"
+				}
+			]
+		},
+		{
+			"id": "array",
+			"files": [
+				"array.go"
+			],
+			"reasons": [
+				{
+					"feature": "array",
+					"sourceKind": "dependency_edge",
+					"source": "json->array"
+				}
+			]
+		},
+		{
+			"id": "string",
+			"files": [
+				"string.go"
+			],
+			"reasons": [
+				{
+					"feature": "string",
+					"sourceKind": "baseline",
+					"source": "compiler_baseline"
+				},
+				{
+					"feature": "string",
+					"sourceKind": "surface_plan",
+					"source": "go_build_context_plus_typed_registry_decision"
+				}
+			]
+		},
+		{
+			"id": "print",
+			"files": [
+				"print.go"
+			],
+			"reasons": [
+				{
+					"feature": "print",
+					"sourceKind": "baseline",
+					"source": "compiler_baseline"
+				}
+			]
+		},
+		{
+			"id": "exception",
+			"files": [
+				"exception.go"
+			],
+			"reasons": [
+				{
+					"feature": "exception",
+					"sourceKind": "baseline",
+					"source": "compiler_baseline"
+				}
+			]
+		},
+		{
+			"id": "json",
+			"files": [
+				"json.go"
+			],
+			"reasons": [
+				{
+					"feature": "json",
+					"sourceKind": "class_usage",
+					"source": "haxe.Json"
+				}
+			]
+		},
+		{
+			"id": "process",
+			"files": [
+				"process.go"
+			],
+			"reasons": [
+				{
+					"feature": "process",
+					"sourceKind": "manual_define",
+					"source": "reflaxe_go_hxrt_features"
+				}
+			]
+		}
 	],
 	"surfacePlanAuthority": "go_build_context_plus_typed_registry_decision",
 	"surfacePlanDecisionCount": 4,
@@ -66,7 +166,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -89,7 +191,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -113,7 +217,9 @@
 			],
 			"runtimeRequirements": [
 				"string"
-			]
+			],
+			"noHxrtStatus": "ineligible",
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -136,7 +242,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		}
 	],
 	"reasons": [

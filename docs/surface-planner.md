@@ -82,7 +82,7 @@ such as `Rest<T>`, that does not materialize the portable carrier.
 
 ## Reading the reports
 
-`optimizer_plan.json` schema v7 and `hxrt_plan.json` schema v3 contain the same
+`optimizer_plan.json` schema v7 and `hxrt_plan.json` schema v4 contain the same
 surface-plan authority:
 
 - `surfacePlanAuthority`: identifies the typed build-context plus registry
@@ -92,6 +92,11 @@ surface-plan authority:
 - `requiredSurfaceRuntimeFeatures`: deduplicated selected `hxrt` consequences;
 - `surfacePlans`: the complete decisions.
 
+Schema v4 also groups the exact copied files and inclusion reasons under each
+typed runtime capability. The runtime copier and the report consume the same
+immutable manifest, so the report is evidence of the generated file set rather
+than a second prediction.
+
 Each `surfacePlans` entry records:
 
 - `usedType`, module, location, and usage level;
@@ -99,7 +104,9 @@ Each `surfacePlans` entry records:
 - eligibility outcome, stable reason, and explanatory detail;
 - `native`, `fallback`, or `existing` selection and its reason;
 - selected representation and fallback explanation;
-- selected imports and runtime requirements.
+- selected imports and runtime requirements;
+- the registry-owned no-`hxrt` status and whether the representation actually
+  selected for this use is no-`hxrt` eligible.
 
 The report is deliberately explicit. It lets CI and reviewers answer both
 “was this shape proved safe?” and “what did this compiler version actually
@@ -136,8 +143,8 @@ type on one stored closure does not make that erased map the future
 until then both admitted and rejected Iterator shapes remain auditable planner
 fallbacks with the registered `core` consequence.
 
-The later selective-runtime integration may enrich runtime manifests, but it
-must consume this plan rather than reconstructing surface choices.
+Runtime slicing consumes this plan directly. It does not reconstruct surface
+choices from profile names, defines, generated text, or empty import lists.
 
 ## Evidence
 

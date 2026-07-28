@@ -78,15 +78,39 @@ filesize_bytes() {
   fi
 }
 
-sum_runtime_source_bytes() {
-  local runtime_dir="$1"
-  local sum=0
-  while IFS= read -r file; do
-    local size
-    size="$(filesize_bytes "$file")"
-    sum=$((sum + size))
-  done < <(find "$runtime_dir" -maxdepth 1 -type f | sort)
-  printf '%s\n' "$sum"
+runtime_manifest_metrics() {
+  local manifest_path="$1"
+  local runtime_dir="$2"
+  node - "$manifest_path" "$runtime_dir" <<'NODE'
+const fs = require("fs");
+const path = require("path");
+
+const [manifestPath, runtimeDir] = process.argv.slice(2);
+const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+if (manifest.manifestAuthority !== "typed_usage_plus_surface_plan_runtime_manifest") {
+  throw new Error(`unexpected runtime manifest authority: ${manifest.manifestAuthority}`);
+}
+if (!Array.isArray(manifest.files) || !Array.isArray(manifest.capabilities)) {
+  throw new Error("runtime manifest is missing files or capabilities");
+}
+for (const capability of manifest.capabilities) {
+  if (!capability || !Array.isArray(capability.reasons) || capability.reasons.length === 0) {
+    throw new Error(`runtime capability lacks inclusion evidence: ${capability && capability.id}`);
+  }
+}
+const manifestFiles = [...manifest.files].sort();
+const actualFiles = fs.readdirSync(runtimeDir)
+  .filter((name) => fs.statSync(path.join(runtimeDir, name)).isFile())
+  .sort();
+if (JSON.stringify(manifestFiles) !== JSON.stringify(actualFiles)) {
+  throw new Error(`runtime manifest/filesystem mismatch: manifest=${manifestFiles.join(",")} actual=${actualFiles.join(",")}`);
+}
+const sourceBytes = manifestFiles.reduce(
+  (sum, name) => sum + fs.statSync(path.join(runtimeDir, name)).size,
+  0,
+);
+process.stdout.write(`${manifestFiles.length}\t${sourceBytes}\n`);
+NODE
 }
 
 write_case_main() {
@@ -181,6 +205,7 @@ compile_case() {
     --macro reflaxe.go.CompilerInit.Start\(\)
     -D "go_output=$out_dir"
     -D "reflaxe_go_profile=$profile"
+    -D reflaxe_go_runtime_plan_report
     -D go_no_build
     -D reflaxe.dont_output_metadata_id
     -D no-traces
@@ -279,8 +304,10 @@ for spec in "${case_specs[@]}"; do
     (cd "$out_dir" && "$go_bin" build -o "$bin_path" .)
 
     runtime_dir="$out_dir/hxrt"
-    runtime_files="$(find "$runtime_dir" -maxdepth 1 -type f | wc -l | tr -d ' ')"
-    runtime_bytes="$(sum_runtime_source_bytes "$runtime_dir")"
+    manifest_path="$out_dir/hxrt_plan.json"
+    IFS=$'\t' read -r runtime_files runtime_bytes < <(
+      runtime_manifest_metrics "$manifest_path" "$runtime_dir"
+    )
     binary_bytes="$(filesize_bytes "$bin_path")"
 
     printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \

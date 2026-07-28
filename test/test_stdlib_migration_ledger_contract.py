@@ -1017,7 +1017,8 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertIn('path == "Reflect" || path == "hxrt.reflect.NativeReflect"', feature_analyzer)
         self.assertIn('[FEATURE_STRING, FEATURE_ARRAY]', feature_analyzer)
         self.assertIn('["reflect.go"]', feature_analyzer)
-        self.assertIn('case "reflect.go":', reflaxe_compiler)
+        self.assertNotIn('case "reflect.go":', reflaxe_compiler)
+        self.assertIn("GoRuntimeCapabilityManifest.build", reflaxe_compiler)
 
         groups = {entry["group"]: entry for entry in registry["groups"]}
         self.assertEqual("approved_intrinsic", groups["type_metadata"]["status"])
@@ -1208,7 +1209,8 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertIn('[FEATURE_CORE, FEATURE_ARRAY]', feature_analyzer)
         self.assertIn('path == "hxrt.template.NativeTemplate"', feature_analyzer)
         self.assertIn('["template.go"]', feature_analyzer)
-        self.assertIn('case "template.go":', reflaxe_compiler)
+        self.assertNotIn('case "template.go":', reflaxe_compiler)
+        self.assertIn("GoRuntimeCapabilityManifest.build", reflaxe_compiler)
 
         generated_root = ROOT / "test/snapshot/stdlib/haxe_template_basic/intended"
         generated_main = (generated_root / "main.go").read_text(encoding="utf-8")
@@ -1433,7 +1435,8 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
 
         self.assertIn('var HxrtCrypto = "crypto";', feature_analyzer)
         self.assertIn('["crypto.go"]', feature_analyzer)
-        self.assertIn('case "crypto.go":', reflaxe_compiler)
+        self.assertNotIn('case "crypto.go":', reflaxe_compiler)
+        self.assertIn("GoRuntimeCapabilityManifest.build", reflaxe_compiler)
         generated_root = ROOT / "test/snapshot/stdlib/crypto_xml_zip_basic/intended"
         self.assertTrue((generated_root / "hxrt/crypto.go").is_file())
         self.assertFalse(
@@ -1560,7 +1563,8 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertIn('path == "haxe.zip.Uncompress"', feature_analyzer)
         self.assertIn("case FEATURE_ZIP:", feature_analyzer)
         self.assertIn('["zip.go"]', feature_analyzer)
-        self.assertIn('case "zip.go":', reflaxe_compiler)
+        self.assertNotIn('case "zip.go":', reflaxe_compiler)
+        self.assertIn("GoRuntimeCapabilityManifest.build", reflaxe_compiler)
 
         generated_root = ROOT / "test/snapshot/stdlib/crypto_xml_zip_basic/intended"
         self.assertTrue((generated_root / "module_haxe_zip_compress.go").is_file())
@@ -1663,8 +1667,9 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         self.assertIn("case FEATURE_MATH:", feature_analyzer)
         self.assertIn('["date.go"]', feature_analyzer)
         self.assertIn('["math.go"]', feature_analyzer)
-        self.assertIn('case "date.go":', reflaxe_compiler)
-        self.assertIn('case "math.go":', reflaxe_compiler)
+        self.assertNotIn('case "date.go":', reflaxe_compiler)
+        self.assertNotIn('case "math.go":', reflaxe_compiler)
+        self.assertIn("GoRuntimeCapabilityManifest.build", reflaxe_compiler)
 
         self.assertIn('case "Date"', serializer_source)
         self.assertIn("date.getTime()", serializer_source)
@@ -2074,8 +2079,9 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             'case FEATURE_SERIALIZATION:\n\t\t\t\t["serialization.go"]',
             feature_analyzer,
         )
-        self.assertIn('case "regex.go":', reflaxe_compiler)
-        self.assertIn('case "serialization.go":', reflaxe_compiler)
+        self.assertNotIn('case "regex.go":', reflaxe_compiler)
+        self.assertNotIn('case "serialization.go":', reflaxe_compiler)
+        self.assertIn("GoRuntimeCapabilityManifest.build", reflaxe_compiler)
 
         regex_runtime = (
             ROOT / "test/snapshot/core/runtime_hxrt_infer_regex/intended/hxrt"
@@ -2168,6 +2174,24 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             'hxrt.StringFromLiteral("childValue"))',
             generated,
         )
+
+    def test_obsolete_map_snapshot_bridges_are_not_shipped(self) -> None:
+        """Staged Serializer walks typed keys/get APIs and owns no snapshot bridge."""
+        serializer = (ROOT / "std/go/_std/haxe/Serializer.hx").read_text(
+            encoding="utf-8"
+        )
+        map_sources = "\n".join(
+            (ROOT / "runtime/hxrt" / name).read_text(encoding="utf-8")
+            for name in ("map_int.go", "map_string.go", "map_object.go")
+        )
+
+        for helper in (
+            "IntMapSnapshot",
+            "StringMapSnapshot",
+            "ObjectMapSnapshot",
+        ):
+            self.assertNotIn(helper, serializer)
+            self.assertNotIn(f"func {helper}(", map_sources)
 
     def test_base_haxe_io_is_source_owned_instead_of_a_compiler_shim(self) -> None:
         """Public byte and stream policy must compile from canonical Haxe source."""
@@ -2540,12 +2564,13 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         ):
             self.assertIn(f'"{runtime_file}"', feature_analyzer)
         self.assertIn('["socket_ssl.go"]', feature_analyzer)
-        self.assertIn(
+        self.assertNotIn(
             'case "socket.go", "socket_broadcast_posix.go", "socket_broadcast_unsupported.go",',
             reflaxe_compiler,
         )
-        self.assertIn('"socket_broadcast_windows.go":', reflaxe_compiler)
-        self.assertIn('case "socket_ssl.go":', reflaxe_compiler)
+        self.assertNotIn('"socket_broadcast_windows.go":', reflaxe_compiler)
+        self.assertNotIn('case "socket_ssl.go":', reflaxe_compiler)
+        self.assertIn("GoRuntimeCapabilityManifest.build", reflaxe_compiler)
 
         socket_runtime = ROOT / "test/snapshot/core/runtime_hxrt_infer_socket/intended/hxrt"
         ssl_runtime = ROOT / "test/snapshot/core/runtime_hxrt_infer_ssl/intended/hxrt"

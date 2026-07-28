@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 3,
+	"schemaVersion": 4,
 	"contract": "portable",
 	"policyPreset": "portable_default",
 	"semanticBoundarySource": "typed_api_or_module",
@@ -7,6 +7,7 @@
 	"selectiveEnabled": false,
 	"fullCopy": true,
 	"inferenceDisabled": false,
+	"manifestAuthority": "typed_usage_plus_surface_plan_runtime_manifest",
 	"manualFeatures": [
 	],
 	"inferredFeatures": [
@@ -17,8 +18,337 @@
 		"string"
 	],
 	"selectedFeatures": [
+		"core",
+		"array",
+		"string",
+		"equality",
+		"print",
+		"exception",
+		"json",
+		"sys",
+		"file_io",
+		"filesystem",
+		"process",
+		"bytes",
+		"ssl",
+		"thread",
+		"enum_value",
+		"map_int",
+		"map_string",
+		"map_object",
+		"atomic_int",
+		"atomic_object"
 	],
 	"files": [
+		"array.go",
+		"atomic_int.go",
+		"atomic_object.go",
+		"bytes.go",
+		"core.go",
+		"enum_value.go",
+		"equality.go",
+		"exception.go",
+		"file.go",
+		"filesystem.go",
+		"hxrt.go",
+		"json.go",
+		"map_int.go",
+		"map_object.go",
+		"map_string.go",
+		"print.go",
+		"process.go",
+		"ssl.go",
+		"string.go",
+		"sys.go",
+		"thread.go"
+	],
+	"capabilities": [
+		{
+			"id": "core",
+			"files": [
+				"core.go",
+				"hxrt.go"
+			],
+			"reasons": [
+				{
+					"feature": "core",
+					"sourceKind": "baseline",
+					"source": "compiler_baseline"
+				},
+				{
+					"feature": "core",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "array",
+			"files": [
+				"array.go"
+			],
+			"reasons": [
+				{
+					"feature": "array",
+					"sourceKind": "surface_plan",
+					"source": "go_build_context_plus_typed_registry_decision"
+				}
+			]
+		},
+		{
+			"id": "string",
+			"files": [
+				"string.go"
+			],
+			"reasons": [
+				{
+					"feature": "string",
+					"sourceKind": "baseline",
+					"source": "compiler_baseline"
+				},
+				{
+					"feature": "string",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				},
+				{
+					"feature": "string",
+					"sourceKind": "surface_plan",
+					"source": "go_build_context_plus_typed_registry_decision"
+				}
+			]
+		},
+		{
+			"id": "equality",
+			"files": [
+				"equality.go"
+			],
+			"reasons": [
+				{
+					"feature": "equality",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "print",
+			"files": [
+				"print.go"
+			],
+			"reasons": [
+				{
+					"feature": "print",
+					"sourceKind": "baseline",
+					"source": "compiler_baseline"
+				},
+				{
+					"feature": "print",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "exception",
+			"files": [
+				"exception.go"
+			],
+			"reasons": [
+				{
+					"feature": "exception",
+					"sourceKind": "baseline",
+					"source": "compiler_baseline"
+				},
+				{
+					"feature": "exception",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "json",
+			"files": [
+				"json.go"
+			],
+			"reasons": [
+				{
+					"feature": "json",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "sys",
+			"files": [
+				"sys.go"
+			],
+			"reasons": [
+				{
+					"feature": "sys",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "file_io",
+			"files": [
+				"file.go"
+			],
+			"reasons": [
+				{
+					"feature": "file_io",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "filesystem",
+			"files": [
+				"filesystem.go"
+			],
+			"reasons": [
+				{
+					"feature": "filesystem",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "process",
+			"files": [
+				"process.go"
+			],
+			"reasons": [
+				{
+					"feature": "process",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "bytes",
+			"files": [
+				"bytes.go"
+			],
+			"reasons": [
+				{
+					"feature": "bytes",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "ssl",
+			"files": [
+				"ssl.go"
+			],
+			"reasons": [
+				{
+					"feature": "ssl",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "thread",
+			"files": [
+				"thread.go"
+			],
+			"reasons": [
+				{
+					"feature": "thread",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "enum_value",
+			"files": [
+				"enum_value.go"
+			],
+			"reasons": [
+				{
+					"feature": "enum_value",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "map_int",
+			"files": [
+				"map_int.go"
+			],
+			"reasons": [
+				{
+					"feature": "map_int",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "map_string",
+			"files": [
+				"map_string.go"
+			],
+			"reasons": [
+				{
+					"feature": "map_string",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "map_object",
+			"files": [
+				"map_object.go"
+			],
+			"reasons": [
+				{
+					"feature": "map_object",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "atomic_int",
+			"files": [
+				"atomic_int.go"
+			],
+			"reasons": [
+				{
+					"feature": "atomic_int",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "atomic_object",
+			"files": [
+				"atomic_object.go"
+			],
+			"reasons": [
+				{
+					"feature": "atomic_object",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				}
+			]
+		}
 	],
 	"surfacePlanAuthority": "go_build_context_plus_typed_registry_decision",
 	"surfacePlanDecisionCount": 5,
@@ -51,7 +381,9 @@
 			],
 			"runtimeRequirements": [
 				"array"
-			]
+			],
+			"noHxrtStatus": "conditional",
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -74,7 +406,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -97,7 +431,9 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -121,7 +457,9 @@
 			],
 			"runtimeRequirements": [
 				"string"
-			]
+			],
+			"noHxrtStatus": "ineligible",
+			"selectedNoHxrtEligible": false
 		},
 		{
 			"module": "Main",
@@ -144,9 +482,136 @@
 			"imports": [
 			],
 			"runtimeRequirements": [
-			]
+			],
+			"noHxrtStatus": null,
+			"selectedNoHxrtEligible": false
 		}
 	],
 	"reasons": [
+		{
+			"feature": "core",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "core",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "array",
+			"sourceKind": "surface_plan",
+			"source": "go_build_context_plus_typed_registry_decision"
+		},
+		{
+			"feature": "string",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "string",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "string",
+			"sourceKind": "surface_plan",
+			"source": "go_build_context_plus_typed_registry_decision"
+		},
+		{
+			"feature": "equality",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "print",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "print",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "exception",
+			"sourceKind": "baseline",
+			"source": "compiler_baseline"
+		},
+		{
+			"feature": "exception",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "json",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "sys",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "file_io",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "filesystem",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "process",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "bytes",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "ssl",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "thread",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "enum_value",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "map_int",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "map_string",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "map_object",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "atomic_int",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "atomic_object",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		}
 	]
 }
