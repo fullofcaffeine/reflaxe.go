@@ -224,14 +224,27 @@ Removed:
     `inMetalLane` fields remain compatibility aliases.
 - `reflaxe_go_runtime_plan_report`
   - Emit `hxrt_plan.json` and `hxrt_plan.md` into output root with selected runtime features/files and selection reasons.
-  - `hxrt_plan.json` schema v2 adds `policyPreset` and
-    `semanticBoundarySource`.
-  - `hxrt_plan` reasons are deterministic per-feature provenance entries (`baseline`, `class_usage`, `enum_usage`, `shim_group`, `io_helper_surface`, `manual_define`, `dependency_edge`) so runtime selection remains auditable in CI.
+  - `hxrt_plan.json` schema v3 adds the immutable portable-surface plan,
+    including each used type, contract and eligibility decision, selected
+    carrier or fallback, imports, and runtime consequences. Schema v2 added
+    `policyPreset` and `semanticBoundarySource`.
+  - `hxrt_plan` reasons are deterministic per-feature provenance entries
+    (`baseline`, `class_usage`, `enum_usage`, `shim_group`,
+    `io_helper_surface`, `manual_define`, `dependency_edge`, and
+    `surface_plan`) so runtime selection remains auditable in CI. A
+    `surface_plan` reason can name either a registry-selected consequence or a
+    closed carrier symbol found in the retained typed Go AST.
 - `reflaxe_go_optimizer_plan_report`
   - Emit `optimizer_plan.json` and `optimizer_plan.md` into output root with effective optimizer preset/capabilities and applied lowering counters.
-  - `optimizer_plan.json` schema v6 adds `policyPreset`, native
-    specialization value/provenance, and canonical boundary/non-boundary
-    fallback counters. Historical lane counters remain aliases.
+  - `optimizer_plan.json` schema v7 adds the same immutable portable-surface
+    plan consumed by lowering and runtime selection. Schema v6 added
+    `policyPreset`, native specialization value/provenance, and canonical
+    boundary/non-boundary fallback counters. Historical lane counters remain
+    aliases.
+  - Both v7/v3 reports expose `surfacePlanAuthority`,
+    `surfacePlanDecisionCount`, `requiredSurfaceImports`,
+    `requiredSurfaceRuntimeFeatures`, and `surfacePlans`. See
+    [Portable surface planner](surface-planner.md).
 - `reflaxe_go_type_usage_report`
   - Emit `type_usage.json` and `type_usage.md` with deterministic
     compiler-observed generic/function/anonymous shapes, typed member/call

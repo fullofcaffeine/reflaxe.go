@@ -8,8 +8,8 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 CONTRACT_SCHEMA = 8
-OPTIMIZER_SCHEMA = 6
-RUNTIME_SCHEMA = 2
+OPTIMIZER_SCHEMA = 7
+RUNTIME_SCHEMA = 3
 TYPE_USAGE_SCHEMA = 1
 
 
@@ -144,6 +144,58 @@ def require_runtime_reason_entries(entries: Any, label: str) -> None:
         raise SystemExit(f"{label}: missing expected sourceKind values: {', '.join(missing)}")
 
 
+def require_surface_plans(obj: dict[str, Any], label: str) -> None:
+    require_keys(
+        obj,
+        [
+            "surfacePlanAuthority",
+            "surfacePlanDecisionCount",
+            "requiredSurfaceImports",
+            "requiredSurfaceRuntimeFeatures",
+            "surfacePlans",
+        ],
+        label,
+    )
+    if obj["surfacePlanAuthority"] != "go_build_context_plus_typed_registry_decision":
+        raise SystemExit(f"{label}.surfacePlanAuthority: unexpected authority")
+    decision_count = require_int(
+        obj["surfacePlanDecisionCount"],
+        f"{label}.surfacePlanDecisionCount",
+    )
+    plans = obj["surfacePlans"]
+    if not isinstance(plans, list):
+        raise SystemExit(f"{label}.surfacePlans: expected array")
+    if decision_count != len(plans):
+        raise SystemExit(
+            f"{label}.surfacePlanDecisionCount: expected {len(plans)}, got {decision_count}"
+        )
+    if not isinstance(obj["requiredSurfaceImports"], list):
+        raise SystemExit(f"{label}.requiredSurfaceImports: expected array")
+    if not isinstance(obj["requiredSurfaceRuntimeFeatures"], list):
+        raise SystemExit(f"{label}.requiredSurfaceRuntimeFeatures: expected array")
+    for index, entry in enumerate(plans):
+        if not isinstance(entry, dict):
+            raise SystemExit(f"{label}.surfacePlans[{index}]: expected object")
+        require_keys(
+            entry,
+            [
+                "module",
+                "location",
+                "usageLevel",
+                "usedType",
+                "contract",
+                "eligibility",
+                "selection",
+                "selectionReason",
+                "selectedRepresentation",
+                "fallbackReason",
+                "imports",
+                "runtimeRequirements",
+            ],
+            f"{label}.surfacePlans[{index}]",
+        )
+
+
 def main() -> int:
     contract_path = ROOT / "test/snapshot/core/report_artifacts_auto_mode/intended/profile_contract.json"
     optimizer_path = ROOT / "test/snapshot/core/report_artifacts_auto_mode/intended/optimizer_plan.json"
@@ -234,6 +286,7 @@ def main() -> int:
     planner_reasons = require_nonempty_list(optimizer["goAstPassSelectionReasons"], str(optimizer_path))
     require_reason_entries(planner_reasons, "planner", str(optimizer_path))
     require_optimizer_capabilities(optimizer["autoLoweringCapabilities"], str(optimizer_path) + ".autoLoweringCapabilities")
+    require_surface_plans(optimizer, str(optimizer_path))
 
     optimizer_legacy = load_json(optimizer_legacy_path)
     require_schema(optimizer_legacy, OPTIMIZER_SCHEMA, str(optimizer_legacy_path))
@@ -395,6 +448,7 @@ def main() -> int:
         str(runtime_path),
     )
     require_runtime_reason_entries(runtime["reasons"], str(runtime_path) + ".reasons")
+    require_surface_plans(runtime, str(runtime_path))
 
     type_usage = load_json(type_usage_path)
     require_schema(type_usage, TYPE_USAGE_SCHEMA, str(type_usage_path))

@@ -20,6 +20,9 @@ import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeEligibilityRole;
 import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeTypeEligibilityResult;
 import reflaxe.go.compiler.GoSourceModuleRegistry;
 import reflaxe.go.compiler.GoSourceOwnedStdlibPlanner;
+import reflaxe.go.compiler.GoSurfaceContractRegistry.GoNativeRepresentation;
+import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceId;
+import reflaxe.go.compiler.GoSurfacePlanner;
 import reflaxe.go.compiler.GoStdlibShimClassifier;
 import reflaxe.go.compiler.GoStdlibOwnership;
 import reflaxe.go.compiler.GoTestAstFixtureEmitter;
@@ -299,6 +302,17 @@ class GoCompiler {
 	var globalLeafReceiverTypes:Map<String, Bool>;
 	var tempVarCounter:Int;
 	var requiresTypeValueSupport:Bool;
+
+	/**
+		Why / What / How
+		- Selective packaging must copy `array.go` exactly when lowering emits the
+		  shared portable Array carrier.
+		- A typed Go AST walk sets this bit after lowering and before printing;
+		  runtime inference reads it from that closed output plan.
+		- This replaces the former final generated-text scan without treating every
+		  typer-observed core Array signature as emitted runtime use.
+	**/
+	var requiresSharedArrayRuntime:Bool;
 	#end
 
 	public function new(?compilationContext:CompilationContext, ?mainIdentity:GoMainIdentity) {
@@ -386,6 +400,7 @@ class GoCompiler {
 		globalLeafReceiverTypes = new Map<String, Bool>();
 		tempVarCounter = 0;
 		requiresTypeValueSupport = false;
+		requiresSharedArrayRuntime = false;
 		#end
 	}
 
@@ -420,6 +435,7 @@ class GoCompiler {
 		requiresReflectEnumValueMetadata = false;
 		requiresGeneratedMethodLookup = false;
 		requiresGeneratedFieldLookup = false;
+		requiresSharedArrayRuntime = false;
 		clearGeneratedMethodMetadata();
 		clearGeneratedFieldMetadata();
 		generatedMethodMetadataPlan = [];
@@ -481,6 +497,9 @@ class GoCompiler {
 		supportDecls = supportDecls.concat(lowerRegisteredCompilerCapabilityDecls());
 		supportDecls = supportDecls.concat(lowerTestAstStmtDecls());
 		populateLeafReturningFunctions(moduleDecls, preludeDecls, supportDecls);
+		requiresSharedArrayRuntime = moduleDeclsUseSharedArraySurface(moduleDecls)
+			|| declsUseSharedArraySurface(preludeDecls)
+			|| declsUseSharedArraySurface(supportDecls);
 		var requiredShimGroups = sortedRequiredStdlibShimGroups();
 		compilationContext.requiredStdlibShimGroups = requiredShimGroups.copy();
 		var inferredRuntimeFeatures = inferRuntimeFeatures(requiredShimGroups);
@@ -524,39 +543,7 @@ class GoCompiler {
 			generated.push(renderGeneratedFile(nextGoFileName("support", usedFileNames), preludeDecls.concat(supportDecls), supportImports));
 		}
 
-		if (generatedUsesSharedArraySurface(generated)) {
-			inferredRuntimeFeatures = GoHxrtFeatureAnalyzer.expandWithReasons(inferredRuntimeFeatures.features.concat([GoHxrtFeatureAnalyzer.FEATURE_ARRAY]),
-				inferredRuntimeFeatures.reasons.concat([
-					{
-						feature: GoHxrtFeatureAnalyzer.FEATURE_ARRAY,
-						sourceKind: "generated_surface",
-						source: "hxrt.Array"
-					}
-				]));
-		}
-		compilationContext.inferredHxrtFeatures = inferredRuntimeFeatures.features;
-		compilationContext.inferredHxrtFeatureReasons = inferredRuntimeFeatures.reasons;
-
 		return generated;
-	}
-
-	/**
-		What: Detects whether final generated Go references the selectively packaged
-		portable Array carrier.
-		Why: The Haxe typer visits unused core Array signatures even in programs that
-		emit no arrays, so class-usage inference would copy `array.go` into every build.
-		How: Inspect only final printer output for the closed carrier constructor/type
-		markers, after DCE and source-owned planning have selected actual declarations.
-	**/
-	function generatedUsesSharedArraySurface(files:Array<GoGeneratedFile>):Bool {
-		for (file in files) {
-			if (file.contents.indexOf("*hxrt.Array") != -1
-				|| file.contents.indexOf("hxrt.NewArray") != -1
-				|| file.contents.indexOf("hxrt.ArrayFromValues") != -1) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
@@ -656,6 +643,9 @@ class GoCompiler {
 
 	function buildModuleImports():Array<String> {
 		var imports = [compilationContext.runtimeImportPath];
+		for (requirement in compilationContext.surfacePlan.requiredImports) {
+			imports.push(requirement.path);
+		}
 		for (path in externImportPaths.keys()) {
 			imports.push(path);
 		}
@@ -718,6 +708,39 @@ class GoCompiler {
 		for (decl in file.decls) {
 			if (declUsesImportAlias(decl, alias)) {
 				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+		Finds retained shared-Array references in the typed Go AST.
+
+		Why / What / How
+		- Surface contracts describe possible runtime consequences, but specialized
+		  source shapes such as `Rest<T>` can avoid materializing `hxrt.Array`.
+		- Inspect the final declaration algebra before printing and recognize only
+		  the closed `hxrt.Array`, `hxrt.NewArray`, and `hxrt.ArrayFromValues`
+		  symbols.
+		- Controlled `GoRaw` islands are checked by the same qualified-symbol
+		  matcher used by structural nodes; arbitrary generated text is never read.
+	**/
+	function moduleDeclsUseSharedArraySurface(moduleDecls:Map<String, Array<GoDecl>>):Bool {
+		for (decls in moduleDecls) {
+			if (declsUseSharedArraySurface(decls)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function declsUseSharedArraySurface(decls:Array<GoDecl>):Bool {
+		var symbols = ["hxrt.Array", "hxrt.NewArray", "hxrt.ArrayFromValues"];
+		for (decl in decls) {
+			for (symbol in symbols) {
+				if (declUsesImportAlias(decl, symbol)) {
+					return true;
+				}
 			}
 		}
 		return false;
@@ -986,8 +1009,7 @@ class GoCompiler {
 			case GoIdent(name): name == alias || rawCodeUsesImportAlias(name, alias);
 			case GoIntLiteral(_), GoFloatLiteral(_), GoBoolLiteral(_), GoStringLiteral(_), GoNil:
 				false;
-			case GoSelector(target, _):
-				exprUsesImportAlias(target, alias);
+			case GoSelector(target, field): selectorMatchesQualifiedSymbol(target, field, alias) || exprUsesImportAlias(target, alias);
 			case GoIndex(target, index): exprUsesImportAlias(target, alias) || exprUsesImportAlias(index, alias);
 			case GoSlice(target, start, end): exprUsesImportAlias(target,
 					alias) || (start != null && exprUsesImportAlias(start, alias)) || (end != null && exprUsesImportAlias(end, alias));
@@ -1066,14 +1088,37 @@ class GoCompiler {
 		if (typeName == null) {
 			return false;
 		}
-		return typeName.usesPackage(alias);
+		return alias.indexOf(".") >= 0 ? rawCodeUsesQualifiedSymbol(typeName.render(), alias) : typeName.usesPackage(alias);
 	}
 
 	function rawCodeUsesImportAlias(code:String, alias:String):Bool {
 		if (code == null || code == "") {
 			return false;
 		}
+		if (alias.indexOf(".") >= 0) {
+			return rawCodeUsesQualifiedSymbol(code, alias);
+		}
 		return new EReg("\\b" + EReg.escape(alias) + "\\s*\\.", "").match(code);
+	}
+
+	function selectorMatchesQualifiedSymbol(target:GoExpr, field:String, symbol:String):Bool {
+		return switch (target) {
+			case GoIdent(packageName): symbol == packageName + "." + field;
+			case _: false;
+		};
+	}
+
+	function rawCodeUsesQualifiedSymbol(code:String, symbol:String):Bool {
+		if (code == null || code == "") {
+			return false;
+		}
+		var separator = symbol.indexOf(".");
+		if (separator <= 0 || separator == symbol.length - 1) {
+			return false;
+		}
+		var packageName = symbol.substr(0, separator);
+		var memberName = symbol.substr(separator + 1);
+		return new EReg("\\b" + EReg.escape(packageName) + "\\s*\\.\\s*" + EReg.escape(memberName) + "\\b", "").match(code);
 	}
 
 	function collectProjectClasses(types:Array<ModuleType>):Array<ClassType> {
@@ -8348,7 +8393,8 @@ class GoCompiler {
 	}
 
 	function useStringFastpath():Bool {
-		return compilationContext.buildContext.portableStringFastpathEnabled;
+		return compilationContext.buildContext.portableStringFastpathEnabled
+			&& GoSurfacePlanner.allObservedUsesSelectNative(compilationContext.surfacePlan, GoSurfaceId.HaxeString, GoNativeRepresentation.GoString);
 	}
 
 	function useProvenConcurrencyFastpath():Bool {
@@ -10387,7 +10433,33 @@ class GoCompiler {
 		classPaths.sort(Reflect.compare);
 		var enumPaths = [for (enumType in projectEnums) fullEnumName(enumType)];
 		enumPaths.sort(Reflect.compare);
-		return GoHxrtFeatureAnalyzer.inferWithReasons(classPaths, enumPaths, requiredShimGroups, requiresEqualitySurface);
+		var inferred = GoHxrtFeatureAnalyzer.inferWithReasons(classPaths, enumPaths, requiredShimGroups, requiresEqualitySurface);
+		var features = inferred.features.copy();
+		var reasons = inferred.reasons.copy();
+		for (feature in compilationContext.surfacePlan.requiredRuntimeFeatures) {
+			// The plan names the registered fallback consequence. Array is copied
+			// only when retained typed lowering actually materialized that carrier;
+			// Rest<T> and similar specialized storage can observe an Array source
+			// shape without emitting `hxrt.Array`.
+			if (feature == GoHxrtFeatureAnalyzer.FEATURE_ARRAY && !requiresSharedArrayRuntime) {
+				continue;
+			}
+			features.push(feature);
+			reasons.push({
+				feature: feature,
+				sourceKind: "surface_plan",
+				source: GoSurfacePlanner.AUTHORITY
+			});
+		}
+		if (requiresSharedArrayRuntime && features.indexOf(GoHxrtFeatureAnalyzer.FEATURE_ARRAY) < 0) {
+			features.push(GoHxrtFeatureAnalyzer.FEATURE_ARRAY);
+			reasons.push({
+				feature: GoHxrtFeatureAnalyzer.FEATURE_ARRAY,
+				sourceKind: "surface_plan",
+				source: "lowered_go_ast:hxrt.Array"
+			});
+		}
+		return GoHxrtFeatureAnalyzer.expandWithReasons(features, reasons);
 	}
 
 	function resetExternImportPaths():Void {

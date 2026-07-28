@@ -787,15 +787,18 @@ class GoSurfaceContractRegistry {
 		give aliases independent cursors.
 
 		What
-		`GoIterator` is the exact non-optional zero-argument `hasNext():Bool` and
-		`next():T` protocol whose two closures share one state owner. It is not a
-		nominal type, a Go `range`, or a promise about `next()` after exhaustion.
+		`GoIterator` names a future statically typed Go carrier for the exact
+		non-optional zero-argument `hasNext():Bool` and `next():T` protocol. The
+		current `map[string]any` structural object remains `HxrtIterator`, even when
+		its stored `next` closure happens to have a concrete Go result type. It is
+		not a Go `range` or a promise about `next()` after exhaustion.
 
 		How
-		Only recursively proven `T` shapes admit. Dynamic, unresolved, named
-		generic, and opaque typedef/abstract element shapes retain the structural
-		`hxrt` fallback, preserving order, live mutation, and alias-shared
-		exhaustion.
+		Only recursively proven `T` shapes admit the future carrier. Dynamic,
+		unresolved, named generic, and opaque typedef/abstract element shapes retain
+		the structural fallback. Planner activation stays off until `.7.7` provides
+		a distinct typed representation and exact lowering gate; existing closure
+		maps continue preserving order, live mutation, and alias-shared exhaustion.
 	**/
 	static function haxeIteratorContract():GoSurfaceContract {
 		final noArguments = GoImmutableList.fromArray([]);

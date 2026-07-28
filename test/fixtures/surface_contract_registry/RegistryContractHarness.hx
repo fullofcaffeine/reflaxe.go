@@ -1,6 +1,8 @@
 #if macro
 import haxe.crypto.Base64;
 import haxe.io.Bytes;
+import reflaxe.go.GoProfile;
+import reflaxe.go.compiler.GoBuildContext;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureId;
 import reflaxe.go.compiler.GoSurfaceContractRegistry;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceContractRegistryException;
@@ -20,6 +22,9 @@ import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceProofKind;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceNominalKind;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceTypePattern;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceValidationCode;
+import reflaxe.go.compiler.GoSurfacePlanner;
+import reflaxe.go.compiler.GoSurfacePlanner.GoSurfacePlanReason;
+import reflaxe.go.compiler.GoSurfacePlanner.GoSurfacePlanSelection;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoImmutableList;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeShape;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeUsageEvidence;
@@ -319,6 +324,62 @@ class RegistryContractHarness {
 		assertTrue(markdown.indexOf("Known portable surface has no admitted contract") >= 0, "human report must explain the ObjectMap identity boundary");
 		assertTrue(markdown.indexOf("variable_declaration") >= 0, "human report must identify the usage level");
 		assertTrue(markdown.indexOf('"kind":"class"') >= 0, "human report must identify the complete typed shape");
+
+		final plannerRegistry = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledgerMany([
+			arrayShape(intShape()),
+			arrayShape(GoTypeShape.DynamicShape(null)),
+			stringMapShape(intShape()),
+			stringMapShape(GoTypeShape.DynamicShape(null)),
+			intMapShape(stringShape()),
+			objectMapShape(classShape("Main.Box"), stringShape()),
+			stringShape(),
+			bytesShape(),
+			iteratorShape(intShape()),
+			iteratorShape(GoTypeShape.DynamicShape(null)),
+			optionShape(intShape()),
+			resultShape(intShape(), stringShape()),
+			functionShape(intShape(), stringShape())
+		]));
+		final portablePlan = GoSurfacePlanner.plan(GoBuildContext.legacyDefaults(GoProfile.Portable), plannerRegistry);
+		final metalPlan = GoSurfacePlanner.plan(GoBuildContext.legacyDefaults(GoProfile.Metal), plannerRegistry);
+		assertEquals(portablePlan.decisionCount, metalPlan.decisionCount,
+			"compatibility presets must not change how many typed registry decisions the planner consumes");
+		for (index in 0...portablePlan.decisions.length) {
+			final portableDecision = portablePlan.decisions.at(index);
+			final metalDecision = metalPlan.decisions.at(index);
+			assertEquals(portableDecision.surfaceId, metalDecision.surfaceId, "preset override must preserve surface identity");
+			assertEquals(portableDecision.eligibilityOutcome, metalDecision.eligibilityOutcome, "preset override must preserve registry eligibility");
+			assertEquals(portableDecision.selection, metalDecision.selection, "preset override must preserve the selected carrier");
+			assertEquals(portableDecision.selectionReason, metalDecision.selectionReason, "preset override must preserve the selection reason");
+		}
+		assertHasPlan(portablePlan, GoSurfaceId.HaxeArray, GoSurfaceDecisionOutcome.Admitted, GoSurfacePlanSelection.Fallback,
+			GoSurfacePlanReason.CarrierNotActivated, GoHxrtFeatureId.HxrtArray);
+		assertHasPlan(portablePlan, GoSurfaceId.HaxeArray, GoSurfaceDecisionOutcome.Rejected, GoSurfacePlanSelection.Fallback,
+			GoSurfacePlanReason.RegistryRejected, GoHxrtFeatureId.HxrtArray);
+		assertHasPlan(portablePlan, GoSurfaceId.HaxeStringMap, GoSurfaceDecisionOutcome.Admitted, GoSurfacePlanSelection.Fallback,
+			GoSurfacePlanReason.CarrierNotActivated, GoHxrtFeatureId.HxrtMapString);
+		assertHasPlan(portablePlan, GoSurfaceId.HaxeIntMap, GoSurfaceDecisionOutcome.Admitted, GoSurfacePlanSelection.Fallback,
+			GoSurfacePlanReason.CarrierNotActivated, GoHxrtFeatureId.HxrtMapInt);
+		assertHasPlan(portablePlan, GoSurfaceId.HaxeString, GoSurfaceDecisionOutcome.Admitted, GoSurfacePlanSelection.Native,
+			GoSurfacePlanReason.RegistryAdmitted, GoHxrtFeatureId.HxrtString);
+		assertHasPlan(portablePlan, GoSurfaceId.HaxeBytes, GoSurfaceDecisionOutcome.Admitted, GoSurfacePlanSelection.Native,
+			GoSurfacePlanReason.RegistryAdmitted, GoHxrtFeatureId.HxrtBytes);
+		assertHasPlan(portablePlan, GoSurfaceId.HaxeIterator, GoSurfaceDecisionOutcome.Admitted, GoSurfacePlanSelection.Fallback,
+			GoSurfacePlanReason.CarrierNotActivated, GoHxrtFeatureId.HxrtCore);
+		assertHasPlan(portablePlan, GoSurfaceId.PortableOption, GoSurfaceDecisionOutcome.Admitted, GoSurfacePlanSelection.Fallback,
+			GoSurfacePlanReason.CarrierNotActivated, null);
+		assertHasPlan(portablePlan, GoSurfaceId.PortableResult, GoSurfaceDecisionOutcome.Admitted, GoSurfacePlanSelection.Fallback,
+			GoSurfacePlanReason.CarrierNotActivated, null);
+		assertHasPlan(portablePlan, GoSurfaceId.HaxeFunction, GoSurfaceDecisionOutcome.Rejected, GoSurfacePlanSelection.Existing,
+			GoSurfacePlanReason.NoRegisteredFallback, null);
+		assertHasPlan(portablePlan, GoSurfaceId.HaxeObjectMap, GoSurfaceDecisionOutcome.Rejected, GoSurfacePlanSelection.Existing,
+			GoSurfacePlanReason.NoRegisteredFallback, null);
+		assertTrue(GoSurfacePlanner.allObservedUsesSelectNative(GoSurfacePlanner.emptySnapshot(), GoSurfaceId.HaxeString, GoNativeRepresentation.GoString),
+			"an empty observation set must not veto the established String helper policy");
+		assertTrue(GoSurfacePlanner.allObservedUsesSelectNative(portablePlan, GoSurfaceId.HaxeString, GoNativeRepresentation.GoString),
+			"every admitted String decision must permit the governed String fast path");
+		assertTrue(!GoSurfacePlanner.allObservedUsesSelectNative(portablePlan, GoSurfaceId.HaxeArray, GoNativeRepresentation.GoSlice),
+			"a fallback decision must veto a carrier-specific fast path");
 		Sys.println("SURFACE_REGISTRY_JSON=" + Base64.encode(Bytes.ofString(firstJson)));
 		Sys.println("surface registry macro contract passed");
 	}
@@ -492,6 +553,31 @@ class RegistryContractHarness {
 
 	static function ledger(shape:GoTypeShape):GoTypeUsageLedgerSnapshot {
 		return ledgerMany([shape]);
+	}
+
+	static function assertHasPlan(plan:reflaxe.go.compiler.GoSurfacePlanner.GoSurfacePlanSnapshot, surfaceId:GoSurfaceId,
+			eligibility:GoSurfaceDecisionOutcome, selection:GoSurfacePlanSelection, reason:GoSurfacePlanReason, runtimeFeature:Null<GoHxrtFeatureId>):Void {
+		for (decision in plan.decisions) {
+			if (decision.surfaceId != surfaceId
+				|| decision.eligibilityOutcome != eligibility
+				|| decision.selection != selection
+				|| decision.selectionReason != reason) {
+				continue;
+			}
+			if (runtimeFeature == null) {
+				assertEquals(0, decision.runtimeRequirements.length, "planner decision should not claim an unregistered runtime consequence");
+			} else {
+				assertTrue([for (feature in decision.runtimeRequirements) feature].indexOf(runtimeFeature) >= 0,
+					"planner decision must expose its selected runtime consequence");
+			}
+			if (selection == GoSurfacePlanSelection.Native) {
+				assertEquals(null, decision.fallbackReason, "native selection must not invent a fallback reason");
+			} else {
+				assertTrue(decision.fallbackReason != null && decision.fallbackReason != "", "non-native selection must explain its fallback");
+			}
+			return;
+		}
+		throw 'Expected planner decision for ${surfaceId}/${eligibility}/${selection}/${reason}';
 	}
 
 	static function ledgerMany(shapes:Array<GoTypeShape>):GoTypeUsageLedgerSnapshot {

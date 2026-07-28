@@ -16,10 +16,12 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURE = ROOT / "test" / "fixtures" / "surface_contract_registry"
 REGISTRY = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoSurfaceContractRegistry.hx"
+PLANNER = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoSurfacePlanner.hx"
 TYPE_LEDGER = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoTypeUsageLedger.hx"
 HXRT_ANALYZER = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoHxrtFeatureAnalyzer.hx"
 CONTEXT = ROOT / "src" / "reflaxe" / "go" / "CompilationContext.hx"
 COMPILER = ROOT / "src" / "reflaxe" / "go" / "GoReflaxeCompiler.hx"
+LOWERING_COMPILER = ROOT / "src" / "reflaxe" / "go" / "GoCompiler.hx"
 DEFINE = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoCompilerDefine.hx"
 SCHEMA = ROOT / "docs" / "schemas" / "surface-contracts-v2.schema.json"
 LEGACY_SCHEMA = ROOT / "docs" / "schemas" / "surface-contracts-v1.schema.json"
@@ -27,6 +29,7 @@ LEGACY_SCHEMA_SHA256 = (
     "d5c0aa66702849d97b81a3990b7e8e5e5b3e7ba2afd178fa0e2e76756631b114"
 )
 DOC = ROOT / "docs" / "surface-contract-registry.md"
+PLANNER_DOC = ROOT / "docs" / "surface-planner.md"
 COLLECTION_DOC = ROOT / "docs" / "portable-collection-contract.md"
 VALUE_SURFACE_DOC = ROOT / "docs" / "portable-string-bytes-iterator-contract.md"
 DEFINES_DOC = ROOT / "docs" / "defines-reference.md"
@@ -543,6 +546,217 @@ class SurfaceContractRegistryTest(unittest.TestCase):
             define_source,
         )
 
+    def test_optimizer_import_and_runtime_plans_consume_one_registry_decision(self) -> None:
+        portable, _, _ = self.compile_report("portable")
+        portable_optimizer = json.loads(
+            (FIXTURE / "out-portable" / "optimizer_plan.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        portable_runtime = json.loads(
+            (FIXTURE / "out-portable" / "hxrt_plan.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        metal, _, _ = self.compile_report("metal")
+        metal_optimizer = json.loads(
+            (FIXTURE / "out-metal" / "optimizer_plan.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        metal_runtime = json.loads(
+            (FIXTURE / "out-metal" / "hxrt_plan.json").read_text(
+                encoding="utf-8"
+            )
+        )
+
+        self.assertEqual(portable, metal)
+        self.assertEqual(
+            portable_optimizer["nativeSpecializationPolicy"],
+            "eager",
+            "the portable lane must exercise the explicit eager override",
+        )
+        self.assertEqual(
+            metal_optimizer["nativeSpecializationPolicy"],
+            "proven",
+            "the metal lane must exercise the explicit proven override",
+        )
+        self.assertEqual(
+            portable_optimizer["surfacePlans"],
+            metal_optimizer["surfacePlans"],
+            "policy presets and specialization eagerness must not alter registry admission",
+        )
+        self.assertEqual(
+            portable_optimizer["surfacePlans"],
+            portable_runtime["surfacePlans"],
+            "optimizer and runtime reports must consume the same immutable plan",
+        )
+        self.assertEqual(
+            metal_optimizer["surfacePlans"],
+            metal_runtime["surfacePlans"],
+        )
+        self.assertEqual(
+            portable_optimizer["requiredSurfaceImports"],
+            portable_runtime["requiredSurfaceImports"],
+        )
+        self.assertEqual(
+            portable_optimizer["requiredSurfaceRuntimeFeatures"],
+            portable_runtime["requiredSurfaceRuntimeFeatures"],
+        )
+
+        plans = portable_optimizer["surfacePlans"]
+        self.assertTrue(plans)
+        for entry in plans:
+            self.assertEqual(
+                set(entry),
+                {
+                    "module",
+                    "location",
+                    "usageLevel",
+                    "usedType",
+                    "contract",
+                    "eligibility",
+                    "selection",
+                    "selectionReason",
+                    "selectedRepresentation",
+                    "fallbackReason",
+                    "imports",
+                    "runtimeRequirements",
+                },
+            )
+            self.assertEqual(
+                set(entry["contract"]),
+                {"surfaceId", "version"},
+            )
+            self.assertEqual(
+                set(entry["eligibility"]),
+                {"outcome", "reason", "detail"},
+            )
+            self.assertIsInstance(entry["usedType"], dict)
+            self.assertIn(entry["selection"], {"native", "fallback", "existing"})
+            self.assertIsInstance(entry["imports"], list)
+            self.assertIsInstance(entry["runtimeRequirements"], list)
+
+        def matching(
+            surface_id: str,
+            *,
+            eligibility: str | None = None,
+            selection: str | None = None,
+        ) -> list[dict[str, Any]]:
+            return [
+                entry
+                for entry in plans
+                if entry["contract"]["surfaceId"] == surface_id
+                and (
+                    eligibility is None
+                    or entry["eligibility"]["outcome"] == eligibility
+                )
+                and (selection is None or entry["selection"] == selection)
+            ]
+
+        self.assertTrue(matching("haxe.String", selection="native"))
+        self.assertTrue(matching("haxe.io.Bytes", selection="native"))
+        self.assertTrue(
+            matching(
+                "haxe.Iterator",
+                eligibility="admitted",
+                selection="fallback",
+            )
+        )
+        self.assertTrue(
+            matching(
+                "haxe.Iterator",
+                eligibility="rejected",
+                selection="fallback",
+            )
+        )
+        admitted_array_fallbacks = matching(
+            "haxe.Array",
+            eligibility="admitted",
+            selection="fallback",
+        )
+        self.assertTrue(admitted_array_fallbacks)
+        self.assertTrue(
+            all(
+                entry["selectionReason"] == "carrier_not_activated"
+                and entry["fallbackReason"]
+                for entry in admitted_array_fallbacks
+            )
+        )
+        rejected_array_fallbacks = matching(
+            "haxe.Array",
+            eligibility="rejected",
+            selection="fallback",
+        )
+        self.assertTrue(rejected_array_fallbacks)
+        self.assertTrue(
+            all(
+                entry["selectionReason"] == "registry_rejected"
+                and entry["eligibility"]["reason"] in entry["fallbackReason"]
+                for entry in rejected_array_fallbacks
+            )
+        )
+        self.assertTrue(
+            matching("reflaxe.std.Option", eligibility="admitted", selection="fallback")
+        )
+        self.assertTrue(
+            matching("reflaxe.std.Result", eligibility="admitted", selection="fallback")
+        )
+        function_existing = matching(
+            "haxe.Function",
+            eligibility="rejected",
+            selection="existing",
+        )
+        self.assertTrue(function_existing)
+        self.assertTrue(
+            all(
+                entry["selectionReason"] == "no_registered_fallback"
+                for entry in function_existing
+            )
+        )
+
+        self.assertEqual(portable_optimizer["requiredSurfaceImports"], [])
+        self.assertEqual(
+            portable_optimizer["requiredSurfaceRuntimeFeatures"],
+            ["array", "bytes", "core", "string"],
+        )
+        for value in flatten_strings(portable_optimizer):
+            self.assertNotIn(str(ROOT), value)
+            self.assertFalse(value.startswith("/"), value)
+        optimizer_markdown = (
+            FIXTURE / "out-portable" / "optimizer_plan.md"
+        ).read_text(encoding="utf-8")
+        for required_evidence in (
+            "used type `",
+            "location `",
+            "eligibility detail `",
+            "representation `",
+            "imports `",
+            "runtime `",
+        ):
+            self.assertIn(required_evidence, optimizer_markdown)
+
+        planner_source = PLANNER.read_text(encoding="utf-8")
+        context_source = CONTEXT.read_text(encoding="utf-8")
+        compiler_source = COMPILER.read_text(encoding="utf-8")
+        lowering_source = LOWERING_COMPILER.read_text(encoding="utf-8")
+        self.assertNotIn(":Dynamic", planner_source)
+        self.assertNotIn("<Dynamic>", planner_source)
+        self.assertNotIn(":Any", planner_source)
+        self.assertNotIn("<Any>", planner_source)
+        self.assertNotIn("GoProfile", planner_source)
+        self.assertNotIn("usesMetal", planner_source)
+        self.assertIn(
+            "public final surfacePlan:GoSurfacePlanSnapshot",
+            context_source,
+        )
+        self.assertIn("GoSurfacePlanner.plan", compiler_source)
+        self.assertIn("compilationContext.surfacePlan", lowering_source)
+        self.assertIn("moduleDeclsUseSharedArraySurface", lowering_source)
+        self.assertIn("lowered_go_ast:hxrt.Array", lowering_source)
+        self.assertNotIn("generatedUsesSharedArraySurface", lowering_source)
+        self.assertNotIn("file.contents.indexOf", lowering_source)
+
     def test_schema_docs_and_proof_paths_are_governed(self) -> None:
         schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
         legacy_schema = json.loads(LEGACY_SCHEMA.read_text(encoding="utf-8"))
@@ -605,6 +819,7 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertIn("has_proven_collection_carrier", binding_rule_pattern)
 
         doc = DOC.read_text(encoding="utf-8")
+        planner_doc = PLANNER_DOC.read_text(encoding="utf-8")
         collection_doc = COLLECTION_DOC.read_text(encoding="utf-8")
         value_surface_doc = VALUE_SURFACE_DOC.read_text(encoding="utf-8")
         defines_doc = DEFINES_DOC.read_text(encoding="utf-8")
@@ -614,7 +829,7 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertIn("Production admits eight", doc)
         self.assertNotIn("intentionally empty production catalog", doc)
         self.assertIn("not native `go.Result<T>`", doc)
-        self.assertIn("planner does not consume", doc)
+        self.assertIn("planner](surface-planner.md) now consumes", doc)
         self.assertIn("shared, slice-backed carrier", collection_doc)
         self.assertIn("ObjectMap", collection_doc)
         self.assertIn("Std.string", collection_doc)
@@ -624,7 +839,7 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertIn("exact `hasNext`/`next` protocol", value_surface_doc)
         self.assertIn("does not mean Go `range`", value_surface_doc)
         self.assertIn("haxe_go-vfp.7.11", value_surface_doc)
-        self.assertIn("no default lowering changes", value_surface_doc)
+        self.assertIn("fast paths also require the selected String carrier", value_surface_doc)
         self.assertIn("haxe.rust", value_surface_doc)
         self.assertIn("haxe.elixir", value_surface_doc)
         self.assertIn("haxe.ruby", value_surface_doc)
@@ -636,6 +851,11 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertIn("Genes", doc)
         self.assertIn("reflaxe_go_surface_contract_report", defines_doc)
         self.assertIn("surface_contracts.json", defines_doc)
+        self.assertIn("One authority, three consumers", planner_doc)
+        self.assertIn("profile name, optimization define, or", planner_doc)
+        self.assertIn("go.Slice", planner_doc)
+        self.assertIn("optimizer_plan.json` schema v7", planner_doc)
+        self.assertIn("hxrt_plan.json` schema v3", planner_doc)
 
         populated = self.populated_contract_report()
         self.validate_schema(populated)

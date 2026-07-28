@@ -24,7 +24,11 @@ import reflaxe.go.compiler.GoGeneratedOutputBoundary.GoOutputPathError;
 import reflaxe.go.compiler.GoPostBuildRunner;
 import reflaxe.go.compiler.GoSurfaceContractRegistry;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceContractRegistrySnapshot;
+import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceImportRequirement;
+import reflaxe.go.compiler.GoSurfacePlanner;
+import reflaxe.go.compiler.GoSurfacePlanner.GoSurfacePlanDecision;
 import reflaxe.go.compiler.GoTypeUsageLedger;
+import reflaxe.go.compiler.GoTypeUsageLedger.GoImmutableList;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeUsageLedgerSnapshot;
 import reflaxe.output.DataAndFileInfo;
 import reflaxe.output.StringOrBytes;
@@ -143,6 +147,11 @@ private typedef RuntimePlanReportSnapshot = {
 	final selectedFeatures:Array<String>;
 	final files:Array<String>;
 	final reasons:Array<RuntimeFeatureReason>;
+	final surfacePlanAuthority:String;
+	final surfacePlanDecisionCount:Int;
+	final requiredSurfaceImports:Array<GoSurfaceImportRequirement>;
+	final requiredSurfaceRuntimeFeatures:Array<String>;
+	final surfacePlans:Array<GoSurfacePlanDecision>;
 }
 
 private typedef OptimizerPlanReportSnapshot = {
@@ -173,6 +182,11 @@ private typedef OptimizerPlanReportSnapshot = {
 	final loweringFallbackLaneCount:Int;
 	final loweringFallbackNonLaneCount:Int;
 	final autoLoweringCapabilities:Array<OptimizerCapabilitySummary>;
+	final surfacePlanAuthority:String;
+	final surfacePlanDecisionCount:Int;
+	final requiredSurfaceImports:Array<GoSurfaceImportRequirement>;
+	final requiredSurfaceRuntimeFeatures:Array<String>;
+	final surfacePlans:Array<GoSurfacePlanDecision>;
 }
 
 private typedef OptimizerPassSelectionReason = {
@@ -264,7 +278,8 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		var runtimeImportPath = resolvedBuildContext.goModuleName + "/hxrt";
 		var authoritySnapshot = typeUsageLedger.snapshot([], runtimeImportPath);
 		var surfaceContractSnapshot = GoSurfaceContractRegistry.defaultRegistry().snapshot(authoritySnapshot);
-		var context = CompilationContext.fromBuildContext(resolvedBuildContext, authoritySnapshot, surfaceContractSnapshot);
+		var surfacePlan = GoSurfacePlanner.plan(resolvedBuildContext, surfaceContractSnapshot);
+		var context = CompilationContext.fromBuildContext(resolvedBuildContext, authoritySnapshot, surfaceContractSnapshot, surfacePlan);
 		compilationContext = context;
 		lastSurfaceContractReport = surfaceContractSnapshot;
 		var compiler = new GoCompiler(context, resolveSelectedMainIdentity());
@@ -929,8 +944,9 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		var manualFeatures = sortedUniqueStrings(plan.manualFeatures.copy());
 		var inferredFeatures = sortedUniqueStrings(plan.inferredFeatures.copy());
 		var files = sortedUniqueStrings(plan.files.copy());
+		var surfacePlan = context == null ? GoSurfacePlanner.emptySnapshot() : context.surfacePlan;
 		return {
-			schemaVersion: 2,
+			schemaVersion: 3,
 			contract: contractLabel,
 			policyPreset: buildContext.policyPreset.label(),
 			semanticBoundarySource: buildContext.semanticBoundarySource.label(),
@@ -942,7 +958,12 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			inferredFeatures: inferredFeatures,
 			selectedFeatures: selectedFeatures,
 			files: files,
-			reasons: plan.reasons.copy()
+			reasons: plan.reasons.copy(),
+			surfacePlanAuthority: surfacePlan.authority,
+			surfacePlanDecisionCount: surfacePlan.decisionCount,
+			requiredSurfaceImports: [for (requirement in surfacePlan.requiredImports) requirement],
+			requiredSurfaceRuntimeFeatures: [for (feature in surfacePlan.requiredRuntimeFeatures) feature],
+			surfacePlans: [for (decision in surfacePlan.decisions) decision]
 		};
 	}
 
@@ -954,6 +975,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		var loweringFallbackBoundaryCount = 0;
 		var loweringFallbackNonBoundaryCount = 0;
 		var autoLoweringCapabilities:Array<OptimizerCapabilitySummary> = [];
+		var surfacePlan = context == null ? GoSurfacePlanner.emptySnapshot() : context.surfacePlan;
 		if (context != null) {
 			goAstPasses = context.appliedGoAstPassNames.copy();
 			goAstPassSelectionSource = context.selectedGoAstPassSource;
@@ -980,7 +1002,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			autoLoweringCapabilities = buildOptimizerCapabilitySummaries(context);
 		}
 		return {
-			schemaVersion: 6,
+			schemaVersion: 7,
 			contract: contractLabel,
 			policyPreset: buildContext.policyPreset.label(),
 			nativeSpecializationPolicy: buildContext.nativeSpecializationPolicy.label(),
@@ -1006,7 +1028,12 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			loweringFallbackNonBoundaryCount: loweringFallbackNonBoundaryCount,
 			loweringFallbackLaneCount: loweringFallbackBoundaryCount,
 			loweringFallbackNonLaneCount: loweringFallbackNonBoundaryCount,
-			autoLoweringCapabilities: autoLoweringCapabilities
+			autoLoweringCapabilities: autoLoweringCapabilities,
+			surfacePlanAuthority: surfacePlan.authority,
+			surfacePlanDecisionCount: surfacePlan.decisionCount,
+			requiredSurfaceImports: [for (requirement in surfacePlan.requiredImports) requirement],
+			requiredSurfaceRuntimeFeatures: [for (feature in surfacePlan.requiredRuntimeFeatures) feature],
+			surfacePlans: [for (decision in surfacePlan.decisions) decision]
 		};
 	}
 
@@ -1498,6 +1525,17 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		lines.push('\t"files": [');
 		appendJsonStringArray(lines, snapshot.files, 2);
 		lines.push("\t],");
+		lines.push('\t"surfacePlanAuthority": "' + jsonEscape(snapshot.surfacePlanAuthority) + '",');
+		lines.push('\t"surfacePlanDecisionCount": ' + snapshot.surfacePlanDecisionCount + ",");
+		lines.push('\t"requiredSurfaceImports": [');
+		appendJsonSurfaceImportArray(lines, snapshot.requiredSurfaceImports, 2);
+		lines.push("\t],");
+		lines.push('\t"requiredSurfaceRuntimeFeatures": [');
+		appendJsonStringArray(lines, snapshot.requiredSurfaceRuntimeFeatures, 2);
+		lines.push("\t],");
+		lines.push('\t"surfacePlans": [');
+		appendJsonSurfacePlanArray(lines, snapshot.surfacePlans, 2);
+		lines.push("\t],");
 		lines.push('\t"reasons": [');
 		appendJsonRuntimeReasons(lines, snapshot.reasons, 2);
 		lines.push("\t]");
@@ -1517,6 +1555,8 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		lines.push("- selective enabled: `" + boolLabel(snapshot.selectiveEnabled) + "`");
 		lines.push("- full copy: `" + boolLabel(snapshot.fullCopy) + "`");
 		lines.push("- inference disabled: `" + boolLabel(snapshot.inferenceDisabled) + "`");
+		lines.push("- surface plan authority: `" + snapshot.surfacePlanAuthority + "`");
+		lines.push("- surface plan decisions: `" + snapshot.surfacePlanDecisionCount + "`");
 		lines.push("");
 		lines.push("## manual features");
 		if (snapshot.manualFeatures.length == 0) {
@@ -1563,6 +1603,8 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			}
 		}
 		lines.push("");
+		appendSurfacePlanMarkdown(lines, snapshot.requiredSurfaceImports, snapshot.requiredSurfaceRuntimeFeatures, snapshot.surfacePlans);
+		lines.push("");
 		return lines.join("\n");
 	}
 
@@ -1594,6 +1636,17 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		lines.push('\t"loweringFallbackNonLaneCount": ' + snapshot.loweringFallbackNonLaneCount + ",");
 		lines.push('\t"autoLoweringCapabilities": [');
 		appendJsonOptimizerCapabilitySummaries(lines, snapshot.autoLoweringCapabilities, 2);
+		lines.push("\t],");
+		lines.push('\t"surfacePlanAuthority": "' + jsonEscape(snapshot.surfacePlanAuthority) + '",');
+		lines.push('\t"surfacePlanDecisionCount": ' + snapshot.surfacePlanDecisionCount + ",");
+		lines.push('\t"requiredSurfaceImports": [');
+		appendJsonSurfaceImportArray(lines, snapshot.requiredSurfaceImports, 2);
+		lines.push("\t],");
+		lines.push('\t"requiredSurfaceRuntimeFeatures": [');
+		appendJsonStringArray(lines, snapshot.requiredSurfaceRuntimeFeatures, 2);
+		lines.push("\t],");
+		lines.push('\t"surfacePlans": [');
+		appendJsonSurfacePlanArray(lines, snapshot.surfacePlans, 2);
 		lines.push("\t],");
 		lines.push('\t"goAstPassSelectionSource": "' + jsonEscape(snapshot.goAstPassSelectionSource) + '",');
 		lines.push('\t"goAstPasses": [');
@@ -1633,6 +1686,8 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		lines.push("- lowering fallback non-boundary count: `" + snapshot.loweringFallbackNonBoundaryCount + "`");
 		lines.push("- lowering fallback lane count: `" + snapshot.loweringFallbackLaneCount + "`");
 		lines.push("- lowering fallback non-lane count: `" + snapshot.loweringFallbackNonLaneCount + "`");
+		lines.push("- surface plan authority: `" + snapshot.surfacePlanAuthority + "`");
+		lines.push("- surface plan decisions: `" + snapshot.surfacePlanDecisionCount + "`");
 		lines.push("- go ast pass selection source: `" + snapshot.goAstPassSelectionSource + "`");
 		lines.push("");
 		lines.push("## auto lowering capabilities");
@@ -1672,6 +1727,8 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			}
 		}
 		lines.push("");
+		appendSurfacePlanMarkdown(lines, snapshot.requiredSurfaceImports, snapshot.requiredSurfaceRuntimeFeatures, snapshot.surfacePlans);
+		lines.push("");
 		return lines.join("\n");
 	}
 
@@ -1681,6 +1738,113 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			var suffix = index == values.length - 1 ? "" : ",";
 			lines.push(indent + '"' + jsonEscape(values[index]) + '"' + suffix);
 		}
+	}
+
+	static function appendJsonSurfaceImportArray(lines:Array<String>, imports:Array<GoSurfaceImportRequirement>, indentLevel:Int):Void {
+		var indent = [for (_ in 0...indentLevel) "\t"].join("");
+		for (index in 0...imports.length) {
+			var requirement = imports[index];
+			var suffix = index == imports.length - 1 ? "" : ",";
+			lines.push(indent + '{"path":"' + jsonEscape(requirement.path) + '","reason":"' + jsonEscape(requirement.reason) + '"}' + suffix);
+		}
+	}
+
+	static function appendJsonImmutableSurfaceImportArray(lines:Array<String>, imports:GoImmutableList<GoSurfaceImportRequirement>, indentLevel:Int):Void {
+		appendJsonSurfaceImportArray(lines, [for (requirement in imports) requirement], indentLevel);
+	}
+
+	static function appendJsonSurfacePlanArray(lines:Array<String>, decisions:Array<GoSurfacePlanDecision>, indentLevel:Int):Void {
+		var indent = [for (_ in 0...indentLevel) "\t"].join("");
+		for (index in 0...decisions.length) {
+			var decision = decisions[index];
+			var suffix = index == decisions.length - 1 ? "" : ",";
+			lines.push(indent + "{");
+			lines.push(indent + '\t"module": "' + jsonEscape(decision.module) + '",');
+			lines.push(indent + '\t"location": "' + jsonEscape(decision.location) + '",');
+			lines.push(indent + '\t"usageLevel": "' + jsonEscape(decision.usageLevel) + '",');
+			lines.push(indent + '\t"usedType": ' + GoTypeUsageLedger.renderShapeJson(decision.usedType) + ",");
+			lines.push(indent + '\t"contract": {');
+			lines.push(indent + '\t\t"surfaceId": "' + jsonEscape(decision.surfaceId) + '",');
+			lines.push(indent + '\t\t"version": ' + decision.contractVersion);
+			lines.push(indent + "\t},");
+			lines.push(indent + '\t"eligibility": {');
+			lines.push(indent + '\t\t"outcome": "' + jsonEscape(decision.eligibilityOutcome) + '",');
+			lines.push(indent + '\t\t"reason": "' + jsonEscape(decision.eligibilityReason) + '",');
+			lines.push(indent + '\t\t"detail": "' + jsonEscape(decision.eligibilityDetail) + '"');
+			lines.push(indent + "\t},");
+			lines.push(indent + '\t"selection": "' + jsonEscape(decision.selection) + '",');
+			lines.push(indent + '\t"selectionReason": "' + jsonEscape(decision.selectionReason) + '",');
+			lines.push(indent + '\t"selectedRepresentation": ' + nullableJsonString(decision.selectedRepresentation) + ",");
+			lines.push(indent + '\t"fallbackReason": ' + nullableJsonString(decision.fallbackReason) + ",");
+			lines.push(indent + '\t"imports": [');
+			appendJsonImmutableSurfaceImportArray(lines, decision.imports, indentLevel + 2);
+			lines.push(indent + "\t],");
+			lines.push(indent + '\t"runtimeRequirements": [');
+			appendJsonStringArray(lines, [for (feature in decision.runtimeRequirements) feature], indentLevel + 2);
+			lines.push(indent + "\t]");
+			lines.push(indent + "}" + suffix);
+		}
+	}
+
+	static function appendSurfacePlanMarkdown(lines:Array<String>, requiredImports:Array<GoSurfaceImportRequirement>, requiredRuntimeFeatures:Array<String>,
+			decisions:Array<GoSurfacePlanDecision>):Void {
+		lines.push("## portable surface plan consequences");
+		lines.push("");
+		lines.push("- required imports: `"
+			+ (requiredImports.length == 0 ? "none" : [for (requirement in requiredImports) requirement.path].join(", "))
+			+ "`");
+		lines.push("- required runtime features: `" + (requiredRuntimeFeatures.length == 0 ? "none" : requiredRuntimeFeatures.join(", ")) + "`");
+		lines.push("");
+		lines.push("## portable surface decisions");
+		lines.push("");
+		if (decisions.length == 0) {
+			lines.push("- none");
+			return;
+		}
+		for (decision in decisions) {
+			var fallback = decision.fallbackReason == null ? "none" : decision.fallbackReason;
+			var representation = decision.selectedRepresentation == null ? "none" : decision.selectedRepresentation;
+			var imports = [
+				for (requirement in decision.imports)
+					requirement.path + " (" + requirement.reason + ")"
+			];
+			var runtimeRequirements = [for (feature in decision.runtimeRequirements) feature];
+			lines.push("- `"
+				+ decision.module
+				+ "` | location `"
+				+ decision.location
+				+ "` | usage `"
+				+ decision.usageLevel
+				+ "` | `"
+				+ decision.surfaceId
+				+ "` v"
+				+ decision.contractVersion
+				+ " | used type `"
+				+ GoTypeUsageLedger.renderShapeJson(decision.usedType)
+				+ "` | eligibility `"
+				+ decision.eligibilityOutcome
+				+ ":"
+				+ decision.eligibilityReason
+				+ "` | eligibility detail `"
+				+ decision.eligibilityDetail
+				+ "` | selection `"
+				+ decision.selection
+				+ ":"
+				+ decision.selectionReason
+				+ "` | representation `"
+				+ representation
+				+ "` | fallback `"
+				+ fallback
+				+ "` | imports `"
+				+ (imports.length == 0 ? "none" : imports.join(", "))
+				+ "` | runtime `"
+				+ (runtimeRequirements.length == 0 ? "none" : runtimeRequirements.join(", "))
+				+ "`");
+		}
+	}
+
+	static function nullableJsonString(value:Null<String>):String {
+		return value == null ? "null" : '"' + jsonEscape(value) + '"';
 	}
 
 	static function appendJsonContractFallbackArray(lines:Array<String>, events:Array<ContractFallbackEvent>, indentLevel:Int):Void {

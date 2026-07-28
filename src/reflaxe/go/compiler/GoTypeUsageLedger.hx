@@ -563,7 +563,15 @@ class GoTypeUsageLedger {
 		return lines.join("\n") + "\n";
 	}
 
-	static function renderShapeJson(shape:GoTypeShape):String {
+	/**
+		Canonical JSON identity for one typed shape.
+
+		Why / What / How
+		- Registry and planner reports must identify the same used type without
+		  maintaining independent encoders.
+		- The result contains only the stable macro-object-free shape algebra.
+	**/
+	public static function renderShapeJson(shape:GoTypeShape):String {
 		return switch (shape) {
 			case Nominal(kind, path, parameters):
 				shapeObjectJson(kind, path, shapeListJson(parameters), "[]", "null", "[]");

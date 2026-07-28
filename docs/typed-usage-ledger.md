@@ -114,9 +114,10 @@ before Go lowering. Its lists clone their source arrays and expose no mutable
 alias. The optional post-lowering report uses a separate snapshot to append
 runtime capability consequences; it never mutates planner authority. The
 [Go surface contract registry](surface-contract-registry.md) now consumes that
-context snapshot and publishes a second immutable admission snapshot. Registry
-reporting remains observational until the dedicated admission and planner Beads
-add proven entries and route lowering through those decisions.
+context snapshot and publishes a second immutable admission snapshot. The
+[portable surface planner](surface-planner.md) combines those decisions with
+the resolved build context once, then supplies the same selected carrier,
+imports, and runtime requirements to every downstream consumer.
 
 The existing portable-native source scanner remains available only for
 transitional contract diagnostics through
@@ -134,7 +135,7 @@ more explicit:
 | `haxe.rust` | Enables `trackUsedTypes`; `TypeUsageAnalyzer` reduces the map to normalized module paths used by runtime-feature selection. |
 | `haxe.ruby` | Enables `trackUsedTypes`; `RequireRegistry` consumes type metadata to select deterministic Ruby `require` entries. |
 | `haxe.elixir.codex` | Does not currently enable or consume Reflaxe `TypeUsageTracker`; framework discovery uses its own typed/macro mechanisms. |
-| `haxe.go` | Enables the tracker and preserves types, member/call locations, native imports, and runtime consequences in a typed snapshot and optional report. Planner consumption remains an explicit later step. |
+| `haxe.go` | Enables the tracker; preserves types, member/call locations, native imports, and runtime consequences; admits exact portable shapes through a contract registry; and feeds one immutable surface plan to optimizer, import, and runtime consumers. |
 
 The useful common pattern is compiler-observed typed reachability. The exact
 consumer differs by target: Rust selects runtime features, Ruby selects

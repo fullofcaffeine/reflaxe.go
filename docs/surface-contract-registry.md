@@ -134,20 +134,26 @@ references without depending on a developer's checkout path.
 lowering, beside `typedUsageLedger`. Neither report generation nor a
 compatibility profile can mutate it.
 
-The registry is observational for representation selection today. Collections,
-String, Bytes, Iterator, Option, and Result are admitted, but the planner does
-not consume their carrier decisions until `.7.6`; current generated
-declarations retain their portable fallbacks. `go_slice` means a shared,
-slice-backed carrier rather than a naked Go slice, while portable `go_map`
-admission currently covers only the fixed StringMap and IntMap key contracts.
-`go_string`, `go_byte_slice`, and `go_iterator` likewise name the reviewed
-semantic carriers, not raw values or a Go `range` rewrite.
-In other words, the planner does not consume registry admission in this task.
+The [portable surface planner](surface-planner.md) now consumes every registry
+decision once and publishes one immutable choice for the optimizer, import
+collector, and runtime packager. String and Bytes route their
+already-implemented carriers after admission. Iterator, Array, StringMap,
+IntMap, Option, and Result deliberately keep their registered fallbacks until
+their separate default-promotion and rollback gates land. For Iterator, the
+current erased structural map is explicitly `hxrt_iterator`; `go_iterator`
+requires a distinct statically typed carrier in `.7.7`.
+
+`go_slice` means a shared, slice-backed carrier rather than a naked Go slice,
+while portable `go_map` admission currently covers only the fixed StringMap and
+IntMap key contracts. `go_string`, `go_byte_slice`, and `go_iterator` likewise
+name the reviewed semantic carriers, not raw values or a Go `range` rewrite.
+Registry admission is necessary but does not by itself activate a new default
+carrier.
 
 Function shapes remain known but report `contract_missing`.
 `haxe_go-vfp.7.11` owns the bound-method identity gap that must close before a
-portable callable carrier can be admitted. `.7.6` makes optimizer and runtime
-planners consume the proven decisions; it must not infer closure admission.
+portable callable carrier can be admitted. The planner preserves existing
+function lowering and must not infer closure admission.
 
 Portable `reflaxe.std.Result<T,E>` is not native `go.Result<T>` and is not a Go
 `(T,error)` pair. The registry's `go_result` value names a future typed
@@ -210,5 +216,5 @@ Bytes carriers, exact typed Iterator admission with Dynamic/opaque fallback,
 continued function and ObjectMap identity rejection, fixed-key comparability,
 explicit `go.Map` exclusion, unregistered-surface rejection, deep catalog
 copying, deterministic JSON/Markdown, actual JSON Schema conformance,
-compiler/schema vocabulary synchronization, generated fallback declarations,
-path hygiene, and byte-identical portable/metal reports.
+compiler/schema vocabulary synchronization, selected carrier and fallback
+plans, path hygiene, and byte-identical portable/metal planner decisions.

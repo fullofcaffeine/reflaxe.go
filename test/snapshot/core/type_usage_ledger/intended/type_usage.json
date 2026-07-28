@@ -6,7 +6,7 @@
 	"typeUsageCount": 66,
 	"memberUsageCount": 20,
 	"nativeImportCount": 8,
-	"capabilityCount": 4,
+	"capabilityCount": 5,
 	"modules": [
 		{
 			"module": "Main",
@@ -502,6 +502,11 @@
 			"feature": "string",
 			"sourceKind": "baseline",
 			"source": "compiler_baseline"
+		},
+		{
+			"feature": "string",
+			"sourceKind": "surface_plan",
+			"source": "go_build_context_plus_typed_registry_decision"
 		}
 	]
 }

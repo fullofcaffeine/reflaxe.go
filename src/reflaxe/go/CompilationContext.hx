@@ -4,6 +4,8 @@ import reflaxe.go.compiler.GoBuildContext;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureReason;
 import reflaxe.go.compiler.GoSurfaceContractRegistry;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceContractRegistrySnapshot;
+import reflaxe.go.compiler.GoSurfacePlanner;
+import reflaxe.go.compiler.GoSurfacePlanner.GoSurfacePlanSnapshot;
 import reflaxe.go.compiler.GoTypeUsageLedger;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeUsageLedgerSnapshot;
 
@@ -85,9 +87,10 @@ class CompilationContext {
 	public var optimizerGoResultTypedFallbacks:Int;
 	public final typedUsageLedger:GoTypeUsageLedgerSnapshot;
 	public final surfaceContractRegistry:GoSurfaceContractRegistrySnapshot;
+	public final surfacePlan:GoSurfacePlanSnapshot;
 
 	public function new(profile:GoProfile, ?goModuleName:String, ?rawNativeMode:RawNativeMode, ?emitLineDirectives:Bool, ?buildContext:GoBuildContext,
-			?typedUsageLedger:GoTypeUsageLedgerSnapshot, ?surfaceContractRegistry:GoSurfaceContractRegistrySnapshot) {
+			?typedUsageLedger:GoTypeUsageLedgerSnapshot, ?surfaceContractRegistry:GoSurfaceContractRegistrySnapshot, ?surfacePlan:GoSurfacePlanSnapshot) {
 		this.profile = profile;
 		var moduleName = normalizeGoModuleName(goModuleName);
 		this.goModuleName = moduleName;
@@ -119,12 +122,13 @@ class CompilationContext {
 		this.optimizerGoResultTypedFallbacks = 0;
 		this.typedUsageLedger = typedUsageLedger == null ? GoTypeUsageLedger.emptySnapshot() : typedUsageLedger;
 		this.surfaceContractRegistry = surfaceContractRegistry == null ? GoSurfaceContractRegistry.emptySnapshot() : surfaceContractRegistry;
+		this.surfacePlan = surfacePlan == null ? GoSurfacePlanner.emptySnapshot() : surfacePlan;
 	}
 
 	public static function fromBuildContext(buildContext:GoBuildContext, ?typedUsageLedger:GoTypeUsageLedgerSnapshot,
-			?surfaceContractRegistry:GoSurfaceContractRegistrySnapshot):CompilationContext {
+			?surfaceContractRegistry:GoSurfaceContractRegistrySnapshot, ?surfacePlan:GoSurfacePlanSnapshot):CompilationContext {
 		return new CompilationContext(buildContext.profile, buildContext.goModuleName, buildContext.rawNativeMode, buildContext.emitLineDirectives,
-			buildContext, typedUsageLedger, surfaceContractRegistry);
+			buildContext, typedUsageLedger, surfaceContractRegistry, surfacePlan);
 	}
 
 	static function normalizeGoModuleName(raw:Null<String>):String {

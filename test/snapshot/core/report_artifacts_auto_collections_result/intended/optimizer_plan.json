@@ -1,5 +1,5 @@
 {
-	"schemaVersion": 6,
+	"schemaVersion": 7,
 	"contract": "portable",
 	"policyPreset": "portable_default",
 	"nativeSpecializationPolicy": "proven",
@@ -45,6 +45,339 @@
 			"successes": 3,
 			"fallbacks": 0,
 			"fallbackReasonCounts": [
+			]
+		}
+	],
+	"surfacePlanAuthority": "go_build_context_plus_typed_registry_decision",
+	"surfacePlanDecisionCount": 14,
+	"requiredSurfaceImports": [
+	],
+	"requiredSurfaceRuntimeFeatures": [
+		"string"
+	],
+	"surfacePlans": [
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "expression",
+			"usedType": {"kind":"function","path":"","parameters":[],"arguments":[],"returnType":{"kind":"abstract","path":"StdTypes.Bool","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.Function",
+				"version": 0
+			},
+			"eligibility": {
+				"outcome": "rejected",
+				"reason": "contract_missing",
+				"detail": "Known portable surface has no admitted contract."
+			},
+			"selection": "existing",
+			"selectionReason": "no_registered_fallback",
+			"selectedRepresentation": null,
+			"fallbackReason": "contract_missing: Known portable surface has no admitted contract.",
+			"imports": [
+			],
+			"runtimeRequirements": [
+			]
+		},
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "expression",
+			"usedType": {"kind":"function","path":"","parameters":[],"arguments":[],"returnType":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.Function",
+				"version": 0
+			},
+			"eligibility": {
+				"outcome": "rejected",
+				"reason": "contract_missing",
+				"detail": "Known portable surface has no admitted contract."
+			},
+			"selection": "existing",
+			"selectionReason": "no_registered_fallback",
+			"selectedRepresentation": null,
+			"fallbackReason": "contract_missing: Known portable surface has no admitted contract.",
+			"imports": [
+			],
+			"runtimeRequirements": [
+			]
+		},
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "expression",
+			"usedType": {"kind":"function","path":"","parameters":[],"arguments":[],"returnType":{"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.Function",
+				"version": 0
+			},
+			"eligibility": {
+				"outcome": "rejected",
+				"reason": "contract_missing",
+				"detail": "Known portable surface has no admitted contract."
+			},
+			"selection": "existing",
+			"selectionReason": "no_registered_fallback",
+			"selectedRepresentation": null,
+			"fallbackReason": "contract_missing: Known portable surface has no admitted contract.",
+			"imports": [
+			],
+			"runtimeRequirements": [
+			]
+		},
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "expression",
+			"usedType": {"kind":"function","path":"","parameters":[],"arguments":[],"returnType":{"kind":"class","path":"go.Map","parameters":[{"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]},{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]},"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.Function",
+				"version": 0
+			},
+			"eligibility": {
+				"outcome": "rejected",
+				"reason": "contract_missing",
+				"detail": "Known portable surface has no admitted contract."
+			},
+			"selection": "existing",
+			"selectionReason": "no_registered_fallback",
+			"selectedRepresentation": null,
+			"fallbackReason": "contract_missing: Known portable surface has no admitted contract.",
+			"imports": [
+			],
+			"runtimeRequirements": [
+			]
+		},
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "expression",
+			"usedType": {"kind":"function","path":"","parameters":[],"arguments":[],"returnType":{"kind":"class","path":"go.Slice","parameters":[{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]},"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.Function",
+				"version": 0
+			},
+			"eligibility": {
+				"outcome": "rejected",
+				"reason": "contract_missing",
+				"detail": "Known portable surface has no admitted contract."
+			},
+			"selection": "existing",
+			"selectionReason": "no_registered_fallback",
+			"selectedRepresentation": null,
+			"fallbackReason": "contract_missing: Known portable surface has no admitted contract.",
+			"imports": [
+			],
+			"runtimeRequirements": [
+			]
+		},
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "expression",
+			"usedType": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"index","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.Function",
+				"version": 0
+			},
+			"eligibility": {
+				"outcome": "rejected",
+				"reason": "contract_missing",
+				"detail": "Known portable surface has no admitted contract."
+			},
+			"selection": "existing",
+			"selectionReason": "no_registered_fallback",
+			"selectedRepresentation": null,
+			"fallbackReason": "contract_missing: Known portable surface has no admitted contract.",
+			"imports": [
+			],
+			"runtimeRequirements": [
+			]
+		},
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "expression",
+			"usedType": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"key","optional":false,"shape":{"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]}},{"name":"value","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.Function",
+				"version": 0
+			},
+			"eligibility": {
+				"outcome": "rejected",
+				"reason": "contract_missing",
+				"detail": "Known portable surface has no admitted contract."
+			},
+			"selection": "existing",
+			"selectionReason": "no_registered_fallback",
+			"selectedRepresentation": null,
+			"fallbackReason": "contract_missing: Known portable surface has no admitted contract.",
+			"imports": [
+			],
+			"runtimeRequirements": [
+			]
+		},
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "expression",
+			"usedType": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"key","optional":false,"shape":{"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"abstract","path":"StdTypes.Bool","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.Function",
+				"version": 0
+			},
+			"eligibility": {
+				"outcome": "rejected",
+				"reason": "contract_missing",
+				"detail": "Known portable surface has no admitted contract."
+			},
+			"selection": "existing",
+			"selectionReason": "no_registered_fallback",
+			"selectedRepresentation": null,
+			"fallbackReason": "contract_missing: Known portable surface has no admitted contract.",
+			"imports": [
+			],
+			"runtimeRequirements": [
+			]
+		},
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "expression",
+			"usedType": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"value","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.Function",
+				"version": 0
+			},
+			"eligibility": {
+				"outcome": "rejected",
+				"reason": "contract_missing",
+				"detail": "Known portable surface has no admitted contract."
+			},
+			"selection": "existing",
+			"selectionReason": "no_registered_fallback",
+			"selectedRepresentation": null,
+			"fallbackReason": "contract_missing: Known portable surface has no admitted contract.",
+			"imports": [
+			],
+			"runtimeRequirements": [
+			]
+		},
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "expression",
+			"usedType": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"value","optional":false,"shape":{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"class","path":"go.Result","parameters":[{"kind":"abstract","path":"StdTypes.Int","parameters":[],"arguments":[],"returnType":null,"fields":[]}],"arguments":[],"returnType":null,"fields":[]},"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.Function",
+				"version": 0
+			},
+			"eligibility": {
+				"outcome": "rejected",
+				"reason": "contract_missing",
+				"detail": "Known portable surface has no admitted contract."
+			},
+			"selection": "existing",
+			"selectionReason": "no_registered_fallback",
+			"selectedRepresentation": null,
+			"fallbackReason": "contract_missing: Known portable surface has no admitted contract.",
+			"imports": [
+			],
+			"runtimeRequirements": [
+			]
+		},
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "expression",
+			"usedType": {"kind":"function","path":"","parameters":[],"arguments":[{"name":"value","optional":false,"shape":{"kind":"dynamic","path":"","parameters":[],"arguments":[],"returnType":null,"fields":[]}}],"returnType":{"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.Function",
+				"version": 0
+			},
+			"eligibility": {
+				"outcome": "rejected",
+				"reason": "contract_missing",
+				"detail": "Known portable surface has no admitted contract."
+			},
+			"selection": "existing",
+			"selectionReason": "no_registered_fallback",
+			"selectedRepresentation": null,
+			"fallbackReason": "contract_missing: Known portable surface has no admitted contract.",
+			"imports": [
+			],
+			"runtimeRequirements": [
+			]
+		},
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "expression",
+			"usedType": {"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.String",
+				"version": 1
+			},
+			"eligibility": {
+				"outcome": "admitted",
+				"reason": "contract_admitted",
+				"detail": "Contract admitted this exact typed shape."
+			},
+			"selection": "native",
+			"selectionReason": "registry_admitted",
+			"selectedRepresentation": "go_string",
+			"fallbackReason": null,
+			"imports": [
+			],
+			"runtimeRequirements": [
+				"string"
+			]
+		},
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "function_declaration",
+			"usedType": {"kind":"function","path":"","parameters":[],"arguments":[],"returnType":{"kind":"abstract","path":"StdTypes.Void","parameters":[],"arguments":[],"returnType":null,"fields":[]},"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.Function",
+				"version": 0
+			},
+			"eligibility": {
+				"outcome": "rejected",
+				"reason": "contract_missing",
+				"detail": "Known portable surface has no admitted contract."
+			},
+			"selection": "existing",
+			"selectionReason": "no_registered_fallback",
+			"selectedRepresentation": null,
+			"fallbackReason": "contract_missing: Known portable surface has no admitted contract.",
+			"imports": [
+			],
+			"runtimeRequirements": [
+			]
+		},
+		{
+			"module": "Main",
+			"location": "Main:1",
+			"usageLevel": "variable_type",
+			"usedType": {"kind":"class","path":"String","parameters":[],"arguments":[],"returnType":null,"fields":[]},
+			"contract": {
+				"surfaceId": "haxe.String",
+				"version": 1
+			},
+			"eligibility": {
+				"outcome": "admitted",
+				"reason": "contract_admitted",
+				"detail": "Contract admitted this exact typed shape."
+			},
+			"selection": "native",
+			"selectionReason": "registry_admitted",
+			"selectedRepresentation": "go_string",
+			"fallbackReason": null,
+			"imports": [
+			],
+			"runtimeRequirements": [
+				"string"
 			]
 		}
 	],

@@ -63,11 +63,12 @@ other code in the same program may still require `hxrt`.
 
 ## Current generated shape
 
-This admission task records semantic and representation authority before
-lowering. The optimizer/runtime planner does not consume these entries until
-`haxe_go-vfp.7.6`.
+The optimizer/runtime planner now consumes these admitted entries, but records
+`carrier_not_activated` and deliberately selects the portable fallback. The
+separate default-promotion work must land the typed carrier and rollback gates
+before this choice changes.
 
-For now, supplied Option/Result declarations are retained and emitted through
+Supplied Option/Result declarations therefore remain retained and emitted through
 the existing portable enum shape:
 
 ```go
@@ -77,11 +78,11 @@ type reflaxe__std__Result struct {
 }
 ```
 
-That shape is the reported fallback, not the final typed carrier. The registry
-report may say that an applied shape is admitted for `go_result`; it does not
-claim that the current planner has already emitted that representation.
-`test/fixtures/surface_contract_registry` locks this transition state so `.7.6`
-can change it intentionally.
+That shape is the reported and planner-selected fallback, not the final typed
+carrier. The registry can admit an applied shape for `go_result` while the
+planner independently records that this compiler version has not activated
+that carrier. `test/fixtures/surface_contract_registry` locks this transition
+state so later promotion must change it intentionally.
 
 The retention rule matches only the exact `reflaxe.std.Option` and
 `reflaxe.std.Result` enum identities that Haxe actually typed. It does not treat

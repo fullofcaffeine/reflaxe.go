@@ -51,8 +51,9 @@ Excluded from this parity objective:
 - Optional `profile_contract.*`, `hxrt_plan.*`, and `optimizer_plan.*` artifacts
   provide deterministic audit output for current contract/runtime/planner
   decisions. `type_usage.*` records the typed input and resulting runtime
-  consequences that the registry and planners will consume in their dedicated
-  follow-up work.
+  consequences; the surface registry admits exact proved shapes, and the
+  [portable surface planner](surface-planner.md) supplies one shared selection
+  to optimizer, import, and runtime consumers.
 
 This parity program is therefore about semantic closure and coverage promotion,
 not about the compatibility-preset lifecycle.

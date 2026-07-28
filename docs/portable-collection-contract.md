@@ -18,9 +18,9 @@ Named type parameters, typedefs, and user abstracts currently fall back because
 the ledger cannot prove their concrete underlying carrier. Core primitive and
 `Null<T>` abstracts are closed, explicitly recognized cases.
 
-Admission records future planner authority. Until the registry-consuming
-planner task lands, generated code continues to use the existing semantic
-fallbacks.
+Admission is now consumed by the shared surface planner. The planner
+intentionally selects the existing semantic fallbacks for Array, StringMap, and
+IntMap until their dedicated carrier-promotion and rollback gates land.
 
 ## Why the carrier is not a raw Go collection
 
@@ -123,9 +123,9 @@ The evidence is split by responsibility:
 4. `test/fixtures/surface_contract_registry` proves deterministic admitted and
    rejected decisions, exact runtime fallbacks, fixed-key comparability, schema
    validity, real typed typedef/abstract hidden-`Dynamic` rejection, profile
-   independence, and the current Array generated fallback shape.
-   StringMap/IntMap do not claim generated-shape proof until a dedicated
-   asserted shape fixture exists.
+   independence, and the current planner-selected Array generated fallback
+   shape. StringMap/IntMap do not claim promoted generated-shape proof until
+   dedicated asserted carrier fixtures exist.
 
 Run:
 

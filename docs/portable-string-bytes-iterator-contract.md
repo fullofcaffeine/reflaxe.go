@@ -11,10 +11,11 @@ The registry now recognizes three more ordinary portable Haxe surfaces:
 - `Iterator<T>` selects `go_iterator` only for the exact `hasNext`/`next` protocol
   and a recursively proven `T`.
 
-These are proof-backed planning decisions. There are no default lowering changes
-in this task: the registry remains observational until `haxe_go-vfp.7.6` makes the
-optimizer and runtime planners consume it. No performance result is claimed
-because generated applications have not changed.
+These proof-backed decisions now feed the shared surface planner. String and
+Bytes route their already-implemented carriers only after admission; String
+fast paths also require the selected String carrier. Iterator remains on its
+registered `hxrt_iterator` fallback until `.7.7` introduces a distinct
+statically typed Go carrier and an exact per-shape lowering gate.
 
 Functions and closures are deliberately not admitted. Their capture behavior is
 well covered, but portable method identity still has an incorrect edge case.
@@ -89,8 +90,9 @@ next: Void -> T
 An object with extra fields, parameters, an optional method, or a non-Boolean
 `hasNext` is just an anonymous object to this registry.
 
-For a recursively proven `T`, `go_iterator` means two Go closures that share one
-cursor or state owner. The carrier preserves:
+For a recursively proven `T`, `go_iterator` names a future statically typed Go
+carrier whose operations share one cursor or state owner. The semantic contract
+requires that carrier to preserve:
 
 - one evaluation of the iterator source;
 - source order;
@@ -102,11 +104,16 @@ It does not mean Go `range`, a copied collection, or a snapshot. Haxe leaves
 `next()` after exhaustion unspecified, so the contract does not invent a new
 result there.
 
+Today, even eligible Iterator shapes retain `hxrt_iterator`: the established
+structural value is an erased `map[string]any` containing `hasNext` and `next`
+closures. A stored `next` closure may have a concrete Go return type, but the
+surrounding erased map is still the fallback representation. Calling that map
+`go_iterator` would make reports claim a native carrier that does not exist.
+
 `Iterator<Dynamic>`, unresolved element shapes, named generic parameters, and
-opaque typedef or abstract storage fail closed. They retain `hxrt_iterator` and
-report the `core` runtime capability. The proven selected carrier itself is
-no-`hxrt` eligible, although unrelated element or owner behavior can still add
-runtime requirements.
+opaque typedef or abstract element storage also retain `hxrt_iterator` and
+report the `core` runtime capability. A user-defined typedef of `Iterator<T>`
+remains nominal and opaque to admission.
 
 ## Why closures remain unadmitted
 

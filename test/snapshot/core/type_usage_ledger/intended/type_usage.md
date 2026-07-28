@@ -7,7 +7,7 @@
 - Type usages: `66`
 - Member usages: `20`
 - Native imports: `8`
-- Runtime capability reasons: `4`
+- Runtime capability reasons: `5`
 
 ## Modules
 
@@ -41,3 +41,4 @@
 - `exception` from `baseline:compiler_baseline`
 - `print` from `baseline:compiler_baseline`
 - `string` from `baseline:compiler_baseline`
+- `string` from `surface_plan:go_build_context_plus_typed_registry_decision`
