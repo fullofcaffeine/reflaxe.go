@@ -35,11 +35,13 @@ enum abstract GoSurfaceId(String) to String {
 	var HaxeObjectMap = "haxe.ds.ObjectMap";
 	var PortableOption = "reflaxe.std.Option";
 	var PortableResult = "reflaxe.std.Result";
+	var HaxeIterator = "haxe.Iterator";
 	var HaxeFunction = "haxe.Function";
 
 	public function isKnown():Bool {
 		return switch (this) {
-			case HaxeArray | HaxeString | HaxeBytes | HaxeStringMap | HaxeIntMap | HaxeObjectMap | PortableOption | PortableResult | HaxeFunction:
+			case HaxeArray | HaxeString | HaxeBytes | HaxeStringMap | HaxeIntMap | HaxeObjectMap | PortableOption | PortableResult | HaxeIterator |
+				HaxeFunction:
 				true;
 			case _:
 				false;
@@ -243,8 +245,9 @@ enum abstract GoSurfaceNominalKind(String) to String {
 	eligibility.
 
 	What
-	Matches exact nominal roots, function signatures, and named bindings. A
-	binding captures a complete observed child shape for later eligibility rules.
+	Matches exact nominal roots, function signatures, anonymous field protocols,
+	and named bindings. A binding captures a complete observed child shape for
+	later eligibility rules.
 
 	How
 	The registry requires an exact known root. `Bind` is permitted only below
@@ -253,6 +256,7 @@ enum abstract GoSurfaceNominalKind(String) to String {
 enum GoSurfaceTypePattern {
 	NominalPattern(kind:GoSurfaceNominalKind, path:String, parameters:GoImmutableList<GoSurfaceTypePattern>);
 	FunctionPattern(arguments:GoImmutableList<GoSurfaceFunctionArgumentPattern>, returnType:GoSurfaceTypePattern);
+	AnonymousPattern(fields:GoImmutableList<GoSurfaceAnonymousFieldPattern>);
 	Bind(name:String);
 }
 
@@ -263,6 +267,18 @@ enum GoSurfaceTypePattern {
 	  recursive argument pattern.
 **/
 typedef GoSurfaceFunctionArgumentPattern = {
+	final optional:Bool;
+	final shape:GoSurfaceTypePattern;
+}
+
+/**
+	Why / What / How
+	- Haxe `Iterator<T>` is a structural protocol, so it has no nominal root.
+	- An anonymous pattern retains each exact field name, optional flag, and
+	  recursive shape instead of treating every anonymous object as an iterator.
+**/
+typedef GoSurfaceAnonymousFieldPattern = {
+	final name:String;
 	final optional:Bool;
 	final shape:GoSurfaceTypePattern;
 }
@@ -500,7 +516,7 @@ private typedef PatternMatch = {
 	`contract_missing`.
 **/
 class GoSurfaceContractRegistry {
-	public static inline final SCHEMA_VERSION = 1;
+	public static inline final SCHEMA_VERSION = 2;
 	public static inline final REGISTRY_VERSION = 1;
 	public static inline final AUTHORITY = "typed_usage_plus_versioned_surface_contract";
 	public static inline final PROFILE_ADMISSION = "forbidden";
@@ -548,18 +564,20 @@ class GoSurfaceContractRegistry {
 		Production catalog.
 
 		Why / What / How
-		- Array, StringMap, IntMap, Option, and Result have exact portable
-		  contracts and semantic evidence.
-		- ObjectMap, strings/bytes, iterators, and closures remain absent until
-		  their own representation proofs land.
+		- Array, String, Bytes, StringMap, IntMap, Iterator, Option, and Result
+		  have exact portable contracts and semantic evidence.
+		- ObjectMap and functions remain absent until their identity proofs land.
 		- Catalog membership is profile-independent and does not itself change
 		  lowering; `.7.6` owns planner consumption.
 	**/
 	public static function defaultRegistry():GoSurfaceContractRegistry {
 		return create([
 			haxeArrayContract(),
+			haxeStringContract(),
+			haxeBytesContract(),
 			haxeStringMapContract(),
 			haxeIntMapContract(),
+			haxeIteratorContract(),
 			portableOptionContract(),
 			portableResultContract()
 		]);
@@ -623,6 +641,212 @@ class GoSurfaceContractRegistry {
 					proofId: "portable-collections-generated-fallback-shape",
 					kind: GoSurfaceProofKind.GeneratedShape,
 					fixturePath: "test/fixtures/surface_contract_registry"
+				}
+			]),
+			familySyncExpectation: GoFamilySyncExpectation.TargetLocal,
+			familyContractId: "",
+			familyContractVersion: 0
+		};
+	}
+
+	/**
+		The portable Haxe `String` contract.
+
+		Why
+		A naked Go `string` cannot represent Haxe null, and byte indexing would
+		change non-ASCII length, character, and slicing behavior.
+
+		What
+		`GoString` means the compiler's nullable pointer-backed Go string carrier,
+		not a non-null raw Go value. The carrier preserves value equality,
+		null-aware concatenation/stringification, and haxe.go's Unicode-scalar
+		indexing contract.
+
+		How
+		String literals and operations continue to use the reviewed `hxrt` string
+		boundary. `RawNative` UTF-16LE is a Bytes encoding policy and never grants
+		byte offsets authority over String operations.
+	**/
+	static function haxeStringContract():GoSurfaceContract {
+		return {
+			surfaceId: GoSurfaceId.HaxeString,
+			contractVersion: 1,
+			sourceContract: GoSourceContractKind.PortableHaxe,
+			sourceSemanticsId: "haxe.string.nullable-unicode-scalar",
+			sourceSemanticsVersion: 1,
+			sourceSemantics: "Nullable immutable string value with value equality, null-aware concatenation and stringification, and Unicode-scalar length, character, code-point, split, and slice operations.",
+			eligibleShape: GoSurfaceTypePattern.NominalPattern(GoSurfaceNominalKind.Class, "String", GoImmutableList.fromArray([])),
+			eligibilityRules: GoImmutableList.fromArray([
+				GoSurfaceEligibilityRule.NoUnknownShapes,
+				GoSurfaceEligibilityRule.ShapeContainsNoDynamic
+			]),
+			nativeRepresentation: GoNativeRepresentation.GoString,
+			nativeImports: GoImmutableList.fromArray([]),
+			nativeRuntimeRequirements: GoImmutableList.fromArray([GoHxrtFeatureId.HxrtString]),
+			fallbackRepresentation: GoSurfaceFallbackRepresentation.HxrtString,
+			fallbackPolicy: GoSurfaceFallbackPolicy.ReasonedRuntimeRequirement,
+			fallbackImports: GoImmutableList.fromArray([]),
+			fallbackRuntimeRequirements: GoImmutableList.fromArray([GoHxrtFeatureId.HxrtString]),
+			noHxrtStatus: GoNoHxrtStatus.Ineligible,
+			proofs: GoImmutableList.fromArray([
+				{
+					proofId: "portable-string-bytes-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/portable_string_bytes_contract"
+				},
+				{
+					proofId: "unicode-string-source-owned-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/unicode_string_source_owned"
+				},
+				{
+					proofId: "null-string-concat-generated-shape",
+					kind: GoSurfaceProofKind.GeneratedShape,
+					fixturePath: "test/snapshot/core/string_concat_null_semantics"
+				}
+			]),
+			familySyncExpectation: GoFamilySyncExpectation.TargetLocal,
+			familyContractId: "",
+			familyContractVersion: 0
+		};
+	}
+
+	/**
+		The portable `haxe.io.Bytes` contract.
+
+		Why
+		A naked `[]byte` cannot preserve the public integer-valued `BytesData`
+		alias, object identity, cached native views, and mutation visibility in
+		both directions.
+
+		What
+		`GoBytes` means the shared staged Bytes object: authoritative aliased
+		`[]int` data plus an opaque cached native `ByteView`. It does not authorize
+		replacing the source value with a naked Go byte slice.
+
+		How
+		Mutations invalidate or validate the view as needed; `ofData`/`getData`
+		remain bidirectional aliases, `sub` copies, overlapping `blit` is safe,
+		values stay in 0...255, and UTF-8/RawNative policies remain explicit.
+	**/
+	static function haxeBytesContract():GoSurfaceContract {
+		return {
+			surfaceId: GoSurfaceId.HaxeBytes,
+			contractVersion: 1,
+			sourceContract: GoSourceContractKind.PortableHaxe,
+			sourceSemanticsId: "haxe.io.bytes.shared-data-view",
+			sourceSemanticsVersion: 1,
+			sourceSemantics: "Shared mutable Bytes object with aliased integer BytesData, cache-coherent native byte views, 0...255 values, overlap-safe blit, copying subranges, distinct null and empty values, and explicit UTF-8/RawNative encoding.",
+			eligibleShape: GoSurfaceTypePattern.NominalPattern(GoSurfaceNominalKind.Class, "haxe.io.Bytes", GoImmutableList.fromArray([])),
+			eligibilityRules: GoImmutableList.fromArray([
+				GoSurfaceEligibilityRule.NoUnknownShapes,
+				GoSurfaceEligibilityRule.ShapeContainsNoDynamic
+			]),
+			nativeRepresentation: GoNativeRepresentation.GoBytes,
+			nativeImports: GoImmutableList.fromArray([]),
+			nativeRuntimeRequirements: GoImmutableList.fromArray([GoHxrtFeatureId.HxrtBytes]),
+			fallbackRepresentation: GoSurfaceFallbackRepresentation.HxrtBytes,
+			fallbackPolicy: GoSurfaceFallbackPolicy.ReasonedRuntimeRequirement,
+			fallbackImports: GoImmutableList.fromArray([]),
+			fallbackRuntimeRequirements: GoImmutableList.fromArray([GoHxrtFeatureId.HxrtBytes]),
+			noHxrtStatus: GoNoHxrtStatus.Ineligible,
+			proofs: GoImmutableList.fromArray([
+				{
+					proofId: "portable-string-bytes-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/portable_string_bytes_contract"
+				},
+				{
+					proofId: "bytes-normalization-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/bytes_normalization_contract"
+				},
+				{
+					proofId: "bytes-staged-carrier-generated-shape",
+					kind: GoSurfaceProofKind.GeneratedShape,
+					fixturePath: "test/snapshot/stdlib/bytes_basic"
+				},
+				{
+					proofId: "raw-native-utf16-generated-shape",
+					kind: GoSurfaceProofKind.GeneratedShape,
+					fixturePath: "test/snapshot/core/raw_native_utf16_mode"
+				}
+			]),
+			familySyncExpectation: GoFamilySyncExpectation.TargetLocal,
+			familyContractId: "",
+			familyContractVersion: 0
+		};
+	}
+
+	/**
+		The structural Haxe `Iterator<T>` contract.
+
+		Why
+		An iterator is shared mutable progress, not a repeatable collection. A Go
+		`range` rewrite can evaluate the source again, snapshot changing data, or
+		give aliases independent cursors.
+
+		What
+		`GoIterator` is the exact non-optional zero-argument `hasNext():Bool` and
+		`next():T` protocol whose two closures share one state owner. It is not a
+		nominal type, a Go `range`, or a promise about `next()` after exhaustion.
+
+		How
+		Only recursively proven `T` shapes admit. Dynamic, unresolved, named
+		generic, and opaque typedef/abstract element shapes retain the structural
+		`hxrt` fallback, preserving order, live mutation, and alias-shared
+		exhaustion.
+	**/
+	static function haxeIteratorContract():GoSurfaceContract {
+		final noArguments = GoImmutableList.fromArray([]);
+		return {
+			surfaceId: GoSurfaceId.HaxeIterator,
+			contractVersion: 1,
+			sourceContract: GoSourceContractKind.PortableHaxe,
+			sourceSemanticsId: "haxe.iterator.shared-cursor",
+			sourceSemanticsVersion: 1,
+			sourceSemantics: "Exact hasNext/next structural iterator with single source evaluation, ordered delivery, repeated hasNext stability, live source visibility, and alias-shared cursor/exhaustion state.",
+			eligibleShape: GoSurfaceTypePattern.AnonymousPattern(GoImmutableList.fromArray([
+				{
+					name: "hasNext",
+					optional: false,
+					shape: GoSurfaceTypePattern.FunctionPattern(noArguments,
+						GoSurfaceTypePattern.NominalPattern(GoSurfaceNominalKind.Abstract, "StdTypes.Bool", GoImmutableList.fromArray([])))
+				},
+				{
+					name: "next",
+					optional: false,
+					shape: GoSurfaceTypePattern.FunctionPattern(noArguments, GoSurfaceTypePattern.Bind("element"))
+				}
+			])),
+			eligibilityRules: GoImmutableList.fromArray([
+				GoSurfaceEligibilityRule.NoUnknownShapes,
+				GoSurfaceEligibilityRule.BindingContainsNoDynamic("element"),
+				GoSurfaceEligibilityRule.BindingHasProvenCollectionCarrier("element")
+			]),
+			nativeRepresentation: GoNativeRepresentation.GoIterator,
+			nativeImports: GoImmutableList.fromArray([]),
+			nativeRuntimeRequirements: GoImmutableList.fromArray([]),
+			fallbackRepresentation: GoSurfaceFallbackRepresentation.HxrtIterator,
+			fallbackPolicy: GoSurfaceFallbackPolicy.ReasonedRuntimeRequirement,
+			fallbackImports: GoImmutableList.fromArray([]),
+			fallbackRuntimeRequirements: GoImmutableList.fromArray([GoHxrtFeatureId.HxrtCore]),
+			noHxrtStatus: GoNoHxrtStatus.Eligible,
+			proofs: GoImmutableList.fromArray([
+				{
+					proofId: "portable-iterator-closure-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/portable_iterator_closure_contract"
+				},
+				{
+					proofId: "structural-iterator-assignment-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/structural_iterator_assignment_contract"
+				},
+				{
+					proofId: "structural-iterator-generated-shape",
+					kind: GoSurfaceProofKind.GeneratedShape,
+					fixturePath: "test/snapshot/core/structural_iterator_assignment"
 				}
 			]),
 			familySyncExpectation: GoFamilySyncExpectation.TargetLocal,
@@ -1080,8 +1304,46 @@ class GoSurfaceContractRegistry {
 				}
 			case Function(_, _):
 				GoSurfaceId.HaxeFunction;
+			case Anonymous(_) if (isIteratorProtocolShape(shape)):
+				GoSurfaceId.HaxeIterator;
 			case TypeParameter(_) | Anonymous(_) | DynamicShape(_) | UnknownShape(_):
 				null;
+		};
+	}
+
+	/**
+		Recognize only Haxe's exact structural `Iterator<T>` protocol.
+
+		Why / What / How
+		- Anonymous objects have no nominal identity, so candidate classification
+		  must prove both required fields before consulting the catalog.
+		- The ledger sorts fields. Exactly two non-optional zero-argument methods
+		  are required: `hasNext():Bool` and `next():T`.
+		- Extra fields, optional methods, parameters, or a non-Bool `hasNext`
+		  remain ordinary anonymous structures and produce no registry decision.
+	**/
+	static function isIteratorProtocolShape(shape:GoTypeShape):Bool {
+		return switch (shape) {
+			case Anonymous(fields) if (fields.length == 2):
+				final hasNext = fields.at(0);
+				final next = fields.at(1);
+				if (hasNext == null || next == null || hasNext.name != "hasNext" || hasNext.optional || next.name != "next" || next.optional) {
+					false;
+				} else {
+					final validHasNext = switch (hasNext.shape) {
+						case Function(arguments, Nominal(GoTypeUsageTargetKind.Abstract, "StdTypes.Bool", parameters)): arguments.length == 0 && parameters.length == 0;
+						case _:
+							false;
+					};
+					final validNext = switch (next.shape) {
+						case Function(arguments, _): arguments.length == 0;
+						case _: false;
+					};
+					validHasNext && validNext
+					;
+				}
+			case _:
+				false;
 		};
 	}
 
@@ -1125,6 +1387,8 @@ class GoSurfaceContractRegistry {
 					NominalPattern(GoSurfaceNominalKind.Enum, "reflaxe.std.Result", _)
 				]:
 					true;
+				case [GoSurfaceId.HaxeIterator, AnonymousPattern(_)]:
+					isIteratorProtocolPattern(pattern);
 				case [GoSurfaceId.HaxeFunction, FunctionPattern(_, _)]:
 					true;
 				case _:
@@ -1133,6 +1397,40 @@ class GoSurfaceContractRegistry {
 		} catch (_:Exception) {
 			return false;
 		}
+	}
+
+	/**
+		Validate the contract-side form of Haxe's exact Iterator protocol.
+
+		Why / What / How
+		- Candidate recognition alone is insufficient: a malformed catalog entry
+		  must not become authority merely because it happens never to match.
+		- Require the same two ordered non-optional zero-argument methods as the
+		  typed shape, with Bool for `hasNext` and one bound result for `next`.
+	**/
+	static function isIteratorProtocolPattern(pattern:GoSurfaceTypePattern):Bool {
+		return switch (pattern) {
+			case AnonymousPattern(fields) if (fields != null && fields.length == 2):
+				final hasNext = fields.at(0);
+				final next = fields.at(1);
+				if (hasNext == null || next == null || hasNext.name != "hasNext" || hasNext.optional || next.name != "next" || next.optional) {
+					false;
+				} else {
+					final validHasNext = switch (hasNext.shape) {
+						case FunctionPattern(arguments, NominalPattern(GoSurfaceNominalKind.Abstract, "StdTypes.Bool", parameters)): arguments.length == 0 && parameters.length == 0;
+						case _:
+							false;
+					};
+					final validNext = switch (next.shape) {
+						case FunctionPattern(arguments, Bind(_)): arguments.length == 0;
+						case _: false;
+					};
+					validHasNext && validNext
+					;
+				}
+			case _:
+				false;
+		};
 	}
 
 	static function isValidPattern(pattern:GoSurfaceTypePattern):Bool {
@@ -1168,6 +1466,21 @@ class GoSurfaceContractRegistry {
 									break;
 								}
 							}
+						}
+						valid;
+					}
+				case AnonymousPattern(fields):
+					if (fields == null) {
+						false;
+					} else {
+						var valid = true;
+						var seen = new Map<String, Bool>();
+						for (field in fields) {
+							if (field == null || isBlank(field.name) || field.shape == null || seen.exists(field.name) || !isValidPattern(field.shape)) {
+								valid = false;
+								break;
+							}
+							seen.set(field.name, true);
 						}
 						valid;
 					}
@@ -1241,6 +1554,28 @@ class GoSurfaceContractRegistry {
 							}
 							if (matched && !matchPattern(expectedReturn, actualReturn, bindings).matched) {
 								matched = false;
+							}
+							{matched: matched, bindings: bindings};
+						}
+					case _:
+						{matched: false, bindings: bindings};
+				}
+			case AnonymousPattern(expectedFields):
+				switch (shape) {
+					case Anonymous(actualFields):
+						if (expectedFields.length != actualFields.length) {
+							{matched: false, bindings: bindings};
+						} else {
+							var matched = true;
+							for (index in 0...expectedFields.length) {
+								var expected = expectedFields.at(index);
+								var actual = actualFields.at(index);
+								if (expected.name != actual.name
+									|| expected.optional != actual.optional
+									|| !matchPattern(expected.shape, actual.shape, bindings).matched) {
+									matched = false;
+									break;
+								}
 							}
 							{matched: matched, bindings: bindings};
 						}
@@ -1483,6 +1818,10 @@ class GoSurfaceContractRegistry {
 					collectPatternBindings(argument.shape, bindings);
 				}
 				collectPatternBindings(returnType, bindings);
+			case AnonymousPattern(fields):
+				for (field in fields) {
+					collectPatternBindings(field.shape, bindings);
+				}
 		}
 	}
 
@@ -1627,6 +1966,16 @@ class GoSurfaceContractRegistry {
 						}
 				];
 				FunctionPattern(GoImmutableList.fromArray(copiedArguments), copyPattern(returnType));
+			case AnonymousPattern(fields):
+				var copiedFields = [
+					for (field in fields)
+						{
+							name: field.name,
+							optional: field.optional,
+							shape: copyPattern(field.shape)
+						}
+				];
+				AnonymousPattern(GoImmutableList.fromArray(copiedFields));
 		};
 	}
 
@@ -1806,6 +2155,12 @@ class GoSurfaceContractRegistry {
 				+ '],"returnType":'
 				+ patternJson(returnType)
 				+ "}";
+			case AnonymousPattern(fields):
+				var values = new Array<String>();
+				for (field in fields) {
+					values.push('{"name":"' + jsonEscape(field.name) + '","optional":' + field.optional + ',"shape":' + patternJson(field.shape) + "}");
+				}
+				'{"kind":"anonymous","fields":[' + values.join(",") + "]}";
 		};
 	}
 

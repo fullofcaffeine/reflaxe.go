@@ -3,6 +3,7 @@
 -D go_output=out-portable
 -D reflaxe_go_profile=portable
 -D reflaxe_go_surface_contract_report
+-D reflaxe_go_type_usage_report
 -D reflaxe_go_portable_native_policy=off
 -D reflaxe.dont_output_metadata_id
 -D no-traces

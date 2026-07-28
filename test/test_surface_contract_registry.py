@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import base64
+import hashlib
 import re
 import shutil
 import subprocess
@@ -20,9 +21,14 @@ HXRT_ANALYZER = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoHxrtFeatureAna
 CONTEXT = ROOT / "src" / "reflaxe" / "go" / "CompilationContext.hx"
 COMPILER = ROOT / "src" / "reflaxe" / "go" / "GoReflaxeCompiler.hx"
 DEFINE = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoCompilerDefine.hx"
-SCHEMA = ROOT / "docs" / "schemas" / "surface-contracts-v1.schema.json"
+SCHEMA = ROOT / "docs" / "schemas" / "surface-contracts-v2.schema.json"
+LEGACY_SCHEMA = ROOT / "docs" / "schemas" / "surface-contracts-v1.schema.json"
+LEGACY_SCHEMA_SHA256 = (
+    "d5c0aa66702849d97b81a3990b7e8e5e5b3e7ba2afd178fa0e2e76756631b114"
+)
 DOC = ROOT / "docs" / "surface-contract-registry.md"
 COLLECTION_DOC = ROOT / "docs" / "portable-collection-contract.md"
+VALUE_SURFACE_DOC = ROOT / "docs" / "portable-string-bytes-iterator-contract.md"
 DEFINES_DOC = ROOT / "docs" / "defines-reference.md"
 NATIVE_MAP = ROOT / "src" / "go" / "Map.hx"
 SCHEMA_VALIDATOR = ROOT / "test" / "validate_surface_contract_schema.mjs"
@@ -145,7 +151,7 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertEqual(portable_json, metal_json)
         self.assertEqual(portable_markdown, metal_markdown)
 
-        self.assertEqual(portable["schemaVersion"], 1)
+        self.assertEqual(portable["schemaVersion"], 2)
         self.assertEqual(portable["registryVersion"], 1)
         self.assertEqual(
             portable["authority"],
@@ -155,7 +161,7 @@ class SurfaceContractRegistryTest(unittest.TestCase):
             portable["profileAdmission"],
             "forbidden",
         )
-        self.assertEqual(portable["catalogCount"], 5)
+        self.assertEqual(portable["catalogCount"], 8)
         self.assertGreater(portable["decisionCount"], 0)
         self.assertEqual(
             portable["decisionCount"],
@@ -175,6 +181,26 @@ class SurfaceContractRegistryTest(unittest.TestCase):
             entry
             for entry in portable["decisions"]
             if entry["surfaceId"] == "haxe.Array"
+        ]
+        string_decisions = [
+            entry
+            for entry in portable["decisions"]
+            if entry["surfaceId"] == "haxe.String"
+        ]
+        bytes_decisions = [
+            entry
+            for entry in portable["decisions"]
+            if entry["surfaceId"] == "haxe.io.Bytes"
+        ]
+        iterator_decisions = [
+            entry
+            for entry in portable["decisions"]
+            if entry["surfaceId"] == "haxe.Iterator"
+        ]
+        function_decisions = [
+            entry
+            for entry in portable["decisions"]
+            if entry["surfaceId"] == "haxe.Function"
         ]
         self.assertTrue(
             any(
@@ -205,6 +231,48 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         )
         self.assertTrue(
             any(entry["reason"] == "eligibility_rejected" for entry in array_decisions)
+        )
+        self.assertTrue(string_decisions)
+        self.assertTrue(
+            all(
+                entry["outcome"] == "admitted"
+                and entry["selectedRepresentation"] == "go_string"
+                and entry["runtimeRequirements"] == ["string"]
+                for entry in string_decisions
+            )
+        )
+        self.assertTrue(bytes_decisions)
+        self.assertTrue(
+            all(
+                entry["outcome"] == "admitted"
+                and entry["selectedRepresentation"] == "go_byte_slice"
+                and entry["runtimeRequirements"] == ["bytes"]
+                for entry in bytes_decisions
+            )
+        )
+        self.assertTrue(
+            any(
+                entry["outcome"] == "admitted"
+                and entry["selectedRepresentation"] == "go_iterator"
+                for entry in iterator_decisions
+            )
+        )
+        self.assertTrue(
+            any(
+                entry["outcome"] == "rejected"
+                and entry["reason"] == "eligibility_rejected"
+                and "binding_contains_no_dynamic:element"
+                in entry["detail"]
+                for entry in iterator_decisions
+            )
+        )
+        self.assertTrue(function_decisions)
+        self.assertTrue(
+            all(
+                entry["outcome"] == "rejected"
+                and entry["reason"] == "contract_missing"
+                for entry in function_decisions
+            )
         )
         hidden_alias_decisions = [
             entry
@@ -245,8 +313,11 @@ class SurfaceContractRegistryTest(unittest.TestCase):
             set(contracts),
             {
                 "haxe.Array",
+                "haxe.String",
+                "haxe.io.Bytes",
                 "haxe.ds.StringMap",
                 "haxe.ds.IntMap",
+                "haxe.Iterator",
                 "reflaxe.std.Option",
                 "reflaxe.std.Result",
             },
@@ -289,6 +360,77 @@ class SurfaceContractRegistryTest(unittest.TestCase):
                     {proof["kind"] for proof in contract["proofs"]},
                     "map contracts must not claim an unasserted generated shape",
                 )
+        for (
+            surface_id,
+            native_representation,
+            runtime_requirement,
+            fallback_representation,
+            no_hxrt_status,
+        ) in (
+            (
+                "haxe.String",
+                "go_string",
+                ["string"],
+                "hxrt_string",
+                "ineligible",
+            ),
+            (
+                "haxe.io.Bytes",
+                "go_byte_slice",
+                ["bytes"],
+                "hxrt_bytes",
+                "ineligible",
+            ),
+            (
+                "haxe.Iterator",
+                "go_iterator",
+                [],
+                "hxrt_iterator",
+                "eligible",
+            ),
+        ):
+            contract = contracts[surface_id]
+            self.assertEqual(contract["sourceContract"], "portable_haxe")
+            self.assertEqual(
+                contract["nativeRepresentation"],
+                native_representation,
+            )
+            self.assertEqual(
+                contract["nativeRuntimeRequirements"],
+                runtime_requirement,
+            )
+            self.assertEqual(
+                contract["fallbackRepresentation"],
+                fallback_representation,
+            )
+            self.assertEqual(contract["noHxrtStatus"], no_hxrt_status)
+            self.assertIn(
+                "semantic_diff",
+                {proof["kind"] for proof in contract["proofs"]},
+            )
+        self.assertEqual(
+            contracts["haxe.String"]["fallbackRuntimeRequirements"],
+            ["string"],
+        )
+        self.assertEqual(
+            contracts["haxe.io.Bytes"]["fallbackRuntimeRequirements"],
+            ["bytes"],
+        )
+        self.assertIn(
+            "bytes-normalization-semantic-diff",
+            {
+                proof["proofId"]
+                for proof in contracts["haxe.io.Bytes"]["proofs"]
+            },
+        )
+        self.assertEqual(
+            contracts["haxe.Iterator"]["fallbackRuntimeRequirements"],
+            ["core"],
+        )
+        self.assertIn(
+            "binding_has_proven_collection_carrier:element",
+            contracts["haxe.Iterator"]["eligibilityRules"],
+        )
         for surface_id, native_representation, fallback_representation in (
             ("reflaxe.std.Option", "go_option", "portable_option"),
             ("reflaxe.std.Result", "go_result", "portable_result"),
@@ -323,7 +465,15 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         result_go = (
             FIXTURE / "out-portable" / "module_reflaxe_std_result.go"
         ).read_text(encoding="utf-8")
+        bytes_go = (
+            FIXTURE / "out-portable" / "module_haxe_io_bytes.go"
+        ).read_text(encoding="utf-8")
         main_go = (FIXTURE / "out-portable" / "main.go").read_text(encoding="utf-8")
+        type_usage = json.loads(
+            (FIXTURE / "out-portable" / "type_usage.json").read_text(
+                encoding="utf-8"
+            )
+        )
         self.assertIn("type reflaxe__std__Option struct", option_go)
         self.assertIn("params []any", option_go)
         self.assertIn("type reflaxe__std__Result struct", result_go)
@@ -331,15 +481,27 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertNotIn("go___Result", result_go)
         self.assertIn("*hxrt.Array", main_go)
         self.assertNotIn("var values []int", main_go)
-        rejected = [
-            entry
-            for entry in portable["decisions"]
-            if entry["surfaceId"] in {"haxe.String", "haxe.io.Bytes"}
+        self.assertIn("b []int", bytes_go)
+        self.assertIn("__hx_raw *hxrt.ByteView", bytes_go)
+        self.assertIn("iterator map[string]any", main_go)
+        self.assertIn('"hasNext"] = func() bool', main_go)
+        self.assertIn('"next"] = func() int', main_go)
+        observed_shapes = [
+            usage["shape"]
+            for module in type_usage["modules"]
+            for usage in module["typeUsages"]
         ]
-        self.assertTrue(rejected)
-        self.assertTrue(all(entry["outcome"] == "rejected" for entry in rejected))
         self.assertTrue(
-            all(entry["reason"] == "contract_missing" for entry in rejected)
+            any(
+                shape_contains(
+                    shape,
+                    kind="typedef",
+                    path_fragment="Main.IteratorAlias",
+                )
+                for shape in observed_shapes
+            ),
+            "a user-owned Iterator typedef must remain nominal/opaque in the "
+            "real typed ledger",
         )
         observed_ids = {entry["surfaceId"] for entry in portable["decisions"]}
         self.assertTrue(
@@ -347,6 +509,8 @@ class SurfaceContractRegistryTest(unittest.TestCase):
                 "haxe.Array",
                 "haxe.String",
                 "haxe.io.Bytes",
+                "haxe.Iterator",
+                "haxe.Function",
             }.issubset(observed_ids)
         )
 
@@ -381,12 +545,37 @@ class SurfaceContractRegistryTest(unittest.TestCase):
 
     def test_schema_docs_and_proof_paths_are_governed(self) -> None:
         schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        legacy_schema = json.loads(LEGACY_SCHEMA.read_text(encoding="utf-8"))
+        self.assertEqual(
+            hashlib.sha256(LEGACY_SCHEMA.read_bytes()).hexdigest(),
+            LEGACY_SCHEMA_SHA256,
+            "published schema v1 is immutable; add a new schema version instead",
+        )
         self.assertEqual(
             schema["$id"],
+            "urn:reflaxe-go:schema:surface-contracts:v2",
+        )
+        self.assertEqual(schema["properties"]["schemaVersion"]["const"], 2)
+        self.assertEqual(schema["properties"]["registryVersion"]["const"], 1)
+        self.assertEqual(
+            legacy_schema["$id"],
             "urn:reflaxe-go:schema:surface-contracts:v1",
         )
-        self.assertEqual(schema["properties"]["schemaVersion"]["const"], 1)
-        self.assertEqual(schema["properties"]["registryVersion"]["const"], 1)
+        self.assertEqual(
+            legacy_schema["properties"]["schemaVersion"]["const"],
+            1,
+        )
+        self.assertNotIn(
+            "haxe.Iterator",
+            legacy_schema["$defs"]["surfaceId"]["enum"],
+        )
+        self.assertEqual(
+            {
+                entry["properties"]["kind"]["const"]
+                for entry in legacy_schema["$defs"]["pattern"]["oneOf"]
+            },
+            {"bind", "nominal", "function"},
+        )
         self.assertEqual(
             schema["properties"]["profileAdmission"]["const"],
             "forbidden",
@@ -417,11 +606,12 @@ class SurfaceContractRegistryTest(unittest.TestCase):
 
         doc = DOC.read_text(encoding="utf-8")
         collection_doc = COLLECTION_DOC.read_text(encoding="utf-8")
+        value_surface_doc = VALUE_SURFACE_DOC.read_text(encoding="utf-8")
         defines_doc = DEFINES_DOC.read_text(encoding="utf-8")
         self.assertIn("What it is", doc)
         self.assertIn("Why it exists", doc)
         self.assertIn("How it works", doc)
-        self.assertIn("Production admits five", doc)
+        self.assertIn("Production admits eight", doc)
         self.assertNotIn("intentionally empty production catalog", doc)
         self.assertIn("not native `go.Result<T>`", doc)
         self.assertIn("planner does not consume", doc)
@@ -429,6 +619,16 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertIn("ObjectMap", collection_doc)
         self.assertIn("Std.string", collection_doc)
         self.assertIn("not semantic evidence", collection_doc)
+        self.assertIn("nullable pointer-backed Go string", value_surface_doc)
+        self.assertIn("shared data/view carrier", value_surface_doc)
+        self.assertIn("exact `hasNext`/`next` protocol", value_surface_doc)
+        self.assertIn("does not mean Go `range`", value_surface_doc)
+        self.assertIn("haxe_go-vfp.7.11", value_surface_doc)
+        self.assertIn("no default lowering changes", value_surface_doc)
+        self.assertIn("haxe.rust", value_surface_doc)
+        self.assertIn("haxe.elixir", value_surface_doc)
+        self.assertIn("haxe.ruby", value_surface_doc)
+        self.assertIn("Genes", value_surface_doc)
         self.assertIn("Profiles cannot admit a surface", doc)
         self.assertIn("haxe.rust", doc)
         self.assertIn("haxe.ruby", doc)
@@ -440,9 +640,9 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         populated = self.populated_contract_report()
         self.validate_schema(populated)
         populated_report = json.loads(populated)
-        self.assertEqual(populated_report["catalogCount"], 5)
-        self.assertEqual(populated_report["admittedCount"], 3)
-        self.assertEqual(populated_report["rejectedCount"], 4)
+        self.assertEqual(populated_report["catalogCount"], 8)
+        self.assertEqual(populated_report["admittedCount"], 6)
+        self.assertEqual(populated_report["rejectedCount"], 6)
         populated_decisions = {
             (entry["surfaceId"], entry["outcome"], entry["reason"])
             for entry in populated_report["decisions"]
@@ -463,6 +663,27 @@ class SurfaceContractRegistryTest(unittest.TestCase):
             ("haxe.ds.ObjectMap", "rejected", "contract_missing"),
             populated_decisions,
         )
+        self.assertIn(
+            ("haxe.Iterator", "admitted", "contract_admitted"),
+            populated_decisions,
+        )
+        self.assertIn(
+            ("haxe.Iterator", "rejected", "eligibility_rejected"),
+            populated_decisions,
+        )
+        self.assertIn(
+            ("haxe.Function", "rejected", "contract_missing"),
+            populated_decisions,
+        )
+        pattern_kinds = {
+            entry["properties"]["kind"]["const"]
+            for entry in schema["$defs"]["pattern"]["oneOf"]
+        }
+        self.assertEqual(
+            pattern_kinds,
+            {"bind", "nominal", "function", "anonymous"},
+        )
+        self.assertFalse(schema["$defs"]["patternField"]["additionalProperties"])
 
         registry_source = REGISTRY.read_text(encoding="utf-8")
         ledger_source = TYPE_LEDGER.read_text(encoding="utf-8")

@@ -10,13 +10,14 @@ compiler also needs a reviewed contract that says which Haxe behavior must stay
 the same, which exact type shapes are safe, what Go representation may be used,
 what happens when the shape is unsafe, and which tests prove those claims.
 
-Production admits five proof-backed surfaces: portable Haxe `Array`,
-`StringMap`, and `IntMap`, plus the `reflaxe.std.Option` and
-`reflaxe.std.Result` facades. Their exact contracts are documented in
-[Portable Collection Representation Contract](portable-collection-contract.md)
+Production admits eight proof-backed surfaces: portable Haxe `Array`, `String`,
+`haxe.io.Bytes`, `StringMap`, `IntMap`, and structural `Iterator<T>`, plus the
+`reflaxe.std.Option` and `reflaxe.std.Result` facades. Their exact contracts are
+documented in
+[Portable Collection Representation Contract](portable-collection-contract.md),
+[Portable String, Bytes, and Iterator Contract](portable-string-bytes-iterator-contract.md),
 and [Portable Option and Result Contract](portable-option-result-contract.md).
-ObjectMap, strings/bytes, iterators, and closures remain absent until their own
-semantic evidence lands.
+ObjectMap and functions remain absent until their identity evidence lands.
 
 Enable the optional report with:
 
@@ -27,8 +28,16 @@ Enable the optional report with:
 The compiler writes:
 
 - `surface_contracts.json`, validated by
-  [`surface-contracts-v1.schema.json`](schemas/surface-contracts-v1.schema.json);
+  [`surface-contracts-v2.schema.json`](schemas/surface-contracts-v2.schema.json);
 - `surface_contracts.md`, the same decisions in a review-friendly form.
+
+Reports now use schema version 2 and registry version 1. Schema v2 adds the
+`haxe.Iterator` surface ID and the exact anonymous-field pattern needed to
+describe its structural protocol. The published
+[`surface-contracts-v1.schema.json`](schemas/surface-contracts-v1.schema.json)
+remains unchanged and read-only so tools that validate historical v1 reports
+keep working. A report schema version describes the JSON vocabulary; the
+registry version independently describes the production contract catalog.
 
 ## Why it exists
 
@@ -61,7 +70,7 @@ typed Haxe program
     -> immutable typed usage ledger
     -> recognize an exact known surface root
     -> look up its validated versioned contract
-    -> match the complete generic/function shape
+    -> match the complete nominal/function/anonymous shape
     -> apply closed eligibility rules
     -> admit or reject with a stable reason
     -> publish one immutable snapshot and optional report
@@ -78,9 +87,14 @@ The four decision reasons are:
   "contains no `Dynamic`" or "bound map key is Go-comparable" failed.
 
 Unknown types are ignored instead of being turned into accidental candidates.
-Known candidates use exact roots such as Haxe `Array`, `String`,
+Known nominal candidates use exact roots such as Haxe `Array`, `String`,
 `haxe.io.Bytes`, and `reflaxe.std.Option`/`Result`; a namespace prefix is never
-sufficient. Bare generic enum declaration references do not choose a
+sufficient. Structural Iterator candidates must contain exactly non-optional
+zero-argument `hasNext():Bool` and `next():T` fields. Other anonymous objects
+are ignored. The compiler resolves only Haxe's canonical
+`StdTypes.Iterator<T>` typedef to that structural evidence; a user-owned
+Iterator typedef remains nominal and opaque, so it cannot widen admission by
+aliasing the same underlying type. Bare generic enum declaration references do not choose a
 representation: the applied typed usage carries the parameters needed for that
 decision.
 
@@ -121,12 +135,19 @@ lowering, beside `typedUsageLedger`. Neither report generation nor a
 compatibility profile can mutate it.
 
 The registry is observational for representation selection today. Collections,
-Option, and Result are admitted, but the planner does not consume their carrier
-decisions until `.7.6`; current generated declarations retain their portable
-fallbacks. `go_slice` means a shared, slice-backed carrier rather than a naked
-Go slice, while portable `go_map` admission currently covers only the fixed
-StringMap and IntMap key contracts. `.7.5` adds the remaining proven catalog
-entries, and `.7.6` makes optimizer and runtime planners consume all decisions.
+String, Bytes, Iterator, Option, and Result are admitted, but the planner does
+not consume their carrier decisions until `.7.6`; current generated
+declarations retain their portable fallbacks. `go_slice` means a shared,
+slice-backed carrier rather than a naked Go slice, while portable `go_map`
+admission currently covers only the fixed StringMap and IntMap key contracts.
+`go_string`, `go_byte_slice`, and `go_iterator` likewise name the reviewed
+semantic carriers, not raw values or a Go `range` rewrite.
+In other words, the planner does not consume registry admission in this task.
+
+Function shapes remain known but report `contract_missing`.
+`haxe_go-vfp.7.11` owns the bound-method identity gap that must close before a
+portable callable carrier can be admitted. `.7.6` makes optimizer and runtime
+planners consume the proven decisions; it must not infer closure admission.
 
 Portable `reflaxe.std.Result<T,E>` is not native `go.Result<T>` and is not a Go
 `(T,error)` pair. The registry's `go_result` value names a future typed
@@ -184,9 +205,10 @@ npm run test:compiler-debt
 The focused contract runs the real Haxe validator against valid, duplicate,
 unknown, unproven, malformed-pattern, malformed-nested-list, unsafe-path, and
 unknown-runtime entries. It proves Option/Result admission and fallback,
-typed Array/StringMap/IntMap admission and fallback, ObjectMap identity
-rejection, fixed-key comparability, explicit `go.Map` exclusion,
-unregistered-surface rejection, deep catalog copying, deterministic
-JSON/Markdown, actual JSON Schema conformance, compiler/schema vocabulary
-synchronization, generated fallback declarations, path hygiene, and
-byte-identical portable/metal reports.
+typed Array/StringMap/IntMap admission and fallback, nullable String and shared
+Bytes carriers, exact typed Iterator admission with Dynamic/opaque fallback,
+continued function and ObjectMap identity rejection, fixed-key comparability,
+explicit `go.Map` exclusion, unregistered-surface rejection, deep catalog
+copying, deterministic JSON/Markdown, actual JSON Schema conformance,
+compiler/schema vocabulary synchronization, generated fallback declarations,
+path hygiene, and byte-identical portable/metal reports.

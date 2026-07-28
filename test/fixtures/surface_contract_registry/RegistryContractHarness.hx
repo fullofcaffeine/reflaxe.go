@@ -43,6 +43,8 @@ class RegistryContractHarness {
 		assertHasIssue([arrayContract(null, null, null, false, false, false, true)], GoSurfaceValidationCode.InvalidShape);
 		assertCreateRejects([arrayContract(null, null, null, true)], GoSurfaceValidationCode.InvalidShape);
 		assertCreateRejects([arrayContract(null, null, null, false, true)], GoSurfaceValidationCode.InvalidShape);
+		assertHasIssue([iteratorContract(true)], GoSurfaceValidationCode.InvalidShape);
+		assertCreateRejects([iteratorContract(true)], GoSurfaceValidationCode.InvalidShape);
 		assertCreateRejects(null, GoSurfaceValidationCode.MalformedContract);
 		assertHasIssue([arrayContract(null, null, null, false, false, false, false, "pattern_element")], GoSurfaceValidationCode.InvalidShape);
 		assertHasIssue([arrayContract(null, null, null, false, false, false, false, "rule_list")], GoSurfaceValidationCode.UnknownEligibilityRule);
@@ -88,7 +90,7 @@ class RegistryContractHarness {
 		assertEquals(GoSurfaceDecisionReason.EligibilityRejected, rejected.decisions.at(0).reason, "shape rejection reason should be stable");
 
 		final productionArray = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(arrayShape(intShape())));
-		assertEquals(5, productionArray.catalogCount, "production must include the three proven collection contracts");
+		assertEquals(8, productionArray.catalogCount, "production must include the proven collection and value-surface contracts");
 		assertEquals(GoSurfaceDecisionOutcome.Admitted, productionArray.decisions.at(0).outcome,
 			"fully typed portable Array must admit a shared slice-backed carrier");
 		assertEquals(GoNativeRepresentation.GoSlice, productionArray.decisions.at(0).selectedRepresentation,
@@ -129,6 +131,63 @@ class RegistryContractHarness {
 		final abstractArray = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(arrayShape(abstractShape("Main.HiddenDynamicAbstract"))));
 		assertEquals(GoSurfaceDecisionOutcome.Rejected, abstractArray.decisions.at(0).outcome,
 			"user abstract storage is opaque in the ledger and must fail closed");
+
+		final string = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(stringShape()));
+		assertEquals(GoSurfaceDecisionOutcome.Admitted, string.decisions.at(0).outcome,
+			"portable String must admit only its nullable pointer-backed semantic carrier");
+		assertEquals(GoNativeRepresentation.GoString, string.decisions.at(0).selectedRepresentation,
+			"portable String must report its semantic Go string carrier");
+		assertEquals(GoHxrtFeatureId.HxrtString, string.decisions.at(0).runtimeRequirements.at(0),
+			"the admitted String carrier must report its current Unicode/null runtime");
+		assertEquals(GoSurfaceFallbackRepresentation.HxrtString, string.decisions.at(0).fallbackRepresentation,
+			"portable String must retain the same semantic runtime fallback");
+
+		final bytes = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(bytesShape()));
+		assertEquals(GoSurfaceDecisionOutcome.Admitted, bytes.decisions.at(0).outcome, "portable Bytes must admit only the shared data/view semantic carrier");
+		assertEquals(GoNativeRepresentation.GoBytes, bytes.decisions.at(0).selectedRepresentation,
+			"portable Bytes must report its guarded native byte-view carrier");
+		assertEquals(GoHxrtFeatureId.HxrtBytes, bytes.decisions.at(0).runtimeRequirements.at(0),
+			"the admitted Bytes carrier must report cache and encoding runtime support");
+		assertEquals(GoSurfaceFallbackRepresentation.HxrtBytes, bytes.decisions.at(0).fallbackRepresentation,
+			"portable Bytes must retain its alias-preserving fallback");
+
+		final iterator = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(iteratorShape(intShape())));
+		assertEquals(GoSurfaceDecisionOutcome.Admitted, iterator.decisions.at(0).outcome,
+			"the exact typed hasNext/next protocol must admit a shared-cursor iterator carrier");
+		assertEquals(GoNativeRepresentation.GoIterator, iterator.decisions.at(0).selectedRepresentation,
+			"typed Iterator must report its state-owning Go closure carrier");
+		assertEquals(GoSurfaceFallbackRepresentation.HxrtIterator, iterator.decisions.at(0).fallbackRepresentation,
+			"typed Iterator must retain the structural runtime fallback");
+
+		final dynamicIterator = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(iteratorShape(GoTypeShape.DynamicShape(null))));
+		assertEquals(GoSurfaceDecisionOutcome.Rejected, dynamicIterator.decisions.at(0).outcome,
+			"Iterator<Dynamic> must fail closed because its yielded carrier is not proven");
+		assertEquals(GoSurfaceDecisionReason.EligibilityRejected, dynamicIterator.decisions.at(0).reason,
+			"dynamic iterator fallback must report the typed element eligibility boundary");
+		assertEquals(GoSurfaceFallbackRepresentation.HxrtIterator, dynamicIterator.decisions.at(0).fallbackRepresentation,
+			"rejected Iterator shapes must retain order and shared exhaustion through the fallback");
+
+		final hiddenIterator = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(iteratorShape(typedefShape("Main.HiddenDynamic"))));
+		assertEquals(GoSurfaceDecisionOutcome.Rejected, hiddenIterator.decisions.at(0).outcome,
+			"Iterator aliases whose storage is opaque in the ledger must fail closed");
+		assertTrue(hiddenIterator.decisions.at(0).detail.indexOf("binding_has_proven_collection_carrier:element") >= 0,
+			"hidden Iterator fallback must report its unproven yielded carrier");
+
+		final nearIterator = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(nearIteratorShape(intShape())));
+		assertEquals(0, nearIterator.decisionCount,
+			"ordinary anonymous objects must not become Iterator candidates merely because they contain next-like fields");
+		final extraFieldIterator = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(extraFieldIteratorShape(intShape())));
+		assertEquals(0, extraFieldIterator.decisionCount, "an anonymous object with an extra field must not become an Iterator candidate");
+		final optionalIterator = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(optionalIteratorShape(intShape())));
+		assertEquals(0, optionalIterator.decisionCount, "an anonymous object with an optional Iterator method must not become an Iterator candidate");
+		final argumentIterator = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(argumentIteratorShape(intShape())));
+		assertEquals(0, argumentIterator.decisionCount, "an anonymous object whose Iterator method takes an argument must not become an Iterator candidate");
+
+		final typedFunction = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(functionShape(intShape(), stringShape())));
+		assertEquals(GoSurfaceDecisionOutcome.Rejected, typedFunction.decisions.at(0).outcome,
+			"typed functions must remain unadmitted until bound-method identity is correct");
+		assertEquals(GoSurfaceDecisionReason.ContractMissing, typedFunction.decisions.at(0).reason,
+			"the closure identity boundary must be visible rather than inferred from a simple capture");
 
 		final stringMap = GoSurfaceContractRegistry.defaultRegistry().snapshot(ledger(stringMapShape(intShape())));
 		assertEquals(GoSurfaceDecisionOutcome.Admitted, stringMap.decisions.at(0).outcome,
@@ -244,7 +303,12 @@ class RegistryContractHarness {
 			stringMapShape(GoTypeShape.DynamicShape(null)),
 			intMapShape(arrayShape(intShape())),
 			intMapShape(GoTypeShape.DynamicShape(null)),
-			objectMapShape(classShape("Main.Box"), stringShape())
+			objectMapShape(classShape("Main.Box"), stringShape()),
+			stringShape(),
+			bytesShape(),
+			iteratorShape(intShape()),
+			iteratorShape(GoTypeShape.DynamicShape(null)),
+			functionShape(intShape(), stringShape())
 		]));
 		final firstJson = GoSurfaceContractRegistry.renderJson(productionReport);
 		final secondJson = GoSurfaceContractRegistry.renderJson(productionReport);
@@ -340,6 +404,68 @@ class RegistryContractHarness {
 		};
 	}
 
+	static function iteratorContract(wrongHasNext:Bool):GoSurfaceContract {
+		final hasNextReturn = wrongHasNext ? stringShape() : boolShape();
+		return {
+			surfaceId: GoSurfaceId.HaxeIterator,
+			contractVersion: 1,
+			sourceContract: GoSourceContractKind.PortableHaxe,
+			sourceSemanticsId: "test.haxe.iterator",
+			sourceSemanticsVersion: 1,
+			sourceSemantics: "Test-only exact structural iterator validation contract.",
+			eligibleShape: GoSurfaceTypePattern.AnonymousPattern(GoImmutableList.fromArray([
+				{
+					name: "hasNext",
+					optional: false,
+					shape: GoSurfaceTypePattern.FunctionPattern(GoImmutableList.fromArray([]), shapePattern(hasNextReturn))
+				},
+				{
+					name: "next",
+					optional: false,
+					shape: GoSurfaceTypePattern.FunctionPattern(GoImmutableList.fromArray([]), GoSurfaceTypePattern.Bind("element"))
+				}
+			])),
+			eligibilityRules: GoImmutableList.fromArray([
+				GoSurfaceEligibilityRule.NoUnknownShapes,
+				GoSurfaceEligibilityRule.BindingHasProvenCollectionCarrier("element")
+			]),
+			nativeRepresentation: GoNativeRepresentation.GoIterator,
+			nativeImports: GoImmutableList.fromArray([]),
+			nativeRuntimeRequirements: GoImmutableList.fromArray([]),
+			fallbackRepresentation: GoSurfaceFallbackRepresentation.HxrtIterator,
+			fallbackPolicy: GoSurfaceFallbackPolicy.ReasonedRuntimeRequirement,
+			fallbackImports: GoImmutableList.fromArray([]),
+			fallbackRuntimeRequirements: GoImmutableList.fromArray([GoHxrtFeatureId.HxrtCore]),
+			noHxrtStatus: GoNoHxrtStatus.Eligible,
+			proofs: GoImmutableList.fromArray([
+				{
+					proofId: "iterator-validation-semantic-diff",
+					kind: GoSurfaceProofKind.SemanticDiff,
+					fixturePath: "test/semantic_diff/portable_iterator_closure_contract"
+				}
+			]),
+			familySyncExpectation: GoFamilySyncExpectation.TargetLocal,
+			familyContractId: "",
+			familyContractVersion: 0
+		};
+	}
+
+	static function shapePattern(shape:GoTypeShape):GoSurfaceTypePattern {
+		return switch (shape) {
+			case Nominal(kind, path, parameters):
+				final nominalKind = switch (kind) {
+					case GoTypeUsageTargetKind.Class: GoSurfaceNominalKind.Class;
+					case GoTypeUsageTargetKind.Enum: GoSurfaceNominalKind.Enum;
+					case GoTypeUsageTargetKind.Typedef: GoSurfaceNominalKind.Typedef;
+					case GoTypeUsageTargetKind.Abstract: GoSurfaceNominalKind.Abstract;
+					case _: throw "unsupported test shape";
+				};
+				GoSurfaceTypePattern.NominalPattern(nominalKind, path, GoImmutableList.fromArray([for (parameter in parameters) shapePattern(parameter)]));
+			case _:
+				throw "unsupported test shape";
+		};
+	}
+
 	static function assertHasIssue(contracts:Array<GoSurfaceContract>, expected:GoSurfaceValidationCode):Void {
 		final issues = GoSurfaceContractRegistry.validate(contracts);
 		for (issue in issues) {
@@ -422,6 +548,104 @@ class RegistryContractHarness {
 		return GoTypeShape.Nominal(GoTypeUsageTargetKind.Class, "haxe.ds.ObjectMap", GoImmutableList.fromArray([key, value]));
 	}
 
+	static function bytesShape():GoTypeShape {
+		return GoTypeShape.Nominal(GoTypeUsageTargetKind.Class, "haxe.io.Bytes", GoImmutableList.fromArray([]));
+	}
+
+	static function functionShape(argument:GoTypeShape, returnType:GoTypeShape):GoTypeShape {
+		return GoTypeShape.Function(GoImmutableList.fromArray([
+			{
+				name: "value",
+				optional: false,
+				shape: argument
+			}
+		]), returnType);
+	}
+
+	static function zeroArgumentFunctionShape(returnType:GoTypeShape):GoTypeShape {
+		return GoTypeShape.Function(GoImmutableList.fromArray([]), returnType);
+	}
+
+	static function iteratorShape(element:GoTypeShape):GoTypeShape {
+		return GoTypeShape.Anonymous(GoImmutableList.fromArray([
+			{
+				name: "hasNext",
+				optional: false,
+				shape: zeroArgumentFunctionShape(boolShape())
+			},
+			{
+				name: "next",
+				optional: false,
+				shape: zeroArgumentFunctionShape(element)
+			}
+		]));
+	}
+
+	static function nearIteratorShape(element:GoTypeShape):GoTypeShape {
+		return GoTypeShape.Anonymous(GoImmutableList.fromArray([
+			{
+				name: "hasNext",
+				optional: false,
+				shape: zeroArgumentFunctionShape(stringShape())
+			},
+			{
+				name: "next",
+				optional: false,
+				shape: zeroArgumentFunctionShape(element)
+			}
+		]));
+	}
+
+	static function extraFieldIteratorShape(element:GoTypeShape):GoTypeShape {
+		return GoTypeShape.Anonymous(GoImmutableList.fromArray([
+			{
+				name: "hasNext",
+				optional: false,
+				shape: zeroArgumentFunctionShape(boolShape())
+			},
+			{
+				name: "next",
+				optional: false,
+				shape: zeroArgumentFunctionShape(element)
+			},
+			{
+				name: "reset",
+				optional: false,
+				shape: zeroArgumentFunctionShape(voidShape())
+			}
+		]));
+	}
+
+	static function optionalIteratorShape(element:GoTypeShape):GoTypeShape {
+		return GoTypeShape.Anonymous(GoImmutableList.fromArray([
+			{
+				name: "hasNext",
+				optional: true,
+				shape: zeroArgumentFunctionShape(boolShape())
+			},
+			{
+				name: "next",
+				optional: false,
+				shape: zeroArgumentFunctionShape(element)
+			}
+		]));
+	}
+
+	static function argumentIteratorShape(element:GoTypeShape):GoTypeShape {
+		return GoTypeShape.Anonymous(GoImmutableList.fromArray([
+			{
+				name: "hasNext",
+				optional: false,
+				shape: functionShape(boolShape(), boolShape())
+			},
+			{
+				name: "next",
+				optional: false,
+				shape: zeroArgumentFunctionShape(element)
+			}
+		]));
+	}
+
 	static function classShape(path:String):GoTypeShape {
 		return GoTypeShape.Nominal(GoTypeUsageTargetKind.Class, path, GoImmutableList.fromArray([]));
 	}
@@ -436,6 +660,14 @@ class RegistryContractHarness {
 
 	static function intShape():GoTypeShape {
 		return GoTypeShape.Nominal(GoTypeUsageTargetKind.Abstract, "StdTypes.Int", GoImmutableList.fromArray([]));
+	}
+
+	static function boolShape():GoTypeShape {
+		return GoTypeShape.Nominal(GoTypeUsageTargetKind.Abstract, "StdTypes.Bool", GoImmutableList.fromArray([]));
+	}
+
+	static function voidShape():GoTypeShape {
+		return GoTypeShape.Nominal(GoTypeUsageTargetKind.Abstract, "StdTypes.Void", GoImmutableList.fromArray([]));
 	}
 
 	static function stringShape():GoTypeShape {

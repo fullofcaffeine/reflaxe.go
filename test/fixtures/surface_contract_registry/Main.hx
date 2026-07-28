@@ -2,6 +2,7 @@ import reflaxe.std.Option;
 import reflaxe.std.Result;
 
 typedef HiddenDynamic = Dynamic;
+typedef IteratorAlias<T> = Iterator<T>;
 abstract HiddenDynamicAbstract(Dynamic) from Dynamic to Dynamic {}
 
 class Main {
@@ -25,6 +26,34 @@ class Main {
 		return Std.string(values[0]);
 	}
 
+	static function iteratorTotal(iterator:Iterator<Int>):Int {
+		var total = 0;
+		while (iterator.hasNext()) {
+			total += iterator.next();
+		}
+		return total;
+	}
+
+	static function dynamicIteratorLabel(iterator:Iterator<Dynamic>):String {
+		return iterator.hasNext() ? Std.string(iterator.next()) : "empty";
+	}
+
+	static function aliasIteratorTotal(iterator:IteratorAlias<Int>):Int {
+		var total = 0;
+		while (iterator.hasNext()) {
+			total += iterator.next();
+		}
+		return total;
+	}
+
+	static function applyTyped(callback:Int->String):String {
+		return callback(7);
+	}
+
+	static function applyDynamic(callback:Dynamic->Dynamic):String {
+		return Std.string(callback("callback"));
+	}
+
 	static function main() {
 		final values:Array<Int> = [1, 2, 3];
 		final nestedValues:Array<Array<Int>> = [[1], [2, 3]];
@@ -40,6 +69,11 @@ class Main {
 		final result:Result<Int, String> = Ok(values.length);
 		final dynamicOption:Option<Dynamic> = Some(label);
 		final dynamicResult:Result<Int, Dynamic> = Err(label);
+		final typedCallback:Int->String = value -> Std.string(value);
+		final dynamicCallback:Dynamic->Dynamic = value -> value;
+		final typedIterator:Iterator<Int> = values.iterator();
+		final aliasedIterator:IteratorAlias<Int> = values.iterator();
+		final dynamicIterator:Iterator<Dynamic> = dynamicValues.iterator();
 		trace(nestedValues.length);
 		trace(dynamicValues.length);
 		trace(option);
@@ -47,5 +81,10 @@ class Main {
 		trace(dynamicOption);
 		trace(dynamicResult);
 		trace(bytes.length);
+		Sys.println(iteratorTotal(typedIterator));
+		Sys.println(aliasIteratorTotal(aliasedIterator));
+		Sys.println(dynamicIteratorLabel(dynamicIterator));
+		Sys.println(applyTyped(typedCallback));
+		Sys.println(applyDynamic(dynamicCallback));
 	}
 }

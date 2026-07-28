@@ -817,7 +817,21 @@ class GoTypeUsageLedger {
 						nominalShape(GoTypeUsageTargetKind.Class, TClassDecl(classRef).getPath(), parameters, activeTrail, depth);
 				}
 			case TType(typeRef, parameters):
-				nominalShape(GoTypeUsageTargetKind.Typedef, TTypeDecl(typeRef).getPath(), parameters, activeTrail, depth);
+				final path = TTypeDecl(typeRef).getPath();
+				if (path == "StdTypes.Iterator" && parameters.length == 1) {
+					/*
+						Why: Haxe Iterator<T> is the canonical structural
+						hasNext/next protocol, but retaining only its typedef name
+						hides those fields from exact registry matching.
+						What: Follow this one compiler-known standard typedef into
+						its anonymous shape while preserving the applied T.
+						How: All user typedefs remain nominal and opaque, so this
+						does not let aliases hide Dynamic or other storage.
+					 */
+					typeShape(Context.follow(type), nextTrail, depth + 1);
+				} else {
+					nominalShape(GoTypeUsageTargetKind.Typedef, path, parameters, activeTrail, depth);
+				}
 			case TFun(arguments, returnType):
 				var outwardArguments = new Array<GoFunctionArgumentShape>();
 				for (argument in arguments) {
