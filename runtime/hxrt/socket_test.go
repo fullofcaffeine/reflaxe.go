@@ -1,6 +1,8 @@
 package hxrt
 
 import (
+	"bytes"
+	"io"
 	"net"
 	"sync"
 	"testing"
@@ -23,6 +25,32 @@ func socketTestIntsEqual(actual []int, expected ...int) bool {
 		}
 	}
 	return true
+}
+
+type socketTestPartialWriteConn struct {
+	bytes.Buffer
+	maxWrite int
+}
+
+func (connection *socketTestPartialWriteConn) Read(_ []byte) (int, error) {
+	return 0, io.EOF
+}
+
+func (connection *socketTestPartialWriteConn) Write(raw []byte) (int, error) {
+	limit := len(raw)
+	if limit > connection.maxWrite {
+		limit = connection.maxWrite
+	}
+	return connection.Buffer.Write(raw[:limit])
+}
+
+func (connection *socketTestPartialWriteConn) Close() error                      { return nil }
+func (connection *socketTestPartialWriteConn) LocalAddr() net.Addr               { return nil }
+func (connection *socketTestPartialWriteConn) RemoteAddr() net.Addr              { return nil }
+func (connection *socketTestPartialWriteConn) SetDeadline(_ time.Time) error     { return nil }
+func (connection *socketTestPartialWriteConn) SetReadDeadline(_ time.Time) error { return nil }
+func (connection *socketTestPartialWriteConn) SetWriteDeadline(_ time.Time) error {
+	return nil
 }
 
 func socketTestTCPPair(t *testing.T) (*SocketHandle, *SocketHandle, *SocketHandle) {
@@ -81,6 +109,25 @@ func TestSocketTypedTCPHandleRoundTrip(t *testing.T) {
 	}
 }
 
+func TestSocketWriteReportsPartialProgressForSourceOwnedWriteFullBytes(t *testing.T) {
+	connection := &socketTestPartialWriteConn{maxWrite: 2}
+	handle := SocketNewTCP()
+	handle.installConn(connection)
+	defer SocketClose(handle)
+
+	first := SocketWriteValues(handle, []int{'a', 'b', 'c', 'd'})
+	if first.Status != SocketIOReady || first.Count != 2 {
+		t.Fatalf("first partial write = %#v, want two ready bytes", first)
+	}
+	second := SocketWriteValues(handle, []int{'c', 'd'})
+	if second.Status != SocketIOReady || second.Count != 2 {
+		t.Fatalf("second partial write = %#v, want two ready bytes", second)
+	}
+	if got := connection.String(); got != "abcd" {
+		t.Fatalf("written bytes = %q, want abcd", got)
+	}
+}
+
 func TestSocketTimeoutAndReadinessAreExplicit(t *testing.T) {
 	listener, client, accepted := socketTestTCPPair(t)
 	defer SocketClose(listener)
@@ -108,6 +155,111 @@ func TestSocketTimeoutAndReadinessAreExplicit(t *testing.T) {
 	}
 	if value := SocketReadByteValue(client); value != int('x') {
 		t.Fatalf("SocketReadByteValue = %d, want x", value)
+	}
+}
+
+func TestSocketAcceptAndUDPReadHonorConfiguredTimeouts(t *testing.T) {
+	listener := SocketNewTCP()
+	defer SocketClose(listener)
+	SocketBindTCP(listener, socketTestString(socketTestHost), 0)
+	SocketListen(listener, 1)
+	SocketSetTimeout(listener, 0.02)
+	acceptStarted := time.Now()
+	accepted := SocketAccept(listener)
+	if accepted.Status != SocketIOBlocked || accepted.Handle != nil {
+		t.Fatalf("timed accept = %#v, want blocked without a handle", accepted)
+	}
+	if elapsed := time.Since(acceptStarted); elapsed < 5*time.Millisecond || elapsed > time.Second {
+		t.Fatalf("timed accept took %s, want configured bounded timeout", elapsed)
+	}
+
+	udp := SocketNewUDP()
+	defer SocketClose(udp)
+	SocketUdpBind(udp, socketTestString(socketTestHost), 0)
+	SocketSetTimeout(udp, 0.02)
+	readStarted := time.Now()
+	read := SocketUdpReadFrom(udp, 8)
+	if read.Status != SocketIOBlocked {
+		t.Fatalf("timed UDP read = %#v, want blocked", read)
+	}
+	if elapsed := time.Since(readStarted); elapsed < 5*time.Millisecond || elapsed > time.Second {
+		t.Fatalf("timed UDP read took %s, want configured bounded timeout", elapsed)
+	}
+}
+
+func TestSslSocketConnectHonorsTheConfiguredHandshakeTimeout(t *testing.T) {
+	listener, err := net.Listen("tcp4", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer listener.Close()
+
+	accepted := make(chan net.Conn, 1)
+	go func() {
+		connection, acceptErr := listener.Accept()
+		if acceptErr == nil {
+			accepted <- connection
+		}
+	}()
+
+	address := listener.Addr().(*net.TCPAddr)
+	handle := SocketNewTCP()
+	SocketSetTimeout(handle, 0.02)
+	recovered := make(chan any, 1)
+	started := time.Now()
+	go func() {
+		defer func() {
+			recovered <- recover()
+		}()
+		SslSocketConnect(handle, socketTestString(socketTestHost), address.Port, false, nil, nil, nil, nil)
+	}()
+
+	select {
+	case value := <-recovered:
+		if _, ok := value.(HaxeException); !ok {
+			t.Fatalf("stalled TLS handshake recovered %#v, want HaxeException timeout", value)
+		}
+		if elapsed := time.Since(started); elapsed < 5*time.Millisecond || elapsed > time.Second {
+			t.Fatalf("stalled TLS handshake took %s, want configured bounded timeout", elapsed)
+		}
+	case connection := <-accepted:
+		defer connection.Close()
+		select {
+		case value := <-recovered:
+			if _, ok := value.(HaxeException); !ok {
+				t.Fatalf("stalled TLS handshake recovered %#v, want HaxeException timeout", value)
+			}
+			if elapsed := time.Since(started); elapsed < 5*time.Millisecond || elapsed > time.Second {
+				t.Fatalf("stalled TLS handshake took %s, want configured bounded timeout", elapsed)
+			}
+		case <-time.After(200 * time.Millisecond):
+			_ = connection.Close()
+			<-recovered
+			t.Fatal("stalled TLS handshake ignored Socket.setTimeout")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("TLS client did not connect to the local stalled peer")
+	}
+}
+
+func TestSocketPeerClosePreservesPartialReadThenReportsEOF(t *testing.T) {
+	local, peer := net.Pipe()
+	handle := SocketNewTCP()
+	handle.installConn(local)
+	defer SocketClose(handle)
+
+	go func() {
+		_, _ = peer.Write([]byte("xy"))
+		_ = peer.Close()
+	}()
+
+	first := SocketReadValues(handle, 8)
+	if first.Status != SocketIOReady || first.Count != 2 || !socketTestIntsEqual(first.Values, 'x', 'y') {
+		t.Fatalf("partial peer-close read = %#v, want two ready bytes", first)
+	}
+	second := SocketReadValues(handle, 8)
+	if second.Status != SocketIOEOF || second.Count != 0 {
+		t.Fatalf("read after peer close = %#v, want EOF", second)
 	}
 }
 

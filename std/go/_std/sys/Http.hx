@@ -6,6 +6,7 @@ import haxe.io.Input;
 import haxe.io.Output;
 import hxrt.http.HttpResponseHandle;
 import hxrt.http.NativeHttp;
+import hxrt.io.ByteView;
 import sys.net.Socket;
 
 private typedef PendingUpload = {
@@ -62,7 +63,7 @@ class Http extends haxe.http.HttpBase {
 
 	public override function request(?post:Bool):Void {
 		var usePost = (post != null && post == true) || postBytes != null || postData != null || file != null;
-		requestWith(usePost, null, null, null);
+		requestWith(usePost, null, null, null, true);
 	}
 
 	@:noCompletion
@@ -75,9 +76,9 @@ class Http extends haxe.http.HttpBase {
 		What: Records one pending multipart upload for the next request.
 		Why: Upload metadata and form ordering are public request policy, even though
 		the final byte transport is native on Go.
-		How: Retain the typed Input and metadata in source; the current compatibility
-		contract emits the established deterministic size marker at the transport
-		boundary without exposing the Input object to `hxrt`.
+		How: Retain the typed Input and metadata in source. During synchronous
+		execution, provide bounded immutable chunks to the native multipart reader
+		without exposing the generated Input object or buffering the whole file.
 	**/
 	public function fileTransfer(argname:String, filename:String, file:Input, size:Int, mimeType = "application/octet-stream"):Void {
 		this.file = {
@@ -90,7 +91,7 @@ class Http extends haxe.http.HttpBase {
 	}
 
 	public function customRequest(post:Bool, api:Output, ?sock:Socket, ?method:String):Void {
-		requestWith(post || file != null, api, sock, method);
+		requestWith(post || file != null, api, sock, method, false);
 	}
 
 	/**
@@ -118,13 +119,22 @@ class Http extends haxe.http.HttpBase {
 		return value == null ? null : [value];
 	}
 
-	function requestWith(post:Bool, api:Null<Output>, sock:Null<Socket>, method:Null<String>):Void {
+	/**
+		What: Executes either the callback-oriented `request` path or the
+		Output-oriented `customRequest` path.
+		Why: Mainstream `sys.Http` treats these as distinct completion contracts:
+		`request` publishes response data through fields and callbacks, while
+		`customRequest` writes and closes its Output without duplicating that data.
+		How: `deliverSuccessCallbacks` selects only the source-owned completion
+		policy; both paths share the same typed native transport and error handling.
+	**/
+	function requestWith(post:Bool, api:Null<Output>, sock:Null<Socket>, method:Null<String>, deliverSuccessCallbacks:Bool):Void {
 		responseAsString = null;
 		responseBytes = null;
 		resetResponseHeaders();
 
 		if (StringTools.startsWith(url, "data:")) {
-			handleDataRequest(post, api, method);
+			handleDataRequest(post, api, method, deliverSuccessCallbacks);
 			return;
 		}
 
@@ -134,8 +144,26 @@ class Http extends haxe.http.HttpBase {
 		for (header in headers)
 			NativeHttp.addHeader(request, header.name, header.value);
 
-		if (file != null) {
-			NativeHttp.setBodyString(request, buildMultipartBody(file));
+		var uploadError:Null<String> = null;
+		var upload = file;
+		if (upload != null) {
+			NativeHttp.setMultipartUpload(request, upload.param, upload.filename, upload.mimeType, upload.size, function(requested:Int):Null<ByteView> {
+				var result:Null<ByteView> = null;
+				if (requested > 0) {
+					var chunk = Bytes.alloc(requested);
+					try {
+						var count = upload.io.readBytes(chunk, 0, requested);
+						if (count > 0) {
+							if (count < requested)
+								chunk = chunk.sub(0, count);
+							result = chunk.__hx_nativeView();
+						}
+					} catch (_:haxe.io.Eof) {} catch (error:haxe.Exception) {
+						uploadError = error.message;
+					}
+				}
+				return result;
+			});
 			if (!hasHeader("Content-Type"))
 				NativeHttp.addHeader(request, "Content-Type", "multipart/form-data; boundary=hxrt-go-boundary");
 		} else if (postBytes != null) {
@@ -154,6 +182,10 @@ class Http extends haxe.http.HttpBase {
 			NativeHttp.setSocket(request, sock.handle);
 
 		var response = NativeHttp.execute(request);
+		if (uploadError != null) {
+			onError(uploadError);
+			return;
+		}
 		var status = NativeHttp.responseStatus(response);
 		var nativeError = NativeHttp.responseError(response);
 		if (status == 0 && nativeError != null) {
@@ -168,18 +200,25 @@ class Http extends haxe.http.HttpBase {
 			return;
 		}
 		var payload = Bytes.__hx_fromNativeView(NativeHttp.responseBody(response));
-		responseBytes = payload;
-		responseAsString = payload.toString();
+		var payloadText = payload.toString();
+		if (deliverSuccessCallbacks) {
+			responseBytes = payload;
+			responseAsString = payloadText;
+		}
 		capture(api, payload);
 		if (status >= 400) {
 			onError("Http Error #" + status);
 			return;
 		}
-		onData(responseAsString);
-		onBytes(payload);
+		if (api != null)
+			api.close();
+		if (deliverSuccessCallbacks) {
+			onData(payloadText);
+			onBytes(payload);
+		}
 	}
 
-	function handleDataRequest(post:Bool, api:Null<Output>, method:Null<String>):Void {
+	function handleDataRequest(post:Bool, api:Null<Output>, method:Null<String>, deliverSuccessCallbacks:Bool):Void {
 		var encoded = url.substr("data:".length);
 		var mediaType = "text/plain";
 		var comma = firstComma(encoded);
@@ -204,14 +243,20 @@ class Http extends haxe.http.HttpBase {
 			payloadText = normalizedMethod + " " + payloadText;
 
 		var payload = Bytes.ofString(payloadText);
-		responseBytes = payload;
-		responseAsString = payloadText;
+		if (deliverSuccessCallbacks) {
+			responseBytes = payload;
+			responseAsString = payloadText;
+		}
 		responseHeaders.set("content-type", mediaType);
 		responseHeaders.set("Content-Type", mediaType);
 		capture(api, payload);
+		if (api != null)
+			api.close();
 		onStatus(200);
-		onData(payloadText);
-		onBytes(payload);
+		if (deliverSuccessCallbacks) {
+			onData(payloadText);
+			onBytes(payload);
+		}
 	}
 
 	function recordResponseHeaders(response:HttpResponseHandle):Void {
@@ -248,22 +293,6 @@ class Http extends haxe.http.HttpBase {
 			if (header.name.toLowerCase() == name.toLowerCase())
 				return true;
 		return false;
-	}
-
-	function buildMultipartBody(upload:PendingUpload):String {
-		var out = new StringBuf();
-		for (parameter in params) {
-			out.add("--hxrt-go-boundary\r\n");
-			out.add('Content-Disposition: form-data; name="' + parameter.name + '"\r\n\r\n');
-			out.add(parameter.value);
-			out.add("\r\n");
-		}
-		out.add("--hxrt-go-boundary\r\n");
-		out.add('Content-Disposition: form-data; name="' + upload.param + '"; filename="' + upload.filename + '"\r\n');
-		out.add("Content-Type: " + upload.mimeType + "\r\n\r\n");
-		out.add("[uploaded-bytes=" + upload.size + "]\r\n");
-		out.add("--hxrt-go-boundary--\r\n");
-		return out.toString();
 	}
 
 	function encodedParameters():String {

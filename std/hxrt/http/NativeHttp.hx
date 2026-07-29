@@ -36,6 +36,17 @@ extern class NativeHttp {
 	@:go.name("HttpRequestSetBodyView")
 	public static function setBodyView(request:HttpRequestHandle, value:ByteView):Void;
 
+	/**
+		What: Installs one declared-size multipart file and its bounded chunk reader.
+		Why: `sys.Http.fileTransfer` must retain Haxe `Input` semantics without
+		exposing its generated layout or buffering the entire payload in `hxrt`.
+		How: Native transport asks the callback for at most the supplied byte count
+		per read and stops after exactly `size` bytes.
+	**/
+	@:go.name("HttpRequestSetMultipartUpload")
+	public static function setMultipartUpload(request:HttpRequestHandle, parameter:String, filename:String, mimeType:String, size:Int,
+		readChunk:Int->Null<ByteView>):Void;
+
 	@:go.name("HttpRequestSetProxy")
 	public static function setProxy(request:HttpRequestHandle, host:String, port:Int, user:Null<String>, pass:Null<String>):Void;
 

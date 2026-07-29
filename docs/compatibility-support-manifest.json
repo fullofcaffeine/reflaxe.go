@@ -9,7 +9,7 @@
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "20568c2fe285b5380557ae5ceef81c804c8aa03d37059ebb9e3138eef4c5b715"
+    "portable_stdlib_inventory_sha256": "6a0c08c5ae9015509cef4826a6f057c87776fd69a50c97331160f237e57f60fc"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -1818,7 +1818,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Portable `haxe.Http` aliases canonical staged `sys.Http`. Haxe source owns request selection, payload/header policy, callbacks, response maps, and status/error handling; typed opaque std/hxrt/http handles delegate only Go URL and transport resources to footprint-explicit runtime/hxrt/http.go. Evidence: http_request_callbacks_contract, http_proxy_custom_request, the sys/http snapshots, direct runtime HTTP tests, and core/runtime_hxrt_infer_http."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Portable `haxe.Http` aliases canonical staged `sys.Http`. Haxe source owns request selection, payload/header and multipart policy, callbacks, custom Output lifecycle, response maps, and status/error handling; typed opaque std/hxrt/http handles delegate only Go URL and transport resources to footprint-explicit runtime/hxrt/http.go. Evidence: http_request_callbacks_contract, http_proxy_custom_request, http_multipart_streaming_contract, http_custom_request_lifecycle_contract, the sys/http snapshots, direct runtime HTTP tests, and core/runtime_hxrt_infer_http."
       },
       {
         "module": "haxe.Int32",
@@ -3199,7 +3199,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged `sys.Http` owns the Haxe 4.3.7 API, request selection, payload/header policy, callbacks, response maps, and status/error handling. Typed opaque std/hxrt/http handles delegate only Go URL and transport resources to footprint-explicit runtime/hxrt/http.go; no compiler HTTP group remains. Evidence: http_request_callbacks_contract, http_proxy_custom_request, the sys/http snapshots, direct runtime HTTP tests, and core/runtime_hxrt_infer_http."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged `sys.Http` owns the Haxe 4.3.7 API, request selection, payload/header/multipart policy, callbacks, custom Output lifecycle, response maps, and status/error handling. Typed opaque std/hxrt/http handles delegate only Go URL and transport resources to footprint-explicit runtime/hxrt/http.go; no compiler HTTP group remains. Evidence: http_request_callbacks_contract, http_proxy_custom_request, http_multipart_streaming_contract, http_custom_request_lifecycle_contract, the sys/http snapshots, direct runtime HTTP tests, and core/runtime_hxrt_infer_http."
       },
       {
         "module": "sys.db.Connection",
@@ -3347,7 +3347,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged `sys.net.Socket` owns the public API, stream wrappers, Haxe EOF/blocked translation, address construction, and select identity. One opaque typed handle reaches TCP lifecycle, deadlines, readiness, and socket options in footprint-explicit `runtime/hxrt/socket.go`; loopback semantic-diff, selective-runtime snapshots, direct timeout/cleanup tests, and the Go race detector guard the boundary."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged `sys.net.Socket` owns the public API, stream wrappers, Haxe EOF/blocked translation, address construction, and select identity. One opaque typed handle reaches TCP lifecycle, deadlines, readiness, and socket options in footprint-explicit `runtime/hxrt/socket.go`; loopback semantic-diff, selective-runtime snapshots, direct partial-write/peer-close/accept-timeout/cleanup tests, and the Go race detector guard the boundary."
       },
       {
         "module": "sys.net.UdpSocket",
@@ -3419,7 +3419,7 @@
           "upstream_sweep:full_compile",
           "snapshot"
         ],
-        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct` and SNI selection coverage through `stdlib/sys_ssl_socket_sni_direct`, covering staged public configuration and accepted SSL object identity over the source-owned `sys.net.Socket` and its shared typed handle. TLS dial/listen/handshake/peer-certificate/SNI composition lives in the footprint-explicit `runtime/hxrt/socket_ssl.go`; certificate and key primitives remain in `ssl.go`. No raw injection, Dynamic native handle, or `net_socket` compiler ownership remains."
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct` and SNI selection coverage through `stdlib/sys_ssl_socket_sni_direct`, covering staged public configuration and accepted SSL object identity over the source-owned `sys.net.Socket` and its shared typed handle. TLS dial/listen/handshake/peer-certificate/SNI composition lives in the footprint-explicit `runtime/hxrt/socket_ssl.go`; certificate and key primitives remain in `ssl.go`. A direct race test proves the configured socket timeout also bounds a stalled TLS handshake. No raw injection, Dynamic native handle, or `net_socket` compiler ownership remains."
       },
       {
         "module": "sys.thread.Condition",

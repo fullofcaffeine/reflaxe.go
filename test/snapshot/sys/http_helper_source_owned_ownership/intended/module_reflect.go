@@ -43,13 +43,13 @@ func Reflect_field(o any, field *string) any {
 		return generatedMethod
 	}
 	nativeMethod := hxrt.ReflectLookupMethod(o, field)
-	var hx_if_335 any
+	var hx_if_332 any
 	if nativeMethod.Found {
-		hx_if_335 = nativeMethod.Value
+		hx_if_332 = nativeMethod.Value
 	} else {
-		hx_if_335 = nil
+		hx_if_332 = nil
 	}
-	return hx_if_335
+	return hx_if_332
 }
 
 func Reflect_fields(o any) *hxrt.Array {
@@ -57,24 +57,24 @@ func Reflect_fields(o any) *hxrt.Array {
 	if generatedFields != nil {
 		return generatedFields
 	}
-	return hxrt.ArrayFromValues(func(hx_sort_src_336 []*string) []any {
-		hx_sort_out_338 := make([]any, 0, len(hx_sort_src_336))
-		for _, hx_sort_item_337 := range hx_sort_src_336 {
-			hx_sort_out_338 = append(hx_sort_out_338, hx_sort_item_337)
+	return hxrt.ArrayFromValues(func(hx_sort_src_333 []*string) []any {
+		hx_sort_out_335 := make([]any, 0, len(hx_sort_src_333))
+		for _, hx_sort_item_334 := range hx_sort_src_333 {
+			hx_sort_out_335 = append(hx_sort_out_335, hx_sort_item_334)
 		}
-		return hx_sort_out_338
+		return hx_sort_out_335
 	}(hxrt.ReflectFields(o)))
 }
 
 func Reflect_getProperty(o any, field *string) any {
 	var getter any = Reflect_field(o, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("get_"), field))
-	var hx_if_339 any
+	var hx_if_336 any
 	if hxrt.AnyEqualsNull(getter) {
-		hx_if_339 = Reflect_field(o, field)
+		hx_if_336 = Reflect_field(o, field)
 	} else {
-		hx_if_339 = Reflect_callMethod(o, getter, hxrt.NewArray())
+		hx_if_336 = Reflect_callMethod(o, getter, hxrt.NewArray())
 	}
-	return hx_if_339
+	return hx_if_336
 }
 
 func Reflect_hasField(o any, field *string) bool {

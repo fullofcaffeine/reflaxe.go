@@ -537,8 +537,6 @@ func hxrt__generated_method_field__sys__Http(value *sys__Http, key string) any {
 		return nil
 	}
 	switch key {
-	case "buildMultipartBody":
-		return value.buildMultipartBody
 	case "customRequest":
 		return value.customRequest
 	case "encodedParameters":

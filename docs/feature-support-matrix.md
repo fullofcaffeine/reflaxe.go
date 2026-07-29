@@ -66,9 +66,9 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.Serializer` / `haxe.Unserializer` | `semantic-diff` | `serializer_wire_contract`, `serializer_cache_reference_contract`, `serializer_global_flags_contract`, `serializer_resolver_polymorphism_contract`, `serializer_reference_stress_contract` |
 | `haxe.Exception` (`caught`/`thrown`/`message`) | `semantic-diff` | `exception_api_contract`, `exceptions_typed_dynamic` |
 | `EReg` | `semantic-diff` | `ereg_behavior_contract`, `ereg_edge_contract` |
-| `haxe.Http` / `sys.Http` | `semantic-diff` | `http_proxy_custom_request`, `http_request_callbacks_contract` |
+| `haxe.Http` / `sys.Http` | `semantic-diff` + direct race | `http_proxy_custom_request`, `http_request_callbacks_contract`, `http_multipart_streaming_contract`, `http_custom_request_lifecycle_contract`, `runtime/hxrt/http_test.go` |
 | Direct `haxe.http.HttpBase` baseline plus direct `haxe.http.HttpMethod` / `haxe.http.HttpStatus` use | `semantic-diff` | `haxe_http_base_contract`, `stdlib/haxe_http_base_direct` |
-| `sys.net.Socket` | `semantic-diff` + `snapshot` + direct race/cross-build | `socket_loopback_contract`, `socket_advanced_contract`, `sys/socket_input_service_surface`, `core/runtime_hxrt_infer_socket`, `runtime/hxrt/socket_test.go`, `test_socket_runtime_cross_build.py` |
+| `sys.net.Socket` | `semantic-diff` + `snapshot` + direct race/cross-build | `socket_loopback_contract`, `socket_advanced_contract`, `sys/socket_input_service_surface`, `core/runtime_hxrt_infer_socket`, partial-I/O/peer-close/deadline cases in `runtime/hxrt/socket_test.go`, `test_socket_runtime_cross_build.py` |
 | `haxe.crypto.Base64`, `Md5`, `Sha1`, `Sha224`, `Sha256` | `semantic-diff` + `snapshot` | `crypto_source_owned`, `crypto_xml_zip`, `stdlib/crypto_xml_zip_basic`, direct runtime crypto tests |
 | root `Xml`, `haxe.xml.Parser`, `haxe.xml.Printer` | `semantic-diff` + `snapshot` | `xml_source_owned`, `root_xml_contract`, `crypto_xml_zip`, `stdlib/xml_root_dom_basic`, `stdlib/crypto_xml_zip_basic` |
 | `haxe.zip.Compress`, `haxe.zip.Uncompress`, and `haxe.zip.Tools` one-shot and progressive partial-buffer paths | `semantic-diff` + snapshot/runtime + direct runtime/race | `zip_source_owned`, `zip_streaming_contract`, `crypto_xml_zip`, `stdlib/crypto_xml_zip_basic`, `stdlib/zip_streaming_policy`, direct runtime zip tests; exact `NO` / `SYNC` / `FINISH`, explicit unsupported errors for `FULL` / `BLOCK`; [streaming contract](haxe-zip-streaming.md) |
@@ -104,7 +104,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.ds.ReadOnlyArray` (length/index/read-only view subset) | `semantic-diff` | `readonly_array_contract` |
 | `sys.net.Host` | `semantic-diff` | `host_basic_contract`, `sys/host_basic_smoke` |
 | `sys.ssl.Certificate` / `sys.ssl.Digest` / `sys.ssl.Key` | `snapshot` | `stdlib/sys_ssl_leaf_direct` |
-| `sys.ssl.Socket` | `snapshot runtime` + direct race | `stdlib/sys_ssl_socket_direct`, `stdlib/sys_ssl_socket_sni_direct`, `core/runtime_hxrt_infer_socket_ssl`, `runtime/hxrt/socket_test.go` |
+| `sys.ssl.Socket` | `snapshot runtime` + direct race | `stdlib/sys_ssl_socket_direct`, `stdlib/sys_ssl_socket_sni_direct`, `core/runtime_hxrt_infer_socket_ssl`, stalled-handshake timeout coverage in `runtime/hxrt/socket_test.go` |
 | `sys.ssl.DigestAlgorithm` | `semantic-diff` | `sys_net_address_ssl_digest_algorithm_contract`, `stdlib/sys_net_address_ssl_digest_algorithm_direct` |
 | `haxe.PosInfos` | `semantic-diff` | `posinfos_contract`, `stdlib/posinfos_basic` |
 | `haxe.Int32` | `semantic-diff` | `int32_contract` |
@@ -383,8 +383,16 @@ Shim strategy and alternatives are documented in:
 - Go URL parsing, proxy setup, response resources, and optional typed socket consumption live behind opaque `std/hxrt/http` handles in footprint-explicit `runtime/hxrt/http.go`; no generated Haxe object layout crosses the runtime boundary and no compiler HTTP group remains.
 - Covered behaviors: `setHeader`/`addHeader`, `setParameter`/`addParameter`, `setPostData`/`setPostBytes`, `fileTransfer`/`fileTransfert`, `customRequest` (including optional socket transport injection), proxy URL wiring (`Http.PROXY`), `getResponseHeaderValues`, dynamic callbacks (`onData`, `onBytes`, `onError`, `onStatus`), `responseData`/`responseBytes`, and `requestUrl`.
 - Semantic diff now also locks callback/status/header/error parity for local deterministic HTTP servers (`http_request_callbacks_contract`), including 4xx `onError` formatting (`Http Error #<status>`).
-- Direct runtime tests lock GET/POST/query/body behavior, deterministic multi-value headers, timeouts, truncated-body status preservation, proxy formatting, idle transport cleanup, and typed custom-socket closure. `core/runtime_hxrt_infer_http` proves the native capability is selected by typed use and excluded from unrelated output.
-- Current tradeoff: execution remains synchronous, and `customRequest` socket injection maps into Go `http.Transport` dialing semantics rather than the exact byte-level write/read loop used by upstream `sys.Http`. Broad cross-platform cancellation and hostile-peer admission remain part of the separate network audit.
+- Multipart uploads pull bounded chunks from the caller's `Input`; partial reads
+  are retried, the full file is not staged in memory, and early EOF or a source
+  error aborts the exchange while preserving the source error
+  (`http_multipart_streaming_contract` and direct runtime tests).
+- Direct `customRequest` now matches the upstream lifecycle contract: it writes
+  and closes the supplied `Output` on success, does not also publish
+  `responseData` or fire `onData`/`onBytes`, and leaves the output open after an
+  HTTP error (`http_custom_request_lifecycle_contract`).
+- Direct runtime tests lock GET/POST/query/body behavior, deterministic multi-value headers, timeout-driven request cancellation observed by the server, truncated-body status preservation, proxy formatting, early-upload abort, idle transport cleanup, and typed custom-socket closure. `core/runtime_hxrt_infer_http` proves the native capability is selected by typed use and excluded from unrelated output.
+- Current tradeoff: execution remains synchronous, and `customRequest` socket injection maps into Go `http.Transport` dialing semantics rather than the exact byte-level write/read loop used by upstream `sys.Http`. The deterministic evidence uses local loopback peers and the repository's supported Go toolchain; it is not a claim that every external proxy, TLS endpoint, or operating-system network policy has been exercised.
 
 ### `sys.net.Socket` staged-source contract and tradeoffs
 
@@ -392,7 +400,10 @@ Shim strategy and alternatives are documented in:
 - `sys.net.Socket.input` now satisfies the generated `haxe.io.Input` stream contract for service-style code paths (`readByte`, `readBytes`, `readAll`, typed numeric/string helper forwarding, and endian control). The focused snapshot is `sys/socket_input_service_surface`.
 - `select` now returns readiness-filtered arrays for read/write groups under timeout control, and `waitForRead` delegates to this readiness path.
 - The public API, stream wrappers, Haxe exceptions, address construction, and select object identity are canonical staged Haxe. A typed opaque `SocketHandle` and concrete result carriers cross into footprint-explicit `runtime/hxrt/socket.go`; the former `net_socket` compiler group and `GoNetSocketEmitter` are gone.
-- Direct runtime tests cover TCP/UDP round trips, explicit timeout/readiness state, idempotent concurrent close, close-unblocks-read, and closed-handle `waitForRead` under the Go race detector.
+- Direct runtime tests cover TCP/UDP round trips, partial-write progress,
+  accept/datagram deadlines, peer close after a partial read, explicit
+  timeout/readiness state, idempotent concurrent close, close-unblocks-read,
+  and closed-handle `waitForRead` under the Go race detector.
 - Current tradeoff: `setBlocking` is implemented through deadline behavior rather than true OS-level non-blocking file descriptor mode.
 
 ### `sys.net.UdpSocket` direct baseline and tradeoffs
@@ -406,7 +417,13 @@ Shim strategy and alternatives are documented in:
 - Public verification/CA/hostname/certificate/SNI configuration lives in staged Haxe over the source-owned `sys.net.Socket` and its shared typed handle.
 - `runtime/hxrt/socket_ssl.go` owns only native TLS client/listener installation, handshake, peer-certificate access, and synchronized SNI selection. Certificate/key/digest primitives remain in `ssl.go`; SSL leaf users therefore do not select network transport.
 - Runnable snapshots prove TLS loopback I/O, peer certificate fields, accepted `sys.ssl.Socket` runtime identity, default-certificate selection, and callback-driven SNI selection. Selective snapshots prove the `ssl` leaf versus `socket + ssl + socket_ssl` transport split.
-- The governed release manifest still leaves broad cross-platform networking, cancellation, and hostile-peer closure under `haxe_go-vfp.10.4`; this ownership migration does not widen the admitted beta network surface.
+- A direct race test also proves `Socket.setTimeout` bounds a TLS client when a
+  peer accepts TCP but never completes its handshake. TCP and TLS now share
+  the same snapshotted dial policy.
+- Release admission is governed separately from these implementation tests.
+  The evidence is intentionally local and deterministic; changing the
+  compatibility manifest's broader networking promise requires its own
+  release-policy decision.
 
 ### `EReg` + `haxe.Serializer` contract and tradeoffs
 

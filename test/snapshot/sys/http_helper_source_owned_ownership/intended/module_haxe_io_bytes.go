@@ -75,9 +75,9 @@ func (self *haxe__io__Bytes) fill(pos int, len int, value int) {
 	_g := 0
 	_g1 := len
 	for _g < _g1 {
-		hx_post_223 := _g
+		hx_post_220 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_223
+		index := hx_post_220
 		self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))] = masked
 	}
 	self.__hx_rawValid = false
@@ -91,28 +91,28 @@ func (self *haxe__io__Bytes) sub(pos int, len int) *haxe__io__Bytes {
 	_g := 0
 	_g1 := len
 	for _g < _g1 {
-		hx_post_224 := _g
+		hx_post_221 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_224
+		index := hx_post_221
 		out.b[index] = self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))]
 	}
 	return out
 }
 
 func (self *haxe__io__Bytes) compare(other *haxe__io__Bytes) int {
-	var hx_if_225 int
+	var hx_if_222 int
 	if self.length < other.length {
-		hx_if_225 = self.length
+		hx_if_222 = self.length
 	} else {
-		hx_if_225 = other.length
+		hx_if_222 = other.length
 	}
-	limit := hx_if_225
+	limit := hx_if_222
 	_g := 0
 	_g1 := limit
 	for _g < _g1 {
-		hx_post_226 := _g
+		hx_post_223 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_226
+		index := hx_post_223
 		if self.b[index] < other.b[index] {
 			return -1
 		}
@@ -120,19 +120,19 @@ func (self *haxe__io__Bytes) compare(other *haxe__io__Bytes) int {
 			return 1
 		}
 	}
-	var hx_if_228 int
+	var hx_if_225 int
 	if self.length < other.length {
-		hx_if_228 = -1
+		hx_if_225 = -1
 	} else {
-		var hx_if_227 int
+		var hx_if_224 int
 		if self.length > other.length {
-			hx_if_227 = 1
+			hx_if_224 = 1
 		} else {
-			hx_if_227 = 0
+			hx_if_224 = 0
 		}
-		hx_if_228 = hx_if_227
+		hx_if_225 = hx_if_224
 	}
-	return hx_if_228
+	return hx_if_225
 }
 
 func (self *haxe__io__Bytes) getDouble(pos int) float64 {
@@ -261,9 +261,9 @@ func (self *haxe__io__Bytes) toHex() *string {
 	_g := 0
 	_g1 := self.length
 	for _g < _g1 {
-		hx_post_229 := _g
+		hx_post_226 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_229
+		index := hx_post_226
 		value := self.b[index]
 		c := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(digits, int(int32((hxrt.Int32Wrap(value) >> uint(4))))))
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromCharCode(c))
@@ -320,25 +320,25 @@ func haxe__io__Bytes_ofHex(value *string) *haxe__io__Bytes {
 	_g := 0
 	_g1 := out.length
 	for _g < _g1 {
-		hx_post_230 := _g
+		hx_post_227 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_230
+		index := hx_post_227
 		var c any = hxrt.StringCharCodeAtAnyStringPtr(value, int(int32((hxrt.Int32Wrap(index) * hxrt.Int32Wrap(2)))))
-		var hx_if_231 int
+		var hx_if_228 int
 		if c == nil {
-			hx_if_231 = -1
+			hx_if_228 = -1
 		} else {
-			hx_if_231 = c.(int)
+			hx_if_228 = c.(int)
 		}
-		high := hx_if_231
+		high := hx_if_228
 		var c_1 any = hxrt.StringCharCodeAtAnyStringPtr(value, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(index) * hxrt.Int32Wrap(2))))) + hxrt.Int32Wrap(1)))))
-		var hx_if_232 int
+		var hx_if_229 int
 		if c_1 == nil {
-			hx_if_232 = -1
+			hx_if_229 = -1
 		} else {
-			hx_if_232 = c_1.(int)
+			hx_if_229 = c_1.(int)
 		}
-		low := hx_if_232
+		low := hx_if_229
 		high = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(high) & hxrt.Int32Wrap(15))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(high) & hxrt.Int32Wrap(64))))) >> uint(6))))) * hxrt.Int32Wrap(9))))))))
 		low = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(low) & hxrt.Int32Wrap(15))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(low) & hxrt.Int32Wrap(64))))) >> uint(6))))) * hxrt.Int32Wrap(9))))))))
 		out.b[index] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(high) << uint(4))))) | hxrt.Int32Wrap(low))))) & hxrt.Int32Wrap(255))))) & hxrt.Int32Wrap(255))))

@@ -3,9 +3,13 @@ package hxrt
 import (
 	"bytes"
 	"context"
+	"errors"
+	"fmt"
 	"io"
+	"mime/multipart"
 	"net"
 	"net/http"
+	"net/textproto"
 	"net/url"
 	"sort"
 	"strconv"
@@ -30,8 +34,34 @@ type HttpRequest struct {
 	headers  http.Header
 	body     []byte
 	hasBody  bool
+	upload   *httpMultipartUpload
 	proxyURL *url.URL
 	socket   *SocketHandle
+}
+
+// httpMultipartUpload is the native transport description for one staged file upload.
+//
+// What: Retains scalar multipart metadata, the declared byte count, and a typed
+// callback that yields the next bounded immutable byte view.
+// Why: The Haxe Input owns source-visible reading semantics, while net/http must
+// pull request bytes without buffering the complete file or observing a
+// generated Input layout.
+// How: HttpRequestExecute wraps this description in an io.Reader that emits the
+// deterministic multipart prefix, exactly size callback bytes, and the closing
+// boundary.
+type httpMultipartUpload struct {
+	parameter string
+	filename  string
+	mimeType  string
+	size      int
+	read      func(int) *ByteView
+}
+
+type httpMultipartBody struct {
+	prefix    *bytes.Reader
+	upload    *httpMultipartUpload
+	remaining int
+	tail      *bytes.Reader
 }
 
 // HttpResponse is the opaque native result inspected by staged sys.Http.
@@ -118,6 +148,29 @@ func HttpRequestSetBodyView(request *HttpRequest, value *ByteView) {
 	request.hasBody = true
 }
 
+// HttpRequestSetMultipartUpload installs one bounded streaming file body.
+//
+// What: Records the public field metadata, declared byte count, and typed chunk
+// callback selected by staged sys.Http.
+// Why: fileTransfer must send the caller's Input bytes, but retaining the whole
+// payload in HttpRequest would make upload memory proportional to file size.
+// How: Defer callback reads until net/http consumes the body; every callback is
+// bounded by the destination buffer and remaining declared byte count.
+func HttpRequestSetMultipartUpload(request *HttpRequest, parameter *string, filename *string, mimeType *string, size int,
+	read func(int) *ByteView) {
+	if request == nil {
+		return
+	}
+	request.post = true
+	request.upload = &httpMultipartUpload{
+		parameter: *StdString(parameter),
+		filename:  *StdString(filename),
+		mimeType:  *StdString(mimeType),
+		size:      size,
+		read:      read,
+	}
+}
+
 // HttpRequestSetProxy configures one explicit HTTP proxy.
 func HttpRequestSetProxy(request *HttpRequest, host *string, port int, user *string, pass *string) {
 	if request == nil {
@@ -152,7 +205,15 @@ func HttpRequestExecute(request *HttpRequest) *HttpResponse {
 	}
 
 	var bodyReader io.Reader
-	if request.post {
+	var contentLength int64
+	if request.upload != nil {
+		multipartBody, length, buildErr := newHttpMultipartBody(request)
+		if buildErr != nil {
+			return httpErrorResponse(buildErr.Error())
+		}
+		bodyReader = multipartBody
+		contentLength = length
+	} else if request.post {
 		if request.hasBody {
 			bodyReader = bytes.NewReader(request.body)
 		} else {
@@ -180,6 +241,9 @@ func HttpRequestExecute(request *HttpRequest) *HttpResponse {
 	nativeRequest, err := http.NewRequest(request.method, parsedURL.String(), bodyReader)
 	if err != nil {
 		return httpErrorResponse(err.Error())
+	}
+	if request.upload != nil {
+		nativeRequest.ContentLength = contentLength
 	}
 	for name, values := range request.headers {
 		for _, value := range values {
@@ -248,6 +312,92 @@ func HttpRequestExecute(request *HttpRequest) *HttpResponse {
 		headerNames: headerNames,
 		headers:     headers,
 	}
+}
+
+func (body *httpMultipartBody) Read(destination []byte) (int, error) {
+	if len(destination) == 0 {
+		return 0, nil
+	}
+	if body.prefix.Len() > 0 {
+		return body.prefix.Read(destination)
+	}
+	if body.remaining > 0 {
+		if body.upload.read == nil {
+			return 0, errors.New("multipart upload reader is nil")
+		}
+		limit := len(destination)
+		if limit > body.remaining {
+			limit = body.remaining
+		}
+		view := body.upload.read(limit)
+		if view == nil {
+			return 0, io.ErrUnexpectedEOF
+		}
+		raw := view.raw
+		if len(raw) == 0 {
+			return 0, io.ErrNoProgress
+		}
+		if len(raw) > limit {
+			return 0, fmt.Errorf("multipart upload reader returned %d bytes, limit %d", len(raw), limit)
+		}
+		count := copy(destination, raw)
+		body.remaining -= count
+		return count, nil
+	}
+	if body.tail.Len() > 0 {
+		return body.tail.Read(destination)
+	}
+	return 0, io.EOF
+}
+
+func newHttpMultipartBody(request *HttpRequest) (*httpMultipartBody, int64, error) {
+	upload := request.upload
+	if upload == nil {
+		return nil, 0, errors.New("multipart upload is missing")
+	}
+	if upload.size < 0 {
+		return nil, 0, errors.New("multipart upload size must be non-negative")
+	}
+
+	const boundary = "hxrt-go-boundary"
+	var prefix bytes.Buffer
+	writer := multipart.NewWriter(&prefix)
+	if err := writer.SetBoundary(boundary); err != nil {
+		return nil, 0, err
+	}
+	names := make([]string, 0, len(request.params))
+	for name := range request.params {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		values := request.params[name]
+		if len(values) == 0 {
+			continue
+		}
+		if err := writer.WriteField(name, values[len(values)-1]); err != nil {
+			return nil, 0, err
+		}
+	}
+	header := make(textproto.MIMEHeader)
+	header.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+		httpMultipartQuote(upload.parameter), httpMultipartQuote(upload.filename)))
+	header.Set("Content-Type", upload.mimeType)
+	if _, err := writer.CreatePart(header); err != nil {
+		return nil, 0, err
+	}
+	tailBytes := []byte("\r\n--" + boundary + "--\r\n")
+	length := int64(prefix.Len()) + int64(upload.size) + int64(len(tailBytes))
+	return &httpMultipartBody{
+		prefix:    bytes.NewReader(prefix.Bytes()),
+		upload:    upload,
+		remaining: upload.size,
+		tail:      bytes.NewReader(tailBytes),
+	}, length, nil
+}
+
+func httpMultipartQuote(value string) string {
+	return strings.NewReplacer("\\", "\\\\", `"`, `\"`).Replace(value)
 }
 
 // HttpResponseError returns nil on a completed exchange or its native failure.

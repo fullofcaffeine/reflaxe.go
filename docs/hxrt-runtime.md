@@ -114,6 +114,9 @@ Key implementation points:
   - URL/query/form construction, proxy configuration, bounded synchronous
     `net/http` execution, deterministic indexed response headers, body closure,
     idle-transport cleanup, and optional typed `SocketHandle` consumption;
+  - multipart files are pulled from a typed chunk callback into Go's request
+    writer, so partial source reads are preserved without buffering the whole
+    declared upload; premature EOF or source failure aborts the exchange;
   - request selection, data-URL behavior, multipart policy, public maps,
     callbacks, and status/error classification remain in staged `sys.Http`.
 - Network capabilities (`runtime/hxrt/socket.go` plus build-tagged
@@ -121,6 +124,8 @@ Key implementation points:
   - one opaque, synchronized `SocketHandle` shared by TCP and UDP;
   - typed DNS/IPv4, connect/bind/listen/accept, byte transfer, deadline,
     blocking-policy, readiness, shutdown, address, broadcast, and datagram operations;
+  - one snapshotted dial policy applies the staged timeout to TCP connection
+    establishment and, through TLS composition, to the TLS handshake;
   - POSIX and Windows keep their native descriptor types behind separate
     build-tagged `SO_BROADCAST` helpers, with an explicit unsupported-platform error;
   - concrete result carriers keep byte progress, EOF/blocked state, peer addresses,
@@ -128,6 +133,8 @@ Key implementation points:
 - TLS socket composition (`runtime/hxrt/socket_ssl.go`):
   - typed client/listener installation, handshake, peer-certificate access, and
     SNI certificate selection over the shared `SocketHandle`;
+  - client dialing uses the socket handle's timeout-aware `net.Dialer`, so a
+    peer that accepts TCP but stalls the handshake cannot ignore `setTimeout`;
   - typed certificate/key primitives remain in `runtime/hxrt/ssl.go`, so SSL
     digest/certificate users do not select network transport automatically.
 - Regex execution (`runtime/hxrt/regex.go`):

@@ -2714,3 +2714,57 @@ Design boundary:
   invocation still uses the existing shared `Reflect.callMethod` runtime
   boundary; this migration removes the serializer-only bridge rather than
   claiming reflection-free invocation.
+
+### 2026-07-28: audit HTTP/socket lifecycle and partial I/O (`haxe_go-vfp.10.4`)
+
+What changed:
+
+- Replaced the staged `sys.Http.fileTransfer` size marker with a real bounded
+  stream. Staged Haxe retains the caller's typed `Input`; the typed
+  `std/hxrt/http` boundary requests immutable byte chunks as Go's multipart
+  writer needs them. The complete file is never copied into a staging buffer.
+- Preserved partial-read progress and made premature EOF, zero progress, and
+  source exceptions abort the exchange. Source exceptions keep their original
+  message instead of being replaced by a generic transport failure.
+- Matched the upstream direct `customRequest` lifecycle. A successful request
+  writes and closes its supplied `Output`, but does not also fill
+  `responseData` or invoke `onData`/`onBytes`. An HTTP error reports status then
+  error and intentionally leaves the output open.
+- Applied `Socket.setTimeout` while establishing TCP connections and TLS
+  sessions, not only after a connection is installed. TCP and TLS now share
+  one snapshotted `net.Dialer` policy.
+- Kept all callback, multipart metadata, Output, response-field, and Haxe error
+  semantics in canonical staged source. The Go runtime owns only transport,
+  typed byte progress, deadlines, and native resource cleanup.
+
+Why:
+
+- A size marker did not exercise the caller's `Input`, could not reveal partial
+  I/O or source failure, and was not useful upload behavior.
+- Go's `net.Conn.Write` may legally report partial success, peers may close
+  after sending some bytes, and a TLS peer may accept TCP without completing a
+  handshake. Deterministic contracts must cover those ordinary lifecycle
+  states rather than assuming one-call completion.
+- `request` and `customRequest` deliberately expose different success paths in
+  Haxe 4.3.7. Combining them duplicated callbacks and left user resources open.
+
+How it is proved:
+
+- `http_multipart_streaming_contract` compares partial-chunk upload bytes,
+  callback order, and source-error propagation with Haxe Eval against a local
+  deterministic server.
+- `http_custom_request_lifecycle_contract` compares successful and HTTP-error
+  Output closure, callback order, body capture, and response-field behavior.
+- Direct `runtime/hxrt` race tests cover multipart chunking, early EOF and
+  server cancellation, request-timeout cancellation, partial socket writes,
+  accept/UDP deadlines, partial-read-then-EOF, and stalled TLS handshakes.
+- Existing loopback HTTP, TCP, UDP, TLS, SNI, selective-runtime, and
+  cross-build contracts remain the broader regression net.
+
+Bounded claim:
+
+- These tests use local deterministic peers and the repository's supported Go
+  toolchain. They prove the implemented lifecycle contract; they do not
+  independently certify every operating system, external proxy, CA store, or
+  Internet endpoint. Compatibility/release admission remains a separate
+  governed policy decision.

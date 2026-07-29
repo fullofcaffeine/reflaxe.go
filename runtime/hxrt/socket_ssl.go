@@ -76,7 +76,7 @@ func SslSocketConnect(handle *SocketHandle, host *string, port int, verifyCert b
 	if config == nil {
 		return
 	}
-	conn, err := tls.Dial("tcp4", net.JoinHostPort(*StdString(host), strconv.Itoa(port)), config)
+	conn, err := tls.DialWithDialer(handle.dialer(), "tcp4", net.JoinHostPort(*StdString(host), strconv.Itoa(port)), config)
 	if err != nil {
 		socketThrow(err)
 		return

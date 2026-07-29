@@ -62,7 +62,10 @@ Goal:
   - deterministic portable-surface invariance under `reflaxe_go_profile=metal` for iterator/list/map/string contracts (`portable_surfaces_metal_invariance_contract`)
   - deterministic `haxe.PosInfos` default-argument injection behavior
   - deterministic `haxe.PosInfos.customParams` missing-field/null-access behavior
-  - deterministic HTTP behavior (`requestUrl`, `customRequest`, `customRequest` socket transport, callback/status/error flows, `Http.PROXY`) without external network
+  - deterministic HTTP behavior (`requestUrl`, `customRequest`, `customRequest`
+    socket transport and Output lifecycle, callback/status/error flows,
+    `Http.PROXY`, bounded multipart streaming with partial reads and source
+    failure) without external network
   - deterministic `sys.net.Socket` loopback and advanced method parity (`bind/listen/connect/accept/read/write/close`, `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, `shutdown`)
   - reflection compare + dynamic field semantics
   - anonymous object literal/field mutation semantics

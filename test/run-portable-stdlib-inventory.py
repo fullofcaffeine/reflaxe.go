@@ -196,16 +196,19 @@ MODULE_NOTES_OVERRIDES = {
 	),
 	"haxe.Http": (
 		"Portable `haxe.Http` aliases canonical staged `sys.Http`. Haxe source owns request selection, payload/header "
-		"policy, callbacks, response maps, and status/error handling; typed opaque std/hxrt/http handles delegate only "
+		"and multipart policy, callbacks, custom Output lifecycle, response maps, and status/error handling; typed "
+		"opaque std/hxrt/http handles delegate only "
 		"Go URL and transport resources to footprint-explicit runtime/hxrt/http.go. Evidence: http_request_callbacks_contract, "
-		"http_proxy_custom_request, the sys/http snapshots, direct runtime HTTP tests, and core/runtime_hxrt_infer_http."
+		"http_proxy_custom_request, http_multipart_streaming_contract, http_custom_request_lifecycle_contract, the "
+		"sys/http snapshots, direct runtime HTTP tests, and core/runtime_hxrt_infer_http."
 	),
 	"sys.Http": (
-		"Canonical staged `sys.Http` owns the Haxe 4.3.7 API, request selection, payload/header policy, callbacks, "
-		"response maps, and status/error handling. Typed opaque std/hxrt/http handles delegate only Go URL and transport "
+		"Canonical staged `sys.Http` owns the Haxe 4.3.7 API, request selection, payload/header/multipart policy, callbacks, "
+		"custom Output lifecycle, response maps, and status/error handling. Typed opaque std/hxrt/http handles delegate only Go URL and transport "
 		"resources to footprint-explicit runtime/hxrt/http.go; no compiler HTTP group remains. Evidence: "
-		"http_request_callbacks_contract, http_proxy_custom_request, the sys/http snapshots, direct runtime HTTP tests, "
-		"and core/runtime_hxrt_infer_http."
+		"http_request_callbacks_contract, http_proxy_custom_request, http_multipart_streaming_contract, "
+		"http_custom_request_lifecycle_contract, the sys/http snapshots, direct runtime HTTP tests, and "
+		"core/runtime_hxrt_infer_http."
 	),
 	"EReg": (
 		"Canonical staged EReg owns match state, capture validation, split/map traversal, and global "
@@ -572,7 +575,8 @@ MODULE_NOTES_OVERRIDES = {
         "Canonical staged `sys.net.Socket` owns the public API, stream wrappers, Haxe EOF/blocked translation, "
         "address construction, and select identity. One opaque typed handle reaches TCP lifecycle, deadlines, "
         "readiness, and socket options in footprint-explicit `runtime/hxrt/socket.go`; loopback semantic-diff, "
-        "selective-runtime snapshots, direct timeout/cleanup tests, and the Go race detector guard the boundary."
+        "selective-runtime snapshots, direct partial-write/peer-close/accept-timeout/cleanup tests, and the Go race "
+        "detector guard the boundary."
     ),
     "sys.net.UdpSocket": (
         "Direct `sys.net.UdpSocket` usage now has deterministic snapshot/runtime coverage through "
@@ -636,7 +640,8 @@ MODULE_NOTES_OVERRIDES = {
         "covering staged public configuration and accepted SSL object identity over the source-owned `sys.net.Socket` "
         "and its shared typed handle. TLS dial/listen/handshake/peer-certificate/SNI composition lives in the "
         "footprint-explicit `runtime/hxrt/socket_ssl.go`; certificate and key primitives remain in `ssl.go`. "
-        "No raw injection, Dynamic native handle, or `net_socket` compiler ownership remains."
+        "A direct race test proves the configured socket timeout also bounds a stalled TLS handshake. No raw injection, "
+        "Dynamic native handle, or `net_socket` compiler ownership remains."
     ),
 }
 

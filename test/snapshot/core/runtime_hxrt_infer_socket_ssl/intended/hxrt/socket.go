@@ -157,6 +157,32 @@ func (handle *SocketHandle) configuredDeadlineLocked() time.Time {
 	return time.Time{}
 }
 
+// dialer snapshots the staged blocking/timeout policy before connection setup.
+//
+// What: Builds one native dialer whose deadline covers TCP establishment and,
+// through tls.DialWithDialer, the TLS handshake.
+// Why: Applying SocketHandle deadlines only after installConn leaves connect and
+// handshake able to block past Socket.setTimeout.
+// How: Preserve an unlimited dial only for blocking handles without a timeout;
+// zero-timeout and nonblocking handles receive an immediate deadline.
+func (handle *SocketHandle) dialer() *net.Dialer {
+	dialer := &net.Dialer{}
+	if handle == nil {
+		return dialer
+	}
+	handle.stateMu.Lock()
+	blocking := handle.blocking
+	hasTimeout := handle.hasTimeout
+	timeout := handle.timeout
+	handle.stateMu.Unlock()
+	if !blocking || (hasTimeout && timeout <= 0) {
+		dialer.Deadline = time.Now()
+	} else if hasTimeout {
+		dialer.Timeout = time.Duration(timeout * float64(time.Second))
+	}
+	return dialer
+}
+
 func (handle *SocketHandle) applyConnDeadlineLocked() error {
 	if handle.conn == nil {
 		return nil
@@ -367,7 +393,7 @@ func SocketConnectTCP(handle *SocketHandle, host *string, port int) {
 		socketThrow(errors.New("socket connect requires host"))
 		return
 	}
-	conn, err := net.Dial("tcp4", net.JoinHostPort(*StdString(host), strconv.Itoa(port)))
+	conn, err := handle.dialer().Dial("tcp4", net.JoinHostPort(*StdString(host), strconv.Itoa(port)))
 	if err != nil {
 		socketThrow(err)
 		return
