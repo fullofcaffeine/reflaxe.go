@@ -387,28 +387,49 @@ Shim strategy and alternatives are documented in:
   are retried, the full file is not staged in memory, and early EOF or a source
   error aborts the exchange while preserving the source error
   (`http_multipart_streaming_contract` and direct runtime tests).
-- Direct `customRequest` now matches the upstream lifecycle contract: it writes
-  and closes the supplied `Output` on success, does not also publish
+- Direct `customRequest` proves only the final state of small complete responses:
+  it writes and closes the supplied `Output` on success, does not also publish
   `responseData` or fire `onData`/`onBytes`, and leaves the output open after an
-  HTTP error (`http_custom_request_lifecycle_contract`).
-- Direct runtime tests lock GET/POST/query/body behavior, deterministic multi-value headers, timeout-driven request cancellation observed by the server, truncated-body status preservation, proxy formatting, early-upload abort, idle transport cleanup, and typed custom-socket closure. `core/runtime_hxrt_infer_http` proves the native capability is selected by typed use and excluded from unrelated output.
-- Current tradeoff: execution remains synchronous, and `customRequest` socket injection maps into Go `http.Transport` dialing semantics rather than the exact byte-level write/read loop used by upstream `sys.Http`. The deterministic evidence uses local loopback peers and the repository's supported Go toolchain; it is not a claim that every external proxy, TLS endpoint, or operating-system network policy has been exercised.
+  HTTP-status error (`http_custom_request_lifecycle_contract`). Native
+  execution currently buffers the complete response first, so status and body
+  writes are not streamed and partial bytes are lost when body reading later
+  fails.
+- Direct runtime tests cover the current GET/POST/query/body representation,
+  timeout cancellation, truncated-body status retention, proxy formatting,
+  early-upload abort, idle transport cleanup, and typed custom-socket closure.
+  They do not establish Haxe parity for ordered repeated parameters/headers,
+  query/form separation, per-request multipart boundaries, generated-Haxe
+  callback context, or cancellation of a blocked upload source.
+- HTTP is release-excluded under `haxe_go-vfp.10.8`. The required typed design
+  is a source-driven upload sink plus a bounded native response-exchange handle;
+  see the generated compatibility matrix and the
+  [independent disposition](reviews/network-admission-oracle-disposition-vfp-10.4.md).
 
 ### `sys.net.Socket` staged-source contract and tradeoffs
 
-- Socket parity now covers deterministic loopback contracts (`bind`/`listen`/`connect`/`accept`/`read`/`write`/`close`) plus advanced methods: `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, and `shutdown` (`socket_loopback_contract`, `socket_advanced_contract`).
+- Deterministic loopback fixtures exercise `bind`/`listen`/`connect`/`accept`/`read`/`write`/`close` plus advanced methods such as `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, and `shutdown` (`socket_loopback_contract`, `socket_advanced_contract`). Fixture execution is evidence for those cases, not blanket API parity.
 - `sys.net.Socket.input` now satisfies the generated `haxe.io.Input` stream contract for service-style code paths (`readByte`, `readBytes`, `readAll`, typed numeric/string helper forwarding, and endian control). The focused snapshot is `sys/socket_input_service_surface`.
-- `select` now returns readiness-filtered arrays for read/write groups under timeout control, and `waitForRead` delegates to this readiness path.
+- `select` preserves source object identity and tests read readiness, but its
+  write set currently reports connection presence rather than operating-system
+  writability, and its exceptional set is not a real exceptional-condition
+  probe. Advanced readiness remains release-excluded.
 - The public API, stream wrappers, Haxe exceptions, address construction, and select object identity are canonical staged Haxe. A typed opaque `SocketHandle` and concrete result carriers cross into footprint-explicit `runtime/hxrt/socket.go`; the former `net_socket` compiler group and `GoNetSocketEmitter` are gone.
 - Direct runtime tests cover TCP/UDP round trips, partial-write progress,
   accept/datagram deadlines, peer close after a partial read, explicit
   timeout/readiness state, idempotent concurrent close, close-unblocks-read,
   and closed-handle `waitForRead` under the Go race detector.
-- Current tradeoff: `setBlocking` is implemented through deadline behavior rather than true OS-level non-blocking file descriptor mode.
+- Current tradeoffs: `setBlocking` uses deadline behavior rather than true
+  nonblocking file descriptors; `bind` starts listening; `listen` does not
+  apply backlog; eager DNS is outside socket timeouts. The admitted operation
+  list is only the Linux/amd64 blocking IPv4 TCP client core. All other socket
+  members are owned by `haxe_go-vfp.10.9`.
 
 ### `sys.net.UdpSocket` direct baseline and tradeoffs
 
-- Direct UDP parity now has deterministic loopback snapshot/runtime coverage for `bind`, `host`, `sendTo`, `readFrom`, `setBroadcast`, and `Address` round-tripping (`stdlib/sys_net_udp_socket_direct`).
+- Direct UDP behavior has deterministic loopback snapshot/runtime coverage for
+  `bind`, `host`, `sendTo`, `readFrom`, `setBroadcast`, and `Address`
+  round-tripping (`stdlib/sys_net_udp_socket_direct`). A valid zero-byte
+  datagram currently loses its sender identity, so UDP remains release-excluded.
 - `haxe_go-vfp.8.7.14` moved the public API to canonical staged source over the shared typed TCP/UDP handle. No compiler-emitted UdpSocket implementation or raw-injection path remains.
 - `setBroadcast(true)` maps to Go's operating-system socket option path (`SO_BROADCAST`) on the underlying UDP connection. Build-tagged POSIX and Windows helpers preserve each platform's native descriptor type, and a cross-build regression test keeps both compiling. The portable evidence checks that the option is installed and that normal UDP behavior still works; it does not require sending packets to a LAN broadcast address, because CI machines and developer laptops can block that at the network-policy level.
 
@@ -416,14 +437,19 @@ Shim strategy and alternatives are documented in:
 
 - Public verification/CA/hostname/certificate/SNI configuration lives in staged Haxe over the source-owned `sys.net.Socket` and its shared typed handle.
 - `runtime/hxrt/socket_ssl.go` owns only native TLS client/listener installation, handshake, peer-certificate access, and synchronized SNI selection. Certificate/key/digest primitives remain in `ssl.go`; SSL leaf users therefore do not select network transport.
-- Runnable snapshots prove TLS loopback I/O, peer certificate fields, accepted `sys.ssl.Socket` runtime identity, default-certificate selection, and callback-driven SNI selection. Selective snapshots prove the `ssl` leaf versus `socket + ssl + socket_ssl` transport split.
+- Runnable snapshots prove covered TLS loopback I/O, peer certificate fields,
+  accepted `sys.ssl.Socket` runtime identity, default-certificate selection,
+  and callback-driven SNI selection. They do not prove the ordinary default
+  path: the original logical hostname is currently lost when the resolved
+  numeric address is passed to TLS unless callers explicitly set a hostname.
+  Selective snapshots prove only the `ssl` leaf versus
+  `socket + ssl + socket_ssl` transport split.
 - A direct race test also proves `Socket.setTimeout` bounds a TLS client when a
   peer accepts TCP but never completes its handshake. TCP and TLS now share
   the same snapshotted dial policy.
-- Release admission is governed separately from these implementation tests.
-  The evidence is intentionally local and deterministic; changing the
-  compatibility manifest's broader networking promise requires its own
-  release-policy decision.
+- TLS, HTTPS, inherited shutdown/fast-send controls, DNS identity, and runtime
+  behavior outside Linux/amd64 remain release-excluded under
+  `haxe_go-vfp.10.9`.
 
 ### `EReg` + `haxe.Serializer` contract and tradeoffs
 

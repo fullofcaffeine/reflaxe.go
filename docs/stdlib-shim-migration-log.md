@@ -2726,10 +2726,13 @@ What changed:
 - Preserved partial-read progress and made premature EOF, zero progress, and
   source exceptions abort the exchange. Source exceptions keep their original
   message instead of being replaced by a generic transport failure.
-- Matched the upstream direct `customRequest` lifecycle. A successful request
-  writes and closes its supplied `Output`, but does not also fill
-  `responseData` or invoke `onData`/`onBytes`. An HTTP error reports status then
-  error and intentionally leaves the output open.
+- Matched the final state of the covered direct `customRequest` cases. A
+  successful small response writes and closes its supplied `Output`, but does
+  not also fill `responseData` or invoke `onData`/`onBytes`. An HTTP error
+  reports status then error and intentionally leaves the output open. The
+  independent admission review later established that native full-body
+  buffering still prevents streamed lifecycle parity and partial-body
+  preservation.
 - Applied `Socket.setTimeout` while establishing TCP connections and TLS
   sessions, not only after a connection is installed. TCP and TLS now share
   one snapshotted `net.Dialer` policy.
@@ -2753,18 +2756,22 @@ How it is proved:
 - `http_multipart_streaming_contract` compares partial-chunk upload bytes,
   callback order, and source-error propagation with Haxe Eval against a local
   deterministic server.
-- `http_custom_request_lifecycle_contract` compares successful and HTTP-error
-  Output closure, callback order, body capture, and response-field behavior.
+- `http_custom_request_lifecycle_contract` compares the final state of small
+  successful and HTTP-error cases. It does not prove that status and writes are
+  delivered while a response is still in progress.
 - Direct `runtime/hxrt` race tests cover multipart chunking, early EOF and
   server cancellation, request-timeout cancellation, partial socket writes,
   accept/UDP deadlines, partial-read-then-EOF, and stalled TLS handshakes.
 - Existing loopback HTTP, TCP, UDP, TLS, SNI, selective-runtime, and
   cross-build contracts remain the broader regression net.
 
-Bounded claim:
+Bounded claim and independent disposition:
 
 - These tests use local deterministic peers and the repository's supported Go
-  toolchain. They prove the implemented lifecycle contract; they do not
-  independently certify every operating system, external proxy, CA store, or
-  Internet endpoint. Compatibility/release admission remains a separate
-  governed policy decision.
+  toolchain. They prove useful hardening cases, not complete HTTP or advanced
+  socket lifecycle parity.
+- The GPT-5.6 Pro second-pass verdict was `SPLIT`. The release admits only the
+  named Linux/amd64 blocking IPv4 TCP client core. `haxe_go-vfp.10.8` owns HTTP
+  admission; `haxe_go-vfp.10.9` owns server sockets, controls/readiness, DNS,
+  UDP, and TLS. See
+  `docs/reviews/network-admission-oracle-disposition-vfp-10.4.md`.

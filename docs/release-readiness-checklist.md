@@ -33,10 +33,11 @@ the same tested commit:
    the independently verified local bundle exactly.
 
 An open roadmap item does not block a release merely because it exists.
-For example, Go-native and portable-networking work remain visible as owned
-exclusions, but they are outside the admitted portable beta surface. The gate
-fails if an exclusion has no owner, is advertised as supported, or becomes
-part of the admitted claim while its P0/P1 blocker remains unresolved.
+For example, Go-native, portable HTTP, and advanced socket work remain visible
+as owned exclusions. The operation manifest admits only the named blocking
+IPv4 TCP client core from the networking surface. The gate fails if an
+exclusion has no owner, is advertised as supported, or becomes part of the
+admitted claim while its P0/P1 blocker remains unresolved.
 
 `fixture` mode exists only to test pass and failure semantics without
 publishing. It is never hosted-release evidence. Production publication uses

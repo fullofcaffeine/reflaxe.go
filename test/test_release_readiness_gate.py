@@ -69,6 +69,36 @@ class ReleaseReadinessGateTest(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         self.assertIn("published release evidence: READY", result.stdout)
 
+    def test_network_policy_splits_admitted_operations_from_open_blockers(self) -> None:
+        policy = json.loads(POLICY.read_text(encoding="utf-8"))
+        compatibility = policy["compatibility"]
+
+        self.assertEqual(
+            ["platform:linux-amd64", "preset:portable"],
+            compatibility["admittedScopes"],
+        )
+        self.assertNotIn(
+            "portable-networking",
+            compatibility["requiredExclusions"],
+        )
+        self.assertEqual(
+            "haxe_go-vfp.10.8",
+            compatibility["requiredExclusions"]["portable-http"],
+        )
+        self.assertEqual(
+            "haxe_go-vfp.10.9",
+            compatibility["requiredExclusions"]["portable-socket-advanced"],
+        )
+        self.assertNotIn("haxe_go-vfp.10.4", compatibility["blockerScopes"])
+        self.assertEqual(
+            "portable-http",
+            compatibility["blockerScopes"]["haxe_go-vfp.10.8"],
+        )
+        self.assertEqual(
+            "portable-socket-advanced",
+            compatibility["blockerScopes"]["haxe_go-vfp.10.9"],
+        )
+
     def test_candidate_fixture_passes_without_pretending_assets_are_hosted(self) -> None:
         evidence = self.evidence()
         evidence["phase"] = "candidate"

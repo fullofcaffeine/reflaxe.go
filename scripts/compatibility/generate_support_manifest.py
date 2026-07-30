@@ -663,7 +663,7 @@ def render_release_status(manifest: dict[str, Any]) -> str:
         f"- platform: `{admitted_platform['os']}/{admitted_platform['architecture']}`;",
         f"- named operations/members: {len(admitted_symbols)};",
         "- toolchains: exact Haxe version and latest patched supported Go/Node lines from `toolchain-policy.json`;",
-        "- trust: reviewed application source, locked tooling, and application-controlled local file/process boundaries.",
+        "- trust: reviewed application source, locked tooling, application-controlled local file/process boundaries, and application-controlled, pre-resolved numeric TCP endpoints.",
         "",
         "No module-level inventory row expands this scope. Unlisted operations and error paths",
         "take the default excluded disposition.",

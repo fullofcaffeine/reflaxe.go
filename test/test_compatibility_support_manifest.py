@@ -137,14 +137,53 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
             any("outside portable Thread" in exclusion for exclusion in tls_lifecycle["exclusions"])
         )
 
-        expected_blockers = {
-            "portable-networking": "haxe_go-vfp.10.4",
-            "go-native": "haxe_go-vfp.9.1",
+        network_ops = {
+            entry["id"]: entry for entry in surfaces["portable-networking"]["operations"]
         }
-        for surface_id, blocker in expected_blockers.items():
+        self.assertEqual(
+            {
+                "tcp-ipv4-blocking-client-core",
+                "http-client-and-custom-request",
+                "tcp-server-and-listener-controls",
+                "socket-timeout-nonblocking-readiness-controls",
+                "host-dns-and-reverse-lookup",
+                "udp-ipv4",
+                "tls-socket",
+            },
+            set(network_ops),
+        )
+        tcp_client = network_ops["tcp-ipv4-blocking-client-core"]
+        self.assertTrue(tcp_client["release_admitted"])
+        self.assertEqual("semantic-diff-supported", tcp_client["state"])
+        self.assertEqual([], tcp_client["blockers"])
+        self.assertIn("Linux/amd64", tcp_client["qualification"])
+        self.assertIn("pre-resolved numeric endpoint", tcp_client["qualification"])
+
+        http = network_ops["http-client-and-custom-request"]
+        self.assertFalse(http["release_admitted"])
+        self.assertEqual(["haxe_go-vfp.10.8"], http["blockers"])
+        self.assertIn("final-state", http["qualification"])
+        self.assertIn("stream", " ".join(http["exclusions"]).lower())
+
+        for operation_id in (
+            "tcp-server-and-listener-controls",
+            "socket-timeout-nonblocking-readiness-controls",
+            "host-dns-and-reverse-lookup",
+            "udp-ipv4",
+            "tls-socket",
+        ):
+            operation = network_ops[operation_id]
+            self.assertFalse(operation["release_admitted"], operation_id)
+            self.assertEqual(["haxe_go-vfp.10.9"], operation["blockers"], operation_id)
+
+        for surface_id, blocker in {"go-native": "haxe_go-vfp.9.1"}.items():
             operations = surfaces[surface_id]["operations"]
             self.assertFalse(any(entry["release_admitted"] for entry in operations), surface_id)
             self.assertIn(blocker, {item for entry in operations for item in entry["blockers"]}, surface_id)
+
+        known_blockers = {entry["id"] for entry in manifest["known_blockers"]}
+        self.assertNotIn("haxe_go-vfp.10.4", known_blockers)
+        self.assertTrue({"haxe_go-vfp.10.8", "haxe_go-vfp.10.9"} <= known_blockers)
 
         trust_ops = {entry["id"]: entry for entry in surfaces["compiler-input-trust"]["operations"]}
         self.assertTrue(trust_ops["trusted-source"]["release_admitted"])
@@ -223,6 +262,21 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
             <= filesystem
         )
 
+        self.assertEqual(
+            {
+                'new sys.net.Host("IPv4 literal")',
+                "sys.net.Host.toString (IPv4 literal)",
+                "sys.net.Socket.connect (blocking IPv4 literal)",
+                "sys.net.Socket.input.readByte/readBytes (blocking)",
+                "sys.net.Socket.output.writeByte/writeBytes (blocking)",
+                "sys.net.Socket.output.flush",
+                "sys.net.Socket.host",
+                "sys.net.Socket.peer",
+                "sys.net.Socket.close",
+            },
+            admitted_symbols("portable-networking"),
+        )
+
     def test_portable_is_the_only_release_admitted_preset_semantics(self) -> None:
         presets = {entry["id"]: entry for entry in self.load_manifest()["presets"]}
         self.assertEqual(presets["portable"]["state"], "semantic-diff-supported")
@@ -241,6 +295,7 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
             self.assertNotIn("beta-stable", document.lower())
         self.assertIn("Operation/member admission", matrix)
         self.assertIn("Not admitted by this release scope", release)
+        self.assertIn("application-controlled, pre-resolved numeric TCP endpoints", release)
         self.assertNotIn("haxe_go-vfp.6.3", release)
         self.assertIn("docs/public-contract.md", release)
         self.assertNotIn("haxe_go-vfp.6.4", release)

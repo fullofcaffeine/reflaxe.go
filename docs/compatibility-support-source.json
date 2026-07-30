@@ -1130,18 +1130,47 @@
     {
       "id": "portable-networking",
       "kind": "portable-system",
-      "scope": "HTTP, TCP, UDP, TLS, timeout, and cleanup surfaces pending network audit",
+      "scope": "Operation-split network support; only explicitly admitted blocking IPv4 TCP client members participate in the beta release",
       "operations": [
         {
-          "id": "http-callbacks",
+          "id": "tcp-ipv4-blocking-client-core",
           "symbols": [
-            "haxe.Http request callbacks",
-            "sys.Http request callbacks"
+            "new sys.net.Host(\"IPv4 literal\")",
+            "sys.net.Host.toString (IPv4 literal)",
+            "sys.net.Socket.connect (blocking IPv4 literal)",
+            "sys.net.Socket.input.readByte/readBytes (blocking)",
+            "sys.net.Socket.output.writeByte/writeBytes (blocking)",
+            "sys.net.Socket.output.flush",
+            "sys.net.Socket.host",
+            "sys.net.Socket.peer",
+            "sys.net.Socket.close"
           ],
           "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "On the portable preset, Linux/amd64, Haxe 4.3.7, and Go 1.25.12 or 1.26.5, the admitted core is blocking IPv4 TCP client I/O to application-controlled, pre-resolved numeric endpoints. Deterministic loopback evidence covers connection, source-owned stream reads and writes with partial-progress preservation, flush, local and peer addresses, and close.",
+          "evidence_ids": [
+            "semantic:socket",
+            "runtime:socket-regressions",
+            "bead:network-audit"
+          ],
+          "exclusions": [
+            "Hostname and DNS behavior; bind, listen, accept, backlog, and other server behavior",
+            "Timeout controls, nonblocking mode, select/readiness, waitForRead, shutdown, and fast-send controls",
+            "UDP, TLS, HTTP, IPv6, public or hostile networks, long-running load, and runtime support outside Linux/amd64"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "http-client-and-custom-request",
+          "symbols": [
+            "haxe.Http",
+            "sys.Http"
+          ],
+          "granularity": "surface",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Canonical staged haxe.Http/sys.Http now owns request and callback policy over typed opaque HTTP/socket handles. Loopback semantic contracts plus direct runtime tests cover timeouts, response/body cleanup, proxy formatting, truncated-body status preservation, and socket consumption; broad cross-platform cancellation and hostile-peer admission remain open.",
+          "qualification": "Canonical staged haxe.Http/sys.Http owns public callback and Output policy over typed native resources. Current loopback tests prove bounded multipart reads and final-state behavior for small complete responses, but they do not prove streamed response lifecycle, partial-body preservation, cancellable uploads, or exact request fidelity.",
           "evidence_ids": [
             "semantic:http",
             "runtime:http-regressions",
@@ -1149,26 +1178,116 @@
             "bead:network-audit"
           ],
           "exclusions": [
-            "Broad production HTTP client support, including cross-platform cancellation and hostile-peer guarantees"
+            "All HTTP behavior, including ordered request fields, multipart framing, streamed response callbacks and Output lifecycle, partial bodies, upload cancellation, redirects, compression, timeout policy, proxies, custom sockets, hostile peers, and public networks"
           ],
           "blockers": [
-            "haxe_go-vfp.10.4"
+            "haxe_go-vfp.10.8"
           ]
         },
         {
-          "id": "socket-stack",
+          "id": "tcp-server-and-listener-controls",
           "symbols": [
-            "sys.net.Socket",
-            "sys.net.UdpSocket",
-            "sys.net.Host",
+            "sys.net.Socket.bind",
+            "sys.net.Socket.listen",
+            "sys.net.Socket.accept"
+          ],
+          "granularity": "operation",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Loopback fixtures exercise the current server path, but bind currently starts listening and listen does not apply its public backlog argument, so server lifecycle parity is not admitted.",
+          "evidence_ids": [
+            "semantic:socket",
+            "runtime:socket-regressions",
+            "bead:network-audit"
+          ],
+          "exclusions": [
+            "Bind-before-listen lifecycle, backlog, accept readiness, nonblocking accept, listener load, and production server behavior"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.9"
+          ]
+        },
+        {
+          "id": "socket-timeout-nonblocking-readiness-controls",
+          "symbols": [
+            "sys.net.Socket.setTimeout",
+            "sys.net.Socket.setBlocking",
+            "sys.net.Socket.select",
+            "sys.net.Socket.waitForRead",
+            "sys.net.Socket.shutdown",
+            "sys.net.Socket.setFastSend"
+          ],
+          "granularity": "operation",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Deterministic fixtures exercise current timeout and select behavior, but connection presence is not real write readiness, exceptional readiness is unresolved, and the remaining control semantics are not yet admitted.",
+          "evidence_ids": [
+            "semantic:socket",
+            "runtime:socket-regressions",
+            "bead:network-audit"
+          ],
+          "exclusions": [
+            "Zero and negative timeout semantics, nonblocking connect/read/write, real read/write/exception readiness, waitForRead, half-close, fast-send, and concurrent hostile-peer behavior"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.9"
+          ]
+        },
+        {
+          "id": "host-dns-and-reverse-lookup",
+          "symbols": [
+            "new sys.net.Host(\"hostname\")",
+            "sys.net.Host.reverse",
+            "sys.net.Host.localhost"
+          ],
+          "granularity": "operation",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Host currently resolves names eagerly through the Go resolver before a Socket timeout or cancellation policy can apply. Compile and loopback evidence do not admit bounded DNS or reverse lookup behavior.",
+          "evidence_ids": [
+            "semantic:socket",
+            "runtime:socket-regressions",
+            "bead:network-audit"
+          ],
+          "exclusions": [
+            "DNS lookup timeout and cancellation, resolver configuration, reverse lookup, search domains, and split-horizon behavior"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.9"
+          ]
+        },
+        {
+          "id": "udp-ipv4",
+          "symbols": [
+            "sys.net.UdpSocket"
+          ],
+          "granularity": "surface",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Loopback and compile fixtures exercise current IPv4 UDP behavior, but zero-byte datagram sender identity and complete staged-Haxe parity remain unresolved.",
+          "evidence_ids": [
+            "semantic:socket",
+            "runtime:socket-regressions",
+            "runtime:socket-cross-build",
+            "bead:network-audit"
+          ],
+          "exclusions": [
+            "All UDP behavior, including zero-byte datagrams, sender identity, timeout and nonblocking edges, hostile peers, and end-to-end staged-Haxe parity"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.9"
+          ]
+        },
+        {
+          "id": "tls-socket",
+          "symbols": [
             "sys.ssl.Socket"
           ],
           "granularity": "surface",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Public Host/TCP/UDP/TLS APIs are canonical staged source over typed runtime handles. Loopback semantics, UDP, TLS/SNI, accepted SSL identity, timeout/readiness, race-capable cleanup, and POSIX/Windows runtime cross-build evidence exist; cross-platform cancellation and hostile-peer closure remain open.",
+          "qualification": "Linux loopback tests and Linux/Windows compile checks exercise current TLS code. They do not prove default logical-host verification and SNI, TLS control semantics, public certificate stores, hostile peers, or runtime behavior on Windows or Darwin.",
           "evidence_ids": [
-            "semantic:socket",
             "snapshot:socket-tls",
             "snapshot:socket-sni",
             "runtime:socket-regressions",
@@ -1176,10 +1295,10 @@
             "bead:network-audit"
           ],
           "exclusions": [
-            "Broad production network and TLS support"
+            "All TLS and HTTPS behavior, including default hostname verification and SNI, CA stores, client certificates, shutdown, fast-send, stalled handshakes, hostile peers, and runtime support outside Linux/amd64"
           ],
           "blockers": [
-            "haxe_go-vfp.10.4"
+            "haxe_go-vfp.10.9"
           ]
         }
       ]
@@ -1372,16 +1491,21 @@
       "release_required": true
     },
     {
-      "id": "no-network-admission",
-      "statement": "Network, HTTP, TLS, cancellation, and hostile-peer behavior are not part of the admitted beta operation surface.",
+      "id": "application-controlled-tcp-boundary",
+      "statement": "Only the named blocking IPv4 TCP client core is admitted, and only for application-controlled, pre-resolved numeric endpoints; HTTP, DNS, server sockets, socket controls, UDP, TLS, public networks, and hostile-peer behavior remain excluded.",
       "release_required": true
     }
   ],
   "known_blockers": [
     {
-      "id": "haxe_go-vfp.10.4",
-      "scope": "Network, HTTP, socket, timeout, cancellation, and cleanup closure",
-      "release_blocker_for": "portable-networking"
+      "id": "haxe_go-vfp.10.8",
+      "scope": "Portable HTTP request fidelity, streamed responses, and cancellable uploads",
+      "release_blocker_for": "portable-http"
+    },
+    {
+      "id": "haxe_go-vfp.10.9",
+      "scope": "Advanced portable socket, DNS, UDP, readiness, server, and TLS semantics",
+      "release_blocker_for": "portable-socket-advanced"
     },
     {
       "id": "haxe_go-vfp.9.1",

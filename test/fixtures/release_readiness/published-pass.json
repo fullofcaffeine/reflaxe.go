@@ -20,9 +20,9 @@
       "platform:linux-amd64",
       "preset:portable"
     ],
-    "surfaceSha256": "f839b36822ae113723805b27a7d29af4e15acc0760343d413dd5ab6c37821807",
-    "admittedOperationCount": 26,
-    "admittedSymbolCount": 124,
+    "surfaceSha256": "05531d66d9f45e27f36c4ae05bb9c7bb21ecafef2624b0b9e0d853c816e8a38b",
+    "admittedOperationCount": 27,
+    "admittedSymbolCount": 133,
     "exclusions": [
       {
         "scope": "go-native",
@@ -30,8 +30,13 @@
         "advertisedAsSupported": false
       },
       {
-        "scope": "portable-networking",
-        "owner": "haxe_go-vfp.10.4",
+        "scope": "portable-http",
+        "owner": "haxe_go-vfp.10.8",
+        "advertisedAsSupported": false
+      },
+      {
+        "scope": "portable-socket-advanced",
+        "owner": "haxe_go-vfp.10.9",
         "advertisedAsSupported": false
       },
       {
@@ -138,11 +143,19 @@
         ]
       },
       {
-        "id": "haxe_go-vfp.10.4",
-        "priority": 1,
+        "id": "haxe_go-vfp.10.8",
+        "priority": 0,
         "status": "open",
         "scopes": [
-          "portable-networking"
+          "portable-http"
+        ]
+      },
+      {
+        "id": "haxe_go-vfp.10.9",
+        "priority": 0,
+        "status": "open",
+        "scopes": [
+          "portable-socket-advanced"
         ]
       },
       {

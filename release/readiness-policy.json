@@ -11,13 +11,15 @@
     ],
     "requiredExclusions": {
       "go-native": "haxe_go-vfp.9.1",
-      "portable-networking": "haxe_go-vfp.10.4",
+      "portable-http": "haxe_go-vfp.10.8",
+      "portable-socket-advanced": "haxe_go-vfp.10.9",
       "stable-1.x": "haxe_go-vfp.12.7"
     },
     "blockerScopes": {
       "haxe_go-vfp.4.8": "distribution:published-beta-artifact",
       "haxe_go-vfp.9.1": "go-native",
-      "haxe_go-vfp.10.4": "portable-networking",
+      "haxe_go-vfp.10.8": "portable-http",
+      "haxe_go-vfp.10.9": "portable-socket-advanced",
       "haxe_go-vfp.12.7": "stable-1.x"
     }
   },

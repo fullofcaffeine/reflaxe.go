@@ -89,9 +89,11 @@ cannot be advertised as supported.
 
 The admitted beta surface is `preset:portable` on
 `platform:linux-amd64`, bounded further by the operation/member manifest.
-Current Go-native, portable-networking, and stable-1.x roadmap work is outside
-that claim and remains named with Beads owners. Therefore an open issue in one
-of those scopes does not silently block the bounded beta.
+Networking is split at that operation boundary: only the named blocking IPv4
+TCP client core is admitted. Go-native, portable HTTP, advanced socket/DNS/UDP/
+TLS work, and stable-1.x remain outside the claim with named Beads owners.
+Therefore an open issue in one of those excluded scopes does not silently block
+the bounded beta.
 
 The blocker evidence records the real priority and state of every owner named
 by the compatibility authority. The release workflow generates it with
