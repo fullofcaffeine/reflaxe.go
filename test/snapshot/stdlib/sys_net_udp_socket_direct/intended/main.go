@@ -62,6 +62,17 @@ func main() {
 		hxrt.Println(v_3)
 		var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("remote.host="), remote.__hx_this.getHost().__hx_this.toString()))
 		hxrt.Println(v_4)
+		empty := haxe__io__Bytes_alloc(0)
+		emptyWrote := client.__hx_this.sendTo(empty, 0, empty.length, target)
+		emptyRecv := haxe__io__Bytes_alloc(1)
+		emptyRemote := New_sys__net__Address()
+		emptyRead := server.__hx_this.readFrom(emptyRecv, 0, emptyRecv.length, emptyRemote)
+		hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("empty.wrote="), emptyWrote)))
+		hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("empty.read="), emptyRead)))
+		var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("empty.remote.port.positive="), hxrt.StdString((emptyRemote.port > 0))))
+		hxrt.Println(v_5)
+		var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("empty.remote.host="), emptyRemote.__hx_this.getHost().__hx_this.toString()))
+		hxrt.Println(v_6)
 	}, func(hx_caught_1 any) {
 		error := hx_caught_1
 		failure = error

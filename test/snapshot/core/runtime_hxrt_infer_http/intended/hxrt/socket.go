@@ -915,6 +915,12 @@ func SocketUdpSendTo(handle *SocketHandle, values []int, host int, port int) *So
 }
 
 // SocketUdpReadFrom reads one datagram and returns its typed peer address.
+//
+// What: Preserves the sender for both payload-bearing and zero-byte datagrams.
+// Why: UDP permits an empty datagram, so count == 0 does not mean that no
+// packet arrived or that its source address may be discarded.
+// How: Treat a nil read error as the success authority, copy however many
+// payload bytes were returned, and always populate the non-nil UDP peer.
 func SocketUdpReadFrom(handle *SocketHandle, length int) *SocketDatagramResult {
 	if length <= 0 {
 		return &SocketDatagramResult{Values: []int{}, Status: SocketIOReady}
@@ -937,7 +943,11 @@ func SocketUdpReadFrom(handle *SocketHandle, length int) *SocketDatagramResult {
 	}
 	raw := make([]byte, length)
 	count, remote, err := conn.ReadFromUDP(raw)
-	if count > 0 {
+	if err == nil {
+		if remote == nil {
+			socketThrow(errors.New("udp read completed without a peer address"))
+			return &SocketDatagramResult{Values: []int{}, Status: SocketIOEOF}
+		}
 		values := make([]int, count)
 		for index := 0; index < count; index++ {
 			values[index] = int(raw[index])

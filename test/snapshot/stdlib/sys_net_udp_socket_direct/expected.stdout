@@ -5,3 +5,7 @@ read=8
 payload=udp-ping
 remote.port.positive=true
 remote.host=127.0.0.1
+empty.wrote=0
+empty.read=0
+empty.remote.port.positive=true
+empty.remote.host=127.0.0.1

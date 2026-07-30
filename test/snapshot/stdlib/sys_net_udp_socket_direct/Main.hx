@@ -45,6 +45,16 @@ class Main {
 			Sys.println("payload=" + recv.sub(0, read).toString());
 			Sys.println("remote.port.positive=" + (remote.port > 0));
 			Sys.println("remote.host=" + remote.getHost().toString());
+
+			var empty = Bytes.alloc(0);
+			var emptyWrote = client.sendTo(empty, 0, empty.length, target);
+			var emptyRecv = Bytes.alloc(1);
+			var emptyRemote = new Address();
+			var emptyRead = server.readFrom(emptyRecv, 0, emptyRecv.length, emptyRemote);
+			Sys.println("empty.wrote=" + emptyWrote);
+			Sys.println("empty.read=" + emptyRead);
+			Sys.println("empty.remote.port.positive=" + (emptyRemote.port > 0));
+			Sys.println("empty.remote.host=" + emptyRemote.getHost().toString());
 		} catch (error:Dynamic) {
 			failure = error;
 		}

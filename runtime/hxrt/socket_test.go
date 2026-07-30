@@ -291,6 +291,30 @@ func TestSocketTypedUDPHandleRoundTripAndBroadcast(t *testing.T) {
 	}
 }
 
+func TestSocketZeroByteUDPDatagramPreservesSender(t *testing.T) {
+	server := SocketNewUDP()
+	client := SocketNewUDP()
+	defer SocketClose(server)
+	defer SocketClose(client)
+
+	SocketUdpBind(server, socketTestString(socketTestHost), 0)
+	bound := SocketHost(server)
+	if bound == nil || bound.Port <= 0 {
+		t.Fatalf("SocketHost(udp) = %#v, want a positive port", bound)
+	}
+	written := SocketUdpSendTo(client, []int{}, HostResolve(socketTestString(socketTestHost)), bound.Port)
+	if written.Status != SocketIOReady || written.Count != 0 {
+		t.Fatalf("zero-byte SocketUdpSendTo = %#v, want ready with zero bytes", written)
+	}
+	read := SocketUdpReadFrom(server, 1)
+	if read.Status != SocketIOReady || read.Count != 0 || len(read.Values) != 0 {
+		t.Fatalf("zero-byte SocketUdpReadFrom = %#v, want a ready empty datagram", read)
+	}
+	if read.Host != HostResolve(socketTestString(socketTestHost)) || read.Port <= 0 {
+		t.Fatalf("zero-byte SocketUdpReadFrom peer = %d:%d, want loopback sender", read.Host, read.Port)
+	}
+}
+
 func TestSocketConcurrentCloseIsIdempotentAndUnblocksRead(t *testing.T) {
 	left, right := net.Pipe()
 	defer right.Close()
