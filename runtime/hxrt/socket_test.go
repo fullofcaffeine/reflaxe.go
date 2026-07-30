@@ -424,6 +424,242 @@ func TestSocketTimeoutAndReadinessAreExplicit(t *testing.T) {
 	}
 }
 
+func socketTestSaturateTCPWriteBuffer(t *testing.T, sender *SocketHandle, receiver *SocketHandle) {
+	t.Helper()
+	senderConn, ok := sender.snapshotConn().(*net.TCPConn)
+	if !ok {
+		t.Fatalf("sender connection = %T, want *net.TCPConn", sender.snapshotConn())
+	}
+	receiverConn, ok := receiver.snapshotConn().(*net.TCPConn)
+	if !ok {
+		t.Fatalf("receiver connection = %T, want *net.TCPConn", receiver.snapshotConn())
+	}
+	if err := senderConn.SetWriteBuffer(4096); err != nil {
+		t.Fatal(err)
+	}
+	if err := receiverConn.SetReadBuffer(4096); err != nil {
+		t.Fatal(err)
+	}
+	socketTestSaturateTCPWriteBufferNative(t, senderConn)
+}
+
+func TestSocketSelectUsesActualWriteReadinessAndBecomesReadyAfterDrain(t *testing.T) {
+	listener, client, accepted := socketTestTCPPair(t)
+	defer SocketClose(listener)
+	defer SocketClose(client)
+	defer SocketClose(accepted)
+
+	socketTestSaturateTCPWriteBuffer(t, client, accepted)
+	saturated := SocketSelect(nil, []*SocketHandle{client}, nil, 0, true)
+	if saturated == nil || len(saturated.Write) != 0 {
+		t.Fatalf("saturated SocketSelect write = %#v, want no ready index", saturated)
+	}
+	SocketSetBlocking(client, false)
+	nonblockingPayload := make([]int, 64*1024)
+	blocked := false
+	for attempt := 0; attempt < 64; attempt++ {
+		write := SocketWriteValues(client, nonblockingPayload)
+		if write.Status == SocketIOBlocked && write.Count == 0 {
+			blocked = true
+			break
+		}
+		if write.Status != SocketIOReady || write.Count <= 0 {
+			t.Fatalf("saturated nonblocking write attempt %d = %#v", attempt, write)
+		}
+	}
+	if !blocked {
+		t.Fatal("saturated nonblocking writes never reported blocked")
+	}
+	SocketSetBlocking(client, true)
+
+	drained := make(chan struct{})
+	go func() {
+		defer close(drained)
+		buffer := make([]byte, 64*1024)
+		connection := accepted.snapshotConn()
+		for {
+			if _, err := connection.Read(buffer); err != nil {
+				return
+			}
+		}
+	}()
+	ready := SocketSelect(nil, []*SocketHandle{client}, nil, 1, true)
+	if ready == nil || !socketTestIntsEqual(ready.Write, 0) {
+		t.Fatalf("drained SocketSelect write = %#v, want index 0", ready)
+	}
+	SocketClose(client)
+	SocketClose(accepted)
+	select {
+	case <-drained:
+	case <-time.After(time.Second):
+		t.Fatal("send-buffer drain did not stop after close")
+	}
+}
+
+func TestSocketNonblockingConnectedReadWriteAndAcceptAreImmediate(t *testing.T) {
+	listener, client, accepted := socketTestTCPPair(t)
+	defer SocketClose(listener)
+	defer SocketClose(client)
+	defer SocketClose(accepted)
+
+	SocketSetBlocking(client, false)
+	started := time.Now()
+	read := SocketReadValues(client, 1)
+	if read.Status != SocketIOBlocked || read.Count != 0 {
+		t.Fatalf("empty nonblocking read = %#v, want blocked", read)
+	}
+	if elapsed := time.Since(started); elapsed > 100*time.Millisecond {
+		t.Fatalf("empty nonblocking read took %s", elapsed)
+	}
+	write := SocketWriteValues(client, []int{'n'})
+	if write.Status != SocketIOReady || write.Count != 1 {
+		t.Fatalf("available nonblocking write = %#v, want one ready byte", write)
+	}
+	if received := SocketReadByteValue(accepted); received != int('n') {
+		t.Fatalf("nonblocking write peer read = %d, want n", received)
+	}
+
+	server := SocketNewTCP()
+	connecter := SocketNewTCP()
+	defer SocketClose(server)
+	defer SocketClose(connecter)
+	SocketBindTCP(server, socketTestString(socketTestHost), 0)
+	SocketListen(server, 1)
+	SocketSetBlocking(server, false)
+	started = time.Now()
+	emptyAccept := SocketAccept(server)
+	if emptyAccept.Status != SocketIOBlocked || emptyAccept.Handle != nil {
+		t.Fatalf("empty nonblocking accept = %#v, want blocked", emptyAccept)
+	}
+	if elapsed := time.Since(started); elapsed > 100*time.Millisecond {
+		t.Fatalf("empty nonblocking accept took %s", elapsed)
+	}
+	bound := SocketHost(server)
+	SocketConnectTCP(connecter, socketTestString(socketTestHost), bound.Port)
+	readyAccept := SocketAccept(server)
+	if readyAccept.Status != SocketIOReady || readyAccept.Handle == nil {
+		t.Fatalf("queued nonblocking accept = %#v, want ready handle", readyAccept)
+	}
+	SocketClose(readyAccept.Handle)
+}
+
+func TestSocketSelectDoesNotFabricateDisconnectedExceptions(t *testing.T) {
+	unconnected := SocketNewTCP()
+	closed := SocketNewTCP()
+	SocketClose(closed)
+	defer SocketClose(unconnected)
+
+	selected := SocketSelect(nil, nil, []*SocketHandle{unconnected, closed}, 0, true)
+	if selected == nil || len(selected.Others) != 0 {
+		t.Fatalf("disconnected SocketSelect others = %#v, want no fabricated exception", selected)
+	}
+}
+
+func TestSocketSelectPreservesDuplicateReadIndexesBufferedBytesAndEOF(t *testing.T) {
+	listener, client, accepted := socketTestTCPPair(t)
+	defer SocketClose(listener)
+	defer SocketClose(client)
+	defer SocketClose(accepted)
+
+	if written := SocketWriteValues(accepted, []int{'x', 'y'}); written.Status != SocketIOReady || written.Count != 2 {
+		t.Fatalf("SocketWriteValues = %#v, want two bytes", written)
+	}
+	ready := SocketSelect([]*SocketHandle{client, client}, nil, nil, 1, true)
+	if ready == nil || !socketTestIntsEqual(ready.Read, 0, 1) {
+		t.Fatalf("duplicate SocketSelect read = %#v, want indexes 0 and 1", ready)
+	}
+	if value := SocketReadByteValue(client); value != int('x') {
+		t.Fatalf("first read = %d, want x", value)
+	}
+	buffered := SocketSelect([]*SocketHandle{client}, nil, nil, 0, true)
+	if buffered == nil || !socketTestIntsEqual(buffered.Read, 0) {
+		t.Fatalf("buffered SocketSelect read = %#v, want index 0", buffered)
+	}
+	if value := SocketReadByteValue(client); value != int('y') {
+		t.Fatalf("second read = %d, want y", value)
+	}
+
+	SocketClose(accepted)
+	eof := SocketSelect([]*SocketHandle{client}, nil, nil, 1, true)
+	if eof == nil || !socketTestIntsEqual(eof.Read, 0) {
+		t.Fatalf("EOF SocketSelect read = %#v, want index 0", eof)
+	}
+	if value := SocketReadByteValue(client); value != SocketReadEOF {
+		t.Fatalf("read after EOF readiness = %d, want SocketReadEOF", value)
+	}
+}
+
+func TestSocketSelectMakesResetObservableThroughReadReadiness(t *testing.T) {
+	listener, client, accepted := socketTestTCPPair(t)
+	defer SocketClose(listener)
+	defer SocketClose(client)
+
+	acceptedConn, ok := accepted.snapshotConn().(*net.TCPConn)
+	if !ok {
+		t.Fatalf("accepted connection = %T, want *net.TCPConn", accepted.snapshotConn())
+	}
+	if err := acceptedConn.SetLinger(0); err != nil {
+		t.Fatal(err)
+	}
+	SocketClose(accepted)
+
+	selected := SocketSelect([]*SocketHandle{client}, nil, []*SocketHandle{client}, 1, true)
+	if selected == nil || !socketTestIntsEqual(selected.Read, 0) {
+		t.Fatalf("reset SocketSelect = %#v, want read index 0", selected)
+	}
+	var read *SocketIOResult
+	recovered := socketTestRecovered(func() {
+		read = SocketReadValues(client, 1)
+	})
+	if recovered != nil {
+		if _, ok := recovered.(HaxeException); !ok {
+			t.Fatalf("reset read recovered %#v, want HaxeException", recovered)
+		}
+		return
+	}
+	if read == nil || read.Status != SocketIOEOF {
+		t.Fatalf("reset read = %#v, want EOF or a typed HaxeException", read)
+	}
+}
+
+func TestSocketSelectZeroFiniteAndAbsentTimeoutsAreBounded(t *testing.T) {
+	listener, client, accepted := socketTestTCPPair(t)
+	defer SocketClose(listener)
+	defer SocketClose(client)
+	defer SocketClose(accepted)
+
+	started := time.Now()
+	immediate := SocketSelect([]*SocketHandle{client}, nil, nil, 0, true)
+	if immediate == nil || len(immediate.Read) != 0 {
+		t.Fatalf("zero-timeout SocketSelect = %#v, want empty", immediate)
+	}
+	if elapsed := time.Since(started); elapsed > 100*time.Millisecond {
+		t.Fatalf("zero-timeout SocketSelect took %s", elapsed)
+	}
+
+	started = time.Now()
+	finite := SocketSelect([]*SocketHandle{client}, nil, nil, 0.02, true)
+	if finite == nil || len(finite.Read) != 0 {
+		t.Fatalf("finite-timeout SocketSelect = %#v, want empty", finite)
+	}
+	if elapsed := time.Since(started); elapsed < 5*time.Millisecond || elapsed > time.Second {
+		t.Fatalf("finite-timeout SocketSelect took %s", elapsed)
+	}
+
+	go func() {
+		time.Sleep(10 * time.Millisecond)
+		SocketWriteValues(accepted, []int{'z'})
+	}()
+	started = time.Now()
+	absent := SocketSelect([]*SocketHandle{client}, nil, nil, 0, false)
+	if absent == nil || !socketTestIntsEqual(absent.Read, 0) {
+		t.Fatalf("absent-timeout SocketSelect = %#v, want read index 0", absent)
+	}
+	if elapsed := time.Since(started); elapsed < 5*time.Millisecond || elapsed > time.Second {
+		t.Fatalf("absent-timeout SocketSelect took %s", elapsed)
+	}
+}
+
 func TestSocketAcceptAndUDPReadHonorConfiguredTimeouts(t *testing.T) {
 	listener := SocketNewTCP()
 	defer SocketClose(listener)

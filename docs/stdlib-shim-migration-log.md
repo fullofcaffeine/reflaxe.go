@@ -3182,3 +3182,59 @@ Bounded claim:
   peers, listener load/soak behavior, exact queue counts across kernels, and
   runtime support outside Linux/amd64 remain excluded under
   `haxe_go-vfp.10.9`.
+
+### 2026-07-30: implement real readiness and bounded nonblocking controls (`haxe_go-vfp.10.9.6`)
+
+What changed:
+
+- `Socket.select` now asks build-tagged Linux/Darwin adapters for native read,
+  write, and exceptional descriptor sets. It maps those results back to every
+  original caller index, including duplicates.
+- The common typed snapshot preserves Haxe.Go's already-buffered read bytes
+  and treats EOF/reset as readable without consuming application data. It
+  duplicates a raw descriptor close-on-exec only while Go guarantees that
+  source descriptor is valid, and closes the duplicate after each bounded
+  select slice.
+- Connected `setBlocking(false)` read, write, and accept use a bounded
+  one-millisecond operation probe and surface `haxe.io.Error.Blocked` when no
+  progress is possible. Partial write progress remains visible to the caller.
+- The selective socket feature copies every readiness adapter. Windows and
+  other unreviewed runtime platforms fail explicitly instead of returning
+  invented readiness.
+
+Why:
+
+- Connection presence is not write readiness. A peer can stop reading until
+  the local kernel send buffer is full.
+- Resource absence is not exceptional readiness. New and closed Haxe socket
+  objects must not be returned from `others` merely because they lack a native
+  connection.
+- A polling read would consume or disturb public stream state. The typed
+  descriptor boundary keeps OS facts native while staged Haxe continues to own
+  socket identity, exceptions, and array mapping.
+
+How it is proved:
+
+- The first red regressions showed both accepted defects: a saturated send
+  buffer was reported writable and disconnected handles were fabricated as
+  exceptional.
+- Native tests now fill the send buffer to `EAGAIN`, require write readiness
+  to disappear, drain the peer, and require it to return. They also cover
+  buffered bytes, EOF/reset, duplicates, zero/finite/absent timeout forms,
+  POSIX out-of-band data, and connected nonblocking read/write/accept.
+- A generated-Haxe runtime snapshot proves the public `Blocked`, partial-write,
+  identity, buffering, and readiness results. A semantic-diff fixture proves
+  the genuinely portable select subset without pretending that eval implements
+  target-native nonblocking behavior.
+- Race, cross-build, selective-runtime, compatibility-policy, and package
+  contracts keep the implementation and claim synchronized.
+
+Bounded claim:
+
+- This is an operation-level admission candidate, not a release admission.
+  Nonblocking connect remains excluded because `net.Dialer` cannot retain an
+  in-progress attempt for later select completion. TLS readiness remains
+  excluded because decrypted records can be buffered above the descriptor.
+  Windows is compile-only evidence. Shutdown and fast-send remain a separate
+  experimental operation owned by `haxe_go-vfp.10.9.7`, and the complete
+  advanced-socket release decision remains under `haxe_go-vfp.10.9`.

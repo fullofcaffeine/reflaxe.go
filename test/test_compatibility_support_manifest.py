@@ -150,6 +150,7 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
                 "https-client",
                 "tcp-server-and-listener-controls",
                 "socket-timeout-nonblocking-readiness-controls",
+                "socket-shutdown-fast-send-controls",
                 "host-dns-and-reverse-lookup",
                 "udp-ipv4",
                 "tls-socket",
@@ -194,6 +195,7 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
         for operation_id in (
             "tcp-server-and-listener-controls",
             "socket-timeout-nonblocking-readiness-controls",
+            "socket-shutdown-fast-send-controls",
             "host-dns-and-reverse-lookup",
             "udp-ipv4",
             "tls-socket",

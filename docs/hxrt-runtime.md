@@ -121,7 +121,8 @@ Key implementation points:
     callbacks, and status/error classification remain in staged `sys.Http`.
 - Network capabilities (`runtime/hxrt/socket.go` plus build-tagged
   `runtime/hxrt/socket_broadcast_*.go` and
-  `runtime/hxrt/socket_listener_*.go` adapters):
+  `runtime/hxrt/socket_listener_*.go` /
+  `runtime/hxrt/socket_readiness_*.go` adapters):
   - one opaque, synchronized `SocketHandle` shared by TCP and UDP;
   - typed eager DNS/IPv4, connect/bind/listen/accept, byte transfer, deadline,
     blocking-policy, readiness, shutdown, address, broadcast, and datagram operations;
@@ -134,6 +135,15 @@ Key implementation points:
     passes its nonnegative backlog to the OS and then converts the descriptor
     into Go's pollable listener. The exact lifecycle and release boundary are
     documented in [socket server lifecycle and backlog](socket-server-lifecycle.md);
+  - typed native-readiness snapshots preserve Haxe-owned buffered bytes and
+    map POSIX `select` results back to caller indexes. Each raw descriptor is
+    duplicated close-on-exec only inside Go's valid `Control` callback and
+    closed after its bounded poll slice, so concurrent close cannot leave a
+    reused number in the readiness set or leak the temporary capability to a
+    child process. Linux and Darwin use explicit descriptor adapters;
+    Windows and other unreviewed platforms fail explicitly instead of
+    inventing readiness. The exact member and release boundary is documented in
+    [socket readiness and nonblocking controls](socket-readiness-nonblocking.md);
   - POSIX and Windows keep their native descriptor types behind separate
     build-tagged broadcast and listener helpers, with explicit
     unsupported-platform errors;

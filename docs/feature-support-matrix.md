@@ -458,28 +458,39 @@ Shim strategy and alternatives are documented in:
 
 ### `sys.net.Socket` staged-source contract and tradeoffs
 
-- Deterministic loopback fixtures exercise `bind`/`listen`/`connect`/`accept`/`read`/`write`/`close` plus advanced methods such as `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, and `shutdown` (`socket_loopback_contract`, `socket_advanced_contract`). `socket_server_lifecycle_contract` additionally proves that bind reserves without accepting and that the later listen transition preserves a loopback round trip. Fixture execution is evidence for those cases, not blanket API parity.
+- Deterministic loopback fixtures exercise `bind`/`listen`/`connect`/`accept`/`read`/`write`/`close` plus advanced methods such as `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, and `shutdown` (`socket_loopback_contract`, `socket_advanced_contract`). `socket_server_lifecycle_contract` additionally proves that bind reserves without accepting and that the later listen transition preserves a loopback round trip. `socket_readiness_contract` proves duplicate identity, buffered reads, real write readiness, and generated-Go nonblocking read/write/accept. Fixture execution is evidence for those cases, not blanket API parity.
 - `sys.net.Socket.input` now satisfies the generated `haxe.io.Input` stream contract for service-style code paths (`readByte`, `readBytes`, `readAll`, typed numeric/string helper forwarding, and endian control). The focused snapshot is `sys/socket_input_service_surface`.
-- `select` preserves source object identity and tests read readiness, but its
-  write set currently reports connection presence rather than operating-system
-  writability, and its exceptional set is not a real exceptional-condition
-  probe. Advanced readiness remains release-excluded.
+- `select` preserves source object identity and uses build-tagged native
+  descriptor sets for real read, write, and exceptional readiness on Linux and
+  Darwin. Buffered bytes and EOF are read-ready; a full kernel send buffer is
+  absent from the write set until the peer drains it; urgent data is visible
+  through the exceptional set; and disconnected handles are not invented as
+  exceptional. See the
+  [socket readiness and nonblocking contract](socket-readiness-nonblocking.md).
+  Advanced readiness remains release-excluded pending the parent review.
 - The public API, stream wrappers, Haxe exceptions, address construction, and select object identity are canonical staged Haxe. A typed opaque `SocketHandle` and concrete result carriers cross into footprint-explicit `runtime/hxrt/socket.go`; the former `net_socket` compiler group and `GoNetSocketEmitter` are gone.
 - Direct runtime tests cover TCP/UDP round trips, partial-write progress,
   accept/datagram deadlines, peer close after a partial read, explicit
-  timeout/readiness state, bind-before-listen refusal, duplicate backlog
-  application, close-before-listen, TLS listener wrapping, concurrent
-  listen/close, idempotent concurrent close, close-unblocks-read, and
-  closed-handle `waitForRead` under the Go race detector. A Linux-only runtime
-  case also verifies that backlog 1 cannot admit an unbounded pending queue.
+  timeout/readiness state, send-buffer saturation and drain, reset/EOF,
+  duplicate readiness indexes, buffered read precedence, POSIX urgent data,
+  connected nonblocking read/write/accept, bind-before-listen refusal,
+  duplicate backlog application, close-before-listen, TLS listener wrapping,
+  concurrent listen/close, idempotent concurrent close,
+  close-unblocks-read, and closed-handle `waitForRead` under the Go race
+  detector. A Linux-only runtime case also verifies that backlog 1 cannot
+  admit an unbounded pending queue.
 - `bind` and `listen` now use build-tagged typed OS adapters instead of
   collapsing into `net.Listen`; see the
   [socket server lifecycle and backlog contract](socket-server-lifecycle.md).
   The server operation remains release-excluded until the parent review.
-- Current tradeoffs: `setBlocking` uses deadline behavior rather than true
-  nonblocking file descriptors. Haxe 4.3.7-compatible `Host` construction
-  resolves eagerly before a Socket exists, so no `Socket.setTimeout` value can
-  bound or cancel it; the
+- Current tradeoffs: `setBlocking(false)` uses a bounded one-millisecond
+  operation probe rather than permanently changing native descriptor flags.
+  The public connected read/write/accept progress-or-`Blocked` behavior is
+  proved, but nonblocking connect remains excluded because the Go dial path
+  cannot retain an in-progress socket for later completion. TLS readiness and
+  Windows runtime readiness also remain excluded. Haxe 4.3.7-compatible
+  `Host` construction resolves eagerly before a Socket exists, so no
+  `Socket.setTimeout` value can bound or cancel it; the
   [socket DNS and timeout decision](socket-dns-boundary.md) makes that
   exclusion executable. The admitted operation list is only the Linux/amd64
   blocking IPv4 TCP client core. All other socket members are owned by

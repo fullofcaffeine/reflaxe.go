@@ -62,9 +62,11 @@ An accepted child retains the listener's configured timeout, blocking, and
 fast-send policy, and installs those settings on its own connection. The
 current blocking accept and timeout evidence is deterministic.
 
-True nonblocking accept and OS readiness are separate concerns. They remain
-release-excluded under `haxe_go-vfp.10.9.6`; the present change does not treat
-an immediate deadline as proof of complete nonblocking semantics.
+`haxe_go-vfp.10.9.6` subsequently added real OS readiness and proved the
+connected nonblocking accept progress-or-`Blocked` behavior. Nonblocking
+connect and the broader server surface remain release-excluded under the
+parent `haxe_go-vfp.10.9`; see the
+[socket readiness contract](socket-readiness-nonblocking.md).
 
 ## TLS servers
 
@@ -86,8 +88,10 @@ hostile-peer, and cross-platform runtime guarantees remain separate.
 - POSIX and Windows adapters are compile-checked. A Windows cross-build is
   compile evidence, not Windows runtime evidence.
 - No Darwin, Windows, or other operating system is admitted by this change.
-- Listener load, hostile peers, nonblocking accept, real readiness, and
-  long-duration server behavior remain excluded pending the parent review.
+- Listener load, hostile peers, nonblocking connect, and long-duration server
+  behavior remain excluded pending the parent review. Real readiness and
+  connected nonblocking accept now have candidate evidence, but are not
+  release-admitted by this document.
 
 ## Evidence
 

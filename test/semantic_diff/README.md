@@ -66,7 +66,7 @@ Goal:
     socket transport and Output lifecycle, callback/status/error flows,
     `Http.PROXY`, bounded multipart streaming with partial reads and source
     failure) without external network
-  - deterministic `sys.net.Socket` loopback and advanced method parity (`bind/listen/connect/accept/read/write/close`, `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, `shutdown`)
+  - deterministic `sys.net.Socket` loopback and advanced method parity (`bind/listen/connect/accept/read/write/close`, `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, `shutdown`), plus source identity, duplicate indexes, buffered reads, and ordinary readiness in `socket_readiness_contract`
   - reflection compare + dynamic field semantics
   - anonymous object literal/field mutation semantics
   - deterministic `haxe.Json` parse/stringify + `JsonParser`/`JsonPrinter` behavior

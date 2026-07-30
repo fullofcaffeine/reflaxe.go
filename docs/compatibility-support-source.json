@@ -376,6 +376,30 @@
       "level": "policy"
     },
     {
+      "id": "semantic:socket-readiness",
+      "kind": "path",
+      "path": "test/semantic_diff/socket_readiness_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "snapshot:socket-readiness",
+      "kind": "path",
+      "path": "test/snapshot/sys/socket_readiness_contract",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "runtime:socket-readiness-posix",
+      "kind": "path",
+      "path": "runtime/hxrt/socket_readiness_posix_test.go",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "policy:socket-readiness",
+      "kind": "path",
+      "path": "docs/socket-readiness-nonblocking.md",
+      "level": "policy"
+    },
+    {
       "id": "snapshot:socket-tls",
       "kind": "path",
       "path": "test/snapshot/stdlib/sys_ssl_socket_direct",
@@ -1387,21 +1411,50 @@
             "sys.net.Socket.setTimeout",
             "sys.net.Socket.setBlocking",
             "sys.net.Socket.select",
-            "sys.net.Socket.waitForRead",
+            "sys.net.Socket.waitForRead"
+          ],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": false,
+          "qualification": "The operation-level candidate uses operating-system read, write, and exceptional readiness on Linux and Darwin, preserves buffered bytes, EOF, duplicate indexes, and public Socket identity, and proves prompt Blocked behavior for connected nonblocking read/write/accept. Socket.setTimeout still does not bound Host construction or reverse lookup. Linux has runtime evidence; Darwin has local runtime evidence; Windows remains compile-only and explicitly unsupported at runtime. Release admission stays fail-closed pending the advanced socket review.",
+          "evidence_ids": [
+            "semantic:socket",
+            "semantic:socket-readiness",
+            "snapshot:socket-readiness",
+            "runtime:socket-regressions",
+            "runtime:socket-readiness-posix",
+            "runtime:socket-cross-build",
+            "policy:socket-readiness",
+            "bead:network-audit"
+          ],
+          "exclusions": [
+            "Nonblocking connect, because the current dial path cannot retain an in-progress socket for later select completion",
+            "TLS readiness, because decrypted TLS records may be buffered above the native descriptor",
+            "Windows runtime readiness and runtime support on operating systems without a reviewed native adapter",
+            "DNS timeout/cancellation, hostile-peer and long-duration resource convergence, and release admission outside Linux/amd64"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.9"
+          ]
+        },
+        {
+          "id": "socket-shutdown-fast-send-controls",
+          "symbols": [
             "sys.net.Socket.shutdown",
             "sys.net.Socket.setFastSend"
           ],
           "granularity": "operation",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Deterministic fixtures exercise current timeout and select behavior, but Socket.setTimeout does not bound Host construction or reverse lookup, connection presence is not real write readiness, exceptional readiness is unresolved, and the remaining control semantics are not yet admitted.",
+          "qualification": "Deterministic fixtures exercise current TCP shutdown and fast-send behavior, but one-sided TLS shutdown and applying TCP_NODELAY through TLS remain unresolved. These members are intentionally separate from the real-readiness candidate so readiness evidence cannot imply their admission.",
           "evidence_ids": [
             "semantic:socket",
             "runtime:socket-regressions",
             "bead:network-audit"
           ],
           "exclusions": [
-            "Zero and negative timeout semantics, nonblocking connect/read/write, real read/write/exception readiness, waitForRead, half-close, fast-send, and concurrent hostile-peer behavior"
+            "TLS half-close and propagating setFastSend to the underlying TLS TCP connection",
+            "Hostile-peer, concurrent shutdown, and cross-platform runtime guarantees"
           ],
           "blockers": [
             "haxe_go-vfp.10.9"

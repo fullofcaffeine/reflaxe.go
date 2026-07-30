@@ -1,0 +1,8 @@
+idle=0:0
+readBlocked=true
+nonblockingWrite=110
+acceptBlocked=true
+duplicates=2:true:client
+first=120
+buffered=1:121
+writable=1

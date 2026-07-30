@@ -113,9 +113,12 @@ retains the traditional all-files full-copy escape.
 `sys.net.Host`, `sys.net.Socket`, `sys.net.UdpSocket`, and their typed
 `hxrt.net` bindings infer `socket`, which copies `runtime/hxrt/socket.go`, its
 build-tagged `socket_broadcast_*.go` option adapters,
-`socket_listener_*.go` bind/listen adapters, and the `string` and `exception`
-dependencies. Plain programs and SSL leaf-only programs keep the OS networking
-capability out, including ordinary full-copy mode.
+`socket_listener_*.go` bind/listen adapters,
+`socket_readiness_*.go` descriptor adapters, and the `string` and `exception`
+dependencies. The unsupported readiness adapter is copied too, so Windows and
+unreviewed platforms fail explicitly rather than linking a false result.
+Plain programs and SSL leaf-only programs keep the OS networking capability
+out, including ordinary full-copy mode.
 `core/runtime_hxrt_infer_socket` locks that positive and negative shape, while
 `test/test_socket_runtime_cross_build.py` compiles the runtime for POSIX and
 Windows so descriptor-type differences cannot regress silently.

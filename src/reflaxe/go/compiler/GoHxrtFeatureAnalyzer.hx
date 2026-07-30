@@ -515,7 +515,11 @@ class GoHxrtFeatureAnalyzer {
 					"socket_broadcast_windows.go",
 					"socket_listener_posix.go",
 					"socket_listener_unsupported.go",
-					"socket_listener_windows.go"
+					"socket_listener_windows.go",
+					"socket_readiness_darwin.go",
+					"socket_readiness_linux_32.go",
+					"socket_readiness_linux_64.go",
+					"socket_readiness_unsupported.go"
 				];
 			case FEATURE_HTTP:
 				["http.go"];

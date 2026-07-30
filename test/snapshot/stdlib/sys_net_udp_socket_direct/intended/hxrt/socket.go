@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -27,6 +28,8 @@ const (
 	// SocketReadBlocked is the scalar read sentinel translated to haxe.io.Error.Blocked.
 	SocketReadBlocked = -2
 )
+
+const socketNonblockingProbeWindow = time.Millisecond
 
 // SocketAddress is the typed native address carrier consumed by staged sys.net.
 //
@@ -118,6 +121,65 @@ type socketBoundTCP interface {
 
 type socketListenerWrapper func(net.Listener) net.Listener
 
+type socketSyscallResource interface {
+	SyscallConn() (syscall.RawConn, error)
+}
+
+type socketNestedConnection interface {
+	NetConn() net.Conn
+}
+
+type socketReadinessSnapshot struct {
+	descriptor    uintptr
+	hasDescriptor bool
+	buffered      bool
+	eof           bool
+}
+
+func (snapshot *socketReadinessSnapshot) release() {
+	if snapshot == nil || !snapshot.hasDescriptor {
+		return
+	}
+	_ = socketCloseDescriptor(snapshot.descriptor)
+	snapshot.hasDescriptor = false
+}
+
+type socketSelectMode uint8
+
+const (
+	socketSelectRead socketSelectMode = iota
+	socketSelectWrite
+	socketSelectOthers
+)
+
+type socketSelectEntry struct {
+	index         int
+	descriptor    uintptr
+	hasDescriptor bool
+	immediate     bool
+}
+
+type socketNativeSelectRequest struct {
+	Read    []uintptr
+	Write   []uintptr
+	Others  []uintptr
+	Timeout time.Duration
+}
+
+type socketNativeSelectResult struct {
+	Read   map[uintptr]struct{}
+	Write  map[uintptr]struct{}
+	Others map[uintptr]struct{}
+}
+
+func newSocketNativeSelectResult() *socketNativeSelectResult {
+	return &socketNativeSelectResult{
+		Read:   make(map[uintptr]struct{}),
+		Write:  make(map[uintptr]struct{}),
+		Others: make(map[uintptr]struct{}),
+	}
+}
+
 // SocketHandle owns one native socket resource behind a typed opaque boundary.
 //
 // What: Stores a TCP/UDP connection, pre-listen TCP endpoint, or listener plus
@@ -196,7 +258,11 @@ func socketDeadline(timeout float64) time.Time {
 
 func (handle *SocketHandle) configuredDeadlineLocked() time.Time {
 	if !handle.blocking {
-		return time.Now()
+		// Go checks an expired deadline before attempting the underlying syscall,
+		// which can report Blocked even when the descriptor is already ready. A
+		// one-millisecond probe remains bounded while allowing that ready syscall
+		// to make progress.
+		return time.Now().Add(socketNonblockingProbeWindow)
 	}
 	if handle.hasTimeout {
 		return socketDeadline(handle.timeout)
@@ -787,88 +853,253 @@ func SocketWriteValues(handle *SocketHandle, values []int) *SocketIOResult {
 // SocketFlush is a typed no-op because SocketWriteValues writes directly to net.Conn.
 func SocketFlush(_ *SocketHandle) {}
 
-func (handle *SocketHandle) pollRead() (ready bool, exceptional bool) {
+func socketConnectionSyscallResource(conn net.Conn) (socketSyscallResource, bool) {
+	for conn != nil {
+		if resource, ok := conn.(socketSyscallResource); ok {
+			return resource, true
+		}
+		nested, ok := conn.(socketNestedConnection)
+		if !ok {
+			return nil, false
+		}
+		next := nested.NetConn()
+		if next == nil || next == conn {
+			return nil, false
+		}
+		conn = next
+	}
+	return nil, false
+}
+
+func socketResourceDescriptor(resource socketSyscallResource) (uintptr, error) {
+	raw, err := resource.SyscallConn()
+	if err != nil {
+		return 0, err
+	}
+	var descriptor uintptr
+	var duplicateErr error
+	if err := raw.Control(func(value uintptr) {
+		descriptor, duplicateErr = socketDuplicateDescriptor(value)
+	}); err != nil {
+		if duplicateErr == nil {
+			_ = socketCloseDescriptor(descriptor)
+		}
+		return 0, err
+	}
+	if duplicateErr != nil {
+		return 0, duplicateErr
+	}
+	return descriptor, nil
+}
+
+func (handle *SocketHandle) readinessSnapshot() (socketReadinessSnapshot, error) {
 	if handle == nil {
-		return false, true
+		return socketReadinessSnapshot{eof: true}, nil
 	}
 	handle.readMu.Lock()
-	defer handle.readMu.Unlock()
 	handle.stateMu.Lock()
 	reader := handle.reader
 	conn := handle.conn
-	if reader == nil || conn == nil {
+	listener := handle.listener
+	deadlineListener := handle.deadlineListener
+	buffered := reader != nil && reader.Buffered() > 0
+	if conn == nil && listener == nil {
 		handle.stateMu.Unlock()
-		return false, true
+		handle.readMu.Unlock()
+		return socketReadinessSnapshot{buffered: buffered, eof: true}, nil
 	}
-	if reader.Buffered() > 0 {
-		handle.stateMu.Unlock()
-		return true, false
+
+	var resource socketSyscallResource
+	if conn != nil {
+		var ok bool
+		resource, ok = socketConnectionSyscallResource(conn)
+		if !ok {
+			handle.stateMu.Unlock()
+			handle.readMu.Unlock()
+			return socketReadinessSnapshot{}, errors.New("socket resource does not expose native readiness")
+		}
+	} else {
+		var ok bool
+		resource, ok = deadlineListener.(socketSyscallResource)
+		if !ok {
+			handle.stateMu.Unlock()
+			handle.readMu.Unlock()
+			return socketReadinessSnapshot{}, errors.New("socket listener does not expose native readiness")
+		}
 	}
-	// A deadline a fraction in the future lets an already-scheduled packet win
-	// the race with the timer. An exactly-now deadline can report timeout even
-	// when bytes are already queued on implementations such as net.Pipe.
-	_ = conn.SetReadDeadline(time.Now().Add(time.Millisecond))
+	descriptor, err := socketResourceDescriptor(resource)
 	handle.stateMu.Unlock()
-	_, err := reader.Peek(1)
-	handle.stateMu.Lock()
-	_ = handle.applyConnDeadlineLocked()
-	handle.stateMu.Unlock()
-	if err == nil {
-		return true, false
+	handle.readMu.Unlock()
+	if err != nil {
+		if socketErrorIsClosed(err) {
+			return socketReadinessSnapshot{buffered: buffered, eof: true}, nil
+		}
+		return socketReadinessSnapshot{}, err
 	}
-	if socketErrorStatus(err) == SocketIOBlocked {
-		return false, false
-	}
-	if socketErrorStatus(err) == SocketIOEOF {
-		return true, false
-	}
-	return false, true
+	return socketReadinessSnapshot{
+		descriptor:    descriptor,
+		hasDescriptor: true,
+		buffered:      buffered,
+	}, nil
 }
 
-func socketConnected(handle *SocketHandle) bool {
-	if handle == nil {
-		return false
+func socketSelectEntries(
+	handles []*SocketHandle,
+	mode socketSelectMode,
+	cache map[*SocketHandle]socketReadinessSnapshot,
+) ([]socketSelectEntry, error) {
+	entries := make([]socketSelectEntry, 0, len(handles))
+	for index, handle := range handles {
+		snapshot, ok := cache[handle]
+		if !ok {
+			var err error
+			snapshot, err = handle.readinessSnapshot()
+			if err != nil {
+				return nil, err
+			}
+			cache[handle] = snapshot
+		}
+		entry := socketSelectEntry{index: index}
+		switch mode {
+		case socketSelectRead:
+			entry.immediate = snapshot.buffered || snapshot.eof
+		case socketSelectWrite, socketSelectOthers:
+		default:
+			return nil, errors.New("unknown socket readiness mode")
+		}
+		if snapshot.hasDescriptor {
+			entry.descriptor = snapshot.descriptor
+			entry.hasDescriptor = true
+		}
+		entries = append(entries, entry)
 	}
-	handle.stateMu.Lock()
-	defer handle.stateMu.Unlock()
-	return handle.conn != nil
+	return entries, nil
 }
 
-// SocketSelect polls typed handles and returns indexes into the caller's arrays.
+func socketSelectDescriptors(entries []socketSelectEntry) []uintptr {
+	descriptors := make([]uintptr, 0, len(entries))
+	for _, entry := range entries {
+		if entry.hasDescriptor {
+			descriptors = append(descriptors, entry.descriptor)
+		}
+	}
+	return descriptors
+}
+
+func socketSelectIndexes(
+	entries []socketSelectEntry,
+	ready map[uintptr]struct{},
+	includeImmediate bool,
+) []int {
+	indexes := make([]int, 0, len(entries))
+	for _, entry := range entries {
+		_, descriptorReady := ready[entry.descriptor]
+		descriptorReady = entry.hasDescriptor && descriptorReady
+		if (includeImmediate && entry.immediate) || descriptorReady {
+			indexes = append(indexes, entry.index)
+		}
+	}
+	return indexes
+}
+
+func socketReleaseReadinessSnapshots(cache map[*SocketHandle]socketReadinessSnapshot) {
+	for handle, snapshot := range cache {
+		snapshot.release()
+		cache[handle] = snapshot
+	}
+}
+
+func socketSelectOnce(
+	read []*SocketHandle,
+	write []*SocketHandle,
+	others []*SocketHandle,
+	wait time.Duration,
+) (*SocketSelectResult, error) {
+	cache := make(map[*SocketHandle]socketReadinessSnapshot)
+	defer socketReleaseReadinessSnapshots(cache)
+
+	readEntries, err := socketSelectEntries(read, socketSelectRead, cache)
+	if err != nil {
+		return nil, err
+	}
+	writeEntries, err := socketSelectEntries(write, socketSelectWrite, cache)
+	if err != nil {
+		return nil, err
+	}
+	otherEntries, err := socketSelectEntries(others, socketSelectOthers, cache)
+	if err != nil {
+		return nil, err
+	}
+	for _, entry := range readEntries {
+		if entry.immediate {
+			wait = 0
+			break
+		}
+	}
+
+	native, err := socketSelectNative(socketNativeSelectRequest{
+		Read:    socketSelectDescriptors(readEntries),
+		Write:   socketSelectDescriptors(writeEntries),
+		Others:  socketSelectDescriptors(otherEntries),
+		Timeout: wait,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &SocketSelectResult{
+		Read:   socketSelectIndexes(readEntries, native.Read, true),
+		Write:  socketSelectIndexes(writeEntries, native.Write, false),
+		Others: socketSelectIndexes(otherEntries, native.Others, false),
+	}, nil
+}
+
+// SocketSelect waits on real OS read, write, and exceptional readiness.
+//
+// What: Returns original caller-array indexes whose native descriptors are ready.
+// Why: Connection presence is not write readiness, and resource absence is not an
+// exceptional socket condition.
+// How: Preserve already-buffered read bytes, poll duplicated descriptors through
+// build-tagged native fd sets in bounded slices, then close each duplicate before
+// resnapshotting so concurrent source close and descriptor reuse remain safe.
 func SocketSelect(read []*SocketHandle, write []*SocketHandle, others []*SocketHandle, timeout float64, hasTimeout bool) *SocketSelectResult {
-	started := time.Now()
+	const maximumWaitSlice = 10 * time.Millisecond
+	finite := hasTimeout && timeout >= 0
+	var deadline time.Time
+	if finite {
+		deadline = time.Now().Add(time.Duration(timeout * float64(time.Second)))
+	}
+	retriedBadDescriptor := false
 	for {
-		result := &SocketSelectResult{Read: []int{}, Write: []int{}, Others: []int{}}
-		for index, handle := range read {
-			ready, exceptional := handle.pollRead()
-			// A closed or otherwise exceptional stream is readable as EOF from the
-			// Haxe caller's perspective. Returning it also prevents waitForRead from
-			// blocking forever after a concurrent or prior close.
-			if ready || exceptional {
-				result.Read = append(result.Read, index)
+		wait := maximumWaitSlice
+		if finite {
+			remaining := time.Until(deadline)
+			if remaining <= 0 {
+				wait = 0
+			} else if remaining < wait {
+				wait = remaining
 			}
 		}
-		for index, handle := range write {
-			if socketConnected(handle) {
-				result.Write = append(result.Write, index)
+		result, err := socketSelectOnce(read, write, others, wait)
+		if err == nil {
+			if len(result.Read) > 0 || len(result.Write) > 0 || len(result.Others) > 0 {
+				return result
 			}
-		}
-		for index, handle := range others {
-			if !socketConnected(handle) {
-				result.Others = append(result.Others, index)
+			if finite && !time.Now().Before(deadline) {
+				return result
 			}
+			retriedBadDescriptor = false
+			continue
 		}
-		if len(result.Read) > 0 || len(result.Write) > 0 || len(result.Others) > 0 {
-			return result
+		if errors.Is(err, syscall.EBADF) && !retriedBadDescriptor {
+			retriedBadDescriptor = true
+			continue
 		}
-		if hasTimeout && (timeout <= 0 || time.Since(started) >= time.Duration(timeout*float64(time.Second))) {
-			return result
-		}
-		time.Sleep(time.Millisecond)
+		socketThrow(err)
+		return &SocketSelectResult{Read: []int{}, Write: []int{}, Others: []int{}}
 	}
 }
 
-// SocketWaitForRead blocks until the handle becomes readable or exceptional.
+// SocketWaitForRead blocks until bytes, EOF, or a read-side error is observable.
 func SocketWaitForRead(handle *SocketHandle) {
 	_ = SocketSelect([]*SocketHandle{handle}, nil, nil, 0, false)
 }

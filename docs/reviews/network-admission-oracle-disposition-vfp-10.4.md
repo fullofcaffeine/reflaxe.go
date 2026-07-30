@@ -107,6 +107,13 @@ release claim:
   releases either state. Generated-Haxe, TLS-wrapper, concurrency, and Linux
   bounded-queue regressions are present; server admission still awaits the
   advanced-socket parent review, and Windows evidence remains compile-only.
+- `haxe_go-vfp.10.9.6` replaces connection-presence guesses with typed,
+  build-tagged native readiness. Saturation/drain, buffered bytes, EOF/reset,
+  duplicate identity, POSIX urgent data, timeout forms, and connected
+  nonblocking read/write/accept have native and generated-Haxe evidence.
+  Nonblocking connect, TLS readiness, and Windows runtime readiness remain
+  explicitly excluded; shutdown and fast-send stay in their own experimental
+  operation so this evidence cannot imply their support.
 
 UDP and TLS remain release-excluded until their complete operation-level
 contracts and the parent `haxe_go-vfp.10.9` review are complete.

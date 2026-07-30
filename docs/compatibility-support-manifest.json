@@ -5,11 +5,11 @@
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "747a7e0046c622149ea2a47c88719de1b6d32d496fbd1334c99e6cdc970b49a9",
+    "compatibility_source_sha256": "58f380acd478e1e531f9c76078010b5944a7a3aa6cdb3fbd5ba40ced35508e4d",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "8a7398b39f903dca0f2448e4597582b2a2a2f5da2d0405101e7d1b793683f329"
+    "portable_stdlib_inventory_sha256": "cc41a979e3a0caee1020c19f0e9c28536f752a388699b5d3479c0afa42c824ac"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -550,6 +550,30 @@
       "id": "policy:socket-dns-boundary",
       "kind": "path",
       "path": "docs/socket-dns-boundary.md",
+      "level": "policy"
+    },
+    {
+      "id": "semantic:socket-readiness",
+      "kind": "path",
+      "path": "test/semantic_diff/socket_readiness_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "snapshot:socket-readiness",
+      "kind": "path",
+      "path": "test/snapshot/sys/socket_readiness_contract",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "runtime:socket-readiness-posix",
+      "kind": "path",
+      "path": "runtime/hxrt/socket_readiness_posix_test.go",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "policy:socket-readiness",
+      "kind": "path",
+      "path": "docs/socket-readiness-nonblocking.md",
       "level": "policy"
     },
     {
@@ -1447,21 +1471,50 @@
             "sys.net.Socket.setTimeout",
             "sys.net.Socket.setBlocking",
             "sys.net.Socket.select",
-            "sys.net.Socket.waitForRead",
+            "sys.net.Socket.waitForRead"
+          ],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": false,
+          "qualification": "The operation-level candidate uses operating-system read, write, and exceptional readiness on Linux and Darwin, preserves buffered bytes, EOF, duplicate indexes, and public Socket identity, and proves prompt Blocked behavior for connected nonblocking read/write/accept. Socket.setTimeout still does not bound Host construction or reverse lookup. Linux has runtime evidence; Darwin has local runtime evidence; Windows remains compile-only and explicitly unsupported at runtime. Release admission stays fail-closed pending the advanced socket review.",
+          "evidence_ids": [
+            "semantic:socket",
+            "semantic:socket-readiness",
+            "snapshot:socket-readiness",
+            "runtime:socket-regressions",
+            "runtime:socket-readiness-posix",
+            "runtime:socket-cross-build",
+            "policy:socket-readiness",
+            "bead:network-audit"
+          ],
+          "exclusions": [
+            "Nonblocking connect, because the current dial path cannot retain an in-progress socket for later select completion",
+            "TLS readiness, because decrypted TLS records may be buffered above the native descriptor",
+            "Windows runtime readiness and runtime support on operating systems without a reviewed native adapter",
+            "DNS timeout/cancellation, hostile-peer and long-duration resource convergence, and release admission outside Linux/amd64"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.9"
+          ]
+        },
+        {
+          "id": "socket-shutdown-fast-send-controls",
+          "symbols": [
             "sys.net.Socket.shutdown",
             "sys.net.Socket.setFastSend"
           ],
           "granularity": "operation",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Deterministic fixtures exercise current timeout and select behavior, but Socket.setTimeout does not bound Host construction or reverse lookup, connection presence is not real write readiness, exceptional readiness is unresolved, and the remaining control semantics are not yet admitted.",
+          "qualification": "Deterministic fixtures exercise current TCP shutdown and fast-send behavior, but one-sided TLS shutdown and applying TCP_NODELAY through TLS remain unresolved. These members are intentionally separate from the real-readiness candidate so readiness evidence cannot imply their admission.",
           "evidence_ids": [
             "semantic:socket",
             "runtime:socket-regressions",
             "bead:network-audit"
           ],
           "exclusions": [
-            "Zero and negative timeout semantics, nonblocking connect/read/write, real read/write/exception readiness, waitForRead, half-close, fast-send, and concurrent hostile-peer behavior"
+            "TLS half-close and propagating setFastSend to the underlying TLS TCP connection",
+            "Hostile-peer, concurrent shutdown, and cross-platform runtime guarantees"
           ],
           "blockers": [
             "haxe_go-vfp.10.9"
@@ -3641,7 +3694,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged `sys.net.Socket` owns the public API, bind/listen sequencing, stream wrappers, Haxe EOF/blocked translation, address construction, and select identity. One opaque typed handle reaches TCP lifecycle, deadlines, readiness, and socket options in footprint-explicit `runtime/hxrt/socket.go` plus build-tagged listener adapters; loopback/server-lifecycle semantic-diff, selective-runtime snapshots, direct partial-write/peer-close/accept-timeout/backlog/cleanup tests, and the Go race detector guard the boundary."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged `sys.net.Socket` owns the public API, bind/listen sequencing, stream wrappers, Haxe EOF/blocked translation, address construction, and select identity. One opaque typed handle reaches TCP lifecycle, deadlines, readiness, and socket options in footprint-explicit `runtime/hxrt/socket.go` plus build-tagged listener/readiness adapters; loopback/server-lifecycle/readiness semantic-diff, selective-runtime snapshots, direct partial-write/peer-close/accept-timeout/backlog/saturation/drain/OOB/cleanup tests, and the Go race detector guard the boundary."
       },
       {
         "module": "sys.net.UdpSocket",
