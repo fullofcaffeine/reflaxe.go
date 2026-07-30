@@ -2642,6 +2642,9 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "socket_broadcast_posix.go",
             "socket_broadcast_unsupported.go",
             "socket_broadcast_windows.go",
+            "socket_listener_posix.go",
+            "socket_listener_unsupported.go",
+            "socket_listener_windows.go",
         ):
             self.assertIn(f'"{runtime_file}"', feature_analyzer)
         self.assertIn('["socket_ssl.go"]', feature_analyzer)
@@ -2661,6 +2664,9 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "socket_broadcast_posix.go",
             "socket_broadcast_unsupported.go",
             "socket_broadcast_windows.go",
+            "socket_listener_posix.go",
+            "socket_listener_unsupported.go",
+            "socket_listener_windows.go",
         ):
             self.assertTrue((socket_runtime / runtime_file).is_file(), runtime_file)
         self.assertFalse((socket_runtime / "ssl.go").exists())
@@ -2675,6 +2681,9 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "socket_broadcast_posix.go",
             "socket_broadcast_unsupported.go",
             "socket_broadcast_windows.go",
+            "socket_listener_posix.go",
+            "socket_listener_unsupported.go",
+            "socket_listener_windows.go",
             "socket_ssl.go",
         ):
             self.assertFalse(

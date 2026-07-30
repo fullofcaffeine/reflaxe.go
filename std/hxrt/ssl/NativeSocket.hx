@@ -20,8 +20,15 @@ extern class NativeSocket {
 	public static function connect(handle:SocketHandle, endpoint:SocketEndpoint, port:Int, verifyCert:Bool, ca:CertificateHandle, serverName:String,
 		cert:CertificateHandle, key:KeyHandle):Void;
 
-	@:go.name("SslSocketListen")
-	public static function listen(handle:SocketHandle, host:String, port:Int, cert:CertificateHandle, key:KeyHandle, sni:SNIConfigHandle):Void;
+	/**
+		What: Reserves a server endpoint and retains its typed TLS wrapping policy.
+		Why: `sys.ssl.Socket.bind` must not start listening or discard the later
+		`listen(connections)` backlog.
+		How: Bind through `SslSocketBind`; the inherited typed network capability
+		performs the actual listen transition.
+	**/
+	@:go.name("SslSocketBind")
+	public static function bind(handle:SocketHandle, host:String, port:Int, cert:CertificateHandle, key:KeyHandle, sni:SNIConfigHandle):Void;
 
 	@:go.name("SslSocketHandshake")
 	public static function handshake(handle:SocketHandle):Void;

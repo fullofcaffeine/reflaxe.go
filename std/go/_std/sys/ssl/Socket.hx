@@ -86,7 +86,7 @@ class Socket extends sys.net.Socket {
 	override public function bind(host:Host, port:Int):Void {
 		if (host == null)
 			throw "socket bind requires host";
-		NativeSslSocket.listen(handle, host.toString(), port, ownCert == null ? null : ownCert.handle, ownKey == null ? null : ownKey.handle, sniConfig);
+		NativeSslSocket.bind(handle, host.toString(), port, ownCert == null ? null : ownCert.handle, ownKey == null ? null : ownKey.handle, sniConfig);
 	}
 
 	/**

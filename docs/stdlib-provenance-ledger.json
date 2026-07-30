@@ -803,7 +803,7 @@
       "destination": "std/go/_std/sys/ssl/Socket.hx",
       "migrationBead": "haxe_go-vfp.8.7.14",
       "compilerShimGroups": [],
-      "notes": "Canonical source-owned Haxe 4.3.7 sys.ssl.Socket API composed over the staged sys.net.Socket and shared typed handle. TLS transport capabilities live in footprint-explicit socket_ssl.go; configuration, accepted-object identity, and certificate wrapping remain staged source."
+      "notes": "Canonical source-owned Haxe 4.3.7 sys.ssl.Socket API composed over the staged sys.net.Socket and shared typed handle. TLS transport capabilities live in footprint-explicit socket_ssl.go; configuration, bind-before-listen sequencing, accepted-object identity, and certificate wrapping remain staged source."
     },
     {
       "path": "std/go/_std/sys/thread/Condition.hx",
@@ -1460,7 +1460,7 @@
       "destination": "std/hxrt/net/NativeSocket.hx",
       "migrationBead": "haxe_go-vfp.8.7.14",
       "compilerShimGroups": [],
-      "notes": "Typed extern bridge to the footprint-explicit DNS, TCP, UDP, stream, deadline, socket-option, and readiness capabilities in runtime/hxrt/socket.go."
+      "notes": "Typed extern bridge to the footprint-explicit DNS, TCP, UDP, pre-listen lifecycle, stream, deadline, socket-option, and readiness capabilities in runtime/hxrt/socket.go plus its build-tagged adapters."
     },
     {
       "path": "std/hxrt/net/SocketAcceptResult.hx",
@@ -1505,7 +1505,7 @@
       "destination": "std/hxrt/net/SocketHandle.hx",
       "migrationBead": "haxe_go-vfp.8.7.14",
       "compilerShimGroups": [],
-      "notes": "Opaque typed extern carrier for a native TCP or UDP resource, its synchronized lifecycle, stream state, deadline, and socket-option policy."
+      "notes": "Opaque typed extern carrier for a native TCP or UDP resource, including synchronized pre-listen/listener lifecycle, stream state, deadline, and socket-option policy."
     },
     {
       "path": "std/hxrt/net/SocketIOResult.hx",
@@ -1676,7 +1676,7 @@
       "destination": "std/hxrt/ssl/NativeSocket.hx",
       "migrationBead": "haxe_go-vfp.8.7.14",
       "compilerShimGroups": [],
-      "notes": "Typed TLS composition bridge over the shared SocketHandle, opaque key/certificate/SNI values, and footprint-explicit runtime/hxrt/socket_ssl.go capabilities."
+      "notes": "Typed TLS composition bridge over the shared SocketHandle, opaque key/certificate/SNI values, deferred listener wrapping after inherited listen, and footprint-explicit runtime/hxrt/socket_ssl.go capabilities."
     },
     {
       "path": "std/hxrt/ssl/SNIConfigHandle.hx",

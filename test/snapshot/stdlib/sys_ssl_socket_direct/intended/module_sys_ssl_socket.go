@@ -115,7 +115,7 @@ func (self *sys__ssl__Socket) bind(host *sys__net__Host, port int) {
 	if host == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("socket bind requires host"))
 	}
-	hxrt.SslSocketListen(self.handle, host.__hx_this.toString(), port, func() *hxrt.SslCertificate {
+	hxrt.SslSocketBind(self.handle, host.__hx_this.toString(), port, func() *hxrt.SslCertificate {
 		var hx_if_15 *hxrt.SslCertificate
 		if self.ownCert == nil {
 			hx_if_15 = nil

@@ -63,9 +63,23 @@ extern class NativeSocket {
 	@:go.name("SocketConnectTCP")
 	public static function connectTcp(handle:SocketHandle, host:String, port:Int):Void;
 
+	/**
+		What: Reserves a numeric IPv4 endpoint without starting a TCP listener.
+		Why: Haxe exposes `bind` and `listen` as separate lifecycle transitions,
+		while Go's ordinary `net.Listen` combines them and chooses the backlog.
+		How: Retain an opaque build-tagged native socket until `listen` supplies
+		the pending-connection limit.
+	**/
 	@:go.name("SocketBindTCP")
 	public static function bindTcp(handle:SocketHandle, host:String, port:Int):Void;
 
+	/**
+		What: Starts a bound TCP server with the requested nonnegative backlog.
+		Why: The public `connections` argument must reach the operating system
+		instead of becoming a no-op after bind.
+		How: Convert the retained descriptor into Go's pollable listener only
+		after the native listen transition succeeds.
+	**/
 	@:go.name("SocketListen")
 	public static function listen(handle:SocketHandle, connections:Int):Void;
 

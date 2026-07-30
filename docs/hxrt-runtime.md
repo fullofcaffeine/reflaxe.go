@@ -120,7 +120,8 @@ Key implementation points:
   - request selection, data-URL behavior, multipart policy, public maps,
     callbacks, and status/error classification remain in staged `sys.Http`.
 - Network capabilities (`runtime/hxrt/socket.go` plus build-tagged
-  `runtime/hxrt/socket_broadcast_*.go` adapters):
+  `runtime/hxrt/socket_broadcast_*.go` and
+  `runtime/hxrt/socket_listener_*.go` adapters):
   - one opaque, synchronized `SocketHandle` shared by TCP and UDP;
   - typed eager DNS/IPv4, connect/bind/listen/accept, byte transfer, deadline,
     blocking-policy, readiness, shutdown, address, broadcast, and datagram operations;
@@ -129,13 +130,19 @@ Key implementation points:
     [socket DNS and timeout boundary](socket-dns-boundary.md);
   - one snapshotted dial policy applies the staged timeout to TCP connection
     establishment and, through TLS composition, to the TLS handshake;
+  - typed pre-listen state preserves `bind` before `listen`; the later call
+    passes its nonnegative backlog to the OS and then converts the descriptor
+    into Go's pollable listener. The exact lifecycle and release boundary are
+    documented in [socket server lifecycle and backlog](socket-server-lifecycle.md);
   - POSIX and Windows keep their native descriptor types behind separate
-    build-tagged `SO_BROADCAST` helpers, with an explicit unsupported-platform error;
+    build-tagged broadcast and listener helpers, with explicit
+    unsupported-platform errors;
   - concrete result carriers keep byte progress, EOF/blocked state, peer addresses,
     accepted handles, and readiness indexes explicit instead of using `Dynamic`.
 - TLS socket composition (`runtime/hxrt/socket_ssl.go`):
-  - typed client/listener installation, handshake, peer-certificate access, and
-    SNI certificate selection over the shared `SocketHandle`;
+  - typed client setup, deferred server-listener wrapping, handshake,
+    peer-certificate access, and SNI certificate selection over the shared
+    `SocketHandle`;
   - client dialing uses the socket handle's timeout-aware `net.Dialer`, so a
     peer that accepts TCP but stalls the handshake cannot ignore `setTimeout`;
   - typed certificate/key primitives remain in `runtime/hxrt/ssl.go`, so SSL

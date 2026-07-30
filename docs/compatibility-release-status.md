@@ -25,7 +25,7 @@ take the default excluded disposition.
 - `portable-networking` / `haxe.Http/sys.Http request/customRequest (data URL)`: `compile-go-test-run-supported`; blockers: haxe_go-vfp.10.8.
 - `portable-networking` / `haxe.Http.PROXY and customRequest(..., socket)`: `experimental`.
 - `portable-networking` / `haxe.Http/sys.Http request/customRequest/requestUrl (HTTPS)`: `experimental`.
-- `portable-networking` / `sys.net.Socket.bind`, `sys.net.Socket.listen`, `sys.net.Socket.accept`: `experimental`; blockers: haxe_go-vfp.10.9.
+- `portable-networking` / `sys.net.Socket.bind`, `sys.net.Socket.listen`, `sys.net.Socket.accept`: `semantic-diff-supported`; blockers: haxe_go-vfp.10.9.
 - `portable-networking` / `sys.net.Socket.setTimeout`, `sys.net.Socket.setBlocking`, `sys.net.Socket.select`, `sys.net.Socket.waitForRead`, `sys.net.Socket.shutdown`, `sys.net.Socket.setFastSend`: `experimental`; blockers: haxe_go-vfp.10.9.
 - `portable-networking` / `new sys.net.Host("hostname")`, `sys.net.Host.reverse`, `sys.net.Host.localhost`: `experimental`; blockers: haxe_go-vfp.10.9.
 - `portable-networking` / `sys.net.UdpSocket`: `experimental`; blockers: haxe_go-vfp.10.9.

@@ -3136,3 +3136,49 @@ Bounded claim:
   resolver configuration, reverse lookup, search domains, split-horizon
   behavior, and local-host discovery remain release-excluded under
   `haxe_go-vfp.10.9`.
+
+### 2026-07-30: restore bind/listen and backlog semantics (`haxe_go-vfp.10.9.5`)
+
+What changed:
+
+- `Socket.bind` now reserves an IPv4 endpoint without accepting connections.
+  `Socket.host()` can report the reserved address and an OS-selected port
+  before listening starts.
+- `Socket.listen(connections)` performs the real OS listen transition and
+  passes every nonnegative backlog request through. A repeated listen call
+  reapplies its new value instead of silently doing nothing.
+- `sys.ssl.Socket.bind` retains its typed TLS configuration on the same bound
+  handle. The inherited listen transition creates the TCP listener first and
+  then wraps it with TLS.
+- Build-tagged POSIX, Windows, and unsupported adapters keep native descriptor
+  types out of generated Haxe. The socket runtime feature selects all adapters
+  explicitly.
+
+Why:
+
+- Go's `net.Listen` combines bind and listen and chooses its own backlog.
+  Calling it from Haxe's `bind` made a server reachable too early and reduced
+  the later public `listen(connections)` call to a no-op.
+- An application-level pending queue would not reproduce the kernel's refusal,
+  resource, or readiness behavior.
+
+How it is proved:
+
+- The red native regression first demonstrated that a connection succeeded
+  before listen and that unbound listen silently succeeded.
+- Native and generated-Haxe tests now cover pre-listen refusal, post-listen
+  round trips, invalid lifecycle transitions, duplicate listen,
+  close-before-listen, inherited accepted-socket policy, deferred TLS
+  wrapping, and concurrent listen/close under the race detector.
+- A Linux-only runtime case requires backlog 1 to bound pending connections
+  without an accept. Linux and Windows cross-builds keep descriptor-specific
+  sources compiling, while policy text continues to label Windows as
+  compile-only evidence.
+
+Bounded claim:
+
+- The server operation becomes a reviewed admission candidate, not an admitted
+  release promise. Nonblocking accept, real accept/readiness behavior, hostile
+  peers, listener load/soak behavior, exact queue counts across kernels, and
+  runtime support outside Linux/amd64 remain excluded under
+  `haxe_go-vfp.10.9`.

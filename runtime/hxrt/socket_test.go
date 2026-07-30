@@ -10,6 +10,7 @@ import (
 	"io"
 	"math/big"
 	"net"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -148,6 +149,204 @@ func socketTestTCPPair(t *testing.T) (*SocketHandle, *SocketHandle, *SocketHandl
 		SocketClose(listener)
 		t.Fatal("SocketAccept did not complete")
 		return nil, nil, nil
+	}
+}
+
+func TestSocketBindReservesEndpointWithoutListening(t *testing.T) {
+	listener := SocketNewTCP()
+	defer SocketClose(listener)
+	SocketBindTCP(listener, socketTestString(socketTestHost), 0)
+	bound := SocketHost(listener)
+	if bound == nil || bound.Port <= 0 {
+		t.Fatalf("SocketHost(bound) = %#v, want a reserved positive port", bound)
+	}
+	address := net.JoinHostPort(socketTestHost, strconv.Itoa(bound.Port))
+
+	beforeListen, err := net.DialTimeout("tcp4", address, 20*time.Millisecond)
+	if err == nil {
+		_ = beforeListen.Close()
+		t.Fatal("TCP connection succeeded after bind but before listen")
+	}
+
+	SocketListen(listener, 1)
+	afterListen, err := net.DialTimeout("tcp4", address, time.Second)
+	if err != nil {
+		t.Fatalf("TCP connection after listen failed: %v", err)
+	}
+	_ = afterListen.Close()
+}
+
+func TestSocketListenValidatesLifecycleAndBacklog(t *testing.T) {
+	unbound := SocketNewTCP()
+	defer SocketClose(unbound)
+	if recovered := socketTestRecovered(func() {
+		SocketListen(unbound, 1)
+	}); recovered == nil {
+		t.Fatal("SocketListen on an unbound handle did not fail")
+	}
+
+	bound := SocketNewTCP()
+	defer SocketClose(bound)
+	SocketBindTCP(bound, socketTestString(socketTestHost), 0)
+	if recovered := socketTestRecovered(func() {
+		SocketListen(bound, -1)
+	}); recovered == nil {
+		t.Fatal("SocketListen accepted a negative backlog")
+	}
+	if recovered := socketTestRecovered(func() {
+		SocketListen(bound, 1)
+	}); recovered != nil {
+		t.Fatalf("first SocketListen recovered %#v", recovered)
+	}
+	if recovered := socketTestRecovered(func() {
+		SocketListen(bound, 2)
+	}); recovered != nil {
+		t.Fatalf("duplicate SocketListen recovered %#v", recovered)
+	}
+
+	closed := SocketNewTCP()
+	SocketBindTCP(closed, socketTestString(socketTestHost), 0)
+	closedAddress := SocketHost(closed)
+	SocketClose(closed)
+	if recovered := socketTestRecovered(func() {
+		SocketListen(closed, 1)
+	}); recovered == nil {
+		t.Fatal("SocketListen after close did not fail")
+	}
+	rebound, err := net.Listen(
+		"tcp4",
+		net.JoinHostPort(socketTestHost, strconv.Itoa(closedAddress.Port)),
+	)
+	if err != nil {
+		t.Fatalf("bind then close did not release reserved endpoint: %v", err)
+	}
+	_ = rebound.Close()
+}
+
+func TestSocketAcceptInheritsListenerPolicyAfterListen(t *testing.T) {
+	listener := SocketNewTCP()
+	client := SocketNewTCP()
+	defer SocketClose(listener)
+	defer SocketClose(client)
+
+	SocketBindTCP(listener, socketTestString(socketTestHost), 0)
+	SocketListen(listener, 1)
+	SocketSetTimeout(listener, 0.25)
+	SocketSetFastSend(listener, true)
+	bound := SocketHost(listener)
+	SocketConnectTCP(client, socketTestString(socketTestHost), bound.Port)
+
+	result := SocketAccept(listener)
+	if result == nil || result.Status != SocketIOReady || result.Handle == nil {
+		t.Fatalf("SocketAccept = %#v, want a ready inherited handle", result)
+	}
+	defer SocketClose(result.Handle)
+	if !result.Handle.blocking {
+		t.Fatal("accepted handle did not inherit the listener's blocking policy")
+	}
+	if !result.Handle.hasTimeout || result.Handle.timeout != 0.25 {
+		t.Fatalf(
+			"accepted timeout = (%v, %v), want configured 0.25",
+			result.Handle.hasTimeout,
+			result.Handle.timeout,
+		)
+	}
+	if !result.Handle.fastSend {
+		t.Fatal("accepted handle did not inherit fast-send policy")
+	}
+}
+
+func TestSocketTLSWrapperStartsOnlyAtListen(t *testing.T) {
+	serverConfig, _ := socketTestCertificate(t, socketTestHost)
+	listener := SocketNewTCP()
+	defer SocketClose(listener)
+	socketBindTCP(
+		listener,
+		socketTestString(socketTestHost),
+		0,
+		func(raw net.Listener) net.Listener {
+			return tls.NewListener(raw, serverConfig)
+		},
+	)
+	bound := SocketHost(listener)
+	address := net.JoinHostPort(socketTestHost, strconv.Itoa(bound.Port))
+
+	beforeListen, err := net.DialTimeout("tcp4", address, 20*time.Millisecond)
+	if err == nil {
+		_ = beforeListen.Close()
+		t.Fatal("TLS TCP connection succeeded after bind but before listen")
+	}
+	SocketListen(listener, 1)
+
+	serverResult := make(chan any, 1)
+	go func() {
+		result := SocketAccept(listener)
+		if result == nil || result.Status != SocketIOReady || result.Handle == nil {
+			serverResult <- result
+			return
+		}
+		defer SocketClose(result.Handle)
+		serverResult <- socketTestRecovered(func() {
+			SslSocketHandshake(result.Handle)
+		})
+	}()
+
+	client, err := tls.Dial(
+		"tcp4",
+		address,
+		&tls.Config{InsecureSkipVerify: true},
+	)
+	if err != nil {
+		t.Fatalf("TLS dial after listen failed: %v", err)
+	}
+	_ = client.Close()
+	select {
+	case result := <-serverResult:
+		if result != nil {
+			t.Fatalf("TLS accept/handshake result = %#v, want nil", result)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("TLS accept/handshake did not complete")
+	}
+}
+
+func TestSocketConcurrentListenAndCloseHaveDeterministicOutcomes(t *testing.T) {
+	for attempt := 0; attempt < 100; attempt++ {
+		handle := SocketNewTCP()
+		SocketBindTCP(handle, socketTestString(socketTestHost), 0)
+		start := make(chan struct{})
+		listenResult := make(chan any, 1)
+		closeResult := make(chan any, 1)
+
+		go func() {
+			<-start
+			listenResult <- socketTestRecovered(func() {
+				SocketListen(handle, 1)
+			})
+		}()
+		go func() {
+			<-start
+			closeResult <- socketTestRecovered(func() {
+				SocketClose(handle)
+			})
+		}()
+		close(start)
+
+		listenRecovered := <-listenResult
+		closeRecovered := <-closeResult
+		if closeRecovered != nil {
+			t.Fatalf("attempt %d close recovered %#v", attempt, closeRecovered)
+		}
+		if listenRecovered != nil {
+			if _, ok := listenRecovered.(HaxeException); !ok {
+				t.Fatalf("attempt %d listen recovered %#v, want HaxeException", attempt, listenRecovered)
+			}
+		}
+		if recovered := socketTestRecovered(func() {
+			SocketClose(handle)
+		}); recovered != nil {
+			t.Fatalf("attempt %d final close recovered %#v", attempt, recovered)
+		}
 	}
 }
 

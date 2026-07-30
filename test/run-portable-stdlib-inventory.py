@@ -572,11 +572,12 @@ MODULE_NOTES_OVERRIDES = {
         "retaining a compiler-emitted Host type."
     ),
     "sys.net.Socket": (
-        "Canonical staged `sys.net.Socket` owns the public API, stream wrappers, Haxe EOF/blocked translation, "
-        "address construction, and select identity. One opaque typed handle reaches TCP lifecycle, deadlines, "
-        "readiness, and socket options in footprint-explicit `runtime/hxrt/socket.go`; loopback semantic-diff, "
-        "selective-runtime snapshots, direct partial-write/peer-close/accept-timeout/cleanup tests, and the Go race "
-        "detector guard the boundary."
+        "Canonical staged `sys.net.Socket` owns the public API, bind/listen sequencing, stream wrappers, Haxe "
+        "EOF/blocked translation, address construction, and select identity. One opaque typed handle reaches TCP "
+        "lifecycle, deadlines, readiness, and socket options in footprint-explicit `runtime/hxrt/socket.go` plus "
+        "build-tagged listener adapters; loopback/server-lifecycle semantic-diff, selective-runtime snapshots, "
+        "direct partial-write/peer-close/accept-timeout/backlog/cleanup tests, and the Go race detector guard the "
+        "boundary."
     ),
     "sys.net.UdpSocket": (
         "Direct `sys.net.UdpSocket` usage now has deterministic snapshot/runtime coverage through "
@@ -638,9 +639,10 @@ MODULE_NOTES_OVERRIDES = {
         "Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct` "
         "and SNI selection coverage through `stdlib/sys_ssl_socket_sni_direct`, "
         "covering staged public configuration and accepted SSL object identity over the source-owned `sys.net.Socket` "
-        "and its shared typed handle. TLS dial/listen/handshake/peer-certificate/SNI composition lives in the "
+        "and its shared typed handle. TLS dial/deferred-listener-wrap/handshake/peer-certificate/SNI composition lives in the "
         "footprint-explicit `runtime/hxrt/socket_ssl.go`; certificate and key primitives remain in `ssl.go`. "
-        "A direct race test proves the configured socket timeout also bounds a stalled TLS handshake. No raw injection, "
+        "A direct race test proves the configured socket timeout also bounds a stalled TLS handshake, while server "
+        "lifecycle evidence proves TLS bind waits for inherited listen and preserves its backlog. No raw injection, "
         "Dynamic native handle, or `net_socket` compiler ownership remains."
     ),
 }

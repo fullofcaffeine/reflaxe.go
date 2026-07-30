@@ -101,6 +101,12 @@ release claim:
   records the exact boundary: socket timeout values cannot cancel or bound DNS
   that completes before a Socket exists. The operation stays release-excluded
   behind an executable compatibility-policy contract.
+- `haxe_go-vfp.10.9.5` restores the Haxe TCP server lifecycle through a typed
+  build-tagged OS boundary: bind reserves without listening, listen applies
+  the requested nonnegative backlog, repeated listen reapplies it, and close
+  releases either state. Generated-Haxe, TLS-wrapper, concurrency, and Linux
+  bounded-queue regressions are present; server admission still awaits the
+  advanced-socket parent review, and Windows evidence remains compile-only.
 
 UDP and TLS remain release-excluded until their complete operation-level
 contracts and the parent `haxe_go-vfp.10.9` review are complete.

@@ -110,9 +110,18 @@ type socketDeadlineListener interface {
 	SetDeadline(time.Time) error
 }
 
+type socketBoundTCP interface {
+	Addr() net.Addr
+	Listen(backlog int) (*net.TCPListener, error)
+	Close() error
+}
+
+type socketListenerWrapper func(net.Listener) net.Listener
+
 // SocketHandle owns one native socket resource behind a typed opaque boundary.
 //
-// What: Stores a TCP/UDP connection or listener plus buffering and deadline policy.
+// What: Stores a TCP/UDP connection, pre-listen TCP endpoint, or listener plus
+// buffering and deadline policy.
 // Why: OS resources cannot be represented as portable Haxe data, while exposing
 // net.Conn as Dynamic would erase lifecycle ownership and make concurrent close racy.
 // How: stateMu protects replaceable resources and policy, while readMu/writeMu
@@ -124,8 +133,10 @@ type SocketHandle struct {
 	writeMu sync.Mutex
 
 	conn             net.Conn
+	boundTCP         socketBoundTCP
 	listener         net.Listener
 	deadlineListener socketDeadlineListener
+	listenerWrapper  socketListenerWrapper
 	reader           *bufio.Reader
 
 	timeout    float64
@@ -250,16 +261,22 @@ func (handle *SocketHandle) installConn(conn net.Conn) {
 	}
 	handle.stateMu.Lock()
 	oldConn := handle.conn
+	oldBound := handle.boundTCP
 	oldListener := handle.listener
 	handle.conn = conn
+	handle.boundTCP = nil
 	handle.listener = nil
 	handle.deadlineListener = nil
+	handle.listenerWrapper = nil
 	handle.reader = bufio.NewReader(conn)
 	fastErr := handle.applyFastSendLocked()
 	deadlineErr := handle.applyConnDeadlineLocked()
 	handle.stateMu.Unlock()
 	if oldConn != nil && oldConn != conn {
 		_ = oldConn.Close()
+	}
+	if oldBound != nil {
+		_ = oldBound.Close()
 	}
 	if oldListener != nil {
 		_ = oldListener.Close()
@@ -272,27 +289,29 @@ func (handle *SocketHandle) installConn(conn net.Conn) {
 	}
 }
 
-func (handle *SocketHandle) installListener(listener net.Listener, deadlineListener socketDeadlineListener) {
-	if handle == nil || listener == nil {
+func (handle *SocketHandle) installBoundTCP(bound socketBoundTCP, wrapper socketListenerWrapper) {
+	if handle == nil || bound == nil {
 		return
 	}
 	handle.stateMu.Lock()
 	oldConn := handle.conn
+	oldBound := handle.boundTCP
 	oldListener := handle.listener
 	handle.conn = nil
+	handle.boundTCP = bound
+	handle.listener = nil
+	handle.deadlineListener = nil
+	handle.listenerWrapper = wrapper
 	handle.reader = nil
-	handle.listener = listener
-	handle.deadlineListener = deadlineListener
-	deadlineErr := handle.applyListenerDeadlineLocked()
 	handle.stateMu.Unlock()
 	if oldConn != nil {
 		_ = oldConn.Close()
 	}
-	if oldListener != nil && oldListener != listener {
-		_ = oldListener.Close()
+	if oldBound != nil && oldBound != bound {
+		_ = oldBound.Close()
 	}
-	if deadlineErr != nil {
-		socketThrow(deadlineErr)
+	if oldListener != nil {
+		_ = oldListener.Close()
 	}
 }
 
@@ -311,16 +330,24 @@ func (handle *SocketHandle) close() error {
 	}
 	handle.stateMu.Lock()
 	conn := handle.conn
+	bound := handle.boundTCP
 	listener := handle.listener
 	handle.conn = nil
+	handle.boundTCP = nil
 	handle.listener = nil
 	handle.deadlineListener = nil
+	handle.listenerWrapper = nil
 	handle.reader = nil
 	handle.stateMu.Unlock()
 
 	var closeErrors []error
 	if conn != nil {
 		if err := conn.Close(); err != nil && !errors.Is(err, net.ErrClosed) {
+			closeErrors = append(closeErrors, err)
+		}
+	}
+	if bound != nil {
+		if err := bound.Close(); err != nil && !errors.Is(err, net.ErrClosed) {
 			closeErrors = append(closeErrors, err)
 		}
 	}
@@ -437,24 +464,73 @@ func SocketConnectTCP(handle *SocketHandle, host *string, port int) {
 	handle.installConn(conn)
 }
 
-// SocketBindTCP creates the listener immediately; SocketListen retains the
-// upstream backlog-shaped API but Go owns the listen transition atomically.
-func SocketBindTCP(handle *SocketHandle, host *string, port int) {
+func socketBindTCP(handle *SocketHandle, host *string, port int, wrapper socketListenerWrapper) {
 	if handle == nil || host == nil {
 		socketThrow(errors.New("socket bind requires host"))
 		return
 	}
-	listener, err := net.Listen("tcp4", net.JoinHostPort(*StdString(host), strconv.Itoa(port)))
+	bound, err := socketBindTCPNative(*StdString(host), port)
 	if err != nil {
 		socketThrow(err)
 		return
 	}
-	deadlineListener, _ := listener.(socketDeadlineListener)
-	handle.installListener(listener, deadlineListener)
+	handle.installBoundTCP(bound, wrapper)
 }
 
-// SocketListen preserves the Haxe API after BindTCP has created Go's listener.
-func SocketListen(_ *SocketHandle, _ int) {}
+// SocketBindTCP reserves one TCP endpoint without starting to listen.
+func SocketBindTCP(handle *SocketHandle, host *string, port int) {
+	socketBindTCP(handle, host, port, nil)
+}
+
+// SocketListen starts accepting connections with the requested OS backlog.
+func SocketListen(handle *SocketHandle, backlog int) {
+	if handle == nil {
+		socketThrow(errors.New("socket listen requires a bound socket"))
+		return
+	}
+	if backlog < 0 {
+		socketThrow(errors.New("socket listen backlog cannot be negative"))
+		return
+	}
+
+	handle.stateMu.Lock()
+	if handle.boundTCP == nil {
+		deadlineListener := handle.deadlineListener
+		if handle.listener == nil || deadlineListener == nil {
+			handle.stateMu.Unlock()
+			socketThrow(errors.New("socket listen requires a bound socket"))
+			return
+		}
+		err := socketRelistenTCP(deadlineListener, backlog)
+		handle.stateMu.Unlock()
+		if err != nil {
+			socketThrow(err)
+		}
+		return
+	}
+
+	bound := handle.boundTCP
+	tcpListener, err := bound.Listen(backlog)
+	if err != nil {
+		handle.stateMu.Unlock()
+		socketThrow(err)
+		return
+	}
+	listener := net.Listener(tcpListener)
+	if handle.listenerWrapper != nil {
+		listener = handle.listenerWrapper(listener)
+	}
+	handle.boundTCP = nil
+	handle.listener = listener
+	handle.deadlineListener = tcpListener
+	handle.listenerWrapper = nil
+	deadlineErr := handle.applyListenerDeadlineLocked()
+	handle.stateMu.Unlock()
+	if deadlineErr != nil {
+		_ = listener.Close()
+		socketThrow(deadlineErr)
+	}
+}
 
 // SocketAccept accepts one native connection and inherits the listener policy.
 func SocketAccept(handle *SocketHandle) *SocketAcceptResult {
@@ -544,6 +620,7 @@ func SocketHost(handle *SocketHandle) *SocketAddress {
 	}
 	handle.stateMu.Lock()
 	conn := handle.conn
+	bound := handle.boundTCP
 	listener := handle.listener
 	handle.stateMu.Unlock()
 	if conn != nil {
@@ -551,6 +628,9 @@ func SocketHost(handle *SocketHandle) *SocketAddress {
 	}
 	if listener != nil {
 		return socketAddress(listener.Addr())
+	}
+	if bound != nil {
+		return socketAddress(bound.Addr())
 	}
 	return &SocketAddress{}
 }
@@ -821,12 +901,18 @@ func (handle *SocketHandle) udpConn(create bool) *net.UDPConn {
 		socketThrow(err)
 		return nil
 	}
+	oldBound := handle.boundTCP
 	handle.conn = udpConn
+	handle.boundTCP = nil
 	handle.listener = nil
 	handle.deadlineListener = nil
+	handle.listenerWrapper = nil
 	handle.reader = bufio.NewReader(udpConn)
 	deadlineErr := handle.applyConnDeadlineLocked()
 	handle.stateMu.Unlock()
+	if oldBound != nil {
+		_ = oldBound.Close()
+	}
 	if deadlineErr != nil {
 		handle.stateMu.Lock()
 		if handle.conn == udpConn {

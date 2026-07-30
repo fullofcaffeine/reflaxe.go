@@ -5,11 +5,11 @@
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "fc9ce5e97f30cd5253be5efdfbbcb0038f915bc34d0cafb386633a49b2e78454",
+    "compatibility_source_sha256": "747a7e0046c622149ea2a47c88719de1b6d32d496fbd1334c99e6cdc970b49a9",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "6a0c08c5ae9015509cef4826a6f057c87776fd69a50c97331160f237e57f60fc"
+    "portable_stdlib_inventory_sha256": "8a7398b39f903dca0f2448e4597582b2a2a2f5da2d0405101e7d1b793683f329"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -529,6 +529,24 @@
       "level": "semantic-diff"
     },
     {
+      "id": "semantic:socket-server-lifecycle",
+      "kind": "path",
+      "path": "test/semantic_diff/socket_server_lifecycle_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "snapshot:socket-server-lifecycle",
+      "kind": "path",
+      "path": "test/snapshot/sys/socket_server_lifecycle_contract",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "policy:socket-server-lifecycle",
+      "kind": "path",
+      "path": "docs/socket-server-lifecycle.md",
+      "level": "policy"
+    },
+    {
       "id": "policy:socket-dns-boundary",
       "kind": "path",
       "path": "docs/socket-dns-boundary.md",
@@ -550,6 +568,12 @@
       "id": "runtime:socket-regressions",
       "kind": "path",
       "path": "runtime/hxrt/socket_test.go",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "runtime:socket-listener-linux",
+      "kind": "path",
+      "path": "runtime/hxrt/socket_listener_linux_test.go",
       "level": "compile-go-test-run"
     },
     {
@@ -1396,16 +1420,22 @@
             "sys.net.Socket.accept"
           ],
           "granularity": "operation",
-          "state": "experimental",
+          "state": "semantic-diff-supported",
           "release_admitted": false,
-          "qualification": "Loopback fixtures exercise the current server path, but bind currently starts listening and listen does not apply its public backlog argument, so server lifecycle parity is not admitted.",
+          "qualification": "The operation-level candidate preserves the Haxe bind-then-listen lifecycle: bind reserves a numeric IPv4 endpoint without accepting, listen passes each nonnegative backlog request to the OS, duplicate listen reapplies it, and close releases either state. Deterministic generated-Haxe, native lifecycle/TLS/concurrency, and Linux bounded-pending-queue evidence exist; Windows remains compile-only. Release admission stays fail-closed pending the advanced socket review.",
           "evidence_ids": [
             "semantic:socket",
+            "semantic:socket-server-lifecycle",
+            "snapshot:socket-server-lifecycle",
             "runtime:socket-regressions",
+            "runtime:socket-listener-linux",
+            "runtime:socket-cross-build",
+            "policy:socket-server-lifecycle",
             "bead:network-audit"
           ],
           "exclusions": [
-            "Bind-before-listen lifecycle, backlog, accept readiness, nonblocking accept, listener load, and production server behavior"
+            "Nonblocking accept, accept/readiness parity, hostile peers, listener load and soak behavior, and runtime support outside Linux/amd64",
+            "Exact cross-kernel pending-queue counts beyond passing the requested backlog to the OS, which may cap or normalize it"
           ],
           "blockers": [
             "haxe_go-vfp.10.9"
@@ -3611,7 +3641,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged `sys.net.Socket` owns the public API, stream wrappers, Haxe EOF/blocked translation, address construction, and select identity. One opaque typed handle reaches TCP lifecycle, deadlines, readiness, and socket options in footprint-explicit `runtime/hxrt/socket.go`; loopback semantic-diff, selective-runtime snapshots, direct partial-write/peer-close/accept-timeout/cleanup tests, and the Go race detector guard the boundary."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. Canonical staged `sys.net.Socket` owns the public API, bind/listen sequencing, stream wrappers, Haxe EOF/blocked translation, address construction, and select identity. One opaque typed handle reaches TCP lifecycle, deadlines, readiness, and socket options in footprint-explicit `runtime/hxrt/socket.go` plus build-tagged listener adapters; loopback/server-lifecycle semantic-diff, selective-runtime snapshots, direct partial-write/peer-close/accept-timeout/backlog/cleanup tests, and the Go race detector guard the boundary."
       },
       {
         "module": "sys.net.UdpSocket",
@@ -3683,7 +3713,7 @@
           "upstream_sweep:full_compile",
           "snapshot"
         ],
-        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct` and SNI selection coverage through `stdlib/sys_ssl_socket_sni_direct`, covering staged public configuration and accepted SSL object identity over the source-owned `sys.net.Socket` and its shared typed handle. TLS dial/listen/handshake/peer-certificate/SNI composition lives in the footprint-explicit `runtime/hxrt/socket_ssl.go`; certificate and key primitives remain in `ssl.go`. A direct race test proves the configured socket timeout also bounds a stalled TLS handshake. No raw injection, Dynamic native handle, or `net_socket` compiler ownership remains."
+        "notes": "Covered by snapshot-level deterministic generated-code/runtime smoke contracts. Direct `sys.ssl.Socket` usage now has snapshot runtime coverage through `stdlib/sys_ssl_socket_direct` and SNI selection coverage through `stdlib/sys_ssl_socket_sni_direct`, covering staged public configuration and accepted SSL object identity over the source-owned `sys.net.Socket` and its shared typed handle. TLS dial/deferred-listener-wrap/handshake/peer-certificate/SNI composition lives in the footprint-explicit `runtime/hxrt/socket_ssl.go`; certificate and key primitives remain in `ssl.go`. A direct race test proves the configured socket timeout also bounds a stalled TLS handshake, while server lifecycle evidence proves TLS bind waits for inherited listen and preserves its backlog. No raw injection, Dynamic native handle, or `net_socket` compiler ownership remains."
       },
       {
         "module": "sys.thread.Condition",

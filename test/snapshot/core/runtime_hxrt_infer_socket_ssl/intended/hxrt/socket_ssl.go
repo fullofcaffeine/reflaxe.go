@@ -123,8 +123,15 @@ func sslSocketServerConfig(cert *SslCertificate, key *SslKey, sni *SslSocketSNIC
 	return config
 }
 
-// SslSocketListen installs a TLS listener while retaining its TCP deadline authority.
-func SslSocketListen(handle *SocketHandle, host *string, port int, cert *SslCertificate, key *SslKey, sni *SslSocketSNIConfig) {
+// SslSocketBind reserves a TCP endpoint and records how listen should wrap it
+// with TLS.
+//
+// What: Keeps TLS server configuration beside a bound-but-not-listening socket.
+// Why: Haxe exposes bind and listen as separate lifecycle transitions, including
+// for sys.ssl.Socket, while tls.Listen would collapse both and ignore backlog.
+// How: Build the immutable TLS policy first, then let the shared typed TCP
+// boundary reserve the address and apply the wrapper after Socket.listen.
+func SslSocketBind(handle *SocketHandle, host *string, port int, cert *SslCertificate, key *SslKey, sni *SslSocketSNIConfig) {
 	if handle == nil || host == nil {
 		socketThrow(errors.New("socket bind requires host"))
 		return
@@ -133,18 +140,9 @@ func SslSocketListen(handle *SocketHandle, host *string, port int, cert *SslCert
 	if config == nil {
 		return
 	}
-	address, err := net.ResolveTCPAddr("tcp4", net.JoinHostPort(*StdString(host), strconv.Itoa(port)))
-	if err != nil {
-		socketThrow(err)
-		return
-	}
-	tcpListener, err := net.ListenTCP("tcp4", address)
-	if err != nil {
-		socketThrow(err)
-		return
-	}
-	listener := tls.NewListener(tcpListener, config)
-	handle.installListener(listener, tcpListener)
+	socketBindTCP(handle, host, port, func(listener net.Listener) net.Listener {
+		return tls.NewListener(listener, config)
+	})
 }
 
 // SslSocketHandshake performs the native handshake for the handle's current TLS connection.

@@ -352,6 +352,24 @@
       "level": "semantic-diff"
     },
     {
+      "id": "semantic:socket-server-lifecycle",
+      "kind": "path",
+      "path": "test/semantic_diff/socket_server_lifecycle_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "snapshot:socket-server-lifecycle",
+      "kind": "path",
+      "path": "test/snapshot/sys/socket_server_lifecycle_contract",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "policy:socket-server-lifecycle",
+      "kind": "path",
+      "path": "docs/socket-server-lifecycle.md",
+      "level": "policy"
+    },
+    {
       "id": "policy:socket-dns-boundary",
       "kind": "path",
       "path": "docs/socket-dns-boundary.md",
@@ -373,6 +391,12 @@
       "id": "runtime:socket-regressions",
       "kind": "path",
       "path": "runtime/hxrt/socket_test.go",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "runtime:socket-listener-linux",
+      "kind": "path",
+      "path": "runtime/hxrt/socket_listener_linux_test.go",
       "level": "compile-go-test-run"
     },
     {
@@ -1336,16 +1360,22 @@
             "sys.net.Socket.accept"
           ],
           "granularity": "operation",
-          "state": "experimental",
+          "state": "semantic-diff-supported",
           "release_admitted": false,
-          "qualification": "Loopback fixtures exercise the current server path, but bind currently starts listening and listen does not apply its public backlog argument, so server lifecycle parity is not admitted.",
+          "qualification": "The operation-level candidate preserves the Haxe bind-then-listen lifecycle: bind reserves a numeric IPv4 endpoint without accepting, listen passes each nonnegative backlog request to the OS, duplicate listen reapplies it, and close releases either state. Deterministic generated-Haxe, native lifecycle/TLS/concurrency, and Linux bounded-pending-queue evidence exist; Windows remains compile-only. Release admission stays fail-closed pending the advanced socket review.",
           "evidence_ids": [
             "semantic:socket",
+            "semantic:socket-server-lifecycle",
+            "snapshot:socket-server-lifecycle",
             "runtime:socket-regressions",
+            "runtime:socket-listener-linux",
+            "runtime:socket-cross-build",
+            "policy:socket-server-lifecycle",
             "bead:network-audit"
           ],
           "exclusions": [
-            "Bind-before-listen lifecycle, backlog, accept readiness, nonblocking accept, listener load, and production server behavior"
+            "Nonblocking accept, accept/readiness parity, hostile peers, listener load and soak behavior, and runtime support outside Linux/amd64",
+            "Exact cross-kernel pending-queue counts beyond passing the requested backlog to the OS, which may cap or normalize it"
           ],
           "blockers": [
             "haxe_go-vfp.10.9"
