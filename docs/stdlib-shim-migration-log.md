@@ -3238,3 +3238,46 @@ Bounded claim:
   Windows is compile-only evidence. Shutdown and fast-send remain a separate
   experimental operation owned by `haxe_go-vfp.10.9.7`, and the complete
   advanced-socket release decision remains under `haxe_go-vfp.10.9`.
+
+### 2026-07-30: make inherited TLS shutdown and fast-send truthful (`haxe_go-vfp.10.9.7`)
+
+What changed:
+
+- Plain TCP keeps directional `CloseRead` and `CloseWrite` behavior.
+- Write-only shutdown on `sys.ssl.Socket` now sends TLS `close_notify` and
+  leaves the caller's read side available for the peer's remaining response.
+- Read-only TLS shutdown now reports
+  `TLS read-only shutdown is unsupported` instead of silently doing nothing.
+  Full TLS shutdown releases the handle and remains idempotent.
+- `setFastSend` follows the typed TLS `NetConn` boundary to the underlying TCP
+  connection and changes its `TCP_NODELAY` state. A connected non-TCP
+  transport reports unsupported instead of accepting a no-op.
+
+Why:
+
+- TLS is a protocol wrapper, not a direct `net.TCPConn`. The old direct type
+  assertion skipped both inherited controls while returning normally.
+- A fake read half-close would either change nothing or close too much. An
+  exact unsupported error is more useful than either misleading result.
+- Merely checking that these calls do not throw would not prove a wire closure
+  or an operating-system option change.
+
+How it is proved:
+
+- The first native regressions timed out waiting for peer EOF, observed a nil
+  result from read-only shutdown, and saw `TCP_NODELAY` remain disabled.
+- The native POSIX suite now observes TLS EOF and a preserved reverse response,
+  reads the underlying TCP option after both fast-send values, preserves plain
+  TCP half-close, and stresses repeated shutdown plus concurrent close under
+  the race detector.
+- The generated-Haxe TLS snapshot exercises the public inherited methods and
+  observes the exact read-only error, peer EOF, and preserved response read.
+  Documentation and compatibility-policy tests prevent a no-throw-only claim.
+
+Bounded claim:
+
+- The operation becomes an evidence-backed candidate, not a release
+  admission. TLS read-only shutdown stays explicitly unsupported. Windows is
+  compile-only; hostile-peer behavior, long-duration resource convergence,
+  public CA behavior, and the complete advanced-socket decision remain
+  excluded under `haxe_go-vfp.10.9`.

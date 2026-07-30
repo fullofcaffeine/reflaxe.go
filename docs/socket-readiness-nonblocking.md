@@ -95,10 +95,11 @@ TLS readiness remains excluded. A `tls.Conn` can hold decrypted application
 bytes inside TLS-specific buffers that are not represented by the underlying
 descriptor set, so plain TCP evidence is not enough to claim TLS readiness.
 
-`shutdown` and `setFastSend` are tracked separately by
-`haxe_go-vfp.10.9.7`. DNS, UDP, hostile-peer behavior, long-running resource
-convergence, and runtime support outside the admitted platform retain their
-own exclusions.
+`shutdown` and `setFastSend` have their own evidence-backed candidate contract;
+see [socket shutdown and fast-send controls](socket-tls-controls.md). That
+evidence does not expand readiness to TLS. DNS, UDP, hostile-peer behavior,
+long-running resource convergence, and runtime support outside the admitted
+platform retain their own exclusions.
 
 This work does not admit these controls for release. The compatibility
 manifest stays fail-closed under `haxe_go-vfp.10.9` until the complete advanced

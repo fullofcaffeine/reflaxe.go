@@ -35,6 +35,31 @@ class Main {
 		accepted.output.flush();
 		Sys.println("client.read=" + client.input.readLine());
 
+		var readShutdownError = "missing";
+		try {
+			client.shutdown(true, false);
+		} catch (error:haxe.Exception) {
+			readShutdownError = error.message;
+		}
+		Sys.println("tls.read.shutdown=" + readShutdownError);
+
+		client.setFastSend(true);
+		client.setFastSend(false);
+		client.output.writeString("final\n");
+		client.output.flush();
+		client.shutdown(false, true);
+		Sys.println("server.final=" + accepted.input.readLine());
+		var serverSawWriteEof = false;
+		try {
+			accepted.input.readByte();
+		} catch (_:haxe.io.Eof) {
+			serverSawWriteEof = true;
+		}
+		Sys.println("server.write.eof=" + serverSawWriteEof);
+		accepted.output.writeString("after\n");
+		accepted.output.flush();
+		Sys.println("client.after=" + client.input.readLine());
+
 		var peer = client.peerCertificate();
 		Sys.println("peer.cn=" + peer.commonName);
 		Sys.println("peer.issuer.cn=" + peer.issuer("CN"));

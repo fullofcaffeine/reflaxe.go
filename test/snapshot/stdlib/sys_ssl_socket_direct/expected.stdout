@@ -1,6 +1,10 @@
 server.accept.ssl=true
 server.read=ping
 client.read=pong
+tls.read.shutdown=TLS read-only shutdown is unsupported
+server.final=final
+server.write.eof=true
+client.after=after
 peer.cn=default.local
 peer.issuer.cn=default.local
 peer.next=true

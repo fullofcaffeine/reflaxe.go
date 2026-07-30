@@ -5,7 +5,7 @@
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "58f380acd478e1e531f9c76078010b5944a7a3aa6cdb3fbd5ba40ced35508e4d",
+    "compatibility_source_sha256": "5d11b51c8cc4a6f750dd30b4f91c33d4fad13500a03f6ad1dd0246f0c0d4c13b",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
@@ -574,6 +574,18 @@
       "id": "policy:socket-readiness",
       "kind": "path",
       "path": "docs/socket-readiness-nonblocking.md",
+      "level": "policy"
+    },
+    {
+      "id": "runtime:socket-tls-controls-posix",
+      "kind": "path",
+      "path": "runtime/hxrt/socket_tls_controls_posix_test.go",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "policy:socket-tls-controls",
+      "kind": "path",
+      "path": "docs/socket-tls-controls.md",
       "level": "policy"
     },
     {
@@ -1504,17 +1516,22 @@
             "sys.net.Socket.setFastSend"
           ],
           "granularity": "operation",
-          "state": "experimental",
+          "state": "compile-go-test-run-supported",
           "release_admitted": false,
-          "qualification": "Deterministic fixtures exercise current TCP shutdown and fast-send behavior, but one-sided TLS shutdown and applying TCP_NODELAY through TLS remain unresolved. These members are intentionally separate from the real-readiness candidate so readiness evidence cannot imply their admission.",
+          "qualification": "The operation-level candidate preserves plain TCP read/write half-close, sends TLS close_notify for write-only shutdown while retaining the caller's read side, and defines that TLS read-only shutdown is explicitly unsupported. It closes both TLS sides idempotently and applies setFastSend to the underlying TCP_NODELAY option through a typed TLS NetConn boundary. Generated-Haxe and native POSIX tests cover wire-visible EOF, preserved response reads, option-state changes, repetition, and concurrent close. Release admission stays fail-closed pending the advanced socket review.",
           "evidence_ids": [
             "semantic:socket",
+            "snapshot:socket-tls",
             "runtime:socket-regressions",
+            "runtime:socket-tls-controls-posix",
+            "runtime:socket-cross-build",
+            "policy:socket-tls-controls",
             "bead:network-audit"
           ],
           "exclusions": [
-            "TLS half-close and propagating setFastSend to the underlying TLS TCP connection",
-            "Hostile-peer, concurrent shutdown, and cross-platform runtime guarantees"
+            "TLS read-only shutdown, which has no safe protocol-level equivalent and reports an exact unsupported error",
+            "Hostile-peer and long-duration resource convergence behavior",
+            "Windows runtime behavior and runtime support outside the reviewed POSIX platforms"
           ],
           "blockers": [
             "haxe_go-vfp.10.9"
@@ -1574,16 +1591,18 @@
           "granularity": "surface",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Deterministic local-CA runtime evidence proves that direct TLS dials a resolved IPv4 address while retaining the original logical hostname for default certificate verification and SNI; mismatch failure and explicit setHostname override are covered. Generated-Haxe loopback snapshots exercise the same default endpoint path. TLS remains experimental because inherited control semantics, public certificate stores, hostile peers, and runtime behavior outside Linux/amd64 are not admitted; Windows evidence is compile-only.",
+          "qualification": "Deterministic local-CA runtime evidence proves that direct TLS dials a resolved IPv4 address while retaining the original logical hostname for default certificate verification and SNI; mismatch failure and explicit setHostname override are covered. Generated-Haxe loopback snapshots exercise the same default endpoint path, TLS close_notify write shutdown, preserved reads, and explicit read-only rejection. Native POSIX evidence verifies inherited fast-send against the underlying TCP option. TLS remains experimental because public certificate stores, hostile peers, resource convergence, and runtime behavior outside Linux/amd64 are not admitted; Windows evidence is compile-only.",
           "evidence_ids": [
             "snapshot:socket-tls",
             "snapshot:socket-sni",
             "runtime:socket-regressions",
+            "runtime:socket-tls-controls-posix",
             "runtime:socket-cross-build",
+            "policy:socket-tls-controls",
             "bead:network-audit"
           ],
           "exclusions": [
-            "All TLS and HTTPS release behavior; unresolved portions include public CA stores, client certificates, shutdown, fast-send, hostile peers, and runtime support outside Linux/amd64"
+            "All TLS and HTTPS release behavior; unresolved portions include public CA stores, client certificates, read-only TLS shutdown, hostile peers, resource convergence, and runtime support outside Linux/amd64"
           ],
           "blockers": [
             "haxe_go-vfp.10.9"

@@ -144,6 +144,12 @@ Key implementation points:
     Windows and other unreviewed platforms fail explicitly instead of
     inventing readiness. The exact member and release boundary is documented in
     [socket readiness and nonblocking controls](socket-readiness-nonblocking.md);
+  - protocol-aware shutdown sends TLS `close_notify` for write-only shutdown,
+    rejects TLS read-only shutdown explicitly, and preserves plain TCP
+    half-close. Fast-send follows only typed `NetConn` links to apply
+    `TCP_NODELAY` to a TLS-wrapped TCP transport. The exact behavior and
+    release boundary is documented in
+    [socket shutdown and fast-send controls](socket-tls-controls.md);
   - POSIX and Windows keep their native descriptor types behind separate
     build-tagged broadcast and listener helpers, with explicit
     unsupported-platform errors;

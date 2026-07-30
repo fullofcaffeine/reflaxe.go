@@ -59,6 +59,14 @@ func (self *sys__ssl__Socket) handshake() {
 	hxrt.SslSocketHandshake(self.handle)
 }
 
+func (self *sys__ssl__Socket) shutdown(read bool, write bool) {
+	self.sys__net__Socket.shutdown(read, write)
+}
+
+func (self *sys__ssl__Socket) setFastSend(fastSend bool) {
+	self.sys__net__Socket.setFastSend(fastSend)
+}
+
 func (self *sys__ssl__Socket) setCA(cert *sys__ssl__Certificate) {
 	self.caCert = cert
 }

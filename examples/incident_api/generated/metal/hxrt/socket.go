@@ -129,6 +129,14 @@ type socketNestedConnection interface {
 	NetConn() net.Conn
 }
 
+type socketCloseReader interface {
+	CloseRead() error
+}
+
+type socketCloseWriter interface {
+	CloseWrite() error
+}
+
 type socketReadinessSnapshot struct {
 	descriptor    uintptr
 	hasDescriptor bool
@@ -310,12 +318,36 @@ func (handle *SocketHandle) applyListenerDeadlineLocked() error {
 	return handle.deadlineListener.SetDeadline(handle.configuredDeadlineLocked())
 }
 
-func (handle *SocketHandle) applyFastSendLocked() error {
+// socketTCPConnection finds TCP control through typed connection wrappers.
+//
+// What: Follows NetConn links until it reaches the TCP transport.
+// Why: TLS owns protocol framing but setFastSend controls the TCP socket below
+// it; a direct *net.TCPConn assertion silently ignored the public request.
+// How: Traverse a bounded chain so a broken self-referential wrapper cannot
+// hang the runtime, returning nil when no TCP transport is exposed.
+func socketTCPConnection(conn net.Conn) *net.TCPConn {
+	for depth := 0; conn != nil && depth < 16; depth++ {
+		if tcpConn, ok := conn.(*net.TCPConn); ok {
+			return tcpConn
+		}
+		nested, ok := conn.(socketNestedConnection)
+		if !ok {
+			return nil
+		}
+		conn = nested.NetConn()
+	}
+	return nil
+}
+
+func (handle *SocketHandle) applyFastSendLocked(requireSupport bool) error {
 	if handle.conn == nil {
 		return nil
 	}
-	tcpConn, ok := handle.conn.(*net.TCPConn)
-	if !ok {
+	tcpConn := socketTCPConnection(handle.conn)
+	if tcpConn == nil {
+		if requireSupport {
+			return errors.New("socket fast-send requires a TCP connection")
+		}
 		return nil
 	}
 	return tcpConn.SetNoDelay(handle.fastSend)
@@ -335,7 +367,7 @@ func (handle *SocketHandle) installConn(conn net.Conn) {
 	handle.deadlineListener = nil
 	handle.listenerWrapper = nil
 	handle.reader = bufio.NewReader(conn)
-	fastErr := handle.applyFastSendLocked()
+	fastErr := handle.applyFastSendLocked(false)
 	deadlineErr := handle.applyConnDeadlineLocked()
 	handle.stateMu.Unlock()
 	if oldConn != nil && oldConn != conn {
@@ -643,7 +675,15 @@ func SocketClose(handle *SocketHandle) {
 	}
 }
 
-// SocketShutdown performs half-close when the connection supports it.
+// SocketShutdown performs protocol-aware half-close where it is truthful.
+//
+// What: Preserves TCP CloseRead/CloseWrite, sends TLS close_notify for a TLS
+// write shutdown, and rejects TLS read-only shutdown explicitly.
+// Why: Calling TCP methods directly cannot see through TLS, while silently
+// ignoring inherited TLS controls makes successful-looking calls lie.
+// How: A wrapped connection with CloseWrite receives the protocol-level write
+// close; full wrapped shutdown releases the handle, while unsupported halves
+// become Haxe-visible errors instead of no-ops.
 func SocketShutdown(handle *SocketHandle, read bool, write bool) {
 	if handle == nil || (!read && !write) {
 		return
@@ -652,21 +692,56 @@ func SocketShutdown(handle *SocketHandle, read bool, write bool) {
 	if conn == nil {
 		return
 	}
-	if tcpConn, ok := conn.(*net.TCPConn); ok {
+	_, wrapped := conn.(socketNestedConnection)
+	if wrapped {
+		if read && write {
+			SocketClose(handle)
+			return
+		}
 		if read {
-			if err := tcpConn.CloseRead(); err != nil && !errors.Is(err, net.ErrClosed) {
-				socketThrow(err)
-			}
+			socketThrow(errors.New("TLS read-only shutdown is unsupported"))
+			return
 		}
 		if write {
-			if err := tcpConn.CloseWrite(); err != nil && !errors.Is(err, net.ErrClosed) {
+			closeWriter, ok := conn.(socketCloseWriter)
+			if !ok {
+				socketThrow(errors.New("wrapped socket write shutdown is unsupported"))
+				return
+			}
+			if err := closeWriter.CloseWrite(); err != nil && !socketErrorIsClosed(err) {
 				socketThrow(err)
 			}
 		}
 		return
 	}
-	if read && write {
-		SocketClose(handle)
+
+	if read {
+		closeReader, ok := conn.(socketCloseReader)
+		if !ok {
+			if read && write {
+				SocketClose(handle)
+				return
+			}
+			socketThrow(errors.New("socket read shutdown is unsupported"))
+			return
+		}
+		if err := closeReader.CloseRead(); err != nil && !socketErrorIsClosed(err) {
+			socketThrow(err)
+		}
+	}
+	if write {
+		closeWriter, ok := conn.(socketCloseWriter)
+		if !ok {
+			if read && write {
+				SocketClose(handle)
+				return
+			}
+			socketThrow(errors.New("socket write shutdown is unsupported"))
+			return
+		}
+		if err := closeWriter.CloseWrite(); err != nil && !socketErrorIsClosed(err) {
+			socketThrow(err)
+		}
 	}
 }
 
@@ -743,14 +818,14 @@ func SocketSetBlocking(handle *SocketHandle, blocking bool) {
 	}
 }
 
-// SocketSetFastSend applies TCP_NODELAY where the connection exposes TCP control.
+// SocketSetFastSend applies TCP_NODELAY through direct or wrapped TCP connections.
 func SocketSetFastSend(handle *SocketHandle, fastSend bool) {
 	if handle == nil {
 		return
 	}
 	handle.stateMu.Lock()
 	handle.fastSend = fastSend
-	err := handle.applyFastSendLocked()
+	err := handle.applyFastSendLocked(true)
 	handle.stateMu.Unlock()
 	if err != nil && !errors.Is(err, net.ErrClosed) {
 		socketThrow(err)

@@ -93,9 +93,11 @@ class SocketReadinessContractTest(unittest.TestCase):
             ["sys.net.Socket.shutdown", "sys.net.Socket.setFastSend"],
             shutdown["symbols"],
         )
-        self.assertEqual("experimental", shutdown["state"])
+        self.assertEqual("compile-go-test-run-supported", shutdown["state"])
         self.assertFalse(shutdown["release_admitted"])
         self.assertEqual(["haxe_go-vfp.10.9"], shutdown["blockers"])
+        self.assertIn("runtime:socket-tls-controls-posix", shutdown["evidence_ids"])
+        self.assertIn("policy:socket-tls-controls", shutdown["evidence_ids"])
 
     def test_documentation_explains_behavior_and_release_boundary(self) -> None:
         decision = " ".join(DECISION.read_text(encoding="utf-8").split())

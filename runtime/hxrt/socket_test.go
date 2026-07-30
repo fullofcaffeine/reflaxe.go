@@ -912,17 +912,30 @@ func TestSocketConcurrentCloseIsIdempotentAndUnblocksRead(t *testing.T) {
 	}()
 
 	var group sync.WaitGroup
+	recovered := make(chan any, 32)
 	for index := 0; index < 32; index++ {
 		group.Add(1)
 		go func(index int) {
 			defer group.Done()
-			SocketSetBlocking(handle, index%2 == 0)
-			SocketSetTimeout(handle, float64(index%3)/1000)
-			SocketSetFastSend(handle, index%2 == 1)
-			SocketClose(handle)
+			recovered <- socketTestRecovered(func() {
+				SocketSetBlocking(handle, index%2 == 0)
+				SocketSetTimeout(handle, float64(index%3)/1000)
+				SocketSetFastSend(handle, index%2 == 1)
+				SocketClose(handle)
+			})
 		}(index)
 	}
 	group.Wait()
+	close(recovered)
+	for value := range recovered {
+		if value == nil {
+			continue
+		}
+		exception, ok := value.(HaxeException)
+		if !ok || *StdString(exception.Value) != "socket fast-send requires a TCP connection" {
+			t.Fatalf("concurrent synthetic connection control recovered %#v", value)
+		}
+	}
 
 	select {
 	case result := <-readDone:

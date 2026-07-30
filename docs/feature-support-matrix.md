@@ -458,7 +458,7 @@ Shim strategy and alternatives are documented in:
 
 ### `sys.net.Socket` staged-source contract and tradeoffs
 
-- Deterministic loopback fixtures exercise `bind`/`listen`/`connect`/`accept`/`read`/`write`/`close` plus advanced methods such as `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, and `shutdown` (`socket_loopback_contract`, `socket_advanced_contract`). `socket_server_lifecycle_contract` additionally proves that bind reserves without accepting and that the later listen transition preserves a loopback round trip. `socket_readiness_contract` proves duplicate identity, buffered reads, real write readiness, and generated-Go nonblocking read/write/accept. Fixture execution is evidence for those cases, not blanket API parity.
+- Deterministic loopback fixtures exercise `bind`/`listen`/`connect`/`accept`/`read`/`write`/`close` plus advanced methods such as `setTimeout`, `waitForRead`, `setBlocking`, `setFastSend`, `select`, and `shutdown` (`socket_loopback_contract`, `socket_advanced_contract`). `socket_server_lifecycle_contract` additionally proves that bind reserves without accepting and that the later listen transition preserves a loopback round trip. `socket_readiness_contract` proves duplicate identity, buffered reads, real write readiness, and generated-Go nonblocking read/write/accept. The direct TLS snapshot and native POSIX control tests prove write-side TLS close-notify, preserved response reads, explicit read-only rejection, underlying TCP no-delay changes, and concurrent close. Fixture execution is evidence for those cases, not blanket API parity.
 - `sys.net.Socket.input` now satisfies the generated `haxe.io.Input` stream contract for service-style code paths (`readByte`, `readBytes`, `readAll`, typed numeric/string helper forwarding, and endian control). The focused snapshot is `sys/socket_input_service_surface`.
 - `select` preserves source object identity and uses build-tagged native
   descriptor sets for real read, write, and exceptional readiness on Linux and
@@ -495,6 +495,12 @@ Shim strategy and alternatives are documented in:
   exclusion executable. The admitted operation list is only the Linux/amd64
   blocking IPv4 TCP client core. All other socket members are owned by
   `haxe_go-vfp.10.9`.
+- `shutdown` and `setFastSend` now have a separate operation contract rather
+  than borrowing readiness evidence. Plain TCP keeps directional half-close;
+  TLS write shutdown sends `close_notify` and retains reads; TLS read-only
+  shutdown reports unsupported; and fast-send reaches the TCP socket beneath
+  TLS. See [socket shutdown and fast-send controls](socket-tls-controls.md).
+  These controls remain release-excluded pending the parent review.
 
 ### `sys.net.UdpSocket` direct baseline and tradeoffs
 
@@ -527,10 +533,15 @@ Shim strategy and alternatives are documented in:
 - A direct race test also proves `Socket.setTimeout` bounds a TLS client when a
   peer accepts TCP but never completes its handshake. TCP and TLS now share
   the same snapshotted dial policy.
-- TLS, HTTPS, inherited shutdown/fast-send controls, public CA behavior,
-  hostile peers, and runtime behavior outside Linux/amd64 remain
-  release-excluded under
-  `haxe_go-vfp.10.9`.
+- Inherited controls are now truthful: write-only shutdown sends TLS
+  `close_notify` while preserving reads, read-only shutdown reports an exact
+  unsupported error, full close is idempotent, and `setFastSend` changes the
+  underlying TCP option through a typed boundary. The wire-visible and
+  option-state proof is documented in
+  [socket shutdown and fast-send controls](socket-tls-controls.md).
+- TLS, HTTPS, public CA behavior, client certificates, hostile peers, resource
+  convergence, and runtime behavior outside Linux/amd64 remain
+  release-excluded under `haxe_go-vfp.10.9`.
 
 ### `EReg` + `haxe.Serializer` contract and tradeoffs
 

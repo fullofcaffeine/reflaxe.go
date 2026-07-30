@@ -112,8 +112,15 @@ release claim:
   duplicate identity, POSIX urgent data, timeout forms, and connected
   nonblocking read/write/accept have native and generated-Haxe evidence.
   Nonblocking connect, TLS readiness, and Windows runtime readiness remain
-  explicitly excluded; shutdown and fast-send stay in their own experimental
-  operation so this evidence cannot imply their support.
+  explicitly excluded; shutdown and fast-send stay in their own operation so
+  this evidence cannot imply their support.
+- `haxe_go-vfp.10.9.7` makes inherited TLS controls truthful. Write shutdown
+  sends TLS `close_notify` while retaining reads, read-only TLS shutdown
+  reports an exact unsupported error, full close is idempotent, and
+  `setFastSend` updates the TCP transport beneath TLS through a typed
+  `NetConn` boundary. Wire-visible generated-Haxe and native option-state
+  tests cover repetition and concurrent close. The operation remains
+  release-excluded pending the advanced-socket parent review.
 
 UDP and TLS remain release-excluded until their complete operation-level
 contracts and the parent `haxe_go-vfp.10.9` review are complete.

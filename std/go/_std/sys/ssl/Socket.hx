@@ -48,6 +48,28 @@ class Socket extends sys.net.Socket {
 		NativeSslSocket.handshake(handle);
 	}
 
+	/**
+		What: Applies the inherited socket shutdown contract to a TLS connection.
+		Why: TLS write shutdown must send a protocol `close_notify`, while a read-only
+		TLS shutdown has no safe equivalent and must not silently look successful.
+		How: Delegate to the shared typed handle: write-only preserves peer reads,
+		read-only raises a deterministic unsupported error, and both sides close.
+	**/
+	override public function shutdown(read:Bool, write:Bool):Void {
+		super.shutdown(read, write);
+	}
+
+	/**
+		What: Applies the inherited fast-send preference to TLS's TCP transport.
+		Why: TLS wraps the TCP connection, so a direct TCP-only native check would
+		accept this call while leaving `TCP_NODELAY` unchanged.
+		How: The typed runtime follows the TLS connection's `NetConn` boundary and
+		updates the underlying TCP socket; a non-TCP transport reports unsupported.
+	**/
+	override public function setFastSend(fastSend:Bool):Void {
+		super.setFastSend(fastSend);
+	}
+
 	public function setCA(cert:Certificate):Void {
 		caCert = cert;
 	}

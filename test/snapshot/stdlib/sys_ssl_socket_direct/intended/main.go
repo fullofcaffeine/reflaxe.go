@@ -54,13 +54,47 @@ func main() {
 	accepted.output.__hx_this.flush()
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("client.read="), client.input.__hx_this.readLine()))
 	hxrt.Println(v_2)
-	peer := client.__hx_this.peerCertificate()
-	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("peer.cn="), peer.__hx_this.get_commonName()))
+	readShutdownError := hxrt.StringFromLiteral("missing")
+	hxrt.TryCatch(func() {
+		client.__hx_this.shutdown(true, false)
+	}, func(hx_caught_6 any) {
+		error := hxrt.ExceptionCaught(hx_caught_6)
+		readShutdownError = hxrt.ExceptionMessage(error)
+	})
+	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("tls.read.shutdown="), readShutdownError)))
+	client.__hx_this.setFastSend(true)
+	client.__hx_this.setFastSend(false)
+	client.output.__hx_this.writeString(hxrt.StringFromLiteral("final\n"), nil)
+	client.output.__hx_this.flush()
+	client.__hx_this.shutdown(false, true)
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("server.final="), accepted.input.__hx_this.readLine()))
 	hxrt.Println(v_3)
-	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("peer.issuer.cn="), peer.__hx_this.issuer(hxrt.StringFromLiteral("CN"))))
+	serverSawWriteEof := false
+	hxrt.TryCatch(func() {
+		accepted.input.__hx_this.readByte()
+	}, func(hx_caught_8 any) {
+		switch hx_typed_9 := hx_caught_8.(type) {
+		case *haxe__io__Eof:
+			hx_tmp := hx_typed_9
+			_ = hx_tmp
+			serverSawWriteEof = true
+		default:
+			hxrt.Throw(hx_caught_8)
+		}
+	})
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("server.write.eof="), hxrt.StdString(serverSawWriteEof)))
 	hxrt.Println(v_4)
-	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("peer.next="), hxrt.StdString((peer.__hx_this.next() == nil))))
+	accepted.output.__hx_this.writeString(hxrt.StringFromLiteral("after\n"), nil)
+	accepted.output.__hx_this.flush()
+	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("client.after="), client.input.__hx_this.readLine()))
 	hxrt.Println(v_5)
+	peer := client.__hx_this.peerCertificate()
+	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("peer.cn="), peer.__hx_this.get_commonName()))
+	hxrt.Println(v_6)
+	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("peer.issuer.cn="), peer.__hx_this.issuer(hxrt.StringFromLiteral("CN"))))
+	hxrt.Println(v_7)
+	var v_8 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("peer.next="), hxrt.StdString((peer.__hx_this.next() == nil))))
+	hxrt.Println(v_8)
 	client.__hx_this.close()
 	accepted.__hx_this.close()
 	server.__hx_this.close()

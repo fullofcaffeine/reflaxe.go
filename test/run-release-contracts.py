@@ -73,6 +73,7 @@ def main() -> int:
         ["python3", "test/test_socket_dns_boundary_contract.py"],
         ["python3", "test/test_socket_readiness_contract.py"],
         ["python3", "test/test_socket_server_lifecycle_contract.py"],
+        ["python3", "test/test_socket_tls_controls_contract.py"],
         ["python3", "test/test_stdlib_migration_ledger_contract.py"],
         ["python3", "test/test_sys_get_char_terminal_contract.py"],
         ["python3", "test/test_toolchain_policy_contract.py"],
