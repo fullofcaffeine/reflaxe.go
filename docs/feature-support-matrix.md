@@ -471,9 +471,12 @@ Shim strategy and alternatives are documented in:
   and closed-handle `waitForRead` under the Go race detector.
 - Current tradeoffs: `setBlocking` uses deadline behavior rather than true
   nonblocking file descriptors; `bind` starts listening; `listen` does not
-  apply backlog; eager DNS is outside socket timeouts. The admitted operation
-  list is only the Linux/amd64 blocking IPv4 TCP client core. All other socket
-  members are owned by `haxe_go-vfp.10.9`.
+  apply backlog. Haxe 4.3.7-compatible `Host` construction resolves eagerly
+  before a Socket exists, so no `Socket.setTimeout` value can bound or cancel
+  it; the [socket DNS and timeout decision](socket-dns-boundary.md) makes that
+  exclusion executable. The admitted operation list is only the Linux/amd64
+  blocking IPv4 TCP client core. All other socket members are owned by
+  `haxe_go-vfp.10.9`.
 
 ### `sys.net.UdpSocket` direct baseline and tradeoffs
 

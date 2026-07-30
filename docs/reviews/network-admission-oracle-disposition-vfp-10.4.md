@@ -97,6 +97,10 @@ release claim:
   address while retaining the original logical hostname for default direct-TLS
   verification and SNI. Deterministic local-CA evidence covers success,
   mismatch rejection, explicit `setHostname` override, and SNI selection.
+- `haxe_go-vfp.10.9.4` preserves eager Haxe 4.3.7 `Host` construction and
+  records the exact boundary: socket timeout values cannot cancel or bound DNS
+  that completes before a Socket exists. The operation stays release-excluded
+  behind an executable compatibility-policy contract.
 
 UDP and TLS remain release-excluded until their complete operation-level
 contracts and the parent `haxe_go-vfp.10.9` review are complete.

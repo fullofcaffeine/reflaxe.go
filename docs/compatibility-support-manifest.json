@@ -5,7 +5,7 @@
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "6bd4be8864c14317b943e315ec4c0ee3fafcde67b01b18373829177256c25548",
+    "compatibility_source_sha256": "fc9ce5e97f30cd5253be5efdfbbcb0038f915bc34d0cafb386633a49b2e78454",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
@@ -527,6 +527,12 @@
       "kind": "path",
       "path": "test/semantic_diff/socket_advanced_contract",
       "level": "semantic-diff"
+    },
+    {
+      "id": "policy:socket-dns-boundary",
+      "kind": "path",
+      "path": "docs/socket-dns-boundary.md",
+      "level": "policy"
     },
     {
       "id": "snapshot:socket-tls",
@@ -1418,7 +1424,7 @@
           "granularity": "operation",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Deterministic fixtures exercise current timeout and select behavior, but connection presence is not real write readiness, exceptional readiness is unresolved, and the remaining control semantics are not yet admitted.",
+          "qualification": "Deterministic fixtures exercise current timeout and select behavior, but Socket.setTimeout does not bound Host construction or reverse lookup, connection presence is not real write readiness, exceptional readiness is unresolved, and the remaining control semantics are not yet admitted.",
           "evidence_ids": [
             "semantic:socket",
             "runtime:socket-regressions",
@@ -1441,10 +1447,11 @@
           "granularity": "operation",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Host currently resolves names eagerly through the Go resolver before a Socket timeout or cancellation policy can apply. Compile and loopback evidence do not admit bounded DNS or reverse lookup behavior.",
+          "qualification": "By compatibility decision, new Host(name) preserves Haxe 4.3.7 behavior and resolves a hostname synchronously during construction, before a Socket exists. Socket.setTimeout therefore cannot bound or cancel it. Host.reverse is a separate synchronous reverse lookup, and Host.localhost reads the OS hostname; none is admitted as bounded DNS behavior.",
           "evidence_ids": [
             "semantic:socket",
             "runtime:socket-regressions",
+            "policy:socket-dns-boundary",
             "bead:network-audit"
           ],
           "exclusions": [

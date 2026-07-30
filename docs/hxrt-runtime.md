@@ -122,8 +122,11 @@ Key implementation points:
 - Network capabilities (`runtime/hxrt/socket.go` plus build-tagged
   `runtime/hxrt/socket_broadcast_*.go` adapters):
   - one opaque, synchronized `SocketHandle` shared by TCP and UDP;
-  - typed DNS/IPv4, connect/bind/listen/accept, byte transfer, deadline,
+  - typed eager DNS/IPv4, connect/bind/listen/accept, byte transfer, deadline,
     blocking-policy, readiness, shutdown, address, broadcast, and datagram operations;
+  - `new Host(name)` and `Host.reverse()` complete before any socket timeout
+    can participate; the exact release exclusion is documented in the
+    [socket DNS and timeout boundary](socket-dns-boundary.md);
   - one snapshotted dial policy applies the staged timeout to TCP connection
     establishment and, through TLS composition, to the TLS handshake;
   - POSIX and Windows keep their native descriptor types behind separate

@@ -3098,3 +3098,41 @@ Bounded claim:
 - TLS remains release-excluded. Public CA stores, inherited shutdown and
   fast-send controls, client certificates, hostile peers, and runtime support
   outside Linux/amd64 remain owned by `haxe_go-vfp.10.9`.
+
+### 2026-07-30: preserve the eager Host DNS boundary (`haxe_go-vfp.10.9.4`)
+
+Decision:
+
+- Keep Haxe 4.3.7-compatible eager `Host` construction. A hostname resolves
+  synchronously and fills `Host.ip` before the constructor returns.
+- Keep `Host.reverse()` and `Host.localhost()` as separate synchronous host
+  operations. None is governed by a Socket that has not yet been created.
+- Do not invent delayed resolution or a hidden resolver goroutine. A
+  cancellable resolver would require a separate typed public API with an
+  explicit lifetime owner.
+
+Why:
+
+- `Socket.setTimeout` can only configure its own `SocketHandle`. Applying it to
+  an earlier `new Host(name)` call is impossible without changing exception
+  timing, public field availability, and the meaning of `Host.toString()`.
+- Describing connection timeout as DNS timeout would create believable but
+  false release evidence.
+
+How it is enforced:
+
+- `docs/socket-dns-boundary.md` names the constructor, reverse lookup,
+  local-host lookup, connect, and positive/zero/negative timeout phases.
+- `test/test_socket_dns_boundary_contract.py` checks the staged call order and
+  requires DNS to remain excluded in both the operation manifest and readiness
+  policy.
+- The compatibility source identifies the decision as policy evidence and the
+  generated manifest/release status remain the release authority.
+
+Bounded claim:
+
+- Only application-controlled numeric IPv4 endpoints participate in the
+  admitted blocking client core. Hostname lookup timeout/cancellation,
+  resolver configuration, reverse lookup, search domains, split-horizon
+  behavior, and local-host discovery remain release-excluded under
+  `haxe_go-vfp.10.9`.

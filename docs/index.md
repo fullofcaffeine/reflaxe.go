@@ -34,6 +34,7 @@ This page helps you find the right docs quickly.
 - [Compatibility and support matrix](compatibility-support-matrix.md)
 - [Machine-readable compatibility manifest](compatibility-support-manifest.json)
 - [Generated compatibility release status](compatibility-release-status.md)
+- [Socket DNS and timeout boundary](socket-dns-boundary.md)
 - [Semantic diff guide](semantic-diff-guide.md)
 - [Snapshot policy](snapshot-policy.md)
 - [Examples QA contract](examples-qa-contract.md)
@@ -65,6 +66,7 @@ This page helps you find the right docs quickly.
 
 - [Ownership rubric](ownership-rubric.md)
 - [`hxrt` runtime](hxrt-runtime.md)
+- [Socket DNS and timeout boundary](socket-dns-boundary.md)
 - [Portable root `Sys` contract](portable-sys-contract.md)
 - [Concurrency contract](concurrency-contract.md)
 - [Selective `hxrt` runtime](hxrt-selective-runtime.md)
