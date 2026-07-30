@@ -402,7 +402,8 @@ Shim strategy and alternatives are documented in:
   callback context, or cancellation of a blocked upload source.
 - HTTP is release-excluded under `haxe_go-vfp.10.8`. The required typed design
   is a source-driven upload sink plus a bounded native response-exchange handle;
-  see the generated compatibility matrix and the
+  see the [portable HTTP admission design](http-client-admission-design.md),
+  the generated compatibility matrix, and the
   [independent disposition](reviews/network-admission-oracle-disposition-vfp-10.4.md).
 
 ### `sys.net.Socket` staged-source contract and tradeoffs
