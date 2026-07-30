@@ -575,9 +575,9 @@ MODULE_NOTES_OVERRIDES = {
         "Canonical staged `sys.net.Socket` owns the public API, bind/listen sequencing, stream wrappers, Haxe "
         "EOF/blocked translation, address construction, and select identity. One opaque typed handle reaches TCP "
         "lifecycle, deadlines, readiness, and socket options in footprint-explicit `runtime/hxrt/socket.go` plus "
-        "build-tagged listener adapters; loopback/server-lifecycle semantic-diff, selective-runtime snapshots, "
-        "direct partial-write/peer-close/accept-timeout/backlog/cleanup tests, and the Go race detector guard the "
-        "boundary."
+        "build-tagged listener/readiness adapters; loopback/server-lifecycle/readiness semantic-diff, selective-runtime "
+        "snapshots, direct partial-write/peer-close/accept-timeout/backlog/saturation/drain/OOB/cleanup tests, and the "
+        "Go race detector guard the boundary."
     ),
     "sys.net.UdpSocket": (
         "Direct `sys.net.UdpSocket` usage now has deterministic snapshot/runtime coverage through "
