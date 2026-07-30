@@ -60,7 +60,7 @@ func httpTestExecuteRequest(request *HttpRequest, uploadRead func(int) *ByteView
 		if uploadErr != nil {
 			HttpUploadSinkAbort(sink, uploadErr)
 		} else {
-			uploadErr = HttpUploadSinkFinish(sink)
+			_ = HttpUploadSinkFinish(sink)
 		}
 	}
 	HttpExchangeAwaitResponse(exchange)
