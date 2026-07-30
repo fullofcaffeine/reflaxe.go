@@ -283,6 +283,10 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/net/SocketDatagramResult.hx",
     ),
+    "std/hxrt/net/SocketEndpoint.hx": (
+        "hxrt_binding",
+        "std/hxrt/net/SocketEndpoint.hx",
+    ),
     "std/hxrt/net/SocketHandle.hx": (
         "hxrt_binding",
         "std/hxrt/net/SocketHandle.hx",
@@ -2606,6 +2610,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "std/hxrt/net/SocketAcceptResult.hx",
             "std/hxrt/net/SocketIOResult.hx",
             "std/hxrt/net/SocketDatagramResult.hx",
+            "std/hxrt/net/SocketEndpoint.hx",
             "std/hxrt/net/SocketSelectResult.hx",
             "std/hxrt/net/NativeSocket.hx",
         ):

@@ -22,8 +22,7 @@ func main() {
 	client := New_sys__ssl__Socket()
 	client.verifyCert = false
 	client.__hx_this.setCA(cert)
-	client.__hx_this.setHostname(hxrt.StringFromLiteral("localhost"))
-	client.__hx_this.connect(New_sys__net__Host(hxrt.StringFromLiteral("127.0.0.1")), func(hx_obj_1 map[string]any) int {
+	client.__hx_this.connect(New_sys__net__Host(hxrt.StringFromLiteral("localhost")), func(hx_obj_1 map[string]any) int {
 		hx_field_2 := hx_obj_1["port"]
 		if hx_field_2 == nil {
 			var hx_zero_3 int

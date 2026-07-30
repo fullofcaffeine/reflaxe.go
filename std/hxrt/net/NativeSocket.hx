@@ -45,6 +45,15 @@ extern class NativeSocket {
 	@:go.name("HostLocal")
 	public static function hostLocal():String;
 
+	/**
+		What: Keeps a dial address and its protocol-level hostname in one typed carrier.
+		Why: A resolved IP routes the connection, but TLS must still verify and advertise
+		the original hostname.
+		How: Construct the opaque native endpoint before crossing into TLS.
+	**/
+	@:go.name("SocketEndpointNew")
+	public static function endpoint(networkAddress:String, logicalHost:String):SocketEndpoint;
+
 	@:go.name("SocketNewTCP")
 	public static function newTcp():SocketHandle;
 

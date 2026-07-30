@@ -479,8 +479,9 @@ Shim strategy and alternatives are documented in:
 
 - Direct UDP behavior has deterministic loopback snapshot/runtime coverage for
   `bind`, `host`, `sendTo`, `readFrom`, `setBroadcast`, and `Address`
-  round-tripping (`stdlib/sys_net_udp_socket_direct`). A valid zero-byte
-  datagram currently loses its sender identity, so UDP remains release-excluded.
+  round-tripping (`stdlib/sys_net_udp_socket_direct`). Native and generated-Haxe
+  regressions also prove that a valid zero-byte datagram retains its sender
+  address even though its payload count is zero.
 - `haxe_go-vfp.8.7.14` moved the public API to canonical staged source over the shared typed TCP/UDP handle. No compiler-emitted UdpSocket implementation or raw-injection path remains.
 - `setBroadcast(true)` maps to Go's operating-system socket option path (`SO_BROADCAST`) on the underlying UDP connection. Build-tagged POSIX and Windows helpers preserve each platform's native descriptor type, and a cross-build regression test keeps both compiling. The portable evidence checks that the option is installed and that normal UDP behavior still works; it does not require sending packets to a LAN broadcast address, because CI machines and developer laptops can block that at the network-policy level.
 
@@ -490,16 +491,19 @@ Shim strategy and alternatives are documented in:
 - `runtime/hxrt/socket_ssl.go` owns only native TLS client/listener installation, handshake, peer-certificate access, and synchronized SNI selection. Certificate/key/digest primitives remain in `ssl.go`; SSL leaf users therefore do not select network transport.
 - Runnable snapshots prove covered TLS loopback I/O, peer certificate fields,
   accepted `sys.ssl.Socket` runtime identity, default-certificate selection,
-  and callback-driven SNI selection. They do not prove the ordinary default
-  path: the original logical hostname is currently lost when the resolved
-  numeric address is passed to TLS unless callers explicitly set a hostname.
+  and callback-driven SNI selection. A typed endpoint now keeps the resolved
+  IPv4 dial address separate from the original `Host.host` identity. A
+  deterministic local CA regression proves default certificate verification
+  and SNI, mismatch rejection, and explicit `setHostname` override; the direct
+  generated-Haxe loopback snapshot executes that default endpoint path.
   Selective snapshots prove only the `ssl` leaf versus
   `socket + ssl + socket_ssl` transport split.
 - A direct race test also proves `Socket.setTimeout` bounds a TLS client when a
   peer accepts TCP but never completes its handshake. TCP and TLS now share
   the same snapshotted dial policy.
-- TLS, HTTPS, inherited shutdown/fast-send controls, DNS identity, and runtime
-  behavior outside Linux/amd64 remain release-excluded under
+- TLS, HTTPS, inherited shutdown/fast-send controls, public CA behavior,
+  hostile peers, and runtime behavior outside Linux/amd64 remain
+  release-excluded under
   `haxe_go-vfp.10.9`.
 
 ### `EReg` + `haxe.Serializer` contract and tradeoffs

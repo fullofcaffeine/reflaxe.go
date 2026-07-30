@@ -61,6 +61,12 @@ Consequently, only the named blocking IPv4 TCP client members are admitted.
 HTTP and advanced socket, DNS, UDP, server, readiness, and TLS operations remain
 release-excluded under their follow-up blockers.
 
+Follow-up note (2026-07-30): `haxe_go-vfp.10.9.2` now preserves sender identity
+for zero-byte UDP datagrams, and `haxe_go-vfp.10.9.3` now preserves the original
+logical host for default direct-TLS verification and SNI. Those focused repairs
+do not change this review's narrow TCP-only release disposition; the remaining
+UDP and TLS contracts stay excluded under `haxe_go-vfp.10.9`.
+
 ## Validation result
 
 The implementation matrix was reported as passing on 2026-07-28. These results

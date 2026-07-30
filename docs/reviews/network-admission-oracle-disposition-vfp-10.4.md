@@ -85,3 +85,18 @@ The governed changes are therefore:
 
 This document is the required written second-pass disposition for the
 `thinking:xhigh` closure of `haxe_go-vfp.10.4`.
+
+## Follow-up resolution status
+
+Two accepted defects have since received focused repairs without widening the
+release claim:
+
+- `haxe_go-vfp.10.9.2` preserves the sender address for a valid zero-byte UDP
+  datagram in native and generated-Haxe loopback evidence.
+- `haxe_go-vfp.10.9.3` introduces a typed endpoint that dials the resolved
+  address while retaining the original logical hostname for default direct-TLS
+  verification and SNI. Deterministic local-CA evidence covers success,
+  mismatch rejection, explicit `setHostname` override, and SNI selection.
+
+UDP and TLS remain release-excluded until their complete operation-level
+contracts and the parent `haxe_go-vfp.10.9` review are complete.

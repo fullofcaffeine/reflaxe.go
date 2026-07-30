@@ -67,16 +67,27 @@ func sslSocketClientConfig(verifyCert bool, ca *SslCertificate, serverName *stri
 }
 
 // SslSocketConnect installs a TLS client connection into an existing typed socket handle.
-func SslSocketConnect(handle *SocketHandle, host *string, port int, verifyCert bool, ca *SslCertificate, serverName *string, cert *SslCertificate, key *SslKey) {
-	if handle == nil || host == nil {
+//
+// What: Dials the endpoint's numeric address while verifying and advertising
+// its logical hostname by default.
+// Why: A resolved IP is transport routing, not the DNS identity named by a
+// certificate; conflating them breaks ordinary certificate verification and SNI.
+// How: An explicit setHostname value wins, otherwise the endpoint's logical
+// host becomes tls.Config.ServerName before the numeric dial begins.
+func SslSocketConnect(handle *SocketHandle, endpoint *SocketEndpoint, port int, verifyCert bool, ca *SslCertificate, serverName *string, cert *SslCertificate, key *SslKey) {
+	if handle == nil || endpoint == nil || endpoint.NetworkAddress == "" {
 		socketThrow(errors.New("socket connect requires host"))
 		return
 	}
-	config := sslSocketClientConfig(verifyCert, ca, serverName, cert, key)
+	effectiveServerName := serverName
+	if effectiveServerName == nil || *StdString(effectiveServerName) == "" {
+		effectiveServerName = StringFromLiteral(endpoint.LogicalHost)
+	}
+	config := sslSocketClientConfig(verifyCert, ca, effectiveServerName, cert, key)
 	if config == nil {
 		return
 	}
-	conn, err := tls.DialWithDialer(handle.dialer(), "tcp4", net.JoinHostPort(*StdString(host), strconv.Itoa(port)), config)
+	conn, err := tls.DialWithDialer(handle.dialer(), "tcp4", net.JoinHostPort(endpoint.NetworkAddress, strconv.Itoa(port)), config)
 	if err != nil {
 		socketThrow(err)
 		return

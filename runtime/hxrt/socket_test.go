@@ -2,7 +2,13 @@ package hxrt
 
 import (
 	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"io"
+	"math/big"
 	"net"
 	"sync"
 	"testing"
@@ -25,6 +31,67 @@ func socketTestIntsEqual(actual []int, expected ...int) bool {
 		}
 	}
 	return true
+}
+
+func socketTestCertificate(t *testing.T, logicalHost string) (*tls.Config, *SslCertificate) {
+	t.Helper()
+	now := time.Now()
+	rootKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootTemplate := &x509.Certificate{
+		SerialNumber:          big.NewInt(1),
+		Subject:               pkix.Name{CommonName: "haxe.go socket test root"},
+		NotBefore:             now.Add(-time.Hour),
+		NotAfter:              now.Add(time.Hour),
+		IsCA:                  true,
+		BasicConstraintsValid: true,
+		KeyUsage:              x509.KeyUsageCertSign,
+	}
+	rootDER, err := x509.CreateCertificate(rand.Reader, rootTemplate, rootTemplate, &rootKey.PublicKey, rootKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	root, err := x509.ParseCertificate(rootDER)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	leafKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	leafTemplate := &x509.Certificate{
+		SerialNumber: big.NewInt(2),
+		Subject:      pkix.Name{CommonName: logicalHost},
+		DNSNames:     []string{logicalHost},
+		NotBefore:    now.Add(-time.Hour),
+		NotAfter:     now.Add(time.Hour),
+		KeyUsage:     x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	}
+	leafDER, err := x509.CreateCertificate(rand.Reader, leafTemplate, root, &leafKey.PublicKey, rootKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	leaf, err := x509.ParseCertificate(leafDER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return &tls.Config{Certificates: []tls.Certificate{{
+		Certificate: [][]byte{leafDER, rootDER},
+		PrivateKey:  leafKey,
+		Leaf:        leaf,
+	}}}, newSslCertificate([]*x509.Certificate{root}, nil)
+}
+
+func socketTestRecovered(call func()) (recovered any) {
+	defer func() {
+		recovered = recover()
+	}()
+	call()
+	return nil
 }
 
 type socketTestPartialWriteConn struct {
@@ -211,7 +278,8 @@ func TestSslSocketConnectHonorsTheConfiguredHandshakeTimeout(t *testing.T) {
 		defer func() {
 			recovered <- recover()
 		}()
-		SslSocketConnect(handle, socketTestString(socketTestHost), address.Port, false, nil, nil, nil, nil)
+		SslSocketConnect(handle, SocketEndpointNew(socketTestString(socketTestHost), socketTestString(socketTestHost)), address.Port, false, nil, nil, nil,
+			nil)
 	}()
 
 	select {
@@ -239,6 +307,88 @@ func TestSslSocketConnectHonorsTheConfiguredHandshakeTimeout(t *testing.T) {
 		}
 	case <-time.After(time.Second):
 		t.Fatal("TLS client did not connect to the local stalled peer")
+	}
+}
+
+func TestSslSocketConnectPreservesLogicalHostForVerificationAndSNI(t *testing.T) {
+	const logicalHost = "logical.test"
+	serverConfig, ca := socketTestCertificate(t, logicalHost)
+	observedSNI := make(chan string, 4)
+	serverConfig.GetConfigForClient = func(hello *tls.ClientHelloInfo) (*tls.Config, error) {
+		observedSNI <- hello.ServerName
+		return nil, nil
+	}
+	listener, err := net.Listen("tcp4", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer listener.Close()
+	serverErrors := make(chan error, 4)
+	go func() {
+		for index := 0; index < 4; index++ {
+			raw, acceptErr := listener.Accept()
+			if acceptErr != nil {
+				serverErrors <- acceptErr
+				continue
+			}
+			connection := tls.Server(raw, serverConfig)
+			serverErrors <- connection.Handshake()
+			_ = connection.Close()
+		}
+	}()
+
+	port := listener.Addr().(*net.TCPAddr).Port
+	endpoint := SocketEndpointNew(socketTestString(socketTestHost), socketTestString(logicalHost))
+	connect := func(endpoint *SocketEndpoint, verify bool, serverName *string, ca *SslCertificate) any {
+		handle := SocketNewTCP()
+		defer SocketClose(handle)
+		return socketTestRecovered(func() {
+			SslSocketConnect(handle, endpoint, port, verify, ca, serverName, nil, nil)
+		})
+	}
+	assertSNI := func(expected string) {
+		t.Helper()
+		select {
+		case actual := <-observedSNI:
+			if actual != expected {
+				t.Fatalf("ClientHello SNI = %q, want %q", actual, expected)
+			}
+		case <-time.After(time.Second):
+			t.Fatal("TLS server did not observe ClientHello SNI")
+		}
+	}
+
+	if recovered := connect(endpoint, true, nil, ca); recovered != nil {
+		t.Fatalf("default logical-host verification recovered %#v", recovered)
+	}
+	assertSNI(logicalHost)
+
+	mismatch := SocketEndpointNew(socketTestString(socketTestHost), socketTestString("wrong.test"))
+	if recovered := connect(mismatch, true, nil, ca); recovered == nil {
+		t.Fatal("mismatched logical-host verification unexpectedly succeeded")
+	}
+	assertSNI("wrong.test")
+
+	override := socketTestString(logicalHost)
+	if recovered := connect(mismatch, true, override, ca); recovered != nil {
+		t.Fatalf("explicit hostname override recovered %#v", recovered)
+	}
+	assertSNI(logicalHost)
+
+	if recovered := connect(mismatch, false, nil, nil); recovered != nil {
+		t.Fatalf("verifyCert=false recovered %#v", recovered)
+	}
+	assertSNI("wrong.test")
+
+	for index := 0; index < 4; index++ {
+		select {
+		case serverErr := <-serverErrors:
+			if index != 1 && serverErr != nil {
+				t.Fatalf("TLS server handshake %d failed: %v", index, serverErr)
+			}
+		case <-time.After(time.Second):
+			t.Fatal("TLS server handshake did not finish")
+		}
 	}
 }
 

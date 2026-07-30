@@ -5,7 +5,7 @@
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "1329282d5fbed451c57cdb81be012316982fd279c76c125fda0f2d0db0321c50",
+    "compatibility_source_sha256": "6bd4be8864c14317b943e315ec4c0ee3fafcde67b01b18373829177256c25548",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
@@ -1462,7 +1462,7 @@
           "granularity": "surface",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Loopback and compile fixtures exercise current IPv4 UDP behavior, but zero-byte datagram sender identity and complete staged-Haxe parity remain unresolved.",
+          "qualification": "Native and generated-Haxe loopback evidence preserves sender identity for both empty and non-empty IPv4 datagrams. UDP remains experimental because the complete timeout, nonblocking, hostile-peer, and cross-platform runtime contract is not admitted.",
           "evidence_ids": [
             "semantic:socket",
             "runtime:socket-regressions",
@@ -1470,7 +1470,7 @@
             "bead:network-audit"
           ],
           "exclusions": [
-            "All UDP behavior, including zero-byte datagrams, sender identity, timeout and nonblocking edges, hostile peers, and end-to-end staged-Haxe parity"
+            "All UDP release behavior; unresolved portions include timeout and nonblocking edges, hostile peers, and runtime support outside Linux/amd64"
           ],
           "blockers": [
             "haxe_go-vfp.10.9"
@@ -1484,7 +1484,7 @@
           "granularity": "surface",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Linux loopback tests and Linux/Windows compile checks exercise current TLS code. They do not prove default logical-host verification and SNI, TLS control semantics, public certificate stores, hostile peers, or runtime behavior on Windows or Darwin.",
+          "qualification": "Deterministic local-CA runtime evidence proves that direct TLS dials a resolved IPv4 address while retaining the original logical hostname for default certificate verification and SNI; mismatch failure and explicit setHostname override are covered. Generated-Haxe loopback snapshots exercise the same default endpoint path. TLS remains experimental because inherited control semantics, public certificate stores, hostile peers, and runtime behavior outside Linux/amd64 are not admitted; Windows evidence is compile-only.",
           "evidence_ids": [
             "snapshot:socket-tls",
             "snapshot:socket-sni",
@@ -1493,7 +1493,7 @@
             "bead:network-audit"
           ],
           "exclusions": [
-            "All TLS and HTTPS behavior, including default hostname verification and SNI, CA stores, client certificates, shutdown, fast-send, stalled handshakes, hostile peers, and runtime support outside Linux/amd64"
+            "All TLS and HTTPS release behavior; unresolved portions include public CA stores, client certificates, shutdown, fast-send, hostile peers, and runtime support outside Linux/amd64"
           ],
           "blockers": [
             "haxe_go-vfp.10.9"

@@ -1,6 +1,7 @@
 package hxrt.ssl;
 
 import hxrt.net.SocketHandle;
+import hxrt.net.SocketEndpoint;
 
 /**
 	What: Typed TLS composition capabilities over the shared native socket handle.
@@ -16,7 +17,7 @@ extern class NativeSocket {
 	public static function addSniCertificate(config:SNIConfigHandle, matcher:String->Bool, cert:CertificateHandle, key:KeyHandle):SNIConfigHandle;
 
 	@:go.name("SslSocketConnect")
-	public static function connect(handle:SocketHandle, host:String, port:Int, verifyCert:Bool, ca:CertificateHandle, serverName:String,
+	public static function connect(handle:SocketHandle, endpoint:SocketEndpoint, port:Int, verifyCert:Bool, ca:CertificateHandle, serverName:String,
 		cert:CertificateHandle, key:KeyHandle):Void;
 
 	@:go.name("SslSocketListen")

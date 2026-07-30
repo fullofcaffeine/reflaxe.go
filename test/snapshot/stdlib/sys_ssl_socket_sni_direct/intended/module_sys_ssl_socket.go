@@ -83,7 +83,8 @@ func (self *sys__ssl__Socket) connect(host *sys__net__Host, port int) {
 	if host == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("socket connect requires host"))
 	}
-	hxrt.SslSocketConnect(self.handle, host.__hx_this.toString(), port, (self.verifyCert != false), func() *hxrt.SslCertificate {
+	endpoint := hxrt.SocketEndpointNew(host.__hx_this.toString(), host.host)
+	hxrt.SslSocketConnect(self.handle, endpoint, port, (self.verifyCert != false), func() *hxrt.SslCertificate {
 		var hx_if_15 *hxrt.SslCertificate
 		if self.caCert == nil {
 			hx_if_15 = nil

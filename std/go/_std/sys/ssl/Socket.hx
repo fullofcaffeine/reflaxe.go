@@ -68,10 +68,18 @@ class Socket extends sys.net.Socket {
 		sniConfig = NativeSslSocket.addSniCertificate(sniConfig, matcher, cert.handle, key.handle);
 	}
 
+	/**
+		What: Connects TLS to the resolved IPv4 address while retaining the source hostname.
+		Why: `Host.toString()` is the routing address, not necessarily the certificate
+		identity or SNI name.
+		How: Pass both values through a typed endpoint; an explicit `setHostname` value
+		still overrides the retained source hostname.
+	**/
 	override public function connect(host:Host, port:Int):Void {
 		if (host == null)
 			throw "socket connect requires host";
-		NativeSslSocket.connect(handle, host.toString(), port, verifyCert != false, caCert == null ? null : caCert.handle, hostname,
+		var endpoint = NativeNetSocket.endpoint(host.toString(), host.host);
+		NativeSslSocket.connect(handle, endpoint, port, verifyCert != false, caCert == null ? null : caCert.handle, hostname,
 			ownCert == null ? null : ownCert.handle, ownKey == null ? null : ownKey.handle);
 	}
 

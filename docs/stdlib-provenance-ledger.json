@@ -50,6 +50,7 @@
         "haxe_go-vfp.10.5.1",
         "haxe_go-vfp.10.8.3",
         "haxe_go-vfp.10.8.4",
+        "haxe_go-vfp.10.9.3",
         "haxe_go-vfp.5.4",
         "haxe_go-vfp.8.3.8",
         "haxe_go-vfp.8.7.10",
@@ -1487,6 +1488,15 @@
       "migrationBead": "haxe_go-vfp.8.7.14",
       "compilerShimGroups": [],
       "notes": "Typed UDP payload-progress, status, and peer-address carrier that avoids Dynamic and runtime-created Haxe objects."
+    },
+    {
+      "path": "std/hxrt/net/SocketEndpoint.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/net/SocketEndpoint.hx",
+      "migrationBead": "haxe_go-vfp.10.9.3",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed carrier that keeps the resolved network route separate from the logical hostname used by TLS verification and SNI."
     },
     {
       "path": "std/hxrt/net/SocketHandle.hx",

@@ -23,8 +23,7 @@ class Main {
 		var client:Socket = new Socket();
 		client.verifyCert = false;
 		client.setCA(cert);
-		client.setHostname("localhost");
-		client.connect(new Host("127.0.0.1"), bound.port);
+		client.connect(new Host("localhost"), bound.port);
 		client.handshake();
 
 		var accepted = acceptedSockets.pop(true);

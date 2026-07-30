@@ -3044,3 +3044,57 @@ Bounded claim:
   networks, fixed-body writes to non-reading peers, and arbitrary custom Inputs
   that block forever remain excluded. A commit-pinned independent review must
   approve or further split the three candidates before policy changes.
+
+### 2026-07-30: preserve empty UDP sender identity (`haxe_go-vfp.10.9.2`)
+
+What changed:
+
+- `SocketUdpReadFrom` now records a datagram's peer whenever the receive
+  succeeds, even when the valid payload length is zero.
+- Native and generated-Haxe loopback regressions require the zero count,
+  ready status, and exact sender host/port together.
+
+Why:
+
+- UDP permits empty datagrams. Treating `count > 0` as the success condition
+  confused “no payload bytes” with “no sender” and discarded valid address
+  information.
+
+Bounded claim:
+
+- UDP remains release-excluded. This repair proves sender identity for the
+  empty-datagram edge; it does not admit timeout, nonblocking, hostile-peer, or
+  additional operating-system behavior.
+
+### 2026-07-30: retain logical host identity for direct TLS (`haxe_go-vfp.10.9.3`)
+
+What changed:
+
+- Added one opaque typed endpoint carrying both the resolved IPv4 dial address
+  and the original `Host.host` value.
+- Direct `sys.ssl.Socket.connect` now dials the numeric address while using the
+  logical hostname for default certificate verification and ClientHello SNI.
+  An explicit `setHostname` value remains the higher-priority override.
+
+Why:
+
+- Routing and identity are different concerns. Passing only
+  `Host.toString()` made a normal DNS certificate appear to be an IP
+  certificate and lost the name TLS should advertise.
+
+How it is proved:
+
+- A deterministic local CA regression connects through `127.0.0.1`, verifies
+  a DNS-only certificate, captures the expected SNI, rejects a mismatched
+  logical host, and proves the explicit override.
+- The direct generated-Haxe TLS snapshot connects with `Host("localhost")`
+  without calling `setHostname`, exercising the default typed-endpoint path.
+- The migration ledger and selective-runtime snapshots keep the boundary
+  typed and footprint-explicit; no compiler, raw injection, `Dynamic`, or
+  compatibility-profile branch is added.
+
+Bounded claim:
+
+- TLS remains release-excluded. Public CA stores, inherited shutdown and
+  fast-send controls, client certificates, hostile peers, and runtime support
+  outside Linux/amd64 remain owned by `haxe_go-vfp.10.9`.

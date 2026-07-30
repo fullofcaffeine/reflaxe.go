@@ -40,6 +40,35 @@ type SocketAddress struct {
 	Port int
 }
 
+// SocketEndpoint keeps a network address separate from its logical host identity.
+//
+// What: Carries the resolved address used for a native dial and the original
+// source hostname used by protocols such as TLS.
+// Why: Host.toString() intentionally renders the resolved IPv4 address, but
+// using that value for certificate verification or SNI discards the caller's
+// security identity.
+// How: Staged Host code supplies both strings through SocketEndpointNew; native
+// transports consume this opaque typed carrier without inspecting generated
+// Haxe object layouts.
+type SocketEndpoint struct {
+	NetworkAddress string
+	LogicalHost    string
+}
+
+// SocketEndpointNew constructs one typed endpoint at the staged/native boundary.
+func SocketEndpointNew(networkAddress *string, logicalHost *string) *SocketEndpoint {
+	if networkAddress == nil || *StdString(networkAddress) == "" {
+		socketThrow(errors.New("socket endpoint requires a network address"))
+		return &SocketEndpoint{}
+	}
+	address := *StdString(networkAddress)
+	logical := address
+	if logicalHost != nil && *StdString(logicalHost) != "" {
+		logical = *StdString(logicalHost)
+	}
+	return &SocketEndpoint{NetworkAddress: address, LogicalHost: logical}
+}
+
 // SocketIOResult separates byte progress from EOF and blocked states.
 //
 // What: Returns byte values, their count, and one explicit status code.
