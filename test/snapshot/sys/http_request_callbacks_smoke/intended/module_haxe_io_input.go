@@ -37,15 +37,15 @@ func New_haxe__io__Input() *haxe__io__Input {
 func (self *haxe__io__Input) readByte() int {
 	return func() int {
 		hxrt.Throw(New_haxe__exceptions__NotImplementedException(nil, nil, func() map[string]any {
-			hx_obj_198 := map[string]any{}
-			hx_obj_198["fileName"] = hxrt.StringFromLiteral("haxe/io/Input.hx")
-			hx_obj_198["lineNumber"] = 18
-			hx_obj_198["className"] = hxrt.StringFromLiteral("haxe.io.Input")
-			hx_obj_198["methodName"] = hxrt.StringFromLiteral("readByte")
-			return hx_obj_198
+			hx_obj_175 := map[string]any{}
+			hx_obj_175["fileName"] = hxrt.StringFromLiteral("haxe/io/Input.hx")
+			hx_obj_175["lineNumber"] = 18
+			hx_obj_175["className"] = hxrt.StringFromLiteral("haxe.io.Input")
+			hx_obj_175["methodName"] = hxrt.StringFromLiteral("readByte")
+			return hx_obj_175
 		}()))
-		var hx_throw_zero_199 int
-		return hx_throw_zero_199
+		var hx_throw_zero_176 int
+		return hx_throw_zero_176
 	}()
 }
 
@@ -62,13 +62,13 @@ func (self *haxe__io__Input) readBytes(bytes *haxe__io__Bytes, pos int, len int)
 			pos = int(int32((pos + 1)))
 			remaining = int(int32((remaining - 1)))
 		}
-	}, func(hx_caught_200 any) {
-		switch hx_typed_201 := hx_caught_200.(type) {
+	}, func(hx_caught_177 any) {
+		switch hx_typed_178 := hx_caught_177.(type) {
 		case *haxe__io__Eof:
-			hx_tmp := hx_typed_201
+			hx_tmp := hx_typed_178
 			_ = hx_tmp
 		default:
-			hxrt.Throw(hx_caught_200)
+			hxrt.Throw(hx_caught_177)
 		}
 	})
 	return int(int32((hxrt.Int32Wrap(len) - hxrt.Int32Wrap(remaining))))
@@ -99,13 +99,13 @@ func (self *haxe__io__Input) readAll(bufsize any) *haxe__io__Bytes {
 			}
 			total.b = hxrt.BytesBufferAddSlice(total.b, buffer.__hx_this.getData(), 0, count)
 		}
-	}, func(hx_caught_202 any) {
-		switch hx_typed_203 := hx_caught_202.(type) {
+	}, func(hx_caught_179 any) {
+		switch hx_typed_180 := hx_caught_179.(type) {
 		case *haxe__io__Eof:
-			hx_tmp := hx_typed_203
+			hx_tmp := hx_typed_180
 			_ = hx_tmp
 		default:
-			hxrt.Throw(hx_caught_202)
+			hxrt.Throw(hx_caught_179)
 		}
 	})
 	return total.__hx_this.getBytes()
@@ -155,16 +155,16 @@ func (self *haxe__io__Input) readLine() *string {
 		if (hxrt.StringLengthStringPtr(result) > 0) && (hxrt.StringCharCodeAtAnyStringPtr(result, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(result))-hxrt.Int32Wrap(1))))) == 13) {
 			result = hxrt.StringSubstrStringPtr(result, 0, -1, true)
 		}
-	}, func(hx_caught_204 any) {
-		switch hx_typed_205 := hx_caught_204.(type) {
+	}, func(hx_caught_181 any) {
+		switch hx_typed_182 := hx_caught_181.(type) {
 		case *haxe__io__Eof:
-			error := hx_typed_205
+			error := hx_typed_182
 			result = buffer.__hx_this.getBytes().__hx_this.toString()
 			if hxrt.StringLengthStringPtr(result) == 0 {
 				hxrt.Throw(error)
 			}
 		default:
-			hxrt.Throw(hx_caught_204)
+			hxrt.Throw(hx_caught_181)
 		}
 	})
 	return result
@@ -177,88 +177,88 @@ func (self *haxe__io__Input) readFloat() float64 {
 func (self *haxe__io__Input) readDouble() float64 {
 	first := self.__hx_this.readInt32()
 	second := self.__hx_this.readInt32()
-	var hx_if_206 float64
+	var hx_if_183 float64
 	if self.bigEndian {
-		hx_if_206 = haxe__io__FPHelper_i64ToDouble(second, first)
+		hx_if_183 = haxe__io__FPHelper_i64ToDouble(second, first)
 	} else {
-		hx_if_206 = haxe__io__FPHelper_i64ToDouble(first, second)
+		hx_if_183 = haxe__io__FPHelper_i64ToDouble(first, second)
 	}
-	return hx_if_206
+	return hx_if_183
 }
 
 func (self *haxe__io__Input) readInt8() int {
 	value := self.__hx_this.readByte()
-	var hx_if_207 int
+	var hx_if_184 int
 	if value >= 128 {
-		hx_if_207 = int(int32((hxrt.Int32Wrap(value) - hxrt.Int32Wrap(256))))
+		hx_if_184 = int(int32((hxrt.Int32Wrap(value) - hxrt.Int32Wrap(256))))
 	} else {
-		hx_if_207 = value
+		hx_if_184 = value
 	}
-	return hx_if_207
+	return hx_if_184
 }
 
 func (self *haxe__io__Input) readInt16() int {
 	first := self.__hx_this.readByte()
 	second := self.__hx_this.readByte()
-	var hx_if_208 int
+	var hx_if_185 int
 	if self.bigEndian {
-		hx_if_208 = int(int32((hxrt.Int32Wrap(second) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) << uint(8))))))))
+		hx_if_185 = int(int32((hxrt.Int32Wrap(second) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) << uint(8))))))))
 	} else {
-		hx_if_208 = int(int32((hxrt.Int32Wrap(first) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))
+		hx_if_185 = int(int32((hxrt.Int32Wrap(first) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))
 	}
-	value := hx_if_208
-	var hx_if_209 int
+	value := hx_if_185
+	var hx_if_186 int
 	if int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(32768)))) != 0 {
-		hx_if_209 = int(int32((hxrt.Int32Wrap(value) - hxrt.Int32Wrap(65536))))
+		hx_if_186 = int(int32((hxrt.Int32Wrap(value) - hxrt.Int32Wrap(65536))))
 	} else {
-		hx_if_209 = value
+		hx_if_186 = value
 	}
-	return hx_if_209
+	return hx_if_186
 }
 
 func (self *haxe__io__Input) readUInt16() int {
 	first := self.__hx_this.readByte()
 	second := self.__hx_this.readByte()
-	var hx_if_210 int
+	var hx_if_187 int
 	if self.bigEndian {
-		hx_if_210 = int(int32((hxrt.Int32Wrap(second) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) << uint(8))))))))
+		hx_if_187 = int(int32((hxrt.Int32Wrap(second) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) << uint(8))))))))
 	} else {
-		hx_if_210 = int(int32((hxrt.Int32Wrap(first) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))
+		hx_if_187 = int(int32((hxrt.Int32Wrap(first) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))
 	}
-	return hx_if_210
+	return hx_if_187
 }
 
 func (self *haxe__io__Input) readInt24() int {
 	first := self.__hx_this.readByte()
 	second := self.__hx_this.readByte()
 	third := self.__hx_this.readByte()
-	var hx_if_211 int
+	var hx_if_188 int
 	if self.bigEndian {
-		hx_if_211 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) << uint(16))))))))
+		hx_if_188 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) << uint(16))))))))
 	} else {
-		hx_if_211 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) << uint(16))))))))
+		hx_if_188 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) << uint(16))))))))
 	}
-	value := hx_if_211
-	var hx_if_212 int
+	value := hx_if_188
+	var hx_if_189 int
 	if int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(8388608)))) != 0 {
-		hx_if_212 = int(int32((hxrt.Int32Wrap(value) - hxrt.Int32Wrap(16777216))))
+		hx_if_189 = int(int32((hxrt.Int32Wrap(value) - hxrt.Int32Wrap(16777216))))
 	} else {
-		hx_if_212 = value
+		hx_if_189 = value
 	}
-	return hx_if_212
+	return hx_if_189
 }
 
 func (self *haxe__io__Input) readUInt24() int {
 	first := self.__hx_this.readByte()
 	second := self.__hx_this.readByte()
 	third := self.__hx_this.readByte()
-	var hx_if_213 int
+	var hx_if_190 int
 	if self.bigEndian {
-		hx_if_213 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) << uint(16))))))))
+		hx_if_190 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) << uint(16))))))))
 	} else {
-		hx_if_213 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) << uint(16))))))))
+		hx_if_190 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) << uint(16))))))))
 	}
-	return hx_if_213
+	return hx_if_190
 }
 
 func (self *haxe__io__Input) readInt32() int {
@@ -266,13 +266,13 @@ func (self *haxe__io__Input) readInt32() int {
 	second := self.__hx_this.readByte()
 	third := self.__hx_this.readByte()
 	fourth := self.__hx_this.readByte()
-	var hx_if_214 int
+	var hx_if_191 int
 	if self.bigEndian {
-		hx_if_214 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(fourth) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(16))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) << uint(24))))))))
+		hx_if_191 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(fourth) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(16))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) << uint(24))))))))
 	} else {
-		hx_if_214 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) << uint(16))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(fourth) << uint(24))))))))
+		hx_if_191 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) << uint(16))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(fourth) << uint(24))))))))
 	}
-	return hx_if_214
+	return hx_if_191
 }
 
 func (self *haxe__io__Input) readString(len int, encoding *haxe__io__Encoding) *string {

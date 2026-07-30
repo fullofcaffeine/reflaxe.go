@@ -54,90 +54,90 @@ func (self *haxe__http__HttpBase) setHeader(name *string, value *string) {
 	_g := 0
 	_g1 := self.headers.Len()
 	for _g < _g1 {
-		hx_post_230 := _g
+		hx_post_207 := _g
 		_g = int(int32((_g + 1)))
-		i := hx_post_230
-		if hxrt.StringEqualStringPtr(func(hx_obj_236 map[string]any) *string {
-			hx_field_237 := hx_obj_236["name"]
-			if hx_field_237 == nil {
-				var hx_zero_238 *string
-				return hx_zero_238
+		i := hx_post_207
+		if hxrt.StringEqualStringPtr(func(hx_obj_213 map[string]any) *string {
+			hx_field_214 := hx_obj_213["name"]
+			if hx_field_214 == nil {
+				var hx_zero_215 *string
+				return hx_zero_215
 			}
-			return hx_field_237.(*string)
-		}(func(hx_value_234 any) map[string]any {
-			if hx_value_234 == nil {
-				var hx_zero_235 map[string]any
-				return hx_zero_235
+			return hx_field_214.(*string)
+		}(func(hx_value_211 any) map[string]any {
+			if hx_value_211 == nil {
+				var hx_zero_212 map[string]any
+				return hx_zero_212
 			}
-			return hx_value_234.(map[string]any)
+			return hx_value_211.(map[string]any)
 		}(self.headers.Get(i))), name) {
-			hx_array_target_232 := self.headers
-			hx_array_index_233 := i
-			hx_obj_231 := map[string]any{}
-			hx_obj_231["name"] = name
-			hx_obj_231["value"] = value
-			hx_array_target_232.Set(hx_array_index_233, hx_obj_231)
+			hx_array_target_209 := self.headers
+			hx_array_index_210 := i
+			hx_obj_208 := map[string]any{}
+			hx_obj_208["name"] = name
+			hx_obj_208["value"] = value
+			hx_array_target_209.Set(hx_array_index_210, hx_obj_208)
 			return
 		}
 	}
-	hx_arr_239 := self.headers
-	hx_obj_240 := map[string]any{}
-	hx_obj_240["name"] = name
-	hx_obj_240["value"] = value
-	hx_arr_239.Push(hx_obj_240)
+	hx_arr_216 := self.headers
+	hx_obj_217 := map[string]any{}
+	hx_obj_217["name"] = name
+	hx_obj_217["value"] = value
+	hx_arr_216.Push(hx_obj_217)
 }
 
 func (self *haxe__http__HttpBase) addHeader(header *string, value *string) {
-	hx_arr_241 := self.headers
-	hx_obj_242 := map[string]any{}
-	hx_obj_242["name"] = header
-	hx_obj_242["value"] = value
-	hx_arr_241.Push(hx_obj_242)
+	hx_arr_218 := self.headers
+	hx_obj_219 := map[string]any{}
+	hx_obj_219["name"] = header
+	hx_obj_219["value"] = value
+	hx_arr_218.Push(hx_obj_219)
 }
 
 func (self *haxe__http__HttpBase) setParameter(name *string, value *string) {
 	_g := 0
 	_g1 := self.params.Len()
 	for _g < _g1 {
-		hx_post_243 := _g
+		hx_post_220 := _g
 		_g = int(int32((_g + 1)))
-		i := hx_post_243
-		if hxrt.StringEqualStringPtr(func(hx_obj_249 map[string]any) *string {
-			hx_field_250 := hx_obj_249["name"]
-			if hx_field_250 == nil {
-				var hx_zero_251 *string
-				return hx_zero_251
+		i := hx_post_220
+		if hxrt.StringEqualStringPtr(func(hx_obj_226 map[string]any) *string {
+			hx_field_227 := hx_obj_226["name"]
+			if hx_field_227 == nil {
+				var hx_zero_228 *string
+				return hx_zero_228
 			}
-			return hx_field_250.(*string)
-		}(func(hx_value_247 any) map[string]any {
-			if hx_value_247 == nil {
-				var hx_zero_248 map[string]any
-				return hx_zero_248
+			return hx_field_227.(*string)
+		}(func(hx_value_224 any) map[string]any {
+			if hx_value_224 == nil {
+				var hx_zero_225 map[string]any
+				return hx_zero_225
 			}
-			return hx_value_247.(map[string]any)
+			return hx_value_224.(map[string]any)
 		}(self.params.Get(i))), name) {
-			hx_array_target_245 := self.params
-			hx_array_index_246 := i
-			hx_obj_244 := map[string]any{}
-			hx_obj_244["name"] = name
-			hx_obj_244["value"] = value
-			hx_array_target_245.Set(hx_array_index_246, hx_obj_244)
+			hx_array_target_222 := self.params
+			hx_array_index_223 := i
+			hx_obj_221 := map[string]any{}
+			hx_obj_221["name"] = name
+			hx_obj_221["value"] = value
+			hx_array_target_222.Set(hx_array_index_223, hx_obj_221)
 			return
 		}
 	}
-	hx_arr_252 := self.params
-	hx_obj_253 := map[string]any{}
-	hx_obj_253["name"] = name
-	hx_obj_253["value"] = value
-	hx_arr_252.Push(hx_obj_253)
+	hx_arr_229 := self.params
+	hx_obj_230 := map[string]any{}
+	hx_obj_230["name"] = name
+	hx_obj_230["value"] = value
+	hx_arr_229.Push(hx_obj_230)
 }
 
 func (self *haxe__http__HttpBase) addParameter(name *string, value *string) {
-	hx_arr_254 := self.params
-	hx_obj_255 := map[string]any{}
-	hx_obj_255["name"] = name
-	hx_obj_255["value"] = value
-	hx_arr_254.Push(hx_obj_255)
+	hx_arr_231 := self.params
+	hx_obj_232 := map[string]any{}
+	hx_obj_232["name"] = name
+	hx_obj_232["value"] = value
+	hx_arr_231.Push(hx_obj_232)
 }
 
 func (self *haxe__http__HttpBase) setPostData(data *string) {
@@ -152,12 +152,12 @@ func (self *haxe__http__HttpBase) setPostBytes(data *haxe__io__Bytes) {
 
 func (self *haxe__http__HttpBase) request(post any) {
 	hxrt.Throw(New_haxe__exceptions__NotImplementedException(nil, nil, func() map[string]any {
-		hx_obj_256 := map[string]any{}
-		hx_obj_256["fileName"] = hxrt.StringFromLiteral("haxe/http/HttpBase.hx")
-		hx_obj_256["lineNumber"] = 106
-		hx_obj_256["className"] = hxrt.StringFromLiteral("haxe.http.HttpBase")
-		hx_obj_256["methodName"] = hxrt.StringFromLiteral("request")
-		return hx_obj_256
+		hx_obj_233 := map[string]any{}
+		hx_obj_233["fileName"] = hxrt.StringFromLiteral("haxe/http/HttpBase.hx")
+		hx_obj_233["lineNumber"] = 106
+		hx_obj_233["className"] = hxrt.StringFromLiteral("haxe.http.HttpBase")
+		hx_obj_233["methodName"] = hxrt.StringFromLiteral("request")
+		return hx_obj_233
 	}()))
 }
 

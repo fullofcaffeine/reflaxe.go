@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net"
 	"net/http"
@@ -30,13 +31,38 @@ type HttpRequest struct {
 	method   string
 	post     bool
 	timeout  float64
-	params   url.Values
-	headers  http.Header
+	params   []httpRequestParameter
+	headers  []httpNameValue
 	body     []byte
 	hasBody  bool
 	upload   *httpMultipartUpload
 	proxyURL *url.URL
 	socket   *SocketHandle
+}
+
+// httpNameValue keeps one request-header occurrence.
+//
+// What: Stores each staged header as its own typed pair.
+// Why: Repeated values are part of HttpBase's source contract and a Go map
+// would make the native boundary silently collapse or reorder that authority.
+// How: Header application walks this slice once and uses http.Header.Add for
+// ordinary fields while routing Go-special fields through explicit policy.
+type httpNameValue struct {
+	name  string
+	value string
+}
+
+// httpRequestParameter keeps one parameter in its two required spellings.
+//
+// What: Carries the raw source value and the staged Haxe percent-encoded value.
+// Why: Multipart needs raw text, while query/form bytes must use Haxe's encoder
+// without asking Go to parse, sort, collapse, or re-encode the collection.
+// How: The native builder consumes these entries in source order.
+type httpRequestParameter struct {
+	name         string
+	value        string
+	encodedName  string
+	encodedValue string
 }
 
 // httpMultipartUpload is the native transport description for one staged file upload.
@@ -85,7 +111,7 @@ type HttpResponse struct {
 // What: Selects GET or POST unless an explicit non-empty method is supplied.
 // Why: Method normalization is a Go net/http representation detail; the staged
 // caller still decides which source-visible request mode applies.
-// How: Uppercase the explicit token and initialize deterministic native maps.
+// How: Uppercase the explicit token and initialize ordered native entry lists.
 func HttpRequestNew(rawURL *string, post bool, method *string, timeout float64) *HttpRequest {
 	selectedMethod := http.MethodGet
 	if post {
@@ -102,28 +128,42 @@ func HttpRequestNew(rawURL *string, post bool, method *string, timeout float64) 
 		method:  selectedMethod,
 		post:    post,
 		timeout: timeout,
-		params:  make(url.Values),
-		headers: make(http.Header),
+		params:  make([]httpRequestParameter, 0),
+		headers: make([]httpNameValue, 0),
 	}
 }
 
-// HttpRequestAddParameter records the last value for one query/form key.
-// This mirrors the previous Go url.Values.Set behavior while staged source owns
-// the public setParameter/addParameter collection semantics.
-func HttpRequestAddParameter(request *HttpRequest, name *string, value *string) {
+// HttpRequestAddParameter appends one source-ordered query/form/multipart field.
+//
+// What: Retains the raw name/value for multipart and the staged Haxe percent
+// encoding for query/form serialization.
+// Why: HttpBase add/set semantics preserve ordered multiplicity, and URL
+// encoding is Haxe-visible library policy rather than a Go url.Values policy.
+// How: Staged sys.Http passes both representations; native execution never
+// reparses, sorts, collapses, or re-encodes them.
+func HttpRequestAddParameter(request *HttpRequest, name *string, value *string, encodedName *string, encodedValue *string) {
 	if request == nil {
 		return
 	}
-	request.params.Set(*StdString(name), *StdString(value))
+	request.params = append(request.params, httpRequestParameter{
+		name:         *StdString(name),
+		value:        *StdString(value),
+		encodedName:  *StdString(encodedName),
+		encodedValue: *StdString(encodedValue),
+	})
 }
 
-// HttpRequestAddHeader records the last value for one native header key.
-// Public header ordering and replacement remain in haxe.http.HttpBase.
+// HttpRequestAddHeader appends one source-ordered native header entry.
+// Public replacement semantics remain in haxe.http.HttpBase before entries
+// cross this boundary.
 func HttpRequestAddHeader(request *HttpRequest, name *string, value *string) {
 	if request == nil {
 		return
 	}
-	request.headers.Set(*StdString(name), *StdString(value))
+	request.headers = append(request.headers, httpNameValue{
+		name:  *StdString(name),
+		value: *StdString(value),
+	})
 }
 
 // HttpRequestSetBodyString installs an explicit UTF-8 request body.
@@ -206,36 +246,30 @@ func HttpRequestExecute(request *HttpRequest) *HttpResponse {
 
 	var bodyReader io.Reader
 	var contentLength int64
+	var multipartContentType string
 	if request.upload != nil {
-		multipartBody, length, buildErr := newHttpMultipartBody(request)
+		multipartBody, length, contentType, buildErr := newHttpMultipartBody(request)
 		if buildErr != nil {
 			return httpErrorResponse(buildErr.Error())
 		}
 		bodyReader = multipartBody
 		contentLength = length
+		multipartContentType = contentType
 	} else if request.post {
 		if request.hasBody {
 			bodyReader = bytes.NewReader(request.body)
 		} else {
-			form := parsedURL.Query()
-			for name, values := range request.params {
-				if len(values) > 0 {
-					form.Set(name, values[len(values)-1])
-				}
-			}
-			bodyReader = strings.NewReader(form.Encode())
-			if request.headers.Get("Content-Type") == "" {
-				request.headers.Set("Content-Type", "application/x-www-form-urlencoded")
-			}
+			bodyReader = strings.NewReader(httpEncodedParameters(request.params))
 		}
 	} else {
-		query := parsedURL.Query()
-		for name, values := range request.params {
-			if len(values) > 0 {
-				query.Set(name, values[len(values)-1])
+		encodedParameters := httpEncodedParameters(request.params)
+		if encodedParameters != "" {
+			if parsedURL.RawQuery == "" {
+				parsedURL.RawQuery = encodedParameters
+			} else {
+				parsedURL.RawQuery += "&" + encodedParameters
 			}
 		}
-		parsedURL.RawQuery = query.Encode()
 	}
 
 	nativeRequest, err := http.NewRequest(request.method, parsedURL.String(), bodyReader)
@@ -245,10 +279,8 @@ func HttpRequestExecute(request *HttpRequest) *HttpResponse {
 	if request.upload != nil {
 		nativeRequest.ContentLength = contentLength
 	}
-	for name, values := range request.headers {
-		for _, value := range values {
-			nativeRequest.Header.Set(name, value)
-		}
+	if err := applyHttpRequestHeaders(nativeRequest, request, multipartContentType); err != nil {
+		return httpErrorResponse(err.Error())
 	}
 
 	transport := &http.Transport{}
@@ -350,33 +382,46 @@ func (body *httpMultipartBody) Read(destination []byte) (int, error) {
 	return 0, io.EOF
 }
 
-func newHttpMultipartBody(request *HttpRequest) (*httpMultipartBody, int64, error) {
+// newHttpMultipartBody builds one atomic multipart framing plan.
+//
+// What: Derives the prefix, bounded upload reader, closing delimiter, exact
+// length, and Content-Type from one newly generated boundary.
+// Why: A public reusable boundary can collide with file bytes, while separately
+// assembled body and header values can disagree on the delimiter.
+// How: multipart.Writer generates the boundary; this function validates all
+// header-bearing metadata before returning any body that can reach the network.
+func newHttpMultipartBody(request *HttpRequest) (*httpMultipartBody, int64, string, error) {
 	upload := request.upload
 	if upload == nil {
-		return nil, 0, errors.New("multipart upload is missing")
+		return nil, 0, "", errors.New("multipart upload is missing")
 	}
 	if upload.size < 0 {
-		return nil, 0, errors.New("multipart upload size must be non-negative")
+		return nil, 0, "", errors.New("multipart upload size must be non-negative")
+	}
+	if err := validateHttpMultipartToken("multipart parameter", upload.parameter); err != nil {
+		return nil, 0, "", err
+	}
+	if err := validateHttpMultipartToken("multipart filename", upload.filename); err != nil {
+		return nil, 0, "", err
+	}
+	mediaType, _, err := mime.ParseMediaType(upload.mimeType)
+	if err != nil || mediaType == "" {
+		return nil, 0, "", errors.New("multipart media type is invalid")
+	}
+	if err := validateHttpMultipartToken("multipart media type", upload.mimeType); err != nil {
+		return nil, 0, "", err
 	}
 
-	const boundary = "hxrt-go-boundary"
 	var prefix bytes.Buffer
 	writer := multipart.NewWriter(&prefix)
-	if err := writer.SetBoundary(boundary); err != nil {
-		return nil, 0, err
-	}
-	names := make([]string, 0, len(request.params))
-	for name := range request.params {
-		names = append(names, name)
-	}
-	sort.Strings(names)
-	for _, name := range names {
-		values := request.params[name]
-		if len(values) == 0 {
-			continue
+	boundary := writer.Boundary()
+	contentType := writer.FormDataContentType()
+	for _, parameter := range request.params {
+		if err := validateHttpMultipartToken("multipart field name", parameter.name); err != nil {
+			return nil, 0, "", err
 		}
-		if err := writer.WriteField(name, values[len(values)-1]); err != nil {
-			return nil, 0, err
+		if err := writer.WriteField(parameter.name, parameter.value); err != nil {
+			return nil, 0, "", err
 		}
 	}
 	header := make(textproto.MIMEHeader)
@@ -384,7 +429,7 @@ func newHttpMultipartBody(request *HttpRequest) (*httpMultipartBody, int64, erro
 		httpMultipartQuote(upload.parameter), httpMultipartQuote(upload.filename)))
 	header.Set("Content-Type", upload.mimeType)
 	if _, err := writer.CreatePart(header); err != nil {
-		return nil, 0, err
+		return nil, 0, "", err
 	}
 	tailBytes := []byte("\r\n--" + boundary + "--\r\n")
 	length := int64(prefix.Len()) + int64(upload.size) + int64(len(tailBytes))
@@ -393,11 +438,111 @@ func newHttpMultipartBody(request *HttpRequest) (*httpMultipartBody, int64, erro
 		upload:    upload,
 		remaining: upload.size,
 		tail:      bytes.NewReader(tailBytes),
-	}, length, nil
+	}, length, contentType, nil
 }
 
 func httpMultipartQuote(value string) string {
 	return strings.NewReplacer("\\", "\\\\", `"`, `\"`).Replace(value)
+}
+
+// httpEncodedParameters joins the staged Haxe spellings without normalization.
+//
+// What: Produces the query/form bytes in source order with repeated entries.
+// Why: url.Values would sort names, collapse source intent through Set, and
+// replace existing raw-query spelling with Go's encoding policy.
+// How: Join the already encoded name/value pairs with the required delimiters.
+func httpEncodedParameters(parameters []httpRequestParameter) string {
+	encoded := make([]string, 0, len(parameters))
+	for _, parameter := range parameters {
+		encoded = append(encoded, parameter.encodedName+"="+parameter.encodedValue)
+	}
+	return strings.Join(encoded, "&")
+}
+
+// applyHttpRequestHeaders installs ordinary and Go-special request fields.
+//
+// What: Preserves repeated ordinary header values and translates Host,
+// Content-Length, Connection, and multipart Content-Type into net/http fields.
+// Why: Those names are not ordinary map entries in Go, and silently accepting
+// unsupported framing controls would make the staged request differ on the wire.
+// How: Validate the ordered entries before dialing, add ordinary values, route
+// supported special cases, and reject unimplemented framing controls.
+func applyHttpRequestHeaders(nativeRequest *http.Request, request *HttpRequest, multipartContentType string) error {
+	hostSet := false
+	contentLengthSet := false
+	contentTypeSet := false
+	for _, header := range request.headers {
+		name := strings.TrimSpace(header.name)
+		lowerName := strings.ToLower(name)
+		switch lowerName {
+		case "host":
+			if hostSet {
+				return errors.New("multiple Host headers are not supported")
+			}
+			if header.value == "" {
+				return errors.New("Host header must not be empty")
+			}
+			nativeRequest.Host = header.value
+			hostSet = true
+		case "content-length":
+			if contentLengthSet {
+				return errors.New("multiple Content-Length headers are not supported")
+			}
+			declared, err := strconv.ParseInt(strings.TrimSpace(header.value), 10, 64)
+			if err != nil || declared < 0 {
+				return errors.New("Content-Length header is invalid")
+			}
+			if nativeRequest.ContentLength >= 0 && nativeRequest.ContentLength != declared {
+				return fmt.Errorf("Content-Length header %d does not match request body length %d", declared, nativeRequest.ContentLength)
+			}
+			nativeRequest.ContentLength = declared
+			contentLengthSet = true
+		case "connection":
+			if !strings.EqualFold(strings.TrimSpace(header.value), "close") {
+				return errors.New("only Connection: close is supported")
+			}
+			nativeRequest.Close = true
+		case "transfer-encoding", "trailer", "upgrade":
+			return fmt.Errorf("%s request header is not supported", name)
+		case "content-type":
+			if multipartContentType == "" {
+				nativeRequest.Header.Add(name, header.value)
+				contentTypeSet = true
+				continue
+			}
+			mediaType, parameters, err := mime.ParseMediaType(header.value)
+			if err != nil || !strings.EqualFold(mediaType, "multipart/form-data") {
+				return errors.New("multipart Content-Type header is invalid")
+			}
+			if callerBoundary := parameters["boundary"]; callerBoundary != "" {
+				_, generatedParameters, _ := mime.ParseMediaType(multipartContentType)
+				if callerBoundary != generatedParameters["boundary"] {
+					return errors.New("multipart Content-Type boundary conflicts with generated body boundary")
+				}
+			}
+			contentTypeSet = true
+		default:
+			nativeRequest.Header.Add(name, header.value)
+		}
+	}
+	if multipartContentType != "" {
+		nativeRequest.Header.Set("Content-Type", multipartContentType)
+	} else if request.post && !request.hasBody && !contentTypeSet {
+		nativeRequest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	}
+	return nil
+}
+
+// validateHttpMultipartToken rejects metadata that could create new part headers.
+//
+// What: Forbids CR, LF, and NUL in multipart header-bearing text.
+// Why: Quoting backslashes and quotes alone does not prevent header injection.
+// How: Return a deterministic validation error before the request is dialed.
+func validateHttpMultipartToken(label string, value string) error {
+	if strings.ContainsAny(value, "\r\n\x00") {
+		return fmt.Errorf("%s contains a forbidden control character", label)
+	}
+	return nil
 }
 
 // HttpResponseError returns nil on a completed exchange or its native failure.

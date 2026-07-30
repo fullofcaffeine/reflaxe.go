@@ -24,8 +24,15 @@ extern class NativeHttp {
 	@:go.name("HttpRequestNew")
 	public static function newRequest(url:String, post:Bool, method:Null<String>, timeout:Float):HttpRequestHandle;
 
+	/**
+		What: Appends one source-ordered parameter in raw and percent-encoded form.
+		Why: `HttpBase` preserves repeated entries, while `StringTools.urlEncode`
+		is Haxe-visible policy that must not be replaced by Go map/sort/escaping.
+		How: Native multipart uses the raw pair; query and form serialization join
+		the encoded pair without reparsing or collapsing it.
+	**/
 	@:go.name("HttpRequestAddParameter")
-	public static function addParameter(request:HttpRequestHandle, name:String, value:String):Void;
+	public static function addParameter(request:HttpRequestHandle, name:String, value:String, encodedName:String, encodedValue:String):Void;
 
 	@:go.name("HttpRequestAddHeader")
 	public static function addHeader(request:HttpRequestHandle, name:String, value:String):Void;

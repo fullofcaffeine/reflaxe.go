@@ -17,12 +17,12 @@ func New_haxe__exceptions__PosException(message *string, previous *hxrt.Exceptio
 	self.__hx_exception = hxrt.BindException(self, message, previous, nil)
 	self.__hx_this = self
 	if pos == nil {
-		hx_obj_337 := map[string]any{}
-		hx_obj_337["fileName"] = hxrt.StringFromLiteral("(unknown)")
-		hx_obj_337["lineNumber"] = 0
-		hx_obj_337["className"] = hxrt.StringFromLiteral("(unknown)")
-		hx_obj_337["methodName"] = hxrt.StringFromLiteral("(unknown)")
-		self.posInfos = hx_obj_337
+		hx_obj_309 := map[string]any{}
+		hx_obj_309["fileName"] = hxrt.StringFromLiteral("(unknown)")
+		hx_obj_309["lineNumber"] = 0
+		hx_obj_309["className"] = hxrt.StringFromLiteral("(unknown)")
+		hx_obj_309["methodName"] = hxrt.StringFromLiteral("(unknown)")
+		self.posInfos = hx_obj_309
 	} else {
 		self.posInfos = pos
 	}
@@ -34,34 +34,34 @@ func (self *haxe__exceptions__PosException) HxExceptionValue() *hxrt.ExceptionVa
 }
 
 func (self *haxe__exceptions__PosException) toString() *string {
-	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.ExceptionMessage(self), hxrt.StringFromLiteral(" in ")), func(hx_obj_338 map[string]any) *string {
-		hx_field_339 := hx_obj_338["className"]
-		if hx_field_339 == nil {
-			var hx_zero_340 *string
-			return hx_zero_340
+	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.ExceptionMessage(self), hxrt.StringFromLiteral(" in ")), func(hx_obj_310 map[string]any) *string {
+		hx_field_311 := hx_obj_310["className"]
+		if hx_field_311 == nil {
+			var hx_zero_312 *string
+			return hx_zero_312
 		}
-		return hx_field_339.(*string)
-	}(self.posInfos)), hxrt.StringFromLiteral(".")), func(hx_obj_341 map[string]any) *string {
-		hx_field_342 := hx_obj_341["methodName"]
-		if hx_field_342 == nil {
-			var hx_zero_343 *string
-			return hx_zero_343
+		return hx_field_311.(*string)
+	}(self.posInfos)), hxrt.StringFromLiteral(".")), func(hx_obj_313 map[string]any) *string {
+		hx_field_314 := hx_obj_313["methodName"]
+		if hx_field_314 == nil {
+			var hx_zero_315 *string
+			return hx_zero_315
 		}
-		return hx_field_342.(*string)
-	}(self.posInfos)), hxrt.StringFromLiteral(" at ")), func(hx_obj_344 map[string]any) *string {
-		hx_field_345 := hx_obj_344["fileName"]
-		if hx_field_345 == nil {
-			var hx_zero_346 *string
-			return hx_zero_346
+		return hx_field_314.(*string)
+	}(self.posInfos)), hxrt.StringFromLiteral(" at ")), func(hx_obj_316 map[string]any) *string {
+		hx_field_317 := hx_obj_316["fileName"]
+		if hx_field_317 == nil {
+			var hx_zero_318 *string
+			return hx_zero_318
 		}
-		return hx_field_345.(*string)
-	}(self.posInfos)), hxrt.StringFromLiteral(":")), func(hx_obj_347 map[string]any) int {
-		hx_field_348 := hx_obj_347["lineNumber"]
-		if hx_field_348 == nil {
-			var hx_zero_349 int
-			return hx_zero_349
+		return hx_field_317.(*string)
+	}(self.posInfos)), hxrt.StringFromLiteral(":")), func(hx_obj_319 map[string]any) int {
+		hx_field_320 := hx_obj_319["lineNumber"]
+		if hx_field_320 == nil {
+			var hx_zero_321 int
+			return hx_zero_321
 		}
-		return hx_field_348.(int)
+		return hx_field_320.(int)
 	}(self.posInfos))
 }
 

@@ -397,9 +397,14 @@ Shim strategy and alternatives are documented in:
 - Direct runtime tests cover the current GET/POST/query/body representation,
   timeout cancellation, truncated-body status retention, proxy formatting,
   early-upload abort, idle transport cleanup, and typed custom-socket closure.
-  They do not establish Haxe parity for ordered repeated parameters/headers,
-  query/form separation, per-request multipart boundaries, generated-Haxe
-  callback context, or cancellation of a blocked upload source.
+- Parameter, header, and multipart wire fidelity is now source-owned and
+  regression-locked: ordered/repeated parameters and per-name header values
+  survive; an existing raw query is not normalized; POST form values stay
+  separate from URL query values; Go-special headers have explicit
+  validation/translation; and each multipart request derives its boundary,
+  content type, and exact length together after rejecting hostile metadata.
+  This proves this request-construction slice, not the remaining method/body
+  policy, response streaming, or cancellable upload-source lifecycle.
 - HTTP is release-excluded under `haxe_go-vfp.10.8`. The required typed design
   is a source-driven upload sink plus a bounded native response-exchange handle;
   see the [portable HTTP admission design](http-client-admission-design.md),

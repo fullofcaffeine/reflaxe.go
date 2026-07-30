@@ -2775,3 +2775,52 @@ Bounded claim and independent disposition:
   admission; `haxe_go-vfp.10.9` owns server sockets, controls/readiness, DNS,
   UDP, and TLS. See
   `docs/reviews/network-admission-oracle-disposition-vfp-10.4.md`.
+
+### 2026-07-30: preserve HTTP parameter and multipart fidelity (`haxe_go-vfp.10.8.2`)
+
+What changed:
+
+- Replaced the native parameter and header maps with ordered typed entries.
+  Staged `sys.Http` supplies both the raw parameter text needed by multipart
+  and the `StringTools.urlEncode` spelling needed by query/form requests.
+- GET parameters now append to the existing raw query without reparsing it.
+  POST form bodies contain only configured parameters, so URL query values are
+  no longer copied into the body. Repeated values retain source order.
+- Ordinary repeated headers use additive Go header semantics. `Host`,
+  `Content-Length`, and `Connection: close` route through their real
+  `net/http.Request` fields; unsupported framing controls fail before dialing.
+- Each multipart request now generates one boundary and derives its framing,
+  complete content type, and exact content length from that value. A conflicting
+  caller boundary, invalid media type, or CR/LF/NUL header metadata fails before
+  network I/O.
+
+Why:
+
+- `HttpBase.add*` and `set*` define an ordered, repeated source model. Go maps
+  and `url.Values.Set` had collapsed that model, sorted fields, normalized raw
+  queries, and duplicated URL query values into form bodies.
+- One public multipart boundary could collide with file bytes, and duplicating
+  the boundary string in staged Haxe allowed the body and header to disagree.
+- Go treats several request headers as struct fields rather than ordinary map
+  values. Installing them without explicit policy gives callers misleading wire
+  behavior.
+
+How it is proved:
+
+- `http_request_wire_fidelity_contract` compares exact request targets,
+  repeated header values, and form bodies with Haxe Eval.
+- Direct `runtime/hxrt` tests cover raw query spelling, ordered form values,
+  Host and Connection handling, special-header rejection, distinct boundaries,
+  zero/one/sentinel-bearing payloads, exact lengths, repeated multipart fields,
+  and validation before the server sees a request.
+- HTTP snapshots capture the typed source/runtime boundary and generated call
+  shape. Go unit and race suites exercise the native builder.
+
+Bounded claim:
+
+- This slice corrects request construction only. HTTP remains release-excluded.
+  Streamed response callbacks/partial-body preservation, source-driven
+  cancellable uploads, and the remaining method/status/redirect/compression/
+  timeout policy are owned by `haxe_go-vfp.10.8.3` through
+  `haxe_go-vfp.10.8.5`; final resource/admission evidence is
+  `haxe_go-vfp.10.8.6`.

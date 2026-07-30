@@ -140,7 +140,7 @@ class Http extends haxe.http.HttpBase {
 
 		var request = NativeHttp.newRequest(url, post, method, cnxTimeout);
 		for (parameter in params)
-			NativeHttp.addParameter(request, parameter.name, parameter.value);
+			NativeHttp.addParameter(request, parameter.name, parameter.value, StringTools.urlEncode(parameter.name), StringTools.urlEncode(parameter.value));
 		for (header in headers)
 			NativeHttp.addHeader(request, header.name, header.value);
 
@@ -164,8 +164,6 @@ class Http extends haxe.http.HttpBase {
 				}
 				return result;
 			});
-			if (!hasHeader("Content-Type"))
-				NativeHttp.addHeader(request, "Content-Type", "multipart/form-data; boundary=hxrt-go-boundary");
 		} else if (postBytes != null) {
 			NativeHttp.setBodyView(request, postBytes.__hx_nativeView());
 		} else if (postData != null) {
@@ -288,32 +286,10 @@ class Http extends haxe.http.HttpBase {
 		responseHeadersSameKey = new StringMap<Array<String>>();
 	}
 
-	function hasHeader(name:String):Bool {
-		for (header in headers)
-			if (header.name.toLowerCase() == name.toLowerCase())
-				return true;
-		return false;
-	}
-
 	function encodedParameters():String {
-		var byName = new StringMap<String>();
-		for (parameter in params)
-			byName.set(parameter.name, parameter.value);
-		var names = [for (name in byName.keys()) name];
 		var encoded = new Array<String>();
-		var emitted = new StringMap<Bool>();
-		for (_ in names) {
-			var next = -1;
-			for (index in 0...names.length) {
-				if (!emitted.exists(names[index]) && (next < 0 || Reflect.compare(names[index], names[next]) < 0))
-					next = index;
-			}
-			if (next >= 0) {
-				var name = names[next];
-				emitted.set(name, true);
-				encoded.push(StringTools.urlEncode(name) + "=" + StringTools.urlEncode(byName.get(name)));
-			}
-		}
+		for (parameter in params)
+			encoded.push(StringTools.urlEncode(parameter.name) + "=" + StringTools.urlEncode(parameter.value));
 		return encoded.join("&");
 	}
 

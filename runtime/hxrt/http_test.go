@@ -2,12 +2,14 @@ package hxrt
 
 import (
 	"io"
+	"mime"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"sort"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -18,8 +20,8 @@ func httpTestString(value string) *string {
 
 func TestHttpRequestTypedGetAndResponseBoundary(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-		if got := request.URL.Query().Get("q"); got != "last" {
-			t.Errorf("query q = %q, want last", got)
+		if got := strings.Join(request.URL.Query()["q"], ","); got != "first,last" {
+			t.Errorf("query q values = %q, want first,last", got)
 		}
 		if got := request.Header.Get("X-Test"); got != "typed" {
 			t.Errorf("X-Test = %q, want typed", got)
@@ -33,8 +35,8 @@ func TestHttpRequestTypedGetAndResponseBoundary(t *testing.T) {
 	defer server.Close()
 
 	request := HttpRequestNew(httpTestString(server.URL), false, nil, 1)
-	HttpRequestAddParameter(request, httpTestString("q"), httpTestString("first"))
-	HttpRequestAddParameter(request, httpTestString("q"), httpTestString("last"))
+	HttpRequestAddParameter(request, httpTestString("q"), httpTestString("first"), httpTestString("q"), httpTestString("first"))
+	HttpRequestAddParameter(request, httpTestString("q"), httpTestString("last"), httpTestString("q"), httpTestString("last"))
 	HttpRequestAddHeader(request, httpTestString("X-Test"), httpTestString("typed"))
 	response := HttpRequestExecute(request)
 
@@ -80,8 +82,8 @@ func TestHttpRequestPostFormPreservesOriginalQueryContract(t *testing.T) {
 		if err != nil {
 			t.Errorf("parse form body: %v", err)
 		}
-		if got := form.Get("base"); got != "from-url" {
-			t.Errorf("form base = %q, want from-url", got)
+		if got := form.Get("base"); got != "" {
+			t.Errorf("form base = %q, want URL query to remain outside the body", got)
 		}
 		if got := form.Get("field"); got != "value" {
 			t.Errorf("form field = %q, want value", got)
@@ -94,7 +96,7 @@ func TestHttpRequestPostFormPreservesOriginalQueryContract(t *testing.T) {
 	defer server.Close()
 
 	request := HttpRequestNew(httpTestString(server.URL+"?base=from-url"), true, nil, 1)
-	HttpRequestAddParameter(request, httpTestString("field"), httpTestString("value"))
+	HttpRequestAddParameter(request, httpTestString("field"), httpTestString("value"), httpTestString("field"), httpTestString("value"))
 	response := HttpRequestExecute(request)
 	if err := HttpResponseError(response); err != nil {
 		t.Fatalf("HttpResponseError = %q, want nil", *err)
@@ -139,8 +141,7 @@ func TestHttpRequestMultipartStreamsDeclaredInputWithPartialChunks(t *testing.T)
 	offset := 0
 	readCalls := 0
 	request := HttpRequestNew(httpTestString(server.URL), true, nil, 1)
-	HttpRequestAddParameter(request, httpTestString("note"), httpTestString("hello"))
-	HttpRequestAddHeader(request, httpTestString("Content-Type"), httpTestString("multipart/form-data; boundary=hxrt-go-boundary"))
+	HttpRequestAddParameter(request, httpTestString("note"), httpTestString("hello"), httpTestString("note"), httpTestString("hello"))
 	HttpRequestSetMultipartUpload(
 		request,
 		httpTestString("asset"),
@@ -191,7 +192,6 @@ func TestHttpRequestMultipartEarlyEOFAbortsTheExchangeAndReleasesTheServer(t *te
 
 	sent := false
 	request := HttpRequestNew(httpTestString(server.URL), true, nil, 1)
-	HttpRequestAddHeader(request, httpTestString("Content-Type"), httpTestString("multipart/form-data; boundary=hxrt-go-boundary"))
 	HttpRequestSetMultipartUpload(
 		request,
 		httpTestString("asset"),
@@ -215,6 +215,307 @@ func TestHttpRequestMultipartEarlyEOFAbortsTheExchangeAndReleasesTheServer(t *te
 	case <-handlerDone:
 	case <-time.After(time.Second):
 		t.Fatal("multipart upload failure left the server-side request blocked")
+	}
+}
+
+func TestHttpRequestPreservesRawQueryParameterAndHeaderMultiplicity(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		wantTarget := "/capture?base=one%20two&base=two%2Bthree&a=one%20space&b=x%2By&a=second"
+		if request.RequestURI != wantTarget {
+			t.Errorf("request target = %q, want %q", request.RequestURI, wantTarget)
+		}
+		if got := strings.Join(request.Header.Values("X-Repeat"), ","); got != "one,two" {
+			t.Errorf("X-Repeat values = %q, want one,two", got)
+		}
+		if request.Host != "example.test" {
+			t.Errorf("Host = %q, want example.test", request.Host)
+		}
+		if !request.Close {
+			t.Error("Connection: close did not set the native request close policy")
+		}
+		response.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	request := HttpRequestNew(
+		httpTestString(server.URL+"/capture?base=one%20two&base=two%2Bthree"),
+		false,
+		nil,
+		1,
+	)
+	HttpRequestAddParameter(
+		request,
+		httpTestString("a"),
+		httpTestString("one space"),
+		httpTestString("a"),
+		httpTestString("one%20space"),
+	)
+	HttpRequestAddParameter(
+		request,
+		httpTestString("b"),
+		httpTestString("x+y"),
+		httpTestString("b"),
+		httpTestString("x%2By"),
+	)
+	HttpRequestAddParameter(
+		request,
+		httpTestString("a"),
+		httpTestString("second"),
+		httpTestString("a"),
+		httpTestString("second"),
+	)
+	HttpRequestAddHeader(request, httpTestString("X-Repeat"), httpTestString("one"))
+	HttpRequestAddHeader(request, httpTestString("X-Repeat"), httpTestString("two"))
+	HttpRequestAddHeader(request, httpTestString("Host"), httpTestString("example.test"))
+	HttpRequestAddHeader(request, httpTestString("Connection"), httpTestString("close"))
+
+	result := HttpRequestExecute(request)
+	if err := HttpResponseError(result); err != nil {
+		t.Fatalf("HttpResponseError = %q, want nil", *err)
+	}
+}
+
+func TestHttpRequestPostFormKeepsOrderedParametersSeparateFromURLQuery(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		if request.RequestURI != "/submit?base=from%20url&base=second" {
+			t.Errorf("request target = %q", request.RequestURI)
+		}
+		rawBody, err := io.ReadAll(request.Body)
+		if err != nil {
+			t.Errorf("read request body: %v", err)
+		}
+		if got := string(rawBody); got != "field=one%20space&field=two&other=x%2By" {
+			t.Errorf("form body = %q", got)
+		}
+		response.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	request := HttpRequestNew(httpTestString(server.URL+"/submit?base=from%20url&base=second"), true, nil, 1)
+	HttpRequestAddParameter(
+		request,
+		httpTestString("field"),
+		httpTestString("one space"),
+		httpTestString("field"),
+		httpTestString("one%20space"),
+	)
+	HttpRequestAddParameter(
+		request,
+		httpTestString("field"),
+		httpTestString("two"),
+		httpTestString("field"),
+		httpTestString("two"),
+	)
+	HttpRequestAddParameter(
+		request,
+		httpTestString("other"),
+		httpTestString("x+y"),
+		httpTestString("other"),
+		httpTestString("x%2By"),
+	)
+
+	result := HttpRequestExecute(request)
+	if err := HttpResponseError(result); err != nil {
+		t.Fatalf("HttpResponseError = %q, want nil", *err)
+	}
+}
+
+func TestHttpMultipartBoundaryMetadataAndLengthAreAtomic(t *testing.T) {
+	type observedRequest struct {
+		boundary string
+		length   int64
+		bodySize int
+		values   []string
+		payload  string
+	}
+	observed := make(chan observedRequest, 3)
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		mediaType, parameters, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
+		if err != nil {
+			t.Errorf("parse Content-Type: %v", err)
+		}
+		if mediaType != "multipart/form-data" {
+			t.Errorf("media type = %q", mediaType)
+		}
+		rawBody, err := io.ReadAll(request.Body)
+		if err != nil {
+			t.Errorf("read multipart body: %v", err)
+		}
+		if int64(len(rawBody)) != request.ContentLength {
+			t.Errorf("body bytes = %d, Content-Length = %d", len(rawBody), request.ContentLength)
+		}
+		request.Body = io.NopCloser(strings.NewReader(string(rawBody)))
+		if err := request.ParseMultipartForm(1024); err != nil {
+			t.Errorf("ParseMultipartForm: %v", err)
+		}
+		file, _, err := request.FormFile("asset")
+		if err != nil {
+			t.Errorf("FormFile(asset): %v", err)
+		}
+		payload := ""
+		if file != nil {
+			value, readErr := io.ReadAll(file)
+			if readErr != nil {
+				t.Errorf("read file: %v", readErr)
+			}
+			payload = string(value)
+			_ = file.Close()
+		}
+		observed <- observedRequest{
+			boundary: parameters["boundary"],
+			length:   request.ContentLength,
+			bodySize: len(rawBody),
+			values:   request.MultipartForm.Value["note"],
+			payload:  payload,
+		}
+		response.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	run := func(payload string) {
+		request := HttpRequestNew(httpTestString(server.URL), true, nil, 1)
+		HttpRequestAddParameter(request, httpTestString("note"), httpTestString("first"), httpTestString("note"), httpTestString("first"))
+		HttpRequestAddParameter(request, httpTestString("note"), httpTestString("second"), httpTestString("note"), httpTestString("second"))
+		offset := 0
+		HttpRequestSetMultipartUpload(
+			request,
+			httpTestString("asset"),
+			httpTestString("demo.txt"),
+			httpTestString("text/plain"),
+			len(payload),
+			func(limit int) *ByteView {
+				if offset >= len(payload) {
+					return nil
+				}
+				count := len(payload) - offset
+				if count > limit {
+					count = limit
+				}
+				chunk := &ByteView{raw: []byte(payload[offset : offset+count])}
+				offset += count
+				return chunk
+			},
+		)
+		result := HttpRequestExecute(request)
+		if err := HttpResponseError(result); err != nil {
+			t.Fatalf("HttpResponseError = %q, want nil", *err)
+		}
+	}
+
+	run("")
+	run("x")
+	run("prefix\r\n--hxrt-go-boundary\r\nsuffix")
+	first := <-observed
+	second := <-observed
+	third := <-observed
+	if first.boundary == "" || second.boundary == "" || third.boundary == "" ||
+		first.boundary == second.boundary || first.boundary == third.boundary || second.boundary == third.boundary {
+		t.Fatalf("boundaries = %q, %q, and %q, want distinct non-empty values", first.boundary, second.boundary, third.boundary)
+	}
+	for _, item := range []observedRequest{first, second, third} {
+		if item.length != int64(item.bodySize) {
+			t.Errorf("declared length = %d, body size = %d", item.length, item.bodySize)
+		}
+		if strings.Join(item.values, ",") != "first,second" {
+			t.Errorf("multipart note values = %v", item.values)
+		}
+	}
+	if second.payload != "x" {
+		t.Errorf("one-byte multipart payload = %q", second.payload)
+	}
+	if third.payload != "prefix\r\n--hxrt-go-boundary\r\nsuffix" {
+		t.Errorf("multipart payload = %q", third.payload)
+	}
+}
+
+func TestHttpMultipartRejectsConflictingContentTypeAndHostileMetadataBeforeNetworkIO(t *testing.T) {
+	var requests atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		requests.Add(1)
+		response.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	cases := []struct {
+		name      string
+		parameter string
+		filename  string
+		mediaType string
+		header    string
+	}{
+		{
+			name:      "conflicting boundary",
+			parameter: "asset",
+			filename:  "demo.txt",
+			mediaType: "text/plain",
+			header:    "multipart/form-data; boundary=caller-boundary",
+		},
+		{name: "parameter newline", parameter: "asset\r\nX-Evil: yes", filename: "demo.txt", mediaType: "text/plain"},
+		{name: "filename nul", parameter: "asset", filename: "demo\x00.txt", mediaType: "text/plain"},
+		{name: "invalid media type", parameter: "asset", filename: "demo.txt", mediaType: "text/plain\r\nX-Evil: yes"},
+	}
+
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			request := HttpRequestNew(httpTestString(server.URL), true, nil, 1)
+			if testCase.header != "" {
+				HttpRequestAddHeader(request, httpTestString("Content-Type"), httpTestString(testCase.header))
+			}
+			HttpRequestSetMultipartUpload(
+				request,
+				httpTestString(testCase.parameter),
+				httpTestString(testCase.filename),
+				httpTestString(testCase.mediaType),
+				0,
+				func(_ int) *ByteView { return nil },
+			)
+			result := HttpRequestExecute(request)
+			if err := HttpResponseError(result); err == nil {
+				t.Fatal("HttpResponseError = nil, want request validation failure")
+			}
+		})
+	}
+	if got := requests.Load(); got != 0 {
+		t.Fatalf("server received %d requests, want validation before network I/O", got)
+	}
+}
+
+func TestHttpRequestRejectsUnsupportedSpecialHeadersBeforeNetworkIO(t *testing.T) {
+	var requests atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		requests.Add(1)
+		response.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	for _, name := range []string{"Transfer-Encoding", "Trailer", "Upgrade"} {
+		t.Run(name, func(t *testing.T) {
+			request := HttpRequestNew(httpTestString(server.URL), false, nil, 1)
+			HttpRequestAddHeader(request, httpTestString(name), httpTestString("unsupported"))
+			result := HttpRequestExecute(request)
+			if err := HttpResponseError(result); err == nil {
+				t.Fatal("HttpResponseError = nil, want special-header validation error")
+			}
+		})
+	}
+	t.Run("unsupported connection token", func(t *testing.T) {
+		request := HttpRequestNew(httpTestString(server.URL), false, nil, 1)
+		HttpRequestAddHeader(request, httpTestString("Connection"), httpTestString("keep-alive"))
+		result := HttpRequestExecute(request)
+		if err := HttpResponseError(result); err == nil {
+			t.Fatal("HttpResponseError = nil, want Connection validation error")
+		}
+	})
+	t.Run("mismatched content length", func(t *testing.T) {
+		request := HttpRequestNew(httpTestString(server.URL), false, nil, 1)
+		HttpRequestAddHeader(request, httpTestString("Content-Length"), httpTestString("7"))
+		result := HttpRequestExecute(request)
+		if err := HttpResponseError(result); err == nil {
+			t.Fatal("HttpResponseError = nil, want Content-Length validation error")
+		}
+	})
+	if got := requests.Load(); got != 0 {
+		t.Fatalf("server received %d requests, want validation before network I/O", got)
 	}
 }
 
