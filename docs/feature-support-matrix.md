@@ -479,6 +479,15 @@ Shim strategy and alternatives are documented in:
   close-unblocks-read, and closed-handle `waitForRead` under the Go race
   detector. A Linux-only runtime case also verifies that backlog 1 cannot
   admit an unbounded pending queue.
+- A combined POSIX lifecycle matrix performs a warm-up and then repeats TCP
+  success, timeout, reset, stalled TLS handshake, UDP, listener/readiness,
+  blocked-read cancellation, concurrent close, and TLS close-notify 20 times.
+  It requires all tracked accepted connections to reach zero and goroutine
+  plus Linux file-descriptor counts to return to bounded post-warm-up levels.
+  Race testing this matrix found and fixed a transactional-install defect:
+  when applying the saved deadline or fast-send policy fails, the new
+  connection is now detached and closed before the public error escapes. See
+  [socket and TLS resource convergence](socket-resource-convergence.md).
 - `bind` and `listen` now use build-tagged typed OS adapters instead of
   collapsing into `net.Listen`; see the
   [socket server lifecycle and backlog contract](socket-server-lifecycle.md).
@@ -539,9 +548,10 @@ Shim strategy and alternatives are documented in:
   underlying TCP option through a typed boundary. The wire-visible and
   option-state proof is documented in
   [socket shutdown and fast-send controls](socket-tls-controls.md).
-- TLS, HTTPS, public CA behavior, client certificates, hostile peers, resource
-  convergence, and runtime behavior outside Linux/amd64 remain
-  release-excluded under `haxe_go-vfp.10.9`.
+- TLS, HTTPS, public CA behavior, client certificates, hostile peers,
+  production-soak behavior, and runtime behavior outside Linux/amd64 remain
+  release-excluded under `haxe_go-vfp.10.9`. The bounded convergence suite is
+  candidate evidence, not release admission.
 
 ### `EReg` + `haxe.Serializer` contract and tradeoffs
 

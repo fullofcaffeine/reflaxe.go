@@ -47,7 +47,7 @@ correctly in all the ways their public APIs imply.
 | DNS is eager and outside socket timeout/cancellation policy. | Accepted as a required explicit decision: implement bounded resolution or keep it excluded. | `haxe_go-vfp.10.9` |
 | `bind` starts listening and `listen(backlog)` is a no-op. | Accepted. Current loopback evidence does not prove the public lifecycle or backlog. | `haxe_go-vfp.10.9` |
 | TLS inherits shutdown and fast-send APIs whose native implementation only handles plain TCP connections. | Accepted. Silent no-op behavior is not admissible API evidence. | `haxe_go-vfp.10.9` |
-| Windows evidence is compile-only, resource convergence is not proved, and a zero-byte UDP datagram loses its sender. | Accepted. Release runtime admission remains Linux/amd64 only; extra operating systems require real runtime lanes. | `haxe_go-vfp.10.9` |
+| Windows evidence is compile-only, resource convergence is not proved, and a zero-byte UDP datagram loses its sender. | Accepted. `haxe_go-vfp.10.9.2` repaired empty-datagram sender identity. `haxe_go-vfp.10.9.8` now supplies bounded repeated lifecycle, active-connection, goroutine, and Linux file-descriptor evidence, but deliberately leaves advanced operations release-excluded until its exact-commit review. Release runtime admission remains Linux/amd64 only; extra operating systems still require real runtime lanes. | `haxe_go-vfp.10.9` |
 
 ## Architecture result
 
@@ -64,6 +64,13 @@ The review confirms the existing ownership direction:
 These are small boundary changes. They do not justify a compiler-wide
 intermediate representation, a compiler-owned networking shim, profile-based
 network semantics, raw injection, or a second network backend.
+
+The later pre-review convergence pass also found one narrower resource bug:
+a peer reset could arrive after TCP dial but while the saved deadline or
+fast-send policy was being applied. Connection installation is now
+transactional, so that failing native resource is detached and closed before
+the Haxe-visible connect failure escapes. This remains a typed `hxrt` lifecycle
+repair, not compiler work.
 
 ## Release-policy amendment
 

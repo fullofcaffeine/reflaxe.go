@@ -70,8 +70,10 @@ The focused native controls test is buildable and runnable on Linux and
 Darwin. Linux is the only release platform; Darwin is local runtime evidence.
 Windows remains compile-only and no Windows runtime result is claimed.
 TLS read-only shutdown remains explicitly unsupported. Hostile-peer behavior,
-long-duration resource convergence, and runtime support outside the reviewed
-platform remain excluded.
+production-soak behavior, and runtime support outside the reviewed platform
+remain excluded. A bounded 20-repetition matrix now covers successful TLS I/O,
+write-side close-notify, complete close, and stalled-handshake cleanup; see
+[socket and TLS resource convergence](socket-resource-convergence.md).
 
 This work makes the operation an evidence-backed admission candidate. It does
 not admit these controls for release: the compatibility manifest remains

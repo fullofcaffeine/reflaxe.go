@@ -20,7 +20,7 @@
       "platform:linux-amd64",
       "preset:portable"
     ],
-    "surfaceSha256": "05531d66d9f45e27f36c4ae05bb9c7bb21ecafef2624b0b9e0d853c816e8a38b",
+    "surfaceSha256": "30a2f545e5802709d60c845508b38d95fe07aa57261afeb655acb610e0266017",
     "admittedOperationCount": 27,
     "admittedSymbolCount": 133,
     "exclusions": [

@@ -92,6 +92,10 @@ hostile-peer, and cross-platform runtime guarantees remain separate.
   behavior remain excluded pending the parent review. Real readiness and
   connected nonblocking accept now have candidate evidence, but are not
   release-admitted by this document.
+- The bounded cleanup matrix repeats bind/listen/accept and concurrent close,
+  then requires quiescent active connections and bounded goroutine/Linux
+  descriptor deltas. See
+  [socket and TLS resource convergence](socket-resource-convergence.md).
 
 ## Evidence
 
@@ -104,5 +108,8 @@ hostile-peer, and cross-platform runtime guarantees remain separate.
   and concurrent listen/close.
 - `runtime/hxrt/socket_listener_linux_test.go` exercises a bounded Linux
   pending queue.
+- `runtime/hxrt/socket_resource_convergence_posix_test.go` repeats listener,
+  readiness, and close-cancellation cleanup as part of the operation-level
+  convergence matrix.
 - `test/test_socket_runtime_cross_build.py` keeps Linux and Windows builds
   compiling while preserving the runtime-versus-compile-only distinction.

@@ -131,6 +131,9 @@ Key implementation points:
     [socket DNS and timeout boundary](socket-dns-boundary.md);
   - one snapshotted dial policy applies the staged timeout to TCP connection
     establishment and, through TLS composition, to the TLS handshake;
+  - connection installation is transactional: if a reset or another native
+    error prevents deadline or fast-send policy from being applied, the new
+    connection is detached and closed before the public operation fails;
   - typed pre-listen state preserves `bind` before `listen`; the later call
     passes its nonnegative backlog to the OS and then converts the descriptor
     into Go's pollable listener. The exact lifecycle and release boundary are
@@ -150,6 +153,11 @@ Key implementation points:
     `TCP_NODELAY` to a TLS-wrapped TCP transport. The exact behavior and
     release boundary is documented in
     [socket shutdown and fast-send controls](socket-tls-controls.md);
+  - a repeated native lifecycle matrix covers TCP success, timeout, reset,
+    stalled TLS handshake, UDP, listener/readiness, concurrent close, and TLS
+    close-notify. It requires active connections to reach zero and goroutines
+    plus Linux file descriptors to return to bounded post-warm-up levels; see
+    [socket and TLS resource convergence](socket-resource-convergence.md);
   - POSIX and Windows keep their native descriptor types behind separate
     build-tagged broadcast and listener helpers, with explicit
     unsupported-platform errors;

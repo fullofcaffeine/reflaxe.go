@@ -3278,6 +3278,53 @@ Bounded claim:
 
 - The operation becomes an evidence-backed candidate, not a release
   admission. TLS read-only shutdown stays explicitly unsupported. Windows is
-  compile-only; hostile-peer behavior, long-duration resource convergence,
-  public CA behavior, and the complete advanced-socket decision remain
-  excluded under `haxe_go-vfp.10.9`.
+  compile-only; hostile-peer behavior, production soak, public CA behavior,
+  and the complete advanced-socket decision remain excluded under
+  `haxe_go-vfp.10.9`.
+
+### 2026-07-30: prepare fail-closed socket operation admission (`haxe_go-vfp.10.9.8`)
+
+What changed:
+
+- Added a native POSIX lifecycle matrix that performs one warm-up and then 20
+  repetitions of TCP success, read timeout, reset, stalled TLS handshake, UDP,
+  listener/readiness, blocked-read cancellation, concurrent close, and TLS
+  close-notify.
+- Measured exact quiescence for tracked accepted connections plus bounded
+  post-warm-up goroutine and Linux file-descriptor deltas. Darwin runs the
+  lifecycle and goroutine checks locally; Windows remains compile-only.
+- Added this evidence to each relevant compatibility operation while retaining
+  `release_admitted: false`, the `haxe_go-vfp.10.9` blocker, and the
+  `portable-socket-advanced` readiness exclusion.
+- Made connection installation transactional. A failure while applying saved
+  timeout or fast-send policy now detaches and closes the new connection before
+  throwing the public error.
+
+Why:
+
+- Feature-specific tests did not prove that mixed success and failure paths
+  return connections, goroutines, and descriptors to a bounded steady state.
+- A peer reset can race with policy installation after TCP dial. Treating the
+  connect as failed while retaining its native resource made cleanup depend on
+  a later optional caller close.
+- Cleanup evidence is only one input to release admission. Changing canonical
+  release flags before the required exact-commit independent review would
+  overstate the beta promise.
+
+How it is proved:
+
+- A focused red regression first showed that failed connection installation
+  left the test connection attached and open.
+- The focused regression and combined lifecycle matrix pass under ordinary Go
+  and `go test -race` with pointer checking.
+- The compatibility contract requires convergence evidence on every candidate,
+  exact Linux/Darwin/Windows wording, and fail-closed blocker retention.
+
+Bounded claim:
+
+- This is pre-review candidate evidence, not release admission. Twenty
+  deterministic repetitions are not a production soak or hostile-peer claim.
+  DNS cancellation, nonblocking connect, TLS readiness, public certificate
+  stores, IPv6, and runtime behavior outside reviewed platforms retain their
+  explicit exclusions. The exact member-level disposition awaits the
+  commit-pinned independent review required by `haxe_go-vfp.10.9.8`.

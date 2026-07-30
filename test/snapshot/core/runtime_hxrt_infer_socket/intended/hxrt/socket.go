@@ -353,6 +353,15 @@ func (handle *SocketHandle) applyFastSendLocked(requireSupport bool) error {
 	return tcpConn.SetNoDelay(handle.fastSend)
 }
 
+// installConn replaces the handle's native connection transactionally.
+//
+// What: Installs one connection and applies the already selected deadline and
+// fast-send policy before exposing a successful public operation.
+// Why: A peer can reset between Dial and policy application; leaving that
+// failed connection attached makes a thrown connect look closed while
+// retaining its descriptor until an optional later close.
+// How: Detach and close the new connection if either policy application fails,
+// while still releasing every resource replaced by this installation.
 func (handle *SocketHandle) installConn(conn net.Conn) {
 	if handle == nil || conn == nil {
 		return
@@ -369,6 +378,11 @@ func (handle *SocketHandle) installConn(conn net.Conn) {
 	handle.reader = bufio.NewReader(conn)
 	fastErr := handle.applyFastSendLocked(false)
 	deadlineErr := handle.applyConnDeadlineLocked()
+	installErr := errors.Join(fastErr, deadlineErr)
+	if installErr != nil {
+		handle.conn = nil
+		handle.reader = nil
+	}
 	handle.stateMu.Unlock()
 	if oldConn != nil && oldConn != conn {
 		_ = oldConn.Close()
@@ -379,11 +393,9 @@ func (handle *SocketHandle) installConn(conn net.Conn) {
 	if oldListener != nil {
 		_ = oldListener.Close()
 	}
-	if fastErr != nil {
-		socketThrow(fastErr)
-	}
-	if deadlineErr != nil {
-		socketThrow(deadlineErr)
+	if installErr != nil {
+		_ = conn.Close()
+		socketThrow(installErr)
 	}
 }
 

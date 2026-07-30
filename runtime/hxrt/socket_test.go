@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"errors"
 	"io"
 	"math/big"
 	"net"
@@ -100,6 +101,35 @@ type socketTestPartialWriteConn struct {
 	maxWrite int
 }
 
+type socketTestInstallFailureConn struct {
+	closed bool
+}
+
+func (connection *socketTestInstallFailureConn) Read(_ []byte) (int, error) {
+	return 0, io.EOF
+}
+
+func (connection *socketTestInstallFailureConn) Write(raw []byte) (int, error) {
+	return len(raw), nil
+}
+
+func (connection *socketTestInstallFailureConn) Close() error {
+	connection.closed = true
+	return nil
+}
+
+func (connection *socketTestInstallFailureConn) LocalAddr() net.Addr  { return nil }
+func (connection *socketTestInstallFailureConn) RemoteAddr() net.Addr { return nil }
+func (connection *socketTestInstallFailureConn) SetDeadline(_ time.Time) error {
+	return errors.New("install policy failed")
+}
+func (connection *socketTestInstallFailureConn) SetReadDeadline(_ time.Time) error {
+	return nil
+}
+func (connection *socketTestInstallFailureConn) SetWriteDeadline(_ time.Time) error {
+	return nil
+}
+
 func (connection *socketTestPartialWriteConn) Read(_ []byte) (int, error) {
 	return 0, io.EOF
 }
@@ -149,6 +179,26 @@ func socketTestTCPPair(t *testing.T) (*SocketHandle, *SocketHandle, *SocketHandl
 		SocketClose(listener)
 		t.Fatal("SocketAccept did not complete")
 		return nil, nil, nil
+	}
+}
+
+func TestSocketInstallFailureClosesAndDetachesTheNewConnection(t *testing.T) {
+	handle := SocketNewTCP()
+	SocketSetTimeout(handle, 1)
+	connection := &socketTestInstallFailureConn{}
+
+	recovered := socketTestRecovered(func() {
+		handle.installConn(connection)
+	})
+	exception, ok := recovered.(HaxeException)
+	if !ok || *StdString(exception.Value) != "install policy failed" {
+		t.Fatalf("install failure recovered %#v, want exact HaxeException", recovered)
+	}
+	if !connection.closed {
+		t.Fatal("failed connection remained open")
+	}
+	if installed := handle.snapshotConn(); installed != nil {
+		t.Fatalf("failed connection remained installed as %T", installed)
 	}
 }
 

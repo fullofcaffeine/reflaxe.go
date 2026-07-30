@@ -66,7 +66,9 @@ class SocketTLSControlsContractTest(unittest.TestCase):
             "semantic:socket",
             "snapshot:socket-tls",
             "runtime:socket-tls-controls-posix",
+            "runtime:socket-resource-convergence-posix",
             "policy:socket-tls-controls",
+            "policy:socket-resource-convergence",
         ):
             self.assertIn(evidence, controls["evidence_ids"])
 
@@ -81,7 +83,7 @@ class SocketTLSControlsContractTest(unittest.TestCase):
         exclusions = " ".join(controls["exclusions"])
         for phrase in (
             "TLS read-only shutdown",
-            "resource convergence",
+            "production-soak",
             "Windows runtime",
         ):
             self.assertIn(phrase, exclusions)

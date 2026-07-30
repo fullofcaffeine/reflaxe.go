@@ -98,8 +98,11 @@ descriptor set, so plain TCP evidence is not enough to claim TLS readiness.
 `shutdown` and `setFastSend` have their own evidence-backed candidate contract;
 see [socket shutdown and fast-send controls](socket-tls-controls.md). That
 evidence does not expand readiness to TLS. DNS, UDP, hostile-peer behavior,
-long-running resource convergence, and runtime support outside the admitted
-platform retain their own exclusions.
+production-soak behavior, and runtime support outside the admitted platform
+retain their own exclusions. The bounded 20-repetition cleanup evidence for
+readiness snapshots and close-canceled reads is documented in
+[socket and TLS resource convergence](socket-resource-convergence.md); it is
+not a hostile-network or indefinite-load claim.
 
 This work does not admit these controls for release. The compatibility
 manifest stays fail-closed under `haxe_go-vfp.10.9` until the complete advanced
@@ -120,5 +123,8 @@ socket review decides the exact member-level release surface.
   exceptional readiness with out-of-band data. It also closes the source
   socket while a snapshot exists and proves that the duplicated descriptor
   is close-on-exec and remains valid only until explicit snapshot release.
+- `runtime/hxrt/socket_resource_convergence_posix_test.go` repeats readiness
+  snapshots and blocked-read cancellation inside a combined socket lifecycle,
+  then checks active connections, goroutines, and Linux file descriptors.
 - `test/test_socket_runtime_cross_build.py` is compile-only evidence for
   non-runtime platforms; it is not described as runtime support.
