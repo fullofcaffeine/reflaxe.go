@@ -6,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"mime"
 	"mime/multipart"
 	"net"
 	"net/http"
+	"net/http/httptrace"
 	"net/textproto"
 	"net/url"
 	"sort"
@@ -28,17 +30,18 @@ import (
 // How: Typed builder functions populate this value; HttpRequestStartExchange
 // consumes it once and returns a live representation-neutral HttpExchange.
 type HttpRequest struct {
-	rawURL   string
-	method   string
-	post     bool
-	timeout  float64
-	params   []httpRequestParameter
-	headers  []httpNameValue
-	body     []byte
-	hasBody  bool
-	upload   *httpMultipartUpload
-	proxyURL *url.URL
-	socket   *SocketHandle
+	rawURL    string
+	method    string
+	hasMethod bool
+	post      bool
+	timeout   float64
+	params    []httpRequestParameter
+	headers   []httpNameValue
+	body      []byte
+	hasBody   bool
+	upload    *httpMultipartUpload
+	proxyURL  *url.URL
+	socket    *SocketHandle
 }
 
 // httpNameValue keeps one request-header occurrence.
@@ -106,6 +109,8 @@ type httpMultipartPipeBody struct {
 type HttpUploadSink struct {
 	writer   *io.PipeWriter
 	expected int64
+	timeout  time.Duration
+	timed    bool
 
 	writeMu sync.Mutex
 	stateMu sync.Mutex
@@ -132,7 +137,10 @@ type HttpExchange struct {
 	socket      *SocketHandle
 	upload      *HttpUploadSink
 	requestBody io.Closer
+	connection  net.Conn
 	cancel      context.CancelFunc
+	timeout     time.Duration
+	timed       bool
 	ready       chan struct{}
 	readyOnce   sync.Once
 	cleanupOnce sync.Once
@@ -155,28 +163,28 @@ type HttpReadResult struct {
 
 // HttpRequestNew creates one typed native request builder.
 //
-// What: Selects GET or POST unless an explicit non-empty method is supplied.
-// Why: Method normalization is a Go net/http representation detail; the staged
-// caller still decides which source-visible request mode applies.
-// How: Uppercase the explicit token and initialize ordered native entry lists.
+// What: Selects GET or POST unless an explicit method token is supplied.
+// Why: Haxe customRequest writes the caller's token exactly; changing its case
+// changes observable wire behavior and can select a different server handler.
+// How: Retain both the exact string and whether it was explicitly supplied so
+// an empty token becomes a validation error instead of Go's implicit GET.
 func HttpRequestNew(rawURL *string, post bool, method *string, timeout float64) *HttpRequest {
 	selectedMethod := http.MethodGet
 	if post {
 		selectedMethod = http.MethodPost
 	}
+	hasMethod := method != nil
 	if method != nil {
-		candidate := strings.ToUpper(*StdString(method))
-		if candidate != "" && candidate != "NULL" {
-			selectedMethod = candidate
-		}
+		selectedMethod = *StdString(method)
 	}
 	return &HttpRequest{
-		rawURL:  *StdString(rawURL),
-		method:  selectedMethod,
-		post:    post,
-		timeout: timeout,
-		params:  make([]httpRequestParameter, 0),
-		headers: make([]httpNameValue, 0),
+		rawURL:    *StdString(rawURL),
+		method:    selectedMethod,
+		hasMethod: hasMethod,
+		post:      post,
+		timeout:   timeout,
+		params:    make([]httpRequestParameter, 0),
+		headers:   make([]httpNameValue, 0),
 	}
 }
 
@@ -255,7 +263,8 @@ func HttpRequestSetMultipartUpload(request *HttpRequest, parameter *string, file
 	}
 }
 
-// HttpRequestSetProxy configures one explicit HTTP proxy.
+// HttpRequestSetProxy configures native absolute-target HTTP proxying and HTTPS
+// CONNECT negotiation from the staged scalar PROXY authority.
 func HttpRequestSetProxy(request *HttpRequest, host *string, port int, user *string, pass *string) {
 	if request == nil {
 		return
@@ -264,11 +273,57 @@ func HttpRequestSetProxy(request *HttpRequest, host *string, port int, user *str
 }
 
 // HttpRequestSetSocket supplies the typed socket consumed by customRequest.
+//
+// What: Retains one caller-owned socket for a plain-HTTP exchange.
+// Why: Socket identity is typed, but the shared handle cannot currently retain
+// sys.ssl.Socket verification, CA, hostname, or client-certificate policy.
+// How: StartExchange consumes and closes it for HTTP and rejects HTTPS before
+// transport rather than accidentally applying TLS twice or not at all.
 func HttpRequestSetSocket(request *HttpRequest, socket *SocketHandle) {
 	if request == nil {
 		return
 	}
 	request.socket = socket
+}
+
+var errHTTPProgressTimeout = errors.New("HTTP progress timeout")
+
+// httpProgressTimeout converts the public Float policy into a native deadline.
+//
+// What: Distinguishes unlimited, immediate, and positive progress budgets.
+// Why: time.Duration uses zero as "disabled", while sys.Http defines zero as
+// an immediate deadline and negative values as no native deadline.
+// How: Reject non-finite values, clamp oversized positive budgets, and round a
+// positive sub-nanosecond value up so it cannot silently become unlimited.
+func httpProgressTimeout(timeout float64) (time.Duration, bool, error) {
+	if math.IsNaN(timeout) || math.IsInf(timeout, 0) {
+		return 0, false, errors.New("HTTP timeout must be finite")
+	}
+	if timeout < 0 {
+		return 0, false, nil
+	}
+	if timeout == 0 {
+		return 0, true, errHTTPProgressTimeout
+	}
+	nanoseconds := timeout * float64(time.Second)
+	if nanoseconds >= float64(math.MaxInt64) {
+		return time.Duration(math.MaxInt64), true, nil
+	}
+	duration := time.Duration(nanoseconds)
+	if duration <= 0 {
+		duration = time.Nanosecond
+	}
+	return duration, true, nil
+}
+
+// httpReturnRedirectResponse keeps the first received 3xx response live.
+//
+// What: Stops net/http before it dials a redirect destination.
+// Why: Haxe sys.Http exposes the received redirect status, headers, and body.
+// How: ErrUseLastResponse asks Client.Do to return that response without
+// converting the policy decision into a transport error.
+func httpReturnRedirectResponse(_ *http.Request, _ []*http.Request) error {
+	return http.ErrUseLastResponse
 }
 
 // HttpRequestStartExchange starts one Go HTTP exchange.
@@ -290,6 +345,20 @@ func HttpRequestStartExchange(request *HttpRequest) *HttpExchange {
 	if err != nil || parsedURL == nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
 		return httpRequestErrorExchange(request, "Invalid URL")
 	}
+	scheme := strings.ToLower(parsedURL.Scheme)
+	if scheme != "http" && scheme != "https" {
+		return httpRequestErrorExchange(request, "Unsupported HTTP URL scheme")
+	}
+	if request.hasMethod && request.method == "" {
+		return httpRequestErrorExchange(request, "HTTP method must not be empty")
+	}
+	if request.socket != nil && scheme == "https" {
+		return httpRequestErrorExchange(request, "HTTPS custom sockets are not supported")
+	}
+	timeout, timed, timeoutErr := httpProgressTimeout(request.timeout)
+	if timeoutErr != nil {
+		return httpRequestErrorExchange(request, timeoutErr.Error())
+	}
 
 	var bodyReader io.Reader
 	var contentLength int64
@@ -304,23 +373,19 @@ func HttpRequestStartExchange(request *HttpRequest) *HttpExchange {
 		bodyReader = multipartBody
 		requestBody = multipartBody
 		uploadSink = sink
+		uploadSink.timeout = timeout
+		uploadSink.timed = timed
 		contentLength = length
 		multipartContentType = contentType
+	} else if request.hasBody {
+		bodyReader = bytes.NewReader(request.body)
+		if !request.post {
+			httpAppendEncodedParameters(parsedURL, request.params)
+		}
 	} else if request.post {
-		if request.hasBody {
-			bodyReader = bytes.NewReader(request.body)
-		} else {
-			bodyReader = strings.NewReader(httpEncodedParameters(request.params))
-		}
+		bodyReader = strings.NewReader(httpEncodedParameters(request.params))
 	} else {
-		encodedParameters := httpEncodedParameters(request.params)
-		if encodedParameters != "" {
-			if parsedURL.RawQuery == "" {
-				parsedURL.RawQuery = encodedParameters
-			} else {
-				parsedURL.RawQuery += "&" + encodedParameters
-			}
-		}
+		httpAppendEncodedParameters(parsedURL, request.params)
 	}
 
 	nativeRequest, err := http.NewRequest(request.method, parsedURL.String(), bodyReader)
@@ -334,22 +399,33 @@ func HttpRequestStartExchange(request *HttpRequest) *HttpExchange {
 		return httpRequestErrorExchange(request, err.Error())
 	}
 
-	transport := &http.Transport{}
+	dialer := &net.Dialer{}
+	transport := &http.Transport{
+		DisableCompression:    true,
+		ResponseHeaderTimeout: timeout,
+		TLSHandshakeTimeout:   timeout,
+	}
+	if timed {
+		dialer.Timeout = timeout
+		transport.DialContext = dialer.DialContext
+	}
 	if request.proxyURL != nil {
 		transport.Proxy = http.ProxyURL(request.proxyURL)
 	}
 	if request.socket != nil {
 		nativeRequest.Close = true
 		transport.DisableKeepAlives = true
+		var socketDialMu sync.Mutex
 		socketConsumed := false
 		transport.DialContext = func(ctx context.Context, network string, address string) (net.Conn, error) {
+			socketDialMu.Lock()
+			defer socketDialMu.Unlock()
 			if socketConsumed {
 				return nil, io.EOF
 			}
 			socketConsumed = true
 			connection := request.socket.snapshotConn()
 			if connection == nil {
-				dialer := &net.Dialer{}
 				connection, err = dialer.DialContext(ctx, network, address)
 				if err != nil {
 					return nil, err
@@ -360,21 +436,31 @@ func HttpRequestStartExchange(request *HttpRequest) *HttpExchange {
 		}
 	}
 
-	timeout := time.Duration(request.timeout * float64(time.Second))
-	if timeout <= 0 {
-		timeout = 10 * time.Second
-	}
-	ctx, cancel := context.WithCancel(nativeRequest.Context())
-	nativeRequest = nativeRequest.WithContext(ctx)
-	client := &http.Client{Transport: transport, Timeout: timeout}
 	exchange := &HttpExchange{
 		headers:     make(http.Header),
 		transport:   transport,
 		socket:      request.socket,
 		upload:      uploadSink,
 		requestBody: requestBody,
-		cancel:      cancel,
+		timeout:     timeout,
+		timed:       timed,
 		ready:       make(chan struct{}),
+	}
+	trace := &httptrace.ClientTrace{
+		GotConn: func(info httptrace.GotConnInfo) {
+			_ = info.Conn.SetDeadline(time.Time{})
+			exchange.stateMu.Lock()
+			exchange.connection = info.Conn
+			exchange.stateMu.Unlock()
+		},
+	}
+	tracedContext := httptrace.WithClientTrace(nativeRequest.Context(), trace)
+	ctx, cancel := context.WithCancel(tracedContext)
+	nativeRequest = nativeRequest.WithContext(ctx)
+	exchange.cancel = cancel
+	client := &http.Client{
+		Transport:     transport,
+		CheckRedirect: httpReturnRedirectResponse,
 	}
 
 	if uploadSink != nil {
@@ -390,6 +476,9 @@ func (exchange *HttpExchange) run(client *http.Client, request *http.Request) {
 	nativeResponse, err := client.Do(request)
 	if exchange.requestBody != nil {
 		_ = exchange.requestBody.Close()
+	}
+	if err != nil && nativeResponse != nil && nativeResponse.Body != nil {
+		_ = nativeResponse.Body.Close()
 	}
 
 	exchange.stateMu.Lock()
@@ -411,6 +500,11 @@ func (exchange *HttpExchange) run(client *http.Client, request *http.Request) {
 }
 
 var errHTTPUploadBodyClosed = errors.New("HTTP upload body closed")
+
+type httpUploadWriteResult struct {
+	count int
+	err   error
+}
 
 func (body *httpMultipartPipeBody) Read(destination []byte) (int, error) {
 	if len(destination) == 0 {
@@ -541,6 +635,28 @@ func httpEncodedParameters(parameters []httpRequestParameter) string {
 		encoded = append(encoded, parameter.encodedName+"="+parameter.encodedValue)
 	}
 	return strings.Join(encoded, "&")
+}
+
+// httpAppendEncodedParameters preserves the caller's existing raw query.
+//
+// What: Appends staged query fields without reparsing the URL.
+// Why: Parsing and re-encoding can reorder, collapse, or rewrite caller-owned
+// escapes, including when an explicit body is sent with post == false.
+// How: Join the pre-encoded ordered parameters and add one delimiter only when
+// both the original query and new fields are present.
+func httpAppendEncodedParameters(target *url.URL, parameters []httpRequestParameter) {
+	if target == nil {
+		return
+	}
+	encoded := httpEncodedParameters(parameters)
+	if encoded == "" {
+		return
+	}
+	if target.RawQuery == "" {
+		target.RawQuery = encoded
+	} else {
+		target.RawQuery += "&" + encoded
+	}
 }
 
 // applyHttpRequestHeaders installs ordinary and Go-special request fields.
@@ -682,7 +798,31 @@ func HttpUploadSinkWriteChunk(sink *HttpUploadSink, chunk *ByteView) *string {
 	writer := sink.writer
 	sink.stateMu.Unlock()
 
-	count, err := writer.Write(raw)
+	count := 0
+	var err error
+	if sink.timed {
+		completed := make(chan httpUploadWriteResult, 1)
+		go func() {
+			written, writeErr := writer.Write(raw)
+			completed <- httpUploadWriteResult{count: written, err: writeErr}
+		}()
+		timer := time.NewTimer(sink.timeout)
+		select {
+		case result := <-completed:
+			if !timer.Stop() {
+				<-timer.C
+			}
+			count = result.count
+			err = result.err
+		case <-timer.C:
+			sink.abort(errHTTPProgressTimeout)
+			result := <-completed
+			count = result.count
+			err = errHTTPProgressTimeout
+		}
+	} else {
+		count, err = writer.Write(raw)
+	}
 	if err == nil && count != len(raw) {
 		err = io.ErrShortWrite
 	}
@@ -865,9 +1005,24 @@ func HttpExchangeReadResponseChunk(exchange *HttpExchange, maxBytes int) *HttpRe
 	}
 	exchange.stateMu.Lock()
 	closed := exchange.closed
+	connection := exchange.connection
+	timeout := exchange.timeout
+	timed := exchange.timed
 	exchange.stateMu.Unlock()
 	if closed {
 		return httpReadError("HTTP exchange is closed")
+	}
+	if exchange.response.Body == http.NoBody {
+		return &HttpReadResult{body: &ByteView{raw: []byte{}}, eof: true}
+	}
+	if connection != nil {
+		deadline := time.Time{}
+		if timed {
+			deadline = time.Now().Add(timeout)
+		}
+		if err := connection.SetReadDeadline(deadline); err != nil {
+			return httpReadError(err.Error())
+		}
 	}
 
 	buffer := make([]byte, maxBytes)

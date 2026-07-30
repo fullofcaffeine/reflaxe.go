@@ -1,6 +1,8 @@
 package hxrt
 
 import (
+	"bytes"
+	"compress/gzip"
 	"errors"
 	"io"
 	"mime"
@@ -20,6 +22,23 @@ import (
 
 func httpTestString(value string) *string {
 	return &value
+}
+
+func httpTestSetProxyURL(t *testing.T, request *HttpRequest, rawURL string) {
+	t.Helper()
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		t.Fatalf("parse proxy URL: %v", err)
+	}
+	host, rawPort, err := net.SplitHostPort(parsed.Host)
+	if err != nil {
+		t.Fatalf("split proxy address: %v", err)
+	}
+	port, err := strconv.Atoi(rawPort)
+	if err != nil {
+		t.Fatalf("parse proxy port: %v", err)
+	}
+	HttpRequestSetProxy(request, httpTestString(host), port, nil, nil)
 }
 
 // HttpResponse and these helpers keep older request-builder assertions concise
@@ -1014,7 +1033,41 @@ func TestHttpResponseRetainsStatusAndHeadersWhenBodyReadFails(t *testing.T) {
 }
 
 func TestHttpRequestTimeoutAndIdleConnectionCleanupAreBounded(t *testing.T) {
-	t.Run("timeout", func(t *testing.T) {
+	t.Run("zero timeout is immediate", func(t *testing.T) {
+		var hits atomic.Int32
+		server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+			hits.Add(1)
+			_, _ = response.Write([]byte("too late"))
+		}))
+		defer server.Close()
+
+		result := HttpRequestExecute(HttpRequestNew(httpTestString(server.URL), false, nil, 0))
+		err := HttpResponseError(result)
+		if err == nil || !strings.Contains(*err, "HTTP progress timeout") {
+			t.Fatalf("zero-timeout error = %v, want HTTP progress timeout", err)
+		}
+		if got := hits.Load(); got != 0 {
+			t.Fatalf("zero-timeout request reached server %d times, want 0", got)
+		}
+	})
+
+	t.Run("negative timeout is unlimited", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+			time.Sleep(40 * time.Millisecond)
+			_, _ = response.Write([]byte("done"))
+		}))
+		defer server.Close()
+
+		result := HttpRequestExecute(HttpRequestNew(httpTestString(server.URL), false, nil, -1))
+		if err := HttpResponseError(result); err != nil {
+			t.Fatalf("negative-timeout error = %q, want nil", *err)
+		}
+		if got := string(byteViewRaw(HttpResponseBody(result))); got != "done" {
+			t.Fatalf("negative-timeout body = %q, want done", got)
+		}
+	})
+
+	t.Run("stalled response headers", func(t *testing.T) {
 		cancelled := make(chan struct{})
 		server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 			select {
@@ -1038,6 +1091,62 @@ func TestHttpRequestTimeoutAndIdleConnectionCleanupAreBounded(t *testing.T) {
 		case <-cancelled:
 		case <-time.After(time.Second):
 			t.Fatal("client timeout did not cancel the server request context")
+		}
+	})
+
+	t.Run("stalled response body", func(t *testing.T) {
+		cancelled := make(chan struct{})
+		server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+			response.Header().Set("Content-Length", "2")
+			response.WriteHeader(http.StatusOK)
+			_, _ = response.Write([]byte("a"))
+			response.(http.Flusher).Flush()
+			<-request.Context().Done()
+			close(cancelled)
+		}))
+		defer server.Close()
+
+		started := time.Now()
+		result := HttpRequestExecute(HttpRequestNew(httpTestString(server.URL), false, nil, 0.02))
+		if err := HttpResponseError(result); err == nil {
+			t.Fatal("stalled-body error = nil, want a progress timeout")
+		}
+		if got := string(byteViewRaw(HttpResponseBody(result))); got != "a" {
+			t.Fatalf("stalled-body partial bytes = %q, want a", got)
+		}
+		if elapsed := time.Since(started); elapsed > time.Second {
+			t.Fatalf("stalled-body request took %s, want a bounded failure", elapsed)
+		}
+		select {
+		case <-cancelled:
+		case <-time.After(time.Second):
+			t.Fatal("stalled-body timeout did not cancel the server request")
+		}
+	})
+
+	t.Run("slow progress can exceed the total timeout", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+			response.Header().Set("Content-Length", "4")
+			response.WriteHeader(http.StatusOK)
+			flusher := response.(http.Flusher)
+			for _, chunk := range []byte("slow") {
+				_, _ = response.Write([]byte{chunk})
+				flusher.Flush()
+				time.Sleep(30 * time.Millisecond)
+			}
+		}))
+		defer server.Close()
+
+		started := time.Now()
+		result := HttpRequestExecute(HttpRequestNew(httpTestString(server.URL), false, nil, 0.05))
+		if err := HttpResponseError(result); err != nil {
+			t.Fatalf("slow-progress error = %q, want nil", *err)
+		}
+		if got := string(byteViewRaw(HttpResponseBody(result))); got != "slow" {
+			t.Fatalf("slow-progress body = %q, want slow", got)
+		}
+		if elapsed := time.Since(started); elapsed <= 50*time.Millisecond {
+			t.Fatalf("slow-progress request took %s, want longer than one timeout budget", elapsed)
 		}
 	})
 
@@ -1071,8 +1180,8 @@ func TestHttpRequestTimeoutAndIdleConnectionCleanupAreBounded(t *testing.T) {
 
 func TestHttpRequestCustomMethodBodyProxyAndSocketLifecycle(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-		if request.Method != http.MethodPatch {
-			t.Errorf("method = %q, want PATCH", request.Method)
+		if request.Method != "pAtCh" {
+			t.Errorf("method = %q, want pAtCh", request.Method)
 		}
 		body, err := io.ReadAll(request.Body)
 		if err != nil {
@@ -1091,7 +1200,7 @@ func TestHttpRequestCustomMethodBodyProxyAndSocketLifecycle(t *testing.T) {
 	}
 	socket := SocketNewTCP()
 	socket.installConn(connection)
-	request := HttpRequestNew(httpTestString(server.URL), true, httpTestString("patch"), 1)
+	request := HttpRequestNew(httpTestString(server.URL), false, httpTestString("pAtCh"), 1)
 	HttpRequestSetBodyString(request, httpTestString("payload"))
 	HttpRequestSetSocket(request, socket)
 	response := HttpRequestExecute(request)
@@ -1105,6 +1214,151 @@ func TestHttpRequestCustomMethodBodyProxyAndSocketLifecycle(t *testing.T) {
 	if got := *HttpProxyDescriptor(httpTestString("proxy.local"), 3128, httpTestString("user"), httpTestString("pass")); got != "http://user:pass@proxy.local:3128" {
 		t.Fatalf("HttpProxyDescriptor = %q", got)
 	}
+}
+
+func TestHttpRequestReturnsRedirectsWithoutContactingDestinations(t *testing.T) {
+	for _, status := range []int{http.StatusFound, http.StatusTemporaryRedirect} {
+		t.Run(strconv.Itoa(status), func(t *testing.T) {
+			var destinationHits atomic.Int32
+			destination := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+				destinationHits.Add(1)
+				_, _ = response.Write([]byte("followed"))
+			}))
+			defer destination.Close()
+
+			source := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+				response.Header().Set("Location", destination.URL+"/destination")
+				response.WriteHeader(status)
+				_, _ = response.Write([]byte("redirect"))
+			}))
+			defer source.Close()
+
+			result := HttpRequestExecute(HttpRequestNew(httpTestString(source.URL), false, nil, 1))
+			if err := HttpResponseError(result); err != nil {
+				t.Fatalf("redirect transport error = %q, want nil", *err)
+			}
+			if got := HttpResponseStatus(result); got != status {
+				t.Fatalf("redirect status = %d, want %d", got, status)
+			}
+			if got := string(byteViewRaw(HttpResponseBody(result))); got != "redirect" {
+				t.Fatalf("redirect body = %q, want redirect", got)
+			}
+			if got := destinationHits.Load(); got != 0 {
+				t.Fatalf("redirect destination contacted %d times, want 0", got)
+			}
+		})
+	}
+}
+
+func TestHttpRequestPreservesCompressedResponseBytesAndHeaders(t *testing.T) {
+	var compressed strings.Builder
+	writer := gzip.NewWriter(&compressed)
+	if _, err := writer.Write([]byte("compressed payload")); err != nil {
+		t.Fatal(err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+	wireBody := []byte(compressed.String())
+
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		response.Header().Set("Content-Encoding", "gzip")
+		response.Header().Set("Content-Length", strconv.Itoa(len(wireBody)))
+		response.WriteHeader(http.StatusOK)
+		_, _ = response.Write(wireBody)
+	}))
+	defer server.Close()
+
+	result := HttpRequestExecute(HttpRequestNew(httpTestString(server.URL), false, nil, 1))
+	if err := HttpResponseError(result); err != nil {
+		t.Fatalf("compressed response error = %q, want nil", *err)
+	}
+	if got := byteViewRaw(HttpResponseBody(result)); !bytes.Equal(got, wireBody) {
+		t.Fatalf("compressed response body was transformed: got %d bytes, want %d raw bytes", len(got), len(wireBody))
+	}
+	foundEncoding := false
+	for index := 0; index < HttpResponseHeaderCount(result); index++ {
+		if strings.EqualFold(*HttpResponseHeaderName(result, index), "Content-Encoding") {
+			foundEncoding = true
+			if got := *HttpResponseHeaderValue(result, index, 0); got != "gzip" {
+				t.Fatalf("Content-Encoding = %q, want gzip", got)
+			}
+		}
+	}
+	if !foundEncoding {
+		t.Fatal("Content-Encoding header was removed")
+	}
+}
+
+func TestHttpRequestProxyAndCustomSocketSchemePolicy(t *testing.T) {
+	t.Run("HTTP proxy receives an absolute target", func(t *testing.T) {
+		var seenMethod string
+		var seenTarget string
+		proxy := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+			seenMethod = request.Method
+			seenTarget = request.RequestURI
+			_, _ = response.Write([]byte("proxied"))
+		}))
+		defer proxy.Close()
+
+		request := HttpRequestNew(httpTestString("http://origin.invalid/path?q=1"), false, nil, 1)
+		httpTestSetProxyURL(t, request, proxy.URL)
+		result := HttpRequestExecute(request)
+		if err := HttpResponseError(result); err != nil {
+			t.Fatalf("HTTP proxy error = %q, want nil", *err)
+		}
+		if seenMethod != http.MethodGet {
+			t.Fatalf("HTTP proxy method = %q, want GET", seenMethod)
+		}
+		if seenTarget != "http://origin.invalid/path?q=1" {
+			t.Fatalf("HTTP proxy target = %q, want absolute origin URL", seenTarget)
+		}
+		if got := string(byteViewRaw(HttpResponseBody(result))); got != "proxied" {
+			t.Fatalf("HTTP proxy body = %q, want proxied", got)
+		}
+	})
+
+	t.Run("HTTPS proxy uses CONNECT", func(t *testing.T) {
+		var seenMethod string
+		var seenTarget string
+		proxy := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+			seenMethod = request.Method
+			seenTarget = request.RequestURI
+			response.WriteHeader(http.StatusBadGateway)
+		}))
+		defer proxy.Close()
+
+		request := HttpRequestNew(httpTestString("https://origin.invalid/secure"), false, nil, 1)
+		httpTestSetProxyURL(t, request, proxy.URL)
+		result := HttpRequestExecute(request)
+		if err := HttpResponseError(result); err == nil {
+			t.Fatal("HTTPS proxy error = nil, want CONNECT failure")
+		}
+		if seenMethod != http.MethodConnect {
+			t.Fatalf("HTTPS proxy method = %q, want CONNECT", seenMethod)
+		}
+		if seenTarget != "origin.invalid:443" {
+			t.Fatalf("HTTPS proxy target = %q, want origin.invalid:443", seenTarget)
+		}
+	})
+
+	t.Run("HTTPS custom socket is rejected before transport", func(t *testing.T) {
+		clientSide, peerSide := net.Pipe()
+		defer peerSide.Close()
+		socket := SocketNewTCP()
+		socket.installConn(clientSide)
+
+		request := HttpRequestNew(httpTestString("https://origin.invalid/secure"), false, nil, 0.02)
+		HttpRequestSetSocket(request, socket)
+		result := HttpRequestExecute(request)
+		err := HttpResponseError(result)
+		if err == nil || !strings.Contains(*err, "HTTPS custom sockets are not supported") {
+			t.Fatalf("HTTPS custom-socket error = %v, want explicit unsupported policy", err)
+		}
+		if socket.snapshotConn() != nil {
+			t.Fatal("rejected HTTPS custom socket retained its native connection")
+		}
+	})
 }
 
 func TestHttpExchangePublishesHeadersAndFirstChunkBeforeBodyCompletion(t *testing.T) {

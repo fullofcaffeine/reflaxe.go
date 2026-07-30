@@ -21,6 +21,13 @@ import hxrt.net.SocketHandle;
 @:go.import("hxrt")
 @:go.package("hxrt")
 extern class NativeHttp {
+	/**
+		What: Starts one exact-method request description with a progress budget.
+		Why: Go defaults for method normalization and whole-client timeouts do not
+		match the staged `sys.Http` contract.
+		How: Preserve the nullable method token verbatim; negative timeout disables
+		native deadlines, zero is immediate, and positive values are per operation.
+	**/
 	@:go.name("HttpRequestNew")
 	public static function newRequest(url:String, post:Bool, method:Null<String>, timeout:Float):HttpRequestHandle;
 
@@ -54,9 +61,23 @@ extern class NativeHttp {
 	@:go.name("HttpRequestSetMultipartUpload")
 	public static function setMultipartUpload(request:HttpRequestHandle, parameter:String, filename:String, mimeType:String, size:Int):Void;
 
+	/**
+		What: Selects a native HTTP proxy for this exchange.
+		Why: HTTP absolute-target and HTTPS CONNECT behavior require Go transport
+		ownership and must not be reconstructed from generated Haxe layouts.
+		How: Pass only scalar authority; staged source still owns the public PROXY
+		shape and callback policy.
+	**/
 	@:go.name("HttpRequestSetProxy")
 	public static function setProxy(request:HttpRequestHandle, host:String, port:Int, user:Null<String>, pass:Null<String>):Void;
 
+	/**
+		What: Supplies a typed socket for plain-HTTP customRequest.
+		Why: The current handle does not retain the `sys.ssl.Socket` configuration
+		needed to distinguish already-secure HTTPS transport from a plain TCP socket.
+		How: Native code consumes and closes the handle for HTTP, and rejects HTTPS
+		before transport until a typed secure connector boundary exists.
+	**/
 	@:go.name("HttpRequestSetSocket")
 	public static function setSocket(request:HttpRequestHandle, socket:SocketHandle):Void;
 

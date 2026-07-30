@@ -53,7 +53,18 @@ private typedef UploadPumpResult = {
 **/
 class Http extends haxe.http.HttpBase {
 	public var noShutdown:Bool;
+
+	/**
+		What: Sets the native progress budget in seconds.
+		Why: A whole-request deadline would reject healthy long transfers, while
+		silently treating zero or negative values as ten seconds changes Haxe policy.
+		How: Negative disables native deadlines, zero fails before dialing, and a
+		positive value separately bounds direct connect/TLS/header waits, multipart
+		sink writes, and response reads. Proxy negotiation and fixed-body write
+		admission remain explicitly outside the current portable claim.
+	**/
 	public var cnxTimeout:Float;
+
 	public var responseHeaders:Map<String, String>;
 
 	private var responseHeadersSameKey:StringMap<Array<String>>;
@@ -232,8 +243,9 @@ class Http extends haxe.http.HttpBase {
 							break;
 					}
 
-					if (status >= 400)
-						throw "Http Error #" + status;
+					var statusError = hxrt_statusError(status);
+					if (statusError != null)
+						throw statusError;
 					api.close();
 					completed = true;
 				} catch (error:haxe.Exception) {
@@ -309,10 +321,15 @@ class Http extends haxe.http.HttpBase {
 		What: Applies the same Output lifecycle to the deterministic `data:` path.
 		Why: Callers should not observe different status/prepare/write/close order
 		merely because bytes came from a URL literal instead of a network response.
-		How: Assemble the source-owned payload, then run status, prepare, one bounded
-		write, and close under the same single-error dispatch rule.
+		How: Assemble the source-owned payload using the same explicit-body and exact
+		method policy, then run status, prepare, one bounded write, and close under
+		the same single-error dispatch rule.
 	**/
 	function handleDataRequest(post:Bool, api:Output, method:Null<String>):Void {
+		if (method != null && method == "") {
+			onError("HTTP method must not be empty");
+			return;
+		}
 		var encoded = url.substr("data:".length);
 		var mediaType = "text/plain";
 		var comma = firstComma(encoded);
@@ -321,20 +338,18 @@ class Http extends haxe.http.HttpBase {
 				mediaType = encoded.substr(0, comma);
 			encoded = encoded.substr(comma + 1);
 		}
-		if (post) {
-			if (file != null)
-				encoded = "multipart file=" + file.filename + ";mime=" + file.mimeType + ";size=" + file.size;
-			else if (postBytes != null)
-				encoded = postBytes.toString();
-			else if (postData != null)
-				encoded = postData;
-			else
-				encoded = encodedParameters();
-		}
+		if (file != null)
+			encoded = "multipart file=" + file.filename + ";mime=" + file.mimeType + ";size=" + file.size;
+		else if (postBytes != null)
+			encoded = postBytes.toString();
+		else if (postData != null)
+			encoded = postData;
+		else if (post)
+			encoded = encodedParameters();
 		var payloadText = StringTools.urlDecode(encoded);
-		var normalizedMethod = normalizedMethod(method);
-		if (normalizedMethod != null)
-			payloadText = normalizedMethod + " " + payloadText;
+		var explicitMethod = explicitMethod(method);
+		if (explicitMethod != null)
+			payloadText = explicitMethod + " " + payloadText;
 
 		var payload = Bytes.ofString(payloadText);
 		responseHeaders.set("content-type", mediaType);
@@ -396,11 +411,28 @@ class Http extends haxe.http.HttpBase {
 		return -1;
 	}
 
-	static function normalizedMethod(method:Null<String>):Null<String> {
-		if (method == null)
+	/**
+		What: Preserves a non-empty explicit customRequest method for the data path.
+		Why: Method spelling is caller-owned wire policy; uppercasing it would make
+		data and network requests disagree and can select another server handler.
+		How: Distinguish absence from a supplied token without normalizing its case.
+	**/
+	static function explicitMethod(method:Null<String>):Null<String> {
+		if (method == null || method == "")
 			return null;
-		var normalized = method.toUpperCase();
-		return normalized == "" || normalized == "NULL" ? null : normalized;
+		return method;
+	}
+
+	/**
+		What: Classifies every response status after its body has streamed.
+		Why: Haxe sys.Http treats statuses below 200 and at least 400 as errors,
+		while Go transport policy must not silently redefine public callbacks.
+		How: Return the one public error string for rejected ranges and `null` for
+		the complete 200...399 success interval.
+	**/
+	@:noCompletion
+	private static function hxrt_statusError(status:Int):Null<String> {
+		return status < 200 || status >= 400 ? "Http Error #" + status : null;
 	}
 
 	/**
@@ -420,12 +452,17 @@ class Http extends haxe.http.HttpBase {
 		return NativeHttp.proxyDescriptor(proxy.host, proxy.port, user, pass);
 	}
 
-	/** Makes one synchronous GET request and returns its response string. **/
+	/**
+		Makes one synchronous GET request and returns its response string.
+
+		Errors are thrown, matching the Haxe 4.3.7 `sys.Http` contract; an error
+		message is never returned as though it were response data.
+	**/
 	public static function requestUrl(url:String):String {
 		var request = new Http(url);
 		var result = "";
 		request.onData = function(data) result = data;
-		request.onError = function(message) result = message;
+		request.onError = function(message) throw message;
 		request.request(false);
 		return result;
 	}

@@ -20,6 +20,21 @@ func main() {
 	hxrt.Println(v_1)
 	var v_2 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("closeCount="), output.closeCount))
 	hxrt.Println(v_2)
+	status := 101
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("status."), status), hxrt.StringFromLiteral("=")), sys__Http_hxrt_statusError(status)))
+	hxrt.Println(v_3)
+	status_1 := 199
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("status."), status_1), hxrt.StringFromLiteral("=")), sys__Http_hxrt_statusError(status_1)))
+	hxrt.Println(v_4)
+	status_2 := 200
+	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("status."), status_2), hxrt.StringFromLiteral("=")), sys__Http_hxrt_statusError(status_2)))
+	hxrt.Println(v_5)
+	status_3 := 399
+	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("status."), status_3), hxrt.StringFromLiteral("=")), sys__Http_hxrt_statusError(status_3)))
+	hxrt.Println(v_6)
+	status_4 := 400
+	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("status."), status_4), hxrt.StringFromLiteral("=")), sys__Http_hxrt_statusError(status_4)))
+	hxrt.Println(v_7)
 }
 
 type I__Main__DataOutput interface {

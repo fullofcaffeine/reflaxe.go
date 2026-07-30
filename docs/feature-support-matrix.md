@@ -383,7 +383,12 @@ Shim strategy and alternatives are documented in:
 
 - `haxe.Http` is a `typedef` alias of `sys.Http` on `sys` targets, so the same semantic-diff fixtures now serve as the portable contract for both entry points.
 - `sys.Http` is canonical staged source in `std/go/_std/sys/Http.hx`. It owns synchronous request selection for `http`/`https`, deterministic `data:` handling, payload/header assembly, callback order, public response maps, and status/error policy.
-- Go URL parsing, proxy setup, live response resources, and optional typed socket consumption live behind opaque `std/hxrt/http` handles in footprint-explicit `runtime/hxrt/http.go`; no generated Haxe object layout crosses the runtime boundary and no compiler HTTP group remains.
+- Go URL parsing, proxy setup, live response resources, and optional
+  plain-HTTP typed socket consumption live behind opaque `std/hxrt/http`
+  handles in footprint-explicit `runtime/hxrt/http.go`; no generated Haxe
+  object layout crosses the runtime boundary and no compiler HTTP group
+  remains. HTTPS custom sockets fail before transport until a typed secure
+  connector can preserve SSL configuration.
 - Covered behaviors: `setHeader`/`addHeader`, `setParameter`/`addParameter`, `setPostData`/`setPostBytes`, `fileTransfer`/`fileTransfert`, `customRequest` (including optional socket transport injection), proxy URL wiring (`Http.PROXY`), `getResponseHeaderValues`, dynamic callbacks (`onData`, `onBytes`, `onError`, `onStatus`), `responseData`/`responseBytes`, and `requestUrl`.
 - Semantic diff now also locks callback/status/header/error parity for local deterministic HTTP servers (`http_request_callbacks_contract`), including 4xx `onError` formatting (`Http Error #<status>`).
 - Multipart uploads pull bounded chunks from the caller's `Input`; partial reads
@@ -410,8 +415,11 @@ Shim strategy and alternatives are documented in:
   before server completion; `http_response_partial_failure_contract` proves
   truncation and throwing status/Output paths; and
   `http_custom_request_lifecycle_contract` retains success versus HTTP-error
-  completion behavior. `sys/http_data_lifecycle_contract` locks the same
-  status→prepare→write→close order for the target-owned `data:` path.
+  completion behavior, including 101 classification.
+  `http_data_network_lifecycle_contract` runs the target data and
+  loopback-network paths together and locks their identical
+  status→prepare→write→close order. `sys/http_data_lifecycle_contract`
+  exercises the staged status classifier at 101, 199, 200, 399, and 400.
 - Direct runtime tests cover the current GET/POST/query/body representation,
   timeout cancellation, truncated-body status retention, proxy formatting,
   early-upload abort, idle transport cleanup, and typed custom-socket closure.
@@ -421,13 +429,18 @@ Shim strategy and alternatives are documented in:
   separate from URL query values; Go-special headers have explicit
   validation/translation; and each multipart request derives its boundary,
   content type, and exact length together after rejecting hostile metadata.
-  This proves this request-construction slice; the source-driven cancellable
-  upload boundary is separately locked by
-  `sys/http_upload_sink_lifecycle_contract`. Remaining method/body and client
-  policy still belong to the next slice.
+  Explicit method spelling and body selection no longer depend on the post
+  flag. Redirects are returned without following, gzip wire bytes and headers
+  are preserved, statuses outside 200...399 are rejected after streaming, and
+  `requestUrl` throws errors. `cnxTimeout` is negative-unlimited,
+  zero-immediate, and positive per direct connect/TLS/header, upload-sink write,
+  and response-read operation; slow progress can exceed the total budget.
+  HTTP proxy absolute targets, HTTPS CONNECT, plain-HTTP custom sockets, and
+  HTTPS-custom-socket rejection have separate native contracts.
 - HTTP is release-excluded under `haxe_go-vfp.10.8`. The required typed design
-  now has streamed responses and the source-driven upload sink, but still needs
-  the remaining client policy and final admission review;
+  now has wire-fidelity, streamed-response, source-driven-upload, and client
+  policy slices, but still needs whole-operation convergence and final
+  operation-level admission review;
   see the [portable HTTP admission design](http-client-admission-design.md),
   the generated compatibility matrix, and the
   [independent disposition](reviews/network-admission-oracle-disposition-vfp-10.4.md).

@@ -1,6 +1,11 @@
 import haxe.io.Bytes;
 import haxe.io.BytesOutput;
 
+@:native("sys__Http")
+extern class SysHttpInternals {
+	static function hxrt_statusError(status:Int):Null<String>;
+}
+
 private class DataOutput extends BytesOutput {
 	public final events:Array<String> = [];
 	public var closeCount(default, null):Int = 0;
@@ -37,5 +42,7 @@ class Main {
 		Sys.println("events=" + output.events.join(">"));
 		Sys.println("body=" + output.getBytes().toString());
 		Sys.println("closeCount=" + output.closeCount);
+		for (status in [101, 199, 200, 399, 400])
+			Sys.println("status." + status + "=" + SysHttpInternals.hxrt_statusError(status));
 	}
 }

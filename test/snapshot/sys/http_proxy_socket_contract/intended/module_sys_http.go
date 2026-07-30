@@ -421,8 +421,9 @@ func (self *sys__Http) requestWith(post bool, api *haxe__io__Output, sock *sys__
 							break
 						}
 					}
-					if status >= 400 {
-						hxrt.Throw(hxrt.StringConcatAny(hxrt.StringFromLiteral("Http Error #"), status))
+					statusError := sys__Http_hxrt_statusError(status)
+					if !hxrt.StringEqualStringPtr(statusError, nil) {
+						hxrt.Throw(statusError)
 					}
 					api.__hx_this.close()
 					completed = true
@@ -531,6 +532,16 @@ func (self *sys__Http) pumpUpload(exchange *hxrt.HttpExchange, upload map[string
 }
 
 func (self *sys__Http) handleDataRequest(post bool, api *haxe__io__Output, method *string) {
+	if !hxrt.StringEqualStringPtr(method, nil) && hxrt.StringEqualStringPtr(method, hxrt.StringFromLiteral("")) {
+		func(hx_fn func(*string), hx_arg_0 *string) {
+			if hx_fn == nil {
+				hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+				return
+			}
+			hx_fn(hx_arg_0)
+		}(self.onError, hxrt.StringFromLiteral("HTTP method must not be empty"))
+		return
+	}
 	encoded := hxrt.StringSubstrStringPtr(self.url, hxrt.StringLengthStringPtr(hxrt.StringFromLiteral("data:")), 0, false)
 	mediaType := hxrt.StringFromLiteral("text/plain")
 	comma := sys__Http_firstComma(encoded)
@@ -540,46 +551,46 @@ func (self *sys__Http) handleDataRequest(post bool, api *haxe__io__Output, metho
 		}
 		encoded = hxrt.StringSubstrStringPtr(encoded, int(int32((hxrt.Int32Wrap(comma) + hxrt.Int32Wrap(1)))), 0, false)
 	}
-	if post {
-		if self.file != nil {
-			encoded = hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("multipart file="), func(hx_obj_140 map[string]any) *string {
-				hx_field_141 := hx_obj_140["filename"]
-				if hx_field_141 == nil {
-					var hx_zero_142 *string
-					return hx_zero_142
-				}
-				return hx_field_141.(*string)
-			}(self.file)), hxrt.StringFromLiteral(";mime=")), func(hx_obj_143 map[string]any) *string {
-				hx_field_144 := hx_obj_143["mimeType"]
-				if hx_field_144 == nil {
-					var hx_zero_145 *string
-					return hx_zero_145
-				}
-				return hx_field_144.(*string)
-			}(self.file)), hxrt.StringFromLiteral(";size=")), func(hx_obj_146 map[string]any) int {
-				hx_field_147 := hx_obj_146["size"]
-				if hx_field_147 == nil {
-					var hx_zero_148 int
-					return hx_zero_148
-				}
-				return hx_field_147.(int)
-			}(self.file))
+	if self.file != nil {
+		encoded = hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("multipart file="), func(hx_obj_140 map[string]any) *string {
+			hx_field_141 := hx_obj_140["filename"]
+			if hx_field_141 == nil {
+				var hx_zero_142 *string
+				return hx_zero_142
+			}
+			return hx_field_141.(*string)
+		}(self.file)), hxrt.StringFromLiteral(";mime=")), func(hx_obj_143 map[string]any) *string {
+			hx_field_144 := hx_obj_143["mimeType"]
+			if hx_field_144 == nil {
+				var hx_zero_145 *string
+				return hx_zero_145
+			}
+			return hx_field_144.(*string)
+		}(self.file)), hxrt.StringFromLiteral(";size=")), func(hx_obj_146 map[string]any) int {
+			hx_field_147 := hx_obj_146["size"]
+			if hx_field_147 == nil {
+				var hx_zero_148 int
+				return hx_zero_148
+			}
+			return hx_field_147.(int)
+		}(self.file))
+	} else {
+		if self.postBytes != nil {
+			encoded = self.postBytes.__hx_this.toString()
 		} else {
-			if self.postBytes != nil {
-				encoded = self.postBytes.__hx_this.toString()
+			if !hxrt.StringEqualStringPtr(self.postData, nil) {
+				encoded = self.postData
 			} else {
-				if !hxrt.StringEqualStringPtr(self.postData, nil) {
-					encoded = self.postData
-				} else {
+				if post {
 					encoded = self.__hx_this.encodedParameters()
 				}
 			}
 		}
 	}
 	payloadText := StringTools_urlDecode(encoded)
-	normalizedMethod := sys__Http_normalizedMethod(method)
-	if !hxrt.StringEqualStringPtr(normalizedMethod, nil) {
-		payloadText = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(normalizedMethod, hxrt.StringFromLiteral(" ")), payloadText)
+	explicitMethod := sys__Http_explicitMethod(method)
+	if !hxrt.StringEqualStringPtr(explicitMethod, nil) {
+		payloadText = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(explicitMethod, hxrt.StringFromLiteral(" ")), payloadText)
 	}
 	payload := haxe__io__Bytes_ofString(payloadText, nil)
 	var this1 haxe__IMap = self.responseHeaders
@@ -700,6 +711,13 @@ func (self *sys__Http) encodedParameters() *string {
 
 var sys__Http_PROXY map[string]any = nil
 
+func sys__Http_explicitMethod(method *string) *string {
+	if hxrt.StringEqualStringPtr(method, nil) || hxrt.StringEqualStringPtr(method, hxrt.StringFromLiteral("")) {
+		return nil
+	}
+	return method
+}
+
 func sys__Http_firstComma(value *string) int {
 	_g := 0
 	_g1 := hxrt.StringLengthStringPtr(value)
@@ -808,16 +826,12 @@ func sys__Http_hxrt_proxyDescriptor() *string {
 	}(proxy), user, pass))
 }
 
-func sys__Http_normalizedMethod(method *string) *string {
-	if hxrt.StringEqualStringPtr(method, nil) {
-		return nil
-	}
-	normalized := hxrt.StringToUpperCaseStringPtr(method)
+func sys__Http_hxrt_statusError(status int) *string {
 	var hx_if_196 *string
-	if hxrt.StringEqualStringPtr(normalized, hxrt.StringFromLiteral("")) || hxrt.StringEqualStringPtr(normalized, hxrt.StringFromLiteral("NULL")) {
-		hx_if_196 = nil
+	if (status < 200) || (status >= 400) {
+		hx_if_196 = hxrt.StringConcatAny(hxrt.StringFromLiteral("Http Error #"), status)
 	} else {
-		hx_if_196 = normalized
+		hx_if_196 = nil
 	}
 	return hx_if_196
 }
@@ -829,7 +843,7 @@ func sys__Http_requestUrl(url *string) *string {
 		result = data
 	}
 	request.onError = func(message *string) {
-		result = message
+		hxrt.Throw(message)
 	}
 	request.__hx_this.request(false)
 	return result

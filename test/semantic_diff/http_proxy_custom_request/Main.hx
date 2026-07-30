@@ -13,7 +13,9 @@ class Main {
 			+ "\n"
 			+ "class Handler(http.server.BaseHTTPRequestHandler):\n"
 			+ "    def _reply(self):\n"
-			+ "        line = self.command + ':' + self.path\n"
+			+ "        length = int(self.headers.get('Content-Length', '0'))\n"
+			+ "        body = self.rfile.read(length).decode('utf-8') if length else ''\n"
+			+ "        line = self.command + ':' + self.path + '|body=' + body\n"
 			+ "        with open(log_path, 'w', encoding='utf-8') as fp:\n"
 			+ "            fp.write(line)\n"
 			+ "        body = line.encode('utf-8')\n"
@@ -25,6 +27,8 @@ class Main {
 			+ "    def do_GET(self):\n"
 			+ "        self._reply()\n"
 			+ "    def do_PATCH(self):\n"
+			+ "        self._reply()\n"
+			+ "    def do_pAtCh(self):\n"
 			+ "        self._reply()\n"
 			+ "    def log_message(self, fmt, *args):\n"
 			+ "        return\n"
@@ -67,8 +71,9 @@ class Main {
 		var customLog = "/tmp/reflaxe_go_http_custom.log";
 		var customServer = startServer(customLog);
 		var req = new haxe.Http("http://127.0.0.1:" + customServer.port + "/method");
+		req.setPostData("payload");
 		var sink = new haxe.io.BytesOutput();
-		req.customRequest(false, sink, null, "PATCH");
+		req.customRequest(false, sink, null, "pAtCh");
 		closeServer(customServer);
 		Sys.println("customTrace=" + readLog(customLog));
 

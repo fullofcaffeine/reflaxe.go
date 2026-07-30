@@ -3,4 +3,4 @@ proxy1=http://scott:tiger@proxy.local:3128
 proxy2=http://scott:@proxy.local:80
 proxy3=http://proxy.local:9000
 proxy4=null
-methodSock=PATCH body
+methodSock=pAtCh payload

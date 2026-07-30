@@ -215,9 +215,8 @@ The two public entry points finish differently:
 
 - `customRequest` writes directly to its caller-owned `Output`. It closes that
   Output exactly once only after a complete body accepted by the source status
-  classifier. The final admitted policy is 200 through 399; the response slice
-  still uses the pre-existing `< 400` rule until `haxe_go-vfp.10.8.5` adds the
-  missing low-status classification. An HTTP-status error, transfer error, or
+  classifier. The policy is 200 through 399; `haxe_go-vfp.10.8.5` implements
+  the low-status side of that rule. An HTTP-status error, transfer error, or
   Output exception leaves it open.
 - `request()` wraps `customRequest` with a source-owned `BytesOutput`, like
   Haxe 4.3.7. On failure, `request()` retains every byte already written in
@@ -247,9 +246,9 @@ The decisive contracts prove first-chunk visibility before server completion,
 known-length `prepare`, partial bytes plus transfer failure, partial
 `request().responseBytes`, one error for throwing `onStatus`/`prepare`/
 `writeBytes`/`close`, bounded large-response reads, and matching `data:` event
-order. This does not complete HTTP admission: the source-driven upload slice is
-implemented separately by `haxe_go-vfp.10.8.4`, and the policy listed under
-Remaining client policy still belongs to `haxe_go-vfp.10.8.5`.
+order. The source-driven upload slice is implemented by
+`haxe_go-vfp.10.8.4`, and client policy by `haxe_go-vfp.10.8.5`; final
+whole-operation convergence and admission remain `haxe_go-vfp.10.8.6`.
 
 ## Upload contract
 
@@ -309,10 +308,9 @@ early-response goroutine/file-descriptor convergence.
 
 This slice still does not make arbitrary user code cancellable: a custom
 `Input` that never returns from its own `readBytes` remains explicitly outside
-the native cancellation guarantee. It also does not admit HTTP; method, status,
-redirect, compression, and timeout policy remain in
-`haxe_go-vfp.10.8.5`, followed by the operation-level review in
-`haxe_go-vfp.10.8.6`.
+the native cancellation guarantee. Method, status, redirect, compression, and
+timeout policy are now implemented by `haxe_go-vfp.10.8.5`; HTTP remains
+excluded until the operation-level review in `haxe_go-vfp.10.8.6`.
 
 ## Error precedence
 
@@ -344,8 +342,8 @@ diagnostics where useful but never cause a second `onError`.
 
 - `cnxTimeout < 0` means no native deadline;
 - `cnxTimeout == 0` means an immediate native deadline;
-- `cnxTimeout > 0` bounds connect/TLS setup, waiting for response headers, each
-  upload sink write, and each response read separately.
+- `cnxTimeout > 0` bounds direct origin connect/TLS setup, waiting for response
+  headers, each upload sink write, and each response read separately.
 
 Successful progress starts a fresh budget for the next blocking operation. A
 slow response that continues producing chunks within the configured interval
@@ -357,19 +355,53 @@ explicit upload exclusion above. The implementation must not silently replace
 zero or negative values with ten seconds and must not use
 `http.Client.Timeout` as a hidden total deadline.
 
-## Remaining client policy
+Fixed in-memory request-body writes and HTTPS proxy CONNECT negotiation are not
+claimed as separately progress-bounded in this slice. They remain explicit
+operation-level exclusions for the final admission review instead of being
+hidden beneath the direct-origin timeout claim.
 
-`haxe_go-vfp.10.8.5` owns behavior that is orthogonal to streaming:
+## Client policy
 
-- do not automatically follow redirects;
-- disable transparent response decompression so body and headers retain their
-  received meaning;
-- classify status below 200 or at least 400 after streaming the body;
-- make `requestUrl` throw its error instead of returning an error string;
-- define proxy and custom-socket behavior separately for HTTP and HTTPS.
+`haxe_go-vfp.10.8.5` fixes behavior that is orthogonal to streaming:
+
+- an explicit method token keeps its exact spelling, and an explicit body is
+  sent even when `customRequest` receives `post == false`;
+- data URLs use the same exact-method, explicit-body, and
+  status→prepare→write→close policy as network responses;
+- 302 and 307 responses are returned without dialing their destinations;
+- transparent decompression is disabled, so received compressed bytes and
+  `Content-Encoding` remain consistent;
+- status below 200 or at least 400 is classified only after the body has been
+  streamed;
+- `requestUrl` throws transport, transfer, and status errors instead of
+  returning an error message as response data;
+- HTTP proxies receive absolute request targets, while HTTPS proxies use Go's
+  standard CONNECT negotiation followed by native TLS verification;
+- a typed custom socket is consumed for plain HTTP. HTTPS plus a custom socket
+  is rejected before transport because the current shared `SocketHandle`
+  cannot say whether it is plain TCP or already TLS, nor retain the
+  `sys.ssl.Socket` CA, hostname, verification, or client-certificate policy.
 
 Received redirect and compressed response bodies remain available to the
 caller's Output under these rules.
+
+Two differences from the legacy byte parser are intentional and visible:
+
+- Go treats 100–199 responses other than 101 as informational and waits for a
+  final response. If a peer closes without one, the caller gets a transport
+  error rather than an `onStatus` callback for an invalid terminal
+  informational response. The staged classifier still covers every numeric
+  value, including 101 and 199.
+- HTTPS custom sockets stay unsupported until a typed secure connector seam can
+  preserve TLS identity and verification authority. Guessing from a shared
+  native connection would risk applying TLS twice or sending HTTPS over plain
+  TCP.
+
+Proxy use, HTTPS custom sockets, fixed-body write deadlines, HTTP/2, public
+Internet behavior, and public trust-store behavior remain release-excluded
+until an operation-level review admits them explicitly. Normal direct HTTPS
+without a custom socket continues to use Go's native TLS transport, but this
+document does not turn that implementation fact into release admission.
 
 ## Finding and evidence map
 
@@ -389,7 +421,7 @@ independent xhigh admission review.
 
 ## Second-pass challenge review
 
-The required xhigh second pass challenged the design against six plausible
+The required xhigh second pass challenged the design against fifteen plausible
 ways it could still produce believable but incorrect evidence:
 
 1. **A total client timer could still fail a progressing response.** The
@@ -418,14 +450,33 @@ ways it could still produce believable but incorrect evidence:
    changes terminal state and closes the pipe without acquiring the writer
    mutex. A native cancellation test holds an active write and proves cleanup
    releases both operations.
-8. **An early response could be replaced by an incidental pipe error.** Staged
+8. **A convenient Go client timeout could still be a hidden total budget.**
+   The implementation checkpoint removed `http.Client.Timeout`; the slow-body
+   test deliberately takes longer than `cnxTimeout` overall while every chunk
+   arrives within its own budget.
+9. **Redirect suppression could accidentally return a transport error.**
+   `http.ErrUseLastResponse` returns the received response with a live body;
+   separate 302 and 307 tests prove the destination is never contacted.
+10. **Compression evidence could compare decoded data with stripped headers.**
+    The transport disables implicit decompression, and the regression compares
+    exact gzip wire bytes while requiring `Content-Encoding: gzip`.
+11. **A shared custom socket could conceal TLS ambiguity.** The design rejects
+    HTTPS before any transport and closes the supplied handle. Plain HTTP,
+    HTTP proxy absolute targets, and HTTPS proxy CONNECT each have separate
+    tests, so one passing path cannot stand in for the others.
+12. **A low-status test could prove only Go parser behavior.** A semantic
+    fixture proves public 101 callback/error order, while a target snapshot
+    exercises the staged classifier directly for 101, 199, 200, 399, and 400.
+    A separate semantic contract runs target data and loopback-network paths
+    together so their matching lifecycle is observed rather than inferred.
+13. **An early response could be replaced by an incidental pipe error.** Staged
    code awaits the synchronized native result after a sink write stops. If
    headers were published, it processes that response and its status; otherwise
    it reports the transport/sink failure.
-9. **A source error could be overwritten by cancellation fallout.** Staged
+14. **A source error could be overwritten by cancellation fallout.** Staged
    source state is evaluated first, abort only releases native resources, and
    the source exception or exact-size error remains the one public error.
-10. **A request could return while native code still invokes its Input.** There
+15. **A request could return while native code still invokes its Input.** There
     is no callback in the native multipart description or runtime API. Every
     `readBytes` call is visibly inside staged `pumpUpload`, and the generated
     race fixture checks its caller marker plus the read count after return.

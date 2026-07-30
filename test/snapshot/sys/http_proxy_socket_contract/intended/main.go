@@ -49,8 +49,9 @@ func main() {
 	hxrt.Println(v_4)
 	sys__Http_PROXY = nil
 	http := New_sys__Http(hxrt.StringFromLiteral("data:text/plain,body"))
+	http.__hx_this.setPostData(hxrt.StringFromLiteral("payload"))
 	sink := New_haxe__io__BytesOutput()
-	http.__hx_this.customRequest(false, sink.haxe__io__Output, New_sys__net__Socket(), hxrt.StringFromLiteral("PATCH"))
+	http.__hx_this.customRequest(false, sink.haxe__io__Output, New_sys__net__Socket(), hxrt.StringFromLiteral("pAtCh"))
 	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("methodSock="), sink.__hx_this.getBytes().__hx_this.toString()))
 	hxrt.Println(v_5)
 }

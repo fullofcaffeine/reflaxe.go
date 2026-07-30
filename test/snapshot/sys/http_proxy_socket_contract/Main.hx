@@ -37,8 +37,9 @@ class Main {
 
 		haxe.Http.PROXY = null;
 		var http = new haxe.Http("data:text/plain,body");
+		http.setPostData("payload");
 		var sink = new haxe.io.BytesOutput();
-		http.customRequest(false, sink, new sys.net.Socket(), "PATCH");
+		http.customRequest(false, sink, new sys.net.Socket(), "pAtCh");
 		Sys.println("methodSock=" + sink.getBytes().toString());
 	}
 }

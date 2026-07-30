@@ -25,8 +25,8 @@ class Main {
 			+ "\n"
 			+ "class Handler(http.server.BaseHTTPRequestHandler):\n"
 			+ "    def do_GET(self):\n"
-			+ "        status = 404 if self.path == '/missing' else 200\n"
-			+ "        payload = ('body:' + self.path).encode('utf-8')\n"
+			+ "        status = 101 if self.path == '/switching' else (404 if self.path == '/missing' else 200)\n"
+			+ "        payload = b'' if status == 101 else ('body:' + self.path).encode('utf-8')\n"
 			+ "        self.send_response(status)\n"
 			+ "        self.send_header('Content-Type', 'text/plain')\n"
 			+ "        self.send_header('Content-Length', str(len(payload)))\n"
@@ -87,5 +87,6 @@ class Main {
 	static function main() {
 		run("/ok");
 		run("/missing");
+		run("/switching");
 	}
 }

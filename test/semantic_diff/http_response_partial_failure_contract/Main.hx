@@ -139,6 +139,28 @@ class Main {
 		Sys.println("status.closeCount=" + output.closeCount);
 	}
 
+	static function runRequestUrlInvalid():Void {
+		var result = "return";
+		try {
+			haxe.Http.requestUrl("not a valid URL");
+		} catch (error:haxe.Exception) {
+			result = "throw";
+		}
+		Sys.println("requestUrl.invalid=" + result);
+	}
+
+	static function runRequestUrlTruncated():Void {
+		var server = startServer(true);
+		var result = "returned";
+		try {
+			result = "return:" + haxe.Http.requestUrl("http://127.0.0.1:" + server.port + "/truncated");
+		} catch (error:haxe.Exception) {
+			result = "throw:" + error.message;
+		}
+		closeServer(server);
+		Sys.println("requestUrl.truncated=" + result);
+	}
+
 	static function main() {
 		runCustomTruncated();
 		runRequestTruncated();
@@ -146,5 +168,7 @@ class Main {
 		runOutputFailure("write");
 		runOutputFailure("close");
 		runStatusFailure();
+		runRequestUrlInvalid();
+		runRequestUrlTruncated();
 	}
 }

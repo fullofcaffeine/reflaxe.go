@@ -2938,3 +2938,61 @@ Bounded claim:
   semantics, low statuses, `requestUrl`, proxy, and custom-socket policy. Final
   whole-operation resource and admission evidence remains
   `haxe_go-vfp.10.8.6`.
+
+### 2026-07-30: make HTTP client policy explicit (`haxe_go-vfp.10.8.5`)
+
+What changed:
+
+- Preserved explicit `customRequest` method spelling and decoupled explicit
+  request bodies from the `post` Boolean. The target-owned data path uses the
+  same method/body rule.
+- Disabled automatic redirects and transparent decompression. Callers now
+  receive the original 3xx response and exact compressed bytes with their
+  encoding headers.
+- Moved the complete status rule into one staged helper: statuses below 200 or
+  at least 400 fail after body streaming. `requestUrl` now throws those and
+  transport/transfer errors.
+- Replaced `http.Client.Timeout` with explicit timeout policy: negative is
+  unlimited, zero fails before dialing, and positive values separately bound
+  direct connect/TLS/header waits, each upload sink write, and each response
+  read. Timed upload writes use a joined native goroutine and pipe abort so no
+  generated Haxe callback changes threads.
+- Defined scheme boundaries instead of inheriting net/http accidents. HTTP
+  proxies use absolute targets, HTTPS proxies use CONNECT, plain HTTP can
+  consume a typed custom socket, and HTTPS custom sockets fail before transport
+  because the current handle lacks SSL configuration authority.
+
+Why:
+
+- Uppercasing methods, dropping bodies when `post == false`, following
+  redirects, decoding gzip, and returning request errors as strings all changed
+  public Haxe behavior.
+- A whole-request timer fails healthy long transfers even when every read makes
+  progress. Zero and negative values also cannot both mean a hidden ten-second
+  default.
+- A shared `SocketHandle` cannot reveal whether the caller supplied plain TCP
+  or a configured `sys.ssl.Socket`. Guessing could double-wrap TLS or bypass
+  certificate/hostname policy.
+
+How it is proved:
+
+- Semantic diff covers mixed-case method plus body with `post == false`, 101
+  status lifecycle, invalid/truncated `requestUrl`, and existing proxy/custom
+  request behavior.
+- Native tests prove 302/307 destinations are not contacted, gzip bytes and
+  headers remain raw, zero/negative/header/body/slow-progress timeout behavior,
+  HTTP absolute proxy targets, HTTPS CONNECT, plain custom-socket ownership,
+  and pre-transport HTTPS custom-socket rejection.
+- `http_data_network_lifecycle_contract` compares target data and
+  loopback-network event order; `sys/http_data_lifecycle_contract` separately
+  exercises 101/199/200/399/400 classification.
+- The generated-Haxe upload race contract still proves timeout cancellation
+  after removal of the whole-client timer.
+
+Bounded claim:
+
+- HTTP remains release-excluded until `haxe_go-vfp.10.8.6` proves repeated
+  whole-operation resource convergence and performs the operation-level
+  admission review. Proxy negotiation deadlines, fixed-body write deadlines,
+  HTTPS custom sockets, HTTP/2, public trust stores, and public/hostile network
+  behavior are not admitted by this slice.
