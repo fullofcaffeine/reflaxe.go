@@ -1,0 +1,3 @@
+events=status:200>prepare:11>write:hello world>close
+body=hello world
+closeCount=1

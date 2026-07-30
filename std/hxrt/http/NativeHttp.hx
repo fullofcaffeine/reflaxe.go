@@ -5,7 +5,7 @@ import hxrt.net.SocketHandle;
 
 /**
 	What
-	- Typed access to Go URL, HTTP transport, proxy, and response capabilities.
+	- Typed access to Go URL, HTTP transport, proxy, and live response capabilities.
 
 	Why
 	- Native networking and live socket resources cannot be implemented as
@@ -14,9 +14,9 @@ import hxrt.net.SocketHandle;
 
 	How
 	- Build one opaque request from strings, scalars, a `ByteView`, and an optional
-	  typed socket handle. Execute synchronously, then expose the response through
-	  typed scalar and indexed accessors without depending on generated Haxe
-	  object layouts.
+	  typed socket handle. Start a live exchange, then expose headers and bounded
+	  body-read results through typed accessors without depending on generated
+	  Haxe object layouts.
 **/
 @:go.import("hxrt")
 @:go.package("hxrt")
@@ -60,29 +60,47 @@ extern class NativeHttp {
 	@:go.name("HttpRequestSetSocket")
 	public static function setSocket(request:HttpRequestHandle, socket:SocketHandle):Void;
 
-	@:go.name("HttpRequestExecute")
-	public static function execute(request:HttpRequestHandle):HttpResponseHandle;
+	@:go.name("HttpRequestStartExchange")
+	public static function startExchange(request:HttpRequestHandle):HttpExchangeHandle;
 
-	@:go.name("HttpResponseError")
-	public static function responseError(response:HttpResponseHandle):Null<String>;
+	@:go.name("HttpExchangeError")
+	public static function exchangeError(exchange:HttpExchangeHandle):Null<String>;
 
-	@:go.name("HttpResponseStatus")
-	public static function responseStatus(response:HttpResponseHandle):Int;
+	@:go.name("HttpExchangeStatus")
+	public static function exchangeStatus(exchange:HttpExchangeHandle):Int;
 
-	@:go.name("HttpResponseBody")
-	public static function responseBody(response:HttpResponseHandle):ByteView;
+	@:go.name("HttpExchangeContentLength")
+	public static function exchangeContentLength(exchange:HttpExchangeHandle):Int;
 
-	@:go.name("HttpResponseHeaderCount")
-	public static function responseHeaderCount(response:HttpResponseHandle):Int;
+	@:go.name("HttpExchangeHeaderCount")
+	public static function exchangeHeaderCount(exchange:HttpExchangeHandle):Int;
 
-	@:go.name("HttpResponseHeaderName")
-	public static function responseHeaderName(response:HttpResponseHandle, index:Int):String;
+	@:go.name("HttpExchangeHeaderName")
+	public static function exchangeHeaderName(exchange:HttpExchangeHandle, index:Int):String;
 
-	@:go.name("HttpResponseHeaderValueCount")
-	public static function responseHeaderValueCount(response:HttpResponseHandle, index:Int):Int;
+	@:go.name("HttpExchangeHeaderValueCount")
+	public static function exchangeHeaderValueCount(exchange:HttpExchangeHandle, index:Int):Int;
 
-	@:go.name("HttpResponseHeaderValue")
-	public static function responseHeaderValue(response:HttpResponseHandle, headerIndex:Int, valueIndex:Int):String;
+	@:go.name("HttpExchangeHeaderValue")
+	public static function exchangeHeaderValue(exchange:HttpExchangeHandle, headerIndex:Int, valueIndex:Int):String;
+
+	@:go.name("HttpExchangeReadResponseChunk")
+	public static function readResponseChunk(exchange:HttpExchangeHandle, maxBytes:Int):HttpReadResultHandle;
+
+	@:go.name("HttpReadResultBody")
+	public static function readResultBody(result:HttpReadResultHandle):ByteView;
+
+	@:go.name("HttpReadResultError")
+	public static function readResultError(result:HttpReadResultHandle):Null<String>;
+
+	@:go.name("HttpReadResultEOF")
+	public static function readResultEof(result:HttpReadResultHandle):Bool;
+
+	@:go.name("HttpExchangeClose")
+	public static function closeExchange(exchange:HttpExchangeHandle):Void;
+
+	@:go.name("HttpExchangeCancel")
+	public static function cancelExchange(exchange:HttpExchangeHandle):Void;
 
 	@:go.name("HttpProxyDescriptor")
 	public static function proxyDescriptor(host:String, port:Int, user:Null<String>, pass:Null<String>):String;

@@ -2,9 +2,10 @@ package sys;
 
 import haxe.ds.StringMap;
 import haxe.io.Bytes;
+import haxe.io.BytesOutput;
 import haxe.io.Input;
 import haxe.io.Output;
-import hxrt.http.HttpResponseHandle;
+import hxrt.http.HttpExchangeHandle;
 import hxrt.http.NativeHttp;
 import hxrt.io.ByteView;
 import sys.net.Socket;
@@ -34,7 +35,7 @@ private typedef PendingUpload = {
 	- Keep all Haxe-visible state and choreography in this canonical staged class.
 	- Handle deterministic `data:` requests directly in source.
 	- Build one typed `hxrt.http.HttpRequestHandle` for native HTTP/HTTPS exchange,
-	  then translate its opaque result into Haxe `Bytes`, maps, and callbacks.
+	  then stream its live opaque exchange through Haxe `Output`, maps, and callbacks.
 	- Cross no generated `sys.Http` or `haxe.io.Bytes` layout into the runtime.
 **/
 class Http extends haxe.http.HttpBase {
@@ -61,9 +62,28 @@ class Http extends haxe.http.HttpBase {
 		resetResponseHeaders();
 	}
 
+	/**
+		What: Runs the callback-oriented request through a source-owned BytesOutput.
+		Why: `request()` must retain every response byte written before an error,
+		while direct `customRequest` must not publish response fields or callbacks.
+		How: Temporarily wrap `onError` to snapshot partial bytes, delegate the live
+		exchange to `customRequest`, then call `success` only after complete success.
+	**/
 	public override function request(?post:Bool):Void {
+		var output = new BytesOutput();
+		var previousOnError = onError;
+		var failed = false;
+		onError = function(message:String) {
+			responseBytes = output.getBytes();
+			responseAsString = null;
+			failed = true;
+			onError = previousOnError;
+			onError(message);
+		};
 		var usePost = (post != null && post == true) || postBytes != null || postData != null || file != null;
-		requestWith(usePost, null, null, null, true);
+		customRequest(usePost, output);
+		if (!failed)
+			success(output.getBytes());
 	}
 
 	@:noCompletion
@@ -91,7 +111,7 @@ class Http extends haxe.http.HttpBase {
 	}
 
 	public function customRequest(post:Bool, api:Output, ?sock:Socket, ?method:String):Void {
-		requestWith(post || file != null, api, sock, method, false);
+		requestWith(post || file != null, api, sock, method);
 	}
 
 	/**
@@ -120,21 +140,21 @@ class Http extends haxe.http.HttpBase {
 	}
 
 	/**
-		What: Executes either the callback-oriented `request` path or the
-		Output-oriented `customRequest` path.
-		Why: Mainstream `sys.Http` treats these as distinct completion contracts:
-		`request` publishes response data through fields and callbacks, while
-		`customRequest` writes and closes its Output without duplicating that data.
-		How: `deliverSuccessCallbacks` selects only the source-owned completion
-		policy; both paths share the same typed native transport and error handling.
+		What: Streams one request through the caller-owned `Output`.
+		Why: Status, prepare, partial writes, status classification, close, and
+		source exceptions are Haxe-visible lifecycle semantics that a fully buffered
+		native response cannot preserve.
+		How: Read bounded immutable chunks from one typed live exchange, write each
+		chunk before interpreting its terminal state, and release or cancel native
+		resources before dispatching one source-owned error.
 	**/
-	function requestWith(post:Bool, api:Null<Output>, sock:Null<Socket>, method:Null<String>, deliverSuccessCallbacks:Bool):Void {
+	function requestWith(post:Bool, api:Output, sock:Null<Socket>, method:Null<String>):Void {
 		responseAsString = null;
 		responseBytes = null;
 		resetResponseHeaders();
 
 		if (StringTools.startsWith(url, "data:")) {
-			handleDataRequest(post, api, method, deliverSuccessCallbacks);
+			handleDataRequest(post, api, method);
 			return;
 		}
 
@@ -179,44 +199,62 @@ class Http extends haxe.http.HttpBase {
 		if (sock != null)
 			NativeHttp.setSocket(request, sock.handle);
 
-		var response = NativeHttp.execute(request);
-		if (uploadError != null) {
-			onError(uploadError);
-			return;
-		}
-		var status = NativeHttp.responseStatus(response);
-		var nativeError = NativeHttp.responseError(response);
-		if (status == 0 && nativeError != null) {
-			onError(nativeError);
-			return;
+		var exchange = NativeHttp.startExchange(request);
+		var errorMessage:Null<String> = uploadError;
+		var completed = false;
+		if (errorMessage == null) {
+			var nativeError = NativeHttp.exchangeError(exchange);
+			if (nativeError != null) {
+				errorMessage = nativeError;
+			} else {
+				try {
+					recordResponseHeaders(exchange);
+					var status = NativeHttp.exchangeStatus(exchange);
+					onStatus(status);
+					var contentLength = NativeHttp.exchangeContentLength(exchange);
+					if (contentLength == -2)
+						throw "Content-Length exceeds Haxe Int range";
+					if (contentLength >= 0)
+						api.prepare(contentLength);
+
+					while (true) {
+						var read = NativeHttp.readResponseChunk(exchange, 1024);
+						var payload = Bytes.__hx_fromNativeView(NativeHttp.readResultBody(read));
+						if (payload.length > 0)
+							api.writeBytes(payload, 0, payload.length);
+						var readError = NativeHttp.readResultError(read);
+						if (readError != null)
+							throw "Transfer aborted";
+						if (NativeHttp.readResultEof(read))
+							break;
+					}
+
+					if (status >= 400)
+						throw "Http Error #" + status;
+					api.close();
+					completed = true;
+				} catch (error:haxe.Exception) {
+					errorMessage = error.message;
+				}
+			}
 		}
 
-		recordResponseHeaders(response);
-		onStatus(status);
-		if (nativeError != null) {
-			onError(nativeError);
-			return;
-		}
-		var payload = Bytes.__hx_fromNativeView(NativeHttp.responseBody(response));
-		var payloadText = payload.toString();
-		if (deliverSuccessCallbacks) {
-			responseBytes = payload;
-			responseAsString = payloadText;
-		}
-		capture(api, payload);
-		if (status >= 400) {
-			onError("Http Error #" + status);
-			return;
-		}
-		if (api != null)
-			api.close();
-		if (deliverSuccessCallbacks) {
-			onData(payloadText);
-			onBytes(payload);
-		}
+		if (completed)
+			NativeHttp.closeExchange(exchange);
+		else
+			NativeHttp.cancelExchange(exchange);
+		if (errorMessage != null)
+			onError(errorMessage);
 	}
 
-	function handleDataRequest(post:Bool, api:Null<Output>, method:Null<String>, deliverSuccessCallbacks:Bool):Void {
+	/**
+		What: Applies the same Output lifecycle to the deterministic `data:` path.
+		Why: Callers should not observe different status/prepare/write/close order
+		merely because bytes came from a URL literal instead of a network response.
+		How: Assemble the source-owned payload, then run status, prepare, one bounded
+		write, and close under the same single-error dispatch rule.
+	**/
+	function handleDataRequest(post:Bool, api:Output, method:Null<String>):Void {
 		var encoded = url.substr("data:".length);
 		var mediaType = "text/plain";
 		var comma = firstComma(encoded);
@@ -241,31 +279,31 @@ class Http extends haxe.http.HttpBase {
 			payloadText = normalizedMethod + " " + payloadText;
 
 		var payload = Bytes.ofString(payloadText);
-		if (deliverSuccessCallbacks) {
-			responseBytes = payload;
-			responseAsString = payloadText;
-		}
 		responseHeaders.set("content-type", mediaType);
 		responseHeaders.set("Content-Type", mediaType);
-		capture(api, payload);
-		if (api != null)
+		var errorMessage:Null<String> = null;
+		try {
+			onStatus(200);
+			api.prepare(payload.length);
+			if (payload.length > 0)
+				api.writeBytes(payload, 0, payload.length);
 			api.close();
-		onStatus(200);
-		if (deliverSuccessCallbacks) {
-			onData(payloadText);
-			onBytes(payload);
+		} catch (error:haxe.Exception) {
+			errorMessage = error.message;
 		}
+		if (errorMessage != null)
+			onError(errorMessage);
 	}
 
-	function recordResponseHeaders(response:HttpResponseHandle):Void {
-		var count = NativeHttp.responseHeaderCount(response);
+	function recordResponseHeaders(exchange:HttpExchangeHandle):Void {
+		var count = NativeHttp.exchangeHeaderCount(exchange);
 		for (headerIndex in 0...count) {
-			var name = NativeHttp.responseHeaderName(response, headerIndex);
+			var name = NativeHttp.exchangeHeaderName(exchange, headerIndex);
 			var normalized = name.toLowerCase();
-			var valueCount = NativeHttp.responseHeaderValueCount(response, headerIndex);
+			var valueCount = NativeHttp.exchangeHeaderValueCount(exchange, headerIndex);
 			var values = new Array<String>();
 			for (valueIndex in 0...valueCount)
-				values.push(NativeHttp.responseHeaderValue(response, headerIndex, valueIndex));
+				values.push(NativeHttp.exchangeHeaderValue(exchange, headerIndex, valueIndex));
 			if (values.length == 0)
 				continue;
 			var last = values[values.length - 1];
@@ -305,11 +343,6 @@ class Http extends haxe.http.HttpBase {
 			return null;
 		var normalized = method.toUpperCase();
 		return normalized == "" || normalized == "NULL" ? null : normalized;
-	}
-
-	static function capture(api:Null<Output>, payload:Bytes):Void {
-		if (api != null)
-			api.writeFullBytes(payload, 0, payload.length);
 	}
 
 	/**

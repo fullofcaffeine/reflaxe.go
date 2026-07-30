@@ -14,13 +14,13 @@ type haxe__exceptions__NotImplementedException struct {
 func New_haxe__exceptions__NotImplementedException(message *string, previous *hxrt.ExceptionValue, pos map[string]any) *haxe__exceptions__NotImplementedException {
 	self := &haxe__exceptions__NotImplementedException{}
 	self.haxe__exceptions__PosException = New_haxe__exceptions__PosException(func() *string {
-		var hx_if_235 *string
+		var hx_if_239 *string
 		if hxrt.StringEqualStringPtr(message, nil) {
-			hx_if_235 = hxrt.StringFromLiteral("Not implemented")
+			hx_if_239 = hxrt.StringFromLiteral("Not implemented")
 		} else {
-			hx_if_235 = message
+			hx_if_239 = message
 		}
-		return hx_if_235
+		return hx_if_239
 	}(), previous, pos)
 	self.haxe__exceptions__PosException.__hx_this = self
 	self.__hx_this = self

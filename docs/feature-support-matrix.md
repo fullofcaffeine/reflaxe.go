@@ -66,7 +66,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.Serializer` / `haxe.Unserializer` | `semantic-diff` | `serializer_wire_contract`, `serializer_cache_reference_contract`, `serializer_global_flags_contract`, `serializer_resolver_polymorphism_contract`, `serializer_reference_stress_contract` |
 | `haxe.Exception` (`caught`/`thrown`/`message`) | `semantic-diff` | `exception_api_contract`, `exceptions_typed_dynamic` |
 | `EReg` | `semantic-diff` | `ereg_behavior_contract`, `ereg_edge_contract` |
-| `haxe.Http` / `sys.Http` | `semantic-diff` + direct race | `http_proxy_custom_request`, `http_request_callbacks_contract`, `http_multipart_streaming_contract`, `http_custom_request_lifecycle_contract`, `runtime/hxrt/http_test.go` |
+| `haxe.Http` / `sys.Http` | `semantic-diff` + snapshot + direct race | `http_proxy_custom_request`, `http_request_callbacks_contract`, `http_multipart_streaming_contract`, `http_custom_request_lifecycle_contract`, `http_response_streaming_contract`, `http_response_partial_failure_contract`, `sys/http_data_lifecycle_contract`, `runtime/hxrt/http_test.go` |
 | Direct `haxe.http.HttpBase` baseline plus direct `haxe.http.HttpMethod` / `haxe.http.HttpStatus` use | `semantic-diff` | `haxe_http_base_contract`, `stdlib/haxe_http_base_direct` |
 | `sys.net.Socket` | `semantic-diff` + `snapshot` + direct race/cross-build | `socket_loopback_contract`, `socket_advanced_contract`, `sys/socket_input_service_surface`, `core/runtime_hxrt_infer_socket`, partial-I/O/peer-close/deadline cases in `runtime/hxrt/socket_test.go`, `test_socket_runtime_cross_build.py` |
 | `haxe.crypto.Base64`, `Md5`, `Sha1`, `Sha224`, `Sha256` | `semantic-diff` + `snapshot` | `crypto_source_owned`, `crypto_xml_zip`, `stdlib/crypto_xml_zip_basic`, direct runtime crypto tests |
@@ -149,6 +149,8 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 - `test/semantic_diff/zip_streaming_contract`
 - `test/semantic_diff/http_proxy_custom_request`
 - `test/semantic_diff/http_request_callbacks_contract`
+- `test/semantic_diff/http_response_streaming_contract`
+- `test/semantic_diff/http_response_partial_failure_contract`
 - `test/semantic_diff/socket_loopback_contract`
 - `test/semantic_diff/socket_advanced_contract`
 - `test/semantic_diff/null_string_concat`
@@ -268,6 +270,7 @@ Shim strategy and alternatives are documented in:
 - `sys/file_read_write_smoke`
 - `sys/filesystem_basic_smoke`
 - `sys/http_custom_request_parity`
+- `sys/http_data_lifecycle_contract`
 - `sys/http_proxy_socket_contract`
 - `sys/http_request_callbacks_smoke`
 - `sys/process_echo_smoke`
@@ -380,20 +383,26 @@ Shim strategy and alternatives are documented in:
 
 - `haxe.Http` is a `typedef` alias of `sys.Http` on `sys` targets, so the same semantic-diff fixtures now serve as the portable contract for both entry points.
 - `sys.Http` is canonical staged source in `std/go/_std/sys/Http.hx`. It owns synchronous request selection for `http`/`https`, deterministic `data:` handling, payload/header assembly, callback order, public response maps, and status/error policy.
-- Go URL parsing, proxy setup, response resources, and optional typed socket consumption live behind opaque `std/hxrt/http` handles in footprint-explicit `runtime/hxrt/http.go`; no generated Haxe object layout crosses the runtime boundary and no compiler HTTP group remains.
+- Go URL parsing, proxy setup, live response resources, and optional typed socket consumption live behind opaque `std/hxrt/http` handles in footprint-explicit `runtime/hxrt/http.go`; no generated Haxe object layout crosses the runtime boundary and no compiler HTTP group remains.
 - Covered behaviors: `setHeader`/`addHeader`, `setParameter`/`addParameter`, `setPostData`/`setPostBytes`, `fileTransfer`/`fileTransfert`, `customRequest` (including optional socket transport injection), proxy URL wiring (`Http.PROXY`), `getResponseHeaderValues`, dynamic callbacks (`onData`, `onBytes`, `onError`, `onStatus`), `responseData`/`responseBytes`, and `requestUrl`.
 - Semantic diff now also locks callback/status/header/error parity for local deterministic HTTP servers (`http_request_callbacks_contract`), including 4xx `onError` formatting (`Http Error #<status>`).
 - Multipart uploads pull bounded chunks from the caller's `Input`; partial reads
   are retried, the full file is not staged in memory, and early EOF or a source
   error aborts the exchange while preserving the source error
   (`http_multipart_streaming_contract` and direct runtime tests).
-- Direct `customRequest` proves only the final state of small complete responses:
-  it writes and closes the supplied `Output` on success, does not also publish
-  `responseData` or fire `onData`/`onBytes`, and leaves the output open after an
-  HTTP-status error (`http_custom_request_lifecycle_contract`). Native
-  execution currently buffers the complete response first, so status and body
-  writes are not streamed and partial bytes are lost when body reading later
-  fails.
+- Response execution now uses a live typed exchange instead of a complete-body
+  carrier. Staged `sys.Http` records headers, calls `onStatus`, calls
+  `Output.prepare` for a fitting declared length, and writes at most 1024 bytes
+  per native read. Bytes returned with a read failure are written first;
+  `request()` preserves them in `responseBytes`, while direct `customRequest`
+  leaves its Output open on transfer or HTTP-status errors.
+- Semantic contracts distinguish lifecycle from final state:
+  `http_response_streaming_contract` proves status/prepare/first-chunk delivery
+  before server completion; `http_response_partial_failure_contract` proves
+  truncation and throwing status/Output paths; and
+  `http_custom_request_lifecycle_contract` retains success versus HTTP-error
+  completion behavior. `sys/http_data_lifecycle_contract` locks the same
+  status→prepare→write→close order for the target-owned `data:` path.
 - Direct runtime tests cover the current GET/POST/query/body representation,
   timeout cancellation, truncated-body status retention, proxy formatting,
   early-upload abort, idle transport cleanup, and typed custom-socket closure.
@@ -404,9 +413,9 @@ Shim strategy and alternatives are documented in:
   validation/translation; and each multipart request derives its boundary,
   content type, and exact length together after rejecting hostile metadata.
   This proves this request-construction slice, not the remaining method/body
-  policy, response streaming, or cancellable upload-source lifecycle.
+  policy or cancellable upload-source lifecycle.
 - HTTP is release-excluded under `haxe_go-vfp.10.8`. The required typed design
-  is a source-driven upload sink plus a bounded native response-exchange handle;
+  still needs the source-driven upload sink and remaining client policy;
   see the [portable HTTP admission design](http-client-admission-design.md),
   the generated compatibility matrix, and the
   [independent disposition](reviews/network-admission-oracle-disposition-vfp-10.4.md).

@@ -1,6 +1,7 @@
 package hxrt
 
 import (
+	"errors"
 	"io"
 	"mime"
 	"net"
@@ -8,6 +9,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -16,6 +18,173 @@ import (
 
 func httpTestString(value string) *string {
 	return &value
+}
+
+// HttpResponse and these helpers keep older request-builder assertions concise
+// inside this test package. Production code has no completed-response carrier:
+// the helper deliberately drains the new live exchange only for test inspection.
+type HttpResponse struct {
+	exchange *HttpExchange
+	body     *ByteView
+	err      *string
+}
+
+func HttpRequestExecute(request *HttpRequest) *HttpResponse {
+	exchange := HttpRequestStartExchange(request)
+	response := &HttpResponse{exchange: exchange, body: &ByteView{raw: []byte{}}, err: HttpExchangeError(exchange)}
+	if response.err != nil {
+		HttpExchangeCancel(exchange)
+		return response
+	}
+	var body []byte
+	for {
+		result := HttpExchangeReadResponseChunk(exchange, 1024)
+		body = append(body, byteViewRaw(HttpReadResultBody(result))...)
+		if err := HttpReadResultError(result); err != nil {
+			response.err = err
+			break
+		}
+		if HttpReadResultEOF(result) {
+			break
+		}
+	}
+	response.body = &ByteView{raw: body}
+	if response.err == nil {
+		HttpExchangeClose(exchange)
+	} else {
+		HttpExchangeCancel(exchange)
+	}
+	return response
+}
+
+func HttpResponseError(response *HttpResponse) *string {
+	if response == nil {
+		return httpTestString("Invalid URL")
+	}
+	return response.err
+}
+
+func HttpResponseStatus(response *HttpResponse) int {
+	if response == nil {
+		return 0
+	}
+	return HttpExchangeStatus(response.exchange)
+}
+
+func HttpResponseBody(response *HttpResponse) *ByteView {
+	if response == nil || response.body == nil {
+		return &ByteView{raw: []byte{}}
+	}
+	return response.body
+}
+
+func HttpResponseHeaderCount(response *HttpResponse) int {
+	if response == nil {
+		return 0
+	}
+	return HttpExchangeHeaderCount(response.exchange)
+}
+
+func HttpResponseHeaderName(response *HttpResponse, index int) *string {
+	if response == nil {
+		return httpTestString("")
+	}
+	return HttpExchangeHeaderName(response.exchange, index)
+}
+
+func HttpResponseHeaderValueCount(response *HttpResponse, index int) int {
+	if response == nil {
+		return 0
+	}
+	return HttpExchangeHeaderValueCount(response.exchange, index)
+}
+
+func HttpResponseHeaderValue(response *HttpResponse, headerIndex int, valueIndex int) *string {
+	if response == nil {
+		return httpTestString("")
+	}
+	return HttpExchangeHeaderValue(response.exchange, headerIndex, valueIndex)
+}
+
+type httpBytesThenErrorBody struct {
+	closed atomic.Int32
+	read   bool
+}
+
+func (body *httpBytesThenErrorBody) Read(destination []byte) (int, error) {
+	if body.read {
+		return 0, io.EOF
+	}
+	body.read = true
+	return copy(destination, []byte("part")), io.ErrUnexpectedEOF
+}
+
+func (body *httpBytesThenErrorBody) Close() error {
+	body.closed.Add(1)
+	return nil
+}
+
+type httpBlockingBody struct {
+	closed    chan struct{}
+	started   chan struct{}
+	closeOnce atomic.Bool
+	startOnce atomic.Bool
+}
+
+func (body *httpBlockingBody) Read(_ []byte) (int, error) {
+	if body.startOnce.CompareAndSwap(false, true) {
+		close(body.started)
+	}
+	<-body.closed
+	return 0, errors.New("body canceled")
+}
+
+func (body *httpBlockingBody) Close() error {
+	if body.closeOnce.CompareAndSwap(false, true) {
+		close(body.closed)
+	}
+	return nil
+}
+
+type httpBoundedBody struct {
+	remaining int
+	maxRead   int
+	closed    atomic.Int32
+}
+
+func (body *httpBoundedBody) Read(destination []byte) (int, error) {
+	if len(destination) > body.maxRead {
+		body.maxRead = len(destination)
+	}
+	if body.remaining == 0 {
+		return 0, io.EOF
+	}
+	count := len(destination)
+	if count > body.remaining {
+		count = body.remaining
+	}
+	for index := 0; index < count; index++ {
+		destination[index] = byte(index)
+	}
+	body.remaining -= count
+	return count, nil
+}
+
+func (body *httpBoundedBody) Close() error {
+	body.closed.Add(1)
+	return nil
+}
+
+type httpInvalidCountBody struct {
+	count int
+}
+
+func (body *httpInvalidCountBody) Read(_ []byte) (int, error) {
+	return body.count, nil
+}
+
+func (body *httpInvalidCountBody) Close() error {
+	return nil
 }
 
 func TestHttpRequestTypedGetAndResponseBoundary(t *testing.T) {
@@ -631,5 +800,202 @@ func TestHttpRequestCustomMethodBodyProxyAndSocketLifecycle(t *testing.T) {
 
 	if got := *HttpProxyDescriptor(httpTestString("proxy.local"), 3128, httpTestString("user"), httpTestString("pass")); got != "http://user:pass@proxy.local:3128" {
 		t.Fatalf("HttpProxyDescriptor = %q", got)
+	}
+}
+
+func TestHttpExchangePublishesHeadersAndFirstChunkBeforeBodyCompletion(t *testing.T) {
+	firstChunkSent := make(chan struct{})
+	releaseBody := make(chan struct{}, 1)
+	defer func() {
+		select {
+		case releaseBody <- struct{}{}:
+		default:
+		}
+	}()
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		response.Header().Set("Content-Length", "11")
+		response.Header().Set("X-Stream", "ready")
+		response.WriteHeader(http.StatusCreated)
+		response.(http.Flusher).Flush()
+		_, _ = response.Write([]byte("hello"))
+		response.(http.Flusher).Flush()
+		close(firstChunkSent)
+		<-releaseBody
+		_, _ = response.Write([]byte(" world"))
+	}))
+	defer server.Close()
+
+	exchangeReady := make(chan *HttpExchange, 1)
+	go func() {
+		request := HttpRequestNew(httpTestString(server.URL), false, nil, 1)
+		exchangeReady <- HttpRequestStartExchange(request)
+	}()
+
+	var exchange *HttpExchange
+	select {
+	case exchange = <-exchangeReady:
+	case <-time.After(time.Second):
+		t.Fatal("exchange did not publish response headers before body completion")
+	}
+	if err := HttpExchangeError(exchange); err != nil {
+		t.Fatalf("HttpExchangeError = %q, want nil", *err)
+	}
+	if got := HttpExchangeStatus(exchange); got != http.StatusCreated {
+		t.Fatalf("HttpExchangeStatus = %d, want %d", got, http.StatusCreated)
+	}
+	if got := HttpExchangeContentLength(exchange); got != 11 {
+		t.Fatalf("HttpExchangeContentLength = %d, want 11", got)
+	}
+	select {
+	case <-firstChunkSent:
+	case <-time.After(time.Second):
+		t.Fatal("server did not flush the first body chunk")
+	}
+
+	first := HttpExchangeReadResponseChunk(exchange, 5)
+	if got := string(byteViewRaw(HttpReadResultBody(first))); got != "hello" {
+		t.Fatalf("first streamed body chunk = %q, want hello", got)
+	}
+	if err := HttpReadResultError(first); err != nil {
+		t.Fatalf("first chunk error = %q, want nil", *err)
+	}
+	if HttpReadResultEOF(first) {
+		t.Fatal("first chunk reported EOF before the server released the tail")
+	}
+
+	releaseBody <- struct{}{}
+	var tail strings.Builder
+	for {
+		result := HttpExchangeReadResponseChunk(exchange, 3)
+		tail.Write(byteViewRaw(HttpReadResultBody(result)))
+		if err := HttpReadResultError(result); err != nil {
+			t.Fatalf("tail read error = %q, want nil", *err)
+		}
+		if HttpReadResultEOF(result) {
+			break
+		}
+	}
+	if got := tail.String(); got != " world" {
+		t.Fatalf("streamed body tail = %q, want world", got)
+	}
+	HttpExchangeClose(exchange)
+	HttpExchangeClose(exchange)
+}
+
+func TestHttpExchangeReadPreservesBytesAlongsideTerminalFailure(t *testing.T) {
+	body := &httpBytesThenErrorBody{}
+	exchange := &HttpExchange{
+		response: &http.Response{
+			Body:          body,
+			ContentLength: 8,
+		},
+	}
+
+	result := HttpExchangeReadResponseChunk(exchange, 4)
+	if got := string(byteViewRaw(HttpReadResultBody(result))); got != "part" {
+		t.Fatalf("partial body = %q, want part", got)
+	}
+	if err := HttpReadResultError(result); err == nil {
+		t.Fatal("terminal read error = nil, want unexpected EOF")
+	}
+	if HttpReadResultEOF(result) {
+		t.Fatal("unexpected EOF was misclassified as successful completion")
+	}
+	HttpExchangeCancel(exchange)
+	if got := body.closed.Load(); got != 1 {
+		t.Fatalf("response body close count = %d, want 1", got)
+	}
+}
+
+func TestHttpExchangeReadRejectsInvalidNativeByteCounts(t *testing.T) {
+	for _, count := range []int{-1, 5} {
+		t.Run(strconv.Itoa(count), func(t *testing.T) {
+			exchange := &HttpExchange{
+				response: &http.Response{Body: &httpInvalidCountBody{count: count}},
+			}
+			result := HttpExchangeReadResponseChunk(exchange, 4)
+			if err := HttpReadResultError(result); err == nil {
+				t.Fatalf("invalid native byte count %d produced no error", count)
+			}
+			if got := len(byteViewRaw(HttpReadResultBody(result))); got != 0 {
+				t.Fatalf("invalid native byte count %d exposed %d bytes, want 0", count, got)
+			}
+			HttpExchangeCancel(exchange)
+		})
+	}
+}
+
+func TestHttpExchangeContentLengthProtectsHaxeIntRange(t *testing.T) {
+	unknown := &HttpExchange{response: &http.Response{ContentLength: -1}}
+	if got := HttpExchangeContentLength(unknown); got != -1 {
+		t.Fatalf("unknown content length = %d, want -1", got)
+	}
+	oversized := &HttpExchange{response: &http.Response{ContentLength: int64(1 << 31)}}
+	if got := HttpExchangeContentLength(oversized); got != -2 {
+		t.Fatalf("oversized content length = %d, want -2", got)
+	}
+}
+
+func TestHttpExchangeCancelUnblocksReadAndIsIdempotent(t *testing.T) {
+	body := &httpBlockingBody{closed: make(chan struct{}), started: make(chan struct{})}
+	exchange := &HttpExchange{
+		response: &http.Response{Body: body},
+	}
+	readDone := make(chan *HttpReadResult, 1)
+	go func() {
+		readDone <- HttpExchangeReadResponseChunk(exchange, 32)
+	}()
+
+	select {
+	case <-body.started:
+	case <-time.After(time.Second):
+		t.Fatal("response-body read did not start")
+	}
+	HttpExchangeCancel(exchange)
+	HttpExchangeCancel(exchange)
+	select {
+	case result := <-readDone:
+		if err := HttpReadResultError(result); err == nil {
+			t.Fatal("canceled read error = nil, want cancellation signal")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("cancel did not unblock the response-body read")
+	}
+}
+
+func TestHttpExchangeRetainsOnlyBoundedReadChunks(t *testing.T) {
+	const bodySize = 5 * 1024 * 1024
+	body := &httpBoundedBody{remaining: bodySize}
+	exchange := &HttpExchange{
+		response: &http.Response{
+			Body:          body,
+			ContentLength: bodySize,
+		},
+	}
+
+	total := 0
+	for {
+		result := HttpExchangeReadResponseChunk(exchange, 1024)
+		chunk := byteViewRaw(HttpReadResultBody(result))
+		if len(chunk) > 1024 {
+			t.Fatalf("chunk length = %d, want at most 1024", len(chunk))
+		}
+		total += len(chunk)
+		if err := HttpReadResultError(result); err != nil {
+			t.Fatalf("bounded read error = %q, want nil", *err)
+		}
+		if HttpReadResultEOF(result) {
+			break
+		}
+	}
+	if total != bodySize {
+		t.Fatalf("streamed bytes = %d, want %d", total, bodySize)
+	}
+	if body.maxRead > 1024 {
+		t.Fatalf("largest native read buffer = %d, want at most 1024", body.maxRead)
+	}
+	HttpExchangeClose(exchange)
+	if got := body.closed.Load(); got != 1 {
+		t.Fatalf("response body close count = %d, want 1", got)
 	}
 }

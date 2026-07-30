@@ -119,9 +119,13 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/http/HttpRequestHandle.hx",
     ),
-    "std/hxrt/http/HttpResponseHandle.hx": (
+    "std/hxrt/http/HttpExchangeHandle.hx": (
         "hxrt_binding",
-        "std/hxrt/http/HttpResponseHandle.hx",
+        "std/hxrt/http/HttpExchangeHandle.hx",
+    ),
+    "std/hxrt/http/HttpReadResultHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/http/HttpReadResultHandle.hx",
     ),
     "std/hxrt/http/NativeHttp.hx": (
         "hxrt_binding",
@@ -2308,13 +2312,15 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         staged = staged_path.read_text(encoding="utf-8")
         native_http_path = ROOT / "std/hxrt/http/NativeHttp.hx"
         request_handle_path = ROOT / "std/hxrt/http/HttpRequestHandle.hx"
-        response_handle_path = ROOT / "std/hxrt/http/HttpResponseHandle.hx"
+        exchange_handle_path = ROOT / "std/hxrt/http/HttpExchangeHandle.hx"
+        read_result_handle_path = ROOT / "std/hxrt/http/HttpReadResultHandle.hx"
         runtime_path = ROOT / "runtime/hxrt/http.go"
         runtime_test_path = ROOT / "runtime/hxrt/http_test.go"
         for path in (
             native_http_path,
             request_handle_path,
-            response_handle_path,
+            exchange_handle_path,
+            read_result_handle_path,
             runtime_path,
             runtime_test_path,
         ):
@@ -2325,7 +2331,12 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         for heading in ("What", "Why", "How"):
             self.assertIn(heading, staged, heading)
         self.assertIn("class Http extends haxe.http.HttpBase", staged)
-        self.assertIn("NativeHttp.execute", staged)
+        self.assertIn("NativeHttp.startExchange", staged)
+        self.assertIn("NativeHttp.readResponseChunk", staged)
+        self.assertIn("NativeHttp.cancelExchange", staged)
+        self.assertIn("api.prepare(contentLength)", staged)
+        self.assertIn("api.writeBytes(payload, 0, payload.length)", staged)
+        self.assertIn("responseBytes = output.getBytes()", staged)
         self.assertIn("onStatus", staged)
         self.assertIn("onError", staged)
         self.assertIn("getResponseHeaderValues", staged)
@@ -2396,12 +2407,24 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             native_http = native_http_path.read_text(encoding="utf-8")
             for forbidden in ("Dynamic", "Any", "__go__"):
                 self.assertNotIn(forbidden, native_http, forbidden)
-            self.assertIn("execute(request:HttpRequestHandle):HttpResponseHandle", native_http)
+            self.assertIn(
+                "startExchange(request:HttpRequestHandle):HttpExchangeHandle",
+                native_http,
+            )
+            self.assertIn(
+                "readResponseChunk(exchange:HttpExchangeHandle, maxBytes:Int):HttpReadResultHandle",
+                native_http,
+            )
 
         if runtime_path.is_file():
             runtime = runtime_path.read_text(encoding="utf-8")
             for generated_layout in ("sys__Http", "haxe__io__Bytes"):
                 self.assertNotIn(generated_layout, runtime, generated_layout)
+            self.assertIn("type HttpExchange struct", runtime)
+            self.assertIn("type HttpReadResult struct", runtime)
+            self.assertIn("func HttpExchangeReadResponseChunk(", runtime)
+            self.assertNotIn("io.ReadAll(nativeResponse.Body)", runtime)
+            self.assertNotIn("type HttpResponse struct", runtime)
 
         inferred_runtime = (
             ROOT / "test/snapshot/core/runtime_hxrt_infer_http/intended/hxrt"
@@ -2442,13 +2465,23 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         for binding in (
             "std/hxrt/http/NativeHttp.hx",
             "std/hxrt/http/HttpRequestHandle.hx",
-            "std/hxrt/http/HttpResponseHandle.hx",
+            "std/hxrt/http/HttpExchangeHandle.hx",
+            "std/hxrt/http/HttpReadResultHandle.hx",
         ):
             entry = ledger_entries.get(binding)
             self.assertIsNotNone(entry, binding)
             if entry is not None:
                 self.assertEqual("hxrt_binding", entry["ownershipClass"])
-                self.assertEqual("haxe_go-vfp.8.7.12", entry["migrationBead"])
+                expected_bead = (
+                    "haxe_go-vfp.10.8.3"
+                    if binding
+                    in {
+                        "std/hxrt/http/HttpExchangeHandle.hx",
+                        "std/hxrt/http/HttpReadResultHandle.hx",
+                    }
+                    else "haxe_go-vfp.8.7.12"
+                )
+                self.assertEqual(expected_bead, entry["migrationBead"])
                 self.assertEqual([], entry["compilerShimGroups"])
 
     def test_bytes_native_view_is_shared_with_crypto_without_layout_leak(self) -> None:

@@ -2824,3 +2824,61 @@ Bounded claim:
   timeout policy are owned by `haxe_go-vfp.10.8.3` through
   `haxe_go-vfp.10.8.5`; final resource/admission evidence is
   `haxe_go-vfp.10.8.6`.
+
+### 2026-07-30: stream HTTP responses through a typed exchange (`haxe_go-vfp.10.8.3`)
+
+What changed:
+
+- Replaced the immutable full-body `HttpResponseHandle` with a live
+  `HttpExchangeHandle` and one-read `HttpReadResultHandle`. Native start returns
+  after response headers and retains the body, cancellation context, one-use
+  transport, and optional socket until explicit close or cancel.
+- Moved response-body choreography entirely into staged `sys.Http`: record
+  headers, call `onStatus`, call `Output.prepare` for a fitting declared size,
+  write bounded chunks, classify status, and close the Output only after
+  complete success.
+- Restored the Haxe `request()` wrapper over a source-owned `BytesOutput`.
+  Transfer failures now preserve every byte already written in
+  `responseBytes`/`responseData`; direct `customRequest` still publishes no
+  success data callbacks.
+- Made native cleanup idempotent. Exceptions from `onStatus`, `prepare`,
+  `writeBytes`, or `close` cancel the exchange and reach `onError` once, without
+  retrying Output close. The target-owned `data:` path now uses the same
+  status→prepare→write→close order.
+
+Why:
+
+- `io.ReadAll` delayed `onStatus` and all Output writes until the server ended,
+  retained memory proportional to the complete body, and discarded bytes when
+  a later read failed.
+- Go readers may return bytes and an error together. A typed read result is the
+  smallest boundary that lets staged Haxe write progress before interpreting
+  EOF or transfer failure.
+- Callback order, partial response fields, Output ownership, and Haxe
+  exceptions are public library behavior; they do not belong in the native
+  transport or compiler.
+
+How it is proved:
+
+- `http_response_streaming_contract` compares Haxe Eval and Go while a server
+  flushes headers and `hello`, pauses, then finishes. Status, prepare, and the
+  first write occur before release on both.
+- `http_response_partial_failure_contract` compares exact partial bytes and
+  events for a truncated declared-length body, `request()` partial fields,
+  throwing `onStatus`, and throwing Output prepare/write/close methods.
+- Direct native tests prove same-read bytes plus error, bounded 1024-byte reads
+  across a multi-megabyte body, oversized-content-length signaling, cancel
+  unblocking, invalid native reader-count rejection, and exactly-once cleanup
+  under the race detector.
+- `sys/http_data_lifecycle_contract` locks target-only data URL ordering, while
+  existing custom-request, callback, multipart, and HTTP snapshots remain the
+  broader regression net.
+
+Bounded claim:
+
+- The response seam and Haxe-visible streaming lifecycle are implemented, but
+  HTTP remains release-excluded. `haxe_go-vfp.10.8.4` still must remove native
+  transport-goroutine callbacks into generated Haxe upload code.
+  `haxe_go-vfp.10.8.5` still owns method/body, redirect, compression, timeout,
+  low-status, `requestUrl`, proxy, and custom-socket policy. Final resource and
+  admission evidence remains `haxe_go-vfp.10.8.6`.

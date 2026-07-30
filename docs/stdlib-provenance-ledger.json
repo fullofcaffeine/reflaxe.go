@@ -48,6 +48,7 @@
       ],
       "hxrt_binding": [
         "haxe_go-vfp.10.5.1",
+        "haxe_go-vfp.10.8.3",
         "haxe_go-vfp.5.4",
         "haxe_go-vfp.8.3.8",
         "haxe_go-vfp.8.7.10",
@@ -1253,13 +1254,22 @@
       "notes": "Opaque typed carrier for one native HTTP request builder; it exposes no generated sys.Http layout or callback policy."
     },
     {
-      "path": "std/hxrt/http/HttpResponseHandle.hx",
+      "path": "std/hxrt/http/HttpExchangeHandle.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
-      "destination": "std/hxrt/http/HttpResponseHandle.hx",
-      "migrationBead": "haxe_go-vfp.8.7.12",
+      "destination": "std/hxrt/http/HttpExchangeHandle.hx",
+      "migrationBead": "haxe_go-vfp.10.8.3",
       "compilerShimGroups": [],
-      "notes": "Opaque typed carrier for native status, headers, response bytes, and transport errors; staged sys.Http owns their public interpretation."
+      "notes": "Opaque typed owner for one live native response body, transport, cancellation context, and optional socket; staged sys.Http owns bounded reads and public lifecycle choreography."
+    },
+    {
+      "path": "std/hxrt/http/HttpReadResultHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/http/HttpReadResultHandle.hx",
+      "migrationBead": "haxe_go-vfp.10.8.3",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed carrier for one bounded response chunk plus its same-call EOF or error state, so staged sys.Http never loses partial progress."
     },
     {
       "path": "std/hxrt/http/NativeHttp.hx",

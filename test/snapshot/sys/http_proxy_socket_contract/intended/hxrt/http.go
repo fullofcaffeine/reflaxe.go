@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -24,8 +25,8 @@ import (
 // optional typed socket until synchronous execution.
 // Why: These are Go transport inputs, but none of them should expose or own a
 // generated Haxe Http object or its callback policy.
-// How: Typed builder functions populate this value; HttpRequestExecute consumes
-// it once and returns a representation-neutral HttpResponse.
+// How: Typed builder functions populate this value; HttpRequestStartExchange
+// consumes it once and returns a live representation-neutral HttpExchange.
 type HttpRequest struct {
 	rawURL   string
 	method   string
@@ -72,9 +73,9 @@ type httpRequestParameter struct {
 // Why: The Haxe Input owns source-visible reading semantics, while net/http must
 // pull request bytes without buffering the complete file or observing a
 // generated Input layout.
-// How: HttpRequestExecute wraps this description in an io.Reader that emits the
-// deterministic multipart prefix, exactly size callback bytes, and the closing
-// boundary.
+// How: HttpRequestStartExchange wraps this description in an io.Reader that
+// emits the deterministic multipart prefix, exactly size callback bytes, and
+// the closing boundary.
 type httpMultipartUpload struct {
 	parameter string
 	filename  string
@@ -90,20 +91,39 @@ type httpMultipartBody struct {
 	tail      *bytes.Reader
 }
 
-// HttpResponse is the opaque native result inspected by staged sys.Http.
+// HttpExchange is the opaque live response owned by staged sys.Http.
 //
-// What: Carries a status, immutable body view, normalized native headers, or a
-// transport error string.
-// Why: Status classification, public maps, callback order, and Haxe exceptions
-// remain source policy and therefore must not be decided in this carrier.
-// How: Keep native results only; indexed accessors below cross them into staged
-// source without maps or generated layouts at the boundary.
-type HttpResponse struct {
+// What: Retains response headers, a live bounded body reader, cancellation, and
+// the one-use native transport until staged source completes or aborts it.
+// Why: Returning one fully buffered body delays callbacks, loses partial bytes
+// on a later read failure, and makes retained memory proportional to the body.
+// How: Staged source reads immutable chunks through typed accessors and closes
+// or cancels this handle exactly once; cleanup is idempotent for error paths.
+type HttpExchange struct {
 	status      int
-	body        *ByteView
 	headerNames []string
 	headers     http.Header
 	err         *string
+	response    *http.Response
+	transport   *http.Transport
+	socket      *SocketHandle
+	cancel      context.CancelFunc
+	cleanupOnce sync.Once
+	stateMu     sync.Mutex
+	closed      bool
+}
+
+// HttpReadResult preserves one body read and its terminal state together.
+//
+// What: Carries at most the requested immutable bytes plus EOF or a native read
+// failure from the same call.
+// Why: Go readers may legally return useful bytes and an error together; using
+// only the error discards Haxe-visible response progress.
+// How: Staged source writes body first, then interprets error or EOF.
+type HttpReadResult struct {
+	body *ByteView
+	err  *string
+	eof  bool
 }
 
 // HttpRequestNew creates one typed native request builder.
@@ -227,21 +247,22 @@ func HttpRequestSetSocket(request *HttpRequest, socket *SocketHandle) {
 	request.socket = socket
 }
 
-// HttpRequestExecute performs one synchronous Go HTTP exchange.
+// HttpRequestStartExchange starts one synchronous Go HTTP exchange.
 //
-// What: Applies parameters/body/header/proxy/socket inputs and returns status,
-// headers, and response bytes.
-// Why: net/http resources and dialing are native capabilities; callback timing
-// and HTTP-status error policy are deliberately absent here.
-// How: Validate the URL, create a one-use transport/client, fully read and close
-// the body, and convert expected native failures into an explicit result string.
-func HttpRequestExecute(request *HttpRequest) *HttpResponse {
+// What: Applies the request builder and returns as soon as response headers or
+// a startup transport failure are available.
+// Why: net/http resources and dialing are native capabilities, but body
+// buffering would hide Haxe-visible callback timing and partial progress.
+// How: Validate and consume the builder, create a one-use client, retain its
+// response body behind HttpExchange, and leave body reads and final cleanup to
+// explicit typed capabilities.
+func HttpRequestStartExchange(request *HttpRequest) *HttpExchange {
 	if request == nil {
-		return httpErrorResponse("Invalid URL")
+		return httpErrorExchange("Invalid URL")
 	}
 	parsedURL, err := url.Parse(request.rawURL)
 	if err != nil || parsedURL == nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
-		return httpErrorResponse("Invalid URL")
+		return httpRequestErrorExchange(request, "Invalid URL")
 	}
 
 	var bodyReader io.Reader
@@ -250,7 +271,7 @@ func HttpRequestExecute(request *HttpRequest) *HttpResponse {
 	if request.upload != nil {
 		multipartBody, length, contentType, buildErr := newHttpMultipartBody(request)
 		if buildErr != nil {
-			return httpErrorResponse(buildErr.Error())
+			return httpRequestErrorExchange(request, buildErr.Error())
 		}
 		bodyReader = multipartBody
 		contentLength = length
@@ -274,13 +295,13 @@ func HttpRequestExecute(request *HttpRequest) *HttpResponse {
 
 	nativeRequest, err := http.NewRequest(request.method, parsedURL.String(), bodyReader)
 	if err != nil {
-		return httpErrorResponse(err.Error())
+		return httpRequestErrorExchange(request, err.Error())
 	}
 	if request.upload != nil {
 		nativeRequest.ContentLength = contentLength
 	}
 	if err := applyHttpRequestHeaders(nativeRequest, request, multipartContentType); err != nil {
-		return httpErrorResponse(err.Error())
+		return httpRequestErrorExchange(request, err.Error())
 	}
 
 	transport := &http.Transport{}
@@ -307,20 +328,24 @@ func HttpRequestExecute(request *HttpRequest) *HttpResponse {
 			}
 			return connection, nil
 		}
-		defer request.socket.close() //nolint:errcheck // response errors remain the public signal
 	}
 
 	timeout := time.Duration(request.timeout * float64(time.Second))
 	if timeout <= 0 {
 		timeout = 10 * time.Second
 	}
+	ctx, cancel := context.WithCancel(nativeRequest.Context())
+	nativeRequest = nativeRequest.WithContext(ctx)
 	client := &http.Client{Transport: transport, Timeout: timeout}
-	defer transport.CloseIdleConnections()
 	nativeResponse, err := client.Do(nativeRequest)
 	if err != nil {
-		return httpErrorResponse(err.Error())
+		cancel()
+		transport.CloseIdleConnections()
+		if request.socket != nil {
+			_ = request.socket.close()
+		}
+		return httpErrorExchange(err.Error())
 	}
-	defer nativeResponse.Body.Close() //nolint:errcheck // read failure below is more actionable
 
 	headerNames := make([]string, 0, len(nativeResponse.Header))
 	for name := range nativeResponse.Header {
@@ -328,21 +353,14 @@ func HttpRequestExecute(request *HttpRequest) *HttpResponse {
 	}
 	sort.Strings(headerNames)
 	headers := nativeResponse.Header.Clone()
-	rawBody, err := io.ReadAll(nativeResponse.Body)
-	if err != nil {
-		return &HttpResponse{
-			status:      nativeResponse.StatusCode,
-			body:        &ByteView{raw: []byte{}},
-			headerNames: headerNames,
-			headers:     headers,
-			err:         StringFromLiteral(err.Error()),
-		}
-	}
-	return &HttpResponse{
+	return &HttpExchange{
 		status:      nativeResponse.StatusCode,
-		body:        &ByteView{raw: rawBody},
 		headerNames: headerNames,
 		headers:     headers,
+		response:    nativeResponse,
+		transport:   transport,
+		socket:      request.socket,
+		cancel:      cancel,
 	}
 }
 
@@ -545,64 +563,171 @@ func validateHttpMultipartToken(label string, value string) error {
 	return nil
 }
 
-// HttpResponseError returns nil on a completed exchange or its native failure.
-func HttpResponseError(response *HttpResponse) *string {
-	if response == nil {
+// HttpExchangeError returns only a startup/transport failure before headers.
+func HttpExchangeError(exchange *HttpExchange) *string {
+	if exchange == nil {
 		return StringFromLiteral("Invalid URL")
 	}
-	return response.err
+	return exchange.err
 }
 
-// HttpResponseStatus returns the native status without classifying it as success.
-func HttpResponseStatus(response *HttpResponse) int {
-	if response == nil {
+// HttpExchangeStatus returns the native status without classifying it as success.
+func HttpExchangeStatus(exchange *HttpExchange) int {
+	if exchange == nil {
 		return 0
 	}
-	return response.status
+	return exchange.status
 }
 
-// HttpResponseBody returns an immutable empty view when no body is available.
-func HttpResponseBody(response *HttpResponse) *ByteView {
-	if response == nil || response.body == nil {
-		return &ByteView{raw: []byte{}}
+// HttpExchangeContentLength returns the declared size, -1 when unknown, or -2
+// when the value cannot fit the Haxe Int accepted by Output.prepare.
+func HttpExchangeContentLength(exchange *HttpExchange) int {
+	if exchange == nil || exchange.response == nil || exchange.response.ContentLength < 0 {
+		return -1
 	}
-	return response.body
+	const maxHaxeInt = int64(1<<31 - 1)
+	if exchange.response.ContentLength > maxHaxeInt {
+		return -2
+	}
+	return int(exchange.response.ContentLength)
 }
 
-// HttpResponseHeaderCount returns the number of distinct native header keys.
-func HttpResponseHeaderCount(response *HttpResponse) int {
-	if response == nil {
+// HttpExchangeHeaderCount returns the number of distinct native header keys.
+func HttpExchangeHeaderCount(exchange *HttpExchange) int {
+	if exchange == nil {
 		return 0
 	}
-	return len(response.headerNames)
+	return len(exchange.headerNames)
 }
 
-// HttpResponseHeaderName returns one native header name or an empty string.
-func HttpResponseHeaderName(response *HttpResponse, index int) *string {
-	if response == nil || index < 0 || index >= len(response.headerNames) {
+// HttpExchangeHeaderName returns one native header name or an empty string.
+func HttpExchangeHeaderName(exchange *HttpExchange, index int) *string {
+	if exchange == nil || index < 0 || index >= len(exchange.headerNames) {
 		return StringFromLiteral("")
 	}
-	return StringFromLiteral(response.headerNames[index])
+	return StringFromLiteral(exchange.headerNames[index])
 }
 
-// HttpResponseHeaderValueCount returns the value count for one indexed key.
-func HttpResponseHeaderValueCount(response *HttpResponse, index int) int {
-	if response == nil || index < 0 || index >= len(response.headerNames) {
+// HttpExchangeHeaderValueCount returns the value count for one indexed key.
+func HttpExchangeHeaderValueCount(exchange *HttpExchange, index int) int {
+	if exchange == nil || index < 0 || index >= len(exchange.headerNames) {
 		return 0
 	}
-	return len(response.headers.Values(response.headerNames[index]))
+	return len(exchange.headers.Values(exchange.headerNames[index]))
 }
 
-// HttpResponseHeaderValue returns one indexed value or an empty string.
-func HttpResponseHeaderValue(response *HttpResponse, headerIndex int, valueIndex int) *string {
-	if response == nil || headerIndex < 0 || headerIndex >= len(response.headerNames) {
+// HttpExchangeHeaderValue returns one indexed value or an empty string.
+func HttpExchangeHeaderValue(exchange *HttpExchange, headerIndex int, valueIndex int) *string {
+	if exchange == nil || headerIndex < 0 || headerIndex >= len(exchange.headerNames) {
 		return StringFromLiteral("")
 	}
-	values := response.headers.Values(response.headerNames[headerIndex])
+	values := exchange.headers.Values(exchange.headerNames[headerIndex])
 	if valueIndex < 0 || valueIndex >= len(values) {
 		return StringFromLiteral("")
 	}
 	return StringFromLiteral(values[valueIndex])
+}
+
+// HttpExchangeReadResponseChunk performs one bounded native body read.
+//
+// What: Returns at most maxBytes while preserving bytes and a same-call error.
+// Why: A Go Reader may return both, and Haxe must observe the bytes first.
+// How: Allocate only the requested buffer, retain no aggregate body, and encode
+// clean io.EOF separately from transfer failures.
+func HttpExchangeReadResponseChunk(exchange *HttpExchange, maxBytes int) *HttpReadResult {
+	if exchange == nil || exchange.response == nil || exchange.response.Body == nil {
+		return httpReadError("HTTP response body is unavailable")
+	}
+	if maxBytes <= 0 {
+		return httpReadError("HTTP response chunk size must be positive")
+	}
+	exchange.stateMu.Lock()
+	closed := exchange.closed
+	exchange.stateMu.Unlock()
+	if closed {
+		return httpReadError("HTTP exchange is closed")
+	}
+
+	buffer := make([]byte, maxBytes)
+	count, err := exchange.response.Body.Read(buffer)
+	if count < 0 || count > len(buffer) {
+		return httpReadError(fmt.Sprintf("HTTP response body returned invalid byte count %d", count))
+	}
+	result := &HttpReadResult{body: &ByteView{raw: buffer[:count:count]}}
+	if errors.Is(err, io.EOF) {
+		result.eof = true
+		return result
+	}
+	if err != nil {
+		result.err = StringFromLiteral(err.Error())
+		return result
+	}
+	if count == 0 {
+		result.err = StringFromLiteral(io.ErrNoProgress.Error())
+	}
+	return result
+}
+
+// HttpReadResultBody returns the immutable progress from one native read.
+func HttpReadResultBody(result *HttpReadResult) *ByteView {
+	if result == nil || result.body == nil {
+		return &ByteView{raw: []byte{}}
+	}
+	return result.body
+}
+
+// HttpReadResultError returns a terminal transfer failure, when present.
+func HttpReadResultError(result *HttpReadResult) *string {
+	if result == nil {
+		return StringFromLiteral("HTTP response read result is unavailable")
+	}
+	return result.err
+}
+
+// HttpReadResultEOF reports only clean response-body completion.
+func HttpReadResultEOF(result *HttpReadResult) bool {
+	return result != nil && result.eof
+}
+
+// HttpExchangeClose releases a fully consumed exchange exactly once.
+func HttpExchangeClose(exchange *HttpExchange) {
+	if exchange != nil {
+		exchange.cleanup()
+	}
+}
+
+// HttpExchangeCancel aborts an incomplete exchange and unblocks native reads.
+func HttpExchangeCancel(exchange *HttpExchange) {
+	if exchange != nil {
+		exchange.cleanup()
+	}
+}
+
+// cleanup converges every successful, failed, or repeated terminal path.
+//
+// What: Marks the exchange closed and releases context, body, transport, and
+// optional socket resources.
+// Why: Staged callbacks can fail at several points, and none may leak or perform
+// duplicate native cleanup.
+// How: sync.Once owns the terminal transition; Body.Close unblocks a live read.
+func (exchange *HttpExchange) cleanup() {
+	exchange.cleanupOnce.Do(func() {
+		exchange.stateMu.Lock()
+		exchange.closed = true
+		exchange.stateMu.Unlock()
+		if exchange.cancel != nil {
+			exchange.cancel()
+		}
+		if exchange.response != nil && exchange.response.Body != nil {
+			_ = exchange.response.Body.Close()
+		}
+		if exchange.transport != nil {
+			exchange.transport.CloseIdleConnections()
+		}
+		if exchange.socket != nil {
+			_ = exchange.socket.close()
+		}
+	})
 }
 
 // HttpProxyDescriptor formats the same proxy used by native execution.
@@ -643,6 +768,17 @@ func httpProxyURL(host *string, port int, user *string, pass *string) *url.URL {
 	return proxyURL
 }
 
-func httpErrorResponse(message string) *HttpResponse {
-	return &HttpResponse{err: StringFromLiteral(message), body: &ByteView{raw: []byte{}}, headers: make(http.Header)}
+func httpRequestErrorExchange(request *HttpRequest, message string) *HttpExchange {
+	if request != nil && request.socket != nil {
+		_ = request.socket.close()
+	}
+	return httpErrorExchange(message)
+}
+
+func httpErrorExchange(message string) *HttpExchange {
+	return &HttpExchange{err: StringFromLiteral(message), headers: make(http.Header)}
+}
+
+func httpReadError(message string) *HttpReadResult {
+	return &HttpReadResult{body: &ByteView{raw: []byte{}}, err: StringFromLiteral(message)}
 }

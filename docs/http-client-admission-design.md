@@ -214,9 +214,11 @@ ensures a successful partial native read is never discarded.
 The two public entry points finish differently:
 
 - `customRequest` writes directly to its caller-owned `Output`. It closes that
-  Output exactly once only after a complete successful body and a status from
-  200 through 399. An HTTP-status error, transfer error, or Output exception
-  leaves it open.
+  Output exactly once only after a complete body accepted by the source status
+  classifier. The final admitted policy is 200 through 399; the response slice
+  still uses the pre-existing `< 400` rule until `haxe_go-vfp.10.8.5` adds the
+  missing low-status classification. An HTTP-status error, transfer error, or
+  Output exception leaves it open.
 - `request()` wraps `customRequest` with a source-owned `BytesOutput`, like
   Haxe 4.3.7. On failure, `request()` retains every byte already written in
   `responseBytes`. On success it publishes the complete bytes through
@@ -232,6 +234,22 @@ If `onStatus` throws, the exchange is canceled and the source error path calls
 `onError` itself propagates. Successful `request()` callbacks (`onData` and
 `onBytes`) run after `customRequest` completes; their own exceptions propagate
 instead of being misclassified as transport failures.
+
+### Implemented response slice
+
+`haxe_go-vfp.10.8.3` implements this response contract with
+`HttpExchangeHandle` and `HttpReadResultHandle`. The native start operation
+returns after headers, retains no aggregate body, and exposes reads capped by
+the staged 1024-byte chunk size. Cleanup is idempotent and owns the response
+body, request context, one-use transport, and optional socket.
+
+The decisive contracts prove first-chunk visibility before server completion,
+known-length `prepare`, partial bytes plus transfer failure, partial
+`request().responseBytes`, one error for throwing `onStatus`/`prepare`/
+`writeBytes`/`close`, bounded large-response reads, and matching `data:` event
+order. This does not complete HTTP admission: the upload callback still crosses
+from the native transport until `haxe_go-vfp.10.8.4`, and the policy listed
+under Remaining client policy still belongs to `haxe_go-vfp.10.8.5`.
 
 ## Upload contract
 
@@ -309,7 +327,6 @@ zero or negative values with ten seconds and must not use
   received meaning;
 - classify status below 200 or at least 400 after streaming the body;
 - make `requestUrl` throw its error instead of returning an error string;
-- use the same response event order for `data:` and network URLs;
 - define proxy and custom-socket behavior separately for HTTP and HTTPS.
 
 Received redirect and compressed response bodies remain available to the
@@ -332,7 +349,7 @@ the independent xhigh admission review.
 
 ## Second-pass challenge review
 
-The required xhigh second pass challenged the design against five plausible
+The required xhigh second pass challenged the design against six plausible
 ways it could still produce believable but incorrect evidence:
 
 1. **A total client timer could still fail a progressing response.** The
@@ -353,10 +370,15 @@ ways it could still produce believable but incorrect evidence:
 5. **Cleanup could duplicate callbacks or close attempts.** Every live handle
    has one owner and one terminal path. Cleanup records diagnostics but cannot
    call Haxe, retry `Output.close`, or emit a second `onError`.
+6. **A broken native reader could escape the bounded-read contract.** The
+   implementation checkpoint found that an invalid negative or oversized read
+   count would panic while constructing the immutable view. A red regression
+   now proves both cases become typed read errors with no exposed bytes.
 
 No challenge changed the staged-source/typed-runtime architecture. The review
-did narrow the claims for custom blocking input and header-line order and made
-Output-versus-read-error precedence explicit.
+did narrow the claims for custom blocking input and header-line order, fixed
+the invalid-count panic before closure, and made Output-versus-read-error
+precedence explicit.
 
 ## Admission boundary
 
