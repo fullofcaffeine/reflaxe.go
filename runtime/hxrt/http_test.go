@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -30,7 +32,38 @@ type HttpResponse struct {
 }
 
 func HttpRequestExecute(request *HttpRequest) *HttpResponse {
+	return httpTestExecuteRequest(request, nil)
+}
+
+func httpTestExecuteRequest(request *HttpRequest, uploadRead func(int) *ByteView) *HttpResponse {
 	exchange := HttpRequestStartExchange(request)
+	sink := HttpExchangeUploadSink(exchange)
+	if sink != nil {
+		remaining := request.upload.size
+		var uploadErr *string
+		for remaining > 0 {
+			if uploadRead == nil {
+				uploadErr = httpTestString("multipart upload reader is unavailable")
+				break
+			}
+			view := uploadRead(remaining)
+			if view == nil {
+				uploadErr = httpTestString(io.ErrUnexpectedEOF.Error())
+				break
+			}
+			uploadErr = HttpUploadSinkWriteChunk(sink, view)
+			if uploadErr != nil {
+				break
+			}
+			remaining -= len(byteViewRaw(view))
+		}
+		if uploadErr != nil {
+			HttpUploadSinkAbort(sink, uploadErr)
+		} else {
+			uploadErr = HttpUploadSinkFinish(sink)
+		}
+	}
+	HttpExchangeAwaitResponse(exchange)
 	response := &HttpResponse{exchange: exchange, body: &ByteView{raw: []byte{}}, err: HttpExchangeError(exchange)}
 	if response.err != nil {
 		HttpExchangeCancel(exchange)
@@ -317,24 +350,23 @@ func TestHttpRequestMultipartStreamsDeclaredInputWithPartialChunks(t *testing.T)
 		httpTestString("demo.txt"),
 		httpTestString("text/plain"),
 		len(payload),
-		func(limit int) *ByteView {
-			readCalls++
-			if offset >= len(payload) {
-				return nil
-			}
-			count := len(payload) - offset
-			if count > 2 {
-				count = 2
-			}
-			if count > limit {
-				count = limit
-			}
-			chunk := append([]byte(nil), payload[offset:offset+count]...)
-			offset += count
-			return &ByteView{raw: chunk}
-		},
 	)
-	response := HttpRequestExecute(request)
+	response := httpTestExecuteRequest(request, func(limit int) *ByteView {
+		readCalls++
+		if offset >= len(payload) {
+			return nil
+		}
+		count := len(payload) - offset
+		if count > 2 {
+			count = 2
+		}
+		if count > limit {
+			count = limit
+		}
+		chunk := append([]byte(nil), payload[offset:offset+count]...)
+		offset += count
+		return &ByteView{raw: chunk}
+	})
 
 	if err := HttpResponseError(response); err != nil {
 		t.Fatalf("HttpResponseError = %q, want nil", *err)
@@ -348,6 +380,281 @@ func TestHttpRequestMultipartStreamsDeclaredInputWithPartialChunks(t *testing.T)
 	if request.body != nil {
 		t.Fatal("multipart payload was retained in the buffered request body")
 	}
+}
+
+func TestHttpUploadSinkAllowsCallerDrivenMultipartPump(t *testing.T) {
+	serverReceived := make(chan string, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		rawBody, err := io.ReadAll(request.Body)
+		if err != nil {
+			t.Errorf("read multipart request: %v", err)
+			return
+		}
+		serverReceived <- string(rawBody)
+		response.Header().Set("Content-Length", "2")
+		response.WriteHeader(http.StatusCreated)
+		_, _ = response.Write([]byte("ok"))
+	}))
+	defer server.Close()
+
+	request := HttpRequestNew(httpTestString(server.URL), true, nil, 1)
+	HttpRequestSetMultipartUpload(
+		request,
+		httpTestString("asset"),
+		httpTestString("demo.txt"),
+		httpTestString("text/plain"),
+		7,
+	)
+	exchange := HttpRequestStartExchange(request)
+	sink := HttpExchangeUploadSink(exchange)
+	if sink == nil {
+		t.Fatal("HttpExchangeUploadSink = nil")
+	}
+	if err := HttpUploadSinkWriteChunk(sink, &ByteView{raw: []byte("pay")}); err != nil {
+		t.Fatalf("first upload write = %q", *err)
+	}
+	if err := HttpUploadSinkWriteChunk(sink, &ByteView{raw: []byte("load")}); err != nil {
+		t.Fatalf("second upload write = %q", *err)
+	}
+	if err := HttpUploadSinkFinish(sink); err != nil {
+		t.Fatalf("finish upload = %q", *err)
+	}
+	HttpExchangeAwaitResponse(exchange)
+	if err := HttpExchangeError(exchange); err != nil {
+		t.Fatalf("exchange error = %q", *err)
+	}
+	if got := HttpExchangeStatus(exchange); got != http.StatusCreated {
+		t.Fatalf("exchange status = %d, want %d", got, http.StatusCreated)
+	}
+	result := HttpExchangeReadResponseChunk(exchange, 16)
+	if got := string(byteViewRaw(HttpReadResultBody(result))); got != "ok" {
+		t.Fatalf("response body = %q, want ok", got)
+	}
+	HttpExchangeClose(exchange)
+
+	select {
+	case body := <-serverReceived:
+		if !strings.Contains(body, "\r\n\r\npayload\r\n--") {
+			t.Fatalf("multipart body does not contain caller-pumped payload: %q", body)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("server did not receive caller-pumped multipart body")
+	}
+}
+
+func TestHttpUploadSinkEarlyResponseUnblocksWriteAndPublishesStatus(t *testing.T) {
+	requestSeen := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		close(requestSeen)
+		response.Header().Set("Content-Length", "5")
+		response.WriteHeader(http.StatusRequestEntityTooLarge)
+		_, _ = response.Write([]byte("early"))
+	}))
+	defer server.Close()
+
+	const declaredSize = 4 * 1024 * 1024
+	request := HttpRequestNew(httpTestString(server.URL), true, nil, 2)
+	HttpRequestSetMultipartUpload(
+		request,
+		httpTestString("asset"),
+		httpTestString("large.bin"),
+		httpTestString("application/octet-stream"),
+		declaredSize,
+	)
+	exchange := HttpRequestStartExchange(request)
+	sink := HttpExchangeUploadSink(exchange)
+	if sink == nil {
+		t.Fatal("HttpExchangeUploadSink = nil")
+	}
+
+	writeDone := make(chan *string, 1)
+	go func() {
+		writeDone <- HttpUploadSinkWriteChunk(sink, &ByteView{raw: make([]byte, declaredSize)})
+	}()
+	select {
+	case <-requestSeen:
+	case <-time.After(time.Second):
+		t.Fatal("server did not receive upload request headers")
+	}
+	select {
+	case err := <-writeDone:
+		if err == nil {
+			t.Fatal("early response did not stop the pending upload write")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("early response did not unblock the pending upload write")
+	}
+
+	HttpExchangeAwaitResponse(exchange)
+	if err := HttpExchangeError(exchange); err != nil {
+		t.Fatalf("exchange error = %q, want published response", *err)
+	}
+	if got := HttpExchangeStatus(exchange); got != http.StatusRequestEntityTooLarge {
+		t.Fatalf("exchange status = %d, want %d", got, http.StatusRequestEntityTooLarge)
+	}
+	HttpExchangeCancel(exchange)
+}
+
+func TestHttpExchangeCancelUnblocksPendingUploadWrite(t *testing.T) {
+	requestSeen := make(chan struct{})
+	releaseServer := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		close(requestSeen)
+		<-releaseServer
+	}))
+	defer server.Close()
+
+	const declaredSize = 4 * 1024 * 1024
+	request := HttpRequestNew(httpTestString(server.URL), true, nil, 5)
+	HttpRequestSetMultipartUpload(
+		request,
+		httpTestString("asset"),
+		httpTestString("blocked.bin"),
+		httpTestString("application/octet-stream"),
+		declaredSize,
+	)
+	exchange := HttpRequestStartExchange(request)
+	sink := HttpExchangeUploadSink(exchange)
+	writeDone := make(chan *string, 1)
+	go func() {
+		writeDone <- HttpUploadSinkWriteChunk(sink, &ByteView{raw: make([]byte, declaredSize)})
+	}()
+	select {
+	case <-requestSeen:
+	case <-time.After(time.Second):
+		t.Fatal("server did not receive upload request headers")
+	}
+
+	cancelDone := make(chan struct{})
+	go func() {
+		HttpExchangeCancel(exchange)
+		close(cancelDone)
+	}()
+	select {
+	case err := <-writeDone:
+		if err == nil {
+			t.Fatal("canceled upload write error = nil")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("exchange cancellation did not unblock the upload write")
+	}
+	select {
+	case <-cancelDone:
+	case <-time.After(time.Second):
+		t.Fatal("exchange cancellation did not converge")
+	}
+	close(releaseServer)
+}
+
+func TestHttpUploadSinkRejectsZeroOverrunAndEarlyFinish(t *testing.T) {
+	newSink := func(expected int64) (*HttpUploadSink, *io.PipeReader) {
+		reader, writer := io.Pipe()
+		return &HttpUploadSink{writer: writer, expected: expected}, reader
+	}
+
+	zeroSink, zeroReader := newSink(0)
+	if err := HttpUploadSinkWriteChunk(zeroSink, &ByteView{raw: []byte{}}); err == nil {
+		t.Fatal("zero-progress upload write error = nil")
+	}
+	HttpUploadSinkAbort(zeroSink, httpTestString("done"))
+	_ = zeroReader.Close()
+
+	overSink, overReader := newSink(1)
+	if err := HttpUploadSinkWriteChunk(overSink, &ByteView{raw: []byte("xx")}); err == nil {
+		t.Fatal("oversized upload write error = nil")
+	}
+	HttpUploadSinkAbort(overSink, httpTestString("done"))
+	_ = overReader.Close()
+
+	shortSink, shortReader := newSink(2)
+	readDone := make(chan error, 1)
+	go func() {
+		_, err := io.Copy(io.Discard, shortReader)
+		readDone <- err
+	}()
+	if err := HttpUploadSinkWriteChunk(shortSink, &ByteView{raw: []byte("x")}); err != nil {
+		t.Fatalf("short upload first write = %q", *err)
+	}
+	if err := HttpUploadSinkFinish(shortSink); err == nil {
+		t.Fatal("early upload finish error = nil")
+	}
+	select {
+	case <-readDone:
+	case <-time.After(time.Second):
+		t.Fatal("early upload finish did not release the native reader")
+	}
+}
+
+func TestHttpUploadEarlyResponseResourcesConverge(t *testing.T) {
+	var requests atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		requests.Add(1)
+		response.Header().Set("Content-Length", "5")
+		response.WriteHeader(http.StatusRequestEntityTooLarge)
+		_, _ = response.Write([]byte("early"))
+	}))
+	defer server.Close()
+
+	baselineGoroutines := runtime.NumGoroutine()
+	baselineFDs := httpTestOpenFDCount()
+	const attempts = 40
+	for attempt := 0; attempt < attempts; attempt++ {
+		const declaredSize = 1024 * 1024
+		request := HttpRequestNew(httpTestString(server.URL), true, nil, 2)
+		HttpRequestSetMultipartUpload(
+			request,
+			httpTestString("asset"),
+			httpTestString("large.bin"),
+			httpTestString("application/octet-stream"),
+			declaredSize,
+		)
+		exchange := HttpRequestStartExchange(request)
+		sink := HttpExchangeUploadSink(exchange)
+		writeErr := HttpUploadSinkWriteChunk(sink, &ByteView{raw: make([]byte, declaredSize)})
+		if writeErr == nil {
+			_ = HttpUploadSinkFinish(sink)
+		}
+		HttpExchangeAwaitResponse(exchange)
+		if got := HttpExchangeStatus(exchange); got != http.StatusRequestEntityTooLarge {
+			t.Fatalf("attempt %d status = %d, want %d", attempt, got, http.StatusRequestEntityTooLarge)
+		}
+		HttpExchangeCancel(exchange)
+	}
+	if got := requests.Load(); got != attempts {
+		t.Fatalf("server requests = %d, want %d", got, attempts)
+	}
+
+	deadline := time.Now().Add(3 * time.Second)
+	for {
+		runtime.GC()
+		currentGoroutines := runtime.NumGoroutine()
+		currentFDs := httpTestOpenFDCount()
+		goroutinesConverged := currentGoroutines <= baselineGoroutines+6
+		fdsConverged := baselineFDs < 0 || currentFDs <= baselineFDs+3
+		if goroutinesConverged && fdsConverged {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf(
+				"upload resources did not converge: goroutines baseline=%d current=%d, fds baseline=%d current=%d",
+				baselineGoroutines,
+				currentGoroutines,
+				baselineFDs,
+				currentFDs,
+			)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+func httpTestOpenFDCount() int {
+	for _, path := range []string{"/proc/self/fd", "/dev/fd"} {
+		entries, err := os.ReadDir(path)
+		if err == nil {
+			return len(entries)
+		}
+	}
+	return -1
 }
 
 func TestHttpRequestMultipartEarlyEOFAbortsTheExchangeAndReleasesTheServer(t *testing.T) {
@@ -367,16 +674,15 @@ func TestHttpRequestMultipartEarlyEOFAbortsTheExchangeAndReleasesTheServer(t *te
 		httpTestString("short.txt"),
 		httpTestString("text/plain"),
 		7,
-		func(_ int) *ByteView {
-			if sent {
-				return nil
-			}
-			sent = true
-			return &ByteView{raw: []byte("two")}
-		},
 	)
 
-	response := HttpRequestExecute(request)
+	response := httpTestExecuteRequest(request, func(_ int) *ByteView {
+		if sent {
+			return nil
+		}
+		sent = true
+		return &ByteView{raw: []byte("two")}
+	})
 	if err := HttpResponseError(response); err == nil {
 		t.Fatal("HttpResponseError = nil, want an early-upload EOF")
 	}
@@ -552,20 +858,19 @@ func TestHttpMultipartBoundaryMetadataAndLengthAreAtomic(t *testing.T) {
 			httpTestString("demo.txt"),
 			httpTestString("text/plain"),
 			len(payload),
-			func(limit int) *ByteView {
-				if offset >= len(payload) {
-					return nil
-				}
-				count := len(payload) - offset
-				if count > limit {
-					count = limit
-				}
-				chunk := &ByteView{raw: []byte(payload[offset : offset+count])}
-				offset += count
-				return chunk
-			},
 		)
-		result := HttpRequestExecute(request)
+		result := httpTestExecuteRequest(request, func(limit int) *ByteView {
+			if offset >= len(payload) {
+				return nil
+			}
+			count := len(payload) - offset
+			if count > limit {
+				count = limit
+			}
+			chunk := &ByteView{raw: []byte(payload[offset : offset+count])}
+			offset += count
+			return chunk
+		})
 		if err := HttpResponseError(result); err != nil {
 			t.Fatalf("HttpResponseError = %q, want nil", *err)
 		}
@@ -636,7 +941,6 @@ func TestHttpMultipartRejectsConflictingContentTypeAndHostileMetadataBeforeNetwo
 				httpTestString(testCase.filename),
 				httpTestString(testCase.mediaType),
 				0,
-				func(_ int) *ByteView { return nil },
 			)
 			result := HttpRequestExecute(request)
 			if err := HttpResponseError(result); err == nil {

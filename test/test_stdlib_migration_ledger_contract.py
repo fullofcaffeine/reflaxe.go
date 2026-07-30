@@ -127,6 +127,10 @@ SOURCE_SPECIAL_DESTINATIONS = {
         "hxrt_binding",
         "std/hxrt/http/HttpReadResultHandle.hx",
     ),
+    "std/hxrt/http/HttpUploadSinkHandle.hx": (
+        "hxrt_binding",
+        "std/hxrt/http/HttpUploadSinkHandle.hx",
+    ),
     "std/hxrt/http/NativeHttp.hx": (
         "hxrt_binding",
         "std/hxrt/http/NativeHttp.hx",
@@ -2314,6 +2318,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         request_handle_path = ROOT / "std/hxrt/http/HttpRequestHandle.hx"
         exchange_handle_path = ROOT / "std/hxrt/http/HttpExchangeHandle.hx"
         read_result_handle_path = ROOT / "std/hxrt/http/HttpReadResultHandle.hx"
+        upload_sink_handle_path = ROOT / "std/hxrt/http/HttpUploadSinkHandle.hx"
         runtime_path = ROOT / "runtime/hxrt/http.go"
         runtime_test_path = ROOT / "runtime/hxrt/http_test.go"
         for path in (
@@ -2321,6 +2326,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             request_handle_path,
             exchange_handle_path,
             read_result_handle_path,
+            upload_sink_handle_path,
             runtime_path,
             runtime_test_path,
         ):
@@ -2332,6 +2338,12 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             self.assertIn(heading, staged, heading)
         self.assertIn("class Http extends haxe.http.HttpBase", staged)
         self.assertIn("NativeHttp.startExchange", staged)
+        self.assertIn("NativeHttp.exchangeUploadSink", staged)
+        self.assertIn("NativeHttp.writeUploadChunk", staged)
+        self.assertIn("NativeHttp.finishUpload", staged)
+        self.assertIn("NativeHttp.abortUpload", staged)
+        self.assertIn("NativeHttp.awaitResponse", staged)
+        self.assertIn("pumpUpload", staged)
         self.assertIn("NativeHttp.readResponseChunk", staged)
         self.assertIn("NativeHttp.cancelExchange", staged)
         self.assertIn("api.prepare(contentLength)", staged)
@@ -2415,6 +2427,27 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
                 "readResponseChunk(exchange:HttpExchangeHandle, maxBytes:Int):HttpReadResultHandle",
                 native_http,
             )
+            self.assertIn(
+                "exchangeUploadSink(exchange:HttpExchangeHandle):Null<HttpUploadSinkHandle>",
+                native_http,
+            )
+            self.assertIn(
+                "writeUploadChunk(sink:HttpUploadSinkHandle, chunk:ByteView):Null<String>",
+                native_http,
+            )
+            self.assertIn(
+                "finishUpload(sink:HttpUploadSinkHandle):Null<String>",
+                native_http,
+            )
+            self.assertIn(
+                "abortUpload(sink:HttpUploadSinkHandle, message:String):Void",
+                native_http,
+            )
+            self.assertIn(
+                "awaitResponse(exchange:HttpExchangeHandle):Void",
+                native_http,
+            )
+            self.assertNotIn("readChunk:Int->ByteView", native_http)
 
         if runtime_path.is_file():
             runtime = runtime_path.read_text(encoding="utf-8")
@@ -2422,9 +2455,16 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
                 self.assertNotIn(generated_layout, runtime, generated_layout)
             self.assertIn("type HttpExchange struct", runtime)
             self.assertIn("type HttpReadResult struct", runtime)
+            self.assertIn("type HttpUploadSink struct", runtime)
+            self.assertIn("func HttpExchangeUploadSink(", runtime)
+            self.assertIn("func HttpUploadSinkWriteChunk(", runtime)
+            self.assertIn("func HttpUploadSinkFinish(", runtime)
+            self.assertIn("func HttpUploadSinkAbort(", runtime)
+            self.assertIn("func HttpExchangeAwaitResponse(", runtime)
             self.assertIn("func HttpExchangeReadResponseChunk(", runtime)
             self.assertNotIn("io.ReadAll(nativeResponse.Body)", runtime)
             self.assertNotIn("type HttpResponse struct", runtime)
+            self.assertNotIn("func(int) *ByteView", runtime)
 
         inferred_runtime = (
             ROOT / "test/snapshot/core/runtime_hxrt_infer_http/intended/hxrt"
@@ -2467,6 +2507,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "std/hxrt/http/HttpRequestHandle.hx",
             "std/hxrt/http/HttpExchangeHandle.hx",
             "std/hxrt/http/HttpReadResultHandle.hx",
+            "std/hxrt/http/HttpUploadSinkHandle.hx",
         ):
             entry = ledger_entries.get(binding)
             self.assertIsNotNone(entry, binding)
@@ -2479,6 +2520,8 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
                         "std/hxrt/http/HttpExchangeHandle.hx",
                         "std/hxrt/http/HttpReadResultHandle.hx",
                     }
+                    else "haxe_go-vfp.10.8.4"
+                    if binding == "std/hxrt/http/HttpUploadSinkHandle.hx"
                     else "haxe_go-vfp.8.7.12"
                 )
                 self.assertEqual(expected_bead, entry["migrationBead"])

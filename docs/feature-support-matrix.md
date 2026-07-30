@@ -66,7 +66,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `haxe.Serializer` / `haxe.Unserializer` | `semantic-diff` | `serializer_wire_contract`, `serializer_cache_reference_contract`, `serializer_global_flags_contract`, `serializer_resolver_polymorphism_contract`, `serializer_reference_stress_contract` |
 | `haxe.Exception` (`caught`/`thrown`/`message`) | `semantic-diff` | `exception_api_contract`, `exceptions_typed_dynamic` |
 | `EReg` | `semantic-diff` | `ereg_behavior_contract`, `ereg_edge_contract` |
-| `haxe.Http` / `sys.Http` | `semantic-diff` + snapshot + direct race | `http_proxy_custom_request`, `http_request_callbacks_contract`, `http_multipart_streaming_contract`, `http_custom_request_lifecycle_contract`, `http_response_streaming_contract`, `http_response_partial_failure_contract`, `sys/http_data_lifecycle_contract`, `runtime/hxrt/http_test.go` |
+| `haxe.Http` / `sys.Http` | `semantic-diff` + target snapshot + generated/direct race | `http_proxy_custom_request`, `http_request_callbacks_contract`, `http_multipart_streaming_contract`, `http_custom_request_lifecycle_contract`, `http_response_streaming_contract`, `http_response_partial_failure_contract`, `sys/http_data_lifecycle_contract`, `sys/http_upload_sink_lifecycle_contract`, `test_http_upload_sink_race_contract.py`, `runtime/hxrt/http_test.go` |
 | Direct `haxe.http.HttpBase` baseline plus direct `haxe.http.HttpMethod` / `haxe.http.HttpStatus` use | `semantic-diff` | `haxe_http_base_contract`, `stdlib/haxe_http_base_direct` |
 | `sys.net.Socket` | `semantic-diff` + `snapshot` + direct race/cross-build | `socket_loopback_contract`, `socket_advanced_contract`, `sys/socket_input_service_surface`, `core/runtime_hxrt_infer_socket`, partial-I/O/peer-close/deadline cases in `runtime/hxrt/socket_test.go`, `test_socket_runtime_cross_build.py` |
 | `haxe.crypto.Base64`, `Md5`, `Sha1`, `Sha224`, `Sha256` | `semantic-diff` + `snapshot` | `crypto_source_owned`, `crypto_xml_zip`, `stdlib/crypto_xml_zip_basic`, direct runtime crypto tests |
@@ -390,6 +390,15 @@ Shim strategy and alternatives are documented in:
   are retried, the full file is not staged in memory, and early EOF or a source
   error aborts the exchange while preserving the source error
   (`http_multipart_streaming_contract` and direct runtime tests).
+- Multipart `Input.readBytes` now runs only in staged `sys.Http` on the
+  synchronous public caller. Native `net/http` consumes a pipe-backed body and
+  can close its typed `HttpUploadSinkHandle` after early response, timeout,
+  server close, or explicit cancellation. The generated target snapshot and
+  permanent Go race gate prove same-caller reads, exact size/zero-progress
+  behavior, deterministic source/response/sink precedence, and no reads after
+  public return. A custom `Input` that blocks forever inside its own
+  `readBytes` remains explicitly excluded; native code cannot safely interrupt
+  arbitrary user Haxe without reintroducing the forbidden goroutine callback.
 - Response execution now uses a live typed exchange instead of a complete-body
   carrier. Staged `sys.Http` records headers, calls `onStatus`, calls
   `Output.prepare` for a fitting declared length, and writes at most 1024 bytes
@@ -412,10 +421,13 @@ Shim strategy and alternatives are documented in:
   separate from URL query values; Go-special headers have explicit
   validation/translation; and each multipart request derives its boundary,
   content type, and exact length together after rejecting hostile metadata.
-  This proves this request-construction slice, not the remaining method/body
-  policy or cancellable upload-source lifecycle.
+  This proves this request-construction slice; the source-driven cancellable
+  upload boundary is separately locked by
+  `sys/http_upload_sink_lifecycle_contract`. Remaining method/body and client
+  policy still belong to the next slice.
 - HTTP is release-excluded under `haxe_go-vfp.10.8`. The required typed design
-  still needs the source-driven upload sink and remaining client policy;
+  now has streamed responses and the source-driven upload sink, but still needs
+  the remaining client policy and final admission review;
   see the [portable HTTP admission design](http-client-admission-design.md),
   the generated compatibility matrix, and the
   [independent disposition](reviews/network-admission-oracle-disposition-vfp-10.4.md).

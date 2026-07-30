@@ -1,0 +1,7 @@
+success=true
+source=true
+earlyEof=true
+zero=true
+serverClose=true
+timeout=true
+earlyRepeated=status:12;error:12;thread:12;after:12

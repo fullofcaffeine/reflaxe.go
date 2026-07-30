@@ -40,6 +40,7 @@ def main() -> int:
         ["python3", "test/test_haxe_typed_identifiers.py"],
         ["python3", "test/test_haxe_warning_ratchet.py"],
         ["python3", "test/test_http_admission_design_contract.py"],
+        ["python3", "test/test_http_upload_sink_race_contract.py"],
         ["python3", "test/test_inline_throw_accessor_result_type_contract.py"],
         ["python3", "test/test_language_hard_fail_inventory_contract.py"],
         ["python3", "test/test_license_policy_contract.py"],

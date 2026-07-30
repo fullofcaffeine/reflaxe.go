@@ -44,15 +44,15 @@ extern class NativeHttp {
 	public static function setBodyView(request:HttpRequestHandle, value:ByteView):Void;
 
 	/**
-		What: Installs one declared-size multipart file and its bounded chunk reader.
+		What: Installs scalar metadata for one declared-size multipart file.
 		Why: `sys.Http.fileTransfer` must retain Haxe `Input` semantics without
-		exposing its generated layout or buffering the entire payload in `hxrt`.
-		How: Native transport asks the callback for at most the supplied byte count
-		per read and stops after exactly `size` bytes.
+		exposing its generated layout, buffering the payload, or letting native
+		transport call generated Haxe.
+		How: Exchange start creates a pipe-backed native body; staged source pumps
+		bounded immutable chunks through the typed sink below.
 	**/
 	@:go.name("HttpRequestSetMultipartUpload")
-	public static function setMultipartUpload(request:HttpRequestHandle, parameter:String, filename:String, mimeType:String, size:Int,
-		readChunk:Int->Null<ByteView>):Void;
+	public static function setMultipartUpload(request:HttpRequestHandle, parameter:String, filename:String, mimeType:String, size:Int):Void;
 
 	@:go.name("HttpRequestSetProxy")
 	public static function setProxy(request:HttpRequestHandle, host:String, port:Int, user:Null<String>, pass:Null<String>):Void;
@@ -62,6 +62,50 @@ extern class NativeHttp {
 
 	@:go.name("HttpRequestStartExchange")
 	public static function startExchange(request:HttpRequestHandle):HttpExchangeHandle;
+
+	/**
+		What: Returns the caller-owned writer for a multipart exchange.
+		Why: Staged Haxe must pump its `Input` without exposing the native pipe.
+		How: Return `null` for non-multipart exchanges and one opaque sink otherwise.
+	**/
+	@:go.name("HttpExchangeUploadSink")
+	public static function exchangeUploadSink(exchange:HttpExchangeHandle):Null<HttpUploadSinkHandle>;
+
+	/**
+		What: Copies one non-empty immutable chunk into the native request body.
+		Why: The write must preserve exact declared size and unblock on cancellation.
+		How: Return a synchronized terminal message instead of throwing across the
+		typed source/runtime boundary.
+	**/
+	@:go.name("HttpUploadSinkWriteChunk")
+	public static function writeUploadChunk(sink:HttpUploadSinkHandle, chunk:ByteView):Null<String>;
+
+	/**
+		What: Marks exact-size upload completion.
+		Why: Native multipart framing may emit its closing delimiter only after the
+		caller supplied every declared byte.
+		How: Close the pipe writer normally, or return the deterministic size error.
+	**/
+	@:go.name("HttpUploadSinkFinish")
+	public static function finishUpload(sink:HttpUploadSinkHandle):Null<String>;
+
+	/**
+		What: Terminates one upload with its source-owned error.
+		Why: Early EOF and `Input` exceptions must release native transport without
+		being replaced by the later pipe-close error.
+		How: Close the pipe writer with `message`; repeated abort is idempotent.
+	**/
+	@:go.name("HttpUploadSinkAbort")
+	public static function abortUpload(sink:HttpUploadSinkHandle, message:String):Void;
+
+	/**
+		What: Waits until native code publishes response headers or terminal error.
+		Why: Multipart exchange start returns before the caller pumps its `Input`.
+		How: Join only the native transport result; no generated Haxe callback runs
+		while waiting.
+	**/
+	@:go.name("HttpExchangeAwaitResponse")
+	public static function awaitResponse(exchange:HttpExchangeHandle):Void;
 
 	@:go.name("HttpExchangeError")
 	public static function exchangeError(exchange:HttpExchangeHandle):Null<String>;

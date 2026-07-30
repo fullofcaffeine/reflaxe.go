@@ -6,6 +6,7 @@ import haxe.io.BytesOutput;
 import haxe.io.Input;
 import haxe.io.Output;
 import hxrt.http.HttpExchangeHandle;
+import hxrt.http.HttpUploadSinkHandle;
 import hxrt.http.NativeHttp;
 import hxrt.io.ByteView;
 import sys.net.Socket;
@@ -16,6 +17,18 @@ private typedef PendingUpload = {
 	var io:Input;
 	var size:Int;
 	var mimeType:String;
+}
+
+/**
+	What: Keeps staged source failure separate from native sink failure.
+	Why: A source exception must remain the public error that caused abort, while
+	an already published early response must not be hidden by pipe closure.
+	How: `pumpUpload` returns both facts and `requestWith` applies the documented
+	source → response → sink precedence after awaiting native publication.
+**/
+private typedef UploadPumpResult = {
+	var sourceError:Null<String>;
+	var sinkError:Null<String>;
 }
 
 /**
@@ -97,8 +110,9 @@ class Http extends haxe.http.HttpBase {
 		Why: Upload metadata and form ordering are public request policy, even though
 		the final byte transport is native on Go.
 		How: Retain the typed Input and metadata in source. During synchronous
-		execution, provide bounded immutable chunks to the native multipart reader
-		without exposing the generated Input object or buffering the whole file.
+		execution, read bounded immutable chunks on the public caller and pump them
+		into the cancellable native sink without exposing the generated Input object
+		or buffering the whole file.
 	**/
 	public function fileTransfer(argname:String, filename:String, file:Input, size:Int, mimeType = "application/octet-stream"):Void {
 		this.file = {
@@ -164,26 +178,9 @@ class Http extends haxe.http.HttpBase {
 		for (header in headers)
 			NativeHttp.addHeader(request, header.name, header.value);
 
-		var uploadError:Null<String> = null;
 		var upload = file;
 		if (upload != null) {
-			NativeHttp.setMultipartUpload(request, upload.param, upload.filename, upload.mimeType, upload.size, function(requested:Int):Null<ByteView> {
-				var result:Null<ByteView> = null;
-				if (requested > 0) {
-					var chunk = Bytes.alloc(requested);
-					try {
-						var count = upload.io.readBytes(chunk, 0, requested);
-						if (count > 0) {
-							if (count < requested)
-								chunk = chunk.sub(0, count);
-							result = chunk.__hx_nativeView();
-						}
-					} catch (_:haxe.io.Eof) {} catch (error:haxe.Exception) {
-						uploadError = error.message;
-					}
-				}
-				return result;
-			});
+			NativeHttp.setMultipartUpload(request, upload.param, upload.filename, upload.mimeType, upload.size);
 		} else if (postBytes != null) {
 			NativeHttp.setBodyView(request, postBytes.__hx_nativeView());
 		} else if (postData != null) {
@@ -200,12 +197,18 @@ class Http extends haxe.http.HttpBase {
 			NativeHttp.setSocket(request, sock.handle);
 
 		var exchange = NativeHttp.startExchange(request);
-		var errorMessage:Null<String> = uploadError;
+		var uploadResult:Null<UploadPumpResult> = upload == null ? null : pumpUpload(exchange, upload);
+		NativeHttp.awaitResponse(exchange);
+		var sourceError = uploadResult == null ? null : uploadResult.sourceError;
+		var sinkError = uploadResult == null ? null : uploadResult.sinkError;
+		var errorMessage:Null<String> = sourceError;
 		var completed = false;
 		if (errorMessage == null) {
 			var nativeError = NativeHttp.exchangeError(exchange);
 			if (nativeError != null) {
 				errorMessage = nativeError;
+			} else if (NativeHttp.exchangeStatus(exchange) == 0 && sinkError != null) {
+				errorMessage = sinkError;
 			} else {
 				try {
 					recordResponseHeaders(exchange);
@@ -245,6 +248,61 @@ class Http extends haxe.http.HttpBase {
 			NativeHttp.cancelExchange(exchange);
 		if (errorMessage != null)
 			onError(errorMessage);
+	}
+
+	/**
+		What: Pumps one staged multipart Input into its typed native sink.
+		Why: Calling generated Haxe from net/http's transport goroutine breaks the
+		request body's cancellation contract and makes captured source state racy.
+		How: Read bounded chunks synchronously on the public Haxe caller, preserve
+		source failures, and finish or abort the exact-size native pipe explicitly.
+		An arbitrary Input blocked inside its own read remains source-owned and
+		cannot be forcibly canceled; once it returns, the next sink write observes
+		native cancellation promptly.
+	**/
+	function pumpUpload(exchange:HttpExchangeHandle, upload:PendingUpload):UploadPumpResult {
+		var sink:Null<HttpUploadSinkHandle> = NativeHttp.exchangeUploadSink(exchange);
+		if (sink == null)
+			return {sourceError: null, sinkError: "HTTP upload sink is unavailable"};
+
+		var remaining = upload.size;
+		var sourceError:Null<String> = null;
+		var sinkError:Null<String> = null;
+		while (remaining > 0) {
+			var requested = remaining > 32768 ? 32768 : remaining;
+			var chunk = Bytes.alloc(requested);
+			var count = 0;
+			try {
+				count = upload.io.readBytes(chunk, 0, requested);
+			} catch (_:haxe.io.Eof) {
+				sourceError = "Transfer aborted";
+			} catch (error:haxe.Exception) {
+				sourceError = error.message;
+			}
+			if (sourceError != null)
+				break;
+			if (count <= 0) {
+				sourceError = "multipart upload made no progress";
+				break;
+			}
+			if (count > requested) {
+				sourceError = "multipart upload exceeded the requested chunk size";
+				break;
+			}
+			if (count < requested)
+				chunk = chunk.sub(0, count);
+			sinkError = NativeHttp.writeUploadChunk(sink, chunk.__hx_nativeView());
+			if (sinkError != null)
+				break;
+			remaining -= count;
+		}
+
+		if (sourceError != null) {
+			NativeHttp.abortUpload(sink, sourceError);
+		} else if (sinkError == null) {
+			sinkError = NativeHttp.finishUpload(sink);
+		}
+		return {sourceError: sourceError, sinkError: sinkError};
 	}
 
 	/**

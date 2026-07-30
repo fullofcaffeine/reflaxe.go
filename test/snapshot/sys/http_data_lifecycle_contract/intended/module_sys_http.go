@@ -18,6 +18,7 @@ type I_sys__Http interface {
 	customRequest(post bool, api *haxe__io__Output, sock *sys__net__Socket, method *string)
 	getResponseHeaderValues(key *string) *hxrt.Array
 	requestWith(post bool, api *haxe__io__Output, sock *sys__net__Socket, method *string)
+	pumpUpload(exchange *hxrt.HttpExchange, upload map[string]any) map[string]any
 	handleDataRequest(post bool, api *haxe__io__Output, method *string)
 	recordResponseHeaders(exchange *hxrt.HttpExchange)
 	resetResponseHeaders()
@@ -218,7 +219,6 @@ func (self *sys__Http) requestWith(post bool, api *haxe__io__Output, sock *sys__
 			return hx_field_74.(*string)
 		}(header))
 	}
-	var uploadError *string = nil
 	upload := self.file
 	if upload != nil {
 		hxrt.HttpRequestSetMultipartUpload(request, func(hx_obj_76 map[string]any) *string {
@@ -249,38 +249,7 @@ func (self *sys__Http) requestWith(post bool, api *haxe__io__Output, sock *sys__
 				return hx_zero_87
 			}
 			return hx_field_86.(int)
-		}(upload), func(requested int) *hxrt.ByteView {
-			var result *hxrt.ByteView = nil
-			if requested > 0 {
-				chunk := haxe__io__Bytes_alloc(requested)
-				hxrt.TryCatch(func() {
-					count := func(hx_obj_90 map[string]any) *haxe__io__Input {
-						hx_field_91 := hx_obj_90["io"]
-						if hx_field_91 == nil {
-							var hx_zero_92 *haxe__io__Input
-							return hx_zero_92
-						}
-						return hx_field_91.(*haxe__io__Input)
-					}(upload).__hx_this.readBytes(chunk, 0, requested)
-					if count > 0 {
-						if count < requested {
-							chunk = chunk.__hx_this.sub(0, count)
-						}
-						result = chunk.__hx_this.__hx_nativeView()
-					}
-				}, func(hx_caught_88 any) {
-					switch hx_typed_89 := hx_caught_88.(type) {
-					case *haxe__io__Eof:
-						hx_tmp := hx_typed_89
-						_ = hx_tmp
-					default:
-						error := hxrt.ExceptionCaught(hx_caught_88)
-						uploadError = hxrt.ExceptionMessage(error)
-					}
-				})
-			}
-			return result
-		})
+		}(upload))
 	} else {
 		if self.postBytes != nil {
 			hxrt.HttpRequestSetBodyView(request, self.postBytes.__hx_this.__hx_nativeView())
@@ -291,137 +260,177 @@ func (self *sys__Http) requestWith(post bool, api *haxe__io__Output, sock *sys__
 		}
 	}
 	proxy := sys__Http_PROXY
-	if (proxy != nil) && !hxrt.StringEqualStringPtr(func(hx_obj_119 map[string]any) *string {
-		hx_field_120 := hx_obj_119["host"]
-		if hx_field_120 == nil {
-			var hx_zero_121 *string
-			return hx_zero_121
+	if (proxy != nil) && !hxrt.StringEqualStringPtr(func(hx_obj_114 map[string]any) *string {
+		hx_field_115 := hx_obj_114["host"]
+		if hx_field_115 == nil {
+			var hx_zero_116 *string
+			return hx_zero_116
 		}
-		return hx_field_120.(*string)
+		return hx_field_115.(*string)
 	}(proxy), nil) {
-		var hx_if_102 *string
-		if func(hx_obj_93 map[string]any) map[string]any {
-			hx_field_94 := hx_obj_93["auth"]
-			if hx_field_94 == nil {
-				var hx_zero_95 map[string]any
-				return hx_zero_95
+		var hx_if_97 *string
+		if func(hx_obj_88 map[string]any) map[string]any {
+			hx_field_89 := hx_obj_88["auth"]
+			if hx_field_89 == nil {
+				var hx_zero_90 map[string]any
+				return hx_zero_90
 			}
-			return hx_field_94.(map[string]any)
+			return hx_field_89.(map[string]any)
 		}(proxy) == nil {
-			hx_if_102 = nil
+			hx_if_97 = nil
 		} else {
-			hx_if_102 = func(hx_obj_99 map[string]any) *string {
-				hx_field_100 := hx_obj_99["user"]
-				if hx_field_100 == nil {
-					var hx_zero_101 *string
-					return hx_zero_101
+			hx_if_97 = func(hx_obj_94 map[string]any) *string {
+				hx_field_95 := hx_obj_94["user"]
+				if hx_field_95 == nil {
+					var hx_zero_96 *string
+					return hx_zero_96
 				}
-				return hx_field_100.(*string)
-			}(func(hx_obj_96 map[string]any) map[string]any {
-				hx_field_97 := hx_obj_96["auth"]
-				if hx_field_97 == nil {
-					var hx_zero_98 map[string]any
-					return hx_zero_98
+				return hx_field_95.(*string)
+			}(func(hx_obj_91 map[string]any) map[string]any {
+				hx_field_92 := hx_obj_91["auth"]
+				if hx_field_92 == nil {
+					var hx_zero_93 map[string]any
+					return hx_zero_93
 				}
-				return hx_field_97.(map[string]any)
+				return hx_field_92.(map[string]any)
 			}(proxy))
 		}
-		user := hx_if_102
-		var hx_if_112 *string
-		if func(hx_obj_103 map[string]any) map[string]any {
-			hx_field_104 := hx_obj_103["auth"]
-			if hx_field_104 == nil {
-				var hx_zero_105 map[string]any
-				return hx_zero_105
+		user := hx_if_97
+		var hx_if_107 *string
+		if func(hx_obj_98 map[string]any) map[string]any {
+			hx_field_99 := hx_obj_98["auth"]
+			if hx_field_99 == nil {
+				var hx_zero_100 map[string]any
+				return hx_zero_100
 			}
-			return hx_field_104.(map[string]any)
+			return hx_field_99.(map[string]any)
 		}(proxy) == nil {
-			hx_if_112 = nil
+			hx_if_107 = nil
 		} else {
-			hx_if_112 = func(hx_obj_109 map[string]any) *string {
-				hx_field_110 := hx_obj_109["pass"]
-				if hx_field_110 == nil {
-					var hx_zero_111 *string
-					return hx_zero_111
+			hx_if_107 = func(hx_obj_104 map[string]any) *string {
+				hx_field_105 := hx_obj_104["pass"]
+				if hx_field_105 == nil {
+					var hx_zero_106 *string
+					return hx_zero_106
 				}
-				return hx_field_110.(*string)
-			}(func(hx_obj_106 map[string]any) map[string]any {
-				hx_field_107 := hx_obj_106["auth"]
-				if hx_field_107 == nil {
-					var hx_zero_108 map[string]any
-					return hx_zero_108
+				return hx_field_105.(*string)
+			}(func(hx_obj_101 map[string]any) map[string]any {
+				hx_field_102 := hx_obj_101["auth"]
+				if hx_field_102 == nil {
+					var hx_zero_103 map[string]any
+					return hx_zero_103
 				}
-				return hx_field_107.(map[string]any)
+				return hx_field_102.(map[string]any)
 			}(proxy))
 		}
-		pass := hx_if_112
-		hxrt.HttpRequestSetProxy(request, func(hx_obj_113 map[string]any) *string {
-			hx_field_114 := hx_obj_113["host"]
-			if hx_field_114 == nil {
-				var hx_zero_115 *string
-				return hx_zero_115
+		pass := hx_if_107
+		hxrt.HttpRequestSetProxy(request, func(hx_obj_108 map[string]any) *string {
+			hx_field_109 := hx_obj_108["host"]
+			if hx_field_109 == nil {
+				var hx_zero_110 *string
+				return hx_zero_110
 			}
-			return hx_field_114.(*string)
-		}(proxy), func(hx_obj_116 map[string]any) int {
-			hx_field_117 := hx_obj_116["port"]
-			if hx_field_117 == nil {
-				var hx_zero_118 int
-				return hx_zero_118
+			return hx_field_109.(*string)
+		}(proxy), func(hx_obj_111 map[string]any) int {
+			hx_field_112 := hx_obj_111["port"]
+			if hx_field_112 == nil {
+				var hx_zero_113 int
+				return hx_zero_113
 			}
-			return hx_field_117.(int)
+			return hx_field_112.(int)
 		}(proxy), user, pass)
 	}
 	if sock != nil {
 		hxrt.HttpRequestSetSocket(request, sock.handle)
 	}
 	exchange := hxrt.HttpRequestStartExchange(request)
-	errorMessage := uploadError
+	var hx_if_117 map[string]any
+	if upload == nil {
+		hx_if_117 = nil
+	} else {
+		hx_if_117 = self.__hx_this.pumpUpload(exchange, upload)
+	}
+	uploadResult := hx_if_117
+	hxrt.HttpExchangeAwaitResponse(exchange)
+	var hx_if_121 *string
+	if uploadResult == nil {
+		hx_if_121 = nil
+	} else {
+		hx_if_121 = func(hx_obj_118 map[string]any) *string {
+			hx_field_119 := hx_obj_118["sourceError"]
+			if hx_field_119 == nil {
+				var hx_zero_120 *string
+				return hx_zero_120
+			}
+			return hx_field_119.(*string)
+		}(uploadResult)
+	}
+	sourceError := hx_if_121
+	var hx_if_125 *string
+	if uploadResult == nil {
+		hx_if_125 = nil
+	} else {
+		hx_if_125 = func(hx_obj_122 map[string]any) *string {
+			hx_field_123 := hx_obj_122["sinkError"]
+			if hx_field_123 == nil {
+				var hx_zero_124 *string
+				return hx_zero_124
+			}
+			return hx_field_123.(*string)
+		}(uploadResult)
+	}
+	sinkError := hx_if_125
+	errorMessage := sourceError
 	completed := false
 	if hxrt.StringEqualStringPtr(errorMessage, nil) {
 		nativeError := hxrt.HttpExchangeError(exchange)
 		if !hxrt.StringEqualStringPtr(nativeError, nil) {
 			errorMessage = nativeError
 		} else {
-			hxrt.TryCatch(func() {
-				self.__hx_this.recordResponseHeaders(exchange)
-				status := hxrt.HttpExchangeStatus(exchange)
-				func(hx_fn func(int), hx_arg_0 int) {
-					if hx_fn == nil {
-						hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
-						return
+			if (hxrt.HttpExchangeStatus(exchange) == 0) && !hxrt.StringEqualStringPtr(sinkError, nil) {
+				errorMessage = sinkError
+			} else {
+				hxrt.TryCatch(func() {
+					self.__hx_this.recordResponseHeaders(exchange)
+					status := hxrt.HttpExchangeStatus(exchange)
+					func(hx_fn func(int), hx_arg_0 int) {
+						if hx_fn == nil {
+							hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
+							return
+						}
+						hx_fn(hx_arg_0)
+					}(self.onStatus, status)
+					contentLength := hxrt.HttpExchangeContentLength(exchange)
+					if contentLength == -2 {
+						hxrt.Throw(hxrt.StringFromLiteral("Content-Length exceeds Haxe Int range"))
 					}
-					hx_fn(hx_arg_0)
-				}(self.onStatus, status)
-				contentLength := hxrt.HttpExchangeContentLength(exchange)
-				if contentLength == -2 {
-					hxrt.Throw(hxrt.StringFromLiteral("Content-Length exceeds Haxe Int range"))
-				}
-				if contentLength >= 0 {
-					api.__hx_this.prepare(contentLength)
-				}
-				for true {
-					read := hxrt.HttpExchangeReadResponseChunk(exchange, 1024)
-					payload := haxe__io__Bytes___hx_fromNativeView(hxrt.HttpReadResultBody(read))
-					if payload.length > 0 {
-						api.__hx_this.writeBytes(payload, 0, payload.length)
+					if contentLength >= 0 {
+						api.__hx_this.prepare(contentLength)
 					}
-					readError := hxrt.HttpReadResultError(read)
-					if !hxrt.StringEqualStringPtr(readError, nil) {
-						hxrt.Throw(hxrt.StringFromLiteral("Transfer aborted"))
+					for true {
+						read := hxrt.HttpExchangeReadResponseChunk(exchange, 1024)
+						payload := haxe__io__Bytes___hx_fromNativeView(hxrt.HttpReadResultBody(read))
+						if payload.length > 0 {
+							api.__hx_this.writeBytes(payload, 0, payload.length)
+						}
+						readError := hxrt.HttpReadResultError(read)
+						if !hxrt.StringEqualStringPtr(readError, nil) {
+							hxrt.Throw(hxrt.StringFromLiteral("Transfer aborted"))
+						}
+						if hxrt.HttpReadResultEOF(read) {
+							break
+						}
 					}
-					if hxrt.HttpReadResultEOF(read) {
-						break
+					if status >= 400 {
+						hxrt.Throw(hxrt.StringConcatAny(hxrt.StringFromLiteral("Http Error #"), status))
 					}
-				}
-				if status >= 400 {
-					hxrt.Throw(hxrt.StringConcatAny(hxrt.StringFromLiteral("Http Error #"), status))
-				}
-				api.__hx_this.close()
-				completed = true
-			}, func(hx_caught_122 any) {
-				error := hxrt.ExceptionCaught(hx_caught_122)
-				errorMessage = hxrt.ExceptionMessage(error)
-			})
+					api.__hx_this.close()
+					completed = true
+				}, func(hx_caught_126 any) {
+					error := hxrt.ExceptionCaught(hx_caught_126)
+					errorMessage = hxrt.ExceptionMessage(error)
+				})
+			}
 		}
 	}
 	if completed {
@@ -440,6 +449,87 @@ func (self *sys__Http) requestWith(post bool, api *haxe__io__Output, sock *sys__
 	}
 }
 
+func (self *sys__Http) pumpUpload(exchange *hxrt.HttpExchange, upload map[string]any) map[string]any {
+	sink := hxrt.HttpExchangeUploadSink(exchange)
+	if sink == nil {
+		hx_obj_128 := map[string]any{}
+		hx_obj_128["sourceError"] = nil
+		hx_obj_128["sinkError"] = hxrt.StringFromLiteral("HTTP upload sink is unavailable")
+		return hx_obj_128
+	}
+	remaining := func(hx_obj_129 map[string]any) int {
+		hx_field_130 := hx_obj_129["size"]
+		if hx_field_130 == nil {
+			var hx_zero_131 int
+			return hx_zero_131
+		}
+		return hx_field_130.(int)
+	}(upload)
+	var sourceError *string = nil
+	var sinkError *string = nil
+	for remaining > 0 {
+		var hx_if_132 int
+		if remaining > 32768 {
+			hx_if_132 = 32768
+		} else {
+			hx_if_132 = remaining
+		}
+		requested := hx_if_132
+		chunk := haxe__io__Bytes_alloc(requested)
+		count := 0
+		hxrt.TryCatch(func() {
+			count = func(hx_obj_135 map[string]any) *haxe__io__Input {
+				hx_field_136 := hx_obj_135["io"]
+				if hx_field_136 == nil {
+					var hx_zero_137 *haxe__io__Input
+					return hx_zero_137
+				}
+				return hx_field_136.(*haxe__io__Input)
+			}(upload).__hx_this.readBytes(chunk, 0, requested)
+		}, func(hx_caught_133 any) {
+			switch hx_typed_134 := hx_caught_133.(type) {
+			case *haxe__io__Eof:
+				hx_tmp := hx_typed_134
+				_ = hx_tmp
+				sourceError = hxrt.StringFromLiteral("Transfer aborted")
+			default:
+				error := hxrt.ExceptionCaught(hx_caught_133)
+				sourceError = hxrt.ExceptionMessage(error)
+			}
+		})
+		if !hxrt.StringEqualStringPtr(sourceError, nil) {
+			break
+		}
+		if count <= 0 {
+			sourceError = hxrt.StringFromLiteral("multipart upload made no progress")
+			break
+		}
+		if count > requested {
+			sourceError = hxrt.StringFromLiteral("multipart upload exceeded the requested chunk size")
+			break
+		}
+		if count < requested {
+			chunk = chunk.__hx_this.sub(0, count)
+		}
+		sinkError = hxrt.HttpUploadSinkWriteChunk(sink, chunk.__hx_this.__hx_nativeView())
+		if !hxrt.StringEqualStringPtr(sinkError, nil) {
+			break
+		}
+		remaining = int(int32((hxrt.Int32Wrap(remaining) - hxrt.Int32Wrap(count))))
+	}
+	if !hxrt.StringEqualStringPtr(sourceError, nil) {
+		hxrt.HttpUploadSinkAbort(sink, sourceError)
+	} else {
+		if hxrt.StringEqualStringPtr(sinkError, nil) {
+			sinkError = hxrt.HttpUploadSinkFinish(sink)
+		}
+	}
+	hx_obj_138 := map[string]any{}
+	hx_obj_138["sourceError"] = sourceError
+	hx_obj_138["sinkError"] = sinkError
+	return hx_obj_138
+}
+
 func (self *sys__Http) handleDataRequest(post bool, api *haxe__io__Output, method *string) {
 	encoded := hxrt.StringSubstrStringPtr(self.url, hxrt.StringLengthStringPtr(hxrt.StringFromLiteral("data:")), 0, false)
 	mediaType := hxrt.StringFromLiteral("text/plain")
@@ -452,27 +542,27 @@ func (self *sys__Http) handleDataRequest(post bool, api *haxe__io__Output, metho
 	}
 	if post {
 		if self.file != nil {
-			encoded = hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("multipart file="), func(hx_obj_124 map[string]any) *string {
-				hx_field_125 := hx_obj_124["filename"]
-				if hx_field_125 == nil {
-					var hx_zero_126 *string
-					return hx_zero_126
+			encoded = hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("multipart file="), func(hx_obj_139 map[string]any) *string {
+				hx_field_140 := hx_obj_139["filename"]
+				if hx_field_140 == nil {
+					var hx_zero_141 *string
+					return hx_zero_141
 				}
-				return hx_field_125.(*string)
-			}(self.file)), hxrt.StringFromLiteral(";mime=")), func(hx_obj_127 map[string]any) *string {
-				hx_field_128 := hx_obj_127["mimeType"]
-				if hx_field_128 == nil {
-					var hx_zero_129 *string
-					return hx_zero_129
+				return hx_field_140.(*string)
+			}(self.file)), hxrt.StringFromLiteral(";mime=")), func(hx_obj_142 map[string]any) *string {
+				hx_field_143 := hx_obj_142["mimeType"]
+				if hx_field_143 == nil {
+					var hx_zero_144 *string
+					return hx_zero_144
 				}
-				return hx_field_128.(*string)
-			}(self.file)), hxrt.StringFromLiteral(";size=")), func(hx_obj_130 map[string]any) int {
-				hx_field_131 := hx_obj_130["size"]
-				if hx_field_131 == nil {
-					var hx_zero_132 int
-					return hx_zero_132
+				return hx_field_143.(*string)
+			}(self.file)), hxrt.StringFromLiteral(";size=")), func(hx_obj_145 map[string]any) int {
+				hx_field_146 := hx_obj_145["size"]
+				if hx_field_146 == nil {
+					var hx_zero_147 int
+					return hx_zero_147
 				}
-				return hx_field_131.(int)
+				return hx_field_146.(int)
 			}(self.file))
 		} else {
 			if self.postBytes != nil {
@@ -510,8 +600,8 @@ func (self *sys__Http) handleDataRequest(post bool, api *haxe__io__Output, metho
 			api.__hx_this.writeBytes(payload, 0, payload.length)
 		}
 		api.__hx_this.close()
-	}, func(hx_caught_133 any) {
-		error := hxrt.ExceptionCaught(hx_caught_133)
+	}, func(hx_caught_148 any) {
+		error := hxrt.ExceptionCaught(hx_caught_148)
 		errorMessage = hxrt.ExceptionMessage(error)
 	})
 	if !hxrt.StringEqualStringPtr(errorMessage, nil) {
@@ -530,9 +620,9 @@ func (self *sys__Http) recordResponseHeaders(exchange *hxrt.HttpExchange) {
 	_g := 0
 	_g1 := count
 	for _g < _g1 {
-		hx_post_135 := _g
+		hx_post_150 := _g
 		_g = int(int32((_g + 1)))
-		headerIndex := hx_post_135
+		headerIndex := hx_post_150
 		name := hxrt.StdString(hxrt.HttpExchangeHeaderName(exchange, headerIndex))
 		normalized := hxrt.StringToLowerCaseStringPtr(name)
 		valueCount := hxrt.HttpExchangeHeaderValueCount(exchange, headerIndex)
@@ -540,20 +630,20 @@ func (self *sys__Http) recordResponseHeaders(exchange *hxrt.HttpExchange) {
 		_g_1 := 0
 		_g1_1 := valueCount
 		for _g_1 < _g1_1 {
-			hx_post_136 := _g_1
+			hx_post_151 := _g_1
 			_g_1 = int(int32((_g_1 + 1)))
-			valueIndex := hx_post_136
+			valueIndex := hx_post_151
 			values.Push(hxrt.StdString(hxrt.HttpExchangeHeaderValue(exchange, headerIndex, valueIndex)))
 		}
 		if values.Len() == 0 {
 			continue
 		}
-		last := func(hx_value_138 any) *string {
-			if hx_value_138 == nil {
-				var hx_zero_139 *string
-				return hx_zero_139
+		last := func(hx_value_153 any) *string {
+			if hx_value_153 == nil {
+				var hx_zero_154 *string
+				return hx_zero_154
 			}
-			return hx_value_138.(*string)
+			return hx_value_153.(*string)
 		}(values.Get(int(int32((hxrt.Int32Wrap(values.Len()) - hxrt.Int32Wrap(1))))))
 		var this1 haxe__IMap = self.responseHeaders
 		this1.(*haxe__ds__StringMap).__hx_this.set(name, last)
@@ -581,28 +671,28 @@ func (self *sys__Http) encodedParameters() *string {
 	_g := 0
 	_g1 := self.params
 	for _g < _g1.Len() {
-		parameter := func(hx_value_140 any) map[string]any {
-			if hx_value_140 == nil {
-				var hx_zero_141 map[string]any
-				return hx_zero_141
+		parameter := func(hx_value_155 any) map[string]any {
+			if hx_value_155 == nil {
+				var hx_zero_156 map[string]any
+				return hx_zero_156
 			}
-			return hx_value_140.(map[string]any)
+			return hx_value_155.(map[string]any)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
-		encoded.Push(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(StringTools_urlEncode(func(hx_obj_143 map[string]any) *string {
-			hx_field_144 := hx_obj_143["name"]
-			if hx_field_144 == nil {
-				var hx_zero_145 *string
-				return hx_zero_145
+		encoded.Push(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(StringTools_urlEncode(func(hx_obj_158 map[string]any) *string {
+			hx_field_159 := hx_obj_158["name"]
+			if hx_field_159 == nil {
+				var hx_zero_160 *string
+				return hx_zero_160
 			}
-			return hx_field_144.(*string)
-		}(parameter)), hxrt.StringFromLiteral("=")), StringTools_urlEncode(func(hx_obj_146 map[string]any) *string {
-			hx_field_147 := hx_obj_146["value"]
-			if hx_field_147 == nil {
-				var hx_zero_148 *string
-				return hx_zero_148
+			return hx_field_159.(*string)
+		}(parameter)), hxrt.StringFromLiteral("=")), StringTools_urlEncode(func(hx_obj_161 map[string]any) *string {
+			hx_field_162 := hx_obj_161["value"]
+			if hx_field_162 == nil {
+				var hx_zero_163 *string
+				return hx_zero_163
 			}
-			return hx_field_147.(*string)
+			return hx_field_162.(*string)
 		}(parameter))))
 	}
 	return hxrt.StringJoinAny(encoded.Values(), hxrt.StringFromLiteral("&"))
@@ -614,18 +704,18 @@ func sys__Http_firstComma(value *string) int {
 	_g := 0
 	_g1 := hxrt.StringLengthStringPtr(value)
 	for _g < _g1 {
-		hx_post_149 := _g
+		hx_post_164 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_149
+		index := hx_post_164
 		if func() int {
 			var c any = hxrt.StringCharCodeAtAnyStringPtr(value, index)
-			var hx_if_150 int
+			var hx_if_165 int
 			if c == nil {
-				hx_if_150 = -1
+				hx_if_165 = -1
 			} else {
-				hx_if_150 = c.(int)
+				hx_if_165 = c.(int)
 			}
-			return hx_if_150
+			return hx_if_165
 		}() == 44 {
 			return index
 		}
@@ -635,86 +725,86 @@ func sys__Http_firstComma(value *string) int {
 
 func sys__Http_hxrt_proxyDescriptor() *string {
 	proxy := sys__Http_PROXY
-	if (proxy == nil) || hxrt.StringEqualStringPtr(func(hx_obj_151 map[string]any) *string {
-		hx_field_152 := hx_obj_151["host"]
-		if hx_field_152 == nil {
-			var hx_zero_153 *string
-			return hx_zero_153
+	if (proxy == nil) || hxrt.StringEqualStringPtr(func(hx_obj_166 map[string]any) *string {
+		hx_field_167 := hx_obj_166["host"]
+		if hx_field_167 == nil {
+			var hx_zero_168 *string
+			return hx_zero_168
 		}
-		return hx_field_152.(*string)
+		return hx_field_167.(*string)
 	}(proxy), nil) {
 		return hxrt.StringFromLiteral("null")
 	}
-	var hx_if_163 *string
-	if func(hx_obj_154 map[string]any) map[string]any {
-		hx_field_155 := hx_obj_154["auth"]
-		if hx_field_155 == nil {
-			var hx_zero_156 map[string]any
-			return hx_zero_156
+	var hx_if_178 *string
+	if func(hx_obj_169 map[string]any) map[string]any {
+		hx_field_170 := hx_obj_169["auth"]
+		if hx_field_170 == nil {
+			var hx_zero_171 map[string]any
+			return hx_zero_171
 		}
-		return hx_field_155.(map[string]any)
+		return hx_field_170.(map[string]any)
 	}(proxy) == nil {
-		hx_if_163 = nil
+		hx_if_178 = nil
 	} else {
-		hx_if_163 = func(hx_obj_160 map[string]any) *string {
-			hx_field_161 := hx_obj_160["user"]
-			if hx_field_161 == nil {
-				var hx_zero_162 *string
-				return hx_zero_162
+		hx_if_178 = func(hx_obj_175 map[string]any) *string {
+			hx_field_176 := hx_obj_175["user"]
+			if hx_field_176 == nil {
+				var hx_zero_177 *string
+				return hx_zero_177
 			}
-			return hx_field_161.(*string)
-		}(func(hx_obj_157 map[string]any) map[string]any {
-			hx_field_158 := hx_obj_157["auth"]
-			if hx_field_158 == nil {
-				var hx_zero_159 map[string]any
-				return hx_zero_159
+			return hx_field_176.(*string)
+		}(func(hx_obj_172 map[string]any) map[string]any {
+			hx_field_173 := hx_obj_172["auth"]
+			if hx_field_173 == nil {
+				var hx_zero_174 map[string]any
+				return hx_zero_174
 			}
-			return hx_field_158.(map[string]any)
+			return hx_field_173.(map[string]any)
 		}(proxy))
 	}
-	user := hx_if_163
-	var hx_if_173 *string
-	if func(hx_obj_164 map[string]any) map[string]any {
-		hx_field_165 := hx_obj_164["auth"]
-		if hx_field_165 == nil {
-			var hx_zero_166 map[string]any
-			return hx_zero_166
+	user := hx_if_178
+	var hx_if_188 *string
+	if func(hx_obj_179 map[string]any) map[string]any {
+		hx_field_180 := hx_obj_179["auth"]
+		if hx_field_180 == nil {
+			var hx_zero_181 map[string]any
+			return hx_zero_181
 		}
-		return hx_field_165.(map[string]any)
+		return hx_field_180.(map[string]any)
 	}(proxy) == nil {
-		hx_if_173 = nil
+		hx_if_188 = nil
 	} else {
-		hx_if_173 = func(hx_obj_170 map[string]any) *string {
-			hx_field_171 := hx_obj_170["pass"]
-			if hx_field_171 == nil {
-				var hx_zero_172 *string
-				return hx_zero_172
+		hx_if_188 = func(hx_obj_185 map[string]any) *string {
+			hx_field_186 := hx_obj_185["pass"]
+			if hx_field_186 == nil {
+				var hx_zero_187 *string
+				return hx_zero_187
 			}
-			return hx_field_171.(*string)
-		}(func(hx_obj_167 map[string]any) map[string]any {
-			hx_field_168 := hx_obj_167["auth"]
-			if hx_field_168 == nil {
-				var hx_zero_169 map[string]any
-				return hx_zero_169
+			return hx_field_186.(*string)
+		}(func(hx_obj_182 map[string]any) map[string]any {
+			hx_field_183 := hx_obj_182["auth"]
+			if hx_field_183 == nil {
+				var hx_zero_184 map[string]any
+				return hx_zero_184
 			}
-			return hx_field_168.(map[string]any)
+			return hx_field_183.(map[string]any)
 		}(proxy))
 	}
-	pass := hx_if_173
-	return hxrt.StdString(hxrt.HttpProxyDescriptor(func(hx_obj_174 map[string]any) *string {
-		hx_field_175 := hx_obj_174["host"]
-		if hx_field_175 == nil {
-			var hx_zero_176 *string
-			return hx_zero_176
+	pass := hx_if_188
+	return hxrt.StdString(hxrt.HttpProxyDescriptor(func(hx_obj_189 map[string]any) *string {
+		hx_field_190 := hx_obj_189["host"]
+		if hx_field_190 == nil {
+			var hx_zero_191 *string
+			return hx_zero_191
 		}
-		return hx_field_175.(*string)
-	}(proxy), func(hx_obj_177 map[string]any) int {
-		hx_field_178 := hx_obj_177["port"]
-		if hx_field_178 == nil {
-			var hx_zero_179 int
-			return hx_zero_179
+		return hx_field_190.(*string)
+	}(proxy), func(hx_obj_192 map[string]any) int {
+		hx_field_193 := hx_obj_192["port"]
+		if hx_field_193 == nil {
+			var hx_zero_194 int
+			return hx_zero_194
 		}
-		return hx_field_178.(int)
+		return hx_field_193.(int)
 	}(proxy), user, pass))
 }
 
@@ -723,13 +813,13 @@ func sys__Http_normalizedMethod(method *string) *string {
 		return nil
 	}
 	normalized := hxrt.StringToUpperCaseStringPtr(method)
-	var hx_if_180 *string
+	var hx_if_195 *string
 	if hxrt.StringEqualStringPtr(normalized, hxrt.StringFromLiteral("")) || hxrt.StringEqualStringPtr(normalized, hxrt.StringFromLiteral("NULL")) {
-		hx_if_180 = nil
+		hx_if_195 = nil
 	} else {
-		hx_if_180 = normalized
+		hx_if_195 = normalized
 	}
-	return hx_if_180
+	return hx_if_195
 }
 
 func sys__Http_requestUrl(url *string) *string {

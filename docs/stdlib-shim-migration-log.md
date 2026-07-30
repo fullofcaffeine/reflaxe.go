@@ -2882,3 +2882,59 @@ Bounded claim:
   `haxe_go-vfp.10.8.5` still owns method/body, redirect, compression, timeout,
   low-status, `requestUrl`, proxy, and custom-socket policy. Final resource and
   admission evidence remains `haxe_go-vfp.10.8.6`.
+
+### 2026-07-30: pump HTTP uploads through a cancellable typed sink (`haxe_go-vfp.10.8.4`)
+
+What changed:
+
+- Removed the multipart chunk callback from the native request description.
+  Staged `sys.Http` now reads its `Input` synchronously on the public Haxe
+  caller and writes bounded immutable chunks through an opaque
+  `HttpUploadSinkHandle`.
+- Added a native `io.Pipe` request body with exact declared-size tracking.
+  Finish closes the writer only after the exact byte count; early EOF, zero
+  progress, source exceptions, and oversized chunks abort deterministically.
+- Made upload cancellation real. Early response, timeout, server close, or
+  explicit exchange cancellation closes the pipe reader, which releases a
+  blocked sink write without waiting on that write's mutex.
+- Synchronized native response publication. A source error remains the public
+  error that caused abort, while an already published early HTTP response is
+  processed instead of being replaced by an incidental closed-pipe message.
+
+Why:
+
+- Go's transport reads request bodies on its own goroutine. Letting that reader
+  invoke a generated-Haxe closure moved user code off its caller, raced captured
+  Haxe state, and did not satisfy Go's requirement that request-body close
+  unblock a pending read.
+- Source reads and source exceptions are Haxe-visible library behavior. The Go
+  runtime should own only the pipe, transport, synchronization, and cleanup.
+- An arbitrary custom `Input` can block forever inside its own user-defined
+  `readBytes`. Claiming native cancellation for that code would require the
+  unsafe callback architecture again, so the limitation is explicit: native
+  cancellation applies once the source read returns.
+
+How it is proved:
+
+- `sys/http_upload_sink_lifecycle_contract` runs success, early `413`, timeout,
+  server close, source exception, early EOF, zero progress, repeated early
+  response, caller-marker, and after-public-return checks in generated Go.
+- `test_http_upload_sink_race_contract.py` recompiles that Haxe fixture into a
+  temporary tree and runs it with `go run -race`; the check is part of full,
+  changed-file, and release-contract gates.
+- Direct `runtime/hxrt` tests prove caller cancellation unblocks an active sink
+  write, published early status survives pipe closure, exact finish/overrun
+  rules, and repeated early-response goroutine/file-descriptor convergence.
+- The migration ledger records `HttpUploadSinkHandle` as a typed `hxrt`
+  binding. Contract checks reject a generated-Haxe read callback in either the
+  extern or Go runtime boundary.
+
+Bounded claim:
+
+- The transport-goroutine callback is gone and native upload waits are
+  cancellable. HTTP remains release-excluded. A custom `Input` blocked inside
+  its own `readBytes` is not forcibly cancellable, and
+  `haxe_go-vfp.10.8.5` still owns method/body, redirects, compression, timeout
+  semantics, low statuses, `requestUrl`, proxy, and custom-socket policy. Final
+  whole-operation resource and admission evidence remains
+  `haxe_go-vfp.10.8.6`.

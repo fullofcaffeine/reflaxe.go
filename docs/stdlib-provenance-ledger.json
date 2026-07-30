@@ -49,6 +49,7 @@
       "hxrt_binding": [
         "haxe_go-vfp.10.5.1",
         "haxe_go-vfp.10.8.3",
+        "haxe_go-vfp.10.8.4",
         "haxe_go-vfp.5.4",
         "haxe_go-vfp.8.3.8",
         "haxe_go-vfp.8.7.10",
@@ -1272,13 +1273,22 @@
       "notes": "Opaque typed carrier for one bounded response chunk plus its same-call EOF or error state, so staged sys.Http never loses partial progress."
     },
     {
+      "path": "std/hxrt/http/HttpUploadSinkHandle.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "hxrt_binding",
+      "destination": "std/hxrt/http/HttpUploadSinkHandle.hx",
+      "migrationBead": "haxe_go-vfp.10.8.4",
+      "compilerShimGroups": [],
+      "notes": "Opaque typed carrier for a caller-driven, cancellation-aware native multipart upload sink. Staged sys.Http reads the Haxe Input on its source caller and writes immutable chunks through this boundary; the Go transport never calls generated Haxe."
+    },
+    {
       "path": "std/hxrt/http/NativeHttp.hx",
       "provenanceKind": "repo_authored_override",
       "ownershipClass": "hxrt_binding",
       "destination": "std/hxrt/http/NativeHttp.hx",
       "migrationBead": "haxe_go-vfp.8.7.12",
       "compilerShimGroups": [],
-      "notes": "Typed footprint-explicit bridge to Go URL parsing and HTTP transport. Only scalars, opaque byte views, and typed socket handles cross the boundary."
+      "notes": "Typed footprint-explicit bridge to Go URL parsing and HTTP transport. Only scalars, opaque byte views, typed request/exchange/upload handles, and typed socket handles cross the boundary; generated Haxe callbacks never cross into transport goroutines."
     },
     {
       "path": "std/hxrt/io/ByteView.hx",

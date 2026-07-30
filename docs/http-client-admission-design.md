@@ -20,21 +20,21 @@ release-excluded until the implementation children pass their evidence gates
 and `haxe_go-vfp.10.8.6` completes an independent operation-level admission
 review.
 
-## Why the old seam is insufficient
+## Why the old seam was insufficient
 
-The current native call returns one status, one header map, and one fully
-buffered body. Consider a server that flushes status `200` and the bytes
-`hello`, then pauses before sending the rest:
+Before `haxe_go-vfp.10.8.3`, the native call returned one status, one header
+map, and one fully buffered body. Consider a server that flushes status `200`
+and the bytes `hello`, then pauses before sending the rest:
 
 - Haxe 4.3.7 calls `onStatus(200)` and writes `hello` before the pause ends.
-- The current Go target calls neither because `io.ReadAll` has not returned.
-- If the connection then fails, the current carrier discards `hello`.
+- The old Go path called neither because `io.ReadAll` had not returned.
+- If the connection then failed, the old carrier discarded `hello`.
 
-The current upload direction has the inverse ownership problem. Go's
-`net/http` transport asks an `io.Reader` for more request bytes from its own
-write goroutine. That reader calls a generated-Haxe closure, so a transport
-goroutine enters Haxe code and mutates captured Haxe state. A no-op request-body
-closer also cannot unblock that closure if `Input.readBytes` waits forever.
+Before `haxe_go-vfp.10.8.4`, the upload direction had the inverse ownership
+problem. Go's `net/http` transport asked an `io.Reader` for more request bytes
+from its own write goroutine. That reader called a generated-Haxe closure, so a
+transport goroutine entered Haxe code and mutated captured Haxe state. Its
+request body also had no real close path that could release the read boundary.
 
 Small completed-response fixtures did not expose either difference. They
 proved final values after success, not the lifecycle that produces those
@@ -247,9 +247,9 @@ The decisive contracts prove first-chunk visibility before server completion,
 known-length `prepare`, partial bytes plus transfer failure, partial
 `request().responseBytes`, one error for throwing `onStatus`/`prepare`/
 `writeBytes`/`close`, bounded large-response reads, and matching `data:` event
-order. This does not complete HTTP admission: the upload callback still crosses
-from the native transport until `haxe_go-vfp.10.8.4`, and the policy listed
-under Remaining client policy still belongs to `haxe_go-vfp.10.8.5`.
+order. This does not complete HTTP admission: the source-driven upload slice is
+implemented separately by `haxe_go-vfp.10.8.4`, and the policy listed under
+Remaining client policy still belongs to `haxe_go-vfp.10.8.5`.
 
 ## Upload contract
 
@@ -274,6 +274,45 @@ goroutine, which this design forbids. That case is explicitly excluded from
 the cancellable-upload claim. Once `readBytes` returns, native cancellation
 must stop the next sink write promptly. Because all reads occur on the public
 caller, no upload work can continue after the public request returns.
+
+### Implemented upload slice
+
+`haxe_go-vfp.10.8.4` implements this contract with
+`HttpUploadSinkHandle`. Multipart exchange start creates an `io.Pipe` body,
+starts only native `net/http` work on a Go goroutine, and returns its opaque
+writer to staged `sys.Http`. The staged caller reads at most 32 KiB from the
+Haxe `Input`, writes an immutable `ByteView`, and explicitly finishes or
+aborts after exactly the declared byte count.
+
+The native body implements a real concurrent `Close`: timeout, cancellation,
+server close, or an early response closes the pipe reader and promptly releases
+a blocked sink write. Abort never waits for the sink's writer mutex, so cleanup
+cannot deadlock behind the operation it must release. Exchange cleanup then
+waits for the native request goroutine to publish a response or terminal error
+before closing the response body, transport, and optional socket.
+
+The public precedence is deliberate:
+
+- a Haxe source exception or early EOF wins over the native error caused by
+  aborting that same request;
+- an already published HTTP response, such as `413`, wins over the incidental
+  closed-pipe result seen by the staged writer;
+- without a source error or response, the synchronized transport/sink error is
+  reported once.
+
+The generated-Haxe target snapshot exercises success, early `413`, timeout,
+server close, source exception, early EOF, zero progress, same-caller reads,
+and no reads after public return. A permanent `go run -race` contract reruns
+that generated program. Direct native race tests additionally prove caller
+cancellation unblocks an active write, exact-size/overrun rules, and repeated
+early-response goroutine/file-descriptor convergence.
+
+This slice still does not make arbitrary user code cancellable: a custom
+`Input` that never returns from its own `readBytes` remains explicitly outside
+the native cancellation guarantee. It also does not admit HTTP; method, status,
+redirect, compression, and timeout policy remain in
+`haxe_go-vfp.10.8.5`, followed by the operation-level review in
+`haxe_go-vfp.10.8.6`.
 
 ## Error precedence
 
@@ -343,9 +382,10 @@ caller's Output under these rules.
 | B2 | `haxe_go-vfp.10.8.4` | Generated-Haxe early 413, timeout, server close, source failure, exact-size/EOF cases under race, with no native callback into Haxe. |
 | H3 | `haxe_go-vfp.10.8.5` | Redirect destination not contacted, mixed-case method, body with `post == false`, low status, gzip, progress timeout, `requestUrl`, data URL, proxy, and custom socket. |
 
-`haxe_go-vfp.10.8.6` owns repeated goroutine/connection/file-descriptor
-convergence, full supported-toolchain evidence, compatibility regeneration, and
-the independent xhigh admission review.
+`haxe_go-vfp.10.8.4` owns upload-specific goroutine and file-descriptor
+convergence. `haxe_go-vfp.10.8.6` owns the final whole-operation convergence,
+full supported-toolchain evidence, compatibility regeneration, and the
+independent xhigh admission review.
 
 ## Second-pass challenge review
 
@@ -374,11 +414,27 @@ ways it could still produce believable but incorrect evidence:
    implementation checkpoint found that an invalid negative or oversized read
    count would panic while constructing the immutable view. A red regression
    now proves both cases become typed read errors with no exposed bytes.
+7. **Upload cleanup could wait on the write it needs to interrupt.** Abort
+   changes terminal state and closes the pipe without acquiring the writer
+   mutex. A native cancellation test holds an active write and proves cleanup
+   releases both operations.
+8. **An early response could be replaced by an incidental pipe error.** Staged
+   code awaits the synchronized native result after a sink write stops. If
+   headers were published, it processes that response and its status; otherwise
+   it reports the transport/sink failure.
+9. **A source error could be overwritten by cancellation fallout.** Staged
+   source state is evaluated first, abort only releases native resources, and
+   the source exception or exact-size error remains the one public error.
+10. **A request could return while native code still invokes its Input.** There
+    is no callback in the native multipart description or runtime API. Every
+    `readBytes` call is visibly inside staged `pumpUpload`, and the generated
+    race fixture checks its caller marker plus the read count after return.
 
 No challenge changed the staged-source/typed-runtime architecture. The review
 did narrow the claims for custom blocking input and header-line order, fixed
-the invalid-count panic before closure, and made Output-versus-read-error
-precedence explicit.
+the invalid-count panic before response-streaming closure, removed the
+transport-to-Haxe upload callback, and made both Output/read and
+source/response/sink precedence explicit.
 
 ## Admission boundary
 

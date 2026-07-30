@@ -66,29 +66,52 @@ type httpRequestParameter struct {
 	encodedValue string
 }
 
-// httpMultipartUpload is the native transport description for one staged file upload.
+// httpMultipartUpload is the native framing description for one staged upload.
 //
-// What: Retains scalar multipart metadata, the declared byte count, and a typed
-// callback that yields the next bounded immutable byte view.
-// Why: The Haxe Input owns source-visible reading semantics, while net/http must
-// pull request bytes without buffering the complete file or observing a
-// generated Input layout.
-// How: HttpRequestStartExchange wraps this description in an io.Reader that
-// emits the deterministic multipart prefix, exactly size callback bytes, and
-// the closing boundary.
+// What: Retains only scalar multipart metadata and the declared byte count.
+// Why: Generated Haxe must read its Input on the public caller, never from a Go
+// transport goroutine, while native framing still needs these fixed values.
+// How: StartExchange creates a native pipe-backed body and exposes its typed
+// upload sink for source-driven bounded writes.
 type httpMultipartUpload struct {
 	parameter string
 	filename  string
 	mimeType  string
 	size      int
-	read      func(int) *ByteView
 }
 
-type httpMultipartBody struct {
+// httpMultipartPipeBody is the net/http-owned request-body side of an upload.
+//
+// What: Emits deterministic prefix bytes, caller-pumped pipe bytes, then the
+// closing delimiter while implementing the concurrent Close contract.
+// Why: A no-op request-body closer cannot unblock a staged upload write after
+// timeout, cancellation, server close, or an early response.
+// How: CloseWithError on the pipe reader releases a blocked native sink write;
+// the read phase itself remains single-consumer transport state.
+type httpMultipartPipeBody struct {
 	prefix    *bytes.Reader
-	upload    *httpMultipartUpload
-	remaining int
+	pipe      *io.PipeReader
 	tail      *bytes.Reader
+	phase     int
+	closeOnce sync.Once
+}
+
+// HttpUploadSink is the opaque native destination pumped by staged sys.Http.
+//
+// What: Owns the pipe writer and exact declared-size progress for one upload.
+// Why: Haxe Input calls must stay on the synchronous source caller, while each
+// native write must still be cancellable by transport resource closure.
+// How: One staged writer serializes bounded immutable chunks; abort may close
+// the writer concurrently to release a blocked call.
+type HttpUploadSink struct {
+	writer   *io.PipeWriter
+	expected int64
+
+	writeMu sync.Mutex
+	stateMu sync.Mutex
+	written int64
+	closed  bool
+	err     error
 }
 
 // HttpExchange is the opaque live response owned by staged sys.Http.
@@ -107,7 +130,11 @@ type HttpExchange struct {
 	response    *http.Response
 	transport   *http.Transport
 	socket      *SocketHandle
+	upload      *HttpUploadSink
+	requestBody io.Closer
 	cancel      context.CancelFunc
+	ready       chan struct{}
+	readyOnce   sync.Once
 	cleanupOnce sync.Once
 	stateMu     sync.Mutex
 	closed      bool
@@ -210,14 +237,12 @@ func HttpRequestSetBodyView(request *HttpRequest, value *ByteView) {
 
 // HttpRequestSetMultipartUpload installs one bounded streaming file body.
 //
-// What: Records the public field metadata, declared byte count, and typed chunk
-// callback selected by staged sys.Http.
+// What: Records the public field metadata and declared byte count.
 // Why: fileTransfer must send the caller's Input bytes, but retaining the whole
-// payload in HttpRequest would make upload memory proportional to file size.
-// How: Defer callback reads until net/http consumes the body; every callback is
-// bounded by the destination buffer and remaining declared byte count.
-func HttpRequestSetMultipartUpload(request *HttpRequest, parameter *string, filename *string, mimeType *string, size int,
-	read func(int) *ByteView) {
+// payload or a generated callback in HttpRequest would violate ownership.
+// How: StartExchange derives one native pipe; staged source later pumps its
+// Input through the typed sink on the original synchronous caller.
+func HttpRequestSetMultipartUpload(request *HttpRequest, parameter *string, filename *string, mimeType *string, size int) {
 	if request == nil {
 		return
 	}
@@ -227,7 +252,6 @@ func HttpRequestSetMultipartUpload(request *HttpRequest, parameter *string, file
 		filename:  *StdString(filename),
 		mimeType:  *StdString(mimeType),
 		size:      size,
-		read:      read,
 	}
 }
 
@@ -247,15 +271,17 @@ func HttpRequestSetSocket(request *HttpRequest, socket *SocketHandle) {
 	request.socket = socket
 }
 
-// HttpRequestStartExchange starts one synchronous Go HTTP exchange.
+// HttpRequestStartExchange starts one Go HTTP exchange.
 //
 // What: Applies the request builder and returns as soon as response headers or
-// a startup transport failure are available.
+// a startup transport failure are available, except that multipart requests
+// return earlier with a caller-driven upload sink.
 // Why: net/http resources and dialing are native capabilities, but body
-// buffering would hide Haxe-visible callback timing and partial progress.
+// buffering would hide response progress and transport-goroutine callbacks
+// into generated Haxe would violate source execution ownership.
 // How: Validate and consume the builder, create a one-use client, retain its
-// response body behind HttpExchange, and leave body reads and final cleanup to
-// explicit typed capabilities.
+// resources behind HttpExchange, and run only multipart transport work on a
+// native goroutine while the staged caller pumps its Input through the pipe.
 func HttpRequestStartExchange(request *HttpRequest) *HttpExchange {
 	if request == nil {
 		return httpErrorExchange("Invalid URL")
@@ -268,12 +294,16 @@ func HttpRequestStartExchange(request *HttpRequest) *HttpExchange {
 	var bodyReader io.Reader
 	var contentLength int64
 	var multipartContentType string
+	var requestBody io.Closer
+	var uploadSink *HttpUploadSink
 	if request.upload != nil {
-		multipartBody, length, contentType, buildErr := newHttpMultipartBody(request)
+		multipartBody, sink, length, contentType, buildErr := newHttpMultipartBody(request)
 		if buildErr != nil {
 			return httpRequestErrorExchange(request, buildErr.Error())
 		}
 		bodyReader = multipartBody
+		requestBody = multipartBody
+		uploadSink = sink
 		contentLength = length
 		multipartContentType = contentType
 	} else if request.post {
@@ -337,67 +367,98 @@ func HttpRequestStartExchange(request *HttpRequest) *HttpExchange {
 	ctx, cancel := context.WithCancel(nativeRequest.Context())
 	nativeRequest = nativeRequest.WithContext(ctx)
 	client := &http.Client{Transport: transport, Timeout: timeout}
-	nativeResponse, err := client.Do(nativeRequest)
-	if err != nil {
-		cancel()
-		transport.CloseIdleConnections()
-		if request.socket != nil {
-			_ = request.socket.close()
-		}
-		return httpErrorExchange(err.Error())
-	}
-
-	headerNames := make([]string, 0, len(nativeResponse.Header))
-	for name := range nativeResponse.Header {
-		headerNames = append(headerNames, name)
-	}
-	sort.Strings(headerNames)
-	headers := nativeResponse.Header.Clone()
-	return &HttpExchange{
-		status:      nativeResponse.StatusCode,
-		headerNames: headerNames,
-		headers:     headers,
-		response:    nativeResponse,
+	exchange := &HttpExchange{
+		headers:     make(http.Header),
 		transport:   transport,
 		socket:      request.socket,
+		upload:      uploadSink,
+		requestBody: requestBody,
 		cancel:      cancel,
+		ready:       make(chan struct{}),
 	}
+
+	if uploadSink != nil {
+		go exchange.run(client, nativeRequest)
+	} else {
+		exchange.run(client, nativeRequest)
+	}
+	return exchange
 }
 
-func (body *httpMultipartBody) Read(destination []byte) (int, error) {
+// run owns net/http execution without ever entering generated Haxe.
+func (exchange *HttpExchange) run(client *http.Client, request *http.Request) {
+	nativeResponse, err := client.Do(request)
+	if exchange.requestBody != nil {
+		_ = exchange.requestBody.Close()
+	}
+
+	exchange.stateMu.Lock()
+	if err != nil {
+		exchange.err = StringFromLiteral(err.Error())
+	} else {
+		headerNames := make([]string, 0, len(nativeResponse.Header))
+		for name := range nativeResponse.Header {
+			headerNames = append(headerNames, name)
+		}
+		sort.Strings(headerNames)
+		exchange.status = nativeResponse.StatusCode
+		exchange.headerNames = headerNames
+		exchange.headers = nativeResponse.Header.Clone()
+		exchange.response = nativeResponse
+	}
+	exchange.stateMu.Unlock()
+	exchange.signalReady()
+}
+
+var errHTTPUploadBodyClosed = errors.New("HTTP upload body closed")
+
+func (body *httpMultipartPipeBody) Read(destination []byte) (int, error) {
 	if len(destination) == 0 {
 		return 0, nil
 	}
-	if body.prefix.Len() > 0 {
-		return body.prefix.Read(destination)
+	for {
+		switch body.phase {
+		case 0:
+			count, err := body.prefix.Read(destination)
+			if errors.Is(err, io.EOF) {
+				body.phase = 1
+				if count > 0 {
+					return count, nil
+				}
+				continue
+			}
+			return count, err
+		case 1:
+			count, err := body.pipe.Read(destination)
+			if errors.Is(err, io.EOF) {
+				body.phase = 2
+				if count > 0 {
+					return count, nil
+				}
+				continue
+			}
+			return count, err
+		case 2:
+			count, err := body.tail.Read(destination)
+			if errors.Is(err, io.EOF) {
+				body.phase = 3
+				if count > 0 {
+					return count, nil
+				}
+				continue
+			}
+			return count, err
+		default:
+			return 0, io.EOF
+		}
 	}
-	if body.remaining > 0 {
-		if body.upload.read == nil {
-			return 0, errors.New("multipart upload reader is nil")
-		}
-		limit := len(destination)
-		if limit > body.remaining {
-			limit = body.remaining
-		}
-		view := body.upload.read(limit)
-		if view == nil {
-			return 0, io.ErrUnexpectedEOF
-		}
-		raw := view.raw
-		if len(raw) == 0 {
-			return 0, io.ErrNoProgress
-		}
-		if len(raw) > limit {
-			return 0, fmt.Errorf("multipart upload reader returned %d bytes, limit %d", len(raw), limit)
-		}
-		count := copy(destination, raw)
-		body.remaining -= count
-		return count, nil
-	}
-	if body.tail.Len() > 0 {
-		return body.tail.Read(destination)
-	}
-	return 0, io.EOF
+}
+
+func (body *httpMultipartPipeBody) Close() error {
+	body.closeOnce.Do(func() {
+		_ = body.pipe.CloseWithError(errHTTPUploadBodyClosed)
+	})
+	return nil
 }
 
 // newHttpMultipartBody builds one atomic multipart framing plan.
@@ -408,26 +469,26 @@ func (body *httpMultipartBody) Read(destination []byte) (int, error) {
 // assembled body and header values can disagree on the delimiter.
 // How: multipart.Writer generates the boundary; this function validates all
 // header-bearing metadata before returning any body that can reach the network.
-func newHttpMultipartBody(request *HttpRequest) (*httpMultipartBody, int64, string, error) {
+func newHttpMultipartBody(request *HttpRequest) (*httpMultipartPipeBody, *HttpUploadSink, int64, string, error) {
 	upload := request.upload
 	if upload == nil {
-		return nil, 0, "", errors.New("multipart upload is missing")
+		return nil, nil, 0, "", errors.New("multipart upload is missing")
 	}
 	if upload.size < 0 {
-		return nil, 0, "", errors.New("multipart upload size must be non-negative")
+		return nil, nil, 0, "", errors.New("multipart upload size must be non-negative")
 	}
 	if err := validateHttpMultipartToken("multipart parameter", upload.parameter); err != nil {
-		return nil, 0, "", err
+		return nil, nil, 0, "", err
 	}
 	if err := validateHttpMultipartToken("multipart filename", upload.filename); err != nil {
-		return nil, 0, "", err
+		return nil, nil, 0, "", err
 	}
 	mediaType, _, err := mime.ParseMediaType(upload.mimeType)
 	if err != nil || mediaType == "" {
-		return nil, 0, "", errors.New("multipart media type is invalid")
+		return nil, nil, 0, "", errors.New("multipart media type is invalid")
 	}
 	if err := validateHttpMultipartToken("multipart media type", upload.mimeType); err != nil {
-		return nil, 0, "", err
+		return nil, nil, 0, "", err
 	}
 
 	var prefix bytes.Buffer
@@ -436,10 +497,10 @@ func newHttpMultipartBody(request *HttpRequest) (*httpMultipartBody, int64, stri
 	contentType := writer.FormDataContentType()
 	for _, parameter := range request.params {
 		if err := validateHttpMultipartToken("multipart field name", parameter.name); err != nil {
-			return nil, 0, "", err
+			return nil, nil, 0, "", err
 		}
 		if err := writer.WriteField(parameter.name, parameter.value); err != nil {
-			return nil, 0, "", err
+			return nil, nil, 0, "", err
 		}
 	}
 	header := make(textproto.MIMEHeader)
@@ -447,16 +508,21 @@ func newHttpMultipartBody(request *HttpRequest) (*httpMultipartBody, int64, stri
 		httpMultipartQuote(upload.parameter), httpMultipartQuote(upload.filename)))
 	header.Set("Content-Type", upload.mimeType)
 	if _, err := writer.CreatePart(header); err != nil {
-		return nil, 0, "", err
+		return nil, nil, 0, "", err
 	}
 	tailBytes := []byte("\r\n--" + boundary + "--\r\n")
 	length := int64(prefix.Len()) + int64(upload.size) + int64(len(tailBytes))
-	return &httpMultipartBody{
-		prefix:    bytes.NewReader(prefix.Bytes()),
-		upload:    upload,
-		remaining: upload.size,
-		tail:      bytes.NewReader(tailBytes),
-	}, length, contentType, nil
+	pipeReader, pipeWriter := io.Pipe()
+	body := &httpMultipartPipeBody{
+		prefix: bytes.NewReader(prefix.Bytes()),
+		pipe:   pipeReader,
+		tail:   bytes.NewReader(tailBytes),
+	}
+	sink := &HttpUploadSink{
+		writer:   pipeWriter,
+		expected: int64(upload.size),
+	}
+	return body, sink, length, contentType, nil
 }
 
 func httpMultipartQuote(value string) string {
@@ -561,6 +627,162 @@ func validateHttpMultipartToken(label string, value string) error {
 		return fmt.Errorf("%s contains a forbidden control character", label)
 	}
 	return nil
+}
+
+// HttpExchangeUploadSink returns the caller-driven sink for a multipart request.
+func HttpExchangeUploadSink(exchange *HttpExchange) *HttpUploadSink {
+	if exchange == nil {
+		return nil
+	}
+	return exchange.upload
+}
+
+// HttpUploadSinkWriteChunk copies one bounded immutable source chunk.
+//
+// What: Writes one non-empty view without exceeding the declared upload size.
+// Why: Source reads remain in staged Haxe, but native cancellation must unblock
+// a write that net/http no longer needs after an early terminal event.
+// How: Serialize the one staged writer while abort may close the pipe
+// concurrently; retain partial native progress before returning its error.
+func HttpUploadSinkWriteChunk(sink *HttpUploadSink, chunk *ByteView) *string {
+	if sink == nil {
+		return StringFromLiteral("HTTP upload sink is unavailable")
+	}
+	var raw []byte
+	if chunk != nil {
+		raw = chunk.raw
+	}
+	if len(raw) == 0 {
+		return StringFromLiteral("multipart upload made no progress")
+	}
+
+	sink.writeMu.Lock()
+	defer sink.writeMu.Unlock()
+
+	sink.stateMu.Lock()
+	if sink.closed {
+		err := sink.err
+		sink.stateMu.Unlock()
+		if err == nil {
+			err = errHTTPUploadBodyClosed
+		}
+		return StringFromLiteral(err.Error())
+	}
+	if int64(len(raw)) > sink.expected-sink.written {
+		written := sink.written
+		expected := sink.expected
+		sink.stateMu.Unlock()
+		return StringFromLiteral(fmt.Sprintf(
+			"multipart upload exceeds declared size: wrote %d, chunk %d, expected %d",
+			written,
+			len(raw),
+			expected,
+		))
+	}
+	writer := sink.writer
+	sink.stateMu.Unlock()
+
+	count, err := writer.Write(raw)
+	if err == nil && count != len(raw) {
+		err = io.ErrShortWrite
+	}
+	sink.stateMu.Lock()
+	sink.written += int64(count)
+	if err != nil && sink.err == nil {
+		sink.err = err
+	}
+	sink.stateMu.Unlock()
+	if err != nil {
+		return StringFromLiteral(err.Error())
+	}
+	return nil
+}
+
+// HttpUploadSinkFinish validates exact size and releases the multipart tail.
+func HttpUploadSinkFinish(sink *HttpUploadSink) *string {
+	if sink == nil {
+		return StringFromLiteral("HTTP upload sink is unavailable")
+	}
+	sink.writeMu.Lock()
+	defer sink.writeMu.Unlock()
+
+	sink.stateMu.Lock()
+	if sink.closed {
+		err := sink.err
+		sink.stateMu.Unlock()
+		if err == nil {
+			return nil
+		}
+		return StringFromLiteral(err.Error())
+	}
+	if sink.written != sink.expected {
+		err := fmt.Errorf(
+			"multipart upload ended after %d bytes; expected %d",
+			sink.written,
+			sink.expected,
+		)
+		sink.closed = true
+		sink.err = err
+		writer := sink.writer
+		sink.stateMu.Unlock()
+		_ = writer.CloseWithError(err)
+		return StringFromLiteral(err.Error())
+	}
+	sink.closed = true
+	writer := sink.writer
+	sink.stateMu.Unlock()
+	if err := writer.Close(); err != nil {
+		return StringFromLiteral(err.Error())
+	}
+	return nil
+}
+
+// HttpUploadSinkAbort reports a source failure and releases native transport.
+func HttpUploadSinkAbort(sink *HttpUploadSink, message *string) {
+	if sink == nil {
+		return
+	}
+	text := "HTTP upload canceled"
+	if message != nil && *StdString(message) != "" {
+		text = *StdString(message)
+	}
+	sink.abort(errors.New(text))
+}
+
+func (sink *HttpUploadSink) abort(err error) {
+	sink.stateMu.Lock()
+	if sink.closed {
+		sink.stateMu.Unlock()
+		return
+	}
+	sink.closed = true
+	if sink.err == nil {
+		sink.err = err
+	}
+	writer := sink.writer
+	sink.stateMu.Unlock()
+	_ = writer.CloseWithError(err)
+}
+
+// HttpExchangeAwaitResponse waits only for native headers or terminal failure.
+func HttpExchangeAwaitResponse(exchange *HttpExchange) {
+	if exchange != nil {
+		exchange.awaitResponse()
+	}
+}
+
+func (exchange *HttpExchange) awaitResponse() {
+	if exchange.ready != nil {
+		<-exchange.ready
+	}
+}
+
+func (exchange *HttpExchange) signalReady() {
+	exchange.readyOnce.Do(func() {
+		if exchange.ready != nil {
+			close(exchange.ready)
+		}
+	})
 }
 
 // HttpExchangeError returns only a startup/transport failure before headers.
@@ -705,21 +927,32 @@ func HttpExchangeCancel(exchange *HttpExchange) {
 
 // cleanup converges every successful, failed, or repeated terminal path.
 //
-// What: Marks the exchange closed and releases context, body, transport, and
-// optional socket resources.
+// What: Marks the exchange closed and releases upload, context, request body,
+// response body, transport, and optional socket resources.
 // Why: Staged callbacks can fail at several points, and none may leak or perform
 // duplicate native cleanup.
-// How: sync.Once owns the terminal transition; Body.Close unblocks a live read.
+// How: sync.Once owns the terminal transition; cancel and both body closers
+// unblock pending upload or response work before cleanup waits for readiness.
 func (exchange *HttpExchange) cleanup() {
 	exchange.cleanupOnce.Do(func() {
 		exchange.stateMu.Lock()
 		exchange.closed = true
 		exchange.stateMu.Unlock()
+		if exchange.upload != nil {
+			exchange.upload.abort(errors.New("HTTP exchange canceled"))
+		}
 		if exchange.cancel != nil {
 			exchange.cancel()
 		}
-		if exchange.response != nil && exchange.response.Body != nil {
-			_ = exchange.response.Body.Close()
+		if exchange.requestBody != nil {
+			_ = exchange.requestBody.Close()
+		}
+		exchange.awaitResponse()
+		exchange.stateMu.Lock()
+		response := exchange.response
+		exchange.stateMu.Unlock()
+		if response != nil && response.Body != nil {
+			_ = response.Body.Close()
 		}
 		if exchange.transport != nil {
 			exchange.transport.CloseIdleConnections()
@@ -776,7 +1009,13 @@ func httpRequestErrorExchange(request *HttpRequest, message string) *HttpExchang
 }
 
 func httpErrorExchange(message string) *HttpExchange {
-	return &HttpExchange{err: StringFromLiteral(message), headers: make(http.Header)}
+	ready := make(chan struct{})
+	close(ready)
+	return &HttpExchange{
+		err:     StringFromLiteral(message),
+		headers: make(http.Header),
+		ready:   ready,
+	}
 }
 
 func httpReadError(message string) *HttpReadResult {

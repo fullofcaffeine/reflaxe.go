@@ -21,7 +21,7 @@ class HttpAdmissionDesignContractTest(unittest.TestCase):
         for heading in (
             "# Portable HTTP client admission design",
             "## Outcome",
-            "## Why the old seam is insufficient",
+            "## Why the old seam was insufficient",
             "## Source and native ownership",
             "## Request contract",
             "## Response contract",
@@ -75,6 +75,8 @@ class HttpAdmissionDesignContractTest(unittest.TestCase):
         self.assertIn("arbitrary custom `Input.readBytes`", text)
         self.assertIn("cannot be forcibly interrupted", text)
         self.assertIn("explicitly excluded", text)
+        self.assertIn("no reads after public return", text)
+        self.assertIn("Abort never waits for the sink's writer mutex", text)
 
     def test_every_oracle_finding_has_one_implementation_owner(self) -> None:
         text = self.text()
