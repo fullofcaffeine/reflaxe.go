@@ -143,7 +143,11 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
         self.assertEqual(
             {
                 "tcp-ipv4-blocking-client-core",
-                "http-client-and-custom-request",
+                "http-ipv4-blocking-client-core",
+                "http-ipv4-multipart-upload",
+                "http-data-url-client",
+                "http-proxy-and-custom-transport",
+                "https-client",
                 "tcp-server-and-listener-controls",
                 "socket-timeout-nonblocking-readiness-controls",
                 "host-dns-and-reverse-lookup",
@@ -159,11 +163,33 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
         self.assertIn("Linux/amd64", tcp_client["qualification"])
         self.assertIn("pre-resolved numeric endpoint", tcp_client["qualification"])
 
-        http = network_ops["http-client-and-custom-request"]
-        self.assertFalse(http["release_admitted"])
-        self.assertEqual(["haxe_go-vfp.10.8"], http["blockers"])
-        self.assertIn("final-state", http["qualification"])
-        self.assertIn("stream", " ".join(http["exclusions"]).lower())
+        http_core = network_ops["http-ipv4-blocking-client-core"]
+        self.assertFalse(http_core["release_admitted"])
+        self.assertEqual("semantic-diff-supported", http_core["state"])
+        self.assertEqual(["haxe_go-vfp.10.8"], http_core["blockers"])
+        self.assertIn("Linux/amd64", http_core["qualification"])
+        self.assertIn("numeric IPv4", http_core["qualification"])
+        self.assertIn("application-controlled", http_core["qualification"])
+        self.assertIn("resource convergence", http_core["qualification"].lower())
+
+        multipart = network_ops["http-ipv4-multipart-upload"]
+        self.assertFalse(multipart["release_admitted"])
+        self.assertEqual("semantic-diff-supported", multipart["state"])
+        self.assertEqual(["haxe_go-vfp.10.8"], multipart["blockers"])
+        self.assertTrue(
+            any("blocks forever" in exclusion for exclusion in multipart["exclusions"])
+        )
+
+        data_url = network_ops["http-data-url-client"]
+        self.assertFalse(data_url["release_admitted"])
+        self.assertEqual("compile-go-test-run-supported", data_url["state"])
+        self.assertEqual(["haxe_go-vfp.10.8"], data_url["blockers"])
+
+        for operation_id in ("http-proxy-and-custom-transport", "https-client"):
+            operation = network_ops[operation_id]
+            self.assertFalse(operation["release_admitted"], operation_id)
+            self.assertEqual("experimental", operation["state"])
+            self.assertEqual([], operation["blockers"], operation_id)
 
         for operation_id in (
             "tcp-server-and-listener-controls",

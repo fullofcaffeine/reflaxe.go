@@ -2996,3 +2996,51 @@ Bounded claim:
   admission review. Proxy negotiation deadlines, fixed-body write deadlines,
   HTTPS custom sockets, HTTP/2, public trust stores, and public/hostile network
   behavior are not admitted by this slice.
+
+### 2026-07-30: prepare fail-closed HTTP operation admission (`haxe_go-vfp.10.8.6`)
+
+What changed:
+
+- Added one native convergence matrix that repeats normal completion, response
+  timeout, truncation, cancellation after a first body chunk, redirect,
+  compression, upload source failure, and early upload response 20 times.
+  `http.ConnState` supplies an exact live-connection count; quiescence also
+  checks bounded goroutine and descriptor deltas.
+- Split the former whole-surface HTTP compatibility row into five operations:
+  direct plain-HTTP numeric-IPv4 core, multipart under the same boundary,
+  deterministic data URLs, proxy/custom transport, and HTTPS.
+- Marked the first three as evidence-complete review candidates while retaining
+  `release_admitted: false`, the `haxe_go-vfp.10.8` blocker, and the
+  `portable-http` readiness exclusion. Proxy/custom transport and HTTPS remain
+  separately experimental.
+
+Why:
+
+- One successful request—or even one successful failure case—does not prove
+  that repeated contexts, response bodies, transports, upload pipes,
+  connections, goroutines, and descriptors return to a bounded steady state.
+- A module-level `haxe.Http` row cannot truthfully distinguish direct
+  application-controlled plain HTTP from unproved HTTPS, proxy, custom-socket,
+  DNS, public-network, or hostile-peer behavior.
+- Flipping canonical release flags before the required independent review
+  would turn a proposed disposition into an unreviewed release claim.
+
+How it is proved:
+
+- The focused convergence test runs under ordinary Go and `go test -race`.
+- Existing semantic-diff fixtures prove request fidelity, response lifecycle,
+  partial errors, multipart behavior, client policy, and data/network event
+  order.
+- The generated-Haxe upload fixture still runs with the Go race detector and
+  proves caller-thread execution plus no reads after public return.
+- Compatibility generation, readiness contracts, and the design contract
+  require the operation split and fail-closed blocker state to agree.
+
+Bounded claim:
+
+- This checkpoint does not admit HTTP. Linux/amd64 is the only candidate
+  release runtime; macOS results remain non-admitting portability evidence and
+  Windows remains compile-only. HTTPS, proxies, custom transports, public
+  networks, fixed-body writes to non-reading peers, and arbitrary custom Inputs
+  that block forever remain excluded. A commit-pinned independent review must
+  approve or further split the three candidates before policy changes.

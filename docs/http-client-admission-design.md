@@ -487,6 +487,73 @@ the invalid-count panic before response-streaming closure, removed the
 transport-to-Haxe upload callback, and made both Output/read and
 source/response/sink precedence explicit.
 
+## Resource convergence evidence
+
+The final native convergence gate does not infer cleanup from a successful
+return. One tracked `httptest.Server` records every connection from
+`StateNew` until `StateClosed` or `StateHijacked`. After a server-start and
+garbage-collection baseline, the test repeats each of these paths 20 times:
+
+- complete response and normal close;
+- response-header progress timeout;
+- declared-length truncation after partial bytes;
+- cancellation after the first streamed body chunk, which is the native
+  cleanup path used when a staged `Output` throws;
+- 307 returned without contacting its destination;
+- raw gzip response bytes and headers;
+- staged upload source failure followed by native pipe abort;
+- early 413 while a large upload is in progress.
+
+After quiescence the gate requires zero active server connections, no more than
+six goroutines above the server-owning baseline, and—when the operating system
+exposes a descriptor directory—no more than three descriptors above baseline.
+The wait is bounded at five seconds and reports every baseline/current value on
+failure. The earlier upload-specific stress remains separate: 40 native early
+responses must converge, while the generated-Haxe race program repeats 12
+early responses and also covers timeout, server close, source exception, early
+EOF, zero progress, exact-size success, caller-thread identity, and zero reads
+after public return.
+
+Linux/amd64 runtime evidence is the release authority for the descriptor,
+goroutine, connection, semantic, and generated-Haxe race gates. macOS CI and
+developer runtime results are useful portability evidence but do not expand the
+governed release platform. Windows compile-only evidence remains compile-only
+evidence; no Windows HTTP runtime claim follows from it.
+
+The custom `Input.readBytes` case that blocks forever inside user code cannot
+participate in a bounded native convergence test without violating the rule
+that generated Haxe is never called from a native goroutine. It remains a named
+exclusion rather than a fabricated passing case.
+
+## Candidate operation-level disposition
+
+The generated compatibility authority now splits HTTP into five operations.
+Three are evidence-complete candidates, but their `release_admitted` flags
+remain `false` and their blocker remains `haxe_go-vfp.10.8`:
+
+| Operation | Candidate scope | Current fail-closed state |
+| --- | --- | --- |
+| `http-ipv4-blocking-client-core` | Synchronous direct plain HTTP to application-controlled numeric IPv4 endpoints on portable Linux/amd64 and the pinned Haxe/Go toolchains. | `semantic-diff-supported`; not release-admitted pending review. |
+| `http-ipv4-multipart-upload` | The same endpoint boundary with bounded caller-thread multipart pumping and typed native cancellation. | `semantic-diff-supported`; not release-admitted pending review. |
+| `http-data-url-client` | The deterministic target-owned data path and its network-equivalent Output choreography. | `compile-go-test-run-supported`; not release-admitted pending review. |
+
+Two operations are implemented enough for focused tests but are not proposed
+for this admission:
+
+| Operation | Why it remains outside the beta promise |
+| --- | --- |
+| `http-proxy-and-custom-transport` | Proxy CONNECT progress, proxy fleets, and secure custom-connector authority are not proved; HTTPS custom sockets are rejected before transport. |
+| `https-client` | Public CA stores, HTTP/2, hostile TLS peers, client certificates, proxy composition, and runtime platforms beyond Linux/amd64 are not proved. |
+
+Release admission remains fail-closed until a commit-pinned independent review
+adjudicates the exact code, convergence evidence, platform wording, operation
+split, and exclusions. Only an accepted review disposition may flip the three
+candidate flags, remove `portable-http` from
+`release/readiness-policy.json`, update the required trust boundary, and close
+the parent Bead. A split or rejection keeps the parent blocker or transfers the
+specific unresolved operation to a named follow-up before any release claim
+changes.
+
 ## Admission boundary
 
 Until the final review:

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "manifest_schema_version": 1,
-  "as_of": "2026-07-19",
+  "as_of": "2026-07-30",
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
     "statement": "Haxe.Go is a pre-1.0 beta for pinned, application-qualified portable workloads on the admitted toolchain, platform, and operation/member surface.",
@@ -286,15 +286,63 @@
       "level": "semantic-diff"
     },
     {
+      "id": "semantic:http-wire-fidelity",
+      "kind": "path",
+      "path": "test/semantic_diff/http_request_wire_fidelity_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:http-response-lifecycle",
+      "kind": "path",
+      "path": "test/semantic_diff/http_response_streaming_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:http-multipart",
+      "kind": "path",
+      "path": "test/semantic_diff/http_multipart_streaming_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:http-proxy-custom-request",
+      "kind": "path",
+      "path": "test/semantic_diff/http_proxy_custom_request",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "semantic:http-data-network-lifecycle",
+      "kind": "path",
+      "path": "test/semantic_diff/http_data_network_lifecycle_contract",
+      "level": "semantic-diff"
+    },
+    {
       "id": "runtime:http-regressions",
       "kind": "path",
       "path": "runtime/hxrt/http_test.go",
       "level": "compile-go-test-run"
     },
     {
+      "id": "contract:http-upload-race",
+      "kind": "path",
+      "path": "test/test_http_upload_sink_race_contract.py",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "policy:http-admission",
+      "kind": "path",
+      "path": "docs/http-client-admission-design.md",
+      "level": "policy"
+    },
+    {
       "id": "snapshot:http-selective-runtime",
       "kind": "path",
       "path": "test/snapshot/core/runtime_hxrt_infer_http",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "snapshot:http-data-url",
+      "kind": "path",
+      "path": "test/snapshot/sys/http_data_lifecycle_contract",
       "level": "compile-go-test-run"
     },
     {
@@ -1162,27 +1210,117 @@
           "blockers": []
         },
         {
-          "id": "http-client-and-custom-request",
+          "id": "http-ipv4-blocking-client-core",
           "symbols": [
-            "haxe.Http",
-            "sys.Http"
+            "haxe.Http/sys.Http request (plain HTTP numeric IPv4)",
+            "haxe.Http/sys.Http customRequest (plain HTTP numeric IPv4)",
+            "haxe.Http/sys.Http requestUrl (plain HTTP numeric IPv4)",
+            "haxe.Http/sys.Http header, parameter, postData, and postBytes APIs (plain HTTP numeric IPv4)"
           ],
-          "granularity": "surface",
-          "state": "experimental",
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
           "release_admitted": false,
-          "qualification": "Canonical staged haxe.Http/sys.Http owns public callback and Output policy over typed native resources. Current loopback tests prove bounded multipart reads and final-state behavior for small complete responses, but they do not prove streamed response lifecycle, partial-body preservation, cancellable uploads, or exact request fidelity.",
+          "qualification": "The candidate portable Linux/amd64 core for Haxe 4.3.7 and Go 1.25.12 or 1.26.5 is synchronous direct plain HTTP to application-controlled numeric IPv4 endpoints. It preserves ordered and repeated fields, explicit method/body policy, redirects without following, raw compressed bytes, streamed status/header/Output lifecycle, partial-body failures, status classification, requestUrl throwing, and direct connect/header/response progress deadlines. Resource convergence evidence repeats success, timeout, truncation, cancellation, redirect, compression, and close cases until zero active server connections and bounded goroutine and Linux descriptor deltas are observed. Release admission remains fail-closed until the commit-pinned independent review is adjudicated.",
           "evidence_ids": [
             "semantic:http",
+            "semantic:http-wire-fidelity",
+            "semantic:http-response-lifecycle",
             "runtime:http-regressions",
             "snapshot:http-selective-runtime",
+            "policy:http-admission",
             "bead:network-audit"
           ],
           "exclusions": [
-            "All HTTP behavior, including ordered request fields, multipart framing, streamed response callbacks and Output lifecycle, partial bodies, upload cancellation, redirects, compression, timeout policy, proxies, custom sockets, hostile peers, and public networks"
+            "Hostnames and DNS, HTTPS, proxies, custom sockets, HTTP/2, public Internet behavior, public trust stores, and runtime support outside Linux/amd64",
+            "A fixed in-memory request body write to a peer that stops reading is not covered by the progress-timeout claim",
+            "Global request-header line ordering and invalid terminal informational responses below 200 are not admitted"
           ],
           "blockers": [
             "haxe_go-vfp.10.8"
           ]
+        },
+        {
+          "id": "http-ipv4-multipart-upload",
+          "symbols": [
+            "haxe.Http/sys.Http fileTransfer/fileTransfert with request/customRequest (plain HTTP numeric IPv4)"
+          ],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": false,
+          "qualification": "The candidate portable Linux/amd64 multipart operation on the pinned Haxe/Go toolchains targets application-controlled numeric IPv4 HTTP endpoints and preserves ordered fields, per-request boundary/content-type agreement, exact declared length, bounded source reads, source-error precedence, caller-thread execution, native sink cancellation, and no generated-Haxe callback after public return. Repeated early-response, timeout, server-close, source-failure, and exact-size cases pass generated-Haxe race and native resource-convergence gates. Release admission remains fail-closed until the commit-pinned independent review is adjudicated.",
+          "evidence_ids": [
+            "semantic:http-multipart",
+            "runtime:http-regressions",
+            "contract:http-upload-race",
+            "policy:http-admission",
+            "bead:network-audit"
+          ],
+          "exclusions": [
+            "A custom Input.readBytes implementation that blocks forever inside user code cannot be forcibly canceled",
+            "Public or hostile peers, indefinite sources, proxies, HTTPS, and runtime support outside Linux/amd64"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.8"
+          ]
+        },
+        {
+          "id": "http-data-url-client",
+          "symbols": [
+            "haxe.Http/sys.Http request/customRequest (data URL)"
+          ],
+          "granularity": "operation",
+          "state": "compile-go-test-run-supported",
+          "release_admitted": false,
+          "qualification": "The candidate portable preset's deterministic target-owned data URL path uses the same status, prepare, bounded write, close, and single-error Output choreography as a complete network response. This is a positive haxe.go target contract rather than a claim that Haxe --interp implements data URLs identically. Release admission remains fail-closed until the commit-pinned independent review is adjudicated.",
+          "evidence_ids": [
+            "semantic:http-data-network-lifecycle",
+            "snapshot:http-data-url",
+            "policy:http-admission"
+          ],
+          "exclusions": [
+            "Treating this target-owned data URL spelling as an interpreter-wide or cross-target standard"
+          ],
+          "blockers": [
+            "haxe_go-vfp.10.8"
+          ]
+        },
+        {
+          "id": "http-proxy-and-custom-transport",
+          "symbols": [
+            "haxe.Http.PROXY and customRequest(..., socket)"
+          ],
+          "granularity": "operation",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Focused native and semantic fixtures prove HTTP absolute proxy targets, Go HTTPS CONNECT selection, and typed plain-HTTP custom-socket ownership. This evidence does not bound proxy negotiation or proxy fleet behavior, and HTTPS custom sockets are rejected because the shared socket handle cannot retain TLS identity and verification policy.",
+          "evidence_ids": [
+            "semantic:http-proxy-custom-request",
+            "runtime:http-regressions",
+            "policy:http-admission"
+          ],
+          "exclusions": [
+            "Proxy negotiation deadlines, proxy authentication fleets, public proxies, HTTPS custom sockets, and custom secure connector policy"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "https-client",
+          "symbols": [
+            "haxe.Http/sys.Http request/customRequest/requestUrl (HTTPS)"
+          ],
+          "granularity": "operation",
+          "state": "experimental",
+          "release_admitted": false,
+          "qualification": "Direct HTTPS currently uses Go's native TLS transport and URL hostname, but the reviewed evidence does not admit public CA-store behavior, HTTP/2, hostile TLS peers, client certificates, proxy composition, or any HTTPS custom-socket path.",
+          "evidence_ids": [
+            "runtime:http-regressions",
+            "policy:http-admission",
+            "bead:network-audit"
+          ],
+          "exclusions": [
+            "All HTTPS release behavior, including public trust stores, HTTP/2, hostile peers, client certificates, proxies, custom sockets, and runtime support outside Linux/amd64"
+          ],
+          "blockers": []
         },
         {
           "id": "tcp-server-and-listener-controls",

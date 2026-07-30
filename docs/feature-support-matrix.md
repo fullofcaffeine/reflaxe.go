@@ -437,10 +437,21 @@ Shim strategy and alternatives are documented in:
   and response-read operation; slow progress can exceed the total budget.
   HTTP proxy absolute targets, HTTPS CONNECT, plain-HTTP custom sockets, and
   HTTPS-custom-socket rejection have separate native contracts.
+- Whole-operation cleanup is now stress-tested across 20 repetitions of
+  success, header timeout, truncation, mid-stream cancellation, redirect,
+  compression, source failure, and early upload response. A tracked server
+  must return to zero active connections with bounded goroutine and descriptor
+  deltas after quiescence. The existing 40-attempt native upload test and
+  generated-Haxe race program remain independent checks of upload cancellation,
+  caller-thread identity, and no source reads after public return.
 - HTTP is release-excluded under `haxe_go-vfp.10.8`. The required typed design
-  now has wire-fidelity, streamed-response, source-driven-upload, and client
-  policy slices, but still needs whole-operation convergence and final
-  operation-level admission review;
+  now has wire-fidelity, streamed-response, source-driven-upload, client-policy,
+  and whole-operation convergence evidence. The compatibility source splits
+  this into three evidence-complete admission candidates—direct plain HTTP to
+  application-controlled numeric IPv4 endpoints, multipart under that same
+  boundary, and deterministic data URLs—plus separately experimental
+  proxy/custom-transport and HTTPS operations. Candidate release flags remain
+  false until the required commit-pinned independent review is adjudicated;
   see the [portable HTTP admission design](http-client-admission-design.md),
   the generated compatibility matrix, and the
   [independent disposition](reviews/network-admission-oracle-disposition-vfp-10.4.md).

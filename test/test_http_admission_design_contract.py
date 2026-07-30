@@ -103,6 +103,24 @@ class HttpAdmissionDesignContractTest(unittest.TestCase):
             matrix,
         )
 
+    def test_final_review_candidate_is_operation_split_and_fail_closed(self) -> None:
+        text = self.text()
+        for value in (
+            "## Resource convergence evidence",
+            "## Candidate operation-level disposition",
+            "`http-ipv4-blocking-client-core`",
+            "`http-ipv4-multipart-upload`",
+            "`http-data-url-client`",
+            "`http-proxy-and-custom-transport`",
+            "`https-client`",
+            "zero active server connections",
+            "Linux/amd64 runtime evidence",
+            "Windows compile-only evidence",
+            "Release admission remains fail-closed",
+            "commit-pinned independent review",
+        ):
+            self.assertIn(value, text)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -666,6 +666,199 @@ func TestHttpUploadEarlyResponseResourcesConverge(t *testing.T) {
 	}
 }
 
+type httpTestResourceServer struct {
+	Server             *httptest.Server
+	activeConnections  atomic.Int64
+	baselineGoroutines int
+	baselineFDs        int
+}
+
+func newHTTPTestResourceServer(t *testing.T, handler http.Handler) *httpTestResourceServer {
+	t.Helper()
+	tracked := &httpTestResourceServer{}
+	server := httptest.NewUnstartedServer(handler)
+	server.Config.ConnState = func(_ net.Conn, state http.ConnState) {
+		switch state {
+		case http.StateNew:
+			tracked.activeConnections.Add(1)
+		case http.StateHijacked, http.StateClosed:
+			tracked.activeConnections.Add(-1)
+		}
+	}
+	server.Start()
+	tracked.Server = server
+	runtime.GC()
+	time.Sleep(20 * time.Millisecond)
+	tracked.baselineGoroutines = runtime.NumGoroutine()
+	tracked.baselineFDs = httpTestOpenFDCount()
+	return tracked
+}
+
+func (tracked *httpTestResourceServer) AwaitConvergence(t *testing.T, wait time.Duration) {
+	t.Helper()
+	deadline := time.Now().Add(wait)
+	for {
+		runtime.GC()
+		active := tracked.activeConnections.Load()
+		currentGoroutines := runtime.NumGoroutine()
+		currentFDs := httpTestOpenFDCount()
+		goroutinesConverged := currentGoroutines <= tracked.baselineGoroutines+6
+		fdsConverged := tracked.baselineFDs < 0 || currentFDs <= tracked.baselineFDs+3
+		if active == 0 && goroutinesConverged && fdsConverged {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf(
+				"HTTP resources did not converge: active=%d, goroutines baseline=%d current=%d, fds baseline=%d current=%d",
+				active,
+				tracked.baselineGoroutines,
+				currentGoroutines,
+				tracked.baselineFDs,
+				currentFDs,
+			)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+func TestHttpOperationResourcesConvergeAcrossFailureModes(t *testing.T) {
+	var redirectDestinationHits atomic.Int32
+	var compressed bytes.Buffer
+	compressor := gzip.NewWriter(&compressed)
+	if _, err := compressor.Write([]byte("compressed payload")); err != nil {
+		t.Fatal(err)
+	}
+	if err := compressor.Close(); err != nil {
+		t.Fatal(err)
+	}
+	compressedBody := append([]byte(nil), compressed.Bytes()...)
+
+	var server *httptest.Server
+	tracked := newHTTPTestResourceServer(t, http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		switch request.URL.Path {
+		case "/timeout":
+			<-request.Context().Done()
+		case "/truncated":
+			response.Header().Set("Connection", "close")
+			response.Header().Set("Content-Length", "5")
+			response.WriteHeader(http.StatusOK)
+			_, _ = response.Write([]byte("two"))
+		case "/stream-cancel":
+			response.Header().Set("Content-Length", strconv.Itoa(1024*1024))
+			response.WriteHeader(http.StatusOK)
+			_, _ = response.Write([]byte("first"))
+			response.(http.Flusher).Flush()
+			<-request.Context().Done()
+		case "/redirect":
+			response.Header().Set("Location", server.URL+"/redirect-destination")
+			response.Header().Set("Content-Length", "8")
+			response.WriteHeader(http.StatusTemporaryRedirect)
+			_, _ = response.Write([]byte("redirect"))
+		case "/redirect-destination":
+			redirectDestinationHits.Add(1)
+			response.WriteHeader(http.StatusInternalServerError)
+		case "/compressed":
+			response.Header().Set("Content-Encoding", "gzip")
+			response.Header().Set("Content-Length", strconv.Itoa(len(compressedBody)))
+			response.WriteHeader(http.StatusOK)
+			_, _ = response.Write(compressedBody)
+		case "/upload":
+			_, _ = io.Copy(io.Discard, request.Body)
+			response.Header().Set("Connection", "close")
+			response.WriteHeader(http.StatusNoContent)
+		case "/early":
+			response.Header().Set("Connection", "close")
+			response.Header().Set("Content-Length", "5")
+			response.WriteHeader(http.StatusRequestEntityTooLarge)
+			_, _ = response.Write([]byte("early"))
+		default:
+			response.Header().Set("Content-Length", "2")
+			response.WriteHeader(http.StatusOK)
+			_, _ = response.Write([]byte("ok"))
+		}
+	}))
+	server = tracked.Server
+	defer server.Close()
+
+	const attempts = 20
+	for attempt := 0; attempt < attempts; attempt++ {
+		success := HttpRequestExecute(HttpRequestNew(httpTestString(server.URL+"/ok"), false, nil, -1))
+		if err := HttpResponseError(success); err != nil {
+			t.Fatalf("attempt %d success error = %q", attempt, *err)
+		}
+
+		timeout := HttpRequestExecute(HttpRequestNew(httpTestString(server.URL+"/timeout"), false, nil, 0.01))
+		if err := HttpResponseError(timeout); err == nil {
+			t.Fatalf("attempt %d timeout error = nil", attempt)
+		}
+
+		truncated := HttpRequestExecute(HttpRequestNew(httpTestString(server.URL+"/truncated"), false, nil, 1))
+		if err := HttpResponseError(truncated); err == nil {
+			t.Fatalf("attempt %d truncated error = nil", attempt)
+		}
+
+		streamed := HttpRequestStartExchange(HttpRequestNew(httpTestString(server.URL+"/stream-cancel"), false, nil, 1))
+		HttpExchangeAwaitResponse(streamed)
+		first := HttpExchangeReadResponseChunk(streamed, 5)
+		if got := string(byteViewRaw(HttpReadResultBody(first))); got != "first" {
+			t.Fatalf("attempt %d first streamed chunk = %q, want first", attempt, got)
+		}
+		HttpExchangeCancel(streamed)
+		HttpExchangeCancel(streamed)
+
+		redirect := HttpRequestExecute(HttpRequestNew(httpTestString(server.URL+"/redirect"), false, nil, 1))
+		if err := HttpResponseError(redirect); err != nil {
+			t.Fatalf("attempt %d redirect error = %q", attempt, *err)
+		}
+		if got := HttpResponseStatus(redirect); got != http.StatusTemporaryRedirect {
+			t.Fatalf("attempt %d redirect status = %d", attempt, got)
+		}
+
+		compressed := HttpRequestExecute(HttpRequestNew(httpTestString(server.URL+"/compressed"), false, nil, 1))
+		if err := HttpResponseError(compressed); err != nil {
+			t.Fatalf("attempt %d compressed error = %q", attempt, *err)
+		}
+		if got := byteViewRaw(HttpResponseBody(compressed)); !bytes.Equal(got, compressedBody) {
+			t.Fatalf("attempt %d compressed body was transformed", attempt)
+		}
+
+		sourceFailureRequest := HttpRequestNew(httpTestString(server.URL+"/upload"), true, nil, 1)
+		HttpRequestSetMultipartUpload(
+			sourceFailureRequest,
+			httpTestString("asset"),
+			httpTestString("source.bin"),
+			httpTestString("application/octet-stream"),
+			1024,
+		)
+		sourceFailure := httpTestExecuteRequest(sourceFailureRequest, func(_ int) *ByteView {
+			return nil
+		})
+		if err := HttpResponseError(sourceFailure); err == nil {
+			t.Fatalf("attempt %d source failure error = nil", attempt)
+		}
+
+		earlyRequest := HttpRequestNew(httpTestString(server.URL+"/early"), true, nil, 1)
+		HttpRequestSetMultipartUpload(
+			earlyRequest,
+			httpTestString("asset"),
+			httpTestString("large.bin"),
+			httpTestString("application/octet-stream"),
+			1024*1024,
+		)
+		early := httpTestExecuteRequest(earlyRequest, func(remaining int) *ByteView {
+			return &ByteView{raw: make([]byte, remaining)}
+		})
+		if got := HttpResponseStatus(early); got != http.StatusRequestEntityTooLarge {
+			t.Fatalf("attempt %d early status = %d", attempt, got)
+		}
+	}
+
+	if got := redirectDestinationHits.Load(); got != 0 {
+		t.Fatalf("redirect destination contacted %d times, want 0", got)
+	}
+	tracked.AwaitConvergence(t, 5*time.Second)
+}
+
 func httpTestOpenFDCount() int {
 	for _, path := range []string{"/proc/self/fd", "/dev/fd"} {
 		entries, err := os.ReadDir(path)

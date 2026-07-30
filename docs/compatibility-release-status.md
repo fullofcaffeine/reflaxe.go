@@ -20,7 +20,11 @@ take the default excluded disposition.
 ## Not admitted by this release scope
 
 - `portable-process` / `new sys.io.Process(..., detached=true)`: `excluded`.
-- `portable-networking` / `haxe.Http`, `sys.Http`: `experimental`; blockers: haxe_go-vfp.10.8.
+- `portable-networking` / `haxe.Http/sys.Http request (plain HTTP numeric IPv4)`, `haxe.Http/sys.Http customRequest (plain HTTP numeric IPv4)`, `haxe.Http/sys.Http requestUrl (plain HTTP numeric IPv4)`, `haxe.Http/sys.Http header, parameter, postData, and postBytes APIs (plain HTTP numeric IPv4)`: `semantic-diff-supported`; blockers: haxe_go-vfp.10.8.
+- `portable-networking` / `haxe.Http/sys.Http fileTransfer/fileTransfert with request/customRequest (plain HTTP numeric IPv4)`: `semantic-diff-supported`; blockers: haxe_go-vfp.10.8.
+- `portable-networking` / `haxe.Http/sys.Http request/customRequest (data URL)`: `compile-go-test-run-supported`; blockers: haxe_go-vfp.10.8.
+- `portable-networking` / `haxe.Http.PROXY and customRequest(..., socket)`: `experimental`.
+- `portable-networking` / `haxe.Http/sys.Http request/customRequest/requestUrl (HTTPS)`: `experimental`.
 - `portable-networking` / `sys.net.Socket.bind`, `sys.net.Socket.listen`, `sys.net.Socket.accept`: `experimental`; blockers: haxe_go-vfp.10.9.
 - `portable-networking` / `sys.net.Socket.setTimeout`, `sys.net.Socket.setBlocking`, `sys.net.Socket.select`, `sys.net.Socket.waitForRead`, `sys.net.Socket.shutdown`, `sys.net.Socket.setFastSend`: `experimental`; blockers: haxe_go-vfp.10.9.
 - `portable-networking` / `new sys.net.Host("hostname")`, `sys.net.Host.reverse`, `sys.net.Host.localhost`: `experimental`; blockers: haxe_go-vfp.10.9.
