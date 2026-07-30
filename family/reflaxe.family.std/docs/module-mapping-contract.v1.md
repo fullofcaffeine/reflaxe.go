@@ -143,7 +143,8 @@ public ownership view.
     compatibility presets use the same staged API; native transport is an
     API-scoped capability selected by typed reachability.
   - Baseline evidence: `haxe.go-14as.53`; completed migration:
-    `haxe_go-vfp.8.7.12`
+    `haxe_go-vfp.8.7.12`; lifecycle/partial-I/O audit:
+    `haxe_go-vfp.10.4`
 
 ## Governance Rule
 
