@@ -130,7 +130,7 @@ func socketErrorStatus(err error) int {
 	if err == nil {
 		return SocketIOReady
 	}
-	if errors.Is(err, io.EOF) || errors.Is(err, io.ErrClosedPipe) || errors.Is(err, net.ErrClosed) || errors.Is(err, os.ErrClosed) {
+	if socketErrorIsClosed(err) {
 		return SocketIOEOF
 	}
 	var netError net.Error
@@ -141,6 +141,13 @@ func socketErrorStatus(err error) int {
 		return SocketIOBlocked
 	}
 	return -1
+}
+
+func socketErrorIsClosed(err error) bool {
+	return errors.Is(err, io.EOF) ||
+		errors.Is(err, io.ErrClosedPipe) ||
+		errors.Is(err, net.ErrClosed) ||
+		errors.Is(err, os.ErrClosed)
 }
 
 func socketDeadline(timeout float64) time.Time {
@@ -535,7 +542,7 @@ func SocketSetTimeout(handle *SocketHandle, timeout float64) {
 	connErr := handle.applyConnDeadlineLocked()
 	listenerErr := handle.applyListenerDeadlineLocked()
 	handle.stateMu.Unlock()
-	if connErr != nil && !errors.Is(connErr, net.ErrClosed) {
+	if connErr != nil && !socketErrorIsClosed(connErr) {
 		socketThrow(connErr)
 	}
 	if listenerErr != nil && !errors.Is(listenerErr, net.ErrClosed) {
@@ -553,7 +560,7 @@ func SocketSetBlocking(handle *SocketHandle, blocking bool) {
 	connErr := handle.applyConnDeadlineLocked()
 	listenerErr := handle.applyListenerDeadlineLocked()
 	handle.stateMu.Unlock()
-	if connErr != nil && !errors.Is(connErr, net.ErrClosed) {
+	if connErr != nil && !socketErrorIsClosed(connErr) {
 		socketThrow(connErr)
 	}
 	if listenerErr != nil && !errors.Is(listenerErr, net.ErrClosed) {
@@ -589,7 +596,10 @@ func SocketReadValues(handle *SocketHandle, length int) *SocketIOResult {
 	reader := handle.reader
 	deadlineErr := handle.applyConnDeadlineLocked()
 	handle.stateMu.Unlock()
-	if deadlineErr != nil && !errors.Is(deadlineErr, net.ErrClosed) {
+	if deadlineErr != nil {
+		if socketErrorIsClosed(deadlineErr) {
+			return &SocketIOResult{Values: []int{}, Status: SocketIOEOF}
+		}
 		socketThrow(deadlineErr)
 		return &SocketIOResult{Values: []int{}, Status: SocketIOEOF}
 	}
@@ -643,7 +653,10 @@ func SocketWriteValues(handle *SocketHandle, values []int) *SocketIOResult {
 	conn := handle.conn
 	deadlineErr := handle.applyConnDeadlineLocked()
 	handle.stateMu.Unlock()
-	if deadlineErr != nil && !errors.Is(deadlineErr, net.ErrClosed) {
+	if deadlineErr != nil {
+		if socketErrorIsClosed(deadlineErr) {
+			return &SocketIOResult{Values: []int{}, Status: SocketIOEOF}
+		}
 		socketThrow(deadlineErr)
 		return &SocketIOResult{Values: []int{}, Status: SocketIOEOF}
 	}
@@ -882,7 +895,10 @@ func SocketUdpSendTo(handle *SocketHandle, values []int, host int, port int) *So
 	handle.stateMu.Lock()
 	deadlineErr := handle.applyConnDeadlineLocked()
 	handle.stateMu.Unlock()
-	if deadlineErr != nil && !errors.Is(deadlineErr, net.ErrClosed) {
+	if deadlineErr != nil {
+		if socketErrorIsClosed(deadlineErr) {
+			return &SocketIOResult{Status: SocketIOEOF}
+		}
 		socketThrow(deadlineErr)
 		return &SocketIOResult{Status: SocketIOEOF}
 	}
@@ -912,7 +928,10 @@ func SocketUdpReadFrom(handle *SocketHandle, length int) *SocketDatagramResult {
 	handle.stateMu.Lock()
 	deadlineErr := handle.applyConnDeadlineLocked()
 	handle.stateMu.Unlock()
-	if deadlineErr != nil && !errors.Is(deadlineErr, net.ErrClosed) {
+	if deadlineErr != nil {
+		if socketErrorIsClosed(deadlineErr) {
+			return &SocketDatagramResult{Values: []int{}, Status: SocketIOEOF}
+		}
 		socketThrow(deadlineErr)
 		return &SocketDatagramResult{Values: []int{}, Status: SocketIOEOF}
 	}

@@ -248,15 +248,18 @@ func TestSocketPeerClosePreservesPartialReadThenReportsEOF(t *testing.T) {
 	handle.installConn(local)
 	defer SocketClose(handle)
 
+	peerClosed := make(chan struct{})
 	go func() {
 		_, _ = peer.Write([]byte("xy"))
 		_ = peer.Close()
+		close(peerClosed)
 	}()
 
 	first := SocketReadValues(handle, 8)
 	if first.Status != SocketIOReady || first.Count != 2 || !socketTestIntsEqual(first.Values, 'x', 'y') {
 		t.Fatalf("partial peer-close read = %#v, want two ready bytes", first)
 	}
+	<-peerClosed
 	second := SocketReadValues(handle, 8)
 	if second.Status != SocketIOEOF || second.Count != 0 {
 		t.Fatalf("read after peer close = %#v, want EOF", second)
