@@ -10,9 +10,9 @@ must be used as the compatibility paragraph in release notes.
 
 - preset: `portable` (`semantic-diff-supported`);
 - platform: `linux/amd64`;
-- named operations/members: 133;
+- named operations/members: 171;
 - toolchains: exact Haxe version and latest patched supported Go/Node lines from `toolchain-policy.json`;
-- trust: reviewed application source, locked tooling, application-controlled local file/process boundaries, and application-controlled, pre-resolved numeric TCP endpoints.
+- trust: reviewed application source, locked tooling, application-controlled local file/process boundaries, and application-controlled numeric IPv4 endpoints, peers, and TLS identity/trust.
 
 No module-level inventory row expands this scope. Unlisted operations and error paths
 take the default excluded disposition.
@@ -25,12 +25,8 @@ take the default excluded disposition.
 - `portable-networking` / `haxe.Http/sys.Http request/customRequest (data URL)`: `compile-go-test-run-supported`; blockers: haxe_go-vfp.10.8.
 - `portable-networking` / `haxe.Http.PROXY and customRequest(..., socket)`: `experimental`.
 - `portable-networking` / `haxe.Http/sys.Http request/customRequest/requestUrl (HTTPS)`: `experimental`.
-- `portable-networking` / `sys.net.Socket.bind`, `sys.net.Socket.listen`, `sys.net.Socket.accept`: `semantic-diff-supported`; blockers: haxe_go-vfp.10.9.
-- `portable-networking` / `sys.net.Socket.setTimeout`, `sys.net.Socket.setBlocking`, `sys.net.Socket.select`, `sys.net.Socket.waitForRead`: `semantic-diff-supported`; blockers: haxe_go-vfp.10.9.
-- `portable-networking` / `sys.net.Socket.shutdown`, `sys.net.Socket.setFastSend`: `compile-go-test-run-supported`; blockers: haxe_go-vfp.10.9.
-- `portable-networking` / `new sys.net.Host("hostname")`, `sys.net.Host.reverse`, `sys.net.Host.localhost`: `experimental`; blockers: haxe_go-vfp.10.9.
-- `portable-networking` / `sys.net.UdpSocket`: `experimental`; blockers: haxe_go-vfp.10.9.
-- `portable-networking` / `sys.ssl.Socket`: `experimental`; blockers: haxe_go-vfp.10.9.
+- `portable-networking` / `new sys.net.Host("hostname")`: `experimental`.
+- `portable-networking` / `sys.net.Host.reverse`: `experimental`.
 - `go-native` / `go.Slice<T>`, `go.Map<K,V>`, `go.Result<T>`: `experimental`; blockers: haxe_go-vfp.9.1.
 - `go-native` / `go.Go`, `go.Chan<T>`, `go.Select`: `experimental`; blockers: haxe_go-vfp.9.1.
 - `go-native` / `@:go.import`, `@:go.name`, `@:go.receiver`, `@:go.valueError`: `experimental`; blockers: haxe_go-vfp.9.1.
@@ -43,7 +39,6 @@ take the default excluded disposition.
 ## Known blockers
 
 - `haxe_go-vfp.10.8`: Portable HTTP request fidelity, streamed responses, and cancellable uploads (blocks portable-http).
-- `haxe_go-vfp.10.9`: Advanced portable socket, DNS, UDP, readiness, server, and TLS semantics (blocks portable-socket-advanced).
 - `haxe_go-vfp.9.1`: Governed Go-native capability matrix (blocks go-native).
 - `haxe_go-vfp.4.8`: Checksummed same-SHA hosted release assets and provenance (blocks published beta-baseline artifact).
 - `haxe_go-vfp.12.7`: Separate stable-1.x admission decision (blocks any stable 1.x claim).

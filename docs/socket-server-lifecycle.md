@@ -13,9 +13,9 @@ Binding does not accept connections. This distinction matters when an
 application must finish configuration before making a server reachable, and it
 keeps the public `connections` argument from becoming decorative.
 
-The operation remains release-excluded until the advanced socket parent review
-closes. Correcting the implementation is evidence for an admission candidate;
-it is not, by itself, a production-server promise.
+The independent review admitted this exact blocking Linux/amd64 member group
+after acquisition-generation and failed-listen rollback were added. It is not
+a production-scale or cross-platform server promise.
 
 ## Why Go needs a narrow native adapter
 
@@ -51,6 +51,11 @@ backlog, so Haxe.Go does not emulate one.
 | New or closed | `listen(connections)` | Fails because no bound endpoint exists. |
 | Any | `listen(-1)` | Fails before an OS call because a negative pending-connection count is not a valid Haxe.Go request. |
 
+If native listen succeeds but applying retained listener policy fails, the
+runtime detaches and closes that new listener before the error escapes. The
+bound descriptor was consumed by the failed transition, so the handle is left
+empty and the caller must bind again. It never exposes a stale closed listener.
+
 The backlog is passed exactly as an integer, but the operating system may cap
 or normalize its queue. Haxe.Go promises not to replace the requested value
 with Go's default; it does not promise that every kernel admits precisely the
@@ -62,10 +67,9 @@ An accepted child retains the listener's configured timeout, blocking, and
 fast-send policy, and installs those settings on its own connection. The
 current blocking accept and timeout evidence is deterministic.
 
-`haxe_go-vfp.10.9.6` subsequently added real OS readiness and proved the
-connected nonblocking accept progress-or-`Blocked` behavior. Nonblocking
-connect and the broader server surface remain release-excluded under the
-parent `haxe_go-vfp.10.9`; see the
+`haxe_go-vfp.10.9.6` added real OS readiness and proved the connected
+nonblocking accept progress-or-`Blocked` behavior. That behavior is admitted
+as a separate child operation; nonblocking connect remains excluded. See the
 [socket readiness contract](socket-readiness-nonblocking.md).
 
 ## TLS servers
@@ -89,9 +93,9 @@ hostile-peer, and cross-platform runtime guarantees remain separate.
   compile evidence, not Windows runtime evidence.
 - No Darwin, Windows, or other operating system is admitted by this change.
 - Listener load, hostile peers, nonblocking connect, and long-duration server
-  behavior remain excluded pending the parent review. Real readiness and
-  connected nonblocking accept now have candidate evidence, but are not
-  release-admitted by this document.
+  behavior remain excluded. Plain-TCP readiness and connected nonblocking
+  accept are separately admitted Linux/amd64 operations; neither widens this
+  server claim to TLS readiness or nonblocking connect.
 - The bounded cleanup matrix repeats bind/listen/accept and concurrent close,
   then requires quiescent active connections and bounded goroutine/Linux
   descriptor deltas. See

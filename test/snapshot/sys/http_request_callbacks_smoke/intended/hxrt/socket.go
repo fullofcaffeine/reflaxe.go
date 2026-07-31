@@ -2,6 +2,7 @@ package hxrt
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"io"
 	"net"
@@ -167,6 +168,22 @@ type socketSelectEntry struct {
 	immediate     bool
 }
 
+// socketAcquisition identifies one native resource acquisition attempt.
+//
+// What: Couples a connect or bind operation to the handle lifecycle generation
+// in which it began.
+// Why: close() must prevent an older in-flight operation from attaching a new
+// descriptor after close has already returned, without permanently disabling
+// deliberate reuse of the Haxe Socket object.
+// How: Installation compares this token while holding stateMu; stale resources
+// are closed instead of published. Dial attempts also register a cancellation
+// function that close invokes outside the state lock.
+type socketAcquisition struct {
+	handle     *SocketHandle
+	generation uint64
+	id         uint64
+}
+
 type socketNativeSelectRequest struct {
 	Read    []uintptr
 	Write   []uintptr
@@ -191,12 +208,14 @@ func newSocketNativeSelectResult() *socketNativeSelectResult {
 // SocketHandle owns one native socket resource behind a typed opaque boundary.
 //
 // What: Stores a TCP/UDP connection, pre-listen TCP endpoint, or listener plus
-// buffering and deadline policy.
+// buffering, deadline policy, and the generation of in-flight acquisitions.
 // Why: OS resources cannot be represented as portable Haxe data, while exposing
-// net.Conn as Dynamic would erase lifecycle ownership and make concurrent close racy.
+// net.Conn as Dynamic would erase lifecycle ownership and let a completed dial
+// resurrect a handle after close returned.
 // How: stateMu protects replaceable resources and policy, while readMu/writeMu
-// serialize their respective stream operations. Close detaches resources before
-// closing them so blocked operations are safely interrupted without holding stateMu.
+// serialize their respective stream operations. Close advances the generation,
+// cancels in-flight dials, and detaches resources before closing them outside
+// stateMu. A stale acquisition closes its new resource instead of installing it.
 type SocketHandle struct {
 	stateMu sync.Mutex
 	readMu  sync.Mutex
@@ -214,10 +233,63 @@ type SocketHandle struct {
 	blocking   bool
 	fastSend   bool
 	broadcast  bool
+
+	lifecycleGeneration uint64
+	nextAcquisitionID   uint64
+	acquisitionCancels  map[uint64]context.CancelFunc
 }
 
 func newSocketHandle() *SocketHandle {
 	return &SocketHandle{blocking: true}
+}
+
+// Native acquisition seams keep failure sequencing deterministic in tests.
+//
+// What: Name the few OS operations whose completion must be gated or failed.
+// Why: Lifecycle rollback cannot be proved reliably with scheduler sleeps.
+// How: Production defaults delegate to typed standard-library calls; package
+// tests temporarily replace a seam, and generated Haxe cannot access them.
+var socketDialTCPContext = func(dialer *net.Dialer, operationContext context.Context, network string, address string) (net.Conn, error) {
+	return dialer.DialContext(operationContext, network, address)
+}
+
+var socketBindTCPResource = socketBindTCPNative
+var socketListenUDP = net.ListenUDP
+
+func (handle *SocketHandle) beginAcquisition(cancellable bool) (socketAcquisition, context.Context) {
+	operationContext := context.Background()
+	var cancel context.CancelFunc
+	if cancellable {
+		operationContext, cancel = context.WithCancel(operationContext)
+	}
+	handle.stateMu.Lock()
+	handle.nextAcquisitionID++
+	acquisition := socketAcquisition{
+		handle:     handle,
+		generation: handle.lifecycleGeneration,
+		id:         handle.nextAcquisitionID,
+	}
+	if cancel != nil {
+		if handle.acquisitionCancels == nil {
+			handle.acquisitionCancels = make(map[uint64]context.CancelFunc)
+		}
+		handle.acquisitionCancels[acquisition.id] = cancel
+	}
+	handle.stateMu.Unlock()
+	return acquisition, operationContext
+}
+
+func (handle *SocketHandle) abandonAcquisition(acquisition socketAcquisition) {
+	if handle == nil || acquisition.handle != handle {
+		return
+	}
+	handle.stateMu.Lock()
+	cancel := handle.acquisitionCancels[acquisition.id]
+	delete(handle.acquisitionCancels, acquisition.id)
+	handle.stateMu.Unlock()
+	if cancel != nil {
+		cancel()
+	}
 }
 
 // SocketNewTCP creates one unconnected typed TCP handle.
@@ -353,20 +425,17 @@ func (handle *SocketHandle) applyFastSendLocked(requireSupport bool) error {
 	return tcpConn.SetNoDelay(handle.fastSend)
 }
 
-// installConn replaces the handle's native connection transactionally.
+// replaceConnLocked prepares a native connection replacement transaction.
 //
 // What: Installs one connection and applies the already selected deadline and
 // fast-send policy before exposing a successful public operation.
 // Why: A peer can reset between Dial and policy application; leaving that
 // failed connection attached makes a thrown connect look closed while
 // retaining its descriptor until an optional later close.
-// How: Detach and close the new connection if either policy application fails,
-// while still releasing every resource replaced by this installation.
-func (handle *SocketHandle) installConn(conn net.Conn) {
-	if handle == nil || conn == nil {
-		return
-	}
-	handle.stateMu.Lock()
+// How: Update only state owned by stateMu and return displaced resources plus
+// the policy error. The caller closes both failed and displaced resources after
+// unlocking, so native close cannot re-enter the handle lock.
+func (handle *SocketHandle) replaceConnLocked(conn net.Conn) (net.Conn, socketBoundTCP, net.Listener, error) {
 	oldConn := handle.conn
 	oldBound := handle.boundTCP
 	oldListener := handle.listener
@@ -383,8 +452,11 @@ func (handle *SocketHandle) installConn(conn net.Conn) {
 		handle.conn = nil
 		handle.reader = nil
 	}
-	handle.stateMu.Unlock()
-	if oldConn != nil && oldConn != conn {
+	return oldConn, oldBound, oldListener, installErr
+}
+
+func closeReplacedSocketResources(oldConn net.Conn, oldBound socketBoundTCP, oldListener net.Listener, replacement net.Conn) {
+	if oldConn != nil && oldConn != replacement {
 		_ = oldConn.Close()
 	}
 	if oldBound != nil {
@@ -393,17 +465,58 @@ func (handle *SocketHandle) installConn(conn net.Conn) {
 	if oldListener != nil {
 		_ = oldListener.Close()
 	}
-	if installErr != nil {
-		_ = conn.Close()
-		socketThrow(installErr)
-	}
 }
 
-func (handle *SocketHandle) installBoundTCP(bound socketBoundTCP, wrapper socketListenerWrapper) {
-	if handle == nil || bound == nil {
-		return
+func (handle *SocketHandle) installConnResult(conn net.Conn) error {
+	if handle == nil || conn == nil {
+		return nil
 	}
 	handle.stateMu.Lock()
+	oldConn, oldBound, oldListener, installErr := handle.replaceConnLocked(conn)
+	handle.stateMu.Unlock()
+	closeReplacedSocketResources(oldConn, oldBound, oldListener, conn)
+	if installErr != nil {
+		_ = conn.Close()
+	}
+	return installErr
+}
+
+func (handle *SocketHandle) installConn(conn net.Conn) {
+	socketThrow(handle.installConnResult(conn))
+}
+
+func (handle *SocketHandle) installAcquiredConn(acquisition socketAcquisition, conn net.Conn) error {
+	if handle == nil || conn == nil {
+		return nil
+	}
+	if acquisition.handle != handle {
+		_ = conn.Close()
+		return net.ErrClosed
+	}
+	handle.stateMu.Lock()
+	cancel := handle.acquisitionCancels[acquisition.id]
+	delete(handle.acquisitionCancels, acquisition.id)
+	if acquisition.generation != handle.lifecycleGeneration {
+		handle.stateMu.Unlock()
+		if cancel != nil {
+			cancel()
+		}
+		_ = conn.Close()
+		return net.ErrClosed
+	}
+	oldConn, oldBound, oldListener, installErr := handle.replaceConnLocked(conn)
+	handle.stateMu.Unlock()
+	if cancel != nil {
+		cancel()
+	}
+	closeReplacedSocketResources(oldConn, oldBound, oldListener, conn)
+	if installErr != nil {
+		_ = conn.Close()
+	}
+	return installErr
+}
+
+func (handle *SocketHandle) replaceBoundTCPLocked(bound socketBoundTCP, wrapper socketListenerWrapper) (net.Conn, socketBoundTCP, net.Listener) {
 	oldConn := handle.conn
 	oldBound := handle.boundTCP
 	oldListener := handle.listener
@@ -413,6 +526,15 @@ func (handle *SocketHandle) installBoundTCP(bound socketBoundTCP, wrapper socket
 	handle.deadlineListener = nil
 	handle.listenerWrapper = wrapper
 	handle.reader = nil
+	return oldConn, oldBound, oldListener
+}
+
+func (handle *SocketHandle) installBoundTCP(bound socketBoundTCP, wrapper socketListenerWrapper) {
+	if handle == nil || bound == nil {
+		return
+	}
+	handle.stateMu.Lock()
+	oldConn, oldBound, oldListener := handle.replaceBoundTCPLocked(bound, wrapper)
 	handle.stateMu.Unlock()
 	if oldConn != nil {
 		_ = oldConn.Close()
@@ -425,6 +547,42 @@ func (handle *SocketHandle) installBoundTCP(bound socketBoundTCP, wrapper socket
 	}
 }
 
+func (handle *SocketHandle) installAcquiredBoundTCP(acquisition socketAcquisition, bound socketBoundTCP, wrapper socketListenerWrapper) error {
+	if handle == nil || bound == nil {
+		return nil
+	}
+	if acquisition.handle != handle {
+		_ = bound.Close()
+		return net.ErrClosed
+	}
+	handle.stateMu.Lock()
+	cancel := handle.acquisitionCancels[acquisition.id]
+	delete(handle.acquisitionCancels, acquisition.id)
+	if acquisition.generation != handle.lifecycleGeneration {
+		handle.stateMu.Unlock()
+		if cancel != nil {
+			cancel()
+		}
+		_ = bound.Close()
+		return net.ErrClosed
+	}
+	oldConn, oldBound, oldListener := handle.replaceBoundTCPLocked(bound, wrapper)
+	handle.stateMu.Unlock()
+	if cancel != nil {
+		cancel()
+	}
+	if oldConn != nil {
+		_ = oldConn.Close()
+	}
+	if oldBound != nil && oldBound != bound {
+		_ = oldBound.Close()
+	}
+	if oldListener != nil {
+		_ = oldListener.Close()
+	}
+	return nil
+}
+
 func (handle *SocketHandle) snapshotConn() net.Conn {
 	if handle == nil {
 		return nil
@@ -434,11 +592,34 @@ func (handle *SocketHandle) snapshotConn() net.Conn {
 	return handle.conn
 }
 
+func (handle *SocketHandle) detachAndCloseConnIfCurrent(connection net.Conn) bool {
+	if handle == nil || connection == nil {
+		return false
+	}
+	handle.stateMu.Lock()
+	detached := handle.conn == connection
+	if detached {
+		handle.conn = nil
+		handle.reader = nil
+	}
+	handle.stateMu.Unlock()
+	if detached {
+		_ = connection.Close()
+	}
+	return detached
+}
+
 func (handle *SocketHandle) close() error {
 	if handle == nil {
 		return nil
 	}
 	handle.stateMu.Lock()
+	handle.lifecycleGeneration++
+	cancels := make([]context.CancelFunc, 0, len(handle.acquisitionCancels))
+	for _, cancel := range handle.acquisitionCancels {
+		cancels = append(cancels, cancel)
+	}
+	handle.acquisitionCancels = nil
 	conn := handle.conn
 	bound := handle.boundTCP
 	listener := handle.listener
@@ -451,6 +632,9 @@ func (handle *SocketHandle) close() error {
 	handle.stateMu.Unlock()
 
 	var closeErrors []error
+	for _, cancel := range cancels {
+		cancel()
+	}
 	if conn != nil {
 		if err := conn.Close(); err != nil && !errors.Is(err, net.ErrClosed) {
 			closeErrors = append(closeErrors, err)
@@ -566,12 +750,14 @@ func SocketConnectTCP(handle *SocketHandle, host *string, port int) {
 		socketThrow(errors.New("socket connect requires host"))
 		return
 	}
-	conn, err := handle.dialer().Dial("tcp4", net.JoinHostPort(*StdString(host), strconv.Itoa(port)))
+	acquisition, operationContext := handle.beginAcquisition(true)
+	conn, err := socketDialTCPContext(handle.dialer(), operationContext, "tcp4", net.JoinHostPort(*StdString(host), strconv.Itoa(port)))
 	if err != nil {
+		handle.abandonAcquisition(acquisition)
 		socketThrow(err)
 		return
 	}
-	handle.installConn(conn)
+	socketThrow(handle.installAcquiredConn(acquisition, conn))
 }
 
 func socketBindTCP(handle *SocketHandle, host *string, port int, wrapper socketListenerWrapper) {
@@ -579,12 +765,14 @@ func socketBindTCP(handle *SocketHandle, host *string, port int, wrapper socketL
 		socketThrow(errors.New("socket bind requires host"))
 		return
 	}
-	bound, err := socketBindTCPNative(*StdString(host), port)
+	acquisition, _ := handle.beginAcquisition(false)
+	bound, err := socketBindTCPResource(*StdString(host), port)
 	if err != nil {
+		handle.abandonAcquisition(acquisition)
 		socketThrow(err)
 		return
 	}
-	handle.installBoundTCP(bound, wrapper)
+	socketThrow(handle.installAcquiredBoundTCP(acquisition, bound, wrapper))
 }
 
 // SocketBindTCP reserves one TCP endpoint without starting to listen.
@@ -635,6 +823,11 @@ func SocketListen(handle *SocketHandle, backlog int) {
 	handle.deadlineListener = tcpListener
 	handle.listenerWrapper = nil
 	deadlineErr := handle.applyListenerDeadlineLocked()
+	if deadlineErr != nil {
+		handle.listener = nil
+		handle.deadlineListener = nil
+		handle.listenerWrapper = nil
+	}
 	handle.stateMu.Unlock()
 	if deadlineErr != nil {
 		_ = listener.Close()
@@ -965,10 +1158,12 @@ func socketResourceDescriptor(resource socketSyscallResource) (uintptr, error) {
 	}
 	var descriptor uintptr
 	var duplicateErr error
+	duplicated := false
 	if err := raw.Control(func(value uintptr) {
 		descriptor, duplicateErr = socketDuplicateDescriptor(value)
+		duplicated = duplicateErr == nil
 	}); err != nil {
-		if duplicateErr == nil {
+		if duplicated {
 			_ = socketCloseDescriptor(descriptor)
 		}
 		return 0, err
@@ -983,16 +1178,23 @@ func (handle *SocketHandle) readinessSnapshot() (socketReadinessSnapshot, error)
 	if handle == nil {
 		return socketReadinessSnapshot{eof: true}, nil
 	}
-	handle.readMu.Lock()
-	handle.stateMu.Lock()
+	readLocked := handle.readMu.TryLock()
+	if !handle.stateMu.TryLock() {
+		if readLocked {
+			handle.readMu.Unlock()
+		}
+		return socketReadinessSnapshot{}, nil
+	}
 	reader := handle.reader
 	conn := handle.conn
 	listener := handle.listener
 	deadlineListener := handle.deadlineListener
-	buffered := reader != nil && reader.Buffered() > 0
+	buffered := readLocked && reader != nil && reader.Buffered() > 0
 	if conn == nil && listener == nil {
 		handle.stateMu.Unlock()
-		handle.readMu.Unlock()
+		if readLocked {
+			handle.readMu.Unlock()
+		}
 		return socketReadinessSnapshot{buffered: buffered, eof: true}, nil
 	}
 
@@ -1002,7 +1204,9 @@ func (handle *SocketHandle) readinessSnapshot() (socketReadinessSnapshot, error)
 		resource, ok = socketConnectionSyscallResource(conn)
 		if !ok {
 			handle.stateMu.Unlock()
-			handle.readMu.Unlock()
+			if readLocked {
+				handle.readMu.Unlock()
+			}
 			return socketReadinessSnapshot{}, errors.New("socket resource does not expose native readiness")
 		}
 	} else {
@@ -1010,13 +1214,17 @@ func (handle *SocketHandle) readinessSnapshot() (socketReadinessSnapshot, error)
 		resource, ok = deadlineListener.(socketSyscallResource)
 		if !ok {
 			handle.stateMu.Unlock()
-			handle.readMu.Unlock()
+			if readLocked {
+				handle.readMu.Unlock()
+			}
 			return socketReadinessSnapshot{}, errors.New("socket listener does not expose native readiness")
 		}
 	}
 	descriptor, err := socketResourceDescriptor(resource)
 	handle.stateMu.Unlock()
-	handle.readMu.Unlock()
+	if readLocked {
+		handle.readMu.Unlock()
+	}
 	if err != nil {
 		if socketErrorIsClosed(err) {
 			return socketReadinessSnapshot{buffered: buffered, eof: true}, nil
@@ -1191,71 +1399,18 @@ func SocketWaitForRead(handle *SocketHandle) {
 	_ = SocketSelect([]*SocketHandle{handle}, nil, nil, 0, false)
 }
 
-func (handle *SocketHandle) udpConn(create bool) *net.UDPConn {
-	if handle == nil {
-		return nil
-	}
-	handle.stateMu.Lock()
-	conn := handle.conn
-	if conn != nil {
-		handle.stateMu.Unlock()
-		udpConn, ok := conn.(*net.UDPConn)
-		if !ok {
-			socketThrow(errors.New("udp socket expects UDP connection"))
-			return nil
-		}
-		return udpConn
-	}
-	if !create {
-		handle.stateMu.Unlock()
-		return nil
-	}
-	// Keep lazy creation under the state lock so concurrent first sends all
-	// observe the same connection instead of installing and closing one another's
-	// ephemeral sockets.
-	udpConn, err := net.ListenUDP("udp4", nil)
-	if err != nil {
-		handle.stateMu.Unlock()
-		socketThrow(err)
-		return nil
-	}
-	oldBound := handle.boundTCP
-	handle.conn = udpConn
-	handle.boundTCP = nil
-	handle.listener = nil
-	handle.deadlineListener = nil
-	handle.listenerWrapper = nil
-	handle.reader = bufio.NewReader(udpConn)
-	deadlineErr := handle.applyConnDeadlineLocked()
-	handle.stateMu.Unlock()
-	if oldBound != nil {
-		_ = oldBound.Close()
-	}
-	if deadlineErr != nil {
-		handle.stateMu.Lock()
-		if handle.conn == udpConn {
-			handle.conn = nil
-			handle.reader = nil
-		}
-		handle.stateMu.Unlock()
-		_ = udpConn.Close()
-		socketThrow(deadlineErr)
-		return nil
-	}
-	if err := handle.applyBroadcast(); err != nil {
-		socketThrow(err)
-	}
-	return udpConn
-}
+// socketApplyBroadcastOption is the UDP option fault-injection seam.
+//
+// What: Applies one native SO_BROADCAST value.
+// Why: Tests must prove option failure rolls back without retaining a descriptor.
+// How: Production uses socketSetBroadcast; package tests replace this function
+// temporarily, and generated Haxe cannot access it.
+var socketApplyBroadcastOption = socketSetBroadcast
 
-func (handle *SocketHandle) applyBroadcast() error {
-	udpConn := handle.udpConn(false)
+func socketApplyBroadcastToConn(udpConn *net.UDPConn, enabled bool) error {
 	if udpConn == nil {
 		return nil
 	}
-	handle.stateMu.Lock()
-	enabled := handle.broadcast
-	handle.stateMu.Unlock()
 	rawConn, err := udpConn.SyscallConn()
 	if err != nil {
 		return err
@@ -1266,12 +1421,139 @@ func (handle *SocketHandle) applyBroadcast() error {
 	}
 	var optionErr error
 	controlErr := rawConn.Control(func(fileDescriptor uintptr) {
-		optionErr = socketSetBroadcast(fileDescriptor, value)
+		optionErr = socketApplyBroadcastOption(fileDescriptor, value)
 	})
 	if controlErr != nil {
 		return controlErr
 	}
 	return optionErr
+}
+
+func (handle *SocketHandle) udpConnWithBroadcast(create bool, requestedBroadcast *bool) (*net.UDPConn, error) {
+	if handle == nil {
+		return nil, nil
+	}
+	handle.stateMu.Lock()
+	if handle.conn != nil {
+		udpConn, ok := handle.conn.(*net.UDPConn)
+		if !ok {
+			handle.stateMu.Unlock()
+			return nil, errors.New("udp socket expects UDP connection")
+		}
+		if requestedBroadcast != nil {
+			if err := socketApplyBroadcastToConn(udpConn, *requestedBroadcast); err != nil {
+				handle.stateMu.Unlock()
+				return nil, err
+			}
+			handle.broadcast = *requestedBroadcast
+		}
+		handle.stateMu.Unlock()
+		return udpConn, nil
+	}
+	if !create {
+		handle.stateMu.Unlock()
+		return nil, nil
+	}
+
+	// Keep lazy creation under the state lock so concurrent first sends all
+	// observe the same connection. Apply every selected policy before publishing
+	// the descriptor, so a thrown operation cannot retain a half-installed UDP
+	// socket.
+	desiredBroadcast := handle.broadcast
+	if requestedBroadcast != nil {
+		desiredBroadcast = *requestedBroadcast
+	}
+	udpConn, err := socketListenUDP("udp4", nil)
+	if err != nil {
+		handle.stateMu.Unlock()
+		return nil, err
+	}
+	deadlineErr := udpConn.SetDeadline(handle.configuredDeadlineLocked())
+	var broadcastErr error
+	if deadlineErr == nil && (desiredBroadcast || requestedBroadcast != nil) {
+		broadcastErr = socketApplyBroadcastToConn(udpConn, desiredBroadcast)
+	}
+	installErr := errors.Join(deadlineErr, broadcastErr)
+	if installErr != nil {
+		handle.stateMu.Unlock()
+		_ = udpConn.Close()
+		return nil, installErr
+	}
+	oldBound := handle.boundTCP
+	oldListener := handle.listener
+	handle.conn = udpConn
+	handle.boundTCP = nil
+	handle.listener = nil
+	handle.deadlineListener = nil
+	handle.listenerWrapper = nil
+	handle.reader = bufio.NewReader(udpConn)
+	if requestedBroadcast != nil {
+		handle.broadcast = desiredBroadcast
+	}
+	handle.stateMu.Unlock()
+	if oldBound != nil {
+		_ = oldBound.Close()
+	}
+	if oldListener != nil {
+		_ = oldListener.Close()
+	}
+	return udpConn, nil
+}
+
+func (handle *SocketHandle) udpConn(create bool) *net.UDPConn {
+	udpConn, err := handle.udpConnWithBroadcast(create, nil)
+	socketThrow(err)
+	return udpConn
+}
+
+func (handle *SocketHandle) installAcquiredUDPConn(acquisition socketAcquisition, conn *net.UDPConn) error {
+	if handle == nil || conn == nil {
+		return nil
+	}
+	if acquisition.handle != handle {
+		_ = conn.Close()
+		return net.ErrClosed
+	}
+	handle.stateMu.Lock()
+	cancel := handle.acquisitionCancels[acquisition.id]
+	delete(handle.acquisitionCancels, acquisition.id)
+	if acquisition.generation != handle.lifecycleGeneration {
+		handle.stateMu.Unlock()
+		if cancel != nil {
+			cancel()
+		}
+		_ = conn.Close()
+		return net.ErrClosed
+	}
+	deadlineErr := conn.SetDeadline(handle.configuredDeadlineLocked())
+	var broadcastErr error
+	if deadlineErr == nil && handle.broadcast {
+		broadcastErr = socketApplyBroadcastToConn(conn, true)
+	}
+	installErr := errors.Join(deadlineErr, broadcastErr)
+	if installErr != nil {
+		handle.stateMu.Unlock()
+		if cancel != nil {
+			cancel()
+		}
+		_ = conn.Close()
+		return installErr
+	}
+	oldConn := handle.conn
+	oldBound := handle.boundTCP
+	oldListener := handle.listener
+	handle.conn = conn
+	handle.boundTCP = nil
+	handle.listener = nil
+	handle.deadlineListener = nil
+	handle.listenerWrapper = nil
+	handle.reader = bufio.NewReader(conn)
+	handle.stateMu.Unlock()
+	if cancel != nil {
+		cancel()
+	}
+	closeReplacedSocketResources(oldConn, oldBound, oldListener, conn)
+	return nil
 }
 
 // SocketUdpBind binds one typed UDP handle to an IPv4 endpoint.
@@ -1285,15 +1567,14 @@ func SocketUdpBind(handle *SocketHandle, host *string, port int) {
 		socketThrow(err)
 		return
 	}
-	conn, err := net.ListenUDP("udp4", address)
+	acquisition, _ := handle.beginAcquisition(false)
+	conn, err := socketListenUDP("udp4", address)
 	if err != nil {
+		handle.abandonAcquisition(acquisition)
 		socketThrow(err)
 		return
 	}
-	handle.installConn(conn)
-	if err := handle.applyBroadcast(); err != nil {
-		socketThrow(err)
-	}
+	socketThrow(handle.installAcquiredUDPConn(acquisition, conn))
 }
 
 // SocketUdpSetBroadcast installs SO_BROADCAST on the current or lazily created UDP socket.
@@ -1302,15 +1583,8 @@ func SocketUdpSetBroadcast(handle *SocketHandle, enabled bool) {
 		socketThrow(errors.New("udp socket is nil"))
 		return
 	}
-	handle.stateMu.Lock()
-	handle.broadcast = enabled
-	handle.stateMu.Unlock()
-	if handle.udpConn(true) == nil {
-		return
-	}
-	if err := handle.applyBroadcast(); err != nil {
-		socketThrow(err)
-	}
+	_, err := handle.udpConnWithBroadcast(true, &enabled)
+	socketThrow(err)
 }
 
 // SocketUdpSendTo writes one complete datagram to a network-order IPv4 peer.

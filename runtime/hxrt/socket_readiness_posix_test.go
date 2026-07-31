@@ -10,6 +10,52 @@ import (
 	"time"
 )
 
+type socketTestControlFailureRawConn struct{}
+
+func (socketTestControlFailureRawConn) Control(_ func(uintptr)) error {
+	return errors.New("control failed before callback")
+}
+
+func (socketTestControlFailureRawConn) Read(_ func(uintptr) bool) error {
+	return errors.New("unexpected read")
+}
+
+func (socketTestControlFailureRawConn) Write(_ func(uintptr) bool) error {
+	return errors.New("unexpected write")
+}
+
+type socketTestControlFailureResource struct{}
+
+func (socketTestControlFailureResource) SyscallConn() (syscall.RawConn, error) {
+	return socketTestControlFailureRawConn{}, nil
+}
+
+type socketTestCallbackRawConn struct {
+	descriptor uintptr
+	controlErr error
+}
+
+func (connection socketTestCallbackRawConn) Control(callback func(uintptr)) error {
+	callback(connection.descriptor)
+	return connection.controlErr
+}
+
+func (socketTestCallbackRawConn) Read(_ func(uintptr) bool) error {
+	return errors.New("unexpected read")
+}
+
+func (socketTestCallbackRawConn) Write(_ func(uintptr) bool) error {
+	return errors.New("unexpected write")
+}
+
+type socketTestCallbackResource struct {
+	raw syscall.RawConn
+}
+
+func (resource socketTestCallbackResource) SyscallConn() (syscall.RawConn, error) {
+	return resource.raw, nil
+}
+
 func socketTestSaturateTCPWriteBufferNative(t *testing.T, connection *net.TCPConn) {
 	t.Helper()
 	raw, err := connection.SyscallConn()
@@ -81,6 +127,107 @@ func TestSocketReadinessSnapshotOwnsStableDescriptor(t *testing.T) {
 	snapshot.release()
 	if err := syscall.Fstat(int(snapshot.descriptor), &stat); !errors.Is(err, syscall.EBADF) {
 		t.Fatalf("released snapshot descriptor error = %v, want EBADF", err)
+	}
+}
+
+func TestSocketReadinessControlFailureDoesNotCloseDescriptorZero(t *testing.T) {
+	savedStdin, savedStdinErr := syscall.Dup(0)
+	pipe := []int{-1, -1}
+	if err := syscall.Pipe(pipe); err != nil {
+		t.Fatal(err)
+	}
+	if pipe[0] != 0 {
+		if err := syscall.Dup2(pipe[0], 0); err != nil {
+			_ = syscall.Close(pipe[0])
+			_ = syscall.Close(pipe[1])
+			t.Fatal(err)
+		}
+		_ = syscall.Close(pipe[0])
+	}
+	defer func() {
+		_ = syscall.Close(pipe[1])
+		if savedStdinErr == nil {
+			_ = syscall.Dup2(savedStdin, 0)
+			_ = syscall.Close(savedStdin)
+		} else {
+			_ = syscall.Close(0)
+		}
+	}()
+
+	if _, err := socketResourceDescriptor(socketTestControlFailureResource{}); err == nil {
+		t.Fatal("readiness descriptor acquisition unexpectedly succeeded")
+	}
+	var stat syscall.Stat_t
+	if err := syscall.Fstat(0, &stat); err != nil {
+		t.Fatalf("Control failure closed unrelated descriptor 0: %v", err)
+	}
+}
+
+func TestSocketReadinessControlFailureClosesOwnedDuplicateZero(t *testing.T) {
+	savedStdin, savedStdinErr := syscall.Dup(0)
+	pipe := []int{-1, -1}
+	if err := syscall.Pipe(pipe); err != nil {
+		t.Fatal(err)
+	}
+	if err := syscall.Close(0); err != nil && !errors.Is(err, syscall.EBADF) {
+		t.Fatal(err)
+	}
+	defer func() {
+		_ = syscall.Close(pipe[0])
+		_ = syscall.Close(pipe[1])
+		if savedStdinErr == nil {
+			_ = syscall.Dup2(savedStdin, 0)
+			_ = syscall.Close(savedStdin)
+		}
+	}()
+
+	resource := socketTestCallbackResource{raw: socketTestCallbackRawConn{
+		descriptor: uintptr(pipe[0]),
+		controlErr: errors.New("control failed after callback"),
+	}}
+	if _, err := socketResourceDescriptor(resource); err == nil {
+		t.Fatal("post-callback Control failure unexpectedly succeeded")
+	}
+	var stat syscall.Stat_t
+	if err := syscall.Fstat(0, &stat); !errors.Is(err, syscall.EBADF) {
+		t.Fatalf("owned duplicate descriptor 0 remained open: %v", err)
+	}
+	if err := syscall.Fstat(pipe[0], &stat); err != nil {
+		t.Fatalf("source descriptor was damaged: %v", err)
+	}
+}
+
+func TestSocketReadinessDuplicationFailureClosesNothingUnrelated(t *testing.T) {
+	savedStdin, savedStdinErr := syscall.Dup(0)
+	pipe := []int{-1, -1}
+	if err := syscall.Pipe(pipe); err != nil {
+		t.Fatal(err)
+	}
+	if pipe[0] != 0 {
+		if err := syscall.Dup2(pipe[0], 0); err != nil {
+			t.Fatal(err)
+		}
+		_ = syscall.Close(pipe[0])
+	}
+	defer func() {
+		_ = syscall.Close(pipe[1])
+		if savedStdinErr == nil {
+			_ = syscall.Dup2(savedStdin, 0)
+			_ = syscall.Close(savedStdin)
+		} else {
+			_ = syscall.Close(0)
+		}
+	}()
+
+	resource := socketTestCallbackResource{raw: socketTestCallbackRawConn{
+		descriptor: ^uintptr(0),
+	}}
+	if _, err := socketResourceDescriptor(resource); err == nil {
+		t.Fatal("invalid source descriptor unexpectedly duplicated")
+	}
+	var stat syscall.Stat_t
+	if err := syscall.Fstat(0, &stat); err != nil {
+		t.Fatalf("duplication failure damaged descriptor 0: %v", err)
 	}
 }
 

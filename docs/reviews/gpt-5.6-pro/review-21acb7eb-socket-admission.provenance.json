@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "review_class": "GPT-5.6 Pro independent advanced socket/TLS admission review",
+  "capture_mode": "manual_user_supplied_normalized_record",
+  "declared_model": "GPT-5.6 Pro",
+  "declared_reasoning_setting": "deepest available for the review session",
+  "independent_runtime_receipt": null,
+  "captured_at": "2026-07-31",
+  "reviewed_source_commit": "21acb7eb8d0c1ce23b4b2d2bde095d1e538d2962",
+  "reviewed_source_tree": "ca4ef127c4c1d4bc69c981a42ab693bfb077460c",
+  "reviewed_source_parent": "4851ebb913c372a626e3866fc01b947f6c0f88f5",
+  "evidence": {
+    "path_at_review": "/tmp/oracle/haxe-go-socket-admission-21acb7eb.zip",
+    "bytes": 11813922,
+    "sha256": "34e6103897208d33f99398cdebf83d10b5b7adf5705e446b356be33876eb5727",
+    "embedded_git_archive_commit": "21acb7eb8d0c1ce23b4b2d2bde095d1e538d2962"
+  },
+  "review_output": {
+    "path": "docs/reviews/gpt-5.6-pro/review-21acb7eb-socket-admission.md",
+    "bytes": 5797,
+    "sha256": "74dd92730f5c13859dbc74aeccbbc9593a2757cbc74d0a82ab397b0dc5d6c209",
+    "format": "normalized durable record, not verbatim transcript"
+  },
+  "verdict": "SPLIT",
+  "provenance_note": "The user supplied the review in the conversation. Model and reasoning mode are declarations in that response; the serving route was unavailable and no independent model-route receipt exists. The reviewer reported bundle checksum and embedded archive verification. This record normalizes the supplied review and must be read with the local finding-by-finding disposition and post-fix test evidence."
+}

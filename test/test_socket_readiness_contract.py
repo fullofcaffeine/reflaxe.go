@@ -48,25 +48,19 @@ class SocketReadinessContractTest(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("syscall.F_DUPFD_CLOEXEC", linux)
 
-    def test_compatibility_claim_is_precise_and_remains_fail_closed(self) -> None:
+    def test_compatibility_claim_splits_connected_controls_from_readiness(self) -> None:
         source = json.loads(COMPATIBILITY.read_text(encoding="utf-8"))
         networking = next(
             item for item in source["surfaces"] if item["id"] == "portable-networking"
         )
-        operation = next(
-            item
-            for item in networking["operations"]
-            if item["id"] == "socket-timeout-nonblocking-readiness-controls"
-        )
-        shutdown = next(
-            item
-            for item in networking["operations"]
-            if item["id"] == "socket-shutdown-fast-send-controls"
-        )
+        operations = {item["id"]: item for item in networking["operations"]}
+        operation = operations["tcp-ipv4-readiness-controls"]
+        connected = operations["tcp-ipv4-connected-timeout-nonblocking-controls"]
+        shutdown = operations["plain-tcp-shutdown-fast-send-controls"]
 
         self.assertEqual("semantic-diff-supported", operation["state"])
-        self.assertFalse(operation["release_admitted"])
-        self.assertEqual(["haxe_go-vfp.10.9"], operation["blockers"])
+        self.assertTrue(operation["release_admitted"])
+        self.assertEqual([], operation["blockers"])
         self.assertNotIn("sys.net.Socket.shutdown", operation["symbols"])
         self.assertNotIn("sys.net.Socket.setFastSend", operation["symbols"])
         for evidence in (
@@ -79,23 +73,29 @@ class SocketReadinessContractTest(unittest.TestCase):
             self.assertIn(evidence, operation["evidence_ids"])
 
         qualification = operation["qualification"]
-        self.assertIn("operating-system read, write, and exceptional", qualification)
-        self.assertIn("Windows remains compile-only", qualification)
+        self.assertIn("read/write/exception readiness", qualification)
+        self.assertIn("snapshot preparation", qualification)
         exclusions = " ".join(operation["exclusions"])
         for phrase in (
             "Nonblocking connect",
             "TLS readiness",
-            "Windows runtime",
+            "FdSet",
         ):
             self.assertIn(phrase, exclusions)
 
+        self.assertTrue(connected["release_admitted"])
+        self.assertNotIn("sys.net.Socket.select", connected["symbols"])
+
         self.assertEqual(
-            ["sys.net.Socket.shutdown", "sys.net.Socket.setFastSend"],
+            [
+                "sys.net.Socket.shutdown (established plain TCP)",
+                "sys.net.Socket.setFastSend (established plain TCP)",
+            ],
             shutdown["symbols"],
         )
         self.assertEqual("compile-go-test-run-supported", shutdown["state"])
-        self.assertFalse(shutdown["release_admitted"])
-        self.assertEqual(["haxe_go-vfp.10.9"], shutdown["blockers"])
+        self.assertTrue(shutdown["release_admitted"])
+        self.assertEqual([], shutdown["blockers"])
         self.assertIn("runtime:socket-tls-controls-posix", shutdown["evidence_ids"])
         self.assertIn("policy:socket-tls-controls", shutdown["evidence_ids"])
 
@@ -111,7 +111,7 @@ class SocketReadinessContractTest(unittest.TestCase):
             "Nonblocking connect remains excluded",
             "TLS readiness remains excluded",
             "Windows is compile-only evidence",
-            "does not admit these controls for release",
+            "Linux/amd64",
         ):
             self.assertIn(phrase, decision)
 

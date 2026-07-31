@@ -3,6 +3,7 @@
 package hxrt
 
 import (
+	"bufio"
 	"crypto/tls"
 	"io"
 	"net"
@@ -296,11 +297,23 @@ func socketResourceExercise(
 	if selected == nil || !socketTestIntsEqual(selected.Write, 0) {
 		t.Fatalf("attempt %d readiness = %#v, want write index 0", attempt, selected)
 	}
+	readyClient.stateMu.Lock()
+	signalingConnection := &socketTestSignalingConn{
+		Conn:        readyClient.conn,
+		readEntered: make(chan struct{}),
+	}
+	readyClient.conn = signalingConnection
+	readyClient.reader = bufio.NewReader(signalingConnection)
+	readyClient.stateMu.Unlock()
 	readDone := make(chan *SocketIOResult, 1)
 	go func() {
 		readDone <- SocketReadValues(readyClient, 1)
 	}()
-	time.Sleep(time.Millisecond)
+	select {
+	case <-signalingConnection.readEntered:
+	case <-time.After(time.Second):
+		t.Fatalf("attempt %d blocked read never entered the native operation", attempt)
+	}
 	var closeGroup sync.WaitGroup
 	for closer := 0; closer < 8; closer++ {
 		closeGroup.Add(1)

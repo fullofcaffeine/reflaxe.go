@@ -148,12 +148,19 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
                 "http-data-url-client",
                 "http-proxy-and-custom-transport",
                 "https-client",
-                "tcp-server-and-listener-controls",
-                "socket-timeout-nonblocking-readiness-controls",
-                "socket-shutdown-fast-send-controls",
-                "host-dns-and-reverse-lookup",
-                "udp-ipv4",
-                "tls-socket",
+                "tcp-ipv4-blocking-server-core",
+                "tcp-ipv4-connected-timeout-nonblocking-controls",
+                "tcp-ipv4-connected-nonblocking-accept",
+                "tcp-ipv4-readiness-controls",
+                "plain-tcp-shutdown-fast-send-controls",
+                "host-localhost",
+                "host-named-resolution",
+                "host-reverse-lookup",
+                "udp-ipv4-datagram-core",
+                "udp-ipv4-broadcast-control",
+                "tls-ipv4-direct-client",
+                "tls-ipv4-server-sni",
+                "tls-shutdown-fast-send-controls",
             },
             set(network_ops),
         )
@@ -193,16 +200,26 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
             self.assertEqual([], operation["blockers"], operation_id)
 
         for operation_id in (
-            "tcp-server-and-listener-controls",
-            "socket-timeout-nonblocking-readiness-controls",
-            "socket-shutdown-fast-send-controls",
-            "host-dns-and-reverse-lookup",
-            "udp-ipv4",
-            "tls-socket",
+            "tcp-ipv4-blocking-server-core",
+            "tcp-ipv4-connected-timeout-nonblocking-controls",
+            "tcp-ipv4-connected-nonblocking-accept",
+            "tcp-ipv4-readiness-controls",
+            "plain-tcp-shutdown-fast-send-controls",
+            "host-localhost",
+            "udp-ipv4-datagram-core",
+            "udp-ipv4-broadcast-control",
+            "tls-ipv4-direct-client",
+            "tls-ipv4-server-sni",
+            "tls-shutdown-fast-send-controls",
         ):
             operation = network_ops[operation_id]
+            self.assertTrue(operation["release_admitted"], operation_id)
+            self.assertEqual([], operation["blockers"], operation_id)
+
+        for operation_id in ("host-named-resolution", "host-reverse-lookup"):
+            operation = network_ops[operation_id]
             self.assertFalse(operation["release_admitted"], operation_id)
-            self.assertEqual(["haxe_go-vfp.10.9"], operation["blockers"], operation_id)
+            self.assertEqual([], operation["blockers"], operation_id)
 
         for surface_id, blocker in {"go-native": "haxe_go-vfp.9.1"}.items():
             operations = surfaces[surface_id]["operations"]
@@ -211,7 +228,8 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
 
         known_blockers = {entry["id"] for entry in manifest["known_blockers"]}
         self.assertNotIn("haxe_go-vfp.10.4", known_blockers)
-        self.assertTrue({"haxe_go-vfp.10.8", "haxe_go-vfp.10.9"} <= known_blockers)
+        self.assertIn("haxe_go-vfp.10.8", known_blockers)
+        self.assertNotIn("haxe_go-vfp.10.9", known_blockers)
 
         trust_ops = {entry["id"]: entry for entry in surfaces["compiler-input-trust"]["operations"]}
         self.assertTrue(trust_ops["trusted-source"]["release_admitted"])
@@ -290,7 +308,7 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
             <= filesystem
         )
 
-        self.assertEqual(
+        self.assertTrue(
             {
                 'new sys.net.Host("IPv4 literal")',
                 "sys.net.Host.toString (IPv4 literal)",
@@ -301,8 +319,8 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
                 "sys.net.Socket.host",
                 "sys.net.Socket.peer",
                 "sys.net.Socket.close",
-            },
-            admitted_symbols("portable-networking"),
+            }
+            <= admitted_symbols("portable-networking"),
         )
 
     def test_portable_is_the_only_release_admitted_preset_semantics(self) -> None:
@@ -323,7 +341,10 @@ class CompatibilitySupportManifestTest(unittest.TestCase):
             self.assertNotIn("beta-stable", document.lower())
         self.assertIn("Operation/member admission", matrix)
         self.assertIn("Not admitted by this release scope", release)
-        self.assertIn("application-controlled, pre-resolved numeric TCP endpoints", release)
+        self.assertIn(
+            "application-controlled numeric IPv4 endpoints, peers, and TLS identity/trust",
+            release,
+        )
         self.assertNotIn("haxe_go-vfp.6.3", release)
         self.assertIn("docs/public-contract.md", release)
         self.assertNotIn("haxe_go-vfp.6.4", release)

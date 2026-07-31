@@ -26,25 +26,37 @@ closing it. Connection installation is now transactional, and a focused
 regression requires the failed resource to be both closed and absent from the
 typed handle.
 
+Focused pre-GC regressions additionally cover close racing TCP/TLS connect and
+TCP/UDP bind, readiness `Control` failure before and after descriptor
+duplication, failed public and accepted TLS handshakes, listener-deadline
+rollback, UDP broadcast/deadline installation failure, and a finite select
+running beside an already-entered read. Signaling channels establish operation
+entry; these ownership tests do not depend on timing sleeps.
+
 ## What is measured
 
 After the repetitions, the suite waits for all three tracked server modes to
-return to zero active accepted connections. It then requires:
+return to zero active accepted connections. Their accept loops remain running
+as part of the post-warm-up baseline until test cleanup. It then requires:
 
 - a bounded goroutine count relative to the post-warm-up baseline;
 - a bounded Linux file-descriptor count read from `/proc/self/fd`;
-- no blocked read, accept loop, TLS handshake, or per-connection handler left
-  running.
+- no blocked read, TLS handshake, or per-connection handler left running.
 
 Darwin runs the lifecycle and goroutine checks locally. Linux additionally
 requires the descriptor source to exist and is the release runtime lane.
 Windows remains compile-only evidence and is not described as a runtime
 resource result.
 
-The limits are convergence bounds, not promises that Go uses an exact fixed
-number of internal descriptors or goroutines. The test permits a small
-runtime delta while requiring active application connections to reach exactly
-zero.
+The limits are aggregate convergence bounds, not promises that Go uses an
+exact fixed number of internal descriptors or goroutines. They do not
+individually count every TLS pair, UDP socket, readiness duplicate, listener,
+timer, resolver, or finalizer-owned resource. GC-assisted convergence is
+secondary evidence, not proof that explicit close worked; focused tests assert
+handle state and peer closure before GC. Warm-up intentionally absorbs Go
+netpoll, TLS, and crypto caches, but it can hide one-time retention. The small
+goroutine and descriptor allowances can likewise hide a fixed leak, so each
+review-discovered transaction has its own injected failure regression.
 
 ## What this evidence supports
 
@@ -60,18 +72,13 @@ The suite adds cleanup evidence to:
 It does not cover DNS cancellation, nonblocking connect, TLS readiness,
 IPv6, public certificate stores, public or hostile networks, arbitrary load,
 or runtime behavior outside the reviewed platform. Twenty bounded
-repetitions are deterministic regression evidence, not a production soak or a
+repetitions are a deterministic regression matrix, not production soak or a
 claim about indefinite hostile peers.
 
 ## Admission boundary
 
-Every advanced operation remains `release_admitted=false` behind
-`haxe_go-vfp.10.9` in the pre-review compatibility source. Resource cleanup is
-necessary but not sufficient: semantics, platform evidence, exclusions, and
-the usefulness of each proposed boundary still require an independent
-commit-pinned review.
-
-This evidence therefore does not admit an operation, remove the
-`portable-socket-advanced` release exclusion, or close the parent blocker on
-its own.
-
+The independent review split the former broad surface into exact member
+groups. Only groups that also have semantic or target-runtime evidence and
+precise exclusions are admitted. Linux is the only exact-SHA descriptor lane;
+Darwin convergence in the reviewed packet was local/reported, and Windows was
+compile-only. Twenty repetitions do not widen those platform boundaries.

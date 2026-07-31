@@ -31,7 +31,7 @@ class SocketResourceConvergenceContractTest(unittest.TestCase):
         ):
             self.assertIn(phrase, native)
 
-    def test_pre_review_compatibility_state_is_evidenced_and_fail_closed(self) -> None:
+    def test_split_admitted_operations_link_exact_convergence_evidence(self) -> None:
         source = json.loads(COMPATIBILITY.read_text(encoding="utf-8"))
         networking = next(
             item for item in source["surfaces"] if item["id"] == "portable-networking"
@@ -39,23 +39,20 @@ class SocketResourceConvergenceContractTest(unittest.TestCase):
         operations = {item["id"]: item for item in networking["operations"]}
 
         for operation_id in (
-            "tcp-server-and-listener-controls",
-            "socket-timeout-nonblocking-readiness-controls",
-            "socket-shutdown-fast-send-controls",
-            "udp-ipv4",
-            "tls-socket",
+            "tcp-ipv4-blocking-server-core",
+            "tcp-ipv4-readiness-controls",
+            "udp-ipv4-datagram-core",
+            "tls-ipv4-direct-client",
+            "tls-ipv4-server-sni",
+            "tls-shutdown-fast-send-controls",
         ):
             operation = operations[operation_id]
             self.assertIn(
                 "runtime:socket-resource-convergence-posix",
                 operation["evidence_ids"],
             )
-            self.assertFalse(operation["release_admitted"])
-            self.assertEqual(["haxe_go-vfp.10.9"], operation["blockers"])
-            self.assertIn(
-                "resource convergence",
-                operation["qualification"].lower(),
-            )
+            self.assertTrue(operation["release_admitted"])
+            self.assertEqual([], operation["blockers"])
 
         evidence = {
             item["id"]: item
@@ -82,8 +79,9 @@ class SocketResourceConvergenceContractTest(unittest.TestCase):
             "UDP",
             "readiness",
             "Windows remains compile-only",
-            "does not admit",
-            "independent commit-pinned review",
+            "accept loops remain running",
+            "GC-assisted convergence is secondary evidence",
+            "not production soak",
         ):
             self.assertIn(phrase, decision)
 

@@ -467,7 +467,9 @@ Shim strategy and alternatives are documented in:
   through the exceptional set; and disconnected handles are not invented as
   exceptional. See the
   [socket readiness and nonblocking contract](socket-readiness-nonblocking.md).
-  Advanced readiness remains release-excluded pending the parent review.
+  The exact plain-TCP Linux/amd64 readiness members are admitted separately;
+  TLS/UDP readiness, nonblocking connect, and descriptors above the fixed
+  `FdSet` capacity remain excluded.
 - The public API, stream wrappers, Haxe exceptions, address construction, and select object identity are canonical staged Haxe. A typed opaque `SocketHandle` and concrete result carriers cross into footprint-explicit `runtime/hxrt/socket.go`; the former `net_socket` compiler group and `GoNetSocketEmitter` are gone.
 - Direct runtime tests cover TCP/UDP round trips, partial-write progress,
   accept/datagram deadlines, peer close after a partial read, explicit
@@ -488,10 +490,17 @@ Shim strategy and alternatives are documented in:
   when applying the saved deadline or fast-send policy fails, the new
   connection is now detached and closed before the public error escapes. See
   [socket and TLS resource convergence](socket-resource-convergence.md).
+- Focused pre-GC regressions cover the ownership paths the aggregate count
+  cannot identify individually: close racing TCP/TLS acquisition and TCP/UDP
+  bind, readiness duplication failure (including descriptor zero), failed
+  public and accepted TLS handshakes, failed listener policy installation,
+  UDP option rollback, and finite select beside an entered read. The aggregate
+  tolerances remain secondary evidence, not proof of every individual close.
 - `bind` and `listen` now use build-tagged typed OS adapters instead of
   collapsing into `net.Listen`; see the
   [socket server lifecycle and backlog contract](socket-server-lifecycle.md).
-  The server operation remains release-excluded until the parent review.
+  The narrow blocking IPv4 Linux/amd64 server operation is admitted; this is
+  not a production-load, hostile-peer, or cross-platform claim.
 - Current tradeoffs: `setBlocking(false)` uses a bounded one-millisecond
   operation probe rather than permanently changing native descriptor flags.
   The public connected read/write/accept progress-or-`Blocked` behavior is
@@ -501,15 +510,18 @@ Shim strategy and alternatives are documented in:
   `Host` construction resolves eagerly before a Socket exists, so no
   `Socket.setTimeout` value can bound or cancel it; the
   [socket DNS and timeout decision](socket-dns-boundary.md) makes that
-  exclusion executable. The admitted operation list is only the Linux/amd64
-  blocking IPv4 TCP client core. All other socket members are owned by
-  `haxe_go-vfp.10.9`.
+  exclusion executable. The generated compatibility manifest separately names
+  the admitted blocking client and server cores, connected timeout/nonblocking
+  controls, connected nonblocking accept, plain-TCP readiness, shutdown and
+  fast-send, and `Host.localhost`. Whole classes are never admitted by this
+  evidence inventory.
 - `shutdown` and `setFastSend` now have a separate operation contract rather
   than borrowing readiness evidence. Plain TCP keeps directional half-close;
   TLS write shutdown sends `close_notify` and retains reads; TLS read-only
   shutdown reports unsupported; and fast-send reaches the TCP socket beneath
   TLS. See [socket shutdown and fast-send controls](socket-tls-controls.md).
-  These controls remain release-excluded pending the parent review.
+  Plain-TCP and exact TLS write/full-shutdown and fast-send members are admitted
+  as separate Linux/amd64 operations; TLS read-only shutdown remains excluded.
 
 ### `sys.net.UdpSocket` direct baseline and tradeoffs
 
@@ -520,6 +532,12 @@ Shim strategy and alternatives are documented in:
   address even though its payload count is zero.
 - `haxe_go-vfp.8.7.14` moved the public API to canonical staged source over the shared typed TCP/UDP handle. No compiler-emitted UdpSocket implementation or raw-injection path remains.
 - `setBroadcast(true)` maps to Go's operating-system socket option path (`SO_BROADCAST`) on the underlying UDP connection. Build-tagged POSIX and Windows helpers preserve each platform's native descriptor type, and a cross-build regression test keeps both compiling. The portable evidence checks that the option is installed and that normal UDP behavior still works; it does not require sending packets to a LAN broadcast address, because CI machines and developer laptops can block that at the network-policy level.
+- UDP creation, explicit bind, deadline policy, and broadcast policy form one
+  native transaction: a failed option application closes the new descriptor,
+  leaves no connection attached, and applies each requested broadcast change
+  exactly once. The manifest admits only the named blocking IPv4 datagram and
+  broadcast members on Linux/amd64—not inherited TCP methods, multicast,
+  readiness/nonblocking controls, or LAN delivery guarantees.
 
 ### `sys.ssl.Socket` staged TLS composition and tradeoffs
 
@@ -541,17 +559,23 @@ Shim strategy and alternatives are documented in:
   `socket + ssl + socket_ssl` transport split.
 - A direct race test also proves `Socket.setTimeout` bounds a TLS client when a
   peer accepts TCP but never completes its handshake. TCP and TLS now share
-  the same snapshotted dial policy.
+  the same snapshotted dial policy. Close cancels an in-progress dial and a
+  lifecycle generation prevents an older connect or bind from installing a
+  resource after close returns.
+- Public, implicit peer-certificate, and accepted-server handshakes share one
+  cleanup transaction. Failure detaches and closes the exact failed
+  connection, while a stale failed handshake cannot detach a replacement.
 - Inherited controls are now truthful: write-only shutdown sends TLS
   `close_notify` while preserving reads, read-only shutdown reports an exact
   unsupported error, full close is idempotent, and `setFastSend` changes the
   underlying TCP option through a typed boundary. The wire-visible and
   option-state proof is documented in
   [socket shutdown and fast-send controls](socket-tls-controls.md).
-- TLS, HTTPS, public CA behavior, client certificates, hostile peers,
-  production-soak behavior, and runtime behavior outside Linux/amd64 remain
-  release-excluded under `haxe_go-vfp.10.9`. The bounded convergence suite is
-  candidate evidence, not release admission.
+- The manifest admits exact application-controlled Linux/amd64 direct-client,
+  server/SNI, and write/full-shutdown plus fast-send member groups. It does not
+  admit the whole class. HTTPS, portable public CA stores, client certificates,
+  TLS readiness, read-only TLS shutdown, hostile peers, production soak, and
+  runtime behavior outside Linux/amd64 remain excluded.
 
 ### `EReg` + `haxe.Serializer` contract and tradeoffs
 

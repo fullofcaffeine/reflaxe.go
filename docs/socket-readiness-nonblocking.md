@@ -37,7 +37,9 @@ Haxe.Go now snapshots typed socket resources and calls an operating-system
 `select` adapter. Go guarantees a raw connection descriptor only while its
 `Control` callback is running, so the snapshot duplicates the descriptor
 inside that callback, marks the duplicate close-on-exec atomically, and closes
-it after each bounded poll slice. This prevents a concurrent source close,
+it after each bounded poll slice. A failure closes the duplicate only after
+successful duplicate ownership has been recorded; descriptor number zero is
+not treated as proof that a duplicate exists. This prevents a concurrent source close,
 descriptor-number reuse, or child-process launch from turning the temporary
 poll capability into false readiness or an inherited resource. The native
 adapter returns descriptor readiness only to the typed runtime; generated Haxe
@@ -45,9 +47,11 @@ receives indexes, never file descriptors. The runtime also checks its
 `bufio.Reader` before polling so buffered bytes remain visible and are not lost
 by a destructive probe.
 
-The implementation waits in short bounded slices. This lets it resnapshot a
-handle after another thread closes it rather than waiting forever on a stale
-descriptor.
+The implementation waits in short bounded slices. Snapshot preparation uses
+nonblocking internal lock probes, so the public finite timeout includes time
+spent beside an already-entered read instead of waiting indefinitely for that
+read's lock. This also lets it resnapshot a handle after another thread closes
+it rather than waiting forever on a stale descriptor.
 
 ## Timeout behavior
 
@@ -91,11 +95,17 @@ evidence, not a release admission. Windows is compile-only evidence and the
 runtime adapter reports that native readiness is unavailable rather than
 returning invented results. Other operating systems are likewise unadmitted.
 
+The current POSIX adapters use a fixed `FdSet`. In a descriptor-dense process,
+a duplicated descriptor above that capacity returns a deterministic capacity
+error. High-descriptor readiness is excluded; a future `poll`, `ppoll`, or
+`kqueue` adapter can remove that limit without changing the public API.
+
 TLS readiness remains excluded. A `tls.Conn` can hold decrypted application
 bytes inside TLS-specific buffers that are not represented by the underlying
 descriptor set, so plain TCP evidence is not enough to claim TLS readiness.
 
-`shutdown` and `setFastSend` have their own evidence-backed candidate contract;
+Connected timeout/nonblocking controls, connected nonblocking accept, native
+plain-TCP readiness, and shutdown/fast-send are separate admitted operations;
 see [socket shutdown and fast-send controls](socket-tls-controls.md). That
 evidence does not expand readiness to TLS. DNS, UDP, hostile-peer behavior,
 production-soak behavior, and runtime support outside the admitted platform
@@ -104,9 +114,9 @@ readiness snapshots and close-canceled reads is documented in
 [socket and TLS resource convergence](socket-resource-convergence.md); it is
 not a hostile-network or indefinite-load claim.
 
-This work does not admit these controls for release. The compatibility
-manifest stays fail-closed under `haxe_go-vfp.10.9` until the complete advanced
-socket review decides the exact member-level release surface.
+The compatibility manifest admits only the named Linux/amd64 plain-TCP member
+groups. Nonblocking connect, TLS/UDP readiness, the fixed-capacity high-FD
+case, and runtime behavior outside Linux/amd64 remain excluded.
 
 ## How the contract is checked
 

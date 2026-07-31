@@ -352,6 +352,18 @@
       "level": "semantic-diff"
     },
     {
+      "id": "semantic:host-basic",
+      "kind": "path",
+      "path": "test/semantic_diff/host_basic_contract",
+      "level": "semantic-diff"
+    },
+    {
+      "id": "snapshot:host-basic",
+      "kind": "path",
+      "path": "test/snapshot/sys/host_basic_smoke",
+      "level": "compile-go-test-run"
+    },
+    {
       "id": "semantic:socket-server-lifecycle",
       "kind": "path",
       "path": "test/semantic_diff/socket_server_lifecycle_contract",
@@ -433,6 +445,12 @@
       "id": "snapshot:socket-sni",
       "kind": "path",
       "path": "test/snapshot/stdlib/sys_ssl_socket_sni_direct",
+      "level": "compile-go-test-run"
+    },
+    {
+      "id": "snapshot:socket-udp",
+      "kind": "path",
+      "path": "test/snapshot/stdlib/sys_net_udp_socket_direct",
       "level": "compile-go-test-run"
     },
     {
@@ -1256,7 +1274,7 @@
     {
       "id": "portable-networking",
       "kind": "portable-system",
-      "scope": "Operation-split network support; only explicitly admitted blocking IPv4 TCP client members participate in the beta release",
+      "scope": "Operation-split portable networking; only the explicitly admitted Linux/amd64 member groups below participate in the beta release",
       "operations": [
         {
           "id": "tcp-ipv4-blocking-client-core",
@@ -1274,7 +1292,7 @@
           "granularity": "operation",
           "state": "semantic-diff-supported",
           "release_admitted": true,
-          "qualification": "On the portable preset, Linux/amd64, Haxe 4.3.7, and Go 1.25.12 or 1.26.5, the admitted core is blocking IPv4 TCP client I/O to application-controlled, pre-resolved numeric endpoints. Deterministic loopback evidence covers connection, source-owned stream reads and writes with partial-progress preservation, flush, local and peer addresses, and close. Repeated resource convergence covers success, timeout, reset, and concurrent-close lifecycles with exact active-connection and bounded goroutine/Linux file-descriptor results.",
+          "qualification": "On the portable preset, Linux/amd64, Haxe 4.3.7, and Go 1.25.12 or 1.26.5, the admitted core is blocking IPv4 TCP client I/O to application-controlled, pre-resolved numeric endpoints. Deterministic loopback evidence covers connection, source-owned stream reads and writes with partial-progress preservation, flush, local and peer addresses, and close. Repeated evidence covers close of an already-installed connection interrupting an already-blocked read; lifecycle generations separately prevent older connect or bind work from attaching after close.",
           "evidence_ids": [
             "semantic:socket",
             "runtime:socket-regressions",
@@ -1285,6 +1303,7 @@
           "exclusions": [
             "Hostname and DNS behavior; bind, listen, accept, backlog, and other server behavior",
             "Timeout controls, nonblocking mode, select/readiness, waitForRead, shutdown, and fast-send controls",
+            "Close racing an in-progress connect is covered by the lifecycle safety invariant but is not a successful client operation",
             "UDP, TLS, HTTP, IPv6, public or hostile networks, long-running load, and runtime support outside Linux/amd64"
           ],
           "blockers": []
@@ -1403,174 +1422,155 @@
           "blockers": []
         },
         {
-          "id": "tcp-server-and-listener-controls",
+          "id": "tcp-ipv4-blocking-server-core",
           "symbols": [
-            "sys.net.Socket.bind",
-            "sys.net.Socket.listen",
-            "sys.net.Socket.accept"
+            "new sys.net.Socket",
+            "sys.net.Socket.bind (numeric IPv4)",
+            "sys.net.Socket.host (bound/listening)",
+            "sys.net.Socket.listen (nonnegative backlog)",
+            "sys.net.Socket.accept (blocking)",
+            "accepted sys.net.Socket blocking streams/host/peer/close",
+            "sys.net.Socket.close (bound/listening)"
           ],
           "granularity": "operation",
           "state": "semantic-diff-supported",
-          "release_admitted": false,
-          "qualification": "The operation-level candidate preserves the Haxe bind-then-listen lifecycle: bind reserves a numeric IPv4 endpoint without accepting, listen passes each nonnegative backlog request to the OS, duplicate listen reapplies it, and close releases either state. Deterministic generated-Haxe, native lifecycle/TLS/concurrency, Linux bounded-pending-queue, and repeated resource convergence evidence exist; Windows remains compile-only. Release admission stays fail-closed pending the advanced socket review.",
-          "evidence_ids": [
-            "semantic:socket",
-            "semantic:socket-server-lifecycle",
-            "snapshot:socket-server-lifecycle",
-            "runtime:socket-regressions",
-            "runtime:socket-listener-linux",
-            "runtime:socket-resource-convergence-posix",
-            "runtime:socket-cross-build",
-            "policy:socket-server-lifecycle",
-            "policy:socket-resource-convergence",
-            "bead:network-audit"
-          ],
-          "exclusions": [
-            "Nonblocking accept, accept/readiness parity, hostile peers, listener load and soak behavior, and runtime support outside Linux/amd64",
-            "Exact cross-kernel pending-queue counts beyond passing the requested backlog to the OS, which may cap or normalize it"
-          ],
-          "blockers": [
-            "haxe_go-vfp.10.9"
-          ]
+          "release_admitted": true,
+          "qualification": "On portable Linux/amd64 with Haxe 4.3.7 and Go 1.25.12 or 1.26.5, serial plain-TCP server use preserves bind-before-listen, passes each backlog to the OS, accepts blocking IPv4 clients, inherits connected policy, and rolls failed listener transitions back to an empty reusable handle.",
+          "evidence_ids": ["semantic:socket-server-lifecycle", "snapshot:socket-server-lifecycle", "runtime:socket-regressions", "runtime:socket-listener-linux", "runtime:socket-resource-convergence-posix", "policy:socket-server-lifecycle"],
+          "exclusions": ["TLS servers, hostile peers, listener load/soak, same-handle lifecycle races not named here, exact cross-kernel queue counts, and runtime support outside Linux/amd64"],
+          "blockers": []
         },
         {
-          "id": "socket-timeout-nonblocking-readiness-controls",
-          "symbols": [
-            "sys.net.Socket.setTimeout",
-            "sys.net.Socket.setBlocking",
-            "sys.net.Socket.select",
-            "sys.net.Socket.waitForRead"
-          ],
+          "id": "tcp-ipv4-connected-timeout-nonblocking-controls",
+          "symbols": ["sys.net.Socket.setTimeout (established plain TCP)", "sys.net.Socket.setBlocking (established plain TCP)", "established plain-TCP read/write progress-or-haxe.io.Error.Blocked"],
           "granularity": "operation",
           "state": "semantic-diff-supported",
-          "release_admitted": false,
-          "qualification": "The operation-level candidate uses operating-system read, write, and exceptional readiness on Linux and Darwin, preserves buffered bytes, EOF, duplicate indexes, and public Socket identity, and proves prompt Blocked behavior for connected nonblocking read/write/accept. Repeated resource convergence covers timeout, readiness snapshots, blocked-read cancellation, and concurrent close. Socket.setTimeout still does not bound Host construction or reverse lookup. Linux has runtime evidence; Darwin has local runtime evidence; Windows remains compile-only and explicitly unsupported at runtime. Release admission stays fail-closed pending the advanced socket review.",
-          "evidence_ids": [
-            "semantic:socket",
-            "semantic:socket-readiness",
-            "snapshot:socket-readiness",
-            "runtime:socket-regressions",
-            "runtime:socket-readiness-posix",
-            "runtime:socket-resource-convergence-posix",
-            "runtime:socket-cross-build",
-            "policy:socket-readiness",
-            "policy:socket-resource-convergence",
-            "bead:network-audit"
-          ],
-          "exclusions": [
-            "Nonblocking connect, because the current dial path cannot retain an in-progress socket for later select completion",
-            "TLS readiness, because decrypted TLS records may be buffered above the native descriptor",
-            "Windows runtime readiness and runtime support on operating systems without a reviewed native adapter",
-            "DNS timeout/cancellation, hostile-peer and production-soak behavior, and release admission outside Linux/amd64"
-          ],
-          "blockers": [
-            "haxe_go-vfp.10.9"
-          ]
+          "release_admitted": true,
+          "qualification": "On portable Linux/amd64 with the pinned toolchains, negative, zero, and positive timeout policy plus blocking/nonblocking mode apply to an already-established plain TCP connection and produce progress, EOF, or Error.Blocked deterministically.",
+          "evidence_ids": ["semantic:socket", "semantic:socket-readiness", "snapshot:socket-readiness", "runtime:socket-regressions", "policy:socket-readiness"],
+          "exclusions": ["Nonblocking connect, DNS work before the socket exists, TLS/UDP controls, hostile peers, and runtime support outside Linux/amd64"],
+          "blockers": []
         },
         {
-          "id": "socket-shutdown-fast-send-controls",
-          "symbols": [
-            "sys.net.Socket.shutdown",
-            "sys.net.Socket.setFastSend"
-          ],
+          "id": "tcp-ipv4-connected-nonblocking-accept",
+          "symbols": ["sys.net.Socket.setBlocking(false) (listening plain TCP)", "sys.net.Socket.accept progress-or-haxe.io.Error.Blocked"],
           "granularity": "operation",
           "state": "compile-go-test-run-supported",
-          "release_admitted": false,
-          "qualification": "The operation-level candidate preserves plain TCP read/write half-close, sends TLS close_notify for write-only shutdown while retaining the caller's read side, and defines that TLS read-only shutdown is explicitly unsupported. It closes both TLS sides idempotently and applies setFastSend to the underlying TCP_NODELAY option through a typed TLS NetConn boundary. Generated-Haxe and native POSIX tests cover wire-visible EOF, preserved response reads, option-state changes, repetition, concurrent close, and resource convergence. Release admission stays fail-closed pending the advanced socket review.",
-          "evidence_ids": [
-            "semantic:socket",
-            "snapshot:socket-tls",
-            "runtime:socket-regressions",
-            "runtime:socket-tls-controls-posix",
-            "runtime:socket-resource-convergence-posix",
-            "runtime:socket-cross-build",
-            "policy:socket-tls-controls",
-            "policy:socket-resource-convergence",
-            "bead:network-audit"
-          ],
-          "exclusions": [
-            "TLS read-only shutdown, which has no safe protocol-level equivalent and reports an exact unsupported error",
-            "Hostile-peer and production-soak behavior",
-            "Windows runtime behavior and runtime support outside the reviewed POSIX platforms"
-          ],
-          "blockers": [
-            "haxe_go-vfp.10.9"
-          ]
+          "release_admitted": true,
+          "qualification": "On portable Linux/amd64 with the pinned toolchains, accept on an already-listening plain TCP socket either returns a connected child or reports Error.Blocked without waiting indefinitely.",
+          "evidence_ids": ["snapshot:socket-readiness", "runtime:socket-regressions", "policy:socket-readiness", "policy:socket-server-lifecycle"],
+          "exclusions": ["Nonblocking connect, TLS accept, fairness/load guarantees, and runtime support outside Linux/amd64"],
+          "blockers": []
         },
         {
-          "id": "host-dns-and-reverse-lookup",
-          "symbols": [
-            "new sys.net.Host(\"hostname\")",
-            "sys.net.Host.reverse",
-            "sys.net.Host.localhost"
-          ],
+          "id": "tcp-ipv4-readiness-controls",
+          "symbols": ["sys.net.Socket.select (plain TCP)", "sys.net.Socket.waitForRead (plain TCP)"],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "On portable Linux/amd64 with the pinned toolchains, native plain-TCP read/write/exception readiness preserves caller indexes, buffered bytes, EOF, finite timeouts including snapshot preparation, and duplicate-descriptor ownership.",
+          "evidence_ids": ["semantic:socket-readiness", "snapshot:socket-readiness", "runtime:socket-readiness-posix", "runtime:socket-regressions", "runtime:socket-resource-convergence-posix", "runtime:socket-cross-build", "policy:socket-readiness"],
+          "exclusions": ["Nonblocking connect, TLS readiness, UDP readiness, high duplicated descriptors beyond the fixed POSIX FdSet capacity, hostile/load behavior, and runtime support outside Linux/amd64"],
+          "blockers": []
+        },
+        {
+          "id": "plain-tcp-shutdown-fast-send-controls",
+          "symbols": ["sys.net.Socket.shutdown (established plain TCP)", "sys.net.Socket.setFastSend (established plain TCP)"],
+          "granularity": "operation",
+          "state": "compile-go-test-run-supported",
+          "release_admitted": true,
+          "qualification": "On portable Linux/amd64 with the pinned toolchains, established plain TCP supports read/write/both half-close combinations and direct TCP_NODELAY mutation with wire-visible and native option-state evidence.",
+          "evidence_ids": ["semantic:socket", "runtime:socket-regressions", "runtime:socket-tls-controls-posix", "policy:socket-tls-controls"],
+          "exclusions": ["TLS controls, pre-connect concurrent policy mutation, non-TCP transports, hostile/load behavior, and runtime support outside Linux/amd64"],
+          "blockers": []
+        },
+        {
+          "id": "host-localhost",
+          "symbols": ["sys.net.Host.localhost"],
+          "granularity": "operation",
+          "state": "semantic-diff-supported",
+          "release_admitted": true,
+          "qualification": "On portable Linux/amd64, Host.localhost returns the operating-system hostname when available or the nonempty literal localhost fallback; exact spelling is environment-dependent.",
+          "evidence_ids": ["semantic:host-basic", "snapshot:host-basic", "runtime:socket-regressions", "policy:socket-dns-boundary"],
+          "exclusions": ["Treating the returned spelling as stable identity or DNS evidence, and runtime support outside Linux/amd64"],
+          "blockers": []
+        },
+        {
+          "id": "host-named-resolution",
+          "symbols": ["new sys.net.Host(\"hostname\")"],
           "granularity": "operation",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "By compatibility decision, new Host(name) preserves Haxe 4.3.7 behavior and resolves a hostname synchronously during construction, before a Socket exists. Socket.setTimeout therefore cannot bound or cancel it. Host.reverse is a separate synchronous reverse lookup, and Host.localhost reads the OS hostname; none is admitted as bounded DNS behavior.",
-          "evidence_ids": [
-            "semantic:socket",
-            "runtime:socket-regressions",
-            "policy:socket-dns-boundary",
-            "bead:network-audit"
-          ],
-          "exclusions": [
-            "DNS lookup timeout and cancellation, resolver configuration, reverse lookup, search domains, and split-horizon behavior"
-          ],
-          "blockers": [
-            "haxe_go-vfp.10.9"
-          ]
+          "qualification": "Haxe-compatible named Host construction remains a synchronous OS resolver call before a Socket exists.",
+          "evidence_ids": ["policy:socket-dns-boundary"],
+          "exclusions": ["Timeout, cancellation, resolver selection, search domains, split-horizon behavior, and deterministic external answers"],
+          "blockers": []
         },
         {
-          "id": "udp-ipv4",
-          "symbols": [
-            "sys.net.UdpSocket"
-          ],
-          "granularity": "surface",
+          "id": "host-reverse-lookup",
+          "symbols": ["sys.net.Host.reverse"],
+          "granularity": "operation",
           "state": "experimental",
           "release_admitted": false,
-          "qualification": "Native and generated-Haxe loopback evidence preserves sender identity for both empty and non-empty IPv4 datagrams. Repeated resource convergence covers creation, both datagram forms, peer identity, and close. UDP remains experimental because the complete nonblocking, hostile-peer, and cross-platform runtime contract is not admitted.",
-          "evidence_ids": [
-            "semantic:socket",
-            "runtime:socket-regressions",
-            "runtime:socket-resource-convergence-posix",
-            "runtime:socket-cross-build",
-            "policy:socket-resource-convergence",
-            "bead:network-audit"
-          ],
-          "exclusions": [
-            "All UDP release behavior; unresolved portions include timeout and nonblocking edges, hostile peers, and runtime support outside Linux/amd64"
-          ],
-          "blockers": [
-            "haxe_go-vfp.10.9"
-          ]
+          "qualification": "Reverse lookup remains a synchronous OS resolver operation with environment-dependent results.",
+          "evidence_ids": ["policy:socket-dns-boundary"],
+          "exclusions": ["Timeout, cancellation, resolver selection, and deterministic external answers"],
+          "blockers": []
         },
         {
-          "id": "tls-socket",
-          "symbols": [
-            "sys.ssl.Socket"
-          ],
-          "granularity": "surface",
-          "state": "experimental",
-          "release_admitted": false,
-          "qualification": "Deterministic local-CA runtime evidence proves that direct TLS dials a resolved IPv4 address while retaining the original logical hostname for default certificate verification and SNI; mismatch failure and explicit setHostname override are covered. Generated-Haxe loopback snapshots exercise the same default endpoint path, TLS close_notify write shutdown, preserved reads, and explicit read-only rejection. Native POSIX evidence verifies inherited fast-send and repeated resource convergence across successful I/O, close-notify, complete close, and stalled handshakes. TLS remains experimental because public certificate stores, hostile peers, and runtime behavior outside Linux/amd64 are not admitted; Windows evidence is compile-only.",
-          "evidence_ids": [
-            "snapshot:socket-tls",
-            "snapshot:socket-sni",
-            "runtime:socket-regressions",
-            "runtime:socket-tls-controls-posix",
-            "runtime:socket-resource-convergence-posix",
-            "runtime:socket-cross-build",
-            "policy:socket-tls-controls",
-            "policy:socket-resource-convergence",
-            "bead:network-audit"
-          ],
-          "exclusions": [
-            "All TLS and HTTPS release behavior; unresolved portions include public CA stores, client certificates, read-only TLS shutdown, hostile peers, production soak, and runtime support outside Linux/amd64"
-          ],
-          "blockers": [
-            "haxe_go-vfp.10.9"
-          ]
+          "id": "udp-ipv4-datagram-core",
+          "symbols": ["new sys.net.UdpSocket", "sys.net.UdpSocket.bind (numeric IPv4)", "sys.net.UdpSocket.host", "sys.net.UdpSocket.sendTo (blocking IPv4)", "sys.net.UdpSocket.readFrom (blocking IPv4)", "sys.net.UdpSocket.close"],
+          "granularity": "operation",
+          "state": "compile-go-test-run-supported",
+          "release_admitted": true,
+          "qualification": "On portable Linux/amd64 with the pinned toolchains, application-controlled blocking IPv4 datagrams preserve sender identity for empty and nonempty payloads, and failed bind/policy installation retains no descriptor.",
+          "evidence_ids": ["snapshot:socket-udp", "runtime:socket-regressions", "runtime:socket-resource-convergence-posix", "policy:socket-resource-convergence"],
+          "exclusions": ["Inherited TCP connect/listen/accept/shutdown/fast-send, connected UDP, readiness/nonblocking/timeout controls, multicast, IPv6, LAN delivery guarantees, hostile/load behavior, and runtime support outside Linux/amd64"],
+          "blockers": []
+        },
+        {
+          "id": "udp-ipv4-broadcast-control",
+          "symbols": ["sys.net.UdpSocket.setBroadcast"],
+          "granularity": "operation",
+          "state": "compile-go-test-run-supported",
+          "release_admitted": true,
+          "qualification": "On portable Linux/amd64 with the pinned toolchains, setBroadcast applies SO_BROADCAST exactly once to the current or transactionally created IPv4 UDP socket and preserves prior state on failure.",
+          "evidence_ids": ["runtime:socket-regressions", "snapshot:socket-udp", "policy:socket-resource-convergence"],
+          "exclusions": ["LAN broadcast packet delivery, multicast, hostile/load behavior, and runtime support outside Linux/amd64"],
+          "blockers": []
+        },
+        {
+          "id": "tls-ipv4-direct-client",
+          "symbols": ["new sys.ssl.Socket", "sys.ssl.Socket.verifyCert/setCA/setHostname", "sys.ssl.Socket.connect (numeric IPv4 route with logical host)", "sys.ssl.Socket.handshake", "sys.ssl.Socket input/output", "sys.ssl.Socket.peerCertificate", "sys.ssl.Socket.close"],
+          "granularity": "operation",
+          "state": "compile-go-test-run-supported",
+          "release_admitted": true,
+          "qualification": "On portable Linux/amd64 with the pinned toolchains, direct application-controlled TLS clients preserve numeric routing versus logical SNI/verification identity, support an application-supplied CA or explicit verification policy, cancel acquisition on close, and detach failed handshakes.",
+          "evidence_ids": ["snapshot:socket-tls", "snapshot:socket-sni", "runtime:socket-regressions", "runtime:socket-resource-convergence-posix", "policy:socket-tls-controls"],
+          "exclusions": ["Portable public CA stores, public Internet guarantees, client certificates, TLS readiness, hostile peers, indefinite load, and runtime support outside Linux/amd64"],
+          "blockers": []
+        },
+        {
+          "id": "tls-ipv4-server-sni",
+          "symbols": ["sys.ssl.Socket.setCertificate", "sys.ssl.Socket.addSNICertificate", "sys.ssl.Socket.bind/listen (numeric IPv4)", "sys.ssl.Socket.accept/handshake"],
+          "granularity": "operation",
+          "state": "compile-go-test-run-supported",
+          "release_admitted": true,
+          "qualification": "On portable Linux/amd64 with the pinned toolchains, application-controlled TLS servers retain certificate/SNI policy across bind and listen, and failed accepted handshakes detach and close before the error escapes.",
+          "evidence_ids": ["snapshot:socket-sni", "runtime:socket-regressions", "runtime:socket-resource-convergence-posix", "policy:socket-server-lifecycle", "policy:socket-tls-controls"],
+          "exclusions": ["Client-certificate authentication, public/hostile peers, handshake-rate/load guarantees, TLS readiness, and runtime support outside Linux/amd64"],
+          "blockers": []
+        },
+        {
+          "id": "tls-shutdown-fast-send-controls",
+          "symbols": ["sys.ssl.Socket.shutdown(false, true)", "sys.ssl.Socket.shutdown(true, true)", "sys.ssl.Socket.setFastSend"],
+          "granularity": "operation",
+          "state": "compile-go-test-run-supported",
+          "release_admitted": true,
+          "qualification": "On portable Linux/amd64 with the pinned toolchains, TLS close_notify write shutdown preserves reads, TLS read-only shutdown is explicitly unsupported, full shutdown closes the connection, and fast-send reaches TCP_NODELAY through the typed TLS transport.",
+          "evidence_ids": ["snapshot:socket-tls", "runtime:socket-tls-controls-posix", "runtime:socket-resource-convergence-posix", "policy:socket-tls-controls"],
+          "exclusions": ["TLS read-only shutdown, which deterministically reports unsupported; TLS readiness; hostile-peer and production-soak behavior; Windows runtime behavior and all runtime support outside Linux/amd64"],
+          "blockers": []
         }
       ]
     },
@@ -1762,8 +1762,8 @@
       "release_required": true
     },
     {
-      "id": "application-controlled-tcp-boundary",
-      "statement": "Only the named blocking IPv4 TCP client core is admitted, and only for application-controlled, pre-resolved numeric endpoints; HTTP, DNS, server sockets, socket controls, UDP, TLS, public networks, and hostile-peer behavior remain excluded.",
+      "id": "application-controlled-network-boundary",
+      "statement": "Only the named Linux/amd64 IPv4 TCP, UDP, and TLS member groups are admitted. Endpoints, TLS identity/trust, peers, and workloads are application-controlled; HTTP, named/reverse DNS, public networks, hostile-peer guarantees, IPv6, and unlisted operations remain excluded.",
       "release_required": true
     }
   ],
@@ -1772,11 +1772,6 @@
       "id": "haxe_go-vfp.10.8",
       "scope": "Portable HTTP request fidelity, streamed responses, and cancellable uploads",
       "release_blocker_for": "portable-http"
-    },
-    {
-      "id": "haxe_go-vfp.10.9",
-      "scope": "Advanced portable socket, DNS, UDP, readiness, server, and TLS semantics",
-      "release_blocker_for": "portable-socket-advanced"
     },
     {
       "id": "haxe_go-vfp.9.1",

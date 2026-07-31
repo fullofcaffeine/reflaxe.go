@@ -75,7 +75,16 @@ remain excluded. A bounded 20-repetition matrix now covers successful TLS I/O,
 write-side close-notify, complete close, and stalled-handshake cleanup; see
 [socket and TLS resource convergence](socket-resource-convergence.md).
 
-This work makes the operation an evidence-backed admission candidate. It does
-not admit these controls for release: the compatibility manifest remains
-fail-closed under `haxe_go-vfp.10.9` until the advanced socket review decides
-the exact member-level release surface.
+Native TLS ownership follows four failure invariants: close cancels a TLS dial
+and prevents stale installation; a failed TLS handshake detaches and closes
+the exact failed connection; a failed accepted handshake cannot leave an
+unreachable connection attached; and a stale failed handshake cannot detach a
+replacement connection. Public handshake, implicit `peerCertificate`
+handshake, and accepted-server handshake share that transaction.
+
+The compatibility manifest now admits three separate Linux/amd64 member
+groups: direct application-controlled TLS clients, application-controlled
+server/SNI behavior, and write/full-shutdown plus fast-send controls. It does
+not admit the whole `sys.ssl.Socket` class. Public CA-store portability, client
+certificates, TLS readiness, TLS read-only shutdown, hostile/load behavior,
+and runtime support outside Linux/amd64 remain excluded.

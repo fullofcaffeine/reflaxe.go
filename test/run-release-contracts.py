@@ -70,6 +70,7 @@ def main() -> int:
         ["python3", "test/test_semantic_release_dependency_boundary.py"],
         ["python3", "test/test_semver_lifecycle_policy.py"],
         ["python3", "test/test_sibling_target_classpath_guard.py"],
+        ["python3", "test/test_socket_admission_split_contract.py"],
         ["python3", "test/test_socket_dns_boundary_contract.py"],
         ["python3", "test/test_socket_readiness_contract.py"],
         ["python3", "test/test_socket_resource_convergence_contract.py"],

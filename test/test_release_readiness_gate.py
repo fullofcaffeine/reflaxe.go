@@ -85,19 +85,16 @@ class ReleaseReadinessGateTest(unittest.TestCase):
             "haxe_go-vfp.10.8",
             compatibility["requiredExclusions"]["portable-http"],
         )
-        self.assertEqual(
-            "haxe_go-vfp.10.9",
-            compatibility["requiredExclusions"]["portable-socket-advanced"],
+        self.assertNotIn(
+            "portable-socket-advanced",
+            compatibility["requiredExclusions"],
         )
         self.assertNotIn("haxe_go-vfp.10.4", compatibility["blockerScopes"])
         self.assertEqual(
             "portable-http",
             compatibility["blockerScopes"]["haxe_go-vfp.10.8"],
         )
-        self.assertEqual(
-            "portable-socket-advanced",
-            compatibility["blockerScopes"]["haxe_go-vfp.10.9"],
-        )
+        self.assertNotIn("haxe_go-vfp.10.9", compatibility["blockerScopes"])
 
     def test_candidate_fixture_passes_without_pretending_assets_are_hosted(self) -> None:
         evidence = self.evidence()

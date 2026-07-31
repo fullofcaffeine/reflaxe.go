@@ -9,9 +9,10 @@ resolved.
 
 This resolution happens before a `Socket` participates. A socket timeout
 therefore cannot cancel, limit, or retroactively change it. Hostname lookup,
-reverse lookup, and local-host discovery remain outside the beta networking
-claim. The admitted client operation continues to require an
-application-controlled numeric IPv4 endpoint.
+and reverse lookup remain outside the beta networking claim. Local-host
+discovery is admitted separately because it reads the OS hostname or returns a
+nonempty `localhost` fallback; it is not DNS evidence. The admitted client
+operation continues to require an application-controlled numeric IPv4 endpoint.
 
 ## Why this is the compatible choice
 
@@ -50,9 +51,10 @@ All three forms act only on that `SocketHandle`. A socket timeout does not
 retroactively bound `new Host("hostname")`, `Host.reverse()`, or
 `Host.localhost()`.
 
-The exact progress, nonblocking, readiness, and zero/negative timeout contract
-remains release-excluded under `haxe_go-vfp.10.9`; this decision only prevents
-those controls from being mistaken for DNS cancellation.
+Connected plain-TCP progress, nonblocking, readiness, and zero/negative timeout
+controls are admitted as separate Linux/amd64 operations. That admission does
+not turn socket deadlines into DNS cancellation: name and reverse lookup still
+happen before a socket operation can apply its timeout.
 
 ## Operation-by-operation boundary
 
@@ -61,7 +63,7 @@ those controls from being mistaken for DNS cancellation.
 | `new Host("127.0.0.1")` | Parses the numeric IPv4 literal locally and fills `ip`. | Admitted only as part of the named blocking IPv4 TCP client core. |
 | `new Host("hostname")` | Calls the Go resolver synchronously during construction. | Experimental; lookup timeout, cancellation, resolver configuration, search domains, and split-horizon behavior are excluded. |
 | `Host.reverse()` | Calls reverse DNS synchronously for the stored IPv4 address. | Experimental; timeout, cancellation, and result policy are excluded. |
-| `Host.localhost()` | Reads the operating-system hostname synchronously; it is not controlled by a socket timeout. | Experimental and outside the admitted client operation. |
+| `Host.localhost()` | Reads the operating-system hostname synchronously, falling back to nonempty `localhost`; exact spelling is environment-dependent. | Admitted as its own Linux/amd64 operation; it is not controlled by a socket timeout. |
 | `Socket.connect(host, port)` | Dials `host.toString()`, which is already a numeric address. | Only the documented blocking numeric-IPv4 client members are admitted. |
 
 ## Practical guidance
@@ -77,6 +79,6 @@ claim.
 
 `test/test_socket_dns_boundary_contract.py` protects this decision. It checks
 the eager staged-source sequence, the absence of DNS work from
-`Socket.connect`, the operation-level compatibility exclusion, and the
-`portable-socket-advanced` readiness blocker. The generated compatibility
-manifest remains the release authority.
+`Socket.connect`, the separate admitted `Host.localhost` row, and the explicit
+named/reverse exclusions. The generated compatibility manifest remains the
+release authority.

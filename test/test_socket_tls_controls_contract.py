@@ -45,7 +45,7 @@ class SocketTLSControlsContractTest(unittest.TestCase):
         ):
             self.assertIn(phrase, staged)
 
-    def test_compatibility_claim_is_precise_and_remains_fail_closed(self) -> None:
+    def test_compatibility_claim_splits_plain_and_tls_controls(self) -> None:
         source = json.loads(COMPATIBILITY.read_text(encoding="utf-8"))
         networking = next(
             item for item in source["surfaces"] if item["id"] == "portable-networking"
@@ -53,22 +53,20 @@ class SocketTLSControlsContractTest(unittest.TestCase):
         controls = next(
             item
             for item in networking["operations"]
-            if item["id"] == "socket-shutdown-fast-send-controls"
+            if item["id"] == "tls-shutdown-fast-send-controls"
         )
-        tls = next(
-            item for item in networking["operations"] if item["id"] == "tls-socket"
-        )
+        operations = {item["id"]: item for item in networking["operations"]}
+        tls = operations["tls-ipv4-direct-client"]
+        server = operations["tls-ipv4-server-sni"]
 
         self.assertEqual("compile-go-test-run-supported", controls["state"])
-        self.assertFalse(controls["release_admitted"])
-        self.assertEqual(["haxe_go-vfp.10.9"], controls["blockers"])
+        self.assertTrue(controls["release_admitted"])
+        self.assertEqual([], controls["blockers"])
         for evidence in (
-            "semantic:socket",
             "snapshot:socket-tls",
             "runtime:socket-tls-controls-posix",
             "runtime:socket-resource-convergence-posix",
             "policy:socket-tls-controls",
-            "policy:socket-resource-convergence",
         ):
             self.assertIn(evidence, controls["evidence_ids"])
 
@@ -77,7 +75,7 @@ class SocketTLSControlsContractTest(unittest.TestCase):
             "TLS close_notify",
             "TLS read-only shutdown is explicitly unsupported",
             "TCP_NODELAY",
-            "Release admission stays fail-closed",
+            "Linux/amd64",
         ):
             self.assertIn(phrase, qualification)
         exclusions = " ".join(controls["exclusions"])
@@ -88,8 +86,10 @@ class SocketTLSControlsContractTest(unittest.TestCase):
         ):
             self.assertIn(phrase, exclusions)
 
-        self.assertIn("runtime:socket-tls-controls-posix", tls["evidence_ids"])
-        self.assertNotIn("inherited control semantics", tls["qualification"])
+        self.assertIn("snapshot:socket-tls", tls["evidence_ids"])
+        self.assertTrue(tls["release_admitted"])
+        self.assertTrue(server["release_admitted"])
+        self.assertNotIn("sys.ssl.Socket", tls["symbols"])
 
     def test_documentation_explains_behavior_proof_and_boundary(self) -> None:
         decision = " ".join(DECISION.read_text(encoding="utf-8").split())
@@ -101,7 +101,8 @@ class SocketTLSControlsContractTest(unittest.TestCase):
             "not a no-throw test",
             "concurrent close",
             "Windows remains compile-only",
-            "does not admit these controls for release",
+            "three separate Linux/amd64 member groups",
+            "failed TLS handshake",
         ):
             self.assertIn(phrase, decision)
 

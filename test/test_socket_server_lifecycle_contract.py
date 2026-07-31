@@ -59,7 +59,7 @@ class SocketServerLifecycleContractTest(unittest.TestCase):
             self.assertIn(f'"{name}"', analyzer)
             self.assertTrue((ROOT / "runtime" / "hxrt" / name).is_file())
 
-    def test_compatibility_claim_stays_operation_scoped_and_fail_closed(self) -> None:
+    def test_compatibility_claim_is_a_narrow_blocking_server_operation(self) -> None:
         source = json.loads(COMPATIBILITY.read_text(encoding="utf-8"))
         networking = next(
             item for item in source["surfaces"] if item["id"] == "portable-networking"
@@ -67,14 +67,14 @@ class SocketServerLifecycleContractTest(unittest.TestCase):
         operation = next(
             item
             for item in networking["operations"]
-            if item["id"] == "tcp-server-and-listener-controls"
+            if item["id"] == "tcp-ipv4-blocking-server-core"
         )
 
         self.assertEqual("semantic-diff-supported", operation["state"])
-        self.assertFalse(operation["release_admitted"])
-        self.assertEqual(["haxe_go-vfp.10.9"], operation["blockers"])
-        self.assertIn("bind-then-listen", operation["qualification"])
-        self.assertIn("Windows remains compile-only", operation["qualification"])
+        self.assertTrue(operation["release_admitted"])
+        self.assertEqual([], operation["blockers"])
+        self.assertIn("bind-before-listen", operation["qualification"])
+        self.assertIn("Linux/amd64", operation["qualification"])
         for evidence in (
             "semantic:socket-server-lifecycle",
             "snapshot:socket-server-lifecycle",
@@ -84,7 +84,6 @@ class SocketServerLifecycleContractTest(unittest.TestCase):
             self.assertIn(evidence, operation["evidence_ids"])
 
         exclusions = " ".join(operation["exclusions"])
-        self.assertIn("Nonblocking accept", exclusions)
         self.assertIn("runtime support outside Linux/amd64", exclusions)
         self.assertIn("kernel", exclusions)
 
@@ -97,6 +96,7 @@ class SocketServerLifecycleContractTest(unittest.TestCase):
             "operating system may cap or normalize",
             "Windows cross-build is compile evidence",
             "haxe_go-vfp.10.9.6",
+            "caller must bind again",
         ):
             self.assertIn(phrase, decision)
 

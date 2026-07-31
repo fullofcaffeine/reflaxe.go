@@ -87,12 +87,15 @@ func SslSocketConnect(handle *SocketHandle, endpoint *SocketEndpoint, port int, 
 	if config == nil {
 		return
 	}
-	conn, err := tls.DialWithDialer(handle.dialer(), "tcp4", net.JoinHostPort(endpoint.NetworkAddress, strconv.Itoa(port)), config)
+	acquisition, operationContext := handle.beginAcquisition(true)
+	dialer := &tls.Dialer{NetDialer: handle.dialer(), Config: config}
+	conn, err := dialer.DialContext(operationContext, "tcp4", net.JoinHostPort(endpoint.NetworkAddress, strconv.Itoa(port)))
 	if err != nil {
+		handle.abandonAcquisition(acquisition)
 		socketThrow(err)
 		return
 	}
-	handle.installConn(conn)
+	socketThrow(handle.installAcquiredConn(acquisition, conn))
 }
 
 func sslSocketServerConfig(cert *SslCertificate, key *SslKey, sni *SslSocketSNIConfig) *tls.Config {
@@ -145,20 +148,27 @@ func SslSocketBind(handle *SocketHandle, host *string, port int, cert *SslCertif
 	})
 }
 
-// SslSocketHandshake performs the native handshake for the handle's current TLS connection.
-func SslSocketHandshake(handle *SocketHandle) {
+func sslSocketHandshakeCurrent(handle *SocketHandle) (net.Conn, error) {
 	if handle == nil {
-		return
+		return nil, nil
 	}
 	conn := handle.snapshotConn()
 	if conn == nil {
-		return
+		return nil, nil
 	}
 	if handshaker, ok := conn.(interface{ Handshake() error }); ok {
 		if err := handshaker.Handshake(); err != nil {
-			socketThrow(err)
+			handle.detachAndCloseConnIfCurrent(conn)
+			return nil, err
 		}
 	}
+	return conn, nil
+}
+
+// SslSocketHandshake performs the native handshake for the handle's current TLS connection.
+func SslSocketHandshake(handle *SocketHandle) {
+	_, err := sslSocketHandshakeCurrent(handle)
+	socketThrow(err)
 }
 
 // SslSocketPeerCertificate returns the typed leaf/chain handle for the TLS peer.
@@ -166,13 +176,13 @@ func SslSocketPeerCertificate(handle *SocketHandle) *SslCertificate {
 	if handle == nil {
 		return nil
 	}
-	conn := handle.snapshotConn()
-	tlsConn, ok := conn.(*tls.Conn)
-	if !ok || tlsConn == nil {
+	conn, err := sslSocketHandshakeCurrent(handle)
+	if err != nil {
+		socketThrow(err)
 		return nil
 	}
-	if err := tlsConn.Handshake(); err != nil {
-		socketThrow(err)
+	tlsConn, ok := conn.(*tls.Conn)
+	if !ok || tlsConn == nil {
 		return nil
 	}
 	state := tlsConn.ConnectionState()

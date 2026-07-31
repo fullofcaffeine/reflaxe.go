@@ -1,7 +1,9 @@
 package hxrt
 
 import (
+	"bufio"
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
@@ -105,6 +107,78 @@ type socketTestInstallFailureConn struct {
 	closed bool
 }
 
+type socketTestTrackedConn struct {
+	closed bool
+}
+
+func (connection *socketTestTrackedConn) Read(_ []byte) (int, error) {
+	return 0, io.EOF
+}
+
+func (connection *socketTestTrackedConn) Write(raw []byte) (int, error) {
+	return len(raw), nil
+}
+
+func (connection *socketTestTrackedConn) Close() error {
+	connection.closed = true
+	return nil
+}
+
+func (connection *socketTestTrackedConn) LocalAddr() net.Addr              { return nil }
+func (connection *socketTestTrackedConn) RemoteAddr() net.Addr             { return nil }
+func (connection *socketTestTrackedConn) SetDeadline(time.Time) error      { return nil }
+func (connection *socketTestTrackedConn) SetReadDeadline(time.Time) error  { return nil }
+func (connection *socketTestTrackedConn) SetWriteDeadline(time.Time) error { return nil }
+
+type socketTestBoundTCP struct {
+	closed bool
+}
+
+func (bound *socketTestBoundTCP) Addr() net.Addr {
+	return &net.TCPAddr{IP: net.ParseIP(socketTestHost), Port: 1}
+}
+
+func (bound *socketTestBoundTCP) Listen(_ int) (*net.TCPListener, error) {
+	return nil, errors.New("unexpected listen")
+}
+
+func (bound *socketTestBoundTCP) Close() error {
+	bound.closed = true
+	return nil
+}
+
+type socketTestSignalingConn struct {
+	net.Conn
+	readEntered chan struct{}
+	readOnce    sync.Once
+}
+
+type socketTestBlockingHandshakeConn struct {
+	net.Conn
+	entered chan struct{}
+	release chan struct{}
+	once    sync.Once
+}
+
+func (connection *socketTestBlockingHandshakeConn) Handshake() error {
+	connection.once.Do(func() {
+		close(connection.entered)
+	})
+	<-connection.release
+	return errors.New("injected handshake failure")
+}
+
+func (connection *socketTestSignalingConn) Read(raw []byte) (int, error) {
+	connection.readOnce.Do(func() {
+		close(connection.readEntered)
+	})
+	return connection.Conn.Read(raw)
+}
+
+func (connection *socketTestSignalingConn) NetConn() net.Conn {
+	return connection.Conn
+}
+
 func (connection *socketTestInstallFailureConn) Read(_ []byte) (int, error) {
 	return 0, io.EOF
 }
@@ -202,6 +276,139 @@ func TestSocketInstallFailureClosesAndDetachesTheNewConnection(t *testing.T) {
 	}
 }
 
+func TestSocketCloseInvalidatesEarlierAcquisitionsButAllowsLaterReuse(t *testing.T) {
+	handle := SocketNewTCP()
+	stale, staleContext := handle.beginAcquisition(true)
+	SocketClose(handle)
+	select {
+	case <-staleContext.Done():
+	case <-time.After(time.Second):
+		t.Fatal("SocketClose did not cancel the earlier acquisition")
+	}
+
+	staleConnection := &socketTestTrackedConn{}
+	if err := handle.installAcquiredConn(stale, staleConnection); !errors.Is(err, net.ErrClosed) {
+		t.Fatalf("stale connection installation error = %v, want net.ErrClosed", err)
+	}
+	if !staleConnection.closed {
+		t.Fatal("stale acquired connection remained open")
+	}
+	if installed := handle.snapshotConn(); installed != nil {
+		t.Fatalf("stale connection attached after close as %T", installed)
+	}
+
+	staleBound, _ := handle.beginAcquisition(false)
+	SocketClose(handle)
+	bound := &socketTestBoundTCP{}
+	if err := handle.installAcquiredBoundTCP(staleBound, bound, nil); !errors.Is(err, net.ErrClosed) {
+		t.Fatalf("stale bound installation error = %v, want net.ErrClosed", err)
+	}
+	if !bound.closed {
+		t.Fatal("stale acquired bound endpoint remained open")
+	}
+
+	fresh, _ := handle.beginAcquisition(false)
+	freshConnection := &socketTestTrackedConn{}
+	if err := handle.installAcquiredConn(fresh, freshConnection); err != nil {
+		t.Fatalf("post-close fresh installation failed: %v", err)
+	}
+	if installed := handle.snapshotConn(); installed != freshConnection {
+		t.Fatalf("post-close fresh connection = %T, want deliberate reuse", installed)
+	}
+	SocketClose(handle)
+}
+
+func TestSocketCloseCancelsPublicAcquisitionsAndRejectsStaleBinds(t *testing.T) {
+	t.Run("tcp connect", func(t *testing.T) {
+		originalDial := socketDialTCPContext
+		defer func() { socketDialTCPContext = originalDial }()
+		entered := make(chan struct{})
+		socketDialTCPContext = func(_ *net.Dialer, operationContext context.Context, _, _ string) (net.Conn, error) {
+			close(entered)
+			<-operationContext.Done()
+			return nil, operationContext.Err()
+		}
+		handle := SocketNewTCP()
+		connectDone := make(chan any, 1)
+		go func() {
+			connectDone <- socketTestRecovered(func() {
+				SocketConnectTCP(handle, socketTestString(socketTestHost), 1)
+			})
+		}()
+		<-entered
+		SocketClose(handle)
+		select {
+		case recovered := <-connectDone:
+			if recovered == nil {
+				t.Fatal("close-canceled TCP connect did not report an error")
+			}
+		case <-time.After(time.Second):
+			t.Fatal("SocketClose did not cancel the TCP dial")
+		}
+	})
+
+	t.Run("tcp bind", func(t *testing.T) {
+		originalBind := socketBindTCPResource
+		defer func() { socketBindTCPResource = originalBind }()
+		entered := make(chan struct{})
+		release := make(chan struct{})
+		bound := &socketTestBoundTCP{}
+		socketBindTCPResource = func(_ string, _ int) (socketBoundTCP, error) {
+			close(entered)
+			<-release
+			return bound, nil
+		}
+		handle := SocketNewTCP()
+		bindDone := make(chan any, 1)
+		go func() {
+			bindDone <- socketTestRecovered(func() {
+				SocketBindTCP(handle, socketTestString(socketTestHost), 0)
+			})
+		}()
+		<-entered
+		SocketClose(handle)
+		close(release)
+		if recovered := <-bindDone; recovered == nil {
+			t.Fatal("stale TCP bind did not report an error")
+		}
+		if !bound.closed {
+			t.Fatal("stale TCP bind resource remained open")
+		}
+	})
+
+	t.Run("udp bind", func(t *testing.T) {
+		originalListenUDP := socketListenUDP
+		defer func() { socketListenUDP = originalListenUDP }()
+		connection, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.ParseIP(socketTestHost), Port: 0})
+		if err != nil {
+			t.Fatal(err)
+		}
+		entered := make(chan struct{})
+		release := make(chan struct{})
+		socketListenUDP = func(_ string, _ *net.UDPAddr) (*net.UDPConn, error) {
+			close(entered)
+			<-release
+			return connection, nil
+		}
+		handle := SocketNewUDP()
+		bindDone := make(chan any, 1)
+		go func() {
+			bindDone <- socketTestRecovered(func() {
+				SocketUdpBind(handle, socketTestString(socketTestHost), 0)
+			})
+		}()
+		<-entered
+		SocketClose(handle)
+		close(release)
+		if recovered := <-bindDone; recovered == nil {
+			t.Fatal("stale UDP bind did not report an error")
+		}
+		if err := connection.SetDeadline(time.Now()); err == nil {
+			t.Fatal("stale UDP bind resource remained open")
+		}
+	})
+}
+
 func TestSocketBindReservesEndpointWithoutListening(t *testing.T) {
 	listener := SocketNewTCP()
 	defer SocketClose(listener)
@@ -271,6 +478,52 @@ func TestSocketListenValidatesLifecycleAndBacklog(t *testing.T) {
 		t.Fatalf("bind then close did not release reserved endpoint: %v", err)
 	}
 	_ = rebound.Close()
+}
+
+func TestSocketListenDeadlineFailureLeavesAnEmptyReusableHandle(t *testing.T) {
+	handle := SocketNewTCP()
+	defer SocketClose(handle)
+	socketBindTCP(
+		handle,
+		socketTestString(socketTestHost),
+		0,
+		func(listener net.Listener) net.Listener {
+			_ = listener.Close()
+			return listener
+		},
+	)
+
+	recovered := socketTestRecovered(func() {
+		SocketListen(handle, 1)
+	})
+	if recovered == nil {
+		t.Fatal("SocketListen with a closed deadline listener did not fail")
+	}
+	handle.stateMu.Lock()
+	bound := handle.boundTCP
+	listener := handle.listener
+	deadlineListener := handle.deadlineListener
+	wrapper := handle.listenerWrapper
+	handle.stateMu.Unlock()
+	if bound != nil || listener != nil || deadlineListener != nil || wrapper != nil {
+		t.Fatalf(
+			"failed listen retained state: bound=%T listener=%T deadline=%T wrapper=%v",
+			bound,
+			listener,
+			deadlineListener,
+			wrapper != nil,
+		)
+	}
+	if address := SocketHost(handle); address.Host != 0 || address.Port != 0 {
+		t.Fatalf("SocketHost after failed listen = %#v, want empty address", address)
+	}
+	if result := SocketAccept(handle); result.Status != SocketIOEOF || result.Handle != nil {
+		t.Fatalf("SocketAccept after failed listen = %#v, want EOF", result)
+	}
+	SocketBindTCP(handle, socketTestString(socketTestHost), 0)
+	if address := SocketHost(handle); address.Port <= 0 {
+		t.Fatalf("explicit rebind after failed listen = %#v, want a reserved port", address)
+	}
 }
 
 func TestSocketAcceptInheritsListenerPolicyAfterListen(t *testing.T) {
@@ -357,6 +610,191 @@ func TestSocketTLSWrapperStartsOnlyAtListen(t *testing.T) {
 		}
 	case <-time.After(time.Second):
 		t.Fatal("TLS accept/handshake did not complete")
+	}
+}
+
+func TestSslSocketHandshakeFailureDetachesAndClosesTheFailedConnection(t *testing.T) {
+	clientRaw, peer := net.Pipe()
+	handle := SocketNewTCP()
+	clientTLS := tls.Client(clientRaw, &tls.Config{InsecureSkipVerify: true})
+	handle.installConn(clientTLS)
+	defer SocketClose(handle)
+
+	peerDone := make(chan struct{})
+	go func() {
+		defer close(peerDone)
+		header := make([]byte, 5)
+		if _, err := io.ReadFull(peer, header); err == nil {
+			length := int64(header[3])<<8 | int64(header[4])
+			_, _ = io.CopyN(io.Discard, peer, length)
+		}
+		_, _ = peer.Write([]byte("abcde"))
+		_ = peer.Close()
+	}()
+	recovered := socketTestRecovered(func() {
+		SslSocketHandshake(handle)
+	})
+	if recovered == nil {
+		t.Fatal("malformed TLS peer did not fail the handshake")
+	}
+	if connection := handle.snapshotConn(); connection != nil {
+		t.Fatalf("failed TLS connection remained attached as %T", connection)
+	}
+	select {
+	case <-peerDone:
+	case <-time.After(time.Second):
+		t.Fatal("malformed TLS peer did not finish")
+	}
+}
+
+func TestSslSocketPeerCertificateFailureUsesTheHandshakeTransaction(t *testing.T) {
+	clientRaw, peer := net.Pipe()
+	handle := SocketNewTCP()
+	handle.installConn(tls.Client(clientRaw, &tls.Config{InsecureSkipVerify: true}))
+	defer SocketClose(handle)
+	go func() {
+		header := make([]byte, 5)
+		if _, err := io.ReadFull(peer, header); err == nil {
+			length := int64(header[3])<<8 | int64(header[4])
+			_, _ = io.CopyN(io.Discard, peer, length)
+		}
+		_, _ = peer.Write([]byte("abcde"))
+		_ = peer.Close()
+	}()
+	recovered := socketTestRecovered(func() {
+		_ = SslSocketPeerCertificate(handle)
+	})
+	if recovered == nil {
+		t.Fatal("malformed TLS peer did not fail peerCertificate")
+	}
+	if connection := handle.snapshotConn(); connection != nil {
+		t.Fatalf("peerCertificate failure retained %T", connection)
+	}
+}
+
+func TestSslSocketAcceptedHandshakeFailureDetachesTheConnection(t *testing.T) {
+	serverConfig, _ := socketTestCertificate(t, socketTestHost)
+	listener := SocketNewTCP()
+	defer SocketClose(listener)
+	socketBindTCP(listener, socketTestString(socketTestHost), 0, func(raw net.Listener) net.Listener {
+		return tls.NewListener(raw, serverConfig)
+	})
+	SocketListen(listener, 1)
+	address := SocketHost(listener)
+
+	client, err := net.Dial("tcp4", net.JoinHostPort(socketTestHost, strconv.Itoa(address.Port)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+	accepted := SocketAccept(listener)
+	if accepted.Status != SocketIOReady || accepted.Handle == nil {
+		t.Fatalf("SocketAccept = %#v, want TLS handle", accepted)
+	}
+	defer SocketClose(accepted.Handle)
+
+	writeDone := make(chan struct{})
+	go func() {
+		defer close(writeDone)
+		_, _ = client.Write([]byte("abcde"))
+	}()
+	recovered := socketTestRecovered(func() {
+		SslSocketHandshake(accepted.Handle)
+	})
+	if recovered == nil {
+		t.Fatal("malformed accepted TLS client did not fail the handshake")
+	}
+	if connection := accepted.Handle.snapshotConn(); connection != nil {
+		t.Fatalf("failed accepted TLS connection remained attached as %T", connection)
+	}
+	select {
+	case <-writeDone:
+	case <-time.After(time.Second):
+		t.Fatal("malformed accepted TLS client did not finish")
+	}
+}
+
+func TestSslSocketHandshakeFailureDoesNotDetachAReplacement(t *testing.T) {
+	failedRaw, peer := net.Pipe()
+	defer peer.Close()
+	failed := &socketTestBlockingHandshakeConn{
+		Conn:    failedRaw,
+		entered: make(chan struct{}),
+		release: make(chan struct{}),
+	}
+	handle := SocketNewTCP()
+	handle.installConn(failed)
+	defer SocketClose(handle)
+
+	handshakeDone := make(chan any, 1)
+	go func() {
+		handshakeDone <- socketTestRecovered(func() {
+			SslSocketHandshake(handle)
+		})
+	}()
+	select {
+	case <-failed.entered:
+	case <-time.After(time.Second):
+		t.Fatal("injected handshake did not start")
+	}
+
+	replacement := &socketTestTrackedConn{}
+	handle.installConn(replacement)
+	close(failed.release)
+	select {
+	case recovered := <-handshakeDone:
+		if recovered == nil {
+			t.Fatal("injected handshake failure did not escape")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("injected handshake did not finish")
+	}
+	if installed := handle.snapshotConn(); installed != replacement {
+		t.Fatalf("stale handshake detached replacement %T", installed)
+	}
+}
+
+func TestSslSocketCloseCancelsAnInProgressHandshakeAcquisition(t *testing.T) {
+	listener, err := net.Listen("tcp4", net.JoinHostPort(socketTestHost, "0"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer listener.Close()
+	accepted := make(chan net.Conn, 1)
+	go func() {
+		connection, acceptErr := listener.Accept()
+		if acceptErr == nil {
+			accepted <- connection
+		}
+	}()
+
+	handle := SocketNewTCP()
+	endpoint := &SocketEndpoint{NetworkAddress: socketTestHost, LogicalHost: socketTestHost}
+	connectDone := make(chan any, 1)
+	go func() {
+		connectDone <- socketTestRecovered(func() {
+			SslSocketConnect(handle, endpoint, listener.Addr().(*net.TCPAddr).Port, false, nil, nil, nil, nil)
+		})
+	}()
+
+	var serverConnection net.Conn
+	select {
+	case serverConnection = <-accepted:
+	case <-time.After(time.Second):
+		t.Fatal("TLS acquisition did not reach the server")
+	}
+	defer serverConnection.Close()
+	SocketClose(handle)
+	select {
+	case recovered := <-connectDone:
+		if recovered == nil {
+			t.Fatal("close-canceled TLS acquisition did not report an error")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("SocketClose did not cancel the in-progress TLS acquisition")
+	}
+	if connection := handle.snapshotConn(); connection != nil {
+		t.Fatalf("close-canceled TLS acquisition attached %T", connection)
 	}
 }
 
@@ -950,6 +1388,101 @@ func TestSocketZeroByteUDPDatagramPreservesSender(t *testing.T) {
 	}
 }
 
+func TestSocketUDPCreationAndBroadcastPolicyAreTransactional(t *testing.T) {
+	originalOption := socketApplyBroadcastOption
+	defer func() {
+		socketApplyBroadcastOption = originalOption
+	}()
+
+	t.Run("first broadcast applies once", func(t *testing.T) {
+		calls := 0
+		socketApplyBroadcastOption = func(_ uintptr, _ int) error {
+			calls++
+			return nil
+		}
+		handle := SocketNewUDP()
+		defer SocketClose(handle)
+		SocketUdpSetBroadcast(handle, true)
+		if calls != 1 {
+			t.Fatalf("first setBroadcast option calls = %d, want exactly 1", calls)
+		}
+	})
+
+	t.Run("creation failure detaches", func(t *testing.T) {
+		calls := 0
+		socketApplyBroadcastOption = func(_ uintptr, _ int) error {
+			calls++
+			return errors.New("injected broadcast failure")
+		}
+		handle := SocketNewUDP()
+		defer SocketClose(handle)
+		recovered := socketTestRecovered(func() {
+			SocketUdpSetBroadcast(handle, true)
+		})
+		if recovered == nil {
+			t.Fatal("injected first-broadcast failure did not escape")
+		}
+		if calls != 1 {
+			t.Fatalf("failed first setBroadcast option calls = %d, want exactly 1", calls)
+		}
+		if connection := handle.snapshotConn(); connection != nil {
+			t.Fatalf("failed UDP creation retained %T", connection)
+		}
+		handle.stateMu.Lock()
+		broadcast := handle.broadcast
+		handle.stateMu.Unlock()
+		if broadcast {
+			t.Fatal("failed first setBroadcast retained the requested policy")
+		}
+	})
+
+	t.Run("bind failure detaches", func(t *testing.T) {
+		socketApplyBroadcastOption = func(_ uintptr, _ int) error {
+			return errors.New("injected bind broadcast failure")
+		}
+		handle := SocketNewUDP()
+		defer SocketClose(handle)
+		handle.stateMu.Lock()
+		handle.broadcast = true
+		handle.stateMu.Unlock()
+		recovered := socketTestRecovered(func() {
+			SocketUdpBind(handle, socketTestString(socketTestHost), 0)
+		})
+		if recovered == nil {
+			t.Fatal("injected UDP bind policy failure did not escape")
+		}
+		if connection := handle.snapshotConn(); connection != nil {
+			t.Fatalf("failed UDP bind retained %T", connection)
+		}
+	})
+
+	t.Run("existing mutation preserves prior policy", func(t *testing.T) {
+		socketApplyBroadcastOption = func(_ uintptr, _ int) error { return nil }
+		handle := SocketNewUDP()
+		defer SocketClose(handle)
+		SocketUdpBind(handle, socketTestString(socketTestHost), 0)
+		before := handle.snapshotConn()
+		socketApplyBroadcastOption = func(_ uintptr, _ int) error {
+			return errors.New("injected mutation failure")
+		}
+		recovered := socketTestRecovered(func() {
+			SocketUdpSetBroadcast(handle, true)
+		})
+		if recovered == nil {
+			t.Fatal("injected existing broadcast failure did not escape")
+		}
+		if after := handle.snapshotConn(); after != before {
+			t.Fatalf("failed mutation replaced connection %T with %T", before, after)
+		}
+		handle.stateMu.Lock()
+		broadcast := handle.broadcast
+		handle.stateMu.Unlock()
+		if broadcast {
+			t.Fatal("failed existing setBroadcast changed the retained policy")
+		}
+	})
+}
+
 func TestSocketConcurrentCloseIsIdempotentAndUnblocksRead(t *testing.T) {
 	left, right := net.Pipe()
 	defer right.Close()
@@ -1011,6 +1544,58 @@ func TestSocketWaitForReadReturnsForClosedHandle(t *testing.T) {
 	case <-done:
 	case <-time.After(100 * time.Millisecond):
 		t.Fatal("SocketWaitForRead blocked forever after the handle was closed")
+	}
+}
+
+func TestSocketSelectTimeoutIsBoundedBehindAnEnteredRead(t *testing.T) {
+	listener, client, accepted := socketTestTCPPair(t)
+	defer SocketClose(listener)
+	defer SocketClose(client)
+	defer SocketClose(accepted)
+
+	client.stateMu.Lock()
+	wrapped := &socketTestSignalingConn{
+		Conn:        client.conn,
+		readEntered: make(chan struct{}),
+	}
+	client.conn = wrapped
+	client.reader = bufio.NewReader(wrapped)
+	client.stateMu.Unlock()
+
+	readDone := make(chan *SocketIOResult, 1)
+	go func() {
+		readDone <- SocketReadValues(client, 1)
+	}()
+	select {
+	case <-wrapped.readEntered:
+	case <-time.After(time.Second):
+		t.Fatal("socket read did not enter the native operation")
+	}
+
+	selectDone := make(chan *SocketSelectResult, 1)
+	started := time.Now()
+	go func() {
+		selectDone <- SocketSelect(nil, []*SocketHandle{client}, nil, 0.02, true)
+	}()
+	select {
+	case result := <-selectDone:
+		if elapsed := time.Since(started); elapsed > 100*time.Millisecond {
+			t.Fatalf("finite SocketSelect took %s behind an entered read", elapsed)
+		}
+		if result == nil || !socketTestIntsEqual(result.Write, 0) {
+			t.Fatalf("SocketSelect write result = %#v, want index 0", result)
+		}
+	case <-time.After(150 * time.Millisecond):
+		SocketClose(client)
+		<-selectDone
+		t.Fatal("finite SocketSelect waited behind an in-progress read")
+	}
+
+	SocketClose(client)
+	select {
+	case <-readDone:
+	case <-time.After(time.Second):
+		t.Fatal("close did not release the entered read")
 	}
 }
 

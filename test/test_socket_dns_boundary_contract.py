@@ -66,15 +66,17 @@ class SocketDnsBoundaryContractTest(unittest.TestCase):
             "negative timeout",
             "does not retroactively bound",
             "application-controlled numeric IPv4",
-            "haxe_go-vfp.10.9",
+            "generated compatibility manifest remains the release authority",
         ):
             self.assertIn(phrase, normalized)
 
     def test_compatibility_and_readiness_cannot_admit_dns_accidentally(self) -> None:
         operations = self.network_operations()
         tcp = operations["tcp-ipv4-blocking-client-core"]
-        controls = operations["socket-timeout-nonblocking-readiness-controls"]
-        dns = operations["host-dns-and-reverse-lookup"]
+        controls = operations["tcp-ipv4-connected-timeout-nonblocking-controls"]
+        localhost = operations["host-localhost"]
+        named = operations["host-named-resolution"]
+        reverse = operations["host-reverse-lookup"]
 
         self.assertTrue(tcp["release_admitted"])
         self.assertIn("pre-resolved numeric endpoint", tcp["qualification"])
@@ -82,32 +84,32 @@ class SocketDnsBoundaryContractTest(unittest.TestCase):
             any("Hostname and DNS behavior" in item for item in tcp["exclusions"])
         )
 
-        self.assertFalse(controls["release_admitted"])
-        self.assertIn("does not bound Host construction", controls["qualification"])
+        self.assertTrue(controls["release_admitted"])
+        self.assertTrue(
+            any("DNS work before" in item for item in controls["exclusions"])
+        )
 
-        self.assertEqual("experimental", dns["state"])
-        self.assertFalse(dns["release_admitted"])
-        self.assertEqual(["haxe_go-vfp.10.9"], dns["blockers"])
-        self.assertIn("synchronously during construction", dns["qualification"])
-        self.assertIn("before a Socket exists", dns["qualification"])
-        self.assertIn("policy:socket-dns-boundary", dns["evidence_ids"])
-        exclusions = " ".join(dns["exclusions"])
+        self.assertTrue(localhost["release_admitted"])
+        self.assertIn("semantic:host-basic", localhost["evidence_ids"])
+        self.assertEqual("experimental", named["state"])
+        self.assertFalse(named["release_admitted"])
+        self.assertEqual([], named["blockers"])
+        self.assertIn("synchronous", named["qualification"])
+        self.assertIn("before a Socket exists", named["qualification"])
+        self.assertIn("policy:socket-dns-boundary", named["evidence_ids"])
+        self.assertFalse(reverse["release_admitted"])
+        self.assertEqual([], reverse["blockers"])
+        exclusions = " ".join(named["exclusions"] + reverse["exclusions"]).lower()
         self.assertIn("timeout", exclusions)
         self.assertIn("cancellation", exclusions)
-        self.assertIn("reverse lookup", exclusions)
-        self.assertIn("resolver configuration", exclusions)
+        self.assertIn("resolver selection", exclusions)
+        self.assertIn("reverse lookup", reverse["qualification"].lower())
 
         readiness = json.loads(READINESS.read_text(encoding="utf-8"))[
             "compatibility"
         ]
-        self.assertEqual(
-            "haxe_go-vfp.10.9",
-            readiness["requiredExclusions"]["portable-socket-advanced"],
-        )
-        self.assertEqual(
-            "portable-socket-advanced",
-            readiness["blockerScopes"]["haxe_go-vfp.10.9"],
-        )
+        self.assertNotIn("portable-socket-advanced", readiness["requiredExclusions"])
+        self.assertNotIn("haxe_go-vfp.10.9", readiness["blockerScopes"])
 
     def test_release_contract_runner_keeps_the_decision_executable(self) -> None:
         runner = RELEASE_RUNNER.read_text(encoding="utf-8")
