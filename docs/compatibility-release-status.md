@@ -10,7 +10,7 @@ must be used as the compatibility paragraph in release notes.
 
 - preset: `portable` (`semantic-diff-supported`);
 - platform: `linux/amd64`;
-- named operations/members: 171;
+- named operations/members: 173;
 - toolchains: exact Haxe version and latest patched supported Go/Node lines from `toolchain-policy.json`;
 - trust: reviewed application source, locked tooling, application-controlled local file/process boundaries, and application-controlled numeric IPv4 endpoints, peers, and TLS identity/trust.
 

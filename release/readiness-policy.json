@@ -18,6 +18,7 @@
       "haxe_go-vfp.4.8": "distribution:published-beta-artifact",
       "haxe_go-vfp.9.1": "go-native",
       "haxe_go-vfp.10.8": "portable-http",
+      "haxe_go-vfp.10.9": "preset:portable",
       "haxe_go-vfp.12.7": "stable-1.x"
     }
   },

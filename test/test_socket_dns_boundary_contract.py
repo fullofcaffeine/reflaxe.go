@@ -109,7 +109,10 @@ class SocketDnsBoundaryContractTest(unittest.TestCase):
             "compatibility"
         ]
         self.assertNotIn("portable-socket-advanced", readiness["requiredExclusions"])
-        self.assertNotIn("haxe_go-vfp.10.9", readiness["blockerScopes"])
+        self.assertEqual(
+            "preset:portable",
+            readiness["blockerScopes"]["haxe_go-vfp.10.9"],
+        )
 
     def test_release_contract_runner_keeps_the_decision_executable(self) -> None:
         runner = RELEASE_RUNNER.read_text(encoding="utf-8")

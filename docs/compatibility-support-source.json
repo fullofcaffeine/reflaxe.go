@@ -1541,7 +1541,7 @@
         },
         {
           "id": "tls-ipv4-direct-client",
-          "symbols": ["new sys.ssl.Socket", "sys.ssl.Socket.verifyCert/setCA/setHostname", "sys.ssl.Socket.connect (numeric IPv4 route with logical host)", "sys.ssl.Socket.handshake", "sys.ssl.Socket input/output", "sys.ssl.Socket.peerCertificate", "sys.ssl.Socket.close"],
+          "symbols": ["new sys.ssl.Socket", "sys.ssl.Socket.verifyCert/setCA/setHostname", "sys.ssl.Socket.connect (numeric IPv4 route with logical host)", "sys.ssl.Socket.handshake", "sys.ssl.Socket.input.readByte/readBytes (blocking)", "sys.ssl.Socket.output.writeByte/writeBytes (blocking)", "sys.ssl.Socket.output.flush", "sys.ssl.Socket.peerCertificate", "sys.ssl.Socket.close"],
           "granularity": "operation",
           "state": "compile-go-test-run-supported",
           "release_admitted": true,

@@ -5,7 +5,7 @@
   "generated_by": "scripts/compatibility/generate_support_manifest.py",
   "inputs": {
     "compatibility_source": "docs/compatibility-support-source.json",
-    "compatibility_source_sha256": "bb4eb86ebc066673f7142fe9f6f46d3026659edbba9e5641b450480a07e87d9b",
+    "compatibility_source_sha256": "350bb0ce49a3f9a347399a5a7843e3bcd0f9d7031e6e4122e112ec256bc31a50",
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "1cdf5030ac229167b31d672f2b3bb0c6b64eba14b8497ef8c44052b52b03ea2f",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
@@ -1703,7 +1703,9 @@
             "sys.ssl.Socket.verifyCert/setCA/setHostname",
             "sys.ssl.Socket.connect (numeric IPv4 route with logical host)",
             "sys.ssl.Socket.handshake",
-            "sys.ssl.Socket input/output",
+            "sys.ssl.Socket.input.readByte/readBytes (blocking)",
+            "sys.ssl.Socket.output.writeByte/writeBytes (blocking)",
+            "sys.ssl.Socket.output.flush",
             "sys.ssl.Socket.peerCertificate",
             "sys.ssl.Socket.close"
           ],

@@ -79,6 +79,20 @@ class SocketAdmissionSplitContractTest(unittest.TestCase):
             ],
             operations["udp-ipv4-datagram-core"]["symbols"],
         )
+        self.assertEqual(
+            [
+                "new sys.ssl.Socket",
+                "sys.ssl.Socket.verifyCert/setCA/setHostname",
+                "sys.ssl.Socket.connect (numeric IPv4 route with logical host)",
+                "sys.ssl.Socket.handshake",
+                "sys.ssl.Socket.input.readByte/readBytes (blocking)",
+                "sys.ssl.Socket.output.writeByte/writeBytes (blocking)",
+                "sys.ssl.Socket.output.flush",
+                "sys.ssl.Socket.peerCertificate",
+                "sys.ssl.Socket.close",
+            ],
+            operations["tls-ipv4-direct-client"]["symbols"],
+        )
 
     def test_exact_evidence_and_exclusions_follow_the_review(self) -> None:
         operations = self.operations()

@@ -78,6 +78,27 @@ The following remain excluded:
 Windows cross-builds remain compile-only evidence. Darwin local execution does
 not widen the Linux/amd64 release platform.
 
+## Post-fix review checkpoint
+
+A fresh-context GPT-5.6-sol read-only review at `95b852714e8d6f74232f2550d30a89b79a5a91f3`
+requested changes before closure. This review complements the user-supplied
+GPT-5.6 Pro Oracle review; it does not replace or relabel that provenance.
+
+The checkpoint found that the runtime design and fixes were sound, but required
+four evidence and policy corrections:
+
+- keep the still-open parent `haxe_go-vfp.10.9` wired to the admitted portable
+  scope so release readiness fails closed until the review closes;
+- prove native close, not only handle detachment, for failed TLS and UDP
+  transactions, including an injected UDP deadline failure;
+- replace the broad TLS `input/output` symbol with exact blocking read, write,
+  and flush members;
+- describe the Oracle's server recommendation as conditional rather than as a
+  post-fix admission decision.
+
+Those corrections are part of the next candidate. A final exact-commit second
+pass is still required by the closure rule below.
+
 ## Architecture decision
 
 The review strengthens the current boundary instead of changing it:

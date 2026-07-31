@@ -13,9 +13,10 @@ Binding does not accept connections. This distinction matters when an
 application must finish configuration before making a server reachable, and it
 keeps the public `connections` argument from becoming decorative.
 
-The independent review admitted this exact blocking Linux/amd64 member group
-after acquisition-generation and failed-listen rollback were added. It is not
-a production-scale or cross-platform server promise.
+The independent review recommended that this exact blocking Linux/amd64 member
+group become eligible after acquisition-generation and failed-listen rollback
+were added. Post-fix review and exact-commit CI decide admission; this is not a
+production-scale or cross-platform server promise.
 
 ## Why Go needs a narrow native adapter
 

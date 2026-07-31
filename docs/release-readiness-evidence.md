@@ -89,21 +89,30 @@ cannot be advertised as supported.
 
 The admitted beta surface is `preset:portable` on
 `platform:linux-amd64`, bounded further by the operation/member manifest.
-Networking is split at that operation boundary: only the named blocking IPv4
-TCP client core is admitted. Go-native, portable HTTP, advanced socket/DNS/UDP/
-TLS work, and stable-1.x remain outside the claim with named Beads owners.
-Therefore an open issue in one of those excluded scopes does not silently block
-the bounded beta.
+Networking is split at that operation boundary: only the exact TCP, UDP, and
+TLS member groups marked `release_admitted` participate. Named/reverse DNS,
+HTTP, unlisted members, and the manifest's other explicit exclusions remain
+outside the claim. Go-native, portable HTTP, and stable-1.x retain named Beads
+owners, so open work in those excluded scopes does not silently block the
+bounded beta.
 
-The blocker evidence records the real priority and state of every owner named
-by the compatibility authority. The release workflow generates it with
+The blocker evidence records the real priority and state of every compatibility
+owner, plus any temporary review blocker that the readiness policy attaches to
+an already-admitted preset or platform. A temporary review blocker cannot
+invent a new scope or masquerade as a permanent compatibility exclusion. This
+lets the tracker close an admission review and unblock release without a
+follow-up source commit, while an open P0/P1 review still fails closed.
+
+The release workflow generates this evidence with
 `scripts/release/refresh-readiness-blockers.py` from an isolated client of the
 configured remote and records the exact `refs/dolt/data` commit. The completed
 hosted-artifact owner (`haxe_go-vfp.4.8`) therefore remains visible as closed
-rather than being fabricated or silently dropped. Adding or removing a known
-blocker makes policy verification fail. Changing a blocker's state is picked
-up by the next workflow run; the current run deliberately keeps using its one
-captured tracker state through candidate and published verification.
+rather than being fabricated or silently dropped. Omitting a compatibility
+owner, using an unadmitted scope for an additional review owner, or failing to
+account for every policy blocker makes verification fail. Changing a blocker's
+state is picked up by the next workflow run; the current run deliberately keeps
+using its one captured tracker state through candidate and published
+verification.
 
 If policy admits one of those scopes, the exclusion must be removed and its
 applicable P0/P1 blocker must be closed. Changing a claim without changing its

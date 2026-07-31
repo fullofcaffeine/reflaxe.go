@@ -256,6 +256,17 @@ var socketDialTCPContext = func(dialer *net.Dialer, operationContext context.Con
 var socketBindTCPResource = socketBindTCPNative
 var socketListenUDP = net.ListenUDP
 
+// socketApplyUDPDeadline makes UDP deadline rollback independently testable.
+//
+// What: Applies the retained deadline policy before a UDP descriptor is published.
+// Why: net.UDPConn is concrete, so tests otherwise cannot force this fallible
+// installation step and prove that the descriptor is closed on failure.
+// How: Production delegates directly to SetDeadline; package tests replace only
+// this typed seam and then observe both handle detachment and native closure.
+var socketApplyUDPDeadline = func(conn *net.UDPConn, deadline time.Time) error {
+	return conn.SetDeadline(deadline)
+}
+
 func (handle *SocketHandle) beginAcquisition(cancellable bool) (socketAcquisition, context.Context) {
 	operationContext := context.Background()
 	var cancel context.CancelFunc
@@ -1468,7 +1479,7 @@ func (handle *SocketHandle) udpConnWithBroadcast(create bool, requestedBroadcast
 		handle.stateMu.Unlock()
 		return nil, err
 	}
-	deadlineErr := udpConn.SetDeadline(handle.configuredDeadlineLocked())
+	deadlineErr := socketApplyUDPDeadline(udpConn, handle.configuredDeadlineLocked())
 	var broadcastErr error
 	if deadlineErr == nil && (desiredBroadcast || requestedBroadcast != nil) {
 		broadcastErr = socketApplyBroadcastToConn(udpConn, desiredBroadcast)
@@ -1525,7 +1536,7 @@ func (handle *SocketHandle) installAcquiredUDPConn(acquisition socketAcquisition
 		_ = conn.Close()
 		return net.ErrClosed
 	}
-	deadlineErr := conn.SetDeadline(handle.configuredDeadlineLocked())
+	deadlineErr := socketApplyUDPDeadline(conn, handle.configuredDeadlineLocked())
 	var broadcastErr error
 	if deadlineErr == nil && handle.broadcast {
 		broadcastErr = socketApplyBroadcastToConn(conn, true)

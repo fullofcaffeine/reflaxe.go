@@ -35,16 +35,21 @@ class ReleaseReadinessGateTest(unittest.TestCase):
         *,
         mode: str = "fixture",
         env: dict[str, str] | None = None,
+        policy: dict[str, object] | None = None,
     ) -> subprocess.CompletedProcess[str]:
         with tempfile.TemporaryDirectory(prefix="haxe-go-readiness-") as raw:
             path = Path(raw) / "evidence.json"
             path.write_text(json.dumps(evidence), encoding="utf-8")
+            policy_path = POLICY
+            if policy is not None:
+                policy_path = Path(raw) / "policy.json"
+                policy_path.write_text(json.dumps(policy), encoding="utf-8")
             return subprocess.run(
                 [
                     "python3",
                     str(VERIFIER),
                     "--policy",
-                    str(POLICY),
+                    str(policy_path),
                     "--evidence",
                     str(path),
                     "--mode",
@@ -94,7 +99,35 @@ class ReleaseReadinessGateTest(unittest.TestCase):
             "portable-http",
             compatibility["blockerScopes"]["haxe_go-vfp.10.8"],
         )
-        self.assertNotIn("haxe_go-vfp.10.9", compatibility["blockerScopes"])
+        self.assertEqual(
+            "preset:portable",
+            compatibility["blockerScopes"]["haxe_go-vfp.10.9"],
+        )
+
+    def test_open_socket_admission_review_blocks_the_portable_release(self) -> None:
+        evidence = self.evidence()
+        parent = next(
+            blocker
+            for blocker in evidence["blockers"]["records"]
+            if blocker["id"] == "haxe_go-vfp.10.9"
+        )
+        parent["status"] = "open"
+        self.assert_rejected(
+            evidence,
+            "applicable unresolved P0/P1 blocker: haxe_go-vfp.10.9",
+        )
+
+    def test_additional_review_blocker_cannot_invent_a_scope(self) -> None:
+        policy = json.loads(POLICY.read_text(encoding="utf-8"))
+        policy["compatibility"]["blockerScopes"]["haxe_go-vfp.10.9"] = (
+            "portable-socket-advanced"
+        )
+        result = self.run_evidence(self.evidence(), policy=policy)
+        self.assertNotEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn(
+            "additional readiness blocker does not govern an admitted scope",
+            result.stderr,
+        )
 
     def test_candidate_fixture_passes_without_pretending_assets_are_hosted(self) -> None:
         evidence = self.evidence()

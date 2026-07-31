@@ -160,6 +160,21 @@ type socketTestBlockingHandshakeConn struct {
 	once    sync.Once
 }
 
+type socketTestTrackedHandshakeConn struct {
+	net.Conn
+	handshakeErr error
+	closed       bool
+}
+
+func (connection *socketTestTrackedHandshakeConn) Handshake() error {
+	return connection.handshakeErr
+}
+
+func (connection *socketTestTrackedHandshakeConn) Close() error {
+	connection.closed = true
+	return connection.Conn.Close()
+}
+
 func (connection *socketTestBlockingHandshakeConn) Handshake() error {
 	connection.once.Do(func() {
 		close(connection.entered)
@@ -647,6 +662,37 @@ func TestSslSocketHandshakeFailureDetachesAndClosesTheFailedConnection(t *testin
 	}
 }
 
+func TestSslSocketHandshakeTransactionClosesTheExactFailedNativeConnection(t *testing.T) {
+	clientRaw, peer := net.Pipe()
+	defer peer.Close()
+	failed := &socketTestTrackedHandshakeConn{
+		Conn:         clientRaw,
+		handshakeErr: errors.New("injected handshake failure"),
+	}
+	handle := SocketNewTCP()
+	handle.installConn(failed)
+	defer SocketClose(handle)
+
+	recovered := socketTestRecovered(func() {
+		SslSocketHandshake(handle)
+	})
+	if recovered == nil {
+		t.Fatal("injected handshake failure did not escape")
+	}
+	if !failed.closed {
+		t.Fatal("failed TLS connection was detached without being closed")
+	}
+	if connection := handle.snapshotConn(); connection != nil {
+		t.Fatalf("failed TLS connection remained attached as %T", connection)
+	}
+	_ = peer.SetReadDeadline(time.Now().Add(time.Second))
+	if _, err := peer.Read(make([]byte, 1)); err == nil {
+		t.Fatal("TLS peer did not observe closure after failed handshake")
+	} else if netError, ok := err.(net.Error); ok && netError.Timeout() {
+		t.Fatal("TLS peer timed out instead of observing closure")
+	}
+}
+
 func TestSslSocketPeerCertificateFailureUsesTheHandshakeTransaction(t *testing.T) {
 	clientRaw, peer := net.Pipe()
 	handle := SocketNewTCP()
@@ -711,6 +757,12 @@ func TestSslSocketAcceptedHandshakeFailureDetachesTheConnection(t *testing.T) {
 	case <-writeDone:
 	case <-time.After(time.Second):
 		t.Fatal("malformed accepted TLS client did not finish")
+	}
+	_ = client.SetReadDeadline(time.Now().Add(time.Second))
+	if _, err := client.Read(make([]byte, 1)); err == nil {
+		t.Fatal("accepted TLS peer did not observe closure after failed handshake")
+	} else if netError, ok := err.(net.Error); ok && netError.Timeout() {
+		t.Fatal("accepted TLS peer timed out instead of observing closure")
 	}
 }
 
@@ -1410,6 +1462,14 @@ func TestSocketUDPCreationAndBroadcastPolicyAreTransactional(t *testing.T) {
 
 	t.Run("creation failure detaches", func(t *testing.T) {
 		calls := 0
+		var created *net.UDPConn
+		originalListenUDP := socketListenUDP
+		defer func() { socketListenUDP = originalListenUDP }()
+		socketListenUDP = func(network string, address *net.UDPAddr) (*net.UDPConn, error) {
+			connection, err := net.ListenUDP(network, address)
+			created = connection
+			return connection, err
+		}
 		socketApplyBroadcastOption = func(_ uintptr, _ int) error {
 			calls++
 			return errors.New("injected broadcast failure")
@@ -1434,9 +1494,89 @@ func TestSocketUDPCreationAndBroadcastPolicyAreTransactional(t *testing.T) {
 		if broadcast {
 			t.Fatal("failed first setBroadcast retained the requested policy")
 		}
+		if created == nil {
+			t.Fatal("UDP creation seam did not return a connection")
+		}
+		if err := created.SetDeadline(time.Now()); !errors.Is(err, net.ErrClosed) {
+			t.Fatalf("failed UDP broadcast creation descriptor remained usable: %v", err)
+		}
+	})
+
+	t.Run("creation deadline failure closes", func(t *testing.T) {
+		originalDeadline := socketApplyUDPDeadline
+		defer func() { socketApplyUDPDeadline = originalDeadline }()
+		var created *net.UDPConn
+		originalListenUDP := socketListenUDP
+		defer func() { socketListenUDP = originalListenUDP }()
+		socketListenUDP = func(network string, address *net.UDPAddr) (*net.UDPConn, error) {
+			connection, err := net.ListenUDP(network, address)
+			created = connection
+			return connection, err
+		}
+		socketApplyUDPDeadline = func(_ *net.UDPConn, _ time.Time) error {
+			return errors.New("injected UDP deadline failure")
+		}
+		handle := SocketNewUDP()
+		defer SocketClose(handle)
+		recovered := socketTestRecovered(func() {
+			_ = handle.udpConn(true)
+		})
+		if recovered == nil {
+			t.Fatal("injected UDP deadline failure did not escape")
+		}
+		if connection := handle.snapshotConn(); connection != nil {
+			t.Fatalf("failed UDP creation retained %T", connection)
+		}
+		if created == nil {
+			t.Fatal("UDP creation seam did not return a connection")
+		}
+		if err := created.SetDeadline(time.Now()); !errors.Is(err, net.ErrClosed) {
+			t.Fatalf("failed UDP creation descriptor remained usable: %v", err)
+		}
+	})
+
+	t.Run("bind deadline failure closes", func(t *testing.T) {
+		originalDeadline := socketApplyUDPDeadline
+		defer func() { socketApplyUDPDeadline = originalDeadline }()
+		var created *net.UDPConn
+		originalListenUDP := socketListenUDP
+		defer func() { socketListenUDP = originalListenUDP }()
+		socketListenUDP = func(network string, address *net.UDPAddr) (*net.UDPConn, error) {
+			connection, err := net.ListenUDP(network, address)
+			created = connection
+			return connection, err
+		}
+		socketApplyUDPDeadline = func(_ *net.UDPConn, _ time.Time) error {
+			return errors.New("injected UDP bind deadline failure")
+		}
+		handle := SocketNewUDP()
+		defer SocketClose(handle)
+		recovered := socketTestRecovered(func() {
+			SocketUdpBind(handle, socketTestString(socketTestHost), 0)
+		})
+		if recovered == nil {
+			t.Fatal("injected UDP bind deadline failure did not escape")
+		}
+		if connection := handle.snapshotConn(); connection != nil {
+			t.Fatalf("failed UDP bind retained %T", connection)
+		}
+		if created == nil {
+			t.Fatal("UDP bind seam did not return a connection")
+		}
+		if err := created.SetDeadline(time.Now()); !errors.Is(err, net.ErrClosed) {
+			t.Fatalf("failed UDP bind descriptor remained usable: %v", err)
+		}
 	})
 
 	t.Run("bind failure detaches", func(t *testing.T) {
+		var created *net.UDPConn
+		originalListenUDP := socketListenUDP
+		defer func() { socketListenUDP = originalListenUDP }()
+		socketListenUDP = func(network string, address *net.UDPAddr) (*net.UDPConn, error) {
+			connection, err := net.ListenUDP(network, address)
+			created = connection
+			return connection, err
+		}
 		socketApplyBroadcastOption = func(_ uintptr, _ int) error {
 			return errors.New("injected bind broadcast failure")
 		}
@@ -1453,6 +1593,12 @@ func TestSocketUDPCreationAndBroadcastPolicyAreTransactional(t *testing.T) {
 		}
 		if connection := handle.snapshotConn(); connection != nil {
 			t.Fatalf("failed UDP bind retained %T", connection)
+		}
+		if created == nil {
+			t.Fatal("UDP bind seam did not return a connection")
+		}
+		if err := created.SetDeadline(time.Now()); !errors.Is(err, net.ErrClosed) {
+			t.Fatalf("failed UDP bind descriptor remained usable: %v", err)
 		}
 	})
 

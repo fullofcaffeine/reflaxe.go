@@ -141,10 +141,23 @@ def verify_repository_authorities(
         expected.get("blockerScopes"), "compatibility blocker scopes"
     )
     blocker_ids = set(blocker_scopes)
-    if blocker_ids != known_owner_ids or not exclusion_owners.issubset(blocker_ids):
+    if not known_owner_ids.issubset(blocker_ids) or not exclusion_owners.issubset(
+        blocker_ids
+    ):
         fail(
             "readiness blocker ownership differs from compatibility authority"
         )
+    # A release review may govern an already-admitted scope without pretending
+    # that the review is a permanent compatibility exclusion. Such additional
+    # owners disappear automatically when the tracker records them as closed,
+    # but they may never invent or govern a scope outside the compatibility
+    # authority's admitted product/platform boundary.
+    for blocker_id in blocker_ids - known_owner_ids:
+        if blocker_scopes[blocker_id] not in authority_scopes:
+            fail(
+                "additional readiness blocker does not govern an admitted scope: "
+                f"{blocker_id}"
+            )
     for scope, blocker_id in require_object(
         expected.get("requiredExclusions"), "required exclusions"
     ).items():

@@ -20,9 +20,9 @@
       "platform:linux-amd64",
       "preset:portable"
     ],
-    "surfaceSha256": "d36bad5a1ad79200396b679138c19bbf31d17ecc62d5f959b85f4b8a779fd15b",
+    "surfaceSha256": "99625a5bcb401561a8393ddcef5675ba552c1a84ab288ea4ed0e1cc950bac0d0",
     "admittedOperationCount": 38,
-    "admittedSymbolCount": 171,
+    "admittedSymbolCount": 173,
     "exclusions": [
       {
         "scope": "go-native",
@@ -143,6 +143,14 @@
         "status": "open",
         "scopes": [
           "portable-http"
+        ]
+      },
+      {
+        "id": "haxe_go-vfp.10.9",
+        "priority": 0,
+        "status": "closed",
+        "scopes": [
+          "preset:portable"
         ]
       },
       {
