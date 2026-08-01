@@ -224,9 +224,12 @@ entries.
 | R5 release | `npm run release:readiness` and `npm run release:dry-run` | Exact SHA/artifact, clean install, supported matrices, and public claims |
 
 The current remote graph deliberately uses cold setup and disables the Go
-action cache. Compiler-server/watch behavior is only an accelerator. It is not
-release evidence, and its managed implementation remains under
-`haxe_go-vfp.12.8`.
+action cache. The managed `npm run dev` loop may reuse an owned Haxe compiler
+server because that makes edits faster, but it is only an accelerator. It is not
+release evidence. `dev:hx`, `npm run dev -- --once`, CI, and release builds keep
+the direct cold path as the correctness baseline. The lifecycle and fallback
+contract is documented in [Development watch loop](development-watch-loop.md)
+and owned by completed tracker item `haxe_go-vfp.12.8`.
 
 ## Affected-selection safety
 
@@ -295,8 +298,6 @@ tooling, example, OS, and release evidence remain independent.
 
 Deferred work is tracked in Beads rather than hidden here:
 
-- `haxe_go-vfp.12.8`: managed compiler-server/watch developer loop with a cold
-  equivalent;
 - `haxe_go-vfp.12.10`: expand the three-family official Haxe target smoke to
   the complete applicable active inventory before considering broader
   official-conformance wording;
@@ -304,3 +305,9 @@ Deferred work is tracked in Beads rather than hidden here:
   window establishes selector value and misses;
 - `haxe_go-vfp.14`: complete local changed-snapshot discovery, fixed and closed
   with this strategy change.
+
+The managed watch-loop work in `haxe_go-vfp.12.8` is complete: it has a cold
+equivalent, a real Haxe-to-Go compile/build/run tracer, failed-build recovery,
+owned process/server cleanup, and installed-package delivery. Its green result
+belongs to the diagnostics/tooling scorecard and does not broaden portable
+compiler, runtime/stdlib, metal/native, or release claims.

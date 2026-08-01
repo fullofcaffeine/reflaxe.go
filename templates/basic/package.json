@@ -7,6 +7,7 @@
     "lix": "^15.0.0"
   },
   "scripts": {
+    "dev": "python3 scripts/dev/watch.py",
     "setup": "bash scripts/dev/setup.sh",
     "setup:haxe": "bash scripts/dev/setup.sh --haxe-only",
     "setup:reflaxe-go": "bash scripts/dev/setup.sh --target-only",

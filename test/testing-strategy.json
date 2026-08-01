@@ -115,8 +115,8 @@
       "supportedProfiles": ["portable", "metal"],
       "testedProfiles": ["portable", "metal"],
       "focusedOwners": ["negative-diagnostics", "report-schema", "compiler-debt"],
-      "verticalOwners": ["generated-output-confinement", "developer-wrapper-contracts"],
-      "realRuntimeOrSystemOwners": ["isolated-haxelib-smoke"],
+      "verticalOwners": ["generated-output-confinement", "developer-wrapper-contracts", "managed-development-watch"],
+      "realRuntimeOrSystemOwners": ["isolated-haxelib-smoke", "haxe-go-watch-tracer"],
       "examples": [],
       "upstreamOracleAndPin": ["manually authored exact diagnostic substrings", "versioned report schemas"],
       "adaptations": [],
@@ -126,7 +126,7 @@
       "fullBackstopCommand": "npm test",
       "releaseCommand": "npm run release:readiness",
       "lastCleanProof": "commit 7188fea2, CI Harness run 30666284175",
-      "residualRisks": ["The managed watch/compiler-server loop remains owned by haxe_go-vfp.12.8."],
+      "residualRisks": ["Windows process lifecycle remains compile-only; undeclared custom macro inputs require an explicit --watch-dir."],
       "officialHaxeTargetSuiteApplies": false
     },
     {
@@ -292,8 +292,8 @@
     {
       "id": "diagnostics-tooling",
       "surfaces": ["diagnostics-tooling"],
-      "patterns": ["test/snapshot/negative/**", "scripts/dev/**", "docs/defines-reference.md", "docs/compiler-debt-ratchet.md", "test/*policy*.json"],
-      "commands": ["npm run test:negative", "npm run test:compiler-debt"],
+      "patterns": ["test/snapshot/negative/**", "scripts/dev/**", "templates/basic/scripts/dev/**", "templates/basic/package.json", "docs/defines-reference.md", "docs/compiler-debt-ratchet.md", "docs/development-watch-loop.md", "test/test_dev_watch.py", "test/*policy*.json"],
+      "commands": ["npm run test:negative", "npm run test:compiler-debt", "npm run test:dev-watch"],
       "rings": ["R0", "R2", "R4", "R5"],
       "alwaysRun": false
     },

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import re
@@ -24,6 +25,16 @@ TAG = f"v{VERSION}"
 FIXED_ZIP_TIMESTAMP = (2000, 1, 1, 0, 0, 0)
 POSIX_HOME_PATH = re.compile(r"(?<![A-Za-z0-9])/(?:Users|home)/[^\s\"'`]+")
 WINDOWS_HOME_PATH = re.compile(r"(?i)(?<![A-Za-z0-9])[A-Z]:[\\/]+Users[\\/]+[^\s\"'`]+")
+
+
+def load_verifier_module():
+    spec = importlib.util.spec_from_file_location("haxelib_artifact_verifier", VERIFIER)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("failed to load Haxelib artifact verifier")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 def sha256(path: Path) -> str:
@@ -122,6 +133,112 @@ def run_bundle_verifier(asset_manifest: Path) -> subprocess.CompletedProcess[str
 
 class HaxelibReleaseArtifactContractTest(unittest.TestCase):
     maxDiff = None
+
+    def test_release_verifier_requires_and_authenticates_managed_dev_tools(self) -> None:
+        verifier = load_verifier_module()
+        tool_files = {
+            "tools/go-hx.sh": b"wrapper\n",
+            "tools/haxe_go_watch.py": b"watcher\n",
+        }
+        entries = []
+        source_paths = {
+            "tools/go-hx.sh": "scripts/dev/go-hx.sh",
+            "tools/haxe_go_watch.py": "scripts/dev/haxe_go_watch.py",
+        }
+        for package_path, content in sorted(tool_files.items()):
+            entries.append(
+                {
+                    "kind": "tooling",
+                    "packagePath": package_path,
+                    "packageSha256": hashlib.sha256(content).hexdigest(),
+                    "size": len(content),
+                    "sourcePath": source_paths[package_path],
+                    "sourceSha256": "a" * 64,
+                }
+            )
+        files = dict(tool_files)
+        files["reflaxe-package-manifest.json"] = json.dumps(
+            {
+                "archive": verifier.EXPECTED_ARCHIVE_POLICY,
+                "classPath": "src",
+                "entries": entries,
+                "format": "reflaxe.go-haxelib-package",
+                "schemaVersion": 1,
+            }
+        ).encode("utf-8")
+
+        verifier.validate_package_manifest(files)
+
+        layout_files = {
+            name: b"placeholder\n"
+            for name in (
+                "LICENSE",
+                "LICENSING.md",
+                "haxelib.json",
+                "license-policy.json",
+                "licenses/HAXE-GO-GENERATED-MIT.txt",
+                "licenses/HAXE-STDLIB-MIT.txt",
+                "reflaxe-package-manifest.json",
+                "runtime/hxrt/core.go",
+                "src/reflaxe/go/CompilerInit.hx",
+                "tools/go-hx.sh",
+                "tools/haxe_go_watch.py",
+                "vendor/reflaxe/LICENSE",
+                "vendor/reflaxe/src/reflaxe/ReflectCompiler.hx",
+            )
+        }
+        verifier.validate_layout(layout_files)
+        without_wrapper = dict(layout_files)
+        without_wrapper.pop("tools/go-hx.sh")
+        with self.assertRaisesRegex(
+            verifier.ArtifactVerificationError,
+            "required package member is missing: tools/go-hx.sh",
+        ):
+            verifier.validate_layout(without_wrapper)
+
+        entries[0]["sourcePath"] = "scripts/dev/not-the-wrapper.sh"
+        files["reflaxe-package-manifest.json"] = json.dumps(
+            {
+                "archive": verifier.EXPECTED_ARCHIVE_POLICY,
+                "classPath": "src",
+                "entries": entries,
+                "format": "reflaxe.go-haxelib-package",
+                "schemaVersion": 1,
+            }
+        ).encode("utf-8")
+        with self.assertRaisesRegex(
+            verifier.ArtifactVerificationError,
+            "tooling provenance differs",
+        ):
+            verifier.validate_package_manifest(files)
+
+        entries[0]["sourcePath"] = "scripts/dev/go-hx.sh"
+        extra_content = b"unexpected tool\n"
+        files["tools/extra.py"] = extra_content
+        entries.append(
+            {
+                "kind": "metadata",
+                "packagePath": "tools/extra.py",
+                "packageSha256": hashlib.sha256(extra_content).hexdigest(),
+                "size": len(extra_content),
+                "sourcePath": "scripts/dev/extra.py",
+                "sourceSha256": "b" * 64,
+            }
+        )
+        files["reflaxe-package-manifest.json"] = json.dumps(
+            {
+                "archive": verifier.EXPECTED_ARCHIVE_POLICY,
+                "classPath": "src",
+                "entries": sorted(entries, key=lambda entry: entry["packagePath"]),
+                "format": "reflaxe.go-haxelib-package",
+                "schemaVersion": 1,
+            }
+        ).encode("utf-8")
+        with self.assertRaisesRegex(
+            verifier.ArtifactVerificationError,
+            "tool member set differs",
+        ):
+            verifier.validate_package_manifest(files)
 
     def test_release_artifact_entrypoints_are_release_blocking(self) -> None:
         self.assertTrue(BUILDER.is_file())
@@ -234,7 +351,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                 manifest.get("stagedReleaseIdentitySha256", ""),
                 r"^[0-9a-f]{64}$",
             )
-            self.assertEqual(409, len(manifest["contents"]["entries"]))
+            self.assertEqual(411, len(manifest["contents"]["entries"]))
             packaged_sources = {
                 entry["sourcePath"] for entry in manifest["contents"]["entries"]
             }
@@ -362,6 +479,8 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                 self.assertIn(TAG, haxelib.get("releasenote", ""))
                 self.assertIn(head_sha(), haxelib.get("releasenote", ""))
                 self.assertNotIn("reflaxe", haxelib)
+                self.assertIn("tools/go-hx.sh", names)
+                self.assertIn("tools/haxe_go_watch.py", names)
                 embedded = json.loads(package.read("reflaxe-package-manifest.json"))
                 self.assertEqual(manifest["contents"], embedded)
 
@@ -398,7 +517,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
             self.assertEqual(0, verify.returncode, verify.stdout + verify.stderr)
             summary = json.loads(verify.stdout)
             self.assertEqual(sha256(archive), summary["sha256"])
-            self.assertEqual(410, summary["entries"])
+            self.assertEqual(412, summary["entries"])
 
             wrong_version = run_verifier(
                 archive,

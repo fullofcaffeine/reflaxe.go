@@ -135,6 +135,11 @@ def write_synthetic_source(root: Path) -> None:
         root / "licenses" / "HAXE-STDLIB-MIT.txt",
         "fixture Haxe standard library license\n",
     )
+    write_text(root / "scripts" / "dev" / "go-hx.sh", "#!/usr/bin/env bash\n")
+    write_text(
+        root / "scripts" / "dev" / "haxe_go_watch.py",
+        "#!/usr/bin/env python3\n",
+    )
     shutil.copyfile(RUNNER, root / "Run.hx")
 
 

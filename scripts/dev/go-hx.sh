@@ -25,6 +25,8 @@ Options:
   --binary <path>           Build output path for --action build.
   --haxe-bin <path>         Haxe binary. Default: $HAXE_BIN or haxe.
   --go-bin <path>           Go binary. Default: $GO_BIN or go.
+  --connect <port>          Send this build to an already-owned Haxe compiler server.
+  --print-plan-json         Print selected project/HXML/output details and exit.
   --define <k[=v]>          Extra Haxe -D define (repeatable).
   -h, --help                Show this help.
 
@@ -60,7 +62,7 @@ normalize_existing_dir() {
   if [[ ! -d "$input" ]]; then
     fail "project directory not found: $(display_path "$input")"
   fi
-  (cd "$input" && pwd)
+  (cd "$input" && pwd -P)
 }
 
 resolve_path_from_base() {
@@ -134,6 +136,8 @@ out_arg=""
 binary_arg=""
 haxe_bin="${HAXE_BIN:-haxe}"
 go_bin="${GO_BIN:-go}"
+connect_arg=""
+print_plan_json=0
 extra_defines=()
 extra_go_args=()
 
@@ -183,6 +187,15 @@ while [[ $# -gt 0 ]]; do
       go_bin="$2"
       shift 2
       ;;
+    --connect)
+      [[ $# -ge 2 ]] || fail "--connect requires a value"
+      connect_arg="$2"
+      shift 2
+      ;;
+    --print-plan-json)
+      print_plan_json=1
+      shift
+      ;;
     --define)
       [[ $# -ge 2 ]] || fail "--define requires a value"
       extra_defines+=("$2")
@@ -213,6 +226,10 @@ if [[ -n "$profile" ]]; then
     portable|metal) ;;
     *) fail "invalid --profile '$profile' (expected: portable or metal)" ;;
   esac
+fi
+
+if [[ -n "$connect_arg" && ! "$connect_arg" =~ ^[0-9]+$ ]]; then
+  fail "invalid --connect '$connect_arg' (expected a TCP port)"
 fi
 
 project_abs="$(resolve_path_from_base "$project_arg" "$invocation_dir")"
@@ -272,11 +289,41 @@ else
   fi
 fi
 
+go_output_rel="$out_arg"
+if [[ -z "$go_output_rel" ]]; then
+  go_output_rel="$(extract_go_output "$selected_hxml_abs" || true)"
+fi
+[[ -n "$go_output_rel" ]] || fail "missing '-D go_output=...' in $(display_path "$selected_hxml_abs") (or pass --out)"
+go_output_abs="$(resolve_path_from_base "$go_output_rel" "$project_dir")"
+
+if [[ "$print_plan_json" -eq 1 ]]; then
+  command -v python3 >/dev/null 2>&1 || fail "python3 is required for --print-plan-json"
+  python3 - "$project_dir" "$selected_hxml_abs" "$go_output_abs" "$action" "${profile:-auto}" "$ci" <<'PY'
+import json
+import sys
+
+project, hxml, go_output, action, profile, ci = sys.argv[1:]
+print(json.dumps({
+    "project": project,
+    "hxml": hxml,
+    "goOutput": go_output,
+    "action": action,
+    "profile": profile,
+    "ci": ci == "1",
+}, sort_keys=True))
+PY
+  exit 0
+fi
+
 if ! command -v "$haxe_bin" >/dev/null 2>&1; then
   fail "haxe binary not found: $haxe_bin"
 fi
 
-haxe_args=("$selected_hxml_arg")
+haxe_args=()
+if [[ -n "$connect_arg" ]]; then
+  haxe_args+=("--connect" "$connect_arg")
+fi
+haxe_args+=("$selected_hxml_arg")
 if [[ -n "$out_arg" ]]; then
   haxe_args+=("-D" "go_output=$out_arg")
 fi
@@ -294,13 +341,6 @@ echo "[hx-go] project=$(display_path "$project_dir") profile=${profile:-auto} ci
 echo "[hx-go] hxml=$selected_hxml_arg"
 (cd "$project_dir" && "$haxe_bin" "${haxe_args[@]}")
 
-go_output_rel="$out_arg"
-if [[ -z "$go_output_rel" ]]; then
-  go_output_rel="$(extract_go_output "$selected_hxml_abs" || true)"
-fi
-[[ -n "$go_output_rel" ]] || fail "missing '-D go_output=...' in $(display_path "$selected_hxml_abs") (or pass --out)"
-
-go_output_abs="$(resolve_path_from_base "$go_output_rel" "$project_dir")"
 if [[ ! -d "$go_output_abs" ]]; then
   fail "go output directory not found after Haxe compile: $(display_path "$go_output_abs")"
 fi

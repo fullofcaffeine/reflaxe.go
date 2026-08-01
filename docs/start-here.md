@@ -37,6 +37,16 @@ That command runs the portable TUI todo example. `portable` is the default
 starting point because it keeps the code closest to normal Haxe semantics and
 cross-target-friendly APIs.
 
+For an edit-and-restart loop after that first run, use:
+
+```bash
+npm run dev -- --project examples/tui_todo --profile portable
+```
+
+The [development watch-loop guide](development-watch-loop.md) explains what is
+watched, how failed builds preserve the last working program, and when the
+optional Haxe compiler server is useful.
+
 ## One Reflaxe target per compilation
 
 A Reflaxe target is the compiler backend that owns one Haxe compilation and

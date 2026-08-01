@@ -41,6 +41,7 @@ EXPECTED_PACKAGE_ENTRY_KINDS = {
     "runtime",
     "stdlib",
     "stdlib-override",
+    "tooling",
     "vendored-reflaxe",
 }
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -475,9 +476,15 @@ def audit_package_map_manifest(package_root: Path, source_root: Path) -> list[Vi
         ("license-policy.json", "metadata"),
         ("licenses/HAXE-GO-GENERATED-MIT.txt", "metadata"),
         ("licenses/HAXE-STDLIB-MIT.txt", "metadata"),
+        ("scripts/dev/go-hx.sh", "tooling"),
+        ("scripts/dev/haxe_go_watch.py", "tooling"),
     ):
         if (source_root / source_path).is_file():
-            expected_source_mappings[source_path] = (source_path, kind)
+            package_path = {
+                "scripts/dev/go-hx.sh": "tools/go-hx.sh",
+                "scripts/dev/haxe_go_watch.py": "tools/haxe_go_watch.py",
+            }.get(source_path, source_path)
+            expected_source_mappings[source_path] = (package_path, kind)
     for source_path, (package_path, kind) in expected_source_mappings.items():
         entry = entries_by_source.get(source_path)
         if entry is None:
