@@ -42,6 +42,7 @@ Agent policy:
   - Preferred: an Oracle checkpoint/review.
   - Acceptable fallback: an explicit written second-pass design review recorded in the bead comments.
 - Oracle is a review/escalation tool for `thinking:xhigh`; it is not a substitute for implementation, tests, or CI evidence.
+- For a rare manual Oracle handoff, use the globally installed `$oracle-review` skill. It standardizes the GPT-5.6 Pro prompt, sanitized Repomix bundle, checked ZIP, pending-request check, and archive lifecycle under `/tmp/oracle`; the repository-specific thresholds above still decide whether escalation is warranted. Public source and install instructions: https://github.com/fullofcaffeine/caf-skills/tree/main/skills/oracle-review
 
 ## High-Level Goal
 
