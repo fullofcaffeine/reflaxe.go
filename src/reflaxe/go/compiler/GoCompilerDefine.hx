@@ -22,6 +22,7 @@ enum abstract GoCompilerDefine(String) to String {
 	var DefineGoTarget = "go";
 	var DefineTargetName = "target.name";
 	var DefineTargetAtomics = "target.atomics";
+	var DefineTargetThreaded = "target.threaded";
 	var DefineGoNoBuild = "go_no_build";
 	var DefineGoCodegenOnly = "go_codegen_only";
 	var DefineGoCommand = "go_cmd";

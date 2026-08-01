@@ -104,6 +104,18 @@ def build_canonical_std_layout_command() -> list[str]:
     return ["python3", "test/test_canonical_std_layout_contract.py"]
 
 
+def build_affected_plan_command() -> list[str]:
+    return ["python3", "test/run-test-plan.py"]
+
+
+def build_testing_strategy_command() -> list[str]:
+    return ["npm", "run", "test:strategy"]
+
+
+def build_official_haxe_target_smoke_command() -> list[str]:
+    return ["npm", "run", "test:official-haxe-smoke"]
+
+
 def build_output_confinement_command() -> list[str]:
     return ["python3", "test/test_generated_output_confinement.py"]
 
@@ -450,6 +462,21 @@ def resolve_goextern_fixture_stage(skip: bool, current_release: str | None, targ
 
 def main() -> int:
     args = parse_args()
+
+    print("==> Affected ownership plan stage (observation only)")
+    affected_plan_code = run(build_affected_plan_command())
+    if affected_plan_code != 0:
+        return affected_plan_code
+
+    print("==> Testing strategy contract stage")
+    strategy_code = run(build_testing_strategy_command())
+    if strategy_code != 0:
+        return strategy_code
+
+    print("==> Official Haxe target smoke stage")
+    official_haxe_smoke_code = run(build_official_haxe_target_smoke_command())
+    if official_haxe_smoke_code != 0:
+        return official_haxe_smoke_code
 
     print("==> Canonical std layout contract stage")
     canonical_std_layout_code = run(build_canonical_std_layout_command())

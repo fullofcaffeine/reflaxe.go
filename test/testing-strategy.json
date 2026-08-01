@@ -1,0 +1,362 @@
+{
+  "schemaVersion": 1,
+  "authority": "docs/testing-strategy.md",
+  "productSurfaces": [
+    {
+      "id": "portable-compiler",
+      "name": "Portable Haxe-to-Go compiler conformance",
+      "owner": "compiler and portable-semantics maintainers",
+      "archetype": "compiler",
+      "status": "admitted-slice",
+      "claims": [
+        "Ordinary Haxe source preserves the exact operation/member semantics admitted by the compatibility manifest on its named toolchain and platform matrix.",
+        "The portable preset is the default product path; a green native or example lane cannot widen this claim."
+      ],
+      "authoredInputs": ["ordinary Haxe source without target-native APIs"],
+      "producedOutputs": ["generated Go modules", "portable semantic and compatibility reports"],
+      "supportedProfiles": ["portable", "metal"],
+      "testedProfiles": ["portable", "metal"],
+      "profileQualifications": {
+        "portable": "Default portable semantic evidence.",
+        "metal": "Portable semantic preset-invariance evidence only; it is not Go-native API evidence."
+      },
+      "focusedOwners": ["snapshot-portable", "negative-diagnostics", "portable-policy"],
+      "verticalOwners": ["semantic-diff-portable", "portable-example-smoke", "isolated-haxelib-smoke", "official-haxe-target-smoke"],
+      "realRuntimeOrSystemOwners": ["semantic-diff-portable", "portable-example-smoke", "official-haxe-target-smoke"],
+      "examples": ["profile_storyboard", "tui_todo", "incident_api", "pulseforge", "fluxproxy"],
+      "upstreamOracleAndPin": [
+        "Haxe 4.3.7 behavior through --interp where the same source has a faithful portable contract",
+        "docs/toolchain-policy.json",
+        "test/portable_conformance_tier1.json"
+      ],
+      "adaptations": ["repository-owned portable Tier 1 mapping", "three-family pinned official target smoke with explicitly recorded target and assertion adapters"],
+      "knownSkips": ["complete pinned official Haxe tests/unit active inventory beyond the three-family smoke"],
+      "quarantines": [],
+      "selectorOwnership": ["portable-compiler", "portable-provenance"],
+      "fullBackstopCommand": "npm run test:ci",
+      "releaseCommand": "npm run release:readiness",
+      "lastCleanProof": "commit 7188fea2, CI Harness run 30666284175 and CI - Quality run 30666284172",
+      "residualRisks": [
+        "The three-family pinned official target smoke is not the complete applicable Haxe tests/unit inventory.",
+        "Only explicitly admitted compatibility operations contribute to the beta claim."
+      ],
+      "officialHaxeTargetSuiteApplies": true
+    },
+    {
+      "id": "go-native-metal",
+      "name": "Go-native interop and metal policy preset",
+      "owner": "typed Go interop maintainers",
+      "archetype": "native-metal",
+      "status": "experimental",
+      "claims": [
+        "Typed go.* APIs, extern metadata, and @:goNative boundaries behave as proved by their own fixtures.",
+        "Metal is a convenience policy preset, not a second semantic product and not portable-conformance evidence."
+      ],
+      "authoredInputs": ["Haxe modules with explicit typed Go-native authority"],
+      "producedOutputs": ["typed Go API calls", "native policy reports"],
+      "supportedProfiles": ["portable", "metal"],
+      "testedProfiles": ["portable", "metal"],
+      "focusedOwners": ["snapshot-go-native", "native-boundary-negatives", "metal-policy"],
+      "verticalOwners": ["go-native-example-smoke", "goextern-fixtures"],
+      "realRuntimeOrSystemOwners": ["go-native-example-smoke", "go-tooling"],
+      "examples": ["interop_smoke", "worker_pool_select", "pulseforge", "fluxproxy"],
+      "upstreamOracleAndPin": ["Go language and standard-library contracts for the exact supported Go versions", "docs/toolchain-policy.json"],
+      "adaptations": ["typed extern and framework-owned go.* facades"],
+      "knownSkips": ["complete governed native capability matrix"],
+      "quarantines": [],
+      "selectorOwnership": ["go-native-metal", "go-tooling"],
+      "fullBackstopCommand": "npm run test:ci && npm run security:go-tooling",
+      "releaseCommand": "npm run release:readiness",
+      "lastCleanProof": "commit 7188fea2, CI Harness run 30666284175",
+      "residualRisks": ["Whole go.* classes and unlisted ABI shapes are not admitted by nearby portable evidence."],
+      "officialHaxeTargetSuiteApplies": false
+    },
+    {
+      "id": "runtime-stdlib",
+      "name": "Generated runtime and staged standard-library behavior",
+      "owner": "staged std and hxrt maintainers",
+      "archetype": "runtime-stdlib",
+      "status": "admitted-slice",
+      "claims": [
+        "Staged std behavior and typed hxrt resource ownership are supported only for operations named by the compatibility manifest.",
+        "Compile-only and cross-build results do not become runtime admission."
+      ],
+      "authoredInputs": ["ordinary staged Haxe overrides", "typed hxrt calls"],
+      "producedOutputs": ["generated staged-stdlib code", "selectively copied hxrt files"],
+      "supportedProfiles": ["portable", "metal"],
+      "testedProfiles": ["portable", "metal"],
+      "focusedOwners": ["hxrt-go-tests", "stdlib-contracts", "runtime-slicing"],
+      "verticalOwners": ["semantic-diff-portable", "runtime-snapshot-smokes", "stdlib-go-test-sweep"],
+      "realRuntimeOrSystemOwners": ["hxrt-race-checkptr", "runtime-snapshot-smokes", "network-loopback"],
+      "examples": ["incident_api", "tui_todo", "pulseforge", "fluxproxy"],
+      "upstreamOracleAndPin": ["Haxe 4.3.7 std behavior where differential execution is faithful", "Go runtime invariants", "docs/stdlib-provenance-ledger.json"],
+      "adaptations": ["canonical std/go/_std overrides and typed std/hxrt bindings"],
+      "knownSkips": ["target-sensitive surfaces intentionally kept out of semantic diff", "runtime admission outside named platforms"],
+      "quarantines": [],
+      "selectorOwnership": ["runtime-stdlib", "portable-provenance"],
+      "fullBackstopCommand": "npm run test:ci",
+      "releaseCommand": "npm run release:readiness",
+      "lastCleanProof": "commit 7188fea2, CI Harness run 30666284175 and supported-Go tooling jobs",
+      "residualRisks": ["Snapshot/runtime evidence and semantic-diff evidence remain distinct support levels."],
+      "officialHaxeTargetSuiteApplies": false
+    },
+    {
+      "id": "diagnostics-tooling",
+      "name": "Diagnostics, reports, source correlation, and development tooling",
+      "owner": "compiler diagnostics and developer-tooling maintainers",
+      "archetype": "diagnostics",
+      "status": "partial",
+      "claims": [
+        "Exact negative diagnostics, deterministic compiler reports, and documented developer commands behave as their own tests show.",
+        "No source-map claim exists unless an explicit source-map owner is added here."
+      ],
+      "authoredInputs": ["invalid Haxe programs", "compiler policy inputs", "developer CLI invocations"],
+      "producedOutputs": ["diagnostics", "JSON/Markdown reports", "generated-source correlation"],
+      "supportedProfiles": ["portable", "metal"],
+      "testedProfiles": ["portable", "metal"],
+      "focusedOwners": ["negative-diagnostics", "report-schema", "compiler-debt"],
+      "verticalOwners": ["generated-output-confinement", "developer-wrapper-contracts"],
+      "realRuntimeOrSystemOwners": ["isolated-haxelib-smoke"],
+      "examples": [],
+      "upstreamOracleAndPin": ["manually authored exact diagnostic substrings", "versioned report schemas"],
+      "adaptations": [],
+      "knownSkips": ["source maps are not a current public admission"],
+      "quarantines": [],
+      "selectorOwnership": ["diagnostics-tooling"],
+      "fullBackstopCommand": "npm test",
+      "releaseCommand": "npm run release:readiness",
+      "lastCleanProof": "commit 7188fea2, CI Harness run 30666284175",
+      "residualRisks": ["The managed watch/compiler-server loop remains owned by haxe_go-vfp.12.8."],
+      "officialHaxeTargetSuiteApplies": false
+    },
+    {
+      "id": "package-downstream-examples",
+      "name": "Package, downstream consumer, and executable examples",
+      "owner": "release and examples maintainers",
+      "archetype": "package-cli",
+      "status": "partial",
+      "claims": [
+        "The release ZIP installs in isolation and the maintained examples compile, pass strict Go checks, execute, and match manually reviewed output at their declared tiers.",
+        "An example proves only its listed profiles, product surfaces, and execution mode."
+      ],
+      "authoredInputs": ["installed haxelib package", "maintained example Haxe programs"],
+      "producedOutputs": ["consumer Go modules", "example binaries and stdout", "release artifacts"],
+      "supportedProfiles": ["portable", "metal"],
+      "testedProfiles": ["portable", "metal"],
+      "focusedOwners": ["package-layout", "example-manifest"],
+      "verticalOwners": ["isolated-haxelib-smoke", "all-examples"],
+      "realRuntimeOrSystemOwners": ["all-examples", "example-binary-matrix"],
+      "examples": ["fluxproxy", "incident_api", "interop_smoke", "profile_storyboard", "pulseforge", "tui_todo", "worker_pool_select"],
+      "upstreamOracleAndPin": ["manually reviewed expected/*.stdout", "public package layout and release policy"],
+      "adaptations": ["CI HXML variants exercise declared application variants"],
+      "knownSkips": ["no external third-party downstream corpus yet"],
+      "quarantines": [],
+      "selectorOwnership": ["package-examples"],
+      "fullBackstopCommand": "npm run test:examples && npm run test:haxelib-release-install",
+      "releaseCommand": "npm run release:dry-run",
+      "lastCleanProof": "commit 7188fea2, Examples Artifacts run 30666284200 and CI Harness run 30666284175",
+      "residualRisks": ["Cross-built example binaries are compile evidence unless their target OS executes them."],
+      "officialHaxeTargetSuiteApplies": false
+    }
+  ],
+  "feedbackRings": [
+    {
+      "id": "R0",
+      "name": "focused/editor",
+      "command": "python3 test/run-snapshots.py --case <category/name> or python3 test/run-semantic-diff.py --case <name>",
+      "coldPolicy": "HAXE_NO_SERVER=1 and a clean generated output",
+      "warmPolicy": "toolchain caches may accelerate reruns; correctness must not depend on them"
+    },
+    {
+      "id": "R1",
+      "name": "local tracer smoke",
+      "command": "npm run test:smoke",
+      "coldPolicy": "custom Haxe backend, gofmt, go test, and go run execute from regenerated output",
+      "warmPolicy": "Go caches may be warm; Haxe server use is not part of this proof"
+    },
+    {
+      "id": "R2",
+      "name": "required pull request",
+      "command": "npm run test:ci plus required GitHub workflow jobs",
+      "coldPolicy": "GitHub jobs install clean dependencies and disable Go action caches",
+      "warmPolicy": "not applicable to claim evidence"
+    },
+    {
+      "id": "R3",
+      "name": "affected extended observation",
+      "command": "npm run test:affected:explain",
+      "coldPolicy": "observation only; existing required jobs still run",
+      "warmPolicy": "no evidence is removed or promoted from selector output"
+    },
+    {
+      "id": "R4",
+      "name": "main and weekly backstop",
+      "command": "master runs CI Harness and the Quality matrix; the weekly CI Harness repeats the stable graph plus security, tooling, performance, and example artifact jobs",
+      "coldPolicy": "CI Harness runs cold on master and weekly; Quality runs on pull requests and master pushes, not the weekly schedule",
+      "warmPolicy": "not applicable to full claim evidence"
+    },
+    {
+      "id": "R5",
+      "name": "release",
+      "command": "npm run release:readiness and npm run release:dry-run",
+      "coldPolicy": "exact artifact, clean install, exact SHA, and named toolchain evidence",
+      "warmPolicy": "release proof never depends on a warm compiler server or mutable cache"
+    }
+  ],
+  "portfolio": {
+    "method": "Count stable behavior owners, not files, assertions, or CI minutes. Overlapping owners are not forced into a percentage.",
+    "currentInventory": {
+      "snapshotOwners": 313,
+      "portableSemanticDiffOwners": 155,
+      "laneSemanticDiffOwners": 1,
+      "exampleProfileOwners": 12,
+      "strictStdlibModules": 55,
+      "fullPortableEligibleStdlibModules": 175
+    },
+    "interpretation": "The compiler portfolio has a large focused generated-shape base and substantial real Haxe-to-Go execution. Exact ratio publication is deferred until overlapping semantic-diff, runtime, and example owners have stable non-overlapping identities. Static, policy, security, freshness, and schema checks stay outside the ratio."
+  },
+  "affectedSelection": {
+    "mode": "observation",
+    "alwaysRunOwners": ["strategy-contract", "portable-tracer-smoke", "official-haxe-target-smoke", "harness-failure-propagation", "portable-provenance"],
+    "unknownPathsExpandToFull": true,
+    "fullBackstop": "npm run test:ci",
+    "selectorMissPolicy": "Any R4 failure that should have been selected is recorded as a selector miss, expands the responsible owner mapping, and resets its observation window.",
+    "flakePolicy": "Deterministic compiler, assertion, target-build, and runtime failures are never retried into green. Infrastructure reruns preserve the first failure. Quarantine requires an owner, Bead, reason, evidence, and expiry and never contributes a compatibility pass."
+  },
+  "testOwners": [
+    {
+      "id": "strategy-contract",
+      "surfaces": ["diagnostics-tooling", "package-downstream-examples"],
+      "patterns": ["test/testing-strategy.json", "examples/qa-manifest.json", "docs/testing-strategy.md", "test/run-test-plan.py", "test/git_changes.py", "test/test_testing_strategy_contract.py", "test/test_changed_snapshot_selection.py"],
+      "commands": ["npm run test:strategy"],
+      "rings": ["R0", "R2", "R4", "R5"],
+      "alwaysRun": true
+    },
+    {
+      "id": "portable-tracer-smoke",
+      "surfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
+      "patterns": ["src/reflaxe/go/**", "std/go/_std/**", "std/hxrt/**", "runtime/hxrt/**", "examples/tui_todo/**"],
+      "commands": ["npm run test:smoke"],
+      "rings": ["R1", "R2", "R4", "R5"],
+      "alwaysRun": true
+    },
+    {
+      "id": "official-haxe-target-smoke",
+      "surfaces": ["portable-compiler"],
+      "patterns": ["test/official_haxe_target_smoke/**", "test/run-official-haxe-target-smoke.py", "test/test_official_haxe_target_smoke_contract.py", "docs/official-haxe-target-smoke.md", "src/reflaxe/go/**", "std/go/_std/**", "std/hxrt/**", "runtime/hxrt/**", "scripts/release/package-haxelib.sh"],
+      "commands": ["npm run test:official-haxe-smoke"],
+      "rings": ["R1", "R2", "R4", "R5"],
+      "alwaysRun": true
+    },
+    {
+      "id": "harness-failure-propagation",
+      "surfaces": ["portable-compiler", "diagnostics-tooling"],
+      "patterns": ["test/run-*.py", "test/test_*harness*.py", "package.json", ".github/workflows/**"],
+      "commands": ["python3 test/test_post_generation_build_runner.py", "python3 test/test_semantic_diff_harness_contract.py"],
+      "rings": ["R0", "R2", "R4", "R5"],
+      "alwaysRun": true
+    },
+    {
+      "id": "portable-provenance",
+      "surfaces": ["portable-compiler", "runtime-stdlib"],
+      "patterns": ["test/portable_*.json", "test/upstream_std_*", "docs/stdlib-provenance-ledger.json", "scripts/ci/*stdlib*", "docs/toolchain-policy.json"],
+      "commands": ["npm run test:stdlib:governance", "npm run test:stdlib-inventory", "npm run compatibility:verify"],
+      "rings": ["R2", "R4", "R5"],
+      "alwaysRun": true
+    },
+    {
+      "id": "portable-compiler",
+      "surfaces": ["portable-compiler"],
+      "patterns": ["src/reflaxe/go/**", "test/snapshot/core/**", "test/snapshot/negative/**", "test/semantic_diff/**", "test/semantic_diff_lanes/**", "docs/portable-*.md"],
+      "commands": ["npm test", "npm run test:semantic-diff"],
+      "rings": ["R0", "R2", "R4", "R5"],
+      "alwaysRun": false
+    },
+    {
+      "id": "go-native-metal",
+      "surfaces": ["go-native-metal"],
+      "patterns": ["std/go/**", "test/snapshot/go_native/**", "tools/goextern/**", "docs/goextern.md", "docs/native-policy-presets.md", "docs/profiles.md"],
+      "excludePatterns": ["std/go/_std/**"],
+      "commands": ["npm run test:go-native", "npm run test:goextern", "npm run test:examples:metal-boundary"],
+      "rings": ["R0", "R2", "R3", "R4", "R5"],
+      "alwaysRun": false
+    },
+    {
+      "id": "runtime-stdlib",
+      "surfaces": ["runtime-stdlib"],
+      "patterns": ["runtime/hxrt/**", "std/hxrt/**", "std/go/_std/**", "test/snapshot/stdlib/**", "test/snapshot/sys/**", "test/semantic_diff/**"],
+      "commands": ["go test ./runtime/hxrt", "npm run test:stdlib-sweep:go-test", "npm run test:semantic-diff"],
+      "rings": ["R0", "R2", "R3", "R4", "R5"],
+      "alwaysRun": false
+    },
+    {
+      "id": "diagnostics-tooling",
+      "surfaces": ["diagnostics-tooling"],
+      "patterns": ["test/snapshot/negative/**", "scripts/dev/**", "docs/defines-reference.md", "docs/compiler-debt-ratchet.md", "test/*policy*.json"],
+      "commands": ["npm run test:negative", "npm run test:compiler-debt"],
+      "rings": ["R0", "R2", "R4", "R5"],
+      "alwaysRun": false
+    },
+    {
+      "id": "package-examples",
+      "surfaces": ["package-downstream-examples"],
+      "patterns": ["examples/**", "templates/**", "haxelib.json", "scripts/release/**", "test/test_haxelib_*.py", ".github/workflows/examples-artifacts.yml"],
+      "commands": ["npm run test:examples", "npm run test:haxelib-release-install"],
+      "rings": ["R1", "R2", "R3", "R4", "R5"],
+      "alwaysRun": false
+    },
+    {
+      "id": "release-cross-cutting",
+      "surfaces": ["portable-compiler", "go-native-metal", "runtime-stdlib", "diagnostics-tooling", "package-downstream-examples"],
+      "patterns": ["release/**", ".github/workflows/**", "package.json", "package-lock.json", "haxelib.json", "docs/compatibility-support-source.json", "docs/public-contract.md", "docs/semver-lifecycle-policy.md"],
+      "commands": ["npm run test:release-contracts", "npm run release:readiness"],
+      "rings": ["R2", "R4", "R5"],
+      "alwaysRun": false,
+      "expandsToFull": true
+    }
+  ],
+  "highRiskReview": {
+    "distinctFromImplementation": true,
+    "requiredFor": ["compiler representation", "runtime or ABI", "package publication", "security", "migration", "public claim"],
+    "questions": [
+      "Was the test red for the intended reason?",
+      "Is the oracle independent?",
+      "Are negative and boundary cases missing?",
+      "Does a mock erase the claimed boundary?",
+      "Can the affected selector omit the owner?",
+      "Does one product surface launder another surface's result?",
+      "Does documentation exceed executed evidence?"
+    ]
+  },
+  "representativeWorkflow": {
+    "id": "socket-admission-transactional-lifecycle",
+    "kind": "documented dry-run of an actual recent regression",
+    "surface": "runtime-stdlib",
+    "protectedClaim": "A failed or superseded native socket operation cannot publish or retain a resource, and finite readiness timeouts remain bounded.",
+    "scenario": {
+      "preconditions": "An in-progress or failed TCP/TLS/listener/readiness operation owns a native resource behind SocketHandle.",
+      "action": "Close, fail policy installation or handshake, or call finite Socket.select beside an entered read.",
+      "observableResult": "No stale resource is attached; the exact acquired resource closes; finite select returns within its allowance.",
+      "errorEdgeBehavior": "The original typed Haxe-visible failure escapes and a stale failure cannot detach a replacement."
+    },
+    "redState": {
+      "preFixCommit": "21acb7eb8d0c1ce23b4b2d2bde095d1e538d2962",
+      "command": "cd runtime/hxrt && go test -run 'TestSocketListenDeadlineFailureLeavesAnEmptyReusableHandle|TestSslSocketHandshakeFailureDetachesAndClosesTheFailedConnection|TestSocketSelectTimeoutIsBoundedBehindAnEnteredRead' -count=1 ./...",
+      "expectedFailure": "stale listener state, attached failed TLS connection, and a 20 ms select blocked beyond 150 ms",
+      "evidence": ".audit/haxe_go-vfp.10.9.8.tsv at 2026-07-31T18:56:12Z and docs/reviews/gpt-5.6-pro/review-21acb7eb-socket-admission.md"
+    },
+    "oracle": {
+      "independent": true,
+      "source": "Haxe socket lifecycle contract, Go resource-ownership invariants, and an independent GPT-5.6 Pro exact-commit review",
+      "provenance": "docs/reviews/gpt-5.6-pro/review-21acb7eb-socket-admission.provenance.json"
+    },
+    "lowestFaithfulOwner": "focused runtime/hxrt Go tests with injected native failure seams",
+    "tracerBullet": "test/semantic_diff/socket_server_lifecycle_contract compiles authored Haxe through reflaxe.go, formats and builds generated Go, and observes the loopback runtime contract.",
+    "doubleLock": [
+      "focused runtime/hxrt ownership and timeout regressions",
+      "generated-Haxe socket semantic-diff and snapshot fixtures",
+      "operation-level compatibility and release-readiness contracts"
+    ],
+    "greenState": "commit 95b852714e8d6f74232f2550d30a89b79a5a91f3 and final strengthened commit 7188fea25e9721cb33c5709f77fca1c8214dc6bd"
+  }
+}

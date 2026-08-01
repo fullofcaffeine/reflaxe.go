@@ -153,6 +153,7 @@ private typedef EmittedInstanceMethod = {
 	final selector:String;
 	final func:TFunc;
 	final fieldType:Type;
+	final useCarrierOptionalAbi:Bool;
 }
 
 private typedef GeneratedMethodMetadataSeed = {
@@ -206,6 +207,7 @@ private typedef GoResultMethodCall = {
 }
 
 private typedef FunctionInfo = {
+	final func:TFunc;
 	final defaults:Array<Null<TypedExpr>>;
 }
 
@@ -295,6 +297,7 @@ class GoCompiler {
 	final pendingRequiredEnumsByName:Map<String, EnumType>;
 	final requiredSourceOwnedClassNames:Map<String, Bool>;
 	final requiredNominalClassTypeNames:Map<String, Bool>;
+	final requiredEmbeddedSuperclassClassNames:Map<String, Bool>;
 	final generatedMethodMetadataByClassName:Map<String, GeneratedMethodMetadataSeed>;
 	final generatedFieldMetadataByClassName:Map<String, GeneratedFieldMetadataSeed>;
 	var generatedMethodMetadataPlan:Array<GeneratedMethodClassMetadata>;
@@ -364,6 +367,7 @@ class GoCompiler {
 		pendingRequiredEnumsByName = new Map<String, EnumType>();
 		requiredSourceOwnedClassNames = new Map<String, Bool>();
 		requiredNominalClassTypeNames = new Map<String, Bool>();
+		requiredEmbeddedSuperclassClassNames = new Map<String, Bool>();
 		generatedMethodMetadataByClassName = new Map<String, GeneratedMethodMetadataSeed>();
 		generatedFieldMetadataByClassName = new Map<String, GeneratedFieldMetadataSeed>();
 		generatedMethodMetadataPlan = [];
@@ -426,6 +430,7 @@ class GoCompiler {
 		clearEnumMap(pendingRequiredEnumsByName);
 		clearBoolMap(requiredSourceOwnedClassNames);
 		clearBoolMap(requiredNominalClassTypeNames);
+		clearBoolMap(requiredEmbeddedSuperclassClassNames);
 		sourceModuleRegistry.rebuild(classes, enums);
 		globalLeafReceiverTypes = buildGlobalLeafReceiverTypes(projectClasses);
 		syncCompilationContextLeafReceivers();
@@ -1400,6 +1405,9 @@ class GoCompiler {
 	}
 
 	function classHasInstanceLayout(classType:ClassType):Bool {
+		if (requiredEmbeddedSuperclassClassNames.exists(fullClassName(classType))) {
+			return true;
+		}
 		var instanceDataCount = 0;
 		var instanceMethodCount = 0;
 		for (field in classType.fields.get()) {
@@ -1910,8 +1918,16 @@ class GoCompiler {
 			requireSourceOwnedStdlibClass(superName);
 			return superType;
 		}
-		return (isProjectClass(superType)
-			|| requiredSourceOwnedClassNames.exists(superName)
+		if (isProjectClass(superType)) {
+			// A reachable child owns a concrete dependency on its base carrier even when
+			// manual DCE omitted that base from Reflaxe's initial module list. Queue the
+			// typed superclass so embedding and constructor calls cannot outlive its Go
+			// declaration. The queue deduplicates classes already selected normally.
+			pendingRequiredClassesByName.set(superName, superType);
+			requiredEmbeddedSuperclassClassNames.set(superName, true);
+			return superType;
+		}
+		return (requiredSourceOwnedClassNames.exists(superName)
 			|| GoStdlibOwnership.isEmbeddableCompilerOwnedSuper(superName)) ? superType : null;
 	}
 
@@ -2026,7 +2042,7 @@ class GoCompiler {
 		for (classType in classes) {
 			var fields = classType.statics.get();
 			for (field in fields) {
-				var func = unwrapFunction(field.expr());
+				var func = stableDeclaredFunction(field);
 				if (func != null) {
 					staticFunctionInfos.set(staticSymbol(classType, field.name), buildFunctionInfo(func));
 				}
@@ -2821,7 +2837,8 @@ class GoCompiler {
 								name: field.name,
 								selector: emittedInstanceMethodSelector(field),
 								func: methodFunc,
-								fieldType: field.type
+								fieldType: field.type,
+								useCarrierOptionalAbi: methodUsesCarrierOptionalAbi(classType, field.name)
 							});
 						}
 					}
@@ -2840,7 +2857,11 @@ class GoCompiler {
 			ctorFunc = unwrapFunction(ctorRef.get().expr());
 		}
 
-		var hasInstanceLayout = superClass != null || instanceDataFields.length > 0 || instanceMethods.length > 0 || ctorFunc != null;
+		var hasInstanceLayout = superClass != null
+			|| requiredEmbeddedSuperclassClassNames.exists(fullClassName(classType))
+			|| instanceDataFields.length > 0
+			|| instanceMethods.length > 0
+			|| ctorFunc != null;
 		var dispatchMethods = hasInstanceLayout ? collectDispatchMethods(classType) : [];
 		if (hasInstanceLayout) {
 			recordGeneratedMethodMetadata(classType, typeName, superClass, instanceMethods);
@@ -2862,7 +2883,7 @@ class GoCompiler {
 			for (method in dispatchMethods) {
 				interfaceMethods.push({
 					name: method.name,
-					params: lowerFunctionParams(method.func, typedFunctionArgs(method.fieldType)),
+					params: lowerFunctionParams(method.func, typedFunctionArgs(method.fieldType), method.useCarrierOptionalAbi),
 					results: lowerFunctionResults(method.func.t)
 				});
 			}
@@ -2882,7 +2903,7 @@ class GoCompiler {
 		}
 
 		for (method in instanceMethods) {
-			decls.push(lowerInstanceMethodDecl(classType, method.selector, method.func, method.fieldType));
+			decls.push(lowerInstanceMethodDecl(classType, method.selector, method.func, method.fieldType, method.useCarrierOptionalAbi));
 		}
 		if (hasPortableToString(dispatchMethods)) {
 			decls.push(lowerGoStringerAdapterDecl(classType));
@@ -2900,7 +2921,7 @@ class GoCompiler {
 						haxeResourceContentLiteral();
 					} else {
 						var valueExpr = field.expr();
-						valueExpr == null ? null : materializeExprWithPrefix(lowerExprWithExpectedUpcast(valueExpr, field.type), field.type).expr;
+						valueExpr == null ? null : materializeExprWithPrefix(lowerStoredExprWithExpectedType(valueExpr, field.type), field.type).expr;
 					}
 					decls.push(GoDecl.GoGlobalVarDecl(symbol, scalarGoType(field.type), loweredValue));
 				case FMethod(MethDynamic):
@@ -2908,7 +2929,7 @@ class GoCompiler {
 					// instance counterparts. A named Go function is not assignable and
 					// breaks APIs such as haxe.Log.trace rebinding.
 					var valueExpr = field.expr();
-					var loweredValue = valueExpr == null ? null : materializeExprWithPrefix(lowerExprWithExpectedUpcast(valueExpr, field.type),
+					var loweredValue = valueExpr == null ? null : materializeExprWithPrefix(lowerStoredExprWithExpectedType(valueExpr, field.type),
 						field.type).expr;
 					decls.push(GoDecl.GoGlobalVarDecl(symbol, scalarGoType(field.type), loweredValue));
 				case FMethod(_):
@@ -2981,18 +3002,23 @@ class GoCompiler {
 			var finalName = count == 0 ? baseName : baseName + "_" + count;
 			out.push({
 				name: finalName,
-				typeName: nilCapablePrimitiveParamType(arg.t)
+				typeName: functionParameterStorageGoType(arg)
 			});
 		}
 		return out;
 	}
 
-	function lowerFunctionDecl(name:String, func:TFunc, receiver:Null<GoParam>, ?sourceModule:String, ?functionType:Type):GoDecl {
+	function lowerFunctionDecl(name:String, func:TFunc, receiver:Null<GoParam>, ?sourceModule:String, ?functionType:Type,
+			useCarrierOptionalAbi:Bool = false):GoDecl {
 		pushFunctionVarNameScope();
-		var params = lowerFunctionParams(func, typedFunctionArgs(functionType == null ? func.t : functionType));
+		var typedArgs = typedFunctionArgs(functionType == null ? func.t : functionType);
+		var params = lowerFunctionParams(func, typedArgs, useCarrierOptionalAbi);
 		var results = lowerFunctionResults(func.t);
 		pushFunctionReturnType(func.t);
 		var body = lowerFunctionBody(func.expr);
+		if (useCarrierOptionalAbi) {
+			body = lowerCarrierOptionalDefaultPrelude(func, typedArgs).concat(body);
+		}
 		prependLineDirective(body, func.expr.pos, sourceModule);
 		popFunctionReturnType();
 		popFunctionVarNameScope();
@@ -3089,7 +3115,7 @@ class GoCompiler {
 				case FMethod(MethDynamic):
 					var value = field.expr();
 					if (value != null) {
-						var lowered = lowerExprWithExpectedUpcast(value, field.type);
+						var lowered = lowerStoredExprWithExpectedType(value, field.type);
 						out = out.concat(lowered.prefix);
 						out.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), normalizeIdent(field.name)), lowered.expr));
 					}
@@ -3110,11 +3136,11 @@ class GoCompiler {
 		return normalizeIdent(field.name);
 	}
 
-	function lowerInstanceMethodDecl(classType:ClassType, selector:String, func:TFunc, fieldType:Type):GoDecl {
+	function lowerInstanceMethodDecl(classType:ClassType, selector:String, func:TFunc, fieldType:Type, useCarrierOptionalAbi:Bool):GoDecl {
 		return lowerFunctionDecl(selector, func, {
 			name: "self",
 			typeName: "*" + classTypeName(classType)
-		}, classType.module, fieldType);
+		}, classType.module, fieldType, useCarrierOptionalAbi);
 	}
 
 	/**
@@ -3244,9 +3270,14 @@ class GoCompiler {
 		};
 	}
 
-	function collectDispatchMethods(classType:ClassType):Array<{name:String, func:TFunc, fieldType:Type}> {
+	function collectDispatchMethods(classType:ClassType):Array<{
+		name:String,
+		func:TFunc,
+		fieldType:Type,
+		useCarrierOptionalAbi:Bool
+	}> {
 		var orderedNames = new Array<String>();
-		var methods = new Map<String, {func:TFunc, fieldType:Type}>();
+		var methods = new Map<String, {func:TFunc, fieldType:Type, useCarrierOptionalAbi:Bool}>();
 
 		function collect(current:ClassType):Void {
 			var superClass = projectSuperClass(current);
@@ -3271,7 +3302,11 @@ class GoCompiler {
 						if (!methods.exists(methodName)) {
 							orderedNames.push(methodName);
 						}
-						methods.set(methodName, {func: methodFunc, fieldType: field.type});
+						methods.set(methodName, {
+							func: methodFunc,
+							fieldType: field.type,
+							useCarrierOptionalAbi: methodUsesCarrierOptionalAbi(current, field.name)
+						});
 					case _:
 				}
 			}
@@ -3279,13 +3314,19 @@ class GoCompiler {
 
 		collect(classType);
 
-		var out = new Array<{name:String, func:TFunc, fieldType:Type}>();
+		var out = new Array<{
+			name:String,
+			func:TFunc,
+			fieldType:Type,
+			useCarrierOptionalAbi:Bool
+		}>();
 		for (name in orderedNames) {
 			var method = methods.get(name);
 			out.push({
 				name: name,
 				func: method.func,
-				fieldType: method.fieldType
+				fieldType: method.fieldType,
+				useCarrierOptionalAbi: method.useCarrierOptionalAbi
 			});
 		}
 		return out;
@@ -3319,7 +3360,7 @@ class GoCompiler {
 		};
 	}
 
-	function lowerFunctionParams(func:TFunc, ?typedArgs:Array<{name:String, opt:Bool, t:Type}>):Array<GoParam> {
+	function lowerFunctionParams(func:TFunc, ?typedArgs:Array<{name:String, opt:Bool, t:Type}>, useCarrierOptionalAbi:Bool = false):Array<GoParam> {
 		if (typedArgs == null) {
 			typedArgs = typedFunctionArgs(func.t);
 		}
@@ -3327,7 +3368,7 @@ class GoCompiler {
 		for (index in 0...func.args.length) {
 			var arg = func.args[index];
 			var typedArg = index < typedArgs.length ? typedArgs[index] : null;
-			var isOptionalPrimitive = isOptionalPrimitiveFunctionArg(arg, typedArg);
+			var isOptionalPrimitive = isOptionalPrimitiveFunctionArg(arg, typedArg, useCarrierOptionalAbi);
 			var isNilCapablePrimitive = isOptionalPrimitive || isNullablePrimitiveParamType(arg.v.t, typedArg);
 			registerOptionalPrimitiveParam(arg.v, isNilCapablePrimitive);
 			params.push({
@@ -3338,8 +3379,169 @@ class GoCompiler {
 		return params;
 	}
 
+	/**
+		What: Detect an optional primitive method contract reached through a Haxe
+		interface implemented by the generated class.
+
+		Why: Haxe permits an implementation to choose its own non-null default value.
+		The interface call therefore needs a nil-capable carrier so the selected
+		implementation, rather than the static interface declaration, applies that
+		default. Emitting the interface as `get(any)` and the implementation as
+		`get(int)` also violates Go method-set identity.
+
+		How: Walk the class's declared interface graph, inherited class contracts, and
+		reachable subclasses that satisfy an interface through this inherited method.
+		Match the source method name and select the carrier ABI only for that complete
+		method-set family.
+	**/
+	function methodUsesCarrierOptionalAbi(classType:ClassType, methodName:String):Bool {
+		function classDeclaresCarrierContract(root:ClassType, promoteSuperclasses:Bool):Bool {
+			var visitedInterfaces = new Map<String, Bool>();
+
+			function interfaceDeclaresCarrierMethod(interfaceType:ClassType):Bool {
+				var interfaceName = fullClassName(interfaceType);
+				if (visitedInterfaces.exists(interfaceName)) {
+					return false;
+				}
+				visitedInterfaces.set(interfaceName, true);
+				for (field in interfaceType.fields.get()) {
+					if (field.name != methodName) {
+						continue;
+					}
+					switch (Context.follow(field.type)) {
+						case TFun(args, _):
+							for (arg in args) {
+								if (arg.opt) {
+									return true;
+								}
+							}
+						case _:
+					}
+				}
+				for (entry in interfaceType.interfaces) {
+					if (interfaceDeclaresCarrierMethod(entry.t.get())) {
+						return true;
+					}
+				}
+				return false;
+			}
+
+			function visitClass(current:ClassType):Bool {
+				for (entry in current.interfaces) {
+					if (interfaceDeclaresCarrierMethod(entry.t.get())) {
+						return true;
+					}
+				}
+				var superClass = if (promoteSuperclasses) {
+					projectSuperClass(current);
+				} else {
+					current.superClass == null ? null : current.superClass.t.get();
+				}
+				return superClass != null && visitClass(superClass);
+			}
+
+			return visitClass(root);
+		}
+
+		if (classDeclaresCarrierContract(classType, true)) {
+			return true;
+		}
+
+		// A subclass may implement an interface with a method inherited from a base
+		// class that does not name the interface itself. Go method signatures are
+		// attached to the defining receiver, so the inherited implementation must use
+		// the same missing-argument carrier as the subclass interface method set.
+		var ownerName = fullClassName(classType);
+		for (candidate in projectClasses) {
+			if (candidate.isInterface || fullClassName(candidate) == ownerName || !classDeclaresCarrierContract(candidate, false)) {
+				continue;
+			}
+			var current:Null<ClassType> = candidate;
+			while (current != null) {
+				var definesMethod = false;
+				for (field in current.fields.get()) {
+					if (field.name == methodName) {
+						switch (field.kind) {
+							case FMethod(MethDynamic):
+								null;
+							case FMethod(_):
+								definesMethod = true;
+							case _:
+						}
+						break;
+					}
+				}
+				if (definesMethod) {
+					if (fullClassName(current) == ownerName) {
+						return true;
+					}
+					break;
+				}
+				current = current.superClass == null ? null : current.superClass.t.get();
+			}
+		}
+		return false;
+	}
+
+	/**
+		What: Apply implementation-owned non-null optional defaults at method entry.
+
+		Why: An interface call does not know which override will receive the call, and
+		Haxe selects the concrete override's default. The nil carrier must therefore
+		reach the implementation before becoming its declared default value.
+
+		How: For a method or function literal reached through an optional carrier, test
+		the raw missing-argument carrier before typed body lowering reads it, then
+		replace nil with the implementation's typed default expression. Primitive
+		parameters use `any`; reference-shaped parameters retain their ordinary
+		nil-capable Go type.
+	**/
+	function lowerCarrierOptionalDefaultPrelude(func:TFunc, typedArgs:Array<{name:String, opt:Bool, t:Type}>):Array<GoStmt> {
+		var out = new Array<GoStmt>();
+		for (index in 0...func.args.length) {
+			var arg = func.args[index];
+			var typedArg = index < typedArgs.length ? typedArgs[index] : null;
+			if (typedArg == null || !typedArg.opt || arg.value == null || isGoNilDefaultValue(arg.value)) {
+				continue;
+			}
+			var name = localVarName(arg.v);
+			var defaultValue = materializeExprWithPrefix(lowerExprWithExpectedUpcast(arg.value, arg.v.t), arg.v.t).expr;
+			out.push(GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, GoExpr.GoIdent(name), GoExpr.GoNil),
+				[GoStmt.GoAssign(GoExpr.GoIdent(name), defaultValue)], null));
+		}
+		return out;
+	}
+
+	/**
+		What: Lowers one Haxe function literal with an optional callable storage type.
+
+		Why: A mutable function field can carry optional-parameter information that is
+		not repeated by the literal's internal `TFunc`. Using only the literal type can
+		emit `func(int)` into a `func(any)` field, while widening every named defaulted
+		function would degrade unrelated direct Go APIs.
+
+		How: When a target function type is known, use its argument list as the ABI
+		authority; otherwise preserve the literal's own type. Function-body lowering
+		continues to assert widened primitive values at their typed uses.
+	**/
+	function lowerFunctionLiteral(func:TFunc, ?functionType:Type):GoExpr {
+		pushFunctionVarNameScope();
+		var typedArgs = functionType == null ? null : typedFunctionArgs(functionType);
+		var loweredParams = lowerFunctionParams(func, typedArgs, functionType != null);
+		var loweredResults = lowerFunctionResults(func.t);
+		pushFunctionReturnType(func.t);
+		var loweredBody = lowerFunctionBody(func.expr);
+		if (typedArgs != null) {
+			loweredBody = lowerCarrierOptionalDefaultPrelude(func, typedArgs).concat(loweredBody);
+		}
+		popFunctionReturnType();
+		popFunctionVarNameScope();
+		return GoExpr.GoFuncLiteral(loweredParams, loweredResults, loweredBody);
+	}
+
 	function buildFunctionInfo(func:TFunc):FunctionInfo {
 		return {
+			func: func,
 			defaults: [for (arg in func.args) arg.value]
 		};
 	}
@@ -3423,7 +3625,11 @@ class GoCompiler {
 					registerLocalLambdaAlias(variableName, lambdaAlias);
 				}
 
-				var lowered = value == null ? null : lowerExprWithExpectedUpcast(value, variable.t);
+				var needsCallableStorageAdapter = value != null
+					&& (!localNeverReassigned(variable)
+						|| (functionTypeHasOptionalArgs(variable.t) && declaredStableFunctionValue(value) != null));
+				var lowered = value == null ? null : (needsCallableStorageAdapter ? lowerStoredExprWithExpectedType(value,
+					variable.t) : lowerExprWithExpectedUpcast(value, variable.t));
 				var prefix = lowered == null ? [] : lowered.prefix;
 				var loweredValue = lowered == null ? null : lowered.expr;
 				if (value != null && loweredValue != null) {
@@ -3441,7 +3647,11 @@ class GoCompiler {
 					goType = narrowedStorageGoType;
 					registerNarrowedPrimitiveStorage(variable, narrowedStorageGoType);
 				}
-				var useShort = loweredValue != null && !isNilExpr(loweredValue) && goType != "any" && !isInterfaceType(variable.t);
+				var useShort = loweredValue != null
+					&& !isNilExpr(loweredValue)
+					&& goType != "any"
+					&& !isInterfaceType(variable.t)
+					&& !(needsCallableStorageAdapter && functionTypeUsesOptionalPrimitiveCarrier(variable.t));
 				var decl = GoStmt.GoVarDecl(variableName, goType, loweredValue, useShort);
 				var consume = GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(variableName));
 
@@ -3459,7 +3669,7 @@ class GoCompiler {
 						if (indexedArrayAssign != null) {
 							indexedArrayAssign;
 						} else {
-							var loweredRight = lowerExprWithExpectedUpcast(right, assignmentStorageType(left));
+							var loweredRight = lowerStoredExprWithExpectedType(right, assignmentStorageType(left));
 							var lengthAssignStmts = lowerArrayLengthAssign(left, loweredRight.expr);
 							var assignStmts = if (lengthAssignStmts != null) {
 								lengthAssignStmts;
@@ -3564,7 +3774,7 @@ class GoCompiler {
 					var redirected = new Array<GoStmt>();
 					if (value != null) {
 						var loweredReturn = redirect.valueName != null
-							&& redirect.valueType != null ? lowerExprWithExpectedUpcast(value, redirect.valueType) : lowerExprWithPrefix(value);
+							&& redirect.valueType != null ? lowerStoredExprWithExpectedType(value, redirect.valueType) : lowerExprWithPrefix(value);
 						var returnExpr = loweredReturn.expr;
 						redirected = redirected.concat(loweredReturn.prefix);
 						if (redirect.valueName != null && redirect.valueType != null) {
@@ -3582,7 +3792,7 @@ class GoCompiler {
 					];
 				} else {
 					var expectedReturnType = currentFunctionReturnType();
-					var loweredReturn = expectedReturnType == null ? lowerExprWithPrefix(value) : lowerExprWithExpectedUpcast(value, expectedReturnType);
+					var loweredReturn = expectedReturnType == null ? lowerExprWithPrefix(value) : lowerStoredExprWithExpectedType(value, expectedReturnType);
 					var returnExpr = loweredReturn.expr;
 					var returnStmt = GoStmt.GoReturn(returnExpr);
 					if (loweredReturn.prefix.length > 0) {
@@ -3883,6 +4093,21 @@ class GoCompiler {
 		return out;
 	}
 
+	/**
+		What: Lowers one value-producing branch against an optional callable result.
+
+		Why: `if`, `switch`, block, and `try` expressions first lower their branches
+		into a shared temporary. A stable `func(int)` branch cannot enter that
+		`func(any)` carrier unless the branch itself applies the expected-storage ABI.
+
+		How: Use stored-value adaptation only when the enclosing result is an optional
+		callable. Otherwise invoke the caller's existing lowering path so unrelated
+		expression shapes remain unchanged.
+	**/
+	function lowerOptionalCallableBranch(expr:TypedExpr, resultType:Type, fallback:Void->LoweredExprWithPrefix):LoweredExprWithPrefix {
+		return functionTypeHasOptionalArgs(resultType) ? lowerStoredExprWithExpectedType(expr, resultType) : fallback();
+	}
+
 	function lowerSwitchStmt(value:TypedExpr, cases:Array<{values:Array<TypedExpr>, expr:TypedExpr}>, defaultExpr:Null<TypedExpr>):GoStmt {
 		var stringSwitch = isStringType(value.t);
 		var loweredCases = new Array<GoSwitchCase>();
@@ -3907,7 +4132,8 @@ class GoCompiler {
 		var loweredCases = new Array<GoSwitchCase>();
 
 		for (caseEntry in cases) {
-			var loweredCase = lowerInSwitchContext(function() return lowerExprWithPrefix(caseEntry.expr));
+			var loweredCase = lowerInSwitchContext(function() return lowerOptionalCallableBranch(caseEntry.expr, resultType,
+				function() return lowerExprWithPrefix(caseEntry.expr)));
 			var caseBody = loweredCase.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredCase.expr)]);
 			loweredCases.push({
 				values: [
@@ -3920,7 +4146,8 @@ class GoCompiler {
 
 		var defaultBody:Null<Array<GoStmt>> = null;
 		if (defaultExpr != null) {
-			var loweredDefault = lowerInSwitchContext(function() return lowerExprWithPrefix(defaultExpr));
+			var loweredDefault = lowerInSwitchContext(function() return lowerOptionalCallableBranch(defaultExpr, resultType,
+				function() return lowerExprWithPrefix(defaultExpr)));
 			defaultBody = loweredDefault.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredDefault.expr)]);
 		}
 
@@ -3976,8 +4203,10 @@ class GoCompiler {
 
 		var loweredCondition = lowerExprWithPrefix(condition);
 		var facts = conditionNonNullFacts(condition);
-		var loweredThen = lowerWithNonNullPrimitiveFacts(facts.thenFacts, function() return lowerExprWithExpectedUpcast(thenBranch, resultType));
-		var loweredElse = lowerWithNonNullPrimitiveFacts(facts.elseFacts, function() return lowerExprWithExpectedUpcast(elseExpr, resultType));
+		var loweredThen = lowerWithNonNullPrimitiveFacts(facts.thenFacts,
+			function() return lowerOptionalCallableBranch(thenBranch, resultType, function() return lowerExprWithExpectedUpcast(thenBranch, resultType)));
+		var loweredElse = lowerWithNonNullPrimitiveFacts(facts.elseFacts,
+			function() return lowerOptionalCallableBranch(elseExpr, resultType, function() return lowerExprWithExpectedUpcast(elseExpr, resultType)));
 		var temp = freshTempName("hx_if");
 		var loweredThenValue = loweredThen.expr;
 		var loweredElseValue = loweredElse.expr;
@@ -4243,7 +4472,7 @@ class GoCompiler {
 
 	function lowerTryCatchExpr(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>, resultType:Type):LoweredExprWithPrefix {
 		var temp = freshTempName("hx_try");
-		var loweredTry = lowerExprWithExpectedUpcast(tryExpr, resultType);
+		var loweredTry = lowerOptionalCallableBranch(tryExpr, resultType, function() return lowerExprWithExpectedUpcast(tryExpr, resultType));
 		var loweredTryValue = loweredTry.expr;
 		var tempExpr = GoExpr.GoIdent(temp);
 
@@ -4267,7 +4496,8 @@ class GoCompiler {
 			var catchEntry = catches[index];
 			var catchVarName = localVarName(catchEntry.v);
 			var catchType = typeToGoType(catchEntry.v.t);
-			var loweredCatch = lowerExprWithExpectedUpcast(catchEntry.expr, resultType);
+			var loweredCatch = lowerOptionalCallableBranch(catchEntry.expr, resultType,
+				function() return lowerExprWithExpectedUpcast(catchEntry.expr, resultType));
 			var loweredCatchValue = loweredCatch.expr;
 			var catchExprBody = loweredCatch.prefix.concat([GoStmt.GoAssign(tempExpr, loweredCatchValue)]);
 			var haxeExceptionCatch = isHaxeExceptionType(catchEntry.v.t);
@@ -4816,11 +5046,25 @@ class GoCompiler {
 		return assigned;
 	}
 
-	function isOptionalPrimitiveFunctionArg(arg:{v:TVar, value:Null<TypedExpr>}, typedArg:Null<{name:String, opt:Bool, t:Type}>):Bool {
+	/**
+		What: Detects typed optional primitive parameters in the callable ABI selected
+		for one generated function.
+
+		Why: A mutable function carrier can mark a non-null-default parameter optional
+		even when the literal's internal `TFunc` does not. Expected-type lowering
+		supplies that carrier authority so the literal and storage signatures match
+		without widening ordinary named functions.
+
+		How: Trust the selected typed function argument's optional bit. Preserve typed
+		non-null defaults for ordinary named functions, but allow an explicitly selected
+		carrier ABI to widen them. Limit the rule to Go scalar primitives.
+	**/
+	function isOptionalPrimitiveFunctionArg(arg:{v:TVar, value:Null<TypedExpr>}, typedArg:Null<{name:String, opt:Bool, t:Type}>,
+			useCarrierOptionalAbi:Bool):Bool {
 		if (typedArg == null || !typedArg.opt) {
 			return false;
 		}
-		if (!isGoNilDefaultValue(arg.value)) {
+		if (!useCarrierOptionalAbi && !isGoNilDefaultValue(arg.value)) {
 			return false;
 		}
 		var goType = typeToGoType(arg.v.t);
@@ -4836,6 +5080,24 @@ class GoCompiler {
 
 	function nilCapablePrimitiveParamType(type:Type):String {
 		return isNullablePrimitiveType(type) ? "any" : scalarGoType(type);
+	}
+
+	function isGoNilDefaultValue(expr:Null<TypedExpr>):Bool {
+		if (expr == null) {
+			return false;
+		}
+		return switch (expr.expr) {
+			case TConst(TNull):
+				true;
+			case TMeta(_, inner):
+				isGoNilDefaultValue(inner);
+			case TParenthesis(inner):
+				isGoNilDefaultValue(inner);
+			case TCast(inner, _):
+				isGoNilDefaultValue(inner);
+			case _:
+				false;
+		};
 	}
 
 	/**
@@ -4862,24 +5124,6 @@ class GoCompiler {
 		}
 		var fallbackType = scalarGoType(fallback);
 		return fallbackType != "any" ? fallbackType : scalarGoType(payloadType);
-	}
-
-	function isGoNilDefaultValue(expr:Null<TypedExpr>):Bool {
-		if (expr == null) {
-			return false;
-		}
-		return switch (expr.expr) {
-			case TConst(TNull):
-				true;
-			case TMeta(_, inner):
-				isGoNilDefaultValue(inner);
-			case TParenthesis(inner):
-				isGoNilDefaultValue(inner);
-			case TCast(inner, _):
-				isGoNilDefaultValue(inner);
-			case _:
-				false;
-		};
 	}
 
 	function registerOptionalPrimitiveParam(variable:TVar, isOptionalPrimitive:Bool):Void {
@@ -5192,34 +5436,55 @@ class GoCompiler {
 			case TField(_, FStatic(classRef, field)):
 				var classType = classRef.get();
 				var resolved = field.get();
+				var func = stableDeclaredFunction(resolved);
 				var symbol = staticSymbol(classType, resolved.name);
-				if (staticFunctionInfos.exists(symbol)) {
+				if (func == null) {
+					null;
+				} else if (staticFunctionInfos.exists(symbol)) {
 					staticFunctionInfos.get(symbol);
 				} else if (GoStdlibOwnership.isCompilerOwnedAuthority(fullClassName(classType))) {
 					null;
 				} else {
 					// Source-owned std classes can be queued after the initial static-info pass;
 					// resolve their defaults lazily without changing compiler-owned vararg shims.
-					var func = unwrapFunction(resolved.expr());
-					if (func == null) {
-						null;
-					} else {
-						var info = buildFunctionInfo(func);
-						staticFunctionInfos.set(symbol, info);
-						info;
-					}
+					var info = buildFunctionInfo(func);
+					staticFunctionInfos.set(symbol, info);
+					info;
 				}
 			case TField(_, FInstance(_, _, field)) | TField(_, FAnon(field)) | TField(_, FClosure(_, field)):
-				var func = unwrapFunction(field.get().expr());
+				var func = stableDeclaredFunction(field.get());
 				func == null ? null : buildFunctionInfo(func);
 			case TLocal(variable):
-				lookupLocalFunction(localVarName(variable));
+				localNeverReassigned(variable) ? lookupLocalFunction(localVarName(variable)) : null;
 			case TMeta(_, inner):
 				resolveFunctionInfo(inner);
 			case TParenthesis(inner):
 				resolveFunctionInfo(inner);
 			case TCast(inner, _):
 				resolveFunctionInfo(inner);
+			case _:
+				null;
+		};
+	}
+
+	/**
+		What: Returns declaration-owned defaults only for a stable named method.
+
+		Why: `dynamic function` and function-valued fields are mutable storage. After a
+		reassignment, padding an omitted call with the original declaration's concrete
+		default bypasses the currently stored implementation's default.
+
+		How: Treat ordinary named methods as stable callable declarations and make every
+		mutable callable return no source-side default information. The generic call path
+		then passes nil for optional carrier arguments so the selected implementation can
+		apply its own default.
+	**/
+	function stableDeclaredFunction(field:ClassField):Null<TFunc> {
+		return switch (field.kind) {
+			case FMethod(MethDynamic):
+				null;
+			case FMethod(_):
+				unwrapFunction(field.expr());
 			case _:
 				null;
 		};
@@ -5507,15 +5772,8 @@ class GoCompiler {
 					};
 				}
 			case TFunction(func):
-				pushFunctionVarNameScope();
-				var loweredParams = lowerFunctionParams(func);
-				var loweredResults = lowerFunctionResults(func.t);
-				pushFunctionReturnType(func.t);
-				var loweredBody = lowerFunctionBody(func.expr);
-				popFunctionReturnType();
-				popFunctionVarNameScope();
 				{
-					expr: GoExpr.GoFuncLiteral(loweredParams, loweredResults, loweredBody),
+					expr: lowerFunctionLiteral(func),
 					isStringLike: false
 				};
 			case TLocal(variable):
@@ -5603,7 +5861,7 @@ class GoCompiler {
 							indexedArrayAssign;
 						} else {
 							var targetExpr = lowerLValue(left);
-							var loweredRight = lowerExprWithExpectedUpcast(right, assignmentStorageType(left));
+							var loweredRight = lowerStoredExprWithExpectedType(right, assignmentStorageType(left));
 							var rightExpr = loweredRight.expr;
 							{
 								expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
@@ -5905,7 +6163,8 @@ class GoCompiler {
 					for (index in 0...exprs.length - 1) {
 						prefix = prefix.concat(withoutThrowFallback(function() return lowerToStatements(exprs[index])));
 					}
-					var tail = lowerExprWithPrefix(exprs[exprs.length - 1]);
+					var tailExpr = exprs[exprs.length - 1];
+					var tail = lowerOptionalCallableBranch(tailExpr, expr.t, function() return lowerExprWithPrefix(tailExpr));
 					{
 						prefix: prefix.concat(tail.prefix),
 						expr: tail.expr,
@@ -6543,7 +6802,8 @@ class GoCompiler {
 			var emittedParamType = emittedCallParamType(callee, index);
 			var nullablePrimitiveArg = paramType != null
 				&& isNullablePrimitiveType(paramType) ? lowerNullablePrimitiveCallArgExpr(arg) : null;
-			var loweredArg = nullablePrimitiveArg == null ? lowerCallArgExpr(arg) : nullablePrimitiveArg;
+			var loweredArg = nullablePrimitiveArg == null ? (paramType == null ? lowerCallArgExpr(arg) : lowerCallArgExprForExpectedType(arg,
+				paramType)) : nullablePrimitiveArg;
 			if (paramType != null) {
 				loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType, arg);
 				if (!isNullablePrimitiveType(paramType)) {
@@ -6570,6 +6830,16 @@ class GoCompiler {
 					Context.fatalError("Missing required argument at position " + i, callee.pos);
 				}
 				loweredArgs.push(lowerExpr(defaultValue).expr);
+			}
+		} else if (functionInfo == null) {
+			var carrierArgs = typedFunctionArgs(callee.t);
+			for (i in loweredArgs.length...carrierArgs.length) {
+				if (!carrierArgs[i].opt) {
+					Context.fatalError("Missing required function argument at position " + i, callee.pos);
+				}
+				// The selected interface implementation or stored function value owns
+				// the effective default. Nil is the portable missing-argument token.
+				loweredArgs.push(GoExpr.GoNil);
 			}
 		}
 
@@ -6644,7 +6914,7 @@ class GoCompiler {
 				var forwarded = new Array<GoExpr>();
 				for (index in 0...args.length) {
 					var name = "hx_arg_" + index;
-					params.push({name: name, typeName: GoType.parse(scalarGoType(functionArgs[index].t))});
+					params.push({name: name, typeName: GoType.parse(functionParameterStorageGoType(functionArgs[index]))});
 					actuals.push(args[index]);
 					forwarded.push(GoExpr.GoIdent(name));
 				}
@@ -7451,6 +7721,25 @@ class GoCompiler {
 		}
 		body.push(GoStmt.GoReturn(GoExpr.GoNil));
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["any"], body), []);
+	}
+
+	/**
+		What: Lowers one call argument against the callable type expected by its
+		parameter.
+
+		Why: An immutable local or direct literal can intentionally keep an idiomatic
+		typed Go signature, but passing it to an optional Haxe function parameter needs
+		the same nil-capable carrier adapter used by fields, locals, and returns.
+
+		How: Route only optional callable parameters through stored-value adaptation,
+		materializing any capture prefix inside an expression. All other call arguments
+		retain the established lowering path.
+	**/
+	function lowerCallArgExprForExpectedType(expr:TypedExpr, paramType:Type):GoExpr {
+		if (!functionTypeHasOptionalArgs(paramType)) {
+			return lowerCallArgExpr(expr);
+		}
+		return materializeExprWithPrefix(lowerStoredExprWithExpectedType(expr, paramType), paramType).expr;
 	}
 
 	function lowerNullablePrimitiveCallArgExpr(expr:TypedExpr):Null<GoExpr> {
@@ -8351,6 +8640,9 @@ class GoCompiler {
 		}
 
 		if (projectSuperClass(classType) != null) {
+			return true;
+		}
+		if (requiredEmbeddedSuperclassClassNames.exists(fullClassName(classType))) {
 			return true;
 		}
 
@@ -9658,6 +9950,209 @@ class GoCompiler {
 	}
 
 	/**
+		What: Lowers a value that will be written into explicitly typed generated Go
+		storage.
+
+		Why: Fields, globals, locals, assignments, returns, arguments, and expression
+		branches can all cross a concrete function carrier and therefore require the
+		callable ABI to match. Ordinary direct locals may still use Go inference, but an
+		explicitly typed optional callable must preserve its nil-capable parameter
+		representation.
+
+		How: Apply carrier-aware adapters to function literals, ordinary named methods,
+		and stable local functions at every typed crossing, then use ordinary
+		expected-type lowering for every other expression.
+	**/
+	function lowerStoredExprWithExpectedType(source:TypedExpr, targetType:Type):LoweredExprWithPrefix {
+		var expectedFunction = lowerFunctionLiteralForExpectedType(source, targetType);
+		if (expectedFunction != null) {
+			return expectedFunction;
+		}
+		var stableFunction = lowerStableFunctionValueForExpectedType(source, targetType);
+		return stableFunction == null ? lowerExprWithExpectedUpcast(source, targetType) : stableFunction;
+	}
+
+	/**
+		What: Applies a known callable carrier ABI while lowering a stored function
+		literal.
+
+		Why: Haxe's expected field or local type is the source of truth for optional
+		parameters on a mutable function value. Ordinary expression lowering sees only
+		the literal and can otherwise produce a Go signature that is not assignable to
+		the carrier.
+
+		How: Recognize a direct, parenthesized, or metadata-wrapped function literal and
+		delegate to `lowerFunctionLiteral` with the followed target function type. Other
+		expressions continue through the general upcast pipeline.
+	**/
+	function lowerFunctionLiteralForExpectedType(source:TypedExpr, targetType:Type):Null<LoweredExprWithPrefix> {
+		if (!functionTypeHasOptionalArgs(targetType)) {
+			return null;
+		}
+		return switch (Context.follow(targetType)) {
+			case TFun(_, _):
+				switch (source.expr) {
+					case TFunction(func):
+						{
+							prefix: [],
+							expr: lowerFunctionLiteral(func, targetType),
+							isStringLike: false
+						};
+					case TParenthesis(inner) | TMeta(_, inner) | TCast(inner, _):
+						lowerFunctionLiteralForExpectedType(inner, targetType);
+					case _:
+						null;
+				}
+			case _:
+				null;
+		};
+	}
+
+	/**
+		What: Adapts a stable named Haxe method or immutable local function to an
+		optional callable carrier.
+
+		Why: Direct named methods and immutable local functions intentionally retain
+		typed Go parameters, while a stored optional primitive function uses a
+		nil-capable `any` parameter. Assigning either value directly to
+		`(?Int) -> Int` therefore loses the carrier ABI, and an omitted call must still
+		select that implementation's default.
+
+		How: Capture the Go method value once, expose the target carrier signature,
+		restore the source method's defaults inside a typed wrapper, and coerce widened
+		primitive parameters back to the direct method signature before invocation.
+	**/
+	function lowerStableFunctionValueForExpectedType(source:TypedExpr, targetType:Type):Null<LoweredExprWithPrefix> {
+		if (!functionTypeHasOptionalArgs(targetType)) {
+			return null;
+		}
+		var func = declaredStableFunctionValue(source);
+		if (func == null) {
+			return null;
+		}
+		var targetArgs = typedFunctionArgs(targetType);
+		if (targetArgs.length != func.args.length) {
+			return null;
+		}
+
+		var loweredSource = lowerExprWithPrefix(source);
+		var capturedName = freshTempName("hx_callable");
+		var prefix = loweredSource.prefix.concat([GoStmt.GoVarDecl(capturedName, null, loweredSource.expr, true)]);
+		var sourceArgs = typedFunctionArgs(source.t);
+
+		pushFunctionVarNameScope();
+		var params = lowerFunctionParams(func, targetArgs, true);
+		var body = lowerCarrierOptionalDefaultPrelude(func, targetArgs);
+		var actuals = new Array<GoExpr>();
+		for (index in 0...func.args.length) {
+			var funcArg = func.args[index];
+			var targetArg = targetArgs[index];
+			var sourceArg = index < sourceArgs.length ? sourceArgs[index] : null;
+			var actual:GoExpr = GoExpr.GoIdent(localVarName(funcArg.v));
+			var targetUsesCarrier = isOptionalPrimitiveFunctionArg(funcArg, targetArg, true);
+			var sourceUsesCarrier = isOptionalPrimitiveFunctionArg(funcArg, sourceArg, false)
+				|| isNullablePrimitiveParamType(funcArg.v.t, sourceArg);
+			if (targetUsesCarrier && !sourceUsesCarrier) {
+				actual = coerceAnyExprToType(actual, targetArg.t, funcArg.v.t, true);
+			}
+			actuals.push(actual);
+		}
+		var call = GoExpr.GoCall(GoExpr.GoIdent(capturedName), actuals);
+		var results = lowerFunctionResults(func.t);
+		if (results.length == 0) {
+			body.push(GoStmt.GoExprStmt(call));
+		} else {
+			body.push(GoStmt.GoReturn(call));
+		}
+		var wrapper = GoExpr.GoFuncLiteral(params, results, body);
+		popFunctionVarNameScope();
+		return {
+			prefix: prefix,
+			expr: wrapper,
+			isStringLike: false
+		};
+	}
+
+	/**
+		What: Resolves the implementation declaration behind a stable callable value.
+
+		Why: Carrier adaptation needs the implementation's own defaults. A mutable
+		callable cannot provide that authority after reassignment, but an ordinary
+		method or never-reassigned local literal can.
+
+		How: Read ordinary method declarations directly and recover the registered
+		literal for immutable locals. Preserve that decision through transparent
+		parentheses, metadata, and casts.
+	**/
+	function declaredStableFunctionValue(source:TypedExpr):Null<TFunc> {
+		return switch (source.expr) {
+			case TField(_, FStatic(_, field)) | TField(_, FInstance(_, _, field)) | TField(_, FAnon(field)) | TField(_, FClosure(_, field)):
+				var resolved = field.get();
+				switch (resolved.kind) {
+					case FMethod(MethDynamic):
+						null;
+					case FMethod(_):
+						unwrapFunction(resolved.expr());
+					case _:
+						null;
+				}
+			case TLocal(variable):
+				if (!localNeverReassigned(variable)) {
+					null;
+				} else {
+					var info = lookupLocalFunction(localVarName(variable));
+					info == null ? null : info.func;
+				}
+			case TParenthesis(inner) | TMeta(_, inner) | TCast(inner, _):
+				declaredStableFunctionValue(inner);
+			case _:
+				null;
+		};
+	}
+
+	function functionTypeUsesOptionalPrimitiveCarrier(type:Type):Bool {
+		return switch (Context.follow(type)) {
+			case TFun(args, _):
+				var found = false;
+				for (arg in args) {
+					if (arg.opt && functionParameterStorageGoType(arg) == "any" && scalarGoType(arg.t) != "any") {
+						found = true;
+						break;
+					}
+				}
+				found;
+			case _:
+				false;
+		};
+	}
+
+	/**
+		What: Detects whether a callable type exposes any optional parameter.
+
+		Why: Only optional callables need an implementation-owned missing-argument
+		carrier. Wrapping ordinary named methods or immutable local functions adds noise,
+		changes generated shape, and weakens otherwise idiomatic Go signatures.
+
+		How: Follow the Haxe function type and inspect its declared argument flags without
+		changing the argument representation.
+	**/
+	function functionTypeHasOptionalArgs(type:Type):Bool {
+		return switch (Context.follow(type)) {
+			case TFun(args, _):
+				var found = false;
+				for (arg in args) {
+					if (arg.opt) {
+						found = true;
+						break;
+					}
+				}
+				found;
+			case _:
+				false;
+		};
+	}
+
+	/**
 		What: Lowers a fresh Array literal directly into an expected native slice view.
 		Why: Inline abstracts such as `Vector<T>` construct their raw storage through
 		a temporary root-Array-typed node; materializing a shared carrier only to copy
@@ -10147,6 +10642,10 @@ class GoCompiler {
 
 	function goFunctionType(args:Array<{name:String, opt:Bool, t:Type}>, returnType:Type):String {
 		return GoTypeMapper.goFunctionType(args, returnType, classTypeNameForMappedType, enumTypeName);
+	}
+
+	function functionParameterStorageGoType(arg:{name:String, opt:Bool, t:Type}):String {
+		return GoTypeMapper.functionParameterStorageGoType(arg, classTypeNameForMappedType, enumTypeName);
 	}
 
 	/**

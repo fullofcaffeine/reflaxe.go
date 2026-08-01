@@ -18,6 +18,8 @@ import sys
 import time
 from typing import Iterable
 
+from git_changes import GitChangeDiscoveryError, collect_changed_paths
+
 try:
     import fcntl  # type: ignore[attr-defined]
 except ImportError:
@@ -205,15 +207,13 @@ def select_chunk(cases: list[SnapshotCase], chunk_spec: str) -> list[SnapshotCas
 
 
 def changed_case_ids() -> set[str]:
-    cmd = ["git", "diff", "--name-only", "--", "test/snapshot"]
-    try:
-        proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, check=True)
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        return set()
-
     case_ids: set[str] = set()
-    for line in proc.stdout.splitlines():
-        path = Path(line.strip())
+    try:
+        changed_paths = collect_changed_paths(ROOT, ["test/snapshot"])
+    except GitChangeDiscoveryError:
+        return {case.case_id for case in discover_cases()}
+    for raw_path in changed_paths:
+        path = Path(raw_path)
         parts = path.parts
         if len(parts) >= 4 and parts[0] == "test" and parts[1] == "snapshot":
             case_ids.add(f"{parts[2]}/{parts[3]}")

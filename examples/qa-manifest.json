@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "examples": [
+    {
+      "id": "fluxproxy",
+      "tier": "flagship-application",
+      "claimBearing": true,
+      "profiles": ["portable", "metal"],
+      "lanes": {
+        "default": {
+          "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "downstream-example"]
+        },
+        "ci": {
+          "productSurfaces": ["go-native-metal", "runtime-stdlib", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"]
+        }
+      },
+      "distinctiveClaim": "A production-shaped proxy pipeline keeps one domain contract across portable/core and explicit Go-native worker variants.",
+      "testCommand": "python3 test/run-examples.py --example fluxproxy",
+      "execution": ["haxe-custom-backend", "gofmt", "go-test", "go-run", "expected-output"],
+      "oracle": {"source": "manually reviewed scripted proxy-policy output", "paths": ["examples/fluxproxy/expected"]}
+    },
+    {
+      "id": "incident_api",
+      "tier": "capability-showcase",
+      "claimBearing": true,
+      "profiles": ["portable", "metal"],
+      "lanes": {
+        "default": {
+          "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "downstream-example"]
+        },
+        "ci": {
+          "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "downstream-example"]
+        }
+      },
+      "distinctiveClaim": "Portable Haxe stdlib sockets, files, and JSON run a deterministic loopback incident service under both policy presets.",
+      "testCommand": "python3 test/run-examples.py --example incident_api",
+      "execution": ["haxe-custom-backend", "gofmt", "go-test", "go-run", "expected-output"],
+      "oracle": {"source": "manually reviewed HTTP state-machine transcript", "paths": ["examples/incident_api/expected"]}
+    },
+    {
+      "id": "interop_smoke",
+      "tier": "capability-showcase",
+      "claimBearing": true,
+      "profiles": ["portable", "metal"],
+      "lanes": {
+        "default": {
+          "productSurfaces": ["go-native-metal", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"]
+        },
+        "ci": {
+          "productSurfaces": ["go-native-metal", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"]
+        }
+      },
+      "distinctiveClaim": "Typed Go extern metadata and framework facades preserve one observable contract across policy presets.",
+      "testCommand": "python3 test/run-examples.py --example interop_smoke",
+      "execution": ["haxe-custom-backend", "gofmt", "go-test", "go-run", "expected-output"],
+      "oracle": {"source": "manually authored minimal typed-interop result", "paths": ["examples/interop_smoke/expected"]}
+    },
+    {
+      "id": "profile_storyboard",
+      "tier": "capability-showcase",
+      "claimBearing": true,
+      "profiles": ["portable"],
+      "lanes": {
+        "default": {
+          "productSurfaces": ["portable-compiler", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "downstream-example"]
+        },
+        "ci": {
+          "productSurfaces": ["portable-compiler", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "downstream-example"]
+        }
+      },
+      "distinctiveClaim": "A portable-only planning dashboard compiles and runs without a synthetic metal lane.",
+      "testCommand": "python3 test/run-examples.py --example profile_storyboard --profile portable",
+      "execution": ["haxe-custom-backend", "gofmt", "go-test", "go-run", "expected-output"],
+      "oracle": {"source": "manually reviewed dashboard output", "paths": ["examples/profile_storyboard/expected"]}
+    },
+    {
+      "id": "pulseforge",
+      "tier": "flagship-application",
+      "claimBearing": true,
+      "profiles": ["portable", "metal"],
+      "lanes": {
+        "default": {
+          "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "downstream-example"]
+        },
+        "ci": {
+          "productSurfaces": ["go-native-metal", "runtime-stdlib", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"]
+        }
+      },
+      "distinctiveClaim": "A production-shaped observability pipeline keeps one contract across portable/core and explicit Go-native worker variants.",
+      "testCommand": "python3 test/run-examples.py --example pulseforge",
+      "execution": ["haxe-custom-backend", "gofmt", "go-test", "go-run", "expected-output"],
+      "oracle": {"source": "manually reviewed scripted pipeline output and handwritten-Go parity contract", "paths": ["examples/pulseforge/expected", "benchmarks/pure_go/pulseforge"]}
+    },
+    {
+      "id": "tui_todo",
+      "tier": "capability-showcase",
+      "claimBearing": true,
+      "profiles": ["portable"],
+      "lanes": {
+        "default": {
+          "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "downstream-example"]
+        },
+        "ci": {
+          "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "downstream-example"]
+        }
+      },
+      "distinctiveClaim": "The default portable path compiles and runs a deterministic command-line application.",
+      "testCommand": "python3 test/run-examples.py --example tui_todo --profile portable",
+      "execution": ["haxe-custom-backend", "gofmt", "go-test", "go-run", "expected-output"],
+      "oracle": {"source": "manually reviewed todo interaction transcript", "paths": ["examples/tui_todo/expected"]}
+    },
+    {
+      "id": "worker_pool_select",
+      "tier": "capability-showcase",
+      "claimBearing": true,
+      "profiles": ["portable", "metal"],
+      "lanes": {
+        "default": {
+          "productSurfaces": ["go-native-metal", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"]
+        },
+        "ci": {
+          "productSurfaces": ["go-native-metal", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"]
+        }
+      },
+      "distinctiveClaim": "Typed Go channels and select helpers execute a deterministic worker-pool contract under both presets.",
+      "testCommand": "python3 test/run-examples.py --example worker_pool_select",
+      "execution": ["haxe-custom-backend", "gofmt", "go-test", "go-run", "expected-output"],
+      "oracle": {"source": "manually reviewed worker/select event transcript", "paths": ["examples/worker_pool_select/expected"]}
+    }
+  ]
+}

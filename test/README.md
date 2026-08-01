@@ -47,6 +47,36 @@ python3 test/run-snapshots.py
 python3 test/run-ci.py
 ```
 
+The CI entrypoint first prints an observation-only affected plan. It maps the
+complete Git change set (worktree, index, renames, deletes, and untracked
+files) to semantic owners and independent product surfaces. It does not skip
+any current CI stage:
+
+```bash
+npm run test:affected:explain
+```
+
+The durable R0-R5 policy, scorecards, selector fallback, example tiers, oracle
+rules, and representative red/green workflow are documented in
+`docs/testing-strategy.md` and enforced by `test/testing-strategy.json`.
+
+Run the representative real local tracer smoke with:
+
+```bash
+npm run test:smoke
+```
+
+Run the pinned three-family official Haxe 4.3.7 target smoke through an
+isolated installed package, generated Go toolchain, and runtime with:
+
+```bash
+npm run test:official-haxe-smoke
+```
+
+This is portable-compiler evidence only. Provenance, active runtime inventory,
+negative controls, and the deliberately narrow claim are documented in
+`docs/official-haxe-target-smoke.md`.
+
 Run one CI shard (skip stdlib sweep by default for chunked runs):
 
 ```bash

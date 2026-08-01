@@ -7,6 +7,38 @@ maintenance: if compiler, runtime, stdlib, preset, or source-boundary behavior c
 examples should tell us whether the user-facing story still compiles and still
 behaves as documented.
 
+The machine-readable tier, profile, per-lane product-surface/evidence,
+execution, and oracle declarations live in `examples/qa-manifest.json`. The harness fails when a
+maintained README example is absent from that manifest, when the declared
+profiles do not match discovered HXML lanes, or when a claim-bearing example
+does not declare the complete Haxe backend -> `gofmt` -> `go test` -> `go run`
+-> expected-output chain.
+
+`default` and `ci` are separate evidence lanes. For example, the flagship apps'
+default lanes use the portable/core implementation, while their CI lanes use
+an explicit Go-native runtime adapter. The harness writes each lane's own
+surfaces into telemetry so the portable result cannot be counted as native
+evidence.
+
+Telemetry keeps each lane's declaration separate from completed evidence.
+`claimBearing`, product surfaces, and evidence modes remain empty until both
+`go run` and the reviewed stdout comparison pass. Compile-only runs and failed
+cases are still useful diagnostic artifacts, but they carry an explicit
+non-claim status instead of a green product claim.
+
+The tiers are:
+
+- `flagship-application`: a production-shaped app with a real runtime contract;
+- `capability-showcase`: a focused runnable demonstration of a distinctive
+  behavior;
+- `compile-only-snippet`: compilation/typecheck evidence only, never runtime
+  proof.
+
+All current maintained examples are claim-bearing and runnable; none is
+classified as compile-only. A `metal` profile lane is not automatically native
+evidence: the manifest names `native-metal` only when the source actually owns
+a Go-native boundary.
+
 ## What the harness checks
 
 The examples harness is:
@@ -14,6 +46,11 @@ The examples harness is:
 ```bash
 python3 test/run-examples.py
 ```
+
+The focused `--changed` form unions committed, staged, unstaged, renamed,
+deleted, and untracked paths. A Git discovery failure or a change to shared
+example authority such as `examples/qa-manifest.json` deliberately expands to
+all examples; it cannot turn an uncertain selection into a green zero-case run.
 
 For every discovered example profile lane, it checks:
 
@@ -108,6 +145,12 @@ Run `npm run test:examples` when changing:
 Run `npm run test:examples:changed` for narrow example-only edits. For compiler,
 runtime, stdlib, or profile changes, prefer the full example matrix because any
 example can be affected.
+
+The changed-example selector reads committed, staged, unstaged, and untracked
+paths through the shared Git discovery helper. Pull-request jobs compare with
+`TEST_PLAN_BASE_REF` or `origin/$GITHUB_BASE_REF` when supplied. If Git discovery
+fails, the command deliberately runs every maintained example instead of
+silently treating the change set as empty.
 
 ## Updating examples intentionally
 

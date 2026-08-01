@@ -12,12 +12,31 @@ import subprocess
 import time
 import json
 
+from git_changes import GitChangeDiscoveryError, collect_changed_paths
+
 ROOT = Path(__file__).resolve().parent.parent
 EXAMPLES_ROOT = ROOT / "examples"
 PROFILES = ("portable", "metal")
 EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json", ".DS_Store"}
 EXCLUDE_DIRS = {".cache"}
 TELEMETRY_DIR = ROOT / ".cache" / "generated-output-telemetry"
+QA_MANIFEST = EXAMPLES_ROOT / "qa-manifest.json"
+
+
+@dataclasses.dataclass(frozen=True)
+class ExampleLaneMetadata:
+    product_surfaces: tuple[str, ...]
+    evidence_modes: tuple[str, ...]
+
+
+@dataclasses.dataclass(frozen=True)
+class ExampleMetadata:
+    example_id: str
+    tier: str
+    claim_bearing: bool
+    profiles: tuple[str, ...]
+    test_command: str
+    lanes: dict[str, ExampleLaneMetadata]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -32,6 +51,7 @@ class ExampleProfileCase:
     expected_stdout: Path
     expected_ci_stdout: Path
     generated_dir: Path
+    metadata: ExampleMetadata
 
     @property
     def case_id(self) -> str:
@@ -60,19 +80,86 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def load_example_metadata() -> dict[str, ExampleMetadata]:
+    if not QA_MANIFEST.exists():
+        raise RuntimeError(f"missing examples QA manifest: {QA_MANIFEST}")
+    payload = json.loads(QA_MANIFEST.read_text(encoding="utf-8"))
+    if payload.get("schemaVersion") != 1 or not isinstance(payload.get("examples"), list):
+        raise RuntimeError(f"invalid examples QA manifest schema: {QA_MANIFEST}")
+
+    records: dict[str, ExampleMetadata] = {}
+    for raw in payload["examples"]:
+        example_id = str(raw.get("id", "")).strip()
+        if not example_id or example_id in records:
+            raise RuntimeError(f"invalid or duplicate example id in {QA_MANIFEST}: {example_id!r}")
+        execution = raw.get("execution", [])
+        if raw.get("claimBearing") and execution != [
+            "haxe-custom-backend",
+            "gofmt",
+            "go-test",
+            "go-run",
+            "expected-output",
+        ]:
+            raise RuntimeError(f"claim-bearing example {example_id} does not declare the full executable chain")
+        raw_lanes = raw.get("lanes")
+        if not isinstance(raw_lanes, dict) or set(raw_lanes) != {"default", "ci"}:
+            raise RuntimeError(
+                f"example {example_id} must declare exactly the default and ci execution lanes"
+            )
+        lanes: dict[str, ExampleLaneMetadata] = {}
+        for lane_id, raw_lane in raw_lanes.items():
+            if not isinstance(raw_lane, dict):
+                raise RuntimeError(f"example {example_id} lane {lane_id} must be an object")
+            product_surfaces = tuple(str(item) for item in raw_lane.get("productSurfaces", []))
+            evidence_modes = tuple(str(item) for item in raw_lane.get("evidenceModes", []))
+            if not product_surfaces or not evidence_modes:
+                raise RuntimeError(
+                    f"example {example_id} lane {lane_id} must declare surfaces and evidence modes"
+                )
+            lanes[lane_id] = ExampleLaneMetadata(
+                product_surfaces=product_surfaces,
+                evidence_modes=evidence_modes,
+            )
+        records[example_id] = ExampleMetadata(
+            example_id=example_id,
+            tier=str(raw.get("tier", "")),
+            claim_bearing=bool(raw.get("claimBearing", False)),
+            profiles=tuple(str(item) for item in raw.get("profiles", [])),
+            test_command=str(raw.get("testCommand", "")),
+            lanes=lanes,
+        )
+    return records
+
+
 def discover_cases() -> list[ExampleProfileCase]:
     cases: list[ExampleProfileCase] = []
     if not EXAMPLES_ROOT.exists():
         return cases
 
+    metadata = load_example_metadata()
+    maintained = {
+        path.name
+        for path in EXAMPLES_ROOT.iterdir()
+        if path.is_dir() and not path.name.startswith(".") and (path / "README.md").exists()
+    }
+    if maintained != set(metadata):
+        missing = sorted(maintained - set(metadata))
+        stale = sorted(set(metadata) - maintained)
+        raise RuntimeError(f"examples QA manifest drift: missing={missing}, stale={stale}")
+
     for example_dir in sorted(EXAMPLES_ROOT.iterdir()):
         if not example_dir.is_dir():
             continue
+        example_metadata = metadata.get(example_dir.name)
+        if example_metadata is None:
+            continue
+        discovered_profiles: set[str] = set()
         for profile in PROFILES:
             compile_hxml = example_dir / f"compile.{profile}.hxml"
             compile_ci_hxml = example_dir / f"compile.{profile}.ci.hxml"
             if not compile_hxml.exists() or not compile_ci_hxml.exists():
                 continue
+            discovered_profiles.add(profile)
             cases.append(
                 ExampleProfileCase(
                     example=example_dir.name,
@@ -85,24 +172,41 @@ def discover_cases() -> list[ExampleProfileCase]:
                     expected_stdout=example_dir / "expected" / f"{profile}.stdout",
                     expected_ci_stdout=example_dir / "expected" / f"{profile}.ci.stdout",
                     generated_dir=example_dir / "generated" / profile,
+                    metadata=example_metadata,
                 )
+            )
+        if discovered_profiles != set(example_metadata.profiles):
+            raise RuntimeError(
+                f"example profile declaration drift for {example_dir.name}: "
+                f"manifest={sorted(example_metadata.profiles)}, discovered={sorted(discovered_profiles)}"
             )
     return cases
 
 
 def changed_examples() -> set[str]:
-    cmd = ["git", "diff", "--name-only", "--", "examples"]
+    all_examples = set(load_example_metadata())
+    base = os.environ.get("TEST_PLAN_BASE_REF", "").strip()
+    if not base and os.environ.get("GITHUB_BASE_REF", "").strip():
+        base = f"origin/{os.environ['GITHUB_BASE_REF'].strip()}"
     try:
-        proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, check=True)
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        return set()
+        changed_paths = collect_changed_paths(ROOT, ["examples"], base=base)
+    except GitChangeDiscoveryError:
+        # A focused command may cost more after a Git failure; it must never
+        # silently cost us the example whose change could not be discovered.
+        return all_examples
 
     out: set[str] = set()
-    for line in proc.stdout.splitlines():
-        path = Path(line.strip())
+    for raw_path in changed_paths:
+        path = Path(raw_path)
         parts = path.parts
         if len(parts) >= 2 and parts[0] == "examples":
-            out.add(parts[1])
+            candidate = parts[1]
+            if candidate not in all_examples:
+                # Root-level manifests and future shared example authorities
+                # can affect every lane. Treat them conservatively instead of
+                # mistaking their filename for an example identifier.
+                return all_examples
+            out.add(candidate)
     return out
 
 
@@ -296,7 +400,14 @@ def run_go_checks(out_dir: Path, timeout_s: int) -> tuple[bool, str, str, dict]:
     return True, "go", "", telemetry
 
 
-def annotate_telemetry(case: ExampleProfileCase, lane: str, telemetry: dict) -> dict:
+def annotate_telemetry(
+    case: ExampleProfileCase,
+    lane: str,
+    telemetry: dict,
+    *,
+    compile_only: bool,
+) -> dict:
+    lane_metadata = case.metadata.lanes[lane]
     out = dict(telemetry)
     out.update(
         {
@@ -304,9 +415,40 @@ def annotate_telemetry(case: ExampleProfileCase, lane: str, telemetry: dict) -> 
             "example": case.example,
             "profile": case.profile,
             "lane": lane,
+            "tier": case.metadata.tier,
+            "declaredClaimBearing": case.metadata.claim_bearing,
+            "declaredProductSurfaces": list(lane_metadata.product_surfaces),
+            "declaredEvidenceModes": list(lane_metadata.evidence_modes),
+            "claimBearing": False,
+            "productSurfaces": [],
+            "evidenceModes": [],
+            "runtimeStatus": "skipped" if compile_only else "pending",
+            "stdoutStatus": "skipped" if compile_only else "pending",
+            "claimStatus": "diagnostic-only" if compile_only else "pending",
         }
     )
+    if telemetry.get("goTestOk") is False:
+        out["claimStatus"] = "go-test-failed"
     return out
+
+
+def complete_lane_telemetry(entry: dict, *, runtime_ok: bool, stdout_ok: bool | None) -> None:
+    """Publish claim metadata only after the real runtime and oracle both pass."""
+    if not runtime_ok:
+        entry["runtimeStatus"] = "failed"
+        entry["stdoutStatus"] = "not-run"
+        entry["claimStatus"] = "runtime-failed"
+    elif stdout_ok is not True:
+        entry["runtimeStatus"] = "passed"
+        entry["stdoutStatus"] = "failed" if stdout_ok is False else "not-run"
+        entry["claimStatus"] = "stdout-failed" if stdout_ok is False else "incomplete"
+    else:
+        entry["runtimeStatus"] = "passed"
+        entry["stdoutStatus"] = "passed"
+        entry["claimBearing"] = bool(entry["declaredClaimBearing"])
+        entry["productSurfaces"] = list(entry["declaredProductSurfaces"])
+        entry["evidenceModes"] = list(entry["declaredEvidenceModes"])
+        entry["claimStatus"] = "supported" if entry["claimBearing"] else "non-claim-bearing-pass"
 
 
 def compare_stdout(expected_file: Path, actual: str) -> tuple[bool, str]:
@@ -339,17 +481,21 @@ def run_case(case: ExampleProfileCase, args: argparse.Namespace) -> CaseResult:
             return CaseResult(case.case_id, False, "compile_ci", command_output(compile_ci_proc), time.monotonic() - started, telemetry_entries)
 
         ok, stage, msg, telemetry = run_go_checks(case.out_ci_dir, args.timeout)
-        telemetry_entries.append(annotate_telemetry(case, "ci", telemetry))
+        ci_telemetry = annotate_telemetry(case, "ci", telemetry, compile_only=args.compile_only)
+        telemetry_entries.append(ci_telemetry)
         if not ok:
             return CaseResult(case.case_id, False, stage + "_ci", msg, time.monotonic() - started, telemetry_entries)
 
         if not args.compile_only:
             run_ci_proc = run_command(["go", "run", ".", *run_ci_args], cwd=case.out_ci_dir, timeout_s=args.timeout)
             if run_ci_proc.returncode != 0:
+                complete_lane_telemetry(ci_telemetry, runtime_ok=False, stdout_ok=None)
                 return CaseResult(case.case_id, False, "runtime_ci", command_output(run_ci_proc), time.monotonic() - started, telemetry_entries)
             ok_stdout, msg_stdout = compare_stdout(case.expected_ci_stdout, run_ci_proc.stdout)
             if not ok_stdout:
+                complete_lane_telemetry(ci_telemetry, runtime_ok=True, stdout_ok=False)
                 return CaseResult(case.case_id, False, "stdout_ci", msg_stdout, time.monotonic() - started, telemetry_entries)
+            complete_lane_telemetry(ci_telemetry, runtime_ok=True, stdout_ok=True)
 
         compile_proc = run_command(
             ["haxe", case.compile_hxml.name, "-D", "go_no_build"],
@@ -361,17 +507,21 @@ def run_case(case: ExampleProfileCase, args: argparse.Namespace) -> CaseResult:
             return CaseResult(case.case_id, False, "compile", command_output(compile_proc), time.monotonic() - started, telemetry_entries)
 
         ok, stage, msg, telemetry = run_go_checks(case.out_dir, args.timeout)
-        telemetry_entries.append(annotate_telemetry(case, "default", telemetry))
+        default_telemetry = annotate_telemetry(case, "default", telemetry, compile_only=args.compile_only)
+        telemetry_entries.append(default_telemetry)
         if not ok:
             return CaseResult(case.case_id, False, stage, msg, time.monotonic() - started, telemetry_entries)
 
         if not args.compile_only:
             run_proc = run_command(["go", "run", ".", *run_args], cwd=case.out_dir, timeout_s=args.timeout)
             if run_proc.returncode != 0:
+                complete_lane_telemetry(default_telemetry, runtime_ok=False, stdout_ok=None)
                 return CaseResult(case.case_id, False, "runtime", command_output(run_proc), time.monotonic() - started, telemetry_entries)
             ok_stdout, msg_stdout = compare_stdout(case.expected_stdout, run_proc.stdout)
             if not ok_stdout:
+                complete_lane_telemetry(default_telemetry, runtime_ok=True, stdout_ok=False)
                 return CaseResult(case.case_id, False, "stdout", msg_stdout, time.monotonic() - started, telemetry_entries)
+            complete_lane_telemetry(default_telemetry, runtime_ok=True, stdout_ok=True)
 
         if args.bless_generated:
             copy_tree(case.out_dir, case.generated_dir)
@@ -389,6 +539,11 @@ def run_case(case: ExampleProfileCase, args: argparse.Namespace) -> CaseResult:
         return CaseResult(case.case_id, True, "done", "ok", time.monotonic() - started, telemetry_entries)
 
     except subprocess.TimeoutExpired as exc:
+        for entry in telemetry_entries:
+            if entry.get("claimStatus") == "pending":
+                complete_lane_telemetry(entry, runtime_ok=False, stdout_ok=None)
+                entry["runtimeStatus"] = "timeout"
+                entry["claimStatus"] = "runtime-timeout"
         return CaseResult(case.case_id, False, "timeout", f"command timed out after {args.timeout}s: {exc.cmd}", time.monotonic() - started, telemetry_entries)
     except FileNotFoundError as exc:
         return CaseResult(case.case_id, False, "tool", f"missing tool: {exc}", time.monotonic() - started, telemetry_entries)
@@ -399,7 +554,16 @@ def run_case(case: ExampleProfileCase, args: argparse.Namespace) -> CaseResult:
 def build_telemetry_report(results: list[CaseResult]) -> dict:
     entries: list[dict] = []
     for result in results:
-        entries.extend(result.telemetry)
+        for raw_entry in result.telemetry:
+            entry = dict(raw_entry)
+            entry["caseOk"] = result.ok
+            entry["caseStage"] = result.stage
+            if not result.ok:
+                entry["claimBearing"] = False
+                entry["productSurfaces"] = []
+                entry["evidenceModes"] = []
+                entry["claimStatus"] = "case-failed"
+            entries.append(entry)
     entries.sort(key=lambda item: (item["caseId"], item["lane"]))
     return {
         "schemaVersion": 1,
@@ -416,8 +580,8 @@ def render_telemetry_markdown(report: dict) -> str:
         f"- Scope: `{report['scope']}`",
         f"- Entry count: `{report['entryCount']}`",
         "",
-        "| Case | Lane | Go files | Total Go bytes | Largest Go file | Largest bytes | go test ms |",
-        "| --- | --- | ---: | ---: | --- | ---: | ---: |",
+        "| Case | Lane | Claim status | Runtime | Stdout | Go files | Total Go bytes | Largest Go file | Largest bytes | go test ms |",
+        "| --- | --- | --- | --- | --- | ---: | ---: | --- | ---: | ---: |",
     ]
     for entry in report["entries"]:
         elapsed = entry["goTestElapsedMs"]
@@ -427,6 +591,9 @@ def render_telemetry_markdown(report: dict) -> str:
                 [
                     entry["caseId"],
                     entry["lane"],
+                    entry.get("claimStatus", "legacy"),
+                    entry.get("runtimeStatus", "unknown"),
+                    entry.get("stdoutStatus", "unknown"),
                     str(entry["goFileCount"]),
                     str(entry["totalGoBytes"]),
                     entry["largestGoFile"] or "-",
@@ -437,7 +604,7 @@ def render_telemetry_markdown(report: dict) -> str:
             + " |"
         )
     if not report["entries"]:
-        lines.append("| - | - | 0 | 0 | - | 0 | - |")
+        lines.append("| - | - | - | - | - | 0 | 0 | - | 0 | - |")
     lines.append("")
     return "\n".join(lines) + "\n"
 

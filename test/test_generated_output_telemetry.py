@@ -23,6 +23,34 @@ def load_run_examples_module():
 
 
 class GeneratedOutputTelemetryTests(unittest.TestCase):
+    def make_case(self, module):
+        metadata = module.ExampleMetadata(
+            example_id="demo",
+            tier="capability-showcase",
+            claim_bearing=True,
+            profiles=("portable",),
+            test_command="npm run test:examples",
+            lanes={
+                "default": module.ExampleLaneMetadata(
+                    product_surfaces=("portable-compiler",),
+                    evidence_modes=("go-build-run",),
+                )
+            },
+        )
+        return module.ExampleProfileCase(
+            example="demo",
+            profile="portable",
+            example_dir=Path("demo"),
+            compile_hxml=Path("compile.hxml"),
+            compile_ci_hxml=Path("compile.ci.hxml"),
+            out_dir=Path("out"),
+            out_ci_dir=Path("out_ci"),
+            expected_stdout=Path("expected.stdout"),
+            expected_ci_stdout=Path("expected.ci.stdout"),
+            generated_dir=Path("generated"),
+            metadata=metadata,
+        )
+
     def test_collect_output_telemetry_records_size_and_largest_go_file(self) -> None:
         module = load_run_examples_module()
         with tempfile.TemporaryDirectory() as raw_dir:
@@ -65,6 +93,44 @@ class GeneratedOutputTelemetryTests(unittest.TestCase):
         self.assertIn("# Generated Output Telemetry", markdown)
         self.assertIn("alpha/portable", markdown)
         self.assertIn("zeta/metal", markdown)
+
+    def test_unfinished_or_compile_only_lane_cannot_publish_claim_evidence(self) -> None:
+        module = load_run_examples_module()
+        case = self.make_case(module)
+        entry = module.annotate_telemetry(case, "default", {"goTestOk": True}, compile_only=True)
+        self.assertTrue(entry["declaredClaimBearing"])
+        self.assertFalse(entry["claimBearing"])
+        self.assertEqual([], entry["productSurfaces"])
+        self.assertEqual([], entry["evidenceModes"])
+        self.assertEqual("skipped", entry["runtimeStatus"])
+        self.assertEqual("diagnostic-only", entry["claimStatus"])
+
+    def test_runtime_and_stdout_completion_activate_the_declared_lane_claim(self) -> None:
+        module = load_run_examples_module()
+        case = self.make_case(module)
+        entry = module.annotate_telemetry(case, "default", {"goTestOk": True}, compile_only=False)
+        module.complete_lane_telemetry(entry, runtime_ok=True, stdout_ok=False)
+        self.assertFalse(entry["claimBearing"])
+        self.assertEqual("failed", entry["stdoutStatus"])
+
+        module.complete_lane_telemetry(entry, runtime_ok=True, stdout_ok=True)
+        self.assertTrue(entry["claimBearing"])
+        self.assertEqual(["portable-compiler"], entry["productSurfaces"])
+        self.assertEqual(["go-build-run"], entry["evidenceModes"])
+        self.assertEqual("supported", entry["claimStatus"])
+
+    def test_failed_case_report_cannot_retain_an_earlier_lane_claim(self) -> None:
+        module = load_run_examples_module()
+        case = self.make_case(module)
+        entry = module.annotate_telemetry(case, "default", {"goTestOk": True}, compile_only=False)
+        module.complete_lane_telemetry(entry, runtime_ok=True, stdout_ok=True)
+        report = module.build_telemetry_report(
+            [module.CaseResult("demo/portable", False, "generated", "drift", 1.0, [entry])]
+        )
+        published = report["entries"][0]
+        self.assertFalse(published["claimBearing"])
+        self.assertEqual([], published["productSurfaces"])
+        self.assertEqual("case-failed", published["claimStatus"])
 
 
 if __name__ == "__main__":

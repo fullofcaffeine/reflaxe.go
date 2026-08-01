@@ -8,6 +8,11 @@ are technically meaningful.
 examples exist where comparing guarded/proven/allow with
 explicit/eager/error/strict defaults produces useful policy evidence.
 
+Executable tier, product-surface, profile, and independent expected-output
+provenance are enforced by `examples/qa-manifest.json`; see the
+[examples QA contract](examples-qa-contract.md). The labels below describe the
+teaching purpose and do not merge portable, native, runtime, or package claims.
+
 | Example | portable | metal | Purpose |
 | --- | --- | --- | --- |
 | `examples/profile_storyboard` | Yes | No | Portable-first release dashboard reference. |

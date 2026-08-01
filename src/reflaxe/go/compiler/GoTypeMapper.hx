@@ -439,11 +439,30 @@ class GoTypeMapper {
 
 	public static function goFunctionType(args:Array<{name:String, opt:Bool, t:Type}>, returnType:Type, classTypeName:GoClassTypeNamer,
 			enumTypeName:GoEnumTypeNamer):String {
-		var params = [for (arg in args) scalarGoType(arg.t, classTypeName, enumTypeName)].join(", ");
+		var params = [
+			for (arg in args) functionParameterStorageGoType(arg, classTypeName, enumTypeName)
+		].join(", ");
 		if (isVoidType(returnType)) {
 			return "func(" + params + ")";
 		}
 		return "func(" + params + ") " + scalarGoType(returnType, classTypeName, enumTypeName);
+	}
+
+	/**
+		What: Maps a declared Haxe function parameter to its callable Go storage type.
+
+		Why: Haxe marks both `?timeout:Int` and `timeout:Int = 10` as optional.
+		The generated function literal and every variable or field carrying it must
+		therefore share one signature. Mapping only the carrier as `func(any)` makes a
+		non-null-default implementation such as `func(int)` fail Go type checking.
+
+		How: Keep pointer/nil-capable parameter mappings unchanged and widen only
+		optional scalar value types to `any`. `lowerFunctionParams` uses the same rule
+		and asserts the scalar type when the function body reads the parameter.
+	**/
+	public static function functionParameterStorageGoType(arg:{name:String, opt:Bool, t:Type}, classTypeName:GoClassTypeNamer,
+			enumTypeName:GoEnumTypeNamer):String {
+		return arg.opt && isPrimitiveValueType(arg.t) ? "any" : scalarGoType(arg.t, classTypeName, enumTypeName);
 	}
 
 	/** Resolves the element type of the explicit `go.NativeSlice<T>` boundary. */
@@ -644,7 +663,9 @@ class GoTypeMapper {
 	static function constraintMethodSignature(field:ClassField, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):Null<String> {
 		return switch (Context.follow(field.type)) {
 			case TFun(args, returnType):
-				var params = [for (arg in args) scalarGoType(arg.t, classTypeName, enumTypeName)].join(", ");
+				var params = [
+					for (arg in args) functionParameterStorageGoType(arg, classTypeName, enumTypeName)
+				].join(", ");
 				var returnSuffix = isVoidType(returnType) ? "" : " " + scalarGoType(returnType, classTypeName, enumTypeName);
 				GoNaming.normalizeIdent(field.name) + "(" + params + ")" + returnSuffix;
 			case _:

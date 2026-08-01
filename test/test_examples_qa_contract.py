@@ -6,12 +6,14 @@ import importlib.util
 from pathlib import Path
 import re
 import sys
+from unittest import mock
 import unittest
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 RUN_EXAMPLES = REPO_ROOT / "test" / "run-examples.py"
 EXAMPLES_ROOT = REPO_ROOT / "examples"
+EXAMPLES_MANIFEST = EXAMPLES_ROOT / "qa-manifest.json"
 PACKAGE_JSON = REPO_ROOT / "package.json"
 RUN_CI = REPO_ROOT / "test" / "run-ci.py"
 CI_HARNESS = REPO_ROOT / ".github" / "workflows" / "ci-harness.yml"
@@ -63,6 +65,35 @@ class ExamplesQaContractTest(unittest.TestCase):
 
         self.assertEqual([], missing)
 
+    def test_example_tiers_and_claim_surfaces_are_consumed_by_the_harness(self) -> None:
+        module = load_run_examples_module()
+        metadata = module.load_example_metadata()
+        manifest = EXAMPLES_MANIFEST.read_text(encoding="utf-8")
+        self.assertIn('"flagship-application"', manifest)
+        self.assertIn('"capability-showcase"', manifest)
+        self.assertEqual({case.example for case in module.discover_cases()}, set(metadata))
+        for case in module.discover_cases():
+            self.assertIn(case.profile, case.metadata.profiles)
+            for lane in ("default", "ci"):
+                declaration = case.metadata.lanes[lane]
+                self.assertTrue(declaration.product_surfaces)
+                self.assertTrue(declaration.evidence_modes)
+
+    def test_native_example_evidence_is_declared_per_executed_lane(self) -> None:
+        module = load_run_examples_module()
+        metadata = module.load_example_metadata()
+
+        for lane in ("default", "ci"):
+            self.assertNotIn("go-native-metal", metadata["incident_api"].lanes[lane].product_surfaces)
+            self.assertNotIn("native-metal", metadata["incident_api"].lanes[lane].evidence_modes)
+            self.assertIn("go-native-metal", metadata["interop_smoke"].lanes[lane].product_surfaces)
+            self.assertIn("native-metal", metadata["interop_smoke"].lanes[lane].evidence_modes)
+
+        self.assertNotIn(
+            "go-native-metal", metadata["fluxproxy"].lanes["default"].product_surfaces
+        )
+        self.assertIn("go-native-metal", metadata["fluxproxy"].lanes["ci"].product_surfaces)
+
     def test_examples_harness_compiles_tests_runs_and_checks_expected_output(self) -> None:
         text = RUN_EXAMPLES.read_text(encoding="utf-8")
 
@@ -74,6 +105,32 @@ class ExamplesQaContractTest(unittest.TestCase):
         self.assertIn("compare_stdout(case.expected_ci_stdout", text)
         self.assertIn("compare_stdout(case.expected_stdout", text)
         self.assertIn("collect_tree_deltas(case.generated_dir, case.out_dir)", text)
+        self.assertIn("load_example_metadata()", text)
+
+    def test_changed_examples_unions_all_git_states_and_fails_closed(self) -> None:
+        module = load_run_examples_module()
+        all_examples = set(module.load_example_metadata())
+        changed = {
+            "examples/fluxproxy/Main.hx",
+            "examples/incident_api/expected/portable.stdout",
+        }
+        with mock.patch.object(module, "collect_changed_paths", return_value=changed) as collect:
+            self.assertEqual({"fluxproxy", "incident_api"}, module.changed_examples())
+        collect.assert_called_once()
+
+        with mock.patch.object(
+            module,
+            "collect_changed_paths",
+            side_effect=module.GitChangeDiscoveryError("deliberate discovery failure"),
+        ):
+            self.assertEqual(all_examples, module.changed_examples())
+
+        with mock.patch.object(
+            module,
+            "collect_changed_paths",
+            return_value={"examples/qa-manifest.json"},
+        ):
+            self.assertEqual(all_examples, module.changed_examples())
 
     def test_example_builds_use_canonical_library_classpaths(self) -> None:
         module = load_run_examples_module()

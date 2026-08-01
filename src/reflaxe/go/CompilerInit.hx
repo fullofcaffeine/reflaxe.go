@@ -43,8 +43,14 @@ class CompilerInit {
 		NativeBoundaryEnforcer.init();
 		NativeAuthorityGate.init();
 
-		// Enable stdlib atomic surfaces guarded behind target.atomics.
+		// What: Declare the target capabilities implemented by staged std/hxrt.
+		// Why: Packaged `.cross.hx` dependencies can inspect these defines before
+		// their types are built; a source-checkout-only `_std` path can hide a
+		// missing capability declaration.
+		// How: Publish the capability before Reflaxe starts typing user and library
+		// modules. Focused target-capability snapshots keep the declarations honest.
 		MacroCompiler.define(GoCompilerDefine.DefineTargetAtomics);
+		MacroCompiler.define(GoCompilerDefine.DefineTargetThreaded);
 
 		ReflectCompiler.Start();
 		ReflectCompiler.AddCompiler(new GoReflaxeCompiler(), {

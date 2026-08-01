@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "claim": "official-suite smoke for the portable compiler scorecard; not the complete applicable Haxe tests/unit contract",
+  "harness": {
+    "kind": "repository-authored narrow target adapter",
+    "assertionAuthority": "pinned utest with UTEST_FAILURE_THROW",
+    "unitstdExpansionAuthority": "pinned unit.UnitBuilder.read",
+    "officialClassExpansionAuthority": "temporary scaffold-only package/name/base adaptation retains the complete pinned official class body and adds the assertion carrier; adapted source is never committed or published",
+    "officialUnitTestAdapter": "selected eq/t/f calls delegate to pinned utest Assert without implementing the asynchronous discovery interface",
+    "observerBoundary": "repository-owned @:goNative typed hxrt display writer; output transport is not portable evidence",
+    "excludedByDesign": ["utest asynchronous runner", "utest reports", "unselected TestSpecification helper types"]
+  },
+  "upstream": {
+    "haxe": {
+      "repository": "https://github.com/HaxeFoundation/haxe.git",
+      "commit": "e0b355c6be312c1b17382603f018cf52522ec651",
+      "version": "4.3.7",
+      "license": "MIT",
+      "licensePath": "extra/LICENSE.txt",
+      "licenseSha256": "f84691d619932ebfd4fa3568f8311f87ed4bf12e747e9aaa619a92cb1d2d359d"
+    },
+    "utest": {
+      "repository": "https://github.com/haxe-utest/utest.git",
+      "commit": "a94f8812e8786f2b5fec52ce9f26927591d26327",
+      "version": "1.13.2",
+      "license": "MIT",
+      "licenseEvidencePath": "haxelib.json",
+      "licenseEvidenceSha256": "4020bc923640ac1659cc12a26f5221ee0487a21ce8df38d070fc9cf7316ddfd7"
+    }
+  },
+  "activeSmokeRecords": [
+    {
+      "id": "official-top-level-test-numeric-suffixes",
+      "family": "top-level",
+      "productSurface": "portable-compiler",
+      "provenance": "official-body-unmodified",
+      "observer": "target-runtime",
+      "upstreamPath": "tests/unit/src/unit/TestNumericSuffixes.hx",
+      "sha256": "8f8076341febb01d8bf7738d9c1cb945e98a03b6c5db4f865a16f67a4606f90b",
+      "expectedActiveTests": ["unit.TestNumericSuffixes.testFloatSuffixes"],
+      "minimumAssertions": 1
+    },
+    {
+      "id": "official-unitstd-int-iterator",
+      "family": "unitstd",
+      "productSurface": "portable-compiler",
+      "provenance": "official-body-unmodified",
+      "observer": "target-runtime",
+      "upstreamPath": "tests/unit/src/unitstd/IntIterator.unit.hx",
+      "sha256": "dbd81c1cf9c4d58843145f2f975ec8c9131dc190272ccd3947ce4f3e7c5c9c31",
+      "expectedActiveTests": ["unit.spec.TestIntIterator.test"],
+      "minimumAssertions": 1
+    },
+    {
+      "id": "official-issue-6369",
+      "family": "issue",
+      "productSurface": "portable-compiler",
+      "provenance": "official-body-unmodified",
+      "observer": "target-runtime",
+      "upstreamPath": "tests/unit/src/unit/issues/Issue6369.hx",
+      "sha256": "9255ab777d62af87013178a8ed4eefedfbc9ffc67873ca46ddb575f3d35d6ae8",
+      "expectedActiveTests": ["unit.issues.Issue6369.test"],
+      "minimumAssertions": 1
+    }
+  ],
+  "securitySensitiveFixture": {
+    "upstreamPath": "tests/unit/src/unitstd/Ssl.unit.hx",
+    "gitBlob": "7f3d929790c89ac5d4ff03f8827b068a7a400c9a",
+    "sha256": "65ce42379397ad1e906d6fc4b481c44038a88599c1a66c95b4969163a9860fde",
+    "disposition": "not selected by this smoke and never copied into repository or published artifacts"
+  }
+}
