@@ -174,6 +174,31 @@ class TestingStrategyContractTest(unittest.TestCase):
         self.assertIn("R0", text)
         self.assertIn("R5", text)
 
+    def test_strategy_document_starts_with_a_newcomer_workflow_and_defines_terms(self) -> None:
+        text = DOC.read_text(encoding="utf-8")
+        opening = "\n".join(text.splitlines()[:80])
+        self.assertIn("## Start here", opening)
+        self.assertIn("npm run test:smoke", opening)
+        self.assertIn("npm run test:ci", opening)
+        for definition in (
+            "A product surface is",
+            "A scorecard is",
+            "An oracle is",
+            "A tracer bullet is",
+            "Feedback rings are",
+        ):
+            self.assertIn(definition, text)
+
+    def test_strategy_document_records_completed_candidate_and_current_followups(self) -> None:
+        text = DOC.read_text(encoding="utf-8")
+        self.assertNotIn("pending candidate CI", text)
+        self.assertIn("0c51420c", text)
+        self.assertIn("30713172868", text)
+        self.assertIn("30713172877", text)
+        self.assertIn("haxe_go-vfp.12.10", text)
+        self.assertIn("haxe_go-vfp.12.8", text)
+        self.assertIn("haxe_go-vfp.16", text)
+
 
 if __name__ == "__main__":
     unittest.main()

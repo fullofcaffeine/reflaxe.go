@@ -1,12 +1,38 @@
 # Official Haxe target smoke
 
+In plain terms, this test checks the compiler the way a user would receive it:
+it builds an installable Haxelib package, installs that package in a clean
+location, compiles selected official Haxe tests to Go, asks Go to format and
+build the result, and runs the program. It catches packaging and target-wiring
+bugs that a test run directly from the source checkout can miss.
+
+## Run it
+
+```bash
+npm run test:official-haxe-smoke
+```
+
+A successful run means all of these steps happened:
+
+1. exact pinned Haxe and utest sources were verified;
+2. a new Haxe.Go ZIP was installed into an isolated Haxelib repository;
+3. Haxe resolved the compiler from that installation, not this checkout;
+4. three selected official tests compiled through Haxe.Go;
+5. generated Go passed `gofmt`, `go test`, and `go build`;
+6. the program ran three expected test methods and completed 16 assertions;
+7. deliberate assertion, build, runtime, timeout, and missing-source failures
+   were each detected.
+
 ## What this proves
 
-This lane is an **official-suite smoke** for the portable compiler scorecard.
-It executes three official Haxe behavior owners whose selected bodies and
-expected values remain unmodified. They pass through a repository-authored
-narrow target adapter, the installed Haxe.Go package, generated Go, `gofmt`,
-`go test`, `go build`, and `go run`:
+An **official-suite smoke** is a small but real sample of the upstream Haxe test
+suite. It proves that the selected path works end to end; it does not claim that
+every applicable official Haxe test already passes.
+
+The portable compiler scorecard is the evidence record for ordinary portable
+Haxe semantics. This smoke contributes only to that scorecard. It executes
+three selected official Haxe tests whose behavior and expected values remain
+unchanged:
 
 - top-level `unit.TestNumericSuffixes.testFloatSuffixes`;
 - generated `unitstd/IntIterator.unit.hx`;
@@ -15,7 +41,7 @@ narrow target adapter, the installed Haxe.Go package, generated Go, `gofmt`,
 The checkout is pinned to Haxe commit
 `e0b355c6be312c1b17382603f018cf52522ec651` (Haxe 4.3.7), and the runner is
 pinned to utest commit `a94f8812e8786f2b5fec52ce9f26927591d26327`.
-The machine authority is
+The machine-readable source list, hashes, and expected active tests live in
 [`test/official_haxe_target_smoke/manifest.json`](../test/official_haxe_target_smoke/manifest.json).
 
 This is not the complete applicable official `tests/unit` contract. It does
@@ -23,26 +49,28 @@ not broaden release compatibility, qualify the metal preset or explicit
 Go-native APIs, or turn the current repo-local stdlib sweep into official-suite
 evidence.
 
-The adapter invokes the exact selected methods and uses pinned utest in
-fail-fast mode. The unitstd body is expanded by the pinned official
-`unit.UnitBuilder.read` macro. It deliberately does not select utest's
+The small target adapter invokes the exact selected methods and uses pinned
+utest in fail-fast mode. The `unitstd` test body is expanded by the pinned
+official `unit.UnitBuilder.read` macro. It deliberately does not select utest's
 asynchronous runner, reports, timers, or stack-trace behavior; a green smoke
 therefore cannot advance claims for those independent surfaces.
 
-The selected official methods call `eq`, `t`, and `f`. A local assertion
-carrier delegates exactly those calls to pinned utest but does not implement
-utest's asynchronous discovery interface. For class-based owners, the runner
-creates a temporary copy after hash verification, changes only package, class,
-and base scaffolding, and adds that assertion carrier. The complete official
-class body—including every expected value—remains unchanged; the temporary
-adapted source is neither committed nor published.
-Machine-readable lines leave the
-program through a repository-owned `@:goNative` typed `hxrt` display observer; that output
-transport proves only that the target executable ran and is not counted as
-portable or metal API evidence.
+The selected official methods call utest's `eq`, `t`, and `f` assertions. A
+small local bridge sends those calls to pinned utest without bringing in
+utest's unrelated asynchronous discovery system. For class-based tests, the
+runner first verifies the upstream file hash, then creates a temporary copy
+that changes only the package/class scaffolding needed to invoke it on this
+target. The test bodies and expected values are unchanged, and the temporary
+copies are neither committed nor published.
+
+The generated program reports machine-readable results through a narrow typed
+Go runtime observer. That observer proves the target program executed; it does
+not count as evidence for the public Go-native API or the `metal` preset.
 
 ## Why active runtime records matter
 
+Active inventory means the tests and assertions that actually execute for this
+target, not simply the number of test files present in the upstream checkout.
 Official Haxe sources contain target guards, dummy assertions, and dynamically
 generated cases. File counts therefore overstate coverage. The runner compares
 the active runtime test identities and positive assertion counts with the
@@ -80,12 +108,6 @@ If confinement or any earlier lane stage fails, the runner removes the artifact
 directory before returning nonzero. The workflows may still attempt their
 `if: always()` upload, but there is no rejected bundle left to publish.
 
-Run the required lane with:
-
-```bash
-npm run test:official-haxe-smoke
-```
-
 The required command also exercises deliberate assertion, Go-build, runtime,
 timeout, and missing-selected-source failures. The last control preserves the
 valid pinned license and other selected sources, removes one actual selected
@@ -97,4 +119,5 @@ must each be observed as nonzero before the overall lane can pass.
 The full applicable active inventory remains intentionally deferred after this
 tracer: all shared top-level classes, portable `unitstd`, general issues,
 generic historical `hxcpp_issues`, and capability shards must be classified and
-executed before wording can advance beyond “official-suite smoke.”
+executed before wording can advance beyond “official-suite smoke.” That work is
+tracked by Bead `haxe_go-vfp.12.10`.

@@ -1,8 +1,67 @@
 # Behavior-first testing strategy
 
+Haxe.Go now tells contributors two separate things clearly: whether a change
+still behaves correctly, and which part of the product that result is allowed
+to support. This prevents a passing example, native Go test, or generated-file
+snapshot from being mistaken for proof of an unrelated compatibility promise.
+
+## Start here
+
+While editing, use the smallest command that exercises the behavior you changed:
+
+```bash
+# Quick real application path: Haxe -> generated Go -> Go test -> program output
+npm run test:smoke
+
+# Focused repository checks selected from your local Git changes
+npm run test:changed
+
+# Explain which broader tests own the change; this does not skip any CI work
+npm run test:affected:explain
+```
+
+Before a pull request or handoff, run the complete local CI surface:
+
+```bash
+npm run test:ci
+```
+
+The practical flow is:
+
+```text
+describe the expected behavior -> make the smallest faithful test fail ->
+fix it -> run a real Haxe-to-Go path -> run the complete backstop
+```
+
+The focused test makes failures faster to diagnose. The real path proves the
+compiler, generated Go, Go toolchain, and runtime still work together. The
+complete backstop catches mistakes in the focused-test selector.
+
+## Terms used in this guide
+
+- A product surface is one independently promised part of Haxe.Go, such as
+  portable Haxe semantics, explicit Go-native APIs, runtime/stdlib behavior,
+  diagnostics/tooling, or packaged examples.
+- A scorecard is the evidence record for one product surface. It says what is
+  claimed, which tests support that claim, and which risks remain.
+- An oracle is an expectation that does not come from the implementation being
+  tested—for example, Haxe `--interp`, a specification, reviewed output, or a
+  real downstream program.
+- A tracer bullet is one small end-to-end example that proves the whole path
+  works before many narrower cases are added.
+- Feedback rings are the R0-through-R5 test levels, ordered from one focused
+  local check through full release proof. A higher ring is broader and slower;
+  it does not replace the faster rings.
+- An owner is the stable test, fixture, or command responsible for detecting a
+  particular behavior regression. It is not necessarily a person.
+
 ## Outcome and authority
 
-Haxe.Go has five independently claim-bearing product surfaces. One green surface cannot advance another surface's claim. The machine authority is
+Haxe.Go has five independently claim-bearing product surfaces. One green surface cannot advance another surface's claim. In ordinary terms: a passing
+Go-native channel example cannot prove portable Haxe semantics, and a portable
+snapshot cannot prove native Go API behavior.
+
+The machine-readable scorecards live in
 [`test/testing-strategy.json`](../test/testing-strategy.json); this document
 explains what it means. Public release admission still comes only from
 [`docs/compatibility-support-manifest.json`](compatibility-support-manifest.json)
@@ -212,12 +271,12 @@ samples, not p50/p95 promises.
 | --- | ---: | ---: | --- |
 | R0 `core/hello_trace` snapshot | 5.74 / 1.28 s | 6.68 / 1.57 s | Same regenerated case; single-sample variation with no topology change |
 | R1 `tui_todo/portable` tracer | 8.62 / 4.02 s | 9.97 / 4.55 s | Same full custom compiler -> Go test/run chain, now reached through the named smoke command |
-| R2 exact-SHA remote required graph | 28m 44s critical path | pending candidate CI | Baseline run 30666284175; clean jobs and caches disabled |
+| R2 exact-SHA remote required graph | 28m 44s critical path | 28m 50s quality gate | Commit `0c51420c`; [CI Harness run 30713172868](https://github.com/fullofcaffeine/reflaxe.go/actions/runs/30713172868) passed with clean jobs and caches disabled |
 | R3 full portable semantic diff | 392.13 / 334.19 s | unchanged command | 155/155 real differential owners; cold sample followed by an immediate warm rerun |
-| New strategy contracts | n/a | 1.21 s | 33 focused contract tests, including active-inventory derivation, fail-closed Git discovery, evidence-state reporting, telemetry wiring, and official-smoke policy; added to required local/full test entrypoints |
+| New strategy contracts | n/a | 1.21 s before this readability pass | Focused contracts cover active-inventory derivation, fail-closed Git discovery, evidence-state reporting, telemetry wiring, official-smoke policy, and first-read documentation; they run in required local/full entrypoints |
 | New affected-plan explanation | n/a | 0.27 s | One runtime path; observation only and does not run or omit selected commands |
 | New official Haxe target smoke | n/a | 46.13 / 22.05 s | Three active official methods, 16 live assertions, compile-directory-verified installed package, full DCE, strict Go build/run, and five deliberate failure controls, including a real generated-target timeout and an actual missing selected source |
-| R4 exact-SHA Quality matrix | 27m 45s Linux Go 1.25.12; 22m 31s Linux Go 1.26.5; 22m 06s macOS | pending candidate CI | Baseline run 30666284172; the repository currently duplicates the full graph rather than using an affected R3 gate |
+| R4 exact-SHA Quality matrix | 27m 45s Linux Go 1.25.12; 22m 31s Linux Go 1.26.5; 22m 06s macOS | 24m 38s Linux Go 1.25.12; 29m 19s Linux Go 1.26.5; 22m 55s macOS | Commit `0c51420c`; [Quality run 30713172877](https://github.com/fullofcaffeine/reflaxe.go/actions/runs/30713172877) passed all three cold hosted jobs |
 
 The strategy and selector contracts add under two seconds locally, and the new
 required official target smoke adds about 22–46 seconds on this machine. It removes
@@ -238,7 +297,9 @@ Deferred work is tracked in Beads rather than hidden here:
 
 - `haxe_go-vfp.12.8`: managed compiler-server/watch developer loop with a cold
   equivalent;
-- `haxe_go-vfp.12.9`: pinned three-family official Haxe target smoke implemented here; complete applicable active-inventory expansion remains explicitly outside this smoke claim;
+- `haxe_go-vfp.12.10`: expand the three-family official Haxe target smoke to
+  the complete applicable active inventory before considering broader
+  official-conformance wording;
 - `haxe_go-vfp.16`: graduate affected-test planning only after an observation
   window establishes selector value and misses;
 - `haxe_go-vfp.14`: complete local changed-snapshot discovery, fixed and closed

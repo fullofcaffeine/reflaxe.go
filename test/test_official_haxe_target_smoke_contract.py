@@ -142,6 +142,15 @@ class OfficialHaxeTargetSmokeContractTest(unittest.TestCase):
         self.assertIn("portable compiler scorecard", text)
         self.assertIn("active runtime", text)
 
+    def test_documentation_explains_the_contributor_path_before_internals(self) -> None:
+        text = DOC.read_text(encoding="utf-8")
+        opening = "\n".join(text.splitlines()[:70])
+        self.assertIn("## Run it", opening)
+        self.assertIn("npm run test:official-haxe-smoke", opening)
+        self.assertIn("In plain terms", opening)
+        self.assertIn("Active inventory means", text)
+        self.assertIn("haxe_go-vfp.12.10", text)
+
 
 if __name__ == "__main__":
     unittest.main()
