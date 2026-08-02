@@ -36,7 +36,7 @@ ALLOWED_ROOT_FILES = {
     "license-policy.json",
     PACKAGE_MANIFEST,
 }
-ALLOWED_ROOT_DIRECTORIES = {"licenses", "runtime", "src", "vendor"}
+ALLOWED_ROOT_DIRECTORIES = {"licenses", "runtime", "src", "tools", "vendor"}
 FORBIDDEN_SEGMENTS = {
     ".cache",
     ".git",
@@ -54,9 +54,14 @@ EXPECTED_KINDS = {
     "runtime",
     "stdlib",
     "stdlib-override",
+    "tooling",
     "vendored-reflaxe",
 }
-TEXT_SUFFIXES = {".go", ".hxml", ".hx", ".json", ".md", ".txt"}
+EXPECTED_TOOLING_PROVENANCE = {
+    "tools/go-hx.sh": "scripts/dev/go-hx.sh",
+    "tools/haxe_go_watch.py": "scripts/dev/haxe_go_watch.py",
+}
+TEXT_SUFFIXES = {".go", ".hxml", ".hx", ".json", ".md", ".py", ".sh", ".txt"}
 VERSION_PATTERN = re.compile(
     r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)"
 )
@@ -163,11 +168,21 @@ def validate_layout(files: dict[str, bytes]) -> None:
         PACKAGE_MANIFEST,
         "runtime/hxrt/core.go",
         "src/reflaxe/go/CompilerInit.hx",
+        "tools/go-hx.sh",
+        "tools/haxe_go_watch.py",
         "vendor/reflaxe/LICENSE",
         "vendor/reflaxe/src/reflaxe/ReflectCompiler.hx",
     ):
         if required not in names:
             raise ArtifactVerificationError(f"required package member is missing: {required}")
+
+    tool_members = {
+        name for name in names if PurePosixPath(name).parts[0] == "tools"
+    }
+    if tool_members != set(EXPECTED_TOOLING_PROVENANCE):
+        raise ArtifactVerificationError(
+            "package tool member set differs from the managed development tools"
+        )
 
     for name in names:
         parts = PurePosixPath(name).parts
@@ -297,6 +312,7 @@ def validate_package_manifest(files: dict[str, bytes]) -> dict[str, object]:
         raise ArtifactVerificationError("embedded package manifest entries must be an array")
 
     package_paths: list[str] = []
+    tooling_provenance: dict[str, str] = {}
     for index, raw_entry in enumerate(entries):
         if not isinstance(raw_entry, dict):
             raise ArtifactVerificationError(f"embedded manifest entry {index} is not an object")
@@ -306,6 +322,8 @@ def validate_package_manifest(files: dict[str, bytes]) -> dict[str, object]:
         kind = raw_entry.get("kind")
         if kind not in EXPECTED_KINDS:
             raise ArtifactVerificationError(f"embedded manifest kind is unknown: {package_path}")
+        if kind == "tooling":
+            tooling_provenance[package_path] = source_path
         source_digest = raw_entry.get("sourceSha256")
         package_digest = raw_entry.get("packageSha256")
         size = raw_entry.get("size")
@@ -347,6 +365,19 @@ def validate_package_manifest(files: dict[str, bytes]) -> dict[str, object]:
     if set(package_paths) != set(files) - {PACKAGE_MANIFEST}:
         raise ArtifactVerificationError(
             "embedded manifest does not cover the archive member set exactly"
+        )
+    packaged_tool_paths = {
+        package_path
+        for package_path in package_paths
+        if PurePosixPath(package_path).parts[0] == "tools"
+    }
+    if packaged_tool_paths != set(EXPECTED_TOOLING_PROVENANCE):
+        raise ArtifactVerificationError(
+            "embedded manifest tool member set differs from the managed development tools"
+        )
+    if tooling_provenance != EXPECTED_TOOLING_PROVENANCE:
+        raise ArtifactVerificationError(
+            "embedded manifest tooling provenance differs from the managed development tools"
         )
     for package_path in package_paths:
         if package_path.endswith(".cross.hx"):

@@ -40,8 +40,15 @@ class OfficialHaxeTargetSmokeContractTest(unittest.TestCase):
         self.assertEqual(1, manifest["schemaVersion"])
         self.assertEqual(HAXE_COMMIT, manifest["upstream"]["haxe"]["commit"])
         self.assertEqual(UTEST_COMMIT, manifest["upstream"]["utest"]["commit"])
-        self.assertEqual("MIT", manifest["upstream"]["haxe"]["license"])
+        self.assertEqual("mixed", manifest["upstream"]["haxe"]["license"])
         self.assertEqual("MIT", manifest["upstream"]["utest"]["license"])
+        self.assertEqual(
+            {"README.md", "extra/LICENSE.txt"},
+            {
+                item["path"]
+                for item in manifest["upstream"]["haxe"]["licenseEvidence"]
+            },
+        )
 
         records = manifest["activeSmokeRecords"]
         self.assertEqual({"top-level", "unitstd", "issue"}, {record["family"] for record in records})
@@ -96,6 +103,16 @@ class OfficialHaxeTargetSmokeContractTest(unittest.TestCase):
         )
         self.assertIn('"packageResolution": {', runner)
         self.assertIn('"sourceCheckoutExcluded": True', runner)
+
+    def test_timeout_negative_control_performs_a_real_blocking_operation(self) -> None:
+        main = (SMOKE_ROOT / "src" / "OfficialTargetSmokeMain.hx").read_text(
+            encoding="utf-8"
+        )
+        runner = RUNNER.read_text(encoding="utf-8")
+        self.assertIn("Sys.sleep(60.0)", main)
+        self.assertNotIn("while (keepRunning)", main)
+        self.assertIn("timeout_detected = True", runner)
+        self.assertIn('"markerObserved": timeout_marker_observed', runner)
 
     def test_every_uploaded_artifact_rejects_ephemeral_absolute_paths(self) -> None:
         module = load_runner()

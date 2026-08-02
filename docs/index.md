@@ -20,6 +20,7 @@ This page helps you find the right docs quickly.
 ## Core usage docs
 
 - [Start here](start-here.md)
+- [Development watch loop](development-watch-loop.md)
 - [One Reflaxe target per compilation](start-here.md#one-reflaxe-target-per-compilation)
 - [Profiles](profiles.md)
 - [Native policy presets and semantic boundaries](native-policy-presets.md)
@@ -33,6 +34,7 @@ This page helps you find the right docs quickly.
 
 - [Behavior-first testing strategy and product scorecards](testing-strategy.md)
 - [Official Haxe target smoke](official-haxe-target-smoke.md)
+- [Extended official Haxe target inventory](official-haxe-target-inventory.md)
 - [Compatibility and support matrix](compatibility-support-matrix.md)
 - [Machine-readable compatibility manifest](compatibility-support-manifest.json)
 - [Generated compatibility release status](compatibility-release-status.md)

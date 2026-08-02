@@ -6,6 +6,33 @@ Beads is the repository's issue tracker. The local Dolt database is the operatio
 
 The Git checkout and the Beads database therefore have separate pull and push operations. A successful `git push` does not imply that a pending Dolt issue update was pushed, and a successful `bd dolt push` does not publish source commits.
 
+### Tracker transport and authentication
+
+Beads uses SSH for its Dolt remote. In plain terms, tracker updates travel over
+the same authenticated GitHub connection commonly used for private Git pushes.
+The earlier HTTPS transport could disconnect with HTTP 400 while uploading a
+valid tracker commit; retrying it did not make that path reliable. SSH accepted
+the same commit and preserved the exact remote history.
+
+You need a GitHub SSH key that can access this repository. This setting applies
+only to Beads history under `refs/dolt/data`; it does not change the source-code
+Git remote. A fresh clone reads the SSH address from `.beads/config.yaml` when
+`bd bootstrap --yes` initializes its local tracker.
+
+Existing clones that still show an HTTPS `origin` need this one-time local
+update after confirming their SSH access:
+
+```bash
+git ls-remote git@github.com:fullofcaffeine/reflaxe.go.git refs/dolt/data
+bd dolt remote remove origin
+bd dolt remote add origin git+ssh://git@github.com/fullofcaffeine/reflaxe.go.git
+bd dolt pull
+```
+
+Removing this local remote name does not delete tracker records or remote
+history. The health check rejects a local Dolt `origin` that differs from the
+checked `sync.remote`, making stale clone configuration visible before a push.
+
 ## Why it exists
 
 The tracker preserves the dependency graph, review decisions, acceptance evidence, and persistent memories needed for the long-running Haxe.Go Next program. Keeping issue history in Dolt allows cell-level history and clean bootstrap without turning issue updates into source commits.

@@ -37,6 +37,17 @@ class AffectedTestPlanTest(unittest.TestCase):
         self.assertIn("runtime-stdlib", plan["selectedOwners"])
         self.assertIn("portable-tracer-smoke", plan["selectedOwners"])
 
+    def test_watch_tool_and_scaffold_select_the_managed_dev_contract(self) -> None:
+        module = load_planner()
+        for changed in (
+            {"scripts/dev/haxe_go_watch.py"},
+            {"templates/basic/scripts/dev/watch.py"},
+            {"templates/basic/package.json"},
+        ):
+            plan = module.build_plan(self.strategy, changed)
+            self.assertIn("diagnostics-tooling", plan["selectedOwners"])
+            self.assertIn("npm run test:dev-watch", plan["commands"])
+
     def test_unknown_change_expands_to_every_surface_and_owner(self) -> None:
         module = load_planner()
         plan = module.build_plan(self.strategy, {"mystery/new-format.xyz"})

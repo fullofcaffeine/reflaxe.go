@@ -52,6 +52,32 @@ class TestingStrategyContractTest(unittest.TestCase):
             len([module for module in stdlib["modules"] if module["portable_eligible"]]),
             inventory["fullPortableEligibleStdlibModules"],
         )
+        official = json.loads(
+            (ROOT / "test" / "official_haxe_target_inventory" / "manifest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(
+            sum(official["candidateInventory"]["counts"].values()),
+            inventory["officialHaxeCandidateOwners"],
+        )
+        self.assertEqual(
+            official["classificationBaseline"]["counts"]["active"],
+            inventory["officialHaxeActiveOwners"],
+        )
+        self.assertEqual(
+            official["classificationBaseline"]["counts"]["blocked"],
+            inventory["officialHaxeBlockedOwners"],
+        )
+        runtime = json.loads(
+            (
+                ROOT
+                / "test"
+                / "official_haxe_target_inventory"
+                / official["activeRuntimeBaselineFile"]["path"]
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(len(runtime["records"]), inventory["officialHaxeActiveMethods"])
 
     def test_product_surfaces_are_independent_and_complete(self) -> None:
         strategy = json.loads(STRATEGY.read_text(encoding="utf-8"))

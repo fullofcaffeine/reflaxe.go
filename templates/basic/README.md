@@ -36,6 +36,16 @@ REFLAXE_GO_SOURCE="path:/absolute/path/to/reflaxe.go" npm run setup:reflaxe-go
 
 ## Build and run
 
+Start the normal edit-and-restart loop:
+
+```bash
+npm run dev
+```
+
+The last working program stays alive when a new edit does not compile. Press
+`Ctrl+C` to stop the watcher and its program. Use `npm run hx:run` below for a
+single direct build and run.
+
 Portable profile:
 
 ```bash

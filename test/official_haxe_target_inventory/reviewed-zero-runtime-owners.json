@@ -1,0 +1,598 @@
+{
+  "kind": "haxe.go-official-inventory-reviewed-zero-runtime-owners",
+  "records": [
+    {
+      "path": "unit/hxcpp_issues/Issue10100.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/hxcpp_issues/Issue352.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10057.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10109.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10143.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10193.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10397.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10405.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10410.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10508.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10535.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10571.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10576.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10746.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10799.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10830.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10831.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10876.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue10965.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue11743.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue1925.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue2049.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue2688.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue2754.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue2772.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue2856.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue2861.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue2927.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue2980.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3171.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3173.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3181.hx",
+      "reason": "reviewed pinned source has no active behavior because its former test method is commented out",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3226.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3306.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3383.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3400.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3451.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3499.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3558.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3771.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3842.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3946.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3949.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3979.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue3987.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue4045.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue4085.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue4130.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "blocker": "haxe_go-vfp.12.12.4",
+      "path": "unit/issues/Issue4359.hx",
+      "reason": "applicable compile-only @:require extern regression; the runtime-only active contract has no faithful observer",
+      "status": "blocked"
+    },
+    {
+      "path": "unit/issues/Issue4397.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue4419.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue4445.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "blocker": "haxe_go-vfp.12.12.4",
+      "path": "unit/issues/Issue4535.hx",
+      "reason": "applicable compile-only metadata regression; the runtime-only active contract has no faithful observer",
+      "status": "blocked"
+    },
+    {
+      "path": "unit/issues/Issue4551.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue4579.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue4644.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue4862.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue4973.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue5184.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue5270.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue5383.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue5399.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue5505.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue5507.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue5565.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue5584.hx",
+      "reason": "reviewed pinned source places its only test method behind an explicit #if false guard",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue5747.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue5751.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue5862.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue5919.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue5923.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue6001.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue6039.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "blocker": "haxe_go-vfp.12.12.4",
+      "path": "unit/issues/Issue6059.hx",
+      "reason": "applicable compile-only abstract-conversion regression; its static test function is not a utest runtime method",
+      "status": "blocked"
+    },
+    {
+      "path": "unit/issues/Issue6448.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue6449.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue6754.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "blocker": "haxe_go-vfp.12.12.4",
+      "path": "unit/issues/Issue6772.hx",
+      "reason": "applicable compile-only final-field regression; the runtime-only active contract has no faithful observer",
+      "status": "blocked"
+    },
+    {
+      "path": "unit/issues/Issue6848.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "blocker": "haxe_go-vfp.12.12.4",
+      "path": "unit/issues/Issue7332.hx",
+      "reason": "applicable compile-only generic-lambda regression; its static main function is not a utest runtime method",
+      "status": "blocked"
+    },
+    {
+      "blocker": "haxe_go-vfp.12.12.4",
+      "path": "unit/issues/Issue7389.hx",
+      "reason": "applicable compile-only catch-expression typing regression; its static main function is not a utest runtime method",
+      "status": "blocked"
+    },
+    {
+      "path": "unit/issues/Issue7449.hx",
+      "reason": "reviewed pinned source has no active behavior because its former target-unicode test is commented out",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue7533.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue7599.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue7630.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue7867.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue8218.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue8227.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue8241.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue8248.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue8401.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue8457.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue8493.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue8502.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue8549.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue8710.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue8716.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue8978.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue8979.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9024.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9273.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "blocker": "haxe_go-vfp.12.12.4",
+      "path": "unit/issues/Issue9309.hx",
+      "reason": "applicable compile-only private-type import regression; the runtime-only active contract has no faithful observer",
+      "status": "blocked"
+    },
+    {
+      "path": "unit/issues/Issue9403.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9438.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9498.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9516.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9542.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9543.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9576.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9601.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9715.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9738.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9791.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9807.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9854.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/issues/Issue9946.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    },
+    {
+      "path": "unit/TestSyntaxModule.hx",
+      "reason": "reviewed pinned source exposes its utest behavior only under non-Go target guards",
+      "status": "inapplicable"
+    }
+  ],
+  "schemaVersion": 1
+}

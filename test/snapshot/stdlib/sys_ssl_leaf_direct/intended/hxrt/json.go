@@ -13,13 +13,16 @@ type jsonVisit struct {
 
 // jsonToHaxeValue converts Go JSON containers into Haxe's runtime containers.
 //
-// What: It recursively replaces decoded []any values with the shared Array carrier.
-// Why: encoding/json has no knowledge of Haxe Array identity, so returning its raw
-// slices would bypass Array APIs and make a later stringify render carriers as {}.
-// How: Objects remain map[string]any while every nested JSON array is passed to
-// the portable Array constructor registered by array.go.
+// What: It replaces decoded strings and []any values with the Haxe runtime carriers.
+// Why: encoding/json has no knowledge of Haxe's nullable string pointer or Array
+// identity. Raw Go strings panic when a typed Haxe Dynamic cast expects *string,
+// while raw slices bypass Array APIs and later stringify as {}.
+// How: Objects remain map[string]any, strings use the canonical string constructor,
+// and every nested JSON array uses the portable Array constructor from array.go.
 func jsonToHaxeValue(value any) any {
 	switch current := value.(type) {
+	case string:
+		return StringFromLiteral(current)
 	case []any:
 		values := make([]any, len(current))
 		for index, item := range current {

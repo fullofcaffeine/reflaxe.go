@@ -1,0 +1,310 @@
+{
+  "schema_version": 1,
+  "kind": "haxe.go-portable-beta-candidate-evidence",
+  "recorded_at_utc": "2026-08-02T10:45:00Z",
+  "tracker": "haxe_go-vfp.12.4",
+  "source": {
+    "commit": "c22af0ea82e5e481e23277e513ed5b7c6b5c770b",
+    "tree": "fbdb80c6ce39ba8d89c029334452b151a6cce4a3",
+    "parent": "cc40b388779f6bcc265e74e235ed9c929c6bf77c",
+    "subject": "fix(review): retain the archive decision trail",
+    "remote_branch": "origin/master",
+    "tracked_file_count": 9963,
+    "source_archive": {
+      "path": "primary/haxe.go-source-c22af0ea.tar",
+      "bytes": 53299200,
+      "sha256": "4a46a3667d054534d78b64de21ee493f9dfb3a0c88616c364bcdc0596fc410cc"
+    },
+    "repomix_navigation_view": {
+      "path": "primary/haxe.go-source-c22af0ea.xml",
+      "bytes": 55148401,
+      "sha256": "6591c043e9206f1801a36cf1d92bf1390c0265fd1e73b8f4c87d0667d75c1813"
+    },
+    "inventory": {
+      "path": "primary/source-inventory.json",
+      "bytes": 2053383,
+      "sha256": "0c052fb79f7543b0b57adf63db451f6fdf2d61cebd2fcab6f1296ee3f6a51195"
+    }
+  },
+  "artifact": {
+    "filename": "haxe-go-portable-beta-c22af0ea.zip",
+    "bytes": 27529201,
+    "sha256": "7d76936576bb9e7e654f73ac010a474305e23b2c08ec2fe2f406441af633eb66",
+    "payload_count": 383,
+    "retention": "Operator review handoff outside Git; accept only the exact filename, byte count, and SHA-256 recorded here.",
+    "validation": {
+      "deterministic_build_count": 2,
+      "outer_zip_byte_identical": true,
+      "zip_integrity_passed": true,
+      "source_archive_commit_verified": true,
+      "internal_sha256_entries_verified": 384,
+      "gitleaks_passed": true,
+      "machine_local_path_check_passed": true,
+      "machine_local_text_files_checked": 380
+    }
+  },
+  "claim": {
+    "lifecycle": "pre-1.0 beta",
+    "statement": "Haxe.Go is a pre-1.0 beta for pinned, application-qualified portable workloads on the admitted toolchain, platform, and operation/member surface.",
+    "preset": "portable",
+    "platform": "linux-amd64",
+    "operation_count": 38,
+    "symbol_count": 173,
+    "surface_sha256": "99625a5bcb401561a8393ddcef5675ba552c1a84ab288ea4ed0e1cc950bac0d0",
+    "required_exclusions": {
+      "go-native": "haxe_go-vfp.9.1",
+      "portable-http": "haxe_go-vfp.10.8",
+      "stable-1.x": "haxe_go-vfp.12.7"
+    },
+    "default_disposition": "unlisted-is-excluded",
+    "trust_model": "trusted-source-only",
+    "metal_results_advance_portable_claim": false,
+    "qualification": "Only operations explicitly marked release_admitted in the compatibility manifest advance this portable Linux beta claim. Metal/native, other platforms, HTTP, stable 1.x, untrusted source, and every unlisted member remain separate or excluded."
+  },
+  "evidence_matrix": [
+    {
+      "area": "compiler-shape-and-regressions",
+      "surface": "portable-compiler",
+      "result": "pass",
+      "evidence": "313 snapshot owners, post-generation fatal-build regression, compiler-debt and generated-output contracts in the exact-SHA Harness and Quality logs"
+    },
+    {
+      "area": "portable-runtime-semantics",
+      "surface": "portable-compiler-and-generated-runtime",
+      "result": "pass",
+      "evidence": "155 semantic-diff fixtures plus exact-SHA runtime, race, checkptr, socket, process, file, thread, terminal, and selected networking contracts"
+    },
+    {
+      "area": "official-haxe-target-contract",
+      "surface": "portable-compiler",
+      "result": "pass",
+      "evidence": "55 strict applicable upstream modules on both supported Go versions, with cold custom-backend Haxe compilation, strict Go build/test, and runtime observation"
+    },
+    {
+      "area": "examples-and-real-target-smoke",
+      "surface": "package-downstream-examples",
+      "result": "pass",
+      "evidence": "12 classified examples plus official target smoke compile Haxe through the custom backend, build/test generated Go, execute the target, and preserve portable/metal scorecard separation"
+    },
+    {
+      "area": "package-reproducibility-and-install",
+      "surface": "package-downstream-examples",
+      "result": "pass",
+      "evidence": "exact-SHA release contracts build deterministic Haxelib artifacts and verify isolated portable and metal installs; only portable results advance this beta claim"
+    },
+    {
+      "area": "supported-toolchains-and-security",
+      "surface": "release-candidate",
+      "result": "pass",
+      "evidence": "Go 1.25.12 and 1.26.5 tooling, dependency/vulnerability audits, static analysis, Gitleaks, raw-injection hygiene, race, and checkptr evidence"
+    },
+    {
+      "area": "policy-and-public-contract",
+      "surface": "release-candidate",
+      "result": "pass",
+      "evidence": "compatibility, release-readiness, API/public-contract, license, artifact, provenance, and same-SHA release-policy gates"
+    }
+  ],
+  "hosted_evidence": {
+    "runs": [
+      {
+        "database_id": 30743182325,
+        "workflow": "Examples Artifacts",
+        "head_sha": "c22af0ea82e5e481e23277e513ed5b7c6b5c770b",
+        "conclusion": "success",
+        "url": "https://github.com/fullofcaffeine/reflaxe.go/actions/runs/30743182325",
+        "artifact_count": 1
+      },
+      {
+        "database_id": 30743182328,
+        "workflow": "Security - Gitleaks",
+        "head_sha": "c22af0ea82e5e481e23277e513ed5b7c6b5c770b",
+        "conclusion": "success",
+        "url": "https://github.com/fullofcaffeine/reflaxe.go/actions/runs/30743182328",
+        "artifact_count": 1
+      },
+      {
+        "database_id": 30743182367,
+        "workflow": "Security - Static Analysis",
+        "head_sha": "c22af0ea82e5e481e23277e513ed5b7c6b5c770b",
+        "conclusion": "success",
+        "url": "https://github.com/fullofcaffeine/reflaxe.go/actions/runs/30743182367",
+        "artifact_count": 2
+      },
+      {
+        "database_id": 30743182369,
+        "workflow": "CI Harness",
+        "head_sha": "c22af0ea82e5e481e23277e513ed5b7c6b5c770b",
+        "conclusion": "success",
+        "url": "https://github.com/fullofcaffeine/reflaxe.go/actions/runs/30743182369",
+        "artifact_count": 13
+      },
+      {
+        "database_id": 30743182373,
+        "workflow": "CI - Quality",
+        "head_sha": "c22af0ea82e5e481e23277e513ed5b7c6b5c770b",
+        "conclusion": "success",
+        "url": "https://github.com/fullofcaffeine/reflaxe.go/actions/runs/30743182373",
+        "artifact_count": 3
+      }
+    ],
+    "artifact_count": 20,
+    "artifacts_expire_at": "2026-10-31T10:09:21Z",
+    "artifact_digest_index": "live/github/runs/<run-id>.json inside the evidence ZIP",
+    "note": "The archive preserves each hosted artifact name, size, SHA-256 digest, expiry, job graph, and sanitized log. The artifacts themselves remain on GitHub until the recorded expiry."
+  },
+  "local_evidence": [
+    {
+      "command": "python3 test/test_review_evidence_bundle_contract.py",
+      "result": "11 tests passed"
+    },
+    {
+      "command": "npm run test:release-contracts",
+      "result": "passed"
+    },
+    {
+      "command": "npm test",
+      "result": "313 of 313 snapshots passed, including generated-Haxe upload race, socket cross-build, and terminal contracts"
+    },
+    {
+      "command": "npm run test:changed",
+      "result": "passed with conservative policy and no relevant snapshot owner selected for the review-only fix"
+    },
+    {
+      "command": "exact Git archive to extracted Repomix path scan",
+      "result": "passed for the candidate source; only the two named authored fixture blocks were excluded from the navigation-view path scan"
+    },
+    {
+      "command": "two identical evidence-builder invocations using the same output basename",
+      "result": "byte-identical ZIPs with matching SHA-256"
+    }
+  ],
+  "authorities": [
+    {
+      "path": "docs/compatibility-support-manifest.json",
+      "sha256": "3773df9cf7ade3a729ad6601e9e5cf96501cea0fc086b9ec00a05d64b5f3e2e8"
+    },
+    {
+      "path": "release/readiness-policy.json",
+      "sha256": "972c0612ab64c2d5230b842aab458bc67043714d597396c34623e6e4259ec719"
+    },
+    {
+      "path": "license-policy.json",
+      "sha256": "35476c8df6a9f461f539ad14a6cdea085e2d541f2b8f0cb72529f605c7397698"
+    },
+    {
+      "path": "scripts/review/build_gpt56_evidence.py",
+      "sha256": "450af38f55e71c81c9d18c9b716b889b167b1362d647c92a352b9e852cc9be65"
+    }
+  ],
+  "license_approval": {
+    "status": "approved",
+    "approved_by": "Marcelo Serpa",
+    "authority": "project-copyright-owner",
+    "scope_sha256": "56e4dc13b3676562cd2ed6ac23f1706141a2098fdd67f408ceba026d84848c8a"
+  },
+  "references": [
+    {
+      "name": "haxe.rust",
+      "commit": "5b8c9416f963e541229e633a2bb655a93e3e9c16",
+      "remote_branch": "origin/main",
+      "selected_file_count": 181
+    },
+    {
+      "name": "haxe.ruby",
+      "commit": "dbb70af0e48e252e413645b7bf16197a4776f0f8",
+      "remote_branch": "origin/main",
+      "selected_file_count": 27
+    },
+    {
+      "name": "haxe.elixir.codex",
+      "commit": "68625fa91ffff48c5ffb269bff01c6f3e716128c",
+      "remote_branch": "origin/main",
+      "selected_file_count": 139
+    }
+  ],
+  "roadmap_snapshot": {
+    "root_issue": "haxe_go-vfp.12",
+    "dolt_commit": "okkv882epassfvlp4iirbcc5q99b41np",
+    "total_issues": 770,
+    "dependency_cycle_count": 0
+  },
+  "captured_live_state": {
+    "default_branch": "master",
+    "default_branch_protected": false,
+    "repository_rulesets": [],
+    "reference_release_tag": "v0.53.1",
+    "reference_release_tag_commit": "4adb9ae8209c24850495110e79ba6c5a8e1fa2bd",
+    "reference_release_asset_count": 0,
+    "reference_release_immutable": false,
+    "qualification": "These are dated host facts captured for review, not properties inferred from source or promises about future repository state."
+  },
+  "repomix": {
+    "role": "navigation-only",
+    "version": "1.14.0",
+    "security_excluded_paths": [
+      "runtime/hxrt/http_test.go",
+      "test/snapshot/stdlib/sys_ssl_leaf_direct/intended/main.go",
+      "test/snapshot/stdlib/sys_ssl_leaf_direct/Main.hx",
+      "test/snapshot/stdlib/sys_ssl_socket_direct/intended/main.go",
+      "test/snapshot/stdlib/sys_ssl_socket_direct/Main.hx",
+      "test/snapshot/stdlib/sys_ssl_socket_sni_direct/intended/main.go",
+      "test/snapshot/stdlib/sys_ssl_socket_sni_direct/Main.hx",
+      "test/snapshot/sys/http_helper_source_owned_ownership/expected.stdout",
+      "test/snapshot/sys/http_proxy_socket_contract/expected.stdout"
+    ],
+    "raw_companions_included": true
+  },
+  "reproduction": {
+    "command": [
+      "python3",
+      "scripts/review/build_gpt56_evidence.py",
+      "--source-ref",
+      "c22af0ea82e5e481e23277e513ed5b7c6b5c770b",
+      "--rust-ref",
+      "5b8c9416f963e541229e633a2bb655a93e3e9c16",
+      "--ruby-ref",
+      "dbb70af0e48e252e413645b7bf16197a4776f0f8",
+      "--elixir-ref",
+      "68625fa91ffff48c5ffb269bff01c6f3e716128c",
+      "--ci-run",
+      "30743182369",
+      "--ci-run",
+      "30743182373",
+      "--ci-run",
+      "30743182325",
+      "--ci-run",
+      "30743182367",
+      "--ci-run",
+      "30743182328",
+      "--release-tag",
+      "v0.53.1",
+      "--roadmap-id",
+      "haxe_go-vfp.12",
+      "--output",
+      "haxe-go-portable-beta-c22af0ea.zip"
+    ],
+    "note": "Source and sibling archives are commit-pinned. GitHub and Beads state are live capture-at-build inputs, so a later rebuild is new dated evidence unless those inputs are unchanged."
+  },
+  "non_evidence": [
+    {
+      "observation": "A local semantic-release dry run stopped because the machine had Node 20 while the governed release environment requires Node 24.",
+      "disposition": "Not counted. Publication remains owned by the Node 24 same-SHA workflow in haxe_go-vfp.12.6."
+    },
+    {
+      "observation": "One GitHub status poll encountered a transient TLS handshake timeout and the next read succeeded.",
+      "disposition": "Not counted as a test rerun or product failure; terminal workflow state and captured logs are the evidence."
+    },
+    {
+      "observation": "An archive attempt used a Ruby reference commit that predated docs/public-contract.md.",
+      "disposition": "Rejected before packaging. The sealed archive pins the newer remote-contained Ruby commit recorded above."
+    }
+  ],
+  "publication": {
+    "published": false,
+    "next_gate": "haxe_go-vfp.12.5",
+    "next_action": "Independent final release-admission review of this exact candidate and evidence bundle.",
+    "publication_owner": "haxe_go-vfp.12.6",
+    "stable_owner": "haxe_go-vfp.12.7"
+  }
+}

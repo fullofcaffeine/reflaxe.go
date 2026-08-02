@@ -12,6 +12,8 @@ class Main {
 		emit("obj.b_json", haxe.Json.stringify(Reflect.field(parsedObject, "b")));
 		emit("obj.c.d", Reflect.field(Reflect.field(parsedObject, "c"), "d"));
 		emit("obj.z_is_null", Reflect.field(parsedObject, "z") == null);
+		var typedName:String = cast Reflect.field(Reflect.field(parsedObject, "c"), "d");
+		emit("obj.c.d_typed", typedName);
 
 		var source:Dynamic = {
 			a: 1,

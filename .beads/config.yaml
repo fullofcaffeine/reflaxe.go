@@ -61,12 +61,11 @@
 # - github.org
 # - github.repo
 
-sync.remote: "git+https://github.com/fullofcaffeine/reflaxe.go.git"
+# sync.remote: "git+ssh://git@github.com/fullofcaffeine/reflaxe.go.git"
 
 export.auto: false
-
 export.git-add: false
-
-federation.remote: "git+https://github.com/fullofcaffeine/reflaxe.go.git"
-
+federation.remote: "git+ssh://git@github.com/fullofcaffeine/reflaxe.go.git"
 sync.require_confirmation_on_mass_delete: true
+sync:
+    remote: "git+ssh://git@github.com/fullofcaffeine/reflaxe.go.git"

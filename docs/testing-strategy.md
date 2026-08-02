@@ -79,7 +79,7 @@ provenance, and semantic-owner affected-selection evidence.
 
 | Surface | Current status | What can make it greener | What cannot |
 | --- | --- | --- | --- |
-| `portable-compiler` | Admitted slice | Ordinary Haxe semantics, generated Go build/run, exact compatibility operation evidence, the pinned three-family official target smoke, and portable-semantic preset invariance under `metal` where no native boundary is used | Go-native APIs, example-only or compile-only evidence, another platform's result, or treating the smoke as the complete official inventory |
+| `portable-compiler` | Admitted slice | Ordinary Haxe semantics, generated Go build/run, exact compatibility operation evidence, the required three-family official target smoke, the extended classified official inventory, and portable-semantic preset invariance under `metal` where no native boundary is used | Go-native APIs, example-only or compile-only evidence, another platform's result, blocked official owners, or treating inventory coverage as automatic compatibility admission |
 | `go-native-metal` | Experimental | Typed `go.*`, extern, ABI, policy, Go tooling, and native runtime owners | Portable semantic diff or selecting the `metal` preset by itself |
 | `runtime-stdlib` | Admitted slice | Staged-source semantics, focused `hxrt` ownership tests, generated-Haxe execution, race/checkptr, and exact platform evidence | A snapshot, cross-build, or whole-class name without member-level evidence |
 | `diagnostics-tooling` | Partial | Exact negative diagnostics, stable report schemas, output confinement, and developer-command contracts | A successfully running generated program; source maps remain unclaimed |
@@ -106,7 +106,7 @@ profile is absent from a declared surface's supported or tested profiles.
 | Tracer bullet first | Partial: examples and semantic diff already crossed real boundaries, but the policy was implicit | R1 and the representative workflow name the tracer before permutations |
 | Lowest faithful layer and double lock | Substantially present in recent network work | Focused Go ownership tests, generated-Haxe execution, and release-policy contracts are kept as distinct locks |
 | Portfolio review | Absent as a durable review | Active owner-family inventory is recorded without inventing a quota or double-counted percentage |
-| Executable example tiers | Runtime execution already worked; tiers and claim ownership were implicit | `examples/qa-manifest.json` is now harness-enforced |
+| Executable example tiers | Runtime execution already worked; tiers and claim ownership were implicit | `examples/qa-manifest.json` is harness-enforced; exact release-operation links prevent broader QA examples from widening the beta claim |
 | R0-R5 loop and affected selection | Partial: commands and full backstops existed, but ring ownership and semantic selection did not | Rings are explicit and the selector runs in observation mode without skipping evidence |
 | Separate high-risk review | Strong through thinking labels and exact-commit reviews | A stable challenge checklist now lives in the strategy authority |
 
@@ -172,10 +172,12 @@ the third lock. None of those results is substituted for another.
 ## Portfolio guardrail
 
 The current active inventory is 313 snapshot owners, 155 portable semantic-diff
-owners, one active profile/lane semantic-diff owner, and 12 executable example
+owners, one active profile/lane semantic-diff owner, and 13 executable example
 profile owners. The strict curated stdlib sweep has 55 module owners and the
-full portable-eligible inventory has 175. These are active harness records, not
-raw file counts.
+full portable-eligible inventory has 175. The separately pinned official target
+inventory classifies 1,211 upstream owners: 607 active owners containing 650
+runtime methods, 480 blocked owners, and 124 inapplicable owners. These are
+active harness records and explicit classifications, not raw file counts.
 
 This is compatible with a focused-heavy compiler portfolio and substantial
 real Haxe -> Go execution, but publishing a precise 55-70/25-40 percentage now
@@ -194,6 +196,13 @@ evidence modes, distinctive claim, command, and oracle. Per-lane declarations
 matter because a flagship's default portable/core lane must not become native
 evidence merely because its CI variant uses an explicit Go-native module. The
 harness rejects manifest drift.
+
+Ordinary claim-bearing and release-bearing are separate. Every maintained
+example below proves its own documented runtime behavior. Only `portable_beta`
+publishes portable-beta operation evidence, and only after the harness resolves
+each declared operation against the compatibility authority and completes the
+real runtime/output path. This keeps a green flagship, HTTP service, or native
+interop demo from broadening a different scorecard.
 
 All current examples are claim-bearing and therefore execute:
 
@@ -220,13 +229,16 @@ entries.
 | R1 local smoke | `npm run test:smoke` | Regenerates `tui_todo`, formats, strictly Go-tests, runs, and checks output |
 | R2 required PR | `npm run test:ci` plus all required workflow jobs | Clean full primary evidence remains unchanged |
 | R3 affected extended | `npm run test:affected:explain` | Observation only; recommends owners/surfaces but skips nothing |
-| R4 main/weekly | CI Harness plus Quality on master; weekly CI Harness subset with security, tooling, performance, and example artifacts | Complete stable-graph selector-miss backstop weekly; the cross-platform Quality matrix also runs on pull requests and master pushes |
-| R5 release | `npm run release:readiness` and `npm run release:dry-run` | Exact SHA/artifact, clean install, supported matrices, and public claims |
+| R4 main/weekly | CI Harness plus Quality on master; weekly CI Harness subset with the supported-Go official inventory, security, tooling, performance, and example artifacts | Complete stable-graph selector-miss backstop weekly; the cross-platform Quality matrix also runs on pull requests and master pushes |
+| R5 release | `npm run release:readiness`, `npm run release:dry-run`, and the supported-Go official inventory dependency | Exact SHA/artifact, clean install, supported matrices, and public claims |
 
 The current remote graph deliberately uses cold setup and disables the Go
-action cache. Compiler-server/watch behavior is only an accelerator. It is not
-release evidence, and its managed implementation remains under
-`haxe_go-vfp.12.8`.
+action cache. The managed `npm run dev` loop may reuse an owned Haxe compiler
+server because that makes edits faster, but it is only an accelerator. It is not
+release evidence. `dev:hx`, `npm run dev -- --once`, CI, and release builds keep
+the direct cold path as the correctness baseline. The lifecycle and fallback
+contract is documented in [Development watch loop](development-watch-loop.md)
+and owned by completed tracker item `haxe_go-vfp.12.8`.
 
 ## Affected-selection safety
 
@@ -276,6 +288,7 @@ samples, not p50/p95 promises.
 | New strategy contracts | n/a | 1.21 s before this readability pass | Focused contracts cover active-inventory derivation, fail-closed Git discovery, evidence-state reporting, telemetry wiring, official-smoke policy, and first-read documentation; they run in required local/full entrypoints |
 | New affected-plan explanation | n/a | 0.27 s | One runtime path; observation only and does not run or omit selected commands |
 | New official Haxe target smoke | n/a | 46.13 / 22.05 s | Three active official methods, 16 live assertions, compile-directory-verified installed package, full DCE, strict Go build/run, and five deliberate failure controls, including a real generated-target timeout and an actual missing selected source |
+| Extended official Haxe target inventory | n/a | 141.36 / 156.52 / 152.09 s clean-package samples | 1,211 exact owners classified; 650 active methods and 1,910 assertions execute through the installed compiler, strict Go tooling, and runtime. The 480 blocked owners include seven compile-only regressions that need a separate faithful observer and one async HTTP environment gap. The cache-warm-capable samples varied, so these are observations rather than a latency promise. This is R4/R5 evidence, not required-PR work. |
 | R4 exact-SHA Quality matrix | 27m 45s Linux Go 1.25.12; 22m 31s Linux Go 1.26.5; 22m 06s macOS | 24m 38s Linux Go 1.25.12; 29m 19s Linux Go 1.26.5; 22m 55s macOS | Commit `0c51420c`; [Quality run 30713172877](https://github.com/fullofcaffeine/reflaxe.go/actions/runs/30713172877) passed all three cold hosted jobs |
 
 The strategy and selector contracts add under two seconds locally, and the new
@@ -295,12 +308,18 @@ tooling, example, OS, and release evidence remain independent.
 
 Deferred work is tracked in Beads rather than hidden here:
 
-- `haxe_go-vfp.12.8`: managed compiler-server/watch developer loop with a cold
-  equivalent;
-- `haxe_go-vfp.12.10`: expand the three-family official Haxe target smoke to
-  the complete applicable active inventory before considering broader
-  official-conformance wording;
+- `haxe_go-vfp.12.10` establishes the classified extended inventory and its
+  R4/R5 evidence without broadening compatibility admission;
+- `haxe_go-vfp.12.12`: burn down the 480 exact official-inventory blockers;
+  its children separately own Haxe compilation, invalid generated Go, runtime
+  semantic mismatches, and typed harness-support gaps;
 - `haxe_go-vfp.16`: graduate affected-test planning only after an observation
   window establishes selector value and misses;
 - `haxe_go-vfp.14`: complete local changed-snapshot discovery, fixed and closed
   with this strategy change.
+
+The managed watch-loop work in `haxe_go-vfp.12.8` is complete: it has a cold
+equivalent, a real Haxe-to-Go compile/build/run tracer, failed-build recovery,
+owned process/server cleanup, and installed-package delivery. Its green result
+belongs to the diagnostics/tooling scorecard and does not broaden portable
+compiler, runtime/stdlib, metal/native, or release claims.

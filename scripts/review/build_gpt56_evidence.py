@@ -166,6 +166,13 @@ MACHINE_PATH_PATTERNS = (
     re.compile(r"[A-Za-z]:\\a\\[^\\\s]+\\[^\\\s]+\\"),
     re.compile(re.escape(MACOS_PRIVATE_TEMP_ROOT) + r"[A-Za-z0-9._-]+/[^\s]+"),
 )
+# These files deliberately contain machine-path examples to test redaction.
+# Repomix preserves their authored source exactly, so path-leak validation skips
+# only their explicit XML file blocks. The same text anywhere else still fails.
+REPOMIX_MACHINE_PATH_FIXTURE_FILES = (
+    ".audit/haxe_go-vfp.12.4.tsv",
+    "test/test_review_evidence_bundle_contract.py",
+)
 
 
 class EvidenceError(RuntimeError):
@@ -256,6 +263,16 @@ def find_machine_path(text: str) -> str | None:
         if match:
             return match.group(0)
     return None
+
+
+def find_repomix_machine_path(text: str) -> str | None:
+    for relative in REPOMIX_MACHINE_PATH_FIXTURE_FILES:
+        fixture_block = re.compile(
+            r'<file path="' + re.escape(relative) + r'">.*?</file>',
+            re.DOTALL,
+        )
+        text = fixture_block.sub("<authored-machine-path-fixture-file />", text)
+    return find_machine_path(text)
 
 
 def normalize_repomix_log(log: str) -> str:
@@ -427,7 +444,7 @@ def run_repomix(repomix_command: Sequence[str], input_dir: Path, output_path: Pa
     assert isinstance(completed.stderr, str)
     log = normalize_repomix_log(redact_machine_paths(completed.stdout + completed.stderr))
     output_text = output_path.read_text(encoding="utf-8")
-    leaked_path = find_machine_path(output_text)
+    leaked_path = find_repomix_machine_path(output_text)
     if leaked_path:
         raise EvidenceError(f"Repomix output contains machine-local path: {leaked_path}")
     return {
@@ -683,10 +700,14 @@ def assert_no_machine_paths(root: Path) -> int:
         except UnicodeDecodeError:
             continue
         checked += 1
-        leaked_path = find_machine_path(text)
+        relative = path.relative_to(root).as_posix()
+        if relative.startswith("primary/") and path.suffix.lower() == ".xml":
+            leaked_path = find_repomix_machine_path(text)
+        else:
+            leaked_path = find_machine_path(text)
         if leaked_path:
             raise EvidenceError(
-                f"machine-local path remains in {path.relative_to(root).as_posix()}: {leaked_path}"
+                f"machine-local path remains in {relative}: {leaked_path}"
             )
     return checked
 

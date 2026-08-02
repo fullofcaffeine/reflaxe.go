@@ -39,6 +39,31 @@ classified as compile-only. A `metal` profile lane is not automatically native
 evidence: the manifest names `native-metal` only when the source actually owns
 a Go-native boundary.
 
+## Example evidence versus a beta release claim
+
+Release-bearing is narrower than claim-bearing.
+
+A **claim-bearing example** proves its own documented behavior: the program
+compiled, the generated Go passed its checks, the program ran, and its output
+matched the manually reviewed expectation. That is useful application evidence,
+but a large app can touch APIs that are intentionally outside the current beta.
+
+A **release-bearing lane** may support the public portable-beta statement. It
+must be portable-only and list exact compatibility operation IDs such as
+`portable-data/json`. The harness resolves those IDs against
+`docs/compatibility-support-source.json` and stops before compilation when an ID
+is unknown or not release-admitted. A non-release-bearing lane must publish no
+operation IDs.
+
+Today only `portable_beta/default` and `portable_beta/ci` are release-bearing.
+The larger examples remain valuable behavior and regression evidence; their
+green results cannot quietly widen the release matrix.
+
+Telemetry follows the same rule. Declared release operations become completed
+release evidence only after `go run` and the expected-output check both pass.
+Compile-only, failed, and broader example lanes publish no completed release
+claim.
+
 ## What the harness checks
 
 The examples harness is:
@@ -110,6 +135,11 @@ Use:
 - `run.ci.args` for CI-lane runtime arguments when the CI lane needs different
   inputs.
 - `expected/*.stdout` for the exact output users should see.
+
+An expected file may intentionally be empty. The `portable_beta` program uses
+internal checks and a successful process exit as its observer because unrelated
+console APIs are not part of its narrow release claim. The harness still runs
+the real program and reports a visible pass or failure.
 
 If an example demonstrates behavior that the compiler cannot catch, encode that
 behavior in the expected output. Examples include:

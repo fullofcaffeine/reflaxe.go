@@ -97,6 +97,7 @@ private enum abstract PackageEntryKind(String) to String {
 	final VendoredReflaxe = "vendored-reflaxe";
 	final Metadata = "metadata";
 	final PackageRunner = "package-runner";
+	final Tooling = "tooling";
 }
 
 private class PackageBuildError extends haxe.Exception {
@@ -214,7 +215,9 @@ private class PackageBuildConfig {
 			"license-policy.json",
 			"licenses/HAXE-GO-GENERATED-MIT.txt",
 			"licenses/HAXE-STDLIB-MIT.txt",
-			"Run.hx"
+			"Run.hx",
+			"scripts/dev/go-hx.sh",
+			"scripts/dev/haxe_go_watch.py"
 		]) {
 			PackagePathTools.requireFile(Path.join([sourceRoot, required]), 'required package file "${required}"');
 		}
@@ -556,8 +559,25 @@ private class PackageBuilder {
 		copyRequiredFile("licenses/HAXE-GO-GENERATED-MIT.txt", PackageEntryKind.Metadata);
 		copyRequiredFile("licenses/HAXE-STDLIB-MIT.txt", PackageEntryKind.Metadata);
 		copyRequiredFile("Run.hx", PackageEntryKind.PackageRunner);
+		copyDevelopmentTooling();
 		writePackagedHaxelib();
 		writePackageManifest();
+	}
+
+	/**
+		What: ships the canonical one-shot and managed-watch commands under the
+		installed package's `tools/` directory.
+
+		Why: scaffolded projects resolve their compiler through Haxelib and may not
+		have this source checkout beside them. Omitting the commands would make the
+		documented `npm run dev` work only for repository contributors.
+
+		How: copy the two explicit source authorities and record each mapping as
+		tooling provenance in the deterministic package manifest.
+	**/
+	function copyDevelopmentTooling():Void {
+		copyMappedFile(Path.join([config.sourceRoot, "scripts/dev/go-hx.sh"]), "tools/go-hx.sh", PackageEntryKind.Tooling);
+		copyMappedFile(Path.join([config.sourceRoot, "scripts/dev/haxe_go_watch.py"]), "tools/haxe_go_watch.py", PackageEntryKind.Tooling);
 	}
 
 	function prepareOutput():Void {

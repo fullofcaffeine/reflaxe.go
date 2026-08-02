@@ -15,9 +15,20 @@
       "repository": "https://github.com/HaxeFoundation/haxe.git",
       "commit": "e0b355c6be312c1b17382603f018cf52522ec651",
       "version": "4.3.7",
-      "license": "MIT",
+      "license": "mixed",
       "licensePath": "extra/LICENSE.txt",
-      "licenseSha256": "f84691d619932ebfd4fa3568f8311f87ed4bf12e747e9aaa619a92cb1d2d359d"
+      "licenseSha256": "f84691d619932ebfd4fa3568f8311f87ed4bf12e747e9aaa619a92cb1d2d359d",
+      "licenseScopeNote": "The pinned repository documents multiple licenses for different project parts. These tests/unit sources generally lack file-level notices, so this smoke records the repository evidence and does not assign one license to every selected test file.",
+      "licenseEvidence": [
+        {
+          "path": "README.md",
+          "sha256": "708b5a3386662e375c8bf90493687a764e9b7d251c500db854c8f76c570685ae"
+        },
+        {
+          "path": "extra/LICENSE.txt",
+          "sha256": "f84691d619932ebfd4fa3568f8311f87ed4bf12e747e9aaa619a92cb1d2d359d"
+        }
+      ]
     },
     "utest": {
       "repository": "https://github.com/haxe-utest/utest.git",

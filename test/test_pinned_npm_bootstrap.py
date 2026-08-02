@@ -17,7 +17,9 @@ BOOTSTRAP_PATH = ROOT / "scripts" / "ci" / "setup-pinned-npm.sh"
 RELEASE_CONTRACT_RUNNER = ROOT / "test" / "run-release-contracts.py"
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
 WORKFLOW_SETUP_COUNTS = {
-    "ci-harness.yml": 5,
+    # Quality, official inventory, tooling, both performance jobs, and release
+    # all invoke npm and therefore must use the pinned bootstrap first.
+    "ci-harness.yml": 6,
     "ci-quality.yml": 1,
     "security-static-analysis.yml": 1,
 }

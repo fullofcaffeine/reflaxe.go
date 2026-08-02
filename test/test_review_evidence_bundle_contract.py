@@ -73,6 +73,33 @@ class ReviewEvidenceBundleContractTest(unittest.TestCase):
         self.assertIn("<github-workspace>/test/run-ci.py:9", redacted)
         self.assertIn("src/reflaxe/go/GoCompiler.hx:42", redacted)
 
+    def test_repomix_scan_ignores_only_the_dedicated_path_fixture_file(self) -> None:
+        builder = load_builder()
+        fixture = r"D:\a\reflaxe.go\reflaxe.go\src\Main.hx:3"
+        fixture_block = (
+            '<file path="test/test_review_evidence_bundle_contract.py">\n'
+            f"{fixture}\n"
+            "</file>"
+        )
+        ordinary_block = (
+            '<file path="test/test_other_contract.py">\n'
+            f"{fixture}\n"
+            "</file>"
+        )
+        decision_log_block = (
+            '<file path=".audit/haxe_go-vfp.12.4.tsv">\n'
+            "archive failed closed on D:\\a\\ fixture\n"
+            "</file>"
+        )
+
+        self.assertEqual("D:\\a\\", builder.find_machine_path(fixture))
+        self.assertIsNone(builder.find_repomix_machine_path(fixture_block))
+        self.assertIsNone(builder.find_repomix_machine_path(decision_log_block))
+        self.assertEqual(
+            "D:\\a\\",
+            builder.find_repomix_machine_path(ordinary_block),
+        )
+
     def test_github_workspace_redaction_precedes_nested_runner_home(self) -> None:
         builder = load_builder()
         runner_home = "/" + "home" + "/runner"

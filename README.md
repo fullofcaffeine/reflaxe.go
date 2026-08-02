@@ -149,6 +149,7 @@ Full matrix: [docs/examples-matrix.md](docs/examples-matrix.md)
 - Profile perf harness: `npm run test:perf:go`
 - App perf harness: `npm run test:perf:apps`
 - New project: `npm run dev:new-project -- ./my_haxe_go_app`
+- Managed edit/rebuild/restart loop: `npm run dev -- --project <dir>`
 - Compile/run wrapper: `npm run dev:hx -- --project <dir> --profile <portable|metal> --action <compile|run|build|test|vet|fmt>`
 
 ## Output model

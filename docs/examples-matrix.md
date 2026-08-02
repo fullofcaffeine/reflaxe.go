@@ -13,15 +13,22 @@ provenance are enforced by `examples/qa-manifest.json`; see the
 [examples QA contract](examples-qa-contract.md). The labels below describe the
 teaching purpose and do not merge portable, native, runtime, or package claims.
 
-| Example | portable | metal | Purpose |
-| --- | --- | --- | --- |
-| `examples/profile_storyboard` | Yes | No | Portable-first release dashboard reference. |
-| `examples/tui_todo` | Yes | No | Portable-first deterministic CLI app reference. |
-| `examples/incident_api` | Yes | Yes | Runnable loopback HTTP service using Haxe stdlib sockets, JSON, config files, and file-backed state. It intentionally avoids `go.*`, Go externs, and raw `__go__`; `metal` is a preset-audit run, not a different app implementation. |
-| `examples/interop_smoke` | Yes | Yes | Typed interop smoke reference for `@:go.import`, `@:go.name`, `@:go.receiver`, `@:go.valueError` (`(T,error)` -> `go.Result<T>`), and package APIs (`fmt`/`time`/`context`/`net/http`/`strconv`). This app is intentionally preset-neutral, so generated Go is expected to be near-identical across presets. |
-| `examples/worker_pool_select` | Yes | Yes | Deterministic worker pool with channel fan-out plus typed `go.Select` helper flows (`recv`/`recv2`/`send`/`send2`). |
-| `examples/pulseforge` | Yes | Yes | Flagship app scaffold proving profile matrix + explicit variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
-| `examples/fluxproxy` | Yes | Yes | Flagship proxy scaffold with profile matrix + variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
+The word **release-bearing** means a successful lane may support only the exact
+portable-beta operations it names. It is stricter than ordinary example QA.
+
+| Example | portable | metal | Release-bearing? | Purpose |
+| --- | --- | --- | --- | --- |
+| `examples/portable_beta` | Yes | No | Yes, exact operation IDs only | Small real compiler/build/run path limited to beta-admitted language, data, reflection, file, and filesystem behavior. |
+| `examples/profile_storyboard` | Yes | No | No | Portable-first release dashboard reference. |
+| `examples/tui_todo` | Yes | No | No | Portable-first deterministic CLI app reference. |
+| `examples/incident_api` | Yes | Yes | No | Runnable loopback HTTP service using Haxe stdlib sockets, JSON, config files, and file-backed state. It intentionally avoids `go.*`, Go externs, and raw `__go__`; `metal` is a preset-audit run, not a different app implementation. |
+| `examples/interop_smoke` | Yes | Yes | No | Typed interop smoke reference for `@:go.import`, `@:go.name`, `@:go.receiver`, `@:go.valueError` (`(T,error)` -> `go.Result<T>`), and package APIs (`fmt`/`time`/`context`/`net/http`/`strconv`). This app is intentionally preset-neutral, so generated Go is expected to be near-identical across presets. |
+| `examples/worker_pool_select` | Yes | Yes | No | Deterministic worker pool with channel fan-out plus typed `go.Select` helper flows (`recv`/`recv2`/`send`/`send2`). |
+| `examples/pulseforge` | Yes | Yes | No | Flagship app scaffold proving profile matrix + explicit variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
+| `examples/fluxproxy` | Yes | Yes | No | Flagship proxy scaffold with profile matrix + variant lanes (`core` via `*.hxml`, `go_native` via `*.ci.hxml`). |
+
+A green non-release-bearing example still proves the behavior written in its
+README and expected output. It cannot add APIs to the public support matrix.
 
 Portable-only examples are intentional: if a second preset adds no useful
 policy or benchmark evidence, we avoid synthetic duplication.
@@ -34,11 +41,13 @@ policy or benchmark evidence, we avoid synthetic duplication.
 
 ## Native-adapter collection purity gates (legacy command names)
 
-Dual-profile examples use two collection-purity gates:
+Examples that declare a `metal` profile use two collection-purity gates:
 
 - Hard boundary gate:
   - `examples/*/app/runtime/GoNativeRuntime.hx`
-- Full-tree gate: audits `haxe.ds.*` imports across all example modules.
+- Full-tree gate: reads `examples/qa-manifest.json`, selects only examples whose
+  profile list includes `metal`, then audits every Haxe module in those example
+  trees. Portable-only examples are outside this metal scorecard.
 
 Commands:
 
@@ -60,6 +69,10 @@ CI:
   - `GO_METAL_COLLECTION_AUDIT_ENFORCE=1`
   - `GO_METAL_COLLECTION_AUDIT_MAX=0`
 - the job also uploads the full-scope audit artifact (`metal-collection-audit`).
+
+The manifest-based selection matters because a valid portable-only example may
+use an admitted Haxe collection without claiming a metal/native boundary. Its
+green or red result belongs to the portable example gates, not this one.
 
 Allowlist rule:
 

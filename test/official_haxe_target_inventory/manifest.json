@@ -1,0 +1,267 @@
+{
+  "schemaVersion": 1,
+  "claim": "extended applicable official Haxe tests/unit evidence for the portable compiler scorecard; not blanket Haxe conformance or release admission",
+  "productSurface": "portable-compiler",
+  "upstream": {
+    "haxe": {
+      "repository": "https://github.com/HaxeFoundation/haxe.git",
+      "commit": "e0b355c6be312c1b17382603f018cf52522ec651",
+      "version": "4.3.7",
+      "license": "mixed",
+      "licensePath": "extra/LICENSE.txt",
+      "licenseSha256": "f84691d619932ebfd4fa3568f8311f87ed4bf12e747e9aaa619a92cb1d2d359d",
+      "licenseScopeNote": "The pinned repository documents multiple licenses for different project parts. These tests/unit sources generally lack file-level notices, so this inventory records the repository evidence and does not assign one license to every selected test file.",
+      "licenseEvidence": [
+        {
+          "path": "README.md",
+          "sha256": "708b5a3386662e375c8bf90493687a764e9b7d251c500db854c8f76c570685ae"
+        },
+        {
+          "path": "extra/LICENSE.txt",
+          "sha256": "f84691d619932ebfd4fa3568f8311f87ed4bf12e747e9aaa619a92cb1d2d359d"
+        }
+      ]
+    },
+    "utest": {
+      "repository": "https://github.com/haxe-utest/utest.git",
+      "commit": "a94f8812e8786f2b5fec52ce9f26927591d26327",
+      "version": "1.13.2",
+      "license": "MIT",
+      "licenseEvidencePath": "haxelib.json",
+      "licenseEvidenceSha256": "4020bc923640ac1659cc12a26f5221ee0487a21ce8df38d070fc9cf7316ddfd7"
+    }
+  },
+  "candidateInventory": {
+    "counts": {
+      "top-level": 57,
+      "unitstd": 67,
+      "issue": 1079,
+      "hxcpp-issue": 8
+    },
+    "sha256": "10af5fe90b78c2775ec0dd8e0978175f18b440c5bf92c2b49e1d91d1799756fa"
+  },
+  "shards": {
+    "topOwnersPerShard": 1,
+    "issueOwnersPerShard": 90
+  },
+  "blockedOwnerFiles": [
+    {
+      "path": "blocked-issues.json",
+      "sha256": "57c765bb15e6ddfaadf9f3fa683c92f2fe880f111b59c682e6a1e21f77947085"
+    }
+  ],
+  "reviewedZeroRuntimeOwnerFiles": [
+    {
+      "path": "reviewed-zero-runtime-owners.json",
+      "sha256": "206469a566d7f6b24f68a460a67d64c0c144f3a76a217a750f770b3ed5f884ad"
+    }
+  ],
+  "blockedOwners": [
+    {"path": "unit/TestHttp.hx", "reason": "applicable HTTP behavior requires the upstream asynchronous runner and external echo-server environment; blocked by haxe_go-vfp.12.12.4"},
+    {"path": "unitstd/AnonFieldAccess.unit.hx", "reason": "generated Go loses structural array field and function typing"},
+    {"path": "unitstd/Array.unit.hx", "reason": "the isolated adapter does not yet stage required TestSpecification support types"},
+    {"path": "unitstd/EvaluationOrder.unit.hx", "reason": "generated Go erases dynamically accessed ordered fields"},
+    {"path": "unitstd/Lambda.unit.hx", "reason": "generated Go treats void and null function expressions as callable values"},
+    {"path": "unitstd/Map.unit.hx", "reason": "staged MapKeyValueIterator expects keys on haxe.IMap"},
+    {"path": "unitstd/Math.unit.hx", "reason": "generated Go emits constant division by zero and confuses Math type values with the Go package"},
+    {"path": "unitstd/Reflect.unit.hx", "reason": "the isolated adapter does not yet stage required TestSpecification support types"},
+    {"path": "unitstd/Std.unit.hx", "reason": "the isolated adapter does not yet stage required TestSpecification support types"},
+    {"path": "unitstd/String.unit.hx", "reason": "generated Go contains incompatible string and dynamic operations"},
+    {"path": "unitstd/StringBuf.unit.hx", "reason": "the generated target fails an upstream runtime assertion"},
+    {"path": "unitstd/StringTools.unit.hx", "reason": "generated Go retains unsupported utest dynamic-comparison paths"},
+    {"path": "unitstd/Type.unit.hx", "reason": "the isolated adapter does not yet stage required TestSpecification support types"},
+    {"path": "unitstd/Unicode.unit.hx", "reason": "staged MapKeyValueIterator expects get on haxe.IMap"},
+    {"path": "unitstd/UnicodeString.unit.hx", "reason": "generated Go retains unsupported utest dynamic-comparison paths"},
+    {"path": "unitstd/haxe/DynamicAccess.unit.hx", "reason": "generated Go erases dynamic object fields"},
+    {"path": "unitstd/haxe/EnumFlags.unit.hx", "reason": "the isolated adapter does not yet stage required TestSpecification support types"},
+    {"path": "unitstd/haxe/Log.unit.hx", "reason": "generated Go gives the trace callback an incompatible argument type"},
+    {"path": "unitstd/haxe/Template.unit.hx", "reason": "generated Go does not recover numeric values returned by the dynamic resolver"},
+    {"path": "unitstd/haxe/Utf8.unit.hx", "reason": "the generated target fails an upstream runtime assertion"},
+    {"path": "unitstd/haxe/atomic/AtomicObject.unit.hx", "reason": "the generated target fails an upstream runtime assertion"},
+    {"path": "unitstd/haxe/crypto/Crc32.unit.hx", "reason": "generated Go references a missing Crc32 implementation symbol"},
+    {"path": "unitstd/haxe/crypto/Hmac.unit.hx", "reason": "generated Go references missing HashMethod enum symbols"},
+    {"path": "unitstd/haxe/ds/BalancedTree.unit.hx", "reason": "staged MapKeyValueIterator expects get on haxe.IMap"},
+    {"path": "unitstd/haxe/ds/EnumValueMap.unit.hx", "reason": "the isolated adapter does not yet stage required TestSpecification support types"},
+    {"path": "unitstd/haxe/ds/IntMap.unit.hx", "reason": "staged MapKeyValueIterator expects get on haxe.IMap"},
+    {"path": "unitstd/haxe/ds/ObjectMap.unit.hx", "reason": "the isolated adapter does not yet stage required TestSpecification support types"},
+    {"path": "unitstd/haxe/ds/StringMap.unit.hx", "reason": "staged MapKeyValueIterator expects get on haxe.IMap"},
+    {"path": "unitstd/haxe/ds/Vector.unit.hx", "reason": "the isolated adapter does not yet stage required TestSpecification support types"},
+    {"path": "unitstd/haxe/io/Float32Array.unit.hx", "reason": "generated Go omits required Int-to-Float conversion for FPHelper"},
+    {"path": "unitstd/haxe/io/Float64Array.unit.hx", "reason": "generated Go omits required Int-to-Float conversion for FPHelper"},
+    {"path": "unitstd/haxe/io/Int32Array.unit.hx", "reason": "generated Go leaves a value-returning integer expression as an unused statement"},
+    {"path": "unitstd/haxe/io/UInt16Array.unit.hx", "reason": "generated Go leaves a value-returning integer expression as an unused statement"},
+    {"path": "unitstd/haxe/io/UInt32Array.unit.hx", "reason": "generated Go leaves a value-returning integer expression as an unused statement"},
+    {"path": "unitstd/haxe/io/UInt8Array.unit.hx", "reason": "generated runtime indexing panics instead of producing the expected Haxe behavior"},
+    {"path": "unitstd/haxe/macro/ExprTools.unit.hx", "reason": "generated Go references missing macro enum and compiler-reflection symbols"},
+    {"path": "unitstd/haxe/rtti/Rtti.unit.hx", "reason": "the isolated adapter does not yet stage required TestSpecification support types"},
+    {
+      "path": "unit/TestArrowFunctions.hx",
+      "reason": "target compilation fails because staged MapKeyValueIterator sees haxe.IMap without get"
+    },
+    {
+      "path": "unit/TestBasetypes.hx",
+      "reason": "generated Go loses required abstract, dynamic, array, string, and iterator typing"
+    },
+    {
+      "path": "unit/TestBytes.hx",
+      "reason": "generated Go emits negative constant indexes and compares string pointers directly"
+    },
+    {
+      "path": "unit/TestCasts.hx",
+      "reason": "generated Go does not recover typed function and collection values after casts"
+    },
+    {
+      "path": "unit/TestDefaultTypeParameters.hx",
+      "reason": "generated Go retains unsupported utest dynamic-comparison paths for this reflection-heavy owner"
+    },
+    {
+      "path": "unit/TestConstrainedMonomorphs.hx",
+      "reason": "generated Go erases constrained structural members to any"
+    },
+    {
+      "path": "unit/TestDCE.hx",
+      "reason": "generated Go loses concrete object and callable types in DCE fixtures"
+    },
+    {
+      "path": "unit/TestExceptions.hx",
+      "reason": "pinned source has no Go branch defining CustomNativeException"
+    },
+    {
+      "path": "unit/TestEReg.hx",
+      "reason": "generated Go loses the concrete EReg callback receiver type"
+    },
+    {
+      "path": "unit/TestFieldVariance.hx",
+      "reason": "generated Go cannot assign variance fixture instances to their structural object type"
+    },
+    {
+      "path": "unit/TestGADT.hx",
+      "reason": "generated Go erases GADT evaluation results before arithmetic"
+    },
+    {
+      "path": "unit/TestGeneric.hx",
+      "reason": "generated Go references a generic fixture type that was not emitted"
+    },
+    {
+      "path": "unit/TestHashMap.hx",
+      "reason": "portable HashMap array-access syntax is not yet accepted"
+    },
+    {
+      "path": "unit/TestInt64.hx",
+      "reason": "Haxe 4.3.7 filter crashes while compiling the selected Int64 owner through haxe.go"
+    },
+    {
+      "path": "unit/TestInterface.hx",
+      "reason": "generated Go does not preserve structural interface variance and dynamic interface access"
+    },
+    {
+      "path": "unit/TestJson.hx",
+      "reason": "generated Go does not recover structural fields from parsed JSON values"
+    },
+    {
+      "path": "unit/TestKeyValueIterator.hx",
+      "reason": "generated Go calls an unavailable Array.sort member in iterator fixtures"
+    },
+    {
+      "path": "unit/TestLocals.hx",
+      "reason": "generated Go erases function values retrieved from arrays"
+    },
+    {
+      "path": "unit/TestMacro.hx",
+      "reason": "haxe.go emits a literal NUL byte in generated haxe.macro.Printer Go source"
+    },
+    {
+      "path": "unit/TestMatch.hx",
+      "reason": "haxe.go emits invalid Go syntax for this pattern-matching owner"
+    },
+    {
+      "path": "unit/TestMapComprehension.hx",
+      "reason": "generated Go specializes compatible map comprehensions to incompatible concrete map types"
+    },
+    {
+      "path": "unit/TestMeta.hx",
+      "reason": "generated Go loses metadata structures and calls an unavailable Array.sort member"
+    },
+    {
+      "path": "unit/TestMisc.hx",
+      "reason": "generated Go loses interface variance, optional-argument, and dynamic-call typing"
+    },
+    {
+      "path": "unit/TestNull.hx",
+      "reason": "generated Go lowers a nullable integer storage location to non-nullable int"
+    },
+    {
+      "path": "unit/TestNullCoalescing.hx",
+      "reason": "generated Go loses nullable scalar and structural typing across null-coalescing expressions"
+    },
+    {
+      "path": "unit/TestNumericCasts.hx",
+      "reason": "generated Go emits incompatible numeric type assertions without the required conversion"
+    },
+    {
+      "path": "unit/TestOps.hx",
+      "reason": "generated Go loses indexable values and emits an unavailable String.indexOf member"
+    },
+    {
+      "path": "unit/TestReflect.hx",
+      "reason": "pinned static-target expectation omits Go and types empty-instance Int fields as null"
+    },
+    {
+      "path": "unit/TestRest.hx",
+      "reason": "generated Go confuses Haxe rest-array storage with native Go slices"
+    },
+    {
+      "path": "unit/TestSerialize.hx",
+      "reason": "generated Go loses concrete values after generic identity and unserialization operations"
+    },
+    {
+      "path": "unit/TestSerializerCrossTarget.hx",
+      "reason": "target compilation fails because staged MapKeyValueIterator sees haxe.IMap without get"
+    },
+    {
+      "path": "unit/TestType.hx",
+      "reason": "generated Go loses class, abstract, field-list, and covariance typing"
+    },
+    {
+      "path": "unit/TestXML.hx",
+      "reason": "generated Go loses typed XML iterator members"
+    },
+    {
+      "path": "unit/issues/Issue11402.hx",
+      "reason": "haxe.go lowering rejects a TBreak expression in this owner"
+    }
+  ],
+  "inapplicableRules": [
+    "target-specific owners selected only by another Haxe backend",
+    "upstream support or disabled modules not registered as test owners",
+    "owners with no Go-active behavior because their pinned source is target-gated or explicitly disabled"
+  ],
+  "inapplicableOwners": [
+    {"path": "unit/Test.hx", "reason": "upstream test base class, not a registered owner"},
+    {"path": "unit/TestCSharp.hx", "reason": "selected only for the C# target"},
+    {"path": "unit/TestHL.hx", "reason": "selected only for the HashLink target"},
+    {"path": "unit/TestIssues.hx", "reason": "upstream discovery macro, not a registered owner"},
+    {"path": "unit/TestJava.hx", "reason": "selected only for Java"},
+    {"path": "unit/TestLua.hx", "reason": "selected only for Lua"},
+    {"path": "unit/TestMain.hx", "reason": "upstream harness, not a registered owner"},
+    {"path": "unit/TestModuleStatics.hx", "reason": "support module, not registered by TestMain"},
+    {"path": "unit/TestModuleStaticsMacro.hx", "reason": "macro support module, not registered by TestMain"},
+    {"path": "unit/TestOverloads.hx", "reason": "selected only for Java or C#"},
+    {"path": "unit/TestPhp.hx", "reason": "selected only for PHP"},
+    {"path": "unit/TestPython.hx", "reason": "selected only for Python"},
+    {"path": "unit/TestUInt.hx", "reason": "support module, not registered by TestMain"},
+    {"path": "unit/TestUnspecified.hx", "reason": "explicitly disabled in pinned TestMain"}
+  ],
+  "activeRuntimeBaselineFile": {
+    "path": "active-runtime-baseline.json",
+    "sha256": "4dd348f20c18098c2e0e5c0b0bc843095cf757d86f69f7163996bd20a20c1230"
+  },
+  "classificationBaseline": {
+    "counts": {
+      "active": 607,
+      "blocked": 480,
+      "inapplicable": 124
+    },
+    "sha256": "987c5c8e74536fb35d69c97cefbaee5503e57d6840ea1b2e5eb3bffa7f0bacee"
+  }
+}

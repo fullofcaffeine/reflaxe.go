@@ -21,23 +21,24 @@
         "metal": "Portable semantic preset-invariance evidence only; it is not Go-native API evidence."
       },
       "focusedOwners": ["snapshot-portable", "negative-diagnostics", "portable-policy"],
-      "verticalOwners": ["semantic-diff-portable", "portable-example-smoke", "isolated-haxelib-smoke", "official-haxe-target-smoke"],
-      "realRuntimeOrSystemOwners": ["semantic-diff-portable", "portable-example-smoke", "official-haxe-target-smoke"],
-      "examples": ["profile_storyboard", "tui_todo", "incident_api", "pulseforge", "fluxproxy"],
+      "verticalOwners": ["semantic-diff-portable", "portable-example-smoke", "isolated-haxelib-smoke", "official-haxe-target-smoke", "official-haxe-target-inventory"],
+      "realRuntimeOrSystemOwners": ["semantic-diff-portable", "portable-example-smoke", "official-haxe-target-smoke", "official-haxe-target-inventory"],
+      "examples": ["portable_beta", "profile_storyboard", "tui_todo", "incident_api", "pulseforge", "fluxproxy"],
       "upstreamOracleAndPin": [
         "Haxe 4.3.7 behavior through --interp where the same source has a faithful portable contract",
         "docs/toolchain-policy.json",
         "test/portable_conformance_tier1.json"
       ],
-      "adaptations": ["repository-owned portable Tier 1 mapping", "three-family pinned official target smoke with explicitly recorded target and assertion adapters"],
-      "knownSkips": ["complete pinned official Haxe tests/unit active inventory beyond the three-family smoke"],
+      "adaptations": ["repository-owned portable Tier 1 mapping", "three-family pinned official target smoke with explicitly recorded target and assertion adapters", "complete pinned tests/unit owner inventory with provenance-recorded typed harness adapters"],
+      "knownSkips": ["480 applicable owners are explicitly blocked by named compiler, generated-Go, runtime, environment, compile-only-observer, or harness-support gaps"],
       "quarantines": [],
       "selectorOwnership": ["portable-compiler", "portable-provenance"],
       "fullBackstopCommand": "npm run test:ci",
       "releaseCommand": "npm run release:readiness",
       "lastCleanProof": "commit 7188fea2, CI Harness run 30666284175 and CI - Quality run 30666284172",
       "residualRisks": [
-        "The three-family pinned official target smoke is not the complete applicable Haxe tests/unit inventory.",
+        "The extended inventory executes 650 active test methods across 607 owners; its 480 blocked owners remain gaps rather than conformance passes.",
+        "The inventory is Linux cold evidence in R4/R5 and does not replace the fast required-PR smoke.",
         "Only explicitly admitted compatibility operations contribute to the beta claim."
       ],
       "officialHaxeTargetSuiteApplies": true
@@ -88,7 +89,7 @@
       "focusedOwners": ["hxrt-go-tests", "stdlib-contracts", "runtime-slicing"],
       "verticalOwners": ["semantic-diff-portable", "runtime-snapshot-smokes", "stdlib-go-test-sweep"],
       "realRuntimeOrSystemOwners": ["hxrt-race-checkptr", "runtime-snapshot-smokes", "network-loopback"],
-      "examples": ["incident_api", "tui_todo", "pulseforge", "fluxproxy"],
+      "examples": ["portable_beta", "incident_api", "tui_todo", "pulseforge", "fluxproxy"],
       "upstreamOracleAndPin": ["Haxe 4.3.7 std behavior where differential execution is faithful", "Go runtime invariants", "docs/stdlib-provenance-ledger.json"],
       "adaptations": ["canonical std/go/_std overrides and typed std/hxrt bindings"],
       "knownSkips": ["target-sensitive surfaces intentionally kept out of semantic diff", "runtime admission outside named platforms"],
@@ -115,8 +116,8 @@
       "supportedProfiles": ["portable", "metal"],
       "testedProfiles": ["portable", "metal"],
       "focusedOwners": ["negative-diagnostics", "report-schema", "compiler-debt"],
-      "verticalOwners": ["generated-output-confinement", "developer-wrapper-contracts"],
-      "realRuntimeOrSystemOwners": ["isolated-haxelib-smoke"],
+      "verticalOwners": ["generated-output-confinement", "developer-wrapper-contracts", "managed-development-watch"],
+      "realRuntimeOrSystemOwners": ["isolated-haxelib-smoke", "haxe-go-watch-tracer"],
       "examples": [],
       "upstreamOracleAndPin": ["manually authored exact diagnostic substrings", "versioned report schemas"],
       "adaptations": [],
@@ -126,7 +127,7 @@
       "fullBackstopCommand": "npm test",
       "releaseCommand": "npm run release:readiness",
       "lastCleanProof": "commit 7188fea2, CI Harness run 30666284175",
-      "residualRisks": ["The managed watch/compiler-server loop remains owned by haxe_go-vfp.12.8."],
+      "residualRisks": ["Windows process lifecycle remains compile-only; undeclared custom macro inputs require an explicit --watch-dir."],
       "officialHaxeTargetSuiteApplies": false
     },
     {
@@ -137,7 +138,8 @@
       "status": "partial",
       "claims": [
         "The release ZIP installs in isolation and the maintained examples compile, pass strict Go checks, execute, and match manually reviewed output at their declared tiers.",
-        "An example proves only its listed profiles, product surfaces, and execution mode."
+        "An example proves only its listed profiles, product surfaces, and execution mode.",
+        "Only release-bearing lanes may publish portable-beta operation evidence, and every operation must resolve to a release-admitted compatibility entry."
       ],
       "authoredInputs": ["installed haxelib package", "maintained example Haxe programs"],
       "producedOutputs": ["consumer Go modules", "example binaries and stdout", "release artifacts"],
@@ -146,7 +148,7 @@
       "focusedOwners": ["package-layout", "example-manifest"],
       "verticalOwners": ["isolated-haxelib-smoke", "all-examples"],
       "realRuntimeOrSystemOwners": ["all-examples", "example-binary-matrix"],
-      "examples": ["fluxproxy", "incident_api", "interop_smoke", "profile_storyboard", "pulseforge", "tui_todo", "worker_pool_select"],
+      "examples": ["portable_beta", "fluxproxy", "incident_api", "interop_smoke", "profile_storyboard", "pulseforge", "tui_todo", "worker_pool_select"],
       "upstreamOracleAndPin": ["manually reviewed expected/*.stdout", "public package layout and release policy"],
       "adaptations": ["CI HXML variants exercise declared application variants"],
       "knownSkips": ["no external third-party downstream corpus yet"],
@@ -191,7 +193,7 @@
     {
       "id": "R4",
       "name": "main and weekly backstop",
-      "command": "master runs CI Harness and the Quality matrix; the weekly CI Harness repeats the stable graph plus security, tooling, performance, and example artifact jobs",
+      "command": "master and weekly CI Harness run the supported-Go official Haxe target inventory plus the stable graph, security, tooling, performance, and example artifact jobs; the Quality matrix remains the required-PR cross-platform backstop",
       "coldPolicy": "CI Harness runs cold on master and weekly; Quality runs on pull requests and master pushes, not the weekly schedule",
       "warmPolicy": "not applicable to full claim evidence"
     },
@@ -209,9 +211,13 @@
       "snapshotOwners": 313,
       "portableSemanticDiffOwners": 155,
       "laneSemanticDiffOwners": 1,
-      "exampleProfileOwners": 12,
+      "exampleProfileOwners": 13,
       "strictStdlibModules": 55,
-      "fullPortableEligibleStdlibModules": 175
+      "fullPortableEligibleStdlibModules": 175,
+      "officialHaxeCandidateOwners": 1211,
+      "officialHaxeActiveOwners": 607,
+      "officialHaxeActiveMethods": 650,
+      "officialHaxeBlockedOwners": 480
     },
     "interpretation": "The compiler portfolio has a large focused generated-shape base and substantial real Haxe-to-Go execution. Exact ratio publication is deferred until overlapping semantic-diff, runtime, and example owners have stable non-overlapping identities. Static, policy, security, freshness, and schema checks stay outside the ratio."
   },
@@ -247,6 +253,14 @@
       "commands": ["npm run test:official-haxe-smoke"],
       "rings": ["R1", "R2", "R4", "R5"],
       "alwaysRun": true
+    },
+    {
+      "id": "official-haxe-target-inventory",
+      "surfaces": ["portable-compiler"],
+      "patterns": ["test/official_haxe_target_inventory/**", "test/run-official-haxe-target-inventory.py", "test/test_official_haxe_target_inventory_contract.py", "docs/official-haxe-target-inventory.md", "src/reflaxe/go/**", "std/go/_std/**", "std/hxrt/**", "runtime/hxrt/**", "scripts/release/package-haxelib.sh"],
+      "commands": ["npm run test:official-haxe-inventory"],
+      "rings": ["R4", "R5"],
+      "alwaysRun": false
     },
     {
       "id": "harness-failure-propagation",
@@ -292,8 +306,8 @@
     {
       "id": "diagnostics-tooling",
       "surfaces": ["diagnostics-tooling"],
-      "patterns": ["test/snapshot/negative/**", "scripts/dev/**", "docs/defines-reference.md", "docs/compiler-debt-ratchet.md", "test/*policy*.json"],
-      "commands": ["npm run test:negative", "npm run test:compiler-debt"],
+      "patterns": ["test/snapshot/negative/**", "scripts/dev/**", "templates/basic/scripts/dev/**", "templates/basic/package.json", "docs/defines-reference.md", "docs/compiler-debt-ratchet.md", "docs/development-watch-loop.md", "test/test_dev_watch.py", "test/*policy*.json"],
+      "commands": ["npm run test:negative", "npm run test:compiler-debt", "npm run test:dev-watch"],
       "rings": ["R0", "R2", "R4", "R5"],
       "alwaysRun": false
     },

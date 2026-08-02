@@ -95,6 +95,18 @@ Expected impact:
 
 Conclusion: immediate full-build hard fail is high-cost for current roadmap stage.
 
+## Current implementation note (2026-08-02)
+
+The repository has since reached a zero-violation full-tree gate for examples
+that actually declare a `metal` profile. Target selection now comes from
+`examples/qa-manifest.json`: dual-profile examples are scanned, while
+portable-only examples are not treated as metal builds. The strict adapter
+boundary gate remains independent and unchanged in purpose.
+
+This is a scope correction, not an exception. A portable-only example still
+runs its own compiler/build/runtime contracts, but an ordinary admitted Haxe
+collection in that source cannot fail the unrelated metal scorecard.
+
 ## Proposed CI strategy
 
 ## Stage A (now)
