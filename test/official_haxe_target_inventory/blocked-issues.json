@@ -1,0 +1,2420 @@
+{
+  "claimEvidence": false,
+  "kind": "haxe.go-official-inventory-blocked-issue-owners",
+  "records": [
+    {
+      "evidence": "./module_unit_hxcpp_issues_issue189.go:34:15: cannot use second.(int) (comma, ok expression of type int) as float64 value in assignment",
+      "path": "unit/hxcpp_issues/Issue189.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_hxcpp_issues_string.go:55:34: invalid operation: cannot call Reflect_field(self, hxrt.StringFromLiteral(\"z\")) (value of interface type any): any is not a function",
+      "path": "unit/hxcpp_issues/String.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10007.go:29:58: cannot use o (variable of interface type any) as *unit__issues___Issue10007__Impl value in argument to unit__issues___Issue10007__Abstract_Impl__isImpl: need type assertion",
+      "path": "unit/issues/Issue10007.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:62:1: missing return",
+      "path": "unit/issues/Issue10012.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:62:1: missing return",
+      "path": "unit/issues/Issue10030.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10041.go:25:159: haxe__rtti__Meta_getType(&hxrt__TypeClassValue{…}).mark undefined (type any has no field or method mark)",
+      "path": "unit/issues/Issue10041.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10052.go:31:46: cannot index this1 (variable of interface type any)",
+      "path": "unit/issues/Issue10052.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10066.go:28:6: foo.Push undefined (type any has no field or method Push)",
+      "path": "unit/issues/Issue10066.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10073.go:26:5: cannot index foo (variable of interface type any)",
+      "path": "unit/issues/Issue10073.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue10083.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue10098.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10124.go:118:12: cannot use []float64{…} (value of type []float64) as []any value in argument to rest",
+      "path": "unit/issues/Issue10124.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10145.go:26:46: cannot use x (variable of interface type any) as unit__issues___Issue10145__I value in argument to unit__issues___Issue10145__A_Impl__toT: any does not implement unit__issues___Issue10145__I (missing method get)",
+      "path": "unit/issues/Issue10145.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10205.go:46:5: cannot use r (variable of type *hxrt.Array) as []*string value in argument to func(src []*string) []*string {…}",
+      "path": "unit/issues/Issue10205.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:111:1: missing return",
+      "path": "unit/issues/Issue10259.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10304.go:41:12: cannot use _g.prev (variable of interface type any) as *string value in assignment: need type assertion",
+      "path": "unit/issues/Issue10304.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10315.go:28:10: cannot use this1 (variable of interface type any) as *string value in return statement: need type assertion",
+      "path": "unit/issues/Issue10315.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10343.go:38:36: cannot use str (variable of interface type any) as *string value in argument to hxrt.StringLengthStringPtr: need type assertion",
+      "path": "unit/issues/Issue10343.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue10455.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue10565.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10600.go:35:6: a.Get undefined (type any has no field or method Get)",
+      "path": "unit/issues/Issue10600.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue10684.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10709.go:72:38: undefined: haxe__ds__StringMap",
+      "path": "unit/issues/Issue10709.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x140000123e0",
+      "path": "unit/issues/Issue10752.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10761.go:90:11: cannot use this1_3 (variable of type *hxrt.Array) as []int value in return statement",
+      "path": "unit/issues/Issue10761.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue10834.go:28:19: cannot index self.a (variable of interface type any)",
+      "path": "unit/issues/Issue10834.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x1400011e340",
+      "path": "unit/issues/Issue10867.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_utest_assert.go:111:1: missing return",
+      "path": "unit/issues/Issue10906.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue11040.go:41:25: text.indexOf undefined (type *string has no field or method indexOf)",
+      "path": "unit/issues/Issue11040.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue11212.go:31:15: invalid operation: cannot call foo (variable of interface type any): any is not a function",
+      "path": "unit/issues/Issue11212.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue11317.go:25:8: array.resize undefined (type *hxrt.Array has no field or method resize)",
+      "path": "unit/issues/Issue11317.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x14000012860",
+      "path": "unit/issues/Issue11560.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue12149.go:119:13: body.shape undefined (type any has no field or method shape)",
+      "path": "unit/issues/Issue12149.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue1284.go:66:14: undefined: New_haxe__macro__Error",
+      "path": "unit/issues/Issue1284.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue1492.go:35:58: d.myNativeFunc undefined (type any has no field or method myNativeFunc)",
+      "path": "unit/issues/Issue1492.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue1810.go:36:52: cannot use unit__issues___Issue1810__A_Impl__get(a) (value of interface type any) as *unit__issues___Issue1810__X value in argument to unit__issues___Issue1810__T_Impl__get: need type assertion",
+      "path": "unit/issues/Issue1810.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue1997.go:26:11: arr.push undefined (type *hxrt.Array has no field or method push, but does have method Push)",
+      "path": "unit/issues/Issue1997.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2003.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2042.go:27:12: m.someMeta undefined (type any has no field or method someMeta)",
+      "path": "unit/issues/Issue2042.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2086.go:101:9: node.func_ undefined (type any has no field or method func_)",
+      "path": "unit/issues/Issue2086.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2130.go:70:5: invalid operation: v < 0 (operator < not defined on interface)",
+      "path": "unit/issues/Issue2130.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: interface conversion: interface {} is nil, not int",
+      "path": "unit/issues/Issue2224.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2235.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2244.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2254.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2271.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x1400012c340",
+      "path": "unit/issues/Issue2272.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2281.go:29:25: invalid operation: fint.val + 1 (mismatched types any and int)",
+      "path": "unit/issues/Issue2281.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2304.go:58:11: o.field undefined (type unit__issues___Issue2304__ITest has no field or method field)",
+      "path": "unit/issues/Issue2304.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2378.go:74:17: arg_aliases.concat undefined (type *hxrt.Array has no field or method concat)",
+      "path": "unit/issues/Issue2378.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2380.go:32:8: cls.test undefined (type any has no field or method test)",
+      "path": "unit/issues/Issue2380.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2401.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2409.go:26:78: invalid operation: operator + not defined on f (variable of interface type any)",
+      "path": "unit/issues/Issue2409.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2521.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2558.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2564.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2610.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2614.go:28:56: cannot use fInt (variable of interface type any) as func() any value in argument to unit__issues___Issue2614__Lazy_Impl__evaluate: need type assertion",
+      "path": "unit/issues/Issue2614.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2619.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2622.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x1400008e400",
+      "path": "unit/issues/Issue2623.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2625.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2627.go:62:9: invalid operation: float64(self.field) - x (mismatched types float64 and int)",
+      "path": "unit/issues/Issue2627.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "OFFICIAL_HAXE_INVENTORY_RECORD\tunit.issues.Issue2629.testTypeParameter\tpass\t1",
+      "path": "unit/issues/Issue2629.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2633.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2634.go:25:7: undefined: New_String",
+      "path": "unit/issues/Issue2634.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2639.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2640.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2646.go:35:10: invalid operation: func(hx_obj_56 map[string]any) bool {…}(b) == nil (mismatched types bool and untyped nil)",
+      "path": "unit/issues/Issue2646.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2648.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2653.go:94:7: self.i undefined (type *unit__issues___Issue2653__BasicTexture has no field or method i)",
+      "path": "unit/issues/Issue2653.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2661.go:35:38: invalid operation: operator + not defined on func() any {…}() (value of interface type any)",
+      "path": "unit/issues/Issue2661.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: interface conversion: interface {} is int, not float64",
+      "path": "unit/issues/Issue2663.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2664.go:45:46: buf.toString undefined (type *string has no field or method toString)",
+      "path": "unit/issues/Issue2664.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2675.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2676.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2685.go:28:87: cannot use a (variable of interface type any) as map[string]any value in argument to unit__issues___Issue2685__A_Impl__toDynamic: need type assertion",
+      "path": "unit/issues/Issue2685.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2696.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2698.go:187:9: cannot use Std_parseInt(this1) (value of interface type any) as int value in return statement: need type assertion",
+      "path": "unit/issues/Issue2698.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2712.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2713.go:26:48: cannot use v (variable of interface type any) as *hxrt.Array value in argument to unit__issues___Issue2713__MyVector_Impl__push: need type assertion",
+      "path": "unit/issues/Issue2713.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2716.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue2718.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2720.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2722.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2728.go:47:7: cannot use d (variable of interface type any) as map[string]any value in assignment: need type assertion",
+      "path": "unit/issues/Issue2728.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2735.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2736.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2750.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2755.go:26:17: f.initialized undefined (type any has no field or method initialized)",
+      "path": "unit/issues/Issue2755.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2763.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2766.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2767.go:29:6: _e.Push undefined (type any has no field or method Push)",
+      "path": "unit/issues/Issue2767.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-03-a-b-a-a-a-b/unit/issues/Issue2776.hx:13: characters 3-47 : Unknown identifier : eq",
+      "path": "unit/issues/Issue2776.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2785.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2786.go:26:15: invalid operation: operator | not defined on any(1) (value of interface type any)",
+      "path": "unit/issues/Issue2786.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2792.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2809.go:36:9: val.tag undefined (type any has no field or method tag)",
+      "path": "unit/issues/Issue2809.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2810.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2813.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2823.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2835.go:112:9: cannot use self.value (variable of interface type any) as float64 value in return statement: need type assertion",
+      "path": "unit/issues/Issue2835.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2844.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2845.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: interface conversion: interface {} is nil, not int",
+      "path": "unit/issues/Issue2871.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2874.go:57:39: cannot index a2 (variable of interface type any)",
+      "path": "unit/issues/Issue2874.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2889.go:29:10: cannot use func(hx_obj_56 map[string]any) func(func(any) any) *hxrt.Array {…}(m)(f) (value of type *hxrt.Array) as map[string]any value in return statement",
+      "path": "unit/issues/Issue2889.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2900.go:34:4: cannot use objs (variable of type *hxrt.Array) as map[string]any value in argument to func(hx_obj_56 map[string]any) func() map[string]any {…}",
+      "path": "unit/issues/Issue2900.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2907.go:50:1: missing return",
+      "path": "unit/issues/Issue2907.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue2917.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x14000012450",
+      "path": "unit/issues/Issue2928.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2933.go:30:76: cannot use b (variable of interface type any) as map[string]any value in argument to unit__issues___Issue2933__B_Impl__getA: need type assertion",
+      "path": "unit/issues/Issue2933.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2937.go:27:27: cannot use func(args *hxrt.Array) {…} (value of type func(args *hxrt.Array)) as func(*hxrt.Array) any value in argument to Reflect_makeVarArgs",
+      "path": "unit/issues/Issue2937.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2951.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue2960.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue2963.go:63:17: x.k undefined (type any has no field or method k)",
+      "path": "unit/issues/Issue2963.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue2990.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue3023.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/vendor/reflaxe/src/reflaxe/ReflectCompiler.hx:175: characters 3-19 : Called from here",
+      "path": "unit/issues/Issue3024.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue3063.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3071.go:33:4: cannot use a (variable of type *hxrt.Array) as map[string]any value in argument to func(hx_obj_105 map[string]any) func(*string) *string {…}",
+      "path": "unit/issues/Issue3071.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3081.go:33:4: cannot use c (variable of type *unit__issues___Issue3081__C) as map[string]any value in argument to func(hx_obj_56 map[string]any) func() *string {…}",
+      "path": "unit/issues/Issue3081.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue3084.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-03-b-b-b-b-a-b-a/unit/issues/Issue3089.hx:11: characters 3-80 : Unknown identifier : eq",
+      "path": "unit/issues/Issue3089.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "[GO-OUTPUT-PATH-006] Refused generated output: the destination could not be written.",
+      "path": "unit/issues/Issue3090.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3113.go:33:4: cannot use t (variable of type *hxrt__TypeClassValue) as map[string]any value in argument to func(hx_obj_56 map[string]any) func(any, any) any {…}",
+      "path": "unit/issues/Issue3113.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3118.go:58:12: hx_arr_56.Push undefined (type any has no field or method Push)",
+      "path": "unit/issues/Issue3118.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3159.go:39:45: cannot use dmet (variable of type *unit__issues___Issue3159__DynamicMethod) as unit__issues__IHasDynamicMethod value in variable declaration: *unit__issues___Issue3159__DynamicMethod does not implement unit__issues__IHasDynamicMethod (*unit__issues___Issue3159__DynamicMethod.foo is a field, not a method)",
+      "path": "unit/issues/Issue3159.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue3191.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-04-a-a-b-b-a-b-b/unit/issues/Issue3197.hx:8: characters 31-36 : Unsupported expression :: TBreak",
+      "path": "unit/issues/Issue3197.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-04-a-a-b-b-b-b-b/generated/module_haxe_macro_printer.go:126:610: illegal character NUL",
+      "path": "unit/issues/Issue3205.hx",
+      "reason": "isolated owner generates syntactically invalid Go",
+      "stage": "gofmt"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3214.go:72:9: cannot use this1 (variable of interface type any) as int value in return statement: need type assertion",
+      "path": "unit/issues/Issue3214.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3217.go:26:3: cannot index t (variable of type *unit__issues___Issue3217__NativeClass)",
+      "path": "unit/issues/Issue3217.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3218.go:29:13: invalid operation: cannot call a (variable of interface type any): any is not a function",
+      "path": "unit/issues/Issue3218.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3248.go:40:10: cannot use this1 (variable of type []*unit__issues___Issue3248__Foo) as []any value in return statement",
+      "path": "unit/issues/Issue3248.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:24: characters 19-23 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field keys",
+      "path": "unit/issues/Issue3292.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3297.go:33:4: cannot use json (variable of interface type any) as map[string]any value in argument to func(hx_obj_56 map[string]any) *hxrt.Array {…}: need type assertion",
+      "path": "unit/issues/Issue3297.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3345.go:26:34: cannot use acc (variable of interface type any) as int value in argument to hxrt.Int32Wrap: need type assertion",
+      "path": "unit/issues/Issue3345.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3347.go:54:80: cannot use unit__issues___Issue3347__IntMap_Impl__get(_g1, _g) (value of interface type any) as int value in argument to hxrt.Int32Wrap: need type assertion",
+      "path": "unit/issues/Issue3347.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x14000013930",
+      "path": "unit/issues/Issue3348.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-04-a-b-b-b-b-b-b/unit/issues/Issue3360.hx:40: characters 3-48 : Unknown identifier : eq",
+      "path": "unit/issues/Issue3360.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3361.go:28:18: i.v undefined (type unit__issues___Issue3361__I has no field or method v)",
+      "path": "unit/issues/Issue3361.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3377.go:31:25: _g.length undefined (type any has no field or method length)",
+      "path": "unit/issues/Issue3377.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x140000127d0",
+      "path": "unit/issues/Issue3389.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-04-b-a-b-a-a-b/unit/issues/Issue3396.hx:15: characters 3-51 : Unknown identifier : eq",
+      "path": "unit/issues/Issue3396.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3437.go:30:59: cannot use x (variable of interface type any) as map[string]any value in argument to unit__issues___Issue3437__Abstract_Impl__getA: need type assertion",
+      "path": "unit/issues/Issue3437.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3447.go:29:39: cannot convert f2 (variable of interface type any) to type float64: need type assertion",
+      "path": "unit/issues/Issue3447.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3461.go:30:43: b.value undefined (type any has no field or method value)",
+      "path": "unit/issues/Issue3461.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3462.go:186:10: keys.indexOf undefined (type *hxrt.Array has no field or method indexOf)",
+      "path": "unit/issues/Issue3462.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3507.go:69:31: cannot use _g (variable of interface type any) as *string value in argument to hxrt.StringEqualStringPtr: need type assertion",
+      "path": "unit/issues/Issue3507.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3512.go:26:32: cannot use unit__issues__Issue3512_getArr() (value of interface type any) as *hxrt.Array value in assignment: need type assertion",
+      "path": "unit/issues/Issue3512.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3513.go:60:97: cannot use gen_1 (variable of interface type any) as func() *unit__issues___Issue3513__Either value in argument to unit__issues___Issue3513__LazyGenerator_Impl__next: need type assertion",
+      "path": "unit/issues/Issue3513.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3528.go:29:12: _g.tag undefined (type any has no field or method tag)",
+      "path": "unit/issues/Issue3528.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3585.go:43:9: cannot use tmp (variable of interface type any) as int value in return statement: need type assertion",
+      "path": "unit/issues/Issue3585.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x14000012600",
+      "path": "unit/issues/Issue3596.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "panic: interface conversion: interface {} is *main.unit__issues___Issue3607__Bar, not *main.unit__issues___Issue3607__Foo",
+      "path": "unit/issues/Issue3607.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3635.go:47:5: dB.key undefined (type any has no field or method key)",
+      "path": "unit/issues/Issue3635.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue3637.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3639.go:52:52: cannot use func(x int) int {…} (value of type func(x int) int) as func(any) any value in argument to t_1.eachMember_IntIterator",
+      "path": "unit/issues/Issue3639.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue3702.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue3725.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3731.go:26:6: arr.push undefined (type *hxrt.Array has no field or method push, but does have method Push)",
+      "path": "unit/issues/Issue3731.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue3753.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3762.go:66:10: keys.indexOf undefined (type *hxrt.Array has no field or method indexOf)",
+      "path": "unit/issues/Issue3762.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue3777.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_utest_assert.go:62:1: missing return",
+      "path": "unit/issues/Issue3792.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3799.go:25:15: invalid operation: operator + not defined on unit__issues__Issue3799_arr.Get(1) (value of interface type any)",
+      "path": "unit/issues/Issue3799.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue3818.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3822.go:26:6: arr.sort undefined (type *hxrt.Array has no field or method sort)",
+      "path": "unit/issues/Issue3822.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3826.go:35:15: cannot use nil as float64 value in assignment",
+      "path": "unit/issues/Issue3826.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3844.go:30:41: redundant or: n != nil || n != nil",
+      "path": "unit/issues/Issue3844.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue3845.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3852.go:38:11: invalid operation: func() float64 {…}() + d (mismatched types float64 and int)",
+      "path": "unit/issues/Issue3852.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue3935.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3967.go:76:4: cannot use x (variable of type *unit__issues___Issue3967__A) as map[string]any value in argument to func(hx_obj_63 map[string]any) func() *string {…}",
+      "path": "unit/issues/Issue3967.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue3970.go:58:19: cannot use unit__issues__Issue3970_fold(func(hx_erased_callback_arg_57 any, hx_erased_callback_arg_60 *unit__issues___Issue3970__DataType) any {…}, int(int32((hxrt.Int32Wrap(acc) + hxrt.Int32Wrap(x_1)))), v) (value of interface type any) as int value in assignment: need type assertion",
+      "path": "unit/issues/Issue3970.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4002.go:38:12: v.a undefined (type any has no field or method a)",
+      "path": "unit/issues/Issue4002.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4014.go:50:6: cannot use dyn (variable of interface type any) as *haxe___Int64_____Int64 value in assignment: need type assertion",
+      "path": "unit/issues/Issue4014.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue4050.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue4089.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue4094.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue4096.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue4100.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4122.go:26:41: cannot use any(123) (value of interface type any) as int value in argument to hxrt.Int32Wrap: need type assertion",
+      "path": "unit/issues/Issue4122.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4134.go:70:1: missing return",
+      "path": "unit/issues/Issue4134.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4158.go:32:29: cannot use o (variable of interface type any) as *unit__issues___Issue4158__TestClass value in argument to Short_getValue2: need type assertion",
+      "path": "unit/issues/Issue4158.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4180.go:26:58: cannot use unit__issues__Issue4180_get_a() (value of interface type any) as int value in argument to hxrt.Int32Wrap: need type assertion",
+      "path": "unit/issues/Issue4180.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-05-b-b-b-b-b-b-b/unit/issues/Issue4196.hx:11: characters 3-34 : Unknown identifier : eq",
+      "path": "unit/issues/Issue4196.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4203.go:34:48: cannot use thing (variable of type *unit__issues___Issue4203__Thing1) as unit__issues___Issue4203__NativeItem value in variable declaration: *unit__issues___Issue4203__Thing1 does not implement unit__issues___Issue4203__NativeItem (wrong type for method getIt)",
+      "path": "unit/issues/Issue4203.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4232.go:43:59: c.value undefined (type any has no field or method value)",
+      "path": "unit/issues/Issue4232.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x14000012420",
+      "path": "unit/issues/Issue4260.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_utest_assert.go:62:1: missing return",
+      "path": "unit/issues/Issue4313.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4327.go:25:41: invalid operation: cannot call unit__issues___Issue4327__Example_Impl___new() (value of interface type any): any is not a function",
+      "path": "unit/issues/Issue4327.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-06-a-a-b-b-b-b-b/unit/issues/Issue4329.hx:10: characters 4-16 : Unsupported expression :: TReturn(null)",
+      "path": "unit/issues/Issue4329.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4357.go:26:88: cannot use a (variable of interface type any) as *hxrt.Array value in argument to unit__issues___Issue4357__MyAbstract_Impl__pre: need type assertion",
+      "path": "unit/issues/Issue4357.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4363.go:26:38: cannot use New_unit__issues___Issue4363__C() (value of type *unit__issues___Issue4363__C) as unit__issues___Issue4363__I value in variable declaration: *unit__issues___Issue4363__C does not implement unit__issues___Issue4363__I (wrong type for method f)",
+      "path": "unit/issues/Issue4363.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4460.go:28:56: cannot use arr (variable of interface type any) as *hxrt.Array value in argument to unit__issues___Issue4460__LikeArray_Impl__slice: need type assertion",
+      "path": "unit/issues/Issue4460.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue4473.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4526.go:62:48: cannot use nil as int value in argument to New_unit__issues___Issue4526__Struct2",
+      "path": "unit/issues/Issue4526.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4578.go:39:43: cannot use func(x int) int {…} (value of type func(x int) int) as func(any) any value in argument to New_unit__issues___Issue4578__IUnOp",
+      "path": "unit/issues/Issue4578.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue4617.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4649.go:25:31: invalid operation: unit__issues__Issue4649_v + 1 (mismatched types any and int)",
+      "path": "unit/issues/Issue4649.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4668.go:101:9: undefined: New_String",
+      "path": "unit/issues/Issue4668.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue4675.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4705.go:50:9: actual.sort undefined (type *hxrt.Array has no field or method sort)",
+      "path": "unit/issues/Issue4705.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4729.go:29:16: raw.indexOf undefined (type *string has no field or method indexOf)",
+      "path": "unit/issues/Issue4729.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue4743.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4751.go:36:16: cannot use this1 (variable of type int) as float64 value in assignment",
+      "path": "unit/issues/Issue4751.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue4777.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4798.go:27:10: invalid operation: cannot call this1 (variable of interface type any): any is not a function",
+      "path": "unit/issues/Issue4798.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4819.go:25:68: cannot use any(16) (value of interface type any) as int value in argument to hxrt.Int32Wrap: need type assertion",
+      "path": "unit/issues/Issue4819.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4910.go:34:4: cannot use t (variable of type *hxrt__TypeClassValue) as map[string]any value in argument to func(hx_obj_56 map[string]any) func(int) *string {…}",
+      "path": "unit/issues/Issue4910.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4940.go:39:18: cannot use New_unit__issues___Issue4940__A() (value of type *unit__issues___Issue4940__A) as *unit__issues___Issue4940__Base value in assignment",
+      "path": "unit/issues/Issue4940.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4962.go:77:11: int is not a type",
+      "path": "unit/issues/Issue4962.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4966.go:50:70: cannot use t (variable of interface type any) as *haxe__ds__Either value in argument to unit__issues___Issue4966__PhysicalType_Impl__toString: need type assertion",
+      "path": "unit/issues/Issue4966.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-07-a-a-b-a-b-b-a/unit/issues/Issue4969.hx:15: characters 12-23 : Unsupported expression :: TReturn({t: TAbstract(Null,[TDynamic(null)]), pos: #pos(<REDACTED:installed-package>/inventory-issues-07-a-a-b-a-b-b-a/unit/issues/Issue4969.hx:15: characters 19-23), e...",
+      "path": "unit/issues/Issue4969.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4979.go:40:37: undefined: haxe__ds___Vector__Vector_Impl__toArray",
+      "path": "unit/issues/Issue4979.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: runtime error: invalid memory address or nil pointer dereference [recovered, repanicked]",
+      "path": "unit/issues/Issue4986.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue4988.go:36:8: nil.nonExistent undefined (type untyped nil has no field or method nonExistent)",
+      "path": "unit/issues/Issue4988.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5009.go:26:2: invalid operation: cannot call unit__issues__misc___Issue5009Assert__Issue5009Assert_Impl__ASSert (variable of interface type any): any is not a function",
+      "path": "unit/issues/Issue5009.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5025.go:50:10: nil.tag undefined (type untyped nil has no field or method tag)",
+      "path": "unit/issues/Issue5025.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5027.go:28:10: too many return values",
+      "path": "unit/issues/Issue5027.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: interface conversion: interface {} is int, not float64",
+      "path": "unit/issues/Issue5028.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5078.go:60:39: hxrt.StringFromLiteral(\"ABC\").toLowerCase undefined (type *string has no field or method toLowerCase)",
+      "path": "unit/issues/Issue5078.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5082.go:70:4: cannot use content.find(hxrt.StringFromLiteral(\"[name=color]\")) (value of type *unit__issues___Issue5082__Content) as map[string]any value in argument to func(hx_obj_59 map[string]any) func(*string, any) map[string]any {…}",
+      "path": "unit/issues/Issue5082.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5124.go:44:11: cannot use hxrt.MathTruncInt(1.5555) (value of type int) as float64 value in assignment",
+      "path": "unit/issues/Issue5124.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5135.go:27:15: cannot use New_unit__issues___Issue5135__Object1() (value of type *unit__issues___Issue5135__Object1) as *unit__issues___Issue5135__Object2 value in assignment",
+      "path": "unit/issues/Issue5135.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5162.go:31:8: undefined: haxe__macro__ComplexType_TPath",
+      "path": "unit/issues/Issue5162.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue5192.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./main.go:256:60: undefined: unit__issues__Issue5192_Test",
+      "path": "unit/issues/Issue5192_Test.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-build"
+    },
+    {
+      "evidence": "<REDACTED:repository>/.cache/official-haxe-target-smoke/upstream/haxe-e0b355c6be31/tests/unit/src/unit/issues/misc/Issue5207Macro.hx:19: characters 24-25 : Unknown identifier : f",
+      "path": "unit/issues/Issue5207.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5218.go:32:6: a.shift undefined (type *hxrt.Array has no field or method shift)",
+      "path": "unit/issues/Issue5218.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5226.go:70:15: this1.hasFrom undefined (type any has no field or method hasFrom)",
+      "path": "unit/issues/Issue5226.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue523.go:27:13: a.v.arr undefined (type any has no field or method arr)",
+      "path": "unit/issues/Issue523.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5290.go:28:12: invalid operation: nil == func(hx_obj_57 map[string]any) int {…}(options_1) (mismatched types untyped nil and int)",
+      "path": "unit/issues/Issue5290.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5322.go:62:10: cannot use this1 (variable of interface type any) as *string value in return statement: need type assertion",
+      "path": "unit/issues/Issue5322.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5340.go:35:12: cannot use x (variable of interface type any) as float64 value in assignment: need type assertion",
+      "path": "unit/issues/Issue5340.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5351.go:26:13: t3.__hx_this undefined (type any has no field or method __hx_this)",
+      "path": "unit/issues/Issue5351.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5358.go:59:44: 0.5 (untyped float constant) truncated to int",
+      "path": "unit/issues/Issue5358.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5385.go:27:28: refs.iterator undefined (type any has no field or method iterator)",
+      "path": "unit/issues/Issue5385.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5425.go:26:7: no new variables on left side of :=",
+      "path": "unit/issues/Issue5425.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5449.go:25:44: cannot use nil as int value in argument to New_unit__issues___Issue5449__Struct",
+      "path": "unit/issues/Issue5449.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5455.go:27:34: cannot use s (variable of interface type any) as *string value in argument to hxrt.StringCharAtStringPtr: need type assertion",
+      "path": "unit/issues/Issue5455.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5469.go:26:6: foo.bar undefined (type any has no field or method bar)",
+      "path": "unit/issues/Issue5469.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5477.go:30:60: unit__issues__Issue5477_almostId(c).hash undefined (type any has no field or method hash)",
+      "path": "unit/issues/Issue5477.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue5520.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5555.go:78:10: cannot use o[\"value\"] (map index expression of interface type any) as int value in return statement: need type assertion",
+      "path": "unit/issues/Issue5555.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5556.go:68:9: cannot use x (variable of interface type any) as int value in return statement: need type assertion",
+      "path": "unit/issues/Issue5556.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue5569.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5705.go:58:19: baseClass.z undefined (type *unit__issues__BaseClass_ has no field or method z)",
+      "path": "unit/issues/Issue5705.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:111:1: missing return",
+      "path": "unit/issues/Issue5737.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5757.go:25:123: haxe__rtti__Meta_getType(&hxrt__TypeClassValue{…}).rtti undefined (type any has no field or method rtti)",
+      "path": "unit/issues/Issue5757.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5783.go:27:36: cannot use i (variable of interface type any) as int value in argument to hxrt.Int32Wrap: need type assertion",
+      "path": "unit/issues/Issue5783.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5894.go:34:18: cannot use e (variable of interface type any) as *hxrt.Array value in argument to local: need type assertion",
+      "path": "unit/issues/Issue5894.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue5945.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue5957.go:75:6: this1 redeclared in this block",
+      "path": "unit/issues/Issue5957.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x14000012400",
+      "path": "unit/issues/Issue5973.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6007.go:30:30: a.iterator undefined (type *hxrt.Array has no field or method iterator)",
+      "path": "unit/issues/Issue6007.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6016.go:34:11: cannot use New_unit__issues___Issue6016__C() (value of type *unit__issues___Issue6016__C) as unit__issues___Issue6016__I value in assignment: *unit__issues___Issue6016__C does not implement unit__issues___Issue6016__I (wrong type for method f)",
+      "path": "unit/issues/Issue6016.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:62:1: missing return",
+      "path": "unit/issues/Issue6017.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6062.go:26:15: child.parentFn undefined (type any has no field or method parentFn)",
+      "path": "unit/issues/Issue6062.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6070.go:63:29: unit__issues__Issue6070_C.concat undefined (type *hxrt.Array has no field or method concat)",
+      "path": "unit/issues/Issue6070.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6147.go:50:6: v.indexOf undefined (type *hxrt.Array has no field or method indexOf)",
+      "path": "unit/issues/Issue6147.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6158.go:25:58: invalid operation: cannot call unit__issues__Issue6158_fn (variable of interface type any): any is not a function",
+      "path": "unit/issues/Issue6158.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6159.go:66:48: cannot use &hxrt__TypeEnumValue{…} (value of type *hxrt__TypeEnumValue) as map[string]any value in variable declaration",
+      "path": "unit/issues/Issue6159.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x14000114380",
+      "path": "unit/issues/Issue6208.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6211.go:27:17: d.test undefined (type any has no field or method test)",
+      "path": "unit/issues/Issue6211.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6224.go:32:7: func(hx_value_57 any) *string {…}(s).indexOf undefined (type *string has no field or method indexOf)",
+      "path": "unit/issues/Issue6224.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue6257.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6259.go:49:7: cannot use hxrt.StringFromLiteral(\"6259\") (value of type *string) as map[string]any value in argument to f(func() map[string]any {…}())",
+      "path": "unit/issues/Issue6259.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x14000114340",
+      "path": "unit/issues/Issue6266.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6276.go:54:12: s.indexOf undefined (type *string has no field or method indexOf)",
+      "path": "unit/issues/Issue6276.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6290.go:113:87: cannot use child (variable of type *unit__issues___Issue6290__Child) as *unit__issues___Issue6290__Parent value in argument to New_unit__issues___Issue6290__TakeParent",
+      "path": "unit/issues/Issue6290.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue6291.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6294.go:32:4: cannot use New_unit__issues___Issue6294__Foo() (value of type *unit__issues___Issue6294__Foo) as map[string]any value in argument to func(hx_obj_55 map[string]any) func() any {…}",
+      "path": "unit/issues/Issue6294.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-09-a-a-a-a-b-b-a/unit/issues/Issue6315.hx:11: characters 10-21 : Unsupported expression :: TReturn({t: TInst(String,[]), pos: #pos(<REDACTED:installed-package>/inventory-issues-09-a-a-a-a-b-b-a/unit/issues/Issue6315.hx:11: characters 17-21), expr: TConst(TStr...",
+      "path": "unit/issues/Issue6315.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./main.go:287:58: cannot use instance (variable of type *unit__issues___Issue6325__UsesChild) as I_unit__issues___Issue6325__UsesBase value in assignment: *unit__issues___Issue6325__UsesChild does not implement I_unit__issues___Issue6325__UsesBase (wrong type for method doSomething)",
+      "path": "unit/issues/Issue6325.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6349.go:39:4: continue is not in a loop",
+      "path": "unit/issues/Issue6349.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x140000123a0",
+      "path": "unit/issues/Issue6376.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6379.go:37:9: s.split undefined (type *string has no field or method split)",
+      "path": "unit/issues/Issue6379.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue6457.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6480.go:74:29: invalid operation: o[\"counter\"] + 1 (mismatched types any and int)",
+      "path": "unit/issues/Issue6480.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x1400011c410",
+      "path": "unit/issues/Issue6482.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6486.go:34:40: cannot use p (variable of type *unit__issues___Issue6486__Point) as unit__issues___Issue6486__IY value in variable declaration: *unit__issues___Issue6486__Point does not implement unit__issues___Issue6486__IY (wrong type for method getY)",
+      "path": "unit/issues/Issue6486.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6502.go:26:17: obj.get_field undefined (type unit__issues___Issue6502__IChild has no field or method get_field)",
+      "path": "unit/issues/Issue6502.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6531.go:28:23: undefined: haxe__macro__ExprDef_EBinop",
+      "path": "unit/issues/Issue6531.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6549.go:36:8: int is not a type",
+      "path": "unit/issues/Issue6549.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6551.go:26:7: invalid operation: operator + not defined on v (variable of interface type any)",
+      "path": "unit/issues/Issue6551.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6609.go:37:53: cannot use unit__issues___Issue6609__A_Impl___new(nil) (value of interface type any) as func(*string) *unit__issues___Issue6609__MyEnum value in argument to unit__issues___Issue6609__MyEnum_MyEnumConstructor: need type assertion",
+      "path": "unit/issues/Issue6609.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6630.go:27:53: unit__issues__Issue6630_cls.HELLO undefined (type any has no field or method HELLO)",
+      "path": "unit/issues/Issue6630.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6637.go:69:28: v.iterator undefined (type any has no field or method iterator)",
+      "path": "unit/issues/Issue6637.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6674.go:28:31: cannot use func(response any) {…} (value of type func(response any)) as func(*string) value in argument to unit__issues__Issue6674_load",
+      "path": "unit/issues/Issue6674.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue6703.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-09-b-a-a-a-b-a/unit/issues/Issue6706.hx:12: characters 3-49 : Unknown identifier : eq",
+      "path": "unit/issues/Issue6706.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x14000012460",
+      "path": "unit/issues/Issue6710.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6717.go:28:10: invalid operation: hxrt.StringCharAtStringPtr(space, 0) < hxrt.StringCharAtStringPtr(hyphen, 0) (operator < not defined on pointer)",
+      "path": "unit/issues/Issue6717.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x14000196740",
+      "path": "unit/issues/Issue6722.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6801.go:56:4: cannot use actual (variable of interface type any) as map[string]any value in argument to func(hx_obj_64 map[string]any) *string {…}: need type assertion",
+      "path": "unit/issues/Issue6801.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x140000123f0",
+      "path": "unit/issues/Issue6807.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue6833.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x1400012a3d0 [recovered]",
+      "path": "unit/issues/Issue6871.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6942.go:25:30: cannot convert any(-1) (value of interface type any) to type int32: need type assertion",
+      "path": "unit/issues/Issue6942.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue6948.go:26:11: undefined: unit__issues__Gen_true",
+      "path": "unit/issues/Issue6948.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: interface conversion: interface {} is nil, not int",
+      "path": "unit/issues/Issue7032.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue7106.go:45:66: c2Dyn.getI undefined (type any has no field or method getI)",
+      "path": "unit/issues/Issue7106.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "OFFICIAL_HAXE_INVENTORY_RECORD\tunit.issues.Issue7115.testIs\tpass\t9",
+      "path": "unit/issues/Issue7115.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-09-b-b-b-b-a-a/unit/issues/Issue7132.hx:8: characters 3-30 : Unknown identifier : eq",
+      "path": "unit/issues/Issue7132.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue7142.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_utest_assert.go:62:1: missing return",
+      "path": "unit/issues/Issue7209.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-10-a-a-a-a-b-a/generated/module_unit_issues_issue7220.go:72:1: expected 'IDENT', found '}'",
+      "path": "unit/issues/Issue7220.hx",
+      "reason": "isolated owner generates syntactically invalid Go",
+      "stage": "gofmt"
+    },
+    {
+      "evidence": "./module_unit_issues_issue7233.go:29:46: obj.name undefined (type any has no field or method name)",
+      "path": "unit/issues/Issue7233.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue7247.go:31:19: self.str.indexOf undefined (type *string has no field or method indexOf)",
+      "path": "unit/issues/Issue7247.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue7334.go:40:2: invalid operation: cannot call New_unit__issues__Signal1(func(i int) {…}).dispatch (variable of interface type any): any is not a function",
+      "path": "unit/issues/Issue7334.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue7335.go:27:7: data.foo undefined (type any has no field or method foo)",
+      "path": "unit/issues/Issue7335.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue7367.go:33:56: cannot use x (variable of interface type any) as map[string]any value in argument to unit__issues___Issue7367__Bar_Impl__getBar: need type assertion",
+      "path": "unit/issues/Issue7367.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue7394.go:28:53: cannot use b (variable of interface type any) as map[string]any value in argument to unit__issues___Issue7394__Bar_Impl__compare: need type assertion",
+      "path": "unit/issues/Issue7394.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue7536.go:29:32: url.query undefined (type any has no field or method query)",
+      "path": "unit/issues/Issue7536.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue7546.go:27:24: instance.field undefined (type any has no field or method field)",
+      "path": "unit/issues/Issue7546.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue7579.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_utest_assert.go:62:1: missing return",
+      "path": "unit/issues/Issue7590.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue7600.go:34:16: undefined: haxe__macro__TypeDefKind",
+      "path": "unit/issues/Issue7600.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue7642.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue7659.go:27:64: cannot use a (variable of interface type any) as *hxrt.Array value in argument to unit__issues___Issue7659__DummyAbstract_Impl__iterator: need type assertion",
+      "path": "unit/issues/Issue7659.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:62:1: missing return",
+      "path": "unit/issues/Issue7661.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x14000116790",
+      "path": "unit/issues/Issue7671.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-10-a-b-b-b-b-a/unit/issues/Issue7672.hx:29: characters 7-42 : Unknown identifier : eq",
+      "path": "unit/issues/Issue7672.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue7716.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue7727.go:69:10: i.e undefined (type unit__issues___Issue7727__I has no field or method e)",
+      "path": "unit/issues/Issue7727.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "exit status 2",
+      "path": "unit/issues/Issue7903.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x14000012380",
+      "path": "unit/issues/Issue8075.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue8079.go:28:33: cannot index instance (variable of interface type any)",
+      "path": "unit/issues/Issue8079.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_rootenum.go:9:16: RootEnum is not a type",
+      "path": "unit/issues/Issue8118.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue8220.go:27:17: invalid operation: float64(1) / -height (mismatched types float64 and int)",
+      "path": "unit/issues/Issue8220.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:62:1: missing return",
+      "path": "unit/issues/Issue8221.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: interface conversion: interface {} is int, not float64",
+      "path": "unit/issues/Issue8242.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue8261.go:25:8: undefined: haxe__macro__ComplexType_TPath",
+      "path": "unit/issues/Issue8261.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue8299.go:58:10: invalid operation: operator - not defined on a (variable of interface type any)",
+      "path": "unit/issues/Issue8299.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue8341.go:26:12: hx_arr_80.Push undefined (type any has no field or method Push)",
+      "path": "unit/issues/Issue8341.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue8528.go:26:38: cannot use a (variable of type *unit__issues___Issue8528__A) as unit__issues___Issue8528__I value in variable declaration: *unit__issues___Issue8528__A does not implement unit__issues___Issue8528__I (wrong type for method bar)",
+      "path": "unit/issues/Issue8528.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue8537.go:26:73: cannot use New_unit__issues___Issue8537__C() (value of type *unit__issues___Issue8537__C) as map[string]any value in argument to unit__issues__Issue8537_extract",
+      "path": "unit/issues/Issue8537.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: interface conversion: interface {} is int, not float64",
+      "path": "unit/issues/Issue8740.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "panic: interface conversion: interface {} is nil, not int",
+      "path": "unit/issues/Issue8764.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-11-a-b-b-a-a-b-b/generated/module_haxe_macro_printer.go:126:610: illegal character NUL",
+      "path": "unit/issues/Issue8859.hx",
+      "reason": "isolated owner generates syntactically invalid Go",
+      "stage": "gofmt"
+    },
+    {
+      "evidence": "./module_unit_issues_issue8930.go:49:9: cannot index this1 (variable of interface type any)",
+      "path": "unit/issues/Issue8930.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: reflect: Call with too few input arguments",
+      "path": "unit/issues/Issue8975.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue8984.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "panic: runtime error: invalid memory address or nil pointer dereference [recovered, repanicked]",
+      "path": "unit/issues/Issue8986.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9025.go:26:11: a.field undefined (type any has no field or method field)",
+      "path": "unit/issues/Issue9025.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue9026.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue9034.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9037.go:29:36: cannot use f (variable of type func(args *hxrt.Array)) as func(*hxrt.Array) any value in argument to Reflect_makeVarArgs",
+      "path": "unit/issues/Issue9037.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:62:1: missing return",
+      "path": "unit/issues/Issue9040.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:62:1: missing return",
+      "path": "unit/issues/Issue9046.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue9060.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue9144.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue9147.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue9149.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue9177.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue9198.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9217.go:122:57: d.Ea undefined (type any has no field or method Ea)",
+      "path": "unit/issues/Issue9217.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9218.go:59:18: invalid operation: w - 1 (mismatched types any and int)",
+      "path": "unit/issues/Issue9218.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9219.go:32:7: hs.remove undefined (type unit__issues___Issue9219__Set has no field or method remove)",
+      "path": "unit/issues/Issue9219.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue9220.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue9232.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x140000123f0",
+      "path": "unit/issues/Issue9305.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9321.go:81:40: not enough arguments in call to New_unit__issues___Issue9321__Base",
+      "path": "unit/issues/Issue9321.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9379.go:30:10: comparison of function items != nil is always true",
+      "path": "unit/issues/Issue9379.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-12-a-a-a-b-a-a/generated/module_haxe_macro_printer.go:122:610: illegal character NUL",
+      "path": "unit/issues/Issue9405.hx",
+      "reason": "isolated owner generates syntactically invalid Go",
+      "stage": "gofmt"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-12-a-a-a-b-b-b-a/unit/issues/Issue9491.hx:7: characters 4-13 : Unsupported expression :: TReturn({t: TInst(String,[]), pos: #pos(<REDACTED:installed-package>/inventory-issues-12-a-a-a-b-b-b-a/unit/issues/Issue9491.hx:7: characters 11-13), expr: TConst(TString...",
+      "path": "unit/issues/Issue9491.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9554.go:33:42: cannot use obj (variable of interface type any) as map[string]any value in argument to unit__issues__Issue9554_staticExtension: need type assertion",
+      "path": "unit/issues/Issue9554.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue9563.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-12-a-a-b-b-b-a/generated/module_haxe_macro_printer.go:126:610: illegal character NUL",
+      "path": "unit/issues/Issue9565.hx",
+      "reason": "isolated owner generates syntactically invalid Go",
+      "stage": "gofmt"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9577.go:30:10: foo.tag undefined (type any has no field or method tag)",
+      "path": "unit/issues/Issue9577.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-12-a-b-a-a-a-a/unit/issues/Issue9579.hx:20: characters 3-55 : Unknown identifier : eq",
+      "path": "unit/issues/Issue9579.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9590.go:39:4: cannot use obj (variable of interface type any) as map[string]any value in argument to func(hx_obj_56 map[string]any) float64 {…}: need type assertion",
+      "path": "unit/issues/Issue9590.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue9593.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9594.go:25:6: arr.sort undefined (type *hxrt.Array has no field or method sort)",
+      "path": "unit/issues/Issue9594.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue9597.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:195:1: missing return",
+      "path": "unit/issues/Issue9603.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9619.go:78:22: ac.__hx_this.abstractFunction undefined (type I_unit__issues___Issue9619__AbstractParent has no field or method abstractFunction)",
+      "path": "unit/issues/Issue9619.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9652.go:30:49: hx_lambda_source_74.iterator undefined (type any has no field or method iterator)",
+      "path": "unit/issues/Issue9652.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9661.go:28:7: invalid operation: lh != rh (func can only be compared to nil)",
+      "path": "unit/issues/Issue9661.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:111:1: missing return",
+      "path": "unit/issues/Issue9667.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9678.go:37:10: returnVoid() (no value) used as value",
+      "path": "unit/issues/Issue9678.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9681.go:31:49: hx_lambda_source_83.iterator undefined (type any has no field or method iterator)",
+      "path": "unit/issues/Issue9681.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9710.go:33:6: a.concat undefined (type *hxrt.Array has no field or method concat)",
+      "path": "unit/issues/Issue9710.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9719.go:47:21: parent.__hx_this.put undefined (type I_unit__issues___Issue9719__Parent has no field or method put)",
+      "path": "unit/issues/Issue9719.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9735.go:44:19: undefined: New_String",
+      "path": "unit/issues/Issue9735.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9741.go:33:33: any is not a type",
+      "path": "unit/issues/Issue9741.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue9744.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9746.go:435:10: cannot use func() any {…}() (value of interface type any) as int value in return statement: need type assertion",
+      "path": "unit/issues/Issue9746.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "panic: (hxrt.HaxeException) 0x140000903a0",
+      "path": "unit/issues/Issue9757.hx",
+      "reason": "isolated owner fails its upstream runtime contract",
+      "stage": "runtime"
+    },
+    {
+      "evidence": "./module_rootenum.go:9:16: RootEnum is not a type",
+      "path": "unit/issues/Issue9759.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9764.go:31:64: cannot use a (variable of interface type any) as *unit__issues___Issue9764__Base value in argument to unit__issues___Issue9764__Abstracted_Impl__getThis: need type assertion",
+      "path": "unit/issues/Issue9764.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9770.go:182:17: cannot index c_2 (variable of type *unit__issues___Issue9770__C)",
+      "path": "unit/issues/Issue9770.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_utest_assert.go:111:1: missing return",
+      "path": "unit/issues/Issue9806.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./main.go:267:56: cannot use instance (variable of type *unit__issues___Issue9836__Child) as I_unit__issues___Issue9836__Parent value in assignment: *unit__issues___Issue9836__Child does not implement I_unit__issues___Issue9836__Parent (wrong type for method contravariant)",
+      "path": "unit/issues/Issue9836.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/.haxelib/reflaxe,go/0,0,0/src/haxe/iterators/MapKeyValueIterator.cross.hx:33: characters 32-35 : haxe.IMap<haxe.iterators.MapKeyValueIterator.K, haxe.iterators.MapKeyValueIterator.V> has no field get",
+      "path": "unit/issues/Issue9874.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "<REDACTED:installed-package>/inventory-issues-12-b-b-b-a-a-a/unit/issues/Issue9883.hx:12: characters 10-21 : Unsupported expression :: TReturn({t: TInst(String,[]), pos: #pos(<REDACTED:installed-package>/inventory-issues-12-b-b-b-a-a-a/unit/issues/Issue9883.hx:12: characters 17-21), expr: TConst(TString(...",
+      "path": "unit/issues/Issue9883.hx",
+      "reason": "isolated owner fails target compilation",
+      "stage": "haxe"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9897.go:67:49: cannot use nil as float64 value in variable declaration",
+      "path": "unit/issues/Issue9897.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9899.go:32:16: undefined: haxe__macro__ExprDef",
+      "path": "unit/issues/Issue9899.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    },
+    {
+      "evidence": "./module_unit_issues_issue9938.go:31:8: arr.shift undefined (type *hxrt.Array has no field or method shift)",
+      "path": "unit/issues/Issue9938.hx",
+      "reason": "isolated owner generates Go that does not build",
+      "stage": "go-test"
+    }
+  ],
+  "schemaVersion": 1,
+  "sourceProposalSha256": "06c590f6cf74abff8510bcb8fff9b3ae604067a7175d1a9d93c4aa9fa1908eb8"
+}

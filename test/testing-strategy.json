@@ -21,23 +21,24 @@
         "metal": "Portable semantic preset-invariance evidence only; it is not Go-native API evidence."
       },
       "focusedOwners": ["snapshot-portable", "negative-diagnostics", "portable-policy"],
-      "verticalOwners": ["semantic-diff-portable", "portable-example-smoke", "isolated-haxelib-smoke", "official-haxe-target-smoke"],
-      "realRuntimeOrSystemOwners": ["semantic-diff-portable", "portable-example-smoke", "official-haxe-target-smoke"],
+      "verticalOwners": ["semantic-diff-portable", "portable-example-smoke", "isolated-haxelib-smoke", "official-haxe-target-smoke", "official-haxe-target-inventory"],
+      "realRuntimeOrSystemOwners": ["semantic-diff-portable", "portable-example-smoke", "official-haxe-target-smoke", "official-haxe-target-inventory"],
       "examples": ["profile_storyboard", "tui_todo", "incident_api", "pulseforge", "fluxproxy"],
       "upstreamOracleAndPin": [
         "Haxe 4.3.7 behavior through --interp where the same source has a faithful portable contract",
         "docs/toolchain-policy.json",
         "test/portable_conformance_tier1.json"
       ],
-      "adaptations": ["repository-owned portable Tier 1 mapping", "three-family pinned official target smoke with explicitly recorded target and assertion adapters"],
-      "knownSkips": ["complete pinned official Haxe tests/unit active inventory beyond the three-family smoke"],
+      "adaptations": ["repository-owned portable Tier 1 mapping", "three-family pinned official target smoke with explicitly recorded target and assertion adapters", "complete pinned tests/unit owner inventory with provenance-recorded typed harness adapters"],
+      "knownSkips": ["472 applicable owners are explicitly blocked by named compiler, generated-Go, runtime, or harness-support gaps"],
       "quarantines": [],
       "selectorOwnership": ["portable-compiler", "portable-provenance"],
       "fullBackstopCommand": "npm run test:ci",
       "releaseCommand": "npm run release:readiness",
       "lastCleanProof": "commit 7188fea2, CI Harness run 30666284175 and CI - Quality run 30666284172",
       "residualRisks": [
-        "The three-family pinned official target smoke is not the complete applicable Haxe tests/unit inventory.",
+        "The extended inventory executes 650 active test methods across 607 owners; its 472 blocked owners remain gaps rather than conformance passes.",
+        "The inventory is Linux cold evidence in R4/R5 and does not replace the fast required-PR smoke.",
         "Only explicitly admitted compatibility operations contribute to the beta claim."
       ],
       "officialHaxeTargetSuiteApplies": true
@@ -191,7 +192,7 @@
     {
       "id": "R4",
       "name": "main and weekly backstop",
-      "command": "master runs CI Harness and the Quality matrix; the weekly CI Harness repeats the stable graph plus security, tooling, performance, and example artifact jobs",
+      "command": "master and weekly CI Harness run the supported-Go official Haxe target inventory plus the stable graph, security, tooling, performance, and example artifact jobs; the Quality matrix remains the required-PR cross-platform backstop",
       "coldPolicy": "CI Harness runs cold on master and weekly; Quality runs on pull requests and master pushes, not the weekly schedule",
       "warmPolicy": "not applicable to full claim evidence"
     },
@@ -211,7 +212,11 @@
       "laneSemanticDiffOwners": 1,
       "exampleProfileOwners": 12,
       "strictStdlibModules": 55,
-      "fullPortableEligibleStdlibModules": 175
+      "fullPortableEligibleStdlibModules": 175,
+      "officialHaxeCandidateOwners": 1211,
+      "officialHaxeActiveOwners": 607,
+      "officialHaxeActiveMethods": 650,
+      "officialHaxeBlockedOwners": 472
     },
     "interpretation": "The compiler portfolio has a large focused generated-shape base and substantial real Haxe-to-Go execution. Exact ratio publication is deferred until overlapping semantic-diff, runtime, and example owners have stable non-overlapping identities. Static, policy, security, freshness, and schema checks stay outside the ratio."
   },
@@ -247,6 +252,14 @@
       "commands": ["npm run test:official-haxe-smoke"],
       "rings": ["R1", "R2", "R4", "R5"],
       "alwaysRun": true
+    },
+    {
+      "id": "official-haxe-target-inventory",
+      "surfaces": ["portable-compiler"],
+      "patterns": ["test/official_haxe_target_inventory/**", "test/run-official-haxe-target-inventory.py", "test/test_official_haxe_target_inventory_contract.py", "docs/official-haxe-target-inventory.md", "src/reflaxe/go/**", "std/go/_std/**", "std/hxrt/**", "runtime/hxrt/**", "scripts/release/package-haxelib.sh"],
+      "commands": ["npm run test:official-haxe-inventory"],
+      "rings": ["R4", "R5"],
+      "alwaysRun": false
     },
     {
       "id": "harness-failure-propagation",

@@ -79,7 +79,7 @@ provenance, and semantic-owner affected-selection evidence.
 
 | Surface | Current status | What can make it greener | What cannot |
 | --- | --- | --- | --- |
-| `portable-compiler` | Admitted slice | Ordinary Haxe semantics, generated Go build/run, exact compatibility operation evidence, the pinned three-family official target smoke, and portable-semantic preset invariance under `metal` where no native boundary is used | Go-native APIs, example-only or compile-only evidence, another platform's result, or treating the smoke as the complete official inventory |
+| `portable-compiler` | Admitted slice | Ordinary Haxe semantics, generated Go build/run, exact compatibility operation evidence, the required three-family official target smoke, the extended classified official inventory, and portable-semantic preset invariance under `metal` where no native boundary is used | Go-native APIs, example-only or compile-only evidence, another platform's result, blocked official owners, or treating inventory coverage as automatic compatibility admission |
 | `go-native-metal` | Experimental | Typed `go.*`, extern, ABI, policy, Go tooling, and native runtime owners | Portable semantic diff or selecting the `metal` preset by itself |
 | `runtime-stdlib` | Admitted slice | Staged-source semantics, focused `hxrt` ownership tests, generated-Haxe execution, race/checkptr, and exact platform evidence | A snapshot, cross-build, or whole-class name without member-level evidence |
 | `diagnostics-tooling` | Partial | Exact negative diagnostics, stable report schemas, output confinement, and developer-command contracts | A successfully running generated program; source maps remain unclaimed |
@@ -174,8 +174,10 @@ the third lock. None of those results is substituted for another.
 The current active inventory is 313 snapshot owners, 155 portable semantic-diff
 owners, one active profile/lane semantic-diff owner, and 12 executable example
 profile owners. The strict curated stdlib sweep has 55 module owners and the
-full portable-eligible inventory has 175. These are active harness records, not
-raw file counts.
+full portable-eligible inventory has 175. The separately pinned official target
+inventory classifies 1,211 upstream owners: 607 active owners containing 650
+runtime methods, 472 blocked owners, and 132 inapplicable owners. These are
+active harness records and explicit classifications, not raw file counts.
 
 This is compatible with a focused-heavy compiler portfolio and substantial
 real Haxe -> Go execution, but publishing a precise 55-70/25-40 percentage now
@@ -220,8 +222,8 @@ entries.
 | R1 local smoke | `npm run test:smoke` | Regenerates `tui_todo`, formats, strictly Go-tests, runs, and checks output |
 | R2 required PR | `npm run test:ci` plus all required workflow jobs | Clean full primary evidence remains unchanged |
 | R3 affected extended | `npm run test:affected:explain` | Observation only; recommends owners/surfaces but skips nothing |
-| R4 main/weekly | CI Harness plus Quality on master; weekly CI Harness subset with security, tooling, performance, and example artifacts | Complete stable-graph selector-miss backstop weekly; the cross-platform Quality matrix also runs on pull requests and master pushes |
-| R5 release | `npm run release:readiness` and `npm run release:dry-run` | Exact SHA/artifact, clean install, supported matrices, and public claims |
+| R4 main/weekly | CI Harness plus Quality on master; weekly CI Harness subset with the supported-Go official inventory, security, tooling, performance, and example artifacts | Complete stable-graph selector-miss backstop weekly; the cross-platform Quality matrix also runs on pull requests and master pushes |
+| R5 release | `npm run release:readiness`, `npm run release:dry-run`, and the supported-Go official inventory dependency | Exact SHA/artifact, clean install, supported matrices, and public claims |
 
 The current remote graph deliberately uses cold setup and disables the Go
 action cache. The managed `npm run dev` loop may reuse an owned Haxe compiler
@@ -279,6 +281,7 @@ samples, not p50/p95 promises.
 | New strategy contracts | n/a | 1.21 s before this readability pass | Focused contracts cover active-inventory derivation, fail-closed Git discovery, evidence-state reporting, telemetry wiring, official-smoke policy, and first-read documentation; they run in required local/full entrypoints |
 | New affected-plan explanation | n/a | 0.27 s | One runtime path; observation only and does not run or omit selected commands |
 | New official Haxe target smoke | n/a | 46.13 / 22.05 s | Three active official methods, 16 live assertions, compile-directory-verified installed package, full DCE, strict Go build/run, and five deliberate failure controls, including a real generated-target timeout and an actual missing selected source |
+| Extended official Haxe target inventory | n/a | 141.36 / 156.52 / 152.09 s clean-package samples | 1,211 exact owners classified; 650 active methods and 1,910 assertions execute through the installed compiler, strict Go tooling, and runtime. The cache-warm-capable samples varied, so these are observations rather than a latency promise. This is R4/R5 evidence, not required-PR work. |
 | R4 exact-SHA Quality matrix | 27m 45s Linux Go 1.25.12; 22m 31s Linux Go 1.26.5; 22m 06s macOS | 24m 38s Linux Go 1.25.12; 29m 19s Linux Go 1.26.5; 22m 55s macOS | Commit `0c51420c`; [Quality run 30713172877](https://github.com/fullofcaffeine/reflaxe.go/actions/runs/30713172877) passed all three cold hosted jobs |
 
 The strategy and selector contracts add under two seconds locally, and the new
@@ -298,9 +301,11 @@ tooling, example, OS, and release evidence remain independent.
 
 Deferred work is tracked in Beads rather than hidden here:
 
-- `haxe_go-vfp.12.10`: expand the three-family official Haxe target smoke to
-  the complete applicable active inventory before considering broader
-  official-conformance wording;
+- `haxe_go-vfp.12.10` establishes the classified extended inventory and its
+  R4/R5 evidence without broadening compatibility admission;
+- `haxe_go-vfp.12.12`: burn down the 472 exact official-inventory blockers;
+  its children separately own Haxe compilation, invalid generated Go, runtime
+  semantic mismatches, and typed harness-support gaps;
 - `haxe_go-vfp.16`: graduate affected-test planning only after an observation
   window establishes selector value and misses;
 - `haxe_go-vfp.14`: complete local changed-snapshot discovery, fixed and closed

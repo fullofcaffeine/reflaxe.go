@@ -34,6 +34,7 @@ This page helps you find the right docs quickly.
 
 - [Behavior-first testing strategy and product scorecards](testing-strategy.md)
 - [Official Haxe target smoke](official-haxe-target-smoke.md)
+- [Extended official Haxe target inventory](official-haxe-target-inventory.md)
 - [Compatibility and support matrix](compatibility-support-matrix.md)
 - [Machine-readable compatibility manifest](compatibility-support-manifest.json)
 - [Generated compatibility release status](compatibility-release-status.md)
