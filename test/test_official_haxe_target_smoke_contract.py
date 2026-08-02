@@ -108,8 +108,11 @@ class OfficialHaxeTargetSmokeContractTest(unittest.TestCase):
         main = (SMOKE_ROOT / "src" / "OfficialTargetSmokeMain.hx").read_text(
             encoding="utf-8"
         )
+        runner = RUNNER.read_text(encoding="utf-8")
         self.assertIn("Sys.sleep(60.0)", main)
         self.assertNotIn("while (keepRunning)", main)
+        self.assertIn("timeout_detected = True", runner)
+        self.assertIn('"markerObserved": timeout_marker_observed', runner)
 
     def test_every_uploaded_artifact_rejects_ephemeral_absolute_paths(self) -> None:
         module = load_runner()

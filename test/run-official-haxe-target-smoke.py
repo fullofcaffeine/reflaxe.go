@@ -696,12 +696,21 @@ def verify_failure_propagation(
             timeout=0.25,
         )
         timeout_detected = False
+        timeout_marker_observed = False
     except subprocess.TimeoutExpired as error:
         captured = error.stdout or ""
         if isinstance(captured, bytes):
             captured = captured.decode("utf-8", errors="replace")
-        timeout_detected = "OFFICIAL_HAXE_SMOKE_CONTROL\ttimeout" in captured
-    evidence.append({"kind": "timeout", "observedNonzero": 124, "detected": timeout_detected})
+        timeout_detected = True
+        timeout_marker_observed = "OFFICIAL_HAXE_SMOKE_CONTROL\ttimeout" in captured
+    evidence.append(
+        {
+            "kind": "timeout",
+            "observedNonzero": 124 if timeout_detected else 0,
+            "detected": timeout_detected,
+            "markerObserved": timeout_marker_observed,
+        }
+    )
 
     evidence.append(
         verify_missing_selected_source_control(
