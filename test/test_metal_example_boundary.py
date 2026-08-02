@@ -20,6 +20,19 @@ def write_file(path: Path, content: str) -> None:
     path.write_text(textwrap.dedent(content).strip() + "\n", encoding="utf-8")
 
 
+def write_manifest(root: Path, profiles_by_example: dict[str, list[str]]) -> None:
+    payload = {
+        "schemaVersion": 2,
+        "examples": [
+            {"id": example_id, "profiles": profiles}
+            for example_id, profiles in sorted(profiles_by_example.items())
+        ],
+    }
+    path = root / "examples" / "qa-manifest.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
+
+
 class MetalExampleBoundaryTest(unittest.TestCase):
     def run_checker(self, repo_root: Path, *args: str) -> subprocess.CompletedProcess[str]:
         cmd = [sys.executable, str(SCRIPT), "--root", str(repo_root), *args]
@@ -61,6 +74,7 @@ class MetalExampleBoundaryTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             report = root / "audit.json"
+            write_manifest(root, {"alpha": ["portable", "metal"], "zeta": ["metal"]})
             write_file(
                 root / "examples" / "zeta" / "app" / "core" / "Core.hx",
                 """
@@ -94,6 +108,47 @@ class MetalExampleBoundaryTest(unittest.TestCase):
                     "examples/zeta/app/core/Core.hx",
                 ],
             )
+
+    def test_full_scope_ignores_examples_that_do_not_declare_metal(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            report = root / "audit.json"
+            write_manifest(
+                root,
+                {
+                    "metal_demo": ["portable", "metal"],
+                    "portable_demo": ["portable"],
+                },
+            )
+            write_file(
+                root / "examples" / "portable_demo" / "Main.hx",
+                """
+                import haxe.ds.StringMap;
+                class Main {}
+                """,
+            )
+            write_file(
+                root / "examples" / "metal_demo" / "Main.hx",
+                """
+                class Main {}
+                """,
+            )
+
+            result = self.run_checker(
+                root,
+                "--scope",
+                "full",
+                "--mode",
+                "audit",
+                "--report",
+                str(report),
+                "--max-violations",
+                "0",
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            data = json.loads(report.read_text(encoding="utf-8"))
+            self.assertEqual(data["violations"], [])
+            self.assertEqual(data["scannedFiles"], ["examples/metal_demo/Main.hx"])
 
     def test_audit_threshold_can_fail_when_enabled(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

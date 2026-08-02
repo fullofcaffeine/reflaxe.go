@@ -41,11 +41,13 @@ policy or benchmark evidence, we avoid synthetic duplication.
 
 ## Native-adapter collection purity gates (legacy command names)
 
-Dual-profile examples use two collection-purity gates:
+Examples that declare a `metal` profile use two collection-purity gates:
 
 - Hard boundary gate:
   - `examples/*/app/runtime/GoNativeRuntime.hx`
-- Full-tree gate: audits `haxe.ds.*` imports across all example modules.
+- Full-tree gate: reads `examples/qa-manifest.json`, selects only examples whose
+  profile list includes `metal`, then audits every Haxe module in those example
+  trees. Portable-only examples are outside this metal scorecard.
 
 Commands:
 
@@ -67,6 +69,10 @@ CI:
   - `GO_METAL_COLLECTION_AUDIT_ENFORCE=1`
   - `GO_METAL_COLLECTION_AUDIT_MAX=0`
 - the job also uploads the full-scope audit artifact (`metal-collection-audit`).
+
+The manifest-based selection matters because a valid portable-only example may
+use an admitted Haxe collection without claiming a metal/native boundary. Its
+green or red result belongs to the portable example gates, not this one.
 
 Allowlist rule:
 

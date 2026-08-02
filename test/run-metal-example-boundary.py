@@ -12,11 +12,10 @@ ROOT = Path(__file__).resolve().parent.parent
 
 BOUNDARY_TARGET_GLOBS = [
     "examples/*/app/runtime/GoNativeRuntime.hx",
+    "examples/*/profile/MetalRuntime.hx",
 ]
 
-FULL_TARGET_GLOBS = [
-    "examples/**/*.hx",
-]
+EXAMPLES_MANIFEST = Path("examples/qa-manifest.json")
 
 FORBIDDEN_IMPORTS = [
     re.compile(r"^\s*import\s+haxe\.ds\.List\s*;"),
@@ -32,7 +31,7 @@ def parse_args() -> argparse.Namespace:
         "--scope",
         choices=["boundary", "full"],
         default="boundary",
-        help="boundary=metal adapter modules only, full=all example modules.",
+        help="boundary=metal adapter modules only, full=all modules in examples that declare a metal profile.",
     )
     parser.add_argument(
         "--mode",
@@ -49,14 +48,38 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def target_globs_for_scope(scope: str) -> list[str]:
-    return BOUNDARY_TARGET_GLOBS if scope == "boundary" else FULL_TARGET_GLOBS
+def metal_example_ids(root: Path) -> list[str]:
+    manifest = root / EXAMPLES_MANIFEST
+    if not manifest.exists():
+        raise RuntimeError(f"missing examples QA manifest: {manifest}")
+    payload = json.loads(manifest.read_text(encoding="utf-8"))
+    if payload.get("schemaVersion") != 2 or not isinstance(payload.get("examples"), list):
+        raise RuntimeError(f"invalid examples QA manifest schema: {manifest}")
+
+    result: list[str] = []
+    seen: set[str] = set()
+    for raw in payload["examples"]:
+        if not isinstance(raw, dict):
+            raise RuntimeError(f"invalid example record in {manifest}")
+        example_id = str(raw.get("id", "")).strip()
+        profiles = raw.get("profiles")
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", example_id) or example_id in seen:
+            raise RuntimeError(f"invalid or duplicate example id in {manifest}: {example_id!r}")
+        if not isinstance(profiles, list) or not all(isinstance(item, str) for item in profiles):
+            raise RuntimeError(f"example {example_id} has invalid profiles in {manifest}")
+        seen.add(example_id)
+        if "metal" in profiles:
+            result.append(example_id)
+    return sorted(result)
 
 
 def iter_target_files(root: Path, scope: str) -> list[Path]:
     files: list[Path] = []
     seen: set[Path] = set()
-    for pattern in target_globs_for_scope(scope):
+    patterns = BOUNDARY_TARGET_GLOBS
+    if scope == "full":
+        patterns = [f"examples/{example_id}/**/*.hx" for example_id in metal_example_ids(root)]
+    for pattern in patterns:
         for path in sorted(root.glob(pattern)):
             resolved = path.resolve()
             if resolved in seen:
@@ -104,7 +127,11 @@ def main() -> int:
         return 2
 
     root = args.root.resolve()
-    targets = iter_target_files(root, args.scope)
+    try:
+        targets = iter_target_files(root, args.scope)
+    except (json.JSONDecodeError, RuntimeError) as error:
+        print(f"Metal example boundary target selection failed: {error}")
+        return 2
     violations = collect_violations(root, targets)
     violation_count = len(violations)
     threshold_exceeded = args.max_violations is not None and violation_count > args.max_violations
