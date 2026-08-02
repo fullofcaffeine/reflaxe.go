@@ -171,6 +171,9 @@ jobs:
 
       - name: Verify clean exact source
         run: |
+          # krdlab/setup-haxe leaves these extracted, untracked setup folders in
+          # the workspace after installing the toolchain into the hosted cache.
+          rm -rf "haxe-${HAXE_VERSION}-linux64" "neko-2.4.0-linux64"
           git status --short
           test -z "$(git status --porcelain=v1)"
 

@@ -250,6 +250,10 @@ class OfficialHaxeTargetInventoryContractTest(unittest.TestCase):
         self.assertIn("npm run test:official-haxe-inventory", workflow)
         self.assertIn("npm run test:official-haxe-inventory -- --require-clean-source", workflow)
         self.assertIn("Verify clean exact source", workflow)
+        self.assertIn(
+            'rm -rf "haxe-${HAXE_VERSION}-linux64" "neko-2.4.0-linux64"',
+            workflow,
+        )
         self.assertIn("official-haxe-target-inventory-${{ matrix.go }}", workflow)
         self.assertIn("- official-haxe-target-inventory", workflow)
 
